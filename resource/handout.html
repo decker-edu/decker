@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html$if(lang)$ lang="$lang$"$endif$$if(dir)$ dir="$dir$"$endif$>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+$for(author-meta)$
+  <meta name="author" content="$author-meta$">
+$endfor$
+$if(date-meta)$
+  <meta name="dcterms.date" content="$date-meta$">
+$endif$
+$if(keywords)$
+  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
+$endif$
+  <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+  <style type="text/css">code{white-space: pre;}</style>
+$if(quotes)$
+  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
+$endif$
+$if(highlighting-css)$
+  <style type="text/css">
+$highlighting-css$
+  </style>
+$endif$
+$if(css)$
+$for(css)$
+  <link rel="stylesheet" href="$css$">
+$endfor$
+$else$
+  <link rel="stylesheet" href="https://bootswatch.com/readable/bootstrap.min.css">
+$endif$
+  <style type="text/css">
+.container {
+    max-width:750px;
+    margin:0 auto;
+}
+
+.container .content {
+    min-height: 750px;
+}
+
+.page-header small {
+    white-space:nowrap;
+}
+
+.page-header h1 {
+    font-size: 180%;
+}
+
+h1 {
+    font-size: 150%;
+}
+
+h2 {
+    font-size: 130%;
+}
+
+h3 {
+    font-size: 110%;
+}
+
+.container p > img {
+    width: 100%;
+}
+
+.container h6.post-date {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.container h2.post-title {
+    margin-top: 10px;
+}
+
+.container address {
+    color: #888;
+}
+address p.date {
+    float: right;
+}
+  </style>
+
+$if(math)$
+  $math$
+$endif$
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+$for(header-includes)$
+  $header-includes$
+$endfor$
+</head>
+<body>
+$for(include-before)$
+$include-before$
+$endfor$
+<div class="container">
+$if(title)$
+<header>
+<div class="page-header">
+<div class="row">
+<div class="col-lg-8 col-md-7 col-sm-6">
+<h1 class="title">$title$</h1>
+$if(subtitle)$
+<p class="lead subtitle">$subtitle$</p>
+$endif$
+</div>
+</div>
+</div>
+</header>
+$endif$
+<div class="row">
+<div class="col-lg-12">
+$if(toc)$
+<nav id="$idprefix$TOC">
+$toc$
+</nav>
+$endif$
+$body$
+$for(include-after)$
+$include-after$
+$endfor$
+$if(author)$
+<hr>
+<address>
+$if(date)$
+<p class="date">$date$</p>
+$endif$
+<p class="author">Copyright 2016 $author$</p>
+$endif$
+</address>
+</div>
+</div>
+</div>
+</body>
+</html>

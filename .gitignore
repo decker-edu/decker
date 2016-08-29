@@ -1,0 +1,12 @@
+.DS_Store/
+.stack-work/
+TAGS
+*.swp
+server.log
+generated-index.md
+generated-index.html
+index.html
+*-deck.html
+*-handout.html
+*-page.html
+

@@ -1,0 +1,658 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,700|Roboto+Mono:400,700|Roboto+Slab:400,700);
+@import url(https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700);
+
+/**
+ * A simple theme for reveal.js presentations, similar
+ * to the default theme. The accent color is darkblue.
+ *
+ * This theme is Copyright (C) 2012 Owen Versteeg, https://github.com/StereotypicalApps. It is MIT licensed.
+ * reveal.js is Copyright (C) 2011-2012 Hakim El Hattab, http://hakim.se
+ */
+
+
+/*********************************************
+ * GLOBAL STYLES
+ *********************************************/
+
+body {
+    background: #fff;
+    background-color: #fff;
+}
+
+.reveal {
+    font-family: 'Roboto' sans-serif;
+    font-size: 34px;
+    font-weight: normal;
+    color: #000;
+}
+
+.reveal .smalltext {
+    font-size: 28px;
+}
+
+::selection {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.99);
+    text-shadow: none;
+}
+
+.reveal .slides > section,
+.reveal .slides > section > section {
+    line-height: 1.3;
+    font-weight: inherit;
+}
+
+
+/*********************************************
+ * HEADERS
+ *********************************************/
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+    margin: 0 0 20px 0;
+    color: #777;
+    font-family: 'Roboto Slab' sans-serif;
+    font-weight: normal;
+    line-height: 1.3;
+    letter-spacing: normal;
+    text-transform: none;
+    text-shadow: none;
+    word-wrap: break-word;
+}
+
+.reveal .white h1,
+.reveal .white h2 {
+    color: #eee;
+}
+
+.reveal .black h1,
+.reveal .black h2 {
+    color: #111;
+}
+
+.reveal .white {
+    color: #eee;
+}
+
+.speaker-notes h1,
+.speaker-notes h2,
+.speaker-notes h3,
+.speaker-notes h4,
+.speaker-notes h5,
+.speaker-notes h6 {
+    color: #FFF;
+    font-weight: bold;
+    margin-bottom: 0.2em;
+}
+
+.speaker-notes h1 {
+    text-decoration: underline;
+    margin-bottom: 0.4em;
+}
+
+/*********************************************
+ * OTHER
+ *********************************************/
+
+.reveal p {
+    margin: 20px 0;
+    line-height: 1.3;
+}
+
+
+/* Ensure certain elements are never larger than the slide itself */
+
+
+/*
+.reveal img,
+.reveal video,
+.reveal iframe {
+    max-width: 95%;
+    max-height: 95%;
+}
+*/
+
+.reveal strong,
+.reveal b {
+    font-weight: bold;
+}
+
+.reveal em {
+    font-style: italic;
+}
+
+.reveal ol,
+.reveal dl,
+.reveal ul {
+    display: inline-block;
+    text-align: left;
+    margin: 0 0 0 1em;
+}
+
+.reveal ol {
+    list-style-type: decimal;
+}
+
+.reveal ul {
+    list-style-type: disc;
+}
+
+.reveal ul ul {
+    list-style-type: square;
+}
+
+.reveal ul ul ul {
+    list-style-type: circle;
+}
+
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+    display: block;
+    margin-left: 40px;
+}
+
+.reveal dt {
+    font-weight: bold;
+}
+
+.reveal dd {
+    margin-left: 40px;
+}
+
+.reveal q,
+.reveal blockquote {
+    quotes: none;
+}
+
+.reveal blockquote {
+    display: block;
+    position: relative;
+    width: 70%;
+    margin: 20px auto;
+    padding: 5px;
+    font-style: italic;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
+}
+
+.reveal blockquote p:first-child,
+.reveal blockquote p:last-child {
+    display: inline-block;
+}
+
+.reveal q {
+    font-style: italic;
+}
+
+.reveal pre {
+    display: block;
+    position: relative;
+    width: 90%;
+    margin: 20px auto;
+    text-align: left;
+    font-size: 0.55em;
+    font-family: 'Source Code Pro' monospace;
+    line-height: 1.2em;
+    word-wrap: break-word;
+    box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.3);
+}
+
+.reveal code {
+    font-family: 'Source Code Pro' monospace;
+    background: #FFF;
+    /* font-weight: bold; */
+    color: #700;
+}
+
+.reveal pre code {
+    display: block;
+    padding: 5px;
+    overflow: auto;
+    max-height: 500px;
+    word-wrap: normal;
+    background: #EEE;
+    color: #000;
+}
+
+.reveal table {
+    margin: auto;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.reveal table th {
+    font-weight: bold;
+}
+
+.reveal table th,
+.reveal table td {
+    text-align: left;
+    padding: 0.2em 0.5em 0.2em 0.5em;
+    border-bottom: 1px solid;
+}
+
+.reveal table th[align="center"],
+.reveal table td[align="center"] {
+    text-align: center;
+}
+
+.reveal table th[align="right"],
+.reveal table td[align="right"] {
+    text-align: right;
+}
+
+.reveal table tr:last-child td {
+    border-bottom: none;
+}
+
+.reveal sup {
+    vertical-align: super;
+}
+
+.reveal sub {
+    vertical-align: sub;
+}
+
+.reveal small {
+    display: inline-block;
+    font-size: 0.6em;
+    line-height: 1.2em;
+    vertical-align: top;
+}
+
+.reveal small * {
+    vertical-align: top;
+}
+
+
+/*********************************************
+ * LINKS
+ *********************************************/
+
+.reveal a {
+    color: #009;
+    text-decoration: none;
+    -webkit-transition: color 0.15s ease;
+    -moz-transition: color 0.15s ease;
+    transition: color 0.15s ease;
+}
+
+.reveal a:hover {
+    color: blue;
+    text-shadow: none;
+    border: none;
+}
+
+.reveal .roll span:after {
+    color: #fff;
+    background: #00004d;
+}
+
+
+/*********************************************
+ * IMAGES
+ *********************************************/
+
+.reveal section img {
+    margin: 15px 0px;
+    /* background: rgba(255, 255, 255, 0.12); */
+    /* border: 1px solid #000; */
+    /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); */
+}
+
+.reveal a img {
+    -webkit-transition: all 0.15s linear;
+    -moz-transition: all 0.15s linear;
+    transition: all 0.15s linear;
+}
+
+.reveal a:hover img {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #009;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
+}
+
+
+/*********************************************
+ * NAVIGATION CONTROLS
+ *********************************************/
+
+.reveal .controls div.navigate-left,
+.reveal .controls div.navigate-left.enabled {
+    border-right-color: #009;
+}
+
+.reveal .controls div.navigate-right,
+.reveal .controls div.navigate-right.enabled {
+    border-left-color: #009;
+}
+
+.reveal .controls div.navigate-up,
+.reveal .controls div.navigate-up.enabled {
+    border-bottom-color: #009;
+}
+
+.reveal .controls div.navigate-down,
+.reveal .controls div.navigate-down.enabled {
+    border-top-color: #009;
+}
+
+.reveal .controls div.navigate-left.enabled:hover {
+    border-right-color: blue;
+}
+
+.reveal .controls div.navigate-right.enabled:hover {
+    border-left-color: blue;
+}
+
+.reveal .controls div.navigate-up.enabled:hover {
+    border-bottom-color: blue;
+}
+
+.reveal .controls div.navigate-down.enabled:hover {
+    border-top-color: blue;
+}
+
+
+/*********************************************
+ * PROGRESS BAR
+ *********************************************/
+
+.reveal .progress {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.reveal .progress span {
+    background: #777;
+    -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+    -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+    transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+}
+
+
+/*********************************************
+ * SLIDE NUMBER
+ *********************************************/
+
+.reveal .slide-number {
+    color: #009;
+}
+
+.reveal section {
+    text-align: left;
+    line-height: 1.4em;
+}
+
+.reveal section h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0 0 0.8em 0;
+}
+
+.reveal section h2 {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 0em 0 0.5em 0;
+}
+
+.reveal section h3 {
+    font-size: 1.0em;
+    font-weight: bold;
+    margin: 0.0em 0 0.5em 0;
+}
+
+.reveal section .shadowed h1,
+.reveal section .shadowed h2,
+.reveal section .shadowed h3,
+.reveal section .shadowed p,
+.reveal section .shadowed ul,
+.reveal section .shadowed ol,
+.reveal section .shadowed li {
+    text-shadow: 0.05em 0.05em #fff, -0.05em -0.05em #fff, -0.05em 0.05em #fff, 0.05em -0.05em #fff;
+}
+
+.reveal section h1.title {
+    color: #000;
+}
+
+.reveal section h1.subtitle {
+    color: #666;
+}
+
+.reveal section h2.author {
+    color: #666;
+}
+
+.reveal section h3.date {
+    color: #666;
+}
+
+.reveal section figure figcaption {
+    font-size: 0.8em;
+    font-style: italic;
+    text-align: center;
+}
+
+.reveal section pre {
+    font-size: 80%;
+    width: 100%;
+    padding: 0.2;
+    margin: 0 0 0.5em 0;
+}
+
+.reveal section.code-size-90 pre {
+    font-size: 90%;
+}
+
+.reveal section.code-size-80 pre {
+    font-size: 80%;
+}
+
+.reveal section.code-size-70 pre {
+    font-size: 70%;
+}
+
+.reveal section.code-size-60 pre {
+    font-size: 60%;
+}
+
+.reveal section.code-size-50 pre {
+    font-size: 50%;
+}
+
+.reveal section ul,
+.reveal section ol {
+    margin: 0 0 0.5em 1.4em;
+}
+
+.reveal section figure,
+.reveal section p {
+    margin: 0 0 0.5em 0;
+}
+
+.reveal section img {
+    width: 100%;
+    margin: 0px auto;
+    display: block;
+}
+
+.reveal section.img-center img {
+    margin: 0px auto;
+    display: block;
+}
+
+.reveal section.img-nocenter img {
+    margin: 0px 0px;
+    display: inline;
+}
+
+.reveal section.img-size-90 img {
+    width: 90%;
+}
+
+.reveal section.img-size-80 img {
+    width: 80%;
+}
+
+.reveal section.img-size-70 img {
+    width: 70%;
+}
+
+.reveal section.img-size-60 img {
+    width: 60%;
+}
+
+.reveal section.img-size-50 img {
+    width: 50%;
+}
+
+.reveal section.img-size-40 img {
+    width: 40%;
+}
+
+.reveal section.img-size-30 img {
+    width: 30%;
+}
+
+.reveal section.img-size-20 img {
+    width: 20%;
+}
+
+.reveal section.img-size-10 img {
+    width: 10%;
+}
+
+.reveal section div.slide-column div {
+    margin-top: 0.2em;
+}
+
+.reveal section div.slide-column div:first-child {
+    margin-top: 0;
+}
+
+.reveal section div.box.definition {
+    background-color: #aea;
+    border: 1px solid #8b8;
+    padding: 0 0.5em 0 0.5em;
+    margin: 0 -0.5em 0.5em -0.5em;
+}
+
+.reveal section div.box.definition h3 {
+    color: #040;
+}
+
+.reveal section div.box.alert {
+    background-color: #eaa;
+    border: 1px solid #b88;
+    padding: 0 0.5em 0 0.5em;
+    margin: 0 -0.5em 0.5em -0.5em;
+}
+
+.reveal section div.box.alert h3 {
+    color: #400;
+}
+
+.reveal section div.box.equation {
+    background-color: #ddd;
+    border: 1px solid #bbb;
+    padding: 0 0.5em 0 0.5em;
+    margin: 0 -0.5em 0.5em -0.5em;
+}
+
+.reveal section div.box.equation h3 {
+    color: #444;
+}
+
+.reveal section div.box.alert {
+    background-color: #eaa;
+    border: 1px solid #b88;
+    padding: 0 0.5em 0 0.5em;
+    margin: 0 -0.5em 0.5em -0.5em;
+}
+
+.reveal section div.box.alert h3 {
+    color: #400;
+}
+
+.reveal section div.columns-2 {
+    width: 46%;
+}
+
+.reveal section div.column-1 {
+    float: left;
+}
+
+.reveal section div.column-2 {
+    float: right;
+}
+
+.reveal section table {
+    max-width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1em;
+    margin-bottom: 0.45em;
+}
+
+.reveal section table th,
+.reveal section table td {
+    padding: 4px 8px;
+    line-height: 1.45em;
+    vertical-align: top;
+    border-top: 1px solid #CCC;
+}
+
+.reveal section table th {
+    font-weight: bold;
+}
+
+.reveal section table thead th {
+    vertical-align: bottom;
+}
+
+.reveal section table tbody > tr:nth-child(odd) > td,
+.reveal section table tbody > tr:nth-child(odd) > th {
+    background-color: #EEE;
+}
+
+.reveal section table tbody tr:hover > td,
+.reveal section table tbody tr:hover > th {
+    background-color: #DDD;
+}
+
+.reveal section table img {
+    margin: 0;
+    padding: 0;
+    border: 1px solid #AAA;
+    border-radius: 0;
+}
+
+/* iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php */
+.reveal section div.videoWrapper {
+	position: relative;
+	padding-bottom: 56.25%; /* 16:9 */
+	padding-top: 0apx;
+	height: 0;
+}
+
+.reveal section div.videoWrapper iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+div.MathJax_Display {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
