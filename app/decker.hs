@@ -1,9 +1,6 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 import           Control.Exception
 import           Control.Monad
 import qualified Data.ByteString.Char8      as B
-import           Data.FileEmbed
 import           Data.IORef
 import           Data.List
 import           Data.Maybe
@@ -182,10 +179,6 @@ main = do
         phony "clean-cache" $ do
             need ["clean"]
             removeFilesAfter "." ["**/cached"]
-
--- | The help page
-helpText :: B.ByteString
-helpText = $(makeRelativeToProject "resource/help-page.md" >>= embedFile)
 
 -- | Glob for pathes below and relative to the current directory.
 globRelative :: String -> Action [FilePath]

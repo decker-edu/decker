@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Utilities
-       (spawn, terminate, threadDelay', wantRepeat, waitForModificationIn,
+       (helpText, spawn, terminate, threadDelay', wantRepeat, waitForModificationIn,
         runShake, defaultContext, runShakeInContext, watchFiles,
         waitForTwitch, dropSuffix, stopServer, startServer, runHttpServer,
         writeIndex, readMetaData, readMetaDataIO, substituteMetaData,
@@ -57,40 +57,40 @@ spawn = liftIO . spawnCommand
 
 -- Runs liveroladx on the current directory, if it is not already running. If
 -- open is True a browser window is opended.
-runHttpServer contextRef open = 
+runHttpServer contextRef open =
   do baseUrl <- getBaseUrl
      Context files process <- liftIO $ readIORef contextRef
      case process of
        Just handle -> return ()
-       Nothing -> 
+       Nothing ->
          do putNormal "# livereloadx (on http://localhost:8888, see server.log)"
             putNormal ("#     DECKER_RESOURCE_BASE_URL=" ++ baseUrl)
-            handle <- 
+            handle <-
               liftIO $ spawnCommand "livereloadx -s -p 8888 -d 500 2>&1 > server.log"
             liftIO $ writeIORef contextRef $ Context files (Just handle)
             threadDelay' 200000
             when open $ cmd "open http://localhost:8888/" :: Action ()
 
-startServer id command = 
+startServer id command =
   liftIO $
   do processHandle <- spawnCommand command
      withProcessHandle processHandle handleResult
-  where handleResult ph = 
+  where handleResult ph =
           case ph of
-            ClosedHandle e -> 
+            ClosedHandle e ->
               print $ "Error starting server " ++ id ++ ": " ++ show e
-            OpenHandle p -> 
+            OpenHandle p ->
               do print $ "Server " ++ id ++ " running (" ++ show p ++ ")"
                  writeFile (id ++ ".pid")
                            (show p)
 
-stopServer id = 
+stopServer id =
   liftIO $
   do let pidFile = id ++ ".pid"
      result <- try $ readFile pidFile
      case result of
        Left (SomeException e) -> print $ "Unable to read file " ++ pidFile
-       Right pid -> 
+       Right pid ->
          do exitCode <- system ("kill -9 " ++ pid)
             removeFile pidFile
 
@@ -108,7 +108,7 @@ waitForModificationIn = liftIO . waitForTwitch
 
 -- | Runs shake possibly multiple times if a rule demands it via the
 -- | repeatShake action.
-runShake justOnce options rules = 
+runShake justOnce options rules =
   untilM_ (shakeArgs options rules)
           (readIORef justOnce)
 
@@ -120,29 +120,29 @@ data Context =
 
 defaultContext = Context [] Nothing
 
-runShakeInContext contextRef options rules = 
+runShakeInContext contextRef options rules =
   do tid <- myThreadId
      installHandler keyboardSignal
                     (Catch (cleanup tid contextRef))
                     Nothing
      untilM_ tryRunShake (nothingToWatch contextRef)
      cleanup tid contextRef
-  where tryRunShake = 
+  where tryRunShake =
           catch (shakeArgs options rules)
                 (\(SomeException e) -> return ())
-        cleanup tid contextRef = 
+        cleanup tid contextRef =
           do Context _ process <- readIORef contextRef
              case process of
                Just handle -> terminateProcess handle
                Nothing -> return ()
              throwTo tid ExitSuccess
 
-watchFiles files contextRef = 
+watchFiles files contextRef =
   liftIO $
   do Context _ handle <- readIORef contextRef
      writeIORef contextRef $ Context files handle
 
-nothingToWatch contextRef = 
+nothingToWatch contextRef =
   do Context files _ <- readIORef contextRef
      if null files
         then return True
@@ -151,27 +151,27 @@ nothingToWatch contextRef =
 
 -- | Actively waits for the first change to any member in the set of specified
 -- | files and their parent directories, then returns.
-waitForTwitch files = 
+waitForTwitch files =
   do startTime <- getCurrentTime
      let dirs = map takeDirectory files
      let filesAndDirs = Set.toList . Set.fromList $ files ++ dirs
      whileM_ (noModificationSince startTime filesAndDirs)
              (threadDelay 300000)
-  where noModificationSince startTime pathes = 
+  where noModificationSince startTime pathes =
           do modified <- mapM (modifiedSince startTime) pathes
              return $ not (or modified)
-        modifiedSince time path = 
+        modifiedSince time path =
           handle (\(SomeException _) -> return False) $
           do modTime <- getModificationTime path
              return $ diffUTCTime modTime time > 0
 
 -- | Monadic version of list concatenation.
 (<++>) :: Monad m => m [a] -> m [a] -> m [a]
-(<++>) = liftM2 (++) 
+(<++>) = liftM2 (++)
 
 -- | Mark files as need and return them
 markNeeded :: [FilePath] -> Action [FilePath]
-markNeeded files = 
+markNeeded files =
   do need files
      return files
 
@@ -181,11 +181,11 @@ dropSuffix s t = fromMaybe t (stripSuffix s t)
 -- | Monadic version of suffix replacement for easy binding.
 replaceSuffixWith
   :: String -> String -> [FilePath] -> Action [FilePath]
-replaceSuffixWith suffix with pathes = 
+replaceSuffixWith suffix with pathes =
   return [dropSuffix suffix d ++ with | d <- pathes]
 
 -- | Generates an index file with links to all generated files of interest.
-writeIndex path decks handouts pages plain = 
+writeIndex path decks handouts pages plain =
   liftIO $
   do let everything = decks ++ handouts ++ pages ++ plain
      decksRel <- mapM makeRelativeToCurrentDirectory decks
@@ -207,19 +207,19 @@ writeIndex path decks handouts pages plain =
 -- | Decodes an array of YAML files and combines the data into one object.
 -- Key value pairs from later files overwrite those from early ones.
 readMetaDataIO :: [FilePath] -> IO Y.Value
-readMetaDataIO files = 
+readMetaDataIO files =
   mapM decode files >>= foldM combine (Y.Object HashMap.empty)
-  where decode file = 
+  where decode file =
           do result <- Y.decodeFileEither file
              return (file,result)
-        combine (Y.Object obj) (file,Right (Y.Object new)) = 
+        combine (Y.Object obj) (file,Right (Y.Object new)) =
           return (Y.Object (HashMap.union new obj))
-        combine obj (file,Right _) = 
+        combine obj (file,Right _) =
           do throw $
                YamlException $
                file ++ ": top level metadata is not a YAML object."
              return obj
-        combine obj (file,Left err) = 
+        combine obj (file,Left err) =
           do throw $
                YamlException $ file ++ ": " ++ Y.prettyPrintParseException err
              return obj
@@ -229,17 +229,21 @@ readMetaData files = liftIO $ readMetaDataIO files
 -- | Substitutes meta data values in the provided file.
 substituteMetaData
   :: FilePath -> MT.Value -> Action T.Text
-substituteMetaData source metaData = 
+substituteMetaData source metaData =
   do result <- liftIO $ M.localAutomaticCompile source
      case result of
        Right template -> return $ M.substituteValue template metaData
        Left err -> throw $ MustacheException (show err)
 
-getBaseUrl = 
+getBaseUrl =
   getEnvWithDefault "https://tramberend.beuth-hochschule.de/cdn/" "DECKER_RESOURCE_BASE_URL"
 
+-- | The help page
+helpText :: B.ByteString
+helpText = $(makeRelativeToProject "resource/help-page.md" >>= embedFile)
+
 deckTemplate :: String
-deckTemplate = 
+deckTemplate =
   B.unpack $(makeRelativeToProject "resource/deck.html" >>= embedFile)
 
 -- | Write a markdown file to a HTML file using the page template.
@@ -250,14 +254,14 @@ markdownToHtmlDeck markdownFile metaFiles out =
      pandoc <- readMetaMarkdown markdownFile metaFiles
      processed <- processPandocDeck "revealjs" pandoc
      baseUrl <- getBaseUrl
-     let options = 
+     let options =
            def {writerHtml5 = True
                ,writerStandalone = True
                ,writerTemplate = deckTemplate
                ,writerSlideVariant = RevealJsSlides
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
-               ,writerHTMLMathMethod = 
+               ,writerHTMLMathMethod =
                   KaTeX (baseUrl ++ "katex-0.6.0/katex.min.js")
                         (baseUrl ++ "katex-0.6.0/katex.min.css")
                ,writerVariables = [("revealjs-url",baseUrl ++ "reveal.js")]
@@ -265,11 +269,11 @@ markdownToHtmlDeck markdownFile metaFiles out =
      writePandocString writeHtmlString options out processed
 
 pageTemplate :: String
-pageTemplate = 
+pageTemplate =
   B.unpack $(makeRelativeToProject "resource/page.html" >>= embedFile)
 
 pageLatexTemplate :: String
-pageLatexTemplate = 
+pageLatexTemplate =
   B.unpack $(makeRelativeToProject "resource/page.tex" >>= embedFile)
 
 -- | Write a markdown file to a HTML file using the page template.
@@ -280,13 +284,13 @@ markdownToHtmlPage markdownFile metaFiles out =
      pandoc <- readMetaMarkdown markdownFile metaFiles
      processed <- processPandocDeck "html" pandoc
      baseUrl <- getBaseUrl
-     let options = 
+     let options =
            def {writerHtml5 = True
                ,writerStandalone = True
                ,writerTemplate = pageTemplate
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
-               ,writerHTMLMathMethod = 
+               ,writerHTMLMathMethod =
                   KaTeX (baseUrl ++ "katex-0.6.0/katex.min.js")
                         (baseUrl ++ "katex-0.6.0/katex.min.css")
                ,writerCiteMethod = Citeproc}
@@ -295,12 +299,12 @@ markdownToHtmlPage markdownFile metaFiles out =
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage
   :: FilePath -> [FilePath] -> FilePath -> Action ()
-markdownToPdfPage markdownFile metaFiles out = 
+markdownToPdfPage markdownFile metaFiles out =
   do need $ markdownFile : metaFiles
      pandoc <- readMetaMarkdown markdownFile metaFiles
      processed <- processPandoc "latex" pandoc
      baseUrl <- getBaseUrl
-     let options = 
+     let options =
            def {writerStandalone = True
                ,writerTemplate = pageLatexTemplate
                ,writerHighlight = True
@@ -309,35 +313,35 @@ markdownToPdfPage markdownFile metaFiles out =
      putNormal $ "# pandoc (for " ++ out ++ ")"
      pandocMakePdf options processed out
 
-pandocMakePdf options processed out = 
+pandocMakePdf options processed out =
   do result <- liftIO $ makePDF "pdflatex" writeLaTeX options processed
      case result of
        Left err -> throw $ PandocException (show err)
        Right pdf -> liftIO $ LB.writeFile out pdf
 
 handoutTemplate :: String
-handoutTemplate = 
+handoutTemplate =
   B.unpack $(makeRelativeToProject "resource/handout.html" >>= embedFile)
 
 handoutLatexTemplate :: String
-handoutLatexTemplate = 
+handoutLatexTemplate =
   B.unpack $(makeRelativeToProject "resource/handout.tex" >>= embedFile)
 
 -- | Write a markdown file to a HTML file using the handout template.
 markdownToHtmlHandout
   :: FilePath -> [FilePath] -> FilePath -> Action ()
-markdownToHtmlHandout markdownFile metaFiles out = 
+markdownToHtmlHandout markdownFile metaFiles out =
   do need $ markdownFile : metaFiles
      pandoc <- readMetaMarkdown markdownFile metaFiles
      processed <- processPandocHandout "html" pandoc
      baseUrl <- getBaseUrl
-     let options = 
+     let options =
            def {writerHtml5 = True
                ,writerStandalone = True
                ,writerTemplate = handoutTemplate
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
-               ,writerHTMLMathMethod = 
+               ,writerHTMLMathMethod =
                   KaTeX (baseUrl ++ "katex-0.6.0/katex.min.js")
                         (baseUrl ++ "katex-0.6.0/katex.min.css")
                ,writerCiteMethod = Citeproc}
@@ -351,7 +355,7 @@ markdownToPdfHandout markdownFile metaFiles out =
      pandoc <- readMetaMarkdown markdownFile metaFiles
      processed <- processPandocHandout "latex" pandoc
      baseUrl <- getBaseUrl
-     let options = 
+     let options =
            def {writerStandalone = True
                ,writerTemplate = handoutLatexTemplate
                ,writerHighlight = True
@@ -362,9 +366,9 @@ markdownToPdfHandout markdownFile metaFiles out =
 
 readMetaMarkdown
   :: FilePath -> [FilePath] -> Action Pandoc
-readMetaMarkdown markdownFile metaFiles = 
+readMetaMarkdown markdownFile metaFiles =
   do metaData <- readMetaData metaFiles
-     text <- 
+     text <-
        substituteMetaData markdownFile
                           (MT.mFromJSON metaData)
      case readMarkdown def $ T.unpack text of
@@ -372,33 +376,33 @@ readMetaMarkdown markdownFile metaFiles =
        Left err -> throw $ PandocException (show err)
 
 cacheImages :: FilePath -> Action ()
-cacheImages file = 
+cacheImages file =
   do markdown <- readFile' file
      let result = readMarkdown def markdown
      let base = takeDirectory file
      case result of
-       Right pandoc -> 
+       Right pandoc ->
          do liftIO $ walkM (cachePandocImages base) pandoc
             putNormal $ "# pandoc (cached images for " ++ file ++ ")"
        Left err -> throw $ PandocException (show err)
 
 processPandoc
   :: String -> Pandoc -> Action Pandoc
-processPandoc format pandoc = 
+processPandoc format pandoc =
   do let f = Just (Format format)
      processed <- liftIO $ processCites' pandoc >>= walkM useCachedImages
      return $ expandMacros f processed
 
 processPandocDeck
   :: String -> Pandoc -> Action Pandoc
-processPandocDeck format pandoc = 
+processPandocDeck format pandoc =
   do let f = Just (Format format)
      processed <- liftIO $ processCites' pandoc >>= walkM useCachedImages
      return $ (makeSlides f . expandMacros f) processed
 
 processPandocHandout
   :: String -> Pandoc -> Action Pandoc
-processPandocHandout format pandoc = 
+processPandocHandout format pandoc =
   do let f = Just (Format format)
      processed <- liftIO $ processCites' pandoc >>= walkM useCachedImages
      return $ (expandMacros f . filterNotes f) processed
@@ -410,14 +414,14 @@ writePandocString :: StringWriter
                   -> FilePath
                   -> Pandoc
                   -> Action ()
-writePandocString writer options out pandoc = 
+writePandocString writer options out pandoc =
   do writeFile' out
                 (writer options pandoc)
      putNormal $ "# pandoc for (" ++ out ++ ")"
 
 writeExampleProject :: Action ()
 writeExampleProject = mapM_ writeOne deckerExampleFiles
-  where deckerExampleFiles = 
+  where deckerExampleFiles =
           [("example-deck.md"
            ,B.unpack $(makeRelativeToProject "resource/example/example-deck.md" >>=
                        embedFile))
@@ -427,14 +431,14 @@ writeExampleProject = mapM_ writeOne deckerExampleFiles
           ,("example-page.md"
            ,B.unpack $(makeRelativeToProject "resource/example/example-page.md" >>=
                        embedFile))]
-        writeOne (path,contents) = 
+        writeOne (path,contents) =
           do exists <- Development.Shake.doesFileExist path
              unless exists $
                do writeFile' path contents
                   putNormal $ "# create (for " ++ path ++ ")"
 
 lookupValue :: String -> Y.Value -> Maybe Y.Value
-lookupValue key (Y.Object hashTable) = 
+lookupValue key (Y.Object hashTable) =
   HashMap.lookup (T.pack key)
                  hashTable
 lookupValue key _ = Nothing
@@ -458,7 +462,7 @@ data DeckerException
   = MustacheException String
   | PandocException String
   | YamlException String
-  | RsyncUrlException 
+  | RsyncUrlException
   | DecktapeException String
   deriving (((Typeable)))
 
@@ -468,8 +472,8 @@ instance Show DeckerException where
   show (MustacheException e) = e
   show (PandocException e) = e
   show (YamlException e) = e
-  show (DecktapeException cdn) = 
+  show (DecktapeException cdn) =
     "decktape.sh failed. Is environment varible 'DECKER_RESOURCE_BASE_URL' set correctly (currently " ++
     cdn ++ ")?"
-  show RsyncUrlException = 
+  show RsyncUrlException =
     "attributes 'destinationRsyncHost' or 'destinationRsyncPath' not defined in meta data"
