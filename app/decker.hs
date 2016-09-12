@@ -17,80 +17,82 @@ import           Text.Mustache.Types        (mFromJSON)
 import           Text.Pandoc
 import           Text.Printf
 import           Utilities
+import           Context
 
--- | All observable source files that are considered. These are specified in
--- the Action monad, such that they are revealuated on each iteration of the *watch* target.
-getDeckSources = globRelative "**/*-deck.md"
-
-getPageSources = globRelative "**/*-page.md"
-
-getAllSources = globRelative "**/*.md"
-
--- | Calculates all plain markdown files ending just in `*.md`.
-getPlainSources =
-  do all <- getAllSources
-     decks <- getDeckSources
-     pages <- getPageSources
-     return $ all \\ (decks ++ pages)
-
--- | Returns all YAML files.
-getMeta = globRelative "**/*.yaml"
-
--- | Actions that generate lists of target files from the source list actions
-getDecks = getDeckSources >>= replaceSuffixWith ".md" ".html"
-getDecksPdf = getDeckSources >>= replaceSuffixWith ".md" ".pdf"
-getHandouts = getDeckSources >>= replaceSuffixWith "-deck.md" "-handout.html"
-getHandoutsPdf = getDeckSources >>= replaceSuffixWith "-deck.md" "-handout.pdf"
-getPages = getPageSources >>= replaceSuffixWith ".md" ".html"
-getPagesPdf = getPageSources >>= replaceSuffixWith ".md" ".pdf"
-getPlain = getPlainSources >>= replaceSuffixWith ".md" ".html"
-getPlainPdf = getPlainSources >>= replaceSuffixWith ".md" ".pdf"
-getEverything = getDecks <++> getHandouts <++> getPages <++> getPlain
-getEverythingPdf = getDecksPdf <++> getHandoutsPdf <++> getPagesPdf <++> getPlain
-
--- | Stuff that will be deleted by the clean target
-getCruft = return ["index.md.generated", "index.html", "server.log"]
-
+main :: IO ()
 main = do
-    contextRef <-   newIORef defaultContext
-    runShakeInContext contextRef options $ do
+    -- Calculate some directories
+    projectDir <- calcProjectDirectory
+    let publicDir = projectDir </> publicDirName
+    let cacheDir = publicDir </> "cache"
+
+    -- Find sources
+    deckSources <- glob "**/*-deck.md"
+    pageSources <- glob "**/*-page.md"
+    allSources <- glob "**/*.md"
+    meta <- glob "**/*.yaml"
+
+    let plainSources = allSources \\ (deckSources ++ pageSources)
+
+    -- Calculate targets
+    let decks = targetPathes deckSources projectDir ".md" ".html"
+    let decksPdf = targetPathes deckSources projectDir ".md" ".pdf"
+    let handouts = targetPathes deckSources projectDir "-deck.md" "-handout.html"
+    let handoutsPdf = targetPathes deckSources projectDir "-deck.md" "-handout.pdf"
+    let pages = targetPathes pageSources projectDir ".md" ".html"
+    let pagesPdf = targetPathes pageSources projectDir ".md" ".pdf"
+    let plain = targetPathes plainSources projectDir ".md" ".html"
+    let plainPdf = targetPathes pageSources projectDir ".md" ".pdf"
+
+    let indexSource = projectDir </> "index.md"
+    let index = publicDir </> "index.html"
+
+    let everything = decks ++ handouts ++ pages ++ plain ++ [index]
+    let everythingPdf = decksPdf ++ handoutsPdf ++ pagesPdf ++ plainPdf
+
+    let cruft = [ "index.md.generated"
+                , "server.log"
+                , "//.shake"
+                ]
+
+    context <- makeActionContext projectDir publicDir cacheDir
+    runShakeInContext context options $ do
 
         want ["html"]
 
+        phony "decks" $ do
+            need decks
+
         phony "html" $ do
-            need ["index.html"]
-            getDecks <++> getHandouts <++> getPages <++> getPlain >>= need
+            need $ everything ++ [index]
+            -- getDecks <++> getHandouts <++> getPages <++> getPlain >>= need
 
         phony "pdf" $ do
-            need ["index.html"]
-            getPagesPdf <++> getHandoutsPdf <++> getPlainPdf >>= need
+            need $ pagesPdf ++ handoutsPdf ++ plainPdf ++ [index]
+            -- getPagesPdf <++> getHandoutsPdf <++> getPlainPdf >>= need
 
         phony "pdf-decks" $ do
-            need ["index.html"]
-            getDecksPdf >>= need
+            need $ decksPdf ++ [index]
+            -- getDecksPdf >>= need
 
         phony "watch" $ do
             need ["html"]
-            getDecks <++> getHandouts <++> getPages <++> getPlain >>= markNeeded
-            sources <- getAllSources
-            meta <- getMeta
-            watchFiles (sources ++ meta) contextRef
+            watchFiles $ allSources ++ meta
 
         phony "server" $ do
             need ["watch"]
-            runHttpServer contextRef True
+            runHttpServer True
 
         phony "example" writeExampleProject
 
         priority 2 $ "//*-deck.html" %> \out -> do
-            let src = out -<.> "md"
-            meta <- getMeta
+            let src = sourcePath out projectDir ".html" ".md"
             markdownToHtmlDeck src meta out
 
         priority 2 $ "//*-deck.pdf" %> \out -> do
-            let src = out -<.> "html"
+            let src = sourcePath out projectDir ".pdf" ".html"
             need [src]
-            runHttpServer contextRef False
+            runHttpServer False
             code <- cmd "decktape.sh reveal" ("http://localhost:8888/" ++ src) out
             case code of
               ExitFailure _ -> do
@@ -100,71 +102,60 @@ main = do
                  return ()
 
         priority 2 $ "//*-handout.html" %> \out -> do
-            let src = dropSuffix "-handout.html" out ++ "-deck.md"
-            meta <- getMeta
+            let src = sourcePath out projectDir "-handout.html" "-deck.md"
             markdownToHtmlHandout src meta out
 
         priority 2 $ "//*-handout.pdf" %> \out -> do
-            let src = dropSuffix "-handout.pdf" out ++ "-deck.md"
-            meta <- getMeta
+            let src = sourcePath out projectDir "-handout.pdf" "-deck.md"
             markdownToPdfHandout src meta out
 
         priority 2 $ "//*-page.html" %> \out -> do
-            let src = dropSuffix "-page.html" out ++ "-page.md"
-            meta <- getMeta
+            let src = sourcePath out projectDir "-page.html" "-page.md"
             markdownToHtmlPage src meta out
 
         priority 2 $ "//*-page.pdf" %> \out -> do
-            let src = dropSuffix "-page.pdf" out ++ "-page.md"
-            meta <- getMeta
+            let src = sourcePath out projectDir "-page.pdf" "-page.md"
             markdownToPdfPage src meta out
 
-        priority 2 $ "index.html" %> \out -> do
-            exists <- Development.Shake.doesFileExist "index.md"
-            let src = if exists then "index.md" else "index.md.generated"
-            meta <- getMeta
+        priority 2 $ index %> \out -> do
+            exists <- Development.Shake.doesFileExist indexSource
+            let src = if exists then indexSource else indexSource <.> "generated"
             markdownToHtmlPage src meta out
 
-        "index.md.generated" %> \out -> do
-            decks <-getDecks
-            handouts <- getHandouts
-            pages <- getPages
-            plain <- getPlain
+        indexSource <.> "generated" %> \out -> do
             need $ decks ++ handouts ++ pages ++ plain
-            writeIndex out decks handouts pages plain
+            writeIndex out (takeDirectory index) decks handouts pages plain
 
         "//*.html" %> \out -> do
             let src = out -<.> "md"
-            meta <- getMeta
             markdownToHtmlPage src meta out
 
         "//*.pdf" %> \out -> do
             let src = out -<.> "md"
-            meta <- getMeta
             markdownToPdfPage src meta out
 
-        phony "clean" $
-            getEverything <++> getEverythingPdf <++> getCruft >>= removeFilesAfter "."
+        phony "clean" $ do
+            removeFilesAfter publicDir ["//"]
+            removeFilesAfter projectDir cruft
 
         phony "help" $
             liftIO $ B.putStr helpText
 
-        phony "source" $ do
-            source <- getAllSources
-            meta <- getMeta
-            liftIO $ mapM_ putStrLn $ source ++ meta
+        phony "plan" $ do
+            putNormal $ "project directory: " ++ projectDir
+            putNormal "sources:"
+            mapM_ putNormal $ allSources ++ meta
+            putNormal "targets:"
+            mapM_ putNormal $ everything ++ everythingPdf
 
         phony "meta" $ do
-            meta <- getMeta
             value <- readMetaData meta
             liftIO $ B.putStr $ encodePretty defConfig value
 
         phony "publish" $ do
-            everything <- getEverything
-            need everything
+            need $ everything ++ ["index.html"]
             hasResource <- Development.Shake.doesDirectoryExist resourceDir
             let source = if hasResource then resourceDir : everything else everything
-            meta <- getMeta
             metaData <- readMetaData meta
             let host = metaValueAsString "rsync-destination.host" metaData
             let path = metaValueAsString "rsync-destination.path" metaData
@@ -174,16 +165,42 @@ main = do
                    cmd "rsync -a" source $ intercalate ":" [fromJust host, fromJust path] :: Action ()
                else throw RsyncUrlException
 
-        phony "cache" $ getAllSources >>= mapM_ cacheImages
+        phony "cache" $
+            cacheRemoteImages cacheDir meta allSources
 
         phony "clean-cache" $ do
             need ["clean"]
             removeFilesAfter "." ["**/cached"]
 
+        phony "self-test" $ do
+          ctx <- getActionContext
+          putNormal $ show ctx
+
 -- | Glob for pathes below and relative to the current directory.
 globRelative :: String -> Action [FilePath]
 globRelative pat = liftIO $ glob pat >>= mapM makeRelativeToCurrentDirectory
 
+-- | Glob for pathes below and relative to the current directory.
+globRelativeIO :: String -> IO [FilePath]
+globRelativeIO pat = glob pat >>= mapM makeRelativeToCurrentDirectory
+
 -- | Some constants that might need tweaking
 resourceDir = "img"
 options = shakeOptions{shakeFiles=".shake"}
+
+publicDirName :: String
+publicDirName = "public"
+
+targetPath :: FilePath -> FilePath -> String -> String -> FilePath
+targetPath source projectDir srcSuffix targetSuffix =
+  let target = projectDir </> publicDirName </> (makeRelative projectDir source)
+  in dropSuffix srcSuffix target ++ targetSuffix
+
+targetPathes :: [FilePath] -> FilePath -> String -> String -> [FilePath]
+targetPathes sources projectDir srcSuffix targetSuffix =
+  [targetPath s projectDir srcSuffix targetSuffix | s <- sources]
+
+sourcePath :: FilePath -> FilePath -> String -> String -> FilePath
+sourcePath out projectDir targetSuffix srcSuffix =
+  let source = projectDir </> (makeRelative (projectDir </> publicDirName) out)
+  in dropSuffix targetSuffix source ++ srcSuffix

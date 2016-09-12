@@ -1,14 +1,15 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Utilities
-       (helpText, spawn, terminate, threadDelay', wantRepeat, waitForModificationIn,
-        runShake, defaultContext, runShakeInContext, watchFiles,
+       (cacheRemoteImages, calcProjectDirectory, helpText, spawn,
+        terminate, threadDelay', wantRepeat, waitForModificationIn,
+        defaultContext, runShakeInContext, watchFiles,
         waitForTwitch, dropSuffix, stopServer, startServer, runHttpServer,
         writeIndex, readMetaData, readMetaDataIO, substituteMetaData,
         markdownToHtmlDeck, markdownToHtmlHandout, markdownToPdfHandout,
         markdownToHtmlPage, markdownToPdfPage, getBaseUrl,
-        writeExampleProject, metaValueAsString, cacheImages, (<++>),
-        markNeeded, replaceSuffixWith, DeckerException(..))
+        writeExampleProject, metaValueAsString, (<++>), markNeeded,
+        replaceSuffixWith, DeckerException(..))
        where
 
 import Control.Monad.Loops
@@ -17,6 +18,7 @@ import Control.Concurrent
 import Control.Exception
 import Development.Shake
 import Development.Shake.FilePath
+import Data.Dynamic
 import Data.List.Extra
 import Data.Maybe
 import Data.FileEmbed
@@ -29,7 +31,7 @@ import qualified Data.HashMap.Lazy as HashMap
 import Text.Printf
 import System.Process
 import System.Process.Internals
-import System.Directory
+import System.Directory as Dir
 import System.Exit
 import System.Posix.Signals
 import System.FilePath
@@ -49,7 +51,22 @@ import Network.HTTP.Conduit
 import Network.HTTP.Simple
 import Network.URI
 import Text.Highlighting.Kate.Styles
+import Context
 
+-- Find the project directory and change current directory to there. The project directory is the first upwards directory that contains a .git directory entry.
+calcProjectDirectory :: IO FilePath
+calcProjectDirectory =
+  do cwd <- getCurrentDirectory
+     pd <- searchGitRoot cwd
+     return pd
+  where searchGitRoot :: FilePath -> IO FilePath
+        searchGitRoot path =
+          do if isDrive path
+                then makeAbsolute "."
+                else do hasGit <- Dir.doesDirectoryExist (path </> ".git")
+                        if hasGit
+                           then makeAbsolute path
+                           else searchGitRoot $ takeDirectory path
 
 -- Utility functions for shake based apps
 spawn :: String -> Action ProcessHandle
@@ -57,17 +74,18 @@ spawn = liftIO . spawnCommand
 
 -- Runs liveroladx on the current directory, if it is not already running. If
 -- open is True a browser window is opended.
-runHttpServer contextRef open =
+runHttpServer open =
   do baseUrl <- getBaseUrl
-     Context files process <- liftIO $ readIORef contextRef
+     process <- getServerHandle
      case process of
        Just handle -> return ()
        Nothing ->
          do putNormal "# livereloadx (on http://localhost:8888, see server.log)"
             putNormal ("#     DECKER_RESOURCE_BASE_URL=" ++ baseUrl)
             handle <-
-              liftIO $ spawnCommand "livereloadx -s -p 8888 -d 500 2>&1 > server.log"
-            liftIO $ writeIORef contextRef $ Context files (Just handle)
+              liftIO $
+              spawnCommand "livereloadx -s -p 8888 -d 500 2>&1 > server.log"
+            setServerHandle $ Just handle
             threadDelay' 200000
             when open $ cmd "open http://localhost:8888/" :: Action ()
 
@@ -106,48 +124,41 @@ wantRepeat justOnce = liftIO $ writeIORef justOnce False
 waitForModificationIn :: [FilePath] -> Action ()
 waitForModificationIn = liftIO . waitForTwitch
 
--- | Runs shake possibly multiple times if a rule demands it via the
--- | repeatShake action.
-runShake justOnce options rules =
-  untilM_ (shakeArgs options rules)
-          (readIORef justOnce)
-
--- The context of program invocation consists of a list of files to watch and a
--- possibly running local http server.
+-- The context of program invocation consists of a list of
+-- files to watch and a possibly running local http server.
 data Context =
   Context [FilePath]
           (Maybe ProcessHandle)
 
 defaultContext = Context [] Nothing
 
-runShakeInContext contextRef options rules =
-  do tid <- myThreadId
+runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
+runShakeInContext context options rules =
+  do opts <- setActionContext context options
+     tid <- myThreadId
      installHandler keyboardSignal
-                    (Catch (cleanup tid contextRef))
+                    (Catch (cleanup tid))
                     Nothing
-     untilM_ tryRunShake (nothingToWatch contextRef)
-     cleanup tid contextRef
-  where tryRunShake =
-          catch (shakeArgs options rules)
-                (\(SomeException e) -> return ())
-        cleanup tid contextRef =
-          do Context _ process <- readIORef contextRef
+     untilM_ (tryRunShake opts) nothingToWatch
+     cleanup tid
+  where tryRunShake opts =
+          do catch (shakeArgs opts rules)
+                   (\(SomeException e) -> return ())
+        cleanup tid =
+          do process <- readIORef $ ctxServerHandle context
              case process of
                Just handle -> terminateProcess handle
                Nothing -> return ()
              throwTo tid ExitSuccess
+        nothingToWatch =
+          do files <- readIORef $ ctxFilesToWatch context
+             if null files
+                then return True
+                else do waitForTwitch files
+                        return False
 
-watchFiles files contextRef =
-  liftIO $
-  do Context _ handle <- readIORef contextRef
-     writeIORef contextRef $ Context files handle
+watchFiles files = setFilesToWatch files
 
-nothingToWatch contextRef =
-  do Context files _ <- readIORef contextRef
-     if null files
-        then return True
-        else do waitForTwitch files
-                return False
 
 -- | Actively waits for the first change to any member in the set of specified
 -- | files and their parent directories, then returns.
@@ -184,24 +195,29 @@ replaceSuffixWith
 replaceSuffixWith suffix with pathes =
   return [dropSuffix suffix d ++ with | d <- pathes]
 
--- | Generates an index file with links to all generated files of interest.
-writeIndex path decks handouts pages plain =
-  liftIO $
-  do let everything = decks ++ handouts ++ pages ++ plain
-     decksRel <- mapM makeRelativeToCurrentDirectory decks
-     handoutsRel <- mapM makeRelativeToCurrentDirectory handouts
-     pagesRel <- mapM makeRelativeToCurrentDirectory pages
-     plainRel <- mapM makeRelativeToCurrentDirectory plain
-     writeFile path $
+-- | Monadic version of suffix replacement for easy binding.
+calcTargetPath
+  :: FilePath -> String -> String -> [FilePath] -> Action [FilePath]
+calcTargetPath projectDir suffix with pathes =
+  return [projectDir </> dropSuffix suffix d ++ with | d <- pathes]
+
+-- | Generates an index.md file with links to all generated files of interest.
+writeIndex out baseUrl decks handouts pages plain =
+  do let decksLinks = map (makeRelative baseUrl) decks
+     let handoutsLinks = map (makeRelative baseUrl) handouts
+     let pagesLinks = map (makeRelative baseUrl) pages
+     let plainLinks = map (makeRelative baseUrl) plain
+     liftIO $
+       writeFile out $
        unlines ["# Index"
                ,"## Slide decks"
-               ,unlines $ map makeLink decksRel
+               ,unlines $ map makeLink decksLinks
                ,"## Handouts"
-               ,unlines $ map makeLink handoutsRel
+               ,unlines $ map makeLink handoutsLinks
                ,"## Supporting Documents"
-               ,unlines $ map makeLink pagesRel
+               ,unlines $ map makeLink pagesLinks
                ,"## Everything else"
-               ,unlines $ map makeLink plainRel]
+               ,unlines $ map makeLink plainLinks]
   where makeLink path = "-    [" ++ takeFileName path ++ "](" ++ path ++ ")"
 
 -- | Decodes an array of YAML files and combines the data into one object.
@@ -253,6 +269,8 @@ markdownToHtmlDeck markdownFile metaFiles out =
   do need $ markdownFile : metaFiles
      pandoc <- readMetaMarkdown markdownFile metaFiles
      processed <- processPandocDeck "revealjs" pandoc
+     let images = extractLocalImagePathes pandoc
+     putNormal $ "images: " ++ show images
      baseUrl <- getBaseUrl
      let options =
            def {writerHtml5 = True
@@ -375,36 +393,39 @@ readMetaMarkdown markdownFile metaFiles =
        Right pandoc -> return pandoc
        Left err -> throw $ PandocException (show err)
 
-cacheImages :: FilePath -> Action ()
-cacheImages file =
-  do markdown <- readFile' file
-     let result = readMarkdown def markdown
-     let base = takeDirectory file
-     case result of
-       Right pandoc ->
-         do liftIO $ walkM (cachePandocImages base) pandoc
-            putNormal $ "# pandoc (cached images for " ++ file ++ ")"
-       Left err -> throw $ PandocException (show err)
+cacheRemoteImages :: FilePath -> [FilePath] -> [FilePath] -> Action ()
+cacheRemoteImages cacheDir metaFiles markdownFiles =
+  do mapM_ cacheImages markdownFiles
+  where cacheImages markdownFile =
+          do pandoc <- readMetaMarkdown markdownFile metaFiles
+             liftIO $ walkM (cachePandocImages cacheDir) pandoc
+             putNormal $ "# pandoc (cached images for " ++ markdownFile ++ ")"
 
 processPandoc
   :: String -> Pandoc -> Action Pandoc
 processPandoc format pandoc =
   do let f = Just (Format format)
-     processed <- liftIO $ processCites' pandoc >>= walkM useCachedImages
+     -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
+     cacheDir <- getCacheDir
+     processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
      return $ expandMacros f processed
 
 processPandocDeck
   :: String -> Pandoc -> Action Pandoc
 processPandocDeck format pandoc =
   do let f = Just (Format format)
-     processed <- liftIO $ processCites' pandoc >>= walkM useCachedImages
+     -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
+     cacheDir <- getCacheDir
+     processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
      return $ (makeSlides f . expandMacros f) processed
 
 processPandocHandout
   :: String -> Pandoc -> Action Pandoc
 processPandocHandout format pandoc =
   do let f = Just (Format format)
-     processed <- liftIO $ processCites' pandoc >>= walkM useCachedImages
+     -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
+     cacheDir <- getCacheDir
+     processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
      return $ (expandMacros f . filterNotes f) processed
 
 type StringWriter = WriterOptions -> Pandoc -> String

@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Utilities, Filter
+  exposed-modules:     Context, Utilities, Filter
   build-depends:       base
                      , pandoc-types
                      , pandoc-citeproc
@@ -61,6 +61,7 @@ executable decker
                      , pandoc
                      , yaml
                      , mustache
+                     , io-memoize
   default-language:    Haskell2010
 
 executable include-pandoc-filter

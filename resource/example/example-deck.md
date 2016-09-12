@@ -52,13 +52,13 @@ subtitle: Tutorial and Examples
 
 ## The author
 
-![](img/htr-beuth.jpg)
+![](https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg)
 
 ###
 
 ## Slide source
 
-``` {.markdown} 
+``` {.markdown}
 # Multicolumn slides
 
 ## The author
@@ -283,7 +283,7 @@ Your total score is 42.
 
 ## Generated from `*-deck.md`
 
--   `*-deck.html` a *reveal.js* based HTML slide deck 
+-   `*-deck.html` a *reveal.js* based HTML slide deck
 -   `*-deck.pdf` a PDF version of that deck
 -   `*-handout.html` a HTML document containing only the speaker notes from the
     deck
