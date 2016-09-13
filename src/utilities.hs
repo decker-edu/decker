@@ -1,15 +1,13 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module Utilities
-       (cacheRemoteImages, calcProjectDirectory, helpText, spawn,
-        terminate, threadDelay', wantRepeat, waitForModificationIn,
-        defaultContext, runShakeInContext, watchFiles,
-        waitForTwitch, dropSuffix, stopServer, startServer, runHttpServer,
-        writeIndex, readMetaData, readMetaDataIO, substituteMetaData,
-        markdownToHtmlDeck, markdownToHtmlHandout, markdownToPdfHandout,
-        markdownToHtmlPage, markdownToPdfPage, getBaseUrl,
-        writeExampleProject, metaValueAsString, (<++>), markNeeded,
-        replaceSuffixWith, DeckerException(..))
+       (cacheRemoteImages, calcProjectDirectory, spawn, terminate,
+        threadDelay', wantRepeat, waitForModificationIn, defaultContext,
+        runShakeInContext, watchFiles, waitForTwitch, dropSuffix,
+        stopServer, startServer, runHttpServer, writeIndex, readMetaData,
+        readMetaDataIO, substituteMetaData, markdownToHtmlDeck,
+        markdownToHtmlHandout, markdownToPdfHandout, markdownToHtmlPage,
+        markdownToPdfPage, writeExampleProject, metaValueAsString, (<++>),
+        markNeeded, replaceSuffixWith, writeEmbeddedFiles,
+        getRelativeSupportDir, DeckerException(..))
        where
 
 import Control.Monad.Loops
@@ -21,7 +19,6 @@ import Development.Shake.FilePath
 import Data.Dynamic
 import Data.List.Extra
 import Data.Maybe
-import Data.FileEmbed
 import Data.IORef
 import qualified Data.Text as T
 import Data.Time.Clock
@@ -52,6 +49,7 @@ import Network.HTTP.Simple
 import Network.URI
 import Text.Highlighting.Kate.Styles
 import Context
+import Embed
 
 -- Find the project directory and change current directory to there. The project directory is the first upwards directory that contains a .git directory entry.
 calcProjectDirectory :: IO FilePath
@@ -72,19 +70,17 @@ calcProjectDirectory =
 spawn :: String -> Action ProcessHandle
 spawn = liftIO . spawnCommand
 
--- Runs liveroladx on the current directory, if it is not already running. If
+-- Runs liveroladx on the given directory, if it is not already running. If
 -- open is True a browser window is opended.
-runHttpServer open =
-  do baseUrl <- getBaseUrl
-     process <- getServerHandle
+runHttpServer dir open =
+  do process <- getServerHandle
      case process of
        Just handle -> return ()
        Nothing ->
          do putNormal "# livereloadx (on http://localhost:8888, see server.log)"
-            putNormal ("#     DECKER_RESOURCE_BASE_URL=" ++ baseUrl)
             handle <-
-              liftIO $
-              spawnCommand "livereloadx -s -p 8888 -d 500 2>&1 > server.log"
+              spawn $
+              "livereloadx -s -p 8888 -d 500 " ++ dir ++ " 2>&1 > server.log"
             setServerHandle $ Just handle
             threadDelay' 200000
             when open $ cmd "open http://localhost:8888/" :: Action ()
@@ -202,22 +198,22 @@ calcTargetPath projectDir suffix with pathes =
   return [projectDir </> dropSuffix suffix d ++ with | d <- pathes]
 
 -- | Generates an index.md file with links to all generated files of interest.
-writeIndex out baseUrl decks handouts pages plain =
+writeIndex out baseUrl decks handouts pages =
   do let decksLinks = map (makeRelative baseUrl) decks
      let handoutsLinks = map (makeRelative baseUrl) handouts
      let pagesLinks = map (makeRelative baseUrl) pages
-     let plainLinks = map (makeRelative baseUrl) plain
      liftIO $
        writeFile out $
-       unlines ["# Index"
-               ,"## Slide decks"
+       unlines ["---"
+               ,"title: Generated Index"
+               , "subtitle: {{course}} ({{semester}})"
+               ,"---"
+               ,"# Slide decks"
                ,unlines $ map makeLink decksLinks
-               ,"## Handouts"
+               ,"# Handouts"
                ,unlines $ map makeLink handoutsLinks
-               ,"## Supporting Documents"
-               ,unlines $ map makeLink pagesLinks
-               ,"## Everything else"
-               ,unlines $ map makeLink plainLinks]
+               ,"# Supporting Documents"
+               ,unlines $ map makeLink pagesLinks]
   where makeLink path = "-    [" ++ takeFileName path ++ "](" ++ path ++ ")"
 
 -- | Decodes an array of YAML files and combines the data into one object.
@@ -244,34 +240,33 @@ readMetaData files = liftIO $ readMetaDataIO files
 
 -- | Substitutes meta data values in the provided file.
 substituteMetaData
-  :: FilePath -> MT.Value -> Action T.Text
+  :: FilePath -> MT.Value -> IO T.Text
 substituteMetaData source metaData =
-  do result <- liftIO $ M.localAutomaticCompile source
+  do result <-  M.localAutomaticCompile source
      case result of
        Right template -> return $ M.substituteValue template metaData
        Left err -> throw $ MustacheException (show err)
 
-getBaseUrl =
-  getEnvWithDefault "https://tramberend.beuth-hochschule.de/cdn/" "DECKER_RESOURCE_BASE_URL"
-
--- | The help page
-helpText :: B.ByteString
-helpText = $(makeRelativeToProject "resource/help-page.md" >>= embedFile)
-
-deckTemplate :: String
-deckTemplate =
-  B.unpack $(makeRelativeToProject "resource/deck.html" >>= embedFile)
+getRelativeSupportDir :: FilePath -> Action FilePath
+getRelativeSupportDir from =
+  do supportDir <- getSupportDir
+     publicDir <- getPublicDir
+     return $
+       invertPath
+         (makeRelative publicDir
+                       (takeDirectory from)) </>
+       (makeRelative publicDir supportDir)
+  where invertPath fp = joinPath $ map (\_ -> "..") $ filter ((/=) ".") $ splitPath fp
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck
   :: FilePath -> [FilePath] -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile metaFiles out =
   do need $ markdownFile : metaFiles
-     pandoc <- readMetaMarkdown markdownFile metaFiles
+     metaData <- readMetaData metaFiles
+     pandoc <- readMetaMarkdown markdownFile metaData
      processed <- processPandocDeck "revealjs" pandoc
-     let images = extractLocalImagePathes pandoc
-     putNormal $ "images: " ++ show images
-     baseUrl <- getBaseUrl
+     supportDir <- getRelativeSupportDir out
      let options =
            def {writerHtml5 = True
                ,writerStandalone = True
@@ -280,28 +275,35 @@ markdownToHtmlDeck markdownFile metaFiles out =
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
                ,writerHTMLMathMethod =
-                  KaTeX (baseUrl ++ "katex-0.6.0/katex.min.js")
-                        (baseUrl ++ "katex-0.6.0/katex.min.css")
-               ,writerVariables = [("revealjs-url",baseUrl ++ "reveal.js")]
+                  KaTeX (supportDir </> "katex/katex.min.js")
+                        (supportDir </> "katex/katex.min.css")
+               ,writerVariables =
+                  [("revealjs-url",supportDir </> "reveal.js")]
                ,writerCiteMethod = Citeproc}
      writePandocString writeHtmlString options out processed
+     let images = extractLocalImagePathes processed
+     copyLocalImages images markdownFile out
 
-pageTemplate :: String
-pageTemplate =
-  B.unpack $(makeRelativeToProject "resource/page.html" >>= embedFile)
-
-pageLatexTemplate :: String
-pageLatexTemplate =
-  B.unpack $(makeRelativeToProject "resource/page.tex" >>= embedFile)
+copyLocalImages :: [FilePath] -> FilePath  -> FilePath -> Action ()
+copyLocalImages imageFiles inFile outFile =
+  do let inDir = takeDirectory inFile
+     let outDir = takeDirectory outFile
+     mapM_ (copyImageFile inDir outDir) imageFiles
+  where copyImageFile inDir outDir imageFile =
+          do let from = inDir </> imageFile
+             let to = outDir </> imageFile
+             liftIO $ createDirectoryIfMissing True (takeDirectory to)
+             copyFileChanged from to
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage
   :: FilePath -> [FilePath] -> FilePath -> Action ()
 markdownToHtmlPage markdownFile metaFiles out =
-  do need $ markdownFile : metaFiles
-     pandoc <- readMetaMarkdown markdownFile metaFiles
-     processed <- processPandocDeck "html" pandoc
-     baseUrl <- getBaseUrl
+  do supportDir <- getRelativeSupportDir out
+     projectDir <- getProjectDir
+     need $ markdownFile : metaFiles
+     metaData <- readMetaData metaFiles
+     pandoc <- readMetaMarkdown markdownFile metaData
      let options =
            def {writerHtml5 = True
                ,writerStandalone = True
@@ -309,9 +311,20 @@ markdownToHtmlPage markdownFile metaFiles out =
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
                ,writerHTMLMathMethod =
-                  KaTeX (baseUrl ++ "katex-0.6.0/katex.min.js")
-                        (baseUrl ++ "katex-0.6.0/katex.min.css")
+                  KaTeX (supportDir </> "katex/katex.min.js")
+                        (supportDir </> "katex/katex.min.css")
+               ,writerVariables =
+                  [("css",supportDir </> "readable/bootstrap.min.css")]
                ,writerCiteMethod = Citeproc}
+     included <-
+       liftIO $
+       processIncludes writeHtmlString
+                       options
+                       projectDir
+                       (takeDirectory markdownFile)
+                       metaData
+                       pandoc
+     processed <- processPandocPage "html" included
      writePandocString writeHtmlString options out processed
 
 -- | Write a markdown file to a PDF file using the handout template.
@@ -319,9 +332,10 @@ markdownToPdfPage
   :: FilePath -> [FilePath] -> FilePath -> Action ()
 markdownToPdfPage markdownFile metaFiles out =
   do need $ markdownFile : metaFiles
-     pandoc <- readMetaMarkdown markdownFile metaFiles
-     processed <- processPandoc "latex" pandoc
-     baseUrl <- getBaseUrl
+     metaData <- readMetaData metaFiles
+     pandoc <- readMetaMarkdown markdownFile metaData
+     processed <- processPandocPage "latex" pandoc
+     supportDir <- getRelativeSupportDir out
      let options =
            def {writerStandalone = True
                ,writerTemplate = pageLatexTemplate
@@ -337,22 +351,15 @@ pandocMakePdf options processed out =
        Left err -> throw $ PandocException (show err)
        Right pdf -> liftIO $ LB.writeFile out pdf
 
-handoutTemplate :: String
-handoutTemplate =
-  B.unpack $(makeRelativeToProject "resource/handout.html" >>= embedFile)
-
-handoutLatexTemplate :: String
-handoutLatexTemplate =
-  B.unpack $(makeRelativeToProject "resource/handout.tex" >>= embedFile)
-
 -- | Write a markdown file to a HTML file using the handout template.
 markdownToHtmlHandout
   :: FilePath -> [FilePath] -> FilePath -> Action ()
 markdownToHtmlHandout markdownFile metaFiles out =
   do need $ markdownFile : metaFiles
-     pandoc <- readMetaMarkdown markdownFile metaFiles
+     metaData <- readMetaData metaFiles
+     pandoc <- readMetaMarkdown markdownFile metaData
      processed <- processPandocHandout "html" pandoc
-     baseUrl <- getBaseUrl
+     supportDir <- getRelativeSupportDir out
      let options =
            def {writerHtml5 = True
                ,writerStandalone = True
@@ -360,8 +367,10 @@ markdownToHtmlHandout markdownFile metaFiles out =
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
                ,writerHTMLMathMethod =
-                  KaTeX (baseUrl ++ "katex-0.6.0/katex.min.js")
-                        (baseUrl ++ "katex-0.6.0/katex.min.css")
+                  KaTeX (supportDir </> "katex/katex.min.js")
+                        (supportDir </> "katex/katex.min.css")
+               ,writerVariables =
+                  [("css",supportDir </> "readable/bootstrap.min.css")]
                ,writerCiteMethod = Citeproc}
      writePandocString writeHtmlString options out processed
 
@@ -370,9 +379,9 @@ markdownToPdfHandout
   :: FilePath -> [FilePath] -> FilePath -> Action ()
 markdownToPdfHandout markdownFile metaFiles out =
   do need $ markdownFile : metaFiles
-     pandoc <- readMetaMarkdown markdownFile metaFiles
+     metaData <- readMetaData metaFiles
+     pandoc <- readMetaMarkdown markdownFile metaData
      processed <- processPandocHandout "latex" pandoc
-     baseUrl <- getBaseUrl
      let options =
            def {writerStandalone = True
                ,writerTemplate = handoutLatexTemplate
@@ -383,10 +392,13 @@ markdownToPdfHandout markdownFile metaFiles out =
      pandocMakePdf options processed out
 
 readMetaMarkdown
-  :: FilePath -> [FilePath] -> Action Pandoc
-readMetaMarkdown markdownFile metaFiles =
-  do metaData <- readMetaData metaFiles
-     text <-
+  :: FilePath -> Y.Value -> Action Pandoc
+readMetaMarkdown markdownFile metaData = liftIO $ readMetaMarkdownIO markdownFile metaData
+
+readMetaMarkdownIO
+  :: FilePath -> Y.Value -> IO Pandoc
+readMetaMarkdownIO markdownFile metaData =
+  do text <-
        substituteMetaData markdownFile
                           (MT.mFromJSON metaData)
      case readMarkdown def $ T.unpack text of
@@ -397,13 +409,35 @@ cacheRemoteImages :: FilePath -> [FilePath] -> [FilePath] -> Action ()
 cacheRemoteImages cacheDir metaFiles markdownFiles =
   do mapM_ cacheImages markdownFiles
   where cacheImages markdownFile =
-          do pandoc <- readMetaMarkdown markdownFile metaFiles
+          do metaData <- readMetaData metaFiles
+             pandoc <- readMetaMarkdown markdownFile metaData
              liftIO $ walkM (cachePandocImages cacheDir) pandoc
              putNormal $ "# pandoc (cached images for " ++ markdownFile ++ ")"
 
-processPandoc
+processIncludes :: StringWriter -> WriterOptions -> FilePath -> FilePath -> Y.Value -> Pandoc -> IO Pandoc
+processIncludes writer options rootDir baseDir metaData pandoc =
+  liftIO $ walkM (include baseDir) pandoc
+  where include :: FilePath -> Block -> IO Block
+        include base (Para [Image _ [Str "#include"] (url,_)]) =
+          do let filePath =
+                   if isAbsolute url
+                      then rootDir </> makeRelative "/" url
+                      else base </> url
+             includedPandoc <- readMetaMarkdownIO filePath metaData
+             included <-
+               processIncludes writer
+                               options
+                               rootDir
+                               (takeDirectory filePath)
+                               metaData
+                               includedPandoc
+             let rendered = writer options {writerStandalone = False} included
+             return $ RawBlock (Format "html") rendered
+        include _ block = return block
+
+processPandocPage
   :: String -> Pandoc -> Action Pandoc
-processPandoc format pandoc =
+processPandocPage format pandoc =
   do let f = Just (Format format)
      -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
      cacheDir <- getCacheDir
@@ -441,22 +475,24 @@ writePandocString writer options out pandoc =
      putNormal $ "# pandoc for (" ++ out ++ ")"
 
 writeExampleProject :: Action ()
-writeExampleProject = mapM_ writeOne deckerExampleFiles
-  where deckerExampleFiles =
-          [("example-deck.md"
-           ,B.unpack $(makeRelativeToProject "resource/example/example-deck.md" >>=
-                       embedFile))
-          ,("example-meta.yaml"
-           ,B.unpack $(makeRelativeToProject "resource/example/example-meta.yaml" >>=
-                       embedFile))
-          ,("example-page.md"
-           ,B.unpack $(makeRelativeToProject "resource/example/example-page.md" >>=
-                       embedFile))]
-        writeOne (path,contents) =
+writeExampleProject = mapM_ writeOne deckerExampleDir
+  where writeOne (path,contents) =
           do exists <- Development.Shake.doesFileExist path
              unless exists $
-               do writeFile' path contents
+               do liftIO $ createDirectoryIfMissing True (takeDirectory path)
+                  liftIO $ B.writeFile path contents
                   putNormal $ "# create (for " ++ path ++ ")"
+
+writeEmbeddedFiles :: [(FilePath, B.ByteString)] -> FilePath -> Action ()
+writeEmbeddedFiles files dir =
+  do let absolute = map (\(path,contents) -> (dir </> path,contents)) files
+     mapM_ write absolute
+  where write (path,contents) =
+          do liftIO $
+               Dir.createDirectoryIfMissing True
+                                            (takeDirectory path)
+             exists <- liftIO $ Dir.doesFileExist path
+             when (not exists) $ liftIO $ B.writeFile path contents
 
 lookupValue :: String -> Y.Value -> Maybe Y.Value
 lookupValue key (Y.Object hashTable) =
@@ -493,8 +529,7 @@ instance Show DeckerException where
   show (MustacheException e) = e
   show (PandocException e) = e
   show (YamlException e) = e
-  show (DecktapeException cdn) =
-    "decktape.sh failed. Is environment varible 'DECKER_RESOURCE_BASE_URL' set correctly (currently " ++
-    cdn ++ ")?"
+  show (DecktapeException e) =
+    "decktape.sh failed for reason: " ++ e
   show RsyncUrlException =
     "attributes 'destinationRsyncHost' or 'destinationRsyncPath' not defined in meta data"

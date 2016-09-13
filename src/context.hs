@@ -3,15 +3,15 @@
 module Context
        (ActionContext(..), makeActionContext, setActionContext, getFilesToWatch,
         setFilesToWatch, getServerHandle, setServerHandle, getProjectDir,
-        getPublicDir, getCacheDir, actionContextKey, getActionContext)
+        getPublicDir, getCacheDir, getSupportDir, actionContextKey, getActionContext)
        where
 
-import Control.Monad()
+import Control.Monad ()
 import Development.Shake
 import Data.Dynamic
-import Data.Maybe
+import Data.Maybe ()
 import Data.IORef
-import Data.Typeable()
+import Data.Typeable ()
 import qualified Data.HashMap.Lazy as HashMap
 import System.Process
 import Text.Printf
@@ -21,34 +21,37 @@ data ActionContext =
                 ,ctxServerHandle :: IORef (Maybe ProcessHandle)
                 ,ctxProjectDir :: FilePath
                 ,ctxPublicDir :: FilePath
-                ,ctxCacheDir :: FilePath}
+                ,ctxCacheDir :: FilePath
+                ,ctxSupportDir :: FilePath}
   deriving (Typeable)
 
 instance Show ActionContext where
   show ctx =
-    printf "ActionContext {ctxProjectDir = %s, ctxPublicDir = %s, ctxCacheDir = %s}"
+    printf "ActionContext {ctxProjectDir = '%s', ctxPublicDir = '%s', ctxCacheDir = '%s', ctxSupportDir = '%s'}"
            (ctxProjectDir ctx)
            (ctxPublicDir ctx)
            (ctxCacheDir ctx)
+           (ctxSupportDir ctx)
 
 defaultActionContext :: IO ActionContext
 defaultActionContext = do
   files <- newIORef []
   server <- newIORef Nothing
-  return $ ActionContext files server "" "" ""
+  return $ ActionContext files server "" "" "" ""
 
 actionContextKey :: IO TypeRep
 actionContextKey = do
   ctx <- liftIO $ defaultActionContext
   return $ typeOf ctx
 
-makeActionContext :: FilePath -> FilePath -> FilePath -> IO ActionContext
-makeActionContext projectDir publicDir cacheDir =
+makeActionContext :: FilePath -> FilePath -> FilePath -> FilePath-> IO ActionContext
+makeActionContext projectDir publicDir cacheDir supportDir =
   do ctx <- defaultActionContext
      return $
        ctx {ctxProjectDir = projectDir
            ,ctxPublicDir = publicDir
-           ,ctxCacheDir = cacheDir}
+           ,ctxCacheDir = cacheDir
+           ,ctxSupportDir = supportDir}
 
 setActionContext :: ActionContext -> ShakeOptions -> IO ShakeOptions
 setActionContext ctx options =
@@ -102,3 +105,8 @@ getCacheDir :: Action FilePath
 getCacheDir =
   do ctx <- getActionContext
      return $ ctxCacheDir ctx
+
+getSupportDir :: Action FilePath
+getSupportDir =
+  do ctx <- getActionContext
+     return $ ctxSupportDir ctx

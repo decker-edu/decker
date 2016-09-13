@@ -1,4 +1,4 @@
-.DS_Store/
+.DS_Store
 .stack-work/
 TAGS
 *.swp
@@ -9,5 +9,5 @@ index.html
 *-deck.html
 *-handout.html
 *-page.html
-.shake/
+.shake
 public/

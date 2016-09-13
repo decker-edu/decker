@@ -1,23 +1,23 @@
-import           Control.Exception
-import           Control.Monad
-import qualified Data.ByteString.Char8      as B
-import           Data.IORef
-import           Data.List
-import           Data.Maybe
-import           Data.String
-import           Data.Yaml.Pretty
-import           Development.Shake
-import           Development.Shake.FilePath
-import           System.Directory
-import           System.Exit
-import           System.FilePath
-import           System.FilePath.Glob
-import qualified Text.Mustache              as M
-import           Text.Mustache.Types        (mFromJSON)
-import           Text.Pandoc
-import           Text.Printf
-import           Utilities
-import           Context
+import Control.Exception
+import Control.Monad ()
+import qualified Data.ByteString.Char8 as B
+import Data.IORef ()
+import Data.List
+import Data.Maybe
+import Data.String ()
+import Data.Yaml.Pretty
+import Development.Shake
+import Development.Shake.FilePath
+import System.Directory
+import System.Exit
+import System.FilePath ()
+import System.FilePath.Glob
+import qualified Text.Mustache as M ()
+import Text.Pandoc ()
+import Text.Printf ()
+import Utilities
+import Context
+import Embed
 
 main :: IO ()
 main = do
@@ -25,6 +25,7 @@ main = do
     projectDir <- calcProjectDirectory
     let publicDir = projectDir </> publicDirName
     let cacheDir = publicDir </> "cache"
+    let supportDir = publicDir </> "support"
 
     -- Find sources
     deckSources <- glob "**/*-deck.md"
@@ -32,7 +33,7 @@ main = do
     allSources <- glob "**/*.md"
     meta <- glob "**/*.yaml"
 
-    let plainSources = allSources \\ (deckSources ++ pageSources)
+    -- let plainSources = allSources \\ (deckSources ++ pageSources)
 
     -- Calculate targets
     let decks = targetPathes deckSources projectDir ".md" ".html"
@@ -41,21 +42,21 @@ main = do
     let handoutsPdf = targetPathes deckSources projectDir "-deck.md" "-handout.pdf"
     let pages = targetPathes pageSources projectDir ".md" ".html"
     let pagesPdf = targetPathes pageSources projectDir ".md" ".pdf"
-    let plain = targetPathes plainSources projectDir ".md" ".html"
-    let plainPdf = targetPathes pageSources projectDir ".md" ".pdf"
+    -- let plain = targetPathes plainSources projectDir ".md" ".html"
+    -- let plainPdf = targetPathes pageSources projectDir ".md" ".pdf"
 
     let indexSource = projectDir </> "index.md"
     let index = publicDir </> "index.html"
 
-    let everything = decks ++ handouts ++ pages ++ plain ++ [index]
-    let everythingPdf = decksPdf ++ handoutsPdf ++ pagesPdf ++ plainPdf
+    let everything = decks ++ handouts ++ pages ++ [index]
+    let everythingPdf = decksPdf ++ handoutsPdf ++ pagesPdf
 
     let cruft = [ "index.md.generated"
                 , "server.log"
                 , "//.shake"
                 ]
 
-    context <- makeActionContext projectDir publicDir cacheDir
+    context <- makeActionContext projectDir publicDir cacheDir supportDir
     runShakeInContext context options $ do
 
         want ["html"]
@@ -65,15 +66,12 @@ main = do
 
         phony "html" $ do
             need $ everything ++ [index]
-            -- getDecks <++> getHandouts <++> getPages <++> getPlain >>= need
 
         phony "pdf" $ do
-            need $ pagesPdf ++ handoutsPdf ++ plainPdf ++ [index]
-            -- getPagesPdf <++> getHandoutsPdf <++> getPlainPdf >>= need
+            need $ pagesPdf ++ handoutsPdf ++ [index]
 
         phony "pdf-decks" $ do
             need $ decksPdf ++ [index]
-            -- getDecksPdf >>= need
 
         phony "watch" $ do
             need ["html"]
@@ -81,27 +79,28 @@ main = do
 
         phony "server" $ do
             need ["watch"]
-            runHttpServer True
+            runHttpServer publicDir True
 
         phony "example" writeExampleProject
 
         priority 2 $ "//*-deck.html" %> \out -> do
+            need ["support"]
             let src = sourcePath out projectDir ".html" ".md"
             markdownToHtmlDeck src meta out
 
         priority 2 $ "//*-deck.pdf" %> \out -> do
             let src = sourcePath out projectDir ".pdf" ".html"
             need [src]
-            runHttpServer False
+            runHttpServer publicDir False
             code <- cmd "decktape.sh reveal" ("http://localhost:8888/" ++ src) out
             case code of
               ExitFailure _ -> do
-                 cdnBase <- getBaseUrl
-                 throw $ DecktapeException cdnBase
+                 throw $ DecktapeException "Unknown."
               ExitSuccess ->
                  return ()
 
         priority 2 $ "//*-handout.html" %> \out -> do
+            need ["support"]
             let src = sourcePath out projectDir "-handout.html" "-deck.md"
             markdownToHtmlHandout src meta out
 
@@ -110,6 +109,7 @@ main = do
             markdownToPdfHandout src meta out
 
         priority 2 $ "//*-page.html" %> \out -> do
+            need ["support"]
             let src = sourcePath out projectDir "-page.html" "-page.md"
             markdownToHtmlPage src meta out
 
@@ -120,11 +120,14 @@ main = do
         priority 2 $ index %> \out -> do
             exists <- Development.Shake.doesFileExist indexSource
             let src = if exists then indexSource else indexSource <.> "generated"
+            putNormal out
+            rel <- getRelativeSupportDir out
+            putNormal rel
             markdownToHtmlPage src meta out
 
         indexSource <.> "generated" %> \out -> do
-            need $ decks ++ handouts ++ pages ++ plain
-            writeIndex out (takeDirectory index) decks handouts pages plain
+            need $ decks ++ handouts ++ pages
+            writeIndex out (takeDirectory index) decks handouts pages
 
         "//*.html" %> \out -> do
             let src = out -<.> "md"
@@ -139,7 +142,7 @@ main = do
             removeFilesAfter projectDir cruft
 
         phony "help" $
-            liftIO $ B.putStr helpText
+            liftIO $ putStr deckerHelpText
 
         phony "plan" $ do
             putNormal $ "project directory: " ++ projectDir
@@ -151,6 +154,9 @@ main = do
         phony "meta" $ do
             value <- readMetaData meta
             liftIO $ B.putStr $ encodePretty defConfig value
+
+        phony "support" $ do
+            writeEmbeddedFiles deckerSupportDir supportDir
 
         phony "publish" $ do
             need $ everything ++ ["index.html"]

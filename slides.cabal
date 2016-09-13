@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Context, Utilities, Filter
+  exposed-modules:     Embed, Context, Utilities, Filter
   build-depends:       base
                      , pandoc-types
                      , pandoc-citeproc

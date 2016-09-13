@@ -1,10 +1,10 @@
 ---
-theme: htr-slides
 author: Henrik Tramberend
-transition: linear
-title: Decker Slide Tool
-date: 15.5.2016
+date: '15.5.2016'
 subtitle: Tutorial and Examples
+theme: 'htr-slides'
+title: Decker Slide Tool
+transition: linear
 ---
 
 # Overview
@@ -20,7 +20,8 @@ subtitle: Tutorial and Examples
 
 ## Pandoc-Markdown
 
--   Slides are basically [Pandoc-Markdown](http://pandoc.org) formatted text
+-   Slides are basically [Pandoc-Markdown](http://pandoc.org) formatted
+    text
 -   Pandoc provides a Markdown variant with many extensions
 
 ## Some Pandoc extensions
@@ -36,9 +37,9 @@ subtitle: Tutorial and Examples
 
 ## Markdown header
 
-- Level 1 header (`#`) starts new slide
-- Level 2 header (`##`) starts a block on a slide
-- Level 3 header (`###`) starts new column on a slide
+-   Level 1 header (`#`) starts new slide
+-   Level 2 header (`##`) starts a block on a slide
+-   Level 3 header (`###`) starts new column on a slide
 
 ``` {.markdown}
 # Episode IV: A new Slide
@@ -52,7 +53,7 @@ subtitle: Tutorial and Examples
 
 ## The author
 
-![](https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg)
+![](img/htr-beuth.jpg)
 
 ###
 
@@ -74,6 +75,12 @@ subtitle: Tutorial and Examples
 ~~~
 ```
 
+# Local Images
+
+## Relative path
+
+![](img/06-metal.png){width=75%}
+
 # LaTeX Math
 
 ## Syntax
@@ -82,10 +89,9 @@ subtitle: Tutorial and Examples
 -   Single \$ encloses inline math
 -   Double \$\$ encloses a display math block
 
-
 ## Example
 
--   To $\infinity$ and beyond!
+-   To $\infty$ and beyond!
 
 $$
 e = mc^2
@@ -109,7 +115,6 @@ $$
 ## Video
 
 ![:youtube](Wji-BZ0oCwg)
-
 
 # Compile Time Templating
 
@@ -158,7 +163,7 @@ $$
 
 ## Block styles
 
-- Other block styles include `definition` and `equation`
+-   Other block styles include `definition` and `equation`
 
 ## Definition {.definition}
 
@@ -172,8 +177,8 @@ $e=mc^2$
 
 ## Slide level
 
-- The slide content becomes part of the speaker notes
-- Add `notes` class to slide header
+-   The slide content becomes part of the speaker notes
+-   Add `notes` class to slide header
 
     ``` {.markdown}
     # Slide Level {.notes}
@@ -185,8 +190,8 @@ $e=mc^2$
 
 ## Block level
 
-- Block content becomes part of the speaker notes
-- Add `notes` class to level two header
+-   Block content becomes part of the speaker notes
+-   Add `notes` class to level two header
 
     ``` {.markdown}
     ## Block level {.notes}
@@ -196,9 +201,9 @@ $e=mc^2$
 
 # These are just notes {.notes}
 
-Slides with headers that are have the `.notes` class attribute are not included
-in the presentation. They are only visible in the handout and probably are
-available as presenter notes during slide presentation.
+Slides with headers that are have the `.notes` class attribute are not
+included in the presentation. They are only visible in the handout and
+probably are available as presenter notes during slide presentation.
 
 # Cached Images
 
@@ -206,8 +211,8 @@ available as presenter notes during slide presentation.
 
 Remote images can be cached locally
 
-Cache directory is named `img/cached` and is located in the directory of the
-referencing document
+Cache directory is named `img/cached` and is located in the directory of
+the referencing document
 
 `decker cache` scans for and downloads all images
 
@@ -215,14 +220,15 @@ referencing document
 
 ## Cached remote image
 
-![Some piece of scene graph](http://mmi-rtr.dev/slides/02-jet-engine/img/cube-scene-graph.png)
+![Some piece of scene
+graph](http://mmi-rtr.dev/slides/02-jet-engine/img/cube-scene-graph.png)
 
 # Meta Data
 
 ## Mustache template processor
 
-- Markdown source is processed by [mustache]()
-- Data is the union of all available YAML files
+-   Markdown source is processed by [mustache]()
+-   Data is the union of all available YAML files
 
 # Meta Data Example
 
@@ -246,7 +252,6 @@ total:
 ``` {.html}
 Your total score is 42.
 ```
-
 
 # `decker` Tool {.section}
 
@@ -285,8 +290,8 @@ Your total score is 42.
 
 -   `*-deck.html` a *reveal.js* based HTML slide deck
 -   `*-deck.pdf` a PDF version of that deck
--   `*-handout.html` a HTML document containing only the speaker notes from the
-    deck
+-   `*-handout.html` a HTML document containing only the speaker notes
+    from the deck
 -   `*-handout.pdf` a PDF version of that handout
 
 ## Generated from `*-page.md`
@@ -304,7 +309,8 @@ Your total score is 42.
 
 ## `decker`
 
--   Recursively scans the current directory for Markdown files ending in `.md`
+-   Recursively scans the current directory for Markdown files ending in
+    `.md`
 
 ## `decker clean`
 
