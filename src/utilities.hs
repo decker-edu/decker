@@ -7,7 +7,7 @@ module Utilities
         markdownToHtmlHandout, markdownToPdfHandout, markdownToHtmlPage,
         markdownToPdfPage, writeExampleProject, metaValueAsString, (<++>),
         markNeeded, replaceSuffixWith, writeEmbeddedFiles,
-        getRelativeSupportDir, DeckerException(..))
+        getRelativeSupportDir, collectIncludes, DeckerException(..))
        where
 
 import Control.Monad.Loops
@@ -260,18 +260,12 @@ getRelativeSupportDir from =
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck
-  :: FilePath -> [FilePath] -> FilePath -> Action ()
-markdownToHtmlDeck markdownFile metaFiles out =
-  do need $ markdownFile : metaFiles
-     metaData <- readMetaData metaFiles
-     pandoc <- readMetaMarkdown markdownFile metaData
-     processed <- processPandocDeck "revealjs" pandoc
-     supportDir <- getRelativeSupportDir out
+  :: FilePath -> MetaData -> FilePath -> Action ()
+markdownToHtmlDeck markdownFile metaData out =
+  do supportDir <- getRelativeSupportDir out
      let options =
-           def {writerHtml5 = True
-               ,writerStandalone = True
+           def {writerStandalone = True
                ,writerTemplate = deckTemplate
-               ,writerSlideVariant = RevealJsSlides
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
                ,writerHTMLMathMethod =
@@ -280,9 +274,11 @@ markdownToHtmlDeck markdownFile metaFiles out =
                ,writerVariables =
                   [("revealjs-url",supportDir </> "reveal.js")]
                ,writerCiteMethod = Citeproc}
-     writePandocString writeHtmlString options out processed
+     pandoc <- readAndPreprocessMarkdown metaData markdownFile
+     processed <- processPandocDeck "revealjs" pandoc
      let images = extractLocalImagePathes processed
      copyLocalImages images markdownFile out
+     writePandocString "revealjs" options out processed
 
 copyLocalImages :: [FilePath] -> FilePath  -> FilePath -> Action ()
 copyLocalImages imageFiles inFile outFile =
@@ -295,15 +291,34 @@ copyLocalImages imageFiles inFile outFile =
              liftIO $ createDirectoryIfMissing True (takeDirectory to)
              copyFileChanged from to
 
+type MetaData = Y.Value
+
+-- | Selects a matching pandoc string writer for the format string, or throws an
+-- exception.
+getPandocWriter :: String -> StringWriter
+getPandocWriter format =
+  case getWriter format of
+    Right (PureStringWriter w) -> w
+    Left e -> throw $ PandocException e
+    _ -> throw $ PandocException $ "No writer for format: " ++ format
+
+-- | Reads a markdownfile, expands the included files, and substitutes mustache
+-- template variables.
+readAndPreprocessMarkdown :: MetaData -> FilePath -> Action Pandoc
+readAndPreprocessMarkdown metaData markdownFile =
+  do -- let writer = getPandocWriter format
+     projectDir <- getProjectDir
+     let baseDir = takeDirectory markdownFile
+     includes <- collectIncludes markdownFile
+     pandoc <- readMetaMarkdown markdownFile metaData
+     need (markdownFile : includes)
+     liftIO $ processIncludes projectDir baseDir metaData pandoc
+
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage
-  :: FilePath -> [FilePath] -> FilePath -> Action ()
-markdownToHtmlPage markdownFile metaFiles out =
+  :: FilePath -> MetaData -> FilePath -> Action ()
+markdownToHtmlPage markdownFile metaData out =
   do supportDir <- getRelativeSupportDir out
-     projectDir <- getProjectDir
-     need $ markdownFile : metaFiles
-     metaData <- readMetaData metaFiles
-     pandoc <- readMetaMarkdown markdownFile metaData
      let options =
            def {writerHtml5 = True
                ,writerStandalone = True
@@ -316,32 +331,24 @@ markdownToHtmlPage markdownFile metaFiles out =
                ,writerVariables =
                   [("css",supportDir </> "readable/bootstrap.min.css")]
                ,writerCiteMethod = Citeproc}
-     included <-
-       liftIO $
-       processIncludes writeHtmlString
-                       options
-                       projectDir
-                       (takeDirectory markdownFile)
-                       metaData
-                       pandoc
-     processed <- processPandocPage "html" included
-     writePandocString writeHtmlString options out processed
+     pandoc <- readAndPreprocessMarkdown metaData markdownFile
+     processed <- processPandocPage "html5" pandoc
+     let images = extractLocalImagePathes processed
+     copyLocalImages images markdownFile out
+     writePandocString "html5" options out processed
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage
-  :: FilePath -> [FilePath] -> FilePath -> Action ()
-markdownToPdfPage markdownFile metaFiles out =
-  do need $ markdownFile : metaFiles
-     metaData <- readMetaData metaFiles
-     pandoc <- readMetaMarkdown markdownFile metaData
-     processed <- processPandocPage "latex" pandoc
-     supportDir <- getRelativeSupportDir out
-     let options =
+  :: FilePath -> MetaData -> FilePath -> Action ()
+markdownToPdfPage markdownFile metaData out =
+  do let options =
            def {writerStandalone = True
                ,writerTemplate = pageLatexTemplate
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
                ,writerCiteMethod = Citeproc}
+     pandoc <- readAndPreprocessMarkdown metaData markdownFile
+     processed <- processPandocPage "latex" pandoc
      putNormal $ "# pandoc (for " ++ out ++ ")"
      pandocMakePdf options processed out
 
@@ -372,7 +379,7 @@ markdownToHtmlHandout markdownFile metaFiles out =
                ,writerVariables =
                   [("css",supportDir </> "readable/bootstrap.min.css")]
                ,writerCiteMethod = Citeproc}
-     writePandocString writeHtmlString options out processed
+     writePandocString "html5" options out processed
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfHandout
@@ -411,29 +418,56 @@ cacheRemoteImages cacheDir metaFiles markdownFiles =
   where cacheImages markdownFile =
           do metaData <- readMetaData metaFiles
              pandoc <- readMetaMarkdown markdownFile metaData
-             liftIO $ walkM (cachePandocImages cacheDir) pandoc
+             _ <- liftIO $ walkM (cachePandocImages cacheDir) pandoc
              putNormal $ "# pandoc (cached images for " ++ markdownFile ++ ")"
 
-processIncludes :: StringWriter -> WriterOptions -> FilePath -> FilePath -> Y.Value -> Pandoc -> IO Pandoc
-processIncludes writer options rootDir baseDir metaData pandoc =
-  liftIO $ walkM (include baseDir) pandoc
-  where include :: FilePath -> Block -> IO Block
-        include base (Para [Image _ [Str "#include"] (url,_)]) =
-          do let filePath =
-                   if isAbsolute url
-                      then rootDir </> makeRelative "/" url
-                      else base </> url
-             includedPandoc <- readMetaMarkdownIO filePath metaData
+absoluteIncludePath root base path =
+  if isAbsolute path
+     then root </> makeRelative "/" path
+     else base </> path
+
+-- Transitively collects all include files for the given markdown file. The returned pathes
+-- are absolute an can be passed directly to `need`.
+collectIncludes ::  FilePath -> Action [FilePath]
+collectIncludes markdownFile =
+  do projectDir <- getProjectDir
+     liftIO $ collectIncludesIO projectDir markdownFile
+
+collectIncludesIO :: FilePath -> FilePath -> IO [FilePath]
+collectIncludesIO rootDir markdownFile =
+  do markdown <- readFile markdownFile
+     let pandoc =
+           case readMarkdown def markdown of
+             Right p -> p
+             Left e -> throw $ PandocException (show e)
+     let baseDir = takeDirectory markdownFile
+     let direct = map (absoluteIncludePath rootDir baseDir) (Text.Pandoc.Walk.query include pandoc)
+     transitive <- mapM (collectIncludesIO rootDir) direct
+     return $ direct ++ concat transitive
+  where include :: Block -> [FilePath]
+        include (Para [Image _ [Str "#include"] (url,_)]) = [url]
+        include _ = []
+
+-- Transitively splices all include files into the pandoc document.
+processIncludes :: FilePath -> FilePath -> Y.Value -> Pandoc -> IO Pandoc
+processIncludes rootDir baseDir metaData (Pandoc meta blocks) =
+  do included <- processBlocks baseDir blocks
+     return $ Pandoc meta included
+  where processBlocks
+          :: FilePath -> [Block] -> IO [Block]
+        processBlocks base blcks =
+          do spliced <- foldM (include base) [] blcks
+             return $ concat $ reverse spliced
+        include
+          :: FilePath -> [[Block]] -> Block -> IO [[Block]]
+        include base result (Para [Image _ [Str "#include"] (url,_)]) =
+          do let filePath = absoluteIncludePath rootDir base url
+             Pandoc _ b <- readMetaMarkdownIO filePath metaData
              included <-
-               processIncludes writer
-                               options
-                               rootDir
-                               (takeDirectory filePath)
-                               metaData
-                               includedPandoc
-             let rendered = writer options {writerStandalone = False} included
-             return $ RawBlock (Format "html") rendered
-        include _ block = return block
+               processBlocks (takeDirectory filePath)
+                             b
+             return $ included : result
+        include _ result block = return $ [block] : result
 
 processPandocPage
   :: String -> Pandoc -> Action Pandoc
@@ -464,13 +498,14 @@ processPandocHandout format pandoc =
 
 type StringWriter = WriterOptions -> Pandoc -> String
 
-writePandocString :: StringWriter
+writePandocString :: String
                   -> WriterOptions
                   -> FilePath
                   -> Pandoc
                   -> Action ()
-writePandocString writer options out pandoc =
-  do writeFile' out
+writePandocString format options out pandoc =
+  do let writer = getPandocWriter format
+     writeFile' out
                 (writer options pandoc)
      putNormal $ "# pandoc for (" ++ out ++ ")"
 

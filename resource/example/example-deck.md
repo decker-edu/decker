@@ -49,6 +49,14 @@ transition: linear
 ... in a galaxy far, far away.
 ```
 
+# Includes
+
+## Include markdown files
+
+The following text ist included from file `/resource/realtive.md`:
+
+![#include](/resource/relative.md)
+
 # Multicolumn slides
 
 ## The author

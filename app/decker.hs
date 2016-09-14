@@ -33,6 +33,9 @@ main = do
     allSources <- glob "**/*.md"
     meta <- glob "**/*.yaml"
 
+    -- Read meta data.
+    metaData <- readMetaDataIO meta
+
     -- let plainSources = allSources \\ (deckSources ++ pageSources)
 
     -- Calculate targets
@@ -86,7 +89,7 @@ main = do
         priority 2 $ "//*-deck.html" %> \out -> do
             need ["support"]
             let src = sourcePath out projectDir ".html" ".md"
-            markdownToHtmlDeck src meta out
+            markdownToHtmlDeck src metaData out
 
         priority 2 $ "//*-deck.pdf" %> \out -> do
             let src = sourcePath out projectDir ".pdf" ".html"
@@ -109,13 +112,14 @@ main = do
             markdownToPdfHandout src meta out
 
         priority 2 $ "//*-page.html" %> \out -> do
-            need ["support"]
             let src = sourcePath out projectDir "-page.html" "-page.md"
-            markdownToHtmlPage src meta out
+            need $ [src, "support"] ++ meta
+            markdownToHtmlPage src metaData out
 
         priority 2 $ "//*-page.pdf" %> \out -> do
             let src = sourcePath out projectDir "-page.pdf" "-page.md"
-            markdownToPdfPage src meta out
+            need $ [src, "support", "cache"] ++ meta
+            markdownToPdfPage src metaData out
 
         priority 2 $ index %> \out -> do
             exists <- Development.Shake.doesFileExist indexSource
@@ -123,19 +127,11 @@ main = do
             putNormal out
             rel <- getRelativeSupportDir out
             putNormal rel
-            markdownToHtmlPage src meta out
+            markdownToHtmlPage src metaData out
 
         indexSource <.> "generated" %> \out -> do
             need $ decks ++ handouts ++ pages
             writeIndex out (takeDirectory index) decks handouts pages
-
-        "//*.html" %> \out -> do
-            let src = out -<.> "md"
-            markdownToHtmlPage src meta out
-
-        "//*.pdf" %> \out -> do
-            let src = out -<.> "md"
-            markdownToPdfPage src meta out
 
         phony "clean" $ do
             removeFilesAfter publicDir ["//"]
