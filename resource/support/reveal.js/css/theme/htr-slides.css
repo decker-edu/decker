@@ -205,9 +205,10 @@ body {
 
 .reveal code {
     font-family: 'Source Code Pro' monospace;
-    background: #FFF;
+    /* background: #FFF; */
+    font-size: 100%;
     /* font-weight: bold; */
-    color: #700;
+    color: #900;
 }
 
 .reveal pre code {
@@ -218,6 +219,7 @@ body {
     word-wrap: normal;
     background: #EEE;
     color: #000;
+    border: 0.1em solid #777;
 }
 
 .reveal table {
@@ -302,7 +304,7 @@ body {
 .reveal section img {
     margin: 15px 0px;
     /* background: rgba(255, 255, 255, 0.12); */
-    /* border: 1px solid #000; */
+    border: 0.1em solid #777;
     /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); */
 }
 
@@ -538,46 +540,44 @@ body {
 
 .reveal section div.box.definition {
     background-color: #aea;
-    border: 1px solid #8b8;
+    border: 0.1em solid #8b8;
     padding: 0 0.5em 0 0.5em;
     margin: 0 -0.5em 0.5em -0.5em;
 }
 
-.reveal section div.box.definition h3 {
-    color: #040;
+.reveal section div.box.definition h2 {
+    color: #eee;
+    background-color: #0c0;
+    padding: 0 0.5em 0 0.5em;
+    margin: 0 -0.4em 0.5em -0.4em;
 }
 
 .reveal section div.box.alert {
-    background-color: #eaa;
-    border: 1px solid #b88;
+    background-color: #fbb;
+    border: 0.1em solid #b88;
     padding: 0 0.5em 0 0.5em;
     margin: 0 -0.5em 0.5em -0.5em;
 }
 
-.reveal section div.box.alert h3 {
-    color: #400;
+.reveal section div.box.alert h2 {
+    color: #eee;
+    background-color: #d00;
+    padding: 0 0.5em 0 0.5em;
+    margin: 0 -0.4em 0.5em -0.4em;
 }
 
 .reveal section div.box.equation {
     background-color: #ddd;
-    border: 1px solid #bbb;
+    border: 0.1em solid #bbb;
     padding: 0 0.5em 0 0.5em;
     margin: 0 -0.5em 0.5em -0.5em;
 }
 
-.reveal section div.box.equation h3 {
-    color: #444;
-}
-
-.reveal section div.box.alert {
-    background-color: #eaa;
-    border: 1px solid #b88;
+.reveal section div.box.equation h2 {
+    color: #eee;
+    background-color: #666;
     padding: 0 0.5em 0 0.5em;
-    margin: 0 -0.5em 0.5em -0.5em;
-}
-
-.reveal section div.box.alert h3 {
-    color: #400;
+    margin: 0 -0.4em 0.5em -0.4em;
 }
 
 .reveal section div.columns-2 {
@@ -642,6 +642,7 @@ body {
 	padding-bottom: 56.25%; /* 16:9 */
 	padding-top: 0apx;
 	height: 0;
+  border: 0.1em solid #777;
 }
 
 .reveal section div.videoWrapper iframe {

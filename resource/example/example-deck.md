@@ -109,7 +109,7 @@ $$
 
 ## Macros
 
--   Appropriated link `[]()` and image `![]()` syntax
+-   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
 -   Example: embed a YouTube video
 
     ``` {.markdown}
