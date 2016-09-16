@@ -1,0 +1,27 @@
+---
+Answer:
+  tag: MultipleChoice
+  CorrectChoices:
+  - True
+  - True
+  - False
+  - False
+  Choices:
+  - |
+    $\vec{a}\times\vec{b}=(y_a z_b - z_a y_b, z_a x_b - x_a z_b, x_a y_b - y_a x_b)$
+  - |
+    $\vec{a}\times\vec{b}=|\vec{a}| |\vec{b}| \sin \Phi_{\vec{a},\vec{b}}$
+  - |
+    $\vec{a}\times\vec{b}=|\vec{a}| |\vec{b}| \cos \Phi_{\vec{a},\vec{b}}$
+  - |
+    $\vec{a}\times\vec{b}=|\vec{a}| |\vec{b}| \tan \Phi_{\vec{a},\vec{b}}$
+Comment: Gebrauchsfertig.
+Id: kreuzprodukt-formal
+Question: |
+  Welche der folgenden Definitionen des Kreuzprodukts $\vec{v} = \vec{a} \times
+  \vec{b}$ sind korrekt?
+Title: Das Kreuzprodukt
+Points: 5
+Lecture: 7
+Difficulty: Easy
+...

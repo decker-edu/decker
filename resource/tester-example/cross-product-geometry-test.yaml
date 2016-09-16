@@ -1,0 +1,36 @@
+---
+Answer:
+  tag: MultipleChoice
+  CorrectChoices:
+  - True
+  - True
+  - False
+  - False
+  - False
+  Choices:
+  - |
+    Der Vektor $\vec{v}$ steht senkrecht auf den Vektoren $\vec{a}$ und
+    $\vec{b}$.
+  - |
+    Die Länge von Vektor $\vec{v}$ enspricht der Fläche des von den Vektoren
+    $\vec{a}$ und $\vec{b}$ aufgespannten Parallelograms.
+  - |
+    Die Länge von Vektor $\vec{v}$ enspricht der Länge der Hauptdiagonalen des
+    von den Vektoren $\vec{a}$ und $\vec{b}$ aufgespannten Parallelograms.
+  - |
+    Vektor $\vec{v}$ ist die Winkelhalbierende des von Vektoren
+    $\vec{a}$ und $\vec{b}$ aufgespannten Winkels.
+  - |
+    Die Länge von Vektor $\vec{v}$ enspricht der Summe der Längen der Vektoren
+    $\vec{a}$ und $\vec{b}$.
+Comment: Gebrauchsfertig.
+Id: kreuzprodukt-geometrische-interpretation
+Question: |
+  ![](../example/img/06-metal.png){width=50%}\
+  Welche der folgenden Aussagen über das Kreuzprodukt $\vec{v} = \vec{a} \times
+  \vec{b}$ sind richtig?
+Title: Geometrische Deutung Kreuzprodukt
+Points: 5
+Lecture: 7
+Difficulty: Easy
+...

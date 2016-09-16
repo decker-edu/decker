@@ -96,7 +96,7 @@ $body$
         showNotes: sn,
         controls: false,         // Display controls in the bottom right corner
         progress: true,         // Display a presentation progress bar
-        history: $if(history)$$history$$else$true$endif$,          // Push each slide change to the browser history
+        history: $if(history)$$history$$else$false$endif$,          // Push each slide change to the browser history
         center: $if(center)$$center$$else$true$endif$,                       // Vertical centering of slides
         maxScale: $if(maxScale)$$maxScale$$else$1.5$endif$,                  // Bounds for smallest/largest possible content scale
         slideNumber: $if(slideNumber)$true$else$false$endif$,                // Display the page number of the current slide

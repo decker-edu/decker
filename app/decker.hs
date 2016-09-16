@@ -30,13 +30,12 @@ main = do
     -- Find sources
     deckSources <- glob "**/*-deck.md"
     pageSources <- glob "**/*-page.md"
-    allSources <- glob "**/*.md"
-    meta <- glob "**/*.yaml"
+    let allSources = deckSources ++ pageSources
+
+    meta <- glob "**/*-meta.yaml"
 
     -- Read meta data.
     metaData <- readMetaDataIO meta
-
-    -- let plainSources = allSources \\ (deckSources ++ pageSources)
 
     -- Calculate targets
     let decks = targetPathes deckSources projectDir ".md" ".html"
@@ -45,13 +44,11 @@ main = do
     let handoutsPdf = targetPathes deckSources projectDir "-deck.md" "-handout.pdf"
     let pages = targetPathes pageSources projectDir ".md" ".html"
     let pagesPdf = targetPathes pageSources projectDir ".md" ".pdf"
-    -- let plain = targetPathes plainSources projectDir ".md" ".html"
-    -- let plainPdf = targetPathes pageSources projectDir ".md" ".pdf"
 
     let indexSource = projectDir </> "index.md"
     let index = publicDir </> "index.html"
 
-    let everything = decks ++ handouts ++ pages ++ [index]
+    let everything = decks ++ handouts ++ pages
     let everythingPdf = decksPdf ++ handoutsPdf ++ pagesPdf
 
     let cruft = [ "index.md.generated"
@@ -87,8 +84,8 @@ main = do
         phony "example" writeExampleProject
 
         priority 2 $ "//*-deck.html" %> \out -> do
-            need ["support"]
             let src = sourcePath out projectDir ".html" ".md"
+            need $ src : meta
             markdownToHtmlDeck src metaData out
 
         priority 2 $ "//*-deck.pdf" %> \out -> do
@@ -103,34 +100,35 @@ main = do
                  return ()
 
         priority 2 $ "//*-handout.html" %> \out -> do
-            need ["support"]
             let src = sourcePath out projectDir "-handout.html" "-deck.md"
+            need $ src : meta
             markdownToHtmlHandout src meta out
 
         priority 2 $ "//*-handout.pdf" %> \out -> do
             let src = sourcePath out projectDir "-handout.pdf" "-deck.md"
+            need $ src : meta
             markdownToPdfHandout src meta out
 
         priority 2 $ "//*-page.html" %> \out -> do
             let src = sourcePath out projectDir "-page.html" "-page.md"
-            need $ [src, "support"] ++ meta
+            need $ src : meta
             markdownToHtmlPage src metaData out
 
         priority 2 $ "//*-page.pdf" %> \out -> do
             let src = sourcePath out projectDir "-page.pdf" "-page.md"
-            need $ [src, "support", "cache"] ++ meta
+            need $ src : meta
             markdownToPdfPage src metaData out
 
         priority 2 $ index %> \out -> do
             exists <- Development.Shake.doesFileExist indexSource
             let src = if exists then indexSource else indexSource <.> "generated"
+            need $ src : meta
             putNormal out
             rel <- getRelativeSupportDir out
             putNormal rel
             markdownToHtmlPage src metaData out
 
         indexSource <.> "generated" %> \out -> do
-            need $ decks ++ handouts ++ pages
             writeIndex out (takeDirectory index) decks handouts pages
 
         phony "clean" $ do
@@ -142,8 +140,10 @@ main = do
 
         phony "plan" $ do
             putNormal $ "project directory: " ++ projectDir
+            putNormal "meta:"
+            mapM_ putNormal $ meta
             putNormal "sources:"
-            mapM_ putNormal $ allSources ++ meta
+            mapM_ putNormal $ allSources
             putNormal "targets:"
             mapM_ putNormal $ everything ++ everythingPdf
 
@@ -155,10 +155,9 @@ main = do
             writeEmbeddedFiles deckerSupportDir supportDir
 
         phony "publish" $ do
-            need $ everything ++ ["index.html"]
+            need $ everything ++ [index]
             hasResource <- Development.Shake.doesDirectoryExist resourceDir
             let source = if hasResource then resourceDir : everything else everything
-            metaData <- readMetaData meta
             let host = metaValueAsString "rsync-destination.host" metaData
             let path = metaValueAsString "rsync-destination.path" metaData
             if isJust host && isJust path
@@ -177,14 +176,6 @@ main = do
         phony "self-test" $ do
           ctx <- getActionContext
           putNormal $ show ctx
-
--- | Glob for pathes below and relative to the current directory.
-globRelative :: String -> Action [FilePath]
-globRelative pat = liftIO $ glob pat >>= mapM makeRelativeToCurrentDirectory
-
--- | Glob for pathes below and relative to the current directory.
-globRelativeIO :: String -> IO [FilePath]
-globRelativeIO pat = glob pat >>= mapM makeRelativeToCurrentDirectory
 
 -- | Some constants that might need tweaking
 resourceDir = "img"

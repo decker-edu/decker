@@ -7,7 +7,8 @@ module Utilities
         markdownToHtmlHandout, markdownToPdfHandout, markdownToHtmlPage,
         markdownToPdfPage, writeExampleProject, metaValueAsString, (<++>),
         markNeeded, replaceSuffixWith, writeEmbeddedFiles,
-        getRelativeSupportDir, collectIncludes, DeckerException(..))
+        getRelativeSupportDir, collectIncludes, pandocMakePdf,
+        absoluteIncludePath, DeckerException(..))
        where
 
 import Control.Monad.Loops
@@ -209,11 +210,11 @@ writeIndex out baseUrl decks handouts pages =
                , "subtitle: {{course}} ({{semester}})"
                ,"---"
                ,"# Slide decks"
-               ,unlines $ map makeLink decksLinks
+               ,unlines $ map makeLink $ sort decksLinks
                ,"# Handouts"
-               ,unlines $ map makeLink handoutsLinks
+               ,unlines $ map makeLink $ sort handoutsLinks
                ,"# Supporting Documents"
-               ,unlines $ map makeLink pagesLinks]
+               ,unlines $ map makeLink $ sort pagesLinks]
   where makeLink path = "-    [" ++ takeFileName path ++ "](" ++ path ++ ")"
 
 -- | Decodes an array of YAML files and combines the data into one object.
@@ -311,7 +312,7 @@ readAndPreprocessMarkdown metaData markdownFile =
      let baseDir = takeDirectory markdownFile
      includes <- collectIncludes markdownFile
      pandoc <- readMetaMarkdown markdownFile metaData
-     need (markdownFile : includes)
+     need includes
      liftIO $ processIncludes projectDir baseDir metaData pandoc
 
 -- | Write a markdown file to a HTML file using the page template.
@@ -362,8 +363,7 @@ pandocMakePdf options processed out =
 markdownToHtmlHandout
   :: FilePath -> [FilePath] -> FilePath -> Action ()
 markdownToHtmlHandout markdownFile metaFiles out =
-  do need $ markdownFile : metaFiles
-     metaData <- readMetaData metaFiles
+  do metaData <- readMetaData metaFiles
      pandoc <- readMetaMarkdown markdownFile metaData
      processed <- processPandocHandout "html" pandoc
      supportDir <- getRelativeSupportDir out
@@ -385,8 +385,7 @@ markdownToHtmlHandout markdownFile metaFiles out =
 markdownToPdfHandout
   :: FilePath -> [FilePath] -> FilePath -> Action ()
 markdownToPdfHandout markdownFile metaFiles out =
-  do need $ markdownFile : metaFiles
-     metaData <- readMetaData metaFiles
+  do metaData <- readMetaData metaFiles
      pandoc <- readMetaMarkdown markdownFile metaData
      processed <- processPandocHandout "latex" pandoc
      let options =
@@ -436,17 +435,17 @@ collectIncludes markdownFile =
 collectIncludesIO :: FilePath -> FilePath -> IO [FilePath]
 collectIncludesIO rootDir markdownFile =
   do markdown <- readFile markdownFile
-     let pandoc =
+     let Pandoc _ blocks =
            case readMarkdown def markdown of
              Right p -> p
              Left e -> throw $ PandocException (show e)
      let baseDir = takeDirectory markdownFile
-     let direct = map (absoluteIncludePath rootDir baseDir) (Text.Pandoc.Walk.query include pandoc)
+     let direct = map (absoluteIncludePath rootDir baseDir) (foldl include [] blocks)
      transitive <- mapM (collectIncludesIO rootDir) direct
      return $ direct ++ concat transitive
-  where include :: Block -> [FilePath]
-        include (Para [Image _ [Str "#include"] (url,_)]) = [url]
-        include _ = []
+  where include :: [FilePath] -> Block -> [FilePath]
+        include result (Para [Image _ [Str "#include"] (url,_)]) = url : result
+        include result _ = result
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> FilePath -> Y.Value -> Pandoc -> IO Pandoc
@@ -556,7 +555,7 @@ data DeckerException
   | YamlException String
   | RsyncUrlException
   | DecktapeException String
-  deriving (((Typeable)))
+  deriving Typeable
 
 instance Exception DeckerException
 

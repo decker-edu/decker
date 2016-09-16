@@ -2,7 +2,7 @@
 
 module Embed
        (deckerHelpText, deckerExampleDir, deckerSupportDir, deckTemplate, pageTemplate,
-        pageLatexTemplate, handoutTemplate, handoutLatexTemplate)
+        pageLatexTemplate, handoutTemplate, handoutLatexTemplate, testerMultipleChoiceTemplate, testLatexTemplate)
        where
 
 import Data.FileEmbed
@@ -37,3 +37,11 @@ handoutTemplate =
 handoutLatexTemplate :: String
 handoutLatexTemplate =
   B.unpack $(makeRelativeToProject "resource/handout.tex" >>= embedFile)
+
+testerMultipleChoiceTemplate :: B.ByteString
+testerMultipleChoiceTemplate =
+  $(makeRelativeToProject "resource/test-question.md" >>= embedFile)
+
+testLatexTemplate :: B.ByteString
+testLatexTemplate =
+  $(makeRelativeToProject "resource/test.tex" >>= embedFile)
