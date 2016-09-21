@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Test, Embed, Context, Utilities, Filter
+  exposed-modules:     Pandoc, Test, Embed, Context, Utilities, Filter
   build-depends:       base
                      , aeson
                      , pandoc-types
@@ -35,6 +35,7 @@ library
                      , filepath
                      , Glob
                      , pandoc
+                     , pureMD5
                      , yaml
                      , mustache
                      , unordered-containers
@@ -44,7 +45,9 @@ library
                      , network-uri
                      , HTTP
                      , http-conduit
+                     , http-types
                      , highlighting-kate
+                     , multimap
   default-language:    Haskell2010
 
 executable decker
@@ -85,85 +88,85 @@ executable tester
                      , random-shuffle
   default-language:    Haskell2010
 
-executable include-pandoc-filter
-  hs-source-dirs:      app
-  main-is:             include.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , slides
-                     , pandoc-types
-  default-language:    Haskell2010
+-- executable include-pandoc-filter
+--   hs-source-dirs:      app
+--   main-is:             include.hs
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   build-depends:       base
+--                      , slides
+--                      , pandoc-types
+--   default-language:    Haskell2010
 
-executable dot-pandoc-filter
-  hs-source-dirs:      app
-  main-is:             dot.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , slides
-                     , pandoc-types
-                     , base64-bytestring
-                     , bytestring
-                     , process
-                     , blaze-markup
-                     , blaze-html
-                     , split
-                     , pureMD5
-  default-language:    Haskell2010
+-- executable dot-pandoc-filter
+--   hs-source-dirs:      app
+--   main-is:             dot.hs
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   build-depends:       base
+--                      , slides
+--                      , pandoc-types
+--                      , base64-bytestring
+--                      , bytestring
+--                      , process
+--                      , blaze-markup
+--                      , blaze-html
+--                      , split
+--                      , pureMD5
+--   default-language:    Haskell2010
 
-executable gnuplot-pandoc-filter
-  hs-source-dirs:      app
-  main-is:             Gnuplot.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , slides
-                     , pandoc-types
-                     , base64-bytestring
-                     , bytestring
-                     , process
-                     , blaze-markup
-                     , blaze-html
-                     , split
-                     , pureMD5
-                     , directory
-  default-language:    Haskell2010
+-- executable gnuplot-pandoc-filter
+--   hs-source-dirs:      app
+--   main-is:             Gnuplot.hs
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   build-depends:       base
+--                      , slides
+--                      , pandoc-types
+--                      , base64-bytestring
+--                      , bytestring
+--                      , process
+--                      , blaze-markup
+--                      , blaze-html
+--                      , split
+--                      , pureMD5
+--                      , directory
+--   default-language:    Haskell2010
 
-executable macros-pandoc-filter
-  hs-source-dirs:      app
-  main-is:             macros.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , slides
-                     , pandoc-types
-                     , containers
-                     , split
-                     , data-default
-                     , blaze-markup
-                     , blaze-html
-  default-language:    Haskell2010
+-- executable macros-pandoc-filter
+--   hs-source-dirs:      app
+--   main-is:             macros.hs
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   build-depends:       base
+--                      , slides
+--                      , pandoc-types
+--                      , containers
+--                      , split
+--                      , data-default
+--                      , blaze-markup
+--                      , blaze-html
+--   default-language:    Haskell2010
 
-executable slideset-pandoc-filter
-  hs-source-dirs:      app
-  main-is:             slideset-filter.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , slides
-                     , pandoc-types
-                     , containers
-                     , split
-                     , data-default
-  default-language:    Haskell2010
+-- executable slideset-pandoc-filter
+--   hs-source-dirs:      app
+--   main-is:             slideset-filter.hs
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   build-depends:       base
+--                      , slides
+--                      , pandoc-types
+--                      , containers
+--                      , split
+--                      , data-default
+--   default-language:    Haskell2010
 
-executable handout-pandoc-filter
-  hs-source-dirs:      app
-  main-is:             handout.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , slides
-                     , pandoc-types
-                     , containers
-                     , split
-                     , data-default
-  default-language:    Haskell2010
+-- executable handout-pandoc-filter
+--   hs-source-dirs:      app
+--   main-is:             handout.hs
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   build-depends:       base
+--                      , slides
+--                      , pandoc-types
+--                      , containers
+--                      , split
+--                      , data-default
+--   default-language:    Haskell2010
 
 test-suite slides-test
   type:                exitcode-stdio-1.0
@@ -171,6 +174,14 @@ test-suite slides-test
   main-is:             spec.hs
   build-depends:       base
                      , slides
+                     , hspec
+                     , filepath
+                     , pandoc
+                     , Glob
+                     , yaml
+                     , containers
+                     , unordered-containers
+                     , text
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

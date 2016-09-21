@@ -553,6 +553,7 @@ data DeckerException
   = MustacheException String
   | PandocException String
   | YamlException String
+  | HttpException String
   | RsyncUrlException
   | DecktapeException String
   deriving Typeable
