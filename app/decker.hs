@@ -28,7 +28,7 @@ main :: IO ()
 main = do
     -- Calculate some directories
     projectDir <- calcProjectDirectory
-    let publicDir = projectDir </> publicDirName
+    let publicDir = projectDir </> "public"
     let cacheDir = publicDir </> "cache"
     let supportDir = publicDir </> "support"
 
@@ -36,30 +36,20 @@ main = do
     -- that each new iteration rescans all possible source files.
     let deckSourcesA = globA "**/*-deck.md"
     let pageSourcesA = globA "**/*-page.md"
-    deckSources <- glob "**/*-deck.md"
-    pageSources <- glob "**/*-page.md"
     let allSourcesA = deckSourcesA <++> pageSourcesA
-    let allSources = deckSources ++ pageSources
 
     let metaA = globA "**/*-meta.yaml"
-    meta <- glob "**/*-meta.yaml"
 
     -- Read meta data.
     -- metaData <- readMetaDataIO meta
 
     -- Calculate targets
     let decksA = deckSourcesA >>= calcTargets ".md" ".html"
-    let decks = targetPathes deckSources projectDir ".md" ".html"
     let decksPdfA = deckSourcesA >>= calcTargets ".md" ".pdf"
-    let decksPdf = targetPathes deckSources projectDir ".md" ".pdf"
     let handoutsA = deckSourcesA >>= calcTargets "-deck.md" "-handout.html"
-    let handouts = targetPathes deckSources projectDir "-deck.md" "-handout.html"
     let handoutsPdfA = deckSourcesA >>= calcTargets "-deck.md" "-handout.pdf"
-    let handoutsPdf = targetPathes deckSources projectDir "-deck.md" "-handout.pdf"
     let pagesA = pageSourcesA >>= calcTargets ".md" ".html"
-    let pages = targetPathes pageSources projectDir ".md" ".html"
     let pagesPdfA = pageSourcesA >>= calcTargets ".md" ".pdf"
-    let pagesPdf = targetPathes pageSources projectDir ".md" ".pdf"
 
     let indexSource = projectDir </> "index.md"
     let index = publicDir </> "index.html"
@@ -67,8 +57,6 @@ main = do
 
     let everythingA = decksA <++> handoutsA <++> pagesA
     let everythingPdfA = decksPdfA <++> handoutsPdfA <++> pagesPdfA
-    let everything = decks ++ handouts ++ pages
-    let everythingPdf = decksPdf ++ handoutsPdf ++ pagesPdf
 
     let cruft = map (combine projectDir) [ "index.md.generated"
                                          , "server.log"
@@ -84,20 +72,16 @@ main = do
             decksA >>= need
 
         phony "html" $ do
-            -- need $ everything ++ [index]
             everythingA <++> indexA >>= need
 
         phony "pdf" $ do
-            -- need $ pagesPdf ++ handoutsPdf ++ [index]
             pagesPdfA <++> handoutsPdfA <++> indexA >>= need
 
         phony "pdf-decks" $ do
-            -- need $ decksPdf ++ [index]
             decksPdfA <++> indexA >>= need
 
         phony "watch" $ do
             need ["html"]
-            -- watchFiles $ allSources ++ meta
             allSourcesA <++> metaA >>= watchFiles
 
         phony "server" $ do
@@ -107,13 +91,11 @@ main = do
         phony "example" writeExampleProject
 
         priority 2 $ "//*-deck.html" %> \out -> do
-            -- let src = sourcePath out projectDir ".html" ".md"
             src <- calcSource "-deck.html" "-deck.md" out
             metaData <- metaA >>= readMetaData -- TODO new readMetaData
             markdownToHtmlDeck src metaData out
 
         priority 2 $ "//*-deck.pdf" %> \out -> do
-            -- let src = sourcePath out projectDir ".pdf" ".html"
             let src = replaceSuffix "-deck.pdf" "-deck.html" out
             runHttpServer publicDir False
             code <- cmd "decktape.sh reveal" ("http://localhost:8888/" ++ (makeRelative projectDir src)) out
@@ -124,7 +106,6 @@ main = do
                  return ()
 
         priority 2 $ "//*-handout.html" %> \out -> do
-            -- let src = sourcePath out projectDir "-handout.html" "-deck.md"
             src <- calcSource "-handout.html" "-deck.md" out
             meta <- metaA
             need meta
@@ -137,13 +118,11 @@ main = do
             markdownToPdfHandout src meta out
 
         priority 2 $ "//*-page.html" %> \out -> do
-            -- let src = sourcePath out projectDir "-page.html" "-page.md"
             src <- calcSource "-page.html" "-page.md" out
             metaData <- metaA >>= readMetaData
             markdownToHtmlPage src metaData out
 
         priority 2 $ "//*-page.pdf" %> \out -> do
-            -- let src = sourcePath out projectDir "-page.pdf" "-page.md"
             src <- calcSource "-page.pdf" "-page.md" out
             metaData <- metaA >>= readMetaData
             markdownToPdfPage src metaData out
@@ -157,6 +136,9 @@ main = do
             markdownToHtmlPage src metaData out
 
         indexSource <.> "generated" %> \out -> do
+            decks <- decksA
+            handouts <- handoutsA
+            pages <- pagesA
             writeIndex out (takeDirectory index) decks handouts pages
 
         phony "clean" $ do
@@ -197,23 +179,15 @@ main = do
 
         phony "cache" $ do
             meta <- metaA
-            cacheRemoteImages cacheDir meta allSources
+            sources <- allSourcesA
+            cacheRemoteImages cacheDir meta sources
 
         phony "clean-cache" $ do
             need ["clean"]
             removeFilesAfter "." ["**/cached"]
 
 -- | Some constants that might need tweaking
-resourceDir = "img"
 options = shakeOptions{shakeFiles=".shake"}
-
-publicDirName :: String
-publicDirName = "public"
-
-targetPath :: FilePath -> FilePath -> String -> String -> FilePath
-targetPath source projectDir srcSuffix targetSuffix =
-  let target = projectDir </> publicDirName </> (makeRelative projectDir source)
-  in dropSuffix srcSuffix target ++ targetSuffix
 
 replaceSuffix srcSuffix targetSuffix filename = dropSuffix srcSuffix filename ++ targetSuffix
 
@@ -224,10 +198,6 @@ calcTargets srcSuffix targetSuffix sources =
      publicDir <- getPublicDir
      return $ map (replaceSuffix srcSuffix targetSuffix . combine publicDir . makeRelative projectDir) sources
 
-targetPathes :: [FilePath] -> FilePath -> String -> String -> [FilePath]
-targetPathes sources projectDir srcSuffix targetSuffix =
-  [targetPath s projectDir srcSuffix targetSuffix | s <- sources]
-
 -- | Calculate the source file from the target path. Calls need.
 calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target =
@@ -236,8 +206,3 @@ calcSource targetSuffix srcSuffix target =
      let src = (replaceSuffix targetSuffix srcSuffix . combine projectDir .  makeRelative publicDir) target
      need [src]
      return src
-
-sourcePath :: FilePath -> FilePath -> String -> String -> FilePath
-sourcePath out projectDir targetSuffix srcSuffix =
-  let source = projectDir </> (makeRelative (projectDir </> publicDirName) out)
-  in dropSuffix targetSuffix source ++ srcSuffix
