@@ -228,16 +228,21 @@ readMetaDataIO files =
         combine (Y.Object obj) (file,Right (Y.Object new)) =
           return (Y.Object (HashMap.union new obj))
         combine obj (file,Right _) =
-          do throw $
+          do _ <- throw $
                YamlException $
                file ++ ": top level metadata is not a YAML object."
              return obj
         combine obj (file,Left err) =
-          do throw $
+          do _ <- throw $
                YamlException $ file ++ ": " ++ Y.prettyPrintParseException err
              return obj
 
-readMetaData files = liftIO $ readMetaDataIO files
+-- | TODO This has to be restructured. Metadata files need to be calculated from
+-- the source directory and need should be called implicitly.
+readMetaData :: [FilePath] -> Action MetaData
+readMetaData files =
+  do need files
+     liftIO $ readMetaDataIO files
 
 -- | Substitutes meta data values in the provided file.
 substituteMetaData
