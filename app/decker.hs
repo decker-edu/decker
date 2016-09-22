@@ -131,7 +131,7 @@ main = do
             exists <- Development.Shake.doesFileExist indexSource
             let src = if exists then indexSource else indexSource <.> "generated"
             need [src]
-            rel <- getRelativeSupportDir out
+            -- rel <- getRelativeSupportDir out
             metaData <- metaA >>= readMetaData
             markdownToHtmlPage src metaData out
 
