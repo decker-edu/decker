@@ -55,7 +55,7 @@ transition: linear
 
 The following text ist included from file `/resource/realtive.md`:
 
-![#include](/resource/relative.md)
+[#include](/resource/relative.md)
 
 # Multicolumn slides
 
@@ -115,14 +115,14 @@ $$
     ``` {.markdown}
     ## Video
 
-    ![:youtube](Wji-BZ0oCwg)
+    [:youtube](Wji-BZ0oCwg)
     ```
 
 ###
 
 ## Video
 
-![:youtube](Wji-BZ0oCwg)
+[:youtube](Wji-BZ0oCwg)
 
 # Compile Time Templating
 

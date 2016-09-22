@@ -1,6 +1,6 @@
 -- | Generally useful functions on pansoc data structures. Some in the IO monad.
 module Pandoc
-       (isCacheableURI, adjustLocalUrl, cacheRemoteFile,
+       (isCacheableURI, cacheRemoteFile,
         Pandoc.cacheRemoteImages, Pandoc.readMetaData)
        where
 
@@ -29,41 +29,12 @@ import Utilities
 import Context
 import Debug.Trace
 
-isLocalURI :: String -> Bool
-isLocalURI url = isNothing $ parseURI url
-
-isRemoteURI :: String -> Bool
-isRemoteURI = not . isLocalURI
-
-isCacheableURI :: String -> Bool
-isCacheableURI url =
-  case parseURI url of
-    Just uri -> uriScheme uri `elem` ["http:","https:"]
-    Nothing -> False
-
--- | Walks over all images in a Pandoc document and transforms image URLs like
--- this: 1. Remote URLs are not transformed. 2. Absolute URLs are intepreted
--- relative to the project root directory. 3. Relative URLs are intepreted
--- relative to the containing document.
-adjustImageUrls :: FilePath -> FilePath -> Pandoc -> Pandoc
-adjustImageUrls projectDir baseDir pandoc = walk adjust pandoc
-  where adjust (Image attr inlines (url,title)) =
-          (Image attr inlines (adjustLocalUrl projectDir baseDir url,title))
-        adjust other = other
-
-adjustLocalUrl :: FilePath -> FilePath -> FilePath -> FilePath
-adjustLocalUrl root base url
-  | isLocalURI url =
-    if isAbsolute url
-       then root </> makeRelative "/" url
-       else base </> url
-adjustLocalUrl _ _ url = url
-
 cacheRemoteImages :: FilePath -> Pandoc -> IO Pandoc
 cacheRemoteImages cacheDir pandoc = walkM cacheRemoteImage pandoc
   where cacheRemoteImage (Image attr inlines (url,title)) =
           do cachedFile <- cacheRemoteFile cacheDir url
              return (Image attr inlines (cachedFile,title))
+        cacheRemoteImage img = return img
 
 cacheRemoteFile :: FilePath -> String -> IO FilePath
 cacheRemoteFile cacheDir url

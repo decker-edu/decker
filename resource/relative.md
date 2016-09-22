@@ -2,4 +2,4 @@
 
 *Here be DRAGONS.*
 
-![#include](level-2.md)
+[#include](level-2.md)

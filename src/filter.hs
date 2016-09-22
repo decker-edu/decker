@@ -124,8 +124,6 @@ onlyStrings = reverse . foldl only []
 
 expand
   :: Inline -> Format -> Meta -> Maybe Inline
-expand (Image attr text target) format meta =
-  expand_ attr text target format meta
 expand (Link attr text target) format meta =
   expand_ attr text target format meta
 expand x _ _ = Just x

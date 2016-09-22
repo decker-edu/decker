@@ -106,7 +106,7 @@ renderCatalog projectDir templates questions out =
             Left err -> throw $ PandocException (show err)
             Right pandoc -> walk (adjustImageUrls base) pandoc
         adjustImageUrls base (Image attr inlines (url,title)) =
-          (Image attr inlines (absoluteIncludePath projectDir base url,title))
+          (Image attr inlines (adjustLocalUrl projectDir base url,title))
         adjustImageUrls _ inline = inline
         renderMarkdown question =
           T.unpack $
