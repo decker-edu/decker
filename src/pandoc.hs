@@ -1,5 +1,8 @@
 -- | Generally useful functions on pansoc data structures. Some in the IO monad.
-module Pandoc (isCacheableURI,adjustLocalUrl,cacheRemoteFile,Pandoc.cacheRemoteImages,Pandoc.readMetaData) where
+module Pandoc
+       (isCacheableURI, adjustLocalUrl, cacheRemoteFile,
+        Pandoc.cacheRemoteImages, Pandoc.readMetaData)
+       where
 
 import Control.Exception
 import Control.Monad
@@ -12,6 +15,7 @@ import qualified Data.Map as M
 import qualified Data.MultiMap as MM
 import Data.Digest.Pure.MD5
 import qualified Data.Yaml as Y
+import Development.Shake
 import Network.HTTP.Conduit
 import Network.HTTP.Simple
 import Network.HTTP.Types.Status
@@ -22,6 +26,7 @@ import System.Posix.Files
 import Text.Pandoc
 import Text.Pandoc.Walk
 import Utilities
+import Context
 import Debug.Trace
 
 isLocalURI :: String -> Bool

@@ -3,12 +3,12 @@ module Utilities
         threadDelay', wantRepeat, waitForModificationIn, defaultContext,
         runShakeInContext, watchFiles, waitForTwitch, dropSuffix,
         stopServer, startServer, runHttpServer, writeIndex, readMetaData,
-        readMetaDataIO, substituteMetaData, markdownToHtmlDeck,
-        markdownToHtmlHandout, markdownToPdfHandout, markdownToHtmlPage,
-        markdownToPdfPage, writeExampleProject, metaValueAsString, (<++>),
-        markNeeded, replaceSuffixWith, writeEmbeddedFiles,
-        getRelativeSupportDir, collectIncludes, pandocMakePdf,
-        absoluteIncludePath, DeckerException(..))
+        readMetaDataFor, readMetaDataIO, substituteMetaData,
+        markdownToHtmlDeck, markdownToHtmlHandout, markdownToPdfHandout,
+        markdownToHtmlPage, markdownToPdfPage, writeExampleProject,
+        metaValueAsString, (<++>), markNeeded, replaceSuffixWith,
+        writeEmbeddedFiles, getRelativeSupportDir, collectIncludes,
+        pandocMakePdf, absoluteIncludePath, DeckerException(..))
        where
 
 import Control.Monad.Loops
@@ -21,6 +21,7 @@ import Data.Dynamic
 import Data.List.Extra
 import Data.Maybe
 import Data.IORef
+import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
 import Data.Time.Clock
 import Data.Typeable
@@ -33,6 +34,7 @@ import System.Directory as Dir
 import System.Exit
 import System.Posix.Signals
 import System.FilePath
+import System.FilePath.Glob
 import qualified Data.Yaml as Y
 import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
@@ -217,6 +219,36 @@ writeIndex out baseUrl decks handouts pages =
                ,unlines $ map makeLink $ sort pagesLinks]
   where makeLink path = "-    [" ++ takeFileName path ++ "](" ++ path ++ ")"
 
+readMetaDataFor ::  FilePath -> Action Y.Value
+readMetaDataFor file =
+  walkUpTo (takeDirectory file)
+  where walkUpTo dir =
+          do projectDir <- getProjectDir
+             if equalFilePath projectDir dir
+                then collectMeta dir
+                else do fromAbove <- walkUpTo (takeDirectory dir)
+                        fromHere <- collectMeta dir
+                        return $ joinMeta fromHere fromAbove
+        --
+        collectMeta dir =
+          do files <- liftIO $ globDir1 (compile "*-meta.yaml") dir
+             need files
+             meta <- mapM decodeYaml files
+             return $ foldl joinMeta (Y.object []) meta
+        --
+        joinMeta (Y.Object old) (Y.Object new) = Y.Object (H.union new old)
+        joinMeta _ _ = throw $ YamlException "Can only join YAML objects."
+        --
+        decodeYaml yamlFile =
+          do result <- liftIO $ Y.decodeFileEither yamlFile
+             case result of
+               Right object@(Y.Object _) -> return object
+               Right _ ->
+                 throw $
+                 YamlException $
+                 "Top-level meta value must be an object: " ++ file
+               Left exception -> throw exception
+
 -- | Decodes an array of YAML files and combines the data into one object.
 -- Key value pairs from later files overwrite those from early ones.
 readMetaDataIO :: [FilePath] -> IO Y.Value
@@ -266,9 +298,11 @@ getRelativeSupportDir from =
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck
-  :: FilePath -> MetaData -> FilePath -> Action ()
-markdownToHtmlDeck markdownFile metaData out =
-  do supportDir <- getRelativeSupportDir out
+  :: FilePath -> FilePath -> Action ()
+markdownToHtmlDeck markdownFile out =
+  do need [markdownFile]
+     metaData <- readMetaDataFor markdownFile
+     supportDir <- getRelativeSupportDir out
      let options =
            def {writerStandalone = True
                ,writerTemplate = deckTemplate
@@ -322,9 +356,10 @@ readAndPreprocessMarkdown metaData markdownFile =
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage
-  :: FilePath -> MetaData -> FilePath -> Action ()
-markdownToHtmlPage markdownFile metaData out =
-  do supportDir <- getRelativeSupportDir out
+  :: FilePath -> FilePath -> Action ()
+markdownToHtmlPage markdownFile out =
+  do need [markdownFile]
+     supportDir <- getRelativeSupportDir out
      let options =
            def {writerHtml5 = True
                ,writerStandalone = True
@@ -337,6 +372,7 @@ markdownToHtmlPage markdownFile metaData out =
                ,writerVariables =
                   [("css",supportDir </> "readable/bootstrap.min.css")]
                ,writerCiteMethod = Citeproc}
+     metaData <- readMetaDataFor markdownFile
      pandoc <- readAndPreprocessMarkdown metaData markdownFile
      processed <- processPandocPage "html5" pandoc
      let images = extractLocalImagePathes processed
@@ -345,14 +381,16 @@ markdownToHtmlPage markdownFile metaData out =
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage
-  :: FilePath -> MetaData -> FilePath -> Action ()
-markdownToPdfPage markdownFile metaData out =
-  do let options =
+  :: FilePath -> FilePath -> Action ()
+markdownToPdfPage markdownFile out =
+  do need [markdownFile]
+     let options =
            def {writerStandalone = True
                ,writerTemplate = pageLatexTemplate
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
                ,writerCiteMethod = Citeproc}
+     metaData <- readMetaDataFor markdownFile
      pandoc <- readAndPreprocessMarkdown metaData markdownFile
      processed <- processPandocPage "latex" pandoc
      putNormal $ "# pandoc (for " ++ out ++ ")"
@@ -366,9 +404,10 @@ pandocMakePdf options processed out =
 
 -- | Write a markdown file to a HTML file using the handout template.
 markdownToHtmlHandout
-  :: FilePath -> [FilePath] -> FilePath -> Action ()
-markdownToHtmlHandout markdownFile metaFiles out =
-  do metaData <- readMetaData metaFiles
+  :: FilePath -> FilePath -> Action ()
+markdownToHtmlHandout markdownFile out =
+  do need [markdownFile]
+     metaData <- readMetaDataFor markdownFile
      pandoc <- readMetaMarkdown markdownFile metaData
      processed <- processPandocHandout "html" pandoc
      supportDir <- getRelativeSupportDir out
@@ -388,9 +427,10 @@ markdownToHtmlHandout markdownFile metaFiles out =
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfHandout
-  :: FilePath -> [FilePath] -> FilePath -> Action ()
-markdownToPdfHandout markdownFile metaFiles out =
-  do metaData <- readMetaData metaFiles
+  :: FilePath -> FilePath -> Action ()
+markdownToPdfHandout markdownFile out =
+  do need [markdownFile]
+     metaData <- readMetaDataFor markdownFile
      pandoc <- readMetaMarkdown markdownFile metaData
      processed <- processPandocHandout "latex" pandoc
      let options =

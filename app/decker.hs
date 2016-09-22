@@ -92,8 +92,7 @@ main = do
 
         priority 2 $ "//*-deck.html" %> \out -> do
             src <- calcSource "-deck.html" "-deck.md" out
-            metaData <- metaA >>= readMetaData -- TODO new readMetaData
-            markdownToHtmlDeck src metaData out
+            markdownToHtmlDeck src out
 
         priority 2 $ "//*-deck.pdf" %> \out -> do
             let src = replaceSuffix "-deck.pdf" "-deck.html" out
@@ -107,33 +106,24 @@ main = do
 
         priority 2 $ "//*-handout.html" %> \out -> do
             src <- calcSource "-handout.html" "-deck.md" out
-            meta <- metaA
-            need meta
-            markdownToHtmlHandout src meta out  -- TODO new readMetaData
+            markdownToHtmlHandout src out
 
         priority 2 $ "//*-handout.pdf" %> \out -> do
             src <- calcSource "-handout.pdf" "-deck.md" out
-            meta <- metaA
-            need meta
-            markdownToPdfHandout src meta out
+            markdownToPdfHandout src out
 
         priority 2 $ "//*-page.html" %> \out -> do
             src <- calcSource "-page.html" "-page.md" out
-            metaData <- metaA >>= readMetaData
-            markdownToHtmlPage src metaData out
+            markdownToHtmlPage src out
 
         priority 2 $ "//*-page.pdf" %> \out -> do
             src <- calcSource "-page.pdf" "-page.md" out
-            metaData <- metaA >>= readMetaData
-            markdownToPdfPage src metaData out
+            markdownToPdfPage src out
 
         priority 2 $ index %> \out -> do
             exists <- Development.Shake.doesFileExist indexSource
             let src = if exists then indexSource else indexSource <.> "generated"
-            need [src]
-            -- rel <- getRelativeSupportDir out
-            metaData <- metaA >>= readMetaData
-            markdownToHtmlPage src metaData out
+            markdownToHtmlPage src out
 
         indexSource <.> "generated" %> \out -> do
             decks <- decksA
@@ -168,7 +158,7 @@ main = do
 
         phony "publish" $ do
             everythingA <++> indexA >>= need
-            metaData <- metaA >>= readMetaData
+            metaData <- readMetaDataFor projectDir
             let host = metaValueAsString "rsync-destination.host" metaData
             let path = metaValueAsString "rsync-destination.path" metaData
             if isJust host && isJust path
