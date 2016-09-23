@@ -229,7 +229,7 @@ the referencing document
 ## Cached remote image
 
 ![Some piece of scene
-graph](http://mmi-rtr.dev/slides/02-jet-engine/img/cube-scene-graph.png)
+graph](https://tramberend.beuth-hochschule.de/img/cg1-banner.png)
 
 # Meta Data
 

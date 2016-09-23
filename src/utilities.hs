@@ -1,14 +1,15 @@
 module Utilities
-       (cacheRemoteImages, calcProjectDirectory, spawn, terminate,
-        threadDelay', wantRepeat, waitForModificationIn, defaultContext,
-        runShakeInContext, watchFiles, waitForTwitch, dropSuffix,
-        stopServer, startServer, runHttpServer, writeIndex, readMetaData,
-        readMetaDataFor, readMetaDataIO, substituteMetaData,
-        markdownToHtmlDeck, markdownToHtmlHandout, markdownToPdfHandout,
-        markdownToHtmlPage, markdownToPdfPage, writeExampleProject,
-        metaValueAsString, (<++>), markNeeded, replaceSuffixWith,
-        writeEmbeddedFiles, getRelativeSupportDir,
-        pandocMakePdf, isCacheableURI, adjustLocalUrl, DeckerException(..))
+       (calcProjectDirectory, spawn, terminate, threadDelay', wantRepeat,
+        waitForModificationIn, defaultContext, runShakeInContext,
+        watchFiles, waitForTwitch, dropSuffix, stopServer, startServer,
+        runHttpServer, writeIndex, readMetaData, readMetaDataFor,
+        readMetaDataIO, substituteMetaData, markdownToHtmlDeck,
+        markdownToHtmlHandout, markdownToPdfHandout, markdownToHtmlPage,
+        markdownToPdfPage, writeExampleProject, metaValueAsString, (<++>),
+        markNeeded, replaceSuffixWith, writeEmbeddedFiles,
+        getRelativeSupportDir, pandocMakePdf, isCacheableURI,
+        adjustLocalUrl, cacheRemoteFile, cacheRemoteImages, makeRelativeTo,
+        DeckerException(..))
        where
 
 import Control.Monad.Loops
@@ -33,6 +34,7 @@ import System.Process.Internals
 import System.Directory as Dir
 import System.Exit
 import System.Posix.Signals
+import System.Posix.Files
 import System.FilePath
 import System.FilePath.Glob
 import qualified Data.Yaml as Y
@@ -41,6 +43,7 @@ import qualified Text.Mustache.Types as MT
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as L8
+import Data.Digest.Pure.MD5
 import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.Pandoc.PDF
@@ -49,6 +52,7 @@ import Filter
 import Debug.Trace
 import Network.HTTP.Conduit
 import Network.HTTP.Simple
+import Network.HTTP.Types.Status
 import Network.URI
 import Text.Highlighting.Kate.Styles
 import Context
@@ -295,7 +299,9 @@ getRelativeSupportDir from =
          (makeRelative publicDir
                        (takeDirectory from)) </>
        (makeRelative publicDir supportDir)
-  where invertPath fp = joinPath $ map (\_ -> "..") $ filter ((/=) ".") $ splitPath fp
+
+invertPath :: FilePath -> FilePath
+invertPath fp = joinPath $ map (\_ -> "..") $ filter ((/=) ".") $ splitPath fp
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck
@@ -315,20 +321,7 @@ markdownToHtmlDeck markdownFile out =
                ,writerCiteMethod = Citeproc}
      pandoc <- readAndPreprocessMarkdown markdownFile
      processed <- processPandocDeck "revealjs" pandoc
-     let images = extractLocalImagePathes processed
-     copyLocalImages images markdownFile out
      writePandocString "revealjs" options out processed
-
-copyLocalImages :: [FilePath] -> FilePath  -> FilePath -> Action ()
-copyLocalImages imageFiles inFile outFile =
-  do let inDir = takeDirectory inFile
-     let outDir = takeDirectory outFile
-     mapM_ (copyImageFile inDir outDir) imageFiles
-  where copyImageFile inDir outDir imageFile =
-          do let from = inDir </> imageFile
-             let to = outDir </> imageFile
-             liftIO $ createDirectoryIfMissing True (takeDirectory to)
-             copyFileChanged from to
 
 type MetaData = Y.Value
 
@@ -347,8 +340,13 @@ readAndPreprocessMarkdown :: FilePath -> Action Pandoc
 readAndPreprocessMarkdown markdownFile =
   do projectDir <- getProjectDir
      let baseDir = takeDirectory markdownFile
-     pandoc <- readMetaMarkdown markdownFile
-     processIncludes projectDir baseDir pandoc
+     readMetaMarkdown markdownFile >>= processIncludes projectDir baseDir >>=
+       populateCache
+
+populateCache :: Pandoc -> Action Pandoc
+populateCache pandoc =
+  do cacheDir <- getCacheDir
+     liftIO $ walkM (cacheRemoteImages cacheDir) pandoc
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage
@@ -365,12 +363,10 @@ markdownToHtmlPage markdownFile out =
                   KaTeX (supportDir </> "katex/katex.min.js")
                         (supportDir </> "katex/katex.min.css")
                ,writerVariables =
-                  [("css",supportDir </> "sandstone/bootstrap.min.css")]
+                  [("decker-css",supportDir </> "sandstone/bootstrap.min.css")]
                ,writerCiteMethod = Citeproc}
      pandoc <- readAndPreprocessMarkdown markdownFile
      processed <- processPandocPage "html5" pandoc
-     let images = extractLocalImagePathes processed
-     copyLocalImages images markdownFile out
      writePandocString "html5" options out processed
 
 -- | Write a markdown file to a PDF file using the handout template.
@@ -411,7 +407,7 @@ markdownToHtmlHandout markdownFile out =
                   KaTeX (supportDir </> "katex/katex.min.js")
                         (supportDir </> "katex/katex.min.css")
                ,writerVariables =
-                  [("css",supportDir </> "sandstone/bootstrap.min.css")]
+                  [("decker-css",supportDir </> "sandstone/bootstrap.min.css")]
                ,writerCiteMethod = Citeproc}
      writePandocString "html5" options out processed
 
@@ -482,13 +478,13 @@ adjustLocalUrl root base url
        else base </> url
 adjustLocalUrl _ _ url = url
 
-cacheRemoteImages :: FilePath -> [FilePath] -> [FilePath] -> Action ()
-cacheRemoteImages cacheDir metaFiles markdownFiles =
-  do mapM_ cacheImages markdownFiles
-  where cacheImages markdownFile =
-          do pandoc <- readMetaMarkdown markdownFile
-             _ <- liftIO $ walkM (cachePandocImages cacheDir) pandoc
-             putNormal $ "# pandoc (cached images for " ++ markdownFile ++ ")"
+-- cacheRemoteImages :: FilePath -> [FilePath] -> [FilePath] -> Action ()
+-- cacheRemoteImages cacheDir metaFiles markdownFiles =
+--   do mapM_ cacheImages markdownFiles
+--   where cacheImages markdownFile =
+--           do pandoc <- readMetaMarkdown markdownFile
+--              _ <- liftIO $ walkM (cachePandocImages cacheDir) pandoc
+--              putNormal $ "# pandoc (cached images for " ++ markdownFile ++ ")"
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> FilePath -> Pandoc -> Action Pandoc
@@ -510,6 +506,54 @@ processIncludes rootDir baseDir (Pandoc meta blocks) =
                              b
              return $ included : result
         include _ result block = return $ [block] : result
+
+cacheRemoteImages :: FilePath -> Pandoc -> IO Pandoc
+cacheRemoteImages cacheDir pandoc = walkM cacheRemoteImage pandoc
+  where cacheRemoteImage (Image attr inlines (url,title)) =
+          do cachedFile <- cacheRemoteFile cacheDir url
+             return (Image attr inlines (cachedFile,title))
+        cacheRemoteImage img = return img
+
+cacheRemoteFile :: FilePath -> String -> IO FilePath
+cacheRemoteFile cacheDir url
+  | isCacheableURI url =
+    do let cacheFile = cacheDir </> hashURI url
+       exists <- fileExist cacheFile
+       if exists
+          then return cacheFile
+          else catch (do content <- downloadUrl url
+                         createDirectoryIfMissing True cacheDir
+                         LB.writeFile cacheFile content
+                         return cacheFile)
+                     (\e ->
+                        do putStrLn $ "Warning: " ++ show (e :: SomeException)
+                           return url)
+cacheRemoteFile _ url = return url
+
+clearCachedFile :: FilePath -> String -> IO ()
+clearCachedFile cacheDir url
+  | isCacheableURI url =
+    do let cacheFile = cacheDir </> hashURI url
+       exists <- fileExist cacheFile
+       when exists $ removeFile cacheFile
+clearCachedFile _ _ = return ()
+
+downloadUrl :: String -> IO LB.ByteString
+downloadUrl url =
+  do request <- parseRequest url
+     result <- httpLBS request
+     let status = getResponseStatus result
+     if status == ok200
+        then return $ getResponseBody result
+        else throw $
+             HttpException $
+             "Cannot download " ++
+             url ++
+             " (" ++
+             show (statusCode status) ++ " " ++ B.unpack (statusMessage status) ++ ")"
+
+hashURI :: String -> String
+hashURI uri = (show $ md5 $ L8.pack uri) <.> takeExtension uri
 
 processPandocPage
   :: String -> Pandoc -> Action Pandoc
@@ -547,9 +591,37 @@ writePandocString :: String
                   -> Action ()
 writePandocString format options out pandoc =
   do let writer = getPandocWriter format
+     final <- copyImages (takeDirectory out) pandoc
      writeFile' out
-                (writer options pandoc)
+                (writer options final)
      putNormal $ "# pandoc for (" ++ out ++ ")"
+
+copyImages :: FilePath -> Pandoc -> Action Pandoc
+copyImages baseDir pandoc =
+  do projectDir <- getProjectDir
+     publicDir <- getPublicDir
+     walkM (copyAndLink baseDir projectDir publicDir) pandoc
+  where copyAndLink base project public image@(Image attr inlines (url,title)) =
+          do let rel = makeRelative project url
+             if rel == url
+                then return image
+                else do let pub = public </> rel
+                        liftIO $ createDirectoryIfMissing True (takeDirectory pub)
+                        copyFileChanged url pub
+                        return (Image attr inlines (makeRelativeTo baseDir pub,title))
+        copyAndLink _ _ _ inline = return inline
+
+makeRelativeTo :: FilePath -> FilePath -> FilePath
+makeRelativeTo dir file =
+  let (d,fd) =
+        removeCommonPrefix (splitPath dir)
+                           (splitPath (takeDirectory file))
+  in normalise $ invertPath (joinPath d) </> (joinPath fd) </> (takeFileName file)
+  where removeCommonPrefix al@(a:as) bl@(b:bs) =
+          if a == b
+             then removeCommonPrefix as bs
+             else (al,bl)
+        removeCommonPrefix a b = (a,b)
 
 writeExampleProject :: Action ()
 writeExampleProject = mapM_ writeOne deckerExampleDir
@@ -605,6 +677,7 @@ instance Exception DeckerException
 
 instance Show DeckerException where
   show (MustacheException e) = e
+  show (HttpException e) = e
   show (PandocException e) = e
   show (YamlException e) = e
   show (DecktapeException e) =

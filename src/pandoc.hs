@@ -1,7 +1,6 @@
 -- | Generally useful functions on pansoc data structures. Some in the IO monad.
 module Pandoc
-       (isCacheableURI, cacheRemoteFile,
-        Pandoc.cacheRemoteImages, Pandoc.readMetaData)
+       (isCacheableURI, Pandoc.readMetaData)
        where
 
 import Control.Exception
@@ -29,47 +28,6 @@ import Utilities
 import Context
 import Debug.Trace
 
-cacheRemoteImages :: FilePath -> Pandoc -> IO Pandoc
-cacheRemoteImages cacheDir pandoc = walkM cacheRemoteImage pandoc
-  where cacheRemoteImage (Image attr inlines (url,title)) =
-          do cachedFile <- cacheRemoteFile cacheDir url
-             return (Image attr inlines (cachedFile,title))
-        cacheRemoteImage img = return img
-
-cacheRemoteFile :: FilePath -> String -> IO FilePath
-cacheRemoteFile cacheDir url
-  | isCacheableURI url =
-    do let cacheFile = cacheDir </> hashURI url
-       exists <- fileExist cacheFile
-       if exists
-         then return cacheFile
-         else do content <- downloadUrl url
-                 createDirectoryIfMissing True cacheDir
-                 L.writeFile cacheFile content
-                 return cacheFile
-cacheRemoteFile _ url = return url
-
-clearCachedFile :: FilePath -> String -> IO ()
-clearCachedFile cacheDir url
-  | isCacheableURI url =
-    do let cacheFile = cacheDir </> hashURI url
-       exists <- fileExist cacheFile
-       when exists $ removeFile cacheFile
-clearCachedFile _ _ = return ()
-
-downloadUrl :: String -> IO L.ByteString
-downloadUrl url =
-  do request <- parseRequest url
-     result <- httpLBS request
-     let status = getResponseStatus result
-     if status == ok200
-        then return $ getResponseBody result
-        else throw $
-             HttpException $
-             "Cannot download " ++ url ++ ": status: " ++ show status
-
-hashURI :: String -> String
-hashURI uri = (show $ md5 $ L.pack uri) <.> takeExtension uri
 
 type MetaData = M.Map FilePath Y.Value
 

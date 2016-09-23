@@ -29,7 +29,7 @@ main = do
     -- Calculate some directories
     projectDir <- calcProjectDirectory
     let publicDir = projectDir </> "public"
-    let cacheDir = publicDir </> "cache"
+    let cacheDir = projectDir </> "cache"
     let supportDir = publicDir </> "support"
 
     -- Find sources. These are formulated as actions in the Action mondad, such
@@ -37,6 +37,8 @@ main = do
     let deckSourcesA = globA "**/*-deck.md"
     let pageSourcesA = globA "**/*-page.md"
     let allSourcesA = deckSourcesA <++> pageSourcesA
+    let allMarkdownA = globA "**/*.md"
+    let allImagesA = globA "**/*.png" <++> globA "**/*.jpg"
 
     let metaA = globA "**/*-meta.yaml"
 
@@ -82,10 +84,10 @@ main = do
 
         phony "watch" $ do
             need ["html"]
-            allSourcesA <++> metaA >>= watchFiles
+            allMarkdownA <++> metaA <++> allImagesA >>= watchFiles
 
         phony "server" $ do
-            need ["watch"]
+            need ["watch", "support"]
             runHttpServer publicDir True
 
         phony "example" writeExampleProject
@@ -154,9 +156,11 @@ main = do
             liftIO $ B.putStr $ encodePretty defConfig metaData
 
         phony "support" $ do
+            putNormal $ "# write embedded files for (" ++ supportDir ++ ")"
             writeEmbeddedFiles deckerSupportDir supportDir
 
         phony "publish" $ do
+            need ["support"]
             everythingA <++> indexA >>= need
             metaData <- readMetaDataFor projectDir
             let host = metaValueAsString "rsync-destination.host" metaData
@@ -166,15 +170,6 @@ main = do
                    cmd "ssh " (fromJust host) "mkdir -p" (fromJust path) :: Action ()
                    cmd "rsync -a" publicDir $ intercalate ":" [fromJust host, fromJust path] :: Action ()
                else throw RsyncUrlException
-
-        phony "cache" $ do
-            meta <- metaA
-            sources <- allSourcesA
-            cacheRemoteImages cacheDir meta sources
-
-        phony "clean-cache" $ do
-            need ["clean"]
-            removeFilesAfter "." ["**/cached"]
 
 -- | Some constants that might need tweaking
 options = shakeOptions{shakeFiles=".shake"}
