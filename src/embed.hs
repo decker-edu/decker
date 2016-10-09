@@ -1,8 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Embed
-       (deckerHelpText, deckerExampleDir, deckerSupportDir, deckTemplate, pageTemplate,
-        pageLatexTemplate, handoutTemplate, handoutLatexTemplate, testerMultipleChoiceTemplate, testLatexTemplate)
+       (deckerHelpText, deckerExampleDir, deckerSupportDir, deckTemplate,
+        pageTemplate, pageLatexTemplate, handoutTemplate,
+        handoutLatexTemplate, testerMultipleChoiceTemplate,
+        testerFillTextTemplate, testerFreeFormTemplate, testLatexTemplate)
        where
 
 import Data.FileEmbed
@@ -40,7 +42,15 @@ handoutLatexTemplate =
 
 testerMultipleChoiceTemplate :: B.ByteString
 testerMultipleChoiceTemplate =
-  $(makeRelativeToProject "resource/test-question.md" >>= embedFile)
+  $(makeRelativeToProject "resource/mc-quest-catalog-template.md" >>= embedFile)
+
+testerFillTextTemplate :: B.ByteString
+testerFillTextTemplate =
+  $(makeRelativeToProject "resource/ft-quest-catalog-template.md" >>= embedFile)
+
+testerFreeFormTemplate :: B.ByteString
+testerFreeFormTemplate =
+  $(makeRelativeToProject "resource/ff-quest-catalog-template.md" >>= embedFile)
 
 testLatexTemplate :: B.ByteString
 testLatexTemplate =

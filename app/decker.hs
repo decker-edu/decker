@@ -162,13 +162,15 @@ main = do
         phony "publish" $ do
             need ["support"]
             everythingA <++> indexA >>= need
-            metaData <- readMetaDataFor projectDir
+            metaData <- readMetaDataForDir projectDir
             let host = metaValueAsString "rsync-destination.host" metaData
             let path = metaValueAsString "rsync-destination.path" metaData
             if isJust host && isJust path
                then do
+                   let src = publicDir ++ "/"
+                   let dst = intercalate ":" [fromJust host, fromJust path]
                    cmd "ssh " (fromJust host) "mkdir -p" (fromJust path) :: Action ()
-                   cmd "rsync -a" publicDir $ intercalate ":" [fromJust host, fromJust path] :: Action ()
+                   cmd "rsync -a" src dst :: Action ()
                else throw RsyncUrlException
 
 -- | Some constants that might need tweaking

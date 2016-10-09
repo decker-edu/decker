@@ -28,56 +28,71 @@ $for(css)$
   <link rel="stylesheet" href="$css$">
 $endfor$
 $else$
-  <link rel="stylesheet" href="$decker-css$">
+  <link rel="stylesheet" href="$decker-support-dir$/sandstone/bootstrap.min.css">
 $endif$
+  <link rel="stylesheet" href="$decker-support-dir$/font-awesome-4.6.3/css/font-awesome.min.css">
   <style type="text/css">
-.container {
-    max-width:750px;
-    margin:0 auto;
-}
+   .container {
+       max-width:750px;
+       margin:0 auto;
+   }
 
-.container .content {
-    min-height: 750px;
-}
+   .container .content {
+       min-height: 750px;
+   }
 
-.page-header small {
-    white-space:nowrap;
-}
+   .page-header small {
+       white-space:nowrap;
+   }
 
-.page-header h1 {
-    font-size: 180%;
-}
+   .page-header h1 {
+       font-size: 200%;
+   }
 
-h1 {
-    font-size: 150%;
-}
+   h1 {
+       font-size: 150%;
+   }
 
-h2 {
-    font-size: 130%;
-}
+   h2 {
+       font-size: 130%;
+   }
 
-h3 {
-    font-size: 110%;
-}
+   h3 {
+       font-size: 110%;
+   }
 
-.container p > img {
-    width: 100%;
-}
+   .container figure {
+       padding-left: 3em;
+       padding-right: 3em;
+   }
 
-.container h6.post-date {
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-.container h2.post-title {
-    margin-top: 10px;
-}
+   .container figure > img {
+       width: 100%;
+       border: 1pt solid gray;
+   }
 
-.container address {
-    color: #888;
-}
-address p.date {
-    float: right;
-}
+   .container figure > figcaption {
+       padding-top: 0.5em;
+       font-size: 90%;
+       text-align: center;
+   }
+
+   .container h6.post-date {
+       margin-top: 5px;
+       margin-bottom: 5px;
+   }
+
+   .container h2.post-title {
+       margin-top: 10px;
+   }
+
+   .container address {
+       color: #AAA;
+   }
+
+   .container address p.date {
+       float: right;
+   }
   </style>
 
 $if(math)$

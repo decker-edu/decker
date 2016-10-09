@@ -33,11 +33,11 @@ main =
      projectDir <- calcProjectDirectory
      let privateDir = projectDir </> "private"
      -- Find sources
-     testFiles <- glob "**/*-test.yaml"
+     testFiles <- glob "**/*-quest.yaml"
      -- Meta data
      metaFiles <- glob "**/*-meta.yaml"
      -- Calculate targets
-     let catalog = privateDir </> "complete-test-catalog.pdf"
+     let catalog = privateDir </> "complete-quest-catalog.pdf"
      -- Prepare Mustache templates
      let templates = compileTesterTemplates
      ---
@@ -55,15 +55,15 @@ main =
           --
           phony "new-mc" $
             do let string = Y.encodePretty Y.defConfig multipleChoiceStationary
-               liftIO $ B.writeFile "new-mc-test.yaml" string
+               liftIO $ B.writeFile "new-mc-quest.yaml" string
           --
           phony "new-ft" $
             do let string = Y.encodePretty Y.defConfig fillTextStationary
-               liftIO $ B.writeFile "new-ft-test.yaml" string
+               liftIO $ B.writeFile "new-ft-quest.yaml" string
           --
           phony "new-f" $
             do let string = Y.encodePretty Y.defConfig freeStationary
-               liftIO $ B.writeFile "new-f-test.yaml" string
+               liftIO $ B.writeFile "new-f-quest.yaml" string
           --
           phony "clean" $
             do removeFilesAfter "." ["private"]
@@ -90,9 +90,9 @@ renderCatalog :: FilePath -> Templates -> [(Question, FilePath)] -> FilePath -> 
 renderCatalog projectDir templates questions out =
   do let markdown = map (\(q,b) -> (renderMarkdown q,b)) questions
      let pandoc = map parseMarkdown markdown
-     need $ concat $ map extractLocalImagePathes pandoc
+     need $ concatMap extractLocalImagePathes pandoc
      let catalog =
-           Pandoc nullMeta $ concat $ map (\(Pandoc _ blocks) -> blocks) pandoc
+           Pandoc nullMeta $ concatMap (\(Pandoc _ blocks) -> blocks) pandoc
      let options =
            def {writerStandalone = True
                ,writerTemplate = B.unpack testLatexTemplate
@@ -133,39 +133,48 @@ shuffleAnswers q =
 
 multipleChoiceStationary :: Question
 multipleChoiceStationary =
-  Question {qstId = "ID"
-           ,qstLecture = 0
-           ,qstTitle = "MULTIPLE CHOICE"
-           ,qstPoints = 5
-           ,qstQuestion = "THE QUESTION?"
-           ,qstAnswer =
-              MultipleChoice {answChoices = ["RIGHT_ANSWER","WRONG_ANSWER"]
-                             ,answCorrectChoices = [True,False]}
-           ,qstDifficulty = Medium
-           ,qstComment = "COMMENT"}
+    Question
+    { qstId = "ID"
+    , qstLecture = 0
+    , qstTitle = "MULTIPLE CHOICE"
+    , qstPoints = 5
+    , qstQuestion = "THE QUESTION?"
+    , qstAnswer = MultipleChoice
+      { answCorrect = ["ANSWER_1", "ANSWER_2"]
+      , answIncorrect = ["DISTRACTOR_1", "DISTRACTOR_2"]
+      }
+    , qstDifficulty = Medium
+    , qstComment = "COMMENT"
+    }
 
 fillTextStationary :: Question
 fillTextStationary =
-  Question {qstId = "ID"
-           ,qstLecture = 0
-           ,qstTitle = "FILL TEXT"
-           ,qstPoints = 5
-           ,qstQuestion = "THE QUESTION?"
-           ,qstAnswer =
-             FillText {answFillText = "FILL THE ___ IN THE ___."
-                      ,answCorrectWords = ["HOLES", "TEXT"]}
-           ,qstDifficulty = Medium
-           ,qstComment = "COMMENT"}
+    Question
+    { qstId = "ID"
+    , qstLecture = 0
+    , qstTitle = "FILL TEXT"
+    , qstPoints = 5
+    , qstQuestion = "THE QUESTION?"
+    , qstAnswer = FillText
+      { answFillText = "FILL THE ___ IN THE ___."
+      , answCorrectWords = ["HOLES", "TEXT"]
+      }
+    , qstDifficulty = Medium
+    , qstComment = "COMMENT"
+    }
 
 freeStationary :: Question
 freeStationary =
-  Question {qstId = "ID"
-           ,qstLecture = 0
-           ,qstTitle = "FREE"
-           ,qstPoints = 5
-           ,qstQuestion = "THE QUESTION?"
-           ,qstAnswer =
-              Free {answHeightInMm = 20
-                   ,answCorrectAnswer = "THE ANSWER."}
-           ,qstDifficulty = Medium
-           ,qstComment = "COMMENT"}
+    Question
+    { qstId = "ID"
+    , qstLecture = 0
+    , qstTitle = "FREE"
+    , qstPoints = 5
+    , qstQuestion = "THE QUESTION?"
+    , qstAnswer = FreeForm
+      { answHeightInMm = 20
+      , answCorrectAnswer = "THE ANSWER."
+      }
+    , qstDifficulty = Medium
+    , qstComment = "COMMENT"
+    }

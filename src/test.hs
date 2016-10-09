@@ -29,11 +29,11 @@ data Question =
   deriving (Show,Typeable)
 
 data Answer
-  = MultipleChoice {answChoices :: [String]
-                   ,answCorrectChoices :: [Bool]}
+  = MultipleChoice {answCorrect :: [String]
+                   ,answIncorrect :: [String]}
   | FillText {answFillText :: String
              ,answCorrectWords :: [String]}
-  | Free {answHeightInMm :: Int,
+  | FreeForm {answHeightInMm :: Int,
           answCorrectAnswer :: String}
   deriving (Show,Typeable)
 
@@ -48,19 +48,23 @@ $(deriveJSON defaultOptions ''Difficulty)
 
 mcKey = typeOf $ MultipleChoice [] []
 ftKey = typeOf $ FillText "" []
-fKey =  typeOf $ Free 0 ""
+ffKey = typeOf $ FreeForm 0 ""
 
 type Templates = [(TypeRep,M.Template)]
 
 selectTemplate
   :: Templates -> Question -> M.Template
-selectTemplate templates question = fromJust $ lookup (typeOf $ qstAnswer question) templates
+-- selectTemplate templates question = fromJust $ lookup (typeOf $ qstAnswer question) templates
+selectTemplate templates question = case qstAnswer question of
+  MultipleChoice _ _ -> compileMustacheTemplate testerMultipleChoiceTemplate
+  FillText _ _ -> compileMustacheTemplate testerFillTextTemplate
+  FreeForm _ _ -> compileMustacheTemplate testerFreeFormTemplate
 
 compileTesterTemplates :: Templates
 compileTesterTemplates =
   [(mcKey, compileMustacheTemplate testerMultipleChoiceTemplate)
-  ,(ftKey, compileMustacheTemplate testerMultipleChoiceTemplate)
-  ,(fKey, compileMustacheTemplate testerMultipleChoiceTemplate)]
+  ,(ftKey, compileMustacheTemplate testerFillTextTemplate)
+  ,(ffKey, compileMustacheTemplate testerFreeFormTemplate)]
 
 compileMustacheTemplate :: B.ByteString -> M.Template
 compileMustacheTemplate string =

@@ -11,6 +11,8 @@
 
 {{Question}}
 
-{{#Answer.Choices}}
-- {{.}}
-{{/Answer.Choices}}
+\fbox{\begin{minipage}{\textwidth} \hfill \vspace{ {{Answer.HeightInMm}}mm } \end{minipage}}
+
+*Antwort:*
+
+\fbox{\begin{minipage}{\textwidth} {{Answer.CorrectAnswer}} \end{minipage}}

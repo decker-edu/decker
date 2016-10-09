@@ -39,7 +39,7 @@ type MacroFunc = [String] -> Attr -> Target -> Format -> Meta -> Inline
 embedYoutubeHtml
   :: [String] -> Attr -> Target -> Inline
 embedYoutubeHtml args attr (vid,_) =
-  RawInline (Format "HTML")
+  RawInline (Format "html")
             (renderHtml html)
   where url =
           printf "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
@@ -68,9 +68,8 @@ embedYoutubeHtml args attr (vid,_) =
           p ""
 
 youtube :: MacroFunc
-youtube args attr target (Format "html") _ = embedYoutubeHtml args attr target
-youtube args attr target (Format "revealjs") _ =
-  embedYoutubeHtml args attr target
+youtube args attr target (Format f) _
+  | f `elem` ["html","html5","revealjs"] = embedYoutubeHtml args attr target
 youtube _ attr (vid,_) _ _ =
   Link nullAttr
        [Image attr
@@ -83,6 +82,12 @@ youtube _ attr (vid,_) _ _ =
         imageUrl =
           printf "http://img.youtube.com/vi/%s/maxresdefault.jpg" vid :: String
         text = printf "YouTube: %s" vid :: String
+
+fontAwesome :: MacroFunc
+fontAwesome _ _ (iconName,_) (Format f) _
+  | f `elem` ["html","html5","revealjs"] =
+    RawInline (Format "html") $ "<i class=\"fa fa-" ++ iconName ++ "\"></i>"
+fontAwesome _ _ (iconName,_) _ _ = Str $ "[" ++ iconName ++ "]"
 
 metaValue :: MacroFunc
 metaValue _ _ (key,_) _ meta =
@@ -100,7 +105,8 @@ metaValue _ _ (key,_) _ meta =
 type MacroMap = Map.Map String MacroFunc
 
 macroMap :: MacroMap
-macroMap = Map.fromList [("meta",metaValue),("youtube",youtube)]
+macroMap =
+  Map.fromList [("meta",metaValue),("youtube",youtube),("fa",fontAwesome)]
 
 readDefault :: Read a
             => a -> String -> a
