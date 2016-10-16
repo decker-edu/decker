@@ -98,8 +98,9 @@ main = do
 
         priority 2 $ "//*-deck.pdf" %> \out -> do
             let src = replaceSuffix "-deck.pdf" "-deck.html" out
+            putNormal $ src ++ " -> " ++ out
             runHttpServer publicDir False
-            code <- cmd "decktape.sh reveal" ("http://localhost:8888/" ++ (makeRelative projectDir src)) out
+            code <- cmd "decktape.sh reveal" ("http://localhost:8888" </> (makeRelative publicDir src)) out
             case code of
               ExitFailure _ -> do
                  throw $ DecktapeException "Unknown."
