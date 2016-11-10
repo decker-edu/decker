@@ -98,6 +98,7 @@ main = do
 
         priority 2 $ "//*-deck.pdf" %> \out -> do
             let src = replaceSuffix "-deck.pdf" "-deck.html" out
+            need [src]
             putNormal $ src ++ " -> " ++ out
             runHttpServer publicDir False
             code <- cmd "decktape.sh reveal" ("http://localhost:8888" </> (makeRelative publicDir src)) out

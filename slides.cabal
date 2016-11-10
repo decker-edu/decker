@@ -31,7 +31,6 @@ library
                      , shake
                      , process
                      , extra
-                     , unix
                      , filepath
                      , Glob
                      , pandoc

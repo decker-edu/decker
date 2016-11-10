@@ -19,15 +19,15 @@ body {
     background-color: #fff;
 }
 
-.reveal {
-    font-family: 'Roboto' sans-serif;
-    font-size: 34px;
+.reveal .slides {
+    font-family: 'Roboto', sans-serif;
+    font-size: 32px;
     font-weight: normal;
     color: #000;
 }
 
 .reveal .smalltext {
-    font-size: 28px;
+    font-size: 26px;
 }
 
 ::selection {
@@ -47,15 +47,15 @@ body {
  * HEADERS
  *********************************************/
 
-.reveal h1,
-.reveal h2,
-.reveal h3,
-.reveal h4,
-.reveal h5,
-.reveal h6 {
+.reveal .slides h1,
+.reveal .slides h2,
+.reveal .slides h3,
+.reveal .slides h4,
+.reveal .slides h5,
+.reveal .slides h6 {
     margin: 0 0 20px 0;
     color: #777;
-    font-family: 'Roboto' sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: normal;
     line-height: 1.3;
     letter-spacing: normal;
@@ -78,18 +78,18 @@ body {
     color: #eee;
 }
 
-.speaker-notes h1,
-.speaker-notes h2,
-.speaker-notes h3,
-.speaker-notes h4,
-.speaker-notes h5,
-.speaker-notes h6 {
+.reveal .speaker-notes h1,
+.reveal .speaker-notes h2,
+.reveal .speaker-notes h3,
+.reveal .speaker-notes h4,
+.reveal .speaker-notes h5,
+.reveal .speaker-notes h6 {
     color: #FFF;
     font-weight: bold;
     margin-bottom: 0.2em;
 }
 
-.speaker-notes h1 {
+.reveal .speaker-notes h1 {
     text-decoration: underline;
     margin-bottom: 0.4em;
 }
@@ -203,7 +203,7 @@ body {
     box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.3);
 }
 
-.reveal code {
+.reveal .slides code {
     font-family: 'Source Code Pro' monospace;
     /* background: #FFF; */
     font-size: 100%;
@@ -211,7 +211,7 @@ body {
     color: #900;
 }
 
-.reveal pre code {
+.reveal .slides pre code {
     display: block;
     padding: 5px;
     overflow: auto;
@@ -296,6 +296,13 @@ body {
     background: #00004d;
 }
 
+.reveal section img.float-left {
+    float: left;
+}
+
+.reveal section img.float-right {
+    float: right;
+}
 
 /*********************************************
  * IMAGES
@@ -449,23 +456,23 @@ body {
     margin: 0 0 0.5em 0;
 }
 
-.reveal section.code-size-90 pre {
+.reveal section div.code-size-90 pre code {
     font-size: 90%;
 }
 
-.reveal section.code-size-80 pre {
+.reveal section div.code-size-80 pre code {
     font-size: 80%;
 }
 
-.reveal section.code-size-70 pre {
+.reveal section div.code-size-70 pre code {
     font-size: 70%;
 }
 
-.reveal section.code-size-60 pre {
+.reveal section div.code-size-60 pre code {
     font-size: 60%;
 }
 
-.reveal section.code-size-50 pre {
+.reveal section div.code-size-50 pre code {
     font-size: 50%;
 }
 

@@ -21,7 +21,6 @@ import Network.HTTP.Types.Status
 import Network.URI
 import System.Directory
 import System.FilePath.Posix
-import System.Posix.Files
 import Text.Pandoc
 import Text.Pandoc.Walk
 import Utilities

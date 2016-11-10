@@ -24,6 +24,7 @@ import Data.Maybe
 import Data.IORef
 import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as E
 import Data.Time.Clock
 import Data.Typeable
 import qualified Data.Set as Set
@@ -33,8 +34,6 @@ import System.Process
 import System.Process.Internals
 import System.Directory as Dir
 import System.Exit
-import System.Posix.Signals
-import System.Posix.Files
 import System.FilePath
 import System.FilePath.Glob
 import qualified Data.Yaml as Y
@@ -62,11 +61,10 @@ import Embed
 calcProjectDirectory :: IO FilePath
 calcProjectDirectory =
   do cwd <- getCurrentDirectory
-     pd <- searchGitRoot cwd
-     return pd
+     searchGitRoot cwd
   where searchGitRoot :: FilePath -> IO FilePath
         searchGitRoot path =
-          do if isDrive path
+          if isDrive path
                 then makeAbsolute "."
                 else do hasGit <- Dir.doesDirectoryExist (path </> ".git")
                         if hasGit
@@ -138,21 +136,17 @@ defaultContext = Context [] Nothing
 runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
 runShakeInContext context options rules =
   do opts <- setActionContext context options
-     tid <- myThreadId
-     installHandler keyboardSignal
-                    (Catch (cleanup tid))
-                    Nothing
-     untilM_ (tryRunShake opts) nothingToWatch
-     cleanup tid
+     catch (untilM_ (tryRunShake opts) nothingToWatch)
+           (\(SomeException e) -> putStrLn $ "Terminated: " ++ (show e))
+     cleanup
   where tryRunShake opts =
           do catch (shakeArgs opts rules)
                    (\(SomeException e) -> return ())
-        cleanup tid =
+        cleanup =
           do process <- readIORef $ ctxServerHandle context
              case process of
                Just handle -> terminateProcess handle
                Nothing -> return ()
-             throwTo tid ExitSuccess
         nothingToWatch =
           do files <- readIORef $ ctxFilesToWatch context
              if null files
@@ -286,7 +280,9 @@ readMetaData files =
 substituteMetaData
   :: FilePath -> MT.Value -> IO T.Text
 substituteMetaData source metaData =
-  do result <-  M.localAutomaticCompile source
+  do contents <- B.readFile source
+     let fixed = T.replace (T.pack "{{\\#") (T.pack "{{#") $ E.decodeUtf8 contents
+     let result =  M.compileTemplate source fixed
      case result of
        Right template -> return $ M.substituteValue template metaData
        Left err -> throw $ MustacheException (show err)
@@ -314,9 +310,10 @@ markdownToHtmlDeck markdownFile out =
                ,writerTemplate = deckTemplate
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
-               ,writerHTMLMathMethod =
-                  KaTeX (supportDir </> "katex/katex.min.js")
-                        (supportDir </> "katex/katex.min.css")
+               ,writerHTMLMathMethod = MathJax "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+               -- ,writerHTMLMathMethod =
+               --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
+               --          (supportDir </> "katex-0.6.0/katex.min.css")
                ,writerVariables =
                   [("revealjs-url",supportDir </> "reveal.js")
                   ,("decker-support-dir",supportDir)]
@@ -361,9 +358,10 @@ markdownToHtmlPage markdownFile out =
                ,writerTemplate = pageTemplate
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
-               ,writerHTMLMathMethod =
-                  KaTeX (supportDir </> "katex/katex.min.js")
-                        (supportDir </> "katex/katex.min.css")
+               ,writerHTMLMathMethod = MathJax "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+               -- ,writerHTMLMathMethod =
+               --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
+               --          (supportDir </> "katex-0.6.0/katex.min.css")
                ,writerVariables =
                   [("decker-support-dir",supportDir)]
                ,writerCiteMethod = Citeproc}
@@ -405,9 +403,10 @@ markdownToHtmlHandout markdownFile out =
                ,writerTemplate = handoutTemplate
                ,writerHighlight = True
                ,writerHighlightStyle = pygments
-               ,writerHTMLMathMethod =
-                  KaTeX (supportDir </> "katex/katex.min.js")
-                        (supportDir </> "katex/katex.min.css")
+               ,writerHTMLMathMethod = MathJax "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+               -- ,writerHTMLMathMethod =
+               --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
+               --          (supportDir </> "katex-0.6.0/katex.min.css")
                ,writerVariables = [("decker-support-dir",supportDir)]
                ,writerCiteMethod = Citeproc}
      writePandocString "html5" options out processed
@@ -550,7 +549,7 @@ cacheRemoteFile :: FilePath -> String -> IO FilePath
 cacheRemoteFile cacheDir url
   | isCacheableURI url = do
       let cacheFile = cacheDir </> hashURI url
-      exists <- fileExist cacheFile
+      exists <- Dir.doesFileExist cacheFile
       if exists
           then return cacheFile
           else catch
@@ -567,7 +566,7 @@ clearCachedFile :: FilePath -> String -> IO ()
 clearCachedFile cacheDir url
   | isCacheableURI url = do
       let cacheFile = cacheDir </> hashURI url
-      exists <- fileExist cacheFile
+      exists <- Dir.doesFileExist cacheFile
       when exists $ removeFile cacheFile
 clearCachedFile _ _ = return ()
 
