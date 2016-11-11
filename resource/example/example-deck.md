@@ -79,7 +79,7 @@ The following text ist included from file `/resource/realtive.md`:
 ## Slide source
 
 ~~~ {.markdown}
-∞
+...
 ~~~
 ```
 

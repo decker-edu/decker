@@ -17,7 +17,7 @@ import Control.Monad
 import Control.Concurrent
 import Control.Exception
 import Development.Shake
-import Development.Shake.FilePath
+import Development.Shake.FilePath as SFP
 import Data.Dynamic
 import Data.List.Extra
 import Data.Maybe
@@ -34,7 +34,7 @@ import System.Process
 import System.Process.Internals
 import System.Directory as Dir
 import System.Exit
-import System.FilePath
+import System.FilePath as SF
 import System.FilePath.Glob
 import qualified Data.Yaml as Y
 import qualified Text.Mustache as M
@@ -137,10 +137,10 @@ runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
 runShakeInContext context options rules =
   do opts <- setActionContext context options
      catch (untilM_ (tryRunShake opts) nothingToWatch)
-           (\(SomeException e) -> putStrLn $ "Terminated: " ++ (show e))
+           (\(SomeException e) -> putStrLn $ "Terminated: " ++ show e)
      cleanup
   where tryRunShake opts =
-          do catch (shakeArgs opts rules)
+          catch (shakeArgs opts rules)
                    (\(SomeException e) -> return ())
         cleanup =
           do process <- readIORef $ ctxServerHandle context
@@ -154,7 +154,7 @@ runShakeInContext context options rules =
                 else do waitForTwitch files
                         return False
 
-watchFiles files = setFilesToWatch files
+watchFiles = setFilesToWatch
 
 
 -- | Actively waits for the first change to any member in the set of specified
@@ -295,10 +295,10 @@ getRelativeSupportDir from =
        invertPath
          (makeRelative publicDir
                        (takeDirectory from)) </>
-       (makeRelative publicDir supportDir)
+       makeRelative publicDir supportDir
 
 invertPath :: FilePath -> FilePath
-invertPath fp = joinPath $ map (\_ -> "..") $ filter ((/=) ".") $ splitPath fp
+invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck
@@ -484,14 +484,14 @@ isCacheableURI url =
 -- relative to the containing document.
 adjustImageUrls :: FilePath -> FilePath -> Pandoc -> Pandoc
 
-adjustImageUrls projectDir baseDir pandoc =
-    (walk adjustBlock . walk adjustInline) pandoc
+adjustImageUrls projectDir baseDir =
+    walk adjustBlock . walk adjustInline
   where
     adjustInline (Image attr inlines (url,title)) =
-        (Image attr inlines (adjustLocalUrl projectDir baseDir url, title))
+        Image attr inlines (adjustLocalUrl projectDir baseDir url, title)
     adjustInline other = other
     adjustBlock (Header 1 attr inlines) =
-        (Header 1 (adjustBgImageUrl attr) inlines)
+        Header 1 (adjustBgImageUrl attr) inlines
     adjustBlock other = other
     adjustBgImageUrl (i,cs,kvs) =
         ( i
@@ -538,7 +538,7 @@ processIncludes rootDir baseDir (Pandoc meta blocks) = do
     include _ result block = return $ [block] : result
 
 cacheRemoteImages :: FilePath -> Pandoc -> IO Pandoc
-cacheRemoteImages cacheDir pandoc = walkM cacheRemoteImage pandoc
+cacheRemoteImages cacheDir = walkM cacheRemoteImage 
   where
     cacheRemoteImage (Image attr inlines (url,title)) = do
         cachedFile <- cacheRemoteFile cacheDir url
@@ -586,7 +586,7 @@ downloadUrl url = do
              " " ++ B.unpack (statusMessage status) ++ ")"
 
 hashURI :: String -> String
-hashURI uri = (show $ md5 $ L8.pack uri) <.> takeExtension uri
+hashURI uri = show (md5 $ L8.pack uri) SF.<.> SF.takeExtension uri
 
 processPandocPage
   :: String -> Pandoc -> Action Pandoc
@@ -672,7 +672,7 @@ makeRelativeTo dir file =
     let (d,fd) =
             removeCommonPrefix (splitPath dir) (splitPath (takeDirectory file))
     in normalise $
-       invertPath (joinPath d) </> (joinPath fd) </> (takeFileName file)
+       invertPath (joinPath d) </> joinPath fd </> takeFileName file
   where
     removeCommonPrefix al@(a:as) bl@(b:bs) =
         if a == b
@@ -702,7 +702,7 @@ writeEmbeddedFiles files dir = do
     write (path,contents) = do
         liftIO $ Dir.createDirectoryIfMissing True (takeDirectory path)
         exists <- liftIO $ Dir.doesFileExist path
-        when (not exists) $ liftIO $ B.writeFile path contents
+        unless exists $ liftIO $ B.writeFile path contents
 
 lookupValue :: String -> Y.Value -> Maybe Y.Value
 lookupValue key (Y.Object hashTable) =
