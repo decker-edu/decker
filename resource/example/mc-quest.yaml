@@ -1,0 +1,15 @@
+Points: 5
+LectureId: Some lecture id
+Answer:
+  tag: MultipleChoice
+  Correct:
+  - ANSWER_1
+  - ANSWER_2
+  Incorrect:
+  - DISTRACTOR_1
+  - DISTRACTOR_2
+TopicId: Some topic id 
+Title: MULTIPLE CHOICE
+Difficulty: Medium
+Comment: COMMENT
+Question: THE QUESTION?

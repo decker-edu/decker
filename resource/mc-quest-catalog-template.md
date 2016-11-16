@@ -1,10 +1,10 @@
 # Aufgabe N: {{Title}}
 
-|               |                   |
-|---------------+-------------------|
+|               |                |
+|---------------|----------------|
 | Titel         | **{{Title}}**  |
-| Id            | {{Id}}         |
-| Vorlesung     | {{Lecture}}    |
+| Id            | {{TopicId}}    |
+| Vorlesung     | {{LectureId}}  |
 | Schwierigkeit | {{Difficulty}} |
 | Punkte        | {{Points}}     |
 | Kommentar     | {{Comment}}    |
@@ -13,9 +13,14 @@
 
 *Antworten:*
 
-{{#Answer.Correct}}
-- $\boxtimes$ {{.}}
+{{\#Answer.Correct}}
+
+-   $\boxtimes$ {{.}}
+
 {{/Answer.Correct}}
-{{#Answer.Incorrect}}
-- $\square$ {{.}}
+
+{{\#Answer.Incorrect}}
+
+-   $\square$ {{.}}
+
 {{/Answer.Incorrect}}

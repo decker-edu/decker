@@ -42,9 +42,6 @@ main = do
 
     let metaA = globA "**/*-meta.yaml"
 
-    -- Read meta data.
-    -- metaData <- readMetaDataIO meta
-
     -- Calculate targets
     let decksA = deckSourcesA >>= calcTargets ".md" ".html"
     let decksPdfA = deckSourcesA >>= calcTargets ".md" ".pdf"

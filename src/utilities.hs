@@ -8,7 +8,7 @@ module Utilities
         markdownToPdfPage, writeExampleProject, metaValueAsString, (<++>),
         markNeeded, replaceSuffixWith, writeEmbeddedFiles,
         getRelativeSupportDir, pandocMakePdf, isCacheableURI,
-        adjustLocalUrl, cacheRemoteFile, cacheRemoteImages, makeRelativeTo,
+        adjustLocalUrl, cacheRemoteFile, cacheRemoteImages, makeRelativeTo, fixMustacheMarkup, fixMustacheMarkupText,
         DeckerException(..))
        where
 
@@ -276,12 +276,20 @@ readMetaData files =
   do need files
      liftIO $ readMetaDataIO files
 
+-- | Fixes pandoc escaped # markup in mustache template {{}} markup.
+fixMustacheMarkup :: B.ByteString -> T.Text
+fixMustacheMarkup content = fixMustacheMarkupText $ E.decodeUtf8 content
+
+-- | Fixes pandoc escaped # markup in mustache template {{}} markup.
+fixMustacheMarkupText :: T.Text -> T.Text
+fixMustacheMarkupText content = T.replace (T.pack "{{\\#") (T.pack "{{#") content
+
 -- | Substitutes meta data values in the provided file.
 substituteMetaData
   :: FilePath -> MT.Value -> IO T.Text
 substituteMetaData source metaData =
   do contents <- B.readFile source
-     let fixed = T.replace (T.pack "{{\\#") (T.pack "{{#") $ E.decodeUtf8 contents
+     let fixed = fixMustacheMarkup contents
      let result =  M.compileTemplate source fixed
      case result of
        Right template -> return $ M.substituteValue template metaData

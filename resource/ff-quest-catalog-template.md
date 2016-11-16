@@ -1,10 +1,10 @@
 # Aufgabe N: {{Title}}
 
-|               |                   |
-|---------------+-------------------|
+|               |                |
+|---------------|----------------|
 | Titel         | **{{Title}}**  |
-| Id            | {{Id}}         |
-| Vorlesung     | {{Lecture}}    |
+| Id            | {{TopicId}}    |
+| Vorlesung     | {{LectureId}}  |
 | Schwierigkeit | {{Difficulty}} |
 | Punkte        | {{Points}}     |
 | Kommentar     | {{Comment}}    |

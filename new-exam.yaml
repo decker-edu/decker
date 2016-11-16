@@ -1,0 +1,8 @@
+Track: 1
+LectureIds:
+- LECTURE_ID
+ExcludeTopicIds:
+- EXCLUDED_TOPIC_ID
+DurationInMinutes: DURATION_IN_MINUTES
+StudentInfoFile: PATH/TO/STUDENT/INFO
+DateTime: DATE_TIME

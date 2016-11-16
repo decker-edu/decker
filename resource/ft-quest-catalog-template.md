@@ -1,10 +1,10 @@
 # Aufgabe N: {{Title}}
 
-|               |                   |
-|---------------+-------------------|
+|               |                |
+|---------------|----------------|
 | Titel         | **{{Title}}**  |
-| Id            | {{Id}}         |
-| Vorlesung     | {{Lecture}}    |
+| Id            | {{TopicId}}    |
+| Vorlesung     | {{LectureId}}  |
 | Schwierigkeit | {{Difficulty}} |
 | Punkte        | {{Points}}     |
 | Kommentar     | {{Comment}}    |
@@ -13,4 +13,4 @@
 
 {{Answer.FillText}}
 
-*Antwort:* {{#Answer.CorrectWords}}{{.}}, {{/Answer.CorrectWords}}
+*Antwort:* {{\#Answer.CorrectWords}}{{.}}, {{/Answer.CorrectWords}}

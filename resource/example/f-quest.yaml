@@ -1,0 +1,11 @@
+Points: 5
+LectureId: Some lecture id
+Answer:
+  CorrectAnswer: THE ANSWER.
+  tag: FreeForm
+  HeightInMm: 20
+TopicId: Some topic id
+Title: FREE
+Difficulty: Medium
+Comment: COMMENT
+Question: THE QUESTION?
