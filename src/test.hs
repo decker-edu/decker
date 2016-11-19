@@ -1,10 +1,17 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 
 module Test
-       (Question(..), Answer(..), Difficulty(..), Exam(..), Templates,
-        compileTesterTemplates, selectTemplate)
-       where
+  (Question(..)
+  ,Answer(..)
+  ,Choice(..)
+  ,Difficulty(..)
+  ,Exam(..)
+  ,Templates
+  ,compileTesterTemplates
+  ,selectTemplate)
+  where
 
+import Data.Aeson.TH
 import Control.Exception
 import Data.Yaml
 import Data.Aeson.Types
@@ -18,7 +25,6 @@ import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
 import Embed
 import Utilities
-import Data.Aeson.TH
 
 data Question = Question
     { qstTopicId :: T.Text
@@ -31,9 +37,13 @@ data Question = Question
     , qstComment :: T.Text
     } deriving (Eq,Show,Typeable)
 
+data Choice = Choice
+    { choiceTheAnswer :: T.Text
+    , choiceCorrect :: Bool
+    } deriving (Eq,Show,Typeable)
+
 data Answer
-    = MultipleChoice { answCorrect :: [T.Text]
-                     , answIncorrect :: [T.Text]}
+    = MultipleChoice { answChoices :: [Choice]}
     | FillText { answFillText :: T.Text
                , answCorrectWords :: [T.Text]}
     | FreeForm { answHeightInMm :: Int
@@ -49,11 +59,18 @@ data Difficulty
 data Exam = Exam
     { examStudentInfoFile :: FilePath
     , examDateTime :: T.Text
-    , examDurationInMinutes :: T.Text
+    , examDurationInMinutes :: Int
+    , examNumberOfQuestions :: Int
     , examTrack :: Int
     , examLectureIds :: [T.Text]
     , examExcludedTopicIds :: [T.Text]
     } deriving (Eq,Show,Typeable)
+
+$(deriveJSON
+      defaultOptions
+      { fieldLabelModifier = drop 6
+      }
+      ''Choice)
 
 $(deriveJSON
       defaultOptions
@@ -75,7 +92,7 @@ $(deriveJSON
 
 $(deriveJSON defaultOptions ''Difficulty)
 
-mcKey = typeOf $ MultipleChoice [] []
+mcKey = typeOf $ MultipleChoice []
 
 ftKey = typeOf $ FillText "" []
 
@@ -87,7 +104,7 @@ selectTemplate :: Templates -> Question -> M.Template
 -- selectTemplate templates question = fromJust $ lookup (typeOf $ qstAnswer question) templates
 selectTemplate templates question = 
     case qstAnswer question of
-        MultipleChoice _ _ -> 
+        MultipleChoice _ -> 
             compileMustacheTemplate $ fixMustacheMarkup testerMultipleChoiceTemplate
         FillText _ _ -> compileMustacheTemplate $ fixMustacheMarkup testerFillTextTemplate
         FreeForm _ _ -> compileMustacheTemplate $ fixMustacheMarkup testerFreeFormTemplate

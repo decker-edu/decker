@@ -1,13 +1,16 @@
 Points: 5
-LectureId: Some lecture id
+LectureId: LECTURE_ID
 Answer:
   tag: MultipleChoice
-  Correct:
-  - ANSWER_1
-  - ANSWER_2
-  Incorrect:
-  - DISTRACTOR_1
-  - DISTRACTOR_2
+  Choices:
+  - Correct: true
+    TheAnswer: ANSWER_1
+  - Correct: true
+    TheAnswer: ANSWER_2
+  - Correct: false
+    TheAnswer: DISTRACTOR_1
+  - Correct: false
+    TheAnswer: DISTRACTOR_2
 TopicId: Some topic id 
 Title: MULTIPLE CHOICE
 Difficulty: Medium

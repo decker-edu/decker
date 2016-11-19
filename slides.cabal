@@ -30,6 +30,7 @@ library
                      , time
                      , shake
                      , process
+                     , hashable
                      , extra
                      , filepath
                      , Glob
@@ -79,8 +80,10 @@ executable tester
                      , filepath
                      , pandoc
                      , pandoc-types
+                     , unordered-containers
                      , text
                      , yaml
+                     , hashable
                      , mustache
                      , highlighting-kate
                      , random

@@ -1,5 +1,5 @@
 Points: 5
-LectureId: Some lecture id
+LectureId: LECTURE_ID
 Answer:
   CorrectAnswer: THE ANSWER.
   tag: FreeForm

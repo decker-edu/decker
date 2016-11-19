@@ -1,0 +1,100 @@
+{
+    "version": "0.1.0",
+    "command": "stack",
+    "suppressTaskName": true,
+    "isShellCommand": true,
+    "args": [],
+    "tasks": [
+        {
+            "taskName": "build",
+            "args": [
+                "build"
+            ],
+            "isBuildCommand": true,
+            "problemMatcher": [
+                {
+                    "owner": "stack",
+                    "fileLocation": "absolute",
+                    "pattern": [
+                        {
+                            "regexp": "^(.*):(\\d+):(\\d+):$",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3
+                        },
+                        {
+                            "regexp": "^\\s+(.*)$",
+                            "message": 1
+                        }
+                    ]
+                },
+                {
+                    "owner": "stack",
+                    "fileLocation": "absolute",
+                    "pattern": [
+                        {
+                            "regexp": "^(.*):(\\d+):(\\d+):\\s+(Warning):\\s+(.*)$",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3,
+                            "severity": 4,
+                            "message": 5
+                        }
+                    ]
+                },
+                {
+                    "owner": "stack",
+                    "fileLocation": "absolute",
+                    "pattern": [
+                        {
+                            "regexp": "^(.*):(\\d+):(\\d+):\\s+(Warning|Error):$",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3,
+                            "severity": 4
+                        },
+                        {
+                            "regexp": "^\\s+(.*)$",
+                            "message": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "taskName": "clean",
+            "args": [
+                "clean"
+            ],
+            "isBuildCommand": false,
+            "isTestCommand": false
+        },
+        {
+            "taskName": "test",
+            "args": [
+                "test"
+            ],
+            "isTestCommand": true,
+            "problemMatcher": [
+                {
+                    "owner": "hspec",
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceRoot}"
+                    ],
+                    "pattern": [
+                        {
+                            "regexp": "^\\s+(.*):(\\d+):",
+                            "file": 1,
+                            "line": 2
+                        },
+                        {
+                            "regexp": "^\\s+\\d+\\)\\s+(.*)",
+                            "message": 1
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

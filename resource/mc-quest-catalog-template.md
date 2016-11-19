@@ -4,6 +4,7 @@
 |---------------|----------------|
 | Titel         | **{{Title}}**  |
 | Id            | {{TopicId}}    |
+| Base          | {{BaseDir}}    |
 | Vorlesung     | {{LectureId}}  |
 | Schwierigkeit | {{Difficulty}} |
 | Punkte        | {{Points}}     |
@@ -13,14 +14,8 @@
 
 *Antworten:*
 
-{{\#Answer.Correct}}
+{{\#Answer.Choices}}
 
--   $\boxtimes$ {{.}}
+-   {{\#Correct}}$\boxtimes${{/Correct}}{{\^Correct}}$\square${{/Correct}} {{TheAnswer}}
 
-{{/Answer.Correct}}
-
-{{\#Answer.Incorrect}}
-
--   $\square$ {{.}}
-
-{{/Answer.Incorrect}}
+{{/Answer.Choices}}

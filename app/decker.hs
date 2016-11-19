@@ -19,11 +19,6 @@ import Utilities
 import Context
 import Embed
 
-globA :: FilePattern -> Action [FilePath]
-globA pattern =
-  do projectDir <- getProjectDir
-     liftIO $ globDir1 (compile pattern) projectDir
-
 main :: IO ()
 main = do
     -- Calculate some directories

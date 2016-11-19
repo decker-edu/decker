@@ -4,6 +4,7 @@
 |---------------|----------------|
 | Titel         | **{{Title}}**  |
 | Id            | {{TopicId}}    |
+| Base          | {{BaseDir}}    |
 | Vorlesung     | {{LectureId}}  |
 | Schwierigkeit | {{Difficulty}} |
 | Punkte        | {{Points}}     |

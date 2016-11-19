@@ -8,7 +8,8 @@ module Utilities
         markdownToPdfPage, writeExampleProject, metaValueAsString, (<++>),
         markNeeded, replaceSuffixWith, writeEmbeddedFiles,
         getRelativeSupportDir, pandocMakePdf, isCacheableURI,
-        adjustLocalUrl, cacheRemoteFile, cacheRemoteImages, makeRelativeTo, fixMustacheMarkup, fixMustacheMarkupText,
+        adjustLocalUrl, cacheRemoteFile, cacheRemoteImages, makeRelativeTo, 
+        fixMustacheMarkup, fixMustacheMarkupText, globA, globRelA,
         DeckerException(..))
        where
 
@@ -57,7 +58,8 @@ import Text.Highlighting.Kate.Styles
 import Context
 import Embed
 
--- Find the project directory and change current directory to there. The project directory is the first upwards directory that contains a .git directory entry.
+-- Find the project directory and change current directory to there. 
+-- The project directory is the first upwards directory that contains a .git directory entry.
 calcProjectDirectory :: IO FilePath
 calcProjectDirectory =
   do cwd <- getCurrentDirectory
@@ -70,6 +72,21 @@ calcProjectDirectory =
                         if hasGit
                            then makeAbsolute path
                            else searchGitRoot $ takeDirectory path
+
+-- | Globs for files under the project dir in the Action monad. 
+-- Returns absolute pathes. 
+globA :: FilePattern -> Action [FilePath]
+globA pattern =
+  do projectDir <- getProjectDir
+     liftIO $ globDir1 (compile pattern) projectDir
+
+-- | Globs for files under the project dir in the Action monad. 
+-- Returns pathes relative to the project directory. 
+globRelA :: FilePattern -> Action [FilePath]
+globRelA pattern = 
+  do projectDir <- getProjectDir
+     files <- globA pattern
+     return $ map (makeRelative projectDir) files
 
 -- Utility functions for shake based apps
 spawn :: String -> Action ProcessHandle
@@ -282,8 +299,8 @@ fixMustacheMarkup content = fixMustacheMarkupText $ E.decodeUtf8 content
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkupText :: T.Text -> T.Text
-fixMustacheMarkupText content = T.replace (T.pack "{{\\#") (T.pack "{{#") content
-
+fixMustacheMarkupText content = T.replace (T.pack "{{\\#") (T.pack "{{#") (T.replace (T.pack "{{\\^") (T.pack "{{^") content) 
+ 
 -- | Substitutes meta data values in the provided file.
 substituteMetaData
   :: FilePath -> MT.Value -> IO T.Text
