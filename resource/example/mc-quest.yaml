@@ -11,8 +11,13 @@ Answer:
     TheAnswer: DISTRACTOR_1
   - Correct: false
     TheAnswer: DISTRACTOR_2
-TopicId: Some topic id 
+TopicId: multiple-choice-example 
 Title: MULTIPLE CHOICE
 Difficulty: Medium
 Comment: COMMENT
-Question: THE QUESTION?
+Question: |
+    Die Frage ist wie immer, klappt das mit den Bildern und den Pfaden? 
+    Hier sollte jetzt ein Bild kommen.
+
+    ![](07-moveable-camera-480x270@1000-elevated.png){width=50%}
+

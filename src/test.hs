@@ -6,6 +6,7 @@ module Test
   ,Choice(..)
   ,Difficulty(..)
   ,Exam(..)
+  ,StudentExam(..)
   ,Templates
   ,compileTesterTemplates
   ,selectTemplate)
@@ -25,6 +26,7 @@ import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
 import Embed
 import Utilities
+import Student
 
 data Question = Question
     { qstTopicId :: T.Text
@@ -57,7 +59,9 @@ data Difficulty
     deriving (Eq,Show,Typeable)
 
 data Exam = Exam
-    { examStudentInfoFile :: FilePath
+    { examTitle :: T.Text
+    , examModule :: T.Text
+    , examStudentInfoFile :: FilePath
     , examDateTime :: T.Text
     , examDurationInMinutes :: Int
     , examNumberOfQuestions :: Int
@@ -65,6 +69,17 @@ data Exam = Exam
     , examLectureIds :: [T.Text]
     , examExcludedTopicIds :: [T.Text]
     } deriving (Eq,Show,Typeable)
+
+data StudentExam = StudentExam
+    { stdexExam :: Exam
+    , stdexStudent :: Student
+    } 
+
+$(deriveJSON
+      defaultOptions
+      { fieldLabelModifier = drop 5
+      }
+      ''StudentExam)
 
 $(deriveJSON
       defaultOptions

@@ -1,4 +1,6 @@
 Track: 1
+Module: MODULE
+Title: TITLE
 NumberOfQuestions: 6
 LectureIds:
 - LECTURE_ID
@@ -6,4 +8,6 @@ ExcludedTopicIds:
 - EXCLUDED_TOPIC_ID
 DurationInMinutes: 30
 StudentInfoFile: student-test-data.yaml
-DateTime: DATE_TIME
+DateTime: 22.11.2016 8:00
+
+

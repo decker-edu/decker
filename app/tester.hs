@@ -3,13 +3,16 @@
 import Control.Monad ()
 import Control.Exception
 import Data.Maybe ()
+import Data.List
 import Data.Typeable
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import qualified Data.Text.Encoding as E
 import qualified Data.Yaml as Y
 import qualified Data.HashMap.Strict as Map
 import Data.Yaml.Pretty as Y
 import Data.Hashable
+import Data.Maybe
 import qualified Data.ByteString.Char8 as B
 import Debug.Trace
 import Development.Shake
@@ -106,12 +109,152 @@ main = do
                                   projectDir
                                   (takeDirectory examPath)
                                   (examStudentInfoFile exam)
-                      Students hashMap <- readStudentInfo studentInfoPath (examTrack exam)
-                      renderExam exam questions (Map.elems hashMap) out
+                      Students studentMap <- readStudentInfo studentInfoPath (examTrack exam)
+                      putNormal $ "Read student data from: " ++ studentInfoPath
+                      let examData = generateExam exam questions (Map.elems studentMap)
+                      putNormal $
+                          "Exams generated for N students. N: " ++ (show . length . snd) examData
+                      templates <- compileTemplates "exam"
+                      putNormal "Templates compiled."
+                      examPandoc <- compileExam projectDir templates examData
+                      putNormal "Exams compiled to pandoc"
+                      compilePandocPdf examPandoc out
               --
               phony
                   "clean" $
                   removeFilesAfter "." ["private"]
+
+compileTemplates :: FilePath -> Action MT.TemplateCache
+compileTemplates disposition = do
+    let templateNames = 
+            [ "title-page.md"
+            , "student-title-page.md"
+            , "multiple-choice.md"
+            , "fill-text.md"
+            , "free-form.md"]
+    compiled <- mapM (compileProjectTemplate disposition) templateNames
+    return $ Map.fromList $ zip templateNames compiled
+
+compileProjectTemplate :: FilePath -> FilePath -> Action MT.Template
+compileProjectTemplate disposition name = do
+    projectDir <- getProjectDir
+    let filename = projectDir </> "exams" </> "templates" </> disposition </> name
+    need [filename]
+    text <- liftIO $ T.readFile $ filename
+    let result = M.compileTemplate name (fixMustacheMarkupText text)
+    return $
+        case result of
+            Right templ -> templ
+            Left parseError -> 
+                throw $
+                MustacheException $ "Error parsing mustache template: " ++ (show parseError)
+
+compilePandocPdf :: Pandoc -> FilePath -> Action ()
+compilePandocPdf exam out = do
+    let variables = 
+            [ ("fontsize", "12pt")
+            , ("fontfamily", "roboto")
+            , ("header-includes", "\\renewcommand{\\familydefault}{\\sfdefault}")]
+    let options = 
+            def
+            { writerStandalone = True
+            , writerVariables = variables
+            , writerTemplate = examLatexTemplate
+            , writerHighlight = True
+            , writerHighlightStyle = pygments
+            , writerCiteMethod = Citeproc
+            }
+    putNormal $ "# pandoc (for " ++ out ++ ")"
+    pandocMakePdf options exam out
+
+compileQuestion :: FilePath -> MT.TemplateCache -> (Question, FilePath) -> Action Pandoc
+compileQuestion projectDir templates question = do
+    return $ compileToPandoc question
+  where
+    compileToPandoc :: (Question, FilePath) -> Pandoc
+    compileToPandoc (quest,base) = 
+        case readMarkdown def (renderMarkdown quest) of
+            Left err -> throw $ PandocException (show err)
+            Right pandoc -> walk (adjustImageUrls base) pandoc
+    adjustImageUrls base (Image attr inlines (url,title)) = 
+        (Image attr inlines (adjustLocalUrl projectDir base url, title))
+    adjustImageUrls _ inline = inline
+    renderMarkdown question = 
+        T.unpack $ M.substitute (chooseTemplate templates question) (MT.mFromJSON question)
+
+compileToPandoc
+    :: Y.ToJSON a
+    => MT.Template -> a -> Pandoc
+compileToPandoc template thing = 
+    case readMarkdown def $ T.unpack $ M.substitute template $ MT.mFromJSON thing of
+        Left err -> throw $ PandocException (show err)
+        Right pandoc -> pandoc
+
+chooseTemplate :: MT.TemplateCache -> Question -> MT.Template
+chooseTemplate templates question = 
+    fromJust $
+    case qstAnswer question of
+        MultipleChoice _ -> Map.lookup "multiple-choice.md" templates
+        FillText _ _ -> Map.lookup "fill-text.md" templates
+        FreeForm _ _ -> Map.lookup "free-form.md" templates
+
+lookupTemplate :: String -> MT.TemplateCache -> MT.Template
+lookupTemplate name templates = 
+    case Map.lookup name templates of
+        Just t -> t
+        Nothing -> throw $ MustacheException $ "Cannot lookup template: " ++ name
+
+compileExam :: FilePath
+            -> MT.TemplateCache
+            -> (Exam, [(Student, [(Question, FilePath)])])
+            -> Action Pandoc
+compileExam projectDir templates (exam,students) = do
+    let title = compileToPandoc (lookupTemplate "title-page.md" templates) exam
+    list <- mapM (compileStudentExam projectDir templates exam) students
+    return $ joinPandoc $ title : list
+
+compileStudentExam :: FilePath
+                   -> MT.TemplateCache
+                   -> Exam
+                   -> (Student, [(Question, FilePath)])
+                   -> Action Pandoc
+compileStudentExam projectDir templates exam (student,questions) = do
+    let title = 
+            compileToPandoc (lookupTemplate "student-title-page.md" templates) $
+            StudentExam exam student
+    list <- mapM (compileQuestion projectDir templates) questions
+    return $ joinPandoc $ title : list
+
+{-
+compileExam :: (Exam, [(Student, [(Question, FilePath)])]) -> Action T.Text
+compileExam exam = do
+    projectDir <- getProjectDir
+    let templateFile = "exam-template.md"
+    result <- liftIO $ M.automaticCompile [projectDir </> "test" </> "exams"] templateFile
+    let template = 
+            case result of
+                Right templ -> templ
+                Left parseError -> 
+                    throw $
+                    MustacheException $ "Error parsing mustache template: " ++ (show parseError)
+    return $ M.substitute template (MT.mFromJSON exam)
+-}
+{-
+renderExam:: (Exam, [(Student, [Question])]) -> FilePath -> Action ()
+renderExam exam pdfPath = do
+    titlePage <- renderTitlePage (fst exam) (length $ snd exam)
+    studentExams <- mapM (renderStudentExams $ fst exam) $ snd exam
+renderExam exam pdfPath = do
+    frontPage = renderFrontPage exam 
+-}
+joinPandoc
+    :: [Pandoc] -> Pandoc
+joinPandoc list = 
+    Pandoc nullMeta $
+    concatMap
+        (\(Pandoc _ blocks) -> 
+              blocks)
+        list
 
 -- | Filters questions by LectureIds and ExcludedTopicIds.
 filterQuestions
@@ -129,21 +272,38 @@ groupQuestions questions =
   where
     groupBy attrib rmap question = Map.insertWith (++) (attrib $ fst question) [question] rmap
 
-renderExam :: Exam -> [(Question, FilePath)] -> [Student] -> FilePath -> Action ()
-renderExam exam questions students out = do
-    let candidates = filterQuestions (examLectureIds exam) (examExcludedTopicIds exam) questions
-    mapM_ (renderExamFor candidates) students
-    putNormal $ "Rendered exam: " ++ out
+generateExam :: Exam
+             -> [(Question, FilePath)]
+             -> [Student]
+             -> (Exam, [(Student, [(Question, FilePath)])])
+generateExam exam questions students = 
+    let sorted = sortOn std_employeeNumber students
+        candidates = filterQuestions (examLectureIds exam) (examExcludedTopicIds exam) questions
+        studentQuestions = map (selectQuestionsForStudent candidates) sorted
+    in (exam, studentQuestions)
   where
-    renderExamFor :: [(Question, FilePath)] -> Student -> Action ()
-    renderExamFor candidates student = do
+    selectQuestionsForStudent :: [(Question, FilePath)]
+                              -> Student
+                              -> (Student, [(Question, FilePath)])
+    selectQuestionsForStudent candidates student = 
         -- | Initialize the RNG with a hash over the student data. 
-        -- Should produce the identical exam for the student each time.
+        -- Should produce the identical exam for one student each time and different 
+        -- exams for all students every time.
         let gen = mkStdGen (hash student)
-        let questions = 
+            selection = 
                 take (examNumberOfQuestions exam) $ shuffle' candidates (length candidates) gen
-        putNormal $ show (std_displayName student)
-        mapM_ (putNormal . show . qstLectureId . fst) questions
+            questions = map (shuffleChoices gen) selection
+        in (student, questions)
+    shuffleChoices gen (question,basePath) = 
+        let answer = 
+                case qstAnswer question of
+                    MultipleChoice choices -> 
+                        MultipleChoice $ shuffle' choices (length choices) gen
+                    _ -> qstAnswer question
+        in ( question
+             { qstAnswer = answer
+             }
+           , basePath)
 
 -- | Throw, result is shitty.
 maybeThrowYaml
@@ -180,12 +340,13 @@ readStudentInfo
 readStudentInfo path track = do
     need [path]
     Students hashMap <- readYAML path
-    return $
-        Students $
-        Map.filter
-            (\s -> 
-                  std_track s == track)
-            hashMap
+    let trackStudents = 
+            Map.filter
+                (\s -> 
+                      std_track s == track)
+                hashMap
+    putNormal $ "Students in track " ++ show track ++ ": " ++ show (length trackStudents)
+    return $ Students trackStudents
 
 -- Reads all the questions and returns them along with the base directory of
 -- each.
@@ -267,7 +428,9 @@ shuffleAnswers q =
 examStationary :: Exam
 examStationary = 
     Exam
-    { examStudentInfoFile = "PATH/TO/STUDENT/INFO"
+    { examModule = "MODULE"
+    , examTitle = "TITLE"
+    , examStudentInfoFile = "PATH/TO/STUDENT/INFO"
     , examDateTime = "DATE_TIME"
     , examDurationInMinutes = 0
     , examNumberOfQuestions = 0
