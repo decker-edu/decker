@@ -1,5 +1,6 @@
 \newpage
-# Aufgabe: {{Title}}
+
+# Aufgabe {{CurrentNumber}}: {{Title}}
 
 {{Question}}
 

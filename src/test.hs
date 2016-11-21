@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell, OverloadedStrings, DeriveGeneric #-}
 
 module Test
   (Question(..)
@@ -18,6 +18,7 @@ import Data.Yaml
 import Data.Aeson.Types
 import Data.Char
 import Data.Maybe
+import GHC.Generics
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 import qualified Data.ByteString.Char8 as B
@@ -37,7 +38,9 @@ data Question = Question
     , qstAnswer :: Answer
     , qstDifficulty :: Difficulty
     , qstComment :: T.Text
-    } deriving (Eq,Show,Typeable)
+    , qstCurrentNumber :: Int
+    , qstBasePath :: String
+    } deriving (Eq,Show,Typeable,Generic)
 
 data Choice = Choice
     { choiceTheAnswer :: T.Text
@@ -93,12 +96,31 @@ $(deriveJSON
       }
       ''Answer)
 
-$(deriveJSON
-      defaultOptions
-      { fieldLabelModifier = drop 3
-      }
-      ''Question)
+questionOptions = 
+    defaultOptions
+    { fieldLabelModifier = drop 3
+    }
 
+instance ToJSON Question where
+    toJSON = genericToJSON questionOptions
+    toEncoding = genericToEncoding questionOptions
+
+instance FromJSON Question where
+    parseJSON (Object q) = 
+        Question <$> q .: "TopicId" <*> q .: "LectureId" <*> q .: "Title" <*> q .: "Points" <*>
+        q .: "Question" <*>
+        q .: "Answer" <*>
+        q .: "Difficulty" <*>
+        q .: "Comment" <*>
+        q .:? "CurrentNumber" .!= 0 <*>
+        q .:? "BasePath" .!= "."
+    parseJSON invalid = typeMismatch "Question" invalid
+
+-- $(deriveJSON
+--       defaultOptions
+--       { fieldLabelModifier = drop 3
+--       }
+--       ''Question)
 $(deriveJSON
       defaultOptions
       { fieldLabelModifier = drop 4

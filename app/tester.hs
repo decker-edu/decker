@@ -51,6 +51,11 @@ main = do
                 (replaceSuffix "-exam.yaml" "-exam.pdf" .
                  combine privateDir . makeRelative projectDir)
                 examSources
+    let solutions = 
+            map
+                (replaceSuffix "-exam.yaml" "-solution.pdf" .
+                 combine privateDir . makeRelative projectDir)
+                examSources
     -- Meta data
     metaFiles <- glob "**/*-meta.yaml"
     -- Calculate targets
@@ -95,6 +100,10 @@ main = do
                   "exams" $
                   need exams
               --
+              phony
+                  "solutions" $
+                  need solutions
+              --
               "//*-exam.pdf" %>
                   \out -> do
                       let examPath = 
@@ -102,27 +111,31 @@ main = do
                                combine projectDir . makeRelative privateDir)
                                   out
                       need $ [examPath]
-                      questions <- readQuestions questionSources
-                      exam <- readExamData examPath
-                      let studentInfoPath = 
-                              adjustLocalUrl
-                                  projectDir
-                                  (takeDirectory examPath)
-                                  (examStudentInfoFile exam)
-                      Students studentMap <- readStudentInfo studentInfoPath (examTrack exam)
-                      putNormal $ "Read student data from: " ++ studentInfoPath
-                      let examData = generateExam exam questions (Map.elems studentMap)
-                      putNormal $
-                          "Exams generated for N students. N: " ++ (show . length . snd) examData
-                      templates <- compileTemplates "exam"
-                      putNormal "Templates compiled."
-                      examPandoc <- compileExam projectDir templates examData
-                      putNormal "Exams compiled to pandoc"
-                      compilePandocPdf examPandoc out
+                      buildExam projectDir "exam" examPath questionSources out
+              --
+              "//*-solution.pdf" %>
+                  \out -> do
+                      let examPath = 
+                              (replaceSuffix "-solution.pdf" "-exam.yaml" .
+                               combine projectDir . makeRelative privateDir)
+                                  out
+                      buildExam projectDir "solution" examPath questionSources out
               --
               phony
                   "clean" $
                   removeFilesAfter "." ["private"]
+
+buildExam projectDir disposition examSource questionSources out = do
+    need $ [examSource]
+    questions <- readQuestions questionSources
+    exam <- readExamData examSource
+    let studentInfoPath = 
+            adjustLocalUrl projectDir (takeDirectory examSource) (examStudentInfoFile exam)
+    Students studentMap <- readStudentInfo studentInfoPath (examTrack exam)
+    let examData = generateExam exam questions (Map.elems studentMap)
+    templates <- compileTemplates disposition
+    examPandoc <- compileExam projectDir templates examData
+    compilePandocPdf examPandoc out
 
 compileTemplates :: FilePath -> Action MT.TemplateCache
 compileTemplates disposition = do
@@ -152,9 +165,10 @@ compileProjectTemplate disposition name = do
 compilePandocPdf :: Pandoc -> FilePath -> Action ()
 compilePandocPdf exam out = do
     let variables = 
-            [ ("fontsize", "12pt")
-            , ("fontfamily", "roboto")
-            , ("header-includes", "\\renewcommand{\\familydefault}{\\sfdefault}")]
+            [ ("documentclass", "scrartcl")
+            , ("lang", "german")
+            , ("babel-lang", "german")
+            , ("classoption", "fontsize=13pt")]
     let options = 
             def
             { writerStandalone = True
@@ -263,9 +277,11 @@ filterQuestions includeLectures excludeTopics questions =
     filter (not . (flip elem) excludeTopics . qstLectureId . fst) $
     filter ((flip elem) includeLectures . qstLectureId . fst) questions
 
+type GroupedQuestions = Map.HashMap T.Text (Map.HashMap T.Text [(Question, FilePath)])
+
 -- | Groups questions first by LectureId and then by TopicId into nested HashMaps.
 groupQuestions
-    :: [(Question, FilePath)] -> Map.HashMap T.Text (Map.HashMap T.Text [(Question, FilePath)])
+    :: [(Question, FilePath)] -> GroupedQuestions
 groupQuestions questions = 
     let byLectureId = foldl (groupBy qstLectureId) Map.empty questions
     in Map.map (foldl (groupBy qstTopicId) Map.empty) byLectureId
@@ -290,10 +306,21 @@ generateExam exam questions students =
         -- Should produce the identical exam for one student each time and different 
         -- exams for all students every time.
         let gen = mkStdGen (hash student)
-            selection = 
-                take (examNumberOfQuestions exam) $ shuffle' candidates (length candidates) gen
+            -- Shuffle the deck of questions
+            shuffled = shuffle' candidates (length candidates) gen
+            -- Remove questions with duplicate TopicId. Keep the first one.
+            singled = 
+                nubBy
+                    (\(q1,_) (q2,_) -> 
+                          qstTopicId q1 == qstTopicId q2)
+                    shuffled
+            -- Take the number of questions that is needed
+            selection = take (examNumberOfQuestions exam) singled
+            -- Shuffle multiple choices
             questions = map (shuffleChoices gen) selection
-        in (student, questions)
+            -- Number the questions 
+            numbered = map numberQuestion (zip [1 ..] questions)
+        in (student, numbered)
     shuffleChoices gen (question,basePath) = 
         let answer = 
                 case qstAnswer question of
@@ -304,6 +331,11 @@ generateExam exam questions students =
              { qstAnswer = answer
              }
            , basePath)
+    numberQuestion (n,(q,p)) = 
+        ( q
+          { qstCurrentNumber = n
+          }
+        , p)
 
 -- | Throw, result is shitty.
 maybeThrowYaml
@@ -455,6 +487,8 @@ multipleChoiceStationary =
       }
     , qstDifficulty = Medium
     , qstComment = "COMMENT"
+    , qstCurrentNumber = 0
+    , qstBasePath = "."
     }
 
 fillTextStationary :: Question
@@ -471,6 +505,8 @@ fillTextStationary =
       }
     , qstDifficulty = Medium
     , qstComment = "COMMENT"
+    , qstCurrentNumber = 0
+    , qstBasePath = "."
     }
 
 freeStationary :: Question
@@ -487,4 +523,6 @@ freeStationary =
       }
     , qstDifficulty = Medium
     , qstComment = "COMMENT"
+    , qstCurrentNumber = 0
+    , qstBasePath = "."
     }
