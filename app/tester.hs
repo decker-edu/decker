@@ -274,7 +274,7 @@ joinPandoc list =
 filterQuestions
     :: [T.Text] -> [T.Text] -> [(Question, FilePath)] -> [(Question, FilePath)]
 filterQuestions includeLectures excludeTopics questions = 
-    filter (not . (flip elem) excludeTopics . qstLectureId . fst) $
+    filter (not . (flip elem) excludeTopics . qstTopicId . fst) $
     filter ((flip elem) includeLectures . qstLectureId . fst) questions
 
 type GroupedQuestions = Map.HashMap T.Text (Map.HashMap T.Text [(Question, FilePath)])
