@@ -1,13 +1,6 @@
----
-author: Henrik Tramberend
-title: Decker Page
-subtitle: {{course}} ({{semester}})
-date: 15.5.2016
----
-
 # Introduction
 
-[#include](/resource/relative.md)
+[\#include](include/relative.md)
 
 This is just a simple run-of-the-mill document. Use it for exercises and
 everything else. This document also has access to the meta data in surrounding
@@ -17,9 +10,7 @@ The date is {{date}}.
 
 All structured data entries are:
 
-{{#structured}}
-- {{.}}
-{{/structured}}
+{{\#structured}} - {{.}} {{/structured}}
 
 {{sometext}}
 

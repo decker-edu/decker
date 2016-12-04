@@ -1,0 +1,46 @@
+{
+  "798101": {
+    "department": "FB6",
+    "displayName": "Mahmoud, Hassan",
+    "employeeNumber": "798101",
+    "givenName": "Hassan",
+    "mail": "s53445@beuth-hochschule.de",
+    "sAMAccountName": "s53445",
+    "sn": "Mahmoud",
+    "uid": "s53445",
+    "track": 1
+  },
+  "814510": {
+    "department": "FB6",
+    "displayName": "Sahli, Hanen",
+    "employeeNumber": "814510",
+    "givenName": "Hanen",
+    "mail": "s57637@beuth-hochschule.de",
+    "sAMAccountName": "s57637",
+    "sn": "Sahli",
+    "uid": "s57637",
+    "track": 1
+  },
+  "832701": {
+    "department": "FB6",
+    "displayName": "Naci Aydogan",
+    "employeeNumber": "832701",
+    "givenName": "Naci",
+    "mail": "s61660@beuth-hochschule.de",
+    "sAMAccountName": "s61660",
+    "sn": "Aydogan",
+    "uid": "s61660",
+    "track": 1
+  },
+  "836381": {
+    "department": "FB6",
+    "displayName": "Justen, David Alexander",
+    "employeeNumber": "836381",
+    "givenName": "David Alexander",
+    "mail": "s64386@beuth-hochschule.de",
+    "sAMAccountName": "s64386",
+    "sn": "Justen",
+    "uid": "s64386",
+    "track": 1
+  }
+}

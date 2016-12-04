@@ -1,6 +1,7 @@
 ---
 author: Henrik Tramberend
 date: '15.5.2016'
+history: True
 subtitle: Tutorial and Examples
 theme: 'htr-slides'
 title: Decker Slide Tool
@@ -54,7 +55,7 @@ transition: linear
 
 The following text ist included from file `/resource/realtive.md`:
 
-[\#include](/resource/relative.md)
+[\#include](include/relative.md)
 
 # Multicolumn slides
 
@@ -208,7 +209,9 @@ $e=mc^2$
 
 # These are just notes {.notes}
 
-Slides with headers that are have the `.notes` class attribute are not included in the presentation. They are only visible in the handout and probably are available as presenter notes during slide presentation.
+Slides with headers that are have the `.notes` class attribute are not included
+in the presentation. They are only visible in the handout and probably are
+available as presenter notes during slide presentation.
 
 # Cached Images
 
@@ -216,7 +219,8 @@ Slides with headers that are have the `.notes` class attribute are not included 
 
 Remote images can be cached locally
 
-Cache directory is named `img/cached` and is located in the directory of the referencing document
+Cache directory is named `img/cached` and is located in the directory of the
+referencing document
 
 `decker cache` scans for and downloads all images
 
@@ -224,7 +228,8 @@ Cache directory is named `img/cached` and is located in the directory of the ref
 
 ## Cached remote image
 
-![Some piece of scene graph](https://tramberend.beuth-hochschule.de/img/cg1-banner.png)
+![Some piece of scene
+graph](https://tramberend.beuth-hochschule.de/img/cg1-banner.png)
 
 # Meta Data
 
@@ -293,7 +298,8 @@ Your total score is 42.
 
 -   `*-deck.html` a *reveal.js* based HTML slide deck
 -   `*-deck.pdf` a PDF version of that deck
--   `*-handout.html` a HTML document containing only the speaker notes from the deck
+-   `*-handout.html` a HTML document containing only the speaker notes from the
+    deck
 -   `*-handout.pdf` a PDF version of that handout
 
 ## Generated from `*-page.md`
