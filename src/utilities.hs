@@ -726,7 +726,7 @@ copyAndLinkFile project public base url = do
       let pub = public </> rel
       liftIO $ createDirectoryIfMissing True (takeDirectory pub)
       copyFileChanged url pub
-      return $ traceId $ makeRelativeTo (traceId base) (traceId pub)
+      return $ makeRelativeTo base pub
 
 -- | Express the second path argument as relative to the first. 
 -- Both arguments are expected to be absolute pathes. 
