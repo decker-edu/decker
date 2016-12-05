@@ -9,9 +9,9 @@ directory and all subdirectories. Markdown files ending on `.md` in those
 directories are processed and converted to either a reveal.js slide show, a HTML
 document, or a PDF document, depending on the file name.
 
-`*-deck.md`
+-   `*-deck.md`
 
-:   Files with this ending are processed as silde decks. From one source file
+    Files with this ending are processed as silde decks. From one source file
     potentially four different targets can be generated:
 
     -   `*-deck.html` A reveal.js based slide show
@@ -20,39 +20,46 @@ document, or a PDF document, depending on the file name.
     -   `*-deck.pdf` A PDF version of the slide show
     -   `*-handout.pdf` A PDF version of the handout
 
-`*-page.md`
+-   `*-page.md`
 
-:   Markdown files ending on `*-page.md` are translated into corresponding HTML
+    Markdown files ending on `*-page.md` are translated into corresponding HTML
     or PDF documents.
 
 ## *decker* targets
 
-decker help
-:   Prints this document to stdout in Markdown format.
+-   `decker help`
 
-decker html
-:   Builds HTML versions of all available documents.
+    Prints this document to stdout in Markdown format.
 
-decker pdf
-:   Builds PDF versions of all documents that are generated from
+-   `decker html`
+
+    Builds HTML versions of all available documents.
+
+-   `decker pdf`
+
+    Builds PDF versions of all documents that are generated from
     `*-deck.md` files.
 
-decker pdf-decks
-:   Builds PDF versions of all slide decks.
+-   `decker pdf-decks`
 
-decker watch
-:   Builds HTML versions of all documents and then watches for document changes.
+    Builds PDF versions of all slide decks (requires `decktape.sh`).
+
+-   `decker watch`
+
+    Builds HTML versions of all documents and then watches for document changes.
     Each change to a watched document triggers a rebuild. Watching can be
     terminated with `^C`.
 
-decker server
-:   Like `decker watch`. Additionally a local web server is started that serves
+-   `decker server`
+
+    Like `decker watch`. Additionally a local web server is started that serves
     the generated HTML files. The `index.html` document is automatically openend
-    in the browser. Changed files are automatically reloaded in the browser.
+    in the browser. Changed files are automatically reloaded in the browser. 
+    (requires `livereloadx`)
 
-decker example
+-   `decker example`
 
-:   Write a few example files to the current directory. To start exploring decker
+    Write a few example files to the current directory. To start exploring decker
     type
 
     ``` {.bash}
@@ -63,12 +70,13 @@ decker example
     and make some changes to the Markdown files. `example-deck.md` contains the
     source code for a slide deck that explains most of the features supported.
 
-decker clean
-:   Recursively removes all generated files from the current directory.
+-   `decker clean`
 
-decker check
+    Recursively removes all generated files from the current directory.
 
-:   Check for all required external depencies. If one of the programs is missing,
+-   `decker check`
+
+    Check for all required external depencies. If one of the programs is missing,
     an error is generated. Required programs include:
 
     -   `pdflatex` as part of a complete LaTeX installation
@@ -76,24 +84,19 @@ decker check
     -   `livereloadx` as live-reloading local webserver
     -   `rsync` to publish the documents to a remote location
 
-decker plan
-:   Prints a list of all source files found below the current directory.
+-   `decker plan`
 
-decker meta
-:   Pretty prints all meta data that can be found in `*.yaml` files in the
+    Prints a list of all source files found below the current directory.
+
+-   `decker meta`
+
+    Pretty prints all meta data that can be found in `*.yaml` files in the
     current directory and below. Meta data is mainly used to perform
     substitutions in Markdown documents using the Mustache templating system.
 
-decker publish
-:   Publish the generated files to a remote location using `rsync` if the
+-   `decker publish`
+
+    Publish the generated files to a remote location using `rsync` if the
     location is specified in the meta data. The keys `rsync-destination.host` and
     `rsync-destination.path` specify the publishing destination.
 
-decker clean-cache
-:   Remove all cached image files. Subsequent document builds will use the
-    original remote images.
-
-## Installation
-
-## Development
-Build completed in 0:01m
