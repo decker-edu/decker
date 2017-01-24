@@ -1,16 +1,17 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings, DeriveGeneric #-}
 
 module Test
-  (Question(..)
-  ,Answer(..)
-  ,Choice(..)
-  ,Difficulty(..)
-  ,Exam(..)
-  ,StudentExam(..)
-  ,Templates
-  ,compileTesterTemplates
-  ,selectTemplate)
-  where
+  ( Question(..)
+  , Answer(..)
+  , Choice(..)
+  , OneAnswer(..)
+  , Difficulty(..)
+  , Exam(..)
+  , StudentExam(..)
+  , Templates
+  , compileTesterTemplates
+  , selectTemplate
+  ) where
 
 import Data.Aeson.TH
 import Control.Exception
@@ -30,91 +31,105 @@ import Utilities
 import Student
 
 data Question = Question
-    { qstTopicId :: T.Text
-    , qstLectureId :: T.Text
-    , qstTitle :: T.Text
-    , qstPoints :: Int
-    , qstQuestion :: T.Text
-    , qstAnswer :: Answer
-    , qstDifficulty :: Difficulty
-    , qstComment :: T.Text
-    , qstCurrentNumber :: Int
-    , qstBasePath :: String
-    } deriving (Eq,Show,Typeable,Generic)
+  { qstTopicId :: T.Text
+  , qstLectureId :: T.Text
+  , qstTitle :: T.Text
+  , qstPoints :: Int
+  , qstQuestion :: T.Text
+  , qstAnswer :: Answer
+  , qstDifficulty :: Difficulty
+  , qstComment :: T.Text
+  , qstCurrentNumber :: Int
+  , qstBasePath :: String
+  } deriving (Eq, Show, Typeable, Generic)
 
 data Choice = Choice
-    { choiceTheAnswer :: T.Text
-    , choiceCorrect :: Bool
-    } deriving (Eq,Show,Typeable)
+  { choiceTheAnswer :: T.Text
+  , choiceCorrect :: Bool
+  } deriving (Eq, Show, Typeable)
+
+data OneAnswer = OneAnswer
+  { oneDetail :: T.Text
+  , oneCorrect :: T.Text
+  } deriving (Eq, Show, Typeable)
 
 data Answer
-    = MultipleChoice { answChoices :: [Choice]}
-    | FillText { answFillText :: T.Text
-               , answCorrectWords :: [T.Text]}
-    | FreeForm { answHeightInMm :: Int
-               , answCorrectAnswer :: T.Text}
-    deriving (Eq,Show,Typeable)
+  = MultipleChoice { answChoices :: [Choice]}
+  | FillText { answFillText :: T.Text
+            ,  answCorrectWords :: [T.Text]}
+  | FreeForm { answHeightInMm :: Int
+            ,  answCorrectAnswer :: T.Text}
+  | MultipleAnswers { answWidthInMm :: Int
+                   ,  answAnswers :: [OneAnswer]}
+  deriving (Eq, Show, Typeable)
 
 data Difficulty
-    = Easy 
-    | Medium 
-    | Hard 
-    deriving (Eq,Show,Typeable)
+  = Easy
+  | Medium
+  | Hard
+  deriving (Eq, Show, Typeable)
 
 data Exam = Exam
-    { examTitle :: T.Text
-    , examModule :: T.Text
-    , examStudentInfoFile :: FilePath
-    , examDateTime :: T.Text
-    , examDurationInMinutes :: Int
-    , examNumberOfQuestions :: Int
-    , examTrack :: Int
-    , examLectureIds :: [T.Text]
-    , examExcludedTopicIds :: [T.Text]
-    } deriving (Eq,Show,Typeable)
+  { examTitle :: T.Text
+  , examModule :: T.Text
+  , examStudentInfoFile :: FilePath
+  , examDateTime :: T.Text
+  , examDurationInMinutes :: Int
+  , examNumberOfQuestions :: Int
+  , examTrack :: Int
+  , examLectureIds :: [T.Text]
+  , examExcludedTopicIds :: [T.Text]
+  } deriving (Eq, Show, Typeable)
 
 data StudentExam = StudentExam
-    { stdexExam :: Exam
-    , stdexStudent :: Student
-    } 
+  { stdexExam :: Exam
+  , stdexStudent :: Student
+  }
 
 $(deriveJSON
-      defaultOptions
-      { fieldLabelModifier = drop 5
-      }
-      ''StudentExam)
+    defaultOptions
+    { fieldLabelModifier = drop 5
+    }
+    ''StudentExam)
 
 $(deriveJSON
-      defaultOptions
-      { fieldLabelModifier = drop 6
-      }
-      ''Choice)
+    defaultOptions
+    { fieldLabelModifier = drop 6
+    }
+    ''Choice)
 
 $(deriveJSON
-      defaultOptions
-      { fieldLabelModifier = drop 4
-      }
-      ''Answer)
-
-questionOptions = 
     defaultOptions
     { fieldLabelModifier = drop 3
     }
+    ''OneAnswer)
+
+$(deriveJSON
+    defaultOptions
+    { fieldLabelModifier = drop 4
+    }
+    ''Answer)
+
+questionOptions =
+  defaultOptions
+  { fieldLabelModifier = drop 3
+  }
 
 instance ToJSON Question where
-    toJSON = genericToJSON questionOptions
-    toEncoding = genericToEncoding questionOptions
+  toJSON = genericToJSON questionOptions
+  toEncoding = genericToEncoding questionOptions
 
 instance FromJSON Question where
-    parseJSON (Object q) = 
-        Question <$> q .: "TopicId" <*> q .: "LectureId" <*> q .: "Title" <*> q .: "Points" <*>
-        q .: "Question" <*>
-        q .: "Answer" <*>
-        q .: "Difficulty" <*>
-        q .: "Comment" <*>
-        q .:? "CurrentNumber" .!= 0 <*>
-        q .:? "BasePath" .!= "."
-    parseJSON invalid = typeMismatch "Question" invalid
+  parseJSON (Object q) =
+    Question <$> q .: "TopicId" <*> q .: "LectureId" <*> q .: "Title" <*>
+    q .: "Points" <*>
+    q .: "Question" <*>
+    q .: "Answer" <*>
+    q .: "Difficulty" <*>
+    q .: "Comment" <*>
+    q .:? "CurrentNumber" .!= 0 <*>
+    q .:? "BasePath" .!= "."
+  parseJSON invalid = typeMismatch "Question" invalid
 
 -- $(deriveJSON
 --       defaultOptions
@@ -122,10 +137,10 @@ instance FromJSON Question where
 --       }
 --       ''Question)
 $(deriveJSON
-      defaultOptions
-      { fieldLabelModifier = drop 4
-      }
-      ''Exam)
+    defaultOptions
+    { fieldLabelModifier = drop 4
+    }
+    ''Exam)
 
 $(deriveJSON defaultOptions ''Difficulty)
 
@@ -139,21 +154,27 @@ type Templates = [(TypeRep, M.Template)]
 
 selectTemplate :: Templates -> Question -> M.Template
 -- selectTemplate templates question = fromJust $ lookup (typeOf $ qstAnswer question) templates
-selectTemplate templates question = 
-    case qstAnswer question of
-        MultipleChoice _ -> 
-            compileMustacheTemplate $ fixMustacheMarkup testerMultipleChoiceTemplate
-        FillText _ _ -> compileMustacheTemplate $ fixMustacheMarkup testerFillTextTemplate
-        FreeForm _ _ -> compileMustacheTemplate $ fixMustacheMarkup testerFreeFormTemplate
+selectTemplate templates question =
+  case qstAnswer question of
+    MultipleChoice _ ->
+      compileMustacheTemplate $ fixMustacheMarkup testerMultipleChoiceTemplate
+    MultipleAnswers _ _ ->
+      compileMustacheTemplate $ fixMustacheMarkup testerMultipleAnswersTemplate
+    FillText _ _ ->
+      compileMustacheTemplate $ fixMustacheMarkup testerFillTextTemplate
+    FreeForm _ _ ->
+      compileMustacheTemplate $ fixMustacheMarkup testerFreeFormTemplate
 
 compileTesterTemplates :: Templates
-compileTesterTemplates = 
-    [ (mcKey, compileMustacheTemplate $ fixMustacheMarkup testerMultipleChoiceTemplate)
-    , (ftKey, compileMustacheTemplate $ fixMustacheMarkup testerFillTextTemplate)
-    , (ffKey, compileMustacheTemplate $ fixMustacheMarkup testerFreeFormTemplate)]
+compileTesterTemplates =
+  [ ( mcKey
+    , compileMustacheTemplate $ fixMustacheMarkup testerMultipleChoiceTemplate)
+  , (ftKey, compileMustacheTemplate $ fixMustacheMarkup testerFillTextTemplate)
+  , (ffKey, compileMustacheTemplate $ fixMustacheMarkup testerFreeFormTemplate)
+  ]
 
 compileMustacheTemplate :: T.Text -> M.Template
-compileMustacheTemplate string = 
-    case M.compileTemplate "" string of
-        Left err -> throw $ MustacheException $ show err
-        Right template -> template
+compileMustacheTemplate string =
+  case M.compileTemplate "" string of
+    Left err -> throw $ MustacheException $ show err
+    Right template -> template

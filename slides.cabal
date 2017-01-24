@@ -15,9 +15,10 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Pandoc, Test, Embed, Context, Utilities, Filter, Student
+  exposed-modules:     Pandoc, Test, Embed, Context, Utilities, Filter, Student, Shuffle
   build-depends:       base
                      , aeson
+                     , random
                      , pandoc-types
                      , pandoc-citeproc
                      , containers
@@ -73,6 +74,7 @@ executable tester
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , slides
+                     , process
                      , shake
                      , Glob
                      , bytestring
@@ -87,7 +89,6 @@ executable tester
                      , mustache
                      , highlighting-kate
                      , random
-                     , random-shuffle
   default-language:    Haskell2010
 
 -- executable include-pandoc-filter

@@ -13,6 +13,8 @@
 
 {{Question}}
 
-\fbox{\begin{minipage}{\textwidth} \hfill \vspace{ {{Answer.HeightInMm}}mm } \end{minipage}}
+{{\#Answer.Answers}}
 
-{{Answer.CorrectAnswer}}
+-   {{Detail}}: {{Correct}}
+
+{{/Answer.Answers}}

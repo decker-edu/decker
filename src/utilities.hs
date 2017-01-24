@@ -561,7 +561,7 @@ adjustImageUrls projectDir baseDir = walk adjustBlock . walk adjustInline
       , cs
       , map
           (\(k, v) ->
-              if k == "data-background-image"
+              if k == "data-background-image" || k == "data-background-video"
                 then (k, adjustLocalUrl projectDir baseDir v)
                 else (k, v))
           kvs)
@@ -781,6 +781,7 @@ metaValueAsString key meta =
 -- | Tool specific exceptions
 data DeckerException
   = MustacheException String
+  | GitException String
   | PandocException String
   | YamlException String
   | HttpException String
@@ -792,6 +793,7 @@ instance Exception DeckerException
 
 instance Show DeckerException where
   show (MustacheException e) = e
+  show (GitException e) = e
   show (HttpException e) = e
   show (PandocException e) = e
   show (YamlException e) = e
