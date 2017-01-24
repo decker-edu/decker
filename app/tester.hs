@@ -164,6 +164,7 @@ buildExam projectDir disposition examSource questionSources out = do
   need [examSource]
   putLoud "Reading questions ..."
   questions <- readQuestions questionSources
+  putNormal $ "# Questions: " ++ show (length questions)
   putLoud "Reading exam data ..."
   exam <- readExamData examSource
   let studentInfoPath =
@@ -171,10 +172,14 @@ buildExam projectDir disposition examSource questionSources out = do
           projectDir
           (takeDirectory examSource)
           (examStudentInfoFile exam)
+  let failedStudentPath = projectDir </> "grading/failed-students.yaml"
   putLoud "Reading students ..."
   Students studentMap <- readStudentInfo studentInfoPath (examTrack exam)
+  failedStudents <- readFailedStudents failedStudentPath
   putLoud "Generating exam ..."
-  let examData = generateExam exam questions (Map.elems studentMap)
+  let successful = filterFailed failedStudents studentMap
+  let examData = generateExam exam questions $ Map.elems $ successful
+  putNormal $ "#  Students: " ++ show (Map.size successful)
   putLoud "About to show exam data ..."
   putLoud "Compiling templates ..."
   templates <- compileTemplates disposition
@@ -182,6 +187,11 @@ buildExam projectDir disposition examSource questionSources out = do
   examPandoc <- compileExam projectDir templates examData
   putLoud "Compiling PDF ..."
   compilePandocPdf examPandoc out
+
+filterFailed :: [T.Text]
+             -> Map.HashMap T.Text Student
+             -> Map.HashMap T.Text Student
+filterFailed failed students = foldl (flip Map.delete) students failed
 
 compileTemplates :: FilePath -> Action MT.TemplateCache
 compileTemplates disposition = do
@@ -430,6 +440,12 @@ readStudentInfo path track = do
   putLoud $
     "Students in track " ++ show track ++ ": " ++ show (length trackStudents)
   return $ Students trackStudents
+
+-- Reads list of failed students
+readFailedStudents :: FilePath -> Action [T.Text]
+readFailedStudents path = do
+  need [path]
+  readYAML path
 
 -- Reads all the questions and returns them along with the base directory of
 -- each.
