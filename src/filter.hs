@@ -307,7 +307,7 @@ cacheImageIO
   :: String -> FilePath -> IO ()
 cacheImageIO uri cacheDir =
   do request <- parseRequest uri
-     result <- httpLBS $ request
+     result <- httpLBS request
      let body = getResponseBody result
      let cacheFile = cacheDir </> escapeToFilePath uri
      createDirectoryIfMissing True cacheDir

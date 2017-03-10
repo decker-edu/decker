@@ -46,7 +46,9 @@ main = do
   let everythingA = decksA <++> handoutsA <++> pagesA
   let everythingPdfA = decksPdfA <++> handoutsPdfA <++> pagesPdfA
   let cruft =
-        map (combine projectDir) ["index.md.generated", "server.log", "//.shake"]
+        map
+          (combine projectDir)
+          ["index.md.generated", "server.log", "//.shake"]
   context <- makeActionContext projectDir publicDir cacheDir supportDir
   runShakeInContext context options $
   --
