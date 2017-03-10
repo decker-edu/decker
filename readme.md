@@ -7,7 +7,7 @@ A markdown based tool for slide deck creation.
 1.  Install [stack](https://docs.haskellstack.org/en/stable/README/).
 2.  Clone this repo.
 3.  `cd repo`
-4.  stack install
+4.  `stack install`
 
 ## Usage
 
