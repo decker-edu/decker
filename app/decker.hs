@@ -19,6 +19,8 @@ import Utilities
 import Context
 import Embed
 
+version = "0.1.0"
+
 main :: IO ()
 main = do
   projectDir <- calcProjectDirectory
@@ -53,6 +55,8 @@ main = do
   runShakeInContext context options $
   --
     do want ["html"]
+       --
+       phony "version" $ putNormal $ "decker version " ++ version
        --
        phony "decks" $ do decksA >>= need
        --
