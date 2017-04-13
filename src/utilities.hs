@@ -373,7 +373,7 @@ markdownToHtmlDeck markdownFile out = do
         , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
           MathJax
-            "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+            (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
         -- ,writerHTMLMathMethod =
         --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
         --          (supportDir </> "katex-0.6.0/katex.min.css")
@@ -425,7 +425,7 @@ markdownToHtmlPage markdownFile out = do
         , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
           MathJax
-            "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+            (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
         -- ,writerHTMLMathMethod =
         --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
         --          (supportDir </> "katex-0.6.0/katex.min.css")
@@ -473,7 +473,7 @@ markdownToHtmlHandout markdownFile out = do
         , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
           MathJax
-            "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+            (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
         -- ,writerHTMLMathMethod =
         --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
         --          (supportDir </> "katex-0.6.0/katex.min.css")
