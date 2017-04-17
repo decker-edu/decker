@@ -11,6 +11,7 @@ import qualified Data.HashMap.Strict as H
 import Data.List
 import Data.Maybe
 import qualified Data.Map as M
+import qualified Data.Text as T
 import qualified Data.MultiMap as MM
 import Data.Digest.Pure.MD5
 import qualified Data.Yaml as Y
@@ -66,3 +67,5 @@ readMetaData metaFiles =
         joinMeta :: Y.Value -> Y.Value -> Y.Value
         joinMeta (Y.Object old) (Y.Object new) = Y.Object (H.union new old)
         joinMeta _ _ = throw $ YamlException "Can only join YAML objects."
+
+-- extractMetaDataFromMarkdown :: T.Text -> Y.Value 

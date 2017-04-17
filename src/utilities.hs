@@ -4,11 +4,9 @@ module Utilities
   , terminate
   , threadDelay'
   , wantRepeat
-  , waitForModificationIn
   , defaultContext
   , runShakeInContext
   , watchFiles
-  , waitForTwitch
   , dropSuffix
   , stopServer
   , startServer
@@ -50,6 +48,7 @@ import Control.Exception
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Data.Dynamic
+import Data.List
 import Data.List.Extra
 import Data.Maybe
 import Data.IORef
@@ -87,6 +86,7 @@ import Network.URI
 import Text.Highlighting.Kate.Styles
 import Context
 import Embed
+import Watch
 
 -- Find the project directory and change current directory to there. 
 -- The project directory is the first upwards directory that contains a .git directory entry.
@@ -170,9 +170,6 @@ threadDelay' = liftIO . threadDelay
 wantRepeat :: IORef Bool -> Action ()
 wantRepeat justOnce = liftIO $ writeIORef justOnce False
 
-waitForModificationIn :: [FilePath] -> Action ()
-waitForModificationIn = liftIO . waitForTwitch
-
 -- The context of program invocation consists of a list of
 -- files to watch and a possibly running local http server.
 data Context =
@@ -201,26 +198,10 @@ runShakeInContext context options rules = do
       if null files
         then return True
         else do
-          waitForTwitch files
+          waitForTwitchPassive files
           return False
 
 watchFiles = setFilesToWatch
-
--- | Actively waits for the first change to any member in the set of specified
--- | files and their parent directories, then returns.
-waitForTwitch files = do
-  startTime <- getCurrentTime
-  let dirs = map takeDirectory files
-  let filesAndDirs = Set.toList . Set.fromList $ files ++ dirs
-  whileM_ (noModificationSince startTime filesAndDirs) (threadDelay 300000)
-  where
-    noModificationSince startTime pathes = do
-      modified <- mapM (modifiedSince startTime) pathes
-      return $ not (or modified)
-    modifiedSince time path =
-      handle (\(SomeException _) -> return False) $
-      do modTime <- getModificationTime path
-         return $ diffUTCTime modTime time > 0
 
 -- | Monadic version of list concatenation.
 (<++>)
