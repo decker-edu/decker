@@ -4,6 +4,15 @@ A markdown based tool for slide deck creation.
 
 ## Installation
 
+Pick a [published release](https://cgmgit.beuth-hochschule.de/teaching/decker/tags), download and unpack:
+
+```sh
+gunzip decker.gz
+chmod a+x decker
+```
+
+## Installation from source
+
 1.  Install [stack](https://docs.haskellstack.org/en/stable/README/).
 2.  Clone this repo.
 3.  `cd repo`
