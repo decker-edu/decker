@@ -76,7 +76,7 @@ data Exam = Exam
   , examDateTime :: T.Text
   , examDurationInMinutes :: Int
   , examNumberOfQuestions :: Int
-  , examTrack :: Int
+  , examTracks :: [Int]
   , examLectureIds :: [T.Text]
   , examExcludedTopicIds :: [T.Text]
   } deriving (Eq, Show, Typeable)

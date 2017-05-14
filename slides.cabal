@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Watch, Pandoc, Test, Embed, Context, Utilities, Filter, Student, Shuffle
+  exposed-modules:     Watch, Test, Embed, Context, Utilities, Filter, Student, Shuffle
   build-depends:       base
                      , aeson
                      , random
@@ -50,6 +50,8 @@ library
                      , highlighting-kate
                      , multimap
                      , fsnotify
+                     , vector
+                     , scientific
   default-language:    Haskell2010
 
 executable decker
@@ -101,52 +103,52 @@ executable tester
 --                      , pandoc-types
 --   default-language:    Haskell2010
 
-executable dot-pandoc-filter
-  hs-source-dirs:      app
-  main-is:             dot.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , slides
-                     , pandoc-types
-                     , base64-bytestring
-                     , bytestring
-                     , process
-                     , blaze-markup
-                     , blaze-html
-                     , split
-                     , pureMD5
-  default-language:    Haskell2010
+-- executable dot-pandoc-filter
+--   hs-source-dirs:      app
+--   main-is:             dot.hs
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   build-depends:       base
+--                      , slides
+--                      , pandoc-types
+--                      , base64-bytestring
+--                      , bytestring
+--                      , process
+--                      , blaze-markup
+--                      , blaze-html
+--                      , split
+--                      , pureMD5
+--   default-language:    Haskell2010
 
-executable gnuplot-pandoc-filter
-  hs-source-dirs:      app
-  main-is:             Gnuplot.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , slides
-                     , pandoc-types
-                     , base64-bytestring
-                     , bytestring
-                     , process
-                     , blaze-markup
-                     , blaze-html
-                     , split
-                     , pureMD5
-                     , directory
-  default-language:    Haskell2010
+-- executable gnuplot-pandoc-filter
+--   hs-source-dirs:      app
+--   main-is:             Gnuplot.hs
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   build-depends:       base
+--                      , slides
+--                      , pandoc-types
+--                      , base64-bytestring
+--                      , bytestring
+--                      , process
+--                      , blaze-markup
+--                      , blaze-html
+--                      , split
+--                      , pureMD5
+--                      , directory
+--   default-language:    Haskell2010
 
-executable macros-pandoc-filter
-  hs-source-dirs:      app
-  main-is:             macros.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , slides
-                     , pandoc-types
-                     , containers
-                     , split
-                     , data-default
-                     , blaze-markup
-                     , blaze-html
-  default-language:    Haskell2010
+-- executable macros-pandoc-filter
+--   hs-source-dirs:      app
+--   main-is:             macros.hs
+--   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+--   build-depends:       base
+--                      , slides
+--                      , pandoc-types
+--                      , containers
+--                      , split
+--                      , data-default
+--                      , blaze-markup
+--                      , blaze-html
+--   default-language:    Haskell2010
 
 -- executable slideset-pandoc-filter
 --   hs-source-dirs:      app
@@ -187,6 +189,7 @@ test-suite slides-test
                      , unordered-containers
                      , text
                      , neat-interpolation
+                     , bytestring
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

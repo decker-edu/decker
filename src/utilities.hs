@@ -12,9 +12,7 @@ module Utilities
   , startServer
   , runHttpServer
   , writeIndex
-  , readMetaData
   , readMetaDataForDir
-  , readMetaDataIO
   , substituteMetaData
   , markdownToHtmlDeck
   , markdownToHtmlHandout
@@ -38,54 +36,64 @@ module Utilities
   , fixMustacheMarkupText
   , globA
   , globRelA
+  , splitMarkdown
+  , splitMarkdownFile
+  , toPandocMeta
   , DeckerException(..)
   ) where
 
-import Control.Monad.Loops
-import Control.Monad
+import Context
+import Control.Arrow
 import Control.Concurrent
 import Control.Exception
-import Development.Shake
-import Development.Shake.FilePath as SFP
-import Data.Dynamic
-import Data.List
-import Data.List.Extra
-import Data.Maybe
-import Data.IORef
-import qualified Data.HashMap.Strict as H
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as E
-import Data.Time.Clock
-import Data.Typeable
-import qualified Data.Set as Set
-import qualified Data.HashMap.Lazy as HashMap
-import Text.Printf
-import System.Process
-import System.Process.Internals
-import System.Directory as Dir
-import System.Exit
-import System.FilePath as SF
-import System.FilePath.Glob
-import qualified Data.Yaml as Y
-import qualified Text.Mustache as M
-import qualified Text.Mustache.Types as MT
+import Control.Monad
+import Control.Monad.Loops
+import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Digest.Pure.MD5
-import Text.Pandoc
-import Text.Pandoc.Walk
-import Text.Pandoc.PDF
-import Text.CSL.Pandoc
-import Filter
+import Data.Dynamic
+import qualified Data.HashMap.Lazy as HashMap
+import qualified Data.HashMap.Strict as H
+import Data.IORef
+import Data.List
+import Data.List.Extra
+import qualified Data.Map.Lazy as Map
+import Data.Maybe
+import Data.Scientific
+import qualified Data.Set as Set
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as E
+import qualified Data.Text.IO as Tio
+import Data.Time.Clock
+import Data.Typeable
+import qualified Data.Vector as Vec
+import qualified Data.Yaml as Y
 import Debug.Trace
+import Development.Shake
+import Development.Shake.FilePath as SFP
+import Embed
+import Filter
 import Network.HTTP.Conduit
 import Network.HTTP.Simple
 import Network.HTTP.Types.Status
 import Network.URI
+import System.Directory as Dir
+import System.Exit
+import System.FilePath as SF
+import System.FilePath.Glob
+import System.Process
+import System.Process.Internals
+import Text.CSL.Pandoc
 import Text.Highlighting.Kate.Styles
-import Context
-import Embed
+import qualified Text.Mustache as M
+import qualified Text.Mustache.Types as MT
+import Text.Pandoc
+import Text.Pandoc.PDF
+import Text.Pandoc.Shared
+import Text.Pandoc.Walk
+import Text.Printf
 import Watch
 
 -- Find the project directory and change current directory to there. 
@@ -108,16 +116,16 @@ calcProjectDirectory = do
 -- | Globs for files under the project dir in the Action monad. 
 -- Returns absolute pathes. 
 globA :: FilePattern -> Action [FilePath]
-globA pattern = do
+globA pat = do
   projectDir <- getProjectDir
-  liftIO $ globDir1 (compile pattern) projectDir
+  liftIO $ globDir1 (compile pat) projectDir
 
 -- | Globs for files under the project dir in the Action monad. 
 -- Returns pathes relative to the project directory. 
 globRelA :: FilePattern -> Action [FilePath]
-globRelA pattern = do
+globRelA pat = do
   projectDir <- getProjectDir
-  files <- globA pattern
+  files <- globA pat
   return $ map (makeRelative projectDir) files
 
 -- Utility functions for shake based apps
@@ -136,12 +144,12 @@ runHttpServer dir open = do
         spawn $ "livereloadx -s -p 8888 -d 500 " ++ dir ++ " 2>&1 > server.log"
       setServerHandle $ Just handle
       threadDelay' 200000
-      when open $ cmd "open http://localhost:8888/" :: Action ()
+      when open $ cmd ("open http://localhost:8888/" :: String) :: Action ()
 
 startServer id command =
-  liftIO $
-  do processHandle <- spawnCommand command
-     withProcessHandle processHandle handleResult
+  liftIO $ do
+    processHandle <- spawnCommand command
+    withProcessHandle processHandle handleResult
   where
     handleResult ph =
       case ph of
@@ -152,14 +160,14 @@ startServer id command =
           writeFile (id ++ ".pid") (show p)
 
 stopServer id =
-  liftIO $
-  do let pidFile = id ++ ".pid"
-     result <- try $ readFile pidFile
-     case result of
-       Left (SomeException e) -> print $ "Unable to read file " ++ pidFile
-       Right pid -> do
-         exitCode <- system ("kill -9 " ++ pid)
-         removeFile pidFile
+  liftIO $ do
+    let pidFile = id ++ ".pid"
+    result <- try $ readFile pidFile
+    case result of
+      Left (SomeException e) -> print $ "Unable to read file " ++ pidFile
+      Right pid -> do
+        exitCode <- system ("kill -9 " ++ pid)
+        removeFile pidFile
 
 terminate :: ProcessHandle -> Action ()
 terminate = liftIO . terminateProcess
@@ -224,7 +232,11 @@ replaceSuffixWith suffix with pathes =
   return [dropSuffix suffix d ++ with | d <- pathes]
 
 -- | Monadic version of suffix replacement for easy binding.
-calcTargetPath :: FilePath -> String -> String -> [FilePath] -> Action [FilePath]
+calcTargetPath :: FilePath
+               -> String
+               -> String
+               -> [FilePath]
+               -> Action [FilePath]
 calcTargetPath projectDir suffix with pathes =
   return [projectDir </> dropSuffix suffix d ++ with | d <- pathes]
 
@@ -251,6 +263,12 @@ writeIndex out baseUrl decks handouts pages = do
   where
     makeLink path = "-    [" ++ takeFileName path ++ "](" ++ path ++ ")"
 
+joinMeta :: Y.Value -> Y.Value -> Y.Value
+joinMeta (Y.Object old) (Y.Object new) = Y.Object (H.union new old)
+joinMeta (Y.Object old) _ = Y.Object old
+joinMeta _ (Y.Object new) = Y.Object new
+joinMeta _ _ = throw $ YamlException "Can only join YAML objects."
+
 readMetaDataForDir :: FilePath -> Action Y.Value
 readMetaDataForDir dir = walkUpTo dir
   where
@@ -269,9 +287,6 @@ readMetaDataForDir dir = walkUpTo dir
       meta <- mapM decodeYaml files
       return $ foldl joinMeta (Y.object []) meta
     --
-    joinMeta (Y.Object old) (Y.Object new) = Y.Object (H.union new old)
-    joinMeta _ _ = throw $ YamlException "Can only join YAML objects."
-    --
     decodeYaml yamlFile = do
       result <- liftIO $ Y.decodeFileEither yamlFile
       case result of
@@ -280,34 +295,6 @@ readMetaDataForDir dir = walkUpTo dir
           throw $
           YamlException $ "Top-level meta value must be an object: " ++ dir
         Left exception -> throw exception
-
--- | Decodes an array of YAML files and combines the data into one object.
--- Key value pairs from later files overwrite those from early ones.
-readMetaDataIO :: [FilePath] -> IO Y.Value
-readMetaDataIO files =
-  mapM decode files >>= foldM combine (Y.Object HashMap.empty)
-  where
-    decode file = do
-      result <- Y.decodeFileEither file
-      return (file, result)
-    combine (Y.Object obj) (file, Right (Y.Object new)) =
-      return (Y.Object (HashMap.union new obj))
-    combine obj (file, Right _) = do
-      _ <-
-        throw $
-        YamlException $ file ++ ": top level metadata is not a YAML object."
-      return obj
-    combine obj (file, Left err) = do
-      _ <-
-        throw $ YamlException $ file ++ ": " ++ Y.prettyPrintParseException err
-      return obj
-
--- | TODO This has to be restructured. Metadata files need to be calculated from
--- the source directory and need should be called implicitly.
-readMetaData :: [FilePath] -> Action MetaData
-readMetaData files = do
-  need files
-  liftIO $ readMetaDataIO files
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text
@@ -322,13 +309,21 @@ fixMustacheMarkupText content =
     (T.replace (T.pack "{{\\^") (T.pack "{{^") content)
 
 -- | Substitutes meta data values in the provided file.
-substituteMetaData :: FilePath -> MT.Value -> IO T.Text
-substituteMetaData source metaData = do
+substituteMetaDataFile :: FilePath -> MT.Value -> IO T.Text
+substituteMetaDataFile source metaData = do
   contents <- B.readFile source
   let fixed = fixMustacheMarkup contents
   let result = M.compileTemplate source fixed
   case result of
     Right template -> return $ M.substituteValue template metaData
+    Left err -> throw $ MustacheException (show err)
+
+substituteMetaData :: T.Text -> MT.Value -> T.Text
+substituteMetaData text metaData = do
+  let fixed = fixMustacheMarkupText text
+  let result = M.compileTemplate "internal" fixed
+  case result of
+    Right template -> M.substituteValue template metaData
     Left err -> throw $ MustacheException (show err)
 
 getRelativeSupportDir :: FilePath -> Action FilePath
@@ -348,20 +343,20 @@ markdownToHtmlDeck markdownFile out = do
   supportDir <- getRelativeSupportDir out
   let options =
         pandocWriterOpts
-        { writerStandalone = True
-        , writerTemplate = deckTemplate
+        { writerTemplate = Just deckTemplate
+        -- , writerStandalone = True
         , writerHighlight = True
-        , writerHighlightStyle = pygments
+        -- , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
-          MathJax
-            (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+            MathJax
+              (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
         -- ,writerHTMLMathMethod =
         --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
         --          (supportDir </> "katex-0.6.0/katex.min.css")
         , writerVariables =
-          [ ("revealjs-url", supportDir </> "reveal.js")
-          , ("decker-support-dir", supportDir)
-          ]
+            [ ("revealjs-url", supportDir </> "reveal.js")
+            , ("decker-support-dir", supportDir)
+            ]
         , writerCiteMethod = Citeproc
         }
   pandoc <- readAndPreprocessMarkdown markdownFile
@@ -400,13 +395,13 @@ markdownToHtmlPage markdownFile out = do
   let options =
         pandocWriterOpts
         { writerHtml5 = True
-        , writerStandalone = True
-        , writerTemplate = pageTemplate
+        -- , writerStandalone = True
+        , writerTemplate = Just pageTemplate
         , writerHighlight = True
-        , writerHighlightStyle = pygments
+        -- , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
-          MathJax
-            (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+            MathJax
+              (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
         -- ,writerHTMLMathMethod =
         --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
         --          (supportDir </> "katex-0.6.0/katex.min.css")
@@ -422,10 +417,10 @@ markdownToPdfPage :: FilePath -> FilePath -> Action ()
 markdownToPdfPage markdownFile out = do
   let options =
         pandocWriterOpts
-        { writerStandalone = True
-        , writerTemplate = pageLatexTemplate
+        { writerTemplate = Just pageLatexTemplate
+        -- , writerStandalone = True
         , writerHighlight = True
-        , writerHighlightStyle = pygments
+        -- , writerHighlightStyle = pygments
         , writerCiteMethod = Citeproc
         }
   pandoc <- readAndPreprocessMarkdown markdownFile
@@ -448,13 +443,13 @@ markdownToHtmlHandout markdownFile out = do
   let options =
         pandocWriterOpts
         { writerHtml5 = True
-        , writerStandalone = True
-        , writerTemplate = handoutTemplate
+        -- , writerStandalone = True
+        , writerTemplate = Just handoutTemplate
         , writerHighlight = True
-        , writerHighlightStyle = pygments
+        -- , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
-          MathJax
-            (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+            MathJax
+              (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
         -- ,writerHTMLMathMethod =
         --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
         --          (supportDir </> "katex-0.6.0/katex.min.css")
@@ -470,22 +465,98 @@ markdownToPdfHandout markdownFile out = do
   processed <- processPandocHandout "latex" pandoc
   let options =
         pandocWriterOpts
-        { writerStandalone = True
-        , writerTemplate = handoutLatexTemplate
+        { writerTemplate = Just handoutLatexTemplate
+        -- , writerStandalone = True
         , writerHighlight = True
-        , writerHighlightStyle = pygments
+        -- , writerHighlightStyle = pygments
         , writerCiteMethod = Citeproc
         }
   putNormal $ "# pandoc (for " ++ out ++ ")"
   pandocMakePdf options processed out
 
+splitMarkdownFile :: FilePath -> Action (T.Text, Y.Value)
+splitMarkdownFile file = do
+  markdown <- liftIO $ Tio.readFile file
+  return $ splitMarkdown markdown
+
+splitMarkdown :: T.Text -> (T.Text, Y.Value)
+splitMarkdown markdown =
+  partition $
+  map (T.strip . T.unlines) $ split (T.pack "---" ==) $ T.lines markdown
+  where
+    partition = foldl tryYaml (T.pack "", Y.Object H.empty)
+    tryYaml (text, meta) block =
+      case Y.decodeEither (E.encodeUtf8 block) of
+        Right yaml@(Y.Object _) -> (text, joinMeta yaml meta)
+        _ -> ((T.strip . T.unlines) [text, T.pack "", block], meta)
+
+-- | Reads a markdown file and returns a pandoc document. 
 readMetaMarkdown :: FilePath -> Action Pandoc
 readMetaMarkdown markdownFile = do
   need [markdownFile]
-  metaData <- readMetaDataForDir (takeDirectory markdownFile)
-  pandoc <- liftIO $ readMetaMarkdownIO markdownFile metaData
+  -- read external meta data for this directory
+  metaDataExternal <- readMetaDataForDir (takeDirectory markdownFile)
+  -- extract embedded meta data from the document
+  (markdown, metaDataInternal) <- splitMarkdownFile markdownFile
+  -- combine the meta data with preference on the embedded data
+  let metaData = joinMeta metaDataInternal metaDataExternal
+  -- use mustache to substitute
+  let substituted = substituteMetaData markdown (MT.mFromJSON metaData)
+  -- liftIO $ Tio.putStrLn substituted
+  liftIO $ putStrLn $ T.unpack substituted
+  liftIO $ writeFile "test.md" $ T.unpack substituted
+  -- read the remaining markdown into pandoc
+  let pandoc =
+        case readMarkdown pandocReaderOpts (T.unpack substituted) of
+          Right (Pandoc _ blocks) -> Pandoc (toPandocMetaMeta metaData) blocks
+          Left err -> throw $ PandocException (show err)
+  -- adjust image urls
   projectDir <- getProjectDir
   return $ walk (adjustImageUrls projectDir (takeDirectory markdownFile)) pandoc
+
+-- | Converts YAML meta data to Pandoc meta data
+-- toMeta :: Y.Value -> Meta
+-- toMeta yaml = case A.fromJSON (traceShowId yaml) of
+--   A.Error msg -> throw $ YamlException msg
+--   A.Success meta -> traceShowId $ Meta meta
+toPandocMetaMeta :: Y.Value -> Meta
+toPandocMetaMeta value =
+  case toPandocMeta value of
+    MetaMap meta -> Meta meta
+    _ ->
+      throw $
+      YamlException "toPandocMeta: expected MetaMap, got some other MetaValue"
+
+-- | Converts pandoc meta data to mustache meta data. Inlines and blocks are rendered to 
+-- markdown strings with default options.
+toMustacheMeta :: MetaValue -> MT.Value
+toMustacheMeta (MetaMap mmap) =
+  MT.Object $ H.fromList $ map (T.pack *** toMustacheMeta) $ Map.toList mmap
+toMustacheMeta (MetaList a) = MT.Array $ Vec.fromList $ map toMustacheMeta a
+toMustacheMeta (MetaBool bool) = MT.Bool bool
+toMustacheMeta (MetaString string) = MT.String $ T.pack string
+toMustacheMeta (MetaInlines inlines) =
+  MT.String $
+  T.pack $ writeMarkdown def (Pandoc (Meta Map.empty) [(Plain inlines)])
+toMustacheMeta (MetaBlocks blocks) =
+  MT.String $ T.pack $ writeMarkdown def (Pandoc (Meta Map.empty) blocks)
+
+mergePandocMeta :: MetaValue -> MetaValue -> MetaValue
+mergePandocMeta (MetaMap left) (MetaMap right) = MetaMap $ Map.union left right
+mergePandocMeta left _ = left
+
+-- | Converts YAML meta data to pandoc meta data.
+toPandocMeta :: Y.Value -> MetaValue
+toPandocMeta (Y.Object m) =
+  MetaMap $ Map.fromList $ map (T.unpack *** toPandocMeta) $ H.toList m
+toPandocMeta (Y.Array vector) = MetaList $ map toPandocMeta $ Vec.toList vector
+toPandocMeta (Y.String text) = MetaString $ T.unpack text
+toPandocMeta (Y.Number scientific) = MetaString $ show scientific
+toPandocMeta (Y.Bool bool) = MetaBool bool
+toPandocMeta (Y.Null) = MetaList []
+
+toUtf8String :: T.Text -> String
+toUtf8String = B.unpack . E.encodeUtf8
 
 -- Remove automatic identifier creation for headers. It does not work well with
 -- the current include mechanism, if slides have duplicate titles in separate
@@ -494,21 +565,15 @@ deckerPandocExtensions :: Set.Set Extension
 deckerPandocExtensions = Set.delete Ext_auto_identifiers pandocExtensions
 
 pandocReaderOpts :: ReaderOptions
-pandocReaderOpts =
-  def
-  { readerExtensions = deckerPandocExtensions
-  }
+pandocReaderOpts = def {readerExtensions = deckerPandocExtensions}
 
 pandocWriterOpts :: WriterOptions
-pandocWriterOpts =
-  def
-  { writerExtensions = deckerPandocExtensions
-  }
+pandocWriterOpts = def {writerExtensions = deckerPandocExtensions}
 
 readMetaMarkdownIO :: FilePath -> Y.Value -> IO Pandoc
 readMetaMarkdownIO markdownFile metaData = do
-  text <- substituteMetaData markdownFile (MT.mFromJSON metaData)
-  case readMarkdown pandocReaderOpts $ T.unpack text of
+  text <- substituteMetaDataFile markdownFile (MT.mFromJSON metaData)
+  case readMarkdown pandocReaderOpts $ toUtf8String text of
     Right pandoc -> return pandoc
     Left err -> throw $ PandocException (show err)
 
@@ -542,9 +607,9 @@ adjustImageUrls projectDir baseDir = walk adjustBlock . walk adjustInline
       , cs
       , map
           (\(k, v) ->
-              if k == "data-background-image" || k == "data-background-video"
-                then (k, adjustLocalUrl projectDir baseDir v)
-                else (k, v))
+             if k == "data-background-image" || k == "data-background-video"
+               then (k, adjustLocalUrl projectDir baseDir v)
+               else (k, v))
           kvs)
 
 adjustLocalUrl :: FilePath -> FilePath -> FilePath -> FilePath
@@ -634,27 +699,25 @@ hashURI uri = show (md5 $ L8.pack uri) SF.<.> SF.takeExtension uri
 processPandocPage :: String -> Pandoc -> Action Pandoc
 processPandocPage format pandoc = do
   let f = Just (Format format)
-  -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages
-  -- cacheDir)
   cacheDir <- getCacheDir
+  -- processed <-
+  --   liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
   processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
   return $ expandMacros f processed
 
 processPandocDeck :: String -> Pandoc -> Action Pandoc
 processPandocDeck format pandoc = do
   let f = Just (Format format)
-  -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages
-  -- cacheDir)
   cacheDir <- getCacheDir
+  -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
   processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
   return $ (makeSlides f . expandMacros f) processed
 
 processPandocHandout :: String -> Pandoc -> Action Pandoc
 processPandocHandout format pandoc = do
   let f = Just (Format format)
-  -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages
-  -- cacheDir)
   cacheDir <- getCacheDir
+  -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
   processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
   return $ (expandMacros f . filterNotes f) processed
 
@@ -686,11 +749,11 @@ copyImages baseDir pandoc = do
       relKvs <-
         mapM
           (\(k, v) ->
-              if k == "data-background-image"
-                then do
-                  relUrl <- copyAndLinkFile project public baseDir v
-                  return (k, relUrl)
-                else return (k, v))
+             if k == "data-background-image"
+               then do
+                 relUrl <- copyAndLinkFile project public baseDir v
+                 return (k, relUrl)
+               else return (k, v))
           kvs
       return (i, cs, relKvs)
 
@@ -727,10 +790,10 @@ writeExampleProject = mapM_ writeOne deckerExampleDir
   where
     writeOne (path, contents) = do
       exists <- Development.Shake.doesFileExist path
-      unless exists $
-        do liftIO $ createDirectoryIfMissing True (takeDirectory path)
-           liftIO $ B.writeFile path contents
-           putNormal $ "# create (for " ++ path ++ ")"
+      unless exists $ do
+        liftIO $ createDirectoryIfMissing True (takeDirectory path)
+        liftIO $ B.writeFile path contents
+        putNormal $ "# create (for " ++ path ++ ")"
 
 writeEmbeddedFiles :: [(FilePath, B.ByteString)] -> FilePath -> Action ()
 writeEmbeddedFiles files dir = do
@@ -753,7 +816,7 @@ metaValueAsString key meta =
     k:ks -> lookup' ks (lookupValue k meta)
   where
     lookup' :: [String] -> Maybe Y.Value -> Maybe String
-    lookup' [] (Just (Y.String text)) = Just (T.unpack text)
+    lookup' [] (Just (Y.String text)) = Just (toUtf8String text)
     lookup' [] (Just (Y.Number n)) = Just (show n)
     lookup' [] (Just (Y.Bool b)) = Just (show b)
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)

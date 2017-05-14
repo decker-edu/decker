@@ -1,18 +1,18 @@
 \newpage
 
-# Aufgabe: {{Title}}
+# Aufgabe: {{&Title}}
 
 |               |                |
 |---------------|----------------|
-| Titel         | **{{Title}}**  |
-| Id            | {{TopicId}}    |
-| Vorlesung     | {{LectureId}}  |
-| Schwierigkeit | {{Difficulty}} |
-| Punkte        | {{Points}}     |
-| Kommentar     | {{Comment}}    |
+| Titel         | **{{&Title}}**  |
+| Id            | {{&TopicId}}    |
+| Vorlesung     | {{&LectureId}}  |
+| Schwierigkeit | {{&Difficulty}} |
+| Punkte        | {{&Points}}     |
+| Kommentar     | {{&Comment}}    |
 
-{{Question}}
+{{&Question}}
 
-{{Answer.FillText}}
+{{&Answer.FillText}}
 
-{{\#Answer.CorrectWords}}{{.}}, {{/Answer.CorrectWords}}
+{{\#Answer.CorrectWords}}{{&.}}, {{/Answer.CorrectWords}}

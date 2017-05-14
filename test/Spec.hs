@@ -1,19 +1,21 @@
-{-# LANGUAGE QuasiQuotes, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 import Test.Hspec
 
+import qualified Data.ByteString.Char8 as B
+import qualified Data.HashMap.Strict as H
+import qualified Data.Map.Strict as M
 import Data.Maybe
 import Data.Text
 import Data.Text.Encoding
-import Text.Pandoc
-import Utilities
+import qualified Data.Yaml as Y
+import NeatInterpolation
 import Student
 import System.FilePath
-import System.FilePath.Posix
 import System.FilePath.Glob
-import qualified Data.Yaml as Y
-import qualified Data.HashMap.Strict as Map
-import NeatInterpolation
+import System.FilePath.Posix
+import Text.Pandoc
+import Utilities
 
 main = do
   projectDir <- calcProjectDirectory
@@ -23,94 +25,111 @@ main = do
   let supportDir = publicDir </> "support"
   --
   metaFiles <- globDir1 (compile "**/*-meta.yaml") projectDir
-  putStrLn $ show metaFiles
+  print metaFiles
   genStudentData projectDir
   --
   hspec $
   --
-    do describe "isCacheableURI" $
-         do it "returns True if URL has http: or https: protocol" $
-              do isCacheableURI "http://heise.de" `shouldBe` True
-                 isCacheableURI "ftp://heise.de" `shouldBe` False
+   do
+    describe "isCacheableURI" $
+      it "returns True if URL has http: or https: protocol" $ do
+        isCacheableURI "http://heise.de" `shouldBe` True
+        isCacheableURI "ftp://heise.de" `shouldBe` False
        --
-       describe "adjustLocalUrl" $
-         do it
-              "adjusts URL to be relative to the project root or the provided base directory" $
-              do adjustLocalUrl projectDir "base" "http://heise.de" `shouldBe`
-                   "http://heise.de"
+    describe "adjustLocalUrl" $
+      it
+        "adjusts URL to be relative to the project root or the provided base directory" $ do
+        adjustLocalUrl projectDir "base" "http://heise.de" `shouldBe`
+          "http://heise.de"
                  --
-                 adjustLocalUrl projectDir "base" "/some/where" `shouldBe`
-                   projectDir </>
-                   "some/where"
+        adjustLocalUrl projectDir "base" "/some/where" `shouldBe` projectDir </>
+          "some/where"
                  --
-                 adjustLocalUrl projectDir "base" "some/where" `shouldBe`
-                   "base/some/where"
+        adjustLocalUrl projectDir "base" "some/where" `shouldBe`
+          "base/some/where"
        --
-       describe "makeRelativeTo" $
-         do it "calculates the path of file relative to dir. Inlcudes '..'" $
-              do makeRelativeTo "" "img.png" `shouldBe` "img.png"
-                 makeRelativeTo "/one/two" "/one/two/img.png" `shouldBe`
-                   "img.png"
-                 makeRelativeTo "/one/two/three" "/one/two/four/img.png" `shouldBe`
-                   "../four/img.png"
-                 makeRelativeTo "/some/where/else" "/one/two/four/img.png" `shouldBe`
-                   "../../../one/two/four/img.png"
-                 makeRelativeTo
-                   "/Users/henrik/tmp/decker-demo/public"
-                   "/Users/henrik/tmp/decker-demo/public/cache/b48cadafb942dc1426316772321dd0c7.png" `shouldBe`
-                   "cache/b48cadafb942dc1426316772321dd0c7.png"
+    describe "makeRelativeTo" $
+      it "calculates the path of file relative to dir. Inlcudes '..'" $ do
+        makeRelativeTo "" "img.png" `shouldBe` "img.png"
+        makeRelativeTo "/one/two" "/one/two/img.png" `shouldBe` "img.png"
+        makeRelativeTo "/one/two/three" "/one/two/four/img.png" `shouldBe`
+          "../four/img.png"
+        makeRelativeTo "/some/where/else" "/one/two/four/img.png" `shouldBe`
+          "../../../one/two/four/img.png"
+        makeRelativeTo
+          "/Users/henrik/tmp/decker-demo/public"
+          "/Users/henrik/tmp/decker-demo/public/cache/b48cadafb942dc1426316772321dd0c7.png" `shouldBe`
+          "cache/b48cadafb942dc1426316772321dd0c7.png"
        --
-       describe "cacheRemoteFile" $
-         it
-           "Stores the data behind a URL locally, if possible. Return the local path to the cached file." $
-         do cacheRemoteFile
-              cacheDir
-              "https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg" `shouldReturn`
-              cacheDir </>
-              "bc137c359488beadbb61589f7fe9e208.jpg"
-            cacheRemoteFile
-              cacheDir
-              "ftp://tramberend.beuth-hochschule.de/img/htr-beuth.jpg" `shouldReturn`
-              "ftp://tramberend.beuth-hochschule.de/img/htr-beuth.jpg"
-            cacheRemoteFile cacheDir "/img/htr-beuth.jpg" `shouldReturn`
-              "/img/htr-beuth.jpg"
-            cacheRemoteFile cacheDir "img/htr-beuth.jpg" `shouldReturn`
-              "img/htr-beuth.jpg"
+    describe "cacheRemoteFile" $
+      it
+        "Stores the data behind a URL locally, if possible. Return the local path to the cached file." $ do
+        cacheRemoteFile
+          cacheDir
+          "https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg" `shouldReturn`
+          cacheDir </>
+          "bc137c359488beadbb61589f7fe9e208.jpg"
+        cacheRemoteFile
+          cacheDir
+          "ftp://tramberend.beuth-hochschule.de/img/htr-beuth.jpg" `shouldReturn`
+          "ftp://tramberend.beuth-hochschule.de/img/htr-beuth.jpg"
+        cacheRemoteFile cacheDir "/img/htr-beuth.jpg" `shouldReturn`
+          "/img/htr-beuth.jpg"
+        cacheRemoteFile cacheDir "img/htr-beuth.jpg" `shouldReturn`
+          "img/htr-beuth.jpg"
        --
-       describe "cacheRemoteImages" $
-         it
-           "Replaces all remote images in the pandoc document with locally caches copies." $
-         do cacheRemoteImages
-              cacheDir
-              (Pandoc
-                 nullMeta
-                 [ (Para
-                      [ Image
-                          nullAttr
-                          []
-                          ( "https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg"
-                          , "")
-                      ])
-                 ]) `shouldReturn`
-              (Pandoc
-                 nullMeta
-                 [ (Para
-                      [ Image
-                          nullAttr
-                          []
-                          ( cacheDir </> "bc137c359488beadbb61589f7fe9e208.jpg"
-                          , "")
-                      ])
-                 ])
+    describe "cacheRemoteImages" $
+      it
+        "Replaces all remote images in the pandoc document with locally caches copies." $
+      cacheRemoteImages
+        cacheDir
+        (Pandoc
+           nullMeta
+           [ Para
+               [ Image
+                   nullAttr
+                   []
+                   ( "https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg"
+                   , "")
+               ]
+           ]) `shouldReturn`
+      Pandoc
+        nullMeta
+        [ Para
+            [ Image
+                nullAttr
+                []
+                (cacheDir </> "bc137c359488beadbb61589f7fe9e208.jpg", "")
+            ]
+        ]
        --
-       describe "parseStudentData" $
-         it "Parses student data in YAML format into a nifty data structure." $
-         do parseStudentData projectDir `shouldReturn` Just realData
+    describe "parseStudentData" $
+      it "Parses student data in YAML format into a nifty data structure." $
+      parseStudentData projectDir `shouldReturn` Just realData
+    --
+    describe "splitMarkdown" $
+      it "Splits markdown into text und meta data." $ do
+        splitMarkdown "" `shouldBe` ("", Y.Object $ H.fromList [])
+        splitMarkdown "Hällö" `shouldBe` ("Hällö", Y.Object $ H.fromList [])
+        splitMarkdown "---\ntext: Hällö\n---" `shouldBe`
+          ("", Y.Object $ H.fromList [("text", "Hällö")])
+        splitMarkdown "---\ntext: Hallo Wach\n---\nSome more text." `shouldBe`
+          ("Some more text.", Y.Object $ H.fromList [("text", "Hallo Wach")])
+        splitMarkdown
+          "---\ntext: Hallo Wach\n---\nSome more text.\n---\ntoast: Cheese\n---\nSandwich" `shouldBe`
+          ( "Some more text.\n\nSandwich"
+          , Y.Object $ H.fromList [("text", "Hallo Wach"), ("toast", "Cheese")])
+    --
+    describe "toMeta" $
+      it "Converts YAML.Value data to Pandoc.Meta data" $ do
+        toMeta (Y.Object $ H.fromList []) `shouldBe` MetaMap M.empty
+        toMeta (Y.Object $ H.fromList [("test", "Hallo")]) `shouldBe`
+          MetaMap (M.fromList [("test", MetaString "Hallo")])
 
 mockData :: Students
 mockData =
   Students $
-  Map.fromList
+  H.fromList
     [ ( "888888"
       , Student "mock" "mock" "mock" "mock" "mock" "mock" "mock" "mock" 1)
     , ( "888889"
@@ -120,7 +139,7 @@ mockData =
 realData :: Students
 realData =
   Students
-    (Map.fromList
+    (H.fromList
        [ ( "836381"
          , Student
            { std_uid = "s64386"

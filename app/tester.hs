@@ -1,41 +1,41 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Control.Monad
+import Context
 import Control.Exception
-import Data.Maybe ()
-import Data.List
-import Data.Typeable
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import qualified Data.Text.Encoding as E
-import qualified Data.Yaml as Y
-import qualified Data.HashMap.Strict as Map
-import Data.Yaml.Pretty as Y
-import Data.Hashable
-import Data.Maybe
+import Control.Monad
 import qualified Data.ByteString.Char8 as B
+import qualified Data.HashMap.Strict as Map
+import Data.Hashable
+import Data.List
+import Data.Maybe ()
+import Data.Maybe
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as E
+import qualified Data.Text.IO as T
+import Data.Typeable
+import qualified Data.Yaml as Y
+import Data.Yaml.Pretty as Y
 import Debug.Trace
 import Development.Shake
 import Development.Shake.FilePath
-import System.Process
+import Embed
+import Filter
+import Shuffle
+import Student
+import System.Directory
 import System.Exit
 import System.FilePath ()
 import System.FilePath.Glob
-import System.Directory
+import System.Process
 import System.Random
+import Test
+import Text.Highlighting.Kate.Styles
 import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
-import Text.Highlighting.Kate.Styles
 import Text.Pandoc
 import Text.Pandoc.PDF
 import Text.Pandoc.Walk
 import Utilities
-import Context
-import Filter
-import Test
-import Student
-import Embed
-import Shuffle
 
 replaceSuffix srcSuffix targetSuffix filename =
   dropSuffix srcSuffix filename ++ targetSuffix
@@ -66,62 +66,59 @@ main = do
   let templates = compileTesterTemplates
   --- 
   context <- makeActionContext projectDir privateDir "" ""
-  runShakeInContext context shakeOptions $
-    do want ["catalog"]
+  runShakeInContext context shakeOptions $ do
+    want ["catalog"]
        --
-       catalog %>
-         \out -> do
-           allQuestions <- readQuestions questionSources
-           renderCatalog
-             projectDir
-             templates
-             (sortOn (qstLectureId . fst) allQuestions)
-             out
+    catalog %> \out -> do
+      allQuestions <- readQuestions questionSources
+      renderCatalog
+        projectDir
+        templates
+        (sortOn (qstLectureId . fst) allQuestions)
+        out
        --
-       phony "catalog" $ need [catalog]
+    phony "catalog" $ need [catalog]
        --
-       phony "new-exam" $
-         do let string = Y.encodePretty Y.defConfig examStationary
-            liftIO $ B.writeFile "new-exam.yaml" string
+    phony "new-exam" $ do
+      let string = Y.encodePretty Y.defConfig examStationary
+      liftIO $ B.writeFile "new-exam.yaml" string
        --
-       phony "new-mc" $
-         do let string = Y.encodePretty Y.defConfig multipleChoiceStationary
-            liftIO $ B.writeFile "new-mc-quest.yaml" string
+    phony "new-mc" $ do
+      let string = Y.encodePretty Y.defConfig multipleChoiceStationary
+      liftIO $ B.writeFile "new-mc-quest.yaml" string
        --
-       phony "new-ma" $
-         do let string = Y.encodePretty Y.defConfig multipleAnswersStationary
-            liftIO $ B.writeFile "new-ma-quest.yaml" string
+    phony "new-ma" $ do
+      let string = Y.encodePretty Y.defConfig multipleAnswersStationary
+      liftIO $ B.writeFile "new-ma-quest.yaml" string
        --
-       phony "new-ft" $
-         do let string = Y.encodePretty Y.defConfig fillTextStationary
-            liftIO $ B.writeFile "new-ft-quest.yaml" string
+    phony "new-ft" $ do
+      let string = Y.encodePretty Y.defConfig fillTextStationary
+      liftIO $ B.writeFile "new-ft-quest.yaml" string
        --
-       phony "new-f" $
-         do let string = Y.encodePretty Y.defConfig freeStationary
-            liftIO $ B.writeFile "new-f-quest.yaml" string
+    phony "new-f" $ do
+      let string = Y.encodePretty Y.defConfig freeStationary
+      liftIO $ B.writeFile "new-f-quest.yaml" string
        --
-       phony "exams" $ need exams
+    phony "exams" $ need exams
        --
-       phony "solutions" $ need solutions
+    phony "solutions" $ need solutions
        --
-       "//*-exam.pdf" %>
-         \out -> do
-           let examPath =
-                 (replaceSuffix "-exam.pdf" "-exam.yaml" .
-                  combine projectDir . makeRelative privateDir)
-                   out
-           need [examPath]
-           buildExam projectDir "exam" examPath questionSources out
+    "//*-exam.pdf" %> \out -> do
+      let examPath =
+            (replaceSuffix "-exam.pdf" "-exam.yaml" .
+             combine projectDir . makeRelative privateDir)
+              out
+      need [examPath]
+      buildExam projectDir "exam" examPath questionSources out
        --
-       "//*-solution.pdf" %>
-         \out -> do
-           let examPath =
-                 (replaceSuffix "-solution.pdf" "-exam.yaml" .
-                  combine projectDir . makeRelative privateDir)
-                   out
-           buildExam projectDir "solution" examPath questionSources out
+    "//*-solution.pdf" %> \out -> do
+      let examPath =
+            (replaceSuffix "-solution.pdf" "-exam.yaml" .
+             combine projectDir . makeRelative privateDir)
+              out
+      buildExam projectDir "solution" examPath questionSources out
        --
-       phony "clean" $ removeFilesAfter "." ["private"]
+    phony "clean" $ removeFilesAfter "." ["private"]
 
 -- Calculate some directories
 -- | Require a clean working tree to proceed
@@ -174,7 +171,7 @@ buildExam projectDir disposition examSource questionSources out = do
           (examStudentInfoFile exam)
   let failedStudentPath = projectDir </> "grading/failed-students.yaml"
   putLoud "Reading students ..."
-  Students studentMap <- readStudentInfo studentInfoPath (examTrack exam)
+  Students _ _ studentMap <- readStudentInfo studentInfoPath (examTracks exam)
   failedStudents <- readFailedStudents failedStudentPath
   putLoud "Generating exam ..."
   let successful = filterFailed failedStudents studentMap
@@ -231,11 +228,10 @@ compilePandocPdf exam out = do
         ]
   let options =
         def
-        { writerStandalone = True
-        , writerVariables = variables
-        , writerTemplate = examLatexTemplate
+        { writerVariables = variables
+        , writerTemplate = Just examLatexTemplate
         , writerHighlight = True
-        , writerHighlightStyle = pygments
+        -- , writerHighlightStyle = pygments
         , writerCiteMethod = Citeproc
         }
   putNormal $ "# pandoc (for " ++ out ++ ")"
@@ -317,7 +313,8 @@ compileStudentExam projectDir templates exam (student, questions) = do
   return $ joinPandoc $ title : list
 
 joinPandoc :: [Pandoc] -> Pandoc
-joinPandoc list = Pandoc nullMeta $ concatMap (\(Pandoc _ blocks) -> blocks) list
+joinPandoc list =
+  Pandoc nullMeta $ concatMap (\(Pandoc _ blocks) -> blocks) list
 
 -- | Filters questions by LectureIds and ExcludedTopicIds.
 filterQuestions :: [T.Text]
@@ -392,15 +389,8 @@ generateExam exam questions students =
                 let (result, _) = fisherYates gen answers
                 in MultipleAnswers width result
               _ -> qstAnswer question
-      in ( question
-           { qstAnswer = answer
-           }
-         , basePath)
-    numberQuestion (n, (q, p)) =
-      ( q
-        { qstCurrentNumber = n
-        }
-      , p)
+      in (question {qstAnswer = answer}, basePath)
+    numberQuestion (n, (q, p)) = (q {qstCurrentNumber = n}, p)
 
 -- | Throw, result is shitty.
 maybeThrowYaml
@@ -432,14 +422,14 @@ readExamData :: FilePath -> Action Exam
 readExamData = readYAML
 
 -- Reads info from all participating students.
-readStudentInfo :: FilePath -> Int -> Action Students
-readStudentInfo path track = do
+readStudentInfo :: FilePath -> [Int] -> Action Students
+readStudentInfo path tracks = do
   need [path]
-  Students hashMap <- readYAML path
-  let trackStudents = Map.filter (\s -> std_track s == track) hashMap
+  Students course semester hashMap <- readYAML path
+  let trackStudents = Map.filter (\s -> std_track s `elem` tracks) hashMap
   putLoud $
-    "Students in track " ++ show track ++ ": " ++ show (length trackStudents)
-  return $ Students trackStudents
+    "Students in tracks " ++ show tracks ++ ": " ++ show (length trackStudents)
+  return $ Students course semester trackStudents
 
 -- Reads list of failed students
 readFailedStudents :: FilePath -> Action [T.Text]
@@ -476,10 +466,14 @@ renderCatalog :: FilePath
               -> Action ()
 renderCatalog projectDir templates questions out = do
   commitId <- cleanCommitIdOrFail projectDir
+  -- putNormal $ show questions
+  -- putNormal $ show $ map MT.mFromJSON questions
   let markdown = map (\(q, b) -> (renderMarkdown q, b)) questions
+  -- putNormal $ show markdown
   let pandoc = map parseMarkdown markdown
   need $ concatMap extractLocalImagePathes pandoc
-  let catalog = Pandoc nullMeta $ concatMap (\(Pandoc _ blocks) -> blocks) pandoc
+  let catalog =
+        Pandoc nullMeta $ concatMap (\(Pandoc _ blocks) -> blocks) pandoc
   compilePandocPdf catalog out
   where
     parseMarkdown (markdown, base) =
@@ -502,7 +496,7 @@ examStationary =
   , examDateTime = "DATE_TIME"
   , examDurationInMinutes = 0
   , examNumberOfQuestions = 0
-  , examTrack = 1
+  , examTracks = [1]
   , examLectureIds = ["LECTURE_ID"]
   , examExcludedTopicIds = ["EXCLUDED_TOPIC_ID"]
   }
@@ -516,14 +510,14 @@ multipleChoiceStationary =
   , qstPoints = 5
   , qstQuestion = "THE QUESTION?"
   , qstAnswer =
-    MultipleChoice
-    { answChoices =
-      [ Choice "ANSWER_1" True
-      , Choice "ANSWER_2" True
-      , Choice "DISTRACTOR_1" False
-      , Choice "DISTRACTOR_2" False
-      ]
-    }
+      MultipleChoice
+      { answChoices =
+          [ Choice "ANSWER_1" True
+          , Choice "ANSWER_2" True
+          , Choice "DISTRACTOR_1" False
+          , Choice "DISTRACTOR_2" False
+          ]
+      }
   , qstDifficulty = Medium
   , qstComment = "COMMENT"
   , qstCurrentNumber = 0
@@ -539,11 +533,11 @@ multipleAnswersStationary =
   , qstPoints = 5
   , qstQuestion = "THE QUESTION?"
   , qstAnswer =
-    MultipleAnswers
-    { answWidthInMm = 30
-    , answAnswers =
-      [OneAnswer "DETAIL_1" "CORRECT_1", OneAnswer "DETAIL_2" "CORRECT_2"]
-    }
+      MultipleAnswers
+      { answWidthInMm = 30
+      , answAnswers =
+          [OneAnswer "DETAIL_1" "CORRECT_1", OneAnswer "DETAIL_2" "CORRECT_2"]
+      }
   , qstDifficulty = Medium
   , qstComment = "COMMENT"
   , qstCurrentNumber = 0
@@ -559,10 +553,10 @@ fillTextStationary =
   , qstPoints = 5
   , qstQuestion = "THE QUESTION?"
   , qstAnswer =
-    FillText
-    { answFillText = "FILL THE ___ IN THE ___."
-    , answCorrectWords = ["HOLES", "TEXT"]
-    }
+      FillText
+      { answFillText = "FILL THE ___ IN THE ___."
+      , answCorrectWords = ["HOLES", "TEXT"]
+      }
   , qstDifficulty = Medium
   , qstComment = "COMMENT"
   , qstCurrentNumber = 0
@@ -578,10 +572,7 @@ freeStationary =
   , qstPoints = 5
   , qstQuestion = "THE QUESTION?"
   , qstAnswer =
-    FreeForm
-    { answHeightInMm = 20
-    , answCorrectAnswer = "THE ANSWER."
-    }
+      FreeForm {answHeightInMm = 20, answCorrectAnswer = "THE ANSWER."}
   , qstDifficulty = Medium
   , qstComment = "COMMENT"
   , qstCurrentNumber = 0
