@@ -233,6 +233,10 @@ referencing document
 ![Some piece of scene
 graph](https://tramberend.beuth-hochschule.de/img/cg1-banner.png)
 
+## Not really!
+
+- Caching is currently disabled
+
 # Meta Data
 
 ## Mustache template processor

@@ -36,8 +36,6 @@ module Utilities
   , fixMustacheMarkupText
   , globA
   , globRelA
-  , splitMarkdown
-  , splitMarkdownFile
   , toPandocMeta
   , DeckerException(..)
   ) where
@@ -48,7 +46,6 @@ import Control.Concurrent
 import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
-import qualified Data.Aeson as A
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -61,13 +58,9 @@ import Data.List
 import Data.List.Extra
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
-import Data.Scientific
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
-import qualified Data.Text.IO as Tio
-import Data.Time.Clock
-import Data.Typeable
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
 import Debug.Trace
@@ -80,21 +73,17 @@ import Network.HTTP.Simple
 import Network.HTTP.Types.Status
 import Network.URI
 import System.Directory as Dir
-import System.Exit
 import System.FilePath as SF
 import System.FilePath.Glob
 import System.IO as S
 import System.Process
 import System.Process.Internals
 import Text.CSL.Pandoc
-import Text.Highlighting.Kate.Styles
 import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc
 import Text.Pandoc.PDF
-import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.Printf
 import Watch
 
 -- Find the project directory and change current directory to there. 
@@ -309,16 +298,6 @@ fixMustacheMarkupText content =
     (T.pack "{{#")
     (T.replace (T.pack "{{\\^") (T.pack "{{^") content)
 
--- | Substitutes meta data values in the provided file.
-substituteMetaDataFile :: FilePath -> MT.Value -> IO T.Text
-substituteMetaDataFile source metaData = do
-  contents <- B.readFile source
-  let fixed = fixMustacheMarkup contents
-  let result = M.compileTemplate source fixed
-  case result of
-    Right template -> return $ M.substituteValue template metaData
-    Left err -> throw $ MustacheException (show err)
-
 substituteMetaData :: T.Text -> MT.Value -> T.Text
 substituteMetaData text metaData = do
   let fixed = fixMustacheMarkupText text
@@ -364,8 +343,6 @@ markdownToHtmlDeck markdownFile out = do
   processed <- processPandocDeck "revealjs" pandoc
   writePandocString "revealjs" options out processed
 
-type MetaData = Y.Value
-
 -- | Selects a matching pandoc string writer for the format string, or throws an
 -- exception.
 getPandocWriter :: String -> StringWriter
@@ -381,8 +358,9 @@ readAndPreprocessMarkdown :: FilePath -> Action Pandoc
 readAndPreprocessMarkdown markdownFile = do
   projectDir <- getProjectDir
   let baseDir = takeDirectory markdownFile
-  readMetaMarkdown markdownFile >>= processIncludes projectDir baseDir >>=
-    populateCache
+  readMetaMarkdown markdownFile >>= processIncludes projectDir baseDir
+  -- Disable automatic caching of remomte images for a while
+  -- >>= populateCache
 
 populateCache :: Pandoc -> Action Pandoc
 populateCache pandoc = do
@@ -475,22 +453,6 @@ markdownToPdfHandout markdownFile out = do
   putNormal $ "# pandoc (for " ++ out ++ ")"
   pandocMakePdf options processed out
 
-splitMarkdownFile :: FilePath -> Action (T.Text, Y.Value)
-splitMarkdownFile file = do
-  markdown <- liftIO $ Tio.readFile file
-  return $ splitMarkdown markdown
-
-splitMarkdown :: T.Text -> (T.Text, Y.Value)
-splitMarkdown markdown =
-  partition $
-  map (T.strip . T.unlines) $ split (T.pack "---" ==) $ T.lines markdown
-  where
-    partition = foldl tryYaml (T.pack "", Y.Object H.empty)
-    tryYaml (text, meta) block =
-      case Y.decodeEither (E.encodeUtf8 block) of
-        Right yaml@(Y.Object _) -> (text, joinMeta yaml meta)
-        _ -> ((T.strip . T.unlines) [text, T.pack "", block], meta)
-
 -- | Reads a markdown file and returns a pandoc document. 
 readMetaMarkdown :: FilePath -> Action Pandoc
 readMetaMarkdown markdownFile = do
@@ -520,15 +482,6 @@ readMetaMarkdown markdownFile = do
         Right pandoc -> pandoc
         Left err -> throw $ PandocException (show err)
 
--- | Converts YAML meta data to Pandoc meta data
-toPandocMetaMeta :: Y.Value -> Meta
-toPandocMetaMeta value =
-  case toPandocMeta value of
-    MetaMap meta -> Meta meta
-    _ ->
-      throw $
-      YamlException "toPandocMeta: expected MetaMap, got some other MetaValue"
-
 -- | Converts pandoc meta data to mustache meta data. Inlines and blocks are rendered to 
 -- markdown strings with default options.
 toMustacheMeta :: MetaValue -> MT.Value
@@ -557,9 +510,6 @@ toPandocMeta (Y.Number scientific) = MetaString $ show scientific
 toPandocMeta (Y.Bool bool) = MetaBool bool
 toPandocMeta (Y.Null) = MetaList []
 
-toUtf8String :: T.Text -> String
-toUtf8String = B.unpack . E.encodeUtf8
-
 -- Remove automatic identifier creation for headers. It does not work well with
 -- the current include mechanism, if slides have duplicate titles in separate
 -- include files.
@@ -571,13 +521,6 @@ pandocReaderOpts = def {readerExtensions = deckerPandocExtensions}
 
 pandocWriterOpts :: WriterOptions
 pandocWriterOpts = def {writerExtensions = deckerPandocExtensions}
-
-readMetaMarkdownIO :: FilePath -> Y.Value -> IO Pandoc
-readMetaMarkdownIO markdownFile metaData = do
-  text <- substituteMetaDataFile markdownFile (MT.mFromJSON metaData)
-  case readMarkdown pandocReaderOpts $ toUtf8String text of
-    Right pandoc -> return pandoc
-    Left err -> throw $ PandocException (show err)
 
 isLocalURI :: String -> Bool
 isLocalURI url = isNothing $ parseURI url
@@ -622,13 +565,6 @@ adjustLocalUrl root base url
       else base </> url
 adjustLocalUrl _ _ url = url
 
--- cacheRemoteImages :: FilePath -> [FilePath] -> [FilePath] -> Action ()
--- cacheRemoteImages cacheDir metaFiles markdownFiles =
---   do mapM_ cacheImages markdownFiles
---   where cacheImages markdownFile =
---           do pandoc <- readMetaMarkdown markdownFile
---              _ <- liftIO $ walkM (cachePandocImages cacheDir) pandoc
---              putNormal $ "# pandoc (cached images for " ++ markdownFile ++ ")"
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 processIncludes rootDir baseDir (Pandoc meta blocks) = do
@@ -702,25 +638,27 @@ processPandocPage :: String -> Pandoc -> Action Pandoc
 processPandocPage format pandoc = do
   let f = Just (Format format)
   cacheDir <- getCacheDir
-  -- processed <-
-  --   liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
-  processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
+  processed <-
+    liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
+  --  processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
   return $ expandMacros f processed
 
 processPandocDeck :: String -> Pandoc -> Action Pandoc
 processPandocDeck format pandoc = do
   let f = Just (Format format)
   cacheDir <- getCacheDir
-  -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
-  processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
+  processed <-
+    liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
+  -- processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
   return $ (makeSlides f . expandMacros f) processed
 
 processPandocHandout :: String -> Pandoc -> Action Pandoc
 processPandocHandout format pandoc = do
   let f = Just (Format format)
   cacheDir <- getCacheDir
-  -- processed <- liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
-  processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
+  processed <-
+    liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
+  -- processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
   return $ (expandMacros f . filterNotes f) processed
 
 type StringWriter = WriterOptions -> Pandoc -> String
@@ -818,7 +756,7 @@ metaValueAsString key meta =
     k:ks -> lookup' ks (lookupValue k meta)
   where
     lookup' :: [String] -> Maybe Y.Value -> Maybe String
-    lookup' [] (Just (Y.String text)) = Just (toUtf8String text)
+    lookup' [] (Just (Y.String text)) = Just (T.unpack text)
     lookup' [] (Just (Y.Number n)) = Just (show n)
     lookup' [] (Just (Y.Bool b)) = Just (show b)
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
