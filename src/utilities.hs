@@ -83,6 +83,7 @@ import System.Directory as Dir
 import System.Exit
 import System.FilePath as SF
 import System.FilePath.Glob
+import System.IO as S
 import System.Process
 import System.Process.Internals
 import Text.CSL.Pandoc
@@ -495,30 +496,31 @@ readMetaMarkdown :: FilePath -> Action Pandoc
 readMetaMarkdown markdownFile = do
   need [markdownFile]
   -- read external meta data for this directory
-  metaDataExternal <- readMetaDataForDir (takeDirectory markdownFile)
+  externalMeta <- readMetaDataForDir (takeDirectory markdownFile)
   -- extract embedded meta data from the document
-  (markdown, metaDataInternal) <- splitMarkdownFile markdownFile
+  markdown <- liftIO $ S.readFile markdownFile
+  let Pandoc meta _ = readMarkdownOrThrow pandocReaderOpts markdown
+  let documentMeta = MetaMap $ unMeta meta
   -- combine the meta data with preference on the embedded data
-  let metaData = joinMeta metaDataInternal metaDataExternal
-  -- use mustache to substitute
-  let substituted = substituteMetaData markdown (MT.mFromJSON metaData)
-  -- liftIO $ Tio.putStrLn substituted
-  liftIO $ putStrLn $ T.unpack substituted
-  liftIO $ writeFile "test.md" $ T.unpack substituted
-  -- read the remaining markdown into pandoc
-  let pandoc =
-        case readMarkdown pandocReaderOpts (T.unpack substituted) of
-          Right (Pandoc _ blocks) -> Pandoc (toPandocMetaMeta metaData) blocks
-          Left err -> throw $ PandocException (show err)
+  let combinedMeta = mergePandocMeta documentMeta (toPandocMeta externalMeta)
+  let mustacheMeta = toMustacheMeta combinedMeta
+   -- use mustache to substitute
+  let substituted = substituteMetaData (T.pack markdown) mustacheMeta
+  -- read markdown with substitutions again
+  let Pandoc _ blocks =
+        readMarkdownOrThrow pandocReaderOpts $ T.unpack substituted
+  let (MetaMap m) = combinedMeta
+  let pandoc = Pandoc (Meta m) blocks
   -- adjust image urls
   projectDir <- getProjectDir
   return $ walk (adjustImageUrls projectDir (takeDirectory markdownFile)) pandoc
+  where
+    readMarkdownOrThrow opts string =
+      case readMarkdown opts string of
+        Right pandoc -> pandoc
+        Left err -> throw $ PandocException (show err)
 
 -- | Converts YAML meta data to Pandoc meta data
--- toMeta :: Y.Value -> Meta
--- toMeta yaml = case A.fromJSON (traceShowId yaml) of
---   A.Error msg -> throw $ YamlException msg
---   A.Success meta -> traceShowId $ Meta meta
 toPandocMetaMeta :: Y.Value -> Meta
 toPandocMetaMeta value =
   case toPandocMeta value of

@@ -6,6 +6,8 @@ subtitle: Tutorial and Examples
 theme: 'htr-slides'
 title: Decker Slide Tool
 transition: linear
+ümläüte: Ümläüte
+signs: © €
 ---
 
 # Overview
@@ -260,6 +262,22 @@ total:
 ``` {.html}
 Your total score is 42.
 ```
+
+# Encoding
+
+## UTF-8 encoding for everything
+
+- Markdown source files are assumed to be UTF-8 encoded
+- YAML metadata also
+
+## German Umlaute
+
+- ÄÖÜäöüßß
+
+## Substituted meta data
+
+- Umlaute: {{ümläüte}}
+- Signs: {{signs}}
 
 # `decker` Tool {.section}
 
