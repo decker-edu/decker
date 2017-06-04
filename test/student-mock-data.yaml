@@ -1,20 +1,19 @@
-888888:
-  department: mock
-  givenName: mock
-  track: 1
-  uid: mock
-  sAMAccountName: mock
-  displayName: mock
-  sn: mock
-  employeeNumber: mock
-  mail: mock
-888889:
-  department: mock
-  givenName: mock
-  track: 1
-  uid: mock
-  sAMAccountName: mock
-  displayName: mock
-  sn: mock
-  employeeNumber: mock
-  mail: mock
+semester: Mock 1234
+students:
+  888888:
+    givenName: mock
+    track: 1
+    sAMAccountName: mock
+    displayName: mock
+    sn: mock
+    employeeNumber: mock
+    mail: mock
+  888889:
+    givenName: mock
+    track: 1
+    sAMAccountName: mock
+    displayName: mock
+    sn: mock
+    employeeNumber: mock
+    mail: mock
+course: Mock

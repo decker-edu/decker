@@ -723,6 +723,7 @@ removeCommonPrefix :: [FilePath] -> [FilePath] -> ([FilePath], [FilePath])
 removeCommonPrefix al@(a:as) bl@(b:bs)
   | a == b = removeCommonPrefix as bs
   | otherwise = (al, bl)
+removeCommonPrefix a [] = (a, [])
 removeCommonPrefix [] b = ([], b)
 
 writeExampleProject :: Action ()

@@ -10,6 +10,7 @@ import Data.Text
 import Data.Text.Encoding
 import qualified Data.Yaml as Y
 import NeatInterpolation
+import Project as P
 import Student
 import System.FilePath
 import System.FilePath.Glob
@@ -35,7 +36,7 @@ main = do
       it "returns True if URL has http: or https: protocol" $ do
         isCacheableURI "http://heise.de" `shouldBe` True
         isCacheableURI "ftp://heise.de" `shouldBe` False
-       --
+    --
     describe "adjustLocalUrl" $
       it
         "adjusts URL to be relative to the project root or the provided base directory" $ do
@@ -60,7 +61,15 @@ main = do
           "/Users/henrik/tmp/decker-demo/public"
           "/Users/henrik/tmp/decker-demo/public/cache/b48cadafb942dc1426316772321dd0c7.png" `shouldBe`
           "cache/b48cadafb942dc1426316772321dd0c7.png"
-       --
+    --
+    describe "removeCommonPrefix" $
+      it "Removes the common prefix from two pathes." $ do
+        P.removeCommonPrefix ("", "") `shouldBe` ("", "")
+        P.removeCommonPrefix ("fasel/bla", "fasel/bla/lall") `shouldBe` ("", "lall")
+        P.removeCommonPrefix ("lurgel/hopp", "fasel/bla/lall") `shouldBe` ("lurgel/hopp", "fasel/bla/lall")
+        P.removeCommonPrefix ("/lurgel/hopp", "fasel/bla/lall") `shouldBe` ("/lurgel/hopp", "fasel/bla/lall")
+        P.removeCommonPrefix ("/lurgel/hopp", "/fasel/bla/lall") `shouldBe` ("lurgel/hopp", "fasel/bla/lall")
+    --
     describe "cacheRemoteFile" $
       it
         "Stores the data behind a URL locally, if possible. Return the local path to the cached file." $ do
@@ -106,89 +115,68 @@ main = do
     describe "parseStudentData" $
       it "Parses student data in YAML format into a nifty data structure." $
       parseStudentData projectDir `shouldReturn` Just realData
-    --
-    describe "splitMarkdown" $
-      it "Splits markdown into text und meta data." $ do
-        splitMarkdown "" `shouldBe` ("", Y.Object $ H.fromList [])
-        splitMarkdown "Hällö" `shouldBe` ("Hällö", Y.Object $ H.fromList [])
-        splitMarkdown "---\ntext: Hällö\n---" `shouldBe`
-          ("", Y.Object $ H.fromList [("text", "Hällö")])
-        splitMarkdown "---\ntext: Hallo Wach\n---\nSome more text." `shouldBe`
-          ("Some more text.", Y.Object $ H.fromList [("text", "Hallo Wach")])
-        splitMarkdown
-          "---\ntext: Hallo Wach\n---\nSome more text.\n---\ntoast: Cheese\n---\nSandwich" `shouldBe`
-          ( "Some more text.\n\nSandwich"
-          , Y.Object $ H.fromList [("text", "Hallo Wach"), ("toast", "Cheese")])
-    --
-    describe "toMeta" $
-      it "Converts YAML.Value data to Pandoc.Meta data" $ do
-        toMeta (Y.Object $ H.fromList []) `shouldBe` MetaMap M.empty
-        toMeta (Y.Object $ H.fromList [("test", "Hallo")]) `shouldBe`
-          MetaMap (M.fromList [("test", MetaString "Hallo")])
 
 mockData :: Students
 mockData =
-  Students $
-  H.fromList
-    [ ( "888888"
-      , Student "mock" "mock" "mock" "mock" "mock" "mock" "mock" "mock" 1)
-    , ( "888889"
-      , Student "mock" "mock" "mock" "mock" "mock" "mock" "mock" "mock" 1)
-    ]
+  Students
+  { stds_course = "Mock"
+  , stds_semester = "Mock 1234"
+  , stds_students =
+      H.fromList
+        [ ("888888", Student "mock" "mock" "mock" "mock" "mock" "mock" 1)
+        , ("888889", Student "mock" "mock" "mock" "mock" "mock" "mock" 1)
+        ]
+  }
 
 realData :: Students
 realData =
   Students
-    (H.fromList
-       [ ( "836381"
-         , Student
-           { std_uid = "s64386"
-           , std_department = "FB6"
-           , std_displayName = "Justen, David Alexander"
-           , std_employeeNumber = "836381"
-           , std_givenName = "David Alexander"
-           , std_mail = "s64386@beuth-hochschule.de"
-           , std_sAMAccountName = "s64386"
-           , std_sn = "Justen"
-           , std_track = 1
-           })
-       , ( "798101"
-         , Student
-           { std_uid = "s53445"
-           , std_department = "FB6"
-           , std_displayName = "Mahmoud, Hassan"
-           , std_employeeNumber = "798101"
-           , std_givenName = "Hassan"
-           , std_mail = "s53445@beuth-hochschule.de"
-           , std_sAMAccountName = "s53445"
-           , std_sn = "Mahmoud"
-           , std_track = 1
-           })
-       , ( "814510"
-         , Student
-           { std_uid = "s57637"
-           , std_department = "FB6"
-           , std_displayName = "Sahli, Hanen"
-           , std_employeeNumber = "814510"
-           , std_givenName = "Hanen"
-           , std_mail = "s57637@beuth-hochschule.de"
-           , std_sAMAccountName = "s57637"
-           , std_sn = "Sahli"
-           , std_track = 1
-           })
-       , ( "832701"
-         , Student
-           { std_uid = "s61660"
-           , std_department = "FB6"
-           , std_displayName = "Naci Aydogan"
-           , std_employeeNumber = "832701"
-           , std_givenName = "Naci"
-           , std_mail = "s61660@beuth-hochschule.de"
-           , std_sAMAccountName = "s61660"
-           , std_sn = "Aydogan"
-           , std_track = 1
-           })
-       ])
+  { stds_course = "Mock"
+  , stds_semester = "Mock 1234"
+  , stds_students =
+      (H.fromList
+         [ ( "836381"
+           , Student
+             { std_displayName = "Justen, David Alexander"
+             , std_employeeNumber = "836381"
+             , std_givenName = "David Alexander"
+             , std_mail = "s64386@beuth-hochschule.de"
+             , std_sAMAccountName = "s64386"
+             , std_sn = "Justen"
+             , std_track = 1
+             })
+         , ( "798101"
+           , Student
+             { std_displayName = "Mahmoud, Hassan"
+             , std_employeeNumber = "798101"
+             , std_givenName = "Hassan"
+             , std_mail = "s53445@beuth-hochschule.de"
+             , std_sAMAccountName = "s53445"
+             , std_sn = "Mahmoud"
+             , std_track = 1
+             })
+         , ( "814510"
+           , Student
+             { std_displayName = "Sahli, Hanen"
+             , std_employeeNumber = "814510"
+             , std_givenName = "Hanen"
+             , std_mail = "s57637@beuth-hochschule.de"
+             , std_sAMAccountName = "s57637"
+             , std_sn = "Sahli"
+             , std_track = 1
+             })
+         , ( "832701"
+           , Student
+             { std_displayName = "Naci Aydogan"
+             , std_employeeNumber = "832701"
+             , std_givenName = "Naci"
+             , std_mail = "s61660@beuth-hochschule.de"
+             , std_sAMAccountName = "s61660"
+             , std_sn = "Aydogan"
+             , std_track = 1
+             })
+         ])
+  }
 
 genStudentData :: FilePath -> IO ()
 genStudentData dir =
