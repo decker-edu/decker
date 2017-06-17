@@ -2,8 +2,8 @@
 
 module Context
        (ActionContext(..), makeActionContext, setActionContext, getFilesToWatch,
-        setFilesToWatch, getServerHandle, setServerHandle, getProjectDir,
-        getPublicDir, getCacheDir, getSupportDir, actionContextKey, getActionContext)
+        setFilesToWatch, getServerHandle, setServerHandle, getProjectDirs,
+        actionContextKey, getActionContext)
        where
 
 import Control.Monad ()
@@ -15,43 +15,33 @@ import Data.Typeable ()
 import qualified Data.HashMap.Lazy as HashMap
 import System.Process
 import Text.Printf
+import Project
 
 data ActionContext =
   ActionContext {ctxFilesToWatch :: IORef [FilePath]
                 ,ctxServerHandle :: IORef (Maybe ProcessHandle)
-                ,ctxProjectDir :: FilePath
-                ,ctxPublicDir :: FilePath
-                ,ctxCacheDir :: FilePath
-                ,ctxSupportDir :: FilePath}
-  deriving (Typeable)
+                ,ctxDirs :: ProjectDirs}
+  deriving (Typeable, Show)
 
-instance Show ActionContext where
-  show ctx =
-    printf "ActionContext {ctxProjectDir = '%s', ctxPublicDir = '%s', ctxCacheDir = '%s', ctxSupportDir = '%s'}"
-           (ctxProjectDir ctx)
-           (ctxPublicDir ctx)
-           (ctxCacheDir ctx)
-           (ctxSupportDir ctx)
+instance Show (IORef a) where
+  show _ = "IORef"
 
 defaultActionContext :: IO ActionContext
 defaultActionContext = do
   files <- newIORef []
   server <- newIORef Nothing
-  return $ ActionContext files server "" "" "" ""
+  return $ ActionContext files server (ProjectDirs "" "" "" "")
 
 actionContextKey :: IO TypeRep
 actionContextKey = do
   ctx <- liftIO $ defaultActionContext
   return $ typeOf ctx
 
-makeActionContext :: FilePath -> FilePath -> FilePath -> FilePath-> IO ActionContext
-makeActionContext projectDir publicDir cacheDir supportDir =
+makeActionContext :: ProjectDirs -> IO ActionContext
+makeActionContext dirs =
   do ctx <- defaultActionContext
      return $
-       ctx {ctxProjectDir = projectDir
-           ,ctxPublicDir = publicDir
-           ,ctxCacheDir = cacheDir
-           ,ctxSupportDir = supportDir}
+       ctx { ctxDirs = dirs }
 
 setActionContext :: ActionContext -> ShakeOptions -> IO ShakeOptions
 setActionContext ctx options =
@@ -91,22 +81,8 @@ setServerHandle handle = do
   ctx <- getActionContext
   liftIO $ writeIORef (ctxServerHandle ctx) handle
 
-getProjectDir :: Action FilePath
-getProjectDir =
+getProjectDirs :: Action ProjectDirs
+getProjectDirs =
   do ctx <- getActionContext
-     return $ ctxProjectDir ctx
+     return $ ctxDirs ctx
 
-getPublicDir :: Action FilePath
-getPublicDir =
-  do ctx <- getActionContext
-     return $ ctxPublicDir ctx
-
-getCacheDir :: Action FilePath
-getCacheDir =
-  do ctx <- getActionContext
-     return $ ctxCacheDir ctx
-
-getSupportDir :: Action FilePath
-getSupportDir =
-  do ctx <- getActionContext
-     return $ ctxSupportDir ctx

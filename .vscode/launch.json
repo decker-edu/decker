@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "ghc",
+            "name": "ghci debug viewer Phoityne",
+            "request": "launch",
+            "internalConsoleOptions": "openOnSessionStart",
+            "workspace": "${workspaceRoot}",
+            "startup": "${workspaceRoot}/test/Spec.hs",
+            "logFile": "${workspaceRoot}/.vscode/phoityne.log",
+            "logLevel": "WARNING",
+            "ghciPrompt": "H>>= ",
+            "ghciCmd": "stack ghci --test --no-load --no-build --main-is TARGET",
+            "ghciEnv": {},
+            "stopOnEntry": true,
+            "hackageVersion": "0.0.14.0",
+            "mainArgs": ""
+        }
+    ]
+}

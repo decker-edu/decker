@@ -36,13 +36,15 @@ import Text.Pandoc
 import Text.Pandoc.PDF
 import Text.Pandoc.Walk
 import Utilities
+import Project
 
 replaceSuffix srcSuffix targetSuffix filename =
   dropSuffix srcSuffix filename ++ targetSuffix
 
 main :: IO ()
 main = do
-  projectDir <- calcProjectDirectory
+  dirs <- projectDirectories
+  let projectDir = (project dirs)
   let privateDir = projectDir </> "private"
   -- Find questions
   questionSources <- glob "**/*-quest.yaml"
@@ -65,7 +67,7 @@ main = do
   -- Prepare Mustache templates
   let templates = compileTesterTemplates
   --- 
-  context <- makeActionContext projectDir privateDir "" ""
+  context <- makeActionContext (ProjectDirs projectDir privateDir "" "")
   runShakeInContext context shakeOptions $ do
     want ["catalog"]
        --
@@ -205,8 +207,8 @@ compileTemplates disposition = do
 
 compileProjectTemplate :: FilePath -> FilePath -> Action MT.Template
 compileProjectTemplate disposition name = do
-  projectDir <- getProjectDir
-  let filename = projectDir </> "exams" </> "templates" </> disposition </> name
+  dirs <- getProjectDirs
+  let filename = (project dirs) </> "exams" </> "templates" </> disposition </> name
   need [filename]
   text <- liftIO $ T.readFile filename
   let result = M.compileTemplate name (fixMustacheMarkupText text)

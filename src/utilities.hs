@@ -85,6 +85,8 @@ import Text.Pandoc
 import Text.Pandoc.PDF
 import Text.Pandoc.Walk
 import Watch
+import Project
+import Common
 
 -- Find the project directory and change current directory to there. 
 -- The project directory is the first upwards directory that contains a .git directory entry.
@@ -107,16 +109,16 @@ calcProjectDirectory = do
 -- Returns absolute pathes. 
 globA :: FilePattern -> Action [FilePath]
 globA pat = do
-  projectDir <- getProjectDir
-  liftIO $ globDir1 (compile pat) projectDir
+  dirs <- getProjectDirs
+  liftIO $ globDir1 (compile pat) (project dirs)
 
 -- | Globs for files under the project dir in the Action monad. 
 -- Returns pathes relative to the project directory. 
 globRelA :: FilePattern -> Action [FilePath]
 globRelA pat = do
-  projectDir <- getProjectDir
+  dirs <- getProjectDirs
   files <- globA pat
-  return $ map (makeRelative projectDir) files
+  return $ map (makeRelative (project dirs)) files
 
 -- Utility functions for shake based apps
 spawn :: String -> Action ProcessHandle
@@ -235,13 +237,13 @@ writeIndex out baseUrl decks handouts pages = do
   let decksLinks = map (makeRelative baseUrl) decks
   let handoutsLinks = map (makeRelative baseUrl) handouts
   let pagesLinks = map (makeRelative baseUrl) pages
-  projectDir <- getProjectDir
+  dirs <- getProjectDirs
   liftIO $
     writeFile out $
     unlines
       [ "---"
       , "title: Generated Index"
-      , "subtitle: " ++ projectDir
+      , "subtitle: " ++ (project dirs)
       , "---"
       , "# Slide decks"
       , unlines $ map makeLink $ sort decksLinks
@@ -263,8 +265,8 @@ readMetaDataForDir :: FilePath -> Action Y.Value
 readMetaDataForDir dir = walkUpTo dir
   where
     walkUpTo dir = do
-      projectDir <- getProjectDir
-      if equalFilePath projectDir dir
+      dirs <- getProjectDirs
+      if equalFilePath (project dirs) dir
         then collectMeta dir
         else do
           fromAbove <- walkUpTo (takeDirectory dir)
@@ -308,11 +310,10 @@ substituteMetaData text metaData = do
 
 getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do
-  supportDir <- getSupportDir
-  publicDir <- getPublicDir
+  dirs <- getProjectDirs
   return $
-    invertPath (makeRelative publicDir (takeDirectory from)) </>
-    makeRelative publicDir supportDir
+    invertPath (makeRelative (public dirs) (takeDirectory from)) </>
+    makeRelative (public dirs) (support dirs)
 
 invertPath :: FilePath -> FilePath
 invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
@@ -356,16 +357,16 @@ getPandocWriter format =
 -- template variables and calls need.
 readAndPreprocessMarkdown :: FilePath -> Action Pandoc
 readAndPreprocessMarkdown markdownFile = do
-  projectDir <- getProjectDir
+  dirs <- getProjectDirs
   let baseDir = takeDirectory markdownFile
-  readMetaMarkdown markdownFile >>= processIncludes projectDir baseDir
+  readMetaMarkdown markdownFile >>= processIncludes (project dirs) baseDir
   -- Disable automatic caching of remomte images for a while
   -- >>= populateCache
 
 populateCache :: Pandoc -> Action Pandoc
 populateCache pandoc = do
-  cacheDir <- getCacheDir
-  liftIO $ walkM (cacheRemoteImages cacheDir) pandoc
+  dirs <- getProjectDirs
+  liftIO $ walkM (cacheRemoteImages (cache dirs)) pandoc
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage :: FilePath -> FilePath -> Action ()
@@ -474,8 +475,8 @@ readMetaMarkdown markdownFile = do
   let (MetaMap m) = combinedMeta
   let pandoc = Pandoc (Meta m) blocks
   -- adjust image urls
-  projectDir <- getProjectDir
-  return $ walk (adjustImageUrls projectDir (takeDirectory markdownFile)) pandoc
+  dirs <- getProjectDirs
+  return $ walk (adjustImageUrls (project dirs) (takeDirectory markdownFile)) pandoc
   where
     readMarkdownOrThrow opts string =
       case readMarkdown opts string of
@@ -637,28 +638,28 @@ hashURI uri = show (md5 $ L8.pack uri) SF.<.> SF.takeExtension uri
 processPandocPage :: String -> Pandoc -> Action Pandoc
 processPandocPage format pandoc = do
   let f = Just (Format format)
-  cacheDir <- getCacheDir
+  dirs <- getProjectDirs
   processed <-
-    liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
-  --  processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
+    liftIO $ processCites' pandoc >>= walkM (useCachedImages (cache dirs))
+  --  processed <- liftIO $ walkM (useCachedImages (cache dirs)) pandoc
   return $ expandMacros f processed
 
 processPandocDeck :: String -> Pandoc -> Action Pandoc
 processPandocDeck format pandoc = do
   let f = Just (Format format)
-  cacheDir <- getCacheDir
+  dirs <- getProjectDirs
   processed <-
-    liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
-  -- processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
+    liftIO $ processCites' pandoc >>= walkM (useCachedImages (cache dirs))
+  -- processed <- liftIO $ walkM (useCachedImages cacheD(cache dirs)ir) pandoc
   return $ (makeSlides f . expandMacros f) processed
 
 processPandocHandout :: String -> Pandoc -> Action Pandoc
 processPandocHandout format pandoc = do
   let f = Just (Format format)
-  cacheDir <- getCacheDir
+  dirs <- getProjectDirs
   processed <-
-    liftIO $ processCites' pandoc >>= walkM (useCachedImages cacheDir)
-  -- processed <- liftIO $ walkM (useCachedImages cacheDir) pandoc
+    liftIO $ processCites' pandoc >>= walkM (useCachedImages (cache dirs))
+  -- processed <- liftIO $ walkM (useCachedImages (cache dirs)) pandoc
   return $ (expandMacros f . filterNotes f) processed
 
 type StringWriter = WriterOptions -> Pandoc -> String
@@ -672,10 +673,9 @@ writePandocString format options out pandoc = do
 
 copyImages :: FilePath -> Pandoc -> Action Pandoc
 copyImages baseDir pandoc = do
-  projectDir <- getProjectDir
-  publicDir <- getPublicDir
-  walkM (copyAndLinkInline projectDir publicDir) pandoc >>=
-    walkM (copyAndLinkBlock projectDir publicDir)
+  dirs <- getProjectDirs
+  walkM (copyAndLinkInline (project dirs) (public dirs)) pandoc >>=
+    walkM (copyAndLinkBlock (project dirs) (public dirs))
   where
     copyAndLinkInline project public (Image attr inlines (url, title)) = do
       relUrl <- copyAndLinkFile project public baseDir url
@@ -714,17 +714,17 @@ copyAndLinkFile project public base url = do
 
 -- | Express the second path argument as relative to the first. 
 -- Both arguments are expected to be absolute pathes. 
-makeRelativeTo :: FilePath -> FilePath -> FilePath
-makeRelativeTo dir file =
-  let (d, f) = removeCommonPrefix (splitDirectories dir) (splitDirectories file)
-  in normalise $ invertPath (joinPath d) </> joinPath f
+-- makeRelativeTo :: FilePath -> FilePath -> FilePath
+-- makeRelativeTo dir file =
+--   let (d, f) = removeCommonPrefix (splitDirectories dir) (splitDirectories file)
+--   in normalise $ invertPath (joinPath d) </> joinPath f
 
-removeCommonPrefix :: [FilePath] -> [FilePath] -> ([FilePath], [FilePath])
-removeCommonPrefix al@(a:as) bl@(b:bs)
-  | a == b = removeCommonPrefix as bs
-  | otherwise = (al, bl)
-removeCommonPrefix a [] = (a, [])
-removeCommonPrefix [] b = ([], b)
+-- removeCommonPrefix :: [FilePath] -> [FilePath] -> ([FilePath], [FilePath])
+-- removeCommonPrefix al@(a:as) bl@(b:bs)
+--  | a == b = removeCommonPrefix as bs
+--  | otherwise = (al, bl)
+-- removeCommonPrefix a [] = (a, [])
+-- removeCommonPrefix [] b = ([], b)
 
 writeExampleProject :: Action ()
 writeExampleProject = mapM_ writeOne deckerExampleDir
@@ -763,25 +763,3 @@ metaValueAsString key meta =
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
     lookup' _ _ = Nothing
 
--- | Tool specific exceptions
-data DeckerException
-  = MustacheException String
-  | GitException String
-  | PandocException String
-  | YamlException String
-  | HttpException String
-  | RsyncUrlException
-  | DecktapeException String
-  deriving (Typeable)
-
-instance Exception DeckerException
-
-instance Show DeckerException where
-  show (MustacheException e) = e
-  show (GitException e) = e
-  show (HttpException e) = e
-  show (PandocException e) = e
-  show (YamlException e) = e
-  show (DecktapeException e) = "decktape.sh failed for reason: " ++ e
-  show RsyncUrlException =
-    "attributes 'destinationRsyncHost' or 'destinationRsyncPath' not defined in meta data"

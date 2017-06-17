@@ -11,7 +11,9 @@ import Data.Text.Encoding
 import qualified Data.Yaml as Y
 import NeatInterpolation
 import Project as P
+import Project
 import Student
+import System.Directory
 import System.FilePath
 import System.FilePath.Glob
 import System.FilePath.Posix
@@ -19,15 +21,11 @@ import Text.Pandoc
 import Utilities
 
 main = do
-  projectDir <- calcProjectDirectory
+  dirs <- projectDirectories
   --
-  let publicDir = projectDir </> "public"
-  let cacheDir = publicDir </> "cache"
-  let supportDir = publicDir </> "support"
-  --
-  metaFiles <- globDir1 (compile "**/*-meta.yaml") projectDir
+  metaFiles <- globDir1 (compile "**/*-meta.yaml") (project dirs)
   print metaFiles
-  genStudentData projectDir
+  genStudentData (project dirs)
   --
   hspec $
   --
@@ -40,13 +38,14 @@ main = do
     describe "adjustLocalUrl" $
       it
         "adjusts URL to be relative to the project root or the provided base directory" $ do
-        adjustLocalUrl projectDir "base" "http://heise.de" `shouldBe`
+        adjustLocalUrl (project dirs) "base" "http://heise.de" `shouldBe`
           "http://heise.de"
                  --
-        adjustLocalUrl projectDir "base" "/some/where" `shouldBe` projectDir </>
+        adjustLocalUrl (project dirs) "base" "/some/where" `shouldBe`
+          (project dirs) </>
           "some/where"
                  --
-        adjustLocalUrl projectDir "base" "some/where" `shouldBe`
+        adjustLocalUrl (project dirs) "base" "some/where" `shouldBe`
           "base/some/where"
        --
     describe "makeRelativeTo" $
@@ -65,33 +64,92 @@ main = do
     describe "removeCommonPrefix" $
       it "Removes the common prefix from two pathes." $ do
         P.removeCommonPrefix ("", "") `shouldBe` ("", "")
-        P.removeCommonPrefix ("fasel/bla", "fasel/bla/lall") `shouldBe` ("", "lall")
-        P.removeCommonPrefix ("lurgel/hopp", "fasel/bla/lall") `shouldBe` ("lurgel/hopp", "fasel/bla/lall")
-        P.removeCommonPrefix ("/lurgel/hopp", "fasel/bla/lall") `shouldBe` ("/lurgel/hopp", "fasel/bla/lall")
-        P.removeCommonPrefix ("/lurgel/hopp", "/fasel/bla/lall") `shouldBe` ("lurgel/hopp", "fasel/bla/lall")
+        P.removeCommonPrefix ("fasel/bla", "fasel/bla/lall") `shouldBe`
+          ("", "lall")
+        P.removeCommonPrefix ("lurgel/hopp", "fasel/bla/lall") `shouldBe`
+          ("lurgel/hopp", "fasel/bla/lall")
+        P.removeCommonPrefix ("/lurgel/hopp", "fasel/bla/lall") `shouldBe`
+          ("/lurgel/hopp", "fasel/bla/lall")
+        P.removeCommonPrefix ("/lurgel/hopp", "/fasel/bla/lall") `shouldBe`
+          ("lurgel/hopp", "fasel/bla/lall")
+    --
+    describe "resolve" $
+      it "Resolves a file path to a concrete verified file system path." $ do
+        resolve dirs ((project dirs) </> "resource/example") "img/06-metal.png" `shouldReturn`
+          Just
+            (Resource
+               ((project dirs) </> "resource/example/img/06-metal.png")
+               ((public dirs) </> "resource/example/img/06-metal.png")
+               "img/06-metal.png")
+        resolve dirs ((project dirs) </> "resource/example") "img/06-metal.png" `shouldReturn`
+          Just
+            (Resource
+               ((project dirs) </> "resource/example/img/06-metal.png")
+               ((public dirs) </> "resource/example/img/06-metal.png")
+               "img/06-metal.png")
+    --
+    describe "copyResource" $
+      it
+        "Copies an existing resource to the public dir and returns the public URL." $ do
+        doesFileExist ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          True
+        copyResource
+          (Resource
+             ((project dirs) </> "resource/example/img/06-metal.png")
+             ((public dirs) </> "resource/example/img/06-metal.png")
+             "img/06-metal.png") `shouldReturn`
+          "img/06-metal.png"
+        doesFileExist ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          True
+    --
+    describe "linkResource" $
+      it
+        "Copies an existing resource to the public dir and returns the public URL." $ do
+        doesFileExist ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          True
+        linkResource
+          (Resource
+             ((project dirs) </> "resource/example/img/06-metal.png")
+             ((public dirs) </> "resource/example/img/06-metal.png")
+             "img/06-metal.png") `shouldReturn`
+          "img/06-metal.png"
+        pathIsSymbolicLink
+          ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          True
+    -- 
+    describe "provisionResource" $
+      it "Resolves a file path to a verified file system path." $ do
+        provisionResource
+          SymbolicLink
+          dirs
+          ((project dirs) </> "resource/example")
+          "img/06-metal.png" `shouldReturn`
+          "img/06-metal.png"
+        doesFileExist ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          True
     --
     describe "cacheRemoteFile" $
       it
         "Stores the data behind a URL locally, if possible. Return the local path to the cached file." $ do
         cacheRemoteFile
-          cacheDir
+          (cache dirs)
           "https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg" `shouldReturn`
-          cacheDir </>
+          (cache dirs) </>
           "bc137c359488beadbb61589f7fe9e208.jpg"
         cacheRemoteFile
-          cacheDir
+          (cache dirs)
           "ftp://tramberend.beuth-hochschule.de/img/htr-beuth.jpg" `shouldReturn`
           "ftp://tramberend.beuth-hochschule.de/img/htr-beuth.jpg"
-        cacheRemoteFile cacheDir "/img/htr-beuth.jpg" `shouldReturn`
+        cacheRemoteFile (cache dirs) "/img/htr-beuth.jpg" `shouldReturn`
           "/img/htr-beuth.jpg"
-        cacheRemoteFile cacheDir "img/htr-beuth.jpg" `shouldReturn`
+        cacheRemoteFile (cache dirs) "img/htr-beuth.jpg" `shouldReturn`
           "img/htr-beuth.jpg"
        --
     describe "cacheRemoteImages" $
       it
         "Replaces all remote images in the pandoc document with locally caches copies." $
       cacheRemoteImages
-        cacheDir
+        (cache dirs)
         (Pandoc
            nullMeta
            [ Para
@@ -108,13 +166,13 @@ main = do
             [ Image
                 nullAttr
                 []
-                (cacheDir </> "bc137c359488beadbb61589f7fe9e208.jpg", "")
+                ((cache dirs) </> "bc137c359488beadbb61589f7fe9e208.jpg", "")
             ]
         ]
        --
     describe "parseStudentData" $
       it "Parses student data in YAML format into a nifty data structure." $
-      parseStudentData projectDir `shouldReturn` Just realData
+      parseStudentData (project dirs) `shouldReturn` Just realData
 
 mockData :: Students
 mockData =

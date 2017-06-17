@@ -18,15 +18,16 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
 import Utilities
+import Project
 
 version = "0.1.0"
 
 main :: IO ()
 main = do
-  projectDir <- calcProjectDirectory
-  let publicDir = projectDir </> "public"
-  let cacheDir = projectDir </> "cache"
-  let supportDir = publicDir </> "support"
+  dirs <- projectDirectories
+  let projectDir = (project dirs)
+  let publicDir = (public dirs)
+  let supportDir = (support dirs)
   -- Find sources. These are formulated as actions in the Action mondad, such
   -- that each new iteration rescans all possible source files.
   let deckSourcesA = globA "**/*-deck.md"
@@ -42,16 +43,16 @@ main = do
   let handoutsPdfA = deckSourcesA >>= calcTargets "-deck.md" "-handout.pdf"
   let pagesA = pageSourcesA >>= calcTargets ".md" ".html"
   let pagesPdfA = pageSourcesA >>= calcTargets ".md" ".pdf"
-  let indexSource = projectDir </> "index.md"
+  let indexSource = (project dirs) </> "index.md"
   let index = publicDir </> "index.html"
   let indexA = return [index] :: Action [FilePath]
   let everythingA = decksA <++> handoutsA <++> pagesA
   let everythingPdfA = decksPdfA <++> handoutsPdfA <++> pagesPdfA
   let cruft =
         map
-          (combine projectDir)
+          (combine (project dirs))
           ["index.md.generated", "server.log", "//.shake"]
-  context <- makeActionContext projectDir publicDir cacheDir supportDir
+  context <- makeActionContext dirs
   runShakeInContext context options $
   --
    do
@@ -185,22 +186,20 @@ replaceSuffix srcSuffix targetSuffix filename =
 -- | Calculates the target pathes from a list of source files.
 calcTargets :: String -> String -> [FilePath] -> Action [FilePath]
 calcTargets srcSuffix targetSuffix sources = do
-  projectDir <- getProjectDir
-  publicDir <- getPublicDir
+  dirs <- getProjectDirs
   return $
     map
       (replaceSuffix srcSuffix targetSuffix .
-       combine publicDir . makeRelative projectDir)
+       combine (public dirs) . makeRelative (project dirs))
       sources
 
 -- | Calculate the source file from the target path. Calls need.
 calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target = do
-  projectDir <- getProjectDir
-  publicDir <- getPublicDir
+  dirs <- getProjectDirs
   let src =
         (replaceSuffix targetSuffix srcSuffix .
-         combine projectDir . makeRelative publicDir)
+         combine (project dirs) . makeRelative (public dirs))
           target
   need [src]
   return src
