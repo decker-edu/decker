@@ -9,7 +9,6 @@ import Data.Maybe
 import Data.Text
 import Data.Text.Encoding
 import qualified Data.Yaml as Y
-import NeatInterpolation
 import Project as P
 import Project
 import Student
@@ -73,20 +72,23 @@ main = do
         P.removeCommonPrefix ("/lurgel/hopp", "/fasel/bla/lall") `shouldBe`
           ("lurgel/hopp", "fasel/bla/lall")
     --
-    describe "resolve" $
+    describe "resolveLocally" $
       it "Resolves a file path to a concrete verified file system path." $ do
-        resolve dirs ((project dirs) </> "resource/example") "img/06-metal.png" `shouldReturn`
-          Just
-            (Resource
-               ((project dirs) </> "resource/example/img/06-metal.png")
-               ((public dirs) </> "resource/example/img/06-metal.png")
-               "img/06-metal.png")
-        resolve dirs ((project dirs) </> "resource/example") "img/06-metal.png" `shouldReturn`
-          Just
-            (Resource
-               ((project dirs) </> "resource/example/img/06-metal.png")
-               ((public dirs) </> "resource/example/img/06-metal.png")
-               "img/06-metal.png")
+        (resolveLocally
+           (project dirs)
+           ((project dirs) </> "resource/example")
+           "img/06-metal.png") `shouldReturn`
+          (Just ((project dirs) </> "resource/example/img/06-metal.png"))
+        (resolveLocally
+           (project dirs)
+           ((project dirs) </> "resource/example")
+           "img/06-metal.png") `shouldReturn`
+          Just ((project dirs) </> "resource/example/img/06-metal.png")
+        (resolveLocally
+           (project dirs)
+           ((project dirs) </> "resource/example")
+           "img/07-metal.png") `shouldReturn`
+          Nothing
     --
     describe "copyResource" $
       it

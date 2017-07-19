@@ -1,13 +1,18 @@
-Track: 1
-Module: MODULE
-Title: TITLE
-NumberOfQuestions: 6
+Module: Computergrafik Grundlagen
+Tracks: [1, 2]
+DateTime: 18.05.2017 08:00
+Title: Halbzeittest
+NumberOfQuestions: 3
 LectureIds:
-- LECTURE_ID
-ExcludedTopicIds:
-- EXCLUDED_TOPIC_ID
+- 01-raster-images-math
+- 02-antialiasing
+- 03-raytracing
+- 04-ray-intersection
+- 05-reflection
+- 06-transformation-1
+- 07-transformation-2
+- 08-materials
+- 12-acceleration
+ExcludedTopicIds: []
 DurationInMinutes: 30
-StudentInfoFile: student-test-data.yaml
-DateTime: 22.11.2016 8:00
-
-
+StudentInfoFile: student-meta-debug.yaml

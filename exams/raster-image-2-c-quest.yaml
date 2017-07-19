@@ -1,0 +1,18 @@
+LectureId: 01-raster-images-math
+TopicId: raster-image-storage
+Answer:
+  tag: FreeForm
+  CorrectAnswer: "$i=12(1920y+x)+4$"
+  HeightInMm: 20
+Title: Speicherung von Rasterbildern
+Difficulty: Medium
+Comment: ""
+Points: 5
+Question: |
+  Ein RGB Bild wird mit einer 32 Bit Fließkommazahl pro Komponente in einem 
+  Array von Bytes gespeichert. Das Bild hat Full-HD (1920x1080 Pixel) Auflösung. 
+  Die Komponenten eines Pixels sind
+  in der Reihenfolge rot, grün, blau abgelegt.
+
+  Wie lautet die Berechnungsvorschrift für den Index $i$ in das Speicherarray
+  für die *grüne* Komponente des Pixels mit den Koordinaten $(x, y)$?

@@ -1,5 +1,7 @@
 module Project
-  ( provisionResource
+  ( findResource
+  , readResource
+  , provisionResource
   , copyResource
   , linkResource
   , refResource
@@ -8,30 +10,43 @@ module Project
   , makeRelativeTo
   , findProjectDirectory
   , projectDirectories
-  , resolve
+  , resolveLocally
+  , provisioningFromMeta
   , Resource(..)
   , Provisioning(..)
   , ProjectDirs(..)
   ) where
 
 import Common
-import Control.Monad
 import Control.Exception
+import Control.Monad
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Maybe
+import qualified Data.ByteString as B
+import Data.List
 import Data.Maybe
 import Debug.Trace
+import Embed
 import Extra
 import Network.URI
 import System.Directory
 import System.FilePath
 import System.Posix.Files
+import Text.Pandoc.Definition
+import Text.Pandoc.Shared
 
 data Provisioning
   = Copy -- Copy to public and relative link
   | SymbolicLink -- Link to public and relative link
   | Reference -- Absolute local link
-  deriving (Eq, Show)
+  deriving (Eq, Show, Read)
+
+provisioningFromMeta :: Meta -> Provisioning
+provisioningFromMeta meta =
+  case lookupMeta "provisioning" meta of
+    Just (MetaString s) -> read s
+    Just (MetaInlines i) -> read $ stringify i
+    _ -> Copy
 
 data Resource = Resource
   { sourceFile :: FilePath -- Absolute Path to source file
@@ -92,38 +107,38 @@ projectDirectories = do
 
 -- Resolves a file path to a concrete verified file system path, or
 -- returns Nothing if no file can be found.
-resolve :: ProjectDirs -> FilePath -> FilePath -> IO (Maybe Resource)
-resolve dirs base path = do
+resolveLocally :: FilePath -> FilePath -> FilePath -> IO (Maybe FilePath)
+resolveLocally root base path = do
   let candidates =
         if isAbsolute path
-          then [(project dirs) </> makeRelative "/" path, path]
-          else [base </> path, (project dirs) </> path]
-  (listToMaybe . map resolveResource) <$> filterM doesFileExist candidates
-  where
-    resolveResource absolute =
-      let relative = makeRelativeTo (project dirs) absolute
-      in Resource
-         { sourceFile = absolute
-         , publicFile = (public dirs) </> makeRelativeTo (project dirs) absolute
-         , publicUrl = makeRelativeTo base absolute
-         }
+          then [root </> makeRelative "/" path, path]
+          else [base </> path, root </> path]
+  listToMaybe <$> filterM doesFileExist candidates
 
-resolveUrl :: ProjectDirs -> FilePath -> FilePath -> IO (Maybe Resource)
-resolveUrl dirs base url = do
-  case parseURI url >>= fileOrRelativeUrl of
-    Nothing -> return Nothing
-    Just path -> resolve dirs base path
+resourcePathes :: ProjectDirs -> FilePath -> FilePath -> Resource
+resourcePathes dirs base absolute =
+  let relative = makeRelativeTo (project dirs) absolute
+  in Resource
+     { sourceFile = absolute
+     , publicFile = (public dirs) </> makeRelativeTo (project dirs) absolute
+     , publicUrl = makeRelativeTo base absolute
+     }
 
+-- resolveUrl :: ProjectDirs -> FilePath -> FilePath -> IO (Maybe Resource)
+-- resolveUrl dirs base url = do
+--   case parseURI url >>= fileOrRelativeUrl of
+--     Nothing -> return Nothing
+--     Just path -> resourcePathes dirs base <$> resolve dirs base path
 fileOrRelativeUrl :: URI -> Maybe FilePath
 fileOrRelativeUrl (URI "file:" Nothing path _ _) = Just path
 fileOrRelativeUrl (URI "" Nothing path _ _) = Just path
 fileOrRelativeUrl _ = Nothing
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs 
--- are resolved against and copied or linked from 
+-- are resolved against and copied or linked to public from 
 --    1. the project root 
 --    2. the local filesystem root 
--- Relative file URLs are resolved against and copied or linked from 
+-- Relative file URLs are resolved against and copied or linked to public from 
 --    1. the directory path of the referencing file 
 --    2. the project root
 -- Copy and link operations target the public directory in the project root
@@ -131,14 +146,30 @@ fileOrRelativeUrl _ = Nothing
 provisionResource ::
      Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
 provisionResource provisioning dirs base path = do
-  resolved <- resolve dirs base path
+  resource <- resourcePathes dirs base <$> findResource (project dirs) base path
+  case provisioning of
+    Copy -> copyResource resource
+    SymbolicLink -> linkResource resource
+    Reference -> refResource resource
+
+findResource :: FilePath -> FilePath -> FilePath -> IO FilePath
+findResource root base path = do
+  resolved <- resolveLocally root base path
   case resolved of
-    Nothing -> throw $ ResourceException $ "Cannot find local resource: " ++ path
-    Just resource -> do
-      case provisioning of
-        Copy -> copyResource resource
-        SymbolicLink -> linkResource resource
-        Reference -> refResource resource
+    Nothing ->
+      throw $ ResourceException $ "Cannot find local resource: " ++ path
+    Just resource -> return resource
+
+readResource :: FilePath -> FilePath -> FilePath -> IO B.ByteString
+readResource root base path = do
+  resolved <- resolveLocally root base path
+  case resolved of
+    Just resource -> B.readFile resource
+    Nothing ->
+      case find (\(k, b) -> k == path) deckerTemplateDir of
+        Nothing ->
+          throw $ ResourceException $ "Cannot read local resource: " ++ path
+        Just entry -> return $ snd entry
 
 -- | Copies the src to dst if src is newer or dst does not exist. 
 -- Creates missing directories while doing so.

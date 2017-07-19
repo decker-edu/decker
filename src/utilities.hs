@@ -40,6 +40,7 @@ module Utilities
   , DeckerException(..)
   ) where
 
+import Common
 import Context
 import Control.Arrow
 import Control.Concurrent
@@ -72,6 +73,7 @@ import Network.HTTP.Conduit
 import Network.HTTP.Simple
 import Network.HTTP.Types.Status
 import Network.URI
+import Project
 import System.Directory as Dir
 import System.FilePath as SF
 import System.FilePath.Glob
@@ -85,8 +87,6 @@ import Text.Pandoc
 import Text.Pandoc.PDF
 import Text.Pandoc.Walk
 import Watch
-import Project
-import Common
 
 -- Find the project directory and change current directory to there. 
 -- The project directory is the first upwards directory that contains a .git directory entry.
@@ -204,9 +204,7 @@ runShakeInContext context options rules = do
 watchFiles = setFilesToWatch
 
 -- | Monadic version of list concatenation.
-(<++>)
-  :: Monad m
-  => m [a] -> m [a] -> m [a]
+(<++>) :: Monad m => m [a] -> m [a] -> m [a]
 (<++>) = liftM2 (++)
 
 -- | Mark files as need and return them
@@ -224,11 +222,8 @@ replaceSuffixWith suffix with pathes =
   return [dropSuffix suffix d ++ with | d <- pathes]
 
 -- | Monadic version of suffix replacement for easy binding.
-calcTargetPath :: FilePath
-               -> String
-               -> String
-               -> [FilePath]
-               -> Action [FilePath]
+calcTargetPath ::
+     FilePath -> String -> String -> [FilePath] -> Action [FilePath]
 calcTargetPath projectDir suffix with pathes =
   return [projectDir </> dropSuffix suffix d ++ with | d <- pathes]
 
@@ -359,7 +354,8 @@ readAndPreprocessMarkdown :: FilePath -> Action Pandoc
 readAndPreprocessMarkdown markdownFile = do
   dirs <- getProjectDirs
   let baseDir = takeDirectory markdownFile
-  readMetaMarkdown markdownFile >>= processIncludes (project dirs) baseDir
+  readMetaMarkdown markdownFile >>= processIncludes (project dirs) baseDir >>=
+    locateTemplates (project dirs) baseDir
   -- Disable automatic caching of remomte images for a while
   -- >>= populateCache
 
@@ -476,7 +472,10 @@ readMetaMarkdown markdownFile = do
   let pandoc = Pandoc (Meta m) blocks
   -- adjust image urls
   dirs <- getProjectDirs
+  -- TODO: This has to go
   return $ walk (adjustImageUrls (project dirs) (takeDirectory markdownFile)) pandoc
+  -- TODO: Make this work further down
+  -- provisionResources dirs (takeDirectory markdownFile) pandoc
   where
     readMarkdownOrThrow opts string =
       case readMarkdown opts string of
@@ -566,6 +565,22 @@ adjustLocalUrl root base url
       else base </> url
 adjustLocalUrl _ _ url = url
 
+locateTemplates :: FilePath -> FilePath -> Pandoc -> Action Pandoc
+locateTemplates root base (Pandoc meta blocks) = do
+  return (Pandoc meta blocks)
+
+-- TODO: Make this compile, than work
+-- provisionResources :: ProjectDirs -> FilePath -> Pandoc -> Action Pandoc
+-- provisionResources dirs base pandoc@(Pandoc meta blocks) = do
+--   let provisioning = provisioningFromMeta meta
+--   liftIO $ walkM (provision provisioning) pandoc
+--   where
+--     provision (Image attr inlines target) provisioning =
+--       Image (provision_ attr provisioning) inlines target
+--     provision anything _ = anything
+--     provision_ (ident, klass, kvs) provisioning =
+--       map (\(k, v) -> (k, provisionResource provisioning dirs base v))
+
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 processIncludes rootDir baseDir (Pandoc meta blocks) = do
@@ -578,7 +593,7 @@ processIncludes rootDir baseDir (Pandoc meta blocks) = do
       return $ concat $ reverse spliced
     include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
     include base result (Para [Link _ [Str "#include"] (url, _)]) = do
-      let filePath = adjustLocalUrl rootDir base url
+      filePath <- liftIO $ findResource rootDir base url
       Pandoc _ b <- readMetaMarkdown filePath
       included <- processBlocks (takeDirectory filePath) b
       return $ included : result
@@ -697,11 +712,8 @@ copyImages baseDir pandoc = do
           kvs
       return (i, cs, relKvs)
 
-copyAndLinkFile :: FilePath
-                -> FilePath
-                -> FilePath
-                -> FilePath
-                -> Action FilePath
+copyAndLinkFile ::
+     FilePath -> FilePath -> FilePath -> FilePath -> Action FilePath
 copyAndLinkFile project public base url = do
   let rel = makeRelative project url
   if rel == url
@@ -718,14 +730,12 @@ copyAndLinkFile project public base url = do
 -- makeRelativeTo dir file =
 --   let (d, f) = removeCommonPrefix (splitDirectories dir) (splitDirectories file)
 --   in normalise $ invertPath (joinPath d) </> joinPath f
-
 -- removeCommonPrefix :: [FilePath] -> [FilePath] -> ([FilePath], [FilePath])
 -- removeCommonPrefix al@(a:as) bl@(b:bs)
 --  | a == b = removeCommonPrefix as bs
 --  | otherwise = (al, bl)
 -- removeCommonPrefix a [] = (a, [])
 -- removeCommonPrefix [] b = ([], b)
-
 writeExampleProject :: Action ()
 writeExampleProject = mapM_ writeOne deckerExampleDir
   where
@@ -762,4 +772,3 @@ metaValueAsString key meta =
     lookup' [] (Just (Y.Bool b)) = Just (show b)
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
     lookup' _ _ = Nothing
-

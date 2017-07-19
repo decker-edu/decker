@@ -4,6 +4,7 @@ module Embed
   ( deckerHelpText
   , deckerExampleDir
   , deckerSupportDir
+  , deckerTemplateDir
   , deckTemplate
   , pageTemplate
   , pageLatexTemplate
@@ -15,10 +16,14 @@ module Embed
   , testerFillTextTemplate
   , testerFreeFormTemplate
   , testLatexTemplate
+  , defaultTemplate
+  , defaultTemplateString
   ) where
 
-import Data.FileEmbed
 import qualified Data.ByteString.Char8 as B
+import Data.FileEmbed
+import Data.List
+import Data.Maybe
 
 deckerExampleDir :: [(FilePath, B.ByteString)]
 deckerExampleDir = $(makeRelativeToProject "resource/example" >>= embedDir)
@@ -26,49 +31,37 @@ deckerExampleDir = $(makeRelativeToProject "resource/example" >>= embedDir)
 deckerSupportDir :: [(FilePath, B.ByteString)]
 deckerSupportDir = $(makeRelativeToProject "resource/support" >>= embedDir)
 
-deckerHelpText :: String
-deckerHelpText =
-  B.unpack $(makeRelativeToProject "resource/help-page.md" >>= embedFile)
+deckerTemplateDir :: [(FilePath, B.ByteString)]
+deckerTemplateDir = $(makeRelativeToProject "resource/template" >>= embedDir)
 
-deckTemplate :: String
-deckTemplate =
-  B.unpack $(makeRelativeToProject "resource/deck.html" >>= embedFile)
+defaultTemplate :: FilePath -> Maybe B.ByteString
+defaultTemplate path = snd <$> find (\(k, _) -> k == path) deckerTemplateDir
 
-pageTemplate :: String
-pageTemplate =
-  B.unpack $(makeRelativeToProject "resource/page.html" >>= embedFile)
+defaultTemplateString :: FilePath -> Maybe String
+defaultTemplateString path = B.unpack <$> defaultTemplate path
 
-pageLatexTemplate :: String
-pageLatexTemplate =
-  B.unpack $(makeRelativeToProject "resource/page.tex" >>= embedFile)
+deckerHelpText = fromJust $ defaultTemplateString "help-page.md"
 
-examLatexTemplate :: String
-examLatexTemplate =
-  B.unpack $(makeRelativeToProject "resource/exam.tex" >>= embedFile)
+deckTemplate = fromJust $ defaultTemplateString "deck.html"
 
-handoutTemplate :: String
-handoutTemplate =
-  B.unpack $(makeRelativeToProject "resource/handout.html" >>= embedFile)
+pageTemplate = fromJust $ defaultTemplateString "page.html"
 
-handoutLatexTemplate :: String
-handoutLatexTemplate =
-  B.unpack $(makeRelativeToProject "resource/handout.tex" >>= embedFile)
+pageLatexTemplate = fromJust $ defaultTemplateString "page.tex"
 
-testerMultipleChoiceTemplate :: B.ByteString
+examLatexTemplate = fromJust $ defaultTemplateString "exam.tex"
+
+handoutTemplate = fromJust $ defaultTemplateString "handout.html"
+
+handoutLatexTemplate = fromJust $ defaultTemplateString "handout.tex"
+
 testerMultipleChoiceTemplate =
-  $(makeRelativeToProject "resource/mc-quest-catalog-template.md" >>= embedFile)
+  fromJust $ defaultTemplate "mc-quest-catalog-template.md"
 
-testerMultipleAnswersTemplate :: B.ByteString
 testerMultipleAnswersTemplate =
-  $(makeRelativeToProject "resource/ma-quest-catalog-template.md" >>= embedFile)
+  fromJust $ defaultTemplate "ma-quest-catalog-template.md"
 
-testerFillTextTemplate :: B.ByteString
-testerFillTextTemplate =
-  $(makeRelativeToProject "resource/ft-quest-catalog-template.md" >>= embedFile)
+testerFillTextTemplate = fromJust $ defaultTemplate "ft-quest-catalog-template.md"
 
-testerFreeFormTemplate :: B.ByteString
-testerFreeFormTemplate =
-  $(makeRelativeToProject "resource/ff-quest-catalog-template.md" >>= embedFile)
+testerFreeFormTemplate = fromJust $ defaultTemplate "ff-quest-catalog-template.md"
 
-testLatexTemplate :: B.ByteString
-testLatexTemplate = $(makeRelativeToProject "resource/test.tex" >>= embedFile)
+testLatexTemplate = fromJust $ defaultTemplate "test.tex"

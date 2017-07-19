@@ -198,7 +198,7 @@ fragmentRelated =
   ,"fade-in"
   ,"fade-out"
   ,"current-visible"
-  ," highlight-current-blue"
+  ,"highlight-current-blue"
   ,"highlight-red"
   ,"highlight-green"
   ,"highlight-blu"]

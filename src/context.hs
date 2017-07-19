@@ -14,7 +14,6 @@ import Data.IORef
 import Data.Typeable ()
 import qualified Data.HashMap.Lazy as HashMap
 import System.Process
-import Text.Printf
 import Project
 
 data ActionContext =

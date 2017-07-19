@@ -20,6 +20,7 @@ import Development.Shake
 import Development.Shake.FilePath
 import Embed
 import Filter
+import Project
 import Shuffle
 import Student
 import System.Directory
@@ -36,7 +37,6 @@ import Text.Pandoc
 import Text.Pandoc.PDF
 import Text.Pandoc.Walk
 import Utilities
-import Project
 
 replaceSuffix srcSuffix targetSuffix filename =
   dropSuffix srcSuffix filename ++ targetSuffix
@@ -85,21 +85,21 @@ main = do
       let string = Y.encodePretty Y.defConfig examStationary
       liftIO $ B.writeFile "new-exam.yaml" string
        --
-    phony "new-mc" $ do
+    phony "new-multiple-choice" $ do
       let string = Y.encodePretty Y.defConfig multipleChoiceStationary
-      liftIO $ B.writeFile "new-mc-quest.yaml" string
+      liftIO $ B.writeFile "new-multiple-choice-quest.yaml" string
        --
-    phony "new-ma" $ do
+    phony "new-multiple-answers" $ do
       let string = Y.encodePretty Y.defConfig multipleAnswersStationary
-      liftIO $ B.writeFile "new-ma-quest.yaml" string
+      liftIO $ B.writeFile "new-multiple-answers-quest.yaml" string
        --
-    phony "new-ft" $ do
+    phony "new-fill-text" $ do
       let string = Y.encodePretty Y.defConfig fillTextStationary
-      liftIO $ B.writeFile "new-ft-quest.yaml" string
+      liftIO $ B.writeFile "new-fill-text-quest.yaml" string
        --
-    phony "new-f" $ do
+    phony "new-free-answer" $ do
       let string = Y.encodePretty Y.defConfig freeStationary
-      liftIO $ B.writeFile "new-f-quest.yaml" string
+      liftIO $ B.writeFile "new-free-answer-quest.yaml" string
        --
     phony "exams" $ need exams
        --
@@ -149,16 +149,14 @@ cleanCommitIdOrFail :: FilePath -> Action String
 cleanCommitIdOrFail root = do
   clean <- liftIO $ isWorkingTreeClean root
   if clean
-    then throw $ GitException "Workspace dirty, aborting."
+    then throw $
+         GitException
+           "Workspace dirty, aborting. Please commit all changes or add them to .gitignore."
     else liftIO lastCommitId
 
 --            buildExam projectDir "exam" examPath questionSources out
-buildExam :: FilePath
-          -> String
-          -> FilePath
-          -> [FilePath]
-          -> FilePath
-          -> Action ()
+buildExam ::
+     FilePath -> String -> FilePath -> [FilePath] -> FilePath -> Action ()
 buildExam projectDir disposition examSource questionSources out = do
   need [examSource]
   putLoud "Reading questions ..."
@@ -187,9 +185,8 @@ buildExam projectDir disposition examSource questionSources out = do
   putLoud "Compiling PDF ..."
   compilePandocPdf examPandoc out
 
-filterFailed :: [T.Text]
-             -> Map.HashMap T.Text Student
-             -> Map.HashMap T.Text Student
+filterFailed ::
+     [T.Text] -> Map.HashMap T.Text Student -> Map.HashMap T.Text Student
 filterFailed failed students = foldl (flip Map.delete) students failed
 
 compileTemplates :: FilePath -> Action MT.TemplateCache
@@ -208,7 +205,8 @@ compileTemplates disposition = do
 compileProjectTemplate :: FilePath -> FilePath -> Action MT.Template
 compileProjectTemplate disposition name = do
   dirs <- getProjectDirs
-  let filename = (project dirs) </> "exams" </> "templates" </> disposition </> name
+  let filename =
+        (project dirs) </> "exams" </> "templates" </> disposition </> name
   need [filename]
   text <- liftIO $ T.readFile filename
   let result = M.compileTemplate name (fixMustacheMarkupText text)
@@ -239,10 +237,8 @@ compilePandocPdf exam out = do
   putNormal $ "# pandoc (for " ++ out ++ ")"
   pandocMakePdf options exam out
 
-compileQuestion :: FilePath
-                -> MT.TemplateCache
-                -> (Question, FilePath)
-                -> Action Pandoc
+compileQuestion ::
+     FilePath -> MT.TemplateCache -> (Question, FilePath) -> Action Pandoc
 compileQuestion projectDir templates question = do
   putLoud "Compiling question ..."
   return $ compile question
@@ -260,9 +256,7 @@ compileQuestion projectDir templates question = do
       T.unpack $
       M.substitute (chooseTemplate templates question) (MT.mFromJSON question)
 
-compileToPandoc
-  :: Y.ToJSON a
-  => MT.Template -> a -> Pandoc
+compileToPandoc :: Y.ToJSON a => MT.Template -> a -> Pandoc
 compileToPandoc template thing =
   case readMarkdown def $ T.unpack $ M.substitute template $ MT.mFromJSON thing of
     Left err -> throw $ PandocException (show err)
@@ -283,8 +277,8 @@ lookupTemplate name templates =
     (throw $ MustacheException $ "Cannot lookup template: " ++ name)
     (Map.lookup name templates)
 
-compileExam
-  :: FilePath
+compileExam ::
+     FilePath
   -> MT.TemplateCache
   -> (Exam, [(Student, [(Question, FilePath)])])
   -> Action Pandoc
@@ -295,8 +289,8 @@ compileExam projectDir templates (exam, students) = do
   list <- mapM (compileStudentExam projectDir templates exam) students
   return $ joinPandoc $ title : list
 
-compileStudentExam
-  :: FilePath
+compileStudentExam ::
+     FilePath
   -> MT.TemplateCache
   -> Exam
   -> (Student, [(Question, FilePath)])
@@ -319,15 +313,14 @@ joinPandoc list =
   Pandoc nullMeta $ concatMap (\(Pandoc _ blocks) -> blocks) list
 
 -- | Filters questions by LectureIds and ExcludedTopicIds.
-filterQuestions :: [T.Text]
-                -> [T.Text]
-                -> [(Question, FilePath)]
-                -> [(Question, FilePath)]
+filterQuestions ::
+     [T.Text] -> [T.Text] -> [(Question, FilePath)] -> [(Question, FilePath)]
 filterQuestions includeLectures excludeTopics questions =
   filter (not . (flip elem) excludeTopics . qstTopicId . fst) $
   filter ((flip elem) includeLectures . qstLectureId . fst) questions
 
-type GroupedQuestions = Map.HashMap T.Text (Map.HashMap T.Text [(Question, FilePath)])
+type GroupedQuestions
+   = Map.HashMap T.Text (Map.HashMap T.Text [(Question, FilePath)])
 
 -- | Groups questions first by LectureId and then by TopicId into nested HashMaps.
 groupQuestions :: [(Question, FilePath)] -> GroupedQuestions
@@ -339,8 +332,8 @@ groupQuestions questions =
       Map.insertWith (++) (attrib $ fst question) [question] rmap
 
 -- The BUG is probably here!
-generateExam
-  :: Exam
+generateExam ::
+     Exam
   -> [(Question, FilePath)]
   -> [Student]
   -> (Exam, [(Student, [(Question, FilePath)])])
@@ -354,9 +347,8 @@ generateExam exam questions students =
       studentQuestions = map (selectQuestionsForStudent candidates) sorted
   in (exam, studentQuestions)
   where
-    selectQuestionsForStudent :: [(Question, FilePath)]
-                              -> Student
-                              -> (Student, [(Question, FilePath)])
+    selectQuestionsForStudent ::
+         [(Question, FilePath)] -> Student -> (Student, [(Question, FilePath)])
     -- | Initialize the RNG with a hash over the student data. 
     -- Should produce the identical exam for one student each time and different 
     -- exams for all students every time.
@@ -395,18 +387,14 @@ generateExam exam questions students =
     numberQuestion (n, (q, p)) = (q {qstCurrentNumber = n}, p)
 
 -- | Throw, result is shitty.
-maybeThrowYaml
-  :: Y.FromJSON a
-  => FilePath -> Either Y.ParseException a -> a
+maybeThrowYaml :: Y.FromJSON a => FilePath -> Either Y.ParseException a -> a
 maybeThrowYaml _ (Right yaml) = yaml
 maybeThrowYaml path (Left exception) =
   throw $
   YamlException $ "Error parsing YAML file: " ++ path ++ ", " ++ show exception
 
 -- | Reads a YAML file or throws.
-readYAML
-  :: Y.FromJSON a
-  => FilePath -> Action a
+readYAML :: Y.FromJSON a => FilePath -> Action a
 readYAML path = do
   result <- liftIO $ Y.decodeFileEither path
   let contents =
@@ -436,8 +424,12 @@ readStudentInfo path tracks = do
 -- Reads list of failed students
 readFailedStudents :: FilePath -> Action [T.Text]
 readFailedStudents path = do
-  need [path]
-  readYAML path
+  exists <- Development.Shake.doesFileExist path
+  if exists
+    then do
+      need [path]
+      readYAML path
+    else return []
 
 -- Reads all the questions and returns them along with the base directory of
 -- each.
@@ -461,11 +453,8 @@ readQuestion file = do
   return (question, takeDirectory file)
 
 -- Renders a catalog of all questions (TODO sorted by LectureId and TopicId).
-renderCatalog :: FilePath
-              -> Templates
-              -> [(Question, FilePath)]
-              -> FilePath
-              -> Action ()
+renderCatalog ::
+     FilePath -> Templates -> [(Question, FilePath)] -> FilePath -> Action ()
 renderCatalog projectDir templates questions out = do
   commitId <- cleanCommitIdOrFail projectDir
   -- putNormal $ show questions

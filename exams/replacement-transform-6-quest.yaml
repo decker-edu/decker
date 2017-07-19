@@ -1,0 +1,20 @@
+Points: 5
+LectureId: 07-transformation-2
+TopicId: replacement-transform
+Answer:
+  CorrectAnswer: $R_y(-\pi/2)R_x(\alpha)R_y(\pi/2)$
+  tag: FreeForm
+  HeightInMm: 20
+Title: Ersatztransformation
+Difficulty: Easy
+Comment: ''
+Question: | 
+  Die Hardware eines fiktiven Prozessors stellt folgende diskrete Operationen für die Transformation von 3D Vektoren zur Verfügung:
+
+  | Translation | Rotation | Skalierung |
+  |-|-|-|
+  | $T_x(x)$ | $R_x(\alpha)$ | $S_x(x)$ |
+  | $T_y(y)$ | $R_y(\alpha)$ | $S_y(y)$ |
+  | $T_z(z)$ | $R_z(\alpha)$ | $S_z(z)$ |
+
+  Nehmen Sie an, dass die Hardwareeinheit für die Operation $R_z(\alpha)$ ausfällt. Wie lässt sich diese Transformation durch eine Kombination aus den verbleibenden Operationen ersetzen? Wie lautet also $R_z^{\mathrm{Ersatz}}(\alpha)$?

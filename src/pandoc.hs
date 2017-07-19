@@ -3,7 +3,6 @@ module Pandoc
   (
   ) where
 
-import Context
 import Control.Exception
 import Control.Monad
 import qualified Data.ByteString.Char8 as B
