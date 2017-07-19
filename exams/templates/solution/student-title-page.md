@@ -1,3 +1,7 @@
-# Exam Template Test
+\newpage
 
-Date: {{DataTime}}
+## {{Student.employeeNumber}} - {{Student.displayName}}
+
+### {{Exam.Title}} - {{Exam.Module}} - {{Exam.DateTime}}
+
+\setcounter{page}{1}

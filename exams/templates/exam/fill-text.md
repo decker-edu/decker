@@ -1,7 +1,6 @@
 \newpage
+# Aufgabe {{&CurrentNumber}}: {{&Title}} \hfill $\square$
 
-# Aufgabe {{CurrentNumber}}: {{Title}}
+{{&Question}}
 
-{{Question}}
-
-{{Answer.FillText}}
+{{&Answer.FillText}}

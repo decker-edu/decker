@@ -12,6 +12,8 @@
 
 {{&Question}}
 
-{{&Answer.FillText}}
+{{\#Answer.Answers}}
 
-*Antwort:* {{\#Answer.CorrectWords}}{{&.}}, {{/Answer.CorrectWords}}
+-   {{&Detail}}: {{&Correct}}
+
+{{/Answer.Answers}}

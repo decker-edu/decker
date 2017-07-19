@@ -1,6 +1,7 @@
 \newpage
-# Aufgabe {{CurrentNumber}}: {{Title}}
 
-{{Question}}
+# Aufgabe {{&CurrentNumber}}: {{&Title}} \hfill $\square$
 
-\fbox{\begin{minipage}{\textwidth} \hfill \vspace{ {{Answer.HeightInMm}}mm } \end{minipage}}
+{{&Question}}
+
+\fbox{\begin{minipage}{\textwidth} \hfill \vspace{ {{&Answer.HeightInMm}}mm } \end{minipage}}

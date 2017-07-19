@@ -1,3 +1,3 @@
 # Exam Template Test
 
-Date: {{DataTime}}
+Date: {{&DataTime}}

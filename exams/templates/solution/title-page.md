@@ -1,3 +1,10 @@
-# Exam Template Test
+# \Huge Here Be Dragons!
 
-Date: {{DataTime}}
+# {{Title}} - Lösungen
+
+## {{Module}}
+
+Datum: {{DateTime}}\
+Dauer: {{DurationInMinutes}} min\
+Aufgaben: {{NumberOfQuestions}}\
+Zug: {{Track}}

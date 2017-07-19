@@ -1,21 +1,19 @@
-# Aufgabe N: {{Title}}
+# Aufgabe N: {{&Title}}
 
 |               |                |
 |---------------|----------------|
-| Titel         | **{{Title}}**  |
-| Id            | {{TopicId}}    |
-| Base          | {{BaseDir}}    |
-| Vorlesung     | {{LectureId}}  |
-| Schwierigkeit | {{Difficulty}} |
-| Punkte        | {{Points}}     |
-| Kommentar     | {{Comment}}    |
+| Titel         | **{{&Title}}**  |
+| Id            | {{&TopicId}}    |
+| Base          | {{&BaseDir}}    |
+| Vorlesung     | {{&LectureId}}  |
+| Schwierigkeit | {{&Difficulty}} |
+| Punkte        | {{&Points}}     |
+| Kommentar     | {{&Comment}}    |
 
-{{Question}}
-
-*Antworten:*
+{{&Question}}
 
 {{\#Answer.Choices}}
 
--   {{\#Correct}}$\boxtimes${{/Correct}}{{\^Correct}}$\square${{/Correct}} {{TheAnswer}}
+-   {{\#Correct}}$\boxtimes${{/Correct}}{{\^Correct}}$\square${{/Correct}} {{&TheAnswer}}
 
 {{/Answer.Choices}}

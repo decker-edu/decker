@@ -1,11 +1,11 @@
 \newpage
 
-# Aufgabe {{CurrentNumber}}: {{Title}}
+# Aufgabe {{&CurrentNumber}}: {{&Title}} \hfill $\square$
 
-{{Question}}
+{{&Question}}
 
-{{\#Answer.CorrectAnswers}}
+{{\#Answer.Answers}}
 
-1.  \underline{ \hspace{ {{Answer.Width}} } }
+-   {{&Detail}}: \underline{ \hspace{ {{&Answer.WidthInMm}}mm } }
 
-{{/Answer.CorrectAnswers}}
+{{/Answer.Answers}}

@@ -1,8 +1,8 @@
-# {{Title}}
+# {{&Title}}
 
-## {{Module}}
+## {{&Module}}
 
-Datum: {{DateTime}}\
-Dauer: {{DurationInMinutes}} min\
-Aufgaben: {{NumberOfQuestions}}\
-Zug: {{Track}}
+Datum: {{&DateTime}}\
+Dauer: {{&DurationInMinutes}} min\
+Aufgaben: {{&NumberOfQuestions}}\
+Übungsgruppen: {{\#Tracks}}{{&.}} {{/Tracks}}

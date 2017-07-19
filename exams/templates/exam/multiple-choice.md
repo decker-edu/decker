@@ -1,11 +1,10 @@
 \newpage
+# Aufgabe {{&CurrentNumber}}: {{&Title}} \hfill $\square$
 
-# Aufgabe {{CurrentNumber}}: {{Title}}
-
-{{Question}}
+{{&Question}}
 
 {{\#Answer.Choices}}
 
--   $\square$ {{TheAnswer}}
+-   $\square$ {{&TheAnswer}}
 
 {{/Answer.Choices}}
