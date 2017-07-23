@@ -15,7 +15,7 @@ chmod a+x decker
 
 1.  Install [stack](https://docs.haskellstack.org/en/stable/README/).
 2.  Clone this repo.
-3.  `cd repo`
+3.  `cd decker`
 4.  `stack install`
 
 ## Usage
@@ -39,7 +39,7 @@ chmod a+x decker
 
 -   `decker help`
 
-    Prints this document to stdout in Markdown format.
+    Prints a help document to stdout in Markdown format.
 
 -   `decker html`
 
@@ -47,7 +47,7 @@ chmod a+x decker
 
 -   `decker pdf`
 
-    Builds PDF versions of all documents that are generated from `*-deck.md` files.
+    Builds PDF versions of all documents that are generated from `*-page.md` files.
 
 -   `decker pdf-decks`
 
@@ -59,7 +59,7 @@ chmod a+x decker
 
 -   `decker server`
 
-    Like `decker watch`. Additionally a local web server is started that serves the generated HTML files. The `index.html` document is automatically openend in the browser. Changed files are automatically reloaded in the browser. (requires `livereloadx`)
+    Like `decker watch`. Additionally a local web server is started that serves the generated HTML files. The `*-deck.html` file is openend in the browser. Changed files are reloaded in the browser. (still requires `livereloadx`)
 
 -   `decker example`
 
@@ -70,7 +70,7 @@ chmod a+x decker
     $ decker server
     ```
 
-    and make some changes to the Markdown files. `example-deck.md` contains the source code for a slide deck that explains most of the features supported.
+    and make some changes to the Markdown files. `example-deck.md` contains the source code for a slide deck that is supposed to (someday) explain most of the features supported.
 
 -   `decker clean`
 
