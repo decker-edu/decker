@@ -1,3 +1,5 @@
+{-- Author: Henrik Tramberend <henrik@tramberend.de> --} 
+
 module Utilities
   ( calcProjectDirectory
   , spawn

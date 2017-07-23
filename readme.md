@@ -1,3 +1,5 @@
+[![build status](https://cgmgit.beuth-hochschule.de/teaching/decker/badges/master/build.svg)](https://cgmgit.beuth-hochschule.de/teaching/decker/commits/master)
+
 # decker
 
 A markdown based tool for slide deck creation.
@@ -96,3 +98,9 @@ chmod a+x decker
 -   `decker publish`
 
     Publish the generated files to a remote location using `rsync` if the location is specified in the meta data. The keys `rsync-destination.host` and `rsync-destination.path` specify the publishing destination.
+
+## Contributions
+
+### Pull requests
+
+Contributions are accepted via pull requests. Before working on a feature, please write up an issue and discuss it with me.

@@ -1,0 +1,10 @@
+before_script:
+  - stack upgrade
+
+build:
+  script:
+    - stack build
+
+test:
+  script:
+    - stack test

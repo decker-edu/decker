@@ -1,4 +1,5 @@
--- | Generally useful functions on pansoc data structures. Some in the IO monad.
+{-- Author: Henrik Tramberend <henrik@tramberend.de> --} 
+
 module Pandoc
   (
   ) where
