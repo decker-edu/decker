@@ -11,7 +11,6 @@ import Data.Text.Encoding
 import qualified Data.Yaml as Y
 import Project as P
 import Project
-import Student
 import System.Directory
 import System.FilePath
 import System.FilePath.Glob
@@ -24,7 +23,6 @@ main = do
   --
   metaFiles <- globDir1 (compile "**/*-meta.yaml") (project dirs)
   print metaFiles
-  genStudentData (project dirs)
   --
   hspec $
   --
@@ -171,77 +169,3 @@ main = do
                 ((cache dirs) </> "bc137c359488beadbb61589f7fe9e208.jpg", "")
             ]
         ]
-       --
-    describe "parseStudentData" $
-      it "Parses student data in YAML format into a nifty data structure." $
-      parseStudentData (project dirs) `shouldReturn` Just realData
-
-mockData :: Students
-mockData =
-  Students
-  { stds_course = "Mock"
-  , stds_semester = "Mock 1234"
-  , stds_students =
-      H.fromList
-        [ ("888888", Student "mock" "mock" "mock" "mock" "mock" "mock" 1)
-        , ("888889", Student "mock" "mock" "mock" "mock" "mock" "mock" 1)
-        ]
-  }
-
-realData :: Students
-realData =
-  Students
-  { stds_course = "Mock"
-  , stds_semester = "Mock 1234"
-  , stds_students =
-      (H.fromList
-         [ ( "836381"
-           , Student
-             { std_displayName = "Justen, David Alexander"
-             , std_employeeNumber = "836381"
-             , std_givenName = "David Alexander"
-             , std_mail = "s64386@beuth-hochschule.de"
-             , std_sAMAccountName = "s64386"
-             , std_sn = "Justen"
-             , std_track = 1
-             })
-         , ( "798101"
-           , Student
-             { std_displayName = "Mahmoud, Hassan"
-             , std_employeeNumber = "798101"
-             , std_givenName = "Hassan"
-             , std_mail = "s53445@beuth-hochschule.de"
-             , std_sAMAccountName = "s53445"
-             , std_sn = "Mahmoud"
-             , std_track = 1
-             })
-         , ( "814510"
-           , Student
-             { std_displayName = "Sahli, Hanen"
-             , std_employeeNumber = "814510"
-             , std_givenName = "Hanen"
-             , std_mail = "s57637@beuth-hochschule.de"
-             , std_sAMAccountName = "s57637"
-             , std_sn = "Sahli"
-             , std_track = 1
-             })
-         , ( "832701"
-           , Student
-             { std_displayName = "Naci Aydogan"
-             , std_employeeNumber = "832701"
-             , std_givenName = "Naci"
-             , std_mail = "s61660@beuth-hochschule.de"
-             , std_sAMAccountName = "s61660"
-             , std_sn = "Aydogan"
-             , std_track = 1
-             })
-         ])
-  }
-
-genStudentData :: FilePath -> IO ()
-genStudentData dir =
-  Y.encodeFile (dir </> "test/student-mock-data.yaml") mockData
-
-parseStudentData :: FilePath -> IO (Maybe Students)
-parseStudentData dir = do
-  Y.decodeFile $ dir </> "test/student-test-data.yaml"
