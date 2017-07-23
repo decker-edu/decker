@@ -1,5 +1,5 @@
 before_script:
-  - stack upgrade
+  - stack setup
 
 test:
   script:
