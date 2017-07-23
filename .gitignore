@@ -13,4 +13,6 @@ index.html
 public/
 private/
 auto/
+cache/
+.vscode/
 index.md.generated
