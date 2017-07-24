@@ -1,4 +1,5 @@
 before_script:
+  - stack --version
   - stack setup
 
 test:
