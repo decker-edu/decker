@@ -76,7 +76,7 @@ import Network.HTTP.Simple
 import Network.HTTP.Types.Status
 import Network.URI
 import Project
-import System.Directory as Dir
+import qualified System.Directory as Dir
 import System.FilePath as SF
 import System.FilePath.Glob
 import System.IO as S
@@ -94,17 +94,17 @@ import Watch
 -- The project directory is the first upwards directory that contains a .git directory entry.
 calcProjectDirectory :: IO FilePath
 calcProjectDirectory = do
-  cwd <- getCurrentDirectory
+  cwd <- Dir.getCurrentDirectory
   searchGitRoot cwd
   where
     searchGitRoot :: FilePath -> IO FilePath
     searchGitRoot path =
       if isDrive path
-        then makeAbsolute "."
+        then Dir.makeAbsolute "."
         else do
           hasGit <- Dir.doesDirectoryExist (path </> ".git")
           if hasGit
-            then makeAbsolute path
+            then Dir.makeAbsolute path
             else searchGitRoot $ takeDirectory path
 
 -- | Globs for files under the project dir in the Action monad. 
@@ -161,7 +161,7 @@ stopServer id =
       Left (SomeException e) -> print $ "Unable to read file " ++ pidFile
       Right pid -> do
         exitCode <- system ("kill -9 " ++ pid)
-        removeFile pidFile
+        Dir.removeFile pidFile
 
 terminate :: ProcessHandle -> Action ()
 terminate = liftIO . terminateProcess
@@ -595,7 +595,7 @@ processIncludes rootDir baseDir (Pandoc meta blocks) = do
       return $ concat $ reverse spliced
     include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
     include base result (Para [Link _ [Str "#include"] (url, _)]) = do
-      filePath <- liftIO $ findResource rootDir base url
+      filePath <- liftIO $ findFile rootDir base url
       Pandoc _ b <- readMetaMarkdown filePath
       included <- processBlocks (takeDirectory filePath) b
       return $ included : result
@@ -618,7 +618,7 @@ cacheRemoteFile cacheDir url
       then return cacheFile
       else catch
              (do content <- downloadUrl url
-                 createDirectoryIfMissing True cacheDir
+                 Dir.createDirectoryIfMissing True cacheDir
                  LB.writeFile cacheFile content
                  return cacheFile)
              (\e -> do
@@ -631,7 +631,7 @@ clearCachedFile cacheDir url
   | isCacheableURI url = do
     let cacheFile = cacheDir </> hashURI url
     exists <- Dir.doesFileExist cacheFile
-    when exists $ removeFile cacheFile
+    when exists $ Dir.removeFile cacheFile
 clearCachedFile _ _ = return ()
 
 downloadUrl :: String -> IO LB.ByteString
@@ -722,7 +722,7 @@ copyAndLinkFile project public base url = do
     then return url
     else do
       let pub = public </> rel
-      liftIO $ createDirectoryIfMissing True (takeDirectory pub)
+      liftIO $ Dir.createDirectoryIfMissing True (takeDirectory pub)
       copyFileChanged url pub
       return $ makeRelativeTo base pub
 
@@ -744,7 +744,7 @@ writeExampleProject = mapM_ writeOne deckerExampleDir
     writeOne (path, contents) = do
       exists <- Development.Shake.doesFileExist path
       unless exists $ do
-        liftIO $ createDirectoryIfMissing True (takeDirectory path)
+        liftIO $ Dir.createDirectoryIfMissing True (takeDirectory path)
         liftIO $ B.writeFile path contents
         putNormal $ "# create (for " ++ path ++ ")"
 

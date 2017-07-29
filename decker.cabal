@@ -1,5 +1,5 @@
 name:                decker
-version:             1.0.0.0
+version:             0.3.0
 synopsis:            All inclusive slide deck creation with pandoc.
 description:         Please see README.md
 homepage:            https://tramberend.beuth-hochschule.de/decker

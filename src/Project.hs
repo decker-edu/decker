@@ -1,7 +1,6 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --} 
-
+{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Project
-  ( findResource
+  ( findFile
   , readResource
   , provisionResource
   , copyResource
@@ -31,16 +30,16 @@ import Debug.Trace
 import Embed
 import Extra
 import Network.URI
-import System.Directory
+import qualified System.Directory as D
 import System.FilePath
 import System.Posix.Files
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 
 data Provisioning
-  = Copy -- Copy to public and relative link
-  | SymbolicLink -- Link to public and relative link
-  | Reference -- Absolute local link
+  = Copy -- Copy to public and relative path
+  | SymbolicLink -- Symbolic link to public and relative path
+  | Reference -- Absolute local path
   deriving (Eq, Show, Read)
 
 provisioningFromMeta :: Meta -> Provisioning
@@ -48,7 +47,7 @@ provisioningFromMeta meta =
   case lookupMeta "provisioning" meta of
     Just (MetaString s) -> read s
     Just (MetaInlines i) -> read $ stringify i
-    _ -> Copy
+    otherwise -> Copy
 
 data Resource = Resource
   { sourceFile :: FilePath -- Absolute Path to source file
@@ -56,21 +55,22 @@ data Resource = Resource
   , publicUrl :: FilePath -- Relative URL to served file from base
   } deriving (Eq, Show)
 
-copyResource :: Resource -> IO (FilePath)
+copyResource :: Resource -> IO FilePath
 copyResource resource
+  -- TODO: Not working
   -- copyFileIfNewer (sourceFile resource) (publicFile resource)
  = do
-  createDirectoryIfMissing True (takeDirectory (publicFile resource))
-  copyFile (sourceFile resource) (publicFile resource)
+  D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
+  D.copyFile (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
-linkResource :: Resource -> IO (FilePath)
+linkResource :: Resource -> IO FilePath
 linkResource resource = do
-  whenM (doesFileExist (publicFile resource)) (removeFile (publicFile resource))
+  whenM (D.doesFileExist (publicFile resource)) (D.removeFile (publicFile resource))
   createSymbolicLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
-refResource :: Resource -> IO (FilePath)
+refResource :: Resource -> IO FilePath
 refResource resource = do
   return $ show $ URI "file" Nothing (sourceFile resource) "" ""
 
@@ -85,17 +85,17 @@ data ProjectDirs = ProjectDirs
 -- The project directory is the first upwards directory that contains a .git directory entry.
 findProjectDirectory :: IO FilePath
 findProjectDirectory = do
-  cwd <- getCurrentDirectory
+  cwd <- D.getCurrentDirectory
   searchGitRoot cwd
   where
     searchGitRoot :: FilePath -> IO FilePath
     searchGitRoot path =
       if isDrive path
-        then makeAbsolute "."
+        then D.makeAbsolute "."
         else do
-          hasGit <- doesDirectoryExist (path </> ".git")
+          hasGit <- D.doesDirectoryExist (path </> ".git")
           if hasGit
-            then makeAbsolute path
+            then D.makeAbsolute path
             else searchGitRoot $ takeDirectory path
 
 -- Calculate important absolute project directory pathes
@@ -111,20 +111,21 @@ projectDirectories = do
 -- returns Nothing if no file can be found.
 resolveLocally :: FilePath -> FilePath -> FilePath -> IO (Maybe FilePath)
 resolveLocally root base path = do
+  absRoot <- D.makeAbsolute root
+  absBase <- D.makeAbsolute base
   let candidates =
         if isAbsolute path
-          then [root </> makeRelative "/" path, path]
-          else [base </> path, root </> path]
-  listToMaybe <$> filterM doesFileExist candidates
+          then [absRoot </> makeRelative "/" path, path]
+          else [absBase </> path, absRoot </> path]
+  listToMaybe <$> filterM D.doesFileExist candidates
 
 resourcePathes :: ProjectDirs -> FilePath -> FilePath -> Resource
 resourcePathes dirs base absolute =
-  let relative = makeRelativeTo (project dirs) absolute
-  in Resource
-     { sourceFile = absolute
-     , publicFile = (public dirs) </> makeRelativeTo (project dirs) absolute
-     , publicUrl = makeRelativeTo base absolute
-     }
+  Resource
+  { sourceFile = absolute
+  , publicFile = (public dirs) </> makeRelativeTo (project dirs) absolute
+  , publicUrl = makeRelativeTo base absolute
+  }
 
 -- resolveUrl :: ProjectDirs -> FilePath -> FilePath -> IO (Maybe Resource)
 -- resolveUrl dirs base url = do
@@ -145,32 +146,39 @@ fileOrRelativeUrl _ = Nothing
 --    2. the project root
 -- Copy and link operations target the public directory in the project root
 -- and recreate the source directory structure.
+-- This function is used to provision resources that are used at presentation time.
 provisionResource ::
      Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
 provisionResource provisioning dirs base path = do
-  resource <- resourcePathes dirs base <$> findResource (project dirs) base path
+  resource <- resourcePathes dirs base <$> findFile (project dirs) base path
   case provisioning of
     Copy -> copyResource resource
     SymbolicLink -> linkResource resource
     Reference -> refResource resource
 
-findResource :: FilePath -> FilePath -> FilePath -> IO FilePath
-findResource root base path = do
+-- Finds local file system files that sre needed at compile time. 
+-- Throws if the resource cannot be found. Use mainly for include files.
+findFile :: FilePath -> FilePath -> FilePath -> IO FilePath
+findFile root base path = do
   resolved <- resolveLocally root base path
   case resolved of
     Nothing ->
-      throw $ ResourceException $ "Cannot find local resource: " ++ path
+      throw $ ResourceException $ "Cannot find local file system resource: " ++ path
     Just resource -> return resource
 
+-- Finds and reads a resource at compile time. If the resource can not be found in the
+-- file system, the built-in resource map is searched. If that fails, an error os thrown.
+-- The resource is searched for in a directory name `template`.
 readResource :: FilePath -> FilePath -> FilePath -> IO B.ByteString
 readResource root base path = do
+  let searchPath = "template" </> path
   resolved <- resolveLocally root base path
   case resolved of
     Just resource -> B.readFile resource
     Nothing ->
       case find (\(k, b) -> k == path) deckerTemplateDir of
         Nothing ->
-          throw $ ResourceException $ "Cannot read local resource: " ++ path
+          throw $ ResourceException $ "Cannot find built-in resource: " ++ path
         Just entry -> return $ snd entry
 
 -- | Copies the src to dst if src is newer or dst does not exist. 
@@ -180,18 +188,18 @@ copyFileIfNewer src dst = do
   newer <- fileIsNewer src dst
   if newer
     then do
-      createDirectoryIfMissing True (takeDirectory dst)
-      copyFile src dst
+      D.createDirectoryIfMissing True (takeDirectory dst)
+      D.copyFile src dst
     else return ()
 
 fileIsNewer a b = do
-  aexists <- doesFileExist a
-  bexists <- doesFileExist b
+  aexists <- D.doesFileExist a
+  bexists <- D.doesFileExist b
   if bexists
     then if aexists
            then do
-             at <- getModificationTime a
-             bt <- getModificationTime b
+             at <- D.getModificationTime a
+             bt <- D.getModificationTime b
              return ((traceShowId at) > (traceShowId bt))
            else return True
     else return False

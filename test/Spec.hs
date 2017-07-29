@@ -11,7 +11,7 @@ import Data.Text.Encoding
 import qualified Data.Yaml as Y
 import Project as P
 import Project
-import System.Directory
+import qualified System.Directory as Dir
 import System.FilePath
 import System.FilePath.Glob
 import System.FilePath.Posix
@@ -20,6 +20,8 @@ import Utilities
 
 main = do
   dirs <- projectDirectories
+  --
+  deckTemplate <- B.readFile ((project dirs) </> "resource/template/deck.html")
   --
   metaFiles <- globDir1 (compile "**/*-meta.yaml") (project dirs)
   print metaFiles
@@ -91,7 +93,7 @@ main = do
     describe "copyResource" $
       it
         "Copies an existing resource to the public dir and returns the public URL." $ do
-        doesFileExist ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+        Dir.doesFileExist ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
         copyResource
           (Resource
@@ -99,13 +101,13 @@ main = do
              ((public dirs) </> "resource/example/img/06-metal.png")
              "img/06-metal.png") `shouldReturn`
           "img/06-metal.png"
-        doesFileExist ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+        Dir.doesFileExist ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
     --
     describe "linkResource" $
       it
-        "Copies an existing resource to the public dir and returns the public URL." $ do
-        doesFileExist ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+        "Links an existing resource to the public dir and returns the public URL." $ do
+        Dir.doesFileExist ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
         linkResource
           (Resource
@@ -113,20 +115,62 @@ main = do
              ((public dirs) </> "resource/example/img/06-metal.png")
              "img/06-metal.png") `shouldReturn`
           "img/06-metal.png"
-        pathIsSymbolicLink
+        Dir.pathIsSymbolicLink
           ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
     -- 
-    describe "provisionResource" $
-      it "Resolves a file path to a verified file system path." $ do
+    describe "provisionResource" $ do
+      it "Copies a presentation time resource into the public dir." $ do
+        provisionResource
+          Copy
+          dirs
+          ((project dirs) </> "resource/example")
+          "img/06-metal.png" `shouldReturn`
+          "img/06-metal.png"
+        Dir.doesFileExist ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          True
+      it "Links a presentation time resource into the public dir." $ do
         provisionResource
           SymbolicLink
           dirs
           ((project dirs) </> "resource/example")
           "img/06-metal.png" `shouldReturn`
           "img/06-metal.png"
-        doesFileExist ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+        Dir.doesFileExist ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
+        Dir.pathIsSymbolicLink
+          ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          True
+      it "Throws, if the resource can not be found." $ do
+        provisionResource
+          Copy
+          dirs
+          ((project dirs) </> "resource/example")
+          "img/does-not-exist.png" `shouldThrow`
+          anyException
+    --
+    describe "findFile" $ do
+      it "Finds local file system resources that sre needed at compile time." $ do
+        findFile (project dirs) (project dirs) "resource/template/deck.html" `shouldReturn`
+          (project dirs) </>
+          "resource/template/deck.html"
+      it "Throws, if the resource can not be found." $ do
+        findFile (project dirs) (project dirs) "deck.html" `shouldThrow`
+          anyException
+    --
+    describe "readResource" $ do
+      it
+        "Finds local file system or built-in resources that sre needed at compile time." $ do
+        readResource
+          (project dirs)
+          ((project dirs) </> "resource/template")
+          "deck.html" `shouldReturn`
+          deckTemplate
+        readResource (project dirs) (project dirs) "deck.html" `shouldReturn`
+          deckTemplate
+      it "Throws, if the resource can not be read." $ do
+        readResource (project dirs) (project dirs) "dreck.html" `shouldThrow`
+          anyException
     --
     describe "cacheRemoteFile" $
       it
