@@ -1,28 +1,34 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --} 
-
+{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 {-# LANGUAGE DeriveDataTypeable #-}
 
 module Context
-       (ActionContext(..), makeActionContext, setActionContext, getFilesToWatch,
-        setFilesToWatch, getServerHandle, setServerHandle, getProjectDirs,
-        actionContextKey, getActionContext)
-       where
+  ( ActionContext(..)
+  , makeActionContext
+  , setActionContext
+  , getFilesToWatch
+  , setFilesToWatch
+  , getServerHandle
+  , setServerHandle
+  , getProjectDirs
+  , actionContextKey
+  , getActionContext
+  ) where
 
 import Control.Monad ()
-import Development.Shake
 import Data.Dynamic
-import Data.Maybe ()
-import Data.IORef
-import Data.Typeable ()
 import qualified Data.HashMap.Lazy as HashMap
-import System.Process
+import Data.IORef
+import Data.Maybe ()
+import Data.Typeable ()
+import Development.Shake
 import Project
+import System.Process
 
-data ActionContext =
-  ActionContext {ctxFilesToWatch :: IORef [FilePath]
-                ,ctxServerHandle :: IORef (Maybe ProcessHandle)
-                ,ctxDirs :: ProjectDirs}
-  deriving (Typeable, Show)
+data ActionContext = ActionContext
+  { ctxFilesToWatch :: IORef [FilePath]
+  , ctxServerHandle :: IORef (Maybe ProcessHandle)
+  , ctxDirs :: ProjectDirs
+  } deriving (Typeable, Show)
 
 instance Show (IORef a) where
   show _ = "IORef"
@@ -39,28 +45,29 @@ actionContextKey = do
   return $ typeOf ctx
 
 makeActionContext :: ProjectDirs -> IO ActionContext
-makeActionContext dirs =
-  do ctx <- defaultActionContext
-     return $
-       ctx { ctxDirs = dirs }
+makeActionContext dirs = do
+  ctx <- defaultActionContext
+  return $ ctx {ctxDirs = dirs}
 
 setActionContext :: ActionContext -> ShakeOptions -> IO ShakeOptions
-setActionContext ctx options =
-  do key <- liftIO $ actionContextKey
-     let extra = HashMap.insert key (toDyn ctx) $ HashMap.empty
-     return options {shakeExtra = extra}
+setActionContext ctx options = do
+  key <- liftIO $ actionContextKey
+  let extra = HashMap.insert key (toDyn ctx) $ HashMap.empty
+  return options {shakeExtra = extra}
 
 getActionContext :: Action ActionContext
 getActionContext = do
   options <- getShakeOptions
   key <- liftIO $ actionContextKey
   let extra = shakeExtra options
-  let dyn = case HashMap.lookup key extra of
-              Just d -> d
-              Nothing -> error "Error looking up action context"
-  return $ case fromDynamic dyn of
-             Just d -> d
-             Nothing -> error "Error upcasting action context"
+  let dyn =
+        case HashMap.lookup key extra of
+          Just d -> d
+          Nothing -> error "Error looking up action context"
+  return $
+    case fromDynamic dyn of
+      Just d -> d
+      Nothing -> error "Error upcasting action context"
 
 getFilesToWatch :: Action [FilePath]
 getFilesToWatch = do
@@ -83,7 +90,6 @@ setServerHandle handle = do
   liftIO $ writeIORef (ctxServerHandle ctx) handle
 
 getProjectDirs :: Action ProjectDirs
-getProjectDirs =
-  do ctx <- getActionContext
-     return $ ctxDirs ctx
-
+getProjectDirs = do
+  ctx <- getActionContext
+  return $ ctxDirs ctx

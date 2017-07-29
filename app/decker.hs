@@ -10,6 +10,7 @@ import Data.Yaml.Pretty
 import Development.Shake
 import Development.Shake.FilePath
 import Embed
+import Project
 import System.Directory
 import System.Exit
 import System.FilePath ()
@@ -18,7 +19,6 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
 import Utilities
-import Project
 
 version = "0.1.0"
 

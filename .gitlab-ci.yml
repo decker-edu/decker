@@ -5,3 +5,7 @@ before_script:
 test:
   script:
     - stack test
+
+formatting:
+  script:
+    bin/check-formatting.sh

@@ -93,7 +93,8 @@ main = do
     describe "copyResource" $
       it
         "Copies an existing resource to the public dir and returns the public URL." $ do
-        Dir.doesFileExist ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+        Dir.doesFileExist
+          ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
         copyResource
           (Resource
@@ -101,13 +102,15 @@ main = do
              ((public dirs) </> "resource/example/img/06-metal.png")
              "img/06-metal.png") `shouldReturn`
           "img/06-metal.png"
-        Dir.doesFileExist ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+        Dir.doesFileExist
+          ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
     --
     describe "linkResource" $
       it
         "Links an existing resource to the public dir and returns the public URL." $ do
-        Dir.doesFileExist ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+        Dir.doesFileExist
+          ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
         linkResource
           (Resource
@@ -127,7 +130,8 @@ main = do
           ((project dirs) </> "resource/example")
           "img/06-metal.png" `shouldReturn`
           "img/06-metal.png"
-        Dir.doesFileExist ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+        Dir.doesFileExist
+          ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
       it "Links a presentation time resource into the public dir." $ do
         provisionResource
@@ -136,7 +140,8 @@ main = do
           ((project dirs) </> "resource/example")
           "img/06-metal.png" `shouldReturn`
           "img/06-metal.png"
-        Dir.doesFileExist ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+        Dir.doesFileExist
+          ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
         Dir.pathIsSymbolicLink
           ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`

@@ -1,5 +1,4 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --} 
-
+{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Embed
@@ -62,8 +61,10 @@ testerMultipleChoiceTemplate =
 testerMultipleAnswersTemplate =
   fromJust $ defaultTemplate "ma-quest-catalog-template.md"
 
-testerFillTextTemplate = fromJust $ defaultTemplate "ft-quest-catalog-template.md"
+testerFillTextTemplate =
+  fromJust $ defaultTemplate "ft-quest-catalog-template.md"
 
-testerFreeFormTemplate = fromJust $ defaultTemplate "ff-quest-catalog-template.md"
+testerFreeFormTemplate =
+  fromJust $ defaultTemplate "ff-quest-catalog-template.md"
 
 testLatexTemplate = fromJust $ defaultTemplate "test.tex"

@@ -1,5 +1,4 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --} 
-
+{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Utilities
   ( calcProjectDirectory
   , spawn
@@ -24,7 +23,6 @@ module Utilities
   , writeExampleProject
   , metaValueAsString
   , (<++>)
-  , markNeeded
   , replaceSuffixWith
   , writeEmbeddedFiles
   , getRelativeSupportDir
@@ -206,14 +204,10 @@ runShakeInContext context options rules = do
 watchFiles = setFilesToWatch
 
 -- | Monadic version of list concatenation.
-(<++>) :: Monad m => m [a] -> m [a] -> m [a]
+(<++>)
+  :: Monad m
+  => m [a] -> m [a] -> m [a]
 (<++>) = liftM2 (++)
-
--- | Mark files as need and return them
-markNeeded :: [FilePath] -> Action [FilePath]
-markNeeded files = do
-  need files
-  return files
 
 -- | Removes the last suffix from a filename
 dropSuffix s t = fromMaybe t (stripSuffix s t)
@@ -224,8 +218,11 @@ replaceSuffixWith suffix with pathes =
   return [dropSuffix suffix d ++ with | d <- pathes]
 
 -- | Monadic version of suffix replacement for easy binding.
-calcTargetPath ::
-     FilePath -> String -> String -> [FilePath] -> Action [FilePath]
+calcTargetPath :: FilePath
+               -> String
+               -> String
+               -> [FilePath]
+               -> Action [FilePath]
 calcTargetPath projectDir suffix with pathes =
   return [projectDir </> dropSuffix suffix d ++ with | d <- pathes]
 
@@ -475,7 +472,8 @@ readMetaMarkdown markdownFile = do
   -- adjust image urls
   dirs <- getProjectDirs
   -- TODO: This has to go
-  return $ walk (adjustImageUrls (project dirs) (takeDirectory markdownFile)) pandoc
+  return $
+    walk (adjustImageUrls (project dirs) (takeDirectory markdownFile)) pandoc
   -- TODO: Make this work further down
   -- provisionResources dirs (takeDirectory markdownFile) pandoc
   where
@@ -582,7 +580,6 @@ locateTemplates root base (Pandoc meta blocks) = do
 --     provision anything _ = anything
 --     provision_ (ident, klass, kvs) provisioning =
 --       map (\(k, v) -> (k, provisionResource provisioning dirs base v))
-
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 processIncludes rootDir baseDir (Pandoc meta blocks) = do
@@ -714,8 +711,11 @@ copyImages baseDir pandoc = do
           kvs
       return (i, cs, relKvs)
 
-copyAndLinkFile ::
-     FilePath -> FilePath -> FilePath -> FilePath -> Action FilePath
+copyAndLinkFile :: FilePath
+                -> FilePath
+                -> FilePath
+                -> FilePath
+                -> Action FilePath
 copyAndLinkFile project public base url = do
   let rel = makeRelative project url
   if rel == url

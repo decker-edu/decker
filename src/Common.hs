@@ -1,5 +1,4 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --} 
-
+{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Common
   ( DeckerException(..)
   ) where

@@ -4,6 +4,7 @@ module Watch
   ) where
 
 import Control.Concurrent.MVar
+
 -- | A non-polling file watcher based on fsnotify
 import Data.List
 import System.FSNotify

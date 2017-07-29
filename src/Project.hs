@@ -66,7 +66,9 @@ copyResource resource
 
 linkResource :: Resource -> IO FilePath
 linkResource resource = do
-  whenM (D.doesFileExist (publicFile resource)) (D.removeFile (publicFile resource))
+  whenM
+    (D.doesFileExist (publicFile resource))
+    (D.removeFile (publicFile resource))
   createSymbolicLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
@@ -147,8 +149,11 @@ fileOrRelativeUrl _ = Nothing
 -- Copy and link operations target the public directory in the project root
 -- and recreate the source directory structure.
 -- This function is used to provision resources that are used at presentation time.
-provisionResource ::
-     Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
+provisionResource :: Provisioning
+                  -> ProjectDirs
+                  -> FilePath
+                  -> FilePath
+                  -> IO FilePath
 provisionResource provisioning dirs base path = do
   resource <- resourcePathes dirs base <$> findFile (project dirs) base path
   case provisioning of
@@ -163,7 +168,8 @@ findFile root base path = do
   resolved <- resolveLocally root base path
   case resolved of
     Nothing ->
-      throw $ ResourceException $ "Cannot find local file system resource: " ++ path
+      throw $
+      ResourceException $ "Cannot find local file system resource: " ++ path
     Just resource -> return resource
 
 -- Finds and reads a resource at compile time. If the resource can not be found in the
@@ -226,7 +232,9 @@ removeCommonPrefix =
 
 isPrefix a b = isPrefix_ (splitPath a) (splitPath b)
   where
-    isPrefix_ :: Eq a => [a] -> [a] -> Bool
+    isPrefix_
+      :: Eq a
+      => [a] -> [a] -> Bool
     isPrefix_ al@(a:as) bl@(b:bs)
       | a == b = isPrefix_ as bs
       | otherwise = False
