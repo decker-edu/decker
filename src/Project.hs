@@ -149,11 +149,8 @@ fileOrRelativeUrl _ = Nothing
 -- Copy and link operations target the public directory in the project root
 -- and recreate the source directory structure.
 -- This function is used to provision resources that are used at presentation time.
-provisionResource :: Provisioning
-                  -> ProjectDirs
-                  -> FilePath
-                  -> FilePath
-                  -> IO FilePath
+provisionResource ::
+     Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
 provisionResource provisioning dirs base path = do
   resource <- resourcePathes dirs base <$> findFile (project dirs) base path
   case provisioning of
@@ -232,9 +229,7 @@ removeCommonPrefix =
 
 isPrefix a b = isPrefix_ (splitPath a) (splitPath b)
   where
-    isPrefix_
-      :: Eq a
-      => [a] -> [a] -> Bool
+    isPrefix_ :: Eq a => [a] -> [a] -> Bool
     isPrefix_ al@(a:as) bl@(b:bs)
       | a == b = isPrefix_ as bs
       | otherwise = False

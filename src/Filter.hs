@@ -26,7 +26,7 @@ import System.Directory
 import System.FilePath
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 as H (div, figure, iframe, p, toValue, (!))
+import Text.Blaze.Html5 as H ((!), div, figure, iframe, p, toValue)
 import Text.Blaze.Html5.Attributes as A
        (class_, height, src, style, width)
 import Text.Pandoc.Definition ()
@@ -112,9 +112,7 @@ macroMap :: MacroMap
 macroMap =
   Map.fromList [("meta", metaValue), ("youtube", youtube), ("fa", fontAwesome)]
 
-readDefault
-  :: Read a
-  => a -> String -> a
+readDefault :: Read a => a -> String -> a
 readDefault default_ string = fromMaybe default_ (readMaybe string)
 
 macroArg :: Int -> [String] -> String -> String

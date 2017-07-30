@@ -204,9 +204,7 @@ runShakeInContext context options rules = do
 watchFiles = setFilesToWatch
 
 -- | Monadic version of list concatenation.
-(<++>)
-  :: Monad m
-  => m [a] -> m [a] -> m [a]
+(<++>) :: Monad m => m [a] -> m [a] -> m [a]
 (<++>) = liftM2 (++)
 
 -- | Removes the last suffix from a filename
@@ -218,11 +216,8 @@ replaceSuffixWith suffix with pathes =
   return [dropSuffix suffix d ++ with | d <- pathes]
 
 -- | Monadic version of suffix replacement for easy binding.
-calcTargetPath :: FilePath
-               -> String
-               -> String
-               -> [FilePath]
-               -> Action [FilePath]
+calcTargetPath ::
+     FilePath -> String -> String -> [FilePath] -> Action [FilePath]
 calcTargetPath projectDir suffix with pathes =
   return [projectDir </> dropSuffix suffix d ++ with | d <- pathes]
 
@@ -711,11 +706,8 @@ copyImages baseDir pandoc = do
           kvs
       return (i, cs, relKvs)
 
-copyAndLinkFile :: FilePath
-                -> FilePath
-                -> FilePath
-                -> FilePath
-                -> Action FilePath
+copyAndLinkFile ::
+     FilePath -> FilePath -> FilePath -> FilePath -> Action FilePath
 copyAndLinkFile project public base url = do
   let rel = makeRelative project url
   if rel == url
