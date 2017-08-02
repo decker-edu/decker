@@ -46,12 +46,12 @@ import Control.Arrow
 import Control.Concurrent
 import Control.Exception
 import Control.Monad
+import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Loops
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Digest.Pure.MD5
-import Data.Dynamic
 import qualified Data.HashMap.Lazy as HashMap
 import qualified Data.HashMap.Strict as H
 import Data.IORef
@@ -64,7 +64,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
-import Debug.Trace
+
+-- import Debug.Trace
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Embed
@@ -85,6 +86,7 @@ import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc
 import Text.Pandoc.PDF
+import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Watch
 
@@ -106,7 +108,8 @@ calcProjectDirectory = do
             else searchGitRoot $ takeDirectory path
 
 -- | Globs for files under the project dir in the Action monad. 
--- Returns absolute pathes. 
+-- Returns absolute pathes.
+-- TODO: Remove matches under 'public', 'support', and 'cache'. 
 globA :: FilePattern -> Action [FilePath]
 globA pat = do
   dirs <- getProjectDirs
@@ -129,7 +132,7 @@ spawn = liftIO . spawnCommand
 runHttpServer dir open = do
   process <- getServerHandle
   case process of
-    Just handle -> return ()
+    Just _ -> return ()
     Nothing -> do
       putNormal "# livereloadx (on http://localhost:8888, see server.log)"
       handle <-
@@ -138,6 +141,7 @@ runHttpServer dir open = do
       threadDelay' 200000
       when open $ cmd ("open http://localhost:8888/" :: String) :: Action ()
 
+startServer :: Control.Monad.IO.Class.MonadIO m => [Char] -> String -> m ()
 startServer id command =
   liftIO $ do
     processHandle <- spawnCommand command
@@ -467,10 +471,9 @@ readMetaMarkdown markdownFile = do
   -- adjust image urls
   dirs <- getProjectDirs
   -- TODO: This has to go
-  return $
-    walk (adjustImageUrls (project dirs) (takeDirectory markdownFile)) pandoc
+  -- return $ walk (adjustImageUrls (project dirs) (takeDirectory markdownFile)) pandoc
   -- TODO: Make this work further down
-  -- provisionResources dirs (takeDirectory markdownFile) pandoc
+  provisionResources dirs (takeDirectory markdownFile) pandoc
   where
     readMarkdownOrThrow opts string =
       case readMarkdown opts string of
@@ -506,7 +509,7 @@ toPandocMeta (Y.Bool bool) = MetaBool bool
 toPandocMeta (Y.Null) = MetaList []
 
 -- Remove automatic identifier creation for headers. It does not work well with
--- the current include mechanism, if slides have duplicate titles in separate
+-- the current include mechanism if slides have duplicate titles in separate
 -- include files.
 deckerPandocExtensions :: Set.Set Extension
 deckerPandocExtensions = Set.delete Ext_auto_identifiers pandocExtensions
@@ -564,17 +567,79 @@ locateTemplates :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 locateTemplates root base (Pandoc meta blocks) = do
   return (Pandoc meta blocks)
 
--- TODO: Make this compile, than work
--- provisionResources :: ProjectDirs -> FilePath -> Pandoc -> Action Pandoc
--- provisionResources dirs base pandoc@(Pandoc meta blocks) = do
---   let provisioning = provisioningFromMeta meta
---   liftIO $ walkM (provision provisioning) pandoc
---   where
---     provision (Image attr inlines target) provisioning =
---       Image (provision_ attr provisioning) inlines target
---     provision anything _ = anything
---     provision_ (ident, klass, kvs) provisioning =
---       map (\(k, v) -> (k, provisionResource provisioning dirs base v))
+-- TODO: Make this compile, then work
+provisionResources :: ProjectDirs -> FilePath -> Pandoc -> Action Pandoc
+provisionResources dirs base pandoc@(Pandoc meta blocks) = do
+  let method = provisioningFromMeta meta
+  liftIO $ do
+    processedBlocks <-
+      walkM (processInline dirs base method) blocks >>=
+      walkM (processBlock dirs base method)
+    processedMeta <- processMeta dirs base method meta
+    return (Pandoc processedMeta processedBlocks)
+
+elementAttributes =
+  [ "src"
+  , "data-src"
+  , "data-markdown"
+  , "data-background-video"
+  , "data-background-image"
+  , "data-background-iframe"
+  ]
+
+metaKeys = ["css", "bibliography", "csl", "citation-abbreviations"]
+
+processAttributes :: ProjectDirs -> FilePath -> Provisioning -> Attr -> IO Attr
+processAttributes dirs base method (ident, classes, kv) = do
+  processed <- mapM provisionAttrib kv
+  return (ident, classes, processed)
+  where
+    provisionAttrib (key, value) = do
+      if elem key metaKeys
+        then do
+          resource <- provisionResource method dirs base value
+          print (key, resource)
+          return (key, resource)
+        else return (key, value)
+
+processInline :: ProjectDirs -> FilePath -> Provisioning -> Inline -> IO Inline
+processInline dirs base method img@(Image attr@(_, cls, _) inlines (url, title)) = do
+  if not $ isMacro $ stringify inlines
+    then do
+      a <- processAttributes dirs base method attr
+      u <- provisionResource (provisioningFromClasses method cls) dirs base url
+      return $ renderImageVideo $ Image a inlines (u, title)
+    else return img
+processInline dirs base method lnk@(Link attr@(_, cls, _) inlines (url, title)) = do
+  if not (isMacro $ stringify inlines) && "resource" `elem` cls
+    then do
+      a <- processAttributes dirs base method attr
+      u <- provisionResource (provisioningFromClasses method cls) dirs base url
+      return (Link a inlines (u, title))
+    else return lnk
+processInline dirs base method (Span attr inlines) = do
+  processed <- processAttributes dirs base method attr
+  return (Span processed inlines)
+processInline dirs base method (Code attr string) = do
+  processed <- processAttributes dirs base method attr
+  return (Code processed string)
+processInline _ _ _ inline = return inline
+
+processBlock :: ProjectDirs -> FilePath -> Provisioning -> Block -> IO Block
+processBlock dirs base method (CodeBlock attr string) = do
+  processed <- processAttributes dirs base method attr
+  return (CodeBlock attr string)
+processBlock dirs base method (Header n attr inlines) = do
+  processed <- processAttributes dirs base method attr
+  return (Header n attr inlines)
+processBlock dirs base method (Div attr blocks) = do
+  processed <- processAttributes dirs base method attr
+  return (Div attr blocks)
+processBlock _ _ _ block = return block
+
+processMeta :: ProjectDirs -> FilePath -> Provisioning -> Meta -> IO Meta
+processMeta dirs base method (Meta kvmap) = return (Meta kvmap)
+
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 processIncludes rootDir baseDir (Pandoc meta blocks) = do
@@ -618,14 +683,13 @@ cacheRemoteFile cacheDir url
                 return url)
 cacheRemoteFile _ url = return url
 
-clearCachedFile :: FilePath -> String -> IO ()
-clearCachedFile cacheDir url
-  | isCacheableURI url = do
-    let cacheFile = cacheDir </> hashURI url
-    exists <- Dir.doesFileExist cacheFile
-    when exists $ Dir.removeFile cacheFile
-clearCachedFile _ _ = return ()
-
+-- clearCachedFile :: FilePath -> String -> IO ()
+-- clearCachedFile cacheDir url
+--   | isCacheableURI url = do
+--     let cacheFile = cacheDir </> hashURI url
+--     exists <- Dir.doesFileExist cacheFile
+--     when exists $ Dir.removeFile cacheFile
+-- clearCachedFile _ _ = return ()
 downloadUrl :: String -> IO LB.ByteString
 downloadUrl url = do
   request <- parseRequest url
@@ -752,7 +816,7 @@ writeEmbeddedFiles files dir = do
 
 lookupValue :: String -> Y.Value -> Maybe Y.Value
 lookupValue key (Y.Object hashTable) = HashMap.lookup (T.pack key) hashTable
-lookupValue key _ = Nothing
+lookupValue _ _ = Nothing
 
 metaValueAsString :: String -> Y.Value -> Maybe String
 metaValueAsString key meta =

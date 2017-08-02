@@ -5,7 +5,8 @@ module Project
   , provisionResource
   , copyResource
   , linkResource
-  , refResource
+  , relRefResource
+  , absRefResource
   , removeCommonPrefix
   , isPrefix
   , makeRelativeTo
@@ -13,6 +14,7 @@ module Project
   , projectDirectories
   , resolveLocally
   , provisioningFromMeta
+  , provisioningFromClasses
   , Resource(..)
   , Provisioning(..)
   , ProjectDirs(..)
@@ -21,8 +23,6 @@ module Project
 import Common
 import Control.Exception
 import Control.Monad
-import Control.Monad.Trans.Class
-import Control.Monad.Trans.Maybe
 import qualified Data.ByteString as B
 import Data.List
 import Data.Maybe
@@ -37,9 +37,10 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 
 data Provisioning
-  = Copy -- Copy to public and relative path
-  | SymbolicLink -- Symbolic link to public and relative path
-  | Reference -- Absolute local path
+  = Copy -- Copy to public and relative URL
+  | SymLink -- Symbolic link to public and relative URL
+  | Absolute -- Absolute local URL
+  | Relative -- Relative local URL
   deriving (Eq, Show, Read)
 
 provisioningFromMeta :: Meta -> Provisioning
@@ -47,7 +48,19 @@ provisioningFromMeta meta =
   case lookupMeta "provisioning" meta of
     Just (MetaString s) -> read s
     Just (MetaInlines i) -> read $ stringify i
-    otherwise -> Copy
+    _ -> SymLink
+
+provisioningClasses =
+  [ ("copy", Copy)
+  , ("symlink", SymLink)
+  , ("absolute", Absolute)
+  , ("relative", Relative)
+  ]
+
+provisioningFromClasses :: Provisioning -> [String] -> Provisioning
+provisioningFromClasses defaultP cls =
+  fromMaybe defaultP $
+  listToMaybe $ map snd $ filter ((flip elem) cls . fst) provisioningClasses
 
 data Resource = Resource
   { sourceFile :: FilePath -- Absolute Path to source file
@@ -69,12 +82,18 @@ linkResource resource = do
   whenM
     (D.doesFileExist (publicFile resource))
     (D.removeFile (publicFile resource))
+  D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
   createSymbolicLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
-refResource :: Resource -> IO FilePath
-refResource resource = do
+absRefResource :: Resource -> IO FilePath
+absRefResource resource = do
   return $ show $ URI "file" Nothing (sourceFile resource) "" ""
+
+relRefResource :: FilePath -> Resource -> IO FilePath
+relRefResource base resource = do
+  let relPath = makeRelativeTo base (sourceFile resource)
+  return $ show $ URI "file" Nothing relPath "" ""
 
 data ProjectDirs = ProjectDirs
   { project :: FilePath
@@ -129,15 +148,11 @@ resourcePathes dirs base absolute =
   , publicUrl = makeRelativeTo base absolute
   }
 
--- resolveUrl :: ProjectDirs -> FilePath -> FilePath -> IO (Maybe Resource)
--- resolveUrl dirs base url = do
---   case parseURI url >>= fileOrRelativeUrl of
---     Nothing -> return Nothing
---     Just path -> resourcePathes dirs base <$> resolve dirs base path
-fileOrRelativeUrl :: URI -> Maybe FilePath
-fileOrRelativeUrl (URI "file:" Nothing path _ _) = Just path
-fileOrRelativeUrl (URI "" Nothing path _ _) = Just path
-fileOrRelativeUrl _ = Nothing
+isLocalURI :: String -> Bool
+isLocalURI url = isNothing $ parseURI url
+
+isRemoteURI :: String -> Bool
+isRemoteURI = not . isLocalURI
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs 
 -- are resolved against and copied or linked to public from 
@@ -152,14 +167,18 @@ fileOrRelativeUrl _ = Nothing
 provisionResource ::
      Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
 provisionResource provisioning dirs base path = do
-  resource <- resourcePathes dirs base <$> findFile (project dirs) base path
-  case provisioning of
-    Copy -> copyResource resource
-    SymbolicLink -> linkResource resource
-    Reference -> refResource resource
+  if path == "" || isRemoteURI path
+    then return path
+    else do
+      resource <- resourcePathes dirs base <$> findFile (project dirs) base path
+      case provisioning of
+        Copy -> copyResource resource
+        SymLink -> linkResource resource
+        Absolute -> absRefResource resource
+        Relative -> relRefResource base resource
 
 -- Finds local file system files that sre needed at compile time. 
--- Throws if the resource cannot be found. Use mainly for include files.
+-- Throws if the resource cannot be found. Used mainly for include files.
 findFile :: FilePath -> FilePath -> FilePath -> IO FilePath
 findFile root base path = do
   resolved <- resolveLocally root base path
@@ -167,6 +186,15 @@ findFile root base path = do
     Nothing ->
       throw $
       ResourceException $ "Cannot find local file system resource: " ++ path
+    Just resource -> return resource
+
+-- Finds local file system files that sre needed at compile time. 
+-- Returns the original path if the resource cannot be found.
+maybeFindFile :: FilePath -> FilePath -> FilePath -> IO FilePath
+maybeFindFile root base path = do
+  resolved <- resolveLocally root base path
+  case resolved of
+    Nothing -> return path
     Just resource -> return resource
 
 -- Finds and reads a resource at compile time. If the resource can not be found in the

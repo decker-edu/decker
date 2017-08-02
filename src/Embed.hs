@@ -9,14 +9,8 @@ module Embed
   , deckTemplate
   , pageTemplate
   , pageLatexTemplate
-  , examLatexTemplate
   , handoutTemplate
   , handoutLatexTemplate
-  , testerMultipleChoiceTemplate
-  , testerMultipleAnswersTemplate
-  , testerFillTextTemplate
-  , testerFreeFormTemplate
-  , testLatexTemplate
   , defaultTemplate
   , defaultTemplateString
   ) where
@@ -49,22 +43,6 @@ pageTemplate = fromJust $ defaultTemplateString "page.html"
 
 pageLatexTemplate = fromJust $ defaultTemplateString "page.tex"
 
-examLatexTemplate = fromJust $ defaultTemplateString "exam.tex"
-
 handoutTemplate = fromJust $ defaultTemplateString "handout.html"
 
 handoutLatexTemplate = fromJust $ defaultTemplateString "handout.tex"
-
-testerMultipleChoiceTemplate =
-  fromJust $ defaultTemplate "mc-quest-catalog-template.md"
-
-testerMultipleAnswersTemplate =
-  fromJust $ defaultTemplate "ma-quest-catalog-template.md"
-
-testerFillTextTemplate =
-  fromJust $ defaultTemplate "ft-quest-catalog-template.md"
-
-testerFreeFormTemplate =
-  fromJust $ defaultTemplate "ff-quest-catalog-template.md"
-
-testLatexTemplate = fromJust $ defaultTemplate "test.tex"

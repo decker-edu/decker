@@ -8,7 +8,7 @@ A markdown based tool for slide deck creation.
 
 Pick a [published release](https://cgmgit.beuth-hochschule.de/teaching/decker/tags), download and unpack:
 
-```sh
+``` {.sh}
 gunzip decker.gz
 chmod a+x decker
 ```
@@ -103,4 +103,21 @@ chmod a+x decker
 
 ### Pull requests
 
-Contributions are accepted via pull requests. Before working on a feature, please write up an issue and discuss it with me.
+Contributions are accepted via pull requests. Before working on a feature, please write up an issue and discuss it with the other developers.
+
+### CI build checks
+
+The decker repository has a GitLab CI runner configured, that builds and runs all tests for each commit on every branch.
+
+### Haskell source code formatting
+
+Haskell soure code readability depends heavily on consistent formatting conventions. With decker, formatting is automated using the excellent [hindent]() tool. Formatting is checked for each commit that is uploaded to the GitLab repository.
+
+### Compilation and running
+
+``` {.sh}
+> stack setup
+> stack build
+> stack test
+> stack exec decker
+```

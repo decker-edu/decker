@@ -9,10 +9,10 @@ module Filter
   , escapeToFilePath
   , cachePandocImages
   , extractLocalImagePathes
+  , renderImageVideo
+  , isMacro
   ) where
 
-import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Default ()
 import Data.List.Split
@@ -24,13 +24,16 @@ import Network.HTTP.Simple
 import Network.URI
 import System.Directory
 import System.FilePath
+import System.FilePath.Posix
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 as H ((!), div, figure, iframe, p, toValue)
+import Text.Blaze.Html5 as H
+       ((!), div, figure, iframe, p, source, stringTag, toValue, video)
 import Text.Blaze.Html5.Attributes as A
-       (class_, height, src, style, width)
+       (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.JSON
+import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
 import Text.Read
@@ -72,7 +75,7 @@ embedYoutubeHtml args attr (vid, _) =
       src (toValue url) !
       customAttribute "frameborder" "0" !
       customAttribute "allowfullscreen" "" $
-      p ""
+      H.p ""
 
 youtube :: MacroFunc
 youtube args attr target (Format f) _
@@ -126,6 +129,10 @@ parseMacro (pre:invocation)
   | pre == ':' = Just (words invocation)
 parseMacro _ = Nothing
 
+isMacro :: String -> Bool
+isMacro (pre:_) = pre == ':'
+isMacro _ = False
+
 onlyStrings :: [Inline] -> [String]
 onlyStrings = reverse . foldl only []
   where
@@ -139,7 +146,7 @@ expand x _ _ = Just x
 
 expand_ :: Attr -> [Inline] -> Target -> Format -> Meta -> Maybe Inline
 expand_ attr text target format meta = do
-  name:args <- (parseMacro . unwords . onlyStrings) text
+  name:args <- parseMacro $ stringify text
   func <- Map.lookup name macroMap
   return (func args attr target format meta)
 
@@ -193,7 +200,8 @@ splitColumns slide@(header:body) =
 splitColumns [] = []
 
 -- All fragment related classes from reveal.js have to be moved to the enclosing
--- DIV element. Otherwise to many fragments are produced.fragmentRelated :: [String]
+-- DIV element. Otherwise to many fragments are produced.
+fragmentRelated :: [String]
 fragmentRelated =
   [ "fragment"
   , "grow"
@@ -249,7 +257,7 @@ makeSlides (Just (Format "revealjs")) =
 makeSlides (Just (Format "beamer")) =
   walk (mapSlides splitColumns) .
   walk (mapSlides wrapBoxes) . walk (mapSlides wrapNoteBeamer)
-makeSlides _ = id
+makeSlides _ = Prelude.id
 
 -- Only consider slides that have the 'notes' class in their header. In all
 -- others pick only the boxes that are tagged as notes.
@@ -266,7 +274,7 @@ filterSlides _ = []
 
 filterNotes :: Maybe Format -> Pandoc -> Pandoc
 filterNotes (Just (Format _)) = walk (mapSlides filterSlides)
-filterNotes _ = id
+filterNotes _ = Prelude.id
 
 escapeToFilePath :: String -> FilePath
 escapeToFilePath = map repl
@@ -309,7 +317,7 @@ cachePandocImages base img@(Image _ _ (url, _))
   | otherwise = return img
 cachePandocImages _ inline = return inline
 
--- | Download the image behind the URI and save it locally. Return the path of
+-- | Downloads the image behind the URI and saves it locally. Returns the path of
 -- the cached file relative to the base directory.
 cacheImageIO :: String -> FilePath -> IO ()
 cacheImageIO uri cacheDir = do
@@ -319,3 +327,23 @@ cacheImageIO uri cacheDir = do
   let cacheFile = cacheDir </> escapeToFilePath uri
   createDirectoryIfMissing True cacheDir
   L8.writeFile cacheFile body
+
+-- File extensions that signify video content.
+videoExtensions =
+  [".mp4", ".webm", ".ogg", ".avi", ".dv", ".mp2", ".mov", ".qt"]
+
+-- Renders an image with a video reference to a video tag in raw HTML. Faithfully
+-- transfers attributes to the video tag.
+renderImageVideo :: Inline -> Inline
+renderImageVideo image@(Image (ident, cls, values) inlines (url, tit)) =
+  if takeExtension url `elem` videoExtensions
+    then RawInline (Format "html") (renderHtml videoTag)
+    else image
+  where
+    appendAttr element (key, value) =
+      element ! customAttribute (stringTag key) (toValue value)
+    videoTag =
+      foldl appendAttr video values ! A.id (toValue ident) !
+      class_ (toValue $ unwords cls) !
+      alt (toValue $ stringify inlines) !
+      title (toValue tit) $ do source ! src (toValue url)

@@ -2,12 +2,12 @@
 author: Henrik Tramberend
 date: '15.5.2016'
 history: True
+signs: © €
 subtitle: Tutorial and Examples
 theme: 'htr-slides'
 title: Decker Slide Tool
 transition: linear
 ümläüte: Ümläüte
-signs: © €
 ---
 
 # Overview
@@ -55,15 +55,17 @@ signs: © €
 
 ## Include markdown files
 
-The following text ist included from file `/resource/realtive.md`:
+The following text is included from file `/resource/realtive.md`:
 
-[\#include](include/relative.md)
+[:include](include/relative.md)
 
 # Multicolumn slides
 
 ## The author
 
-![](img/htr-beuth.jpg)
+![](img/htr-beuth.jpg){width="50%"}![](https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg){width="50%"}
+
+[Deck markdown source](example-deck.md)
 
 ### 
 
@@ -74,7 +76,7 @@ The following text ist included from file `/resource/realtive.md`:
 
 ## The author
 
-![](img/htr-beuth.jpg)
+![](img/htr-beuth.jpg){data-src="img/htr-beuth.jpg"}
 
 ###
 
@@ -211,9 +213,7 @@ $e=mc^2$
 
 # These are just notes {.notes}
 
-Slides with headers that are have the `.notes` class attribute are not included
-in the presentation. They are only visible in the handout and probably are
-available as presenter notes during slide presentation.
+Slides with headers that are have the `.notes` class attribute are not included in the presentation. They are only visible in the handout and probably are available as presenter notes during slide presentation.
 
 # Cached Images
 
@@ -221,8 +221,7 @@ available as presenter notes during slide presentation.
 
 Remote images can be cached locally
 
-Cache directory is named `img/cached` and is located in the directory of the
-referencing document
+Cache directory is named `img/cached` and is located in the directory of the referencing document
 
 `decker cache` scans for and downloads all images
 
@@ -230,12 +229,11 @@ referencing document
 
 ## Cached remote image
 
-![Some piece of scene
-graph](https://tramberend.beuth-hochschule.de/img/cg1-banner.png)
+![Some piece of scene graph](https://tramberend.beuth-hochschule.de/img/cg1-banner.png)
 
 ## Not really!
 
-- Caching is currently disabled
+-   Caching is currently disabled
 
 # Meta Data
 
@@ -271,17 +269,17 @@ Your total score is 42.
 
 ## UTF-8 encoding for everything
 
-- Markdown source files are assumed to be UTF-8 encoded
-- YAML metadata also
+-   Markdown source files are assumed to be UTF-8 encoded
+-   YAML metadata also
 
 ## German Umlaute
 
-- ÄÖÜäöüßß
+-   ÄÖÜäöüßß
 
 ## Substituted meta data
 
-- Umlaute: {{ümläüte}}
-- Signs: {{signs}}
+-   Umlaute: {{ümläüte}}
+-   Signs: {{signs}}
 
 # `decker` Tool {.section}
 
@@ -320,8 +318,7 @@ Your total score is 42.
 
 -   `*-deck.html` a *reveal.js* based HTML slide deck
 -   `*-deck.pdf` a PDF version of that deck
--   `*-handout.html` a HTML document containing only the speaker notes from the
-    deck
+-   `*-handout.html` a HTML document containing only the speaker notes from the deck
 -   `*-handout.pdf` a PDF version of that handout
 
 ## Generated from `*-page.md`
