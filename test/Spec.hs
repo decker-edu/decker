@@ -135,7 +135,7 @@ main = do
           True
       it "Links a presentation time resource into the public dir." $ do
         provisionResource
-          SymbolicLink
+          SymLink
           dirs
           ((project dirs) </> "resource/example")
           "img/06-metal.png" `shouldReturn`
