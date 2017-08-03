@@ -1,7 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Utilities
-  ( calcProjectDirectory
-  , spawn
+  ( spawn
   , terminate
   , threadDelay'
   , wantRepeat
@@ -109,11 +108,12 @@ calcProjectDirectory = do
 
 -- | Globs for files under the project dir in the Action monad. 
 -- Returns absolute pathes.
--- TODO: Remove matches under 'public', 'support', and 'cache'. 
 globA :: FilePattern -> Action [FilePath]
 globA pat = do
   dirs <- getProjectDirs
-  liftIO $ globDir1 (compile pat) (project dirs)
+  liftIO $
+    filter (not . isPrefixOf (public dirs)) <$>
+    globDir1 (compile pat) (project dirs)
 
 -- | Globs for files under the project dir in the Action monad. 
 -- Returns pathes relative to the project directory. 
@@ -351,9 +351,10 @@ getPandocWriter format =
 readAndPreprocessMarkdown :: FilePath -> Action Pandoc
 readAndPreprocessMarkdown markdownFile = do
   dirs <- getProjectDirs
+  let projectDir = project dirs
   let baseDir = takeDirectory markdownFile
-  readMetaMarkdown markdownFile >>= processIncludes (project dirs) baseDir >>=
-    locateTemplates (project dirs) baseDir
+  pandoc <- readMetaMarkdown markdownFile >>= processIncludes projectDir baseDir
+  liftIO $ mapMetaResources (findLocalFile projectDir baseDir) pandoc
   -- Disable automatic caching of remomte images for a while
   -- >>= populateCache
 
@@ -473,12 +474,17 @@ readMetaMarkdown markdownFile = do
   -- TODO: This has to go
   -- return $ walk (adjustImageUrls (project dirs) (takeDirectory markdownFile)) pandoc
   -- TODO: Make this work further down
-  provisionResources dirs (takeDirectory markdownFile) pandoc
-  where
-    readMarkdownOrThrow opts string =
-      case readMarkdown opts string of
-        Right pandoc -> pandoc
-        Left err -> throw $ PandocException (show err)
+  -- provisionResources dirs (takeDirectory markdownFile) pandoc
+  liftIO $
+    mapResources
+      (findLocalFile (project dirs) (takeDirectory markdownFile))
+      pandoc
+
+readMarkdownOrThrow :: ReaderOptions -> String -> Pandoc
+readMarkdownOrThrow opts string =
+  case readMarkdown opts string of
+    Right pandoc -> pandoc
+    Left err -> throw $ PandocException (show err)
 
 -- | Converts pandoc meta data to mustache meta data. Inlines and blocks are rendered to 
 -- markdown strings with default options.
@@ -567,7 +573,83 @@ locateTemplates :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 locateTemplates root base (Pandoc meta blocks) = do
   return (Pandoc meta blocks)
 
--- TODO: Make this compile, then work
+mapResources :: (FilePath -> IO FilePath) -> Pandoc -> IO Pandoc
+mapResources transform pandoc@(Pandoc meta blocks) = do
+  processedBlocks <-
+    walkM (mapInline transform) blocks >>= walkM (mapBlock transform)
+  return (Pandoc meta processedBlocks)
+
+mapAttributes :: (FilePath -> IO FilePath) -> Attr -> IO Attr
+mapAttributes transform (ident, classes, kv) = do
+  processed <- mapM mapAttr kv
+  return (ident, classes, processed)
+  where
+    mapAttr kv@(key, value) = do
+      if elem key elementAttributes
+        then do
+          transformed <- transform value
+          return (key, transformed)
+        else return kv
+
+mapInline :: (FilePath -> IO FilePath) -> Inline -> IO Inline
+mapInline transform img@(Image attr@(_, cls, _) inlines (url, title)) = do
+  if not $ isMacro $ stringify inlines
+    then do
+      a <- mapAttributes transform attr
+      u <- transform url
+      return $ renderImageVideo $ Image a inlines (u, title)
+    else return img
+mapInline transform lnk@(Link attr@(_, cls, _) inlines (url, title)) = do
+  if (not $ isMacro $ stringify inlines) && "resource" `elem` cls
+    then do
+      a <- mapAttributes transform attr
+      u <- transform url
+      return (Link a inlines (u, title))
+    else return lnk
+mapInline transform (Span attr inlines) = do
+  attribs <- mapAttributes transform attr
+  return (Span attribs inlines)
+mapInline transform (Code attr string) = do
+  attribs <- mapAttributes transform attr
+  return (Code attribs string)
+mapInline _ inline = return inline
+
+mapBlock :: (FilePath -> IO FilePath) -> Block -> IO Block
+mapBlock transform (CodeBlock attr string) = do
+  attribs <- mapAttributes transform attr
+  return (CodeBlock attribs string)
+mapBlock transform (Header n attr inlines) = do
+  attribs <- mapAttributes transform attr
+  return (Header n attribs inlines)
+mapBlock transform (Div attr blocks) = do
+  attribs <- mapAttributes transform attr
+  return (Div attribs blocks)
+mapBlock _ block = return block
+
+-- TODO: Implement
+mapMetaResources :: (FilePath -> IO FilePath) -> Pandoc -> IO Pandoc
+mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
+  mapped <- mapM mapMeta $ Map.toList kvmap
+  return $ Pandoc (Meta $ Map.fromList mapped) blocks
+  where
+    mapMeta (k, MetaString v)
+      | k `elem` metaKeys = do
+        transformed <- transform v
+        return (k, MetaString transformed)
+    mapMeta (k, MetaInlines inlines)
+      | k `elem` metaKeys = do
+        transformed <- transform $ stringify inlines
+        return (k, MetaString transformed)
+    mapMeta (k, MetaList l)
+      | k `elem` metaKeys = do
+        transformed <- mapM mapMetaList l
+        return (k, MetaList transformed)
+    mapMeta kv = return kv
+    mapMetaList (MetaString v) = MetaString <$> transform v
+    mapMetaList (MetaInlines inlines) =
+      MetaString <$> transform (stringify inlines)
+    mapMetaList v = return v
+
 provisionResources :: ProjectDirs -> FilePath -> Pandoc -> Action Pandoc
 provisionResources dirs base pandoc@(Pandoc meta blocks) = do
   let method = provisioningFromMeta meta
@@ -651,7 +733,7 @@ processIncludes rootDir baseDir (Pandoc meta blocks) = do
       spliced <- foldM (include base) [] blcks
       return $ concat $ reverse spliced
     include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
-    include base result (Para [Link _ [Str "#include"] (url, _)]) = do
+    include base result (Para [Link _ [Str ":include"] (url, _)]) = do
       filePath <- liftIO $ findFile rootDir base url
       Pandoc _ b <- readMetaMarkdown filePath
       included <- processBlocks (takeDirectory filePath) b

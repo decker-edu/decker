@@ -63,7 +63,7 @@ The following text is included from file `/resource/realtive.md`:
 
 ## The author
 
-![](img/htr-beuth.jpg){width="50%"}![](https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg){width="50%"}
+![](img/htr-beuth.jpg){.copy width="50%"}![](https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg){.copy width="50%"}
 
 [Deck markdown source](example-deck.md)
 

@@ -1,6 +1,7 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Project
   ( findFile
+  , findLocalFile
   , readResource
   , provisionResource
   , copyResource
@@ -167,6 +168,7 @@ isRemoteURI = not . isLocalURI
 provisionResource ::
      Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
 provisionResource provisioning dirs base path = do
+  print ("provisionResource", dirs, base, path)
   if path == "" || isRemoteURI path
     then return path
     else do
@@ -186,9 +188,19 @@ findFile root base path = do
     Nothing ->
       throw $
       ResourceException $ "Cannot find local file system resource: " ++ path
-    Just resource -> return resource
+    Just resource -> do
+      putStrLn $ "local resource: " ++ resource
+      return resource
 
--- Finds local file system files that sre needed at compile time. 
+-- Finds local file system files that sre needed at compile time. If
+-- path is a remote URL, leave it alone.
+findLocalFile :: FilePath -> FilePath -> FilePath -> IO FilePath
+findLocalFile root base path = do
+  if path == "" || isRemoteURI path
+    then return path
+    else findFile root base path
+
+-- Finds local file system files that are needed at compile time. 
 -- Returns the original path if the resource cannot be found.
 maybeFindFile :: FilePath -> FilePath -> FilePath -> IO FilePath
 maybeFindFile root base path = do
