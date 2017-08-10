@@ -491,10 +491,7 @@ readMetaMarkdown markdownFile = do
   -- return $ walk (adjustImageUrls (project dirs) (takeDirectory markdownFile)) pandoc
   -- TODO: Make this work further down
   -- provisionResources dirs (takeDirectory markdownFile) pandoc
-  liftIO $
-    mapResources
-      (findLocalFile dirs (takeDirectory markdownFile))
-      pandoc
+  liftIO $ mapResources (findLocalFile dirs (takeDirectory markdownFile)) pandoc
 
 readMarkdownOrThrow :: ReaderOptions -> String -> Pandoc
 readMarkdownOrThrow opts string =
