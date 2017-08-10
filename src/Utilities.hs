@@ -328,7 +328,7 @@ markdownToHtmlDeck markdownFile out = do
         --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
         --          (supportDir </> "katex-0.6.0/katex.min.css")
         , writerVariables =
-            [ ("revealjs-url", supportDir </> "reveal.js")
+            [ ("revealjs-url", supportDir </> "reveal.js-3.5.0")
             , ("decker-support-dir", supportDir)
             ]
         , writerCiteMethod = Citeproc
@@ -358,8 +358,9 @@ readAndPreprocessMarkdown markdownFile = do
   let method = provisioningFromMeta meta
   liftIO $
     mapMetaResources (provisionMetaResource method dirs baseDir) pandoc >>=
-    mapResources (provisionExistingResource method dirs baseDir)
-  -- Disable automatic caching of remote images for a while
+    mapResources (provisionExistingResource method dirs baseDir) >>=
+    walkM renderImageVideo
+      -- Disable automatic caching of remote images for a while
   -- >>= populateCache
 
 provisionMetaResource ::
@@ -609,7 +610,7 @@ mapInline transform img@(Image attr@(_, cls, _) inlines (url, title)) =
     then do
       a <- mapAttributes transform attr
       u <- transform url
-      return $ renderImageVideo $ Image a inlines (u, title)
+      return $ Image a inlines (u, title)
     else return img
 mapInline transform lnk@(Link attr@(_, cls, _) inlines (url, title)) =
   if not (isMacro $ stringify inlines) && "resource" `elem` cls
@@ -712,7 +713,7 @@ processInline dirs base method img@(Image attr@(_, cls, _) inlines (url, title))
     then do
       a <- processAttributes dirs base method attr
       u <- provisionResource (provisioningFromClasses method cls) dirs base url
-      return $ renderImageVideo $ Image a inlines (u, title)
+      return $ Image a inlines (u, title)
     else return img
 processInline dirs base method lnk@(Link attr@(_, cls, _) inlines (url, title)) =
   if not (isMacro $ stringify inlines) && "resource" `elem` cls

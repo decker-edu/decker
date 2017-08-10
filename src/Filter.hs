@@ -334,11 +334,14 @@ videoExtensions =
 
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
 -- transfers attributes to the video tag.
-renderImageVideo :: Inline -> Inline
+renderImageVideo :: Inline -> IO Inline
 renderImageVideo image@(Image (ident, cls, values) inlines (url, tit)) =
   if takeExtension url `elem` videoExtensions
-    then RawInline (Format "html") (renderHtml videoTag)
-    else image
+    then do
+      let html = renderHtml videoTag
+      putStrLn html 
+      return $ RawInline (Format "html") html
+    else return image
   where
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
@@ -346,4 +349,5 @@ renderImageVideo image@(Image (ident, cls, values) inlines (url, tit)) =
       foldl appendAttr video values ! A.id (toValue ident) !
       class_ (toValue $ unwords cls) !
       alt (toValue $ stringify inlines) !
-      title (toValue tit) $ do source ! src (toValue url)
+      title (toValue tit) $ source ! src (toValue url)
+renderImageVideo inline = return inline

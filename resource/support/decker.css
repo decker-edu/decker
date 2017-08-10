@@ -492,6 +492,13 @@ body {
     display: block;
 }
 
+.reveal section video {
+    width: 100%;
+    margin: 0px auto;
+    display: block;
+}
+
+
 .reveal section.img-center img {
     margin: 0px auto;
     display: block;
@@ -500,42 +507,6 @@ body {
 .reveal section.img-nocenter img {
     margin: 0px 0px;
     display: inline;
-}
-
-.reveal section.img-size-90 img {
-    width: 90%;
-}
-
-.reveal section.img-size-80 img {
-    width: 80%;
-}
-
-.reveal section.img-size-70 img {
-    width: 70%;
-}
-
-.reveal section.img-size-60 img {
-    width: 60%;
-}
-
-.reveal section.img-size-50 img {
-    width: 50%;
-}
-
-.reveal section.img-size-40 img {
-    width: 40%;
-}
-
-.reveal section.img-size-30 img {
-    width: 30%;
-}
-
-.reveal section.img-size-20 img {
-    width: 20%;
-}
-
-.reveal section.img-size-10 img {
-    width: 10%;
 }
 
 .reveal section div.slide-column div {
