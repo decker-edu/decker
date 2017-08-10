@@ -132,10 +132,10 @@ projectDirectories = do
 
 -- Resolves a file path to a concrete verified file system path, or
 -- returns Nothing if no file can be found.
-resolveLocally :: FilePath -> FilePath -> FilePath -> IO (Maybe FilePath)
-resolveLocally root base path = do
-  absRoot <- D.makeAbsolute root
+resolveLocally :: ProjectDirs -> FilePath -> FilePath -> IO (Maybe FilePath)
+resolveLocally dirs base path = do
   absBase <- D.makeAbsolute base
+  let absRoot = project dirs
   let candidates =
         if isAbsolute path
           then [absRoot </> makeRelative "/" path, path]
@@ -176,7 +176,7 @@ provisionResource provisioning dirs base path = do
   print ("provisionResource", dirs, base, path)
   if path == "" || isRemoteURI path
     then return path
-    else findFile (project dirs) base path >>=
+    else findFile dirs base path >>=
          provisionExistingResource provisioning dirs base
 
 provisionExistingResource ::
@@ -194,9 +194,9 @@ provisionExistingResource provisioning dirs base path =
 
 -- Finds local file system files that sre needed at compile time. 
 -- Throws if the resource cannot be found. Used mainly for include files.
-findFile :: FilePath -> FilePath -> FilePath -> IO FilePath
-findFile root base path = do
-  resolved <- resolveLocally root base path
+findFile :: ProjectDirs -> FilePath -> FilePath -> IO FilePath
+findFile dirs base path = do
+  resolved <- resolveLocally dirs base path
   case resolved of
     Nothing ->
       throw $
@@ -207,17 +207,17 @@ findFile root base path = do
 
 -- Finds local file system files that sre needed at compile time. If
 -- path is a remote URL, leave it alone.
-findLocalFile :: FilePath -> FilePath -> FilePath -> IO FilePath
-findLocalFile root base path =
+findLocalFile :: ProjectDirs -> FilePath -> FilePath -> IO FilePath
+findLocalFile dirs base path =
   if path == "" || isRemoteURI path
     then return path
-    else findFile root base path
+    else findFile dirs base path
 
 -- Finds local file system files that are needed at compile time. 
 -- Returns the original path if the resource cannot be found.
-maybeFindFile :: FilePath -> FilePath -> FilePath -> IO FilePath
-maybeFindFile root base path = do
-  resolved <- resolveLocally root base path
+maybeFindFile :: ProjectDirs -> FilePath -> FilePath -> IO FilePath
+maybeFindFile dirs base path = do
+  resolved <- resolveLocally dirs base path
   case resolved of
     Nothing -> return path
     Just resource -> return resource
@@ -225,10 +225,10 @@ maybeFindFile root base path = do
 -- Finds and reads a resource at compile time. If the resource can not be found in the
 -- file system, the built-in resource map is searched. If that fails, an error os thrown.
 -- The resource is searched for in a directory name `template`.
-readResource :: FilePath -> FilePath -> FilePath -> IO B.ByteString
-readResource root base path = do
+readResource :: ProjectDirs -> FilePath -> FilePath -> IO B.ByteString
+readResource dirs base path = do
   let searchPath = "template" </> path
-  resolved <- resolveLocally root base path
+  resolved <- resolveLocally dirs base path
   case resolved of
     Just resource -> B.readFile resource
     Nothing ->

@@ -10,7 +10,6 @@ import Data.Text
 import Data.Text.Encoding
 import qualified Data.Yaml as Y
 import Project as P
-import Project
 import qualified System.Directory as Dir
 import System.FilePath
 import System.FilePath.Glob
@@ -21,7 +20,7 @@ import Utilities
 main = do
   dirs <- projectDirectories
   --
-  deckTemplate <- B.readFile ((project dirs) </> "resource/template/deck.html")
+  deckTemplate <- B.readFile (project dirs </> "resource/template/deck.html")
   --
   metaFiles <- globDir1 (compile "**/*-meta.yaml") (project dirs)
   print metaFiles
@@ -41,7 +40,7 @@ main = do
           "http://heise.de"
                  --
         adjustLocalUrl (project dirs) "base" "/some/where" `shouldBe`
-          (project dirs) </>
+          project dirs </>
           "some/where"
                  --
         adjustLocalUrl (project dirs) "base" "some/where" `shouldBe`
@@ -75,17 +74,17 @@ main = do
     describe "resolveLocally" $
       it "Resolves a file path to a concrete verified file system path." $ do
         (resolveLocally
-           (project dirs)
+           dirs
            ((project dirs) </> "resource/example")
            "img/06-metal.png") `shouldReturn`
           (Just ((project dirs) </> "resource/example/img/06-metal.png"))
         (resolveLocally
-           (project dirs)
+           dirs
            ((project dirs) </> "resource/example")
            "img/06-metal.png") `shouldReturn`
           Just ((project dirs) </> "resource/example/img/06-metal.png")
         (resolveLocally
-           (project dirs)
+           dirs
            ((project dirs) </> "resource/example")
            "img/07-metal.png") `shouldReturn`
           Nothing
@@ -155,27 +154,21 @@ main = do
           anyException
     --
     describe "findFile" $ do
-      it "Finds local file system resources that sre needed at compile time." $ do
-        findFile (project dirs) (project dirs) "resource/template/deck.html" `shouldReturn`
-          (project dirs) </>
-          "resource/template/deck.html"
+      it "Finds local file system resources that sre needed at compile time." $
+        findFile dirs (project dirs) "resource/template/deck.html" `shouldReturn`
+        project dirs </>
+        "resource/template/deck.html"
       it "Throws, if the resource can not be found." $ do
-        findFile (project dirs) (project dirs) "deck.html" `shouldThrow`
-          anyException
+        findFile dirs (project dirs) "deck.html" `shouldThrow` anyException
     --
     describe "readResource" $ do
       it
         "Finds local file system or built-in resources that sre needed at compile time." $ do
-        readResource
-          (project dirs)
-          ((project dirs) </> "resource/template")
-          "deck.html" `shouldReturn`
+        readResource dirs (project dirs </> "resource/template") "deck.html" `shouldReturn`
           deckTemplate
-        readResource (project dirs) (project dirs) "deck.html" `shouldReturn`
-          deckTemplate
+        readResource dirs (project dirs) "deck.html" `shouldReturn` deckTemplate
       it "Throws, if the resource can not be read." $ do
-        readResource (project dirs) (project dirs) "dreck.html" `shouldThrow`
-          anyException
+        readResource dirs (project dirs) "dreck.html" `shouldThrow` anyException
     --
     describe "cacheRemoteFile" $
       it
@@ -183,7 +176,7 @@ main = do
         cacheRemoteFile
           (cache dirs)
           "https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg" `shouldReturn`
-          (cache dirs) </>
+          cache dirs </>
           "bc137c359488beadbb61589f7fe9e208.jpg"
         cacheRemoteFile
           (cache dirs)
@@ -215,6 +208,6 @@ main = do
             [ Image
                 nullAttr
                 []
-                ((cache dirs) </> "bc137c359488beadbb61589f7fe9e208.jpg", "")
+                (cache dirs </> "bc137c359488beadbb61589f7fe9e208.jpg", "")
             ]
         ]

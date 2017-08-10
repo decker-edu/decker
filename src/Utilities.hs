@@ -352,10 +352,9 @@ readAndPreprocessMarkdown :: FilePath -> Action Pandoc
 readAndPreprocessMarkdown markdownFile = do
   putLoud $ "reading: " ++ markdownFile
   dirs <- getProjectDirs
-  let projectDir = project dirs
   let baseDir = takeDirectory markdownFile
   pandoc@(Pandoc meta bocks) <-
-    readMetaMarkdown markdownFile >>= processIncludes projectDir baseDir
+    readMetaMarkdown markdownFile >>= processIncludes dirs baseDir
   let method = provisioningFromMeta meta
   liftIO $
     mapMetaResources (provisionMetaResource method dirs baseDir) pandoc >>=
@@ -372,7 +371,7 @@ provisionMetaResource ::
 provisionMetaResource method dirs base (key, path)
   | key `elem` runtimeMetaKeys = provisionResource method dirs base path
 provisionMetaResource method dirs base (key, path)
-  | key `elem` compiletimeMetaKeys = findLocalFile (project dirs) base path
+  | key `elem` compiletimeMetaKeys = findLocalFile dirs base path
 provisionMetaResource _ _ _ (key, path) = return path
 
 populateCache :: Pandoc -> Action Pandoc
@@ -494,7 +493,7 @@ readMetaMarkdown markdownFile = do
   -- provisionResources dirs (takeDirectory markdownFile) pandoc
   liftIO $
     mapResources
-      (findLocalFile (project dirs) (takeDirectory markdownFile))
+      (findLocalFile dirs (takeDirectory markdownFile))
       pandoc
 
 readMarkdownOrThrow :: ReaderOptions -> String -> Pandoc
@@ -706,7 +705,7 @@ processAttributes dirs base method (ident, classes, kv) = do
         return (key, resource)
     provisionAttrib (key, path)
       | key `elem` compiletimeMetaKeys = do
-        local <- findLocalFile (project dirs) base path
+        local <- findLocalFile dirs base path
         return (key, local)
     provisionAttrib (key, path) = return (key, path)
 
@@ -749,8 +748,8 @@ processMeta :: ProjectDirs -> FilePath -> Provisioning -> Meta -> IO Meta
 processMeta dirs base method (Meta kvmap) = return (Meta kvmap)
 
 -- Transitively splices all include files into the pandoc document.
-processIncludes :: FilePath -> FilePath -> Pandoc -> Action Pandoc
-processIncludes rootDir baseDir (Pandoc meta blocks) = do
+processIncludes :: ProjectDirs -> FilePath -> Pandoc -> Action Pandoc
+processIncludes dirs baseDir (Pandoc meta blocks) = do
   included <- processBlocks baseDir blocks
   return $ Pandoc meta included
   where
@@ -760,7 +759,7 @@ processIncludes rootDir baseDir (Pandoc meta blocks) = do
       return $ concat $ reverse spliced
     include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
     include base result (Para [Link _ [Str ":include"] (url, _)]) = do
-      filePath <- liftIO $ findFile rootDir base url
+      filePath <- liftIO $ findFile dirs base url
       Pandoc _ b <- readMetaMarkdown filePath
       included <- processBlocks (takeDirectory filePath) b
       return $ included : result
