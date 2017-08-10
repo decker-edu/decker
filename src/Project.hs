@@ -181,7 +181,7 @@ provisionResource provisioning dirs base path = do
 
 provisionExistingResource ::
      Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
-provisionExistingResource provisioning dirs base path = 
+provisionExistingResource provisioning dirs base path =
   if path == "" || isRemoteURI path
     then return path
     else do

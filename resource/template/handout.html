@@ -23,13 +23,10 @@ $if(highlighting-css)$
 $highlighting-css$
   </style>
 $endif$
-$if(css)$
+  <link rel="stylesheet" href="$decker-support-dir$/sandstone/bootstrap.min.css">
 $for(css)$
   <link rel="stylesheet" href="$css$">
 $endfor$
-$else$
-  <link rel="stylesheet" href="$decker-support-dir$/sandstone/bootstrap.min.css">
-$endif$
   <link rel="stylesheet" href="$decker-support-dir$/font-awesome-4.6.3/css/font-awesome.min.css">
   <style type="text/css">
 .container {

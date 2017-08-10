@@ -840,7 +840,8 @@ processPandocHandout format pandoc = do
   processed <-
     liftIO $ processCites' pandoc >>= walkM (useCachedImages (cache dirs))
   -- processed <- liftIO $ walkM (useCachedImages (cache dirs)) pandoc
-  return $ (expandMacros f . filterNotes f) processed
+  -- return $ (expandMacros f . filterNotes f) processed
+  return $ expandMacros f processed
 
 type StringWriter = WriterOptions -> Pandoc -> String
 
