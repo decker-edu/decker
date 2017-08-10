@@ -229,7 +229,9 @@ Cache directory is named `img/cached` and is located in the directory of the ref
 
 ## Cached remote image
 
+<!--
 ![Some piece of scene graph](https://tramberend.beuth-hochschule.de/img/cg1-banner.png)
+-->
 
 ## Not really!
 

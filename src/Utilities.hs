@@ -141,7 +141,7 @@ runHttpServer dir open = do
       threadDelay' 200000
       when open $ cmd ("open http://localhost:8888/" :: String) :: Action ()
 
-startServer :: Control.Monad.IO.Class.MonadIO m => [Char] -> String -> m ()
+startServer :: Control.Monad.IO.Class.MonadIO m => String -> String -> m ()
 startServer id command =
   liftIO $ do
     processHandle <- spawnCommand command
@@ -236,7 +236,7 @@ writeIndex out baseUrl decks handouts pages = do
     unlines
       [ "---"
       , "title: Generated Index"
-      , "subtitle: " ++ (project dirs)
+      , "subtitle: " ++ project dirs
       , "---"
       , "# Slide decks"
       , unlines $ map makeLink $ sort decksLinks
@@ -350,13 +350,30 @@ getPandocWriter format =
 -- template variables and calls need.
 readAndPreprocessMarkdown :: FilePath -> Action Pandoc
 readAndPreprocessMarkdown markdownFile = do
+  putLoud $ "reading: " ++ markdownFile
   dirs <- getProjectDirs
   let projectDir = project dirs
   let baseDir = takeDirectory markdownFile
-  pandoc <- readMetaMarkdown markdownFile >>= processIncludes projectDir baseDir
-  liftIO $ mapMetaResources (findLocalFile projectDir baseDir) pandoc
-  -- Disable automatic caching of remomte images for a while
+  pandoc@(Pandoc meta bocks) <-
+    readMetaMarkdown markdownFile >>= processIncludes projectDir baseDir
+  let method = provisioningFromMeta meta
+  liftIO $
+    mapMetaResources (provisionMetaResource method dirs baseDir) pandoc >>=
+    mapResources (provisionExistingResource method dirs baseDir)
+  -- Disable automatic caching of remote images for a while
   -- >>= populateCache
+
+provisionMetaResource ::
+     Provisioning
+  -> ProjectDirs
+  -> FilePath
+  -> (String, FilePath)
+  -> IO FilePath
+provisionMetaResource method dirs base (key, path)
+  | key `elem` runtimeMetaKeys = provisionResource method dirs base path
+provisionMetaResource method dirs base (key, path)
+  | key `elem` compiletimeMetaKeys = findLocalFile (project dirs) base path
+provisionMetaResource _ _ _ (key, path) = return path
 
 populateCache :: Pandoc -> Action Pandoc
 populateCache pandoc = do
@@ -486,8 +503,8 @@ readMarkdownOrThrow opts string =
     Right pandoc -> pandoc
     Left err -> throw $ PandocException (show err)
 
--- | Converts pandoc meta data to mustache meta data. Inlines and blocks are rendered to 
--- markdown strings with default options.
+-- | Converts pandoc meta data to mustache meta data. Inlines and blocks are
+-- rendered to markdown strings with default options.
 toMustacheMeta :: MetaValue -> MT.Value
 toMustacheMeta (MetaMap mmap) =
   MT.Object $ H.fromList $ map (T.pack *** toMustacheMeta) $ Map.toList mmap
@@ -496,7 +513,7 @@ toMustacheMeta (MetaBool bool) = MT.Bool bool
 toMustacheMeta (MetaString string) = MT.String $ T.pack string
 toMustacheMeta (MetaInlines inlines) =
   MT.String $
-  T.pack $ writeMarkdown def (Pandoc (Meta Map.empty) [(Plain inlines)])
+  T.pack $ writeMarkdown def (Pandoc (Meta Map.empty) [Plain inlines])
 toMustacheMeta (MetaBlocks blocks) =
   MT.String $ T.pack $ writeMarkdown def (Pandoc (Meta Map.empty) blocks)
 
@@ -512,7 +529,7 @@ toPandocMeta (Y.Array vector) = MetaList $ map toPandocMeta $ Vec.toList vector
 toPandocMeta (Y.String text) = MetaString $ T.unpack text
 toPandocMeta (Y.Number scientific) = MetaString $ show scientific
 toPandocMeta (Y.Bool bool) = MetaBool bool
-toPandocMeta (Y.Null) = MetaList []
+toPandocMeta Y.Null = MetaList []
 
 -- Remove automatic identifier creation for headers. It does not work well with
 -- the current include mechanism if slides have duplicate titles in separate
@@ -570,8 +587,7 @@ adjustLocalUrl root base url
 adjustLocalUrl _ _ url = url
 
 locateTemplates :: FilePath -> FilePath -> Pandoc -> Action Pandoc
-locateTemplates root base (Pandoc meta blocks) = do
-  return (Pandoc meta blocks)
+locateTemplates root base (Pandoc meta blocks) = return (Pandoc meta blocks)
 
 mapResources :: (FilePath -> IO FilePath) -> Pandoc -> IO Pandoc
 mapResources transform pandoc@(Pandoc meta blocks) = do
@@ -584,23 +600,23 @@ mapAttributes transform (ident, classes, kv) = do
   processed <- mapM mapAttr kv
   return (ident, classes, processed)
   where
-    mapAttr kv@(key, value) = do
-      if elem key elementAttributes
+    mapAttr kv@(key, value) =
+      if key `elem` elementAttributes
         then do
           transformed <- transform value
           return (key, transformed)
         else return kv
 
 mapInline :: (FilePath -> IO FilePath) -> Inline -> IO Inline
-mapInline transform img@(Image attr@(_, cls, _) inlines (url, title)) = do
+mapInline transform img@(Image attr@(_, cls, _) inlines (url, title)) =
   if not $ isMacro $ stringify inlines
     then do
       a <- mapAttributes transform attr
       u <- transform url
       return $ renderImageVideo $ Image a inlines (u, title)
     else return img
-mapInline transform lnk@(Link attr@(_, cls, _) inlines (url, title)) = do
-  if (not $ isMacro $ stringify inlines) && "resource" `elem` cls
+mapInline transform lnk@(Link attr@(_, cls, _) inlines (url, title)) =
+  if not (isMacro $ stringify inlines) && "resource" `elem` cls
     then do
       a <- mapAttributes transform attr
       u <- transform url
@@ -626,29 +642,28 @@ mapBlock transform (Div attr blocks) = do
   return (Div attribs blocks)
 mapBlock _ block = return block
 
--- TODO: Implement
-mapMetaResources :: (FilePath -> IO FilePath) -> Pandoc -> IO Pandoc
+mapMetaResources :: ((String, FilePath) -> IO FilePath) -> Pandoc -> IO Pandoc
 mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
   mapped <- mapM mapMeta $ Map.toList kvmap
   return $ Pandoc (Meta $ Map.fromList mapped) blocks
   where
     mapMeta (k, MetaString v)
       | k `elem` metaKeys = do
-        transformed <- transform v
+        transformed <- transform (k, v)
         return (k, MetaString transformed)
     mapMeta (k, MetaInlines inlines)
       | k `elem` metaKeys = do
-        transformed <- transform $ stringify inlines
+        transformed <- transform (k, stringify inlines)
         return (k, MetaString transformed)
     mapMeta (k, MetaList l)
       | k `elem` metaKeys = do
-        transformed <- mapM mapMetaList l
+        transformed <- mapM (mapMetaList k) l
         return (k, MetaList transformed)
     mapMeta kv = return kv
-    mapMetaList (MetaString v) = MetaString <$> transform v
-    mapMetaList (MetaInlines inlines) =
-      MetaString <$> transform (stringify inlines)
-    mapMetaList v = return v
+    mapMetaList k (MetaString v) = MetaString <$> transform (k, v)
+    mapMetaList k (MetaInlines inlines) =
+      MetaString <$> transform (k, stringify inlines)
+    mapMetaList _ v = return v
 
 provisionResources :: ProjectDirs -> FilePath -> Pandoc -> Action Pandoc
 provisionResources dirs base pandoc@(Pandoc meta blocks) = do
@@ -660,6 +675,9 @@ provisionResources dirs base pandoc@(Pandoc meta blocks) = do
     processedMeta <- processMeta dirs base method meta
     return (Pandoc processedMeta processedBlocks)
 
+-- | These resources are needed at runtime. If they are specified as local URLs,
+-- the resource must exists at compile time. Remote URLs are passed through
+-- unchanged.
 elementAttributes =
   [ "src"
   , "data-src"
@@ -669,30 +687,38 @@ elementAttributes =
   , "data-background-iframe"
   ]
 
-metaKeys = ["css", "bibliography", "csl", "citation-abbreviations"]
+-- | Resources in meta data that are needed at compile time. They have to be
+-- specified as local URLs and must exist.
+runtimeMetaKeys = ["css"]
+
+compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
+
+metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys
 
 processAttributes :: ProjectDirs -> FilePath -> Provisioning -> Attr -> IO Attr
 processAttributes dirs base method (ident, classes, kv) = do
   processed <- mapM provisionAttrib kv
   return (ident, classes, processed)
   where
-    provisionAttrib (key, value) = do
-      if elem key metaKeys
-        then do
-          resource <- provisionResource method dirs base value
-          print (key, resource)
-          return (key, resource)
-        else return (key, value)
+    provisionAttrib (key, path)
+      | key `elem` runtimeMetaKeys = do
+        resource <- provisionResource method dirs base path
+        return (key, resource)
+    provisionAttrib (key, path)
+      | key `elem` compiletimeMetaKeys = do
+        local <- findLocalFile (project dirs) base path
+        return (key, local)
+    provisionAttrib (key, path) = return (key, path)
 
 processInline :: ProjectDirs -> FilePath -> Provisioning -> Inline -> IO Inline
-processInline dirs base method img@(Image attr@(_, cls, _) inlines (url, title)) = do
+processInline dirs base method img@(Image attr@(_, cls, _) inlines (url, title)) =
   if not $ isMacro $ stringify inlines
     then do
       a <- processAttributes dirs base method attr
       u <- provisionResource (provisioningFromClasses method cls) dirs base url
       return $ renderImageVideo $ Image a inlines (u, title)
     else return img
-processInline dirs base method lnk@(Link attr@(_, cls, _) inlines (url, title)) = do
+processInline dirs base method lnk@(Link attr@(_, cls, _) inlines (url, title)) =
   if not (isMacro $ stringify inlines) && "resource" `elem` cls
     then do
       a <- processAttributes dirs base method attr
@@ -887,8 +913,10 @@ writeExampleProject = mapM_ writeOne deckerExampleDir
         putNormal $ "# create (for " ++ path ++ ")"
 
 writeEmbeddedFiles :: [(FilePath, B.ByteString)] -> FilePath -> Action ()
-writeEmbeddedFiles files dir = do
-  let absolute = map (\(path, contents) -> (dir </> path, contents)) files
+writeEmbeddedFiles files dir
+  -- let absolute = map (\(path, contents) -> (dir </> path, contents)) files
+ = do
+  let absolute = map (first (dir </>)) files
   mapM_ write absolute
   where
     write (path, contents) = do

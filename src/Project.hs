@@ -4,6 +4,7 @@ module Project
   , findLocalFile
   , readResource
   , provisionResource
+  , provisionExistingResource
   , copyResource
   , linkResource
   , relRefResource
@@ -61,7 +62,7 @@ provisioningClasses =
 provisioningFromClasses :: Provisioning -> [String] -> Provisioning
 provisioningFromClasses defaultP cls =
   fromMaybe defaultP $
-  listToMaybe $ map snd $ filter ((flip elem) cls . fst) provisioningClasses
+  listToMaybe $ map snd $ filter (flip elem cls . fst) provisioningClasses
 
 data Resource = Resource
   { sourceFile :: FilePath -- Absolute Path to source file
@@ -88,7 +89,7 @@ linkResource resource = do
   return (publicUrl resource)
 
 absRefResource :: Resource -> IO FilePath
-absRefResource resource = do
+absRefResource resource =
   return $ show $ URI "file" Nothing (sourceFile resource) "" ""
 
 relRefResource :: FilePath -> Resource -> IO FilePath
@@ -145,34 +146,46 @@ resourcePathes :: ProjectDirs -> FilePath -> FilePath -> Resource
 resourcePathes dirs base absolute =
   Resource
   { sourceFile = absolute
-  , publicFile = (public dirs) </> makeRelativeTo (project dirs) absolute
+  , publicFile = public dirs </> makeRelativeTo (project dirs) absolute
   , publicUrl = makeRelativeTo base absolute
   }
 
 isLocalURI :: String -> Bool
-isLocalURI url = isNothing $ parseURI url
+isLocalURI url = isNothing (parseURI url)
 
 isRemoteURI :: String -> Bool
 isRemoteURI = not . isLocalURI
 
--- | Determines if a URL can be resolved to a local file. Absolute file URLs 
--- are resolved against and copied or linked to public from 
+-- | Determines if a URL can be resolved to a local file. Absolute file URLs are
+-- resolved against and copied or linked to public from 
 --    1. the project root 
 --    2. the local filesystem root 
+-- 
 -- Relative file URLs are resolved against and copied or linked to public from 
+--
 --    1. the directory path of the referencing file 
---    2. the project root
--- Copy and link operations target the public directory in the project root
--- and recreate the source directory structure.
--- This function is used to provision resources that are used at presentation time.
+--    2. the project root Copy and link operations target the public directory
+--       in the project root and recreate the source directory structure. This
+--       function is used to provision resources that are used at presentation
+--       time.
+--
+-- Returns a public URL relative to base
 provisionResource ::
      Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
 provisionResource provisioning dirs base path = do
   print ("provisionResource", dirs, base, path)
   if path == "" || isRemoteURI path
     then return path
+    else findFile (project dirs) base path >>=
+         provisionExistingResource provisioning dirs base
+
+provisionExistingResource ::
+     Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
+provisionExistingResource provisioning dirs base path = 
+  if path == "" || isRemoteURI path
+    then return path
     else do
-      resource <- resourcePathes dirs base <$> findFile (project dirs) base path
+      let resource = resourcePathes dirs base path
       case provisioning of
         Copy -> copyResource resource
         SymLink -> linkResource resource
@@ -195,7 +208,7 @@ findFile root base path = do
 -- Finds local file system files that sre needed at compile time. If
 -- path is a remote URL, leave it alone.
 findLocalFile :: FilePath -> FilePath -> FilePath -> IO FilePath
-findLocalFile root base path = do
+findLocalFile root base path =
   if path == "" || isRemoteURI path
     then return path
     else findFile root base path
@@ -229,11 +242,9 @@ readResource root base path = do
 copyFileIfNewer :: FilePath -> FilePath -> IO ()
 copyFileIfNewer src dst = do
   newer <- fileIsNewer src dst
-  if newer
-    then do
-      D.createDirectoryIfMissing True (takeDirectory dst)
-      D.copyFile src dst
-    else return ()
+  when newer $ do
+    D.createDirectoryIfMissing True (takeDirectory dst)
+    D.copyFile src dst
 
 fileIsNewer a b = do
   aexists <- D.doesFileExist a
@@ -243,7 +254,7 @@ fileIsNewer a b = do
            then do
              at <- D.getModificationTime a
              bt <- D.getModificationTime b
-             return ((traceShowId at) > (traceShowId bt))
+             return (traceShowId at > traceShowId bt)
            else return True
     else return False
 
