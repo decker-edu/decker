@@ -43,7 +43,7 @@ main = do
   let handoutsPdfA = deckSourcesA >>= calcTargets "-deck.md" "-handout.pdf"
   let pagesA = pageSourcesA >>= calcTargets ".md" ".html"
   let pagesPdfA = pageSourcesA >>= calcTargets ".md" ".pdf"
-  let indexSource = (project dirs) </> "index.md"
+  let indexSource = project dirs </> "index.md"
   let index = publicDir </> "index.html"
   let indexA = return [index] :: Action [FilePath]
   let everythingA = decksA <++> handoutsA <++> pagesA
@@ -60,13 +60,13 @@ main = do
        --
     phony "version" $ putNormal $ "decker version " ++ version
        --
-    phony "decks" $ do decksA >>= need
+    phony "decks" $ decksA >>= need
        --
-    phony "html" $ do everythingA <++> indexA >>= need
+    phony "html" $ everythingA <++> indexA >>= need
        --
-    phony "pdf" $ do pagesPdfA <++> handoutsPdfA <++> indexA >>= need
+    phony "pdf" $ pagesPdfA <++> handoutsPdfA <++> indexA >>= need
        --
-    phony "pdf-decks" $ do decksPdfA <++> indexA >>= need
+    phony "pdf-decks" $ decksPdfA <++> indexA >>= need
        --
     phony "watch" $ do
       need ["html"]
@@ -94,11 +94,10 @@ main = do
         code <-
           cmd
             "decktape.sh reveal"
-            ("http://localhost:8888" </> (makeRelative publicDir src))
+            ("http://localhost:8888" </> makeRelative publicDir src)
             out
         case code of
-          ExitFailure _ -> do
-            throw $ DecktapeException "Unknown."
+          ExitFailure _ -> throw $ DecktapeException "Unknown."
           ExitSuccess -> return ()
        --
     priority 2 $
