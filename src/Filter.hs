@@ -5,6 +5,7 @@ module Filter
   ( expandMacros
   , makeSlides
   , filterNotes
+  , makeBoxes
   , useCachedImages
   , escapeToFilePath
   , cachePandocImages
@@ -259,6 +260,9 @@ makeSlides (Just (Format "beamer")) =
   walk (mapSlides wrapBoxes) . walk (mapSlides wrapNoteBeamer)
 makeSlides _ = Prelude.id
 
+makeBoxes :: Pandoc -> Pandoc
+makeBoxes = walk (mapSlides wrapBoxes)
+
 -- Only consider slides that have the 'notes' class in their header. In all
 -- others pick only the boxes that are tagged as notes.
 filterSlides :: [Block] -> [Block]
@@ -337,10 +341,7 @@ videoExtensions =
 renderImageVideo :: Inline -> IO Inline
 renderImageVideo image@(Image (ident, cls, values) inlines (url, tit)) =
   if takeExtension url `elem` videoExtensions
-    then do
-      let html = renderHtml videoTag
-      putStrLn html 
-      return $ RawInline (Format "html") html
+    then return $ RawInline (Format "html") (renderHtml videoTag)
     else return image
   where
     appendAttr element (key, value) =
@@ -349,5 +350,6 @@ renderImageVideo image@(Image (ident, cls, values) inlines (url, tit)) =
       foldl appendAttr video values ! A.id (toValue ident) !
       class_ (toValue $ unwords cls) !
       alt (toValue $ stringify inlines) !
-      title (toValue tit) $ source ! src (toValue url)
+      title (toValue tit) $
+      source ! src (toValue url)
 renderImageVideo inline = return inline

@@ -201,9 +201,7 @@ findFile dirs base path = do
     Nothing ->
       throw $
       ResourceException $ "Cannot find local file system resource: " ++ path
-    Just resource -> do
-      putStrLn $ "local resource: " ++ resource
-      return resource
+    Just resource -> return resource
 
 -- Finds local file system files that sre needed at compile time. If
 -- path is a remote URL, leave it alone.

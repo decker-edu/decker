@@ -435,16 +435,12 @@ markdownToHtmlHandout markdownFile out = do
   let options =
         pandocWriterOpts
         { writerHtml5 = True
-        -- , writerStandalone = True
         , writerTemplate = Just handoutTemplate
         , writerHighlight = True
         -- , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
             MathJax
               (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-        -- ,writerHTMLMathMethod =
-        --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
-        --          (supportDir </> "katex-0.6.0/katex.min.css")
         , writerVariables = [("decker-support-dir", supportDir)]
         , writerCiteMethod = Citeproc
         }
@@ -836,7 +832,7 @@ processPandocHandout format pandoc = do
   let f = Just (Format format)
   dirs <- getProjectDirs
   processed <-
-    liftIO $ processCites' pandoc >>= walkM (useCachedImages (cache dirs))
+    liftIO $ processCites' (makeBoxes pandoc) >>= walkM (useCachedImages (cache dirs))
   -- processed <- liftIO $ walkM (useCachedImages (cache dirs)) pandoc
   -- return $ (expandMacros f . filterNotes f) processed
   return $ expandMacros f processed
