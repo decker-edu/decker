@@ -25,9 +25,9 @@ version = "0.1.0"
 main :: IO ()
 main = do
   dirs <- projectDirectories
-  let projectDir = (project dirs)
-  let publicDir = (public dirs)
-  let supportDir = (support dirs)
+  let projectDir = project dirs
+  let publicDir = public dirs
+  let supportDir = support dirs
   -- Find sources. These are formulated as actions in the Action mondad, such
   -- that each new iteration rescans all possible source files.
   let deckSourcesA = globA "**/*-deck.md"

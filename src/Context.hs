@@ -18,7 +18,7 @@ import Control.Monad ()
 import Data.Dynamic
 import qualified Data.HashMap.Lazy as HashMap
 import Data.IORef
-import Data.Maybe ()
+import Data.Maybe (fromMaybe)
 import Data.Typeable ()
 import Development.Shake
 import Project
@@ -41,7 +41,7 @@ defaultActionContext = do
 
 actionContextKey :: IO TypeRep
 actionContextKey = do
-  ctx <- liftIO $ defaultActionContext
+  ctx <- liftIO defaultActionContext
   return $ typeOf ctx
 
 makeActionContext :: ProjectDirs -> IO ActionContext
@@ -51,23 +51,20 @@ makeActionContext dirs = do
 
 setActionContext :: ActionContext -> ShakeOptions -> IO ShakeOptions
 setActionContext ctx options = do
-  key <- liftIO $ actionContextKey
-  let extra = HashMap.insert key (toDyn ctx) $ HashMap.empty
+  key <- liftIO actionContextKey
+  let extra = HashMap.insert key (toDyn ctx) HashMap.empty
   return options {shakeExtra = extra}
 
 getActionContext :: Action ActionContext
 getActionContext = do
   options <- getShakeOptions
-  key <- liftIO $ actionContextKey
+  key <- liftIO actionContextKey
   let extra = shakeExtra options
   let dyn =
-        case HashMap.lookup key extra of
-          Just d -> d
-          Nothing -> error "Error looking up action context"
-  return $
-    case fromDynamic dyn of
-      Just d -> d
-      Nothing -> error "Error upcasting action context"
+        fromMaybe
+          (error "Error looking up action context")
+          (HashMap.lookup key extra)
+  return $ fromMaybe (error "Error upcasting action context") (fromDynamic dyn)
 
 getFilesToWatch :: Action [FilePath]
 getFilesToWatch = do

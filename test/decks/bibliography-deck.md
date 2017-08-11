@@ -1,7 +1,10 @@
 ---
 bibliography: 'bibliography.bib'
-csl: 'chicago-author-date.csl'
-nocite: '@tramberend2003'
+csl: 'acm-sig-proceedings.csl'
 ---
 
-# Bibliography
+# Citation
+
+Not quite recently published: [@tramberend2003]
+
+## Bibliography

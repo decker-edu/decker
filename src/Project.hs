@@ -71,12 +71,8 @@ data Resource = Resource
   } deriving (Eq, Show)
 
 copyResource :: Resource -> IO FilePath
-copyResource resource
-  -- TODO: Not working
-  -- copyFileIfNewer (sourceFile resource) (publicFile resource)
- = do
-  D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
-  D.copyFile (sourceFile resource) (publicFile resource)
+copyResource resource = do
+  copyFileIfNewer (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
 linkResource :: Resource -> IO FilePath
@@ -172,8 +168,7 @@ isRemoteURI = not . isLocalURI
 -- Returns a public URL relative to base
 provisionResource ::
      Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
-provisionResource provisioning dirs base path = do
-  print ("provisionResource", dirs, base, path)
+provisionResource provisioning dirs base path =
   if path == "" || isRemoteURI path
     then return path
     else findFile dirs base path >>=
@@ -222,7 +217,7 @@ maybeFindFile dirs base path = do
 
 -- Finds and reads a resource at compile time. If the resource can not be found in the
 -- file system, the built-in resource map is searched. If that fails, an error os thrown.
--- The resource is searched for in a directory name `template`.
+-- The resource is searched for in a directory named `template`.
 readResource :: ProjectDirs -> FilePath -> FilePath -> IO B.ByteString
 readResource dirs base path = do
   let searchPath = "template" </> path
@@ -235,12 +230,11 @@ readResource dirs base path = do
           throw $ ResourceException $ "Cannot find built-in resource: " ++ path
         Just entry -> return $ snd entry
 
--- | Copies the src to dst if src is newer or dst does not exist. 
--- Creates missing directories while doing so.
+-- | Copies the src to dst if src is newer or dst does not exist. Creates
+-- missing directories while doing so.
 copyFileIfNewer :: FilePath -> FilePath -> IO ()
-copyFileIfNewer src dst = do
-  newer <- fileIsNewer src dst
-  when newer $ do
+copyFileIfNewer src dst =
+  whenM (fileIsNewer src dst) $ do
     D.createDirectoryIfMissing True (takeDirectory dst)
     D.copyFile src dst
 
@@ -252,9 +246,9 @@ fileIsNewer a b = do
            then do
              at <- D.getModificationTime a
              bt <- D.getModificationTime b
-             return (traceShowId at > traceShowId bt)
-           else return True
-    else return False
+             return (at > bt)
+           else return False
+    else return aexists
 
 -- | Express the second path argument as relative to the first. 
 -- Both arguments are expected to be absolute pathes. 

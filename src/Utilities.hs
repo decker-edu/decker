@@ -34,7 +34,6 @@ module Utilities
   , fixMustacheMarkup
   , fixMustacheMarkupText
   , globA
-  , globRelA
   , toPandocMeta
   , DeckerException(..)
   ) where
@@ -89,23 +88,6 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Watch
 
--- Find the project directory and change current directory to there. 
--- The project directory is the first upwards directory that contains a .git directory entry.
-calcProjectDirectory :: IO FilePath
-calcProjectDirectory = do
-  cwd <- Dir.getCurrentDirectory
-  searchGitRoot cwd
-  where
-    searchGitRoot :: FilePath -> IO FilePath
-    searchGitRoot path =
-      if isDrive path
-        then Dir.makeAbsolute "."
-        else do
-          hasGit <- Dir.doesDirectoryExist (path </> ".git")
-          if hasGit
-            then Dir.makeAbsolute path
-            else searchGitRoot $ takeDirectory path
-
 -- | Globs for files under the project dir in the Action monad. 
 -- Returns absolute pathes.
 globA :: FilePattern -> Action [FilePath]
@@ -114,14 +96,6 @@ globA pat = do
   liftIO $
     filter (not . isPrefixOf (public dirs)) <$>
     globDir1 (compile pat) (project dirs)
-
--- | Globs for files under the project dir in the Action monad. 
--- Returns pathes relative to the project directory. 
-globRelA :: FilePattern -> Action [FilePath]
-globRelA pat = do
-  dirs <- getProjectDirs
-  files <- globA pat
-  return $ map (makeRelative (project dirs)) files
 
 -- Utility functions for shake based apps
 spawn :: String -> Action ProcessHandle
@@ -360,8 +334,8 @@ readAndPreprocessMarkdown markdownFile = do
     mapMetaResources (provisionMetaResource method dirs baseDir) pandoc >>=
     mapResources (provisionExistingResource method dirs baseDir) >>=
     walkM renderImageVideo
-      -- Disable automatic caching of remote images for a while
-  -- >>= populateCache
+    -- Disable automatic caching of remote images for a while
+    -- >>= walkM (cacheRemoteImages (cache dirs))
 
 provisionMetaResource ::
      Provisioning
@@ -374,11 +348,6 @@ provisionMetaResource method dirs base (key, path)
 provisionMetaResource method dirs base (key, path)
   | key `elem` compiletimeMetaKeys = findLocalFile dirs base path
 provisionMetaResource _ _ _ (key, path) = return path
-
-populateCache :: Pandoc -> Action Pandoc
-populateCache pandoc = do
-  dirs <- getProjectDirs
-  liftIO $ walkM (cacheRemoteImages (cache dirs)) pandoc
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage :: FilePath -> FilePath -> Action ()
@@ -437,7 +406,6 @@ markdownToHtmlHandout markdownFile out = do
         { writerHtml5 = True
         , writerTemplate = Just handoutTemplate
         , writerHighlight = True
-        -- , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
             MathJax
               (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
@@ -454,9 +422,7 @@ markdownToPdfHandout markdownFile out = do
   let options =
         pandocWriterOpts
         { writerTemplate = Just handoutLatexTemplate
-        -- , writerStandalone = True
         , writerHighlight = True
-        -- , writerHighlightStyle = pygments
         , writerCiteMethod = Citeproc
         }
   putNormal $ "# pandoc (for " ++ out ++ ")"
@@ -484,10 +450,6 @@ readMetaMarkdown markdownFile = do
   let pandoc = Pandoc (Meta m) blocks
   -- adjust image urls
   dirs <- getProjectDirs
-  -- TODO: This has to go
-  -- return $ walk (adjustImageUrls (project dirs) (takeDirectory markdownFile)) pandoc
-  -- TODO: Make this work further down
-  -- provisionResources dirs (takeDirectory markdownFile) pandoc
   liftIO $ mapResources (findLocalFile dirs (takeDirectory markdownFile)) pandoc
 
 readMarkdownOrThrow :: ReaderOptions -> String -> Pandoc
@@ -579,9 +541,8 @@ adjustLocalUrl root base url
       else base </> url
 adjustLocalUrl _ _ url = url
 
-locateTemplates :: FilePath -> FilePath -> Pandoc -> Action Pandoc
-locateTemplates root base (Pandoc meta blocks) = return (Pandoc meta blocks)
-
+-- TODO: Move the map* functions into the Action monad so that need can be
+-- called for the resources.
 mapResources :: (FilePath -> IO FilePath) -> Pandoc -> IO Pandoc
 mapResources transform pandoc@(Pandoc meta blocks) = do
   processedBlocks <-
@@ -658,16 +619,6 @@ mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
       MetaString <$> transform (k, stringify inlines)
     mapMetaList _ v = return v
 
-provisionResources :: ProjectDirs -> FilePath -> Pandoc -> Action Pandoc
-provisionResources dirs base pandoc@(Pandoc meta blocks) = do
-  let method = provisioningFromMeta meta
-  liftIO $ do
-    processedBlocks <-
-      walkM (processInline dirs base method) blocks >>=
-      walkM (processBlock dirs base method)
-    processedMeta <- processMeta dirs base method meta
-    return (Pandoc processedMeta processedBlocks)
-
 -- | These resources are needed at runtime. If they are specified as local URLs,
 -- the resource must exists at compile time. Remote URLs are passed through
 -- unchanged.
@@ -687,59 +638,6 @@ runtimeMetaKeys = ["css"]
 compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
 
 metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys
-
-processAttributes :: ProjectDirs -> FilePath -> Provisioning -> Attr -> IO Attr
-processAttributes dirs base method (ident, classes, kv) = do
-  processed <- mapM provisionAttrib kv
-  return (ident, classes, processed)
-  where
-    provisionAttrib (key, path)
-      | key `elem` runtimeMetaKeys = do
-        resource <- provisionResource method dirs base path
-        return (key, resource)
-    provisionAttrib (key, path)
-      | key `elem` compiletimeMetaKeys = do
-        local <- findLocalFile dirs base path
-        return (key, local)
-    provisionAttrib (key, path) = return (key, path)
-
-processInline :: ProjectDirs -> FilePath -> Provisioning -> Inline -> IO Inline
-processInline dirs base method img@(Image attr@(_, cls, _) inlines (url, title)) =
-  if not $ isMacro $ stringify inlines
-    then do
-      a <- processAttributes dirs base method attr
-      u <- provisionResource (provisioningFromClasses method cls) dirs base url
-      return $ Image a inlines (u, title)
-    else return img
-processInline dirs base method lnk@(Link attr@(_, cls, _) inlines (url, title)) =
-  if not (isMacro $ stringify inlines) && "resource" `elem` cls
-    then do
-      a <- processAttributes dirs base method attr
-      u <- provisionResource (provisioningFromClasses method cls) dirs base url
-      return (Link a inlines (u, title))
-    else return lnk
-processInline dirs base method (Span attr inlines) = do
-  processed <- processAttributes dirs base method attr
-  return (Span processed inlines)
-processInline dirs base method (Code attr string) = do
-  processed <- processAttributes dirs base method attr
-  return (Code processed string)
-processInline _ _ _ inline = return inline
-
-processBlock :: ProjectDirs -> FilePath -> Provisioning -> Block -> IO Block
-processBlock dirs base method (CodeBlock attr string) = do
-  processed <- processAttributes dirs base method attr
-  return (CodeBlock attr string)
-processBlock dirs base method (Header n attr inlines) = do
-  processed <- processAttributes dirs base method attr
-  return (Header n attr inlines)
-processBlock dirs base method (Div attr blocks) = do
-  processed <- processAttributes dirs base method attr
-  return (Div attr blocks)
-processBlock _ _ _ block = return block
-
-processMeta :: ProjectDirs -> FilePath -> Provisioning -> Meta -> IO Meta
-processMeta dirs base method (Meta kvmap) = return (Meta kvmap)
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: ProjectDirs -> FilePath -> Pandoc -> Action Pandoc
@@ -813,8 +711,7 @@ processPandocPage :: String -> Pandoc -> Action Pandoc
 processPandocPage format pandoc = do
   let f = Just (Format format)
   dirs <- getProjectDirs
-  processed <-
-    liftIO $ processCites' pandoc >>= walkM (useCachedImages (cache dirs))
+  processed <- liftIO $ processCites' pandoc
   --  processed <- liftIO $ walkM (useCachedImages (cache dirs)) pandoc
   return $ expandMacros f processed
 
@@ -822,8 +719,7 @@ processPandocDeck :: String -> Pandoc -> Action Pandoc
 processPandocDeck format pandoc = do
   let f = Just (Format format)
   dirs <- getProjectDirs
-  processed <-
-    liftIO $ processCites' pandoc >>= walkM (useCachedImages (cache dirs))
+  processed <- liftIO $ processCites' pandoc
   -- processed <- liftIO $ walkM (useCachedImages cacheD(cache dirs)ir) pandoc
   return $ (makeSlides f . expandMacros f) processed
 
@@ -831,8 +727,7 @@ processPandocHandout :: String -> Pandoc -> Action Pandoc
 processPandocHandout format pandoc = do
   let f = Just (Format format)
   dirs <- getProjectDirs
-  processed <-
-    liftIO $ processCites' (makeBoxes pandoc) >>= walkM (useCachedImages (cache dirs))
+  processed <- liftIO $ processCites' (makeBoxes pandoc)
   -- processed <- liftIO $ walkM (useCachedImages (cache dirs)) pandoc
   -- return $ (expandMacros f . filterNotes f) processed
   return $ expandMacros f processed
@@ -842,60 +737,9 @@ type StringWriter = WriterOptions -> Pandoc -> String
 writePandocString :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocString format options out pandoc = do
   let writer = getPandocWriter format
-  final <- copyImages (takeDirectory out) pandoc
-  writeFile' out (writer options final)
+  writeFile' out (writer options pandoc)
   putNormal $ "# pandoc for (" ++ out ++ ")"
 
-copyImages :: FilePath -> Pandoc -> Action Pandoc
-copyImages baseDir pandoc = do
-  dirs <- getProjectDirs
-  walkM (copyAndLinkInline (project dirs) (public dirs)) pandoc >>=
-    walkM (copyAndLinkBlock (project dirs) (public dirs))
-  where
-    copyAndLinkInline project public (Image attr inlines (url, title)) = do
-      relUrl <- copyAndLinkFile project public baseDir url
-      return (Image attr inlines (relUrl, title))
-    copyAndLinkInline _ _ inline = return inline
-    copyAndLinkBlock project public (Header 1 attr inlines) = do
-      relAttr <- copyBgImageUrl project public attr
-      return (Header 1 relAttr inlines)
-    copyAndLinkBlock _ _ block = return block
-    copyBgImageUrl project public (i, cs, kvs) = do
-      relKvs <-
-        mapM
-          (\(k, v) ->
-             if k == "data-background-image"
-               then do
-                 relUrl <- copyAndLinkFile project public baseDir v
-                 return (k, relUrl)
-               else return (k, v))
-          kvs
-      return (i, cs, relKvs)
-
-copyAndLinkFile ::
-     FilePath -> FilePath -> FilePath -> FilePath -> Action FilePath
-copyAndLinkFile project public base url = do
-  let rel = makeRelative project url
-  if rel == url
-    then return url
-    else do
-      let pub = public </> rel
-      liftIO $ Dir.createDirectoryIfMissing True (takeDirectory pub)
-      copyFileChanged url pub
-      return $ makeRelativeTo base pub
-
--- | Express the second path argument as relative to the first. 
--- Both arguments are expected to be absolute pathes. 
--- makeRelativeTo :: FilePath -> FilePath -> FilePath
--- makeRelativeTo dir file =
---   let (d, f) = removeCommonPrefix (splitDirectories dir) (splitDirectories file)
---   in normalise $ invertPath (joinPath d) </> joinPath f
--- removeCommonPrefix :: [FilePath] -> [FilePath] -> ([FilePath], [FilePath])
--- removeCommonPrefix al@(a:as) bl@(b:bs)
---  | a == b = removeCommonPrefix as bs
---  | otherwise = (al, bl)
--- removeCommonPrefix a [] = (a, [])
--- removeCommonPrefix [] b = ([], b)
 writeExampleProject :: Action ()
 writeExampleProject = mapM_ writeOne deckerExampleDir
   where

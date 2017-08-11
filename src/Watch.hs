@@ -24,15 +24,13 @@ waitForTwitch directories patterns = do
   return filepath
         -- Match a filepath against the supplied patterns
   where
-    isWatchedFile event = any ((flip match) (eventPath event)) patterns
+    isWatchedFile event = any (`match` eventPath event) patterns
         -- Stop the watch manager and notify the main thread
-    stopWatching mgr done event = do
-      putMVar done (eventPath event)
+    stopWatching mgr done event = putMVar done (eventPath event)
         -- Watch everything within the supplied dirs
     watchInDir mgr done dir =
       watchTree mgr dir isWatchedFile (stopWatching mgr done)
-    watchIt mgr done = do
-      mapM (watchInDir mgr done) directories
+    watchIt mgr done = mapM (watchInDir mgr done) directories
 
 twitchPatterns =
   map compile ["**/*.md", "**/*.yaml", "**/*.png", "**/*.jpg", "**/*.mp4"]
