@@ -32,6 +32,7 @@ module Utilities
   , fixMustacheMarkupText
   , globA
   , toPandocMeta
+  , reloadBrowsers
   , DeckerException(..)
   ) where
 
@@ -70,6 +71,7 @@ import Network.HTTP.Simple
 import Network.HTTP.Types.Status
 import Network.URI
 import Project
+import Server
 import qualified System.Directory as Dir
 import System.FilePath as SF
 import System.FilePath.Glob
@@ -100,17 +102,23 @@ spawn = liftIO . spawnCommand
 
 -- Runs liveroladx on the given directory, if it is not already running. If
 -- open is True a browser window is opended.
-runHttpServer dir open = do
-  process <- getServerHandle
-  case process of
+runHttpServer :: ProjectDirs -> Bool -> Action ()
+runHttpServer dirs open = do
+  server <- getServerHandle
+  case server of
     Just _ -> return ()
     Nothing -> do
-      putNormal "# livereloadx (on http://localhost:8888, see server.log)"
-      handle <-
-        spawn $ "livereloadx -s -p 8888 -d 500 " ++ dir ++ " 2>&1 > server.log"
-      setServerHandle $ Just handle
-      threadDelay' 200000
-      when open $ cmd ("open http://localhost:8888/" :: String) :: Action ()
+      let port = 8888
+      server <- liftIO $ startHttpServer dirs port
+      setServerHandle $ Just server
+      when open $ cmd ("open http://localhost:" ++ show port :: String) :: Action ()
+
+reloadBrowsers :: Action ()
+reloadBrowsers = do
+  server <- getServerHandle
+  case server of
+    Just handle -> liftIO $ reloadClients handle
+    Nothing -> return ()
 
 threadDelay' :: Int -> Action ()
 threadDelay' = liftIO . threadDelay
@@ -135,17 +143,21 @@ runShakeInContext context options rules = do
   cleanup
   where
     tryRunShake opts =
-      catch (shakeArgs opts rules) (\(SomeException e) -> return ())
+      handle (\(SomeException e) -> return ()) (shakeArgs opts rules)
     cleanup = do
-      process <- readIORef $ ctxServerHandle context
-      case process of
-        Just handle -> terminateProcess handle
+      server <- readIORef $ ctxServerHandle context
+      case server of
+        Just handle -> stopHttpServer handle
         Nothing -> return ()
     nothingToWatch = do
       files <- readIORef $ ctxFilesToWatch context
       if null files
         then return True
         else do
+          server <- readIORef $ ctxServerHandle context
+          case server of
+            Just handle -> reloadClients handle
+            Nothing -> return ()
           waitForTwitchPassive files
           return False
 

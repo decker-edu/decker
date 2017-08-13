@@ -5,6 +5,7 @@ module Server
   ( startHttpServer
   , stopHttpServer
   , reloadClients
+  , Server
   ) where
 
 import Control.Applicative

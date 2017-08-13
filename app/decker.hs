@@ -12,6 +12,7 @@ import Development.Shake
 import Development.Shake.FilePath
 import Embed
 import Project
+import Server
 import System.Directory
 import System.Exit
 import System.FilePath ()
@@ -75,7 +76,7 @@ main = do
        --
     phony "server" $ do
       need ["watch", "support"]
-      runHttpServer publicDir True
+      runHttpServer dirs True
        --
     phony "example" writeExampleProject
        --
@@ -91,7 +92,7 @@ main = do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         need [src]
         putNormal $ src ++ " -> " ++ out
-        runHttpServer publicDir False
+        runHttpServer dirs False
         code <-
           cmd
             "decktape.sh reveal"
@@ -129,6 +130,7 @@ main = do
                 then indexSource
                 else indexSource <.> "generated"
         markdownToHtmlPage src out
+        reloadBrowsers
        --
     indexSource <.> "generated" %> \out -> do
       decks <- decksA
@@ -161,6 +163,7 @@ main = do
     phony "support" $ do
       putNormal $ "# write embedded files for (" ++ supportDir ++ ")"
       writeEmbeddedFiles deckerSupportDir supportDir
+      reloadBrowsers
        --
     phony "publish" $ do
       need ["support"]

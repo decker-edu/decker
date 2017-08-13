@@ -1,5 +1,5 @@
 ---
-csl: 'chicago-author-date.csl'
+csl: 'acm-sig-proceedings.csl'
 css:
 - 'dummy.css'
 ---

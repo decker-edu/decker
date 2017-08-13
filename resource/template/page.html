@@ -90,12 +90,10 @@ $endfor$
    .container address p.date {
        float: right;
    }
-
    .container img {
        width: 75%;
        margin: 0px auto;
    }
-
    .container video {
        width: 75%;
        margin: 0px auto;
@@ -108,6 +106,12 @@ $endif$
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
+<script>
+var socket = new WebSocket("ws://" + location.host + "/reload");
+socket.onmessage = function () {
+        window.location.reload(true);
+};
+</script>
 $for(header-includes)$
   $header-includes$
 $endfor$

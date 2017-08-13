@@ -23,10 +23,11 @@ import Data.Typeable ()
 import Development.Shake
 import Project
 import System.Process
+import Server
 
 data ActionContext = ActionContext
   { ctxFilesToWatch :: IORef [FilePath]
-  , ctxServerHandle :: IORef (Maybe ProcessHandle)
+  , ctxServerHandle :: IORef (Maybe Server)
   , ctxDirs :: ProjectDirs
   } deriving (Typeable, Show)
 
@@ -76,12 +77,12 @@ setFilesToWatch files = do
   ctx <- getActionContext
   liftIO $ writeIORef (ctxFilesToWatch ctx) files
 
-getServerHandle :: Action (Maybe ProcessHandle)
+getServerHandle :: Action (Maybe Server)
 getServerHandle = do
   ctx <- getActionContext
   liftIO $ readIORef $ ctxServerHandle ctx
 
-setServerHandle :: Maybe ProcessHandle -> Action ()
+setServerHandle :: Maybe Server -> Action ()
 setServerHandle handle = do
   ctx <- getActionContext
   liftIO $ writeIORef (ctxServerHandle ctx) handle
