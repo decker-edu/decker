@@ -130,7 +130,6 @@ main = do
                 then indexSource
                 else indexSource <.> "generated"
         markdownToHtmlPage src out
-        reloadBrowsers
        --
     indexSource <.> "generated" %> \out -> do
       decks <- decksA
@@ -163,7 +162,6 @@ main = do
     phony "support" $ do
       putNormal $ "# write embedded files for (" ++ supportDir ++ ")"
       writeEmbeddedFiles deckerSupportDir supportDir
-      reloadBrowsers
        --
     phony "publish" $ do
       need ["support"]

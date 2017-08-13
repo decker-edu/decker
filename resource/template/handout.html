@@ -95,7 +95,7 @@ $endif$
 <script>
 var socket = new WebSocket("ws://" + location.host + "/reload");
 socket.onmessage = function () {
-        window.location.reload(true);
+    window.location.reload(true);
 };
 </script>
 $for(header-includes)$
