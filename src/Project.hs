@@ -98,6 +98,7 @@ data ProjectDirs = ProjectDirs
   , public :: FilePath
   , cache :: FilePath
   , support :: FilePath
+  , log :: FilePath
   } deriving (Eq, Show)
 
 -- Find the project directory.  
@@ -124,7 +125,8 @@ projectDirectories = do
   let publicDir = projectDir </> "public"
   let cacheDir = publicDir </> "cache"
   let supportDir = publicDir </> "support"
-  return (ProjectDirs projectDir publicDir cacheDir supportDir)
+  let logDir = projectDir </> "log"
+  return (ProjectDirs projectDir publicDir cacheDir supportDir logDir)
 
 -- Resolves a file path to a concrete verified file system path, or
 -- returns Nothing if no file can be found.

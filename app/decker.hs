@@ -1,3 +1,4 @@
+{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 import Context
 import Control.Exception
 import Control.Monad ()
@@ -20,7 +21,7 @@ import Text.Pandoc ()
 import Text.Printf ()
 import Utilities
 
-version = "0.1.0"
+version = "0.3.0"
 
 main :: IO ()
 main = do

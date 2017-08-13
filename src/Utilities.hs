@@ -1,15 +1,12 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Utilities
   ( spawn
-  , terminate
   , threadDelay'
   , wantRepeat
   , defaultContext
   , runShakeInContext
   , watchFiles
   , dropSuffix
-  , stopServer
-  , startServer
   , runHttpServer
   , writeIndex
   , readMetaDataForDir
@@ -114,33 +111,6 @@ runHttpServer dir open = do
       setServerHandle $ Just handle
       threadDelay' 200000
       when open $ cmd ("open http://localhost:8888/" :: String) :: Action ()
-
-startServer :: Control.Monad.IO.Class.MonadIO m => String -> String -> m ()
-startServer id command =
-  liftIO $ do
-    processHandle <- spawnCommand command
-    withProcessHandle processHandle handleResult
-  where
-    handleResult ph =
-      case ph of
-        ClosedHandle e ->
-          print $ "Error starting server " ++ id ++ ": " ++ show e
-        OpenHandle p -> do
-          print $ "Server " ++ id ++ " running (" ++ show p ++ ")"
-          writeFile (id ++ ".pid") (show p)
-
-stopServer id =
-  liftIO $ do
-    let pidFile = id ++ ".pid"
-    result <- try $ readFile pidFile
-    case result of
-      Left (SomeException e) -> print $ "Unable to read file " ++ pidFile
-      Right pid -> do
-        exitCode <- system ("kill -9 " ++ pid)
-        Dir.removeFile pidFile
-
-terminate :: ProcessHandle -> Action ()
-terminate = liftIO . terminateProcess
 
 threadDelay' :: Int -> Action ()
 threadDelay' = liftIO . threadDelay

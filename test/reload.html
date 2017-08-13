@@ -1,0 +1,14 @@
+<html>
+
+<body>
+    <h1>Reload Test</h1>
+
+    <script>
+        var socket = new WebSocket("ws://" + location.host + "/reload");
+        socket.onmessage = function () {
+            window.location.reload(true);
+        };
+    </script>
+</body>
+
+</html>

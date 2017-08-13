@@ -37,7 +37,7 @@ defaultActionContext :: IO ActionContext
 defaultActionContext = do
   files <- newIORef []
   server <- newIORef Nothing
-  return $ ActionContext files server (ProjectDirs "" "" "" "")
+  return $ ActionContext files server (ProjectDirs "" "" "" "" "")
 
 actionContextKey :: IO TypeRep
 actionContextKey = do
