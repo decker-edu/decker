@@ -107,7 +107,7 @@ Contributions are accepted via pull requests. Before working on a feature, pleas
 
 ### CI build checks
 
-The decker repository has a GitLab CI runner configured, that builds and runs all tests for each commit on every branch.
+The decker repository has a GitLab CI runner configured, that builds and runs all tests for each commit on every branch. Look at the status display for recent run of the [CI pipelines](pipelines).
 
 ### Haskell source code formatting
 
