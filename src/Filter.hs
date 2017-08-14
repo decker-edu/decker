@@ -2,7 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Filter
-  ( expandMacros
+  ( Disposition(..)
+  , expandMacros
   , makeSlides
   , filterNotes
   , makeBoxes
@@ -11,11 +12,14 @@ module Filter
   , cachePandocImages
   , extractLocalImagePathes
   , renderImageVideo
+  , transformImageSize
+  , lazyLoadImage
   , isMacro
   ) where
 
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Default ()
+import Data.List
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
@@ -29,7 +33,8 @@ import System.FilePath.Posix
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
-       ((!), div, figure, iframe, p, source, stringTag, toValue, video)
+       ((!), div, figure, iframe, img, p, source, stringTag, toValue,
+        video)
 import Text.Blaze.Html5.Attributes as A
        (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc.Definition ()
@@ -336,20 +341,74 @@ cacheImageIO uri cacheDir = do
 videoExtensions =
   [".mp4", ".webm", ".ogg", ".avi", ".dv", ".mp2", ".mov", ".qt"]
 
+data Disposition
+  = Deck
+  | Page
+  | Handout
+  deriving (Eq)
+
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
 -- transfers attributes to the video tag.
-renderImageVideo :: Inline -> IO Inline
-renderImageVideo image@(Image (ident, cls, values) inlines (url, tit)) =
-  if takeExtension url `elem` videoExtensions
-    then return $ RawInline (Format "html") (renderHtml videoTag)
-    else return image
+renderImageVideo :: Disposition -> Inline -> IO Inline
+renderImageVideo disposition image@(Image (ident, cls, values) inlines (url, tit)) =
+  return $ RawInline (Format "html") (renderHtml $ mediaTag which)
   where
+    which =
+      if takeExtension url `elem` videoExtensions
+        then video ""
+        else img
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
-    videoTag =
-      foldl appendAttr video values ! A.id (toValue ident) !
-      class_ (toValue $ unwords cls) !
-      alt (toValue $ stringify inlines) !
-      title (toValue tit) $
-      source ! src (toValue url)
-renderImageVideo inline = return inline
+    mediaTag tag =
+      ifNotEmpty A.id ident $
+      ifNotEmpty class_ (unwords cls) $
+      ifNotEmpty alt (stringify inlines) $
+      ifNotEmpty title tit $ foldl appendAttr tag transformedValues
+    ifNotEmpty attr value element =
+      if value == ""
+        then element
+        else element ! attr (toValue value)
+    srcAttr =
+      if disposition == Deck
+        then "data-src"
+        else "src"
+    transformedValues = (lazyLoad . transformImageSize) values
+    lazyLoad vs = (srcAttr, url) : vs
+renderImageVideo _ inline = return inline
+
+-- | Mimic pandoc for handling the 'width' and 'height' attributes of images.
+-- That is, transfer 'width' and 'height' attribute values to css style values
+-- and add them to the 'style' attribute value.
+transformImageSize :: [(String, String)] -> [(String, String)]
+transformImageSize attributes =
+  let style :: [String]
+      style =
+        delete "" $
+        split (dropDelims $ oneOf ";") $
+        fromMaybe "" $ snd <$> find (\(k, _) -> k == "style") attributes
+      unstyled :: [(String, String)]
+      unstyled = filter (\(k, v) -> k /= "style") attributes
+      unsized =
+        filter (\(k, v) -> k /= "width") $
+        filter (\(k, v) -> k /= "height") unstyled
+      size =
+        ( snd <$> find (\(k, _) -> k == "width") unstyled
+        , snd <$> find (\(k, _) -> k == "height") unstyled)
+      sizeStyle =
+        case size of
+          (Just w, Just h) -> ["width:" ++ w, "height:" ++ h]
+          (Just w, Nothing) -> ["width:" ++ w, "height:auto"]
+          (Nothing, Just h) -> ["width:auto", "height:" ++ h]
+          (Nothing, Nothing) -> []
+      css = style ++ sizeStyle
+      styleAttr = ("style", intercalate ";" $ reverse $ "" : css)
+  in if null css
+       then unstyled
+       else styleAttr : unsized
+
+-- | Moves the `src` attribute to `data-src` to enable reveal.js lazy loading.
+lazyLoadImage :: Inline -> IO Inline
+lazyLoadImage (Image (ident, cls, values) inlines (url, tit)) = do
+  let kvs = ("data-src", url) : [kv | kv <- values, "data-src" /= fst kv]
+  return (Image (ident, cls, kvs) inlines ("", tit))
+lazyLoadImage inline = return inline

@@ -4,7 +4,6 @@ date: '15.5.2016'
 history: True
 signs: © €
 subtitle: Tutorial and Examples
-theme: 'htr-slides'
 title: Decker Slide Tool
 transition: linear
 ümläüte: Ümläüte
@@ -63,7 +62,7 @@ The following text is included from file `/resource/realtive.md`:
 
 ## The author
 
-![](img/htr-beuth.jpg){.copy width="50%"}![](https://tramberend.beuth-hochschule.de/img/htr-beuth.jpg){.copy width="50%"}
+![](img/htr-beuth.jpg){width="50%"}
 
 [Deck markdown source](example-deck.md)
 

@@ -9,6 +9,7 @@ import Data.Maybe
 import Data.Text
 import Data.Text.Encoding
 import qualified Data.Yaml as Y
+import Filter
 import Project as P
 import qualified System.Directory as Dir
 import System.FilePath
@@ -60,7 +61,7 @@ main = do
           "cache/b48cadafb942dc1426316772321dd0c7.png"
     --
     describe "removeCommonPrefix" $
-      it "Removes the common prefix from two pathes." $ do
+      it "removes the common prefix from two pathes." $ do
         P.removeCommonPrefix ("", "") `shouldBe` ("", "")
         P.removeCommonPrefix ("fasel/bla", "fasel/bla/lall") `shouldBe`
           ("", "lall")
@@ -72,7 +73,7 @@ main = do
           ("lurgel/hopp", "fasel/bla/lall")
     --
     describe "resolveLocally" $
-      it "Resolves a file path to a concrete verified file system path." $ do
+      it "resolves a file path to a concrete verified file system path." $ do
         (resolveLocally
            dirs
            ((project dirs) </> "resource/example")
@@ -91,7 +92,7 @@ main = do
     --
     describe "copyResource" $
       it
-        "Copies an existing resource to the public dir and returns the public URL." $ do
+        "copies an existing resource to the public dir and returns the public URL." $ do
         Dir.doesFileExist
           ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
@@ -107,7 +108,7 @@ main = do
     --
     describe "linkResource" $
       it
-        "Links an existing resource to the public dir and returns the public URL." $ do
+        "links an existing resource to the public dir and returns the public URL." $ do
         Dir.doesFileExist
           ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
@@ -122,7 +123,7 @@ main = do
           True
     -- 
     describe "provisionResource" $ do
-      it "Copies a presentation time resource into the public dir." $ do
+      it "copies a presentation time resource into the public dir." $ do
         provisionResource
           Copy
           dirs
@@ -132,7 +133,7 @@ main = do
         Dir.doesFileExist
           ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
-      it "Links a presentation time resource into the public dir." $ do
+      it "links a presentation time resource into the public dir." $ do
         provisionResource
           SymLink
           dirs
@@ -145,7 +146,7 @@ main = do
         Dir.pathIsSymbolicLink
           ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
-      it "Throws, if the resource can not be found." $ do
+      it "throws, if the resource can not be found." $ do
         provisionResource
           Copy
           dirs
@@ -154,22 +155,32 @@ main = do
           anyException
     --
     describe "findFile" $ do
-      it "Finds local file system resources that sre needed at compile time." $
+      it "finds local file system resources that sre needed at compile time." $
         findFile dirs (project dirs) "resource/template/deck.html" `shouldReturn`
         project dirs </>
         "resource/template/deck.html"
-      it "Throws, if the resource can not be found." $ do
+      it "throws, if the resource can not be found." $ do
         findFile dirs (project dirs) "deck.html" `shouldThrow` anyException
     --
     describe "readResource" $ do
       it
-        "Finds local file system or built-in resources that sre needed at compile time." $ do
+        "finds local file system or built-in resources that sre needed at compile time." $ do
         readResource dirs (project dirs </> "resource/template") "deck.html" `shouldReturn`
           deckTemplate
         readResource dirs (project dirs) "deck.html" `shouldReturn` deckTemplate
-      it "Throws, if the resource can not be read." $ do
+      it "throws, if the resource can not be read." $ do
         readResource dirs (project dirs) "dreck.html" `shouldThrow` anyException
     --
+    describe "transformImageSize" $
+      it
+        "transfers 'width' and 'height' attribute values to css style values and add them to the 'style' attribute value." $ do
+        transformImageSize [("width", "100%")] `shouldBe`
+          [("style", "width:100%;")]
+        transformImageSize [("height", "50%")] `shouldBe`
+          [("style", "height:50%;")]
+        transformImageSize [("width", "100%"), ("style", "color:red;")] `shouldBe`
+          [("style", "width:100%;color:red;")]
+    {--
     describe "cacheRemoteFile" $
       it
         "Stores the data behind a URL locally, if possible. Return the local path to the cached file." $ do
@@ -211,3 +222,4 @@ main = do
                 (cache dirs </> "bc137c359488beadbb61589f7fe9e208.jpg", "")
             ]
         ]
+      --}

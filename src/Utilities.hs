@@ -289,7 +289,7 @@ markdownToHtmlDeck markdownFile out = do
             ]
         , writerCiteMethod = Citeproc
         }
-  pandoc <- readAndPreprocessMarkdown markdownFile
+  pandoc <- readAndPreprocessMarkdown markdownFile Deck
   processed <- processPandocDeck "revealjs" pandoc
   writePandocString "revealjs" options out processed
 
@@ -304,20 +304,27 @@ getPandocWriter format =
 
 -- | Reads a markdownfile, expands the included files, and substitutes mustache
 -- template variables and calls need.
-readAndPreprocessMarkdown :: FilePath -> Action Pandoc
-readAndPreprocessMarkdown markdownFile = do
+readAndPreprocessMarkdown :: FilePath -> Disposition -> Action Pandoc
+readAndPreprocessMarkdown markdownFile disposition = do
   putLoud $ "reading: " ++ markdownFile
   dirs <- getProjectDirs
   let baseDir = takeDirectory markdownFile
-  pandoc@(Pandoc meta bocks) <-
+  pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes dirs baseDir
   let method = provisioningFromMeta meta
+  let lazy = lookupBool "lazy" False meta
   liftIO $
     mapMetaResources (provisionMetaResource method dirs baseDir) pandoc >>=
     mapResources (provisionExistingResource method dirs baseDir) >>=
-    walkM renderImageVideo
+    walkM (renderImageVideo disposition)
     -- Disable automatic caching of remote images for a while
     -- >>= walkM (cacheRemoteImages (cache dirs))
+
+lookupBool :: String -> Bool -> Meta -> Bool
+lookupBool key def meta =
+  case lookupMeta key meta of
+    Just (MetaBool b) -> b
+    _ -> def
 
 provisionMetaResource ::
      Provisioning
@@ -351,7 +358,7 @@ markdownToHtmlPage markdownFile out = do
         , writerVariables = [("decker-support-dir", supportDir)]
         , writerCiteMethod = Citeproc
         }
-  pandoc <- readAndPreprocessMarkdown markdownFile
+  pandoc <- readAndPreprocessMarkdown markdownFile Page
   processed <- processPandocPage "html5" pandoc
   writePandocString "html5" options out processed
 
@@ -366,7 +373,7 @@ markdownToPdfPage markdownFile out = do
         -- , writerHighlightStyle = pygments
         , writerCiteMethod = Citeproc
         }
-  pandoc <- readAndPreprocessMarkdown markdownFile
+  pandoc <- readAndPreprocessMarkdown markdownFile Page
   processed <- processPandocPage "latex" pandoc
   putNormal $ "# pandoc (for " ++ out ++ ")"
   pandocMakePdf options processed out
@@ -380,7 +387,7 @@ pandocMakePdf options processed out = do
 -- | Write a markdown file to a HTML file using the handout template.
 markdownToHtmlHandout :: FilePath -> FilePath -> Action ()
 markdownToHtmlHandout markdownFile out = do
-  pandoc <- readAndPreprocessMarkdown markdownFile
+  pandoc <- readAndPreprocessMarkdown markdownFile Handout
   processed <- processPandocHandout "html" pandoc
   supportDir <- getRelativeSupportDir out
   let options =
@@ -399,7 +406,7 @@ markdownToHtmlHandout markdownFile out = do
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
 markdownToPdfHandout markdownFile out = do
-  pandoc <- readAndPreprocessMarkdown markdownFile
+  pandoc <- readAndPreprocessMarkdown markdownFile Handout
   processed <- processPandocHandout "latex" pandoc
   let options =
         pandocWriterOpts
