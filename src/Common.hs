@@ -30,3 +30,4 @@ instance Show DeckerException where
   show (DecktapeException e) = "decktape.sh failed for reason: " ++ e
   show RsyncUrlException =
     "attributes 'destinationRsyncHost' or 'destinationRsyncPath' not defined in meta data"
+

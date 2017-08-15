@@ -21,6 +21,7 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
 import Utilities
+import Action
 
 main :: IO ()
 main = do
@@ -173,26 +174,3 @@ main = do
 -- | Some constants that might need tweaking
 options = shakeOptions {shakeFiles = ".shake"}
 
-replaceSuffix srcSuffix targetSuffix filename =
-  dropSuffix srcSuffix filename ++ targetSuffix
-
--- | Calculates the target pathes from a list of source files.
-calcTargets :: String -> String -> [FilePath] -> Action [FilePath]
-calcTargets srcSuffix targetSuffix sources = do
-  dirs <- getProjectDirs
-  return $
-    map
-      (replaceSuffix srcSuffix targetSuffix .
-       combine (public dirs) . makeRelative (project dirs))
-      sources
-
--- | Calculate the source file from the target path. Calls need.
-calcSource :: String -> String -> FilePath -> Action FilePath
-calcSource targetSuffix srcSuffix target = do
-  dirs <- getProjectDirs
-  let src =
-        (replaceSuffix targetSuffix srcSuffix .
-         combine (project dirs) . makeRelative (public dirs))
-          target
-  need [src]
-  return src

@@ -22,7 +22,6 @@ import Data.Maybe (fromMaybe)
 import Data.Typeable ()
 import Development.Shake
 import Project
-import System.Process
 import Server
 
 data ActionContext = ActionContext

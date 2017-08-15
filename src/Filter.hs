@@ -36,7 +36,7 @@ import Text.Blaze.Html5 as H
        ((!), audio, div, figure, iframe, img, p, source, stringTag,
         toValue, video)
 import Text.Blaze.Html5.Attributes as A
-       (alt, class_, height, id, src, style, title, width)
+       (alt, class_, height, id, preload, src, style, title, width)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.JSON
 import Text.Pandoc.Shared
@@ -352,13 +352,17 @@ data Disposition
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
 -- transfers attributes to the video tag.
 renderImageVideo :: Disposition -> Inline -> IO Inline
-renderImageVideo disposition image@(Image (ident, cls, values) inlines (url, tit)) =
+renderImageVideo disposition (Image (ident, cls, values) inlines (url, tit)) =
   return $ RawInline (Format "html") (renderHtml $ mediaTag which)
   where
     which =
       case takeExtension url of
-        ext | ext `elem` videoExtensions -> video "Browser does not support video."
-        ext | ext `elem` audioExtensions -> audio "Browser does not support audio."
+        ext
+          | ext `elem` videoExtensions ->
+            video "Browser does not support video."
+        ext
+          | ext `elem` audioExtensions ->
+            audio "Browser does not support audio."
         _ -> img
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
@@ -366,7 +370,8 @@ renderImageVideo disposition image@(Image (ident, cls, values) inlines (url, tit
       ifNotEmpty A.id ident $
       ifNotEmpty class_ (unwords cls) $
       ifNotEmpty alt (stringify inlines) $
-      ifNotEmpty title tit $ foldl appendAttr tag transformedValues
+      ifNotEmpty title tit $
+      foldl appendAttr tag transformedValues
     ifNotEmpty attr value element =
       if value == ""
         then element

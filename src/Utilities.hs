@@ -1,13 +1,7 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Utilities
-  ( spawn
-  , threadDelay'
-  , wantRepeat
-  , defaultContext
-  , runShakeInContext
+  ( runShakeInContext
   , watchFiles
-  , dropSuffix
-  , runHttpServer
   , writeIndex
   , readMetaDataForDir
   , substituteMetaData
@@ -19,36 +13,24 @@ module Utilities
   , writeExampleProject
   , metaValueAsString
   , (<++>)
-  , replaceSuffixWith
   , writeEmbeddedFiles
   , getRelativeSupportDir
   , pandocMakePdf
-  , isCacheableURI
-  , adjustLocalUrl
-  , cacheRemoteFile
-  , cacheRemoteImages
   , fixMustacheMarkup
   , fixMustacheMarkupText
-  , globA
   , toPandocMeta
-  , reloadBrowsers
   , DeckerException(..)
   ) where
 
 import Common
 import Context
 import Control.Arrow
-import Control.Concurrent
 import Control.Exception
 import Control.Monad
-import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Loops
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
-import qualified Data.ByteString.Lazy.Char8 as L8
-import Data.Digest.Pure.MD5
 import qualified Data.HashMap.Lazy as HashMap
-import qualified Data.HashMap.Strict as H
 import Data.IORef
 import Data.List as List
 import Data.List.Extra as List
@@ -57,24 +39,16 @@ import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
-import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Embed
 import Filter
-import Network.HTTP.Conduit
-import Network.HTTP.Simple
-import Network.HTTP.Types.Status
 import Network.URI
 import Project
 import Server
 import qualified System.Directory as Dir
-import System.FilePath as SF
-import System.FilePath.Glob
 import System.IO as S
-import System.Process
-import System.Process.Internals
 import Text.CSL.Pandoc
 import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
@@ -83,53 +57,8 @@ import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Watch
-
--- | Globs for files under the project dir in the Action monad. 
--- Returns absolute pathes.
-globA :: FilePattern -> Action [FilePath]
-globA pat = do
-  dirs <- getProjectDirs
-  liftIO $
-    filter (not . isPrefixOf (public dirs)) <$>
-    globDir1 (compile pat) (project dirs)
-
--- Utility functions for shake based apps
-spawn :: String -> Action ProcessHandle
-spawn = liftIO . spawnCommand
-
--- Runs liveroladx on the given directory, if it is not already running. If
--- open is True a browser window is opended.
-runHttpServer :: ProjectDirs -> Bool -> Action ()
-runHttpServer dirs open = do
-  server <- getServerHandle
-  case server of
-    Just _ -> return ()
-    Nothing -> do
-      let port = 8888
-      server <- liftIO $ startHttpServer dirs port
-      setServerHandle $ Just server
-      when open $ cmd ("open http://localhost:" ++ show port :: String) :: Action ()
-
-reloadBrowsers :: Action ()
-reloadBrowsers = do
-  server <- getServerHandle
-  case server of
-    Just handle -> liftIO $ reloadClients handle
-    Nothing -> return ()
-
-threadDelay' :: Int -> Action ()
-threadDelay' = liftIO . threadDelay
-
-wantRepeat :: IORef Bool -> Action ()
-wantRepeat justOnce = liftIO $ writeIORef justOnce False
-
--- The context of program invocation consists of a list of
--- files to watch and a possibly running local http server.
-data Context =
-  Context [FilePath]
-          (Maybe ProcessHandle)
-
-defaultContext = Context [] Nothing
+import Action
+import Meta
 
 runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
 runShakeInContext context options rules = do
@@ -164,20 +93,6 @@ watchFiles = setFilesToWatch
 (<++>) :: Monad m => m [a] -> m [a] -> m [a]
 (<++>) = liftM2 (++)
 
--- | Removes the last suffix from a filename
-dropSuffix s t = fromMaybe t (stripSuffix s t)
-
--- | Monadic version of suffix replacement for easy binding.
-replaceSuffixWith :: String -> String -> [FilePath] -> Action [FilePath]
-replaceSuffixWith suffix with pathes =
-  return [dropSuffix suffix d ++ with | d <- pathes]
-
--- | Monadic version of suffix replacement for easy binding.
-calcTargetPath ::
-     FilePath -> String -> String -> [FilePath] -> Action [FilePath]
-calcTargetPath projectDir suffix with pathes =
-  return [projectDir </> dropSuffix suffix d ++ with | d <- pathes]
-
 -- | Generates an index.md file with links to all generated files of interest.
 writeIndex out baseUrl decks handouts pages = do
   let decksLinks = map (makeRelative baseUrl) decks
@@ -201,38 +116,6 @@ writeIndex out baseUrl decks handouts pages = do
   where
     makeLink path = "-    [" ++ takeFileName path ++ "](" ++ path ++ ")"
 
-joinMeta :: Y.Value -> Y.Value -> Y.Value
-joinMeta (Y.Object old) (Y.Object new) = Y.Object (H.union new old)
-joinMeta (Y.Object old) _ = Y.Object old
-joinMeta _ (Y.Object new) = Y.Object new
-joinMeta _ _ = throw $ YamlException "Can only join YAML objects."
-
-readMetaDataForDir :: FilePath -> Action Y.Value
-readMetaDataForDir dir = walkUpTo dir
-  where
-    walkUpTo dir = do
-      dirs <- getProjectDirs
-      if equalFilePath (project dirs) dir
-        then collectMeta dir
-        else do
-          fromAbove <- walkUpTo (takeDirectory dir)
-          fromHere <- collectMeta dir
-          return $ joinMeta fromHere fromAbove
-    --
-    collectMeta dir = do
-      files <- liftIO $ globDir1 (compile "*-meta.yaml") dir
-      need files
-      meta <- mapM decodeYaml files
-      return $ foldl joinMeta (Y.object []) meta
-    --
-    decodeYaml yamlFile = do
-      result <- liftIO $ Y.decodeFileEither yamlFile
-      case result of
-        Right object@(Y.Object _) -> return object
-        Right _ ->
-          throw $
-          YamlException $ "Top-level meta value must be an object: " ++ dir
-        Left exception -> throw exception
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text
@@ -470,33 +353,6 @@ readMarkdownOrThrow opts string =
     Right pandoc -> pandoc
     Left err -> throw $ PandocException (show err)
 
--- | Converts pandoc meta data to mustache meta data. Inlines and blocks are
--- rendered to markdown strings with default options.
-toMustacheMeta :: MetaValue -> MT.Value
-toMustacheMeta (MetaMap mmap) =
-  MT.Object $ H.fromList $ map (T.pack *** toMustacheMeta) $ Map.toList mmap
-toMustacheMeta (MetaList a) = MT.Array $ Vec.fromList $ map toMustacheMeta a
-toMustacheMeta (MetaBool bool) = MT.Bool bool
-toMustacheMeta (MetaString string) = MT.String $ T.pack string
-toMustacheMeta (MetaInlines inlines) =
-  MT.String $
-  T.pack $ writeMarkdown def (Pandoc (Meta Map.empty) [Plain inlines])
-toMustacheMeta (MetaBlocks blocks) =
-  MT.String $ T.pack $ writeMarkdown def (Pandoc (Meta Map.empty) blocks)
-
-mergePandocMeta :: MetaValue -> MetaValue -> MetaValue
-mergePandocMeta (MetaMap left) (MetaMap right) = MetaMap $ Map.union left right
-mergePandocMeta left _ = left
-
--- | Converts YAML meta data to pandoc meta data.
-toPandocMeta :: Y.Value -> MetaValue
-toPandocMeta (Y.Object m) =
-  MetaMap $ Map.fromList $ map (T.unpack *** toPandocMeta) $ H.toList m
-toPandocMeta (Y.Array vector) = MetaList $ map toPandocMeta $ Vec.toList vector
-toPandocMeta (Y.String text) = MetaString $ T.unpack text
-toPandocMeta (Y.Number scientific) = MetaString $ show scientific
-toPandocMeta (Y.Bool bool) = MetaBool bool
-toPandocMeta Y.Null = MetaList []
 
 -- Remove automatic identifier creation for headers. It does not work well with
 -- the current include mechanism if slides have duplicate titles in separate
@@ -516,44 +372,7 @@ isLocalURI url = isNothing $ parseURI url
 isRemoteURI :: String -> Bool
 isRemoteURI = not . isLocalURI
 
-isCacheableURI :: String -> Bool
-isCacheableURI url =
-  case parseURI url of
-    Just uri -> uriScheme uri `elem` ["http:", "https:"]
-    Nothing -> False
-
--- | Walks over all images in a Pandoc document and transforms image URLs like
--- this: 1. Remote URLs are not transformed. 2. Absolute URLs are intepreted
--- relative to the project root directory. 3. Relative URLs are intepreted
--- relative to the containing document.
-adjustImageUrls :: FilePath -> FilePath -> Pandoc -> Pandoc
-adjustImageUrls projectDir baseDir = walk adjustBlock . walk adjustInline
-  where
-    adjustInline (Image attr inlines (url, title)) =
-      Image attr inlines (adjustLocalUrl projectDir baseDir url, title)
-    adjustInline other = other
-    adjustBlock (Header 1 attr inlines) =
-      Header 1 (adjustBgImageUrl attr) inlines
-    adjustBlock other = other
-    adjustBgImageUrl (i, cs, kvs) =
-      ( i
-      , cs
-      , map
-          (\(k, v) ->
-             if k == "data-background-image" || k == "data-background-video"
-               then (k, adjustLocalUrl projectDir baseDir v)
-               else (k, v))
-          kvs)
-
-adjustLocalUrl :: FilePath -> FilePath -> FilePath -> FilePath
-adjustLocalUrl root base url
-  | isLocalURI url =
-    if isAbsolute url
-      then root </> makeRelative "/" url
-      else base </> url
-adjustLocalUrl _ _ url = url
-
--- TODO: Move the map* functions into the Action monad so that need can be
+-- TODO: Move the map* functions into the Action monad so that 'need' can be
 -- called for the resources.
 mapResources :: (FilePath -> IO FilePath) -> Pandoc -> IO Pandoc
 mapResources transform pandoc@(Pandoc meta blocks) = do
@@ -668,56 +487,6 @@ processIncludes dirs baseDir (Pandoc meta blocks) = do
       included <- processBlocks (takeDirectory filePath) b
       return $ included : result
     include _ result block = return $ [block] : result
-
-cacheRemoteImages :: FilePath -> Pandoc -> IO Pandoc
-cacheRemoteImages cacheDir = walkM cacheRemoteImage
-  where
-    cacheRemoteImage (Image attr inlines (url, title)) = do
-      cachedFile <- cacheRemoteFile cacheDir url
-      return (Image attr inlines (cachedFile, title))
-    cacheRemoteImage img = return img
-
-cacheRemoteFile :: FilePath -> String -> IO FilePath
-cacheRemoteFile cacheDir url
-  | isCacheableURI url = do
-    let cacheFile = cacheDir </> hashURI url
-    exists <- Dir.doesFileExist cacheFile
-    if exists
-      then return cacheFile
-      else catch
-             (do content <- downloadUrl url
-                 Dir.createDirectoryIfMissing True cacheDir
-                 LB.writeFile cacheFile content
-                 return cacheFile)
-             (\e -> do
-                putStrLn $ "Warning: " ++ show (e :: SomeException)
-                return url)
-cacheRemoteFile _ url = return url
-
--- clearCachedFile :: FilePath -> String -> IO ()
--- clearCachedFile cacheDir url
---   | isCacheableURI url = do
---     let cacheFile = cacheDir </> hashURI url
---     exists <- Dir.doesFileExist cacheFile
---     when exists $ Dir.removeFile cacheFile
--- clearCachedFile _ _ = return ()
-downloadUrl :: String -> IO LB.ByteString
-downloadUrl url = do
-  request <- parseRequest url
-  result <- httpLBS request
-  let status = getResponseStatus result
-  if status == ok200
-    then return $ getResponseBody result
-    else throw $
-         HttpException $
-         "Cannot download " ++
-         url ++
-         " (" ++
-         show (statusCode status) ++
-         " " ++ B.unpack (statusMessage status) ++ ")"
-
-hashURI :: String -> String
-hashURI uri = show (md5 $ L8.pack uri) SF.<.> SF.takeExtension uri
 
 processPandocPage :: String -> Pandoc -> Action Pandoc
 processPandocPage format pandoc = do

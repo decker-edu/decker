@@ -14,7 +14,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Watch, Embed, Context, Utilities, Filter, Project, Common, Server
+  exposed-modules:     Action, Cache, Meta, Watch, Embed, Context, Utilities, Filter, Project, Common, Server
   build-depends:       base
                      , aeson
                      , random
