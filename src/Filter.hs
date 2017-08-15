@@ -33,8 +33,8 @@ import System.FilePath.Posix
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
-       ((!), div, figure, iframe, img, p, source, stringTag, toValue,
-        video)
+       ((!), audio, div, figure, iframe, img, p, source, stringTag,
+        toValue, video)
 import Text.Blaze.Html5.Attributes as A
        (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc.Definition ()
@@ -341,6 +341,8 @@ cacheImageIO uri cacheDir = do
 videoExtensions =
   [".mp4", ".webm", ".ogg", ".avi", ".dv", ".mp2", ".mov", ".qt"]
 
+audioExtensions = [".mp3", ".ogg", ".wav"]
+
 data Disposition
   = Deck
   | Page
@@ -354,9 +356,10 @@ renderImageVideo disposition image@(Image (ident, cls, values) inlines (url, tit
   return $ RawInline (Format "html") (renderHtml $ mediaTag which)
   where
     which =
-      if takeExtension url `elem` videoExtensions
-        then video ""
-        else img
+      case takeExtension url of
+        ext | ext `elem` videoExtensions -> video "Browser does not support video."
+        ext | ext `elem` audioExtensions -> audio "Browser does not support audio."
+        _ -> img
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
