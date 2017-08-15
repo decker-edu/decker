@@ -24,6 +24,7 @@ import System.Directory
 import System.FilePath.Posix
 import System.Random
 
+-- Logging and port configuration for the server.
 serverConfig dirs port = do
   let logDir = Project.log dirs
   let accessLog = logDir </> "server-access.log"
@@ -60,6 +61,7 @@ reloadAll state = withMVar state $ mapM_ send
     send :: Client -> IO ()
     send (cid, conn) = sendTextData conn ("reload!" :: Text)
 
+-- Runs the server. Never returns.
 runHttpServer :: MVar ServerState -> ProjectDirs -> Int -> IO ()
 runHttpServer state dirs port = do
   let documentRoot = public dirs
@@ -67,33 +69,32 @@ runHttpServer state dirs port = do
   simpleHttpServe config $
     route
       [ ("/reload", runWebSocketsSnap $ reloader state)
-      , ( "/reload.html"
+      , ( "/reload.html" -- Just for testing the thing.
         , serveFile $ Project.project dirs </> "test" </> "reload.html")
-      , ( "/reload.js"
-        , serveFile $ Project.project dirs </> "test" </> "reload.js")
       , ("/", serveDirectory documentRoot)
       ]
 
--- Starts a server in a new thread and returns the thread id.
+-- | Starts a server in a new thread and returns the thread id.
 startHttpServer :: ProjectDirs -> Int -> IO Server
 startHttpServer dirs port = do
   state <- initState
   threadId <- forkIO $ runHttpServer state dirs port
   return (threadId, state)
 
+-- | Sends a reload messsage to all attached clients
 reloadClients :: Server -> IO ()
 reloadClients = reloadAll . snd
 
+-- | Kill the server.
 stopHttpServer :: Server -> IO ()
 stopHttpServer = killThread . fst
 
--- connect :: Connection -> IO ()
--- just keep it open
+-- Accepts a request and adds the connection to the client list. Then reads
+-- reads the connection forever. Removes the client from the list on disconnect.
 reloader :: MVar ServerState -> PendingConnection -> IO ()
 reloader state pending = do
   connection <- acceptRequest pending
-  cid <- randomIO
+  cid <- randomIO -- Use a random number as client id.
   flip finally (removeClient state cid) $ do
     addClient state (cid, connection)
-    -- putStrLn $ "reloader request from " ++ show cid
     forever (receiveData connection :: IO Text)

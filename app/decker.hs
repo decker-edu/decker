@@ -22,8 +22,6 @@ import Text.Pandoc ()
 import Text.Printf ()
 import Utilities
 
-version = "0.3.0"
-
 main :: IO ()
 main = do
   dirs <- projectDirectories
@@ -51,42 +49,40 @@ main = do
   let everythingA = decksA <++> handoutsA <++> pagesA
   let everythingPdfA = decksPdfA <++> handoutsPdfA <++> pagesPdfA
   let cruft =
-        map
-          (combine (project dirs))
-          ["index.md.generated", "server.log", "//.shake"]
+        map (combine (project dirs)) ["index.md.generated", "log/", "//.shake/"]
   context <- makeActionContext dirs
   runShakeInContext context options $
   --
    do
     want ["html"]
-       --
-    phony "version" $ putNormal $ "decker version " ++ version
-       --
+    --
+    phony "version" $ putNormal $ "decker version " ++ deckerVersion
+    --
     phony "decks" $ decksA >>= need
-       --
+    --
     phony "html" $ everythingA <++> indexA >>= need
-       --
+    --
     phony "pdf" $ pagesPdfA <++> handoutsPdfA <++> indexA >>= need
-       --
+    --
     phony "pdf-decks" $ decksPdfA <++> indexA >>= need
-       --
+    --
     phony "watch" $ do
       need ["html"]
       allMarkdownA <++> metaA <++> allImagesA >>= watchFiles
-       --
+    --
     phony "server" $ do
       need ["watch", "support"]
       runHttpServer dirs True
-       --
+    --
     phony "example" writeExampleProject
-       --
+    --
     phony "index" $ need [index]
-       --
+    --
     priority 2 $
       "//*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
         markdownToHtmlDeck src out
-       --
+    --
     priority 2 $
       "//*-deck.pdf" %> \out -> do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
@@ -101,27 +97,27 @@ main = do
         case code of
           ExitFailure _ -> throw $ DecktapeException "Unknown."
           ExitSuccess -> return ()
-       --
+    --
     priority 2 $
       "//*-handout.html" %> \out -> do
         src <- calcSource "-handout.html" "-deck.md" out
         markdownToHtmlHandout src out
-       --
+    --
     priority 2 $
       "//*-handout.pdf" %> \out -> do
         src <- calcSource "-handout.pdf" "-deck.md" out
         markdownToPdfHandout src out
-       --
+    --
     priority 2 $
       "//*-page.html" %> \out -> do
         src <- calcSource "-page.html" "-page.md" out
         markdownToHtmlPage src out
-       --
+    --
     priority 2 $
       "//*-page.pdf" %> \out -> do
         src <- calcSource "-page.pdf" "-page.md" out
         markdownToPdfPage src out
-       --
+    --
     priority 2 $
       index %> \out -> do
         exists <- Development.Shake.doesFileExist indexSource
@@ -130,20 +126,20 @@ main = do
                 then indexSource
                 else indexSource <.> "generated"
         markdownToHtmlPage src out
-       --
+    --
     indexSource <.> "generated" %> \out -> do
       decks <- decksA
       handouts <- handoutsA
       pages <- pagesA
       need $ decks ++ handouts ++ pages
       writeIndex out (takeDirectory index) decks handouts pages
-       --
+    --
     phony "clean" $ do
       removeFilesAfter publicDir ["//"]
       removeFilesAfter projectDir cruft
-       --
+    --
     phony "help" $ liftIO $ putStr deckerHelpText
-       --
+    --
     phony "plan" $ do
       putNormal $ "project directory: " ++ projectDir
       putNormal $ "public directory: " ++ publicDir
@@ -154,15 +150,11 @@ main = do
       allSourcesA >>= mapM_ putNormal
       putNormal "targets:"
       everythingA <++> everythingPdfA >>= mapM_ putNormal
-       --
-       -- phony "meta" $
-       --   do metaData <- metaA >>= readMetaData
-       --      liftIO $ B.putStr $ encodePretty defConfig metaData
-       --
+    --
     phony "support" $ do
       putNormal $ "# write embedded files for (" ++ supportDir ++ ")"
       writeEmbeddedFiles deckerSupportDir supportDir
-       --
+    --
     phony "publish" $ do
       need ["support"]
       everythingA <++> indexA >>= need

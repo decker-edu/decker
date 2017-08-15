@@ -27,7 +27,6 @@ module Utilities
   , adjustLocalUrl
   , cacheRemoteFile
   , cacheRemoteImages
-  , makeRelativeTo
   , fixMustacheMarkup
   , fixMustacheMarkupText
   , globA
@@ -51,8 +50,8 @@ import Data.Digest.Pure.MD5
 import qualified Data.HashMap.Lazy as HashMap
 import qualified Data.HashMap.Strict as H
 import Data.IORef
-import Data.List
-import Data.List.Extra
+import Data.List as List
+import Data.List.Extra as List
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
@@ -60,8 +59,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
-
--- import Debug.Trace
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Embed
@@ -270,6 +267,7 @@ invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile out = do
+  putCurrentDocument out
   supportDir <- getRelativeSupportDir out
   let options =
         pandocWriterOpts
@@ -302,17 +300,33 @@ getPandocWriter format =
     Left e -> throw $ PandocException e
     _ -> throw $ PandocException $ "No writer for format: " ++ format
 
+versionCheck :: Meta -> Action ()
+versionCheck meta =
+  case lookupMeta "decker-version" meta of
+    Just (MetaInlines version) -> check $ stringify version
+    Just (MetaString version) -> check version
+    _ ->
+      putNormal $
+      "  - Document version unspecified. This is decker version " ++
+      deckerVersion ++ "."
+  where
+    check version =
+      when (List.trim version /= List.trim deckerVersion) $
+      putNormal $
+      "  - Document version " ++
+      version ++
+      ". This is decker version " ++ deckerVersion ++ ". Expect problems."
+
 -- | Reads a markdownfile, expands the included files, and substitutes mustache
 -- template variables and calls need.
 readAndPreprocessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndPreprocessMarkdown markdownFile disposition = do
-  putLoud $ "reading: " ++ markdownFile
   dirs <- getProjectDirs
   let baseDir = takeDirectory markdownFile
   pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes dirs baseDir
+  versionCheck meta
   let method = provisioningFromMeta meta
-  let lazy = lookupBool "lazy" False meta
   liftIO $
     mapMetaResources (provisionMetaResource method dirs baseDir) pandoc >>=
     mapResources (provisionExistingResource method dirs baseDir) >>=
@@ -338,9 +352,15 @@ provisionMetaResource method dirs base (key, path)
   | key `elem` compiletimeMetaKeys = findLocalFile dirs base path
 provisionMetaResource _ _ _ (key, path) = return path
 
+putCurrentDocument out = do
+  dirs <- getProjectDirs
+  let rel = makeRelative (public dirs) out
+  putNormal $ "# pandoc for (" ++ rel ++ ")"
+
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage :: FilePath -> FilePath -> Action ()
 markdownToHtmlPage markdownFile out = do
+  putCurrentDocument out
   supportDir <- getRelativeSupportDir out
   let options =
         pandocWriterOpts
@@ -365,6 +385,7 @@ markdownToHtmlPage markdownFile out = do
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
 markdownToPdfPage markdownFile out = do
+  putCurrentDocument out
   let options =
         pandocWriterOpts
         { writerTemplate = Just pageLatexTemplate
@@ -387,6 +408,7 @@ pandocMakePdf options processed out = do
 -- | Write a markdown file to a HTML file using the handout template.
 markdownToHtmlHandout :: FilePath -> FilePath -> Action ()
 markdownToHtmlHandout markdownFile out = do
+  putCurrentDocument out
   pandoc <- readAndPreprocessMarkdown markdownFile Handout
   processed <- processPandocHandout "html" pandoc
   supportDir <- getRelativeSupportDir out
@@ -406,6 +428,7 @@ markdownToHtmlHandout markdownFile out = do
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
 markdownToPdfHandout markdownFile out = do
+  putCurrentDocument out
   pandoc <- readAndPreprocessMarkdown markdownFile Handout
   processed <- processPandocHandout "latex" pandoc
   let options =
@@ -727,7 +750,6 @@ writePandocString :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocString format options out pandoc = do
   let writer = getPandocWriter format
   writeFile' out (writer options pandoc)
-  putNormal $ "# pandoc for (" ++ out ++ ")"
 
 writeExampleProject :: Action ()
 writeExampleProject = mapM_ writeOne deckerExampleDir

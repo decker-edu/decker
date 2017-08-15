@@ -2,7 +2,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Embed
-  ( deckerHelpText
+  ( deckerVersion
+  , deckerHelpText
   , deckerExampleDir
   , deckerSupportDir
   , deckerTemplateDir
@@ -18,7 +19,11 @@ module Embed
 import qualified Data.ByteString.Char8 as B
 import Data.FileEmbed
 import Data.List
+import Data.List.Extra
 import Data.Maybe
+
+deckerVersion :: String
+deckerVersion = trim $ B.unpack $ $(makeRelativeToProject "VERSION" >>= embedFile)
 
 deckerExampleDir :: [(FilePath, B.ByteString)]
 deckerExampleDir = $(makeRelativeToProject "resource/example" >>= embedDir)

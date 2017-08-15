@@ -7,6 +7,7 @@ subtitle: Tutorial and Examples
 title: Decker Slide Tool
 transition: linear
 ümläüte: Ümläüte
+decker-version: 0.3.0
 ---
 
 # Overview
@@ -297,50 +298,5 @@ Your total score is 42.
 
 -   [Haskell](http://haskell.org)
 -   [Pandoc](), [Shake](), [Mustache](), [reveal.js]()
--   [LaTeX](), [livereloadx](), [decktape.sh]()
+-   [LaTeX](), [decktape.sh]()
 
-# `decker` Targets
-
-## Specialized build tool
-
--   `decker` is like `make` without the makefile
--   Operates on the current directory and below
--   Considers Markdown text files and YAML data files
-
-## `decker` source files
-
--   `*-deck.md` is a slide deck
--   `*-page.md` is a one page document styled like an article
--   `*.md` is a general document without any semantic attached
-
-# `decker` generated targets
-
-## Generated from `*-deck.md`
-
--   `*-deck.html` a *reveal.js* based HTML slide deck
--   `*-deck.pdf` a PDF version of that deck
--   `*-handout.html` a HTML document containing only the speaker notes from the deck
--   `*-handout.pdf` a PDF version of that handout
-
-## Generated from `*-page.md`
-
--   `*-page.hml` a HTML article page
--   `*-page.pdf` a PDF version of that article
-
-# Slide Header
-
-# Installation {.section}
-
-# Usage {.section}
-
-# Decker Commands
-
-## `decker`
-
--   Recursively scans the current directory for Markdown files ending in `.md`
-
-## `decker clean`
-
-## `decker example`
-
-## `decker server`
