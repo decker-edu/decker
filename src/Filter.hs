@@ -34,7 +34,7 @@ import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
        ((!), audio, div, figure, iframe, img, p, source, stringTag,
-        toValue, video)
+        toValue, video, section)
 import Text.Blaze.Html5.Attributes as A
        (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc.Definition ()
@@ -353,18 +353,24 @@ data Disposition
 -- transfers attributes to the video tag.
 renderImageVideo :: Disposition -> Inline -> IO Inline
 renderImageVideo disposition image@(Image (ident, cls, values) inlines (url, tit)) =
-  return $ RawInline (Format "html") (renderHtml $ mediaTag which)
+  return $ RawInline (Format "html") (renderHtml $ imageVideoTag)
   where
-    which =
+    imageVideoTag =
       case takeExtension url of
-        ext | ext `elem` videoExtensions -> video "Browser does not support video."
-        ext | ext `elem` audioExtensions -> audio "Browser does not support audio."
-        _ -> img
+        ext | ext `elem` videoExtensions ->
+          case "background" `elem` cls of
+            True -> (section "") ! customAttribute "data-background-video" (toValue url) ! customAttribute "class" "slide"
+            False -> mediaTag (video "Browser does not support video.")
+        ext | ext `elem` audioExtensions -> mediaTag (audio "Browser does not support audio.")
+        _ ->
+          case "background" `elem` cls of
+            True -> (section "") ! customAttribute "data-background" (toValue url)
+            False -> mediaTag img
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
       ifNotEmpty A.id ident $
-      ifNotEmpty class_ (unwords cls) $
+      ifNotEmpty class_ (unwords [ident]) $
       ifNotEmpty alt (stringify inlines) $
       ifNotEmpty title tit $ foldl appendAttr tag transformedValues
     ifNotEmpty attr value element =
