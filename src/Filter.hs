@@ -370,7 +370,7 @@ renderImageVideo disposition image@(Image (ident, cls, values) inlines (url, tit
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
       ifNotEmpty A.id ident $
-      ifNotEmpty class_ (unwords [ident]) $
+      ifNotEmpty class_ (unwords cls) $
       ifNotEmpty alt (stringify inlines) $
       ifNotEmpty title tit $ foldl appendAttr tag transformedValues
     ifNotEmpty attr value element =
