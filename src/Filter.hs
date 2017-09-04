@@ -37,12 +37,14 @@ import Text.Blaze.Html5 as H
         toValue, video, section)
 import Text.Blaze.Html5.Attributes as A
        (alt, class_, height, id, src, style, title, width)
+import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.JSON
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
 import Text.Read
+import qualified Data.Set as Set
 
 type MacroFunc = [String] -> Attr -> Target -> Format -> Meta -> Inline
 
@@ -225,6 +227,39 @@ fragmentRelated =
 deFragment :: [String] -> [String]
 deFragment = filter (`notElem` fragmentRelated)
 
+-- Transform raw inline image or video elements within the header line with background attributes of the respective
+-- section. Media elements were transformed to raw inline elements before by Filter.renderImageVideo
+-- see execution order in Utilities.markdownToHtmlDeck.
+setBackground :: [Block] -> [Block]
+setBackground slide@(Header 1 (id_, cls, kvs) inlines:body) = case (getSrcFromFstRawInline inlines) of
+  Nothing -> slide
+  Just src -> modifiedHeader:body
+    where
+      modifiedHeader = Header 1 (id_, cls, [(attributeName, src)]) modifiedInlines
+      attributeName = case takeExtension src of
+        ext | ext `elem` videoExtensions -> "data-background-video"
+        _ -> "data-background"
+  where
+    getSrcFromFstRawInline :: [Inline] -> Maybe String
+    getSrcFromFstRawInline inlines = foldl collect Nothing inlines
+      where
+        collect Nothing inline = getSrcFromRawInline inline
+        collect (Just src) _ = Just src
+    getSrcFromRawInline :: Inline -> Maybe String
+    getSrcFromRawInline (RawInline _ string) =
+      case (or [isPrefixOf "<img " string, isPrefixOf "<video " string]) of
+          True -> case find (\str -> isPrefixOf "data-src" str) (words string) of
+            -- split spring by the quotation character that proceeds "data-src=", eihter \" or \'
+            Just string | length string > 10 -> Just ((split (dropDelims $ oneOf ((string!!9):[])) string)!!1)
+            _ -> Nothing
+          False -> Nothing
+    getSrcFromRawInline _ = Nothing
+    modifiedInlines = filter (isNothing . getSrcFromRawInline) inlines
+    isImageVideoRawInline :: Maybe String -> Bool
+    isImageVideoRawInline (Just _) = True
+    isImageVideoRawInline Nothing = False
+setBackground slide = slide
+
 wrapBoxes :: [Block] -> [Block]
 wrapBoxes (header:body) = header : concatMap wrap boxes
   where
@@ -259,6 +294,7 @@ mapSlides func (Pandoc meta blocks) = Pandoc meta (concatMap func slides)
 makeSlides :: Maybe Format -> Pandoc -> Pandoc
 makeSlides (Just (Format "revealjs")) =
   walk (mapSlides splitColumns) .
+  walk (mapSlides setBackground) .
   walk (mapSlides wrapBoxes) . walk (mapSlides wrapNoteRevealjs)
 makeSlides (Just (Format "beamer")) =
   walk (mapSlides splitColumns) .
