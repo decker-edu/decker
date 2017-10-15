@@ -329,8 +329,7 @@ readAndPreprocessMarkdown markdownFile disposition = do
   let method = provisioningFromMeta meta
   liftIO $
     mapMetaResources (provisionMetaResource method dirs baseDir) pandoc >>=
-    mapResources (provisionExistingResource method dirs baseDir) >>=
-    walkM (renderImageVideo disposition)
+    mapResources (provisionExistingResource method dirs baseDir) 
     -- Disable automatic caching of remote images for a while
     -- >>= walkM (cacheRemoteImages (cache dirs))
 
@@ -440,7 +439,9 @@ markdownToPdfHandout markdownFile out = do
   putNormal $ "# pandoc (for " ++ out ++ ")"
   pandocMakePdf options processed out
 
--- | Reads a markdown file and returns a pandoc document. 
+-- | Reads a markdown file and returns a pandoc document. Handles meta data
+-- extraction and template substitution. All references to local resources are
+-- converted to absolute pathes.
 readMetaMarkdown :: FilePath -> Action Pandoc
 readMetaMarkdown markdownFile = do
   need [markdownFile]
@@ -719,30 +720,26 @@ downloadUrl url = do
 hashURI :: String -> String
 hashURI uri = show (md5 $ L8.pack uri) SF.<.> SF.takeExtension uri
 
+justFormat :: String -> Maybe Format
+justFormat = Just . Format
+
 processPandocPage :: String -> Pandoc -> Action Pandoc
 processPandocPage format pandoc = do
-  let f = Just (Format format)
   dirs <- getProjectDirs
-  processed <- liftIO $ processCites' pandoc
-  --  processed <- liftIO $ walkM (useCachedImages (cache dirs)) pandoc
-  return $ expandMacros f processed
+  cited <- liftIO $ processCites' pandoc
+  return $ (renderMediaTags Page . expandMacros (Format format)) cited
 
 processPandocDeck :: String -> Pandoc -> Action Pandoc
 processPandocDeck format pandoc = do
-  let f = Just (Format format)
   dirs <- getProjectDirs
-  processed <- liftIO $ processCites' pandoc
-  -- processed <- liftIO $ walkM (useCachedImages cacheD(cache dirs)ir) pandoc
-  return $ (makeSlides f . expandMacros f) processed
+  cited <- liftIO $ processCites' pandoc
+  return $ (renderMediaTags Page . makeSlides (Format format) . expandMacros (Format format)) cited
 
 processPandocHandout :: String -> Pandoc -> Action Pandoc
 processPandocHandout format pandoc = do
-  let f = Just (Format format)
   dirs <- getProjectDirs
-  processed <- liftIO $ processCites' (makeBoxes pandoc)
-  -- processed <- liftIO $ walkM (useCachedImages (cache dirs)) pandoc
-  -- return $ (expandMacros f . filterNotes f) processed
-  return $ expandMacros f processed
+  cited <- liftIO $ processCites' pandoc
+  return $ (renderMediaTags Page . expandMacros (Format format)) cited
 
 type StringWriter = WriterOptions -> Pandoc -> String
 

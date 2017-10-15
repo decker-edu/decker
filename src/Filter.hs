@@ -11,7 +11,7 @@ module Filter
   , escapeToFilePath
   , cachePandocImages
   , extractLocalImagePathes
-  , renderImageVideo
+  , renderMediaTags
   , transformImageSize
   , lazyLoadImage
   , isMacro
@@ -23,18 +23,19 @@ import Data.List
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
+import qualified Data.Set as Set
 import Debug.Trace
 import Network.HTTP.Conduit
 import Network.HTTP.Simple
-import Network.URI
+import Network.URI (parseURI, uriScheme)
 import System.Directory
 import System.FilePath
 import System.FilePath.Posix
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
-       ((!), audio, div, figure, iframe, img, p, source, stringTag,
-        toValue, video, section)
+       ((!), audio, div, figure, iframe, img, p, section, source,
+        stringTag, toValue, video)
 import Text.Blaze.Html5.Attributes as A
        (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc
@@ -44,7 +45,6 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
 import Text.Read
-import qualified Data.Set as Set
 
 type MacroFunc = [String] -> Attr -> Target -> Format -> Meta -> Inline
 
@@ -162,10 +162,9 @@ expandInlineMacros :: Format -> Meta -> Inline -> Inline
 expandInlineMacros format meta inline =
   fromMaybe inline (expand inline format meta)
 
-expandMacros :: Maybe Format -> Pandoc -> Pandoc
-expandMacros (Just format) doc@(Pandoc meta _) =
+expandMacros :: Format -> Pandoc -> Pandoc
+expandMacros format doc@(Pandoc meta _) =
   walk (expandInlineMacros format meta) doc
-expandMacros _ doc = doc
 
 isSlideHeader :: Block -> Bool
 isSlideHeader (Header level _ _) = level == 1
@@ -227,38 +226,50 @@ fragmentRelated =
 deFragment :: [String] -> [String]
 deFragment = filter (`notElem` fragmentRelated)
 
--- Transform raw inline image or video elements within the header line with background attributes of the respective
--- section. Media elements were transformed to raw inline elements before by Filter.renderImageVideo
--- see execution order in Utilities.markdownToHtmlDeck.
-setBackground :: [Block] -> [Block]
-setBackground slide@(Header 1 (id_, cls, kvs) inlines:body) = case (getSrcFromFstRawInline inlines) of
-  Nothing -> slide
-  Just src -> modifiedHeader:body
-    where
-      modifiedHeader = Header 1 (id_, cls, [(attributeName, src)]) modifiedInlines
-      attributeName = case takeExtension src of
-        ext | ext `elem` videoExtensions -> "data-background-video"
-        _ -> "data-background"
+deconstructSlide :: [Block] -> (Maybe Inline, Maybe Block, [Block])
+deconstructSlide (header:body) =
+  case header of
+    Header 1 attribs inlines ->
+      ( listToMaybe $ query allImages inlines
+      , Just $ Header 1 attribs (map zapImages inlines)
+      , body)
+deconstructSlide blocks = (Nothing, Nothing, blocks)
+
+allImages image@Image {} = [image]
+allImages _ = []
+
+zapImages Image {} = Space
+zapImages inline = inline
+
+-- Transform inline image or video elements within the header line with
+-- background attributes of the respective section. 
+setSlideBackground :: [Block] -> [Block]
+setSlideBackground slide@((Header 1 (headerId, headerClasses, headerAttributes) inlines):slideBody) =
+  case query allImages inlines of
+    [] -> slide
+    Image (_, imageClasses, imageAttributes) _ (imageSrc, _):_ ->
+      Header
+        1
+        ( headerId
+        , headerClasses ++ imageClasses
+        , srcAttribute imageSrc :
+          headerAttributes ++ map transform imageAttributes)
+        (walk zapImages inlines) :
+      slideBody
   where
-    getSrcFromFstRawInline :: [Inline] -> Maybe String
-    getSrcFromFstRawInline inlines = foldl collect Nothing inlines
-      where
-        collect Nothing inline = getSrcFromRawInline inline
-        collect (Just src) _ = Just src
-    getSrcFromRawInline :: Inline -> Maybe String
-    getSrcFromRawInline (RawInline _ string) =
-      case (or [isPrefixOf "<img " string, isPrefixOf "<video " string]) of
-          True -> case find (\str -> isPrefixOf "data-src" str) (words string) of
-            -- split spring by the quotation character that proceeds "data-src=", eihter \" or \'
-            Just string | length string > 10 -> Just ((split (dropDelims $ oneOf ((string!!9):[])) string)!!1)
-            _ -> Nothing
-          False -> Nothing
-    getSrcFromRawInline _ = Nothing
-    modifiedInlines = filter (isNothing . getSrcFromRawInline) inlines
-    isImageVideoRawInline :: Maybe String -> Bool
-    isImageVideoRawInline (Just _) = True
-    isImageVideoRawInline Nothing = False
-setBackground slide = slide
+    transform ("size", value) = ("data-background-size", value)
+    transform ("position", value) = ("data-background-position", value)
+    transform ("repeat", value) = ("data-background-repeat", value)
+    transform ("loop", value) = ("data-background-video-loop", value)
+    transform ("muted", value) = ("data-background-video-muted", value)
+    transform ("color", value) = ("data-background-color", value)
+    transform kv = kv
+    srcAttribute src =
+      case classifyFilePath src of
+        VideoMedia -> ("data-background-video", src)
+        AudioMedia -> ("data-background-audio", src)
+        ImageMedia -> ("data-background-image", src)
+setSlideBackground slide = slide
 
 wrapBoxes :: [Block] -> [Block]
 wrapBoxes (header:body) = header : concatMap wrap boxes
@@ -291,12 +302,12 @@ mapSlides func (Pandoc meta blocks) = Pandoc meta (concatMap func slides)
   where
     slides = split (keepDelimsL $ whenElt isSlideHeader) blocks
 
-makeSlides :: Maybe Format -> Pandoc -> Pandoc
-makeSlides (Just (Format "revealjs")) =
+makeSlides :: Format -> Pandoc -> Pandoc
+makeSlides (Format "revealjs") =
   walk (mapSlides splitColumns) .
-  walk (mapSlides setBackground) .
+  walk (mapSlides setSlideBackground) .
   walk (mapSlides wrapBoxes) . walk (mapSlides wrapNoteRevealjs)
-makeSlides (Just (Format "beamer")) =
+makeSlides (Format "beamer") =
   walk (mapSlides splitColumns) .
   walk (mapSlides wrapBoxes) . walk (mapSlides wrapNoteBeamer)
 makeSlides _ = Prelude.id
@@ -346,7 +357,7 @@ localImagePath (Image _ _ (url, _)) =
 localImagePath _ = []
 
 extractLocalImagePathes :: Pandoc -> [FilePath]
-extractLocalImagePathes pandoc = Text.Pandoc.Walk.query localImagePath pandoc
+extractLocalImagePathes = Text.Pandoc.Walk.query localImagePath
 
 isHttpUri :: String -> Bool
 isHttpUri url =
@@ -373,10 +384,16 @@ cacheImageIO uri cacheDir = do
   createDirectoryIfMissing True cacheDir
   L8.writeFile cacheFile body
 
--- File extensions that signify video content.
+renderMediaTags :: Disposition -> Pandoc -> Pandoc
+renderMediaTags disposition = walk (renderImageAudioVideoTag disposition)
+
+-- | File extensions that signify video content.
+videoExtensions :: [String]
 videoExtensions =
   [".mp4", ".webm", ".ogg", ".avi", ".dv", ".mp2", ".mov", ".qt"]
 
+-- | File extensions that signify audio content.
+audioExtensions :: [String]
 audioExtensions = [".mp3", ".ogg", ".wav"]
 
 data Disposition
@@ -385,23 +402,31 @@ data Disposition
   | Handout
   deriving (Eq)
 
+data MediaType
+  = ImageMedia
+  | AudioMedia
+  | VideoMedia
+
+classifyFilePath :: FilePath -> MediaType
+classifyFilePath name =
+  case takeExtension name of
+    ext
+      | ext `elem` videoExtensions -> VideoMedia
+    ext
+      | ext `elem` audioExtensions -> AudioMedia
+    _ -> ImageMedia
+
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
 -- transfers attributes to the video tag.
-renderImageVideo :: Disposition -> Inline -> IO Inline
-renderImageVideo disposition image@(Image (ident, cls, values) inlines (url, tit)) =
-  return $ RawInline (Format "html") (renderHtml $ imageVideoTag)
+renderImageAudioVideoTag :: Disposition -> Inline -> Inline
+renderImageAudioVideoTag disposition (Image (ident, cls, values) inlines (url, tit)) =
+  RawInline (Format "html") (renderHtml imageVideoTag)
   where
     imageVideoTag =
-      case takeExtension url of
-        ext | ext `elem` videoExtensions ->
-          case "background" `elem` cls of
-            True -> (section "") ! customAttribute "data-background-video" (toValue url) ! customAttribute "class" "slide"
-            False -> mediaTag (video "Browser does not support video.")
-        ext | ext `elem` audioExtensions -> mediaTag (audio "Browser does not support audio.")
-        _ ->
-          case "background" `elem` cls of
-            True -> (section "") ! customAttribute "data-background" (toValue url)
-            False -> mediaTag img
+      case classifyFilePath url of
+        VideoMedia -> mediaTag (video "Browser does not support video.")
+        AudioMedia -> mediaTag (audio "Browser does not support audio.")
+        ImageMedia -> mediaTag img
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
@@ -419,7 +444,7 @@ renderImageVideo disposition image@(Image (ident, cls, values) inlines (url, tit
         else "src"
     transformedValues = (lazyLoad . transformImageSize) values
     lazyLoad vs = (srcAttr, url) : vs
-renderImageVideo _ inline = return inline
+renderImageAudioVideoTag _ inline = inline
 
 -- | Mimic pandoc for handling the 'width' and 'height' attributes of images.
 -- That is, transfer 'width' and 'height' attribute values to css style values
