@@ -22,6 +22,7 @@ module Utilities
   , DeckerException(..)
   ) where
 
+import Action
 import Common
 import Context
 import Control.Arrow
@@ -44,6 +45,7 @@ import Development.Shake
 import Development.Shake.FilePath as SFP
 import Embed
 import Filter
+import Meta
 import Network.URI
 import Project
 import Server
@@ -57,8 +59,6 @@ import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Watch
-import Action
-import Meta
 
 runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
 runShakeInContext context options rules = do
@@ -115,7 +115,6 @@ writeIndex out baseUrl decks handouts pages = do
       ]
   where
     makeLink path = "-    [" ++ takeFileName path ++ "](" ++ path ++ ")"
-
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text
@@ -212,8 +211,7 @@ readAndPreprocessMarkdown markdownFile disposition = do
   let method = provisioningFromMeta meta
   liftIO $
     mapMetaResources (provisionMetaResource method dirs baseDir) pandoc >>=
-    mapResources (provisionExistingResource method dirs baseDir) >>=
-    walkM (renderImageVideo disposition)
+    mapResources (provisionExistingResource method dirs baseDir)
     -- Disable automatic caching of remote images for a while
     -- >>= walkM (cacheRemoteImages (cache dirs))
 
@@ -323,7 +321,9 @@ markdownToPdfHandout markdownFile out = do
   putNormal $ "# pandoc (for " ++ out ++ ")"
   pandocMakePdf options processed out
 
--- | Reads a markdown file and returns a pandoc document. 
+-- | Reads a markdown file and returns a pandoc document. Handles meta data
+-- extraction and template substitution. All references to local resources are
+-- converted to absolute pathes.
 readMetaMarkdown :: FilePath -> Action Pandoc
 readMetaMarkdown markdownFile = do
   need [markdownFile]
@@ -352,7 +352,6 @@ readMarkdownOrThrow opts string =
   case readMarkdown opts string of
     Right pandoc -> pandoc
     Left err -> throw $ PandocException (show err)
-
 
 -- Remove automatic identifier creation for headers. It does not work well with
 -- the current include mechanism if slides have duplicate titles in separate
@@ -488,30 +487,29 @@ processIncludes dirs baseDir (Pandoc meta blocks) = do
       return $ included : result
     include _ result block = return $ [block] : result
 
+justFormat :: String -> Maybe Format
+justFormat = Just . Format
+
 processPandocPage :: String -> Pandoc -> Action Pandoc
 processPandocPage format pandoc = do
-  let f = Just (Format format)
   dirs <- getProjectDirs
-  processed <- liftIO $ processCites' pandoc
-  --  processed <- liftIO $ walkM (useCachedImages (cache dirs)) pandoc
-  return $ expandMacros f processed
+  cited <- liftIO $ processCites' pandoc
+  return $ (renderMediaTags Page . expandMacros (Format format)) cited
 
 processPandocDeck :: String -> Pandoc -> Action Pandoc
 processPandocDeck format pandoc = do
-  let f = Just (Format format)
   dirs <- getProjectDirs
-  processed <- liftIO $ processCites' pandoc
-  -- processed <- liftIO $ walkM (useCachedImages cacheD(cache dirs)ir) pandoc
-  return $ (makeSlides f . expandMacros f) processed
+  cited <- liftIO $ processCites' pandoc
+  return $
+    (renderMediaTags Page .
+     makeSlides (Format format) . expandMacros (Format format))
+      cited
 
 processPandocHandout :: String -> Pandoc -> Action Pandoc
 processPandocHandout format pandoc = do
-  let f = Just (Format format)
   dirs <- getProjectDirs
-  processed <- liftIO $ processCites' (makeBoxes pandoc)
-  -- processed <- liftIO $ walkM (useCachedImages (cache dirs)) pandoc
-  -- return $ (expandMacros f . filterNotes f) processed
-  return $ expandMacros f processed
+  cited <- liftIO $ processCites' pandoc
+  return $ (renderMediaTags Page . expandMacros (Format format)) cited
 
 type StringWriter = WriterOptions -> Pandoc -> String
 
