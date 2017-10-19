@@ -157,7 +157,6 @@ main = do
       everythingA <++> everythingPdfA >>= mapM_ putNormal
     --
     phony "support" $ do
-      putNormal $ "# write embedded files for (" ++ supportDir ++ ")"
       writeEmbeddedFiles deckerSupportDir supportDir
     --
     phony "publish" $ do

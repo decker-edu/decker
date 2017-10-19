@@ -532,6 +532,7 @@ writeEmbeddedFiles :: [(FilePath, B.ByteString)] -> FilePath -> Action ()
 writeEmbeddedFiles files dir = do
   exists <- doesDirectoryExist dir
   unless exists $ do
+    putNormal $ "# write embedded files for (" ++ dir ++ ")"
     let absolute = map (first (dir </>)) files
     mapM_ write absolute
   where

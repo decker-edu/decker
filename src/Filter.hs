@@ -23,24 +23,27 @@ import Data.List
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
-import qualified Data.Set as Set
-import Debug.Trace
+
+-- import qualified Data.Set as Set
+-- import Debug.Trace
 import Network.HTTP.Conduit
 import Network.HTTP.Simple
 import Network.URI (parseURI, uriScheme)
 import System.Directory
 import System.FilePath
-import System.FilePath.Posix
+
+-- import System.FilePath.Posix
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
-       ((!), audio, div, figure, iframe, img, p, section, source,
-        stringTag, toValue, video)
+       ((!), audio, div, figure, iframe, img, p, stringTag, toValue,
+        video)
 import Text.Blaze.Html5.Attributes as A
        (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
-import Text.Pandoc.JSON
+
+-- import Text.Pandoc.JSON
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
@@ -433,8 +436,7 @@ renderImageAudioVideoTag disposition (Image (ident, cls, values) inlines (url, t
       ifNotEmpty A.id ident $
       ifNotEmpty class_ (unwords cls) $
       ifNotEmpty alt (stringify inlines) $
-      ifNotEmpty title tit $
-      foldl appendAttr tag transformedValues
+      ifNotEmpty title tit $ foldl appendAttr tag transformedValues
     ifNotEmpty attr value element =
       if value == ""
         then element
