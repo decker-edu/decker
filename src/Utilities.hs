@@ -529,11 +529,11 @@ writeExampleProject = mapM_ writeOne deckerExampleDir
         putNormal $ "# create (for " ++ path ++ ")"
 
 writeEmbeddedFiles :: [(FilePath, B.ByteString)] -> FilePath -> Action ()
-writeEmbeddedFiles files dir
-  -- let absolute = map (\(path, contents) -> (dir </> path, contents)) files
- = do
-  let absolute = map (first (dir </>)) files
-  mapM_ write absolute
+writeEmbeddedFiles files dir = do
+  exists <- doesDirectoryExist dir
+  unless exists $ do
+    let absolute = map (first (dir </>)) files
+    mapM_ write absolute
   where
     write (path, contents) = do
       liftIO $ Dir.createDirectoryIfMissing True (takeDirectory path)

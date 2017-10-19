@@ -1,4 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+import Action
 import Context
 import Control.Exception
 import Control.Monad ()
@@ -21,7 +22,6 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
 import Utilities
-import Action
 
 main :: IO ()
 main = do
@@ -59,9 +59,13 @@ main = do
     --
     phony "version" $ putNormal $ "decker version " ++ deckerVersion
     --
-    phony "decks" $ decksA >>= need
+    phony "decks" $ do
+      decksA >>= need
+      need ["support"]
     --
-    phony "html" $ everythingA <++> indexA >>= need
+    phony "html" $ do
+      everythingA <++> indexA >>= need
+      need ["support"]
     --
     phony "pdf" $ pagesPdfA <++> handoutsPdfA <++> indexA >>= need
     --
@@ -72,12 +76,12 @@ main = do
       allMarkdownA <++> metaA <++> allImagesA >>= watchFiles
     --
     phony "server" $ do
-      need ["watch", "support"]
+      need ["watch"]
       runHttpServer dirs True
     --
     phony "example" writeExampleProject
     --
-    phony "index" $ need [index]
+    phony "index" $ need [index, "support"]
     --
     priority 2 $
       "//*-deck.html" %> \out -> do
@@ -173,4 +177,3 @@ main = do
 -- Calculate some directories
 -- | Some constants that might need tweaking
 options = shakeOptions {shakeFiles = ".shake"}
-

@@ -124,7 +124,7 @@ projectDirectories = do
   projectDir <- findProjectDirectory
   let publicDir = projectDir </> "public"
   let cacheDir = publicDir </> "cache"
-  let supportDir = publicDir </> "support"
+  let supportDir = publicDir </> ("support" ++ "-" ++ deckerVersion)
   let logDir = projectDir </> "log"
   return (ProjectDirs projectDir publicDir cacheDir supportDir logDir)
 
