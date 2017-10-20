@@ -31,8 +31,8 @@ import System.FilePath.Glob
 import System.Process
 import Meta
 
--- | Globs for files under the project dir in the Action monad. 
--- Returns absolute pathes.
+-- | Globs for files under the project dir in the Action monad. Returns absolute
+-- pathes.
 globA :: FilePattern -> Action [FilePath]
 globA pat = do
   dirs <- getProjectDirs
