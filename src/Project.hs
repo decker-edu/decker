@@ -2,7 +2,7 @@
 module Project
   ( findFile
   , findLocalFile
-  , readResource
+  -- , readResource
   , provisionResource
   , provisionExistingResource
   , copyResource
@@ -25,13 +25,13 @@ module Project
 import Common
 import Control.Exception
 import Control.Monad
-import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as B
 import Data.List
 import Data.Maybe
 import Debug.Trace
-import Embed
 import Extra
 import Network.URI
+import Resources
 import qualified System.Directory as D
 import System.FilePath
 import System.Posix.Files
@@ -98,6 +98,7 @@ data ProjectDirs = ProjectDirs
   , public :: FilePath
   , cache :: FilePath
   , support :: FilePath
+  , appData :: FilePath
   , log :: FilePath
   } deriving (Eq, Show)
 
@@ -125,8 +126,10 @@ projectDirectories = do
   let publicDir = projectDir </> "public"
   let cacheDir = publicDir </> "cache"
   let supportDir = publicDir </> ("support" ++ "-" ++ deckerVersion)
+  appDataDir <- D.getXdgDirectory D.XdgData ("decker" ++ "-" ++ deckerVersion)
   let logDir = projectDir </> "log"
-  return (ProjectDirs projectDir publicDir cacheDir supportDir logDir)
+  return
+    (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
 
 -- Resolves a file path to a concrete verified file system path, or
 -- returns Nothing if no file can be found.
@@ -218,19 +221,20 @@ maybeFindFile dirs base path = do
     Just resource -> return resource
 
 -- Finds and reads a resource at compile time. If the resource can not be found in the
--- file system, the built-in resource map is searched. If that fails, an error os thrown.
+-- file system, the built-in resource map is searched. If that fails, an error is thrown.
 -- The resource is searched for in a directory named `template`.
-readResource :: ProjectDirs -> FilePath -> FilePath -> IO B.ByteString
-readResource dirs base path = do
-  let searchPath = "template" </> path
-  resolved <- resolveLocally dirs base path
-  case resolved of
-    Just resource -> B.readFile resource
-    Nothing ->
-      case find (\(k, b) -> k == path) deckerTemplateDir of
-        Nothing ->
-          throw $ ResourceException $ "Cannot find built-in resource: " ++ path
-        Just entry -> return $ snd entry
+-- readResource ::
+--      ProjectDirs -> FilePath -> FilePath -> IO String
+-- readResource dirs base path = do
+--   let searchPath = "template" </> path
+--   resolved <- resolveLocally dirs base path
+--   case resolved of
+--     Just resource -> readFile resource
+--     Nothing -> return $ getResourceString resources searchPath
+      -- case find (\(k, b) -> k == path) deckerTemplateDir of
+      --   Nothing ->
+      --     throw $ ResourceException $ "Cannot find built-in resource: " ++ path
+      --   Just entry -> return $ snd entry
 
 -- | Copies the src to dst if src is newer or dst does not exist. Creates
 -- missing directories while doing so.

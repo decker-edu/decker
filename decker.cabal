@@ -4,7 +4,7 @@ synopsis:            All inclusive slide deck creation with pandoc.
 description:         Please see README.md
 homepage:            https://tramberend.beuth-hochschule.de/decker
 license:             OtherLicense
-license-file:        LICENSE
+license-file:         LICENSE
 author:              Henrik Tramberend
 maintainer:          tramberend@beuth-hochschule.de
 copyright:           2017 Henrik Tramberend
@@ -12,99 +12,61 @@ category:            Tool
 build-type:          Simple
 cabal-version:       >=1.10
 
-library
-  hs-source-dirs:      src
-  exposed-modules:     Action, Cache, Meta, Watch, Embed, Context, Utilities, Filter, Project, Common, Server
-  build-depends:       base
-                     , aeson
-                     , random
-                     , pandoc-types
-                     , pandoc-citeproc
-                     , containers
-                     , split
-                     , data-default
-                     , blaze-markup
-                     , blaze-html
-                     , monad-loops
-                     , directory
-                     , time
-                     , shake
-                     , process
-                     , hashable
-                     , extra
-                     , filepath
-                     , Glob
-                     , pandoc
-                     , pureMD5
-                     , yaml
-                     , mustache
-                     , unordered-containers
-                     , text
-                     , file-embed
-                     , bytestring
-                     , network-uri
-                     , HTTP
-                     , http-conduit
-                     , http-types
-                     , highlighting-kate
-                     , multimap
-                     , fsnotify
-                     , vector
-                     , scientific
-                     , transformers
-                     , unix
-                     , snap-core
-                     , snap-server
-                     , websockets
-                     , websockets-snap
-  default-language:    Haskell2010
+-- custom-setup
+--   setup-depends:    base
+--                   , Cabal
+--                   , bytestring
+--                   , directory
+--                   , filepath
 
 executable decker
-  hs-source-dirs:      app
+  hs-source-dirs:      app, src
   main-is:             decker.hs
+  other-modules:       Action, Cache, Meta, Watch, Embed, Context, Utilities, Filter, Project, Common, Server, Resources, Paths_decker
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
-                     , decker
-                     , shake
                      , Glob
-                     , file-embed
+                     , HTTP
+                     , aeson
+                     , blaze-html
+                     , blaze-markup
                      , bytestring
-                     , directory
-                     , filepath
-                     , pandoc
-                     , yaml
-                     , mustache
-  default-language:    Haskell2010
-
--- executable liveserver
---   hs-source-dirs:      app
---   main-is:             liveserver.hs
---   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
---   build-depends:       base
---                      , decker
---                      , directory
---                      , random
---                      , process
---   default-language:    Haskell2010
-
-test-suite decker-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Spec.hs
-  build-depends:       base
-                     , decker
-                     , hspec
-                     , filepath
-                     , pandoc
-                     , Glob
-                     , yaml
                      , containers
-                     , unordered-containers
-                     , text
-                     , neat-interpolation
-                     , bytestring
+                     , data-default
                      , directory
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+                     , extra
+                     , file-embed
+                     , filepath
+                     , fsnotify
+                     , hashable
+                     , highlighting-kate
+                     , http-conduit
+                     , http-types
+                     , monad-loops
+                     , multimap
+                     , mustache
+                     , network-uri
+                     , pandoc
+                     , pandoc-citeproc
+                     , pandoc-types
+                     , process
+                     , pureMD5
+                     , random
+                     , scientific
+                     , shake
+                     , snap-core
+                     , snap-server
+                     , split
+                     , text
+                     , time
+                     , transformers
+                     , unix
+                     , unordered-containers
+                     , utf8-string
+                     , vector
+                     , websockets
+                     , websockets-snap
+                     , yaml
   default-language:    Haskell2010
 
 source-repository head

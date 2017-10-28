@@ -98,6 +98,7 @@ socket.onmessage = function () {
     window.location.reload(true);
 };
 </script>
+<script src="$decker-support-dir$/zepto.min.js"></script>
 $for(header-includes)$
   $header-includes$
 $endfor$
@@ -145,4 +146,7 @@ $endif$
 </div>
 </div>
 </body>
+<script>
+  Zepto('table').addClass("table table-striped table-bordered table-hover table-condensed table-responsive");
+</script>
 </html>

@@ -1,10 +1,17 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Common
   ( DeckerException(..)
+  , deckerVersion
   ) where
 
 import Control.Exception
 import Data.Typeable
+import Data.Version (showVersion)
+import Paths_decker (version)
+
+-- | The version from the cabal file
+deckerVersion :: String
+deckerVersion = showVersion version
 
 -- | Tool specific exceptions
 data DeckerException
@@ -30,4 +37,3 @@ instance Show DeckerException where
   show (DecktapeException e) = "decktape.sh failed for reason: " ++ e
   show RsyncUrlException =
     "attributes 'destinationRsyncHost' or 'destinationRsyncPath' not defined in meta data"
-

@@ -1,5 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 import Action
+import Common
 import Context
 import Control.Exception
 import Control.Monad ()
@@ -11,8 +12,8 @@ import Data.String ()
 import Data.Yaml.Pretty
 import Development.Shake
 import Development.Shake.FilePath
-import Embed
 import Project
+import Resources
 import Server
 import System.Directory
 import System.Exit
@@ -25,10 +26,14 @@ import Utilities
 
 main :: IO ()
 main = do
+  extractResources
   dirs <- projectDirectories
+  --
   let projectDir = project dirs
   let publicDir = public dirs
   let supportDir = support dirs
+  let appDataDir = appData dirs
+
   -- Find sources. These are formulated as actions in the Action mondad, such
   -- that each new iteration rescans all possible source files.
   let deckSourcesA = globA "**/*-deck.md"
@@ -143,12 +148,15 @@ main = do
       removeFilesAfter publicDir ["//"]
       removeFilesAfter projectDir cruft
     --
-    phony "help" $ liftIO $ putStr deckerHelpText
+    phony "help" $ do
+      text <- liftIO $ getResourceString "template/help-page.md"
+      liftIO $ putStr text
     --
     phony "plan" $ do
       putNormal $ "project directory: " ++ projectDir
       putNormal $ "public directory: " ++ publicDir
       putNormal $ "support directory: " ++ supportDir
+      putNormal $ "application data directory: " ++ appDataDir
       putNormal "meta:"
       metaA >>= mapM_ putNormal
       putNormal "sources:"
@@ -156,8 +164,9 @@ main = do
       putNormal "targets:"
       everythingA <++> everythingPdfA >>= mapM_ putNormal
     --
+    -- phony "support" $ writeEmbeddedFiles deckerSupportDir supportDir
     phony "support" $ do
-      writeEmbeddedFiles deckerSupportDir supportDir
+      liftIO $ writeResourceFiles "support" supportDir
     --
     phony "publish" $ do
       need ["support"]

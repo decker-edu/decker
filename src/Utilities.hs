@@ -43,11 +43,11 @@ import qualified Data.Text.Encoding as E
 import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
-import Embed
 import Filter
 import Meta
 import Network.URI
 import Project
+import Resources
 import Server
 import qualified System.Directory as Dir
 import System.IO as S
@@ -84,7 +84,7 @@ runShakeInContext context options rules = do
           case server of
             Just handle -> reloadClients handle
             Nothing -> return ()
-          waitForTwitchPassive files
+          _ <- waitForTwitchPassive files
           return False
 
 watchFiles = setFilesToWatch
@@ -136,6 +136,9 @@ substituteMetaData text metaData = do
     Right template -> M.substituteValue template metaData
     Left err -> throw $ MustacheException (show err)
 
+getTemplate :: FilePath -> Action String
+getTemplate path = liftIO $ getResourceString ("template" </> path)
+
 getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do
   dirs <- getProjectDirs
@@ -151,9 +154,10 @@ markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir out
+  template <- getTemplate "deck.html"
   let options =
         pandocWriterOpts
-        { writerTemplate = Just deckTemplate
+        { writerTemplate = Just template
         -- , writerStandalone = True
         , writerHighlight = True
         -- , writerHighlightStyle = pygments
@@ -243,11 +247,12 @@ markdownToHtmlPage :: FilePath -> FilePath -> Action ()
 markdownToHtmlPage markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir out
+  template <- getTemplate "page.html"
   let options =
         pandocWriterOpts
         { writerHtml5 = True
         -- , writerStandalone = True
-        , writerTemplate = Just pageTemplate
+        , writerTemplate = Just template
         , writerHighlight = True
         -- , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
@@ -267,9 +272,10 @@ markdownToHtmlPage markdownFile out = do
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
 markdownToPdfPage markdownFile out = do
   putCurrentDocument out
+  template <- getTemplate "page.latex"
   let options =
         pandocWriterOpts
-        { writerTemplate = Just pageLatexTemplate
+        { writerTemplate = Just template
         -- , writerStandalone = True
         , writerHighlight = True
         -- , writerHighlightStyle = pygments
@@ -293,10 +299,11 @@ markdownToHtmlHandout markdownFile out = do
   pandoc <- readAndPreprocessMarkdown markdownFile Handout
   processed <- processPandocHandout "html" pandoc
   supportDir <- getRelativeSupportDir out
+  template <- getTemplate "handout.html"
   let options =
         pandocWriterOpts
         { writerHtml5 = True
-        , writerTemplate = Just handoutTemplate
+        , writerTemplate = Just template
         , writerHighlight = True
         , writerHTMLMathMethod =
             MathJax
@@ -312,9 +319,10 @@ markdownToPdfHandout markdownFile out = do
   putCurrentDocument out
   pandoc <- readAndPreprocessMarkdown markdownFile Handout
   processed <- processPandocHandout "latex" pandoc
+  template <- getTemplate "handout.latex"
   let options =
         pandocWriterOpts
-        { writerTemplate = Just handoutLatexTemplate
+        { writerTemplate = Just template
         , writerHighlight = True
         , writerCiteMethod = Citeproc
         }
@@ -519,6 +527,11 @@ writePandocString format options out pandoc = do
   writeFile' out (writer options pandoc)
 
 writeExampleProject :: Action ()
+writeExampleProject = do
+  liftIO $ writeResourceFiles "example" "."
+
+{--
+writeExampleProject :: Action ()
 writeExampleProject = mapM_ writeOne deckerExampleDir
   where
     writeOne (path, contents) = do
@@ -527,7 +540,7 @@ writeExampleProject = mapM_ writeOne deckerExampleDir
         liftIO $ Dir.createDirectoryIfMissing True (takeDirectory path)
         liftIO $ B.writeFile path contents
         putNormal $ "# create (for " ++ path ++ ")"
-
+--}
 writeEmbeddedFiles :: [(FilePath, B.ByteString)] -> FilePath -> Action ()
 writeEmbeddedFiles files dir = do
   exists <- doesDirectoryExist dir
