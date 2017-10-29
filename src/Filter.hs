@@ -37,7 +37,7 @@ import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
        ((!), audio, div, figure, iframe, img, p, stringTag, toValue,
-        video)
+        video, iframe)
 import Text.Blaze.Html5.Attributes as A
        (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc
@@ -266,11 +266,13 @@ setSlideBackground slide@((Header 1 (headerId, headerClasses, headerAttributes) 
     transform ("loop", value) = ("data-background-video-loop", value)
     transform ("muted", value) = ("data-background-video-muted", value)
     transform ("color", value) = ("data-background-color", value)
+    transform ("interactive", value) = ("data-background-interactive", value)
     transform kv = kv
     srcAttribute src =
       case classifyFilePath src of
         VideoMedia -> ("data-background-video", src)
         AudioMedia -> ("data-background-audio", src)
+        IframeMedia -> ("data-background-iframe", src)
         ImageMedia -> ("data-background-image", src)
 setSlideBackground slide = slide
 
@@ -399,6 +401,10 @@ videoExtensions =
 audioExtensions :: [String]
 audioExtensions = [".mp3", ".ogg", ".wav"]
 
+-- | File extensions that signify iframe content.
+iframeExtensions :: [String]
+iframeExtensions = [".html", ".html", ".pdf"]
+
 data Disposition
   = Deck
   | Page
@@ -409,6 +415,7 @@ data MediaType
   = ImageMedia
   | AudioMedia
   | VideoMedia
+  | IframeMedia
 
 classifyFilePath :: FilePath -> MediaType
 classifyFilePath name =
@@ -417,6 +424,8 @@ classifyFilePath name =
       | ext `elem` videoExtensions -> VideoMedia
     ext
       | ext `elem` audioExtensions -> AudioMedia
+    ext
+      | ext `elem` iframeExtensions -> IframeMedia
     _ -> ImageMedia
 
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
@@ -429,6 +438,7 @@ renderImageAudioVideoTag disposition (Image (ident, cls, values) inlines (url, t
       case classifyFilePath url of
         VideoMedia -> mediaTag (video "Browser does not support video.")
         AudioMedia -> mediaTag (audio "Browser does not support audio.")
+        IframeMedia -> mediaTag (iframe "Browser does not support iframe.")
         ImageMedia -> mediaTag img
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
