@@ -52,6 +52,7 @@ provisioningFromMeta meta =
     Just (MetaInlines i) -> read $ stringify i
     _ -> SymLink
 
+provisioningClasses :: [(String, Provisioning)]
 provisioningClasses =
   [ ("copy", Copy)
   , ("symlink", SymLink)
@@ -276,6 +277,7 @@ removeCommonPrefix =
       | otherwise = (al, bl)
     removeCommonPrefix_ pathes = pathes
 
+isPrefix :: FilePath -> FilePath -> Bool
 isPrefix a b = isPrefix_ (splitPath a) (splitPath b)
   where
     isPrefix_ :: Eq a => [a] -> [a] -> Bool

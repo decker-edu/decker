@@ -8,11 +8,9 @@ module Server
   , Server
   ) where
 
-import Control.Applicative
 import Control.Concurrent
 import Control.Exception
 import Control.Monad
-import Data.List
 import Data.Text
 import Network.WebSockets
 import Network.WebSockets.Snap
@@ -25,6 +23,7 @@ import System.FilePath.Posix
 import System.Random
 
 -- Logging and port configuration for the server.
+serverConfig :: ProjectDirs -> Int -> IO (Config Snap a)
 serverConfig dirs port = do
   let logDir = Project.log dirs
   let accessLog = logDir </> "server-access.log"
@@ -85,7 +84,7 @@ startHttpServer dirs port = do
 reloadClients :: Server -> IO ()
 reloadClients = reloadAll . snd
 
--- | Kill the server.
+-- | Kills the server.
 stopHttpServer :: Server -> IO ()
 stopHttpServer = killThread . fst
 

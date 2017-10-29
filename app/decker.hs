@@ -4,25 +4,21 @@ import Common
 import Context
 import Control.Exception
 import Control.Monad ()
-import qualified Data.ByteString.Char8 as B
 import Data.IORef ()
 import Data.List
 import Data.Maybe
 import Data.String ()
-import Data.Yaml.Pretty
 import Development.Shake
 import Development.Shake.FilePath
 import Project
 import Resources
-import Server
-import System.Directory
 import System.Exit
 import System.FilePath ()
-import System.FilePath.Glob
 import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
 import Utilities
+import Web.Browser
 
 main :: IO ()
 main = do
@@ -79,6 +75,11 @@ main = do
     phony "watch" $ do
       need ["html"]
       allMarkdownA <++> metaA <++> allImagesA >>= watchFiles
+    --
+    phony "open" $ do
+      need ["html"]
+      liftIO $ openBrowser index
+      return ()
     --
     phony "server" $ do
       need ["watch"]
@@ -184,4 +185,5 @@ main = do
 
 -- Calculate some directories
 -- | Some constants that might need tweaking
+options :: ShakeOptions
 options = shakeOptions {shakeFiles = ".shake"}

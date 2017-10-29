@@ -87,6 +87,7 @@ runShakeInContext context options rules = do
           _ <- waitForTwitchPassive files
           return False
 
+watchFiles :: [FilePath] -> Action ()
 watchFiles = setFilesToWatch
 
 -- | Monadic version of list concatenation.
@@ -94,6 +95,8 @@ watchFiles = setFilesToWatch
 (<++>) = liftM2 (++)
 
 -- | Generates an index.md file with links to all generated files of interest.
+writeIndex ::
+     FilePath -> FilePath -> [FilePath] -> [FilePath] -> [FilePath] -> Action ()
 writeIndex out baseUrl decks handouts pages = do
   let decksLinks = map (makeRelative baseUrl) decks
   let handoutsLinks = map (makeRelative baseUrl) handouts
@@ -237,6 +240,7 @@ provisionMetaResource method dirs base (key, path)
   | key `elem` compiletimeMetaKeys = findLocalFile dirs base path
 provisionMetaResource _ _ _ (key, path) = return path
 
+putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do
   dirs <- getProjectDirs
   let rel = makeRelative (public dirs) out
@@ -286,6 +290,7 @@ markdownToPdfPage markdownFile out = do
   putNormal $ "# pandoc (for " ++ out ++ ")"
   pandocMakePdf options processed out
 
+pandocMakePdf :: WriterOptions -> Pandoc -> FilePath -> Action ()
 pandocMakePdf options processed out = do
   result <- liftIO $ makePDF "pdflatex" writeLaTeX options processed
   case result of
@@ -471,10 +476,13 @@ elementAttributes =
 
 -- | Resources in meta data that are needed at compile time. They have to be
 -- specified as local URLs and must exist.
+runtimeMetaKeys :: [String]
 runtimeMetaKeys = ["css"]
 
+compiletimeMetaKeys :: [String]
 compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
 
+metaKeys :: [String]
 metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys
 
 -- Transitively splices all include files into the pandoc document.
