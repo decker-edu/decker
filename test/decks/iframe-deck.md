@@ -8,12 +8,17 @@ history: True
 
 1.  Iframe embedded in slide
 2.  Iframe as background
-3.  Iframe as background with interaction
+1.  Iframe embedded in slide showing a PDF
+4.  Iframe as background showing a PDF
 
-# Iframe showing `heise.de`
+# Iframe showing <https://www.heise.de>
 
 ![](http://www.heise.de/index.html){width="100%" height="500px"}
 
 # ![](http://www.heise.de/index.html)
 
-# ![](http://www.heise.de/index.html){interactive="1"}
+# Iframe showing <http://pandoc.org/MANUAL.pdf>
+
+![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
+
+# ![](http://pandoc.org/MANUAL.pdf)
