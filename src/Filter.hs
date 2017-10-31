@@ -23,6 +23,7 @@ import Data.List
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
+import qualified Network.URI as U
 
 -- import qualified Data.Set as Set
 -- import Debug.Trace
@@ -395,11 +396,11 @@ renderMediaTags disposition = walk (renderImageAudioVideoTag disposition)
 -- | File extensions that signify video content.
 videoExtensions :: [String]
 videoExtensions =
-  [".mp4", ".webm", ".ogg", ".avi", ".dv", ".mp2", ".mov", ".qt"]
+  [".mp4", ".m4v", ".webm", ".ogg", ".avi", ".dv", ".mp2", ".mov", ".qt"]
 
 -- | File extensions that signify audio content.
 audioExtensions :: [String]
-audioExtensions = [".mp3", ".ogg", ".wav"]
+audioExtensions = [".m4a", ".mp3", ".ogg", ".wav"]
 
 -- | File extensions that signify iframe content.
 iframeExtensions :: [String]
@@ -417,9 +418,15 @@ data MediaType
   | VideoMedia
   | IframeMedia
 
+uriPathExtension :: String -> String
+uriPathExtension path = 
+  case U.parseRelativeReference path of
+    Nothing -> takeExtension path
+    Just uri -> takeExtension (U.uriPath uri)
+
 classifyFilePath :: FilePath -> MediaType
 classifyFilePath name =
-  case takeExtension name of
+  case uriPathExtension name of
     ext
       | ext `elem` videoExtensions -> VideoMedia
     ext

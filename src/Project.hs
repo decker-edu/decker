@@ -1,10 +1,8 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Project
   ( findFile
-  , findLocalFile
   -- , readResource
-  , provisionResource
-  , provisionExistingResource
+  , resourcePathes
   , copyResource
   , linkResource
   , relRefResource
@@ -25,13 +23,9 @@ module Project
 import Common
 import Control.Exception
 import Control.Monad
-import qualified Data.ByteString.Lazy as B
-import Data.List
 import Data.Maybe
-import Debug.Trace
 import Extra
 import Network.URI
-import Resources
 import qualified System.Directory as D
 import System.FilePath
 import System.Posix.Files
@@ -82,6 +76,8 @@ linkResource resource = do
     (D.doesFileExist (publicFile resource))
     (D.removeFile (publicFile resource))
   D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
+  putStrLn $
+    "symlinking " ++ (sourceFile resource) ++ " -> " ++ (publicFile resource)
   createSymbolicLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
@@ -144,12 +140,19 @@ resolveLocally dirs base path = do
           else [absBase </> path, absRoot </> path]
   listToMaybe <$> filterM D.doesFileExist candidates
 
-resourcePathes :: ProjectDirs -> FilePath -> FilePath -> Resource
-resourcePathes dirs base absolute =
+resourcePathes :: ProjectDirs -> FilePath -> URI -> Resource
+resourcePathes dirs base uri =
   Resource
-  { sourceFile = absolute
-  , publicFile = public dirs </> makeRelativeTo (project dirs) absolute
-  , publicUrl = makeRelativeTo base absolute
+  { sourceFile = uriPath uri
+  , publicFile = public dirs </> makeRelativeTo (project dirs) (uriPath uri)
+  , publicUrl =
+      show $
+      URI
+        ""
+        Nothing
+        (makeRelativeTo base (uriPath uri))
+        (uriQuery uri)
+        (uriFragment uri)
   }
 
 isLocalURI :: String -> Bool
@@ -157,41 +160,6 @@ isLocalURI url = isNothing (parseURI url)
 
 isRemoteURI :: String -> Bool
 isRemoteURI = not . isLocalURI
-
--- | Determines if a URL can be resolved to a local file. Absolute file URLs are
--- resolved against and copied or linked to public from 
---    1. the project root 
---    2. the local filesystem root 
--- 
--- Relative file URLs are resolved against and copied or linked to public from 
---
---    1. the directory path of the referencing file 
---    2. the project root Copy and link operations target the public directory
---       in the project root and recreate the source directory structure. This
---       function is used to provision resources that are used at presentation
---       time.
---
--- Returns a public URL relative to base
-provisionResource ::
-     Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
-provisionResource provisioning dirs base path =
-  if path == "" || isRemoteURI path
-    then return path
-    else findFile dirs base path >>=
-         provisionExistingResource provisioning dirs base
-
-provisionExistingResource ::
-     Provisioning -> ProjectDirs -> FilePath -> FilePath -> IO FilePath
-provisionExistingResource provisioning dirs base path =
-  if path == "" || isRemoteURI path
-    then return path
-    else do
-      let resource = resourcePathes dirs base path
-      case provisioning of
-        Copy -> copyResource resource
-        SymLink -> linkResource resource
-        Absolute -> absRefResource resource
-        Relative -> relRefResource base resource
 
 -- Finds local file system files that sre needed at compile time. 
 -- Throws if the resource cannot be found. Used mainly for include files.
@@ -204,14 +172,6 @@ findFile dirs base path = do
       ResourceException $ "Cannot find local file system resource: " ++ path
     Just resource -> return resource
 
--- Finds local file system files that sre needed at compile time. If
--- path is a remote URL, leave it alone.
-findLocalFile :: ProjectDirs -> FilePath -> FilePath -> IO FilePath
-findLocalFile dirs base path =
-  if path == "" || isRemoteURI path
-    then return path
-    else findFile dirs base path
-
 -- Finds local file system files that are needed at compile time. 
 -- Returns the original path if the resource cannot be found.
 maybeFindFile :: ProjectDirs -> FilePath -> FilePath -> IO FilePath
@@ -220,6 +180,10 @@ maybeFindFile dirs base path = do
   case resolved of
     Nothing -> return path
     Just resource -> return resource
+      -- case find (\(k, b) -> k == path) deckerTemplateDir of
+      --   Nothing ->
+      --     throw $ ResourceException $ "Cannot find built-in resource: " ++ path
+      --   Just entry -> return $ snd entry
 
 -- Finds and reads a resource at compile time. If the resource can not be found in the
 -- file system, the built-in resource map is searched. If that fails, an error is thrown.
@@ -232,11 +196,6 @@ maybeFindFile dirs base path = do
 --   case resolved of
 --     Just resource -> readFile resource
 --     Nothing -> return $ getResourceString resources searchPath
-      -- case find (\(k, b) -> k == path) deckerTemplateDir of
-      --   Nothing ->
-      --     throw $ ResourceException $ "Cannot find built-in resource: " ++ path
-      --   Just entry -> return $ snd entry
-
 -- | Copies the src to dst if src is newer or dst does not exist. Creates
 -- missing directories while doing so.
 copyFileIfNewer :: FilePath -> FilePath -> IO ()

@@ -210,17 +210,15 @@ versionCheck meta =
 -- template variables and calls need.
 readAndPreprocessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndPreprocessMarkdown markdownFile disposition = do
-  dirs <- getProjectDirs
   let baseDir = takeDirectory markdownFile
   pandoc@(Pandoc meta _) <-
-    readMetaMarkdown markdownFile >>= processIncludes dirs baseDir
+    readMetaMarkdown markdownFile >>= processIncludes baseDir
   versionCheck meta
   let method = provisioningFromMeta meta
-  liftIO $
-    mapMetaResources (provisionMetaResource method dirs baseDir) pandoc >>=
-    mapResources (provisionExistingResource method dirs baseDir)
-    -- Disable automatic caching of remote images for a while
-    -- >>= walkM (cacheRemoteImages (cache dirs))
+  mapMetaResources (provisionMetaResource method baseDir) pandoc >>=
+    mapResources (provisionResource method baseDir)
+  -- Disable automatic caching of remote images for a while
+  -- >>= walkM (cacheRemoteImages (cache dirs))
 
 lookupBool :: String -> Bool -> Meta -> Bool
 lookupBool key def meta =
@@ -229,16 +227,42 @@ lookupBool key def meta =
     _ -> def
 
 provisionMetaResource ::
-     Provisioning
-  -> ProjectDirs
-  -> FilePath
-  -> (String, FilePath)
-  -> IO FilePath
-provisionMetaResource method dirs base (key, path)
-  | key `elem` runtimeMetaKeys = provisionResource method dirs base path
-provisionMetaResource method dirs base (key, path)
-  | key `elem` compiletimeMetaKeys = findLocalFile dirs base path
-provisionMetaResource _ _ _ (key, path) = return path
+     Provisioning -> FilePath -> (String, FilePath) -> Action FilePath
+provisionMetaResource method base (key, path)
+  | key `elem` runtimeMetaKeys =
+    locateFile base path >>= provisionResource method base
+provisionMetaResource method base (key, path)
+  | key `elem` compiletimeMetaKeys = locateFile base path
+provisionMetaResource _ _ (key, path) = return path
+
+-- | Determines if a URL can be resolved to a local file. Absolute file URLs are
+-- resolved against and copied or linked to public from 
+--    1. the project root 
+--    2. the local filesystem root 
+-- 
+-- Relative file URLs are resolved against and copied or linked to public from 
+--
+--    1. the directory path of the referencing file 
+--    2. the project root Copy and link operations target the public directory
+--       in the project root and recreate the source directory structure. This
+--       function is used to provision resources that are used at presentation
+--       time.
+--
+-- Returns a public URL relative to base
+provisionResource :: Provisioning -> FilePath -> FilePath -> Action FilePath
+provisionResource provisioning base path =
+  case parseRelativeReference path of
+    Nothing -> return path
+    Just uri -> do
+      dirs <- getProjectDirs
+      need [uriPath uri]
+      let resource = resourcePathes dirs base uri
+      liftIO $
+        case provisioning of
+          Copy -> copyResource resource
+          SymLink -> linkResource resource
+          Absolute -> absRefResource resource
+          Relative -> relRefResource base resource
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do
@@ -356,9 +380,26 @@ readMetaMarkdown markdownFile = do
         readMarkdownOrThrow pandocReaderOpts $ T.unpack substituted
   let (MetaMap m) = combinedMeta
   let pandoc = Pandoc (Meta m) blocks
-  -- adjust image urls
+  -- adjust local media urls
+  mapResources (locateFileIfLocal (takeDirectory markdownFile)) pandoc
+
+-- Locates a local file system file. Returns the an absolute path. If path is a
+-- remote URL, leave it alone.
+locateFileIfLocal :: FilePath -> FilePath -> Action FilePath
+locateFileIfLocal base path = do
+  case parseRelativeReference path of
+    Nothing -> return path
+    Just uri -> do
+      absolutePath <- locateFile base (uriPath uri)
+      return $
+        show $ URI "" Nothing absolutePath (uriQuery uri) (uriFragment uri)
+
+-- Locates a local file system file. Returns the an absolute path. If path is a
+-- remote URL, leave it alone.
+locateFile :: FilePath -> FilePath -> Action FilePath
+locateFile base path = do
   dirs <- getProjectDirs
-  liftIO $ mapResources (findLocalFile dirs (takeDirectory markdownFile)) pandoc
+  liftIO $ findFile dirs base path
 
 readMarkdownOrThrow :: ReaderOptions -> String -> Pandoc
 readMarkdownOrThrow opts string =
@@ -378,21 +419,15 @@ pandocReaderOpts = def {readerExtensions = deckerPandocExtensions}
 pandocWriterOpts :: WriterOptions
 pandocWriterOpts = def {writerExtensions = deckerPandocExtensions}
 
-isLocalURI :: String -> Bool
-isLocalURI url = isNothing $ parseURI url
-
-isRemoteURI :: String -> Bool
-isRemoteURI = not . isLocalURI
-
 -- TODO: Move the map* functions into the Action monad so that 'need' can be
 -- called for the resources.
-mapResources :: (FilePath -> IO FilePath) -> Pandoc -> IO Pandoc
+mapResources :: (FilePath -> Action FilePath) -> Pandoc -> Action Pandoc
 mapResources transform pandoc@(Pandoc meta blocks) = do
   processedBlocks <-
     walkM (mapInline transform) blocks >>= walkM (mapBlock transform)
   return (Pandoc meta processedBlocks)
 
-mapAttributes :: (FilePath -> IO FilePath) -> Attr -> IO Attr
+mapAttributes :: (FilePath -> Action FilePath) -> Attr -> Action Attr
 mapAttributes transform (ident, classes, kv) = do
   processed <- mapM mapAttr kv
   return (ident, classes, processed)
@@ -404,7 +439,7 @@ mapAttributes transform (ident, classes, kv) = do
           return (key, transformed)
         else return kv
 
-mapInline :: (FilePath -> IO FilePath) -> Inline -> IO Inline
+mapInline :: (FilePath -> Action FilePath) -> Inline -> Action Inline
 mapInline transform img@(Image attr@(_, cls, _) inlines (url, title)) =
   if not $ isMacro $ stringify inlines
     then do
@@ -427,7 +462,7 @@ mapInline transform (Code attr string) = do
   return (Code attribs string)
 mapInline _ inline = return inline
 
-mapBlock :: (FilePath -> IO FilePath) -> Block -> IO Block
+mapBlock :: (FilePath -> Action FilePath) -> Block -> Action Block
 mapBlock transform (CodeBlock attr string) = do
   attribs <- mapAttributes transform attr
   return (CodeBlock attribs string)
@@ -439,7 +474,8 @@ mapBlock transform (Div attr blocks) = do
   return (Div attribs blocks)
 mapBlock _ block = return block
 
-mapMetaResources :: ((String, FilePath) -> IO FilePath) -> Pandoc -> IO Pandoc
+mapMetaResources ::
+     ((String, FilePath) -> Action FilePath) -> Pandoc -> Action Pandoc
 mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
   mapped <- mapM mapMeta $ Map.toList kvmap
   return $ Pandoc (Meta $ Map.fromList mapped) blocks
@@ -486,8 +522,8 @@ metaKeys :: [String]
 metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys
 
 -- Transitively splices all include files into the pandoc document.
-processIncludes :: ProjectDirs -> FilePath -> Pandoc -> Action Pandoc
-processIncludes dirs baseDir (Pandoc meta blocks) = do
+processIncludes :: FilePath -> Pandoc -> Action Pandoc
+processIncludes baseDir (Pandoc meta blocks) = do
   included <- processBlocks baseDir blocks
   return $ Pandoc meta included
   where
@@ -497,6 +533,7 @@ processIncludes dirs baseDir (Pandoc meta blocks) = do
       return $ concat $ reverse spliced
     include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
     include base result (Para [Link _ [Str ":include"] (url, _)]) = do
+      dirs <- getProjectDirs
       filePath <- liftIO $ findFile dirs base url
       Pandoc _ b <- readMetaMarkdown filePath
       included <- processBlocks (takeDirectory filePath) b
