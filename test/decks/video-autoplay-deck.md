@@ -11,8 +11,8 @@ history: True
 
 # Autoplay off
 
-![](movie.mp4){controls="1"}
+![](pacman-perfect-game.mp4){controls="1" width="50%"}
 
 # Autoplay on
 
-![](movie.mp4){controls="1" data-autoplay="1"}
+![](pacman-perfect-game.mp4){controls="1" data-autoplay="1" width="50%"}
