@@ -70,8 +70,15 @@ runHttpServer state dirs port = do
       [ ("/reload", runWebSocketsSnap $ reloader state)
       , ( "/reload.html" -- Just for testing the thing.
         , serveFile $ Project.project dirs </> "test" </> "reload.html")
-      , ("/", serveDirectory documentRoot)
+      , ("/", serveDirectoryNoCaching documentRoot)
       ]
+
+serveDirectoryNoCaching :: MonadSnap m => FilePath -> m ()
+serveDirectoryNoCaching directory = do
+  serveDirectory directory
+  modifyResponse $ addHeader "Cache-Control" "no-cache,no-store,must-revalidate"
+  modifyResponse $ addHeader "Pragma" "no-cache"
+  modifyResponse $ addHeader "Expires" "0"
 
 -- | Starts a server in a new thread and returns the thread id.
 startHttpServer :: ProjectDirs -> Int -> IO Server
