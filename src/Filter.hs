@@ -172,17 +172,16 @@ expandMacros format doc@(Pandoc meta _) =
 
 isSlideHeader :: Block -> Bool
 isSlideHeader (Header level _ _) = level == 1
+isSlideHeader HorizontalRule = True
 isSlideHeader _ = False
 
 isBoxDelim :: Block -> Bool
 isBoxDelim (Header level _ _) = level >= 2
-isBoxDelim HorizontalRule = True
 isBoxDelim _ = False
 
 -- Column break is either "###" or "---"
 isColumnBreak :: Block -> Bool
 isColumnBreak (Header level _ _) = level == 3
-isColumnBreak HorizontalRule = True
 isColumnBreak _ = False
 
 columnClass :: Attr
@@ -277,6 +276,8 @@ setSlideBackground slide@((Header 1 (headerId, headerClasses, headerAttributes) 
         ImageMedia -> ("data-background-image", src)
 setSlideBackground slide = slide
 
+-- | Wrap boxes around H2 headers and the dollowing content. All attributes are
+-- promoted from the H2 header to the enclosing DIV.
 wrapBoxes :: [Block] -> [Block]
 wrapBoxes (header:body) = header : concatMap wrap boxes
   where
@@ -289,15 +290,15 @@ wrapBoxes (header:body) = header : concatMap wrap boxes
     wrap box = box
 wrapBoxes [] = []
 
--- Wrap headers with class notes into a DIV and promote all header attributes
--- to the DIV.
+-- | Wrap H1 headers with class notes into a DIV and promote all header
+-- attributes to the DIV.
 wrapNoteRevealjs :: [Block] -> [Block]
 wrapNoteRevealjs slide@(Header 1 (id_, cls, kvs) inlines:body)
   | "notes" `elem` cls = [Div (id_, cls, kvs) slide]
 wrapNoteRevealjs slide = slide
 
--- Wrap headers with class notes into a DIV and promote all header attributes
--- to the DIV.
+-- | Wrap H1 headers with class notes into a DIV and promote all header
+-- attributes to the DIV.
 wrapNoteBeamer :: [Block] -> [Block]
 wrapNoteBeamer slide@(Header 1 (_, cls, _) _:_)
   | "notes" `elem` cls = [Div nullAttr slide]

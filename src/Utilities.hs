@@ -160,7 +160,8 @@ markdownToHtmlDeck markdownFile out = do
   template <- getTemplate "deck.html"
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
+        { writerSlideLevel = Just 1
+        ,  writerTemplate = Just template
         -- , writerStandalone = True
         , writerHighlight = True
         -- , writerHighlightStyle = pygments
@@ -256,6 +257,7 @@ provisionResource provisioning base path =
     Just uri -> do
       dirs <- getProjectDirs
       need [uriPath uri]
+      putNormal $ "needing " ++ uriPath uri
       let resource = resourcePathes dirs base uri
       liftIO $
         case provisioning of
