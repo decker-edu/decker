@@ -257,7 +257,6 @@ provisionResource provisioning base path =
     Just uri -> do
       dirs <- getProjectDirs
       need [uriPath uri]
-      putNormal $ "needing " ++ uriPath uri
       let resource = resourcePathes dirs base uri
       liftIO $
         case provisioning of

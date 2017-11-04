@@ -25,11 +25,11 @@ import Data.Maybe
 import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
+import Meta
 import Project
 import Server
 import System.FilePath.Glob
 import System.Process
-import Meta
 
 -- | Globs for files under the project dir in the Action monad. Returns absolute
 -- pathes.
@@ -87,8 +87,8 @@ calcSource targetSuffix srcSuffix target = do
           target
   need [src]
   return src
-  -- | Removes the last suffix from a filename
 
+-- | Removes the last suffix from a filename
 dropSuffix s t = fromMaybe t (stripSuffix s t)
 
 replaceSuffix srcSuffix targetSuffix filename =
@@ -125,4 +125,3 @@ readMetaDataForDir dir = walkUpTo dir
           throw $
           YamlException $ "Top-level meta value must be an object: " ++ dir
         Left exception -> throw exception
-

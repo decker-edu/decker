@@ -33,7 +33,8 @@ waitForTwitch directories patterns = do
     watchIt mgr done = mapM (watchInDir mgr done) directories
 
 twitchPatterns =
-  map compile ["**/*.md", "**/*.yaml", "**/*.png", "**/*.gif", "**/*.jpg", "**/*.mp4"]
+  -- map compile ["**/*.md", "**/*.yaml", "**/*.png", "**/*.gif", "**/*.jpg", "**/*.mp4"]
+  map compile ["**/*.*"]
 
 waitForTwitchPassive files = do
   let dirs = nub (map takeDirectory files)

@@ -76,8 +76,6 @@ linkResource resource = do
     (D.doesFileExist (publicFile resource))
     (D.removeFile (publicFile resource))
   D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
-  putStrLn $
-    "symlinking " ++ (sourceFile resource) ++ " -> " ++ (publicFile resource)
   createSymbolicLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 

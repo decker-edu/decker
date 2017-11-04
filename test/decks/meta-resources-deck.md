@@ -2,9 +2,7 @@
 csl: 'acm-sig-proceedings.csl'
 css:
 - 'dummy.css'
-- 'dummy.css'
-- 'dummy.css'
-decker-version: '0.2.0'
+decker-version: '0.3.0'
 ---
 
 # Meta Resources
@@ -12,6 +10,6 @@ decker-version: '0.2.0'
 Resource references in meta data values
 
 -   `css:` {{\#css}}
-    -   {{{.}}} {{/css}}
+    -   `{{{.}}}` {{/css}}
 -   `csl: {{{csl}}}`
 -   Slide background should be gray
