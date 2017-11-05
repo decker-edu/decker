@@ -180,7 +180,7 @@ main = do
           let src = publicDir ++ "/"
           let dst = intercalate ":" [fromJust host, fromJust path]
           cmd "ssh " (fromJust host) "mkdir -p" (fromJust path) :: Action ()
-          cmd "rsync --archive --copy-links" src dst :: Action ()
+          cmd "rsync --recursive --no-xattrs --no-group --perms --chmod=a+r,go-w --no-owner --copy-links" src dst :: Action ()
         else throw RsyncUrlException
 
 -- Calculate some directories
