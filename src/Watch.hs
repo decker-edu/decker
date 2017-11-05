@@ -3,10 +3,11 @@ module Watch
   ( waitForTwitchPassive
   ) where
 
-import Control.Concurrent.MVar
-
 -- | A non-polling file watcher based on fsnotify
+import Control.Concurrent.MVar
 import Data.List
+import qualified Data.Set as Set
+import Filter
 import System.FSNotify
 import System.FilePath
 import System.FilePath.Glob
@@ -22,20 +23,31 @@ waitForTwitch directories patterns = do
   sequence_ stops
   stopManager mgr
   return filepath
-        -- Match a filepath against the supplied patterns
+    -- Match a filepath against the supplied patterns
   where
     isWatchedFile event = any (`match` eventPath event) patterns
-        -- Stop the watch manager and notify the main thread
+    -- Stop the watch manager and notify the main thread
     stopWatching mgr done event = putMVar done (eventPath event)
-        -- Watch everything within the supplied dirs
+    -- Watch everything within the supplied dirs
     watchInDir mgr done dir =
       watchTree mgr dir isWatchedFile (stopWatching mgr done)
-    watchIt mgr done = mapM (watchInDir mgr done) directories
+    watchIt mgr done = mapM (watchInDir mgr done) (unique directories)
 
 twitchPatterns =
-  -- map compile ["**/*.md", "**/*.yaml", "**/*.png", "**/*.gif", "**/*.jpg", "**/*.mp4"]
-  map compile ["**/*.*"]
+  map compile $
+  [ "**/*.css"
+  , "**/*.md"
+  , "**/*.yaml"
+  , "**/*.png"
+  , "**/*.gif"
+  , "**/*.jpg"
+  , "**/*.svg"
+  ] ++
+  iframeExtensions ++ audioExtensions ++ videoExtensions
 
 waitForTwitchPassive files = do
   let dirs = nub (map takeDirectory files)
   waitForTwitch dirs twitchPatterns
+
+unique :: Ord a => [a] -> [a]
+unique = Set.toList . Set.fromList

@@ -15,6 +15,9 @@ module Filter
   , transformImageSize
   , lazyLoadImage
   , isMacro
+  , iframeExtensions
+  , audioExtensions
+  , videoExtensions
   ) where
 
 import qualified Data.ByteString.Lazy.Char8 as L8
