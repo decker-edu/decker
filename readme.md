@@ -13,6 +13,14 @@ gunzip decker.gz
 chmod a+x decker
 ```
 
+## External tools
+
+Decker uses a few external tools that need to be installed on the system:
+
+- *rsync* for publishing slide decks and resources
+- *unzip* to extract resources form the executable
+- *decktape* to convert HTML slide decks to PDF format
+ 
 ## Installation from source
 
 1.  Install [stack](https://docs.haskellstack.org/en/stable/README/).
