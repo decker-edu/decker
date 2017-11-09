@@ -13,21 +13,22 @@ gunzip decker.gz
 chmod a+x decker
 ```
 
-## External tools
-
-Decker uses a few external tools that need to be installed on the system:
-
-- *rsync* for publishing slide decks and resources
-- *unzip* to extract resources form the executable
-- *decktape* to convert HTML slide decks to PDF format
- 
 ## Installation from source
 
 1.  Install [stack](https://docs.haskellstack.org/en/stable/README/).
 2.  Clone this repo.
 3.  `cd decker`
+3.  `stack setup`
 4.  `stack install`
 
+## External tools
+
+Decker uses a few external tools that need to be installed on the system:
+
+- [*rsync*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/rsync) for publishing slide decks and resources
+- [*unzip*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/unzip) to extract resources from the decker executable
+- [*decktape*](https://github.com/astefanutti/decktape) to convert HTML slide decks to PDF format
+ 
 ## Usage
 
 *decker* behaves very much like a build tool. It works recursively on the current directory and all subdirectories. Markdown files ending on `.md` in those directories are processed and converted to either a reveal.js slide show, a HTML document, or a PDF document, depending on the file name.
@@ -120,12 +121,3 @@ The decker repository has a GitLab CI runner configured, that builds and runs al
 ### Haskell source code formatting
 
 Haskell soure code readability depends heavily on consistent formatting conventions. With decker, formatting is automated using the excellent [hindent]() tool. Formatting is checked for each commit that is uploaded to the GitLab repository.
-
-### Compilation and running
-
-``` {.sh}
-> stack setup
-> stack build
-> stack test
-> stack exec decker
-```
