@@ -9,6 +9,7 @@ module Resources
 import Common
 import Control.Exception
 import Control.Monad
+import Extra
 import System.Directory
 import System.Environment
 import System.Exit
@@ -30,17 +31,22 @@ extractResources = do
   dataDir <- deckerResourceDir
   exists <- doesDirectoryExist dataDir
   unless exists $ do
+    unlessM (Resources.unzip ["-l", deckerExecutable]) $
+      throw $ ResourceException "No resource zip found in decker executable."
     createDirectoryIfMissing True dataDir
-    (exitCode, _, _) <-
-      readProcessWithExitCode
-        "unzip"
-        ["-qq", "-d", dataDir, deckerExecutable]
-        ""
+    unlessM (Resources.unzip ["-qq", "-d", dataDir, deckerExecutable]) $
+      throw $
+      ResourceException "Unable to extract resources from decker executable"
+    putStrLn $ "# resources extracted to " ++ dataDir
+
+unzip :: [String] -> IO Bool
+unzip args = do
+  (exitCode, _, _) <- readProcessWithExitCode "unzip" args ""
+  return $
     case exitCode of
-      ExitSuccess -> putStrLn $ "# resources extracted to " ++ dataDir
-      ExitFailure 1 -> putStrLn $ "# resources extracted to " ++ dataDir
-      _ ->
-        throw $ ResourceException "No resource zip found in decker executable."
+      ExitSuccess -> True
+      ExitFailure 1 -> True
+      _ -> False
 
 writeResourceFiles :: FilePath -> FilePath -> IO ()
 writeResourceFiles prefix destDir = do

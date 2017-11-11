@@ -46,7 +46,6 @@ executable decker
                      , multimap
                      , mustache
                      , network-uri
-                     , open-browser
                      , pandoc
                      , pandoc-citeproc
                      , pandoc-types
