@@ -20,6 +20,7 @@ import Context
 import Control.Exception
 import Data.IORef
 import Data.List as List
+import Data.List (isInfixOf)
 import Data.List.Extra as List
 import Data.Maybe
 import qualified Data.Yaml as Y
@@ -29,8 +30,8 @@ import Meta
 import Project
 import Server
 import System.FilePath.Glob
+import System.Info (os)
 import System.Process
-import qualified Web.Browser as Web
 
 -- | Globs for files under the project dir in the Action monad. Returns absolute
 -- pathes.
@@ -59,8 +60,15 @@ runHttpServer dirs = do
 
 openBrowser :: String -> Action ()
 openBrowser url = do
-  liftIO $ Web.openBrowser url
-  return ()
+  case os of
+    osid
+      | any (`isInfixOf` osid) ["linux", "bsd"] ->
+        liftIO $ callProcess "xdg-open" [url]
+    osid
+      | "darwin" `isInfixOf` osid -> liftIO $ callProcess "open" [url]
+    osid
+      | otherwise ->
+        putNormal $ "Unable to open browser on this platform for url: " ++ url
 
 reloadBrowsers :: Action ()
 reloadBrowsers = do
