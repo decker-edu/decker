@@ -4,6 +4,7 @@ module Action
   , wantRepeat
   , dropSuffix
   , runHttpServer
+  , openBrowser
   , replaceSuffix
   , replaceSuffixWith
   , globA
@@ -17,7 +18,6 @@ module Action
 import Common
 import Context
 import Control.Exception
-import Control.Monad
 import Data.IORef
 import Data.List as List
 import Data.List.Extra as List
@@ -30,6 +30,7 @@ import Project
 import Server
 import System.FilePath.Glob
 import System.Process
+import qualified Web.Browser as Web
 
 -- | Globs for files under the project dir in the Action monad. Returns absolute
 -- pathes.
@@ -46,8 +47,8 @@ spawn = liftIO . spawnCommand
 
 -- Runs the built-in server on the given directory, if it is not already
 -- running. If open is True a browser window is opended.
-runHttpServer :: ProjectDirs -> Bool -> Action ()
-runHttpServer dirs open = do
+runHttpServer :: ProjectDirs -> Action ()
+runHttpServer dirs = do
   server <- getServerHandle
   case server of
     Just _ -> return ()
@@ -55,7 +56,11 @@ runHttpServer dirs open = do
       let port = 8888
       server <- liftIO $ startHttpServer dirs port
       setServerHandle $ Just server
-      when open $ cmd ("open http://localhost:" ++ show port :: String) :: Action ()
+
+openBrowser :: String -> Action ()
+openBrowser url = do
+  liftIO $ Web.openBrowser url
+  return ()
 
 reloadBrowsers :: Action ()
 reloadBrowsers = do

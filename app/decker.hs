@@ -18,7 +18,6 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
 import Utilities
-import Web.Browser
 
 main :: IO ()
 main = do
@@ -78,12 +77,13 @@ main = do
     --
     phony "open" $ do
       need ["html"]
-      liftIO $ openBrowser index
+      openBrowser index
       return ()
     --
     phony "server" $ do
       need ["watch"]
-      runHttpServer dirs True
+      runHttpServer dirs
+      openBrowser index
     --
     phony "example" writeExampleProject
     --
@@ -99,7 +99,7 @@ main = do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         need [src]
         putNormal $ src ++ " -> " ++ out
-        runHttpServer dirs False
+        runHttpServer dirs
         code <-
           cmd
             "decktape reveal"
