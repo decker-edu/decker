@@ -102,7 +102,7 @@ main = do
         runHttpServer dirs
         code <-
           cmd
-            "decktape reveal"
+            "decktape.sh reveal"
             ("http://localhost:8888" </> makeRelative publicDir src)
             out
         case code of
