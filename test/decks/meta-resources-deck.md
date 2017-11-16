@@ -2,7 +2,6 @@
 csl: 'acm-sig-proceedings.csl'
 css:
 - 'dummy.css'
-decker-version: '0.3.0'
 ---
 
 # Meta Resources
