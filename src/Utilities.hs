@@ -43,6 +43,7 @@ import qualified Data.Text.Encoding as E
 import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
+import Render
 import Filter
 import Meta
 import Network.URI
@@ -161,7 +162,7 @@ markdownToHtmlDeck markdownFile out = do
   let options =
         pandocWriterOpts
         { writerSlideLevel = Just 1
-        ,  writerTemplate = Just template
+        , writerTemplate = Just template
         -- , writerStandalone = True
         , writerHighlight = True
         -- , writerHighlightStyle = pygments
@@ -217,7 +218,8 @@ readAndPreprocessMarkdown markdownFile disposition = do
   versionCheck meta
   let method = provisioningFromMeta meta
   mapMetaResources (provisionMetaResource method baseDir) pandoc >>=
-    mapResources (provisionResource method baseDir)
+    mapResources (provisionResource method baseDir) >>=
+    renderCodeBlocks
   -- Disable automatic caching of remote images for a while
   -- >>= walkM (cacheRemoteImages (cache dirs))
 

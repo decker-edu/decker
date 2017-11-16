@@ -1,5 +1,5 @@
 name:                decker
-version:             0.3.0
+version:             0.3.1
 synopsis:            All inclusive slide deck creation with pandoc.
 description:         Please see README.md
 homepage:            https://tramberend.beuth-hochschule.de/decker
@@ -22,12 +22,13 @@ cabal-version:       >=1.10
 executable decker
   hs-source-dirs:      app, src
   main-is:             decker.hs
-  other-modules:       Action, Cache, Meta, Watch, Embed, Context, Utilities, Filter, Project, Common, Server, Resources, Paths_decker
+  other-modules:       Action, Cache, Meta, Watch, Embed, Context, Utilities, Filter, Project, Common, Server, Resources, Render, Paths_decker
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , Glob
                      , HTTP
                      , aeson
+                     , base64-bytestring
                      , blaze-html
                      , blaze-markup
                      , bytestring

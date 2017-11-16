@@ -29,6 +29,9 @@ main = do
   let supportDir = support dirs
   let appDataDir = appData dirs
 
+  let serverPort = 8888
+  let serverUrl = "http://0.0.0.0:" ++ (show serverPort)
+
   -- Find sources. These are formulated as actions in the Action mondad, such
   -- that each new iteration rescans all possible source files.
   let deckSourcesA = globA "**/*-deck.md"
@@ -78,12 +81,10 @@ main = do
     phony "open" $ do
       need ["html"]
       openBrowser index
-      return ()
     --
     phony "server" $ do
       need ["watch"]
-      runHttpServer dirs
-      openBrowser index
+      runHttpServer serverPort dirs (Just serverUrl)
     --
     phony "example" writeExampleProject
     --
@@ -99,11 +100,11 @@ main = do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         need [src]
         putNormal $ src ++ " -> " ++ out
-        runHttpServer dirs
+        runHttpServer serverPort dirs Nothing
         code <-
           cmd
             "decktape.sh reveal"
-            ("http://localhost:8888" </> makeRelative publicDir src)
+            (serverUrl </> makeRelative publicDir src)
             out
         case code of
           ExitFailure _ -> throw $ DecktapeException "Unknown."

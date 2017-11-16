@@ -40,8 +40,8 @@ import System.FilePath
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
-       ((!), audio, div, figure, iframe, img, p, stringTag, toValue,
-        video, iframe)
+       ((!), audio, div, figure, iframe, iframe, img, p, stringTag,
+        toValue, video)
 import Text.Blaze.Html5.Attributes as A
        (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc
@@ -423,7 +423,7 @@ data MediaType
   | IframeMedia
 
 uriPathExtension :: String -> String
-uriPathExtension path = 
+uriPathExtension path =
   case U.parseRelativeReference path of
     Nothing -> takeExtension path
     Just uri -> takeExtension (U.uriPath uri)
@@ -506,3 +506,4 @@ lazyLoadImage (Image (ident, cls, values) inlines (url, tit)) = do
   let kvs = ("data-src", url) : [kv | kv <- values, "data-src" /= fst kv]
   return (Image (ident, cls, kvs) inlines ("", tit))
 lazyLoadImage inline = return inline
+
