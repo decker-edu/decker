@@ -1,0 +1,10 @@
+div.css-columns {
+    background-color: #eee;
+    column-count: 2;
+    column-gap: 1em;
+    column-rule-style: none;
+}
+
+div.box {
+    break-inside: avoid-column;
+}

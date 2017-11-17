@@ -26,17 +26,13 @@ import Data.List
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
-import qualified Network.URI as U
-
--- import qualified Data.Set as Set
--- import Debug.Trace
+import Debug.Trace
 import Network.HTTP.Conduit
 import Network.HTTP.Simple
+import qualified Network.URI as U
 import Network.URI (parseURI, uriScheme)
 import System.Directory
 import System.FilePath
-
--- import System.FilePath.Posix
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
@@ -46,8 +42,6 @@ import Text.Blaze.Html5.Attributes as A
        (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
-
--- import Text.Pandoc.JSON
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
@@ -190,6 +184,25 @@ isColumnBreak _ = False
 columnClass :: Attr
 columnClass = ("", ["column"], [])
 
+hasClass :: String -> Block -> Bool
+hasClass which (Div (_, classes, _) _) = which `elem` classes
+hasClass _ _ = False
+
+hasAnyClass :: [String] -> Block -> Bool
+hasAnyClass which (Div (_, classes, _) _) = or $ map ((flip elem) classes) which
+hasAnyClass _ _ = False
+
+-- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
+splitJoinColumns :: [Block] -> [Block]
+splitJoinColumns (header:body) =
+  header : (concatMap wrapRow rows)
+  where
+    rows = split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
+    wrapRow row@(first:_)
+      | hasClass "split" first = [Div ("", ["css-columns"], []) row]
+    wrapRow row = row
+splitJoinColumns [] = []
+
 -- Splits the body of a slide into any number of columns.
 splitColumns :: [Block] -> [Block]
 splitColumns slide@(header:body) =
@@ -279,7 +292,7 @@ setSlideBackground slide@((Header 1 (headerId, headerClasses, headerAttributes) 
         ImageMedia -> ("data-background-image", src)
 setSlideBackground slide = slide
 
--- | Wrap boxes around H2 headers and the dollowing content. All attributes are
+-- | Wrap boxes around H2 headers and the following content. All attributes are
 -- promoted from the H2 header to the enclosing DIV.
 wrapBoxes :: [Block] -> [Block]
 wrapBoxes (header:body) = header : concatMap wrap boxes
@@ -314,10 +327,12 @@ mapSlides func (Pandoc meta blocks) = Pandoc meta (concatMap func slides)
 
 makeSlides :: Format -> Pandoc -> Pandoc
 makeSlides (Format "revealjs") =
+  walk (mapSlides splitJoinColumns) .
   walk (mapSlides splitColumns) .
   walk (mapSlides setSlideBackground) .
   walk (mapSlides wrapBoxes) . walk (mapSlides wrapNoteRevealjs)
 makeSlides (Format "beamer") =
+  walk (mapSlides splitJoinColumns) .
   walk (mapSlides splitColumns) .
   walk (mapSlides wrapBoxes) . walk (mapSlides wrapNoteBeamer)
 makeSlides _ = Prelude.id
@@ -506,4 +521,3 @@ lazyLoadImage (Image (ident, cls, values) inlines (url, tit)) = do
   let kvs = ("data-src", url) : [kv | kv <- values, "data-src" /= fst kv]
   return (Image (ident, cls, kvs) inlines ("", tit))
 lazyLoadImage inline = return inline
-

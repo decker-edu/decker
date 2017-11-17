@@ -558,6 +558,16 @@ body {
     background-color: #666;
 }
 
+.reveal section div.box {
+    break-inside: avoid-column;
+}
+
+.reveal section div.css-columns {
+    column-count: 2;
+    column-gap: 1em;
+    column-rule-style: none;
+}    
+
 .reveal section div.columns-2 {
     width: 46%;
 }
