@@ -3,6 +3,9 @@
 
 module Filter
   ( Disposition(..)
+  , hasAttrib
+  , hasLayout
+  , blockClasses
   , expandMacros
   , makeSlides
   , filterNotes
@@ -181,9 +184,6 @@ isColumnBreak :: Block -> Bool
 isColumnBreak (Header level _ _) = level == 3
 isColumnBreak _ = False
 
-columnClass :: Attr
-columnClass = ("", ["column"], [])
-
 hasClass :: String -> Block -> Bool
 hasClass which (Div (_, classes, _) _) = which `elem` classes
 hasClass _ _ = False
@@ -192,10 +192,73 @@ hasAnyClass :: [String] -> Block -> Bool
 hasAnyClass which (Div (_, classes, _) _) = or $ map ((flip elem) classes) which
 hasAnyClass _ _ = False
 
+-- | Slide layouts
+data Layout = Layout
+  { name :: String
+  , areas :: [String]
+  } deriving (Show)
+
+masters :: [(String, Layout)]
+masters =
+  [ ("default", Layout "default" [])
+  , ("columns", Layout "columns" ["left", "right"])
+  , ("top2columns", Layout "top2columns" ["top", "left", "right"])
+  , ("bottom2columns", Layout "bottom2columns" ["left", "right", "bottom"])
+  , ("centeredoverlay", Layout "centeredoverlay" ["back", "front"])
+  ]
+
+hasAttrib :: String -> Block -> Maybe String
+hasAttrib which (Div (_, _, keyvals) _) = lookup which keyvals
+hasAttrib which (Header 1 (_, _, keyvals) _) = lookup which keyvals
+hasAttrib which (CodeBlock (_, _, keyvals) _) = lookup which keyvals
+hasAttrib which (Para [Image (_, _, keyvals) _ _]) = lookup which keyvals
+hasAttrib _ _ = Nothing
+
+hasLayout :: Block -> Maybe Layout
+hasLayout block = hasAttrib "layout" block >>= (flip lookup) masters
+
+blockClasses :: Block -> [String]
+blockClasses (Div (_, classes, _) _) = classes
+blockClasses (Header 1 (_, classes, _) _) = classes
+blockClasses (CodeBlock (_, classes, _) _) = classes
+blockClasses (Para [Image (_, classes, _) _ _]) = classes
+blockClasses _ = []
+
+blockAttribs :: Block -> (String, [String], [(String, String)])
+blockAttribs (Div attribs _) = attribs
+blockAttribs (Header 1 attribs _) = attribs
+blockAttribs (CodeBlock attribs _) = attribs
+blockAttribs (Para [Image attribs _ _]) = attribs
+blockAttribs _ = ("", [], [])
+
+-- | Fit slide to layout
+fitLayout :: [Block] -> [Block]
+fitLayout slide@(header:body) =
+  case hasLayout header of
+    Just layout ->
+      let wrapArea blocks@(first:_) =
+            case whichArea first of
+              Just area ->
+                let (_, _, attribs) = blockAttribs first
+                in [Div ("", [(name layout), area], attribs) blocks]
+              Nothing -> blocks
+          wrapArea block = block
+          whichArea block =
+            listToMaybe $ intersect (blockClasses block) (areas layout)
+          slideAreas =
+            split (keepDelimsL $ whenElt (hasAnyClass (areas layout))) body
+          orderedAreas =
+            catMaybes $
+            map
+              (\a -> find (maybe False (hasClass a) . listToMaybe) slideAreas)
+              (areas layout)
+      in header : concatMap wrapArea orderedAreas
+    Nothing -> slide
+fitLayout [] = []
+
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
 splitJoinColumns :: [Block] -> [Block]
-splitJoinColumns (header:body) =
-  header : (concatMap wrapRow rows)
+splitJoinColumns (header:body) = header : (concatMap wrapRow rows)
   where
     rows = split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
     wrapRow row@(first:_)
@@ -300,7 +363,7 @@ wrapBoxes (header:body) = header : concatMap wrap boxes
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
     wrap (Header 2 (id_, cls, kvs) text:blocks) =
       [ Div
-          (id_ ++ "-box", "box" : cls, [])
+          ("", "box" : cls, kvs)
           (Header 2 (id_, deFragment cls, kvs) text : blocks)
       ]
     wrap box = box
@@ -327,6 +390,7 @@ mapSlides func (Pandoc meta blocks) = Pandoc meta (concatMap func slides)
 
 makeSlides :: Format -> Pandoc -> Pandoc
 makeSlides (Format "revealjs") =
+  walk (mapSlides fitLayout) .
   walk (mapSlides splitJoinColumns) .
   walk (mapSlides splitColumns) .
   walk (mapSlides setSlideBackground) .

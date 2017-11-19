@@ -1,4 +1,6 @@
 ---
+css:
+- 'columns.css'
 history: True
 ---
 
@@ -7,13 +9,20 @@ history: True
 ## Mechanisms
 
 -   Header 3 markers (`###`)
--   Box classes
+-   Box classes (`.split` and `.join`)
+-   Slide masters (`layout` slide attribute)
 
-## Header 3 Markers
+------
+
+# Header 3 Markers
+
+------
+
+# Header 3 Markers
 
 ## Syntax
 
--   Each H3 mark starts a new column
+-   Each H3 mark (`###`) starts a new column
 -   Columns are generated as DIVs
 
 ### 
@@ -28,13 +37,17 @@ history: True
 
 # Box Classes
 
+------
+
+# Box Classes
+
 ## Intro
 
--   No columns here
+-   No columns here, just a very long line spanning the entire slide
 
 ## Syntax {.split}
 
--   Box headers (H2) are marked with CSS classes
+-   Box headers (`##`) are marked with CSS classes
     -   `split` starts 2 columns
     -   `join` forces 1 column
 
@@ -45,7 +58,7 @@ history: True
 
 ## Outro {.join}
 
--   No columns here
+-   No columns here, just a very long line spanning the entire slide
 
 ------
 
@@ -66,17 +79,77 @@ history: True
 
 ------
 
-# Floating Images
+# Slide Masters
 
-![](include/06-metal.png){.float-right width="50%"}
+------
 
-## No Columns
+# Slide Masters {layout="columns"}
 
--   But floating images that
--   force text to flow around them
+## Fixed Layouts {.top}
 
-## Long Long Lines
+-   Just like Powerpoint and Keynote
 
--   Which results in quite pleasant looking layouts
--   Space utilization appears to be maximized
--   The same could be built for boxes that have a fixed width
+## Example {.right}
+
+![](include/06-metal.png)
+
+## Syntax {.left}
+
+-   Class and key-value attributes
+-   Assign content to layout area
+-   On elements *Header 2*, *Image*, *Code Block*, *DIV*
+
+------
+
+# Slide Masters {layout="top2columns"}
+
+## Fixed Layouts {.top}
+
+-   Just like Powerpoint and Keynote
+
+## Syntax {.left}
+
+-   Class and key-value attributes
+-   Assign content to layout area
+-   On elements *Header 2*, *Image*, *Code Block*, *DIV*
+
+## Example {.right}
+
+![](include/06-metal.png)
+
+------
+
+# Slide Masters {layout="bottom2columns"}
+
+## Fixed Layouts {.bottom}
+
+-   Just like Powerpoint and Keynote
+
+## Syntax {.left}
+
+-   Class and key-value attributes
+-   Assign content to layout area
+-   On elements *Header 2*, *Image*, *Code Block*, *DIV*
+
+## Example {.right}
+
+![](include/06-metal.png)
+
+------
+
+# Header 3 Markers {layout="centeredoverlay"}
+
+## Conclusion {.box .alert .front}
+
+This is probably all bullshit anyway
+
+## Syntax {.back}
+
+-   Each H3 mark starts a new column
+-   Columns are generated as DIVs
+
+## Semantics
+
+-   The slide header is not part of the columns
+-   Columns vertically span the entire slide
+-   Space is equally distributed between all columns

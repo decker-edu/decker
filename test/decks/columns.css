@@ -8,3 +8,17 @@ div.css-columns {
 div.box {
     break-inside: avoid-column;
 }
+
+div.columns.left {background-color: #efe;width:49%;float:left;} 
+div.columns.right {background-color: #eef;width:49%;float:right;} 
+
+div.top2columns.top {background-color: #fee;} 
+div.top2columns.left {background-color: #efe;width:49%;float:left;} 
+div.top2columns.right {background-color: #eef;width:49%;float:right;} 
+
+div.bottom2columns.left {background-color: #efe;width:49%;float:left;} 
+div.bottom2columns.right {background-color: #eef;width:49%;float:right;} 
+div.bottom2columns.bottom {background-color: #fee;clear:both;} 
+
+div.centeredoverlay.back {background-color: #efe;} 
+div.centeredoverlay.front {position:absolute;left:25%;width:50%;top:25%;height:50%;} 

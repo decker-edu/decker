@@ -30,7 +30,7 @@ main = do
   let appDataDir = appData dirs
 
   let serverPort = 8888
-  let serverUrl = "http://0.0.0.0:" ++ (show serverPort)
+  let serverUrl = "http://localhost:" ++ (show serverPort)
 
   -- Find sources. These are formulated as actions in the Action mondad, such
   -- that each new iteration rescans all possible source files.
