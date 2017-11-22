@@ -13,5 +13,4 @@ install: build
 
 dist: clean build
 
-
 .PHONY: build clean install dist

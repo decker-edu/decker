@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TupleSections #-}
 
 module Filter
   ( Disposition(..)
@@ -23,6 +23,7 @@ module Filter
   , videoExtensions
   ) where
 
+import Control.Monad
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Default ()
 import Data.List
@@ -185,18 +186,99 @@ isColumnBreak (Header level _ _) = level == 3
 isColumnBreak _ = False
 
 hasClass :: String -> Block -> Bool
-hasClass which (Div (_, classes, _) _) = which `elem` classes
-hasClass _ _ = False
+hasClass which = elem which . blockClasses
 
 hasAnyClass :: [String] -> Block -> Bool
-hasAnyClass which (Div (_, classes, _) _) = or $ map ((flip elem) classes) which
-hasAnyClass _ _ = False
+hasAnyClass which = isJust . firstClass which
+
+firstClass :: [String] -> Block -> Maybe String
+firstClass which block = listToMaybe $ filter ((flip hasClass) block) which
 
 -- | Slide layouts
 data Layout = Layout
   { name :: String
   , areas :: [String]
   } deriving (Show)
+
+-- | Slide layouts are rows of one ore more columns.
+data RowLayout = RowLayout
+  { lname :: String
+  , rows :: [Row]
+  } deriving (Eq, Show)
+
+-- | A row consists of one or more column. 
+data Row
+  = SingleColumn String
+  | MultiColumn [String]
+  deriving (Eq, Show)
+
+type Area = [Block]
+
+type AreaMap = [(String, Area)]
+
+rowLayouts =
+  [ RowLayout
+      "columns"
+      [SingleColumn "top", MultiColumn ["left", "center", "right"], SingleColumn "bottom"]
+  ]
+
+rowAreas (SingleColumn area) = [area]
+rowAreas (MultiColumn areas) = areas
+
+layoutAreas layout = concatMap rowAreas $ rows layout
+
+hasRowLayout :: Block -> Maybe RowLayout
+hasRowLayout block =
+  hasAttrib "layout" block >>=
+  (\layout -> find ((==) layout . lname) rowLayouts)
+
+renderRow :: AreaMap -> Row -> Maybe Block
+renderRow areaMap (SingleColumn rowArea) =
+  lookup rowArea areaMap >>= Just . Div ("", ["single-column-row"], [])
+renderRow areaMap (MultiColumn rowAreas) =
+  Just $
+  Div
+    ( ""
+    , ["multi-column-row", "multi-column-row-" ++ show (length rowAreas)]
+    , []) $
+  mapMaybe renderArea (zip [1 ..] rowAreas)
+  where
+    renderArea (i, area) = lookup area areaMap >>= Just . renderColumn . (i, )
+
+renderColumn :: (Int, [Block]) -> Block
+renderColumn (i, blocks) =
+  let grow =
+        maybe (1 :: Int) Prelude.id $
+        lookup "grow" (blockKeyvals blocks) >>= readMaybe
+  in Div
+       ( ""
+       , ["grow-" ++ show grow, "column", "column-" ++ show i]
+       , (blockKeyvals blocks))
+       blocks
+
+blockKeyvals :: [Block] -> [(String, String)]
+blockKeyvals (first:_) =
+  let (_, _, kv) = blockAttribs first
+  in kv
+blockKeyvals [] = []
+
+renderLayout :: AreaMap -> RowLayout -> [Block]
+renderLayout areaMap layout = catMaybes $ map (renderRow areaMap) (rows layout)
+
+slideAreas :: [String] -> [Block] -> AreaMap
+slideAreas names blocks =
+  mapMaybe (\area -> firstClass names (head area) >>= Just . (, area)) $
+  filter (not . null) $ split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
+
+layoutSlides :: [Block] -> [Block]
+layoutSlides slide@(header:body) =
+  case hasRowLayout header of
+    Just layout ->
+      let names = layoutAreas layout
+          areas = slideAreas names body
+      in renderLayout areas layout
+    Nothing -> slide
+layoutSlides [] = []
 
 masters :: [(String, Layout)]
 masters =
@@ -389,8 +471,10 @@ mapSlides func (Pandoc meta blocks) = Pandoc meta (concatMap func slides)
     slides = split (keepDelimsL $ whenElt isSlideHeader) blocks
 
 makeSlides :: Format -> Pandoc -> Pandoc
-makeSlides (Format "revealjs") =
-  walk (mapSlides fitLayout) .
+makeSlides (Format "revealjs")
+  -- walk (mapSlides fitLayout) .
+ =
+  walk (mapSlides layoutSlides) .
   walk (mapSlides splitJoinColumns) .
   walk (mapSlides splitColumns) .
   walk (mapSlides setSlideBackground) .

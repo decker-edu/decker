@@ -89,43 +89,25 @@ history: True
 
 -   Just like Powerpoint and Keynote
 
-## Example {.right}
-
-![](include/06-metal.png)
-
 ## Syntax {.left}
 
 -   Class and key-value attributes
 -   Assign content to layout area
 -   On elements *Header 2*, *Image*, *Code Block*, *DIV*
 
-------
-
-# Slide Masters {layout="top2columns"}
-
-## Fixed Layouts {.top}
-
--   Just like Powerpoint and Keynote
-
-## Syntax {.left}
-
--   Class and key-value attributes
--   Assign content to layout area
--   On elements *Header 2*, *Image*, *Code Block*, *DIV*
-
-## Example {.right}
+## Example {.right grow="1"}
 
 ![](include/06-metal.png)
 
 ------
 
-# Slide Masters {layout="bottom2columns"}
+# Slide Masters {layout="columns"}
 
 ## Fixed Layouts {.bottom}
 
 -   Just like Powerpoint and Keynote
 
-## Syntax {.left}
+## Syntax {.left grow="2"}
 
 -   Class and key-value attributes
 -   Assign content to layout area
@@ -137,19 +119,21 @@ history: True
 
 ------
 
-# Header 3 Markers {layout="centeredoverlay"}
+# Slide Masters {layout="columns"}
 
-## Conclusion {.box .alert .front}
+## Image Mania {.top}
 
-This is probably all bullshit anyway
+- Even in *three* columns
 
-## Syntax {.back}
+## Example {.left}
 
--   Each H3 mark starts a new column
--   Columns are generated as DIVs
+![](include/06-metal.png)
 
-## Semantics
+## Example {.center}
 
--   The slide header is not part of the columns
--   Columns vertically span the entire slide
--   Space is equally distributed between all columns
+![](include/06-metal.png)
+
+## Example {.right}
+
+![](include/06-metal.png)
+

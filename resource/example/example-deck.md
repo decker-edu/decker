@@ -7,7 +7,6 @@ subtitle: Tutorial and Examples
 title: Decker Slide Tool
 transition: linear
 ümläüte: Ümläüte
-decker-version: 0.3.0
 ---
 
 # Overview
