@@ -13,4 +13,8 @@ install: build
 
 dist: clean build
 
+info:
+	@echo "decker: $(decker)"
+	@echo "zip: $(zip)"
+
 .PHONY: build clean install dist
