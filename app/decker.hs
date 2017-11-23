@@ -10,6 +10,7 @@ import Data.Maybe
 import Data.String ()
 import Development.Shake
 import Development.Shake.FilePath
+import GHC.Conc (numCapabilities)
 import Project
 import Resources
 import System.Exit
@@ -28,10 +29,8 @@ main = do
   let publicDir = public dirs
   let supportDir = support dirs
   let appDataDir = appData dirs
-
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ (show serverPort)
-
   -- Find sources. These are formulated as actions in the Action mondad, such
   -- that each new iteration rescans all possible source files.
   let deckSourcesA = globA "**/*-deck.md"
@@ -167,8 +166,7 @@ main = do
       everythingA <++> everythingPdfA >>= mapM_ putNormal
     --
     -- phony "support" $ writeEmbeddedFiles deckerSupportDir supportDir
-    phony "support" $ do
-      liftIO $ writeResourceFiles "support" supportDir
+    phony "support" $ do liftIO $ writeResourceFiles "support" supportDir
     --
     phony "publish" $ do
       need ["support"]
@@ -181,10 +179,13 @@ main = do
           let src = publicDir ++ "/"
           let dst = intercalate ":" [fromJust host, fromJust path]
           cmd "ssh " (fromJust host) "mkdir -p" (fromJust path) :: Action ()
-          cmd "rsync --recursive --no-xattrs --no-group --perms --chmod=a+r,go-w --no-owner --copy-links" src dst :: Action ()
+          cmd
+            "rsync --recursive --no-xattrs --no-group --perms --chmod=a+r,go-w --no-owner --copy-links"
+            src
+            dst :: Action ()
         else throw RsyncUrlException
 
 -- Calculate some directories
 -- | Some constants that might need tweaking
 options :: ShakeOptions
-options = shakeOptions {shakeFiles = ".shake"}
+options = shakeOptions {shakeFiles = ".shake", shakeThreads = numCapabilities}

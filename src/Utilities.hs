@@ -43,11 +43,11 @@ import qualified Data.Text.Encoding as E
 import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
-import Render
 import Filter
 import Meta
 import Network.URI
 import Project
+import Render
 import Resources
 import Server
 import qualified System.Directory as Dir
@@ -260,12 +260,14 @@ provisionResource provisioning base path =
       dirs <- getProjectDirs
       need [uriPath uri]
       let resource = resourcePathes dirs base uri
-      liftIO $
-        case provisioning of
-          Copy -> copyResource resource
-          SymLink -> linkResource resource
-          Absolute -> absRefResource resource
-          Relative -> relRefResource base resource
+      publicResource <- getPublicResource
+      withResource publicResource 1 $ do
+        liftIO $
+          case provisioning of
+            Copy -> copyResource resource
+            SymLink -> linkResource resource
+            Absolute -> absRefResource resource
+            Relative -> relRefResource base resource
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do

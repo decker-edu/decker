@@ -12,6 +12,7 @@ module Context
   , getProjectDirs
   , actionContextKey
   , getActionContext
+  , getPublicResource
   ) where
 
 import Control.Monad ()
@@ -20,7 +21,7 @@ import qualified Data.HashMap.Lazy as HashMap
 import Data.IORef
 import Data.Maybe (fromMaybe)
 import Data.Typeable ()
-import Development.Shake
+import Development.Shake as Shake
 import Project
 import Server
 
@@ -28,6 +29,7 @@ data ActionContext = ActionContext
   { ctxFilesToWatch :: IORef [FilePath]
   , ctxServerHandle :: IORef (Maybe Server)
   , ctxDirs :: ProjectDirs
+  , ctxPublicResource :: Shake.Resource
   } deriving (Typeable, Show)
 
 instance Show (IORef a) where
@@ -37,7 +39,8 @@ defaultActionContext :: IO ActionContext
 defaultActionContext = do
   files <- newIORef []
   server <- newIORef Nothing
-  return $ ActionContext files server (ProjectDirs "" "" "" "" "" "")
+  resource <- newResourceIO "PublicDir" 1
+  return $ ActionContext files server (ProjectDirs "" "" "" "" "" "") resource
 
 actionContextKey :: IO TypeRep
 actionContextKey = do
@@ -90,3 +93,8 @@ getProjectDirs :: Action ProjectDirs
 getProjectDirs = do
   ctx <- getActionContext
   return $ ctxDirs ctx
+
+getPublicResource :: Action Shake.Resource
+getPublicResource = do
+  ctx <- getActionContext
+  return $ ctxPublicResource ctx

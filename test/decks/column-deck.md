@@ -113,7 +113,11 @@ history: True
 -   Assign content to layout area
 -   On elements *Header 2*, *Image*, *Code Block*, *DIV*
 
-## Example {.right}
+## Second box
+
+- In this extra wide column
+
+##  {.right}
 
 ![](include/06-metal.png)
 
