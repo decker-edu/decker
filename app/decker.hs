@@ -160,6 +160,20 @@ main = do
           ["-e", "set output \"" ++ out ++ "\""]
           src
     --
+    priority 2 $
+      "//*.tex.svg" %> \out -> do
+        let src = dropExtension out
+        let pdf = src -<.> ".pdf"
+        let dir = takeDirectory src
+        need [src]
+        () <-
+          cmd
+            "pdflatex -halt-on-error -interaction batchmode"
+            ["-output-directory", dir]
+            src
+        () <-cmd "pdf2svg" pdf out
+        cmd "rm" pdf
+    --
     phony "clean" $ do
       removeFilesAfter publicDir ["//"]
       removeFilesAfter projectDir cruft

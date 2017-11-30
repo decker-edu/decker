@@ -17,8 +17,7 @@ import qualified Data.Set as Set
 import Development.Shake
 import Extra
 import Project
-import System.Directory
-       (createDirectoryIfMissing, doesFileExist)
+import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath.Posix
 import Text.Pandoc
 import Text.Pandoc.Walk
@@ -31,6 +30,8 @@ renderCodeBlocks pandoc =
 
 data Processor = Processor
   { extensions :: [String]
+  , preamble :: String
+  , postamble :: String
   } deriving (Show)
 
 renderClass :: String
@@ -45,9 +46,13 @@ gnuplotPrelude _ = "set terminal svg;"
 processors :: Map.Map String Processor
 processors =
   Map.fromList
-    [ ("dot", Processor [".dot"])
-    , ("gnuplot", Processor [".gnuplot", ".gpi", ".plt", "gp"])
-    , ("tikz", Processor [".tex", ".latex"])
+    [ ("dot", Processor [".dot"] "" "")
+    , ("gnuplot", Processor [".gnuplot", ".gpi", ".plt", "gp"] "" "")
+    , ( "tikz"
+      , Processor
+          [".tex", ".latex"]
+          "\\documentclass{standalone} \\usepackage{tikz} \\usepackage{verbatim} \\begin{document} \\pagestyle{empty}"
+          "\\end{document}")
     ]
 
 renderedCodeExtensions :: [String]
@@ -73,8 +78,7 @@ maybeRenderCodeBlock :: Block -> Action Block
 maybeRenderCodeBlock code@(CodeBlock (id, classes, namevals) contents) =
   case findProcessor classes of
     Just processor -> do
-      svgFile <-
-        extractCodeIfChanged "" ((head . extensions) processor) contents
+      svgFile <- extractCodeIfChanged "" processor contents
       return $
         Para
           [ Image
@@ -90,13 +94,14 @@ svgDataUrl :: String -> String
 svgDataUrl svg =
   "data:image/svg+xml;base64," ++ (B.unpack (B64.encode (B.pack svg)))
 
-extractCodeIfChanged :: String -> FilePath -> FilePath -> Action FilePath
-extractCodeIfChanged basename extension code = do
+extractCodeIfChanged :: String -> Processor -> FilePath -> Action FilePath
+extractCodeIfChanged basename processor code = do
   projectDir <- project <$> getProjectDirs
   let crc = printf "%08x" (calc_crc32 code)
   let basepath =
         "generated" </>
         (concat $ intersperse "-" [defaultString "code" basename, crc])
+  let extension = (head . extensions) processor
   let sourceFile = projectDir </> basepath <.> extension
   let svgFile = projectDir </> basepath <.> extension <.> ".svg"
   publicResource <- getPublicResource
@@ -104,10 +109,13 @@ extractCodeIfChanged basename extension code = do
     liftIO $
     unlessM (System.Directory.doesFileExist svgFile) $ do
       createDirectoryIfMissing True (takeDirectory sourceFile)
-      writeFile sourceFile code
+      writeFile
+        sourceFile
+        ((preamble processor) ++ "\n" ++ code ++ "\n" ++ (postamble processor))
   need [svgFile]
   return svgFile
 
 defaultString :: String -> String -> String
-defaultString d str | null str = d
+defaultString d str
+  | null str = d
 defaultString _ str = str

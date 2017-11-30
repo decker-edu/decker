@@ -17,3 +17,8 @@ server.log
 auto/
 .vscode/
 *.swp
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
