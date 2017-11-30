@@ -5,6 +5,7 @@ TAGS
 public/
 cache/
 log/
+generated/
 *-deck.html
 *-handout.html
 *-page.html

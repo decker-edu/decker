@@ -558,42 +558,37 @@ body {
     background-color: #666;
 }
 
-.reveal section div.box {
-    break-inside: avoid-column;
-}
+/* CSS3 columns with split and join classes */
 
-.reveal section div.css-columns {
+div.css-columns {
     column-count: 2;
     column-gap: 1em;
     column-rule-style: none;
-}    
-
-.reveal section div.columns.left {background-color: #efe;width:49%;float:left;} 
-.reveal section div.columns.right {background-color: #eef;width:49%;float:right;} 
-
-.reveal section div.top2columns.top {background-color: #fee;} 
-.reveal section div.top2columns.left {background-color: #efe;width:49%;float:left;} 
-.reveal section div.top2columns.right {background-color: #eef;width:49%;float:right;} 
-
-.reveal section div.bottom2columns.left {background-color: #efe;width:49%;float:left;} 
-.reveal section div.bottom2columns.right {background-color: #eef;width:49%;float:right;} 
-.reveal section div.bottom2columns.bottom {background-color: #fee;clear:both;} 
-
-.reveal section div.centeredoverlay.back {background-color: #efe;} 
-.reveal section div.centeredoverlay.front {position:absolute;left:25%;width:50%;top:25%;}
-
-.reveal section div.columns-2 {
-    width: 46%;
 }
 
-.reveal section div.column-1 {
-    float: left;
+div.box {
+    break-inside: avoid-column;
 }
 
-.reveal section div.column-2 {
-    float: right;
+/* Slide masters with top, bottom, left, center, right areas and flexbox grow support */
+
+.reveal section div.multi-column-row {
+    display:flex;
+    flex-flow: row nowrap;
 }
 
+.reveal section div.multi-column-row > div.column {flex: 1 1 0%;}
+.reveal section div.multi-column-row > div.column[grow="1"] {flex-grow:1;}
+.reveal section div.multi-column-row > div.column[grow="2"] {flex-grow:2;}
+.reveal section div.multi-column-row > div.column[grow="3"] {flex-grow:3;}
+.reveal section div.multi-column-row > div.column[grow="4"] {flex-grow:4;}
+.reveal section div.multi-column-row > div.column[grow="5"] {flex-grow:5;}
+.reveal section div.multi-column-row > div.column[grow="6"] {flex-grow:6;}
+.reveal section div.multi-column-row > div.column[grow="7"] {flex-grow:7;}
+.reveal section div.multi-column-row > div.column[grow="8"] {flex-grow:8;}
+.reveal section div.multi-column-row > div.column[grow="9"] {flex-grow:9;}
+
+/* Tables on slides */
 .reveal section table {
     max-width: 100%;
     border-collapse: collapse;
