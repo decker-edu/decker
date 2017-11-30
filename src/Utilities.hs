@@ -233,8 +233,9 @@ lookupBool key def meta =
 provisionMetaResource ::
      Provisioning -> FilePath -> (String, FilePath) -> Action FilePath
 provisionMetaResource method base (key, path)
-  | key `elem` runtimeMetaKeys =
-    provisionResource method base path
+  | key `elem` runtimeMetaKeys = do
+    filePath <- urlToFilePathIfLocal base path
+    provisionResource method base filePath
 provisionMetaResource method base (key, path)
   | key `elem` compiletimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base path
