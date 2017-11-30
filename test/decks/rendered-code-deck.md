@@ -11,6 +11,7 @@ Code blocks can be rendered as SVG images
 
 -   Graphviz (dot)
 -   Gnuplot
+-   Tikz
 
 # Embedded Graphviz Code (SVG)
 

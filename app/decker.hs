@@ -171,7 +171,7 @@ main = do
             "pdflatex -halt-on-error -interaction batchmode"
             ["-output-directory", dir]
             src
-        () <-cmd "pdf2svg" pdf out
+        () <- cmd "pdf2svg" pdf out
         cmd "rm" pdf
     --
     phony "clean" $ do

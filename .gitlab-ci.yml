@@ -2,9 +2,9 @@ before_script:
   - stack --version
   - stack setup
 
-test:
+build:
   script:
-    - stack test
+    - stack build
 
 formatting:
   script:
