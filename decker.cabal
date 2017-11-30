@@ -22,12 +22,13 @@ cabal-version:       >=1.10
 executable decker
   hs-source-dirs:      app, src
   main-is:             decker.hs
-  other-modules:       Action, Cache, Meta, Watch, Embed, Context, Utilities, Filter, Project, Common, Server, Resources, Render, Paths_decker
+  other-modules:       Action, Cache, CRC32, Meta, Watch, Embed, Context, Utilities, Filter, Project, Common, Server, Resources, Render, Paths_decker
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , Glob
                      , HTTP
                      , aeson
+                     , array
                      , base64-bytestring
                      , blaze-html
                      , blaze-markup
@@ -58,6 +59,7 @@ executable decker
                      , snap-core
                      , snap-server
                      , split
+                     , temporary
                      , text
                      , time
                      , transformers

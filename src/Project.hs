@@ -1,8 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Project
-  ( findFile
-  -- , readResource
-  , resourcePathes
+  ( resourcePathes
   , copyResource
   , linkResource
   , relRefResource
@@ -12,7 +10,6 @@ module Project
   , makeRelativeTo
   , findProjectDirectory
   , projectDirectories
-  , resolveLocally
   , provisioningFromMeta
   , provisioningFromClasses
   , Resource(..)
@@ -126,18 +123,6 @@ projectDirectories = do
   return
     (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
 
--- Resolves a file path to a concrete verified file system path, or
--- returns Nothing if no file can be found.
-resolveLocally :: ProjectDirs -> FilePath -> FilePath -> IO (Maybe FilePath)
-resolveLocally dirs base path = do
-  absBase <- D.makeAbsolute base
-  let absRoot = project dirs
-  let candidates =
-        if isAbsolute path
-          then [absRoot </> makeRelative "/" path, path]
-          else [absBase </> path, absRoot </> path]
-  listToMaybe <$> filterM D.doesFileExist candidates
-
 resourcePathes :: ProjectDirs -> FilePath -> URI -> Resource
 resourcePathes dirs base uri =
   Resource
@@ -153,47 +138,6 @@ resourcePathes dirs base uri =
         (uriFragment uri)
   }
 
-isLocalURI :: String -> Bool
-isLocalURI url = isNothing (parseURI url)
-
-isRemoteURI :: String -> Bool
-isRemoteURI = not . isLocalURI
-
--- Finds local file system files that sre needed at compile time. 
--- Throws if the resource cannot be found. Used mainly for include files.
-findFile :: ProjectDirs -> FilePath -> FilePath -> IO FilePath
-findFile dirs base path = do
-  resolved <- resolveLocally dirs base path
-  case resolved of
-    Nothing ->
-      throw $
-      ResourceException $ "Cannot find local file system resource: " ++ path
-    Just resource -> return resource
-
--- Finds local file system files that are needed at compile time. 
--- Returns the original path if the resource cannot be found.
-maybeFindFile :: ProjectDirs -> FilePath -> FilePath -> IO FilePath
-maybeFindFile dirs base path = do
-  resolved <- resolveLocally dirs base path
-  case resolved of
-    Nothing -> return path
-    Just resource -> return resource
-      -- case find (\(k, b) -> k == path) deckerTemplateDir of
-      --   Nothing ->
-      --     throw $ ResourceException $ "Cannot find built-in resource: " ++ path
-      --   Just entry -> return $ snd entry
-
--- Finds and reads a resource at compile time. If the resource can not be found in the
--- file system, the built-in resource map is searched. If that fails, an error is thrown.
--- The resource is searched for in a directory named `template`.
--- readResource ::
---      ProjectDirs -> FilePath -> FilePath -> IO String
--- readResource dirs base path = do
---   let searchPath = "template" </> path
---   resolved <- resolveLocally dirs base path
---   case resolved of
---     Just resource -> readFile resource
---     Nothing -> return $ getResourceString resources searchPath
 -- | Copies the src to dst if src is newer or dst does not exist. Creates
 -- missing directories while doing so.
 copyFileIfNewer :: FilePath -> FilePath -> IO ()
@@ -202,6 +146,7 @@ copyFileIfNewer src dst =
     D.createDirectoryIfMissing True (takeDirectory dst)
     D.copyFile src dst
 
+fileIsNewer :: FilePath -> FilePath -> IO Bool
 fileIsNewer a b = do
   aexists <- D.doesFileExist a
   bexists <- D.doesFileExist b
@@ -244,4 +189,5 @@ isPrefix a b = isPrefix_ (splitPath a) (splitPath b)
     isPrefix_ [] _ = True
     isPrefix_ _ _ = False
 
+mapTuple :: (t1 -> t) -> (t1, t1) -> (t, t)
 mapTuple f (a, b) = (f a, f b)

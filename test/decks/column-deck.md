@@ -8,30 +8,8 @@ history: True
 
 ## Mechanisms
 
--   Header 3 markers (`###`)
 -   Box classes (`.split` and `.join`)
 -   Slide masters (`layout` slide attribute)
-
-------
-
-# Header 3 Markers
-
-------
-
-# Header 3 Markers
-
-## Syntax
-
--   Each H3 mark (`###`) starts a new column
--   Columns are generated as DIVs
-
-### 
-
-## Semantics
-
--   The slide header is not part of the columns
--   Columns vertically span the entire slide
--   Space is equally distributed between all columns
 
 ------
 

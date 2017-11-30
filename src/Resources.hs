@@ -11,7 +11,6 @@ import Control.Exception
 import Control.Monad
 import Extra
 import System.Directory
-import System.Environment
 import System.Exit
 import System.FilePath.Posix
 import System.Process

@@ -1,4 +1,5 @@
 ---
+css: 'columns.css'
 history: True
 ---
 
@@ -13,7 +14,7 @@ Code blocks can be rendered as SVG images
 
 # Embedded Graphviz Code (SVG)
 
-## Highlighted
+## Highlighted {.split}
 
 ```` {.dot}
 ``` {.dot .render width="80%"}
@@ -29,8 +30,6 @@ digraph {
 }
 ```
 ````
-
-### 
 
 ## Rendered
 
@@ -49,7 +48,7 @@ digraph {
 
 # Embedded Gnuplot (SVG)
 
-## Highlighted
+## Highlighted {.split}
 
 ```` {.gnuplot}
 ``` {.gnuplot .render width="80%"}
@@ -65,8 +64,6 @@ splot 1 / (x*x + y*y + 1)
 ```
 ````
 
-### 
-
 ## Rendered
 
 ``` {.gnuplot .render}
@@ -77,6 +74,20 @@ set style data lines
 set xrange [ -3.00000 : 3.00000 ] noreverse nowriteback
 set yrange [ -2.00000 : 2.00000 ] noreverse nowriteback
 DEBUG_TERM_HTIC = 119
-DEBUG_TERM_VTIC = 119
-splot 1 / (x*x + y*y + 1)
+DEBUG_TERM_VTIC = 118
+splot 1 / (x*x + y*y + 0.5)
 ```
+
+------
+
+# Dot Files as Images (Not just yet) {layout="columns"}
+
+## Image Tag {.left grow="1"}
+
+``` {.markdown}
+![](graph.dot)
+```
+
+## Rendered and included {.right grow=2}
+
+![](graph.dot)

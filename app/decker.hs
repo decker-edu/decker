@@ -51,8 +51,7 @@ main = do
   let indexA = return [index] :: Action [FilePath]
   let everythingA = decksA <++> handoutsA <++> pagesA
   let everythingPdfA = decksPdfA <++> handoutsPdfA <++> pagesPdfA
-  let cruft =
-        map (combine (project dirs)) ["index.md.generated", "log/", "//.shake/"]
+  let cruft = ["index.md.generated", "log/", "//.shake/", "generated/"]
   context <- makeActionContext dirs
   runShakeInContext context options $
   --
@@ -83,7 +82,7 @@ main = do
     --
     phony "server" $ do
       need ["watch"]
-      runHttpServer serverPort dirs (Just serverUrl)
+      runHttpServer serverPort dirs Nothing
     --
     phony "example" writeExampleProject
     --
@@ -144,6 +143,22 @@ main = do
       pages <- pagesA
       need $ decks ++ handouts ++ pages
       writeIndex out (takeDirectory index) decks handouts pages
+    --
+    priority 2 $
+      "//*.dot.svg" %> \out -> do
+        let src = dropExtension out
+        need [src]
+        cmd "dot -Tsvg" ("-o" ++ out) src
+    --
+    priority 2 $
+      "//*.gnuplot.svg" %> \out -> do
+        let src = dropExtension out
+        need [src]
+        cmd
+          "gnuplot -d"
+          ["-e", "set terminal svg"]
+          ["-e", "set output \"" ++ out ++ "\""]
+          src
     --
     phony "clean" $ do
       removeFilesAfter publicDir ["//"]

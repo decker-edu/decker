@@ -8,7 +8,6 @@ module Filter
   , blockClasses
   , expandMacros
   , makeSlides
-  , filterNotes
   , makeBoxes
   , useCachedImages
   , escapeToFilePath
@@ -23,6 +22,8 @@ module Filter
   , videoExtensions
   ) where
 
+import Common
+import Control.Exception
 import Control.Monad
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Default ()
@@ -172,18 +173,13 @@ expandMacros format doc@(Pandoc meta _) =
   walk (expandInlineMacros format meta) doc
 
 isSlideHeader :: Block -> Bool
-isSlideHeader (Header level _ _) = level == 1
+isSlideHeader (Header 1 _ _) = True
 isSlideHeader HorizontalRule = True
 isSlideHeader _ = False
 
 isBoxDelim :: Block -> Bool
-isBoxDelim (Header level _ _) = level >= 2
+isBoxDelim (Header 2 _ _) = True
 isBoxDelim _ = False
-
--- Column break is either "###" or "---"
-isColumnBreak :: Block -> Bool
-isColumnBreak (Header level _ _) = level == 3
-isColumnBreak _ = False
 
 hasClass :: String -> Block -> Bool
 hasClass which = elem which . blockClasses
@@ -219,7 +215,10 @@ type AreaMap = [(String, Area)]
 rowLayouts =
   [ RowLayout
       "columns"
-      [SingleColumn "top", MultiColumn ["left", "center", "right"], SingleColumn "bottom"]
+      [ SingleColumn "top"
+      , MultiColumn ["left", "center", "right"]
+      , SingleColumn "bottom"
+      ]
   ]
 
 rowAreas (SingleColumn area) = [area]
@@ -270,15 +269,14 @@ slideAreas names blocks =
   mapMaybe (\area -> firstClass names (head area) >>= Just . (, area)) $
   filter (not . null) $ split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
 
-layoutSlides :: [Block] -> [Block]
-layoutSlides slide@(header:body) =
+layoutSlides :: Slide -> Slide
+layoutSlides slide@(header, body) =
   case hasRowLayout header of
     Just layout ->
       let names = layoutAreas layout
           areas = slideAreas names body
-      in renderLayout areas layout
+      in (header, renderLayout areas layout)
     Nothing -> slide
-layoutSlides [] = []
 
 masters :: [(String, Layout)]
 masters =
@@ -339,36 +337,13 @@ fitLayout slide@(header:body) =
 fitLayout [] = []
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
-splitJoinColumns :: [Block] -> [Block]
-splitJoinColumns (header:body) = header : (concatMap wrapRow rows)
+splitJoinColumns :: Slide -> Slide
+splitJoinColumns (header, body) = (header, concatMap wrapRow rows)
   where
     rows = split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
     wrapRow row@(first:_)
       | hasClass "split" first = [Div ("", ["css-columns"], []) row]
     wrapRow row = row
-splitJoinColumns [] = []
-
--- Splits the body of a slide into any number of columns.
-splitColumns :: [Block] -> [Block]
-splitColumns slide@(header:body) =
-  let columns = splitWhen isColumnBreak body
-      count = length columns
-  in if count > 1
-       then header :
-            concatMap
-              (\(column, n) ->
-                 [ Div
-                     ( ""
-                     , [ "slide-column"
-                       , printf "column-%d" n
-                       , printf "columns-%d" count
-                       ]
-                     , [])
-                     column
-                 ])
-              (Prelude.zip columns [(1 :: Int) ..])
-       else slide
-splitColumns [] = []
 
 -- All fragment related classes from reveal.js have to be moved to the enclosing
 -- DIV element. Otherwise to many fragments are produced.
@@ -407,19 +382,19 @@ zapImages inline = inline
 
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 
-setSlideBackground :: [Block] -> [Block]
-setSlideBackground slide@((Header 1 (headerId, headerClasses, headerAttributes) inlines):slideBody) =
+setSlideBackground :: Slide -> Slide
+setSlideBackground slide@((Header 1 (headerId, headerClasses, headerAttributes) inlines), slideBody) =
   case query allImages inlines of
     [] -> slide
     Image (_, imageClasses, imageAttributes) _ (imageSrc, _):_ ->
-      Header
-        1
-        ( headerId
-        , headerClasses ++ imageClasses
-        , srcAttribute imageSrc :
-          headerAttributes ++ map transform imageAttributes)
-        (walk zapImages inlines) :
-      slideBody
+      ( Header
+          1
+          ( headerId
+          , headerClasses ++ imageClasses
+          , srcAttribute imageSrc :
+            headerAttributes ++ map transform imageAttributes)
+          (walk zapImages inlines)
+      , slideBody)
   where
     transform ("size", value) = ("data-background-size", value)
     transform ("position", value) = ("data-background-position", value)
@@ -439,8 +414,8 @@ setSlideBackground slide = slide
 
 -- | Wrap boxes around H2 headers and the following content. All attributes are
 -- promoted from the H2 header to the enclosing DIV.
-wrapBoxes :: [Block] -> [Block]
-wrapBoxes (header:body) = header : concatMap wrap boxes
+wrapBoxes :: Slide -> Slide
+wrapBoxes (header, body) = (header, concatMap wrap boxes)
   where
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
     wrap (Header 2 (id_, cls, kvs) text:blocks) =
@@ -449,61 +424,41 @@ wrapBoxes (header:body) = header : concatMap wrap boxes
           (Header 2 (id_, deFragment cls, kvs) text : blocks)
       ]
     wrap box = box
-wrapBoxes [] = []
 
 -- | Wrap H1 headers with class notes into a DIV and promote all header
 -- attributes to the DIV.
-wrapNoteRevealjs :: [Block] -> [Block]
-wrapNoteRevealjs slide@(Header 1 (id_, cls, kvs) inlines:body)
-  | "notes" `elem` cls = [Div (id_, cls, kvs) slide]
+wrapNoteRevealjs :: Slide -> Slide
+wrapNoteRevealjs slide@(header@(Header 1 (id_, cls, kvs) _), body)
+  | "notes" `elem` cls = (Div (id_, cls, kvs) (header : body), [])
 wrapNoteRevealjs slide = slide
 
--- | Wrap H1 headers with class notes into a DIV and promote all header
--- attributes to the DIV.
-wrapNoteBeamer :: [Block] -> [Block]
-wrapNoteBeamer slide@(Header 1 (_, cls, _) _:_)
-  | "notes" `elem` cls = [Div nullAttr slide]
-wrapNoteBeamer slide = slide
+type Slide = (Block, [Block])
 
-mapSlides :: ([Block] -> [Block]) -> Pandoc -> Pandoc
-mapSlides func (Pandoc meta blocks) = Pandoc meta (concatMap func slides)
+-- | Map over all slides in a deck. A slide has always a header followed by zero
+-- or more blocks.
+mapSlides :: (Slide -> Slide) -> Pandoc -> Pandoc
+mapSlides func (Pandoc meta blocks) =
+  Pandoc meta (concatMap (prependHeader . func) slides)
   where
-    slides = split (keepDelimsL $ whenElt isSlideHeader) blocks
+    slideBlocks = split (keepDelimsL $ whenElt isSlideHeader) blocks
+    slides = map extractHeader $ filter (not . null) slideBlocks
+    extractHeader (header@(Header 1 _ _):blocks) = (header, blocks)
+    extractHeader (rule@(HorizontalRule):blocks) = (rule, blocks)
+    extractHeader slide =
+      throw $
+      PandocException $ "Error extracting slide header: \n" ++ show slide -- never happens
+    prependHeader (header, blocks) = header : blocks
 
 makeSlides :: Format -> Pandoc -> Pandoc
-makeSlides (Format "revealjs")
-  -- walk (mapSlides fitLayout) .
- =
+makeSlides (Format "revealjs") =
   walk (mapSlides layoutSlides) .
   walk (mapSlides splitJoinColumns) .
-  walk (mapSlides splitColumns) .
   walk (mapSlides setSlideBackground) .
   walk (mapSlides wrapBoxes) . walk (mapSlides wrapNoteRevealjs)
-makeSlides (Format "beamer") =
-  walk (mapSlides splitJoinColumns) .
-  walk (mapSlides splitColumns) .
-  walk (mapSlides wrapBoxes) . walk (mapSlides wrapNoteBeamer)
 makeSlides _ = Prelude.id
 
 makeBoxes :: Pandoc -> Pandoc
 makeBoxes = walk (mapSlides wrapBoxes)
-
--- Only consider slides that have the 'notes' class in their header. In all
--- others pick only the boxes that are tagged as notes.
-filterSlides :: [Block] -> [Block]
-filterSlides slide@(Header 1 (_, cls, _) _:_)
-  | "notes" `elem` cls = slide
-filterSlides (_:body) = concatMap filter boxes
-  where
-    boxes = split (keepDelimsL $ whenElt isBoxDelim) body
-    filter box@(Header _ (_, cls, _) _:_)
-      | "notes" `elem` cls = box
-    filter _ = []
-filterSlides _ = []
-
-filterNotes :: Maybe Format -> Pandoc -> Pandoc
-filterNotes (Just (Format _)) = walk (mapSlides filterSlides)
-filterNotes _ = Prelude.id
 
 escapeToFilePath :: String -> FilePath
 escapeToFilePath = map repl

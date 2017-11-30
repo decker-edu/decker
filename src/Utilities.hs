@@ -41,6 +41,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 import qualified Data.Yaml as Y
+import Debug.Trace
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Filter
@@ -218,8 +219,8 @@ readAndPreprocessMarkdown markdownFile disposition = do
   versionCheck meta
   let method = provisioningFromMeta meta
   mapMetaResources (provisionMetaResource method baseDir) pandoc >>=
-    mapResources (provisionResource method baseDir) >>=
-    renderCodeBlocks
+    renderCodeBlocks >>=
+    mapResources (provisionResource method baseDir)
   -- Disable automatic caching of remote images for a while
   -- >>= walkM (cacheRemoteImages (cache dirs))
 
@@ -233,9 +234,12 @@ provisionMetaResource ::
      Provisioning -> FilePath -> (String, FilePath) -> Action FilePath
 provisionMetaResource method base (key, path)
   | key `elem` runtimeMetaKeys =
-    locateFile base path >>= provisionResource method base
+    provisionResource method base path
 provisionMetaResource method base (key, path)
-  | key `elem` compiletimeMetaKeys = locateFile base path
+  | key `elem` compiletimeMetaKeys = do
+    filePath <- urlToFilePathIfLocal base path
+    need [filePath]
+    return filePath
 provisionMetaResource _ _ (key, path) = return path
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs are
@@ -386,25 +390,22 @@ readMetaMarkdown markdownFile = do
   let (MetaMap m) = combinedMeta
   let pandoc = Pandoc (Meta m) blocks
   -- adjust local media urls
-  mapResources (locateFileIfLocal (takeDirectory markdownFile)) pandoc
+  -- mapResources (locateFileIfLocal (takeDirectory markdownFile)) pandoc
+  mapResources (urlToFilePathIfLocal (takeDirectory markdownFile)) pandoc
 
--- Locates a local file system file. Returns the an absolute path. If path is a
--- remote URL, leave it alone.
-locateFileIfLocal :: FilePath -> FilePath -> Action FilePath
-locateFileIfLocal base path = do
-  case parseRelativeReference path of
-    Nothing -> return path
-    Just uri -> do
-      absolutePath <- locateFile base (uriPath uri)
-      return $
-        show $ URI "" Nothing absolutePath (uriQuery uri) (uriFragment uri)
-
--- Locates a local file system file. Returns the an absolute path. If path is a
--- remote URL, leave it alone.
-locateFile :: FilePath -> FilePath -> Action FilePath
-locateFile base path = do
-  dirs <- getProjectDirs
-  liftIO $ findFile dirs base path
+urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
+urlToFilePathIfLocal base uri = do
+  case parseRelativeReference uri of
+    Nothing -> return uri
+    Just relativeUri -> do
+      let path = uriPath relativeUri
+      absBase <- liftIO $ Dir.makeAbsolute base
+      absRoot <- project <$> getProjectDirs
+      let absPath =
+            if isAbsolute path
+              then absRoot </> makeRelative "/" path
+              else absBase </> path
+      return absPath
 
 readMarkdownOrThrow :: ReaderOptions -> String -> Pandoc
 readMarkdownOrThrow opts string =
@@ -424,8 +425,6 @@ pandocReaderOpts = def {readerExtensions = deckerPandocExtensions}
 pandocWriterOpts :: WriterOptions
 pandocWriterOpts = def {writerExtensions = deckerPandocExtensions}
 
--- TODO: Move the map* functions into the Action monad so that 'need' can be
--- called for the resources.
 mapResources :: (FilePath -> Action FilePath) -> Pandoc -> Action Pandoc
 mapResources transform pandoc@(Pandoc meta blocks) = do
   processedBlocks <-
@@ -538,25 +537,20 @@ processIncludes baseDir (Pandoc meta blocks) = do
       return $ concat $ reverse spliced
     include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
     include base result (Para [Link _ [Str ":include"] (url, _)]) = do
-      dirs <- getProjectDirs
-      filePath <- liftIO $ findFile dirs base url
-      Pandoc _ b <- readMetaMarkdown filePath
-      included <- processBlocks (takeDirectory filePath) b
+      includeFile <- urlToFilePathIfLocal base url
+      need [includeFile]
+      Pandoc _ b <- readMetaMarkdown includeFile
+      included <- processBlocks (takeDirectory includeFile) b
       return $ included : result
     include _ result block = return $ [block] : result
 
-justFormat :: String -> Maybe Format
-justFormat = Just . Format
-
 processPandocPage :: String -> Pandoc -> Action Pandoc
 processPandocPage format pandoc = do
-  dirs <- getProjectDirs
   cited <- liftIO $ processCites' pandoc
   return $ (renderMediaTags Page . expandMacros (Format format)) cited
 
 processPandocDeck :: String -> Pandoc -> Action Pandoc
 processPandocDeck format pandoc = do
-  dirs <- getProjectDirs
   cited <- liftIO $ processCites' pandoc
   return $
     (renderMediaTags Page .
@@ -565,7 +559,6 @@ processPandocDeck format pandoc = do
 
 processPandocHandout :: String -> Pandoc -> Action Pandoc
 processPandocHandout format pandoc = do
-  dirs <- getProjectDirs
   cited <- liftIO $ processCites' pandoc
   return $ (renderMediaTags Page . expandMacros (Format format)) cited
 

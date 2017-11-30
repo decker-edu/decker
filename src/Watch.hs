@@ -8,14 +8,14 @@ import Control.Concurrent.MVar
 import Data.List
 import qualified Data.Set as Set
 import Filter
+import Render
 import System.FSNotify
 import System.FilePath
-import System.FilePath.Glob
 
 -- | Wait for something to happen on one of the matching files 
 -- in one of the supplied directories.
-waitForTwitch :: [FilePath] -> [Pattern] -> IO FilePath
-waitForTwitch directories patterns = do
+waitForTwitch :: [FilePath] -> IO FilePath
+waitForTwitch directories = do
   done <- newEmptyMVar
   mgr <- startManager
   stops <- watchIt mgr done
@@ -25,29 +25,28 @@ waitForTwitch directories patterns = do
   return filepath
     -- Match a filepath against the supplied patterns
   where
-    isWatchedFile event = any (`match` eventPath event) patterns
+    isWatchedFile event =
+      (takeExtension . eventPath) event `elem` twitchExtensions
     -- Stop the watch manager and notify the main thread
-    stopWatching mgr done event = putMVar done (eventPath event)
+    stopWatching _ done event = putMVar done (eventPath event)
     -- Watch everything within the supplied dirs
     watchInDir mgr done dir =
       watchTree mgr dir isWatchedFile (stopWatching mgr done)
     watchIt mgr done = mapM (watchInDir mgr done) (unique directories)
 
-twitchPatterns =
-  map compile $
-  [ "**/*.css"
-  , "**/*.md"
-  , "**/*.yaml"
-  , "**/*.png"
-  , "**/*.gif"
-  , "**/*.jpg"
-  , "**/*.svg"
-  ] ++
-  iframeExtensions ++ audioExtensions ++ videoExtensions
+commonExtensions :: [String]
+commonExtensions = [".css", ".md", ".yaml", ".png", ".gif", ".jpg", ".svg"]
 
+twitchExtensions :: [String]
+twitchExtensions =
+  commonExtensions ++
+  iframeExtensions ++
+  audioExtensions ++ videoExtensions ++ renderedCodeExtensions
+
+waitForTwitchPassive :: [FilePath] -> IO FilePath
 waitForTwitchPassive files = do
   let dirs = nub (map takeDirectory files)
-  waitForTwitch dirs twitchPatterns
+  waitForTwitch dirs
 
 unique :: Ord a => [a] -> [a]
 unique = Set.toList . Set.fromList

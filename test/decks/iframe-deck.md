@@ -21,4 +21,6 @@ history: True
 
 ![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
 
+<!--
 # ![](http://pandoc.org/MANUAL.pdf)
+-->

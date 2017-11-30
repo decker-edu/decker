@@ -40,7 +40,6 @@ transition: linear
 
 -   Level 1 header (`#`) starts new slide
 -   Level 2 header (`##`) starts a block on a slide
--   Level 3 header (`###`) starts new column on a slide
 
 ``` {.markdown}
 # Episode IV: A new Slide
@@ -60,24 +59,20 @@ The following text is included from file `/resource/realtive.md`:
 
 # Multicolumn slides
 
-## The author
+## The author {.split}
 
 ![](img/htr-beuth.jpg){width="50%"}
 
 [Deck markdown source](example-deck.md)
 
-### 
-
 ## Slide source
 
 ``` {.markdown}
-# Multicolumn slides
+# Multicolumn slides {.split}
 
 ## The author
 
 ![](img/htr-beuth.jpg){data-src="img/htr-beuth.jpg"}
-
-###
 
 ## Slide source
 
@@ -110,7 +105,7 @@ $$
 
 # Compile Time Macros
 
-## Macros
+## Macros {.split}
 
 -   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
 -   Example: embed a YouTube video
@@ -120,8 +115,6 @@ $$
 
     [:youtube](Wji-BZ0oCwg)
     ```
-
-### 
 
 ## Video
 
@@ -155,7 +148,7 @@ $$
 
 # Blocks
 
-## Block markup
+## Block markup {.split}
 
 -   Level 2 headers start new block
 -   Blocks can be marked with attributes
@@ -169,8 +162,6 @@ $$
 
 - This block is marked `.alert`
 ```
-
-### 
 
 ## Block styles
 
@@ -186,7 +177,7 @@ $e=mc^2$
 
 # Speaker Notes
 
-## Slide level
+## Slide level {.split}
 
 -   The slide content becomes part of the speaker notes
 -   Add `notes` class to slide header
@@ -196,8 +187,6 @@ $e=mc^2$
 
     These are speaker notes.
     ```
-
-### 
 
 ## Block level
 
@@ -216,15 +205,13 @@ Slides with headers that are have the `.notes` class attribute are not included 
 
 # Cached Images
 
-## Local image cache
+## Local image cache {.split}
 
 Remote images can be cached locally
 
 Cache directory is named `img/cached` and is located in the directory of the referencing document
 
 `decker cache` scans for and downloads all images
-
-### 
 
 ## Cached remote image
 
