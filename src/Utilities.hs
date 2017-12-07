@@ -310,7 +310,7 @@ markdownToHtmlPage markdownFile out = do
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
 markdownToPdfPage markdownFile out = do
   putCurrentDocument out
-  template <- getTemplate "page.latex"
+  template <- getTemplate "page.tex"
   let options =
         pandocWriterOpts
         { writerTemplate = Just template
@@ -358,7 +358,7 @@ markdownToPdfHandout markdownFile out = do
   putCurrentDocument out
   pandoc <- readAndPreprocessMarkdown markdownFile Handout
   processed <- processPandocHandout "latex" pandoc
-  template <- getTemplate "handout.latex"
+  template <- getTemplate "handout.tex"
   let options =
         pandocWriterOpts
         { writerTemplate = Just template
