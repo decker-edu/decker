@@ -27,6 +27,7 @@ Decker uses a few external tools that need to be installed on the system:
 - [*rsync*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/rsync) for publishing slide decks and resources
 - [*unzip*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/unzip) to extract resources from the decker executable
 - [*decktape*](https://github.com/astefanutti/decktape) to convert HTML slide decks to PDF format
+- [*LaTeX with pdflatex*](https://www.latex-project.org/get/) to generate LaTeX in PDF-files
  
 ## Usage
 
@@ -85,15 +86,6 @@ Decker uses a few external tools that need to be installed on the system:
 -   `decker clean`
 
     Recursively removes all generated files from the current directory.
-
--   `decker check`
-
-    Check for all required external depencies. If one of the programs is missing, an error is generated. Required programs include:
-
-    -   `pdflatex` as part of a complete LaTeX installation
-    -   `decktape.sh` for the generation of PDF versions of slide decks
-    -   `livereloadx` as live-reloading local webserver
-    -   `rsync` to publish the documents to a remote location
 
 -   `decker plan`
 
