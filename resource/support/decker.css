@@ -575,7 +575,12 @@ div.box {
 .reveal section div.multi-column-row {
     display:flex;
     flex-flow: row nowrap;
+    align-items: flex;
 }
+
+.reveal section div.multi-column-row-3 > div.column-1 {padding-right:0.4em;}    
+.reveal section div.multi-column-row-3 > div.column-2 {padding-right:0.4em;padding-left:0.4em;}    
+.reveal section div.multi-column-row-3 > div.column-3 {padding-left:0.4em;}    
 
 .reveal section div.multi-column-row > div.column {flex: 1 1 0%;}
 .reveal section div.multi-column-row > div.column[grow="1"] {flex-grow:1;}
