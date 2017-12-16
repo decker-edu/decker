@@ -57,6 +57,7 @@ import Text.CSL.Pandoc
 import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc
+import Text.Pandoc.Builder
 import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
@@ -545,14 +546,26 @@ processIncludes baseDir (Pandoc meta blocks) = do
       return $ included : result
     include _ result block = return $ [block] : result
 
+processCitesWithDefault :: Pandoc -> Action Pandoc
+processCitesWithDefault pandoc@(Pandoc meta blocks) = do
+  document <-
+    do case lookupMeta "csl" meta of
+         Nothing -> do
+           app <- appData <$> getProjectDirs
+           let defaultCsl = app </> "template" </> "acm-sig-proceedings.csl"
+           let meta = setMeta "csl" (MetaString defaultCsl) meta
+           return (Pandoc meta blocks)
+         _ -> return pandoc
+  liftIO $ processCites' document
+
 processPandocPage :: String -> Pandoc -> Action Pandoc
 processPandocPage format pandoc = do
-  cited <- liftIO $ processCites' pandoc
+  cited <- processCitesWithDefault pandoc
   return $ (renderMediaTags Page . expandMacros (Format format)) cited
 
 processPandocDeck :: String -> Pandoc -> Action Pandoc
 processPandocDeck format pandoc = do
-  cited <- liftIO $ processCites' pandoc
+  cited <- processCitesWithDefault pandoc
   return $
     (renderMediaTags Page .
      makeSlides (Format format) . expandMacros (Format format))
@@ -560,7 +573,7 @@ processPandocDeck format pandoc = do
 
 processPandocHandout :: String -> Pandoc -> Action Pandoc
 processPandocHandout format pandoc = do
-  cited <- liftIO $ processCites' pandoc
+  cited <- processCitesWithDefault pandoc
   return $ (renderMediaTags Page . expandMacros (Format format)) cited
 
 type StringWriter = WriterOptions -> Pandoc -> String
