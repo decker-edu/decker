@@ -551,10 +551,10 @@ processCitesWithDefault pandoc@(Pandoc meta blocks) = do
   document <-
     do case lookupMeta "csl" meta of
          Nothing -> do
-           app <- appData <$> getProjectDirs
-           let defaultCsl = app </> "template" </> "acm-sig-proceedings.csl"
-           let meta = setMeta "csl" (MetaString defaultCsl) meta
-           return (Pandoc meta blocks)
+           dir <- appData <$> getProjectDirs
+           let defaultCsl = dir </> "template" </> "acm-sig-proceedings.csl"
+           let cslMeta = setMeta "csl" (MetaString defaultCsl) meta
+           return (Pandoc cslMeta blocks)
          _ -> return pandoc
   liftIO $ processCites' document
 
