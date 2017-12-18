@@ -4,7 +4,7 @@ synopsis:            All inclusive slide deck creation with pandoc.
 description:         Please see README.md
 homepage:            https://tramberend.beuth-hochschule.de/decker
 license:             OtherLicense
-license-file:         LICENSE
+license-file:        LICENSE
 author:              Henrik Tramberend
 maintainer:          tramberend@beuth-hochschule.de
 copyright:           2017 Henrik Tramberend
@@ -22,12 +22,28 @@ cabal-version:       >=1.10
 executable decker
   hs-source-dirs:      app, src
   main-is:             decker.hs
-  other-modules:       Action, Cache, CRC32, Meta, Watch, Embed, Context, Utilities, Filter, Project, Common, Server, Resources, Render, Paths_decker
+  other-modules:       Action
+                     , Cache
+                     , CRC32
+                     , Meta
+                     , Watch
+                     , Embed
+                     , Context
+                     , Utilities
+                     , Filter
+                     , Project
+                     , Common
+                     , Server
+                     , Resources
+                     , Render
+                     , External
+                     , Paths_decker
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , Glob
                      , HTTP
                      , aeson
+                     , ansi-terminal
                      , array
                      , base64-bytestring
                      , blaze-html

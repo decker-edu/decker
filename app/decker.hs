@@ -10,6 +10,7 @@ import Data.Maybe
 import Data.String ()
 import Development.Shake
 import Development.Shake.FilePath
+import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
@@ -99,14 +100,7 @@ main = do
         need [src]
         putNormal $ src ++ " -> " ++ out
         runHttpServer serverPort dirs Nothing
-        code <-
-          cmd
-            "decktape.sh reveal"
-            (serverUrl </> makeRelative publicDir src)
-            out
-        case code of
-          ExitFailure _ -> throw $ DecktapeException "Unknown."
-          ExitSuccess -> return ()
+        decktape [(serverUrl </> makeRelative publicDir src), out]
     --
     priority 2 $
       "//*-handout.html" %> \out -> do
@@ -148,17 +142,14 @@ main = do
       "//*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
-        cmd "dot -Tsvg" ("-o" ++ out) src
+        dot [("-o" ++ out), src]
+        -- cmd "dot -Tsvg" ("-o" ++ out) src
     --
     priority 2 $
       "//*.gnuplot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
-        cmd
-          "gnuplot -d"
-          ["-e", "set terminal svg"]
-          ["-e", "set output \"" ++ out ++ "\""]
-          src
+        gnuplot ["-e", "set output \"" ++ out ++ "\"", src]
     --
     priority 2 $
       "//*.tex.svg" %> \out -> do
@@ -166,13 +157,8 @@ main = do
         let pdf = src -<.> ".pdf"
         let dir = takeDirectory src
         need [src]
-        () <-
-          cmd
-            "pdflatex -halt-on-error -interaction batchmode"
-            ["-output-directory", dir]
-            src
-        () <- cmd "pdf2svg" pdf out
-        cmd "rm" pdf
+        pdflatex ["-output-directory", dir, src]
+        pdf2svg [pdf, out]
     --
     phony "clean" $ do
       removeFilesAfter publicDir ["//"]
@@ -194,8 +180,9 @@ main = do
       putNormal "targets:"
       everythingA <++> everythingPdfA >>= mapM_ putNormal
     --
-    -- phony "support" $ writeEmbeddedFiles deckerSupportDir supportDir
     phony "support" $ do liftIO $ writeResourceFiles "support" supportDir
+    --
+    phony "check" checkExternalPrograms
     --
     phony "publish" $ do
       need ["support"]
@@ -207,11 +194,8 @@ main = do
         then do
           let src = publicDir ++ "/"
           let dst = intercalate ":" [fromJust host, fromJust path]
-          cmd "ssh " (fromJust host) "mkdir -p" (fromJust path) :: Action ()
-          cmd
-            "rsync --recursive --no-xattrs --no-group --perms --chmod=a+r,go-w --no-owner --copy-links"
-            src
-            dst :: Action ()
+          ssh [(fromJust host), "mkdir -p", (fromJust path)]
+          rsync [src, dst]
         else throw RsyncUrlException
 
 -- Calculate some directories

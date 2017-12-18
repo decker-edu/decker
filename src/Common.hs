@@ -23,6 +23,7 @@ data DeckerException
   | HttpException String
   | RsyncUrlException
   | DecktapeException String
+  | ExternalException String
   deriving (Typeable)
 
 instance Exception DeckerException

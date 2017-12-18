@@ -18,8 +18,6 @@ module Project
   ) where
 
 import Common
-import Control.Exception
-import Control.Monad
 import Data.Maybe
 import Extra
 import Network.URI
@@ -28,6 +26,7 @@ import System.FilePath
 import System.Posix.Files
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Resources
 
 data Provisioning
   = Copy -- Copy to public and relative URL
@@ -118,7 +117,7 @@ projectDirectories = do
   let publicDir = projectDir </> "public"
   let cacheDir = publicDir </> "cache"
   let supportDir = publicDir </> ("support" ++ "-" ++ deckerVersion)
-  appDataDir <- D.getXdgDirectory D.XdgData ("decker" ++ "-" ++ deckerVersion)
+  appDataDir <- deckerResourceDir
   let logDir = projectDir </> "log"
   return
     (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
