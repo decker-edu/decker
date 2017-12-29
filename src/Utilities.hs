@@ -279,7 +279,7 @@ putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do
   dirs <- getProjectDirs
   let rel = makeRelative (public dirs) out
-  putNormal $ "# pandoc for (" ++ rel ++ ")"
+  putNormal $ "# pandoc (for " ++ rel ++ ")"
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage :: FilePath -> FilePath -> Action ()

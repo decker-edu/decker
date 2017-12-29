@@ -14,6 +14,7 @@ import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
+import System.Environment
 import System.Exit
 import System.FilePath ()
 import qualified Text.Mustache as M ()
@@ -54,7 +55,7 @@ main = do
   let everythingPdfA = decksPdfA <++> handoutsPdfA <++> pagesPdfA
   let cruft = ["index.md.generated", "log", "//.shake", "generated"]
   context <- makeActionContext dirs
-  runShakeInContext context options $
+  runShakeInContext context (options projectDir) $
   --
    do
     want ["html"]
@@ -69,9 +70,9 @@ main = do
       everythingA <++> indexA >>= need
       need ["support"]
     --
-    phony "pdf" $ pagesPdfA <++> handoutsPdfA <++> indexA >>= need
+    -- phony "pdf" $ pagesPdfA <++> handoutsPdfA <++> indexA >>= need
     --
-    phony "pdf-decks" $ decksPdfA <++> indexA >>= need
+    -- phony "pdf-decks" $ decksPdfA <++> indexA >>= need
     --
     phony "watch" $ do
       need ["html"]
@@ -143,7 +144,6 @@ main = do
         let src = dropExtension out
         need [src]
         dot [("-o" ++ out), src]
-        -- cmd "dot -Tsvg" ("-o" ++ out) src
     --
     priority 2 $
       "//*.gnuplot.svg" %> \out -> do
@@ -169,16 +169,17 @@ main = do
       liftIO $ putStr text
     --
     phony "plan" $ do
-      putNormal $ "project directory: " ++ projectDir
+      putNormal $ "\nproject directory: " ++ projectDir
       putNormal $ "public directory: " ++ publicDir
       putNormal $ "support directory: " ++ supportDir
       putNormal $ "application data directory: " ++ appDataDir
-      putNormal "meta:"
+      putNormal "\nmeta:\n"
       metaA >>= mapM_ putNormal
-      putNormal "sources:"
+      putNormal "\nsources:\n"
       allSourcesA >>= mapM_ putNormal
-      putNormal "targets:"
+      putNormal "\ntargets:\n"
       everythingA <++> everythingPdfA >>= mapM_ putNormal
+      putNormal ""
     --
     phony "support" $ do liftIO $ writeResourceFiles "support" supportDir
     --
@@ -198,7 +199,12 @@ main = do
           rsync [src, dst]
         else throw RsyncUrlException
 
--- Calculate some directories
 -- | Some constants that might need tweaking
-options :: ShakeOptions
-options = shakeOptions {shakeFiles = ".shake", shakeThreads = numCapabilities}
+options :: FilePath -> ShakeOptions
+options projectDir =
+  shakeOptions
+  { shakeFiles = ".shake"
+  -- , shakeColor = True -- TODO: needs at least shake-0.16.0
+  , shakeThreads = numCapabilities
+  , shakeAbbreviations = [(projectDir ++ "/", "")]
+  }
