@@ -31,6 +31,7 @@ body {
         word-wrap: break-word;
         font-weight: normal; }
       body .reveal .slides section h1 {
+        font-size: 1.6em;
         margin: 0 0 0.5em 0; }
       body .reveal .slides section .rightcolumn > h1 {
         margin-left: 54%; }
