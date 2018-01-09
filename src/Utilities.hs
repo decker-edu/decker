@@ -180,7 +180,7 @@ markdownToHtmlDeck markdownFile out = do
             ]
         , writerCiteMethod = Citeproc
         }
-  pandoc <- readAndPreprocessMarkdown markdownFile Deck
+  pandoc <- readAndPreprocessMarkdown markdownFile (Disposition Deck Html)
   processed <- processPandocDeck "revealjs" pandoc
   writePandocString "revealjs" options out processed
 
@@ -303,7 +303,7 @@ markdownToHtmlPage markdownFile out = do
         , writerVariables = [("decker-support-dir", supportDir)]
         , writerCiteMethod = Citeproc
         }
-  pandoc <- readAndPreprocessMarkdown markdownFile Page
+  pandoc <- readAndPreprocessMarkdown markdownFile (Disposition Page Html)
   processed <- processPandocPage "html5" pandoc
   writePandocString "html5" options out processed
 
@@ -315,12 +315,10 @@ markdownToPdfPage markdownFile out = do
   let options =
         pandocWriterOpts
         { writerTemplate = Just template
-        -- , writerStandalone = True
         , writerHighlight = True
-        -- , writerHighlightStyle = pygments
         , writerCiteMethod = Citeproc
         }
-  pandoc <- readAndPreprocessMarkdown markdownFile Page
+  pandoc <- readAndPreprocessMarkdown markdownFile (Disposition Page Pdf)
   processed <- processPandocPage "latex" pandoc
   putNormal $ "# pandoc (for " ++ out ++ ")"
   pandocMakePdf options processed out
@@ -336,7 +334,7 @@ pandocMakePdf options processed out = do
 markdownToHtmlHandout :: FilePath -> FilePath -> Action ()
 markdownToHtmlHandout markdownFile out = do
   putCurrentDocument out
-  pandoc <- readAndPreprocessMarkdown markdownFile Handout
+  pandoc <- readAndPreprocessMarkdown markdownFile (Disposition Handout Html)
   processed <- processPandocHandout "html" pandoc
   supportDir <- getRelativeSupportDir out
   template <- getTemplate "handout.html"
@@ -357,7 +355,7 @@ markdownToHtmlHandout markdownFile out = do
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
 markdownToPdfHandout markdownFile out = do
   putCurrentDocument out
-  pandoc <- readAndPreprocessMarkdown markdownFile Handout
+  pandoc <- readAndPreprocessMarkdown markdownFile (Disposition Handout Pdf)
   processed <- processPandocHandout "latex" pandoc
   template <- getTemplate "handout.tex"
   let options =
@@ -561,20 +559,20 @@ processCitesWithDefault pandoc@(Pandoc meta blocks) = do
 processPandocPage :: String -> Pandoc -> Action Pandoc
 processPandocPage format pandoc = do
   cited <- processCitesWithDefault pandoc
-  return $ (renderMediaTags Page . expandMacros (Format format)) cited
+  return $ (renderMediaTags (Disposition Page Html) . expandMacros (Format format)) cited
 
 processPandocDeck :: String -> Pandoc -> Action Pandoc
 processPandocDeck format pandoc = do
   cited <- processCitesWithDefault pandoc
   return $
-    (renderMediaTags Page .
+    (renderMediaTags (Disposition Deck Html) .
      makeSlides (Format format) . expandMacros (Format format))
       cited
 
 processPandocHandout :: String -> Pandoc -> Action Pandoc
 processPandocHandout format pandoc = do
   cited <- processCitesWithDefault pandoc
-  return $ (renderMediaTags Page . expandMacros (Format format)) cited
+  return $ (renderMediaTags (Disposition Handout Html) . expandMacros (Format format)) cited
 
 type StringWriter = WriterOptions -> Pandoc -> String
 

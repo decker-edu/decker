@@ -2,9 +2,11 @@
 {-# LANGUAGE OverloadedStrings, TupleSections #-}
 
 module Filter
-  ( Disposition(..)
+  ( Layout(..)
+  , OutputFormat(..)
+  , Disposition(..)
+  , processPandoc
   , hasAttrib
-  , hasLayout
   , blockClasses
   , expandMacros
   , makeSlides
@@ -25,13 +27,16 @@ module Filter
 import Common
 import Control.Exception
 import Control.Monad
+import Control.Monad.State
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Default ()
 import Data.List
 import Data.List.Split
+import Data.Maybe
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
 import Debug.Trace
+import Macro
 import Network.HTTP.Conduit
 import Network.HTTP.Simple
 import qualified Network.URI as U
@@ -52,7 +57,17 @@ import Text.Pandoc.Walk
 import Text.Printf
 import Text.Read
 
-type MacroFunc = [String] -> Attr -> Target -> Format -> Meta -> Inline
+processPandoc :: Disposition -> Pandoc -> IO Pandoc
+processPandoc disposition pandoc =
+  evalStateT (processPandoc_ pandoc) (DeckerState disposition 0 [])
+
+processPandoc_ :: Pandoc -> Decker Pandoc
+processPandoc_ pandoc@(Pandoc meta blocks) = do
+  disp <- gets disposition
+  case disp of
+    (Disposition Deck _) -> walkM (expandDeckerMacros meta) pandoc
+    (Disposition Page _) -> walkM (expandDeckerMacros meta) pandoc
+    (Disposition Handout _) -> walkM (expandDeckerMacros meta) pandoc
 
 -- iframe resizing, see:
 -- https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
@@ -190,12 +205,6 @@ hasAnyClass which = isJust . firstClass which
 firstClass :: [String] -> Block -> Maybe String
 firstClass which block = listToMaybe $ filter ((flip hasClass) block) which
 
--- | Slide layouts
-data Layout = Layout
-  { name :: String
-  , areas :: [String]
-  } deriving (Show)
-
 -- | Slide layouts are rows of one ore more columns.
 data RowLayout = RowLayout
   { lname :: String
@@ -278,24 +287,12 @@ layoutSlides slide@(header, body) =
       in (header, renderLayout areas layout)
     Nothing -> slide
 
-masters :: [(String, Layout)]
-masters =
-  [ ("default", Layout "default" [])
-  , ("columns", Layout "columns" ["left", "right"])
-  , ("top2columns", Layout "top2columns" ["top", "left", "right"])
-  , ("bottom2columns", Layout "bottom2columns" ["left", "right", "bottom"])
-  , ("centeredoverlay", Layout "centeredoverlay" ["back", "front"])
-  ]
-
 hasAttrib :: String -> Block -> Maybe String
 hasAttrib which (Div (_, _, keyvals) _) = lookup which keyvals
 hasAttrib which (Header 1 (_, _, keyvals) _) = lookup which keyvals
 hasAttrib which (CodeBlock (_, _, keyvals) _) = lookup which keyvals
 hasAttrib which (Para [Image (_, _, keyvals) _ _]) = lookup which keyvals
 hasAttrib _ _ = Nothing
-
-hasLayout :: Block -> Maybe Layout
-hasLayout block = hasAttrib "layout" block >>= (flip lookup) masters
 
 blockClasses :: Block -> [String]
 blockClasses (Div (_, classes, _) _) = classes
@@ -310,31 +307,6 @@ blockAttribs (Header 1 attribs _) = attribs
 blockAttribs (CodeBlock attribs _) = attribs
 blockAttribs (Para [Image attribs _ _]) = attribs
 blockAttribs _ = ("", [], [])
-
--- | Fit slide to layout
-fitLayout :: [Block] -> [Block]
-fitLayout slide@(header:body) =
-  case hasLayout header of
-    Just layout ->
-      let wrapArea blocks@(first:_) =
-            case whichArea first of
-              Just area ->
-                let (_, _, attribs) = blockAttribs first
-                in [Div ("", [(name layout), area], attribs) blocks]
-              Nothing -> blocks
-          wrapArea block = block
-          whichArea block =
-            listToMaybe $ intersect (blockClasses block) (areas layout)
-          slideAreas =
-            split (keepDelimsL $ whenElt (hasAnyClass (areas layout))) body
-          orderedAreas =
-            catMaybes $
-            map
-              (\a -> find (maybe False (hasClass a) . listToMaybe) slideAreas)
-              (areas layout)
-      in header : concatMap wrapArea orderedAreas
-    Nothing -> slide
-fitLayout [] = []
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
 splitJoinColumns :: Slide -> Slide
@@ -446,7 +418,7 @@ mapSlides func (Pandoc meta blocks) =
     extractHeader (rule@(HorizontalRule):blocks) = (rule, blocks)
     extractHeader slide =
       throw $
-      PandocException $ "Error extracting slide header: \n" ++ show slide -- never happens
+      PandocException $ "Error extracting slide header: \n" ++ show slide
     prependHeader (header, blocks) = header : blocks
 
 makeSlides :: Format -> Pandoc -> Pandoc
@@ -528,18 +500,6 @@ audioExtensions = [".m4a", ".mp3", ".ogg", ".wav"]
 iframeExtensions :: [String]
 iframeExtensions = [".html", ".html", ".pdf"]
 
-data Disposition
-  = Deck
-  | Page
-  | Handout
-  deriving (Eq)
-
-data MediaType
-  = ImageMedia
-  | AudioMedia
-  | VideoMedia
-  | IframeMedia
-
 uriPathExtension :: String -> String
 uriPathExtension path =
   case U.parseRelativeReference path of
@@ -581,7 +541,7 @@ renderImageAudioVideoTag disposition (Image (ident, cls, values) inlines (url, t
         then element
         else element ! attr (toValue value)
     srcAttr =
-      if disposition == Deck
+      if disposition == Disposition Deck Html
         then "data-src"
         else "src"
     transformedValues = (lazyLoad . transformImageSize) values

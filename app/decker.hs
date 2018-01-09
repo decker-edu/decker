@@ -70,7 +70,7 @@ main = do
       everythingA <++> indexA >>= need
       need ["support"]
     --
-    -- phony "pdf" $ pagesPdfA <++> handoutsPdfA <++> indexA >>= need
+    phony "pdf" $ pagesPdfA <++> handoutsPdfA <++> indexA >>= need
     --
     -- phony "pdf-decks" $ decksPdfA <++> indexA >>= need
     --
