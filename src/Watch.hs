@@ -35,7 +35,7 @@ waitForTwitch directories = do
     watchIt mgr done = mapM (watchInDir mgr done) (unique directories)
 
 commonExtensions :: [String]
-commonExtensions = [".css", ".md", ".yaml", ".png", ".gif", ".jpg", ".svg"]
+commonExtensions = [".scss", ".css", ".md", ".yaml", ".png", ".gif", ".jpg", ".svg"]
 
 twitchExtensions :: [String]
 twitchExtensions =

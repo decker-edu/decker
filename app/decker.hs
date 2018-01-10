@@ -3,7 +3,7 @@ import Action
 import Common
 import Context
 import Control.Exception
-import Control.Monad ()
+import Control.Monad (when)
 import Data.IORef ()
 import Data.List
 import Data.Maybe
@@ -14,12 +14,12 @@ import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import System.Environment
-import System.Exit
+import System.Directory (copyFile)
 import System.FilePath ()
 import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
+import qualified Text.Sass as Sass
 import Utilities
 
 main :: IO ()
@@ -159,6 +159,21 @@ main = do
         need [src]
         pdflatex ["-output-directory", dir, src]
         pdf2svg [pdf, out]
+    priority 2 $
+      "//*.css" %> \out -> do
+        let src = out -<.> ".scss"
+        exists <- doesFileExist src
+        putNormal $ src ++ " exists: " ++ (show exists)
+        when exists $ do
+          need [src]
+          putNormal ("# scss (for " ++ makeRelativeTo projectDir out ++ ")")
+          scss <- liftIO $ readFile src
+          result <- liftIO $ Sass.compileString scss Sass.def
+          case result of
+            Left err -> do
+              msg <- liftIO $ Sass.errorMessage err
+              throw (SassException msg)
+            Right css -> liftIO $ writeFile out css
     --
     phony "clean" $ do
       removeFilesAfter publicDir ["//"]

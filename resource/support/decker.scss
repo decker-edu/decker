@@ -1,0 +1,597 @@
+/////////////////////////////////////////////
+// Variables
+/////////////////////////////////////////////
+$base-font-size: 30px;
+$medium-font-size: 1 * $base-font-size;
+$xx-small-font-size: 0.4 * $base-font-size;
+$x-small-font-size: 0.6 * $base-font-size;
+$small-font-size: 0.8 * $base-font-size;
+$large-font-size: 1.2 * $base-font-size;
+$x-large-font-size: 1.4 * $base-font-size;
+$xx-large-font-size: 1.6 * $base-font-size;
+
+/////////////////////////////////////////////
+// Font imports
+/////////////////////////////////////////////
+@import url("fonts/roboto.css");
+@import url("fonts/source-code-pro.css");
+
+/////////////////////////////////////////////
+// Styles
+/////////////////////////////////////////////
+body {
+    background: white;
+
+    .reveal {
+        .slides {
+            /////////////////////////////////////////////
+            // General slide settings
+            /////////////////////////////////////////////
+            font-family: 'Roboto', sans-serif;
+            font-size: $medium-font-size;
+            font-weight: normal;
+            color: rgba(0, 0, 0, 0.87);
+
+            section {
+                /////////////////////////////////////////////
+                // General section settings
+                /////////////////////////////////////////////
+                line-height: 1.4;
+                text-align: left;
+                font-weight: inherit;
+                padding: 0;
+
+                p {
+                    margin: 20px 0;
+                    line-height: 1.3;
+                }
+
+                /////////////////////////////////////////////
+                // Headers
+                /////////////////////////////////////////////
+                h1,
+                h2,
+                h3,
+                h4,
+                h5,
+                h6 {
+                    margin: 0 0 20px 0;
+                    color: rgba(0, 0, 0, 0.87);
+                    font-family: 'Roboto', sans-serif;
+                    line-height: 1.3;
+                    letter-spacing: normal;
+                    text-transform: none;
+                    text-shadow: none;
+                    word-wrap: break-word;
+                    font-weight: normal;
+                }
+
+                h1 {
+                    font-size: 1.6em;
+                    margin: 0 0 0.5em 0;
+                }
+
+                .rightcolumn {
+                    > h1 {
+                        margin-left: 54%;
+                    }
+                }
+
+                h2 {
+                    font-weight: 500;
+                    color: rgba(0, 0, 0, 0.54);
+                    font-size: 1.2em;
+                }
+
+                &.has-dark-background {
+                    h1,
+                    h2,
+                    h3,
+                    h4,
+                    h5,
+                    h6 {
+                        color: #fff;
+                    }
+                }
+
+                /////////////////////////////////////////////
+                // Text modifiers
+                /////////////////////////////////////////////
+                strong,
+                b {
+                    font-weight: bold;
+                }
+
+                em {
+                    font-style: italic;
+                }
+
+                sup {
+                    font-size: 0.5em;
+                    position: absolute;
+                    vertical-align: super;
+                }
+
+                sub {
+                    vertical-align: sub;
+                }
+
+                small {
+                    display: inline-block;
+                    font-size: 0.6em;
+                    line-height: 1.2em;
+                    vertical-align: top;
+                }
+
+                dt {
+                    font-weight: bold;
+                }
+
+                dd {
+                    margin-left: 40px;
+                }
+
+                q,
+                blockquote {
+                    quotes: none;
+                }
+
+                blockquote {
+                    display: block;
+                    position: relative;
+                    width: 70%;
+                    margin: 20px auto;
+                    padding: 5px;
+                    font-style: italic;
+                    background: rgba(255, 255, 255, 0.05);
+                    box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+
+                    p {
+                        &:first-child,
+                        &:last-child {
+                            display: inline-block;
+                        }
+                    }
+                }
+
+                q {
+                    font-style: italic;
+                }
+
+                /////////////////////////////////////////////
+                // Lists
+                /////////////////////////////////////////////
+                ol,
+                dl,
+                ul {
+                    display: inline-block;
+                    text-align: left;
+                    margin: 0 0 0 1em;
+                }
+
+                ol {
+                    list-style-type: decimal;
+                }
+
+                ul {
+                    list-style-type: disc;
+
+                    ul {
+                        list-style-type: square;
+
+                        ul {
+                            list-style-type: circle;
+                        }
+                    }
+                }
+
+                ul ul,
+                ul ol,
+                ol ol,
+                ol ul {
+                    display: block;
+                    margin-left: 40px;
+                }
+
+                /////////////////////////////////////////////
+                // Links
+                /////////////////////////////////////////////
+                a {
+                    color: #009;
+                    text-decoration: none;
+                    -webkit-transition: color 0.15s ease;
+                    -moz-transition: color 0.15s ease;
+                    transition: color 0.15s ease;
+
+                    img {
+                        -webkit-transition: all 0.15s linear;
+                        -moz-transition: all 0.15s linear;
+                        transition: all 0.15s linear;
+                    }
+
+                    &:hover {
+                        color: blue;
+                        text-shadow: none;
+                        border: none;
+
+                        img {
+                            background: rgba(255, 255, 255, 0.2);
+                            border: none;
+                            box-shadow: none;
+                        }
+                    }
+                }
+
+                /////////////////////////////////////////////
+                // Within section divs
+                /////////////////////////////////////////////
+                div {
+
+                    /////////////////////////////////////////////
+                    // Boxes
+                    /////////////////////////////////////////////
+                    &.box {
+                        h2 {
+                            margin-top: 0;
+                            margin-bottom: 0.2em;
+
+                            &:last-child, &:empty {
+                                margin-bottom: 0;
+                            }
+                        }
+
+                        p {
+                            margin: 0;
+                        }
+
+                        padding: 0.4em 0.7em;
+                        margin: 0 -0.7em 0.5em -0.7em;
+                        border-radius: 0.25em;
+
+                        &.slide-column div {
+                            margin-top: 0;
+                            margin-bottom: 0.3em;
+
+                            &:first-child {
+                                margin-top: 0;
+                            }
+                        }
+
+                        &.question {
+                            background-color: rgba(255, 215, 67, 0.4);
+                        }
+
+                        &.answer {
+                            background-color: rgba(153, 205, 58, 0.4);
+                        }
+
+                        &.observation {
+                            background-color: rgba(210, 180, 140, 0.4);
+                        }
+
+                        &.example {
+                            background-color: rgba(176, 197, 222, 0.4);
+                        }
+
+                        &.def, &.definition {
+                            background-color: rgba(245, 222, 179, 0.6);
+                        }
+
+                        &.note {
+                            background-color: rgba(244, 164, 96, 0.4);
+                        }
+
+                        &.ale, &.alert {
+                            background-color: rgba(255, 99, 71, 0.4);
+                        }
+
+                        &.equ, &.equation {
+                            background-color: rgb(235, 235, 235);
+                        }
+
+                        &.theorem {
+                            background-color: rgb(235, 235, 235);
+                        }
+                    }
+
+                    /////////////////////////////////////////////
+                    // Column settings
+                    /////////////////////////////////////////////
+                    &.slide-column {
+                        @mixin columns($number-of-columns) {
+                            &.columns-#{$number-of-columns} {
+                                display: inline-block;
+                                vertical-align: top;
+                                $column-border-sum: 8%;
+                                width: calc((100% - #{$column-border-sum}) / #{$number-of-columns} - 7px);
+
+                                &:not(:last-child) {
+                                    margin-right: calc(#{$column-border-sum} / (#{$number-of-columns} - 1));
+                                }
+                            }
+                        }
+
+                        @for $i from 2 through 10 {
+                            @include columns(#{$i})
+                        }
+                    }
+
+                    /////////////////////////////////////////////
+                    // Video
+                    /////////////////////////////////////////////
+                    /* iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php */
+                    &.videoWrapper {
+                        position: relative;
+                        padding-bottom: 56.25%; /* 16:9 */
+                        padding-top: 0;
+                        height: 0;
+
+                        iframe {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                        }
+                    }
+
+                    /////////////////////////////////////////////
+                    // Math
+                    /////////////////////////////////////////////
+                    span.math.display {
+                        width: 100%;
+                        display: block;
+                        text-align: center;
+
+                        .MathJax_Display {
+                            margin-top: 1em;
+                            margin-bottom: 1em;
+                        }
+                    }
+                }
+
+                /////////////////////////////////////////////
+                // Media
+                /////////////////////////////////////////////
+                img {
+                    max-width: 100%;
+                    margin: 0 auto;
+                    display: block;
+                    border: none;
+                    box-shadow: none;
+
+                    &.float-left {
+                        float: left;
+                    }
+
+                    &.float-right {
+                        float: right;
+                    }
+                }
+
+                figure {
+                    margin: 0 0 0 0;
+
+                    figcaption {
+                        font-size: 0.8em;
+                        font-style: italic;
+                        text-align: center;
+                    }
+                }
+
+                video {
+                    width: 100%;
+                    margin: 0 auto;
+                    display: block;
+                }
+
+                &.img-center img {
+                    margin: 0 auto;
+                    display: block;
+                }
+
+                &.img-nocenter img {
+                    margin: 0 0;
+                    display: inline;
+                }
+
+                /////////////////////////////////////////////
+                // Source code
+                /////////////////////////////////////////////
+                div.sourceCode {
+                    margin: 0 -0.7em;
+                    padding: 0.4em 0.7em;
+                    background: rgba(0, 0, 0, 0.03);
+                    border-radius: 0.25em;
+
+                    pre {
+                        display: block;
+                        position: relative;
+                        width: 100%;
+                        text-align: left;
+                        line-height: 1.5em;
+                        word-wrap: break-word;
+                        box-shadow: none;
+                        font-size: 90%;
+
+                        code {
+                            display: block;
+                            overflow: auto;
+                            max-height: 500px;
+                            word-wrap: normal;
+                            border: none;
+                            font-family: 'Source Code Pro', monospace;
+                        }
+                    }
+                }
+
+                /////////////////////////////////////////////
+                // References
+                /////////////////////////////////////////////
+                .references {
+                    height: 17.5em;
+                    overflow-y: scroll;
+
+                    div {
+                        margin-bottom: 0.5em;
+                    }
+                }
+
+                /////////////////////////////////////////////
+                // Tables
+                /////////////////////////////////////////////
+                table {
+                    margin: auto;
+                    border-collapse: collapse;
+                    border-spacing: 0;
+
+                    th {
+                        font-weight: bold;
+                    }
+
+                    th,
+                    td {
+                        text-align: left;
+                        padding: 0.2em 0.5em 0.2em 0.5em;
+                        border-bottom: 1px solid;
+                    }
+
+                    th[align="center"],
+                    td[align="center"] {
+                        text-align: center;
+                    }
+
+                    th[align="right"],
+                    td[align="right"] {
+                        text-align: right;
+                    }
+
+                    tr:last-child td {
+                        border-bottom: none;
+                    }
+                }
+            }
+        }
+
+        /////////////////////////////////////////////
+        // Progress bar
+        /////////////////////////////////////////////
+        .progress {
+            background: rgba(0, 0, 0, 0.2);
+
+            span {
+                background: #777;
+                -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+                -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+                transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+            }
+        }
+
+        /////////////////////////////////////////////
+        // Navigation controls
+        /////////////////////////////////////////////
+        .controls {
+            button {
+                opacity: 0;
+            }
+
+            .enabled:active {
+                margin-top: 0;
+            }
+
+            :focus {
+                outline: none;
+            }
+
+            .slide-number {
+                color: #009;
+                background-color: rgba(255, 255, 255, 0);
+            }
+        }
+
+        .roll span:after {
+            color: #fff;
+            background: #00004d;
+        }
+
+        /////////////////////////////////////////////
+        // Reveal templates
+        /////////////////////////////////////////////
+        .white {
+            color: #eee;
+
+            h1,
+            h2 {
+                color: #eee;
+            }
+        }
+
+        .black {
+            h1,
+            h2 {
+                color: #111;
+            }
+        }
+
+        /////////////////////////////////////////////
+        // Speaker notes
+        /////////////////////////////////////////////
+        .speaker-notes {
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                color: #FFF;
+                font-weight: bold;
+                margin-bottom: 0.2em;
+            }
+
+            h1 {
+                text-decoration: underline;
+                margin-bottom: 0.4em;
+            }
+        }
+
+        /////////////////////////////////////////////
+        // Font size modifiers
+        /////////////////////////////////////////////
+        .medium {
+            font-size: $medium-font-size;
+        }
+
+        .xx-small {
+            font-size: $xx-small-font-size;
+        }
+
+        .x-small {
+            font-size: $x-small-font-size;
+        }
+
+        .small {
+            font-size: $small-font-size;
+        }
+
+        .large {
+            font-size: $large-font-size;
+        }
+
+        .x-large {
+            font-size: $x-large-font-size;
+        }
+
+        .xx-large {
+            font-size: $xx-large-font-size;
+        }
+    }
+
+    /////////////////////////////////////////////
+    // Text selection
+    /////////////////////////////////////////////
+    ::selection {
+        color: white;
+        background: rgba(0, 0, 0, 0.85);
+        text-shadow: none;
+    }
+}
