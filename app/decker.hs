@@ -16,7 +16,7 @@ import Project
 import Resources
 import System.Posix.Files
 import System.Directory
-       (copyFile, doesDirectoryExist, createDirectoryIfMissing)
+       (copyFile, doesDirectoryExist, createDirectoryIfMissing, removeFile)
 import System.FilePath ()
 import qualified Text.Mustache as M ()
 import Text.Pandoc ()
