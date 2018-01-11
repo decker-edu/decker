@@ -8,7 +8,7 @@ build:
 clean:
 	stack clean
 
-install: build
+install: build clean
 	stack install
 
 dist: clean build
