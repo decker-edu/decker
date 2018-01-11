@@ -14,13 +14,16 @@ import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import System.Directory (copyFile)
+import System.Posix.Files
+import System.Directory
+       (copyFile, doesDirectoryExist, createDirectoryIfMissing)
 import System.FilePath ()
 import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
 import qualified Text.Sass as Sass
 import Utilities
+import Control.Monad.Extra
 
 main :: IO ()
 main = do
@@ -63,12 +66,12 @@ main = do
     phony "version" $ putNormal $ "decker version " ++ deckerVersion
     --
     phony "decks" $ do
-      decksA >>= need
       need ["support"]
+      decksA >>= need
     --
     phony "html" $ do
-      everythingA <++> indexA >>= need
       need ["support"]
+      everythingA <++> indexA >>= need
     --
     -- phony "pdf" $ pagesPdfA <++> handoutsPdfA <++> indexA >>= need
     --
@@ -163,7 +166,6 @@ main = do
       "//*.css" %> \out -> do
         let src = out -<.> ".scss"
         exists <- doesFileExist src
-        putNormal $ src ++ " exists: " ++ (show exists)
         when exists $ do
           need [src]
           putNormal ("# scss (for " ++ makeRelativeTo projectDir out ++ ")")
@@ -196,7 +198,11 @@ main = do
       everythingA <++> everythingPdfA >>= mapM_ putNormal
       putNormal ""
     --
-    phony "support" $ do liftIO $ writeResourceFiles "support" supportDir
+    phony "support" $
+      liftIO $ do
+        unlessM (System.Directory.doesDirectoryExist supportDir) $ do
+          createDirectoryIfMissing True publicDir
+          createSymbolicLink  (appDataDir </> "support") supportDir
     --
     phony "check" checkExternalPrograms
     --
