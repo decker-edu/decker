@@ -162,6 +162,7 @@ main = do
         need [src]
         pdflatex ["-output-directory", dir, src]
         pdf2svg [pdf, out]
+        liftIO $ removeFile pdf
     priority 2 $
       "//*.css" %> \out -> do
         let src = out -<.> ".scss"
@@ -180,6 +181,9 @@ main = do
     phony "clean" $ do
       removeFilesAfter publicDir ["//"]
       removeFilesAfter projectDir cruft
+      when isDevelopmentVersion $
+        removeFilesAfter appDataDir ["//"]
+        
     --
     phony "help" $ do
       text <- liftIO $ getResourceString "template/help-page.md"

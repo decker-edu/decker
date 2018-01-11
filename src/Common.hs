@@ -2,16 +2,23 @@
 module Common
   ( DeckerException(..)
   , deckerVersion
+  , isDevelopmentVersion
   ) where
 
 import Control.Exception
 import Data.Typeable
-import Data.Version (showVersion)
+import Data.Version (showVersion, versionBranch)
 import Paths_decker (version)
 
 -- | The version from the cabal file
 deckerVersion :: String
 deckerVersion = showVersion version
+
+-- | Is this a developement version? Development versions have 4 branches, and
+-- the 4th branch number is always 0. Release branches have only three.
+isDevelopmentVersion :: Bool
+isDevelopmentVersion =
+  (length $ versionBranch version) == 4 && (versionBranch version) !! 3 == 0
 
 -- | Tool specific exceptions
 data DeckerException

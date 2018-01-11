@@ -197,6 +197,7 @@ getPandocWriter format =
 
 versionCheck :: Meta -> Action ()
 versionCheck meta =
+  unless isDevelopmentVersion $
   case lookupMeta "decker-version" meta of
     Just (MetaInlines version) -> check $ stringify version
     Just (MetaString version) -> check version
