@@ -297,23 +297,10 @@ body {
                     /////////////////////////////////////////////
                     // Column settings
                     /////////////////////////////////////////////
-                    &.slide-column {
-                        @mixin columns($number-of-columns) {
-                            &.columns-#{$number-of-columns} {
-                                display: inline-block;
-                                vertical-align: top;
-                                $column-border-sum: 8%;
-                                width: calc((100% - #{$column-border-sum}) / #{$number-of-columns} - 7px);
-
-                                &:not(:last-child) {
-                                    margin-right: calc(#{$column-border-sum} / (#{$number-of-columns} - 1));
-                                }
-                            }
-                        }
-
-                        @for $i from 2 through 10 {
-                            @include columns(#{$i})
-                        }
+                    &.css-columns {
+                        column-count: 2;
+                        column-gap: 1em;
+                        column-rule-style: none;
                     }
 
                     /////////////////////////////////////////////
