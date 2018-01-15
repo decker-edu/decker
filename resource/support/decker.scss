@@ -420,13 +420,15 @@ body {
 
                 // Special case: source code inside highlighted box
                 div.box {
-                    div.sourceCode {
-                        margin: 0;
-                        background: rgba(255, 255, 255, 0.4);
-                        padding: 0 0.2em;
+                    &.question, &.answer, &.observation, &.example, &.def, &.definition, &.note, &.ale, &.alert, &.equ, &.equation, &.theorem {
+                        div.sourceCode {
+                            margin: 0;
+                            background: rgba(255, 255, 255, 0.4);
+                            padding: 0 0.2em;
 
-                        pre {
-                            margin: 0.2em 0;
+                            pre {
+                                margin: 0.2em 0;
+                            }
                         }
                     }
                 }
