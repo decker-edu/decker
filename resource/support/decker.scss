@@ -299,8 +299,14 @@ body {
                     /////////////////////////////////////////////
                     &.css-columns {
                         column-count: 2;
-                        column-gap: 1.5em;
+                        column-gap: 2em;
                         column-rule-style: none;
+                        padding-left: 0.7em;
+                        margin-left: -0.7em;
+
+                        >* {
+                            break-inside: avoid-column;
+                        }
                     }
 
                     /////////////////////////////////////////////
@@ -408,6 +414,19 @@ body {
                             word-wrap: normal;
                             border: none;
                             font-family: 'Source Code Pro', monospace;
+                        }
+                    }
+                }
+
+                // Special case: source code inside highlighted box
+                div.box {
+                    div.sourceCode {
+                        margin: 0;
+                        background: rgba(255, 255, 255, 0.4);
+                        padding: 0 0.2em;
+
+                        pre {
+                            margin: 0.2em 0;
                         }
                     }
                 }
