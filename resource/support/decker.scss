@@ -352,6 +352,7 @@ body {
                     display: block;
                     border: none;
                     box-shadow: none;
+                    border-radius: 0.25em;
 
                     &.float-left {
                         float: left;
@@ -406,6 +407,7 @@ body {
                         word-wrap: break-word;
                         box-shadow: none;
                         font-size: 90%;
+                        margin: 0;
 
                         code {
                             display: block;
