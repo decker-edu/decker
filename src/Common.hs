@@ -7,6 +7,8 @@ module Common
   , Disposition(..)
   , MediaType(..)
   , Decker
+  , needFile
+  , needFiles
   , deckerVersion
   ) where
 
@@ -14,6 +16,7 @@ import Control.Exception
 import Control.Monad.State
 import Data.Typeable
 import Data.Version (showVersion)
+import Development.Shake (Action, need)
 import Network.URI as U
 import Paths_decker (version)
 
@@ -47,13 +50,27 @@ instance Show DeckerException where
   show RsyncUrlException =
     "attributes 'destinationRsyncHost' or 'destinationRsyncPath' not defined in meta data"
 
+type Decker = StateT DeckerState Action
+
+needFile :: FilePath -> Decker ()
+needFile path = lift $ need [path]
+
+needFiles :: [FilePath] -> Decker ()
+needFiles pathes = lift $ need pathes
+
 data DeckerState = DeckerState
   { disposition :: Disposition
   , slideCount :: Int
   , externalReferences :: [U.URI]
-  }
+  , scripts :: [Script]
+  } deriving (Eq, Show)
 
-type Decker = StateT DeckerState IO
+data Script
+  = ScriptURI { scriptLang :: String
+              , scriptUri :: U.URI }
+  | ScriptSource { scriptLang :: String
+                 , scriptSource :: String }
+  deriving (Eq, Show)
 
 data Layout
   = Deck

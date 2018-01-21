@@ -29,6 +29,7 @@ import Control.Arrow
 import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
+import Control.Monad.Trans.Class
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.HashMap.Lazy as HashMap
@@ -45,6 +46,7 @@ import Debug.Trace
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Filter
+import Macro
 import Meta
 import Network.URI
 import Project
@@ -180,9 +182,8 @@ markdownToHtmlDeck markdownFile out = do
             ]
         , writerCiteMethod = Citeproc
         }
-  pandoc <- readAndPreprocessMarkdown markdownFile (Disposition Deck Html)
-  processed <- processPandocDeck "revealjs" pandoc
-  writePandocString "revealjs" options out processed
+  readAndProcessMarkdown markdownFile (Disposition Deck Html) >>=
+    writePandocString "revealjs" options out
 
 -- | Selects a matching pandoc string writer for the format string, or throws an
 -- exception.
@@ -212,6 +213,28 @@ versionCheck meta =
 
 -- | Reads a markdownfile, expands the included files, and substitutes mustache
 -- template variables and calls need.
+readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
+readAndProcessMarkdown markdownFile disposition = do
+  readMetaMarkdown markdownFile >>= processIncludes baseDir >>=
+    processPandoc pipeline disposition
+  where
+    baseDir = takeDirectory markdownFile
+    pipeline :: Pandoc -> Decker Pandoc
+    pipeline =
+      concatM
+        [ expandDeckerMacros
+        , renderMediaTags
+        , makeSlides
+        , renderCodeBlocks
+        , provisionResources baseDir
+        , processCitesWithDefault
+        ]
+  -- Disable automatic caching of remote images for a while
+  -- >>= walkM (cacheRemoteImages (cache dirs))
+
+-- | Reads a markdownfile, expands the included files, and substitutes mustache
+-- template variables and calls need.
+{--
 readAndPreprocessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndPreprocessMarkdown markdownFile disposition = do
   let baseDir = takeDirectory markdownFile
@@ -220,10 +243,18 @@ readAndPreprocessMarkdown markdownFile disposition = do
   versionCheck meta
   let method = provisioningFromMeta meta
   mapMetaResources (provisionMetaResource method baseDir) pandoc >>=
+    expandDeckerMacros >>=
     renderCodeBlocks >>=
     mapResources (provisionResource method baseDir)
   -- Disable automatic caching of remote images for a while
   -- >>= walkM (cacheRemoteImages (cache dirs))
+--}
+provisionResources :: FilePath -> Pandoc -> Decker Pandoc
+provisionResources baseDir pandoc@(Pandoc meta _) =
+  lift $ do
+    let method = provisioningFromMeta meta
+    mapMetaResources (provisionMetaResource method baseDir) pandoc >>=
+      mapResources (provisionResource method baseDir)
 
 lookupBool :: String -> Bool -> Meta -> Bool
 lookupBool key def meta =
@@ -290,22 +321,16 @@ markdownToHtmlPage markdownFile out = do
   let options =
         pandocWriterOpts
         { writerHtml5 = True
-        -- , writerStandalone = True
         , writerTemplate = Just template
         , writerHighlight = True
-        -- , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
             MathJax
               (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-        -- ,writerHTMLMathMethod =
-        --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
-        --          (supportDir </> "katex-0.6.0/katex.min.css")
         , writerVariables = [("decker-support-dir", supportDir)]
         , writerCiteMethod = Citeproc
         }
-  pandoc <- readAndPreprocessMarkdown markdownFile (Disposition Page Html)
-  processed <- processPandocPage "html5" pandoc
-  writePandocString "html5" options out processed
+  readAndProcessMarkdown markdownFile (Disposition Page Html) >>=
+    writePandocString "html5" options out
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
@@ -318,14 +343,12 @@ markdownToPdfPage markdownFile out = do
         , writerHighlight = True
         , writerCiteMethod = Citeproc
         }
-  pandoc <- readAndPreprocessMarkdown markdownFile (Disposition Page Pdf)
-  processed <- processPandocPage "latex" pandoc
-  putNormal $ "# pandoc (for " ++ out ++ ")"
-  pandocMakePdf options processed out
+  readAndProcessMarkdown markdownFile (Disposition Page Pdf) >>=
+    pandocMakePdf options out
 
-pandocMakePdf :: WriterOptions -> Pandoc -> FilePath -> Action ()
-pandocMakePdf options processed out = do
-  result <- liftIO $ makePDF "pdflatex" writeLaTeX options processed
+pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
+pandocMakePdf options out pandoc = do
+  result <- liftIO $ makePDF "pdflatex" writeLaTeX options pandoc
   case result of
     Left err -> throw $ PandocException (show err)
     Right pdf -> liftIO $ LB.writeFile out pdf
@@ -334,8 +357,6 @@ pandocMakePdf options processed out = do
 markdownToHtmlHandout :: FilePath -> FilePath -> Action ()
 markdownToHtmlHandout markdownFile out = do
   putCurrentDocument out
-  pandoc <- readAndPreprocessMarkdown markdownFile (Disposition Handout Html)
-  processed <- processPandocHandout "html" pandoc
   supportDir <- getRelativeSupportDir out
   template <- getTemplate "handout.html"
   let options =
@@ -349,14 +370,13 @@ markdownToHtmlHandout markdownFile out = do
         , writerVariables = [("decker-support-dir", supportDir)]
         , writerCiteMethod = Citeproc
         }
-  writePandocString "html5" options out processed
+  readAndProcessMarkdown markdownFile (Disposition Handout Html) >>=
+    writePandocString "html5" options out
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
 markdownToPdfHandout markdownFile out = do
   putCurrentDocument out
-  pandoc <- readAndPreprocessMarkdown markdownFile (Disposition Handout Pdf)
-  processed <- processPandocHandout "latex" pandoc
   template <- getTemplate "handout.tex"
   let options =
         pandocWriterOpts
@@ -364,8 +384,8 @@ markdownToPdfHandout markdownFile out = do
         , writerHighlight = True
         , writerCiteMethod = Citeproc
         }
-  putNormal $ "# pandoc (for " ++ out ++ ")"
-  pandocMakePdf options processed out
+  readAndProcessMarkdown markdownFile (Disposition Handout Pdf) >>=
+    pandocMakePdf options out
 
 -- | Reads a markdown file and returns a pandoc document. Handles meta data
 -- extraction and template substitution. All references to local resources are
@@ -388,9 +408,9 @@ readMetaMarkdown markdownFile = do
   let Pandoc _ blocks =
         readMarkdownOrThrow pandocReaderOpts $ T.unpack substituted
   let (MetaMap m) = combinedMeta
+  versionCheck (Meta m)
   let pandoc = Pandoc (Meta m) blocks
   -- adjust local media urls
-  -- mapResources (locateFileIfLocal (takeDirectory markdownFile)) pandoc
   mapResources (urlToFilePathIfLocal (takeDirectory markdownFile)) pandoc
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
@@ -444,15 +464,12 @@ mapAttributes transform (ident, classes, kv) = do
         else return kv
 
 mapInline :: (FilePath -> Action FilePath) -> Inline -> Action Inline
-mapInline transform img@(Image attr@(_, cls, _) inlines (url, title)) =
-  if not $ isMacro $ stringify inlines
-    then do
-      a <- mapAttributes transform attr
-      u <- transform url
-      return $ Image a inlines (u, title)
-    else return img
+mapInline transform img@(Image attr@(_, cls, _) inlines (url, title)) = do
+  a <- mapAttributes transform attr
+  u <- transform url
+  return $ Image a inlines (u, title)
 mapInline transform lnk@(Link attr@(_, cls, _) inlines (url, title)) =
-  if not (isMacro $ stringify inlines) && "resource" `elem` cls
+  if "resource" `elem` cls
     then do
       a <- mapAttributes transform attr
       u <- transform url
@@ -544,35 +561,18 @@ processIncludes baseDir (Pandoc meta blocks) = do
       return $ included : result
     include _ result block = return $ [block] : result
 
-processCitesWithDefault :: Pandoc -> Action Pandoc
-processCitesWithDefault pandoc@(Pandoc meta blocks) = do
-  document <-
-    do case lookupMeta "csl" meta of
-         Nothing -> do
-           dir <- appData <$> getProjectDirs
-           let defaultCsl = dir </> "template" </> "acm-sig-proceedings.csl"
-           let cslMeta = setMeta "csl" (MetaString defaultCsl) meta
-           return (Pandoc cslMeta blocks)
-         _ -> return pandoc
-  liftIO $ processCites' document
-
-processPandocPage :: String -> Pandoc -> Action Pandoc
-processPandocPage format pandoc = do
-  cited <- processCitesWithDefault pandoc
-  return $ (renderMediaTags (Disposition Page Html) . expandMacros (Format format)) cited
-
-processPandocDeck :: String -> Pandoc -> Action Pandoc
-processPandocDeck format pandoc = do
-  cited <- processCitesWithDefault pandoc
-  return $
-    (renderMediaTags (Disposition Deck Html) .
-     makeSlides (Format format) . expandMacros (Format format))
-      cited
-
-processPandocHandout :: String -> Pandoc -> Action Pandoc
-processPandocHandout format pandoc = do
-  cited <- processCitesWithDefault pandoc
-  return $ (renderMediaTags (Disposition Handout Html) . expandMacros (Format format)) cited
+processCitesWithDefault :: Pandoc -> Decker Pandoc
+processCitesWithDefault pandoc@(Pandoc meta blocks) =
+  lift $ do
+    document <-
+      do case lookupMeta "csl" meta of
+           Nothing -> do
+             dir <- appData <$> getProjectDirs
+             let defaultCsl = dir </> "template" </> "acm-sig-proceedings.csl"
+             let cslMeta = setMeta "csl" (MetaString defaultCsl) meta
+             return (Pandoc cslMeta blocks)
+           _ -> return pandoc
+    liftIO $ processCites' document
 
 type StringWriter = WriterOptions -> Pandoc -> String
 

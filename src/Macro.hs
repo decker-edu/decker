@@ -3,13 +3,13 @@
 
 module Macro
   ( expandDeckerMacros
-  , MacroFunc
   ) where
 
 import Common
 import Control.Monad.State
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
+import Data.Maybe
 import System.FilePath
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
@@ -24,11 +24,6 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
 import Text.Read
-
-expandDeckerMacros :: Meta -> Inline -> Decker Inline
-expandDeckerMacros meta inline = return inline
-
-type MacroFunc = [String] -> Attr -> Target -> Format -> Meta -> Inline
 
 type MacroAction = [String] -> Attr -> Target -> Meta -> Decker Inline
 
@@ -81,14 +76,14 @@ embedYoutubePdf args attr (vid, _) =
       printf "http://img.youtube.com/vi/%s/maxresdefault.jpg" vid :: String
     text = printf "YouTube: %s" vid :: String
 
-youtube :: MacroFunc
+youtube :: MacroAction
 youtube args attr target meta = do
   disp <- gets disposition
   case disp of
     Disposition _ Html -> return $ embedYoutubeHtml args attr target
     Disposition _ Pdf -> return $ embedYoutubePdf args attr target
 
-fontAwesome :: MacroFunc
+fontAwesome :: MacroAction
 fontAwesome _ _ (iconName, _) _ = do
   disp <- gets disposition
   case disp of
@@ -97,7 +92,7 @@ fontAwesome _ _ (iconName, _) _ = do
       RawInline (Format "html") $ "<i class=\"fa fa-" ++ iconName ++ "\"></i>"
     Disposition _ Pdf -> return $ Str $ "[" ++ iconName ++ "]"
 
-metaValue :: MacroFunc
+metaValue :: MacroAction
 metaValue _ _ (key, _) meta =
   case splitOn "." key of
     [] -> return $ Str key
@@ -109,7 +104,7 @@ metaValue _ _ (key, _) meta =
     lookup' (k:ks) (Just (MetaMap metaMap)) = lookup' ks (Map.lookup k metaMap)
     lookup' _ _ = Strikeout [Str key]
 
-type MacroMap = Map.Map String MacroFunc
+type MacroMap = Map.Map String MacroAction
 
 macroMap :: MacroMap
 macroMap =
@@ -139,21 +134,15 @@ onlyStrings = reverse . foldl only []
     only ss (Str s) = s : ss
     only ss _ = ss
 
-expand :: Inline -> Format -> Meta -> Maybe Inline
-expand (Link attr text target) format meta =
-  expand_ attr text target format meta
-expand x _ _ = Just x
+expandInlineMacros :: Meta -> Inline -> Decker Inline
+expandInlineMacros meta inline@(Link attr text target) = do
+  case parseMacro $ stringify text of
+    Just (name:args) -> do
+      case Map.lookup name macroMap of
+        Just macro -> macro args attr target meta
+        Nothing -> return inline
+    Nothing -> return inline
+expandInlineMacros meta inline = return inline
 
-expand_ :: Attr -> [Inline] -> Target -> Format -> Meta -> Maybe Inline
-expand_ attr text target format meta = do
-  name:args <- parseMacro $ stringify text
-  func <- Map.lookup name macroMap
-  return (func args attr target format meta)
-
-expandInlineMacros :: Format -> Meta -> Inline -> Inline
-expandInlineMacros format meta inline =
-  fromMaybe inline (expand inline format meta)
-
-expandMacros :: Format -> Pandoc -> Pandoc
-expandMacros format doc@(Pandoc meta _) =
-  walk (expandInlineMacros format meta) doc
+expandDeckerMacros :: Pandoc -> Decker Pandoc
+expandDeckerMacros doc@(Pandoc meta _) = walkM (expandInlineMacros meta) doc

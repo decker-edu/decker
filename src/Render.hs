@@ -7,6 +7,8 @@ module Render
   ) where
 
 import CRC32
+import Common
+import Control.Monad.Trans.Class
 import Context
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8 as B
@@ -24,7 +26,7 @@ import Text.Pandoc.Walk
 import Text.Printf
 
 -- | Evaluate code blocks
-renderCodeBlocks :: Pandoc -> Action Pandoc
+renderCodeBlocks :: Pandoc -> Decker Pandoc
 renderCodeBlocks pandoc =
   walk maybeRenderImage <$> walkM maybeRenderCodeBlock pandoc
 
@@ -43,6 +45,7 @@ dotPrelude _ = ""
 gnuplotPrelude :: String -> String
 gnuplotPrelude _ = "set terminal svg;"
 
+-- | The map of all rendering processors.
 processors :: Map.Map String Processor
 processors =
   Map.fromList
@@ -55,9 +58,13 @@ processors =
           "\\end{document}")
     ]
 
+-- | Calculates the list of all known file extensions that can be rendered into
+-- an SVG image.
 renderedCodeExtensions :: [String]
 renderedCodeExtensions = Map.foldr (\p es -> (extensions p) ++ es) [] processors
 
+-- | Selects a processor based on a list of CSS class names. The first processor
+-- that is mentioned in that list is returned.
 findProcessor :: [String] -> Maybe Processor
 findProcessor classes =
   if renderClass `elem` classes
@@ -66,6 +73,9 @@ findProcessor classes =
   where
     matching = Map.restrictKeys processors (Set.fromList classes)
 
+-- | Appends `.svg` to file urls with extensions that belong to a known render
+-- processor. The dependeny for the new file url is established at a later
+-- stage, along with the handling of the normal image file urls. 
 maybeRenderImage :: Inline -> Inline
 maybeRenderImage image@(Image (id, classes, namevals) inlines (url, title)) =
   if takeExtension url `elem` [".dot", ".gnuplot", ".tex"]
@@ -74,7 +84,7 @@ maybeRenderImage image@(Image (id, classes, namevals) inlines (url, title)) =
     else image
 maybeRenderImage inline = inline
 
-maybeRenderCodeBlock :: Block -> Action Block
+maybeRenderCodeBlock :: Block -> Decker Block
 maybeRenderCodeBlock code@(CodeBlock (id, classes, namevals) contents) =
   case findProcessor classes of
     Just processor -> do
@@ -94,9 +104,9 @@ svgDataUrl :: String -> String
 svgDataUrl svg =
   "data:image/svg+xml;base64," ++ (B.unpack (B64.encode (B.pack svg)))
 
-extractCodeIfChanged :: String -> Processor -> FilePath -> Action FilePath
+extractCodeIfChanged :: String -> Processor -> FilePath -> Decker FilePath
 extractCodeIfChanged basename processor code = do
-  projectDir <- project <$> getProjectDirs
+  projectDir <- project <$> (lift $ getProjectDirs)
   let crc = printf "%08x" (calc_crc32 code)
   let basepath =
         "generated" </>
@@ -104,15 +114,15 @@ extractCodeIfChanged basename processor code = do
   let extension = (head . extensions) processor
   let sourceFile = projectDir </> basepath <.> extension
   let svgFile = projectDir </> basepath <.> extension <.> ".svg"
-  publicResource <- getPublicResource
-  withResource publicResource 1 $
+  publicResource <- lift $ getPublicResource
+  lift $ withResource publicResource 1 $
     liftIO $
     unlessM (System.Directory.doesFileExist svgFile) $ do
       createDirectoryIfMissing True (takeDirectory sourceFile)
       writeFile
         sourceFile
         ((preamble processor) ++ "\n" ++ code ++ "\n" ++ (postamble processor))
-  need [svgFile]
+  needFile svgFile
   return svgFile
 
 defaultString :: String -> String -> String
