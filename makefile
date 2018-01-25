@@ -9,6 +9,7 @@ clean:
 	stack clean
 
 install: build
+	stack exec -- decker clean
 	stack install
 
 dist: clean build

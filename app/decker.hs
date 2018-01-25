@@ -3,7 +3,7 @@ import Action
 import Common
 import Context
 import Control.Exception
-import Control.Monad ()
+import Control.Monad (when)
 import Data.IORef ()
 import Data.List
 import Data.Maybe
@@ -14,13 +14,16 @@ import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import System.Environment
-import System.Exit
+import System.Posix.Files
+import System.Directory
+       (copyFile, doesDirectoryExist, createDirectoryIfMissing, removeFile)
 import System.FilePath ()
 import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
+import qualified Text.Sass as Sass
 import Utilities
+import Control.Monad.Extra
 
 main :: IO ()
 main = do
@@ -63,12 +66,12 @@ main = do
     phony "version" $ putNormal $ "decker version " ++ deckerVersion
     --
     phony "decks" $ do
-      decksA >>= need
       need ["support"]
+      decksA >>= need
     --
     phony "html" $ do
-      everythingA <++> indexA >>= need
       need ["support"]
+      everythingA <++> indexA >>= need
     --
     phony "pdf" $ pagesPdfA <++> handoutsPdfA <++> indexA >>= need
     --
@@ -159,10 +162,28 @@ main = do
         need [src]
         pdflatex ["-output-directory", dir, src]
         pdf2svg [pdf, out]
+        liftIO $ removeFile pdf
+    priority 2 $
+      "//*.css" %> \out -> do
+        let src = out -<.> ".scss"
+        exists <- doesFileExist src
+        when exists $ do
+          need [src]
+          putNormal ("# scss (for " ++ makeRelativeTo projectDir out ++ ")")
+          scss <- liftIO $ readFile src
+          result <- liftIO $ Sass.compileString scss Sass.def
+          case result of
+            Left err -> do
+              msg <- liftIO $ Sass.errorMessage err
+              throw (SassException msg)
+            Right css -> liftIO $ writeFile out css
     --
     phony "clean" $ do
       removeFilesAfter publicDir ["//"]
       removeFilesAfter projectDir cruft
+      when isDevelopmentVersion $
+        removeFilesAfter appDataDir ["//"]
+        
     --
     phony "help" $ do
       text <- liftIO $ getResourceString "template/help-page.md"
@@ -181,7 +202,11 @@ main = do
       everythingA <++> everythingPdfA >>= mapM_ putNormal
       putNormal ""
     --
-    phony "support" $ do liftIO $ writeResourceFiles "support" supportDir
+    phony "support" $
+      liftIO $ do
+        unlessM (System.Directory.doesDirectoryExist supportDir) $ do
+          createDirectoryIfMissing True publicDir
+          createSymbolicLink  (appDataDir </> "support") supportDir
     --
     phony "check" checkExternalPrograms
     --

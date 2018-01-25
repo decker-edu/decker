@@ -11,12 +11,13 @@ module Common
   , needFile
   , needFiles
   , deckerVersion
+  , isDevelopmentVersion
   ) where
 
 import Control.Exception
 import Control.Monad.State
 import Data.Typeable
-import Data.Version (showVersion)
+import Data.Version (showVersion, versionBranch)
 import Development.Shake (Action, need)
 import Network.URI as U
 import Paths_decker (version)
@@ -24,6 +25,12 @@ import Paths_decker (version)
 -- | The version from the cabal file
 deckerVersion :: String
 deckerVersion = showVersion version
+
+-- | Is this a developement version? Development versions have 4 branches, and
+-- the 4th branch number is always 0. Release branches have only three.
+isDevelopmentVersion :: Bool
+isDevelopmentVersion =
+  (length $ versionBranch version) == 4 && (versionBranch version) !! 3 == 0
 
 -- | Tool specific exceptions
 data DeckerException
@@ -36,6 +43,7 @@ data DeckerException
   | RsyncUrlException
   | DecktapeException String
   | ExternalException String
+  | SassException String
   deriving (Typeable)
 
 instance Exception DeckerException
@@ -45,11 +53,13 @@ instance Show DeckerException where
   show (ResourceException e) = e
   show (GitException e) = e
   show (HttpException e) = e
+  show RsyncUrlException =
+    "attributes 'destinationRsyncHost' or 'destinationRsyncPath' not defined in meta data"
   show (PandocException e) = e
   show (YamlException e) = e
   show (DecktapeException e) = "decktape.sh failed for reason: " ++ e
-  show RsyncUrlException =
-    "attributes 'destinationRsyncHost' or 'destinationRsyncPath' not defined in meta data"
+  show (ExternalException e) = e
+  show (SassException e) = e
 
 type Decker = StateT DeckerState Action
 

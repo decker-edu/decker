@@ -161,8 +161,10 @@ invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
 markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile out = do
   putCurrentDocument out
-  supportDir <- getRelativeSupportDir out
+  supportDirRel <- getRelativeSupportDir out
+  supportDir <- support <$> getProjectDirs
   template <- getTemplate "deck.html"
+  need [supportDir </> "decker.css"]
   let options =
         pandocWriterOpts
         { writerSlideLevel = Just 1
@@ -172,13 +174,13 @@ markdownToHtmlDeck markdownFile out = do
         -- , writerHighlightStyle = pygments
         , writerHTMLMathMethod =
             MathJax
-              (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+              (supportDirRel </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
         -- ,writerHTMLMathMethod =
-        --    KaTeX (supportDir </> "katex-0.6.0/katex.min.js")
-        --          (supportDir </> "katex-0.6.0/katex.min.css")
+        --    KaTeX (supportDirRel </> "katex-0.6.0/katex.min.js")
+        --          (supportDirRel </> "katex-0.6.0/katex.min.css")
         , writerVariables =
-            [ ("revealjs-url", supportDir </> "reveal.js-3.5.0")
-            , ("decker-support-dir", supportDir)
+            [ ("revealjs-url", supportDirRel </> "reveal.js-3.5.0")
+            , ("decker-support-dir", supportDirRel)
             ]
         , writerCiteMethod = Citeproc
         }
@@ -196,6 +198,7 @@ getPandocWriter format =
 
 versionCheck :: Meta -> Action ()
 versionCheck meta =
+  unless isDevelopmentVersion $
   case lookupMeta "decker-version" meta of
     Just (MetaInlines version) -> check $ stringify version
     Just (MetaString version) -> check version
