@@ -6,6 +6,7 @@ module Common
   , OutputFormat(..)
   , Disposition(..)
   , MediaType(..)
+  , Script(..)
   , Decker
   , needFile
   , needFiles
@@ -70,7 +71,7 @@ data Script
               , scriptUri :: U.URI }
   | ScriptSource { scriptLang :: String
                  , scriptSource :: String }
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 data Layout
   = Deck

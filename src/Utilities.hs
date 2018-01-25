@@ -219,36 +219,19 @@ readAndProcessMarkdown markdownFile disposition = do
     processPandoc pipeline disposition
   where
     baseDir = takeDirectory markdownFile
-    pipeline :: Pandoc -> Decker Pandoc
     pipeline =
       concatM
         [ expandDeckerMacros
+        , provisionResources baseDir
         , renderMediaTags
         , makeSlides
         , renderCodeBlocks
-        , provisionResources baseDir
         , processCitesWithDefault
+        , appendScripts
         ]
   -- Disable automatic caching of remote images for a while
   -- >>= walkM (cacheRemoteImages (cache dirs))
 
--- | Reads a markdownfile, expands the included files, and substitutes mustache
--- template variables and calls need.
-{--
-readAndPreprocessMarkdown :: FilePath -> Disposition -> Action Pandoc
-readAndPreprocessMarkdown markdownFile disposition = do
-  let baseDir = takeDirectory markdownFile
-  pandoc@(Pandoc meta _) <-
-    readMetaMarkdown markdownFile >>= processIncludes baseDir
-  versionCheck meta
-  let method = provisioningFromMeta meta
-  mapMetaResources (provisionMetaResource method baseDir) pandoc >>=
-    expandDeckerMacros >>=
-    renderCodeBlocks >>=
-    mapResources (provisionResource method baseDir)
-  -- Disable automatic caching of remote images for a while
-  -- >>= walkM (cacheRemoteImages (cache dirs))
---}
 provisionResources :: FilePath -> Pandoc -> Decker Pandoc
 provisionResources baseDir pandoc@(Pandoc meta _) =
   lift $ do

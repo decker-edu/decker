@@ -4,15 +4,18 @@
 module Render
   ( renderCodeBlocks
   , renderedCodeExtensions
+  , appendScripts
   ) where
 
 import CRC32
 import Common
-import Control.Monad.Trans.Class
 import Context
+import Control.Monad.State
+import Control.Monad.Trans.Class
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8 as B
 import Data.List
+import Data.List.Extra
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
@@ -21,6 +24,11 @@ import Extra
 import Project
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath.Posix
+import Text.Blaze (customAttribute)
+import Text.Blaze.Html.Renderer.String
+import Text.Blaze.Html5 as H ((!), script, toHtml, toValue)
+import Text.Blaze.Html5.Attributes as A
+       (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.Printf
@@ -31,9 +39,9 @@ renderCodeBlocks pandoc =
   walk maybeRenderImage <$> walkM maybeRenderCodeBlock pandoc
 
 data Processor = Processor
-  { extensions :: [String]
-  , preamble :: String
-  , postamble :: String
+  { srcExtensions :: [String]
+  , extension :: String
+  , compile :: String -> Attr -> Decker Inline
   } deriving (Show)
 
 renderClass :: String
@@ -58,10 +66,16 @@ processors =
           "\\end{document}")
     ]
 
+bracketCode :: String -> String -> Processor -> String -> Attr -> Decker String
+bracketCode preamble postamble processor code attr =
+  let contents = preamble ++ "\n" ++ code ++ "\n" ++ postamble
+  path = writeCompiled contents   
+
 -- | Calculates the list of all known file extensions that can be rendered into
 -- an SVG image.
 renderedCodeExtensions :: [String]
-renderedCodeExtensions = Map.foldr (\p es -> (extensions p) ++ es) [] processors
+renderedCodeExtensions =
+  Map.foldr (\p es -> (srcExtensions p) ++ es) [] processors
 
 -- | Selects a processor based on a list of CSS class names. The first processor
 -- that is mentioned in that list is returned.
@@ -111,11 +125,12 @@ extractCodeIfChanged basename processor code = do
   let basepath =
         "generated" </>
         (concat $ intersperse "-" [defaultString "code" basename, crc])
-  let extension = (head . extensions) processor
+  let extension = (head . srcExtensions) processor
   let sourceFile = projectDir </> basepath <.> extension
   let svgFile = projectDir </> basepath <.> extension <.> ".svg"
   publicResource <- lift $ getPublicResource
-  lift $ withResource publicResource 1 $
+  lift $
+    withResource publicResource 1 $
     liftIO $
     unlessM (System.Directory.doesFileExist svgFile) $ do
       createDirectoryIfMissing True (takeDirectory sourceFile)
@@ -129,3 +144,20 @@ defaultString :: String -> String -> String
 defaultString d str
   | null str = d
 defaultString _ str = str
+
+appendScripts :: Pandoc -> Decker Pandoc
+appendScripts pandoc@(Pandoc meta blocks) = do
+  disp <- gets disposition
+  case disp of
+    (Disposition _ Html) -> do
+      collected <- nubOrd <$> gets scripts
+      return $ Pandoc meta (blocks ++ map renderScript collected)
+    (Disposition _ _) -> return pandoc
+  where
+    renderScript (ScriptURI lang uri) =
+      RawBlock (Format "html") $
+      renderHtml $
+      H.script ! class_ "generated decker" ! src (toValue $ show uri) $ ""
+    renderScript (ScriptSource lang source) =
+      RawBlock (Format "html") $
+      renderHtml $ H.script ! class_ "generated decker" $ toHtml source
