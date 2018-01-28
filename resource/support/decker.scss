@@ -303,12 +303,28 @@ body {
                         column-rule-style: none;
                         padding-left: 0.7em;
                         margin-left: -0.7em;
-
-                        >* {
-                            break-inside: avoid-column;
-                        }
                     }
 
+                    &.box {
+                        break-inside: avoid-column;
+                    }
+
+                    &.multi-column-row {
+                        display:flex;
+                        flex-flow: row nowrap;
+
+                        div.column {flex: 1 1 0%;}
+                        div.column[grow="1"] {flex-grow:1;}
+                        div.column[grow="2"] {flex-grow:2;}
+                        div.column[grow="3"] {flex-grow:3;}
+                        div.column[grow="4"] {flex-grow:4;}
+                        div.column[grow="5"] {flex-grow:5;}
+                        div.column[grow="6"] {flex-grow:6;}
+                        div.column[grow="7"] {flex-grow:7;}
+                        div.column[grow="8"] {flex-grow:8;}
+                        div.column[grow="9"] {flex-grow:9;}
+                    }
+                                        
                     /////////////////////////////////////////////
                     // Video
                     /////////////////////////////////////////////

@@ -1,6 +1,4 @@
 ---
-css:
-- 'columns.css'
 history: True
 ---
 
