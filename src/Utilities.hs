@@ -219,13 +219,13 @@ versionCheck meta =
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disposition = do
   readMetaMarkdown markdownFile >>= processIncludes baseDir >>=
-    processPandoc pipeline disposition
+    processPandoc pipeline baseDir disposition
   where
     baseDir = takeDirectory markdownFile
     pipeline =
       concatM
         [ expandDeckerMacros
-        , provisionResources baseDir
+        , provisionResources
         , renderMediaTags
         , makeSlides
         , renderCodeBlocks
@@ -235,10 +235,11 @@ readAndProcessMarkdown markdownFile disposition = do
   -- Disable automatic caching of remote images for a while
   -- >>= walkM (cacheRemoteImages (cache dirs))
 
-provisionResources :: FilePath -> Pandoc -> Decker Pandoc
-provisionResources baseDir pandoc@(Pandoc meta _) =
+provisionResources :: Pandoc -> Decker Pandoc
+provisionResources pandoc@(Pandoc meta _) =
   lift $ do
     let method = provisioningFromMeta meta
+    baseDir <- gets basePath
     mapMetaResources (provisionMetaResource method baseDir) pandoc >>=
       mapResources (provisionResource method baseDir)
 
@@ -265,13 +266,14 @@ provisionMetaResource _ _ (key, path) = return path
 -- resolved against and copied or linked to public from 
 --    1. the project root 
 --    2. the local filesystem root 
--- 
+--
 -- Relative file URLs are resolved against and copied or linked to public from 
 --
 --    1. the directory path of the referencing file 
 --    2. the project root Copy and link operations target the public directory
---       in the project root and recreate the source directory structure. This
---       function is used to provision resources that are used at presentation
+--       in the project root and recreate the source directory structure. 
+--
+-- This function is used to provision resources that are used at presentation
 --       time.
 --
 -- Returns a public URL relative to base

@@ -69,8 +69,13 @@ needFile path = lift $ need [path]
 needFiles :: [FilePath] -> Decker ()
 needFiles pathes = lift $ need pathes
 
+addScript :: Script -> Decker ()
+addScript script = do
+  modify (\s -> s {scripts = scripts s ++ [script]})
+
 data DeckerState = DeckerState
-  { disposition :: Disposition
+  { basePath :: String
+  , disposition :: Disposition
   , slideCount :: Int
   , externalReferences :: [U.URI]
   , scripts :: [Script]

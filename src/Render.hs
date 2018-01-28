@@ -26,7 +26,7 @@ import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath.Posix
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 as H ((!), script, toHtml, toValue)
+import Text.Blaze.Html5 as H ((!), canvas, script, toHtml, toValue)
 import Text.Blaze.Html5.Attributes as A
        (alt, class_, height, id, src, style, title, width)
 import Text.Pandoc
@@ -41,7 +41,7 @@ renderCodeBlocks pandoc =
 data Processor = Processor
   { srcExtensions :: [String]
   , extension :: String
-  , compile :: String -> Attr -> Decker Inline
+  , compile :: Processor -> String -> Attr -> Decker Inline
   } deriving (Show)
 
 renderClass :: String
@@ -66,10 +66,21 @@ processors =
           "\\end{document}")
     ]
 
-bracketCode :: String -> String -> Processor -> String -> Attr -> Decker String
-bracketCode preamble postamble processor code attr =
+d3Canvas :: Processor -> FilePath -> Attr -> Decker Inline
+d3Canvas processor sourceFile (eid, classes, keyvals) = do
+  basePath <- gets basePath
+  sourceUrl <-
+    lift $ provisionResource (provisioningFromMeta meta) basePath sourceFile
+  addScript $ ScriptURI "javascript" "https://d3js.org/d3.v4.min.js"
+  addScript $ ScriptSource "javascript" sourceFile
+  return $ RawInline (Format "html") $ renderHtml $ canvas ! A.id (toValue eid)
+
+bracketCode ::
+     String -> String -> Processor -> FilePath -> Attr -> Decker Inline
+bracketCode preamble postamble processor sourceFile attr = do
   let contents = preamble ++ "\n" ++ code ++ "\n" ++ postamble
-  path = writeCompiled contents   
+  let path = writeCompiled contents
+  return $ Image attr [] (path, "")
 
 -- | Calculates the list of all known file extensions that can be rendered into
 -- an SVG image.

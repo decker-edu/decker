@@ -57,9 +57,9 @@ import Text.Printf
 import Text.Read
 
 processPandoc ::
-     (Pandoc -> Decker Pandoc) -> Disposition -> Pandoc -> Action Pandoc
-processPandoc transformation disposition pandoc =
-  evalStateT (transformation pandoc) (DeckerState disposition 0 [] [])
+     (Pandoc -> Decker Pandoc) -> FilePath -> Disposition -> Pandoc -> Action Pandoc
+processPandoc transformation basePath disposition pandoc =
+  evalStateT (transformation pandoc) (DeckerState basePath disposition 0 [] [])
 
 isSlideHeader :: Block -> Bool
 isSlideHeader (Header 1 _ _) = True
