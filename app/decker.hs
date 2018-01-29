@@ -4,6 +4,7 @@ import Common
 import Context
 import Control.Exception
 import Control.Monad (when)
+import Control.Monad.Extra
 import Data.IORef ()
 import Data.List
 import Data.Maybe
@@ -14,16 +15,16 @@ import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import System.Posix.Files
 import System.Directory
-       (copyFile, doesDirectoryExist, createDirectoryIfMissing, removeFile)
+       (copyFile, createDirectoryIfMissing, doesDirectoryExist,
+        removeFile)
 import System.FilePath ()
+import System.Posix.Files
 import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
 import qualified Text.Sass as Sass
 import Utilities
-import Control.Monad.Extra
 
 main :: IO ()
 main = do
@@ -181,9 +182,7 @@ main = do
     phony "clean" $ do
       removeFilesAfter publicDir ["//"]
       removeFilesAfter projectDir cruft
-      when isDevelopmentVersion $
-        removeFilesAfter appDataDir ["//"]
-        
+      when isDevelopmentVersion $ removeFilesAfter appDataDir ["//"]
     --
     phony "help" $ do
       text <- liftIO $ getResourceString "template/help-page.md"
@@ -202,11 +201,20 @@ main = do
       everythingA <++> everythingPdfA >>= mapM_ putNormal
       putNormal ""
     --
-    phony "support" $
-      liftIO $ do
-        unlessM (System.Directory.doesDirectoryExist supportDir) $ do
-          createDirectoryIfMissing True publicDir
-          createSymbolicLink  (appDataDir </> "support") supportDir
+    phony "support" $ do
+      metaData <- readMetaDataForDir projectDir
+      unlessM (Development.Shake.doesDirectoryExist supportDir) $ do
+        liftIO $ createDirectoryIfMissing True publicDir
+        case metaValueAsString "provisioning" metaData of
+          Just value
+            | value == show SymLink ->
+              liftIO $ createSymbolicLink (appDataDir </> "support") supportDir
+          Just value
+            | value == show Copy ->
+              rsync [(appDataDir </> "support/"), supportDir]
+          Nothing ->
+            liftIO $ createSymbolicLink (appDataDir </> "support") supportDir
+          _ -> return ()
     --
     phony "check" checkExternalPrograms
     --
