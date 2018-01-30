@@ -313,7 +313,24 @@ body {
                         display:flex;
                         flex-flow: row nowrap;
 
-                        div.column {flex: 1 1 0%;}
+                        $margin-size: 0.74em;
+
+                        div.column {
+                            flex: 1 1 0%;
+
+                            margin-left: $margin-size;
+                            margin-right: $margin-size;
+                            
+                            &:first-child {
+                                margin-left: 0em;
+                                margin-right: $margin-size;
+                                }
+
+                            &:last-child {
+                                margin-left: $margin-size;
+                                margin-right: 0em;
+                            }
+                        }
                         div.column[grow="1"] {flex-grow:1;}
                         div.column[grow="2"] {flex-grow:2;}
                         div.column[grow="3"] {flex-grow:3;}

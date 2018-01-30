@@ -117,3 +117,28 @@ history: True
 
 ![](include/06-metal.png)
 
+# Slide Masters {layout="columns"}
+
+## Box Mania {.top}
+
+- Even in *three* columns
+
+## Example {.left .alert}
+
+![](include/06-metal.png)
+
+## Example {.center .def}
+
+![](include/06-metal.png)
+
+Some more Text after the picture.
+
+## 
+
+And some more still after the box.
+
+## Example {.right .note}
+
+![](include/06-metal.png)
+
+
