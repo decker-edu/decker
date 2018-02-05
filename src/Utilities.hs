@@ -218,8 +218,9 @@ versionCheck meta =
 -- template variables and calls need.
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disposition = do
-  readMetaMarkdown markdownFile >>= processIncludes baseDir >>=
-    processPandoc pipeline baseDir disposition
+  Pandoc meta blocks <-
+    readMetaMarkdown markdownFile >>= processIncludes baseDir
+  processPandoc pipeline baseDir disposition (provisioningFromMeta meta) pandoc
   where
     baseDir = takeDirectory markdownFile
     pipeline =
@@ -236,12 +237,10 @@ readAndProcessMarkdown markdownFile disposition = do
   -- >>= walkM (cacheRemoteImages (cache dirs))
 
 provisionResources :: Pandoc -> Decker Pandoc
-provisionResources pandoc@(Pandoc meta _) =
-  lift $ do
-    let method = provisioningFromMeta meta
-    baseDir <- gets basePath
-    mapMetaResources (provisionMetaResource method baseDir) pandoc >>=
-      mapResources (provisionResource method baseDir)
+provisionResources pandoc =
+  lift $
+  mapMetaResources provisionMetaResource pandoc >>=
+  mapResources provisionResource
 
 lookupBool :: String -> Bool -> Meta -> Bool
 lookupBool key def meta =
@@ -249,18 +248,19 @@ lookupBool key def meta =
     Just (MetaBool b) -> b
     _ -> def
 
-provisionMetaResource ::
-     Provisioning -> FilePath -> (String, FilePath) -> Action FilePath
-provisionMetaResource method base (key, path)
+provisionMetaResource :: (String, FilePath) -> Decker FilePath
+provisionMetaResource (key, path)
   | key `elem` runtimeMetaKeys = do
-    filePath <- urlToFilePathIfLocal base path
-    provisionResource method base filePath
-provisionMetaResource method base (key, path)
+    base <- gets basePath
+    filePath <- lift $ urlToFilePathIfLocal base path
+    provisionResource filePath
+provisionMetaResource (key, path)
   | key `elem` compiletimeMetaKeys = do
+    base <- gets basePath
     filePath <- urlToFilePathIfLocal base path
     need [filePath]
     return filePath
-provisionMetaResource _ _ (key, path) = return path
+provisionMetaResource (key, path) = return path
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs are
 -- resolved against and copied or linked to public from 
@@ -277,22 +277,25 @@ provisionMetaResource _ _ (key, path) = return path
 --       time.
 --
 -- Returns a public URL relative to base
-provisionResource :: Provisioning -> FilePath -> FilePath -> Action FilePath
-provisionResource provisioning base path =
+provisionResource :: FilePath -> Decker FilePath
+provisionResource path = do
+  base <- gets basePath
+  method <- gets provisioning
   case parseRelativeReference path of
     Nothing -> return path
     Just uri -> do
-      dirs <- getProjectDirs
+      dirs <- lift $ getProjectDirs
       need [uriPath uri]
       let resource = resourcePathes dirs base uri
       publicResource <- getPublicResource
-      withResource publicResource 1 $ do
+      withResource publicResource 1 $
+        lift $
         liftIO $
-          case provisioning of
-            Copy -> copyResource resource
-            SymLink -> linkResource resource
-            Absolute -> absRefResource resource
-            Relative -> relRefResource base resource
+        case provisioning of
+          Copy -> copyResource resource
+          SymLink -> linkResource resource
+          Absolute -> absRefResource resource
+          Relative -> relRefResource base resource
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do

@@ -66,21 +66,25 @@ processors =
           "\\end{document}")
     ]
 
+-- | Assumes that the code is stored in a file regardless of origin.
+process :: Processor -> FilePath -> Attr -> Decker Inline
+
 d3Canvas :: Processor -> FilePath -> Attr -> Decker Inline
 d3Canvas processor sourceFile (eid, classes, keyvals) = do
-  basePath <- gets basePath
-  sourceUrl <-
-    lift $ provisionResource (provisioningFromMeta meta) basePath sourceFile
+  sourceUrl <- provisionResource sourceFile
   addScript $ ScriptURI "javascript" "https://d3js.org/d3.v4.min.js"
   addScript $ ScriptSource "javascript" sourceFile
   return $ RawInline (Format "html") $ renderHtml $ canvas ! A.id (toValue eid)
 
-bracketCode ::
+bracketShakeCompile ::
      String -> String -> Processor -> FilePath -> Attr -> Decker Inline
 bracketCode preamble postamble processor sourceFile attr = do
   let contents = preamble ++ "\n" ++ code ++ "\n" ++ postamble
   let path = writeCompiled contents
   return $ Image attr [] (path, "")
+
+shakeCompile :: Processor -> FilePath -> Attr -> Decker Inline
+shakeCompile processor sourceFile attr =
 
 -- | Calculates the list of all known file extensions that can be rendered into
 -- an SVG image.

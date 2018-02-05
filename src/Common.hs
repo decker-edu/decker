@@ -76,6 +76,7 @@ addScript script = do
 data DeckerState = DeckerState
   { basePath :: String
   , disposition :: Disposition
+  , provisioning :: Provisioning
   , slideCount :: Int
   , externalReferences :: [U.URI]
   , scripts :: [Script]
