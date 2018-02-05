@@ -9,6 +9,7 @@ import Data.IORef ()
 import Data.List
 import Data.Maybe
 import Data.String ()
+import Debug.Trace
 import Development.Shake
 import Development.Shake.FilePath
 import External
@@ -20,6 +21,7 @@ import System.Directory
         removeFile)
 import System.FilePath ()
 import System.Posix.Files
+import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
@@ -189,6 +191,7 @@ main = do
       liftIO $ putStr text
     --
     phony "plan" $ do
+      metaData <- readMetaDataForDir projectDir
       putNormal $ "\nproject directory: " ++ projectDir
       putNormal $ "public directory: " ++ publicDir
       putNormal $ "support directory: " ++ supportDir
@@ -199,7 +202,8 @@ main = do
       allSourcesA >>= mapM_ putNormal
       putNormal "\ntargets:\n"
       everythingA <++> everythingPdfA >>= mapM_ putNormal
-      putNormal ""
+      putNormal "\ntop level meta data:\n"
+      putNormal $ groom metaData
     --
     phony "support" $ do
       metaData <- readMetaDataForDir projectDir

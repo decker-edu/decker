@@ -68,6 +68,7 @@ executable decker
                      , pandoc
                      , pandoc-citeproc
                      , pandoc-types
+                     , groom
                      , process
                      , pureMD5
                      , random

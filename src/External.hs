@@ -40,7 +40,6 @@ programs =
         []
         "rsync"
         [ "--recursive"
-        , "--no-xattrs"
         , "--no-group"
         , "--perms"
         , "--chmod=a+r,go-w"
