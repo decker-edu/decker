@@ -27,6 +27,7 @@ chmod a+x decker
 
 Decker uses a few external tools that need to be installed on the system:
 
+-   [*ssh*](https://www.openssh.com) for publishing slide decks and resources
 -   [*rsync*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/rsync)
     for publishing slide decks and resources
 -   [*unzip*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/unzip)
@@ -39,13 +40,14 @@ Decker uses a few external tools that need to be installed on the system:
 -   [*Gnuplot*](http://gnuplot.sourceforge.net) to generate graphs using `dot`
 -   [*pdf2svg*](https://github.com/dawbarton/pdf2svg) to generate SVG files from
     PDF documents
+-   [*sassc*](https://github.com/sass/sassc) to compile SCSS to CSS
 
 ### Installation of external tools on macOS
 
 Use [Homebrew](https://brew.sh) to install most of them.
 
 ``` {.sh}
-brew install rsync unzip graphviz gnuplot pdf2svg
+brew install rsync unzip graphviz gnuplot pdf2svg sassc
 ```
 
 For the rest follow instructions on their respective webites.

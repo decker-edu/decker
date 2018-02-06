@@ -42,7 +42,6 @@ executable decker
   build-depends:       base
                      , Glob
                      , HTTP
-                     , hsass
                      , aeson
                      , ansi-terminal
                      , array

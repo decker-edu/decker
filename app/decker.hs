@@ -25,7 +25,6 @@ import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
-import qualified Text.Sass as Sass
 import Utilities
 
 main :: IO ()
@@ -172,14 +171,7 @@ main = do
         exists <- doesFileExist src
         when exists $ do
           need [src]
-          putNormal ("# scss (for " ++ makeRelativeTo projectDir out ++ ")")
-          scss <- liftIO $ readFile src
-          result <- liftIO $ Sass.compileString scss Sass.def
-          case result of
-            Left err -> do
-              msg <- liftIO $ Sass.errorMessage err
-              throw (SassException msg)
-            Right css -> liftIO $ writeFile out css
+          sassc [src, out]
     --
     phony "clean" $ do
       removeFilesAfter publicDir ["//"]
