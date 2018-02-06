@@ -102,6 +102,23 @@ findProcessor classes =
   where
     matching = Map.restrictKeys processors (Set.fromList classes)
 
+-- | Generates a unique pathname in `/generated` with the given file extension
+codeFilePath :: String -> Decker FilePath
+codeFilePath extension = 
+  let crc = printf "%08x" (calc_crc32 code)
+  let basepath =
+        "generated" </>
+        (concat $ intersperse "-" [defaultString "code" basename, crc])
+
+-- | Extracts a file containing the original source code from an rendered image
+-- URL. Just returns the url. 
+extractCodeFromImage :: Inline -> Decker FilePath
+extractCodeFromImage (Image _ _ (url, _)) = return url
+  
+-- | Extracts the source code from a code block to a file in the /generated
+-- directory. 
+extractCodeFromBlock :: Block -> Decker FilePath
+
 -- | Appends `.svg` to file urls with extensions that belong to a known render
 -- processor. The dependeny for the new file url is established at a later
 -- stage, along with the handling of the normal image file urls. 
