@@ -43,7 +43,6 @@ executable decker
   build-depends:       base
                      , Glob
                      , HTTP
-                     , hsass
                      , aeson
                      , ansi-terminal
                      , array
@@ -70,6 +69,7 @@ executable decker
                      , pandoc
                      , pandoc-citeproc
                      , pandoc-types
+                     , groom
                      , process
                      , pureMD5
                      , random

@@ -1,6 +1,4 @@
 ---
-css:
-- 'columns.css'
 history: True
 ---
 
@@ -57,6 +55,26 @@ history: True
 
 ------
 
+# Boxed Box Classes
+
+## Image {.split .def}
+
+![](include/06-metal.png){width="100%" height="150px"}
+
+## Image {.ale}
+
+![](include/06-metal.png){width="100%" height="150px"}
+
+## Image {.note}
+
+![](include/06-metal.png){width="100%" height="150px"}
+
+## Image {.observation}
+
+![](include/06-metal.png){width="100%" height="150px"}
+
+------
+
 # Slide Masters
 
 ------
@@ -93,7 +111,7 @@ history: True
 
 ## Second box
 
-- In this extra wide column
+-   In this extra wide column
 
 ##  {.right}
 
@@ -105,7 +123,7 @@ history: True
 
 ## Image Mania {.top}
 
-- Even in *three* columns
+-   Even in *three* columns
 
 ## Example {.left}
 
@@ -119,3 +137,78 @@ history: True
 
 ![](include/06-metal.png)
 
+------
+
+# Slide Masters {layout="columns"}
+
+## Box Mania {.top}
+
+-   Even in *three* columns
+
+## Example {.left .alert}
+
+![](include/06-metal.png)
+
+## Example {.center .def}
+
+![](include/06-metal.png)
+
+Some more Text after the picture.
+
+## 
+
+And some more still after the box.
+
+## Example {.right .note}
+
+![](include/06-metal.png)
+
+------
+
+# Slide Masters {layout="columns"}
+
+## Example {.left .alert}
+
+![](include/06-metal.png){width="100%" height="150px"}
+
+## Example {.alert}
+
+![](include/06-metal.png){width="100%" height="150px"}
+
+## Example {.center .def}
+
+![](include/06-metal.png){width="100%" height="150px"}
+
+## Example {.alert}
+
+![](include/06-metal.png){width="100%" height="150px"}
+
+## Example {.right .note}
+
+![](include/06-metal.png){width="100%" height="150px"}
+
+## Example {.alert}
+
+![](include/06-metal.png){width="100%" height="150px"}
+
+------
+
+# Slide Masters {layout="columns"}
+
+## Box Mania {.top}
+
+-   Also in *two* columns
+
+## Example {.left .def}
+
+![](include/06-metal.png)
+
+Some more Text
+
+## Example {.right .note}
+
+![](include/06-metal.png)
+
+## 
+
+Some more Text

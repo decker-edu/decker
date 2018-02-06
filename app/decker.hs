@@ -4,26 +4,28 @@ import Common
 import Context
 import Control.Exception
 import Control.Monad (when)
+import Control.Monad.Extra
 import Data.IORef ()
 import Data.List
 import Data.Maybe
 import Data.String ()
+import Debug.Trace
 import Development.Shake
 import Development.Shake.FilePath
 import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import System.Posix.Files
 import System.Directory
-       (copyFile, doesDirectoryExist, createDirectoryIfMissing, removeFile)
+       (copyFile, createDirectoryIfMissing, doesDirectoryExist,
+        removeFile)
 import System.FilePath ()
+import System.Posix.Files
+import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc ()
 import Text.Printf ()
-import qualified Text.Sass as Sass
 import Utilities
-import Control.Monad.Extra
 
 main :: IO ()
 main = do
@@ -169,27 +171,19 @@ main = do
         exists <- doesFileExist src
         when exists $ do
           need [src]
-          putNormal ("# scss (for " ++ makeRelativeTo projectDir out ++ ")")
-          scss <- liftIO $ readFile src
-          result <- liftIO $ Sass.compileString scss Sass.def
-          case result of
-            Left err -> do
-              msg <- liftIO $ Sass.errorMessage err
-              throw (SassException msg)
-            Right css -> liftIO $ writeFile out css
+          sassc [src, out]
     --
     phony "clean" $ do
       removeFilesAfter publicDir ["//"]
       removeFilesAfter projectDir cruft
-      when isDevelopmentVersion $
-        removeFilesAfter appDataDir ["//"]
-        
+      when isDevelopmentVersion $ removeFilesAfter appDataDir ["//"]
     --
     phony "help" $ do
       text <- liftIO $ getResourceString "template/help-page.md"
       liftIO $ putStr text
     --
     phony "plan" $ do
+      metaData <- readMetaDataForDir projectDir
       putNormal $ "\nproject directory: " ++ projectDir
       putNormal $ "public directory: " ++ publicDir
       putNormal $ "support directory: " ++ supportDir
@@ -200,13 +194,23 @@ main = do
       allSourcesA >>= mapM_ putNormal
       putNormal "\ntargets:\n"
       everythingA <++> everythingPdfA >>= mapM_ putNormal
-      putNormal ""
+      putNormal "\ntop level meta data:\n"
+      putNormal $ groom metaData
     --
-    phony "support" $
-      liftIO $ do
-        unlessM (System.Directory.doesDirectoryExist supportDir) $ do
-          createDirectoryIfMissing True publicDir
-          createSymbolicLink  (appDataDir </> "support") supportDir
+    phony "support" $ do
+      metaData <- readMetaDataForDir projectDir
+      unlessM (Development.Shake.doesDirectoryExist supportDir) $ do
+        liftIO $ createDirectoryIfMissing True publicDir
+        case metaValueAsString "provisioning" metaData of
+          Just value
+            | value == show SymLink ->
+              liftIO $ createSymbolicLink (appDataDir </> "support") supportDir
+          Just value
+            | value == show Copy ->
+              rsync [(appDataDir </> "support/"), supportDir]
+          Nothing ->
+            liftIO $ createSymbolicLink (appDataDir </> "support") supportDir
+          _ -> return ()
     --
     phony "check" checkExternalPrograms
     --
