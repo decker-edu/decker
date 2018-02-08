@@ -14,7 +14,6 @@ module Utilities
   , metaValueAsString
   , (<++>)
   , writeEmbeddedFiles
-  , getRelativeSupportDir
   , pandocMakePdf
   , fixMustacheMarkup
   , fixMustacheMarkupText
@@ -29,7 +28,8 @@ import Control.Arrow
 import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
-import Control.Monad.Trans.Class
+import Control.Monad.State
+import Control.Monad.Trans
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.HashMap.Lazy as HashMap
@@ -147,24 +147,14 @@ substituteMetaData text metaData = do
 getTemplate :: FilePath -> Action String
 getTemplate path = liftIO $ getResourceString ("template" </> path)
 
-getRelativeSupportDir :: FilePath -> Action FilePath
-getRelativeSupportDir from = do
-  dirs <- getProjectDirs
-  return $
-    invertPath (makeRelative (public dirs) (takeDirectory from)) </>
-    makeRelative (public dirs) (support dirs)
-
-invertPath :: FilePath -> FilePath
-invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
-
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile out = do
   putCurrentDocument out
-  supportDirRel <- getRelativeSupportDir out
   supportDir <- support <$> getProjectDirs
-  template <- getTemplate "deck.html"
   need [supportDir </> "decker.css"]
+  supportDirRel <- getRelativeSupportDir (takeDirectory out)
+  template <- getTemplate "deck.html"
   let options =
         pandocWriterOpts
         { writerSlideLevel = Just 1
@@ -218,7 +208,7 @@ versionCheck meta =
 -- template variables and calls need.
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disposition = do
-  Pandoc meta blocks <-
+  pandoc@(Pandoc meta blocks) <-
     readMetaMarkdown markdownFile >>= processIncludes baseDir
   processPandoc pipeline baseDir disposition (provisioningFromMeta meta) pandoc
   where
@@ -226,10 +216,10 @@ readAndProcessMarkdown markdownFile disposition = do
     pipeline =
       concatM
         [ expandDeckerMacros
-        , provisionResources
+        , renderCodeBlocks
+        , provisionResources 
         , renderMediaTags
         , makeSlides
-        , renderCodeBlocks
         , processCitesWithDefault
         , appendScripts
         ]
@@ -237,10 +227,12 @@ readAndProcessMarkdown markdownFile disposition = do
   -- >>= walkM (cacheRemoteImages (cache dirs))
 
 provisionResources :: Pandoc -> Decker Pandoc
-provisionResources pandoc =
-  lift $
-  mapMetaResources provisionMetaResource pandoc >>=
-  mapResources provisionResource
+provisionResources pandoc@(Pandoc meta blocks) = do
+  base <- gets basePath
+  method <- gets provisioning
+  lift $ 
+    mapMetaResources (provisionMetaResource base method) pandoc >>=
+    mapResources (provisionResource base method)
 
 lookupBool :: String -> Bool -> Meta -> Bool
 lookupBool key def meta =
@@ -248,19 +240,17 @@ lookupBool key def meta =
     Just (MetaBool b) -> b
     _ -> def
 
-provisionMetaResource :: (String, FilePath) -> Decker FilePath
-provisionMetaResource (key, path)
+provisionMetaResource :: FilePath -> Provisioning ->  (String, FilePath) -> Action FilePath
+provisionMetaResource base method (key, path)
   | key `elem` runtimeMetaKeys = do
-    base <- gets basePath
-    filePath <- lift $ urlToFilePathIfLocal base path
-    provisionResource filePath
-provisionMetaResource (key, path)
+    filePath <- urlToFilePathIfLocal base path
+    provisionResource base method filePath
+provisionMetaResource base method (key, path)
   | key `elem` compiletimeMetaKeys = do
-    base <- gets basePath
     filePath <- urlToFilePathIfLocal base path
     need [filePath]
     return filePath
-provisionMetaResource (key, path) = return path
+provisionMetaResource base method (key, path) = return path
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs are
 -- resolved against and copied or linked to public from 
@@ -277,21 +267,18 @@ provisionMetaResource (key, path) = return path
 --       time.
 --
 -- Returns a public URL relative to base
-provisionResource :: FilePath -> Decker FilePath
-provisionResource path = do
-  base <- gets basePath
-  method <- gets provisioning
+provisionResource :: FilePath -> Provisioning -> FilePath -> Action FilePath
+provisionResource base method path = do
   case parseRelativeReference path of
     Nothing -> return path
     Just uri -> do
-      dirs <- lift $ getProjectDirs
+      dirs <- getProjectDirs
       need [uriPath uri]
       let resource = resourcePathes dirs base uri
       publicResource <- getPublicResource
       withResource publicResource 1 $
-        lift $
         liftIO $
-        case provisioning of
+        case method of
           Copy -> copyResource resource
           SymLink -> linkResource resource
           Absolute -> absRefResource resource
@@ -307,7 +294,7 @@ putCurrentDocument out = do
 markdownToHtmlPage :: FilePath -> FilePath -> Action ()
 markdownToHtmlPage markdownFile out = do
   putCurrentDocument out
-  supportDir <- getRelativeSupportDir out
+  supportDir <- getRelativeSupportDir (takeDirectory out)
   template <- getTemplate "page.html"
   let options =
         pandocWriterOpts
@@ -348,7 +335,7 @@ pandocMakePdf options out pandoc = do
 markdownToHtmlHandout :: FilePath -> FilePath -> Action ()
 markdownToHtmlHandout markdownFile out = do
   putCurrentDocument out
-  supportDir <- getRelativeSupportDir out
+  supportDir <- getRelativeSupportDir (takeDirectory out)
   template <- getTemplate "handout.html"
   let options =
         pandocWriterOpts

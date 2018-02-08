@@ -6,12 +6,15 @@ module Common
   , OutputFormat(..)
   , Disposition(..)
   , MediaType(..)
+  , Provisioning(..)
   , Script(..)
   , Decker
+  , doIO
   , needFile
   , needFiles
   , deckerVersion
   , isDevelopmentVersion
+  , addScript
   ) where
 
 import Control.Exception
@@ -21,6 +24,7 @@ import Data.Version (showVersion, versionBranch)
 import Development.Shake (Action, need)
 import Network.URI as U
 import Paths_decker (version)
+import System.FilePath.Posix
 
 -- | The version from the cabal file
 deckerVersion :: String
@@ -63,6 +67,9 @@ instance Show DeckerException where
 
 type Decker = StateT DeckerState Action
 
+doIO :: IO a -> Decker a
+doIO = lift . liftIO
+
 needFile :: FilePath -> Decker ()
 needFile path = lift $ need [path]
 
@@ -84,7 +91,7 @@ data DeckerState = DeckerState
 
 data Script
   = ScriptURI { scriptLang :: String
-              , scriptUri :: U.URI }
+              , scriptUri :: String }
   | ScriptSource { scriptLang :: String
                  , scriptSource :: String }
   deriving (Eq, Show, Ord)
@@ -110,3 +117,10 @@ data MediaType
   | AudioMedia
   | VideoMedia
   | IframeMedia
+
+data Provisioning
+  = Copy -- Copy to public and relative URL
+  | SymLink -- Symbolic link to public and relative URL
+  | Absolute -- Absolute local URL
+  | Relative -- Relative local URL
+  deriving (Eq, Show, Read)

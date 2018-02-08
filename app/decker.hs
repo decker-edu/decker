@@ -58,7 +58,7 @@ main = do
   let indexA = return [index] :: Action [FilePath]
   let everythingA = decksA <++> handoutsA <++> pagesA
   let everythingPdfA = decksPdfA <++> handoutsPdfA <++> pagesPdfA
-  let cruft = ["index.md.generated", "log", "//.shake", "generated"]
+  let cruft = ["index.md.generated", "log", "//.shake", "generated", "code"]
   context <- makeActionContext dirs
   runShakeInContext context (options projectDir) $
   --

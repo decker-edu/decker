@@ -12,28 +12,22 @@ module Project
   , projectDirectories
   , provisioningFromMeta
   , provisioningFromClasses
+  , invertPath
   , Resource(..)
-  , Provisioning(..)
   , ProjectDirs(..)
   ) where
 
 import Common
 import Data.Maybe
+import Development.Shake (Action)
 import Extra
 import Network.URI
+import Resources
 import qualified System.Directory as D
 import System.FilePath
 import System.Posix.Files
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
-import Resources
-
-data Provisioning
-  = Copy -- Copy to public and relative URL
-  | SymLink -- Symbolic link to public and relative URL
-  | Absolute -- Absolute local URL
-  | Relative -- Relative local URL
-  deriving (Eq, Show, Read)
 
 provisioningFromMeta :: Meta -> Provisioning
 provisioningFromMeta meta =
@@ -93,8 +87,8 @@ data ProjectDirs = ProjectDirs
   , log :: FilePath
   } deriving (Eq, Show)
 
--- Find the project directory.  
--- The project directory is the first upwards directory that contains a .git directory entry.
+-- Find the project directory. The project directory is the first upwards
+-- directory that contains a .git directory entry.
 findProjectDirectory :: IO FilePath
 findProjectDirectory = do
   cwd <- D.getCurrentDirectory

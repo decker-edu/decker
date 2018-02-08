@@ -57,6 +57,7 @@ executable decker
                      , file-embed
                      , filepath
                      , fsnotify
+                     , groom
                      , hashable
                      , highlighting-kate
                      , http-conduit
@@ -69,7 +70,6 @@ executable decker
                      , pandoc
                      , pandoc-citeproc
                      , pandoc-types
-                     , groom
                      , process
                      , pureMD5
                      , random
