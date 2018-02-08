@@ -22,6 +22,6 @@ fill: #fe0;
 .t, .controltext {
 font-size: .6em;
 }
-svg {
+#bezier {
 display: inline-block;
 }

@@ -1,5 +1,7 @@
 ---
-css: 'miserables.css'
+css:
+- 'miserables.css'
+- 'bezier.css'
 history: True
 ---
 

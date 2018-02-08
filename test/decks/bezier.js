@@ -1,12 +1,12 @@
-var w = 900,
-    h = 500,
+var w = 200,
+    h = 400,
     t = .5,
     delta = .01,
     padding = 10,
     bezier = {},
     n = 4,
     // stroke = d3.scale.category20b(),
-    line = d3.svg.line().x(x).y(y),
+    line = d3.line().x(x).y(y),
     orders = d3.range(2, n + 2);
 
 var points = [
@@ -20,7 +20,8 @@ var points = [
 var vis = d3.select("#bezier")
     .selectAll("svg")
     .data(orders)
-    .enter().append("svg")
+    .enter()
+    .append("svg")
     .attr("width", w + 2 * padding)
     .attr("height", h + 2 * padding)
     .append("g")
@@ -35,8 +36,8 @@ vis.selectAll("circle.control")
     .attr("r", 7)
     .attr("cx", x)
     .attr("cy", y)
-    .call(d3.behavior.drag()
-        .on("dragstart", function (d) {
+    .call(d3.drag()
+        .on("start", function (d) {
             this.__origin__ = [d.x, d.y];
             d3.select(this).classed("drag", true);
         })
@@ -49,7 +50,7 @@ vis.selectAll("circle.control")
                 .attr("cx", x)
                 .attr("cy", y);
         })
-        .on("dragend", function () {
+        .on("end", function () {
             delete this.__origin__;
             d3.select(this).classed("drag", false);
         }));
