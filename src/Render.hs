@@ -63,6 +63,7 @@ processors =
     , ("gnuplot", Processor ".gnuplot" (shakeCompile ".svg"))
     , ("tikz", Processor ".tex" (bracketedShakeCompile ".svg" tikzPre tikzPost))
     , ("d3", Processor ".js" d3Canvas)
+    , ("threejs", Processor ".js" threejsCanvas)
     ]
 
 tikzPre =
@@ -82,8 +83,38 @@ d3Canvas sourceFile (eid, classes, keyvals) = do
   source <- doIO $ readFile sourceFile
   addScript $ ScriptURI "javascript" (supportDir </> "d3.v4.min.js")
   addScript $ ScriptSource "javascript" source
-  let element = fromMaybe "svg" $ lookup "element" keyvals
   let classStr = intercalate " " classes
+  let element = fromMaybe "svg" $ lookup "element" keyvals
+  case element of
+    "canvas" ->
+      return $
+      RawInline (Format "html") $
+      renderHtml $
+      H.canvas ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
+    "div" ->
+      return $
+      RawInline (Format "html") $
+      renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
+    _ ->
+      return $
+      RawInline (Format "html") $
+      printf "<svg id=\"%v\" class=\"%v\"></svg>" eid classStr
+
+threejsCanvas :: FilePath -> Attr -> Decker Inline
+threejsCanvas sourceFile (eid, classes, keyvals) = do
+  needFile sourceFile
+  -- TODO: Clean this up. See Path.hs.
+  base <- gets basePath
+  dirs <- lift $ getProjectDirs
+  let publicBase = public dirs </> makeRelativeTo (project dirs) base
+  supportDir <- lift $ getRelativeSupportDir publicBase
+  source <- doIO $ readFile sourceFile
+  addScript $ ScriptURI "javascript" (supportDir </> "three.min.js")
+  let includes = splitOn "," $ fromMaybe "" $ lookup "includes" keyvals
+  mapM addScript $ map (ScriptURI "javascript") includes
+  addScript $ ScriptSource "javascript" source
+  let classStr = intercalate " " classes
+  let element = fromMaybe "svg" $ lookup "element" keyvals
   case element of
     "canvas" ->
       return $

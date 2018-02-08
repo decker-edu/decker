@@ -2,6 +2,7 @@
 css:
 - 'miserables.css'
 - 'bezier.css'
+- 'mc/minecraft.css'
 history: True
 ---
 
@@ -249,10 +250,20 @@ function dragended(d) {
 }
 ```
 
-[Workaround](miserables.json){.resource}
+[](miserables.json){.resource}
 
 ------
 
 # d3 Files
 
 ![](bezier.js){#bezier .d3 .render element="div"}
+
+------
+
+# three.js
+
+![](mc/minecraft.js){#minecraft .threejs .render element="div"
+includes="mc/FirstPersonControls.js,mc/ImprovedNoise.js,mc/Detector.js"}
+
+[](mc/FirstPersonControls.js){.resource} [](mc/ImprovedNoise.js){.resource}
+[](mc/Detector.js){.resource} [](mc/stats.min.js){.resource} [](mc/atlas.png){.resource}
