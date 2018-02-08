@@ -74,11 +74,13 @@ tikzPost = "\\end{document}"
 d3Canvas :: FilePath -> Attr -> Decker Inline
 d3Canvas sourceFile (eid, classes, keyvals) = do
   needFile sourceFile
+  -- TODO: Clean this up. See Path.hs.
   base <- gets basePath
-  supportDir <- lift $ getRelativeSupportDir base
+  dirs <- lift $ getProjectDirs
+  let publicBase = public dirs </> makeRelativeTo (project dirs) base
+  supportDir <- lift $ getRelativeSupportDir publicBase
   source <- doIO $ readFile sourceFile
-  addScript $
-    ScriptURI "javascript" (supportDir </> "d3.v4.min.js")
+  addScript $ ScriptURI "javascript" (supportDir </> "d3.v4.min.js")
   addScript $ ScriptSource "javascript" source
   let element = fromMaybe "svg" $ lookup "element" keyvals
   let classStr = intercalate " " classes
@@ -91,8 +93,7 @@ d3Canvas sourceFile (eid, classes, keyvals) = do
     "div" ->
       return $
       RawInline (Format "html") $
-      renderHtml $
-      H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
+      renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
     _ ->
       return $
       RawInline (Format "html") $
@@ -156,7 +157,6 @@ provideResources namevals = do
     Just resources -> do
       method <- gets provisioning
 --}
-
 -- | Encode a svg snippet into a data url for an image element
 svgDataUrl :: String -> String
 svgDataUrl svg =
@@ -187,8 +187,7 @@ appendScripts pandoc@(Pandoc meta blocks) = do
   where
     renderScript (ScriptURI lang uri) =
       RawBlock (Format "html") $
-      renderHtml $
-      H.script ! class_ "generated decker" ! src (toValue uri) $ ""
+      renderHtml $ H.script ! class_ "generated decker" ! src (toValue uri) $ ""
     renderScript (ScriptSource lang source) = do
       RawBlock (Format "html") $
         printf "<script class=\"generated decker\">%s</script>" source
