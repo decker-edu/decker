@@ -9,16 +9,13 @@ import Data.IORef ()
 import Data.List
 import Data.Maybe
 import Data.String ()
-import Debug.Trace
 import Development.Shake
 import Development.Shake.FilePath
 import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import System.Directory
-       (copyFile, createDirectoryIfMissing, doesDirectoryExist,
-        removeFile)
+import System.Directory (createDirectoryIfMissing, removeFile)
 import System.FilePath ()
 import System.Posix.Files
 import Text.Groom

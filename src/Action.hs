@@ -18,7 +18,6 @@ module Action
 import Common
 import Context
 import Control.Exception
-import Control.Monad
 import Data.IORef
 import Data.List as List
 import Data.List (isInfixOf)
@@ -48,37 +47,32 @@ spawn :: String -> Action ProcessHandle
 spawn = liftIO . spawnCommand
 
 -- Runs the built-in server on the given directory, if it is not already
--- running. If open is True a browser window is opended.
+-- running.
 runHttpServer :: Int -> ProjectDirs -> Maybe String -> Action ()
 runHttpServer port dirs url = do
   server <- getServerHandle
   case server of
     Just _ -> return ()
     Nothing -> do
-      server <- liftIO $ startHttpServer dirs port
-      setServerHandle $ Just server
-      case url of 
-        Just url -> openBrowser url
+      httpServer <- liftIO $ startHttpServer dirs port
+      setServerHandle $ Just httpServer
+      case url of
+        Just u -> openBrowser u
         Nothing -> return ()
-
 
 openBrowser :: String -> Action ()
 openBrowser url = do
-  case os of
-    osid
-      | any (`isInfixOf` osid) ["linux", "bsd"] ->
-        liftIO $ callProcess "xdg-open" [url]
-    osid
-      | "darwin" `isInfixOf` osid -> liftIO $ callProcess "open" [url]
-    osid
-      | otherwise ->
-        putNormal $ "Unable to open browser on this platform for url: " ++ url
+  if | any (`isInfixOf` os) ["linux", "bsd"] ->
+       liftIO $ callProcess "xdg-open" [url]
+     | "darwin" `isInfixOf` os -> liftIO $ callProcess "open" [url]
+     | otherwise ->
+       putNormal $ "Unable to open browser on this platform for url: " ++ url
 
 reloadBrowsers :: Action ()
 reloadBrowsers = do
   server <- getServerHandle
   case server of
-    Just handle -> liftIO $ reloadClients handle
+    Just serv -> liftIO $ reloadClients serv
     Nothing -> return ()
 
 wantRepeat :: IORef Bool -> Action ()
@@ -106,8 +100,10 @@ calcSource targetSuffix srcSuffix target = do
   return src
 
 -- | Removes the last suffix from a filename
+dropSuffix :: String -> String -> String
 dropSuffix s t = fromMaybe t (stripSuffix s t)
 
+replaceSuffix :: String -> String -> String -> String
 replaceSuffix srcSuffix targetSuffix filename =
   dropSuffix srcSuffix filename ++ targetSuffix
 
@@ -117,7 +113,7 @@ replaceSuffixWith suffix with pathes =
   return [dropSuffix suffix d ++ with | d <- pathes]
 
 readMetaDataForDir :: FilePath -> Action Y.Value
-readMetaDataForDir dir = walkUpTo dir
+readMetaDataForDir directory = walkUpTo directory
   where
     walkUpTo dir = do
       dirs <- getProjectDirs
@@ -140,5 +136,5 @@ readMetaDataForDir dir = walkUpTo dir
         Right object@(Y.Object _) -> return object
         Right _ ->
           throw $
-          YamlException $ "Top-level meta value must be an object: " ++ dir
+          YamlException $ "Top-level meta value must be an object: " ++ directory
         Left exception -> throw exception

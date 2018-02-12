@@ -39,8 +39,9 @@ toMustacheMeta (MetaBlocks blocks) =
   MT.String $ T.pack $ writeMarkdown def (Pandoc (Meta Map.empty) blocks)
 
 mergePandocMeta :: MetaValue -> MetaValue -> MetaValue
-mergePandocMeta (MetaMap left) (MetaMap right) = MetaMap $ Map.union left right
-mergePandocMeta left _ = left
+mergePandocMeta (MetaMap meta1) (MetaMap meta2) =
+  MetaMap $ Map.union meta1 meta2
+mergePandocMeta meta1 _ = meta1
 
 -- | Converts YAML meta data to pandoc meta data.
 toPandocMeta :: Y.Value -> MetaValue

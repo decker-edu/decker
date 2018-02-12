@@ -5,7 +5,6 @@ module Watch
 
 -- | A non-polling file watcher based on fsnotify
 import Control.Concurrent.MVar
-import Data.List
 import qualified Data.Set as Set
 import Filter
 import Render

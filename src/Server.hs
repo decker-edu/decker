@@ -1,5 +1,4 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Server
   ( startHttpServer
@@ -55,10 +54,10 @@ removeClient state cid = modifyMVar_ state remove
     remove clients = return [c | c <- clients, cid /= fst c]
 
 reloadAll :: MVar ServerState -> IO ()
-reloadAll state = withMVar state $ mapM_ send
+reloadAll state = withMVar state $ mapM_ reload
   where
-    send :: Client -> IO ()
-    send (cid, conn) = sendTextData conn ("reload!" :: Text)
+    reload :: Client -> IO ()
+    reload (_, conn) = sendTextData conn ("reload!" :: Text)
 
 -- Runs the server. Never returns.
 runHttpServer :: MVar ServerState -> ProjectDirs -> Int -> IO ()

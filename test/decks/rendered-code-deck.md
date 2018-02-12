@@ -18,9 +18,9 @@ Code blocks can be rendered as SVG images
 
 ------
 
-# Embedded Graphviz Code (SVG)
+# Embedded Graphviz Code (SVG) {layout="columns"}
 
-## Highlighted {.split}
+## Highlighted {.left}
 
 ```` {.dot}
 ``` {.dot .render width="80%"}
@@ -37,7 +37,7 @@ digraph {
 ```
 ````
 
-## Rendered
+## Rendered {.right}
 
 ``` {.dot .render width="80%"}
 digraph {
@@ -54,9 +54,9 @@ digraph {
 
 ------
 
-# Embedded Gnuplot (SVG)
+# Embedded Gnuplot (SVG) {layout="columns"}
 
-## Highlighted {.split}
+## Highlighted {.left}
 
 ```` {.gnuplot}
 ``` {.gnuplot .render width="80%"}
@@ -72,7 +72,7 @@ splot 1 / (x*x + y*y + 1)
 ```
 ````
 
-## Rendered
+## Rendered {.right}
 
 ``` {.gnuplot .render}
 set samples 20, 20
@@ -88,29 +88,29 @@ splot 1 / (x*x + y*y + 0.5)
 
 ------
 
-# Dot Files as Images
+# Dot Files as Images {layout="columns"}
 
-## Image Tag {.split}
+## Image Tag {.left}
 
 ``` {.markdown}
 ![](graph.dot){.dot .render}
 ```
 
-## Rendered and included
+## Rendered and included {.right}
 
 ![](graph.dot){.dot .render}
 
 ------
 
-# Tikz Files as Images
+# Tikz Files as Images {layout="columns"}
 
-## Image Tag {.split}
+## Image Tag {.left}
 
 ``` {.markdown}
 ![](tikz.tex){.tikz .render}
 ```
 
-## Rendered and included
+## Rendered and included {.right}
 
 ![](tikz.tex){.tikz .render}
 
@@ -174,7 +174,7 @@ splot 1 / (x*x + y*y + 0.5)
 
 ------
 
-# d3 Embedded
+# D3 Embedded
 
 ``` {#miserables .d3 .render resources="miserables.json"}
 var svg = d3.select("#miserables").attr("width", 900).attr("height", 500);
@@ -254,16 +254,19 @@ function dragended(d) {
 
 ------
 
-# d3 Files
+# D3 Files
 
 ![](bezier.js){#bezier .d3 .render element="div"}
 
 ------
 
-# three.js
+# Three.js
 
 ![](mc/minecraft.js){#minecraft .threejs .render element="div"
 includes="mc/FirstPersonControls.js,mc/ImprovedNoise.js,mc/Detector.js"}
 
 [](mc/FirstPersonControls.js){.resource} [](mc/ImprovedNoise.js){.resource}
-[](mc/Detector.js){.resource} [](mc/stats.min.js){.resource} [](mc/atlas.png){.resource}
+[](mc/Detector.js){.resource} [](mc/stats.min.js){.resource}
+[](mc/atlas.png){.resource}
+
+
