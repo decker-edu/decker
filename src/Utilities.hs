@@ -29,7 +29,6 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
-import Control.Monad.Trans
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.HashMap.Lazy as HashMap
@@ -37,12 +36,10 @@ import Data.IORef
 import Data.List as List
 import Data.List.Extra as List
 import qualified Data.Map.Lazy as Map
-import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 import qualified Data.Yaml as Y
-import Debug.Trace
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Filter
@@ -74,11 +71,11 @@ runShakeInContext context options rules = do
   cleanup
   where
     tryRunShake opts =
-      handle (\(SomeException e) -> return ()) (shakeArgs opts rules)
+      handle (\(SomeException _) -> return ()) (shakeArgs opts rules)
     cleanup = do
       server <- readIORef $ ctxServerHandle context
       case server of
-        Just handle -> stopHttpServer handle
+        Just serv -> stopHttpServer serv
         Nothing -> return ()
     nothingToWatch = do
       files <- readIORef $ ctxFilesToWatch context
@@ -87,7 +84,7 @@ runShakeInContext context options rules = do
         else do
           server <- readIORef $ ctxServerHandle context
           case server of
-            Just handle -> reloadClients handle
+            Just serv -> reloadClients serv
             Nothing -> return ()
           _ <- waitForTwitchPassive files
           return False
@@ -122,7 +119,7 @@ writeIndex out baseUrl decks handouts pages = do
       , unlines $ map makeLink $ sort pagesLinks
       ]
   where
-    makeLink path = "-    [" ++ takeFileName path ++ "](" ++ path ++ ")"
+    makeLink file = "-    [" ++ takeFileName file ++ "](" ++ file ++ ")"
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text
@@ -137,15 +134,15 @@ fixMustacheMarkupText content =
     (T.replace (T.pack "{{\\^") (T.pack "{{^") content)
 
 substituteMetaData :: T.Text -> MT.Value -> T.Text
-substituteMetaData text metaData = do
-  let fixed = fixMustacheMarkupText text
+substituteMetaData source metaData = do
+  let fixed = fixMustacheMarkupText source
   let result = M.compileTemplate "internal" fixed
   case result of
     Right template -> M.substituteValue template metaData
-    Left err -> throw $ MustacheException (show err)
+    Left errMsg -> throw $ MustacheException (show errMsg)
 
 getTemplate :: FilePath -> Action String
-getTemplate path = liftIO $ getResourceString ("template" </> path)
+getTemplate file = liftIO $ getResourceString ("template" </> file)
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
@@ -180,11 +177,11 @@ markdownToHtmlDeck markdownFile out = do
 -- | Selects a matching pandoc string writer for the format string, or throws an
 -- exception.
 getPandocWriter :: String -> StringWriter
-getPandocWriter format =
-  case getWriter format of
+getPandocWriter fmt =
+  case getWriter fmt of
     Right (PureStringWriter w) -> w
     Left e -> throw $ PandocException e
-    _ -> throw $ PandocException $ "No writer for format: " ++ format
+    _ -> throw $ PandocException $ "No writer for format: " ++ fmt
 
 versionCheck :: Meta -> Action ()
 versionCheck meta =
@@ -207,17 +204,17 @@ versionCheck meta =
 -- | Reads a markdownfile, expands the included files, and substitutes mustache
 -- template variables and calls need.
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
-readAndProcessMarkdown markdownFile disposition = do
-  pandoc@(Pandoc meta blocks) <-
+readAndProcessMarkdown markdownFile disp = do
+  pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes baseDir
-  processPandoc pipeline baseDir disposition (provisioningFromMeta meta) pandoc
+  processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
   where
     baseDir = takeDirectory markdownFile
     pipeline =
       concatM
         [ expandDeckerMacros
         , renderCodeBlocks
-        , provisionResources 
+        , provisionResources
         , renderMediaTags
         , makeSlides
         , processCitesWithDefault
@@ -227,30 +224,25 @@ readAndProcessMarkdown markdownFile disposition = do
   -- >>= walkM (cacheRemoteImages (cache dirs))
 
 provisionResources :: Pandoc -> Decker Pandoc
-provisionResources pandoc@(Pandoc meta blocks) = do
+provisionResources pandoc = do
   base <- gets basePath
   method <- gets provisioning
-  lift $ 
+  lift $
     mapMetaResources (provisionMetaResource base method) pandoc >>=
     mapResources (provisionResource base method)
 
-lookupBool :: String -> Bool -> Meta -> Bool
-lookupBool key def meta =
-  case lookupMeta key meta of
-    Just (MetaBool b) -> b
-    _ -> def
-
-provisionMetaResource :: FilePath -> Provisioning ->  (String, FilePath) -> Action FilePath
-provisionMetaResource base method (key, path)
+provisionMetaResource ::
+     FilePath -> Provisioning -> (String, FilePath) -> Action FilePath
+provisionMetaResource base method (key, url)
   | key `elem` runtimeMetaKeys = do
-    filePath <- urlToFilePathIfLocal base path
+    filePath <- urlToFilePathIfLocal base url
     provisionResource base method filePath
-provisionMetaResource base method (key, path)
+provisionMetaResource base _ (key, url)
   | key `elem` compiletimeMetaKeys = do
-    filePath <- urlToFilePathIfLocal base path
+    filePath <- urlToFilePathIfLocal base url
     need [filePath]
     return filePath
-provisionMetaResource base method (key, path) = return path
+provisionMetaResource _ _ (_, url) = return url
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs are
 -- resolved against and copied or linked to public from 
@@ -268,9 +260,9 @@ provisionMetaResource base method (key, path) = return path
 --
 -- Returns a public URL relative to base
 provisionResource :: FilePath -> Provisioning -> FilePath -> Action FilePath
-provisionResource base method path = do
-  case parseRelativeReference path of
-    Nothing -> return path
+provisionResource base method filePath = do
+  case parseRelativeReference filePath of
+    Nothing -> return filePath
     Just uri -> do
       dirs <- getProjectDirs
       need [uriPath uri]
@@ -328,7 +320,7 @@ pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
 pandocMakePdf options out pandoc = do
   result <- liftIO $ makePDF "pdflatex" writeLaTeX options pandoc
   case result of
-    Left err -> throw $ PandocException (show err)
+    Left errMsg -> throw $ PandocException (show errMsg)
     Right pdf -> liftIO $ LB.writeFile out pdf
 
 -- | Write a markdown file to a HTML file using the handout template.
@@ -385,31 +377,32 @@ readMetaMarkdown markdownFile = do
   -- read markdown with substitutions again
   let Pandoc _ blocks =
         readMarkdownOrThrow pandocReaderOpts $ T.unpack substituted
-  let (MetaMap m) = combinedMeta
-  versionCheck (Meta m)
-  let pandoc = Pandoc (Meta m) blocks
-  -- adjust local media urls
-  mapResources (urlToFilePathIfLocal (takeDirectory markdownFile)) pandoc
+  case combinedMeta of 
+    (MetaMap m) -> do
+      versionCheck (Meta m)
+      let pandoc = Pandoc (Meta m) blocks
+      mapResources (urlToFilePathIfLocal (takeDirectory markdownFile)) pandoc
+    _ -> throw $ PandocException "Meta format conversion failed."
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
 urlToFilePathIfLocal base uri = do
   case parseRelativeReference uri of
     Nothing -> return uri
     Just relativeUri -> do
-      let path = uriPath relativeUri
+      let filePath = uriPath relativeUri
       absBase <- liftIO $ Dir.makeAbsolute base
       absRoot <- project <$> getProjectDirs
       let absPath =
-            if isAbsolute path
-              then absRoot </> makeRelative "/" path
-              else absBase </> path
+            if isAbsolute filePath
+              then absRoot </> makeRelative "/" filePath
+              else absBase </> filePath
       return absPath
 
 readMarkdownOrThrow :: ReaderOptions -> String -> Pandoc
 readMarkdownOrThrow opts string =
   case readMarkdown opts string of
     Right pandoc -> pandoc
-    Left err -> throw $ PandocException (show err)
+    Left errMsg -> throw $ PandocException (show errMsg)
 
 -- Remove automatic identifier creation for headers. It does not work well with
 -- the current include mechanism if slides have duplicate titles in separate
@@ -424,14 +417,14 @@ pandocWriterOpts :: WriterOptions
 pandocWriterOpts = def {writerExtensions = deckerPandocExtensions}
 
 mapResources :: (FilePath -> Action FilePath) -> Pandoc -> Action Pandoc
-mapResources transform pandoc@(Pandoc meta blocks) = do
+mapResources transform (Pandoc meta blocks) = do
   processedBlocks <-
     walkM (mapInline transform) blocks >>= walkM (mapBlock transform)
   return (Pandoc meta processedBlocks)
 
 mapAttributes :: (FilePath -> Action FilePath) -> Attr -> Action Attr
-mapAttributes transform (ident, classes, kv) = do
-  processed <- mapM mapAttr kv
+mapAttributes transform (ident, classes, kvs) = do
+  processed <- mapM mapAttr kvs
   return (ident, classes, processed)
   where
     mapAttr kv@(key, value) =
@@ -442,7 +435,7 @@ mapAttributes transform (ident, classes, kv) = do
         else return kv
 
 mapInline :: (FilePath -> Action FilePath) -> Inline -> Action Inline
-mapInline transform img@(Image attr@(_, cls, _) inlines (url, title)) = do
+mapInline transform (Image attr inlines (url, title)) = do
   a <- mapAttributes transform attr
   u <- transform url
   return $ Image a inlines (u, title)
@@ -500,6 +493,7 @@ mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
 -- | These resources are needed at runtime. If they are specified as local URLs,
 -- the resource must exists at compile time. Remote URLs are passed through
 -- unchanged.
+elementAttributes :: [String]
 elementAttributes =
   [ "src"
   , "data-src"
@@ -555,8 +549,8 @@ processCitesWithDefault pandoc@(Pandoc meta blocks) =
 type StringWriter = WriterOptions -> Pandoc -> String
 
 writePandocString :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
-writePandocString format options out pandoc = do
-  let writer = getPandocWriter format
+writePandocString fmt options out pandoc = do
+  let writer = getPandocWriter fmt
   writeFile' out (writer options pandoc)
 
 writeExampleProject :: Action ()
@@ -582,10 +576,10 @@ writeEmbeddedFiles files dir = do
     let absolute = map (first (dir </>)) files
     mapM_ write absolute
   where
-    write (path, contents) = do
-      liftIO $ Dir.createDirectoryIfMissing True (takeDirectory path)
-      exists <- liftIO $ Dir.doesFileExist path
-      unless exists $ liftIO $ B.writeFile path contents
+    write (filePath, contents) = do
+      liftIO $ Dir.createDirectoryIfMissing True (takeDirectory filePath)
+      exists <- liftIO $ Dir.doesFileExist filePath
+      unless exists $ liftIO $ B.writeFile filePath contents
 
 lookupValue :: String -> Y.Value -> Maybe Y.Value
 lookupValue key (Y.Object hashTable) = HashMap.lookup (T.pack key) hashTable
@@ -598,7 +592,7 @@ metaValueAsString key meta =
     k:ks -> lookup' ks (lookupValue k meta)
   where
     lookup' :: [String] -> Maybe Y.Value -> Maybe String
-    lookup' [] (Just (Y.String text)) = Just (T.unpack text)
+    lookup' [] (Just (Y.String s)) = Just (T.unpack s)
     lookup' [] (Just (Y.Number n)) = Just (show n)
     lookup' [] (Just (Y.Bool b)) = Just (show b)
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)

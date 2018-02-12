@@ -298,11 +298,11 @@ makeSlides pandoc = do
       walk (mapSlides layoutSlides) $
       walk (mapSlides splitJoinColumns) $
       walk (mapSlides setSlideBackground) $ walk (mapSlides wrapBoxes) pandoc
-    Disposition _ _ ->
-      return $
-      walk (mapSlides splitJoinColumns) $
+    Disposition _ _ -> return pandoc
+      -- TODO: Do this for pages
+      -- walk (mapSlides splitJoinColumns) $
       -- walk (mapSlides setSlideBackground) $
-      walk (mapSlides wrapBoxes) pandoc
+      -- walk (mapSlides wrapBoxes) pandoc
 
 makeBoxes :: Pandoc -> Pandoc
 makeBoxes = walk (mapSlides wrapBoxes)
