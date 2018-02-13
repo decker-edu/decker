@@ -1,4 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Context
   ( ActionContext(..)
@@ -14,11 +15,10 @@ module Context
   , getPublicResource
   , withShakeLock
   , getRelativeSupportDir
-
   ) where
 
-import Control.Monad ()
 import Common
+import Control.Monad ()
 import Data.Dynamic
 import qualified Data.HashMap.Lazy as HashMap
 import Data.IORef
@@ -111,5 +111,5 @@ withShakeLock perform = do
 getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do
   pub <- public <$> getProjectDirs
-  let sup = pub </> ("support" ++ "-" ++ deckerVersion) 
+  let sup = pub </> ("support" ++ "-" ++ deckerVersion)
   return $ makeRelativeTo from sup

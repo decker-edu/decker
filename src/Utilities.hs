@@ -213,10 +213,10 @@ readAndProcessMarkdown markdownFile disp = do
     pipeline =
       concatM
         [ expandDeckerMacros
-        , renderCodeBlocks
         , provisionResources
-        , renderMediaTags
         , makeSlides
+        , renderMediaTags
+        , renderCodeBlocks
         , processCitesWithDefault
         , appendScripts
         ]
