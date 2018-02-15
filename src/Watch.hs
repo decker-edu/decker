@@ -12,8 +12,9 @@ import Render
 import System.FSNotify
 import System.FilePath
 
--- | Wait for something to happen on one of the matching files 
--- in one of the supplied directories.
+-- | Wait for something to happen on one of the matching files in one of the
+-- supplied directories. TODO: Get rid of the twitchExtensions. Watch
+-- everything, except the public dir.
 waitForTwitch :: [FilePath] -> IO FilePath
 waitForTwitch directories = do
   done <- newEmptyMVar
@@ -32,7 +33,7 @@ waitForTwitch directories = do
     -- Watch everything within the supplied dirs
     watchInDir mgr done dir =
       watchTree mgr dir isWatchedFile (stopWatching mgr done)
-    watchIt mgr done = mapM (watchInDir mgr done) (unique directories)
+    watchIt mgr done = mapM (watchInDir mgr done) directories
 
 commonExtensions :: [String]
 commonExtensions = [".scss", ".css", ".md", ".yaml", ".png", ".gif", ".jpg", ".svg"]
@@ -45,7 +46,7 @@ twitchExtensions =
 
 waitForTwitchPassive :: [FilePath] -> IO FilePath
 waitForTwitchPassive files = do
-  let dirs = nub (map takeDirectory files)
+  let dirs = unique (map takeDirectory files)
   waitForTwitch dirs
 
 unique :: Ord a => [a] -> [a]

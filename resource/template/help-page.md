@@ -82,7 +82,7 @@ decker [options] [target]
     using `pandoc`:
 
     ``` {.sh}
-    decker help | pandoc -s -t html > ~/tmp/decker-help.html
+    decker help | pandoc -s -t html > decker-help.html
     ```
 
 `decker check`

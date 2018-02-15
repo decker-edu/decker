@@ -25,6 +25,7 @@ executable decker
   other-modules:       Action
                      , Cache
                      , CRC32
+                     , Macro
                      , Meta
                      , Watch
                      , Embed
@@ -56,18 +57,19 @@ executable decker
                      , file-embed
                      , filepath
                      , fsnotify
+                     , groom
                      , hashable
                      , highlighting-kate
                      , http-conduit
                      , http-types
                      , monad-loops
+                     , mtl
                      , multimap
                      , mustache
                      , network-uri
                      , pandoc
                      , pandoc-citeproc
                      , pandoc-types
-                     , groom
                      , process
                      , pureMD5
                      , random

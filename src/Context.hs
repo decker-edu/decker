@@ -13,9 +13,13 @@ module Context
   , actionContextKey
   , getActionContext
   , getPublicResource
+  , withShakeLock
+  , getRelativeSupportDir
+
   ) where
 
 import Control.Monad ()
+import Common
 import Data.Dynamic
 import qualified Data.HashMap.Lazy as HashMap
 import Data.IORef
@@ -24,6 +28,8 @@ import Data.Typeable ()
 import Development.Shake as Shake
 import Project
 import Server
+import System.FilePath.Posix
+import Text.Printf
 
 data ActionContext = ActionContext
   { ctxFilesToWatch :: IORef [FilePath]
@@ -98,3 +104,14 @@ getPublicResource :: Action Shake.Resource
 getPublicResource = do
   ctx <- getActionContext
   return $ ctxPublicResource ctx
+
+withShakeLock :: Action a -> Action a
+withShakeLock action = do
+  publicResource <- getPublicResource
+  withResource publicResource 1 action
+
+getRelativeSupportDir :: FilePath -> Action FilePath
+getRelativeSupportDir from = do
+  dir <- public <$> getProjectDirs
+  let support = dir </> ("support" ++ "-" ++ deckerVersion) 
+  return $ makeRelativeTo from support

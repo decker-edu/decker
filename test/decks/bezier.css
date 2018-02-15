@@ -1,0 +1,27 @@
+p {
+width: 960px;
+}
+
+.curve, .line {
+fill: none;
+stroke-width: 1px;
+}
+.curve {
+stroke: red;
+stroke-width: 3px;
+}
+.control {
+fill: #ccc;
+stroke: #000;
+stroke-width: .5px;
+cursor: move;
+}
+.control.drag, .control:hover {
+fill: #fe0;
+}
+.t, .controltext {
+font-size: .6em;
+}
+#bezier {
+display: inline-block;
+}
