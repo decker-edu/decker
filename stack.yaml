@@ -2,5 +2,4 @@ flags: {}
 packages:
 - '.'
 extra-deps:
-- containers-0.5.8.1
-resolver: lts-9.9
+resolver: lts-9.18

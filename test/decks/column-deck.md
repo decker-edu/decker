@@ -212,3 +212,64 @@ Some more Text
 ## 
 
 Some more Text
+
+# Questions
+
+## Question 1 {.answer .wrong}
+
+Some more Text or images
+
+### Some text
+
+![](lösung.png)
+
+## Question 2 {.question}
+
+1. Some more Text or images
+2. This is the answer
+
+Marc ist Imperator.
+
+------
+
+# Three Columns {layout="columns"}
+
+## Unten {.bottom}
+
+::: {.col30} unten drunter ist auch mehr Platz. Bis zum Rand. :::
+
+## Oben {.top}
+
+Oben drüber ist mehr PLatz. Bis zum Rand.
+
+## Links {.left grow="2"}
+
+Lalla
+
+## Rechts {.right grow="5"}
+
+Lalla
+
+## Center {.center grow="10"}
+
+Lalla
+
+------
+
+# Column Syntax
+
+## Top 1 {.split}
+
+- Lall
+- Fasel
+
+## \ 
+
+- Lall
+- Fasel
+
+----
+
+# Bilder und Figures
+
+![](pacman-perfect-game.mp4){width=50% .}

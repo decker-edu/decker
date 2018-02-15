@@ -72,7 +72,7 @@ hasAnyClass :: [String] -> Block -> Bool
 hasAnyClass which = isJust . firstClass which
 
 firstClass :: [String] -> Block -> Maybe String
-firstClass which block = listToMaybe $ filter ((flip hasClass) block) which
+firstClass which block = listToMaybe $ filter (`hasClass` block) which
 
 -- | Slide layouts are rows of one ore more columns.
 data RowLayout = RowLayout
@@ -124,12 +124,11 @@ renderRow areaMap (MultiColumn areas) =
 renderColumn :: (Int, [Block]) -> Block
 renderColumn (i, blocks) =
   let grow =
-        maybe (1 :: Int) Prelude.id $
-        lookup "grow" (blockKeyvals blocks) >>= readMaybe
+        fromMaybe (1 :: Int) $ lookup "grow" (blockKeyvals blocks) >>= readMaybe
   in Div
        ( ""
        , ["grow-" ++ show grow, "column", "column-" ++ show i]
-       , (blockKeyvals blocks))
+       , blockKeyvals blocks)
        blocks
 
 blockKeyvals :: [Block] -> [(String, String)]
@@ -139,7 +138,7 @@ blockKeyvals (first:_) =
 blockKeyvals [] = []
 
 renderLayout :: AreaMap -> RowLayout -> [Block]
-renderLayout areaMap l = catMaybes $ map (renderRow areaMap) (rows l)
+renderLayout areaMap l = mapMaybe (renderRow areaMap) (rows l)
 
 slideAreas :: [String] -> [Block] -> AreaMap
 slideAreas names blocks =
@@ -217,7 +216,7 @@ zapImages inline = inline
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 
 setSlideBackground :: Slide -> Slide
-setSlideBackground slide@((Header 1 (headerId, headerClasses, headerAttributes) inlines), slideBody) =
+setSlideBackground slide@(Header 1 (headerId, headerClasses, headerAttributes) inlines, slideBody) =
   case query allImages inlines of
     Image (_, imageClasses, imageAttributes) _ (imageSrc, _):_ ->
       ( Header
@@ -277,7 +276,7 @@ mapSlides func (Pandoc meta blocks) =
     slideBlocks = split (keepDelimsL $ whenElt isSlideHeader) blocks
     slides = map extractHeader $ filter (not . null) slideBlocks
     extractHeader (header@(Header 1 _ _):bs) = (header, bs)
-    extractHeader (rule@(HorizontalRule):bs) = (rule, bs)
+    extractHeader (rule@HorizontalRule:bs) = (rule, bs)
     extractHeader slide =
       throw $
       PandocException $ "Error extracting slide header: \n" ++ show slide

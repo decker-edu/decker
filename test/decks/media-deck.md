@@ -5,7 +5,9 @@ title: Image, Audio and Video Handling
 
 # Local Image
 
-![](include/06-metal.png)
+
+![Caption](include/06-metal.png)
+
 
 # Local Image 50%
 
@@ -13,7 +15,7 @@ title: Image, Audio and Video Handling
 
 # Local Video Autoplay
 
-![](movie.mp4){data-autoplay="1"}
+![Caption](movie.mp4){data-autoplay="1"}
 
 # Local Video 50%
 

@@ -20,7 +20,7 @@ import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath.Posix
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H ((!), canvas, div, script, toValue)
-import Text.Blaze.Html5.Attributes as A (class_, lang, id, src)
+import Text.Blaze.Html5.Attributes as A (class_, id, lang, src)
 import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.Printf
@@ -133,13 +133,16 @@ shakeCompile ext source attr = do
 renderedCodeExtensions :: [String]
 renderedCodeExtensions = [".dot", ".gnuplot", ".tex", ".js"]
 
+restrictKeys :: Ord a1 => Map.Map a1 a -> Set.Set a1 -> Map.Map a1 a
+restrictKeys m s = Map.filterWithKey (\k _ -> k `Set.member` s) m
+
 -- | Selects a processor based on a list of CSS class names. The first processor
 -- that is mentioned in that list is returned.
 findProcessor :: [String] -> Maybe Processor
 findProcessor classes
   | "render" `elem` classes = listToMaybe $ Map.elems matching
   where
-    matching = Map.restrictKeys processors (Set.fromList classes)
+    matching = restrictKeys processors (Set.fromList classes)
 findProcessor _ = Nothing
 
 -- | Appends `.svg` to file urls with extensions that belong to a known render
@@ -181,7 +184,7 @@ writeCodeIfChanged code ext = do
   let basepath = "code" </> (concat $ intersperse "-" ["code", crc])
   let path = projectDir </> basepath <.> ext
   lift $
-    withShakeLock $
+    withShakeLock $ www
     liftIO $
     unlessM (System.Directory.doesFileExist path) $ do
       createDirectoryIfMissing True (takeDirectory path)
@@ -200,10 +203,14 @@ appendScripts pandoc@(Pandoc meta blocks) = do
     renderScript (ScriptURI language uri) =
       RawBlock (Format "html") $
       renderHtml $
-      H.script ! class_ "generated decker" ! lang (toValue language) ! src (toValue uri) $
+      H.script ! class_ "generated decker" ! lang (toValue language) !
+      src (toValue uri) $
       ""
     renderScript (ScriptSource language source) = do
       RawBlock (Format "html") $
-        printf "<script class=\"generated decker\" lang=\"%s\">%s</script>" language source
+        printf
+          "<script class=\"generated decker\" lang=\"%s\">%s</script>"
+          language
+          source
       -- renderHtml $
       -- H.script ! class_ "generated decker" ! lang = language $ preEscapedToHtml source
