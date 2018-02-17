@@ -184,7 +184,7 @@ writeCodeIfChanged code ext = do
   let basepath = "code" </> (concat $ intersperse "-" ["code", crc])
   let path = projectDir </> basepath <.> ext
   lift $
-    withShakeLock $ www
+    withShakeLock $
     liftIO $
     unlessM (System.Directory.doesFileExist path) $ do
       createDirectoryIfMissing True (takeDirectory path)
