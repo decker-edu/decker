@@ -5,7 +5,7 @@ A markdown based tool for slide deck creation.
 ## Installation
 
 Pick a [published
-release](../releases), download and
+release](../../releases), download and
 unpack:
 
 ``` {.sh}
