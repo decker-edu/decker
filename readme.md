@@ -5,7 +5,7 @@ A markdown based tool for slide deck creation.
 ## Installation
 
 Pick a [published
-release](releases), download and
+release](/git/decker/decker/releases), download and
 unpack:
 
 ``` {.sh}
