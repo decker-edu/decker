@@ -86,7 +86,7 @@ runShakeInContext context options rules = do
           case server of
             Just serv -> reloadClients serv
             Nothing -> return ()
-          _ <- waitForTwitchPassive files
+          _ <- waitForTwitchPassive [public $ ctxDirs context]
           return False
 
 watchFiles :: [FilePath] -> Action ()
@@ -213,10 +213,10 @@ readAndProcessMarkdown markdownFile disp = do
     pipeline =
       concatM
         [ expandDeckerMacros
+        , renderCodeBlocks
         , provisionResources
         , makeSlides
         , renderMediaTags
-        , renderCodeBlocks
         , processCitesWithDefault
         , appendScripts
         ]
