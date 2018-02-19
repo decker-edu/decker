@@ -4,9 +4,7 @@ A markdown based tool for slide deck creation.
 
 ## Installation
 
-Pick a [published
-release](../../releases), download and
-unpack:
+Pick a [published release](tags), download and unpack:
 
 ``` {.sh}
 gunzip decker.gz
