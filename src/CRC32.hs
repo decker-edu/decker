@@ -1,4 +1,4 @@
-{-# LANGUAGE Safe #-}
+-- {-# LANGUAGE Safe #-}
 {- arch-tag: GZIP CRC32 implementation in pure Haskell
 Copyright (c) 2004-2011 John Goerzen <jgoerzen@complete.org>
 
@@ -27,7 +27,6 @@ module CRC32 where
 import Data.Array
 import Data.Bits
 import Data.Word
-import Data.List
 import Data.Char
 
 update_crc :: Word32 -> Char -> Word32

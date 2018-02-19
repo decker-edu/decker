@@ -19,7 +19,6 @@ module Project
 
 import Common
 import Data.Maybe
-import Development.Shake (Action)
 import Extra
 import Network.URI
 import Resources
@@ -95,14 +94,14 @@ findProjectDirectory = do
   searchGitRoot cwd
   where
     searchGitRoot :: FilePath -> IO FilePath
-    searchGitRoot path =
-      if isDrive path
+    searchGitRoot start =
+      if isDrive start
         then D.makeAbsolute "."
         else do
-          hasGit <- D.doesDirectoryExist (path </> ".git")
+          hasGit <- D.doesDirectoryExist (start </> ".git")
           if hasGit
-            then D.makeAbsolute path
-            else searchGitRoot $ takeDirectory path
+            then D.makeAbsolute start
+            else searchGitRoot $ takeDirectory start
 
 -- Calculate important absolute project directory pathes
 projectDirectories :: IO ProjectDirs
@@ -173,10 +172,10 @@ removeCommonPrefix =
     removeCommonPrefix_ pathes = pathes
 
 isPrefix :: FilePath -> FilePath -> Bool
-isPrefix a b = isPrefix_ (splitPath a) (splitPath b)
+isPrefix prefix whole = isPrefix_ (splitPath prefix) (splitPath whole)
   where
     isPrefix_ :: Eq a => [a] -> [a] -> Bool
-    isPrefix_ al@(a:as) bl@(b:bs)
+    isPrefix_ (a:as) (b:bs)
       | a == b = isPrefix_ as bs
       | otherwise = False
     isPrefix_ [] _ = True

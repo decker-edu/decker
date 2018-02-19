@@ -24,7 +24,7 @@ import Data.Version (showVersion, versionBranch)
 import Development.Shake (Action, need)
 import Network.URI as U
 import Paths_decker (version)
-import System.FilePath.Posix
+-- import System.FilePath.Posix
 
 -- | The version from the cabal file
 deckerVersion :: String
@@ -71,7 +71,7 @@ doIO :: IO a -> Decker a
 doIO = lift . liftIO
 
 needFile :: FilePath -> Decker ()
-needFile path = lift $ need [path]
+needFile file = lift $ need [file]
 
 needFiles :: [FilePath] -> Decker ()
 needFiles pathes = lift $ need pathes

@@ -28,6 +28,7 @@ data ExternalProgram = ExternalProgram
   , help :: String
   }
 
+programs :: [(String, ExternalProgram)]
 programs =
   [ ( "ssh"
     , ExternalProgram
@@ -156,9 +157,9 @@ makeProgram name =
 checkProgram :: String -> Action Bool
 checkProgram name = do
   liftIO $
-    handle (\(SomeException e) -> return False) $ do
+    handle (\(SomeException _) -> return False) $ do
       let external = fromJust $ lookup name programs
-      (code, out, err) <-
+      (code, _, _) <-
         readProcessWithExitCode (path external) (testArgs external) ""
       case code of
         ExitFailure status

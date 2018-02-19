@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Context
   ( ActionContext(..)
@@ -15,11 +15,10 @@ module Context
   , getPublicResource
   , withShakeLock
   , getRelativeSupportDir
-
   ) where
 
-import Control.Monad ()
 import Common
+import Control.Monad ()
 import Data.Dynamic
 import qualified Data.HashMap.Lazy as HashMap
 import Data.IORef
@@ -29,7 +28,6 @@ import Development.Shake as Shake
 import Project
 import Server
 import System.FilePath.Posix
-import Text.Printf
 
 data ActionContext = ActionContext
   { ctxFilesToWatch :: IORef [FilePath]
@@ -106,12 +104,12 @@ getPublicResource = do
   return $ ctxPublicResource ctx
 
 withShakeLock :: Action a -> Action a
-withShakeLock action = do
+withShakeLock perform = do
   publicResource <- getPublicResource
-  withResource publicResource 1 action
+  withResource publicResource 1 perform
 
 getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do
-  dir <- public <$> getProjectDirs
-  let support = dir </> ("support" ++ "-" ++ deckerVersion) 
-  return $ makeRelativeTo from support
+  pub <- public <$> getProjectDirs
+  let sup = pub </> ("support" ++ "-" ++ deckerVersion)
+  return $ makeRelativeTo from sup

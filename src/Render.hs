@@ -1,6 +1,4 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Render
   ( renderCodeBlocks
   , renderedCodeExtensions
@@ -11,27 +9,18 @@ import CRC32
 import Common
 import Context
 import Control.Monad.State
-import Control.Monad.Trans.Class
-import qualified Data.ByteString.Base64 as B64
-import qualified Data.ByteString.Char8 as B
 import Data.List
 import Data.List.Extra
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
-import Debug.Trace
-import Development.Shake
 import Extra
-import Network.URI
 import Project
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath.Posix
-import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 as H
-       ((!), canvas, div, preEscapedToHtml, script, toHtml, toValue)
-import Text.Blaze.Html5.Attributes as A
-       (alt, class_, height, id, src, style, title, width)
+import Text.Blaze.Html5 as H ((!), canvas, div, script, toValue)
+import Text.Blaze.Html5.Attributes as A (class_, id, lang, src)
 import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.Printf
@@ -46,15 +35,6 @@ data Processor = Processor
   , compiler :: String -> Attr -> Decker Inline
   }
 
-renderClass :: String
-renderClass = "render"
-
-dotPrelude :: String -> String
-dotPrelude _ = ""
-
-gnuplotPrelude :: String -> String
-gnuplotPrelude _ = "set terminal svg;"
-
 -- | The map of all rendering processors.
 processors :: Map.Map String Processor
 processors =
@@ -66,23 +46,25 @@ processors =
     , ("threejs", Processor ".js" threejsCanvas)
     ]
 
+tikzPre :: String
 tikzPre =
   "\\documentclass{standalone} \\usepackage{tikz} \\usepackage{verbatim}\n" ++
   "\\begin{document} \\pagestyle{empty}"
 
+tikzPost :: String
 tikzPost = "\\end{document}"
 
 d3Canvas :: FilePath -> Attr -> Decker Inline
-d3Canvas sourceFile (eid, classes, keyvals) = do
-  needFile sourceFile
+d3Canvas source (eid, classes, keyvals) = do
+  needFile source
   -- TODO: Clean this up. See Path.hs.
   base <- gets basePath
   dirs <- lift $ getProjectDirs
   let publicBase = public dirs </> makeRelativeTo (project dirs) base
   supportDir <- lift $ getRelativeSupportDir publicBase
-  source <- doIO $ readFile sourceFile
+  contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "d3.v4.min.js")
-  addScript $ ScriptSource "javascript" source
+  addScript $ ScriptSource "javascript" contents
   let classStr = intercalate " " classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
   case element of
@@ -101,18 +83,18 @@ d3Canvas sourceFile (eid, classes, keyvals) = do
       printf "<svg id=\"%v\" class=\"%v\"></svg>" eid classStr
 
 threejsCanvas :: FilePath -> Attr -> Decker Inline
-threejsCanvas sourceFile (eid, classes, keyvals) = do
-  needFile sourceFile
+threejsCanvas source (eid, classes, keyvals) = do
+  needFile source
   -- TODO: Clean this up. See Path.hs.
   base <- gets basePath
   dirs <- lift $ getProjectDirs
   let publicBase = public dirs </> makeRelativeTo (project dirs) base
   supportDir <- lift $ getRelativeSupportDir publicBase
-  source <- doIO $ readFile sourceFile
+  contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "three.min.js")
   let includes = splitOn "," $ fromMaybe "" $ lookup "includes" keyvals
-  mapM addScript $ map (ScriptURI "javascript") includes
-  addScript $ ScriptSource "javascript" source
+  mapM_ addScript $ map (ScriptURI "javascript") includes
+  addScript $ ScriptSource "javascript" contents
   let classStr = intercalate " " classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
   case element of
@@ -132,17 +114,17 @@ threejsCanvas sourceFile (eid, classes, keyvals) = do
 
 bracketedShakeCompile ::
      String -> String -> String -> FilePath -> Attr -> Decker Inline
-bracketedShakeCompile extension preamble postamble sourceFile attr = do
-  source <- doIO $ readFile sourceFile
-  let bracketed = preamble ++ "\n" ++ source ++ "\n" ++ postamble
-  codePath <- writeCodeIfChanged bracketed (takeExtension sourceFile)
-  let path = codePath <.> extension
+bracketedShakeCompile ext preamble postamble source attr = do
+  contents <- doIO $ readFile source
+  let bracketed = preamble ++ "\n" ++ contents ++ "\n" ++ postamble
+  codePath <- writeCodeIfChanged bracketed (takeExtension source)
+  let path = codePath <.> ext
   needFile path
   return $ Image attr [] (path, "")
 
 shakeCompile :: String -> FilePath -> Attr -> Decker Inline
-shakeCompile extension sourceFile attr = do
-  let path = sourceFile <.> extension
+shakeCompile ext source attr = do
+  let path = source <.> ext
   needFile path
   return $ Image attr [] (path, "")
 
@@ -151,13 +133,16 @@ shakeCompile extension sourceFile attr = do
 renderedCodeExtensions :: [String]
 renderedCodeExtensions = [".dot", ".gnuplot", ".tex", ".js"]
 
+restrictKeys :: Ord a1 => Map.Map a1 a -> Set.Set a1 -> Map.Map a1 a
+restrictKeys m s = Map.filterWithKey (\k _ -> k `Set.member` s) m
+
 -- | Selects a processor based on a list of CSS class names. The first processor
 -- that is mentioned in that list is returned.
 findProcessor :: [String] -> Maybe Processor
 findProcessor classes
   | "render" `elem` classes = listToMaybe $ Map.elems matching
   where
-    matching = Map.restrictKeys processors (Set.fromList classes)
+    matching = restrictKeys processors (Set.fromList classes)
 findProcessor _ = Nothing
 
 -- | Appends `.svg` to file urls with extensions that belong to a known render
@@ -165,7 +150,7 @@ findProcessor _ = Nothing
 -- stage, along with the handling of the normal image file urls. TODO: Fetch and
 -- cache remote URLs here. For now, assume local urls.
 maybeRenderImage :: Inline -> Decker Inline
-maybeRenderImage image@(Image attr@(id, classes, namevals) inlines (url, title)) =
+maybeRenderImage image@(Image attr@(_, classes, _) _ (url, _)) =
   case findProcessor classes of
     Just processor -> do
       (compiler processor) url attr
@@ -173,7 +158,7 @@ maybeRenderImage image@(Image attr@(id, classes, namevals) inlines (url, title))
 maybeRenderImage inline = return inline
 
 maybeRenderCodeBlock :: Block -> Decker Block
-maybeRenderCodeBlock block@(CodeBlock attr@(eid, classes, namevals) code) =
+maybeRenderCodeBlock block@(CodeBlock attr@(_, classes, _) code) =
   case findProcessor classes of
     Just processor -> do
       path <- writeCodeIfChanged code (extension processor)
@@ -189,16 +174,15 @@ provideResources namevals = do
       method <- gets provisioning
 --}
 -- | Encode a svg snippet into a data url for an image element
-svgDataUrl :: String -> String
-svgDataUrl svg =
-  "data:image/svg+xml;base64," ++ (B.unpack (B64.encode (B.pack svg)))
-
+-- svgDataUrl :: String -> String
+-- svgDataUrl svg =
+--   "data:image/svg+xml;base64," ++ (B.unpack (B64.encode (B.pack svg)))
 writeCodeIfChanged :: String -> String -> Decker FilePath
-writeCodeIfChanged code extension = do
+writeCodeIfChanged code ext = do
   projectDir <- project <$> (lift $ getProjectDirs)
   let crc = printf "%08x" (calc_crc32 code)
   let basepath = "code" </> (concat $ intersperse "-" ["code", crc])
-  let path = projectDir </> basepath <.> extension
+  let path = projectDir </> basepath <.> ext
   lift $
     withShakeLock $
     liftIO $
@@ -216,11 +200,17 @@ appendScripts pandoc@(Pandoc meta blocks) = do
       return $ Pandoc meta (blocks ++ map renderScript collected)
     (Disposition _ _) -> return pandoc
   where
-    renderScript (ScriptURI lang uri) =
+    renderScript (ScriptURI language uri) =
       RawBlock (Format "html") $
-      renderHtml $ H.script ! class_ "generated decker" ! src (toValue uri) $ ""
-    renderScript (ScriptSource lang source) = do
+      renderHtml $
+      H.script ! class_ "generated decker" ! lang (toValue language) !
+      src (toValue uri) $
+      ""
+    renderScript (ScriptSource language source) = do
       RawBlock (Format "html") $
-        printf "<script class=\"generated decker\">%s</script>" source
+        printf
+          "<script class=\"generated decker\" lang=\"%s\">%s</script>"
+          language
+          source
       -- renderHtml $
-      -- H.script ! class_ "generated decker" $ preEscapedToHtml source
+      -- H.script ! class_ "generated decker" ! lang = language $ preEscapedToHtml source

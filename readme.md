@@ -1,6 +1,3 @@
-[![build
-status](https://cgmgit.beuth-hochschule.de/teaching/decker/badges/master/build.svg)](https://cgmgit.beuth-hochschule.de/teaching/decker/commits/master)
-
 # decker
 
 A markdown based tool for slide deck creation.
@@ -8,7 +5,7 @@ A markdown based tool for slide deck creation.
 ## Installation
 
 Pick a [published
-release](https://cgmgit.beuth-hochschule.de/teaching/decker/tags), download and
+release](../../releases), download and
 unpack:
 
 ``` {.sh}

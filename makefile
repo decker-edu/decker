@@ -2,8 +2,14 @@ decker := $(shell stack path | grep local-install-root | sed "s/local-install-ro
 zip := $(shell mktemp -u)
 
 build:
-	stack build
+	stack build -j 8 --fast
 	@(cd resource; zip -qr $(zip) example support template; cat $(zip) >> $(decker); rm $(zip))
+
+watch:
+	stack test -j 8 --fast --file-watch
+
+docs: build
+	stack hoogle -- generate --local 
 
 clean:
 	stack clean
@@ -18,4 +24,4 @@ info:
 	@echo "decker: $(decker)"
 	@echo "zip: $(zip)"
 
-.PHONY: build clean install dist
+.PHONY: build clean install dist docs

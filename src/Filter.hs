@@ -1,6 +1,4 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
-
 module Filter
   ( Layout(..)
   , OutputFormat(..)
@@ -24,18 +22,13 @@ module Filter
 
 import Common
 import Control.Exception
-import Control.Monad
 import Control.Monad.State
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Default ()
 import Data.List
 import Data.List.Split
-import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
-import Data.Maybe
-import Debug.Trace
 import Development.Shake (Action)
-import Macro
 import Network.HTTP.Conduit
 import Network.HTTP.Simple
 import qualified Network.URI as U
@@ -45,21 +38,23 @@ import System.FilePath
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
-       ((!), audio, div, figure, iframe, iframe, img, p, stringTag,
-        toValue, video)
-import Text.Blaze.Html5.Attributes as A
-       (alt, class_, height, id, src, style, title, width)
+       ((!), audio, iframe, iframe, img, stringTag, toValue, video)
+import Text.Blaze.Html5.Attributes as A (alt, class_, id, title)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.Printf
 import Text.Read
 
 processPandoc ::
-     (Pandoc -> Decker Pandoc) -> FilePath -> Disposition -> Provisioning -> Pandoc -> Action Pandoc
-processPandoc transformation basePath disposition provisioning pandoc =
-  evalStateT (transformation pandoc) (DeckerState basePath disposition provisioning 0 [] [])
+     (Pandoc -> Decker Pandoc)
+  -> FilePath
+  -> Disposition
+  -> Provisioning
+  -> Pandoc
+  -> Action Pandoc
+processPandoc transform base disp prov pandoc =
+  evalStateT (transform pandoc) (DeckerState base disp prov 0 [] [])
 
 isSlideHeader :: Block -> Bool
 isSlideHeader (Header 1 _ _) = True
@@ -77,7 +72,7 @@ hasAnyClass :: [String] -> Block -> Bool
 hasAnyClass which = isJust . firstClass which
 
 firstClass :: [String] -> Block -> Maybe String
-firstClass which block = listToMaybe $ filter ((flip hasClass) block) which
+firstClass which block = listToMaybe $ filter (`hasClass` block) which
 
 -- | Slide layouts are rows of one ore more columns.
 data RowLayout = RowLayout
@@ -95,6 +90,7 @@ type Area = [Block]
 
 type AreaMap = [(String, Area)]
 
+rowLayouts :: [RowLayout]
 rowLayouts =
   [ RowLayout
       "columns"
@@ -104,38 +100,35 @@ rowLayouts =
       ]
   ]
 
+rowAreas :: Row -> [String]
 rowAreas (SingleColumn area) = [area]
 rowAreas (MultiColumn areas) = areas
 
-layoutAreas layout = concatMap rowAreas $ rows layout
+layoutAreas :: RowLayout -> [String]
+layoutAreas l = concatMap rowAreas $ rows l
 
 hasRowLayout :: Block -> Maybe RowLayout
 hasRowLayout block =
-  hasAttrib "layout" block >>=
-  (\layout -> find ((==) layout . lname) rowLayouts)
+  hasAttrib "layout" block >>= (\l -> find ((==) l . lname) rowLayouts)
 
 renderRow :: AreaMap -> Row -> Maybe Block
-renderRow areaMap (SingleColumn rowArea) =
-  lookup rowArea areaMap >>= Just . Div ("", ["single-column-row"], [])
-renderRow areaMap (MultiColumn rowAreas) =
+renderRow areaMap (SingleColumn area) =
+  lookup area areaMap >>= Just . Div ("", ["single-column-row"], [])
+renderRow areaMap (MultiColumn areas) =
   Just $
-  Div
-    ( ""
-    , ["multi-column-row", "multi-column-row-" ++ show (length rowAreas)]
-    , []) $
-  mapMaybe renderArea (zip [1 ..] rowAreas)
+  Div ("", ["multi-column-row", "multi-column-row-" ++ show (length areas)], []) $
+  mapMaybe renderArea (zip [1 ..] areas)
   where
     renderArea (i, area) = lookup area areaMap >>= Just . renderColumn . (i, )
 
 renderColumn :: (Int, [Block]) -> Block
 renderColumn (i, blocks) =
   let grow =
-        maybe (1 :: Int) Prelude.id $
-        lookup "grow" (blockKeyvals blocks) >>= readMaybe
+        fromMaybe (1 :: Int) $ lookup "grow" (blockKeyvals blocks) >>= readMaybe
   in Div
        ( ""
        , ["grow-" ++ show grow, "column", "column-" ++ show i]
-       , (blockKeyvals blocks))
+       , blockKeyvals blocks)
        blocks
 
 blockKeyvals :: [Block] -> [(String, String)]
@@ -145,7 +138,7 @@ blockKeyvals (first:_) =
 blockKeyvals [] = []
 
 renderLayout :: AreaMap -> RowLayout -> [Block]
-renderLayout areaMap layout = catMaybes $ map (renderRow areaMap) (rows layout)
+renderLayout areaMap l = mapMaybe (renderRow areaMap) (rows l)
 
 slideAreas :: [String] -> [Block] -> AreaMap
 slideAreas names blocks =
@@ -155,10 +148,10 @@ slideAreas names blocks =
 layoutSlides :: Slide -> Slide
 layoutSlides slide@(header, body) =
   case hasRowLayout header of
-    Just layout ->
-      let names = layoutAreas layout
+    Just l ->
+      let names = layoutAreas l
           areas = slideAreas names body
-      in (header, renderLayout areas layout)
+      in (header, renderLayout areas l)
     Nothing -> slide
 
 hasAttrib :: String -> Block -> Maybe String
@@ -184,9 +177,10 @@ blockAttribs _ = ("", [], [])
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
 splitJoinColumns :: Slide -> Slide
-splitJoinColumns (header, body) = (header, concatMap wrapRow rows)
+splitJoinColumns (header, body) = (header, concatMap wrapRow rowBlocks)
   where
-    rows = split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
+    rowBlocks =
+      split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
     wrapRow row@(first:_)
       | hasClass "split" first = [Div ("", ["css-columns"], []) row]
     wrapRow row = row
@@ -211,27 +205,19 @@ fragmentRelated =
 deFragment :: [String] -> [String]
 deFragment = filter (`notElem` fragmentRelated)
 
-deconstructSlide :: [Block] -> (Maybe Inline, Maybe Block, [Block])
-deconstructSlide (header:body) =
-  case header of
-    Header 1 attribs inlines ->
-      ( listToMaybe $ query allImages inlines
-      , Just $ Header 1 attribs (map zapImages inlines)
-      , body)
-deconstructSlide blocks = (Nothing, Nothing, blocks)
-
+allImages :: Inline -> [Inline]
 allImages image@Image {} = [image]
 allImages _ = []
 
+zapImages :: Inline -> Inline
 zapImages Image {} = Space
 zapImages inline = inline
 
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 
 setSlideBackground :: Slide -> Slide
-setSlideBackground slide@((Header 1 (headerId, headerClasses, headerAttributes) inlines), slideBody) =
+setSlideBackground slide@(Header 1 (headerId, headerClasses, headerAttributes) inlines, slideBody) =
   case query allImages inlines of
-    [] -> slide
     Image (_, imageClasses, imageAttributes) _ (imageSrc, _):_ ->
       ( Header
           1
@@ -241,6 +227,7 @@ setSlideBackground slide@((Header 1 (headerId, headerClasses, headerAttributes) 
             headerAttributes ++ map transform imageAttributes)
           (walk zapImages inlines)
       , slideBody)
+    _ -> slide
   where
     transform ("size", value) = ("data-background-size", value)
     transform ("position", value) = ("data-background-position", value)
@@ -274,27 +261,11 @@ wrapBoxes (header, body) = (header, concatMap wrap boxes)
 -- | Wrap H1 headers with class notes into a DIV and promote all header
 -- attributes to the DIV.
 wrapNoteRevealjs :: Slide -> Slide
-wrapNoteRevealjs slide@(header@(Header 1 (id_, cls, kvs) _), body)
+wrapNoteRevealjs (header@(Header 1 (id_, cls, kvs) _), body)
   | "notes" `elem` cls = (Div (id_, cls, kvs) (header : body), [])
 wrapNoteRevealjs slide = slide
 
 type Slide = (Block, [Block])
-
-splitSlides :: [Block] -> [Slide]
-splitSlides blocks =
-  map extractHeader $
-  filter (not . null) $ split (keepDelimsL $ whenElt isSlideHeader) blocks
-  where
-    extractHeader (header@(Header 1 _ _):blocks) = (header, blocks)
-    extractHeader (rule@(HorizontalRule):blocks) = (rule, blocks)
-    extractHeader slide =
-      throw $
-      PandocException $ "Error extracting slide header: \n" ++ show slide
-
-joinSlides :: [Slide] -> [Block]
-joinSlides slides = concatMap prependHeader slides
-  where
-    prependHeader (header, blocks) = header : blocks
 
 -- | Map over all slides in a deck. A slide has always a header followed by zero
 -- or more blocks.
@@ -304,12 +275,12 @@ mapSlides func (Pandoc meta blocks) =
   where
     slideBlocks = split (keepDelimsL $ whenElt isSlideHeader) blocks
     slides = map extractHeader $ filter (not . null) slideBlocks
-    extractHeader (header@(Header 1 _ _):blocks) = (header, blocks)
-    extractHeader (rule@(HorizontalRule):blocks) = (rule, blocks)
+    extractHeader (header@(Header 1 _ _):bs) = (header, bs)
+    extractHeader (rule@HorizontalRule:bs) = (rule, bs)
     extractHeader slide =
       throw $
       PandocException $ "Error extracting slide header: \n" ++ show slide
-    prependHeader (header, blocks) = header : blocks
+    prependHeader (header, bs) = header : bs
 
 makeSlides :: Pandoc -> Decker Pandoc
 makeSlides pandoc = do
@@ -326,11 +297,11 @@ makeSlides pandoc = do
       walk (mapSlides layoutSlides) $
       walk (mapSlides splitJoinColumns) $
       walk (mapSlides setSlideBackground) $ walk (mapSlides wrapBoxes) pandoc
-    Disposition _ _ ->
-      return $
-      walk (mapSlides splitJoinColumns) $
+    Disposition _ _ -> return pandoc
+      -- TODO: Do this for pages
+      -- walk (mapSlides splitJoinColumns) $
       -- walk (mapSlides setSlideBackground) $
-      walk (mapSlides wrapBoxes) pandoc
+      -- walk (mapSlides wrapBoxes) pandoc
 
 makeBoxes :: Pandoc -> Pandoc
 makeBoxes = walk (mapSlides wrapBoxes)
@@ -344,12 +315,13 @@ escapeToFilePath = map repl
         else c
 
 useCachedImages :: FilePath -> Inline -> IO Inline
-useCachedImages cacheDir img@(Image (ident, cls, values) inlines (url, title)) = do
+useCachedImages cacheDir image@(Image (ident, cls, values) inlines (url, imgTitle)) = do
   let cached = cacheDir </> escapeToFilePath url
   exists <- doesFileExist cached
   if exists
-    then return (Image (ident, "cached" : cls, values) inlines (cached, title))
-    else return img
+    then return
+           (Image (ident, "cached" : cls, values) inlines (cached, imgTitle))
+    else return image
 useCachedImages _ inline = return inline
 
 localImagePath :: Inline -> [FilePath]
@@ -369,11 +341,11 @@ isHttpUri url =
     Nothing -> False
 
 cachePandocImages :: FilePath -> Inline -> IO Inline
-cachePandocImages base img@(Image _ _ (url, _))
+cachePandocImages base image@(Image _ _ (url, _))
   | isHttpUri url = do
     cacheImageIO url base
-    return img
-  | otherwise = return img
+    return image
+  | otherwise = return image
 cachePandocImages _ inline = return inline
 
 -- | Downloads the image behind the URI and saves it locally. Returns the path of
@@ -406,9 +378,9 @@ iframeExtensions :: [String]
 iframeExtensions = [".html", ".html", ".pdf"]
 
 uriPathExtension :: String -> String
-uriPathExtension path =
-  case U.parseRelativeReference path of
-    Nothing -> takeExtension path
+uriPathExtension reference =
+  case U.parseRelativeReference reference of
+    Nothing -> takeExtension reference
     Just uri -> takeExtension (U.uriPath uri)
 
 classifyFilePath :: FilePath -> MediaType
@@ -425,15 +397,18 @@ classifyFilePath name =
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
 -- transfers attributes to the video tag.
 renderImageAudioVideoTag :: Disposition -> Inline -> Inline
-renderImageAudioVideoTag disposition (Image (ident, cls, values) inlines (url, tit)) =
+renderImageAudioVideoTag disp (Image (ident, cls, values) inlines (url, tit)) =
   RawInline (Format "html") (renderHtml imageVideoTag)
   where
     imageVideoTag =
-      case classifyFilePath url of
-        VideoMedia -> mediaTag (video "Browser does not support video.")
-        AudioMedia -> mediaTag (audio "Browser does not support audio.")
-        IframeMedia -> mediaTag (iframe "Browser does not support iframe.")
-        ImageMedia -> mediaTag img
+      if "iframe" `elem` cls
+        then mediaTag (iframe "Browser does not support iframe.")
+        else case classifyFilePath url of
+               VideoMedia -> mediaTag (video "Browser does not support video.")
+               AudioMedia -> mediaTag (audio "Browser does not support audio.")
+               IframeMedia ->
+                 mediaTag (iframe "Browser does not support iframe.")
+               ImageMedia -> mediaTag img
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
@@ -446,7 +421,7 @@ renderImageAudioVideoTag disposition (Image (ident, cls, values) inlines (url, t
         then element
         else element ! attr (toValue value)
     srcAttr =
-      if disposition == Disposition Deck Html
+      if disp == Disposition Deck Html
         then "data-src"
         else "src"
     transformedValues = (lazyLoad . transformImageSize) values
@@ -464,10 +439,10 @@ transformImageSize attributes =
         split (dropDelims $ oneOf ";") $
         fromMaybe "" $ snd <$> find (\(k, _) -> k == "style") attributes
       unstyled :: [(String, String)]
-      unstyled = filter (\(k, v) -> k /= "style") attributes
+      unstyled = filter (\(k, _) -> k /= "style") attributes
       unsized =
-        filter (\(k, v) -> k /= "width") $
-        filter (\(k, v) -> k /= "height") unstyled
+        filter (\(k, _) -> k /= "width") $
+        filter (\(k, _) -> k /= "height") unstyled
       size =
         ( snd <$> find (\(k, _) -> k == "width") unstyled
         , snd <$> find (\(k, _) -> k == "height") unstyled)

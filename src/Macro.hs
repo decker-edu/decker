@@ -1,6 +1,4 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-{-# LANGUAGE OverloadedStrings, TupleSections #-}
-
 module Macro
   ( expandDeckerMacros
   ) where
@@ -10,14 +8,12 @@ import Control.Monad.State
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
-import System.FilePath
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
-       ((!), audio, div, figure, iframe, iframe, img, p, stringTag,
-        toValue, video)
+       ((!), div, figure, iframe, iframe, p, toValue)
 import Text.Blaze.Html5.Attributes as A
-       (alt, class_, height, id, src, style, title, width)
+       (class_, height, src, style, width)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Shared
@@ -65,7 +61,7 @@ embedYoutubeHtml args attr (vid, _) =
       H.p ""
 
 embedYoutubePdf :: [String] -> Attr -> Target -> Inline
-embedYoutubePdf args attr (vid, _) =
+embedYoutubePdf _ attr (vid, _) =
   Link nullAttr [Image attr [Str text] (imageUrl, "")] (videoUrl, "")
   where
     videoUrl =
@@ -77,7 +73,7 @@ embedYoutubePdf args attr (vid, _) =
     text = printf "YouTube: %s" vid :: String
 
 youtube :: MacroAction
-youtube args attr target meta = do
+youtube args attr target _ = do
   disp <- gets disposition
   case disp of
     Disposition _ Html -> return $ embedYoutubeHtml args attr target
@@ -124,16 +120,6 @@ parseMacro (pre:invocation)
   | pre == ':' = Just (words invocation)
 parseMacro _ = Nothing
 
-isMacro :: String -> Bool
-isMacro (pre:_) = pre == ':'
-isMacro _ = False
-
-onlyStrings :: [Inline] -> [String]
-onlyStrings = reverse . foldl only []
-  where
-    only ss (Str s) = s : ss
-    only ss _ = ss
-
 expandInlineMacros :: Meta -> Inline -> Decker Inline
 expandInlineMacros meta inline@(Link attr text target) = do
   case parseMacro $ stringify text of
@@ -141,8 +127,8 @@ expandInlineMacros meta inline@(Link attr text target) = do
       case Map.lookup name macroMap of
         Just macro -> macro args attr target meta
         Nothing -> return inline
-    Nothing -> return inline
-expandInlineMacros meta inline = return inline
+    _ -> return inline
+expandInlineMacros _ inline = return inline
 
 expandDeckerMacros :: Pandoc -> Decker Pandoc
 expandDeckerMacros doc@(Pandoc meta _) = walkM (expandInlineMacros meta) doc

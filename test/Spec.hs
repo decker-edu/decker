@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 import Test.Hspec
 
 import qualified Data.ByteString.Char8 as B
