@@ -4,29 +4,31 @@
 # if the 18:04 LTS is available this one is automatically used, maybe then it can be set it as a fixed base-mage
 FROM ubuntu:rolling
 
-#update the packages
-RUN apt-get update
+#update the packages  and install all haskell-stack dependencies, for some reasons an extra gcc is required
+RUN apt-get update &&	apt-get install -y \
+	gcc \
+	git \
+	wget \
+	xz-utils
 
-#install all haskell-stack dependencies, for some reasons an extra gcc is required
-RUN	apt-get install -y xz-utils && \
-	apt-get install -y gcc && \
-	apt-get install -y wget && \
-	apt-get install -y git
 #install haskell-stack
 RUN	wget -qO- https://get.haskellstack.org/ | sh
 #install all decker dependencies
-RUN	apt-get install -y unzip zip && \
-	apt-get install -y rsync && \
-	apt-get install -y graphviz && \
-	apt-get install -y gnuplot && \
-	apt-get install -y sassc
+RUN	apt-get install -y \
+	graphviz \
+	gnuplot \
+	rsync \
+	sassc \
+	unzip \
+	zip
 
 #for pdf-features:
-RUN	apt-get install -y pdf2svg && \
-	apt-get install -y texlive-latex-base
+RUN	apt-get install -y \
+	pdf2svg \
+	texlive-latex-base
 
-
-
+#add the later location of decker binary to the PATH
+ENV PATH="/root/.local/bin:${PATH}"
 
 #cloning the decker repo with HTTPS to avoid SSH-Key hazzle, otherwise the SSH-key has to be added to the container with 'ADD'
 RUN git clone https://gitlab2.informatik.uni-wuerzburg.de/decker/decker.git
@@ -38,9 +40,6 @@ RUN git checkout cb68693de73576cff738a531a65229191351030b
 
 #install decker from the source
 RUN make install
-
-#add the location of decker binary to the PATH
-ENV PATH="/root/.local/bin:${PATH}"
 
 #set the encoding on UTF-8, so the parser works correctly, german language is also added for umlaute
 #source of fix: https://blog.mkowalski.net/2016/05/16/solving-locale-issues-with-docker-containers/
@@ -56,8 +55,12 @@ RUN dpkg-reconfigure --frontend noninteractive locales
 RUN apt-get clean autoclean && \
 	 apt-get autoremove -y
 
-#an example decker build, starting at container-runtime
-CMD [ "sh", "-c", "cd /; decker example; cd example/; decker server" ]
+#Create a loction for the volume with the decker-files
+WORKDIR /
+RUN mkdir served-files
+
+#serving Files
+CMD [ "sh", "-c", "cd /served-files/; decker server" ]
 
 #open the port for mapping
 Expose 8888
