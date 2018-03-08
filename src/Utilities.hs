@@ -36,8 +36,8 @@ import Data.IORef
 import Data.List as List
 import Data.List.Extra as List
 import qualified Data.Map.Lazy as Map
-import qualified Data.Set as Set
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import qualified Data.Text.Encoding as E
 import qualified Data.Yaml as Y
 import Development.Shake
@@ -51,7 +51,6 @@ import Render
 import Resources
 import Server
 import qualified System.Directory as Dir
-import System.IO as S
 import Text.CSL.Pandoc
 import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
@@ -60,6 +59,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import Text.Pandoc.Highlighting
 import Watch
 
 runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
@@ -156,15 +156,10 @@ markdownToHtmlDeck markdownFile out = do
         pandocWriterOpts
         { writerSlideLevel = Just 1
         , writerTemplate = Just template
-        -- , writerStandalone = True
-        , writerHighlight = True
-        -- , writerHighlightStyle = pygments
+        , writerHighlightStyle = Just pygments
         , writerHTMLMathMethod =
             MathJax
               (supportDirRel </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-        -- ,writerHTMLMathMethod =
-        --    KaTeX (supportDirRel </> "katex-0.6.0/katex.min.js")
-        --          (supportDirRel </> "katex-0.6.0/katex.min.css")
         , writerVariables =
             [ ("revealjs-url", supportDirRel </> "reveal.js-3.5.0")
             , ("decker-support-dir", supportDirRel)
@@ -172,16 +167,17 @@ markdownToHtmlDeck markdownFile out = do
         , writerCiteMethod = Citeproc
         }
   readAndProcessMarkdown markdownFile (Disposition Deck Html) >>=
-    writePandocString "revealjs" options out
+    writePandocFile "revealjs" options out
 
--- | Selects a matching pandoc string writer for the format string, or throws an
--- exception.
-getPandocWriter :: String -> StringWriter
-getPandocWriter fmt =
-  case getWriter fmt of
-    Right (PureStringWriter w) -> w
-    Left e -> throw $ PandocException e
-    _ -> throw $ PandocException $ "No writer for format: " ++ fmt
+writePandocFile :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
+writePandocFile fmt options out pandoc =
+  liftIO $ do
+    case getWriter fmt of
+      Right (TextWriter writePandoc, _) -> do
+        runIO (writePandoc options pandoc) >>= handleError >>= T.writeFile out
+      Right (ByteStringWriter writePandoc, _) -> do
+        runIO (writePandoc options pandoc) >>= handleError >>= LB.writeFile out
+      Left e -> throw $ PandocException e
 
 versionCheck :: Meta -> Action ()
 versionCheck meta =
@@ -290,9 +286,8 @@ markdownToHtmlPage markdownFile out = do
   template <- getTemplate "page.html"
   let options =
         pandocWriterOpts
-        { writerHtml5 = True
-        , writerTemplate = Just template
-        , writerHighlight = True
+        { writerTemplate = Just template
+        , writerHighlightStyle = Just pygments
         , writerHTMLMathMethod =
             MathJax
               (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
@@ -300,7 +295,7 @@ markdownToHtmlPage markdownFile out = do
         , writerCiteMethod = Citeproc
         }
   readAndProcessMarkdown markdownFile (Disposition Page Html) >>=
-    writePandocString "html5" options out
+    writePandocFile "html5" options out
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
@@ -310,7 +305,7 @@ markdownToPdfPage markdownFile out = do
   let options =
         pandocWriterOpts
         { writerTemplate = Just template
-        , writerHighlight = True
+        , writerHighlightStyle = Just pygments
         , writerCiteMethod = Citeproc
         }
   readAndProcessMarkdown markdownFile (Disposition Page Pdf) >>=
@@ -318,10 +313,11 @@ markdownToPdfPage markdownFile out = do
 
 pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
 pandocMakePdf options out pandoc = do
-  result <- liftIO $ makePDF "pdflatex" writeLaTeX options pandoc
-  case result of
-    Left errMsg -> throw $ PandocException (show errMsg)
-    Right pdf -> liftIO $ LB.writeFile out pdf
+  liftIO $ do
+    result <- runIO (makePDF "pdflatex" [] writeLaTeX options pandoc) >>= handleError
+    case result of
+      Left errMsg -> throw $ PandocException (show errMsg)
+      Right pdf -> liftIO $ LB.writeFile out pdf
 
 -- | Write a markdown file to a HTML file using the handout template.
 markdownToHtmlHandout :: FilePath -> FilePath -> Action ()
@@ -331,9 +327,8 @@ markdownToHtmlHandout markdownFile out = do
   template <- getTemplate "handout.html"
   let options =
         pandocWriterOpts
-        { writerHtml5 = True
-        , writerTemplate = Just template
-        , writerHighlight = True
+        { writerTemplate = Just template
+        , writerHighlightStyle = Just pygments
         , writerHTMLMathMethod =
             MathJax
               (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
@@ -341,7 +336,7 @@ markdownToHtmlHandout markdownFile out = do
         , writerCiteMethod = Citeproc
         }
   readAndProcessMarkdown markdownFile (Disposition Handout Html) >>=
-    writePandocString "html5" options out
+    writePandocFile "html5" options out
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
@@ -351,7 +346,7 @@ markdownToPdfHandout markdownFile out = do
   let options =
         pandocWriterOpts
         { writerTemplate = Just template
-        , writerHighlight = True
+        , writerHighlightStyle = Just pygments
         , writerCiteMethod = Citeproc
         }
   readAndProcessMarkdown markdownFile (Disposition Handout Pdf) >>=
@@ -366,18 +361,18 @@ readMetaMarkdown markdownFile = do
   -- read external meta data for this directory
   externalMeta <- readMetaDataForDir (takeDirectory markdownFile)
   -- extract embedded meta data from the document
-  markdown <- liftIO $ S.readFile markdownFile
+  markdown <- liftIO $ T.readFile markdownFile
   let Pandoc meta _ = readMarkdownOrThrow pandocReaderOpts markdown
   let documentMeta = MetaMap $ unMeta meta
   -- combine the meta data with preference on the embedded data
   let combinedMeta = mergePandocMeta documentMeta (toPandocMeta externalMeta)
   let mustacheMeta = toMustacheMeta combinedMeta
    -- use mustache to substitute
-  let substituted = substituteMetaData (T.pack markdown) mustacheMeta
+  let substituted = substituteMetaData markdown mustacheMeta
   -- read markdown with substitutions again
   let Pandoc _ blocks =
-        readMarkdownOrThrow pandocReaderOpts $ T.unpack substituted
-  case combinedMeta of 
+        readMarkdownOrThrow pandocReaderOpts substituted
+  case combinedMeta of
     (MetaMap m) -> do
       versionCheck (Meta m)
       let pandoc = Pandoc (Meta m) blocks
@@ -398,17 +393,17 @@ urlToFilePathIfLocal base uri = do
               else absBase </> filePath
       return absPath
 
-readMarkdownOrThrow :: ReaderOptions -> String -> Pandoc
-readMarkdownOrThrow opts string =
-  case readMarkdown opts string of
+readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
+readMarkdownOrThrow opts markdown =
+  case runPure (readMarkdown opts markdown) of
     Right pandoc -> pandoc
     Left errMsg -> throw $ PandocException (show errMsg)
 
 -- Remove automatic identifier creation for headers. It does not work well with
 -- the current include mechanism if slides have duplicate titles in separate
 -- include files.
-deckerPandocExtensions :: Set.Set Extension
-deckerPandocExtensions = Set.delete Ext_auto_identifiers pandocExtensions
+deckerPandocExtensions :: Extensions
+deckerPandocExtensions = disableExtension Ext_auto_identifiers pandocExtensions
 
 pandocReaderOpts :: ReaderOptions
 pandocReaderOpts = def {readerExtensions = deckerPandocExtensions}
@@ -545,13 +540,6 @@ processCitesWithDefault pandoc@(Pandoc meta blocks) =
              return (Pandoc cslMeta blocks)
            _ -> return pandoc
     liftIO $ processCites' document
-
-type StringWriter = WriterOptions -> Pandoc -> String
-
-writePandocString :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
-writePandocString fmt options out pandoc = do
-  let writer = getPandocWriter fmt
-  writeFile' out (writer options pandoc)
 
 writeExampleProject :: Action ()
 writeExampleProject = do

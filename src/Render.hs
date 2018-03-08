@@ -9,12 +9,12 @@ import CRC32
 import Common
 import Context
 import Control.Monad.State
+import Control.Monad.Extra
 import Data.List
 import Data.List.Extra
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
-import Extra
 import Project
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath.Posix

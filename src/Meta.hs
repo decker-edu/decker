@@ -33,10 +33,15 @@ toMustacheMeta (MetaList a) = MT.Array $ Vec.fromList $ map toMustacheMeta a
 toMustacheMeta (MetaBool bool) = MT.Bool bool
 toMustacheMeta (MetaString string) = MT.String $ T.pack string
 toMustacheMeta (MetaInlines inlines) =
-  MT.String $
-  T.pack $ writeMarkdown def (Pandoc (Meta Map.empty) [Plain inlines])
+  MT.String $ writeMarkdownText def (Pandoc (Meta Map.empty) [Plain inlines])
 toMustacheMeta (MetaBlocks blocks) =
-  MT.String $ T.pack $ writeMarkdown def (Pandoc (Meta Map.empty) blocks)
+  MT.String $ writeMarkdownText def (Pandoc (Meta Map.empty) blocks)
+
+writeMarkdownText :: WriterOptions -> Pandoc -> T.Text 
+writeMarkdownText options pandoc =
+  case runPure $ writeMarkdown options pandoc of
+    Right text -> text
+    Left err -> throw $ PandocException $ show err
 
 mergePandocMeta :: MetaValue -> MetaValue -> MetaValue
 mergePandocMeta (MetaMap meta1) (MetaMap meta2) =

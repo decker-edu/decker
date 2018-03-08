@@ -23,7 +23,7 @@ import Data.Dynamic
 import qualified Data.HashMap.Lazy as HashMap
 import Data.IORef
 import Data.Maybe (fromMaybe)
-import Data.Typeable ()
+import Data.Typeable (TypeRep, typeOf)
 import Development.Shake as Shake
 import Project
 import Server
