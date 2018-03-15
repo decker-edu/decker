@@ -627,6 +627,17 @@ body {
         .xx-large {
             font-size: $xx-large-font-size;
         }
+
+        /////////////////////////////////////////////
+        // Slide numbers
+        /////////////////////////////////////////////
+        .slide-number {
+        	width: 100%;
+        	text-align: center;
+        	background: transparent;
+        	color: gray;
+        	font-size: 0.4em;
+        }
     }
 
     /////////////////////////////////////////////
