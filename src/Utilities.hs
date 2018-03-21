@@ -37,8 +37,8 @@ import Data.List as List
 import Data.List.Extra as List
 import qualified Data.Map.Lazy as Map
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
 import qualified Data.Text.Encoding as E
+import qualified Data.Text.IO as T
 import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
@@ -56,10 +56,10 @@ import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc
 import Text.Pandoc.Builder
+import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.Pandoc.Highlighting
 import Watch
 
 runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
@@ -169,14 +169,19 @@ markdownToHtmlDeck markdownFile out = do
   readAndProcessMarkdown markdownFile (Disposition Deck Html) >>=
     writePandocFile "revealjs" options out
 
+runIOQuietly :: PandocIO a -> IO (Either PandocError a)
+runIOQuietly act = runIO (setVerbosity ERROR >> act)
+
 writePandocFile :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocFile fmt options out pandoc =
   liftIO $ do
     case getWriter fmt of
       Right (TextWriter writePandoc, _) -> do
-        runIO (writePandoc options pandoc) >>= handleError >>= T.writeFile out
+        runIOQuietly (writePandoc options pandoc) >>= handleError >>=
+          T.writeFile out
       Right (ByteStringWriter writePandoc, _) -> do
-        runIO (writePandoc options pandoc) >>= handleError >>= LB.writeFile out
+        runIOQuietly (writePandoc options pandoc) >>= handleError >>=
+          LB.writeFile out
       Left e -> throw $ PandocException e
 
 versionCheck :: Meta -> Action ()
@@ -314,7 +319,9 @@ markdownToPdfPage markdownFile out = do
 pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
 pandocMakePdf options out pandoc = do
   liftIO $ do
-    result <- runIO (makePDF "pdflatex" [] writeLaTeX options pandoc) >>= handleError
+    result <-
+      runIOQuietly (makePDF "pdflatex" [] writeLaTeX options pandoc) >>=
+      handleError
     case result of
       Left errMsg -> throw $ PandocException (show errMsg)
       Right pdf -> liftIO $ LB.writeFile out pdf
@@ -370,8 +377,7 @@ readMetaMarkdown markdownFile = do
    -- use mustache to substitute
   let substituted = substituteMetaData markdown mustacheMeta
   -- read markdown with substitutions again
-  let Pandoc _ blocks =
-        readMarkdownOrThrow pandocReaderOpts substituted
+  let Pandoc _ blocks = readMarkdownOrThrow pandocReaderOpts substituted
   case combinedMeta of
     (MetaMap m) -> do
       versionCheck (Meta m)
