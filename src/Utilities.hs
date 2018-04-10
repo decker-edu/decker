@@ -18,6 +18,7 @@ module Utilities
   , fixMustacheMarkup
   , fixMustacheMarkupText
   , toPandocMeta
+  , deckerPandocExtensions
   , DeckerException(..)
   ) where
 
@@ -74,18 +75,14 @@ runShakeInContext context options rules = do
       handle (\(SomeException _) -> return ()) (shakeArgs opts rules)
     cleanup = do
       server <- readIORef $ ctxServerHandle context
-      case server of
-        Just serv -> stopHttpServer serv
-        Nothing -> return ()
+      forM_ server stopHttpServer
     nothingToWatch = do
       files <- readIORef $ ctxFilesToWatch context
       if null files
         then return True
         else do
           server <- readIORef $ ctxServerHandle context
-          case server of
-            Just serv -> reloadClients serv
-            Nothing -> return ()
+          forM_ server reloadClients
           _ <- waitForTwitchPassive [public $ ctxDirs context]
           return False
 
@@ -174,15 +171,15 @@ runIOQuietly act = runIO (setVerbosity ERROR >> act)
 
 writePandocFile :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocFile fmt options out pandoc =
-  liftIO $ do
-    case getWriter fmt of
-      Right (TextWriter writePandoc, _) -> do
-        runIOQuietly (writePandoc options pandoc) >>= handleError >>=
-          T.writeFile out
-      Right (ByteStringWriter writePandoc, _) -> do
-        runIOQuietly (writePandoc options pandoc) >>= handleError >>=
-          LB.writeFile out
-      Left e -> throw $ PandocException e
+  liftIO $
+  case getWriter fmt of
+    Right (TextWriter writePandoc, _) ->
+      runIOQuietly (writePandoc options pandoc) >>= handleError >>=
+      T.writeFile out
+    Right (ByteStringWriter writePandoc, _) ->
+      runIOQuietly (writePandoc options pandoc) >>= handleError >>=
+      LB.writeFile out
+    Left e -> throw $ PandocException e
 
 versionCheck :: Meta -> Action ()
 versionCheck meta =
@@ -261,7 +258,7 @@ provisionMetaResource _ _ (_, url) = return url
 --
 -- Returns a public URL relative to base
 provisionResource :: FilePath -> Provisioning -> FilePath -> Action FilePath
-provisionResource base method filePath = do
+provisionResource base method filePath =
   case parseRelativeReference filePath of
     Nothing -> return filePath
     Just uri -> do
@@ -317,10 +314,10 @@ markdownToPdfPage markdownFile out = do
     pandocMakePdf options out
 
 pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
-pandocMakePdf options out pandoc = do
+pandocMakePdf options out pandoc =
   liftIO $ do
     result <-
-      runIOQuietly (makePDF "pdflatex" [] writeLaTeX options pandoc) >>=
+      runIOQuietly (makePDF "xelatex" [] writeLaTeX options pandoc) >>=
       handleError
     case result of
       Left errMsg -> throw $ PandocException (show errMsg)
@@ -386,7 +383,7 @@ readMetaMarkdown markdownFile = do
     _ -> throw $ PandocException "Meta format conversion failed."
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
-urlToFilePathIfLocal base uri = do
+urlToFilePathIfLocal base uri =
   case parseRelativeReference uri of
     Nothing -> return uri
     Just relativeUri -> do
@@ -418,10 +415,9 @@ pandocWriterOpts :: WriterOptions
 pandocWriterOpts = def {writerExtensions = deckerPandocExtensions}
 
 mapResources :: (FilePath -> Action FilePath) -> Pandoc -> Action Pandoc
-mapResources transform (Pandoc meta blocks) = do
-  processedBlocks <-
-    walkM (mapInline transform) blocks >>= walkM (mapBlock transform)
-  return (Pandoc meta processedBlocks)
+mapResources transform (Pandoc meta blocks) =
+  Pandoc meta <$> walkM (mapInline transform) blocks >>=
+  walkM (mapBlock transform)
 
 mapAttributes :: (FilePath -> Action FilePath) -> Attr -> Action Attr
 mapAttributes transform (ident, classes, kvs) = do
@@ -517,14 +513,12 @@ metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
-processIncludes baseDir (Pandoc meta blocks) = do
-  included <- processBlocks baseDir blocks
-  return $ Pandoc meta included
+processIncludes baseDir (Pandoc meta blocks) =
+  Pandoc meta <$> processBlocks baseDir blocks
   where
     processBlocks :: FilePath -> [Block] -> Action [Block]
-    processBlocks base blcks = do
-      spliced <- foldM (include base) [] blcks
-      return $ concat $ reverse spliced
+    processBlocks base blcks =
+      concat . reverse <$> foldM (include base) [] blcks
     include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
     include base result (Para [Link _ [Str ":include"] (url, _)]) = do
       includeFile <- urlToFilePathIfLocal base url
@@ -538,18 +532,17 @@ processCitesWithDefault :: Pandoc -> Decker Pandoc
 processCitesWithDefault pandoc@(Pandoc meta blocks) =
   lift $ do
     document <-
-      do case lookupMeta "csl" meta of
-           Nothing -> do
-             dir <- appData <$> getProjectDirs
-             let defaultCsl = dir </> "template" </> "acm-sig-proceedings.csl"
-             let cslMeta = setMeta "csl" (MetaString defaultCsl) meta
-             return (Pandoc cslMeta blocks)
-           _ -> return pandoc
+      case lookupMeta "csl" meta of
+        Nothing -> do
+          dir <- appData <$> getProjectDirs
+          let defaultCsl = dir </> "template" </> "acm-sig-proceedings.csl"
+          let cslMeta = setMeta "csl" (MetaString defaultCsl) meta
+          return (Pandoc cslMeta blocks)
+        _ -> return pandoc
     liftIO $ processCites' document
 
 writeExampleProject :: Action ()
-writeExampleProject = do
-  liftIO $ writeResourceFiles "example" "."
+writeExampleProject = liftIO $ writeResourceFiles "example" "."
 
 {--
 writeExampleProject :: Action ()
