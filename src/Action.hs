@@ -39,7 +39,7 @@ globA :: FilePattern -> Action [FilePath]
 globA pat = do
   dirs <- getProjectDirs
   liftIO $
-    filter (not . isPrefixOf (public dirs)) <$>
+    (filter (not . isPrefixOf (public dirs)) . sort) <$>
     globDir1 (compile pat) (project dirs)
 
 -- Utility functions for shake based apps
@@ -136,5 +136,6 @@ readMetaDataForDir directory = walkUpTo directory
         Right object@(Y.Object _) -> return object
         Right _ ->
           throw $
-          YamlException $ "Top-level meta value must be an object: " ++ directory
+          YamlException $
+          "Top-level meta value must be an object: " ++ directory
         Left exception -> throw exception

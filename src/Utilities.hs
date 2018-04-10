@@ -3,6 +3,8 @@ module Utilities
   ( runShakeInContext
   , watchFiles
   , writeIndex
+  , writeIndexTable
+  , writeIndexLists
   , readMetaDataForDir
   , substituteMetaData
   , markdownToHtmlDeck
@@ -61,6 +63,7 @@ import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import Text.Printf
 import Watch
 
 runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
@@ -94,6 +97,32 @@ watchFiles = setFilesToWatch
 (<++>) = liftM2 (++)
 
 -- | Generates an index.md file with links to all generated files of interest.
+writeIndexTable ::
+     FilePath -> FilePath -> [[FilePath]] -> [[FilePath]] -> Action ()
+writeIndexTable out baseUrl deckData pageData = do
+  dirs <- getProjectDirs
+  liftIO $
+    writeFile out $
+    unlines
+      [ "---"
+      , "title: Generated Index"
+      , "subtitle: " ++ project dirs
+      , "---"
+      , "# Slide decks"
+      , "| Deck HTML | Handout HTML | Deck PDF | Handout PDF|"
+      , "|-----------|--------------|----------|------------|"
+      , unlines $ makeRow deckData
+      , "# Pages"
+      , "| Page HTML | Page PDF |"
+      , "|-----------|----------|"
+      , unlines $ makeRow pageData
+      ]
+  where
+    makeRow = map (("| " ++) . (++ " | ") . intercalate " | " . map makeLink)
+    makeLink file =
+      "[" ++ takeFileName file ++ "](" ++ makeRelative baseUrl file ++ ")"
+
+-- | Generates an index.md file with links to all generated files of interest.
 writeIndex ::
      FilePath -> FilePath -> [FilePath] -> [FilePath] -> [FilePath] -> Action ()
 writeIndex out baseUrl decks handouts pages = do
@@ -117,6 +146,38 @@ writeIndex out baseUrl decks handouts pages = do
       ]
   where
     makeLink file = "-    [" ++ takeFileName file ++ "](" ++ file ++ ")"
+
+-- | Generates an index.md file with links to all generated files of interest.
+writeIndexLists ::
+     FilePath
+  -> FilePath
+  -> [(FilePath, FilePath)]
+  -> [(FilePath, FilePath)]
+  -> [(FilePath, FilePath)]
+  -> Action ()
+writeIndexLists out baseUrl decks handouts pages = do
+  dirs <- getProjectDirs
+  liftIO $
+    writeFile out $
+    unlines
+      [ "---"
+      , "title: Generated Index"
+      , "subtitle: " ++ project dirs
+      , "---"
+      , "# Slide decks"
+      , unlines $ map makeLink decks
+      , "# Handouts"
+      , unlines $ map makeLink handouts
+      , "# Supporting Documents"
+      , unlines $ map makeLink pages
+      ]
+  where
+    makeLink (html, pdf) =
+      printf
+        "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
+        (takeFileName html)
+        (makeRelative baseUrl $ html)
+        (makeRelative baseUrl $ pdf)
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text

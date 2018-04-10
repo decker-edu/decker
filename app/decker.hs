@@ -72,9 +72,10 @@ main = do
       need ["support"]
       everythingA <++> indexA >>= need
     --
-    phony "pdf" $ pagesPdfA <++> handoutsPdfA <++> indexA >>= need
+    phony "pdf" $
+      decksPdfA <++> pagesPdfA <++> handoutsPdfA <++> indexA >>= need
     --
-    -- phony "pdf-decks" $ decksPdfA <++> indexA >>= need
+    phony "pdf-decks" $ decksPdfA <++> indexA >>= need
     --
     phony "watch" $ do
       need ["html"]
@@ -135,11 +136,26 @@ main = do
         markdownToHtmlPage src out
     --
     indexSource <.> "generated" %> \out -> do
+      deckSources <- deckSourcesA
+      pageSources <- pageSourcesA
       decks <- decksA
+      decksPdf <- decksPdfA
+      pagesPdf <- pagesPdfA
       handouts <- handoutsA
+      handoutsPdf <- handoutsPdfA
       pages <- pagesA
+      let deckData =
+            transpose [deckSources, decks, handouts, decksPdf, handoutsPdf]
+      let pageData = transpose [pageSources, pages, pagesPdf]
       need $ decks ++ handouts ++ pages
-      writeIndex out (takeDirectory index) decks handouts pages
+      writeIndexLists
+        out
+        (takeDirectory index)
+        (zip decks decksPdf)
+        (zip handouts handoutsPdf)
+        (zip pages pagesPdf)
+      -- writeIndexTable out (takeDirectory index) deckData pageData
+      -- writeIndex out (takeDirectory index) decks handouts pages
     --
     priority 2 $
       "//*.dot.svg" %> \out -> do

@@ -155,16 +155,16 @@ makeProgram name =
             "\n" ++ (help external) ++ "\n\n" ++ err ++ "\n\n" ++ out)
 
 checkProgram :: String -> Action Bool
-checkProgram name = do
+checkProgram name =
   liftIO $
-    handle (\(SomeException _) -> return False) $ do
-      let external = fromJust $ lookup name programs
-      (code, _, _) <-
-        readProcessWithExitCode (path external) (testArgs external) ""
-      case code of
-        ExitFailure status
-          | status == 127 -> return False
-        _ -> return True
+  handle (\(SomeException _) -> return False) $ do
+    let external = fromJust $ lookup name programs
+    (code, _, _) <-
+      readProcessWithExitCode (path external) (testArgs external) ""
+    case code of
+      ExitFailure status
+        | status == 127 -> return False
+      _ -> return True
 
 checkExternalPrograms :: Action ()
 checkExternalPrograms = putNormal "# external programs:" >> mapM_ check programs
