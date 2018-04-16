@@ -24,8 +24,8 @@ import Data.Version (showVersion, versionBranch)
 import Development.Shake (Action, need)
 import Network.URI as U
 import Paths_decker (version)
--- import System.FilePath.Posix
 
+-- import System.FilePath.Posix
 -- | The version from the cabal file
 deckerVersion :: String
 deckerVersion = showVersion version
@@ -77,8 +77,7 @@ needFiles :: [FilePath] -> Decker ()
 needFiles pathes = lift $ need pathes
 
 addScript :: Script -> Decker ()
-addScript script = do
-  modify (\s -> s {scripts = scripts s ++ [script]})
+addScript script = modify (\s -> s {scripts = scripts s ++ [script]})
 
 data DeckerState = DeckerState
   { basePath :: String
