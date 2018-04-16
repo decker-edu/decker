@@ -136,17 +136,17 @@ main = do
         markdownToHtmlPage src out
     --
     indexSource <.> "generated" %> \out -> do
-      deckSources <- deckSourcesA
-      pageSources <- pageSourcesA
+      -- deckSources <- deckSourcesA
+      -- pageSources <- pageSourcesA
       decks <- decksA
       decksPdf <- decksPdfA
       pagesPdf <- pagesPdfA
       handouts <- handoutsA
       handoutsPdf <- handoutsPdfA
       pages <- pagesA
-      let deckData =
-            transpose [deckSources, decks, handouts, decksPdf, handoutsPdf]
-      let pageData = transpose [pageSources, pages, pagesPdf]
+      -- let deckData =
+      --      transpose [deckSources, decks, handouts, decksPdf, handoutsPdf]
+      -- let pageData = transpose [pageSources, pages, pagesPdf]
       need $ decks ++ handouts ++ pages
       writeIndexLists
         out
