@@ -141,7 +141,6 @@ body {
                 }
 
                 dd {
-                    //margin-left: 40px;
                     margin-left: space(1)
                 }
 
@@ -154,9 +153,7 @@ body {
                     display: block;
                     position: relative;
                     width: 70%;
-                    //margin: 20px auto;
                     margin: space(1) auto;
-                    //padding: 5px;
                     padding: space(0.25);
                     font-style: italic;
                     background: rgba(255, 255, 255, 0.05);
@@ -242,6 +239,7 @@ body {
                 /////////////////////////////////////////////
                 // Column settings
                 /////////////////////////////////////////////
+                // For `{layout="columns"}`-Syntax
                 // Case: All columns vertically centered
                 &.mid {
                     div {
@@ -259,6 +257,20 @@ body {
                     /////////////////////////////////////////////
                     // Column settings
                     /////////////////////////////////////////////
+                    // For `{.split}`-Syntax
+                    &.css-columns {
+                        column-count: 2;
+                        column-gap: 2em;
+                        column-rule-style: none;
+                        padding-left: 0.7em;
+                        margin-left: -0.7em;
+                    }
+
+                    &.box {
+                        break-inside: avoid-column;
+                    }
+
+                    // For `{layout="columns"}`-Syntax
                     &.multi-column-row {
                         display:flex;
                         flex-flow: row nowrap;
@@ -304,7 +316,6 @@ body {
                     &.box {
                         h2 {
                             margin-top: 0;
-                            //margin-bottom: space(0.2);
 
                             &:last-child, &:empty {
                                 margin-bottom: 0;
@@ -319,9 +330,30 @@ body {
                         margin: space(0 -0.7);
                         border-radius: 0.25em;
 
-                        &.question, &.answer, &.observation, &.example, &.def, &.definition, &.note, &.ale, &.alert, &.equ, &.equation, &.theorem {
-
-                            & + .question, & + .answer, & + .observation, & + .example, & + .def, & + .definition, & + .note, & + .ale, & + .alert, & + .equ, & + .equation, & + .theorem {
+                        &.question,
+                        &.answer,
+                        &.observation,
+                        &.example,
+                        &.def,
+                        &.definition,
+                        &.note,
+                        &.ale,
+                        &.alert,
+                        &.equ,
+                        &.equation,
+                        &.theorem {
+                            & + .question,
+                            & + .answer,
+                            & + .observation,
+                            & + .example,
+                            & + .def,
+                            & + .definition,
+                            & + .note,
+                            & + .ale,
+                            & + .alert,
+                            & + .equ,
+                            & + .equation,
+                            & + .theorem {
                                 margin-top: space(0.3);
                             }
 
@@ -343,7 +375,8 @@ body {
                             background-color: rgba(176, 197, 222, 0.4);
                         }
 
-                        &.def, &.definition {
+                        &.def,
+                        &.definition {
                             background-color: rgba(245, 222, 179, 0.6);
                         }
 
@@ -351,11 +384,13 @@ body {
                             background-color: rgba(244, 164, 96, 0.4);
                         }
 
-                        &.ale, &.alert {
+                        &.ale,
+                        &.alert {
                             background-color: rgba(255, 99, 71, 0.4);
                         }
 
-                        &.equ, &.equation {
+                        &.equ,
+                        &.equation {
                             background-color: rgb(235, 235, 235);
                         }
 
@@ -472,7 +507,18 @@ body {
 
                 // Special case: source code inside highlighted box
                 div.box {
-                    &.question, &.answer, &.observation, &.example, &.def, &.definition, &.note, &.ale, &.alert, &.equ, &.equation, &.theorem {
+                    &.question,
+                    &.answer,
+                    &.observation,
+                    &.example,
+                    &.def,
+                    &.definition,
+                    &.note,
+                    &.ale,
+                    &.alert,
+                    &.equ,
+                    &.equation,
+                    &.theorem {
                         div.sourceCode {
                             margin: 0;
                             background: rgba(255, 255, 255, 0.4);
@@ -567,7 +613,18 @@ body {
                             padding: space(0.2 0.7);
                             margin: space(0 -0.7);
 
-                            &.question, &.answer, &.observation, &.example, &.def, &.definition, &.note, &.ale, &.alert, &.equ, &.equation, &.theorem {
+                            &.question,
+                            &.answer,
+                            &.observation,
+                            &.example,
+                            &.def,
+                            &.definition,
+                            &.note,
+                            &.ale,
+                            &.alert,
+                            &.equ,
+                            &.equation,
+                            &.theorem {
                                 div.sourceCode {
                                     pre {
                                         line-height: 0;
