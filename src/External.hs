@@ -100,7 +100,7 @@ programs =
         ["--style", "nested"]
         ["-v"]
         (helpText
-           "Decktape PDF exporter (https://github.com/astefanutti/decktape)"))
+           "LibSass wrapper (https://github.com/sass/sassc)"))
   ]
 
 type Program = ([String] -> Action ())
