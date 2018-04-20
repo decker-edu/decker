@@ -30,6 +30,12 @@ $base-spacer: 1em;
     @return $multiplied
 }
 
+@mixin prefix($property, $parameters...) {
+    @each $prefix in -webkit-, -moz-, -ms-, -o-, "" {
+        #{$prefix}#{$property}: $parameters;
+    }
+}
+
 /////////////////////////////////////////////
 // Styles
 /////////////////////////////////////////////
@@ -96,7 +102,7 @@ body {
                     margin-bottom: space(0.1);
                 }
 
-                &.has-dark-background, 
+                &.has-dark-background,
                 &.inverse {
                     h1,
                     h2,
@@ -170,6 +176,15 @@ body {
 
                 q {
                     font-style: italic;
+                    quotes: "“" "”" "‘" "’";
+                }
+
+                .smallcaps {
+                    font-variant: small-caps;
+                }
+
+                .line-block {
+                    white-space: pre-line;
                 }
 
                 /////////////////////////////////////////////
@@ -214,14 +229,10 @@ body {
                 a {
                     color: #009;
                     text-decoration: none;
-                    -webkit-transition: color 0.15s ease;
-                    -moz-transition: color 0.15s ease;
-                    transition: color 0.15s ease;
+                    @include prefix(transition, color 0.15s ease);
 
                     img {
-                        -webkit-transition: all 0.15s linear;
-                        -moz-transition: all 0.15s linear;
-                        transition: all 0.15s linear;
+                        @include prefix(transition, color 0.15s linear);
                     }
 
                     &:hover {
@@ -258,13 +269,19 @@ body {
                     /////////////////////////////////////////////
                     // Column settings
                     /////////////////////////////////////////////
+                    &.column {
+                        display: inline-block;
+                        vertical-align: top;
+                        width: 50%;
+                    }
+
                     // For `{.split}`-Syntax
                     &.css-columns {
                         column-count: 2;
-                        column-gap: 2em;
+                        column-gap: space(2);
                         column-rule-style: none;
-                        padding-left: 0.7em;
-                        margin-left: -0.7em;
+                        padding-left: space(0.7);
+                        margin-left: space(-0.7);
                     }
 
                     &.box {
@@ -303,7 +320,7 @@ body {
                                 }
 
                                 @for $i from 1 through 9 {
-                                    &[grow="#{$i}"] {
+                                    &[data-grow="#{$i}"] {
                                         flex-grow: $i;
                                     }
                                 }
@@ -401,54 +418,6 @@ body {
                     }
 
                     /////////////////////////////////////////////
-                    // Column settings
-                    /////////////////////////////////////////////
-                    &.css-columns {
-                        column-count: 2;
-                        column-gap: 2em;
-                        column-rule-style: none;
-                        padding-left: 0.7em;
-                        margin-left: -0.7em;
-                    }
-
-                    &.box {
-                        break-inside: avoid-column;
-                    }
-
-                    &.multi-column-row {
-                        display:flex;
-                        flex-flow: row nowrap;
-
-                        $margin-size: 1em;
-
-                        div.column {
-                            flex: 1 1 0%;
-
-                            margin-left: $margin-size;
-                            margin-right: $margin-size;
-                            
-                            &:first-child {
-                                margin-left: 0em;
-                                margin-right: $margin-size;
-                                }
-
-                            &:last-child {
-                                margin-left: $margin-size;
-                                margin-right: 0em;
-                            }
-                        }
-                        div.column[data-grow="1"] {flex-grow:1;}
-                        div.column[data-grow="2"] {flex-grow:2;}
-                        div.column[data-grow="3"] {flex-grow:3;}
-                        div.column[data-grow="4"] {flex-grow:4;}
-                        div.column[data-grow="5"] {flex-grow:5;}
-                        div.column[data-grow="6"] {flex-grow:6;}
-                        div.column[data-grow="7"] {flex-grow:7;}
-                        div.column[data-grow="8"] {flex-grow:8;}
-                        div.column[data-grow="9"] {flex-grow:9;}
-                    }
-                                        
-                    /////////////////////////////////////////////
                     // Video
                     /////////////////////////////////////////////
                     // iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
@@ -531,6 +500,7 @@ body {
                     padding: space(0.4 0.7);
                     background: rgba(0, 0, 0, 0.03);
                     border-radius: 0.25em;
+                    overflow: auto;
 
                     pre {
                         display: block;
@@ -543,6 +513,35 @@ body {
                         font-size: 90%;
                         margin: 0;
 
+                        &.numberSource {
+                            margin-left: 3em;
+                            border-left: 1px solid #aaaaaa;
+                            padding-left: 4px;
+
+                            a.sourceLine{
+                                position: relative;
+
+                                &:empty {
+                                    position: absolute;
+                                }
+
+                                &::before {
+                                    content: attr(data-line-number);
+                                    position: absolute;
+                                    left: space(-5);
+                                    text-align: right;
+                                    vertical-align: baseline;
+                                    border: none;
+                                    pointer-events: all;
+                                    @include prefix(user-select, none);
+                                    -webkit-touch-callout: none;
+                                    padding: 0 4px;
+                                    width: space(4);
+                                    color: #aaaaaa;
+                                }
+                            }
+                        }
+
                         code {
                             display: block;
                             overflow: auto;
@@ -550,6 +549,116 @@ body {
                             word-wrap: normal;
                             border: none;
                             font-family: 'Source Code Pro', monospace;
+                            white-space: pre; // pre-wrap generates line breaks
+                            position: relative;
+
+                            a.sourceLine {
+                                display: inline-block;
+                                line-height: 1.25;
+                                pointer-events: none;
+                                color: inherit;
+                                text-decoration: inherit;
+
+                                &:empty {
+                                    height: 1.2em;
+                                    position: absolute;
+                                }
+
+                                &::before {
+                                    text-decoration: underline;
+                                }
+
+                                span {
+                                    &.al {                       // Alert
+                                        color: #ff0000;
+                                        font-weight: bold;
+                                    }
+
+                                    &.an,                        // Annotation
+                                    &.cv,                        // CommentVar
+                                    &.wa,                        // Warning
+                                    &.in {                       // Information
+                                        color: #60a0b0;
+                                        font-weight: bold;
+                                        font-style: italic;
+                                    }
+
+                                    &.at {                       // Attribute
+                                        color: #7d9029;
+                                    }
+
+                                    &.fl,                        // Float
+                                    &.dv,                        // DecVal
+                                    &.bn {                       // BaseN
+                                        color: #40a070;
+                                    }
+
+                                    &.bu,                        // BuiltIn
+                                    &.ex,                        // Extension
+                                    &.im {                       // Import
+                                    }
+
+                                    &.cf,                        // ControlFlow
+                                    &.kw {                       // Keyword
+                                        color: #007020;
+                                        font-weight: bold;
+                                    }
+
+                                    &.ch,                        // Char
+                                    &.sc,                        // SpecialChar
+                                    &.st,                        // String
+                                    &.vs {                       // VerbatimString
+                                        color: #4070a0;
+                                    }
+
+                                    &.cn {                       // Constant
+                                        color: #880000;
+                                    }
+
+                                    &.co {                       // Comment
+                                        color: #60a0b0;
+                                        font-style: italic;
+                                    }
+
+                                    &.do {                       // Documentation
+                                        color: #ba2121;
+                                        font-style: italic;
+                                    }
+
+                                    &.dt {                       // DataType
+                                        color: #902000;
+                                    }
+
+                                    &.er {                       // Error
+                                        color: #ff0000;
+                                        font-weight: bold;
+                                    }
+
+                                    &.fu {                       // Function
+                                        color: #06287e;
+                                    }
+
+                                    &.op {                       // Operator
+                                        color: #666666;
+                                    }
+
+                                    &.ot {                       // Other
+                                        color: #007020;
+                                    }
+
+                                    &.pp {                       // Preprocessor
+                                        color: #bc7a00;
+                                    }
+
+                                    &.ss {                       // SpecialString
+                                        color: #bb6688;
+                                    }
+
+                                    &.va {                       // Variable
+                                        color: #19177c;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -707,9 +816,7 @@ body {
 
             span {
                 background: #777;
-                -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
-                -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
-                transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+                @include prefix(transition, width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985));
             }
         }
 
@@ -837,10 +944,79 @@ body {
 // Print modifications
 /////////////////////////////////////////////
 @media print {
+    $base-font-size: 12pt;
+    $medium-font-size: 1 * $base-font-size;
+    $xx-small-font-size: 0.4 * $base-font-size;
+    $x-small-font-size: 0.6 * $base-font-size;
+    $small-font-size: 0.8 * $base-font-size;
+    $large-font-size: 1.2 * $base-font-size;
+    $x-large-font-size: 1.4 * $base-font-size;
+    $xx-large-font-size: 1.6 * $base-font-size;
+
     body {
         .reveal {
             .slides {
                 transform: none !important;
+
+                font-family: 'Roboto', sans-serif !important;
+                font-size: $medium-font-size !important;
+
+                section {
+                    p,
+                    td,
+                    li,
+                    div {
+                        font-family: inherit !important;
+                        font-size: inherit !important;
+                    }
+
+                    h1,
+                    h2,
+                    h3,
+                    h4,
+                    h5,
+                    h6 {
+                        font-family: inherit !important;
+                        font-size: inherit !important;
+                        color: rgba(0, 0, 0, 0.87);
+                        letter-spacing: normal;
+                        text-transform: none;
+                        text-shadow: none;
+                        word-wrap: break-word;
+                        font-weight: normal;
+                    }
+
+                    h1 {
+                        font-size: $xx-large-font-size !important;
+                        margin: space(0 0 0.5 0);
+                    }
+
+                    h2 {
+                        font-weight: 500;
+                        font-size: $large-font-size !important;
+                        margin-bottom: space(0.1);
+                        color: rgb(100, 100, 100) !important;
+                    }
+
+                    a {
+                        &:link,
+                        &:visited {
+                            font-weight: normal;
+                        }
+                    }
+
+                    div.sourceCode {
+                        pre {
+                            code {
+                                white-space: pre-wrap;
+
+                                a.sourceLine {
+                                    text-indent: space(-1); padding-left: space(1);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 

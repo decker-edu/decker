@@ -17,26 +17,11 @@ $endif$
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="$revealjs-url$/css/reveal.css">
-  <style type="text/css">
-        code{white-space: pre-wrap;}
-        span.smallcaps{font-variant: small-caps;}
-        div.line-block{white-space: pre-line;}
-        div.column{display: inline-block; vertical-align: top; width: 50%;}
-  $if(quotes)$
-        q { quotes: "“" "”" "‘" "’"; }
-  $endif$
-  </style>
-$if(highlighting-css)$
-  <style type="text/css">
-$highlighting-css$
-  </style>
-$endif$
 $if(theme)$
   <link rel="stylesheet" href="$revealjs-url$/css/theme/$theme$.css" id="theme">
 $else$
   <link rel="stylesheet" href="$revealjs-url$/css/theme/white.css" id="theme">
 $endif$
-  <link rel="stylesheet" href="$decker-support-dir$/decker.css">
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
 $endfor$
@@ -54,6 +39,7 @@ $endfor$
 $if(math)$
   $math$
 $endif$
+    <link rel="stylesheet" href="$decker-support-dir$/decker.css">
 <script>
 var socket = new WebSocket("ws://" + location.host + "/reload");
 socket.onmessage = function () {
