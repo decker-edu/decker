@@ -1,4 +1,10 @@
 /////////////////////////////////////////////
+// Font imports
+/////////////////////////////////////////////
+@import url("fonts/roboto.css");
+@import url("fonts/source-code-pro.css");
+
+/////////////////////////////////////////////
 // Variables
 /////////////////////////////////////////////
 $base-font-size: 30px;
@@ -9,18 +15,27 @@ $small-font-size: 0.8 * $base-font-size;
 $large-font-size: 1.2 * $base-font-size;
 $x-large-font-size: 1.4 * $base-font-size;
 $xx-large-font-size: 1.6 * $base-font-size;
+$base-spacer: 1em;
 
 /////////////////////////////////////////////
-// Font imports
+// Helper Functions
 /////////////////////////////////////////////
-@import url("fonts/roboto.css");
-@import url("fonts/source-code-pro.css");
+@function space($sizes: ()) {
+    $multiplied: ();
+
+    @each $size in $sizes {
+        $multiplied: append($multiplied, $size * $base-spacer)
+    }
+
+    @return $multiplied
+}
 
 /////////////////////////////////////////////
 // Styles
 /////////////////////////////////////////////
 body {
     background: white;
+    -webkit-print-color-adjust: exact; // No standard: https://developer.mozilla.org/de/docs/Web/CSS/-webkit-print-color-adjust
 
     .reveal {
         .slides {
@@ -39,11 +54,10 @@ body {
                 line-height: 1.4;
                 text-align: left;
                 font-weight: inherit;
-                padding: 0;
+                padding: space(0);
 
                 p {
-                    margin: 20px 0;
-                    line-height: 1.3;
+                    margin: space(1 0);
                 }
 
                 /////////////////////////////////////////////
@@ -55,10 +69,8 @@ body {
                 h4,
                 h5,
                 h6 {
-                    margin: 0 0 20px 0;
                     color: rgba(0, 0, 0, 0.87);
                     font-family: 'Roboto', sans-serif;
-                    line-height: 1.3;
                     letter-spacing: normal;
                     text-transform: none;
                     text-shadow: none;
@@ -68,7 +80,7 @@ body {
 
                 h1 {
                     font-size: 1.6em;
-                    margin: 0 0 0.5em 0;
+                    margin: space(0 0 0.5 0);
                 }
 
                 .rightcolumn {
@@ -81,6 +93,7 @@ body {
                     font-weight: 500;
                     color: rgba(0, 0, 0, 0.54);
                     font-size: 1.2em;
+                    margin-bottom: space(0.1);
                 }
 
                 &.has-dark-background {
@@ -128,7 +141,7 @@ body {
                 }
 
                 dd {
-                    margin-left: 40px;
+                    margin-left: space(1)
                 }
 
                 q,
@@ -140,8 +153,8 @@ body {
                     display: block;
                     position: relative;
                     width: 70%;
-                    margin: 20px auto;
-                    padding: 5px;
+                    margin: space(1) auto;
+                    padding: space(0.25);
                     font-style: italic;
                     background: rgba(255, 255, 255, 0.05);
                     box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
@@ -166,7 +179,7 @@ body {
                 ul {
                     display: inline-block;
                     text-align: left;
-                    margin: 0 0 0 1em;
+                    margin: space(0 0 0 1);
                 }
 
                 ol {
@@ -177,10 +190,10 @@ body {
                     list-style-type: disc;
 
                     ul {
-                        list-style-type: square;
+                        list-style-type: disc;
 
                         ul {
-                            list-style-type: circle;
+                            list-style-type: disc;
                         }
                     }
                 }
@@ -190,7 +203,8 @@ body {
                 ol ol,
                 ol ul {
                     display: block;
-                    margin-left: 40px;
+                    //margin-left: 40px;
+                    margin-left: space(1)
                 }
 
                 /////////////////////////////////////////////
@@ -223,9 +237,78 @@ body {
                 }
 
                 /////////////////////////////////////////////
+                // Column settings
+                /////////////////////////////////////////////
+                // For `{layout="columns"}`-Syntax
+                // Case: All columns vertically centered
+                &.mid {
+                    div {
+                        &.multi-column-row {
+                            align-items: center;
+                        }
+                    }
+                }
+
+                /////////////////////////////////////////////
                 // Within section divs
                 /////////////////////////////////////////////
                 div {
+
+                    /////////////////////////////////////////////
+                    // Column settings
+                    /////////////////////////////////////////////
+                    // For `{.split}`-Syntax
+                    &.css-columns {
+                        column-count: 2;
+                        column-gap: 2em;
+                        column-rule-style: none;
+                        padding-left: 0.7em;
+                        margin-left: -0.7em;
+                    }
+
+                    &.box {
+                        break-inside: avoid-column;
+                    }
+
+                    // For `{layout="columns"}`-Syntax
+                    &.multi-column-row {
+                        display:flex;
+                        flex-flow: row nowrap;
+
+                        div {
+                            &.column {
+                                $margin-size: space(1);
+
+                                position: relative;
+                                flex: 1 1 0;
+
+                                margin-left: $margin-size;
+                                margin-right: $margin-size;
+
+                                &:first-child {
+                                    margin-left: 0;
+                                    margin-right: $margin-size;
+                                }
+
+                                &:last-child {
+                                    margin-left: $margin-size;
+                                    margin-right: 0;
+                                }
+
+                                .mid {
+                                    position: absolute;
+                                    top: 50%;
+                                    transform: translate(0, -50%);
+                                }
+
+                                @for $i from 1 through 9 {
+                                    &[grow="#{$i}"] {
+                                        flex-grow: $i;
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     /////////////////////////////////////////////
                     // Boxes
@@ -233,7 +316,6 @@ body {
                     &.box {
                         h2 {
                             margin-top: 0;
-                            margin-bottom: 0.2em;
 
                             &:last-child, &:empty {
                                 margin-bottom: 0;
@@ -244,17 +326,37 @@ body {
                             margin: 0;
                         }
 
-                        padding: 0.4em 0.7em;
-                        margin: 0 -0.7em 0.5em -0.7em;
+                        padding: space(0.4 0.7);
+                        margin: space(0 -0.7);
                         border-radius: 0.25em;
 
-                        &.slide-column div {
-                            margin-top: 0;
-                            margin-bottom: 0.3em;
-
-                            &:first-child {
-                                margin-top: 0;
+                        &.question,
+                        &.answer,
+                        &.observation,
+                        &.example,
+                        &.def,
+                        &.definition,
+                        &.note,
+                        &.ale,
+                        &.alert,
+                        &.equ,
+                        &.equation,
+                        &.theorem {
+                            & + .question,
+                            & + .answer,
+                            & + .observation,
+                            & + .example,
+                            & + .def,
+                            & + .definition,
+                            & + .note,
+                            & + .ale,
+                            & + .alert,
+                            & + .equ,
+                            & + .equation,
+                            & + .theorem {
+                                margin-top: space(0.3);
                             }
+
                         }
 
                         &.question {
@@ -273,7 +375,8 @@ body {
                             background-color: rgba(176, 197, 222, 0.4);
                         }
 
-                        &.def, &.definition {
+                        &.def,
+                        &.definition {
                             background-color: rgba(245, 222, 179, 0.6);
                         }
 
@@ -281,11 +384,13 @@ body {
                             background-color: rgba(244, 164, 96, 0.4);
                         }
 
-                        &.ale, &.alert {
+                        &.ale,
+                        &.alert {
                             background-color: rgba(255, 99, 71, 0.4);
                         }
 
-                        &.equ, &.equation {
+                        &.equ,
+                        &.equation {
                             background-color: rgb(235, 235, 235);
                         }
 
@@ -295,57 +400,9 @@ body {
                     }
 
                     /////////////////////////////////////////////
-                    // Column settings
-                    /////////////////////////////////////////////
-                    &.css-columns {
-                        column-count: 2;
-                        column-gap: 2em;
-                        column-rule-style: none;
-                        padding-left: 0.7em;
-                        margin-left: -0.7em;
-                    }
-
-                    &.box {
-                        break-inside: avoid-column;
-                    }
-
-                    &.multi-column-row {
-                        display:flex;
-                        flex-flow: row nowrap;
-
-                        $margin-size: 1em;
-
-                        div.column {
-                            flex: 1 1 0%;
-
-                            margin-left: $margin-size;
-                            margin-right: $margin-size;
-                            
-                            &:first-child {
-                                margin-left: 0em;
-                                margin-right: $margin-size;
-                                }
-
-                            &:last-child {
-                                margin-left: $margin-size;
-                                margin-right: 0em;
-                            }
-                        }
-                        div.column[grow="1"] {flex-grow:1;}
-                        div.column[grow="2"] {flex-grow:2;}
-                        div.column[grow="3"] {flex-grow:3;}
-                        div.column[grow="4"] {flex-grow:4;}
-                        div.column[grow="5"] {flex-grow:5;}
-                        div.column[grow="6"] {flex-grow:6;}
-                        div.column[grow="7"] {flex-grow:7;}
-                        div.column[grow="8"] {flex-grow:8;}
-                        div.column[grow="9"] {flex-grow:9;}
-                    }
-                                        
-                    /////////////////////////////////////////////
                     // Video
                     /////////////////////////////////////////////
-                    /* iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php */
+                    // iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
                     &.videoWrapper {
                         position: relative;
                         padding-bottom: 56.25%; /* 16:9 */
@@ -368,11 +425,6 @@ body {
                         width: 100%;
                         display: block;
                         text-align: center;
-
-                        .MathJax_Display {
-                            margin-top: 1em;
-                            margin-bottom: 1em;
-                        }
                     }
                 }
 
@@ -426,8 +478,8 @@ body {
                 // Source code
                 /////////////////////////////////////////////
                 div.sourceCode {
-                    margin: 0 -0.7em;
-                    padding: 0.4em 0.7em;
+                    margin: space(0 -0.7);
+                    padding: space(0.4 0.7);
                     background: rgba(0, 0, 0, 0.03);
                     border-radius: 0.25em;
 
@@ -455,14 +507,25 @@ body {
 
                 // Special case: source code inside highlighted box
                 div.box {
-                    &.question, &.answer, &.observation, &.example, &.def, &.definition, &.note, &.ale, &.alert, &.equ, &.equation, &.theorem {
+                    &.question,
+                    &.answer,
+                    &.observation,
+                    &.example,
+                    &.def,
+                    &.definition,
+                    &.note,
+                    &.ale,
+                    &.alert,
+                    &.equ,
+                    &.equation,
+                    &.theorem {
                         div.sourceCode {
                             margin: 0;
                             background: rgba(255, 255, 255, 0.4);
-                            padding: 0 0.2em;
+                            padding: space(0 0.2);
 
                             pre {
-                                margin: 0.2em 0;
+                                margin: 0;
                             }
                         }
                     }
@@ -476,7 +539,7 @@ body {
                     overflow-y: scroll;
 
                     div {
-                        margin-bottom: 0.5em;
+                        margin-bottom: space(0.5);
                     }
                 }
 
@@ -495,7 +558,7 @@ body {
                     th,
                     td {
                         text-align: left;
-                        padding: 0.2em 0.5em 0.2em 0.5em;
+                        padding: space(0.2 0.5);
                         border-bottom: 1px solid;
                     }
 
@@ -513,6 +576,77 @@ body {
                         border-bottom: none;
                     }
                 }
+
+                /////////////////////////////////////////////
+                // Dense layouts
+                /////////////////////////////////////////////
+                &.dense, &.x-dense, &.xx-dense {
+                    &.x-dense {
+                        font-size: 90%;
+                    }
+
+                    &.xx-dense {
+                        font-size: 80%;
+                    }
+
+                    line-height: 1.4;
+
+                    p {
+                        margin: space(0.2 0);
+                    }
+
+                    h1 {
+                        margin: space(0 0 0.2 0);
+                    }
+
+                    div {
+                        &.sourceCode {
+                            margin: space(0 -0.7);
+                            padding: space(0.4 0.7);
+                        }
+
+                        &.box {
+                            h2 {
+                                margin-bottom: space(0.1);
+                            }
+
+                            padding: space(0.2 0.7);
+                            margin: space(0 -0.7);
+
+                            &.question,
+                            &.answer,
+                            &.observation,
+                            &.example,
+                            &.def,
+                            &.definition,
+                            &.note,
+                            &.ale,
+                            &.alert,
+                            &.equ,
+                            &.equation,
+                            &.theorem {
+                                div.sourceCode {
+                                    pre {
+                                        line-height: 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .references {
+                        div {
+                            margin-bottom: space(0.2);
+                        }
+                    }
+
+                    table {
+                        td {
+                            padding: space(0.1 0.5);
+                        }
+                    }
+                }
+
             }
         }
 
@@ -588,12 +722,12 @@ body {
             h6 {
                 color: #FFF;
                 font-weight: bold;
-                margin-bottom: 0.2em;
+                margin-bottom: space(0.2);
             }
 
             h1 {
                 text-decoration: underline;
-                margin-bottom: 0.4em;
+                margin-bottom: space(0.4);
             }
         }
 
@@ -632,11 +766,11 @@ body {
         // Slide numbers
         /////////////////////////////////////////////
         .slide-number {
-        	width: 100%;
-        	text-align: center;
-        	background: transparent;
-        	color: gray;
-        	font-size: 0.4em;
+            width: 100%;
+            text-align: center;
+            background: transparent;
+            color: gray;
+            font-size: 0.4em;
         }
     }
 
@@ -647,5 +781,22 @@ body {
         color: white;
         background: rgba(0, 0, 0, 0.85);
         text-shadow: none;
+    }
+}
+
+/////////////////////////////////////////////
+// Print modifications
+/////////////////////////////////////////////
+@media print {
+    body {
+        .reveal {
+            .slides {
+                transform: none !important;
+            }
+        }
+
+        a:link:after {
+            content: " (" attr(href) ") ";
+        }
     }
 }
