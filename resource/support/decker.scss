@@ -20,8 +20,6 @@ $xx-large-font-size: 1.6 * $base-font-size;
 // Styles
 /////////////////////////////////////////////
 body {
-    background: white;
-
     .reveal {
         .slides {
             /////////////////////////////////////////////
@@ -83,14 +81,15 @@ body {
                     font-size: 1.2em;
                 }
 
-                &.has-dark-background {
+                &.has-dark-background, 
+                &.inverse {
                     h1,
                     h2,
                     h3,
                     h4,
                     h5,
                     h6 {
-                        color: #fff;
+                        color: #eee;
                     }
                 }
 
@@ -331,15 +330,15 @@ body {
                                 margin-right: 0em;
                             }
                         }
-                        div.column[grow="1"] {flex-grow:1;}
-                        div.column[grow="2"] {flex-grow:2;}
-                        div.column[grow="3"] {flex-grow:3;}
-                        div.column[grow="4"] {flex-grow:4;}
-                        div.column[grow="5"] {flex-grow:5;}
-                        div.column[grow="6"] {flex-grow:6;}
-                        div.column[grow="7"] {flex-grow:7;}
-                        div.column[grow="8"] {flex-grow:8;}
-                        div.column[grow="9"] {flex-grow:9;}
+                        div.column[data-grow="1"] {flex-grow:1;}
+                        div.column[data-grow="2"] {flex-grow:2;}
+                        div.column[data-grow="3"] {flex-grow:3;}
+                        div.column[data-grow="4"] {flex-grow:4;}
+                        div.column[data-grow="5"] {flex-grow:5;}
+                        div.column[data-grow="6"] {flex-grow:6;}
+                        div.column[data-grow="7"] {flex-grow:7;}
+                        div.column[data-grow="8"] {flex-grow:8;}
+                        div.column[data-grow="9"] {flex-grow:9;}
                     }
                                         
                     /////////////////////////////////////////////
