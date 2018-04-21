@@ -39,8 +39,17 @@ $endfor$
 $if(math)$
   $math$
 $endif$
-    <link rel="stylesheet" href="$decker-support-dir$/decker.css">
-<script>
+  <link rel="stylesheet" href="$decker-support-dir$/decker.css">
+  <style type="text/css">
+  $if(quotes)$
+    q { quotes: "“" "”" "‘" "’"; }
+  $endif$
+  </style>
+    $if(highlighting-css)$
+  <style type="text/css">
+    $highlighting-css$
+  </style>
+  <script>
 var socket = new WebSocket("ws://" + location.host + "/reload");
 socket.onmessage = function () {
   window.location.reload(true);
