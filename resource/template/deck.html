@@ -3,29 +3,33 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="generator" content="pandoc">
+
 $for(author-meta)$
   <meta name="author" content="$author-meta$">
 $endfor$
+
 $if(date-meta)$
   <meta name="dcterms.date" content="$date-meta$">
 $endif$
+
 $if(keywords)$
   <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
 $endif$
+
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="$revealjs-url$/css/reveal.css">
+
+  <!-- Reveal.js theme with white as default -->
 $if(theme)$
   <link rel="stylesheet" href="$revealjs-url$/css/theme/$theme$.css" id="theme">
 $else$
   <link rel="stylesheet" href="$revealjs-url$/css/theme/white.css" id="theme">
 $endif$
-$for(css)$
-  <link rel="stylesheet" href="$css$"/>
-$endfor$
-<!-- Printing and PDF exports -->
+
+  <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
     link.rel = 'stylesheet';
@@ -33,36 +37,55 @@ $endfor$
     link.href = window.location.search.match( /print-pdf/gi ) ? '$revealjs-url$/css/print/pdf.css' : '$revealjs-url$/css/print/paper.css';
     document.getElementsByTagName( 'head' )[0].appendChild( link );
   </script>
+
   <!--[if lt IE 9]>
-  <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
+    <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
   <![endif]-->
+
 $if(math)$
   $math$
 $endif$
-  <link rel="stylesheet" href="$decker-support-dir$/decker.css">
+
   <style type="text/css">
   $if(quotes)$
     q { quotes: "“" "”" "‘" "’"; }
   $endif$
   </style>
-    $if(highlighting-css)$
+
+$if(highlighting-css)$
+  <!-- Pandoc uses this for syntax highlighting -->
   <style type="text/css">
     $highlighting-css$
   </style>
+$endif$
+
+  <!-- Reload on change machinery -->
   <script>
-var socket = new WebSocket("ws://" + location.host + "/reload");
-socket.onmessage = function () {
-  window.location.reload(true);
-};
-</script>
+    var socket = new WebSocket("ws://" + location.host + "/reload");
+    socket.onmessage = function () {
+    window.location.reload(true);
+    };
+  </script>
+
+
+  <!-- Decker's standard default CSS -->
+  <link rel="stylesheet" href="$decker-support-dir$/decker.css">
+  
+  <!-- The last word on CSS for the power user -->
+$for(css)$
+  <link rel="stylesheet" href="$css$"/>
+$endfor$
+
 $for(header-includes)$
   $header-includes$
 $endfor$
 </head>
+
 <body>
 $for(include-before)$
 $include-before$
 $endfor$
+
   <div class="reveal">
     <div class="slides">
 
