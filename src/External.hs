@@ -68,7 +68,9 @@ programs =
     , ExternalProgram
         []
         "gnuplot"
-        ["-d", "-e", "set terminal svg enhanced mouse"]
+        -- Temporaryly disabled mouse support for SVG since it draws a one line box around the render area
+        -- ["-d", "-e", "set terminal svg enhanced mouse"]
+        ["-d", "-e", "set terminal svg enhanced"]
         ["-V"]
         (helpText "Gnuplot package (http://gnuplot.sourceforge.net)"))
   , ( "pdflatex"
