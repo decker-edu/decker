@@ -296,9 +296,9 @@ makeSlides pandoc = do
                 -- TODO: Maybe we need some latex specific structure
           Disposition Handout Pdf -> Prelude.id
                 -- TODO: Probably not much to do here
-          Disposition Page Html -> Prelude.id
-                -- TODO: Probably not much to do here
-          Disposition Page Pdf -> Prelude.id
+          Disposition Page _ -> 
+            throw $
+            InternalException "Page do not get the slide deck treatment"
           Disposition Deck Pdf ->
             throw $
             InternalException "PDF slide decks via LaTeX are not supported"
