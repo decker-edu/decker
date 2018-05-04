@@ -26,6 +26,7 @@ import Control.Monad.State
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Default ()
 import Data.List
+import Data.List.Extra (for)
 import Data.List.Split
 import Data.Maybe
 import Development.Shake (Action)
@@ -215,8 +216,8 @@ zapImages inline = inline
 
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 
-setSlideBackground :: Slide -> Slide
-setSlideBackground slide@(Header 1 (headerId, headerClasses, headerAttributes) inlines, slideBody) =
+handleBackground :: Slide -> Slide
+handleBackground slide@(Header 1 (headerId, headerClasses, headerAttributes) inlines, slideBody) =
   case query allImages inlines of
     Image (_, imageClasses, imageAttributes) _ (imageSrc, _):_ ->
       ( Header
@@ -243,7 +244,7 @@ setSlideBackground slide@(Header 1 (headerId, headerClasses, headerAttributes) i
         AudioMedia -> ("data-background-audio", src)
         IframeMedia -> ("data-background-iframe", src)
         ImageMedia -> ("data-background-image", src)
-setSlideBackground slide = slide
+handleBackground slide = slide
 
 -- | Wrap boxes around H2 headers and the following content. All attributes are
 -- promoted from the H2 header to the enclosing DIV.
@@ -282,6 +283,21 @@ mapSlides func (Pandoc meta blocks) =
       PandocException $ "Error extracting slide header: \n" ++ show slide
     prependHeader (header, bs) = header : bs
 
+toSlides :: [Block] -> [Slide]
+toSlides blocks = map extractHeader $ filter (not . null) slideBlocks
+  where
+    slideBlocks = split (keepDelimsL $ whenElt isSlideHeader) blocks
+    extractHeader (header@(Header 1 _ _):bs) = (header, bs)
+    extractHeader (rule@HorizontalRule:bs) = (rule, bs)
+    extractHeader slide =
+      throw $
+      PandocException $ "Error extracting slide header: \n" ++ show slide
+
+fromSlides :: [Slide] -> [Block]
+fromSlides = concatMap prependHeader
+  where
+    prependHeader (header, bs) = header : bs
+
 makeSlides :: Pandoc -> Decker Pandoc
 makeSlides pandoc = do
   disp <- gets disposition
@@ -289,20 +305,31 @@ makeSlides pandoc = do
         case disp of
           Disposition Deck Html ->
             layoutSlides .
-            splitJoinColumns . setSlideBackground . wrapBoxes . wrapNoteRevealjs
+            splitJoinColumns . handleBackground . wrapBoxes . wrapNoteRevealjs
                 -- TODO: Maybe we need some handout specific structure
           Disposition Handout Html ->
             layoutSlides . splitJoinColumns . wrapBoxes . wrapNoteRevealjs
                 -- TODO: Maybe we need some latex specific structure
           Disposition Handout Pdf -> Prelude.id
                 -- TODO: Probably not much to do here
-          Disposition Page _ -> 
-            throw $
-            InternalException "Page do not get the slide deck treatment"
+          Disposition Page _ ->
+            throw $ InternalException "Page do not get the slide deck treatment"
           Disposition Deck Pdf ->
             throw $
             InternalException "PDF slide decks via LaTeX are not supported"
   return $ mapSlides chain pandoc
+
+selectContent :: [Slide] -> Decker [Slide]
+selectContent slides = do
+  disp <- gets disposition
+  return $
+    case disp of
+      Disposition Deck _ -> dropByClass ["handout"] slides
+      Disposition Handout _ -> dropByClass ["deck", "notes"] slides
+      Disposition Page _ -> dropByClass ["notes"] slides
+
+dropByClass :: [String] -> [Slide] -> [Slide]
+dropByClass classes = filter (not . any (`elem` classes) . blockClasses . fst)
 
 makeBoxes :: Pandoc -> Pandoc
 makeBoxes = walk (mapSlides wrapBoxes)
