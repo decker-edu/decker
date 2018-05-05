@@ -18,8 +18,8 @@ module Project
   ) where
 
 import Common
+import Control.Monad.Extra
 import Data.Maybe
-import Extra
 import Network.URI
 import Resources
 import qualified System.Directory as D

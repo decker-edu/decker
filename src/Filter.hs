@@ -29,7 +29,7 @@ import Data.List
 import Data.List.Split
 import Data.Maybe
 import Development.Shake (Action)
-import Network.HTTP.Conduit
+import Network.HTTP.Conduit hiding (InternalException)
 import Network.HTTP.Simple
 import qualified Network.URI as U
 import Network.URI (parseURI, uriScheme)
@@ -285,23 +285,24 @@ mapSlides func (Pandoc meta blocks) =
 makeSlides :: Pandoc -> Decker Pandoc
 makeSlides pandoc = do
   disp <- gets disposition
-  case disp of
-    Disposition Deck Html ->
-      return $
-      walk (mapSlides layoutSlides) $
-      walk (mapSlides splitJoinColumns) $
-      walk (mapSlides setSlideBackground) $
-      walk (mapSlides wrapBoxes) $ walk (mapSlides wrapNoteRevealjs) pandoc
-    Disposition Deck Pdf ->
-      return $
-      walk (mapSlides layoutSlides) $
-      walk (mapSlides splitJoinColumns) $
-      walk (mapSlides setSlideBackground) $ walk (mapSlides wrapBoxes) pandoc
-    Disposition _ _ -> return pandoc
-      -- TODO: Do this for pages
-      -- walk (mapSlides splitJoinColumns) $
-      -- walk (mapSlides setSlideBackground) $
-      -- walk (mapSlides wrapBoxes) pandoc
+  let chain =
+        case disp of
+          Disposition Deck Html ->
+            layoutSlides .
+            splitJoinColumns . setSlideBackground . wrapBoxes . wrapNoteRevealjs
+                -- TODO: Maybe we need some handout specific structure
+          Disposition Handout Html ->
+            layoutSlides . splitJoinColumns . wrapBoxes . wrapNoteRevealjs
+                -- TODO: Maybe we need some latex specific structure
+          Disposition Handout Pdf -> Prelude.id
+                -- TODO: Probably not much to do here
+          Disposition Page Html -> Prelude.id
+                -- TODO: Probably not much to do here
+          Disposition Page Pdf -> Prelude.id
+          Disposition Deck Pdf ->
+            throw $
+            InternalException "PDF slide decks via LaTeX are not supported"
+  return $ mapSlides chain pandoc
 
 makeBoxes :: Pandoc -> Pandoc
 makeBoxes = walk (mapSlides wrapBoxes)

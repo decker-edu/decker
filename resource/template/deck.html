@@ -3,72 +3,89 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="generator" content="pandoc">
+
 $for(author-meta)$
   <meta name="author" content="$author-meta$">
 $endfor$
+
 $if(date-meta)$
   <meta name="dcterms.date" content="$date-meta$">
 $endif$
+
 $if(keywords)$
   <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
 $endif$
+
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="$revealjs-url$/css/reveal.css">
-  <style type="text/css">code{white-space: pre;}</style>
-$if(quotes)$
-  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
-$endif$
-$if(highlighting-css)$
-  <style type="text/css">
-$highlighting-css$
-  </style>
-$endif$
+
+  <!-- Reveal.js theme with white as default -->
 $if(theme)$
   <link rel="stylesheet" href="$revealjs-url$/css/theme/$theme$.css" id="theme">
 $else$
   <link rel="stylesheet" href="$revealjs-url$/css/theme/white.css" id="theme">
 $endif$
-  <link rel="stylesheet" href="$decker-support-dir$/decker.css">
-$for(css)$
-  <link rel="stylesheet" href="$css$"/>
-$endfor$
+
   <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
     link.rel = 'stylesheet';
     link.type = 'text/css';
-    if (window.location.search.match( /print-pdf/gi )) {
-        link.href = '$revealjs-url$/css/print/pdf.css';
-        document.getElementsByTagName( 'head' )[0].appendChild( link );
-        window.print();
-    } else {
-        link.href = '$revealjs-url$/css/print/paper.css';
-        document.getElementsByTagName( 'head' )[0].appendChild( link );
-    }
+    link.href = window.location.search.match( /print-pdf/gi ) ? '$revealjs-url$/css/print/pdf.css' : '$revealjs-url$/css/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
   </script>
+
   <!--[if lt IE 9]>
-  <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
+    <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
   <![endif]-->
+
 $if(math)$
   $math$
 $endif$
-<script>
-var socket = new WebSocket("ws://" + location.host + "/reload");
-socket.onmessage = function () {
-  window.location.reload(true);
-};
-</script>
+
+  <style type="text/css">
+  $if(quotes)$
+    q { quotes: "“" "”" "‘" "’"; }
+  $endif$
+  </style>
+
+$if(highlighting-css)$
+  <!-- Pandoc uses this for syntax highlighting -->
+  <style type="text/css">
+    $highlighting-css$
+  </style>
+$endif$
+
+  <!-- Reload on change machinery -->
+  <script>
+    var socket = new WebSocket("ws://" + location.host + "/reload");
+    socket.onmessage = function () {
+    window.location.reload(true);
+    };
+  </script>
+
+
+  <!-- Decker's standard default CSS -->
+  <link rel="stylesheet" href="$decker-support-dir$/decker.css">
+  
+  <!-- The last word on CSS for the power user -->
+$for(css)$
+  <link rel="stylesheet" href="$css$"/>
+$endfor$
+
 $for(header-includes)$
   $header-includes$
 $endfor$
 </head>
+
 <body>
 $for(include-before)$
 $include-before$
 $endfor$
+
   <div class="reveal">
     <div class="slides">
 
@@ -88,7 +105,7 @@ $endif$
 $endif$
 $if(toc)$
 <section id="$idprefix$TOC">
-$toc$
+$table-of-contents$
 </section>
 $endif$
 
@@ -235,15 +252,24 @@ $endif$
 $if(maxScale)$
         maxScale: $maxScale$,
 $endif$
+$if(mathjax)$
+        math: {
+          mathjax: '$decker-support-dir$/MathJax-2.7/MathJax.js',
+          config: 'TeX-AMS_HTML',
+        },
+$endif$
 
         // Optional reveal.js plugins
         dependencies: [
           { src: '$revealjs-url$/lib/js/classList.js', condition: function() { return !document.body.classList; } },
           { src: '$revealjs-url$/plugin/zoom-js/zoom.js', async: true },
-    $if(notes-server)$
+$if(notes-server)$
           { src: '$revealjs-url$/socket.io/socker.io.js', async: true },
           { src: '$revealjs-url$/plugin/notes-server/client.js', async: true },
-    $endif$
+$endif$
+$if(mathjax)$
+          { src: '$revealjs-url$/plugin/math/math.js', async: true },
+$endif$
           { src: '$revealjs-url$/plugin/notes/notes.js', async: true }
         ]
       });

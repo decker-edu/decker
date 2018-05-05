@@ -21,7 +21,7 @@ import Control.Exception
 import Data.IORef
 import Data.List as List
 import Data.List (isInfixOf)
-import Data.List.Extra as List
+import qualified Data.List.Extra as List
 import Data.Maybe
 import qualified Data.Yaml as Y
 import Development.Shake
@@ -39,7 +39,7 @@ globA :: FilePattern -> Action [FilePath]
 globA pat = do
   dirs <- getProjectDirs
   liftIO $
-    filter (not . isPrefixOf (public dirs)) <$>
+    (filter (not . isPrefixOf (public dirs)) . sort) <$>
     globDir1 (compile pat) (project dirs)
 
 -- Utility functions for shake based apps
@@ -101,7 +101,7 @@ calcSource targetSuffix srcSuffix target = do
 
 -- | Removes the last suffix from a filename
 dropSuffix :: String -> String -> String
-dropSuffix s t = fromMaybe t (stripSuffix s t)
+dropSuffix s t = fromMaybe t (List.stripSuffix s t)
 
 replaceSuffix :: String -> String -> String -> String
 replaceSuffix srcSuffix targetSuffix filename =
@@ -136,5 +136,6 @@ readMetaDataForDir directory = walkUpTo directory
         Right object@(Y.Object _) -> return object
         Right _ ->
           throw $
-          YamlException $ "Top-level meta value must be an object: " ++ directory
+          YamlException $
+          "Top-level meta value must be an object: " ++ directory
         Left exception -> throw exception
