@@ -11,10 +11,12 @@ build:
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
 
-# Well, it seems wie need a different runner for that
-# stackdockerbuild:
-#   stage: build
-#   only:
-#     - master
-#   script:
-#     - stack --docker build
+stackbuild:
+  tags: 
+    - stack
+  stage: build
+  only:
+    - master
+  script:
+    - stack setup
+    - stack build -j 8 --fast
