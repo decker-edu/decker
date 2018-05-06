@@ -17,4 +17,4 @@ stackbuild:
     - master
   script:
     - stack setup
-    - stack build -j 8 --fast
+    - make build
