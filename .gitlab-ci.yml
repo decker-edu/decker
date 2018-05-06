@@ -1,9 +1,7 @@
-image: docker:latest
-
-before_script:
-  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-
-build:
+dockerbuild:
+  image: docker:latest
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   only:
     - schedules
   stage: build
