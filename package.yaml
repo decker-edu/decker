@@ -90,6 +90,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - decker
+    - hspec
 
 default-extensions:   
 - EmptyCase
