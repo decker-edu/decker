@@ -26,3 +26,4 @@ auto/
 decker.css
 *.cabal
 test/decks/*.svg
+dist/

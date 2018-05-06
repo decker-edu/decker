@@ -23,6 +23,10 @@ stackbuild:
     - stack setup
   script:
     - make build
+  artifacts:
+    paths:
+    - dist/decker.zip
+    expire_in: 20 minutes
 
 stacktest:
   tags: 

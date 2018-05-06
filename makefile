@@ -4,6 +4,9 @@ zip := $(shell mktemp -u)
 build:
 	stack build -j 8 --fast
 	@(cd resource; zip -qr $(zip) example support template; cat $(zip) >> $(decker); rm $(zip))
+	mkdir -p dist
+	rm -f dist/decker.zip
+	zip -qj dist/decker.zip $(decker)
 
 test: build
 	stack test -j 8 --fast
