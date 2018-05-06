@@ -19,8 +19,9 @@ stackbuild:
   stage: build
   only:
     - master
-  script:
+  before_script:
     - stack setup
+  script:
     - make build
 
 stacktest:

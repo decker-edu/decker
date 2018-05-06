@@ -6,7 +6,7 @@ build:
 	@(cd resource; zip -qr $(zip) example support template; cat $(zip) >> $(decker); rm $(zip))
 
 test: build
-	stack test
+	stack test -j 8 --fast
 
 watch:
 	stack test -j 8 --fast --file-watch
