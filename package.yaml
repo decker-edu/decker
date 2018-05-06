@@ -1,0 +1,104 @@
+name:                decker
+version:             0.4.0.0
+license:             OtherLicense
+author:              "Henrik Tramberend"
+maintainer:          "henrik.tramberend@beuth-hochschule.de"
+copyright:           "2018 Henrik Tramberend"
+
+extra-source-files:
+- readme.md
+- Dockerfile
+- makefile
+
+synopsis:            A markdown based tool for slide deck creation
+category:            Tool
+
+description:         Please see the README at <https://gitlab2.informatik.uni-wuerzburg.de/decker/decker#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- Glob
+- HTTP
+- aeson
+- ansi-terminal
+- array
+- base64-bytestring
+- blaze-html
+- blaze-markup
+- bytestring
+- containers
+- data-default
+- directory
+- extra
+- file-embed
+- filepath
+- fsnotify
+- groom
+- hashable
+- highlighting-kate
+- http-conduit
+- http-types
+- monad-loops
+- mtl
+- multimap
+- mustache
+- network-uri
+- pandoc
+- pandoc-citeproc
+- pandoc-types
+- process
+- pureMD5
+- random
+- scientific
+- shake
+- snap-core
+- snap-server
+- split
+- temporary
+- text
+- time
+- transformers
+- unix
+- unordered-containers
+- utf8-string
+- vector
+- websockets
+- websockets-snap
+- yaml
+
+library:
+  source-dirs: src
+
+executables:
+  decker:
+    main:                Decker.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - decker
+
+tests:
+  decker-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - decker
+
+default-extensions:   
+- EmptyCase
+- FlexibleContexts
+- FlexibleInstances
+- InstanceSigs
+- MultiParamTypeClasses
+- OverloadedStrings
+- TupleSections
+- DeriveDataTypeable
+- TemplateHaskell
+- MultiWayIf
