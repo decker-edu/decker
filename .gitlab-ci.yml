@@ -1,3 +1,7 @@
+stages:
+  - build
+  - test
+
 dockerbuild:
   image: docker:latest
   before_script:
@@ -18,3 +22,12 @@ stackbuild:
   script:
     - stack setup
     - make build
+
+stacktest:
+  tags: 
+    - stack
+  stage: test
+  only:
+    - master
+  script:
+    - make test
