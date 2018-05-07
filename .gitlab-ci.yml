@@ -1,12 +1,38 @@
-image: docker:latest
+stages:
+  - build
+  - test
 
-before_script:
-  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-
-build:
+dockerbuild:
+  image: docker:latest
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   only:
     - schedules
   stage: build
   script:
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
+
+stackbuild:
+  tags: 
+    - stack
+  stage: build
+  only:
+    - master
+  before_script:
+    - stack setup
+  script:
+    - make build
+  artifacts:
+    paths:
+    - dist/decker.zip
+    expire_in: 20 minutes
+
+stacktest:
+  tags: 
+    - stack
+  stage: test
+  only:
+    - master
+  script:
+    - make test
