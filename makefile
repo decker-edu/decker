@@ -5,13 +5,15 @@ zip := $(shell mktemp -u)
 build:
 	stack build -j 8 --fast
 	@(cd resource; zip -qr $(zip) example support template; cat $(zip) >> $(decker); rm $(zip))
+
+dist: build
 	rm -rf dist
 	mkdir -p dist
 	ln -s $(decker) dist/decker-$(version) 
-	zip -qj dist/decker.zip dist/decker-$(version)
+	zip -qj dist/decker-$(version).zip dist/decker-$(version)
 	rm dist/decker-$(version)
 
-test: build
+test:
 	stack test -j 8 --fast
 
 watch:
@@ -25,10 +27,8 @@ install: build
 	stack exec -- decker clean
 	stack install
 
-dist: clean build
-
 info:
 	@echo "decker: $(decker)"
 	@echo "zip: $(zip)"
 
-.PHONY: build clean install dist docs
+.PHONY: build clean test install dist docs
