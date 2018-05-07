@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y \
 
 ENV PATH="/root/.local/bin:${PATH}"
 COPY --from=0 /root/.local /root/.local
-COPY --from=0 /root/.stack/snapshots/x86_64-linux/lts-11.6/8.2.2/share/x86_64-linux-ghc-8.2.2/pandoc-citeproc-0.14.3/locales/locales-en-US.xml /root/.stack/snapshots/x86_64-linux/lts-11.6/8.2.2/share/x86_64-linux-ghc-8.2.2/pandoc-citeproc-0.14.3/locales/locales-en-US.xml
+#COPY --from=0 /root/.stack/snapshots/x86_64-linux-nopie/lts-11.6/8.2.2/share/x86_64-linux-ghc-8.2.2/pandoc-citeproc-0.14.3/locales/locales-en-US.xml /root/.stack/snapshots/x86_64-linux-nopie/lts-11.6/8.2.2/share/x86_64-linux-ghc-8.2.2/pandoc-citeproc-0.14.3/locales/locales-en-US.xml
 
 #set the encoding on UTF-8, so the parser works correctly, german language is also added for umlaute
 #source of fix: https://blog.mkowalski.net/2016/05/16/solving-locale-issues-with-docker-containers/

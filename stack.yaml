@@ -1,4 +1,6 @@
-flags: {}
+flags: 
+  pandoc-citeproc:
+    embed_data_files: true
 packages:
 - '.'
 extra-deps:
