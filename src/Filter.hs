@@ -268,6 +268,11 @@ wrapNoteRevealjs slide = slide
 
 type Slide = (Block, [Block])
 
+data OneSLide = OneSlide {
+  header :: Maybe Block,
+  body :: [Block]
+}
+
 -- | Map over all slides in a deck. A slide has always a header followed by zero
 -- or more blocks.
 mapSlides :: (Slide -> Slide) -> Pandoc -> Pandoc
