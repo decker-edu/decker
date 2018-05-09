@@ -12,7 +12,7 @@ import Project as P
 import qualified System.Directory as Dir
 import System.FilePath
 import System.FilePath.Glob
-import System.FilePath.Posix
+import System.FilePath
 import Text.Pandoc
 import Utilities
 

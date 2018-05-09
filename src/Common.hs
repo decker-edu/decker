@@ -25,7 +25,7 @@ import Development.Shake (Action, need)
 import Network.URI as U
 import Paths_decker (version)
 
--- import System.FilePath.Posix
+-- import System.FilePath
 -- | The version from the cabal file
 deckerVersion :: String
 deckerVersion = showVersion version

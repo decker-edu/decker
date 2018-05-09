@@ -24,7 +24,7 @@ import Network.URI
 import Resources
 import qualified System.Directory as D
 import System.FilePath
-import System.Posix.Files
+import System.Directory (createFileLink)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 
@@ -65,7 +65,7 @@ linkResource resource = do
     (D.doesFileExist (publicFile resource))
     (D.removeFile (publicFile resource))
   D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
-  createSymbolicLink (sourceFile resource) (publicFile resource)
+  createFileLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
 absRefResource :: Resource -> IO FilePath

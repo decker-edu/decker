@@ -15,9 +15,8 @@ import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import System.Directory (createDirectoryIfMissing, removeFile)
+import System.Directory (createDirectoryIfMissing, removeFile, createFileLink)
 import System.FilePath ()
-import System.Posix.Files
 import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc ()
@@ -217,12 +216,12 @@ main = do
         case metaValueAsString "provisioning" metaData of
           Just value
             | value == show SymLink ->
-              liftIO $ createSymbolicLink (appDataDir </> "support") supportDir
+              liftIO $ createFileLink (appDataDir </> "support") supportDir
           Just value
             | value == show Copy ->
               rsync [(appDataDir </> "support/"), supportDir]
           Nothing ->
-            liftIO $ createSymbolicLink (appDataDir </> "support") supportDir
+            liftIO $ createFileLink (appDataDir </> "support") supportDir
           _ -> return ()
     --
     phony "check" checkExternalPrograms
