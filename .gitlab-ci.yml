@@ -1,15 +1,17 @@
 stages:
   - build
   - test
+  - deploy
 
 dockerbuild:
   image: docker:latest
-  before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  stage: deploy
   only:
     - schedules
-  stage: build
+  tags:
+    - decker
   script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
 
@@ -19,9 +21,8 @@ stackbuild:
   stage: build
   only:
     - master
-  before_script:
-    - stack setup
   script:
+    - stack setup
     - make build
   artifacts:
     paths:
