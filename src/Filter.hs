@@ -276,10 +276,8 @@ mapSlides func (Pandoc meta blocks) =
     slideBlocks = split (keepDelimsL $ whenElt isSlideHeader) blocks
     slides = map extractHeader $ filter (not . null) slideBlocks
     extractHeader (header@(Header 1 _ _):bs) = (header, bs)
-    extractHeader (rule@HorizontalRule:bs) = (rule, bs)
-    extractHeader slide =
-      throw $
-      PandocException $ "Error extracting slide header: \n" ++ show slide
+    extractHeader (rule@HorizontalRule:bs) = extractHeader bs
+    extractHeader bs = (HorizontalRule, bs)
     prependHeader (header, bs) = header : bs
 
 makeSlides :: Pandoc -> Decker Pandoc
