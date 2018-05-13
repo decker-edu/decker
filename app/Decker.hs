@@ -135,9 +135,10 @@ main = do
                 else indexSource <.> "generated"
         markdownToHtmlPage src out
     --
-    indexSource <.> "generated" %> \out -> do
+    indexSource <.> "generated" %> \out
       -- deckSources <- deckSourcesA
       -- pageSources <- pageSourcesA
+     -> do
       decks <- decksA
       decksPdf <- decksPdfA
       pagesPdf <- pagesPdfA
