@@ -34,7 +34,7 @@ extractResources = do
     unlessM (Resources.unzip ["-l", deckerExecutable]) $
       throw $ ResourceException "No resource zip found in decker executable."
     createDirectoryIfMissing True dataDir
-    unlessM (Resources.unzip ["-qq", "-d", dataDir, deckerExecutable]) $
+    unlessM (Resources.unzip ["-qq", "-o", "-d", dataDir, deckerExecutable]) $
       throw $
       ResourceException "Unable to extract resources from decker executable"
     putStrLn $ "# resources extracted to " ++ dataDir

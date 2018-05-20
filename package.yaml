@@ -5,6 +5,20 @@ author:              "Henrik Tramberend"
 maintainer:          "henrik.tramberend@beuth-hochschule.de"
 copyright:           "2018 Henrik Tramberend"
 
+build-type: Custom
+
+custom-setup:
+  dependencies: 
+  - base >= 4.7 && < 5
+  - bytestring
+  - Cabal
+  - conduit
+  - directory
+  - extra
+  - filepath
+  - Glob
+  - zip
+
 extra-source-files:
 - readme.md
 - Dockerfile
@@ -65,6 +79,7 @@ dependencies:
 - websockets
 - websockets-snap
 - yaml
+- zip
 
 library:
   source-dirs: src
