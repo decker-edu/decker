@@ -33,7 +33,8 @@ RUN apt-get update && apt-get install -y \
     rsync \
     sassc \
     unzip \
-    zip
+    zip \
+    libbz2-dev
 
 ENV PATH="/root/.local/bin:${PATH}"
 COPY --from=0 /root/.local /root/.local
