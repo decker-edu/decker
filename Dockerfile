@@ -4,7 +4,8 @@ FROM ubuntu:artful
 RUN apt-get update &&	apt-get install -y \
   wget \
   unzip \
-  zip
+  zip \
+  libbz2-dev 
 
 #set the encoding on UTF-8, so the parser works correctly, german language is also added for umlaute
 #source of fix: https://blog.mkowalski.net/2016/05/16/solving-locale-issues-with-docker-containers/
@@ -33,8 +34,7 @@ RUN apt-get update && apt-get install -y \
     rsync \
     sassc \
     unzip \
-    zip \
-    libbz2-dev
+    zip
 
 ENV PATH="/root/.local/bin:${PATH}"
 COPY --from=0 /root/.local /root/.local
