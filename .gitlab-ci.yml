@@ -1,6 +1,6 @@
 stages:
-  - build
-  - test
+#   - build
+#   - test
   - deploy
 
 dockerbuild:
@@ -15,25 +15,25 @@ dockerbuild:
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
 
-stackbuild:
-  tags: 
-    - stack
-  stage: build
-  only:
-    - master
-  script:
-    - stack setup
-    - make build
-  artifacts:
-    paths:
-    - dist/decker.zip
-    expire_in: 20 minutes
+# stackbuild:
+#   tags: 
+#     - stack
+#   stage: build
+#   only:
+#     - master
+#   script:
+#     - stack setup
+#     - make build
+#   artifacts:
+#     paths:
+#     - dist/decker.zip
+#     expire_in: 20 minutes
 
-stacktest:
-  tags: 
-    - stack
-  stage: test
-  only:
-    - master
-  script:
-    - make test
+# stacktest:
+#   tags: 
+#     - stack
+#   stage: test
+#   only:
+#     - master
+#   script:
+#     - make test
