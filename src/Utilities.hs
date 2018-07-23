@@ -274,7 +274,7 @@ readAndProcessMarkdown markdownFile disp = do
         [ expandDeckerMacros
         , renderCodeBlocks
         , provisionResources
-        , makeSlides
+        , processSlides
         , renderMediaTags
         , processCitesWithDefault
         , appendScripts

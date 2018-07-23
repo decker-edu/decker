@@ -1,27 +1,21 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Filter
-  ( Layout(..)
+  ( RowLayout(..)
   , OutputFormat(..)
-  , Disposition(..)
-  , processPandoc
-  , blockClasses
-  , makeSlides
-  , makeBoxes
-  , useCachedImages
-  , escapeToFilePath
-  , cachePandocImages
-  , extractLocalImagePathes
-  , renderMediaTags
   , transformImageSize
   , lazyLoadImage
   , iframeExtensions
   , audioExtensions
   , videoExtensions
+  , processPandoc
+  , processSlides
+  , renderMediaTags
   ) where
 
 import Common
 import Control.Exception
-import Control.Monad.Loops
+
+import Control.Monad.Loops as Loop
 import Control.Monad.State
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Default ()
@@ -29,6 +23,7 @@ import Data.List
 import Data.List.Extra (for)
 import Data.List.Split
 import Data.Maybe
+import Data.Tuple.Select
 import Development.Shake (Action)
 import Network.HTTP.Conduit hiding (InternalException)
 import Network.HTTP.Simple
@@ -61,15 +56,6 @@ processPandoc transform base disp prov pandoc =
 isBoxDelim :: Block -> Bool
 isBoxDelim (Header 2 _ _) = True
 isBoxDelim _ = False
-
-hasClass :: String -> Block -> Bool
-hasClass which = elem which . blockClasses
-
-hasAnyClass :: [String] -> Block -> Bool
-hasAnyClass which = isJust . firstClass which
-
-firstClass :: [String] -> Block -> Maybe String
-firstClass which block = listToMaybe $ filter (`hasClass` block) which
 
 -- | Slide layouts are rows of one ore more columns.
 data RowLayout = RowLayout
@@ -120,19 +106,12 @@ renderRow areaMap (MultiColumn areas) =
 
 renderColumn :: (Int, [Block]) -> Block
 renderColumn (i, blocks) =
-  let grow =
-        fromMaybe (1 :: Int) $ lookup "grow" (blockKeyvals blocks) >>= readMaybe
+  let grow = fromMaybe (1 :: Int) $ lookup "grow" (keyvals blocks) >>= readMaybe
   in Div
        ( ""
        , ["grow-" ++ show grow, "column", "column-" ++ show i]
-       , blockKeyvals blocks)
+       , keyvals blocks)
        blocks
-
-blockKeyvals :: [Block] -> [(String, String)]
-blockKeyvals (first:_) =
-  let (_, _, kv) = blockAttribs first
-  in kv
-blockKeyvals [] = []
 
 renderLayout :: AreaMap -> RowLayout -> [Block]
 renderLayout areaMap l = mapMaybe (renderRow areaMap) (rows l)
@@ -142,48 +121,63 @@ slideAreas names blocks =
   mapMaybe (\area -> firstClass names (head area) >>= Just . (, area)) $
   filter (not . null) $ split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
 
-layoutSlides :: Slide -> Slide
-layoutSlides slide@(header, body) =
+layoutSlides :: OneSlide -> OneSlide
+layoutSlides slide@(OneSlide (Just header) body) =
   case hasRowLayout header of
-    Just l ->
-      let names = layoutAreas l
+    Just layout ->
+      let names = layoutAreas layout
           areas = slideAreas names body
-      in (header, renderLayout areas l)
+      in OneSlide (Just header) $ renderLayout areas layout
     Nothing -> slide
+layoutSlides slide = slide
 
-attribValue :: String -> Block -> Maybe String
-attribValue which (Div (_, _, keyvals) _) = lookup which keyvals
-attribValue which (Header 1 (_, _, keyvals) _) = lookup which keyvals
-attribValue which (CodeBlock (_, _, keyvals) _) = lookup which keyvals
-attribValue which (Para [Image (_, _, keyvals) _ _]) = lookup which keyvals
-attribValue _ _ = Nothing
+class HasAttrib a where
+  attributes :: a -> Attr
 
-blockClasses :: Block -> [String]
-blockClasses (Div (_, classes, _) _) = classes
-blockClasses (Header 1 (_, classes, _) _) = classes
-blockClasses (CodeBlock (_, classes, _) _) = classes
-blockClasses (Para [Image (_, classes, _) _ _]) = classes
-blockClasses _ = []
+instance HasAttrib OneSlide where
+  attributes (OneSlide (Just header) _) = attributes header
+  attributes _ = nullAttr
 
-blockAttribs :: Block -> Attr
-blockAttribs (Div attribs _) = attribs
-blockAttribs (Header 1 attribs _) = attribs
-blockAttribs (CodeBlock attribs _) = attribs
-blockAttribs (Para [Image attribs _ _]) = attribs
-blockAttribs _ = nullAttr
+instance HasAttrib Block where
+  attributes (Div attribs _) = attribs
+  attributes (Header 1 attribs _) = attribs
+  attributes (CodeBlock attribs _) = attribs
+  attributes (Para [Image attribs _ _]) = attribs
+  attributes _ = nullAttr
 
-slideAttribs :: OneSlide -> Attr
-slideAttribs (OneSlide (Just header) _) = blockAttribs header
-slideAttribs (OneSlide Nothing _) = nullAttr
+instance HasAttrib [Block] where
+  attributes (first:_) = attributes first
+  attributes _ = nullAttr
 
-slideClasses :: OneSlide -> [String]
-slideClasses slide =
-  let (_, classes, _) = slideAttribs slide
-  in classes
+instance HasAttrib (Maybe Block) where
+  attributes (Just block) = attributes block
+  attributes Nothing = nullAttr
+
+classes :: HasAttrib a => a -> [String]
+classes = sel2 . attributes
+
+keyvals :: HasAttrib a => a -> [(String, String)]
+keyvals = sel3 . attributes
+
+hasClass :: HasAttrib a => String -> a -> Bool
+hasClass which = elem which . classes
+
+hasAnyClass :: HasAttrib a => [String] -> a -> Bool
+hasAnyClass which = isJust . firstClass which
+
+firstClass :: HasAttrib a => [String] -> a -> Maybe String
+firstClass which fragment = listToMaybe $ filter (`hasClass` fragment) which
+
+attribValue :: HasAttrib a => String -> a -> Maybe String
+attribValue which = lookup which . keyvals
+
+dropByClass :: HasAttrib a => [String] -> [a] -> [a]
+dropByClass which = filter (not . any (`elem` which) . classes)
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
-splitJoinColumns :: Slide -> Slide
-splitJoinColumns (header, body) = (header, concatMap wrapRow rowBlocks)
+splitJoinColumns :: OneSlide -> OneSlide
+splitJoinColumns (OneSlide header body) =
+  OneSlide header $ concatMap wrapRow rowBlocks
   where
     rowBlocks =
       split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
@@ -220,28 +214,38 @@ zapImages Image {} = Space
 zapImages inline = inline
 
 handleBackground :: OneSlide -> Decker OneSlide
-handleBackground = do
+handleBackground = handleBackgroundRevealJs
+
+{--
+do
   disp <- gets disposition
   case disp of
     Disposition Deck Html -> handleBackgroundRevealJs
     Disposition Handout Html -> handleBackgroundRevealJs
-
-
+--}
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 
-handleBackgroundRevealJs :: Slide -> Slide
-handleBackgroundRevealJs slide@(Header 1 (headerId, headerClasses, headerAttributes) inlines, slideBody) =
-  case query allImages inlines of
-    Image (_, imageClasses, imageAttributes) _ (imageSrc, _):_ ->
-      ( Header
-          1
-          ( headerId
-          , headerClasses ++ imageClasses
-          , srcAttribute imageSrc :
-            headerAttributes ++ map transform imageAttributes)
-          (walk zapImages inlines)
-      , slideBody)
-    _ -> slide
+handleBackgroundRevealJs :: OneSlide -> Decker OneSlide
+handleBackgroundRevealJs slide@(OneSlide Nothing blocks) = return slide
+handleBackgroundRevealJs slide@(OneSlide header blocks) =
+  case header of
+    Just (Header 1 (headerId, headerClasses, headerAttributes) inlines) ->
+      case query allImages inlines -- Find the fist Image in the header text
+            of
+        Image (_, imageClasses, imageAttributes) _ (imageSrc, _):_ ->
+          return $
+          OneSlide
+            (Just
+               (Header -- Construct a new header with the necessary attributes for RevealJs background content
+                  1
+                  ( headerId
+                  , headerClasses ++ imageClasses
+                  , srcAttribute imageSrc :
+                    headerAttributes ++ map transform imageAttributes)
+                  (walk zapImages inlines)))
+            blocks
+        otherwise -> return slide -- There is no image in the header
+    Nothing -> throw $ InternalException "Illegal block in slide header"
   where
     transform ("size", value) = ("data-background-size", value)
     transform ("position", value) = ("data-background-position", value)
@@ -257,7 +261,6 @@ handleBackgroundRevealJs slide@(Header 1 (headerId, headerClasses, headerAttribu
         AudioMedia -> ("data-background-audio", src)
         IframeMedia -> ("data-background-iframe", src)
         ImageMedia -> ("data-background-image", src)
-handleBackgroundRevealJs slide = slide
 
 -- | Wrap boxes around H2 headers and the following content. All attributes are
 -- promoted from the H2 header to the enclosing DIV.
@@ -272,6 +275,7 @@ wrapBoxesOne (OneSlide header body) = OneSlide header $ concatMap wrap boxes
       ]
     wrap box = box
 
+{--
 -- | Wrap boxes around H2 headers and the following content. All attributes are
 -- promoted from the H2 header to the enclosing DIV.
 wrapBoxes :: Slide -> Slide
@@ -291,9 +295,7 @@ wrapNoteRevealjs :: Slide -> Slide
 wrapNoteRevealjs (header@(Header 1 (id_, cls, kvs) _), body)
   | "notes" `elem` cls = (Div (id_, cls, kvs) (header : body), [])
 wrapNoteRevealjs slide = slide
-
-type Slide = (Block, [Block])
-
+--}
 -- A slide has maybe a header followed by zero or more blocks.
 data OneSlide = OneSlide
   { header :: Maybe Block
@@ -305,30 +307,39 @@ isSlideHeader (Header 1 _ _) = True
 isSlideHeader HorizontalRule = True
 isSlideHeader _ = False
 
+-- Converts blocks to slides. Slides start at H1 headers or at horizontal rules.
+-- A horizontal rule followed by a H1 header collapses to one slide.
 toSlides :: [Block] -> [OneSlide]
 toSlides blocks = map extractHeader $ filter (not . null) slideBlocks
   where
-    slideBlocks = split (keepDelimsL $ whenElt isSlideHeader) blocks
+    slideBlocks =
+      split (keepDelimsL $ whenElt isSlideHeader) $ killEmpties blocks
+    -- Deconstruct a list of blocks into a OneSlide
     extractHeader (header@(Header 1 _ _):bs) = OneSlide (Just header) bs
     extractHeader (HorizontalRule:bs) = extractHeader bs
     extractHeader blocks = OneSlide Nothing blocks
+    -- Remove redundant slide markers
+    killEmpties (HorizontalRule:header@(Header _ _ _):blocks) =
+      header : killEmpties blocks
+    killEmpties (b:bs) = b : killEmpties bs
+    killEmpties [] = []
 
 fromSlides :: [OneSlide] -> [Block]
 fromSlides = concatMap prependHeader
     -- Always separate slides with a horizontal rule
   where
-    prependHeader (OneSlide (Just header@(Header 1 _ _)) bs) =
-      HorizontalRule : header : bs
-    prependHeader (OneSlide Nothing bs) = HorizontalRule : bs
-    prependHeader slide =
-      throw $
-      PandocException $ "Error assembling blocks from slide: \n" ++ show slide
+    prependHeader (OneSlide (Just header) body)
+      | hasClass "notes" header = [Div (attributes header) (header : body)]
+    prependHeader (OneSlide (Just header) body) = HorizontalRule : header : body
+    prependHeader (OneSlide Nothing body) = HorizontalRule : body
 
 -- | Map over all slides in a deck. 
 mapOneSlides :: (OneSlide -> Decker OneSlide) -> Pandoc -> Decker Pandoc
-mapOneSlides action (Pandoc meta blocks) =
-  (Pandoc meta . fromSlides) <$> mapM action (toSlides blocks)
+mapOneSlides action (Pandoc meta blocks) = do
+  slides <- selectContent (toSlides blocks)
+  (Pandoc meta . fromSlides) <$> mapM action slides
 
+{--
 -- | Map over all slides in a deck. A slide has always a header followed by zero
 -- or more blocks.
 mapSlides :: (Slide -> Slide) -> Pandoc -> Pandoc
@@ -344,12 +355,27 @@ mapSlides func (Pandoc meta blocks) =
       PandocException $ "Error extracting slide header: \n" ++ show slide
     prependHeader (header, bs) = header : bs
 
+concatM :: (Monad m) => [a -> m a] -> (a -> m a)
+concatM fs = foldr (>=>) return fs
+--}
+selectSlideContent :: OneSlide -> Decker OneSlide
+selectSlideContent (OneSlide header body) =
+  OneSlide header <$> selectContent body
+
 -- | Slide specific processing.
 processSlides :: Pandoc -> Decker Pandoc
 processSlides = mapOneSlides (concatM actions)
   where
-    actions = [selectContent, wrapBoxesOne, handleBackground]
+    actions :: [OneSlide -> Decker OneSlide]
+    actions =
+      [ return . wrapBoxesOne
+      , selectSlideContent
+      , return . splitJoinColumns
+      , return . layoutSlides
+      , handleBackground
+      ]
 
+{--
 makeSlides :: Pandoc -> Decker Pandoc
 makeSlides pandoc = do
   disp <- gets disposition
@@ -357,7 +383,8 @@ makeSlides pandoc = do
         case disp of
           Disposition Deck Html ->
             layoutSlides .
-            splitJoinColumns . handleBackgroundRevealJs . wrapBoxes . wrapNoteRevealjs
+            splitJoinColumns .
+            handleBackgroundRevealJs . wrapBoxes . wrapNoteRevealjs
                 -- TODO: Maybe we need some handout specific structure
           Disposition Handout Html ->
             layoutSlides . splitJoinColumns . wrapBoxes . wrapNoteRevealjs
@@ -365,27 +392,26 @@ makeSlides pandoc = do
           Disposition Handout Pdf -> Prelude.id
                 -- TODO: Probably not much to do here
           Disposition Page _ ->
-            throw $ InternalException "Page do not get the slide deck treatment"
+            throw $
+            InternalException "Pages do not get the slide deck treatment"
           Disposition Deck Pdf ->
             throw $
             InternalException "PDF slide decks via LaTeX are not supported"
   return $ mapSlides chain pandoc
-
-selectContent :: [OneSlide] -> Decker [OneSlide]
-selectContent slides = do
+--}
+selectContent :: HasAttrib a => [a] -> Decker [a]
+selectContent fragments = do
   disp <- gets disposition
   return $
     case disp of
-      Disposition Deck _ -> dropByClass ["handout"] slides
-      Disposition Handout _ -> dropByClass ["deck", "notes"] slides
-      Disposition Page _ -> dropByClass ["notes"] slides
+      Disposition Deck _ -> dropByClass ["handout"] fragments
+      Disposition Handout _ -> dropByClass ["deck", "notes"] fragments
+      Disposition Page _ -> dropByClass ["notes", "deck", "handout"] fragments
 
-dropByClass :: [String] -> [OneSlide] -> [OneSlide]
-dropByClass classes = filter (not . any (`elem` classes) . slideClasses)
-
+{--
 makeBoxes :: Pandoc -> Pandoc
 makeBoxes = walk (mapSlides wrapBoxes)
-
+--}
 escapeToFilePath :: String -> FilePath
 escapeToFilePath = map repl
   where

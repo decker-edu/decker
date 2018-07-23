@@ -58,6 +58,7 @@ dependencies:
 - text
 - time
 - transformers
+- tuple
 - unix
 - unordered-containers
 - utf8-string

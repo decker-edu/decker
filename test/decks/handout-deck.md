@@ -1,4 +1,5 @@
 ---
+history: True
 title: Handout Test
 ---
 
@@ -19,4 +20,72 @@ title: Handout Test
 
 ------
 
-# Untagged content
+# Untagged content {layout="columns"}
+
+## This is untagged content {.left}
+
+-   The entire content shows up in *slide decks* and in *handouts*
+
+##  {.right}
+
+![](include/06-metal.png)
+
+------
+
+# Content tagged `handout` {.handout layout="columns"}
+
+## This slide is tagged `handout` {.left}
+
+-   The entire content only shows up in *handouts*
+
+##  {.right}
+
+![](include/06-metal.png)
+
+------
+
+# Content tagged `deck` {.deck layout="columns"}
+
+## This slide is tagged `deck` {.left}
+
+-   The entire content only shows up in *slide decks*
+
+##  {.right}
+
+![](include/06-metal.png)
+
+# Content tagged `deck` and `handout` {layout="columns"}
+
+## This column is tagged `deck` {.deck .left}
+
+-   The column only shows up in *slide decks*
+
+![](include/06-metal.png)
+
+## This column is tagged `handout` {.handout .right}
+
+-   The column only shows up in *handouts*
+
+![](include/06-metal.png)
+
+# Content tagged `notes` {.notes}
+
+## Speaker Notes
+
+-   The content of this slide is included as speaker notes
+-   It is not included in handouts
+
+![](include/06-metal.png)
+
+# Content tagged `notes`
+
+## This slide contains speaker notes
+
+-   Speaker Notes are not visible in decks and handouts
+
+## Speaker Notes {.notes}
+
+-   This content is included as speaker notes
+-   It is not included in handouts
+
+![](include/06-metal.png)
