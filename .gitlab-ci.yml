@@ -1,6 +1,6 @@
 stages:
-#   - build
   - test
+  - build
   - deploy
 
 dockerbuild:
@@ -15,6 +15,18 @@ dockerbuild:
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
 
+
+macbuild:
+  tags:
+    - mac
+  stage: build
+  script:
+    - make
+    - cp $(stack path | grep "dist-dir" | awk '{printf "%s/build/decker/decker",$2}') decker
+  artifacts:
+    paths:
+      - decker
+      
 # stackbuild:
 #   tags: 
 #     - stack
