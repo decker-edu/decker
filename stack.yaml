@@ -4,4 +4,4 @@ flags:
 packages:
 - '.'
 extra-deps:
-resolver: lts-11.6
+resolver: lts-12.5
