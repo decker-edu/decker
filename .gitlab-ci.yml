@@ -1,6 +1,5 @@
 stages:
   - test
-  - build
   - deploy
 
 dockerbuild:
@@ -19,7 +18,9 @@ dockerbuild:
 macbuild:
   tags:
     - mac
-  stage: build
+  stage: deploy
+  only:
+    - master
   script:
     - make
     - cp $(stack path | grep "dist-dir" | awk '{printf "%s/build/decker/decker",$2}') decker
