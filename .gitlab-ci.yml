@@ -28,6 +28,20 @@ macbuild:
     paths:
       - decker
       
+winbuild:
+  stage: deploy
+  tags:
+    - win
+  only:
+    - master
+  script:
+    - "(dir 2>&1 *`|echo CMD);&<# rem #>echo PowerShell"
+    - '& stack build'
+    - '$binpath=(Join-Path ($(stack path | Select-String -Pattern "dist-dir") -split " ")[1] "build\decker\decker.exe")'
+    - 'Copy-Item $binpath .'
+  artifacts:
+    paths:
+      - decker.exe
 # stackbuild:
 #   tags: 
 #     - stack
