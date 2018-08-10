@@ -1,6 +1,6 @@
 stages:
 #   - build
-#   - test
+  - test
   - deploy
 
 dockerbuild:
@@ -28,6 +28,16 @@ dockerbuild:
 #     paths:
 #     - dist/decker.zip
 #     expire_in: 20 minutes
+
+stacktest:
+  stage: test
+  tags:
+    - docker
+  image:
+    name: gitlab2.informatik.uni-wuerzburg.de:4567/decker/decker/testcontainer:latest
+    entrypoint: [""]
+  script:
+    - make test
 
 # stacktest:
 #   tags: 
