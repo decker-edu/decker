@@ -38,7 +38,12 @@ Decker uses a few external tools that need to be installed on the system:
 -   [*pdf2svg*](https://github.com/dawbarton/pdf2svg) to generate SVG files from
     PDF documents
 -   [*sassc*](https://github.com/sass/sassc) to compile SCSS to CSS
+<<<<<<< HEAD
 -   *libbzip2-dev*
+=======
+-   [*NodeJS*](https://nodejs.org/) as a prerequisite for Yarn
+-   [*Yarn*](https://yarnpkg.com) to install Javascript dependencies
+>>>>>>> 7ac005b... Add menu plugin to the deck template
 
 ### Installation of external tools on macOS
 

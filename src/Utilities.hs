@@ -219,7 +219,7 @@ markdownToHtmlDeck markdownFile out = do
             MathJax
               (supportDirRel </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
         , writerVariables =
-            [ ("revealjs-url", supportDirRel </> "reveal.js-3.5.0")
+            [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
             , ("decker-support-dir", supportDirRel)
             ]
         , writerCiteMethod = Citeproc

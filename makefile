@@ -2,6 +2,11 @@ decker := $(shell stack path | grep local-install-root | sed "s/local-install-ro
 version := $(shell grep "version: " package.yaml | sed "s/version: *//")
 
 build:
+	cd resource
+	cd support
+	yarn install
+	cd ..
+	cd ..
 	stack build -j 8 --fast
 
 dist: build

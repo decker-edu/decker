@@ -1,0 +1,19 @@
+{
+  "name": "decker-support",
+  "version": "0.0.4",
+  "description": "Decker files to control the HTML presentation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "decker",
+    "revealjs"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "reveal.js": "^3.7.0",
+    "reveal.js-menu": "^1.1.3"
+  }
+}

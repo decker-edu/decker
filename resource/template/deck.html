@@ -270,6 +270,9 @@ $endif$
 $if(mathjax)$
           { src: '$revealjs-url$/plugin/math/math.js', async: true },
 $endif$
+$if(menu)$
+          { src: '$decker-support-dir$/node_modules/reveal.js-menu/menu.js', async: true },
+$endif$
           { src: '$revealjs-url$/plugin/notes/notes.js', async: true }
         ]
       });
