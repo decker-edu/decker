@@ -13,7 +13,10 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "font-awesome": "^4.7.0",
+    "mathjax": "^2.7.5",
     "reveal.js": "^3.7.0",
-    "reveal.js-menu": "^1.1.3"
+    "reveal.js-menu": "^1.1.3",
+    "zepto": "^1.2.0"
   }
 }
