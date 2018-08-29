@@ -18,7 +18,7 @@ history: True
 
 # Autoplay on
 
-![](pacman-perfect-game.mp4#t=200){controls="1" data-autoplay="1" width="50%"}
+![](pacman-perfect-game.mp4){controls="1" data-autoplay="1" width="50%" start="200"}
 
 # Autoplay off with start time as fragment
 
@@ -26,7 +26,7 @@ history: True
 
 # Autoplay on with start time as fragment
 
-![](pacman-perfect-game.mp4#t=200){controls="1" width="50%"}
+![](pacman-perfect-game.mp4){controls="1" width="50%" start="200"}
 
 # Native video tag
 

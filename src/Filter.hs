@@ -423,8 +423,12 @@ renderImageAudioVideoTag disp (Image (ident, cls, values) inlines (url, tit)) =
       if disp == Disposition Deck Html
         then "data-src"
         else "src"
-    transformedValues = (lazyLoad . transformImageSize) values
-    lazyLoad vs = (srcAttr, url) : vs
+    transformedValues =
+      case classifyFilePath url of
+        VideoMedia -> lazyLoad $ retrieveVideoStart $ transformImageSize values
+        _ -> lazyLoad (transformImageSize values, Nothing)
+    lazyLoad (vs, (Just start)) = (srcAttr, url ++ "#t=" ++ start) : vs
+    lazyLoad (vs, Nothing) = (srcAttr, url) : vs
 renderImageAudioVideoTag _ inline = inline
 
 -- | Mimic pandoc for handling the 'width' and 'height' attributes of images.
@@ -456,6 +460,14 @@ transformImageSize attributes =
   in if null css
        then unstyled
        else styleAttr : unsized
+
+-- | Retrieves the start attribute for videos to append it to the url
+retrieveVideoStart :: [(String, String)] -> ([(String, String)], Maybe String)
+retrieveVideoStart attributes = 
+  (attributeRest, urlStartMarker)
+  where 
+    attributeRest = filter (\(k, _) -> k /= "start") attributes
+    urlStartMarker = snd <$> find (\(k, _) -> k == "start") attributes
 
 -- | Moves the `src` attribute to `data-src` to enable reveal.js lazy loading.
 lazyLoadImage :: Inline -> IO Inline
