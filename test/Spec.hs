@@ -12,7 +12,7 @@ import Project as P
 import qualified System.Directory as Dir
 import System.FilePath
 import System.FilePath.Glob
-import System.FilePath.Posix
+import System.FilePath
 import Text.Pandoc
 import Utilities
 
@@ -28,17 +28,17 @@ main = do
   --
    do
     describe "makeRelativeTo" $
-      it "calculates the path of file relative to dir. Inlcudes '..'" $ do
+      it "calculates the path of file relative to dir. Includes '..'" $ do
         makeRelativeTo "" "img.png" `shouldBe` "img.png"
         makeRelativeTo "/one/two" "/one/two/img.png" `shouldBe` "img.png"
         makeRelativeTo "/one/two/three" "/one/two/four/img.png" `shouldBe`
-          "../four/img.png"
+          joinPath ["..", "four", "img.png"]
         makeRelativeTo "/some/where/else" "/one/two/four/img.png" `shouldBe`
-          "../../../one/two/four/img.png"
+          joinPath ["..", "..", "..", "one", "two", "four", "img.png"]
         makeRelativeTo
           "/Users/henrik/tmp/decker-demo/public"
           "/Users/henrik/tmp/decker-demo/public/cache/b48cadafb942dc1426316772321dd0c7.png" `shouldBe`
-          "cache/b48cadafb942dc1426316772321dd0c7.png"
+          joinPath ["cache", "b48cadafb942dc1426316772321dd0c7.png"]
     --
     describe "removeCommonPrefix" $
       it "removes the common prefix from two pathes." $ do
@@ -46,11 +46,11 @@ main = do
         P.removeCommonPrefix ("fasel/bla", "fasel/bla/lall") `shouldBe`
           ("", "lall")
         P.removeCommonPrefix ("lurgel/hopp", "fasel/bla/lall") `shouldBe`
-          ("lurgel/hopp", "fasel/bla/lall")
+          (joinPath ["lurgel", "hopp"], joinPath ["fasel", "bla", "lall"])
         P.removeCommonPrefix ("/lurgel/hopp", "fasel/bla/lall") `shouldBe`
-          ("/lurgel/hopp", "fasel/bla/lall")
+          (joinPath ["/lurgel", "hopp"], joinPath ["fasel", "bla", "lall"])
         P.removeCommonPrefix ("/lurgel/hopp", "/fasel/bla/lall") `shouldBe`
-          ("lurgel/hopp", "fasel/bla/lall")
+          (joinPath ["lurgel", "hopp"], joinPath ["fasel", "bla", "lall"])
     --
     describe "copyResource" $
       it

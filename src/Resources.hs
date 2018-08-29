@@ -13,7 +13,7 @@ import Control.Monad.Extra
 import System.Directory
 import System.Environment
 import System.Exit
-import System.FilePath.Posix
+import System.FilePath
 import System.Process
 
 deckerResourceDir :: IO FilePath

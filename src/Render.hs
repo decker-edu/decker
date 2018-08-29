@@ -17,7 +17,7 @@ import Data.Maybe
 import qualified Data.Set as Set
 import Project
 import System.Directory (createDirectoryIfMissing, doesFileExist)
-import System.FilePath.Posix
+import System.FilePath
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H ((!), canvas, div, script, toValue)
 import Text.Blaze.Html5.Attributes as A (class_, id, lang, src)
