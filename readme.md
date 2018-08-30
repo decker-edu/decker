@@ -38,6 +38,7 @@ Decker uses a few external tools that need to be installed on the system:
 -   [*pdf2svg*](https://github.com/dawbarton/pdf2svg) to generate SVG files from
     PDF documents
 -   [*sassc*](https://github.com/sass/sassc) to compile SCSS to CSS
+-   *libbzip2-dev*
 
 ### Installation of external tools on macOS
 
