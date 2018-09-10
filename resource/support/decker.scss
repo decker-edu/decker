@@ -51,7 +51,7 @@ body {
             font-family: 'Roboto', sans-serif;
             font-size: $medium-font-size;
             font-weight: normal;
-            color: rgba(0, 0, 0, 0.87);
+            color: rgba(0, 0, 0, 1);
 
             section {
                 /////////////////////////////////////////////
@@ -107,13 +107,11 @@ body {
 
                 h2 {
                     font-weight: 500;
-                    color: rgba(0, 0, 0, 0.54);
                     font-size: 1.2em;
                     margin-bottom: space(0.1);
                 }
 
-                &.has-dark-background,
-                &.inverse {
+                &.white, &.inverse, &.has-dark-background {
                     h1,
                     h2,
                     h3,
@@ -122,6 +120,7 @@ body {
                     h6 {
                         color: #eee;
                     }
+                    color: #fff;
                 }
 
                 /////////////////////////////////////////////
@@ -860,21 +859,6 @@ body {
         /////////////////////////////////////////////
         // Reveal templates
         /////////////////////////////////////////////
-        .white {
-            color: #eee;
-
-            h1,
-            h2 {
-                color: #eee;
-            }
-        }
-
-        .black {
-            h1,
-            h2 {
-                color: #111;
-            }
-        }
 
         /////////////////////////////////////////////
         // Speaker notes

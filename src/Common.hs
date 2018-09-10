@@ -34,7 +34,7 @@ deckerVersion = showVersion version
 -- the 4th branch number is always 0. Release branches have only three.
 isDevelopmentVersion :: Bool
 isDevelopmentVersion =
-  (length $ versionBranch version) == 4 && (versionBranch version) !! 3 == 0
+  length  (versionBranch version) == 4 && versionBranch version !! 3 == 0
 
 -- | Tool specific exceptions
 data DeckerException
@@ -104,8 +104,9 @@ data Layout
   deriving (Eq, Show)
 
 data OutputFormat
-  = Html
-  | Pdf
+  = Reveal
+  | Html
+  | Latex
   deriving (Eq, Show)
 
 data Disposition = Disposition
