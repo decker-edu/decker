@@ -39,7 +39,8 @@ provisioningFromMeta meta =
 templateFromMeta :: Meta -> Maybe String
 templateFromMeta meta = 
   case lookupMeta "template" meta of
-    Just (MetaString s) -> Just $ read s
+    Just (MetaString s) ->  Just s
+    Just (MetaInlines i) -> Just $ stringify i
     _ -> Nothing
 
 provisioningClasses :: [(String, Provisioning)]

@@ -32,12 +32,15 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
+import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Class
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.HashMap.Lazy as HashMap
 import Data.IORef
 import Data.List as List
 import Data.List.Extra as List
+import Data.Maybe
 import qualified Data.Map.Lazy as Map
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
@@ -266,11 +269,12 @@ readAndProcessMarkdown :: FilePath -> Disposition -> WriterOptions -> Action (Pa
 readAndProcessMarkdown markdownFile disp defaultOptions = do
   pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes baseDir
-  let options = (case (templateFromMeta meta) of
-        Just template -> defaultOptions {
-          writerTemplate = Just (template </> (getTemplateFileName disp))
-        }
-        Nothing -> defaultOptions)
+  templateOverride <- loadTemplateOverrideAction meta disp
+  options <- case templateOverride of
+        Just template -> do return (defaultOptions {
+          writerTemplate = Just template
+        })
+        _ -> do return $ defaultOptions
   processed <- processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
   return $ (processed, options)
   where
@@ -285,8 +289,28 @@ readAndProcessMarkdown markdownFile disp defaultOptions = do
         , processCitesWithDefault
         , appendScripts
         ]
+    extractTemplateOverridePath meta = case templateFromMeta meta of
+          Just template -> Just $ (template </> (getTemplateFileName disp))
+          Nothing -> Nothing
   -- Disable automatic caching of remote images for a while
   -- >>= walkM (cacheRemoteImages (cache dirs))
+
+loadTemplateOverrideAction :: Meta -> Disposition -> Action (Maybe String)
+loadTemplateOverrideAction meta disp = liftIO $ loadTemplateOverride meta disp
+
+loadTemplateOverride :: Meta -> Disposition -> IO (Maybe String)
+loadTemplateOverride meta disp = do
+  
+  let templateOverridePath = case templateFromMeta meta of
+        Just template -> Just $ template </> (getTemplateFileName disp)
+        Nothing -> Nothing
+  templateString <- if isJust templateOverridePath
+        then do
+          content <- readFile (fromJust templateOverridePath) 
+          return $ Just content
+        else do
+          return Nothing
+  return $ templateString
 
 getTemplateFileName :: Disposition -> String
 getTemplateFileName (Disposition Deck Html) = "deck.html"
