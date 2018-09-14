@@ -276,6 +276,7 @@ readAndProcessMarkdown markdownFile disp defaultOptions = do
         })
         _ -> do return $ defaultOptions
   processed <- processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
+  -- provisionTemplateOverrideSupportFolder meta pandoc
   return $ (processed, options)
   where
     baseDir = takeDirectory markdownFile
@@ -298,9 +299,9 @@ readAndProcessMarkdown markdownFile disp defaultOptions = do
 loadTemplateOverrideAction :: Meta -> Disposition -> Action (Maybe String)
 loadTemplateOverrideAction meta disp = liftIO $ loadTemplateOverride meta disp
 
+-- | Loads a template file from a custom destination
 loadTemplateOverride :: Meta -> Disposition -> IO (Maybe String)
 loadTemplateOverride meta disp = do
-  
   let templateOverridePath = case templateFromMeta meta of
         Just template -> Just $ template </> (getTemplateFileName disp)
         Nothing -> Nothing
@@ -312,6 +313,21 @@ loadTemplateOverride meta disp = do
           return Nothing
   return $ templateString
 
+-- provisionTemplateOverrideSupportFolder :: Meta -> Pandoc -> Action ()
+-- provisionTemplateOverrideSupportFolder meta pandoc = do
+--     let templateOverridePath = case templateFromMeta meta of
+--           Just template -> Just $ template
+--           Nothing -> Nothing
+--     if isJust templateOverridePath
+--       then do
+--           base <- gets basePath
+--           provisionResource base Copy ((fromJust templateOverridePath) </> "support")
+--           return ()
+--       else do
+--         return ()
+
+-- | Determines which template file name to use
+-- for a certain disposition type
 getTemplateFileName :: Disposition -> String
 getTemplateFileName (Disposition Deck Html) = "deck.html"
 getTemplateFileName (Disposition Deck Pdf) = "deck.tex"
@@ -334,12 +350,42 @@ provisionMetaResource base method (key, url)
   | key `elem` runtimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     provisionResource base method filePath
+provisionMetaResource base method (key, url)
+  | key `elem` templateOverrideMetaKeys = do
+    cwd <- liftIO $ Dir.getCurrentDirectory
+    filePath <- urlToFilePathIfLocal cwd url
+    provisionTemplateOverrideSupportTopLevel cwd method filePath
 provisionMetaResource base _ (key, url)
   | key `elem` compiletimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     need [filePath]
     return filePath
-provisionMetaResource _ _ (_, url) = return url
+provisionMetaResource _ _ (key, url) = return url
+
+provisionTemplateOverrideSupport :: FilePath -> Provisioning -> FilePath -> Action FilePath
+provisionTemplateOverrideSupport base method url  = do
+    let newBase = base </> url
+    exists <- liftIO $ Dir.doesDirectoryExist url
+    returnPath <- if exists
+        then do
+          dirContent <- liftIO (Dir.listDirectory url) >>= 
+            mapM recurseProvision
+          return $ intercalate " " dirContent
+        else provisionResource base method url
+    return $ returnPath
+    where 
+      recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
+
+provisionTemplateOverrideSupportTopLevel :: FilePath -> Provisioning -> FilePath -> Action FilePath
+provisionTemplateOverrideSupportTopLevel base method url = do
+    dirContent <- liftIO (Dir.listDirectory url) >>=
+      filterM dirFilter >>=
+      mapM recurseProvision
+    return $ intercalate " " dirContent
+    where
+      dirFilter x = liftIO $ Dir.doesDirectoryExist (url </> x)
+      recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
+
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs are
 -- resolved against and copied or linked to public from 
@@ -604,11 +650,14 @@ elementAttributes =
 runtimeMetaKeys :: [String]
 runtimeMetaKeys = ["css"]
 
+templateOverrideMetaKeys :: [String]
+templateOverrideMetaKeys = ["template"]
+
 compiletimeMetaKeys :: [String]
 compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
 
 metaKeys :: [String]
-metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys
+metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
