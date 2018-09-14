@@ -224,14 +224,14 @@ markdownToHtmlDeck markdownFile out = do
             ]
         , writerCiteMethod = Citeproc
         }
-  readAndProcessMarkdown markdownFile (Disposition Deck Html) >>=
-    writePandocFile "revealjs" options out
+  readAndProcessMarkdown markdownFile (Disposition Deck Html) options >>=
+    writePandocFile "revealjs" out
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
 
-writePandocFile :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
-writePandocFile fmt options out pandoc =
+writePandocFile :: String ->  FilePath -> (Pandoc, WriterOptions) -> Action ()
+writePandocFile fmt out (pandoc, options) =
   liftIO $
   case getWriter fmt of
     Right (TextWriter writePandoc, _) ->
@@ -262,11 +262,17 @@ versionCheck meta =
 
 -- | Reads a markdownfile, expands the included files, and substitutes mustache
 -- template variables and calls need.
-readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
-readAndProcessMarkdown markdownFile disp = do
+readAndProcessMarkdown :: FilePath -> Disposition -> WriterOptions -> Action (Pandoc, WriterOptions)
+readAndProcessMarkdown markdownFile disp defaultOptions = do
   pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes baseDir
-  processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
+  let options = (case (templateFromMeta meta) of
+        Just template -> defaultOptions {
+          writerTemplate = Just (template </> (getTemplateFileName disp))
+        }
+        Nothing -> defaultOptions)
+  processed <- processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
+  return $ (processed, options)
   where
     baseDir = takeDirectory markdownFile
     pipeline =
@@ -281,6 +287,14 @@ readAndProcessMarkdown markdownFile disp = do
         ]
   -- Disable automatic caching of remote images for a while
   -- >>= walkM (cacheRemoteImages (cache dirs))
+
+getTemplateFileName :: Disposition -> String
+getTemplateFileName (Disposition Deck Html) = "deck.html"
+getTemplateFileName (Disposition Deck Pdf) = "deck.tex"
+getTemplateFileName (Disposition Page Html) = "page.html"
+getTemplateFileName (Disposition Page Pdf) = "page.tex"
+getTemplateFileName (Disposition Handout Html) = "handout.html"
+getTemplateFileName (Disposition Handout Pdf) = "handout.tex"
 
 provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
@@ -357,8 +371,8 @@ markdownToHtmlPage markdownFile out = do
         , writerVariables = [("decker-support-dir", supportDir)]
         , writerCiteMethod = Citeproc
         }
-  readAndProcessMarkdown markdownFile (Disposition Page Html) >>=
-    writePandocFile "html5" options out
+  readAndProcessMarkdown markdownFile (Disposition Page Html) options >>=
+    writePandocFile "html5" out
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
@@ -371,11 +385,11 @@ markdownToPdfPage markdownFile out = do
         , writerHighlightStyle = Just pygments
         , writerCiteMethod = Citeproc
         }
-  readAndProcessMarkdown markdownFile (Disposition Page Pdf) >>=
-    pandocMakePdf options out
+  readAndProcessMarkdown markdownFile (Disposition Page Pdf) options >>=
+    pandocMakePdf out
 
-pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
-pandocMakePdf options out pandoc =
+pandocMakePdf :: FilePath -> (Pandoc, WriterOptions) -> Action ()
+pandocMakePdf out (pandoc, options) =
   liftIO $ do
     result <-
       runIOQuietly (makePDF "xelatex" [] writeLaTeX options pandoc) >>=
@@ -400,8 +414,8 @@ markdownToHtmlHandout markdownFile out = do
         , writerVariables = [("decker-support-dir", supportDir)]
         , writerCiteMethod = Citeproc
         }
-  readAndProcessMarkdown markdownFile (Disposition Handout Html) >>=
-    writePandocFile "html5" options out
+  readAndProcessMarkdown markdownFile (Disposition Handout Html) options >>=
+    writePandocFile "html5" out
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
@@ -414,8 +428,8 @@ markdownToPdfHandout markdownFile out = do
         , writerHighlightStyle = Just pygments
         , writerCiteMethod = Citeproc
         }
-  readAndProcessMarkdown markdownFile (Disposition Handout Pdf) >>=
-    pandocMakePdf options out
+  readAndProcessMarkdown markdownFile (Disposition Handout Pdf) options >>=
+    pandocMakePdf out
 
 -- | Reads a markdown file and returns a pandoc document. Handles meta data
 -- extraction and template substitution. All references to local resources are
