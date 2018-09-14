@@ -217,7 +217,7 @@ markdownToHtmlDeck markdownFile out = do
         , writerHighlightStyle = Just pygments
         , writerHTMLMathMethod =
             MathJax
-              (supportDirRel </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+              (supportDirRel </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
         , writerVariables =
             [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
             , ("decker-support-dir", supportDirRel)
@@ -353,7 +353,7 @@ markdownToHtmlPage markdownFile out = do
         , writerHighlightStyle = Just pygments
         , writerHTMLMathMethod =
             MathJax
-              (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+              (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
         , writerVariables = [("decker-support-dir", supportDir)]
         , writerCiteMethod = Citeproc
         }
@@ -396,7 +396,7 @@ markdownToHtmlHandout markdownFile out = do
         , writerHighlightStyle = Just pygments
         , writerHTMLMathMethod =
             MathJax
-              (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+              (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
         , writerVariables = [("decker-support-dir", supportDir)]
         , writerCiteMethod = Citeproc
         }
