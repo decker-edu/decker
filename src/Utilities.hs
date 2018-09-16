@@ -21,6 +21,7 @@ module Utilities
   , fixMustacheMarkupText
   , toPandocMeta
   , deckerPandocExtensions
+  , lookupPandocMeta
   , DeckerException(..)
   ) where
 
@@ -212,18 +213,18 @@ markdownToHtmlDeck markdownFile out = do
   template <- getTemplate "deck.html"
   let options =
         pandocWriterOpts
-        { writerSlideLevel = Just 1
-        , writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerHTMLMathMethod =
-            MathJax
-              (supportDirRel </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables =
-            [ ("revealjs-url", supportDirRel </> "reveal.js-3.5.0")
-            , ("decker-support-dir", supportDirRel)
-            ]
-        , writerCiteMethod = Citeproc
-        }
+          { writerSlideLevel = Just 1
+          , writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDirRel </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables =
+              [ ("revealjs-url", supportDirRel </> "reveal.js-3.5.0")
+              , ("decker-support-dir", supportDirRel)
+              ]
+          , writerCiteMethod = Citeproc
+          }
   readAndProcessMarkdown markdownFile (Disposition Deck Html) >>=
     writePandocFile "revealjs" options out
 
@@ -349,14 +350,14 @@ markdownToHtmlPage markdownFile out = do
   template <- getTemplate "page.html"
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerHTMLMathMethod =
-            MathJax
-              (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables = [("decker-support-dir", supportDir)]
-        , writerCiteMethod = Citeproc
-        }
+          { writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables = [("decker-support-dir", supportDir)]
+          , writerCiteMethod = Citeproc
+          }
   readAndProcessMarkdown markdownFile (Disposition Page Html) >>=
     writePandocFile "html5" options out
 
@@ -367,10 +368,10 @@ markdownToPdfPage markdownFile out = do
   template <- getTemplate "page.tex"
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerCiteMethod = Citeproc
-        }
+          { writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerCiteMethod = Citeproc
+          }
   readAndProcessMarkdown markdownFile (Disposition Page Pdf) >>=
     pandocMakePdf options out
 
@@ -392,14 +393,14 @@ markdownToHtmlHandout markdownFile out = do
   template <- getTemplate "handout.html"
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerHTMLMathMethod =
-            MathJax
-              (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables = [("decker-support-dir", supportDir)]
-        , writerCiteMethod = Citeproc
-        }
+          { writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables = [("decker-support-dir", supportDir)]
+          , writerCiteMethod = Citeproc
+          }
   readAndProcessMarkdown markdownFile (Disposition Handout Html) >>=
     writePandocFile "html5" options out
 
@@ -410,10 +411,10 @@ markdownToPdfHandout markdownFile out = do
   template <- getTemplate "handout.tex"
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerCiteMethod = Citeproc
-        }
+          { writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerCiteMethod = Citeproc
+          }
   readAndProcessMarkdown markdownFile (Disposition Handout Pdf) >>=
     pandocMakePdf options out
 
@@ -644,4 +645,17 @@ metaValueAsString key meta =
     lookup' [] (Just (Y.Number n)) = Just (show n)
     lookup' [] (Just (Y.Bool b)) = Just (show b)
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
+    lookup' _ _ = Nothing
+
+lookupPandocMeta :: String -> Meta -> Maybe String
+lookupPandocMeta key (Meta m) =
+  case splitOn "." key of
+    [] -> Nothing
+    k:ks -> lookup' ks (Map.lookup k m)
+  where
+    lookup' :: [String] -> Maybe MetaValue -> Maybe String
+    lookup' (k:ks) (Just (MetaMap m)) = lookup' ks (Map.lookup k m)
+    lookup' [] (Just (MetaBool b)) = Just $ show b
+    lookup' [] (Just (MetaString s)) = Just s
+    lookup' [] (Just (MetaInlines i)) = Just $ stringify i
     lookup' _ _ = Nothing

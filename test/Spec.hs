@@ -11,8 +11,8 @@ import Filter
 import Project as P
 import qualified System.Directory as Dir
 import System.FilePath
-import System.FilePath.Glob
 import System.FilePath
+import System.FilePath.Glob
 import Text.Pandoc
 import Utilities
 
@@ -93,3 +93,18 @@ main = do
           [("style", "height:50%;width:auto;")]
         transformImageSize [("width", "100%"), ("style", "color:red;")] `shouldBe`
           [("style", "height:auto;width:100%;color:red;")]
+    describe "lookupPandocMeta" $
+      it "looks up dotted key values in the hierarchical pandoc meta structure" $ do
+        lookupPandocMeta "top-level-key" meta `shouldBe`
+          (Just "top-level-value")
+        lookupPandocMeta "group.attribute" meta `shouldBe`
+          (Just "attribute-value")
+
+meta :: Meta
+meta =
+  Meta $
+  M.fromList
+    [ ("top-level-key", MetaString "top-level-value")
+    , ( "group"
+      , MetaMap $ M.fromList [("attribute", MetaString "attribute-value")])
+    ]
