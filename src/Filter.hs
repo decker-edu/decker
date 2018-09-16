@@ -125,7 +125,7 @@ layoutSlide :: Slide -> Decker Slide
 layoutSlide slide@(Slide (Just header) body) = do
   disp <- gets disposition
   case disp of
-    Disposition _ Pdf -> return slide
+    Disposition _ Latex -> return slide
     Disposition _ Html -> do
       case hasRowLayout header of
         Just layout ->
@@ -190,7 +190,7 @@ splitJoinColumns :: Slide -> Decker Slide
 splitJoinColumns slide@(Slide header body) = do
   disp <- gets disposition
   case disp of
-    Disposition _ Pdf -> return slide
+    Disposition _ Latex -> return slide
     Disposition _ Html -> do
       return $ Slide header $ concatMap wrapRow rowBlocks
   where
@@ -275,7 +275,7 @@ wrapBoxesOne :: Slide -> Decker Slide
 wrapBoxesOne slide@(Slide header body) = do
   disp <- gets disposition
   case disp of
-    Disposition _ Pdf -> return slide
+    Disposition _ Latex -> return slide
     Disposition _ Html -> return $ Slide header $ concatMap wrap boxes
   where
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body

@@ -77,7 +77,7 @@ youtube args attr target _ = do
   disp <- gets disposition
   case disp of
     Disposition _ Html -> return $ embedYoutubeHtml args attr target
-    Disposition _ Pdf -> return $ embedYoutubePdf args attr target
+    Disposition _ Latex -> return $ embedYoutubePdf args attr target
 
 fontAwesome :: MacroAction
 fontAwesome _ _ (iconName, _) _ = do
@@ -86,7 +86,7 @@ fontAwesome _ _ (iconName, _) _ = do
     Disposition _ Html ->
       return $
       RawInline (Format "html") $ "<i class=\"fa fa-" ++ iconName ++ "\"></i>"
-    Disposition _ Pdf -> return $ Str $ "[" ++ iconName ++ "]"
+    Disposition _ Latex -> return $ Str $ "[" ++ iconName ++ "]"
 
 metaValue :: MacroAction
 metaValue _ _ (key, _) meta =

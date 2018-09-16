@@ -371,7 +371,7 @@ markdownToPdfPage markdownFile out = do
         , writerHighlightStyle = Just pygments
         , writerCiteMethod = Citeproc
         }
-  readAndProcessMarkdown markdownFile (Disposition Page Pdf) >>=
+  readAndProcessMarkdown markdownFile (Disposition Page Latex) >>=
     pandocMakePdf options out
 
 pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
@@ -414,7 +414,7 @@ markdownToPdfHandout markdownFile out = do
         , writerHighlightStyle = Just pygments
         , writerCiteMethod = Citeproc
         }
-  readAndProcessMarkdown markdownFile (Disposition Handout Pdf) >>=
+  readAndProcessMarkdown markdownFile (Disposition Handout Latex) >>=
     pandocMakePdf options out
 
 -- | Reads a markdown file and returns a pandoc document. Handles meta data
