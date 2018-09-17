@@ -207,12 +207,14 @@ getTemplate meta disp = do
   let templateOverridePath = case templateFromMeta meta of
         Just template -> Just $ template </> (getTemplateFileName disp)
         Nothing -> Nothing
-  templateString <- liftIO $ if isJust templateOverridePath
+  templateString <- if isJust templateOverridePath
         then do
-          content <- readFile (fromJust templateOverridePath)
+          let templateOverridePath' = fromJust templateOverridePath
+          need [templateOverridePath']
+          content <- liftIO $ readFile templateOverridePath'
           return $ content
         else do
-          content <- getResourceString ("template" </> (getTemplateFileName disp))
+          content <- liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
           return $ content
   return $ templateString
 
@@ -335,23 +337,25 @@ provisionMetaResource base _ (key, url)
     return filePath
 provisionMetaResource _ _ (key, url) = return url
 
-provisionTemplateOverrideSupport :: FilePath -> Provisioning -> FilePath -> Action FilePath
+provisionTemplateOverrideSupport :: FilePath -> Provisioning -> FilePath -> Action ()
 provisionTemplateOverrideSupport base method url  = do
     let newBase = base </> url
     exists <- liftIO $ Dir.doesDirectoryExist url
-    returnPath <- if exists
+    if exists
         then do
-          dirContent <- liftIO (Dir.listDirectory url) >>= 
-            mapM recurseProvision
-          return $ url
-        else provisionResource base method url
-    return $ returnPath
+          dirContent <- liftIO (Dir.listDirectory url)
+          mapM recurseProvision dirContent
+          return ()
+        else do 
+          need [url]
+          provisionResource base method url
+          return ()
     where 
       recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
 
 provisionTemplateOverrideSupportTopLevel :: FilePath -> Provisioning -> FilePath -> Action FilePath
 provisionTemplateOverrideSupportTopLevel base method url = do
-    dirContent <- liftIO (Dir.listDirectory url) >>=
+    liftIO (Dir.listDirectory url) >>=
       filterM dirFilter >>=
       mapM recurseProvision
     return $ url
