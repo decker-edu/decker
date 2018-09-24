@@ -16,6 +16,7 @@ module Filter
   , iframeExtensions
   , audioExtensions
   , videoExtensions
+  , convertMediaAttributes
   ) where
 
 import Common
@@ -507,7 +508,7 @@ convertMediaAttributeGatherStyle (id, cls, vals) = (id, cls, vals')
     style_combined =
       if null style_cls
         then []
-        else [("style", intercalate "; " $ map snd style_cls)]
+        else [("style", intercalate "" $ map snd style_cls)]
     vals' = style_combined ++ cls'
 
 convertMediaAttributeImageSize :: Attr -> Attr
@@ -517,12 +518,12 @@ convertMediaAttributeImageSize (id, cls, vals) = (id, cls, vals_processed)
     height_attr =
       if null height
         then []
-        else [("style", "height:" ++ (snd (height !! 0)))]
+        else [("style", "height:" ++ (snd (height !! 0)) ++ ";")]
     (width, vals'') = partition (\x -> (fst x) == "width") vals'
     width_attr =
       if null width
         then []
-        else [("style", "width:" ++ (snd (width !! 0)))]
+        else [("style", "width:" ++ (snd (width !! 0)) ++ ";")]
     vals_processed = vals'' ++ height_attr ++ width_attr
 
 -- | small wrapper around @RawInline (Format "html")@

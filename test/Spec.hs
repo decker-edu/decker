@@ -84,15 +84,15 @@ main = do
           ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
     -- 
-    describe "transformImageSize" $
+    describe "convertMediaAttributes" $
       it
         "transfers 'width' and 'height' attribute values to css style values and add them to the 'style' attribute value." $ do
-        transformImageSize [("width", "100%")] `shouldBe`
-          [("style", "height:auto;width:100%;")]
-        transformImageSize [("height", "50%")] `shouldBe`
-          [("style", "height:50%;width:auto;")]
-        transformImageSize [("width", "100%"), ("style", "color:red;")] `shouldBe`
-          [("style", "height:auto;width:100%;color:red;")]
+        convertMediaAttributes ("", [], [("width", "100%")]) `shouldBe`
+          ("", [], [("style", "width:100%;")])
+        convertMediaAttributes ("", [], [("height", "50%")]) `shouldBe`
+          ("", [], [("style", "height:50%;")])
+        convertMediaAttributes ("", [], [("width", "100%"), ("style", "color:red;")]) `shouldBe`
+          ("", [], [("style", "color:red;width:100%;")])
     describe "lookupPandocMeta" $
       it "looks up dotted key values in the hierarchical pandoc meta structure" $ do
         lookupPandocMeta "top-level-key" meta `shouldBe`
