@@ -51,6 +51,7 @@ import Macro
 import Meta
 import Network.URI
 import Project
+import Quiz
 import Render
 import Resources
 import Server
@@ -275,6 +276,7 @@ readAndProcessMarkdown markdownFile disp = do
         [ expandDeckerMacros
         , renderCodeBlocks
         , provisionResources
+        , renderQuizes
         , makeSlides
         , renderMediaTags
         , processCitesWithDefault
