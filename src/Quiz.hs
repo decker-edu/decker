@@ -1,14 +1,14 @@
 {-- Author: Jan-Philipp Stauffert <jan-philipp.stauffert@uni-wuerzburg.de> --}
 module Quiz
-  ( renderQuizes
+  ( renderQuizzes
   ) where
 
 import Common
 import Text.Pandoc
 import Text.Pandoc.Walk
 
-renderQuizes :: Pandoc -> Decker Pandoc
-renderQuizes pandoc = do
+renderQuizzes :: Pandoc -> Decker Pandoc
+renderQuizzes pandoc = do
   return $ walk renderQuiz pandoc
 
 -- | Renders a quiz
@@ -41,8 +41,8 @@ renderAnswer (prelude:rest) =
       case prelude of
         Para ((Str "[X]"):prest) -> (["right"], Para prest)
         Para ((Str "["):Space:(Str "]"):prest) -> (["wrong"], Para prest)
-        Plain ((Str "[X]"):prest) -> (["right"], Plain prest)
-        Plain ((Str "["):Space:(Str "]"):prest) -> (["wrong"], Plain prest)
+        Plain ((Str "[X]"):prest) -> (["right"], Para prest)
+        Plain ((Str "["):Space:(Str "]"):prest) -> (["wrong"], Para prest)
         prest -> ([], prest)
 
 -- if there is a bullet list create a div class tooltip around

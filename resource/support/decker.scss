@@ -259,6 +259,33 @@ body {
                 }
 
                 /////////////////////////////////////////////
+                // Quizzes
+                /////////////////////////////////////////////
+                .survey {
+                  ul {
+                      list-style-type: none;
+                      display: flex;
+                      flex-direction: row;
+                      justify-content: space-between;
+                      flex-wrap: wrap;
+                      padding: 5pt;
+                  }
+                  li {
+                      flex-grow: 1;
+                      border: 1pt #111 dashed;
+                      padding: 1em;
+                      border-radius: 0.5em;
+                      margin: 1em;
+                  }
+                  li:hover {
+                      background-color: rgb(220, 220, 220);
+                  }
+                  .tooltip {
+                      display: none;
+                  }
+              }
+
+                /////////////////////////////////////////////
                 // Column settings
                 /////////////////////////////////////////////
                 // For `{layout="columns"}`-Syntax
