@@ -32,16 +32,16 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
-import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Class
+import Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.HashMap.Lazy as HashMap
 import Data.IORef
 import Data.List as List
 import Data.List.Extra as List
-import Data.Maybe
 import qualified Data.Map.Lazy as Map
+import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 import qualified Data.Text.IO as T
@@ -204,18 +204,21 @@ substituteMetaData source metaData = do
 
 getTemplate :: Meta -> Disposition -> Action String
 getTemplate meta disp = do
-  let templateOverridePath = case templateFromMeta meta of
-        Just template -> Just $ template </> (getTemplateFileName disp)
-        Nothing -> Nothing
-  templateString <- if isJust templateOverridePath
-        then do
-          let templateOverridePath' = fromJust templateOverridePath
-          need [templateOverridePath']
-          content <- liftIO $ readFile templateOverridePath'
-          return $ content
-        else do
-          content <- liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
-          return $ content
+  let templateOverridePath =
+        case templateFromMeta meta of
+          Just template -> Just $ template </> (getTemplateFileName disp)
+          Nothing -> Nothing
+  templateString <-
+    if isJust templateOverridePath
+      then do
+        let templateOverridePath' = fromJust templateOverridePath
+        need [templateOverridePath']
+        content <- liftIO $ readFile templateOverridePath'
+        return $ content
+      else do
+        content <-
+          liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
+        return $ content
   return $ templateString
 
 -- | Write a markdown file to a HTML file using the page template.
@@ -228,21 +231,24 @@ markdownToHtmlDeck markdownFile out = do
   let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
+  let templateSupportDir =
+        case templateFromMeta meta of
+          Just template -> template
+          Nothing -> supportDirRel
   let options =
         pandocWriterOpts
-        { writerSlideLevel = Just 1
-        , writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerHTMLMathMethod =
-            MathJax
-              (supportDirRel </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables =
-            [ ("revealjs-url", supportDirRel </> "reveal.js-3.5.0")
-            , ("decker-support-dir", supportDirRel)
-            ]
-        , writerCiteMethod = Citeproc
-        }
-  
+          { writerSlideLevel = Just 1
+          , writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDirRel </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables =
+              [ ("revealjs-url", supportDirRel </> "reveal.js-3.5.0")
+              , ("decker-support-dir", templateSupportDir)
+              ]
+          , writerCiteMethod = Citeproc
+          }
   writePandocFile "revealjs" options out pandoc
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
@@ -284,7 +290,8 @@ readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disp = do
   pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes baseDir
-  processed <- processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
+  processed <-
+    processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
   return processed
   where
     baseDir = takeDirectory markdownFile
@@ -337,32 +344,31 @@ provisionMetaResource base _ (key, url)
     return filePath
 provisionMetaResource _ _ (key, url) = return url
 
-provisionTemplateOverrideSupport :: FilePath -> Provisioning -> FilePath -> Action ()
-provisionTemplateOverrideSupport base method url  = do
-    let newBase = base </> url
-    exists <- liftIO $ Dir.doesDirectoryExist url
-    if exists
-        then do
-          dirContent <- liftIO (Dir.listDirectory url)
-          mapM recurseProvision dirContent
-          return ()
-        else do 
-          need [url]
-          provisionResource base method url
-          return ()
-    where 
-      recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
+provisionTemplateOverrideSupport ::
+     FilePath -> Provisioning -> FilePath -> Action ()
+provisionTemplateOverrideSupport base method url = do
+  let newBase = base </> url
+  exists <- liftIO $ Dir.doesDirectoryExist url
+  if exists
+    then do
+      dirContent <- liftIO (Dir.listDirectory url)
+      mapM recurseProvision dirContent
+      return ()
+    else do
+      need [url]
+      provisionResource base method url
+      return ()
+  where
+    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
 
-provisionTemplateOverrideSupportTopLevel :: FilePath -> Provisioning -> FilePath -> Action FilePath
+provisionTemplateOverrideSupportTopLevel ::
+     FilePath -> Provisioning -> FilePath -> Action FilePath
 provisionTemplateOverrideSupportTopLevel base method url = do
-    liftIO (Dir.listDirectory url) >>=
-      filterM dirFilter >>=
-      mapM recurseProvision
-    return $ url
-    where
-      dirFilter x = liftIO $ Dir.doesDirectoryExist (url </> x)
-      recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
-
+  liftIO (Dir.listDirectory url) >>= filterM dirFilter >>= mapM recurseProvision
+  return $ url
+  where
+    dirFilter x = liftIO $ Dir.doesDirectoryExist (url </> x)
+    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs are
 -- resolved against and copied or linked to public from 
@@ -408,18 +414,22 @@ markdownToHtmlPage markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Page Html
-  pandoc@(Pandoc meta _ ) <- readAndProcessMarkdown markdownFile disp
+  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
+  let templateSupportDir =
+        case templateFromMeta meta of
+          Just template -> template
+          Nothing -> supportDir
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerHTMLMathMethod =
-            MathJax
-              (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables = [("decker-support-dir", supportDir)]
-        , writerCiteMethod = Citeproc
-        }
+          { writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables = [("decker-support-dir", templateSupportDir)]
+          , writerCiteMethod = Citeproc
+          }
   writePandocFile "html5" options out pandoc
 
 -- | Write a markdown file to a PDF file using the handout template.
@@ -431,10 +441,10 @@ markdownToPdfPage markdownFile out = do
   template <- getTemplate meta disp
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerCiteMethod = Citeproc
-        }
+          { writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerCiteMethod = Citeproc
+          }
   pandocMakePdf options out pandoc
 
 pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
@@ -455,16 +465,20 @@ markdownToHtmlHandout markdownFile out = do
   let disp = Disposition Handout Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
+  let templateSupportDir =
+        case templateFromMeta meta of
+          Just template -> template
+          Nothing -> supportDir
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerHTMLMathMethod =
-            MathJax
-              (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables = [("decker-support-dir", supportDir)]
-        , writerCiteMethod = Citeproc
-        }
+          { writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables = [("decker-support-dir", templateSupportDir)]
+          , writerCiteMethod = Citeproc
+          }
   writePandocFile "html5" options out pandoc
 
 -- | Write a markdown file to a PDF file using the handout template.
@@ -476,11 +490,10 @@ markdownToPdfHandout markdownFile out = do
   template <- getTemplate meta disp
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerCiteMethod = Citeproc
-        }
-   
+          { writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerCiteMethod = Citeproc
+          }
   pandocMakePdf options out pandoc
 
 -- | Reads a markdown file and returns a pandoc document. Handles meta data
