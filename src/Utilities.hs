@@ -21,6 +21,7 @@ module Utilities
   , fixMustacheMarkupText
   , toPandocMeta
   , deckerPandocExtensions
+  , lookupPandocMeta
   , DeckerException(..)
   ) where
 
@@ -237,19 +238,20 @@ markdownToHtmlDeck markdownFile out = do
           Nothing -> supportDirRel
   let options =
         pandocWriterOpts
-          { writerSlideLevel = Just 1
-          , writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax
-                (supportDirRel </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables =
-              [ ("revealjs-url", supportDirRel </> "reveal.js-3.5.0")
-              , ("decker-support-dir", templateSupportDir)
-              ]
-          , writerCiteMethod = Citeproc
-          }
-  writePandocFile "revealjs" options out pandoc
+        { writerSlideLevel = Just 1
+        , writerTemplate = Just template
+        , writerHighlightStyle = Just pygments
+        , writerHTMLMathMethod =
+            MathJax
+              (supportDirRel </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
+        , writerVariables =
+            [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
+            , ("decker-support-dir", supportDirRel)
+            ]
+        , writerCiteMethod = Citeproc
+        }
+  readAndProcessMarkdown markdownFile (Disposition Deck Html) >>=
+    writePandocFile "revealjs" options out
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -422,15 +424,16 @@ markdownToHtmlPage markdownFile out = do
           Nothing -> supportDir
   let options =
         pandocWriterOpts
-          { writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax
-                (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables = [("decker-support-dir", templateSupportDir)]
-          , writerCiteMethod = Citeproc
-          }
-  writePandocFile "html5" options out pandoc
+        { writerTemplate = Just template
+        , writerHighlightStyle = Just pygments
+        , writerHTMLMathMethod =
+            MathJax
+              (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
+        , writerVariables = [("decker-support-dir", supportDir)]
+        , writerCiteMethod = Citeproc
+        }
+  readAndProcessMarkdown markdownFile (Disposition Page Html) >>=
+    writePandocFile "html5" options out
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
@@ -471,15 +474,16 @@ markdownToHtmlHandout markdownFile out = do
           Nothing -> supportDir
   let options =
         pandocWriterOpts
-          { writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax
-                (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables = [("decker-support-dir", templateSupportDir)]
-          , writerCiteMethod = Citeproc
-          }
-  writePandocFile "html5" options out pandoc
+        { writerTemplate = Just template
+        , writerHighlightStyle = Just pygments
+        , writerHTMLMathMethod =
+            MathJax
+              (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
+        , writerVariables = [("decker-support-dir", supportDir)]
+        , writerCiteMethod = Citeproc
+        }
+  readAndProcessMarkdown markdownFile (Disposition Handout Html) >>=
+    writePandocFile "html5" options out
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
@@ -726,4 +730,17 @@ metaValueAsString key meta =
     lookup' [] (Just (Y.Number n)) = Just (show n)
     lookup' [] (Just (Y.Bool b)) = Just (show b)
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
+    lookup' _ _ = Nothing
+
+lookupPandocMeta :: String -> Meta -> Maybe String
+lookupPandocMeta key (Meta m) =
+  case splitOn "." key of
+    [] -> Nothing
+    k:ks -> lookup' ks (Map.lookup k m)
+  where
+    lookup' :: [String] -> Maybe MetaValue -> Maybe String
+    lookup' (k:ks) (Just (MetaMap m)) = lookup' ks (Map.lookup k m)
+    lookup' [] (Just (MetaBool b)) = Just $ show b
+    lookup' [] (Just (MetaString s)) = Just s
+    lookup' [] (Just (MetaInlines i)) = Just $ stringify i
     lookup' _ _ = Nothing

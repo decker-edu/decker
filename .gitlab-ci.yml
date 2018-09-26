@@ -1,6 +1,18 @@
 stages:
+  - templates
   - test
   - deploy
+
+templates:
+  image: kkarczmarczyk/node-yarn
+  stage: templates
+  tags:
+    - docker
+  script:
+    - cd resource/support && yarn install
+  artifacts:
+    paths:
+      - resource/support/node_modules
 
 dockerbuild:
   image: docker:latest

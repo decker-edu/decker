@@ -119,6 +119,7 @@ data MediaType
   | AudioMedia
   | VideoMedia
   | IframeMedia
+  | MeshMedia
 
 data Provisioning
   = Copy -- Copy to public and relative URL

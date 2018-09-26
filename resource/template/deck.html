@@ -254,7 +254,7 @@ $if(maxScale)$
 $endif$
 $if(mathjax)$
         math: {
-          mathjax: '$decker-support-dir$/MathJax-2.7/MathJax.js',
+          mathjax: '$decker-support-dir$/node_modules/mathjax/MathJax.js',
           config: 'TeX-AMS_HTML',
         },
 $endif$
@@ -269,6 +269,9 @@ $if(notes-server)$
 $endif$
 $if(mathjax)$
           { src: '$revealjs-url$/plugin/math/math.js', async: true },
+$endif$
+$if(menu)$
+          { src: '$decker-support-dir$/node_modules/reveal.js-menu/menu.js', async: true },
 $endif$
           { src: '$revealjs-url$/plugin/notes/notes.js', async: true }
         ]
