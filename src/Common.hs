@@ -30,11 +30,12 @@ import Paths_decker (version)
 deckerVersion :: String
 deckerVersion = showVersion version
 
--- | Is this a developement version? Development versions have 4 branches, and
--- the 4th branch number is always 0. Release branches have only three.
+-- | Is this a development or a production branch?
+-- All branches are identified by three digits.
+-- If the last digit is a zero, it is a production branch.
 isDevelopmentVersion :: Bool
 isDevelopmentVersion =
-  (length $ versionBranch version) == 4 && (versionBranch version) !! 3 == 0
+  (length $ versionBranch version) == 3 && (versionBranch version) !! 2 /= 0
 
 -- | Tool specific exceptions
 data DeckerException
@@ -118,6 +119,7 @@ data MediaType
   | AudioMedia
   | VideoMedia
   | IframeMedia
+  | MeshMedia
 
 data Provisioning
   = Copy -- Copy to public and relative URL

@@ -161,7 +161,9 @@ Exchange the `html` at the end of the command with your *decker* command of choi
 ### Pull requests
 
 Contributions are accepted via pull requests. Before working on a feature,
-please write up an issue and discuss it with the other developers.
+please write up an issue and discuss it with the other developers. 
+For each implemented feature, increment the version number in `package.yaml`. 
+Breaking changes increment the second number. Fixes increment the third number.
 
 ### CI build checks
 
