@@ -246,7 +246,7 @@ markdownToHtmlDeck markdownFile out = do
               (supportDirRel </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
         , writerVariables =
             [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
-            , ("decker-support-dir", supportDirRel)
+            , ("decker-support-dir", templateSupportDir)
             ]
         , writerCiteMethod = Citeproc
         }
@@ -429,7 +429,7 @@ markdownToHtmlPage markdownFile out = do
         , writerHTMLMathMethod =
             MathJax
               (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables = [("decker-support-dir", supportDir)]
+        , writerVariables = [("decker-support-dir", templateSupportDir)]
         , writerCiteMethod = Citeproc
         }
   readAndProcessMarkdown markdownFile (Disposition Page Html) >>=
@@ -479,7 +479,7 @@ markdownToHtmlHandout markdownFile out = do
         , writerHTMLMathMethod =
             MathJax
               (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables = [("decker-support-dir", supportDir)]
+        , writerVariables = [("decker-support-dir", templateSupportDir)]
         , writerCiteMethod = Citeproc
         }
   readAndProcessMarkdown markdownFile (Disposition Handout Html) >>=
