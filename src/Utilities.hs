@@ -213,18 +213,18 @@ markdownToHtmlDeck markdownFile out = do
   template <- getTemplate "deck.html"
   let options =
         pandocWriterOpts
-          { writerSlideLevel = Just 1
-          , writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax
-                (supportDirRel </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables =
-              [ ("revealjs-url", supportDirRel </> "reveal.js-3.5.0")
-              , ("decker-support-dir", supportDirRel)
-              ]
-          , writerCiteMethod = Citeproc
-          }
+        { writerSlideLevel = Just 1
+        , writerTemplate = Just template
+        , writerHighlightStyle = Just pygments
+        , writerHTMLMathMethod =
+            MathJax
+              (supportDirRel </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
+        , writerVariables =
+            [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
+            , ("decker-support-dir", supportDirRel)
+            ]
+        , writerCiteMethod = Citeproc
+        }
   readAndProcessMarkdown markdownFile (Disposition Deck Html) >>=
     writePandocFile "revealjs" options out
 
@@ -350,14 +350,14 @@ markdownToHtmlPage markdownFile out = do
   template <- getTemplate "page.html"
   let options =
         pandocWriterOpts
-          { writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax
-                (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables = [("decker-support-dir", supportDir)]
-          , writerCiteMethod = Citeproc
-          }
+        { writerTemplate = Just template
+        , writerHighlightStyle = Just pygments
+        , writerHTMLMathMethod =
+            MathJax
+              (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
+        , writerVariables = [("decker-support-dir", supportDir)]
+        , writerCiteMethod = Citeproc
+        }
   readAndProcessMarkdown markdownFile (Disposition Page Html) >>=
     writePandocFile "html5" options out
 
@@ -393,14 +393,14 @@ markdownToHtmlHandout markdownFile out = do
   template <- getTemplate "handout.html"
   let options =
         pandocWriterOpts
-          { writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax
-                (supportDir </> "MathJax-2.7/MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables = [("decker-support-dir", supportDir)]
-          , writerCiteMethod = Citeproc
-          }
+        { writerTemplate = Just template
+        , writerHighlightStyle = Just pygments
+        , writerHTMLMathMethod =
+            MathJax
+              (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
+        , writerVariables = [("decker-support-dir", supportDir)]
+        , writerCiteMethod = Citeproc
+        }
   readAndProcessMarkdown markdownFile (Disposition Handout Html) >>=
     writePandocFile "html5" options out
 

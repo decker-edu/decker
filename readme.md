@@ -39,6 +39,8 @@ Decker uses a few external tools that need to be installed on the system:
     PDF documents
 -   [*sassc*](https://github.com/sass/sassc) to compile SCSS to CSS
 -   *libbzip2-dev*
+-   [*NodeJS*](https://nodejs.org/) as a prerequisite for Yarn
+-   [*Yarn*](https://yarnpkg.com) to install Javascript dependencies
 
 ### Installation of external tools on macOS
 

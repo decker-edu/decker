@@ -27,7 +27,7 @@ $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$">
 $endfor$
-  <link rel="stylesheet" href="$decker-support-dir$/fontawesome-5.0.9/css/fontawesome-all.min.css">
+  <link rel="stylesheet" href="$decker-support-dir$/node_modules/@fortawesome/fontawesome-free/css/all.min.css">
   <style type="text/css">
 .container {
     max-width:750px;
@@ -98,7 +98,7 @@ socket.onmessage = function () {
     window.location.reload(true);
 };
 </script>
-<script src="$decker-support-dir$/zepto.min.js"></script>
+<script src="$decker-support-dir$/node_modules/zepto/dist/zepto.min.js"></script>
 $for(header-includes)$
   $header-includes$
 $endfor$
