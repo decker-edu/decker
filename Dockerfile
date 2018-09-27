@@ -7,6 +7,10 @@ RUN apt-get update &&	apt-get install -y \
   zip \
   libbz2-dev 
 
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+  apt-get update && \
+  apt-get install -y yarn
+
 #set the encoding on UTF-8, so the parser works correctly, german language is also added for umlaute
 #source of fix: https://blog.mkowalski.net/2016/05/16/solving-locale-issues-with-docker-containers/
 RUN apt-get install --reinstall -y locales && \
