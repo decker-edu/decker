@@ -5,7 +5,8 @@ RUN apt-get update &&	apt-get install -y \
   wget \
   unzip \
   zip \
-  libbz2-dev 
+  libbz2-dev \
+  curl
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
   apt-get update && \
