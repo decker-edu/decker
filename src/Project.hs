@@ -11,6 +11,7 @@ module Project
   , findProjectDirectory
   , projectDirectories
   , provisioningFromMeta
+  , templateFromMeta
   , provisioningFromClasses
   , invertPath
   , Resource(..)
@@ -34,6 +35,13 @@ provisioningFromMeta meta =
     Just (MetaString s) -> read s
     Just (MetaInlines i) -> read $ stringify i
     _ -> SymLink
+
+templateFromMeta :: Meta -> Maybe String
+templateFromMeta meta = 
+  case lookupMeta "template" meta of
+    Just (MetaString s) ->  Just s
+    Just (MetaInlines i) -> Just $ stringify i
+    _ -> Nothing
 
 provisioningClasses :: [(String, Provisioning)]
 provisioningClasses =

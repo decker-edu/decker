@@ -33,6 +33,8 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.HashMap.Lazy as HashMap
@@ -40,6 +42,7 @@ import Data.IORef
 import Data.List as List
 import Data.List.Extra as List
 import qualified Data.Map.Lazy as Map
+import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 import qualified Data.Text.IO as T
@@ -200,8 +203,32 @@ substituteMetaData source metaData = do
     Right template -> M.substituteValue template metaData
     Left errMsg -> throw $ MustacheException (show errMsg)
 
-getTemplate :: FilePath -> Action String
-getTemplate file = liftIO $ getResourceString ("template" </> file)
+getTemplate :: Meta -> Disposition -> Action String
+getTemplate meta disp = do
+  let templateOverridePath =
+        case templateFromMeta meta of
+          Just template -> Just $ template </> (getTemplateFileName disp)
+          Nothing -> Nothing
+  templateString <-
+    if isJust templateOverridePath
+      then do
+        let templateOverridePath' = fromJust templateOverridePath
+        need [templateOverridePath']
+        content <- liftIO $ readFile templateOverridePath'
+        return $ content
+      else do
+        content <-
+          liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
+        return $ content
+  return $ templateString
+
+getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
+getSupportDir meta out defaultPath = do
+  pub <- public <$> getProjectDirs
+  cur <- liftIO Dir.getCurrentDirectory
+  return $ case templateFromMeta meta of
+    Just template -> (makeRelativeTo (takeDirectory out) pub) </> (makeRelativeTo cur template)
+    Nothing -> defaultPath
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
@@ -210,7 +237,10 @@ markdownToHtmlDeck markdownFile out = do
   supportDir <- support <$> getProjectDirs
   need [supportDir </> "decker.css"]
   supportDirRel <- getRelativeSupportDir (takeDirectory out)
-  template <- getTemplate "deck.html"
+  let disp = Disposition Deck Html
+  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
+  template <- getTemplate meta disp
+  templateSupportDir <- getSupportDir meta out supportDirRel
   let options =
         pandocWriterOpts
         { writerSlideLevel = Just 1
@@ -221,7 +251,7 @@ markdownToHtmlDeck markdownFile out = do
               (supportDirRel </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
         , writerVariables =
             [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
-            , ("decker-support-dir", supportDirRel)
+            , ("decker-support-dir", templateSupportDir)
             ]
         , writerCiteMethod = Citeproc
         }
@@ -267,7 +297,9 @@ readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disp = do
   pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes baseDir
-  processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
+  processed <-
+    processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
+  return processed
   where
     baseDir = takeDirectory markdownFile
     pipeline =
@@ -283,6 +315,16 @@ readAndProcessMarkdown markdownFile disp = do
   -- Disable automatic caching of remote images for a while
   -- >>= walkM (cacheRemoteImages (cache dirs))
 
+-- | Determines which template file name to use
+-- for a certain disposition type
+getTemplateFileName :: Disposition -> String
+getTemplateFileName (Disposition Deck Html) = "deck.html"
+getTemplateFileName (Disposition Deck Pdf) = "deck.tex"
+getTemplateFileName (Disposition Page Html) = "page.html"
+getTemplateFileName (Disposition Page Pdf) = "page.tex"
+getTemplateFileName (Disposition Handout Html) = "handout.html"
+getTemplateFileName (Disposition Handout Pdf) = "handout.tex"
+
 provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
   base <- gets basePath
@@ -297,12 +339,43 @@ provisionMetaResource base method (key, url)
   | key `elem` runtimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     provisionResource base method filePath
+provisionMetaResource base method (key, url)
+  | key `elem` templateOverrideMetaKeys = do
+    cwd <- liftIO $ Dir.getCurrentDirectory
+    filePath <- urlToFilePathIfLocal cwd url
+    provisionTemplateOverrideSupportTopLevel cwd method filePath
 provisionMetaResource base _ (key, url)
   | key `elem` compiletimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     need [filePath]
     return filePath
-provisionMetaResource _ _ (_, url) = return url
+provisionMetaResource _ _ (key, url) = return url
+
+provisionTemplateOverrideSupport ::
+     FilePath -> Provisioning -> FilePath -> Action ()
+provisionTemplateOverrideSupport base method url = do
+  let newBase = base </> url
+  exists <- liftIO $ Dir.doesDirectoryExist url
+  if exists
+    then do
+      dirContent <- liftIO (Dir.listDirectory url)
+      mapM recurseProvision dirContent
+      return ()
+    else do
+      need [url]
+      provisionResource base method url
+      return ()
+  where
+    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
+
+provisionTemplateOverrideSupportTopLevel ::
+     FilePath -> Provisioning -> FilePath -> Action FilePath
+provisionTemplateOverrideSupportTopLevel base method url = do
+  liftIO (Dir.listDirectory url) >>= filterM dirFilter >>= mapM recurseProvision
+  return $ url
+  where
+    dirFilter x = liftIO $ Dir.doesDirectoryExist (url </> x)
+    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs are
 -- resolved against and copied or linked to public from 
@@ -347,7 +420,10 @@ markdownToHtmlPage :: FilePath -> FilePath -> Action ()
 markdownToHtmlPage markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
-  template <- getTemplate "page.html"
+  let disp = Disposition Page Html
+  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
+  template <- getTemplate meta disp
+  templateSupportDir <- getSupportDir meta out supportDir
   let options =
         pandocWriterOpts
         { writerTemplate = Just template
@@ -355,7 +431,7 @@ markdownToHtmlPage markdownFile out = do
         , writerHTMLMathMethod =
             MathJax
               (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables = [("decker-support-dir", supportDir)]
+        , writerVariables = [("decker-support-dir", templateSupportDir)]
         , writerCiteMethod = Citeproc
         }
   readAndProcessMarkdown markdownFile (Disposition Page Html) >>=
@@ -365,15 +441,16 @@ markdownToHtmlPage markdownFile out = do
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
 markdownToPdfPage markdownFile out = do
   putCurrentDocument out
-  template <- getTemplate "page.tex"
+  let disp = Disposition Page Pdf
+  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
+  template <- getTemplate meta disp
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
           , writerHighlightStyle = Just pygments
           , writerCiteMethod = Citeproc
           }
-  readAndProcessMarkdown markdownFile (Disposition Page Pdf) >>=
-    pandocMakePdf options out
+  pandocMakePdf options out pandoc
 
 pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
 pandocMakePdf options out pandoc =
@@ -390,7 +467,10 @@ markdownToHtmlHandout :: FilePath -> FilePath -> Action ()
 markdownToHtmlHandout markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
-  template <- getTemplate "handout.html"
+  let disp = Disposition Handout Html
+  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
+  template <- getTemplate meta disp
+  templateSupportDir <- getSupportDir meta out supportDir
   let options =
         pandocWriterOpts
         { writerTemplate = Just template
@@ -398,7 +478,7 @@ markdownToHtmlHandout markdownFile out = do
         , writerHTMLMathMethod =
             MathJax
               (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables = [("decker-support-dir", supportDir)]
+        , writerVariables = [("decker-support-dir", templateSupportDir)]
         , writerCiteMethod = Citeproc
         }
   readAndProcessMarkdown markdownFile (Disposition Handout Html) >>=
@@ -408,15 +488,16 @@ markdownToHtmlHandout markdownFile out = do
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
 markdownToPdfHandout markdownFile out = do
   putCurrentDocument out
-  template <- getTemplate "handout.tex"
+  let disp = Disposition Handout Pdf
+  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
+  template <- getTemplate meta disp
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
           , writerHighlightStyle = Just pygments
           , writerCiteMethod = Citeproc
           }
-  readAndProcessMarkdown markdownFile (Disposition Handout Pdf) >>=
-    pandocMakePdf options out
+  pandocMakePdf options out pandoc
 
 -- | Reads a markdown file and returns a pandoc document. Handles meta data
 -- extraction and template substitution. All references to local resources are
@@ -567,11 +648,14 @@ elementAttributes =
 runtimeMetaKeys :: [String]
 runtimeMetaKeys = ["css"]
 
+templateOverrideMetaKeys :: [String]
+templateOverrideMetaKeys = ["template"]
+
 compiletimeMetaKeys :: [String]
 compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
 
 metaKeys :: [String]
-metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys
+metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
