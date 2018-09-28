@@ -69,6 +69,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
 import Watch
+import Debug.Trace as DT
 
 runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
 runShakeInContext context options rules = do
@@ -222,6 +223,14 @@ getTemplate meta disp = do
         return $ content
   return $ templateString
 
+getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
+getSupportDir meta out defaultPath = do
+  pub <- public <$> getProjectDirs
+  cur <- liftIO Dir.getCurrentDirectory
+  return $ case templateFromMeta meta of
+    Just template -> (makeRelativeTo (takeDirectory out) pub) </> (makeRelativeTo cur template)
+    Nothing -> defaultPath
+
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile out = do
@@ -232,10 +241,7 @@ markdownToHtmlDeck markdownFile out = do
   let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
-  let templateSupportDir =
-        case templateFromMeta meta of
-          Just template -> template
-          Nothing -> supportDirRel
+  templateSupportDir <- getSupportDir meta out supportDirRel
   let options =
         pandocWriterOpts
         { writerSlideLevel = Just 1
@@ -418,10 +424,7 @@ markdownToHtmlPage markdownFile out = do
   let disp = Disposition Page Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
-  let templateSupportDir =
-        case templateFromMeta meta of
-          Just template -> template
-          Nothing -> supportDir
+  templateSupportDir <- getSupportDir meta out supportDir
   let options =
         pandocWriterOpts
         { writerTemplate = Just template
@@ -468,10 +471,7 @@ markdownToHtmlHandout markdownFile out = do
   let disp = Disposition Handout Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
-  let templateSupportDir =
-        case templateFromMeta meta of
-          Just template -> template
-          Nothing -> supportDir
+  templateSupportDir <- getSupportDir meta out supportDir
   let options =
         pandocWriterOpts
         { writerTemplate = Just template
