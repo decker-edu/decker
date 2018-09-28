@@ -69,7 +69,6 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
 import Watch
-import Debug.Trace as DT
 
 runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
 runShakeInContext context options rules = do
