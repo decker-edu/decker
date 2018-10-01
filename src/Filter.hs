@@ -15,6 +15,8 @@ module Filter
 import Common
 import Control.Exception
 
+import Control.Applicative
+import Control.Lens
 import Control.Monad.Loops as Loop
 import Control.Monad.State
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -34,11 +36,19 @@ import System.FilePath
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H
-       ((!), audio, iframe, iframe, img, stringTag, toValue, video)
-import qualified Text.Blaze.Html5.Attributes as A
-       (alt, class_, id, title)
+  ( (!)
+  , audio
+  , iframe
+  , iframe
+  , img
+  , stringTag
+  , toValue
+  , video
+  )
+import qualified Text.Blaze.Html5.Attributes as A (alt, class_, id, title)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
+import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Read
@@ -63,7 +73,7 @@ data RowLayout = RowLayout
   , rows :: [Row]
   } deriving (Eq, Show)
 
--- | A row consists of one or more column. 
+-- | A row consists of one or more columns. 
 data Row
   = SingleColumn String
   | MultiColumn [String]
@@ -107,11 +117,11 @@ renderRow areaMap (MultiColumn areas) =
 renderColumn :: (Int, [Block]) -> Block
 renderColumn (i, blocks) =
   let grow = fromMaybe (1 :: Int) $ lookup "grow" (keyvals blocks) >>= readMaybe
-  in Div
-       ( ""
-       , ["grow-" ++ show grow, "column", "column-" ++ show i]
-       , keyvals blocks)
-       blocks
+   in Div
+        ( ""
+        , ["grow-" ++ show grow, "column", "column-" ++ show i]
+        , keyvals blocks)
+        blocks
 
 renderLayout :: AreaMap -> RowLayout -> [Block]
 renderLayout areaMap l = mapMaybe (renderRow areaMap) (rows l)
@@ -125,64 +135,56 @@ layoutSlide :: Slide -> Decker Slide
 layoutSlide slide@(Slide (Just header) body) = do
   disp <- gets disposition
   case disp of
-    Disposition _ Latex -> return slide
-    Disposition _ Html -> do
+    Disposition Deck Html -> do
       case hasRowLayout header of
         Just layout ->
           let names = layoutAreas layout
               areas = slideAreas names body
-          in return $ Slide (Just header) $ renderLayout areas layout
+           in return $ Slide (Just header) $ renderLayout areas layout
         Nothing -> return slide
+    Disposition _ _ -> return slide
 layoutSlide slide = return slide
 
-class HasAttrib a where
-  attributes :: a -> Attr
+-- | A lens on a slide
+header :: Lens' Slide (Maybe Block)
+header = lens (\(Slide h _) -> h) (\(Slide _ b) h -> h)
 
-instance HasAttrib Slide where
-  attributes (Slide (Just header) _) = attributes header
-  attributes _ = nullAttr
+blocks :: Lens' Slide (Maybe Block)
+blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> b)
 
-instance HasAttrib Block where
-  attributes (Div attribs _) = attribs
-  attributes (Header 1 attribs _) = attribs
-  attributes (CodeBlock attribs _) = attribs
-  attributes (Para [Image attribs _ _]) = attribs
-  attributes _ = nullAttr
+instance HasAttr Slide where
+  attributes f (Slide (Just (Header n a s)) b) =
+    fmap (\a' -> Slide (Just (Header n a' s)) b) (f a)
+  attributes _ x = pure x
 
-instance HasAttrib Inline where
-  attributes (Code attribs _) = attribs
-  attributes (Link attribs _ _) = attribs
-  attributes (Image attribs _ _) = attribs
-  attributes (Span attribs _) = attribs
-  attributes _ = nullAttr
+instance HasAttr Block where
+  attributes f (Para [Image a i t]) = fmap (\a'->Code a' s) (f a)
 
-instance HasAttrib [Block] where
-  attributes (first:_) = attributes first
-  attributes _ = nullAttr
-
-instance HasAttrib (Maybe Block) where
-  attributes (Just block) = attributes block
-  attributes Nothing = nullAttr
-
-classes :: HasAttrib a => a -> [String]
-classes = sel2 . attributes
-
-keyvals :: HasAttrib a => a -> [(String, String)]
-keyvals = sel3 . attributes
-
-hasClass :: HasAttrib a => String -> a -> Bool
+-- instance HasAttr Block where
+--   attributes (Div attribs _) = attribs
+--   attributes (Header 1 attribs _) = attribs
+--   attributes (CodeBlock attribs _) = attribs
+--   attributes (Para [Image attribs _ _]) = attribs
+--   attributes _ = nullAttr
+-- instance HasAttr Inline where
+--   attributes (Code attribs _) = attribs
+--   attributes (Link attribs _ _) = attribs
+--   attributes (Image attribs _ _) = attribs
+--   attributes (Span attribs _) = attribs
+--   attributes _ = nullAttr
+hasClass :: HasAttr a => String -> a -> Bool
 hasClass which = elem which . classes
 
-hasAnyClass :: HasAttrib a => [String] -> a -> Bool
+hasAnyClass :: HasAttr a => [String] -> a -> Bool
 hasAnyClass which = isJust . firstClass which
 
-firstClass :: HasAttrib a => [String] -> a -> Maybe String
+firstClass :: HasAttr a => [String] -> a -> Maybe String
 firstClass which fragment = listToMaybe $ filter (`hasClass` fragment) which
 
-attribValue :: HasAttrib a => String -> a -> Maybe String
+attribValue :: HasAttr a => String -> a -> Maybe String
 attribValue which = lookup which . keyvals
 
-dropByClass :: HasAttrib a => [String] -> [a] -> [a]
+dropByClass :: HasAttr a => [String] -> [a] -> [a]
 dropByClass which = filter (not . any (`elem` which) . classes)
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
@@ -190,15 +192,14 @@ splitJoinColumns :: Slide -> Decker Slide
 splitJoinColumns slide@(Slide header body) = do
   disp <- gets disposition
   case disp of
-    Disposition _ Latex -> return slide
-    Disposition _ Html -> do
+    Disposition Deck Html -> do
       return $ Slide header $ concatMap wrapRow rowBlocks
-  where
-    rowBlocks =
-      split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
-    wrapRow row@(first:_)
-      | hasClass "split" first = [Div ("", ["css-columns"], []) row]
-    wrapRow row = row
+      where rowBlocks =
+              split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
+            wrapRow row@(first:_)
+              | hasClass "split" first = [Div ("", ["css-columns"], []) row]
+            wrapRow row = row
+    Disposition _ _ -> return slide
 
 -- All fragment related classes from reveal.js have to be moved to the enclosing
 -- DIV element. Otherwise to many fragments are produced.
@@ -228,29 +229,38 @@ zapImages :: Inline -> Inline
 zapImages Image {} = Space
 zapImages inline = inline
 
-handleBackground :: Slide -> Decker Slide
-handleBackground = handleBackgroundRevealJs
-
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 
-handleBackgroundRevealJs :: Slide -> Decker Slide
-handleBackgroundRevealJs slide@(Slide Nothing blocks) = return slide
-handleBackgroundRevealJs slide@(Slide header blocks) =
+handleBackground :: Slide -> Decker Slide
+handleBackground slide@(Slide Nothing blocks) = return slide
+handleBackground slide@(Slide header blocks) =
   case header of
     Just (Header 1 (headerId, headerClasses, headerAttributes) inlines) ->
       case query allImages inlines of
-        Image (_, imageClasses, imageAttributes) _ (imageSrc, _):_ ->
-          return $
-          Slide
-            (Just
-               (Header -- Construct a new header with the necessary attributes for RevealJs background content
-                  1
-                  ( headerId
-                  , headerClasses ++ imageClasses
-                  , srcAttribute imageSrc :
-                    headerAttributes ++ map transform imageAttributes)
-                  (walk zapImages inlines)))
-            blocks
+        image@(Image (_, imageClasses, imageAttributes) _ (imageSrc, _)):_ -> do
+          disp <- gets disposition
+          case disp of
+            Disposition Deck Html ->
+              return $
+              Slide
+                (Just
+                   (Header -- Construct a new header with the necessary attributes for RevealJs background content
+                      1
+                      ( headerId
+                      , headerClasses ++ imageClasses
+                      , srcAttribute imageSrc :
+                        headerAttributes ++ map transform imageAttributes)
+                      (walk zapImages inlines)))
+                blocks
+            Disposition _ _ ->
+              return $
+              Slide
+                (Just
+                   (Header
+                      1
+                      (headerId, headerClasses, headerAttributes)
+                      (walk zapImages inlines)))
+                (Para [image] : blocks)
         _ -> return slide -- Find the fist Image in the header text -- There is no image in the header
     Nothing -> throw $ InternalException "Illegal block in slide header"
   where
@@ -288,8 +298,8 @@ wrapBoxesOne slide@(Slide header body) = do
 
 -- A slide has maybe a header followed by zero or more blocks.
 data Slide = Slide
-  { header :: Maybe Block
-  , body :: [Block]
+  { _header :: Maybe Block
+  , _body :: [Block]
   } deriving (Eq, Show)
 
 isSlideSeparator :: Block -> Bool
@@ -348,7 +358,7 @@ processSlides = mapSlides (concatM actions)
       , handleBackground
       ]
 
-selectActiveContent :: HasAttrib a => [a] -> Decker [a]
+selectActiveContent :: HasAttr a => [a] -> Decker [a]
 selectActiveContent fragments = do
   disp <- gets disposition
   return $
@@ -505,9 +515,9 @@ transformImageSize attributes =
           (Nothing, Nothing) -> []
       css = style ++ sizeStyle
       styleAttr = ("style", intercalate ";" $ reverse $ "" : css)
-  in if null css
-       then unstyled
-       else styleAttr : unsized
+   in if null css
+        then unstyled
+        else styleAttr : unsized
 
 -- | Moves the `src` attribute to `data-src` to enable reveal.js lazy loading.
 lazyLoadImage :: Inline -> IO Inline

@@ -36,7 +36,7 @@ title: Handout Test
 
 ## This slide is tagged `handout` {.left}
 
--   The entire content only shows up in *handouts*
+-   The entire slide only shows up in *handouts*
 
 ##  {.right}
 
@@ -48,7 +48,7 @@ title: Handout Test
 
 ## This slide is tagged `deck` {.left}
 
--   The entire content only shows up in *slide decks*
+-   The entire slide only shows up in *slide decks*
 
 ##  {.right}
 
@@ -58,13 +58,13 @@ title: Handout Test
 
 ## This column is tagged `deck` {.deck .left}
 
--   The column only shows up in *slide decks*
+-   This column only shows up in *slide decks*
 
 ![](include/06-metal.png)
 
 ## This column is tagged `handout` {.handout .right}
 
--   The column only shows up in *handouts*
+-   This column only shows up in *handouts*
 
 ![](include/06-metal.png)
 
@@ -89,3 +89,10 @@ title: Handout Test
 -   It is not included in handouts
 
 ![](include/06-metal.png)
+
+# Backgrounds ![](include/06-metal.png)
+
+## Background Images in Handouts
+
+- Converted to inline images
+- Just after the header
