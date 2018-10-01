@@ -35,7 +35,7 @@ macbuild:
     - master
   script:
     - make
-    - cp $(stack path | grep "dist-dir" | awk '{printf "%s/build/decker/decker",$2}') decker
+    - cp $(stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
   artifacts:
     paths:
       - decker
@@ -49,7 +49,7 @@ winbuild:
   script:
     - "(dir 2>&1 *`|echo CMD);&<# rem #>echo PowerShell"
     - '& stack build'
-    - '$binpath=(Join-Path ($(stack path | Select-String -Pattern "dist-dir") -split " ")[1] "build\decker\decker.exe")'
+    - '$binpath=(Join-Path ($(stack path | Select-String -Pattern "local-install-root") -split " ")[1] "bin\decker.exe")'
     - 'Copy-Item $binpath .'
   artifacts:
     paths:
