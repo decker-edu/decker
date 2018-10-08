@@ -9,7 +9,7 @@ module.exports = {
     classlist: './src-support/classlist.js',
     notes: './src-support/notes.js',
     menu: './src-support/menu.js',
-    mathjax: './src-support/math.js'
+    page: './src-support/page.js'
   },
   output: {
     path: path.resolve(__dirname, 'resource', 'support'),
