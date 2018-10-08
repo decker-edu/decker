@@ -23,7 +23,9 @@ auto/
 *.fls
 *.log
 *.synctex.gz
-decker.css
+resource/support/**
+!decker.css
 *.cabal
 test/decks/*.svg
 dist/
+node_modules
