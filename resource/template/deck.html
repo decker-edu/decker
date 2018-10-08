@@ -79,6 +79,10 @@ $endfor$
 $for(header-includes)$
   $header-includes$
 $endfor$
+
+$if(dachdecker)$
+<script type="text/javascript">const dachdecker = "$dachdecker$";</script>
+$endif$
 </head>
 
 <body>
