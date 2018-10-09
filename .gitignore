@@ -24,7 +24,6 @@ auto/
 *.log
 *.synctex.gz
 resource/support/**
-!decker.css
 *.cabal
 test/decks/*.svg
 dist/
