@@ -235,7 +235,6 @@ markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile out = do
   putCurrentDocument out
   supportDir <- support <$> getProjectDirs
-  need [supportDir </> "decker.css"]
   supportDirRel <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
