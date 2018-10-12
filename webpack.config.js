@@ -9,7 +9,9 @@ module.exports = {
     classlist: './src-support/classlist.js',
     notes: './src-support/notes.js',
     menu: './src-support/menu.js',
-    page: './src-support/page.js'
+    page: './src-support/page.js',
+    three: './src-support/three.js',
+    d3: './src-support/d3.js'
   },
   output: {
     path: path.resolve(__dirname, 'resource', 'support'),
