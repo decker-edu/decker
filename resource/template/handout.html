@@ -23,11 +23,10 @@ $if(highlighting-css)$
 $highlighting-css$
   </style>
 $endif$
-  <link rel="stylesheet" href="$decker-support-dir$/sandstone/bootstrap.min.css">
 $for(css)$
   <link rel="stylesheet" href="$css$">
 $endfor$
-  <link rel="stylesheet" href="$decker-support-dir$/node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+
   <style type="text/css">
 .container {
     max-width:750px;
@@ -98,7 +97,7 @@ socket.onmessage = function () {
     window.location.reload(true);
 };
 </script>
-<script src="$decker-support-dir$/node_modules/zepto/dist/zepto.min.js"></script>
+<script src="$decker-support-dir$/page.js"></script>
 $for(header-includes)$
   $header-includes$
 $endfor$
@@ -146,7 +145,4 @@ $endif$
 </div>
 </div>
 </body>
-<script>
-  Zepto('table').addClass("table table-striped table-bordered table-hover table-condensed table-responsive");
-</script>
 </html>

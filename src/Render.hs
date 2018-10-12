@@ -63,7 +63,7 @@ d3Canvas source (eid, classes, keyvals) = do
   let publicBase = public dirs </> makeRelativeTo (project dirs) base
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
-  addScript $ ScriptURI "javascript" (supportDir </> "d3.v4.min.js")
+  addScript $ ScriptURI "javascript" (supportDir </> "d3.js")
   addScript $ ScriptSource "javascript" contents
   let classStr = intercalate " " classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
@@ -91,7 +91,7 @@ threejsCanvas source (eid, classes, keyvals) = do
   let publicBase = public dirs </> makeRelativeTo (project dirs) base
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
-  addScript $ ScriptURI "javascript" (supportDir </> "three.min.js")
+  addScript $ ScriptURI "javascript" (supportDir </> "three.js")
   let includes = splitOn "," $ fromMaybe "" $ lookup "includes" keyvals
   mapM_ addScript $ map (ScriptURI "javascript") includes
   addScript $ ScriptSource "javascript" contents
