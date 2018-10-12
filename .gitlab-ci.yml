@@ -28,8 +28,7 @@ build:linux:
     name: fpco/stack-build
     entrypoint: [""]
   script:
-    - set STACK_ROOT=`pwd`/.stack
-    - stack build
+    - STACK_ROOT=`pwd`/.stack stack build
   cache:
     key: stack_work
     paths:
@@ -59,8 +58,7 @@ test:linux:
     name: fpco/stack-build
     entrypoint: [""]
   script:
-    - set STACK_ROOT=`pwd`/.stack
-    - make test
+    - STACK_ROOT=`pwd`/.stack make test
   cache:
     key: stack_work
     paths:
