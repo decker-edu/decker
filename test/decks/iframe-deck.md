@@ -25,6 +25,6 @@ history: True
 
 ![](mc/webgl_geometry_minecraft_ao.html){.iframe width="100%" height="500px"}
 
-[](../../resource/support/three.min.js){.resource}
+[](../../resource/support/three.js){.resource}
 
 # ![](mc/webgl_geometry_minecraft_ao.html)
