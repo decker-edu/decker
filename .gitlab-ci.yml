@@ -29,6 +29,10 @@ build:linux:
     entrypoint: [""]
   script:
     - STACK_ROOT=`pwd`/.stack stack build
+    - cp $(stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
+  artifacts:
+    paths:
+      - decker
   cache:
     key: stack_work
     paths:
