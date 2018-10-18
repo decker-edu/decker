@@ -97,6 +97,8 @@ deploy:mac:
     - mc cp ./decker store/decker/decker-mac
   dependencies:
     - build:mac
+  only:
+    - master
 
 deploy:linux:
   stage: deploy
@@ -112,3 +114,5 @@ deploy:linux:
     - mc cp ./decker store/decker/decker-linux
   dependencies:
     - build:linux
+  only:
+    - master
