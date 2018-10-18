@@ -7,6 +7,7 @@ subtitle: Tutorial and Examples
 title: Decker Slide Tool
 transition: linear
 ümläüte: Ümläüte
+chalkboard: true
 ---
 
 # Overview
@@ -285,4 +286,3 @@ Your total score is 42.
 -   [Haskell](http://haskell.org)
 -   [Pandoc](), [Shake](), [Mustache](), [reveal.js]()
 -   [LaTeX](), [decktape.sh]()
-
