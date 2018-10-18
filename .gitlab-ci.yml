@@ -82,3 +82,33 @@ deploy:docker:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
+
+deploy:mac:
+  stage: deploy
+  image: 
+    name: minio/mc:latest
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - docker
+  script:
+    - mc config host add www http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET
+    - mc cp decker decker/decker-mac
+  dependencies:
+    - build:mac
+
+deploy:linux:
+  stage: deploy
+  image: 
+    name: minio/mc:latest
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - docker
+  script:
+    - mc config host add www http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET
+    - mc cp decker decker/decker-linux
+  dependencies:
+    - build:linux
