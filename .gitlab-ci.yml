@@ -20,7 +20,7 @@ templates:
     paths:
       - resource/support
 
-.build:linux:
+build:linux:
   stage: build
   tags:
     - docker
@@ -54,7 +54,7 @@ build:mac:
     paths:
       - decker
 
-.test:linux:
+test:linux:
   stage: test
   tags:
     - docker
@@ -93,14 +93,12 @@ deploy:mac:
   tags:
     - docker
   script:
-    - ls -l
-    - cp ./decker decker2
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker store/decker/decker-mac
   dependencies:
     - build:mac
 
-.deploy:linux:
+deploy:linux:
   stage: deploy
   image: 
     name: minio/mc:latest
@@ -110,7 +108,7 @@ deploy:mac:
   tags:
     - docker
   script:
-    - mc config host add decker http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET
-    - mc cp decker decker/decker/decker-linux
+    - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
+    - mc cp ./decker store/decker/decker-linux
   dependencies:
     - build:linux
