@@ -94,8 +94,9 @@ deploy:mac:
     - docker
   script:
     - ls -l
-    - mc config host add decker http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET
-    - mc cp decker decker/decker/decker-mac
+    - cp ./decker decker2
+    - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
+    - mc cp ./decker store/decker/decker-mac
   dependencies:
     - build:mac
 
