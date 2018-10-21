@@ -22,26 +22,6 @@ $endif$
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="$revealjs-url$/css/reveal.css">
 
-  <!-- Reveal.js theme with white as default -->
-$if(theme)$
-  <link rel="stylesheet" href="$revealjs-url$/css/theme/$theme$.css" id="theme">
-$else$
-  <link rel="stylesheet" href="$revealjs-url$/css/theme/white.css" id="theme">
-$endif$
-
-  <!-- Printing and PDF exports -->
-  <script>
-    var link = document.createElement( 'link' );
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = window.location.search.match( /print-pdf/gi ) ? '$revealjs-url$/css/print/pdf.css' : '$revealjs-url$/css/print/paper.css';
-    document.getElementsByTagName( 'head' )[0].appendChild( link );
-  </script>
-
-  <!--[if lt IE 9]>
-    <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
-  <![endif]-->
-
 $if(math)$
   $math$
 $endif$
@@ -69,12 +49,14 @@ $endif$
 
 
   <!-- Decker's standard default CSS -->
-  <link rel="stylesheet" href="$decker-support-dir$/decker.css">
+  <!--<link rel="stylesheet" href="$decker-support-dir$/decker.css">-->
   
   <!-- The last word on CSS for the power user -->
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
 $endfor$
+
+<script src="$decker-support-dir$/decker.js" type="text/javascript"></script>
 
 $for(header-includes)$
   $header-includes$
@@ -82,6 +64,39 @@ $endfor$
 </head>
 
 <body>
+  <!-- MathJax config -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    jax: ["input/TeX","output/CommonHTML"],
+    extensions: ["TeX/AMSmath.js"],
+    menuSettings: { zoom: "Double-Click" },
+    TeX: {
+        Macros: {
+          R: "{\\mathrm{{I}\\kern-.15em{R}}}",
+          laplace: "{\\Delta}",
+          grad: "{\\nabla}",
+          T: "^{\\mathsf{T}}",
+          abs: ['\\left\\lvert #1 \\right\\rvert', 1],
+          norm: ['\\left\\Vert #1 \\right\\Vert', 1],
+          iprod: ['\\left\\langle #1 \\right\\rangle', 1],
+          vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
+          mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
+          set: ['\\mathcal{#1}', 1],
+          func: ['\\mathrm{#1}', 1],
+          trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
+          matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
+          vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
+          of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
+          diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
+          pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2]
+        }
+    },
+    "CommonHTML": {
+        scale: 100,
+        matchFontHeight: false
+    }
+    });
+  </script>
 $for(include-before)$
 $include-before$
 $endfor$
@@ -112,9 +127,6 @@ $endif$
 $body$
     </div>
   </div>
-
-  <script src="$revealjs-url$/lib/js/head.min.js"></script>
-  <script src="$revealjs-url$/js/reveal.js"></script>
 
   <script>
       // Full list of configuration options available at:
@@ -252,28 +264,20 @@ $endif$
 $if(maxScale)$
         maxScale: $maxScale$,
 $endif$
-$if(mathjax)$
-        math: {
-          mathjax: '$decker-support-dir$/node_modules/mathjax/MathJax.js',
-          config: 'TeX-AMS_HTML',
-        },
-$endif$
 
         // Optional reveal.js plugins
         dependencies: [
-          { src: '$revealjs-url$/lib/js/classList.js', condition: function() { return !document.body.classList; } },
-          { src: '$revealjs-url$/plugin/zoom-js/zoom.js', async: true },
+          { src: '$decker-support-dir$/classlist.js', condition: function() { return !document.body.classList; } },
+          { src: '$decker-support-dir$/plugins.js', async: true },
 $if(notes-server)$
-          { src: '$revealjs-url$/socket.io/socker.io.js', async: true },
-          { src: '$revealjs-url$/plugin/notes-server/client.js', async: true },
+          { src: '$decker-support-dir$/notes.js', async: true },
 $endif$
 $if(mathjax)$
-          { src: '$revealjs-url$/plugin/math/math.js', async: true },
+          { src: '$decker-support-dir$/math.js', async: true },
 $endif$
 $if(menu)$
-          { src: '$decker-support-dir$/node_modules/reveal.js-menu/menu.js', async: true },
+          { src: '$decker-support-dir$/reveal.js-menu/menu.js', async: true },
 $endif$
-          { src: '$revealjs-url$/plugin/notes/notes.js', async: true }
         ]
       });
     </script>
