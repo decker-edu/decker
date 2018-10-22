@@ -241,6 +241,7 @@ markdownToHtmlDeck markdownFile out = do
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
   templateSupportDir <- getSupportDir meta out supportDirRel
+  dachdeckerUrl' <- liftIO dachdeckerUrl
   let options =
         pandocWriterOpts
         { writerSlideLevel = Just 1
@@ -252,6 +253,7 @@ markdownToHtmlDeck markdownFile out = do
         , writerVariables =
             [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
             , ("decker-support-dir", templateSupportDir)
+            , ("dachdecker-url", dachdeckerUrl')
             ]
         , writerCiteMethod = Citeproc
         }

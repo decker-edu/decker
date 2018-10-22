@@ -285,6 +285,9 @@ $endif$
         ]
       });
     </script>
+$if(dachdecker)$
+    <script src="$dachdecker-url$/static/slide.js"></script>
+$endif$
   $for(include-after)$
   $include-after$
   $endfor$
