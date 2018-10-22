@@ -5,15 +5,14 @@ module Macro
 
 import Common
 import Control.Monad.State
+import Data.List (isInfixOf, isPrefixOf)
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 as H
-       ((!), div, figure, iframe, iframe, p, toValue)
-import Text.Blaze.Html5.Attributes as A
-       (class_, height, src, style, width)
+import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)
+import Text.Blaze.Html5.Attributes as A (class_, height, src, style, width)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Shared
@@ -115,11 +114,13 @@ macroArg n args default_ =
     then args !! n
     else default_
 
+-- parse e.g. [:youtube](...) and return Just [youtube]
 parseMacro :: String -> Maybe [String]
 parseMacro (pre:invocation)
   | pre == ':' = Just (words invocation)
 parseMacro _ = Nothing
 
+-- lookup e.g. "youtube" in macroMap
 expandInlineMacros :: Meta -> Inline -> Decker Inline
 expandInlineMacros meta inline@(Link attr text target) = do
   case parseMacro $ stringify text of
@@ -128,6 +129,25 @@ expandInlineMacros meta inline@(Link attr text target) = do
         Just macro -> macro args attr target meta
         Nothing -> return inline
     _ -> return inline
+expandInlineMacros meta inline@(Image attr _ (url, tit))
+  -- Problem: "url" points to a path in the file system 
+  -- (appending the actual content in the brackets to directory)
+  -- hacky workaround: split at youtube-indicator and take last element
+  -- Also: hardcoded lookup of "youtube" is not useful
+  -- TODO: generalize for more than just youtube
+  -- Use Attributes:
+  -- ![](vnd.youtube://Wji-BZ0oCwg){#id .video width="75%"}
+  -- attr@(ident, cls, values)
+  -- ident = id
+  -- cls = .video (unwords cls) results in class="video"
+  -- values = width="75%"
+ =
+  if "vnd.youtube://" `isInfixOf` url
+    then case Map.lookup "youtube" macroMap of
+           Just macro -> macro [] attr (code, tit) meta
+             where code = (last . splitOn "vnd.youtube://") url
+           Nothing -> return inline
+    else return inline
 expandInlineMacros _ inline = return inline
 
 expandDeckerMacros :: Pandoc -> Decker Pandoc

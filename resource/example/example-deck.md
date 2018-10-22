@@ -68,6 +68,7 @@ The following text is included from file `/resource/realtive.md`:
 ## Slide source
 
 ``` {.markdown}
+
 # Multicolumn slides {.split}
 
 ## The author
@@ -86,6 +87,7 @@ The following text is included from file `/resource/realtive.md`:
 ## Relative path
 
 ![](img/06-metal.png){width="75%"}
+
 
 # LaTeX Math
 
@@ -119,6 +121,33 @@ $$
 ## Video
 
 [:youtube](Wji-BZ0oCwg)
+
+# New youtube embedding
+
+## Macros {.split}
+
+-   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
+-   Example: embed a YouTube video
+
+    ``` {.markdown}
+    ## Video
+
+    ![](vnd.youtube://Wji-BZ0oCwg)
+    ```
+
+## Video
+
+
+![](vnd.youtube://Wji-BZ0oCwg){#id .video width="75%"}
+
+
+# Other link tests 
+
+## test1 {.split}
+
+- ![](https://www.hci.uni-wuerzburg.de/bundled/images/1208/general/hci-logo-red.png "Title")
+
+
 
 # Compile Time Templating
 
