@@ -138,8 +138,23 @@ $$
 ## Video
 
 
-![](vnd.youtube://Wji-BZ0oCwg){#id .video width="75%"}
+![](vnd.youtube://Wji-BZ0oCwg)
 
+# Vimeo embedding
+
+## Macros {.split}
+-   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
+-   Example: embed a Vimeo video
+
+    ``` {.markdown}
+    ## Video
+
+    ![](vimeo://157588560)
+    ```
+
+## Video
+
+![](vimeo://157588560)
 
 # Other link tests 
 
