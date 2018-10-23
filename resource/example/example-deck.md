@@ -57,6 +57,7 @@ The following text is included from file `/resource/realtive.md`:
 
 [:include](include/relative.md)
 
+
 # Multicolumn slides
 
 ## The author {.split}
@@ -132,13 +133,12 @@ $$
     ``` {.markdown}
     ## Video
 
-    ![](vnd.youtube://Wji-BZ0oCwg)
+    ![](youtube://Wji-BZ0oCwg)
     ```
 
 ## Video
 
-
-![](vnd.youtube://Wji-BZ0oCwg)
+![](youtube://Wji-BZ0oCwg)
 
 # Vimeo embedding
 
@@ -156,11 +156,22 @@ $$
 
 ![](vimeo://157588560)
 
-# Other link tests 
+# Twitch embedding
 
-## test1 {.split}
+## Macros {.split}
 
-- ![](https://www.hci.uni-wuerzburg.de/bundled/images/1208/general/hci-logo-red.png "Title")
+-   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
+-   Example: embed a Vimeo video
+
+    ``` {.markdown}
+    ## Video
+
+    ![](twitch://157588560)
+    ```
+
+## test2 (twitch channels)
+
+![](twitch://twitchpresents)
 
 
 

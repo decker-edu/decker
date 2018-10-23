@@ -23,43 +23,7 @@ import Text.Read
 
 type MacroAction = [String] -> Attr -> Target -> Meta -> Decker Inline
 
--- iframe resizing, see:
--- https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
--- YouTube links: iv_load_policy=3 disables annotations, rel=0 disables related
--- videos. See:
--- https://developers.google.com/youtube/player_parameters?hl=de#IFrame_Player_API
-embedYoutubeHtml :: [String] -> Attr -> Target -> Inline
-embedYoutubeHtml args attr (vid, _) =
-  RawInline (Format "html") (renderHtml html)
-  where
-    url =
-      printf
-        "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
-        vid :: String
-    vidWidthStr = macroArg 0 args "560"
-    vidHeightStr = macroArg 1 args "315"
-    vidWidth = readDefault 560.0 vidWidthStr :: Float
-    vidHeight = readDefault 315.0 vidHeightStr :: Float
-    wrapperStyle =
-      printf
-        "position:relative;padding-top:25px;padding-bottom:%f%%;height:0;"
-        (vidHeight / vidWidth * 100.0) :: String
-    iframeStyle =
-      "position:absolute;top:0;left:0;width:100%;height:100%;" :: String
-    figureStyle (_, _, kv) =
-      foldl (\s (k, v) -> s ++ printf "%s:%s;" k v :: String) "" kv
-    figureClass (_, cls, _) = unwords cls
-    html =
-      H.figure ! class_ (toValue (figureClass attr)) !
-      style (toValue (figureStyle attr)) $
-      H.div ! style (toValue wrapperStyle) $
-      iframe ! style (toValue iframeStyle) ! width (toValue vidWidthStr) !
-      height (toValue vidHeightStr) !
-      src (toValue url) !
-      customAttribute "frameborder" "0" !
-      customAttribute "allowfullscreen" "" $
-      H.p ""
-
+-- TODO: pdf embed other WebVideos
 embedYoutubePdf :: [String] -> Attr -> Target -> Inline
 embedYoutubePdf _ attr (vid, _) =
   Link nullAttr [Image attr [Str text] (imageUrl, "")] (videoUrl, "")
@@ -72,12 +36,29 @@ embedYoutubePdf _ attr (vid, _) =
       printf "http://img.youtube.com/vi/%s/maxresdefault.jpg" vid :: String
     text = printf "YouTube: %s" vid :: String
 
+-- iframe resizing, see:
+-- https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
+-- YouTube links: iv_load_policy=3 disables annotations, rel=0 disables related
+-- videos. See:
+-- https://developers.google.com/youtube/player_parameters?hl=de#IFrame_Player_API
 -- For vimeo embedding settings see: 
--- https://vimeo.zendesk.com/hc/en-us/articles/224983008-Setting-default-quality-for-embedded-videos
-embedVimeoHtml :: [String] -> Attr -> Target -> Inline
-embedVimeoHtml args attr (vid, _) = RawInline (Format "html") (renderHtml html)
+-- https://vimeo.zendesk.com/hc/en-us/articles/360001494447-Using-Player-Parameters
+-- For twitch embedding settings see:
+-- https://dev.twitch.tv/docs/embed/video-and-clips/
+-- and: https://dev.twitch.tv/docs/embed/everything/
+embedWebVideosHtml :: String -> [String] -> Attr -> Target -> Inline
+embedWebVideosHtml page args attr (vid, _) =
+  RawInline (Format "html") (renderHtml html)
   where
-    url = printf "https://player.vimeo.com/video/%s?quality=1080p" vid :: String
+    url =
+      case page of
+        "youtube" ->
+          printf
+            "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
+            vid :: String
+        "vimeo" ->
+          printf "https://player.vimeo.com/video/%s?quality=1080p" vid :: String
+        "twitch" -> printf "https://player.twitch.tv/?channel=%s" vid :: String
     vidWidthStr = macroArg 0 args "560"
     vidHeightStr = macroArg 1 args "315"
     vidWidth = readDefault 560.0 vidWidthStr :: Float
@@ -102,18 +83,17 @@ embedVimeoHtml args attr (vid, _) = RawInline (Format "html") (renderHtml html)
       customAttribute "allowfullscreen" "" $
       H.p ""
 
-youtube :: MacroAction
-youtube args attr target _ = do
+-- youtube :: MacroAction
+-- youtube args attr target _ = do
+--   disp <- gets disposition
+--   case disp of
+--     Disposition _ Html -> return $ embedYoutubeHtml args attr target
+--     Disposition _ Pdf -> return $ embedYoutubePdf args attr target
+webVideo :: String -> MacroAction
+webVideo page args attr target _ = do
   disp <- gets disposition
   case disp of
-    Disposition _ Html -> return $ embedYoutubeHtml args attr target
-    Disposition _ Pdf -> return $ embedYoutubePdf args attr target
-
-vimeo :: MacroAction
-vimeo args attr target _ = do
-  disp <- gets disposition
-  case disp of
-    Disposition _ Html -> return $ embedVimeoHtml args attr target
+    Disposition _ Html -> return $ embedWebVideosHtml page args attr target
 
 fontAwesome :: MacroAction
 fontAwesome _ _ (iconName, _) _ = do
@@ -142,9 +122,10 @@ macroMap :: MacroMap
 macroMap =
   Map.fromList
     [ ("meta", metaValue)
-    , ("youtube", youtube)
     , ("fa", fontAwesome)
-    , ("vimeo", vimeo)
+    , ("youtube", webVideo "youtube")
+    , ("vimeo", webVideo "vimeo")
+    , ("twitch", webVideo "twitch")
     ]
 
 readDefault :: Read a => a -> String -> a
@@ -172,43 +153,31 @@ expandInlineMacros meta inline@(Link attr text target) =
         Nothing -> return inline
     _ -> return inline
 expandInlineMacros meta inline@(Image attr _ (url, tit))
-  -- Problem: "url" points to a path in the file system 
-  -- (appending the actual content in the brackets to directory)
-  -- hacky workaround: split at youtube-indicator and take last element
-  -- Also: hardcoded lookup of "youtube" is not useful
   -- TODO: generalize for more than just youtube
   -- Use Attributes:
-  -- ![](vnd.youtube://Wji-BZ0oCwg){#id .video width="75%"}
+  -- ![](youtube://Wji-BZ0oCwg){#id .video width="75%"}
   -- attr@(ident, cls, values)
   -- ident = id
   -- cls = .video (unwords cls) results in class="video"
   -- values = width="75%"
-  -- if "vnd.youtube://" `isPrefixOf` url
-  -- State: 22.10.18 too much boilerplate for youtube and vimeo. generalize!
  =
   case findEmbeddingClass inline of
-    Just "youtube" ->
-      case Map.lookup "youtube" macroMap of
+    Just str ->
+      case Map.lookup str macroMap of
         Just macro -> macro [] attr (code, tit) meta
-            -- where code = (last . splitOn "vnd.youtube://") url
-          where code = unpack $ replace "vnd.youtube://" "" (pack url)
-        Nothing -> return inline
-    Just "vimeo" ->
-      case Map.lookup "vimeo" macroMap of
-        Just macro -> macro [] attr (code, tit) meta
-          where code = unpack $ replace "vimeo://" "" (pack url)
+        -- TODO: Find a way to do this without needing Data.Text and the whole pack/unpack effort
+          where code = unpack $ replace (pack (str ++ "://")) "" (pack url)
         Nothing -> return inline
     Nothing -> return inline
 expandInlineMacros _ inline = return inline
 
 -- Check inline for special embedding content if inline is Image
--- TODO: look at url for prefixes for youtube, vimeo
 -- look at attributes for content type (image, video, dot, iframe)
--- also put [:include] in here
 findEmbeddingClass :: Inline -> Maybe String
 findEmbeddingClass inline@(Image attr text (url, tit))
-  | "vnd.youtube://" `isPrefixOf` url = Just "youtube"
+  | "youtube://" `isPrefixOf` url = Just "youtube"
   | "vimeo://" `isPrefixOf` url = Just "vimeo"
+  | "twitch://" `isPrefixOf` url = Just "twitch"
   | otherwise = Nothing
   -- if "vnd.youtube://" `isPrefixOf` url
     -- then Just "youtube"
