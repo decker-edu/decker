@@ -4,7 +4,7 @@ version := $(shell grep "version: " package.yaml | sed "s/version: *//")
 build:
 	yarn install && yarn run webpack --mode production
 	cp -r node_modules/reveal.js-menu resource/support/
-	cp -r node_modules/reveal.js/plugin/chalkboard resource/support/	
+	cp -r src-support/img resource/support/	
 	stack build -j 8 --fast
 
 dist: build
