@@ -674,6 +674,7 @@ metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
+-- TODO: also change include to ![](include:) or something
 processIncludes baseDir (Pandoc meta blocks) =
   Pandoc meta <$> processBlocks baseDir blocks
   where
@@ -758,3 +759,4 @@ lookupPandocMeta key (Meta m) =
     lookup' [] (Just (MetaString s)) = Just s
     lookup' [] (Just (MetaInlines i)) = Just $ stringify i
     lookup' _ _ = Nothing
+
