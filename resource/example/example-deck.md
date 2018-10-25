@@ -106,73 +106,25 @@ $$
 e = mc^2
 $$
 
-# Compile Time Macros
+# Embedding Web Videos
 
 ## Macros {.split}
 
--   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
--   Example: embed a YouTube video
+-   Appropriated image `![Alt text](Url)` syntax
+-		Currently possible for Youtube and Vimeo videos and Twitch channels
+-		replace "page" with "youtube", "vimeo" or "twitch" and add video id or channel name
 
     ``` {.markdown}
     ## Video
-
-    [:youtube](Wji-BZ0oCwg)
+    
+    ![](<page>://<video-id>)
+    Example:
+    ![](youtube://qEcmwHRG2Mo)
     ```
 
 ## Video
 
-[:youtube](Wji-BZ0oCwg)
-
-# New youtube embedding
-
-## Macros {.split}
-
--   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
--   Example: embed a YouTube video
-
-    ``` {.markdown}
-    ## Video
-
-    ![](youtube://Wji-BZ0oCwg)
-    ```
-
-## Video
-
-![](youtube://Wji-BZ0oCwg)
-
-# Vimeo embedding
-
-## Macros {.split}
--   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
--   Example: embed a Vimeo video
-
-    ``` {.markdown}
-    ## Video
-
-    ![](vimeo://157588560)
-    ```
-
-## Video
-
-![](vimeo://157588560)
-
-# Twitch embedding
-
-## Macros {.split}
-
--   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
--   Example: embed a Vimeo video
-
-    ``` {.markdown}
-    ## Video
-
-    ![](twitch://157588560)
-    ```
-
-## test2 (twitch channels)
-
-![](twitch://twitchpresents)
-
+![](youtube://qEcmwHRG2Mo)
 
 
 # Compile Time Templating

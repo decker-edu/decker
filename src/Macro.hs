@@ -23,19 +23,6 @@ import Text.Read
 
 type MacroAction = [String] -> Attr -> Target -> Meta -> Decker Inline
 
--- TODO: pdf embed other WebVideos
-embedYoutubePdf :: [String] -> Attr -> Target -> Inline
-embedYoutubePdf _ attr (vid, _) =
-  Link nullAttr [Image attr [Str text] (imageUrl, "")] (videoUrl, "")
-  where
-    videoUrl =
-      printf
-        "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=0&rel=0&modestbranding=1&autohide=1"
-        vid :: String
-    imageUrl =
-      printf "http://img.youtube.com/vi/%s/maxresdefault.jpg" vid :: String
-    text = printf "YouTube: %s" vid :: String
-
 -- iframe resizing, see:
 -- https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
 -- YouTube links: iv_load_policy=3 disables annotations, rel=0 disables related
@@ -57,8 +44,11 @@ embedWebVideosHtml page args attr (vid, _) =
             "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
             vid :: String
         "vimeo" ->
-          printf "https://player.vimeo.com/video/%s?quality=1080p" vid :: String
-        "twitch" -> printf "https://player.twitch.tv/?channel=%s" vid :: String
+          printf
+            "https://player.vimeo.com/video/%s?quality=autop&autoplay=0&muted=1"
+            vid :: String
+        "twitch" ->
+          printf "https://player.twitch.tv/?channel=%s&autoplay=1&muted=1" vid :: String
     vidWidthStr = macroArg 0 args "560"
     vidHeightStr = macroArg 1 args "315"
     vidWidth = readDefault 560.0 vidWidthStr :: Float
@@ -83,17 +73,44 @@ embedWebVideosHtml page args attr (vid, _) =
       customAttribute "allowfullscreen" "" $
       H.p ""
 
--- youtube :: MacroAction
--- youtube args attr target _ = do
---   disp <- gets disposition
---   case disp of
---     Disposition _ Html -> return $ embedYoutubeHtml args attr target
---     Disposition _ Pdf -> return $ embedYoutubePdf args attr target
+-- Twitch thumbnail from https://www.twitch.tv/p/brand/social-media
+-- Twitch channels unfortunately have no fixed thumbnail
+embedWebVideosPdf :: String -> [String] -> Attr -> Target -> Inline
+embedWebVideosPdf page _ attr (vid, _) =
+  Link nullAttr [Image attr [Str text] (imageUrl, "")] (videoUrl, "")
+  where
+    videoUrl =
+      case page of
+        "youtube" ->
+          printf
+            "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
+            vid :: String
+        "vimeo" ->
+          printf
+            "https://player.vimeo.com/video/%s?quality=autop&autoplay=0&muted=1"
+            vid :: String
+        "twitch" ->
+          printf "https://player.twitch.tv/?channel=%s&autoplay=0&muted=1" vid :: String
+    text =
+      case page of
+        "youtube" -> printf "YouTube: %s" vid :: String
+        "vimeo" -> printf "Vimeo: %s" vid :: String
+        "twitch" -> printf "Twitch: %s" vid :: String
+    imageUrl =
+      case page of
+        "youtube" ->
+          printf "http://img.youtube.com/vi/%s/maxresdefault.jpg" vid :: String
+        "vimeo" ->
+          printf "https://i.vimeocdn.com/video/%s_640.webp" vid :: String
+        "twitch" ->
+          "https://www.twitch.tv/p/assets/uploads/glitch_solo_750x422.png"
+
 webVideo :: String -> MacroAction
 webVideo page args attr target _ = do
   disp <- gets disposition
   case disp of
     Disposition _ Html -> return $ embedWebVideosHtml page args attr target
+    Disposition _ Pdf -> return $ embedWebVideosPdf page args attr target
 
 fontAwesome :: MacroAction
 fontAwesome _ _ (iconName, _) _ = do
@@ -152,15 +169,7 @@ expandInlineMacros meta inline@(Link attr text target) =
         Just macro -> macro args attr target meta
         Nothing -> return inline
     _ -> return inline
-expandInlineMacros meta inline@(Image attr _ (url, tit))
-  -- TODO: generalize for more than just youtube
-  -- Use Attributes:
-  -- ![](youtube://Wji-BZ0oCwg){#id .video width="75%"}
-  -- attr@(ident, cls, values)
-  -- ident = id
-  -- cls = .video (unwords cls) results in class="video"
-  -- values = width="75%"
- =
+expandInlineMacros meta inline@(Image attr _ (url, tit)) =
   case findEmbeddingClass inline of
     Just str ->
       case Map.lookup str macroMap of
@@ -179,9 +188,6 @@ findEmbeddingClass inline@(Image attr text (url, tit))
   | "vimeo://" `isPrefixOf` url = Just "vimeo"
   | "twitch://" `isPrefixOf` url = Just "twitch"
   | otherwise = Nothing
-  -- if "vnd.youtube://" `isPrefixOf` url
-    -- then Just "youtube"
-    -- else Nothing
 
 expandDeckerMacros :: Pandoc -> Decker Pandoc
 expandDeckerMacros doc@(Pandoc meta _) = walkM (expandInlineMacros meta) doc
