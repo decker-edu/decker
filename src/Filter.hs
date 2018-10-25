@@ -13,6 +13,7 @@ module Filter
   , cachePandocImages
   , extractLocalImagePathes
   , renderMediaTags
+  , extractFigures
   , iframeExtensions
   , audioExtensions
   , videoExtensions
@@ -531,3 +532,14 @@ convertMediaAttributeImageSize (id, cls, vals) = (id, cls, vals_processed)
 --   intent is more clear.
 toHtml :: String -> Inline
 toHtml = RawInline (Format "html")
+
+extractFigures :: Pandoc -> Decker Pandoc
+extractFigures pandoc = do
+  return $ walk extractFigure pandoc
+
+extractFigure :: Block -> Block
+extractFigure (Para content) = 
+  case content of
+    [Span attr inner@((RawInline (Format "html") "<figure>") : otherContent)] -> Div attr [Plain inner]
+    a -> Para a
+extractFigure b = b
