@@ -101,7 +101,7 @@ embedWebVideosPdf page _ attr (vid, _) =
         "youtube" ->
           printf "http://img.youtube.com/vi/%s/maxresdefault.jpg" vid :: String
         "vimeo" ->
-          printf "https://i.vimeocdn.com/video/%s_640.webp" vid :: String
+          printf "https://i.vimeocdn.com/video/%s_560x315.jpg" vid :: String
         "twitch" ->
           "https://www.twitch.tv/p/assets/uploads/glitch_solo_750x422.png"
 
@@ -154,13 +154,12 @@ macroArg n args default_ =
     then args !! n
     else default_
 
--- parse e.g. [:youtube](...) and return Just [youtube]
 parseMacro :: String -> Maybe [String]
 parseMacro (pre:invocation)
   | pre == ':' = Just (words invocation)
 parseMacro _ = Nothing
 
--- lookup e.g. "youtube" in macroMap
+-- lookup e.g. "youtube" in macroMap and return MacroAction/Decker Inline
 expandInlineMacros :: Meta -> Inline -> Decker Inline
 expandInlineMacros meta inline@(Link attr text target) =
   case parseMacro $ stringify text of
@@ -169,8 +168,10 @@ expandInlineMacros meta inline@(Link attr text target) =
         Just macro -> macro args attr target meta
         Nothing -> return inline
     _ -> return inline
-expandInlineMacros meta inline@(Image attr _ (url, tit)) =
-  case findEmbeddingClass inline of
+expandInlineMacros meta inline@(Image attr _ (url, tit))
+  -- For the case of web videos
+ =
+  case findEmbeddingType inline of
     Just str ->
       case Map.lookup str macroMap of
         Just macro -> macro [] attr (code, tit) meta
@@ -180,10 +181,9 @@ expandInlineMacros meta inline@(Image attr _ (url, tit)) =
     Nothing -> return inline
 expandInlineMacros _ inline = return inline
 
--- Check inline for special embedding content if inline is Image
--- look at attributes for content type (image, video, dot, iframe)
-findEmbeddingClass :: Inline -> Maybe String
-findEmbeddingClass inline@(Image attr text (url, tit))
+-- Check inline for special embedding content (currently only web videos) if inline is Image
+findEmbeddingType :: Inline -> Maybe String
+findEmbeddingType inline@(Image attr text (url, tit))
   | "youtube://" `isPrefixOf` url = Just "youtube"
   | "vimeo://" `isPrefixOf` url = Just "vimeo"
   | "twitch://" `isPrefixOf` url = Just "twitch"

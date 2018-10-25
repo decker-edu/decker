@@ -387,7 +387,7 @@ iframeExtensions = [".html", ".htm", ".pdf", ".php"]
 -- | File extensions that signify images
 imageExtensions :: [String]
 imageExtensions =
-  [".jpg", ".jpeg", ".png", ".gif", ".tif", ".tiff", ".bmp", ".svg", ".webp"]
+  [".jpg", ".jpeg", ".png", ".gif", ".tif", ".tiff", ".bmp", ".svg"]
 
 -- | File-extensions that should be treated as 3D model and will be shown with Mario's viewer
 -- in an iframe

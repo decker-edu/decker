@@ -112,7 +112,7 @@ $$
 
 -   Appropriated image `![Alt text](Url)` syntax
 -		Currently possible for Youtube and Vimeo videos and Twitch channels
--		replace "page" with "youtube", "vimeo" or "twitch" and add video id or channel name
+-		replace "page" with "youtube", "vimeo" or "twitch" and add video id or twitch channel name
 
     ``` {.markdown}
     ## Video
