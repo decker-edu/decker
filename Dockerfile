@@ -1,5 +1,5 @@
 # Builds the decker executable
-FROM ubuntu:artful
+FROM ubuntu:bionic
 
 RUN apt-get update &&	apt-get install -y \
   wget \
@@ -37,7 +37,7 @@ RUN make install
 RUN ldd /root/.local/bin/decker | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' /root/.local/bin
 
 # Image that will execute decker
-FROM ubuntu:artful
+FROM ubuntu:bionic
 
 RUN apt-get update && apt-get install -y \
     graphviz \
