@@ -93,12 +93,12 @@ The following text is included from file `/resource/realtive.md`:
 
 ## {.left}
 
-![SVG image](img/w3c.svg){width="50%"}
+![SVG image](img/w3c.svg)
 
 ## Source code {.right}
 
 ```markdown
-![SVG image](img/w3c.svg){width="50%"}
+![SVG image](img/w3c.svg)
 ```
 
 # SVG embedded/included in html source {layout="columns"}
