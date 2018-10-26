@@ -471,17 +471,11 @@ renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
   image <- renderMediaTag disp (Image attrsForward [] (url, tit))
   return $
     Span
-      attrs'
+      nullAttr
       ([toHtml "<figure>", image, toHtml "<figcaption>"] ++
        inlines ++ [toHtml "</figcaption>", toHtml "</figure>"])
   where
-    attrs' =
-      if (uriPathExtension url) `elem` [".svg"]
-        then convertMediaAttributes attrs
-        else nullAttr
-    attrsForward = if (uriPathExtension url) `elem` [".svg"]
-        then nullAttr
-        else (ident, cls, ("alt", stringify inlines) : values)
+    attrsForward = (ident, cls, ("alt", stringify inlines) : values)
 -- | return inline if it is no image
 renderMediaTag _ inline = do
   return inline
