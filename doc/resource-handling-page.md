@@ -18,6 +18,8 @@ title: 'Resource Handling [(DRAFT)]{style="color:red;"}'
 ## Resource Bundles
 
 -   Template, support and example resources are combined into a *resource bundle*
+-   A resource bundle may contain a `resource.yaml` file with meta information regarding bundle author etc.
+-   The data from `resource.yaml` is available in the meta data during slide compilation under some key like `resource-meta` or such
 -   A resource bundle is a compressed ZIP archive of the contents of the `resource` folder
 -   Resource bundles are located at run-time via their URL
 -   Three protocol schemes are supported
