@@ -10,8 +10,7 @@ templates:
   tags:
     - docker
   script:
-    - yarn install
-    - yarn run webpack --mode production
+    - make yarn
   cache:
     key: ${CI_JOB_NAME}
     paths:
@@ -28,7 +27,7 @@ build:linux:
     name: fpco/stack-build
     entrypoint: [""]
   script:
-    - STACK_ROOT=`pwd`/.stack stack build
+    - STACK_ROOT=`pwd`/.stack make build
     - cp $(STACK_ROOT=`pwd`/.stack stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
   artifacts:
     paths:
@@ -44,7 +43,7 @@ build:mac:
     - mac
   stage: build
   script:
-    - make
+    - make build
     - cp $(stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
   cache:
     key: ${CI_JOB_NAME}
