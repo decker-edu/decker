@@ -57,6 +57,7 @@ The following text is included from file `/resource/realtive.md`:
 
 [:include](include/relative.md)
 
+
 # Multicolumn slides
 
 ## The author {.split}
@@ -68,6 +69,7 @@ The following text is included from file `/resource/realtive.md`:
 ## Slide source
 
 ``` {.markdown}
+
 # Multicolumn slides {.split}
 
 ## The author
@@ -87,6 +89,7 @@ The following text is included from file `/resource/realtive.md`:
 
 ![](img/06-metal.png){width="75%"}
 
+
 # LaTeX Math
 
 ## Syntax
@@ -103,22 +106,26 @@ $$
 e = mc^2
 $$
 
-# Compile Time Macros
+# Embedding Web Videos
 
 ## Macros {.split}
 
--   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
--   Example: embed a YouTube video
+-   Appropriated image `![Alt text](Url)` syntax
+-		Currently possible for Youtube and Vimeo videos and Twitch channels
+-		replace "page" with "youtube", "vimeo" or "twitch" and add video id or twitch channel name
 
     ``` {.markdown}
     ## Video
-
-    [:youtube](Wji-BZ0oCwg)
+    
+    ![](<page>://<video-id>)
+    Example:
+    ![](youtube://qEcmwHRG2Mo)
     ```
 
 ## Video
 
-[:youtube](Wji-BZ0oCwg)
+![](youtube://qEcmwHRG2Mo)
+
 
 # Compile Time Templating
 
