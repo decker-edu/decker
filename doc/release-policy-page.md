@@ -38,3 +38,4 @@ Semantic Versioning in a nutshell (from [semver.org](https://semver.org)):
 -   Pre-releases are cut from an appropriately named pre-release branch where the desired pre-release features are merged
 -   Pre-release branches and versions are labeled with a descriptive name (i.e. `1.3.0-some-important-demo-or-other`)
 -   The current version number is maintained in `package.yaml` and only there
+-   Feature and release branches are not deleted after merge

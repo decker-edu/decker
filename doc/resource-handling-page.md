@@ -32,7 +32,7 @@ title: 'Resource Handling [(DRAFT)]{style="color:red;"}'
 -   Resource bundles (with the exception of the `dev:` bundle) must never be changed
 -   Decker supports localization, acquisition, unpacking and caching of resource bundles without the help of external programs on all supported platforms
 -   The decker executable always contains the default resource bundle that is used when no resource bundle is specified in the meta data
--   Template Haskel (`file-embed`) is no longer used to embed resources
+-   Template Haskell (`file-embed`) is no longer used to embed resources
 
 ## Versioning
 
