@@ -131,11 +131,13 @@ renderRow areaMap (MultiColumn areas) =
 
 renderColumn :: (Int, [Block]) -> Block
 renderColumn (i, blocks) =
-  let grow = fromMaybe (1 :: Int) $ lookup "grow" (keyvals blocks) >>= readMaybe
-   in Div
+  -- let grow = fromMaybe (1 :: Int) $ lookup "grow" (keyvals blocks) >>= readMaybe
+  -- let grow = blocks ^. attributes . attrs . (at 1) ?~ (1 :: Int)
+  let grow = fromMaybe (1 :: Int) $ lookup "grow" (blocks ^. attributes . attrs) >>= readMaybe
+  in Div
         ( ""
         , ["grow-" ++ show grow, "column", "column-" ++ show i]
-        , keyvals blocks)
+        , blocks ^. attributes . attrs)
         blocks
 
 renderLayout :: AreaMap -> RowLayout -> [Block]
@@ -172,6 +174,10 @@ instance HasAttr Slide where
     fmap (\a' -> Slide (Just (Header n a' s)) b) (f a)
   attributes _ x = pure x
 
+instance HasAttr [Block] where
+  attributes f (b:bs) = attributes f b
+  attributes _ x = pure x
+  
 -- instance HasAttr Block where
 --   attributes f (Para [Image a i t]) = fmap (\a'->Code a' s) (f a)
 
