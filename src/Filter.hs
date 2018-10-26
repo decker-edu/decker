@@ -422,7 +422,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) = do
   return $ rendered
   where
     imageVideoTag =
-      if (uriPathExtension url) `elem` [".svg"]
+      if (uriPathExtension url) `elem` [".svg"] && "embed" `elem` cls
         then do
           fileContent <- catch (readFile url) svgLoadErrorHandler
           return $
@@ -463,7 +463,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) = do
         else url
     extension = uriPathExtension url
     (_, cls', values') =
-      if (uriPathExtension url) `elem` [".svg"]
+      if (uriPathExtension url) `elem` [".svg"] && "embed" `elem` cls
         then convertMediaAttributes
                (ident, cls, ("style", "display:inline-block;") : values)
         else convertMediaAttributes attrs
