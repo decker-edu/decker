@@ -1,12 +1,14 @@
 decker := $(shell stack path | grep local-install-root | sed "s/local-install-root: //")/bin/decker
 version := $(shell grep "version: " package.yaml | sed "s/version: *//")
-zip := $(shell mktemp -u)
 
 build:
+	cp -r node_modules/reveal.js-menu resource/support/
 	stack build -j 8 --fast
-	@(cd resource; zip -qr $(zip) example support template; cat $(zip) >> $(decker); rm $(zip))
 
-dist: build
+yarn:
+	yarn install && yarn run webpack --mode production
+
+dist: yarn build
 	rm -rf dist
 	mkdir -p dist
 	ln -s $(decker) dist/decker-$(version) 
@@ -27,8 +29,4 @@ install: build
 	stack exec -- decker clean
 	stack install
 
-info:
-	@echo "decker: $(decker)"
-	@echo "zip: $(zip)"
-
-.PHONY: build clean test install dist docs
+.PHONY: build clean test install dist docs yarn

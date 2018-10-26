@@ -1,9 +1,23 @@
 name:                decker
-version:             0.4.0.0
+version:             0.7.3
 license:             OtherLicense
 author:              "Henrik Tramberend"
 maintainer:          "henrik.tramberend@beuth-hochschule.de"
 copyright:           "2018 Henrik Tramberend"
+
+build-type: Custom
+
+custom-setup:
+  dependencies: 
+  - base >= 4.7 && < 5
+  - bytestring
+  - Cabal
+  - conduit
+  - directory
+  - extra
+  - filepath
+  - Glob
+  - zip
 
 extra-source-files:
 - readme.md
@@ -60,14 +74,13 @@ dependencies:
 - text
 - time
 - transformers
-- tuple
-- unix
 - unordered-containers
 - utf8-string
 - vector
 - websockets
 - websockets-snap
 - yaml
+- zip
 
 library:
   source-dirs: src

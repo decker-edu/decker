@@ -5,22 +5,24 @@ import Context
 import Control.Exception
 import Control.Monad (when)
 import Control.Monad.Extra
+import Data.Aeson
 import Data.IORef ()
 import Data.List
 import Data.Maybe
 import Data.String ()
+import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
 import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import System.Directory (createDirectoryIfMissing, removeFile)
+import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
 import System.FilePath ()
-import System.Posix.Files
 import Text.Groom
 import qualified Text.Mustache as M ()
-import Text.Pandoc ()
+import Text.Pandoc
+import Text.Pandoc.Definition
 import Text.Printf ()
 import Utilities
 
@@ -62,7 +64,10 @@ main = do
    do
     want ["html"]
     --
-    phony "version" $ putNormal $ "decker version " ++ deckerVersion
+    phony "version" $ do
+      putNormal $ "decker version " ++ deckerVersion
+      putNormal $ "pandoc version " ++ pandocVersion
+      putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
     phony "decks" $ do
       need ["support"]
@@ -218,12 +223,12 @@ main = do
         case metaValueAsString "provisioning" metaData of
           Just value
             | value == show SymLink ->
-              liftIO $ createSymbolicLink (appDataDir </> "support") supportDir
+              liftIO $ createFileLink (appDataDir </> "support") supportDir
           Just value
             | value == show Copy ->
               rsync [(appDataDir </> "support/"), supportDir]
           Nothing ->
-            liftIO $ createSymbolicLink (appDataDir </> "support") supportDir
+            liftIO $ createFileLink (appDataDir </> "support") supportDir
           _ -> return ()
     --
     phony "check" checkExternalPrograms
@@ -246,8 +251,8 @@ main = do
 options :: FilePath -> ShakeOptions
 options projectDir =
   shakeOptions
-  { shakeFiles = ".shake"
-  , shakeColor = True
-  , shakeThreads = numCapabilities
-  , shakeAbbreviations = [(projectDir ++ "/", "")]
-  }
+    { shakeFiles = ".shake"
+    , shakeColor = True
+    , shakeThreads = numCapabilities
+    , shakeAbbreviations = [(projectDir ++ "/", "")]
+    }

@@ -18,7 +18,7 @@ import Snap.Core
 import Snap.Http.Server
 import Snap.Util.FileServe
 import System.Directory
-import System.FilePath.Posix
+import System.FilePath
 import System.Random
 
 -- Logging and port configuration for the server.

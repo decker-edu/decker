@@ -11,8 +11,8 @@ import Filter
 import Project as P
 import qualified System.Directory as Dir
 import System.FilePath
+import System.FilePath
 import System.FilePath.Glob
-import System.FilePath.Posix
 import Text.Pandoc
 import Utilities
 
@@ -28,17 +28,17 @@ main = do
   --
    do
     describe "makeRelativeTo" $
-      it "calculates the path of file relative to dir. Inlcudes '..'" $ do
+      it "calculates the path of file relative to dir. Includes '..'" $ do
         makeRelativeTo "" "img.png" `shouldBe` "img.png"
         makeRelativeTo "/one/two" "/one/two/img.png" `shouldBe` "img.png"
         makeRelativeTo "/one/two/three" "/one/two/four/img.png" `shouldBe`
-          "../four/img.png"
+          joinPath ["..", "four", "img.png"]
         makeRelativeTo "/some/where/else" "/one/two/four/img.png" `shouldBe`
-          "../../../one/two/four/img.png"
+          joinPath ["..", "..", "..", "one", "two", "four", "img.png"]
         makeRelativeTo
           "/Users/henrik/tmp/decker-demo/public"
           "/Users/henrik/tmp/decker-demo/public/cache/b48cadafb942dc1426316772321dd0c7.png" `shouldBe`
-          "cache/b48cadafb942dc1426316772321dd0c7.png"
+          joinPath ["cache", "b48cadafb942dc1426316772321dd0c7.png"]
     --
     describe "removeCommonPrefix" $
       it "removes the common prefix from two pathes." $ do
@@ -46,11 +46,11 @@ main = do
         P.removeCommonPrefix ("fasel/bla", "fasel/bla/lall") `shouldBe`
           ("", "lall")
         P.removeCommonPrefix ("lurgel/hopp", "fasel/bla/lall") `shouldBe`
-          ("lurgel/hopp", "fasel/bla/lall")
+          (joinPath ["lurgel", "hopp"], joinPath ["fasel", "bla", "lall"])
         P.removeCommonPrefix ("/lurgel/hopp", "fasel/bla/lall") `shouldBe`
-          ("/lurgel/hopp", "fasel/bla/lall")
+          (joinPath ["/lurgel", "hopp"], joinPath ["fasel", "bla", "lall"])
         P.removeCommonPrefix ("/lurgel/hopp", "/fasel/bla/lall") `shouldBe`
-          ("lurgel/hopp", "fasel/bla/lall")
+          (joinPath ["lurgel", "hopp"], joinPath ["fasel", "bla", "lall"])
     --
     describe "copyResource" $
       it
@@ -84,12 +84,27 @@ main = do
           ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
     -- 
-    describe "transformImageSize" $
+    describe "convertMediaAttributes" $
       it
         "transfers 'width' and 'height' attribute values to css style values and add them to the 'style' attribute value." $ do
-        transformImageSize [("width", "100%")] `shouldBe`
-          [("style", "height:auto;width:100%;")]
-        transformImageSize [("height", "50%")] `shouldBe`
-          [("style", "height:50%;width:auto;")]
-        transformImageSize [("width", "100%"), ("style", "color:red;")] `shouldBe`
-          [("style", "height:auto;width:100%;color:red;")]
+        convertMediaAttributes ("", [], [("width", "100%")]) `shouldBe`
+          ("", [], [("style", "width:100%;")])
+        convertMediaAttributes ("", [], [("height", "50%")]) `shouldBe`
+          ("", [], [("style", "height:50%;")])
+        convertMediaAttributes ("", [], [("width", "100%"), ("style", "color:red;")]) `shouldBe`
+          ("", [], [("style", "color:red;width:100%;")])
+    describe "lookupPandocMeta" $
+      it "looks up dotted key values in the hierarchical pandoc meta structure" $ do
+        lookupPandocMeta "top-level-key" meta `shouldBe`
+          (Just "top-level-value")
+        lookupPandocMeta "group.attribute" meta `shouldBe`
+          (Just "attribute-value")
+
+meta :: Meta
+meta =
+  Meta $
+  M.fromList
+    [ ("top-level-key", MetaString "top-level-value")
+    , ( "group"
+      , MetaMap $ M.fromList [("attribute", MetaString "attribute-value")])
+    ]

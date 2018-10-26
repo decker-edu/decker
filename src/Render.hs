@@ -17,7 +17,7 @@ import Data.Maybe
 import qualified Data.Set as Set
 import Project
 import System.Directory (createDirectoryIfMissing, doesFileExist)
-import System.FilePath.Posix
+import System.FilePath
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H ((!), canvas, div, script, toValue)
 import Text.Blaze.Html5.Attributes as A (class_, id, lang, src)
@@ -63,7 +63,7 @@ d3Canvas source (eid, classes, keyvals) = do
   let publicBase = public dirs </> makeRelativeTo (project dirs) base
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
-  addScript $ ScriptURI "javascript" (supportDir </> "d3.v4.min.js")
+  addScript $ ScriptURI "javascript" (supportDir </> "d3.js")
   addScript $ ScriptSource "javascript" contents
   let classStr = intercalate " " classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
@@ -91,7 +91,7 @@ threejsCanvas source (eid, classes, keyvals) = do
   let publicBase = public dirs </> makeRelativeTo (project dirs) base
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
-  addScript $ ScriptURI "javascript" (supportDir </> "three.min.js")
+  addScript $ ScriptURI "javascript" (supportDir </> "three.js")
   let includes = splitOn "," $ fromMaybe "" $ lookup "includes" keyvals
   mapM_ addScript $ map (ScriptURI "javascript") includes
   addScript $ ScriptSource "javascript" contents

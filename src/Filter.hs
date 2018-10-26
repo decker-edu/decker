@@ -2,6 +2,7 @@
 module Filter
   ( RowLayout(..)
   , OutputFormat(..)
+  , Disposition(..)
   , transformImageSize
   , lazyLoadImage
   , iframeExtensions
@@ -10,6 +11,20 @@ module Filter
   , processPandoc
   , processSlides
   , renderMediaTags
+  , processPandoc
+  , hasAttrib
+  , blockClasses
+  , makeSlides
+  , makeBoxes
+  , useCachedImages
+  , escapeToFilePath
+  , cachePandocImages
+  , extractLocalImagePathes
+  , renderMediaTags
+  , iframeExtensions
+  , audioExtensions
+  , videoExtensions
+  , convertMediaAttributes
   ) where
 
 import Common
@@ -25,7 +40,7 @@ import Data.List
 import Data.List.Extra (for)
 import Data.List.Split
 import Data.Maybe
-import Data.Tuple.Select
+-- import Data.Tuple.Select
 import Development.Shake (Action)
 import Network.HTTP.Conduit hiding (InternalException)
 import Network.HTTP.Simple
@@ -51,7 +66,7 @@ import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.Read
+import Text.Read hiding (lift)
 
 processPandoc ::
      (Pandoc -> Decker Pandoc)
@@ -157,8 +172,8 @@ instance HasAttr Slide where
     fmap (\a' -> Slide (Just (Header n a' s)) b) (f a)
   attributes _ x = pure x
 
-instance HasAttr Block where
-  attributes f (Para [Image a i t]) = fmap (\a'->Code a' s) (f a)
+-- instance HasAttr Block where
+--   attributes f (Para [Image a i t]) = fmap (\a'->Code a' s) (f a)
 
 -- instance HasAttr Block where
 --   attributes (Div attribs _) = attribs
@@ -172,6 +187,8 @@ instance HasAttr Block where
 --   attributes (Image attribs _ _) = attribs
 --   attributes (Span attribs _) = attribs
 --   attributes _ = nullAttr
+
+
 hasClass :: HasAttr a => String -> a -> Bool
 hasClass which = elem which . classes
 
@@ -423,7 +440,8 @@ cacheImageIO uri cacheDir = do
 renderMediaTags :: Pandoc -> Decker Pandoc
 renderMediaTags pandoc = do
   disp <- gets disposition
-  return $ walk (renderImageAudioVideoTag disp) pandoc
+  pandoc' <- lift $ walkM (renderMediaTag disp) pandoc
+  return $ pandoc'
 
 -- | File extensions that signify video content.
 videoExtensions :: [String]
@@ -436,7 +454,17 @@ audioExtensions = [".m4a", ".mp3", ".ogg", ".wav"]
 
 -- | File extensions that signify iframe content.
 iframeExtensions :: [String]
-iframeExtensions = [".html", ".html", ".pdf"]
+iframeExtensions = [".html", ".htm", ".pdf", ".php"]
+
+-- | File extensions that signify images
+imageExtensions :: [String]
+imageExtensions =
+  [".jpg", ".jpeg", ".png", ".gif", ".tif", ".tiff", ".bmp", ".svg"]
+
+-- | File-extensions that should be treated as 3D model and will be shown with Mario's viewer
+-- in an iframe
+meshExtensions :: [String]
+meshExtensions = [".off", ".obj", ".stl"]
 
 uriPathExtension :: String -> String
 uriPathExtension reference =
@@ -453,13 +481,19 @@ classifyFilePath name =
       | ext `elem` audioExtensions -> AudioMedia
     ext
       | ext `elem` iframeExtensions -> IframeMedia
+    ext
+      | ext `elem` meshExtensions -> MeshMedia
     _ -> ImageMedia
 
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
 -- transfers attributes to the video tag.
-renderImageAudioVideoTag :: Disposition -> Inline -> Inline
-renderImageAudioVideoTag disp (Image (ident, cls, values) inlines (url, tit)) =
-  RawInline (Format "html") (renderHtml imageVideoTag)
+renderMediaTag :: Disposition -> Inline -> Action Inline
+renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit))
+  | ident == "svg" || (uriPathExtension url) `elem` [".svg"] = do
+    svg <- liftIO $ catch (readFile url) svgLoadErrorHandler
+    return $ toHtml svg
+renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) = do
+  return $ RawInline (Format "html") (renderHtml imageVideoTag)
   where
     imageVideoTag =
       if "iframe" `elem` cls
@@ -469,14 +503,14 @@ renderImageAudioVideoTag disp (Image (ident, cls, values) inlines (url, tit)) =
                AudioMedia -> mediaTag (audio "Browser does not support audio.")
                IframeMedia ->
                  mediaTag (iframe "Browser does not support iframe.")
+               MeshMedia -> mediaTag (iframe "Browser does not support iframe.")
                ImageMedia -> mediaTag img
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
       ifNotEmpty A.id ident $
-      ifNotEmpty A.class_ (unwords cls) $
-      ifNotEmpty A.alt (stringify inlines) $
-      ifNotEmpty A.title tit $ foldl appendAttr tag transformedValues
+      ifNotEmpty class_ (unwords cls') $
+      ifNotEmpty title tit $ foldl appendAttr tag ((srcAttr, src) : values')
     ifNotEmpty attr value element =
       if value == ""
         then element
@@ -485,43 +519,87 @@ renderImageAudioVideoTag disp (Image (ident, cls, values) inlines (url, tit)) =
       if disp == Disposition Deck Html
         then "data-src"
         else "src"
-    transformedValues = (lazyLoad . transformImageSize) values
-    lazyLoad vs = (srcAttr, url) : vs
-renderImageAudioVideoTag _ inline = inline
+    src =
+      if extension `elem` meshExtensions
+        then "demos" </> "mview" </> "mview.html?model=.." </> ".." </> url
+        else url
+    extension = uriPathExtension url
+    (_, cls', values') = convertMediaAttributes attrs
+renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
+  (RawInline _ htmlTag) <-
+    renderMediaTag disp (Image attrsForward [] (url, tit))
+  return $
+    Span
+      attrs'
+      ([toHtml "<figure>", toHtml htmlTag, toHtml "<figcaption>"] ++
+       inlines ++ [toHtml "</figcaption>", toHtml "</figure>"])
+  where
+    attrs' =
+      if (uriPathExtension url) `elem` [".svg"]
+        then convertMediaAttributes attrs
+        else nullAttr
+    attrsForward = (ident, cls, ("alt", stringify inlines) : values)
+-- | return inline if it is no image
+renderMediaTag _ inline = do
+  return inline
 
--- | Mimic pandoc for handling the 'width' and 'height' attributes of images.
--- That is, transfer 'width' and 'height' attribute values to css style values
--- and add them to the 'style' attribute value.
-transformImageSize :: [(String, String)] -> [(String, String)]
-transformImageSize attributes =
-  let style :: [String]
-      style =
-        delete "" $
-        split (dropDelims $ oneOf ";") $
-        maybe "" snd (find (\(k, _) -> k == "style") attributes)
-      unstyled :: [(String, String)]
-      unstyled = filter (\(k, _) -> k /= "style") attributes
-      unsized =
-        filter (\(k, _) -> k /= "width") $
-        filter (\(k, _) -> k /= "height") unstyled
-      size =
-        ( snd <$> find (\(k, _) -> k == "width") unstyled
-        , snd <$> find (\(k, _) -> k == "height") unstyled)
-      sizeStyle =
-        case size of
-          (Just w, Just h) -> ["width:" ++ w, "height:" ++ h]
-          (Just w, Nothing) -> ["width:" ++ w, "height:auto"]
-          (Nothing, Just h) -> ["width:auto", "height:" ++ h]
-          (Nothing, Nothing) -> []
-      css = style ++ sizeStyle
-      styleAttr = ("style", intercalate ";" $ reverse $ "" : css)
-   in if null css
-        then unstyled
-        else styleAttr : unsized
+svgLoadErrorHandler :: IOException -> IO String
+svgLoadErrorHandler e = do
+  return "<div>Couldn't load SVG</div>"
 
--- | Moves the `src` attribute to `data-src` to enable reveal.js lazy loading.
-lazyLoadImage :: Inline -> IO Inline
-lazyLoadImage (Image (ident, cls, values) inlines (url, tit)) = do
-  let kvs = ("data-src", url) : [kv | kv <- values, "data-src" /= fst kv]
-  return (Image (ident, cls, kvs) inlines ("", tit))
-lazyLoadImage inline = return inline
+-- | Converts attributes 
+convertMediaAttributes :: Attr -> Attr
+convertMediaAttributes attrs =
+  convertMediaAttributeGatherStyle $
+  convertMediaAttributeImageSize $ convertMediaAttributeAutoplay attrs
+
+convertMediaAttributeAutoplay :: Attr -> Attr
+convertMediaAttributeAutoplay (id, cls, vals) = (id, cls', vals')
+  where
+    (autoplay_cls, cls') = partition (== "autoplay") cls
+    vals' =
+      vals ++
+      if null autoplay_cls
+        then []
+        else [("data-autoplay", "true")]
+
+convertMediaAttributeControls :: Attr -> Attr
+convertMediaAttributeControls (id, cls, vals) = (id, cls', vals')
+  where
+    (autoplay_cls, cls') = partition (== "controls") cls
+    vals' =
+      vals ++
+      if null autoplay_cls
+        then []
+        else [("controls", "true")]
+
+convertMediaAttributeGatherStyle :: Attr -> Attr
+convertMediaAttributeGatherStyle (id, cls, vals) = (id, cls, vals')
+  where
+    (style_cls, cls') = partition (\x -> (fst x) == "style") vals
+    style_combined =
+      if null style_cls
+        then []
+        else [("style", intercalate "" $ map snd style_cls)]
+    vals' = style_combined ++ cls'
+
+convertMediaAttributeImageSize :: Attr -> Attr
+convertMediaAttributeImageSize (id, cls, vals) = (id, cls, vals_processed)
+  where
+    (height, vals') = partition (\x -> (fst x) == "height") vals
+    height_attr =
+      if null height
+        then []
+        else [("style", "height:" ++ (snd (height !! 0)) ++ ";")]
+    (width, vals'') = partition (\x -> (fst x) == "width") vals'
+    width_attr =
+      if null width
+        then []
+        else [("style", "width:" ++ (snd (width !! 0)) ++ ";")]
+    vals_processed = vals'' ++ height_attr ++ width_attr
+
+-- | small wrapper around @RawInline (Format "html")@
+--   as this is less line-noise in the filters and the
+--   intent is more clear.
+toHtml :: String -> Inline
+toHtml = RawInline (Format "html")

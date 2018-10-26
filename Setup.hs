@@ -1,35 +1,41 @@
-import Distribution.Simple
-
-main = defaultMain
-{--
-TODO: I cannot figure out exactly why the postReg and postInst hooks are never called. Other than that, this works.
-
 import Codec.Archive.Zip
+import Conduit
+import Control.Monad.Extra
 import qualified Data.ByteString.Lazy as B
 import Data.Maybe
 import Distribution.PackageDescription
+import Distribution.Simple
 import Distribution.Simple.LocalBuildInfo
 import Distribution.Simple.Setup
 import System.Directory
-import System.FilePath.Posix
+import System.FilePath
+import System.FilePath.Glob
 import System.IO
+import System.IO.Extra
 
-main = defaultMainWithHooks simpleUserHooks {postReg = appendResourcesHook}
+-- main = defaultMain
+main = defaultMainWithHooks simpleUserHooks {postCopy = appendResourceArchive}
 
-appendResourcesHook ::
-     Args -> RegisterFlags -> PackageDescription -> LocalBuildInfo -> IO ()
-appendResourcesHook args flags descr info = do
-  let deckerBuildPath =
-        (fromJust $ flagToMaybe $ regDistPref flags) </> "build" </> "decker" </>
-        "decker"
-  -- appendResourcesArchive deckerBuildPath
-  putStrLn $
-    "### Append the shit! " ++ "(" ++ deckerBuildPath ++ ")" ++ show flags
+resourceDir = "./resource"
 
-appendResourcesArchive :: FilePath -> IO ()
-appendResourcesArchive executable = do
-  resourceArchive <-
-    withCurrentDirectory "./resource" $ do
-      addFilesToArchive [OptRecursive] emptyArchive ["support"]
-  B.appendFile executable (fromArchive resourceArchive)
---}
+appendResourceArchive ::
+     Args -> CopyFlags -> PackageDescription -> LocalBuildInfo -> IO ()
+appendResourceArchive args flags descr info = do
+  let binDir = fromPathTemplate $ bindir $ installDirTemplates info
+  executable <- makeAbsolute $ binDir </> "decker"
+  withCurrentDirectory resourceDir $ do
+    files <-
+      glob "**/*" >>= filterM doesFileExist >>=
+      mapM makeRelativeToCurrentDirectory
+    withTempFile
+      (\archive -> do
+         createArchive archive $ forM_ files addFile
+         putStrLn $
+           "Appending resource archive (" ++
+           show (length files) ++ " files) to " ++ executable
+         runConduitRes $
+           sourceFileBS archive .| sinkIOHandle (openFile executable AppendMode))
+  where
+    addFile path = do
+      selector <- mkEntrySelector path
+      loadEntry Deflate selector path

@@ -38,6 +38,9 @@ Decker uses a few external tools that need to be installed on the system:
 -   [*pdf2svg*](https://github.com/dawbarton/pdf2svg) to generate SVG files from
     PDF documents
 -   [*sassc*](https://github.com/sass/sassc) to compile SCSS to CSS
+-   *libbzip2-dev*
+-   [*NodeJS*](https://nodejs.org/) as a prerequisite for Yarn
+-   [*Yarn*](https://yarnpkg.com) to install Javascript dependencies
 
 ### Installation of external tools on macOS
 
@@ -71,6 +74,22 @@ a HTML document, or a PDF document, depending on the file name.
 
     Markdown files ending on `*-page.md` are translated into corresponding HTML
     or PDF documents.
+
+### Docker container
+
+We provide prebuild docker containers. You may use them in a directory to build the html slides with 
+
+```
+docker run --rm -it -v `pwd`:/decker -p 8888:8888 gitlab2.informatik.uni-wuerzburg.de:4567/decker/decker html
+```
+
+or for Windows
+
+```
+docker run --rm -it -v %cd%:/decker -p 8888:8888 gitlab2.informatik.uni-wuerzburg.de:4567/decker/decker html
+```
+
+Exchange the `html` at the end of the command with your *decker* command of choice. Beware that file updates are not propagated into the container so `decker server` will not auto refresh.
 
 ## *decker* targets
 
@@ -142,7 +161,9 @@ a HTML document, or a PDF document, depending on the file name.
 ### Pull requests
 
 Contributions are accepted via pull requests. Before working on a feature,
-please write up an issue and discuss it with the other developers.
+please write up an issue and discuss it with the other developers. 
+For each implemented feature, increment the version number in `package.yaml`. 
+Breaking changes increment the second number. Fixes increment the third number.
 
 ### CI build checks
 

@@ -27,7 +27,7 @@ import Data.Typeable (TypeRep, typeOf)
 import Development.Shake as Shake
 import Project
 import Server
-import System.FilePath.Posix
+import System.FilePath
 
 data ActionContext = ActionContext
   { ctxFilesToWatch :: IORef [FilePath]

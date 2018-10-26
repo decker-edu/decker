@@ -11,6 +11,7 @@ module Project
   , findProjectDirectory
   , projectDirectories
   , provisioningFromMeta
+  , templateFromMeta
   , provisioningFromClasses
   , invertPath
   , Resource(..)
@@ -24,7 +25,7 @@ import Network.URI
 import Resources
 import qualified System.Directory as D
 import System.FilePath
-import System.Posix.Files
+import System.Directory (createFileLink)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 
@@ -34,6 +35,13 @@ provisioningFromMeta meta =
     Just (MetaString s) -> read s
     Just (MetaInlines i) -> read $ stringify i
     _ -> SymLink
+
+templateFromMeta :: Meta -> Maybe String
+templateFromMeta meta = 
+  case lookupMeta "template" meta of
+    Just (MetaString s) ->  Just s
+    Just (MetaInlines i) -> Just $ stringify i
+    _ -> Nothing
 
 provisioningClasses :: [(String, Provisioning)]
 provisioningClasses =
@@ -65,7 +73,7 @@ linkResource resource = do
     (D.doesFileExist (publicFile resource))
     (D.removeFile (publicFile resource))
   D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
-  createSymbolicLink (sourceFile resource) (publicFile resource)
+  createFileLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
 absRefResource :: Resource -> IO FilePath

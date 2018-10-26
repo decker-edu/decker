@@ -1,9 +1,77 @@
 stages:
+  - templates
   - build
   - test
   - deploy
 
-dockerbuild:
+templates:
+  image: kkarczmarczyk/node-yarn
+  stage: templates
+  tags:
+    - docker
+  script:
+    - yarn install
+    - yarn run webpack --mode production
+  cache:
+    key: ${CI_JOB_NAME}
+    paths:
+      - node_modules
+  artifacts:
+    paths:
+      - resource/support
+
+build:linux:
+  stage: build
+  tags:
+    - docker
+  image:
+    name: fpco/stack-build
+    entrypoint: [""]
+  script:
+    - STACK_ROOT=`pwd`/.stack stack build
+    - cp $(STACK_ROOT=`pwd`/.stack stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
+  artifacts:
+    paths:
+      - decker
+  cache:
+    key: stack_work
+    paths:
+      - .stack-work
+      - .stack
+
+build:mac:
+  tags:
+    - mac
+  stage: build
+  script:
+    - make
+    - cp $(stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
+  cache:
+    key: ${CI_JOB_NAME}
+    paths:
+      - .stack-work
+  artifacts:
+    paths:
+      - decker
+
+test:linux:
+  stage: test
+  tags:
+    - docker
+  image:
+    name: fpco/stack-build
+    entrypoint: [""]
+  script:
+    - STACK_ROOT=`pwd`/.stack make test
+  cache:
+    key: stack_work
+    paths:
+      - .stack-work
+      - .stack
+  dependencies:
+    - build:linux
+
+deploy:docker:
   image: docker:latest
   stage: deploy
   only:
@@ -15,25 +83,36 @@ dockerbuild:
     - docker build -t $CI_REGISTRY_IMAGE .
     - docker push $CI_REGISTRY_IMAGE
 
-stackbuild:
-  tags: 
-    - stack
-  stage: build
+deploy:mac:
+  stage: deploy
+  image: 
+    name: minio/mc:latest
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - docker
+  script:
+    - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
+    - mc cp ./decker store/decker/decker-mac
+  dependencies:
+    - build:mac
   only:
     - master
-  script:
-    - stack setup
-    - make build
-  artifacts:
-    paths:
-    - dist/decker.zip
-    expire_in: 20 minutes
 
-stacktest:
-  tags: 
-    - stack
-  stage: test
+deploy:linux:
+  stage: deploy
+  image: 
+    name: minio/mc:latest
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - docker
+  script:
+    - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
+    - mc cp ./decker store/decker/decker-linux
+  dependencies:
+    - build:linux
   only:
     - master
-  script:
-    - make test
