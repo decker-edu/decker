@@ -425,7 +425,10 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) = do
       if (uriPathExtension url) `elem` [".svg"]
         then do
           fileContent <- catch (readFile url) svgLoadErrorHandler
-          return $ Span (ident, cls', values') [toHtml fileContent]
+          return $
+            if attrs /= nullAttr
+              then Span (ident, cls', values') [toHtml fileContent]
+              else toHtml fileContent
         else do
           return $
             toHtml $
@@ -468,11 +471,17 @@ renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
   image <- renderMediaTag disp (Image attrsForward [] (url, tit))
   return $
     Span
-      nullAttr
+      attrs'
       ([toHtml "<figure>", image, toHtml "<figcaption>"] ++
        inlines ++ [toHtml "</figcaption>", toHtml "</figure>"])
   where
-    attrsForward = (ident, cls, ("alt", stringify inlines) : values)
+    attrs' =
+      if (uriPathExtension url) `elem` [".svg"]
+        then convertMediaAttributes attrs
+        else nullAttr
+    attrsForward = if (uriPathExtension url) `elem` [".svg"]
+        then nullAttr
+        else (ident, cls, ("alt", stringify inlines) : values)
 -- | return inline if it is no image
 renderMediaTag _ inline = do
   return inline
