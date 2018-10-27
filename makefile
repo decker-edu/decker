@@ -8,6 +8,9 @@ else
 	decker-name := decker-$(version)-$(branch)
 endif
 
+less:
+	stack build -j 8 --fast 2>&1 | less
+
 build:
 	stack build -j 8 --fast
 

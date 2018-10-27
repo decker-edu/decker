@@ -3,27 +3,16 @@ module Filter
   ( RowLayout(..)
   , OutputFormat(..)
   , Disposition(..)
-  , transformImageSize
-  , lazyLoadImage
   , iframeExtensions
   , audioExtensions
   , videoExtensions
   , processPandoc
   , processSlides
   , renderMediaTags
-  , processPandoc
-  , hasAttrib
-  , blockClasses
-  , makeSlides
-  , makeBoxes
   , useCachedImages
   , escapeToFilePath
   , cachePandocImages
   , extractLocalImagePathes
-  , renderMediaTags
-  , iframeExtensions
-  , audioExtensions
-  , videoExtensions
   , convertMediaAttributes
   ) where
 
@@ -40,6 +29,7 @@ import Data.List
 import Data.List.Extra (for)
 import Data.List.Split
 import Data.Maybe
+
 -- import Data.Tuple.Select
 import Development.Shake (Action)
 import Network.HTTP.Conduit hiding (InternalException)
@@ -67,6 +57,12 @@ import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Read hiding (lift)
+
+-- A slide has maybe a header followed by zero or more blocks.
+data Slide = Slide
+  { _header :: Maybe Block
+  , _body :: [Block]
+  } deriving (Eq, Show)
 
 processPandoc ::
      (Pandoc -> Decker Pandoc)
@@ -130,11 +126,14 @@ renderRow areaMap (MultiColumn areas) =
     renderArea (i, area) = lookup area areaMap >>= Just . renderColumn . (i, )
 
 renderColumn :: (Int, [Block]) -> Block
-renderColumn (i, blocks) =
+renderColumn (i, blocks)
   -- let grow = fromMaybe (1 :: Int) $ lookup "grow" (keyvals blocks) >>= readMaybe
   -- let grow = blocks ^. attributes . attrs . (at 1) ?~ (1 :: Int)
-  let grow = fromMaybe (1 :: Int) $ lookup "grow" (blocks ^. attributes . attrs) >>= readMaybe
-  in Div
+ =
+  let grow =
+        fromMaybe (1 :: Int) $ lookup "grow" (blocks ^. attributes . attrs) >>=
+        readMaybe
+   in Div
         ( ""
         , ["grow-" ++ show grow, "column", "column-" ++ show i]
         , blocks ^. attributes . attrs)
@@ -146,7 +145,8 @@ renderLayout areaMap l = mapMaybe (renderRow areaMap) (rows l)
 slideAreas :: [String] -> [Block] -> AreaMap
 slideAreas names blocks =
   mapMaybe (\area -> firstClass names (head area) >>= Just . (, area)) $
-  filter (not . null) $ split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
+  filter (not . null) $
+  split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
 
 layoutSlide :: Slide -> Decker Slide
 layoutSlide slide@(Slide (Just header) body) = do
@@ -164,10 +164,10 @@ layoutSlide slide = return slide
 
 -- | A lens on a slide
 header :: Lens' Slide (Maybe Block)
-header = lens (\(Slide h _) -> h) (\(Slide _ b) h -> h)
+header = lens (\(Slide h _) -> h) (\(Slide _ b) h -> (Slide h b))
 
-blocks :: Lens' Slide (Maybe Block)
-blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> b)
+blocks :: Lens' Slide [Block]
+blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> (Slide h b))
 
 instance HasAttr Slide where
   attributes f (Slide (Just (Header n a s)) b) =
@@ -175,28 +175,12 @@ instance HasAttr Slide where
   attributes _ x = pure x
 
 instance HasAttr [Block] where
-  attributes f (b:bs) = attributes f b
+  attributes f (b:bs) =
+    fmap (\a' -> ((set attributes a' b) : bs)) (f (view attributes b))
   attributes _ x = pure x
-  
--- instance HasAttr Block where
---   attributes f (Para [Image a i t]) = fmap (\a'->Code a' s) (f a)
-
--- instance HasAttr Block where
---   attributes (Div attribs _) = attribs
---   attributes (Header 1 attribs _) = attribs
---   attributes (CodeBlock attribs _) = attribs
---   attributes (Para [Image attribs _ _]) = attribs
---   attributes _ = nullAttr
--- instance HasAttr Inline where
---   attributes (Code attribs _) = attribs
---   attributes (Link attribs _ _) = attribs
---   attributes (Image attribs _ _) = attribs
---   attributes (Span attribs _) = attribs
---   attributes _ = nullAttr
-
 
 hasClass :: HasAttr a => String -> a -> Bool
-hasClass which = elem which . classes
+hasClass which = elem which . view (attributes . attrClasses)
 
 hasAnyClass :: HasAttr a => [String] -> a -> Bool
 hasAnyClass which = isJust . firstClass which
@@ -205,10 +189,10 @@ firstClass :: HasAttr a => [String] -> a -> Maybe String
 firstClass which fragment = listToMaybe $ filter (`hasClass` fragment) which
 
 attribValue :: HasAttr a => String -> a -> Maybe String
-attribValue which = lookup which . keyvals
+attribValue which = lookup which . view (attributes . attrs)
 
 dropByClass :: HasAttr a => [String] -> [a] -> [a]
-dropByClass which = filter (not . any (`elem` which) . classes)
+dropByClass which = filter (not . any (`elem` which) . view (attributes . attrClasses))
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
 splitJoinColumns :: Slide -> Decker Slide
@@ -271,8 +255,8 @@ handleBackground slide@(Slide header blocks) =
                       1
                       ( headerId
                       , headerClasses ++ imageClasses
-                      , srcAttribute imageSrc :
-                        headerAttributes ++ map transform imageAttributes)
+                      , srcAttribute imageSrc : headerAttributes ++
+                        map transform imageAttributes)
                       (walk zapImages inlines)))
                 blocks
             Disposition _ _ ->
@@ -319,12 +303,6 @@ wrapBoxesOne slide@(Slide header body) = do
       ]
     wrap box = box
 
--- A slide has maybe a header followed by zero or more blocks.
-data Slide = Slide
-  { _header :: Maybe Block
-  , _body :: [Block]
-  } deriving (Eq, Show)
-
 isSlideSeparator :: Block -> Bool
 isSlideSeparator (Header 1 _ _) = True
 isSlideSeparator HorizontalRule = True
@@ -354,7 +332,7 @@ fromSlides :: [Slide] -> [Block]
 fromSlides = concatMap prependHeader
   where
     prependHeader (Slide (Just header) body)
-      | hasClass "notes" header = [Div (attributes header) (header : body)]
+      | hasClass "notes" header = [Div (view attributes header) (header : body)]
     prependHeader (Slide (Just header) body) = HorizontalRule : header : body
     prependHeader (Slide Nothing body) = HorizontalRule : body
 
@@ -514,9 +492,9 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) = do
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
-      ifNotEmpty A.id ident $
-      ifNotEmpty class_ (unwords cls') $
-      ifNotEmpty title tit $ foldl appendAttr tag ((srcAttr, src) : values')
+      ifNotEmpty A.id ident $ ifNotEmpty A.class_ (unwords cls') $
+      ifNotEmpty A.title tit $
+      foldl appendAttr tag ((srcAttr, src) : values')
     ifNotEmpty attr value element =
       if value == ""
         then element
@@ -537,8 +515,8 @@ renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
   return $
     Span
       attrs'
-      ([toHtml "<figure>", toHtml htmlTag, toHtml "<figcaption>"] ++
-       inlines ++ [toHtml "</figcaption>", toHtml "</figure>"])
+      ([toHtml "<figure>", toHtml htmlTag, toHtml "<figcaption>"] ++ inlines ++
+       [toHtml "</figcaption>", toHtml "</figure>"])
   where
     attrs' =
       if (uriPathExtension url) `elem` [".svg"]
@@ -556,8 +534,8 @@ svgLoadErrorHandler e = do
 -- | Converts attributes 
 convertMediaAttributes :: Attr -> Attr
 convertMediaAttributes attrs =
-  convertMediaAttributeGatherStyle $
-  convertMediaAttributeImageSize $ convertMediaAttributeAutoplay attrs
+  convertMediaAttributeGatherStyle $ convertMediaAttributeImageSize $
+  convertMediaAttributeAutoplay attrs
 
 convertMediaAttributeAutoplay :: Attr -> Attr
 convertMediaAttributeAutoplay (id, cls, vals) = (id, cls', vals')

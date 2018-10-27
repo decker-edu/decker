@@ -332,11 +332,11 @@ readAndProcessMarkdown markdownFile disp = do
 -- for a certain disposition type
 getTemplateFileName :: Disposition -> String
 getTemplateFileName (Disposition Deck Html) = "deck.html"
-getTemplateFileName (Disposition Deck Pdf) = "deck.tex"
+getTemplateFileName (Disposition Deck Latex) = "deck.tex"
 getTemplateFileName (Disposition Page Html) = "page.html"
-getTemplateFileName (Disposition Page Pdf) = "page.tex"
+getTemplateFileName (Disposition Page Latex) = "page.tex"
 getTemplateFileName (Disposition Handout Html) = "handout.html"
-getTemplateFileName (Disposition Handout Pdf) = "handout.tex"
+getTemplateFileName (Disposition Handout Latex) = "handout.tex"
 
 provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
@@ -455,7 +455,7 @@ markdownToHtmlPage markdownFile out = do
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
 markdownToPdfPage markdownFile out = do
   putCurrentDocument out
-  let disp = Disposition Page Pdf
+  let disp = Disposition Page Latex
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
   let options =
@@ -503,7 +503,7 @@ markdownToHtmlHandout markdownFile out = do
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
 markdownToPdfHandout markdownFile out = do
   putCurrentDocument out
-  let disp = Disposition Handout Pdf
+  let disp = Disposition Handout Latex
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
   let options =
