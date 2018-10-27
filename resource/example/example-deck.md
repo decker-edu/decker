@@ -89,6 +89,29 @@ The following text is included from file `/resource/realtive.md`:
 
 ![](img/06-metal.png){width="75%"}
 
+# SVG as image {layout="columns"}
+
+## {.left}
+
+![SVG image](img/w3c.svg)
+
+## Source code {.right}
+
+```markdown
+![SVG image](img/w3c.svg)
+```
+
+# SVG embedded/included in html source {layout="columns"}
+
+## {.left}
+
+![Embedded SVG](img/train.svg){.embed}
+
+## Source code {.right}
+
+```markdown
+![Embedded SVG](img/train.svg){.embed}
+```
 
 # LaTeX Math
 

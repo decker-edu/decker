@@ -23,6 +23,9 @@ extra-source-files:
 - readme.md
 - Dockerfile
 - makefile
+- src-support/*
+- resource/template/*
+- resource/example/*
 
 synopsis:            A markdown based tool for slide deck creation
 category:            Tool

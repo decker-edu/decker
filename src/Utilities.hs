@@ -322,6 +322,7 @@ readAndProcessMarkdown markdownFile disp = do
         , provisionResources
         , processSlides
         , renderMediaTags
+        , extractFigures
         , processCitesWithDefault
         , appendScripts
         ]
