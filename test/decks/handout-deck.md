@@ -6,6 +6,7 @@ history: True
 subtitle: Generate handouts from slide source
 title: Handout Test
 title-prefix: Decker
+menu: True
 ---
 
 # Notes
@@ -96,9 +97,16 @@ title-prefix: Decker
 
 ![](include/06-metal.png)
 
-# Backgrounds ![](include/06-metal.png)
+# Backgrounds 1 ![In a slide, this is a background image.](include/06-metal.png)
 
 ## Background Images in Handouts
 
 -   Converted to inline images
+-   Just after the header
+
+# Backgrounds 2 ![In a slide, this is a background video.](pacman-perfect-game.mp4){controls="1"}
+
+## Background Videos in Handouts
+
+-   Converted to inline videos
 -   Just after the header

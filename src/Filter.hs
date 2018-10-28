@@ -266,7 +266,7 @@ handleBackground slide@(Slide header blocks) =
               return $
               Slide
                 (Just
-                   (Header
+                   (Header 
                       1
                       (headerId, headerClasses, headerAttributes)
                       (walk zapImages inlines)))
@@ -335,7 +335,8 @@ fromSlides :: [Slide] -> [Block]
 fromSlides = concatMap prependHeader
   where
     prependHeader (Slide (Just header) body)
-      | hasClass "notes" header = [Div (view attributes header) (header : body)]
+      | hasClass "notes" header || hasClass "handout" header =
+        [Div (view attributes header) (header : body)]
     prependHeader (Slide (Just header) body) = HorizontalRule : header : body
     prependHeader (Slide Nothing body) = HorizontalRule : body
 
