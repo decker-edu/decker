@@ -1,6 +1,11 @@
 ---
+author: Henrik Tramberend
+copyright: Copyright 2018
+date: '2018-10-28'
 history: True
+subtitle: Generate handouts from slide source
 title: Handout Test
+title-prefix: Decker
 ---
 
 # Notes
@@ -81,6 +86,7 @@ title: Handout Test
 
 ## This slide contains speaker notes
 
+-   The second paragraph contains speaker notes
 -   Speaker Notes are not visible in decks and handouts
 
 ## Speaker Notes {.notes}
@@ -94,5 +100,5 @@ title: Handout Test
 
 ## Background Images in Handouts
 
-- Converted to inline images
-- Just after the header
+-   Converted to inline images
+-   Just after the header

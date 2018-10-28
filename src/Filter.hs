@@ -127,10 +127,7 @@ renderRow areaMap (MultiColumn areas) =
     renderArea (i, area) = lookup area areaMap >>= Just . renderColumn . (i, )
 
 renderColumn :: (Int, [Block]) -> Block
-renderColumn (i, blocks)
-  -- let grow = fromMaybe (1 :: Int) $ lookup "grow" (keyvals blocks) >>= readMaybe
-  -- let grow = blocks ^. attributes . attrs . (at 1) ?~ (1 :: Int)
- =
+renderColumn (i, blocks) =
   let grow =
         fromMaybe (1 :: Int) $ lookup "grow" (blocks ^. attributes . attrs) >>=
         readMaybe
@@ -163,18 +160,22 @@ layoutSlide slide@(Slide (Just header) body) = do
     Disposition _ _ -> return slide
 layoutSlide slide = return slide
 
--- | A lens on a slide
+-- | A lens for header access on a slide. See
+-- https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/a-little-lens-starter-tutorial
 header :: Lens' Slide (Maybe Block)
 header = lens (\(Slide h _) -> h) (\(Slide _ b) h -> (Slide h b))
 
+-- | A lens for blocks access on a slide. 
 blocks :: Lens' Slide [Block]
 blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> (Slide h b))
 
+-- | Attributes of a slide are those of the header 
 instance HasAttr Slide where
   attributes f (Slide (Just (Header n a s)) b) =
     fmap (\a' -> Slide (Just (Header n a' s)) b) (f a)
   attributes _ x = pure x
 
+-- | Attributes of a list of blocks are those of the first block. 
 instance HasAttr [Block] where
   attributes f (b:bs) =
     fmap (\a' -> ((set attributes a' b) : bs)) (f (view attributes b))
@@ -193,7 +194,8 @@ attribValue :: HasAttr a => String -> a -> Maybe String
 attribValue which = lookup which . view (attributes . attrs)
 
 dropByClass :: HasAttr a => [String] -> [a] -> [a]
-dropByClass which = filter (not . any (`elem` which) . view (attributes . attrClasses))
+dropByClass which =
+  filter (not . any (`elem` which) . view (attributes . attrClasses))
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
 splitJoinColumns :: Slide -> Decker Slide
@@ -289,8 +291,8 @@ handleBackground slide@(Slide header blocks) =
 
 -- | Wrap boxes around H2 headers and the following content. All attributes are
 -- promoted from the H2 header to the enclosing DIV.
-wrapBoxesOne :: Slide -> Decker Slide
-wrapBoxesOne slide@(Slide header body) = do
+wrapBoxes :: Slide -> Decker Slide
+wrapBoxes slide@(Slide header body) = do
   disp <- gets disposition
   case disp of
     Disposition _ Latex -> return slide
@@ -353,7 +355,7 @@ processSlides = mapSlides (concatM actions)
   where
     actions :: [Slide -> Decker Slide]
     actions =
-      [ wrapBoxesOne
+      [ wrapBoxes
       , selectActiveSlideContent
       , splitJoinColumns
       , layoutSlide
@@ -486,9 +488,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) = do
               then Span (ident, cls', values') [toHtml fileContent]
               else toHtml fileContent
         else do
-          return $
-            toHtml $
-            renderHtml $
+          return $ toHtml $ renderHtml $
             if "iframe" `elem` cls
               then mediaTag (iframe "Browser does not support iframe.")
               else createMediaTag
@@ -528,8 +528,8 @@ renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
   return $
     Span
       nullAttr
-      ([toHtml "<figure>", image, toHtml "<figcaption>"] ++
-       inlines ++ [toHtml "</figcaption>", toHtml "</figure>"])
+      ([toHtml "<figure>", image, toHtml "<figcaption>"] ++ inlines ++
+       [toHtml "</figcaption>", toHtml "</figure>"])
   where
     attrsForward = (ident, cls, ("alt", stringify inlines) : values)
 -- | return inline if it is no image
