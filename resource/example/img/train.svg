@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="-512 -272 1024 512">
+ <title>Toy train SMIL</title>
+ <desc>SMIL animation of a little toy train demonstrating animateMotion along a path, by CMG Lee.</desc>
+ <style type="text/css">
+  #lights  { stroke-width:3; stroke-linecap:round; stroke-dasharray:1,6;                      fill:none; }
+  #wheels  { stroke-width:4; stroke-linecap:round; stroke-dasharray:1,5,1,14; stroke:#333333; fill:none; }
+  #body    { stroke-width:1; stroke:#000000; }
+  #roof    { stroke-width:1; stroke:#000000; }
+  #load    { stroke-width:4; stroke:#cc0099; fill:#990066; }
+  #logs    { stroke-width:4; stroke-linecap:round; }
+  .outline { stroke-linejoin:round; stroke:#000000; }
+ </style>
+ <defs>
+  <radialGradient id="grad" cx="50%" cy="50%" r="50%" fx="50%" fy="25%">
+   <stop offset="75%" stop-color="#339900"/>
+   <stop offset="99%" stop-color="#006600"/>
+  </radialGradient>
+  <path id="wheels" d="M -14,-6 H 14 M -14,6 H 14"/>
+  <rect id="body" x="-20" y="-8" width="40" height="16" rx="7" ry="5"/>
+  <rect id="roof" x="-19" y="-7" width="38" height="14" rx="7" ry="5"/>
+  <path id="logs" d="M -20,-5 H 22 M -22,0 H 20 M -21,5 H 21"/>
+  <path id="lights" d="M -19,-4 V 4"/>
+  <g id="front">
+   <use xlink:href="#body"/>
+   <use xlink:href="#lights" stroke="#ffff00" transform="scale(-1,1)"/>
+  </g>
+  <g id="back">
+   <use xlink:href="#body"/>
+   <use xlink:href="#lights" stroke="#ff0000"/>
+  </g>
+  <g id="load">
+   <circle cx="8" cy="0" r="5"/>
+   <circle cx="-8" cy="0" r="5"/>
+  </g>
+  <g id="bload">
+   <use xlink:href="#body"/>
+   <use xlink:href="#load"/>
+  </g>
+  <g id="blogs">
+   <use xlink:href="#body"/>
+   <use xlink:href="#logs" stroke="#663300"/>
+  </g>
+  <path id="track_inner" d="M 0,-220 C -400,-220  430,220 0,220" fill="none"/>
+  <path id="track_outer" d="M 0,-220 C -300,-220 -350,220 0,220" fill="none"/>
+  <mask id="mask_inner"><rect x="-299" y="-499" width="999" height="999" fill="#ffffff"/><use xlink:href="#track_inner" stroke="#000000" stroke-width="10"/></mask>
+  <mask id="mask_outer"><rect x="-299" y="-499" width="999" height="999" fill="#ffffff"/><use xlink:href="#track_outer" stroke="#000000" stroke-width="10"/></mask>
+  <use id="rails_inner" xlink:href="#track_inner" stroke-width="14" mask="url(#mask_inner)"/><use id="sleepers_inner" xlink:href="#track_inner" stroke-width="20" stroke-dasharray="2,5.01" stroke-dashoffset="1"/>
+  <use id="rails_outer" xlink:href="#track_outer" stroke-width="14" mask="url(#mask_outer)"/><use id="sleepers_outer" xlink:href="#track_outer" stroke-width="20" stroke-dasharray="2,5.01" stroke-dashoffset="1"/>
+  <g id="track_rails">
+   <use xlink:href="#rails_inner"/><use xlink:href="#rails_inner" transform="scale(-1,1)"/>
+   <use xlink:href="#rails_outer"/><use xlink:href="#rails_outer" transform="scale(-1,1)"/>
+  </g>
+  <g id="track_sleepers">
+   <use xlink:href="#sleepers_inner"/><use xlink:href="#sleepers_inner" transform="scale(-1,1)"/>
+   <use xlink:href="#sleepers_outer"/><use xlink:href="#sleepers_outer" transform="scale(-1,1)"/>
+  </g>
+
+  <g id="tree_deciduous" class="outline">
+   <rect x="-4" y="-40" width="8" height="40" rx="4" ry="3" fill="#996600"/>
+   <ellipse cx="0" cy="-80" rx="15" ry="50" fill="url(#grad)"/>
+  </g>
+  <g id="tree_evergreen" class="outline">
+   <path d="M 0,-100 L -20,-10 C -25, 10 25, 10 20,-10 Z" fill="#006633"/>
+   <path d="M 0,-120 L -15,-50 C -20,-30 20,-30 15,-50 Z" fill="#006633"/>
+  </g>
+  <path id="tunnel_back" class="outline" d="M -110,-250 Q -120,-250 -120,-215 Q 0,-270 120,-215 Q 120,-250 110,-250" fill="#666666"/>
+  <path id="tunnel_front" class="outline" d="M -110,-250 Q 0,-280 110,-250 Q 90,-250 90,-180 Q 0,-220 -90,-180 Q -90,-250 -110,-250" fill="#999999"/>
+
+  <path id="barrier_arm_base" d="M 3,0 H -68"/>
+  <g id="barrier_arm">
+   <use xlink:href="#barrier_arm_base" stroke="#ff0000" stroke-width="8" stroke-linecap="round"/>
+   <use xlink:href="#barrier_arm_base" stroke="#cccccc" stroke-width="6" stroke-dasharray="8,8"/>
+  </g>
+  <rect id="barrier_post" x="-6" y="-10" width="12" height="30" rx="6" ry="3" stroke="#996600" fill="#ffcc00"/>
+
+  <g id="bouncer" class="outline">
+   <ellipse cx="0" cy="-80" rx="8" ry="14" fill="#6600ff"/>
+   <circle cx="0" cy="-95" r="6" fill="#ffcc99"/>
+  </g>
+
+  <!-- a known bug in the W3C validator requires an mpath even when animateMotion already contains a path attribute:
+       http://lists.w3.org/Archives/Public/www-validator-cvs/2013Dec/0000.html -->
+  <path id="amp0" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+  <path id="amp1" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+  <path id="amp2" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+  <path id="amp3" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+  <path id="amp4" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+  <path id="amp5" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+  <path id="amp6" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+  <path id="amp7" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+  <path id="amp8" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+  <path id="amp9" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+  <path id="amp10" d="M0,-220 C-300,-220 -350,220 0,220 C350,220 300,-220 0,-220 C-400,-220 430,220 0,220 C-350,220 -300,-220 0,-220 C400,-220 -430,220 0,220 C430,220 -400,-220 0,-220 C300,-220 350,220 0,220 C-430,220 400,-220 0,-220"/>
+ </defs>
+
+ <!-- <rect x="-4999" y="-4999" width="9999" height="9999" fill="#ffffff"/> -->
+ <g transform="scale(2,1)">
+  <use xlink:href="#track_sleepers" stroke="#666600"/>
+  <use xlink:href="#track_sleepers" stroke="#ff9966" transform="translate(0,-1)"/>
+  <use xlink:href="#track_rails" stroke="#666666" transform="translate(0,-1)"/>
+  <use xlink:href="#track_rails" stroke="#cccccc" transform="translate(0,-3)"/>
+  <use xlink:href="#tree_evergreen" transform="translate(-180,50)"/>
+  <use xlink:href="#tree_deciduous" transform="translate(5,-40)"/>
+  <use xlink:href="#tree_evergreen" transform="translate(30,190)"/>
+  <use xlink:href="#tree_deciduous" transform="translate(215,80)"/>
+  <use xlink:href="#tunnel_back"/>
+  <g>
+   <g transform="translate(0, -6)"><use xlink:href="#wheels"><animateMotion begin="0s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp0"/></animateMotion></use></g>
+   <g transform="translate(0, -6)"><use xlink:href="#wheels"><animateMotion begin="0.43s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp1"/></animateMotion></use></g>
+   <g transform="translate(0, -6)"><use xlink:href="#wheels"><animateMotion begin="0.86s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp2"/></animateMotion></use></g>
+   <g transform="translate(0,-10)"><use xlink:href="#body" fill="#009900"><animateMotion begin="0s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp3"/></animateMotion></use></g>
+   <g transform="translate(0,-10)"><use xlink:href="#bload" fill="#cc99ff"><animateMotion begin="0.43s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp4"/></animateMotion></use></g>
+   <g transform="translate(0,-10)"><use xlink:href="#back" fill="#0033cc"><animateMotion begin="0.86s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp5"/></animateMotion></use></g>
+   <g transform="translate(0,-16)"><use xlink:href="#front" fill="#00cc00"><animateMotion begin="0s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp6"/></animateMotion></use></g>
+   <g transform="translate(0,-16)"><use xlink:href="#load"><animateMotion begin="0.43s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp7"/></animateMotion></use></g>
+   <g transform="translate(0,-18)"><use xlink:href="#blogs" fill="#0066ff"><animateMotion begin="0.86s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp8"/></animateMotion></use></g>
+   <g transform="translate(0,-22)"><use xlink:href="#body" fill="#ffffff"><animateMotion begin="0s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp9"/></animateMotion></use></g>
+   <g transform="translate(0,-28)"><use xlink:href="#roof" fill="#00ff00"><animateMotion begin="0s" dur="60s" repeatCount="indefinite" rotate="auto"><mpath xlink:href="#amp10"/></animateMotion></use></g>
+   <animate attributeType="XML" attributeName="opacity" begin="0s" dur="0.86s" values="0;0;1" keyTimes="0;1;1"/>
+  </g>
+  <use xlink:href="#tunnel_front"/>
+  <use xlink:href="#tree_deciduous" transform="translate(-45,-10)"/>
+  <use xlink:href="#tree_evergreen" transform="translate(130,-110)"/>
+ </g>
+ <use xlink:href="#barrier_post" transform="translate(14,10)"/>
+ <g transform="matrix(-1,0.5 0,1 18,10)">
+  <use xlink:href="#barrier_arm">
+   <animateTransform attributeType="XML" attributeName="transform" type="rotate" begin="0s" dur="60s" values="0;0;90;90;0;0;90;90;0;0" keyTimes="0; 0.28;0.30;0.33;0.35; 0.65;0.67;0.70;0.72; 1" repeatCount="indefinite"/>
+  </use>
+ </g>
+ <use xlink:href="#barrier_post" transform="translate(-14,10)"/>
+ <g transform="matrix(1,0.5 0,1 -18,10)">
+  <use xlink:href="#barrier_arm">
+   <animateTransform attributeType="XML" attributeName="transform" type="rotate" begin="0s" dur="60s" values="0;0;90;90;0;0;90;90;0;0" keyTimes="0; 0.53;0.55;0.58;0.60; 0.91;0.93;0.96;0.98; 1" repeatCount="indefinite"/>
+  </use>
+ </g>
+ <g>
+  <g>
+   <use xlink:href="#bouncer">
+    <animateTransform attributeType="XML" attributeName="transform" type="scale" begin="0s" dur="0.5s" values="1.2,0.8;1,1;0.9,1.1;1,1;1.2,0.8" keyTimes="0;0.2;0.5;0.8;1" repeatCount="indefinite"/>
+   </use>
+   <animateTransform attributeType="XML" attributeName="transform" type="translate" begin="0s" dur="13s" values="0,130;0,-40;0,130" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+  </g>
+  <animateTransform attributeType="XML" attributeName="transform" type="translate" begin="0s" dur="31s" values="380,0;160,0;380,0" keyTimes="0;0.5;1" repeatCount="indefinite"/>
+ </g>
+</svg>
