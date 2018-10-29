@@ -198,7 +198,9 @@ body {
 
                 code {
                     font-family: 'Source Code Pro', monospace;
-                    font-size: 100%;
+                    font-size: 106%;
+                    font-weight: 500;
+                    color: #06287e;
                 }
 
                 /////////////////////////////////////////////
@@ -526,6 +528,7 @@ body {
                         word-wrap: break-word;
                         box-shadow: none;
                         font-size: 90%;
+                        font-weight: 500;
                         margin: 0;
 
                         &.numberSource {
@@ -566,6 +569,7 @@ body {
                             font-family: 'Source Code Pro', monospace;
                             white-space: pre; // pre-wrap generates line breaks
                             position: relative;
+                            color: black;
 
                             a.sourceLine {
                                 display: inline-block;
