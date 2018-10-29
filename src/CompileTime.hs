@@ -2,17 +2,18 @@ module CompileTime
   ( lookupGitBranch
   ) where
 
+import Control.Monad
 import Data.Maybe
+import Data.String.Utils
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax (Lift(..))
 import System.Exit
 import System.Process
-import Control.Monad
-import Data.String.Utils
 
 lookupGitBranch :: Q Exp
 lookupGitBranch = do
-  (stringE . strip. fromJust <=< runIO . git) ["rev-parse", "--abbrev-ref", "HEAD"] 
+  (stringE . strip . fromMaybe "" <=< runIO . git)
+    ["rev-parse", "--abbrev-ref", "HEAD"]
 
 git :: [String] -> IO (Maybe String)
 git args = do
