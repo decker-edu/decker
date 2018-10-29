@@ -27,6 +27,7 @@ module Utilities
 
 import Action
 import Common
+import Exception
 import Context
 import Control.Arrow
 import Control.Exception

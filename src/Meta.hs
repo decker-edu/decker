@@ -8,6 +8,7 @@ module Meta
   ) where
 
 import Common
+import Exception
 import Control.Arrow
 import Control.Exception
 import qualified Data.HashMap.Strict as H

@@ -12,13 +12,13 @@ module External
   , checkExternalPrograms
   ) where
 
-import Common
 import Control.Exception
 import Data.Maybe
 import Development.Shake
 import System.Console.ANSI
 import System.Exit
 import System.Process
+import Exception
 
 data ExternalProgram = ExternalProgram
   { options :: [CmdOption]
@@ -99,11 +99,10 @@ programs =
         "sassc"
         ["--style", "nested"]
         ["-v"]
-        (helpText
-           "LibSass wrapper (https://github.com/sass/sassc)"))
+        (helpText "LibSass wrapper (https://github.com/sass/sassc)"))
   ]
 
-type Program = ([String] -> Action ())
+type Program = [String] -> Action ()
 
 ssh :: Program
 ssh = makeProgram "ssh"
@@ -141,18 +140,18 @@ helpText name =
 makeProgram :: String -> ([String] -> Action ())
 makeProgram name =
   let external = fromJust $ lookup name programs
-  in (\arguments -> do
-        (Exit code, Stdout out, Stderr err) <-
-          command
-            (options external)
-            (path external)
-            (args external ++ arguments)
-        case code of
-          ExitSuccess -> return ()
-          ExitFailure _ ->
-            throw $
-            ExternalException $
-            "\n" ++ (help external) ++ "\n\n" ++ err ++ "\n\n" ++ out)
+   in (\arguments -> do
+         (Exit code, Stdout out, Stderr err) <-
+           command
+             (options external)
+             (path external)
+             (args external ++ arguments)
+         case code of
+           ExitSuccess -> return ()
+           ExitFailure _ ->
+             throw $
+             ExternalException $
+             "\n" ++ (help external) ++ "\n\n" ++ err ++ "\n\n" ++ out)
 
 checkProgram :: String -> Action Bool
 checkProgram name =
