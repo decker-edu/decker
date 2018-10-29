@@ -6,6 +6,7 @@ module Cache
   ) where
 
 import Common
+import Exception
 import Control.Exception
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB

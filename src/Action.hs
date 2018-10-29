@@ -16,6 +16,7 @@ module Action
   ) where
  
 import Common
+import Exception
 import Context
 import Control.Exception
 import Data.IORef

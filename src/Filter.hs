@@ -21,6 +21,7 @@ module Filter
   ) where
 
 import Common
+import Exception
 import Control.Exception
 import Control.Monad.State
 import qualified Data.ByteString.Lazy.Char8 as L8

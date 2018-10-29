@@ -13,6 +13,7 @@ import Data.String ()
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
+import Exception
 import External
 import GHC.Conc (numCapabilities)
 import Project
@@ -65,7 +66,8 @@ main = do
     want ["html"]
     --
     phony "version" $ do
-      putNormal $ "decker version " ++ deckerVersion
+      putNormal $
+        "decker version " ++ deckerVersion ++ " (" ++ deckerGitBranch ++ ")"
       putNormal $ "pandoc version " ++ pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
