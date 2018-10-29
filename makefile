@@ -1,12 +1,16 @@
+base-name := decker
 executable := $(shell stack path | grep local-install-root | sed "s/local-install-root: //")/bin/decker
 version := $(shell grep "version: " package.yaml | sed "s/version: *//")
 branch := $(shell git branch | grep \* | cut -d ' ' -f2)
+
 ifeq ($(branch),master)
-	decker-name := decker-$(version)
+	decker-name := $(base-name)-$(version)
 else
-	decker-name := decker-$(version)-$(branch)
+	decker-name := $(base-name)-$(version)-$(branch)
 endif
+
 resource-dir := $(HOME)/.local/share/decker-$(version)
+local-bin-path := ~/.local/bin
 
 less:
 	stack build -j 8 --fast 2>&1 | less
@@ -37,7 +41,8 @@ clean:
 
 install: yarn build
 	stack exec -- decker clean
-	stack install
+	cp $(executable) $(local-bin-path)/$(decker-name)
+	ln -sf $(decker-name) $(local-bin-path)/$(base-name)
 
 watch-resources:
 	find resource src-support -name "*.scss" -or -name "*.html" -or -name "*.js" | entr -pd make install-resources

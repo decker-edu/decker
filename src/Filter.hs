@@ -18,6 +18,7 @@ module Filter
   ) where
 
 import Common
+import Exception
 import Control.Exception
 
 import Control.Applicative

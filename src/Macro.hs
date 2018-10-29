@@ -4,6 +4,7 @@ module Macro
   ) where
 
 import Common
+import Exception
 import Control.Monad.State
 import Data.List (isInfixOf, isPrefixOf)
 import Data.List.Split

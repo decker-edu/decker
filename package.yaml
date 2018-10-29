@@ -35,6 +35,7 @@ description:         Please see the README at <https://gitlab2.informatik.uni-wu
 dependencies:
 - base >= 4.7 && < 5
 - Glob
+- MissingH
 - HTTP
 - aeson
 - ansi-terminal
@@ -73,6 +74,7 @@ dependencies:
 - snap-core
 - snap-server
 - split
+- template-haskell
 - temporary
 - text
 - time

@@ -19,6 +19,7 @@ module Project
   ) where
 
 import Common
+import Exception
 import Control.Monad.Extra
 import Data.Maybe
 import Network.URI

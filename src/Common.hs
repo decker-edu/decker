@@ -1,7 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Common
-  ( DeckerException(..)
-  , DeckerState(..)
+  ( DeckerState(..)
   , Layout(..)
   , OutputFormat(..)
   , Disposition(..)
@@ -13,60 +12,32 @@ module Common
   , needFile
   , needFiles
   , deckerVersion
+  , deckerGitBranch
   , isDevelopmentVersion
   , addScript
   ) where
 
-import Control.Exception
+import CompileTime
 import Control.Monad.State
-import Data.Typeable
 import Data.Version (showVersion, versionBranch)
 import Development.Shake (Action, need)
 import Network.URI as U
 import Paths_decker (version)
 
--- import System.FilePath
 -- | The version from the cabal file
 deckerVersion :: String
 deckerVersion = showVersion version
+
+-- | Determine the git branch at compile time 
+deckerGitBranch :: String
+deckerGitBranch = $(lookupGitBranch)
 
 -- | Is this a development or a production branch?
 -- All branches are identified by three digits.
 -- If the last digit is a zero, it is a production branch.
 isDevelopmentVersion :: Bool
 isDevelopmentVersion =
-  (length $ versionBranch version) == 3 && (versionBranch version) !! 2 /= 0
-
--- | Tool specific exceptions
-data DeckerException
-  = MustacheException String
-  | InternalException String
-  | ResourceException String
-  | GitException String
-  | PandocException String
-  | YamlException String
-  | HttpException String
-  | RsyncUrlException
-  | DecktapeException String
-  | ExternalException String
-  | SassException String
-  deriving (Typeable)
-
-instance Exception DeckerException
-
-instance Show DeckerException where
-  show (InternalException e) = e
-  show (MustacheException e) = e
-  show (ResourceException e) = e
-  show (GitException e) = e
-  show (HttpException e) = e
-  show RsyncUrlException =
-    "attributes 'destinationRsyncHost' or 'destinationRsyncPath' not defined in meta data"
-  show (PandocException e) = e
-  show (YamlException e) = e
-  show (DecktapeException e) = "decktape.sh failed for reason: " ++ e
-  show (ExternalException e) = e
-  show (SassException e) = e
+  deckerGitBranch /= "master"
 
 type Decker = StateT DeckerState Action
 
