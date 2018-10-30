@@ -270,14 +270,7 @@ $if(chalkboard)$
         chalkboard: {
       		src: "chalkboard.json",
       		readOnly: undefined,
-      		toggleChalkboardButton: { left: "80px", bottom: "30px", top: "auto", right: "auto" },
-      		toggleNotesButton: { left: "130px", bottom: "30px", top: "auto", right: "auto" },
-      		transition: 800,
       		theme: "chalkboard",
-      		// configuration options for notes canvas and chalkboard
-      		color: [ 'rgba(0,0,255,1)', 'rgba(255,255,255,0.5)' ],
-      		background: [ 'rgba(127,127,127,.1)' , '$decker-support-dir$/chalkboard/img/blackboard.png' ],
-      		pen:  [ 'url($decker-support-dir$/chalkboard/img/boardmarker.png), auto', 'url($decker-support-dir$/chalkboard/img/chalk.png), auto' ],
       	},
 $endif$
 
@@ -297,14 +290,17 @@ $endif$
 $if(menu)$
           { src: '$decker-support-dir$/reveal.js-menu/menu.js', async: true },
 $endif$
+$if(chalkboard)$
+          { src: '$decker-support-dir$/chalkboard/chalkboard.js', async: true  },
+$endif$
         ],
         keyboard: {
-      	    67: function() { RevealChalkboard.toggleNotesCanvas() },	// toggle notes canvas when 'c' is pressed
-      	    66: function() { RevealChalkboard.toggleChalkboard() },	// toggle chalkboard when 'b' is pressed
-      	    46: function() { RevealChalkboard.clear() },	// clear chalkboard when 'DEL' is pressed
-      	     8: function() { RevealChalkboard.reset() },	// reset chalkboard data on current slide when 'BACKSPACE' is pressed
-      	    68: function() { RevealChalkboard.download() },	// downlad recorded chalkboard drawing when 'd' is pressed
-      	},
+            67: function() { RevealChalkboard.toggleNotesCanvas() },	// toggle notes canvas when 'c' is pressed
+            66: function() { RevealChalkboard.toggleChalkboard() },	// toggle chalkboard when 'b' is pressed
+            46: function() { RevealChalkboard.clear() },	// clear chalkboard when 'DEL' is pressed
+             8: function() { RevealChalkboard.reset() },	// reset chalkboard data on current slide when 'BACKSPACE' is pressed
+            68: function() { RevealChalkboard.download() },	// downlad recorded chalkboard drawing when 'd' is pressed
+        },
       });
     </script>
   $for(include-after)$

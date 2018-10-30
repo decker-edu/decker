@@ -4,13 +4,12 @@ version := $(shell grep "version: " package.yaml | sed "s/version: *//")
 build:
 	yarn install && yarn run webpack --mode production
 	cp -r node_modules/reveal.js-menu resource/support/
-	cp -r src-support/img resource/support/	
-	stack build -j 8 --fast
+	cp -r src-support/img resource/support/
 
 dist: build
 	rm -rf dist
 	mkdir -p dist
-	ln -s $(decker) dist/decker-$(version) 
+	ln -s $(decker) dist/decker-$(version)
 	zip -qj dist/decker-$(version).zip dist/decker-$(version)
 	rm dist/decker-$(version)
 
