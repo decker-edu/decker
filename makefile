@@ -36,10 +36,10 @@ clean:
 
 install: yarn build
 	stack exec -- decker clean
-	cp $(executable) $(local-bin-path)/$(decker-name)
-	ln -sf $(decker-name) $(local-bin-path)/$(base-name)
+	cp $(executable) "$(local-bin-path)/$(decker-name)"
+	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
 
 version:
-	@echo $(decker-name)
+	@echo "$(decker-name)"
 
 .PHONY: build clean test install dist docs yarn
