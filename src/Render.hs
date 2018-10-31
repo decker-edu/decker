@@ -7,6 +7,7 @@ module Render
 
 import CRC32
 import Common
+import Exception
 import Context
 import Control.Monad.State
 import Control.Monad.Extra

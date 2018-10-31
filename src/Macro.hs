@@ -4,16 +4,17 @@ module Macro
   ) where
 
 import Common
+import Exception
 import Control.Monad.State
+import Data.List (isInfixOf, isPrefixOf)
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
+import Data.Text (pack, replace, unpack)
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 as H
-       ((!), div, figure, iframe, iframe, p, toValue)
-import Text.Blaze.Html5.Attributes as A
-       (class_, height, src, style, width)
+import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)
+import Text.Blaze.Html5.Attributes as A (class_, height, src, style, width)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Shared
@@ -28,14 +29,27 @@ type MacroAction = [String] -> Attr -> Target -> Meta -> Decker Inline
 -- YouTube links: iv_load_policy=3 disables annotations, rel=0 disables related
 -- videos. See:
 -- https://developers.google.com/youtube/player_parameters?hl=de#IFrame_Player_API
-embedYoutubeHtml :: [String] -> Attr -> Target -> Inline
-embedYoutubeHtml args attr (vid, _) =
+-- For vimeo embedding settings see: 
+-- https://vimeo.zendesk.com/hc/en-us/articles/360001494447-Using-Player-Parameters
+-- For twitch embedding settings see:
+-- https://dev.twitch.tv/docs/embed/video-and-clips/
+-- and: https://dev.twitch.tv/docs/embed/everything/
+embedWebVideosHtml :: String -> [String] -> Attr -> Target -> Inline
+embedWebVideosHtml page args attr (vid, _) =
   RawInline (Format "html") (renderHtml html)
   where
     url =
-      printf
-        "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
-        vid :: String
+      case page of
+        "youtube" ->
+          printf
+            "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
+            vid :: String
+        "vimeo" ->
+          printf
+            "https://player.vimeo.com/video/%s?quality=autop&autoplay=0&muted=1"
+            vid :: String
+        "twitch" ->
+          printf "https://player.twitch.tv/?channel=%s&autoplay=1&muted=1" vid :: String
     vidWidthStr = macroArg 0 args "560"
     vidHeightStr = macroArg 1 args "315"
     vidWidth = readDefault 560.0 vidWidthStr :: Float
@@ -60,24 +74,44 @@ embedYoutubeHtml args attr (vid, _) =
       customAttribute "allowfullscreen" "" $
       H.p ""
 
-embedYoutubePdf :: [String] -> Attr -> Target -> Inline
-embedYoutubePdf _ attr (vid, _) =
+-- Twitch thumbnail from https://www.twitch.tv/p/brand/social-media
+-- Twitch channels unfortunately have no fixed thumbnail
+embedWebVideosPdf :: String -> [String] -> Attr -> Target -> Inline
+embedWebVideosPdf page _ attr (vid, _) =
   Link nullAttr [Image attr [Str text] (imageUrl, "")] (videoUrl, "")
   where
     videoUrl =
-      printf
-        "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=0&rel=0&modestbranding=1&autohide=1"
-        vid :: String
+      case page of
+        "youtube" ->
+          printf
+            "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
+            vid :: String
+        "vimeo" ->
+          printf
+            "https://player.vimeo.com/video/%s?quality=autop&autoplay=0&muted=1"
+            vid :: String
+        "twitch" ->
+          printf "https://player.twitch.tv/?channel=%s&autoplay=0&muted=1" vid :: String
+    text =
+      case page of
+        "youtube" -> printf "YouTube: %s" vid :: String
+        "vimeo" -> printf "Vimeo: %s" vid :: String
+        "twitch" -> printf "Twitch: %s" vid :: String
     imageUrl =
-      printf "http://img.youtube.com/vi/%s/maxresdefault.jpg" vid :: String
-    text = printf "YouTube: %s" vid :: String
+      case page of
+        "youtube" ->
+          printf "http://img.youtube.com/vi/%s/maxresdefault.jpg" vid :: String
+        "vimeo" ->
+          printf "https://i.vimeocdn.com/video/%s_560x315.jpg" vid :: String
+        "twitch" ->
+          "https://www.twitch.tv/p/assets/uploads/glitch_solo_750x422.png"
 
-youtube :: MacroAction
-youtube args attr target _ = do
+webVideo :: String -> MacroAction
+webVideo page args attr target _ = do
   disp <- gets disposition
   case disp of
-    Disposition _ Html -> return $ embedYoutubeHtml args attr target
-    Disposition _ Pdf -> return $ embedYoutubePdf args attr target
+    Disposition _ Html -> return $ embedWebVideosHtml page args attr target
+    Disposition _ Pdf -> return $ embedWebVideosPdf page args attr target
 
 fontAwesome :: MacroAction
 fontAwesome _ _ (iconName, _) _ = do
@@ -104,7 +138,13 @@ type MacroMap = Map.Map String MacroAction
 
 macroMap :: MacroMap
 macroMap =
-  Map.fromList [("meta", metaValue), ("youtube", youtube), ("fa", fontAwesome)]
+  Map.fromList
+    [ ("meta", metaValue)
+    , ("fa", fontAwesome)
+    , ("youtube", webVideo "youtube")
+    , ("vimeo", webVideo "vimeo")
+    , ("twitch", webVideo "twitch")
+    ]
 
 readDefault :: Read a => a -> String -> a
 readDefault default_ string = fromMaybe default_ (readMaybe string)
@@ -120,15 +160,35 @@ parseMacro (pre:invocation)
   | pre == ':' = Just (words invocation)
 parseMacro _ = Nothing
 
+-- lookup e.g. "youtube" in macroMap and return MacroAction/Decker Inline
 expandInlineMacros :: Meta -> Inline -> Decker Inline
-expandInlineMacros meta inline@(Link attr text target) = do
+expandInlineMacros meta inline@(Link attr text target) =
   case parseMacro $ stringify text of
-    Just (name:args) -> do
+    Just (name:args) ->
       case Map.lookup name macroMap of
         Just macro -> macro args attr target meta
         Nothing -> return inline
     _ -> return inline
+expandInlineMacros meta inline@(Image attr _ (url, tit))
+  -- For the case of web videos
+ =
+  case findEmbeddingType inline of
+    Just str ->
+      case Map.lookup str macroMap of
+        Just macro -> macro [] attr (code, tit) meta
+        -- TODO: Find a way to do this without needing Data.Text and the whole pack/unpack effort
+          where code = unpack $ replace (pack (str ++ "://")) "" (pack url)
+        Nothing -> return inline
+    Nothing -> return inline
 expandInlineMacros _ inline = return inline
+
+-- Check inline for special embedding content (currently only web videos) if inline is Image
+findEmbeddingType :: Inline -> Maybe String
+findEmbeddingType inline@(Image attr text (url, tit))
+  | "youtube://" `isPrefixOf` url = Just "youtube"
+  | "vimeo://" `isPrefixOf` url = Just "vimeo"
+  | "twitch://" `isPrefixOf` url = Just "twitch"
+  | otherwise = Nothing
 
 expandDeckerMacros :: Pandoc -> Decker Pandoc
 expandDeckerMacros doc@(Pandoc meta _) = walkM (expandInlineMacros meta) doc

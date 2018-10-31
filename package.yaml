@@ -23,6 +23,9 @@ extra-source-files:
 - readme.md
 - Dockerfile
 - makefile
+- src-support/*
+- resource/template/*
+- resource/example/*
 
 synopsis:            A markdown based tool for slide deck creation
 category:            Tool
@@ -32,6 +35,7 @@ description:         Please see the README at <https://gitlab2.informatik.uni-wu
 dependencies:
 - base >= 4.7 && < 5
 - Glob
+- MissingH
 - HTTP
 - aeson
 - ansi-terminal
@@ -68,6 +72,7 @@ dependencies:
 - snap-core
 - snap-server
 - split
+- template-haskell
 - temporary
 - text
 - time

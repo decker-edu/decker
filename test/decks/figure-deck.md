@@ -12,6 +12,22 @@ As of Pandoc 2.0:
 
 Strangely, this does not work.
 
-![fig: This is the alt text of the image](include/06-metal.png "Title text of the image")
+![This is the alt text of the image](include/06-metal.png)
+
 
 Strangely, this does not work.
+
+--- 
+
+# Naked Images
+
+## Image without figure 
+
+![](include/06-metal.png)
+
+# Naked Images
+
+## Image with figure 
+
+![Alt text as figure](include/06-metal.png)
+

@@ -13,6 +13,7 @@ module Filter
   , cachePandocImages
   , extractLocalImagePathes
   , renderMediaTags
+  , extractFigures
   , iframeExtensions
   , audioExtensions
   , videoExtensions
@@ -20,6 +21,7 @@ module Filter
   ) where
 
 import Common
+import Exception
 import Control.Exception
 import Control.Monad.State
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -416,23 +418,32 @@ classifyFilePath name =
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
 -- transfers attributes to the video tag.
 renderMediaTag :: Disposition -> Inline -> Action Inline
-renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit))
-  | ident == "svg" || (uriPathExtension url) `elem` [".svg"] = do
-    svg <- liftIO $ catch (readFile url) svgLoadErrorHandler
-    return $ toHtml svg
 renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) = do
-  return $ RawInline (Format "html") (renderHtml imageVideoTag)
+  rendered <- liftIO imageVideoTag
+  return $ rendered
   where
     imageVideoTag =
-      if "iframe" `elem` cls
-        then mediaTag (iframe "Browser does not support iframe.")
-        else case classifyFilePath url of
-               VideoMedia -> mediaTag (video "Browser does not support video.")
-               AudioMedia -> mediaTag (audio "Browser does not support audio.")
-               IframeMedia ->
-                 mediaTag (iframe "Browser does not support iframe.")
-               MeshMedia -> mediaTag (iframe "Browser does not support iframe.")
-               ImageMedia -> mediaTag img
+      if (uriPathExtension url) `elem` [".svg"] && "embed" `elem` cls
+        then do
+          fileContent <- catch (readFile url) svgLoadErrorHandler
+          return $
+            if attrs /= nullAttr
+              then Span (ident, cls', values') [toHtml fileContent]
+              else toHtml fileContent
+        else do
+          return $
+            toHtml $
+            renderHtml $
+            if "iframe" `elem` cls
+              then mediaTag (iframe "Browser does not support iframe.")
+              else createMediaTag
+    createMediaTag =
+      case classifyFilePath url of
+        VideoMedia -> mediaTag (video "Browser does not support video.")
+        AudioMedia -> mediaTag (audio "Browser does not support audio.")
+        IframeMedia -> mediaTag (iframe "Browser does not support iframe.")
+        MeshMedia -> mediaTag (iframe "Browser does not support iframe.")
+        ImageMedia -> mediaTag img
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
@@ -452,20 +463,19 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) = do
         then "demos" </> "mview" </> "mview.html?model=.." </> ".." </> url
         else url
     extension = uriPathExtension url
-    (_, cls', values') = convertMediaAttributes attrs
+    (_, cls', values') =
+      if (uriPathExtension url) `elem` [".svg"] && "embed" `elem` cls
+        then convertMediaAttributes
+               (ident, cls, ("style", "display:inline-block;") : values)
+        else convertMediaAttributes attrs
 renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
-  (RawInline _ htmlTag) <-
-    renderMediaTag disp (Image attrsForward [] (url, tit))
+  image <- renderMediaTag disp (Image attrsForward [] (url, tit))
   return $
     Span
-      attrs'
-      ([toHtml "<figure>", toHtml htmlTag, toHtml "<figcaption>"] ++
+      nullAttr
+      ([toHtml "<figure>", image, toHtml "<figcaption>"] ++
        inlines ++ [toHtml "</figcaption>", toHtml "</figure>"])
   where
-    attrs' =
-      if (uriPathExtension url) `elem` [".svg"]
-        then convertMediaAttributes attrs
-        else nullAttr
     attrsForward = (ident, cls, ("alt", stringify inlines) : values)
 -- | return inline if it is no image
 renderMediaTag _ inline = do
@@ -531,3 +541,15 @@ convertMediaAttributeImageSize (id, cls, vals) = (id, cls, vals_processed)
 --   intent is more clear.
 toHtml :: String -> Inline
 toHtml = RawInline (Format "html")
+
+extractFigures :: Pandoc -> Decker Pandoc
+extractFigures pandoc = do
+  return $ walk extractFigure pandoc
+
+extractFigure :: Block -> Block
+extractFigure (Para content) =
+  case content of
+    [Span attr inner@((RawInline (Format "html") "<figure>"):otherContent)] ->
+      Div attr [Plain inner]
+    a -> Para a
+extractFigure b = b

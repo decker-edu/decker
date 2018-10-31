@@ -18,6 +18,7 @@ module Context
   ) where
 
 import Common
+import Exception
 import Control.Monad ()
 import Data.Dynamic
 import qualified Data.HashMap.Lazy as HashMap
