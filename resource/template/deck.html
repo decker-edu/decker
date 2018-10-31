@@ -271,6 +271,7 @@ $if(chalkboard)$
       		src: "chalkboard.json",
       		readOnly: undefined,
       		theme: "chalkboard",
+      		src: '$chalkboard$',
       	},
 $endif$
 
@@ -279,7 +280,7 @@ $endif$
           { src: '$decker-support-dir$/classlist.js', condition: function() { return !document.body.classList; } },
           { src: '$decker-support-dir$/plugins.js', async: true },
 $if(chalkboard)$
-          { src: '$decker-support-dir$/chalkboard/chalkboard.js', async: true  },
+          { src: '$decker-support-dir$/chalkboard.js', async: true  },
 $endif$
 $if(notes-server)$
           { src: '$decker-support-dir$/notes.js', async: true },
@@ -290,16 +291,16 @@ $endif$
 $if(menu)$
           { src: '$decker-support-dir$/reveal.js-menu/menu.js', async: true },
 $endif$
-$if(chalkboard)$
-          { src: '$decker-support-dir$/chalkboard/chalkboard.js', async: true  },
-$endif$
         ],
         keyboard: {
-            67: function() { RevealChalkboard.toggleNotesCanvas() },	// toggle notes canvas when 'c' is pressed
-            66: function() { RevealChalkboard.toggleChalkboard() },	// toggle chalkboard when 'b' is pressed
-            46: function() { RevealChalkboard.clear() },	// clear chalkboard when 'DEL' is pressed
-             8: function() { RevealChalkboard.reset() },	// reset chalkboard data on current slide when 'BACKSPACE' is pressed
-            68: function() { RevealChalkboard.download() },	// downlad recorded chalkboard drawing when 'd' is pressed
+            40: function() { Reveal.next(); },                       // up:   next slide
+            38: function() { Reveal.prev(); },                       // down: prev slide
+            67: function() { RevealChalkboard.toggleNotesCanvas() }, // c: draw on slides
+            84: function() { RevealChalkboard.toggleChalkboard() },  // t: draw on blackboard
+            8:  function() { RevealChalkboard.clear() },             // BACKSPACE: clear chalkboard
+            46: function() { RevealChalkboard.reset() },             // DELETE: reset chalkboard
+            68: function() { RevealChalkboard.download() },          // d: downlad chalkboard drawing
+            90: function() { RevealChalkboard.drawUndo() } ,         // z: undo last stroke
         },
       });
     </script>
