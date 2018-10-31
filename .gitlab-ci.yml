@@ -79,7 +79,7 @@ deploy:docker:
     - decker
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE --build-arg MAKE_FLAGS=$CI_COMMIT_REF_NAME .
+    - docker build -t $CI_REGISTRY_IMAGE --build-arg MAKE_FLAGS=branch=$CI_COMMIT_REF_NAME .
     - docker push $CI_REGISTRY_IMAGE
 
 deploy:mac:
