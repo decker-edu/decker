@@ -4,6 +4,9 @@ require('reveal.js/css/reveal.scss');
 require('reveal.js/css/theme/white.css');
 require('./decker.scss');
 
+require('@fortawesome/fontawesome-free/css/all.css');
+require('@fortawesome/fontawesome-free/js/all');
+
 if(window.location.search.match( /print-pdf/gi )){
   require('reveal.js/css/print/pdf.css');
 } else {
