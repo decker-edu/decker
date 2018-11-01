@@ -18,8 +18,8 @@ module Filter
   ) where
 
 import Common
-import Exception
 import Control.Exception
+import Exception
 
 import Control.Applicative
 import Control.Lens
@@ -170,6 +170,10 @@ header = lens (\(Slide h _) -> h) (\(Slide _ b) h -> (Slide h b))
 blocks :: Lens' Slide [Block]
 blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> (Slide h b))
 
+-- | A Prism for slides
+_Slide :: Prism' Slide (Maybe Block, [Block])
+_Slide = prism' (\(h, b) -> Slide h b) (\(Slide h b) -> Just (h, b))
+
 -- | Attributes of a slide are those of the header 
 instance HasAttr Slide where
   attributes f (Slide (Just (Header n a s)) b) =
@@ -267,7 +271,7 @@ handleBackground slide@(Slide header blocks) =
               return $
               Slide
                 (Just
-                   (Header 
+                   (Header
                       1
                       (headerId, headerClasses, headerAttributes)
                       (walk zapImages inlines)))
@@ -330,16 +334,20 @@ toSlides blocks = map extractHeader $ filter (not . null) slideBlocks
     killEmpties [] = []
 
 -- Render slides as a list of Blocks. Always separate slides with a horizontal
--- rule. Slides with the `notes` class are wrapped in DIV and are used as
--- spreaker notes by RevalJs.
+-- rule. Slides with the `notes` classes are wrapped in ASIDE and
+-- are used as spreaker notes by RevalJs.
 fromSlides :: [Slide] -> [Block]
 fromSlides = concatMap prependHeader
   where
     prependHeader (Slide (Just header) body)
-      | hasClass "notes" header || hasClass "handout" header =
-        [Div (view attributes header) (header : body)]
+      | hasClass "notes" header =
+        [RawBlock "html" "<aside class=\"notes\">"] ++
+        (demoteHeaders $ header : body) ++
+        [RawBlock "html" "</aside>"]
     prependHeader (Slide (Just header) body) = HorizontalRule : header : body
     prependHeader (Slide Nothing body) = HorizontalRule : body
+
+demoteHeaders = traverse . _Header . _1 +~ 1
 
 -- | Map over all active slides in a deck. 
 mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc

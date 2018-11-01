@@ -7,6 +7,7 @@ subtitle: Generate handouts from slide source
 title: Handout Test
 title-prefix: Decker
 menu: True
+showNotes: True
 ---
 
 # Notes
@@ -80,6 +81,7 @@ menu: True
 
 -   The content of this slide is included as speaker notes
 -   It is not included in handouts
+-   It is not visible in decks right away
 
 ![](include/06-metal.png)
 
