@@ -2,7 +2,7 @@ executable := $(shell stack path | grep local-install-root | sed "s/local-instal
 base-name := decker
 version := $(shell grep "version: " package.yaml | sed "s/version: *//")
 branch := $(shell git branch | grep \* | cut -d ' ' -f2)
-local-bin-path := ~/.local/bin
+local-bin-path := $(HOME)/.local/bin
 
 ifeq ($(branch),master)
 	decker-name := $(base-name)-$(version)
@@ -10,11 +10,17 @@ else
 	decker-name := $(base-name)-$(version)-$(branch)
 endif
 
+ifdef DECKER_DEV
+	yarn-mode := development
+else
+	yarn-mode := production
+endif
+
 build:
 	stack build -j 8 --fast
 
 yarn:
-	yarn install && yarn run webpack --mode production
+	yarn install && yarn run webpack --mode $(yarn-mode)
 	cp -r node_modules/reveal.js-menu resource/support/
 	cp -r src-support/img resource/support/
 
