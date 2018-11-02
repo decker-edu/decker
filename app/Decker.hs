@@ -5,21 +5,25 @@ import Context
 import Control.Exception
 import Control.Monad (when)
 import Control.Monad.Extra
+import Data.Aeson
 import Data.IORef ()
 import Data.List
 import Data.Maybe
 import Data.String ()
+import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
+import Exception
 import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import System.Directory (createDirectoryIfMissing, removeFile, createFileLink)
+import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
 import System.FilePath ()
 import Text.Groom
 import qualified Text.Mustache as M ()
-import Text.Pandoc ()
+import Text.Pandoc
+import Text.Pandoc.Definition
 import Text.Printf ()
 import Utilities
 
@@ -61,7 +65,11 @@ main = do
    do
     want ["html"]
     --
-    phony "version" $ putNormal $ "decker version " ++ deckerVersion
+    phony "version" $ do
+      putNormal $
+        "decker version " ++ deckerVersion ++ " (" ++ deckerGitBranch ++ ")"
+      putNormal $ "pandoc version " ++ pandocVersion
+      putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
     phony "decks" $ do
       need ["support"]
@@ -134,9 +142,10 @@ main = do
                 else indexSource <.> "generated"
         markdownToHtmlPage src out
     --
-    indexSource <.> "generated" %> \out -> do
+    indexSource <.> "generated" %> \out
       -- deckSources <- deckSourcesA
       -- pageSources <- pageSourcesA
+     -> do
       decks <- decksA
       decksPdf <- decksPdfA
       pagesPdf <- pagesPdfA
@@ -244,8 +253,8 @@ main = do
 options :: FilePath -> ShakeOptions
 options projectDir =
   shakeOptions
-  { shakeFiles = ".shake"
-  , shakeColor = True
-  , shakeThreads = numCapabilities
-  , shakeAbbreviations = [(projectDir ++ "/", "")]
-  }
+    { shakeFiles = ".shake"
+    , shakeColor = True
+    , shakeThreads = numCapabilities
+    , shakeAbbreviations = [(projectDir ++ "/", "")]
+    }

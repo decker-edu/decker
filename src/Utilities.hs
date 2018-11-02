@@ -27,6 +27,7 @@ module Utilities
 
 import Action
 import Common
+import Exception
 import Context
 import Control.Arrow
 import Control.Exception
@@ -227,9 +228,20 @@ getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
 getSupportDir meta out defaultPath = do
   pub <- public <$> getProjectDirs
   cur <- liftIO Dir.getCurrentDirectory
-  return $ case templateFromMeta meta of
-    Just template -> (makeRelativeTo (takeDirectory out) pub) </> (makeRelativeTo cur template)
-    Nothing -> defaultPath
+  return $
+    case templateFromMeta meta of
+      Just template ->
+        (makeRelativeTo (takeDirectory out) pub) </>
+        (makeRelativeTo cur template)
+      Nothing -> defaultPath
+
+-- | Write Pandoc in native format right next to the output file
+writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action Pandoc
+writeNativeWhileDebugging out mod doc@(Pandoc meta body) = do
+  liftIO $
+    runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
+    T.writeFile (out -<.> mod <.> ".hs")
+  return doc
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
@@ -244,6 +256,7 @@ markdownToHtmlDeck markdownFile out = do
   dachdeckerUrl' <- liftIO dachdeckerUrl
   let options =
         pandocWriterOpts
+<<<<<<< HEAD
         { writerSlideLevel = Just 1
         , writerTemplate = Just template
         , writerHighlightStyle = Just pygments
@@ -257,7 +270,24 @@ markdownToHtmlDeck markdownFile out = do
             ]
         , writerCiteMethod = Citeproc
         }
+=======
+          { writerSlideLevel = Just 1
+          , writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDirRel </> "node_modules" </> "mathjax" </>
+                 "MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables =
+              [ ( "revealjs-url"
+                , supportDirRel </> "node_modules" </> "reveal.js")
+              , ("decker-support-dir", templateSupportDir)
+              ]
+          , writerCiteMethod = Citeproc
+          }
+>>>>>>> master
   readAndProcessMarkdown markdownFile (Disposition Deck Html) >>=
+    writeNativeWhileDebugging out "filtered" >>=
     writePandocFile "revealjs" options out
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
@@ -298,7 +328,7 @@ versionCheck meta =
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disp = do
   pandoc@(Pandoc meta _) <-
-    readMetaMarkdown markdownFile >>= processIncludes baseDir
+    readMetaMarkdown markdownFile >>= processIncludes baseDir -- >>= writeNativeWhileDebugging markdownFile "parsed"
   processed <-
     processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
   return processed
@@ -312,6 +342,7 @@ readAndProcessMarkdown markdownFile disp = do
         , renderQuizzes
         , makeSlides
         , renderMediaTags
+        , extractFigures
         , processCitesWithDefault
         , appendScripts
         ]
@@ -429,14 +460,15 @@ markdownToHtmlPage markdownFile out = do
   templateSupportDir <- getSupportDir meta out supportDir
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerHTMLMathMethod =
-            MathJax
-              (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables = [("decker-support-dir", templateSupportDir)]
-        , writerCiteMethod = Citeproc
-        }
+          { writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDir </> "node_modules" </> "mathjax" </>
+                 "MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables = [("decker-support-dir", templateSupportDir)]
+          , writerCiteMethod = Citeproc
+          }
   readAndProcessMarkdown markdownFile (Disposition Page Html) >>=
     writePandocFile "html5" options out
 
@@ -476,14 +508,15 @@ markdownToHtmlHandout markdownFile out = do
   templateSupportDir <- getSupportDir meta out supportDir
   let options =
         pandocWriterOpts
-        { writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerHTMLMathMethod =
-            MathJax
-              (supportDir </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables = [("decker-support-dir", templateSupportDir)]
-        , writerCiteMethod = Citeproc
-        }
+          { writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDir </> "node_modules" </> "mathjax" </>
+                 "MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables = [("decker-support-dir", templateSupportDir)]
+          , writerCiteMethod = Citeproc
+          }
   readAndProcessMarkdown markdownFile (Disposition Handout Html) >>=
     writePandocFile "html5" options out
 
@@ -662,6 +695,7 @@ metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
+-- TODO: also change include to ![](include:) or something
 processIncludes baseDir (Pandoc meta blocks) =
   Pandoc meta <$> processBlocks baseDir blocks
   where
@@ -746,3 +780,4 @@ lookupPandocMeta key (Meta m) =
     lookup' [] (Just (MetaString s)) = Just s
     lookup' [] (Just (MetaInlines i)) = Just $ stringify i
     lookup' _ _ = Nothing
+

@@ -10,15 +10,16 @@ module.exports = {
     notes: './src-support/notes.js',
     page: './src-support/page.js',
     three: './src-support/three.js',
-    d3: './src-support/d3.js'
+    d3: './src-support/d3.js',
+    chalkboard: './src-support/chalkboard.js'
   },
   output: {
     path: path.resolve(__dirname, 'resource', 'support'),
     filename: '[name].js'
   },
+  devtool: 'cheap-module-eval-source-map',
   module: {
-    rules: [
-      {
+    rules: [{
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
@@ -44,6 +45,16 @@ module.exports = {
           options: {
             name: '[name].[ext]',
             outputPath: 'fonts/'
+          }
+        }]
+      },
+      {
+        test: /\.(png|jp(e*)g|svg)$/,
+        use: [{
+          loader: 'url-loader',
+          options: {
+            limit: 8000, // Convert images < 8kb to base64 strings
+            name: 'images/[hash]-[name].[ext]'
           }
         }]
       }
