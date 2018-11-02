@@ -36,6 +36,7 @@ clean:
 
 install: yarn build
 	stack exec -- decker clean
+	mkdir -p $(local-bin-path)
 	cp $(executable) "$(local-bin-path)/$(decker-name)"
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
 
