@@ -10,12 +10,19 @@ else
 	decker-name := $(base-name)-$(version)-$(branch)
 endif
 
+ifdef DECKER_DEV
+	yarn-mode := development
+else
+	yarn-mode := production
+endif
+
 build:
 	stack build -j 8 --fast
 
 yarn:
-	yarn install && yarn run webpack --mode production
+	yarn install && yarn run webpack --mode $(yarn-mode)
 	cp -r node_modules/reveal.js-menu resource/support/
+	cp -r src-support/img resource/support/
 
 dist: yarn build
 	rm -rf dist
@@ -36,6 +43,7 @@ clean:
 
 install: yarn build
 	stack exec -- decker clean
+	mkdir -p $(local-bin-path)
 	cp $(executable) "$(local-bin-path)/$(decker-name)"
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
 
