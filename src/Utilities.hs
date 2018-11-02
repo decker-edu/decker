@@ -256,7 +256,6 @@ markdownToHtmlDeck markdownFile out = do
   dachdeckerUrl' <- liftIO dachdeckerUrl
   let options =
         pandocWriterOpts
-<<<<<<< HEAD
         { writerSlideLevel = Just 1
         , writerTemplate = Just template
         , writerHighlightStyle = Just pygments
@@ -270,22 +269,6 @@ markdownToHtmlDeck markdownFile out = do
             ]
         , writerCiteMethod = Citeproc
         }
-=======
-          { writerSlideLevel = Just 1
-          , writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax
-                (supportDirRel </> "node_modules" </> "mathjax" </>
-                 "MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables =
-              [ ( "revealjs-url"
-                , supportDirRel </> "node_modules" </> "reveal.js")
-              , ("decker-support-dir", templateSupportDir)
-              ]
-          , writerCiteMethod = Citeproc
-          }
->>>>>>> master
   readAndProcessMarkdown markdownFile (Disposition Deck Html) >>=
     writeNativeWhileDebugging out "filtered" >>=
     writePandocFile "revealjs" options out
