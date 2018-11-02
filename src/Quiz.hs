@@ -58,5 +58,5 @@ dachdeckerUrl = do
   env <- System.Environment.lookupEnv "DACHDECKER_SERVER"
   let url = case env of
         Just val -> val
-        Nothing -> "http://dach.decker.informatik.uni-wuerzburg.de"
+        Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
   return url
