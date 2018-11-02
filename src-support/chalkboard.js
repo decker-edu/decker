@@ -103,12 +103,12 @@ export default class RevealChalkboard {
 
     // Intercept page leave when data is not saved
     this.needSave = false;
-    window.onbeforeunload = function (e) {
+    window.onbeforeunload = (function (e) {
       if (this.needSave) {
         e.preventDefault();
         return "Your chalkboard drawings were not yet saved.";
       }
-    };
+    }).bind(this);
 
     this.printMode = (/print-pdf/gi).test(window.location.search);
 
@@ -218,7 +218,7 @@ export default class RevealChalkboard {
     xhr.onload = function () {
       if (xhr.readyState === 4 && xhr.status !== 404) {
         self.storage = JSON.parse(xhr.responseText);
-        for (var id = 0; id < storage.length; id++) {
+        for (let id = 0; id < self.storage.length; id++) {
           if (
             self.drawingCanvas[id].width != self.storage[id].width ||
             self.drawingCanvas[id].height != self.storage[id].height
@@ -227,7 +227,7 @@ export default class RevealChalkboard {
           }
         }
       } else {
-        console.warn('Failed to get file ' + filename + ". ReadyState: " + xhr.readyState + ", Status: " + xhr.status);
+        console.warn('Didn\'t find prerecorded chalkboard data: ' + filename + ". ReadyState: " + xhr.readyState + ", Status: " + xhr.status);
       }
       self.isLoaded = true;
     };
@@ -251,7 +251,7 @@ export default class RevealChalkboard {
       const basename = (url.split('\\').pop().split('/').pop().split('.'))[0];
       const filename = basename + ".json";
       a.download = filename;
-      var blob = new Blob([JSON.stringify(storage)], {
+      var blob = new Blob([JSON.stringify(this.storage)], {
         type: "application/json"
       });
       a.href = window.URL.createObjectURL(blob);
@@ -651,8 +651,6 @@ export default class RevealChalkboard {
   setupCallbacks() {
     let self = this;
     if (window.PointerEvent) {
-      console.log("we have pointer events");
-      console.log(self.color);
 
       document.addEventListener('pointerdown', function (evt) {
         if (evt.target.getAttribute('data-chalkboard') == self.mode) {
@@ -803,9 +801,9 @@ export default class RevealChalkboard {
       }
     });
 
-    Reveal.addEventListener('slidechanged', self.updateIcon);
-    Reveal.addEventListener('fragmentshown', self.updateIcon);
-    Reveal.addEventListener('fragmenthidden', self.updateIcon);
+    Reveal.addEventListener('slidechanged', self.updateIcon.bind(self));
+    Reveal.addEventListener('fragmentshown', self.updateIcon.bind(self));
+    Reveal.addEventListener('fragmenthidden', self.updateIcon.bind(self));
   }
 
   updateIcon() {

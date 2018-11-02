@@ -1,5 +1,5 @@
 ---
-chalkboard: "abc.json"
+chalkboard: chalkboard-deck.json
 ---
 
 # Slide 1
