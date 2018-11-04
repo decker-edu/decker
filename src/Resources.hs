@@ -7,10 +7,12 @@ module Resources
   ) where
 
 import Common
-import Exception
 import Control.Exception
 import Control.Monad
 import Control.Monad.Extra
+import Data.Text
+import Exception
+import Shelly (cp_r, fromText, shelly)
 import System.Directory
 import System.Environment
 import System.Exit
@@ -18,7 +20,10 @@ import System.FilePath
 import System.Process
 
 deckerResourceDir :: IO FilePath
-deckerResourceDir = getXdgDirectory XdgData ("decker" ++ "-" ++ deckerVersion ++ "-" ++ deckerGitBranch)
+deckerResourceDir =
+  getXdgDirectory
+    XdgData
+    ("decker" ++ "-" ++ deckerVersion ++ "-" ++ deckerGitBranch)
 
 getResourceString :: FilePath -> IO String
 getResourceString path = do
@@ -49,9 +54,13 @@ unzip args = do
       ExitFailure 1 -> True
       _ -> False
 
+-- Using the Shelly Package to get native Haskell shell commands
+-- Apparently cp_r first looks for "cp -r" and only then uses native Haskell
+-- hackage.haskell.org/package/shelly-1.8.1/docs/Shelly.html
 writeResourceFiles :: FilePath -> FilePath -> IO ()
 writeResourceFiles prefix destDir = do
   dataDir <- deckerResourceDir
   let src = dataDir </> prefix
   exists <- doesDirectoryExist (destDir </> prefix)
-  unless exists $ callProcess "cp" ["-R", src, destDir]
+  -- unless exists $ callProcess "cp" ["-R", src, destDir]
+  unless exists $ shelly $ cp_r (fromText $ pack src) (fromText $ pack destDir)
