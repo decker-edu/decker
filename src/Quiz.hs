@@ -1,13 +1,13 @@
 {-- Author: Jan-Philipp Stauffert <jan-philipp.stauffert@uni-wuerzburg.de> --}
 module Quiz
-  ( renderQuizzes,
-  dachdeckerUrl
+  ( renderQuizzes
+  , dachdeckerUrl
   ) where
 
 import Common
+import System.Environment
 import Text.Pandoc
 import Text.Pandoc.Walk
-import System.Environment
 
 renderQuizzes :: Pandoc -> Decker Pandoc
 renderQuizzes pandoc = do
@@ -30,6 +30,7 @@ checkIfQuiz (Para ((Str "[X]"):_)) = True
 checkIfQuiz (Para ((Str "["):Space:(Str "]"):_)) = True
 checkIfQuiz (Plain ((Str "[X]"):_)) = True
 checkIfQuiz (Plain ((Str "["):Space:(Str "]"):_)) = True
+checkIfQuiz (Plain ((Link nullAttr [] ('#':_, "")):Space:_)) = True
 checkIfQuiz _ = False
 
 -- | Renders a quiz answer 
@@ -56,7 +57,8 @@ renderTooltip block = block
 dachdeckerUrl :: IO String
 dachdeckerUrl = do
   env <- System.Environment.lookupEnv "DACHDECKER_SERVER"
-  let url = case env of
-        Just val -> val
-        Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
+  let url =
+        case env of
+          Just val -> val
+          Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
   return url
