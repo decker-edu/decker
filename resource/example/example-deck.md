@@ -7,7 +7,7 @@ subtitle: Tutorial and Examples
 title: Decker Slide Tool
 transition: linear
 ümläüte: Ümläüte
-chalkboard: example-deck.json
+chalkboard: true  
 ---
 
 # Overview
@@ -16,6 +16,34 @@ chalkboard: example-deck.json
 -   Installation
 -   Usage
 -   Development
+ 
+# Speaker Notes
+
+## Slide level {.split}
+
+-   The slide content becomes part of the speaker notes
+-   Add `notes` class to slide header
+
+    ``` {.markdown}
+    # Slide Level {.notes}
+
+    These are speaker notes.
+    ```
+
+## Block level
+
+-   Block content becomes part of the speaker notes
+-   Add `notes` class to level two header
+
+    ``` {.markdown}
+    ## Block level {.notes}
+
+    These are speaker notes too.
+    ```
+
+# These are just notes {.notes}
+
+Slides with headers that are have the `.notes` class attribute are not included in the presentation. They are only visible in the handout and probably are available as presenter notes during slide presentation.
 
 # Features {.section}
 
@@ -140,7 +168,7 @@ $$
 
     ``` {.markdown}
     ## Video
-    
+
     ![](<page>://<video-id>)
     Example:
     ![](youtube://qEcmwHRG2Mo)
@@ -205,34 +233,6 @@ $e=mc^2$
 ## Equation {.equation}
 
 $e=mc^2$
-
-# Speaker Notes
-
-## Slide level {.split}
-
--   The slide content becomes part of the speaker notes
--   Add `notes` class to slide header
-
-    ``` {.markdown}
-    # Slide Level {.notes}
-
-    These are speaker notes.
-    ```
-
-## Block level
-
--   Block content becomes part of the speaker notes
--   Add `notes` class to level two header
-
-    ``` {.markdown}
-    ## Block level {.notes}
-
-    These are speaker notes too.
-    ```
-
-# These are just notes {.notes}
-
-Slides with headers that are have the `.notes` class attribute are not included in the presentation. They are only visible in the handout and probably are available as presenter notes during slide presentation.
 
 # Cached Images
 

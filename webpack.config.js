@@ -7,8 +7,6 @@ module.exports = {
     math: './src-support/math.js',
     plugins: './src-support/rplugins.js',
     classlist: './src-support/classlist.js',
-    notes: './src-support/notes.js',
-    notesclient: './src-support/notes-client.js',
     page: './src-support/page.js',
     three: './src-support/three.js',
     d3: './src-support/d3.js',

@@ -270,7 +270,7 @@ $if(chalkboard)$
         chalkboard: {
       		readOnly: undefined,
       		theme: "chalkboard",
-      		src: '$chalkboard$',
+      		src: null,
       	},
 $endif$
 
@@ -278,12 +278,9 @@ $endif$
         dependencies: [
           { src: '$decker-support-dir$/classlist.js', condition: function() { return !document.body.classList; } },
           { src: '$decker-support-dir$/plugins.js', async: true },
+          { src: '$decker-support-dir$/reveal.js/plugin/notes/notes.js', async: true },
 $if(chalkboard)$
           { src: '$decker-support-dir$/chalkboard.js'},
-$endif$
-          { src: '$decker-support-dir$/notes.js', async: true },
-$if(notes-server)$
-          { src: '$decker-support-dir$/notesclient.js', async: true },
 $endif$
 $if(mathjax)$
           { src: '$decker-support-dir$/math.js', async: true },
