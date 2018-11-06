@@ -10,7 +10,7 @@ import Data.IORef ()
 import Data.List
 import Data.Maybe
 import Data.String ()
-import Data.Text as T
+import Data.Text as T (pack)
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
@@ -19,7 +19,7 @@ import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import Shelly (cp_r, fromText, shelly)
+import Shelly as Sh (cp_r, fromText, shelly)
 import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
 import System.FilePath ()
 import Text.Groom
@@ -161,9 +161,9 @@ main = do
       writeIndexLists
         out
         (takeDirectory index)
-        (Data.List.zip decks decksPdf)
-        (Data.List.zip handouts handoutsPdf)
-        (Data.List.zip pages pagesPdf)
+        (zip decks decksPdf)
+        (zip handouts handoutsPdf)
+        (zip pages pagesPdf)
       -- writeIndexTable out (takeDirectory index) deckData pageData
       -- writeIndex out (takeDirectory index) decks handouts pages
     --
@@ -230,12 +230,13 @@ main = do
               liftIO $ createFileLink (appDataDir </> "support") supportDir
           Just value
             | value == show Copy
-              -- rsync [(appDataDir </> "support/"), supportDir]
+              -- 2018-11-06 previously using call to "rsync":
+              -- -> rsync [(appDataDir </> "support/"), supportDir]
              ->
-              shelly $
-              cp_r
-                (fromText $ T.pack (appDataDir </> "support/"))
-                (fromText $ T.pack supportDir)
+              Sh.shelly $
+              Sh.cp_r
+                (Sh.fromText $ T.pack (appDataDir </> "support/"))
+                (Sh.fromText $ T.pack supportDir)
           Nothing ->
             liftIO $ createFileLink (appDataDir </> "support") supportDir
           _ -> return ()
@@ -251,7 +252,7 @@ main = do
       if isJust host && isJust path
         then do
           let src = publicDir ++ "/"
-          let dst = Data.List.intercalate ":" [fromJust host, fromJust path]
+          let dst = intercalate ":" [fromJust host, fromJust path]
           ssh [(fromJust host), "mkdir -p", (fromJust path)]
           rsync [src, dst]
         else throw RsyncUrlException
