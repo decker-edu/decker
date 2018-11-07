@@ -7,7 +7,7 @@ subtitle: Tutorial and Examples
 title: Decker Slide Tool
 transition: linear
 ümläüte: Ümläüte
-chalkboard: true  
+chalkboard: example-deck.json  
 ---
 
 # Overview
@@ -16,7 +16,7 @@ chalkboard: true
 -   Installation
 -   Usage
 -   Development
- 
+
 # Speaker Notes
 
 ## Slide level {.split}
