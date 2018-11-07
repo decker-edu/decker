@@ -15,6 +15,7 @@ module Context
   , getPublicResource
   , withShakeLock
   , getRelativeSupportDir
+  , getDachdeckerUrl
   ) where
 
 import Common
@@ -29,6 +30,7 @@ import Development.Shake as Shake
 import Project
 import Server
 import System.FilePath
+import System.Environment
 
 data ActionContext = ActionContext
   { ctxFilesToWatch :: IORef [FilePath]
@@ -114,3 +116,12 @@ getRelativeSupportDir from = do
   pub <- public <$> getProjectDirs
   let sup = pub </> ("support" ++ "-" ++ deckerVersion)
   return $ makeRelativeTo from sup
+
+getDachdeckerUrl :: IO String
+getDachdeckerUrl = do
+  env <- System.Environment.lookupEnv "DACHDECKER_SERVER"
+  let url =
+        case env of
+          Just val -> val
+          Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
+  return url

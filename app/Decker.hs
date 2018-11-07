@@ -26,6 +26,7 @@ import Text.Pandoc
 import Text.Pandoc.Definition
 import Text.Printf ()
 import Utilities
+import Dachdecker
 
 main :: IO ()
 main = do
@@ -248,6 +249,8 @@ main = do
           ssh [(fromJust host), "mkdir -p", (fromJust path)]
           rsync [src, dst]
         else throw RsyncUrlException
+    --
+    phony "sync" $ uploadQuizzes deckSourcesA
 
 -- | Some constants that might need tweaking
 options :: FilePath -> ShakeOptions

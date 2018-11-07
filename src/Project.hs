@@ -12,6 +12,7 @@ module Project
   , projectDirectories
   , provisioningFromMeta
   , templateFromMeta
+  , dachdeckerFromMeta
   , provisioningFromClasses
   , invertPath
   , Resource(..)
@@ -43,6 +44,12 @@ templateFromMeta meta =
     Just (MetaString s) ->  Just s
     Just (MetaInlines i) -> Just $ stringify i
     _ -> Nothing
+
+dachdeckerFromMeta :: Meta -> Maybe String
+dachdeckerFromMeta meta = case lookupMeta "template" meta of
+  Just (MetaString s) ->  Just s
+  Just (MetaInlines i) -> Just $ stringify i
+  _ -> Nothing
 
 provisioningClasses :: [(String, Provisioning)]
 provisioningClasses =

@@ -22,6 +22,8 @@ module Utilities
   , toPandocMeta
   , deckerPandocExtensions
   , lookupPandocMeta
+  , readMarkdownOrThrow
+  , pandocReaderOpts
   , DeckerException(..)
   ) where
 
@@ -253,7 +255,7 @@ markdownToHtmlDeck markdownFile out = do
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
   templateSupportDir <- getSupportDir meta out supportDirRel
-  dachdeckerUrl' <- liftIO dachdeckerUrl
+  dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
         { writerSlideLevel = Just 1

@@ -1,13 +1,14 @@
 {-- Author: Jan-Philipp Stauffert <jan-philipp.stauffert@uni-wuerzburg.de> --}
 module Quiz
   ( renderQuizzes
-  , dachdeckerUrl
   ) where
 
 import Common
-import System.Environment
 import Text.Pandoc
 import Text.Pandoc.Walk
+import Debug.Trace as DT
+import Control.Exception
+-- import Utilities as U
 
 renderQuizzes :: Pandoc -> Decker Pandoc
 renderQuizzes pandoc = do
@@ -53,12 +54,3 @@ renderAnswer (prelude:rest) =
 renderTooltip :: Block -> Block
 renderTooltip (BulletList (content:_)) = Div ("", ["tooltip"], []) content
 renderTooltip block = block
-
-dachdeckerUrl :: IO String
-dachdeckerUrl = do
-  env <- System.Environment.lookupEnv "DACHDECKER_SERVER"
-  let url =
-        case env of
-          Just val -> val
-          Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
-  return url
