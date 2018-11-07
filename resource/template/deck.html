@@ -278,7 +278,9 @@ $endif$
         dependencies: [
           { src: '$decker-support-dir$/classlist.js', condition: function() { return !document.body.classList; } },
           { src: '$decker-support-dir$/plugins.js', async: true },
-          { src: '$decker-support-dir$/reveal.js/plugin/notes/notes.js', async: true },
+          { src: '$decker-support-dir$/notes/notes.js', async: true },
+          { src: '$decker-support-dir$/notes-server/client.js', async: true },
+          { src: '$decker-support-dir$/socket.io/socket.io.js', async: true },
 $if(chalkboard)$
           { src: '$decker-support-dir$/chalkboard.js'},
 $endif$
