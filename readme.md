@@ -47,7 +47,7 @@ Decker uses a few external tools that need to be installed on the system:
 Use [Homebrew](https://brew.sh) to install most of them.
 
 ``` {.sh}
-brew install rsync unzip graphviz gnuplot pdf2svg sassc
+brew install rsync unzip graphviz gnuplot pdf2svg sassc yarn
 ```
 
 For the rest follow instructions on their respective webites.
