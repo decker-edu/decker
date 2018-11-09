@@ -230,8 +230,6 @@ main = do
               liftIO $ createFileLink (appDataDir </> "support") supportDir
           Just value
             | value == show Copy
-              -- 2018-11-06 previously using call to "rsync":
-              -- -> rsync [(appDataDir </> "support/"), supportDir]
              ->
               Sh.shelly $
               Sh.cp_r

@@ -61,8 +61,6 @@ writeResourceFiles prefix destDir = do
   dataDir <- deckerResourceDir
   let src = dataDir </> prefix
   exists <- doesDirectoryExist (destDir </> prefix)
-  -- 2018-11-06 previously using call to unix command "cp"):
-  -- unless exists $ callProcess "cp" ["-R", src, destDir]
   unless exists $
     Sh.shelly $
     Sh.cp_r (Sh.fromText $ T.pack src) (Sh.fromText $ T.pack destDir)
