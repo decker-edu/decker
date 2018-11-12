@@ -77,3 +77,6 @@ resource/support/notes/%: node_modules/reveal.js/plugin/notes/%
 
 resource/support/reveal.js-menu/%: node_modules/reveal.js-menu/%
 	mkdir -p $(@D) &&	cp $< $@
+
+node_modules/%:
+	yarn install
