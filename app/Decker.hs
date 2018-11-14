@@ -19,7 +19,8 @@ import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-import Shelly as Sh (cp_r, fromText, shelly)
+
+-- import Shelly as Sh (cp_r, fromText, shelly)
 import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
 import System.FilePath ()
 import Text.Groom
@@ -98,7 +99,7 @@ main = do
       need ["watch"]
       runHttpServer serverPort dirs Nothing
     --
-    phony "example" writeExampleProject
+    phony "example" $ liftIO writeExampleProject
     --
     phony "index" $ need [index, "support"]
     --
@@ -229,12 +230,13 @@ main = do
             | value == show SymLink ->
               liftIO $ createFileLink (appDataDir </> "support") supportDir
           Just value
-            | value == show Copy
-             ->
-              Sh.shelly $
-              Sh.cp_r
-                (Sh.fromText $ T.pack (appDataDir </> "support/"))
-                (Sh.fromText $ T.pack supportDir)
+            | value == show Copy ->
+              liftIO $ cp_r (appDataDir </> "support") supportDir
+              -- -> rsync [(appDataDir </> "support/"), supportDir]
+              -- Sh.shelly $
+              -- Sh.cp_r
+              --   (Sh.fromText $ T.pack (appDataDir </> "support/"))
+              --   (Sh.fromText $ T.pack supportDir)
           Nothing ->
             liftIO $ createFileLink (appDataDir </> "support") supportDir
           _ -> return ()

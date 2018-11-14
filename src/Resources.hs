@@ -3,16 +3,16 @@ module Resources
   ( extractResources
   , getResourceString
   , deckerResourceDir
+  , writeExampleProject
   , writeResourceFiles
+  , cp_r
   ) where
 
 import Common
 import Control.Exception
 import Control.Monad
 import Control.Monad.Extra
-import Data.Text as T
 import Exception
-import Shelly as Sh (cp_r, fromText, shelly)
 import System.Directory
 import System.Environment
 import System.Exit
@@ -54,13 +54,57 @@ unzip args = do
       ExitFailure 1 -> True
       _ -> False
 
--- Using the Shelly Package to get native Haskell shell commands (cp_r)
--- hackage.haskell.org/package/shelly-1.8.1/docs/Shelly.html
+writeExampleProject :: IO ()
+writeExampleProject =
+  getCurrentDirectory >>= \x -> writeResourceFiles "example" x
+
 writeResourceFiles :: FilePath -> FilePath -> IO ()
 writeResourceFiles prefix destDir = do
   dataDir <- deckerResourceDir
   let src = dataDir </> prefix
   exists <- doesDirectoryExist (destDir </> prefix)
-  unless exists $
-    Sh.shelly $
-    Sh.cp_r (Sh.fromText $ T.pack src) (Sh.fromText $ T.pack destDir)
+  unless exists $ cp_r src destDir
+  -- Using the Shelly Package to get native Haskell shell commands (cp_r)
+  -- hackage.haskell.org/package/shelly-1.8.1/docs/Shelly.html
+    -- Sh.shelly $
+    -- Sh.cp_r (Sh.fromText $ T.pack src) (Sh.fromText $ T.pack destDir)
+    -- unless exists $ callProcess "cp" ["-R", src, destDir]
+
+-- Problem: bei writeResourceFiles wird nur "." als dest angegeben
+-- es soll dann der example ordner neu erstellt werden im aktuellen ordner
+-- copyDir will den dest ordner IMMER neu erstellen und zwar nur dann wenn er noch nciht existiert
+-- wie cp machen: if ordner existiert: schreibe den src ordner IN den existierenden
+-- else: erstelle neuen Ordner mit namen dst
+cp_r :: FilePath -> FilePath -> IO ()
+cp_r src dst = do
+  whenM (not <$> doesDirectoryExist src) $
+    throw (userError "source does not exist")
+  doesDirectoryExist dst >>= \b ->
+    if b
+      then copyDir src (dst </> takeBaseName src)
+      else copyDir src dst
+  -- whenM (doesDirectoryExist dst) $ copyDir src (dst </> takeBaseName src)
+  putStrLn src
+  putStrLn dst
+  putStrLn (takeBaseName src)
+  where
+    whenM s r = s >>= flip when r
+
+copyDir :: FilePath -> FilePath -> IO ()
+copyDir src dst = do
+  whenM (doesDirectoryExist dst) $
+    throw (userError "destination already exists")
+  createDirectory dst
+  content <- getDirectoryContents src
+  let xs = filter (`notElem` [".", ".."]) content
+  forM_ xs $ \name -> do
+    let srcPath = src </> name
+    let dstPath = dst </> name
+    isDirectory <- doesDirectoryExist srcPath
+    if isDirectory
+      then copyDir srcPath dstPath
+      else copyFile srcPath dstPath
+  where
+    doesFileOrDirectoryExist x = orM [doesDirectoryExist x, doesFileExist x]
+    orM xs = or <$> sequence xs
+    whenM s r = s >>= flip when r
