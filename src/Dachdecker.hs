@@ -25,6 +25,7 @@ import Utilities
 
 uploadQuizzes :: Action [FilePath] -> Action ()
 uploadQuizzes markdownDecks = do
+  -- TODO need the generated html files
   d <- markdownDecks
   liftIO $ uploadQuizzesIO d
   return ()
@@ -32,6 +33,9 @@ uploadQuizzes markdownDecks = do
 uploadQuizzesIO :: [FilePath] -> IO ()
 uploadQuizzesIO deckPaths = do
   putStrLn "Synchronizing your presentation with the server"
+  putStr "The upload will include all files necessary for your presentation. "
+  putStrLn "Depending on your content, this may take some time."
+  putStrLn "Please enter your server credentials"
   putStr "Server: "
   getDachdeckerUrl >>= putStrLn
   putStr "Username: "
@@ -78,7 +82,6 @@ withEcho echo action =
     (const $ hSetEcho stdin echo >> action)
 
 -- | Login to the Dachdecker server
--- 
 -- Use @user@ and @pass@ as credentials to log in
 -- The Dachdecker server allows to hold authentication status
 -- with either Cookies or an authentication token
@@ -93,6 +96,12 @@ login user pass = do
   let token = r ^? responseBody . key "token" . _String
   return (fmap Data.Text.unpack token)
 
+-- | Creates a new deck entry on the server
+-- With the authentication token, the server is asked to
+-- create a new deck entry where files can be uploaded
+-- and surveys can get registered. Returns the deckId
+-- used to work with the deck if the server returns it
+-- otherwise there is an error
 createDeck :: String -> IO (Maybe String)
 createDeck token = do
   baseUrl <- getDachdeckerUrl
@@ -102,8 +111,29 @@ createDeck token = do
   return (fmap Data.Text.unpack id)
 
 uploadMarkdown :: String -> FilePath -> String -> IO ()
-uploadMarkdown id path token = do
+uploadMarkdown deckId path token = do
   baseUrl <- getDachdeckerUrl
   let opts = defaults & header "X-Auth-Token" .~ [BSC.pack token]
-  r <- postWith opts (baseUrl ++ "/api/v1/deck/" ++ id) (partFile "deck" path)
+  r <-
+    postWith opts (baseUrl ++ "/api/v1/deck/" ++ deckId) (partFile "deck" path)
+  return ()
+
+-- | Uploads a file from the public folder to the server
+-- First asks the server to upload the file. The server answers with an id
+-- to upload to. Then the file is uploaded.
+uploadFile :: String -> String -> (FilePath, String) -> IO ()
+uploadFile deckId token (localPath, uploadPath) = do
+  baseUrl <- getDachdeckerUrl
+  let opts = defaults & header "X-Auth-Token" .~ [BSC.pack token]
+  r <-
+    postWith
+      opts
+      (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/file")
+      (toJSON (object ["path" .= uploadPath, "processed" .= True]))
+  let Just uploadId = r ^? responseBody . key "id" . _String
+  ru <-
+    postWith
+      opts
+      (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/file/" ++ (unpack uploadId))
+      (partFile "file" localPath)
   return ()
