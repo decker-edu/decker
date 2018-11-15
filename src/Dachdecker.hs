@@ -15,17 +15,20 @@ import qualified Data.ByteString.Char8 as BSC
 import Data.Map
 import Data.Text
 import qualified Data.Text.IO as T
-import Development.Shake
+import Development.Shake (Action, liftIO)
 import Network.HTTP.Client (HttpException)
 import Network.Wreq
 import Project
 import System.IO
 import Text.Pandoc
 import Utilities
+import System.FilePath
+import System.Directory (doesDirectoryExist, listDirectory)
 
 uploadQuizzes :: Action [FilePath] -> Action ()
-uploadQuizzes markdownDecks = do
+uploadQuizzes markdownDecks
   -- TODO need the generated html files
+ = do
   d <- markdownDecks
   liftIO $ uploadQuizzesIO d
   return ()
@@ -70,8 +73,10 @@ uploadQuiz token path = do
         writeFile path (Data.Text.unpack markdownContent)
         return deckId'
   uploadMarkdown deckId path token
+  uploadPublic deckId token
   return ()
 
+-- | Suppresses echo when prompting for a password
 -- Copied from
 -- https://stackoverflow.com/questions/4064378/prompting-for-a-password-in-haskell-command-line-application
 withEcho :: Bool -> IO a -> IO a
@@ -110,13 +115,37 @@ createDeck token = do
   let id = r ^? responseBody . key "id" . _String
   return (fmap Data.Text.unpack id)
 
+-- | Uploads the Markdown file for a deck
+-- The markdown file is special as there is only one
+-- entry file for a presentation.
+-- Additional markdown files that may get included upon
+-- build are ignored for now.
 uploadMarkdown :: String -> FilePath -> String -> IO ()
 uploadMarkdown deckId path token = do
   baseUrl <- getDachdeckerUrl
   let opts = defaults & header "X-Auth-Token" .~ [BSC.pack token]
   r <-
-    postWith opts (baseUrl ++ "/api/v1/deck/" ++ deckId) (partFile "deck" path)
+    postWith opts (baseUrl ++ "/api/v1/deck/" ++ deckId) (partFile "file" path)
   return ()
+
+uploadPublic :: String -> String -> IO ()
+uploadPublic deckId token = do
+  projectDirs <- projectDirectories
+  let publicDir = public projectDirs
+  uploadPublicRecursive publicDir ""
+  where
+    uploadPublicRecursive :: FilePath -> String -> IO ()
+    uploadPublicRecursive src uploadPath = do
+      isDir <- doesDirectoryExist src
+      if isDir
+        then do
+          contents <- listDirectory src
+          mapM
+            (\x -> uploadPublicRecursive (src </> x) (uploadPath ++ "/" ++ x))
+            contents
+          return ()
+        else do
+          uploadFile deckId token (src, uploadPath)
 
 -- | Uploads a file from the public folder to the server
 -- First asks the server to upload the file. The server answers with an id
