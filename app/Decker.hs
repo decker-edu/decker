@@ -231,12 +231,7 @@ main = do
               liftIO $ createFileLink (appDataDir </> "support") supportDir
           Just value
             | value == show Copy ->
-              liftIO $ cp_r (appDataDir </> "support") supportDir
-              -- -> rsync [(appDataDir </> "support/"), supportDir]
-              -- Sh.shelly $
-              -- Sh.cp_r
-              --   (Sh.fromText $ T.pack (appDataDir </> "support/"))
-              --   (Sh.fromText $ T.pack supportDir)
+              liftIO $ copyDir (appDataDir </> "support") supportDir
           Nothing ->
             liftIO $ createFileLink (appDataDir </> "support") supportDir
           _ -> return ()

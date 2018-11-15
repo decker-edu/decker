@@ -5,13 +5,14 @@ module Resources
   , deckerResourceDir
   , writeExampleProject
   , writeResourceFiles
-  , cp_r
+  , copyDir
   ) where
 
 import Common
 import Control.Exception
 import Control.Monad
 import Control.Monad.Extra
+import Data.ByteString.Lazy as BS (readFile)
 import Exception
 import System.Directory
 import System.Environment
@@ -28,7 +29,7 @@ deckerResourceDir =
 getResourceString :: FilePath -> IO String
 getResourceString path = do
   dataDir <- deckerResourceDir
-  readFile (dataDir </> path)
+  Prelude.readFile (dataDir </> path)
 
 -- Extract resources from the executable into the XDG data directory.
 extractResources :: IO ()
@@ -55,56 +56,53 @@ unzip args = do
       _ -> False
 
 writeExampleProject :: IO ()
-writeExampleProject =
-  getCurrentDirectory >>= \x -> writeResourceFiles "example" x
+writeExampleProject = writeResourceFiles "example" "."
 
 writeResourceFiles :: FilePath -> FilePath -> IO ()
 writeResourceFiles prefix destDir = do
   dataDir <- deckerResourceDir
   let src = dataDir </> prefix
-  exists <- doesDirectoryExist (destDir </> prefix)
-  unless exists $ cp_r src destDir
-  -- Using the Shelly Package to get native Haskell shell commands (cp_r)
-  -- hackage.haskell.org/package/shelly-1.8.1/docs/Shelly.html
-    -- Sh.shelly $
-    -- Sh.cp_r (Sh.fromText $ T.pack src) (Sh.fromText $ T.pack destDir)
-    -- unless exists $ callProcess "cp" ["-R", src, destDir]
+  copyDir src destDir
+  -- exists <- doesDirectoryExist (destDir </> prefix)
+  -- unless exists $ copyDir src destDir
 
--- Problem: bei writeResourceFiles wird nur "." als dest angegeben
--- es soll dann der example ordner neu erstellt werden im aktuellen ordner
--- copyDir will den dest ordner IMMER neu erstellen und zwar nur dann wenn er noch nciht existiert
--- wie cp machen: if ordner existiert: schreibe den src ordner IN den existierenden
--- else: erstelle neuen Ordner mit namen dst
-cp_r :: FilePath -> FilePath -> IO ()
-cp_r src dst = do
-  whenM (not <$> doesDirectoryExist src) $
-    throw (userError "source does not exist")
-  doesDirectoryExist dst >>= \b ->
-    if b
-      then copyDir src (dst </> takeBaseName src)
-      else copyDir src dst
-  -- whenM (doesDirectoryExist dst) $ copyDir src (dst </> takeBaseName src)
-  putStrLn src
-  putStrLn dst
-  putStrLn (takeBaseName src)
-  where
-    whenM s r = s >>= flip when r
+-- Check difference between file contents
+diff :: FilePath -> FilePath -> IO Bool
+diff src dst = do
+  srcContents <- BS.readFile src
+  destContents <- BS.readFile dst
+  return (srcContents == destContents)
 
+-- Copy a file to a file location or to a directory
+cp :: FilePath -> FilePath -> IO ()
+cp src dst = do
+  unlessM (doesFileExist src) $
+    throw (userError "src does not exist or is not a file")
+  dstExists <- doesFileExist dst
+  if not dstExists
+    then do
+      destIsDir <- doesDirectoryExist dst
+      if destIsDir
+        then copyFile src (dst </> takeFileName src)
+        else copyFile src dst
+    else unlessM (diff src dst) $ copyFile src dst
+
+-- Copy a directory and its contents recursively
 copyDir :: FilePath -> FilePath -> IO ()
 copyDir src dst = do
-  whenM (doesDirectoryExist dst) $
-    throw (userError "destination already exists")
-  createDirectory dst
-  content <- getDirectoryContents src
-  let xs = filter (`notElem` [".", ".."]) content
-  forM_ xs $ \name -> do
-    let srcPath = src </> name
-    let dstPath = dst </> name
-    isDirectory <- doesDirectoryExist srcPath
-    if isDirectory
-      then copyDir srcPath dstPath
-      else copyFile srcPath dstPath
-  where
-    doesFileOrDirectoryExist x = orM [doesDirectoryExist x, doesFileExist x]
-    orM xs = or <$> sequence xs
-    whenM s r = s >>= flip when r
+  unlessM (doesDirectoryExist src) $
+    throw (userError "src does not exist or is not a directory")
+  dstExists <- doesDirectoryExist dst
+  if dstExists && (last (splitPath src) /= last (splitPath dst))
+    then copyDir src (dst </> last (splitPath src))
+    else do
+      createDirectoryIfMissing True dst
+      contents <- getDirectoryContents src
+      let xs = Prelude.filter (`notElem` [".", ".."]) contents
+      forM_ xs $ \name -> do
+        let srcPath = src </> name
+        let dstPath = dst </> name
+        isDirectory <- doesDirectoryExist srcPath
+        if isDirectory
+          then copyDir srcPath dstPath
+          else cp srcPath dstPath
