@@ -237,8 +237,9 @@ mapTuple f (a, b) = (f a, f b)
 -- that will be culled from the traversal. 'suffixes' is the list of file
 -- suffixes that are included in the glob.
 fastGlob :: [String] -> [String] -> FilePath -> IO [FilePath]
-fastGlob exclude suffixes = glob
+fastGlob exclude suffixes root = glob root
   where
+    absExclude = map (root </>) exclude
     glob root = do
       dirExists <- doesDirectoryExist root
       fileExists <- doesFileExist root
@@ -246,13 +247,15 @@ fastGlob exclude suffixes = glob
          | fileExists -> globFile root
          | otherwise -> return []
     globFile file =
-      if (not ("." `isPrefixOf` file)) && any (`isSuffixOf` file) suffixes
+      if any (`isSuffixOf` file) suffixes
         then return [file]
         else return []
     globDir dir =
-      if "." `isPrefixOf` dir || dir `elem` exclude
+      if dir `elem` absExclude
         then return []
-        else concat <$> ((map (dir </>) <$> listDirectory dir) >>= mapM glob)
+        else do
+            putStrLn $ "globbing dir: " ++ dir
+            concat <$> ((map (dir </>) <$> listDirectory dir) >>= mapM glob)
 
 glob :: [String] -> [String] -> FilePath -> IO [(String, [FilePath])]
 glob exclude suffixes root = do
@@ -265,9 +268,8 @@ glob exclude suffixes root = do
 
 scanTargets :: [String] -> [String] -> ProjectDirs -> IO Targets
 scanTargets exclude suffixes dirs = do
-  srcs <- glob exclude suffixes (dirs ^. project)
-  return $
-    Targets
+  srcs <- time "glob" $ glob exclude suffixes (dirs ^. project)
+  time "targets" $ return Targets
       { _sources = concatMap snd srcs
       , _decks = calcTargets deckSuffix deckHTMLSuffix srcs
       , _decksPdf = calcTargets deckSuffix deckPDFSuffix srcs
@@ -283,3 +285,4 @@ scanTargets exclude suffixes dirs = do
         (replaceSuffix srcSuffix targetSuffix .
          combine (dirs ^. public) . makeRelative (dirs ^. project))
         (fromMaybe [] $ lookup srcSuffix sources)
+

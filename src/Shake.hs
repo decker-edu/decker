@@ -39,11 +39,13 @@ import Control.Concurrent
 import Control.Exception
 import Control.Lens
 import Control.Monad
+import Data.Aeson.Lens
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import Data.IORef
 import Data.List
 import Data.Maybe
+import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
 import Development.Shake
@@ -110,12 +112,14 @@ runShakeOnce state rules = do
 targetDirs context =
   unique $ map takeDirectory (context ^. targetList . sources)
 
-alwaysExclude = ["public", "resource"] -- mix in meta data
+alwaysExclude = ["public"]
 
 initContext state = do
   dirs <- projectDirectories
   meta <- readMetaData $ dirs ^. project
-  targets <- scanTargets alwaysExclude sourceSuffixes dirs
+  let metaExclude =
+        meta ^.. key "exclude-directories" . values . _String . unpacked
+  targets <- scanTargets (alwaysExclude ++ metaExclude) sourceSuffixes dirs
   return $ ActionContext dirs targets meta state
 
 cleanup state = do
@@ -160,14 +164,14 @@ actionContext = do
   return $ fromMaybe (error "Error upcasting action context") (fromDynamic dyn)
 
 waitForChange :: [FilePath] -> IO ()
-waitForChange inDirs = Notify.withManager watch
-  where
-    watch :: Notify.WatchManager -> IO ()
-    watch manager = mapM_ (\d -> Notify.watchDir manager d all nothing) inDirs
-    all :: Notify.ActionPredicate
-    all _ = True
-    nothing :: Notify.Action
-    nothing _ = return ()
+waitForChange inDirs =
+  Notify.withManager
+    (\manager -> do
+       done <- newEmptyMVar
+       forM_ inDirs $
+         (\dir ->
+            Notify.watchDir manager dir (\_ -> True) (\_ -> putMVar done ()))
+       takeMVar done)
 
 getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do
@@ -273,8 +277,8 @@ calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target = do
   dirs <- projectDirsA
   let src =
-        (replaceSuffix targetSuffix srcSuffix .
-         combine (dirs ^. project) . makeRelative (dirs ^. public))
+        (replaceSuffix targetSuffix srcSuffix . combine (dirs ^. project) .
+         makeRelative (dirs ^. public))
           target
   need [src]
   return src

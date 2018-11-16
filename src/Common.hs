@@ -31,6 +31,7 @@ module Common
   , metaSuffix
   , sourceSuffixes
   , unique
+  , time
   ) where
 
 import CompileTime
@@ -42,6 +43,8 @@ import Data.Version (showVersion, versionBranch)
 import Development.Shake (Action, need)
 import Network.URI as U
 import Paths_decker (version)
+import System.CPUTime
+import Text.Printf
 
 -- | The version from the cabal file
 deckerVersion :: String
@@ -126,7 +129,7 @@ repeatIfTrue action = do
 whenTrue :: Monad m => m Bool -> m () -> m ()
 whenTrue bool action = do
   true <- bool
-  when true action 
+  when true action
 
 -- | Removes the last suffix from a filename
 dropSuffix :: String -> String -> String
@@ -138,6 +141,15 @@ replaceSuffix srcSuffix targetSuffix filename =
 
 unique :: Ord a => [a] -> [a]
 unique = Set.toList . Set.fromList
+
+time :: String -> IO a -> IO a
+time name action = do
+  start <- getCPUTime
+  result <- action
+  stop <- getCPUTime
+  let diff = (fromIntegral (stop - start)) / (10 ^ 12)
+  printf "%s: %0.5f sec\n" name (diff :: Double)
+  return result
 
 deckSuffix = "-deck.md"
 
