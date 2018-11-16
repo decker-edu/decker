@@ -705,6 +705,7 @@ processCitesWithDefault pandoc@(Pandoc meta blocks) =
         _ -> return pandoc
     liftIO $ processCites' document
 
+-- moved to Resources.hs
 -- writeExampleProject :: Action ()
 -- writeExampleProject = liftIO $ writeResourceFiles "example" "."
 

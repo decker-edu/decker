@@ -69,7 +69,6 @@ dependencies:
 - random
 - scientific
 - shake
-- shelly
 - snap-core
 - snap-server
 - split
