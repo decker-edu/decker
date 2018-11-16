@@ -8,15 +8,18 @@ module Render
 import CRC32
 import Common
 import Exception
-import Context
-import Control.Monad.State
+import Project
+import Shake
+
+import Control.Lens ((^.))
 import Control.Monad.Extra
+import Control.Monad.State
 import Data.List
 import Data.List.Extra
+import Development.Shake
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
-import Project
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath
 import Text.Blaze.Html.Renderer.String
@@ -60,8 +63,8 @@ d3Canvas source (eid, classes, keyvals) = do
   needFile source
   -- TODO: Clean this up. See Path.hs.
   base <- gets basePath
-  dirs <- lift $ getProjectDirs
-  let publicBase = public dirs </> makeRelativeTo (project dirs) base
+  dirs <- lift $ projectDirsA
+  let publicBase = dirs ^. public </> makeRelativeTo (dirs ^. project) base
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "d3.js")
@@ -88,8 +91,8 @@ threejsCanvas source (eid, classes, keyvals) = do
   needFile source
   -- TODO: Clean this up. See Path.hs.
   base <- gets basePath
-  dirs <- lift $ getProjectDirs
-  let publicBase = public dirs </> makeRelativeTo (project dirs) base
+  dirs <- lift $ projectDirsA
+  let publicBase = dirs ^. public </> makeRelativeTo (dirs ^. project) base
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "three.js")
@@ -180,7 +183,7 @@ provideResources namevals = do
 --   "data:image/svg+xml;base64," ++ (B.unpack (B64.encode (B.pack svg)))
 writeCodeIfChanged :: String -> String -> Decker FilePath
 writeCodeIfChanged code ext = do
-  projectDir <- project <$> (lift $ getProjectDirs)
+  projectDir <- _project <$> (lift projectDirsA)
   let crc = printf "%08x" (calc_crc32 code)
   let basepath = "code" </> (concat $ intersperse "-" ["code", crc])
   let path = projectDir </> basepath <.> ext

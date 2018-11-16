@@ -39,6 +39,13 @@ clean:
 	stack clean
 	rm -rf dist
 
+build-profile:
+	stack build -j 8 --fast --work-dir .stack-work-profile --profile
+
+profile: build-profile
+	stack exec -- decker clean
+	stack exec --work-dir .stack-work-profile -- decker +RTS -p
+
 install: yarn build
 	stack exec -- decker clean
 	cp $(executable) $(local-bin-path)/$(decker-name)
@@ -53,4 +60,4 @@ install-resources: yarn
 version:
 	@echo $(decker-name)
 
-.PHONY: build clean test install install-resources watch watch-resources dist docs yarn
+.PHONY: build clean test install version install-resources watch watch-resources dist docs yarn build-profile profile

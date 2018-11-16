@@ -1,5 +1,7 @@
 .DS_Store
+*.prof
 .stack-work/
+.stack-work-profile/
 .shake/
 TAGS
 public/

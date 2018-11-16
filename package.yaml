@@ -57,6 +57,7 @@ dependencies:
 - http-conduit
 - http-types
 - lens
+- lens-action
 - monad-loops
 - mtl
 - multimap
