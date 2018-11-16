@@ -13,15 +13,22 @@ endif
 resource-dir := $(HOME)/.local/share/decker-$(version)
 local-bin-path := ~/.local/bin
 
+ifdef DECKER_DEV
+	yarn-mode := development
+else
+	yarn-mode := production
+endif
+
 less:
 	stack build -j 8 --fast 2>&1 | less
-
+	
 build:
 	stack build -j 8 --fast
 
 yarn:
-	yarn --silent install && yarn --silent run webpack --mode production --silent
+	yarn --silent install && yarn --silent run webpack --mode $(yarn-mode) --silent
 	cp -r node_modules/reveal.js-menu resource/support/
+	cp -r node_modules/reveal.js/plugin/notes resource/support/
 
 dist: yarn build
 	rm -rf dist
@@ -49,6 +56,7 @@ profile: build-profile
 
 install: yarn build
 	stack exec -- decker clean
+	mkdir -p $(local-bin-path)
 	cp $(executable) "$(local-bin-path)/$(decker-name)"
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
 
