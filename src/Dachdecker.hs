@@ -10,8 +10,9 @@ import Context
 import Control.Exception
 import Control.Lens ((&), (.~), (?~), (^?))
 import Data.Aeson ((.=), fromJSON, object, toJSON)
-import Data.Aeson.Lens (_Bool, _Object, _String, key, nth, values)
+import Data.Aeson.Lens (_Bool, _Integer, _Object, _String, key, nth, values)
 import qualified Data.ByteString.Char8 as BSC
+import Data.List (isPrefixOf)
 import Data.Map
 import Data.Text
 import qualified Data.Text.IO as T
@@ -19,11 +20,12 @@ import Development.Shake (Action, liftIO)
 import Network.HTTP.Client (HttpException)
 import Network.Wreq
 import Project
+import System.Directory (doesDirectoryExist, listDirectory)
+import System.Exit
+import System.FilePath
 import System.IO
 import Text.Pandoc
 import Utilities
-import System.FilePath
-import System.Directory (doesDirectoryExist, listDirectory)
 
 uploadQuizzes :: Action [FilePath] -> Action ()
 uploadQuizzes markdownDecks
@@ -59,22 +61,37 @@ uploadQuiz :: String -> FilePath -> IO ()
 uploadQuiz token path = do
   markdown <- T.readFile path
   let Pandoc meta content = readMarkdownOrThrow pandocReaderOpts markdown
-  -- Find deck id from the meta data or create a new deck if none is present
-  deckId <-
-    case dachdeckerFromMeta meta of
-      Just deckId' -> do
-        return deckId'
-      Nothing -> do
-        Just deckId' <- createDeck token -- TODO, "Nothing" is ignored here
-        let meta' =
-              Meta $ insert "dachdecker" (MetaString deckId') (unMeta meta)
-        markdownContent <-
-          runIO (writeMarkdown def (Pandoc meta' content)) >>= handleError
-        writeFile path (Data.Text.unpack markdownContent)
-        return deckId'
-  uploadMarkdown deckId path token
-  uploadPublic deckId token
-  return ()
+  -- Find deck id from the meta data or exit if none is present
+  -- deckId <-
+  case dachdeckerFromMeta meta of
+    Just deckId -> do
+      uploadMarkdown deckId path token
+      uploadPublic deckId token
+      issueSurveyExtraction deckId token
+      return ()
+    Nothing -> do
+      putStrLn $ "Unable to find Deck ID in file " ++ path
+      putStrLn "Please provide one in your yaml header"
+      return ()
+        -- Just deckId' <- createDeck token -- TODO, "Nothing" is ignored here
+        -- putStr "Created new Deck ID: "
+        -- putStrLn deckId'
+        -- let meta' =
+        --       Meta $ insert "dachdecker" (MetaString deckId') (unMeta meta)
+        -- -- let writerOptions = def {writerExtensions = enableExtension Ext_yaml_metadata_block pandocExtensions}
+        -- let writerOptions =
+        --       def
+        --         { writerExtensions =
+        --             extensionsFromList [Ext_yaml_metadata_block]
+        --         }
+        -- print writerOptions
+        -- markdownContent <-
+        --   runIO (writeMarkdown writerOptions (Pandoc meta' content)) >>=
+        --   handleError
+        -- -- writeMarkdown doesn't include the yaml header, therefore 
+        -- -- destroying the file upon write
+        -- writeFile path (Data.Text.unpack markdownContent)
+        -- return deckId'
 
 -- | Suppresses echo when prompting for a password
 -- Copied from
@@ -121,11 +138,13 @@ createDeck token = do
 -- Additional markdown files that may get included upon
 -- build are ignored for now.
 uploadMarkdown :: String -> FilePath -> String -> IO ()
-uploadMarkdown deckId path token = do
-  baseUrl <- getDachdeckerUrl
-  let opts = defaults & header "X-Auth-Token" .~ [BSC.pack token]
-  r <-
-    postWith opts (baseUrl ++ "/api/v1/deck/" ++ deckId) (partFile "file" path)
+uploadMarkdown deckId path token
+  -- TODO let Pandoc parse the Markdown file
+  -- and find other Markdown files that get included.
+  -- Upload them as well
+ = do
+  projectDirs <- projectDirectories
+  uploadFile deckId token path (makeRelativeTo (project projectDirs) path) False
   return ()
 
 uploadPublic :: String -> String -> IO ()
@@ -137,32 +156,57 @@ uploadPublic deckId token = do
     uploadPublicRecursive :: FilePath -> String -> IO ()
     uploadPublicRecursive src uploadPath = do
       isDir <- doesDirectoryExist src
-      if isDir
+      let (_, fileName) = splitFileName src
+      if isDir && ("support-" `Data.List.isPrefixOf` fileName)
         then do
-          contents <- listDirectory src
-          mapM
-            (\x -> uploadPublicRecursive (src </> x) (uploadPath ++ "/" ++ x))
-            contents
           return ()
-        else do
-          uploadFile deckId token (src, uploadPath)
+        else if isDir
+               then do
+                 contents <- listDirectory src
+                 mapM
+                   (\x ->
+                      uploadPublicRecursive (src </> x) (uploadPath ++ "/" ++ x))
+                   contents
+                 return ()
+               else do
+                 uploadFile deckId token src uploadPath True
 
 -- | Uploads a file from the public folder to the server
 -- First asks the server to upload the file. The server answers with an id
 -- to upload to. Then the file is uploaded.
-uploadFile :: String -> String -> (FilePath, String) -> IO ()
-uploadFile deckId token (localPath, uploadPath) = do
+uploadFile ::
+     String -- ^ ID of the deck
+  -> String -- ^ authentication token
+  -> FilePath -- ^ local file path relative to either the public or the project directory
+  -> String -- ^ path that is reported to the server
+  -> Bool -- ^ indicates if the file is processed, i.e., in the public directory
+  -> IO ()
+uploadFile deckId token localPath uploadPath processed = do
   baseUrl <- getDachdeckerUrl
   let opts = defaults & header "X-Auth-Token" .~ [BSC.pack token]
   r <-
     postWith
       opts
       (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/file")
-      (toJSON (object ["path" .= uploadPath, "processed" .= True]))
-  let Just uploadId = r ^? responseBody . key "id" . _String
+      (toJSON (object ["path" .= uploadPath, "processed" .= processed]))
+  let Just uploadId = r ^? responseBody . key "id" . _Integer
   ru <-
     postWith
       opts
-      (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/file/" ++ (unpack uploadId))
+      (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/file/" ++ (show uploadId))
       (partFile "file" localPath)
+  return ()
+
+-- | Ask the server to update the surveys based on the uploaded files
+issueSurveyExtraction ::
+     String -- ^ ID of the deck
+  -> String -- ^ authentication token
+  -> IO ()
+issueSurveyExtraction deckId token = do
+  baseUrl <- getDachdeckerUrl
+  let opts = defaults & header "X-Auth-Token" .~ [BSC.pack token]
+  putWith
+    opts
+    (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/survey")
+    (toJSON (object ["generate" .= True]))
   return ()

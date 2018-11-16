@@ -20,14 +20,14 @@ module Project
   ) where
 
 import Common
-import Exception
 import Control.Monad.Extra
 import Data.Maybe
+import Exception
 import Network.URI
 import Resources
 import qualified System.Directory as D
-import System.FilePath
 import System.Directory (createFileLink)
+import System.FilePath
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 
@@ -39,17 +39,18 @@ provisioningFromMeta meta =
     _ -> SymLink
 
 templateFromMeta :: Meta -> Maybe String
-templateFromMeta meta = 
+templateFromMeta meta =
   case lookupMeta "template" meta of
-    Just (MetaString s) ->  Just s
+    Just (MetaString s) -> Just s
     Just (MetaInlines i) -> Just $ stringify i
     _ -> Nothing
 
 dachdeckerFromMeta :: Meta -> Maybe String
-dachdeckerFromMeta meta = case lookupMeta "template" meta of
-  Just (MetaString s) ->  Just s
-  Just (MetaInlines i) -> Just $ stringify i
-  _ -> Nothing
+dachdeckerFromMeta meta =
+  case lookupMeta "dachdecker" meta of
+    Just (MetaString s) -> Just s
+    Just (MetaInlines i) -> Just $ stringify i
+    _ -> Nothing
 
 provisioningClasses :: [(String, Provisioning)]
 provisioningClasses =
@@ -134,17 +135,17 @@ projectDirectories = do
 resourcePathes :: ProjectDirs -> FilePath -> URI -> Resource
 resourcePathes dirs base uri =
   Resource
-  { sourceFile = uriPath uri
-  , publicFile = public dirs </> makeRelativeTo (project dirs) (uriPath uri)
-  , publicUrl =
-      show $
-      URI
-        ""
-        Nothing
-        (makeRelativeTo base (uriPath uri))
-        (uriQuery uri)
-        (uriFragment uri)
-  }
+    { sourceFile = uriPath uri
+    , publicFile = public dirs </> makeRelativeTo (project dirs) (uriPath uri)
+    , publicUrl =
+        show $
+        URI
+          ""
+          Nothing
+          (makeRelativeTo base (uriPath uri))
+          (uriQuery uri)
+          (uriFragment uri)
+    }
 
 -- | Copies the src to dst if src is newer or dst does not exist. Creates
 -- missing directories while doing so.
@@ -172,7 +173,7 @@ fileIsNewer a b = do
 makeRelativeTo :: FilePath -> FilePath -> FilePath
 makeRelativeTo dir file =
   let (d, f) = removeCommonPrefix (dir, file)
-  in normalise $ invertPath d </> f
+   in normalise $ invertPath d </> f
 
 invertPath :: FilePath -> FilePath
 invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
