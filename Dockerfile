@@ -29,7 +29,8 @@ RUN wget -qO- https://get.haskellstack.org/ | sh
 
 WORKDIR /decker
 COPY . /decker
-RUN make install
+ARG MAKE_FLAGS
+RUN make ${MAKE_FLAGS} install
 
 RUN ldd /root/.local/bin/decker | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' /root/.local/bin
 

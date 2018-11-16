@@ -2,6 +2,7 @@ base-name := decker
 executable := $(shell stack path | grep local-install-root | sed "s/local-install-root: //")/bin/decker
 version := $(shell grep "version: " package.yaml | sed "s/version: *//")
 branch := $(shell git branch | grep \* | cut -d ' ' -f2)
+local-bin-path := $(HOME)/.local/bin
 
 ifeq ($(branch),master)
 	decker-name := $(base-name)-$(version)
@@ -48,8 +49,8 @@ profile: build-profile
 
 install: yarn build
 	stack exec -- decker clean
-	cp $(executable) $(local-bin-path)/$(decker-name)
-	ln -sf $(decker-name) $(local-bin-path)/$(base-name)
+	cp $(executable) "$(local-bin-path)/$(decker-name)"
+	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
 
 watch-resources:
 	find resource src-support -name "*.scss" -or -name "*.html" -or -name "*.js" | entr -pd make install-resources
@@ -58,6 +59,6 @@ install-resources: yarn
 	rsync -r resource $(resource-dir)
 
 version:
-	@echo $(decker-name)
+	@echo "$(decker-name)"
 
 .PHONY: build clean test install version install-resources watch watch-resources dist docs yarn build-profile profile
