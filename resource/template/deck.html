@@ -274,7 +274,7 @@ $if(chalkboard)$
         chalkboard: {
       		readOnly: undefined,
       		theme: "chalkboard",
-      		src: '$chalkboard$',
+      		src: "$chalkboard$",
       	},
 $endif$
 
@@ -282,11 +282,9 @@ $endif$
         dependencies: [
           { src: '$decker-support-dir$/classlist.js', condition: function() { return !document.body.classList; } },
           { src: '$decker-support-dir$/plugins.js', async: true },
+          { src: '$decker-support-dir$/notes/notes.js', async: true },
 $if(chalkboard)$
           { src: '$decker-support-dir$/chalkboard.js'},
-$endif$
-$if(notes-server)$
-          { src: '$decker-support-dir$/notes.js', async: true },
 $endif$
 $if(mathjax)$
           { src: '$decker-support-dir$/math.js', async: true },
@@ -298,12 +296,14 @@ $endif$
         keyboard: {
             40: function() { Reveal.next(); },                       // up:   next slide
             38: function() { Reveal.prev(); },                       // down: prev slide
+$if(chalkboard)$
             67: function() { window.RevealChalkboard.toggleNotesCanvas() }, // c: draw on slides
             84: function() { window.RevealChalkboard.toggleChalkboard() },  // t: draw on blackboard
             8:  function() { window.RevealChalkboard.clear() },             // BACKSPACE: clear chalkboard
             46: function() { window.RevealChalkboard.resetSlide() },             // DELETE: reset chalkboard
             68: function() { window.RevealChalkboard.downloadData() },          // d: downlad chalkboard drawing
             90: function() { window.RevealChalkboard.drawUndo() } ,         // z: undo last stroke
+$endif$
         },
       });
     </script>
