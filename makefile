@@ -11,7 +11,7 @@ else
 endif
 
 resource-dir := $(HOME)/.local/share/decker-$(version)
-local-bin-path := ~/.local/bin
+local-bin-path := $(HOME)/.local/bin
 
 ifdef DECKER_DEV
 	yarn-mode := development

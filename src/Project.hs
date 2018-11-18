@@ -253,9 +253,7 @@ fastGlob exclude suffixes root = glob root
     globDir dir =
       if dir `elem` absExclude
         then return []
-        else do
-            putStrLn $ "globbing dir: " ++ dir
-            concat <$> ((map (dir </>) <$> listDirectory dir) >>= mapM glob)
+        else concat <$> ((map (dir </>) <$> listDirectory dir) >>= mapM glob)
 
 glob :: [String] -> [String] -> FilePath -> IO [(String, [FilePath])]
 glob exclude suffixes root = do
@@ -268,8 +266,9 @@ glob exclude suffixes root = do
 
 scanTargets :: [String] -> [String] -> ProjectDirs -> IO Targets
 scanTargets exclude suffixes dirs = do
-  srcs <- time "glob" $ glob exclude suffixes (dirs ^. project)
-  time "targets" $ return Targets
+  srcs <- glob exclude suffixes (dirs ^. project)
+  return
+    Targets
       { _sources = concatMap snd srcs
       , _decks = calcTargets deckSuffix deckHTMLSuffix srcs
       , _decksPdf = calcTargets deckSuffix deckPDFSuffix srcs
@@ -285,4 +284,3 @@ scanTargets exclude suffixes dirs = do
         (replaceSuffix srcSuffix targetSuffix .
          combine (dirs ^. public) . makeRelative (dirs ^. project))
         (fromMaybe [] $ lookup srcSuffix sources)
-
