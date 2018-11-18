@@ -10,7 +10,6 @@ import Data.IORef ()
 import Data.List
 import Data.Maybe
 import Data.String ()
-import Data.Text as T (pack)
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
@@ -19,8 +18,6 @@ import External
 import GHC.Conc (numCapabilities)
 import Project
 import Resources
-
--- import Shelly as Sh (cp_r, fromText, shelly)
 import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
 import System.FilePath ()
 import Text.Groom

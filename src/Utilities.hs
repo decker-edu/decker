@@ -12,7 +12,6 @@ module Utilities
   , markdownToPdfHandout
   , markdownToHtmlPage
   , markdownToPdfPage
-  , writeExampleProject
   , metaValueAsString
   , (<++>)
   , writeEmbeddedFiles
