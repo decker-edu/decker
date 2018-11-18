@@ -16,10 +16,10 @@ import Control.Monad.Extra
 import Control.Monad.State
 import Data.List
 import Data.List.Extra
-import Development.Shake
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
+import Development.Shake
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath
 import Text.Blaze.Html.Renderer.String
@@ -69,7 +69,7 @@ d3Canvas source (eid, classes, keyvals) = do
   contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "d3.js")
   addScript $ ScriptSource "javascript" contents
-  let classStr = intercalate " " classes
+  let classStr = unwords classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
   case element of
     "canvas" ->
@@ -97,9 +97,9 @@ threejsCanvas source (eid, classes, keyvals) = do
   contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "three.js")
   let includes = splitOn "," $ fromMaybe "" $ lookup "includes" keyvals
-  mapM_ addScript $ map (ScriptURI "javascript") includes
+  mapM_ (addScript . (ScriptURI "javascript")) includes
   addScript $ ScriptSource "javascript" contents
-  let classStr = intercalate " " classes
+  let classStr = unwords classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
   case element of
     "canvas" ->
@@ -156,8 +156,7 @@ findProcessor _ = Nothing
 maybeRenderImage :: Inline -> Decker Inline
 maybeRenderImage image@(Image attr@(_, classes, _) _ (url, _)) =
   case findProcessor classes of
-    Just processor -> do
-      (compiler processor) url attr
+    Just processor -> compiler processor url attr
     Nothing -> return image
 maybeRenderImage inline = return inline
 
@@ -210,11 +209,11 @@ appendScripts pandoc@(Pandoc meta blocks) = do
       H.script ! class_ "generated decker" ! lang (toValue language) !
       src (toValue uri) $
       ""
-    renderScript (ScriptSource language source) = do
+    renderScript (ScriptSource language source) =
       RawBlock (Format "html") $
-        printf
-          "<script class=\"generated decker\" lang=\"%s\">%s</script>"
-          language
-          source
+      printf
+        "<script class=\"generated decker\" lang=\"%s\">%s</script>"
+        language
+        source
       -- renderHtml $
       -- H.script ! class_ "generated decker" ! lang = language $ preEscapedToHtml source

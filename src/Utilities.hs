@@ -154,8 +154,8 @@ writeIndexLists out baseUrl = do
       printf
         "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
         (takeFileName html)
-        (makeRelative baseUrl $ html)
-        (makeRelative baseUrl $ pdf)
+        (makeRelative baseUrl html)
+        (makeRelative baseUrl pdf)
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text

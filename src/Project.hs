@@ -269,13 +269,13 @@ scanTargets exclude suffixes dirs = do
   srcs <- glob exclude suffixes (dirs ^. project)
   return
     Targets
-      { _sources = concatMap snd srcs
-      , _decks = calcTargets deckSuffix deckHTMLSuffix srcs
-      , _decksPdf = calcTargets deckSuffix deckPDFSuffix srcs
-      , _pages = calcTargets pageSuffix pageHTMLSuffix srcs
-      , _pagesPdf = calcTargets pageSuffix pagePDFSuffix srcs
-      , _handouts = calcTargets deckSuffix handoutHTMLSuffix srcs
-      , _handoutsPdf = calcTargets deckSuffix handoutPDFSuffix srcs
+      { _sources = sort $ concatMap snd srcs
+      , _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs
+      , _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs
+      , _pages = sort $ calcTargets pageSuffix pageHTMLSuffix srcs
+      , _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs
+      , _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs
+      , _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs
       }
   where
     calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]

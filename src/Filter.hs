@@ -151,7 +151,7 @@ layoutSlide :: Slide -> Decker Slide
 layoutSlide slide@(Slide (Just header) body) = do
   disp <- gets disposition
   case disp of
-    Disposition Deck Html -> do
+    Disposition Deck Html ->
       case hasRowLayout header of
         Just layout ->
           let names = layoutAreas layout
@@ -207,8 +207,7 @@ splitJoinColumns :: Slide -> Decker Slide
 splitJoinColumns slide@(Slide header body) = do
   disp <- gets disposition
   case disp of
-    Disposition Deck Html -> do
-      return $ Slide header $ concatMap wrapRow rowBlocks
+    Disposition Deck Html -> return $ Slide header $ concatMap wrapRow rowBlocks
       where rowBlocks =
               split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
             wrapRow row@(first:_)
@@ -437,8 +436,7 @@ cacheImageIO uri cacheDir = do
 renderMediaTags :: Pandoc -> Decker Pandoc
 renderMediaTags pandoc = do
   disp <- gets disposition
-  pandoc' <- lift $ walkM (renderMediaTag disp) pandoc
-  return $ pandoc'
+  lift $ walkM (renderMediaTag disp) pandoc
 
 -- | File extensions that signify video content.
 videoExtensions :: [String]
@@ -485,9 +483,8 @@ classifyFilePath name =
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
 -- transfers attributes to the video tag.
 renderMediaTag :: Disposition -> Inline -> Action Inline
-renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) = do
-  rendered <- liftIO imageVideoTag
-  return $ rendered
+renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
+  liftIO imageVideoTag
   where
     imageVideoTag =
       if (uriPathExtension url) `elem` [".svg"] && "embed" `elem` cls
@@ -497,11 +494,10 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) = do
             if attrs /= nullAttr
               then Span (ident, cls', values') [toHtml fileContent]
               else toHtml fileContent
-        else do
-          return $ toHtml $ renderHtml $
-            if "iframe" `elem` cls
-              then mediaTag (iframe "Browser does not support iframe.")
-              else createMediaTag
+        else return $ toHtml $ renderHtml $
+             if "iframe" `elem` cls
+               then mediaTag (iframe "Browser does not support iframe.")
+               else createMediaTag
     createMediaTag =
       case classifyFilePath url of
         VideoMedia -> mediaTag (video "Browser does not support video.")
@@ -543,12 +539,10 @@ renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
   where
     attrsForward = (ident, cls, ("alt", stringify inlines) : values)
 -- | return inline if it is no image
-renderMediaTag _ inline = do
-  return inline
+renderMediaTag _ inline = return inline
 
 svgLoadErrorHandler :: IOException -> IO String
-svgLoadErrorHandler e = do
-  return "<div>Couldn't load SVG</div>"
+svgLoadErrorHandler e = return "<div>Couldn't load SVG</div>"
 
 -- | Converts attributes 
 convertMediaAttributes :: Attr -> Attr
@@ -608,8 +602,7 @@ toHtml :: String -> Inline
 toHtml = RawInline (Format "html")
 
 extractFigures :: Pandoc -> Decker Pandoc
-extractFigures pandoc = do
-  return $ walk extractFigure pandoc
+extractFigures pandoc = return $ walk extractFigure pandoc
 
 extractFigure :: Block -> Block
 extractFigure (Para content) =

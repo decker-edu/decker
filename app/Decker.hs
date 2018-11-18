@@ -93,7 +93,7 @@ main = do
         need [src]
         putNormal $ src ++ " -> " ++ out
         runHttpServer serverPort directories Nothing
-        decktape [(serverUrl </> makeRelative (directories ^. public) src), out]
+        decktape [serverUrl </> makeRelative (directories ^. public) src, out]
     --
     priority 2 $
       "//*-handout.html" %> \out -> do
