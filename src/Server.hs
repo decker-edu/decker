@@ -25,7 +25,7 @@ import System.Random
 -- Logging and port configuration for the server.
 serverConfig :: ProjectDirs -> Int -> IO (Config Snap a)
 serverConfig dirs port = do
-  let logDir = (dirs ^. logging)
+  let logDir = dirs ^. logging
   let accessLog = logDir </> "server-access.log"
   let errorLog = logDir </> "server-error.log"
   createDirectoryIfMissing True logDir
@@ -63,7 +63,7 @@ reloadAll state = withMVar state $ mapM_ reload
 -- Runs the server. Never returns.
 runHttpServer :: MVar ServerState -> ProjectDirs -> Int -> IO ()
 runHttpServer state dirs port = do
-  let documentRoot = dirs ^. public 
+  let documentRoot = dirs ^. public
   config <- serverConfig dirs port
   simpleHttpServe config $
     route

@@ -147,7 +147,7 @@ time name action = do
   start <- getCPUTime
   result <- action
   stop <- getCPUTime
-  let diff = (fromIntegral (stop - start)) / (10 ^ 12)
+  let diff = fromIntegral (stop - start) / (10 ^ 12)
   printf "%s: %0.5f sec\n" name (diff :: Double)
   return result
 

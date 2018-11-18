@@ -63,7 +63,7 @@ d3Canvas source (eid, classes, keyvals) = do
   needFile source
   -- TODO: Clean this up. See Path.hs.
   base <- gets basePath
-  dirs <- lift $ projectDirsA
+  dirs <- lift projectDirsA
   let publicBase = dirs ^. public </> makeRelativeTo (dirs ^. project) base
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
@@ -91,13 +91,13 @@ threejsCanvas source (eid, classes, keyvals) = do
   needFile source
   -- TODO: Clean this up. See Path.hs.
   base <- gets basePath
-  dirs <- lift $ projectDirsA
+  dirs <- lift projectDirsA
   let publicBase = dirs ^. public </> makeRelativeTo (dirs ^. project) base
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "three.js")
   let includes = splitOn "," $ fromMaybe "" $ lookup "includes" keyvals
-  mapM_ (addScript . (ScriptURI "javascript")) includes
+  mapM_ (addScript . ScriptURI "javascript") includes
   addScript $ ScriptSource "javascript" contents
   let classStr = unwords classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
@@ -165,7 +165,7 @@ maybeRenderCodeBlock block@(CodeBlock attr@(_, classes, _) code) =
   case findProcessor classes of
     Just processor -> do
       path <- writeCodeIfChanged code (extension processor)
-      inline <- (compiler processor) path attr
+      inline <- compiler processor path attr
       return $ Plain [inline]
     Nothing -> return block
 maybeRenderCodeBlock block = return block
@@ -182,9 +182,9 @@ provideResources namevals = do
 --   "data:image/svg+xml;base64," ++ (B.unpack (B64.encode (B.pack svg)))
 writeCodeIfChanged :: String -> String -> Decker FilePath
 writeCodeIfChanged code ext = do
-  projectDir <- _project <$> (lift projectDirsA)
+  projectDir <- _project <$> lift projectDirsA
   let crc = printf "%08x" (calc_crc32 code)
-  let basepath = "code" </> (concat $ intersperse "-" ["code", crc])
+  let basepath = "code" </> intercalate "-" ["code", crc]
   let path = projectDir </> basepath <.> ext
   lift $
     withShakeLock $

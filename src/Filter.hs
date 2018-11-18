@@ -172,7 +172,7 @@ blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> (Slide h b))
 
 -- | A Prism for slides
 _Slide :: Prism' Slide (Maybe Block, [Block])
-_Slide = prism' (\(h, b) -> Slide h b) (\(Slide h b) -> Just (h, b))
+_Slide = prism' (uncurry Slide) (\(Slide h b) -> Just (h, b))
 
 -- | Attributes of a slide are those of the header 
 instance HasAttr Slide where
@@ -183,7 +183,7 @@ instance HasAttr Slide where
 -- | Attributes of a list of blocks are those of the first block. 
 instance HasAttr [Block] where
   attributes f (b:bs) =
-    fmap (\a' -> ((set attributes a' b) : bs)) (f (view attributes b))
+    fmap (\a' -> set attributes a' b : bs) (f (view attributes b))
   attributes _ x = pure x
 
 hasClass :: HasAttr a => String -> a -> Bool
@@ -327,7 +327,7 @@ toSlides blocks = map extractHeader $ filter (not . null) slideBlocks
     extractHeader (HorizontalRule:bs) = extractHeader bs
     extractHeader blocks = Slide Nothing blocks
   -- Remove redundant slide markers
-    killEmpties (HorizontalRule:header@(Header _ _ _):blocks) =
+    killEmpties (HorizontalRule:header@Header {}:blocks) =
       header : killEmpties blocks
     killEmpties (b:bs) = b : killEmpties bs
     killEmpties [] = []
@@ -341,7 +341,7 @@ fromSlides = concatMap prependHeader
     prependHeader (Slide (Just header) body)
       | hasClass "notes" header =
         [RawBlock "html" "<aside class=\"notes\">"] ++
-        (demoteHeaders $ header : body) ++
+        demoteHeaders (header : body) ++
         [RawBlock "html" "</aside>"]
     prependHeader (Slide (Just header) body) = HorizontalRule : header : body
     prependHeader (Slide Nothing body) = HorizontalRule : body
@@ -352,7 +352,7 @@ demoteHeaders = traverse . _Header . _1 +~ 1
 mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
 mapSlides action (Pandoc meta blocks) = do
   slides <- selectActiveContent (toSlides blocks)
-  (Pandoc meta . fromSlides) <$> mapM action slides
+  Pandoc meta . fromSlides <$> mapM action slides
 
 selectActiveSlideContent :: Slide -> Decker Slide
 selectActiveSlideContent (Slide header body) =
@@ -487,7 +487,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
   liftIO imageVideoTag
   where
     imageVideoTag =
-      if (uriPathExtension url) `elem` [".svg"] && "embed" `elem` cls
+      if uriPathExtension url == ".svg" && "embed" `elem` cls
         then do
           fileContent <- catch (readFile url) svgLoadErrorHandler
           return $
@@ -525,7 +525,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
         else url
     extension = uriPathExtension url
     (_, cls', values') =
-      if (uriPathExtension url) `elem` [".svg"] && "embed" `elem` cls
+      if uriPathExtension url == ".svg" && "embed" `elem` cls
         then convertMediaAttributes
                (ident, cls, ("style", "display:inline-block;") : values)
         else convertMediaAttributes attrs
@@ -573,7 +573,7 @@ convertMediaAttributeControls (id, cls, vals) = (id, cls', vals')
 convertMediaAttributeGatherStyle :: Attr -> Attr
 convertMediaAttributeGatherStyle (id, cls, vals) = (id, cls, vals')
   where
-    (style_cls, cls') = partition (\x -> (fst x) == "style") vals
+    (style_cls, cls') = partition (\x -> fst x == "style") vals
     style_combined =
       if null style_cls
         then []
@@ -583,16 +583,16 @@ convertMediaAttributeGatherStyle (id, cls, vals) = (id, cls, vals')
 convertMediaAttributeImageSize :: Attr -> Attr
 convertMediaAttributeImageSize (id, cls, vals) = (id, cls, vals_processed)
   where
-    (height, vals') = partition (\x -> (fst x) == "height") vals
+    (height, vals') = partition (\x -> fst x == "height") vals
     height_attr =
       if null height
         then []
-        else [("style", "height:" ++ (snd (height !! 0)) ++ ";")]
-    (width, vals'') = partition (\x -> (fst x) == "width") vals'
+        else [("style", "height:" ++ snd (head height) ++ ";")]
+    (width, vals'') = partition (\x -> fst x == "width") vals'
     width_attr =
       if null width
         then []
-        else [("style", "width:" ++ (snd (width !! 0)) ++ ";")]
+        else [("style", "width:" ++ snd (head width) ++ ";")]
     vals_processed = vals'' ++ height_attr ++ width_attr
 
 -- | small wrapper around @RawInline (Format "html")@
@@ -607,7 +607,7 @@ extractFigures pandoc = return $ walk extractFigure pandoc
 extractFigure :: Block -> Block
 extractFigure (Para content) =
   case content of
-    [Span attr inner@((RawInline (Format "html") "<figure>"):otherContent)] ->
+    [Span attr inner@(RawInline (Format "html") "<figure>":otherContent)] ->
       Div attr [Plain inner]
     a -> Para a
 extractFigure b = b

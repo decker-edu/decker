@@ -128,7 +128,7 @@ cleanup state = do
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do
-  ref <- (_again . _state) <$> actionContext
+  ref <- _again . _state <$> actionContext
   liftIO $ writeIORef ref True
 
 putError :: String -> SomeException -> IO ()
@@ -168,14 +168,15 @@ waitForChange inDirs =
   Notify.withManager
     (\manager -> do
        done <- newEmptyMVar
-       forM_ inDirs $
+       forM_
+         inDirs
          (\dir ->
-            Notify.watchDir manager dir (\_ -> True) (\_ -> putMVar done ()))
+            Notify.watchDir manager dir (const True) (\_ -> putMVar done ()))
        takeMVar done)
 
 getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do
-  pub <- (_public . _dirs) <$> actionContext
+  pub <- _public . _dirs <$> actionContext
   let sup = pub </> ("support" ++ "-" ++ deckerVersion)
   return $ makeRelativeTo from sup
 
