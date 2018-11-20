@@ -273,6 +273,27 @@ $if(chalkboard)$
       		src: "$chalkboard$",
       	},
 $endif$
+$if(chart)$
+        chart: {
+          defaults: {
+            global: {
+              title: { fontColor: "#000" },
+              legend: {
+                labels: { fontColor: "#000" },
+              },
+            },
+            scale: {
+              scaleLabel: { fontColor: "#000" },
+              gridLines: { color: "#000", zeroLineColor: "#000" },
+              ticks: { fontColor: "#000" },
+            }
+          },
+          line: { borderColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ], "borderDash": [ [5,10], [0,0] ]},
+          bar: { backgroundColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]},
+          pie: { backgroundColor: [ ["rgba(0,0,0,.8)" , "rgba(220,20,20,.8)", "rgba(20,220,20,.8)", "rgba(220,220,20,.8)", "rgba(20,20,220,.8)"] ]},
+          radar: { borderColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]},
+        },
+$endif$
 
         // Optional reveal.js plugins
         dependencies: [
@@ -281,6 +302,10 @@ $endif$
           { src: '$decker-support-dir$/notes/notes.js', async: true },
 $if(chalkboard)$
           { src: '$decker-support-dir$/chalkboard.js'},
+$endif$
+$if(chart)$
+          { src: '$decker-support-dir$/plugins/chart/Chart.min.js'},
+          { src: '$decker-support-dir$/plugins/chart/csv2chart.js'},
 $endif$
 $if(mathjax)$
           { src: '$decker-support-dir$/math.js', async: true },
