@@ -1,0 +1,18 @@
+chartName: Employee Sales Comparison 2017
+chartId: "Sales 2017"
+data-chart: line
+labels: ["January","February","March","April","May","June","July", "August", "September", "October", "November", "December"]
+datasets:
+- label: James Smith
+  data: [65,59,80,81,56,55,40,45,49,58,68,70]
+  backgroundColor: rgba(20,220,220,.8)
+- label: Derek Jones
+  data: [28,48,40,19,86,27,90,65,60,45,40,35]
+  backgroundColor: rgba(220,120,120,.8)
+options:
+  responsive: true
+  scales:
+    xAxes:
+      stacked: true
+    yAxes:
+      stacked: true

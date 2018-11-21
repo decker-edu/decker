@@ -65,6 +65,7 @@ $endfor$
 </head>
 
 <body>
+
   <!-- MathJax config -->
   <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
@@ -123,6 +124,47 @@ $if(toc)$
 <section id="$idprefix$TOC">
 $table-of-contents$
 </section>
+$endif$
+
+$if(chart)$
+  <section class="slide level1">
+    <h1>$chartName$</h1>
+    <canvas id=“$chartId$" data-chart="$data-chart$">
+    <!--
+    {
+     "data": {
+       "labels": [$for(labels)$$labels$,$endfor$],
+      "datasets": [
+      $for(datasets)$
+      $if(datasets.label)$
+       {
+        "label":"$datasets.label$",
+        "data":[$for(datasets.data)$$datasets.data$,$endfor$],
+        "backgroundColor":"$datasets.backgroundColor$",
+        "borderColor":"($datasets.borderColor$)",
+        "borderDash": $datasets.borderDash$
+       },
+      $else$
+      $datasets$
+      $endif$
+      $endfor$
+      ]
+     },
+     "options": {
+       "responsive": "$options.responsive$",
+       "scales": {
+         "xAxes": {
+           "stacked":$options.scales.xAxes.stacked$,
+         }
+         "yAxes": {
+           "stacked":$options.scales.yAxes.stacked$,
+         }
+       }
+     }
+    }
+    -->
+    </canvas>
+  </section>
 $endif$
 
 $body$
