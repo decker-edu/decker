@@ -158,6 +158,13 @@ layoutSlide slide@(Slide (Just header) body) = do
               areas = slideAreas names body
            in return $ Slide (Just header) $ renderLayout areas layout
         Nothing -> return slide
+    Disposition Handout Html ->
+      case hasRowLayout header of
+        Just layout ->
+          let names = layoutAreas layout
+              areas = slideAreas names body
+           in return $ Slide (Just header) $ renderLayout areas layout
+        Nothing -> return slide
     Disposition _ _ -> return slide
 layoutSlide slide = return slide
 

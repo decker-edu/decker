@@ -1,4 +1,4 @@
-provisioning: SymLink
+provisioning: Copy
 exclude-directories:
 - app
 - bin

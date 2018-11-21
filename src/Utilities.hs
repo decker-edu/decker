@@ -376,16 +376,21 @@ provisionResource base method filePath =
     Nothing -> return filePath
     Just uri -> do
       dirs <- projectDirsA
-      need [uriPath uri]
-      let resource = resourcePathes dirs base uri
-      p <- publicResourceA
-      withResource p 1 $
-        liftIO $
-        case method of
-          Copy -> copyResource resource
-          SymLink -> linkResource resource
-          Absolute -> absRefResource resource
-          Relative -> relRefResource base resource
+      let path = uriPath uri
+      fileExists <- doesFileExist path
+      if fileExists
+        then do
+          need [path]
+          let resource = resourcePathes dirs base uri
+          p <- publicResourceA
+          withResource p 1 $
+            liftIO $
+            case method of
+              Copy -> copyResource resource
+              SymLink -> linkResource resource
+              Absolute -> absRefResource resource
+              Relative -> relRefResource base resource
+        else throw $ ResourceException $ "resource does not exist: " ++ path
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do

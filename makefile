@@ -10,8 +10,7 @@ else
 	decker-name := $(base-name)-$(version)-$(branch)
 endif
 
-resource-dir := $(HOME)/.local/share/decker-$(version)
-local-bin-path := $(HOME)/.local/bin
+resource-dir := $(HOME)/.local/share/$(decker-name)
 
 ifdef DECKER_DEV
 	yarn-mode := development
@@ -64,7 +63,7 @@ watch-resources:
 	find resource src-support -name "*.scss" -or -name "*.html" -or -name "*.js" | entr -pd make install-resources
 
 install-resources: yarn
-	rsync -r resource $(resource-dir)
+	rsync -r resource/ $(resource-dir)
 
 version:
 	@echo "$(decker-name)"
