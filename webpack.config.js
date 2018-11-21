@@ -10,7 +10,8 @@ module.exports = {
     page: './src-support/page.js',
     three: './src-support/three.js',
     d3: './src-support/d3.js',
-    chalkboard: './src-support/chalkboard.js'
+    chalkboard: './src-support/chalkboard.js',
+    chart: ['./src-support/Chart.min.js', './src-support/csv2chart.js']
   },
   output: {
     path: path.resolve(__dirname, 'resource', 'support'),

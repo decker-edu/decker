@@ -23,7 +23,6 @@ yarn:
 	yarn install && yarn run webpack --mode $(yarn-mode)
 	cp -r node_modules/reveal.js-menu resource/support/
 	cp -r node_modules/reveal.js/plugin/notes resource/support/
-	cp -r src-support/plugins resource/support/
 
 dist: yarn build
 	rm -rf dist
