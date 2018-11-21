@@ -31,6 +31,7 @@ module Shake
 
 import Common
 import Exception
+import Glob
 import Meta
 import Project
 import Server
@@ -106,20 +107,26 @@ runShakeOnce state rules = do
   server <- readIORef (state ^. server)
   forM_ server reloadClients
   keepWatching <- readIORef (state ^. again)
-  when keepWatching (waitForChange $ targetDirs context)
+  let exclude = excludeDirs (context ^. meta)
+  dirs <- fastGlobDirs exclude (context ^. dirs . project)
+  when keepWatching (waitForChange dirs)
+  -- when keepWatching (waitForChange $ context ^. dirs . project)
   return keepWatching
 
 targetDirs context =
   unique $ map takeDirectory (context ^. targetList . sources)
 
-alwaysExclude = ["public"]
+alwaysExclude = ["public", ".shake", ".git", ".vscode"]
+
+excludeDirs meta =
+  let metaExclude =
+        meta ^.. key "exclude-directories" . values . _String . unpacked
+   in alwaysExclude ++ metaExclude
 
 initContext state = do
   dirs <- projectDirectories
   meta <- readMetaData $ dirs ^. project
-  let metaExclude =
-        meta ^.. key "exclude-directories" . values . _String . unpacked
-  targets <- scanTargets (alwaysExclude ++ metaExclude) sourceSuffixes dirs
+  targets <- scanTargets (excludeDirs meta) sourceSuffixes dirs
   return $ ActionContext dirs targets meta state
 
 cleanup state = do
@@ -180,7 +187,7 @@ getRelativeSupportDir from = do
   let sup = pub </> ("support" ++ "-" ++ deckerVersion)
   return $ makeRelativeTo from sup
 
-publicResourceA = (_publicResource . _state) <$> actionContext
+publicResourceA = _publicResource . _state <$> actionContext
 
 projectDirsA :: Action ProjectDirs
 projectDirsA = _dirs <$> actionContext

@@ -14,9 +14,7 @@ module Project
   , templateFromMeta
   , provisioningFromClasses
   , invertPath
-  , fastGlob
   , scanTargets
-  , glob
   , sources
   , decks
   , decksPdf
@@ -36,6 +34,7 @@ module Project
   ) where
 
 import Common
+import Glob
 import Control.Lens
 import Control.Monad.Extra
 import Data.List
@@ -49,7 +48,6 @@ import System.Directory
   ( createFileLink
   , doesDirectoryExist
   , doesFileExist
-  , listDirectory
   )
 import System.FilePath
 import Text.Pandoc.Definition
@@ -233,40 +231,9 @@ isPrefix prefix whole = isPrefix_ (splitPath prefix) (splitPath whole)
 mapTuple :: (t1 -> t) -> (t1, t1) -> (t, t)
 mapTuple f (a, b) = (f a, f b)
 
--- | Glob a little more efficiently. 'exclude' contains a list of directories
--- that will be culled from the traversal. 'suffixes' is the list of file
--- suffixes that are included in the glob.
-fastGlob :: [String] -> [String] -> FilePath -> IO [FilePath]
-fastGlob exclude suffixes root = glob root
-  where
-    absExclude = map (root </>) exclude
-    glob root = do
-      dirExists <- doesDirectoryExist root
-      fileExists <- doesFileExist root
-      if | dirExists -> globDir root
-         | fileExists -> globFile root
-         | otherwise -> return []
-    globFile file =
-      if any (`isSuffixOf` file) suffixes
-        then return [file]
-        else return []
-    globDir dir =
-      if dir `elem` absExclude
-        then return []
-        else concat <$> ((map (dir </>) <$> listDirectory dir) >>= mapM glob)
-
-glob :: [String] -> [String] -> FilePath -> IO [(String, [FilePath])]
-glob exclude suffixes root = do
-  scanned <- fastGlob exclude suffixes root
-  return $
-    foldl
-      (\alist suffix -> (suffix, filter (isSuffixOf suffix) scanned) : alist)
-      []
-      suffixes
-
 scanTargets :: [String] -> [String] -> ProjectDirs -> IO Targets
 scanTargets exclude suffixes dirs = do
-  srcs <- glob exclude suffixes (dirs ^. project)
+  srcs <- globFiles exclude suffixes (dirs ^. project)
   return
     Targets
       { _sources = sort $ concatMap snd srcs

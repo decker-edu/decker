@@ -2,18 +2,22 @@ module WatchTests
   ( watchTests
   ) where
 
-import Project
+import Glob
 import Test.Hspec
 
-watchTests =
-  describe "fastGlob" $ do
+watchTests = do
+  describe "fastGlobFiles" $ do
     it "globs fastest if no extensions are specified" $
-      fastGlob [] [] "test" `shouldReturn` []
+      fastGlobFiles [] [] "test" `shouldReturn` []
     it "returns all Haskell source files if the extensions include '.hs'" $
-      fastGlob [] [".hs"] "test" `shouldReturn`
+      fastGlobFiles [] [".hs"] "test" `shouldReturn`
       ["test/WatchTests.hs", "test/Spec.hs"]
     it "globs just one file if root is a single file" $
-      fastGlob [] [".hs"] "test/Spec.hs" `shouldReturn` ["test/Spec.hs"]
+      fastGlobFiles [] [".hs"] "test/Spec.hs" `shouldReturn` ["test/Spec.hs"]
     it "does not descend into excluded dirs" $
-      fastGlob ["example", "support", "template"] [".html"] "resource" `shouldReturn`
+      fastGlobFiles ["example", "support", "template"] [".html"] "resource" `shouldReturn`
       []
+  describe "fastGlobDirs" $ do
+    it "globs for directories" $
+      fastGlobDirs ["include"] "resource/example" `shouldReturn`
+      ["resource/example", "resource/example/img"]

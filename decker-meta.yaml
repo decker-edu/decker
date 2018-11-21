@@ -1,11 +1,5 @@
 provisioning: SymLink
 exclude-directories:
-- .DS_Store
-- .git
-- .shake
-- .stack-work
-- .stack-work-profile
-- .vscode
 - app
 - bin
 - code
@@ -17,5 +11,4 @@ exclude-directories:
 - resource/template
 - src
 - src-support
-- stack.yaml
 - test
