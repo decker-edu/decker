@@ -72,7 +72,7 @@ instance Show (IORef a) where
 
 data MutableActionState = MutableActionState
   { _server :: IORef (Maybe Server)
-  , _again :: IORef Bool
+  , _watch :: IORef Bool
   , _publicResource :: Shake.Resource
   } deriving (Show)
 
@@ -89,9 +89,9 @@ makeLenses ''ActionContext
 
 initMutableActionState = do
   server <- newIORef Nothing
-  again <- newIORef False
+  watch <- newIORef False
   public <- newResourceIO "public" 1
-  return $ MutableActionState server again public
+  return $ MutableActionState server watch public
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -103,14 +103,19 @@ runShakeOnce :: MutableActionState -> Rules () -> IO Bool
 runShakeOnce state rules = do
   context <- initContext state
   options <- deckerShakeOptions context
+  putStrLn $ "shake: running with options: " ++ show options
   catch (shakeArgs options rules) (putError "Error: ")
+  putStrLn $ "shake: finished."
   server <- readIORef (state ^. server)
   forM_ server reloadClients
-  keepWatching <- readIORef (state ^. again)
-  let exclude = excludeDirs (context ^. meta)
-  dirs <- fastGlobDirs exclude (context ^. dirs . project)
-  when keepWatching (waitForChange dirs)
-  -- when keepWatching (waitForChange $ context ^. dirs . project)
+  keepWatching <- readIORef (state ^. watch)
+  when keepWatching $ do
+    let exclude = excludeDirs (context ^. meta)
+    putStrLn $ "exclude from watching: " ++ show exclude
+    inDirs <- fastGlobDirs exclude (context ^. dirs . project)
+    putStrLn $ "watch in dirs: " ++ show inDirs
+    waitForChange inDirs
+    putStrLn $ "watch: change detected."
   return keepWatching
 
 targetDirs context =
@@ -135,8 +140,9 @@ cleanup state = do
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do
-  ref <- _again . _state <$> actionContext
+  ref <- _watch . _state <$> actionContext
   liftIO $ writeIORef ref True
+  liftIO $ print "watching activated!"
 
 putError :: String -> SomeException -> IO ()
 putError prefix (SomeException e) = putStrLn $ prefix ++ show e
@@ -177,9 +183,18 @@ waitForChange inDirs =
        done <- newEmptyMVar
        forM_
          inDirs
-         (\dir ->
-            Notify.watchDir manager dir (const True) (\_ -> putMVar done ()))
-       takeMVar done)
+         (\dir -> do
+            putStrLn $ "watching for changes in: " ++ dir
+            Notify.watchDir
+              manager
+              dir
+              (const True)
+              (\e -> do
+                 putStrLn $ "change detected: " ++ show e
+                 putMVar done ()))
+       putStrLn "waiting for change."
+       takeMVar done
+       putStrLn "continue after wait.")
 
 getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do

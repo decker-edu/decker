@@ -21,6 +21,7 @@ import Development.Shake
 import Development.Shake.FilePath
 import GHC.Conc (numCapabilities)
 import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
+import System.Environment.Blank
 import System.FilePath ()
 import Text.Groom
 import qualified Text.Mustache as M ()
