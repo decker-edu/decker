@@ -83,9 +83,6 @@ install-resources: yarn
 version:
 	@echo "$(decker-name)"
 
-<<<<<<< HEAD
-.PHONY: build clean test install version install-resources watch watch-resources dist docs yarn build-profile profile
-=======
 .PHONY: build clean test install dist docs yarn
 
 ##### Copy JS dependencies that can't be packed with webpack
@@ -101,4 +98,3 @@ resource/support/reveal.js-menu/%: node_modules/reveal.js-menu/%
 
 node_modules/%:
 	yarn install
->>>>>>> master
