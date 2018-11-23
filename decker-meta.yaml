@@ -11,4 +11,3 @@ exclude-directories:
 - resource/template
 - src
 - src-support
-- test

@@ -23,7 +23,6 @@ main = do
   deckTemplate <- B.readFile (dirs^.project </> "resource/template/deck.html")
   --
   metaFiles <- globDir1 (compile "**/*-meta.yaml") (dirs ^. project)
-  print metaFiles
   --
   hspec $
   --

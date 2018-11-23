@@ -103,19 +103,14 @@ runShakeOnce :: MutableActionState -> Rules () -> IO Bool
 runShakeOnce state rules = do
   context <- initContext state
   options <- deckerShakeOptions context
-  putStrLn $ "shake: running with options: " ++ show options
   catch (shakeArgs options rules) (putError "Error: ")
-  putStrLn $ "shake: finished."
   server <- readIORef (state ^. server)
   forM_ server reloadClients
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
     let exclude = excludeDirs (context ^. meta)
-    putStrLn $ "exclude from watching: " ++ show exclude
     inDirs <- fastGlobDirs exclude (context ^. dirs . project)
-    putStrLn $ "watch in dirs: " ++ show inDirs
     waitForChange inDirs
-    putStrLn $ "watch: change detected."
   return keepWatching
 
 targetDirs context =
@@ -142,7 +137,6 @@ watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do
   ref <- _watch . _state <$> actionContext
   liftIO $ writeIORef ref True
-  liftIO $ print "watching activated!"
 
 putError :: String -> SomeException -> IO ()
 putError prefix (SomeException e) = putStrLn $ prefix ++ show e
@@ -183,18 +177,9 @@ waitForChange inDirs =
        done <- newEmptyMVar
        forM_
          inDirs
-         (\dir -> do
-            putStrLn $ "watching for changes in: " ++ dir
-            Notify.watchDir
-              manager
-              dir
-              (const True)
-              (\e -> do
-                 putStrLn $ "change detected: " ++ show e
-                 putMVar done ()))
-       putStrLn "waiting for change."
-       takeMVar done
-       putStrLn "continue after wait.")
+         (\dir ->
+            Notify.watchDir manager dir (const True) (\e -> putMVar done ()))
+       takeMVar done)
 
 getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do
