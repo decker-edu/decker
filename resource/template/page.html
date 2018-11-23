@@ -1,126 +1,114 @@
 <!DOCTYPE html>
 <html$if(lang)$ lang="$lang$" $endif$$if(dir)$ dir="$dir$" $endif$>
 
-  <head>
-    <meta charset="utf-8">
-    <meta name="generator" content="pandoc">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"> $for(author-meta)$
-    <meta name="author" content="$author-meta$"> $endfor$ $if(date-meta)$
-    <meta name="dcterms.date" content="$date-meta$"> $endif$ $if(keywords)$
-    <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$"> $endif$
-    <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
-    <style type="text/css">
-      code {
-        white-space: pre;
-      }
-    </style>
-    $if(quotes)$
-    <style type="text/css">
-      q {
-        quotes: "“""”""‘""’";
-      }
-    </style>
-    $endif$ 
-    $if(highlighting-css)$
-    <style type="text/css">
-      $highlighting-css$
-    </style>
-    $endif$
+    <head>
+        <meta charset="utf-8">
+        <meta name="generator" content="pandoc">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"> $for(author-meta)$
+        <meta name="author" content="$author-meta$"> $endfor$ $if(date-meta)$
+        <meta name="dcterms.date" content="$date-meta$"> $endif$ $if(keywords)$
+        <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$"> $endif$
+        <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+        <style type="text/css">
+            code {
+                white-space: pre;
+            }
+        </style>
+        $if(quotes)$
+        <style type="text/css">
+            q {
+                quotes: "“" "”" "‘" "’";
+            }
+        </style>
+        $endif$ $if(highlighting-css)$
+        <style type="text/css">
+            $highlighting-css$
+        </style>
+        $endif$
+        
+        <link rel="stylesheet" href="$decker-support-dir$/page.css">
+        <script src="$decker-support-dir$/page.js"></script>
+        
+        $for(css)$
+        <link rel="stylesheet" href="$css$"> 
+        $endfor$
+        
+        <style type="text/css">
+            .container {
+                max-width: 750px;
+                margin: 0 auto;
+            }
 
-    <script src="$decker-support-dir$/page.js"></script>
+            .container .content {
+                min-height: 750px;
+            }
 
-    <style type="text/css">
-      .container {
-        max-width: 750px;
-        margin: 0 auto;
-      }
+            .page-header small {
+                white-space: nowrap;
+            }
 
-      .container .content {
-        min-height: 750px;
-      }
+            .page-header h1 {
+                font-size: 200%;
+            }
 
-      .page-header small {
-        white-space: nowrap;
-      }
+            h1 {
+                font-size: 150%;
+            }
 
-      .page-header h1 {
-        font-size: 1.8rem;
-      }
+            h2 {
+                font-size: 130%;
+            }
 
-      h1 {
-        font-size: 1.5rem;
-      }
+            h3 {
+                font-size: 110%;
+            }
 
-      h2 {
-        font-size: 1.3rem;
-      }
+            .container figure {
+                padding-left: 3em;
+                padding-right: 3em;
+            }
 
-      h3 {
-        font-size: 1.1rem;
-      }
+            .container figure>img {
+                width: 100%;
+                border: 1pt solid gray;
+            }
 
-      h1 code {
-        font-size: 1.5rem;
-      }
+            .container figure>figcaption {
+                padding-top: 0.5em;
+                font-size: 90%;
+                text-align: center;
+            }
 
-      h2 code {
-        font-size: 1.3rem;
-      }
+            .container h6.post-date {
+                margin-top: 5px;
+                margin-bottom: 5px;
+            }
 
-      h3 code {
-        font-size: 1.1rem;
-      }
+            .container h2.post-title {
+                margin-top: 10px;
+            }
 
-      code {
-        font-size: 1rem;
-      }
+            .container address {
+                color: #AAA;
+            }
 
-      .container figure {
-        padding-left: 3em;
-        padding-right: 3em;
-      }
+            .container address p.date {
+                float: right;
+            }
 
-      .container figure>img {
-        width: 100%;
-        border: 1pt solid gray;
-      }
+            .container img {
+                width: 75%;
+                margin: 0px auto;
+            }
 
-      .container figure>figcaption {
-        padding-top: 0.5em;
-        font-size: 90%;
-        text-align: center;
-      }
+            .container video {
+                width: 75%;
+                margin: 0px auto;
+            }
+        </style>
 
-      .container h6.post-date {
-        margin-top: 5px;
-        margin-bottom: 5px;
-      }
-
-      .container h2.post-title {
-        margin-top: 10px;
-      }
-
-      .container address {
-        color: #AAA;
-      }
-
-      .container address p.date {
-        float: right;
-      }
-
-      .container img {
-        width: 75%;
-        margin: 0px auto;
-      }
-
-      .container video {
-        width: 75%;
-        margin: 0px auto;
-      }
-    </style>
-
-    $if(math)$ $math$ $endif$
-    <!--[if lt IE 9]>
+        $if(math)$ $math$ $endif$
+        <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
     <script>

@@ -18,16 +18,30 @@ else
 	yarn-mode := production
 endif
 
+JS_DEP_COPY = notes/notes.html
+JS_DEP_COPY += notes/notes.js
+JS_DEP_COPY += reveal.js-menu/menu.js
+JS_DEP_COPY += reveal.js-menu/menu.css
+JS_DEP_COPY += reveal.js-menu/font-awesome/css/all.css
+JS_DEP_COPY += \
+	reveal.js-menu/font-awesome/webfonts/fa-solid-900.woff2 \
+	reveal.js-menu/font-awesome/webfonts/fa-regular-400.woff2 \
+	reveal.js-menu/font-awesome/webfonts/fa-solid-900.woff \
+	reveal.js-menu/font-awesome/webfonts/fa-regular-400.woff \
+	reveal.js-menu/font-awesome/webfonts/fa-solid-900.ttf \
+	reveal.js-menu/font-awesome/webfonts/fa-regular-400.ttf
+JS_DEP_COPY += print/paper.css
+JS_DEP_COPY += print/pdf.css
+JS_DEP_COPY_FULL_PATH = $(addprefix resource/support/, $(JS_DEP_COPY))
+
 less:
 	stack build -j 8 --fast 2>&1 | less
-	
+
 build:
 	stack build -j 8 --fast
 
-yarn:
-	yarn --silent install && yarn --silent run webpack --mode $(yarn-mode) --silent
-	cp -r node_modules/reveal.js-menu resource/support/
-	cp -r node_modules/reveal.js/plugin/notes resource/support/
+yarn: $(JS_DEP_COPY_FULL_PATH)
+	yarn install && yarn run webpack --mode $(yarn-mode)
 
 dist: yarn build
 	rm -rf dist
@@ -45,6 +59,7 @@ watch:
 clean:
 	stack clean
 	rm -rf dist
+	rm -rf resource/support/*
 
 build-profile:
 	stack build -j 8 --fast --work-dir .stack-work-profile --profile
@@ -68,4 +83,22 @@ install-resources: yarn
 version:
 	@echo "$(decker-name)"
 
+<<<<<<< HEAD
 .PHONY: build clean test install version install-resources watch watch-resources dist docs yarn build-profile profile
+=======
+.PHONY: build clean test install dist docs yarn
+
+##### Copy JS dependencies that can't be packed with webpack
+
+resource/support/print/%: node_modules/reveal.js/css/print/%
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/notes/%: node_modules/reveal.js/plugin/notes/%
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/reveal.js-menu/%: node_modules/reveal.js-menu/%
+	mkdir -p $(@D) &&	cp $< $@
+
+node_modules/%:
+	yarn install
+>>>>>>> master
