@@ -1,0 +1,13 @@
+provisioning: Copy
+exclude-directories:
+- app
+- bin
+- code
+- dist
+- log
+- node_modules
+- public
+- resource/support
+- resource/template
+- src
+- src-support

@@ -207,7 +207,7 @@ $$
 
 # Blocks
 
-## Block markup {.split}
+## Block markup
 
 -   Level 2 headers start new block
 -   Blocks can be marked with attributes

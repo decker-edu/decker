@@ -9,6 +9,7 @@ module.exports = {
     plugins: './src-support/rplugins.js',
     classlist: './src-support/classlist.js',
     page: './src-support/page.js',
+    handout: './src-support/handout.js',
     three: './src-support/three.js',
     d3: './src-support/d3.js',
     chalkboard: './src-support/chalkboard.js'

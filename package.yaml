@@ -56,6 +56,9 @@ dependencies:
 - highlighting-kate
 - http-conduit
 - http-types
+- lens
+- lens-aeson
+- lens-action
 - monad-loops
 - mtl
 - multimap
@@ -63,6 +66,7 @@ dependencies:
 - network-uri
 - pandoc
 - pandoc-citeproc
+- pandoc-lens
 - pandoc-types
 - process
 - pureMD5

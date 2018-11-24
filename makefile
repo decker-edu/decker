@@ -1,5 +1,5 @@
-executable := $(shell stack path | grep local-install-root | sed "s/local-install-root: //")/bin/decker
 base-name := decker
+executable := $(shell stack path | grep local-install-root | sed "s/local-install-root: //")/bin/decker
 version := $(shell grep "version: " package.yaml | sed "s/version: *//")
 branch := $(shell git branch | grep \* | cut -d ' ' -f2)
 local-bin-path := $(HOME)/.local/bin
@@ -9,6 +9,8 @@ ifeq ($(branch),master)
 else
 	decker-name := $(base-name)-$(version)-$(branch)
 endif
+
+resource-dir := $(HOME)/.local/share/$(decker-name)
 
 ifdef DECKER_DEV
 	yarn-mode := development
@@ -31,6 +33,9 @@ JS_DEP_COPY += \
 JS_DEP_COPY += print/paper.css
 JS_DEP_COPY += print/pdf.css
 JS_DEP_COPY_FULL_PATH = $(addprefix resource/support/, $(JS_DEP_COPY))
+
+less:
+	stack build -j 8 --fast 2>&1 | less
 
 build:
 	stack build -j 8 --fast
@@ -56,11 +61,24 @@ clean:
 	rm -rf dist
 	rm -rf resource/support/*
 
+build-profile:
+	stack build -j 8 --fast --work-dir .stack-work-profile --profile
+
+profile: build-profile
+	stack exec -- decker clean
+	stack exec --work-dir .stack-work-profile -- decker +RTS -p
+
 install: yarn build
 	stack exec -- decker clean
 	mkdir -p $(local-bin-path)
 	cp $(executable) "$(local-bin-path)/$(decker-name)"
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
+
+watch-resources:
+	find resource src-support -name "*.scss" -or -name "*.html" -or -name "*.js" | entr -pd make install-resources
+
+install-resources: yarn
+	rsync -r resource/ $(resource-dir)
 
 version:
 	@echo "$(decker-name)"

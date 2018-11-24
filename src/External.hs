@@ -151,7 +151,7 @@ makeProgram name =
            ExitFailure _ ->
              throw $
              ExternalException $
-             "\n" ++ (help external) ++ "\n\n" ++ err ++ "\n\n" ++ out)
+             "\n" ++ help external ++ "\n\n" ++ err ++ "\n\n" ++ out)
 
 checkProgram :: String -> Action Bool
 checkProgram name =
