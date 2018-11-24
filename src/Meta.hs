@@ -4,11 +4,14 @@ module Meta
   , toMustacheMeta
   , mergePandocMeta
   , joinMeta
+  , readMetaData
+  , aggregateMetaData
   , DeckerException(..)
   ) where
 
 import Common
 import Exception
+
 import Control.Arrow
 import Control.Exception
 import qualified Data.HashMap.Strict as H
@@ -16,6 +19,8 @@ import qualified Data.Map.Lazy as Map
 import qualified Data.Text as T
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
+import System.FilePath
+import System.FilePath.Glob
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc
 
@@ -38,7 +43,7 @@ toMustacheMeta (MetaInlines inlines) =
 toMustacheMeta (MetaBlocks blocks) =
   MT.String $ writeMarkdownText def (Pandoc (Meta Map.empty) blocks)
 
-writeMarkdownText :: WriterOptions -> Pandoc -> T.Text 
+writeMarkdownText :: WriterOptions -> Pandoc -> T.Text
 writeMarkdownText options pandoc =
   case runPure $ writeMarkdown options pandoc of
     Right text -> text
@@ -58,3 +63,33 @@ toPandocMeta (Y.String text) = MetaString $ T.unpack text
 toPandocMeta (Y.Number scientific) = MetaString $ show scientific
 toPandocMeta (Y.Bool bool) = MetaBool bool
 toPandocMeta Y.Null = MetaList []
+
+decodeYaml :: FilePath -> IO Y.Value
+decodeYaml yamlFile = do
+  result <- Y.decodeFileEither yamlFile
+  case result of
+    Right object@(Y.Object _) -> return object
+    Right _ ->
+      throw $
+      Exception.YamlException $
+      "Top-level meta value must be an object: " ++ yamlFile
+    Left exception -> throw exception
+
+readMetaData :: FilePath -> IO Y.Value
+readMetaData dir = do
+  files <- globDir1 (compile "*-meta.yaml") dir
+  meta <- mapM decodeYaml files
+  return $ foldl joinMeta (Y.object []) meta
+
+
+aggregateMetaData :: FilePath -> FilePath -> IO Y.Value
+aggregateMetaData top = walkUpTo 
+  where
+    walkUpTo dir = do
+      fromHere <- readMetaData dir
+      if equalFilePath top dir
+        then return fromHere
+        else do
+          fromAbove <- walkUpTo (takeDirectory dir)
+          return $ joinMeta fromHere fromAbove
+

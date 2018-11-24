@@ -25,6 +25,8 @@
             $highlighting-css$
         </style>
         $endif$
+        
+        <link rel="stylesheet" href="$decker-support-dir$/page.css">
         <script src="$decker-support-dir$/page.js"></script>
         
         $for(css)$
@@ -109,51 +111,65 @@
         <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
-        <script>
-            var socket = new WebSocket("ws://" + location.host + "/reload");
-            socket.onmessage = function () {
-                window.location.reload(true);
-            };
-        </script>
-         $for(header-includes)$ $header-includes$ $endfor$
-    </head>
+    <script>
+      var socket = new WebSocket("ws://" + location.host + "/reload");
+      socket.onmessage = function () {
+        window.location.reload(true);
+      };
+    </script>
+    $for(header-includes)$ 
+    $header-includes$ 
+    $endfor$
+    $for(css)$
+    <link rel="stylesheet" href="$css$">
+    $endfor$
+  </head>
 
-    <body>
-        $for(include-before)$ $include-before$ $endfor$
-        <div class="container">
-            $if(title)$
-            <header>
-                <div class="page-header">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <h1 class="title">$title$</h1>
-                            $if(subtitle)$
-                            <p class="lead subtitle">$subtitle$</p>
-                            $endif$
-                        </div>
-                    </div>
-                </div>
-            </header>
-            $endif$
-            <div class="row">
-                <div class="col-lg-12">
-                    $if(toc)$
-                    <nav id="$idprefix$TOC">
-                        $toc$
-                    </nav>
-                    $endif$ $body$ $for(include-after)$ $include-after$ $endfor$ $if(author)$
-                    <hr>
-                    <address>
-                        $if(date)$
-                        <p class="date">$date$</p>
-                        $endif$
-                        <p class="author">$copyright$ $author$</p>
-                        $endif$
-                    </address>
-                </div>
+  <body>
+    $for(include-before)$ 
+    $include-before$ 
+    $endfor$
+    <div class="container decker-page">
+      $if(title)$
+      <header>
+        <div class="page-header">
+          <div class="row">
+            <div class="col-lg-12">
+              <h1 class="title">$title$</h1>
+              $if(subtitle)$
+              <p class="lead subtitle">$subtitle$</p>
+              $endif$
             </div>
+          </div>
         </div>
-    </body>
-    
+      </header>
+      $endif$
+      <div class="row">
+        <div class="col-lg-12">
+          $if(toc)$
+          <nav id="$idprefix$TOC">
+            $toc$
+          </nav>
+          $endif$ 
+          
+          $body$ 
+          
+          $for(include-after)$ 
+          $include-after$ 
+          $endfor$ 
+          $if(author)$
+          <hr>
+          <address>
+            $if(date)$
+            <p class="date">$date$</p>
+            $endif$
+            <p class="author">$copyright$ $author$</p>
+            $endif$
+          </address>
+        </div>
+      </div>
+    </div>
+  </body>
 
-    </html>
+
+  </html>

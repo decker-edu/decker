@@ -1,5 +1,7 @@
 import Test.Hspec
+import WatchTests
 
+import Control.Lens ((^.))
 import qualified Data.ByteString.Char8 as B
 import qualified Data.HashMap.Strict as H
 import qualified Data.Map.Strict as M
@@ -11,7 +13,6 @@ import Filter
 import Project as P
 import qualified System.Directory as Dir
 import System.FilePath
-import System.FilePath
 import System.FilePath.Glob
 import Text.Pandoc
 import Utilities
@@ -19,14 +20,14 @@ import Utilities
 main = do
   dirs <- projectDirectories
   --
-  deckTemplate <- B.readFile (project dirs </> "resource/template/deck.html")
+  deckTemplate <- B.readFile (dirs^.project </> "resource/template/deck.html")
   --
-  metaFiles <- globDir1 (compile "**/*-meta.yaml") (project dirs)
-  print metaFiles
+  metaFiles <- globDir1 (compile "**/*-meta.yaml") (dirs ^. project)
   --
   hspec $
   --
    do
+    watchTests
     describe "makeRelativeTo" $
       it "calculates the path of file relative to dir. Includes '..'" $ do
         makeRelativeTo "" "img.png" `shouldBe` "img.png"
@@ -56,32 +57,32 @@ main = do
       it
         "copies an existing resource to the public dir and returns the public URL." $ do
         Dir.doesFileExist
-          ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          ((dirs ^. project) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
         copyResource
           (Resource
-             ((project dirs) </> "resource/example/img/06-metal.png")
-             ((public dirs) </> "resource/example/img/06-metal.png")
+             ((dirs ^. project) </> "resource/example/img/06-metal.png")
+             ((dirs ^. public) </> "resource/example/img/06-metal.png")
              "img/06-metal.png") `shouldReturn`
           "img/06-metal.png"
         Dir.doesFileExist
-          ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          ((dirs ^. public) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
     --
     describe "linkResource" $
       it
         "links an existing resource to the public dir and returns the public URL." $ do
         Dir.doesFileExist
-          ((project dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          ((dirs ^. project) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
         linkResource
           (Resource
-             ((project dirs) </> "resource/example/img/06-metal.png")
-             ((public dirs) </> "resource/example/img/06-metal.png")
+             ((dirs ^. project) </> "resource/example/img/06-metal.png")
+             ((dirs ^. public) </> "resource/example/img/06-metal.png")
              "img/06-metal.png") `shouldReturn`
           "img/06-metal.png"
         Dir.pathIsSymbolicLink
-          ((public dirs) </> "resource/example/img/06-metal.png") `shouldReturn`
+          ((dirs ^. public) </> "resource/example/img/06-metal.png") `shouldReturn`
           True
     -- 
     describe "convertMediaAttributes" $
@@ -91,7 +92,8 @@ main = do
           ("", [], [("style", "width:100%;")])
         convertMediaAttributes ("", [], [("height", "50%")]) `shouldBe`
           ("", [], [("style", "height:50%;")])
-        convertMediaAttributes ("", [], [("width", "100%"), ("style", "color:red;")]) `shouldBe`
+        convertMediaAttributes
+          ("", [], [("width", "100%"), ("style", "color:red;")]) `shouldBe`
           ("", [], [("style", "color:red;width:100%;")])
     describe "lookupPandocMeta" $
       it "looks up dotted key values in the hierarchical pandoc meta structure" $ do

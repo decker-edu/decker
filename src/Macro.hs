@@ -4,13 +4,13 @@ module Macro
   ) where
 
 import Common
-import Exception
 import Control.Monad.State
 import Data.List (isInfixOf, isPrefixOf)
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
 import Data.Text (pack, replace, unpack)
+import Exception
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)
@@ -111,16 +111,17 @@ webVideo page args attr target _ = do
   disp <- gets disposition
   case disp of
     Disposition _ Html -> return $ embedWebVideosHtml page args attr target
-    Disposition _ Pdf -> return $ embedWebVideosPdf page args attr target
+    Disposition _ Latex -> return $ embedWebVideosPdf page args attr target
 
-fontAwesome :: MacroAction
-fontAwesome _ _ (iconName, _) _ = do
+fontAwesome :: String -> MacroAction
+fontAwesome which _ _ (iconName, _) _ = do
   disp <- gets disposition
   case disp of
     Disposition _ Html ->
       return $
-      RawInline (Format "html") $ "<i class=\"fa fa-" ++ iconName ++ "\"></i>"
-    Disposition _ Pdf -> return $ Str $ "[" ++ iconName ++ "]"
+      RawInline (Format "html") $
+      "<i class=\"" ++ which ++ " fa-" ++ iconName ++ "\"></i>"
+    Disposition _ Latex -> return $ Str $ "[" ++ iconName ++ "]"
 
 metaValue :: MacroAction
 metaValue _ _ (key, _) meta =
@@ -140,7 +141,9 @@ macroMap :: MacroMap
 macroMap =
   Map.fromList
     [ ("meta", metaValue)
-    , ("fa", fontAwesome)
+    , ("fa", fontAwesome "fas")
+    , ("fas", fontAwesome "fas")
+    , ("fab", fontAwesome "fab")
     , ("youtube", webVideo "youtube")
     , ("vimeo", webVideo "vimeo")
     , ("twitch", webVideo "twitch")

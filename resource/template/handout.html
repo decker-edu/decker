@@ -1,148 +1,413 @@
 <!DOCTYPE html>
-<html$if(lang)$ lang="$lang$"$endif$$if(dir)$ dir="$dir$"$endif$>
-<head>
-  <meta charset="utf-8">
-  <meta name="generator" content="pandoc">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-$for(author-meta)$
-  <meta name="author" content="$author-meta$">
-$endfor$
-$if(date-meta)$
-  <meta name="dcterms.date" content="$date-meta$">
-$endif$
-$if(keywords)$
-  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
-$endif$
-  <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
-  <style type="text/css">code{white-space: pre;}</style>
-$if(quotes)$
-  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
-$endif$
-$if(highlighting-css)$
-  <style type="text/css">
-$highlighting-css$
-  </style>
-$endif$
-$for(css)$
-  <link rel="stylesheet" href="$css$">
-$endfor$
+<html$if(lang)$ lang="$lang$" $endif$$if(dir)$ dir="$dir$" $endif$>
 
-  <style type="text/css">
-.container {
-    max-width:750px;
-    margin:0 auto;
-}
+  <head>
+    <meta charset="utf-8">
+    <meta name="generator" content="pandoc">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"> $for(author-meta)$
+    <meta name="author" content="$author-meta$"> $endfor$ $if(date-meta)$
+    <meta name="dcterms.date" content="$date-meta$"> $endif$ $if(keywords)$
+    <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$"> $endif$
+    <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+    <style type="text/css">
+      code {
+        white-space: pre;
+      }
+    </style>
+    $if(quotes)$
+    <style type="text/css">
+      q {
+        quotes: "“""”""‘""’";
+      }
+    </style>
+    $endif$
+    $if(highlighting-css)$
+    <style type="text/css">
+      $highlighting-css$
+    </style>
+    $endif$
 
-.container .content {
-    min-height: 750px;
-}
+    <link rel="stylesheet" href="$decker-support-dir$/handout.css">
+    <script src="$decker-support-dir$/handout.js"></script>
 
-.page-header small {
-    white-space:nowrap;
-}
+    <style type="text/css">
+      .container {
+        max-width: 750px;
+        margin: 0 auto;
+      }
 
-.page-header h1 {
-    font-size: 180%;
-}
+      .container .content {
+        min-height: 750px;
+      }
 
-h1 {
-    font-size: 150%;
-}
+      .page-header small {
+        white-space: nowrap;
+      }
 
-h2 {
-    font-size: 130%;
-}
+      .page-header h1 {
+        font-size: 1.8rem;
+      }
 
-h3 {
-    font-size: 110%;
-}
+      h1 {
+        font-size: 1.5rem;
+      }
 
-.container p > img {
-    width: 100%;
-}
+      h2 {
+        font-size: 1.3rem;
+      }
 
-.container h6.post-date {
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-.container h2.post-title {
-    margin-top: 10px;
-}
+      h3 {
+        font-size: 1.1rem;
+      }
 
-.container address {
-    color: #888;
-}
-address p.date {
-    float: right;
-}
-.container img {
-    width: 75%;
-    margin: 0px auto;
-}
-.container video {
-    width: 75%;
-    margin: 0px auto;
-}
-  </style>
+      h1 code {
+        font-size: 1.5rem;
+      }
 
-$if(math)$
-  $math$
-$endif$
-  <!--[if lt IE 9]>
+      h2 code {
+        font-size: 1.3rem;
+      }
+
+      h3 code {
+        font-size: 1.1rem;
+      }
+
+      code {
+        font-size: 1rem;
+      }
+
+      .container figure {
+        width: 100%;
+        padding-left: 3em;
+        padding-right: 3em;
+      }
+
+      .container figure>img {
+        width: 100%;
+        padding: 0px;
+        border: 1pt solid gray;
+      }
+
+      .container figure>video {
+        width: 100%;
+        padding: 0px;
+        border: 1pt solid gray;
+      }
+
+      .container figure>figcaption {
+        padding-top: 0.5em;
+        font-size: 90%;
+        text-align: center;
+      }
+
+      .container h6.post-date {
+        margin-top: 5px;
+        margin-bottom: 5px;
+      }
+
+      .container h2.post-title {
+        margin-top: 10px;
+      }
+
+      .container address {
+        color: #AAA;
+      }
+
+      .container address p.date {
+        float: right;
+      }
+
+      .container img {
+        width: 100%;
+        padding-left: 3em;
+        padding-right: 3em;
+        margin: 0px auto;
+      }
+
+      .container video {
+        width: 100%;
+        padding-left: 3em;
+        padding-right: 3em;
+        margin: 0px auto;
+      }
+
+      div.handout {
+        background-color: #eeeeee;
+      }
+
+      div.box {
+        break-inside: avoid-column;
+      }
+
+      div.box {
+        padding: 0.4em 0.7em;
+        margin: 0em -0.7em;
+        border-radius: 0.25em;
+      }
+
+      div.box h2 {
+        margin-top: 0;
+      }
+
+      div.box h2:last-child,
+      div.box h2:empty {
+        margin-bottom: 0;
+      }
+
+      div.box p {
+        margin: 0;
+      }
+
+      div.box.question+.question,
+      div.box.question+.answer,
+      div.box.question+.observation,
+      div.box.question+.example,
+      div.box.question+.def,
+      div.box.question+.definition,
+      div.box.question+.note,
+      div.box.question+.ale,
+      div.box.question+.alert,
+      div.box.question+.equ,
+      div.box.question+.equation,
+      div.box.question+.theorem,
+      div.box.answer+.question,
+      div.box.answer+.answer,
+      div.box.answer+.observation,
+      div.box.answer+.example,
+      div.box.answer+.def,
+      div.box.answer+.definition,
+      div.box.answer+.note,
+      div.box.answer+.ale,
+      div.box.answer+.alert,
+      div.box.answer+.equ,
+      div.box.answer+.equation,
+      div.box.answer+.theorem,
+      div.box.observation+.question,
+      div.box.observation+.answer,
+      div.box.observation+.observation,
+      div.box.observation+.example,
+      div.box.observation+.def,
+      div.box.observation+.definition,
+      div.box.observation+.note,
+      div.box.observation+.ale,
+      div.box.observation+.alert,
+      div.box.observation+.equ,
+      div.box.observation+.equation,
+      div.box.observation+.theorem,
+      div.box.example+.question,
+      div.box.example+.answer,
+      div.box.example+.observation,
+      div.box.example+.example,
+      div.box.example+.def,
+      div.box.example+.definition,
+      div.box.example+.note,
+      div.box.example+.ale,
+      div.box.example+.alert,
+      div.box.example+.equ,
+      div.box.example+.equation,
+      div.box.example+.theorem,
+      div.box.def+.question,
+      div.box.def+.answer,
+      div.box.def+.observation,
+      div.box.def+.example,
+      div.box.def+.def,
+      div.box.def+.definition,
+      div.box.def+.note,
+      div.box.def+.ale,
+      div.box.def+.alert,
+      div.box.def+.equ,
+      div.box.def+.equation,
+      div.box.def+.theorem,
+      div.box.definition+.question,
+      div.box.definition+.answer,
+      div.box.definition+.observation,
+      div.box.definition+.example,
+      div.box.definition+.def,
+      div.box.definition+.definition,
+      div.box.definition+.note,
+      div.box.definition+.ale,
+      div.box.definition+.alert,
+      div.box.definition+.equ,
+      div.box.definition+.equation,
+      div.box.definition+.theorem,
+      div.box.note+.question,
+      div.box.note+.answer,
+      div.box.note+.observation,
+      div.box.note+.example,
+      div.box.note+.def,
+      div.box.note+.definition,
+      div.box.note+.note,
+      div.box.note+.ale,
+      div.box.note+.alert,
+      div.box.note+.equ,
+      div.box.note+.equation,
+      div.box.note+.theorem,
+      div.box.ale+.question,
+      div.box.ale+.answer,
+      div.box.ale+.observation,
+      div.box.ale+.example,
+      div.box.ale+.def,
+      div.box.ale+.definition,
+      div.box.ale+.note,
+      div.box.ale+.ale,
+      div.box.ale+.alert,
+      div.box.ale+.equ,
+      div.box.ale+.equation,
+      div.box.ale+.theorem,
+      div.box.alert+.question,
+      div.box.alert+.answer,
+      div.box.alert+.observation,
+      div.box.alert+.example,
+      div.box.alert+.def,
+      div.box.alert+.definition,
+      div.box.alert+.note,
+      div.box.alert+.ale,
+      div.box.alert+.alert,
+      div.box.alert+.equ,
+      div.box.alert+.equation,
+      div.box.alert+.theorem,
+      div.box.equ+.question,
+      div.box.equ+.answer,
+      div.box.equ+.observation,
+      div.box.equ+.example,
+      div.box.equ+.def,
+      div.box.equ+.definition,
+      div.box.equ+.note,
+      div.box.equ+.ale,
+      div.box.equ+.alert,
+      div.box.equ+.equ,
+      div.box.equ+.equation,
+      div.box.equ+.theorem,
+      div.box.equation+.question,
+      div.box.equation+.answer,
+      div.box.equation+.observation,
+      div.box.equation+.example,
+      div.box.equation+.def,
+      div.box.equation+.definition,
+      div.box.equation+.note,
+      div.box.equation+.ale,
+      div.box.equation+.alert,
+      div.box.equation+.equ,
+      div.box.equation+.equation,
+      div.box.equation+.theorem,
+      div.box.theorem+.question,
+      div.box.theorem+.answer,
+      div.box.theorem+.observation,
+      div.box.theorem+.example,
+      div.box.theorem+.def,
+      div.box.theorem+.definition,
+      div.box.theorem+.note,
+      div.box.theorem+.ale,
+      div.box.theorem+.alert,
+      div.box.theorem+.equ,
+      div.box.theorem+.equation,
+      div.box.theorem+.theorem {
+        margin-top: 0.3em;
+      }
+
+      div.box.question {
+        background-color: rgba(255, 215, 67, 0.4);
+      }
+
+      div.box.answer {
+        background-color: rgba(153, 205, 58, 0.4);
+      }
+
+      div.box.observation {
+        background-color: rgba(210, 180, 140, 0.4);
+      }
+
+      div.box.example {
+        background-color: rgba(176, 197, 222, 0.4);
+      }
+
+      div.box.def,
+      div.box.definition {
+        background-color: rgba(245, 222, 179, 0.6);
+      }
+
+      div.box.note {
+        background-color: rgba(244, 164, 96, 0.4);
+      }
+
+      div.box.ale,
+      div.box.alert {
+        background-color: rgba(255, 99, 71, 0.4);
+      }
+
+      div.box.equ,
+      div.box.equation {
+        background-color: #ebebeb;
+      }
+
+      div.box.theorem {
+        background-color: #ebebeb;
+      }
+    </style>
+
+    <!-- $if(math)$ $math$ $endif$ -->
+    <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
-<script>
-var socket = new WebSocket("ws://" + location.host + "/reload");
-socket.onmessage = function () {
-    window.location.reload(true);
-};
-</script>
-<script src="$decker-support-dir$/page.js"></script>
-$for(header-includes)$
-  $header-includes$
-$endfor$
-</head>
-<body>
-$for(include-before)$
-$include-before$
-$endfor$
-<div class="container">
-$if(title)$
-<header>
-<div class="page-header">
-<div class="row">
-<div class="col-lg-12">
-<h1 class="title">$title$</h1>
-$if(subtitle)$
-<p class="lead subtitle">$subtitle$</p>
-$endif$
-</div>
-</div>
-</div>
-</header>
-$endif$
-<div class="row">
-<div class="col-lg-12">
-$if(toc)$
-<nav id="$idprefix$TOC">
-$toc$
-</nav>
-$endif$
-$body$
-$for(include-after)$
-$include-after$
-$endfor$
-$if(author)$
-<hr>
-<address>
-$if(date)$
-<p class="date">$date$</p>
-$endif$
-<p class="author">Copyright 2016 $author$</p>
-$endif$
-</address>
-</div>
-</div>
-</div>
-</body>
-</html>
+    <script>
+      var socket = new WebSocket("ws://" + location.host + "/reload");
+      socket.onmessage = function () {
+        window.location.reload(true);
+      };
+    </script>
+    $for(header-includes)$
+    $header-includes$
+    $endfor$
+    $for(css)$
+    <link rel="stylesheet" href="$css$">
+    $endfor$
+  </head>
+
+  <body>
+    $for(include-before)$
+    $include-before$
+    $endfor$
+    <div class="container decker-handout">
+      $if(title)$
+      <header>
+        <div class="page-header">
+          <div class="row">
+            <div class="col-lg-12">
+              <h1 class="title">$title$</h1>
+              $if(subtitle)$
+              <p class="lead subtitle">$subtitle$</p>
+              $endif$
+            </div>
+          </div>
+        </div>
+      </header>
+      $endif$
+      <div class="row">
+        <div class="col-lg-12">
+          $if(toc)$
+          <nav id="$idprefix$TOC">
+            $toc$
+          </nav>
+          $endif$
+
+          $body$
+
+          $for(include-after)$
+          $include-after$
+          $endfor$
+          $if(author)$
+          <hr>
+          <address>
+            $if(date)$
+            <p class="date">$date$</p>
+            $endif$
+            <p class="author">$copyright$ $author$</p>
+            $endif$
+          </address>
+        </div>
+      </div>
+    </div>
+  </body>
+
+
+  </html>

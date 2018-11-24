@@ -11,7 +11,7 @@ import System.Exit
 import System.Process
 
 lookupGitBranch :: Q Exp
-lookupGitBranch = do
+lookupGitBranch =
   (stringE . strip . fromMaybe "" <=< runIO . git)
     ["rev-parse", "--abbrev-ref", "HEAD"]
 

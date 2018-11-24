@@ -1,11 +1,9 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Utilities
-  ( runShakeInContext
-  , watchFiles
+  ( runDecker
   , writeIndex
   , writeIndexTable
   , writeIndexLists
-  , readMetaDataForDir
   , substituteMetaData
   , markdownToHtmlDeck
   , markdownToHtmlHandout
@@ -24,12 +22,21 @@ module Utilities
   , DeckerException(..)
   ) where
 
-import Action
 import Common
 import Exception
-import Context
+import Filter
+import Macro
+import Meta
+import Project
+import Render
+import Resources
+import Server
+import Shake
+
 import Control.Arrow
+import Control.Concurrent
 import Control.Exception
+import Control.Lens ((^.))
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
@@ -37,6 +44,7 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
+import Data.Dynamic
 import qualified Data.HashMap.Lazy as HashMap
 import Data.IORef
 import Data.List as List
@@ -49,15 +57,9 @@ import qualified Data.Text.IO as T
 import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
-import Filter
-import Macro
-import Meta
 import Network.URI
-import Project
-import Render
-import Resources
-import Server
 import qualified System.Directory as Dir
+import System.FilePath.Glob
 import Text.CSL.Pandoc
 import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
@@ -68,33 +70,6 @@ import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
-import Watch
-
-runShakeInContext :: ActionContext -> ShakeOptions -> Rules () -> IO ()
-runShakeInContext context options rules = do
-  opts <- setActionContext context options
-  catch
-    (untilM_ (tryRunShake opts) nothingToWatch)
-    (\(SomeException e) -> putStrLn $ "Terminated: " ++ show e)
-  cleanup
-  where
-    tryRunShake opts =
-      handle (\(SomeException _) -> return ()) (shakeArgs opts rules)
-    cleanup = do
-      server <- readIORef $ ctxServerHandle context
-      forM_ server stopHttpServer
-    nothingToWatch = do
-      files <- readIORef $ ctxFilesToWatch context
-      if null files
-        then return True
-        else do
-          server <- readIORef $ ctxServerHandle context
-          forM_ server reloadClients
-          _ <- waitForTwitchPassive [public $ ctxDirs context]
-          return False
-
-watchFiles :: [FilePath] -> Action ()
-watchFiles = setFilesToWatch
 
 -- | Monadic version of list concatenation.
 (<++>) :: Monad m => m [a] -> m [a] -> m [a]
@@ -104,13 +79,13 @@ watchFiles = setFilesToWatch
 writeIndexTable ::
      FilePath -> FilePath -> [[FilePath]] -> [[FilePath]] -> Action ()
 writeIndexTable out baseUrl deckData pageData = do
-  dirs <- getProjectDirs
+  dirs <- projectDirsA
   liftIO $
     writeFile out $
     unlines
       [ "---"
       , "title: Generated Index"
-      , "subtitle: " ++ project dirs
+      , "subtitle: " ++ dirs ^. project
       , "---"
       , "# Slide decks"
       , "| Deck HTML | Handout HTML | Deck PDF | Handout PDF|"
@@ -133,13 +108,13 @@ writeIndex out baseUrl decks handouts pages = do
   let decksLinks = map (makeRelative baseUrl) decks
   let handoutsLinks = map (makeRelative baseUrl) handouts
   let pagesLinks = map (makeRelative baseUrl) pages
-  dirs <- getProjectDirs
+  dirs <- projectDirsA
   liftIO $
     writeFile out $
     unlines
       [ "---"
       , "title: Generated Index"
-      , "subtitle: " ++ project dirs
+      , "subtitle: " ++ dirs ^. project
       , "---"
       , "# Slide decks"
       , unlines $ map makeLink $ sort decksLinks
@@ -152,21 +127,19 @@ writeIndex out baseUrl decks handouts pages = do
     makeLink file = "-    [" ++ takeFileName file ++ "](" ++ file ++ ")"
 
 -- | Generates an index.md file with links to all generated files of interest.
-writeIndexLists ::
-     FilePath
-  -> FilePath
-  -> [(FilePath, FilePath)]
-  -> [(FilePath, FilePath)]
-  -> [(FilePath, FilePath)]
-  -> Action ()
-writeIndexLists out baseUrl decks handouts pages = do
-  dirs <- getProjectDirs
+writeIndexLists :: FilePath -> FilePath -> Action ()
+writeIndexLists out baseUrl = do
+  dirs <- projectDirsA
+  ts <- targetsA
+  let decks = (zip (_decks ts) (_decksPdf ts))
+  let handouts = (zip (_handouts ts) (_handoutsPdf ts))
+  let pages = (zip (_pages ts) (_pagesPdf ts))
   liftIO $
     writeFile out $
     unlines
       [ "---"
       , "title: Generated Index"
-      , "subtitle: " ++ project dirs
+      , "subtitle: " ++ dirs ^. project
       , "---"
       , "# Slide decks"
       , unlines $ map makeLink decks
@@ -180,8 +153,8 @@ writeIndexLists out baseUrl decks handouts pages = do
       printf
         "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
         (takeFileName html)
-        (makeRelative baseUrl $ html)
-        (makeRelative baseUrl $ pdf)
+        (makeRelative baseUrl html)
+        (makeRelative baseUrl pdf)
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text
@@ -209,27 +182,21 @@ getTemplate meta disp = do
         case templateFromMeta meta of
           Just template -> Just $ template </> (getTemplateFileName disp)
           Nothing -> Nothing
-  templateString <-
-    if isJust templateOverridePath
-      then do
-        let templateOverridePath' = fromJust templateOverridePath
-        need [templateOverridePath']
-        content <- liftIO $ readFile templateOverridePath'
-        return $ content
-      else do
-        content <-
-          liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
-        return $ content
-  return $ templateString
+  if isJust templateOverridePath
+    then do
+      let templateOverridePath' = fromJust templateOverridePath
+      need [templateOverridePath']
+      liftIO $ readFile templateOverridePath'
+    else liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
 
 getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
 getSupportDir meta out defaultPath = do
-  pub <- public <$> getProjectDirs
+  dirs <- projectDirsA
   cur <- liftIO Dir.getCurrentDirectory
   return $
     case templateFromMeta meta of
       Just template ->
-        (makeRelativeTo (takeDirectory out) pub) </>
+        (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
         (makeRelativeTo cur template)
       Nothing -> defaultPath
 
@@ -245,7 +212,7 @@ writeNativeWhileDebugging out mod doc@(Pandoc meta body) = do
 markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile out = do
   putCurrentDocument out
-  supportDir <- support <$> getProjectDirs
+  supportDir <- _support <$> projectDirsA
   supportDirRel <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
@@ -310,9 +277,7 @@ readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disp = do
   pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes baseDir -- >>= writeNativeWhileDebugging markdownFile "parsed"
-  processed <-
-    processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
-  return processed
+  processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
   where
     baseDir = takeDirectory markdownFile
     pipeline =
@@ -320,7 +285,7 @@ readAndProcessMarkdown markdownFile disp = do
         [ expandDeckerMacros
         , renderCodeBlocks
         , provisionResources
-        , makeSlides
+        , processSlides
         , renderMediaTags
         , extractFigures
         , processCitesWithDefault
@@ -333,11 +298,11 @@ readAndProcessMarkdown markdownFile disp = do
 -- for a certain disposition type
 getTemplateFileName :: Disposition -> String
 getTemplateFileName (Disposition Deck Html) = "deck.html"
-getTemplateFileName (Disposition Deck Pdf) = "deck.tex"
+getTemplateFileName (Disposition Deck Latex) = "deck.tex"
 getTemplateFileName (Disposition Page Html) = "page.html"
-getTemplateFileName (Disposition Page Pdf) = "page.tex"
+getTemplateFileName (Disposition Page Latex) = "page.tex"
 getTemplateFileName (Disposition Handout Html) = "handout.html"
-getTemplateFileName (Disposition Handout Pdf) = "handout.tex"
+getTemplateFileName (Disposition Handout Latex) = "handout.tex"
 
 provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
@@ -371,10 +336,7 @@ provisionTemplateOverrideSupport base method url = do
   let newBase = base </> url
   exists <- liftIO $ Dir.doesDirectoryExist url
   if exists
-    then do
-      dirContent <- liftIO (Dir.listDirectory url)
-      mapM recurseProvision dirContent
-      return ()
+    then liftIO (Dir.listDirectory url) >>= mapM_ recurseProvision
     else do
       need [url]
       provisionResource base method url
@@ -385,7 +347,8 @@ provisionTemplateOverrideSupport base method url = do
 provisionTemplateOverrideSupportTopLevel ::
      FilePath -> Provisioning -> FilePath -> Action FilePath
 provisionTemplateOverrideSupportTopLevel base method url = do
-  liftIO (Dir.listDirectory url) >>= filterM dirFilter >>= mapM recurseProvision
+  liftIO (Dir.listDirectory url) >>= filterM dirFilter >>=
+    mapM_ recurseProvision
   return $ url
   where
     dirFilter x = liftIO $ Dir.doesDirectoryExist (url </> x)
@@ -411,22 +374,27 @@ provisionResource base method filePath =
   case parseRelativeReference filePath of
     Nothing -> return filePath
     Just uri -> do
-      dirs <- getProjectDirs
-      need [uriPath uri]
-      let resource = resourcePathes dirs base uri
-      publicResource <- getPublicResource
-      withResource publicResource 1 $
-        liftIO $
-        case method of
-          Copy -> copyResource resource
-          SymLink -> linkResource resource
-          Absolute -> absRefResource resource
-          Relative -> relRefResource base resource
+      dirs <- projectDirsA
+      let path = uriPath uri
+      fileExists <- doesFileExist path
+      if fileExists
+        then do
+          need [path]
+          let resource = resourcePathes dirs base uri
+          p <- publicResourceA
+          withResource p 1 $
+            liftIO $
+            case method of
+              Copy -> copyResource resource
+              SymLink -> linkResource resource
+              Absolute -> absRefResource resource
+              Relative -> relRefResource base resource
+        else throw $ ResourceException $ "resource does not exist: " ++ path
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do
-  dirs <- getProjectDirs
-  let rel = makeRelative (public dirs) out
+  public <- publicA
+  let rel = makeRelative public out
   putNormal $ "# pandoc (for " ++ rel ++ ")"
 
 -- | Write a markdown file to a HTML file using the page template.
@@ -456,7 +424,7 @@ markdownToHtmlPage markdownFile out = do
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
 markdownToPdfPage markdownFile out = do
   putCurrentDocument out
-  let disp = Disposition Page Pdf
+  let disp = Disposition Page Latex
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
   let options =
@@ -504,7 +472,7 @@ markdownToHtmlHandout markdownFile out = do
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
 markdownToPdfHandout markdownFile out = do
   putCurrentDocument out
-  let disp = Disposition Handout Pdf
+  let disp = Disposition Handout Latex
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
   let options =
@@ -520,9 +488,11 @@ markdownToPdfHandout markdownFile out = do
 -- converted to absolute pathes.
 readMetaMarkdown :: FilePath -> Action Pandoc
 readMetaMarkdown markdownFile = do
+  projectDir <- projectA
   need [markdownFile]
   -- read external meta data for this directory
-  externalMeta <- readMetaDataForDir (takeDirectory markdownFile)
+  externalMeta <-
+    liftIO $ aggregateMetaData projectDir (takeDirectory markdownFile)
   -- extract embedded meta data from the document
   markdown <- liftIO $ T.readFile markdownFile
   let Pandoc meta _ = readMarkdownOrThrow pandocReaderOpts markdown
@@ -548,7 +518,7 @@ urlToFilePathIfLocal base uri =
     Just relativeUri -> do
       let filePath = uriPath relativeUri
       absBase <- liftIO $ Dir.makeAbsolute base
-      absRoot <- project <$> getProjectDirs
+      absRoot <- projectA
       let absPath =
             if isAbsolute filePath
               then absRoot </> makeRelative "/" filePath
@@ -697,7 +667,7 @@ processCitesWithDefault pandoc@(Pandoc meta blocks) =
     document <-
       case lookupMeta "csl" meta of
         Nothing -> do
-          dir <- appData <$> getProjectDirs
+          dir <- appDataA
           let defaultCsl = dir </> "template" </> "acm-sig-proceedings.csl"
           let cslMeta = setMeta "csl" (MetaString defaultCsl) meta
           return (Pandoc cslMeta blocks)
@@ -761,4 +731,3 @@ lookupPandocMeta key (Meta m) =
     lookup' [] (Just (MetaString s)) = Just s
     lookup' [] (Just (MetaInlines i)) = Just $ stringify i
     lookup' _ _ = Nothing
-
