@@ -1,5 +1,7 @@
 module CompileTime
   ( lookupGitBranch
+  , lookupGitCommitId
+  , lookupGitTag
   ) where
 
 import Control.Monad
@@ -14,6 +16,16 @@ lookupGitBranch :: Q Exp
 lookupGitBranch =
   (stringE . strip . fromMaybe "" <=< runIO . git)
     ["rev-parse", "--abbrev-ref", "HEAD"]
+
+lookupGitCommitId :: Q Exp
+lookupGitCommitId =
+  (stringE . strip . fromMaybe "" <=< runIO . git)
+    ["rev-parse", "--short", "HEAD"]
+
+lookupGitTag :: Q Exp
+lookupGitTag =
+  (stringE . strip . fromMaybe "" <=< runIO . git)
+    ["tag", "--points-at", "HEAD"]
 
 git :: [String] -> IO (Maybe String)
 git args = do

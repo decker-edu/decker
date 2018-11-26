@@ -1,15 +1,11 @@
 base-name := decker
 executable := $(shell stack path | grep local-install-root | sed "s/local-install-root: //")/bin/decker
 version := $(shell grep "version: " package.yaml | sed "s/version: *//")
-branch := $(shell git branch | grep \* | cut -d ' ' -f2)
+branch := $(shell git rev-parse --abbrev-ref HEAD)
+commit := $(shell git rev-parse --short HEAD)
 local-bin-path := $(HOME)/.local/bin
 
-ifeq ($(branch),master)
-	decker-name := $(base-name)-$(version)
-else
-	decker-name := $(base-name)-$(version)-$(branch)
-endif
-
+decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 resource-dir := $(HOME)/.local/share/$(decker-name)
 
 ifdef DECKER_DEV
@@ -73,6 +69,7 @@ install: yarn build
 	mkdir -p $(local-bin-path)
 	cp $(executable) "$(local-bin-path)/$(decker-name)"
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
+	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
 
 watch-resources:
 	find resource src-support -name "*.scss" -or -name "*.html" -or -name "*.js" | entr -pd make install-resources
