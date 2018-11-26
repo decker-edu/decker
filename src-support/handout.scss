@@ -875,6 +875,15 @@ body {
   // Print modifications
   /////////////////////////////////////////////
   @media print {
+
+    @page {
+      size: A4; /* DIN A4 standard, Europe */
+      margin: 0;
+    }
+    html,
+    body {
+      overflow: visible;
+    }
     a:link:after {
       content: " (" attr(href) ") ";
     }
