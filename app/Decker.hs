@@ -27,10 +27,17 @@ import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Pandoc.Definition
-import Text.Printf ()
+import Text.Printf
 
 main :: IO ()
 main = do
+  when isDevelopmentVersion $
+    printf
+      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please make sure that you know what you're doing.\n"
+      deckerVersion
+      deckerGitBranch
+      deckerGitCommitId
+      deckerGitVersionTag
   extractResources
   directories <- projectDirectories
   --
@@ -47,7 +54,13 @@ main = do
     --
     phony "version" $ do
       putNormal $
-        "decker version " ++ deckerVersion ++ " (" ++ deckerGitBranch ++ ")"
+        "decker version " ++
+        deckerVersion ++
+        " (branch: " ++
+        deckerGitBranch ++
+        ", commit: " ++
+        deckerGitCommitId ++
+        ", tag: " ++ deckerGitVersionTag ++ ")"
       putNormal $ "pandoc version " ++ pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --

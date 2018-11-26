@@ -22,7 +22,8 @@ deckerResourceDir :: IO FilePath
 deckerResourceDir =
   getXdgDirectory
     XdgData
-    ("decker" ++ "-" ++ deckerVersion ++ "-" ++ deckerGitBranch)
+    ("decker" ++
+     "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
 
 getResourceString :: FilePath -> IO String
 getResourceString path = do

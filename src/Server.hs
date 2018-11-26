@@ -1,5 +1,4 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-
 module Server
   ( startHttpServer
   , stopHttpServer
@@ -9,8 +8,8 @@ module Server
 
 import Control.Concurrent
 import Control.Exception
-import Control.Monad
 import Control.Lens
+import Control.Monad
 import Data.Text
 import Network.WebSockets
 import Network.WebSockets.Snap
@@ -65,7 +64,8 @@ runHttpServer :: MVar ServerState -> ProjectDirs -> Int -> IO ()
 runHttpServer state dirs port = do
   let documentRoot = dirs ^. public
   config <- serverConfig dirs port
-  simpleHttpServe config $
+  handle (\(SomeException e) -> print e) $
+    simpleHttpServe config $
     route
       [ ("/reload", runWebSocketsSnap $ reloader state)
       , ( "/reload.html" -- Just for testing the thing.
