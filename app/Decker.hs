@@ -218,7 +218,7 @@ main = do
     --
     phony "publish" $ do
       need ["index"]
-      allHtmlA <++> allPdfA >>= need
+      allHtmlA >>= need
       metaData <- metaA
       let host = metaValueAsString "rsync-destination.host" metaData
       let path = metaValueAsString "rsync-destination.path" metaData
