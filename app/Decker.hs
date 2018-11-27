@@ -162,13 +162,6 @@ main = do
         pdflatex ["-output-directory", dir, src]
         pdf2svg [pdf, out]
         liftIO $ removeFile pdf
-    priority 2 $
-      "//*.css" %> \out -> do
-        let src = out -<.> ".scss"
-        exists <- doesFileExist src
-        when exists $ do
-          need [src]
-          sassc [src, out]
     --
     phony "clean" $ do
       removeFilesAfter (directories ^. public) ["//"]
