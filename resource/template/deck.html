@@ -127,44 +127,46 @@ $table-of-contents$
 $endif$
 
 $if(chart)$
-  <section class="slide level1">
-    <h1>$chartName$</h1>
-    <canvas id=“$chartId$" data-chart="$data-chart$">
-    <!--
+<section class="slide level1">
+<h1>$chartName$</h1>
+<canvas id=“$chartId$" data-chart="$data-chart$" width="$width$" height="$height$">
+<!--
+{
+  "data": {
+    "labels":[$for(labels)$"$labels$"$sep$, $endfor$],
+    "datasets":[
+    $for(datasets)$
     {
-     "data": {
-       "labels": [$for(labels)$$labels$,$endfor$],
-      "datasets": [
-      $for(datasets)$
-      $if(datasets.label)$
-       {
-        "label":"$datasets.label$",
-        "data":[$for(datasets.data)$$datasets.data$,$endfor$],
-        "backgroundColor":"$datasets.backgroundColor$",
-        "borderColor":"($datasets.borderColor$)",
-        "borderDash": $datasets.borderDash$
-       },
-      $else$
-      $datasets$
-      $endif$
-      $endfor$
-      ]
-     },
-     "options": {
-       "responsive": "$options.responsive$",
-       "scales": {
-         "xAxes": {
-           "stacked":$options.scales.xAxes.stacked$,
-         }
-         "yAxes": {
-           "stacked":$options.scales.yAxes.stacked$,
-         }
-       }
-     }
-    }
-    -->
-    </canvas>
-  </section>
+      $if(datasets.fill)$"fill":"$datasets.fill$",$endif$
+      $if(datasets.borderColor)$"borderColor":"$datasets.borderColor$",$endif$
+      $if(datasets.borderWidth)$"borderWidth":$datasets.borderWidth$,$endif$
+      $if(datasets.borderDash)$"borderDash":$datasets.borderDash$,$endif$
+      $if(datasets.backgroundColor)$"backgroundColor":"$datasets.backgroundColor$",$endif$
+      $if(datasets.label)$"label":"$datasets.label$",$endif$
+      "data":[$for(datasets.data)$$datasets.data$$sep$, $endfor$]
+    }$sep$,$endfor$
+    ]
+  },
+  "options": {
+    $if(options.legend.position)$"legend": {
+      "position": "$options.legend.position$"
+    },$endif$
+    $if(options.scales)$"scales": {
+      $if(options.scales.xAxes)$"xAxes":[{
+        $if(options.scales.xAxes.stacked)$
+          "stacked":$options.scales.xAxes.stacked$,$endif$
+        }],$endif$
+      $if(options.scales.yAxes)$"yAxes":[{
+        $if(options.scales.yAxes.stacked)$
+          "stacked": $options.scales.yAxes.stacked$,$endif$
+        }],$endif$
+    },$endif$
+    $if(options.responsive)$"responsive":$options.responsive$$endif$
+  }
+}
+-->
+</canvas>
+</section>
 $endif$
 
 $body$
@@ -326,7 +328,7 @@ $if(chart)$
             },
             scale: {
               scaleLabel: { fontColor: "#000" },
-              gridLines: { color: "#000", zeroLineColor: "#000" },
+              gridLines: { color: "#d5d5d5", zeroLineColor: "#000" },
               ticks: { fontColor: "#000" },
             }
           },
