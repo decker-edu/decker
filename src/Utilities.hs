@@ -10,7 +10,6 @@ module Utilities
   , markdownToPdfHandout
   , markdownToHtmlPage
   , markdownToPdfPage
-  , writeExampleProject
   , metaValueAsString
   , (<++>)
   , writeEmbeddedFiles
@@ -675,8 +674,9 @@ processCitesWithDefault pandoc@(Pandoc meta blocks) =
         _ -> return pandoc
     liftIO $ processCites' document
 
-writeExampleProject :: Action ()
-writeExampleProject = liftIO $ writeResourceFiles "example" "."
+-- moved to Resources.hs
+-- writeExampleProject :: Action ()
+-- writeExampleProject = liftIO $ writeResourceFiles "example" "."
 
 {--
 writeExampleProject :: Action ()

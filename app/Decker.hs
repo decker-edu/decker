@@ -92,7 +92,7 @@ main = do
       need ["watch"]
       runHttpServer serverPort directories Nothing
     --
-    phony "example" writeExampleProject
+    phony "example" $ liftIO writeExampleProject
     --
     phony "index" $ need ["support", index]
     --
@@ -203,10 +203,10 @@ main = do
                 (directories ^. support)
           Just value
             | value == show Copy ->
-              rsync
-                [ ((directories ^. appData) </> "support/")
-                , (directories ^. support)
-                ]
+              liftIO $
+              copyDir
+                ((directories ^. appData) </> "support")
+                (directories ^. support)
           Nothing ->
             liftIO $
             createFileLink
