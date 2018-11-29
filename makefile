@@ -95,3 +95,19 @@ resource/support/reveal.js-menu/%: node_modules/reveal.js-menu/%
 
 node_modules/%:
 	yarn install
+
+SECONDARY =  node_modules/reveal.js/css/print/paper.css
+SECONDARY += node_modules/reveal.js/css/print/pdf.css
+SECONDARY += node_modules/reveal.js/plugin/notes/notes.html
+SECONDARY += node_modules/reveal.js/plugin/notes/notes.js
+SECONDARY += node_modules/reveal.js-menu/menu.js
+SECONDARY += node_modules/reveal.js-menu/menu.css
+SECONDARY += node_modules/reveal.js-menu/font-awesome/css/all.css
+SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-solid-900.woff2
+SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-regular-400.woff2
+SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-solid-900.woff
+SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-regular-400.woff
+SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-solid-900.ttf
+SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-regular-400.ttf
+
+.SECONDARY:  $(SECONDARY)
