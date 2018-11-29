@@ -59,8 +59,7 @@ main = do
         " (branch: " ++
         deckerGitBranch ++
         ", commit: " ++
-        deckerGitCommitId ++
-        ", tag: " ++ deckerGitVersionTag ++ ")"
+        deckerGitCommitId ++ ", tag: " ++ deckerGitVersionTag ++ ")"
       putNormal $ "pandoc version " ++ pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
@@ -166,6 +165,8 @@ main = do
     phony "clean" $ do
       removeFilesAfter (directories ^. public) ["//"]
       removeFilesAfter (directories ^. project) cruft
+      old <- liftIO getOldResources
+      forM_ old $ \dir -> removeFilesAfter dir ["//"]
       when isDevelopmentVersion $
         removeFilesAfter (directories ^. appData) ["//"]
     --

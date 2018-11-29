@@ -5,6 +5,7 @@ module Resources
   , deckerResourceDir
   , writeExampleProject
   , copyDir
+  , getOldResources
   ) where
 
 import Common
@@ -17,6 +18,7 @@ import System.Environment
 import System.Exit
 import System.FilePath
 import System.Process
+import Text.Regex.TDFA
 
 deckerResourceDir :: IO FilePath
 deckerResourceDir =
@@ -24,6 +26,19 @@ deckerResourceDir =
     XdgData
     ("decker" ++
      "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
+
+getOldResources :: IO [FilePath]
+getOldResources = do
+  dir <- takeDirectory <$> deckerResourceDir
+  files <- listDirectory dir
+  return $ map (dir </>) $ filter oldVersion files
+  where
+    current = deckerVersion
+    deckerRegex = "decker-([0-9]+[.][0-9]+[.][0-9]+)-[.]*" :: String
+    oldVersion name =
+      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
+        x:v:xs -> v < current
+        [] -> False
 
 getResourceString :: FilePath -> IO String
 getResourceString path = do
