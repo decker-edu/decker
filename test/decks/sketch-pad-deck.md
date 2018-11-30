@@ -1,5 +1,6 @@
 ---
 decker-slide-ids: True
+subtitle: High Quality Slide Annotations
 title: Sketch Pad
 ---
 
@@ -11,7 +12,7 @@ Some body text.
 
 ------
 
-#  {#sncdl}
+#  {#sc58j}
 
 ------
 

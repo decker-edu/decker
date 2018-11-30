@@ -65,6 +65,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
+import Debug.Trace
 -- import Text.Pandoc.XML (toHtml5Entities)
 
 type Notes = [[Block]]

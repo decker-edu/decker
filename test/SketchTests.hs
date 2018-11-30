@@ -4,6 +4,8 @@ module SketchTests
 
 import Sketch
 import Slide
+
+import Data.Char
 import Test.Hspec
 import Text.Pandoc
 import Text.Pandoc.Lens
@@ -18,16 +20,16 @@ noHeaderSlide = Slide Nothing []
 
 sketchTests = do
   describe "randomId" $ do
-    it "creates a random id" $ length <$> randomId `shouldReturn` idDigits + 1
-    it "creates a random id that starts with 's'" $
-      head <$> randomId `shouldReturn` 's'
+    it "creates a random id" $ length <$> randomId `shouldReturn` idDigits
+    it "creates a random id that starts with a letter" $
+      isAlpha . head <$> randomId `shouldReturn` True
   describe "provideSlideIdIO" $ do
     it "adds new id to any slide that does not have one" $
       length . view (header . _Just . attributes . attrIdentifier) <$>
-      provideSlideIdIO noIdSlide `shouldReturn` idDigits + 1
+      provideSlideIdIO noIdSlide `shouldReturn` idDigits
     it "adds new header and id to any slide that does not have either" $
       length . view (header . _Just . attributes . attrIdentifier) <$>
-      provideSlideIdIO noHeaderSlide `shouldReturn` idDigits + 1
+      provideSlideIdIO noHeaderSlide `shouldReturn` idDigits
     it "does not touch headers that already have an id" $
       view (header . _Just . attributes . attrIdentifier) <$>
       provideSlideIdIO someIdSlide `shouldReturn` "manually-set-id"

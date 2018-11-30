@@ -8,9 +8,9 @@ module Sketch
   ) where
 
 import Common
+import Markdown
 import Resources
 import Slide
-import Markdown
 
 import Control.Monad
 import qualified Data.Text.IO as T
@@ -23,15 +23,21 @@ idDigits = 4
 
 -- | Selects a random id out of idDigits^36 possibilities
 randomId :: IO String
-randomId = ('s' :) <$> replicateM idDigits randomChar
+randomId = do
+  h <- randomAlpha
+  t <- replicateM (idDigits - 1) randomAlphaNum
+  return $ h : t
 
 -- | Rejection sampling for a random character from [0-9] or [a-z].
-randomChar :: IO Char
-randomChar = do
+randomAlphaNum :: IO Char
+randomAlphaNum = do
   r <- getStdRandom (randomR ('0', 'z'))
   if r > '9' && r < 'a'
-    then randomChar
+    then randomAlphaNum
     else return r
+
+randomAlpha :: IO Char
+randomAlpha = getStdRandom (randomR ('a', 'z'))
 
 -- | Writes a pandoc document to a markdown file.
 writeToMarkdownFile :: FilePath -> Pandoc -> IO ()
@@ -52,7 +58,8 @@ writeToMarkdownFile filepath pandoc
           , writerColumns = 999
           , writerSetextHeaders = False
           }
-  runIO (Markdown.writeMarkdown options pandoc) >>= handleError >>= T.writeFile filepath
+  runIO (Markdown.writeMarkdown options pandoc) >>= handleError >>=
+    T.writeFile filepath
 
 provideSlideIds :: Pandoc -> IO Pandoc
 provideSlideIds (Pandoc meta body) = do
