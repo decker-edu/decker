@@ -33,11 +33,12 @@ import Render
 import Resources
 import Server
 import Shake
+import Sketch
 
 import Control.Arrow
 import Control.Concurrent
 import Control.Exception
-import Control.Lens ((^.))
+import Control.Lens ((^.), at)
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
@@ -67,6 +68,7 @@ import qualified Text.Mustache.Types as MT
 import Text.Pandoc
 import Text.Pandoc.Builder
 import Text.Pandoc.Highlighting
+import Text.Pandoc.Lens
 import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
@@ -235,8 +237,7 @@ markdownToHtmlDeck markdownFile out = do
               ]
           , writerCiteMethod = Citeproc
           }
-  readAndProcessMarkdown markdownFile (Disposition Deck Html) >>=
-    writeNativeWhileDebugging out "filtered" >>=
+  writeNativeWhileDebugging out "filtered" pandoc >>=
     writePandocFile "revealjs" options out
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
@@ -277,8 +278,10 @@ versionCheck meta =
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disp = do
   pandoc@(Pandoc meta _) <-
-    readMetaMarkdown markdownFile >>= processIncludes baseDir -- >>= writeNativeWhileDebugging markdownFile "parsed"
-  processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
+    readMetaMarkdown markdownFile >>= processIncludes baseDir
+  processed@(Pandoc meta body) <-
+    processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
+  return processed
   where
     baseDir = takeDirectory markdownFile
     pipeline =
@@ -418,8 +421,7 @@ markdownToHtmlPage markdownFile out = do
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
           }
-  readAndProcessMarkdown markdownFile (Disposition Page Html) >>=
-    writePandocFile "html5" options out
+  writePandocFile "html5" options out pandoc
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage :: FilePath -> FilePath -> Action ()
@@ -466,8 +468,7 @@ markdownToHtmlHandout markdownFile out = do
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
           }
-  readAndProcessMarkdown markdownFile (Disposition Handout Html) >>=
-    writePandocFile "html5" options out
+  writePandocFile "html5" options out pandoc
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfHandout :: FilePath -> FilePath -> Action ()
@@ -496,8 +497,9 @@ readMetaMarkdown markdownFile = do
     liftIO $ aggregateMetaData projectDir (takeDirectory markdownFile)
   -- extract embedded meta data from the document
   markdown <- liftIO $ T.readFile markdownFile
-  let Pandoc meta _ = readMarkdownOrThrow pandocReaderOpts markdown
-  let documentMeta = MetaMap $ unMeta meta
+  let pandoc = readMarkdownOrThrow pandocReaderOpts markdown
+  Pandoc fileMeta fileBlocks <- liftIO $ provideSlideIds pandoc
+  let documentMeta = MetaMap $ unMeta fileMeta
   -- combine the meta data with preference on the embedded data
   let combinedMeta = mergePandocMeta documentMeta (toPandocMeta externalMeta)
   let mustacheMeta = toMustacheMeta combinedMeta
@@ -508,8 +510,13 @@ readMetaMarkdown markdownFile = do
   case combinedMeta of
     (MetaMap m) -> do
       versionCheck (Meta m)
-      let pandoc = Pandoc (Meta m) blocks
-      mapResources (urlToFilePathIfLocal (takeDirectory markdownFile)) pandoc
+      case lookupMeta "decker-slide-ids" (Meta m) of
+        Just (MetaBool True) ->
+          markForWriteBack markdownFile (Pandoc fileMeta fileBlocks)
+        _ -> pure ()
+      mapResources
+        (urlToFilePathIfLocal (takeDirectory markdownFile))
+        (Pandoc (Meta m) blocks)
     _ -> throw $ PandocException "Meta format conversion failed."
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath

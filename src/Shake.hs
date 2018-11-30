@@ -1,32 +1,33 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Shake
   ( runDecker
-  , getRelativeSupportDir
-  , watchChangesAndRepeat
-  , openBrowser
-  , startHttpServer
-  , stopHttpServer
-  , runHttpServer
-  , withShakeLock
-  , calcSource
-  , projectDirsA
-  , metaA
-  , targetsA
-  , decksA
-  , decksPdfA
-  , pagesA
-  , pagesPdfA
-  , handoutsA
-  , handoutsPdfA
   , allHtmlA
   , allPdfA
-  , projectA
-  , publicA
-  , cacheA
-  , supportA
   , appDataA
+  , cacheA
+  , calcSource
+  , decksA
+  , decksPdfA
+  , getRelativeSupportDir
+  , handoutsA
+  , handoutsPdfA
   , loggingA
+  , markForWriteBack
+  , metaA
+  , openBrowser
+  , pagesA
+  , pagesPdfA
+  , projectA
+  , projectDirsA
+  , publicA
   , publicResourceA
+  , runHttpServer
+  , startHttpServer
+  , stopHttpServer
+  , supportA
+  , targetsA
+  , watchChangesAndRepeat
+  , withShakeLock
   ) where
 
 import Common
@@ -35,6 +36,7 @@ import Glob
 import Meta
 import Project
 import Server
+import Sketch
 
 import Control.Concurrent
 import Control.Exception
@@ -66,6 +68,7 @@ import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
 import System.Process
+import Text.Pandoc
 
 instance Show (IORef a) where
   show _ = "IORef"
@@ -74,6 +77,7 @@ data MutableActionState = MutableActionState
   { _server :: IORef (Maybe Server)
   , _watch :: IORef Bool
   , _publicResource :: Shake.Resource
+  , _writeBack :: IORef [(FilePath, Pandoc)]
   } deriving (Show)
 
 makeLenses ''MutableActionState
@@ -90,8 +94,9 @@ makeLenses ''ActionContext
 initMutableActionState = do
   server <- newIORef Nothing
   watch <- newIORef False
+  writeBack <- newIORef []
   public <- newResourceIO "public" 1
-  return $ MutableActionState server watch public
+  return $ MutableActionState server watch public writeBack
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -106,6 +111,7 @@ runShakeOnce state rules = do
   catch (shakeArgs options rules) (putError "Error: ")
   server <- readIORef (state ^. server)
   forM_ server reloadClients
+  writeBackMarkdown state
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
     let exclude = excludeDirs (context ^. meta)
@@ -187,6 +193,19 @@ getRelativeSupportDir from = do
   let sup = pub </> ("support" ++ "-" ++ deckerVersion)
   return $ makeRelativeTo from sup
 
+markForWriteBack :: FilePath -> Pandoc -> Action ()
+markForWriteBack filepath pandoc = do
+  putNormal $ "marked for write back: (" ++ filepath ++ ")"
+  ref <- _writeBack . _state <$> actionContext
+  liftIO $ modifyIORef ref ((:) (filepath, pandoc))
+
+writeBackMarkdown :: MutableActionState -> IO ()
+writeBackMarkdown state = do
+  let ref = _writeBack state
+  writeBack <- readIORef ref
+  mapM_ (uncurry writeToMarkdownFile) writeBack
+  writeIORef ref []
+
 publicResourceA = _publicResource . _state <$> actionContext
 
 projectDirsA :: Action ProjectDirs
@@ -256,7 +275,7 @@ withShakeLock perform = do
 -- running.
 runHttpServer :: Int -> ProjectDirs -> Maybe String -> Action ()
 runHttpServer port dirs url = do
-  ref <- (_server . _state) <$> actionContext
+  ref <- _server . _state <$> actionContext
   server <- liftIO $ readIORef ref
   case server of
     Just _ -> return ()
@@ -275,7 +294,7 @@ openBrowser url =
 
 reloadBrowsers :: Action ()
 reloadBrowsers = do
-  ref <- (_server . _state) <$> actionContext
+  ref <- _server . _state <$> actionContext
   server <- liftIO $ readIORef ref
   case server of
     Just serv -> liftIO $ reloadClients serv
