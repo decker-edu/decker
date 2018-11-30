@@ -247,7 +247,7 @@ writePandocFile fmt options out pandoc =
   case getWriter fmt of
     Right (TextWriter writePandoc, _) ->
       runIOQuietly (writePandoc options pandoc) >>= handleError >>=
-      T.writeFile out
+        B.writeFile out . E.encodeUtf8
     Right (ByteStringWriter writePandoc, _) ->
       runIOQuietly (writePandoc options pandoc) >>= handleError >>=
       LB.writeFile out
@@ -494,7 +494,7 @@ readMetaMarkdown markdownFile = do
   externalMeta <-
     liftIO $ aggregateMetaData projectDir (takeDirectory markdownFile)
   -- extract embedded meta data from the document
-  markdown <- liftIO $ T.readFile markdownFile
+  markdown <- liftIO $ E.decodeUtf8 <$> B.readFile markdownFile
   let Pandoc meta _ = readMarkdownOrThrow pandocReaderOpts markdown
   let documentMeta = MetaMap $ unMeta meta
   -- combine the meta data with preference on the embedded data
