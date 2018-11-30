@@ -2,6 +2,7 @@
 module Resources
   ( extractResources
   , getResourceString
+  , getOldResources
   , deckerResourceDir
   , writeExampleProject
   , copyDir
@@ -11,12 +12,14 @@ import Common
 import Control.Exception
 import Control.Monad
 import Control.Monad.Extra
+import Data.List.Split (splitOn)
 import Exception
 import System.Directory
 import System.Environment
 import System.Exit
 import System.FilePath
 import System.Process
+import Text.Regex.TDFA
 
 deckerResourceDir :: IO FilePath
 deckerResourceDir =
@@ -24,6 +27,22 @@ deckerResourceDir =
     XdgData
     ("decker" ++
      "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
+
+-- | Get the absolute paths of resource folders 
+-- with version numbers older than the current one
+getOldResources :: IO [FilePath]
+getOldResources = do
+  dir <- getXdgDirectory XdgData []
+  files <- listDirectory dir
+  return $ map (dir </>) $ filter oldVersion files
+  where
+    convert = map (read :: String -> Int)
+    currentVersion = convert (splitOn "." deckerVersion)
+    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
+    oldVersion name =
+      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
+        [] -> False
+        _:x:y:z:_ -> convert [x, y, z] < currentVersion
 
 getResourceString :: FilePath -> IO String
 getResourceString path = do
