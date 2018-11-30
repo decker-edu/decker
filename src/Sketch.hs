@@ -41,9 +41,7 @@ randomAlpha = getStdRandom (randomR ('a', 'z'))
 
 -- | Writes a pandoc document to a markdown file.
 writeToMarkdownFile :: FilePath -> Pandoc -> IO ()
-writeToMarkdownFile filepath pandoc
-  -- putStrLn $ "Writing back: " ++ filepath
- = do
+writeToMarkdownFile filepath pandoc = do
   template <- getResourceString $ "template" </> "deck.md"
   let extensions =
         (disableExtension Ext_simple_tables .
@@ -58,8 +56,9 @@ writeToMarkdownFile filepath pandoc
           , writerColumns = 999
           , writerSetextHeaders = False
           }
-  runIO (Markdown.writeMarkdown options pandoc) >>= handleError >>=
-    T.writeFile filepath
+  markdown <- runIO (Markdown.writeMarkdown options pandoc) >>= handleError
+  fileContent <- T.readFile filepath
+  when (markdown /= fileContent) $ T.writeFile filepath markdown
 
 provideSlideIds :: Pandoc -> IO Pandoc
 provideSlideIds (Pandoc meta body) = do
