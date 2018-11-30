@@ -10,6 +10,7 @@ module Sketch
 import Common
 import Resources
 import Slide
+import Markdown
 
 import Control.Monad
 import qualified Data.Text.IO as T
@@ -51,7 +52,7 @@ writeToMarkdownFile filepath pandoc
           , writerColumns = 999
           , writerSetextHeaders = False
           }
-  runIO (writeMarkdown options pandoc) >>= handleError >>= T.writeFile filepath
+  runIO (Markdown.writeMarkdown options pandoc) >>= handleError >>= T.writeFile filepath
 
 provideSlideIds :: Pandoc -> IO Pandoc
 provideSlideIds (Pandoc meta body) = do

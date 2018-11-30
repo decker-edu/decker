@@ -11,6 +11,7 @@ module Meta
 
 import Common
 import Exception
+import Markdown
 
 import Control.Arrow
 import Control.Exception
@@ -45,7 +46,7 @@ toMustacheMeta (MetaBlocks blocks) =
 
 writeMarkdownText :: WriterOptions -> Pandoc -> T.Text
 writeMarkdownText options pandoc =
-  case runPure $ writeMarkdown options pandoc of
+  case runPure $ Markdown.writeMarkdown options pandoc of
     Right text -> text
     Left err -> throw $ PandocException $ show err
 
