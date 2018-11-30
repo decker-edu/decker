@@ -47,6 +47,7 @@ import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import Data.IORef
 import Data.List
+import qualified Data.Map.Strict as M
 import Data.Maybe
 import Data.Text.Lens
 import Data.Typeable
@@ -77,7 +78,7 @@ data MutableActionState = MutableActionState
   { _server :: IORef (Maybe Server)
   , _watch :: IORef Bool
   , _publicResource :: Shake.Resource
-  , _writeBack :: IORef [(FilePath, Pandoc)]
+  , _writeBack :: IORef (M.Map FilePath Pandoc)
   } deriving (Show)
 
 makeLenses ''MutableActionState
@@ -94,7 +95,7 @@ makeLenses ''ActionContext
 initMutableActionState = do
   server <- newIORef Nothing
   watch <- newIORef False
-  writeBack <- newIORef []
+  writeBack <- newIORef M.empty
   public <- newResourceIO "public" 1
   return $ MutableActionState server watch public writeBack
 
@@ -197,14 +198,14 @@ markForWriteBack :: FilePath -> Pandoc -> Action ()
 markForWriteBack filepath pandoc = do
   putNormal $ "marked for write back: (" ++ filepath ++ ")"
   ref <- _writeBack . _state <$> actionContext
-  liftIO $ modifyIORef ref ((:) (filepath, pandoc))
+  liftIO $ modifyIORef ref (M.insert filepath pandoc)
 
 writeBackMarkdown :: MutableActionState -> IO ()
 writeBackMarkdown state = do
   let ref = _writeBack state
   writeBack <- readIORef ref
-  mapM_ (uncurry writeToMarkdownFile) writeBack
-  writeIORef ref []
+  mapM_ (uncurry writeToMarkdownFile) (M.toList writeBack)
+  writeIORef ref M.empty
 
 publicResourceA = _publicResource . _state <$> actionContext
 
