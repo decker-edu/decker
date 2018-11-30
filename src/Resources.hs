@@ -12,6 +12,7 @@ import Common
 import Control.Exception
 import Control.Monad
 import Control.Monad.Extra
+import Data.List.Split as Split
 import Exception
 import System.Directory
 import System.Environment
@@ -29,15 +30,17 @@ deckerResourceDir =
 
 getOldResources :: IO [FilePath]
 getOldResources = do
-  dir <- takeDirectory <$> deckerResourceDir
+  dir <- getXdgDirectory XdgData []
   files <- listDirectory dir
   return $ map (dir </>) $ filter oldVersion files
   where
-    deckerRegex = "decker-([0-9]+[.][0-9]+[.][0-9]+)-" :: String
+    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
+    convert = map (read :: String -> Int)
+    current = convert (splitOn "." deckerVersion)
     oldVersion name =
       case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
         [] -> False
-        _:v:vs -> v < deckerVersion
+        _:x:y:z:vs -> convert [x, y, z] < current
 
 getResourceString :: FilePath -> IO String
 getResourceString path = do
