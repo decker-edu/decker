@@ -1,4 +1,10 @@
-# Included
+---
+decker-slide-ids: True
+---
+
+------
+
+# Included {#zaf7}
 
 ## From `include/something.md`
 

@@ -43,3 +43,5 @@ title: Sketch Pad
 -   This slide has a generated id
 -   It will not change during further id generation
 -   It can be used in links (See [two slides down](#myslide-dont-touch)) as usual
+
+[:include](./include/something.md)

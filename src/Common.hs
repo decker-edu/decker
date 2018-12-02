@@ -31,6 +31,7 @@ module Common
   , handoutHTMLSuffix
   , handoutPDFSuffix
   , metaSuffix
+  , indexSuffix
   , sourceSuffixes
   , unique
   , time
@@ -198,4 +199,6 @@ handoutPDFSuffix = "-handout.pdf"
 
 metaSuffix = "-meta.yaml"
 
-sourceSuffixes = [deckSuffix, pageSuffix]
+indexSuffix = "-index.yaml"
+
+sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]

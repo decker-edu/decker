@@ -238,6 +238,7 @@ markdownToHtmlDeck markdownFile out = do
           , writerCiteMethod = Citeproc
           }
   writeNativeWhileDebugging out "filtered" pandoc >>=
+    writeDeckIndex markdownFile out >>=
     writePandocFile "revealjs" options out
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)

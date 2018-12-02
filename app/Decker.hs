@@ -33,7 +33,7 @@ main :: IO ()
 main = do
   when isDevelopmentVersion $
     printf
-      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please make sure that you know what you're doing.\n"
+      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please be sure that you know what you're doing.\n"
       deckerVersion
       deckerGitBranch
       deckerGitCommitId
@@ -93,6 +93,12 @@ main = do
       runHttpServer serverPort directories Nothing
     --
     phony "example" writeExampleProject
+    --
+    phony "sketch-pad-index" $ do
+      indexFiles <- indicesA
+      putNormal $ show indexFiles
+      need indexFiles
+      writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml") indexFiles
     --
     phony "index" $ need ["support", index]
     --

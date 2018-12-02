@@ -14,6 +14,7 @@ module Shake
   , loggingA
   , markForWriteBack
   , metaA
+  , indicesA
   , openBrowser
   , pagesA
   , pagesPdfA
@@ -27,10 +28,13 @@ module Shake
   , supportA
   , targetsA
   , watchChangesAndRepeat
+  , writeDeckIndex
+  , writeSketchPadIndex
   , withShakeLock
   ) where
 
 import Common
+import CompileTime
 import Exception
 import Glob
 import Meta
@@ -41,6 +45,7 @@ import Sketch
 import Control.Concurrent
 import Control.Exception
 import Control.Lens
+import Control.Lens.Combinators
 import Control.Monad
 import Data.Aeson.Lens
 import Data.Dynamic
@@ -49,6 +54,7 @@ import Data.IORef
 import Data.List
 import qualified Data.Map.Strict as M
 import Data.Maybe
+import qualified Data.Text as T
 import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
@@ -70,6 +76,10 @@ import System.FilePath
 import System.Info
 import System.Process
 import Text.Pandoc
+import Text.Pandoc.Lens as P
+import Text.Pandoc.Shared
+import Text.Pandoc.Walk
+import Text.Printf
 
 instance Show (IORef a) where
   show _ = "IORef"
@@ -79,6 +89,7 @@ data MutableActionState = MutableActionState
   , _watch :: IORef Bool
   , _publicResource :: Shake.Resource
   , _writeBack :: IORef (M.Map FilePath Pandoc)
+  , _writeIndex :: IORef (Maybe FilePath)
   } deriving (Show)
 
 makeLenses ''MutableActionState
@@ -86,7 +97,7 @@ makeLenses ''MutableActionState
 data ActionContext = ActionContext
   { _dirs :: ProjectDirs
   , _targetList :: Targets
-  , _meta :: Yaml.Value
+  , _metaData :: Yaml.Value
   , _state :: MutableActionState
   } deriving (Typeable, Show)
 
@@ -96,8 +107,9 @@ initMutableActionState = do
   server <- newIORef Nothing
   watch <- newIORef False
   writeBack <- newIORef M.empty
+  writeIndex <- newIORef Nothing
   public <- newResourceIO "public" 1
-  return $ MutableActionState server watch public writeBack
+  return $ MutableActionState server watch public writeBack writeIndex
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -115,7 +127,7 @@ runShakeOnce state rules = do
   writeBackMarkdown state
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
-    let exclude = excludeDirs (context ^. meta)
+    let exclude = excludeDirs (context ^. metaData)
     inDirs <- fastGlobDirs exclude (context ^. dirs . project)
     waitForChange inDirs
   return keepWatching
@@ -139,6 +151,11 @@ initContext state = do
 cleanup state = do
   srvr <- readIORef $ state ^. server
   forM_ srvr stopHttpServer
+
+needSketchPadIndex :: FilePath -> Action ()
+needSketchPadIndex filepath = do
+  ref <- _writeIndex . _state <$> actionContext
+  liftIO $ writeIORef ref (Just filepath)
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do
@@ -196,7 +213,6 @@ getRelativeSupportDir from = do
 
 markForWriteBack :: FilePath -> Pandoc -> Action ()
 markForWriteBack filepath pandoc = do
-  putNormal $ "marked for write back: (" ++ filepath ++ ")"
   ref <- _writeBack . _state <$> actionContext
   liftIO $ modifyIORef ref (M.insert filepath pandoc)
 
@@ -207,13 +223,66 @@ writeBackMarkdown state = do
   mapM_ (uncurry writeToMarkdownFile) (M.toList writeBack)
   writeIORef ref M.empty
 
+writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
+writeDeckIndex markdownFile out pandoc = do
+  context <- actionContext
+  branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
+  commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
+  gitUrl <- liftIO $ gitT ["remote", "get-url", "--push", "origin"]
+  let proj = context ^. dirs . project
+  let publ = context ^. dirs . public
+  -- liftIO $ print pandoc
+  let title = metaP pandoc "title"
+  let subtitle = metaP pandoc "subtitle"
+  let doit = fromMaybe False $ pandoc ^? meta "decker-slide-ids" . _MetaBool
+  liftIO $ when doit $ do
+    let filename = dropExtension out ++ "-index.yaml"
+    let publicUrl = T.pack $ "/" </> makeRelative publ out
+    let indexUrl = T.pack $ "/" </> makeRelative publ filename
+    let sourceDir = T.pack $ makeRelative proj $ takeDirectory markdownFile
+    let sourceFile = T.pack $ makeRelative proj markdownFile
+    printf "creating index: %s (%s, %s)" filename title subtitle
+    let slides =
+          [ object [("id", String $ T.pack i), ("title", String $ T.pack t)]
+          | (i, t) <- query headers pandoc
+          ]
+    let yaml =
+          object
+            [ ("commit-id", String commit)
+            , ("deck-url", String publicUrl)
+            , ("index-url", String indexUrl)
+            , ("repository-url", String gitUrl)
+            , ("source-directory", String sourceDir)
+            , ("source-file", String sourceFile)
+            , ("title", String title)
+            , ("subtitle", String subtitle)
+            , ("slides", array slides)
+            ]
+    liftIO $ Yaml.encodeFile filename yaml
+  return pandoc
+  where
+    headers (Header 1 (id, _, _) text) = [(id, stringify text)]
+    headers _ = []
+
+gitT args = T.strip . T.pack . fromMaybe "<empty>" <$> git args
+
+metaP p k = T.pack $ p ^. meta k . _MetaString
+
+writeSketchPadIndex :: FilePath -> [FilePath] -> Action ()
+writeSketchPadIndex out indexFiles = do
+  context <- actionContext
+  branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
+  commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
+  gitUrl <- liftIO $ gitT ["remote", "get-url", "--push", "origin"]
+  let proj = context ^. dirs . project
+  let publ = context ^. dirs . public
+  let yaml = object []
+  liftIO $ Yaml.encodeFile out yaml
+
 publicResourceA = _publicResource . _state <$> actionContext
 
 projectDirsA :: Action ProjectDirs
 projectDirsA = _dirs <$> actionContext
-
-metaA :: Action Yaml.Value
-metaA = _meta <$> actionContext
 
 projectA :: Action FilePath
 projectA = _project <$> projectDirsA
@@ -236,7 +305,9 @@ loggingA = _logging <$> projectDirsA
 targetsA :: Action Targets
 targetsA = _targetList <$> actionContext
 
-metaDataA = _meta <$> actionContext
+metaA = _metaData <$> actionContext
+
+indicesA = _indices <$> targetsA
 
 decksA :: Action [FilePath]
 decksA = _decks <$> targetsA
