@@ -20,6 +20,7 @@ import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
 import GHC.Conc (numCapabilities)
+import System.Decker.OS (defaultProvisioning)
 import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
 import System.Environment.Blank
 import System.FilePath ()
@@ -203,9 +204,15 @@ main = do
                 (directories ^. support)
           Nothing ->
             liftIO $
-            createFileLink
-              ((directories ^. appData) </> "support")
-              (directories ^. support)
+            case defaultProvisioning of
+              SymLink ->
+                createFileLink
+                  ((directories ^. appData) </> "support")
+                  (directories ^. support)
+              _ ->
+                copyDir
+                  ((directories ^. appData) </> "support")
+                  (directories ^. support)
           _ -> return ()
     --
     phony "check" checkExternalPrograms
