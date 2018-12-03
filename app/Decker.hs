@@ -95,17 +95,22 @@ main = do
     phony "example" writeExampleProject
     --
     phony "sketch-pad-index" $ do
-      indexFiles <- indicesA
-      putNormal $ show indexFiles
-      need indexFiles
-      writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml") indexFiles
+      indicesA >>= need
+      indicesA >>= writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
     --
     phony "index" $ need ["support", index]
     --
     priority 2 $
       "//*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
-        markdownToHtmlDeck src out
+        let ind = replaceSuffix "-deck.html" "-deck-index.yaml" out
+        markdownToHtmlDeck src out ind
+    --
+    priority 2 $
+      "//*-deck-index.yaml" %> \ind -> do
+        src <- calcSource "-deck-index.yaml" "-deck.md" ind
+        let out = replaceSuffix "-deck-index.yaml" "-deck.html" ind
+        markdownToHtmlDeck src out ind
     --
     priority 2 $
       "//*-deck.pdf" %> \out -> do

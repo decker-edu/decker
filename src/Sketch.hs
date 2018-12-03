@@ -14,7 +14,10 @@ import Slide
 
 import Control.Monad
 import qualified Data.Text.IO as T
+import System.Directory
 import System.FilePath
+import System.IO.Temp
+import System.IO
 import System.Random
 import Text.Pandoc
 import Text.Pandoc.Shared
@@ -58,7 +61,14 @@ writeToMarkdownFile filepath pandoc = do
           }
   markdown <- runIO (Markdown.writeMarkdown options pandoc) >>= handleError
   fileContent <- T.readFile filepath
-  when (markdown /= fileContent) $ T.writeFile filepath markdown
+  when (markdown /= fileContent) $
+    withTempFile
+      (takeDirectory filepath)
+      (takeFileName filepath)
+      (\tmp h -> do
+         T.hPutStr h markdown
+         hFlush h
+         renameFile tmp filepath)
 
 provideSlideIds :: Pandoc -> IO Pandoc
 provideSlideIds (Pandoc meta body) = do

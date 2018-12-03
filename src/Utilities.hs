@@ -212,8 +212,8 @@ writeNativeWhileDebugging out mod doc@(Pandoc meta body) = do
   return doc
 
 -- | Write a markdown file to a HTML file using the page template.
-markdownToHtmlDeck :: FilePath -> FilePath -> Action ()
-markdownToHtmlDeck markdownFile out = do
+markdownToHtmlDeck :: FilePath -> FilePath -> FilePath -> Action ()
+markdownToHtmlDeck markdownFile out index = do
   putCurrentDocument out
   supportDir <- _support <$> projectDirsA
   supportDirRel <- getRelativeSupportDir (takeDirectory out)
@@ -238,7 +238,7 @@ markdownToHtmlDeck markdownFile out = do
           , writerCiteMethod = Citeproc
           }
   writeNativeWhileDebugging out "filtered" pandoc >>=
-    writeDeckIndex markdownFile out >>=
+    writeDeckIndex markdownFile index >>=
     writePandocFile "revealjs" options out
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
@@ -513,7 +513,8 @@ readMetaMarkdown markdownFile = do
       versionCheck (Meta m)
       case lookupMeta "decker-slide-ids" (Meta m) of
         Just (MetaBool True) ->
-          markForWriteBack markdownFile (Pandoc fileMeta fileBlocks)
+          liftIO $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
+          -- markForWriteBack markdownFile (Pandoc fileMeta fileBlocks)
         _ -> pure ()
       mapResources
         (urlToFilePathIfLocal (takeDirectory markdownFile))

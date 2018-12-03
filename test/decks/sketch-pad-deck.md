@@ -7,7 +7,7 @@ title: Sketch Pad
 
 ------
 
-# Automatic Slide Id Generation {#cgzk}
+# Automatic Slide Id Generation {#s5zu}
 
 ## Id Generation
 
@@ -32,7 +32,7 @@ title: Sketch Pad
 
 ------
 
-#  {#tjp3}
+#  {#j355}
 
 -   This slide has no header, but a generated id
 

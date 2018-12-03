@@ -244,7 +244,7 @@ scanTargets exclude suffixes dirs = do
       , _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs
       , _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs
       , _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs
-      , _indices = sort $ calcTargets indexSuffix indexSuffix srcs
+      , _indices = sort $ calcTargets deckSuffix indexSuffix srcs
       }
   where
     calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]

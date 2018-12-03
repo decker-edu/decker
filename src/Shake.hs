@@ -12,7 +12,6 @@ module Shake
   , handoutsA
   , handoutsPdfA
   , loggingA
-  , markForWriteBack
   , metaA
   , indicesA
   , openBrowser
@@ -58,6 +57,7 @@ import qualified Data.Text as T
 import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
+import Debug.Trace
 import Development.Shake
 import Development.Shake as Shake
   ( Action
@@ -88,8 +88,6 @@ data MutableActionState = MutableActionState
   { _server :: IORef (Maybe Server)
   , _watch :: IORef Bool
   , _publicResource :: Shake.Resource
-  , _writeBack :: IORef (M.Map FilePath Pandoc)
-  , _writeIndex :: IORef (Maybe FilePath)
   } deriving (Show)
 
 makeLenses ''MutableActionState
@@ -106,10 +104,8 @@ makeLenses ''ActionContext
 initMutableActionState = do
   server <- newIORef Nothing
   watch <- newIORef False
-  writeBack <- newIORef M.empty
-  writeIndex <- newIORef Nothing
   public <- newResourceIO "public" 1
-  return $ MutableActionState server watch public writeBack writeIndex
+  return $ MutableActionState server watch public
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -124,7 +120,6 @@ runShakeOnce state rules = do
   catch (shakeArgs options rules) (putError "Error: ")
   server <- readIORef (state ^. server)
   forM_ server reloadClients
-  writeBackMarkdown state
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
     let exclude = excludeDirs (context ^. metaData)
@@ -135,7 +130,7 @@ runShakeOnce state rules = do
 targetDirs context =
   unique $ map takeDirectory (context ^. targetList . sources)
 
-alwaysExclude = ["public", ".shake", ".git", ".vscode"]
+alwaysExclude = ["public", "log", "dist", "code", ".shake", ".git", ".vscode"]
 
 excludeDirs meta =
   let metaExclude =
@@ -151,11 +146,6 @@ initContext state = do
 cleanup state = do
   srvr <- readIORef $ state ^. server
   forM_ srvr stopHttpServer
-
-needSketchPadIndex :: FilePath -> Action ()
-needSketchPadIndex filepath = do
-  ref <- _writeIndex . _state <$> actionContext
-  liftIO $ writeIORef ref (Just filepath)
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do
@@ -174,7 +164,6 @@ deckerShakeOptions ctx = do
       , shakeColor = True
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
-      -- , shakeLiveFiles = ["shakeLiveFiles.txt"]
       , shakeAbbreviations =
           [ (ctx ^. dirs . project ++ "/", "")
           , (ctx ^. dirs . public ++ "/", "")
@@ -211,62 +200,44 @@ getRelativeSupportDir from = do
   let sup = pub </> ("support" ++ "-" ++ deckerVersion)
   return $ makeRelativeTo from sup
 
-markForWriteBack :: FilePath -> Pandoc -> Action ()
-markForWriteBack filepath pandoc = do
-  ref <- _writeBack . _state <$> actionContext
-  liftIO $ modifyIORef ref (M.insert filepath pandoc)
-
-writeBackMarkdown :: MutableActionState -> IO ()
-writeBackMarkdown state = do
-  let ref = _writeBack state
-  writeBack <- readIORef ref
-  mapM_ (uncurry writeToMarkdownFile) (M.toList writeBack)
-  writeIORef ref M.empty
-
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
-writeDeckIndex markdownFile out pandoc = do
+writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
   context <- actionContext
   branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
   commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
   gitUrl <- liftIO $ gitT ["remote", "get-url", "--push", "origin"]
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
-  -- liftIO $ print pandoc
   let title = metaP pandoc "title"
   let subtitle = metaP pandoc "subtitle"
-  let doit = fromMaybe False $ pandoc ^? meta "decker-slide-ids" . _MetaBool
-  liftIO $ when doit $ do
-    let filename = dropExtension out ++ "-index.yaml"
-    let publicUrl = T.pack $ "/" </> makeRelative publ out
-    let indexUrl = T.pack $ "/" </> makeRelative publ filename
-    let sourceDir = T.pack $ makeRelative proj $ takeDirectory markdownFile
-    let sourceFile = T.pack $ makeRelative proj markdownFile
-    printf "creating index: %s (%s, %s)" filename title subtitle
-    let slides =
-          [ object [("id", String $ T.pack i), ("title", String $ T.pack t)]
-          | (i, t) <- query headers pandoc
+  let indexUrl = T.pack $ "/" </> makeRelative publ out
+  let sourceDir = T.pack $ makeRelative proj $ takeDirectory markdownFile
+  let sourceFile = T.pack $ makeRelative proj markdownFile
+  let slides =
+        [ object [("id", String $ T.pack i), ("title", String $ T.pack t)]
+        | (i, t) <- query headers pandoc
+        ]
+  let yaml =
+        object
+          [ ("commit-id", String commit)
+          , ("branch", String branch)
+          , ("index-url", String indexUrl)
+          , ("repository-url", String gitUrl)
+          , ("source-directory", String sourceDir)
+          , ("source-file", String sourceFile)
+          , ("title", String title)
+          , ("subtitle", String subtitle)
+          , ("slides", array slides)
           ]
-    let yaml =
-          object
-            [ ("commit-id", String commit)
-            , ("deck-url", String publicUrl)
-            , ("index-url", String indexUrl)
-            , ("repository-url", String gitUrl)
-            , ("source-directory", String sourceDir)
-            , ("source-file", String sourceFile)
-            , ("title", String title)
-            , ("subtitle", String subtitle)
-            , ("slides", array slides)
-            ]
-    liftIO $ Yaml.encodeFile filename yaml
+  liftIO $ Yaml.encodeFile out yaml
   return pandoc
   where
-    headers (Header 1 (id, _, _) text) = [(id, stringify text)]
+    headers (Header 1 (id@(_:_), _, _) text) = [(id, stringify text)]
     headers _ = []
 
 gitT args = T.strip . T.pack . fromMaybe "<empty>" <$> git args
 
-metaP p k = T.pack $ p ^. meta k . _MetaString
+metaP p k = T.pack $ stringify (p ^? meta k . _MetaInlines)
 
 writeSketchPadIndex :: FilePath -> [FilePath] -> Action ()
 writeSketchPadIndex out indexFiles = do
@@ -276,8 +247,42 @@ writeSketchPadIndex out indexFiles = do
   gitUrl <- liftIO $ gitT ["remote", "get-url", "--push", "origin"]
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
-  let yaml = object []
+  decks <-
+    liftIO $ catMaybes <$>
+    mapM (analyseDeckIndex (takeDirectory out)) indexFiles
+  let yaml =
+        object
+          [ ("commit-id", String commit)
+          , ("branch", String branch)
+          , ("repository-url", String gitUrl)
+          , ("decks", array decks)
+          ]
   liftIO $ Yaml.encodeFile out yaml
+
+deckEntry :: FilePath -> T.Text -> T.Text -> Yaml.Value
+deckEntry path title subtitle =
+  object
+    [ ("path", String $ T.pack path)
+    , ("title", String title)
+    , ("subtitle", String subtitle)
+    ]
+
+analyseDeckIndex :: FilePath -> FilePath -> IO (Maybe Yaml.Value)
+analyseDeckIndex relDir indexFile = do
+  result <-
+    Yaml.decodeFileEither indexFile :: IO (Either Yaml.ParseException Yaml.Value)
+  return $
+    case result of
+      Right yaml -> do
+        let slides = yaml ^. key "slides" . _Array
+        if not (null slides)
+          then Just $
+               deckEntry
+                 (makeRelative relDir indexFile)
+                 (yaml ^. key "title" . _String)
+                 (yaml ^. key "subtitle" . _String)
+          else Nothing
+      Left e -> error $ "No fucking luck: " ++ show e ++ indexFile
 
 publicResourceA = _publicResource . _state <$> actionContext
 
