@@ -116,7 +116,7 @@ runShakeOnce state rules = do
 targetDirs context =
   unique $ map takeDirectory (context ^. targetList . sources)
 
-alwaysExclude = ["public", ".shake", ".git", ".vscode"]
+alwaysExclude = ["public", "log", "dist", "code", ".shake", ".git", ".vscode"]
 
 excludeDirs meta =
   let metaExclude =
