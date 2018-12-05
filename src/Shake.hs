@@ -46,6 +46,7 @@ import Control.Exception
 import Control.Lens
 import Control.Lens.Combinators
 import Control.Monad
+import Data.Aeson as Json
 import Data.Aeson.Lens
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
@@ -214,7 +215,10 @@ writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
   let sourceDir = T.pack $ makeRelative proj $ takeDirectory markdownFile
   let sourceFile = T.pack $ makeRelative proj markdownFile
   let slides =
-        [ object [("id", String $ T.pack i), ("title", String $ T.pack t)]
+        [ object
+          [ ("id", String $ T.strip $ T.pack i)
+          , ("title", String $ T.strip $ T.pack t)
+          ]
         | (i, t) <- query headers pandoc
         ]
   let yaml =
@@ -230,6 +234,7 @@ writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
           , ("slides", array slides)
           ]
   liftIO $ Yaml.encodeFile out yaml
+  liftIO $ Json.encodeFile (out -<.> "json") yaml
   return pandoc
   where
     headers (Header 1 (id@(_:_), _, _) text) = [(id, stringify text)]
@@ -237,7 +242,7 @@ writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
 
 gitT args = T.strip . T.pack . fromMaybe "<empty>" <$> git args
 
-metaP p k = T.pack $ stringify (p ^? meta k . _MetaInlines)
+metaP p k = T.strip $ T.pack $ stringify (p ^? meta k . _MetaInlines)
 
 writeSketchPadIndex :: FilePath -> [FilePath] -> Action ()
 writeSketchPadIndex out indexFiles = do
@@ -258,6 +263,7 @@ writeSketchPadIndex out indexFiles = do
           , ("decks", array decks)
           ]
   liftIO $ Yaml.encodeFile out yaml
+  liftIO $ Json.encodeFile (out -<.> "json") yaml
 
 deckEntry :: FilePath -> T.Text -> T.Text -> Yaml.Value
 deckEntry path title subtitle =
