@@ -93,6 +93,14 @@ dependencies:
 
 library:
   source-dirs: src
+  when:
+    - condition: os(windows)
+      then:
+        source-dirs: src-win
+        exposed-modules: "System.Decker.OS"
+      else:
+        source-dirs: src-mac
+        exposed-modules: "System.Decker.OS"
 
 executables:
   decker:

@@ -20,6 +20,7 @@ import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
 import GHC.Conc (numCapabilities)
+import System.Decker.OS (defaultProvisioning)
 import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
 import System.Environment.Blank
 import System.FilePath ()
@@ -59,8 +60,7 @@ main = do
         " (branch: " ++
         deckerGitBranch ++
         ", commit: " ++
-        deckerGitCommitId ++
-        ", tag: " ++ deckerGitVersionTag ++ ")"
+        deckerGitCommitId ++ ", tag: " ++ deckerGitVersionTag ++ ")"
       putNormal $ "pandoc version " ++ pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
@@ -92,7 +92,7 @@ main = do
       need ["watch"]
       runHttpServer serverPort directories Nothing
     --
-    phony "example" writeExampleProject
+    phony "example" $ liftIO writeExampleProject
     --
     phony "sketch-pad-index" $ do
       indicesA >>= need
@@ -173,17 +173,12 @@ main = do
         pdflatex ["-output-directory", dir, src]
         pdf2svg [pdf, out]
         liftIO $ removeFile pdf
-    priority 2 $
-      "//*.css" %> \out -> do
-        let src = out -<.> ".scss"
-        exists <- doesFileExist src
-        when exists $ do
-          need [src]
-          sassc [src, out]
     --
     phony "clean" $ do
       removeFilesAfter (directories ^. public) ["//"]
       removeFilesAfter (directories ^. project) cruft
+      old <- liftIO getOldResources
+      forM_ old $ \dir -> removeFilesAfter dir ["//"]
       when isDevelopmentVersion $
         removeFilesAfter (directories ^. appData) ["//"]
     --
@@ -214,15 +209,21 @@ main = do
                 (directories ^. support)
           Just value
             | value == show Copy ->
-              rsync
-                [ ((directories ^. appData) </> "support/")
-                , (directories ^. support)
-                ]
+              liftIO $
+              copyDir
+                ((directories ^. appData) </> "support")
+                (directories ^. support)
           Nothing ->
             liftIO $
-            createFileLink
-              ((directories ^. appData) </> "support")
-              (directories ^. support)
+            case defaultProvisioning of
+              SymLink ->
+                createFileLink
+                  ((directories ^. appData) </> "support")
+                  (directories ^. support)
+              _ ->
+                copyDir
+                  ((directories ^. appData) </> "support")
+                  (directories ^. support)
           _ -> return ()
     --
     phony "check" checkExternalPrograms

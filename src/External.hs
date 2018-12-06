@@ -8,8 +8,6 @@ module External
   , pdflatex
   , pdf2svg
   , decktape
-  , sassc
-  , git
   , checkExternalPrograms
   ) where
 
@@ -94,20 +92,6 @@ programs =
         []
         (helpText
            "Decktape PDF exporter (https://github.com/astefanutti/decktape)"))
-  , ( "sassc"
-    , ExternalProgram
-        []
-        "sassc"
-        ["--style", "nested"]
-        ["-v"]
-        (helpText "LibSass wrapper (https://github.com/sass/sassc)"))
-  , ( "git"
-    , ExternalProgram
-        []
-        "git"
-        []
-        ["version"]
-        (helpText "Git version control (https://git-scm.com)"))
   ]
 
 type Program = [String] -> Action ()
@@ -136,12 +120,6 @@ pdf2svg = makeProgram "pdf2svg"
 
 decktape :: Program
 decktape = makeProgram "decktape"
-
-sassc :: Program
-sassc = makeProgram "sassc"
-
-git :: Program'
-git = makeProgram' "git"
 
 helpText :: String -> String
 helpText name =

@@ -10,7 +10,6 @@ module Utilities
   , markdownToPdfHandout
   , markdownToHtmlPage
   , markdownToPdfPage
-  , writeExampleProject
   , metaValueAsString
   , (<++>)
   , writeEmbeddedFiles
@@ -250,7 +249,7 @@ writePandocFile fmt options out pandoc =
   case getWriter fmt of
     Right (TextWriter writePandoc, _) ->
       runIOQuietly (writePandoc options pandoc) >>= handleError >>=
-      T.writeFile out
+      B.writeFile out . E.encodeUtf8
     Right (ByteStringWriter writePandoc, _) ->
       runIOQuietly (writePandoc options pandoc) >>= handleError >>=
       LB.writeFile out
@@ -497,7 +496,7 @@ readMetaMarkdown markdownFile = do
   externalMeta <-
     liftIO $ aggregateMetaData projectDir (takeDirectory markdownFile)
   -- extract embedded meta data from the document
-  markdown <- liftIO $ T.readFile markdownFile
+  markdown <- liftIO $ E.decodeUtf8 <$> B.readFile markdownFile
   let pandoc = readMarkdownOrThrow pandocReaderOpts markdown
   Pandoc fileMeta fileBlocks <- liftIO $ provideSlideIds pandoc
   let documentMeta = MetaMap $ unMeta fileMeta
@@ -687,9 +686,9 @@ processCitesWithDefault pandoc@(Pandoc meta blocks) =
         _ -> return pandoc
     liftIO $ processCites' document
 
-writeExampleProject :: Action ()
-writeExampleProject = liftIO $ writeResourceFiles "example" "."
-
+-- moved to Resources.hs
+-- writeExampleProject :: Action ()
+-- writeExampleProject = liftIO $ writeResourceFiles "example" "."
 {--
 writeExampleProject :: Action ()
 writeExampleProject = mapM_ writeOne deckerExampleDir
