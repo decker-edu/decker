@@ -496,12 +496,12 @@ blockToMarkdown' opts b@(RawBlock f str)
   | otherwise = do
       report $ BlockNotRendered b
       return empty
-{-
 blockToMarkdown' opts HorizontalRule = do
   return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
--}
+{-
 blockToMarkdown' _ HorizontalRule = do
   return $ blankline <> text "------" <> blankline
+-}
 blockToMarkdown' opts (Header level attr inlines) = do
   -- first, if we're putting references at the end of a section, we
   -- put them here.
@@ -613,37 +613,15 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
                        | otherwise -> widths
   (nst,tbl) <-
      case True of
-          _ | isSimple &&
-              isEnabled Ext_simple_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (nest 2,) <$> pandocTable opts False (all null headers)
-                                aligns' widths' rawHeaders rawRows
-            | isSimple &&
+          _ | hasSimpleCells &&
               isEnabled Ext_pipe_tables opts -> do
                 rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
                 rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
                            rows
                 (id,) <$> pipeTable (all null headers) aligns' rawHeaders rawRows
-            | not hasBlocks &&
-              isEnabled Ext_multiline_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (nest 2,) <$> pandocTable opts True (all null headers)
-                                aligns' widths' rawHeaders rawRows
-            | isEnabled Ext_grid_tables opts &&
-               writerColumns opts >= 8 * numcols -> (id,) <$>
-                gridTable opts blockListToMarkdown
+            | isEnabled Ext_grid_tables opts -> (id,) <$>
+                gridTable opts{writerWrapText=WrapNone} blockListToMarkdown
                   (all null headers) aligns' widths' headers rows
-            -- Never write raw html tables
-            | hasSimpleCells &&
-              isEnabled Ext_pipe_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (id,) <$> pipeTable (all null headers) aligns' rawHeaders rawRows
             | otherwise -> return $ (id, text "[TABLE]")
   return $ nst $ tbl $$ caption'' $$ blankline
 blockToMarkdown' opts (BulletList items) = do

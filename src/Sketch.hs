@@ -12,15 +12,20 @@ import Markdown
 import Resources
 import Slide
 
+import Control.Lens
 import Control.Monad
+import Data.Maybe
 import qualified Data.Text.IO as T
 import System.Directory
 import System.FilePath
-import System.IO.Temp
 import System.IO
+import System.IO.Temp
 import System.Random
 import Text.Pandoc
+import Text.Pandoc.Lens
 import Text.Pandoc.Shared
+import Text.Printf
+import Text.Read
 
 idDigits = 4
 
@@ -42,21 +47,35 @@ randomAlphaNum = do
 randomAlpha :: IO Char
 randomAlpha = getStdRandom (randomR ('a', 'z'))
 
--- | Writes a pandoc document to a markdown file.
+-- | Writes a pandoc document atoimically to a markdown file. It uses a modified
+-- Markdown writer that produces more appropriately formatted documents.
 writeToMarkdownFile :: FilePath -> Pandoc -> IO ()
 writeToMarkdownFile filepath pandoc = do
   template <- getResourceString $ "template" </> "deck.md"
+  let columns =
+        fromMaybe 80 $ readMaybe $ stringify $ pandoc ^? meta "write-back" .
+        _MetaMap .
+        at "line-columns" .
+        _Just .
+        _MetaInlines
+  let wrapOpt "none" = WrapNone
+      wrapOpt "preserve" = WrapPreserve
+      wrapOpt _ = WrapAuto
+  let wrap =
+        stringify $ pandoc ^? meta "write-back" . _MetaMap . at "line-wrap" .
+        _Just .
+        _MetaInlines
   let extensions =
         (disableExtension Ext_simple_tables .
          disableExtension Ext_multiline_tables .
-         disableExtension Ext_grid_tables . enableExtension Ext_auto_identifiers)
+         enableExtension Ext_auto_identifiers)
           pandocExtensions
   let options =
         def
           { writerTemplate = Just template
           , writerExtensions = extensions
-          , writerWrapText = WrapAuto
-          , writerColumns = 999
+          , writerColumns = columns
+          , writerWrapText = wrapOpt wrap
           , writerSetextHeaders = False
           }
   markdown <- runIO (Markdown.writeMarkdown options pandoc) >>= handleError

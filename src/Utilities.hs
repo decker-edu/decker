@@ -511,7 +511,7 @@ readMetaMarkdown markdownFile = do
   case combinedMeta of
     (MetaMap m) -> do
       versionCheck (Meta m)
-      case lookupMeta "decker-slide-ids" (Meta m) of
+      case lookupMeta "generate-ids" (Meta m) of
         Just (MetaBool True) ->
           liftIO $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
           -- markForWriteBack markdownFile (Pandoc fileMeta fileBlocks)
@@ -545,7 +545,10 @@ readMarkdownOrThrow opts markdown =
 -- the current include mechanism if slides have duplicate titles in separate
 -- include files.
 deckerPandocExtensions :: Extensions
-deckerPandocExtensions = disableExtension Ext_auto_identifiers pandocExtensions
+deckerPandocExtensions =
+  (disableExtension Ext_auto_identifiers .
+   disableExtension Ext_simple_tables . disableExtension Ext_multiline_tables)
+    pandocExtensions
 
 pandocReaderOpts :: ReaderOptions
 pandocReaderOpts = def {readerExtensions = deckerPandocExtensions}
