@@ -1,21 +1,21 @@
-import Test.Hspec
-import WatchTests
+import           Test.Hspec
+import           WatchTests
 
-import Control.Lens ((^.))
+import           Control.Lens          ((^.))
 import qualified Data.ByteString.Char8 as B
-import qualified Data.HashMap.Strict as H
-import qualified Data.Map.Strict as M
-import Data.Maybe
-import Data.Text
-import Data.Text.Encoding
-import qualified Data.Yaml as Y
-import Filter
-import Project as P
-import qualified System.Directory as Dir
-import System.FilePath
-import System.FilePath.Glob
-import Text.Pandoc
-import Utilities
+import qualified Data.HashMap.Strict   as H
+import qualified Data.Map.Strict       as M
+import           Data.Maybe
+import           Data.Text
+import           Data.Text.Encoding
+import qualified Data.Yaml             as Y
+import           Filter
+import           Project               as P
+import qualified System.Directory      as Dir
+import           System.FilePath
+import           System.FilePath.Glob
+import           Text.Pandoc
+import           Utilities
 
 main = do
   dirs <- projectDirectories
@@ -57,34 +57,34 @@ main = do
       it
         "copies an existing resource to the public dir and returns the public URL." $ do
         Dir.doesFileExist
-          ((dirs ^. project) </> "resource/example/img/06-metal.png") `shouldReturn`
+          ((dirs ^. project) </> "resource/example/img/haskell.png") `shouldReturn`
           True
         copyResource
           (Resource
-             ((dirs ^. project) </> "resource/example/img/06-metal.png")
-             ((dirs ^. public) </> "resource/example/img/06-metal.png")
-             "img/06-metal.png") `shouldReturn`
-          "img/06-metal.png"
+             ((dirs ^. project) </> "resource/example/img/haskell.png")
+             ((dirs ^. public) </> "resource/example/img/haskell.png")
+             "img/haskell.png") `shouldReturn`
+          "img/haskell.png"
         Dir.doesFileExist
-          ((dirs ^. public) </> "resource/example/img/06-metal.png") `shouldReturn`
+          ((dirs ^. public) </> "resource/example/img/haskell.png") `shouldReturn`
           True
     --
     describe "linkResource" $
       it
         "links an existing resource to the public dir and returns the public URL." $ do
         Dir.doesFileExist
-          ((dirs ^. project) </> "resource/example/img/06-metal.png") `shouldReturn`
+          ((dirs ^. project) </> "resource/example/img/haskell.png") `shouldReturn`
           True
         linkResource
           (Resource
-             ((dirs ^. project) </> "resource/example/img/06-metal.png")
-             ((dirs ^. public) </> "resource/example/img/06-metal.png")
-             "img/06-metal.png") `shouldReturn`
-          "img/06-metal.png"
+             ((dirs ^. project) </> "resource/example/img/haskell.png")
+             ((dirs ^. public) </> "resource/example/img/haskell.png")
+             "img/haskell.png") `shouldReturn`
+          "img/haskell.png"
         Dir.pathIsSymbolicLink
-          ((dirs ^. public) </> "resource/example/img/06-metal.png") `shouldReturn`
+          ((dirs ^. public) </> "resource/example/img/haskell.png") `shouldReturn`
           True
-    -- 
+    --
     describe "convertMediaAttributes" $
       it
         "transfers 'width' and 'height' attribute values to css style values and add them to the 'style' attribute value." $ do
