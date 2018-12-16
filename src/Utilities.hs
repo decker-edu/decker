@@ -288,6 +288,7 @@ readAndProcessMarkdown markdownFile disp = do
       concatM
         [ expandDeckerMacros
         , renderCodeBlocks
+        , includeCode
         , provisionResources
         , processSlides
         , renderMediaTags
@@ -318,16 +319,16 @@ provisionResources pandoc = do
 
 provisionMetaResource ::
      FilePath -> Provisioning -> (String, FilePath) -> Action FilePath
-provisionMetaResource base method (key, url)
+provisionMetaResource base method kv@(key, url)
   | key `elem` runtimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     provisionResource base method filePath
-provisionMetaResource base method (key, url)
+provisionMetaResource base method kv@(key, url)
   | key `elem` templateOverrideMetaKeys = do
     cwd <- liftIO $ Dir.getCurrentDirectory
     filePath <- urlToFilePathIfLocal cwd url
     provisionTemplateOverrideSupportTopLevel cwd method filePath
-provisionMetaResource base _ (key, url)
+provisionMetaResource base _ kv@(key, url)
   | key `elem` compiletimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     need [filePath]
@@ -639,6 +640,7 @@ elementAttributes =
   , "data-background-video"
   , "data-background-image"
   , "data-background-iframe"
+  , "include"
   ]
 
 -- | Resources in meta data that are needed at compile time. They have to be
