@@ -101,6 +101,20 @@ First/top column spans across the following columns.
 ## Third Column {.bottom}
 Third/bottom column spans across the columns above.
 
+# Vertical Slides {#verticalSlides}
+
+Add the {.sub} tag to any slide to place it below the previous slide.
+
+```
+# Vertical Slide Example {.sub}
+
+This slide will appear below the previous slide. 
+```
+
+# Vertical Slide Example {.sub}
+
+This slide will appear below the previous slide. 
+
 # Text Emphasis {#textEmphasis}
 
 Format text by surrounding it in appropriate symbols:
@@ -232,7 +246,7 @@ Even colored boxes look ok.
 
 ## Ordered Lists {.split}
 
-```markdown
+```markdown 
 1.  bread
 2.  milk
 3.  sugar
@@ -280,7 +294,6 @@ Additional sources:
   (New York: Oxford University Press, 2008),
   doi:10.1093/acprof:oso/9780195365825.001.0001.
 ```
-
 
 # Sequential Lists example {#example-seqlists .sub}
 
@@ -714,11 +727,15 @@ css: example.css - Enter the name of a custom css file
 slideNumber: true - Display slide numbers
 slideNumber: false - Hide slide numbers (default)
 
+menu: true - Display the slide menu icon
+menu: false - Hide the slide menu icon (default)
+
 history: true - Add visited slides to browser history
 history: false - Hide visited slides from browser history
 
 csl: chicago-author-date.csl - citation style
 bibliography: example.bib
+chalkboard: example-deck.json - pre-defined chalkboard
 ```
 
 # References
