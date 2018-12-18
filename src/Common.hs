@@ -1,6 +1,8 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Common
-  ( DeckerState(..)
+  ( addScript
+  -- * Types
+  , DeckerState(..)
   , Layout(..)
   , OutputFormat(..)
   , Disposition(..)
@@ -8,15 +10,17 @@ module Common
   , Provisioning(..)
   , Script(..)
   , Decker
+  -- *
   , doIO
   , needFile
   , needFiles
+  -- * Version information
   , deckerVersion
   , deckerGitBranch
   , deckerGitCommitId
   , deckerGitVersionTag
   , isDevelopmentVersion
-  , addScript
+  -- * Dealing with file suffixes 
   , dropSuffix
   , replaceSuffix
   , repeatIfTrue
@@ -32,6 +36,7 @@ module Common
   , handoutPDFSuffix
   , metaSuffix
   , sourceSuffixes
+  -- *
   , unique
   , time
   ) where

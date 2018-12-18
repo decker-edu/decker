@@ -163,18 +163,22 @@ main = do
         pdf2svg [pdf, out]
         liftIO $ removeFile pdf
     --
+    -- | cleans the local project (remove "public" folder and other generated files)
     phony "clean" $ do
       removeFilesAfter (directories ^. public) ["//"]
       removeFilesAfter (directories ^. project) cruft
+      -- old <- liftIO getOldResources
+      -- forM_ old $ \dir -> removeFilesAfter dir ["//"]
+      -- when isDevelopmentVersion $
+        -- removeFilesAfter (directories ^. appData) ["//"]
+    --
+    -- | deletes old, cached resource folders
+    -- TODO: include clear-cache in makefile
+    phony "clear-cache" $ do
       old <- liftIO getOldResources
       forM_ old $ \dir -> removeFilesAfter dir ["//"]
       when isDevelopmentVersion $
         removeFilesAfter (directories ^. appData) ["//"]
-    --
-    -- TODO: add "clear-cache" option
-    -- phony "clear-cache" $ do
-      -- move deletion of (old) resources from "clean" to "clear-cache"
-      -- clean should only clean the local project (delete public folder)
     --
     phony "help" $ do
       text <- liftIO $ getResourceString "template/help-page.md"

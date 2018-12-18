@@ -1,4 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+-- | Providing an interface for the paths used in decker
+-- 
 module Project
   ( resourcePathes
   , copyResource
@@ -15,6 +17,7 @@ module Project
   , provisioningFromClasses
   , invertPath
   , scanTargets
+  -- * Types
   , sources
   , decks
   , decksPdf
@@ -34,21 +37,17 @@ module Project
   ) where
 
 import Common
-import Glob
 import Control.Lens
 import Control.Monad.Extra
 import Data.List
 import Data.Maybe
 import qualified Data.Yaml as Yaml
 import Exception
+import Glob
 import Network.URI
 import Resources
 import qualified System.Directory as D
-import System.Directory
-  ( createFileLink
-  , doesDirectoryExist
-  , doesFileExist
-  )
+import System.Directory (createFileLink, doesDirectoryExist, doesFileExist)
 import System.FilePath
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
@@ -66,9 +65,9 @@ data Targets = Targets
 makeLenses ''Targets
 
 data Resource = Resource
-  { sourceFile :: FilePath -- Absolute Path to source file
-  , publicFile :: FilePath -- Absolute path to file in public folder
-  , publicUrl :: FilePath -- Relative URL to served file from base
+  { sourceFile :: FilePath -- ^ Absolute Path to source file
+  , publicFile :: FilePath -- ^ Absolute path to file in public folder
+  , publicUrl :: FilePath -- ^ Relative URL to served file from base
   } deriving (Eq, Show)
 
 data ProjectDirs = ProjectDirs
@@ -109,11 +108,13 @@ provisioningFromClasses defaultP cls =
   fromMaybe defaultP $
   listToMaybe $ map snd $ filter (flip elem cls . fst) provisioningClasses
 
+-- TODO: After merging copyFileIfNewer into Resources maybe deal with this as well
 copyResource :: Resource -> IO FilePath
 copyResource resource = do
   copyFileIfNewer (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
+-- TODO: Possibly also move to Resources
 linkResource :: Resource -> IO FilePath
 linkResource resource = do
   whenM
@@ -132,7 +133,7 @@ relRefResource base resource = do
   let relPath = makeRelativeTo base (sourceFile resource)
   return $ show $ URI "file" Nothing relPath "" ""
 
--- Find the project directory. The project directory is the first upwards
+-- | Find the project directory. The project directory is the first upwards
 -- directory that contains a .git directory entry.
 findProjectDirectory :: IO FilePath
 findProjectDirectory = do
@@ -177,6 +178,8 @@ resourcePathes dirs base uri =
           (uriFragment uri)
     }
 
+-- TODO: Move to Resources/combine with the copying functions there
+-- This function does not need to be here
 -- | Copies the src to dst if src is newer or dst does not exist. Creates
 -- missing directories while doing so.
 copyFileIfNewer :: FilePath -> FilePath -> IO ()
