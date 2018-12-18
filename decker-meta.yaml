@@ -1,4 +1,5 @@
 provisioning: Copy
+resources: decker
 exclude-directories:
 - app
 - bin

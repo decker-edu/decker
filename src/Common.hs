@@ -141,11 +141,24 @@ data MediaType
   | IframeMedia
   | MeshMedia
 
+-- TODO: Provisioning needs to be changed in favor of ResourceType
+-- Absolute/Relative is subsumed by ResourceType
+-- in which ResourceType cases is Copy/SymLink needed?
 data Provisioning
-  = Copy -- Copy to public and relative URL
-  | SymLink -- Symbolic link to public and relative URL
-  | Absolute -- Absolute local URL
-  | Relative -- Relative local URL
+  = Copy -- ^ Copy to public and relative URL
+  | SymLink -- ^ Symbolic link to public and relative URL
+  | Absolute -- ^ Absolute local URL
+  | Relative -- ^ Relative local URL
+  deriving (Eq, Show, Read)
+
+-- | Source of the resource bundle
+data ResourceType
+  = Decker -- ^ decker executable, caching
+  | File -- ^ local ZIP archive, caching
+  | Https -- ^ remote ZIP archive, caching
+  | Dev -- ^ local resource folder in decker repo, no caching
+  | Project -- ^ local resource folder in slide project, no caching
+  | Local -- ^ local resource folder anywhere, no caching
   deriving (Eq, Show, Read)
 
 repeatIfTrue :: Monad m => m Bool -> m ()

@@ -171,6 +171,11 @@ main = do
       when isDevelopmentVersion $
         removeFilesAfter (directories ^. appData) ["//"]
     --
+    -- TODO: add "clear-cache" option
+    -- phony "clear-cache" $ do
+      -- move deletion of (old) resources from "clean" to "clear-cache"
+      -- clean should only clean the local project (delete public folder)
+    --
     phony "help" $ do
       text <- liftIO $ getResourceString "template/help-page.md"
       liftIO $ putStr text
@@ -185,6 +190,7 @@ main = do
       putNormal "\ntop level meta data:\n"
       groom <$> metaA >>= putNormal
     --
+    -- TODO: Maybe move parts of this to Resources?
     phony "support" $ do
       metaData <- metaA
       unlessM (Development.Shake.doesDirectoryExist (directories ^. support)) $ do
