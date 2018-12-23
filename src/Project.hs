@@ -60,6 +60,7 @@ data Targets = Targets
   , _pagesPdf :: [FilePath]
   , _handouts :: [FilePath]
   , _handoutsPdf :: [FilePath]
+  , _indices :: [FilePath]
   } deriving (Show)
 
 makeLenses ''Targets
@@ -246,6 +247,7 @@ scanTargets exclude suffixes dirs = do
       , _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs
       , _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs
       , _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs
+      , _indices = sort $ calcTargets deckSuffix indexSuffix srcs
       }
   where
     calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]

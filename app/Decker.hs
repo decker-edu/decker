@@ -34,7 +34,7 @@ main :: IO ()
 main = do
   when isDevelopmentVersion $
     printf
-      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please make sure that you know what you're doing.\n"
+      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please be sure that you know what you're doing.\n"
       deckerVersion
       deckerGitBranch
       deckerGitCommitId
@@ -94,12 +94,23 @@ main = do
     --
     phony "example" $ liftIO writeExampleProject
     --
+    phony "sketch-pad-index" $ do
+      indicesA >>= need
+      indicesA >>= writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
+    --
     phony "index" $ need ["support", index]
     --
     priority 2 $
       "//*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
-        markdownToHtmlDeck src out
+        let ind = replaceSuffix "-deck.html" "-deck-index.yaml" out
+        markdownToHtmlDeck src out ind
+    --
+    priority 2 $
+      "//*-deck-index.yaml" %> \ind -> do
+        src <- calcSource "-deck-index.yaml" "-deck.md" ind
+        let out = replaceSuffix "-deck-index.yaml" "-deck.html" ind
+        markdownToHtmlDeck src out ind
     --
     priority 2 $
       "//*-deck.pdf" %> \out -> do

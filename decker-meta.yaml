@@ -1,3 +1,4 @@
+project-name: Decker
 provisioning: Copy
 resources: decker
 exclude-directories:

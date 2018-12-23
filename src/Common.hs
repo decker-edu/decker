@@ -35,6 +35,7 @@ module Common
   , handoutHTMLSuffix
   , handoutPDFSuffix
   , metaSuffix
+  , indexSuffix
   , sourceSuffixes
   -- *
   , unique
@@ -216,4 +217,6 @@ handoutPDFSuffix = "-handout.pdf"
 
 metaSuffix = "-meta.yaml"
 
-sourceSuffixes = [deckSuffix, pageSuffix]
+indexSuffix = "-deck-index.yaml"
+
+sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
