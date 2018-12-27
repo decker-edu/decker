@@ -12,7 +12,6 @@ module Utilities
   , markdownToPdfPage
   , metaValueAsString
   , (<++>)
-  , writeEmbeddedFiles
   , pandocMakePdf
   , fixMustacheMarkup
   , fixMustacheMarkupText
@@ -191,6 +190,7 @@ getTemplate meta disp = do
       liftIO $ readFile templateOverridePath'
     else liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
 
+-- TODO: move to Resources
 getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
 getSupportDir meta out defaultPath = do
   dirs <- projectDirsA
@@ -255,6 +255,7 @@ writePandocFile fmt options out pandoc =
       LB.writeFile out
     Left e -> throw $ PandocException e
 
+-- TODO: Move to Common? since much of the version checking is done there (Meta is from Pandoc)
 versionCheck :: Meta -> Action ()
 versionCheck meta =
   unless isDevelopmentVersion $
@@ -308,6 +309,8 @@ getTemplateFileName (Disposition Page Latex) = "page.tex"
 getTemplateFileName (Disposition Handout Html) = "handout.html"
 getTemplateFileName (Disposition Handout Latex) = "handout.tex"
 
+-- TODO: move to new resources FROM HERE to line 406
+-- TODO: rename/clarify provisionResource, provisionResources, provisionMetaResource
 provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
   base <- gets basePath
@@ -400,6 +403,8 @@ putCurrentDocument out = do
   public <- publicA
   let rel = makeRelative public out
   putNormal $ "# pandoc (for " ++ rel ++ ")"
+--TODO: from line 313 TO HERE move to new resources
+
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage :: FilePath -> FilePath -> Action ()
@@ -657,7 +662,6 @@ metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
--- TODO: also change include to ![](include:) or something
 processIncludes baseDir (Pandoc meta blocks) =
   Pandoc meta <$> processBlocks baseDir blocks
   where
@@ -685,30 +689,6 @@ processCitesWithDefault pandoc@(Pandoc meta blocks) =
           return (Pandoc cslMeta blocks)
         _ -> return pandoc
     liftIO $ processCites' document
-
-{--
-writeExampleProject :: Action ()
-writeExampleProject = mapM_ writeOne deckerExampleDir
-  where
-    writeOne (path, contents) = do
-      exists <- Development.Shake.doesFileExist path
-      unless exists $ do
-        liftIO $ Dir.createDirectoryIfMissing True (takeDirectory path)
-        liftIO $ B.writeFile path contents
-        putNormal $ "# create (for " ++ path ++ ")"
---}
-writeEmbeddedFiles :: [(FilePath, B.ByteString)] -> FilePath -> Action ()
-writeEmbeddedFiles files dir = do
-  exists <- doesDirectoryExist dir
-  unless exists $ do
-    putNormal $ "# write embedded files for (" ++ dir ++ ")"
-    let absolute = map (first (dir </>)) files
-    mapM_ write absolute
-  where
-    write (filePath, contents) = do
-      liftIO $ Dir.createDirectoryIfMissing True (takeDirectory filePath)
-      exists <- liftIO $ Dir.doesFileExist filePath
-      unless exists $ liftIO $ B.writeFile filePath contents
 
 lookupValue :: String -> Y.Value -> Maybe Y.Value
 lookupValue key (Y.Object hashTable) = HashMap.lookup (T.pack key) hashTable

@@ -9,6 +9,7 @@ module Common
   , MediaType(..)
   , Provisioning(..)
   , Script(..)
+  , ResourceType(..)
   , Decker
   -- *
   , doIO
@@ -158,6 +159,7 @@ data Provisioning
   deriving (Eq, Show, Read)
 
 -- | Source of the resource bundle
+-- TODO rename Decker to Default?
 data ResourceType
   = Decker -- ^ decker executable, caching
   | File -- ^ local ZIP archive, caching
