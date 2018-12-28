@@ -14,6 +14,7 @@ import Control.Monad
 import Control.Monad.Extra
 import Data.List.Split (splitOn)
 import Exception
+import Project
 import System.Directory
 import System.Environment
 import System.Exit
@@ -21,13 +22,12 @@ import System.FilePath
 import System.Process
 import Text.Regex.TDFA
 
-deckerResourceDir :: IO FilePath
-deckerResourceDir =
-  getXdgDirectory
-    XdgData
-    ("decker" ++
-     "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
-
+-- deckerResourceDir :: IO FilePath
+-- deckerResourceDir =
+--   getXdgDirectory
+--     XdgData
+--     ("decker" ++
+--      "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
 -- | Get the absolute paths of resource folders 
 -- with version numbers older than the current one
 getOldResources :: IO [FilePath]

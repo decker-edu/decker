@@ -12,6 +12,7 @@ module Project
   , makeRelativeTo
   , findProjectDirectory
   , projectDirectories
+  , deckerResourceDir
   , provisioningFromMeta
   , templateFromMeta
   , provisioningFromClasses
@@ -45,7 +46,8 @@ import qualified Data.Yaml as Yaml
 import Exception
 import Glob
 import Network.URI
-import Resources
+
+-- import Resources
 import qualified System.Directory as D
 import System.Directory (createFileLink, doesDirectoryExist, doesFileExist)
 import System.FilePath
@@ -162,6 +164,13 @@ projectDirectories = do
   let logDir = projectDir </> "log"
   return
     (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
+
+deckerResourceDir :: IO FilePath
+deckerResourceDir =
+  D.getXdgDirectory
+    D.XdgData
+    ("decker" ++
+     "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
 
 resourcePathes :: ProjectDirs -> FilePath -> URI -> Resource
 resourcePathes dirs base uri =

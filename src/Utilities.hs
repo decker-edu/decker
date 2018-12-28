@@ -190,7 +190,7 @@ getTemplate meta disp = do
       liftIO $ readFile templateOverridePath'
     else liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
 
--- TODO: move to Resources
+-- TODO: move to Resources (or rather to Project)
 getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
 getSupportDir meta out defaultPath = do
   dirs <- projectDirsA
@@ -525,6 +525,7 @@ readMetaMarkdown markdownFile = do
         (Pandoc (Meta m) blocks)
     _ -> throw $ PandocException "Meta format conversion failed."
 
+-- TODO: Is this something that should move to Project.hs?
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
 urlToFilePathIfLocal base uri =
   case parseRelativeReference uri of
