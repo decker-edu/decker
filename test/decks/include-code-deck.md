@@ -1,18 +1,19 @@
 ---
+history: True
 title: Include Code
 ---
 
 # Include the entire file
 
-``` {.haskell include="/src/Filter.hs"}
+``` {.haskell include="/src/Filter.hs" label="Haskell"}
 ```
 
 # Include just a range
 
-``` {.haskell include="/src/Filter.hs" startLine="221" endLine="224"}
+``` {.haskell include="/src/Filter.hs" label="Haskell" startLine="222" endLine="225"}
 ```
 
 # Include a tagged snippet
 
-``` {.haskell include="/src/Filter.hs" snippet="includeCode"}
+``` {.haskell include="/src/Filter.hs" label="Haskell" snippet="includeCode"}
 ```

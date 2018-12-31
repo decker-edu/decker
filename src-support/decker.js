@@ -1,12 +1,19 @@
-require('reveal.js/lib/js/head.min.js');
-Reveal = require('reveal.js/js/reveal');
-require('./decker.scss');
+$ = require("jquery/dist/jquery.slim.js");
+require("reveal.js/lib/js/head.min.js");
+Reveal = require("reveal.js/js/reveal");
+require("./decker.scss");
 
-window.addEventListener('ready', function (event) {
+window.addEventListener("ready", function(event) {
+  $("div.sourceCode[label]").each(function() {
+    $("<div/>")
+      .addClass("language-label")
+      .text($(this).attr("label"))
+      .prependTo($(this).children('pre'));
+  });
   if (Reveal.isReady()) {
     makeVertical();
   } else {
-    Reveal.addEventListener('ready', makeVertical);
+    Reveal.addEventListener("ready", makeVertical);
   }
 });
 

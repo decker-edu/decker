@@ -223,8 +223,8 @@ includeCode :: Pandoc -> Decker Pandoc
 includeCode (Pandoc meta blocks) = do
   included <- doIO $ walkM (P.includeCode Nothing) blocks
   return $ Pandoc meta included
--- end snippet includeCode
 
+-- end snippet includeCode
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 
 handleBackground :: Slide -> Decker Slide
