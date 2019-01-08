@@ -2,10 +2,10 @@
 module Resources
   ( extractResources
   , getResourceString
-  , getOldResources
-  , deckerResourceDir
-  , writeExampleProject
-  , copyDir
+  -- , getOldResources
+  -- , deckerResourceDir
+  -- , writeExampleProject
+  -- , copyDir
   ) where
 
 import Common
@@ -22,12 +22,13 @@ import System.FilePath
 import System.Process
 import Text.Regex.TDFA
 
--- deckerResourceDir :: IO FilePath
--- deckerResourceDir =
---   getXdgDirectory
---     XdgData
---     ("decker" ++
---      "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
+{- TODO: has been moved, remove comment
+deckerResourceDir :: IO FilePath
+deckerResourceDir =
+  getXdgDirectory
+    XdgData
+    ("decker" ++
+     "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
 -- | Get the absolute paths of resource folders 
 -- with version numbers older than the current one
 getOldResources :: IO [FilePath]
@@ -43,13 +44,13 @@ getOldResources = do
       case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
         [] -> False
         _:x:y:z:_ -> convert [x, y, z] < currentVersion
-
+-}
 getResourceString :: FilePath -> IO String
 getResourceString path = do
   dataDir <- deckerResourceDir
   readFile (dataDir </> path)
 
--- Extract resources from the executable into the XDG data directory.
+-- | Extract resources from the executable into the XDG data directory.
 extractResources :: IO ()
 extractResources = do
   deckerExecutable <- getExecutablePath
@@ -72,17 +73,15 @@ unzip args = do
       ExitSuccess -> True
       ExitFailure 1 -> True
       _ -> False
-
+{- TODO: has been moved; remove comment
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()
 writeExampleProject = writeResourceFiles "example" "."
-
 writeResourceFiles :: FilePath -> FilePath -> IO ()
 writeResourceFiles prefix destDir = do
   dataDir <- deckerResourceDir
   let src = dataDir </> prefix
   copyDir src destDir
-
 -- | Copy a file to a file location or to a directory
 cp :: FilePath -> FilePath -> IO ()
 cp src dst = do
@@ -93,7 +92,6 @@ cp src dst = do
     if destIsDir
       then copyFile src (dst </> takeFileName src)
       else copyFile src dst
-
 -- | Copy a directory and its contents recursively
 copyDir :: FilePath -> FilePath -> IO ()
 copyDir src dst = do
@@ -112,3 +110,4 @@ copyDir src dst = do
         if isDirectory
           then copyDir srcPath dstPath
           else cp srcPath dstPath
+-}

@@ -2,7 +2,9 @@
 -- | Providing an interface for the paths used in decker
 -- 
 module Project
-  ( resourcePathes
+  ( resourcePaths
+  , deckerResourceDir
+  , oldResourcePaths
   , copyResource
   , linkResource
   , relRefResource
@@ -41,15 +43,16 @@ import Common
 import Control.Lens
 import Control.Monad.Extra
 import Data.List
+import Data.List.Split (splitOn)
 import Data.Maybe
 import qualified Data.Yaml as Yaml
 import Exception
 import Glob
 import Network.URI
-
--- import Resources
 import qualified System.Directory as D
-import System.Directory (createFileLink, doesDirectoryExist, doesFileExist)
+import Text.Regex.TDFA
+
+-- import System.Directory (createFileLink, doesDirectoryExist, doesFileExist)
 import System.FilePath
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
@@ -111,7 +114,7 @@ provisioningFromClasses defaultP cls =
   fromMaybe defaultP $
   listToMaybe $ map snd $ filter (flip elem cls . fst) provisioningClasses
 
--- TODO: After merging copyFileIfNewer into Resources maybe deal with this as well
+-- TODO: After merging copyFileIfNewer into Resources MUST be moved; else import cycle
 copyResource :: Resource -> IO FilePath
 copyResource resource = do
   copyFileIfNewer (sourceFile resource) (publicFile resource)
@@ -124,7 +127,7 @@ linkResource resource = do
     (D.doesFileExist (publicFile resource))
     (D.removeFile (publicFile resource))
   D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
-  createFileLink (sourceFile resource) (publicFile resource)
+  D.createFileLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
 absRefResource :: Resource -> IO FilePath
@@ -172,8 +175,24 @@ deckerResourceDir =
     ("decker" ++
      "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
 
-resourcePathes :: ProjectDirs -> FilePath -> URI -> Resource
-resourcePathes dirs base uri =
+-- | Get the absolute paths of resource folders 
+-- with version numbers older than the current one
+oldResourcePaths :: IO [FilePath]
+oldResourcePaths = do
+  dir <- D.getXdgDirectory D.XdgData []
+  files <- D.listDirectory dir
+  return $ map (dir </>) $ filter oldVersion files
+  where
+    convert = map (read :: String -> Int)
+    currentVersion = convert (splitOn "." deckerVersion)
+    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
+    oldVersion name =
+      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
+        [] -> False
+        _:x:y:z:_ -> convert [x, y, z] < currentVersion
+
+resourcePaths :: ProjectDirs -> FilePath -> URI -> Resource
+resourcePaths dirs base uri =
   Resource
     { sourceFile = uriPath uri
     , publicFile =
@@ -188,8 +207,7 @@ resourcePathes dirs base uri =
           (uriFragment uri)
     }
 
--- TODO: Move to Resources/combine with the copying functions there
--- This function does not need to be here
+{-TODO: has been moved; Remove comment!
 -- | Copies the src to dst if src is newer or dst does not exist. Creates
 -- missing directories while doing so.
 copyFileIfNewer :: FilePath -> FilePath -> IO ()
@@ -197,7 +215,6 @@ copyFileIfNewer src dst =
   whenM (fileIsNewer src dst) $ do
     D.createDirectoryIfMissing True (takeDirectory dst)
     D.copyFile src dst
-
 fileIsNewer :: FilePath -> FilePath -> IO Bool
 fileIsNewer a b = do
   aexists <- D.doesFileExist a
@@ -210,7 +227,7 @@ fileIsNewer a b = do
              return (at > bt)
            else return False
     else return aexists
-
+-}
 -- | Express the second path argument as relative to the first. 
 -- Both arguments are expected to be absolute pathes. 
 makeRelativeTo :: FilePath -> FilePath -> FilePath

@@ -20,6 +20,7 @@ import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
 import GHC.Conc (numCapabilities)
+import NewResources as NR
 import System.Decker.OS (defaultProvisioning)
 import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
 import System.Environment.Blank
@@ -92,11 +93,12 @@ main = do
       need ["watch"]
       runHttpServer serverPort directories Nothing
     --
-    phony "example" $ liftIO writeExampleProject
+    phony "example" $ liftIO NR.writeExampleProject
     --
     phony "sketch-pad-index" $ do
       indicesA >>= need
-      indicesA >>= writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
+      indicesA >>=
+        writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
     --
     phony "index" $ need ["support", index]
     --
@@ -184,7 +186,7 @@ main = do
         -- removeFilesAfter (directories ^. appData) ["//"]
     --
     -- | deletes old, cached resource folders
-    -- TODO: include clear-cache in makefile
+    -- TODO: include clear-cache in makefile?
     phony "clear-cache" $ do
       old <- liftIO getOldResources
       forM_ old $ \dir -> removeFilesAfter dir ["//"]
@@ -220,7 +222,7 @@ main = do
           Just value
             | value == show Copy ->
               liftIO $
-              copyDir
+              NR.copyDir
                 ((directories ^. appData) </> "support")
                 (directories ^. support)
           Nothing ->
@@ -231,7 +233,7 @@ main = do
                   ((directories ^. appData) </> "support")
                   (directories ^. support)
               _ ->
-                copyDir
+                NR.copyDir
                   ((directories ^. appData) </> "support")
                   (directories ^. support)
           _ -> return ()

@@ -387,7 +387,7 @@ provisionResource base method filePath =
       if fileExists
         then do
           need [path]
-          let resource = resourcePathes dirs base uri
+          let resource = resourcePaths dirs base uri
           p <- publicResourceA
           withResource p 1 $
             liftIO $
