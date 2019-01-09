@@ -14,21 +14,74 @@ module Project
   , templateFromMeta
   , provisioningFromClasses
   , invertPath
+  , scanTargets
+  , sources
+  , decks
+  , decksPdf
+  , pages
+  , pagesPdf
+  , handouts
+  , handoutsPdf
+  , project
+  , public
+  , cache
+  , support
+  , appData
+  , logging
+  , Targets(..)
   , Resource(..)
   , ProjectDirs(..)
   ) where
 
 import Common
-import Exception
+import Glob
+import Control.Lens
 import Control.Monad.Extra
+import Data.List
 import Data.Maybe
+import qualified Data.Yaml as Yaml
+import Exception
 import Network.URI
 import Resources
 import qualified System.Directory as D
+import System.Directory
+  ( createFileLink
+  , doesDirectoryExist
+  , doesFileExist
+  )
 import System.FilePath
-import System.Directory (createFileLink)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+
+data Targets = Targets
+  { _sources :: [FilePath]
+  , _decks :: [FilePath]
+  , _decksPdf :: [FilePath]
+  , _pages :: [FilePath]
+  , _pagesPdf :: [FilePath]
+  , _handouts :: [FilePath]
+  , _handoutsPdf :: [FilePath]
+  , _indices :: [FilePath]
+  } deriving (Show)
+
+makeLenses ''Targets
+
+data Resource = Resource
+  { sourceFile :: FilePath -- Absolute Path to source file
+  , publicFile :: FilePath -- Absolute path to file in public folder
+  , publicUrl :: FilePath -- Relative URL to served file from base
+  } deriving (Eq, Show)
+
+data ProjectDirs = ProjectDirs
+  { _project :: FilePath
+  , _public :: FilePath
+  , _cache :: FilePath
+  , _support :: FilePath
+  , _appData :: FilePath
+  , _logging :: FilePath
+  } deriving (Eq, Show)
+
+makeLenses ''ProjectDirs
 
 provisioningFromMeta :: Meta -> Provisioning
 provisioningFromMeta meta =
@@ -38,9 +91,9 @@ provisioningFromMeta meta =
     _ -> SymLink
 
 templateFromMeta :: Meta -> Maybe String
-templateFromMeta meta = 
+templateFromMeta meta =
   case lookupMeta "template" meta of
-    Just (MetaString s) ->  Just s
+    Just (MetaString s) -> Just s
     Just (MetaInlines i) -> Just $ stringify i
     _ -> Nothing
 
@@ -56,12 +109,6 @@ provisioningFromClasses :: Provisioning -> [String] -> Provisioning
 provisioningFromClasses defaultP cls =
   fromMaybe defaultP $
   listToMaybe $ map snd $ filter (flip elem cls . fst) provisioningClasses
-
-data Resource = Resource
-  { sourceFile :: FilePath -- Absolute Path to source file
-  , publicFile :: FilePath -- Absolute path to file in public folder
-  , publicUrl :: FilePath -- Relative URL to served file from base
-  } deriving (Eq, Show)
 
 copyResource :: Resource -> IO FilePath
 copyResource resource = do
@@ -85,15 +132,6 @@ relRefResource :: FilePath -> Resource -> IO FilePath
 relRefResource base resource = do
   let relPath = makeRelativeTo base (sourceFile resource)
   return $ show $ URI "file" Nothing relPath "" ""
-
-data ProjectDirs = ProjectDirs
-  { project :: FilePath
-  , public :: FilePath
-  , cache :: FilePath
-  , support :: FilePath
-  , appData :: FilePath
-  , log :: FilePath
-  } deriving (Eq, Show)
 
 -- Find the project directory. The project directory is the first upwards
 -- directory that contains a .git directory entry.
@@ -127,17 +165,18 @@ projectDirectories = do
 resourcePathes :: ProjectDirs -> FilePath -> URI -> Resource
 resourcePathes dirs base uri =
   Resource
-  { sourceFile = uriPath uri
-  , publicFile = public dirs </> makeRelativeTo (project dirs) (uriPath uri)
-  , publicUrl =
-      show $
-      URI
-        ""
-        Nothing
-        (makeRelativeTo base (uriPath uri))
-        (uriQuery uri)
-        (uriFragment uri)
-  }
+    { sourceFile = uriPath uri
+    , publicFile =
+        dirs ^. public </> makeRelativeTo (dirs ^. project) (uriPath uri)
+    , publicUrl =
+        show $
+        URI
+          ""
+          Nothing
+          (makeRelativeTo base (uriPath uri))
+          (uriQuery uri)
+          (uriFragment uri)
+    }
 
 -- | Copies the src to dst if src is newer or dst does not exist. Creates
 -- missing directories while doing so.
@@ -165,7 +204,7 @@ fileIsNewer a b = do
 makeRelativeTo :: FilePath -> FilePath -> FilePath
 makeRelativeTo dir file =
   let (d, f) = removeCommonPrefix (dir, file)
-  in normalise $ invertPath d </> f
+   in normalise $ invertPath d </> f
 
 invertPath :: FilePath -> FilePath
 invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
@@ -192,3 +231,25 @@ isPrefix prefix whole = isPrefix_ (splitPath prefix) (splitPath whole)
 
 mapTuple :: (t1 -> t) -> (t1, t1) -> (t, t)
 mapTuple f (a, b) = (f a, f b)
+
+scanTargets :: [String] -> [String] -> ProjectDirs -> IO Targets
+scanTargets exclude suffixes dirs = do
+  srcs <- globFiles exclude suffixes (dirs ^. project)
+  return
+    Targets
+      { _sources = sort $ concatMap snd srcs
+      , _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs
+      , _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs
+      , _pages = sort $ calcTargets pageSuffix pageHTMLSuffix srcs
+      , _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs
+      , _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs
+      , _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs
+      , _indices = sort $ calcTargets deckSuffix indexSuffix srcs
+      }
+  where
+    calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]
+    calcTargets srcSuffix targetSuffix sources =
+      map
+        (replaceSuffix srcSuffix targetSuffix .
+         combine (dirs ^. public) . makeRelative (dirs ^. project))
+        (fromMaybe [] $ lookup srcSuffix sources)

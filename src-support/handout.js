@@ -1,10 +1,13 @@
-import $ from 'jquery';
-require('@fortawesome/fontawesome-free/css/all.css');
-require('@fortawesome/fontawesome-free/js/all');
-require('bootstrap/dist/css/bootstrap.css');
+import $ from "jquery";
+require("@fortawesome/fontawesome-free/css/all.css");
+require("@fortawesome/fontawesome-free/js/all");
+require("bootstrap/dist/css/bootstrap.css");
+require("./handout.scss");
 
-document.addEventListener('load', () => {
-  $('table').addClass("table table-striped table-bordered table-hover table-condensed table-responsive");
+document.addEventListener("load", () => {
+  $("table").addClass(
+    "table table-striped table-bordered table-hover table-condensed table-responsive"
+  );
 });
 
 // Webpack handling of MathJax copied from

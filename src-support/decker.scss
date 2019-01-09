@@ -1,3 +1,7 @@
+@import "~@fortawesome/fontawesome-free/css/all.css";
+@import "~reveal.js/css/reveal.scss";
+@import "~reveal.js/css/theme/white.css";
+
 /////////////////////////////////////////////
 // Font imports
 /////////////////////////////////////////////
@@ -21,1018 +25,1041 @@ $base-spacer: 1em;
 // Helper Functions
 /////////////////////////////////////////////
 @function space($sizes: ()) {
-    $multiplied: ();
+  $multiplied: ();
 
-    @each $size in $sizes {
-        $multiplied: append($multiplied, $size * $base-spacer)
-    }
+  @each $size in $sizes {
+    $multiplied: append($multiplied, $size * $base-spacer);
+  }
 
-    @return $multiplied
+  @return $multiplied;
 }
 
 @mixin prefix($property, $parameters...) {
-    @each $prefix in -webkit-, -moz-, -ms-, -o-, "" {
-        #{$prefix}#{$property}: $parameters;
-    }
+  @each $prefix in -webkit-, -moz-, -ms-, -o-, "" {
+    #{$prefix}#{$property}: $parameters;
+  }
 }
 
 /////////////////////////////////////////////
 // Styles
 /////////////////////////////////////////////
 body {
-    background: white;
-    -webkit-print-color-adjust: exact; // No standard: https://developer.mozilla.org/de/docs/Web/CSS/-webkit-print-color-adjust
+  background: white;
+  -webkit-print-color-adjust: exact; // No standard: https://developer.mozilla.org/de/docs/Web/CSS/-webkit-print-color-adjust
 
-    .reveal {
-        .slides {
-            /////////////////////////////////////////////
-            // General slide settings
-            /////////////////////////////////////////////
-            font-family: 'Roboto', sans-serif;
-            font-size: $medium-font-size;
-            font-weight: normal;
-            color: rgba(0, 0, 0, 0.87);
+  .reveal {
+    .slides {
+      /////////////////////////////////////////////
+      // General slide settings
+      /////////////////////////////////////////////
+      font-family: "Roboto", sans-serif;
+      font-size: $medium-font-size;
+      font-weight: normal;
+      color: rgba(0, 0, 0, 1);
 
-            section {
-                /////////////////////////////////////////////
-                // General section settings
-                /////////////////////////////////////////////
-                line-height: 1.4;
-                text-align: left;
-                font-weight: inherit;
-                padding: space(0);
+      section {
+        /////////////////////////////////////////////
+        // General section settings
+        /////////////////////////////////////////////
+        line-height: 1.4;
+        text-align: left;
+        font-weight: inherit;
+        padding: space(0);
 
-                p {
-                    margin: space(1 0);
+        p {
+          margin: space(1 0);
+        }
+
+        /////////////////////////////////////////////
+        // Text align
+        /////////////////////////////////////////////
+        @each $position in center, right {
+          &[data-align="#{$position}"] > h1,
+          div[data-align="#{$position}"] {
+            text-align: $position;
+          }
+        }
+
+        /////////////////////////////////////////////
+        // Headers
+        /////////////////////////////////////////////
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+          color: rgba(0, 0, 0, 0.87);
+          font-family: "Roboto", sans-serif;
+          letter-spacing: normal;
+          text-transform: none;
+          text-shadow: none;
+          word-wrap: break-word;
+          font-weight: normal;
+        }
+
+        h1 {
+          font-size: 1.6em;
+          margin: space(0 0 0.5 0);
+          code {
+            font-size: 116%;
+          }
+        }
+
+        .rightcolumn {
+          > h1 {
+            margin-left: 54%;
+          }
+        }
+
+        h2 {
+          font-weight: 500;
+          font-size: 1.2em;
+          margin-bottom: space(0.1);
+          code {
+            font-size: 116%;
+          }
+        }
+
+        &.white,
+        &.inverse,
+        &.has-dark-background {
+          h1,
+          h2,
+          h3,
+          h4,
+          h5,
+          h6 {
+            color: #eee;
+          }
+          color: #fff;
+        }
+
+        /////////////////////////////////////////////
+        // Text modifiers
+        /////////////////////////////////////////////
+        strong,
+        b {
+          font-weight: bold;
+        }
+
+        em {
+          font-style: italic;
+        }
+
+        sup {
+          font-size: 0.5em;
+          position: absolute;
+          vertical-align: super;
+        }
+
+        sub {
+          vertical-align: sub;
+        }
+
+        small {
+          display: inline-block;
+          font-size: 0.6em;
+          line-height: 1.2em;
+          vertical-align: top;
+        }
+
+        dt {
+          font-weight: bold;
+        }
+
+        dd {
+          margin-left: space(1);
+        }
+
+        q,
+        blockquote {
+          quotes: none;
+        }
+
+        blockquote {
+          display: block;
+          position: relative;
+          width: 70%;
+          margin: space(1) auto;
+          padding: space(0.25);
+          font-style: italic;
+          background: rgba(255, 255, 255, 0.05);
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+
+          p {
+            &:first-child,
+            &:last-child {
+              display: inline-block;
+            }
+          }
+        }
+
+        q {
+          font-style: italic;
+          quotes: "“" "”" "‘" "’";
+        }
+
+        .smallcaps {
+          font-variant: small-caps;
+        }
+
+        .line-block {
+          white-space: pre-line;
+        }
+
+        code {
+          font-family: "Source Code Pro", monospace;
+          font-size: 106%;
+          font-weight: 500;
+          color: #06287e;
+        }
+
+        /////////////////////////////////////////////
+        // Lists
+        /////////////////////////////////////////////
+        ol,
+        dl,
+        ul {
+          display: inline-block;
+          text-align: left;
+          margin: space(0 0 0 1);
+        }
+
+        ol {
+          list-style-type: decimal;
+        }
+
+        ul {
+          list-style-type: disc;
+
+          ul {
+            list-style-type: disc;
+
+            ul {
+              list-style-type: disc;
+            }
+          }
+        }
+
+        ul ul,
+        ul ol,
+        ol ol,
+        ol ul {
+          display: block;
+          //margin-left: 40px;
+          margin-left: space(1);
+        }
+
+        /////////////////////////////////////////////
+        // Links
+        /////////////////////////////////////////////
+        a {
+          color: #009;
+          text-decoration: none;
+          @include prefix(transition, color 0.15s ease);
+
+          img {
+            @include prefix(transition, color 0.15s linear);
+          }
+
+          &:hover {
+            color: blue;
+            text-shadow: none;
+            border: none;
+
+            img {
+              background: rgba(255, 255, 255, 0.2);
+              border: none;
+              box-shadow: none;
+            }
+          }
+        }
+
+        /////////////////////////////////////////////
+        // Column settings
+        /////////////////////////////////////////////
+        // For `{layout="columns"}`-Syntax
+        // Case: All columns vertically centered
+        &.mid {
+          div {
+            &.multi-column-row {
+              align-items: center;
+            }
+          }
+        }
+
+        /////////////////////////////////////////////
+        // Within section divs
+        /////////////////////////////////////////////
+        div {
+          /////////////////////////////////////////////
+          // Column settings
+          /////////////////////////////////////////////
+          &.column {
+            display: inline-block;
+            vertical-align: top;
+            width: 50%;
+          }
+
+          // For `{.split}`-Syntax
+          &.css-columns {
+            column-count: 2;
+            column-gap: space(2);
+            column-rule-style: none;
+            padding-left: space(0.7);
+            margin-left: space(-0.7);
+          }
+
+          &.box {
+            break-inside: avoid-column;
+          }
+
+          // For `{layout="columns"}`-Syntax
+          &.multi-column-row {
+            display: flex;
+            flex-flow: row nowrap;
+
+            div {
+              &.column {
+                $margin-size: space(1);
+
+                position: relative;
+                flex: 1 1 0;
+
+                margin-left: $margin-size;
+                margin-right: $margin-size;
+
+                &:first-child {
+                  margin-left: 0;
+                  margin-right: $margin-size;
                 }
 
-                /////////////////////////////////////////////
-                // Text align
-                /////////////////////////////////////////////
-                @each $position in center, right {
-                    &[data-align="#{$position}"] > h1,
-                    div[data-align="#{$position}"] {
-                        text-align: $position;
-                    }
+                &:last-child {
+                  margin-left: $margin-size;
+                  margin-right: 0;
                 }
 
-                /////////////////////////////////////////////
-                // Headers
-                /////////////////////////////////////////////
-                h1,
-                h2,
-                h3,
-                h4,
-                h5,
-                h6 {
-                    color: rgba(0, 0, 0, 0.87);
-                    font-family: 'Roboto', sans-serif;
-                    letter-spacing: normal;
-                    text-transform: none;
-                    text-shadow: none;
-                    word-wrap: break-word;
-                    font-weight: normal;
+                .mid {
+                  position: absolute;
+                  top: 50%;
+                  transform: translate(0, -50%);
                 }
 
-                h1 {
-                    font-size: 1.6em;
-                    margin: space(0 0 0.5 0);
+                @for $i from 1 through 9 {
+                  &[data-grow="#{$i}"] {
+                    flex-grow: $i;
+                  }
+                }
+              }
+            }
+          }
+
+          /////////////////////////////////////////////
+          // Boxes
+          /////////////////////////////////////////////
+          &.box {
+            h2 {
+              margin-top: 0;
+
+              &:last-child,
+              &:empty {
+                margin-bottom: 0;
+              }
+            }
+
+            p {
+              margin: 0;
+            }
+
+            padding: space(0.4 0.7);
+            margin: space(0 -0.7);
+            border-radius: 0.25em;
+
+            &.question,
+            &.answer,
+            &.observation,
+            &.example,
+            &.def,
+            &.definition,
+            &.note,
+            &.ale,
+            &.alert,
+            &.equ,
+            &.equation,
+            &.theorem {
+              & + .question,
+              & + .answer,
+              & + .observation,
+              & + .example,
+              & + .def,
+              & + .definition,
+              & + .note,
+              & + .ale,
+              & + .alert,
+              & + .equ,
+              & + .equation,
+              & + .theorem {
+                margin-top: space(0.3);
+              }
+            }
+
+            &.question {
+              background-color: rgba(255, 215, 67, 0.4);
+            }
+
+            &.answer {
+              background-color: rgba(153, 205, 58, 0.4);
+            }
+
+            &.observation {
+              background-color: rgba(210, 180, 140, 0.4);
+            }
+
+            &.example {
+              background-color: rgba(176, 197, 222, 0.4);
+            }
+
+            &.def,
+            &.definition {
+              background-color: rgba(245, 222, 179, 0.6);
+            }
+
+            &.note {
+              background-color: rgba(244, 164, 96, 0.4);
+            }
+
+            &.ale,
+            &.alert {
+              background-color: rgba(255, 99, 71, 0.4);
+            }
+
+            &.equ,
+            &.equation {
+              background-color: rgb(235, 235, 235);
+            }
+
+            &.theorem {
+              background-color: rgb(235, 235, 235);
+            }
+          }
+
+          /////////////////////////////////////////////
+          // Video
+          /////////////////////////////////////////////
+          // iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
+          &.videoWrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            padding-top: 0;
+            height: 0;
+
+            iframe {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+            }
+          }
+
+          /////////////////////////////////////////////
+          // Math
+          /////////////////////////////////////////////
+          span.math.display {
+            width: 100%;
+            display: block;
+            text-align: center;
+          }
+        }
+
+        /////////////////////////////////////////////
+        // Media
+        /////////////////////////////////////////////
+        img {
+          max-width: 100%;
+          margin: 0 auto;
+          display: block;
+          border: none;
+          box-shadow: none;
+          border-radius: 0.25em;
+
+          &.float-left {
+            float: left;
+          }
+
+          &.float-right {
+            float: right;
+          }
+        }
+
+        figure {
+          margin: 0 0 0 0;
+          text-align: center;
+
+          figcaption {
+            font-size: 0.8em;
+            font-style: italic;
+            // text-align: center;
+          }
+        }
+
+        video {
+          width: 100%;
+          margin: 0 auto;
+          display: block;
+        }
+
+        &.img-center img {
+          margin: 0 auto;
+          display: block;
+        }
+
+        &.img-nocenter img {
+          margin: 0 0;
+          display: inline;
+        }
+
+        /////////////////////////////////////////////
+        // Source code
+        /////////////////////////////////////////////
+        div.sourceCode {
+          margin: space(0 -0.7);
+          padding: space(0.4 0.7);
+          background: rgba(0, 0, 0, 0.03);
+          border-radius: 0.25em;
+          overflow: auto;
+
+          pre {
+            display: block;
+            position: relative;
+            width: 100%;
+            text-align: left;
+            line-height: 1.5em;
+            word-wrap: break-word;
+            box-shadow: none;
+            font-size: 90%;
+            font-weight: 500;
+            margin: 0;
+
+            &.numberSource {
+              margin-left: 3em;
+              border-left: 1px solid #aaaaaa;
+              padding-left: 4px;
+
+              a.sourceLine {
+                position: relative;
+
+                &:empty {
+                  position: absolute;
                 }
 
-                .rightcolumn {
-                    > h1 {
-                        margin-left: 54%;
-                    }
+                &::before {
+                  content: attr(data-line-number);
+                  position: absolute;
+                  left: space(-5);
+                  text-align: right;
+                  vertical-align: baseline;
+                  border: none;
+                  pointer-events: all;
+                  @include prefix(user-select, none);
+                  -webkit-touch-callout: none;
+                  padding: 0 4px;
+                  width: space(4);
+                  color: #aaaaaa;
+                }
+              }
+            }
+
+            code {
+              display: block;
+              overflow: auto;
+              max-height: 500px;
+              word-wrap: normal;
+              border: none;
+              font-family: "Source Code Pro", monospace;
+              white-space: pre; // pre-wrap generates line breaks
+              position: relative;
+              color: black;
+
+              a.sourceLine {
+                display: inline-block;
+                line-height: 1.25;
+                pointer-events: none;
+                color: inherit;
+                text-decoration: inherit;
+
+                &:empty {
+                  height: 1.2em;
+                  position: absolute;
                 }
 
-                h2 {
-                    font-weight: 500;
-                    color: rgba(0, 0, 0, 0.54);
-                    font-size: 1.2em;
-                    margin-bottom: space(0.1);
+                &::before {
+                  text-decoration: underline;
                 }
 
-                &.has-dark-background,
-                &.inverse {
-                    h1,
-                    h2,
-                    h3,
-                    h4,
-                    h5,
-                    h6 {
-                        color: #eee;
-                    }
-                }
-
-                /////////////////////////////////////////////
-                // Text modifiers
-                /////////////////////////////////////////////
-                strong,
-                b {
+                span {
+                  &.al {
+                    // Alert
+                    color: #ff0000;
                     font-weight: bold;
-                }
+                  }
 
-                em {
-                    font-style: italic;
-                }
-
-                sup {
-                    font-size: 0.5em;
-                    position: absolute;
-                    vertical-align: super;
-                }
-
-                sub {
-                    vertical-align: sub;
-                }
-
-                small {
-                    display: inline-block;
-                    font-size: 0.6em;
-                    line-height: 1.2em;
-                    vertical-align: top;
-                }
-
-                dt {
-                    font-weight: bold;
-                }
-
-                dd {
-                    margin-left: space(1)
-                }
-
-                q,
-                blockquote {
-                    quotes: none;
-                }
-
-                blockquote {
-                    display: block;
-                    position: relative;
-                    width: 70%;
-                    margin: space(1) auto;
-                    padding: space(0.25);
-                    font-style: italic;
-                    background: rgba(255, 255, 255, 0.05);
-                    box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-
-                    p {
-                        &:first-child,
-                        &:last-child {
-                            display: inline-block;
-                        }
-                    }
-                }
-
-                q {
-                    font-style: italic;
-                    quotes: "“" "”" "‘" "’";
-                }
-
-                .smallcaps {
-                    font-variant: small-caps;
-                }
-
-                .line-block {
-                    white-space: pre-line;
-                }
-
-                /////////////////////////////////////////////
-                // Lists
-                /////////////////////////////////////////////
-                ol,
-                dl,
-                ul {
-                    display: inline-block;
-                    text-align: left;
-                    margin: space(0 0 0 1);
-                }
-
-                ol {
-                    list-style-type: decimal;
-                }
-
-                ul {
-                    list-style-type: disc;
-
-                    ul {
-                        list-style-type: disc;
-
-                        ul {
-                            list-style-type: disc;
-                        }
-                    }
-                }
-
-                ul ul,
-                ul ol,
-                ol ol,
-                ol ul {
-                    display: block;
-                    //margin-left: 40px;
-                    margin-left: space(1)
-                }
-
-                /////////////////////////////////////////////
-                // Links
-                /////////////////////////////////////////////
-                a {
-                    color: #009;
-                    text-decoration: none;
-                    @include prefix(transition, color 0.15s ease);
-
-                    img {
-                        @include prefix(transition, color 0.15s linear);
-                    }
-
-                    &:hover {
-                        color: blue;
-                        text-shadow: none;
-                        border: none;
-
-                        img {
-                            background: rgba(255, 255, 255, 0.2);
-                            border: none;
-                            box-shadow: none;
-                        }
-                    }
-                }
-
-                /////////////////////////////////////////////
-                // Column settings
-                /////////////////////////////////////////////
-                // For `{layout="columns"}`-Syntax
-                // Case: All columns vertically centered
-                &.mid {
-                    div {
-                        &.multi-column-row {
-                            align-items: center;
-                        }
-                    }
-                }
-
-                /////////////////////////////////////////////
-                // Within section divs
-                /////////////////////////////////////////////
-                div {
-
-                    /////////////////////////////////////////////
-                    // Column settings
-                    /////////////////////////////////////////////
-                    &.column {
-                        display: inline-block;
-                        vertical-align: top;
-                        width: 50%;
-                    }
-
-                    // For `{.split}`-Syntax
-                    &.css-columns {
-                        column-count: 2;
-                        column-gap: space(2);
-                        column-rule-style: none;
-                        padding-left: space(0.7);
-                        margin-left: space(-0.7);
-                    }
-
-                    &.box {
-                        break-inside: avoid-column;
-                    }
-
-                    // For `{layout="columns"}`-Syntax
-                    &.multi-column-row {
-                        display:flex;
-                        flex-flow: row nowrap;
-
-                        div {
-                            &.column {
-                                $margin-size: space(1);
-
-                                position: relative;
-                                flex: 1 1 0;
-
-                                margin-left: $margin-size;
-                                margin-right: $margin-size;
-
-                                &:first-child {
-                                    margin-left: 0;
-                                    margin-right: $margin-size;
-                                }
-
-                                &:last-child {
-                                    margin-left: $margin-size;
-                                    margin-right: 0;
-                                }
-
-                                .mid {
-                                    position: absolute;
-                                    top: 50%;
-                                    transform: translate(0, -50%);
-                                }
-
-                                @for $i from 1 through 9 {
-                                    &[data-grow="#{$i}"] {
-                                        flex-grow: $i;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    /////////////////////////////////////////////
-                    // Boxes
-                    /////////////////////////////////////////////
-                    &.box {
-                        h2 {
-                            margin-top: 0;
-
-                            &:last-child, &:empty {
-                                margin-bottom: 0;
-                            }
-                        }
-
-                        p {
-                            margin: 0;
-                        }
-
-                        padding: space(0.4 0.7);
-                        margin: space(0 -0.7);
-                        border-radius: 0.25em;
-
-                        &.question,
-                        &.answer,
-                        &.observation,
-                        &.example,
-                        &.def,
-                        &.definition,
-                        &.note,
-                        &.ale,
-                        &.alert,
-                        &.equ,
-                        &.equation,
-                        &.theorem {
-                            & + .question,
-                            & + .answer,
-                            & + .observation,
-                            & + .example,
-                            & + .def,
-                            & + .definition,
-                            & + .note,
-                            & + .ale,
-                            & + .alert,
-                            & + .equ,
-                            & + .equation,
-                            & + .theorem {
-                                margin-top: space(0.3);
-                            }
-
-                        }
-
-                        &.question {
-                            background-color: rgba(255, 215, 67, 0.4);
-                        }
-
-                        &.answer {
-                            background-color: rgba(153, 205, 58, 0.4);
-                        }
-
-                        &.observation {
-                            background-color: rgba(210, 180, 140, 0.4);
-                        }
-
-                        &.example {
-                            background-color: rgba(176, 197, 222, 0.4);
-                        }
-
-                        &.def,
-                        &.definition {
-                            background-color: rgba(245, 222, 179, 0.6);
-                        }
-
-                        &.note {
-                            background-color: rgba(244, 164, 96, 0.4);
-                        }
-
-                        &.ale,
-                        &.alert {
-                            background-color: rgba(255, 99, 71, 0.4);
-                        }
-
-                        &.equ,
-                        &.equation {
-                            background-color: rgb(235, 235, 235);
-                        }
-
-                        &.theorem {
-                            background-color: rgb(235, 235, 235);
-                        }
-                    }
-
-                    /////////////////////////////////////////////
-                    // Video
-                    /////////////////////////////////////////////
-                    // iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
-                    &.videoWrapper {
-                        position: relative;
-                        padding-bottom: 56.25%; /* 16:9 */
-                        padding-top: 0;
-                        height: 0;
-
-                        iframe {
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                            width: 100%;
-                            height: 100%;
-                        }
-                    }
-
-                    /////////////////////////////////////////////
-                    // Math
-                    /////////////////////////////////////////////
-                    span.math.display {
-                        width: 100%;
-                        display: block;
-                        text-align: center;
-                    }
-                }
-
-                /////////////////////////////////////////////
-                // Media
-                /////////////////////////////////////////////
-                img {
-                    max-width: 100%;
-                    margin: 0 auto;
-                    display: block;
-                    border: none;
-                    box-shadow: none;
-                    border-radius: 0.25em;
-
-                    &.float-left {
-                        float: left;
-                    }
-
-                    &.float-right {
-                        float: right;
-                    }
-                }
-
-                figure {
-                    margin: 0 0 0 0;
-                    text-align: center;
-
-                    figcaption {
-                        font-size: 0.8em;
-                        font-style: italic;
-                        // text-align: center;
-                    }
-                }
-
-                video {
-                    width: 100%;
-                    margin: 0 auto;
-                    display: block;
-                }
-
-                &.img-center img {
-                    margin: 0 auto;
-                    display: block;
-                }
-
-                &.img-nocenter img {
-                    margin: 0 0;
-                    display: inline;
-                }
-
-                /////////////////////////////////////////////
-                // Source code
-                /////////////////////////////////////////////
-                div.sourceCode {
-                    margin: space(0 -0.7);
-                    padding: space(0.4 0.7);
-                    background: rgba(0, 0, 0, 0.03);
-                    border-radius: 0.25em;
-                    overflow: auto;
-
-                    pre {
-                        display: block;
-                        position: relative;
-                        width: 100%;
-                        text-align: left;
-                        line-height: 1.5em;
-                        word-wrap: break-word;
-                        box-shadow: none;
-                        font-size: 90%;
-                        margin: 0;
-
-                        &.numberSource {
-                            margin-left: 3em;
-                            border-left: 1px solid #aaaaaa;
-                            padding-left: 4px;
-
-                            a.sourceLine{
-                                position: relative;
-
-                                &:empty {
-                                    position: absolute;
-                                }
-
-                                &::before {
-                                    content: attr(data-line-number);
-                                    position: absolute;
-                                    left: space(-5);
-                                    text-align: right;
-                                    vertical-align: baseline;
-                                    border: none;
-                                    pointer-events: all;
-                                    @include prefix(user-select, none);
-                                    -webkit-touch-callout: none;
-                                    padding: 0 4px;
-                                    width: space(4);
-                                    color: #aaaaaa;
-                                }
-                            }
-                        }
-
-                        code {
-                            display: block;
-                            overflow: auto;
-                            max-height: 500px;
-                            word-wrap: normal;
-                            border: none;
-                            font-family: 'Source Code Pro', monospace;
-                            white-space: pre; // pre-wrap generates line breaks
-                            position: relative;
-
-                            a.sourceLine {
-                                display: inline-block;
-                                line-height: 1.25;
-                                pointer-events: none;
-                                color: inherit;
-                                text-decoration: inherit;
-
-                                &:empty {
-                                    height: 1.2em;
-                                    position: absolute;
-                                }
-
-                                &::before {
-                                    text-decoration: underline;
-                                }
-
-                                span {
-                                    &.al {                       // Alert
-                                        color: #ff0000;
-                                        font-weight: bold;
-                                    }
-
-                                    &.an,                        // Annotation
+                  &.an,                        // Annotation
                                     &.cv,                        // CommentVar
                                     &.wa,                        // Warning
-                                    &.in {                       // Information
-                                        color: #60a0b0;
-                                        font-weight: bold;
-                                        font-style: italic;
-                                    }
+                                    &.in {
+                    // Information
+                    color: #60a0b0;
+                    font-weight: bold;
+                    font-style: italic;
+                  }
 
-                                    &.at {                       // Attribute
-                                        color: #7d9029;
-                                    }
+                  &.at {
+                    // Attribute
+                    color: #7d9029;
+                  }
 
-                                    &.fl,                        // Float
+                  &.fl,                        // Float
                                     &.dv,                        // DecVal
-                                    &.bn {                       // BaseN
-                                        color: #40a070;
-                                    }
+                                    &.bn {
+                    // BaseN
+                    color: #40a070;
+                  }
 
-                                    &.bu,                        // BuiltIn
+                  &.bu,                        // BuiltIn
                                     &.ex,                        // Extension
-                                    &.im {                       // Import
-                                    }
+                                    &.im {
+                    // Import
+                  }
 
-                                    &.cf,                        // ControlFlow
-                                    &.kw {                       // Keyword
-                                        color: #007020;
-                                        font-weight: bold;
-                                    }
+                  &.cf,                        // ControlFlow
+                                    &.kw {
+                    // Keyword
+                    color: #007020;
+                    font-weight: bold;
+                  }
 
-                                    &.ch,                        // Char
+                  &.ch,                        // Char
                                     &.sc,                        // SpecialChar
                                     &.st,                        // String
-                                    &.vs {                       // VerbatimString
-                                        color: #4070a0;
-                                    }
+                                    &.vs {
+                    // VerbatimString
+                    color: #4070a0;
+                  }
 
-                                    &.cn {                       // Constant
-                                        color: #880000;
-                                    }
+                  &.cn {
+                    // Constant
+                    color: #880000;
+                  }
 
-                                    &.co {                       // Comment
-                                        color: #60a0b0;
-                                        font-style: italic;
-                                    }
+                  &.co {
+                    // Comment
+                    color: #60a0b0;
+                    font-style: italic;
+                  }
 
-                                    &.do {                       // Documentation
-                                        color: #ba2121;
-                                        font-style: italic;
-                                    }
+                  &.do {
+                    // Documentation
+                    color: #ba2121;
+                    font-style: italic;
+                  }
 
-                                    &.dt {                       // DataType
-                                        color: #902000;
-                                    }
+                  &.dt {
+                    // DataType
+                    color: #902000;
+                  }
 
-                                    &.er {                       // Error
-                                        color: #ff0000;
-                                        font-weight: bold;
-                                    }
+                  &.er {
+                    // Error
+                    color: #ff0000;
+                    font-weight: bold;
+                  }
 
-                                    &.fu {                       // Function
-                                        color: #06287e;
-                                    }
+                  &.fu {
+                    // Function
+                    color: #06287e;
+                  }
 
-                                    &.op {                       // Operator
-                                        color: #666666;
-                                    }
+                  &.op {
+                    // Operator
+                    color: #666666;
+                  }
 
-                                    &.ot {                       // Other
-                                        color: #007020;
-                                    }
+                  &.ot {
+                    // Other
+                    color: #007020;
+                  }
 
-                                    &.pp {                       // Preprocessor
-                                        color: #bc7a00;
-                                    }
+                  &.pp {
+                    // Preprocessor
+                    color: #bc7a00;
+                  }
 
-                                    &.ss {                       // SpecialString
-                                        color: #bb6688;
-                                    }
+                  &.ss {
+                    // SpecialString
+                    color: #bb6688;
+                  }
 
-                                    &.va {                       // Variable
-                                        color: #19177c;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                  &.va {
+                    // Variable
+                    color: #19177c;
+                  }
                 }
-
-                // Special case: source code inside highlighted box
-                div.box {
-                    &.question,
-                    &.answer,
-                    &.observation,
-                    &.example,
-                    &.def,
-                    &.definition,
-                    &.note,
-                    &.ale,
-                    &.alert,
-                    &.equ,
-                    &.equation,
-                    &.theorem {
-                        div.sourceCode {
-                            margin: 0;
-                            background: rgba(255, 255, 255, 0.4);
-                            padding: space(0 0.2);
-
-                            pre {
-                                margin: 0;
-                            }
-                        }
-                    }
-                }
-
-                /////////////////////////////////////////////
-                // References
-                /////////////////////////////////////////////
-                .references {
-                    height: 17.5em;
-                    overflow-y: scroll;
-
-                    div {
-                        margin-bottom: space(0.5);
-                    }
-                }
-
-                /////////////////////////////////////////////
-                // Tables
-                /////////////////////////////////////////////
-                table {
-                    margin: auto;
-                    border-collapse: collapse;
-                    border-spacing: 0;
-
-                    th {
-                        font-weight: bold;
-                    }
-
-                    th,
-                    td {
-                        text-align: left;
-                        padding: space(0.2 0.5);
-                        border-bottom: 1px solid;
-                    }
-
-                    th[align="center"],
-                    td[align="center"] {
-                        text-align: center;
-                    }
-
-                    th[align="right"],
-                    td[align="right"] {
-                        text-align: right;
-                    }
-
-                    tr:last-child td {
-                        border-bottom: none;
-                    }
-                }
-
-                /////////////////////////////////////////////
-                // Dense layouts
-                /////////////////////////////////////////////
-                &.dense, &.x-dense, &.xx-dense {
-                    &.x-dense {
-                        font-size: 90%;
-                    }
-
-                    &.xx-dense {
-                        font-size: 80%;
-                    }
-
-                    line-height: 1.4;
-
-                    p {
-                        margin: space(0.2 0);
-                    }
-
-                    h1 {
-                        margin: space(0 0 0.2 0);
-                    }
-
-                    div {
-                        &.sourceCode {
-                            margin: space(0 -0.7);
-                            padding: space(0.4 0.7);
-                        }
-
-                        &.box {
-                            h2 {
-                                margin-bottom: space(0.1);
-                            }
-
-                            padding: space(0.2 0.7);
-                            margin: space(0 -0.7);
-
-                            &.question,
-                            &.answer,
-                            &.observation,
-                            &.example,
-                            &.def,
-                            &.definition,
-                            &.note,
-                            &.ale,
-                            &.alert,
-                            &.equ,
-                            &.equation,
-                            &.theorem {
-                                div.sourceCode {
-                                    pre {
-                                        line-height: 0;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    .references {
-                        div {
-                            margin-bottom: space(0.2);
-                        }
-                    }
-
-                    table {
-                        td {
-                            padding: space(0.1 0.5);
-                        }
-                    }
-                }
-
+              }
             }
+          }
         }
 
-        /////////////////////////////////////////////
-        // Progress bar
-        /////////////////////////////////////////////
-        .progress {
-            background: rgba(0, 0, 0, 0.2);
+        // Special case: source code inside highlighted box
+        div.box {
+          &.question,
+          &.answer,
+          &.observation,
+          &.example,
+          &.def,
+          &.definition,
+          &.note,
+          &.ale,
+          &.alert,
+          &.equ,
+          &.equation,
+          &.theorem {
+            div.sourceCode {
+              margin: 0;
+              background: rgba(255, 255, 255, 0.4);
+              padding: space(0 0.2);
 
-            span {
-                background: #777;
-                @include prefix(transition, width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985));
+              pre {
+                margin: 0;
+              }
             }
+          }
         }
 
         /////////////////////////////////////////////
-        // Navigation controls
+        // References
         /////////////////////////////////////////////
-        .controls {
-            button {
-                opacity: 0;
-            }
+        .references {
+          height: 17.5em;
+          overflow-y: scroll;
 
-            .enabled:active {
-                margin-top: 0;
-            }
-
-            :focus {
-                outline: none;
-            }
-
-            .slide-number {
-                color: #009;
-                background-color: rgba(255, 255, 255, 0);
-            }
-        }
-
-        .roll span:after {
-            color: #fff;
-            background: #00004d;
+          div {
+            margin-bottom: space(0.5);
+          }
         }
 
         /////////////////////////////////////////////
-        // Reveal templates
+        // Tables
         /////////////////////////////////////////////
-        .white {
-            color: #eee;
+        table {
+          margin: auto;
+          border-collapse: collapse;
+          border-spacing: 0;
 
-            h1,
-            h2 {
-                color: #eee;
-            }
-        }
+          th {
+            font-weight: bold;
+          }
 
-        .black {
-            h1,
-            h2 {
-                color: #111;
-            }
-        }
+          th,
+          td {
+            text-align: left;
+            padding: space(0.2 0.5);
+            border-bottom: 1px solid;
+          }
 
-        /////////////////////////////////////////////
-        // Speaker notes
-        /////////////////////////////////////////////
-        .speaker-notes {
-            h1,
-            h2,
-            h3,
-            h4,
-            h5,
-            h6 {
-                color: #FFF;
-                font-weight: bold;
-                margin-bottom: space(0.2);
-            }
-
-            h1 {
-                text-decoration: underline;
-                margin-bottom: space(0.4);
-            }
-        }
-
-        /////////////////////////////////////////////
-        // Font size modifiers
-        /////////////////////////////////////////////
-        .medium {
-            font-size: $medium-font-size;
-        }
-
-        .xx-small {
-            font-size: $xx-small-font-size;
-        }
-
-        .x-small {
-            font-size: $x-small-font-size;
-        }
-
-        .small {
-            font-size: $small-font-size;
-        }
-
-        .large {
-            font-size: $large-font-size;
-        }
-
-        .x-large {
-            font-size: $x-large-font-size;
-        }
-
-        .xx-large {
-            font-size: $xx-large-font-size;
-        }
-
-        /////////////////////////////////////////////
-        // Slide numbers
-        /////////////////////////////////////////////
-        .slide-number {
-            width: 100%;
+          th[align="center"],
+          td[align="center"] {
             text-align: center;
-            background: transparent;
-            color: gray;
-            font-size: 0.4em;
+          }
+
+          th[align="right"],
+          td[align="right"] {
+            text-align: right;
+          }
+
+          tr:last-child td {
+            border-bottom: none;
+          }
         }
+
+        /////////////////////////////////////////////
+        // Dense layouts
+        /////////////////////////////////////////////
+        &.dense,
+        &.x-dense,
+        &.xx-dense {
+          &.x-dense {
+            font-size: 90%;
+          }
+
+          &.xx-dense {
+            font-size: 80%;
+          }
+
+          line-height: 1.4;
+
+          p {
+            margin: space(0.2 0);
+          }
+
+          h1 {
+            margin: space(0 0 0.2 0);
+          }
+
+          div {
+            &.sourceCode {
+              margin: space(0 -0.7);
+              padding: space(0.4 0.7);
+            }
+
+            &.box {
+              h2 {
+                margin-bottom: space(0.1);
+              }
+
+              padding: space(0.2 0.7);
+              margin: space(0 -0.7);
+
+              &.question,
+              &.answer,
+              &.observation,
+              &.example,
+              &.def,
+              &.definition,
+              &.note,
+              &.ale,
+              &.alert,
+              &.equ,
+              &.equation,
+              &.theorem {
+                div.sourceCode {
+                  pre {
+                    line-height: 0;
+                  }
+                }
+              }
+            }
+          }
+
+          .references {
+            div {
+              margin-bottom: space(0.2);
+            }
+          }
+
+          table {
+            td {
+              padding: space(0.1 0.5);
+            }
+          }
+        }
+      }
     }
 
     /////////////////////////////////////////////
-    // Text selection
+    // Progress bar
     /////////////////////////////////////////////
-    ::selection {
-        color: white;
-        background: rgba(0, 0, 0, 0.85);
-        text-shadow: none;
+    .progress {
+      background: rgba(0, 0, 0, 0.2);
+
+      span {
+        background: #777;
+        @include prefix(
+          transition,
+          width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985)
+        );
+      }
     }
+
+    /////////////////////////////////////////////
+    // Navigation controls
+    /////////////////////////////////////////////
+    .controls {
+      button {
+        opacity: 0;
+      }
+
+      .enabled:active {
+        margin-top: 0;
+      }
+
+      :focus {
+        outline: none;
+      }
+
+      .slide-number {
+        color: #009;
+        background-color: rgba(255, 255, 255, 0);
+      }
+    }
+
+    .roll span:after {
+      color: #fff;
+      background: #00004d;
+    }
+
+    /////////////////////////////////////////////
+    // Reveal templates
+    /////////////////////////////////////////////
+
+    /////////////////////////////////////////////
+    // Speaker notes
+    /////////////////////////////////////////////
+    .speaker-notes {
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        color: #fff;
+        font-weight: bold;
+        margin-bottom: space(0.2);
+      }
+
+      h1 {
+        text-decoration: underline;
+        margin-bottom: space(0.4);
+      }
+    }
+
+    /////////////////////////////////////////////
+    // Font size modifiers
+    /////////////////////////////////////////////
+    .medium {
+      font-size: $medium-font-size;
+    }
+
+    .xx-small {
+      font-size: $xx-small-font-size;
+    }
+
+    .x-small {
+      font-size: $x-small-font-size;
+    }
+
+    .small {
+      font-size: $small-font-size;
+    }
+
+    .large {
+      font-size: $large-font-size;
+    }
+
+    .x-large {
+      font-size: $x-large-font-size;
+    }
+
+    .xx-large {
+      font-size: $xx-large-font-size;
+    }
+
+    /////////////////////////////////////////////
+    // Slide numbers
+    /////////////////////////////////////////////
+    .slide-number {
+      width: 100%;
+      text-align: center;
+      background: transparent;
+      color: gray;
+      font-size: 0.4em;
+    }
+  }
+
+  /////////////////////////////////////////////
+  // Text selection
+  /////////////////////////////////////////////
+  ::selection {
+    color: white;
+    background: rgba(0, 0, 0, 0.85);
+    text-shadow: none;
+  }
 }
 
 /////////////////////////////////////////////
 // Print modifications
 /////////////////////////////////////////////
 @media print {
-    $base-font-size: 30px;
-    $medium-font-size: 1 * $base-font-size;
-    $xx-small-font-size: 0.4 * $base-font-size;
-    $x-small-font-size: 0.6 * $base-font-size;
-    $small-font-size: 0.8 * $base-font-size;
-    $large-font-size: 1.2 * $base-font-size;
-    $x-large-font-size: 1.4 * $base-font-size;
-    $xx-large-font-size: 1.6 * $base-font-size;
+  $base-font-size: 30px;
+  $medium-font-size: 1 * $base-font-size;
+  $xx-small-font-size: 0.4 * $base-font-size;
+  $x-small-font-size: 0.6 * $base-font-size;
+  $small-font-size: 0.8 * $base-font-size;
+  $large-font-size: 1.2 * $base-font-size;
+  $x-large-font-size: 1.4 * $base-font-size;
+  $xx-large-font-size: 1.6 * $base-font-size;
 
-    body {
-        .reveal {
-            .slides {
-                transform: none !important;
+  body {
+    .reveal {
+      .slides {
+        transform: none !important;
 
-                font-family: 'Roboto', sans-serif !important;
-                font-size: $medium-font-size !important;
+        font-family: "Roboto", sans-serif !important;
+        font-size: $medium-font-size !important;
 
-                section {
-                    p,
-                    td,
-                    li,
-                    div {
-                        font-family: inherit !important;
-                        font-size: inherit !important;
-                    }
+        section {
+          p,
+          td,
+          li,
+          div {
+            font-family: inherit !important;
+            font-size: inherit !important;
+          }
 
-                    h1,
-                    h2,
-                    h3,
-                    h4,
-                    h5,
-                    h6 {
-                        font-family: inherit !important;
-                        font-size: inherit !important;
-                        color: rgba(0, 0, 0, 0.87);
-                        letter-spacing: normal;
-                        text-transform: none;
-                        text-shadow: none;
-                        word-wrap: break-word;
-                        font-weight: normal;
-                    }
+          h1,
+          h2,
+          h3,
+          h4,
+          h5,
+          h6 {
+            font-family: inherit !important;
+            font-size: inherit !important;
+            color: rgba(0, 0, 0, 0.87);
+            letter-spacing: normal;
+            text-transform: none;
+            text-shadow: none;
+            word-wrap: break-word;
+            font-weight: normal;
+          }
 
-                    h1 {
-                        font-size: $xx-large-font-size !important;
-                        margin: space(0 0 0.5 0);
-                    }
+          h1 {
+            font-size: $xx-large-font-size !important;
+            margin: space(0 0 0.5 0);
+          }
 
-                    h2 {
-                        font-weight: 500;
-                        font-size: $large-font-size !important;
-                        margin-bottom: space(0.1);
-                        color: rgb(100, 100, 100) !important;
-                    }
+          h2 {
+            font-weight: 500;
+            font-size: $large-font-size !important;
+            margin-bottom: space(0.1);
+            color: rgb(100, 100, 100) !important;
+          }
 
-                    a {
-                        &:link,
-                        &:visited {
-                            font-weight: normal;
-                        }
-                    }
-
-                    div.sourceCode {
-                        pre {
-                            code {
-                                white-space: pre-wrap;
-
-                                a.sourceLine {
-                                    text-indent: space(-1); padding-left: space(1);
-                                }
-                            }
-                        }
-                    }
-                }
+          a {
+            &:link,
+            &:visited {
+              font-weight: normal;
             }
-        }
+          }
 
-        a:link:after {
-            content: " (" attr(href) ") ";
+          div.sourceCode {
+            pre {
+              code {
+                white-space: pre-wrap;
+
+                a.sourceLine {
+                  text-indent: space(-1);
+                  padding-left: space(1);
+                }
+              }
+            }
+          }
         }
+      }
     }
+
+    a:link:after {
+      content: " (" attr(href) ") ";
+    }
+  }
 }

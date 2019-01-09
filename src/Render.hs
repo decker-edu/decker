@@ -8,15 +8,18 @@ module Render
 import CRC32
 import Common
 import Exception
-import Context
-import Control.Monad.State
+import Project
+import Shake
+
+import Control.Lens ((^.))
 import Control.Monad.Extra
+import Control.Monad.State
 import Data.List
 import Data.List.Extra
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
-import Project
+import Development.Shake
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath
 import Text.Blaze.Html.Renderer.String
@@ -60,13 +63,13 @@ d3Canvas source (eid, classes, keyvals) = do
   needFile source
   -- TODO: Clean this up. See Path.hs.
   base <- gets basePath
-  dirs <- lift $ getProjectDirs
-  let publicBase = public dirs </> makeRelativeTo (project dirs) base
+  dirs <- lift projectDirsA
+  let publicBase = dirs ^. public </> makeRelativeTo (dirs ^. project) base
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "d3.js")
   addScript $ ScriptSource "javascript" contents
-  let classStr = intercalate " " classes
+  let classStr = unwords classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
   case element of
     "canvas" ->
@@ -88,15 +91,15 @@ threejsCanvas source (eid, classes, keyvals) = do
   needFile source
   -- TODO: Clean this up. See Path.hs.
   base <- gets basePath
-  dirs <- lift $ getProjectDirs
-  let publicBase = public dirs </> makeRelativeTo (project dirs) base
+  dirs <- lift projectDirsA
+  let publicBase = dirs ^. public </> makeRelativeTo (dirs ^. project) base
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "three.js")
   let includes = splitOn "," $ fromMaybe "" $ lookup "includes" keyvals
-  mapM_ addScript $ map (ScriptURI "javascript") includes
+  mapM_ (addScript . ScriptURI "javascript") includes
   addScript $ ScriptSource "javascript" contents
-  let classStr = intercalate " " classes
+  let classStr = unwords classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
   case element of
     "canvas" ->
@@ -153,8 +156,7 @@ findProcessor _ = Nothing
 maybeRenderImage :: Inline -> Decker Inline
 maybeRenderImage image@(Image attr@(_, classes, _) _ (url, _)) =
   case findProcessor classes of
-    Just processor -> do
-      (compiler processor) url attr
+    Just processor -> compiler processor url attr
     Nothing -> return image
 maybeRenderImage inline = return inline
 
@@ -163,7 +165,7 @@ maybeRenderCodeBlock block@(CodeBlock attr@(_, classes, _) code) =
   case findProcessor classes of
     Just processor -> do
       path <- writeCodeIfChanged code (extension processor)
-      inline <- (compiler processor) path attr
+      inline <- compiler processor path attr
       return $ Plain [inline]
     Nothing -> return block
 maybeRenderCodeBlock block = return block
@@ -180,9 +182,9 @@ provideResources namevals = do
 --   "data:image/svg+xml;base64," ++ (B.unpack (B64.encode (B.pack svg)))
 writeCodeIfChanged :: String -> String -> Decker FilePath
 writeCodeIfChanged code ext = do
-  projectDir <- project <$> (lift $ getProjectDirs)
+  projectDir <- _project <$> lift projectDirsA
   let crc = printf "%08x" (calc_crc32 code)
-  let basepath = "code" </> (concat $ intersperse "-" ["code", crc])
+  let basepath = "code" </> intercalate "-" ["code", crc]
   let path = projectDir </> basepath <.> ext
   lift $
     withShakeLock $
@@ -207,11 +209,11 @@ appendScripts pandoc@(Pandoc meta blocks) = do
       H.script ! class_ "generated decker" ! lang (toValue language) !
       src (toValue uri) $
       ""
-    renderScript (ScriptSource language source) = do
+    renderScript (ScriptSource language source) =
       RawBlock (Format "html") $
-        printf
-          "<script class=\"generated decker\" lang=\"%s\">%s</script>"
-          language
-          source
+      printf
+        "<script class=\"generated decker\" lang=\"%s\">%s</script>"
+        language
+        source
       -- renderHtml $
       -- H.script ! class_ "generated decker" ! lang = language $ preEscapedToHtml source
