@@ -2,6 +2,7 @@ module CompileTime
   ( lookupGitBranch
   , lookupGitCommitId
   , lookupGitTag
+  , git
   ) where
 
 import Control.Monad

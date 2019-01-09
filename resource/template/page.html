@@ -107,10 +107,6 @@
             }
         </style>
 
-        $if(math)$ $math$ $endif$
-        <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
     <script>
       var socket = new WebSocket("ws://" + location.host + "/reload");
       socket.onmessage = function () {
