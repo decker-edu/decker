@@ -14,10 +14,10 @@ module External
 import Control.Exception
 import Data.Maybe
 import Development.Shake
+import Exception
 import System.Console.ANSI
 import System.Exit
 import System.Process
-import Exception
 
 data ExternalProgram = ExternalProgram
   { options :: [CmdOption]
@@ -95,6 +95,7 @@ programs =
   ]
 
 type Program = [String] -> Action ()
+type Program' = [String] -> Action String
 
 ssh :: Program
 ssh = makeProgram "ssh"
@@ -137,6 +138,22 @@ makeProgram name =
              (args external ++ arguments)
          case code of
            ExitSuccess -> return ()
+           ExitFailure _ ->
+             throw $
+             ExternalException $
+             "\n" ++ help external ++ "\n\n" ++ err ++ "\n\n" ++ out)
+
+makeProgram' :: String -> ([String] -> Action String)
+makeProgram' name =
+  let external = fromJust $ lookup name programs
+   in (\arguments -> do
+         (Exit code, Stdout out, Stderr err) <-
+           command
+             (options external)
+             (path external)
+             (args external ++ arguments)
+         case code of
+           ExitSuccess -> return out
            ExitFailure _ ->
              throw $
              ExternalException $
