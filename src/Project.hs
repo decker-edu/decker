@@ -5,8 +5,7 @@ module Project
   ( resourcePaths
   , deckerResourceDir
   , oldResourcePaths
-  , copyResource
-  , linkResource
+  -- , linkResource
   , relRefResource
   , absRefResource
   , removeCommonPrefix
@@ -70,6 +69,7 @@ data Targets = Targets
 
 makeLenses ''Targets
 
+-- TODO: Rename so there's no confusion with ResourceType?
 data Resource = Resource
   { sourceFile :: FilePath -- ^ Absolute Path to source file
   , publicFile :: FilePath -- ^ Absolute path to file in public folder
@@ -114,13 +114,13 @@ provisioningFromClasses defaultP cls =
   fromMaybe defaultP $
   listToMaybe $ map snd $ filter (flip elem cls . fst) provisioningClasses
 
--- TODO: After merging copyFileIfNewer into Resources MUST be moved; else import cycle
+{-
+TODO: Has been moved to NewResources
 copyResource :: Resource -> IO FilePath
 copyResource resource = do
   copyFileIfNewer (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
--- TODO: Possibly also move to Resources
 linkResource :: Resource -> IO FilePath
 linkResource resource = do
   whenM
@@ -129,7 +129,7 @@ linkResource resource = do
   D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
   D.createFileLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
-
+-}
 absRefResource :: Resource -> IO FilePath
 absRefResource resource =
   return $ show $ URI "file" Nothing (sourceFile resource) "" ""

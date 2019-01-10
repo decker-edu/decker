@@ -188,7 +188,7 @@ main = do
     -- | deletes old, cached resource folders
     -- TODO: include clear-cache in makefile?
     phony "clear-cache" $ do
-      old <- liftIO getOldResources
+      old <- liftIO oldResourcePaths
       forM_ old $ \dir -> removeFilesAfter dir ["//"]
       when isDevelopmentVersion $
         removeFilesAfter (directories ^. appData) ["//"]

@@ -29,6 +29,7 @@ import Meta
 import Project
 import Render
 import Resources
+import NewResources
 import Server
 import Shake
 import Sketch
@@ -296,7 +297,7 @@ readAndProcessMarkdown markdownFile disp = do
         , processCitesWithDefault
         , appendScripts
         ]
-  -- Disable automatic caching of remote images for a while
+  -- REVIEW: Disable automatic caching of remote images for a while
   -- >>= walkM (cacheRemoteImages (cache dirs))
 
 -- | Determines which template file name to use
@@ -311,6 +312,8 @@ getTemplateFileName (Disposition Handout Latex) = "handout.tex"
 
 -- TODO: move to new resources FROM HERE to line 406
 -- TODO: rename/clarify provisionResource, provisionResources, provisionMetaResource
+--  provisionResources could stay here since it uses Pandoc/Decker Pandoc
+-- This probably does not need to be introduced to Resources module
 provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
   base <- gets basePath
