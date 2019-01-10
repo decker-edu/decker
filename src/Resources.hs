@@ -8,11 +8,13 @@ module Resources
   , copyDir
   ) where
 
+import Codec.Archive.Zip
 import Common
 import Control.Exception
 import Control.Monad
 import Control.Monad.Extra
 import Data.List.Split (splitOn)
+import Data.Map.Strict (size)
 import Exception
 import Flags
 import System.Decker.OS
@@ -61,12 +63,11 @@ extractResources = do
   dataDir <- deckerResourceDir
   exists <- doesDirectoryExist dataDir
   unless exists $ do
-    unlessM (Resources.unzip ["-l", deckerExecutable]) $
+    numFiles <- withArchive deckerExecutable getEntries
+    unless ((size numFiles) > 0) $
       throw $ ResourceException "No resource zip found in decker executable."
     createDirectoryIfMissing True dataDir
-    unlessM (Resources.unzip ["-qq", "-o", "-d", dataDir, deckerExecutable]) $
-      throw $
-      ResourceException "Unable to extract resources from decker executable"
+    withArchive deckerExecutable (unpackInto dataDir)
     putStrLn $ "# resources extracted to " ++ dataDir
 
 unzip :: [String] -> IO Bool

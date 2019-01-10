@@ -10,6 +10,7 @@ build-type: Custom
 custom-setup:
   dependencies:
     - base >= 4.7 && < 5
+    - binary
     - bytestring
     - Cabal
     - conduit
