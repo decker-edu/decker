@@ -41,6 +41,12 @@ module Common
   -- *
   , unique
   , time
+  , elementAttributes
+  -- * keys
+  , runtimeMetaKeys
+  , compiletimeMetaKeys
+  , templateOverrideMetaKeys
+  , metaKeys
   ) where
 
 import CompileTime
@@ -159,7 +165,7 @@ data Provisioning
   deriving (Eq, Show, Read)
 
 -- | Source of the resource bundle
--- TODO rename Decker to Default?
+-- TODO: rename Decker to Default?
 data ResourceType
   = Decker -- ^ decker executable, caching
   | File -- ^ local ZIP archive, caching
@@ -222,3 +228,30 @@ metaSuffix = "-meta.yaml"
 indexSuffix = "-deck-index.yaml"
 
 sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
+
+-- | These resources are needed at runtime. If they are specified as local URLs,
+-- the resource must exists at compile time. Remote URLs are passed through
+-- unchanged.
+elementAttributes :: [String]
+elementAttributes =
+  [ "src"
+  , "data-src"
+  , "data-markdown"
+  , "data-background-video"
+  , "data-background-image"
+  , "data-background-iframe"
+  ]
+
+-- | Resources in meta data that are needed at compile time. They have to be
+-- specified as local URLs and must exist.
+runtimeMetaKeys :: [String]
+runtimeMetaKeys = ["css"]
+
+templateOverrideMetaKeys :: [String]
+templateOverrideMetaKeys = ["template"]
+
+compiletimeMetaKeys :: [String]
+compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
+
+metaKeys :: [String]
+metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys

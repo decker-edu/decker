@@ -26,10 +26,10 @@ import Exception
 import Filter
 import Macro
 import Meta
+import NewResources
 import Project
 import Render
 import Resources
-import NewResources
 import Server
 import Shake
 import Sketch
@@ -58,7 +58,6 @@ import qualified Data.Text.IO as T
 import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
-import Network.URI
 import qualified System.Directory as Dir
 import System.FilePath.Glob
 import Text.CSL.Pandoc
@@ -191,7 +190,8 @@ getTemplate meta disp = do
       liftIO $ readFile templateOverridePath'
     else liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
 
--- TODO: move to Resources (or rather to Project)
+{-
+CLEANUP: moved to Shake.hs since getRelativeSUpportDir is there already
 getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
 getSupportDir meta out defaultPath = do
   dirs <- projectDirsA
@@ -202,7 +202,7 @@ getSupportDir meta out defaultPath = do
         (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
         (makeRelativeTo cur template)
       Nothing -> defaultPath
-
+-}
 -- | Write Pandoc in native format right next to the output file
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action Pandoc
 writeNativeWhileDebugging out mod doc@(Pandoc meta body) = do
@@ -322,6 +322,7 @@ provisionResources pandoc = do
     mapMetaResources (provisionMetaResource base method) pandoc >>=
     mapResources (provisionResource base method)
 
+{- CLEANUP: moved to NewResources
 provisionMetaResource ::
      FilePath -> Provisioning -> (String, FilePath) -> Action FilePath
 provisionMetaResource base method (key, url)
@@ -401,13 +402,13 @@ provisionResource base method filePath =
               Relative -> relRefResource base resource
         else throw $ ResourceException $ "resource does not exist: " ++ path
 
+--TODO: from line 313 TO HERE move to new resources
+-}
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do
   public <- publicA
   let rel = makeRelative public out
   putNormal $ "# pandoc (for " ++ rel ++ ")"
---TODO: from line 313 TO HERE move to new resources
-
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage :: FilePath -> FilePath -> Action ()
@@ -528,7 +529,7 @@ readMetaMarkdown markdownFile = do
         (Pandoc (Meta m) blocks)
     _ -> throw $ PandocException "Meta format conversion failed."
 
--- TODO: Is this something that should move to Project.hs?
+{- CLEANUP: Moved to NewResources. Not really sure about that location, though
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
 urlToFilePathIfLocal base uri =
   case parseRelativeReference uri of
@@ -542,7 +543,7 @@ urlToFilePathIfLocal base uri =
               then absRoot </> makeRelative "/" filePath
               else absBase </> filePath
       return absPath
-
+-}
 readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
 readMarkdownOrThrow opts markdown =
   case runPure (readMarkdown opts markdown) of
@@ -637,6 +638,7 @@ mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
       MetaString <$> transform (k, stringify inlines)
     mapMetaList _ v = return v
 
+{- CLEANUP: Moved to Common.hs
 -- | These resources are needed at runtime. If they are specified as local URLs,
 -- the resource must exists at compile time. Remote URLs are passed through
 -- unchanged.
@@ -663,7 +665,7 @@ compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
 
 metaKeys :: [String]
 metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
-
+-}
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
 processIncludes baseDir (Pandoc meta blocks) =

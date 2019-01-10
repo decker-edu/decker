@@ -8,6 +8,7 @@ module Shake
   , calcSource
   , decksA
   , decksPdfA
+  , getSupportDir
   , getRelativeSupportDir
   , handoutsA
   , handoutsPdfA
@@ -72,6 +73,7 @@ import Development.Shake as Shake
   , shakeOptions
   , withResource
   )
+import System.Directory as Dir
 import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
@@ -200,6 +202,17 @@ getRelativeSupportDir from = do
   pub <- _public . _dirs <$> actionContext
   let sup = pub </> ("support" ++ "-" ++ deckerVersion)
   return $ makeRelativeTo from sup
+
+getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
+getSupportDir meta out defaultPath = do
+  dirs <- projectDirsA
+  cur <- liftIO Dir.getCurrentDirectory
+  return $
+    case templateFromMeta meta of
+      Just template ->
+        (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
+        (makeRelativeTo cur template)
+      Nothing -> defaultPath
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do

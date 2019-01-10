@@ -22,7 +22,7 @@ import System.FilePath
 import System.Process
 import Text.Regex.TDFA
 
-{- TODO: has been moved, remove comment
+{- CLEANUP: has been moved, remove comment
 deckerResourceDir :: IO FilePath
 deckerResourceDir =
   getXdgDirectory
@@ -73,7 +73,8 @@ unzip args = do
       ExitSuccess -> True
       ExitFailure 1 -> True
       _ -> False
-{- TODO: has been moved; remove comment
+{-
+CLEANUP: has been moved; remove comment
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()
 writeExampleProject = writeResourceFiles "example" "."

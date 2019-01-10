@@ -39,14 +39,15 @@ module Project
   ) where
 
 import Common
+import Exception
+import Glob
+
 import Control.Lens
 import Control.Monad.Extra
 import Data.List
 import Data.List.Split (splitOn)
 import Data.Maybe
 import qualified Data.Yaml as Yaml
-import Exception
-import Glob
 import Network.URI
 import qualified System.Directory as D
 import Text.Regex.TDFA
@@ -115,7 +116,7 @@ provisioningFromClasses defaultP cls =
   listToMaybe $ map snd $ filter (flip elem cls . fst) provisioningClasses
 
 {-
-TODO: Has been moved to NewResources
+CLEANUP: Has been moved to NewResources
 copyResource :: Resource -> IO FilePath
 copyResource resource = do
   copyFileIfNewer (sourceFile resource) (publicFile resource)
