@@ -143,6 +143,9 @@
       <div class="row">
         <div class="col-lg-12">
           $if(toc)$
+          $if(toc-title)$
+          <h1 id="$idprefix$TOC-title class="toc-title">$toc-title$</h1>
+          $endif$
           <nav id="$idprefix$TOC">
             $toc$
           </nav>
