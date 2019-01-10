@@ -2,6 +2,7 @@
 import Common
 import Exception
 import External
+import Flags (hasPreextractedResources)
 import Project
 import Resources
 import Shake
@@ -179,7 +180,7 @@ main = do
       removeFilesAfter (directories ^. project) cruft
       old <- liftIO getOldResources
       forM_ old $ \dir -> removeFilesAfter dir ["//"]
-      when isDevelopmentVersion $
+      when (isDevelopmentVersion && not hasPreextractedResources) $
         removeFilesAfter (directories ^. appData) ["//"]
     --
     phony "help" $ do
