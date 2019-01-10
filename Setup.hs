@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 import Codec.Archive.Zip
 import Conduit
 import Control.Monad.Extra
@@ -24,7 +26,7 @@ appendResourceArchive ::
      Args -> CopyFlags -> PackageDescription -> LocalBuildInfo -> IO ()
 appendResourceArchive args flags descr info = do
   let binDir = fromPathTemplate $ bindir $ installDirTemplates info
-  executable <- makeAbsolute $ binDir </> "decker"
+  executable <- makeAbsolute $ binDir </> executableName
   withCurrentDirectory resourceDir $ do
     files <-
       glob "**/*" >>= filterM doesFileExist >>=
@@ -103,3 +105,10 @@ fixZip zipPath adjustmentSize = do
           return ()
         else do
           return ()
+
+executableName :: String
+#ifdef mingw32_HOST_OS
+executableName = "decker.exe"
+#else
+executableName = "decker"
+#endif
