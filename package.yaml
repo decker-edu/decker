@@ -63,6 +63,7 @@ dependencies:
   - mtl
   - multimap
   - mustache
+  - modern-uri
   - network-uri
   - pandoc
   - pandoc-citeproc

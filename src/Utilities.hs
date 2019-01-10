@@ -37,7 +37,7 @@ import Sketch
 import Control.Arrow
 import Control.Concurrent
 import Control.Exception
-import Control.Lens ((^.), at)
+import Control.Lens ((.~), (^.), (^?), at, set)
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
@@ -72,6 +72,7 @@ import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
+import Text.Read (readMaybe)
 
 -- | Monadic version of list concatenation.
 (<++>) :: Monad m => m [a] -> m [a] -> m [a]
@@ -82,8 +83,7 @@ writeIndexTable ::
      FilePath -> FilePath -> [[FilePath]] -> [[FilePath]] -> Action ()
 writeIndexTable out baseUrl deckData pageData = do
   dirs <- projectDirsA
-  liftIO $
-    writeFile out $
+  liftIO $ writeFile out $
     unlines
       [ "---"
       , "title: Generated Index"
@@ -111,8 +111,7 @@ writeIndex out baseUrl decks handouts pages = do
   let handoutsLinks = map (makeRelative baseUrl) handouts
   let pagesLinks = map (makeRelative baseUrl) pages
   dirs <- projectDirsA
-  liftIO $
-    writeFile out $
+  liftIO $ writeFile out $
     unlines
       [ "---"
       , "title: Generated Index"
@@ -136,8 +135,7 @@ writeIndexLists out baseUrl = do
   let decks = (zip (_decks ts) (_decksPdf ts))
   let handouts = (zip (_handouts ts) (_handoutsPdf ts))
   let pages = (zip (_pages ts) (_pagesPdf ts))
-  liftIO $
-    writeFile out $
+  liftIO $ writeFile out $
     unlines
       [ "---"
       , "title: Generated Index"
@@ -205,8 +203,7 @@ getSupportDir meta out defaultPath = do
 -- | Write Pandoc in native format right next to the output file
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action Pandoc
 writeNativeWhileDebugging out mod doc@(Pandoc meta body) = do
-  liftIO $
-    runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
+  liftIO $ runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
     T.writeFile (out -<.> mod <.> ".hs")
   return doc
 
@@ -249,7 +246,8 @@ writePandocFile fmt options out pandoc =
   case getWriter fmt of
     Right (TextWriter writePandoc, _) ->
       runIOQuietly (writePandoc options pandoc) >>= handleError >>=
-      B.writeFile out . E.encodeUtf8
+      B.writeFile out .
+      E.encodeUtf8
     Right (ByteStringWriter writePandoc, _) ->
       runIOQuietly (writePandoc options pandoc) >>= handleError >>=
       LB.writeFile out
@@ -262,16 +260,17 @@ versionCheck meta =
     Just (MetaInlines version) -> check $ stringify version
     Just (MetaString version) -> check version
     _ ->
-      putNormal $
-      "  - Document version unspecified. This is decker version " ++
-      deckerVersion ++ "."
+      putNormal $ "  - Document version unspecified. This is decker version " ++
+      deckerVersion ++
+      "."
   where
     check version =
-      when (List.trim version /= List.trim deckerVersion) $
-      putNormal $
+      when (List.trim version /= List.trim deckerVersion) $ putNormal $
       "  - Document version " ++
       version ++
-      ". This is decker version " ++ deckerVersion ++ ". Expect problems."
+      ". This is decker version " ++
+      deckerVersion ++
+      ". Expect problems."
 
 -- | Reads a markdownfile, expands the included files, and substitutes mustache
 -- template variables and calls need.
@@ -313,8 +312,7 @@ provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
   base <- gets basePath
   method <- gets provisioning
-  lift $
-    mapMetaResources (provisionMetaResource base method) pandoc >>=
+  lift $ mapMetaResources (provisionMetaResource base method) pandoc >>=
     mapResources (provisionResource base method)
 
 provisionMetaResource ::
@@ -387,8 +385,7 @@ provisionResource base method filePath =
           need [path]
           let resource = resourcePathes dirs base uri
           p <- publicResourceA
-          withResource p 1 $
-            liftIO $
+          withResource p 1 $ liftIO $
             case method of
               Copy -> copyResource resource
               SymLink -> linkResource resource
@@ -408,9 +405,9 @@ markdownToHtmlPage markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Page Html
-  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate meta disp
-  templateSupportDir <- getSupportDir meta out supportDir
+  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
+  template <- getTemplate docMeta disp
+  templateSupportDir <- getSupportDir docMeta out supportDir
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
@@ -421,6 +418,10 @@ markdownToHtmlPage markdownFile out = do
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
+          , writerTableOfContents =
+              fromMaybe False $ pandoc ^? meta "show-toc" . _MetaBool
+          , writerTOCDepth =
+              fromMaybe 1 $ readMaybe $ fromMaybe "1" $ pandoc ^? meta "toc-depth" . _MetaString
           }
   writePandocFile "html5" options out pandoc
 
@@ -455,9 +456,9 @@ markdownToHtmlHandout markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Handout Html
-  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate meta disp
-  templateSupportDir <- getSupportDir meta out supportDir
+  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
+  template <- getTemplate docMeta disp
+  templateSupportDir <- getSupportDir docMeta out supportDir
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
@@ -468,6 +469,10 @@ markdownToHtmlHandout markdownFile out = do
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
+          , writerTableOfContents =
+              fromMaybe False $ pandoc ^? meta "show-toc" . _MetaBool
+          , writerTOCDepth =
+              fromMaybe 1 $ readMaybe $ fromMaybe "1" $ pandoc ^? meta "toc-depth" . _MetaString
           }
   writePandocFile "html5" options out pandoc
 
@@ -546,8 +551,8 @@ readMarkdownOrThrow opts markdown =
 -- include files.
 deckerPandocExtensions :: Extensions
 deckerPandocExtensions =
-  (disableExtension Ext_auto_identifiers .
-   disableExtension Ext_simple_tables . disableExtension Ext_multiline_tables)
+  (disableExtension Ext_auto_identifiers . disableExtension Ext_simple_tables .
+   disableExtension Ext_multiline_tables)
     pandocExtensions
 
 pandocReaderOpts :: ReaderOptions
