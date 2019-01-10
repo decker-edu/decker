@@ -38,7 +38,6 @@ appendResourceArchive args flags descr info = do
            "Appending resource archive (" ++
            show (length files) ++ " files) to " ++ executable
          exeSize <- withBinaryFile executable ReadMode $ \h -> hFileSize h
-         copyFile archive "/Users/jp/repo/teaching/decker/test.zip"
          fixZip archive exeSize
          runConduitRes $
            sourceFileBS archive .| sinkIOHandle (openFile executable AppendMode))
