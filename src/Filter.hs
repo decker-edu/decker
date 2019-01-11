@@ -4,6 +4,7 @@ module Filter
   , OutputFormat(..)
   , Disposition(..)
   , processPandoc
+  , Filter.includeCode
   , processSlides
   , useCachedImages
   , escapeToFilePath
@@ -55,6 +56,7 @@ import Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A (alt, class_, id, title)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
+import Text.Pandoc.Filter.IncludeCode as P
 import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
@@ -215,6 +217,13 @@ allImages _ = []
 zapImages :: Inline -> Inline
 zapImages Image {} = Space
 zapImages inline = inline
+
+-- start snippet includeCode
+includeCode :: Pandoc -> Decker Pandoc
+includeCode (Pandoc meta blocks) = do
+  included <- doIO $ walkM (P.includeCode Nothing) blocks
+  return $ Pandoc meta included
+-- end snippet includeCode
 
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 

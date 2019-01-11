@@ -176,3 +176,6 @@ Haskell soure code readability depends heavily on consistent formatting
 conventions. With decker, formatting is automated using the excellent
 [hindent]() tool. Formatting is checked for each commit that is uploaded to the
 GitLab repository.
+
+## Compile Flags
+The Decker executable contains per default all necessary supporting files and extracts them on the first run. Some packaging solutions prefer to already extract the files during the installation. To support this, a compile flag `preextractedresources` is available which instructs Decker to work with the already extracted resource files. Invoke `stack --flag decker:preextractedresources` to compile such a version.

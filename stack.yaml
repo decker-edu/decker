@@ -11,6 +11,7 @@ extra-deps:
 - libyaml-0.1.0.0
 - pandoc-2.4
 - pandoc-lens-0.6.3
+- pandoc-include-code-1.3.0.0
 - skylighting-0.7.4
 - skylighting-core-0.7.4
 - yaml-0.11.0.0

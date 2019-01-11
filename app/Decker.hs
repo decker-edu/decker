@@ -2,6 +2,7 @@
 import Common
 import Exception
 import External
+import Flags (hasPreextractedResources)
 import Project
 import Resources
 import Shake
@@ -190,7 +191,7 @@ main = do
     phony "clear-cache" $ do
       old <- liftIO oldResourcePaths
       forM_ old $ \dir -> removeFilesAfter dir ["//"]
-      when isDevelopmentVersion $
+      when (isDevelopmentVersion && not hasPreextractedResources) $
         removeFilesAfter (directories ^. appData) ["//"]
     --
     phony "help" $ do
