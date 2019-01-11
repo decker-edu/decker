@@ -41,6 +41,7 @@ import Meta
 import Project
 import Server
 import Sketch
+import System.Decker.OS
 
 import Control.Concurrent
 import Control.Exception
@@ -207,12 +208,13 @@ getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
 getSupportDir meta out defaultPath = do
   dirs <- projectDirsA
   cur <- liftIO Dir.getCurrentDirectory
-  return $
-    case templateFromMeta meta of
-      Just template ->
-        (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
-        (makeRelativeTo cur template)
-      Nothing -> defaultPath
+  let dirPath =
+        case templateFromMeta meta of
+          Just template ->
+            (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
+            (makeRelativeTo cur template)
+          Nothing -> defaultPath
+  return $ urlPath dirPath
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do

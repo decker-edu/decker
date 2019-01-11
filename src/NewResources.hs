@@ -20,8 +20,10 @@ import Common
 import Exception
 import Project
 import Shake
+import System.Decker.OS
 
 import Control.Exception
+import Control.Lens ((^.))
 import Control.Monad.Extra
 import Development.Shake
 import Network.URI
@@ -224,7 +226,20 @@ provisionTemplateOverrideSupportTopLevel base method url = do
 provisionResource :: FilePath -> Provisioning -> FilePath -> Action FilePath
 provisionResource base method filePath =
   case parseRelativeReference filePath of
-    Nothing -> return filePath
+    Nothing ->
+      if hasDrive filePath
+        then do
+          dirs <- projectDirsA
+          let resource =
+                Resource
+                  { sourceFile = filePath
+                  , publicFile =
+                      (dirs ^. public) </>
+                      makeRelativeTo (dirs ^. project) filePath
+                  , publicUrl = urlPath $ makeRelativeTo base filePath
+                  }
+          provision resource
+        else return filePath
     Just uri -> do
       dirs <- projectDirsA
       let path = uriPath uri
@@ -233,15 +248,18 @@ provisionResource base method filePath =
         then do
           need [path]
           let resource = resourcePaths dirs base uri
-          p <- publicResourceA
-          withResource p 1 $
-            liftIO $
-            case method of
-              Copy -> copyResource resource
-              SymLink -> linkResource resource
-              Absolute -> absRefResource resource
-              Relative -> relRefResource base resource
+          provision resource
         else throw $ ResourceException $ "resource does not exist: " ++ path
+  where
+    provision resource = do
+      publicResource <- publicResourceA
+      withResource publicResource 1 $
+        liftIO $
+        case method of
+          Copy -> copyResource resource
+          SymLink -> linkResource resource
+          Absolute -> absRefResource resource
+          Relative -> relRefResource base resource
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
 urlToFilePathIfLocal base uri =

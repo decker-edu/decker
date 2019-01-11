@@ -26,33 +26,7 @@ import System.FilePath
 import System.Process
 import Text.Regex.TDFA
 
-{- CLEANUP: has been moved, remove comment
-deckerResourceDir :: IO FilePath
-deckerResourceDir =
-  if hasPreextractedResources
-    then preextractedResourceFolder
-    else getXdgDirectory
-           XdgData
-           ("decker" ++
-            "-" ++
-            deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
-
--- | Get the absolute paths of resource folders 
--- with version numbers older than the current one
-getOldResources :: IO [FilePath]
-getOldResources = do
-  dir <- getXdgDirectory XdgData []
-  files <- listDirectory dir
-  return $ map (dir </>) $ filter oldVersion files
-  where
-    convert = map (read :: String -> Int)
-    currentVersion = convert (splitOn "." deckerVersion)
-    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
-    oldVersion name =
-      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
-        [] -> False
-        _:x:y:z:_ -> convert [x, y, z] < currentVersion
--}
+-- CLEANUP: Moved to Output.hs
 getResourceString :: FilePath -> IO String
 getResourceString path = do
   dataDir <- deckerResourceDir
@@ -118,4 +92,31 @@ copyDir src dst = do
         if isDirectory
           then copyDir srcPath dstPath
           else cp srcPath dstPath
+-}
+{- CLEANUP: has been moved, remove comment
+deckerResourceDir :: IO FilePath
+deckerResourceDir =
+  if hasPreextractedResources
+    then preextractedResourceFolder
+    else getXdgDirectory
+           XdgData
+           ("decker" ++
+            "-" ++
+            deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
+
+-- | Get the absolute paths of resource folders 
+-- with version numbers older than the current one
+getOldResources :: IO [FilePath]
+getOldResources = do
+  dir <- getXdgDirectory XdgData []
+  files <- listDirectory dir
+  return $ map (dir </>) $ filter oldVersion files
+  where
+    convert = map (read :: String -> Int)
+    currentVersion = convert (splitOn "." deckerVersion)
+    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
+    oldVersion name =
+      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
+        [] -> False
+        _:x:y:z:_ -> convert [x, y, z] < currentVersion
 -}

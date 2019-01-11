@@ -40,7 +40,9 @@ module Project
 
 import Common
 import Exception
+import Flags
 import Glob
+import System.Decker.OS
 
 import Control.Lens
 import Control.Monad.Extra
@@ -115,22 +117,6 @@ provisioningFromClasses defaultP cls =
   fromMaybe defaultP $
   listToMaybe $ map snd $ filter (flip elem cls . fst) provisioningClasses
 
-{-
-CLEANUP: Has been moved to NewResources
-copyResource :: Resource -> IO FilePath
-copyResource resource = do
-  copyFileIfNewer (sourceFile resource) (publicFile resource)
-  return (publicUrl resource)
-
-linkResource :: Resource -> IO FilePath
-linkResource resource = do
-  whenM
-    (D.doesFileExist (publicFile resource))
-    (D.removeFile (publicFile resource))
-  D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
-  D.createFileLink (sourceFile resource) (publicFile resource)
-  return (publicUrl resource)
--}
 absRefResource :: Resource -> IO FilePath
 absRefResource resource =
   return $ show $ URI "file" Nothing (sourceFile resource) "" ""
@@ -171,10 +157,13 @@ projectDirectories = do
 
 deckerResourceDir :: IO FilePath
 deckerResourceDir =
-  D.getXdgDirectory
-    D.XdgData
-    ("decker" ++
-     "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
+  if hasPreextractedResources
+    then preextractedResourceFolder
+    else D.getXdgDirectory
+           D.XdgData
+           ("decker" ++
+            "-" ++
+            deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
 
 -- | Get the absolute paths of resource folders 
 -- with version numbers older than the current one
@@ -208,27 +197,6 @@ resourcePaths dirs base uri =
           (uriFragment uri)
     }
 
-{-TODO: has been moved; Remove comment!
--- | Copies the src to dst if src is newer or dst does not exist. Creates
--- missing directories while doing so.
-copyFileIfNewer :: FilePath -> FilePath -> IO ()
-copyFileIfNewer src dst =
-  whenM (fileIsNewer src dst) $ do
-    D.createDirectoryIfMissing True (takeDirectory dst)
-    D.copyFile src dst
-fileIsNewer :: FilePath -> FilePath -> IO Bool
-fileIsNewer a b = do
-  aexists <- D.doesFileExist a
-  bexists <- D.doesFileExist b
-  if bexists
-    then if aexists
-           then do
-             at <- D.getModificationTime a
-             bt <- D.getModificationTime b
-             return (at > bt)
-           else return False
-    else return aexists
--}
 -- | Express the second path argument as relative to the first. 
 -- Both arguments are expected to be absolute pathes. 
 makeRelativeTo :: FilePath -> FilePath -> FilePath
@@ -283,3 +251,40 @@ scanTargets exclude suffixes dirs = do
         (replaceSuffix srcSuffix targetSuffix .
          combine (dirs ^. public) . makeRelative (dirs ^. project))
         (fromMaybe [] $ lookup srcSuffix sources)
+{-
+CLEANUP: Has been moved to NewResources
+copyResource :: Resource -> IO FilePath
+copyResource resource = do
+  copyFileIfNewer (sourceFile resource) (publicFile resource)
+  return (publicUrl resource)
+
+linkResource :: Resource -> IO FilePath
+linkResource resource = do
+  whenM
+    (D.doesFileExist (publicFile resource))
+    (D.removeFile (publicFile resource))
+  D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
+  D.createFileLink (sourceFile resource) (publicFile resource)
+  return (publicUrl resource)
+-}
+{-CLEANUP: has been moved; Remove comment!
+-- | Copies the src to dst if src is newer or dst does not exist. Creates
+-- missing directories while doing so.
+copyFileIfNewer :: FilePath -> FilePath -> IO ()
+copyFileIfNewer src dst =
+  whenM (fileIsNewer src dst) $ do
+    D.createDirectoryIfMissing True (takeDirectory dst)
+    D.copyFile src dst
+fileIsNewer :: FilePath -> FilePath -> IO Bool
+fileIsNewer a b = do
+  aexists <- D.doesFileExist a
+  bexists <- D.doesFileExist b
+  if bexists
+    then if aexists
+           then do
+             at <- D.getModificationTime a
+             bt <- D.getModificationTime b
+             return (at > bt)
+           else return False
+    else return aexists
+-}
