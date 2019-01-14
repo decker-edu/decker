@@ -1,6 +1,7 @@
 -- | This module gathers all functions that output something during runtime
 module Output
-  (
+  ( getResourceString
+  , putCurrentDocument
   ) where
 
 import Project

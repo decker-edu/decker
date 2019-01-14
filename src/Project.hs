@@ -112,6 +112,7 @@ provisioningClasses =
   , ("relative", Relative)
   ]
 
+-- UNUSED: TODO: Not used anywhere
 provisioningFromClasses :: Provisioning -> [String] -> Provisioning
 provisioningFromClasses defaultP cls =
   fromMaybe defaultP $

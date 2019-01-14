@@ -171,6 +171,9 @@ fixMustacheMarkupText content =
     (T.pack "{{#")
     (T.replace (T.pack "{{\\^") (T.pack "{{^") content)
 
+-- TODO: Isn't imported anywhere
+-- UNUSED:
+-- only used once in Utilities.hs line 428
 substituteMetaData :: T.Text -> MT.Value -> T.Text
 substituteMetaData source metaData = do
   let fixed = fixMustacheMarkupText source
@@ -509,6 +512,9 @@ mapBlock transform (Div attr blocks) = do
   return (Div attribs blocks)
 mapBlock _ block = return block
 
+-- TODO: Move to Meta.hs?
+-- UNUSED:
+-- only used once her: line 313
 mapMetaResources ::
      ((String, FilePath) -> Action FilePath) -> Pandoc -> Action Pandoc
 mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
@@ -567,6 +573,8 @@ lookupValue :: String -> Y.Value -> Maybe Y.Value
 lookupValue key (Y.Object hashTable) = HashMap.lookup (T.pack key) hashTable
 lookupValue _ _ = Nothing
 
+-- TODO: move to Meta.hs?
+-- used in Decker.hs
 metaValueAsString :: String -> Y.Value -> Maybe String
 metaValueAsString key meta =
   case splitOn "." key of
@@ -580,6 +588,8 @@ metaValueAsString key meta =
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
     lookup' _ _ = Nothing
 
+-- TODO: Not used anywhere
+-- UNUSED:
 lookupPandocMeta :: String -> Meta -> Maybe String
 lookupPandocMeta key (Meta m) =
   case splitOn "." key of

@@ -42,11 +42,28 @@ This should stay. Here in NewResources only the ResourceType Datatype should be 
 Paths come from Project.hs
 What does "provision" actually mean in this context?
 
+- call one "main" function from Decker.hs
+- must account for "example", "support" and "template"
+- must account for each ResourceType
+- must account for each Provisioning variant (copy, symlink etc)
+
+- There is a difference between the provisioning that is done in the "provision..." functions
+and the copying/linking that is done when "decker support" or "decker example" happens.
+provisionResources happens during the processing of markdown files
+
+-}
+-- getResourceMeta :: ResourceType
+-- looks for "resources" in metaA
+-- returns a resource type (if no "resource" exists then default)
+-- returns a Maybe String with the source of the resource folder
+-- handleResources :: ResourceType -> 
+{-
 TODO: From Decker.hs
 move functionality from "support" command to here
-    (done)s if support directory exists and (done)s provisioning type
+    checks if support directory exists and checks provisioning type
     symlinks/copies accordingly
-
+-}
+{-
 TODO: from Resource.hs
 writeExampleProject - (done)
 writeResourceFiles - (done)
