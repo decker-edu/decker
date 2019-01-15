@@ -778,24 +778,15 @@ body {
             text-align: right;
           }
 
-<<<<<<< HEAD
             .slide-number {
                 color: #009;
                 background-color: rgba(255, 255, 255, 0);
             }
         }
 
-        .resume-button {
-          visibility: hidden;
-        }
         .roll span:after {
             color: #fff;
             background: #00004d;
-=======
-          tr:last-child td {
-            border-bottom: none;
-          }
->>>>>>> 833ee73436978d95d9f6980408b5fa5be13015b4
         }
 
         /////////////////////////////////////////////
@@ -980,6 +971,13 @@ body {
       color: gray;
       font-size: 0.4em;
     }
+
+    /////////////////////////////////////////////
+    // Pause Overlay
+    /////////////////////////////////////////////
+    .resume-button {
+      visibility: hidden;
+    }
   }
 
   /////////////////////////////////////////////
@@ -1076,8 +1074,5 @@ body {
     a:link:after {
       content: " (" attr(href) ") ";
     }
-<<<<<<< HEAD
-=======
-  }
->>>>>>> 833ee73436978d95d9f6980408b5fa5be13015b4
+}
 }
