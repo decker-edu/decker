@@ -37,7 +37,6 @@ Decker uses a few external tools that need to be installed on the system:
 -   [*Gnuplot*](http://gnuplot.sourceforge.net) to generate graphs using `dot`
 -   [*pdf2svg*](https://github.com/dawbarton/pdf2svg) to generate SVG files from
     PDF documents
--   [*sassc*](https://github.com/sass/sassc) to compile SCSS to CSS
 -   *libbzip2-dev*
 -   [*NodeJS*](https://nodejs.org/) as a prerequisite for Yarn
 -   [*Yarn*](https://yarnpkg.com) to install Javascript dependencies
@@ -47,7 +46,7 @@ Decker uses a few external tools that need to be installed on the system:
 Use [Homebrew](https://brew.sh) to install most of them.
 
 ``` {.sh}
-brew install rsync unzip graphviz gnuplot pdf2svg sassc yarn
+brew install rsync unzip graphviz gnuplot pdf2svg yarn
 ```
 
 For the rest follow instructions on their respective webites.
@@ -177,3 +176,6 @@ Haskell soure code readability depends heavily on consistent formatting
 conventions. With decker, formatting is automated using the excellent
 [hindent]() tool. Formatting is checked for each commit that is uploaded to the
 GitLab repository.
+
+## Compile Flags
+The Decker executable contains per default all necessary supporting files and extracts them on the first run. Some packaging solutions prefer to already extract the files during the installation. To support this, a compile flag `preextractedresources` is available which instructs Decker to work with the already extracted resource files. Invoke `stack --flag decker:preextractedresources` to compile such a version.

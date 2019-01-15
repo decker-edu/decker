@@ -1,4 +1,5 @@
 const path = require('path');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
   target: "web",
@@ -8,6 +9,7 @@ module.exports = {
     plugins: './src-support/rplugins.js',
     classlist: './src-support/classlist.js',
     page: './src-support/page.js',
+    handout: './src-support/handout.js',
     three: './src-support/three.js',
     d3: './src-support/d3.js',
     chalkboard: './src-support/chalkboard.js'
@@ -26,17 +28,21 @@ module.exports = {
         }
       },
       {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader']
-      },
-      {
-        test: /\.scss$/,
+        test: /\.s?[ac]ss$/,
         use: [
-          "style-loader",
-          "css-loader",
-          "sass-loader"
-        ]
-      },
+            {
+                loader: MiniCssExtractPlugin.loader,
+            },
+            {
+                loader: 'css-loader',
+                options: { sourceMap: true }
+            },
+            {
+                loader: 'sass-loader',
+                options: { sourceMap: true }
+            }
+        ],
+    },
       {
         test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
         use: [{
@@ -58,5 +64,11 @@ module.exports = {
         }]
       }
     ]
-  }
+  },
+  plugins: [
+      new MiniCssExtractPlugin({
+          filename: "[name].css"
+      })
+
+  ]
 };
