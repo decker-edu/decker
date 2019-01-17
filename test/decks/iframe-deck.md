@@ -11,20 +11,13 @@ history: True
 1.  Iframe embedded in slide showing a PDF
 4.  Iframe as background showing a PDF
 
-# Iframe showing <https://www.heise.de>
+# Iframe showing <https://tramberend.beuth-hochschule.de>
 
-![](http://www.heise.de/index.html){width="100%" height="500px"}
+![](https://tramberend.beuth-hochschule.de/index.html){width="100%" height="500px"}
 
-# ![](http://www.heise.de/index.html)
+# ![](https://tramberend.beuth-hochschule.de/index.html)
 
 # Iframe showing <http://pandoc.org/MANUAL.pdf>
 
 ![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
 
-# Three.js in a Box
-
-![](mc/webgl_geometry_minecraft_ao.html){.iframe width="100%" height="500px"}
-
-[](../../resource/support/three.js){.resource}
-
-# ![](mc/webgl_geometry_minecraft_ao.html)
