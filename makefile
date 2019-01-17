@@ -64,6 +64,9 @@ profile: build-profile
 	stack exec -- decker clean
 	stack exec --work-dir .stack-work-profile -- decker +RTS -p
 
+preextracted:
+	stack build -j 8 --fast --flag decker:preextractedresources
+
 install: yarn build
 	stack exec -- decker clean
 	mkdir -p $(local-bin-path)
@@ -80,7 +83,7 @@ install-resources: yarn
 version:
 	@echo "$(decker-name)"
 
-.PHONY: build clean test install dist docs yarn
+.PHONY: build clean test install dist docs yarn preextracted
 
 ##### Copy JS dependencies that can't be packed with webpack
 
