@@ -59,6 +59,7 @@ import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Network.URI
+import System.Decker.OS
 import qualified System.Directory as Dir
 import System.FilePath.Glob
 import Text.CSL.Pandoc
@@ -195,12 +196,13 @@ getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
 getSupportDir meta out defaultPath = do
   dirs <- projectDirsA
   cur <- liftIO Dir.getCurrentDirectory
-  return $
-    case templateFromMeta meta of
-      Just template ->
-        (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
-        (makeRelativeTo cur template)
-      Nothing -> defaultPath
+  let dirPath =
+        case templateFromMeta meta of
+          Just template ->
+            (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
+            (makeRelativeTo cur template)
+          Nothing -> defaultPath
+  return $ urlPath dirPath
 
 -- | Write Pandoc in native format right next to the output file
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action Pandoc
@@ -227,11 +229,12 @@ markdownToHtmlDeck markdownFile out index = do
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax
-                (supportDirRel </> "node_modules" </> "mathjax" </>
+                (urlPath $
+                 supportDirRel </> "node_modules" </> "mathjax" </>
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables =
               [ ( "revealjs-url"
-                , supportDirRel </> "node_modules" </> "reveal.js")
+                , urlPath $ supportDirRel </> "node_modules" </> "reveal.js")
               , ("decker-support-dir", templateSupportDir)
               ]
           , writerCiteMethod = Citeproc
@@ -288,6 +291,7 @@ readAndProcessMarkdown markdownFile disp = do
       concatM
         [ expandDeckerMacros
         , renderCodeBlocks
+        , includeCode
         , provisionResources
         , processSlides
         , renderMediaTags
@@ -318,16 +322,16 @@ provisionResources pandoc = do
 
 provisionMetaResource ::
      FilePath -> Provisioning -> (String, FilePath) -> Action FilePath
-provisionMetaResource base method (key, url)
+provisionMetaResource base method kv@(key, url)
   | key `elem` runtimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     provisionResource base method filePath
-provisionMetaResource base method (key, url)
+provisionMetaResource base method kv@(key, url)
   | key `elem` templateOverrideMetaKeys = do
     cwd <- liftIO $ Dir.getCurrentDirectory
     filePath <- urlToFilePathIfLocal cwd url
     provisionTemplateOverrideSupportTopLevel cwd method filePath
-provisionMetaResource base _ (key, url)
+provisionMetaResource base _ kv@(key, url)
   | key `elem` compiletimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     need [filePath]
@@ -376,7 +380,20 @@ provisionTemplateOverrideSupportTopLevel base method url = do
 provisionResource :: FilePath -> Provisioning -> FilePath -> Action FilePath
 provisionResource base method filePath =
   case parseRelativeReference filePath of
-    Nothing -> return filePath
+    Nothing ->
+      if hasDrive filePath
+        then do
+          dirs <- projectDirsA
+          let resource =
+                Resource
+                  { sourceFile = filePath
+                  , publicFile =
+                      (dirs ^. public) </>
+                      makeRelativeTo (dirs ^. project) filePath
+                  , publicUrl = urlPath $ makeRelativeTo base filePath
+                  }
+          provision resource
+        else return filePath
     Just uri -> do
       dirs <- projectDirsA
       let path = uriPath uri
@@ -385,15 +402,18 @@ provisionResource base method filePath =
         then do
           need [path]
           let resource = resourcePathes dirs base uri
-          p <- publicResourceA
-          withResource p 1 $
-            liftIO $
-            case method of
-              Copy -> copyResource resource
-              SymLink -> linkResource resource
-              Absolute -> absRefResource resource
-              Relative -> relRefResource base resource
+          provision resource
         else throw $ ResourceException $ "resource does not exist: " ++ path
+  where
+    provision resource = do
+      publicResource <- publicResourceA
+      withResource publicResource 1 $
+        liftIO $
+        case method of
+          Copy -> copyResource resource
+          SymLink -> linkResource resource
+          Absolute -> absRefResource resource
+          Relative -> relRefResource base resource
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do
@@ -416,7 +436,8 @@ markdownToHtmlPage markdownFile out = do
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax
-                (supportDir </> "node_modules" </> "mathjax" </>
+                (urlPath $
+                 supportDir </> "node_modules" </> "mathjax" </>
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
@@ -463,7 +484,8 @@ markdownToHtmlHandout markdownFile out = do
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax
-                (supportDir </> "node_modules" </> "mathjax" </>
+                (urlPath $
+                 supportDir </> "node_modules" </> "mathjax" </>
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
@@ -639,6 +661,7 @@ elementAttributes =
   , "data-background-video"
   , "data-background-image"
   , "data-background-iframe"
+  , "include"
   ]
 
 -- | Resources in meta data that are needed at compile time. They have to be
