@@ -1,6 +1,8 @@
 require('reveal.js/lib/js/head.min.js');
 Reveal = require('reveal.js/js/reveal');
 require('./decker.scss');
+require('./fonts/roboto.css');
+require('./fonts/source-code-pro.css');
 
 window.addEventListener('ready', function (event) {
   if (Reveal.isReady()) {

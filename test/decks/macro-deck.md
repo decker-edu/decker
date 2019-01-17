@@ -12,5 +12,5 @@ showNotes: True
 
 # Font Awesome
 
-- [:fa](ghost)
-- [:fa](font-awesome)
+- [:fas](ghost)
+- [:fab](font-awesome)
