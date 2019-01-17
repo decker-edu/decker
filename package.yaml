@@ -67,7 +67,6 @@ dependencies:
   - network-uri
   - pandoc
   - pandoc-citeproc
-  - pandoc-lens
   - pandoc-types
   - pandoc-include-code
   - process

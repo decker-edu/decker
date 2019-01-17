@@ -23,6 +23,7 @@ import Control.Exception
 import Exception
 import Sketch
 import Slide
+import Lens
 
 import Control.Applicative
 import Control.Lens
@@ -57,7 +58,6 @@ import qualified Text.Blaze.Html5.Attributes as A (alt, class_, id, title)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Filter.IncludeCode as P
-import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Read hiding (lift)

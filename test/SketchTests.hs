@@ -4,11 +4,11 @@ module SketchTests
 
 import Sketch
 import Slide
+import Lens
 
 import Data.Char
 import Test.Hspec
 import Text.Pandoc
-import Text.Pandoc.Lens
 
 import Control.Lens
 
