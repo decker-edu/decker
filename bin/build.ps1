@@ -1,3 +1,6 @@
+Param(
+    [string]$buildtype = "preextracted"
+)
 Write-Output "Building Windows Decker"
 & yarn install
 & yarn run webpack --mode production
@@ -8,4 +11,12 @@ Copy-Item -Force node_modules/reveal.js/plugin/notes/notes.js resource/support/n
 New-Item -ItemType directory -Force -Path resource/support/print
 Copy-Item -Force node_modules/reveal.js/css/print/paper.css resource/support/print/paper.css
 Copy-Item -Force node_modules/reveal.js/css/print/pdf.css resource/support/print/pdf.css
-& stack build -j4 --flag decker:preextractedresources
+
+if($buildtype -eq "preextracted"){
+    Write-Output "Building for preextracted resources"
+    & stack build -j4 --flag decker:preextractedresources
+} else {
+    Write-Output "Building standalone binary"
+    & stack build -j4
+}
+
