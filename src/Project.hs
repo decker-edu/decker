@@ -203,7 +203,7 @@ fileIsNewer a b = do
 -- Both arguments are expected to be absolute pathes. 
 makeRelativeTo :: FilePath -> FilePath -> FilePath
 makeRelativeTo dir file =
-  let (d, f) = removeCommonPrefix (dir, file)
+  let (d, f) = removeCommonPrefix (normalise dir, normalise file)
    in normalise $ invertPath d </> f
 
 invertPath :: FilePath -> FilePath
