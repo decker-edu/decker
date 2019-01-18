@@ -307,7 +307,6 @@ analyseDeckIndex relDir indexFile = do
 
 publicResourceA = _publicResource . _state <$> actionContext
 
--- TODO: Move all these paths to Project? Probably not
 projectDirsA :: Action ProjectDirs
 projectDirsA = _dirs <$> actionContext
 

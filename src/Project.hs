@@ -72,7 +72,6 @@ data Targets = Targets
 
 makeLenses ''Targets
 
--- TODO: Rename so there's no confusion with ResourceType?
 data Resource = Resource
   { sourceFile :: FilePath -- ^ Absolute Path to source file
   , publicFile :: FilePath -- ^ Absolute path to file in public folder
@@ -252,40 +251,3 @@ scanTargets exclude suffixes dirs = do
         (replaceSuffix srcSuffix targetSuffix .
          combine (dirs ^. public) . makeRelative (dirs ^. project))
         (fromMaybe [] $ lookup srcSuffix sources)
-{-
-CLEANUP: Has been moved to NewResources
-copyResource :: Resource -> IO FilePath
-copyResource resource = do
-  copyFileIfNewer (sourceFile resource) (publicFile resource)
-  return (publicUrl resource)
-
-linkResource :: Resource -> IO FilePath
-linkResource resource = do
-  whenM
-    (D.doesFileExist (publicFile resource))
-    (D.removeFile (publicFile resource))
-  D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
-  D.createFileLink (sourceFile resource) (publicFile resource)
-  return (publicUrl resource)
--}
-{-CLEANUP: has been moved; Remove comment!
--- | Copies the src to dst if src is newer or dst does not exist. Creates
--- missing directories while doing so.
-copyFileIfNewer :: FilePath -> FilePath -> IO ()
-copyFileIfNewer src dst =
-  whenM (fileIsNewer src dst) $ do
-    D.createDirectoryIfMissing True (takeDirectory dst)
-    D.copyFile src dst
-fileIsNewer :: FilePath -> FilePath -> IO Bool
-fileIsNewer a b = do
-  aexists <- D.doesFileExist a
-  bexists <- D.doesFileExist b
-  if bexists
-    then if aexists
-           then do
-             at <- D.getModificationTime a
-             bt <- D.getModificationTime b
-             return (at > bt)
-           else return False
-    else return aexists
--}

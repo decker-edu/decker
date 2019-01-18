@@ -9,7 +9,7 @@ module Sketch
 
 import Common
 import Markdown
-import Resources
+import Output
 import Slide
 
 import Control.Lens

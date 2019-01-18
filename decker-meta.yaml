@@ -1,8 +1,5 @@
 project-name: Decker
 provisioning: Copy
-resources: 
-  type: local
-  source: /home/user/test
 
 exclude-directories:
 - app

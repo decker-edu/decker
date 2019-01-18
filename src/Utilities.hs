@@ -26,7 +26,7 @@ import Exception
 import Filter
 import Macro
 import Meta
-import NewResources
+import Output
 import Project
 import Render
 import Resources
@@ -314,7 +314,6 @@ provisionResources pandoc = do
     mapMetaResources (provisionMetaResource base method) pandoc >>=
     mapResources (provisionResource base method)
 
--- CLEANUP: Moved to Output.hs
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do
   public <- publicA
@@ -602,158 +601,3 @@ lookupPandocMeta key (Meta m) =
     lookup' [] (Just (MetaString s)) = Just s
     lookup' [] (Just (MetaInlines i)) = Just $ stringify i
     lookup' _ _ = Nothing
-{-
-CLEANUP: moved to Shake.hs since getRelativeSUpportDir is there already
-getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
-getSupportDir meta out defaultPath = do
-  dirs <- projectDirsA
-  cur <- liftIO Dir.getCurrentDirectory
-  let dirPath =
-        case templateFromMeta meta of
-          Just template ->
-            (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
-            (makeRelativeTo cur template)
-          Nothing -> defaultPath
-  return $ urlPath dirPath
--}
-{- CLEANUP: moved to NewResources
-provisionMetaResource ::
-     FilePath -> Provisioning -> (String, FilePath) -> Action FilePath
-provisionMetaResource base method kv@(key, url)
-  | key `elem` runtimeMetaKeys = do
-    filePath <- urlToFilePathIfLocal base url
-    provisionResource base method filePath
-provisionMetaResource base method kv@(key, url)
-  | key `elem` templateOverrideMetaKeys = do
-    cwd <- liftIO $ Dir.getCurrentDirectory
-    filePath <- urlToFilePathIfLocal cwd url
-    provisionTemplateOverrideSupportTopLevel cwd method filePath
-provisionMetaResource base _ kv@(key, url)
-  | key `elem` compiletimeMetaKeys = do
-    filePath <- urlToFilePathIfLocal base url
-    need [filePath]
-    return filePath
-provisionMetaResource _ _ (key, url) = return url
-
-provisionTemplateOverrideSupport ::
-     FilePath -> Provisioning -> FilePath -> Action ()
-provisionTemplateOverrideSupport base method url = do
-  let newBase = base </> url
-  exists <- liftIO $ Dir.doesDirectoryExist url
-  if exists
-    then liftIO (Dir.listDirectory url) >>= mapM_ recurseProvision
-    else do
-      need [url]
-      provisionResource base method url
-      return ()
-  where
-    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
-
-provisionTemplateOverrideSupportTopLevel ::
-     FilePath -> Provisioning -> FilePath -> Action FilePath
-provisionTemplateOverrideSupportTopLevel base method url = do
-  liftIO (Dir.listDirectory url) >>= filterM dirFilter >>=
-    mapM_ recurseProvision
-  return $ url
-  where
-    dirFilter x = liftIO $ Dir.doesDirectoryExist (url </> x)
-    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
-
--- | Determines if a URL can be resolved to a local file. Absolute file URLs are
--- resolved against and copied or linked to public from 
---    1. the project root 
---    2. the local filesystem root 
---
--- Relative file URLs are resolved against and copied or linked to public from 
---
---    1. the directory path of the referencing file 
---    2. the project root Copy and link operations target the public directory
---       in the project root and recreate the source directory structure. 
---
--- This function is used to provision resources that are used at presentation
---       time.
---
--- Returns a public URL relative to base
-provisionResource :: FilePath -> Provisioning -> FilePath -> Action FilePath
-provisionResource base method filePath =
-  case parseRelativeReference filePath of
-    Nothing ->
-      if hasDrive filePath
-        then do
-          dirs <- projectDirsA
-          let resource =
-                Resource
-                  { sourceFile = filePath
-                  , publicFile =
-                      (dirs ^. public) </>
-                      makeRelativeTo (dirs ^. project) filePath
-                  , publicUrl = urlPath $ makeRelativeTo base filePath
-                  }
-          provision resource
-        else return filePath
-    Just uri -> do
-      dirs <- projectDirsA
-      let path = uriPath uri
-      fileExists <- doesFileExist path
-      if fileExists
-        then do
-          need [path]
-          let resource = resourcePaths dirs base uri
-          provision resource
-        else throw $ ResourceException $ "resource does not exist: " ++ path
-  where
-    provision resource = do
-      publicResource <- publicResourceA
-      withResource publicResource 1 $
-        liftIO $
-        case method of
-          Copy -> copyResource resource
-          SymLink -> linkResource resource
-          Absolute -> absRefResource resource
-          Relative -> relRefResource base resource
-
--}
-{- CLEANUP: Moved to Common.hs
--- | These resources are needed at runtime. If they are specified as local URLs,
--- the resource must exists at compile time. Remote URLs are passed through
--- unchanged.
-elementAttributes :: [String]
-elementAttributes =
-  [ "src"
-  , "data-src"
-  , "data-markdown"
-  , "data-background-video"
-  , "data-background-image"
-  , "data-background-iframe"
-  , "include"
-  ]
-
--- | Resources in meta data that are needed at compile time. They have to be
--- specified as local URLs and must exist.
-runtimeMetaKeys :: [String]
-runtimeMetaKeys = ["css"]
-
-templateOverrideMetaKeys :: [String]
-templateOverrideMetaKeys = ["template"]
-
-compiletimeMetaKeys :: [String]
-compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
-
-metaKeys :: [String]
-metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
--}
-{- CLEANUP: Moved to NewResources. Not really sure about that location, though
-urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
-urlToFilePathIfLocal base uri =
-  case parseRelativeReference uri of
-    Nothing -> return uri
-    Just relativeUri -> do
-      let filePath = uriPath relativeUri
-      absBase <- liftIO $ Dir.makeAbsolute base
-      absRoot <- projectA
-      let absPath =
-            if isAbsolute filePath
-              then absRoot </> makeRelative "/" filePath
-              else absBase </> filePath
-      return absPath
--}
