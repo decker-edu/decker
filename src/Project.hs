@@ -13,7 +13,6 @@ module Project
   , makeRelativeTo
   , findProjectDirectory
   , projectDirectories
-  , deckerResourceDir
   , provisioningFromMeta
   , templateFromMeta
   , provisioningFromClasses
