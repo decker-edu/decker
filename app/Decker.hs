@@ -182,7 +182,7 @@ main = do
       removeFilesAfter (directories ^. project) cruft
       old <- liftIO oldResourcePaths
       forM_ old $ \dir -> removeFilesAfter dir ["//"]
-      when isDevelopmentVersion $
+      when (isDevelopmentVersion && not hasPreextractedResources) $
         removeFilesAfter (directories ^. appData) ["//"]
     --
     phony "help" $ do
