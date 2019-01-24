@@ -86,7 +86,7 @@ writeToMarkdownFile filepath pandoc@(Pandoc meta _) = do
 provideSlideIds :: Pandoc -> IO Pandoc
 provideSlideIds (Pandoc meta body) = do
   let slides = toSlides body
-  idSlides <- mapAccumM provideSlideIdIO [] slides
+  idSlides <- mapAccumM provideSlideIdIO ["decker-title-slide"] slides
   let idBody = fromSlides idSlides
   return $ Pandoc meta idBody
 
