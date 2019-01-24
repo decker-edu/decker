@@ -2,22 +2,23 @@ module Sketch
   ( randomId
   , writeToMarkdownFile
   , provideSlideIds
-  , provideSlideId
+  -- , provideSlideId
   , provideSlideIdIO
   , idDigits
   ) where
 
 import Common
+import Lens
 import Markdown
 import Meta
 import Resources
 import Slide
-import Lens
 
 import Control.Lens
 import Control.Monad
 import Data.Maybe
 import qualified Data.Text.IO as T
+import Debug.Trace
 import System.Directory
 import System.FilePath
 import System.IO
@@ -85,23 +86,37 @@ writeToMarkdownFile filepath pandoc@(Pandoc meta _) = do
 provideSlideIds :: Pandoc -> IO Pandoc
 provideSlideIds (Pandoc meta body) = do
   let slides = toSlides body
-  idSlides <- mapM provideSlideIdIO slides
+  idSlides <- mapAccumM provideSlideIdIO [] slides
   let idBody = fromSlides idSlides
   return $ Pandoc meta idBody
 
 -- Provides unique, random, sticky ids for all slides.
-provideSlideId :: Slide -> Decker Slide
-provideSlideId = doIO . provideSlideIdIO
+-- provideSlideId :: Slide -> Decker Slide
+-- provideSlideId = doIO . provideSlideIdIO
+provideSlideIdIO :: [String] -> Slide -> IO ([String], Slide)
+-- Create a new random ID if there is none
+-- Create a new random ID if the existing one is not unique
+-- Preserve an existing unique ID
+provideSlideIdIO ids slide@(Slide (Just (Header 1 (sid, c, kv) i)) body) =
+  if sid == "" || sid `elem` ids
+    then do
+      sid <- randomId
+      return (sid : ids, Slide (Just $ Header 1 (sid, c, kv) i) body)
+    else return (sid : ids, slide)
+-- Create a random ID and an empty level 1 header if there is neither
+provideSlideIdIO ids (Slide Nothing body) = do
+  sid <- randomId
+  return (sid : ids, Slide (Just $ Header 1 (sid, [], []) []) body)
 
-provideSlideIdIO :: Slide -> IO Slide
--- Create random ID if there is none
-provideSlideIdIO (Slide (Just (Header 1 ("", c, kv) i)) body) = do
-  sid <- randomId
-  return $ Slide (Just $ Header 1 (sid, c, kv) i) body
--- Create random ID and a level 1 header if there is neither
-provideSlideIdIO (Slide Nothing body) = do
-  sid <- randomId
-  return $ Slide (Just $ Header 1 (sid, [], []) []) body
--- Preserve existing ID
-provideSlideIdIO slide@(Slide (Just (Header 1 (sid, c, kv) i)) body) =
-  return slide
+-- Monadic map with an accumulator
+mapAccumM ::
+     (Monad m)
+  => (acc -> x -> m (acc, y))
+  -> acc
+  -> [x]
+  -> m [y]
+mapAccumM _ z [] = return []
+mapAccumM f z (x:xs) = do
+  (z', y) <- f z x
+  ys <- mapAccumM f z' xs
+  return (y : ys)
