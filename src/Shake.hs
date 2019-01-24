@@ -36,11 +36,11 @@ import Common
 import CompileTime
 import Exception
 import Glob
+import Lens as P
 import Meta
 import Project
 import Server
 import Sketch
-import Lens as P
 
 import Control.Concurrent
 import Control.Exception
@@ -214,13 +214,16 @@ writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
   let indexUrl = T.pack $ "/" </> makeRelative publ out
   let sourceDir = T.pack $ makeRelative proj $ takeDirectory markdownFile
   let sourceFile = T.pack $ makeRelative proj markdownFile
-  let slides =
-        [ object
+  let slideObject i t =
+        object
           [ ("id", String $ T.strip $ T.pack i)
           , ("title", String $ T.strip $ T.pack t)
           ]
-        | (i, t) <- query headers pandoc
-        ]
+  let slides = [slideObject i t | (i, t) <- query headers pandoc]
+  let fixTitleId slides =
+        if title == ""
+          then slides
+          else slideObject "decker-title-slide" (T.unpack title) : slides
   let yaml =
         object
           [ ("commit-id", String commit)
@@ -231,7 +234,7 @@ writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
           , ("source-file", String sourceFile)
           , ("title", String title)
           , ("subtitle", String subtitle)
-          , ("slides", array slides)
+          , ("slides", array $ fixTitleId slides)
           ]
   liftIO $ Yaml.encodeFile out yaml
   liftIO $ Json.encodeFile (out -<.> "json") yaml
