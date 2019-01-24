@@ -9,6 +9,7 @@ module Sketch
 
 import Common
 import Markdown
+import Meta
 import Resources
 import Slide
 
@@ -50,21 +51,13 @@ randomAlpha = getStdRandom (randomR ('a', 'z'))
 -- | Writes a pandoc document atoimically to a markdown file. It uses a modified
 -- Markdown writer that produces more appropriately formatted documents.
 writeToMarkdownFile :: FilePath -> Pandoc -> IO ()
-writeToMarkdownFile filepath pandoc = do
+writeToMarkdownFile filepath pandoc@(Pandoc meta _) = do
   template <- getResourceString $ "template" </> "deck.md"
-  let columns =
-        fromMaybe 80 $ readMaybe $ stringify $ pandoc ^? meta "write-back" .
-        _MetaMap .
-        at "line-columns" .
-        _Just .
-        _MetaInlines
+  let columns = lookupInt "write-back.line-columns" 80 meta
   let wrapOpt "none" = WrapNone
       wrapOpt "preserve" = WrapPreserve
       wrapOpt _ = WrapAuto
-  let wrap =
-        stringify $ pandoc ^? meta "write-back" . _MetaMap . at "line-wrap" .
-        _Just .
-        _MetaInlines
+  let wrap = lookupString "write-back.line-wrap" "auto" meta
   let extensions =
         (disableExtension Ext_simple_tables .
          disableExtension Ext_multiline_tables .
@@ -101,14 +94,14 @@ provideSlideId :: Slide -> Decker Slide
 provideSlideId = doIO . provideSlideIdIO
 
 provideSlideIdIO :: Slide -> IO Slide
+-- Create random ID if there is none
 provideSlideIdIO (Slide (Just (Header 1 ("", c, kv) i)) body) = do
   sid <- randomId
-  -- print (Slide (Just $ Header 1 (sid, c, kv) i) body)
   return $ Slide (Just $ Header 1 (sid, c, kv) i) body
+-- Create random ID and a level 1 header if there is neither
 provideSlideIdIO (Slide Nothing body) = do
   sid <- randomId
   return $ Slide (Just $ Header 1 (sid, [], []) []) body
-provideSlideIdIO slide@(Slide (Just (Header 1 (sid, c, kv) i)) body)
-  -- print (Slide (Just $ Header 1 (sid, c, kv) i) body)
- = do
+-- Preserve existing ID
+provideSlideIdIO slide@(Slide (Just (Header 1 (sid, c, kv) i)) body) =
   return slide
