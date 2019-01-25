@@ -70,7 +70,7 @@ main = do
       decksA >>= need
     --
     phony "html" $ do
-      need ["index"]
+      need ["index", "annotations"]
       allHtmlA >>= need
     --
     phony "pdf" $ do
@@ -97,7 +97,8 @@ main = do
     --
     phony "sketch-pad-index" $ do
       indicesA >>= need
-      indicesA >>= writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
+      indicesA >>=
+        writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
     --
     phony "index" $ need ["support", index]
     --
@@ -228,6 +229,15 @@ main = do
           _ -> return ()
     --
     phony "check" checkExternalPrograms
+    --
+    phony "annotations" $ do
+      metaData <- metaA
+      when (isJust $ metaValueAsString "publish-annotations" metaData) $ do
+        let src = (directories ^. project) </> "annotations"
+        exists <- doesDirectoryExist src
+        when exists $ do 
+          let dst = (directories ^. public) </> "annotations"
+          liftIO $ copyDir src dst
     --
     phony "publish" $ do
       need ["index"]

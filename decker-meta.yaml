@@ -1,4 +1,5 @@
 project-name: Decker
+publish-annotations: True
 provisioning: Copy
 exclude-directories:
 - app
