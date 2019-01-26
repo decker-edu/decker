@@ -230,14 +230,12 @@ main = do
     --
     phony "check" checkExternalPrograms
     --
-    phony "annotations" $ do
+    phony "publish-annotations" $ do
       metaData <- metaA
       when (isJust $ metaValueAsString "publish-annotations" metaData) $ do
         let src = (directories ^. project) </> "annotations"
-        exists <- doesDirectoryExist src
-        when exists $ do 
-          let dst = (directories ^. public) </> "annotations"
-          liftIO $ copyDir src dst
+        let dst = (directories ^. public) </> "annotations"
+        liftIO $ copyDirIfNewer src dst
     --
     phony "publish" $ do
       need ["index"]
