@@ -71,7 +71,7 @@ main = do
       decksA >>= need
     --
     phony "html" $ do
-      need ["index", "annotations"]
+      need ["index", "publish-annotations"]
       allHtmlA >>= need
     --
     phony "pdf" $ do

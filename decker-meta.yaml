@@ -1,6 +1,6 @@
 project-name: Decker
 publish-annotations: True
-provisioning: Copy
+provisioning: SymLink
 exclude-directories:
 - app
 - bin
