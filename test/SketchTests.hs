@@ -1,5 +1,5 @@
 module SketchTests
-  ( sketchTests
+  ( -- sketchTests
   ) where
 
 import Sketch
@@ -12,6 +12,7 @@ import Text.Pandoc
 
 import Control.Lens
 
+{--
 noIdSlide = Slide (Just $ Header 1 ("", [], []) []) []
 
 someIdSlide = Slide (Just $ Header 1 ("manually-set-id", [], []) []) []
@@ -33,3 +34,4 @@ sketchTests = do
     it "does not touch headers that already have an id" $
       view (header . _Just . attributes . attrIdentifier) <$>
       provideSlideIdIO someIdSlide `shouldReturn` "manually-set-id"
+--}

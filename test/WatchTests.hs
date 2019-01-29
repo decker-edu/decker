@@ -17,7 +17,3 @@ watchTests = do
     it "does not descend into excluded dirs" $
       fastGlobFiles ["example", "support", "template"] [".html"] "resource" `shouldReturn`
       []
-  describe "fastGlobDirs" $ do
-    it "globs for directories" $
-      fastGlobDirs ["include"] "resource/example" `shouldReturn`
-      ["resource/example","resource/example/audio","resource/example/img","resource/example/movies"]
