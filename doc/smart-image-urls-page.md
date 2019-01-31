@@ -21,9 +21,9 @@ browser supported formats. Decker controls the precise semantics of image tags
 with parameters that can be specified by the writer in three mostly independent
 dimensions:
 
-    - Context
-    - URI scheme 
-    - Attributes (class and key-value)
+-   Context
+-   URI scheme
+-   Attributes (class and key-value)
 
 --------------------------------------------------------------------------------
 
@@ -47,10 +47,10 @@ Paragraph
 
 :   The image tag is the sole inline element within a paragraph.
 
-    ``` {.markdown}
+    ``` {.markdown data-noescape="1"}
     A very short single sentence paragraph.
 
-    ![Very funny video.](/folder/video.mp4)
+    <mark>![Very funny video.](/folder/video.mp4)</mark>
 
     Another very short single sentence paragraph.
     ```
