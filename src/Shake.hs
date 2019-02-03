@@ -288,12 +288,13 @@ writeSketchPadIndex out indexFiles = do
   liftIO $ Yaml.encodeFile out yaml
   liftIO $ Json.encodeFile (out -<.> "json") yaml
 
-deckEntry :: FilePath -> T.Text -> T.Text -> Yaml.Value
-deckEntry path title subtitle =
+deckEntry :: FilePath -> T.Text -> T.Text -> T.Text -> Yaml.Value
+deckEntry path title subtitle did =
   object
     [ ("path", String $ T.pack path)
     , ("title", String title)
     , ("subtitle", String subtitle)
+    , ("deck-id", String did)
     ]
 
 analyseDeckIndex :: FilePath -> FilePath -> IO (Maybe Yaml.Value)
@@ -310,6 +311,7 @@ analyseDeckIndex relDir indexFile = do
                  (makeRelative relDir indexFile)
                  (yaml ^. key "title" . _String)
                  (yaml ^. key "subtitle" . _String)
+                 (yaml ^. key "deck-id" . _String)
           else Nothing
       Left e -> error $ "No fucking luck: " ++ show e ++ indexFile
 
