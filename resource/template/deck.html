@@ -67,9 +67,13 @@ $endfor$
 
 <!-- Sketch Pad meta data -->
 $if(sketch-pad-viewer-url)$
-<script src="$sketch-pad-viewer-url$" type="text/javascript" 
+<script 
+    id="sketch-pad-script"
+    type="text/javascript" 
+    src="$sketch-pad-viewer-url$" 
     data-repository-id="$sketch-pad-repository-id$"
-    data-deck-id="$sketch-pad-deck-id$"></script>
+    data-deck-id="$sketch-pad-deck-id$">
+</script>
 $endif$
 
 $for(header-includes)$
