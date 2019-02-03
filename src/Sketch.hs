@@ -2,7 +2,6 @@ module Sketch
   ( randomId
   , writeToMarkdownFile
   , provideSlideIds
-  -- , provideSlideId
   , provideSlideIdIO
   , idDigits
   ) where

@@ -42,6 +42,7 @@ import Project
 import Server
 import Sketch
 
+import qualified Data.ByteString.Base16 as B16
 import Control.Concurrent
 import Control.Exception
 import Control.Lens
@@ -49,6 +50,8 @@ import Control.Lens.Combinators
 import Control.Monad
 import Data.Aeson as Json
 import Data.Aeson.Lens
+import qualified Data.ByteString.Lazy as B
+import Data.Digest.Pure.MD5
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import Data.IORef
@@ -56,6 +59,7 @@ import Data.List
 import qualified Data.Map.Strict as M
 import Data.Maybe
 import qualified Data.Text as T
+import Data.Text.Encoding
 import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
@@ -201,12 +205,17 @@ getRelativeSupportDir from = do
   let sup = pub </> ("support" ++ "-" ++ deckerVersion)
   return $ makeRelativeTo from sup
 
+sketchPadId :: T.Text -> T.Text
+sketchPadId text =
+  T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ B.fromStrict $ encodeUtf8 text
+
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
   context <- actionContext
   branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
   commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
   gitUrl <- liftIO $ gitT ["remote", "get-url", "--push", "origin"]
+  let repoId = sketchPadId gitUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
   let title = metaP pandoc "title"
@@ -214,6 +223,7 @@ writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
   let indexUrl = T.pack $ "/" </> makeRelative publ out
   let sourceDir = T.pack $ makeRelative proj $ takeDirectory markdownFile
   let sourceFile = T.pack $ makeRelative proj markdownFile
+  let deckId = sketchPadId sourceFile
   let slideObject i t =
         object
           [ ("id", String $ T.strip $ T.pack i)
@@ -230,18 +240,26 @@ writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
           , ("branch", String branch)
           , ("index-url", String indexUrl)
           , ("repository-url", String gitUrl)
+          , ("repository-id", String repoId)
           , ("source-directory", String sourceDir)
           , ("source-file", String sourceFile)
+          , ("deck-id", String deckId)
           , ("title", String title)
           , ("subtitle", String subtitle)
           , ("slides", array $ fixTitleId slides)
           ]
   liftIO $ Yaml.encodeFile out yaml
   liftIO $ Json.encodeFile (out -<.> "json") yaml
-  return pandoc
+  return $ injectIds deckId repoId pandoc
   where
     headers (Header 1 (id@(_:_), _, _) text) = [(id, stringify text)]
     headers _ = []
+    injectIds :: T.Text -> T.Text -> Pandoc -> Pandoc
+    injectIds deckId repoId (Pandoc meta blocks) =
+      Pandoc
+        (addMetaField "sketch-pad-deck-id" (T.unpack deckId) $
+         addMetaField "sketch-pad-repository-id" (T.unpack repoId) meta)
+        blocks
 
 gitT args = T.strip . T.pack . fromMaybe "<empty>" <$> git args
 
@@ -253,6 +271,7 @@ writeSketchPadIndex out indexFiles = do
   branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
   commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
   gitUrl <- liftIO $ gitT ["remote", "get-url", "--push", "origin"]
+  let repoId = sketchPadId gitUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
   decks <-
@@ -263,6 +282,7 @@ writeSketchPadIndex out indexFiles = do
           [ ("commit-id", String commit)
           , ("branch", String branch)
           , ("repository-url", String gitUrl)
+          , ("repository-id", String repoId)
           , ("decks", array decks)
           ]
   liftIO $ Yaml.encodeFile out yaml

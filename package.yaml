@@ -39,6 +39,7 @@ dependencies:
   - ansi-terminal
   - array
   - base64-bytestring
+  - base16-bytestring
   - blaze-html
   - blaze-markup
   - bytestring

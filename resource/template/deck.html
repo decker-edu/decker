@@ -64,7 +64,13 @@ $for(css)$
 $endfor$
 
 <script src="$decker-support-dir$/decker.js" type="text/javascript"></script>
-<script src="$sketch-pad-viewer-url$" type="text/javascript"></script>
+
+<!-- Sketch Pad meta data -->
+$if(sketch-pad-viewer-url)$
+<script src="$sketch-pad-viewer-url$" type="text/javascript" 
+    data-repository-id="$sketch-pad-repository-id$"
+    data-deck-id="$sketch-pad-deck-id$"></script>
+$endif$
 
 $for(header-includes)$
   $header-includes$
