@@ -58,8 +58,7 @@ build:win:
     - win
   stage: build
   script:
-    - '&.\bin\build.ps1'
-    - '&.\bin\win-prepare-package.ps1'
+    - '&.\bin\build.ps1 preextracted -skiptemplates -preparepackage'
   artifacts:
     paths:
       - decker.exe
