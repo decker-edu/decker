@@ -13,7 +13,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.3.1",
+    "@fortawesome/fontawesome-free": "^5.6.3",
     "mathjax": "^2.7.5",
     "reveal.js": "^3.7.0",
     "reveal.js-menu": "^1.1.3"
