@@ -11,7 +11,7 @@
 -- The original repo does not seem to be maintained very actively and will not compile
 -- with lts-13.3.
 
-module Lens
+module Text.Pandoc.Lens
     ( -- * Documents
       Pandoc
     , body

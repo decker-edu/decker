@@ -40,7 +40,7 @@ import Meta
 import Project
 import Server
 import Sketch
-import Lens as P
+import Text.Pandoc.Lens as P
 
 import Control.Concurrent
 import Control.Exception

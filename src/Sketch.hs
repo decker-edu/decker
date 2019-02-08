@@ -11,7 +11,7 @@ import Common
 import Markdown
 import Resources
 import Slide
-import Lens
+import Text.Pandoc.Lens
 
 import Control.Lens
 import Control.Monad

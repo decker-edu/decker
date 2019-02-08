@@ -33,7 +33,7 @@ import Resources
 import Server
 import Shake
 import Sketch
-import Lens
+import Text.Pandoc.Lens
 
 import Control.Arrow
 import Control.Concurrent
