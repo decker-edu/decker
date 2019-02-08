@@ -69,7 +69,6 @@ dependencies:
   - pandoc
   - pandoc-citeproc
   - pandoc-types
-  - pandoc-include-code
   - process
   - pureMD5
   - random

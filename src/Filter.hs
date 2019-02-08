@@ -221,7 +221,7 @@ zapImages inline = inline
 -- start snippet includeCode
 includeCode :: Pandoc -> Decker Pandoc
 includeCode (Pandoc meta blocks) = do
-  included <- doIO $ walkM (P.includeCode Nothing) blocks
+  included <- lift $ walkM (P.includeCodeA Nothing) blocks
   return $ Pandoc meta included
 
 -- end snippet includeCode
