@@ -128,12 +128,14 @@ readIncluded = liftIO . Text.readFile =<< asks include
 
 isSnippetTag :: Text -> Text -> Text -> Bool
 isSnippetTag tag name line =
-  mconcat [tag, " snippet ", name] `Text.isSuffixOf` Text.strip line
+  mconcat [tag, " ", name] `Text.isSuffixOf` Text.strip line
 
 isSnippetStart, isSnippetEnd :: Text -> Text -> Bool
-isSnippetStart = isSnippetTag "start"
+isSnippetStart name line =
+  isSnippetTag "start snippet" name line || isSnippetTag "8<" name line
 
-isSnippetEnd = isSnippetTag "end"
+isSnippetEnd name line =
+  isSnippetTag "end snippet" name line || isSnippetTag ">8" name line
 
 includeByMode :: Lines -> Inclusion Lines
 includeByMode ls =
