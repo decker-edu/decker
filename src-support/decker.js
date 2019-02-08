@@ -1,7 +1,9 @@
 $ = require("jquery/dist/jquery.slim.js");
-require("reveal.js/lib/js/head.min.js");
-Reveal = require("reveal.js/js/reveal");
-require("./decker.scss");
+require('reveal.js/lib/js/head.min.js');
+Reveal = require('reveal.js/js/reveal');
+require('./decker.scss');
+require('./fonts/roboto.css');
+require('./fonts/source-code-pro.css');
 
 window.addEventListener("ready", function(event) {
   $("div.sourceCode[label]").each(function() {
