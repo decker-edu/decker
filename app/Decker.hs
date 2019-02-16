@@ -44,7 +44,7 @@ main = do
   directories <- projectDirectories
   --
   let serverPort = 8888
-  let serverUrl = "http://localhost:" ++ (show serverPort)
+  let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
   let index = (directories ^. public) </> "index.html"
   let cruft = ["index.md.generated", "log", "//.shake", "generated", "code"]
@@ -157,7 +157,7 @@ main = do
       "//*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
-        dot [("-o" ++ out), src]
+        dot ["-o" ++ out, src]
     --
     priority 2 $
       "//*.gnuplot.svg" %> \out -> do
@@ -239,6 +239,6 @@ main = do
         then do
           let src = (directories ^. public) ++ "/"
           let dst = intercalate ":" [fromJust host, fromJust path]
-          ssh [(fromJust host), "mkdir -p", (fromJust path)]
+          ssh [fromJust host, "mkdir -p", fromJust path]
           rsync [src, dst]
         else throw RsyncUrlException
