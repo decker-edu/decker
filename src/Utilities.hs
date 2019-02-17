@@ -14,6 +14,7 @@ module Utilities
   , (<++>)
   , writeEmbeddedFiles
   , pandocMakePdf
+  , pandocReaderOpts
   , fixMustacheMarkup
   , fixMustacheMarkupText
   , toPandocMeta
@@ -136,6 +137,12 @@ writeIndexLists out baseUrl = do
   let decks = (zip (_decks ts) (_decksPdf ts))
   let handouts = (zip (_handouts ts) (_handoutsPdf ts))
   let pages = (zip (_pages ts) (_pagesPdf ts))
+  let makeLink (html, pdf) =
+        printf
+          "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
+          (makeRelative (dirs ^. public) html)
+          (makeRelative baseUrl html)
+          (makeRelative baseUrl pdf)
   liftIO $ writeFile out $
     unlines
       [ "---"
@@ -149,13 +156,6 @@ writeIndexLists out baseUrl = do
       , "# Supporting Documents"
       , unlines $ map makeLink pages
       ]
-  where
-    makeLink (html, pdf) =
-      printf
-        "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
-        (takeFileName html)
-        (makeRelative baseUrl html)
-        (makeRelative baseUrl pdf)
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text
@@ -226,8 +226,7 @@ markdownToHtmlDeck markdownFile out index = do
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax
-                (urlPath $
-                 supportDirRel </> "node_modules" </> "mathjax" </>
+                (urlPath $ supportDirRel </> "node_modules" </> "mathjax" </>
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables =
               [ ( "revealjs-url"
@@ -405,8 +404,7 @@ provisionResource base method filePath =
   where
     provision resource = do
       publicResource <- publicResourceA
-      withResource publicResource 1 $
-        liftIO $
+      withResource publicResource 1 $ liftIO $
         case method of
           Copy -> copyResource resource
           SymLink -> linkResource resource
@@ -434,15 +432,16 @@ markdownToHtmlPage markdownFile out = do
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax
-                (urlPath $
-                 supportDir </> "node_modules" </> "mathjax" </>
+                (urlPath $ supportDir </> "node_modules" </> "mathjax" </>
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
           , writerTableOfContents =
               fromMaybe False $ pandoc ^? meta "show-toc" . _MetaBool
           , writerTOCDepth =
-              fromMaybe 1 $ readMaybe $ fromMaybe "1" $ pandoc ^? meta "toc-depth" . _MetaString
+              fromMaybe 1 $ readMaybe $ fromMaybe "1" $ pandoc ^?
+              meta "toc-depth" .
+              _MetaString
           }
   writePandocFile "html5" options out pandoc
 
@@ -486,15 +485,16 @@ markdownToHtmlHandout markdownFile out = do
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax
-                (urlPath $
-                 supportDir </> "node_modules" </> "mathjax" </>
+                (urlPath $ supportDir </> "node_modules" </> "mathjax" </>
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
           , writerTableOfContents =
               fromMaybe False $ pandoc ^? meta "show-toc" . _MetaBool
           , writerTOCDepth =
-              fromMaybe 1 $ readMaybe $ fromMaybe "1" $ pandoc ^? meta "toc-depth" . _MetaString
+              fromMaybe 1 $ readMaybe $ fromMaybe "1" $ pandoc ^?
+              meta "toc-depth" .
+              _MetaString
           }
   writePandocFile "html5" options out pandoc
 
@@ -541,7 +541,6 @@ readMetaMarkdown markdownFile = do
       case lookupMeta "generate-ids" (Meta m) of
         Just (MetaBool True) ->
           liftIO $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
-          -- markForWriteBack markdownFile (Pandoc fileMeta fileBlocks)
         _ -> pure ()
       mapResources
         (urlToFilePathIfLocal (takeDirectory markdownFile))

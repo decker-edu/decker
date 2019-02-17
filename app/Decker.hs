@@ -3,6 +3,7 @@ import Common
 import Exception
 import External
 import Flags (hasPreextractedResources)
+import Format
 import Project
 import Resources
 import Shake
@@ -33,6 +34,13 @@ import Text.Printf
 
 main :: IO ()
 main = do
+  args <- getArgs
+  if length args == 1 && head args == "format"
+    then formatMarkdown
+    else run
+
+run :: IO ()
+run = do
   when isDevelopmentVersion $
     printf
       "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please be sure that you know what you're doing.\n"
@@ -97,7 +105,8 @@ main = do
     --
     phony "sketch-pad-index" $ do
       indicesA >>= need
-      indicesA >>= writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
+      indicesA >>=
+        writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
     --
     phony "index" $ need ["support", index]
     --
