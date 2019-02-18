@@ -8,9 +8,10 @@ module Slide
   , fromSlides
   ) where
 
+import Text.Pandoc.Lens
+
 import Text.Pandoc
 import Text.Pandoc.Definition ()
-import Text.Pandoc.Lens
 import Control.Lens
 import Data.List.Split
 import Data.Maybe

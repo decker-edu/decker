@@ -33,6 +33,7 @@ import Resources
 import Server
 import Shake
 import Sketch
+import Text.Pandoc.Lens
 
 import Control.Arrow
 import Control.Concurrent
@@ -68,7 +69,6 @@ import qualified Text.Mustache.Types as MT
 import Text.Pandoc
 import Text.Pandoc.Builder
 import Text.Pandoc.Highlighting
-import Text.Pandoc.Lens
 import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
