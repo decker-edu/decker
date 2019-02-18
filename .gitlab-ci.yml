@@ -53,7 +53,7 @@ build:mac:
     paths:
       - decker
 
-build:win:
+.build:win:
   tags:
     - win
   stage: build
@@ -133,7 +133,7 @@ deploy:linux:
   only:
     - master
 
-deploy:win:
+.deploy:win:
   stage: deploy
   image: 
     name: minio/mc:latest
