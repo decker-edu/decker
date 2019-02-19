@@ -36,13 +36,12 @@ import Common
 import CompileTime
 import Exception
 import Glob
-import Lens as P
 import Meta
 import Project
 import Server
 import Sketch
+import Text.Pandoc.Lens
 
-import qualified Data.ByteString.Base16 as B16
 import Control.Concurrent
 import Control.Exception
 import Control.Lens
@@ -50,6 +49,7 @@ import Control.Lens.Combinators
 import Control.Monad
 import Data.Aeson as Json
 import Data.Aeson.Lens
+import qualified Data.ByteString.Base16 as B16
 import qualified Data.ByteString.Lazy as B
 import Data.Digest.Pure.MD5
 import Data.Dynamic
@@ -207,7 +207,8 @@ getRelativeSupportDir from = do
 
 sketchPadId :: T.Text -> T.Text
 sketchPadId text =
-  T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ B.fromStrict $ encodeUtf8 text
+  T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ B.fromStrict $
+  encodeUtf8 text
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do

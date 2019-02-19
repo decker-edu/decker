@@ -24,5 +24,48 @@ includeCode (Pandoc meta blocks) = do
 
 # Include a tagged snippet
 
-``` {.haskell include="/src/Filter.hs" label="Haskell" snippet="includeCode"}
+## Tagged source
+
+``` {.haskell}
+-- start snippet include-start-end
+emptyIsEnd :: Text -> Bool
+emptyIsEnd = isSnippetTag "8<|" ""
+-- end snippet include-start-end
+```
+
+## Inclusion
+
+``` {.haskell include="/src/Text/Pandoc/Filter/IncludeCode.hs" label="Haskell" snippet="include-start-end"}
+```
+
+# Include a tagged snippet (shorter)
+
+## Tagged source
+
+``` {.haskell}
+-- 8< include-shorter
+readIncluded :: Inclusion Text
+readIncluded = liftIO . Text.readFile =<< asks include
+-- >8
+```
+
+## Inclusion
+
+``` {.haskell include="/src/Text/Pandoc/Filter/IncludeCode.hs" label="Haskell" snippet="include-shorter"}
+```
+
+# Include a tagged snippet (even shorter)
+
+## Tagged source
+
+``` {.haskell}
+-- 8<| include-even-shorter
+isSnippetTag :: Text -> Text -> Text -> Bool
+isSnippetTag tag name line =
+  mconcat [tag, " ", name] `Text.isSuffixOf` Text.strip line
+```
+
+## Inclusion
+
+``` {.haskell include="/src/Text/Pandoc/Filter/IncludeCode.hs" label="Haskell" snippet="include-even-shorter"}
 ```

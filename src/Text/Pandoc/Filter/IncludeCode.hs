@@ -124,25 +124,30 @@ type Lines = [Text]
 setStartLineNumber :: LineNumber -> Inclusion ()
 setStartLineNumber n = modify (\s -> s {startLineNumber = Just n})
 
+-- 8< include-shorter
 readIncluded :: Inclusion Text
 readIncluded = liftIO . Text.readFile =<< asks include
+-- >8
 
+-- 8<| include-even-shorter
 isSnippetTag :: Text -> Text -> Text -> Bool
 isSnippetTag tag name line =
   mconcat [tag, " ", name] `Text.isSuffixOf` Text.strip line
 
-emptyIsEnd :: Text -> Bool
-emptyIsEnd = isSnippetTag "8<|" ""
+isUnnamedSnippetTag :: Text -> Text -> Bool
+isUnnamedSnippetTag tag line = tag `Text.isSuffixOf` Text.strip line
 
+-- end snippet include-start-end
 isSnippetStart :: Text -> Text -> Bool
 isSnippetStart name line =
   isSnippetTag "start snippet" name line ||
   isSnippetTag "8<|" name line || isSnippetTag "8<" name line
 
 isSnippetEnd :: Text -> Bool -> Text -> Bool
-isSnippetEnd name emptyEnd line  =
+isSnippetEnd name emptyEnd line =
   isSnippetTag "end snippet" name line ||
-  isSnippetTag ">8" name line || emptyEnd && Text.null line
+  isSnippetTag ">8" name line ||
+  isUnnamedSnippetTag ">8" line || (emptyEnd && Text.null (Text.strip line))
 
 includeByMode :: Lines -> Inclusion Lines
 includeByMode ls =
@@ -151,7 +156,7 @@ includeByMode ls =
       let (before, start) = break (isSnippetStart name) ls
           -- index +1 for line number, then +1 for snippet comment line, so +2:
           startLine = length before + 2
-      let emptyEnd = not (null start) && emptyIsEnd (head start)
+      let emptyEnd = isSnippetTag "8<|" name (head start)
       setStartLineNumber startLine
       return (takeWhile (not . isSnippetEnd name emptyEnd) (drop 1 start))
     RangeMode range -> do
