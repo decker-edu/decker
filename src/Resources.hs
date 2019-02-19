@@ -8,15 +8,16 @@ module Resources
   , copyDir
   ) where
 
-import Codec.Archive.Zip
 import Common
+import Exception
+import Flags
+
+import Codec.Archive.Zip
 import Control.Exception
 import Control.Monad
 import Control.Monad.Extra
 import Data.List.Split (splitOn)
 import Data.Map.Strict (size)
-import Exception
-import Flags
 import System.Decker.OS
 import System.Directory
 import System.Environment
@@ -89,7 +90,8 @@ writeResourceFiles prefix destDir = do
   let src = dataDir </> prefix
   copyDir src destDir
 
--- | Copy a file to a file location or to a directory
+-- | Copy a file to a file location or to a directory if the file does not
+-- already exist.
 cp :: FilePath -> FilePath -> IO ()
 cp src dst = do
   unlessM (doesFileExist src) $
@@ -118,3 +120,4 @@ copyDir src dst = do
         if isDirectory
           then copyDir srcPath dstPath
           else cp srcPath dstPath
+

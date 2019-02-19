@@ -31,6 +31,7 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Pandoc.Definition
 import Text.Printf
+import Text.Read
 
 main :: IO ()
 main = do
@@ -78,7 +79,7 @@ run = do
       decksA >>= need
     --
     phony "html" $ do
-      need ["index"]
+      need ["index", "publish-annotations"]
       allHtmlA >>= need
     --
     phony "pdf" $ do
@@ -210,33 +211,27 @@ run = do
       metaData <- metaA
       unlessM (Development.Shake.doesDirectoryExist (directories ^. support)) $ do
         liftIO $ createDirectoryIfMissing True (directories ^. public)
-        case metaValueAsString "provisioning" metaData of
-          Just value
-            | value == show SymLink ->
-              liftIO $
-              createFileLink
-                ((directories ^. appData) </> "support")
-                (directories ^. support)
-          Just value
-            | value == show Copy ->
-              liftIO $
-              copyDir
-                ((directories ^. appData) </> "support")
-                (directories ^. support)
-          Nothing ->
-            liftIO $
-            case defaultProvisioning of
-              SymLink ->
-                createFileLink
-                  ((directories ^. appData) </> "support")
-                  (directories ^. support)
-              _ ->
-                copyDir
-                  ((directories ^. appData) </> "support")
-                  (directories ^. support)
-          _ -> return ()
+        let provisioning =
+              fromMaybe defaultProvisioning $
+              metaValueAsString "provisioning" metaData >>= readMaybe
+        if provisioning == SymLink
+          then liftIO $
+               createFileLink
+                 ((directories ^. appData) </> "support")
+                 (directories ^. support)
+          else liftIO $
+               copyDir
+                 ((directories ^. appData) </> "support")
+                 (directories ^. support)
     --
     phony "check" checkExternalPrograms
+    --
+    phony "publish-annotations" $ do
+      metaData <- metaA
+      when (isJust $ metaValueAsString "publish-annotations" metaData) $ do
+        let src = (directories ^. project) </> "annotations"
+        let dst = (directories ^. public) </> "annotations"
+        liftIO $ copyDirIfNewer src dst
     --
     phony "publish" $ do
       need ["index"]

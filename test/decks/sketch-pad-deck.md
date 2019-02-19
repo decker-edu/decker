@@ -1,16 +1,19 @@
 ---
 generate-ids: True
 history: True
+publish-annotations: True
+sketch-pad-viewer-url: 'http://sketchpad-webview.herokuapp.com/bundle.js'
 subtitle: High Quality Slide Annotations
 title: Sketch Pad
 write-back:
+  enable: True
   line-columns: 80
   line-wrap: auto
 ---
 
 --------------------------------------------------------------------------------
 
-# Automatic Slide Id Generation {#s5zu}
+# Automatic Slide Id Generation {#sa5k}
 
 ## Id Generation
 
@@ -27,6 +30,26 @@ write-back:
 
 --------------------------------------------------------------------------------
 
+# Sketch Pad Web View {#usee}
+
+## Meta Data
+
+-   Meta data attribute `sketch-pad-viewer-url` points to the Javascript bundle
+    for the viewer
+-   Has no default value
+
+--------------------------------------------------------------------------------
+
+# Annotations {#p5v6}
+
+## Publishing
+
+-   Annotations are pushed into `/annotations`
+-   `/anotations` will be published along with the HTML files if
+    `publish-annotations` is set to True
+
+--------------------------------------------------------------------------------
+
 # First Slide {#myslide-dont-touch}
 
 -   This slide has a hand-crafted id
@@ -35,13 +58,13 @@ write-back:
 
 --------------------------------------------------------------------------------
 
-#  {#j355}
+#  {#jcvj}
 
 -   This slide has no header, but a generated id
 
 --------------------------------------------------------------------------------
 
-# Third Slide {#s5zu}
+# Third Slide {#vgtr}
 
 -   This slide has a generated id
 -   It will not change during further id generation
@@ -62,17 +85,11 @@ write-back:
 
 --------------------------------------------------------------------------------
 
-# Markdown Table Writeback {#e9r1}
+# Markdown Table Writeback {#bzbp}
 
 ## Grid Table with more than 100 columns
 
-+------------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+
-| 123456789  | 123456789 | 123456789 | 123456789 | 123456789 | 123456789 | 123456789 | 123456789 | 123456789 | 123456789 |
-+============+===========+===========+===========+===========+===========+===========+===========+===========+===========+
-| -   line 1 |           |           |           |           |           |           |           |           |           |
-| -   line 2 |           |           |           |           |           |           |           |           |           |
-| -   line 3 |           |           |           |           |           |           |           |           |           |
-+------------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+-----------+
+\[TABLE\]
 
 --------------------------------------------------------------------------------
 
@@ -86,14 +103,4 @@ write-back:
 
 --------------------------------------------------------------------------------
 
-#  {#g4z3}
-
-+-----------------------------+-----------------------------+-----------------------------+
-| ![](./include/06-metal.png) | ![](./include/06-metal.png) | ![](./include/06-metal.png) |
-+-----------------------------+-----------------------------+-----------------------------+
-| ![](./include/06-metal.png) | -   Grid Tables             | ![](./include/06-metal.png) |
-|                             | -   Coole Sache             |                             |
-|                             | -   Emacs kann das          |                             |
-+-----------------------------+-----------------------------+-----------------------------+
-| ![](./include/06-metal.png) | ![](./include/06-metal.png) | ![](./include/06-metal.png) |
-+-----------------------------+-----------------------------+-----------------------------+
+#  {#fjm2}

@@ -19,7 +19,6 @@ module Utilities
   , fixMustacheMarkupText
   , toPandocMeta
   , deckerPandocExtensions
-  , lookupPandocMeta
   , DeckerException(..)
   ) where
 
@@ -530,21 +529,22 @@ readMetaMarkdown markdownFile = do
   let documentMeta = MetaMap $ unMeta fileMeta
   -- combine the meta data with preference on the embedded data
   let combinedMeta = mergePandocMeta documentMeta (toPandocMeta externalMeta)
-  let mustacheMeta = toMustacheMeta combinedMeta
-   -- use mustache to substitute
-  let substituted = substituteMetaData markdown mustacheMeta
-  -- read markdown with substitutions again
-  let Pandoc _ blocks = readMarkdownOrThrow pandocReaderOpts substituted
   case combinedMeta of
     (MetaMap m) -> do
-      versionCheck (Meta m)
-      case lookupMeta "generate-ids" (Meta m) of
-        Just (MetaBool True) ->
-          liftIO $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
-        _ -> pure ()
+      let meta = Meta m
+      versionCheck meta
+      let mustacheMeta = toMustacheMeta combinedMeta
+      -- use mustache to substitute
+      let substituted = substituteMetaData markdown mustacheMeta
+      -- read markdown with substitutions again
+      let Pandoc _ blocks = readMarkdownOrThrow pandocReaderOpts substituted
+      when
+        (lookupBool "generate-ids" False meta ||
+         lookupBool "write-back.enable" False meta) $
+        liftIO $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
       mapResources
         (urlToFilePathIfLocal (takeDirectory markdownFile))
-        (Pandoc (Meta m) blocks)
+        (Pandoc meta blocks)
     _ -> throw $ PandocException "Meta format conversion failed."
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
@@ -756,17 +756,4 @@ metaValueAsString key meta =
     lookup' [] (Just (Y.Number n)) = Just (show n)
     lookup' [] (Just (Y.Bool b)) = Just (show b)
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
-    lookup' _ _ = Nothing
-
-lookupPandocMeta :: String -> Meta -> Maybe String
-lookupPandocMeta key (Meta m) =
-  case splitOn "." key of
-    [] -> Nothing
-    k:ks -> lookup' ks (Map.lookup k m)
-  where
-    lookup' :: [String] -> Maybe MetaValue -> Maybe String
-    lookup' (k:ks) (Just (MetaMap m)) = lookup' ks (Map.lookup k m)
-    lookup' [] (Just (MetaBool b)) = Just $ show b
-    lookup' [] (Just (MetaString s)) = Just s
-    lookup' [] (Just (MetaInlines i)) = Just $ stringify i
     lookup' _ _ = Nothing

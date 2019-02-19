@@ -6,6 +6,11 @@ module Meta
   , joinMeta
   , readMetaData
   , aggregateMetaData
+  , lookupPandocMeta
+  , lookupInt
+  , lookupBool
+  , lookupString
+  , lookupMetaValue
   , DeckerException(..)
   ) where
 
@@ -16,14 +21,19 @@ import Markdown
 import Control.Arrow
 import Control.Exception
 import qualified Data.HashMap.Strict as H
+import Data.List.Extra
 import qualified Data.Map.Lazy as Map
+import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
+import Debug.Trace
 import System.FilePath
 import System.FilePath.Glob
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc
+import Text.Pandoc.Shared
+import Text.Read
 
 joinMeta :: Y.Value -> Y.Value -> Y.Value
 joinMeta (Y.Object old) (Y.Object new) = Y.Object (H.union new old)
@@ -82,9 +92,8 @@ readMetaData dir = do
   meta <- mapM decodeYaml files
   return $ foldl joinMeta (Y.object []) meta
 
-
 aggregateMetaData :: FilePath -> FilePath -> IO Y.Value
-aggregateMetaData top = walkUpTo 
+aggregateMetaData top = walkUpTo
   where
     walkUpTo dir = do
       fromHere <- readMetaData dir
@@ -94,3 +103,44 @@ aggregateMetaData top = walkUpTo
           fromAbove <- walkUpTo (takeDirectory dir)
           return $ joinMeta fromHere fromAbove
 
+lookupPandocMeta :: String -> Meta -> Maybe String
+lookupPandocMeta key (Meta m) =
+  case splitOn "." key of
+    [] -> Nothing
+    k:ks -> lookup' ks (Map.lookup k m)
+  where
+    lookup' :: [String] -> Maybe MetaValue -> Maybe String
+    lookup' (k:ks) (Just (MetaMap m)) = lookup' ks (Map.lookup k m)
+    lookup' [] (Just (MetaBool b)) = Just $ show b
+    lookup' [] (Just (MetaString s)) = Just s
+    lookup' [] (Just (MetaInlines i)) = Just $ stringify i
+    lookup' _ _ = Nothing
+
+lookupInt :: String -> Int -> Meta -> Int
+lookupInt key def meta =
+  case lookupMetaValue key meta of
+    Just (MetaString string) -> fromMaybe def $ readMaybe string
+    _ -> def
+
+lookupBool :: String -> Bool -> Meta -> Bool
+lookupBool key def meta =
+  case lookupMetaValue key meta of
+    Just (MetaBool bool) -> bool
+    _ -> def
+
+lookupString :: String -> String -> Meta -> String
+lookupString key def meta =
+  case lookupMetaValue key meta of
+    Just (MetaString string) -> string
+    Just (MetaInlines inlines) -> stringify inlines
+    _ -> def
+
+lookupMetaValue :: String -> Meta -> Maybe MetaValue
+lookupMetaValue key (Meta mm) = lookup path (MetaMap mm)
+  where
+    path = splitOn "." key
+    lookup :: [String] -> MetaValue -> Maybe MetaValue
+    lookup (first:rest) (MetaMap m) =
+      maybe Nothing (lookup rest) (Map.lookup first m)
+    lookup (first:rest) _ = Nothing
+    lookup [] value = Just value

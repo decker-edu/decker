@@ -5,6 +5,8 @@ module Project
   , linkResource
   , relRefResource
   , absRefResource
+  , copyFileIfNewer
+  , copyDirIfNewer
   , removeCommonPrefix
   , isPrefix
   , makeRelativeTo
@@ -185,6 +187,15 @@ copyFileIfNewer src dst =
   whenM (fileIsNewer src dst) $ do
     D.createDirectoryIfMissing True (takeDirectory dst)
     D.copyFile src dst
+
+copyDirIfNewer :: FilePath -> FilePath -> IO ()
+copyDirIfNewer src dst = do
+  srcIsDir <- doesDirectoryExist src
+  if srcIsDir
+    then do
+      contents <- D.listDirectory src
+      forM_ contents $ \name -> copyDirIfNewer (src </> name) (dst </> name)
+    else copyFileIfNewer src dst
 
 fileIsNewer :: FilePath -> FilePath -> IO Bool
 fileIsNewer a b = do

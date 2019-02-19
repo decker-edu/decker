@@ -31,3 +31,4 @@ test/decks/*.svg
 dist/
 node_modules
 sketch-pad-index.yaml
+annotations/
