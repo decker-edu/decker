@@ -645,7 +645,7 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
 --}
   (nst,tbl) <-
      case True of
-          _ | hasSimpleCells &&
+          _ | (isSimple || hasSimpleCells) &&
               isEnabled Ext_pipe_tables opts -> do
                 rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
                 rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))

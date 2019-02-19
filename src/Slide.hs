@@ -8,7 +8,7 @@ module Slide
   , fromSlides
   ) where
 
-import Lens
+import Text.Pandoc.Lens
 
 import Text.Pandoc
 import Text.Pandoc.Definition ()

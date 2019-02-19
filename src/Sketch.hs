@@ -7,7 +7,6 @@ module Sketch
   ) where
 
 import Common
-import Lens
 import Markdown
 import Meta
 import Resources
