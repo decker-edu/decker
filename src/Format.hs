@@ -17,25 +17,31 @@ import Text.Pandoc.Shared
 import Markdown
 import Resources
 import Utilities
+import Meta
 
 formatMarkdown :: IO ()
 formatMarkdown =
   handle (\(SomeException e) -> hPutStr stderr (show e) >> exitFailure) $ do
     result <- T.hGetContents stdin >>= runIO . readMarkdown pandocReaderOpts
     case result of
-      Right pandoc -> do
+      Right pandoc@(Pandoc meta _) -> do
         template <- getResourceString $ "template" </> "deck.md"
         let extensions =
               (disableExtension Ext_simple_tables .
                disableExtension Ext_multiline_tables .
                enableExtension Ext_auto_identifiers)
                 pandocExtensions
+        let columns = lookupInt "format.line-columns" 80 meta
+        let wrapOpt "none" = WrapNone
+            wrapOpt "preserve" = WrapPreserve
+            wrapOpt _ = WrapAuto
+        let wrap = lookupString "format.line-wrap" "auto" meta
         let options =
               def
                 { writerTemplate = Just template
                 , writerExtensions = extensions
-                , writerColumns = 80
-                , writerWrapText = WrapAuto
+                , writerColumns = columns
+                , writerWrapText = wrapOpt wrap
                 , writerSetextHeaders = False
                 }
         result <- runIO (Markdown.writeMarkdown options pandoc)
