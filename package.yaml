@@ -61,6 +61,7 @@ dependencies:
   - lens-action
   - lens-aeson
   - MissingH
+  - modern-uri
   - monad-loops
   - mtl
   - multimap

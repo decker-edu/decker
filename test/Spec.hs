@@ -1,27 +1,27 @@
+import SketchTests
 import Test.Hspec
 import WatchTests
-import SketchTests
 
-import           Control.Lens          ((^.))
+import Control.Lens ((^.))
 import qualified Data.ByteString.Char8 as B
-import qualified Data.HashMap.Strict   as H
-import qualified Data.Map.Strict       as M
-import           Data.Maybe
-import           Data.Text
-import           Data.Text.Encoding
-import qualified Data.Yaml             as Y
-import           Filter
-import           Project               as P
-import qualified System.Directory      as Dir
-import           System.FilePath
-import           System.FilePath.Glob
-import           Text.Pandoc
-import           Utilities
+import qualified Data.HashMap.Strict as H
+import qualified Data.Map.Strict as M
+import Data.Maybe
+import Data.Text
+import Data.Text.Encoding
+import qualified Data.Yaml as Y
+import Filter
+import Project as P
+import qualified System.Directory as Dir
+import System.FilePath
+import System.FilePath.Glob
+import Text.Pandoc
+import Utilities
 
 main = do
   dirs <- projectDirectories
   --
-  deckTemplate <- B.readFile (dirs^.project </> "resource/template/deck.html")
+  deckTemplate <- B.readFile (dirs ^. project </> "resource/template/deck.html")
   --
   metaFiles <- globDir1 (compile "**/*-meta.yaml") (dirs ^. project)
   --
@@ -29,7 +29,7 @@ main = do
   --
    do
     watchTests
-    sketchTests
+    -- sketchTests
     describe "makeRelativeTo" $
       it "calculates the path of file relative to dir. Includes '..'" $ do
         makeRelativeTo "" "img.png" `shouldBe` "img.png"
@@ -97,12 +97,6 @@ main = do
         convertMediaAttributes
           ("", [], [("width", "100%"), ("style", "color:red;")]) `shouldBe`
           ("", [], [("style", "color:red;width:100%;")])
-    describe "lookupPandocMeta" $
-      it "looks up dotted key values in the hierarchical pandoc meta structure" $ do
-        lookupPandocMeta "top-level-key" meta `shouldBe`
-          (Just "top-level-value")
-        lookupPandocMeta "group.attribute" meta `shouldBe`
-          (Just "attribute-value")
 
 meta :: Meta
 meta =
