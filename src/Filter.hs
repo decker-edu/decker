@@ -23,7 +23,7 @@ import Control.Exception
 import Exception
 import Sketch
 import Slide
-import Lens
+import Text.Pandoc.Lens
 
 import Control.Applicative
 import Control.Lens

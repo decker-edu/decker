@@ -6,6 +6,7 @@ module System.Decker.OS
   ) where
 
 import Common
+import Data.List
 import System.Environment
 import System.FilePath
 

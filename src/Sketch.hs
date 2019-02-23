@@ -8,11 +8,11 @@ module Sketch
   ) where
 
 import Common
-import Lens
 import Markdown
 import Meta
 import Resources
 import Slide
+import Text.Pandoc.Lens
 
 import Control.Lens
 import Control.Monad

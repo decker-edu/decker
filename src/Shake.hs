@@ -36,11 +36,11 @@ import Common
 import CompileTime
 import Exception
 import Glob
-import Lens as P
 import Meta
 import Project
 import Server
 import Sketch
+import Text.Pandoc.Lens
 
 import Control.Concurrent
 import Control.Exception

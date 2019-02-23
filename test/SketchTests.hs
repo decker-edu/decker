@@ -4,7 +4,7 @@ module SketchTests
 
 import Sketch
 import Slide
-import Lens
+import Text.Pandoc.Lens
 
 import Data.Char
 import Test.Hspec
