@@ -6,9 +6,8 @@ module Dachdecker
   , uploadQuizzes
   ) where
 
-import Context
 import Control.Exception
-import Control.Lens ((&), (.~), (?~), (^?))
+import Control.Lens ((&), (.~), (?~), (^?), (^.))
 import Data.Aeson ((.=), fromJSON, object, toJSON)
 import Data.Aeson.Lens (_Bool, _Integer, _Object, _String, key, nth, values)
 import qualified Data.ByteString.Char8 as BSC
@@ -144,13 +143,13 @@ uploadMarkdown deckId path token
   -- Upload them as well
  = do
   projectDirs <- projectDirectories
-  uploadFile deckId token path (makeRelativeTo (project projectDirs) path) False
+  uploadFile deckId token path (makeRelativeTo (projectDirs ^. project) path) False
   return ()
 
 uploadPublic :: String -> String -> IO ()
 uploadPublic deckId token = do
-  projectDirs <- projectDirectories
-  let publicDir = public projectDirs
+  dirs <- projectDirectories
+  let publicDir = dirs ^. public
   uploadPublicRecursive publicDir ""
   where
     uploadPublicRecursive :: FilePath -> String -> IO ()

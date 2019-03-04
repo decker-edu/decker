@@ -1,128 +1,151 @@
-name:                decker
-version:             0.7.3
-license:             OtherLicense
-author:              "Henrik Tramberend"
-maintainer:          "henrik.tramberend@beuth-hochschule.de"
-copyright:           "2018 Henrik Tramberend"
+name: decker
+version: 0.7.3
+license: OtherLicense
+author: "Henrik Tramberend"
+maintainer: "henrik.tramberend@beuth-hochschule.de"
+copyright: "2018 Henrik Tramberend"
 
 build-type: Custom
 
 custom-setup:
-  dependencies: 
-  - base >= 4.7 && < 5
-  - bytestring
-  - Cabal
-  - conduit
-  - directory
-  - extra
-  - filepath
-  - Glob
-  - zip
+  dependencies:
+    - base >= 4.7 && < 5
+    - binary
+    - bytestring
+    - Cabal
+    - conduit
+    - directory
+    - extra
+    - filepath
+    - Glob
+    - zip
 
 extra-source-files:
-- readme.md
-- Dockerfile
-- makefile
-- src-support/*
-- resource/template/*
-- resource/example/*
+  - readme.md
+  - Dockerfile
+  - makefile
+  - src-support/*
+  - resource/template/*
+  - resource/example/*
 
-synopsis:            A markdown based tool for slide deck creation
-category:            Tool
+synopsis: A markdown based tool for slide deck creation
+category: Tool
 
-description:         Please see the README at <https://gitlab2.informatik.uni-wuerzburg.de/decker/decker#readme>
+description: Please see the README at <https://gitlab2.informatik.uni-wuerzburg.de/decker/decker#readme>
 
 dependencies:
-- base >= 4.7 && < 5
-- Glob
-- MissingH
-- HTTP
-- aeson
-- ansi-terminal
-- array
-- base64-bytestring
-- blaze-html
-- blaze-markup
-- bytestring
-- containers
-- data-default
-- directory
-- extra
-- file-embed
-- filepath
-- fsnotify
-- groom
-- hashable
-- highlighting-kate
-- http-client
-- http-conduit
-- http-types
-- lens
-- lens-aeson
-- monad-loops
-- mtl
-- multimap
-- mustache
-- network-uri
-- pandoc
-- pandoc-citeproc
-- pandoc-types
-- process
-- pureMD5
-- random
-- scientific
-- shake
-- snap-core
-- snap-server
-- split
-- template-haskell
-- temporary
-- text
-- time
-- transformers
-- unordered-containers
-- utf8-string
-- vector
-- websockets
-- websockets-snap
-- wreq
-- yaml
-- zip
+  - base >= 4.7 && < 5
+  - aeson
+  - ansi-terminal
+  - array
+  - base64-bytestring
+  - blaze-html
+  - blaze-markup
+  - bytestring
+  - containers
+  - data-default
+  - directory
+  - extra
+  - file-embed
+  - filepath
+  - fsnotify
+  - Glob
+  - groom
+  - hashable
+  - highlighting-kate
+  - HTTP
+  - http-client
+  - http-conduit
+  - http-types
+  - lens
+  - lens-action
+  - lens-aeson
+  - MissingH
+  - monad-loops
+  - mtl
+  - multimap
+  - mustache
+  - network-uri
+  - pandoc
+  - pandoc-citeproc
+  - pandoc-lens
+  - pandoc-types
+  - pandoc-include-code
+  - process
+  - pureMD5
+  - random
+  - regex-tdfa
+  - scientific
+  - shake
+  - snap-core
+  - snap-server
+  - split
+  - tagsoup
+  - template-haskell
+  - temporary
+  - text
+  - time
+  - transformers
+  - unordered-containers
+  - utf8-string
+  - vector
+  - websockets
+  - websockets-snap
+  - wreq
+  - yaml
+  - zip
 
 library:
   source-dirs: src
+  when:
+    - condition: os(windows)
+      then:
+        source-dirs: src-win
+        exposed-modules: "System.Decker.OS"
+      else:
+        source-dirs: src-mac
+        exposed-modules: "System.Decker.OS"
+    - condition: flag(preextractedresources)
+      cpp-options: "-DPREEXTRACTEDRESOURCES"
 
 executables:
   decker:
-    main:                Decker.hs
-    source-dirs:         app
+    main: Decker.hs
+    source-dirs: app
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
     dependencies:
-    - decker
+      - decker
 
 tests:
   decker-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main: Spec.hs
+    source-dirs: test
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
     dependencies:
-    - decker
-    - hspec
+      - decker
+      - hspec
 
-default-extensions:   
-- EmptyCase
-- FlexibleContexts
-- FlexibleInstances
-- InstanceSigs
-- MultiParamTypeClasses
-- OverloadedStrings
-- TupleSections
-- DeriveDataTypeable
-- TemplateHaskell
-- MultiWayIf
+default-extensions:
+  - DeriveDataTypeable
+  - EmptyCase
+  - FlexibleContexts
+  - FlexibleInstances
+  - InstanceSigs
+  - MultiParamTypeClasses
+  - MultiWayIf
+  - NoMonomorphismRestriction
+  - OverloadedStrings
+  - TemplateHaskell
+  - TupleSections
+
+flags:
+  preextractedresources:
+    description: Assumes that the resources are already preextracted and will not extract them again or delete them
+    manual: true
+    default: false

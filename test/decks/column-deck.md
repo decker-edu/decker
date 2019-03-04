@@ -212,18 +212,3 @@ Some more Text
 ## 
 
 Some more Text
-
-# Questions
-
-## Question 1 {.answer .wrong}
-
-Some more Text or images
-
-### Some text
-
-![](lösung.png)
-
-## Question 2 {.question}
-
-1. Some more Text or images
-2. This is the answer

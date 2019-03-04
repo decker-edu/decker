@@ -1,8 +1,15 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-import Action
 import Common
-import Context
+import Exception
+import External
+import Flags (hasPreextractedResources)
+import Project
+import Resources
+import Shake
+import Utilities
+
 import Control.Exception
+import Control.Lens ((^.))
 import Control.Monad (when)
 import Control.Monad.Extra
 import Data.Aeson
@@ -13,81 +20,72 @@ import Data.String ()
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
-import Exception
-import External
 import GHC.Conc (numCapabilities)
-import Project
-import Resources
+import System.Decker.OS (defaultProvisioning)
 import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
+import System.Environment.Blank
 import System.FilePath ()
 import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Pandoc.Definition
-import Text.Printf ()
+import Text.Printf (printf)
 import Utilities
 import Dachdecker
 
 main :: IO ()
 main = do
+  when isDevelopmentVersion $
+    printf
+      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please be sure that you know what you're doing.\n"
+      deckerVersion
+      deckerGitBranch
+      deckerGitCommitId
+      deckerGitVersionTag
   extractResources
-  dirs <- projectDirectories
+  directories <- projectDirectories
   --
-  let projectDir = project dirs
-  let publicDir = public dirs
-  let supportDir = support dirs
-  let appDataDir = appData dirs
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ (show serverPort)
-  -- Find sources. These are formulated as actions in the Action mondad, such
-  -- that each new iteration rescans all possible source files.
-  let deckSourcesA = globA "**/*-deck.md"
-  let pageSourcesA = globA "**/*-page.md"
-  let allSourcesA = deckSourcesA <++> pageSourcesA
-  let allMarkdownA = globA "**/*.md"
-  let allImagesA = globA "**/*.png" <++> globA "**/*.jpg"
-  let metaA = globA "**/*-meta.yaml"
-  -- Calculate targets
-  let decksA = deckSourcesA >>= calcTargets ".md" ".html"
-  let decksPdfA = deckSourcesA >>= calcTargets ".md" ".pdf"
-  let handoutsA = deckSourcesA >>= calcTargets "-deck.md" "-handout.html"
-  let handoutsPdfA = deckSourcesA >>= calcTargets "-deck.md" "-handout.pdf"
-  let pagesA = pageSourcesA >>= calcTargets ".md" ".html"
-  let pagesPdfA = pageSourcesA >>= calcTargets ".md" ".pdf"
-  let indexSource = project dirs </> "index.md"
-  let index = publicDir </> "index.html"
-  let indexA = return [index] :: Action [FilePath]
-  let everythingA = decksA <++> handoutsA <++> pagesA
-  let everythingPdfA = decksPdfA <++> handoutsPdfA <++> pagesPdfA
+  let indexSource = (directories ^. project) </> "index.md"
+  let index = (directories ^. public) </> "index.html"
   let cruft = ["index.md.generated", "log", "//.shake", "generated", "code"]
-  context <- makeActionContext dirs
-  runShakeInContext context (options projectDir) $
+  --
+  runDecker $
   --
    do
     want ["html"]
     --
     phony "version" $ do
       putNormal $
-        "decker version " ++ deckerVersion ++ " (" ++ deckerGitBranch ++ ")"
+        "decker version " ++
+        deckerVersion ++
+        " (branch: " ++
+        deckerGitBranch ++
+        ", commit: " ++
+        deckerGitCommitId ++ ", tag: " ++ deckerGitVersionTag ++ ")"
       putNormal $ "pandoc version " ++ pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
     phony "decks" $ do
-      need ["support"]
+      need ["index"]
       decksA >>= need
     --
     phony "html" $ do
-      need ["support"]
-      everythingA <++> indexA >>= need
+      need ["index"]
+      allHtmlA >>= need
     --
-    phony "pdf" $
-      decksPdfA <++> pagesPdfA <++> handoutsPdfA <++> indexA >>= need
+    phony "pdf" $ do
+      need ["index"]
+      allPdfA >>= need
     --
-    phony "pdf-decks" $ decksPdfA <++> indexA >>= need
+    phony "pdf-decks" $ do
+      need ["index"]
+      decksPdfA >>= need
     --
     phony "watch" $ do
       need ["html"]
-      allMarkdownA <++> metaA <++> allImagesA >>= watchFiles
+      watchChangesAndRepeat
     --
     phony "open" $ do
       need ["html"]
@@ -95,24 +93,35 @@ main = do
     --
     phony "server" $ do
       need ["watch"]
-      runHttpServer serverPort dirs Nothing
+      runHttpServer serverPort directories Nothing
     --
-    phony "example" writeExampleProject
+    phony "example" $ liftIO writeExampleProject
     --
-    phony "index" $ need [index, "support"]
+    phony "sketch-pad-index" $ do
+      indicesA >>= need
+      indicesA >>= writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
+    --
+    phony "index" $ need ["support", index]
     --
     priority 2 $
       "//*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
-        markdownToHtmlDeck src out
+        let ind = replaceSuffix "-deck.html" "-deck-index.yaml" out
+        markdownToHtmlDeck src out ind
+    --
+    priority 2 $
+      "//*-deck-index.yaml" %> \ind -> do
+        src <- calcSource "-deck-index.yaml" "-deck.md" ind
+        let out = replaceSuffix "-deck-index.yaml" "-deck.html" ind
+        markdownToHtmlDeck src out ind
     --
     priority 2 $
       "//*-deck.pdf" %> \out -> do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         need [src]
         putNormal $ src ++ " -> " ++ out
-        runHttpServer serverPort dirs Nothing
-        decktape [(serverUrl </> makeRelative publicDir src), out]
+        runHttpServer serverPort directories Nothing
+        decktape [serverUrl </> makeRelative (directories ^. public) src, out]
     --
     priority 2 $
       "//*-handout.html" %> \out -> do
@@ -143,28 +152,8 @@ main = do
                 else indexSource <.> "generated"
         markdownToHtmlPage src out
     --
-    indexSource <.> "generated" %> \out
-      -- deckSources <- deckSourcesA
-      -- pageSources <- pageSourcesA
-     -> do
-      decks <- decksA
-      decksPdf <- decksPdfA
-      pagesPdf <- pagesPdfA
-      handouts <- handoutsA
-      handoutsPdf <- handoutsPdfA
-      pages <- pagesA
-      -- let deckData =
-      --      transpose [deckSources, decks, handouts, decksPdf, handoutsPdf]
-      -- let pageData = transpose [pageSources, pages, pagesPdf]
-      need $ decks ++ handouts ++ pages
-      writeIndexLists
-        out
-        (takeDirectory index)
-        (zip decks decksPdf)
-        (zip handouts handoutsPdf)
-        (zip pages pagesPdf)
-      -- writeIndexTable out (takeDirectory index) deckData pageData
-      -- writeIndex out (takeDirectory index) decks handouts pages
+    indexSource <.> "generated" %> \out ->
+      writeIndexLists out (takeDirectory index)
     --
     priority 2 $
       "//*.dot.svg" %> \out -> do
@@ -187,77 +176,73 @@ main = do
         pdflatex ["-output-directory", dir, src]
         pdf2svg [pdf, out]
         liftIO $ removeFile pdf
-    priority 2 $
-      "//*.css" %> \out -> do
-        let src = out -<.> ".scss"
-        exists <- doesFileExist src
-        when exists $ do
-          need [src]
-          sassc [src, out]
     --
     phony "clean" $ do
-      removeFilesAfter publicDir ["//"]
-      removeFilesAfter projectDir cruft
-      when isDevelopmentVersion $ removeFilesAfter appDataDir ["//"]
+      removeFilesAfter (directories ^. public) ["//"]
+      removeFilesAfter (directories ^. project) cruft
+      old <- liftIO getOldResources
+      forM_ old $ \dir -> removeFilesAfter dir ["//"]
+      when (isDevelopmentVersion && not hasPreextractedResources) $
+        removeFilesAfter (directories ^. appData) ["//"]
     --
     phony "help" $ do
       text <- liftIO $ getResourceString "template/help-page.md"
       liftIO $ putStr text
     --
-    phony "plan" $ do
-      metaData <- readMetaDataForDir projectDir
-      putNormal $ "\nproject directory: " ++ projectDir
-      putNormal $ "public directory: " ++ publicDir
-      putNormal $ "support directory: " ++ supportDir
-      putNormal $ "application data directory: " ++ appDataDir
-      putNormal "\nmeta:\n"
-      metaA >>= mapM_ putNormal
-      putNormal "\nsources:\n"
-      allSourcesA >>= mapM_ putNormal
+    phony "info" $ do
+      putNormal $ "\nproject directory: " ++ (directories ^. project)
+      putNormal $ "public directory: " ++ (directories ^. public)
+      putNormal $ "support directory: " ++ (directories ^. support)
+      putNormal $ "application data directory: " ++ (directories ^. appData)
       putNormal "\ntargets:\n"
-      everythingA <++> everythingPdfA >>= mapM_ putNormal
+      allHtmlA <++> allPdfA >>= mapM_ putNormal
       putNormal "\ntop level meta data:\n"
-      putNormal $ groom metaData
+      groom <$> metaA >>= putNormal
     --
     phony "support" $ do
-      metaData <- readMetaDataForDir projectDir
-      unlessM (Development.Shake.doesDirectoryExist supportDir) $ do
-        liftIO $ createDirectoryIfMissing True publicDir
+      metaData <- metaA
+      unlessM (Development.Shake.doesDirectoryExist (directories ^. support)) $ do
+        liftIO $ createDirectoryIfMissing True (directories ^. public)
         case metaValueAsString "provisioning" metaData of
           Just value
             | value == show SymLink ->
-              liftIO $ createFileLink (appDataDir </> "support") supportDir
+              liftIO $
+              createFileLink
+                ((directories ^. appData) </> "support")
+                (directories ^. support)
           Just value
             | value == show Copy ->
-              rsync [(appDataDir </> "support/"), supportDir]
+              liftIO $
+              copyDir
+                ((directories ^. appData) </> "support")
+                (directories ^. support)
           Nothing ->
-            liftIO $ createFileLink (appDataDir </> "support") supportDir
+            liftIO $
+            case defaultProvisioning of
+              SymLink ->
+                createFileLink
+                  ((directories ^. appData) </> "support")
+                  (directories ^. support)
+              _ ->
+                copyDir
+                  ((directories ^. appData) </> "support")
+                  (directories ^. support)
           _ -> return ()
     --
     phony "check" checkExternalPrograms
     --
     phony "publish" $ do
-      need ["support"]
-      everythingA <++> indexA >>= need
-      metaData <- readMetaDataForDir projectDir
+      need ["index"]
+      allHtmlA >>= need
+      metaData <- metaA
       let host = metaValueAsString "rsync-destination.host" metaData
       let path = metaValueAsString "rsync-destination.path" metaData
       if isJust host && isJust path
         then do
-          let src = publicDir ++ "/"
+          let src = (directories ^. public) ++ "/"
           let dst = intercalate ":" [fromJust host, fromJust path]
           ssh [(fromJust host), "mkdir -p", (fromJust path)]
           rsync [src, dst]
         else throw RsyncUrlException
     --
-    phony "sync" $ uploadQuizzes deckSourcesA
-
--- | Some constants that might need tweaking
-options :: FilePath -> ShakeOptions
-options projectDir =
-  shakeOptions
-    { shakeFiles = ".shake"
-    , shakeColor = True
-    , shakeThreads = numCapabilities
-    , shakeAbbreviations = [(projectDir ++ "/", "")]
-    }
+    phony "sync" $ uploadQuizzes (_sources <$> targetsA)

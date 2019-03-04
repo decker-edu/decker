@@ -41,7 +41,6 @@ RUN apt-get update && apt-get install -y \
     graphviz \
     gnuplot \
     rsync \
-    sassc \
     unzip \
     zip
 

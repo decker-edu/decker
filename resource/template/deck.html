@@ -20,8 +20,14 @@ $endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="$revealjs-url$/css/reveal.css">
-  <link rel="stylesheet" href="$decker-support-dir$/reveal.js-menu/font-awesome/css/all.css">
+  
+  <script>
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? '$decker-support-dir$/print/pdf.css' : '$decker-support-dir$/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  </script>
 
 $if(math)$
   $math$
@@ -50,7 +56,7 @@ $endif$
 
 
   <!-- Decker's standard default CSS -->
-  <!--<link rel="stylesheet" href="$decker-support-dir$/decker.css">-->
+  <link rel="stylesheet" href="$decker-support-dir$/decker.css">
 
   <!-- The last word on CSS for the power user -->
 $for(css)$
