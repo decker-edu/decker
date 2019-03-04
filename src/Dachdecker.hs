@@ -72,25 +72,6 @@ uploadQuiz token path = do
       putStrLn $ "Unable to find Deck ID in file " ++ path
       putStrLn "Please provide one in your yaml header"
       return ()
-        -- Just deckId' <- createDeck token -- TODO, "Nothing" is ignored here
-        -- putStr "Created new Deck ID: "
-        -- putStrLn deckId'
-        -- let meta' =
-        --       Meta $ insert "dachdecker" (MetaString deckId') (unMeta meta)
-        -- -- let writerOptions = def {writerExtensions = enableExtension Ext_yaml_metadata_block pandocExtensions}
-        -- let writerOptions =
-        --       def
-        --         { writerExtensions =
-        --             extensionsFromList [Ext_yaml_metadata_block]
-        --         }
-        -- print writerOptions
-        -- markdownContent <-
-        --   runIO (writeMarkdown writerOptions (Pandoc meta' content)) >>=
-        --   handleError
-        -- -- writeMarkdown doesn't include the yaml header, therefore 
-        -- -- destroying the file upon write
-        -- writeFile path (Data.Text.unpack markdownContent)
-        -- return deckId'
 
 -- | Suppresses echo when prompting for a password
 -- Copied from
