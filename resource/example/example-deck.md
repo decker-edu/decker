@@ -424,7 +424,7 @@ Fullscreen videos are identified in the slide header:
 
 *Note:* Do not include a slide title.
 
-# ![](movies/jmu-hci-intro.mp4) {#example-movies_3 controls=1 .sub}
+# ![](movies/jmu-hci-intro.mp4) {#example-movies_3 data-menu-title="Fullscreen Videos Example" controls=1 .sub}
 
 # Audio {#audio}
 
@@ -618,17 +618,12 @@ alert (s);
 ##
 
 ```html
-<iframe src = "https://www.uni-wuerzburg.de/"
-  style = "position: fixed; top: 0px; left: 0px;  
-  bottom: 0px; right: 0px; width: 100%; height: 100%;
-  border: none; margin: 0; padding: 0;  
-  overflow: hidden; z-index: 999999; "></iframe>
+<iframe class = "stretch" src = "https://www.uni-wuerzburg.de/"></iframe>
 ```
 
-# {#example-externalWebsite .sub}
+# {#example-externalWebsite data-menu-title="External Website Example" .sub}
 
-<iframe src = "https://www.uni-wuerzburg.de/" style = "position: fixed; top: 0px; left: 0px; bottom: 0px; right: 0px; width: 100%; height: 100%; border : none; margin: 0; padding: 0; overflow: hidden; z-index: 999999; ">
-</iframe>
+<iframe class = "stretch" src = "https://www.uni-wuerzburg.de/"></iframe>
 
 
 # Embed PDF documents {#embedPDF style="font-size:small;"}
