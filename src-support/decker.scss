@@ -1003,8 +1003,14 @@ body {
   $x-large-font-size: 1.4 * $base-font-size;
   $xx-large-font-size: 1.6 * $base-font-size;
 
+  html {
+    overflow: visible !important;
+  }
+
   body {
+    overflow: visible !important;
     .reveal {
+      position: static !important;
       .slides {
         transform: none !important;
 
