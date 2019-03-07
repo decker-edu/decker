@@ -7,12 +7,14 @@ module Dachdecker
   ) where
 
 import Control.Exception
-import Control.Lens ((&), (.~), (?~), (^?), (^.))
+import Control.Lens ((&), (.~), (?~), (^.), (^?))
 import Data.Aeson ((.=), fromJSON, object, toJSON)
 import Data.Aeson.Lens (_Bool, _Integer, _Object, _String, key, nth, values)
 import qualified Data.ByteString.Char8 as BSC
+import Data.Functor ((<&>))
 import Data.List (isPrefixOf)
 import Data.Map
+import Data.Maybe
 import Data.Text
 import qualified Data.Text.IO as T
 import Development.Shake (Action, liftIO)
@@ -53,6 +55,7 @@ uploadQuizzesIO deckPaths = do
   case maybeToken of
     Just token -> mapM (uploadQuiz token) deckPaths
     Nothing -> do
+      putStrLn "Couldn't upload to the server"
       return [()]
   return ()
 
@@ -84,19 +87,51 @@ withEcho echo action =
     (const $ hSetEcho stdin echo >> action)
 
 -- | Login to the Dachdecker server
--- Use @user@ and @pass@ as credentials to log in
+-- Use @user@ and @pass@ as credentials to log in.
+-- Authentication is done with the university Gitlab server.
+-- The resulting token is sent to the Dachdecker server
+-- to prove a successful authentication.
 -- The Dachdecker server allows to hold authentication status
 -- with either Cookies or an authentication token
 login :: String -> String -> IO (Maybe String)
 login user pass = do
-  baseUrl <- getDachdeckerUrl
-  r <-
-    post
-      (baseUrl ++ "/api/v1/user/login")
-      (toJSON (object ["name" .= user, "password" .= pass]))
-  let loginSuccess = r ^? responseBody . key "login" . _Bool
-  let token = r ^? responseBody . key "token" . _String
-  return (fmap Data.Text.unpack token)
+  gitlabResponse <-
+    catch
+      ((post
+          "https://gitlab2.informatik.uni-wuerzburg.de/oauth/token"
+          [ "grant_type" := ("password" :: String)
+          , "username" := user
+          , "password" := pass
+          ]) <&>
+       Just)
+      handler
+  case gitlabResponse of
+    Just gitlabResult -> do
+      let token =
+            (gitlabResult ^? responseBody . key "access_token" . _String) <&>
+            Data.Text.unpack
+      case token of
+        Just gitlabToken -> do
+          baseUrl <- getDachdeckerUrl
+          dachdeckerResponse <-
+            catch
+              ((get (baseUrl ++ "/api/v1/login?token=" ++ gitlabToken)) <&> Just)
+              handler
+          case dachdeckerResponse of
+            Just dachdeckerResult -> do
+              return $
+                (dachdeckerResult ^? responseBody . key "token" . _String) <&>
+                Data.Text.unpack
+            Nothing -> do
+              return Nothing
+        Nothing -> do
+          return Nothing
+    Nothing -> do
+      return Nothing
+  where
+    handler (HttpException e) = do
+      putStrLn "Invalid credentials"
+      return Nothing
 
 -- | Creates a new deck entry on the server
 -- With the authentication token, the server is asked to
@@ -124,7 +159,12 @@ uploadMarkdown deckId path token
   -- Upload them as well
  = do
   projectDirs <- projectDirectories
-  uploadFile deckId token path (makeRelativeTo (projectDirs ^. project) path) False
+  uploadFile
+    deckId
+    token
+    path
+    (makeRelativeTo (projectDirs ^. project) path)
+    False
   return ()
 
 uploadPublic :: String -> String -> IO ()
@@ -145,7 +185,11 @@ uploadPublic deckId token = do
                  contents <- listDirectory src
                  mapM
                    (\x ->
-                      uploadPublicRecursive (src </> x) (uploadPath ++ "/" ++ x))
+                      uploadPublicRecursive
+                        (src </> x)
+                        (if uploadPath /= ""
+                           then uploadPath ++ "/" ++ x
+                           else x))
                    contents
                  return ()
                else do
@@ -164,18 +208,36 @@ uploadFile ::
 uploadFile deckId token localPath uploadPath processed = do
   baseUrl <- getDachdeckerUrl
   let opts = defaults & header "X-Auth-Token" .~ [BSC.pack token]
-  r <-
-    postWith
-      opts
-      (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/file")
-      (toJSON (object ["path" .= uploadPath, "processed" .= processed]))
-  let Just uploadId = r ^? responseBody . key "id" . _Integer
-  ru <-
-    postWith
-      opts
-      (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/file/" ++ (show uploadId))
-      (partFile "file" localPath)
+  dachdeckerUploadRequestResponse <-
+    (catch
+       ((postWith
+           opts
+           (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/file")
+           (toJSON (object ["path" .= uploadPath, "processed" .= processed]))) <&>
+        Just)
+       handler)
+  let uploadId =
+        case dachdeckerUploadRequestResponse of
+          Just response -> response ^? responseBody . key "id" . _Integer
+          Nothing -> Nothing
+  uploadSuccess <-
+    case uploadId of
+      Just uploadId' ->
+        catch
+          ((postWith
+              opts
+              (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/file/" ++
+               (show uploadId'))
+              (partFile "file" localPath)) <&>
+           Just)
+          handler
+      Nothing -> do return Nothing
+  -- putStrLn $ "Upload file: " ++ localPath ++ " -> " ++ uploadPath ++ " - " ++ show (isJust uploadSuccess)
   return ()
+  where
+    handler (HttpException e) = do
+      putStrLn $ "Error uploading " ++ show (localPath)
+      return Nothing
 
 -- | Ask the server to update the surveys based on the uploaded files
 issueSurveyExtraction ::
@@ -185,8 +247,15 @@ issueSurveyExtraction ::
 issueSurveyExtraction deckId token = do
   baseUrl <- getDachdeckerUrl
   let opts = defaults & header "X-Auth-Token" .~ [BSC.pack token]
-  putWith
-    opts
-    (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/survey")
-    (toJSON (object ["generate" .= True]))
+  catch
+    ((putWith
+        opts
+        (baseUrl ++ "/api/v1/deck/" ++ deckId ++ "/survey")
+        (toJSON (object ["generate" .= True]))) <&>
+     Just)
+    handler
   return ()
+  where
+    handler (HttpException e) = do
+      putStrLn $ "Error updating quizzes"
+      return Nothing
