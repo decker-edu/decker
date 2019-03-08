@@ -18,7 +18,8 @@ import Data.Maybe
 import Data.Text
 import qualified Data.Text.IO as T
 import Development.Shake (Action, liftIO)
-import Network.HTTP.Client (HttpException)
+import Exception
+import Network.HTTP.Client (HttpException(HttpExceptionRequest))
 import Network.Wreq
 import Project
 import System.Directory (doesDirectoryExist, listDirectory)
@@ -26,8 +27,8 @@ import System.Exit
 import System.FilePath
 import System.IO
 import Text.Pandoc
-import Utilities
 
+-- import Utilities
 uploadQuizzes :: Action [FilePath] -> Action ()
 uploadQuizzes markdownDecks
   -- TODO need the generated html files
@@ -115,7 +116,8 @@ login user pass = do
           baseUrl <- getDachdeckerUrl
           dachdeckerResponse <-
             catch
-              ((get (baseUrl ++ "/api/v1/login?token=" ++ gitlabToken)) <&> Just)
+              ((get (baseUrl ++ "/api/v1/user/login?token=" ++ gitlabToken)) <&>
+               Just)
               handler
           case dachdeckerResponse of
             Just dachdeckerResult -> do
@@ -129,7 +131,7 @@ login user pass = do
     Nothing -> do
       return Nothing
   where
-    handler (HttpException e) = do
+    handler (HttpExceptionRequest e f) = do
       putStrLn "Invalid credentials"
       return Nothing
 
@@ -231,11 +233,12 @@ uploadFile deckId token localPath uploadPath processed = do
               (partFile "file" localPath)) <&>
            Just)
           handler
-      Nothing -> do return Nothing
+      Nothing -> do
+        return Nothing
   -- putStrLn $ "Upload file: " ++ localPath ++ " -> " ++ uploadPath ++ " - " ++ show (isJust uploadSuccess)
   return ()
   where
-    handler (HttpException e) = do
+    handler (HttpExceptionRequest e f) = do
       putStrLn $ "Error uploading " ++ show (localPath)
       return Nothing
 
@@ -256,6 +259,27 @@ issueSurveyExtraction deckId token = do
     handler
   return ()
   where
-    handler (HttpException e) = do
+    handler (HttpExceptionRequest e f) = do
       putStrLn $ "Error updating quizzes"
       return Nothing
+
+------------------------------------------
+------------------------- Copies of functions from utilities to break cycles ---
+------------------------------------------
+readMarkdownOrThrow :: ReaderOptions -> Text -> Pandoc
+readMarkdownOrThrow opts markdown =
+  case runPure (readMarkdown opts markdown) of
+    Right pandoc -> pandoc
+    Left errMsg -> throw $ PandocException (show errMsg)
+
+-- Remove automatic identifier creation for headers. It does not work well with
+-- the current include mechanism if slides have duplicate titles in separate
+-- include files.
+deckerPandocExtensions :: Extensions
+deckerPandocExtensions =
+  (disableExtension Ext_auto_identifiers . disableExtension Ext_simple_tables .
+   disableExtension Ext_multiline_tables)
+    pandocExtensions
+
+pandocReaderOpts :: ReaderOptions
+pandocReaderOpts = def {readerExtensions = deckerPandocExtensions}
