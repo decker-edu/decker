@@ -3,6 +3,7 @@ import Common
 import Exception
 import External
 import Flags (hasPreextractedResources)
+import Pdf
 import Project
 import Resources
 import Shake
@@ -97,7 +98,8 @@ main = do
     --
     phony "sketch-pad-index" $ do
       indicesA >>= need
-      indicesA >>= writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
+      indicesA >>=
+        writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
     --
     phony "index" $ need ["support", index]
     --
@@ -119,7 +121,11 @@ main = do
         need [src]
         putNormal $ src ++ " -> " ++ out
         runHttpServer serverPort directories Nothing
-        decktape [serverUrl </> makeRelative (directories ^. public) src, out]
+        -- decktape [serverUrl </> makeRelative (directories ^. public) src, out]
+        liftIO $
+          launchChrome
+            (serverUrl </> makeRelative (directories ^. public) src)
+            out
     --
     priority 2 $
       "//*-handout.html" %> \out -> do

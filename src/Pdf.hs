@@ -5,7 +5,10 @@ module Pdf
 
 import System.Decker.OS
 
+import Control.Exception
+import Data.List
 import System.Directory
+import System.Exit
 import System.IO
 import System.Process
 
@@ -48,24 +51,36 @@ getDirs
   print contents
 
 -- This will be what is imported from the OS module
-chrome :: FilePath
-chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-
+-- chrome :: FilePath
+-- chrome = "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome"
 pdfPath = "test.pdf"
 
 pdfOption :: FilePath -> [Char]
 pdfOption path = "--print-to-pdf=" ++ path
 
-launchChrome :: IO ()
-launchChrome = do
-  (_, _, _, ph2) <-
+modifySrc :: FilePath -> FilePath
+modifySrc path = path ++ "?print-pdf#/"
+  -- if isSuffixOf ".html" path
+    -- then Just $ path ++ "?print-pdf#/"
+    -- else Nothing
+
+chromeOptions :: FilePath -> FilePath -> [String]
+chromeOptions src out =
+  ["--headless", "--disable-gpu", pdfOption out, modifySrc src]
+
+launchChrome :: FilePath -> FilePath -> IO ()
+launchChrome src out = do
+  command <- chrome
+  let options = unwords (chromeOptions src out)
+  -- print options
+  (_, _, _, ph) <-
     createProcess
-      (proc
-         chrome
-         [ "--headless"
-         , "--disable-gpu"
-         , pdfOption pdfPath
-         , "http://0.0.0.0:8888/example-deck.html?print-pdf#/"
-         ])
-  waitForProcess ph2
-  print "test"
+      -- (proc chrome ["--headless", "--disable-gpu", pdfOption out, modifySrc src])
+      (shell $ command ++ " " ++ options)
+  code <- waitForProcess ph
+  case code of
+    ExitFailure _ ->
+      error
+        ("Error: Google Chrome is most likely not installed." ++
+         " Make sure Google Chrome is installed to use 'decker pdf'.")
+    ExitSuccess -> putStrLn $ "completed:" ++ src ++ " -> " ++ out

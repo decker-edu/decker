@@ -3,6 +3,7 @@ module System.Decker.OS
   ( defaultProvisioning
   , urlPath
   , preextractedResourceFolder
+  , chrome
   ) where
 
 import Common
@@ -20,3 +21,6 @@ preextractedResourceFolder :: IO FilePath
 preextractedResourceFolder = do
   exep <- getExecutablePath
   return $ joinPath [(takeDirectory exep), "..", "resource"]
+
+chrome :: IO String
+chrome = return "start chrome"
