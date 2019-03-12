@@ -22,30 +22,41 @@ preextractedResourceFolder = do
   exep <- getExecutablePath
   return $ joinPath [(takeDirectory exep), "..", "Resources", "resource"]
 
--- Look for chromium executable on $PATH
-chromeExecutable :: IO String
+-- Look for chrome executable on $PATH
+chromeExecutable :: IO (Either String String)
 chromeExecutable = do
-  chrium <- findExecutable "chromium"
   chr <- findExecutable "chrome"
-  case (chrium, chr) of
-    (Just c, _) -> return c
-    (_, Just c) -> return c
-    (Nothing, Nothing) ->
-      error
-        "Neither chrome nor chromium are on $PATH. Please make sure Google Chrome is installed to use 'decker pdf'."
+  case chr of
+    Just c -> return $ Right c
+    Nothing ->
+      return $
+      Left
+        "'chrome' is not on $PATH. Please make sure 'chrome' is pointing to your Google Chrome installation."
 
-chrome :: IO String
+-- Check for MacOS standard installation locations
+-- /Applications/Google Chrome.app
+-- /Users/<username>/Applications/Google Chrome.app
+chrome :: IO (Either String String)
 chrome = do
   localExists <- localChrome >>= \h -> doesFileExist h
   globalExists <- doesFileExist chromeLocation
   if globalExists
-    then return chromeCommand
+    then return $ Right chromeCommand
     else if localExists
            then localChromeCommand
-           else chromeExecutable
+           else do
+             exe <- chromeExecutable
+             case exe of
+               Right c -> return $ Right c
+               Left msg ->
+                 return $
+                 Left
+                   ("MacOS: Google Chrome.app was not found in /Applications or /User/<username>/Applications. Please install Google Chrome.\n" ++
+                    "Generic Unix: " ++ msg)
   where
     localChrome = fmap (\h -> h ++ chromeLocation) getHomeDirectory
-    localChromeCommand = fmap (\h -> h ++ chromeCommand) getHomeDirectory
+    localChromeCommand =
+      fmap (\h -> Right (h ++ chromeCommand)) getHomeDirectory
     chromeLocation =
       "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     chromeCommand =

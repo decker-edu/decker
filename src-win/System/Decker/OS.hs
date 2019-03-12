@@ -22,5 +22,6 @@ preextractedResourceFolder = do
   exep <- getExecutablePath
   return $ joinPath [(takeDirectory exep), "..", "resource"]
 
-chrome :: IO String
-chrome = return "start chrome"
+-- start chrome from cmd
+chrome :: IO (Either String String)
+chrome = return $ Right "start chrome"

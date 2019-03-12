@@ -1,6 +1,5 @@
 module Pdf
-  ( getDirs
-  , launchChrome
+  ( launchChrome
   ) where
 
 import System.Decker.OS
@@ -40,47 +39,31 @@ TODO:
     require that chrome or chromium is on path
 
 -}
-getDirs :: IO ()
-getDirs
-  -- dirs <- getXdgDirectoryList
- = do
-  home <- getHomeDirectory
-  print home
-  let apps = "/Applications"
-  contents <- listDirectory apps
-  print contents
-
--- This will be what is imported from the OS module
--- chrome :: FilePath
--- chrome = "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome"
-pdfPath = "test.pdf"
-
 pdfOption :: FilePath -> [Char]
 pdfOption path = "--print-to-pdf=" ++ path
 
 modifySrc :: FilePath -> FilePath
 modifySrc path = path ++ "?print-pdf#/"
-  -- if isSuffixOf ".html" path
-    -- then Just $ path ++ "?print-pdf#/"
-    -- else Nothing
 
 chromeOptions :: FilePath -> FilePath -> [String]
 chromeOptions src out =
   ["--headless", "--disable-gpu", pdfOption out, modifySrc src]
 
-launchChrome :: FilePath -> FilePath -> IO ()
+launchChrome :: FilePath -> FilePath -> IO (Either String String)
 launchChrome src out = do
   command <- chrome
   let options = unwords (chromeOptions src out)
   -- print options
-  (_, _, _, ph) <-
-    createProcess
-      -- (proc chrome ["--headless", "--disable-gpu", pdfOption out, modifySrc src])
-      (shell $ command ++ " " ++ options)
-  code <- waitForProcess ph
-  case code of
-    ExitFailure _ ->
-      error
-        ("Error: Google Chrome is most likely not installed." ++
-         " Make sure Google Chrome is installed to use 'decker pdf'.")
-    ExitSuccess -> putStrLn $ "completed:" ++ src ++ " -> " ++ out
+  case command of
+    Left msg -> return $ Left msg
+    Right cmd -> do
+      (_, _, _, ph) <-
+        createProcess (shell $ cmd ++ " " ++ options) {std_err = CreatePipe}
+      code <- waitForProcess ph
+      case code of
+        ExitFailure _ ->
+          return $
+          Left
+            ("Google Chrome is most likely not installed. " ++
+             "Please install Google Chrome to use 'decker pdf' or 'decker pdf-decks'")
+        ExitSuccess -> return $ Right ("Completed: " ++ src ++ " -> " ++ out)
