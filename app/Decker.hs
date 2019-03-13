@@ -3,6 +3,7 @@ import Common
 import Exception
 import External
 import Flags (hasPreextractedResources)
+import Pdf
 import Project
 import Resources
 import Shake
@@ -29,7 +30,9 @@ import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Pandoc.Definition
-import Text.Printf
+import Text.Printf (printf)
+import Utilities
+import Dachdecker
 
 main :: IO ()
 main = do
@@ -48,6 +51,13 @@ main = do
   let indexSource = (directories ^. project) </> "index.md"
   let index = (directories ^. public) </> "index.html"
   let cruft = ["index.md.generated", "log", "//.shake", "generated", "code"]
+  let pdfMsg =
+        "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
+        "# Windows: Follow the Google Chrome installer instructions.\n" ++
+        "# MacOS: Follow the Google Chrome installer instructions.\n" ++
+        "\tGoogle Chrome.app has to be located in either /Applications/Google Chrome.app or /Users/<username>/Applications/Google Chrome.app\n" ++
+        "\tAlternatively you can add 'chrome' to $PATH.\n" ++
+        "# Linux: 'chrome' has to be on $PATH.\n"
   --
   runDecker $
   --
@@ -74,10 +84,12 @@ main = do
       allHtmlA >>= need
     --
     phony "pdf" $ do
+      putNormal pdfMsg
       need ["index"]
       allPdfA >>= need
     --
     phony "pdf-decks" $ do
+      putNormal pdfMsg
       need ["index"]
       decksPdfA >>= need
     --
@@ -97,7 +109,8 @@ main = do
     --
     phony "sketch-pad-index" $ do
       indicesA >>= need
-      indicesA >>= writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
+      indicesA >>=
+        writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
     --
     phony "index" $ need ["support", index]
     --
@@ -117,9 +130,16 @@ main = do
       "//*-deck.pdf" %> \out -> do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         need [src]
-        putNormal $ src ++ " -> " ++ out
+        putNormal $ "Started: " ++ src ++ " -> " ++ out
         runHttpServer serverPort directories Nothing
-        decktape [serverUrl </> makeRelative (directories ^. public) src, out]
+        result <-
+          liftIO $
+          launchChrome
+            (serverUrl </> makeRelative (directories ^. public) src)
+            out
+        case result of
+          Right msg -> putNormal msg
+          Left msg -> error msg
     --
     priority 2 $
       "//*-handout.html" %> \out -> do
@@ -242,3 +262,5 @@ main = do
           ssh [(fromJust host), "mkdir -p", (fromJust path)]
           rsync [src, dst]
         else throw RsyncUrlException
+    --
+    phony "sync" $ uploadQuizzes (_sources <$> targetsA)

@@ -557,7 +557,7 @@ $$ e = mc ^ 2 $$
 ```
 ## {style="font-size:small;"}
 ```latex
-\lim_\limits{x \to \infty} \exp(-x) = 0
+\lim_{x \to \infty} \exp(-x) = 0
 ```
 
 ## {.right}
@@ -572,7 +572,7 @@ $$ e = mc ^ 2 $$
 
 ## {.example}
 
-$$ \lim_\limits{x \to \infty} \exp(-x) = 0 $$
+$$ \lim_{x \to \infty} \exp(-x) = 0 $$
 
 # Java Syntax Highlighting {#java}
 

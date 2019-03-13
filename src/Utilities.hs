@@ -19,6 +19,8 @@ module Utilities
   , toPandocMeta
   , deckerPandocExtensions
   , lookupPandocMeta
+  , readMarkdownOrThrow
+  , pandocReaderOpts
   , DeckerException(..)
   ) where
 
@@ -60,6 +62,11 @@ import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Network.URI
+import Project
+import Quiz
+import Render
+import Resources
+import Server
 import System.Decker.OS
 import qualified System.Directory as Dir
 import System.FilePath.Glob
@@ -137,6 +144,9 @@ writeIndexLists out baseUrl = do
   let decks = (zip (_decks ts) (_decksPdf ts))
   let handouts = (zip (_handouts ts) (_handoutsPdf ts))
   let pages = (zip (_pages ts) (_pagesPdf ts))
+  decksLinks <- mapM makeLink decks
+  handoutsLinks <- mapM makeLink handouts
+  pagesLinks <- mapM makeLink pages
   liftIO $
     writeFile out $
     unlines
@@ -145,19 +155,26 @@ writeIndexLists out baseUrl = do
       , "subtitle: " ++ dirs ^. project
       , "---"
       , "# Slide decks"
-      , unlines $ map makeLink decks
+      , unlines $ decksLinks
       , "# Handouts"
-      , unlines $ map makeLink handouts
+      , unlines $ handoutsLinks
       , "# Supporting Documents"
-      , unlines $ map makeLink pages
+      , unlines $ pagesLinks
       ]
   where
-    makeLink (html, pdf) =
-      printf
-        "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
-        (takeFileName html)
-        (makeRelative baseUrl html)
-        (makeRelative baseUrl pdf)
+    makeLink (html, pdf) = do
+      pdfExists <- doesFileExist pdf 
+      if pdfExists then
+        return $ printf
+          "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
+          (takeFileName html)
+          (makeRelative baseUrl html)
+          (makeRelative baseUrl pdf)
+      else 
+        return $ printf
+          "-    [%s <i class='fab fa-html5'></i>](%s)"
+          (takeFileName html)
+          (makeRelative baseUrl html)
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text
@@ -222,23 +239,22 @@ markdownToHtmlDeck markdownFile out index = do
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
   templateSupportDir <- getSupportDir meta out supportDirRel
+  dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
-          { writerSlideLevel = Just 1
-          , writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax
-                (urlPath $
-                 supportDirRel </> "node_modules" </> "mathjax" </>
-                 "MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables =
-              [ ( "revealjs-url"
-                , urlPath $ supportDirRel </> "node_modules" </> "reveal.js")
-              , ("decker-support-dir", templateSupportDir)
-              ]
-          , writerCiteMethod = Citeproc
-          }
+        { writerSlideLevel = Just 1
+        , writerTemplate = Just template
+        , writerHighlightStyle = Just pygments
+        , writerHTMLMathMethod =
+            MathJax
+              (supportDirRel </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
+        , writerVariables =
+            [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
+            , ("decker-support-dir", templateSupportDir)
+            , ("dachdecker-url", dachdeckerUrl')
+            ]
+        , writerCiteMethod = Citeproc
+        }
   writeNativeWhileDebugging out "filtered" pandoc >>=
     writeDeckIndex markdownFile index >>=
     writePandocFile "revealjs" options out
@@ -293,6 +309,7 @@ readAndProcessMarkdown markdownFile disp = do
         , renderCodeBlocks
         , includeCode
         , provisionResources
+        , renderQuizzes
         , processSlides
         , renderMediaTags
         , extractFigures

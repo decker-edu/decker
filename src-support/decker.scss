@@ -223,7 +223,7 @@ body {
         ul {
           display: inline-block;
           text-align: left;
-          margin: space(0 0 0 1);
+          margin-left: 1.1em;
         }
 
         ol {
@@ -242,13 +242,36 @@ body {
           }
         }
 
-        ul ul,
-        ul ol,
-        ol ol,
-        ol ul {
-          display: block;
-          //margin-left: 40px;
-          margin-left: space(1);
+        /////////////////////////////////////////////
+        // Quizzes
+        /////////////////////////////////////////////
+        .survey {
+          ul {
+            list-style-type: none;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 5pt;
+          }
+
+          li {
+            flex-grow: 1;
+            border: 1pt #111 dashed;
+            padding-left: 1em;
+            padding-right: 1em;
+            border-radius: 0.5em;
+            margin: 0.55em;
+            flex-basis: 30%;
+          }
+
+          li:hover {
+            background-color: rgb(220, 220, 220);
+          }
+
+          .tooltip {
+            display: none;
+          }
         }
 
         /////////////////////////////////////////////
@@ -506,7 +529,7 @@ body {
 
         video {
           width: 100%;
-          margin: 0 auto;
+          margin: 0;
           display: block;
         }
 
