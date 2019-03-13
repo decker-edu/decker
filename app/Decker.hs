@@ -50,8 +50,7 @@ main = do
   let index = (directories ^. public) </> "index.html"
   let cruft = ["index.md.generated", "log", "//.shake", "generated", "code"]
   let pdfMsg =
-        "\n# Make sure you have run 'decker html' first.\n" ++
-        "# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
+        "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
         "# Windows: Follow the Google Chrome installer instructions.\n" ++
         "# MacOS: Follow the Google Chrome installer instructions.\n" ++
         "\tGoogle Chrome.app has to be located in either /Applications/Google Chrome.app or /Users/<username>/Applications/Google Chrome.app\n" ++
@@ -131,7 +130,6 @@ main = do
         need [src]
         putNormal $ "Started: " ++ src ++ " -> " ++ out
         runHttpServer serverPort directories Nothing
-        -- decktape [serverUrl </> makeRelative (directories ^. public) src, out]
         result <-
           liftIO $
           launchChrome
