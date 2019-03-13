@@ -68,6 +68,10 @@ $endfor$
 $for(header-includes)$
   $header-includes$
 $endfor$
+
+$if(dachdecker)$
+<script type="text/javascript">const dachdecker = "$dachdecker$";</script>
+$endif$
 </head>
 
 <body>
@@ -311,6 +315,10 @@ $endif$
         },
       });
     </script>
+$if(dachdecker)$
+    <script src="$dachdecker-url$/static/slide.js"></script>
+    <link rel="stylesheet" type="text/css" href="$dachdecker-url$/static/slide.css"></script>
+$endif$
   $for(include-after)$
   $include-after$
   $endfor$

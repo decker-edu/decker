@@ -19,6 +19,8 @@ module Utilities
   , toPandocMeta
   , deckerPandocExtensions
   , lookupPandocMeta
+  , readMarkdownOrThrow
+  , pandocReaderOpts
   , DeckerException(..)
   ) where
 
@@ -60,6 +62,11 @@ import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Network.URI
+import Project
+import Quiz
+import Render
+import Resources
+import Server
 import System.Decker.OS
 import qualified System.Directory as Dir
 import System.FilePath.Glob
@@ -232,23 +239,22 @@ markdownToHtmlDeck markdownFile out index = do
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
   templateSupportDir <- getSupportDir meta out supportDirRel
+  dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
-          { writerSlideLevel = Just 1
-          , writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax
-                (urlPath $
-                 supportDirRel </> "node_modules" </> "mathjax" </>
-                 "MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables =
-              [ ( "revealjs-url"
-                , urlPath $ supportDirRel </> "node_modules" </> "reveal.js")
-              , ("decker-support-dir", templateSupportDir)
-              ]
-          , writerCiteMethod = Citeproc
-          }
+        { writerSlideLevel = Just 1
+        , writerTemplate = Just template
+        , writerHighlightStyle = Just pygments
+        , writerHTMLMathMethod =
+            MathJax
+              (supportDirRel </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
+        , writerVariables =
+            [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
+            , ("decker-support-dir", templateSupportDir)
+            , ("dachdecker-url", dachdeckerUrl')
+            ]
+        , writerCiteMethod = Citeproc
+        }
   writeNativeWhileDebugging out "filtered" pandoc >>=
     writeDeckIndex markdownFile index >>=
     writePandocFile "revealjs" options out
@@ -303,6 +309,7 @@ readAndProcessMarkdown markdownFile disp = do
         , renderCodeBlocks
         , includeCode
         , provisionResources
+        , renderQuizzes
         , processSlides
         , renderMediaTags
         , extractFigures

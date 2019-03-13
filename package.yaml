@@ -54,6 +54,7 @@ dependencies:
   - hashable
   - highlighting-kate
   - HTTP
+  - http-client
   - http-conduit
   - http-types
   - lens
@@ -89,6 +90,7 @@ dependencies:
   - vector
   - websockets
   - websockets-snap
+  - wreq
   - yaml
   - zip
 

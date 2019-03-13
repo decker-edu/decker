@@ -30,7 +30,9 @@ import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Pandoc.Definition
-import Text.Printf
+import Text.Printf (printf)
+import Utilities
+import Dachdecker
 
 main :: IO ()
 main = do
@@ -260,3 +262,5 @@ main = do
           ssh [(fromJust host), "mkdir -p", (fromJust path)]
           rsync [src, dst]
         else throw RsyncUrlException
+    --
+    phony "sync" $ uploadQuizzes (_sources <$> targetsA)
