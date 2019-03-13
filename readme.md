@@ -109,11 +109,11 @@ Exchange the `html` at the end of the command with your *decker* command of choi
 
     Builds PDF versions of all slide decks (requires `decktape.sh`).
 
-    To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.  
+    To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be installed.  
     Windows: Follow the Google Chrome installer instructions.
-    MacOS: Follow the Google Chrome installer instructions. Google Chrome.app has to be located in either /Applications/Google Chrome.app or /Users/<username>/Applications/Google Chrome.app
-    Alternatively you can add 'chrome' to $PATH.  
-    Linux: 'chrome' has to be on $PATH.    
+    MacOS: Follow the Google Chrome installer instructions. Google Chrome.app has to be located in either `/Applications/Google Chrome.app` or `/Users/username/Applications/Google Chrome.app`
+    Alternatively you can add `chrome` to `$PATH`.  
+    Linux: `chrome` has to be on $PATH.    
 
 -   `decker watch`
 
