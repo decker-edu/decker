@@ -29,8 +29,6 @@ Decker uses a few external tools that need to be installed on the system:
     for publishing slide decks and resources
 -   [*unzip*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/unzip)
     to extract resources from the decker executable
--   [*decktape*](https://github.com/astefanutti/decktape) to convert HTML slide
-    decks to PDF format
 -   [*LaTeX* with pdflatex](https://www.latex-project.org) to generate LaTeX in
     PDF-files and embedded Tikz figures
 -   [*Graphviz*](http://graphviz.org) to generate graphs using `dot`
@@ -107,7 +105,13 @@ Exchange the `html` at the end of the command with your *decker* command of choi
 
 -   `decker pdf-decks`
 
-    Builds PDF versions of all slide decks (requires `decktape.sh`).
+    Builds PDF versions of all slide decks.
+
+    To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be installed.    
+    **Windows:** Follow the Google Chrome installer instructions.  
+    **MacOS:** Follow the Google Chrome installer instructions. **Google Chrome.app** has to be located in either `/Applications/Google Chrome.app` or `/Users/username/Applications/Google Chrome.app`
+    Alternatively you can add `chrome` to `$PATH`.  
+    **Linux:** `chrome` has to be on `$PATH`.    
 
 -   `decker watch`
 

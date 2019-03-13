@@ -137,6 +137,9 @@ writeIndexLists out baseUrl = do
   let decks = (zip (_decks ts) (_decksPdf ts))
   let handouts = (zip (_handouts ts) (_handoutsPdf ts))
   let pages = (zip (_pages ts) (_pagesPdf ts))
+  decksLinks <- mapM makeLink decks
+  handoutsLinks <- mapM makeLink handouts
+  pagesLinks <- mapM makeLink pages
   liftIO $
     writeFile out $
     unlines
@@ -145,19 +148,26 @@ writeIndexLists out baseUrl = do
       , "subtitle: " ++ dirs ^. project
       , "---"
       , "# Slide decks"
-      , unlines $ map makeLink decks
+      , unlines $ decksLinks
       , "# Handouts"
-      , unlines $ map makeLink handouts
+      , unlines $ handoutsLinks
       , "# Supporting Documents"
-      , unlines $ map makeLink pages
+      , unlines $ pagesLinks
       ]
   where
-    makeLink (html, pdf) =
-      printf
-        "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
-        (takeFileName html)
-        (makeRelative baseUrl html)
-        (makeRelative baseUrl pdf)
+    makeLink (html, pdf) = do
+      pdfExists <- doesFileExist pdf 
+      if pdfExists then
+        return $ printf
+          "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
+          (takeFileName html)
+          (makeRelative baseUrl html)
+          (makeRelative baseUrl pdf)
+      else 
+        return $ printf
+          "-    [%s <i class='fab fa-html5'></i>](%s)"
+          (takeFileName html)
+          (makeRelative baseUrl html)
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text

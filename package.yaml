@@ -100,7 +100,7 @@ library:
         source-dirs: src-win
         exposed-modules: "System.Decker.OS"
       else:
-        source-dirs: src-mac
+        source-dirs: src-unix
         exposed-modules: "System.Decker.OS"
     - condition: flag(preextractedresources)
       cpp-options: "-DPREEXTRACTEDRESOURCES"
