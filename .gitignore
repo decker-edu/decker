@@ -1,5 +1,7 @@
 .DS_Store
+*.prof
 .stack-work/
+.stack-work-profile/
 .shake/
 TAGS
 public/
@@ -28,3 +30,4 @@ resource/support/**
 test/decks/*.svg
 dist/
 node_modules
+sketch-pad-index.yaml

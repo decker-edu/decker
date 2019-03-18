@@ -4,13 +4,15 @@ history: True
 
 # Background Images
 
-## Four slides with background image
+## Some slides with background image
 
 1.  RevealJS style with `data-background-image` attribute
 2.  decker style with image and title text header
-3.  decker style with attributes `size`, `repeat`, `color`
-4.  decker style with attributes `position`, `size`, `repeat`, `color`
-5.  decker style with attributes `position`, `size`, `repeat`, `color`
+3.  decker style with attribute `size=contain`
+4.  decker style with attribute `size=cover`
+5.  decker style with attributes `size`, `repeat`, `color`
+6.  decker style with attributes `position`, `size`, `repeat`, `color`
+7.  decker style with attributes `position`, `size`, `repeat`, `color`
 
 # RevealJs Style {data-background-image="include/06-metal.png"}
 
@@ -23,6 +25,18 @@ history: True
 ## Source
 
     # Image in Title 1 ![](include/06-metal.png)
+
+# Image in Title 1 ![](include/06-metal.png){size="contain"}
+
+## Source
+
+    # Image in Title 1 ![](include/06-metal.png){size="contain"}
+
+# Image in Title 1 ![](include/06-metal.png){size="cover"}
+
+## Source
+
+    # Image in Title 1 ![](include/06-metal.png){size="cover"}
 
 # Image in Title 2 ![](include/06-metal.png){size="30%" repeat="repeat"}
 
