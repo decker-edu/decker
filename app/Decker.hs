@@ -13,6 +13,7 @@ import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Control.Monad.Extra
+import Dachdecker
 import Data.Aeson
 import Data.IORef ()
 import Data.List
@@ -32,7 +33,6 @@ import Text.Pandoc
 import Text.Pandoc.Definition
 import Text.Printf (printf)
 import Utilities
-import Dachdecker
 
 main :: IO ()
 main = do
@@ -106,6 +106,8 @@ main = do
       runHttpServer serverPort directories Nothing
     --
     phony "example" $ liftIO writeExampleProject
+    --
+    phony "tutorial" $ liftIO writeTutorialProject
     --
     phony "sketch-pad-index" $ do
       indicesA >>= need

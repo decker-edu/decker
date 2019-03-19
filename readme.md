@@ -100,8 +100,7 @@ Exchange the `html` at the end of the command with your *decker* command of choi
 
 -   `decker pdf`
 
-    Builds PDF versions of all documents that are generated from `*-page.md`
-    files.
+    Builds PDF versions of all documents. 
 
 -   `decker pdf-decks`
 
