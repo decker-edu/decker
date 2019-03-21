@@ -350,6 +350,7 @@ body {
           &.multi-column-row {
             display: flex;
             flex-flow: row nowrap;
+            margin-bottom: space(0.3);
 
             div {
               &.column {
@@ -384,6 +385,10 @@ body {
                 }
               }
             }
+          }
+
+          &.single-column-row {  //no space if multi row nested below
+            margin-bottom: space(0.3);
           }
 
           /////////////////////////////////////////////
