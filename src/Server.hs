@@ -71,11 +71,15 @@ runHttpServer state dirs port = do
             , serveFile $ dirs ^. project </> "test" </> "reload.html")
           , ("/", serveDirectoryNoCaching documentRoot)
           ]
-  let tryRun port 0 = fail "decker server: All addresses already in use"
+  let tryRun port 0 = fail "decker server: All ports already in use"
   let tryRun port tries =
         catch
           (simpleHttpServe (setPort port config) routes)
-          (\(SomeException e) -> tryRun (port + 1) (tries - 1))
+          (\(SomeException e) -> do
+             putStrLn
+               ("decker server: Port " ++
+                show port ++ "already in use, trying port " ++ show (port + 1))
+             tryRun (port + 1) (tries - 1))
   tryRun port 10
 
 serveDirectoryNoCaching :: MonadSnap m => FilePath -> m ()

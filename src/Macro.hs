@@ -145,6 +145,7 @@ macroMap =
     [ ("meta", metaValue)
     , ("fa", fontAwesome "fas")
     , ("fas", fontAwesome "fas")
+    , ("far", fontAwesome "far")
     , ("fab", fontAwesome "fab")
     , ("youtube", webVideo "youtube")
     , ("vimeo", webVideo "vimeo")

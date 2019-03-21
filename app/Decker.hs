@@ -231,10 +231,13 @@ run = do
       when (isJust $ metaValueAsString "publish-annotations" metaData) $ do
         let src = (directories ^. project) </> "annotations"
         let dst = (directories ^. public) </> "annotations"
-        liftIO $ copyDirIfNewer src dst
+        exists <- doesDirectoryExist src
+        when exists $ do
+          putNormal $ "# publish annotations (to " ++ dst ++ ")"
+          liftIO $ copyDir src dst
     --
     phony "publish" $ do
-      need ["index"]
+      need ["html", "sketch-pad-index"]
       allHtmlA >>= need
       metaData <- metaA
       let host = metaValueAsString "rsync-destination.host" metaData

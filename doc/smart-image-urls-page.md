@@ -25,7 +25,7 @@ dimensions:
 -   URI scheme
 -   Attributes (class and key-value)
 
---------------------------------------------------------------------------------
+---
 
 # Image Tag Context {#a86p}
 
@@ -69,7 +69,7 @@ Header
 
     The image is used as the background image for the slide.
 
---------------------------------------------------------------------------------
+---
 
 # Image Tag URI @rfc3986 {#v1a8}
 
@@ -214,7 +214,7 @@ construction of the corresponding HTML code.
 
 :   HTML page for display in an IFRAME.
 
---------------------------------------------------------------------------------
+---
 
 # Image Tag Attributes {#nz01}
 

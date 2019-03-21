@@ -1,6 +1,7 @@
 import SketchTests
 import Test.Hspec
 import WatchTests
+import IncludeTests
 
 import Control.Lens ((^.))
 import qualified Data.ByteString.Char8 as B
@@ -28,6 +29,7 @@ main = do
   hspec $
   --
    do
+    includeTests
     watchTests
     -- sketchTests
     describe "makeRelativeTo" $

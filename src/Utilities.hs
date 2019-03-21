@@ -538,28 +538,16 @@ readMetaMarkdown markdownFile = do
       let substituted = substituteMetaData markdown mustacheMeta
       -- read markdown with substitutions again
       let Pandoc _ blocks = readMarkdownOrThrow pandocReaderOpts substituted
-      when
-        (lookupBool "generate-ids" False meta ||
-         lookupBool "write-back.enable" False meta) $
+      let writeBack =
+            (lookupBool "generate-ids" False meta ||
+             lookupBool "write-back.enable" False meta)
+      when writeBack $ do
+        putNormal $ "# write back (" ++ markdownFile ++ ")"
         liftIO $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
       mapResources
         (urlToFilePathIfLocal (takeDirectory markdownFile))
         (Pandoc meta blocks)
     _ -> throw $ PandocException "Meta format conversion failed."
-
-urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
-urlToFilePathIfLocal base uri =
-  case parseRelativeReference uri of
-    Nothing -> return uri
-    Just relativeUri -> do
-      let filePath = uriPath relativeUri
-      absBase <- liftIO $ Dir.makeAbsolute base
-      absRoot <- projectA
-      let absPath =
-            if isAbsolute filePath
-              then absRoot </> makeRelative "/" filePath
-              else absBase </> filePath
-      return absPath
 
 readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
 readMarkdownOrThrow opts markdown =

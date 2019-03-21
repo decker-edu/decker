@@ -30,6 +30,8 @@ module Shake
   , writeDeckIndex
   , writeSketchPadIndex
   , withShakeLock
+  , urlToFilePathIfLocal
+  , urlToFilePathIfLocalIO
   ) where
 
 import Common
@@ -64,6 +66,7 @@ import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
 import Debug.Trace
+import Debug.Trace
 import Development.Shake
 import Development.Shake as Shake
   ( Action
@@ -77,6 +80,8 @@ import Development.Shake as Shake
   , shakeOptions
   , withResource
   )
+import qualified Network.URI as Net
+import qualified System.Directory as Dir
 import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
@@ -212,6 +217,7 @@ sketchPadId text =
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
+  putNormal $ "# write deck index (" ++ out ++ ")"
   context <- actionContext
   branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
   commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
@@ -268,6 +274,7 @@ metaP p k = T.strip $ T.pack $ stringify (p ^? meta k . _MetaInlines)
 
 writeSketchPadIndex :: FilePath -> [FilePath] -> Action ()
 writeSketchPadIndex out indexFiles = do
+  putNormal $ "# write sketch-pad index (" ++ out ++ ")"
   context <- actionContext
   branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
   commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
@@ -418,3 +425,22 @@ calcSource targetSuffix srcSuffix target = do
           target
   need [src]
   return src
+
+urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
+urlToFilePathIfLocal base uri = do
+  projectDir <- projectA
+  liftIO $ urlToFilePathIfLocalIO projectDir base uri
+
+urlToFilePathIfLocalIO :: FilePath -> FilePath -> FilePath -> IO FilePath
+urlToFilePathIfLocalIO projectDir base uri =
+  case Net.parseRelativeReference uri of
+    Nothing -> return uri
+    Just relativeUri -> do
+      let filePath = Net.uriPath relativeUri
+      absRoot <- Dir.makeAbsolute projectDir
+      absBase <- Dir.makeAbsolute base
+      let absPath =
+            if isAbsolute filePath
+              then absRoot </> makeRelative "/" filePath
+              else absBase </> filePath
+      return absPath

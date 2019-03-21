@@ -69,3 +69,16 @@ isSnippetTag tag name line =
 
 ``` {.haskell include="/src/Text/Pandoc/Filter/IncludeCode.hs" label="Haskell" snippet="include-even-shorter"}
 ```
+
+# Include a tagged snippet (Image syntax)
+
+## Include source
+
+``` {.ma}
+![](codre:/srck/Text/Pdandoc/Foiltewr/InclnudeCode.hs#include-even-shorter){.haskell label="Haskell"}
+```
+
+## Inclusion
+
+![](code:/src/Text/Pandoc/Filter/IncludeCode.hs#include-even-shorter){.haskell
+label="Haskell"}

@@ -135,6 +135,7 @@ default-extensions:
   - EmptyCase
   - FlexibleContexts
   - FlexibleInstances
+  - GeneralizedNewtypeDeriving
   - InstanceSigs
   - MultiParamTypeClasses
   - MultiWayIf

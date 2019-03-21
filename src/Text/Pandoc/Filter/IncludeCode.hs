@@ -7,13 +7,14 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Text.Pandoc.Filter.IncludeCode
-  ( InclusionMode(..)
-  , InclusionError(..)
-  , includeCode
-  , includeCode'
-  , includeCodeA
-  , includeCodeA'
-  ) where
+  -- ( InclusionMode(..)
+  -- , InclusionError(..)
+  -- , includeCode
+  -- , includeCode'
+  -- , includeCodeA
+  -- , includeCodeA'
+  -- ) 
+ where
 #if MIN_VERSION_base(4,8,0)
 import Control.Applicative ((<|>))
 #else
@@ -27,20 +28,30 @@ import Data.Char (isSpace)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.List (isInfixOf)
+import Data.Maybe
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
+import Debug.Trace
 import Development.Shake
-import Text.Pandoc.Filter.Range
-  ( LineNumber
-  , Range
-  , mkRange
-  , rangeEnd
-  , rangeStart
-  )
+import Network.URI
 import Text.Pandoc.JSON
 import Text.Read (readMaybe)
+
+import Shake
+
+type LineNumber = Int
+
+data Range = Range
+  { rangeStart :: LineNumber
+  , rangeEnd :: LineNumber
+  } deriving (Show, Eq)
+
+mkRange :: LineNumber -> LineNumber -> Maybe Range
+mkRange s e
+  | s > 0 && e > 0 && s <= e = Just (Range s e)
+  | otherwise = Nothing
 
 data InclusionMode
   = SnippetMode Text
@@ -53,7 +64,7 @@ data InclusionSpec = InclusionSpec
   { include :: FilePath
   , mode :: InclusionMode
   , dedent :: Maybe Int
-  }
+  } deriving (Show, Eq)
 
 data MissingRangePart
   = Start
@@ -69,7 +80,7 @@ data InclusionError
 
 newtype InclusionState = InclusionState
   { startLineNumber :: Maybe LineNumber
-  }
+  } deriving (Show)
 
 newtype Inclusion a = Inclusion
   { runInclusion :: ReaderT InclusionSpec (StateT InclusionState (ExceptT InclusionError IO)) a
@@ -119,6 +130,19 @@ parseInclusion attrs =
         (Just _, Nothing) -> throwError (IncompleteRange End)
         (Nothing, Nothing) -> return Nothing
 
+parseInclusionUrl :: String -> Either InclusionError (Maybe InclusionSpec)
+parseInclusionUrl urlString =
+  case parseURIReference urlString of
+    Just uri
+      | uriScheme uri == "code:" -> do
+        let include = uriPath uri
+        let mode =
+              if uriFragment uri == ""
+                then EntireFileMode
+                else SnippetMode (Text.pack $ filter (/= '#') $ uriFragment uri)
+        return (Just $ InclusionSpec include mode Nothing)
+    _ -> return Nothing
+
 type Lines = [Text]
 
 setStartLineNumber :: LineNumber -> Inclusion ()
@@ -127,8 +151,8 @@ setStartLineNumber n = modify (\s -> s {startLineNumber = Just n})
 -- 8< include-shorter
 readIncluded :: Inclusion Text
 readIncluded = liftIO . Text.readFile =<< asks include
--- >8
 
+-- >8
 -- 8<| include-even-shorter
 isSnippetTag :: Text -> Text -> Text -> Bool
 isSnippetTag tag name line =
@@ -180,6 +204,18 @@ dedentLines ls = do
           | otherwise -> Text.cons c cs
         Nothing -> ""
 
+dedentLinesMax :: Lines -> Inclusion Lines
+dedentLinesMax ls = do
+  let max = maxIndent ls
+  return (map (dedentLine max) ls)
+  where
+    largestPrefix a b =
+      case Text.commonPrefixes a b of
+        Nothing -> ""
+        Just (p, _, _) -> p
+    maxIndent = foldr largestPrefix "                             "
+    dedentLine max line = fromMaybe line $ Text.stripPrefix max line
+
 modifyAttributes ::
      InclusionState -> [String] -> [(String, String)] -> [(String, String)]
 modifyAttributes InclusionState {startLineNumber} classes =
@@ -212,7 +248,7 @@ joinLines = return . Text.unlines
 
 allSteps :: Inclusion Text
 allSteps =
-  readIncluded >>= splitLines >>= includeByMode >>= dedentLines >>= joinLines
+  readIncluded >>= splitLines >>= includeByMode >>= dedentLinesMax >>= joinLines
 
 includeCode' :: Block -> IO (Either InclusionError Block)
 includeCode' cb@(CodeBlock (id', classes, attrs) _) =
@@ -245,6 +281,23 @@ includeCodeA' cb@(CodeBlock (id', classes, attrs) _) =
                   (id', classes, modifyAttributes state classes attrs)
                   (Text.unpack contents)))
     Right Nothing -> return (Right cb)
+    Left err -> return (Left err)
+includeCodeA' pi@(Para [Image (id', classes, attrs) _ (url, _)]) =
+  case parseInclusionUrl url of
+    Right (Just rawSpec) -> do
+      local <- urlToFilePathIfLocal "." (include rawSpec)
+      need [local]
+      let spec = rawSpec {include = local}
+      inclusion <- liftIO $ runInclusion' (traceShowId spec) allSteps
+      case inclusion of
+        Left err -> return (Left err)
+        Right (contents, state) ->
+          return
+            (Right
+               (CodeBlock
+                  (id', classes, modifyAttributes state classes attrs)
+                  (Text.unpack contents)))
+    Right Nothing -> return (Right pi)
     Left err -> return (Left err)
 includeCodeA' x = return (Right x)
 
