@@ -1,10 +1,16 @@
-# Decker Command Line
+---
+title: Decker on the command line
+---
 
-# Overview over the decker command line
+# Introduction
 
-If you can read this, you probably already know how to use decker on the command line but here is an additional overview over all possible command line arguments supported by decker.
+If you can read this, you probably already know how to use decker on the command line but here is an additional overview over the possible command line arguments supported by decker.
 
-# decker example & decker tutorial
+# `decker help`
+
+Prints a help document to stdout in Markdown format.
+
+# `decker example` and `decker tutorial`
 
 - `decker example` copies an example project to the current directory
 - `decker tutorial` copies extended examples and tutorial decks to the current directory
@@ -15,11 +21,11 @@ If you can read this, you probably already know how to use decker on the command
 
 - `decker server`: Like `decker watch`. Additionally a local web server is started that serves the generated HTML files. The `*-deck.html` file is openend in the browser. Changed files are reloaded in the browser. (still requires `livereloadx`)
 
-# decker html
+# `decker html`
 
-- `decker html` creates html files without opening a server
+- `decker html` creates all HTML files without opening a server
 
-# decker pdf & decker pdf-decks
+# `decker pdf` and `decker pdf-decks`
 
 - `decker pdf` creates pdf files of all files
 - `decker pdf-decks` creates pdf files only of the slide decks
@@ -32,7 +38,7 @@ Alternatively you can add `chrome` to `$PATH`.
 
 # `decker clean`
 
-    Recursively removes all generated files from the current directory.
+    Recursively removes all generated files from the current directory. Also clears cached
 
 # `decker plan`
 
