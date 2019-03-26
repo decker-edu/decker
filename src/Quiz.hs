@@ -1,18 +1,55 @@
 {-- Author: Jan-Philipp Stauffert <jan-philipp.stauffert@uni-wuerzburg.de> --}
 module Quiz
   ( renderQuizzes
+  , renderQuestions
   ) where
 
 import Common
+import Control.Exception
+import Debug.Trace as DT
+import Filter
 import Text.Pandoc
 import Text.Pandoc.Walk
-import Debug.Trace as DT
-import Control.Exception
--- import Utilities as U
 
+-- import Utilities as U
 renderQuizzes :: Pandoc -> Decker Pandoc
 renderQuizzes pandoc = do
   return $ walk renderQuiz pandoc
+
+renderQuestions :: Pandoc -> Decker Pandoc
+renderQuestions pandoc = return $ walk renderQuestion pandoc
+
+renderQuestion :: Block -> Block
+renderQuestion bl@(BulletList blocks@((firstBlock:_):(sndBlock:_):_)) =
+  case (checkIfQuestion firstBlock, checkIfAnswer sndBlock) of
+    (Just q, Just a) -> Div ("", ["freetextQ"], []) [Para $ form q a]
+    _ -> bl
+renderQuestion block = block
+
+toHtml :: String -> Inline
+toHtml = RawInline (Format "html")
+
+form :: [Inline] -> [Inline] -> [Inline]
+form question answer =
+  [toHtml "<form>"] ++
+  question ++
+  [Str ":", LineBreak] ++
+  [toHtml "<input type=\"text\" name=\"question\">"] ++
+  [LineBreak] ++
+  [ toHtml
+      "<input type=\"button\" value=\"Show Answer\" onclick=\"this.value='Answer';\">"
+  ] ++
+  [toHtml "</form>"]
+
+checkIfQuestion :: Block -> Maybe [Inline]
+checkIfQuestion (Para ((Str "???"):q)) = Just q
+checkIfQuestion (Plain ((Str "???"):q)) = Just q
+checkIfQuestion _ = Nothing
+
+checkIfAnswer :: Block -> Maybe [Inline]
+checkIfAnswer (Para ((Str "!!!"):a)) = Just a
+checkIfAnswer (Plain ((Str "!!!"):a)) = Just a
+checkIfAnswer _ = Nothing
 
 -- | Renders a quiz
 -- A quiz is a bullet list in the style of a task list.
@@ -25,6 +62,10 @@ renderQuiz (BulletList blocks@((firstBlock:_):_))
 -- Default pass through
 renderQuiz block = block
 
+-- checkIfQuestion :: Block -> Bool
+-- checkIfQuestion (Para ((Str "???"):)) = True
+-- checkIfQuestion (Plain ((Str "???"):_)) = True
+-- checkIfQuestion _ = False
 -- | Checks if a block starts with [X] or [ ] to indicate a survey
 checkIfQuiz :: Block -> Bool
 checkIfQuiz (Para ((Str "[X]"):_)) = True

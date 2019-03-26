@@ -310,6 +310,7 @@ readAndProcessMarkdown markdownFile disp = do
         , includeCode
         , provisionResources
         , renderQuizzes
+        , renderQuestions
         , processSlides
         , renderMediaTags
         , extractFigures
