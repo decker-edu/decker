@@ -29,22 +29,22 @@ Decker uses a few external tools that need to be installed on the system:
     for publishing slide decks and resources
 -   [*unzip*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/unzip)
     to extract resources from the decker executable
--   [*decktape*](https://github.com/astefanutti/decktape) to convert HTML slide
-    decks to PDF format
 -   [*LaTeX* with pdflatex](https://www.latex-project.org) to generate LaTeX in
     PDF-files and embedded Tikz figures
 -   [*Graphviz*](http://graphviz.org) to generate graphs using `dot`
 -   [*Gnuplot*](http://gnuplot.sourceforge.net) to generate graphs using `dot`
 -   [*pdf2svg*](https://github.com/dawbarton/pdf2svg) to generate SVG files from
     PDF documents
--   [*sassc*](https://github.com/sass/sassc) to compile SCSS to CSS
+-   *libbzip2-dev*
+-   [*NodeJS*](https://nodejs.org/) as a prerequisite for Yarn
+-   [*Yarn*](https://yarnpkg.com) to install Javascript dependencies
 
 ### Installation of external tools on macOS
 
 Use [Homebrew](https://brew.sh) to install most of them.
 
 ``` {.sh}
-brew install rsync unzip graphviz gnuplot pdf2svg sassc
+brew install rsync unzip graphviz gnuplot pdf2svg yarn
 ```
 
 For the rest follow instructions on their respective webites.
@@ -105,7 +105,13 @@ Exchange the `html` at the end of the command with your *decker* command of choi
 
 -   `decker pdf-decks`
 
-    Builds PDF versions of all slide decks (requires `decktape.sh`).
+    Builds PDF versions of all slide decks.
+
+    To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be installed.    
+    **Windows:** Follow the Google Chrome installer instructions.  
+    **MacOS:** Follow the Google Chrome installer instructions. **Google Chrome.app** has to be located in either `/Applications/Google Chrome.app` or `/Users/username/Applications/Google Chrome.app`
+    Alternatively you can add `chrome` to `$PATH`.  
+    **Linux:** `chrome` has to be on `$PATH`.    
 
 -   `decker watch`
 
@@ -158,7 +164,9 @@ Exchange the `html` at the end of the command with your *decker* command of choi
 ### Pull requests
 
 Contributions are accepted via pull requests. Before working on a feature,
-please write up an issue and discuss it with the other developers.
+please write up an issue and discuss it with the other developers. 
+For each implemented feature, increment the version number in `package.yaml`. 
+Breaking changes increment the second number. Fixes increment the third number.
 
 ### CI build checks
 
@@ -172,3 +180,6 @@ Haskell soure code readability depends heavily on consistent formatting
 conventions. With decker, formatting is automated using the excellent
 [hindent]() tool. Formatting is checked for each commit that is uploaded to the
 GitLab repository.
+
+## Compile Flags
+The Decker executable contains per default all necessary supporting files and extracts them on the first run. Some packaging solutions prefer to already extract the files during the installation. To support this, a compile flag `preextractedresources` is available which instructs Decker to work with the already extracted resource files. Invoke `stack --flag decker:preextractedresources` to compile such a version.

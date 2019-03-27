@@ -1,5 +1,7 @@
 .DS_Store
+*.prof
 .stack-work/
+.stack-work-profile/
 .shake/
 TAGS
 public/
@@ -23,7 +25,9 @@ auto/
 *.fls
 *.log
 *.synctex.gz
-decker.css
+resource/support/**
 *.cabal
 test/decks/*.svg
 dist/
+node_modules
+sketch-pad-index.yaml

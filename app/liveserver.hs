@@ -18,4 +18,3 @@ main = do
   forever $ do
     getLine
     reloadClients server
-    putStrLn "reload initiated!"

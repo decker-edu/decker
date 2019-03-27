@@ -1,5 +1,4 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-
 module Server
   ( startHttpServer
   , stopHttpServer
@@ -9,7 +8,12 @@ module Server
 
 import Control.Concurrent
 import Control.Exception
+import Control.Lens
 import Control.Monad
+import Control.Monad.State
+import Dachdecker (login)
+import qualified Data.ByteString.Char8 as BS
+import Data.Maybe
 import Data.Text
 import Network.WebSockets
 import Network.WebSockets.Snap
@@ -24,7 +28,7 @@ import System.Random
 -- Logging and port configuration for the server.
 serverConfig :: ProjectDirs -> Int -> IO (Config Snap a)
 serverConfig dirs port = do
-  let logDir = Project.log dirs
+  let logDir = dirs ^. logging
   let accessLog = logDir </> "server-access.log"
   let errorLog = logDir </> "server-error.log"
   createDirectoryIfMissing True logDir
@@ -62,13 +66,15 @@ reloadAll state = withMVar state $ mapM_ reload
 -- Runs the server. Never returns.
 runHttpServer :: MVar ServerState -> ProjectDirs -> Int -> IO ()
 runHttpServer state dirs port = do
-  let documentRoot = public dirs
+  let documentRoot = dirs ^. public
   config <- serverConfig dirs port
-  simpleHttpServe config $
+  handle (\(SomeException e) -> print e) $
+    simpleHttpServe config $
     route
       [ ("/reload", runWebSocketsSnap $ reloader state)
+      , ("/dachdecker", method POST serveDachdecker)
       , ( "/reload.html" -- Just for testing the thing.
-        , serveFile $ Project.project dirs </> "test" </> "reload.html")
+        , serveFile $ dirs ^. project </> "test" </> "reload.html")
       , ("/", serveDirectoryNoCaching documentRoot)
       ]
 
@@ -78,6 +84,26 @@ serveDirectoryNoCaching directory = do
   modifyResponse $ addHeader "Cache-Control" "no-cache,no-store,must-revalidate"
   modifyResponse $ addHeader "Pragma" "no-cache"
   modifyResponse $ addHeader "Expires" "0"
+
+serveDachdecker :: Snap ()
+serveDachdecker = do
+  dachdeckerUrl <- liftIO getDachdeckerUrl
+  username <- getPostParam "user"
+  password <- getPostParam "password"
+  maybeToken <-
+    if (isJust username) && (isJust password)
+      then liftIO $
+           login (BS.unpack $ fromJust username) (BS.unpack $ fromJust password)
+      else do
+        liftIO $ putStrLn $ "Missing either username or password"
+        return Nothing
+  case maybeToken of
+    Just token ->
+      writeText $
+      pack
+        ("{\"token\": \"" ++
+         token ++ "\",\"server\": \"" ++ dachdeckerUrl ++ "\"}")
+    Nothing -> liftIO $ putStrLn $ "Error logging into the Dachdecker server"
 
 -- | Starts a server in a new thread and returns the thread id.
 startHttpServer :: ProjectDirs -> Int -> IO Server

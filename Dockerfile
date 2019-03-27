@@ -1,11 +1,19 @@
 # Builds the decker executable
-FROM ubuntu:artful
+FROM ubuntu:bionic
 
 RUN apt-get update &&	apt-get install -y \
   wget \
   unzip \
   zip \
-  libbz2-dev 
+  libbz2-dev \
+  curl \
+  gnupg
+
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+  echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+  apt-get update && \
+  apt-get install -y yarn
+
 
 #set the encoding on UTF-8, so the parser works correctly, german language is also added for umlaute
 #source of fix: https://blog.mkowalski.net/2016/05/16/solving-locale-issues-with-docker-containers/
@@ -21,18 +29,18 @@ RUN wget -qO- https://get.haskellstack.org/ | sh
 
 WORKDIR /decker
 COPY . /decker
-RUN make install
+ARG MAKE_FLAGS
+RUN make ${MAKE_FLAGS} install
 
 RUN ldd /root/.local/bin/decker | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' /root/.local/bin
 
 # Image that will execute decker
-FROM ubuntu:artful
+FROM ubuntu:bionic
 
 RUN apt-get update && apt-get install -y \
     graphviz \
     gnuplot \
     rsync \
-    sassc \
     unzip \
     zip
 

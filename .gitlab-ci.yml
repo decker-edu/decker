@@ -1,8 +1,93 @@
 stages:
+  - templates
+  - build
   - test
   - deploy
 
-dockerbuild:
+templates:
+  image: kkarczmarczyk/node-yarn
+  stage: templates
+  tags:
+    - docker
+  script:
+    - make yarn
+  cache:
+    key: ${CI_JOB_NAME}
+    paths:
+      - node_modules
+  artifacts:
+    paths:
+      - resource/support
+
+build:linux:
+  stage: build
+  tags:
+    - docker
+  image:
+    name: fpco/stack-build
+    entrypoint: [""]
+  script:
+    - STACK_ROOT=`pwd`/.stack make build
+    - cp $(STACK_ROOT=`pwd`/.stack stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
+  artifacts:
+    paths:
+      - decker
+  cache:
+    key: stack_work
+    paths:
+      - .stack-work
+      - .stack
+
+build:mac:
+  tags:
+    - mac
+  stage: build
+  script:
+    - make build
+    - cp $(stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
+  cache:
+    key: ${CI_JOB_NAME}
+    paths:
+      - .stack-work
+  artifacts:
+    paths:
+      - decker
+
+.build:win:
+  tags:
+    - win
+  stage: build
+  script:
+    - '&.\bin\build.ps1 preextracted -skiptemplates -preparepackage'
+  artifacts:
+    paths:
+      - decker.exe
+      - resource.zip
+      - version.txt
+  cache:
+    key: build-win
+    paths:
+      - .stack-work
+
+
+test:linux:
+  stage: test
+  tags:
+    - docker
+  image:
+    name: fpco/stack-build
+    entrypoint: [""]
+  script:
+    - STACK_ROOT=`pwd`/.stack make test
+  cache:
+    key: stack_work
+    paths:
+      - .stack-work
+      - .stack
+  dependencies:
+    - build:linux
+
+deploy:docker:
   image: docker:latest
   stage: deploy
   only:
@@ -11,66 +96,58 @@ dockerbuild:
     - decker
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE .
+    - docker build -t $CI_REGISTRY_IMAGE --build-arg MAKE_FLAGS=branch=$CI_COMMIT_REF_NAME .
     - docker push $CI_REGISTRY_IMAGE
 
-
-macbuild:
-  tags:
-    - mac
+deploy:mac:
   stage: deploy
-  only:
-    - master
-  script:
-    - make
-    - cp $(stack path | grep "dist-dir" | awk '{printf "%s/build/decker/decker",$2}') decker
-  artifacts:
-    paths:
-      - decker
-      
-winbuild:
-  stage: deploy
-  tags:
-    - win
-  only:
-    - master
-  script:
-    - "(dir 2>&1 *`|echo CMD);&<# rem #>echo PowerShell"
-    - '& stack build'
-    - '$binpath=(Join-Path ($(stack path | Select-String -Pattern "dist-dir") -split " ")[1] "build\decker\decker.exe")'
-    - 'Copy-Item $binpath .'
-  artifacts:
-    paths:
-      - decker.exe
-# stackbuild:
-#   tags: 
-#     - stack
-#   stage: build
-#   only:
-#     - master
-#   script:
-#     - stack setup
-#     - make build
-#   artifacts:
-#     paths:
-#     - dist/decker.zip
-#     expire_in: 20 minutes
-
-stacktest:
-  stage: test
+  image: 
+    name: minio/mc:latest
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: none
   tags:
     - docker
-  image:
-    name: gitlab2.informatik.uni-wuerzburg.de:4567/decker/decker/testcontainer:latest
-    entrypoint: [""]
   script:
-    - make test
+    - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
+    - mc cp ./decker store/decker/decker-mac
+  dependencies:
+    - build:mac
+  only:
+    - master
 
-# stacktest:
-#   tags: 
-#     - stack
-#   stage: test
-#   only:
-#     - master
-#   script:
-#     - make test
+deploy:linux:
+  stage: deploy
+  image: 
+    name: minio/mc:latest
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - docker
+  script:
+    - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
+    - mc cp ./decker store/decker/decker-linux
+  dependencies:
+    - build:linux
+  only:
+    - master
+
+.deploy:win:
+  stage: deploy
+  image: 
+    name: minio/mc:latest
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - docker
+  script:
+    - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
+    - mc cp ./decker.exe store/decker/decker-win.exe
+    - mc cp ./resource.zip store/decker/resource-win.zip
+    - mc cp ./version.txt store/decker/version-win.txt
+  dependencies:
+    - build:win
+  only:
+    - master

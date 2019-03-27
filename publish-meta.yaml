@@ -1,3 +1,0 @@
-rsync-destination:
-  host: tramberend@tramberend.beuth-hochschule.de
-  path: /var/www/html/tramberend/decker

@@ -1,288 +1,736 @@
 ---
-author: Henrik Tramberend
-date: '15.5.2016'
-history: True
-signs: © €
-subtitle: Tutorial and Examples
-title: Decker Slide Tool
-transition: linear
-ümläüte: Ümläüte
+title: Decker Slide Tool Reference Guide
+history: true
+menu: true
+bibliography: example.bib
+csl: chicago-author-date.csl
+controls: true
+chalkboard: example-deck.json
 ---
 
-# Overview
+# Navigation
 
--   Features
--   Installation
--   Usage
--   Development
+Navigate this presentation with the controls in the bottom-right corner, your arrow keys or the space bar.
 
-# Features {.section}
+Some explanations have examples on a separate slide. These will be arranged below the respective slide and will be indicated by a down arrow in the controls. Use the down arrow key to see them.
+If you use the space bar to go through the presentation, the examples will automatically follow their explanation.
 
-# Markdown Syntax
+The <i class="fas fa-bars"></i> icon in the bottom-left corner opens a menu showing a table of contents of all slides.
 
-## Pandoc-Markdown
+# Markdown Syntax {#syntax}
 
--   Slides are basically [Pandoc-Markdown](http://pandoc.org) formatted text
--   Pandoc provides a Markdown variant with many extensions
+The Decker Slide Tool assists you in creating media-rich presentations with a few easy to use Markdown commands. This user guide will highlight some of the main styling features of Decker and provide examples on how to use each feature.
 
-## Some Pandoc extensions
+Visit [http://pandoc.org](http://pandoc.org) for additional information on Pandoc-Markdown text formatting.  
 
--   Bibliographies
--   Footnotes
--   Tables
--   Figures with captions
--   Code blocks with syntax highlighting
--   LaTeX math typesetting
+# New Slides {#slides}
 
-# Slides
+Heading 1 (h1) headers create new slides.
 
-## Markdown header
+## {.split}
+```markdown
+# Heading 1 (h1) new slide
+## Heading 2 (h2)
+### Heading 3 (h3)
+#### Heading 4 (h4)
+```
+##
 
--   Level 1 header (`#`) starts new slide
--   Level 2 header (`##`) starts a block on a slide
+## Heading 2 (h2)
 
-``` {.markdown}
-# Episode IV: A new Slide
+### Heading 3 (h3)
 
-## A long time ago ...
+#### Heading 4 (h4)
 
-... in a galaxy far, far away.
+# Multicolumn Slides {#multicolumn}
+
+```markdown
+# Würzburg Sehenswürdigkeiten {layout="columns"}
+
+## Die Residenz {.left}
+Die Würzburger Residenz ist das Hauptwerk des ...
+
+## Alte Mainbrücke {.center}
+Diese erste Steinbrücke Deutschlands soll bereits um ...
+
+## Dom St. Kilian {.right}
+Ein Hauptwerk der deutschen Baukunst zur Zeit der ...
 ```
 
-# Includes
+# Multicolumn example {layout="columns" .sub #example-multicolumn}
 
-## Include markdown files
+## Die Residenz {.left}
 
-The following text is included from file `/resource/realtive.md`:
+Die Würzburger Residenz ist das Hauptwerk des süddeutschen Barock.
 
-[:include](include/relative.md)
+## Alte Mainbrücke {.center}
 
-# Multicolumn slides
+Die erste Steinbrücke Deutschlands soll bereits um 1120 errichtet worden sein.
 
-## The author {.split}
+## Dom St. Kilian {.right}
 
-![](img/htr-beuth.jpg){width="50%"}
+Ein Hauptwerk der deutschen Baukunst und viertgrößte romanische Kirche Deutschlands.
 
-[Deck markdown source](example-deck.md)
+# Top and Bottom {#topBottom}
 
-## Slide source
+Additionally use the `.top` and `.bottom` tags can be used.
 
-``` {.markdown}
-# Multicolumn slides {.split}
+```markdown
+# Top and Bottom Example {layout="columns"}
 
-## The author
+## Top Colum {.top}
+First/top column spans across the following columns.
 
-![](img/htr-beuth.jpg){data-src="img/htr-beuth.jpg"}
+## Left Column {.left}
 
-## Slide source
+## Right Column {.right}
 
-~~~ {.markdown}
-...
+## Third Column {.bottom}
+Third/bottom column spans across the columns above.
+```
+
+# Top and Bottom Example {layout="columns" .sub #example-topBottom}
+
+## Top Colum {.top}
+First/top column spans across the following columns.
+
+## Left Column {.left}
+
+## Right Column {.right}
+
+## Third Column {.bottom}
+Third/bottom column spans across the columns above.
+
+# Vertical Slides {#verticalSlides}
+
+Add the {.sub} tag to any slide to place it below the previous slide.
+
+```
+# Vertical Slide Example {.sub}
+
+This slide will appear below the previous slide. 
+```
+
+# Vertical Slide Example {.sub}
+
+This slide will appear below the previous slide. 
+
+# Text Emphasis {#textEmphasis}
+
+Format text by surrounding it in appropriate symbols:
+
+## {.split}
+
+```markdown
+**This is bold text**
+__This is bold text__
+*This is italic text*
+_This is italic text_
+~~Strikethrough~~
+<u>underline</u>
+~subscript~
+^superscript^
+```  
+
+##
+
+**This is bold text**  
+__This is bold text__  
+*This is italic text*  
+_This is italic text_  
+~~Strikethrough~~  
+<u>underline</u>     
+H~2~O is a liquid.    
+2^3^ equals 8.  
+
+# Inverse Colors {#inverse .inverse background-color="black"}
+
+## Color Scheme for Dark Images {}
+
+- Add `.inverse` tag to slide header (h1)
+- Add `background-color="black"` to slide header (h1)
+
+## Definition Box {.fragment .definition}
+
+Even colored boxes look ok.
+
+# Highlight Blocks {#blocks}
+
+## {.split style="font-size:small"}
+
+```markdown
+## Alert Block {.alert}
+
+-  Alert Text
+```
+## {style="font-size:small"}
+```markdown
+## Question Block {.question}
+
+-  Question text
+```
+## {style="font-size:small"}
+```markdown
+## Answer Block {.answer}
+
+-  Answer text
+```
+## {style="font-size:small"}
+```markdown
+## Definition Block {.definition}
+
+-  Definition text
+```
+
+## {style="font-size:small"}
+
+```markdown
+## Observation Block {.observation}
+
+-  Observation text
+```
+## {style="font-size:small"}
+```markdown
+## Example Block {.example}
+
+-  Example text
+```
+## {style="font-size:small"}
+```markdown
+## Equation Block {.equation}
+
+-  Equation text
+```
+## {style="font-size:small"}
+```markdown
+## Note Block {.note}
+
+-  Note text
+```
+
+# Highlight Blocks example {#example-blocks .sub}
+
+## Alert Block {.alert .split}
+
+-  Alert Text
+
+## Question Block {.question}
+
+-  Question text
+
+## Answer Block {.answer}
+
+-  Answer text
+
+## Definition Block {.definition}
+
+-  Definition text
+
+## Observation Block {.observation}
+
+-  Observation text
+
+## Example Block {.example}
+
+-  Example text
+
+## Equation Block {.equation}
+
+-  Equation text
+
+## Note Block {.note}
+
+-  Note text
+
+# Lists {#lists}
+
+## Ordered Lists {.split}
+
+```markdown 
+1.  bread
+2.  milk
+3.  sugar
+4.  flour
+```
+## {.example}
+
+1.  bread
+2.  milk
+3.  sugar
+4.  flour
+
+## Enumerated Lists
+
+```markdown
+-  Take out trash
+-  Vaccuum
+    - Bedrooms
+-  Wash dishes
+```
+## {.example}
+
+-  Take out trash
+-  Vaccuum
+    - Bedrooms
+-  Wash dishes
+
+# Sequential Lists {#seqlists}
+
+Use the (\@) symbol to automatically number items in a list.     
+Numbered examples do not need to be in a single list.  
+
+## {style="font-size:small;"}
+
+```markdown  
+(@)  Salman Rushdie, *The Ground beneath Her Feet* (New York: Henry Holt, 1999), 25.  
+
+(@)  Bob Stewart, "Wag of the Tail: Reflecting on Pet Ownership," in *Enriching Our
+  Lives with Animals*, ed. John Jaimeson, Tony Bannerman and Selena Wong
+  (Toronto, ON: Petlove Press, 2007),100.  
+
+Additional sources:  
+
+(@)  Elliot Antokoletz, *Musical Symbolism in the Operas of Debussy and Bartok*
+  (New York: Oxford University Press, 2008),
+  doi:10.1093/acprof:oso/9780195365825.001.0001.
+```
+
+# Sequential Lists example {#example-seqlists .sub}
+
+(@)  Salman Rushdie, *The Ground beneath Her Feet* (New York: Henry Holt, 1999), 25.  
+
+(@)  Bob Stewart, "Wag of the Tail: Reflecting on Pet Ownership," in *Enriching Our
+  Lives with Animals*, ed. John Jaimeson, Tony Bannerman and Selena Wong
+  (Toronto, ON: Petlove Press, 2007),100.  
+
+Additional sources:  
+
+(@)  Elliot Antokoletz, *Musical Symbolism in the Operas of Debussy and Bartok*
+  (New York: Oxford University Press, 2008),
+  doi:10.1093/acprof:oso/9780195365825.001.0001.
+
+# Links {#links}
+
+Enter the text to be displayed followed by the URL or slide ID.
+
+```markdown
+[text-to-be-displayed](https://url-of-website)
+[text-to-be-displayed](#slide-id)
+```
+
+*Note:* Slide IDs are entered on the slide header (h1) as follows:
+
+```markdown
+# Slide Title {#slide-id}
+```
+
+# Links example {#example-links .sub}
+
+## {style="font-size:small;"}
+
+```
+Visit [http://pandoc.org](http://pandoc.org) for additional information.
+
+Read more about building [lists](#lists) in Decker.
+```
+
+##
+
+## {.example}
+
+Visit [http://pandoc.org](http://pandoc.org) for additional information.  
+Read more about building [lists](user-guide-deck.html#/lists) in Decker.
+
+
+# Images {#images}
+
+Include images in presentations:
+
+```markdown
+![Image Caption](image-file-location){css-formatting}
+```
+
+# Images example {#example-images .sub}
+
+##
+```markdown
+![Haskell](img/haskell.png){width="30%"}
+```
+
+##
+
+![Haskell](img/haskell.png){width="30%"}
+
+
+# Videos {#video}
+
+Include videos in presentations:  
+
+```markdown
+![title](video-file-location){css-formatting}
+```
+
+# Videos example {#example-movies_1 .sub}
+
+```markdown
+Video with controls:
+![](movies/jmu-hci-intro.mp4){controls=1}
+
+Video with autoplay:
+![](movies/jmu-hci-intro.mp4){data-autoplay=true}
+```
+
+## {.split}
+
+Video with controls:
+![](movies/jmu-hci-intro.mp4){controls=1}
+
+##
+
+Video with autoplay:
+![](movies/jmu-hci-intro.mp4){data-autoplay=true}
+
+
+# External Videos {#ext-vid}
+
+Include YouTube and Vimeo videos or Twitch channels in presentations:  
+
+```markdown
+![](service://video-id){css-formatting}
+```
+*Note 1:* Replace `service` with `youtube`, `vimeo` or `twitch` and add video id or twitch channel name (replaces `video-id`).
+
+*Note 2:* The video ID is usually found in the URL.
+
+  **YouTube example URL:** https://www.youtube.com/watch?v=<u>qEcmwHRG2Mo</u>  
+  **YouTube video ID:** qEcmwHRG2Mo
+
+# External Videos example {#example-movies_2 .sub}
+
+```markdown
+![](youtube://qEcmwHRG2Mo){width="65%"}
+```
+
+![](youtube://qEcmwHRG2Mo){width="65%"}
+
+
+# Fullscreen Videos {#fullscreen}
+
+Fullscreen videos are identified in the slide header:
+
+```markdown
+# ![](movies/jmu-hci-intro.mp4){controls=1}
+```
+
+*Note:* Do not include a slide title.
+
+# ![](movies/jmu-hci-intro.mp4) {#example-movies_3 data-menu-title="Fullscreen Videos Example" controls=1 .sub}
+
+# Audio {#audio}
+
+Include audio clips in presentations:
+```markdown
+![title](audio-file-location){css-formatting}
+```
+
+# Audio example {#example-audio .sub}
+
+## {style="font-size:small;"}
+```markdown
+Audio with controls:
+![](audio/wildbach.mp3){controls=1}
+
+Audio with controls and autoplay:
+![](audio/wildbach.mp3){controls=1 data-autoplay=true}
+```
+
+##
+
+## {.split .example}
+
+Audio with controls:
+![Wildbach](audio/wildbach.mp3){controls=1}
+
+## {.example}
+
+Audio with controls and autoplay:
+![Wildbach](audio/wildbach.mp3){controls=1 data-autoplay=true}
+
+# Tables {#tables}
+
+Tables are created with pipes (|) and hyphens (-). Align text with colons (:) on the left, right, or on both sides of the hyphens in the header row.
+
+```markdown
+| Right Align | Left Align | Center Align | Default |
+|        ---: | :---       |    :---:     | ------- |
+|        data | data       |     data     | data    |
+|        data | data       |     data     | data    |
+```
+
+
+# Tables example {#example-tables .sub}
+
+## {style="font-size:small;"}
+
+```markdown
+Table: Assignment List
+
+|  Week | Topic | Reading | Book |
+|  ---: | :---  |  :---:  | ---- |
+|   1   | Course Introduction | Chapt. 1 | Physics |
+|   2   | Inertia, Equilibrium, Kinematics | Chapt. 2-3| Physics |
+|   3   | Vectors, Momentum, Energy | Chapt. 4-7 | Physics |
+```
+
+##
+
+## {.example}
+
+Table: Assignment List
+
+|  Week | Topic | Reading | Book |
+|  ---: | :---  |  :---:  | ---- |
+|   1   | Course Introduction | Chapt. 1 | Physics |
+|   2   | Inertia, Equilibrium, Kinematics | Chapt. 2, 3, 4| Physics |
+|   3   | Vectors, Momentum, Energy | Chapt. 5-8 | Physics |
+
+# Verbatim Code Blocks {#code}
+
+To treat text as verbatim, either:   
+
+-  surround text with three tildes ( ~ ) or backticks ( \` )  
+-  or indent each line by four spaces.
+
+
+# Verbatim Code Block example {#example-code .sub}
+
+## {style="font-size:small;"}
+
+```markdown
+~~~java
+if (a > 3) {
+  moveShip(5 * gravity, DOWN);
+}
 ~~~
 ```
 
-# Local Images
+##
 
-## Relative path
+~~~java
+if (a > 3) {
+  moveShip(5 * gravity, DOWN);
+}
+~~~
 
-![](img/06-metal.png){width="75%"}
 
-# LaTeX Math
+# Block Quotes {#blockQuote}
 
-## Syntax
+To quote a block of text, preceed each line with a (>) character:
+```markdown
+> This is a block quote.
+>
+> > A block quote within a block quote.
+```
 
--   Standard LaTeX syntax
+> This is a block quote.
+>
+> > A block quote within a block quote.
+
+# Mathematics {#math layout="columns"}
+
+## {.top}
+
 -   Single \$ encloses inline math
 -   Double \$\$ encloses a display math block
 
-## Example
 
--   To $\infty$ and beyond!
+## {.left}
 
-$$
-e = mc^2
-$$
+## {style="font-size:small;"}
 
-# Compile Time Macros
-
-## Macros {.split}
-
--   Appropriated link `[Link text](Url)` and image `![Alt text](Url)` syntax
--   Example: embed a YouTube video
-
-    ``` {.markdown}
-    ## Video
-
-    [:youtube](Wji-BZ0oCwg)
-    ```
-
-## Video
-
-[:youtube](Wji-BZ0oCwg)
-
-# Compile Time Templating
-
-## Mustache templates
-
--   Markdown source code is processed with Mustache
-
-    ``` {.markdown}
-    {{=<% %>=}}
-    The current semester is {{semester}}
-    <%={{ }}=%>
-    ```
-
--   Data is provided in YAML files
-
-    ``` {.yaml}
-    ---
-    semester: Summer 2016
-    ---
-    ```
-
--   Results in
-
-    ``` {.markdown}
-    The current semester is Summer 2016
-    ```
-
-# Blocks
-
-## Block markup {.split}
-
--   Level 2 headers start new block
--   Blocks can be marked with attributes
-
-## Alert block {.alert}
-
--   This block is marked `alert`
-
-``` {.markdown}
-## Alert block {.alert}
-
-- This block is marked `.alert`
+```latex
+To $\infty$ and beyond!
+```
+## {style="font-size:small;"}
+```latex
+$$ e = mc ^ 2 $$
+```
+## {style="font-size:small;"}
+```latex
+\lim_{x \to \infty} \exp(-x) = 0
 ```
 
-## Block styles
+## {.right}
 
--   Other block styles include `definition` and `equation`
+## {.example}
 
-## Definition {.definition}
+To $\infty$ and beyond!
 
-$e=mc^2$
+## {.example}
 
-## Equation {.equation}
+$$ e = mc ^ 2 $$
 
-$e=mc^2$
+## {.example}
 
-# Speaker Notes
+$$ \lim_{x \to \infty} \exp(-x) = 0 $$
 
-## Slide level {.split}
+# Java Syntax Highlighting {#java}
 
--   The slide content becomes part of the speaker notes
--   Add `notes` class to slide header
+Apply Java syntax highlighting with the `.Java` tag.
 
-    ``` {.markdown}
-    # Slide Level {.notes}
+```markdown
+~~~java
+String s = "Java highlighting syntax";
+System.out.println (s);
+~~~
+```
 
-    These are speaker notes.
-    ```
+##
 
-## Block level
+```java
+String s = "Java highlighting syntax";
+System.out.println (s);
+```
 
--   Block content becomes part of the speaker notes
--   Add `notes` class to level two header
+# Javascript Syntax Highlighting {#javascript}
 
-    ``` {.markdown}
-    ## Block level {.notes}
+Apply Javascript syntax highlighting with the `.Javascript` tag.
 
-    These are speaker notes too.
-    ```
+```markdown
+~~~javascript
+var s = "JavaScript syntax highlighting";
+alert (s);
+~~~
+```
 
-# These are just notes {.notes}
+##
 
-Slides with headers that are have the `.notes` class attribute are not included in the presentation. They are only visible in the handout and probably are available as presenter notes during slide presentation.
+```javascript
+var s = "JavaScript syntax highlighting";
+alert (s);
+```
 
-# Cached Images
+# Embed External Websites {#externalWebite}
 
-## Local image cache {.split}
+- Paste the following iframe on a blank slide      
+- Change "https://www.uni-wuerzburg.de/" to your website  
 
-Remote images can be cached locally
+##
 
-Cache directory is named `img/cached` and is located in the directory of the referencing document
+```html
+<iframe class = "stretch" src = "https://www.uni-wuerzburg.de/"></iframe>
+```
 
-`decker cache` scans for and downloads all images
+# {#example-externalWebsite data-menu-title="External Website Example" .sub}
 
-## Cached remote image
+<iframe class = "stretch" src = "https://www.uni-wuerzburg.de/"></iframe>
 
-<!--
-![Some piece of scene graph](https://tramberend.beuth-hochschule.de/img/cg1-banner.png)
+
+# Embed PDF documents {#embedPDF style="font-size:small;"}
+```markdown
+![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
+```
+
+![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
+
+<!-- The given path (../../resource/support/...) won't work; therefore I excluded this part for now
+# Embed JavaScript {#embedJavascript}
+
+![](webgl_geometry_minecraft_ao.html){.iframe width="100%" height="500px"}
+
+[](../../resource/support/three.js){.resource}
+
+# ![](webgl_geometry_minecraft_ao.html)
 -->
 
-## Not really!
+# Chalkboard {#chalkboard}
 
--   Caching is currently disabled
+Dynamically make notes on presentations:
 
-# Meta Data
+- Make notes on slides: click <i class="fas fa-pencil-alt"></i> or type 'c'
+- Draw on chalkboard: click <i class="fas fa-edit"></i> or type 't'
+- Left mouse to draw, right to erase, center for laser pointer
+- Click icon again or type 'c' or 't' to close
+- 'Del' key clears chalkboard
+- Drawings are saved - type 'd' to download
 
-## Mustache template processor
+# Speaker Notes {#speakerNotes}
 
--   Markdown source is processed by [mustache]()
--   Data is the union of all available YAML files
+Slides with headers with the `.notes` tag are not included in a presentation. They only appear in the handout and in the speaker view (press `s` on this slide to access the speaker view).
 
-# Meta Data Example
+##
 
-## Markdown source
+```markdown
+# Why Gamify? {.notes}
 
-``` {.markdown}
-Your total score is {\{total.score}}.
+- Games are among the most powerful motivational tools.
+- Make the non-game experience more rewarding.
+- Motivation has limits. A large leaderboard divide may
+  cause the player to abandon the game.
 ```
 
-## YAML data
+# Why Gamify? {.notes}
 
-``` {.yaml}
----
-total:
-    score: 42
-...
+- Games are among the most powerful motivational tools.
+- Make the non-game experience more rewarding
+- Motivation has limits. A large leaderboard divide may
+  cause the player to abandon the game.
+
+  -   [Blockquotes](#block-quotes)
+  -   [Line Blocks](#line-blocks)
+  -   [Tags](#tags)
+
+
+# Citations {#citations}
+
+Add citations to your slide deck. Be sure to include a `csl` and a `bib` file
+in your [YAML header](#yaml).
+
+## {style="font-size:small;"}
+
+```markdown
+## Space Tentacles
+
+Have you heard about Space Tentacles [@zimmerer2018space].
+According to @zimmerer2018space it is a nice idea.
 ```
 
-## Result
+## Space Tentacles
 
-``` {.html}
-Your total score is 42.
+Have you heard about Space Tentacles [@zimmerer2018space].
+According to @zimmerer2018space it is a nice idea.
+
+
+# Header Options {#yaml}
+
+Add optional settings in the top of each markdown file.
+
+## {style="font-size:small;"}
+
+```yaml
+center: 0 - Align slide content to the top
+center: 1 - Align slide content vertically (default)
+
+controls: 0 - Display navigational arrows (default)
+controls: 1 - Hide navigational arrows
+
+transition: fade
+Options include: none, fade, slide, convex, concave, zoom
+
+css: example.css - Enter the name of a custom css file
+
+slideNumber: true - Display slide numbers
+slideNumber: false - Hide slide numbers (default)
+
+menu: true - Display the slide menu icon
+menu: false - Hide the slide menu icon (default)
+
+history: true - Add visited slides to browser history
+history: false - Hide visited slides from browser history
+
+csl: chicago-author-date.csl - citation style
+bibliography: example.bib
+chalkboard: example-deck.json - pre-defined chalkboard
 ```
 
-# Encoding
-
-## UTF-8 encoding for everything
-
--   Markdown source files are assumed to be UTF-8 encoded
--   YAML metadata also
-
-## German Umlaute
-
--   ÄÖÜäöüßß
-
-## Substituted meta data
-
--   Umlaute: {{ümläüte}}
--   Signs: {{signs}}
-
-# `decker` Tool {.section}
-
-# `decker` Tool
-
-## Command line tool
-
--   Statically linked, no library dependencies
--   Easy to deploy, just copy the executable
--   Self-contained, no support or data files
--   Not configurable, conventions are key
-
-## Implemented using
-
--   [Haskell](http://haskell.org)
--   [Pandoc](), [Shake](), [Mustache](), [reveal.js]()
--   [LaTeX](), [decktape.sh]()
-
+# References
