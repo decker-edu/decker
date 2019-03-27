@@ -460,7 +460,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
       if value == ""
         then element
         else element ! attr (toValue value)
-    srcAttr =
+    srcAttr =  
       if disp == Disposition Deck Html
         then "data-src"
         else "src"
@@ -569,10 +569,3 @@ retrieveVideoStart attributes =
   where 
     attributeRest = filter (\(k, _) -> k /= "start") attributes
     urlStartMarker = snd <$> find (\(k, _) -> k == "start") attributes
-
--- | Moves the `src` attribute to `data-src` to enable reveal.js lazy loading.
-lazyLoadImage :: Inline -> IO Inline
-lazyLoadImage (Image (ident, cls, values) inlines (url, tit)) = do
-  let kvs = ("data-src", url) : [kv | kv <- values, "data-src" /= fst kv]
-  return (Image (ident, cls, kvs) inlines ("", tit))
-lazyLoadImage inline = return inline
