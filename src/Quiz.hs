@@ -22,35 +22,45 @@ renderQuestions pandoc = return $ walk renderQuestion pandoc
 renderQuestion :: Block -> Block
 renderQuestion bl@(BulletList blocks@((firstBlock:_):(sndBlock:_):_)) =
   case (checkIfQuestion firstBlock, checkIfAnswer sndBlock) of
-    (Just q, Just a) -> Div ("", ["freetextQ"], []) [Para $ form q a]
+    (Just q, Just a) -> Div ("", ["freetextQ"], []) [Para $ questionForm q a]
     _ -> bl
 renderQuestion block = block
 
 toHtml :: String -> Inline
 toHtml = RawInline (Format "html")
 
-form :: [Inline] -> [Inline] -> [Inline]
-form question answer =
+questionForm :: [Inline] -> [Inline] -> [Inline]
+questionForm question answer =
   [toHtml "<form>"] ++
   question ++
-  [Str ":", LineBreak] ++
-  [toHtml "<input type=\"text\" name=\"question\">"] ++
   [LineBreak] ++
-  [ toHtml
-      "<input type=\"button\" value=\"Show Answer\" onclick=\"this.value='Answer';\">"
+  [toHtml "<input type=\"text\" class=\"questionField\">"] ++
+  -- 
+  [LineBreak] ++
+  [ toHtml $
+    "<button type=\"button\" onclick=\"" ++
+    "if (this.parentElement.getElementsByClassName('questionField')[0].value)" ++
+    "{this.getElementsByClassName('freeAnswer')[0].style.display = 'block';" ++
+    "this.parentElement.getElementsByClassName('questionField')[0].disabled = 'true';" ++
+    "}\">"
   ] ++
-  [toHtml "</form>"]
+  [Str "Answer:"] ++
+  [Span ("", ["freeAnswer"], [("style", "display:none;")]) answer] ++
+  [toHtml "</button>"] ++ [toHtml "</form>"]
 
 checkIfQuestion :: Block -> Maybe [Inline]
-checkIfQuestion (Para ((Str "???"):q)) = Just q
-checkIfQuestion (Plain ((Str "???"):q)) = Just q
+checkIfQuestion (Para (Str "[?]":q)) = Just q
+checkIfQuestion (Plain (Str "[?]":q)) = Just q
 checkIfQuestion _ = Nothing
 
 checkIfAnswer :: Block -> Maybe [Inline]
-checkIfAnswer (Para ((Str "!!!"):a)) = Just a
-checkIfAnswer (Plain ((Str "!!!"):a)) = Just a
+checkIfAnswer (Para (Str "[!]":a)) = Just a
+checkIfAnswer (Plain (Str "[!]":a)) = Just a
 checkIfAnswer _ = Nothing
 
+-- renderMatching :: Block -> Block
+-- checkIfMatching :: Block -> Bool
+-- checkIfMatching (Para ((Str "["):Inline:Str "]")) = True
 -- | Renders a quiz
 -- A quiz is a bullet list in the style of a task list.
 -- A div class survey is created around the bullet list
@@ -62,10 +72,6 @@ renderQuiz (BulletList blocks@((firstBlock:_):_))
 -- Default pass through
 renderQuiz block = block
 
--- checkIfQuestion :: Block -> Bool
--- checkIfQuestion (Para ((Str "???"):)) = True
--- checkIfQuestion (Plain ((Str "???"):_)) = True
--- checkIfQuestion _ = False
 -- | Checks if a block starts with [X] or [ ] to indicate a survey
 checkIfQuiz :: Block -> Bool
 checkIfQuiz (Para ((Str "[X]"):_)) = True
