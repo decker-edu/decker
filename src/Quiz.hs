@@ -37,15 +37,12 @@ questionForm question answer =
   [toHtml "<input type=\"text\" class=\"questionField\">"] ++
   -- 
   [LineBreak] ++
-  [ toHtml $
-    "<button type=\"button\" onclick=\"" ++
-    "if (this.parentElement.getElementsByClassName('questionField')[0].value)" ++
-    "{this.getElementsByClassName('freeAnswer')[0].style.display = 'block';" ++
-    "this.parentElement.getElementsByClassName('questionField')[0].disabled = 'true';" ++
-    "}\">"
-  ] ++
+  [toHtml $ "<button class=\"freeAnswerButton\" type=\"button\">"] ++
   [Str "Answer:"] ++
-  [Span ("", ["freeAnswer"], [("style", "display:none;")]) answer] ++
+  [ Span
+      ("", ["freeAnswer"], [("style", "display:none;"), ("type", "text")])
+      answer
+  ] ++
   [toHtml "</button>"] ++ [toHtml "</form>"]
 
 checkIfQuestion :: Block -> Maybe [Inline]
