@@ -52,12 +52,12 @@ function surveys() {
 Provides the functionality for the buttons of free text questions
 */
 function answerButton() {
-  const answerButtons = document.getElementsByClassName('freeAnswerButton');
+  const answerButtons = document.getElementsByClassName('freetextAnswerButton');
   for (let button of answerButtons) {
     button.onclick = function () {
-      var questionField = this.parentElement.getElementsByClassName('questionField')[0];
+      var questionField = this.parentElement.getElementsByClassName('freetextInput')[0];
       if (questionField.value) {
-        var answer = this.getElementsByClassName('freeAnswer')[0];
+        var answer = this.getElementsByClassName('freetextAnswer')[0];
         answer.style.display = 'block';
         if (questionField.value.toLowerCase().trim() == answer.textContent.trim().toLowerCase()) {
           questionField.style.backgroundColor = "rgb(151, 255, 122)";

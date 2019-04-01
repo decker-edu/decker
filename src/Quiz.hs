@@ -1,7 +1,7 @@
 {-- Author: Jan-Philipp Stauffert <jan-philipp.stauffert@uni-wuerzburg.de> --}
 module Quiz
   ( renderQuizzes
-  , renderQuestions
+  -- , renderQuestions
   ) where
 
 import Common
@@ -11,79 +11,80 @@ import Filter
 import Text.Pandoc
 import Text.Pandoc.Walk
 
--- import Utilities as U
+-- Render all types of questions
 renderQuizzes :: Pandoc -> Decker Pandoc
 renderQuizzes pandoc = do
-  return $ walk renderQuiz pandoc
+  let mc = walk renderMultipleChoice pandoc
+  return $ walk renderfreeTextQuestion mc
 
-renderQuestions :: Pandoc -> Decker Pandoc
-renderQuestions pandoc = return $ walk renderQuestion pandoc
-
-renderQuestion :: Block -> Block
-renderQuestion bl@(BulletList blocks@((firstBlock:_):(sndBlock:_):_)) =
-  case (checkIfQuestion firstBlock, checkIfAnswer sndBlock) of
-    (Just q, Just a) -> Div ("", ["freetextQ"], []) [Para $ questionForm q a]
+-- 
+renderfreeTextQuestion :: Block -> Block
+renderfreeTextQuestion bl@(BulletList blocks@((firstBlock:_):(sndBlock:_):_)) =
+  case (checkIfFreetextQuestion firstBlock, checkIfFreetextAnswer sndBlock) of
+    (Just q, Just a) ->
+      Div ("", ["freetextQuestion"], []) [Para $ freetextQuestionHtml q a]
     _ -> bl
-renderQuestion block = block
+renderfreeTextQuestion block = block
 
 toHtml :: String -> Inline
 toHtml = RawInline (Format "html")
 
-questionForm :: [Inline] -> [Inline] -> [Inline]
-questionForm question answer =
-  [toHtml "<form>"] ++
+-- 
+freetextQuestionHtml :: [Inline] -> [Inline] -> [Inline]
+freetextQuestionHtml question answer =
+  [toHtml "<form onSubmit=\"return false;\">"] ++
   question ++
   [LineBreak] ++
-  [toHtml "<input type=\"text\" class=\"questionField\">"] ++
+  [toHtml "<input type=\"text\" class=\"freetextInput\">"] ++
   -- 
   [LineBreak] ++
-  [toHtml $ "<button class=\"freeAnswerButton\" type=\"button\">"] ++
+  [toHtml $ "<button class=\"freetextAnswerButton\" type=\"button\">"] ++
   [Str "Answer:"] ++
   [ Span
-      ("", ["freeAnswer"], [("style", "display:none;"), ("type", "text")])
+      ("", ["freetextAnswer"], [("style", "display:none;"), ("type", "text")])
       answer
   ] ++
   [toHtml "</button>"] ++ [toHtml "</form>"]
 
-checkIfQuestion :: Block -> Maybe [Inline]
-checkIfQuestion (Para (Str "[?]":q)) = Just q
-checkIfQuestion (Plain (Str "[?]":q)) = Just q
-checkIfQuestion _ = Nothing
+checkIfFreetextQuestion :: Block -> Maybe [Inline]
+checkIfFreetextQuestion (Para (Str "[?]":q)) = Just q
+checkIfFreetextQuestion (Plain (Str "[?]":q)) = Just q
+checkIfFreetextQuestion _ = Nothing
 
-checkIfAnswer :: Block -> Maybe [Inline]
-checkIfAnswer (Para (Str "[!]":a)) = Just a
-checkIfAnswer (Plain (Str "[!]":a)) = Just a
-checkIfAnswer _ = Nothing
+checkIfFreetextAnswer :: Block -> Maybe [Inline]
+checkIfFreetextAnswer (Para (Str "[!]":a)) = Just a
+checkIfFreetextAnswer (Plain (Str "[!]":a)) = Just a
+checkIfFreetextAnswer _ = Nothing
 
 -- renderMatching :: Block -> Block
 -- checkIfMatching :: Block -> Bool
 -- checkIfMatching (Para ((Str "["):Inline:Str "]")) = True
--- | Renders a quiz
--- A quiz is a bullet list in the style of a task list.
+-- | Renders a multiple choice question
+-- A multiple choice question is a bullet list in the style of a task list.
 -- A div class survey is created around the bullet list
-renderQuiz :: Block -> Block
+renderMultipleChoice :: Block -> Block
 -- BulletList which qualifies as survey
-renderQuiz (BulletList blocks@((firstBlock:_):_))
-  | checkIfQuiz firstBlock =
-    Div ("", ["survey"], []) [BulletList (map renderAnswer blocks)]
+renderMultipleChoice (BulletList blocks@((firstBlock:_):_))
+  | checkIfMC firstBlock =
+    Div ("", ["survey"], []) [BulletList (map renderAnswerMC blocks)]
 -- Default pass through
-renderQuiz block = block
+renderMultipleChoice block = block
 
 -- | Checks if a block starts with [X] or [ ] to indicate a survey
-checkIfQuiz :: Block -> Bool
-checkIfQuiz (Para ((Str "[X]"):_)) = True
-checkIfQuiz (Para ((Str "["):Space:(Str "]"):_)) = True
-checkIfQuiz (Plain ((Str "[X]"):_)) = True
-checkIfQuiz (Plain ((Str "["):Space:(Str "]"):_)) = True
-checkIfQuiz (Plain ((Link nullAttr [] ('#':_, "")):Space:_)) = True
-checkIfQuiz _ = False
+checkIfMC :: Block -> Bool
+checkIfMC (Para ((Str "[X]"):_)) = True
+checkIfMC (Para ((Str "["):Space:(Str "]"):_)) = True
+checkIfMC (Plain ((Str "[X]"):_)) = True
+checkIfMC (Plain ((Str "["):Space:(Str "]"):_)) = True
+checkIfMC (Plain ((Link nullAttr [] ('#':_, "")):Space:_)) = True
+checkIfMC _ = False
 
--- | Renders a quiz answer 
+-- | Renders a multiple choice answer 
 -- Throws away the identifier and sourrounds the content with a div
 -- The div has the class right or wrong according to how it was marked
-renderAnswer :: [Block] -> [Block]
-renderAnswer (prelude:rest) =
-  [Div ("", "answer" : cls, []) (prelude' : (map renderTooltip rest))]
+renderAnswerMC :: [Block] -> [Block]
+renderAnswerMC (prelude:rest) =
+  [Div ("", "answer" : cls, []) (prelude' : (map renderTooltipMC rest))]
   where
     (cls, prelude') =
       case prelude of
@@ -95,6 +96,6 @@ renderAnswer (prelude:rest) =
 
 -- if there is a bullet list create a div class tooltip around
 -- if there are multiple bullet points, all but the first are thrown away
-renderTooltip :: Block -> Block
-renderTooltip (BulletList (content:_)) = Div ("", ["tooltip"], []) content
-renderTooltip block = block
+renderTooltipMC :: Block -> Block
+renderTooltipMC (BulletList (content:_)) = Div ("", ["tooltip"], []) content
+renderTooltipMC block = block
