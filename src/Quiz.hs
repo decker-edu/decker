@@ -15,7 +15,8 @@ import Text.Pandoc.Walk
 renderQuizzes :: Pandoc -> Decker Pandoc
 renderQuizzes pandoc = do
   let mc = walk renderMultipleChoice pandoc
-  return $ walk renderfreeTextQuestion mc
+  let match = walk renderMatching mc
+  return $ walk renderfreeTextQuestion match
 
 -- 
 renderfreeTextQuestion :: Block -> Block
@@ -26,6 +27,34 @@ renderfreeTextQuestion bl@(BulletList blocks@((firstBlock:_):(sndBlock:_):_)) =
     _ -> bl
 renderfreeTextQuestion block = block
 
+-- 
+renderMatching :: Block -> Block -- DefinitionList ((rest, blocks) : tail)
+-- renderMatching dl@(DefinitionList ((Str "[match]":Space:rest, blocks):tail)) =
+renderMatching dl@(DefinitionList items) =
+  case traverse checkIfMatching items of
+    Just l -> matchingHtml l
+    Nothing -> dl
+renderMatching block = block
+
+matchingHtml :: [([Inline], [[Block]])] -> Block
+matchingHtml dListItems = Div ("", ["matching"], []) [dropzones, dragzone]
+  where
+    (a, b) = unzip dListItems
+    draggable = Div ("", ["draggable"], [("draggable", "true")])
+    dragzone = Div ("", ["dragzone"], []) (fmap draggable (concat b))
+    dropzones = wrapDrop a
+
+wrapDrop :: [[Inline]] -> Block
+wrapDrop inlines = Div ("", ["dropzones"], []) dropzones
+  where
+    dropzones = (\i -> Div ("", ["dropzone"], []) [Para i]) <$> inlines
+
+checkIfMatching :: ([Inline], [[Block]]) -> Maybe ([Inline], [[Block]])
+checkIfMatching (Str "[match]":Space:rest, firstBlock:_) =
+  Just (rest, [firstBlock])
+checkIfMatching _ = Nothing
+
+-- Utility function
 toHtml :: String -> Inline
 toHtml = RawInline (Format "html")
 

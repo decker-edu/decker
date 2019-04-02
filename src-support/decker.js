@@ -10,12 +10,51 @@ window.addEventListener('ready', function (event) {
     quizzes();
   } else {
     Reveal.addEventListener('ready', makeVertical);
+    // quizzes();
   }
 });
 
 function quizzes() {
+  matchings();
   surveys();
   answerButton();
+}
+
+function matchings() {
+  var dropzones = document.getElementsByClassName("dropzone");
+  var draggables = document.getElementsByClassName("draggable");
+
+  for (i = 0; i < dropzones.length; i++) {
+    dropzones[i].addEventListener("drop", drop);
+    dropzones[i].addEventListener("dragover", allowDrop);
+  }
+
+  for (i = 0; i < draggables.length; i++) {
+    draggables[i].id = "drag".concat(i.toString());
+    draggables[i].addEventListener("dragstart", drag);
+  }
+  // for (let drag of draggables) {
+  // drag.addEventListener("ondragstart", drag);
+  // }
+
+
+}
+// Functions for the matching drag/drop questions
+// include into decker.js
+
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+function drag(ev) {
+  ev.dataTransfer.setData("text", ev.target.id);
+}
+
+function drop(ev) {
+  ev.preventDefault();
+  var data = ev.dataTransfer.getData("text");
+  //ev.target.removeChild(ev.target.childNodes[0]);
+  ev.target.appendChild(document.getElementById(data));
 }
 
 /* simply copied from dachdecker/src-web/slide.js
