@@ -1,31 +1,58 @@
 ---
-dachdecker: 060f8b51-c232-42da-90a7-17291a5ba730
 ---
 
-# Slide with quiz
+# Matching
 
-## Quiz question box
+[match] A
+: drag to A
 
-This here is the real question text
+[match] Haskell 
+: ![](img/haskell.png)
 
-- [ ] one answer
-  - tooltip
-- [ ] another answer
-  - another tooltip
-- [X] again another
-  - this one is right
-- [ ] and the last
-  - and this is wrong
+[match] B
+: drag to B
 
-# Second slide has a quiz
 
-Guess what: here is a quiz as well
+# Matching 2
 
-- [ ] one answer
-  - tooltip
-- [ ] another answer
-  - another tooltip
-- [X] again another
-  - this one is right
-- [X] and the last
-  - this time the last is right as well
+[match] decker
+: [decker](http://go.uniwue.de/decker)
+
+[match] D
+: $\Leftarrow$ D
+
+
+
+
+# Freetext question {layout="columns"}
+
+## {.left} 
+* [?] What is love?
+* [!] Baby don't hurt me.
+
+<!-- -->
+## asdf {.question}
+
+- [?] test2
+- [!] antwort2
+
+## {.right}
+
++ [?] Test3
++ [!] antwort3
+
+### 
+
+* [?] Test4
+* [!] antwort4
+
+
+# Examples of Real-Time Systems (RT-Systems)
+
+## Question: Is a spreadsheet program real-time? {.question}
+
+* [ ] $\checkmark \checkmark \checkmark$
+* [ ] $\checkmark \checkmark$
+* [ ] $\checkmark$
+* [X] $--$
+

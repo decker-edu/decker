@@ -17,7 +17,7 @@ window.addEventListener('ready', function (event) {
 function quizzes() {
   matchings();
   surveys();
-  answerButton();
+  freetextAnswerButton();
 }
 
 function matchings() {
@@ -25,6 +25,7 @@ function matchings() {
   var draggables = document.getElementsByClassName("draggable");
 
   for (i = 0; i < dropzones.length; i++) {
+    dropzones[i].id = "drop".concat(i.toString());
     dropzones[i].addEventListener("drop", drop);
     dropzones[i].addEventListener("dragover", allowDrop);
   }
@@ -32,16 +33,49 @@ function matchings() {
   for (i = 0; i < draggables.length; i++) {
     draggables[i].id = "drag".concat(i.toString());
     draggables[i].addEventListener("dragstart", drag);
-  }
-  // for (let drag of draggables) {
-  // drag.addEventListener("ondragstart", drag);
-  // }
 
+    for (let child of draggables[i].children) {
+      child.setAttribute('draggable', false);
+    }
+  }
+
+  matchingAnswerButton();
 
 }
-// Functions for the matching drag/drop questions
-// include into decker.js
 
+// 
+function matchingAnswerButton() {
+  var answerButtons = document.getElementsByClassName("matchingAnswerButton");
+
+  for (let button of answerButtons) {
+    button.onclick = function () {
+      var matchingField = this.closest(".matching")
+      var dropzones = matchingField.getElementsByClassName("dropzone");
+
+      for (let drop of dropzones) {
+        var draggables = drop.getElementsByClassName("draggable");
+        if (draggables.length == 0) {
+          return;
+        }
+      }
+      for (let drop of dropzones) {
+        var first = drop.getElementsByClassName("draggable")[0];
+        if (first.id.replace("drag", "") == drop.id.replace("drop", "")) {
+          drop.style.backgroundColor = "rgb(151, 255, 122)";
+          first.setAttribute("draggable", false);
+        }
+        else {
+          drop.style.backgroundColor = "rgb(255, 122, 122)";
+          first.setAttribute("draggable", false);
+
+        }
+      }
+    }
+
+  }
+}
+
+// Functions for the matching drag/drop questions
 function allowDrop(ev) {
   ev.preventDefault();
 }
@@ -55,6 +89,7 @@ function drop(ev) {
   var data = ev.dataTransfer.getData("text");
   //ev.target.removeChild(ev.target.childNodes[0]);
   ev.target.appendChild(document.getElementById(data));
+  ev.target.disabled = true;
 }
 
 /* simply copied from dachdecker/src-web/slide.js
@@ -90,7 +125,7 @@ function surveys() {
 /*
 Provides the functionality for the buttons of free text questions
 */
-function answerButton() {
+function freetextAnswerButton() {
   const answerButtons = document.getElementsByClassName('freetextAnswerButton');
   for (let button of answerButtons) {
     button.onclick = function () {

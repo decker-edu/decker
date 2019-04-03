@@ -242,12 +242,54 @@ body {
           }
         }
 
-        //freetext question
+      
 
 
         /////////////////////////////////////////////
         // Quizzes
         /////////////////////////////////////////////
+        
+        // freetext question
+
+        // Matching
+        .dropzone {
+          // display:flex;
+          // flex-direction:row;
+          float: left;
+          width: 200px;
+          height: 100px;
+          margin: 10px;
+          // padding: 10px;
+          border: 1px dotted black;
+        }
+
+        .draggable {
+          margin: auto;
+          // margin-left: 20px;
+          // margin-right: 20px;
+          display: inline-block;
+        }
+
+        .dragzone {
+          float: left;
+          margin-top: 10px;
+          text-align: center;
+          width: 640px;
+          height: 100px;
+          margin: 10px;
+          // padding: 10px;
+          border: 1px solid black;
+          clear: both;
+        }
+
+        .matchingAnswerButton {
+          float: left;
+          margin: 10px;
+          clear: both;
+        }
+
+
+        // Multiple Choice        
         .survey {
           ul {
             list-style-type: none;

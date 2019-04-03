@@ -28,8 +28,7 @@ renderfreeTextQuestion bl@(BulletList blocks@((firstBlock:_):(sndBlock:_):_)) =
 renderfreeTextQuestion block = block
 
 -- 
-renderMatching :: Block -> Block -- DefinitionList ((rest, blocks) : tail)
--- renderMatching dl@(DefinitionList ((Str "[match]":Space:rest, blocks):tail)) =
+renderMatching :: Block -> Block
 renderMatching dl@(DefinitionList items) =
   case traverse checkIfMatching items of
     Just l -> matchingHtml l
@@ -37,17 +36,23 @@ renderMatching dl@(DefinitionList items) =
 renderMatching block = block
 
 matchingHtml :: [([Inline], [[Block]])] -> Block
-matchingHtml dListItems = Div ("", ["matching"], []) [dropzones, dragzone]
+matchingHtml dListItems =
+  Div ("", ["matching"], []) [dropzones, dragzone, answerButton]
   where
     (a, b) = unzip dListItems
     draggable = Div ("", ["draggable"], [("draggable", "true")])
     dragzone = Div ("", ["dragzone"], []) (fmap draggable (concat b))
     dropzones = wrapDrop a
+    answerButton =
+      Para $
+      [LineBreak] ++
+      [toHtml "<button class=\"matchingAnswerButton\" type=\"button\">"] ++
+      [Str "Show Solution"] ++ [toHtml "</button>"]
 
 wrapDrop :: [[Inline]] -> Block
 wrapDrop inlines = Div ("", ["dropzones"], []) dropzones
   where
-    dropzones = (\i -> Div ("", ["dropzone"], []) [Para i]) <$> inlines
+    dropzones = (\i -> Div ("", ["dropzone"], []) [Plain i]) <$> inlines
 
 checkIfMatching :: ([Inline], [[Block]]) -> Maybe ([Inline], [[Block]])
 checkIfMatching (Str "[match]":Space:rest, firstBlock:_) =
@@ -85,9 +90,6 @@ checkIfFreetextAnswer (Para (Str "[!]":a)) = Just a
 checkIfFreetextAnswer (Plain (Str "[!]":a)) = Just a
 checkIfFreetextAnswer _ = Nothing
 
--- renderMatching :: Block -> Block
--- checkIfMatching :: Block -> Bool
--- checkIfMatching (Para ((Str "["):Inline:Str "]")) = True
 -- | Renders a multiple choice question
 -- A multiple choice question is a bullet list in the style of a task list.
 -- A div class survey is created around the bullet list
