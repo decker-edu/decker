@@ -1,7 +1,7 @@
 ---
 ---
 
-# Matching
+# Matching Questions
 
 [match] A
 : drag to A
@@ -12,47 +12,39 @@
 [match] B
 : drag to B
 
-
-# Matching 2
-
 [match] decker
 : [decker](http://go.uniwue.de/decker)
 
-[match] D
-: $\Leftarrow$ D
+[match] C
+: $\Leftarrow$ C
 
-
-
-
-# Freetext question {layout="columns"}
+# Freetext Questions {layout="columns"}
 
 ## {.left} 
-* [?] What is love?
-* [!] Baby don't hurt me.
+* [?] $2*2=~?$ 
+* [!] 4
 
-<!-- -->
-## asdf {.question}
+##  {.question}
 
-- [?] test2
-- [!] antwort2
+* [?] The Answer to the Ultimate Question of Life, the Universe, and Everything is ...?
+* [!] 42
 
 ## {.right}
 
-+ [?] Test3
-+ [!] antwort3
+* [?] Is this a question? 
+* [!] yes
 
-### 
+##
 
-* [?] Test4
-* [!] antwort4
+* [?] Name the capital of Germany
+* [!] Berlin 
 
+# Multiple Choice Questions
 
-# Examples of Real-Time Systems (RT-Systems)
+## Question: Which file format does decker use? {.question}
 
-## Question: Is a spreadsheet program real-time? {.question}
-
-* [ ] $\checkmark \checkmark \checkmark$
-* [ ] $\checkmark \checkmark$
-* [ ] $\checkmark$
-* [X] $--$
+* [ ] .docx
+* [ ] .csv
+* [ ] .xml
+* [X] .md
 

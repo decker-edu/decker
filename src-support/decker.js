@@ -20,6 +20,7 @@ function quizzes() {
   freetextAnswerButton();
 }
 
+// Adds event listeners for dragging and dropping to the elements of "matching" questions
 function matchings() {
   var dropzones = document.getElementsByClassName("dropzone");
   var draggables = document.getElementsByClassName("draggable");
@@ -43,7 +44,9 @@ function matchings() {
 
 }
 
-// 
+/*
+  Provides the functionality of the "show solution" button for matching questions
+*/
 function matchingAnswerButton() {
   var answerButtons = document.getElementsByClassName("matchingAnswerButton");
 
@@ -75,7 +78,7 @@ function matchingAnswerButton() {
   }
 }
 
-// Functions for the matching drag/drop questions
+// Functions for dragging and dropping in the matching questions 
 function allowDrop(ev) {
   ev.preventDefault();
 }
@@ -87,7 +90,6 @@ function drag(ev) {
 function drop(ev) {
   ev.preventDefault();
   var data = ev.dataTransfer.getData("text");
-  //ev.target.removeChild(ev.target.childNodes[0]);
   ev.target.appendChild(document.getElementById(data));
   ev.target.disabled = true;
 }
@@ -123,7 +125,7 @@ function surveys() {
 }
 
 /*
-Provides the functionality for the buttons of free text questions
+Provides the functionality for the solution button of free text questions
 */
 function freetextAnswerButton() {
   const answerButtons = document.getElementsByClassName('freetextAnswerButton');

@@ -250,41 +250,52 @@ body {
         /////////////////////////////////////////////
         
         // freetext question
+        .freetextAnswerButton,
+        .freetextInput {
+            border-radius: 0.5em;
+            font-size: inherit;
+            font-family: inherit;
+          
+        }
 
         // Matching
+        .dropzones{
+          width: 100%;
+          min-height: 30vh;
+          display: table;
+          table-layout: fixed;
+        }
+
         .dropzone {
-          // display:flex;
-          // flex-direction:row;
-          float: left;
-          width: 200px;
-          height: 100px;
-          margin: 10px;
-          // padding: 10px;
-          border: 1px dotted black;
+          display:table-cell;
+          padding: 10px;
+          border-radius: 0.5em;
+          border: 1px #111 dashed;
+          text-align: center;
         }
 
         .draggable {
           margin: auto;
-          // margin-left: 20px;
-          // margin-right: 20px;
-          display: inline-block;
+          padding: 5%;
+          display: table-cell;
         }
 
         .dragzone {
-          float: left;
-          margin-top: 10px;
+          display: table;
+          table-layout: fixed;
+          margin-top: 2%;
+          min-height: 30vh;
           text-align: center;
-          width: 640px;
-          height: 100px;
-          margin: 10px;
-          // padding: 10px;
+          width: 100%;
           border: 1px solid black;
-          clear: both;
+          border-radius: 0.5em;
         }
 
         .matchingAnswerButton {
           float: left;
-          margin: 10px;
+          font-size: inherit;
+          border-radius: 0.5em;
+          font-family: inherit;
           clear: both;
         }
 
