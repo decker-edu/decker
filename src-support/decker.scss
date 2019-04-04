@@ -253,6 +253,59 @@ body {
         /////////////////////////////////////////////
         // Quizzes
         /////////////////////////////////////////////
+        
+        // freetext question
+        .freetextAnswerButton,
+        .freetextInput {
+            border-radius: 0.5em;
+            font-size: inherit;
+            font-family: inherit;
+          
+        }
+
+        // Matching
+        .dropzones{
+          width: 100%;
+          min-height: 30vh;
+          display: table;
+          table-layout: fixed;
+        }
+
+        .dropzone {
+          display:table-cell;
+          padding: 10px;
+          border-radius: 0.5em;
+          border: 1px #111 dashed;
+          text-align: center;
+        }
+
+        .draggable {
+          margin: auto;
+          padding: 5%;
+          display: table-cell;
+        }
+
+        .dragzone {
+          display: table;
+          table-layout: fixed;
+          margin-top: 2%;
+          min-height: 30vh;
+          text-align: center;
+          width: 100%;
+          border: 1px solid black;
+          border-radius: 0.5em;
+        }
+
+        .matchingAnswerButton {
+          float: left;
+          font-size: inherit;
+          border-radius: 0.5em;
+          font-family: inherit;
+          clear: both;
+        }
+
+
+        // Multiple Choice        
         .survey {
           ul {
             list-style-type: none;
@@ -271,6 +324,7 @@ body {
             border-radius: 0.5em;
             margin: 0.55em;
             flex-basis: 30%;
+            
           }
 
           li:hover {
