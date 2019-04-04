@@ -19,7 +19,7 @@ Prints a help document to stdout in Markdown format.
 
 - `decker watch` Builds HTML versions of all documents and then watches for document changes. Each change to a watched document triggers a rebuild. Watching can be terminated with `^C`.
 
-- `decker server`: Like `decker watch`. Additionally a local web server is started that serves the generated HTML files. The `*-deck.html` file is openend in the browser. Changed files are reloaded in the browser. (still requires `livereloadx`)
+- `decker server`: Like `decker watch`. Additionally a local web server is started that serves the generated HTML files. The `*-deck.html` file is openend in the browser. Changed files are reloaded in the browser.
 
 # `decker html`
 
@@ -38,20 +38,19 @@ Alternatively you can add `chrome` to `$PATH`.
 
 # `decker clean`
 
-    Recursively removes all generated files from the current directory. Also clears cached
+- Recursively removes all generated files from the current directory. 
+- Also clears cached resource folders with version number older than the currently used decker version.
 
 # `decker plan`
 
-    Prints a list of all source files found below the current directory.
+Prints a list of all source files found below the current directory.
 
 # `decker meta`
 
-    Pretty prints all meta data that can be found in `*.yaml` files in the
-    current directory and below. Meta data is mainly used to perform
-    substitutions in Markdown documents using the Mustache templating system.
+- Pretty prints all meta data that can be found in `*.yaml` files in the current directory and below. 
+- Meta data is mainly used to perform substitutions in Markdown documents using the Mustache templating system.
 
 # `decker publish`
 
-    Publish the generated files to a remote location using `rsync` if the
-    location is specified in the meta data. The keys `rsync-destination.host`
-    and `rsync-destination.path` specify the publishing destination.
+- Publish the generated files to a remote location using `rsync` if the location is specified in the meta data. 
+- The keys `rsync-destination.host` and `rsync-destination.path` specify the publishing destination.

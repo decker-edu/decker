@@ -20,6 +20,12 @@ An extensive overview of the functions for designing slide decks offered by `dec
 
 An overview of the possible configuration options that can be included in the header of the `*-deck.md` markdown files.
 
+#
+
+## Quiz deck
+
+how to create simple quizzes with different question types for a self-learning scenario.
+
 ## Survey deck
 
 How to include a student response system/clicker quiz into the slides.
