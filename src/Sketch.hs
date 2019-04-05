@@ -18,10 +18,10 @@ import Control.Monad
 import Data.Maybe
 import qualified Data.Text.IO as T
 import Debug.Trace
+import Development.Shake
 import System.Directory
 import System.FilePath
 import System.IO
-import System.IO.Temp
 import System.Random
 import Text.Pandoc
 import Text.Pandoc.Shared
@@ -50,9 +50,9 @@ randomAlpha = getStdRandom (randomR ('a', 'z'))
 
 -- | Writes a pandoc document atoimically to a markdown file. It uses a modified
 -- Markdown writer that produces more appropriately formatted documents.
-writeToMarkdownFile :: FilePath -> Pandoc -> IO ()
+writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
 writeToMarkdownFile filepath pandoc@(Pandoc meta _) = do
-  template <- getResourceString $ "template" </> "deck.md"
+  template <- liftIO $ getResourceString $ "template" </> "deck.md"
   let columns = lookupInt "write-back.line-columns" 80 meta
   let wrapOpt "none" = WrapNone
       wrapOpt "preserve" = WrapPreserve
@@ -71,16 +71,16 @@ writeToMarkdownFile filepath pandoc@(Pandoc meta _) = do
           , writerWrapText = wrapOpt wrap
           , writerSetextHeaders = False
           }
-  markdown <- runIO (Markdown.writeMarkdown options pandoc) >>= handleError
-  fileContent <- T.readFile filepath
-  when (markdown /= fileContent) $
+  markdown <-
+    liftIO $ runIO (Markdown.writeMarkdown options pandoc) >>= handleError
+  fileContent <- liftIO $ T.readFile filepath
+  when (markdown /= fileContent) $ do
+    putNormal $ "# write back (" ++ filepath ++ ")"
     withTempFile
-      (takeDirectory filepath)
-      (takeFileName filepath)
-      (\tmp h -> do
-         T.hPutStr h markdown
-         hFlush h
-         renameFile tmp filepath)
+      (\tmp ->
+         liftIO $ do
+           T.writeFile tmp markdown
+           renameFile tmp filepath)
 
 provideSlideIds :: Pandoc -> IO Pandoc
 provideSlideIds (Pandoc meta body) = do
@@ -108,12 +108,7 @@ provideSlideIdIO ids (Slide Nothing body) = do
   return (sid : ids, Slide (Just $ Header 1 (sid, [], []) []) body)
 
 -- Monadic map with an accumulator
-mapAccumM ::
-     (Monad m)
-  => (acc -> x -> m (acc, y))
-  -> acc
-  -> [x]
-  -> m [y]
+mapAccumM :: (Monad m) => (acc -> x -> m (acc, y)) -> acc -> [x] -> m [y]
 mapAccumM _ z [] = return []
 mapAccumM f z (x:xs) = do
   (z', y) <- f z x

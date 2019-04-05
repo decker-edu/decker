@@ -541,9 +541,8 @@ readMetaMarkdown markdownFile = do
       let writeBack =
             (lookupBool "generate-ids" False meta ||
              lookupBool "write-back.enable" False meta)
-      when writeBack $ do
-        putNormal $ "# write back (" ++ markdownFile ++ ")"
-        liftIO $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
+      when writeBack $
+        writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
       mapResources
         (urlToFilePathIfLocal (takeDirectory markdownFile))
         (Pandoc meta blocks)
