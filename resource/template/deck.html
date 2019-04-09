@@ -350,6 +350,13 @@ $if(chart)$
           radar: { borderColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]},
         },
 $endif$
+$if(menu)$
+        menu: {
+          custom: [
+            { title: "Print", icon: '<i class="fas fa-print" onclick="printPdf()">' }
+          ]
+        },
+$endif$
 
         // Optional reveal.js plugins
         dependencies: [
