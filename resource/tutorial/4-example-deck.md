@@ -339,7 +339,7 @@ Read more about building [lists](#lists) in Decker.
 ## {.example}
 
 Visit [http://pandoc.org](http://pandoc.org) for additional information.  
-Read more about building [lists](user-guide-deck.html#/lists) in Decker.
+Read more about building [lists](#lists) in Decker.
 
 
 # Images {#images}

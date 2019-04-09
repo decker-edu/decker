@@ -1,5 +1,6 @@
 ---
 title: Decker Tutorial Overview
+history: true
 ---
 
 # Motivation
@@ -12,19 +13,21 @@ Decker is an e-authoring tool developed at the chair of Human-Computer Interacti
 
 How to use `decker` on the command line.
 
-## Example deck
-
-An extensive overview of the functions for designing slide decks offered by `decker`.
-
 ## Header deck
 
 An overview of the possible configuration options that can be included in the header of the `*-deck.md` markdown files.
+
+## Example deck
+
+An extensive overview of the possibilities of designing slide decks offered by `decker`.
+
+
 
 #
 
 ## Quiz deck
 
-how to create simple quizzes with different question types for a self-learning scenario.
+How to create simple quizzes with different question types for a self-learning scenario.
 
 ## Survey deck
 

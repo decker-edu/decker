@@ -9,6 +9,22 @@ This deck shows the available options which can be included in the `YAML` header
 
 For further options which might not be included here see: [https://github.com/hakimel/reveal.js/#configuration](https://github.com/hakimel/reveal.js/#configuration)
 
+# Example Header
+
+This header is located directly at the top of the `*.md` file.
+
+```yaml
+---
+title: Decker Slide Tool Reference Guide
+history: true
+menu: true
+bibliography: example.bib
+csl: chicago-author-date.csl
+controls: true
+chalkboard: example-deck.json
+---
+```
+
 # YAML-Header (Part 1)
 
 | Parameter     | Options                          | Effect                         |
@@ -28,7 +44,7 @@ For further options which might not be included here see: [https://github.com/ha
 | `progress`    | `0` or `1`                       | Turn progress bar on/off       |
 | `slideNumber` | `true` or `false`                | Turn slide numbers on/off      |
 | `lang`        | Any ISO Language Code (eg. `de`) | HTML content language          |
-| `history`     | `true` or `false`                | Show slides in browser history |
+| `history`     | `true` or `false`                | Show slides in browser history (remember current slide e.g. on reload) |
 
 # YAML-Header (Part 3)
 
@@ -52,5 +68,3 @@ For further options which might not be included here see: [https://github.com/ha
 | `author-meta` |                                  | HTML document header meta data |
 | `date-meta`   |                                  | HTML document header meta data |
 | `dir`         | `RTL` or `LTR`                   | Text content direction         |
-
-A complete list of all meta data options can be found in the Pandoc HTML template(`resource/template/deck.html`).

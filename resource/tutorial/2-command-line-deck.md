@@ -1,10 +1,20 @@
 ---
 title: Decker on the command line
+history: true
 ---
 
 # Introduction
 
-If you can read this, you probably already know how to use decker on the command line but here is an additional overview over the possible command line arguments supported by decker.
+This slide deck provides an overview over the possible command line arguments supported by decker.
+
+The general recommended workflow of decker on the command line is: 
+
+- `decker example` to create a new project
+- `decker server` to create html versions and open a local server
+- Navigate to `localhost:8888` in a browser
+- Edit the `*.md` files and see changes immediately in the browser window (on file save)
+- If finished, shut down the server by pressing `^C/Ctrl C` on the command line
+- use `decker pdf` if pdf versions are needed.
 
 # `decker help`
 
@@ -23,12 +33,12 @@ Prints a help document to stdout in Markdown format.
 
 # `decker html`
 
-- `decker html` creates all HTML files without opening a server
+`decker html` creates all HTML files without opening a server
 
 # `decker pdf` and `decker pdf-decks`
 
-- `decker pdf` creates pdf files of all files
-- `decker pdf-decks` creates pdf files only of the slide decks
+- `decker pdf` creates pdf versions of all files
+- `decker pdf-decks` creates pdf versions only of the html slide decks
 
 To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be installed.    
 **Windows:** Follow the Google Chrome installer instructions.  

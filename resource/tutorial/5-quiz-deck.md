@@ -14,7 +14,7 @@ history: true
 # Matching Questions Syntax
 
 - This type of questions asks to create pairs by dragging each element from a number of elements to the corresponding area.
-- Currently only supports exact pairing.
+- Currently only supports exact 1:1 pairing.
 
 ```markdown
 [match] A
@@ -26,7 +26,7 @@ history: true
 ...
 ```
 
-# Matching Questions Example
+# Matching Questions
 
 [match] A
 : pair with A
