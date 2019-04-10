@@ -9,6 +9,14 @@ This deck shows the available options which can be included in the `YAML` header
 
 For further options which might not be included here see: [https://github.com/hakimel/reveal.js/#configuration](https://github.com/hakimel/reveal.js/#configuration)
 
+
+# Meta files
+
+- The meta configuration options shown here can also be included in any `*-meta.yaml` file located in the top level of the project directory. These options are then active per default for every slide deck but can be overwritten in a specific slide deck.
+
+- For example: `menu: true` is added to the `tutorial-meta.yaml` file. If the header of a specific presentation deck includes `menu: false` the menu is not shown in this presentation.
+
+
 # Example Header
 
 This header is located directly at the top of the `*.md` file.

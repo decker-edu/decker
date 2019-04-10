@@ -37,6 +37,14 @@ How to include a student response system/clicker quiz into the slides.
 
 How to include charts using the reveal.js chart plugin.
 
+# General Information
+
+# Folder Structure
+
+- When running, decker creates a `public` folder in the current directory. 
+- This folder contains the template and support files needed during presentation time as well as the generated `html` and `pdf` files.
+
+
 # Technologies
 
 Decker is built with the help of the following technologies:
