@@ -29,6 +29,10 @@ function matchings() {
     dropzones[i].id = "drop".concat(i.toString());
     dropzones[i].addEventListener("drop", drop);
     dropzones[i].addEventListener("dragover", allowDrop);
+
+    for (let child of dropzones[i].children) {
+      child.setAttribute("style", "pointer-events:none");
+    }
   }
 
   for (i = 0; i < draggables.length; i++) {

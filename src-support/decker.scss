@@ -259,6 +259,9 @@ body {
         }
 
         // Matching
+        .matching{
+          text-align: center;
+        }
         .dropzones{
           width: 100%;
           min-height: 30vh;
@@ -292,7 +295,6 @@ body {
         }
 
         .matchingAnswerButton {
-          float: left;
           font-size: inherit;
           border-radius: 0.5em;
           font-family: inherit;
