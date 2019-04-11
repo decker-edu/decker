@@ -14,7 +14,7 @@ window.addEventListener('ready', function (event) {
 
 window.printPdf = function () {
   url = window.location.href;
-  url = url.replace(".html#/", ".html?print-pdf#/");
+  url = url.replace(".html", ".html?print-pdf");
   var printWindow = window.open(url);
 
 
