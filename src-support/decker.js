@@ -10,7 +10,6 @@ window.addEventListener('ready', function (event) {
     quizzes();
   } else {
     Reveal.addEventListener('ready', makeVertical);
-    // quizzes();
   }
 });
 
@@ -39,8 +38,10 @@ function matchings() {
     draggables[i].id = "drag".concat(i.toString());
     draggables[i].addEventListener("dragstart", drag);
 
+    // disable children (e.g. images) from being dragged themselves
     for (let child of draggables[i].children) {
       child.setAttribute('draggable', false);
+      child.className = "draggableChild";
     }
   }
 
