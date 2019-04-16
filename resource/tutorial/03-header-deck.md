@@ -14,7 +14,7 @@ For further options which might not be included here see: [https://github.com/ha
 
 - The meta configuration options shown here can also be included in any `*-meta.yaml` file located in the top level of the project directory. These options are then active per default for every slide deck but can be overwritten in a specific slide deck.
 
-- For example: `menu: true` is added to the `tutorial-meta.yaml` file. If the header of a specific presentation deck includes `menu: false` the menu is not shown in this presentation.
+- For example: The `date` and `menu: true` are added to the `tutorial-meta.yaml` file. If the header of a specific presentation deck includes `menu: false` the menu is not shown in this presentation.
 
 
 # Example Header
@@ -41,7 +41,7 @@ chalkboard: example-deck.json
 | `date`        | String                           | Displayed on first slide       |
 | `title`       | String                           | Displayed on first slide       |
 | `subtitle`    | String                           | Displayed on first slide       |
-| `controls`    | `0` or `1`                       | Turn arrow controls on/off     |
+| `controls`    | `true` or `false`                | Turn arrow controls on/off     |
 | `width`, `height`       | numeric                | Define aspect ratio            |
 
 # YAML-Header (Part 2)
@@ -49,7 +49,8 @@ chalkboard: example-deck.json
 | Parameter     | Options                          | Effect                         |
 |---------------|----------------------------------|--------------------------------|
 | `menu`        | `true` or `false`                | Include menu showing table of contents |
-| `progress`    | `0` or `1`                       | Turn progress bar on/off       |
+| `print`       | `true` or `false`                | Show a print button on the title slide |
+| `progress`    | `true` or `false`                | Turn progress bar on/off       |
 | `slideNumber` | `true` or `false`                | Turn slide numbers on/off      |
 | `lang`        | Any ISO Language Code (eg. `de`) | HTML content language          |
 | `history`     | `true` or `false`                | Show slides in browser history (remember current slide e.g. on reload) |
@@ -62,7 +63,7 @@ chalkboard: example-deck.json
 | `csl`         | Filepath to .csl file            | Include a citation style (.csl)|
 | `bibliography`| Filepath to .bib file            | Include bibliography           |
 | `chalkboard`  | `true` or `false`                | Include reveal.js chalkboard plugin |
-| `dachdecker`  | Code given by dachdecker         | Include a dachdecker survey    |
+| `dachdecker`  | Code/id given by dachdecker      | Include a dachdecker survey    |
 | `chart`       | `true` or `false`                | Include reveal.js chart plugin |
 
 # YAML-Header (Part 4)
@@ -71,7 +72,6 @@ chalkboard: example-deck.json
 | Parameter     | Options                          | Effect                         |
 |---------------|----------------------------------|--------------------------------|
 | `keywords`    |                                  | HTML document header meta data |
-| `theme`       |                                  |                                |
 | `css`         |                                  | Additional CSS resources       |
 | `author-meta` |                                  | HTML document header meta data |
 | `date-meta`   |                                  | HTML document header meta data |

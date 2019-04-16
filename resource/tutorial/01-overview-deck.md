@@ -3,10 +3,6 @@ title: Decker Tutorial Overview
 history: true
 ---
 
-# Motivation
-
-Decker is an e-authoring tool developed at the chair of Human-Computer Interaction at the University of Würzburg.
-
 # Overview
 
 ## Command line deck
@@ -31,7 +27,7 @@ How to create simple quizzes with different question types for a self-learning s
 
 ## Survey deck
 
-How to include a student response system/clicker quiz into the slides.
+How to include a student response system/clicker quiz.
 
 ## Chart deck
 
@@ -47,9 +43,9 @@ How to include charts using the reveal.js chart plugin.
 
 # Technologies
 
-Decker is built with the help of the following technologies:
+Decker is built using:
 
 - [Haskell](https://www.haskell.org/), [Pandoc](https://pandoc.org/), [Shake](https://shakebuild.com/)
 - [reveal.js](https://revealjs.com/#/)
 - [LaTeX]()
-- [Chrome/Chromium]() (for pdf slide deck generation)
+- [Chrome/Chromium]() (for pdf generation)

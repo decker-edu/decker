@@ -7,14 +7,16 @@ history: true
 
 This slide deck provides an overview over the possible command line arguments supported by decker.
 
+# Workflow
+
 The general recommended workflow of decker on the command line is: 
 
-- `decker example` to create a new project
+- `decker example` to create a new project, `cd` into the generated project
+- If you have an existing project, navigate to that directory on the command line
 - `decker server` to create html versions and open a local server
 - Navigate to `localhost:8888` in a browser
-- Edit the `*.md` files and see changes immediately in the browser window (on file save)
+- Create and edit `*-deck.md` files and see changes in the browser window on file save
 - If finished, shut down the server by pressing `^C/Ctrl C` on the command line
-- use `decker pdf` if pdf versions are needed.
 
 # `decker help`
 
@@ -27,13 +29,18 @@ Prints a help document to stdout in Markdown format.
 
 # `decker watch` and `decker server`
 
-- `decker watch` Builds HTML versions of all documents and then watches for document changes. Each change to a watched document triggers a rebuild. Watching can be terminated with `^C`.
+- `decker watch` Builds HTML versions of all documents and then watches for document changes. Each change to a watched document triggers a rebuild. Watching can be terminated with `^C/Ctrl C`.
 
-- `decker server`: Like `decker watch`. Additionally a local web server is started that serves the generated HTML files. The `*-deck.html` file is openend in the browser. Changed files are reloaded in the browser.
+- `decker server`: Like `decker watch`. Additionally a local web server at the address `localhost:8888` is started that serves the generated HTML files. Changed files are reloaded in the browser.
 
 # `decker html`
 
 `decker html` creates all HTML files without opening a server
+
+# `decker clean`
+
+- Recursively removes all generated files from the current directory i.e. only the `public` folder. 
+- Also clears cached resource folders with version number older than the currently used decker version.
 
 # `decker pdf` and `decker pdf-decks`
 
@@ -41,15 +48,10 @@ Prints a help document to stdout in Markdown format.
 - `decker pdf-decks` creates pdf versions only of the html slide decks
 
 To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be installed.    
-**Windows:** Follow the Google Chrome installer instructions.  
+**Windows:** Currently `decker pdf` does not work on Windows. Please add `print: true` or `menu: true` to your slide deck and use the print button on the title slide or in the menu. 
 **MacOS:** Follow the Google Chrome installer instructions. **Google Chrome.app** has to be located in either `/Applications/Google Chrome.app` or `/Users/username/Applications/Google Chrome.app`
 Alternatively you can add `chrome` to `$PATH`.  
 **Linux:** `chrome` has to be on `$PATH`.    
-
-# `decker clean`
-
-- Recursively removes all generated files from the current directory. 
-- Also clears cached resource folders with version number older than the currently used decker version.
 
 # `decker plan`
 
