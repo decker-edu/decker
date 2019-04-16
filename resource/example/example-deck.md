@@ -408,10 +408,10 @@ Include YouTube and Vimeo videos or Twitch channels in presentations:
 # External Videos example {#example-movies_2 .sub}
 
 ```markdown
-![](youtube://qEcmwHRG2Mo){width="65%"}
+![](youtube://qEcmwHRG2Mo){width="65%" start="10"}
 ```
 
-![](youtube://qEcmwHRG2Mo){width="65%"}
+![](youtube://qEcmwHRG2Mo){width="65%" start="10"}
 
 
 # Fullscreen Videos {#fullscreen}
