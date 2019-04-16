@@ -38,7 +38,10 @@ embedWebVideosHtml :: String -> [String] -> Attr -> Target -> Inline
 embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
   RawInline (Format "html") (renderHtml html)
   where
-    start = snd $ head $ filter (\(x, y) -> x == "t" || x == "start") kv
+    start =
+      case filter (\(x, y) -> x == "t" || x == "start") kv of
+        x:_ -> snd x
+        _ -> ""
     url =
       case page of
         "youtube" ->
