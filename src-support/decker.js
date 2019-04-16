@@ -10,7 +10,6 @@ window.addEventListener('ready', function (event) {
     quizzes();
   } else {
     Reveal.addEventListener('ready', makeVertical);
-    // quizzes();
   }
 });
 
@@ -29,14 +28,20 @@ function matchings() {
     dropzones[i].id = "drop".concat(i.toString());
     dropzones[i].addEventListener("drop", drop);
     dropzones[i].addEventListener("dragover", allowDrop);
+
+    for (let child of dropzones[i].children) {
+      child.setAttribute("style", "pointer-events:none");
+    }
   }
 
   for (i = 0; i < draggables.length; i++) {
     draggables[i].id = "drag".concat(i.toString());
     draggables[i].addEventListener("dragstart", drag);
 
+    // disable children (e.g. images) from being dragged themselves
     for (let child of draggables[i].children) {
       child.setAttribute('draggable', false);
+      child.className = "draggableChild";
     }
   }
 
