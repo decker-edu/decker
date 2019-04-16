@@ -53,7 +53,7 @@ build:mac:
     paths:
       - decker
 
-.build:win:
+build:win:
   tags:
     - win
   stage: build
