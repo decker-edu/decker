@@ -13,6 +13,7 @@ window.addEventListener('ready', function (event) {
   }
 });
 
+<<<<<<< HEAD
 function quizzes() {
   matchings();
   surveys();
@@ -152,6 +153,18 @@ function freetextAnswerButton() {
   }
 
 
+=======
+window.printPdf = function () {
+  url = window.location.href;
+  url = url.replace(".html", ".html?print-pdf");
+  var printWindow = window.open(url);
+
+
+  printWindow.onload = function () {
+    printWindow.print();
+    printWindow.onfocus = function () { printWindow.close(); }
+  };
+>>>>>>> 123-pdf-cleanup
 }
 
 function makeVertical() {
