@@ -150,8 +150,19 @@ function freetextAnswerButton() {
       }
     }
   }
+}
 
 
+window.printPdf = function () {
+  url = window.location.href;
+  url = url.replace(".html", ".html?print-pdf");
+  var printWindow = window.open(url);
+
+
+  printWindow.onload = function () {
+    printWindow.print();
+    printWindow.onfocus = function () { printWindow.close(); }
+  };
 }
 
 function makeVertical() {
