@@ -41,7 +41,7 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
     start =
       case filter (\(x, y) -> x == "t" || x == "start") kv of
         x:_ -> snd x
-        _ -> ""
+        _ -> "0"
     url =
       case page of
         "youtube" ->
