@@ -5,12 +5,25 @@ require('./fonts/roboto.css');
 require('./fonts/source-code-pro.css');
 
 window.addEventListener('ready', function (event) {
+  fixAutoplayWithStart();
   if (Reveal.isReady()) {
     makeVertical();
   } else {
     Reveal.addEventListener('ready', makeVertical);
   }
 });
+
+function fixAutoplayWithStart() {
+  for(let vid of document.getElementsByTagName("video")){
+    vid.addEventListener('play', (e) => {
+        const timeRegex = /#t=(\d+)/;
+        const matches = e.target.currentSrc.match(timeRegex);
+        if(matches.length > 0) {
+            e.target.currentTime = matches[1];
+        }
+    });
+  }
+}
 
 function makeVertical() {
   const subsections = document.getElementsByClassName("sub");
