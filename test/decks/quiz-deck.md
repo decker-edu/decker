@@ -1,31 +1,50 @@
 ---
-dachdecker: 060f8b51-c232-42da-90a7-17291a5ba730
 ---
 
-# Slide with quiz
+# Matching Questions
 
-## Quiz question box
+[match] A
+: drag to A
 
-This here is the real question text
+[match] Haskell 
+: ![](img/haskell.png)
 
-- [ ] one answer
-  - tooltip
-- [ ] another answer
-  - another tooltip
-- [X] again another
-  - this one is right
-- [ ] and the last
-  - and this is wrong
+[match] B
+: drag to B
 
-# Second slide has a quiz
+[match] decker
+: [decker](http://go.uniwue.de/decker)
 
-Guess what: here is a quiz as well
+[match] C
+: $\Leftarrow$ C
 
-- [ ] one answer
-  - tooltip
-- [ ] another answer
-  - another tooltip
-- [X] again another
-  - this one is right
-- [X] and the last
-  - this time the last is right as well
+# Freetext Questions {layout="columns"}
+
+## {.left} 
+* [?] $2*2=~?$ 
+* [!] 4
+
+##  {.question}
+
+* [?] The Answer to the Ultimate Question of Life, the Universe, and Everything is ...?
+* [!] 42
+
+## {.right}
+
+* [?] Is this a question? 
+* [!] yes
+
+##
+
+* [?] Name the capital of Germany
+* [!] Berlin 
+
+# Multiple Choice Questions
+
+## Question: Which file format does decker use? {.question}
+
+* [ ] .docx
+* [ ] .csv
+* [ ] .xml
+* [X] .md
+
