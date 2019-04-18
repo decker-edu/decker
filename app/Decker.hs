@@ -13,6 +13,7 @@ import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Control.Monad.Extra
+import Dachdecker
 import Data.Aeson
 import Data.IORef ()
 import Data.List
@@ -32,7 +33,6 @@ import Text.Pandoc
 import Text.Pandoc.Definition
 import Text.Printf (printf)
 import Utilities
-import Dachdecker
 
 main :: IO ()
 main = do
@@ -53,7 +53,8 @@ main = do
   let cruft = ["index.md.generated", "log", "//.shake", "generated", "code"]
   let pdfMsg =
         "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
-        "# Windows: Follow the Google Chrome installer instructions.\n" ++
+        "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++
+        "\tPlease add 'print: true' or 'menu: true' to your slide deck and use the print button on the title slide.\n" ++
         "# MacOS: Follow the Google Chrome installer instructions.\n" ++
         "\tGoogle Chrome.app has to be located in either /Applications/Google Chrome.app or /Users/<username>/Applications/Google Chrome.app\n" ++
         "\tAlternatively you can add 'chrome' to $PATH.\n" ++

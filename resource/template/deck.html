@@ -128,6 +128,9 @@ $endfor$
 $if(date)$
   <p class="date">$date$</p>
 $endif$
+$if(print)$
+  <div class="printButton"><a href="#"><i class="fas fa-print" onclick="printPdf()"></i></a></div>
+$endif$
 </section>
 $endif$
 $if(toc)$
@@ -348,6 +351,16 @@ $if(chart)$
           bar: { backgroundColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]},
           pie: { backgroundColor: [ ["rgba(0,0,0,.8)" , "rgba(220,20,20,.8)", "rgba(20,220,20,.8)", "rgba(220,220,20,.8)", "rgba(20,20,220,.8)"] ]},
           radar: { borderColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]},
+        },
+$endif$
+$if(menu)$
+        menu: {
+          custom: [
+            { title: "Print/Pdf", icon: '<i class="fas fa-print" onclick="printPdf()">', 
+              content: 
+              '<ul><li>To print or export the slides as pdf, click the printer symbol.</li><li>For the best results please use Google Chrome or Chromium.</li><li>You might have to adjust the page settings slightly (e.g. orientation: landscape)</li> </ul>' }
+
+          ]
         },
 $endif$
 
