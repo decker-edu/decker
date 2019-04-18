@@ -108,6 +108,8 @@ main = do
     --
     phony "example" $ liftIO writeExampleProject
     --
+    phony "tutorial" $ liftIO writeTutorialProject
+    --
     phony "sketch-pad-index" $ do
       indicesA >>= need
       indicesA >>=

@@ -1,0 +1,3 @@
+rsync-destination:
+    host: tramberend@tramberend.beuth-hochschule.de
+    path: /var/www/html/internal/lehre/16-ws/bmi-cgg
