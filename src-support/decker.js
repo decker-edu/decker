@@ -95,6 +95,9 @@ function drag(ev) {
 function drop(ev) {
   ev.preventDefault();
   var data = ev.dataTransfer.getData("text");
+  if (ev.target.className == "draggable") {
+    return false;
+  }
   ev.target.appendChild(document.getElementById(data));
   ev.target.disabled = true;
 }

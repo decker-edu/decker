@@ -269,7 +269,8 @@ body {
         }
         .dropzones{
           width: 100%;
-          min-height: 30vh;
+          min-height: 15vh;
+          max-height: 20vh;
           display: table;
           table-layout: fixed;
         }
@@ -294,6 +295,7 @@ body {
 
         .draggableChild{
           max-width: inherit;
+          pointer-events: none;
         }
 
         // Arrow from here: http://www.cssarrowplease.com/
@@ -302,7 +304,8 @@ body {
           table-layout: fixed;
           border-spacing: 5px;
           margin-top: 5%;
-          min-height: 30vh;
+          min-height: 15vh;
+          max-height: 20vh;
           text-align: center;
           width: 100%;
           position: relative;
