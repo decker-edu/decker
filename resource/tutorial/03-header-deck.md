@@ -41,22 +41,25 @@ chalkboard: example-deck.json
 | `date`        | String                           | Displayed on first slide       |
 | `title`       | String                           | Displayed on first slide       |
 | `subtitle`    | String                           | Displayed on first slide       |
-| `controls`    | `true` or `false`                | Turn arrow controls on/off     |
-| `width`, `height`       | numeric                | Define aspect ratio            |
 
 # YAML-Header (Part 2)
 
 | Parameter     | Options                          | Effect                         |
 |---------------|----------------------------------|--------------------------------|
+| `width`, `height`       | numeric                | Define aspect ratio            |
 | `menu`        | `true` or `false`                | Include menu showing table of contents |
 | `print`       | `true` or `false`                | Show a print button on the title slide |
-| `progress`    | `true` or `false`                | Turn progress bar on/off       |
-| `slideNumber` | `true` or `false`                | Turn slide numbers on/off      |
-| `lang`        | Any ISO Language Code (eg. `de`) | HTML content language          |
-| `history`     | `true` or `false`                | Show slides in browser history (remember current slide e.g. on reload) |
 
 # YAML-Header (Part 3)
 
+| Parameter     | Options                          | Effect                         |
+|---------------|----------------------------------|--------------------------------|
+| `progress`    | `true` or `false`                | Turn progress bar on/off       |
+| `slideNumber` | `true` or `false`                | Turn slide numbers on/off      |
+| `history`     | `true` or `false`                | Show slides in browser history |
+| `controls`    | `true` or `false`                | Turn arrow controls on/off     |
+
+# YAML-Header (Part 4)
 
 | Parameter     | Options                          | Effect                         |
 |---------------|----------------------------------|--------------------------------|
@@ -66,13 +69,11 @@ chalkboard: example-deck.json
 | `dachdecker`  | Code/id given by dachdecker      | Include a dachdecker survey    |
 | `chart`       | `true` or `false`                | Include reveal.js chart plugin |
 
-# YAML-Header (Part 4)
+# YAML-Header (Part 5)
 
 
 | Parameter     | Options                          | Effect                         |
 |---------------|----------------------------------|--------------------------------|
-| `keywords`    |                                  | HTML document header meta data |
+| `lang`        | Any ISO Language Code (eg. `de`) | HTML content language          |
 | `css`         |                                  | Additional CSS resources       |
-| `author-meta` |                                  | HTML document header meta data |
-| `date-meta`   |                                  | HTML document header meta data |
 | `dir`         | `RTL` or `LTR`                   | Text content direction         |

@@ -47,15 +47,14 @@ Prints a help document to stdout in Markdown format.
 - `decker pdf` creates pdf versions of all files
 - `decker pdf-decks` creates pdf versions only of the html slide decks
 
+# 
+
 To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be installed.    
-**Windows:** Currently `decker pdf` does not work on Windows. Please add `print: true` or `menu: true` to your slide deck and use the print button on the title slide or in the menu. 
-**MacOS:** Follow the Google Chrome installer instructions. **Google Chrome.app** has to be located in either `/Applications/Google Chrome.app` or `/Users/username/Applications/Google Chrome.app`
+- **Windows:** Currently `decker pdf` does not work on Windows. Please add `print: true` or `menu: true` to your slide deck and use the print button on the title slide or in the menu. 
+- **MacOS:** Follow the Google Chrome installer instructions. **Google Chrome.app** has to be located in either `/Applications/Google Chrome.app` or `/Users/username/Applications/Google Chrome.app`
 Alternatively you can add `chrome` to `$PATH`.  
-**Linux:** `chrome` has to be on `$PATH`.    
+- **Linux:** `chrome` has to be on `$PATH`.    
 
-# `decker plan`
-
-Prints a list of all source files found below the current directory.
 
 # `decker meta`
 

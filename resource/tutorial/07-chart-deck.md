@@ -9,6 +9,8 @@ chart: true
 
 The first chart is included via an additional `chart-meta.yaml` file and is **always** the first slide after the title.
 
+#
+
 ```yaml
 chartName: Metadata Chart Example
 chartId: "Metadata Chart Example"
