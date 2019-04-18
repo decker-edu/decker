@@ -35,24 +35,18 @@ type MacroAction = [String] -> Attr -> Target -> Meta -> Decker Inline
 -- https://dev.twitch.tv/docs/embed/video-and-clips/
 -- and: https://dev.twitch.tv/docs/embed/everything/
 embedWebVideosHtml :: String -> [String] -> Attr -> Target -> Inline
-embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
+embedWebVideosHtml page args attr (vid, _) =
   RawInline (Format "html") (renderHtml html)
   where
-    start =
-      case filter (\(x, y) -> x == "t" || x == "start") kv of
-        x:_ -> snd x
-        _ -> "0"
     url =
       case page of
         "youtube" ->
           printf
-            ("https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1&start=" ++
-             start)
+            "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
             vid :: String
         "vimeo" ->
           printf
-            ("https://player.vimeo.com/video/%s?quality=autop&autoplay=0&muted=1#t=" ++
-             start)
+            "https://player.vimeo.com/video/%s?quality=autop&autoplay=0&muted=1"
             vid :: String
         "twitch" ->
           printf "https://player.twitch.tv/?channel=%s&autoplay=1&muted=1" vid :: String
