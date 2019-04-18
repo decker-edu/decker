@@ -5,7 +5,7 @@ module Macro
 
 import Common
 import Control.Monad.State
-import Data.List (isInfixOf, isPrefixOf)
+import Data.List (find, isInfixOf, isPrefixOf)
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
@@ -35,19 +35,29 @@ type MacroAction = [String] -> Attr -> Target -> Meta -> Decker Inline
 -- https://dev.twitch.tv/docs/embed/video-and-clips/
 -- and: https://dev.twitch.tv/docs/embed/everything/
 embedWebVideosHtml :: String -> [String] -> Attr -> Target -> Inline
-embedWebVideosHtml page args attr (vid, _) =
+embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
   RawInline (Format "html") (renderHtml html)
   where
+    start =
+      case find (\(x, y) -> x == "t" || x == "start") kv of
+        Just (_, time) -> time
+        _ -> "0"
+    autoplay =
+      case find (\(x, y) -> isInfixOf "autoplay" x) kv of
+        Just (_, b) -> b
+        _ -> "0"
     url =
       case page of
         "youtube" ->
           printf
-            "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
-            vid :: String
+            "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1&start=%s"
+            vid
+            start :: String
         "vimeo" ->
           printf
-            "https://player.vimeo.com/video/%s?quality=autop&autoplay=0&muted=1"
-            vid :: String
+            "https://player.vimeo.com/video/%s?quality=autop&muted=0#t=%s"
+            vid
+            start :: String
         "twitch" ->
           printf "https://player.twitch.tv/?channel=%s&autoplay=1&muted=1" vid :: String
     vidWidthStr = macroArg 0 args "560"
@@ -71,8 +81,13 @@ embedWebVideosHtml page args attr (vid, _) =
       height (toValue vidHeightStr) !
       src (toValue url) !
       customAttribute "frameborder" "0" !
+      auto !
       customAttribute "allowfullscreen" "" $
       H.p ""
+    auto =
+      if (autoplay == "1" || autoplay == "true")
+        then (customAttribute "data-autoplay" "")
+        else mempty
 
 -- Twitch thumbnail from https://www.twitch.tv/p/brand/social-media
 -- Twitch channels unfortunately have no fixed thumbnail
