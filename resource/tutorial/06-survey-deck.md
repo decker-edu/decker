@@ -49,3 +49,7 @@ In this slide deck you can now create multiple choice questions as seen in `05-q
 - Call `decker sync` and enter your LDAP credentials on the command line. This syncs the presentation with the dachdecker server so that the server and the presentation can communicate
 - Start `decker server` to start your presentation
 - On your presentation, press `q` to log in to dachdecker and activate the questions (the login can be done in advance so you only have to click "Activate Quiz" during the presentation)
+
+# Note:
+
+`dachdecker` is currently not compatible with using `transition: fade` or the revealjs chalkboard plugin. 
