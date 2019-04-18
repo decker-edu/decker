@@ -133,7 +133,7 @@ deploy:linux:
   only:
     - master
 
-.deploy:win:
+deploy:win:
   stage: deploy
   image: 
     name: minio/mc:latest
