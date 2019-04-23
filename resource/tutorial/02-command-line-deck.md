@@ -22,6 +22,10 @@ The general recommended workflow of decker on the command line is:
 
 Prints a help document to stdout in Markdown format.
 
+# `decker info`
+
+Prints information about the current project's directories, the targets (files which will be generated) and the meta data options which are found in top level `*-meta.yaml` files. 
+
 # `decker example` and `decker tutorial`
 
 - `decker example` copies an example project to the current directory
@@ -33,9 +37,10 @@ Prints a help document to stdout in Markdown format.
 
 - `decker server`: Like `decker watch`. Additionally a local web server at the address `localhost:8888` is started that serves the generated HTML files. Changed files are reloaded in the browser.
 
-# `decker html`
+# `decker html` and `decker decks`
 
-`decker html` creates all HTML files without opening a server
+- `decker html` creates all HTML files without opening a server
+- `decker decks`creates only HTML slide decks
 
 # `decker clean`
 
@@ -55,11 +60,6 @@ To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be installed.
 Alternatively you can add `chrome` to `$PATH`.  
 - **Linux:** `chrome` has to be on `$PATH`.    
 
-
-# `decker meta`
-
-- Pretty prints all meta data that can be found in `*.yaml` files in the current directory and below. 
-- Meta data is mainly used to perform substitutions in Markdown documents using the Mustache templating system.
 
 # `decker publish`
 

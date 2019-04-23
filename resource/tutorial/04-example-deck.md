@@ -378,6 +378,9 @@ Video with controls:
 
 Video with autoplay:
 ![](movies/jmu-hci-intro.mp4){data-autoplay=true}
+
+Start video at timestamp:
+![](movies/jmu-hci-intro.mp4){data-autoplay=true start="10"}
 ```
 
 ## {.split}
