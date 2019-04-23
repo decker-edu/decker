@@ -37,6 +37,7 @@ function matchings() {
   var dropzones = document.getElementsByClassName("dropzone");
   var draggables = document.getElementsByClassName("draggable");
 
+
   for (i = 0; i < dropzones.length; i++) {
     dropzones[i].id = "drop".concat(i.toString());
     dropzones[i].addEventListener("drop", drop);
@@ -57,9 +58,43 @@ function matchings() {
       child.className = "draggableChild";
     }
   }
-
+  shuffleDraggables();
   matchingAnswerButton();
 
+}
+
+// Shuffle draggables so the correct pairings aren't always directly below each other
+function shuffleDraggables() {
+  var dragzones = document.getElementsByClassName("dragzone");
+  for (let container of dragzones) {
+    var elementsArray = Array.prototype.slice.call(container.getElementsByClassName('draggable'));
+    elementsArray.forEach(function (element) {
+      container.removeChild(element);
+    })
+    shuffleArray(elementsArray);
+    elementsArray.forEach(function (element) {
+      container.appendChild(element);
+    })
+  }
+}
+
+// Fisher-Yates (aka Knuth) Shuffle
+function shuffleArray(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
 }
 
 /*
