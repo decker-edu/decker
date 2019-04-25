@@ -5,8 +5,6 @@
 -- 
 module Resources
   ( extractResources
-  , getResourceString
-  , getOldResources
   , deckerResourceDir
   , writeExampleProject
   , writeTutorialProject
