@@ -34,6 +34,7 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
+{-- DECKER: Changed module name --}
 module Markdown (writeMarkdown, writePlain) where
 import Prelude
 import Control.Monad.Reader
@@ -65,8 +66,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
-import Debug.Trace
--- import Text.Pandoc.XML (toHtml5Entities)
+import Text.Pandoc.XML (toHtml5Entities)
 
 type Notes = [[Block]]
 type Ref   = (Doc, Target, Attr)
@@ -282,10 +282,9 @@ noteToMarkdown opts num blocks = do
 -- | Escape special characters for Markdown.
 escapeString :: WriterOptions -> String -> String
 escapeString opts =
-  -- (if writerPreferAscii opts
-  --     then T.unpack . toHtml5Entities . T.pack
-  --     else id) . go
-  go
+  (if writerPreferAscii opts
+      then T.unpack . toHtml5Entities . T.pack
+      else id) . go
   where
   go [] = []
   go (c:cs) =
@@ -498,10 +497,6 @@ blockToMarkdown' opts b@(RawBlock f str)
       return empty
 blockToMarkdown' opts HorizontalRule = do
   return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
-{-
-blockToMarkdown' _ HorizontalRule = do
-  return $ blankline <> text "------" <> blankline
--}
 blockToMarkdown' opts (Header level attr inlines) = do
   -- first, if we're putting references at the end of a section, we
   -- put them here.
@@ -514,8 +509,7 @@ blockToMarkdown' opts (Header level attr inlines) = do
   -- we calculate the id that would be used by auto_identifiers
   -- so we know whether to print an explicit identifier
   ids <- gets stIds
-  -- let autoId = uniqueIdent (writerExtensions opts) inlines ids
-  let autoId = uniqueIdent inlines ids
+  let autoId = uniqueIdent (writerExtensions opts) inlines ids
   modify $ \st -> st{ stIds = Set.insert autoId ids }
   let attr' = case attr of
                    ("",[],[]) -> empty
@@ -611,9 +605,47 @@ blockToMarkdown' opts t@(Table caption aligns widths headers rows) =  do
   let widths' = case numcols - length widths of
                      x | x > 0 -> widths ++ replicate x 0.0
                        | otherwise -> widths
+{-- DECKER: Replaced to streamline table rendering 
   (nst,tbl) <-
      case True of
-          _ | hasSimpleCells &&
+          _ | isSimple &&
+              isEnabled Ext_simple_tables opts -> do
+                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                           rows
+                (nest 2,) <$> pandocTable opts False (all null headers)
+                                aligns' widths' rawHeaders rawRows
+            | isSimple &&
+              isEnabled Ext_pipe_tables opts -> do
+                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                           rows
+                (id,) <$> pipeTable (all null headers) aligns' rawHeaders rawRows
+            | not hasBlocks &&
+              isEnabled Ext_multiline_tables opts -> do
+                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                           rows
+                (nest 2,) <$> pandocTable opts True (all null headers)
+                                aligns' widths' rawHeaders rawRows
+            | isEnabled Ext_grid_tables opts &&
+               writerColumns opts >= 8 * numcols -> (id,) <$>
+                gridTable opts blockListToMarkdown
+                  (all null headers) aligns' widths' headers rows
+            | isEnabled Ext_raw_html opts -> fmap (id,) $
+                   (text . T.unpack) <$>
+                   (writeHtml5String opts{ writerTemplate = Nothing } $ Pandoc nullMeta [t])
+            | hasSimpleCells &&
+              isEnabled Ext_pipe_tables opts -> do
+                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                           rows
+                (id,) <$> pipeTable (all null headers) aligns' rawHeaders rawRows
+            | otherwise -> return $ (id, text "[TABLE]")
+--}
+  (nst,tbl) <-
+     case True of
+          _ | (isSimple || hasSimpleCells) &&
               isEnabled Ext_pipe_tables opts -> do
                 rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
                 rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))

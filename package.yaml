@@ -1,5 +1,5 @@
 name: decker
-version: 0.7.3
+version: 0.8.0
 license: OtherLicense
 author: "Henrik Tramberend"
 maintainer: "henrik.tramberend@beuth-hochschule.de"
@@ -54,6 +54,7 @@ dependencies:
   - hashable
   - highlighting-kate
   - HTTP
+  - http-client
   - http-conduit
   - http-types
   - lens
@@ -67,7 +68,6 @@ dependencies:
   - network-uri
   - pandoc
   - pandoc-citeproc
-  - pandoc-lens
   - pandoc-types
   - pandoc-include-code
   - process
@@ -90,6 +90,7 @@ dependencies:
   - vector
   - websockets
   - websockets-snap
+  - wreq
   - yaml
   - zip
 
@@ -101,7 +102,7 @@ library:
         source-dirs: src-win
         exposed-modules: "System.Decker.OS"
       else:
-        source-dirs: src-mac
+        source-dirs: src-unix
         exposed-modules: "System.Decker.OS"
     - condition: flag(preextractedresources)
       cpp-options: "-DPREEXTRACTEDRESOURCES"

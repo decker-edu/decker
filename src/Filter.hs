@@ -23,6 +23,7 @@ import Control.Exception
 import Exception
 import Sketch
 import Slide
+import Text.Pandoc.Lens
 
 import Control.Applicative
 import Control.Lens
@@ -57,7 +58,6 @@ import qualified Text.Blaze.Html5.Attributes as A (alt, class_, id, title)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Filter.IncludeCode as P
-import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Read hiding (lift)
@@ -436,7 +436,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
           fileContent <- catch (readFile url) svgLoadErrorHandler
           return $
             if attrs /= nullAttr
-              then Span (ident, cls', values') [toHtml fileContent]
+              then Span (ident, cls, values) [toHtml fileContent]
               else toHtml fileContent
         else return $ toHtml $ renderHtml $
              if "iframe" `elem` cls
@@ -452,27 +452,24 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
-      ifNotEmpty A.id ident $ ifNotEmpty A.class_ (unwords cls') $
+      ifNotEmpty A.id ident $ 
+      ifNotEmpty A.class_ (unwords cls) $
       ifNotEmpty A.title tit $
-      foldl appendAttr tag ((srcAttr, src) : values')
+      foldl appendAttr tag transformedValues
     ifNotEmpty attr value element =
       if value == ""
         then element
         else element ! attr (toValue value)
-    srcAttr =
+    srcAttr =  
       if disp == Disposition Deck Html
         then "data-src"
         else "src"
-    src =
-      if extension `elem` meshExtensions
-        then "demos" </> "mview" </> "mview.html?model=.." </> ".." </> url
-        else url
-    extension = uriPathExtension url
-    (_, cls', values') =
-      if uriPathExtension url == ".svg" && "embed" `elem` cls
-        then convertMediaAttributes
-               (ident, cls, ("style", "display:inline-block;") : values)
-        else convertMediaAttributes attrs
+    transformedValues =
+      case classifyFilePath url of
+        VideoMedia -> lazyLoad $ retrieveVideoStart $ transformImageSize values
+        _ -> lazyLoad (transformImageSize values, Nothing)
+    lazyLoad (vs, (Just start)) = (srcAttr, url ++ "#t=" ++ start) : vs
+    lazyLoad (vs, Nothing) = (srcAttr, url) : vs
 renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
   image <- renderMediaTag disp (Image attrsForward [] (url, tit))
   return $
@@ -491,28 +488,7 @@ svgLoadErrorHandler e = return "<div>Couldn't load SVG</div>"
 -- | Converts attributes 
 convertMediaAttributes :: Attr -> Attr
 convertMediaAttributes attrs =
-  convertMediaAttributeGatherStyle $ convertMediaAttributeImageSize $
-  convertMediaAttributeAutoplay attrs
-
-convertMediaAttributeAutoplay :: Attr -> Attr
-convertMediaAttributeAutoplay (id, cls, vals) = (id, cls', vals')
-  where
-    (autoplay_cls, cls') = partition (== "autoplay") cls
-    vals' =
-      vals ++
-      if null autoplay_cls
-        then []
-        else [("data-autoplay", "true")]
-
-convertMediaAttributeControls :: Attr -> Attr
-convertMediaAttributeControls (id, cls, vals) = (id, cls', vals')
-  where
-    (autoplay_cls, cls') = partition (== "controls") cls
-    vals' =
-      vals ++
-      if null autoplay_cls
-        then []
-        else [("controls", "true")]
+  convertMediaAttributeGatherStyle $ convertMediaAttributeImageSize attrs
 
 convertMediaAttributeGatherStyle :: Attr -> Attr
 convertMediaAttributeGatherStyle (id, cls, vals) = (id, cls, vals')
@@ -545,6 +521,36 @@ convertMediaAttributeImageSize (id, cls, vals) = (id, cls, vals_processed)
 toHtml :: String -> Inline
 toHtml = RawInline (Format "html")
 
+-- | Mimic pandoc for handling the 'width' and 'height' attributes of images.
+-- That is, transfer 'width' and 'height' attribute values to css style values
+-- and add them to the 'style' attribute value.
+transformImageSize :: [(String, String)] -> [(String, String)]
+transformImageSize attributes =
+  let style :: [String]
+      style =
+        delete "" $
+        split (dropDelims $ oneOf ";") $
+        fromMaybe "" $ snd <$> find (\(k, _) -> k == "style") attributes
+      unstyled :: [(String, String)]
+      unstyled = filter (\(k, _) -> k /= "style") attributes
+      unsized =
+        filter (\(k, _) -> k /= "width") $
+        filter (\(k, _) -> k /= "height") unstyled
+      size =
+        ( snd <$> find (\(k, _) -> k == "width") unstyled
+        , snd <$> find (\(k, _) -> k == "height") unstyled)
+      sizeStyle =
+        case size of
+          (Just w, Just h) -> ["width:" ++ w, "height:" ++ h]
+          (Just w, Nothing) -> ["width:" ++ w, "height:auto"]
+          (Nothing, Just h) -> ["width:auto", "height:" ++ h]
+          (Nothing, Nothing) -> []
+      css = style ++ sizeStyle
+      styleAttr = ("style", intercalate ";" $ reverse $ "" : css)
+  in if null css
+       then unstyled
+       else styleAttr : unsized
+
 extractFigures :: Pandoc -> Decker Pandoc
 extractFigures pandoc = return $ walk extractFigure pandoc
 
@@ -555,3 +561,11 @@ extractFigure (Para content) =
       Div attr [Plain inner]
     a -> Para a
 extractFigure b = b
+
+-- | Retrieves the start attribute for videos to append it to the url
+retrieveVideoStart :: [(String, String)] -> ([(String, String)], Maybe String)
+retrieveVideoStart attributes = 
+  (attributeRest, urlStartMarker)
+  where 
+    attributeRest = filter (\(k, _) -> k /= "start") attributes
+    urlStartMarker = snd <$> find (\(k, _) -> k == "start") attributes

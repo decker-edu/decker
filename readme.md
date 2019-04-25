@@ -29,8 +29,6 @@ Decker uses a few external tools that need to be installed on the system:
     for publishing slide decks and resources
 -   [*unzip*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/unzip)
     to extract resources from the decker executable
--   [*decktape*](https://github.com/astefanutti/decktape) to convert HTML slide
-    decks to PDF format
 -   [*LaTeX* with pdflatex](https://www.latex-project.org) to generate LaTeX in
     PDF-files and embedded Tikz figures
 -   [*Graphviz*](http://graphviz.org) to generate graphs using `dot`
@@ -92,22 +90,39 @@ Exchange the `html` at the end of the command with your *decker* command of choi
 
 ## *decker* targets
 
+-   `decker version`
+
+    Prints the current decker version and branch as well as the current pandoc version.
+
 -   `decker help`
 
     Prints a help document to stdout in Markdown format.
+
+-   `decker info`
+
+    Prints information about the current project's directories, the targets (files which will be generated) and the meta data options which are found in top level `*-meta.yaml` files. 
 
 -   `decker html`
 
     Builds HTML versions of all available documents.
 
+-   `decker decks`
+
+    Builds only HTML slide decks.
+
 -   `decker pdf`
 
-    Builds PDF versions of all documents that are generated from `*-page.md`
-    files.
+    Builds PDF versions of all documents. 
 
 -   `decker pdf-decks`
 
-    Builds PDF versions of all slide decks (requires `decktape.sh`).
+    Builds PDF versions of all slide decks.
+
+    To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be installed.    
+    **Windows:** Currently `decker pdf` does not work on Windows. Please add `print: true` or `menu: true` to your slide deck and use the print button in the menu or on the title slide.
+    **MacOS:** Follow the Google Chrome installer instructions. **Google Chrome.app** has to be located in either `/Applications/Google Chrome.app` or `/Users/username/Applications/Google Chrome.app`
+    Alternatively you can add `chrome` to `$PATH`.  
+    **Linux:** `chrome` has to be on `$PATH`.    
 
 -   `decker watch`
 
@@ -132,22 +147,16 @@ Exchange the `html` at the end of the command with your *decker* command of choi
     ```
 
     and make some changes to the Markdown files. `example-deck.md` contains the
-    source code for a slide deck that is supposed to (someday) explain most of
-    the features supported.
+    source code for a slide deck that explains most of the available features for creating slide decks.
+
+-   `decker tutorial` 
+
+    Like `example` but copies extended example/tutorial slide decks to the current directory.
 
 -   `decker clean`
 
-    Recursively removes all generated files from the current directory.
-
--   `decker plan`
-
-    Prints a list of all source files found below the current directory.
-
--   `decker meta`
-
-    Pretty prints all meta data that can be found in `*.yaml` files in the
-    current directory and below. Meta data is mainly used to perform
-    substitutions in Markdown documents using the Mustache templating system.
+    Recursively removes all generated files from the current directory (i.e. the `public` folder).
+    Also removes cached resources witch version number lower than the current version.
 
 -   `decker publish`
 

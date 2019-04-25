@@ -68,9 +68,14 @@ $endfor$
 $for(header-includes)$
   $header-includes$
 $endfor$
+
+$if(dachdecker)$
+<script type="text/javascript">const dachdecker = "$dachdecker$";</script>
+$endif$
 </head>
 
 <body>
+
   <!-- MathJax config -->
   <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
@@ -123,11 +128,57 @@ $endfor$
 $if(date)$
   <p class="date">$date$</p>
 $endif$
+$if(print)$
+  <div class="printButton"><a href="#"><i class="fas fa-print" onclick="printPdf()"></i></a></div>
+$endif$
 </section>
 $endif$
 $if(toc)$
 <section id="$idprefix$TOC">
 $table-of-contents$
+</section>
+$endif$
+
+$if(chart)$
+<section class="slide level1">
+<h1>$chartName$</h1>
+<canvas id=“$chartId$" data-chart="$data-chart$" width="$width$" height="$height$">
+<!--
+{
+  "data": {
+    "labels":[$for(labels)$"$labels$"$sep$, $endfor$],
+    "datasets":[
+    $for(datasets)$
+    {
+      $if(datasets.fill)$"fill":"$datasets.fill$",$endif$
+      $if(datasets.borderColor)$"borderColor":"$datasets.borderColor$",$endif$
+      $if(datasets.borderWidth)$"borderWidth":$datasets.borderWidth$,$endif$
+      $if(datasets.borderDash)$"borderDash":$datasets.borderDash$,$endif$
+      $if(datasets.backgroundColor)$"backgroundColor":"$datasets.backgroundColor$",$endif$
+      $if(datasets.label)$"label":"$datasets.label$",$endif$
+      "data":[$for(datasets.data)$$datasets.data$$sep$, $endfor$]
+    }$sep$,$endfor$
+    ]
+  },
+  "options": {
+    $if(options.legend.position)$"legend": {
+      "position": "$options.legend.position$"
+    },$endif$
+    $if(options.scales)$"scales": {
+      $if(options.scales.xAxes)$"xAxes":[{
+        $if(options.scales.xAxes.stacked)$
+          "stacked":$options.scales.xAxes.stacked$,$endif$
+        }],$endif$
+      $if(options.scales.yAxes)$"yAxes":[{
+        $if(options.scales.yAxes.stacked)$
+          "stacked": $options.scales.yAxes.stacked$,$endif$
+        }],$endif$
+    },$endif$
+    $if(options.responsive)$"responsive":$options.responsive$$endif$
+  }
+}
+-->
+</canvas>
 </section>
 $endif$
 
@@ -139,6 +190,8 @@ $body$
       // Full list of configuration options available at:
       // https://github.com/hakimel/reveal.js#configuration
       Reveal.initialize({
+        pdfMaxPagesPerSlide: 1,
+        pdfSeparateFragments: false,
 $if(controls)$
         // Display controls in the bottom right corner
         controls: $controls$,
@@ -279,6 +332,37 @@ $if(chalkboard)$
       		src: "$chalkboard$",
       	},
 $endif$
+$if(chart)$
+        chart: {
+          defaults: {
+            global: {
+              title: { fontColor: "#000" },
+              legend: {
+                labels: { fontColor: "#000" },
+              },
+            },
+            scale: {
+              scaleLabel: { fontColor: "#000" },
+              gridLines: { color: "#d5d5d5", zeroLineColor: "#000" },
+              ticks: { fontColor: "#000" },
+            }
+          },
+          line: { borderColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ], "borderDash": [ [5,10], [0,0] ]},
+          bar: { backgroundColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]},
+          pie: { backgroundColor: [ ["rgba(0,0,0,.8)" , "rgba(220,20,20,.8)", "rgba(20,220,20,.8)", "rgba(220,220,20,.8)", "rgba(20,20,220,.8)"] ]},
+          radar: { borderColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]},
+        },
+$endif$
+$if(menu)$
+        menu: {
+          custom: [
+            { title: "Print/Pdf", icon: '<i class="fas fa-print" onclick="printPdf()">', 
+              content: 
+              '<ul><li>To print or export the slides as pdf, click the printer symbol.</li><li>For the best results please use Google Chrome or Chromium.</li><li>You might have to adjust the page settings slightly (e.g. orientation: landscape)</li> </ul>' }
+
+          ]
+        },
+$endif$
 
         // Optional reveal.js plugins
         dependencies: [
@@ -287,6 +371,9 @@ $endif$
           { src: '$decker-support-dir$/notes/notes.js', async: true },
 $if(chalkboard)$
           { src: '$decker-support-dir$/chalkboard.js'},
+$endif$
+$if(chart)$
+          { src: '$decker-support-dir$/Chart.js'},
 $endif$
 $if(mathjax)$
           { src: '$decker-support-dir$/math.js', async: true },
@@ -309,6 +396,10 @@ $endif$
         },
       });
     </script>
+$if(dachdecker)$
+    <script src="$dachdecker-url$/static/slide.js"></script>
+    <link rel="stylesheet" type="text/css" href="$dachdecker-url$/static/slide.css"></script>
+$endif$
   $for(include-after)$
   $include-after$
   $endfor$

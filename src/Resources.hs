@@ -4,8 +4,12 @@
 -- Everything that is copying or linking Resource folders needs to be moved here
 -- 
 module Resources
-  ( writeExampleProject
-  , extractResources
+  ( extractResources
+  , getResourceString
+  , getOldResources
+  , deckerResourceDir
+  , writeExampleProject
+  , writeTutorialProject
   , copyDir
   , copyResource
   , linkResource
@@ -60,6 +64,10 @@ extractResources = do
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()
 writeExampleProject = writeResourceFiles "example" "."
+
+-- | Write the tutorial project to the current folder
+writeTutorialProject :: IO ()
+writeTutorialProject = writeResourceFiles "tutorial" "."
 
 writeResourceFiles :: FilePath -> FilePath -> IO ()
 writeResourceFiles prefix destDir = do

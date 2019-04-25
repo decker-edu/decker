@@ -53,6 +53,23 @@ build:mac:
     paths:
       - decker
 
+build:win:
+  tags:
+    - win
+  stage: build
+  script:
+    - '&.\bin\build.ps1 preextracted -skiptemplates -preparepackage'
+  artifacts:
+    paths:
+      - decker.exe
+      - resource.zip
+      - version.txt
+  cache:
+    key: build-win
+    paths:
+      - .stack-work
+
+
 test:linux:
   stage: test
   tags:
@@ -113,5 +130,24 @@ deploy:linux:
     - mc cp ./decker store/decker/decker-linux
   dependencies:
     - build:linux
+  only:
+    - master
+
+deploy:win:
+  stage: deploy
+  image: 
+    name: minio/mc:latest
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - docker
+  script:
+    - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
+    - mc cp ./decker.exe store/decker/decker-win.exe
+    - mc cp ./resource.zip store/decker/resource-win.zip
+    - mc cp ./version.txt store/decker/version-win.txt
+  dependencies:
+    - build:win
   only:
     - master

@@ -11,6 +11,7 @@ import Common
 import Markdown
 import Output
 import Slide
+import Text.Pandoc.Lens
 
 import Control.Lens
 import Control.Monad
@@ -22,7 +23,6 @@ import System.IO
 import System.IO.Temp
 import System.Random
 import Text.Pandoc
-import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Printf
 import Text.Read

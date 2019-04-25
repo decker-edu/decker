@@ -42,6 +42,7 @@ import Project
 import Server
 import Sketch
 import System.Decker.OS
+import Text.Pandoc.Lens as P
 
 import Control.Concurrent
 import Control.Exception
@@ -80,7 +81,6 @@ import System.FilePath
 import System.Info
 import System.Process
 import Text.Pandoc
-import Text.Pandoc.Lens as P
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf

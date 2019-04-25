@@ -6,11 +6,11 @@ history: True
 
 ## Slides
 
--   Video without autoplay
--   Video with autoplay
--   Video with start time as fragment
--   Autoplay on with start time as fragment
--   Native video tag
+- Video without autoplay
+- Video with autoplay
+- Video with start time as fragment
+- Autoplay on with start time as fragment
+- Native video tag
 
 # Autoplay off
 
@@ -18,15 +18,15 @@ history: True
 
 # Autoplay on
 
-![](pacman-perfect-game.mp4#t=200){controls="1" data-autoplay="1" width="50%"}
+![](pacman-perfect-game.mp4){controls="1" data-autoplay="1" width="50%"}
 
 # Autoplay off with start time as fragment
 
-![](pacman-perfect-game.mp4){controls="1" width="50%"}
+![](pacman-perfect-game.mp4){controls="1" width="50%" start="200"}
 
 # Autoplay on with start time as fragment
 
-![](pacman-perfect-game.mp4#t=200){controls="1" width="50%"}
+![](pacman-perfect-game.mp4){controls="1" width="50%" data-autoplay="1" start="200"}
 
 # Native video tag
 
