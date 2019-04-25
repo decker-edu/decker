@@ -52,6 +52,8 @@ embedWebVideosHtml page args attr (vid, _) =
           printf "https://player.twitch.tv/?channel=%s&autoplay=1&muted=1" vid :: String
         "veer" ->
           printf "https://h5.veer.tv/player?vid=%s&amp;utm_medium=embed" vid :: String
+        "veer-photo" ->
+          printf "https://h5.veer.tv/photo-player?pid=%s&amp;utm_medium=embed" vid :: String
     vidWidthStr = macroArg 0 args "560"
     vidHeightStr = macroArg 1 args "315"
     vidWidth = readDefault 560.0 vidWidthStr :: Float
@@ -151,6 +153,7 @@ macroMap =
     , ("vimeo", webVideo "vimeo")
     , ("twitch", webVideo "twitch")
     , ("veer", webVideo "veer")
+    , ("veer-photo", webVideo "veer-photo")
     ]
 
 readDefault :: Read a => a -> String -> a
@@ -196,6 +199,7 @@ findEmbeddingType inline@(Image attr text (url, tit))
   | "vimeo://" `isPrefixOf` url = Just "vimeo"
   | "twitch://" `isPrefixOf` url = Just "twitch"
   | "veer://" `isPrefixOf` url = Just "veer"
+  | "veer-photo://" `isPrefixOf` url = Just "veer-photo"
   | otherwise = Nothing
 
 expandDeckerMacros :: Pandoc -> Decker Pandoc
