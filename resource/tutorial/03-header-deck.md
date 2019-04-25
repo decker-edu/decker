@@ -38,7 +38,7 @@ chalkboard: example-deck.json
 | Parameter     | Options                          | Effect                         |
 |---------------|----------------------------------|--------------------------------|
 | `author`      | String                           | Displayed on first slide       |
-| `date`        | String                           | Displayed on first slide       |
+| `date`        | String                           | Displayed on first slide (if "today" shows current date as YYYY-MM-DD) |
 | `title`       | String                           | Displayed on first slide       |
 | `subtitle`    | String                           | Displayed on first slide       |
 
