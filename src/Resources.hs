@@ -5,6 +5,7 @@ module Resources
   , getOldResources
   , deckerResourceDir
   , writeExampleProject
+  , writeTutorialProject
   , copyDir
   ) where
 
@@ -83,6 +84,10 @@ unzip args = do
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()
 writeExampleProject = writeResourceFiles "example" "."
+
+-- | Write the tutorial project to the current folder
+writeTutorialProject :: IO ()
+writeTutorialProject = writeResourceFiles "tutorial" "."
 
 writeResourceFiles :: FilePath -> FilePath -> IO ()
 writeResourceFiles prefix destDir = do

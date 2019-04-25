@@ -14,6 +14,7 @@ module Project
   , projectDirectories
   , provisioningFromMeta
   , templateFromMeta
+  , dachdeckerFromMeta
   , provisioningFromClasses
   , invertPath
   , scanTargets
@@ -30,6 +31,7 @@ module Project
   , support
   , appData
   , logging
+  , getDachdeckerUrl
   , Targets(..)
   , Resource(..)
   , ProjectDirs(..)
@@ -52,6 +54,7 @@ import System.Directory
   , doesFileExist
   )
 import System.FilePath
+import System.Environment
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 
@@ -95,6 +98,13 @@ provisioningFromMeta meta =
 templateFromMeta :: Meta -> Maybe String
 templateFromMeta meta =
   case lookupMeta "template" meta of
+    Just (MetaString s) -> Just s
+    Just (MetaInlines i) -> Just $ stringify i
+    _ -> Nothing
+
+dachdeckerFromMeta :: Meta -> Maybe String
+dachdeckerFromMeta meta =
+  case lookupMeta "dachdecker" meta of
     Just (MetaString s) -> Just s
     Just (MetaInlines i) -> Just $ stringify i
     _ -> Nothing
@@ -264,3 +274,12 @@ scanTargets exclude suffixes dirs = do
         (replaceSuffix srcSuffix targetSuffix .
          combine (dirs ^. public) . makeRelative (dirs ^. project))
         (fromMaybe [] $ lookup srcSuffix sources)
+
+getDachdeckerUrl :: IO String
+getDachdeckerUrl = do
+  env <- System.Environment.lookupEnv "DACHDECKER_SERVER"
+  let url =
+        case env of
+          Just val -> val
+          Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
+  return url
