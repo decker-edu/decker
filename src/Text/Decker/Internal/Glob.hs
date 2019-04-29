@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Glob
+module Text.Decker.Internal.Glob
   ( fastGlobFiles
   , fastGlobDirs
   , globFiles

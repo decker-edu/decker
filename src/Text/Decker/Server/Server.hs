@@ -1,23 +1,24 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Server
+module Text.Decker.Server.Server
   ( startHttpServer
   , stopHttpServer
   , reloadClients
   , Server
   ) where
 
+import Text.Decker.Project.Project
+import Text.Decker.Server.Dachdecker (login)
+
 import Control.Concurrent
 import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.State
-import Dachdecker (login)
 import qualified Data.ByteString.Char8 as BS
 import Data.Maybe
 import Data.Text
 import Network.WebSockets
 import Network.WebSockets.Snap
-import Project
 import Snap.Core
 import Snap.Http.Server
 import Snap.Util.FileServe

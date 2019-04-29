@@ -6,7 +6,8 @@ module System.Decker.OS
   , chrome
   ) where
 
-import Common
+import Text.Decker.Types.Common
+
 import System.Directory
 import System.Environment
 import System.FilePath

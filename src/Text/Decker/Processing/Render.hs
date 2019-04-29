@@ -1,15 +1,15 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Render
+module Text.Decker.Processing.Render
   ( renderCodeBlocks
   , renderedCodeExtensions
   , appendScripts
   ) where
 
-import CRC32
-import Common
-import Exception
-import Project
-import Shake
+import Text.Decker.Internal.CRC32
+import Text.Decker.Internal.Shake
+import Text.Decker.Project.Project
+import Text.Decker.Types.Common
+import Text.Decker.Types.Exception
 
 import Control.Lens ((^.))
 import Control.Monad.Extra

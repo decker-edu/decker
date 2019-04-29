@@ -1,10 +1,13 @@
 {-- Author: Jan-Philipp Stauffert <jan-philipp.stauffert@uni-wuerzburg.de> --}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Dachdecker
+module Text.Decker.Server.Dachdecker
   ( login
   , uploadQuizzes
   ) where
+
+import Text.Decker.Project.Project
+import Text.Decker.Types.Exception
 
 import Control.Exception
 import Control.Lens ((&), (.~), (?~), (^.), (^?))
@@ -18,10 +21,8 @@ import Data.Maybe
 import Data.Text
 import qualified Data.Text.IO as T
 import Development.Shake (Action, liftIO)
-import Exception
 import Network.HTTP.Client (HttpException(HttpExceptionRequest))
 import Network.Wreq
-import Project
 import System.Directory (doesDirectoryExist, listDirectory)
 import System.Exit
 import System.FilePath

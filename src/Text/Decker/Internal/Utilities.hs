@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Utilities
+module Text.Decker.Internal.Utilities
   ( runDecker
   , writeIndex
   , writeIndexTable
@@ -23,18 +23,20 @@ module Utilities
   , DeckerException(..)
   ) where
 
-import Common
-import Exception
-import Filter
-import Macro
-import Meta
-import Output
-import Project
-import Render
-import Resources
-import Server
-import Shake
-import Sketch
+import System.Decker.OS
+import Text.Decker.Internal.Meta
+import Text.Decker.Internal.Shake
+import Text.Decker.Output
+import Text.Decker.Processing.Filter
+import Text.Decker.Processing.Macro
+import Text.Decker.Processing.Quiz
+import Text.Decker.Processing.Render
+import Text.Decker.Processing.Sketch
+import Text.Decker.Project.Project
+import Text.Decker.Project.Resources
+import Text.Decker.Server.Server
+import Text.Decker.Types.Common
+import Text.Decker.Types.Exception
 import Text.Pandoc.Lens
 
 import Control.Arrow
@@ -62,12 +64,6 @@ import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Network.URI
-import Project
-import Quiz
-import Render
-import Resources
-import Server
-import System.Decker.OS
 import qualified System.Directory as Dir
 import System.FilePath.Glob
 import Text.CSL.Pandoc
@@ -163,18 +159,19 @@ writeIndexLists out baseUrl = do
       ]
   where
     makeLink (html, pdf) = do
-      pdfExists <- doesFileExist pdf 
-      if pdfExists then
-        return $ printf
-          "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
-          (takeFileName html)
-          (makeRelative baseUrl html)
-          (makeRelative baseUrl pdf)
-      else 
-        return $ printf
-          "-    [%s <i class='fab fa-html5'></i>](%s)"
-          (takeFileName html)
-          (makeRelative baseUrl html)
+      pdfExists <- doesFileExist pdf
+      if pdfExists
+        then return $
+             printf
+               "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
+               (takeFileName html)
+               (makeRelative baseUrl html)
+               (makeRelative baseUrl pdf)
+        else return $
+             printf
+               "-    [%s <i class='fab fa-html5'></i>](%s)"
+               (takeFileName html)
+               (makeRelative baseUrl html)
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text
@@ -233,19 +230,21 @@ markdownToHtmlDeck markdownFile out index = do
   dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
-        { writerSlideLevel = Just 1
-        , writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerHTMLMathMethod =
-            MathJax
-              (supportDirRel </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables =
-            [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
-            , ("decker-support-dir", templateSupportDir)
-            , ("dachdecker-url", dachdeckerUrl')
-            ]
-        , writerCiteMethod = Citeproc
-        }
+          { writerSlideLevel = Just 1
+          , writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDirRel </> "node_modules" </> "mathjax" </>
+                 "MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables =
+              [ ( "revealjs-url"
+                , supportDirRel </> "node_modules" </> "reveal.js")
+              , ("decker-support-dir", templateSupportDir)
+              , ("dachdecker-url", dachdeckerUrl')
+              ]
+          , writerCiteMethod = Citeproc
+          }
   writeNativeWhileDebugging out "filtered" pandoc >>=
     writeDeckIndex markdownFile index >>=
     writePandocFile "revealjs" options out

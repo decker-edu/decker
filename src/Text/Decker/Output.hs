@@ -1,9 +1,9 @@
 -- | This module gathers all functions that output something during runtime
-module Output
+module Text.Decker.Output
   ( getResourceString
   ) where
 
-import Project
+import Text.Decker.Project.Project
 
 import Development.Shake
 import System.FilePath

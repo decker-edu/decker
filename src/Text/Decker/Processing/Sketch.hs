@@ -1,4 +1,4 @@
-module Sketch
+module Text.Decker.Processing.Sketch
   ( randomId
   , writeToMarkdownFile
   , provideSlideIds
@@ -7,10 +7,10 @@ module Sketch
   , idDigits
   ) where
 
-import Common
-import Markdown
-import Output
-import Slide
+import Text.Decker.Output
+import Text.Decker.Processing.Slide
+import Text.Decker.Reader.Markdown as Markdown
+import Text.Decker.Types.Common
 import Text.Pandoc.Lens
 
 import Control.Lens
