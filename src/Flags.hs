@@ -1,7 +1,7 @@
 {-- Author: Jan-Philipp Stauffert <jan-philipp.stauffert@uni-wuerzburg.de.de> --}
 {-# LANGUAGE CPP #-}
 
-module Text.Decker.Flags
+module Flags
   ( hasPreextractedResources
   ) where
 

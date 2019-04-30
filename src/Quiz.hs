@@ -10,12 +10,12 @@
     - Free text questions 
     - Matching/pair questions
 -}
-module Text.Decker.Processing.Quiz
+module Quiz
   ( renderQuizzes
   ) where
 
-import Text.Decker.Processing.Filter
-import Text.Decker.Types.Common
+import Common
+import Filter
 
 import Control.Exception
 import Debug.Trace as DT

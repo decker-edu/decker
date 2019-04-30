@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Text.Decker.Types.Common
+module Common
   ( addScript
   -- * Types
   , DeckerState(..)
@@ -48,8 +48,7 @@ module Text.Decker.Types.Common
   , metaKeys
   ) where
 
-import Text.Decker.Internal.CompileTime
-
+import CompileTime
 import Control.Monad.State
 import qualified Data.List.Extra as List
 import Data.Maybe

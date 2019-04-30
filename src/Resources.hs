@@ -3,7 +3,7 @@
 -- Depending on specification in "decker-meta.yaml" the source of the resource folder is chosen
 -- Everything that is copying or linking Resource folders needs to be moved here
 -- 
-module Text.Decker.Project.Resources
+module Resources
   ( extractResources
   , deckerResourceDir
   , writeExampleProject
@@ -19,10 +19,10 @@ module Text.Decker.Project.Resources
   , provisionTemplateOverrideSupportTopLevel
   ) where
 
-import Text.Decker.Internal.Shake
-import Text.Decker.Project.Project as Project
-import Text.Decker.Types.Common
-import Text.Decker.Types.Exception
+import Common
+import Exception
+import Project
+import Shake
 
 -- import Flags
 import System.Decker.OS

@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Text.Decker.Internal.Shake
+module Shake
   ( runDecker
   , allHtmlA
   , allPdfA
@@ -33,15 +33,15 @@ module Text.Decker.Internal.Shake
   , withShakeLock
   ) where
 
+import Common
+import CompileTime
+import Exception
+import Glob
+import Meta
+import Project
+import Server
+import Sketch
 import System.Decker.OS
-import Text.Decker.Internal.CompileTime
-import Text.Decker.Internal.Glob
-import Text.Decker.Internal.Meta
-import Text.Decker.Processing.Sketch
-import Text.Decker.Project.Project
-import Text.Decker.Server.Server
-import Text.Decker.Types.Common
-import Text.Decker.Types.Exception
 import Text.Pandoc.Lens as P
 
 import Control.Concurrent

@@ -1,4 +1,4 @@
-module Text.Decker.Types.Exception
+module Exception
   ( DeckerException(..)
   ) where
 

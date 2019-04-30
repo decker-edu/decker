@@ -1,8 +1,8 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Text.Decker.Internal.External
+module External
   ( ssh
   , rsync
-  , Text.Decker.Internal.External.unzip
+  , External.unzip
   , dot
   , gnuplot
   , pdflatex
@@ -14,10 +14,10 @@ module Text.Decker.Internal.External
 import Control.Exception
 import Data.Maybe
 import Development.Shake
+import Exception
 import System.Console.ANSI
 import System.Exit
 import System.Process
-import Text.Decker.Types.Exception
 
 data ExternalProgram = ExternalProgram
   { options :: [CmdOption]
@@ -95,7 +95,6 @@ programs =
   ]
 
 type Program = [String] -> Action ()
-
 type Program' = [String] -> Action String
 
 ssh :: Program

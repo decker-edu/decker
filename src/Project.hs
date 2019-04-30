@@ -1,7 +1,7 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 -- | Providing an interface for the paths used in decker
 -- 
-module Text.Decker.Project.Project
+module Project
   ( resourcePaths
   , deckerResourceDir
   , oldResourcePaths
@@ -39,11 +39,11 @@ module Text.Decker.Project.Project
   , ProjectDirs(..)
   ) where
 
+import Common
+import Exception
+import Flags
+import Glob
 import System.Decker.OS
-import Text.Decker.Flags
-import Text.Decker.Internal.Glob
-import Text.Decker.Types.Common
-import Text.Decker.Types.Exception
 
 import Control.Lens
 import Control.Monad.Extra
@@ -55,10 +55,9 @@ import Network.URI
 import qualified System.Directory as D
 import Text.Regex.TDFA
 
-import System.Environment
-
 -- import System.Directory (createFileLink, doesDirectoryExist, doesFileExist)
 import System.FilePath
+import System.Environment
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 

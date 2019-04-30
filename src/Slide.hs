@@ -1,4 +1,4 @@
-module Text.Decker.Processing.Slide
+module Slide
   ( Slide(..)
   , header
   , blocks
@@ -10,11 +10,11 @@ module Text.Decker.Processing.Slide
 
 import Text.Pandoc.Lens
 
+import Text.Pandoc
+import Text.Pandoc.Definition ()
 import Control.Lens
 import Data.List.Split
 import Data.Maybe
-import Text.Pandoc
-import Text.Pandoc.Definition ()
 
 -- A slide has maybe a header followed by zero or more blocks.
 data Slide = Slide
@@ -100,3 +100,4 @@ attribValue which = lookup which . view (attributes . attrs)
 dropByClass :: HasAttr a => [String] -> [a] -> [a]
 dropByClass which =
   filter (not . any (`elem` which) . view (attributes . attrClasses))
+

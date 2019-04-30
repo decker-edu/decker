@@ -1,20 +1,20 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-import Text.Decker.Flags (hasPreextractedResources)
-import Text.Decker.Internal.External
-import Text.Decker.Internal.Shake
-import Text.Decker.Internal.Utilities
-import Text.Decker.Output
-import Text.Decker.Processing.Pdf
-import Text.Decker.Project.Project
-import Text.Decker.Project.Resources
-import Text.Decker.Server.Dachdecker
-import Text.Decker.Types.Common
-import Text.Decker.Types.Exception
+import Common
+import Exception
+import External
+import Flags (hasPreextractedResources)
+import Output
+import Pdf
+import Project
+import Resources
+import Shake
 
+-- import Utilities
 import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Control.Monad.Extra
+import Dachdecker
 import Data.Aeson
 import Data.IORef ()
 import Data.List
@@ -33,6 +33,7 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Pandoc.Definition
 import Text.Printf (printf)
+import Utilities
 
 main :: IO ()
 main = do

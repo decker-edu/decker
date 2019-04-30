@@ -1,13 +1,12 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Text.Decker.Project.Cache
+module Cache
   ( isCacheableURI
   , cacheRemoteFile
   , cacheRemoteImages
   ) where
 
-import Text.Decker.Types.Common
-import Text.Decker.Types.Exception
-
+import Common
+import Exception
 import Control.Exception
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB

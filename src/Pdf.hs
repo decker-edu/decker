@@ -1,4 +1,4 @@
-module Text.Decker.Processing.Pdf
+module Pdf
   ( launchChrome
   ) where
 

@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Text.Decker.Internal.Meta
+module Meta
   ( toPandocMeta
   , toMustacheMeta
   , mergePandocMeta
@@ -9,9 +9,9 @@ module Text.Decker.Internal.Meta
   , DeckerException(..)
   ) where
 
-import Text.Decker.Reader.Markdown as Markdown
-import Text.Decker.Types.Common
-import Text.Decker.Types.Exception as Exception
+import Common
+import Exception
+import Markdown
 
 import Control.Arrow
 import Control.Exception
@@ -82,8 +82,9 @@ readMetaData dir = do
   meta <- mapM decodeYaml files
   return $ foldl joinMeta (Y.object []) meta
 
+
 aggregateMetaData :: FilePath -> FilePath -> IO Y.Value
-aggregateMetaData top = walkUpTo
+aggregateMetaData top = walkUpTo 
   where
     walkUpTo dir = do
       fromHere <- readMetaData dir
@@ -92,3 +93,4 @@ aggregateMetaData top = walkUpTo
         else do
           fromAbove <- walkUpTo (takeDirectory dir)
           return $ joinMeta fromHere fromAbove
+

@@ -1,4 +1,4 @@
-module Text.Decker.Internal.CompileTime
+module CompileTime
   ( lookupGitBranch
   , lookupGitCommitId
   , lookupGitTag

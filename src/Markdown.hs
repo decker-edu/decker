@@ -35,7 +35,7 @@ Conversion of 'Pandoc' documents to markdown-formatted plain text.
 Markdown:  <http://daringfireball.net/projects/markdown/>
 -}
 {-- DECKER: Changed module name --}
-module Text.Decker.Reader.Markdown (writeMarkdown, writePlain) where
+module Markdown (writeMarkdown, writePlain) where
 import Prelude
 import Control.Monad.Reader
 import Control.Monad.State.Strict

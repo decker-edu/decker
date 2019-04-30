@@ -1,17 +1,16 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Text.Decker.Processing.Macro
+module Macro
   ( expandDeckerMacros
   ) where
 
-import Text.Decker.Types.Common
-import Text.Decker.Types.Exception
-
+import Common
 import Control.Monad.State
 import Data.List (find, isInfixOf, isPrefixOf)
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
 import Data.Text (pack, replace, unpack)
+import Exception
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)

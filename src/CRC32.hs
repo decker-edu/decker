@@ -20,7 +20,7 @@ ISO 3309 and section 8.1.1.6.2 of ITU-T V.42 and referenced in
 RFC1952.
 
 -}
-module Text.Decker.Internal.CRC32 where
+module CRC32 where
 
 import Data.Array
 import Data.Bits

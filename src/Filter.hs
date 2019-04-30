@@ -1,10 +1,10 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Text.Decker.Processing.Filter
+module Filter
   ( RowLayout(..)
   , OutputFormat(..)
   , Disposition(..)
   , processPandoc
-  , Text.Decker.Processing.Filter.includeCode
+  , Filter.includeCode
   , processSlides
   , useCachedImages
   , escapeToFilePath
@@ -18,14 +18,14 @@ module Text.Decker.Processing.Filter
   , convertMediaAttributes
   ) where
 
-import Text.Decker.Processing.Sketch
-import Text.Decker.Processing.Slide
-import Text.Decker.Types.Common
-import Text.Decker.Types.Exception
+import Common
+import Control.Exception
+import Exception
+import Sketch
+import Slide
 import Text.Pandoc.Lens
 
 import Control.Applicative
-import Control.Exception
 import Control.Lens
 import Control.Monad.Loops as Loop
 import Control.Monad.State
@@ -223,8 +223,8 @@ includeCode :: Pandoc -> Decker Pandoc
 includeCode (Pandoc meta blocks) = do
   included <- doIO $ walkM (P.includeCode Nothing) blocks
   return $ Pandoc meta included
-
 -- end snippet includeCode
+
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 
 handleBackground :: Slide -> Decker Slide
@@ -452,14 +452,15 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
-      ifNotEmpty A.id ident $ ifNotEmpty A.class_ (unwords cls) $
+      ifNotEmpty A.id ident $ 
+      ifNotEmpty A.class_ (unwords cls) $
       ifNotEmpty A.title tit $
       foldl appendAttr tag transformedValues
     ifNotEmpty attr value element =
       if value == ""
         then element
         else element ! attr (toValue value)
-    srcAttr =
+    srcAttr =  
       if disp == Disposition Deck Html
         then "data-src"
         else "src"
@@ -527,8 +528,9 @@ transformImageSize :: [(String, String)] -> [(String, String)]
 transformImageSize attributes =
   let style :: [String]
       style =
-        delete "" $ split (dropDelims $ oneOf ";") $ fromMaybe "" $ snd <$>
-        find (\(k, _) -> k == "style") attributes
+        delete "" $
+        split (dropDelims $ oneOf ";") $
+        fromMaybe "" $ snd <$> find (\(k, _) -> k == "style") attributes
       unstyled :: [(String, String)]
       unstyled = filter (\(k, _) -> k /= "style") attributes
       unsized =
@@ -545,9 +547,9 @@ transformImageSize attributes =
           (Nothing, Nothing) -> []
       css = style ++ sizeStyle
       styleAttr = ("style", intercalate ";" $ reverse $ "" : css)
-   in if null css
-        then unstyled
-        else styleAttr : unsized
+  in if null css
+       then unstyled
+       else styleAttr : unsized
 
 extractFigures :: Pandoc -> Decker Pandoc
 extractFigures pandoc = return $ walk extractFigure pandoc
@@ -562,7 +564,8 @@ extractFigure b = b
 
 -- | Retrieves the start attribute for videos to append it to the url
 retrieveVideoStart :: [(String, String)] -> ([(String, String)], Maybe String)
-retrieveVideoStart attributes = (attributeRest, urlStartMarker)
-  where
+retrieveVideoStart attributes = 
+  (attributeRest, urlStartMarker)
+  where 
     attributeRest = filter (\(k, _) -> k /= "start") attributes
     urlStartMarker = snd <$> find (\(k, _) -> k == "start") attributes
