@@ -6,6 +6,9 @@ module Dachdecker
   , uploadQuizzes
   ) where
 
+import Exception
+import Project
+
 import Control.Exception
 import Control.Lens ((&), (.~), (?~), (^.), (^?))
 import Data.Aeson ((.=), fromJSON, object, toJSON)
@@ -18,10 +21,8 @@ import Data.Maybe
 import Data.Text
 import qualified Data.Text.IO as T
 import Development.Shake (Action, liftIO)
-import Exception
 import Network.HTTP.Client (HttpException(HttpExceptionRequest))
 import Network.Wreq
-import Project
 import System.Directory (doesDirectoryExist, listDirectory)
 import System.Exit
 import System.FilePath

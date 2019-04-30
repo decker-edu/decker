@@ -1,5 +1,6 @@
--- Author: Armin Bernstetter <bernstetter@informatik.uni-wuerzburg.de --}
--- | This module is an interface that provides transparent access to the resources
+-- | Author: Henrik Tramberend <henrik@tramberend.de>
+-- Author: Armin Bernstetter <armin.bernstetter@uni-wuerzburg.de>
+-- This module is an interface that provides transparent access to the resources
 -- Depending on specification in "decker-meta.yaml" the source of the resource folder is chosen
 -- Everything that is copying or linking Resource folders needs to be moved here
 -- 
@@ -23,8 +24,6 @@ import Common
 import Exception
 import Project
 import Shake
-
--- import Flags
 import System.Decker.OS
 
 import Codec.Archive.Zip
@@ -35,8 +34,6 @@ import Control.Monad.Extra
 import Data.List.Split (splitOn)
 import Data.Map.Strict (size)
 import Development.Shake
-
--- import Exception
 import Network.URI
 import qualified System.Directory as Dir
 import System.Environment

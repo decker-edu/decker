@@ -8,8 +8,8 @@ import Pdf
 import Project
 import Resources
 import Shake
+import Utilities
 
--- import Utilities
 import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad (when)
@@ -33,7 +33,6 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Pandoc.Definition
 import Text.Printf (printf)
-import Utilities
 
 main :: IO ()
 main = do

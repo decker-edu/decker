@@ -11,10 +11,11 @@ module External
   , checkExternalPrograms
   ) where
 
+import Exception
+
 import Control.Exception
 import Data.Maybe
 import Development.Shake
-import Exception
 import System.Console.ANSI
 import System.Exit
 import System.Process
@@ -95,6 +96,7 @@ programs =
   ]
 
 type Program = [String] -> Action ()
+
 type Program' = [String] -> Action String
 
 ssh :: Program
