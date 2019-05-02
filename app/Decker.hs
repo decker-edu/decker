@@ -32,7 +32,6 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Pandoc.Definition
 import Text.Printf (printf)
-import Utilities
 
 main :: IO ()
 main = do
@@ -166,6 +165,7 @@ main = do
     --
     priority 2 $
       index %> \out -> do
+        alwaysRerun
         exists <- Development.Shake.doesFileExist indexSource
         let src =
               if exists
@@ -173,7 +173,8 @@ main = do
                 else indexSource <.> "generated"
         markdownToHtmlPage src out
     --
-    indexSource <.> "generated" %> \out ->
+    indexSource <.> "generated" %> \out -> do
+      alwaysRerun
       writeIndexLists out (takeDirectory index)
     --
     priority 2 $
