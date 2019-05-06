@@ -8,7 +8,6 @@ module Filter
   , processSlides
   , useCachedImages
   , escapeToFilePath
-  , cachePandocImages
   , extractLocalImagePathes
   , renderMediaTags
   , extractFigures
@@ -223,8 +222,8 @@ includeCode :: Pandoc -> Decker Pandoc
 includeCode (Pandoc meta blocks) = do
   included <- doIO $ walkM (P.includeCode Nothing) blocks
   return $ Pandoc meta included
--- end snippet includeCode
 
+-- end snippet includeCode
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 
 handleBackground :: Slide -> Decker Slide
@@ -358,25 +357,6 @@ isHttpUri url =
     Just uri -> uriScheme uri `elem` ["http:", "https:"]
     Nothing -> False
 
-cachePandocImages :: FilePath -> Inline -> IO Inline
-cachePandocImages base image@(Image _ _ (url, _))
-  | isHttpUri url = do
-    cacheImageIO url base
-    return image
-  | otherwise = return image
-cachePandocImages _ inline = return inline
-
--- | Downloads the image behind the URI and saves it locally. Returns the path of
--- the cached file relative to the base directory.
-cacheImageIO :: String -> FilePath -> IO ()
-cacheImageIO uri cacheDir = do
-  request <- parseRequest uri
-  result <- httpLBS request
-  let body = getResponseBody result
-  let cacheFile = cacheDir </> escapeToFilePath uri
-  createDirectoryIfMissing True cacheDir
-  L8.writeFile cacheFile body
-
 renderMediaTags :: Pandoc -> Decker Pandoc
 renderMediaTags pandoc = do
   disp <- gets disposition
@@ -452,15 +432,14 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
     appendAttr element (key, value) =
       element ! customAttribute (stringTag key) (toValue value)
     mediaTag tag =
-      ifNotEmpty A.id ident $ 
-      ifNotEmpty A.class_ (unwords cls) $
+      ifNotEmpty A.id ident $ ifNotEmpty A.class_ (unwords cls) $
       ifNotEmpty A.title tit $
       foldl appendAttr tag transformedValues
     ifNotEmpty attr value element =
       if value == ""
         then element
         else element ! attr (toValue value)
-    srcAttr =  
+    srcAttr =
       if disp == Disposition Deck Html
         then "data-src"
         else "src"
@@ -528,9 +507,8 @@ transformImageSize :: [(String, String)] -> [(String, String)]
 transformImageSize attributes =
   let style :: [String]
       style =
-        delete "" $
-        split (dropDelims $ oneOf ";") $
-        fromMaybe "" $ snd <$> find (\(k, _) -> k == "style") attributes
+        delete "" $ split (dropDelims $ oneOf ";") $ fromMaybe "" $ snd <$>
+        find (\(k, _) -> k == "style") attributes
       unstyled :: [(String, String)]
       unstyled = filter (\(k, _) -> k /= "style") attributes
       unsized =
@@ -547,9 +525,9 @@ transformImageSize attributes =
           (Nothing, Nothing) -> []
       css = style ++ sizeStyle
       styleAttr = ("style", intercalate ";" $ reverse $ "" : css)
-  in if null css
-       then unstyled
-       else styleAttr : unsized
+   in if null css
+        then unstyled
+        else styleAttr : unsized
 
 extractFigures :: Pandoc -> Decker Pandoc
 extractFigures pandoc = return $ walk extractFigure pandoc
@@ -564,8 +542,7 @@ extractFigure b = b
 
 -- | Retrieves the start attribute for videos to append it to the url
 retrieveVideoStart :: [(String, String)] -> ([(String, String)], Maybe String)
-retrieveVideoStart attributes = 
-  (attributeRest, urlStartMarker)
-  where 
+retrieveVideoStart attributes = (attributeRest, urlStartMarker)
+  where
     attributeRest = filter (\(k, _) -> k /= "start") attributes
     urlStartMarker = snd <$> find (\(k, _) -> k == "start") attributes

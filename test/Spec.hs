@@ -98,12 +98,6 @@ main = do
         convertMediaAttributes
           ("", [], [("width", "100%"), ("style", "color:red;")]) `shouldBe`
           ("", [], [("style", "color:red;width:100%;")])
-    describe "lookupPandocMeta" $
-      it "looks up dotted key values in the hierarchical pandoc meta structure" $ do
-        lookupPandocMeta "top-level-key" meta `shouldBe`
-          (Just "top-level-value")
-        lookupPandocMeta "group.attribute" meta `shouldBe`
-          (Just "attribute-value")
 
 meta :: Meta
 meta =

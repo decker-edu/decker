@@ -1,8 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Utilities
   ( runDecker
-  , writeIndex
-  , writeIndexTable
   , writeIndexLists
   , substituteMetaData
   , markdownToHtmlDeck
@@ -17,7 +15,6 @@ module Utilities
   , fixMustacheMarkupText
   , toPandocMeta
   , deckerPandocExtensions
-  , lookupPandocMeta
   , readMarkdownOrThrow
   , pandocReaderOpts
   , DeckerException(..)
@@ -80,57 +77,6 @@ import Text.Printf
 -- | Monadic version of list concatenation.
 (<++>) :: Monad m => m [a] -> m [a] -> m [a]
 (<++>) = liftM2 (++)
-
--- | Generates an index.md file with links to all generated files of interest.
-writeIndexTable ::
-     FilePath -> FilePath -> [[FilePath]] -> [[FilePath]] -> Action ()
-writeIndexTable out baseUrl deckData pageData = do
-  dirs <- projectDirsA
-  liftIO $
-    writeFile out $
-    unlines
-      [ "---"
-      , "title: Generated Index"
-      , "subtitle: " ++ dirs ^. project
-      , "---"
-      , "# Slide decks"
-      , "| Deck HTML | Handout HTML | Deck PDF | Handout PDF|"
-      , "|-----------|--------------|----------|------------|"
-      , unlines $ makeRow deckData
-      , "# Pages"
-      , "| Page HTML | Page PDF |"
-      , "|-----------|----------|"
-      , unlines $ makeRow pageData
-      ]
-  where
-    makeRow = map (("| " ++) . (++ " | ") . intercalate " | " . map makeLink)
-    makeLink file =
-      "[" ++ takeFileName file ++ "](" ++ makeRelative baseUrl file ++ ")"
-
--- | Generates an index.md file with links to all generated files of interest.
-writeIndex ::
-     FilePath -> FilePath -> [FilePath] -> [FilePath] -> [FilePath] -> Action ()
-writeIndex out baseUrl decks handouts pages = do
-  let decksLinks = map (makeRelative baseUrl) decks
-  let handoutsLinks = map (makeRelative baseUrl) handouts
-  let pagesLinks = map (makeRelative baseUrl) pages
-  dirs <- projectDirsA
-  liftIO $
-    writeFile out $
-    unlines
-      [ "---"
-      , "title: Generated Index"
-      , "subtitle: " ++ dirs ^. project
-      , "---"
-      , "# Slide decks"
-      , unlines $ map makeLink $ sort decksLinks
-      , "# Handouts"
-      , unlines $ map makeLink $ sort handoutsLinks
-      , "# Supporting Documents"
-      , unlines $ map makeLink $ sort pagesLinks
-      ]
-  where
-    makeLink file = "-    [" ++ takeFileName file ++ "](" ++ file ++ ")"
 
 -- | Generates an index.md file with links to all generated files of interest.
 writeIndexLists :: FilePath -> FilePath -> Action ()
@@ -601,19 +547,4 @@ metaValueAsString key meta =
     lookup' [] (Just (Y.Number n)) = Just (show n)
     lookup' [] (Just (Y.Bool b)) = Just (show b)
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
-    lookup' _ _ = Nothing
-
--- TODO: Not used anywhere
--- UNUSED:
-lookupPandocMeta :: String -> Meta -> Maybe String
-lookupPandocMeta key (Meta m) =
-  case splitOn "." key of
-    [] -> Nothing
-    k:ks -> lookup' ks (Map.lookup k m)
-  where
-    lookup' :: [String] -> Maybe MetaValue -> Maybe String
-    lookup' (k:ks) (Just (MetaMap m)) = lookup' ks (Map.lookup k m)
-    lookup' [] (Just (MetaBool b)) = Just $ show b
-    lookup' [] (Just (MetaString s)) = Just s
-    lookup' [] (Just (MetaInlines i)) = Just $ stringify i
     lookup' _ _ = Nothing
