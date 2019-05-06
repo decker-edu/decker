@@ -256,11 +256,14 @@ body {
         
         // freetext question
         .freetextAnswerButton,
+        .matchingAnswerButton,
+        .mcAnswerButton,
         .freetextInput {
             border-radius: 0.5em;
             font-size: inherit;
             font-family: inherit;
             outline: none;
+            clear: both;
         }
 
         // Matching
@@ -327,15 +330,6 @@ body {
           border-width: 30px;
           margin-left: -30px;
         }
-
-        .matchingAnswerButton {
-          font-size: inherit;
-          border-radius: 0.5em;
-          font-family: inherit;
-          clear: both;
-          outline: none;
-        }
-
 
         // Multiple Choice        
         .survey {
