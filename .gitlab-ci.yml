@@ -87,7 +87,7 @@ test:linux:
   dependencies:
     - build:linux
 
-deploy:docker:
+.deploy:docker:
   image: docker:latest
   stage: deploy
   only:
