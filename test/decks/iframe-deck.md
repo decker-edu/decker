@@ -11,11 +11,11 @@ history: True
 1.  Iframe embedded in slide showing a PDF
 4.  Iframe as background showing a PDF
 
-# Iframe showing <https://www.heise.de>
+# Iframe showing <https://www.uni-wuerzburg.de/startseite>
 
-![](http://www.heise.de/index.html){width="100%" height="500px"}
+![](https://www.uni-wuerzburg.de/startseite.html){width="100%" height="500px"}
 
-# ![](http://www.heise.de/index.html)
+# ![](https://www.uni-wuerzburg.de/startseite.html)
 
 # Iframe showing <http://pandoc.org/MANUAL.pdf>
 
