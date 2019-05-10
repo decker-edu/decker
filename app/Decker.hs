@@ -32,7 +32,6 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Pandoc.Definition
 import Text.Printf (printf)
-import Utilities
 
 main :: IO ()
 main = do
@@ -77,22 +76,26 @@ main = do
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
     phony "decks" $ do
-      need ["index"]
+      need ["support"]
       decksA >>= need
+      need ["index"]
     --
     phony "html" $ do
-      need ["index"]
+      need ["support"]
       allHtmlA >>= need
+      need ["index"]
     --
     phony "pdf" $ do
       putNormal pdfMsg
-      need ["index"]
+      need ["support"]
       allPdfA >>= need
+      need ["index"]
     --
     phony "pdf-decks" $ do
       putNormal pdfMsg
-      need ["index"]
+      need ["support"]
       decksPdfA >>= need
+      need ["index"]
     --
     phony "watch" $ do
       need ["html"]
@@ -166,6 +169,7 @@ main = do
     --
     priority 2 $
       index %> \out -> do
+        alwaysRerun
         exists <- Development.Shake.doesFileExist indexSource
         let src =
               if exists
@@ -173,7 +177,8 @@ main = do
                 else indexSource <.> "generated"
         markdownToHtmlPage src out
     --
-    indexSource <.> "generated" %> \out ->
+    indexSource <.> "generated" %> \out -> do
+      alwaysRerun
       writeIndexLists out (takeDirectory index)
     --
     priority 2 $
@@ -253,9 +258,10 @@ main = do
     phony "check" checkExternalPrograms
     --
     phony "publish" $ do
-      need ["index"]
+      need ["support"]
       allHtmlA >>= need
       metaData <- metaA
+      need ["index"]
       let host = metaValueAsString "rsync-destination.host" metaData
       let path = metaValueAsString "rsync-destination.path" metaData
       if isJust host && isJust path
