@@ -9,6 +9,7 @@ window.addEventListener('ready', function (event) {
   if (Reveal.isReady()) {
     makeVertical();
     quizzes();
+    currentDate();
   } else {
     Reveal.addEventListener('ready', makeVertical);
   }
@@ -25,6 +26,20 @@ function fixAutoplayWithStart() {
     });
   }
 }
+
+// Replace date string on title slide with current date 
+// if string provided for date in yaml header is "today"
+function currentDate() {
+  var date = document.getElementsByClassName("date")[0]
+  var dateString = date.textContent;
+
+  var today = new Date().toISOString().substr(0, 10);
+
+  if (dateString == "today") {
+    date.textContent = today;
+  }
+}
+
 
 function quizzes() {
   matchings();
@@ -245,12 +260,11 @@ function freetextAnswerButton() {
   }
 }
 
-
+// Allows printPdf() function to be called as onclick event directly from HTML elements
 window.printPdf = function () {
   url = window.location.href;
   url = url.replace(".html", ".html?print-pdf");
   var printWindow = window.open(url);
-
 
   printWindow.onload = function () {
     printWindow.print();
