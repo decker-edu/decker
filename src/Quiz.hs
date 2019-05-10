@@ -36,7 +36,15 @@ renderMultipleChoice :: Block -> Block
 -- BulletList which qualifies as survey
 renderMultipleChoice (BulletList blocks@((firstBlock:_):_))
   | checkIfMC firstBlock =
-    Div ("", ["survey"], []) [BulletList (map renderAnswerMC blocks)]
+    Div
+      ("", ["survey"], [])
+      [BulletList (map renderAnswerMC blocks), answerButton]
+  where
+    answerButton =
+      Para $
+      [LineBreak] ++
+      [toHtml "<button class=\"mcAnswerButton\" type=\"button\">"] ++
+      [Str "Show Solution"] ++ [toHtml "</button>"]
 -- Default pass through
 renderMultipleChoice block = block
 
@@ -131,6 +139,8 @@ renderAnswerMC (prelude:rest) =
         Para ((Str "["):Space:(Str "]"):prest) -> (["wrong"], Para prest)
         Plain ((Str "[X]"):prest) -> (["right"], Para prest)
         Plain ((Str "["):Space:(Str "]"):prest) -> (["wrong"], Para prest)
+        Plain ((Link nullAttr [] ('#':_, "")):Space:prest) ->
+          (["wrong"], Para prest)
         prest -> ([], prest)
 
 -- if there is a bullet list create a div class tooltip around
