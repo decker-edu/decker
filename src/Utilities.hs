@@ -1,8 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Utilities
   ( runDecker
-  , writeIndex
-  , writeIndexTable
   , writeIndexLists
   , substituteMetaData
   , markdownToHtmlDeck
@@ -12,13 +10,11 @@ module Utilities
   , markdownToPdfPage
   , metaValueAsString
   , (<++>)
-  , writeEmbeddedFiles
   , pandocMakePdf
   , fixMustacheMarkup
   , fixMustacheMarkupText
   , toPandocMeta
   , deckerPandocExtensions
-  , lookupPandocMeta
   , readMarkdownOrThrow
   , pandocReaderOpts
   , DeckerException(..)
@@ -29,12 +25,15 @@ import Exception
 import Filter
 import Macro
 import Meta
+import Output
 import Project
+import Quiz
 import Render
 import Resources
 import Server
 import Shake
 import Sketch
+import System.Decker.OS
 import Text.Pandoc.Lens
 
 import Control.Arrow
@@ -62,12 +61,6 @@ import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Network.URI
-import Project
-import Quiz
-import Render
-import Resources
-import Server
-import System.Decker.OS
 import qualified System.Directory as Dir
 import System.FilePath.Glob
 import Text.CSL.Pandoc
@@ -84,57 +77,6 @@ import Text.Printf
 -- | Monadic version of list concatenation.
 (<++>) :: Monad m => m [a] -> m [a] -> m [a]
 (<++>) = liftM2 (++)
-
--- | Generates an index.md file with links to all generated files of interest.
-writeIndexTable ::
-     FilePath -> FilePath -> [[FilePath]] -> [[FilePath]] -> Action ()
-writeIndexTable out baseUrl deckData pageData = do
-  dirs <- projectDirsA
-  liftIO $
-    writeFile out $
-    unlines
-      [ "---"
-      , "title: Generated Index"
-      , "subtitle: " ++ dirs ^. project
-      , "---"
-      , "# Slide decks"
-      , "| Deck HTML | Handout HTML | Deck PDF | Handout PDF|"
-      , "|-----------|--------------|----------|------------|"
-      , unlines $ makeRow deckData
-      , "# Pages"
-      , "| Page HTML | Page PDF |"
-      , "|-----------|----------|"
-      , unlines $ makeRow pageData
-      ]
-  where
-    makeRow = map (("| " ++) . (++ " | ") . intercalate " | " . map makeLink)
-    makeLink file =
-      "[" ++ takeFileName file ++ "](" ++ makeRelative baseUrl file ++ ")"
-
--- | Generates an index.md file with links to all generated files of interest.
-writeIndex ::
-     FilePath -> FilePath -> [FilePath] -> [FilePath] -> [FilePath] -> Action ()
-writeIndex out baseUrl decks handouts pages = do
-  let decksLinks = map (makeRelative baseUrl) decks
-  let handoutsLinks = map (makeRelative baseUrl) handouts
-  let pagesLinks = map (makeRelative baseUrl) pages
-  dirs <- projectDirsA
-  liftIO $
-    writeFile out $
-    unlines
-      [ "---"
-      , "title: Generated Index"
-      , "subtitle: " ++ dirs ^. project
-      , "---"
-      , "# Slide decks"
-      , unlines $ map makeLink $ sort decksLinks
-      , "# Handouts"
-      , unlines $ map makeLink $ sort handoutsLinks
-      , "# Supporting Documents"
-      , unlines $ map makeLink $ sort pagesLinks
-      ]
-  where
-    makeLink file = "-    [" ++ takeFileName file ++ "](" ++ file ++ ")"
 
 -- | Generates an index.md file with links to all generated files of interest.
 writeIndexLists :: FilePath -> FilePath -> Action ()
@@ -163,18 +105,19 @@ writeIndexLists out baseUrl = do
       ]
   where
     makeLink (html, pdf) = do
-      pdfExists <- doesFileExist pdf 
-      if pdfExists then
-        return $ printf
-          "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
-          (takeFileName html)
-          (makeRelative baseUrl html)
-          (makeRelative baseUrl pdf)
-      else 
-        return $ printf
-          "-    [%s <i class='fab fa-html5'></i>](%s)"
-          (takeFileName html)
-          (makeRelative baseUrl html)
+      pdfExists <- doesFileExist pdf
+      if pdfExists
+        then return $
+             printf
+               "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
+               (takeFileName html)
+               (makeRelative baseUrl html)
+               (makeRelative baseUrl pdf)
+        else return $
+             printf
+               "-    [%s <i class='fab fa-html5'></i>](%s)"
+               (takeFileName html)
+               (makeRelative baseUrl html)
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkup :: B.ByteString -> T.Text
@@ -188,6 +131,9 @@ fixMustacheMarkupText content =
     (T.pack "{{#")
     (T.replace (T.pack "{{\\^") (T.pack "{{^") content)
 
+-- TODO: Isn't imported anywhere
+-- UNUSED:
+-- only used once in Utilities.hs line 428
 substituteMetaData :: T.Text -> MT.Value -> T.Text
 substituteMetaData source metaData = do
   let fixed = fixMustacheMarkupText source
@@ -208,18 +154,6 @@ getTemplate meta disp = do
       need [templateOverridePath']
       liftIO $ readFile templateOverridePath'
     else liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
-
-getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
-getSupportDir meta out defaultPath = do
-  dirs <- projectDirsA
-  cur <- liftIO Dir.getCurrentDirectory
-  let dirPath =
-        case templateFromMeta meta of
-          Just template ->
-            (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
-            (makeRelativeTo cur template)
-          Nothing -> defaultPath
-  return $ urlPath dirPath
 
 -- | Write Pandoc in native format right next to the output file
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action Pandoc
@@ -242,19 +176,21 @@ markdownToHtmlDeck markdownFile out index = do
   dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
-        { writerSlideLevel = Just 1
-        , writerTemplate = Just template
-        , writerHighlightStyle = Just pygments
-        , writerHTMLMathMethod =
-            MathJax
-              (supportDirRel </> "node_modules" </> "mathjax" </> "MathJax.js?config=TeX-AMS_HTML")
-        , writerVariables =
-            [ ("revealjs-url", supportDirRel </> "node_modules" </> "reveal.js")
-            , ("decker-support-dir", templateSupportDir)
-            , ("dachdecker-url", dachdeckerUrl')
-            ]
-        , writerCiteMethod = Citeproc
-        }
+          { writerSlideLevel = Just 1
+          , writerTemplate = Just template
+          , writerHighlightStyle = Just pygments
+          , writerHTMLMathMethod =
+              MathJax
+                (supportDirRel </> "node_modules" </> "mathjax" </>
+                 "MathJax.js?config=TeX-AMS_HTML")
+          , writerVariables =
+              [ ( "revealjs-url"
+                , supportDirRel </> "node_modules" </> "reveal.js")
+              , ("decker-support-dir", templateSupportDir)
+              , ("dachdecker-url", dachdeckerUrl')
+              ]
+          , writerCiteMethod = Citeproc
+          }
   writeNativeWhileDebugging out "filtered" pandoc >>=
     writeDeckIndex markdownFile index >>=
     writePandocFile "revealjs" options out
@@ -274,6 +210,7 @@ writePandocFile fmt options out pandoc =
       LB.writeFile out
     Left e -> throw $ PandocException e
 
+-- TODO: Move to Common? since much of the version checking is done there (Meta is from Pandoc)
 versionCheck :: Meta -> Action ()
 versionCheck meta =
   unless isDevelopmentVersion $
@@ -316,7 +253,7 @@ readAndProcessMarkdown markdownFile disp = do
         , processCitesWithDefault
         , appendScripts
         ]
-  -- Disable automatic caching of remote images for a while
+  -- REVIEW: Disable automatic caching of remote images for a while
   -- >>= walkM (cacheRemoteImages (cache dirs))
 
 -- | Determines which template file name to use
@@ -329,6 +266,8 @@ getTemplateFileName (Disposition Page Latex) = "page.tex"
 getTemplateFileName (Disposition Handout Html) = "handout.html"
 getTemplateFileName (Disposition Handout Latex) = "handout.tex"
 
+-- TODO: provisionResources could stay here since it uses Pandoc/Decker Pandoc
+-- This probably does not need to be introduced to Resources module
 provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
   base <- gets basePath
@@ -336,101 +275,6 @@ provisionResources pandoc = do
   lift $
     mapMetaResources (provisionMetaResource base method) pandoc >>=
     mapResources (provisionResource base method)
-
-provisionMetaResource ::
-     FilePath -> Provisioning -> (String, FilePath) -> Action FilePath
-provisionMetaResource base method kv@(key, url)
-  | key `elem` runtimeMetaKeys = do
-    filePath <- urlToFilePathIfLocal base url
-    provisionResource base method filePath
-provisionMetaResource base method kv@(key, url)
-  | key `elem` templateOverrideMetaKeys = do
-    cwd <- liftIO $ Dir.getCurrentDirectory
-    filePath <- urlToFilePathIfLocal cwd url
-    provisionTemplateOverrideSupportTopLevel cwd method filePath
-provisionMetaResource base _ kv@(key, url)
-  | key `elem` compiletimeMetaKeys = do
-    filePath <- urlToFilePathIfLocal base url
-    need [filePath]
-    return filePath
-provisionMetaResource _ _ (key, url) = return url
-
-provisionTemplateOverrideSupport ::
-     FilePath -> Provisioning -> FilePath -> Action ()
-provisionTemplateOverrideSupport base method url = do
-  let newBase = base </> url
-  exists <- liftIO $ Dir.doesDirectoryExist url
-  if exists
-    then liftIO (Dir.listDirectory url) >>= mapM_ recurseProvision
-    else do
-      need [url]
-      provisionResource base method url
-      return ()
-  where
-    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
-
-provisionTemplateOverrideSupportTopLevel ::
-     FilePath -> Provisioning -> FilePath -> Action FilePath
-provisionTemplateOverrideSupportTopLevel base method url = do
-  liftIO (Dir.listDirectory url) >>= filterM dirFilter >>=
-    mapM_ recurseProvision
-  return $ url
-  where
-    dirFilter x = liftIO $ Dir.doesDirectoryExist (url </> x)
-    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
-
--- | Determines if a URL can be resolved to a local file. Absolute file URLs are
--- resolved against and copied or linked to public from 
---    1. the project root 
---    2. the local filesystem root 
---
--- Relative file URLs are resolved against and copied or linked to public from 
---
---    1. the directory path of the referencing file 
---    2. the project root Copy and link operations target the public directory
---       in the project root and recreate the source directory structure. 
---
--- This function is used to provision resources that are used at presentation
---       time.
---
--- Returns a public URL relative to base
-provisionResource :: FilePath -> Provisioning -> FilePath -> Action FilePath
-provisionResource base method filePath =
-  case parseRelativeReference filePath of
-    Nothing ->
-      if hasDrive filePath
-        then do
-          dirs <- projectDirsA
-          let resource =
-                Resource
-                  { sourceFile = filePath
-                  , publicFile =
-                      (dirs ^. public) </>
-                      makeRelativeTo (dirs ^. project) filePath
-                  , publicUrl = urlPath $ makeRelativeTo base filePath
-                  }
-          provision resource
-        else return filePath
-    Just uri -> do
-      dirs <- projectDirsA
-      let path = uriPath uri
-      fileExists <- doesFileExist path
-      if fileExists
-        then do
-          need [path]
-          let resource = resourcePathes dirs base uri
-          provision resource
-        else throw $ ResourceException $ "resource does not exist: " ++ path
-  where
-    provision resource = do
-      publicResource <- publicResourceA
-      withResource publicResource 1 $
-        liftIO $
-        case method of
-          Copy -> copyResource resource
-          SymLink -> linkResource resource
-          Absolute -> absRefResource resource
-          Relative -> relRefResource base resource
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do
@@ -559,20 +403,6 @@ readMetaMarkdown markdownFile = do
         (Pandoc (Meta m) blocks)
     _ -> throw $ PandocException "Meta format conversion failed."
 
-urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
-urlToFilePathIfLocal base uri =
-  case parseRelativeReference uri of
-    Nothing -> return uri
-    Just relativeUri -> do
-      let filePath = uriPath relativeUri
-      absBase <- liftIO $ Dir.makeAbsolute base
-      absRoot <- projectA
-      let absPath =
-            if isAbsolute filePath
-              then absRoot </> makeRelative "/" filePath
-              else absBase </> filePath
-      return absPath
-
 readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
 readMarkdownOrThrow opts markdown =
   case runPure (readMarkdown opts markdown) of
@@ -643,6 +473,9 @@ mapBlock transform (Div attr blocks) = do
   return (Div attribs blocks)
 mapBlock _ block = return block
 
+-- TODO: Move to Meta.hs?
+-- UNUSED:
+-- only used once her: line 313
 mapMetaResources ::
      ((String, FilePath) -> Action FilePath) -> Pandoc -> Action Pandoc
 mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
@@ -667,37 +500,8 @@ mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
       MetaString <$> transform (k, stringify inlines)
     mapMetaList _ v = return v
 
--- | These resources are needed at runtime. If they are specified as local URLs,
--- the resource must exists at compile time. Remote URLs are passed through
--- unchanged.
-elementAttributes :: [String]
-elementAttributes =
-  [ "src"
-  , "data-src"
-  , "data-markdown"
-  , "data-background-video"
-  , "data-background-image"
-  , "data-background-iframe"
-  , "include"
-  ]
-
--- | Resources in meta data that are needed at compile time. They have to be
--- specified as local URLs and must exist.
-runtimeMetaKeys :: [String]
-runtimeMetaKeys = ["css"]
-
-templateOverrideMetaKeys :: [String]
-templateOverrideMetaKeys = ["template"]
-
-compiletimeMetaKeys :: [String]
-compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
-
-metaKeys :: [String]
-metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
-
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
--- TODO: also change include to ![](include:) or something
 processIncludes baseDir (Pandoc meta blocks) =
   Pandoc meta <$> processBlocks baseDir blocks
   where
@@ -726,37 +530,12 @@ processCitesWithDefault pandoc@(Pandoc meta blocks) =
         _ -> return pandoc
     liftIO $ processCites' document
 
--- moved to Resources.hs
--- writeExampleProject :: Action ()
--- writeExampleProject = liftIO $ writeResourceFiles "example" "."
-{--
-writeExampleProject :: Action ()
-writeExampleProject = mapM_ writeOne deckerExampleDir
-  where
-    writeOne (path, contents) = do
-      exists <- Development.Shake.doesFileExist path
-      unless exists $ do
-        liftIO $ Dir.createDirectoryIfMissing True (takeDirectory path)
-        liftIO $ B.writeFile path contents
-        putNormal $ "# create (for " ++ path ++ ")"
---}
-writeEmbeddedFiles :: [(FilePath, B.ByteString)] -> FilePath -> Action ()
-writeEmbeddedFiles files dir = do
-  exists <- doesDirectoryExist dir
-  unless exists $ do
-    putNormal $ "# write embedded files for (" ++ dir ++ ")"
-    let absolute = map (first (dir </>)) files
-    mapM_ write absolute
-  where
-    write (filePath, contents) = do
-      liftIO $ Dir.createDirectoryIfMissing True (takeDirectory filePath)
-      exists <- liftIO $ Dir.doesFileExist filePath
-      unless exists $ liftIO $ B.writeFile filePath contents
-
 lookupValue :: String -> Y.Value -> Maybe Y.Value
 lookupValue key (Y.Object hashTable) = HashMap.lookup (T.pack key) hashTable
 lookupValue _ _ = Nothing
 
+-- TODO: move to Meta.hs?
+-- used in Decker.hs
 metaValueAsString :: String -> Y.Value -> Maybe String
 metaValueAsString key meta =
   case splitOn "." key of
@@ -768,17 +547,4 @@ metaValueAsString key meta =
     lookup' [] (Just (Y.Number n)) = Just (show n)
     lookup' [] (Just (Y.Bool b)) = Just (show b)
     lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
-    lookup' _ _ = Nothing
-
-lookupPandocMeta :: String -> Meta -> Maybe String
-lookupPandocMeta key (Meta m) =
-  case splitOn "." key of
-    [] -> Nothing
-    k:ks -> lookup' ks (Map.lookup k m)
-  where
-    lookup' :: [String] -> Maybe MetaValue -> Maybe String
-    lookup' (k:ks) (Just (MetaMap m)) = lookup' ks (Map.lookup k m)
-    lookup' [] (Just (MetaBool b)) = Just $ show b
-    lookup' [] (Just (MetaString s)) = Just s
-    lookup' [] (Just (MetaInlines i)) = Just $ stringify i
     lookup' _ _ = Nothing

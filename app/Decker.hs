@@ -3,6 +3,7 @@ import Common
 import Exception
 import External
 import Flags (hasPreextractedResources)
+import Output
 import Pdf
 import Project
 import Resources
@@ -206,7 +207,7 @@ main = do
     phony "clean" $ do
       removeFilesAfter (directories ^. public) ["//"]
       removeFilesAfter (directories ^. project) cruft
-      old <- liftIO getOldResources
+      old <- liftIO oldResourcePaths
       forM_ old $ \dir -> removeFilesAfter dir ["//"]
       when (isDevelopmentVersion && not hasPreextractedResources) $
         removeFilesAfter (directories ^. appData) ["//"]

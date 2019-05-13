@@ -1,6 +1,8 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Common
-  ( DeckerState(..)
+  ( addScript
+  -- * Types
+  , DeckerState(..)
   , Layout(..)
   , OutputFormat(..)
   , Disposition(..)
@@ -8,15 +10,17 @@ module Common
   , Provisioning(..)
   , Script(..)
   , Decker
+  -- *
   , doIO
   , needFile
   , needFiles
+  -- * Version information
   , deckerVersion
   , deckerGitBranch
   , deckerGitCommitId
   , deckerGitVersionTag
   , isDevelopmentVersion
-  , addScript
+  -- * Dealing with file suffixes 
   , dropSuffix
   , replaceSuffix
   , repeatIfTrue
@@ -33,8 +37,15 @@ module Common
   , metaSuffix
   , indexSuffix
   , sourceSuffixes
+  -- *
   , unique
   , time
+  , elementAttributes
+  -- * keys
+  , runtimeMetaKeys
+  , compiletimeMetaKeys
+  , templateOverrideMetaKeys
+  , metaKeys
   ) where
 
 import CompileTime
@@ -143,10 +154,10 @@ data MediaType
   | MeshMedia
 
 data Provisioning
-  = Copy -- Copy to public and relative URL
-  | SymLink -- Symbolic link to public and relative URL
-  | Absolute -- Absolute local URL
-  | Relative -- Relative local URL
+  = Copy -- ^ Copy to public and relative URL
+  | SymLink -- ^ Symbolic link to public and relative URL
+  | Absolute -- ^ Absolute local URL
+  | Relative -- ^ Relative local URL
   deriving (Eq, Show, Read)
 
 repeatIfTrue :: Monad m => m Bool -> m ()
@@ -202,3 +213,30 @@ metaSuffix = "-meta.yaml"
 indexSuffix = "-deck-index.yaml"
 
 sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
+
+-- | These resources are needed at runtime. If they are specified as local URLs,
+-- the resource must exists at compile time. Remote URLs are passed through
+-- unchanged.
+elementAttributes :: [String]
+elementAttributes =
+  [ "src"
+  , "data-src"
+  , "data-markdown"
+  , "data-background-video"
+  , "data-background-image"
+  , "data-background-iframe"
+  ]
+
+-- | Resources in meta data that are needed at compile time. They have to be
+-- specified as local URLs and must exist.
+runtimeMetaKeys :: [String]
+runtimeMetaKeys = ["css"]
+
+templateOverrideMetaKeys :: [String]
+templateOverrideMetaKeys = ["template"]
+
+compiletimeMetaKeys :: [String]
+compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
+
+metaKeys :: [String]
+metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys

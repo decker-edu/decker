@@ -1,8 +1,11 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+-- | Providing an interface for the paths used in decker
+-- 
 module Project
-  ( resourcePathes
-  , copyResource
-  , linkResource
+  ( resourcePaths
+  , deckerResourceDir
+  , oldResourcePaths
+  -- , linkResource
   , relRefResource
   , absRefResource
   , removeCommonPrefix
@@ -13,9 +16,9 @@ module Project
   , provisioningFromMeta
   , templateFromMeta
   , dachdeckerFromMeta
-  , provisioningFromClasses
   , invertPath
   , scanTargets
+  -- * Types
   , sources
   , decks
   , decksPdf
@@ -36,23 +39,25 @@ module Project
   ) where
 
 import Common
+import Exception
+import Flags
 import Glob
+import System.Decker.OS
+
 import Control.Lens
 import Control.Monad.Extra
 import Data.List
+import Data.List.Split (splitOn)
 import Data.Maybe
 import qualified Data.Yaml as Yaml
-import Exception
 import Network.URI
-import Resources
 import qualified System.Directory as D
-import System.Directory
-  ( createFileLink
-  , doesDirectoryExist
-  , doesFileExist
-  )
-import System.FilePath
+import Text.Regex.TDFA
+
 import System.Environment
+
+-- import System.Directory (createFileLink, doesDirectoryExist, doesFileExist)
+import System.FilePath
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 
@@ -70,9 +75,9 @@ data Targets = Targets
 makeLenses ''Targets
 
 data Resource = Resource
-  { sourceFile :: FilePath -- Absolute Path to source file
-  , publicFile :: FilePath -- Absolute path to file in public folder
-  , publicUrl :: FilePath -- Relative URL to served file from base
+  { sourceFile :: FilePath -- ^ Absolute Path to source file
+  , publicFile :: FilePath -- ^ Absolute path to file in public folder
+  , publicUrl :: FilePath -- ^ Relative URL to served file from base
   } deriving (Eq, Show)
 
 data ProjectDirs = ProjectDirs
@@ -115,25 +120,6 @@ provisioningClasses =
   , ("relative", Relative)
   ]
 
-provisioningFromClasses :: Provisioning -> [String] -> Provisioning
-provisioningFromClasses defaultP cls =
-  fromMaybe defaultP $
-  listToMaybe $ map snd $ filter (flip elem cls . fst) provisioningClasses
-
-copyResource :: Resource -> IO FilePath
-copyResource resource = do
-  copyFileIfNewer (sourceFile resource) (publicFile resource)
-  return (publicUrl resource)
-
-linkResource :: Resource -> IO FilePath
-linkResource resource = do
-  whenM
-    (D.doesFileExist (publicFile resource))
-    (D.removeFile (publicFile resource))
-  D.createDirectoryIfMissing True (takeDirectory (publicFile resource))
-  createFileLink (sourceFile resource) (publicFile resource)
-  return (publicUrl resource)
-
 absRefResource :: Resource -> IO FilePath
 absRefResource resource =
   return $ show $ URI "file" Nothing (sourceFile resource) "" ""
@@ -143,7 +129,7 @@ relRefResource base resource = do
   let relPath = makeRelativeTo base (sourceFile resource)
   return $ show $ URI "file" Nothing relPath "" ""
 
--- Find the project directory. The project directory is the first upwards
+-- | Find the project directory. The project directory is the first upwards
 -- directory that contains a .git directory entry.
 findProjectDirectory :: IO FilePath
 findProjectDirectory = do
@@ -172,8 +158,34 @@ projectDirectories = do
   return
     (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
 
-resourcePathes :: ProjectDirs -> FilePath -> URI -> Resource
-resourcePathes dirs base uri =
+deckerResourceDir :: IO FilePath
+deckerResourceDir =
+  if hasPreextractedResources
+    then preextractedResourceFolder
+    else D.getXdgDirectory
+           D.XdgData
+           ("decker" ++
+            "-" ++
+            deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
+
+-- | Get the absolute paths of resource folders 
+-- with version numbers older than the current one
+oldResourcePaths :: IO [FilePath]
+oldResourcePaths = do
+  dir <- D.getXdgDirectory D.XdgData []
+  files <- D.listDirectory dir
+  return $ map (dir </>) $ filter oldVersion files
+  where
+    convert = map (read :: String -> Int)
+    currentVersion = convert (splitOn "." deckerVersion)
+    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
+    oldVersion name =
+      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
+        [] -> False
+        _:x:y:z:_ -> convert [x, y, z] < currentVersion
+
+resourcePaths :: ProjectDirs -> FilePath -> URI -> Resource
+resourcePaths dirs base uri =
   Resource
     { sourceFile = uriPath uri
     , publicFile =
@@ -187,27 +199,6 @@ resourcePathes dirs base uri =
           (uriQuery uri)
           (uriFragment uri)
     }
-
--- | Copies the src to dst if src is newer or dst does not exist. Creates
--- missing directories while doing so.
-copyFileIfNewer :: FilePath -> FilePath -> IO ()
-copyFileIfNewer src dst =
-  whenM (fileIsNewer src dst) $ do
-    D.createDirectoryIfMissing True (takeDirectory dst)
-    D.copyFile src dst
-
-fileIsNewer :: FilePath -> FilePath -> IO Bool
-fileIsNewer a b = do
-  aexists <- D.doesFileExist a
-  bexists <- D.doesFileExist b
-  if bexists
-    then if aexists
-           then do
-             at <- D.getModificationTime a
-             bt <- D.getModificationTime b
-             return (at > bt)
-           else return False
-    else return aexists
 
 -- | Express the second path argument as relative to the first. 
 -- Both arguments are expected to be absolute pathes. 
