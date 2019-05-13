@@ -7,7 +7,7 @@
 : drag to A
 
 [match] Haskell 
-: ![](img/haskell.png)
+: ![](include/06-metal.png)
 
 [match] B
 : drag to B

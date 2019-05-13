@@ -43,6 +43,7 @@ build:mac:
     - mac
   stage: build
   script:
+    - git rev-parse --short HEAD
     - make build
     - cp $(stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
   cache:
@@ -87,7 +88,7 @@ test:linux:
   dependencies:
     - build:linux
 
-deploy:docker:
+.deploy:docker:
   image: docker:latest
   stage: deploy
   only:

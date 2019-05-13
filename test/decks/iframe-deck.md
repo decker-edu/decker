@@ -11,11 +11,11 @@ history: True
 1.  Iframe embedded in slide showing a PDF
 4.  Iframe as background showing a PDF
 
-# Iframe showing <https://tramberend.beuth-hochschule.de>
+# Iframe showing <https://www.uni-wuerzburg.de/startseite>
 
-![](https://tramberend.beuth-hochschule.de/index.html){width="100%" height="500px"}
+![](https://www.uni-wuerzburg.de/startseite.html){width="100%" height="500px"}
 
-# ![](https://tramberend.beuth-hochschule.de/index.html)
+# ![](https://www.uni-wuerzburg.de/startseite.html)
 
 # Iframe showing <http://pandoc.org/MANUAL.pdf>
 

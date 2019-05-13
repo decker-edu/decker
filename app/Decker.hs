@@ -85,22 +85,26 @@ run = do
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
     phony "decks" $ do
-      need ["index"]
+      need ["support"]
       decksA >>= need
+      need ["index"]
     --
     phony "html" $ do
-      need ["index", "publish-annotations"]
+      need ["support", "publish-annotations"]
       allHtmlA >>= need
+      need ["index"]
     --
     phony "pdf" $ do
       putNormal pdfMsg
-      need ["index"]
+      need ["support"]
       allPdfA >>= need
+      need ["index"]
     --
     phony "pdf-decks" $ do
       putNormal pdfMsg
-      need ["index"]
+      need ["support"]
       decksPdfA >>= need
+      need ["index"]
     --
     phony "watch" $ do
       need ["html"]
@@ -174,6 +178,7 @@ run = do
     --
     priority 2 $
       index %> \out -> do
+        alwaysRerun
         exists <- Development.Shake.doesFileExist indexSource
         let src =
               if exists
@@ -181,7 +186,8 @@ run = do
                 else indexSource <.> "generated"
         markdownToHtmlPage src out
     --
-    indexSource <.> "generated" %> \out ->
+    indexSource <.> "generated" %> \out -> do
+      alwaysRerun
       writeIndexLists out (takeDirectory index)
     --
     priority 2 $
@@ -258,9 +264,10 @@ run = do
           liftIO $ copyDir src dst
     --
     phony "publish" $ do
-      need ["html", "sketch-pad-index"]
+      need ["support", "sketch-pad-index"]
       allHtmlA >>= need
       metaData <- metaA
+      need ["index"]
       let host = metaValueAsString "rsync-destination.host" metaData
       let path = metaValueAsString "rsync-destination.path" metaData
       if isJust host && isJust path
