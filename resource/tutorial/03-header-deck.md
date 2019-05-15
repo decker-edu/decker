@@ -5,7 +5,7 @@ history: true
 
 # Introduction
 
-This deck shows the available options which can be included in the `YAML` header in the `*.md` file.
+This deck shows the available options which can be included in the `YAML` meta configuration.
 
 For further options which might not be included here see: [https://github.com/hakimel/reveal.js/#configuration](https://github.com/hakimel/reveal.js/#configuration)
 
@@ -32,6 +32,21 @@ controls: true
 chalkboard: example-deck.json
 ---
 ```
+
+# Important
+
+The meta option `provisioning` determines whether the `support-X.Y.Z` folder in the `public` directory is a symbolic link folder or a copy.  
+On Windows, only `Copy` should be used as symlinks on Windows work differently from MacOS/Linux.  
+The default setting (without having `provisioning` included in the meta) is `Copy`on Windows and `SymLink` on MacOS/Linux.
+
+To be able to move the `public` folder to other devices (e.g. hold a presentation from a different computer) `provisioning: Copy` is necessary.  
+`provisioning` should be included in a `*-meta.yaml` file.
+
+# 
+
+| Parameter     | Options                          | Effect                         |
+|---------------|----------------------------------|--------------------------------|
+| `provisioning`| `Copy` or `SymLink`              | `support` folder is copied or symlinked inside `public` folder|
 
 # YAML-Header (Part 1)
 
