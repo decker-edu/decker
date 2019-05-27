@@ -78,7 +78,10 @@ matchingHtml dListItems =
       Para $
       [LineBreak] ++
       [toHtml "<button class=\"matchingAnswerButton\" type=\"button\">"] ++
-      [Str "Show Solution"] ++ [toHtml "</button>"]
+      [Str "Show Solution"] ++
+      [toHtml "</button>"] ++
+      [toHtml "<button class=\"retryButton\" type=\"button\">"] ++
+      [Str "Retry"] ++ [toHtml "</button>"]
 
 wrapDrop :: [[Inline]] -> Block
 wrapDrop inlines = Div ("", ["dropzones"], []) dropzones
@@ -97,7 +100,9 @@ freetextQuestionHtml question answer =
   [toHtml "<button class=\"freetextAnswerButton\" type=\"button\">"] ++
   [Str "Show Solution:"] ++
   [ Span
-      ("", ["freetextAnswer"], [("style", "display:none;"), ("type", "text")])
+      ( ""
+      , ["freetextAnswer"]
+      , [("style", "display:none; font-color:black;"), ("type", "text")])
       answer
   ] ++
   [toHtml "</button>"] ++ [toHtml "</form>"]
@@ -107,6 +112,7 @@ checkIfMatching (Str "[match]":Space:rest, firstBlock:_) =
   Just (rest, [firstBlock])
 checkIfMatching _ = Nothing
 
+-- 
 checkIfFreetextQuestion :: Block -> Maybe [Inline]
 checkIfFreetextQuestion (Para (Str "[?]":q)) = Just q
 checkIfFreetextQuestion (Plain (Str "[?]":q)) = Just q

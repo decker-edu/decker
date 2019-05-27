@@ -49,6 +49,14 @@ function quizzes() {
 
 // Adds event listeners for dragging and dropping to the elements of "matching" questions
 function matchings() {
+
+  // var retryButtons = document.getElementsByClassName("retryButton");
+  // for (let button of retryButtons) {
+  //   var initial = button.closest(".matching");
+  //   initial.style.display = "none";
+  //   button.appendChild(initial);
+  // }
+
   var dropzones = document.getElementsByClassName("dropzone");
   var draggables = document.getElementsByClassName("draggable");
 
@@ -75,7 +83,21 @@ function matchings() {
   }
   shuffleDraggables();
   matchingAnswerButton();
+  retryButtons();
+}
 
+function retryButtons() {
+  var buttons = document.getElementsByClassName("retryButton");
+
+  for (let button of buttons) {
+    const initial = button.closest(".matching").cloneNode(true);
+
+    button.onclick = function () {
+      var curr = button.closest(".matching");
+      curr.parentNode.replaceChild(initial, curr);
+      matchings();
+    }
+  }
 }
 
 // Shuffle draggables so the correct pairings aren't always directly below each other
@@ -120,7 +142,7 @@ function matchingAnswerButton() {
 
   for (let button of answerButtons) {
     button.onclick = function () {
-      var matchingField = this.closest(".matching")
+      var matchingField = button.closest(".matching");
       var dropzones = matchingField.getElementsByClassName("dropzone");
 
       for (let drop of dropzones) {
@@ -144,6 +166,8 @@ function matchingAnswerButton() {
 
         }
       }
+      button.nextSibling.disabled = true;
+      button.disabled = true;
     }
   }
 }
@@ -212,6 +236,7 @@ function multipleChoice() {
       }
 
       if (answered) {
+        answerButton.disabled = true;
         for (let answer of answers) {
           var answer_div = answer.getElementsByClassName("answer")[0];
           const is_right = answer_div.classList.contains("right");
@@ -244,13 +269,15 @@ function freetextAnswerButton() {
       if (questionField.value) {
         var answer = this.getElementsByClassName('freetextAnswer')[0];
         answer.style.display = 'block';
+        answer.style.color = "black";
         if (questionField.value.toLowerCase().trim() == answer.textContent.trim().toLowerCase()) {
           questionField.style.backgroundColor = "rgb(151, 255, 122)";
         }
         else {
           questionField.style.backgroundColor = "rgb(255, 122, 122)";
         }
-        questionField.disabled = 'true';
+        questionField.disabled = true;
+        button.disabled = true;
       }
       else {
         alert("No answer entered!");
