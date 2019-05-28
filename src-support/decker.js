@@ -55,6 +55,7 @@ function quizzes() {
   freetextAnswerButton();
 }
 
+
 // Adds event listeners for dragging and dropping to the elements of "matching" questions
 function matchings(initialMatchings) {
   var dropzones = document.getElementsByClassName("dropzone");
@@ -83,8 +84,8 @@ function matchings(initialMatchings) {
       child.className = "draggableChild";
     }
   }
+  matchingAnswerButton(initialMatchings);
   shuffleDraggables();
-  matchingAnswerButton();
   retryButtons(initialMatchings);
 }
 
@@ -141,12 +142,15 @@ function shuffleArray(array) {
 /*
   Provides the functionality of the "show solution" button for matching questions
 */
-function matchingAnswerButton() {
+function matchingAnswerButton(initialMatchings) {
   var answerButtons = document.getElementsByClassName("matchingAnswerButton");
 
-  for (let button of answerButtons) {
-    button.onclick = function () {
-      var matchingField = button.closest(".matching");
+  // for (let button of answerButtons) {
+  for (i = 0; i < answerButtons.length; i++) {
+    var initialDragzone = initialMatchings[i].getElementsByClassName("dragzone")[0].cloneNode(true);
+    answerButtons[i].onclick = function () {
+      var matchingField = this.closest(".matching");
+      var currDragzone = matchingField.getElementsByClassName("dragzone")[0];
       var dropzones = matchingField.getElementsByClassName("dropzone");
 
       for (let drop of dropzones) {
@@ -167,11 +171,11 @@ function matchingAnswerButton() {
         else {
           drop.style.backgroundColor = "rgb(255, 122, 122)";
           first.setAttribute("draggable", false);
-
         }
       }
-      button.nextSibling.disabled = true;
-      button.disabled = true;
+      matchingField.replaceChild(initialDragzone, currDragzone);
+      this.nextSibling.disabled = true;
+      this.disabled = true;
     }
   }
 }
