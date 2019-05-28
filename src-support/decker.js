@@ -42,21 +42,21 @@ function currentDate() {
 
 
 function quizzes() {
-  matchings();
+  // manual deep copy of the initial states of all matching questions
+  const m = document.getElementsByClassName("matching");
+  var initialMatchings = [];
+  for (let i of m) {
+    var node = i.cloneNode(true);
+    initialMatchings.push(node);
+  }
+
+  matchings(initialMatchings);
   multipleChoice();
   freetextAnswerButton();
 }
 
 // Adds event listeners for dragging and dropping to the elements of "matching" questions
-function matchings() {
-
-  // var retryButtons = document.getElementsByClassName("retryButton");
-  // for (let button of retryButtons) {
-  //   var initial = button.closest(".matching");
-  //   initial.style.display = "none";
-  //   button.appendChild(initial);
-  // }
-
+function matchings(initialMatchings) {
   var dropzones = document.getElementsByClassName("dropzone");
   var draggables = document.getElementsByClassName("draggable");
 
@@ -67,7 +67,9 @@ function matchings() {
     dropzones[i].addEventListener("dragover", allowDrop);
 
     for (let child of dropzones[i].children) {
-      child.setAttribute("style", "pointer-events:none");
+      if (!child.classList.contains("draggable")) {
+        child.setAttribute("style", "pointer-events:none");
+      }
     }
   }
 
@@ -83,19 +85,21 @@ function matchings() {
   }
   shuffleDraggables();
   matchingAnswerButton();
-  retryButtons();
+  retryButtons(initialMatchings);
 }
 
-function retryButtons() {
+function retryButtons(initialMatchings) {
   var buttons = document.getElementsByClassName("retryButton");
 
-  for (let button of buttons) {
-    const initial = button.closest(".matching").cloneNode(true);
+  // for (let button of buttons) {
+  for (i = 0; i < buttons.length; i++) {
+    // const initial = button.closest(".matching").cloneNode(true);
+    const initial = initialMatchings[i].cloneNode(true);
 
-    button.onclick = function () {
-      var curr = button.closest(".matching");
+    buttons[i].onclick = function () {
+      var curr = this.closest(".matching");
       curr.parentNode.replaceChild(initial, curr);
-      matchings();
+      matchings(initialMatchings);
     }
   }
 }
