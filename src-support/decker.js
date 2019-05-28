@@ -42,17 +42,28 @@ function currentDate() {
 
 
 function quizzes() {
+  initialMatchings = initMatching();
+  matchings(initialMatchings);
+  multipleChoice();
+  freetextAnswerButton();
+}
+
+function initMatching() {
   // Manual deep copy of the initial states of all matching questions
   const m = document.getElementsByClassName("matching");
   var initialMatchings = [];
   for (let i of m) {
+    var imgs = i.getElementsByTagName("img");
+    for (let img of imgs) {
+      src = img.getAttribute("data-src");
+      if (src) {
+        img.setAttribute("src", src);
+      }
+    }
     var node = i.cloneNode(true);
     initialMatchings.push(node);
   }
-
-  matchings(initialMatchings);
-  multipleChoice();
-  freetextAnswerButton();
+  return initialMatchings;
 }
 
 // Adds event listeners for dragging and dropping to the elements of "matching" questions
@@ -183,6 +194,7 @@ function matchingAnswerButton(initialMatchings) {
       // Color the sample solutions green
       for (let drag of initialDragzone.children) {
         drag.style.backgroundColor = "rgb(151, 255, 122)";
+        drag.setAttribute("draggable", false);
       }
       // replace the empty dropzone with the correct solution
       matchingField.replaceChild(initialDragzone, currDragzone);
