@@ -42,7 +42,7 @@ function currentDate() {
 
 
 function quizzes() {
-  // manual deep copy of the initial states of all matching questions
+  // Manual deep copy of the initial states of all matching questions
   const m = document.getElementsByClassName("matching");
   var initialMatchings = [];
   for (let i of m) {
@@ -54,7 +54,6 @@ function quizzes() {
   multipleChoice();
   freetextAnswerButton();
 }
-
 
 // Adds event listeners for dragging and dropping to the elements of "matching" questions
 function matchings(initialMatchings) {
@@ -84,6 +83,8 @@ function matchings(initialMatchings) {
       child.className = "draggableChild";
     }
   }
+  // Order of execution here is important. 
+  // matchingAnswerButton has to be first so the sample solution is in the correct order. Very dubious hack
   matchingAnswerButton(initialMatchings);
   shuffleDraggables();
   retryButtons(initialMatchings);
@@ -145,12 +146,16 @@ function shuffleArray(array) {
 function matchingAnswerButton(initialMatchings) {
   var answerButtons = document.getElementsByClassName("matchingAnswerButton");
 
-  // for (let button of answerButtons) {
-  for (i = 0; i < answerButtons.length; i++) {
-    var initialDragzone = initialMatchings[i].getElementsByClassName("dragzone")[0].cloneNode(true);
-    answerButtons[i].onclick = function () {
-      var matchingField = this.closest(".matching");
+  for (let button of answerButtons) {
+    button.onclick = function () {
+      // Hack to get the index
+      const j = Array.prototype.slice.call(answerButtons).indexOf(button);
+
+      // Get the initial and current states of the dragzones
+      var initialDragzone = initialMatchings[j].getElementsByClassName("dragzone")[0].cloneNode(true);
+      var matchingField = button.closest(".matching");
       var currDragzone = matchingField.getElementsByClassName("dragzone")[0];
+
       var dropzones = matchingField.getElementsByClassName("dropzone");
 
       for (let drop of dropzones) {
@@ -162,6 +167,8 @@ function matchingAnswerButton(initialMatchings) {
           return;
         }
       }
+
+      // Color the dropzones green/red depending on correct pairing
       for (let drop of dropzones) {
         var first = drop.getElementsByClassName("draggable")[0];
         if (first.id.replace("drag", "") == drop.id.replace("drop", "")) {
@@ -173,9 +180,15 @@ function matchingAnswerButton(initialMatchings) {
           first.setAttribute("draggable", false);
         }
       }
+      // Color the sample solutions green
+      for (let drag of initialDragzone.children) {
+        drag.style.backgroundColor = "rgb(151, 255, 122)";
+      }
+      // replace the empty dropzone with the correct solution
       matchingField.replaceChild(initialDragzone, currDragzone);
-      this.nextSibling.disabled = true;
-      this.disabled = true;
+
+      button.nextSibling.disabled = true;
+      button.disabled = true;
     }
   }
 }

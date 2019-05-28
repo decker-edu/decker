@@ -98,7 +98,7 @@ freetextQuestionHtml question answer =
   -- 
   [LineBreak] ++
   [toHtml "<button class=\"freetextAnswerButton\" type=\"button\">"] ++
-  [Str "Show Solution:"] ++
+  [Str "Show Solution"] ++
   [ Span
       ( ""
       , ["freetextAnswer"]
