@@ -254,11 +254,8 @@ body {
         // Quizzes
         /////////////////////////////////////////////
         
-        // freetext question
-        .freetextAnswerButton,
-        .matchingAnswerButton,
-        .mcAnswerButton,
-        .retryButton,
+        // General Button css and freetext question Input 
+        button,
         .freetextInput {
             border-radius: 0.5em;
             font-size: inherit;
