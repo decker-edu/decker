@@ -61,7 +61,13 @@ JS_DEP_COPY += \
 	mathjax/jax/output/SVG/fonts/TeX/Size4/Regular/Main.js \
 	mathjax/jax/output/SVG/fonts/TeX/AMS/Regular/Main.js \
 	mathjax/jax/output/SVG/fonts/TeX/Size1/Regular/Main.js \
-	mathjax/jax/output/SVG/fonts/TeX/Size2/Regular/Main.js 
+	mathjax/jax/output/SVG/fonts/TeX/Size2/Regular/Main.js \
+	mathjax/jax/output/SVG/fonts/TeX/AMS/Regular/MiscTechnical.js \
+	mathjax/jax/output/SVG/fonts/TeX/AMS/Regular/GeneralPunctuation.js \
+	mathjax/jax/output/SVG/fonts/TeX/Main/Bold/BasicLatin.js \
+	mathjax/jax/output/SVG/fonts/TeX/SansSerif/Regular/Main.js \
+	mathjax/jax/output/SVG/fonts/TeX/SansSerif/Regular/BasicLatin.js \
+	mathjax/jax/output/SVG/fonts/TeX/Size3/Regular/Main.js 
 JS_DEP_COPY_FULL_PATH = $(addprefix resource/support/, $(JS_DEP_COPY))
 
 less:
@@ -182,5 +188,11 @@ SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Size4/Regular/Main.js
 SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/AMS/Regular/Main.js
 SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Size1/Regular/Main.js
 SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Size2/Regular/Main.js
+SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/AMS/Regular/MiscTechnical.js
+SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Main/Bold/BasicLatin.js
+SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/SansSerif/Regular/Main.js 
+SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/SansSerif/Regular/BasicLatin.js
+SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Size3/Regular/Main.js 
+SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/AMS/Regular/GeneralPunctuation.js
 
 .SECONDARY:  $(SECONDARY)
