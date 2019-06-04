@@ -5,7 +5,6 @@ module.exports = {
   target: "web",
   entry: {
     decker: './src-support/decker.js',
-    math: './src-support/math.js',
     plugins: './src-support/rplugins.js',
     classlist: './src-support/classlist.js',
     page: './src-support/page.js',
