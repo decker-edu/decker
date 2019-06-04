@@ -32,11 +32,12 @@ function fixAutoplayWithStart() {
 // if string provided for date in yaml header is "today"
 function currentDate() {
   var date = document.getElementsByClassName("date")[0];
+  if(!date) return;
   var dateString = date.textContent;
 
   var today = new Date().toISOString().substr(0, 10);
 
-  if (dateString == "today") {
+  if (dateString === "today") {
     date.textContent = today;
   }
 }

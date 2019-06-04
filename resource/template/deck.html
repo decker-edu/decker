@@ -79,8 +79,6 @@ $endif$
   <!-- MathJax config -->
   <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
-    jax: ["input/TeX","output/CommonHTML"],
-    extensions: ["TeX/AMSmath.js"],
     menuSettings: { zoom: "Double-Click" },
     TeX: {
         Macros: {
@@ -102,13 +100,10 @@ $endif$
           diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
           pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2]
         }
-    },
-    "CommonHTML": {
-        scale: 100,
-        matchFontHeight: false
     }
     });
   </script>
+  
 $for(include-before)$
 $include-before$
 $endfor$
@@ -192,6 +187,10 @@ $body$
       Reveal.initialize({
         pdfMaxPagesPerSlide: 1,
         pdfSeparateFragments: false,
+        math: {
+          mathjax: "$decker-support-dir$/mathjax/MathJax.js",
+          config: "TeX-AMS_SVG" 
+        },
 $if(controls)$
         // Display controls in the bottom right corner
         controls: $controls$,
@@ -374,9 +373,6 @@ $if(chalkboard)$
 $endif$
 $if(chart)$
           { src: '$decker-support-dir$/Chart.js'},
-$endif$
-$if(mathjax)$
-          { src: '$decker-support-dir$/math.js', async: true },
 $endif$
 $if(menu)$
           { src: '$decker-support-dir$/reveal.js-menu/menu.js', async: true },
