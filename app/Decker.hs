@@ -1,38 +1,39 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-import Common
-import Exception
-import External
-import Flags (hasPreextractedResources)
-import Output
-import Pdf
-import Project
-import Resources
-import Shake
-import Utilities
+import           Common
+import           Exception
+import           External
+import           Flags                      (hasPreextractedResources)
+import           Output
+import           Pdf
+import           Project
+import           Resources
+import           Shake
+import           Utilities
 
-import Control.Exception
-import Control.Lens ((^.))
-import Control.Monad (when)
-import Control.Monad.Extra
-import Dachdecker
-import Data.Aeson
-import Data.IORef ()
-import Data.List
-import Data.Maybe
-import Data.String ()
-import Data.Version
-import Development.Shake
-import Development.Shake.FilePath
-import GHC.Conc (numCapabilities)
-import System.Decker.OS (defaultProvisioning)
-import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
-import System.Environment.Blank
-import System.FilePath ()
-import Text.Groom
-import qualified Text.Mustache as M ()
-import Text.Pandoc
-import Text.Pandoc.Definition
-import Text.Printf (printf)
+import           Control.Exception
+import           Control.Lens               ((^.))
+import           Control.Monad              (when)
+import           Control.Monad.Extra
+import           Dachdecker
+import           Data.Aeson
+import           Data.IORef                 ()
+import           Data.List
+import           Data.Maybe
+import           Data.String                ()
+import           Data.Version
+import           Development.Shake
+import           Development.Shake.FilePath
+import           GHC.Conc                   (numCapabilities)
+import           System.Decker.OS           (defaultProvisioning)
+import           System.Directory           (createDirectoryIfMissing,
+                                             createFileLink, removeFile)
+import           System.Environment.Blank
+import           System.FilePath            ()
+import           Text.Groom
+import qualified Text.Mustache              as M ()
+import           Text.Pandoc
+import           Text.Pandoc.Definition
+import           Text.Printf                (printf)
 
 main :: IO ()
 main = do
@@ -146,7 +147,7 @@ main = do
             out
         case result of
           Right msg -> putNormal msg
-          Left msg -> error msg
+          Left msg  -> error msg
     --
     priority 2 $
       "//*-handout.html" %> \out -> do
