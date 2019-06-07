@@ -17,7 +17,6 @@ module Utilities
   , toPandocMeta
   , deckerPandocExtensions
   , readMarkdownOrThrow
-  , pandocReaderOpts
   , DeckerException(..)
   ) where
 

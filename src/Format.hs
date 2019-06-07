@@ -18,6 +18,7 @@ import Markdown
 import Resources
 import Utilities
 import Meta
+import Output
 
 formatMarkdown :: IO ()
 formatMarkdown =

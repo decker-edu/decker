@@ -29,7 +29,6 @@ import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.List (isInfixOf)
 import Data.Maybe
-import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
@@ -39,7 +38,7 @@ import Network.URI
 import Text.Pandoc.JSON
 import Text.Read (readMaybe)
 
-import Shake
+import Resources
 
 type LineNumber = Int
 
@@ -270,8 +269,9 @@ includeCodeA' :: Block -> Action (Either InclusionError Block)
 includeCodeA' cb@(CodeBlock (id', classes, attrs) _) =
   case parseInclusion (HM.fromList attrs) of
     Right (Just spec) -> do
-      need [include spec]
-      inclusion <- liftIO $ runInclusion' spec allSteps
+      local <- urlToFilePathIfLocal "." (include spec)
+      need [local]
+      inclusion <- liftIO $ runInclusion' spec {include = local} allSteps
       case inclusion of
         Left err -> return (Left err)
         Right (contents, state) ->
@@ -288,7 +288,7 @@ includeCodeA' pi@(Para [Image (id', classes, attrs) _ (url, _)]) =
       local <- urlToFilePathIfLocal "." (include rawSpec)
       need [local]
       let spec = rawSpec {include = local}
-      inclusion <- liftIO $ runInclusion' (traceShowId spec) allSteps
+      inclusion <- liftIO $ runInclusion' spec allSteps
       case inclusion of
         Left err -> return (Left err)
         Right (contents, state) ->
