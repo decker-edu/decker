@@ -170,16 +170,6 @@ maybeRenderCodeBlock block@(CodeBlock attr@(_, classes, _) code) =
     Nothing -> return block
 maybeRenderCodeBlock block = return block
 
-{--
-provideResources namevals = do
-  case lookup "resources" namevals of
-    Just resources -> do
-      method <- gets provisioning
---}
--- | Encode a svg snippet into a data url for an image element
--- svgDataUrl :: String -> String
--- svgDataUrl svg =
---   "data:image/svg+xml;base64," ++ (B.unpack (B64.encode (B.pack svg)))
 writeCodeIfChanged :: String -> String -> Decker FilePath
 writeCodeIfChanged code ext = do
   projectDir <- _project <$> lift projectDirsA

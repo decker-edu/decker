@@ -8,6 +8,7 @@ module Shake
   , calcSource
   , decksA
   , decksPdfA
+  , getSupportDir
   , getRelativeSupportDir
   , handoutsA
   , handoutsPdfA
@@ -30,8 +31,6 @@ module Shake
   , writeDeckIndex
   , writeSketchPadIndex
   , withShakeLock
-  , urlToFilePathIfLocal
-  , urlToFilePathIfLocalIO
   ) where
 
 import Common
@@ -42,8 +41,10 @@ import Meta
 import Project
 import Server
 import Sketch
-import Text.Pandoc.Lens
+import System.Decker.OS
+import Text.Pandoc.Lens as P
 
+import qualified Network.URI as U
 import Control.Concurrent
 import Control.Exception
 import Control.Lens
@@ -66,7 +67,6 @@ import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
 import Debug.Trace
-import Debug.Trace
 import Development.Shake
 import Development.Shake as Shake
   ( Action
@@ -80,8 +80,7 @@ import Development.Shake as Shake
   , shakeOptions
   , withResource
   )
-import qualified Network.URI as Net
-import qualified System.Directory as Dir
+import System.Directory as Dir
 import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
@@ -214,6 +213,18 @@ sketchPadId :: T.Text -> T.Text
 sketchPadId text =
   T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ B.fromStrict $
   encodeUtf8 text
+
+getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
+getSupportDir meta out defaultPath = do
+  dirs <- projectDirsA
+  cur <- liftIO Dir.getCurrentDirectory
+  let dirPath =
+        case templateFromMeta meta of
+          Just template ->
+            (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
+            (makeRelativeTo cur template)
+          Nothing -> defaultPath
+  return $ urlPath dirPath
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
@@ -426,21 +437,3 @@ calcSource targetSuffix srcSuffix target = do
   need [src]
   return src
 
-urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
-urlToFilePathIfLocal base uri = do
-  projectDir <- projectA
-  liftIO $ urlToFilePathIfLocalIO projectDir base uri
-
-urlToFilePathIfLocalIO :: FilePath -> FilePath -> FilePath -> IO FilePath
-urlToFilePathIfLocalIO projectDir base uri =
-  case Net.parseRelativeReference uri of
-    Nothing -> return uri
-    Just relativeUri -> do
-      let filePath = Net.uriPath relativeUri
-      absRoot <- Dir.makeAbsolute projectDir
-      absBase <- Dir.makeAbsolute base
-      let absPath =
-            if isAbsolute filePath
-              then absRoot </> makeRelative "/" filePath
-              else absBase </> filePath
-      return absPath

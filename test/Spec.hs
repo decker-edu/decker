@@ -13,6 +13,7 @@ import Data.Text.Encoding
 import qualified Data.Yaml as Y
 import Filter
 import Project as P
+import Resources
 import qualified System.Directory as Dir
 import System.FilePath
 import System.FilePath.Glob

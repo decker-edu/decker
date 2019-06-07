@@ -9,7 +9,7 @@ module Sketch
 import Common
 import Markdown
 import Meta
-import Resources
+import Output
 import Slide
 import Text.Pandoc.Lens
 
