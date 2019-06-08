@@ -74,7 +74,7 @@ isSnippetTag tag name line =
 
 ## Include source
 
-``` {.ma}
+``` {.markdown}
 ![](code:/src/Text/Pandoc/Filter/IncludeCode.hs#include-even-shorter){.haskell label="Haskell"}
 ```
 
