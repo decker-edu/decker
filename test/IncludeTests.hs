@@ -28,14 +28,3 @@ includeTests = do
               , mode = SnippetMode "yo"
               , dedent = Nothing
               }))
-  describe "urlToFilePathIfLocal" $ do
-    it "ignores remote urls" $
-      urlToFilePathIfLocalIO "." "below" "code:below/file.md" `shouldReturn` "code:below/file.md"
-    it "calculates the absolute local path of a releative path" $
-      urlToFilePathIfLocalIO "/tmp" "/tmp/below" "file.md" `shouldReturn` "/tmp/below/file.md"
-    it "calculates the absolute local path of an absolute path" $
-      urlToFilePathIfLocalIO "/tmp" "/tmp/below" "/blip/file.md" `shouldReturn` "/tmp/blip/file.md"
-    it "calculates the absolute local path of a releative path" $
-      urlToFilePathIfLocalIO "." "/tmp/below" "file.md" `shouldReturn` "/tmp/below/file.md"
-    it "calculates the absolute local path of an absolute path" $
-      urlToFilePathIfLocalIO "." "/tmp/below" "/blip/file.md" `shouldReturn` "/Users/henrik/workspace/decker/blip/file.md"
