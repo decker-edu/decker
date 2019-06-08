@@ -19,21 +19,24 @@ import System.FilePath
 -- ignored .'suffixes' is the list of file suffixes that are included in the
 -- glob.
 fastGlobFiles :: [String] -> [String] -> FilePath -> IO [FilePath]
-fastGlobFiles exclude suffixes root = glob root
+fastGlobFiles exclude suffixes root = sort <$> glob root
   where
     absExclude = map (root </>) exclude
     absListDirectory dir =
       map (dir </>) . filter (not . isPrefixOf ".") <$> listDirectory dir
+    glob :: FilePath -> IO [String]
     glob root = do
       dirExists <- doesDirectoryExist root
       fileExists <- doesFileExist root
       if | dirExists -> globDir root
          | fileExists -> globFile root
          | otherwise -> return []
+    globFile :: String -> IO [String]
     globFile file =
       if any (`isSuffixOf` file) suffixes
         then return [file]
         else return []
+    globDir :: FilePath -> IO [String]
     globDir dir =
       if dir `elem` absExclude
         then return []

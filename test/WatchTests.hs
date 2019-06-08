@@ -2,8 +2,9 @@ module WatchTests
   ( watchTests
   ) where
 
-import           Glob
-import           Test.Hspec
+import Data.List
+import Glob
+import Test.Hspec
 
 watchTests =
   describe "fastGlobFiles" $ do
@@ -11,7 +12,12 @@ watchTests =
       fastGlobFiles [] [] "test" `shouldReturn` []
     it "returns all Haskell source files if the extensions include '.hs'" $
       fastGlobFiles [] [".hs"] "test" `shouldReturn`
-      ["test/SketchTests.hs", "test/WatchTests.hs", "test/Spec.hs", "test/IncludeTests.hs"]
+      sort
+        [ "test/SketchTests.hs"
+        , "test/WatchTests.hs"
+        , "test/Spec.hs"
+        , "test/IncludeTests.hs"
+        ]
     it "globs just one file if root is a single file" $
       fastGlobFiles [] [".hs"] "test/Spec.hs" `shouldReturn` ["test/Spec.hs"]
     it "does not descend into excluded dirs" $
