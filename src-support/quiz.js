@@ -120,11 +120,11 @@ function matchingAnswerButtons(initialMatchings) {
     for (let button of answerButtons) {
         button.onclick = function () {
             // Hack to get the index
-            const j = Array.prototype.slice.call(answerButtons).indexOf(button);
+            const j = Array.prototype.slice.call(answerButtons).indexOf(this);
 
             // Get the initial and current states of the dragzones
             var initialDragzone = initialMatchings[j].getElementsByClassName("dragzone")[0].cloneNode(true);
-            var matchingField = button.closest(".matching");
+            var matchingField = this.closest(".matching");
             var currDragzone = matchingField.getElementsByClassName("dragzone")[0];
 
             var dropzones = matchingField.getElementsByClassName("dropzone");
@@ -159,8 +159,8 @@ function matchingAnswerButtons(initialMatchings) {
             // replace the empty dropzone with the correct/sample solution
             matchingField.replaceChild(initialDragzone, currDragzone);
 
-            button.nextSibling.disabled = true;
-            button.disabled = true;
+            this.nextSibling.disabled = true;
+            this.disabled = true;
         }
     }
 }
@@ -205,11 +205,11 @@ function multipleChoice() {
             const local_answer_num = answer_num;
 
             answer.addEventListener("click", function () {
-                if (answer.style.border == defBorder) {
-                    answer.style.border = "thick solid black";
+                if (this.style.border == defBorder) {
+                    this.style.border = "thick solid black";
                 }
                 else {
-                    answer.style.border = defBorder;
+                    this.style.border = defBorder;
                 }
             });
             answer_num += 1;
@@ -229,7 +229,7 @@ function multipleChoice() {
             }
 
             if (answered) {
-                answerButton.disabled = true;
+                this.disabled = true;
                 for (let answer of answers) {
                     var answer_div = answer.getElementsByClassName("answer")[0];
                     const is_right = answer_div.classList.contains("right");
@@ -270,7 +270,7 @@ function freetextAnswerButtons() {
                     questionField.style.backgroundColor = "rgb(255, 122, 122)";
                 }
                 questionField.disabled = true;
-                button.disabled = true;
+                this.disabled = true;
             }
             else {
                 alert("No answer entered!");
