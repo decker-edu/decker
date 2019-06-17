@@ -20,7 +20,7 @@ $endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  
+
   <script>
     var link = document.createElement( 'link' );
     link.rel = 'stylesheet';
@@ -86,7 +86,7 @@ $endif$
           laplace: "{\\Delta}",
           grad: "{\\nabla}",
           T: "^{\\mathsf{T}}",
-          abs: ['\\left\\lvert #1 \\right\\rvert', 1],
+
           norm: ['\\left\\Vert #1 \\right\\Vert', 1],
           iprod: ['\\left\\langle #1 \\right\\rangle', 1],
           vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
@@ -98,12 +98,21 @@ $endif$
           vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
           of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
           diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
-          pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2]
+          pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
+
+          vc: ['\\mathbf{#1}', 1],
+          abs: ['\\lvert#1\\rvert', 1],
+          norm: ['\\lVert#1\\rVert', 1],
+          det: ['\\lvert#1\\rvert', 1],
+          qt: ['\\hat{\\vc {#1}}', 1],
+          mt: ['\\boldsymbol{#1}', 1],
+          pt: ['\\boldsymbol{#1}', 1],
+          textcolor: ['\\color{#1}', 1]
         }
     }
     });
   </script>
-  
+
 $for(include-before)$
 $include-before$
 $endfor$
@@ -189,7 +198,7 @@ $body$
         pdfSeparateFragments: false,
         math: {
           mathjax: "$decker-support-dir$/mathjax/MathJax.js",
-          config: "TeX-AMS_SVG" 
+          config: "TeX-AMS_SVG"
         },
 $if(controls)$
         // Display controls in the bottom right corner
@@ -355,8 +364,8 @@ $endif$
 $if(menu)$
         menu: {
           custom: [
-            { title: "Print/Pdf", icon: '<i class="fas fa-print" onclick="printPdf()">', 
-              content: 
+            { title: "Print/Pdf", icon: '<i class="fas fa-print" onclick="printPdf()">',
+              content:
               '<ul><li>To print or export the slides as pdf, click the printer symbol.</li><li>For the best results please use Google Chrome or Chromium.</li><li>You might have to adjust the page settings slightly (e.g. orientation: landscape)</li> </ul>' }
 
           ]

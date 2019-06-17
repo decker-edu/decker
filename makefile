@@ -28,40 +28,14 @@ JS_DEP_COPY += \
 	reveal.js-menu/font-awesome/webfonts/fa-regular-400.ttf
 JS_DEP_COPY += print/paper.css
 JS_DEP_COPY += print/pdf.css
-JS_DEP_COPY += \
-	mathjax/config/TeX-AMS_SVG.js \
-	mathjax/MathJax.js \
-	mathjax/jax/input/TeX/config.js \
-	mathjax/jax/output/SVG/config.js \
-	mathjax/jax/output/PreviewHTML/config.js \
-	mathjax/extensions/tex2jax.js \
-	mathjax/extensions/MathEvents.js \
-	mathjax/extensions/MathZoom.js \
-	mathjax/extensions/MathMenu.js \
-	mathjax/jax/element/mml/jax.js \
-	mathjax/extensions/toMathML.js \
-	mathjax/extensions/TeX/noErrors.js \
-	mathjax/extensions/TeX/noUndefined.js \
-	mathjax/jax/input/TeX/jax.js \
-	mathjax/extensions/TeX/AMSmath.js \
-	mathjax/extensions/TeX/AMSsymbols.js \
-	mathjax/jax/output/SVG/jax.js \
-	mathjax/jax/output/SVG/autoload/mtable.js \
-	mathjax/jax/output/PreviewHTML/jax.js \
-	mathjax/extensions/fast-preview.js \
-	mathjax/extensions/AssistiveMML.js \
-	mathjax/extensions/a11y/accessibility-menu.js \
-	mathjax/extensions/TeX/boldsymbol.js \
-	mathjax/jax/element/mml/optable/GeneralPunctuation.js \
-	mathjax/jax/element/mml/optable/BasicLatin.js \
-	mathjax/jax/output/SVG/fonts/TeX/fontdata.js \
-	mathjax/jax/output/SVG/fonts/TeX/Main/Bold/Main.js \
-	mathjax/jax/output/SVG/fonts/TeX/Main/Regular/BasicLatin.js \
-	mathjax/jax/output/SVG/fonts/TeX/Math/BoldItalic/Main.js \
-	mathjax/jax/output/SVG/fonts/TeX/Size4/Regular/Main.js \
-	mathjax/jax/output/SVG/fonts/TeX/AMS/Regular/Main.js \
-	mathjax/jax/output/SVG/fonts/TeX/Size1/Regular/Main.js \
-	mathjax/jax/output/SVG/fonts/TeX/Size2/Regular/Main.js 
+MATHJAX = node_modules/mathjax/MathJax.js
+MATHJAX += node_modules/mathjax/config/TeX-AMS_SVG.js
+MATHJAX += $(shell find node_modules/mathjax/jax/input/TeX -name "*.js")
+MATHJAX += $(shell find  node_modules/mathjax/jax/output/SVG -name "*.js")
+MATHJAX += $(wildcard node_modules/mathjax/extensions/*.js)
+MATHJAX += $(shell find node_modules/mathjax/extensions/TeX -name "*.js")
+MATHJAX += $(shell find node_modules/mathjax/jax/element -name "*.js")
+JS_DEP_COPY += $(MATHJAX:node_modules/%=%)
 JS_DEP_COPY_FULL_PATH = $(addprefix resource/support/, $(JS_DEP_COPY))
 
 less:
@@ -149,38 +123,6 @@ SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-solid-900.woff
 SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-regular-400.woff
 SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-solid-900.ttf
 SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-regular-400.ttf
-SECONDARY += node_modules/mathjax/config/TeX-AMS_SVG.js 
-SECONDARY += node_modules/mathjax/MathJax.js 
-SECONDARY += node_modules/mathjax/jax/input/TeX/config.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/config.js
-SECONDARY += node_modules/mathjax/jax/output/PreviewHTML/config.js
-SECONDARY += node_modules/mathjax/extensions/tex2jax.js
-SECONDARY += node_modules/mathjax/extensions/MathEvents.js
-SECONDARY += node_modules/mathjax/extensions/MathZoom.js
-SECONDARY += node_modules/mathjax/extensions/MathMenu.js
-SECONDARY += node_modules/mathjax/jax/element/mml/jax.js
-SECONDARY += node_modules/mathjax/extensions/toMathML.js
-SECONDARY += node_modules/mathjax/extensions/TeX/noErrors.js
-SECONDARY += node_modules/mathjax/extensions/TeX/noUndefined.js
-SECONDARY += node_modules/mathjax/jax/input/TeX/jax.js
-SECONDARY += node_modules/mathjax/extensions/TeX/AMSmath.js
-SECONDARY += node_modules/mathjax/extensions/TeX/AMSsymbols.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/jax.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/autoload/mtable.js
-SECONDARY += node_modules/mathjax/jax/output/PreviewHTML/jax.js
-SECONDARY += node_modules/mathjax/extensions/fast-preview.js
-SECONDARY += node_modules/mathjax/extensions/AssistiveMML.js
-SECONDARY += node_modules/mathjax/extensions/a11y/accessibility-menu.js
-SECONDARY += node_modules/mathjax/extensions/TeX/boldsymbol.js
-SECONDARY += node_modules/mathjax/jax/element/mml/optable/GeneralPunctuation.js
-SECONDARY += node_modules/mathjax/jax/element/mml/optable/BasicLatin.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/fontdata.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Main/Bold/Main.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Main/Regular/BasicLatin.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Math/BoldItalic/Main.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Size4/Regular/Main.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/AMS/Regular/Main.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Size1/Regular/Main.js
-SECONDARY += node_modules/mathjax/jax/output/SVG/fonts/TeX/Size2/Regular/Main.js
+SECONDARY += $(MATHJAX)
 
 .SECONDARY:  $(SECONDARY)
