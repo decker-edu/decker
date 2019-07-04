@@ -108,19 +108,19 @@ freetextQuestionHtml question answer =
   [toHtml "</button>"] ++ [toHtml "</form>"]
 
 checkIfMatching :: ([Inline], [[Block]]) -> Maybe ([Inline], [[Block]])
-checkIfMatching (Str "[match]":Space:rest, firstBlock:_) =
+checkIfMatching (Str "{match}":Space:rest, firstBlock:_) =
   Just (rest, [firstBlock])
 checkIfMatching _ = Nothing
 
 -- 
 checkIfFreetextQuestion :: Block -> Maybe [Inline]
-checkIfFreetextQuestion (Para (Str "[?]":q)) = Just q
-checkIfFreetextQuestion (Plain (Str "[?]":q)) = Just q
+checkIfFreetextQuestion (Para (Str "{?}":q)) = Just q
+checkIfFreetextQuestion (Plain (Str "{?}":q)) = Just q
 checkIfFreetextQuestion _ = Nothing
 
 checkIfFreetextAnswer :: Block -> Maybe [Inline]
-checkIfFreetextAnswer (Para (Str "[!]":a)) = Just a
-checkIfFreetextAnswer (Plain (Str "[!]":a)) = Just a
+checkIfFreetextAnswer (Para (Str "{!}":a)) = Just a
+checkIfFreetextAnswer (Plain (Str "{!}":a)) = Just a
 checkIfFreetextAnswer _ = Nothing
 
 -- | Checks if a block starts with [X] or [ ] to indicate a survey
