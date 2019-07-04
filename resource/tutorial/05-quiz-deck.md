@@ -83,18 +83,18 @@ history: true
 # Multiple Choice Questions Syntax
 
 ```markdown
-* [ ] wrong answer
-* [ ] another wrong answer
-* [X] correct answer
-* [ ] wrong answer again
+* { } wrong answer
+* { } another wrong answer
+* {X} correct answer
+* { } wrong answer again
 ```
 
 # Multiple Choice Questions
 
 ## Question: Which file format does decker use? {.question}
 
-* [ ] .docx
-* [ ] .csv
-* [ ] .xml
-* [X] .md
+* { } .docx
+* { } .csv
+* { } .xml
+* {X} .md
 

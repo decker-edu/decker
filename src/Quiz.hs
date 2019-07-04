@@ -125,11 +125,10 @@ checkIfFreetextAnswer _ = Nothing
 
 -- | Checks if a block starts with [X] or [ ] to indicate a survey
 checkIfMC :: Block -> Bool
-checkIfMC (Para ((Str "[X]"):_)) = True
-checkIfMC (Para ((Str "["):Space:(Str "]"):_)) = True
-checkIfMC (Plain ((Str "[X]"):_)) = True
-checkIfMC (Plain ((Str "["):Space:(Str "]"):_)) = True
-checkIfMC (Plain ((Link nullAttr [] ('#':_, "")):Space:_)) = True
+checkIfMC (Para ((Str "{X}"):_)) = True
+checkIfMC (Para ((Str "{"):Space:(Str "}"):_)) = True
+checkIfMC (Plain ((Str "{X"):_)) = True
+checkIfMC (Plain ((Str "{"):Space:(Str "}"):_)) = True
 checkIfMC _ = False
 
 -- | Renders a multiple choice answer 
@@ -141,12 +140,10 @@ renderAnswerMC (prelude:rest) =
   where
     (cls, prelude') =
       case prelude of
-        Para ((Str "[X]"):prest) -> (["right"], Para prest)
-        Para ((Str "["):Space:(Str "]"):prest) -> (["wrong"], Para prest)
-        Plain ((Str "[X]"):prest) -> (["right"], Para prest)
-        Plain ((Str "["):Space:(Str "]"):prest) -> (["wrong"], Para prest)
-        Plain ((Link nullAttr [] ('#':_, "")):Space:prest) ->
-          (["wrong"], Para prest)
+        Para ((Str "{X}"):prest) -> (["right"], Para prest)
+        Para ((Str "{"):Space:(Str "}"):prest) -> (["wrong"], Para prest)
+        Plain ((Str "{X}"):prest) -> (["right"], Para prest)
+        Plain ((Str "{"):Space:(Str "}"):prest) -> (["wrong"], Para prest)
         prest -> ([], prest)
 
 -- if there is a bullet list create a div class tooltip around
