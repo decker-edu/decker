@@ -26,6 +26,44 @@
         </style>
         $endif$
         
+        <!-- MathJax config -->
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+          menuSettings: { zoom: "Double-Click" },
+          TeX: {
+              Macros: {
+                R: "{\\mathrm{{I}\\kern-.15em{R}}}",
+                laplace: "{\\Delta}",
+                grad: "{\\nabla}",
+                T: "^{\\mathsf{T}}",
+
+                norm: ['\\left\\Vert #1 \\right\\Vert', 1],
+                iprod: ['\\left\\langle #1 \\right\\rangle', 1],
+                vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
+                mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
+                set: ['\\mathcal{#1}', 1],
+                func: ['\\mathrm{#1}', 1],
+                trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
+                matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
+                vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
+                of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
+                diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
+                pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
+
+                vc: ['\\mathbf{#1}', 1],
+                abs: ['\\lvert#1\\rvert', 1],
+                norm: ['\\lVert#1\\rVert', 1],
+                det: ['\\lvert#1\\rvert', 1],
+                qt: ['\\hat{\\vc {#1}}', 1],
+                mt: ['\\boldsymbol{#1}', 1],
+                pt: ['\\boldsymbol{#1}', 1],
+                textcolor: ['\\color{#1}', 1]
+              }
+          }
+          });
+        </script>
+        <script src="$decker-support-dir$/mathjax/MathJax.js?config=TeX-AMS_SVG"></script>
+
         <link rel="stylesheet" href="$decker-support-dir$/page.css">
         <script src="$decker-support-dir$/page.js"></script>
         
