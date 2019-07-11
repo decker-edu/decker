@@ -13,7 +13,7 @@ import System.Process
 
 chromeOptions :: FilePath -> FilePath -> [String]
 chromeOptions src out =
-  ["--headless", "--disable-gpu", pdfOption out, modifySrc src]
+  ["--headless", "--virtual-time-budget=5000", "--disable-gpu", pdfOption out, modifySrc src]
   where
     modifySrc path = path ++ "?print-pdf#/"
     pdfOption path = "--print-to-pdf=" ++ path
