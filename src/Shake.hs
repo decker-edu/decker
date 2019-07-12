@@ -36,6 +36,7 @@ module Shake
 import Common
 import CompileTime
 import Exception
+import Git
 import Glob
 import Meta
 import Project
@@ -219,9 +220,9 @@ getSupportDir meta out defaultPath = do
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
   context <- actionContext
-  branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
-  commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
-  gitUrl <- liftIO $ gitT ["remote", "get-url", "--push", "origin"]
+  branch <- liftIO $ textFromMaybe <$> gitBranch
+  commit <- liftIO $ textFromMaybe <$> gitRevision
+  gitUrl <- liftIO $ textFromMaybe <$> gitOriginUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
   let title = metaP pandoc "title"
@@ -255,16 +256,16 @@ writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
     headers (Header 1 (id@(_:_), _, _) text) = [(id, stringify text)]
     headers _ = []
 
-gitT args = T.strip . T.pack . fromMaybe "<empty>" <$> git args
+textFromMaybe = T.strip . T.pack . fromMaybe "<empty>"
 
 metaP p k = T.strip $ T.pack $ stringify (p ^? meta k . _MetaInlines)
 
 writeSketchPadIndex :: FilePath -> [FilePath] -> Action ()
 writeSketchPadIndex out indexFiles = do
   context <- actionContext
-  branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
-  commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
-  gitUrl <- liftIO $ gitT ["remote", "get-url", "--push", "origin"]
+  branch <- liftIO $ textFromMaybe <$> gitBranch
+  commit <- liftIO $ textFromMaybe <$> gitRevision
+  gitUrl <- liftIO $ textFromMaybe <$> gitOriginUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
   decks <-

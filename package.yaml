@@ -50,6 +50,7 @@ dependencies:
   - filepath
   - fsnotify
   - Glob
+  - git
   - groom
   - hashable
   - highlighting-kate

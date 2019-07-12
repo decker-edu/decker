@@ -5,15 +5,15 @@ history: true
 
 # Overview
 
-## Command line deck
+## [Command line deck](./02-command-line-deck.html)
 
 How to use `decker` on the command line.
 
-## Header deck
+## [Header deck](./03-header-deck.html)
 
 An overview of the possible configuration options that can be included in the header of the `*-deck.md` markdown files.
 
-## Example deck
+## [Example deck](./04-example-deck.html)
 
 An extensive overview of the possibilities of designing slide decks offered by `decker`.
 
@@ -21,15 +21,15 @@ An extensive overview of the possibilities of designing slide decks offered by `
 
 #
 
-## Quiz deck
+## [Quiz deck](./05-quiz-deck.html)
 
 How to create simple quizzes with different question types for a self-learning scenario.
 
-## Survey deck
+## [Survey deck](./06-survey-deck.html)
 
 How to include a student response system/clicker quiz.
 
-## Chart deck
+## [Chart deck](./07-chart-deck.html)
 
 How to include charts using the reveal.js chart plugin.
 
