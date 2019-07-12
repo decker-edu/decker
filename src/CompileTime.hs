@@ -14,10 +14,10 @@ import System.Exit
 import System.Process
 
 lookupGitBranch :: Q Exp
-lookupGitBranch = stringE . strip . fromMaybe "" =<< runIO gitBranch
+lookupGitBranch = stringE . strip . fromMaybe "none" =<< runIO gitBranch
 
 lookupGitCommitId :: Q Exp
-lookupGitCommitId = stringE . strip . fromMaybe "" =<< runIO gitRevision
+lookupGitCommitId = stringE . strip . fromMaybe "none" =<< runIO gitRevision
 
 lookupGitTag :: Q Exp
-lookupGitTag = stringE . strip . fromMaybe "" =<< runIO gitRevisionTag
+lookupGitTag = stringE . strip . fromMaybe "none" =<< runIO gitRevisionTag
