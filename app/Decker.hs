@@ -1,4 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+module Decker where
+
 import Common
 import Exception
 import External

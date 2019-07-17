@@ -111,7 +111,7 @@ library:
 
 executables:
   decker:
-    main: Decker.hs
+    main: Decker
     source-dirs: app
     ghc-options:
       - -threaded

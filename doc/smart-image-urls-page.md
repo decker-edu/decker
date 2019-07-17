@@ -14,7 +14,7 @@ write-back:
 There are currently a few different ways Decker extends the capabilities of
 Pandoc and Reveal.js with respect to image and media handling. This document
 proposes a URI based mechanism that would unify macros, image and media handling
-utilizing Pandocs representation of Markdowns image markup.
+utilizing Pandoc's representation of Markdown's image markup.
 
 Markdown uses image markup (`![]()`) to specify embedding of images in standard
 browser supported formats. Decker controls the precise semantics of image tags
@@ -36,34 +36,57 @@ Inline
 
 :   The image tag is adjacent to other inline elements in a non-header block.
 
-    ``` {.markdown}
+    ``` {.txt}
     some text ![](folder/image.png) some text.
     ```
 
     The image is meant to be rendered *inline*, meaning as part of the line the
     tag is embedded in. The image is scaled to fit the line height by default.
+    No caption is rendered.
 
-Paragraph
+Paragraph (Top-Level)
 
 :   The image tag is the sole inline element within a paragraph.
 
-    ``` {.markdown data-noescape="1"}
-    A very short single sentence paragraph.
+    ``` {.txt}
+    A short single sentence paragraph.
 
-    <mark>![Very funny video.](/folder/video.mp4)</mark>
+    ![funny video.](/folder/video.mp4)
 
-    Another very short single sentence paragraph.
+    Another short single sentence paragraph.
     ```
 
-    if the image ALT-text is not empty, the image is wrapped in a figure element
+    If the image ALT-text is not empty, the image is wrapped in a figure element
     and the text is used as an image caption. The image is rendered like a block
     element and scaled to fit the available width to 100%.
+
+    A top-level paragraph is located directly below slide level.
+
+List
+
+:   An unordered list where each list entry is exactly one image.
+
+    ``` {.txt}
+    A short single sentence paragraph.
+
+    - ![Image caption](/folder/image.png)
+    - ![Image caption](/folder/image.png)
+    - ![Image caption](/folder/image.png)
+
+    Another short single sentence paragraph.
+    ```
+
+    The images are layed out in a row such that the entire row spans 100% of the
+    available width. All images are scaled to the same height. If exactly one of
+    the images has a non-empty ALT-text, that text is used as a figure caption
+    for the entire row. If more than one image has ALT-text, each image gets its
+    own caption.
 
 Header
 
 :   The image tag occurs in a header 1 block title (slide title)
 
-    ``` {.markdown}
+    ``` {.txt}
     # Slide with background image ![](../image.png)
     ```
 
@@ -84,24 +107,24 @@ construction of the corresponding HTML code.
     `/` are resolved relative to the decker projects root folder. To provide a
     URI relative to the file system root a `file:` URI is used.
 
-    ``` {.markdown}
+    ``` {.txt}
     # Slide with background video ![](../movie.mp4)
     ```
 
-    Can be used in *Inline*, *Paragraph* and *Header* contexts.
+    Can be used in *Inline*, *Paragraph*, *List* and *Header* contexts.
 
 `file:`
 
 :   `file` URIs are resolved against the local file system. URIs with a leading
     `/` are resolved relative to the file system root.
 
-    ``` {.markdown}
-    A very short single sentence paragraph.
+    ``` {.txt}
+    A short single sentence paragraph.
 
     ![](file:/usr/local/share/decker/marketing/video.mp4)
     ```
 
-    Can be used in *Inline*, *Paragraph* and *Header* contexts.
+    Can be used in *Inline*, *Paragraph*, *List* and *Header* contexts.
 
 `http:` , `https:` , `ftp:` , `ftps`: , `gopher:`, etc.
 
@@ -111,11 +134,11 @@ construction of the corresponding HTML code.
     during compilation and cached locally. This would allow the generated slide
     decks that contain remote references to be presented offline.)
 
-    ``` {.markdown}
+    ``` {.txt}
     # Slide with background video ![](https://media.server/movie.mp4)
     ```
 
-    Can be used in *Inline*, *Paragraph* and *Header* contexts.
+    Can be used in *Inline*, *Paragraph*, *List* and *Header* contexts.
 
 `include:`
 
@@ -124,30 +147,29 @@ construction of the corresponding HTML code.
     to the decker projects root folder. The retrieved plain text resource is
     insert into the markdown source replacing the entire image tag.
 
-    ``` {.markdown}
-    A very short single sentence paragraph.
+    ``` {.txt}
+    A short single sentence paragraph.
 
     ![](include:/common/disclaimer.md)
 
-    Another very short single sentence paragraph.
+    Another short single sentence paragraph.
 
     ![](include:/common/agb.md#24-30)
     ![](include:/common/agb.md#snippet1)
     ```
 
-    `include:` URIs are only valid in the *Paragraph* context.
+    `include:` URIs are only valid in the *Top-Level Paragraph* context.
 
 `youtube:`, `vimeo:`, `twitch:`, `veer:`, etc.
 
 :   Image tags with streaming service schemes are replaced with appropriate
-    embedded HTML elements (mostly IFRAMEs probably) that display the referenced
-    content.
+    embedded HTML elements that display the referenced content.
 
-    ``` {.markdown}
+    ``` {.txt}
     # Slide with background video ![](youtube:lMSuGoYcT3s)
     ```
 
-    Can be used in *Paragraph* and *Header* contexts.
+    Can be used in *Paragraph*, *List* and *Header* contexts.
 
 `fas:` , `fab:` , `meta:` , etc.
 
@@ -156,47 +178,56 @@ construction of the corresponding HTML code.
     as parameters for the macro. This is basically a generalization of the
     streaming schemes presented above.
 
-    ``` {.markdown}
+    ``` {.txt}
     The Font Awesome ![](fas:ghost) icon represents a ghost.
 
     This document was compiled with the `history` options set to ![](meta:history).
     ```
 
-    Can be used in *Inline*, *Paragraph* and *Header* contexts.
+    Can be used in *Inline*, *Paragraph*, *List* and *Header* contexts.
 
 `render:`
 
 :   The render scheme resolves the given path against the local file system.
     URIs with a leading `/` are resolved relative to the decker projects root
-    folder root. The content of the
+    folder root. The contents of the file is rendered with whatever renderer the
+    file extension suggests. The result is embedded as an image following the
+    usual mechanisms. The image format can be controlled from the query string
+    of the URL.
 
-    ``` {.markdown}
-    A very short single sentence paragraph.
+    ``` {.txt}
+    A short single sentence paragraph.
 
     ![](render:/folder/diagram.dot?format=png)
 
-    Another very short single sentence paragraph.
+    Another short single sentence paragraph.
 
     ![](render:/folder/diagram.dot?format=svg)
     ```
 
+    Can be used in *Inline*, *Paragraph*, *List* and *Header* contexts.
+
 `code:`
 
 :   Basically like `include:` but the included text is set verbatim inside a
-    code block with syntax highlighting.
+    code block with syntax highlighting. The language is deduced from the file
+    extension. It can be overridden in the query string.
 
-    ``` {.markdown}
-    A very short single sentence paragraph.
+    The fragment string can be used to select a specific portion of the source
+    file either by line number or by named snippet (via markers in the file).
 
-    ![](code:/src/Filter.hs)
+    ``` {.txt}
+    A short single sentence paragraph.
 
-    Another very short single sentence paragraph.
+    ![](code:/src/Filter.hs?lang=haskell)
+
+    Another short single sentence paragraph.
 
     ![](code:/src/Filter.hs#21-24)
     ![](code:/src/Filter.hs#meta-macro-definition)
     ```
 
-## Image Tag Path Extension
+## Image Tag File Path Extension
 
 `.jpg`, `.png`
 

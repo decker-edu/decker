@@ -31,6 +31,7 @@ module Shake
   , writeDeckIndex
   , writeSketchPadIndex
   , withShakeLock
+  , waitForChange
   ) where
 
 import Common
@@ -44,7 +45,6 @@ import Sketch
 import System.Decker.OS
 import Text.Pandoc.Lens as P
 
-import qualified Network.URI as U
 import Control.Concurrent
 import Control.Exception
 import Control.Lens
@@ -80,6 +80,7 @@ import Development.Shake as Shake
   , shakeOptions
   , withResource
   )
+import qualified Network.URI as U
 import System.Directory as Dir
 import qualified System.FSNotify as Notify
 import System.FilePath
@@ -395,7 +396,7 @@ allPdfA = mapTargets [_decksPdf, _pagesPdf, _handoutsPdf]
 
 withShakeLock :: Action a -> Action a
 withShakeLock perform = do
-  r <- (_publicResource . _state) <$> actionContext
+  r <- _publicResource . _state <$> actionContext
   withResource r 1 perform
 
 -- Runs the built-in server on the given directory, if it is not already
@@ -436,4 +437,3 @@ calcSource targetSuffix srcSuffix target = do
           target
   need [src]
   return src
-
