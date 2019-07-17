@@ -70,6 +70,13 @@ body {
           margin: space(1 0);
         }
 
+        // paragraphs inside of lists don't need such a large margin
+        li{
+          p{
+            margin: 0em;
+          }
+        }
+
         /////////////////////////////////////////////
         // Text align
         /////////////////////////////////////////////
@@ -101,9 +108,9 @@ body {
         h1 {
           font-size: 1.6em;
           margin: space(0 0 0.5 0);
-          code {
-            font-size: 116%;
-          }
+          // code {
+            // font-size: 116%;
+          // }
         }
 
         .rightcolumn {
@@ -116,9 +123,9 @@ body {
           font-weight: 500;
           font-size: 1.2em;
           margin-bottom: space(0.1);
-          code {
-            font-size: 116%;
-          }
+          // code {
+            // font-size: 116%;
+          // }
         }
 
         &.white,
@@ -224,6 +231,9 @@ body {
           display: inline-block;
           text-align: left;
           margin-left: 1.1em;
+          // lists always fill 100% of the space of their parent element.
+          // TODO: does this have consequences?
+          width: 100%;
         }
 
         ol {
