@@ -156,19 +156,20 @@ getTemplate meta disp = do
     else liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
 
 -- | Write Pandoc in native format right next to the output file
-writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
-writeNativeWhileDebugging out mod doc@(Pandoc meta body) =
+writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action Pandoc
+writeNativeWhileDebugging out mod doc@(Pandoc meta body) = do
   liftIO $
-  runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
-  T.writeFile (out -<.> mod <.> ".hs")
+    runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
+    T.writeFile (out -<.> mod <.> ".hs")
+  return doc
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: FilePath -> FilePath -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile out index = do
-  let disp = Disposition Deck Html
   putCurrentDocument out
   supportDir <- _support <$> projectDirsA
   supportDirRel <- getRelativeSupportDir (takeDirectory out)
+  let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
   templateSupportDir <- getSupportDir meta out supportDirRel
@@ -190,11 +191,9 @@ markdownToHtmlDeck markdownFile out index = do
               ]
           , writerCiteMethod = Citeproc
           }
-  let generateIds = fromMaybe False $ lookupMetaBool meta "generate-ids"
-  when generateIds $ 
-    writeDeckIndex markdownFile index pandoc
-  -- writeNativeWhileDebugging out "filtered" pandoc
-  writePandocFile "revealjs" options out pandoc
+  writeNativeWhileDebugging out "filtered" pandoc >>=
+    writeDeckIndex markdownFile index >>=
+    writePandocFile "revealjs" options out
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -378,33 +377,31 @@ readMetaMarkdown markdownFile = do
   need [markdownFile]
   -- read external meta data for this directory
   externalMeta <-
-    liftIO $
-    toPandocMeta <$> aggregateMetaData projectDir (takeDirectory markdownFile)
-  markdown <- liftIO $ T.readFile markdownFile
-  let filePandoc@(Pandoc fileMeta fileBlocks) = readMarkdownOrThrow pandocReaderOpts markdown
-  let combinedMeta = mergePandocMeta fileMeta externalMeta
-  let generateIds = fromMaybe False $ lookupMetaBool combinedMeta "generate-ids"
-  Pandoc fileMeta fileBlocks <- maybeGenerateIds generateIds filePandoc
+    liftIO $ aggregateMetaData projectDir (takeDirectory markdownFile)
+  -- extract embedded meta data from the document
+  markdown <- liftIO $ E.decodeUtf8 <$> B.readFile markdownFile
+  let pandoc = readMarkdownOrThrow pandocReaderOpts markdown
+  Pandoc fileMeta fileBlocks <- liftIO $ provideSlideIds pandoc
+  let documentMeta = MetaMap $ unMeta fileMeta
   -- combine the meta data with preference on the embedded data
+  let combinedMeta = mergePandocMeta documentMeta (toPandocMeta externalMeta)
   let mustacheMeta = toMustacheMeta combinedMeta
    -- use mustache to substitute
   let substituted = substituteMetaData markdown mustacheMeta
   -- read markdown with substitutions again
-  let Pandoc _ substitudedBlocks =
-        readMarkdownOrThrow pandocReaderOpts substituted
-  versionCheck combinedMeta
-  let writeBack =
-        fromMaybe False $ lookupMetaBool combinedMeta "write-back.enable"
-  when (generateIds || writeBack) $
-    liftIO $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
-  mapResources
-    (urlToFilePathIfLocal (takeDirectory markdownFile))
-    (Pandoc combinedMeta substitudedBlocks)
-  where
-    maybeGenerateIds doit pandoc =
-      if doit
-        then liftIO $ provideSlideIds pandoc
-        else return pandoc
+  let Pandoc _ blocks = readMarkdownOrThrow pandocReaderOpts substituted
+  case combinedMeta of
+    (MetaMap m) -> do
+      versionCheck (Meta m)
+      case lookupMeta "generate-ids" (Meta m) of
+        Just (MetaBool True) ->
+          liftIO $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
+          -- markForWriteBack markdownFile (Pandoc fileMeta fileBlocks)
+        _ -> pure ()
+      mapResources
+        (urlToFilePathIfLocal (takeDirectory markdownFile))
+        (Pandoc (Meta m) blocks)
+    _ -> throw $ PandocException "Meta format conversion failed."
 
 readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
 readMarkdownOrThrow opts markdown =
