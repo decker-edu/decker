@@ -9,6 +9,7 @@ module Sketch
 
 import Common
 import Markdown
+import Meta
 import Output
 import Slide
 import Text.Pandoc.Lens
@@ -50,21 +51,13 @@ randomAlpha = getStdRandom (randomR ('a', 'z'))
 -- | Writes a pandoc document atoimically to a markdown file. It uses a modified
 -- Markdown writer that produces more appropriately formatted documents.
 writeToMarkdownFile :: FilePath -> Pandoc -> IO ()
-writeToMarkdownFile filepath pandoc = do
+writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   template <- getResourceString $ "template" </> "deck.md"
-  let columns =
-        fromMaybe 80 $ readMaybe $ stringify $ pandoc ^? meta "write-back" .
-        _MetaMap .
-        at "line-columns" .
-        _Just .
-        _MetaInlines
+  let columns = fromMaybe 80 $ lookupMetaInt pmeta "write-back.line-columns"
+  let wrap = fromMaybe "" $ lookupMetaString pmeta "write-back.line-wrap"
   let wrapOpt "none" = WrapNone
       wrapOpt "preserve" = WrapPreserve
       wrapOpt _ = WrapAuto
-  let wrap =
-        stringify $ pandoc ^? meta "write-back" . _MetaMap . at "line-wrap" .
-        _Just .
-        _MetaInlines
   let extensions =
         (disableExtension Ext_simple_tables .
          disableExtension Ext_multiline_tables .
@@ -110,5 +103,4 @@ provideSlideIdIO (Slide Nothing body) = do
   return $ Slide (Just $ Header 1 (sid, [], []) []) body
 provideSlideIdIO slide@(Slide (Just (Header 1 (sid, c, kv) i)) body)
   -- print (Slide (Just $ Header 1 (sid, c, kv) i) body)
- = do
-  return slide
+ = return slide

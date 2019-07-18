@@ -1,3 +1,4 @@
+import MetaTest
 import SketchTests
 import Test.Hspec
 import WatchTests
@@ -29,8 +30,9 @@ main = do
   hspec $
   --
    do
-    watchTests
+    -- watchTests
     sketchTests
+    metaTests
     describe "makeRelativeTo" $
       it "calculates the path of file relative to dir. Includes '..'" $ do
         makeRelativeTo "" "img.png" `shouldBe` "img.png"

@@ -217,7 +217,7 @@ getSupportDir meta out defaultPath = do
           Nothing -> defaultPath
   return $ urlPath dirPath
 
-writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
+writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action ()
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
   context <- actionContext
   branch <- liftIO $ textFromMaybe <$> gitBranch
@@ -251,7 +251,6 @@ writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
           ]
   liftIO $ Yaml.encodeFile out yaml
   liftIO $ Json.encodeFile (out -<.> "json") yaml
-  return pandoc
   where
     headers (Header 1 (id@(_:_), _, _) text) = [(id, stringify text)]
     headers _ = []
