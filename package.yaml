@@ -51,6 +51,7 @@ dependencies:
   - filepath
   - fsnotify
   - Glob
+  - git
   - groom
   - hashable
   - highlighting-kate
@@ -75,6 +76,7 @@ dependencies:
   - process
   - pureMD5
   - random
+  - raw-strings-qq
   - regex-tdfa
   - scientific
   - shake
@@ -95,6 +97,7 @@ dependencies:
   - wreq
   - yaml
   - zip
+  - listsafe
 
 library:
   source-dirs: src
@@ -143,6 +146,7 @@ default-extensions:
   - MultiWayIf
   - NoMonomorphismRestriction
   - OverloadedStrings
+  - QuasiQuotes
   - TemplateHaskell
   - TupleSections
 

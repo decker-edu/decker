@@ -37,6 +37,7 @@ module Shake
 import Common
 import CompileTime
 import Exception
+import Git
 import Glob
 import Meta
 import Project
@@ -229,11 +230,18 @@ getSupportDir meta out defaultPath = do
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
+  let generateIds = fromMaybe False $ lookupMetaBool meta "generate-ids"
+  if not generateIds
+    then return pandoc
+    else writeDeckIndex' markdownFile out pandoc
+
+writeDeckIndex' :: FilePath -> FilePath -> Pandoc -> Action Pandoc
+writeDeckIndex' markdownFile out pandoc@(Pandoc meta _) = do
   putNormal $ "# write deck index (" ++ out ++ ")"
   context <- actionContext
-  branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
-  commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
-  gitUrl <- liftIO $ gitT ["remote", "get-url", "--push", "origin"]
+  branch <- liftIO $ textFromMaybe <$> gitBranch
+  commit <- liftIO $ textFromMaybe <$> gitRevision
+  gitUrl <- liftIO $ textFromMaybe <$> gitOriginUrl
   let repoId = sketchPadId gitUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
@@ -280,7 +288,7 @@ writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
          addMetaField "sketch-pad-repository-id" (T.unpack repoId) meta)
         blocks
 
-gitT args = T.strip . T.pack . fromMaybe "<empty>" <$> git args
+textFromMaybe = T.strip . T.pack . fromMaybe "<empty>"
 
 metaP p k = T.strip $ T.pack $ stringify (p ^? meta k . _MetaInlines)
 
@@ -288,9 +296,9 @@ writeSketchPadIndex :: FilePath -> [FilePath] -> Action ()
 writeSketchPadIndex out indexFiles = do
   putNormal $ "# write sketch-pad index (" ++ out ++ ")"
   context <- actionContext
-  branch <- liftIO $ gitT ["rev-parse", "--abbrev-ref", "HEAD"]
-  commit <- liftIO $ gitT ["rev-parse", "--short", "HEAD"]
-  gitUrl <- liftIO $ gitT ["remote", "get-url", "--push", "origin"]
+  branch <- liftIO $ textFromMaybe <$> gitBranch
+  commit <- liftIO $ textFromMaybe <$> gitRevision
+  gitUrl <- liftIO $ textFromMaybe <$> gitOriginUrl
   let repoId = sketchPadId gitUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public

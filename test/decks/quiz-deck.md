@@ -3,41 +3,41 @@
 
 # Matching Questions
 
-[match] A
+{match} A
 : drag to A
 
-[match] Haskell 
+{match} Haskell 
 : ![](include/06-metal.png)
 
-[match] B
+{match} B
 : drag to B
 
-[match] decker
+{match} decker
 : [decker](http://go.uniwue.de/decker)
 
-[match] C
+{match} C
 : $\Leftarrow$ C
 
 # Freetext Questions {layout="columns"}
 
 ## {.left} 
-* [?] $2*2=~?$ 
-* [!] 4
+* {?} $2*2=~?$ 
+* {!} 4
 
 ##  {.question}
 
-* [?] The Answer to the Ultimate Question of Life, the Universe, and Everything is ...?
-* [!] 42
+* {?} The Answer to the Ultimate Question of Life, the Universe, and Everything is ...?
+* {!} 42
 
 ## {.right}
 
-* [?] Is this a question? 
-* [!] yes
+* {?} Is this a question? 
+* {!} yes
 
 ##
 
-* [?] Name the capital of Germany
-* [!] Berlin 
+* {?} Name the capital of Germany
+* {!} Berlin 
 
 # Multiple Choice Questions
 

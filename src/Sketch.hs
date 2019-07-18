@@ -51,13 +51,13 @@ randomAlpha = getStdRandom (randomR ('a', 'z'))
 -- | Writes a pandoc document atoimically to a markdown file. It uses a modified
 -- Markdown writer that produces more appropriately formatted documents.
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
-writeToMarkdownFile filepath pandoc@(Pandoc meta _) = do
+writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   template <- liftIO $ getResourceString $ "template" </> "deck.md"
-  let columns = lookupInt "write-back.line-columns" 80 meta
+  let columns = fromMaybe 80 $ lookupMetaInt pmeta "write-back.line-columns"
+  let wrap = fromMaybe "" $ lookupMetaString pmeta "write-back.line-wrap"
   let wrapOpt "none" = WrapNone
       wrapOpt "preserve" = WrapPreserve
       wrapOpt _ = WrapAuto
-  let wrap = lookupString "write-back.line-wrap" "auto" meta
   let extensions =
         (disableExtension Ext_simple_tables .
          disableExtension Ext_multiline_tables .
@@ -74,13 +74,8 @@ writeToMarkdownFile filepath pandoc@(Pandoc meta _) = do
   markdown <-
     liftIO $ runIO (Markdown.writeMarkdown options pandoc) >>= handleError
   fileContent <- liftIO $ T.readFile filepath
-  when (markdown /= fileContent) $ do
-    putNormal $ "# write back (" ++ filepath ++ ")"
-    withTempFile
-      (\tmp ->
-         liftIO $ do
-           T.writeFile tmp markdown
-           renameFile tmp filepath)
+  when (markdown /= fileContent) $
+    withTempFile (\tmp -> liftIO $ T.writeFile tmp markdown >> renameFile tmp filepath)
 
 provideSlideIds :: Pandoc -> IO Pandoc
 provideSlideIds (Pandoc meta body) = do
