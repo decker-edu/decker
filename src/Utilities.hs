@@ -158,18 +158,18 @@ getTemplate meta disp = do
 
 -- | Write Pandoc in native format right next to the output file
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
-writeNativeWhileDebugging out mod doc@(Pandoc meta body) =
+writeNativeWhileDebugging out mod doc@(Pandoc meta body) = do
   liftIO $
-  runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
-  T.writeFile (out -<.> mod <.> ".hs")
+    runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
+    T.writeFile (out -<.> mod <.> ".hs")
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: FilePath -> FilePath -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile out index = do
-  let disp = Disposition Deck Html
   putCurrentDocument out
   supportDir <- _support <$> projectDirsA
   supportDirRel <- getRelativeSupportDir (takeDirectory out)
+  let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate meta disp
   templateSupportDir <- getSupportDir meta out supportDirRel
@@ -390,6 +390,7 @@ readMetaMarkdown markdownFile = do
   let generateIds = lookupBool "generate-ids" False combinedMeta
   Pandoc fileMeta fileBlocks <- maybeGenerateIds generateIds filePandoc
   -- combine the meta data with preference on the embedded data
+  let combinedMeta = mergePandocMeta fileMeta externalMeta
   let mustacheMeta = toMustacheMeta combinedMeta
    -- use mustache to substitute
   let substituted = substituteMetaData markdown mustacheMeta

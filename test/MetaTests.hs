@@ -1,4 +1,4 @@
-module MetaTest
+module MetaTests
   ( metaTests
   ) where
 

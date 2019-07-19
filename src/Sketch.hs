@@ -8,9 +8,9 @@ module Sketch
 
 import Common
 import Markdown
-import Meta
 import Output
 import Slide
+import Meta
 import Text.Pandoc.Lens
 
 import Control.Lens
@@ -58,6 +58,10 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   let wrapOpt "none" = WrapNone
       wrapOpt "preserve" = WrapPreserve
       wrapOpt _ = WrapAuto
+  let wrap =
+        stringify $ pandoc ^? meta "write-back" . _MetaMap . at "line-wrap" .
+        _Just .
+        _MetaInlines
   let extensions =
         (disableExtension Ext_simple_tables .
          disableExtension Ext_multiline_tables .

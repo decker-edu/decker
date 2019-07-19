@@ -34,7 +34,6 @@ import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
-import Debug.Trace
 import Prelude hiding ((!!))
 import System.FilePath
 import System.FilePath.Glob
@@ -53,7 +52,7 @@ joinMeta _ _ = throw $ YamlException "Can only join YAML objects."
 -- | Converts pandoc meta data to mustache meta data. Inlines and blocks are
 -- rendered to markdown strings with default options.
 toMustacheMeta :: Meta -> MT.Value
-toMustacheMeta (Meta map) = toMustacheMeta' (MetaMap map)
+toMustacheMeta (Meta mmap) = toMustacheMeta' (MetaMap mmap)
 
 toMustacheMeta' :: MetaValue -> MT.Value
 toMustacheMeta' (MetaMap mmap) =
@@ -73,12 +72,7 @@ writeMarkdownText options pandoc =
     Left err -> throw $ PandocException $ show err
 
 mergePandocMeta :: Meta -> Meta -> Meta
-mergePandocMeta (Meta map1) (Meta map2) = Meta $ Map.union map1 map2
-
-mergePandocMeta' :: MetaValue -> MetaValue -> MetaValue
-mergePandocMeta' (MetaMap meta1) (MetaMap meta2) =
-  MetaMap $ Map.union meta1 meta2
-mergePandocMeta' meta1 _ = meta1
+mergePandocMeta (Meta meta1) (Meta meta2) = Meta $ Map.union meta1 meta2
 
 -- | Converts YAML meta data to pandoc meta data.
 toPandocMeta :: Y.Value -> Meta

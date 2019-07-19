@@ -1,7 +1,7 @@
-import MetaTest
 import SketchTests
 import Test.Hspec
 import WatchTests
+import MetaTests
 import IncludeTests
 
 import Control.Lens ((^.))
