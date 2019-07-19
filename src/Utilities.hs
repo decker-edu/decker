@@ -147,7 +147,7 @@ getTemplate :: Meta -> Disposition -> Action String
 getTemplate meta disp = do
   let templateOverridePath =
         case templateFromMeta meta of
-          Just template -> Just $ template </> (getTemplateFileName disp)
+          Just template -> Just $ template </> getTemplateFileName disp
           Nothing -> Nothing
   if isJust templateOverridePath
     then do
@@ -192,7 +192,7 @@ markdownToHtmlDeck markdownFile out index = do
           , writerCiteMethod = Citeproc
           }
   writeDeckIndex markdownFile index pandoc >>=
-    writePandocFile "revealjs" options out 
+    writePandocFile "revealjs" options out
   writeNativeWhileDebugging out "filtered" pandoc
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
@@ -204,8 +204,7 @@ writePandocFile fmt options out pandoc =
   case getWriter fmt of
     Right (TextWriter writePandoc, _) ->
       runIOQuietly (writePandoc options pandoc) >>= handleError >>=
-      B.writeFile out .
-      E.encodeUtf8
+      B.writeFile out . E.encodeUtf8
     Right (ByteStringWriter writePandoc, _) ->
       runIOQuietly (writePandoc options pandoc) >>= handleError >>=
       LB.writeFile out
@@ -214,22 +213,21 @@ writePandocFile fmt options out pandoc =
 -- TODO: Move to Common? since much of the version checking is done there (Meta is from Pandoc)
 versionCheck :: Meta -> Action ()
 versionCheck meta =
-  unless isDevelopmentVersion $
-  case lookupMeta "decker-version" meta of
-    Just (MetaInlines version) -> check $ stringify version
-    Just (MetaString version) -> check version
-    _ ->
-      putNormal $ "  - Document version unspecified. This is decker version " ++
-      deckerVersion ++
-      "."
+  unless isDevelopmentVersion $ do
+    let version = lookupMetaString meta "decker-version"
+    case version of
+      Just version -> check version
+      _ ->
+        putNormal $
+        "  - Document version unspecified. This is decker version " ++
+        deckerVersion ++ "."
   where
     check version =
-      when (List.trim version /= List.trim deckerVersion) $ putNormal $
+      when (List.trim version /= List.trim deckerVersion) $
+      putNormal $
       "  - Document version " ++
       version ++
-      ". This is decker version " ++
-      deckerVersion ++
-      ". Expect problems."
+      ". This is decker version " ++ deckerVersion ++ ". Expect problems."
 
 -- | Reads a markdownfile, expands the included files, and substitutes mustache
 -- template variables and calls need.
@@ -274,7 +272,8 @@ provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
   base <- gets basePath
   method <- gets provisioning
-  lift $ mapMetaResources (provisionMetaResource base method) pandoc >>=
+  lift $
+    mapMetaResources (provisionMetaResource base method) pandoc >>=
     mapResources (provisionResource base method)
 
 putCurrentDocument :: FilePath -> Action ()
@@ -298,16 +297,13 @@ markdownToHtmlPage markdownFile out = do
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax
-                (urlPath $ supportDir </> "node_modules" </> "mathjax" </>
+                (urlPath $
+                 supportDir </> "node_modules" </> "mathjax" </>
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
-          , writerTableOfContents =
-              fromMaybe False $ pandoc ^? meta "show-toc" . _MetaBool
-          , writerTOCDepth =
-              fromMaybe 1 $ readMaybe $ fromMaybe "1" $ pandoc ^?
-              meta "toc-depth" .
-              _MetaString
+          , writerTableOfContents = lookupBool "show-toc" False docMeta
+          , writerTOCDepth = lookupInt "toc-depth" 1 docMeta
           }
   writePandocFile "html5" options out pandoc
 
@@ -351,16 +347,13 @@ markdownToHtmlHandout markdownFile out = do
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax
-                (urlPath $ supportDir </> "node_modules" </> "mathjax" </>
+                (urlPath $
+                 supportDir </> "node_modules" </> "mathjax" </>
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
-          , writerTableOfContents =
-              fromMaybe False $ pandoc ^? meta "show-toc" . _MetaBool
-          , writerTOCDepth =
-              fromMaybe 1 $ readMaybe $ fromMaybe "1" $ pandoc ^?
-              meta "toc-depth" .
-              _MetaString
+          , writerTableOfContents = lookupBool "show-toc" False docMeta
+          , writerTOCDepth = lookupInt "toc-depth" 1 docMeta
           }
   writePandocFile "html5" options out pandoc
 
@@ -391,9 +384,10 @@ readMetaMarkdown markdownFile = do
     liftIO $
     toPandocMeta <$> aggregateMetaData projectDir (takeDirectory markdownFile)
   markdown <- liftIO $ T.readFile markdownFile
-  let filePandoc@(Pandoc fileMeta fileBlocks) = readMarkdownOrThrow pandocReaderOpts markdown
+  let filePandoc@(Pandoc fileMeta fileBlocks) =
+        readMarkdownOrThrow pandocReaderOpts markdown
   let combinedMeta = mergePandocMeta fileMeta externalMeta
-  let generateIds = fromMaybe False $ lookupMetaBool combinedMeta "generate-ids"
+  let generateIds = lookupBool "generate-ids" False combinedMeta
   Pandoc fileMeta fileBlocks <- maybeGenerateIds generateIds filePandoc
   -- combine the meta data with preference on the embedded data
   let mustacheMeta = toMustacheMeta combinedMeta
@@ -403,8 +397,7 @@ readMetaMarkdown markdownFile = do
   let Pandoc _ substitudedBlocks =
         readMarkdownOrThrow pandocReaderOpts substituted
   versionCheck combinedMeta
-  let writeBack =
-        fromMaybe False $ lookupMetaBool combinedMeta "write-back.enable"
+  let writeBack = lookupBool "write-back.enable" False combinedMeta
   when (generateIds || writeBack) $
     writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
   mapResources
@@ -427,8 +420,8 @@ readMarkdownOrThrow opts markdown =
 -- include files.
 deckerPandocExtensions :: Extensions
 deckerPandocExtensions =
-  (disableExtension Ext_auto_identifiers . disableExtension Ext_simple_tables .
-   disableExtension Ext_multiline_tables)
+  (disableExtension Ext_auto_identifiers .
+   disableExtension Ext_simple_tables . disableExtension Ext_multiline_tables)
     pandocExtensions
 
 pandocReaderOpts :: ReaderOptions

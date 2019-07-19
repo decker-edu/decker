@@ -19,7 +19,7 @@ includeCode (Pandoc meta blocks) = do
 
 # Include just a range
 
-``` {.haskell include="/src/Filter.hs" label="Haskell" startLine="222" endLine="225"}
+``` {.haskell include="/src/Filter.hs" label="Haskell" startLine="220" endLine="223"}
 ```
 
 # Include a tagged snippet
@@ -28,8 +28,10 @@ includeCode (Pandoc meta blocks) = do
 
 ``` {.haskell}
 -- start snippet include-start-end
-emptyIsEnd :: Text -> Bool
-emptyIsEnd = isSnippetTag "8<|" ""
+isSnippetStart :: Text -> Text -> Bool
+isSnippetStart name line =
+  isSnippetTag "start snippet" name line ||
+  isSnippetTag "8<|" name line || isSnippetTag "8<" name line
 -- end snippet include-start-end
 ```
 
@@ -48,6 +50,7 @@ readIncluded :: Inclusion Text
 readIncluded = liftIO . Text.readFile =<< asks include
 -- >8
 ```
+
 
 ## Inclusion
 

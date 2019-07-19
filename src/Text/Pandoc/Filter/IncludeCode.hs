@@ -160,11 +160,12 @@ isSnippetTag tag name line =
 isUnnamedSnippetTag :: Text -> Text -> Bool
 isUnnamedSnippetTag tag line = tag `Text.isSuffixOf` Text.strip line
 
--- end snippet include-start-end
+-- start snippet include-start-end
 isSnippetStart :: Text -> Text -> Bool
 isSnippetStart name line =
   isSnippetTag "start snippet" name line ||
   isSnippetTag "8<|" name line || isSnippetTag "8<" name line
+-- end snippet include-start-end
 
 isSnippetEnd :: Text -> Bool -> Text -> Bool
 isSnippetEnd name emptyEnd line =

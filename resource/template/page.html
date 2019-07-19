@@ -1,149 +1,71 @@
 <!DOCTYPE html>
 <html$if(lang)$ lang="$lang$" $endif$$if(dir)$ dir="$dir$" $endif$>
 
-    <head>
-        <meta charset="utf-8">
-        <meta name="generator" content="pandoc">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"> $for(author-meta)$
-        <meta name="author" content="$author-meta$"> $endfor$ $if(date-meta)$
-        <meta name="dcterms.date" content="$date-meta$"> $endif$ $if(keywords)$
-        <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$"> $endif$
-        <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
-        <style type="text/css">
-            code {
-                white-space: pre;
-            }
-        </style>
-        $if(quotes)$
-        <style type="text/css">
-            q {
-                quotes: "“" "”" "‘" "’";
-            }
-        </style>
-        $endif$ $if(highlighting-css)$
-        <style type="text/css">
-            $highlighting-css$
-        </style>
-        $endif$
-        
-        <!-- MathJax config -->
-        <script type="text/x-mathjax-config">
-          MathJax.Hub.Config({
-          menuSettings: { zoom: "Double-Click" },
-          TeX: {
-              Macros: {
-                R: "{\\mathrm{{I}\\kern-.15em{R}}}",
-                laplace: "{\\Delta}",
-                grad: "{\\nabla}",
-                T: "^{\\mathsf{T}}",
+  <head>
+    <meta charset="utf-8">
+    <meta name="generator" content="pandoc">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"> $for(author-meta)$
+    <meta name="author" content="$author-meta$"> $endfor$ $if(date-meta)$
+    <meta name="dcterms.date" content="$date-meta$"> $endif$ $if(keywords)$
+    <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$"> $endif$
+    <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+    <style type="text/css">
+      code {
+        white-space: pre;
+      }
+    </style>
+    $if(quotes)$
+    <style type="text/css">
+      q {
+        quotes: "“""”""‘""’";
+      }
+    </style>
+    $endif$
+    $if(highlighting-css)$
+    <style type="text/css">
+      $highlighting-css$
+    </style>
+    $endif$
 
-                norm: ['\\left\\Vert #1 \\right\\Vert', 1],
-                iprod: ['\\left\\langle #1 \\right\\rangle', 1],
-                vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
-                mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
-                set: ['\\mathcal{#1}', 1],
-                func: ['\\mathrm{#1}', 1],
-                trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
-                matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
-                vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
-                of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
-                diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
-                pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
+    <link rel="stylesheet" href="$decker-support-dir$/handout.css">
+    <script src="$decker-support-dir$/handout.js"></script>
+    <!-- MathJax config -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+      menuSettings: { zoom: "Double-Click" },
+      TeX: {
+          Macros: {
+            R: "{\\mathrm{{I}\\kern-.15em{R}}}",
+            laplace: "{\\Delta}",
+            grad: "{\\nabla}",
+            T: "^{\\mathsf{T}}",
 
-                vc: ['\\mathbf{#1}', 1],
-                abs: ['\\lvert#1\\rvert', 1],
-                norm: ['\\lVert#1\\rVert', 1],
-                det: ['\\lvert#1\\rvert', 1],
-                qt: ['\\hat{\\vc {#1}}', 1],
-                mt: ['\\boldsymbol{#1}', 1],
-                pt: ['\\boldsymbol{#1}', 1],
-                textcolor: ['\\color{#1}', 1]
-              }
+            norm: ['\\left\\Vert #1 \\right\\Vert', 1],
+            iprod: ['\\left\\langle #1 \\right\\rangle', 1],
+            vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
+            mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
+            set: ['\\mathcal{#1}', 1],
+            func: ['\\mathrm{#1}', 1],
+            trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
+            matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
+            vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
+            of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
+            diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
+            pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
+
+            vc: ['\\mathbf{#1}', 1],
+            abs: ['\\lvert#1\\rvert', 1],
+            norm: ['\\lVert#1\\rVert', 1],
+            det: ['\\lvert#1\\rvert', 1],
+            qt: ['\\hat{\\vc {#1}}', 1],
+            mt: ['\\boldsymbol{#1}', 1],
+            pt: ['\\boldsymbol{#1}', 1],
+            textcolor: ['\\color{#1}', 1]
           }
-          });
-        </script>
-        <script src="$decker-support-dir$/mathjax/MathJax.js?config=TeX-AMS_SVG"></script>
-
-        <link rel="stylesheet" href="$decker-support-dir$/page.css">
-        <script src="$decker-support-dir$/page.js"></script>
-        
-        $for(css)$
-        <link rel="stylesheet" href="$css$"> 
-        $endfor$
-        
-        <style type="text/css">
-            .container {
-                max-width: 750px;
-                margin: 0 auto;
-            }
-
-            .container .content {
-                min-height: 750px;
-            }
-
-            .page-header small {
-                white-space: nowrap;
-            }
-
-            .page-header h1 {
-                font-size: 200%;
-            }
-
-            h1 {
-                font-size: 150%;
-            }
-
-            h2 {
-                font-size: 130%;
-            }
-
-            h3 {
-                font-size: 110%;
-            }
-
-            .container figure {
-                padding-left: 3em;
-                padding-right: 3em;
-            }
-
-            .container figure>img {
-                width: 100%;
-                border: 1pt solid gray;
-            }
-
-            .container figure>figcaption {
-                padding-top: 0.5em;
-                font-size: 90%;
-                text-align: center;
-            }
-
-            .container h6.post-date {
-                margin-top: 5px;
-                margin-bottom: 5px;
-            }
-
-            .container h2.post-title {
-                margin-top: 10px;
-            }
-
-            .container address {
-                color: #AAA;
-            }
-
-            .container address p.date {
-                float: right;
-            }
-
-            .container img {
-                width: 75%;
-                margin: 0px auto;
-            }
-
-            .container video {
-                width: 75%;
-                margin: 0px auto;
-            }
-        </style>
+      }
+      });
+    </script>
+    <script src="$decker-support-dir$/mathjax/MathJax.js?config=TeX-AMS_SVG"></script>
 
     <script>
       var socket = new WebSocket("ws://" + location.host + "/reload");
@@ -151,22 +73,19 @@
         window.location.reload(true);
       };
     </script>
-
-    $for(header-includes)$ 
-    $header-includes$ 
+    $for(header-includes)$
+    $header-includes$
     $endfor$
-
     $for(css)$
     <link rel="stylesheet" href="$css$">
     $endfor$
   </head>
 
   <body>
-    $for(include-before)$ 
-    $include-before$ 
+    $for(include-before)$
+    $include-before$
     $endfor$
-
-    <div class="container decker-page">
+    <div class="container decker-handout">
       $if(title)$
       <header>
         <div class="page-header">
@@ -181,7 +100,6 @@
         </div>
       </header>
       $endif$
-      
       <div class="row">
         <div class="col-lg-12">
           $if(toc)$
@@ -191,16 +109,16 @@
           <nav id="$idprefix$TOC">
             $toc$
           </nav>
-          $endif$ 
-          
+          $endif$
+
 <!-- body must not be indented or code blocks render badly -->
 <!-- The following line must be left aligned! -->
 $body$
 <!-- The previous line must be left aligned! -->
-          
-          $for(include-after)$ 
-          $include-after$ 
-          $endfor$ 
+
+          $for(include-after)$
+          $include-after$
+          $endfor$
           $if(author)$
           <hr>
           <address>

@@ -10,9 +10,11 @@ module Meta
   , lookupInt
   , lookupBool
   , lookupString
+  , lookupStringList
   , lookupMetaValue
   , lookupMetaBool
   , lookupMetaString
+  , lookupMetaStringList
   , lookupMetaInt
   , DeckerException(..)
   ) where
@@ -80,16 +82,17 @@ mergePandocMeta' meta1 _ = meta1
 
 -- | Converts YAML meta data to pandoc meta data.
 toPandocMeta :: Y.Value -> Meta
-toPandocMeta v@(Y.Object m) = 
+toPandocMeta v@(Y.Object m) =
   case toPandocMeta' v of
     (MetaMap map) -> Meta map
     _ -> Meta M.empty
-toPandocMeta _ = Meta M.empty 
-  
+toPandocMeta _ = Meta M.empty
+
 toPandocMeta' :: Y.Value -> MetaValue
 toPandocMeta' (Y.Object m) =
   MetaMap $ Map.fromList $ map (T.unpack *** toPandocMeta') $ H.toList m
-toPandocMeta' (Y.Array vector) = MetaList $ map toPandocMeta' $ Vec.toList vector
+toPandocMeta' (Y.Array vector) =
+  MetaList $ map toPandocMeta' $ Vec.toList vector
 toPandocMeta' (Y.String text) = MetaString $ T.unpack text
 toPandocMeta' (Y.Number scientific) = MetaString $ show scientific
 toPandocMeta' (Y.Bool bool) = MetaBool bool
@@ -155,7 +158,16 @@ lookupString key def meta =
     Just (MetaInlines inlines) -> stringify inlines
     _ -> def
 
+lookupStringList :: String -> [String] -> Meta -> [String]
+lookupStringList key def meta =
+  case lookupMetaValue key meta of
+    Just (MetaList list) -> mapMaybe metaToString list
+    _ -> def
+
 lookupMetaValue :: String -> Meta -> Maybe MetaValue
+lookupMetaValue = flip lookupMeta'
+
+{-- 
 lookupMetaValue key (Meta mm) = lookup path (MetaMap mm)
   where
     path = L.splitOn "." key
@@ -164,9 +176,9 @@ lookupMetaValue key (Meta mm) = lookup path (MetaMap mm)
       maybe Nothing (lookup rest) (Map.lookup first m)
     lookup (first:rest) _ = Nothing
     lookup [] value = Just value
+--}
 -- | Split a compound meta key at the dots and separate the array indexes.
-splitKey =
-  concatMap (L.split (L.keepDelimsL (L.oneOf "["))) . L.splitOn "."
+splitKey = concatMap (L.split (L.keepDelimsL (L.oneOf "["))) . L.splitOn "."
 
 -- | Extract the bracketed array index string.
 arrayIndex :: String -> Maybe String
@@ -181,6 +193,7 @@ lookupMeta' meta key = lookup' (splitKey key) (MetaMap (unMeta meta))
     lookup' (key:path) (MetaMap map) = M.lookup key map >>= lookup' path
     lookup' (key:path) (MetaList list) =
       arrayIndex key >>= readMaybe >>= (!!) list >>= lookup' path
+    lookup' (_:_) _ = Nothing
     lookup' [] mv = Just mv
 
 -- | Lookup a boolean value in a Pandoc meta data hierarchy. The key string
@@ -197,10 +210,17 @@ metaToBool _ = Nothing
 lookupMetaString :: Meta -> String -> Maybe String
 lookupMetaString meta key = lookupMeta' meta key >>= metaToString
 
+lookupMetaStringList :: Meta -> String -> Maybe [String]
+lookupMetaStringList meta key = lookupMeta' meta key >>= metaToStringList
+
 metaToString :: MetaValue -> Maybe String
 metaToString (MetaString string) = Just string
 metaToString (MetaInlines inlines) = Just $ stringify inlines
 metaToString _ = Nothing
+
+metaToStringList :: MetaValue -> Maybe [String]
+metaToStringList (MetaList list) = Just $ mapMaybe metaToString list
+metaToStringList _ = Nothing
 
 lookupMetaInt :: Meta -> String -> Maybe Int
 lookupMetaInt meta key = lookupMetaString meta key >>= readMaybe

@@ -33,7 +33,7 @@ main = do
    do
     includeTests
     -- watchTests
-    sketchTests
+    -- sketchTests
     metaTests
     describe "makeRelativeTo" $
       it "calculates the path of file relative to dir. Includes '..'" $ do
