@@ -230,7 +230,7 @@ getSupportDir meta out defaultPath = do
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
-  let generateIds = fromMaybe False $ lookupMetaBool meta "generate-ids"
+  let generateIds = lookupBool "generate-ids" False meta
   if not generateIds
     then return pandoc
     else writeDeckIndex' markdownFile out pandoc
@@ -245,8 +245,8 @@ writeDeckIndex' markdownFile out pandoc@(Pandoc meta _) = do
   let repoId = sketchPadId gitUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
-  let title = metaP pandoc "title"
-  let subtitle = metaP pandoc "subtitle"
+  let title = lookupString "title" "" meta
+  let subtitle = lookupString "subtitle" "" meta
   let indexUrl = T.pack $ "/" </> makeRelative publ out
   let sourceDir = T.pack $ makeRelative proj $ takeDirectory markdownFile
   let sourceFile = T.pack $ makeRelative proj markdownFile
@@ -260,7 +260,7 @@ writeDeckIndex' markdownFile out pandoc@(Pandoc meta _) = do
   let fixTitleId slides =
         if title == ""
           then slides
-          else slideObject "decker-title-slide" (T.unpack title) : slides
+          else slideObject "decker-title-slide" title : slides
   let yaml =
         object
           [ ("commit-id", String commit)
@@ -271,8 +271,8 @@ writeDeckIndex' markdownFile out pandoc@(Pandoc meta _) = do
           , ("source-directory", String sourceDir)
           , ("source-file", String sourceFile)
           , ("deck-id", String deckId)
-          , ("title", String title)
-          , ("subtitle", String subtitle)
+          , ("title", String $ T.pack title)
+          , ("subtitle", String $ T.pack subtitle)
           , ("slides", array $ fixTitleId slides)
           ]
   liftIO $ Yaml.encodeFile out yaml
@@ -289,8 +289,6 @@ writeDeckIndex' markdownFile out pandoc@(Pandoc meta _) = do
         blocks
 
 textFromMaybe = T.strip . T.pack . fromMaybe "<empty>"
-
-metaP p k = T.strip $ T.pack $ stringify (p ^? meta k . _MetaInlines)
 
 writeSketchPadIndex :: FilePath -> [FilePath] -> Action ()
 writeSketchPadIndex out indexFiles = do
