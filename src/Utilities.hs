@@ -186,7 +186,8 @@ markdownToHtmlDeck markdownFile out index = do
           , writerVariables =
               [ ( "revealjs-url"
                 , supportDirRel </> "node_modules" </> "reveal.js")
-              , ("decker-support-dir", templateSupportDir)
+              , ("decker-support-dir", supportDirRel)
+              , ("template-support-dir", templateSupportDir)
               , ("dachdecker-url", dachdeckerUrl')
               ]
           , writerCiteMethod = Citeproc
@@ -300,7 +301,9 @@ markdownToHtmlPage markdownFile out = do
                 (urlPath $
                  supportDir </> "node_modules" </> "mathjax" </>
                  "MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables = [("decker-support-dir", templateSupportDir)]
+          , writerVariables = 
+            [ ("decker-support-dir",  supportDir)
+            , ("template-support-dir", templateSupportDir) ]
           , writerCiteMethod = Citeproc
           }
   writePandocFile "html5" options out pandoc
@@ -348,7 +351,9 @@ markdownToHtmlHandout markdownFile out = do
                 (urlPath $
                  supportDir </> "node_modules" </> "mathjax" </>
                  "MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables = [("decker-support-dir", templateSupportDir)]
+          , writerVariables = 
+            [ ("decker-support-dir",  supportDir)
+            , ("template-support-dir", templateSupportDir) ]
           , writerCiteMethod = Citeproc
           }
   writePandocFile "html5" options out pandoc
