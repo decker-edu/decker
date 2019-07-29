@@ -1,3 +1,5 @@
+Reveal = require("reveal.js/js/reveal")
+MathJax = require("mathjax/MathJax.js")
 module.exports = {
     quiz: function () {
         initialMatchings = initMatching();
@@ -62,6 +64,21 @@ function matchings(initialMatchings) {
     retryButtons(initialMatchings);
 }
 
+// Copied from revealjs/math.js
+function reloadMath() {
+    // Typeset followed by an immediate reveal.js layout since
+    // the typesetting process could affect slide height
+    MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
+    MathJax.Hub.Queue(Reveal.layout);
+
+    // Reprocess equations in slides when they turn visible
+    Reveal.addEventListener('slidechanged', function (event) {
+
+        MathJax.Hub.Queue(['Typeset', MathJax.Hub, event.currentSlide]);
+
+    });
+}
+
 // Configure retryButtons
 function retryButtons(initialMatchings) {
     var buttons = document.getElementsByClassName("retryButton");
@@ -72,9 +89,9 @@ function retryButtons(initialMatchings) {
         buttons[i].onclick = function () {
             var curr = this.closest(".matching");
             curr.parentNode.replaceChild(initial, curr);
-
             // Call matchings once again to reset everything. e.g the shuffling etc
             matchings(initialMatchings);
+            reloadMath();
         }
     }
 }
@@ -158,6 +175,7 @@ function matchingAnswerButtons(initialMatchings) {
             }
             // replace the empty dropzone with the correct/sample solution
             matchingField.replaceChild(initialDragzone, currDragzone);
+            reloadMath();
 
             this.nextSibling.disabled = true;
             this.disabled = true;

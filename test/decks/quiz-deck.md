@@ -43,8 +43,8 @@
 
 ## Question: Which file format does decker use? {.question}
 
-* [ ] .docx
-* [ ] .csv
-* [ ] .xml
-* [X] .md
+* { } .docx
+* { } .csv
+* { } .xml
+* {X} .md
 
