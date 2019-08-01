@@ -161,11 +161,18 @@ maybeRenderImage image@(Image attr@(_, classes, _) _ (url, _)) =
 maybeRenderImage inline = return inline
 
 maybeRenderCodeBlock :: Block -> Decker Block
-maybeRenderCodeBlock block@(CodeBlock attr@(_, classes, _) code) =
-  case findProcessor classes of
+maybeRenderCodeBlock block@(CodeBlock attr@(x, classes, y) code)
+  -- Let default CodeBlock style be "txt"
+ = do
+  let cls =
+        case classes of
+          [] -> ["txt"]
+          _ -> classes
+  let block = CodeBlock (x, cls, y) code
+  case findProcessor cls of
     Just processor -> do
       path <- writeCodeIfChanged code (extension processor)
-      inline <- compiler processor path attr
+      inline <- compiler processor path (x, cls, y)
       return $ Plain [inline]
     Nothing -> return block
 maybeRenderCodeBlock block = return block
