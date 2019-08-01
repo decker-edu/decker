@@ -70,12 +70,6 @@ body {
           margin: space(1 0);
         }
 
-        // paragraphs inside of lists don't need such a large margin
-        li{
-          p{
-            margin: 0em;
-          }
-        }
 
         /////////////////////////////////////////////
         // Text align
@@ -228,6 +222,18 @@ body {
           // lists always fill 100% of the space of their parent element.
           // TODO: does this have consequences?
           width: 100%;
+        }
+        
+        li {
+
+          .sourceCode {
+            margin-right: 1.1em;
+            margin-bottom: 0em !important;
+          }
+
+          p{
+            margin: 0em;
+          }
         }
 
         ol {
@@ -654,7 +660,8 @@ body {
         // Source code
         /////////////////////////////////////////////
         div.sourceCode {
-          margin: space(0 -0.7);
+          // margin: space(0 -0.7);
+          margin-bottom: 0.5em;
           padding: space(0.4 0.7);
           background: rgba(0, 0, 0, 0.03);
           border-radius: 0.25em;
