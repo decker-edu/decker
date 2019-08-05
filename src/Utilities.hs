@@ -2,39 +2,34 @@
 module Utilities
   ( runDecker
   , writeIndexLists
-  , substituteMetaData
   , markdownToHtmlDeck
   , markdownToHtmlHandout
   , markdownToPdfHandout
   , markdownToHtmlPage
   , markdownToPdfPage
   , metaValueAsString
-  , (<++>)
   , pandocMakePdf
   , pandocReaderOpts
-  , fixMustacheMarkup
-  , fixMustacheMarkupText
   , toPandocMeta
-  , deckerPandocExtensions
-  , readMarkdownOrThrow
   , DeckerException(..)
   ) where
 
-import Text.Decker.Internal.Common
-import Text.Decker.Internal.Exception
+import System.Decker.OS
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.Macro
+import Text.Decker.Filter.Quiz
+import Text.Decker.Filter.Render
+import Text.Decker.Internal.Common
+import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Meta
-import Project
-import Quiz
-import Render
-import Resources
-import Server
-import Shake
-import Sketch
-import System.Decker.OS
-import Text.Pandoc.Lens
+import Text.Decker.Project.Project
+import Text.Decker.Project.Shake
+import Text.Decker.Project.Sketch
 import Text.Decker.Project.Version
+import Text.Decker.Reader.Markdown
+import Text.Decker.Resource.Resource
+import Text.Decker.Server.Server
+import Text.Pandoc.Lens
 
 import Control.Arrow
 import Control.Concurrent
@@ -74,10 +69,6 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
 import Text.Read (readMaybe)
-
--- | Monadic version of list concatenation.
-(<++>) :: Monad m => m [a] -> m [a] -> m [a]
-(<++>) = liftM2 (++)
 
 -- | Generates an index.md file with links to all generated files of interest.
 writeIndexLists :: FilePath -> FilePath -> Action ()
@@ -119,29 +110,6 @@ writeIndexLists out baseUrl = do
                "-    [%s <i class='fab fa-html5'></i>](%s)"
                (takeFileName html)
                (makeRelative baseUrl html)
-
--- | Fixes pandoc escaped # markup in mustache template {{}} markup.
-fixMustacheMarkup :: B.ByteString -> T.Text
-fixMustacheMarkup content = fixMustacheMarkupText $ E.decodeUtf8 content
-
--- | Fixes pandoc escaped # markup in mustache template {{}} markup.
-fixMustacheMarkupText :: T.Text -> T.Text
-fixMustacheMarkupText content =
-  T.replace
-    (T.pack "{{\\#")
-    (T.pack "{{#")
-    (T.replace (T.pack "{{\\^") (T.pack "{{^") content)
-
--- TODO: Isn't imported anywhere
--- UNUSED:
--- only used once in Utilities.hs line 428
-substituteMetaData :: T.Text -> MT.Value -> T.Text
-substituteMetaData source metaData = do
-  let fixed = fixMustacheMarkupText source
-  let result = M.compileTemplate "internal" fixed
-  case result of
-    Right template -> M.substituteValue template metaData
-    Left errMsg -> throw $ MustacheException (show errMsg)
 
 getTemplate :: Meta -> Disposition -> Action String
 getTemplate meta disp = do
@@ -210,52 +178,6 @@ writePandocFile fmt options out pandoc =
       LB.writeFile out
     Left e -> throw $ PandocException e
 
--- TODO: Move to Common? since much of the version checking is done there (Meta is from Pandoc)
-versionCheck :: Meta -> Action ()
-versionCheck meta =
-  unless isDevelopmentVersion $ do
-    let version = lookupMetaString meta "decker-version"
-    case version of
-      Just version -> check version
-      _ ->
-        putNormal $
-        "  - Document version unspecified. This is decker version " ++
-        deckerVersion ++ "."
-  where
-    check version =
-      when (List.trim version /= List.trim deckerVersion) $
-      putNormal $
-      "  - Document version " ++
-      version ++
-      ". This is decker version " ++ deckerVersion ++ ". Expect problems."
-
--- | Reads a markdownfile, expands the included files, and substitutes mustache
--- template variables and calls need.
-readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
-readAndProcessMarkdown markdownFile disp = do
-  pandoc@(Pandoc meta _) <-
-    readMetaMarkdown markdownFile >>= processIncludes baseDir
-  processed@(Pandoc meta body) <-
-    processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
-  return processed
-  where
-    baseDir = takeDirectory markdownFile
-    pipeline =
-      concatM
-        [ expandDeckerMacros
-        , renderCodeBlocks
-        , includeCode
-        , provisionResources
-        , renderQuizzes
-        , processSlides
-        , renderMediaTags
-        , extractFigures
-        , processCitesWithDefault
-        , appendScripts
-        ]
-  -- REVIEW: Disable automatic caching of remote images for a while
-  -- >>= walkM (cacheRemoteImages (cache dirs))
-
 -- | Determines which template file name to use
 -- for a certain disposition type
 getTemplateFileName :: Disposition -> String
@@ -265,16 +187,6 @@ getTemplateFileName (Disposition Page Html) = "page.html"
 getTemplateFileName (Disposition Page Latex) = "page.tex"
 getTemplateFileName (Disposition Handout Html) = "handout.html"
 getTemplateFileName (Disposition Handout Latex) = "handout.tex"
-
--- TODO: provisionResources could stay here since it uses Pandoc/Decker Pandoc
--- This probably does not need to be introduced to Resources module
-provisionResources :: Pandoc -> Decker Pandoc
-provisionResources pandoc = do
-  base <- gets basePath
-  method <- gets provisioning
-  lift $
-    mapMetaResources (provisionMetaResource base method) pandoc >>=
-    mapResources (provisionResource base method)
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do
@@ -371,171 +283,6 @@ markdownToPdfHandout markdownFile out = do
           , writerCiteMethod = Citeproc
           }
   pandocMakePdf options out pandoc
-
--- | Reads a markdown file and returns a pandoc document. Handles meta data
--- extraction and template substitution. All references to local resources are
--- converted to absolute pathes.
-readMetaMarkdown :: FilePath -> Action Pandoc
-readMetaMarkdown markdownFile = do
-  projectDir <- projectA
-  need [markdownFile]
-  -- read external meta data for this directory
-  externalMeta <-
-    liftIO $
-    toPandocMeta <$> aggregateMetaData projectDir (takeDirectory markdownFile)
-  markdown <- liftIO $ T.readFile markdownFile
-  let filePandoc@(Pandoc fileMeta fileBlocks) =
-        readMarkdownOrThrow pandocReaderOpts markdown
-  let combinedMeta = mergePandocMeta fileMeta externalMeta
-  let generateIds = lookupBool "generate-ids" False combinedMeta
-  Pandoc fileMeta fileBlocks <- maybeGenerateIds generateIds filePandoc
-  -- combine the meta data with preference on the embedded data
-  let combinedMeta = mergePandocMeta fileMeta externalMeta
-  let mustacheMeta = toMustacheMeta combinedMeta
-   -- use mustache to substitute
-  let substituted = substituteMetaData markdown mustacheMeta
-  -- read markdown with substitutions again
-  let Pandoc _ substitudedBlocks =
-        readMarkdownOrThrow pandocReaderOpts substituted
-  versionCheck combinedMeta
-  let writeBack = lookupBool "write-back.enable" False combinedMeta
-  when (generateIds || writeBack) $
-    writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
-  mapResources
-    (urlToFilePathIfLocal (takeDirectory markdownFile))
-    (Pandoc combinedMeta substitudedBlocks)
-  where
-    maybeGenerateIds doit pandoc =
-      if doit
-        then liftIO $ provideSlideIds pandoc
-        else return pandoc
-
-readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
-readMarkdownOrThrow opts markdown =
-  case runPure (readMarkdown opts markdown) of
-    Right pandoc -> pandoc
-    Left errMsg -> throw $ PandocException (show errMsg)
-
--- Remove automatic identifier creation for headers. It does not work well with
--- the current include mechanism if slides have duplicate titles in separate
--- include files.
-deckerPandocExtensions :: Extensions
-deckerPandocExtensions =
-  (disableExtension Ext_auto_identifiers .
-   disableExtension Ext_simple_tables . disableExtension Ext_multiline_tables)
-    pandocExtensions
-
-pandocReaderOpts :: ReaderOptions
-pandocReaderOpts = def {readerExtensions = deckerPandocExtensions}
-
-pandocWriterOpts :: WriterOptions
-pandocWriterOpts = def {writerExtensions = deckerPandocExtensions}
-
-mapResources :: (FilePath -> Action FilePath) -> Pandoc -> Action Pandoc
-mapResources transform (Pandoc meta blocks) =
-  Pandoc meta <$> walkM (mapInline transform) blocks >>=
-  walkM (mapBlock transform)
-
-mapAttributes :: (FilePath -> Action FilePath) -> Attr -> Action Attr
-mapAttributes transform (ident, classes, kvs) = do
-  processed <- mapM mapAttr kvs
-  return (ident, classes, processed)
-  where
-    mapAttr kv@(key, value) =
-      if key `elem` elementAttributes
-        then do
-          transformed <- transform value
-          return (key, transformed)
-        else return kv
-
-mapInline :: (FilePath -> Action FilePath) -> Inline -> Action Inline
-mapInline transform (Image attr inlines (url, title)) = do
-  a <- mapAttributes transform attr
-  u <- transform url
-  return $ Image a inlines (u, title)
-mapInline transform lnk@(Link attr@(_, cls, _) inlines (url, title)) =
-  if "resource" `elem` cls
-    then do
-      a <- mapAttributes transform attr
-      u <- transform url
-      return (Link a inlines (u, title))
-    else return lnk
-mapInline transform (Span attr inlines) = do
-  attribs <- mapAttributes transform attr
-  return (Span attribs inlines)
-mapInline transform (Code attr string) = do
-  attribs <- mapAttributes transform attr
-  return (Code attribs string)
-mapInline _ inline = return inline
-
-mapBlock :: (FilePath -> Action FilePath) -> Block -> Action Block
-mapBlock transform (CodeBlock attr string) = do
-  attribs <- mapAttributes transform attr
-  return (CodeBlock attribs string)
-mapBlock transform (Header n attr inlines) = do
-  attribs <- mapAttributes transform attr
-  return (Header n attribs inlines)
-mapBlock transform (Div attr blocks) = do
-  attribs <- mapAttributes transform attr
-  return (Div attribs blocks)
-mapBlock _ block = return block
-
--- TODO: Move to Meta.hs?
--- UNUSED:
--- only used once her: line 313
-mapMetaResources ::
-     ((String, FilePath) -> Action FilePath) -> Pandoc -> Action Pandoc
-mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
-  mapped <- mapM mapMeta $ Map.toList kvmap
-  return $ Pandoc (Meta $ Map.fromList mapped) blocks
-  where
-    mapMeta (k, MetaString v)
-      | k `elem` metaKeys = do
-        transformed <- transform (k, v)
-        return (k, MetaString transformed)
-    mapMeta (k, MetaInlines inlines)
-      | k `elem` metaKeys = do
-        transformed <- transform (k, stringify inlines)
-        return (k, MetaString transformed)
-    mapMeta (k, MetaList l)
-      | k `elem` metaKeys = do
-        transformed <- mapM (mapMetaList k) l
-        return (k, MetaList transformed)
-    mapMeta kv = return kv
-    mapMetaList k (MetaString v) = MetaString <$> transform (k, v)
-    mapMetaList k (MetaInlines inlines) =
-      MetaString <$> transform (k, stringify inlines)
-    mapMetaList _ v = return v
-
--- Transitively splices all include files into the pandoc document.
-processIncludes :: FilePath -> Pandoc -> Action Pandoc
-processIncludes baseDir (Pandoc meta blocks) =
-  Pandoc meta <$> processBlocks baseDir blocks
-  where
-    processBlocks :: FilePath -> [Block] -> Action [Block]
-    processBlocks base blcks =
-      concat . reverse <$> foldM (include base) [] blcks
-    include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
-    include base result (Para [Link _ [Str ":include"] (url, _)]) = do
-      includeFile <- urlToFilePathIfLocal base url
-      need [includeFile]
-      Pandoc _ b <- readMetaMarkdown includeFile
-      included <- processBlocks (takeDirectory includeFile) b
-      return $ included : result
-    include _ result block = return $ [block] : result
-
-processCitesWithDefault :: Pandoc -> Decker Pandoc
-processCitesWithDefault pandoc@(Pandoc meta blocks) =
-  lift $ do
-    document <-
-      case lookupMeta "csl" meta of
-        Nothing -> do
-          dir <- appDataA
-          let defaultCsl = dir </> "template" </> "acm-sig-proceedings.csl"
-          let cslMeta = setMeta "csl" (MetaString defaultCsl) meta
-          return (Pandoc cslMeta blocks)
-        _ -> return pandoc
-    liftIO $ processCites' document
 
 lookupValue :: String -> Y.Value -> Maybe Y.Value
 lookupValue key (Y.Object hashTable) = HashMap.lookup (T.pack key) hashTable

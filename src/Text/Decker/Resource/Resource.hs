@@ -4,8 +4,9 @@
 -- Depending on specification in "decker-meta.yaml" the source of the resource folder is chosen
 -- Everything that is copying or linking Resource folders needs to be moved here
 -- 
-module Resources
-  ( extractResources
+module Text.Decker.Resource.Resource
+  ( mapResources
+  , extractResources
   , deckerResourceDir
   , writeExampleProject
   , writeTutorialProject
@@ -14,6 +15,7 @@ module Resources
   , linkResource
   , urlToFilePathIfLocal
   -- * Provisioning
+  , provisionResources
   , provisionResource
   , provisionMetaResource
   , provisionTemplateOverrideSupport
@@ -26,27 +28,32 @@ module Resources
   , metaKeys
   ) where
 
+import System.Decker.OS
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Flags
-import Project
-import Shake
-import System.Decker.OS
+import Text.Decker.Project.Project
+import Text.Decker.Project.Shake
 
 import Codec.Archive.Zip
 import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad
 import Control.Monad.Extra
+import Control.Monad.State
 import Data.List.Split (splitOn)
+import qualified Data.Map.Lazy as Map
 import Data.Map.Strict (size)
-import Development.Shake
+import Development.Shake hiding (Resource)
 import Network.URI
 import qualified System.Directory as Dir
 import System.Environment
 import System.Exit
 import System.FilePath
 import System.Process
+import Text.Pandoc
+import Text.Pandoc.Shared
+import Text.Pandoc.Walk
 
 -- | These resources are needed at runtime. If they are specified as local URLs,
 -- the resource must exists at compile time. Remote URLs are passed through
@@ -145,13 +152,13 @@ fileIsNewer a b = do
     else return aexists
 
 -- | Copies single Resource file and returns Filepath
-copyResource :: Project.Resource -> IO FilePath
+copyResource :: Resource -> IO FilePath
 copyResource resource = do
   copyFileIfNewer (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
 -- | Creates SymLink to single resource file and returns Filepath
-linkResource :: Project.Resource -> IO FilePath
+linkResource :: Resource -> IO FilePath
 linkResource resource = do
   whenM
     (Dir.doesFileExist (publicFile resource))
@@ -268,3 +275,86 @@ urlToFilePathIfLocal base uri =
               then absRoot </> makeRelative "/" filePath
               else absBase </> filePath
       return absPath
+
+-- TODO: provisionResources could stay here since it uses Pandoc/Decker Pandoc
+-- This probably does not need to be introduced to Resources module
+provisionResources :: Pandoc -> Decker Pandoc
+provisionResources pandoc = do
+  base <- gets basePath
+  method <- gets provisioning
+  lift $
+    mapMetaResources (provisionMetaResource base method) pandoc >>=
+    mapResources (provisionResource base method)
+
+mapResources :: (FilePath -> Action FilePath) -> Pandoc -> Action Pandoc
+mapResources transform (Pandoc meta blocks) =
+  Pandoc meta <$> walkM (mapInline transform) blocks >>=
+  walkM (mapBlock transform)
+
+mapAttributes :: (FilePath -> Action FilePath) -> Attr -> Action Attr
+mapAttributes transform (ident, classes, kvs) = do
+  processed <- mapM mapAttr kvs
+  return (ident, classes, processed)
+  where
+    mapAttr kv@(key, value) =
+      if key `elem` elementAttributes
+        then do
+          transformed <- transform value
+          return (key, transformed)
+        else return kv
+
+mapInline :: (FilePath -> Action FilePath) -> Inline -> Action Inline
+mapInline transform (Image attr inlines (url, title)) = do
+  a <- mapAttributes transform attr
+  u <- transform url
+  return $ Image a inlines (u, title)
+mapInline transform lnk@(Link attr@(_, cls, _) inlines (url, title)) =
+  if "resource" `elem` cls
+    then do
+      a <- mapAttributes transform attr
+      u <- transform url
+      return (Link a inlines (u, title))
+    else return lnk
+mapInline transform (Span attr inlines) = do
+  attribs <- mapAttributes transform attr
+  return (Span attribs inlines)
+mapInline transform (Code attr string) = do
+  attribs <- mapAttributes transform attr
+  return (Code attribs string)
+mapInline _ inline = return inline
+
+mapBlock :: (FilePath -> Action FilePath) -> Block -> Action Block
+mapBlock transform (CodeBlock attr string) = do
+  attribs <- mapAttributes transform attr
+  return (CodeBlock attribs string)
+mapBlock transform (Header n attr inlines) = do
+  attribs <- mapAttributes transform attr
+  return (Header n attribs inlines)
+mapBlock transform (Div attr blocks) = do
+  attribs <- mapAttributes transform attr
+  return (Div attribs blocks)
+mapBlock _ block = return block
+
+mapMetaResources ::
+     ((String, FilePath) -> Action FilePath) -> Pandoc -> Action Pandoc
+mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
+  mapped <- mapM mapMeta $ Map.toList kvmap
+  return $ Pandoc (Meta $ Map.fromList mapped) blocks
+  where
+    mapMeta (k, MetaString v)
+      | k `elem` metaKeys = do
+        transformed <- transform (k, v)
+        return (k, MetaString transformed)
+    mapMeta (k, MetaInlines inlines)
+      | k `elem` metaKeys = do
+        transformed <- transform (k, stringify inlines)
+        return (k, MetaString transformed)
+    mapMeta (k, MetaList l)
+      | k `elem` metaKeys = do
+        transformed <- mapM (mapMetaList k) l
+        return (k, MetaList transformed)
+    mapMeta kv = return kv
+    mapMetaList k (MetaString v) = MetaString <$> transform (k, v)
+    mapMetaList k (MetaInlines inlines) =
+      MetaString <$> transform (k, stringify inlines)
+    mapMetaList _ v = return v

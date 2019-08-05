@@ -20,8 +20,8 @@ module Text.Decker.Filter.Filter
 import Text.Decker.Internal.Common
 import Control.Exception
 import Text.Decker.Internal.Exception
-import Sketch
-import Slide
+import Text.Decker.Project.Sketch
+import Text.Decker.Filter.Slide
 import Text.Pandoc.Lens
 
 import Control.Applicative
@@ -55,7 +55,7 @@ import Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A (alt, class_, id, title)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
-import qualified Text.Pandoc.Filter.IncludeCode as P
+import qualified Text.Decker.Filter.IncludeCode as P
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Read hiding (lift)

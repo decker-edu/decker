@@ -2,8 +2,8 @@ module SketchTests
   ( -- sketchTests
   ) where
 
-import Sketch
-import Slide
+import Text.Decker.Projekt.Sketch
+import Text.Decker.Filter.Slide
 import Text.Pandoc.Lens
 
 import Data.Char

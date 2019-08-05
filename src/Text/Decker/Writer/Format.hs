@@ -15,8 +15,8 @@ import Text.Pandoc hiding (writeMarkdown)
 import Text.Pandoc.Shared
 
 import Text.Decker.Writer.Markdown
-import Project
-import Resources
+import Text.Decker.Project.Project
+import Text.Decker.Resource.Resource
 import Utilities
 import Text.Decker.Internal.Meta
 

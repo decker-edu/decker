@@ -4,7 +4,7 @@ module IncludeTests
 
 import Test.Hspec
 import Text.Pandoc.Filter.IncludeCode
-import Shake
+import Text.Decker.Projekt.Shake
 
 includeTests = do
   describe "parseInclusionUrl" $ do

@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Render
+module Text.Decker.Filter.Render
   ( renderCodeBlocks
   , renderedCodeExtensions
   , appendScripts
@@ -8,8 +8,8 @@ module Render
 import Text.Decker.Filter.CRC32
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
-import Project
-import Shake
+import Text.Decker.Project.Project
+import Text.Decker.Project.Shake
 
 import Control.Lens ((^.))
 import Control.Monad.Extra

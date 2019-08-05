@@ -7,7 +7,7 @@ module Text.Decker.Server.Dachdecker
   ) where
 
 import Text.Decker.Internal.Exception
-import Project
+import Text.Decker.Project.Project
 
 import Control.Exception
 import Control.Lens ((&), (.~), (?~), (^.), (^?))

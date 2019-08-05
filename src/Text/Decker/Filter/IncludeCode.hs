@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Text.Pandoc.Filter.IncludeCode
+module Text.Decker.Filter.IncludeCode
   -- ( InclusionMode(..)
   -- , InclusionError(..)
   -- , includeCode
@@ -38,7 +38,7 @@ import Network.URI
 import Text.Pandoc.JSON
 import Text.Read (readMaybe)
 
-import Resources
+import Text.Decker.Resource.Resource
 
 type LineNumber = Int
 

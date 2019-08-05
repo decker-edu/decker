@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Shake
+module Text.Decker.Project.Shake
   ( runDecker
   , allHtmlA
   , allPdfA
@@ -40,9 +40,9 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Project.Git
 import Text.Decker.Project.Glob
 import Text.Decker.Internal.Meta
-import Project
-import Server
-import Sketch
+import Text.Decker.Project.Project
+import Text.Decker.Server.Server
+import Text.Decker.Project.Sketch
 import System.Decker.OS
 import Text.Pandoc.Lens as P
 import Text.Decker.Project.Version

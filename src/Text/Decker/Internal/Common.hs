@@ -14,6 +14,8 @@ module Text.Decker.Internal.Common
   , doIO
   , needFile
   , needFiles
+  , pandocReaderOpts
+  , pandocWriterOpts
   ) where
 
 import Control.Monad.State
@@ -24,6 +26,7 @@ import Network.URI as U
 import Text.Decker.Internal.CompileTime
 import Text.Read (readMaybe)
 import Text.Regex.TDFA
+import Text.Pandoc
 
 type Decker = StateT DeckerState Action
 
@@ -85,4 +88,19 @@ data Provisioning
   | Absolute -- ^ Absolute local URL
   | Relative -- ^ Relative local URL
   deriving (Eq, Show, Read)
+
+-- Remove automatic identifier creation for headers. It does not work well with
+-- the current include mechanism if slides have duplicate titles in separate
+-- include files.
+deckerPandocExtensions :: Extensions
+deckerPandocExtensions =
+  (disableExtension Ext_auto_identifiers .
+   disableExtension Ext_simple_tables . disableExtension Ext_multiline_tables)
+    pandocExtensions
+
+pandocReaderOpts :: ReaderOptions
+pandocReaderOpts = def {readerExtensions = deckerPandocExtensions}
+
+pandocWriterOpts :: WriterOptions
+pandocWriterOpts = def {writerExtensions = deckerPandocExtensions}
 

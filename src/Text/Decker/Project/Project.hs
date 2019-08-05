@@ -1,7 +1,7 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 -- | Providing an interface for the paths used in decker
 -- 
-module Project
+module Text.Decker.Project.Project
   ( resourcePaths
   , getResourceString
   , deckerResourceDir

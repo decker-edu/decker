@@ -10,7 +10,7 @@
     - Free text questions 
     - Matching/pair questions
 -}
-module Quiz
+module Text.Decker.Filter.Quiz
   ( renderQuizzes
   ) where
 

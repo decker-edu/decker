@@ -1,4 +1,4 @@
-import SketchTests
+import Text.Decker.Projekt.SketchTests
 import Test.Hspec
 import WatchTests
 import Text.Decker.Internal.MetaTests
@@ -13,8 +13,8 @@ import Data.Text
 import Data.Text.Encoding
 import qualified Data.Yaml as Y
 import Text.Decker.Filter.Filter
-import Project as P
-import Resources
+import Text.Decker.Project.Project as P
+import Text.Decker.Resource.Resource
 import qualified System.Directory as Dir
 import System.FilePath
 import System.FilePath.Glob

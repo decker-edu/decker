@@ -1,5 +1,5 @@
 -- | A range that cannot be constructed with incorrect bounds.
-module Text.Pandoc.Filter.Range
+module Text.Decker.Filter.Range
   ( LineNumber
   , Range
   , rangeStart

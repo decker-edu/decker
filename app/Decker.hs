@@ -1,18 +1,18 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Decker where
 
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Flags (hasPreextractedResources)
-import Text.Decker.Writer.Format
-import Pdf
-import Project
-import Resources
-import Shake
-import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
+import Text.Decker.Project.Project
+import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
+import Text.Decker.Resource.Resource
 import Text.Decker.Server.Dachdecker
+import Text.Decker.Writer.Format
+import Text.Decker.Writer.Pdf
 import Utilities
 
 import Control.Exception

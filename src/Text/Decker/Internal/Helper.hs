@@ -5,14 +5,19 @@ module Text.Decker.Internal.Helper
   , whenTrue
   , unique
   , time
+  , (<++>)
   ) where
 
+import Control.Monad.State
 import qualified Data.List.Extra as List
-import qualified Data.Set as Set
 import Data.Maybe
+import qualified Data.Set as Set
 import System.CPUTime
 import Text.Printf
-import Control.Monad.State
+
+-- | Monadic version of list concatenation.
+(<++>) :: Monad m => m [a] -> m [a] -> m [a]
+(<++>) = liftM2 (++)
 
 repeatIfTrue :: Monad m => m Bool -> m ()
 repeatIfTrue action = do

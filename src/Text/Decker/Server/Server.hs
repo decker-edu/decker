@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Server
+module Text.Decker.Server.Server
   ( startHttpServer
   , stopHttpServer
   , reloadClients
@@ -7,7 +7,7 @@ module Server
   ) where
 
 import Text.Decker.Server.Dachdecker (login)
-import Project
+import Text.Decker.Project.Project
 
 import Control.Concurrent
 import Control.Exception

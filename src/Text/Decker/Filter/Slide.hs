@@ -1,4 +1,4 @@
-module Slide
+module Text.Decker.Filter.Slide
   ( Slide(..)
   , header
   , blocks

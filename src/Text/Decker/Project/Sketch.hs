@@ -1,4 +1,4 @@
-module Sketch
+module Text.Decker.Project.Sketch
   ( randomId
   , writeToMarkdownFile
   , provideSlideIds
@@ -8,10 +8,10 @@ module Sketch
 
 import Text.Decker.Internal.Common
 import Text.Decker.Writer.Markdown
-import Slide
+import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Meta
 import Text.Pandoc.Lens
-import Project
+import Text.Decker.Project.Project
 
 import Control.Lens
 import Control.Monad
