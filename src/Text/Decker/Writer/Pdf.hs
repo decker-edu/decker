@@ -13,18 +13,13 @@ import Text.Decker.Resource.Template
 
 import Control.Exception
 import qualified Data.ByteString.Lazy as LB
-import Data.List
 import Development.Shake
 import System.Decker.OS
-import System.Directory
 import System.Exit
-import System.IO
 import System.Process
 import Text.Pandoc
-import Text.Pandoc.Builder
 import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
-import Text.Pandoc.Shared
 
 chromeOptions :: FilePath -> FilePath -> [String]
 chromeOptions src out =

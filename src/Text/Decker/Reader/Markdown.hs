@@ -2,7 +2,6 @@ module Text.Decker.Reader.Markdown
   (readAndProcessMarkdown
   ) where
 
-import System.Decker.OS
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Quiz
@@ -15,47 +14,23 @@ import Text.Decker.Project.Shake
 import Text.Decker.Project.Sketch
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
-import Text.Decker.Server.Server
 import Text.Pandoc.Lens
 
-import Control.Arrow
-import Control.Concurrent
 import Control.Exception
-import Control.Lens ((.~), (^.), (^?), at, set)
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
-import Control.Monad.Trans.Class
-import Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as LB
-import Data.Dynamic
-import qualified Data.HashMap.Lazy as HashMap
-import Data.IORef
-import Data.List as List
-import Data.List.Extra as List
-import qualified Data.Map.Lazy as Map
-import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 import qualified Data.Text.IO as T
-import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
-import Network.URI
-import qualified System.Directory as Dir
-import System.FilePath.Glob
 import Text.CSL.Pandoc
 import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc
 import Text.Pandoc.Builder
-import Text.Pandoc.Highlighting
-import Text.Pandoc.PDF
-import Text.Pandoc.Shared
-import Text.Pandoc.Walk
-import Text.Printf
-import Text.Read (readMaybe)
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
@@ -73,10 +48,6 @@ processIncludes baseDir (Pandoc meta blocks) =
       included <- processBlocks (takeDirectory includeFile) b
       return $ included : result
     include _ result block = return $ [block] : result
-
--- | Fixes pandoc escaped # markup in mustache template {{}} markup.
-fixMustacheMarkup :: B.ByteString -> T.Text
-fixMustacheMarkup content = fixMustacheMarkupText $ E.decodeUtf8 content
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkupText :: T.Text -> T.Text
@@ -123,7 +94,7 @@ readMetaMarkdown markdownFile = do
     liftIO $
     toPandocMeta <$> aggregateMetaData projectDir (takeDirectory markdownFile)
   markdown <- liftIO $ T.readFile markdownFile
-  let filePandoc@(Pandoc fileMeta fileBlocks) =
+  let filePandoc@(Pandoc fileMeta _) =
         readMarkdownOrThrow pandocReaderOpts markdown
   let combinedMeta = mergePandocMeta fileMeta externalMeta
   let generateIds = lookupBool "generate-ids" False combinedMeta

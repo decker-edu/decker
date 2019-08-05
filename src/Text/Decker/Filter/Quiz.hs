@@ -15,10 +15,7 @@ module Text.Decker.Filter.Quiz
   ) where
 
 import Text.Decker.Internal.Common
-import Text.Decker.Filter.Filter
 
-import Control.Exception
-import Debug.Trace as DT
 import Text.Pandoc
 import Text.Pandoc.Walk
 

@@ -20,23 +20,17 @@ module Text.Decker.Filter.Filter
 import Text.Decker.Internal.Common
 import Control.Exception
 import Text.Decker.Internal.Exception
-import Text.Decker.Project.Sketch
 import Text.Decker.Filter.Slide
 import Text.Pandoc.Lens
 
-import Control.Applicative
 import Control.Lens
 import Control.Monad.Loops as Loop
 import Control.Monad.State
-import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Default ()
 import Data.List
-import Data.List.Extra (for)
 import Data.List.Split
 import Data.Maybe
 import Development.Shake (Action)
-import Network.HTTP.Conduit hiding (InternalException)
-import Network.HTTP.Simple
 import qualified Network.URI as U
 import System.Directory
 import System.FilePath
@@ -373,11 +367,6 @@ audioExtensions = [".m4a", ".mp3", ".ogg", ".wav"]
 -- | File extensions that signify iframe content.
 iframeExtensions :: [String]
 iframeExtensions = [".html", ".htm", ".pdf", ".php"]
-
--- | File extensions that signify images
-imageExtensions :: [String]
-imageExtensions =
-  [".jpg", ".jpeg", ".png", ".gif", ".tif", ".tiff", ".bmp", ".svg"]
 
 -- | File-extensions that should be treated as 3D model and will be shown with Mario's viewer
 -- in an iframe

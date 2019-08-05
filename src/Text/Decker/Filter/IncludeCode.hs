@@ -27,12 +27,10 @@ import Control.Monad.State
 import Data.Char (isSpace)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
-import Data.List (isInfixOf)
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
-import Debug.Trace
 import Development.Shake
 import Network.URI
 import Text.Pandoc.JSON

@@ -10,61 +10,28 @@ module Text.Decker.Writer.Html
 
 import System.Decker.OS
 import Text.Decker.Filter.Filter
-import Text.Decker.Filter.Macro
-import Text.Decker.Filter.Quiz
-import Text.Decker.Filter.Render
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
-import Text.Decker.Project.Sketch
-import Text.Decker.Project.Version
 import Text.Decker.Reader.Markdown
-import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
-import Text.Decker.Server.Server
 import Text.Pandoc.Lens
 
-import Control.Arrow
-import Control.Concurrent
 import Control.Exception
 import Control.Lens ((.~), (^.), (^?), at, set)
-import Control.Monad
-import Control.Monad.Loops
 import Control.Monad.State
-import Control.Monad.Trans.Class
-import Control.Monad.Trans.Maybe
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
-import Data.Dynamic
-import qualified Data.HashMap.Lazy as HashMap
-import Data.IORef
-import Data.List as List
-import Data.List.Extra as List
-import qualified Data.Map.Lazy as Map
-import Data.Maybe
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as E
 import qualified Data.Text.IO as T
-import qualified Data.Yaml as Y
 import Development.Shake
 import Development.Shake.FilePath as SFP
-import Network.URI
-import qualified System.Directory as Dir
-import System.FilePath.Glob
-import Text.CSL.Pandoc
-import qualified Text.Mustache as M
-import qualified Text.Mustache.Types as MT
 import Text.Pandoc
-import Text.Pandoc.Builder
 import Text.Pandoc.Highlighting
-import Text.Pandoc.PDF
-import Text.Pandoc.Shared
-import Text.Pandoc.Walk
 import Text.Printf
-import Text.Read (readMaybe)
 
 -- | Generates an index.md file with links to all generated files of interest.
 writeIndexLists :: FilePath -> FilePath -> Action ()

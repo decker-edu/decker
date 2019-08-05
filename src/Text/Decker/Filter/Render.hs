@@ -7,7 +7,6 @@ module Text.Decker.Filter.Render
 
 import Text.Decker.Filter.CRC32
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Exception
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 
@@ -19,7 +18,6 @@ import Data.List.Extra
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
-import Development.Shake
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath
 import Text.Blaze.Html.Renderer.String
