@@ -1,16 +1,14 @@
-
 module Text.Decker.Resource.Template
   ( getTemplate
   ) where
 
 import Text.Decker.Internal.Common
-import Text.Decker.Resource.Resource
 import Text.Decker.Project.Project
 
-import Text.Pandoc
+import Data.Maybe
 import Development.Shake
 import System.FilePath
-import Data.Maybe
+import Text.Pandoc
 
 getTemplate :: Meta -> Disposition -> Action String
 getTemplate meta disp = do

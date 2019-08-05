@@ -6,12 +6,7 @@ module Text.Decker.Project.Glob
   ) where
 
 import Data.List
-import System.Directory
-  ( doesDirectoryExist
-  , doesFileExist
-  , listDirectory
-  , makeAbsolute
-  )
+import System.Directory (doesDirectoryExist, doesFileExist, listDirectory)
 import System.FilePath
 
 -- | Glob for files a little more efficiently. 'exclude' contains a list of

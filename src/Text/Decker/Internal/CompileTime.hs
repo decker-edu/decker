@@ -4,14 +4,11 @@ module Text.Decker.Internal.CompileTime
   , lookupGitTag
   ) where
 
-import Control.Monad
 import Data.Maybe
 import Data.String.Utils
-import Text.Decker.Project.Git
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax (Lift(..))
-import System.Exit
-import System.Process
+import Text.Decker.Project.Git
 
 lookupGitBranch :: Q Exp
 lookupGitBranch = stringE . strip . fromMaybe "none" =<< runIO gitBranch

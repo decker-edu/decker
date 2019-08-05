@@ -10,7 +10,6 @@ module Text.Decker.Project.Version
 import Text.Decker.Internal.Meta
 
 import Control.Monad
-import Data.List as List
 import Data.List.Extra as List
 import Data.Maybe
 import Data.Version (showVersion, versionBranch)

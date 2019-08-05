@@ -39,26 +39,24 @@ module Text.Decker.Project.Project
   , ProjectDirs(..)
   ) where
 
+import System.Decker.OS
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Flags
-import Text.Decker.Project.Glob
-import System.Decker.OS
-import Text.Decker.Project.Version
 import Text.Decker.Internal.Helper
+import Text.Decker.Project.Glob
+import Text.Decker.Project.Version
 
 import Control.Lens
-import Control.Monad.Extra
 import Data.List
 import Data.List.Split (splitOn)
 import Data.Maybe
-import qualified Data.Yaml as Yaml
 import Network.URI
 import qualified System.Directory as D
-import Text.Regex.TDFA
-import System.FilePath
 import System.Environment
+import System.FilePath
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
+import Text.Regex.TDFA
 
 data Targets = Targets
   { _sources :: [FilePath]
@@ -171,7 +169,6 @@ getResourceString :: FilePath -> IO String
 getResourceString path = do
   dataDir <- deckerResourceDir
   readFile (dataDir </> path)
-
 
 -- | Get the absolute paths of resource folders 
 -- with version numbers older than the current one

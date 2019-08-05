@@ -6,27 +6,19 @@ module Text.Decker.Project.Sketch
   , idDigits
   ) where
 
-import Text.Decker.Internal.Common
-import Text.Decker.Writer.Markdown
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Meta
-import Text.Pandoc.Lens
 import Text.Decker.Project.Project
+import Text.Decker.Writer.Markdown
+import Text.Pandoc.Lens
 
-import Control.Lens
 import Control.Monad
-import Data.Maybe
 import qualified Data.Text.IO as T
-import Debug.Trace
 import Development.Shake
 import System.Directory
 import System.FilePath
-import System.IO
 import System.Random
 import Text.Pandoc hiding (writeMarkdown)
-import Text.Pandoc.Shared
-import Text.Printf
-import Text.Read
 
 idDigits = 4
 
@@ -53,8 +45,8 @@ randomAlpha = getStdRandom (randomR ('a', 'z'))
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
 writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   template <- liftIO $ getResourceString $ "template" </> "deck.md"
-  let columns = lookupInt  "write-back.line-columns" 80 pmeta
-  let wrap = lookupString  "write-back.line-wrap" "" pmeta
+  let columns = lookupInt "write-back.line-columns" 80 pmeta
+  let wrap = lookupString "write-back.line-wrap" "" pmeta
   let wrapOpt "none" = WrapNone
       wrapOpt "preserve" = WrapPreserve
       wrapOpt _ = WrapAuto
@@ -72,11 +64,11 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
           , writerWrapText = wrapOpt wrap
           , writerSetextHeaders = False
           }
-  markdown <-
-    liftIO $ runIO (writeMarkdown options pandoc) >>= handleError
+  markdown <- liftIO $ runIO (writeMarkdown options pandoc) >>= handleError
   fileContent <- liftIO $ T.readFile filepath
   when (markdown /= fileContent) $
-    withTempFile (\tmp -> liftIO $ T.writeFile tmp markdown >> renameFile tmp filepath)
+    withTempFile
+      (\tmp -> liftIO $ T.writeFile tmp markdown >> renameFile tmp filepath)
 
 provideSlideIds :: Pandoc -> IO Pandoc
 provideSlideIds (Pandoc meta body) = do

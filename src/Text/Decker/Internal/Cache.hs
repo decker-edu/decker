@@ -5,7 +5,6 @@ module Text.Decker.Internal.Cache
   , cacheRemoteImages
   ) where
 
-import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 
 import Control.Exception

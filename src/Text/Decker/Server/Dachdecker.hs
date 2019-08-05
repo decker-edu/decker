@@ -16,15 +16,12 @@ import Data.Aeson.Lens (_Bool, _Integer, _Object, _String, key, nth, values)
 import qualified Data.ByteString.Char8 as BSC
 import Data.Functor ((<&>))
 import Data.List (isPrefixOf)
-import Data.Map
-import Data.Maybe
 import Data.Text
 import qualified Data.Text.IO as T
 import Development.Shake (Action, liftIO)
 import Network.HTTP.Client (HttpException(HttpExceptionRequest))
 import Network.Wreq
 import System.Directory (doesDirectoryExist, listDirectory)
-import System.Exit
 import System.FilePath
 import System.IO
 import Text.Pandoc

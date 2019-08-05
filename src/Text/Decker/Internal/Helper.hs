@@ -13,7 +13,6 @@ import Control.Monad.State
 import qualified Data.List.Extra as List
 import Data.Maybe
 import qualified Data.Set as Set
-import Development.Shake
 import System.CPUTime
 import Text.Pandoc
 import Text.Printf

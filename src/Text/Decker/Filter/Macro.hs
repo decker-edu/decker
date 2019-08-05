@@ -4,13 +4,13 @@ module Text.Decker.Filter.Macro
   ) where
 
 import Text.Decker.Internal.Common
+
 import Control.Monad.State
 import Data.List (find, isInfixOf, isPrefixOf)
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
 import Data.Text (pack, replace, unpack)
-import Text.Decker.Internal.Exception
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)
@@ -63,7 +63,9 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
         "veer" ->
           printf "https://h5.veer.tv/player?vid=%s&amp;utm_medium=embed" vid :: String
         "veer-photo" ->
-          printf "https://h5.veer.tv/photo-player?pid=%s&amp;utm_medium=embed" vid :: String
+          printf
+            "https://h5.veer.tv/photo-player?pid=%s&amp;utm_medium=embed"
+            vid :: String
     vidWidthStr = macroArg 0 args "560"
     vidHeightStr = macroArg 1 args "315"
     vidWidth = readDefault 560.0 vidWidthStr :: Float

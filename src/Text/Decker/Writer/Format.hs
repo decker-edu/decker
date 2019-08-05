@@ -2,23 +2,17 @@ module Text.Decker.Writer.Format
   ( formatMarkdown
   ) where
 
-import Text.Decker.Writer.Markdown
-import Text.Decker.Project.Project
-import Text.Decker.Resource.Resource
-import Text.Decker.Internal.Meta
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Meta
+import Text.Decker.Project.Project
+import Text.Decker.Writer.Markdown
 
 import Control.Exception
-import Control.Monad
-import Data.List
-import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import System.Environment
 import System.Exit
 import System.FilePath
 import System.IO
 import Text.Pandoc hiding (writeMarkdown)
-import Text.Pandoc.Shared
 
 formatMarkdown :: IO ()
 formatMarkdown =

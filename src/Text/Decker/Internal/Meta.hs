@@ -20,13 +20,11 @@ module Text.Decker.Internal.Meta
   , DeckerException(..)
   ) where
 
-import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Writer.Markdown
 
 import Control.Arrow
 import Control.Exception
-import qualified Data.HashMap.Lazy as HashMap
 import qualified Data.HashMap.Strict as H
 import Data.List.Safe ((!!))
 import qualified Data.List.Split as L

@@ -36,15 +36,11 @@ module Text.Decker.Project.Shake
   ) where
 
 import System.Decker.OS
-import Text.Decker.Internal.Common
-import Text.Decker.Internal.CompileTime
-import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Git
 import Text.Decker.Project.Glob
 import Text.Decker.Project.Project
-import Text.Decker.Project.Sketch
 import Text.Decker.Project.Version
 import Text.Decker.Server.Server
 import Text.Pandoc.Lens as P
@@ -52,7 +48,6 @@ import Text.Pandoc.Lens as P
 import Control.Concurrent
 import Control.Exception
 import Control.Lens
-import Control.Lens.Combinators
 import Control.Monad
 import Data.Aeson as Json
 import Data.Aeson.Lens
@@ -63,14 +58,12 @@ import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import Data.IORef
 import Data.List
-import qualified Data.Map.Strict as M
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Text.Encoding
 import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
-import Debug.Trace
 import Development.Shake
 import Development.Shake as Shake
   ( Action
@@ -84,7 +77,6 @@ import Development.Shake as Shake
   , shakeOptions
   , withResource
   )
-import qualified Network.URI as U
 import System.Directory as Dir
 import qualified System.FSNotify as Notify
 import System.FilePath
@@ -93,7 +85,6 @@ import System.Process
 import Text.Pandoc
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.Printf
 
 instance Show (IORef a) where
   show _ = "IORef"

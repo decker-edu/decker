@@ -19,13 +19,8 @@ module Text.Decker.Internal.Common
   ) where
 
 import Control.Monad.State
-import Data.Maybe
-import Debug.Trace
 import Development.Shake (Action, need)
 import Network.URI as U
-import Text.Decker.Internal.CompileTime
-import Text.Read (readMaybe)
-import Text.Regex.TDFA
 import Text.Pandoc
 
 type Decker = StateT DeckerState Action
@@ -103,4 +98,3 @@ pandocReaderOpts = def {readerExtensions = deckerPandocExtensions}
 
 pandocWriterOpts :: WriterOptions
 pandocWriterOpts = def {writerExtensions = deckerPandocExtensions}
-

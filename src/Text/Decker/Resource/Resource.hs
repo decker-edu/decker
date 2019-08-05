@@ -31,7 +31,6 @@ module Text.Decker.Resource.Resource
 import System.Decker.OS
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
-import Text.Decker.Internal.Flags
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 
@@ -41,16 +40,13 @@ import Control.Lens ((^.))
 import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.State
-import Data.List.Split (splitOn)
 import qualified Data.Map.Lazy as Map
 import Data.Map.Strict (size)
 import Development.Shake hiding (Resource)
 import Network.URI
 import qualified System.Directory as Dir
 import System.Environment
-import System.Exit
 import System.FilePath
-import System.Process
 import Text.Pandoc
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
@@ -188,7 +184,6 @@ provisionMetaResource _ _ (key, url) = return url
 provisionTemplateOverrideSupport ::
      FilePath -> Provisioning -> FilePath -> Action ()
 provisionTemplateOverrideSupport base method url = do
-  let newBase = base </> url
   exists <- liftIO $ Dir.doesDirectoryExist url
   if exists
     then liftIO (Dir.listDirectory url) >>= mapM_ recurseProvision
