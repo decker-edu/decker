@@ -6,14 +6,20 @@ module Text.Decker.Internal.Helper
   , unique
   , time
   , (<++>)
+  , runIOQuietly
   ) where
 
 import Control.Monad.State
 import qualified Data.List.Extra as List
 import Data.Maybe
 import qualified Data.Set as Set
+import Development.Shake
 import System.CPUTime
+import Text.Pandoc
 import Text.Printf
+
+runIOQuietly :: PandocIO a -> IO (Either PandocError a)
+runIOQuietly act = runIO (setVerbosity ERROR >> act)
 
 -- | Monadic version of list concatenation.
 (<++>) :: Monad m => m [a] -> m [a] -> m [a]

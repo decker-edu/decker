@@ -2,6 +2,12 @@ module Text.Decker.Writer.Format
   ( formatMarkdown
   ) where
 
+import Text.Decker.Writer.Markdown
+import Text.Decker.Project.Project
+import Text.Decker.Resource.Resource
+import Text.Decker.Internal.Meta
+import Text.Decker.Internal.Common
+
 import Control.Exception
 import Control.Monad
 import Data.List
@@ -13,12 +19,6 @@ import System.FilePath
 import System.IO
 import Text.Pandoc hiding (writeMarkdown)
 import Text.Pandoc.Shared
-
-import Text.Decker.Writer.Markdown
-import Text.Decker.Project.Project
-import Text.Decker.Resource.Resource
-import Utilities
-import Text.Decker.Internal.Meta
 
 formatMarkdown :: IO ()
 formatMarkdown =

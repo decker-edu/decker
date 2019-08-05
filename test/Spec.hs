@@ -1,7 +1,7 @@
-import Text.Decker.Projekt.SketchTests
+import SketchTests
 import Test.Hspec
 import WatchTests
-import Text.Decker.Internal.MetaTests
+import MetaTests
 import IncludeTests
 
 import Control.Lens ((^.))
@@ -19,7 +19,6 @@ import qualified System.Directory as Dir
 import System.FilePath
 import System.FilePath.Glob
 import Text.Pandoc
-import Utilities
 
 main = do
   dirs <- projectDirectories

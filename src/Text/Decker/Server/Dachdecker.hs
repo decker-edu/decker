@@ -29,7 +29,6 @@ import System.FilePath
 import System.IO
 import Text.Pandoc
 
--- import Utilities
 uploadQuizzes :: Action [FilePath] -> Action ()
 uploadQuizzes markdownDecks
   -- TODO need the generated html files

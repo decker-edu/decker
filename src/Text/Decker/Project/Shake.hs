@@ -22,6 +22,7 @@ module Text.Decker.Project.Shake
   , projectDirsA
   , publicA
   , publicResourceA
+  , putCurrentDocument
   , runHttpServer
   , startHttpServer
   , stopHttpServer
@@ -34,19 +35,19 @@ module Text.Decker.Project.Shake
   , waitForChange
   ) where
 
+import System.Decker.OS
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.CompileTime
 import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Helper
+import Text.Decker.Internal.Meta
 import Text.Decker.Project.Git
 import Text.Decker.Project.Glob
-import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
-import Text.Decker.Server.Server
 import Text.Decker.Project.Sketch
-import System.Decker.OS
-import Text.Pandoc.Lens as P
 import Text.Decker.Project.Version
-import Text.Decker.Internal.Helper
+import Text.Decker.Server.Server
+import Text.Pandoc.Lens as P
 
 import Control.Concurrent
 import Control.Exception
@@ -445,3 +446,9 @@ calcSource targetSuffix srcSuffix target = do
           target
   need [src]
   return src
+
+putCurrentDocument :: FilePath -> Action ()
+putCurrentDocument out = do
+  public <- publicA
+  let rel = makeRelative public out
+  putNormal $ "# pandoc (for " ++ rel ++ ")"

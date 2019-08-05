@@ -16,6 +16,7 @@ module Text.Decker.Internal.Meta
   , lookupMetaString
   , lookupMetaStringList
   , lookupMetaInt
+  , metaValueAsString
   , DeckerException(..)
   ) where
 
@@ -25,6 +26,7 @@ import Text.Decker.Writer.Markdown
 
 import Control.Arrow
 import Control.Exception
+import qualified Data.HashMap.Lazy as HashMap
 import qualified Data.HashMap.Strict as H
 import Data.List.Safe ((!!))
 import qualified Data.List.Split as L
@@ -99,8 +101,7 @@ decodeYaml yamlFile = do
     Right object@(Y.Object _) -> return object
     Right _ ->
       throw $
-      YamlException $
-      "Top-level meta value must be an object: " ++ yamlFile
+      YamlException $ "Top-level meta value must be an object: " ++ yamlFile
     Left exception -> throw exception
 
 readMetaData :: FilePath -> IO Y.Value
@@ -161,16 +162,6 @@ lookupStringList key def meta =
 lookupMetaValue :: String -> Meta -> Maybe MetaValue
 lookupMetaValue = flip lookupMeta'
 
-{-- 
-lookupMetaValue key (Meta mm) = lookup path (MetaMap mm)
-  where
-    path = L.splitOn "." key
-    lookup :: [String] -> MetaValue -> Maybe MetaValue
-    lookup (first:rest) (MetaMap m) =
-      maybe Nothing (lookup rest) (Map.lookup first m)
-    lookup (first:rest) _ = Nothing
-    lookup [] value = Just value
---}
 -- | Split a compound meta key at the dots and separate the array indexes.
 splitKey = concatMap (L.split (L.keepDelimsL (L.oneOf "["))) . L.splitOn "."
 
@@ -218,3 +209,20 @@ metaToStringList _ = Nothing
 
 lookupMetaInt :: Meta -> String -> Maybe Int
 lookupMetaInt meta key = lookupMetaString meta key >>= readMaybe
+
+metaValueAsString :: String -> Y.Value -> Maybe String
+metaValueAsString key meta =
+  case L.splitOn "." key of
+    [] -> Nothing
+    k:ks -> lookup' ks (lookupValue k meta)
+  where
+    lookup' :: [String] -> Maybe Y.Value -> Maybe String
+    lookup' [] (Just (Y.String s)) = Just (T.unpack s)
+    lookup' [] (Just (Y.Number n)) = Just (show n)
+    lookup' [] (Just (Y.Bool b)) = Just (show b)
+    lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
+    lookup' _ _ = Nothing
+
+lookupValue :: String -> Y.Value -> Maybe Y.Value
+lookupValue key (Y.Object hashTable) = H.lookup (T.pack key) hashTable
+lookupValue _ _ = Nothing

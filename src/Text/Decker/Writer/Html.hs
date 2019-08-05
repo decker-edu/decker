@@ -1,15 +1,9 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Utilities
-  ( runDecker
-  , writeIndexLists
+module Text.Decker.Writer.Html
+  ( writeIndexLists
   , markdownToHtmlDeck
   , markdownToHtmlHandout
-  , markdownToPdfHandout
   , markdownToHtmlPage
-  , markdownToPdfPage
-  , metaValueAsString
-  , pandocMakePdf
-  , pandocReaderOpts
   , toPandocMeta
   , DeckerException(..)
   ) where
@@ -21,6 +15,7 @@ import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Render
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
@@ -28,6 +23,7 @@ import Text.Decker.Project.Sketch
 import Text.Decker.Project.Version
 import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Resource
+import Text.Decker.Resource.Template
 import Text.Decker.Server.Server
 import Text.Pandoc.Lens
 
@@ -111,19 +107,6 @@ writeIndexLists out baseUrl = do
                (takeFileName html)
                (makeRelative baseUrl html)
 
-getTemplate :: Meta -> Disposition -> Action String
-getTemplate meta disp = do
-  let templateOverridePath =
-        case templateFromMeta meta of
-          Just template -> Just $ template </> getTemplateFileName disp
-          Nothing -> Nothing
-  if isJust templateOverridePath
-    then do
-      let templateOverridePath' = fromJust templateOverridePath
-      need [templateOverridePath']
-      liftIO $ readFile templateOverridePath'
-    else liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
-
 -- | Write Pandoc in native format right next to the output file
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
 writeNativeWhileDebugging out mod doc@(Pandoc meta body) = do
@@ -163,9 +146,6 @@ markdownToHtmlDeck markdownFile out index = do
     writePandocFile "revealjs" options out
   writeNativeWhileDebugging out "filtered" pandoc
 
-runIOQuietly :: PandocIO a -> IO (Either PandocError a)
-runIOQuietly act = runIO (setVerbosity ERROR >> act)
-
 writePandocFile :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocFile fmt options out pandoc =
   liftIO $
@@ -177,22 +157,6 @@ writePandocFile fmt options out pandoc =
       runIOQuietly (writePandoc options pandoc) >>= handleError >>=
       LB.writeFile out
     Left e -> throw $ PandocException e
-
--- | Determines which template file name to use
--- for a certain disposition type
-getTemplateFileName :: Disposition -> String
-getTemplateFileName (Disposition Deck Html) = "deck.html"
-getTemplateFileName (Disposition Deck Latex) = "deck.tex"
-getTemplateFileName (Disposition Page Html) = "page.html"
-getTemplateFileName (Disposition Page Latex) = "page.tex"
-getTemplateFileName (Disposition Handout Html) = "handout.html"
-getTemplateFileName (Disposition Handout Latex) = "handout.tex"
-
-putCurrentDocument :: FilePath -> Action ()
-putCurrentDocument out = do
-  public <- publicA
-  let rel = makeRelative public out
-  putNormal $ "# pandoc (for " ++ rel ++ ")"
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage :: FilePath -> FilePath -> Action ()
@@ -219,31 +183,6 @@ markdownToHtmlPage markdownFile out = do
           }
   writePandocFile "html5" options out pandoc
 
--- | Write a markdown file to a PDF file using the handout template.
-markdownToPdfPage :: FilePath -> FilePath -> Action ()
-markdownToPdfPage markdownFile out = do
-  putCurrentDocument out
-  let disp = Disposition Page Latex
-  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate meta disp
-  let options =
-        pandocWriterOpts
-          { writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerCiteMethod = Citeproc
-          }
-  pandocMakePdf options out pandoc
-
-pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
-pandocMakePdf options out pandoc =
-  liftIO $ do
-    result <-
-      runIOQuietly (makePDF "xelatex" [] writeLaTeX options pandoc) >>=
-      handleError
-    case result of
-      Left errMsg -> throw $ PandocException (show errMsg)
-      Right pdf -> liftIO $ LB.writeFile out pdf
-
 -- | Write a markdown file to a HTML file using the handout template.
 markdownToHtmlHandout :: FilePath -> FilePath -> Action ()
 markdownToHtmlHandout markdownFile out = do
@@ -268,37 +207,3 @@ markdownToHtmlHandout markdownFile out = do
           , writerTOCDepth = lookupInt "toc-depth" 1 docMeta
           }
   writePandocFile "html5" options out pandoc
-
--- | Write a markdown file to a PDF file using the handout template.
-markdownToPdfHandout :: FilePath -> FilePath -> Action ()
-markdownToPdfHandout markdownFile out = do
-  putCurrentDocument out
-  let disp = Disposition Handout Latex
-  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate meta disp
-  let options =
-        pandocWriterOpts
-          { writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerCiteMethod = Citeproc
-          }
-  pandocMakePdf options out pandoc
-
-lookupValue :: String -> Y.Value -> Maybe Y.Value
-lookupValue key (Y.Object hashTable) = HashMap.lookup (T.pack key) hashTable
-lookupValue _ _ = Nothing
-
--- TODO: move to Meta.hs?
--- used in Decker.hs
-metaValueAsString :: String -> Y.Value -> Maybe String
-metaValueAsString key meta =
-  case splitOn "." key of
-    [] -> Nothing
-    k:ks -> lookup' ks (lookupValue k meta)
-  where
-    lookup' :: [String] -> Maybe Y.Value -> Maybe String
-    lookup' [] (Just (Y.String s)) = Just (T.unpack s)
-    lookup' [] (Just (Y.Number n)) = Just (show n)
-    lookup' [] (Just (Y.Bool b)) = Just (show b)
-    lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
-    lookup' _ _ = Nothing

@@ -3,6 +3,7 @@ module Decker where
 
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Meta
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Flags (hasPreextractedResources)
 import Text.Decker.Internal.Helper
@@ -13,7 +14,7 @@ import Text.Decker.Resource.Resource
 import Text.Decker.Server.Dachdecker
 import Text.Decker.Writer.Format
 import Text.Decker.Writer.Pdf
-import Utilities
+import Text.Decker.Writer.Html
 
 import Control.Exception
 import Control.Lens ((^.))
