@@ -1,17 +1,15 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module External
+module Text.Decker.Internal.External
   ( ssh
   , rsync
-  , External.unzip
   , dot
   , gnuplot
   , pdflatex
   , pdf2svg
-  , decktape
   , checkExternalPrograms
   ) where
 
-import Exception
+import Text.Decker.Internal.Exception
 
 import Control.Exception
 import Data.Maybe
@@ -52,13 +50,6 @@ programs =
             ]
             ["--version"]
             (helpText "`rsync` program (https://rsync.samba.org)"))
-    , ( "unzip"
-            , ExternalProgram
-            []
-            "unzip"
-            []
-            []
-            (helpText "`unzip` program (http://www.info-zip.org)"))
     , ( "dot"
             , ExternalProgram
             []
@@ -87,14 +78,6 @@ programs =
             []
             []
             (helpText "LaTeX type setter (https://github.com/dawbarton/pdf2svg)"))
-    , ( "decktape"
-            , ExternalProgram
-            []
-            "decktape"
-            ["reveal"]
-            []
-            (helpText
-             "Decktape PDF exporter (https://github.com/astefanutti/decktape)"))
     ]
 
 type Program = [String] -> Action ()
@@ -107,9 +90,6 @@ ssh = makeProgram "ssh"
 rsync :: Program
 rsync = makeProgram "rsync"
 
-unzip :: Program
-unzip = makeProgram "unzip"
-
 dot :: Program
 dot = makeProgram "dot"
 
@@ -121,9 +101,6 @@ pdflatex = makeProgram "pdflatex"
 
 pdf2svg :: Program
 pdf2svg = makeProgram "pdf2svg"
-
-decktape :: Program
-decktape = makeProgram "decktape"
 
 helpText :: String -> String
 helpText name =

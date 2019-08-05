@@ -7,7 +7,7 @@ module Render
 
 import Text.Decker.Filter.CRC32
 import Text.Decker.Internal.Common
-import Exception
+import Text.Decker.Internal.Exception
 import Project
 import Shake
 

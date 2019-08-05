@@ -1,7 +1,7 @@
 import SketchTests
 import Test.Hspec
 import WatchTests
-import MetaTests
+import Text.Decker.Internal.MetaTests
 import IncludeTests
 
 import Control.Lens ((^.))
@@ -12,7 +12,7 @@ import Data.Maybe
 import Data.Text
 import Data.Text.Encoding
 import qualified Data.Yaml as Y
-import Filter
+import Text.Decker.Filter.Filter
 import Project as P
 import Resources
 import qualified System.Directory as Dir

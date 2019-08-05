@@ -47,7 +47,6 @@ dependencies:
   - data-default
   - directory
   - extra
-  - file-embed
   - filepath
   - fsnotify
   - Glob
@@ -99,6 +98,9 @@ dependencies:
   - zip
 
 library:
+  # ghc-options:
+  #   - -fwarn-unused-binds 
+  #   - -fwarn-unused-imports
   source-dirs: src
   when:
     - condition: os(windows)
@@ -119,6 +121,8 @@ executables:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
+#     - -fwarn-unused-binds 
+#     - -fwarn-unused-imports
     dependencies:
       - decker
 

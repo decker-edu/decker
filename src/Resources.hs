@@ -27,8 +27,8 @@ module Resources
   ) where
 
 import Text.Decker.Internal.Common
-import Exception
-import Flags
+import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Flags
 import Project
 import Shake
 import System.Decker.OS

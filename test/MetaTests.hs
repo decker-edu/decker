@@ -3,7 +3,7 @@ module MetaTests
   ) where
 
 import qualified Data.Map.Strict as M
-import Meta
+import Text.Decker.Internal.Meta
 import Test.Hspec
 import Text.Pandoc
 

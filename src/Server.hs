@@ -6,18 +6,19 @@ module Server
   , Server
   ) where
 
+import Text.Decker.Server.Dachdecker (login)
+import Project
+
 import Control.Concurrent
 import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.State
-import Dachdecker (login)
 import qualified Data.ByteString.Char8 as BS
 import Data.Maybe
 import Data.Text
 import Network.WebSockets
 import Network.WebSockets.Snap
-import Project
 import Snap.Core
 import Snap.Http.Server
 import Snap.Util.FileServe

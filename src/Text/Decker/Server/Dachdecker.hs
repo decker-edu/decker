@@ -1,12 +1,12 @@
 {-- Author: Jan-Philipp Stauffert <jan-philipp.stauffert@uni-wuerzburg.de> --}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Dachdecker
+module Text.Decker.Server.Dachdecker
   ( login
   , uploadQuizzes
   ) where
 
-import Exception
+import Text.Decker.Internal.Exception
 import Project
 
 import Control.Exception

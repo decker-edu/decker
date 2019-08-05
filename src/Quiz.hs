@@ -15,7 +15,7 @@ module Quiz
   ) where
 
 import Text.Decker.Internal.Common
-import Filter
+import Text.Decker.Filter.Filter
 
 import Control.Exception
 import Debug.Trace as DT

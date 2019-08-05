@@ -36,16 +36,16 @@ module Shake
 
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.CompileTime
-import Exception
-import Git
-import Glob
-import Meta
+import Text.Decker.Internal.Exception
+import Text.Decker.Project.Git
+import Text.Decker.Project.Glob
+import Text.Decker.Internal.Meta
 import Project
 import Server
 import Sketch
 import System.Decker.OS
 import Text.Pandoc.Lens as P
-import Text.Decker.Internal.Version
+import Text.Decker.Project.Version
 import Text.Decker.Internal.Helper
 
 import Control.Concurrent

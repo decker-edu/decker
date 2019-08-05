@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Meta
+module Text.Decker.Internal.Meta
   ( toPandocMeta
   , toMustacheMeta
   , mergePandocMeta
@@ -20,8 +20,8 @@ module Meta
   ) where
 
 import Text.Decker.Internal.Common
-import Exception
-import Markdown
+import Text.Decker.Internal.Exception
+import Text.Decker.Writer.Markdown
 
 import Control.Arrow
 import Control.Exception
@@ -38,7 +38,7 @@ import Prelude hiding ((!!))
 import System.FilePath
 import System.FilePath.Glob
 import qualified Text.Mustache.Types as MT
-import Text.Pandoc
+import Text.Pandoc hiding (writeMarkdown)
 import Text.Pandoc.Shared
 import Text.Read
 import Text.Regex.TDFA
@@ -67,7 +67,7 @@ toMustacheMeta' (MetaBlocks blocks) =
 
 writeMarkdownText :: WriterOptions -> Pandoc -> T.Text
 writeMarkdownText options pandoc =
-  case runPure $ Markdown.writeMarkdown options pandoc of
+  case runPure $ writeMarkdown options pandoc of
     Right text -> text
     Left err -> throw $ PandocException $ show err
 
@@ -99,7 +99,7 @@ decodeYaml yamlFile = do
     Right object@(Y.Object _) -> return object
     Right _ ->
       throw $
-      Exception.YamlException $
+      YamlException $
       "Top-level meta value must be an object: " ++ yamlFile
     Left exception -> throw exception
 

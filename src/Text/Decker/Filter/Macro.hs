@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Macro
+module Text.Decker.Filter.Macro
   ( expandDeckerMacros
   ) where
 
@@ -10,7 +10,7 @@ import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
 import Data.Text (pack, replace, unpack)
-import Exception
+import Text.Decker.Internal.Exception
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)

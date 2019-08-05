@@ -6,7 +6,7 @@ module Text.Decker.Internal.Cache
   ) where
 
 import Text.Decker.Internal.Common
-import Exception
+import Text.Decker.Internal.Exception
 
 import Control.Exception
 import qualified Data.ByteString.Char8 as B

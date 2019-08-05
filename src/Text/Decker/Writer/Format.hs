@@ -1,4 +1,4 @@
-module Format
+module Text.Decker.Writer.Format
   ( formatMarkdown
   ) where
 
@@ -11,14 +11,14 @@ import System.Environment
 import System.Exit
 import System.FilePath
 import System.IO
-import Text.Pandoc
+import Text.Pandoc hiding (writeMarkdown)
 import Text.Pandoc.Shared
 
-import Markdown
+import Text.Decker.Writer.Markdown
+import Project
 import Resources
 import Utilities
-import Meta
-import Output
+import Text.Decker.Internal.Meta
 
 formatMarkdown :: IO ()
 formatMarkdown =
@@ -45,7 +45,7 @@ formatMarkdown =
                 , writerWrapText = wrapOpt wrap
                 , writerSetextHeaders = False
                 }
-        result <- runIO (Markdown.writeMarkdown options pandoc)
+        result <- runIO (writeMarkdown options pandoc)
         case result of
           Right markdown -> T.hPutStr stdout markdown
           Left errMsg -> throw $ PandocException (show errMsg)

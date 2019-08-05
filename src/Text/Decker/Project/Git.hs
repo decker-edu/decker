@@ -1,4 +1,4 @@
-module Git
+module Text.Decker.Project.Git
   ( gitOriginUrl
   , gitBranch
   , gitRevision
@@ -10,7 +10,6 @@ import Data.Git
 import Data.Git.Ref
 import Data.Git.Repository
 import Data.Git.Revision
-import Data.Maybe
 import qualified Data.Set as Set
 
 -- | Returns the Url for the remote 'origin' if that exists 

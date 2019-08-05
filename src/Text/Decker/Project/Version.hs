@@ -1,4 +1,4 @@
-module Text.Decker.Internal.Version
+module Text.Decker.Project.Version
   ( deckerVersion
   , deckerGitBranch
   , deckerGitCommitId

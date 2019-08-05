@@ -3,6 +3,7 @@
 -- 
 module Project
   ( resourcePaths
+  , getResourceString
   , deckerResourceDir
   , oldResourcePaths
   -- , linkResource
@@ -39,11 +40,10 @@ module Project
   ) where
 
 import Text.Decker.Internal.Common
-import Exception
-import Flags
-import Glob
+import Text.Decker.Internal.Flags
+import Text.Decker.Project.Glob
 import System.Decker.OS
-import Text.Decker.Internal.Version
+import Text.Decker.Project.Version
 import Text.Decker.Internal.Helper
 
 import Control.Lens
@@ -55,11 +55,8 @@ import qualified Data.Yaml as Yaml
 import Network.URI
 import qualified System.Directory as D
 import Text.Regex.TDFA
-
-import System.Environment
-
--- import System.Directory (createFileLink, doesDirectoryExist, doesFileExist)
 import System.FilePath
+import System.Environment
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 
@@ -169,6 +166,12 @@ deckerResourceDir =
            ("decker" ++
             "-" ++
             deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
+
+getResourceString :: FilePath -> IO String
+getResourceString path = do
+  dataDir <- deckerResourceDir
+  readFile (dataDir </> path)
+
 
 -- | Get the absolute paths of resource folders 
 -- with version numbers older than the current one

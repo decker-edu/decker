@@ -1,25 +1,24 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Decker where
 
-import Text.Decker.Internal.Common
-import Exception
-import External
-import Flags (hasPreextractedResources)
-import Format
-import Output
+import Text.Decker.Internal.Exception
+import Text.Decker.Internal.External
+import Text.Decker.Internal.Flags (hasPreextractedResources)
+import Text.Decker.Writer.Format
 import Pdf
 import Project
 import Resources
 import Shake
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
-import Text.Decker.Internal.Version
+import Text.Decker.Project.Version
+import Text.Decker.Server.Dachdecker
 import Utilities
 
 import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Control.Monad.Extra
-import Dachdecker
 import Data.Aeson
 import Data.IORef ()
 import Data.List

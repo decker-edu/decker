@@ -7,11 +7,11 @@ module Sketch
   ) where
 
 import Text.Decker.Internal.Common
-import Markdown
-import Output
+import Text.Decker.Writer.Markdown
 import Slide
-import Meta
+import Text.Decker.Internal.Meta
 import Text.Pandoc.Lens
+import Project
 
 import Control.Lens
 import Control.Monad
@@ -23,7 +23,7 @@ import System.Directory
 import System.FilePath
 import System.IO
 import System.Random
-import Text.Pandoc
+import Text.Pandoc hiding (writeMarkdown)
 import Text.Pandoc.Shared
 import Text.Printf
 import Text.Read
@@ -73,7 +73,7 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
           , writerSetextHeaders = False
           }
   markdown <-
-    liftIO $ runIO (Markdown.writeMarkdown options pandoc) >>= handleError
+    liftIO $ runIO (writeMarkdown options pandoc) >>= handleError
   fileContent <- liftIO $ T.readFile filepath
   when (markdown /= fileContent) $
     withTempFile (\tmp -> liftIO $ T.writeFile tmp markdown >> renameFile tmp filepath)

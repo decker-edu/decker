@@ -1,10 +1,10 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Filter
+module Text.Decker.Filter.Filter
   ( RowLayout(..)
   , OutputFormat(..)
   , Disposition(..)
   , processPandoc
-  , Filter.includeCode
+  , includeCode
   , processSlides
   , useCachedImages
   , escapeToFilePath
@@ -19,7 +19,7 @@ module Filter
 
 import Text.Decker.Internal.Common
 import Control.Exception
-import Exception
+import Text.Decker.Internal.Exception
 import Sketch
 import Slide
 import Text.Pandoc.Lens
@@ -55,7 +55,7 @@ import Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A (alt, class_, id, title)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
-import Text.Pandoc.Filter.IncludeCode as P
+import qualified Text.Pandoc.Filter.IncludeCode as P
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Read hiding (lift)

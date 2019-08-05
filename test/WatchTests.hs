@@ -3,7 +3,7 @@ module WatchTests
   ) where
 
 import Data.List
-import Glob
+import Text.Decker.Project.Glob
 import Test.Hspec
 
 watchTests =

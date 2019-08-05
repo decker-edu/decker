@@ -21,11 +21,10 @@ module Utilities
   ) where
 
 import Text.Decker.Internal.Common
-import Exception
-import Filter
-import Macro
-import Meta
-import Output
+import Text.Decker.Internal.Exception
+import Text.Decker.Filter.Filter
+import Text.Decker.Filter.Macro
+import Text.Decker.Internal.Meta
 import Project
 import Quiz
 import Render
@@ -35,7 +34,7 @@ import Shake
 import Sketch
 import System.Decker.OS
 import Text.Pandoc.Lens
-import Text.Decker.Internal.Version
+import Text.Decker.Project.Version
 
 import Control.Arrow
 import Control.Concurrent

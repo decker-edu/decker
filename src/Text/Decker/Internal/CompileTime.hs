@@ -7,7 +7,7 @@ module Text.Decker.Internal.CompileTime
 import Control.Monad
 import Data.Maybe
 import Data.String.Utils
-import Git
+import Text.Decker.Project.Git
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax (Lift(..))
 import System.Exit
