@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Cache
+module Text.Decker.Internal.Cache
   ( isCacheableURI
   , cacheRemoteFile
   , cacheRemoteImages

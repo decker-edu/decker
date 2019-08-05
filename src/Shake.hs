@@ -35,7 +35,7 @@ module Shake
   ) where
 
 import Common
-import CompileTime
+import Text.Decker.Internal.CompileTime
 import Exception
 import Git
 import Glob
@@ -45,6 +45,7 @@ import Server
 import Sketch
 import System.Decker.OS
 import Text.Pandoc.Lens as P
+import Text.Decker.Internal.Version
 
 import Control.Concurrent
 import Control.Exception
@@ -151,7 +152,7 @@ excludeDirs meta =
 initContext state = do
   dirs <- projectDirectories
   meta <- readMetaData $ dirs ^. project
-  targets <- scanTargets (excludeDirs meta) sourceSuffixes dirs
+  targets <- scanTargets (excludeDirs meta) dirs
   return $ ActionContext dirs targets meta state
 
 cleanup state = do

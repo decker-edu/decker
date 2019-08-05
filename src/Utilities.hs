@@ -35,6 +35,7 @@ import Shake
 import Sketch
 import System.Decker.OS
 import Text.Pandoc.Lens
+import Text.Decker.Internal.Version
 
 import Control.Arrow
 import Control.Concurrent

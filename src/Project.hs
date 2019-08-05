@@ -43,6 +43,7 @@ import Exception
 import Flags
 import Glob
 import System.Decker.OS
+import Text.Decker.Internal.Version
 
 import Control.Lens
 import Control.Monad.Extra
@@ -233,9 +234,33 @@ isPrefix prefix whole = isPrefix_ (splitPath prefix) (splitPath whole)
 mapTuple :: (t1 -> t) -> (t1, t1) -> (t, t)
 mapTuple f (a, b) = (f a, f b)
 
-scanTargets :: [String] -> [String] -> ProjectDirs -> IO Targets
-scanTargets exclude suffixes dirs = do
-  srcs <- globFiles exclude suffixes (dirs ^. project)
+deckSuffix = "-deck.md"
+
+deckHTMLSuffix = "-deck.html"
+
+deckPDFSuffix = "-deck.pdf"
+
+pageSuffix = "-page.md"
+
+pageHTMLSuffix = "-page.html"
+
+pagePDFSuffix = "-page.pdf"
+
+handoutSuffix = "-deck.md"
+
+handoutHTMLSuffix = "-handout.html"
+
+handoutPDFSuffix = "-handout.pdf"
+
+metaSuffix = "-meta.yaml"
+
+indexSuffix = "-deck-index.yaml"
+
+sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
+
+scanTargets :: [String] -> ProjectDirs -> IO Targets
+scanTargets exclude dirs = do
+  srcs <- globFiles exclude sourceSuffixes (dirs ^. project)
   return
     Targets
       { _sources = sort $ concatMap snd srcs

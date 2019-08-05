@@ -11,6 +11,7 @@ import Pdf
 import Project
 import Resources
 import Shake
+import Text.Decker.Internal.Version
 import Utilities
 
 import Control.Exception

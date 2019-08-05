@@ -5,7 +5,7 @@ module Render
   , appendScripts
   ) where
 
-import CRC32
+import Text.Decker.Filter.CRC32
 import Common
 import Exception
 import Project
