@@ -56,6 +56,7 @@ fastGlobDirs exclude root = glob root
         then (dir :) <$> (concat <$> (absListDirectory dir >>= mapM glob))
         else return []
 
+-- | Same as `fastGlobFiles` but groups results by file extension.
 globFiles :: [String] -> [String] -> FilePath -> IO [(String, [FilePath])]
 globFiles exclude suffixes root = do
   scanned <- fastGlobFiles exclude suffixes root
