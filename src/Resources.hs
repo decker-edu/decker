@@ -18,6 +18,12 @@ module Resources
   , provisionMetaResource
   , provisionTemplateOverrideSupport
   , provisionTemplateOverrideSupportTopLevel
+  -- * keys
+  , elementAttributes
+  , runtimeMetaKeys
+  , compiletimeMetaKeys
+  , templateOverrideMetaKeys
+  , metaKeys
   ) where
 
 import Common
@@ -41,6 +47,33 @@ import System.Environment
 import System.Exit
 import System.FilePath
 import System.Process
+
+-- | These resources are needed at runtime. If they are specified as local URLs,
+-- the resource must exists at compile time. Remote URLs are passed through
+-- unchanged.
+elementAttributes :: [String]
+elementAttributes =
+  [ "src"
+  , "data-src"
+  , "data-markdown"
+  , "data-background-video"
+  , "data-background-image"
+  , "data-background-iframe"
+  ]
+
+-- | Resources in meta data that are needed at compile time. They have to be
+-- specified as local URLs and must exist.
+runtimeMetaKeys :: [String]
+runtimeMetaKeys = ["css"]
+
+templateOverrideMetaKeys :: [String]
+templateOverrideMetaKeys = ["template"]
+
+compiletimeMetaKeys :: [String]
+compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
+
+metaKeys :: [String]
+metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
 
 -- import Text.Regex.TDFA
 -- | Extract resources from the executable into the XDG data directory.

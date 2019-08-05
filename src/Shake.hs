@@ -46,6 +46,7 @@ import Sketch
 import System.Decker.OS
 import Text.Pandoc.Lens as P
 import Text.Decker.Internal.Version
+import Text.Decker.Internal.Helper
 
 import Control.Concurrent
 import Control.Exception

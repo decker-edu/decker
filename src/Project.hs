@@ -44,6 +44,7 @@ import Flags
 import Glob
 import System.Decker.OS
 import Text.Decker.Internal.Version
+import Text.Decker.Internal.Helper
 
 import Control.Lens
 import Control.Monad.Extra
