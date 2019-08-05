@@ -3,7 +3,7 @@ module Macro
   ( expandDeckerMacros
   ) where
 
-import Common
+import Text.Decker.Internal.Common
 import Control.Monad.State
 import Data.List (find, isInfixOf, isPrefixOf)
 import Data.List.Split

@@ -1,7 +1,7 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Decker where
 
-import Common
+import Text.Decker.Internal.Common
 import Exception
 import External
 import Flags (hasPreextractedResources)

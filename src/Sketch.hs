@@ -6,7 +6,7 @@ module Sketch
   , idDigits
   ) where
 
-import Common
+import Text.Decker.Internal.Common
 import Markdown
 import Output
 import Slide

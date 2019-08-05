@@ -14,7 +14,7 @@ module Quiz
   ( renderQuizzes
   ) where
 
-import Common
+import Text.Decker.Internal.Common
 import Filter
 
 import Control.Exception

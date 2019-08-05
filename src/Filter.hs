@@ -17,7 +17,7 @@ module Filter
   , convertMediaAttributes
   ) where
 
-import Common
+import Text.Decker.Internal.Common
 import Control.Exception
 import Exception
 import Sketch

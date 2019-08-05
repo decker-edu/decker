@@ -26,7 +26,7 @@ module Resources
   , metaKeys
   ) where
 
-import Common
+import Text.Decker.Internal.Common
 import Exception
 import Flags
 import Project

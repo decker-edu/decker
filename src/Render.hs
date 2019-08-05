@@ -6,7 +6,7 @@ module Render
   ) where
 
 import Text.Decker.Filter.CRC32
-import Common
+import Text.Decker.Internal.Common
 import Exception
 import Project
 import Shake

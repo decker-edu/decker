@@ -1,5 +1,5 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Common
+module Text.Decker.Internal.Common
   ( addScript
   -- * Types
   , DeckerState(..)

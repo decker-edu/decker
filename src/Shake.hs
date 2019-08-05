@@ -34,7 +34,7 @@ module Shake
   , waitForChange
   ) where
 
-import Common
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.CompileTime
 import Exception
 import Git

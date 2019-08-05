@@ -20,7 +20,7 @@ module Utilities
   , DeckerException(..)
   ) where
 
-import Common
+import Text.Decker.Internal.Common
 import Exception
 import Filter
 import Macro
