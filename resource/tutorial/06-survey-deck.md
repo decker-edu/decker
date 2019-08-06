@@ -28,7 +28,7 @@ dachdecker: 1234asdf-1234asdf
 ---
 ```
 
-In this slide deck you can now create multiple choice questions as seen in `05-quiz-deck`
+In this slide deck you can now create multiple choice questions as seen in the [Quiz deck](./05-quiz-deck.html).
 
 
 #
