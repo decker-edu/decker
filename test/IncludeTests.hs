@@ -3,8 +3,8 @@ module IncludeTests
   ) where
 
 import Test.Hspec
-import Text.Pandoc.Filter.IncludeCode
-import Text.Decker.Projekt.Shake
+import Text.Decker.Filter.IncludeCode
+import Text.Decker.Project.Shake
 
 includeTests = do
   describe "parseInclusionUrl" $ do

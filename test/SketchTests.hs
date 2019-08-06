@@ -1,9 +1,10 @@
 module SketchTests
-  ( -- sketchTests
+    -- sketchTests
+  (
   ) where
 
-import Text.Decker.Projekt.Sketch
 import Text.Decker.Filter.Slide
+import Text.Decker.Project.Sketch
 import Text.Pandoc.Lens
 
 import Data.Char
@@ -11,7 +12,6 @@ import Test.Hspec
 import Text.Pandoc
 
 import Control.Lens
-
 {--
 noIdSlide = Slide (Just $ Header 1 ("", [], []) []) []
 
