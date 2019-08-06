@@ -1,0 +1,27 @@
+[submodule "third-party/bootstrap"]
+	path = third-party/bootstrap
+	url = https://github.com/twbs/bootstrap.git
+[submodule "third-party/reveal.js"]
+	path = third-party/reveal.js
+	url = https://github.com/hakimel/reveal.js.git
+[submodule "third-party/reveal.js-menu"]
+	path = third-party/reveal.js-menu
+	url = https://github.com/denehyg/reveal.js-menu.git
+[submodule "third-party/three.js"]
+	path = third-party/three.js
+	url = https://github.com/mrdoob/three.js.git
+[submodule "third-party/d3"]
+	path = third-party/d3
+	url = https://github.com/d3/d3.git
+[submodule "third-party/jquery"]
+	path = third-party/jquery
+	url = https://github.com/jquery/jquery.git
+[submodule "third-party/MathJax"]
+	path = third-party/MathJax
+	url = https://github.com/mathjax/MathJax.git
+[submodule "third-party/Font-Awesome"]
+	path = third-party/Font-Awesome
+	url = https://github.com/FortAwesome/Font-Awesome.git
+[submodule "third-party/Chart.js"]
+	path = third-party/Chart.js
+	url = https://github.com/chartjs/Chart.js.git
