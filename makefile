@@ -64,7 +64,7 @@ resources: $(JS_DEP_COPY_FULL_PATH)
 dist: resources build
 	rm -rf dist
 	mkdir -p dist
-	ln -s $(executable) dist/$(decker-name) 
+	ln -s $(executable) dist/$(decker-name)
 	zip -qj dist/$(decker-name).zip dist/$(decker-name)
 	rm dist/$(decker-name)
 
@@ -166,20 +166,17 @@ resource/support/reveal.js-menu/%: node_modules/reveal.js-menu/%
 resource/support/mathjax/%: node_modules/mathjax/%
 	mkdir -p $(@D) && cp $< $@
 
-resource/support/fonts/%: src-support/fonts/%
+resource/support/decker.css: src-support/decker.css
 	mkdir -p $(@D) && cp $< $@
 
-resource/support/decker.css: src-support/decker.scss
-	sassc $< $@
+resource/support/handout.css: src-support/handout.css
+	mkdir -p $(@D) && cp $< $@
 
-resource/support/handout.css: src-support/handout.scss
-	sassc $< $@
+resource/support/page.css: src-support/page.css
+	mkdir -p $(@D) && cp $< $@
 
-resource/support/page.css: src-support/page.scss
-	sassc $< $@
-
-resource/support/reveal.css: node_modules/reveal.js/css/reveal.scss
-	sassc $< $@
+resource/support/reveal.css: node_modules/reveal.js/css/reveal.css
+	mkdir -p $(@D) && cp $< $@
 
 node_modules/%:
 	yarn install
