@@ -1,4 +1,4 @@
-// import $ from 'jquery';
+
 // require('@fortawesome/fontawesome-free/css/all.css');
 // require('@fortawesome/fontawesome-free/js/all');
 // require('bootstrap/dist/css/bootstrap.css');

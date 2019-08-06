@@ -10,7 +10,7 @@ templates:
   tags:
     - docker
   script:
-    - make yarn
+    - make resources
   cache:
     key: ${CI_JOB_NAME}
     paths:
@@ -59,11 +59,10 @@ build:win:
     - win
   stage: build
   script:
-    - '&.\bin\build.ps1 preextracted -skiptemplates -preparepackage'
+    - '&.\bin\build.ps1 standalone -skiptemplates -preparepackage'
   artifacts:
     paths:
       - decker.exe
-      - resource.zip
       - version.txt
   cache:
     key: build-win
@@ -146,7 +145,6 @@ deploy:win:
   script:
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker.exe store/decker/decker-win.exe
-    - mc cp ./resource.zip store/decker/resource-win.zip
     - mc cp ./version.txt store/decker/version-win.txt
   dependencies:
     - build:win

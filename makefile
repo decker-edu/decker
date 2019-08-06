@@ -32,6 +32,7 @@ JS_DEP_COPY += three.js
 JS_DEP_COPY += head.js
 JS_DEP_COPY += decker.js
 JS_DEP_COPY += page.js
+JS_DEP_COPY += quiz.js
 JS_DEP_COPY += handout.js
 JS_DEP_COPY += csv2chart.js
 JS_DEP_COPY += Chart.js
@@ -58,10 +59,9 @@ less:
 build:
 	stack build -j 8 --fast
 
-yarn: $(JS_DEP_COPY_FULL_PATH)
-	yarn install
+resources: $(JS_DEP_COPY_FULL_PATH)
 
-dist: yarn build
+dist: resources build
 	rm -rf dist
 	mkdir -p dist
 	ln -s $(executable) dist/$(decker-name) 
@@ -89,7 +89,7 @@ profile: build-profile
 preextracted:
 	stack build -j 8 --fast --flag decker:preextractedresources
 
-install: yarn build
+install: resources build
 	stack exec -- decker clean
 	mkdir -p $(local-bin-path)
 	cp $(executable) "$(local-bin-path)/$(decker-name)"
@@ -99,13 +99,13 @@ install: yarn build
 watch-resources:
 	find resource src-support -name "*.scss" -or -name "*.html" -or -name "*.js" | entr -pd make install-resources
 
-install-resources: yarn
+install-resources: resources
 	rsync -r resource/ $(resource-dir)
 
 version:
 	@echo "$(decker-name)"
 
-.PHONY: build clean test install dist docs yarn preextracted
+.PHONY: build clean test install dist docs resources preextracted
 
 ##### Copy JS dependencies that can't be packed with webpack
 
@@ -116,6 +116,9 @@ resource/support/page.js: src-support/page.js
 	mkdir -p $(@D) && cp $< $@
 
 resource/support/handout.js: src-support/handout.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/quiz.js: src-support/quiz.js
 	mkdir -p $(@D) && cp $< $@
 
 resource/support/bootstrap.css: node_modules/bootstrap/dist/css/bootstrap.min.css

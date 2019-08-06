@@ -1,6 +1,5 @@
-Reveal = require("reveal.js/js/reveal")
-MathJax = require("mathjax/MathJax.js")
-module.exports = {
+
+quizModule = {
     quiz: function () {
         initialMatchings = initMatching();
         matchings(initialMatchings);
