@@ -1,16 +1,13 @@
-$ = require("jquery/dist/jquery.slim.js");
-require('reveal.js/lib/js/head.min.js');
-Reveal = require('reveal.js/js/reveal');
-require('./decker.scss');
-require('./fonts/roboto.css');
-require('./fonts/source-code-pro.css');
-const quizModule = require('./quiz.js');
+// require('./decker.scss');
+// require('./fonts/roboto.css');
+// require('./fonts/source-code-pro.css');
+// const quizModule = require('./quiz.js');
 
 window.addEventListener('ready', function (event) {
   fixAutoplayWithStart();
   if (Reveal.isReady()) {
     makeVertical();
-    quizModule.quiz();
+    // quizModule.quiz();
     currentDate();
   } else {
     Reveal.addEventListener("ready", makeVertical);

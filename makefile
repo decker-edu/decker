@@ -8,14 +8,9 @@ local-bin-path := $(HOME)/.local/bin
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 resource-dir := $(HOME)/.local/share/$(decker-name)
 
-ifdef DECKER_DEV
-	yarn-mode := development
-else
-	yarn-mode := production
-endif
-
 JS_DEP_COPY = notes/notes.html
 JS_DEP_COPY += notes/notes.js
+JS_DEP_COPY += reveal.js
 JS_DEP_COPY += reveal.js-menu/menu.js
 JS_DEP_COPY += reveal.js-menu/menu.css
 JS_DEP_COPY += reveal.js-menu/font-awesome/css/all.css
@@ -28,6 +23,22 @@ JS_DEP_COPY += \
 	reveal.js-menu/font-awesome/webfonts/fa-regular-400.ttf
 JS_DEP_COPY += print/paper.css
 JS_DEP_COPY += print/pdf.css
+JS_DEP_COPY += jquery.js
+JS_DEP_COPY += plugin/math.js
+JS_DEP_COPY += plugin/zoom.js
+JS_DEP_COPY += classList.js
+JS_DEP_COPY += d3.js
+JS_DEP_COPY += three.js
+JS_DEP_COPY += head.js
+JS_DEP_COPY += decker.js
+JS_DEP_COPY += page.js
+JS_DEP_COPY += handout.js
+JS_DEP_COPY += csv2chart.js
+JS_DEP_COPY += Chart.js
+JS_DEP_COPY += decker.css
+JS_DEP_COPY += handout.css
+JS_DEP_COPY += page.css
+JS_DEP_COPY += reveal.css
 MATHJAX = node_modules/mathjax/MathJax.js
 MATHJAX += node_modules/mathjax/config/TeX-AMS_SVG.js
 MATHJAX += $(shell find node_modules/mathjax/jax/input/TeX -name "*.js")
@@ -45,7 +56,7 @@ build:
 	stack build -j 8 --fast
 
 yarn: $(JS_DEP_COPY_FULL_PATH)
-	yarn install && yarn run webpack --mode $(yarn-mode)
+	yarn install
 
 dist: yarn build
 	rm -rf dist
@@ -95,7 +106,46 @@ version:
 
 ##### Copy JS dependencies that can't be packed with webpack
 
+resource/support/decker.js: src-support/decker.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/page.js: src-support/page.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/handout.js: src-support/handout.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/Chart.js: src-support/Chart.min.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/csv2chart.js: src-support/csv2chart.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/d3.js: node_modules/d3/dist/d3.min.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/three.js: node_modules/three/build/three.min.js
+	mkdir -p $(@D) && cp $< $@
+
 resource/support/print/%: node_modules/reveal.js/css/print/%
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/reveal.js: node_modules/reveal.js/js/reveal.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/head.js: node_modules/reveal.js/lib/js/head.min.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/classList.js: node_modules/reveal.js/lib/js/classList.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/plugin/math.js: node_modules/reveal.js/plugin/math/math.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/plugin/zoom.js: node_modules/reveal.js/plugin/zoom-js/zoom.js
+	mkdir -p $(@D) && cp $< $@
+
+resource/support/jquery.js: node_modules/jquery/dist/jquery.min.js
 	mkdir -p $(@D) && cp $< $@
 
 resource/support/notes/%: node_modules/reveal.js/plugin/notes/%
@@ -107,13 +157,33 @@ resource/support/reveal.js-menu/%: node_modules/reveal.js-menu/%
 resource/support/mathjax/%: node_modules/mathjax/%
 	mkdir -p $(@D) && cp $< $@
 
+resource/support/decker.css: src-support/decker.scss
+	sassc $< $@
+
+resource/support/handout.css: src-support/handout.scss
+	sassc $< $@
+
+resource/support/page.css: src-support/page.scss
+	sassc $< $@
+
+resource/support/reveal.css: node_modules/reveal.js/css/reveal.scss
+	sassc $< $@
+
 node_modules/%:
 	yarn install
 
-SECONDARY =  node_modules/reveal.js/css/print/paper.css
+SECONDARY = node_modules/reveal.js/js/reveal.js
+SECONDARY += node_modules/reveal.js/css/reveal.scss
+SECONDARY += node_modules/reveal.js/lib/js/head.min.js
+SECONDARY += node_modules/reveal.js/lib/js/classList.js
+SECONDARY += node_modules/reveal.js/plugin/math/math.js
+SECONDARY += node_modules/reveal.js/plugin/zoom-js/zoom.js
+SECONDARY += node_modules/reveal.js/css/print/paper.css
 SECONDARY += node_modules/reveal.js/css/print/pdf.css
 SECONDARY += node_modules/reveal.js/plugin/notes/notes.html
 SECONDARY += node_modules/reveal.js/plugin/notes/notes.js
+SECONDARY += node_modules/d3/dist/d3.min.js
+SECONDARY += node_modules/three/build/three.min.js
 SECONDARY += node_modules/reveal.js-menu/menu.js
 SECONDARY += node_modules/reveal.js-menu/menu.css
 SECONDARY += node_modules/reveal.js-menu/font-awesome/css/all.css
@@ -123,6 +193,7 @@ SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-solid-900.woff
 SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-regular-400.woff
 SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-solid-900.ttf
 SECONDARY += node_modules/reveal.js-menu/font-awesome/webfonts/fa-regular-400.ttf
+SECONDARY += node_modules/jquery/dist/jquery.min.js
 SECONDARY += $(MATHJAX)
 
 .SECONDARY:  $(SECONDARY)
