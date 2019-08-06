@@ -14,12 +14,12 @@ includeCode (Pandoc meta blocks) = do
 
 # Include the entire file
 
-``` {.haskell include="src/Filter.hs" label="Haskell"}
+``` {.haskell include="src/Text/Decker/Filter/Filter.hs" label="Haskell"}
 ```
 
 # Include just a range
 
-``` {.haskell include="src/Filter.hs" label="Haskell" startLine="220" endLine="223"}
+``` {.haskell include="src/Text/Decker/Filter/Filter.hs" label="Haskell" startLine="220" endLine="223"}
 ```
 
 # Include a tagged snippet
@@ -37,7 +37,7 @@ isSnippetStart name line =
 
 ## Inclusion
 
-``` {.haskell include="src/Text/Pandoc/Filter/IncludeCode.hs" label="Haskell" snippet="include-start-end"}
+``` {.haskell include="src/Text/Decker/Filter/IncludeCode.hs" label="Haskell" snippet="include-start-end"}
 ```
 
 # Include a tagged snippet (shorter)
@@ -54,7 +54,7 @@ readIncluded = liftIO . Text.readFile =<< asks include
 
 ## Inclusion
 
-``` {.haskell include="src/Text/Pandoc/Filter/IncludeCode.hs" label="Haskell" snippet="include-shorter"}
+``` {.haskell include="src/Text/Decker/Filter/IncludeCode.hs" label="Haskell" snippet="include-shorter"}
 ```
 
 # Include a tagged snippet (even shorter)
@@ -70,7 +70,7 @@ isSnippetTag tag name line =
 
 ## Inclusion
 
-``` {.haskell include="src/Text/Pandoc/Filter/IncludeCode.hs" label="Haskell" snippet="include-even-shorter"}
+``` {.haskell include="src/Text/Decker/Filter/IncludeCode.hs" label="Haskell" snippet="include-even-shorter"}
 ```
 
 # Include a tagged snippet (Image syntax)
@@ -78,10 +78,10 @@ isSnippetTag tag name line =
 ## Include source
 
 ``` {.markdown}
-![](code:/src/Text/Pandoc/Filter/IncludeCode.hs#include-even-shorter){.haskell label="Haskell"}
+![](code:/src/Text/Decker/Filter/IncludeCode.hs#include-even-shorter){.haskell label="Haskell"}
 ```
 
 ## Inclusion
 
-![](code:/src/Text/Pandoc/Filter/IncludeCode.hs#include-even-shorter){.haskell
+![](code:/src/Text/Decker/Filter/IncludeCode.hs#include-even-shorter){.haskell
 label="Haskell"}
