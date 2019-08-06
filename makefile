@@ -39,6 +39,7 @@ JS_DEP_COPY += decker.css
 JS_DEP_COPY += handout.css
 JS_DEP_COPY += page.css
 JS_DEP_COPY += reveal.css
+JS_DEP_COPY += bootstrap.css
 MATHJAX = node_modules/mathjax/MathJax.js
 MATHJAX += node_modules/mathjax/config/TeX-AMS_SVG.js
 MATHJAX += $(shell find node_modules/mathjax/jax/input/TeX -name "*.js")
@@ -47,6 +48,8 @@ MATHJAX += $(wildcard node_modules/mathjax/extensions/*.js)
 MATHJAX += $(shell find node_modules/mathjax/extensions/TeX -name "*.js")
 MATHJAX += $(shell find node_modules/mathjax/jax/element -name "*.js")
 JS_DEP_COPY += $(MATHJAX:node_modules/%=%)
+FONTS = $(shell find src-support/fonts -type f)
+JS_DEP_COPY += $(FONTS:src-support/%=%)
 JS_DEP_COPY_FULL_PATH = $(addprefix resource/support/, $(JS_DEP_COPY))
 
 less:
@@ -115,6 +118,9 @@ resource/support/page.js: src-support/page.js
 resource/support/handout.js: src-support/handout.js
 	mkdir -p $(@D) && cp $< $@
 
+resource/support/bootstrap.css: node_modules/bootstrap/dist/css/bootstrap.min.css
+	mkdir -p $(@D) && cp $< $@
+
 resource/support/Chart.js: src-support/Chart.min.js
 	mkdir -p $(@D) && cp $< $@
 
@@ -157,6 +163,9 @@ resource/support/reveal.js-menu/%: node_modules/reveal.js-menu/%
 resource/support/mathjax/%: node_modules/mathjax/%
 	mkdir -p $(@D) && cp $< $@
 
+resource/support/fonts/%: src-support/fonts/%
+	mkdir -p $(@D) && cp $< $@
+
 resource/support/decker.css: src-support/decker.scss
 	sassc $< $@
 
@@ -174,6 +183,7 @@ node_modules/%:
 
 SECONDARY = node_modules/reveal.js/js/reveal.js
 SECONDARY += node_modules/reveal.js/css/reveal.scss
+SECONDARY += node_modules/bootstrap/dist/css/bootstrap.min.css
 SECONDARY += node_modules/reveal.js/lib/js/head.min.js
 SECONDARY += node_modules/reveal.js/lib/js/classList.js
 SECONDARY += node_modules/reveal.js/plugin/math/math.js
