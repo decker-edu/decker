@@ -13,10 +13,6 @@ templates:
     - docker
   script:
     - make resources
-  cache:
-    key: ${CI_JOB_NAME}
-    paths:
-      - node_modules
   artifacts:
     paths:
       - resource/support
