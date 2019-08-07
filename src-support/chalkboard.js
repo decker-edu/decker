@@ -13,11 +13,11 @@
  ** Edited by Jan-Philipp Stauffert
  ******************************************************************/
 
-import laserImg from './img/laser.png';
-import spongeImg from './img/sponge.png';
-import blackboardImg from './img/blackboard.png';
-import boardmarkerImg from './img/boardmarker.png';
-import chalkImg from './img/chalk.png';
+// import laserImg from './img/laser.png';
+// import spongeImg from './img/sponge.png';
+// import blackboardImg from './img/blackboard.png';
+// import boardmarkerImg from './img/boardmarker.png';
+// import chalkImg from './img/chalk.png';
 
 export default class RevealChalkboard {
   constructor() {

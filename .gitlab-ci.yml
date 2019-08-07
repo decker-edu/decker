@@ -5,7 +5,7 @@ stages:
   - deploy
 
 templates:
-  image: kkarczmarczyk/node-yarn
+  image: ubuntu:bionic
   stage: templates
   tags:
     - docker
