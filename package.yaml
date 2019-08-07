@@ -25,8 +25,7 @@ extra-source-files:
   - Dockerfile
   - makefile
   - src-support/*
-  - resource/template/*
-  - resource/example/*
+  - resource/*
   - third-party/Makefile
 
 synopsis: A markdown based tool for slide deck creation

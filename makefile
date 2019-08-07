@@ -33,7 +33,7 @@ resources: $(JS_DEP_COPY_FULL_PATH)
 dist: resources build
 	rm -rf dist
 	mkdir -p dist
-	ln -s $(executable) dist/$(decker-name) 
+	ln -s $(executable) dist/$(decker-name)
 	zip -qj dist/$(decker-name).zip dist/$(decker-name)
 	rm dist/$(decker-name)
 
@@ -91,20 +91,14 @@ resource/support/handout.js: src-support/handout.js
 resource/support/quiz.js: src-support/quiz.js
 	mkdir -p $(@D) && cp $< $@
 
-resource/support/Chart.js: src-support/Chart.min.js
-	mkdir -p $(@D) && cp $< $@
-
-resource/support/csv2chart.js: src-support/csv2chart.js
-	mkdir -p $(@D) && cp $< $@
-
 resource/support/fonts/%: src-support/fonts/%
 	mkdir -p $(@D) && cp $< $@
 
-resource/support/decker.css: src-support/decker.scss
-	sassc $< $@
+resource/support/decker.css: src-support/decker.css
+	mkdir -p $(@D) && cp $< $@
 
-resource/support/handout.css: src-support/handout.scss
-	sassc $< $@
+resource/support/handout.css: src-support/handout.css
+	mkdir -p $(@D) && cp $< $@
 
-resource/support/page.css: src-support/page.scss
-	sassc $< $@
+resource/support/page.css: src-support/page.css
+	mkdir -p $(@D) && cp $< $@
