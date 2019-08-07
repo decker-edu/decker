@@ -83,6 +83,29 @@ RESOURCES += ../resource/support/sponge.png
 ../resource/support/sponge.png: ../src-support/img/sponge.png
 	cp $< $@
 
+########## Fontawesome ##########
+FONTAWESOME += Font-Awesome/js-packages/@fortawesome/fontawesome-free/js/all.js
+FONTAWESOME += Font-Awesome/js-packages/@fortawesome/fontawesome-free/css/all.css
+FONTAWESOME += $(shell find Font-Awesome/js-packages/@fortawesome/fontawesome-free/webfonts -type f)
+FONTAWESOME += $(shell find Font-Awesome/js-packages/@fortawesome/fontawesome-free/svgs -type f)
+FONTAWESOME += $(shell find Font-Awesome/js-packages/@fortawesome/fontawesome-free/sprites -type f)
+RESOURCES += $(FONTAWESOME:Font-Awesome/js-packages/@fortawesome/fontawesome-free/%=../resource/support/fontawesome/%)
+
+../resource/support/fontawesome/js/all.js: Font-Awesome/js-packages/@fortawesome/fontawesome-free/js/all.min.js
+	mkdir -p $(@D) && cp $< $@
+
+../resource/support/fontawesome/css/all.css: Font-Awesome/js-packages/@fortawesome/fontawesome-free/css/all.min.css
+	mkdir -p $(@D) && cp $< $@
+
+../resource/support/fontawesome/webfonts/%: Font-Awesome/js-packages/@fortawesome/fontawesome-free/webfonts/%
+	mkdir -p $(@D) && cp $< $@
+
+../resource/support/fontawesome/svgs/%: Font-Awesome/js-packages/@fortawesome/fontawesome-free/svgs/%
+	mkdir -p $(@D) && cp $< $@
+
+../resource/support/fontawesome/sprites/%: Font-Awesome/js-packages/@fortawesome/fontawesome-free/sprites/%
+	mkdir -p $(@D) && cp $< $@
+	
 ##########
 .PHONY: support
 support: $(RESOURCES)
