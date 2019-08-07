@@ -650,12 +650,14 @@ alert (s);
 
 Dynamically make notes on presentations:
 
-- Make notes on slides: click <i class="fas fa-pencil-alt"></i> or type 'c'
-- Draw on chalkboard: click <i class="fas fa-edit"></i> or type 't'
-- Left mouse to draw, right to erase, center for laser pointer
-- Click icon again or type 'c' or 't' to close
-- 'Del' key clears chalkboard
-- Drawings are saved - type 'd' to download
+- Make notes on slides: click <i class="fas fa-pen"></i> or type 'd'
+- Use an eraser: click <i class="fas fa-eraser"></i> or type 'e'
+- Show the chalkboard: click <i class="fas fa-edit"></i> or type 'w'
+- Draw on chalkboard: click <i class="fas fa-edit"></i> and then <i class="fas fa-pen"></i> or type 'w' and then 'd'
+- Clear the chalkboard: press the 'Del' key 
+- Download notes: type 'n' 
+- Extend the chalkboard: open the chalkboard with drawing turned on ('d' and 'w') and press ENTER
+
 
 # Speaker Notes {#speakerNotes}
 

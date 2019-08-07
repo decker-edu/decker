@@ -16,7 +16,6 @@ JS_DEP_COPY += csv2chart.js
 JS_DEP_COPY += decker.css
 JS_DEP_COPY += handout.css
 JS_DEP_COPY += page.css
-JS_DEP_COPY += chalkboard.js
 FONTS = $(shell find src-support/fonts -type f)
 JS_DEP_COPY += $(FONTS:src-support/%=%)
 JS_DEP_COPY_FULL_PATH = $(addprefix resource/support/, $(JS_DEP_COPY))
@@ -77,9 +76,6 @@ version:
 .PHONY: build clean test install dist docs resources preextracted
 
 resource/support/decker.js: src-support/decker.js
-	mkdir -p $(@D) && cp $< $@
-
-resource/support/chalkboard.js: src-support/chalkboard.js
 	mkdir -p $(@D) && cp $< $@
 
 resource/support/page.js: src-support/page.js

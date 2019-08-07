@@ -70,6 +70,19 @@ RESOURCES += ../resource/support/bootstrap.css
 ../resource/support/bootstrap.css: bootstrap/dist/css/bootstrap.min.css
 	cp $< $@
 
+########## Piklor (dependency of Whiteboard) ##########
+RESOURCES += ../resource/support/piklor.js
+../resource/support/piklor.js: bielefeld/piklor.js/src/piklor.min.js
+	cp $< $@
+
+########## Whiteboard ##########
+RESOURCES += ../resource/support/whiteboard.js
+RESOURCES += ../resource/support/sponge.png
+../resource/support/whiteboard.js: bielefeld/mb-plugins/whiteboard/whiteboard.js
+	cp $< $@
+../resource/support/sponge.png: ../src-support/img/sponge.png
+	cp $< $@
+
 ##########
 .PHONY: support
 support: $(RESOURCES)

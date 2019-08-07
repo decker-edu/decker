@@ -63,6 +63,7 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/decker.css">
   <script src="$decker-support-dir$/jquery.js" type="text/javascript"></script>
   <script src="$decker-support-dir$/reveal/js/reveal.js" type="text/javascript"></script>
+  <script src="$decker-support-dir$/piklor.js" type="text/javascript"></script>
   <script src="$decker-support-dir$/quiz.js" type="text/javascript"></script>
   <script src="$decker-support-dir$/decker.js" type="text/javascript"></script>
 
@@ -317,11 +318,8 @@ $if(maxScale)$
 $endif$
 $if(chalkboard)$
         // Display chalkboard controls
-        chalkboard: {
-      		readOnly: undefined,
-      		theme: "chalkboard",
-      		src: "$chalkboard$",
-      	},
+        chalkboard: { src: "chalkboard.json", },
+
 $endif$
 $if(chart)$
         chart: {
@@ -365,7 +363,7 @@ $if(chart)$
 $endif$
           { src: '$decker-support-dir$/csv2chart.js', async: true },
 $if(chalkboard)$
-          { src: '$decker-support-dir$/chalkboard.js'},
+          { src: '$decker-support-dir$/whiteboard.js'},
 $endif$
 $if(menu)$
           { src: '$decker-support-dir$/reveal.js-menu/menu.js', async: true },
@@ -375,12 +373,17 @@ $endif$
             40: function() { Reveal.next(); },                       // up:   next slide
             38: function() { Reveal.prev(); },                       // down: prev slide
 $if(chalkboard)$
-            67: function() { window.RevealChalkboard.toggleNotesCanvas() }, // c: draw on slides
-            84: function() { window.RevealChalkboard.toggleChalkboard() },  // t: draw on blackboard
-            8:  function() { window.RevealChalkboard.clear() },             // BACKSPACE: clear chalkboard
-            46: function() { window.RevealChalkboard.resetSlide() },             // DELETE: reset chalkboard
-            68: function() { window.RevealChalkboard.downloadData() },          // d: downlad chalkboard drawing
-            90: function() { window.RevealChalkboard.drawUndo() } ,         // z: undo last stroke
+            // as defined in whiteboard.js:
+            // 46: function() { window.RevealWhiteboard.clearSlide() },           
+            // DELETE: clear slide
+            // 68: function() { window.RevealWhiteboard.selectTool(ToolType.PEN) }, // d: draw on slide  
+            // 69: function() { window.RevealWhiteboard.selectTool(ToolType.ERASER) },  // e: eraser  
+            // 87: function() { window.RevealWhiteboard.toggleWhiteboard() },       // w: toggle whiteboard
+            // 90: function() { window.RevealWhiteboard.drawUndo() },               // z: undo last drawing 
+            // 13: function() { window.RevealWhiteboard.addWhiteboardPage() },      // ENTER: extend whiteboard by one page
+            80: function() { window.RevealWhiteboard.createPrintout() },            // p: print notes
+            78: function() { window.RevealWhiteboard.downloadNotes() },             // n: download notes
+
 $endif$
         },
       });
