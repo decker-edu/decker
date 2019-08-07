@@ -15,4 +15,8 @@ exclude-directories:
 - src-unix
 - src-win
 - src-support
+<<<<<<< HEAD
 - third-party
+=======
+- third-party
+>>>>>>> 360416aacb932f2d2229bd664362039e75154eab
