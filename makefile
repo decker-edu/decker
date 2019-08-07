@@ -12,7 +12,6 @@ JS_DEP_COPY += decker.js
 JS_DEP_COPY += page.js
 JS_DEP_COPY += quiz.js
 JS_DEP_COPY += handout.js
-JS_DEP_COPY += csv2chart.js
 JS_DEP_COPY += decker.css
 JS_DEP_COPY += handout.css
 JS_DEP_COPY += page.css
