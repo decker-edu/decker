@@ -5,7 +5,7 @@ stages:
   - deploy
 
 templates:
-  image: eugenmayer/make
+  image: kkarczmarczyk/node-yarn
   stage: templates
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
