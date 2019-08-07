@@ -5,7 +5,7 @@ stages:
   - deploy
 
 templates:
-  image: ubuntu:bionic
+  image: eugenmayer/make
   stage: templates
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
