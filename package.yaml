@@ -27,6 +27,7 @@ extra-source-files:
   - src-support/*
   - resource/template/*
   - resource/example/*
+  - third-party/Makefile
 
 synopsis: A markdown based tool for slide deck creation
 category: Tool
