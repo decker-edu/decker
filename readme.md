@@ -18,7 +18,8 @@ chmod a+x decker
 1.  Install [stack](https://docs.haskellstack.org/en/stable/README/).
 2.  Clone this repo.
 3.  `cd decker`
-4.  `make install`
+4.  `git submodule update --init --recursive`
+5.  `make install`
 
 ## External tools
 
