@@ -38,6 +38,4 @@ readTemplatesFs dir = do
       return $ (path, content) : list
 
 readTemplatesZip :: IO [(FilePath, BS.ByteString)]
-readTemplatesZip = do
-  putStrLn "Reading templates from: <decker>"
-  extractResourceEntryList templates
+readTemplatesZip = extractResourceEntryList templates

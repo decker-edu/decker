@@ -32,6 +32,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
+import Text.Decker.Resource.Zip
 
 import Control.Exception
 import Control.Lens ((^.))
@@ -79,11 +80,11 @@ metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
 
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()
-writeExampleProject = writeResourceFiles "example" "."
+writeExampleProject = extractResourceEntries "example" "."
 
 -- | Write the tutorial project to the current folder
 writeTutorialProject :: IO ()
-writeTutorialProject = writeResourceFiles "tutorial" "."
+writeTutorialProject = extractResourceEntries "tutorial" "."
 
 writeResourceFiles :: FilePath -> FilePath -> IO ()
 writeResourceFiles prefix destDir = do
