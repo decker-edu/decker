@@ -8,24 +8,13 @@ local-bin-path := $(HOME)/.local/bin
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 resource-dir := $(HOME)/.local/share/$(decker-name)
 
-JS_DEP_COPY += decker.js
-JS_DEP_COPY += page.js
-JS_DEP_COPY += quiz.js
-JS_DEP_COPY += handout.js
-JS_DEP_COPY += decker.css
-JS_DEP_COPY += handout.css
-JS_DEP_COPY += page.css
-FONTS = $(shell find src-support/fonts -type f)
-JS_DEP_COPY += $(FONTS:src-support/%=%)
-JS_DEP_COPY_FULL_PATH = $(addprefix resource/support/, $(JS_DEP_COPY))
-
 less:
 	stack build -j 8 --fast 2>&1 | less
 
 build:
 	stack build -j 8 --fast
 
-resources: $(JS_DEP_COPY_FULL_PATH)
+resources: 
 	$(MAKE) -C third-party support
 
 dist: resources build
@@ -44,7 +33,7 @@ watch:
 clean:
 	stack clean
 	rm -rf dist
-	rm -rf resource/support/*
+	rm -rf resource/support/vendor/*
 
 build-profile:
 	stack build -j 8 --fast --work-dir .stack-work-profile --profile
@@ -63,37 +52,7 @@ install: resources build
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
 
-watch-resources:
-	find resource src-support -name "*.scss" -or -name "*.html" -or -name "*.js" | entr -pd make install-resources
-
-install-resources: resources
-	rsync -r resource/ $(resource-dir)
-
 version:
 	@echo "$(decker-name)"
 
 .PHONY: build clean test install dist docs resources preextracted
-
-resource/support/decker.js: src-support/decker.js
-	mkdir -p $(@D) && cp $< $@
-
-resource/support/page.js: src-support/page.js
-	mkdir -p $(@D) && cp $< $@
-
-resource/support/handout.js: src-support/handout.js
-	mkdir -p $(@D) && cp $< $@
-
-resource/support/quiz.js: src-support/quiz.js
-	mkdir -p $(@D) && cp $< $@
-
-resource/support/fonts/%: src-support/fonts/%
-	mkdir -p $(@D) && cp $< $@
-
-resource/support/decker.css: src-support/decker.css
-	mkdir -p $(@D) && cp $< $@
-
-resource/support/handout.css: src-support/handout.css
-	mkdir -p $(@D) && cp $< $@
-
-resource/support/page.css: src-support/page.css
-	mkdir -p $(@D) && cp $< $@

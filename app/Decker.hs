@@ -52,10 +52,6 @@ ttt =
 
 main :: IO ()
 main = do
-  time "extract tutorial" $ extractResourceEntries "tutorial" "/tmp"
-  time "extract support" $ extractResourceEntries "support" "/tmp"
-  time "extract all templates" $ extractResourceEntryList ttt
-  time "extract deck template" $ extractResourceEntry "template/deck.html"
   args <- getArgs
   if length args == 1 && head args == "format"
     then formatMarkdown

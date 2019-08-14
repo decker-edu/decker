@@ -27,13 +27,16 @@
     </style>
     $endif$
 
+    <link rel="stylesheet" href="$decker-support-dir$/vendor/bootstrap.min.css">
+    <link rel="stylesheet" href="$decker-support-dir$/vendor/fontawesome/css/all.css">
     <link rel="stylesheet" href="$decker-support-dir$/fonts/roboto.css">
     <link rel="stylesheet" href="$decker-support-dir$/fonts/source-code-pro.css">
-    <link rel="stylesheet" href="$decker-support-dir$/bootstrap.css">
-    <link rel="stylesheet" href="$decker-support-dir$/fontawesome/css/all.css">
     <link rel="stylesheet" href="$decker-support-dir$/page.css">
-    <script src="$decker-support-dir$/fontawesome/js/all.js" type="text/javascript"></script>
+
     <script src="$decker-support-dir$/page.js"></script>
+
+    <script src="$decker-support-dir$/vendor/fontawesome/js/all.js" type="text/javascript"></script>
+
     <!-- MathJax config -->
     <script type="text/x-mathjax-config">
       MathJax.Hub.Config({
@@ -70,7 +73,7 @@
       }
       });
     </script>
-    <script src="$decker-support-dir$/mathjax/MathJax.js?config=TeX-AMS_SVG"></script>
+    <script src="$decker-support-dir$/vendor/mathjax/MathJax.js?config=TeX-AMS_SVG"></script>
 
     <script>
       var socket = new WebSocket("ws://" + location.host + "/reload");

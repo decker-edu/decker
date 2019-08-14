@@ -25,7 +25,7 @@ $endif$
     var link = document.createElement( 'link' );
     link.rel = 'stylesheet';
     link.type = 'text/css';
-    link.href = window.location.search.match( /print-pdf/gi ) ? '$decker-support-dir$/reveal/css/print/pdf.css' : '$decker-support-dir$/reveal/css/print/paper.css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? '$decker-support-dir$/vendor/reveal/css/print/pdf.css' : '$decker-support-dir$/vendor/reveal/css/print/paper.css';
     document.getElementsByTagName( 'head' )[0].appendChild( link );
   </script>
 
@@ -57,18 +57,19 @@ $endif$
 
   <!-- Decker's standard default CSS -->
 
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reveal.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/fontawesome/css/all.css">
   <link rel="stylesheet" href="$decker-support-dir$/fonts/roboto.css">
   <link rel="stylesheet" href="$decker-support-dir$/fonts/source-code-pro.css">
-  <link rel="stylesheet" href="$decker-support-dir$/reveal/css/reveal.css">
-  <link rel="stylesheet" href="$decker-support-dir$/fontawesome/css/all.css">
-  <link rel="stylesheet" href="$decker-support-dir$/fontawesome/js/all.js">
   <link rel="stylesheet" href="$decker-support-dir$/decker.css">
-  <script src="$decker-support-dir$/fontawesome/js/all.js" type="text/javascript"></script>
-  <script src="$decker-support-dir$/jquery.js" type="text/javascript"></script>
-  <script src="$decker-support-dir$/reveal/js/reveal.js" type="text/javascript"></script>
-  <script src="$decker-support-dir$/piklor.js" type="text/javascript"></script>
+
+  <script src="$decker-support-dir$/vendor/fontawesome/js/all.js" type="text/javascript"></script>
+  <script src="$decker-support-dir$/vendor/jquery.js" type="text/javascript"></script>
+  <script src="$decker-support-dir$/vendor/reveal/js/reveal.js" type="text/javascript"></script>
+  <script src="$decker-support-dir$/vendor/piklor.js" type="text/javascript"></script>
   <script src="$decker-support-dir$/quiz.js" type="text/javascript"></script>
   <script src="$decker-support-dir$/decker.js" type="text/javascript"></script>
+
 
 <!-- Sketch Pad meta data -->
 $if(sketch-pad-viewer-url)$
@@ -147,7 +148,7 @@ $body$
         pdfMaxPagesPerSlide: 1,
         pdfSeparateFragments: false,
         math: {
-          mathjax: "$decker-support-dir$/mathjax/MathJax.js",
+          mathjax: "$decker-support-dir$/vendor/mathjax/MathJax.js",
           config: "TeX-AMS_SVG",
           menuSettings: { zoom: "Double-Click" },
           TeX: {
@@ -180,6 +181,7 @@ $body$
               textcolor: ['\\color{#1}', 1]
               }
           },
+        },
 $if(controls)$
         // Display controls in the bottom right corner
         controls: $controls$,
@@ -351,18 +353,18 @@ $endif$
 
         // Optional reveal.js plugins
         dependencies: [
-          { src: '$decker-support-dir$/reveal/plugin/math/math.js', async: true },
-          { src: '$decker-support-dir$/reveal/plugin/zoom-js/zoom.js', async: true },
-          { src: '$decker-support-dir$/reveal/plugin/notes/notes.js', async: true },
+          { src: '$decker-support-dir$/vendor/reveal/plugin/math/math.js', async: true },
+          { src: '$decker-support-dir$/vendor/reveal/plugin/zoom-js/zoom.js', async: true },
+          { src: '$decker-support-dir$/vendor/reveal/plugin/notes/notes.js', async: true },
 $if(chart)$
-          { src: '$decker-support-dir$/Chart.js'},
+          { src: '$decker-support-dir$/vendor/Chart.js'},
 $endif$
-          { src: '$decker-support-dir$/csv2chart.js', async: true },
+          { src: '$decker-support-dir$/vendor/csv2chart.js', async: true },
 $if(chalkboard)$
-          { src: '$decker-support-dir$/whiteboard.js'},
+          { src: '$decker-support-dir$/vendor/whiteboard.js'},
 $endif$
 $if(menu)$
-          { src: '$decker-support-dir$/reveal.js-menu/menu.js', async: true },
+          { src: '$decker-support-dir$/vendor/reveal.js-menu/menu.js', async: true },
 $endif$
         ],
         keyboard: {
