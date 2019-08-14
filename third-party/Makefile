@@ -72,8 +72,11 @@ $(support)/piklor.js: bielefeld/piklor.js/src/piklor.min.js
 
 # Whiteboard
 RESOURCES += $(support)/whiteboard.js
-RESOURCES += $(support)/sponge.png
 $(support)/whiteboard.js: bielefeld/mb-plugins/whiteboard/whiteboard.js
+	cp $< $@
+
+RESOURCES += $(support)/sponge.png
+$(support)/sponge.png: bielefeld/mb-plugins/whiteboard/sponge.png
 	cp $< $@
 
 # Fontawesome

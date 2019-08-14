@@ -2,22 +2,21 @@ module Text.Decker.Resource.Zip
   ( extractResourceEntries
   , extractResourceEntry
   , extractResourceEntryList
-  , extractResources
   ) where
 
 import Text.Decker.Internal.Common
-import Text.Decker.Project.Project
 import Text.Decker.Internal.Exception
+import Text.Decker.Project.Project
 
 import Codec.Archive.Zip
 import Control.Exception
+import Control.Monad
+import Control.Monad.IO.Class
 import qualified Data.ByteString as BS
 import Data.List (isPrefixOf)
 import Data.Map.Strict (filterWithKey, keys, size)
 import qualified System.Directory as Dir
 import System.Environment
-import Control.Monad
-import Control.Monad.IO.Class
 import System.FilePath
 
 -- | Extracts entries from the embedded resource archive that match the prefix

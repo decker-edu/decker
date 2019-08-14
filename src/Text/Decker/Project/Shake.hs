@@ -8,7 +8,6 @@ module Text.Decker.Project.Shake
   , calcSource
   , decksA
   , decksPdfA
-  , getSupportDir
   , getRelativeSupportDir
   , handoutsA
   , handoutsPdfA
@@ -31,9 +30,11 @@ module Text.Decker.Project.Shake
   , watchChangesAndRepeat
   , writeDeckIndex
   , writeSketchPadIndex
+  , writeSupportFilesToPublic
   , withShakeLock
   , waitForChange
   , getTemplate
+  , getTemplate'
   , isDevRun
   ) where
 
@@ -46,6 +47,7 @@ import Text.Decker.Project.Glob
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Template
+import Text.Decker.Resource.Zip
 import Text.Decker.Server.Server
 import Text.Pandoc.Lens as P
 
@@ -53,6 +55,7 @@ import Control.Concurrent
 import Control.Exception
 import Control.Lens
 import Control.Monad
+import Control.Monad.Extra
 import Data.Aeson as Json
 import Data.Aeson.Lens
 import qualified Data.ByteString as B
@@ -70,7 +73,7 @@ import Data.Text.Encoding
 import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
-import Development.Shake
+import Development.Shake hiding (doesDirectoryExist)
 import Development.Shake as Shake
   ( Action
   , Resource
@@ -210,10 +213,13 @@ waitForChange inDirs =
        takeMVar done)
 
 getTemplate :: Disposition -> Action String
-getTemplate disposition = do
+getTemplate disposition = getTemplate' (templateFileName disposition)
+
+getTemplate' :: FilePath -> Action String
+getTemplate' path = do
   context <- actionContext
   return $ BC.unpack $ fromJust $
-    lookup (templateFileName disposition) (context ^. templates)
+    lookup path (context ^. templates)
 
 isDevRun :: Action Bool
 isDevRun = do
@@ -230,17 +236,13 @@ sketchPadId text =
   T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ BL.fromStrict $
   encodeUtf8 text
 
-getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
-getSupportDir meta out defaultPath = do
-  dirs <- projectDirsA
-  cur <- liftIO Dir.getCurrentDirectory
-  let dirPath =
-        case templateFromMeta meta of
-          Just template ->
-            (makeRelativeTo (takeDirectory out) (dirs ^. public)) </>
-            (makeRelativeTo cur template)
-          Nothing -> defaultPath
-  return $ urlPath dirPath
+writeSupportFilesToPublic :: Action ()
+writeSupportFilesToPublic = do
+  context <- actionContext
+  let publicDir = context ^. dirs . public
+  exists <- liftIO $ doesDirectoryExist (publicDir </> "support")
+  unless exists $
+    liftIO $ extractResourceEntries "support" publicDir
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do

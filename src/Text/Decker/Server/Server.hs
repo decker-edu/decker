@@ -93,7 +93,6 @@ runHttpServer state dirs port = do
                ("decker server: Port " ++
                 show port ++ "already in use, trying port " ++ show (port + 1))
              tryRun (port + 1) (tries - 1))
-  putStrLn ("Serving " ++ show supportPath ++ " from: " ++ supportRoot)
   tryRun port 10
 
 serveDirectoryNoCaching :: MonadSnap m => FilePath -> m ()

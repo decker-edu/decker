@@ -8,6 +8,7 @@ module Text.Decker.Project.Sketch
 
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Meta
+import Text.Decker.Project.Shake
 import Text.Decker.Project.Project
 import Text.Decker.Writer.Markdown
 import Text.Pandoc.Lens
@@ -44,7 +45,7 @@ randomAlpha = getStdRandom (randomR ('a', 'z'))
 -- Markdown writer that produces more appropriately formatted documents.
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
 writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
-  template <- liftIO $ getResourceString $ "template" </> "deck.md"
+  template <- getTemplate' "template/deck.md"
   let columns = lookupInt "write-back.line-columns" 80 pmeta
   let wrap = lookupString "write-back.line-wrap" "" pmeta
   let wrapOpt "none" = WrapNone

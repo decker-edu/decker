@@ -3,7 +3,6 @@
 -- 
 module Text.Decker.Project.Project
   ( resourcePaths
-  , getResourceString
   , deckerResourceDir
   , oldResourcePaths
   -- , linkResource
@@ -15,7 +14,6 @@ module Text.Decker.Project.Project
   , findProjectDirectory
   , projectDirectories
   , provisioningFromMeta
-  , templateFromMeta
   , dachdeckerFromMeta
   , invertPath
   , scanTargets
@@ -96,13 +94,6 @@ provisioningFromMeta meta =
     Just (MetaInlines i) -> read $ stringify i
     _ -> SymLink
 
-templateFromMeta :: Meta -> Maybe String
-templateFromMeta meta =
-  case lookupMeta "template" meta of
-    Just (MetaString s) -> Just s
-    Just (MetaInlines i) -> Just $ stringify i
-    _ -> Nothing
-
 dachdeckerFromMeta :: Meta -> Maybe String
 dachdeckerFromMeta meta =
   case lookupMeta "dachdecker" meta of
@@ -150,7 +141,7 @@ projectDirectories = do
   projectDir <- findProjectDirectory
   let publicDir = projectDir </> "public"
   let cacheDir = publicDir </> "cache"
-  let supportDir = publicDir </> ("support" ++ "-" ++ deckerVersion)
+  let supportDir = publicDir </> "support"
   appDataDir <- deckerResourceDir
   let logDir = projectDir </> "log"
   return
@@ -165,11 +156,6 @@ deckerResourceDir =
            ("decker" ++
             "-" ++
             deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
-
-getResourceString :: FilePath -> IO String
-getResourceString path = do
-  dataDir <- deckerResourceDir
-  readFile (dataDir </> path)
 
 -- | Find out if the decker executable is located below the current directory.
 -- This means most probably that decker was started in the decker development

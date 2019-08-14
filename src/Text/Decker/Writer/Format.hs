@@ -5,6 +5,7 @@ module Text.Decker.Writer.Format
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
+import Text.Decker.Project.Shake
 import Text.Decker.Writer.Markdown
 
 import Control.Exception
@@ -14,13 +15,14 @@ import System.FilePath
 import System.IO
 import Text.Pandoc hiding (writeMarkdown)
 
+markdownTemplate = "$if(titleblock)$\n$titleblock$\n$endif$\n$body$"
+
 formatMarkdown :: IO ()
 formatMarkdown =
   handle (\(SomeException e) -> hPutStr stderr (show e) >> exitFailure) $ do
     result <- T.hGetContents stdin >>= runIO . readMarkdown pandocReaderOpts
     case result of
       Right pandoc@(Pandoc meta _) -> do
-        template <- getResourceString $ "template" </> "deck.md"
         let extensions =
               (disableExtension Ext_simple_tables .
                disableExtension Ext_multiline_tables .
@@ -33,7 +35,7 @@ formatMarkdown =
         let wrap = lookupString "format.line-wrap" "auto" meta
         let options =
               def
-                { writerTemplate = Just template
+                { writerTemplate = Just markdownTemplate
                 , writerExtensions = extensions
                 , writerColumns = columns
                 , writerWrapText = wrapOpt wrap

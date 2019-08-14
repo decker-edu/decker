@@ -3,10 +3,10 @@ module Decker where
 
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
-import Text.Decker.Internal.Meta
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Flags (hasPreextractedResources)
 import Text.Decker.Internal.Helper
+import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
@@ -14,8 +14,8 @@ import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Zip
 import Text.Decker.Server.Dachdecker
 import Text.Decker.Writer.Format
-import Text.Decker.Writer.Pdf
 import Text.Decker.Writer.Html
+import Text.Decker.Writer.Pdf
 
 import Control.Exception
 import Control.Lens ((^.))
@@ -41,13 +41,13 @@ import Text.Pandoc.Definition
 import Text.Printf (printf)
 import Text.Read
 
-ttt = 
+ttt =
   [ "template/deck.html"
-  ,"template/deck.md"
-  ,"template/handout.html"
-  ,"template/handout.tex"
-  ,"template/page.html"
-  ,"template/page.tex"
+  , "template/deck.md"
+  , "template/handout.html"
+  , "template/handout.tex"
+  , "template/page.html"
+  , "template/page.tex"
   ]
 
 main :: IO ()
@@ -66,7 +66,6 @@ run = do
       deckerGitBranch
       deckerGitCommitId
       deckerGitVersionTag
-  extractResources
   directories <- projectDirectories
   --
   let serverPort = 8888
@@ -236,7 +235,7 @@ run = do
         removeFilesAfter (directories ^. appData) ["//"]
     --
     phony "help" $ do
-      text <- liftIO $ getResourceString "template/help-page.md"
+      text <- getTemplate' "template/help-page.md"
       liftIO $ putStr text
     --
     phony "info" $ do
@@ -249,22 +248,7 @@ run = do
       putNormal "\ntop level meta data:\n"
       groom <$> metaA >>= putNormal
     --
-    phony "support" $ do
-      metaData <- metaA
-      unlessM (Development.Shake.doesDirectoryExist (directories ^. support)) $ do
-        liftIO $ createDirectoryIfMissing True (directories ^. public)
-        let provisioning =
-              fromMaybe defaultProvisioning $
-              metaValueAsString "provisioning" metaData >>= readMaybe
-        if provisioning == SymLink
-          then liftIO $
-               createFileLink
-                 ((directories ^. appData) </> "support")
-                 (directories ^. support)
-          else liftIO $
-               copyDir
-                 ((directories ^. appData) </> "support")
-                 (directories ^. support)
+    phony "support" writeSupportFilesToPublic
     --
     phony "check" checkExternalPrograms
     --

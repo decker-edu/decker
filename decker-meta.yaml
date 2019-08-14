@@ -14,5 +14,4 @@ exclude-directories:
 - src
 - src-unix
 - src-win
-- src-support
 - third-party

@@ -24,7 +24,6 @@ extra-source-files:
   - readme.md
   - Dockerfile
   - makefile
-  - src-support/*
   - resource/template/*
   - resource/support/*
   - resource/example/*

@@ -31,7 +31,6 @@ readTemplates root devRun =
 
 readTemplatesFs :: FilePath -> IO [(FilePath, BS.ByteString)]
 readTemplatesFs dir = do
-  putStrLn $ "Reading templates from: " ++ dir
   foldM readTemplate [] templates
   where
     readTemplate list path = do
