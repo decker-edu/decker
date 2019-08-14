@@ -2,6 +2,7 @@
 *.prof
 .stack-work/
 .stack-work-profile/
+stack.yaml.lock
 .shake/
 TAGS
 public/
