@@ -222,8 +222,7 @@ isDevRun = do
 
 getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do
-  pub <- _public . _dirs <$> actionContext
-  let sup = pub </> ("support" ++ "-" ++ deckerVersion)
+  sup <- _support . _dirs <$> actionContext
   return $ makeRelativeTo from sup
 
 sketchPadId :: T.Text -> T.Text

@@ -76,20 +76,19 @@ writeIndexLists out baseUrl = do
 
 -- | Write Pandoc in native format right next to the output file
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
-writeNativeWhileDebugging out mod doc@(Pandoc meta body) = do
+writeNativeWhileDebugging out mod doc@(Pandoc meta body) =
   liftIO $
-    runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
-    T.writeFile (out -<.> mod <.> ".hs")
+  runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
+  T.writeFile (out -<.> mod <.> ".hs")
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: FilePath -> FilePath -> FilePath -> Action ()
 markdownToHtmlDeck markdownFile out index = do
   putCurrentDocument out
-  supportDir <- _support <$> projectDirsA
-  supportDirRel <- getRelativeSupportDir (takeDirectory out)
+  supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate disp 
+  template <- getTemplate disp
   dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
@@ -99,7 +98,7 @@ markdownToHtmlDeck markdownFile out index = do
           , writerHTMLMathMethod =
               MathJax "Handled by reveal.js in the template"
           , writerVariables =
-              [ ("decker-support-dir", supportDirRel)
+              [ ("decker-support-dir", supportDir)
               , ("dachdecker-url", dachdeckerUrl')
               ]
           , writerCiteMethod = Citeproc
@@ -127,7 +126,7 @@ markdownToHtmlPage markdownFile out = do
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Page Html
   pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate disp 
+  template <- getTemplate disp
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
@@ -148,7 +147,7 @@ markdownToHtmlHandout markdownFile out = do
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Handout Html
   pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate disp 
+  template <- getTemplate disp
   let options =
         pandocWriterOpts
           { writerTemplate = Just template

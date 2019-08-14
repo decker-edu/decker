@@ -6,8 +6,8 @@ module Text.Decker.Server.Server
   , Server
   ) where
 
-import Text.Decker.Server.Dachdecker (login)
 import Text.Decker.Project.Project
+import Text.Decker.Server.Dachdecker (login)
 
 import Control.Concurrent
 import Control.Exception
@@ -67,7 +67,13 @@ reloadAll state = withMVar state $ mapM_ reload
 -- Runs the server. Never returns.
 runHttpServer :: MVar ServerState -> ProjectDirs -> Int -> IO ()
 runHttpServer state dirs port = do
+  let supportPath = BS.pack $ "/" ++ makeRelativeTo (dirs ^. public) (dirs ^. support)
   let documentRoot = dirs ^. public
+  devRun <- isDevelopmentRun
+  let supportRoot =
+        if devRun
+          then dirs ^. project </> "resource" </> "support"
+          else dirs ^. support
   config <- serverConfig dirs port
   let routes =
         route
@@ -75,6 +81,7 @@ runHttpServer state dirs port = do
           , ("/dachdecker", method POST serveDachdecker)
           , ( "/reload.html" -- Just for testing the thing.
             , serveFile $ dirs ^. project </> "test" </> "reload.html")
+          , (supportPath, serveDirectoryNoCaching supportRoot)
           , ("/", serveDirectoryNoCaching documentRoot)
           ]
   let tryRun port 0 = fail "decker server: All ports already in use"
@@ -86,6 +93,7 @@ runHttpServer state dirs port = do
                ("decker server: Port " ++
                 show port ++ "already in use, trying port " ++ show (port + 1))
              tryRun (port + 1) (tries - 1))
+  putStrLn ("Serving " ++ show supportPath ++ " from: " ++ supportRoot)
   tryRun port 10
 
 serveDirectoryNoCaching :: MonadSnap m => FilePath -> m ()
