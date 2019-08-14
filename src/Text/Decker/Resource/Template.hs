@@ -42,17 +42,3 @@ readTemplatesZip :: IO [(FilePath, BS.ByteString)]
 readTemplatesZip = do
   putStrLn "Reading templates from: <decker>"
   extractResourceEntryList templates
--- getTemplate :: Meta -> Disposition -> Action String
--- getTemplate meta disp = do
---   let templateOverridePath =
---         case templateFromMeta meta of
---           Just template -> Just $ template </> getTemplateFileName disp
---           Nothing -> Nothing
---   if isJust templateOverridePath
---     then do
---       let templateOverridePath' = fromJust templateOverridePath
---       need [templateOverridePath']
---       liftIO $ readFile templateOverridePath'
---     else liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
--- | Determines which template file name to use
--- for a certain disposition type

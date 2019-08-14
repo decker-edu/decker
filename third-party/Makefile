@@ -6,11 +6,6 @@ jquery/dist/jquery.min.js:
 ../resource/support/jquery.js: jquery/dist/jquery.min.js
 	cp $< $@
 
-########### three.js ###########
-RESOURCES += ../resource/support/three.js
-../resource/support/three.js: three.js/build/three.min.js
-	cp $< $@
-
 ########## Chart.js ##########
 RESOURCES += ../resource/support/Chart.js
 ../resource/support/Chart.js: Chart.js/dist/Chart.min.js
@@ -23,14 +18,6 @@ Chart.js/dist/Chart.min.js:
 RESOURCES += ../resource/support/csv2chart.js
 ../resource/support/csv2chart.js: reveal.js-plugins/chart/csv2chart.js
 	cp $< $@
-
-########### d3 ###########
-RESOURCES += ../resource/support/d3.js
-../resource/support/d3.js: d3/dist/d3.min.js
-	cp $< $@
-
-d3/dist/d3.min.js: 
-	cd d3 && yarn install && yarn run pretest && yarn run rollup -c rollup.config.js
 
 ########## MathJax ##########
 MATHJAX = MathJax/MathJax.js

@@ -7,12 +7,6 @@
 [submodule "third-party/reveal.js-menu"]
 	path = third-party/reveal.js-menu
 	url = https://github.com/denehyg/reveal.js-menu.git
-[submodule "third-party/three.js"]
-	path = third-party/three.js
-	url = https://github.com/mrdoob/three.js.git
-[submodule "third-party/d3"]
-	path = third-party/d3
-	url = https://github.com/d3/d3.git
 [submodule "third-party/jquery"]
 	path = third-party/jquery
 	url = https://github.com/jquery/jquery.git
