@@ -6,7 +6,6 @@
 -- 
 module Text.Decker.Resource.Resource
   ( mapResources
-  , extractResources
   , deckerResourceDir
   , writeExampleProject
   , writeTutorialProject
@@ -34,18 +33,18 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 
-import Codec.Archive.Zip
 import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.State
+import Data.List (isPrefixOf)
 import qualified Data.Map.Lazy as Map
-import Data.Map.Strict (size)
+import Data.Map.Strict (filterWithKey, keys, size)
+import qualified Data.ByteString as BS
 import Development.Shake hiding (Resource)
 import Network.URI
 import qualified System.Directory as Dir
-import System.Environment
 import System.FilePath
 import Text.Pandoc
 import Text.Pandoc.Shared
@@ -77,21 +76,6 @@ compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
 
 metaKeys :: [String]
 metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
-
--- import Text.Regex.TDFA
--- | Extract resources from the executable into the XDG data directory.
-extractResources :: IO ()
-extractResources = do
-  deckerExecutable <- getExecutablePath
-  dataDir <- deckerResourceDir
-  exists <- Dir.doesDirectoryExist dataDir
-  unless exists $ do
-    numFiles <- withArchive deckerExecutable getEntries
-    unless ((size numFiles) > 0) $
-      throw $ ResourceException "No resource zip found in decker executable."
-    Dir.createDirectoryIfMissing True dataDir
-    withArchive deckerExecutable (unpackInto dataDir)
-    putStrLn $ "# resources extracted to " ++ dataDir
 
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()

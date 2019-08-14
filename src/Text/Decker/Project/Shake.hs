@@ -33,15 +33,19 @@ module Text.Decker.Project.Shake
   , writeSketchPadIndex
   , withShakeLock
   , waitForChange
+  , getTemplate
+  , isDevRun
   ) where
 
 import System.Decker.OS
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Git
 import Text.Decker.Project.Glob
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
+import Text.Decker.Resource.Template
 import Text.Decker.Server.Server
 import Text.Pandoc.Lens as P
 
@@ -51,8 +55,10 @@ import Control.Lens
 import Control.Monad
 import Data.Aeson as Json
 import Data.Aeson.Lens
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Base16 as B16
-import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Char8 as BC
+import qualified Data.ByteString.Lazy as BL
 import Data.Digest.Pure.MD5
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
@@ -90,7 +96,8 @@ instance Show (IORef a) where
   show _ = "IORef"
 
 data MutableActionState = MutableActionState
-  { _server :: IORef (Maybe Server)
+  { _devRun :: Bool
+  , _server :: IORef (Maybe Server)
   , _watch :: IORef Bool
   , _publicResource :: Shake.Resource
   } deriving (Show)
@@ -102,15 +109,17 @@ data ActionContext = ActionContext
   , _targetList :: Targets
   , _metaData :: Yaml.Value
   , _state :: MutableActionState
+  , _templates :: [(FilePath, B.ByteString)]
   } deriving (Typeable, Show)
 
 makeLenses ''ActionContext
 
 initMutableActionState = do
+  devRun <- isDevelopmentRun
   server <- newIORef Nothing
   watch <- newIORef False
   public <- newResourceIO "public" 1
-  return $ MutableActionState server watch public
+  return $ MutableActionState devRun server watch public
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -146,7 +155,8 @@ initContext state = do
   dirs <- projectDirectories
   meta <- readMetaData $ dirs ^. project
   targets <- scanTargets (excludeDirs meta) dirs
-  return $ ActionContext dirs targets meta state
+  templates <- readTemplates (dirs ^. project) (state ^. devRun)
+  return $ ActionContext dirs targets meta state templates
 
 cleanup state = do
   srvr <- readIORef $ state ^. server
@@ -199,6 +209,17 @@ waitForChange inDirs =
             Notify.watchDir manager dir (const True) (\e -> putMVar done ()))
        takeMVar done)
 
+getTemplate :: Disposition -> Action String
+getTemplate disposition = do
+  context <- actionContext
+  return $ BC.unpack $ fromJust $
+    lookup (templateFileName disposition) (context ^. templates)
+
+isDevRun :: Action Bool
+isDevRun = do
+  context <- actionContext
+  return (context ^. state . devRun)
+
 getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do
   pub <- _public . _dirs <$> actionContext
@@ -207,7 +228,7 @@ getRelativeSupportDir from = do
 
 sketchPadId :: T.Text -> T.Text
 sketchPadId text =
-  T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ B.fromStrict $
+  T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ BL.fromStrict $
   encodeUtf8 text
 
 getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath

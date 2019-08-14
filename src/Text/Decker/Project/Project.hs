@@ -19,6 +19,7 @@ module Text.Decker.Project.Project
   , dachdeckerFromMeta
   , invertPath
   , scanTargets
+  , isDevelopmentRun
   -- * Types
   , sources
   , decks
@@ -169,6 +170,15 @@ getResourceString :: FilePath -> IO String
 getResourceString path = do
   dataDir <- deckerResourceDir
   readFile (dataDir </> path)
+
+-- | Find out if the decker executable is located below the current directory.
+-- This means most probably that decker was started in the decker development
+-- project using `stack run decker`.
+isDevelopmentRun :: IO Bool
+isDevelopmentRun = do
+  cwd <- D.getCurrentDirectory
+  exePath <- getExecutablePath
+  return $ cwd `isPrefixOf` exePath
 
 -- | Get the absolute paths of resource folders 
 -- with version numbers older than the current one

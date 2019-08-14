@@ -16,6 +16,7 @@ module Text.Decker.Internal.Common
   , needFiles
   , pandocReaderOpts
   , pandocWriterOpts
+  , templateFileName
   ) where
 
 import Control.Monad.State
@@ -69,6 +70,14 @@ data Disposition = Disposition
   { layout :: Layout
   , format :: OutputFormat
   } deriving (Eq, Show)
+
+templateFileName :: Disposition -> String
+templateFileName (Disposition Deck Html) = "template/deck.html"
+templateFileName (Disposition Deck Latex) = "template/deck.tex"
+templateFileName (Disposition Page Html) = "template/page.html"
+templateFileName (Disposition Page Latex) = "template/page.tex"
+templateFileName (Disposition Handout Html) = "template/handout.html"
+templateFileName (Disposition Handout Latex) = "template/handout.tex"
 
 data MediaType
   = ImageMedia

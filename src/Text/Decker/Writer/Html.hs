@@ -89,8 +89,7 @@ markdownToHtmlDeck markdownFile out index = do
   supportDirRel <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate meta disp
-  templateSupportDir <- getSupportDir meta out supportDirRel
+  template <- getTemplate disp 
   dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
@@ -98,13 +97,9 @@ markdownToHtmlDeck markdownFile out index = do
           , writerTemplate = Just template
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
-              MathJax
-                (supportDirRel </> "node_modules" </> "mathjax" </>
-                 "MathJax.js?config=TeX-AMS_HTML")
+              MathJax "Handled by reveal.js in the template"
           , writerVariables =
-              [ ( "revealjs-url"
-                , supportDirRel </> "node_modules" </> "reveal.js")
-              , ("decker-support-dir", templateSupportDir)
+              [ ("decker-support-dir", supportDirRel)
               , ("dachdecker-url", dachdeckerUrl')
               ]
           , writerCiteMethod = Citeproc
@@ -132,18 +127,14 @@ markdownToHtmlPage markdownFile out = do
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Page Html
   pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate docMeta disp
-  templateSupportDir <- getSupportDir docMeta out supportDir
+  template <- getTemplate disp 
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
-              MathJax
-                (urlPath $
-                 supportDir </> "node_modules" </> "mathjax" </>
-                 "MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables = [("decker-support-dir", templateSupportDir)]
+              MathJax "Handled by reveal.js in the template"
+          , writerVariables = [("decker-support-dir", supportDir)]
           , writerCiteMethod = Citeproc
           , writerTableOfContents = lookupBool "show-toc" False docMeta
           , writerTOCDepth = lookupInt "toc-depth" 1 docMeta
@@ -157,18 +148,14 @@ markdownToHtmlHandout markdownFile out = do
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Handout Html
   pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate docMeta disp
-  templateSupportDir <- getSupportDir docMeta out supportDir
+  template <- getTemplate disp 
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
-              MathJax
-                (urlPath $
-                 supportDir </> "node_modules" </> "mathjax" </>
-                 "MathJax.js?config=TeX-AMS_HTML")
-          , writerVariables = [("decker-support-dir", templateSupportDir)]
+              MathJax "Handled by reveal.js in the template"
+          , writerVariables = [("decker-support-dir", supportDir)]
           , writerCiteMethod = Citeproc
           , writerTableOfContents = lookupBool "show-toc" False docMeta
           , writerTOCDepth = lookupInt "toc-depth" 1 docMeta

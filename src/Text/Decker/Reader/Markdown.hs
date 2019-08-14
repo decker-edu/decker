@@ -1,5 +1,5 @@
 module Text.Decker.Reader.Markdown
-  (readAndProcessMarkdown
+  ( readAndProcessMarkdown
   ) where
 
 import Text.Decker.Filter.Filter
@@ -127,17 +127,7 @@ readMarkdownOrThrow opts markdown =
     Left errMsg -> throw $ PandocException (show errMsg)
 
 processCitesWithDefault :: Pandoc -> Decker Pandoc
-processCitesWithDefault pandoc@(Pandoc meta blocks) =
-  lift $ do
-    document <-
-      case lookupMeta "csl" meta of
-        Nothing -> do
-          dir <- appDataA
-          let defaultCsl = dir </> "template" </> "acm-sig-proceedings.csl"
-          let cslMeta = setMeta "csl" (MetaString defaultCsl) meta
-          return (Pandoc cslMeta blocks)
-        _ -> return pandoc
-    liftIO $ processCites' document
+processCitesWithDefault = lift . liftIO . processCites'
 
 substituteMetaData :: T.Text -> MT.Value -> T.Text
 substituteMetaData source metaData = do
