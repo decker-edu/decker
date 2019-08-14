@@ -218,8 +218,7 @@ getTemplate disposition = getTemplate' (templateFileName disposition)
 getTemplate' :: FilePath -> Action String
 getTemplate' path = do
   context <- actionContext
-  return $ BC.unpack $ fromJust $
-    lookup path (context ^. templates)
+  return $ BC.unpack $ fromJust $ lookup path (context ^. templates)
 
 isDevRun :: Action Bool
 isDevRun = do
@@ -238,11 +237,34 @@ sketchPadId text =
 
 writeSupportFilesToPublic :: Action ()
 writeSupportFilesToPublic = do
+  correct <- correctSupportInstalled
+  unless correct $ do
+    removeSupport
+    extractSupport
+
+extractSupport :: Action ()
+extractSupport = do
   context <- actionContext
   let publicDir = context ^. dirs . public
-  exists <- liftIO $ doesDirectoryExist (publicDir </> "support")
-  unless exists $
-    liftIO $ extractResourceEntries "support" publicDir
+  let supportDir = context ^. dirs . support
+  liftIO $ do
+    extractResourceEntries "support" publicDir
+    BC.writeFile (supportDir </> ".version") (BC.pack deckerGitCommitId)
+    
+correctSupportInstalled :: Action Bool
+correctSupportInstalled = do
+  context <- actionContext
+  let supportDir = context ^. dirs . support
+  liftIO $ handle (\(SomeException _) -> return False) $ do
+    supportCommitId <- B.readFile (supportDir </> ".version")
+    return $ supportCommitId == BC.pack deckerGitCommitId
+
+removeSupport :: Action ()
+removeSupport = do
+  context <- actionContext
+  let supportDir = context ^. dirs . support
+  liftIO $ handle (\(SomeException _) -> return ()) $
+    removeDirectoryRecursive supportDir
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
