@@ -9,7 +9,7 @@ exclude-directories:
 - log
 - node_modules
 - public
-- resource/support
+- resource/support/vendor
 - resource/template
 - src
 - src-unix

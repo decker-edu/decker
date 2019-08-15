@@ -1,13 +1,8 @@
-// require('./decker.scss');
-// require('./fonts/roboto.css');
-// require('./fonts/source-code-pro.css');
-// const quizModule = require('./quiz.js');
-
 window.addEventListener('ready', function (event) {
   fixAutoplayWithStart();
   if (Reveal.isReady()) {
     makeVertical();
-    // quizModule.quiz();
+    quizModule.quiz();
     currentDate();
   } else {
     Reveal.addEventListener("ready", makeVertical);

@@ -15,7 +15,7 @@ $endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reveal.css">
   <style>
@@ -32,9 +32,14 @@ $if(highlighting-css)$
 $highlighting-css$
   </style>
 $endif$
+$if(theme)$
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/theme/$theme$.css" id="theme">
+$else$
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/theme/white.css" id="theme">
+$endif$
   <!-- decker -->
   <link rel="stylesheet" href="$decker-support-dir$/decker.css">
+  <!-- decker -->
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
 $endfor$
@@ -243,32 +248,6 @@ $if(zoomKey)$
         // Modifier key used to click-zoom to part of the slide
         zoomKey: '$zoomKey$',
 $endif$
-$if(menu)$
-        menu: {
-          side: 'left',
-          // 'normal', 'wide', 'third', 'half', 'full', or
-          width: 'wide',
-          numbers: false,
-          titleSelector: 'h1',
-          useTextContentForMissingTitles: false,
-          hideMissingTitles: false,
-          markers: true,
-          // Specify custom panels to be included in the menu, by
-          // providing an array of objects with 'title', 'icon'
-          // properties, and either a 'src' or 'content' property.
-          custom: false,  
-          themes: false,
-          transitions: false,
-          openButton: true,
-          openSlideNumber: true,
-          keyboard: true,
-          sticky: false,
-          autoOpen: true,
-          delayInit: false,
-          openOnInit: false,
-          loadIcons: false
-	    },
-$endif$
 $if(mathjax)$
         math: {
           mathjax: "$decker-support-dir$/vendor/mathjax/MathJax.js",
@@ -348,13 +327,6 @@ $endif$
     <script src="$decker-support-dir$/vendor/piklor.js" type="text/javascript"></script>
     <script src="$decker-support-dir$/quiz.js" type="text/javascript"></script>
     <script src="$decker-support-dir$/decker.js" type="text/javascript"></script>
-    <!-- Reload on change machinery -->
-    <script>
-      var socket = new WebSocket("ws://" + location.host + "/reload");
-      socket.onmessage = function () {
-      window.location.reload(true);
-      };
-    </script>
   $for(include-after)$
   $include-after$
   $endfor$
