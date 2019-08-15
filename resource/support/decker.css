@@ -4,772 +4,1161 @@
 @import url("fonts/source-code-pro.css");
 body {
   background: white;
-  -webkit-print-color-adjust: exact; }
-  body .reveal .slides {
-    font-family: "Roboto", sans-serif;
-    font-size: 30px;
-    font-weight: normal;
-    color: black; }
-    body .reveal .slides section {
-      line-height: 1.4;
-      text-align: left;
-      font-weight: inherit;
-      padding: 0em; }
-      body .reveal .slides section p {
-        margin: 1em 0em; }
-      body .reveal .slides section[data-align="center"] > h1,
-      body .reveal .slides section div[data-align="center"] {
-        text-align: center; }
-      body .reveal .slides section[data-align="right"] > h1,
-      body .reveal .slides section div[data-align="right"] {
-        text-align: right; }
-      body .reveal .slides section h1,
-      body .reveal .slides section h2,
-      body .reveal .slides section h3,
-      body .reveal .slides section h4,
-      body .reveal .slides section h5,
-      body .reveal .slides section h6 {
-        color: rgba(0, 0, 0, 0.87);
-        font-family: "Roboto", sans-serif;
-        letter-spacing: normal;
-        text-transform: none;
-        text-shadow: none;
-        word-wrap: break-word;
-        font-weight: normal; }
-      body .reveal .slides section h1 {
-        font-size: 1.6em;
-        margin: 0em 0em 0.5em 0em; }
-      body .reveal .slides section .rightcolumn > h1 {
-        margin-left: 54%; }
-      body .reveal .slides section h2 {
-        font-weight: 500;
-        font-size: 1.2em;
-        margin-bottom: 0.1em; }
-      body .reveal .slides section.white, body .reveal .slides section.inverse, body .reveal .slides section.has-dark-background {
-        color: #fff; }
-        body .reveal .slides section.white h1,
-        body .reveal .slides section.white h2,
-        body .reveal .slides section.white h3,
-        body .reveal .slides section.white h4,
-        body .reveal .slides section.white h5,
-        body .reveal .slides section.white h6, body .reveal .slides section.inverse h1,
-        body .reveal .slides section.inverse h2,
-        body .reveal .slides section.inverse h3,
-        body .reveal .slides section.inverse h4,
-        body .reveal .slides section.inverse h5,
-        body .reveal .slides section.inverse h6, body .reveal .slides section.has-dark-background h1,
-        body .reveal .slides section.has-dark-background h2,
-        body .reveal .slides section.has-dark-background h3,
-        body .reveal .slides section.has-dark-background h4,
-        body .reveal .slides section.has-dark-background h5,
-        body .reveal .slides section.has-dark-background h6 {
-          color: #eee; }
-      body .reveal .slides section strong,
-      body .reveal .slides section b {
-        font-weight: bold; }
-      body .reveal .slides section em {
-        font-style: italic; }
-      body .reveal .slides section sup {
-        font-size: 0.5em;
-        position: absolute;
-        vertical-align: super; }
-      body .reveal .slides section sub {
-        vertical-align: sub; }
-      body .reveal .slides section small {
-        display: inline-block;
-        font-size: 0.6em;
-        line-height: 1.2em;
-        vertical-align: top; }
-      body .reveal .slides section dt {
-        font-weight: bold; }
-      body .reveal .slides section dd {
-        margin-left: 1em; }
-      body .reveal .slides section q,
-      body .reveal .slides section blockquote {
-        quotes: none; }
-      body .reveal .slides section blockquote {
-        display: block;
-        position: relative;
-        width: 70%;
-        margin: 1em auto;
-        padding: 0.25em;
-        font-style: italic;
-        background: rgba(255, 255, 255, 0.05);
-        box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); }
-        body .reveal .slides section blockquote p:first-child, body .reveal .slides section blockquote p:last-child {
-          display: inline-block; }
-      body .reveal .slides section q {
-        font-style: italic;
-        quotes: "“" "”" "‘" "’"; }
-      body .reveal .slides section .smallcaps {
-        font-variant: small-caps; }
-      body .reveal .slides section .line-block {
-        white-space: pre-line; }
-      body .reveal .slides section code {
-        font-family: "Source Code Pro", monospace;
-        font-size: 106%;
-        font-weight: 500;
-        color: #06287e; }
-      body .reveal .slides section ol,
-      body .reveal .slides section dl,
-      body .reveal .slides section ul {
-        display: inline-block;
-        text-align: left;
-        margin-left: 1.1em;
-        width: 100%; }
-      body .reveal .slides section li .sourceCode {
-        margin-right: 1.1em;
-        margin-bottom: 0em !important; }
-      body .reveal .slides section li p {
-        margin: 0em; }
-      body .reveal .slides section ol {
-        list-style-type: decimal; }
-      body .reveal .slides section ul {
-        list-style-type: disc; }
-        body .reveal .slides section ul ul {
-          list-style-type: disc; }
-          body .reveal .slides section ul ul ul {
-            list-style-type: disc; }
-      body .reveal .slides section ul ul,
-      body .reveal .slides section ul ol,
-      body .reveal .slides section ol ol,
-      body .reveal .slides section ol ul {
-        display: block;
-        margin-left: 40px; }
-      body .reveal .slides section button,
-      body .reveal .slides section .freetextInput {
-        border-radius: 0.5em;
-        font-size: inherit;
-        font-family: inherit;
-        outline: none;
-        clear: both; }
-      body .reveal .slides section .matching {
-        text-align: center; }
-        body .reveal .slides section .matching .dropzones {
-          width: 100%;
-          min-height: 15vh;
-          max-height: 20vh;
-          display: table;
-          table-layout: fixed; }
-        body .reveal .slides section .matching .dropzone {
-          display: table-cell;
-          padding: 10px;
-          border: 1px solid black;
-          text-align: center; }
-        body .reveal .slides section .matching .draggable {
-          display: table-cell;
-          margin: auto;
-          padding: 1%;
-          max-width: 50%;
-          vertical-align: middle;
-          border-radius: 0.5em;
-          border: 1px #111 dashed;
-          overflow: hidden; }
-        body .reveal .slides section .matching .draggableChild {
-          max-width: inherit;
-          pointer-events: none; }
-        body .reveal .slides section .matching .dragzone {
-          display: table;
-          table-layout: fixed;
-          border-spacing: 5px;
-          margin-top: 5%;
-          min-height: 15vh;
-          max-height: 20vh;
-          text-align: center;
-          width: 100%;
-          position: relative; }
-        body .reveal .slides section .matching .dragzone:after, body .reveal .slides section .matching .dragzone:before {
-          bottom: 100%;
-          left: 50%;
-          border: solid transparent;
-          content: " ";
-          height: 0;
-          width: 0;
-          position: absolute;
-          pointer-events: none; }
-        body .reveal .slides section .matching .dragzone:after {
-          border-color: rgba(136, 183, 213, 0);
-          border-bottom-color: #111;
-          border-width: 30px;
-          margin-left: -30px; }
-      body .reveal .slides section .survey {
-        text-align: center; }
-        body .reveal .slides section .survey div p {
-          margin: 0; }
-        body .reveal .slides section .survey ul {
-          list-style-type: none;
-          display: flex;
+  -webkit-print-color-adjust: exact;
+}
+
+body .reveal .slides {
+  font-family: "Roboto", sans-serif;
+  font-size: 30px;
+  font-weight: normal;
+  color: black;
+}
+
+body .reveal .slides section {
+  line-height: 1.4;
+  text-align: left;
+  font-weight: inherit;
+  padding: 0em;
+}
+
+body .reveal .slides section p {
+  margin: 1em 0em;
+}
+
+body .reveal .slides section[data-align="center"] > h1,
+body .reveal .slides section div[data-align="center"] {
+  text-align: center;
+}
+
+body .reveal .slides section[data-align="right"] > h1,
+body .reveal .slides section div[data-align="right"] {
+  text-align: right;
+}
+
+body .reveal .slides section h1,
+body .reveal .slides section h2,
+body .reveal .slides section h3,
+body .reveal .slides section h4,
+body .reveal .slides section h5,
+body .reveal .slides section h6 {
+  color: rgba(0, 0, 0, 0.87);
+  font-family: "Roboto", sans-serif;
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  word-wrap: break-word;
+  font-weight: normal;
+}
+
+body .reveal .slides section h1 {
+  font-size: 1.6em;
+  margin: 0em 0em 0.5em 0em;
+}
+
+body .reveal .slides section .rightcolumn > h1 {
+  margin-left: 54%;
+}
+
+body .reveal .slides section h2 {
+  font-weight: 500;
+  font-size: 1.2em;
+  margin-bottom: 0.1em;
+}
+
+body .reveal .slides section.white, body .reveal .slides section.inverse, body .reveal .slides section.has-dark-background {
+  color: #fff;
+}
+
+body .reveal .slides section.white h1,
+body .reveal .slides section.white h2,
+body .reveal .slides section.white h3,
+body .reveal .slides section.white h4,
+body .reveal .slides section.white h5,
+body .reveal .slides section.white h6, body .reveal .slides section.inverse h1,
+body .reveal .slides section.inverse h2,
+body .reveal .slides section.inverse h3,
+body .reveal .slides section.inverse h4,
+body .reveal .slides section.inverse h5,
+body .reveal .slides section.inverse h6, body .reveal .slides section.has-dark-background h1,
+body .reveal .slides section.has-dark-background h2,
+body .reveal .slides section.has-dark-background h3,
+body .reveal .slides section.has-dark-background h4,
+body .reveal .slides section.has-dark-background h5,
+body .reveal .slides section.has-dark-background h6 {
+  color: #eee;
+}
+
+body .reveal .slides section strong,
+body .reveal .slides section b {
+  font-weight: bold;
+}
+
+body .reveal .slides section em {
+  font-style: italic;
+}
+
+body .reveal .slides section sup {
+  font-size: 0.5em;
+  position: absolute;
+  vertical-align: super;
+}
+
+body .reveal .slides section sub {
+  vertical-align: sub;
+}
+
+body .reveal .slides section small {
+  display: inline-block;
+  font-size: 0.6em;
+  line-height: 1.2em;
+  vertical-align: top;
+}
+
+body .reveal .slides section dt {
+  font-weight: bold;
+}
+
+body .reveal .slides section dd {
+  margin-left: 1em;
+}
+
+body .reveal .slides section q,
+body .reveal .slides section blockquote {
+  quotes: none;
+}
+
+body .reveal .slides section blockquote {
+  display: block;
+  position: relative;
+  width: 70%;
+  margin: 1em auto;
+  padding: 0.25em;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.05);
+  -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+}
+
+body .reveal .slides section blockquote p:first-child, body .reveal .slides section blockquote p:last-child {
+  display: inline-block;
+}
+
+body .reveal .slides section q {
+  font-style: italic;
+  quotes: "“" "”" "‘" "’";
+}
+
+body .reveal .slides section .smallcaps {
+  font-variant: small-caps;
+}
+
+body .reveal .slides section .line-block {
+  white-space: pre-line;
+}
+
+body .reveal .slides section code {
+  font-family: "Source Code Pro", monospace;
+  font-size: 106%;
+  font-weight: 500;
+  color: #06287e;
+}
+
+body .reveal .slides section ol,
+body .reveal .slides section dl,
+body .reveal .slides section ul {
+  display: inline-block;
+  text-align: left;
+  margin-left: 1.1em;
+  width: 100%;
+}
+
+body .reveal .slides section li .sourceCode {
+  margin-right: 1.1em;
+  margin-bottom: 0em !important;
+}
+
+body .reveal .slides section li p {
+  margin: 0em;
+}
+
+body .reveal .slides section ol {
+  list-style-type: decimal;
+}
+
+body .reveal .slides section ul {
+  list-style-type: disc;
+}
+
+body .reveal .slides section ul ul {
+  list-style-type: disc;
+}
+
+body .reveal .slides section ul ul ul {
+  list-style-type: disc;
+}
+
+body .reveal .slides section ul ul,
+body .reveal .slides section ul ol,
+body .reveal .slides section ol ol,
+body .reveal .slides section ol ul {
+  display: block;
+  margin-left: 40px;
+}
+
+body .reveal .slides section button,
+body .reveal .slides section .freetextInput {
+  border-radius: 0.5em;
+  font-size: inherit;
+  font-family: inherit;
+  outline: none;
+  clear: both;
+}
+
+body .reveal .slides section .matching {
+  text-align: center;
+}
+
+body .reveal .slides section .matching .dropzones {
+  width: 100%;
+  min-height: 15vh;
+  max-height: 20vh;
+  display: table;
+  table-layout: fixed;
+}
+
+body .reveal .slides section .matching .dropzone {
+  display: table-cell;
+  padding: 10px;
+  border: 1px solid black;
+  text-align: center;
+}
+
+body .reveal .slides section .matching .draggable {
+  display: table-cell;
+  margin: auto;
+  padding: 1%;
+  max-width: 50%;
+  vertical-align: middle;
+  border-radius: 0.5em;
+  border: 1px #111 dashed;
+  overflow: hidden;
+}
+
+body .reveal .slides section .matching .draggableChild {
+  max-width: inherit;
+  pointer-events: none;
+}
+
+body .reveal .slides section .matching .dragzone {
+  display: table;
+  table-layout: fixed;
+  border-spacing: 5px;
+  margin-top: 5%;
+  min-height: 15vh;
+  max-height: 20vh;
+  text-align: center;
+  width: 100%;
+  position: relative;
+}
+
+body .reveal .slides section .matching .dragzone:after, body .reveal .slides section .matching .dragzone:before {
+  bottom: 100%;
+  left: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+body .reveal .slides section .matching .dragzone:after {
+  border-color: rgba(136, 183, 213, 0);
+  border-bottom-color: #111;
+  border-width: 30px;
+  margin-left: -30px;
+}
+
+body .reveal .slides section .survey {
+  text-align: center;
+}
+
+body .reveal .slides section .survey div p {
+  margin: 0;
+}
+
+body .reveal .slides section .survey ul {
+  list-style-type: none;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
           flex-direction: column;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
           justify-content: space-between;
-          flex-wrap: wrap;
-          padding: 5pt; }
-        body .reveal .slides section .survey li {
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  padding: 5pt;
+}
+
+body .reveal .slides section .survey li {
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
           flex-grow: 1;
-          border: 1pt #111 dashed;
-          padding-left: 1em;
-          padding-right: 1em;
-          border-radius: 0.5em;
-          margin: 0.55em;
-          flex-basis: 30%; }
-        body .reveal .slides section .survey li:hover {
-          background-color: gainsboro; }
-        body .reveal .slides section .survey .tooltip {
-          display: none; }
-      body .reveal .slides section a {
-        color: #009;
-        text-decoration: none;
-        -webkit-transition: color 0.15s ease;
-        -moz-transition: color 0.15s ease;
-        -ms-transition: color 0.15s ease;
-        -o-transition: color 0.15s ease;
-        transition: color 0.15s ease; }
-        body .reveal .slides section a img {
-          -webkit-transition: color 0.15s linear;
-          -moz-transition: color 0.15s linear;
-          -ms-transition: color 0.15s linear;
-          -o-transition: color 0.15s linear;
-          transition: color 0.15s linear; }
-        body .reveal .slides section a:hover {
-          color: blue;
-          text-shadow: none;
-          border: none; }
-          body .reveal .slides section a:hover img {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            box-shadow: none; }
-      body .reveal .slides section.mid div.multi-column-row {
-        align-items: center; }
-      body .reveal .slides section div.column {
-        display: inline-block;
-        vertical-align: top;
-        width: 50%; }
-      body .reveal .slides section div.css-columns {
-        column-count: 2;
-        column-gap: 2em;
-        column-rule-style: none;
-        padding-left: 0.7em;
-        margin-left: -0.7em; }
-      body .reveal .slides section div.box {
-        break-inside: avoid-column; }
-      body .reveal .slides section div.multi-column-row {
-        display: flex;
-        flex-flow: row nowrap;
-        margin-bottom: 0.3em; }
-        body .reveal .slides section div.multi-column-row div.column {
-          position: relative;
-          flex: 1 1 0;
-          margin-left: 1em;
-          margin-right: 1em; }
-          body .reveal .slides section div.multi-column-row div.column:first-child {
-            margin-left: 0;
-            margin-right: 1em; }
-          body .reveal .slides section div.multi-column-row div.column:last-child {
-            margin-left: 1em;
-            margin-right: 0; }
-          body .reveal .slides section div.multi-column-row div.column .mid {
-            position: absolute;
-            top: 50%;
-            transform: translate(0, -50%); }
-          body .reveal .slides section div.multi-column-row div.column[data-grow="1"] {
-            flex-grow: 1; }
-          body .reveal .slides section div.multi-column-row div.column[data-grow="2"] {
-            flex-grow: 2; }
-          body .reveal .slides section div.multi-column-row div.column[data-grow="3"] {
-            flex-grow: 3; }
-          body .reveal .slides section div.multi-column-row div.column[data-grow="4"] {
-            flex-grow: 4; }
-          body .reveal .slides section div.multi-column-row div.column[data-grow="5"] {
-            flex-grow: 5; }
-          body .reveal .slides section div.multi-column-row div.column[data-grow="6"] {
-            flex-grow: 6; }
-          body .reveal .slides section div.multi-column-row div.column[data-grow="7"] {
-            flex-grow: 7; }
-          body .reveal .slides section div.multi-column-row div.column[data-grow="8"] {
-            flex-grow: 8; }
-          body .reveal .slides section div.multi-column-row div.column[data-grow="9"] {
-            flex-grow: 9; }
-      body .reveal .slides section div.single-column-row {
-        margin-bottom: 0.3em; }
-      body .reveal .slides section div.box {
-        padding: 0.4em 0.7em;
-        margin: 0em -0.7em;
-        border-radius: 0.25em; }
-        body .reveal .slides section div.box h2 {
-          margin-top: 0; }
-          body .reveal .slides section div.box h2:last-child, body .reveal .slides section div.box h2:empty {
-            margin-bottom: 0; }
-        body .reveal .slides section div.box p {
-          margin: 0; }
-        body .reveal .slides section div.box.question + .question,
-        body .reveal .slides section div.box.question + .answer,
-        body .reveal .slides section div.box.question + .observation,
-        body .reveal .slides section div.box.question + .example,
-        body .reveal .slides section div.box.question + .def,
-        body .reveal .slides section div.box.question + .definition,
-        body .reveal .slides section div.box.question + .note,
-        body .reveal .slides section div.box.question + .ale,
-        body .reveal .slides section div.box.question + .alert,
-        body .reveal .slides section div.box.question + .equ,
-        body .reveal .slides section div.box.question + .equation,
-        body .reveal .slides section div.box.question + .theorem, body .reveal .slides section div.box.answer + .question,
-        body .reveal .slides section div.box.answer + .answer,
-        body .reveal .slides section div.box.answer + .observation,
-        body .reveal .slides section div.box.answer + .example,
-        body .reveal .slides section div.box.answer + .def,
-        body .reveal .slides section div.box.answer + .definition,
-        body .reveal .slides section div.box.answer + .note,
-        body .reveal .slides section div.box.answer + .ale,
-        body .reveal .slides section div.box.answer + .alert,
-        body .reveal .slides section div.box.answer + .equ,
-        body .reveal .slides section div.box.answer + .equation,
-        body .reveal .slides section div.box.answer + .theorem, body .reveal .slides section div.box.observation + .question,
-        body .reveal .slides section div.box.observation + .answer,
-        body .reveal .slides section div.box.observation + .observation,
-        body .reveal .slides section div.box.observation + .example,
-        body .reveal .slides section div.box.observation + .def,
-        body .reveal .slides section div.box.observation + .definition,
-        body .reveal .slides section div.box.observation + .note,
-        body .reveal .slides section div.box.observation + .ale,
-        body .reveal .slides section div.box.observation + .alert,
-        body .reveal .slides section div.box.observation + .equ,
-        body .reveal .slides section div.box.observation + .equation,
-        body .reveal .slides section div.box.observation + .theorem, body .reveal .slides section div.box.example + .question,
-        body .reveal .slides section div.box.example + .answer,
-        body .reveal .slides section div.box.example + .observation,
-        body .reveal .slides section div.box.example + .example,
-        body .reveal .slides section div.box.example + .def,
-        body .reveal .slides section div.box.example + .definition,
-        body .reveal .slides section div.box.example + .note,
-        body .reveal .slides section div.box.example + .ale,
-        body .reveal .slides section div.box.example + .alert,
-        body .reveal .slides section div.box.example + .equ,
-        body .reveal .slides section div.box.example + .equation,
-        body .reveal .slides section div.box.example + .theorem, body .reveal .slides section div.box.def + .question,
-        body .reveal .slides section div.box.def + .answer,
-        body .reveal .slides section div.box.def + .observation,
-        body .reveal .slides section div.box.def + .example,
-        body .reveal .slides section div.box.def + .def,
-        body .reveal .slides section div.box.def + .definition,
-        body .reveal .slides section div.box.def + .note,
-        body .reveal .slides section div.box.def + .ale,
-        body .reveal .slides section div.box.def + .alert,
-        body .reveal .slides section div.box.def + .equ,
-        body .reveal .slides section div.box.def + .equation,
-        body .reveal .slides section div.box.def + .theorem, body .reveal .slides section div.box.definition + .question,
-        body .reveal .slides section div.box.definition + .answer,
-        body .reveal .slides section div.box.definition + .observation,
-        body .reveal .slides section div.box.definition + .example,
-        body .reveal .slides section div.box.definition + .def,
-        body .reveal .slides section div.box.definition + .definition,
-        body .reveal .slides section div.box.definition + .note,
-        body .reveal .slides section div.box.definition + .ale,
-        body .reveal .slides section div.box.definition + .alert,
-        body .reveal .slides section div.box.definition + .equ,
-        body .reveal .slides section div.box.definition + .equation,
-        body .reveal .slides section div.box.definition + .theorem, body .reveal .slides section div.box.note + .question,
-        body .reveal .slides section div.box.note + .answer,
-        body .reveal .slides section div.box.note + .observation,
-        body .reveal .slides section div.box.note + .example,
-        body .reveal .slides section div.box.note + .def,
-        body .reveal .slides section div.box.note + .definition,
-        body .reveal .slides section div.box.note + .note,
-        body .reveal .slides section div.box.note + .ale,
-        body .reveal .slides section div.box.note + .alert,
-        body .reveal .slides section div.box.note + .equ,
-        body .reveal .slides section div.box.note + .equation,
-        body .reveal .slides section div.box.note + .theorem, body .reveal .slides section div.box.ale + .question,
-        body .reveal .slides section div.box.ale + .answer,
-        body .reveal .slides section div.box.ale + .observation,
-        body .reveal .slides section div.box.ale + .example,
-        body .reveal .slides section div.box.ale + .def,
-        body .reveal .slides section div.box.ale + .definition,
-        body .reveal .slides section div.box.ale + .note,
-        body .reveal .slides section div.box.ale + .ale,
-        body .reveal .slides section div.box.ale + .alert,
-        body .reveal .slides section div.box.ale + .equ,
-        body .reveal .slides section div.box.ale + .equation,
-        body .reveal .slides section div.box.ale + .theorem, body .reveal .slides section div.box.alert + .question,
-        body .reveal .slides section div.box.alert + .answer,
-        body .reveal .slides section div.box.alert + .observation,
-        body .reveal .slides section div.box.alert + .example,
-        body .reveal .slides section div.box.alert + .def,
-        body .reveal .slides section div.box.alert + .definition,
-        body .reveal .slides section div.box.alert + .note,
-        body .reveal .slides section div.box.alert + .ale,
-        body .reveal .slides section div.box.alert + .alert,
-        body .reveal .slides section div.box.alert + .equ,
-        body .reveal .slides section div.box.alert + .equation,
-        body .reveal .slides section div.box.alert + .theorem, body .reveal .slides section div.box.equ + .question,
-        body .reveal .slides section div.box.equ + .answer,
-        body .reveal .slides section div.box.equ + .observation,
-        body .reveal .slides section div.box.equ + .example,
-        body .reveal .slides section div.box.equ + .def,
-        body .reveal .slides section div.box.equ + .definition,
-        body .reveal .slides section div.box.equ + .note,
-        body .reveal .slides section div.box.equ + .ale,
-        body .reveal .slides section div.box.equ + .alert,
-        body .reveal .slides section div.box.equ + .equ,
-        body .reveal .slides section div.box.equ + .equation,
-        body .reveal .slides section div.box.equ + .theorem, body .reveal .slides section div.box.equation + .question,
-        body .reveal .slides section div.box.equation + .answer,
-        body .reveal .slides section div.box.equation + .observation,
-        body .reveal .slides section div.box.equation + .example,
-        body .reveal .slides section div.box.equation + .def,
-        body .reveal .slides section div.box.equation + .definition,
-        body .reveal .slides section div.box.equation + .note,
-        body .reveal .slides section div.box.equation + .ale,
-        body .reveal .slides section div.box.equation + .alert,
-        body .reveal .slides section div.box.equation + .equ,
-        body .reveal .slides section div.box.equation + .equation,
-        body .reveal .slides section div.box.equation + .theorem, body .reveal .slides section div.box.theorem + .question,
-        body .reveal .slides section div.box.theorem + .answer,
-        body .reveal .slides section div.box.theorem + .observation,
-        body .reveal .slides section div.box.theorem + .example,
-        body .reveal .slides section div.box.theorem + .def,
-        body .reveal .slides section div.box.theorem + .definition,
-        body .reveal .slides section div.box.theorem + .note,
-        body .reveal .slides section div.box.theorem + .ale,
-        body .reveal .slides section div.box.theorem + .alert,
-        body .reveal .slides section div.box.theorem + .equ,
-        body .reveal .slides section div.box.theorem + .equation,
-        body .reveal .slides section div.box.theorem + .theorem {
-          margin-top: 0.3em; }
-        body .reveal .slides section div.box.question {
-          background-color: rgba(255, 215, 67, 0.4); }
-        body .reveal .slides section div.box.answer {
-          background-color: rgba(153, 205, 58, 0.4); }
-        body .reveal .slides section div.box.observation {
-          background-color: rgba(210, 180, 140, 0.4); }
-        body .reveal .slides section div.box.example {
-          background-color: rgba(176, 197, 222, 0.4); }
-        body .reveal .slides section div.box.def, body .reveal .slides section div.box.definition {
-          background-color: rgba(245, 222, 179, 0.6); }
-        body .reveal .slides section div.box.note {
-          background-color: rgba(244, 164, 96, 0.4); }
-        body .reveal .slides section div.box.ale, body .reveal .slides section div.box.alert {
-          background-color: rgba(255, 99, 71, 0.4); }
-        body .reveal .slides section div.box.equ, body .reveal .slides section div.box.equation {
-          background-color: #ebebeb; }
-        body .reveal .slides section div.box.theorem {
-          background-color: #ebebeb; }
-      body .reveal .slides section div.videoWrapper {
-        position: relative;
-        padding-bottom: 56.25%;
-        /* 16:9 */
-        padding-top: 0;
-        height: 0; }
-        body .reveal .slides section div.videoWrapper iframe {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%; }
-      body .reveal .slides section div span.math.display {
-        width: 100%;
-        display: block;
-        text-align: center; }
-      body .reveal .slides section img {
-        max-width: 100%;
-        margin: 0 auto;
-        display: block;
-        border: none;
-        box-shadow: none;
-        border-radius: 0.25em; }
-        body .reveal .slides section img.float-left {
-          float: left; }
-        body .reveal .slides section img.float-right {
-          float: right; }
-      body .reveal .slides section figure {
-        margin: 0 0 0 0;
-        text-align: center; }
-        body .reveal .slides section figure figcaption {
-          font-size: 0.8em;
-          font-style: italic; }
-      body .reveal .slides section video {
-        width: 100%;
-        margin: 0;
-        display: block; }
-      body .reveal .slides section.img-center img {
-        margin: 0 auto;
-        display: block; }
-      body .reveal .slides section.img-nocenter img {
-        margin: 0 0;
-        display: inline; }
-      body .reveal .slides section div.sourceCode {
-        margin-bottom: 0.5em;
-        padding: 0.4em 0.7em;
-        background: rgba(0, 0, 0, 0.03);
-        border-radius: 0.25em;
-        overflow: auto; }
-        body .reveal .slides section div.sourceCode pre {
-          display: block;
-          position: relative;
-          width: 100%;
-          text-align: left;
-          line-height: 1.5em;
-          word-wrap: break-word;
+  border: 1pt #111 dashed;
+  padding-left: 1em;
+  padding-right: 1em;
+  border-radius: 0.5em;
+  margin: 0.55em;
+  -ms-flex-preferred-size: 30%;
+      flex-basis: 30%;
+}
+
+body .reveal .slides section .survey li:hover {
+  background-color: gainsboro;
+}
+
+body .reveal .slides section .survey .tooltip {
+  display: none;
+}
+
+body .reveal .slides section a {
+  color: #009;
+  text-decoration: none;
+  -webkit-transition: color 0.15s ease;
+  transition: color 0.15s ease;
+}
+
+body .reveal .slides section a img {
+  -webkit-transition: color 0.15s linear;
+  transition: color 0.15s linear;
+}
+
+body .reveal .slides section a:hover {
+  color: blue;
+  text-shadow: none;
+  border: none;
+}
+
+body .reveal .slides section a:hover img {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  -webkit-box-shadow: none;
           box-shadow: none;
-          font-size: 90%;
-          font-weight: 500;
-          margin: 0; }
-          body .reveal .slides section div.sourceCode pre div.language-label {
-            position: absolute;
-            right: 0;
-            top: 0;
-            color: #666;
-            background-color: #eee;
-            padding: 0em 0.4em;
-            border-radius: 0.2em; }
-          body .reveal .slides section div.sourceCode pre.numberSource {
-            margin-left: 3em;
-            border-left: 1px solid #aaaaaa;
-            padding-left: 4px; }
-            body .reveal .slides section div.sourceCode pre.numberSource a.sourceLine {
-              position: relative; }
-              body .reveal .slides section div.sourceCode pre.numberSource a.sourceLine:empty {
-                position: absolute; }
-              body .reveal .slides section div.sourceCode pre.numberSource a.sourceLine::before {
-                content: attr(data-line-number);
-                position: absolute;
-                left: -5em;
-                text-align: right;
-                vertical-align: baseline;
-                border: none;
-                pointer-events: all;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-                -o-user-select: none;
-                user-select: none;
-                -webkit-touch-callout: none;
-                padding: 0 4px;
-                width: 4em;
-                color: #aaaaaa; }
-          body .reveal .slides section div.sourceCode pre code {
-            display: block;
-            overflow: auto;
-            max-height: 500px;
-            word-wrap: normal;
-            border: none;
-            font-family: "Source Code Pro", monospace;
-            white-space: pre;
-            position: relative;
-            color: black; }
-            body .reveal .slides section div.sourceCode pre code a.sourceLine {
-              display: inline-block;
-              line-height: 1.25;
-              pointer-events: none;
-              color: inherit;
-              text-decoration: inherit; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine:empty {
-                height: 1.2em;
-                position: absolute; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine::before {
-                text-decoration: underline; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.al {
-                color: #ff0000;
-                font-weight: bold; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.an, body .reveal .slides section div.sourceCode pre code a.sourceLine span.cv, body .reveal .slides section div.sourceCode pre code a.sourceLine span.wa, body .reveal .slides section div.sourceCode pre code a.sourceLine span.in {
-                color: #60a0b0;
-                font-weight: bold;
-                font-style: italic; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.at {
-                color: #7d9029; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.fl, body .reveal .slides section div.sourceCode pre code a.sourceLine span.dv, body .reveal .slides section div.sourceCode pre code a.sourceLine span.bn {
-                color: #40a070; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.cf, body .reveal .slides section div.sourceCode pre code a.sourceLine span.kw {
-                color: #007020;
-                font-weight: bold; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.ch, body .reveal .slides section div.sourceCode pre code a.sourceLine span.sc, body .reveal .slides section div.sourceCode pre code a.sourceLine span.st, body .reveal .slides section div.sourceCode pre code a.sourceLine span.vs {
-                color: #4070a0; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.cn {
-                color: #880000; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.co {
-                color: #60a0b0;
-                font-style: italic; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.do {
-                color: #ba2121;
-                font-style: italic; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.dt {
-                color: #902000; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.er {
-                color: #ff0000;
-                font-weight: bold; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.fu {
-                color: #06287e; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.op {
-                color: #666666; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.ot {
-                color: #007020; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.pp {
-                color: #bc7a00; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.ss {
-                color: #bb6688; }
-              body .reveal .slides section div.sourceCode pre code a.sourceLine span.va {
-                color: #19177c; }
-      body .reveal .slides section div.box.question div.sourceCode, body .reveal .slides section div.box.answer div.sourceCode, body .reveal .slides section div.box.observation div.sourceCode, body .reveal .slides section div.box.example div.sourceCode, body .reveal .slides section div.box.def div.sourceCode, body .reveal .slides section div.box.definition div.sourceCode, body .reveal .slides section div.box.note div.sourceCode, body .reveal .slides section div.box.ale div.sourceCode, body .reveal .slides section div.box.alert div.sourceCode, body .reveal .slides section div.box.equ div.sourceCode, body .reveal .slides section div.box.equation div.sourceCode, body .reveal .slides section div.box.theorem div.sourceCode {
-        margin: 0;
-        background: rgba(255, 255, 255, 0.4);
-        padding: 0em 0.2em; }
-        body .reveal .slides section div.box.question div.sourceCode pre, body .reveal .slides section div.box.answer div.sourceCode pre, body .reveal .slides section div.box.observation div.sourceCode pre, body .reveal .slides section div.box.example div.sourceCode pre, body .reveal .slides section div.box.def div.sourceCode pre, body .reveal .slides section div.box.definition div.sourceCode pre, body .reveal .slides section div.box.note div.sourceCode pre, body .reveal .slides section div.box.ale div.sourceCode pre, body .reveal .slides section div.box.alert div.sourceCode pre, body .reveal .slides section div.box.equ div.sourceCode pre, body .reveal .slides section div.box.equation div.sourceCode pre, body .reveal .slides section div.box.theorem div.sourceCode pre {
-          margin: 0; }
-      body .reveal .slides section .references {
-        height: 17.5em;
-        overflow-y: scroll; }
-        body .reveal .slides section .references div {
-          margin-bottom: 0.5em; }
-      body .reveal .slides section table {
-        margin: auto;
-        border-collapse: collapse;
-        border-spacing: 0; }
-        body .reveal .slides section table th {
-          font-weight: bold; }
-        body .reveal .slides section table th,
-        body .reveal .slides section table td {
-          text-align: left;
-          padding: 0.2em 0.5em;
-          border-bottom: 1px solid; }
-        body .reveal .slides section table th[align="center"],
-        body .reveal .slides section table td[align="center"] {
-          text-align: center; }
-        body .reveal .slides section table th[align="right"],
-        body .reveal .slides section table td[align="right"] {
-          text-align: right; }
-        body .reveal .slides section table .slide-number {
-          color: #009;
-          background-color: rgba(255, 255, 255, 0); }
-      body .reveal .slides section .roll span:after {
-        color: #fff;
-        background: #00004d; }
-      body .reveal .slides section.dense, body .reveal .slides section.x-dense, body .reveal .slides section.xx-dense {
-        line-height: 1.4; }
-        body .reveal .slides section.dense.x-dense, body .reveal .slides section.x-dense.x-dense, body .reveal .slides section.xx-dense.x-dense {
-          font-size: 90%; }
-        body .reveal .slides section.dense.xx-dense, body .reveal .slides section.x-dense.xx-dense, body .reveal .slides section.xx-dense.xx-dense {
-          font-size: 80%; }
-        body .reveal .slides section.dense p, body .reveal .slides section.x-dense p, body .reveal .slides section.xx-dense p {
-          margin: 0.2em 0em; }
-        body .reveal .slides section.dense h1, body .reveal .slides section.x-dense h1, body .reveal .slides section.xx-dense h1 {
-          margin: 0em 0em 0.2em 0em; }
-        body .reveal .slides section.dense div.sourceCode, body .reveal .slides section.x-dense div.sourceCode, body .reveal .slides section.xx-dense div.sourceCode {
-          margin: 0em -0.7em;
-          padding: 0.4em 0.7em; }
-        body .reveal .slides section.dense div.box, body .reveal .slides section.x-dense div.box, body .reveal .slides section.xx-dense div.box {
-          padding: 0.2em 0.7em;
-          margin: 0em -0.7em; }
-          body .reveal .slides section.dense div.box h2, body .reveal .slides section.x-dense div.box h2, body .reveal .slides section.xx-dense div.box h2 {
-            margin-bottom: 0.1em; }
-          body .reveal .slides section.dense div.box.question div.sourceCode pre, body .reveal .slides section.dense div.box.answer div.sourceCode pre, body .reveal .slides section.dense div.box.observation div.sourceCode pre, body .reveal .slides section.dense div.box.example div.sourceCode pre, body .reveal .slides section.dense div.box.def div.sourceCode pre, body .reveal .slides section.dense div.box.definition div.sourceCode pre, body .reveal .slides section.dense div.box.note div.sourceCode pre, body .reveal .slides section.dense div.box.ale div.sourceCode pre, body .reveal .slides section.dense div.box.alert div.sourceCode pre, body .reveal .slides section.dense div.box.equ div.sourceCode pre, body .reveal .slides section.dense div.box.equation div.sourceCode pre, body .reveal .slides section.dense div.box.theorem div.sourceCode pre, body .reveal .slides section.x-dense div.box.question div.sourceCode pre, body .reveal .slides section.x-dense div.box.answer div.sourceCode pre, body .reveal .slides section.x-dense div.box.observation div.sourceCode pre, body .reveal .slides section.x-dense div.box.example div.sourceCode pre, body .reveal .slides section.x-dense div.box.def div.sourceCode pre, body .reveal .slides section.x-dense div.box.definition div.sourceCode pre, body .reveal .slides section.x-dense div.box.note div.sourceCode pre, body .reveal .slides section.x-dense div.box.ale div.sourceCode pre, body .reveal .slides section.x-dense div.box.alert div.sourceCode pre, body .reveal .slides section.x-dense div.box.equ div.sourceCode pre, body .reveal .slides section.x-dense div.box.equation div.sourceCode pre, body .reveal .slides section.x-dense div.box.theorem div.sourceCode pre, body .reveal .slides section.xx-dense div.box.question div.sourceCode pre, body .reveal .slides section.xx-dense div.box.answer div.sourceCode pre, body .reveal .slides section.xx-dense div.box.observation div.sourceCode pre, body .reveal .slides section.xx-dense div.box.example div.sourceCode pre, body .reveal .slides section.xx-dense div.box.def div.sourceCode pre, body .reveal .slides section.xx-dense div.box.definition div.sourceCode pre, body .reveal .slides section.xx-dense div.box.note div.sourceCode pre, body .reveal .slides section.xx-dense div.box.ale div.sourceCode pre, body .reveal .slides section.xx-dense div.box.alert div.sourceCode pre, body .reveal .slides section.xx-dense div.box.equ div.sourceCode pre, body .reveal .slides section.xx-dense div.box.equation div.sourceCode pre, body .reveal .slides section.xx-dense div.box.theorem div.sourceCode pre {
-            line-height: 0; }
-        body .reveal .slides section.dense .references div, body .reveal .slides section.x-dense .references div, body .reveal .slides section.xx-dense .references div {
-          margin-bottom: 0.2em; }
-        body .reveal .slides section.dense table td, body .reveal .slides section.x-dense table td, body .reveal .slides section.xx-dense table td {
-          padding: 0.1em 0.5em; }
-  body .reveal .progress {
-    background: rgba(0, 0, 0, 0.2); }
-    body .reveal .progress span {
-      background: #777;
-      -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
-      -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
-      -ms-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
-      -o-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
-      transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985); }
-  body .reveal .controls button {
-    opacity: 0; }
-  body .reveal .controls .enabled:active {
-    margin-top: 0; }
-  body .reveal .controls :focus {
-    outline: none; }
-  body .reveal .controls .slide-number {
-    color: #009;
-    background-color: rgba(255, 255, 255, 0); }
-  body .reveal .roll span:after {
-    color: #fff;
-    background: #00004d; }
-  body .reveal .speaker-notes h1,
-  body .reveal .speaker-notes h2,
-  body .reveal .speaker-notes h3,
-  body .reveal .speaker-notes h4,
-  body .reveal .speaker-notes h5,
-  body .reveal .speaker-notes h6 {
-    color: #fff;
-    font-weight: bold;
-    margin-bottom: 0.2em; }
-  body .reveal .speaker-notes h1 {
-    text-decoration: underline;
-    margin-bottom: 0.4em; }
-  body .reveal .medium {
-    font-size: 30px; }
-  body .reveal .xx-small {
-    font-size: 12px; }
-  body .reveal .x-small {
-    font-size: 18px; }
-  body .reveal .small {
-    font-size: 24px; }
-  body .reveal .large {
-    font-size: 36px; }
-  body .reveal .x-large {
-    font-size: 42px; }
-  body .reveal .xx-large {
-    font-size: 48px; }
-  body .reveal .slide-number {
-    width: 100%;
-    text-align: center;
-    background: transparent;
-    color: gray;
-    font-size: 0.4em; }
-  body .reveal .resume-button {
-    visibility: hidden; }
-  body ::selection {
-    color: white;
-    background: rgba(0, 0, 0, 0.85);
-    text-shadow: none; }
+}
+
+body .reveal .slides section.mid div.multi-column-row {
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+body .reveal .slides section div.column {
+  display: inline-block;
+  vertical-align: top;
+  width: 50%;
+}
+
+body .reveal .slides section div.css-columns {
+  -webkit-column-count: 2;
+          column-count: 2;
+  -webkit-column-gap: 2em;
+          column-gap: 2em;
+  -webkit-column-rule-style: none;
+          column-rule-style: none;
+  padding-left: 0.7em;
+  margin-left: -0.7em;
+}
+
+body .reveal .slides section div.box {
+  -webkit-column-break-inside: avoid;
+          break-inside: avoid-column;
+}
+
+body .reveal .slides section div.multi-column-row {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-flow: row nowrap;
+          flex-flow: row nowrap;
+  margin-bottom: 0.3em;
+}
+
+body .reveal .slides section div.multi-column-row div.column {
+  position: relative;
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 0px;
+          flex: 1 1 0;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+body .reveal .slides section div.multi-column-row div.column:first-child {
+  margin-left: 0;
+  margin-right: 1em;
+}
+
+body .reveal .slides section div.multi-column-row div.column:last-child {
+  margin-left: 1em;
+  margin-right: 0;
+}
+
+body .reveal .slides section div.multi-column-row div.column .mid {
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translate(0, -50%);
+          transform: translate(0, -50%);
+}
+
+body .reveal .slides section div.multi-column-row div.column[data-grow="1"] {
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+}
+
+body .reveal .slides section div.multi-column-row div.column[data-grow="2"] {
+  -webkit-box-flex: 2;
+      -ms-flex-positive: 2;
+          flex-grow: 2;
+}
+
+body .reveal .slides section div.multi-column-row div.column[data-grow="3"] {
+  -webkit-box-flex: 3;
+      -ms-flex-positive: 3;
+          flex-grow: 3;
+}
+
+body .reveal .slides section div.multi-column-row div.column[data-grow="4"] {
+  -webkit-box-flex: 4;
+      -ms-flex-positive: 4;
+          flex-grow: 4;
+}
+
+body .reveal .slides section div.multi-column-row div.column[data-grow="5"] {
+  -webkit-box-flex: 5;
+      -ms-flex-positive: 5;
+          flex-grow: 5;
+}
+
+body .reveal .slides section div.multi-column-row div.column[data-grow="6"] {
+  -webkit-box-flex: 6;
+      -ms-flex-positive: 6;
+          flex-grow: 6;
+}
+
+body .reveal .slides section div.multi-column-row div.column[data-grow="7"] {
+  -webkit-box-flex: 7;
+      -ms-flex-positive: 7;
+          flex-grow: 7;
+}
+
+body .reveal .slides section div.multi-column-row div.column[data-grow="8"] {
+  -webkit-box-flex: 8;
+      -ms-flex-positive: 8;
+          flex-grow: 8;
+}
+
+body .reveal .slides section div.multi-column-row div.column[data-grow="9"] {
+  -webkit-box-flex: 9;
+      -ms-flex-positive: 9;
+          flex-grow: 9;
+}
+
+body .reveal .slides section div.single-column-row {
+  margin-bottom: 0.3em;
+}
+
+body .reveal .slides section div.box {
+  padding: 0.4em 0.7em;
+  margin: 0em -0.7em;
+  border-radius: 0.25em;
+}
+
+body .reveal .slides section div.box h2 {
+  margin-top: 0;
+}
+
+body .reveal .slides section div.box h2:last-child, body .reveal .slides section div.box h2:empty {
+  margin-bottom: 0;
+}
+
+body .reveal .slides section div.box p {
+  margin: 0;
+}
+
+body .reveal .slides section div.box.question + .question,
+body .reveal .slides section div.box.question + .answer,
+body .reveal .slides section div.box.question + .observation,
+body .reveal .slides section div.box.question + .example,
+body .reveal .slides section div.box.question + .def,
+body .reveal .slides section div.box.question + .definition,
+body .reveal .slides section div.box.question + .note,
+body .reveal .slides section div.box.question + .ale,
+body .reveal .slides section div.box.question + .alert,
+body .reveal .slides section div.box.question + .equ,
+body .reveal .slides section div.box.question + .equation,
+body .reveal .slides section div.box.question + .theorem, body .reveal .slides section div.box.answer + .question,
+body .reveal .slides section div.box.answer + .answer,
+body .reveal .slides section div.box.answer + .observation,
+body .reveal .slides section div.box.answer + .example,
+body .reveal .slides section div.box.answer + .def,
+body .reveal .slides section div.box.answer + .definition,
+body .reveal .slides section div.box.answer + .note,
+body .reveal .slides section div.box.answer + .ale,
+body .reveal .slides section div.box.answer + .alert,
+body .reveal .slides section div.box.answer + .equ,
+body .reveal .slides section div.box.answer + .equation,
+body .reveal .slides section div.box.answer + .theorem, body .reveal .slides section div.box.observation + .question,
+body .reveal .slides section div.box.observation + .answer,
+body .reveal .slides section div.box.observation + .observation,
+body .reveal .slides section div.box.observation + .example,
+body .reveal .slides section div.box.observation + .def,
+body .reveal .slides section div.box.observation + .definition,
+body .reveal .slides section div.box.observation + .note,
+body .reveal .slides section div.box.observation + .ale,
+body .reveal .slides section div.box.observation + .alert,
+body .reveal .slides section div.box.observation + .equ,
+body .reveal .slides section div.box.observation + .equation,
+body .reveal .slides section div.box.observation + .theorem, body .reveal .slides section div.box.example + .question,
+body .reveal .slides section div.box.example + .answer,
+body .reveal .slides section div.box.example + .observation,
+body .reveal .slides section div.box.example + .example,
+body .reveal .slides section div.box.example + .def,
+body .reveal .slides section div.box.example + .definition,
+body .reveal .slides section div.box.example + .note,
+body .reveal .slides section div.box.example + .ale,
+body .reveal .slides section div.box.example + .alert,
+body .reveal .slides section div.box.example + .equ,
+body .reveal .slides section div.box.example + .equation,
+body .reveal .slides section div.box.example + .theorem, body .reveal .slides section div.box.def + .question,
+body .reveal .slides section div.box.def + .answer,
+body .reveal .slides section div.box.def + .observation,
+body .reveal .slides section div.box.def + .example,
+body .reveal .slides section div.box.def + .def,
+body .reveal .slides section div.box.def + .definition,
+body .reveal .slides section div.box.def + .note,
+body .reveal .slides section div.box.def + .ale,
+body .reveal .slides section div.box.def + .alert,
+body .reveal .slides section div.box.def + .equ,
+body .reveal .slides section div.box.def + .equation,
+body .reveal .slides section div.box.def + .theorem, body .reveal .slides section div.box.definition + .question,
+body .reveal .slides section div.box.definition + .answer,
+body .reveal .slides section div.box.definition + .observation,
+body .reveal .slides section div.box.definition + .example,
+body .reveal .slides section div.box.definition + .def,
+body .reveal .slides section div.box.definition + .definition,
+body .reveal .slides section div.box.definition + .note,
+body .reveal .slides section div.box.definition + .ale,
+body .reveal .slides section div.box.definition + .alert,
+body .reveal .slides section div.box.definition + .equ,
+body .reveal .slides section div.box.definition + .equation,
+body .reveal .slides section div.box.definition + .theorem, body .reveal .slides section div.box.note + .question,
+body .reveal .slides section div.box.note + .answer,
+body .reveal .slides section div.box.note + .observation,
+body .reveal .slides section div.box.note + .example,
+body .reveal .slides section div.box.note + .def,
+body .reveal .slides section div.box.note + .definition,
+body .reveal .slides section div.box.note + .note,
+body .reveal .slides section div.box.note + .ale,
+body .reveal .slides section div.box.note + .alert,
+body .reveal .slides section div.box.note + .equ,
+body .reveal .slides section div.box.note + .equation,
+body .reveal .slides section div.box.note + .theorem, body .reveal .slides section div.box.ale + .question,
+body .reveal .slides section div.box.ale + .answer,
+body .reveal .slides section div.box.ale + .observation,
+body .reveal .slides section div.box.ale + .example,
+body .reveal .slides section div.box.ale + .def,
+body .reveal .slides section div.box.ale + .definition,
+body .reveal .slides section div.box.ale + .note,
+body .reveal .slides section div.box.ale + .ale,
+body .reveal .slides section div.box.ale + .alert,
+body .reveal .slides section div.box.ale + .equ,
+body .reveal .slides section div.box.ale + .equation,
+body .reveal .slides section div.box.ale + .theorem, body .reveal .slides section div.box.alert + .question,
+body .reveal .slides section div.box.alert + .answer,
+body .reveal .slides section div.box.alert + .observation,
+body .reveal .slides section div.box.alert + .example,
+body .reveal .slides section div.box.alert + .def,
+body .reveal .slides section div.box.alert + .definition,
+body .reveal .slides section div.box.alert + .note,
+body .reveal .slides section div.box.alert + .ale,
+body .reveal .slides section div.box.alert + .alert,
+body .reveal .slides section div.box.alert + .equ,
+body .reveal .slides section div.box.alert + .equation,
+body .reveal .slides section div.box.alert + .theorem, body .reveal .slides section div.box.equ + .question,
+body .reveal .slides section div.box.equ + .answer,
+body .reveal .slides section div.box.equ + .observation,
+body .reveal .slides section div.box.equ + .example,
+body .reveal .slides section div.box.equ + .def,
+body .reveal .slides section div.box.equ + .definition,
+body .reveal .slides section div.box.equ + .note,
+body .reveal .slides section div.box.equ + .ale,
+body .reveal .slides section div.box.equ + .alert,
+body .reveal .slides section div.box.equ + .equ,
+body .reveal .slides section div.box.equ + .equation,
+body .reveal .slides section div.box.equ + .theorem, body .reveal .slides section div.box.equation + .question,
+body .reveal .slides section div.box.equation + .answer,
+body .reveal .slides section div.box.equation + .observation,
+body .reveal .slides section div.box.equation + .example,
+body .reveal .slides section div.box.equation + .def,
+body .reveal .slides section div.box.equation + .definition,
+body .reveal .slides section div.box.equation + .note,
+body .reveal .slides section div.box.equation + .ale,
+body .reveal .slides section div.box.equation + .alert,
+body .reveal .slides section div.box.equation + .equ,
+body .reveal .slides section div.box.equation + .equation,
+body .reveal .slides section div.box.equation + .theorem, body .reveal .slides section div.box.theorem + .question,
+body .reveal .slides section div.box.theorem + .answer,
+body .reveal .slides section div.box.theorem + .observation,
+body .reveal .slides section div.box.theorem + .example,
+body .reveal .slides section div.box.theorem + .def,
+body .reveal .slides section div.box.theorem + .definition,
+body .reveal .slides section div.box.theorem + .note,
+body .reveal .slides section div.box.theorem + .ale,
+body .reveal .slides section div.box.theorem + .alert,
+body .reveal .slides section div.box.theorem + .equ,
+body .reveal .slides section div.box.theorem + .equation,
+body .reveal .slides section div.box.theorem + .theorem {
+  margin-top: 0.3em;
+}
+
+body .reveal .slides section div.box.question {
+  background-color: rgba(255, 215, 67, 0.4);
+}
+
+body .reveal .slides section div.box.answer {
+  background-color: rgba(153, 205, 58, 0.4);
+}
+
+body .reveal .slides section div.box.observation {
+  background-color: rgba(210, 180, 140, 0.4);
+}
+
+body .reveal .slides section div.box.example {
+  background-color: rgba(176, 197, 222, 0.4);
+}
+
+body .reveal .slides section div.box.def, body .reveal .slides section div.box.definition {
+  background-color: rgba(245, 222, 179, 0.6);
+}
+
+body .reveal .slides section div.box.note {
+  background-color: rgba(244, 164, 96, 0.4);
+}
+
+body .reveal .slides section div.box.ale, body .reveal .slides section div.box.alert {
+  background-color: rgba(255, 99, 71, 0.4);
+}
+
+body .reveal .slides section div.box.equ, body .reveal .slides section div.box.equation {
+  background-color: #ebebeb;
+}
+
+body .reveal .slides section div.box.theorem {
+  background-color: #ebebeb;
+}
+
+body .reveal .slides section div.videoWrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  /* 16:9 */
+  padding-top: 0;
+  height: 0;
+}
+
+body .reveal .slides section div.videoWrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body .reveal .slides section div span.math.display {
+  width: 100%;
+  display: block;
+  text-align: center;
+}
+
+body .reveal .slides section img {
+  max-width: 100%;
+  margin: 0 auto;
+  display: block;
+  border: none;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  border-radius: 0.25em;
+}
+
+body .reveal .slides section img.float-left {
+  float: left;
+}
+
+body .reveal .slides section img.float-right {
+  float: right;
+}
+
+body .reveal .slides section figure {
+  margin: 0 0 0 0;
+  text-align: center;
+}
+
+body .reveal .slides section figure figcaption {
+  font-size: 0.8em;
+  font-style: italic;
+}
+
+body .reveal .slides section video {
+  width: 100%;
+  margin: 0;
+  display: block;
+}
+
+body .reveal .slides section.img-center img {
+  margin: 0 auto;
+  display: block;
+}
+
+body .reveal .slides section.img-nocenter img {
+  margin: 0 0;
+  display: inline;
+}
+
+body .reveal .slides section div.sourceCode {
+  margin-bottom: 0.5em;
+  padding: 0.4em 0.7em;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 0.25em;
+  overflow: auto;
+}
+
+body .reveal .slides section div.sourceCode pre {
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  line-height: 1.5em;
+  word-wrap: break-word;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  font-size: 90%;
+  font-weight: 500;
+  margin: 0;
+}
+
+body .reveal .slides section div.sourceCode pre div.language-label {
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  background-color: #eee;
+  padding: 0em 0.4em;
+  border-radius: 0.2em;
+}
+
+body .reveal .slides section div.sourceCode pre.numberSource {
+  margin-left: 3em;
+  border-left: 1px solid #aaaaaa;
+  padding-left: 4px;
+}
+
+body .reveal .slides section div.sourceCode pre.numberSource a.sourceLine {
+  position: relative;
+}
+
+body .reveal .slides section div.sourceCode pre.numberSource a.sourceLine:empty {
+  position: absolute;
+}
+
+body .reveal .slides section div.sourceCode pre.numberSource a.sourceLine::before {
+  content: attr(data-line-number);
+  position: absolute;
+  left: -5em;
+  text-align: right;
+  vertical-align: baseline;
+  border: none;
+  pointer-events: all;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  padding: 0 4px;
+  width: 4em;
+  color: #aaaaaa;
+}
+
+body .reveal .slides section div.sourceCode pre code {
+  display: block;
+  overflow: auto;
+  max-height: 500px;
+  word-wrap: normal;
+  border: none;
+  font-family: "Source Code Pro", monospace;
+  white-space: pre;
+  position: relative;
+  color: black;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine {
+  display: inline-block;
+  line-height: 1.25;
+  pointer-events: none;
+  color: inherit;
+  text-decoration: inherit;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine:empty {
+  height: 1.2em;
+  position: absolute;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine::before {
+  text-decoration: underline;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.al {
+  color: #ff0000;
+  font-weight: bold;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.an, body .reveal .slides section div.sourceCode pre code a.sourceLine span.cv, body .reveal .slides section div.sourceCode pre code a.sourceLine span.wa, body .reveal .slides section div.sourceCode pre code a.sourceLine span.in {
+  color: #60a0b0;
+  font-weight: bold;
+  font-style: italic;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.at {
+  color: #7d9029;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.fl, body .reveal .slides section div.sourceCode pre code a.sourceLine span.dv, body .reveal .slides section div.sourceCode pre code a.sourceLine span.bn {
+  color: #40a070;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.cf, body .reveal .slides section div.sourceCode pre code a.sourceLine span.kw {
+  color: #007020;
+  font-weight: bold;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.ch, body .reveal .slides section div.sourceCode pre code a.sourceLine span.sc, body .reveal .slides section div.sourceCode pre code a.sourceLine span.st, body .reveal .slides section div.sourceCode pre code a.sourceLine span.vs {
+  color: #4070a0;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.cn {
+  color: #880000;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.co {
+  color: #60a0b0;
+  font-style: italic;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.do {
+  color: #ba2121;
+  font-style: italic;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.dt {
+  color: #902000;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.er {
+  color: #ff0000;
+  font-weight: bold;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.fu {
+  color: #06287e;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.op {
+  color: #666666;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.ot {
+  color: #007020;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.pp {
+  color: #bc7a00;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.ss {
+  color: #bb6688;
+}
+
+body .reveal .slides section div.sourceCode pre code a.sourceLine span.va {
+  color: #19177c;
+}
+
+body .reveal .slides section div.box.question div.sourceCode, body .reveal .slides section div.box.answer div.sourceCode, body .reveal .slides section div.box.observation div.sourceCode, body .reveal .slides section div.box.example div.sourceCode, body .reveal .slides section div.box.def div.sourceCode, body .reveal .slides section div.box.definition div.sourceCode, body .reveal .slides section div.box.note div.sourceCode, body .reveal .slides section div.box.ale div.sourceCode, body .reveal .slides section div.box.alert div.sourceCode, body .reveal .slides section div.box.equ div.sourceCode, body .reveal .slides section div.box.equation div.sourceCode, body .reveal .slides section div.box.theorem div.sourceCode {
+  margin: 0;
+  background: rgba(255, 255, 255, 0.4);
+  padding: 0em 0.2em;
+}
+
+body .reveal .slides section div.box.question div.sourceCode pre, body .reveal .slides section div.box.answer div.sourceCode pre, body .reveal .slides section div.box.observation div.sourceCode pre, body .reveal .slides section div.box.example div.sourceCode pre, body .reveal .slides section div.box.def div.sourceCode pre, body .reveal .slides section div.box.definition div.sourceCode pre, body .reveal .slides section div.box.note div.sourceCode pre, body .reveal .slides section div.box.ale div.sourceCode pre, body .reveal .slides section div.box.alert div.sourceCode pre, body .reveal .slides section div.box.equ div.sourceCode pre, body .reveal .slides section div.box.equation div.sourceCode pre, body .reveal .slides section div.box.theorem div.sourceCode pre {
+  margin: 0;
+}
+
+body .reveal .slides section .references {
+  height: 17.5em;
+  overflow-y: scroll;
+}
+
+body .reveal .slides section .references div {
+  margin-bottom: 0.5em;
+}
+
+body .reveal .slides section table {
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+body .reveal .slides section table th {
+  font-weight: bold;
+}
+
+body .reveal .slides section table th,
+body .reveal .slides section table td {
+  text-align: left;
+  padding: 0.2em 0.5em;
+  border-bottom: 1px solid;
+}
+
+body .reveal .slides section table th[align="center"],
+body .reveal .slides section table td[align="center"] {
+  text-align: center;
+}
+
+body .reveal .slides section table th[align="right"],
+body .reveal .slides section table td[align="right"] {
+  text-align: right;
+}
+
+body .reveal .slides section table .slide-number {
+  color: #009;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+body .reveal .slides section .roll span:after {
+  color: #fff;
+  background: #00004d;
+}
+
+body .reveal .slides section.dense, body .reveal .slides section.x-dense, body .reveal .slides section.xx-dense {
+  line-height: 1.4;
+}
+
+body .reveal .slides section.dense.x-dense, body .reveal .slides section.x-dense.x-dense, body .reveal .slides section.xx-dense.x-dense {
+  font-size: 90%;
+}
+
+body .reveal .slides section.dense.xx-dense, body .reveal .slides section.x-dense.xx-dense, body .reveal .slides section.xx-dense.xx-dense {
+  font-size: 80%;
+}
+
+body .reveal .slides section.dense p, body .reveal .slides section.x-dense p, body .reveal .slides section.xx-dense p {
+  margin: 0.2em 0em;
+}
+
+body .reveal .slides section.dense h1, body .reveal .slides section.x-dense h1, body .reveal .slides section.xx-dense h1 {
+  margin: 0em 0em 0.2em 0em;
+}
+
+body .reveal .slides section.dense div.sourceCode, body .reveal .slides section.x-dense div.sourceCode, body .reveal .slides section.xx-dense div.sourceCode {
+  margin: 0em -0.7em;
+  padding: 0.4em 0.7em;
+}
+
+body .reveal .slides section.dense div.box, body .reveal .slides section.x-dense div.box, body .reveal .slides section.xx-dense div.box {
+  padding: 0.2em 0.7em;
+  margin: 0em -0.7em;
+}
+
+body .reveal .slides section.dense div.box h2, body .reveal .slides section.x-dense div.box h2, body .reveal .slides section.xx-dense div.box h2 {
+  margin-bottom: 0.1em;
+}
+
+body .reveal .slides section.dense div.box.question div.sourceCode pre, body .reveal .slides section.dense div.box.answer div.sourceCode pre, body .reveal .slides section.dense div.box.observation div.sourceCode pre, body .reveal .slides section.dense div.box.example div.sourceCode pre, body .reveal .slides section.dense div.box.def div.sourceCode pre, body .reveal .slides section.dense div.box.definition div.sourceCode pre, body .reveal .slides section.dense div.box.note div.sourceCode pre, body .reveal .slides section.dense div.box.ale div.sourceCode pre, body .reveal .slides section.dense div.box.alert div.sourceCode pre, body .reveal .slides section.dense div.box.equ div.sourceCode pre, body .reveal .slides section.dense div.box.equation div.sourceCode pre, body .reveal .slides section.dense div.box.theorem div.sourceCode pre, body .reveal .slides section.x-dense div.box.question div.sourceCode pre, body .reveal .slides section.x-dense div.box.answer div.sourceCode pre, body .reveal .slides section.x-dense div.box.observation div.sourceCode pre, body .reveal .slides section.x-dense div.box.example div.sourceCode pre, body .reveal .slides section.x-dense div.box.def div.sourceCode pre, body .reveal .slides section.x-dense div.box.definition div.sourceCode pre, body .reveal .slides section.x-dense div.box.note div.sourceCode pre, body .reveal .slides section.x-dense div.box.ale div.sourceCode pre, body .reveal .slides section.x-dense div.box.alert div.sourceCode pre, body .reveal .slides section.x-dense div.box.equ div.sourceCode pre, body .reveal .slides section.x-dense div.box.equation div.sourceCode pre, body .reveal .slides section.x-dense div.box.theorem div.sourceCode pre, body .reveal .slides section.xx-dense div.box.question div.sourceCode pre, body .reveal .slides section.xx-dense div.box.answer div.sourceCode pre, body .reveal .slides section.xx-dense div.box.observation div.sourceCode pre, body .reveal .slides section.xx-dense div.box.example div.sourceCode pre, body .reveal .slides section.xx-dense div.box.def div.sourceCode pre, body .reveal .slides section.xx-dense div.box.definition div.sourceCode pre, body .reveal .slides section.xx-dense div.box.note div.sourceCode pre, body .reveal .slides section.xx-dense div.box.ale div.sourceCode pre, body .reveal .slides section.xx-dense div.box.alert div.sourceCode pre, body .reveal .slides section.xx-dense div.box.equ div.sourceCode pre, body .reveal .slides section.xx-dense div.box.equation div.sourceCode pre, body .reveal .slides section.xx-dense div.box.theorem div.sourceCode pre {
+  line-height: 0;
+}
+
+body .reveal .slides section.dense .references div, body .reveal .slides section.x-dense .references div, body .reveal .slides section.xx-dense .references div {
+  margin-bottom: 0.2em;
+}
+
+body .reveal .slides section.dense table td, body .reveal .slides section.x-dense table td, body .reveal .slides section.xx-dense table td {
+  padding: 0.1em 0.5em;
+}
+
+body .reveal .progress {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+body .reveal .progress span {
+  background: #777;
+  -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+}
+
+body .reveal .controls button {
+  opacity: 0;
+}
+
+body .reveal .controls .enabled:active {
+  margin-top: 0;
+}
+
+body .reveal .controls :focus {
+  outline: none;
+}
+
+body .reveal .controls .slide-number {
+  color: #009;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+body .reveal .roll span:after {
+  color: #fff;
+  background: #00004d;
+}
+
+body .reveal .speaker-notes h1,
+body .reveal .speaker-notes h2,
+body .reveal .speaker-notes h3,
+body .reveal .speaker-notes h4,
+body .reveal .speaker-notes h5,
+body .reveal .speaker-notes h6 {
+  color: #fff;
+  font-weight: bold;
+  margin-bottom: 0.2em;
+}
+
+body .reveal .speaker-notes h1 {
+  text-decoration: underline;
+  margin-bottom: 0.4em;
+}
+
+body .reveal .medium {
+  font-size: 30px;
+}
+
+body .reveal .xx-small {
+  font-size: 12px;
+}
+
+body .reveal .x-small {
+  font-size: 18px;
+}
+
+body .reveal .small {
+  font-size: 24px;
+}
+
+body .reveal .large {
+  font-size: 36px;
+}
+
+body .reveal .x-large {
+  font-size: 42px;
+}
+
+body .reveal .xx-large {
+  font-size: 48px;
+}
+
+body .reveal .slide-number {
+  width: 100%;
+  text-align: center;
+  background: transparent;
+  color: gray;
+  font-size: 0.4em;
+}
+
+body .reveal .resume-button {
+  visibility: hidden;
+}
+
+body ::-moz-selection {
+  color: white;
+  background: rgba(0, 0, 0, 0.85);
+  text-shadow: none;
+}
+
+body ::selection {
+  color: white;
+  background: rgba(0, 0, 0, 0.85);
+  text-shadow: none;
+}
 
 @media print {
   html {
-    overflow: visible !important; }
+    overflow: visible !important;
+  }
   body {
-    overflow: visible !important; }
-    body .reveal {
-      position: static !important; }
-      body .reveal .slides {
-        transform: none !important;
-        font-family: "Roboto", sans-serif !important;
-        font-size: 30px !important; }
-        body .reveal .slides section p,
-        body .reveal .slides section td,
-        body .reveal .slides section li,
-        body .reveal .slides section div {
-          font-family: inherit !important;
-          font-size: inherit !important; }
-        body .reveal .slides section h1,
-        body .reveal .slides section h2,
-        body .reveal .slides section h3,
-        body .reveal .slides section h4,
-        body .reveal .slides section h5,
-        body .reveal .slides section h6 {
-          font-family: inherit !important;
-          font-size: inherit !important;
-          color: rgba(0, 0, 0, 0.87);
-          letter-spacing: normal;
-          text-transform: none;
-          text-shadow: none;
-          word-wrap: break-word;
-          font-weight: normal; }
-        body .reveal .slides section h1 {
-          font-size: 48px !important;
-          margin: 0em 0em 0.5em 0em; }
-        body .reveal .slides section h2 {
-          font-weight: 500;
-          font-size: 36px !important;
-          margin-bottom: 0.1em;
-          color: #646464 !important; }
-        body .reveal .slides section a:link, body .reveal .slides section a:visited {
-          font-weight: normal; }
-        body .reveal .slides section div.sourceCode pre code {
-          white-space: pre-wrap; }
-          body .reveal .slides section div.sourceCode pre code a.sourceLine {
-            text-indent: -1em;
-            padding-left: 1em; }
-    body a:link:after {
-      content: " (" attr(href) ") "; } }
+    overflow: visible !important;
+  }
+  body .reveal {
+    position: static !important;
+  }
+  body .reveal .slides {
+    -webkit-transform: none !important;
+            transform: none !important;
+    font-family: "Roboto", sans-serif !important;
+    font-size: 30px !important;
+  }
+  body .reveal .slides section p,
+  body .reveal .slides section td,
+  body .reveal .slides section li,
+  body .reveal .slides section div {
+    font-family: inherit !important;
+    font-size: inherit !important;
+  }
+  body .reveal .slides section h1,
+  body .reveal .slides section h2,
+  body .reveal .slides section h3,
+  body .reveal .slides section h4,
+  body .reveal .slides section h5,
+  body .reveal .slides section h6 {
+    font-family: inherit !important;
+    font-size: inherit !important;
+    color: rgba(0, 0, 0, 0.87);
+    letter-spacing: normal;
+    text-transform: none;
+    text-shadow: none;
+    word-wrap: break-word;
+    font-weight: normal;
+  }
+  body .reveal .slides section h1 {
+    font-size: 48px !important;
+    margin: 0em 0em 0.5em 0em;
+  }
+  body .reveal .slides section h2 {
+    font-weight: 500;
+    font-size: 36px !important;
+    margin-bottom: 0.1em;
+    color: #646464 !important;
+  }
+  body .reveal .slides section a:link, body .reveal .slides section a:visited {
+    font-weight: normal;
+  }
+  body .reveal .slides section div.sourceCode pre code {
+    white-space: pre-wrap;
+  }
+  body .reveal .slides section div.sourceCode pre code a.sourceLine {
+    text-indent: -1em;
+    padding-left: 1em;
+  }
+  body a:link:after {
+    content: " (" attr(href) ") ";
+  }
+}

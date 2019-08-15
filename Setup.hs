@@ -33,8 +33,6 @@ appendResourceArchive args flags descr info = do
     files <-
       map normalise <$> fastGlobFiles [] [] "." >>= filterM doesFileExist >>=
       mapM makeRelativeToCurrentDirectory
-    mapM_ putStrLn files
-    print $ length files
     withTempFile
       (\archive -> do
          createArchive archive $ forM_ files addFile

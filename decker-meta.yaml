@@ -10,7 +10,6 @@ exclude-directories:
 - node_modules
 - public
 - resource/support/vendor
-- resource/template
 - src
 - src-unix
 - src-win
