@@ -14,7 +14,8 @@ build:
 	stack build -j 8 --fast
 
 resources: 
-	$(MAKE) -C third-party support
+	make -f symlinks.mk -C third-party prepare
+	make -f symlinks.mk -C third-party all
 
 dist: resources build
 	rm -rf dist
