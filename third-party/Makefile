@@ -8,12 +8,12 @@ jquery/dist/jquery.min.js:
 	cd jquery && npm run build
 
 $(support)/jquery.js: jquery/dist/jquery.min.js
-	cp $< $@
+	mkdir -p $(@D) && cp $< $@
 
 # Chart.js
 RESOURCES += $(support)/Chart.js
 $(support)/Chart.js: Chart.js/dist/Chart.min.js
-	cp $< $@
+	mkdir -p $(@D) && cp $< $@
 
 Chart.js/dist/Chart.min.js:
 	cd Chart.js && npm install && npx rollup -c rollup.config.js
@@ -21,7 +21,7 @@ Chart.js/dist/Chart.min.js:
 # Chart.js Reveal Plugin
 RESOURCES += $(support)/csv2chart.js
 $(support)/csv2chart.js: reveal.js-plugins/chart/csv2chart.js
-	cp $< $@
+	mkdir -p $(@D) && cp $< $@
 
 # MathJax
 MATHJAX = MathJax/MathJax.js
@@ -59,25 +59,25 @@ $(support)/reveal.js-menu/%: reveal.js-menu/%
 # bootstrap
 RESOURCES += $(support)/bootstrap.min.css
 $(support)/bootstrap.min.css: bootstrap/dist/css/bootstrap.min.css
-	cp $< $@
+	mkdir -p $(@D) && cp $< $@
 
 RESOURCES += $(support)/bootstrap.min.css.map
 $(support)/bootstrap.min.css.map: bootstrap/dist/css/bootstrap.min.css.map
-	cp $< $@
+	mkdir -p $(@D) && cp $< $@
 
 # Piklor (dependency of Whiteboard)
 RESOURCES += $(support)/piklor.js
-$(support)/piklor.js: bielefeld/piklor.js/src/piklor.min.js
-	cp $< $@
+$(support)/piklor.js: piklor.js/src/piklor.min.js
+	mkdir -p $(@D) && cp $< $@
 
 # Whiteboard
-RESOURCES += $(support)/whiteboard.js
-$(support)/whiteboard.js: bielefeld/mb-plugins/whiteboard/whiteboard.js
-	cp $< $@
+RESOURCES += $(support)/whiteboard/whiteboard.js
+$(support)/whiteboard/whiteboard.js: mb-reveal-plugins/whiteboard/whiteboard.js
+	mkdir -p $(@D) && cp $< $@
 
-RESOURCES += $(support)/sponge.png
-$(support)/sponge.png: bielefeld/mb-plugins/whiteboard/sponge.png
-	cp $< $@
+RESOURCES += $(support)/whiteboard/sponge.png
+$(support)/whiteboard/sponge.png: mb-reveal-plugins/whiteboard/sponge.png
+	mkdir -p $(@D) && cp $< $@
 
 # Fontawesome
 FONTAWESOME += Font-Awesome/js-packages/@fortawesome/fontawesome-free/js/all.js

@@ -6,7 +6,6 @@ commit := $(shell git rev-parse --short HEAD)
 local-bin-path := $(HOME)/.local/bin
 
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
-resource-dir := $(HOME)/.local/share/$(decker-name)
 
 less:
 	stack build -j 8 --fast 2>&1 | less

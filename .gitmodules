@@ -22,6 +22,9 @@
 [submodule "third-party/reveal.js-plugins"]
 	path = third-party/reveal.js-plugins
 	url = https://github.com/rajgoel/reveal.js-plugins.git
-[submodule "third-party/bielefeld"]
-	path = third-party/bielefeld
-	url = https://github.com/mbotsch/revealSlides.git
+[submodule "third-party/mb-reveal-plugins"]
+	path = third-party/mb-reveal-plugins
+	url = https://github.com/mbotsch/mb-reveal-plugins.git
+[submodule "third-party/piklor.js"]
+	path = third-party/piklor.js
+	url = https://github.com/jillix/piklor.js.git
