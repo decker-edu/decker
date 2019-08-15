@@ -91,7 +91,7 @@ import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
 import System.Process
-import Text.Pandoc
+import Text.Pandoc hiding (Template)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 
@@ -112,7 +112,7 @@ data ActionContext = ActionContext
   , _targetList :: Targets
   , _metaData :: Yaml.Value
   , _state :: MutableActionState
-  , _templates :: [(FilePath, B.ByteString)]
+  , _templates :: [(FilePath, Template)]
   } deriving (Typeable, Show)
 
 makeLenses ''ActionContext
@@ -215,10 +215,16 @@ waitForChange inDirs =
 getTemplate :: Disposition -> Action String
 getTemplate disposition = getTemplate' (templateFileName disposition)
 
+-- | Get a template by path either from the embedded ZIP archive or from the
+-- file system. In the later case, call need on the template file.
 getTemplate' :: FilePath -> Action String
 getTemplate' path = do
   context <- actionContext
-  return $ BC.unpack $ fromJust $ lookup path (context ^. templates)
+  let (Template content source) = fromJust $ lookup path (context ^. templates)
+  case source of
+    Just file -> need [file]
+    Nothing -> pure ()
+  return $ BC.unpack content
 
 isDevRun :: Action Bool
 isDevRun = do
@@ -250,7 +256,7 @@ extractSupport = do
   liftIO $ do
     extractResourceEntries "support" publicDir
     BC.writeFile (supportDir </> ".version") (BC.pack deckerGitCommitId)
-    
+
 correctSupportInstalled :: Action Bool
 correctSupportInstalled = do
   context <- actionContext

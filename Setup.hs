@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE MultiWayIf #-}
 
 import Codec.Archive.Zip
 import Conduit
@@ -6,6 +7,7 @@ import Control.Monad.Extra
 import Data.Binary.Get
 import Data.Binary.Put
 import qualified Data.ByteString.Lazy as B
+import Data.List
 import Data.Maybe
 import Distribution.PackageDescription
 import Distribution.Simple
@@ -29,8 +31,10 @@ appendResourceArchive args flags descr info = do
   executable <- makeAbsolute $ binDir </> executableName
   withCurrentDirectory resourceDir $ do
     files <-
-      glob "**/*" >>= filterM doesFileExist >>=
+      map normalise <$> fastGlobFiles [] [] "." >>= filterM doesFileExist >>=
       mapM makeRelativeToCurrentDirectory
+    mapM_ putStrLn files
+    print $ length files
     withTempFile
       (\archive -> do
          createArchive archive $ forM_ files addFile
@@ -45,6 +49,32 @@ appendResourceArchive args flags descr info = do
     addFile path = do
       selector <- mkEntrySelector path
       loadEntry Deflate selector path
+
+-- | This is a plain copy from Glob.hs. We need it here because
+-- System.FilePath.Glob.glob does not follow symlinks.
+fastGlobFiles :: [String] -> [String] -> FilePath -> IO [FilePath]
+fastGlobFiles exclude suffixes root = sort <$> glob root
+  where
+    absExclude = map (root </>) exclude
+    absListDirectory dir =
+      map (dir </>) . filter (not . isPrefixOf ".") <$> listDirectory dir
+    glob :: FilePath -> IO [String]
+    glob root = do
+      dirExists <- doesDirectoryExist root
+      fileExists <- doesFileExist root
+      if | dirExists -> globDir root
+         | fileExists -> globFile root
+         | otherwise -> return []
+    globFile :: String -> IO [String]
+    globFile file =
+      if null suffixes || any (`isSuffixOf` file) suffixes
+        then return [file]
+        else return []
+    globDir :: FilePath -> IO [String]
+    globDir dir =
+      if dir `elem` absExclude
+        then return []
+        else concat <$> (absListDirectory dir >>= mapM glob)
 
 fixZip :: FilePath -> Integer -> IO ()
 fixZip zipPath adjustmentSize = do

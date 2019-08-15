@@ -11,7 +11,7 @@ import System.FilePath
 
 -- | Glob for files a little more efficiently. 'exclude' contains a list of
 -- directories that will be culled from the traversal. Hidden directories are
--- ignored .'suffixes' is the list of file suffixes that are included in the
+-- ignored. 'suffixes' is the list of file suffixes that are included in the
 -- glob.
 fastGlobFiles :: [String] -> [String] -> FilePath -> IO [FilePath]
 fastGlobFiles exclude suffixes root = sort <$> glob root
@@ -28,7 +28,7 @@ fastGlobFiles exclude suffixes root = sort <$> glob root
          | otherwise -> return []
     globFile :: String -> IO [String]
     globFile file =
-      if any (`isSuffixOf` file) suffixes
+      if null suffixes || any (`isSuffixOf` file) suffixes
         then return [file]
         else return []
     globDir :: FilePath -> IO [String]

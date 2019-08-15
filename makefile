@@ -8,10 +8,10 @@ local-bin-path := $(HOME)/.local/bin
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
 less:
-	stack build -j 8 --fast 2>&1 | less
+	stack build 2>&1 | less
 
 build:
-	stack build -j 8 --fast
+	stack build
 
 resources: 
 	make -f symlinks.mk -C third-party prepare
@@ -25,10 +25,10 @@ dist: resources build
 	rm dist/$(decker-name)
 
 test:
-	stack test -j 8 --fast
+	stack test
 
 watch:
-	stack test -j 8 --fast --file-watch
+	stack test --file-watch
 
 clean:
 	stack clean
@@ -36,14 +36,14 @@ clean:
 	rm -rf resource/support/vendor/*
 
 build-profile:
-	stack build -j 8 --fast --work-dir .stack-work-profile --profile
+	stack build --work-dir .stack-work-profile --profile
 
 profile: build-profile
 	stack exec -- decker clean
 	stack exec --work-dir .stack-work-profile -- decker +RTS -p
 
 preextracted:
-	stack build -j 8 --fast --flag decker:preextractedresources
+	stack build --flag decker:preextractedresources
 
 install: resources build
 	stack exec -- decker clean

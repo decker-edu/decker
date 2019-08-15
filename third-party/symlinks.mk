@@ -2,9 +2,9 @@
 # directly into the corresponding repository.
 
 support := ../resource/support/vendor
-third := ../../../third-party
+third := $(shell realpath .)
 
-all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard fontawesome
+all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard fontawesome reveal.js-menu
 
 jquery: jquery/dist/jquery.min.js
 	@cp jquery/dist/jquery.min.js $(support)/jquery.js
@@ -15,14 +15,20 @@ chart.js: Chart.js/dist/Chart.min.js
 
 mathjax:
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
-	@for i in MathJax.js config jax/input/TeX jax/output/SVG extensions element; do \
+	@for i in MathJax.js config jax/input/TeX jax/output/SVG jax/element extensions; do \
 		ln -sF $(third)/MathJax/$$i $(support)/mathjax/$$i; \
 	done
 
 reveal.js:
 	@mkdir -p $(support)/reveal/plugin
-	@for i in js css lib plugin/math plugin/zoom.js plugin/notes; do \
+	@for i in js css lib plugin/math plugin/zoom-js plugin/notes; do \
 		ln -sF $(third)/reveal.js/$$i $(support)/reveal/$$i; \
+	done
+
+reveal.js-menu:
+	@mkdir -p $(support)/reveal.js-menu
+	@for i in menu.css menu.js; do \
+		ln -sF $(third)/reveal.js-menu/$$i $(support)/reveal.js-menu/$$i; \
 	done
 
 bootstrap:
@@ -53,4 +59,4 @@ jquery/dist/jquery.min.js:
 Chart.js/dist/Chart.min.js:
 	cd Chart.js && npm install && npx rollup -c rollup.config.js
 
-.PHONY: clean fontawesome whiteboard piklor.js bootstrap reveal.js mathjax chart.js jquery
+.PHONY: clean fontawesome whiteboard piklor.js bootstrap reveal.js mathjax chart.js jquery reveal.js-menu

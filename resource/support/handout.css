@@ -1,894 +1,582 @@
 @charset "UTF-8";
+@import url("vendor/bootstrap/css/bootstrap.min.css");
+@import url("vendor/fontawesome/css/all.css");
+@import url("fonts/roboto.css");
+@import url("fonts/source-code-pro.css");
 body {
   background: white;
-  -webkit-print-color-adjust: exact;
-}
-
-body .decker-handout {
-  font-family: "Roboto", sans-serif;
-  font-size: 16px;
-  font-weight: normal;
-  color: black;
-}
-
-body .decker-handout .page-header {
-  font-size: 1.8rem;
-}
-
-body .decker-handout .page-header small {
-  white-space: nowrap;
-}
-
-body .decker-handout[data-align="center"] > h1,
-body .decker-handout div[data-align="center"] {
-  text-align: center;
-}
-
-body .decker-handout[data-align="right"] > h1,
-body .decker-handout div[data-align="right"] {
-  text-align: right;
-}
-
-body .decker-handout h1,
-body .decker-handout h2,
-body .decker-handout h3,
-body .decker-handout h4,
-body .decker-handout h5,
-body .decker-handout h6 {
-  color: rgba(0, 0, 0, 0.87);
-  letter-spacing: normal;
-  text-transform: none;
-  text-shadow: none;
-  word-wrap: break-word;
-  font-weight: normal;
-}
-
-body .decker-handout h1 {
-  font-size: 1.5em;
-  margin: 0em 0em 0.5em 0em;
-}
-
-body .decker-handout h1 code {
-  font-size: 116%;
-}
-
-body .decker-handout .rightcolumn > h1 {
-  margin-left: 54%;
-}
-
-body .decker-handout h2 {
-  font-weight: 500;
-  font-size: 1.3em;
-  margin-bottom: 0.1em;
-}
-
-body .decker-handout h2 code {
-  font-size: 116%;
-}
-
-body .decker-handout h3 {
-  font-weight: 500;
-  font-size: 1.1em;
-  margin-bottom: 0.1em;
-}
-
-body .decker-handout h3 code {
-  font-size: 116%;
-}
-
-body .decker-handout strong,
-body .decker-handout b {
-  font-weight: bold;
-}
-
-body .decker-handout em {
-  font-style: italic;
-}
-
-body .decker-handout sup {
-  font-size: 0.5em;
-  position: absolute;
-  vertical-align: super;
-}
-
-body .decker-handout sub {
-  vertical-align: sub;
-}
-
-body .decker-handout small {
-  display: inline-block;
-  font-size: 0.6em;
-  vertical-align: top;
-}
-
-body .decker-handout dt {
-  font-weight: bold;
-}
-
-body .decker-handout dd {
-  margin-left: 1em;
-}
-
-body .decker-handout q,
-body .decker-handout blockquote {
-  quotes: none;
-}
-
-body .decker-handout blockquote {
-  display: block;
-  position: relative;
-  width: 70%;
-  margin: 1em auto;
-  padding: 0.25em;
-  font-style: italic;
-  background: rgba(255, 255, 255, 0.05);
-  -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-          box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-}
-
-body .decker-handout blockquote p:first-child, body .decker-handout blockquote p:last-child {
-  display: inline-block;
-}
-
-body .decker-handout q {
-  font-style: italic;
-  quotes: "“" "”" "‘" "’";
-}
-
-body .decker-handout .smallcaps {
-  font-variant: small-caps;
-}
-
-body .decker-handout .line-block {
-  white-space: pre-line;
-}
-
-body .decker-handout code {
-  font-family: "Source Code Pro", monospace;
-  font-size: 106%;
-  font-weight: 500;
-  color: #06287e;
-}
-
-body .decker-handout ol,
-body .decker-handout dl,
-body .decker-handout ul {
-  display: inline-block;
-  text-align: left;
-  margin: 0em 0em 0em 1em;
-}
-
-body .decker-handout ol {
-  list-style-type: decimal;
-}
-
-body .decker-handout ul {
-  list-style-type: disc;
-}
-
-body .decker-handout ul ul {
-  list-style-type: disc;
-}
-
-body .decker-handout ul ul ul {
-  list-style-type: disc;
-}
-
-body .decker-handout ul ul,
-body .decker-handout ul ol,
-body .decker-handout ol ol,
-body .decker-handout ol ul {
-  display: block;
-  margin-left: 1em;
-}
-
-body .decker-handout a {
-  color: #009;
-  text-decoration: none;
-  -webkit-transition: color 0.15s ease;
-  transition: color 0.15s ease;
-}
-
-body .decker-handout a img {
-  -webkit-transition: color 0.15s linear;
-  transition: color 0.15s linear;
-}
-
-body .decker-handout a:hover {
-  color: blue;
-  text-shadow: none;
-  border: none;
-}
-
-body .decker-handout a:hover img {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  -webkit-box-shadow: none;
-          box-shadow: none;
-}
-
-body .decker-handout.mid div.multi-column-row {
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-}
-
-body .decker-handout div.column {
-  display: inline-block;
-  vertical-align: top;
-  width: 50%;
-}
-
-body .decker-handout div.css-columns {
-  -webkit-column-count: 2;
-          column-count: 2;
-  -webkit-column-gap: 2em;
-          column-gap: 2em;
-  -webkit-column-rule-style: none;
-          column-rule-style: none;
-  padding-left: 0.7em;
-  margin-left: -0.7em;
-}
-
-body .decker-handout div.box {
-  -webkit-column-break-inside: avoid;
-          break-inside: avoid-column;
-}
-
-body .decker-handout div.multi-column-row {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-flow: row nowrap;
-          flex-flow: row nowrap;
-}
-
-body .decker-handout div.multi-column-row div.column {
-  position: relative;
-  -webkit-box-flex: 1;
-      -ms-flex: 1 1 0px;
-          flex: 1 1 0;
-  margin-left: 1em;
-  margin-right: 1em;
-}
-
-body .decker-handout div.multi-column-row div.column:first-child {
-  margin-left: 0;
-  margin-right: 1em;
-}
-
-body .decker-handout div.multi-column-row div.column:last-child {
-  margin-left: 1em;
-  margin-right: 0;
-}
-
-body .decker-handout div.multi-column-row div.column .mid {
-  position: absolute;
-  top: 50%;
-  -webkit-transform: translate(0, -50%);
-          transform: translate(0, -50%);
-}
-
-body .decker-handout div.multi-column-row div.column[data-grow="1"] {
-  -webkit-box-flex: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
-}
-
-body .decker-handout div.multi-column-row div.column[data-grow="2"] {
-  -webkit-box-flex: 2;
-      -ms-flex-positive: 2;
-          flex-grow: 2;
-}
-
-body .decker-handout div.multi-column-row div.column[data-grow="3"] {
-  -webkit-box-flex: 3;
-      -ms-flex-positive: 3;
-          flex-grow: 3;
-}
-
-body .decker-handout div.multi-column-row div.column[data-grow="4"] {
-  -webkit-box-flex: 4;
-      -ms-flex-positive: 4;
-          flex-grow: 4;
-}
-
-body .decker-handout div.multi-column-row div.column[data-grow="5"] {
-  -webkit-box-flex: 5;
-      -ms-flex-positive: 5;
-          flex-grow: 5;
-}
-
-body .decker-handout div.multi-column-row div.column[data-grow="6"] {
-  -webkit-box-flex: 6;
-      -ms-flex-positive: 6;
-          flex-grow: 6;
-}
-
-body .decker-handout div.multi-column-row div.column[data-grow="7"] {
-  -webkit-box-flex: 7;
-      -ms-flex-positive: 7;
-          flex-grow: 7;
-}
-
-body .decker-handout div.multi-column-row div.column[data-grow="8"] {
-  -webkit-box-flex: 8;
-      -ms-flex-positive: 8;
-          flex-grow: 8;
-}
-
-body .decker-handout div.multi-column-row div.column[data-grow="9"] {
-  -webkit-box-flex: 9;
-      -ms-flex-positive: 9;
-          flex-grow: 9;
-}
-
-body .decker-handout div.box {
-  padding: 0.4em 0.7em;
-  margin: 0em -0.7em;
-  border-radius: 0.25em;
-}
-
-body .decker-handout div.box h2 {
-  margin-top: 0;
-}
-
-body .decker-handout div.box h2:last-child, body .decker-handout div.box h2:empty {
-  margin-bottom: 0;
-}
-
-body .decker-handout div.box p {
-  margin: 0;
-}
-
-body .decker-handout div.box.question + .question,
-body .decker-handout div.box.question + .answer,
-body .decker-handout div.box.question + .observation,
-body .decker-handout div.box.question + .example,
-body .decker-handout div.box.question + .def,
-body .decker-handout div.box.question + .definition,
-body .decker-handout div.box.question + .note,
-body .decker-handout div.box.question + .ale,
-body .decker-handout div.box.question + .alert,
-body .decker-handout div.box.question + .equ,
-body .decker-handout div.box.question + .equation,
-body .decker-handout div.box.question + .theorem, body .decker-handout div.box.answer + .question,
-body .decker-handout div.box.answer + .answer,
-body .decker-handout div.box.answer + .observation,
-body .decker-handout div.box.answer + .example,
-body .decker-handout div.box.answer + .def,
-body .decker-handout div.box.answer + .definition,
-body .decker-handout div.box.answer + .note,
-body .decker-handout div.box.answer + .ale,
-body .decker-handout div.box.answer + .alert,
-body .decker-handout div.box.answer + .equ,
-body .decker-handout div.box.answer + .equation,
-body .decker-handout div.box.answer + .theorem, body .decker-handout div.box.observation + .question,
-body .decker-handout div.box.observation + .answer,
-body .decker-handout div.box.observation + .observation,
-body .decker-handout div.box.observation + .example,
-body .decker-handout div.box.observation + .def,
-body .decker-handout div.box.observation + .definition,
-body .decker-handout div.box.observation + .note,
-body .decker-handout div.box.observation + .ale,
-body .decker-handout div.box.observation + .alert,
-body .decker-handout div.box.observation + .equ,
-body .decker-handout div.box.observation + .equation,
-body .decker-handout div.box.observation + .theorem, body .decker-handout div.box.example + .question,
-body .decker-handout div.box.example + .answer,
-body .decker-handout div.box.example + .observation,
-body .decker-handout div.box.example + .example,
-body .decker-handout div.box.example + .def,
-body .decker-handout div.box.example + .definition,
-body .decker-handout div.box.example + .note,
-body .decker-handout div.box.example + .ale,
-body .decker-handout div.box.example + .alert,
-body .decker-handout div.box.example + .equ,
-body .decker-handout div.box.example + .equation,
-body .decker-handout div.box.example + .theorem, body .decker-handout div.box.def + .question,
-body .decker-handout div.box.def + .answer,
-body .decker-handout div.box.def + .observation,
-body .decker-handout div.box.def + .example,
-body .decker-handout div.box.def + .def,
-body .decker-handout div.box.def + .definition,
-body .decker-handout div.box.def + .note,
-body .decker-handout div.box.def + .ale,
-body .decker-handout div.box.def + .alert,
-body .decker-handout div.box.def + .equ,
-body .decker-handout div.box.def + .equation,
-body .decker-handout div.box.def + .theorem, body .decker-handout div.box.definition + .question,
-body .decker-handout div.box.definition + .answer,
-body .decker-handout div.box.definition + .observation,
-body .decker-handout div.box.definition + .example,
-body .decker-handout div.box.definition + .def,
-body .decker-handout div.box.definition + .definition,
-body .decker-handout div.box.definition + .note,
-body .decker-handout div.box.definition + .ale,
-body .decker-handout div.box.definition + .alert,
-body .decker-handout div.box.definition + .equ,
-body .decker-handout div.box.definition + .equation,
-body .decker-handout div.box.definition + .theorem, body .decker-handout div.box.note + .question,
-body .decker-handout div.box.note + .answer,
-body .decker-handout div.box.note + .observation,
-body .decker-handout div.box.note + .example,
-body .decker-handout div.box.note + .def,
-body .decker-handout div.box.note + .definition,
-body .decker-handout div.box.note + .note,
-body .decker-handout div.box.note + .ale,
-body .decker-handout div.box.note + .alert,
-body .decker-handout div.box.note + .equ,
-body .decker-handout div.box.note + .equation,
-body .decker-handout div.box.note + .theorem, body .decker-handout div.box.ale + .question,
-body .decker-handout div.box.ale + .answer,
-body .decker-handout div.box.ale + .observation,
-body .decker-handout div.box.ale + .example,
-body .decker-handout div.box.ale + .def,
-body .decker-handout div.box.ale + .definition,
-body .decker-handout div.box.ale + .note,
-body .decker-handout div.box.ale + .ale,
-body .decker-handout div.box.ale + .alert,
-body .decker-handout div.box.ale + .equ,
-body .decker-handout div.box.ale + .equation,
-body .decker-handout div.box.ale + .theorem, body .decker-handout div.box.alert + .question,
-body .decker-handout div.box.alert + .answer,
-body .decker-handout div.box.alert + .observation,
-body .decker-handout div.box.alert + .example,
-body .decker-handout div.box.alert + .def,
-body .decker-handout div.box.alert + .definition,
-body .decker-handout div.box.alert + .note,
-body .decker-handout div.box.alert + .ale,
-body .decker-handout div.box.alert + .alert,
-body .decker-handout div.box.alert + .equ,
-body .decker-handout div.box.alert + .equation,
-body .decker-handout div.box.alert + .theorem, body .decker-handout div.box.equ + .question,
-body .decker-handout div.box.equ + .answer,
-body .decker-handout div.box.equ + .observation,
-body .decker-handout div.box.equ + .example,
-body .decker-handout div.box.equ + .def,
-body .decker-handout div.box.equ + .definition,
-body .decker-handout div.box.equ + .note,
-body .decker-handout div.box.equ + .ale,
-body .decker-handout div.box.equ + .alert,
-body .decker-handout div.box.equ + .equ,
-body .decker-handout div.box.equ + .equation,
-body .decker-handout div.box.equ + .theorem, body .decker-handout div.box.equation + .question,
-body .decker-handout div.box.equation + .answer,
-body .decker-handout div.box.equation + .observation,
-body .decker-handout div.box.equation + .example,
-body .decker-handout div.box.equation + .def,
-body .decker-handout div.box.equation + .definition,
-body .decker-handout div.box.equation + .note,
-body .decker-handout div.box.equation + .ale,
-body .decker-handout div.box.equation + .alert,
-body .decker-handout div.box.equation + .equ,
-body .decker-handout div.box.equation + .equation,
-body .decker-handout div.box.equation + .theorem, body .decker-handout div.box.theorem + .question,
-body .decker-handout div.box.theorem + .answer,
-body .decker-handout div.box.theorem + .observation,
-body .decker-handout div.box.theorem + .example,
-body .decker-handout div.box.theorem + .def,
-body .decker-handout div.box.theorem + .definition,
-body .decker-handout div.box.theorem + .note,
-body .decker-handout div.box.theorem + .ale,
-body .decker-handout div.box.theorem + .alert,
-body .decker-handout div.box.theorem + .equ,
-body .decker-handout div.box.theorem + .equation,
-body .decker-handout div.box.theorem + .theorem {
-  margin-top: 0.3em;
-}
-
-body .decker-handout div.box.question {
-  background-color: rgba(255, 215, 67, 0.4);
-}
-
-body .decker-handout div.box.answer {
-  background-color: rgba(153, 205, 58, 0.4);
-}
-
-body .decker-handout div.box.observation {
-  background-color: rgba(210, 180, 140, 0.4);
-}
-
-body .decker-handout div.box.example {
-  background-color: rgba(176, 197, 222, 0.4);
-}
-
-body .decker-handout div.box.def, body .decker-handout div.box.definition {
-  background-color: rgba(245, 222, 179, 0.6);
-}
-
-body .decker-handout div.box.note {
-  background-color: rgba(244, 164, 96, 0.4);
-}
-
-body .decker-handout div.box.ale, body .decker-handout div.box.alert {
-  background-color: rgba(255, 99, 71, 0.4);
-}
-
-body .decker-handout div.box.equ, body .decker-handout div.box.equation {
-  background-color: #ebebeb;
-}
-
-body .decker-handout div.box.theorem {
-  background-color: #ebebeb;
-}
-
-body .decker-handout div.videoWrapper {
-  position: relative;
-  padding-bottom: 56.25%;
-  /* 16:9 */
-  padding-top: 0;
-  height: 0;
-}
-
-body .decker-handout div.videoWrapper iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-body .decker-handout div span.math.display {
-  width: 100%;
-  display: block;
-  text-align: center;
-}
-
-body .decker-handout img {
-  max-width: 100%;
-  margin: 0 auto;
-  display: block;
-  border: none;
-  -webkit-box-shadow: none;
-          box-shadow: none;
-  border-radius: 0.25em;
-}
-
-body .decker-handout img.float-left {
-  float: left;
-}
-
-body .decker-handout img.float-right {
-  float: right;
-}
-
-body .decker-handout figure {
-  margin: 0 0 0 0;
-  text-align: center;
-}
-
-body .decker-handout figure figcaption {
-  font-size: 0.8em;
-  font-style: italic;
-}
-
-body .decker-handout video {
-  width: 100%;
-  margin: 0 auto;
-  display: block;
-}
-
-body .decker-handout.img-center img {
-  margin: 0 auto;
-  display: block;
-}
-
-body .decker-handout.img-nocenter img {
-  margin: 0 0;
-  display: inline;
-}
-
-body .decker-handout div.sourceCode {
-  margin: 0em -0.7em;
-  padding: 0.4em 0.7em;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 0.25em;
-  overflow: auto;
-}
-
-body .decker-handout div.sourceCode pre {
-  display: block;
-  position: relative;
-  width: 100%;
-  text-align: left;
-  line-height: 1.5em;
-  word-wrap: break-word;
-  -webkit-box-shadow: none;
-          box-shadow: none;
-  font-size: 90%;
-  font-weight: 500;
-  margin: 0;
-}
-
-body .decker-handout div.sourceCode pre.numberSource {
-  margin-left: 3em;
-  border-left: 1px solid #aaaaaa;
-  padding-left: 4px;
-}
-
-body .decker-handout div.sourceCode pre.numberSource a.sourceLine {
-  position: relative;
-}
-
-body .decker-handout div.sourceCode pre.numberSource a.sourceLine:empty {
-  position: absolute;
-}
-
-body .decker-handout div.sourceCode pre.numberSource a.sourceLine::before {
-  content: attr(data-line-number);
-  position: absolute;
-  left: -5em;
-  text-align: right;
-  vertical-align: baseline;
-  border: none;
-  pointer-events: all;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  padding: 0 4px;
-  width: 4em;
-  color: #aaaaaa;
-}
-
-body .decker-handout div.sourceCode pre code {
-  display: block;
-  overflow: auto;
-  word-wrap: normal;
-  border: none;
-  font-family: "Source Code Pro", monospace;
-  white-space: pre;
-  position: relative;
-  color: black;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine {
-  display: inline-block;
-  line-height: 1.25;
-  pointer-events: none;
-  color: inherit;
-  text-decoration: inherit;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine:empty {
-  height: 1.2em;
-  position: absolute;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine::before {
-  text-decoration: underline;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.al {
-  color: #ff0000;
-  font-weight: bold;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.an, body .decker-handout div.sourceCode pre code a.sourceLine span.cv, body .decker-handout div.sourceCode pre code a.sourceLine span.wa, body .decker-handout div.sourceCode pre code a.sourceLine span.in {
-  color: #60a0b0;
-  font-weight: bold;
-  font-style: italic;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.at {
-  color: #7d9029;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.fl, body .decker-handout div.sourceCode pre code a.sourceLine span.dv, body .decker-handout div.sourceCode pre code a.sourceLine span.bn {
-  color: #40a070;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.cf, body .decker-handout div.sourceCode pre code a.sourceLine span.kw {
-  color: #007020;
-  font-weight: bold;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.ch, body .decker-handout div.sourceCode pre code a.sourceLine span.sc, body .decker-handout div.sourceCode pre code a.sourceLine span.st, body .decker-handout div.sourceCode pre code a.sourceLine span.vs {
-  color: #4070a0;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.cn {
-  color: #880000;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.co {
-  color: #60a0b0;
-  font-style: italic;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.do {
-  color: #ba2121;
-  font-style: italic;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.dt {
-  color: #902000;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.er {
-  color: #ff0000;
-  font-weight: bold;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.fu {
-  color: #06287e;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.op {
-  color: #666666;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.ot {
-  color: #007020;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.pp {
-  color: #bc7a00;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.ss {
-  color: #bb6688;
-}
-
-body .decker-handout div.sourceCode pre code a.sourceLine span.va {
-  color: #19177c;
-}
-
-body .decker-handout div.box.question div.sourceCode, body .decker-handout div.box.answer div.sourceCode, body .decker-handout div.box.observation div.sourceCode, body .decker-handout div.box.example div.sourceCode, body .decker-handout div.box.def div.sourceCode, body .decker-handout div.box.definition div.sourceCode, body .decker-handout div.box.note div.sourceCode, body .decker-handout div.box.ale div.sourceCode, body .decker-handout div.box.alert div.sourceCode, body .decker-handout div.box.equ div.sourceCode, body .decker-handout div.box.equation div.sourceCode, body .decker-handout div.box.theorem div.sourceCode {
-  margin: 0;
-  background: rgba(255, 255, 255, 0.4);
-  padding: 0em 0.2em;
-}
-
-body .decker-handout div.box.question div.sourceCode pre, body .decker-handout div.box.answer div.sourceCode pre, body .decker-handout div.box.observation div.sourceCode pre, body .decker-handout div.box.example div.sourceCode pre, body .decker-handout div.box.def div.sourceCode pre, body .decker-handout div.box.definition div.sourceCode pre, body .decker-handout div.box.note div.sourceCode pre, body .decker-handout div.box.ale div.sourceCode pre, body .decker-handout div.box.alert div.sourceCode pre, body .decker-handout div.box.equ div.sourceCode pre, body .decker-handout div.box.equation div.sourceCode pre, body .decker-handout div.box.theorem div.sourceCode pre {
-  margin: 0;
-}
-
-body .decker-handout .references {
-  height: 17.5em;
-  overflow-y: scroll;
-}
-
-body .decker-handout .references div {
-  margin-bottom: 0.5em;
-}
-
-body .decker-handout table {
-  margin: auto;
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-
-body .decker-handout table th {
-  font-weight: bold;
-}
-
-body .decker-handout table th,
-body .decker-handout table td {
-  text-align: left;
-  padding: 0.2em 0.5em;
-  border-bottom: 1px solid;
-}
-
-body .decker-handout table th[align="center"],
-body .decker-handout table td[align="center"] {
-  text-align: center;
-}
-
-body .decker-handout table th[align="right"],
-body .decker-handout table td[align="right"] {
-  text-align: right;
-}
-
-body .decker-handout table tr:last-child td {
-  border-bottom: none;
-}
-
-body .decker-handout.dense, body .decker-handout.x-dense, body .decker-handout.xx-dense {
-  line-height: 1.4;
-}
-
-body .decker-handout.dense.x-dense, body .decker-handout.x-dense.x-dense, body .decker-handout.xx-dense.x-dense {
-  font-size: 90%;
-}
-
-body .decker-handout.dense.xx-dense, body .decker-handout.x-dense.xx-dense, body .decker-handout.xx-dense.xx-dense {
-  font-size: 80%;
-}
-
-body .decker-handout.dense p, body .decker-handout.x-dense p, body .decker-handout.xx-dense p {
-  margin: 0.2em 0em;
-}
-
-body .decker-handout.dense h1, body .decker-handout.x-dense h1, body .decker-handout.xx-dense h1 {
-  margin: 0em 0em 0.2em 0em;
-}
-
-body .decker-handout.dense div.sourceCode, body .decker-handout.x-dense div.sourceCode, body .decker-handout.xx-dense div.sourceCode {
-  margin: 0em -0.7em;
-  padding: 0.4em 0.7em;
-}
-
-body .decker-handout.dense div.box, body .decker-handout.x-dense div.box, body .decker-handout.xx-dense div.box {
-  padding: 0.2em 0.7em;
-  margin: 0em -0.7em;
-}
-
-body .decker-handout.dense div.box h2, body .decker-handout.x-dense div.box h2, body .decker-handout.xx-dense div.box h2 {
-  margin-bottom: 0.1em;
-}
-
-body .decker-handout.dense div.box.question div.sourceCode pre, body .decker-handout.dense div.box.answer div.sourceCode pre, body .decker-handout.dense div.box.observation div.sourceCode pre, body .decker-handout.dense div.box.example div.sourceCode pre, body .decker-handout.dense div.box.def div.sourceCode pre, body .decker-handout.dense div.box.definition div.sourceCode pre, body .decker-handout.dense div.box.note div.sourceCode pre, body .decker-handout.dense div.box.ale div.sourceCode pre, body .decker-handout.dense div.box.alert div.sourceCode pre, body .decker-handout.dense div.box.equ div.sourceCode pre, body .decker-handout.dense div.box.equation div.sourceCode pre, body .decker-handout.dense div.box.theorem div.sourceCode pre, body .decker-handout.x-dense div.box.question div.sourceCode pre, body .decker-handout.x-dense div.box.answer div.sourceCode pre, body .decker-handout.x-dense div.box.observation div.sourceCode pre, body .decker-handout.x-dense div.box.example div.sourceCode pre, body .decker-handout.x-dense div.box.def div.sourceCode pre, body .decker-handout.x-dense div.box.definition div.sourceCode pre, body .decker-handout.x-dense div.box.note div.sourceCode pre, body .decker-handout.x-dense div.box.ale div.sourceCode pre, body .decker-handout.x-dense div.box.alert div.sourceCode pre, body .decker-handout.x-dense div.box.equ div.sourceCode pre, body .decker-handout.x-dense div.box.equation div.sourceCode pre, body .decker-handout.x-dense div.box.theorem div.sourceCode pre, body .decker-handout.xx-dense div.box.question div.sourceCode pre, body .decker-handout.xx-dense div.box.answer div.sourceCode pre, body .decker-handout.xx-dense div.box.observation div.sourceCode pre, body .decker-handout.xx-dense div.box.example div.sourceCode pre, body .decker-handout.xx-dense div.box.def div.sourceCode pre, body .decker-handout.xx-dense div.box.definition div.sourceCode pre, body .decker-handout.xx-dense div.box.note div.sourceCode pre, body .decker-handout.xx-dense div.box.ale div.sourceCode pre, body .decker-handout.xx-dense div.box.alert div.sourceCode pre, body .decker-handout.xx-dense div.box.equ div.sourceCode pre, body .decker-handout.xx-dense div.box.equation div.sourceCode pre, body .decker-handout.xx-dense div.box.theorem div.sourceCode pre {
-  line-height: 0;
-}
-
-body .decker-handout.dense .references div, body .decker-handout.x-dense .references div, body .decker-handout.xx-dense .references div {
-  margin-bottom: 0.2em;
-}
-
-body .decker-handout.dense table td, body .decker-handout.x-dense table td, body .decker-handout.xx-dense table td {
-  padding: 0.1em 0.5em;
-}
-
-body .medium {
-  font-size: 16px;
-}
-
-body .xx-small {
-  font-size: 6.4px;
-}
-
-body .x-small {
-  font-size: 9.6px;
-}
-
-body .small {
-  font-size: 12.8px;
-}
-
-body .large {
-  font-size: 19.2px;
-}
-
-body .x-large {
-  font-size: 22.4px;
-}
-
-body .xx-large {
-  font-size: 25.6px;
-}
-
-body ::-moz-selection {
-  color: white;
-  background: rgba(0, 0, 0, 0.85);
-  text-shadow: none;
-}
-
-body ::selection {
-  color: white;
-  background: rgba(0, 0, 0, 0.85);
-  text-shadow: none;
-}
-
-@media print {
-  @page {
-    body {
-      size: A4;
-      /* DIN A4 standard, Europe */
+  -webkit-print-color-adjust: exact; }
+  body .decker-handout {
+    font-family: "Roboto", sans-serif;
+    font-size: 16px;
+    font-weight: normal;
+    color: black; }
+    body .decker-handout .page-header {
+      font-size: 1.8rem; }
+      body .decker-handout .page-header small {
+        white-space: nowrap; }
+    body .decker-handout[data-align="center"] > h1,
+    body .decker-handout div[data-align="center"] {
+      text-align: center; }
+    body .decker-handout[data-align="right"] > h1,
+    body .decker-handout div[data-align="right"] {
+      text-align: right; }
+    body .decker-handout h1,
+    body .decker-handout h2,
+    body .decker-handout h3,
+    body .decker-handout h4,
+    body .decker-handout h5,
+    body .decker-handout h6 {
+      color: rgba(0, 0, 0, 0.87);
+      letter-spacing: normal;
+      text-transform: none;
+      text-shadow: none;
+      word-wrap: break-word;
+      font-weight: normal; }
+    body .decker-handout h1 {
+      font-size: 1.5em;
+      margin: 0em 0em 0.5em 0em; }
+      body .decker-handout h1 code {
+        font-size: 116%; }
+    body .decker-handout .rightcolumn > h1 {
+      margin-left: 54%; }
+    body .decker-handout h2 {
+      font-weight: 500;
+      font-size: 1.3em;
+      margin-bottom: 0.1em; }
+      body .decker-handout h2 code {
+        font-size: 116%; }
+    body .decker-handout h3 {
+      font-weight: 500;
+      font-size: 1.1em;
+      margin-bottom: 0.1em; }
+      body .decker-handout h3 code {
+        font-size: 116%; }
+    body .decker-handout strong,
+    body .decker-handout b {
+      font-weight: bold; }
+    body .decker-handout em {
+      font-style: italic; }
+    body .decker-handout sup {
+      font-size: 0.5em;
+      position: absolute;
+      vertical-align: super; }
+    body .decker-handout sub {
+      vertical-align: sub; }
+    body .decker-handout small {
+      display: inline-block;
+      font-size: 0.6em;
+      vertical-align: top; }
+    body .decker-handout dt {
+      font-weight: bold; }
+    body .decker-handout dd {
+      margin-left: 1em; }
+    body .decker-handout q,
+    body .decker-handout blockquote {
+      quotes: none; }
+    body .decker-handout blockquote {
+      display: block;
+      position: relative;
+      width: 70%;
+      margin: 1em auto;
+      padding: 0.25em;
+      font-style: italic;
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); }
+      body .decker-handout blockquote p:first-child, body .decker-handout blockquote p:last-child {
+        display: inline-block; }
+    body .decker-handout q {
+      font-style: italic;
+      quotes: "“" "”" "‘" "’"; }
+    body .decker-handout .smallcaps {
+      font-variant: small-caps; }
+    body .decker-handout .line-block {
+      white-space: pre-line; }
+    body .decker-handout code {
+      font-family: "Source Code Pro", monospace;
+      font-size: 106%;
+      font-weight: 500;
+      color: #06287e; }
+    body .decker-handout ol,
+    body .decker-handout dl,
+    body .decker-handout ul {
+      display: inline-block;
+      text-align: left;
+      margin: 0em 0em 0em 1em; }
+    body .decker-handout ol {
+      list-style-type: decimal; }
+    body .decker-handout ul {
+      list-style-type: disc; }
+      body .decker-handout ul ul {
+        list-style-type: disc; }
+        body .decker-handout ul ul ul {
+          list-style-type: disc; }
+    body .decker-handout ul ul,
+    body .decker-handout ul ol,
+    body .decker-handout ol ol,
+    body .decker-handout ol ul {
+      display: block;
+      margin-left: 1em; }
+    body .decker-handout a {
+      color: #009;
+      text-decoration: none;
+      -webkit-transition: color 0.15s ease;
+      -moz-transition: color 0.15s ease;
+      -ms-transition: color 0.15s ease;
+      -o-transition: color 0.15s ease;
+      transition: color 0.15s ease; }
+      body .decker-handout a img {
+        -webkit-transition: color 0.15s linear;
+        -moz-transition: color 0.15s linear;
+        -ms-transition: color 0.15s linear;
+        -o-transition: color 0.15s linear;
+        transition: color 0.15s linear; }
+      body .decker-handout a:hover {
+        color: blue;
+        text-shadow: none;
+        border: none; }
+        body .decker-handout a:hover img {
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          box-shadow: none; }
+    body .decker-handout.mid div.multi-column-row {
+      align-items: center; }
+    body .decker-handout div.column {
+      display: inline-block;
+      vertical-align: top;
+      width: 50%; }
+    body .decker-handout div.css-columns {
+      column-count: 2;
+      column-gap: 2em;
+      column-rule-style: none;
+      padding-left: 0.7em;
+      margin-left: -0.7em; }
+    body .decker-handout div.box {
+      break-inside: avoid-column; }
+    body .decker-handout div.multi-column-row {
+      display: flex;
+      flex-flow: row nowrap; }
+      body .decker-handout div.multi-column-row div.column {
+        position: relative;
+        flex: 1 1 0;
+        margin-left: 1em;
+        margin-right: 1em; }
+        body .decker-handout div.multi-column-row div.column:first-child {
+          margin-left: 0;
+          margin-right: 1em; }
+        body .decker-handout div.multi-column-row div.column:last-child {
+          margin-left: 1em;
+          margin-right: 0; }
+        body .decker-handout div.multi-column-row div.column .mid {
+          position: absolute;
+          top: 50%;
+          transform: translate(0, -50%); }
+        body .decker-handout div.multi-column-row div.column[data-grow="1"] {
+          flex-grow: 1; }
+        body .decker-handout div.multi-column-row div.column[data-grow="2"] {
+          flex-grow: 2; }
+        body .decker-handout div.multi-column-row div.column[data-grow="3"] {
+          flex-grow: 3; }
+        body .decker-handout div.multi-column-row div.column[data-grow="4"] {
+          flex-grow: 4; }
+        body .decker-handout div.multi-column-row div.column[data-grow="5"] {
+          flex-grow: 5; }
+        body .decker-handout div.multi-column-row div.column[data-grow="6"] {
+          flex-grow: 6; }
+        body .decker-handout div.multi-column-row div.column[data-grow="7"] {
+          flex-grow: 7; }
+        body .decker-handout div.multi-column-row div.column[data-grow="8"] {
+          flex-grow: 8; }
+        body .decker-handout div.multi-column-row div.column[data-grow="9"] {
+          flex-grow: 9; }
+    body .decker-handout div.box {
+      padding: 0.4em 0.7em;
+      margin: 0em -0.7em;
+      border-radius: 0.25em; }
+      body .decker-handout div.box h2 {
+        margin-top: 0; }
+        body .decker-handout div.box h2:last-child, body .decker-handout div.box h2:empty {
+          margin-bottom: 0; }
+      body .decker-handout div.box p {
+        margin: 0; }
+      body .decker-handout div.box.question + .question,
+      body .decker-handout div.box.question + .answer,
+      body .decker-handout div.box.question + .observation,
+      body .decker-handout div.box.question + .example,
+      body .decker-handout div.box.question + .def,
+      body .decker-handout div.box.question + .definition,
+      body .decker-handout div.box.question + .note,
+      body .decker-handout div.box.question + .ale,
+      body .decker-handout div.box.question + .alert,
+      body .decker-handout div.box.question + .equ,
+      body .decker-handout div.box.question + .equation,
+      body .decker-handout div.box.question + .theorem, body .decker-handout div.box.answer + .question,
+      body .decker-handout div.box.answer + .answer,
+      body .decker-handout div.box.answer + .observation,
+      body .decker-handout div.box.answer + .example,
+      body .decker-handout div.box.answer + .def,
+      body .decker-handout div.box.answer + .definition,
+      body .decker-handout div.box.answer + .note,
+      body .decker-handout div.box.answer + .ale,
+      body .decker-handout div.box.answer + .alert,
+      body .decker-handout div.box.answer + .equ,
+      body .decker-handout div.box.answer + .equation,
+      body .decker-handout div.box.answer + .theorem, body .decker-handout div.box.observation + .question,
+      body .decker-handout div.box.observation + .answer,
+      body .decker-handout div.box.observation + .observation,
+      body .decker-handout div.box.observation + .example,
+      body .decker-handout div.box.observation + .def,
+      body .decker-handout div.box.observation + .definition,
+      body .decker-handout div.box.observation + .note,
+      body .decker-handout div.box.observation + .ale,
+      body .decker-handout div.box.observation + .alert,
+      body .decker-handout div.box.observation + .equ,
+      body .decker-handout div.box.observation + .equation,
+      body .decker-handout div.box.observation + .theorem, body .decker-handout div.box.example + .question,
+      body .decker-handout div.box.example + .answer,
+      body .decker-handout div.box.example + .observation,
+      body .decker-handout div.box.example + .example,
+      body .decker-handout div.box.example + .def,
+      body .decker-handout div.box.example + .definition,
+      body .decker-handout div.box.example + .note,
+      body .decker-handout div.box.example + .ale,
+      body .decker-handout div.box.example + .alert,
+      body .decker-handout div.box.example + .equ,
+      body .decker-handout div.box.example + .equation,
+      body .decker-handout div.box.example + .theorem, body .decker-handout div.box.def + .question,
+      body .decker-handout div.box.def + .answer,
+      body .decker-handout div.box.def + .observation,
+      body .decker-handout div.box.def + .example,
+      body .decker-handout div.box.def + .def,
+      body .decker-handout div.box.def + .definition,
+      body .decker-handout div.box.def + .note,
+      body .decker-handout div.box.def + .ale,
+      body .decker-handout div.box.def + .alert,
+      body .decker-handout div.box.def + .equ,
+      body .decker-handout div.box.def + .equation,
+      body .decker-handout div.box.def + .theorem, body .decker-handout div.box.definition + .question,
+      body .decker-handout div.box.definition + .answer,
+      body .decker-handout div.box.definition + .observation,
+      body .decker-handout div.box.definition + .example,
+      body .decker-handout div.box.definition + .def,
+      body .decker-handout div.box.definition + .definition,
+      body .decker-handout div.box.definition + .note,
+      body .decker-handout div.box.definition + .ale,
+      body .decker-handout div.box.definition + .alert,
+      body .decker-handout div.box.definition + .equ,
+      body .decker-handout div.box.definition + .equation,
+      body .decker-handout div.box.definition + .theorem, body .decker-handout div.box.note + .question,
+      body .decker-handout div.box.note + .answer,
+      body .decker-handout div.box.note + .observation,
+      body .decker-handout div.box.note + .example,
+      body .decker-handout div.box.note + .def,
+      body .decker-handout div.box.note + .definition,
+      body .decker-handout div.box.note + .note,
+      body .decker-handout div.box.note + .ale,
+      body .decker-handout div.box.note + .alert,
+      body .decker-handout div.box.note + .equ,
+      body .decker-handout div.box.note + .equation,
+      body .decker-handout div.box.note + .theorem, body .decker-handout div.box.ale + .question,
+      body .decker-handout div.box.ale + .answer,
+      body .decker-handout div.box.ale + .observation,
+      body .decker-handout div.box.ale + .example,
+      body .decker-handout div.box.ale + .def,
+      body .decker-handout div.box.ale + .definition,
+      body .decker-handout div.box.ale + .note,
+      body .decker-handout div.box.ale + .ale,
+      body .decker-handout div.box.ale + .alert,
+      body .decker-handout div.box.ale + .equ,
+      body .decker-handout div.box.ale + .equation,
+      body .decker-handout div.box.ale + .theorem, body .decker-handout div.box.alert + .question,
+      body .decker-handout div.box.alert + .answer,
+      body .decker-handout div.box.alert + .observation,
+      body .decker-handout div.box.alert + .example,
+      body .decker-handout div.box.alert + .def,
+      body .decker-handout div.box.alert + .definition,
+      body .decker-handout div.box.alert + .note,
+      body .decker-handout div.box.alert + .ale,
+      body .decker-handout div.box.alert + .alert,
+      body .decker-handout div.box.alert + .equ,
+      body .decker-handout div.box.alert + .equation,
+      body .decker-handout div.box.alert + .theorem, body .decker-handout div.box.equ + .question,
+      body .decker-handout div.box.equ + .answer,
+      body .decker-handout div.box.equ + .observation,
+      body .decker-handout div.box.equ + .example,
+      body .decker-handout div.box.equ + .def,
+      body .decker-handout div.box.equ + .definition,
+      body .decker-handout div.box.equ + .note,
+      body .decker-handout div.box.equ + .ale,
+      body .decker-handout div.box.equ + .alert,
+      body .decker-handout div.box.equ + .equ,
+      body .decker-handout div.box.equ + .equation,
+      body .decker-handout div.box.equ + .theorem, body .decker-handout div.box.equation + .question,
+      body .decker-handout div.box.equation + .answer,
+      body .decker-handout div.box.equation + .observation,
+      body .decker-handout div.box.equation + .example,
+      body .decker-handout div.box.equation + .def,
+      body .decker-handout div.box.equation + .definition,
+      body .decker-handout div.box.equation + .note,
+      body .decker-handout div.box.equation + .ale,
+      body .decker-handout div.box.equation + .alert,
+      body .decker-handout div.box.equation + .equ,
+      body .decker-handout div.box.equation + .equation,
+      body .decker-handout div.box.equation + .theorem, body .decker-handout div.box.theorem + .question,
+      body .decker-handout div.box.theorem + .answer,
+      body .decker-handout div.box.theorem + .observation,
+      body .decker-handout div.box.theorem + .example,
+      body .decker-handout div.box.theorem + .def,
+      body .decker-handout div.box.theorem + .definition,
+      body .decker-handout div.box.theorem + .note,
+      body .decker-handout div.box.theorem + .ale,
+      body .decker-handout div.box.theorem + .alert,
+      body .decker-handout div.box.theorem + .equ,
+      body .decker-handout div.box.theorem + .equation,
+      body .decker-handout div.box.theorem + .theorem {
+        margin-top: 0.3em; }
+      body .decker-handout div.box.question {
+        background-color: rgba(255, 215, 67, 0.4); }
+      body .decker-handout div.box.answer {
+        background-color: rgba(153, 205, 58, 0.4); }
+      body .decker-handout div.box.observation {
+        background-color: rgba(210, 180, 140, 0.4); }
+      body .decker-handout div.box.example {
+        background-color: rgba(176, 197, 222, 0.4); }
+      body .decker-handout div.box.def, body .decker-handout div.box.definition {
+        background-color: rgba(245, 222, 179, 0.6); }
+      body .decker-handout div.box.note {
+        background-color: rgba(244, 164, 96, 0.4); }
+      body .decker-handout div.box.ale, body .decker-handout div.box.alert {
+        background-color: rgba(255, 99, 71, 0.4); }
+      body .decker-handout div.box.equ, body .decker-handout div.box.equation {
+        background-color: #ebebeb; }
+      body .decker-handout div.box.theorem {
+        background-color: #ebebeb; }
+    body .decker-handout div.videoWrapper {
+      position: relative;
+      padding-bottom: 56.25%;
+      /* 16:9 */
+      padding-top: 0;
+      height: 0; }
+      body .decker-handout div.videoWrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%; }
+    body .decker-handout div span.math.display {
+      width: 100%;
+      display: block;
+      text-align: center; }
+    body .decker-handout img {
+      max-width: 100%;
+      margin: 0 auto;
+      display: block;
+      border: none;
+      box-shadow: none;
+      border-radius: 0.25em; }
+      body .decker-handout img.float-left {
+        float: left; }
+      body .decker-handout img.float-right {
+        float: right; }
+    body .decker-handout figure {
+      margin: 0 0 0 0;
+      text-align: center; }
+      body .decker-handout figure figcaption {
+        font-size: 0.8em;
+        font-style: italic; }
+    body .decker-handout video {
+      width: 100%;
+      margin: 0 auto;
+      display: block; }
+    body .decker-handout.img-center img {
+      margin: 0 auto;
+      display: block; }
+    body .decker-handout.img-nocenter img {
+      margin: 0 0;
+      display: inline; }
+    body .decker-handout div.sourceCode {
+      margin: 0em -0.7em;
+      padding: 0.4em 0.7em;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 0.25em;
+      overflow: auto; }
+      body .decker-handout div.sourceCode pre {
+        display: block;
+        position: relative;
+        width: 100%;
+        text-align: left;
+        line-height: 1.5em;
+        word-wrap: break-word;
+        box-shadow: none;
+        font-size: 90%;
+        font-weight: 500;
+        margin: 0; }
+        body .decker-handout div.sourceCode pre.numberSource {
+          margin-left: 3em;
+          border-left: 1px solid #aaaaaa;
+          padding-left: 4px; }
+          body .decker-handout div.sourceCode pre.numberSource a.sourceLine {
+            position: relative; }
+            body .decker-handout div.sourceCode pre.numberSource a.sourceLine:empty {
+              position: absolute; }
+            body .decker-handout div.sourceCode pre.numberSource a.sourceLine::before {
+              content: attr(data-line-number);
+              position: absolute;
+              left: -5em;
+              text-align: right;
+              vertical-align: baseline;
+              border: none;
+              pointer-events: all;
+              -webkit-user-select: none;
+              -moz-user-select: none;
+              -ms-user-select: none;
+              -o-user-select: none;
+              user-select: none;
+              -webkit-touch-callout: none;
+              padding: 0 4px;
+              width: 4em;
+              color: #aaaaaa; }
+        body .decker-handout div.sourceCode pre code {
+          display: block;
+          overflow: auto;
+          word-wrap: normal;
+          border: none;
+          font-family: "Source Code Pro", monospace;
+          white-space: pre;
+          position: relative;
+          color: black; }
+          body .decker-handout div.sourceCode pre code a.sourceLine {
+            display: inline-block;
+            line-height: 1.25;
+            pointer-events: none;
+            color: inherit;
+            text-decoration: inherit; }
+            body .decker-handout div.sourceCode pre code a.sourceLine:empty {
+              height: 1.2em;
+              position: absolute; }
+            body .decker-handout div.sourceCode pre code a.sourceLine::before {
+              text-decoration: underline; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.al {
+              color: #ff0000;
+              font-weight: bold; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.an, body .decker-handout div.sourceCode pre code a.sourceLine span.cv, body .decker-handout div.sourceCode pre code a.sourceLine span.wa, body .decker-handout div.sourceCode pre code a.sourceLine span.in {
+              color: #60a0b0;
+              font-weight: bold;
+              font-style: italic; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.at {
+              color: #7d9029; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.fl, body .decker-handout div.sourceCode pre code a.sourceLine span.dv, body .decker-handout div.sourceCode pre code a.sourceLine span.bn {
+              color: #40a070; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.cf, body .decker-handout div.sourceCode pre code a.sourceLine span.kw {
+              color: #007020;
+              font-weight: bold; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.ch, body .decker-handout div.sourceCode pre code a.sourceLine span.sc, body .decker-handout div.sourceCode pre code a.sourceLine span.st, body .decker-handout div.sourceCode pre code a.sourceLine span.vs {
+              color: #4070a0; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.cn {
+              color: #880000; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.co {
+              color: #60a0b0;
+              font-style: italic; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.do {
+              color: #ba2121;
+              font-style: italic; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.dt {
+              color: #902000; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.er {
+              color: #ff0000;
+              font-weight: bold; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.fu {
+              color: #06287e; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.op {
+              color: #666666; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.ot {
+              color: #007020; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.pp {
+              color: #bc7a00; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.ss {
+              color: #bb6688; }
+            body .decker-handout div.sourceCode pre code a.sourceLine span.va {
+              color: #19177c; }
+    body .decker-handout div.box.question div.sourceCode, body .decker-handout div.box.answer div.sourceCode, body .decker-handout div.box.observation div.sourceCode, body .decker-handout div.box.example div.sourceCode, body .decker-handout div.box.def div.sourceCode, body .decker-handout div.box.definition div.sourceCode, body .decker-handout div.box.note div.sourceCode, body .decker-handout div.box.ale div.sourceCode, body .decker-handout div.box.alert div.sourceCode, body .decker-handout div.box.equ div.sourceCode, body .decker-handout div.box.equation div.sourceCode, body .decker-handout div.box.theorem div.sourceCode {
       margin: 0;
-    }
-  }
-  body html,
-  body body {
-    overflow: visible;
-  }
-  body a:link:after {
-    content: " (" attr(href) ") ";
-  }
-}
-/*# sourceMappingURL=handout.css.map */
+      background: rgba(255, 255, 255, 0.4);
+      padding: 0em 0.2em; }
+      body .decker-handout div.box.question div.sourceCode pre, body .decker-handout div.box.answer div.sourceCode pre, body .decker-handout div.box.observation div.sourceCode pre, body .decker-handout div.box.example div.sourceCode pre, body .decker-handout div.box.def div.sourceCode pre, body .decker-handout div.box.definition div.sourceCode pre, body .decker-handout div.box.note div.sourceCode pre, body .decker-handout div.box.ale div.sourceCode pre, body .decker-handout div.box.alert div.sourceCode pre, body .decker-handout div.box.equ div.sourceCode pre, body .decker-handout div.box.equation div.sourceCode pre, body .decker-handout div.box.theorem div.sourceCode pre {
+        margin: 0; }
+    body .decker-handout .references {
+      height: 17.5em;
+      overflow-y: scroll; }
+      body .decker-handout .references div {
+        margin-bottom: 0.5em; }
+    body .decker-handout table {
+      margin: auto;
+      border-collapse: collapse;
+      border-spacing: 0; }
+      body .decker-handout table th {
+        font-weight: bold; }
+      body .decker-handout table th,
+      body .decker-handout table td {
+        text-align: left;
+        padding: 0.2em 0.5em;
+        border-bottom: 1px solid; }
+      body .decker-handout table th[align="center"],
+      body .decker-handout table td[align="center"] {
+        text-align: center; }
+      body .decker-handout table th[align="right"],
+      body .decker-handout table td[align="right"] {
+        text-align: right; }
+      body .decker-handout table tr:last-child td {
+        border-bottom: none; }
+    body .decker-handout.dense, body .decker-handout.x-dense, body .decker-handout.xx-dense {
+      line-height: 1.4; }
+      body .decker-handout.dense.x-dense, body .decker-handout.x-dense.x-dense, body .decker-handout.xx-dense.x-dense {
+        font-size: 90%; }
+      body .decker-handout.dense.xx-dense, body .decker-handout.x-dense.xx-dense, body .decker-handout.xx-dense.xx-dense {
+        font-size: 80%; }
+      body .decker-handout.dense p, body .decker-handout.x-dense p, body .decker-handout.xx-dense p {
+        margin: 0.2em 0em; }
+      body .decker-handout.dense h1, body .decker-handout.x-dense h1, body .decker-handout.xx-dense h1 {
+        margin: 0em 0em 0.2em 0em; }
+      body .decker-handout.dense div.sourceCode, body .decker-handout.x-dense div.sourceCode, body .decker-handout.xx-dense div.sourceCode {
+        margin: 0em -0.7em;
+        padding: 0.4em 0.7em; }
+      body .decker-handout.dense div.box, body .decker-handout.x-dense div.box, body .decker-handout.xx-dense div.box {
+        padding: 0.2em 0.7em;
+        margin: 0em -0.7em; }
+        body .decker-handout.dense div.box h2, body .decker-handout.x-dense div.box h2, body .decker-handout.xx-dense div.box h2 {
+          margin-bottom: 0.1em; }
+        body .decker-handout.dense div.box.question div.sourceCode pre, body .decker-handout.dense div.box.answer div.sourceCode pre, body .decker-handout.dense div.box.observation div.sourceCode pre, body .decker-handout.dense div.box.example div.sourceCode pre, body .decker-handout.dense div.box.def div.sourceCode pre, body .decker-handout.dense div.box.definition div.sourceCode pre, body .decker-handout.dense div.box.note div.sourceCode pre, body .decker-handout.dense div.box.ale div.sourceCode pre, body .decker-handout.dense div.box.alert div.sourceCode pre, body .decker-handout.dense div.box.equ div.sourceCode pre, body .decker-handout.dense div.box.equation div.sourceCode pre, body .decker-handout.dense div.box.theorem div.sourceCode pre, body .decker-handout.x-dense div.box.question div.sourceCode pre, body .decker-handout.x-dense div.box.answer div.sourceCode pre, body .decker-handout.x-dense div.box.observation div.sourceCode pre, body .decker-handout.x-dense div.box.example div.sourceCode pre, body .decker-handout.x-dense div.box.def div.sourceCode pre, body .decker-handout.x-dense div.box.definition div.sourceCode pre, body .decker-handout.x-dense div.box.note div.sourceCode pre, body .decker-handout.x-dense div.box.ale div.sourceCode pre, body .decker-handout.x-dense div.box.alert div.sourceCode pre, body .decker-handout.x-dense div.box.equ div.sourceCode pre, body .decker-handout.x-dense div.box.equation div.sourceCode pre, body .decker-handout.x-dense div.box.theorem div.sourceCode pre, body .decker-handout.xx-dense div.box.question div.sourceCode pre, body .decker-handout.xx-dense div.box.answer div.sourceCode pre, body .decker-handout.xx-dense div.box.observation div.sourceCode pre, body .decker-handout.xx-dense div.box.example div.sourceCode pre, body .decker-handout.xx-dense div.box.def div.sourceCode pre, body .decker-handout.xx-dense div.box.definition div.sourceCode pre, body .decker-handout.xx-dense div.box.note div.sourceCode pre, body .decker-handout.xx-dense div.box.ale div.sourceCode pre, body .decker-handout.xx-dense div.box.alert div.sourceCode pre, body .decker-handout.xx-dense div.box.equ div.sourceCode pre, body .decker-handout.xx-dense div.box.equation div.sourceCode pre, body .decker-handout.xx-dense div.box.theorem div.sourceCode pre {
+          line-height: 0; }
+      body .decker-handout.dense .references div, body .decker-handout.x-dense .references div, body .decker-handout.xx-dense .references div {
+        margin-bottom: 0.2em; }
+      body .decker-handout.dense table td, body .decker-handout.x-dense table td, body .decker-handout.xx-dense table td {
+        padding: 0.1em 0.5em; }
+  body .medium {
+    font-size: 16px; }
+  body .xx-small {
+    font-size: 6.4px; }
+  body .x-small {
+    font-size: 9.6px; }
+  body .small {
+    font-size: 12.8px; }
+  body .large {
+    font-size: 19.2px; }
+  body .x-large {
+    font-size: 22.4px; }
+  body .xx-large {
+    font-size: 25.6px; }
+  body ::selection {
+    color: white;
+    background: rgba(0, 0, 0, 0.85);
+    text-shadow: none; }
+  @media print {
+    @page {
+      body {
+        size: A4;
+        /* DIN A4 standard, Europe */
+        margin: 0; } }
+    body html,
+    body body {
+      overflow: visible; }
+    body a:link:after {
+      content: " (" attr(href) ") "; } }

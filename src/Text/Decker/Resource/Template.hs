@@ -1,5 +1,6 @@
 module Text.Decker.Resource.Template
   ( readTemplates
+  , Template(..)
   ) where
 
 import Text.Decker.Internal.Common
@@ -12,7 +13,6 @@ import qualified Data.ByteString as BS
 import Data.Maybe
 import Development.Shake
 import System.FilePath
-import Text.Pandoc
 
 templates =
   [ "template/deck.html"
@@ -23,19 +23,26 @@ templates =
   , "template/page.tex"
   ]
 
-readTemplates :: FilePath -> Bool -> IO [(FilePath, BS.ByteString)]
+data Template =
+  Template BS.ByteString
+           (Maybe FilePath)
+  deriving (Show)
+
+readTemplates :: FilePath -> Bool -> IO [(FilePath, Template)]
 readTemplates root devRun =
   if devRun
     then readTemplatesFs (root </> "resource")
     else readTemplatesZip
 
-readTemplatesFs :: FilePath -> IO [(FilePath, BS.ByteString)]
-readTemplatesFs dir = do
-  foldM readTemplate [] templates
+readTemplatesFs :: FilePath -> IO [(FilePath, Template)]
+readTemplatesFs dir = foldM readTemplate [] templates
   where
     readTemplate list path = do
-      content <- BS.readFile (dir </> path)
-      return $ (path, content) : list
+      let file = dir </> path
+      content <- BS.readFile file
+      return $ (path, Template content (Just file)) : list
 
-readTemplatesZip :: IO [(FilePath, BS.ByteString)]
-readTemplatesZip = extractResourceEntryList templates
+readTemplatesZip :: IO [(FilePath, Template)]
+readTemplatesZip =
+  map (\(f, c) -> (f, Template c Nothing)) <$>
+  extractResourceEntryList templates
