@@ -28,8 +28,6 @@ Decker uses a few external tools that need to be installed on the system:
 -   [*ssh*](https://www.openssh.com) for publishing slide decks and resources
 -   [*rsync*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/rsync)
     for publishing slide decks and resources
--   [*unzip*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/unzip)
-    to extract resources from the decker executable
 -   [*LaTeX* with pdflatex](https://www.latex-project.org) to generate LaTeX in
     PDF-files and embedded Tikz figures
 -   [*Graphviz*](http://graphviz.org) to generate graphs using `dot`
@@ -45,7 +43,7 @@ Decker uses a few external tools that need to be installed on the system:
 Use [Homebrew](https://brew.sh) to install most of them.
 
 ``` {.sh}
-brew install rsync unzip graphviz gnuplot pdf2svg yarn
+brew install rsync graphviz gnuplot pdf2svg yarn coreutils
 ```
 
 For the rest follow instructions on their respective webites.
