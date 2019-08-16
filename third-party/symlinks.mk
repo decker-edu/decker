@@ -1,6 +1,8 @@
 # Copy things that need to built first (JQuery, Chart.js). The rest is symlinked
 # directly into the corresponding repository.
 
+SHELL := $(shell which bash)
+
 support := ../resource/support/vendor
 third := $(shell realpath .)
 
