@@ -67,4 +67,4 @@ jquery/dist/jquery.min.js:
 Chart.js/dist/Chart.min.js:
 	cd Chart.js && npm install && npx rollup -c rollup.config.js
 
-.PHONY: clean fontawesome whiteboard piklor.js bootstrap reveal.js mathjax chart.js jquery reveal.js-menu
+.PHONY: clean prepare fontawesome whiteboard piklor.js bootstrap reveal.js mathjax chart.js jquery reveal.js-menu

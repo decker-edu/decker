@@ -23,6 +23,10 @@ if($buildtype -eq "preextracted"){
     & stack build -j4 --flag decker:preextractedresources
 } else {
     Write-Output "Building standalone binary"
+    <# TODO: Here we need to copy resources from `third-party` to
+    `resource/support/vendor` as done in `third-party/symlinks.mk`. Once that
+    works, pre-extraction is obsolete because everything is read directly from
+    the embedded ZIP archive. #>
     & stack build -j4
 }
 
