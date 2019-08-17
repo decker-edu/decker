@@ -2,7 +2,6 @@
 history: True
 subtitle: Test cases
 title: CSS Styling
-controls: false
 ---
 # Box colors {layout="columns"}
 
