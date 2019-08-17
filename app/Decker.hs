@@ -1,7 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Decker where
 
-import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Flags (hasPreextractedResources)
@@ -11,7 +10,6 @@ import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
-import Text.Decker.Resource.Zip
 import Text.Decker.Server.Dachdecker
 import Text.Decker.Writer.Format
 import Text.Decker.Writer.Html
@@ -21,7 +19,6 @@ import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Control.Monad.Extra
-import Data.Aeson
 import Data.IORef ()
 import Data.List
 import Data.Maybe
@@ -29,17 +26,13 @@ import Data.String ()
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
-import GHC.Conc (numCapabilities)
-import System.Decker.OS (defaultProvisioning)
-import System.Directory (createDirectoryIfMissing, createFileLink, removeFile)
+import System.Directory (removeFile)
 import System.Environment.Blank
 import System.FilePath ()
 import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc
-import Text.Pandoc.Definition
 import Text.Printf (printf)
-import Text.Read
 
 ttt =
   [ "template/deck.html"

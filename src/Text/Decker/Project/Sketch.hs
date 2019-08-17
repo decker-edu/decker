@@ -9,7 +9,6 @@ module Text.Decker.Project.Sketch
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Shake
-import Text.Decker.Project.Project
 import Text.Decker.Writer.Markdown
 import Text.Pandoc.Lens
 
@@ -17,7 +16,6 @@ import Control.Monad
 import qualified Data.Text.IO as T
 import Development.Shake
 import System.Directory
-import System.FilePath
 import System.Random
 import Text.Pandoc hiding (writeMarkdown)
 

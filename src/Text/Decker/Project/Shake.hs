@@ -38,7 +38,6 @@ module Text.Decker.Project.Shake
   , isDevRun
   ) where
 
-import System.Decker.OS
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -55,7 +54,6 @@ import Control.Concurrent
 import Control.Exception
 import Control.Lens
 import Control.Monad
-import Control.Monad.Extra
 import Data.Aeson as Json
 import Data.Aeson.Lens
 import qualified Data.ByteString as B

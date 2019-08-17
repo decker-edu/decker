@@ -22,7 +22,6 @@ import Control.Exception
 import Text.Decker.Internal.Exception
 import Text.Decker.Filter.Slide
 import Text.Pandoc.Lens
-
 import Control.Lens
 import Control.Monad.Loops as Loop
 import Control.Monad.State

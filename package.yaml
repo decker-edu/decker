@@ -96,10 +96,11 @@ dependencies:
   - zip
 
 library:
-  # ghc-options:
-  #   - -fwarn-unused-binds 
-  #   - -fwarn-unused-imports
-  source-dirs: src
+  ghc-options:
+    - -fwarn-unused-imports
+  # - -fwarn-unused-binds
+  source-dirs:
+    - src
   when:
     - condition: os(windows)
       then:
@@ -119,8 +120,8 @@ executables:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
-#     - -fwarn-unused-binds 
-#     - -fwarn-unused-imports
+      - -fwarn-unused-imports
+    # - -fwarn-unused-binds
     dependencies:
       - decker
 

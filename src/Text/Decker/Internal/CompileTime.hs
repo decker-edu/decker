@@ -7,7 +7,6 @@ module Text.Decker.Internal.CompileTime
 import Data.Maybe
 import Data.String.Utils
 import Language.Haskell.TH
-import Language.Haskell.TH.Syntax (Lift(..))
 import Text.Decker.Project.Git
 
 lookupGitBranch :: Q Exp

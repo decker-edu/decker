@@ -4,7 +4,6 @@ module Text.Decker.Resource.Zip
   , extractResourceEntryList
   ) where
 
-import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Project.Project
 

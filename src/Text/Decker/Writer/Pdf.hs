@@ -9,7 +9,6 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Project.Shake
 import Text.Decker.Reader.Markdown
-import Text.Decker.Resource.Template
 
 import Control.Exception
 import qualified Data.ByteString.Lazy as LB

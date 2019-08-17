@@ -8,7 +8,6 @@ module Text.Decker.Writer.Html
   , DeckerException(..)
   ) where
 
-import System.Decker.OS
 import Text.Decker.Filter.Filter
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
@@ -17,11 +16,10 @@ import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Reader.Markdown
-import Text.Decker.Resource.Template
 import Text.Pandoc.Lens
 
 import Control.Exception
-import Control.Lens ((.~), (^.), (^?), at, set)
+import Control.Lens ((^.))
 import Control.Monad.State
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
