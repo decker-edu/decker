@@ -33,8 +33,11 @@ $if(highlighting-css)$
 $highlighting-css$
   </style>
 $endif$
-  <!-- decker -->
+$if(base-css)$
+  <link rel="stylesheet" href="$base-css$">
+$else$
   <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
+$endif$
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
 $endfor$

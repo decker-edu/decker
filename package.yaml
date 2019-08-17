@@ -25,7 +25,8 @@ extra-source-files:
   - Dockerfile
   - makefile
   - resource/template/*
-  - resource/support/*
+  - resource/support/css/*
+  - resource/support/js/*
   - resource/example/*
   - third-party/Makefile
 

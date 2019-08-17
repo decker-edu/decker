@@ -3,9 +3,9 @@
  *
  * Based on the white scheme by Hakim El Hattab, http://hakim.se
  */
-@import url(/Users/henrik/workspace/decker-no-yarn/resource/support/vendor/fontawesome/css/all.css);
-@import url(/Users/henrik/workspace/decker-no-yarn/resource/support/fonts/roboto.css);
-@import url(/Users/henrik/workspace/decker-no-yarn/resource/support/fonts/source-code-pro.css);
+@import url("../vendor/fontawesome/css/all.css");
+@import url("../fonts/roboto.css");
+@import url("../fonts/source-code-pro.css");
 .reveal .rightcolumn > h1 {
   margin-left: 54%;
 }
