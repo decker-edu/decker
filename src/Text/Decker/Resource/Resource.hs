@@ -67,7 +67,7 @@ elementAttributes =
 -- | Resources in meta data that are needed at compile time. They have to be
 -- specified as local URLs and must exist.
 runtimeMetaKeys :: [String]
-runtimeMetaKeys = ["css"]
+runtimeMetaKeys = ["css", "base-css"]
 
 templateOverrideMetaKeys :: [String]
 templateOverrideMetaKeys = ["template"]

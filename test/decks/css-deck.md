@@ -3,8 +3,6 @@ history: True
 subtitle: Test cases
 title: CSS Styling
 ---
----
-
 # Box colors {layout="columns"}
 
 ## Question {.left .question}
