@@ -1,0 +1,82 @@
+.reveal {
+    .rightcolumn {
+        >h1 {
+            margin-left: 54%;
+        }
+    }
+}
+
+
+/////////////////////////////////////////////
+// Within section divs
+/////////////////////////////////////////////
+.reveal div {
+
+    /////////////////////////////////////////////
+    // Column settings
+    /////////////////////////////////////////////
+    &.column {
+        display: inline-block;
+        vertical-align: top;
+        width: 50%;
+    }
+
+    // For `{.split}`-Syntax
+    &.css-columns {
+        column-count: 2;
+        column-gap: space(2);
+        column-rule-style: none;
+        padding-left: space(0.7);
+        margin-left: space(-0.7);
+    }
+
+    &.box {
+        break-inside: avoid-column;
+    }
+
+    // For `{layout="columns"}`-Syntax
+    &.multi-column-row {
+        display: flex;
+        flex-flow: row nowrap;
+        margin-bottom: space(0.3);
+
+        div {
+            &.column {
+                $margin-size: space(1);
+
+                position: relative;
+                flex: 1 1 0;
+
+                margin-left: $margin-size;
+                margin-right: $margin-size;
+
+                &:first-child {
+                    margin-left: 0;
+                    margin-right: $margin-size;
+                }
+
+                &:last-child {
+                    margin-left: $margin-size;
+                    margin-right: 0;
+                }
+
+                .mid {
+                    position: absolute;
+                    top: 50%;
+                    transform: translate(0, -50%);
+                }
+
+                @for $i from 1 through 9 {
+                    &[data-grow="#{$i}"] {
+                        flex-grow: $i;
+                    }
+                }
+            }
+        }
+    }
+
+    &.single-column-row {
+        //no space if multi row nested below
+        margin-bottom: space(0.3);
+    }
+}

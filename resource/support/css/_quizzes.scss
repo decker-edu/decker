@@ -1,0 +1,131 @@
+.reveal {
+
+    // General Button css and freetext question Input 
+    button,
+    .freetextInput {
+        border-radius: 0.5em;
+        font-size: inherit;
+        font-family: inherit;
+        outline: none;
+        clear: both;
+    }
+}
+
+.reveal {
+
+    // Matching/Pairing questions
+    .matching {
+        text-align: center;
+
+        .dropzones {
+            width: 100%;
+            min-height: 15vh;
+            max-height: 20vh;
+            display: table;
+            table-layout: fixed;
+        }
+
+        .dropzone {
+            display: table-cell;
+            padding: 10px;
+            border: 1px solid black;
+            text-align: center;
+        }
+
+        .draggable {
+            display: table-cell;
+            margin: auto;
+            padding: 1%;
+            max-width: 50%;
+            vertical-align: middle;
+            border-radius: 0.5em;
+            border: 1px #111 dashed;
+            overflow: hidden;
+        }
+
+        // Disable interaction with the elements inside draggable
+        .draggableChild {
+            max-width: inherit;
+            pointer-events: none;
+        }
+
+        // Arrow from here: http://www.cssarrowplease.com/
+        // Creates an arrow that points from dragzone to dropzone to indicate dragging direction
+        .dragzone {
+            display: table;
+            table-layout: fixed;
+            border-spacing: 5px;
+            margin-top: 5%;
+            min-height: 15vh;
+            max-height: 20vh;
+            text-align: center;
+            width: 100%;
+            position: relative;
+        }
+
+        .dragzone:after,
+        .dragzone:before {
+            bottom: 100%;
+            left: 50%;
+            border: solid transparent;
+            content: " ";
+            height: 0;
+            width: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .dragzone:after {
+            border-color: rgba(136, 183, 213, 0);
+            border-bottom-color: #111;
+            border-width: 30px;
+            margin-left: -30px;
+        }
+
+        // Arrow def end;
+    }
+
+}
+
+.reveal {
+
+    // Multiple Choice        
+    .survey {
+
+        // To align solution button in center
+        text-align: center;
+
+        // To avoid that MC boxes are bigger when used directly below lvl 1 header 
+        div p {
+            margin: 0;
+        }
+
+        ul {
+            list-style-type: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 5pt;
+        }
+
+        li {
+            flex-grow: 1;
+            border: 1pt #111 dashed;
+            padding-left: 1em;
+            padding-right: 1em;
+            border-radius: 0.5em;
+            margin: 0.55em;
+            flex-basis: 30%;
+
+        }
+
+        li:hover {
+            background-color: rgb(220, 220, 220);
+        }
+
+        .tooltip {
+            display: none;
+        }
+    }
+}

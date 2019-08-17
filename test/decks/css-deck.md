@@ -3,9 +3,7 @@ history: True
 subtitle: Test cases
 title: CSS Styling
 ---
-
-------
-
+---
 
 # Box colors {layout="columns"}
 
@@ -41,15 +39,38 @@ Invisible.
 
 $e=mc^2$
 
-------
+---
 
 # Inverse Colors for Big Dark Images {.inverse}
 
 ## Color scheme
 
-- Background is black
-- Font color is almost white
+-   Background is black
+-   Font color is almost white
 
 ## Alert Box {.fragment .alert}
 
 Even colored boxes look ok.
+
+---
+
+# Code (`Code in Header`)
+
+## Code block (`Code in Header`)
+
+``` {.haskell label="Haskell"}
+ghci> :type [1,2,3,4]
+[1,2,3,4] :: Num a => [a]
+```
+
+## Verbatim block (`Code in Header`)
+
+    ghci> :type [1,2,3,4]
+    [1,2,3,4] :: Num a => [a]
+
+## Text block (`Code in Header`)
+
+``` {.txt}
+ghci> :type [1,2,3,4]
+[1,2,3,4] :: Num a => [a]
+```

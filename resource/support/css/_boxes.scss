@@ -1,0 +1,113 @@
+.reveal div.box {
+    h2 {
+        margin-top: 0;
+
+        &:last-child,
+        &:empty {
+            margin-bottom: 0;
+        }
+    }
+
+    p {
+        margin: 0;
+    }
+
+    padding: space(0.4 0.7);
+    margin: space(0 -0.7);
+    border-radius: 0.25em;
+
+    &.question,
+    &.answer,
+    &.observation,
+    &.example,
+    &.def,
+    &.definition,
+    &.note,
+    &.ale,
+    &.alert,
+    &.equ,
+    &.equation,
+    &.theorem {
+
+        &+.question,
+        &+.answer,
+        &+.observation,
+        &+.example,
+        &+.def,
+        &+.definition,
+        &+.note,
+        &+.ale,
+        &+.alert,
+        &+.equ,
+        &+.equation,
+        &+.theorem {
+            margin-top: space(0.3);
+        }
+    }
+
+    &.question {
+        background-color: rgba(255, 215, 67, 0.4);
+    }
+
+    &.answer {
+        background-color: rgba(153, 205, 58, 0.4);
+    }
+
+    &.observation {
+        background-color: rgba(210, 180, 140, 0.4);
+    }
+
+    &.example {
+        background-color: rgba(176, 197, 222, 0.4);
+    }
+
+    &.def,
+    &.definition {
+        background-color: rgba(245, 222, 179, 0.6);
+    }
+
+    &.note {
+        background-color: rgba(244, 164, 96, 0.4);
+    }
+
+    &.ale,
+    &.alert {
+        background-color: rgba(255, 99, 71, 0.4);
+    }
+
+    &.equ,
+    &.equation {
+        background-color: rgb(235, 235, 235);
+    }
+
+    &.theorem {
+        background-color: rgb(235, 235, 235);
+    }
+}
+
+// Special case: source code inside highlighted box
+.reveal div.box {
+
+    &.question,
+    &.answer,
+    &.observation,
+    &.example,
+    &.def,
+    &.definition,
+    &.note,
+    &.ale,
+    &.alert,
+    &.equ,
+    &.equation,
+    &.theorem {
+        div.sourceCode {
+            margin: 0;
+            background: rgba(255, 255, 255, 0.4);
+            padding: space(0 0.2);
+
+            pre {
+                margin: 0;
+            }
+        }
+    }
+}

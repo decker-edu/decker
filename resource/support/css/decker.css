@@ -1,0 +1,1210 @@
+/**
+ * Decker theme for reveal.js.
+ *
+ * Based on the white scheme by Hakim El Hattab, http://hakim.se
+ */
+@import url(/Users/henrik/workspace/decker-no-yarn/resource/support/vendor/fontawesome/css/all.css);
+@import url(/Users/henrik/workspace/decker-no-yarn/resource/support/fonts/roboto.css);
+@import url(/Users/henrik/workspace/decker-no-yarn/resource/support/fonts/source-code-pro.css);
+.reveal .rightcolumn > h1 {
+  margin-left: 54%;
+}
+
+.reveal div.column {
+  display: inline-block;
+  vertical-align: top;
+  width: 50%;
+}
+
+.reveal div.css-columns {
+  -webkit-column-count: 2;
+          column-count: 2;
+  -webkit-column-gap: 2em;
+          column-gap: 2em;
+  -webkit-column-rule-style: none;
+          column-rule-style: none;
+  padding-left: 0.7em;
+  margin-left: -0.7em;
+}
+
+.reveal div.box {
+  -webkit-column-break-inside: avoid;
+          break-inside: avoid-column;
+}
+
+.reveal div.multi-column-row {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-flow: row nowrap;
+          flex-flow: row nowrap;
+  margin-bottom: 0.3em;
+}
+
+.reveal div.multi-column-row div.column {
+  position: relative;
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 0px;
+          flex: 1 1 0;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+.reveal div.multi-column-row div.column:first-child {
+  margin-left: 0;
+  margin-right: 1em;
+}
+
+.reveal div.multi-column-row div.column:last-child {
+  margin-left: 1em;
+  margin-right: 0;
+}
+
+.reveal div.multi-column-row div.column .mid {
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translate(0, -50%);
+          transform: translate(0, -50%);
+}
+
+.reveal div.multi-column-row div.column[data-grow="1"] {
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+}
+
+.reveal div.multi-column-row div.column[data-grow="2"] {
+  -webkit-box-flex: 2;
+      -ms-flex-positive: 2;
+          flex-grow: 2;
+}
+
+.reveal div.multi-column-row div.column[data-grow="3"] {
+  -webkit-box-flex: 3;
+      -ms-flex-positive: 3;
+          flex-grow: 3;
+}
+
+.reveal div.multi-column-row div.column[data-grow="4"] {
+  -webkit-box-flex: 4;
+      -ms-flex-positive: 4;
+          flex-grow: 4;
+}
+
+.reveal div.multi-column-row div.column[data-grow="5"] {
+  -webkit-box-flex: 5;
+      -ms-flex-positive: 5;
+          flex-grow: 5;
+}
+
+.reveal div.multi-column-row div.column[data-grow="6"] {
+  -webkit-box-flex: 6;
+      -ms-flex-positive: 6;
+          flex-grow: 6;
+}
+
+.reveal div.multi-column-row div.column[data-grow="7"] {
+  -webkit-box-flex: 7;
+      -ms-flex-positive: 7;
+          flex-grow: 7;
+}
+
+.reveal div.multi-column-row div.column[data-grow="8"] {
+  -webkit-box-flex: 8;
+      -ms-flex-positive: 8;
+          flex-grow: 8;
+}
+
+.reveal div.multi-column-row div.column[data-grow="9"] {
+  -webkit-box-flex: 9;
+      -ms-flex-positive: 9;
+          flex-grow: 9;
+}
+
+.reveal div.single-column-row {
+  margin-bottom: 0.3em;
+}
+
+.reveal button,
+.reveal .freetextInput {
+  border-radius: 0.5em;
+  font-size: inherit;
+  font-family: inherit;
+  outline: none;
+  clear: both;
+}
+
+.reveal .matching {
+  text-align: center;
+}
+
+.reveal .matching .dropzones {
+  width: 100%;
+  min-height: 15vh;
+  max-height: 20vh;
+  display: table;
+  table-layout: fixed;
+}
+
+.reveal .matching .dropzone {
+  display: table-cell;
+  padding: 10px;
+  border: 1px solid black;
+  text-align: center;
+}
+
+.reveal .matching .draggable {
+  display: table-cell;
+  margin: auto;
+  padding: 1%;
+  max-width: 50%;
+  vertical-align: middle;
+  border-radius: 0.5em;
+  border: 1px #111 dashed;
+  overflow: hidden;
+}
+
+.reveal .matching .draggableChild {
+  max-width: inherit;
+  pointer-events: none;
+}
+
+.reveal .matching .dragzone {
+  display: table;
+  table-layout: fixed;
+  border-spacing: 5px;
+  margin-top: 5%;
+  min-height: 15vh;
+  max-height: 20vh;
+  text-align: center;
+  width: 100%;
+  position: relative;
+}
+
+.reveal .matching .dragzone:after,
+.reveal .matching .dragzone:before {
+  bottom: 100%;
+  left: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.reveal .matching .dragzone:after {
+  border-color: rgba(136, 183, 213, 0);
+  border-bottom-color: #111;
+  border-width: 30px;
+  margin-left: -30px;
+}
+
+.reveal .survey {
+  text-align: center;
+}
+
+.reveal .survey div p {
+  margin: 0;
+}
+
+.reveal .survey ul {
+  list-style-type: none;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  padding: 5pt;
+}
+
+.reveal .survey li {
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+  border: 1pt #111 dashed;
+  padding-left: 1em;
+  padding-right: 1em;
+  border-radius: 0.5em;
+  margin: 0.55em;
+  -ms-flex-preferred-size: 30%;
+      flex-basis: 30%;
+}
+
+.reveal .survey li:hover {
+  background-color: gainsboro;
+}
+
+.reveal .survey .tooltip {
+  display: none;
+}
+
+.reveal .rightcolumn > h1 {
+  margin-left: 54%;
+}
+
+.reveal div.column {
+  display: inline-block;
+  vertical-align: top;
+  width: 50%;
+}
+
+.reveal div.css-columns {
+  -webkit-column-count: 2;
+          column-count: 2;
+  -webkit-column-gap: 2em;
+          column-gap: 2em;
+  -webkit-column-rule-style: none;
+          column-rule-style: none;
+  padding-left: 0.7em;
+  margin-left: -0.7em;
+}
+
+.reveal div.box {
+  -webkit-column-break-inside: avoid;
+          break-inside: avoid-column;
+}
+
+.reveal div.multi-column-row {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-flow: row nowrap;
+          flex-flow: row nowrap;
+  margin-bottom: 0.3em;
+}
+
+.reveal div.multi-column-row div.column {
+  position: relative;
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 0px;
+          flex: 1 1 0;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+.reveal div.multi-column-row div.column:first-child {
+  margin-left: 0;
+  margin-right: 1em;
+}
+
+.reveal div.multi-column-row div.column:last-child {
+  margin-left: 1em;
+  margin-right: 0;
+}
+
+.reveal div.multi-column-row div.column .mid {
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translate(0, -50%);
+          transform: translate(0, -50%);
+}
+
+.reveal div.multi-column-row div.column[data-grow="1"] {
+  -webkit-box-flex: 1;
+      -ms-flex-positive: 1;
+          flex-grow: 1;
+}
+
+.reveal div.multi-column-row div.column[data-grow="2"] {
+  -webkit-box-flex: 2;
+      -ms-flex-positive: 2;
+          flex-grow: 2;
+}
+
+.reveal div.multi-column-row div.column[data-grow="3"] {
+  -webkit-box-flex: 3;
+      -ms-flex-positive: 3;
+          flex-grow: 3;
+}
+
+.reveal div.multi-column-row div.column[data-grow="4"] {
+  -webkit-box-flex: 4;
+      -ms-flex-positive: 4;
+          flex-grow: 4;
+}
+
+.reveal div.multi-column-row div.column[data-grow="5"] {
+  -webkit-box-flex: 5;
+      -ms-flex-positive: 5;
+          flex-grow: 5;
+}
+
+.reveal div.multi-column-row div.column[data-grow="6"] {
+  -webkit-box-flex: 6;
+      -ms-flex-positive: 6;
+          flex-grow: 6;
+}
+
+.reveal div.multi-column-row div.column[data-grow="7"] {
+  -webkit-box-flex: 7;
+      -ms-flex-positive: 7;
+          flex-grow: 7;
+}
+
+.reveal div.multi-column-row div.column[data-grow="8"] {
+  -webkit-box-flex: 8;
+      -ms-flex-positive: 8;
+          flex-grow: 8;
+}
+
+.reveal div.multi-column-row div.column[data-grow="9"] {
+  -webkit-box-flex: 9;
+      -ms-flex-positive: 9;
+          flex-grow: 9;
+}
+
+.reveal div.single-column-row {
+  margin-bottom: 0.3em;
+}
+
+.reveal div.box {
+  padding: 0.4em 0.7em;
+  margin: 0em -0.7em;
+  border-radius: 0.25em;
+}
+
+.reveal div.box h2 {
+  margin-top: 0;
+}
+
+.reveal div.box h2:last-child, .reveal div.box h2:empty {
+  margin-bottom: 0;
+}
+
+.reveal div.box p {
+  margin: 0;
+}
+
+.reveal div.box.question + .question,
+.reveal div.box.question + .answer,
+.reveal div.box.question + .observation,
+.reveal div.box.question + .example,
+.reveal div.box.question + .def,
+.reveal div.box.question + .definition,
+.reveal div.box.question + .note,
+.reveal div.box.question + .ale,
+.reveal div.box.question + .alert,
+.reveal div.box.question + .equ,
+.reveal div.box.question + .equation,
+.reveal div.box.question + .theorem, .reveal div.box.answer + .question,
+.reveal div.box.answer + .answer,
+.reveal div.box.answer + .observation,
+.reveal div.box.answer + .example,
+.reveal div.box.answer + .def,
+.reveal div.box.answer + .definition,
+.reveal div.box.answer + .note,
+.reveal div.box.answer + .ale,
+.reveal div.box.answer + .alert,
+.reveal div.box.answer + .equ,
+.reveal div.box.answer + .equation,
+.reveal div.box.answer + .theorem, .reveal div.box.observation + .question,
+.reveal div.box.observation + .answer,
+.reveal div.box.observation + .observation,
+.reveal div.box.observation + .example,
+.reveal div.box.observation + .def,
+.reveal div.box.observation + .definition,
+.reveal div.box.observation + .note,
+.reveal div.box.observation + .ale,
+.reveal div.box.observation + .alert,
+.reveal div.box.observation + .equ,
+.reveal div.box.observation + .equation,
+.reveal div.box.observation + .theorem, .reveal div.box.example + .question,
+.reveal div.box.example + .answer,
+.reveal div.box.example + .observation,
+.reveal div.box.example + .example,
+.reveal div.box.example + .def,
+.reveal div.box.example + .definition,
+.reveal div.box.example + .note,
+.reveal div.box.example + .ale,
+.reveal div.box.example + .alert,
+.reveal div.box.example + .equ,
+.reveal div.box.example + .equation,
+.reveal div.box.example + .theorem, .reveal div.box.def + .question,
+.reveal div.box.def + .answer,
+.reveal div.box.def + .observation,
+.reveal div.box.def + .example,
+.reveal div.box.def + .def,
+.reveal div.box.def + .definition,
+.reveal div.box.def + .note,
+.reveal div.box.def + .ale,
+.reveal div.box.def + .alert,
+.reveal div.box.def + .equ,
+.reveal div.box.def + .equation,
+.reveal div.box.def + .theorem, .reveal div.box.definition + .question,
+.reveal div.box.definition + .answer,
+.reveal div.box.definition + .observation,
+.reveal div.box.definition + .example,
+.reveal div.box.definition + .def,
+.reveal div.box.definition + .definition,
+.reveal div.box.definition + .note,
+.reveal div.box.definition + .ale,
+.reveal div.box.definition + .alert,
+.reveal div.box.definition + .equ,
+.reveal div.box.definition + .equation,
+.reveal div.box.definition + .theorem, .reveal div.box.note + .question,
+.reveal div.box.note + .answer,
+.reveal div.box.note + .observation,
+.reveal div.box.note + .example,
+.reveal div.box.note + .def,
+.reveal div.box.note + .definition,
+.reveal div.box.note + .note,
+.reveal div.box.note + .ale,
+.reveal div.box.note + .alert,
+.reveal div.box.note + .equ,
+.reveal div.box.note + .equation,
+.reveal div.box.note + .theorem, .reveal div.box.ale + .question,
+.reveal div.box.ale + .answer,
+.reveal div.box.ale + .observation,
+.reveal div.box.ale + .example,
+.reveal div.box.ale + .def,
+.reveal div.box.ale + .definition,
+.reveal div.box.ale + .note,
+.reveal div.box.ale + .ale,
+.reveal div.box.ale + .alert,
+.reveal div.box.ale + .equ,
+.reveal div.box.ale + .equation,
+.reveal div.box.ale + .theorem, .reveal div.box.alert + .question,
+.reveal div.box.alert + .answer,
+.reveal div.box.alert + .observation,
+.reveal div.box.alert + .example,
+.reveal div.box.alert + .def,
+.reveal div.box.alert + .definition,
+.reveal div.box.alert + .note,
+.reveal div.box.alert + .ale,
+.reveal div.box.alert + .alert,
+.reveal div.box.alert + .equ,
+.reveal div.box.alert + .equation,
+.reveal div.box.alert + .theorem, .reveal div.box.equ + .question,
+.reveal div.box.equ + .answer,
+.reveal div.box.equ + .observation,
+.reveal div.box.equ + .example,
+.reveal div.box.equ + .def,
+.reveal div.box.equ + .definition,
+.reveal div.box.equ + .note,
+.reveal div.box.equ + .ale,
+.reveal div.box.equ + .alert,
+.reveal div.box.equ + .equ,
+.reveal div.box.equ + .equation,
+.reveal div.box.equ + .theorem, .reveal div.box.equation + .question,
+.reveal div.box.equation + .answer,
+.reveal div.box.equation + .observation,
+.reveal div.box.equation + .example,
+.reveal div.box.equation + .def,
+.reveal div.box.equation + .definition,
+.reveal div.box.equation + .note,
+.reveal div.box.equation + .ale,
+.reveal div.box.equation + .alert,
+.reveal div.box.equation + .equ,
+.reveal div.box.equation + .equation,
+.reveal div.box.equation + .theorem, .reveal div.box.theorem + .question,
+.reveal div.box.theorem + .answer,
+.reveal div.box.theorem + .observation,
+.reveal div.box.theorem + .example,
+.reveal div.box.theorem + .def,
+.reveal div.box.theorem + .definition,
+.reveal div.box.theorem + .note,
+.reveal div.box.theorem + .ale,
+.reveal div.box.theorem + .alert,
+.reveal div.box.theorem + .equ,
+.reveal div.box.theorem + .equation,
+.reveal div.box.theorem + .theorem {
+  margin-top: 0.3em;
+}
+
+.reveal div.box.question {
+  background-color: rgba(255, 215, 67, 0.4);
+}
+
+.reveal div.box.answer {
+  background-color: rgba(153, 205, 58, 0.4);
+}
+
+.reveal div.box.observation {
+  background-color: rgba(210, 180, 140, 0.4);
+}
+
+.reveal div.box.example {
+  background-color: rgba(176, 197, 222, 0.4);
+}
+
+.reveal div.box.def, .reveal div.box.definition {
+  background-color: rgba(245, 222, 179, 0.6);
+}
+
+.reveal div.box.note {
+  background-color: rgba(244, 164, 96, 0.4);
+}
+
+.reveal div.box.ale, .reveal div.box.alert {
+  background-color: rgba(255, 99, 71, 0.4);
+}
+
+.reveal div.box.equ, .reveal div.box.equation {
+  background-color: #ebebeb;
+}
+
+.reveal div.box.theorem {
+  background-color: #ebebeb;
+}
+
+.reveal div.box.question div.sourceCode, .reveal div.box.answer div.sourceCode, .reveal div.box.observation div.sourceCode, .reveal div.box.example div.sourceCode, .reveal div.box.def div.sourceCode, .reveal div.box.definition div.sourceCode, .reveal div.box.note div.sourceCode, .reveal div.box.ale div.sourceCode, .reveal div.box.alert div.sourceCode, .reveal div.box.equ div.sourceCode, .reveal div.box.equation div.sourceCode, .reveal div.box.theorem div.sourceCode {
+  margin: 0;
+  background: rgba(255, 255, 255, 0.4);
+  padding: 0em 0.2em;
+}
+
+.reveal div.box.question div.sourceCode pre, .reveal div.box.answer div.sourceCode pre, .reveal div.box.observation div.sourceCode pre, .reveal div.box.example div.sourceCode pre, .reveal div.box.def div.sourceCode pre, .reveal div.box.definition div.sourceCode pre, .reveal div.box.note div.sourceCode pre, .reveal div.box.ale div.sourceCode pre, .reveal div.box.alert div.sourceCode pre, .reveal div.box.equ div.sourceCode pre, .reveal div.box.equation div.sourceCode pre, .reveal div.box.theorem div.sourceCode pre {
+  margin: 0;
+}
+
+/* Ensure certain elements are never larger than the slide itself */
+.reveal img,
+.reveal video,
+.reveal iframe {
+  max-width: 95%;
+  max-height: 95%;
+}
+
+.reveal div.videoWrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  /* 16:9 */
+  padding-top: 0;
+  height: 0;
+}
+
+.reveal div.videoWrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.reveal img {
+  max-width: 100%;
+  margin: 0 auto;
+  display: block;
+  border: none;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  border-radius: 0.25em;
+}
+
+.reveal img.float-left {
+  float: left;
+}
+
+.reveal img.float-right {
+  float: right;
+}
+
+.reveal figure {
+  margin: 0 0 0 0;
+  text-align: center;
+}
+
+.reveal figure figcaption {
+  font-size: 0.8em;
+  font-style: italic;
+}
+
+.reveal video {
+  width: 100%;
+  margin: 0;
+  display: block;
+}
+
+.reveal .img-center img {
+  margin: 0 auto;
+  display: block;
+}
+
+.reveal .img-nocenter img {
+  margin: 0 0;
+  display: inline;
+}
+
+.reveal code {
+  font-family: "Source Code Pro", monospace;
+  font-size: 106%;
+  font-weight: 500;
+  color: #06287e;
+  text-transform: none;
+}
+
+.reveal pre code {
+  display: block;
+  padding: 5px;
+  overflow: auto;
+  max-height: 400px;
+  word-wrap: normal;
+}
+
+.reveal div.sourceCode {
+  margin-bottom: 0.5em;
+  padding: 0.4em 0.7em;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 0.25em;
+  overflow: auto;
+}
+
+.reveal div.sourceCode pre {
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  line-height: 1.5em;
+  word-wrap: break-word;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  font-size: 90%;
+  font-weight: 500;
+  margin: 0;
+}
+
+.reveal div.sourceCode pre div.language-label {
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  background-color: #eee;
+  padding: 0em 0.4em;
+  border-radius: 0.2em;
+}
+
+.reveal div.sourceCode pre code {
+  display: block;
+  overflow: auto;
+  max-height: 500px;
+  word-wrap: normal;
+  border: none;
+  font-family: "Source Code Pro", monospace;
+  white-space: pre;
+  position: relative;
+  color: black;
+}
+
+@media print {
+  .backgrounds {
+    background-color: #fff;
+  }
+  html {
+    overflow: visible !important;
+  }
+  body {
+    overflow: visible !important;
+  }
+  .reveal {
+    position: static !important;
+  }
+  .reveal .slides {
+    -webkit-transform: none !important;
+            transform: none !important;
+    font-family: "Roboto", sans-serif !important;
+    font-size: 30px !important;
+  }
+  .reveal p,
+  .reveal td,
+  .reveal li,
+  .reveal div {
+    font-family: inherit !important;
+    font-size: inherit !important;
+  }
+  .reveal h1,
+  .reveal h2,
+  .reveal h3,
+  .reveal h4,
+  .reveal h5,
+  .reveal h6 {
+    font-family: inherit !important;
+    font-size: inherit !important;
+    color: rgba(0, 0, 0, 0.87);
+    letter-spacing: normal;
+    text-transform: none;
+    text-shadow: none;
+    word-wrap: break-word;
+    font-weight: normal;
+  }
+  .reveal h1 {
+    font-size: 48px !important;
+    margin: 0em 0em 0.5em 0em;
+  }
+  .reveal h2 {
+    font-weight: 500;
+    font-size: 36px !important;
+    margin-bottom: 0.1em;
+    color: #646464 !important;
+  }
+  .reveal a:link, .reveal a:visited {
+    font-weight: normal;
+  }
+  .reveal div.sourceCode pre code {
+    white-space: pre-wrap;
+  }
+  .reveal div.sourceCode pre code a.sourceLine {
+    text-indent: -1em;
+    padding-left: 1em;
+  }
+  .reveal a:link:after {
+    content: " (" attr(href) ") ";
+  }
+}
+
+body {
+  background: #fff;
+  background-color: #fff;
+}
+
+.reveal {
+  font-family: "Roboto", Helvetica, sans-serif;
+  font-size: 30px;
+  font-weight: normal;
+  color: black;
+}
+
+::-moz-selection {
+  color: #fff;
+  background: #98bdef;
+  text-shadow: none;
+}
+
+::selection {
+  color: #fff;
+  background: #98bdef;
+  text-shadow: none;
+}
+
+::-moz-selection {
+  color: #fff;
+  background: #98bdef;
+  text-shadow: none;
+}
+
+.reveal .slides section,
+.reveal .slides section > section {
+  line-height: 1.4;
+  text-align: left;
+  font-weight: inherit;
+  padding: 0em;
+}
+
+.reveal p {
+  margin: 1em 0em;
+}
+
+.reveal section[data-align="center"] > h1,
+.reveal div[data-align="center"] {
+  text-align: center;
+}
+
+.reveal section[data-align="right"] > h1,
+.reveal div[data-align="right"] {
+  text-align: right;
+}
+
+.reveal .smallcaps {
+  font-variant: small-caps;
+}
+
+.reveal .line-block {
+  white-space: pre-line;
+}
+
+.reveal .references {
+  height: 17.5em;
+  overflow-y: scroll;
+}
+
+.reveal .references div {
+  margin-bottom: 0.5em;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  color: rgba(0, 0, 0, 0.87);
+  font-family: "Roboto", sans-serif;
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  word-wrap: break-word;
+  font-weight: normal;
+  text-shadow: none;
+}
+
+.reveal h1 {
+  font-size: 1.6em;
+  margin: 0em 0em 0.5em 0em;
+}
+
+.reveal h2 {
+  font-weight: 500;
+  font-size: 1.2em;
+  margin-bottom: 0.1em;
+}
+
+.reveal h3 {
+  font-size: 1.3em;
+}
+
+.reveal h4 {
+  font-size: 1em;
+}
+
+.reveal section.white, .reveal section.inverse, .reveal section.has-dark-background {
+  color: #fff;
+}
+
+.reveal section.white h1,
+.reveal section.white h2,
+.reveal section.white h3,
+.reveal section.white h4,
+.reveal section.white h5,
+.reveal section.white h6, .reveal section.inverse h1,
+.reveal section.inverse h2,
+.reveal section.inverse h3,
+.reveal section.inverse h4,
+.reveal section.inverse h5,
+.reveal section.inverse h6, .reveal section.has-dark-background h1,
+.reveal section.has-dark-background h2,
+.reveal section.has-dark-background h3,
+.reveal section.has-dark-background h4,
+.reveal section.has-dark-background h5,
+.reveal section.has-dark-background h6 {
+  color: #eee;
+}
+
+.reveal p {
+  margin: 20px 0;
+  line-height: 1.3;
+}
+
+.reveal strong,
+.reveal b {
+  font-weight: bold;
+}
+
+.reveal em {
+  font-style: italic;
+}
+
+.reveal ol,
+.reveal dl,
+.reveal ul {
+  display: inline-block;
+  text-align: left;
+  margin: 0 0 0 1em;
+}
+
+.reveal ol {
+  list-style-type: decimal;
+}
+
+.reveal ul {
+  list-style-type: disc;
+}
+
+.reveal ul ul {
+  list-style-type: disc;
+}
+
+.reveal ul ul ul {
+  list-style-type: disc;
+}
+
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+  display: block;
+  margin-left: 40px;
+}
+
+.reveal dt {
+  font-weight: bold;
+}
+
+.reveal dd {
+  margin-left: 40px;
+}
+
+.reveal q,
+.reveal blockquote {
+  quotes: none;
+}
+
+.reveal blockquote {
+  display: block;
+  position: relative;
+  width: 70%;
+  margin: 1em auto;
+  padding: 0.25em;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.05);
+  -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+}
+
+.reveal blockquote p:first-child, .reveal blockquote p:last-child {
+  display: inline-block;
+}
+
+.reveal pre {
+  display: block;
+  position: relative;
+  width: 90%;
+  margin: 20px auto;
+  text-align: left;
+  font-size: 0.55em;
+  font-family: monospace;
+  line-height: 1.2em;
+  word-wrap: break-word;
+  -webkit-box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+          box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+dt {
+  font-weight: bold;
+}
+
+dd {
+  margin-left: 1em;
+}
+
+.reveal table {
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.reveal table th {
+  font-weight: bold;
+}
+
+.reveal table th,
+.reveal table td {
+  text-align: left;
+  padding: 0.2em 0.5em;
+  border-bottom: 1px solid;
+}
+
+.reveal table th[align="center"],
+.reveal table td[align="center"] {
+  text-align: center;
+}
+
+.reveal table th[align="right"],
+.reveal table td[align="right"] {
+  text-align: right;
+}
+
+.reveal table tbody tr:last-child th,
+.reveal table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.reveal .slide-number {
+  color: #009;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+.reveal sup {
+  vertical-align: super;
+  font-size: smaller;
+}
+
+.reveal sub {
+  vertical-align: sub;
+  font-size: smaller;
+}
+
+.reveal small {
+  display: inline-block;
+  font-size: 0.6em;
+  line-height: 1.2em;
+  vertical-align: top;
+}
+
+.reveal small * {
+  vertical-align: top;
+}
+
+/*********************************************
+ * LINKS
+ *********************************************/
+.reveal a {
+  color: #009;
+  text-decoration: none;
+  -webkit-transition: color 0.15s ease;
+  transition: color 0.15s ease;
+}
+
+.reveal a img {
+  -webkit-transition: color 0.15s linear;
+  transition: color 0.15s linear;
+}
+
+.reveal a:hover {
+  color: #6ca0e8;
+  text-shadow: none;
+  border: none;
+}
+
+.reveal a:hover img {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+
+.reveal .roll span:after {
+  color: #fff;
+  background: #1a53a1;
+}
+
+/*********************************************
+ * IMAGES
+ *********************************************/
+.reveal section img {
+  margin: 15px 0px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 4px solid #222;
+  -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+}
+
+.reveal section img.plain {
+  border: 0;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+
+.reveal a img {
+  -webkit-transition: all .15s linear;
+  transition: all .15s linear;
+}
+
+.reveal a:hover img {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #2a76dd;
+  -webkit-box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
+}
+
+/*********************************************
+ * NAVIGATION CONTROLS
+ *********************************************/
+.reveal .controls button {
+  opacity: 0;
+}
+
+.reveal .controls .enabled:active {
+  margin-top: 0;
+}
+
+.reveal .controls :focus {
+  outline: none;
+}
+
+.reveal .controls .slide-number {
+  color: #009;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+/*********************************************
+ * PROGRESS BAR
+ *********************************************/
+.reveal .progress {
+  background: rgba(0, 0, 0, 0.2);
+  color: #2a76dd;
+}
+
+.reveal .progress span {
+  background: #777;
+  -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+}
+
+.reveal .speaker-notes h1,
+.reveal .speaker-notes h2,
+.reveal .speaker-notes h3,
+.reveal .speaker-notes h4,
+.reveal .speaker-notes h5,
+.reveal .speaker-notes h6 {
+  color: #fff;
+  font-weight: bold;
+  margin-bottom: 0.2em;
+}
+
+.reveal .speaker-notes h1 {
+  text-decoration: underline;
+  margin-bottom: 0.4em;
+}
+
+.reveal .medium {
+  font-size: 30px;
+}
+
+.reveal .xx-small {
+  font-size: 12px;
+}
+
+.reveal .x-small {
+  font-size: 18px;
+}
+
+.reveal .small {
+  font-size: 24px;
+}
+
+.reveal .large {
+  font-size: 36px;
+}
+
+.reveal .x-large {
+  font-size: 42px;
+}
+
+.reveal .xx-large {
+  font-size: 48px;
+}
+
+.reveal .slide-number {
+  width: 100%;
+  text-align: center;
+  background: transparent;
+  color: gray;
+  font-size: 0.4em;
+}
+
+.reveal .resume-button {
+  visibility: hidden;
+}
+
+.reveal ::-moz-selection {
+  color: white;
+  background: rgba(0, 0, 0, 0.85);
+  text-shadow: none;
+}
+
+.reveal ::selection {
+  color: white;
+  background: rgba(0, 0, 0, 0.85);
+  text-shadow: none;
+}
