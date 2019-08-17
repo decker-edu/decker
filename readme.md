@@ -1,4 +1,5 @@
-[![pipeline status](https://gitlab2.informatik.uni-wuerzburg.de/decker/decker/badges/master/pipeline.svg)](https://gitlab2.informatik.uni-wuerzburg.de/decker/decker/commits/master)
+[![pipeline
+status](https://gitlab2.informatik.uni-wuerzburg.de/decker/decker/badges/master/pipeline.svg)](https://gitlab2.informatik.uni-wuerzburg.de/decker/decker/commits/master)
 
 # decker
 
@@ -20,6 +21,23 @@ chmod a+x decker
 3.  `cd decker`
 4.  `git submodule update --init --recursive`
 5.  `make install`
+
+## Development
+
+### Haskell
+
+Use appropriate tooling. I use:
+
+-   *Visual Studio Code* with the following plugins:
+    -   *Haskell Language Server*
+    -   *hindent-format*
+
+### Templates and CSS
+
+To interactively work on the template, CSS and Javascript files in
+`resource/template` and `resource/support` run Decker as
+`stack run decker server`. This will automatically incorporate all changes and
+reload the documents in the browser.
 
 ## External tools
 
@@ -73,25 +91,25 @@ a HTML document, or a PDF document, depending on the file name.
 
 ### Docker container
 
-We provide prebuild docker containers. You may use them in a directory to build the html slides with 
+We provide prebuild docker containers. You may use them in a directory to build
+the html slides with
 
-```
-docker run --rm -it -v `pwd`:/decker -p 8888:8888 gitlab2.informatik.uni-wuerzburg.de:4567/decker/decker html
-```
+    docker run --rm -it -v `pwd`:/decker -p 8888:8888 gitlab2.informatik.uni-wuerzburg.de:4567/decker/decker html
 
 or for Windows
 
-```
-docker run --rm -it -v %cd%:/decker -p 8888:8888 gitlab2.informatik.uni-wuerzburg.de:4567/decker/decker html
-```
+    docker run --rm -it -v %cd%:/decker -p 8888:8888 gitlab2.informatik.uni-wuerzburg.de:4567/decker/decker html
 
-Exchange the `html` at the end of the command with your *decker* command of choice. Beware that file updates are not propagated into the container so `decker server` will not auto refresh.
+Exchange the `html` at the end of the command with your *decker* command of
+choice. Beware that file updates are not propagated into the container so
+`decker server` will not auto refresh.
 
 ## *decker* targets
 
 -   `decker version`
 
-    Prints the current decker version and branch as well as the current pandoc version.
+    Prints the current decker version and branch as well as the current pandoc
+    version.
 
 -   `decker help`
 
@@ -99,7 +117,9 @@ Exchange the `html` at the end of the command with your *decker* command of choi
 
 -   `decker info`
 
-    Prints information about the current project's directories, the targets (files which will be generated) and the meta data options which are found in top level `*-meta.yaml` files. 
+    Prints information about the current project's directories, the targets
+    (files which will be generated) and the meta data options which are found in
+    top level `*-meta.yaml` files.
 
 -   `decker html`
 
@@ -111,17 +131,22 @@ Exchange the `html` at the end of the command with your *decker* command of choi
 
 -   `decker pdf`
 
-    Builds PDF versions of all documents. 
+    Builds PDF versions of all documents.
 
 -   `decker pdf-decks`
 
     Builds PDF versions of all slide decks.
 
-    To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be installed.    
-    **Windows:** Currently `decker pdf` does not work on Windows. Please add `print: true` or `menu: true` to your slide deck and use the print button in the menu or on the title slide.
-    **MacOS:** Follow the Google Chrome installer instructions. **Google Chrome.app** has to be located in either `/Applications/Google Chrome.app` or `/Users/username/Applications/Google Chrome.app`
-    Alternatively you can add `chrome` to `$PATH`.  
-    **Linux:** `chrome` has to be on `$PATH`.    
+    To use `decker pdf` or `decker pdf-decks`, Google Chrome has to be
+    installed.\
+    **Windows:** Currently `decker pdf` does not work on Windows. Please add
+    `print: true` or `menu: true` to your slide deck and use the print button in
+    the menu or on the title slide. **MacOS:** Follow the Google Chrome
+    installer instructions. **Google Chrome.app** has to be located in either
+    `/Applications/Google Chrome.app` or
+    `/Users/username/Applications/Google Chrome.app` Alternatively you can add
+    `chrome` to `$PATH`.\
+    **Linux:** `chrome` has to be on `$PATH`.
 
 -   `decker watch`
 
@@ -146,16 +171,19 @@ Exchange the `html` at the end of the command with your *decker* command of choi
     ```
 
     and make some changes to the Markdown files. `example-deck.md` contains the
-    source code for a slide deck that explains most of the available features for creating slide decks.
+    source code for a slide deck that explains most of the available features
+    for creating slide decks.
 
--   `decker tutorial` 
+-   `decker tutorial`
 
-    Like `example` but copies extended example/tutorial slide decks to the current directory.
+    Like `example` but copies extended example/tutorial slide decks to the
+    current directory.
 
 -   `decker clean`
 
-    Recursively removes all generated files from the current directory (i.e. the `public` folder).
-    Also removes cached resources witch version number lower than the current version.
+    Recursively removes all generated files from the current directory (i.e. the
+    `public` folder). Also removes cached resources witch version number lower
+    than the current version.
 
 -   `decker publish`
 
@@ -168,9 +196,9 @@ Exchange the `html` at the end of the command with your *decker* command of choi
 ### Pull requests
 
 Contributions are accepted via pull requests. Before working on a feature,
-please write up an issue and discuss it with the other developers. 
-For each implemented feature, increment the version number in `package.yaml`. 
-Breaking changes increment the second number. Fixes increment the third number.
+please write up an issue and discuss it with the other developers. For each
+implemented feature, increment the version number in `package.yaml`. Breaking
+changes increment the second number. Fixes increment the third number.
 
 ### CI build checks
 
@@ -186,4 +214,10 @@ conventions. With decker, formatting is automated using the excellent
 GitLab repository.
 
 ## Compile Flags
-The Decker executable contains per default all necessary supporting files and extracts them on the first run. Some packaging solutions prefer to already extract the files during the installation. To support this, a compile flag `preextractedresources` is available which instructs Decker to work with the already extracted resource files. Invoke `stack --flag decker:preextractedresources` to compile such a version.
+
+The Decker executable contains per default all necessary supporting files and
+extracts them on the first run. Some packaging solutions prefer to already
+extract the files during the installation. To support this, a compile flag
+`preextractedresources` is available which instructs Decker to work with the
+already extracted resource files. Invoke
+`stack --flag decker:preextractedresources` to compile such a version.
