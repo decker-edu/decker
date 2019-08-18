@@ -1,2 +1,16 @@
 date: 2019-04-23
+# Sane defaults for reval.js
 menu: true
+controls: true
+keyboard: true
+progress: true
+hash: true
+overview: true
+touch: true
+fragments: true
+fragmentInURL: true
+help: true
+hideInactiveCursor: true
+hideCursorTime: 2000
+transition: 'none'
+backgroundTransition: 'none'

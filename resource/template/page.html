@@ -27,8 +27,12 @@
     </style>
     $endif$
 
-    <link rel="stylesheet" href="$decker-support-dir$/page.css">
-    <script src="$decker-support-dir$/page.js"></script>
+$if(base-css)$
+    <link rel="stylesheet" href="$base-css$">
+$else$
+    <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
+$endif$
+    <script src="$decker-support-dir$/js/page.js"></script>
 
     <!-- MathJax config -->
     <script type="text/x-mathjax-config">

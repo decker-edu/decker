@@ -27,8 +27,12 @@
     </style>
     $endif$
 
-    <link rel="stylesheet" href="$decker-support-dir$/handout.css">
-    <script src="$decker-support-dir$/handout.js"></script>
+$if(base-css)$
+    <link rel="stylesheet" href="$base-css$">
+$else$
+    <link rel="stylesheet" href="$decker-support-dir$/css/handout.css">
+$endif$
+    <script src="$decker-support-dir$/js/handout.js"></script>
 
     <!-- MathJax config -->
     <script type="text/x-mathjax-config">
