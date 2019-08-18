@@ -1,26 +1,10 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-
 module Text.Decker.Filter.IncludeCode
-  -- ( InclusionMode(..)
-  -- , InclusionError(..)
-  -- , includeCode
-  -- , includeCode'
-  -- , includeCodeA
-  -- , includeCodeA'
-  -- ) 
- where
-#if MIN_VERSION_base(4,8,0)
-import Control.Applicative ((<|>))
-#else
-import Control.Applicative
-import Data.Monoid
-#endif
+  ( InclusionMode(..)
+  , includeCode
+  ) where
+
+import Text.Decker.Internal.Common
+
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
@@ -34,6 +18,7 @@ import qualified Data.Text.IO as Text
 import Development.Shake
 import Network.URI
 import Text.Pandoc.JSON
+import Text.Pandoc.Walk
 import Text.Read (readMaybe)
 
 import Text.Decker.Resource.Resource
@@ -163,8 +148,8 @@ isSnippetStart :: Text -> Text -> Bool
 isSnippetStart name line =
   isSnippetTag "start snippet" name line ||
   isSnippetTag "8<|" name line || isSnippetTag "8<" name line
--- end snippet include-start-end
 
+-- end snippet include-start-end
 isSnippetEnd :: Text -> Bool -> Text -> Bool
 isSnippetEnd name emptyEnd line =
   isSnippetTag "end snippet" name line ||
@@ -302,8 +287,8 @@ includeCodeA' x = return (Right x)
 
 -- | A Pandoc filter that includes code snippets from
 -- external files.
-includeCode :: Maybe Format -> Block -> IO Block
-includeCode _ = includeCode' >=> either printAndFail return
+includeCode_ :: Maybe Format -> Block -> IO Block
+includeCode_ _ = includeCode' >=> either printAndFail return
 
 -- | A Pandoc filter that includes code snippets from
 -- external files. Shake Action version.
@@ -313,3 +298,10 @@ includeCodeA _ block = do
   case result of
     Left err -> liftIO $ printAndFail err
     Right block -> return block
+
+-- start snippet includeCode
+includeCode :: Pandoc -> Decker Pandoc
+includeCode (Pandoc meta blocks) = do
+  included <- lift $ walkM (includeCodeA Nothing) blocks
+  return $ Pandoc meta included
+-- end snippet includeCode

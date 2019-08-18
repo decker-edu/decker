@@ -6,6 +6,7 @@ import Text.Decker.Filter.Filter
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Render
+import Text.Decker.Filter.IncludeCode
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Meta
@@ -20,9 +21,7 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
-import qualified Data.ByteString.Char8 as B
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as E
 import qualified Data.Text.IO as T
 import Development.Shake
 import Development.Shake.FilePath as SFP
@@ -30,7 +29,6 @@ import Text.CSL.Pandoc
 import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc
-import Text.Pandoc.Builder
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc

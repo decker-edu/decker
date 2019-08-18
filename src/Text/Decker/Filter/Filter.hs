@@ -1,10 +1,8 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Text.Decker.Filter.Filter
-  ( RowLayout(..)
-  , OutputFormat(..)
+  ( OutputFormat(..)
   , Disposition(..)
   , processPandoc
-  , includeCode
   , processSlides
   , useCachedImages
   , escapeToFilePath
@@ -17,11 +15,13 @@ module Text.Decker.Filter.Filter
   , convertMediaAttributes
   ) where
 
-import Text.Decker.Internal.Common
-import Control.Exception
-import Text.Decker.Internal.Exception
+import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Slide
-import Text.Pandoc.Lens
+import Text.Decker.Filter.Layout
+import Text.Decker.Internal.Common
+import Text.Decker.Internal.Exception
+
+import Control.Exception
 import Control.Lens
 import Control.Monad.Loops as Loop
 import Control.Monad.State
@@ -35,20 +35,11 @@ import System.Directory
 import System.FilePath
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 as H
-  ( (!)
-  , audio
-  , iframe
-  , iframe
-  , img
-  , stringTag
-  , toValue
-  , video
-  )
+import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A (alt, class_, id, title)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
-import qualified Text.Decker.Filter.IncludeCode as P
+import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Read hiding (lift)
@@ -62,111 +53,6 @@ processPandoc ::
   -> Action Pandoc
 processPandoc transform base disp prov pandoc =
   evalStateT (transform pandoc) (DeckerState base disp prov 0 [] [])
-
-isBoxDelim :: Block -> Bool
-isBoxDelim (Header 2 _ _) = True
-isBoxDelim _ = False
-
--- | Slide layouts are rows of one ore more columns.
-data RowLayout = RowLayout
-  { lname :: String
-  , rows :: [Row]
-  } deriving (Eq, Show)
-
--- | A row consists of one or more columns. 
-data Row
-  = SingleColumn String
-  | MultiColumn [String]
-  deriving (Eq, Show)
-
-type Area = [Block]
-
-type AreaMap = [(String, Area)]
-
-rowLayouts :: [RowLayout]
-rowLayouts =
-  [ RowLayout
-      "columns"
-      [ SingleColumn "top"
-      , MultiColumn ["left", "center", "right"]
-      , SingleColumn "bottom"
-      ]
-  ]
-
-rowAreas :: Row -> [String]
-rowAreas (SingleColumn area) = [area]
-rowAreas (MultiColumn areas) = areas
-
-layoutAreas :: RowLayout -> [String]
-layoutAreas l = concatMap rowAreas $ rows l
-
-hasRowLayout :: Block -> Maybe RowLayout
-hasRowLayout block =
-  attribValue "layout" block >>= (\l -> find ((==) l . lname) rowLayouts)
-
-renderRow :: AreaMap -> Row -> Maybe Block
-renderRow areaMap (SingleColumn area) =
-  lookup area areaMap >>= Just . Div ("", ["single-column-row"], [])
-renderRow areaMap (MultiColumn areas) =
-  Just $
-  Div ("", ["multi-column-row", "multi-column-row-" ++ show (length areas)], []) $
-  mapMaybe renderArea (zip [1 ..] areas)
-  where
-    renderArea (i, area) = lookup area areaMap >>= Just . renderColumn . (i, )
-
-renderColumn :: (Int, [Block]) -> Block
-renderColumn (i, blocks) =
-  let grow =
-        fromMaybe (1 :: Int) $ lookup "grow" (blocks ^. attributes . attrs) >>=
-        readMaybe
-   in Div
-        ( ""
-        , ["grow-" ++ show grow, "column", "column-" ++ show i]
-        , blocks ^. attributes . attrs)
-        blocks
-
-renderLayout :: AreaMap -> RowLayout -> [Block]
-renderLayout areaMap l = mapMaybe (renderRow areaMap) (rows l)
-
-slideAreas :: [String] -> [Block] -> AreaMap
-slideAreas names blocks =
-  mapMaybe (\area -> firstClass names (head area) >>= Just . (, area)) $
-  filter (not . null) $
-  split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
-
-layoutSlide :: Slide -> Decker Slide
-layoutSlide slide@(Slide (Just header) body) = do
-  disp <- gets disposition
-  case disp of
-    Disposition Deck Html ->
-      case hasRowLayout header of
-        Just layout ->
-          let names = layoutAreas layout
-              areas = slideAreas names body
-           in return $ Slide (Just header) $ renderLayout areas layout
-        Nothing -> return slide
-    Disposition Handout Html ->
-      case hasRowLayout header of
-        Just layout ->
-          let names = layoutAreas layout
-              areas = slideAreas names body
-           in return $ Slide (Just header) $ renderLayout areas layout
-        Nothing -> return slide
-    Disposition _ _ -> return slide
-layoutSlide slide = return slide
-
-hasAnyClass :: HasAttr a => [String] -> a -> Bool
-hasAnyClass which = isJust . firstClass which
-
-firstClass :: HasAttr a => [String] -> a -> Maybe String
-firstClass which fragment = listToMaybe $ filter (`hasClass` fragment) which
-
-attribValue :: HasAttr a => String -> a -> Maybe String
-attribValue which = lookup which . view (attributes . attrs)
-
-dropByClass :: HasAttr a => [String] -> [a] -> [a]
-dropByClass which =
-  filter (not . any (`elem` which) . view (attributes . attrClasses))
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
 splitJoinColumns :: Slide -> Decker Slide
@@ -209,13 +95,6 @@ zapImages :: Inline -> Inline
 zapImages Image {} = Space
 zapImages inline = inline
 
--- start snippet includeCode
-includeCode :: Pandoc -> Decker Pandoc
-includeCode (Pandoc meta blocks) = do
-  included <- lift $ walkM (P.includeCodeA Nothing) blocks
-  return $ Pandoc meta included
-
--- end snippet includeCode
 -- Transform inline image or video elements within the header line with
 -- background attributes of the respective section. 
 handleBackground :: Slide -> Decker Slide
@@ -235,8 +114,8 @@ handleBackground slide@(Slide header blocks) =
                       1
                       ( headerId
                       , headerClasses ++ imageClasses
-                      , srcAttribute imageSrc : headerAttributes ++
-                        map transform imageAttributes)
+                      , srcAttribute imageSrc :
+                        headerAttributes ++ map transform imageAttributes)
                       (walk zapImages inlines)))
                 blocks
             Disposition _ _ ->
@@ -367,11 +246,6 @@ audioExtensions = [".m4a", ".mp3", ".ogg", ".wav"]
 iframeExtensions :: [String]
 iframeExtensions = [".html", ".htm", ".pdf", ".php"]
 
--- | File-extensions that should be treated as 3D model and will be shown with Mario's viewer
--- in an iframe
-meshExtensions :: [String]
-meshExtensions = [".off", ".obj", ".stl"]
-
 uriPathExtension :: String -> String
 uriPathExtension reference =
   case U.parseRelativeReference reference of
@@ -387,8 +261,6 @@ classifyFilePath name =
       | ext `elem` audioExtensions -> AudioMedia
     ext
       | ext `elem` iframeExtensions -> IframeMedia
-    ext
-      | ext `elem` meshExtensions -> MeshMedia
     _ -> ImageMedia
 
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
@@ -405,27 +277,28 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
             if attrs /= nullAttr
               then Span (ident, cls, values) [toHtml fileContent]
               else toHtml fileContent
-        else return $ toHtml $ renderHtml $
+        else return $
+             toHtml $
+             renderHtml $
              if "iframe" `elem` cls
-               then mediaTag (iframe "Browser does not support iframe.")
+               then mediaTag (H.iframe "Browser does not support iframe.")
                else createMediaTag
     createMediaTag =
       case classifyFilePath url of
-        VideoMedia -> mediaTag (video "Browser does not support video.")
-        AudioMedia -> mediaTag (audio "Browser does not support audio.")
-        IframeMedia -> mediaTag (iframe "Browser does not support iframe.")
-        MeshMedia -> mediaTag (iframe "Browser does not support iframe.")
-        ImageMedia -> mediaTag img
+        VideoMedia -> mediaTag (H.video "Browser does not support video.")
+        AudioMedia -> mediaTag (H.audio "Browser does not support audio.")
+        IframeMedia -> mediaTag (H.iframe "Browser does not support iframe.")
+        ImageMedia -> mediaTag H.img
     appendAttr element (key, value) =
-      element ! customAttribute (stringTag key) (toValue value)
+      element H.! customAttribute (H.stringTag key) (H.toValue value)
     mediaTag tag =
-      ifNotEmpty A.id ident $ ifNotEmpty A.class_ (unwords cls) $
-      ifNotEmpty A.title tit $
-      foldl appendAttr tag transformedValues
+      ifNotEmpty A.id ident $
+      ifNotEmpty A.class_ (unwords cls) $
+      ifNotEmpty A.title tit $ foldl appendAttr tag transformedValues
     ifNotEmpty attr value element =
       if value == ""
         then element
-        else element ! attr (toValue value)
+        else element H.! attr (H.toValue value)
     srcAttr =
       if disp == Disposition Deck Html
         then "data-src"
@@ -441,8 +314,8 @@ renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
   return $
     Span
       nullAttr
-      ([toHtml "<figure>", image, toHtml "<figcaption>"] ++ inlines ++
-       [toHtml "</figcaption>", toHtml "</figure>"])
+      ([toHtml "<figure>", image, toHtml "<figcaption>"] ++
+       inlines ++ [toHtml "</figcaption>", toHtml "</figure>"])
   where
     attrsForward = (ident, cls, ("alt", stringify inlines) : values)
 -- | return inline if it is no image
@@ -494,8 +367,9 @@ transformImageSize :: [(String, String)] -> [(String, String)]
 transformImageSize attributes =
   let style :: [String]
       style =
-        delete "" $ split (dropDelims $ oneOf ";") $ fromMaybe "" $ snd <$>
-        find (\(k, _) -> k == "style") attributes
+        delete "" $
+        split (dropDelims $ oneOf ";") $
+        fromMaybe "" $ snd <$> find (\(k, _) -> k == "style") attributes
       unstyled :: [(String, String)]
       unstyled = filter (\(k, _) -> k /= "style") attributes
       unsized =

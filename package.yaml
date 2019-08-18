@@ -151,6 +151,9 @@ default-extensions:
   - OverloadedStrings
   - TemplateHaskell
   - TupleSections
+  - LambdaCase
+  - NamedFieldPuns
+  - RecordWildCards
 
 flags:
   preextractedresources:

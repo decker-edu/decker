@@ -1,20 +1,25 @@
 module Text.Decker.Filter.Slide
   ( Slide(..)
-  , header
-  , blocks
   , _Slide
-  , hasClass
-  , toSlides
+  , attribValue
+  , blocks
+  , dropByClass
+  , firstClass
   , fromSlides
+  , hasAnyClass
+  , hasClass
+  , header
+  , isBoxDelim
+  , toSlides
   ) where
 
 import Text.Pandoc.Lens
 
-import Text.Pandoc
-import Text.Pandoc.Definition ()
 import Control.Lens
 import Data.List.Split
 import Data.Maybe
+import Text.Pandoc
+import Text.Pandoc.Definition ()
 
 -- A slide has maybe a header followed by zero or more blocks.
 data Slide = Slide
@@ -101,3 +106,6 @@ dropByClass :: HasAttr a => [String] -> [a] -> [a]
 dropByClass which =
   filter (not . any (`elem` which) . view (attributes . attrClasses))
 
+isBoxDelim :: Block -> Bool
+isBoxDelim (Header 2 _ _) = True
+isBoxDelim _ = False
