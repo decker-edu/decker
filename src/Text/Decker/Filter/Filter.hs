@@ -15,14 +15,13 @@ module Text.Decker.Filter.Filter
   , convertMediaAttributes
   ) where
 
-import Text.Decker.Filter.IncludeCode
-import Text.Decker.Filter.Slide
 import Text.Decker.Filter.Layout
+import Text.Decker.Filter.Slide
+import Text.Decker.Filter.MarioCols
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 
 import Control.Exception
-import Control.Lens
 import Control.Monad.Loops as Loop
 import Control.Monad.State
 import Data.Default ()
@@ -36,13 +35,12 @@ import System.FilePath
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A (alt, class_, id, title)
+import qualified Text.Blaze.Html5.Attributes as A
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.Read hiding (lift)
 
 processPandoc ::
      (Pandoc -> Decker Pandoc)
@@ -178,7 +176,8 @@ processSlides = mapSlides (concatM actions)
   where
     actions :: [Slide -> Decker Slide]
     actions =
-      [ wrapBoxes
+      [ marioCols
+      , wrapBoxes
       , selectActiveSlideContent
       , splitJoinColumns
       , layoutSlide

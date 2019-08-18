@@ -145,15 +145,16 @@ default-extensions:
   - FlexibleInstances
   - GeneralizedNewtypeDeriving
   - InstanceSigs
+  - LambdaCase
   - MultiParamTypeClasses
   - MultiWayIf
+  - NamedFieldPuns
   - NoMonomorphismRestriction
   - OverloadedStrings
+  - RecordWildCards
+  - ScopedTypeVariables
   - TemplateHaskell
   - TupleSections
-  - LambdaCase
-  - NamedFieldPuns
-  - RecordWildCards
 
 flags:
   preextractedresources:

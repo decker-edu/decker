@@ -1,7 +1,6 @@
 ---
 history: True
 ---
-
 # Slide Columns
 
 ## Mechanisms
@@ -9,11 +8,11 @@ history: True
 -   Box classes (`.split` and `.join`)
 -   Slide masters (`layout` slide attribute)
 
-------
+---
 
 # Box Classes
 
-------
+---
 
 # Box Classes
 
@@ -36,7 +35,7 @@ history: True
 
 -   No columns here, just a very long line spanning the entire slide
 
-------
+---
 
 # Box Classes
 
@@ -53,7 +52,7 @@ history: True
 
 ![](include/06-metal.png)
 
-------
+---
 
 # Boxed Box Classes
 
@@ -73,13 +72,13 @@ history: True
 
 ![](include/06-metal.png){width="100%" height="150px"}
 
-------
+---
 
 # Slide Masters
 
-------
+---
 
-# Slide Masters {layout="columns"}
+# Slide Masters {.columns}
 
 ## Fixed Layouts {.top}
 
@@ -95,13 +94,13 @@ history: True
 
 ![](include/06-metal.png)
 
-------
+---
 
-# Slide Masters {layout="columns"}
+# Slide Masters {.columns}
 
 ## Fixed Layouts {.bottom}
 
--   Just like Powerpoint and Keynote
+-   Just like Powerpoint and Keynote (This is full width again)
 
 ## Syntax {.left grow="2"}
 
@@ -111,15 +110,15 @@ history: True
 
 ## Second box
 
--   In this extra wide column
+-   In this extra wide column that reaches the left image border
 
 ##  {.right}
 
 ![](include/06-metal.png)
 
-------
+---
 
-# Slide Masters {layout="columns"}
+# Slide Masters {.columns}
 
 ## Image Mania {.top}
 
@@ -137,9 +136,9 @@ history: True
 
 ![](include/06-metal.png)
 
-------
+---
 
-# Slide Masters {layout="columns"}
+# Slide Masters {.columns}
 
 ## Box Mania {.top}
 
@@ -163,9 +162,9 @@ And some more still after the box.
 
 ![](include/06-metal.png)
 
-------
+---
 
-# Slide Masters {layout="columns"}
+# Slide Masters {.columns}
 
 ## Example {.left .alert}
 
@@ -191,9 +190,9 @@ And some more still after the box.
 
 ![](include/06-metal.png){width="100%" height="150px"}
 
-------
+---
 
-# Slide Masters {layout="columns"}
+# Slide Masters {.columns}
 
 ## Box Mania {.top}
 
@@ -212,3 +211,61 @@ Some more Text
 ## 
 
 Some more Text
+
+# Slide Masters {.grid}
+
+##  {.top-left}
+
+![](include/06-metal.png)
+
+##  {.top}
+
+![](include/06-metal.png)
+
+##  {.top-right}
+
+![](include/06-metal.png)
+
+##  {.left}
+
+![](include/06-metal.png)
+
+##  {.center}
+
+![](include/06-metal.png)
+
+##  {.right}
+
+![](include/06-metal.png)
+
+##  {.bottom-left}
+
+![](include/06-metal.png)
+
+##  {.bottom}
+
+![](include/06-metal.png)
+
+##  {.bottom-right}
+
+![](include/06-metal.png)
+
+# Mario Style Columns
+
+## 1 1
+
+::: {.col}
+## Left column
+
+This is the left column
+
+![](include/06-metal.png)
+:::
+
+::: {.col}
+## Right column
+
+This is the right column
+
+![](include/06-metal.png)
+:::

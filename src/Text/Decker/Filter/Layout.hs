@@ -17,7 +17,7 @@ import Text.Read hiding (lift)
 
 -- | Slide layouts are rows of one ore more columns.
 data RowLayout = RowLayout
-  { lname :: String
+  { name :: String
   , rows :: [Row]
   } deriving (Eq, Show)
 
@@ -39,6 +39,12 @@ rowLayouts =
       , MultiColumn ["left", "center", "right"]
       , SingleColumn "bottom"
       ]
+  , RowLayout
+      "grid"
+      [ MultiColumn ["top-left", "top", "top-right"]
+      , MultiColumn ["left", "center", "right"]
+      , MultiColumn ["bottom-left", "bottom", "bottom-right"]
+      ]
   ]
 
 rowAreas :: Row -> [String]
@@ -49,8 +55,12 @@ layoutAreas :: RowLayout -> [String]
 layoutAreas l = concatMap rowAreas $ rows l
 
 hasRowLayout :: Block -> Maybe RowLayout
-hasRowLayout block =
-  attribValue "layout" block >>= (\l -> find ((==) l . lname) rowLayouts)
+hasRowLayout block = do
+  let long = attribValue "layout" block >>= findLayout 
+  let short = map findLayout (classes block)
+  listToMaybe $ catMaybes $ long : short
+  where
+    findLayout l = find ((==) l . name) rowLayouts
 
 renderRow :: AreaMap -> Row -> Maybe Block
 renderRow areaMap (SingleColumn area) =

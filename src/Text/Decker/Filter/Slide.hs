@@ -6,6 +6,7 @@ module Text.Decker.Filter.Slide
   , dropByClass
   , firstClass
   , fromSlides
+  , classes
   , hasAnyClass
   , hasClass
   , header
@@ -90,8 +91,11 @@ isSlideSeparator _ = False
 
 demoteHeaders = traverse . _Header . _1 +~ 1
 
+classes :: HasAttr a => a -> [String]
+classes = view (attributes . attrClasses)
+
 hasClass :: HasAttr a => String -> a -> Bool
-hasClass which = elem which . view (attributes . attrClasses)
+hasClass which = elem which . classes
 
 hasAnyClass :: HasAttr a => [String] -> a -> Bool
 hasAnyClass which = isJust . firstClass which
