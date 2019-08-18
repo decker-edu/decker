@@ -1,5 +1,7 @@
 module Text.Decker.Filter.IncludeCode
   ( InclusionMode(..)
+  , InclusionSpec(..)
+  , parseInclusionUrl
   , includeCode
   ) where
 
