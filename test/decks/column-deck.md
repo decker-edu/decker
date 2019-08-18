@@ -96,6 +96,26 @@ history: True
 
 ---
 
+# Slide Masters
+
+## Example slide with two columns and a footer
+
+# Two columns and a footer {.columns}
+
+## Left column {.left}
+
+Some text
+
+## Right column {.right}
+
+Some text
+
+## Footer {.bottom}
+
+Some final text
+
+---
+
 # Slide Masters {.columns}
 
 ## Fixed Layouts {.bottom}

@@ -4,7 +4,7 @@ module Text.Decker.Filter.MarioCols
   ( marioCols
   ) where
 
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import Data.Monoid ((<>))
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
@@ -41,7 +41,8 @@ import Text.Read (readMaybe)
 --     second column here with only 1 element.
 -- @
 cols :: [Block] -> [Block]
-cols (Header 2 attr [Str wa, Space, Str wb]:a:b:rest) = outerDiv : rest
+cols (Header 2 attr [Str wa, Space, Str wb]:a:b:rest)
+  | isInt wa && isInt wb = outerDiv : rest
   where
     wa' = fromMaybe 1 (readMaybe wa) :: Int
     wb' = fromMaybe 1 (readMaybe wb) :: Int
@@ -71,6 +72,9 @@ clearDiv = Div ("", [], [("style", "clear: both")]) [Plain [toHtml ""]]
 
 toHtml :: String -> Inline
 toHtml = RawInline (Format "html")
+
+isInt :: String -> Bool
+isInt str = isJust (readMaybe str :: Maybe Int)
 
 marioCols :: Slide -> Decker Slide
 marioCols (Slide header blocks) = return (Slide header (cols blocks))
