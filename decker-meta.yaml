@@ -16,6 +16,7 @@ exclude-directories:
   - third-party
 # Sane defaults for reval.js
 menu: true
+center: true
 controls: true
 keyboard: true
 progress: true

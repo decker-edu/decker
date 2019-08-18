@@ -1,5 +1,6 @@
 ---
 history: True
+center: true
 ---
 # Slide Columns
 

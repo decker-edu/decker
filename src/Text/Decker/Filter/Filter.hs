@@ -18,6 +18,7 @@ module Text.Decker.Filter.Filter
 import Text.Decker.Filter.Layout
 import Text.Decker.Filter.Slide
 import Text.Decker.Filter.MarioCols
+import Text.Decker.Filter.MarioQuiz
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 
@@ -177,6 +178,7 @@ processSlides = mapSlides (concatM actions)
     actions :: [Slide -> Decker Slide]
     actions =
       [ marioCols
+      , marioQuiz
       , wrapBoxes
       , selectActiveSlideContent
       , splitJoinColumns
