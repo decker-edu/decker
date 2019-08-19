@@ -3,6 +3,7 @@ module Text.Decker.Reader.Markdown
   ) where
 
 import Text.Decker.Filter.Filter
+import Text.Decker.Filter.MarioMedia
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Render
@@ -74,8 +75,9 @@ readAndProcessMarkdown markdownFile disp = do
         , provisionResources
         , renderQuizzes
         , processSlides
-        , renderMediaTags
-        , extractFigures
+        , marioMedia
+        -- , renderMediaTags
+        -- , extractFigures
         , processCitesWithDefault
         , appendScripts
         ]

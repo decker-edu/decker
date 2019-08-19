@@ -1,3 +1,7 @@
+---
+history: true
+---
+
 # Figures for Images {layout="columns"}
 
 ## Pandoc 2.0 {.left}

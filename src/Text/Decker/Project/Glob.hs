@@ -3,8 +3,10 @@ module Text.Decker.Project.Glob
   ( fastGlobFiles
   , fastGlobDirs
   , globFiles
+  , subDirs
   ) where
 
+import Control.Monad
 import Data.List
 import System.Directory (doesDirectoryExist, doesFileExist, listDirectory)
 import System.FilePath
@@ -28,7 +30,7 @@ fastGlobFiles exclude suffixes root = sort <$> glob root
          | otherwise -> return []
     globFile :: String -> IO [String]
     globFile file =
-      if null suffixes || any (`isSuffixOf` file) suffixes
+      if null suffixes || any (`isSuffixOf` file) suffixes
         then return [file]
         else return []
     globDir :: FilePath -> IO [String]
@@ -60,3 +62,10 @@ globFiles exclude suffixes root = do
       (\alist suffix -> (suffix, filter (isSuffixOf suffix) scanned) : alist)
       []
       suffixes
+
+-- | Get a list of all sub dirs.
+subDirs :: FilePath -> IO [FilePath]
+subDirs dir = do
+  all <- listDirectory dir
+  let nodot = filter (not . isPrefixOf ".") all
+  filterM doesDirectoryExist nodot

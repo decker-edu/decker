@@ -1,11 +1,11 @@
 window.addEventListener('ready', function (event) {
   fixAutoplayWithStart();
   if (Reveal.isReady()) {
-    makeVertical();
+    // makeVertical();
     quizModule.quiz();
     currentDate();
   } else {
-    Reveal.addEventListener("ready", makeVertical);
+    // Reveal.addEventListener("ready", makeVertical);
   }
   $("div.sourceCode[label]").each(function() {
     $("<div/>")

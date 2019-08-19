@@ -32,7 +32,6 @@ module Text.Decker.Project.Shake
   , writeSketchPadIndex
   , writeSupportFilesToPublic
   , withShakeLock
-  , waitForChange
   , getTemplate
   , getTemplate'
   , isDevRun
@@ -138,7 +137,9 @@ runShakeOnce state rules = do
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
     let exclude = excludeDirs (context ^. metaData)
-    inDirs <- fastGlobDirs exclude (context ^. dirs . project)
+    -- inDirs <- fastGlobDirs exclude (context ^. dirs . project)
+    inDirs <-
+      filter (not . flip elem exclude) <$> subDirs (context ^. dirs . project)
     waitForChange inDirs
   return keepWatching
 
@@ -204,10 +205,16 @@ waitForChange inDirs =
   Notify.withManager
     (\manager -> do
        done <- newEmptyMVar
-       forM_
-         inDirs
-         (\dir ->
-            Notify.watchDir manager dir (const True) (\e -> putMVar done ()))
+       forM_ inDirs
+         (\dir -> do
+            putStrLn $ "watching: " ++ dir
+            Notify.watchTree
+              manager
+              dir
+              (const True)
+              (\e -> do
+                 putStrLn $ "changed: " ++ show e
+                 putMVar done ()))
        takeMVar done)
 
 getTemplate :: Disposition -> Action String
