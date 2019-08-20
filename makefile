@@ -7,17 +7,36 @@ local-bin-path := $(HOME)/.local/bin
 
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
+clean-build: clean
+	make -f symlinks.mk -C third-party all
+	stack build
+
+build: 
+	stack build
+
 less:
 	stack build 2>&1 | less
 
-build:
-	stack build
+install: clean-build
+	mkdir -p $(local-bin-path)
+	cp $(executable) "$(local-bin-path)/$(decker-name)"
+	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
+	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
 
-resources: 
-	make -f symlinks.mk -C third-party prepare
-	make -f symlinks.mk -C third-party all
+version:
+	@echo "$(decker-name)"
 
-dist: resources install
+build-profile:
+	stack build --work-dir .stack-work-profile --profile
+
+profile: build-profile
+	stack exec -- decker clean
+	stack exec --work-dir .stack-work-profile -- decker +RTS -p
+
+preextracted: resources
+	stack build --flag decker:preextractedresources
+
+dist: install
 	rm -rf dist
 	mkdir -p dist
 	ln -s $(executable) dist/$(decker-name)
@@ -33,26 +52,6 @@ watch:
 clean:
 	stack clean
 	rm -rf dist
-
-build-profile:
-	stack build --work-dir .stack-work-profile --profile
-
-profile: build-profile
-	stack exec -- decker clean
-	stack exec --work-dir .stack-work-profile -- decker +RTS -p
-
-preextracted:
-	stack build --flag decker:preextractedresources
-
-install: resources build
-	stack clean
-	stack exec -- decker clean
-	mkdir -p $(local-bin-path)
-	cp $(executable) "$(local-bin-path)/$(decker-name)"
-	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
-	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
-
-version:
-	@echo "$(decker-name)"
+	rm -rf resource/support/vendor
 
 .PHONY: build clean test install dist docs resources preextracted

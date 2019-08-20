@@ -57,12 +57,6 @@ fontawesome:
 		$(dup) $(third)/Font-Awesome/js-packages/@fortawesome/fontawesome-free/$$i $(support)/fontawesome/$$i; \
 	done
 
-prepare: clean
-	@mkdir -p $(support)
-
-clean:
-	@rm -rf $(support)
-
 jquery/dist/jquery.min.js:
 	cd jquery && npm run build
 

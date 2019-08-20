@@ -676,6 +676,7 @@
 }
 
 .reveal div.sourceCode pre div.language-label {
+  font-family: "Roboto", sans-serif;
   position: absolute;
   right: 0;
   top: 0;
@@ -1018,9 +1019,9 @@ dd {
 .reveal section img {
   margin: 15px 0px;
   background: rgba(255, 255, 255, 0.12);
-  border: 4px solid #222;
-  -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-          box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+  border: none;
+  -webkit-box-shadow: none;
+          box-shadow: none;
 }
 
 .reveal section img.plain {
