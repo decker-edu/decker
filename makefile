@@ -17,7 +17,7 @@ resources:
 	make -f symlinks.mk -C third-party prepare
 	make -f symlinks.mk -C third-party all
 
-dist: resources build
+dist: resources install
 	rm -rf dist
 	mkdir -p dist
 	ln -s $(executable) dist/$(decker-name)
@@ -33,7 +33,6 @@ watch:
 clean:
 	stack clean
 	rm -rf dist
-	rm -rf resource/support/vendor/*
 
 build-profile:
 	stack build --work-dir .stack-work-profile --profile
@@ -46,6 +45,7 @@ preextracted:
 	stack build --flag decker:preextractedresources
 
 install: resources build
+	stack clean
 	stack exec -- decker clean
 	mkdir -p $(local-bin-path)
 	cp $(executable) "$(local-bin-path)/$(decker-name)"

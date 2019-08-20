@@ -15,9 +15,11 @@ endif
 all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard fontawesome reveal.js-menu
 
 jquery: jquery/dist/jquery.min.js
+	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
 	@cp jquery/dist/jquery.min.js $(support)/jquery.js
 
 chart.js: Chart.js/dist/Chart.min.js 
+	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
 	@cp Chart.js/dist/Chart.min.js $(support)/Chart.js
 	@$(dup) $(third)/reveal.js-plugins/chart/csv2chart.js $(support)/csv2chart.js
 
