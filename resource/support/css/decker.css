@@ -645,6 +645,18 @@
   text-transform: none;
 }
 
+.reveal pre {
+  display: block;
+  position: relative;
+  width: 90%;
+  margin: 20px auto;
+  text-align: left;
+  font-size: 0.55em;
+  font-family: monospace;
+  line-height: 1.2em;
+  word-wrap: break-word;
+}
+
 .reveal pre code {
   display: block;
   padding: 5px;
@@ -898,20 +910,6 @@ body {
 
 .reveal blockquote p:first-child, .reveal blockquote p:last-child {
   display: inline-block;
-}
-
-.reveal pre {
-  display: block;
-  position: relative;
-  width: 90%;
-  margin: 20px auto;
-  text-align: left;
-  font-size: 0.55em;
-  font-family: monospace;
-  line-height: 1.2em;
-  word-wrap: break-word;
-  -webkit-box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
-          box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
 }
 
 dt {
