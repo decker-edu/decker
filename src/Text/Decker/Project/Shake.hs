@@ -67,7 +67,6 @@ import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Text.Encoding
-import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
 import Development.Shake hiding (doesDirectoryExist)
@@ -137,26 +136,17 @@ runShakeOnce state rules = do
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
     let exclude = excludeDirs (context ^. metaData)
-    -- inDirs <- fastGlobDirs exclude (context ^. dirs . project)
-    inDirs <-
-      filter (not . flip elem exclude) <$> subDirs (context ^. dirs . project)
+    inDirs <- fastGlobDirs exclude (context ^. dirs . project)
     waitForChange inDirs
   return keepWatching
 
 targetDirs context =
   unique $ map takeDirectory (context ^. targetList . sources)
 
-alwaysExclude = ["public", "log", "dist", "code", ".shake", ".git", ".vscode"]
-
-excludeDirs meta =
-  let metaExclude =
-        meta ^.. key "exclude-directories" . values . _String . unpacked
-   in alwaysExclude ++ metaExclude
-
 initContext state = do
   dirs <- projectDirectories
   meta <- readMetaData $ dirs ^. project
-  targets <- scanTargets (excludeDirs meta) dirs
+  targets <- scanTargets meta dirs
   templates <- readTemplates (dirs ^. project) (state ^. devRun)
   return $ ActionContext dirs targets meta state templates
 
@@ -207,8 +197,8 @@ waitForChange inDirs =
        done <- newEmptyMVar
        forM_ inDirs
          (\dir -> do
-            putStrLn $ "watching: " ++ dir
-            Notify.watchTree
+            putStrLn $ "watching dir: " ++ dir
+            Notify.watchDir
               manager
               dir
               (const True)

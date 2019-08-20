@@ -18,6 +18,7 @@ module Text.Decker.Project.Project
   , invertPath
   , scanTargets
   , isDevelopmentRun
+  , excludeDirs
   -- * Types
   , sources
   , decks
@@ -46,9 +47,12 @@ import Text.Decker.Project.Glob
 import Text.Decker.Project.Version
 
 import Control.Lens
+import Data.Aeson as Json
+import Data.Aeson.Lens
 import Data.List
 import Data.List.Split (splitOn)
 import Data.Maybe
+import Data.Text.Lens
 import Network.URI
 import qualified System.Directory as D
 import System.Environment
@@ -153,9 +157,8 @@ deckerResourceDir =
     then preextractedResourceFolder
     else D.getXdgDirectory
            D.XdgData
-           ("decker" ++
-            "-" ++
-            deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
+           ("decker" ++ "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++
+            deckerGitCommitId)
 
 -- | Find out if the decker executable is located below the current directory.
 -- This means most probably that decker was started in the decker development
@@ -255,8 +258,17 @@ indexSuffix = "-deck-index.yaml"
 
 sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
 
-scanTargets :: [String] -> ProjectDirs -> IO Targets
-scanTargets exclude dirs = do
+alwaysExclude = ["public", "log", "dist", "code", ".shake", ".git", ".vscode"]
+
+excludeDirs :: Value -> [String]
+excludeDirs meta =
+  let metaExclude =
+        meta ^.. key "exclude-directories" . values . _String . unpacked
+   in alwaysExclude ++ metaExclude
+
+scanTargets :: Value -> ProjectDirs -> IO Targets
+scanTargets meta dirs = do
+  let exclude = excludeDirs meta
   srcs <- globFiles exclude sourceSuffixes (dirs ^. project)
   return
     Targets
@@ -273,8 +285,8 @@ scanTargets exclude dirs = do
     calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]
     calcTargets srcSuffix targetSuffix sources =
       map
-        (replaceSuffix srcSuffix targetSuffix .
-         combine (dirs ^. public) . makeRelative (dirs ^. project))
+        (replaceSuffix srcSuffix targetSuffix . combine (dirs ^. public) .
+         makeRelative (dirs ^. project))
         (fromMaybe [] $ lookup srcSuffix sources)
 
 getDachdeckerUrl :: IO String
