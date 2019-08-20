@@ -63,6 +63,7 @@ import Text.Regex.TDFA
 
 data Targets = Targets
   { _sources :: [FilePath]
+  , _static :: [FilePath]
   , _decks :: [FilePath]
   , _decksPdf :: [FilePath]
   , _pages :: [FilePath]
@@ -266,13 +267,20 @@ excludeDirs meta =
         meta ^.. key "exclude-directories" . values . _String . unpacked
    in alwaysExclude ++ metaExclude
 
+staticDirs meta =
+  meta ^.. key "static-resource-dirs" . values . _String . unpacked
+
 scanTargets :: Value -> ProjectDirs -> IO Targets
 scanTargets meta dirs = do
   let exclude = excludeDirs meta
-  srcs <- globFiles exclude sourceSuffixes (dirs ^. project)
+  srcs <- globFiles (excludeDirs meta) sourceSuffixes (dirs ^. project)
+  let static = map (dirs ^. project </>) (staticDirs meta)
+  staticSrc <- concat <$> mapM (fastGlobFiles [] []) static
+  let staticTargets = map ((dirs ^. public </>) . makeRelative (dirs ^. project)) staticSrc
   return
     Targets
       { _sources = sort $ concatMap snd srcs
+      , _static = staticTargets          
       , _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs
       , _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs
       , _pages = sort $ calcTargets pageSuffix pageHTMLSuffix srcs

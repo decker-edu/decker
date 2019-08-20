@@ -27,6 +27,7 @@ module Text.Decker.Project.Shake
   , stopHttpServer
   , supportA
   , targetsA
+  , staticA
   , watchChangesAndRepeat
   , writeDeckIndex
   , writeSketchPadIndex
@@ -67,6 +68,7 @@ import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Text.Encoding
+import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
 import Development.Shake hiding (doesDirectoryExist)
@@ -195,7 +197,8 @@ waitForChange inDirs =
   Notify.withManager
     (\manager -> do
        done <- newEmptyMVar
-       forM_ inDirs
+       forM_
+         inDirs
          (\dir -> do
             putStrLn $ "watching dir: " ++ dir
             Notify.watchDir
@@ -242,6 +245,18 @@ writeSupportFilesToPublic = do
   unless correct $ do
     removeSupport
     extractSupport
+  copyStaticDirs
+
+copyStaticDirs :: Action ()
+copyStaticDirs = do
+  meta <- metaA
+  public <- publicA
+  project <- projectA
+  let staticDirs =
+        meta ^.. key "static-resource-dirs" . values . _String . unpacked
+  let staticSrc = map (project </>) staticDirs
+  let staticDst = map (public </>) staticDirs
+  liftIO $ zipWithM_ copyDir staticSrc staticDst
 
 extractSupport :: Action ()
 extractSupport = do
@@ -409,6 +424,9 @@ targetsA = _targetList <$> actionContext
 metaA = _metaData <$> actionContext
 
 indicesA = _indices <$> targetsA
+
+staticA :: Action [FilePath]
+staticA = _static <$> targetsA
 
 decksA :: Action [FilePath]
 decksA = _decks <$> targetsA

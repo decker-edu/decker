@@ -9,7 +9,6 @@ module Text.Decker.Resource.Resource
   , deckerResourceDir
   , writeExampleProject
   , writeTutorialProject
-  , copyDir
   , copyResource
   , linkResource
   , urlToFilePathIfLocal
@@ -30,6 +29,7 @@ module Text.Decker.Resource.Resource
 import System.Decker.OS
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Helper
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Resource.Zip
@@ -39,10 +39,10 @@ import Control.Lens ((^.))
 import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.State
+import qualified Data.ByteString as BS
 import Data.List (isPrefixOf)
 import qualified Data.Map.Lazy as Map
 import Data.Map.Strict (filterWithKey, keys, size)
-import qualified Data.ByteString as BS
 import Development.Shake hiding (Resource)
 import Network.URI
 import qualified System.Directory as Dir
@@ -91,46 +91,6 @@ writeResourceFiles prefix destDir = do
   dataDir <- deckerResourceDir
   let src = dataDir </> prefix
   copyDir src destDir
-
--- | Copy a directory and its contents recursively
-copyDir :: FilePath -> FilePath -> IO ()
-copyDir src dst = do
-  unlessM (Dir.doesDirectoryExist src) $
-    throw (userError "src does not exist or is not a directory")
-  dstExists <- Dir.doesDirectoryExist dst
-  if dstExists && (last (splitPath src) /= last (splitPath dst))
-    then copyDir src (dst </> last (splitPath src))
-    else do
-      Dir.createDirectoryIfMissing True dst
-      contents <- Dir.listDirectory src
-      forM_ contents $ \name -> do
-        let srcPath = src </> name
-        let dstPath = dst </> name
-        isDirectory <- Dir.doesDirectoryExist srcPath
-        if isDirectory
-          then copyDir srcPath dstPath
-          else copyFileIfNewer srcPath dstPath
-
--- | Copies the src to dst if src is newer or dst does not exist. Creates
--- missing directories while doing so.
-copyFileIfNewer :: FilePath -> FilePath -> IO ()
-copyFileIfNewer src dst =
-  whenM (fileIsNewer src dst) $ do
-    Dir.createDirectoryIfMissing True (takeDirectory dst)
-    Dir.copyFile src dst
-
-fileIsNewer :: FilePath -> FilePath -> IO Bool
-fileIsNewer a b = do
-  aexists <- Dir.doesFileExist a
-  bexists <- Dir.doesFileExist b
-  if bexists
-    then if aexists
-           then do
-             at <- Dir.getModificationTime a
-             bt <- Dir.getModificationTime b
-             return (at > bt)
-           else return False
-    else return aexists
 
 -- | Copies single Resource file and returns Filepath
 copyResource :: Resource -> IO FilePath
