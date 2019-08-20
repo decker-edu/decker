@@ -1,0 +1,44 @@
+.reveal .thebelab-cell {
+  display: block;
+  position: relative;
+}
+
+.reveal .thebelab-cell button {
+  display: block;
+  position: absolute;
+  right: 0.2em;
+  font-size: 50%;
+  background-color: rgba(0, 0, 0, 0);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.reveal .thebelab-cell button.thebelab-run-button {
+  top: 2.3em;
+}
+
+.reveal .thebelab-cell button.thebelab-restart-button {
+  top: 0.3em;
+}
+
+.reveal .thebelab-cell {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.reveal .thebelab-cell pre {
+  font-size: 28px;
+  font-weight: 500;
+  font-family: "Source Code Pro";
+}
+
+.reveal .jp-OutputArea pre {
+  margin-left: 0.6em;
+  margin-bottom: 0.4em;
+}
+
+.CodeMirror {
+  margin: 0.8em 1.25em;
+}
+
+.reveal pre {
+  box-shadow: none;
+}
