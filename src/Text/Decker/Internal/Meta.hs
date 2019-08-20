@@ -17,6 +17,7 @@ module Text.Decker.Internal.Meta
   , lookupMetaStringList
   , lookupMetaInt
   , metaValueAsString
+  , pandocMeta
   , DeckerException(..)
   ) where
 
@@ -224,3 +225,6 @@ metaValueAsString key meta =
 lookupValue :: String -> Y.Value -> Maybe Y.Value
 lookupValue key (Y.Object hashTable) = H.lookup (T.pack key) hashTable
 lookupValue _ _ = Nothing
+
+pandocMeta :: (Meta -> String -> Maybe a) -> Pandoc -> String -> Maybe a  
+pandocMeta f (Pandoc m _) = f m 

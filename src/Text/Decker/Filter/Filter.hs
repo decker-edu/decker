@@ -16,9 +16,10 @@ module Text.Decker.Filter.Filter
   ) where
 
 import Text.Decker.Filter.Layout
-import Text.Decker.Filter.Slide
 import Text.Decker.Filter.MarioCols
+import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Meta
 import Text.Decker.Internal.Exception
 
 import Control.Exception
@@ -172,17 +173,26 @@ selectActiveSlideContent (Slide header body) =
 
 -- | Slide specific processing.
 processSlides :: Pandoc -> Decker Pandoc
-processSlides = mapSlides (concatM actions)
+processSlides pandoc = mapSlides (concatM actions) pandoc
   where
     actions :: [Slide -> Decker Slide]
     actions =
-      [ marioCols
-      , wrapBoxes
-      , selectActiveSlideContent
-      , splitJoinColumns
-      , layoutSlide
-      , handleBackground
-      ]
+      case pandocMeta lookupMetaBool pandoc "mario" of
+        Just True ->
+          [ marioCols
+          , wrapBoxes
+          , selectActiveSlideContent
+          , splitJoinColumns
+          , layoutSlide
+          , handleBackground
+          ]
+        _ ->
+          [ wrapBoxes
+          , selectActiveSlideContent
+          , splitJoinColumns
+          , layoutSlide
+          , handleBackground
+          ]
 
 selectActiveContent :: HasAttr a => [a] -> Decker [a]
 selectActiveContent fragments = do

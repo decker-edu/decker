@@ -3,11 +3,11 @@ module Text.Decker.Reader.Markdown
   ) where
 
 import Text.Decker.Filter.Filter
-import Text.Decker.Filter.MarioMedia
+import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
+import Text.Decker.Filter.MarioMedia
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Render
-import Text.Decker.Filter.IncludeCode
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Meta
@@ -63,24 +63,44 @@ readAndProcessMarkdown markdownFile disp = do
   pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes baseDir
   processed@(Pandoc meta body) <-
-    processPandoc pipeline baseDir disp (provisioningFromMeta meta) pandoc
+    processPandoc
+      (pipeline meta)
+      baseDir
+      disp
+      (provisioningFromMeta meta)
+      pandoc
   return processed
   where
     baseDir = takeDirectory markdownFile
-    pipeline =
-      concatM
-        [ expandDeckerMacros
-        , renderCodeBlocks
-        , includeCode
-        , provisionResources
-        , renderQuizzes
-        , processSlides
-        , marioMedia
-        -- , renderMediaTags
-        -- , extractFigures
-        , processCitesWithDefault
-        , appendScripts
-        ]
+    pipeline meta =
+      case lookupMetaBool meta "mario" of
+        Just True ->
+          concatM
+            [ expandDeckerMacros
+            , renderCodeBlocks
+            , includeCode
+            , provisionResources
+            , renderQuizzes
+            , processSlides
+            , marioMedia
+          -- , renderMediaTags
+          -- , extractFigures
+            , processCitesWithDefault
+            , appendScripts
+            ]
+        _ ->
+          concatM
+            [ expandDeckerMacros
+            , renderCodeBlocks
+            , includeCode
+            , provisionResources
+            , renderQuizzes
+            , processSlides
+            , renderMediaTags
+            , extractFigures
+            , processCitesWithDefault
+            , appendScripts
+            ]
 
 -- | Reads a markdown file and returns a pandoc document. Handles meta data
 -- extraction and template substitution. All references to local resources are
