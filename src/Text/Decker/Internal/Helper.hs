@@ -20,7 +20,6 @@ import System.CPUTime
 import qualified System.Directory as Dir
 import Text.Pandoc
 import Text.Printf
-import Control.Monad
 import Control.Monad.Extra
 import Control.Exception
 import System.FilePath

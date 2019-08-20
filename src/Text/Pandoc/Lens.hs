@@ -73,7 +73,6 @@ module Text.Pandoc.Lens
     , attrs
     ) where
 
-import Control.Applicative
 import Control.Lens
 import Text.Pandoc.Definition
 import Data.Map (Map)

@@ -39,10 +39,7 @@ import Control.Lens ((^.))
 import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.State
-import qualified Data.ByteString as BS
-import Data.List (isPrefixOf)
 import qualified Data.Map.Lazy as Map
-import Data.Map.Strict (filterWithKey, keys, size)
 import Development.Shake hiding (Resource)
 import Network.URI
 import qualified System.Directory as Dir

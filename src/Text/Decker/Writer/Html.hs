@@ -23,6 +23,7 @@ import Control.Lens ((^.))
 import Control.Monad.State
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
+import qualified Data.MultiMap as MM
 import qualified Data.Text.Encoding as E
 import qualified Data.Text.IO as T
 import Development.Shake
@@ -39,9 +40,9 @@ writeIndexLists out baseUrl = do
   let decks = (zip (_decks ts) (_decksPdf ts))
   let handouts = (zip (_handouts ts) (_handoutsPdf ts))
   let pages = (zip (_pages ts) (_pagesPdf ts))
-  decksLinks <- mapM makeLink decks
-  handoutsLinks <- mapM makeLink handouts
-  pagesLinks <- mapM makeLink pages
+  decksLinks <- mapM (makeLink $ dirs ^. project) decks
+  handoutsLinks <- mapM (makeLink $ dirs ^. project) handouts
+  pagesLinks <- mapM (makeLink $ dirs ^. project) pages
   liftIO $
     writeFile out $
     unlines
@@ -50,26 +51,26 @@ writeIndexLists out baseUrl = do
       , "subtitle: " ++ dirs ^. project
       , "---"
       , "# Slide decks"
-      , unlines $ decksLinks
+      , unlines decksLinks
       , "# Handouts"
-      , unlines $ handoutsLinks
+      , unlines handoutsLinks
       , "# Supporting Documents"
-      , unlines $ pagesLinks
+      , unlines pagesLinks
       ]
   where
-    makeLink (html, pdf) = do
+    makeLink project (html, pdf) = do
       pdfExists <- doesFileExist pdf
       if pdfExists
         then return $
              printf
                "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
-               (takeFileName html)
+               (makeRelative project html)
                (makeRelative baseUrl html)
                (makeRelative baseUrl pdf)
         else return $
              printf
                "-    [%s <i class='fab fa-html5'></i>](%s)"
-               (takeFileName html)
+               (makeRelative project html)
                (makeRelative baseUrl html)
 
 -- | Write Pandoc in native format right next to the output file

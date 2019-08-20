@@ -4,14 +4,11 @@ module Text.Decker.Writer.Format
 
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
-import Text.Decker.Project.Project
-import Text.Decker.Project.Shake
 import Text.Decker.Writer.Markdown
 
 import Control.Exception
 import qualified Data.Text.IO as T
 import System.Exit
-import System.FilePath
 import System.IO
 import Text.Pandoc hiding (writeMarkdown)
 

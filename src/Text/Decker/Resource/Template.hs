@@ -3,15 +3,10 @@ module Text.Decker.Resource.Template
   , Template(..)
   ) where
 
-import Text.Decker.Internal.Common
-import Text.Decker.Project.Project
 import Text.Decker.Resource.Zip
 
-import Control.Lens
 import Control.Monad
 import qualified Data.ByteString as BS
-import Data.Maybe
-import Development.Shake
 import System.FilePath
 
 templates =

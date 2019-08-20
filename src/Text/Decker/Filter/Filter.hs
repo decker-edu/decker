@@ -20,7 +20,6 @@ import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
-import Text.Decker.Internal.Exception
 
 import Control.Exception
 import Control.Monad.Loops as Loop

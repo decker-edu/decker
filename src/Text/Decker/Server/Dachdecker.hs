@@ -10,9 +10,9 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Project.Project
 
 import Control.Exception
-import Control.Lens ((&), (.~), (?~), (^.), (^?))
-import Data.Aeson ((.=), fromJSON, object, toJSON)
-import Data.Aeson.Lens (_Bool, _Integer, _Object, _String, key, nth, values)
+import Control.Lens ((&), (.~), (^.), (^?))
+import Data.Aeson ((.=), object, toJSON)
+import Data.Aeson.Lens (_Integer, _String, key)
 import qualified Data.ByteString.Char8 as BSC
 import Data.Functor ((<&>))
 import Data.List (isPrefixOf)
