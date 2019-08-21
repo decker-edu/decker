@@ -37,18 +37,19 @@ writeIndexLists :: FilePath -> FilePath -> Action ()
 writeIndexLists out baseUrl = do
   dirs <- projectDirsA
   ts <- targetsA
-  let decks = (zip (_decks ts) (_decksPdf ts))
-  let handouts = (zip (_handouts ts) (_handoutsPdf ts))
-  let pages = (zip (_pages ts) (_pagesPdf ts))
-  decksLinks <- mapM (makeLink $ dirs ^. project) decks
-  handoutsLinks <- mapM (makeLink $ dirs ^. project) handouts
-  pagesLinks <- mapM (makeLink $ dirs ^. project) pages
+  let projectDir = dirs ^. project
+  let decks = zip (_decks ts) (_decksPdf ts)
+  let handouts = zip (_handouts ts) (_handoutsPdf ts)
+  let pages = zip (_pages ts) (_pagesPdf ts)
+  decksLinks <- makeGroupedLinks projectDir decks
+  handoutsLinks <- makeGroupedLinks projectDir handouts
+  pagesLinks <- makeGroupedLinks projectDir pages
   liftIO $
     writeFile out $
     unlines
       [ "---"
       , "title: Generated Index"
-      , "subtitle: " ++ dirs ^. project
+      , "subtitle: " ++ projectDir
       , "---"
       , "# Slide decks"
       , unlines decksLinks
@@ -64,14 +65,22 @@ writeIndexLists out baseUrl = do
         then return $
              printf
                "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
-               (makeRelative project html)
+               (takeFileName html)
                (makeRelative baseUrl html)
                (makeRelative baseUrl pdf)
         else return $
              printf
                "-    [%s <i class='fab fa-html5'></i>](%s)"
-               (makeRelative project html)
+               (takeFileName html)
                (makeRelative baseUrl html)
+    makeGroupedLinks :: FilePath -> [(FilePath, FilePath)] -> Action [String]
+    makeGroupedLinks project files =
+      let grouped = MM.fromList (zip (map (takeDirectory . fst) files) files)
+          renderGroup :: FilePath -> Action [String]
+          renderGroup key =
+            (printf "\n## %s:" (makeRelative project key) :) <$>
+            mapM (makeLink project) (MM.lookup key grouped)
+       in concat <$> mapM renderGroup (MM.keys grouped)
 
 -- | Write Pandoc in native format right next to the output file
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
