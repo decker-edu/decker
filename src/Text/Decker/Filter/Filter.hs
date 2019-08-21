@@ -104,18 +104,19 @@ handleBackground slide@(Slide header blocks) =
         image@(Image (_, imageClasses, imageAttributes) _ (imageSrc, _)):_ -> do
           disp <- gets disposition
           case disp of
-            Disposition Deck Html ->
+            Disposition Deck Html -> do
+              let cls = headerClasses ++ imageClasses
               return $
-              Slide
-                (Just
-                   (Header -- Construct a new header with the necessary attributes for RevealJs background content
-                      1
-                      ( headerId
-                      , headerClasses ++ imageClasses
-                      , srcAttribute imageSrc :
-                        headerAttributes ++ map transform imageAttributes)
-                      (walk zapImages inlines)))
-                blocks
+                Slide
+                  (Just
+                     (Header -- Construct a new header with the necessary attributes for RevealJs background content
+                        1
+                        ( headerId
+                        , cls
+                        , srcAttribute imageSrc cls :
+                          headerAttributes ++ map transform imageAttributes)
+                        (walk zapImages inlines)))
+                  blocks
             Disposition _ _ ->
               return $
               Slide
@@ -136,8 +137,8 @@ handleBackground slide@(Slide header blocks) =
     transform ("color", value) = ("data-background-color", value)
     transform ("interactive", value) = ("data-background-interactive", value)
     transform kv = kv
-    srcAttribute src =
-      case classifyFilePath src of
+    srcAttribute src cls =
+      case classifyFilePath src cls of
         VideoMedia -> ("data-background-video", src)
         AudioMedia -> ("data-background-audio", src)
         IframeMedia -> ("data-background-iframe", src)
@@ -252,7 +253,7 @@ audioExtensions = [".m4a", ".mp3", ".ogg", ".wav"]
 
 -- | File extensions that signify iframe content.
 iframeExtensions :: [String]
-iframeExtensions = [".html", ".htm", ".pdf", ".php"]
+iframeExtensions = [".html", ".htm", ".pdf", ".php", "ipynb"]
 
 uriPathExtension :: String -> String
 uriPathExtension reference =
@@ -260,15 +261,15 @@ uriPathExtension reference =
     Nothing -> takeExtension reference
     Just uri -> takeExtension (U.uriPath uri)
 
-classifyFilePath :: FilePath -> MediaType
-classifyFilePath name =
+classifyFilePath :: FilePath -> [String] -> MediaType
+classifyFilePath name cls =
   case uriPathExtension name of
     ext
       | ext `elem` videoExtensions -> VideoMedia
     ext
       | ext `elem` audioExtensions -> AudioMedia
     ext
-      | ext `elem` iframeExtensions -> IframeMedia
+      | ext `elem` iframeExtensions || "iframe" `elem` cls -> IframeMedia
     _ -> ImageMedia
 
 -- Renders an image with a video reference to a video tag in raw HTML. Faithfully
@@ -292,7 +293,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
                then mediaTag (H.iframe "Browser does not support iframe.")
                else createMediaTag
     createMediaTag =
-      case classifyFilePath url of
+      case classifyFilePath url cls of
         VideoMedia -> mediaTag (H.video "Browser does not support video.")
         AudioMedia -> mediaTag (H.audio "Browser does not support audio.")
         IframeMedia -> mediaTag (H.iframe "Browser does not support iframe.")
@@ -312,7 +313,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
         then "data-src"
         else "src"
     transformedValues =
-      case classifyFilePath url of
+      case classifyFilePath url cls of
         VideoMedia -> lazyLoad $ retrieveVideoStart $ transformImageSize values
         _ -> lazyLoad (transformImageSize values, Nothing)
     lazyLoad (vs, (Just start)) = (srcAttr, url ++ "#t=" ++ start) : vs
