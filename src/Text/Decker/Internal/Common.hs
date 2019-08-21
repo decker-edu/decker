@@ -99,7 +99,8 @@ data Provisioning
 deckerPandocExtensions :: Extensions
 deckerPandocExtensions =
   (disableExtension Ext_auto_identifiers .
-   disableExtension Ext_simple_tables . disableExtension Ext_multiline_tables)
+   disableExtension Ext_simple_tables .
+   disableExtension Ext_multiline_tables . enableExtension Ext_emoji)
     pandocExtensions
 
 pandocReaderOpts :: ReaderOptions

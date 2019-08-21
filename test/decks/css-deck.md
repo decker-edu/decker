@@ -72,3 +72,10 @@ ghci> :type [1,2,3,4]
 ghci> :type [1,2,3,4]
 [1,2,3,4] :: Num a => [a]
 ```
+# Smile
+
+```.markdown
+:smile:
+```
+
+[:smile:]{.xx-large}
