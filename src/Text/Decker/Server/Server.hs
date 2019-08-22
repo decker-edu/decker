@@ -14,7 +14,9 @@ import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.State
-import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
+import Data.ByteString.UTF8
 import Data.Maybe
 import Data.Text
 import Network.WebSockets
@@ -67,7 +69,8 @@ reloadAll state = withMVar state $ mapM_ reload
 -- Runs the server. Never returns.
 runHttpServer :: MVar ServerState -> ProjectDirs -> Int -> IO ()
 runHttpServer state dirs port = do
-  let supportPath = BS.pack $ "/" ++ makeRelativeTo (dirs ^. public) (dirs ^. support)
+  let supportPath =
+        fromString $ "/" ++ makeRelativeTo (dirs ^. public) (dirs ^. support)
   let documentRoot = dirs ^. public
   devRun <- isDevelopmentRun
   let supportRoot =
@@ -78,11 +81,12 @@ runHttpServer state dirs port = do
   let routes =
         route
           [ ("/reload", runWebSocketsSnap $ reloader state)
-          , ("/dachdecker", method POST serveDachdecker)
-          , ( "/reload.html" -- Just for testing the thing.
+          , ("/dachdecker", method POST $ serveDachdecker)
+          , ( "/reload.html"
             , serveFile $ dirs ^. project </> "test" </> "reload.html")
           , (supportPath, serveDirectoryNoCaching supportRoot)
-          , ("/", serveDirectoryNoCaching documentRoot)
+          , ("/", method PUT $ saveAnnotation (dirs ^. project))
+          , ("/", method GET $ serveDirectoryNoCaching documentRoot)
           ]
   let tryRun port 0 = fail "decker server: All ports already in use"
   let tryRun port tries =
@@ -94,6 +98,25 @@ runHttpServer state dirs port = do
                 show port ++ "already in use, trying port " ++ show (port + 1))
              tryRun (port + 1) (tries - 1))
   tryRun port 10
+
+-- | Save the request body in the project directory under the request path. But
+-- only if the request path ends on "-annot.json" and the local directory
+-- already exists. 
+saveAnnotation :: MonadSnap m => FilePath -> m ()
+saveAnnotation root = do
+  path <- getsRequest rqPathInfo
+  if BS.isSuffixOf "-annot.json" path
+    then do
+      let destination = root </> toString path
+      body <- readRequestBody 10000000
+      exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
+      if exists
+        then do
+          liftIO $ BSL.writeFile destination body
+          writeText $ pack ("annotation stored at: " ++ destination)
+        else modifyResponse $
+             setResponseStatus 500 "Destination directory does not exist"
+    else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
 
 serveDirectoryNoCaching :: MonadSnap m => FilePath -> m ()
 serveDirectoryNoCaching directory = do
@@ -108,11 +131,11 @@ serveDachdecker = do
   username <- getPostParam "user"
   password <- getPostParam "password"
   maybeToken <-
-    if (isJust username) && (isJust password)
+    if isJust username && isJust password
       then liftIO $
-           login (BS.unpack $ fromJust username) (BS.unpack $ fromJust password)
+           login (toString $ fromJust username) (toString $ fromJust password)
       else do
-        liftIO $ putStrLn $ "Missing either username or password"
+        liftIO $ putStrLn "Missing either username or password"
         return Nothing
   case maybeToken of
     Just token ->
@@ -120,7 +143,7 @@ serveDachdecker = do
       pack
         ("{\"token\": \"" ++
          token ++ "\",\"server\": \"" ++ dachdeckerUrl ++ "\"}")
-    Nothing -> liftIO $ putStrLn $ "Error logging into the Dachdecker server"
+    Nothing -> liftIO $ putStrLn "Error logging into the Dachdecker server"
 
 -- | Starts a server in a new thread and returns the thread id.
 startHttpServer :: ProjectDirs -> Int -> IO Server
