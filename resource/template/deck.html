@@ -91,6 +91,8 @@ $body$
   </div>
 
   <script src="$decker-support-dir$/vendor/reveal/js/reveal.js"></script>
+  <script src="$decker-support-dir$/vendor/jquery.js"></script>
+  <script src="$decker-support-dir$/vendor/piklor.js"></script>
 
   <script>
       // Full list of configuration options available at:
@@ -99,7 +101,6 @@ $body$
         pdfMaxPagesPerSlide: 1,
         pdfSeparateFragments: false,
         // Display controls in the bottom right corner
-
 $if(controls)$
         controls: $controls$,
 $else$
@@ -379,8 +380,6 @@ $endif$
         ]
       });
     </script>
-    <script src="$decker-support-dir$/vendor/jquery.js" type="text/javascript"></script>
-    <script src="$decker-support-dir$/vendor/piklor.js" type="text/javascript"></script>
     <script src="$decker-support-dir$/js/quiz.js" type="text/javascript"></script>
     <script src="$decker-support-dir$/js/decker.js" type="text/javascript"></script>
     <!-- Reload on change machinery -->

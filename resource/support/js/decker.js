@@ -1,19 +1,22 @@
 window.addEventListener('ready', function (event) {
-  fixAutoplayWithStart();
   if (Reveal.isReady()) {
+      deckerStart();
+  } else {
+     Reveal.addEventListener("ready", deckerStart);
+  }
+});
+
+
+// Fix some decker-specific things after Reveal
+// has been initialized
+function deckerStart() {
+    fixAutoplayWithStart();
     // makeVertical();
     quizModule.quiz();
     currentDate();
-  } else {
-    // Reveal.addEventListener("ready", makeVertical);
-  }
-  $("div.sourceCode[label]").each(function() {
-    $("<div/>")
-      .addClass("language-label")
-      .text($(this).attr("label"))
-      .prependTo($(this).children('pre'));
-  });
-});
+    addSourceCodeLabels();
+}
+
 
 function fixAutoplayWithStart() {
   for (let vid of document.getElementsByTagName("video")) {
@@ -85,4 +88,14 @@ function makeVertical() {
   }
   Reveal.sync();
   Reveal.setState(Reveal.getState());
+}
+
+
+function addSourceCodeLabels() {
+  $("div.sourceCode[label]").each(function() {
+    $("<div/>")
+      .addClass("language-label")
+      .text($(this).attr("label"))
+      .prependTo($(this).children('pre'));
+  });
 }
