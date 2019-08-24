@@ -1,10 +1,15 @@
-window.addEventListener('ready', function (event) {
-  if (Reveal.isReady()) {
-    deckerStart();
-  } else {
-    Reveal.addEventListener("ready", deckerStart);
-  }
-});
+if (typeof Reveal === 'undefined')
+{
+    console.error("decker.js has to be loaded after reveal.js");
+}
+else
+{
+    if (Reveal.isReady()) {
+        deckerStart();
+    } else {
+        Reveal.addEventListener("ready", deckerStart);
+    }
+}
 
 
 // Fix some decker-specific things after Reveal
