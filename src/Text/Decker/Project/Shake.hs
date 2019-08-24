@@ -6,6 +6,7 @@ module Text.Decker.Project.Shake
   , appDataA
   , cacheA
   , calcSource
+  , calcSource'
   , decksA
   , decksPdfA
   , getRelativeSupportDir
@@ -200,13 +201,13 @@ waitForChange inDirs =
        forM_
          inDirs
          (\dir -> do
-            putStrLn $ "watching dir: " ++ dir
+            -- putStrLn $ "watching dir: " ++ dir
             Notify.watchDir
               manager
               dir
               (const True)
               (\e -> do
-                 putStrLn $ "changed: " ++ show e
+                 -- putStrLn $ "changed: " ++ show e
                  putMVar done ()))
        takeMVar done)
 
@@ -500,6 +501,12 @@ calcSource targetSuffix srcSuffix target = do
           target
   need [src]
   return src
+
+-- |  calcSource without the call to need and without the suffix replacement
+calcSource' :: FilePath -> Action FilePath
+calcSource' target = do
+  dirs <- projectDirsA
+  return $ dirs ^. project </> makeRelative (dirs ^. public) target
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = do

@@ -4,6 +4,8 @@ import WatchTests
 import MetaTests
 import IncludeTests
 
+import ShortLinkTests
+
 import Control.Lens ((^.))
 import qualified Data.ByteString.Char8 as B
 import qualified Data.HashMap.Strict as H
@@ -12,7 +14,6 @@ import Data.Maybe
 import Data.Text
 import Data.Text.Encoding
 import qualified Data.Yaml as Y
-import Text.Decker.Filter.Filter
 import Text.Decker.Project.Project as P
 import Text.Decker.Resource.Resource
 import qualified System.Directory as Dir
@@ -31,6 +32,7 @@ main = do
   --
    do
     includeTests
+    shortLinkTests
     -- watchTests
     -- sketchTests
     metaTests
@@ -90,17 +92,6 @@ main = do
         Dir.pathIsSymbolicLink
           ((dirs ^. public) </> "resource/example/img/haskell.png") `shouldReturn`
           True
-    --
-    describe "convertMediaAttributes" $
-      it
-        "transfers 'width' and 'height' attribute values to css style values and add them to the 'style' attribute value." $ do
-        convertMediaAttributes ("", [], [("width", "100%")]) `shouldBe`
-          ("", [], [("style", "width:100%;")])
-        convertMediaAttributes ("", [], [("height", "50%")]) `shouldBe`
-          ("", [], [("style", "height:50%;")])
-        convertMediaAttributes
-          ("", [], [("width", "100%"), ("style", "color:red;")]) `shouldBe`
-          ("", [], [("style", "color:red;width:100%;")])
 
 meta :: Meta
 meta =

@@ -15,6 +15,7 @@ module Text.Decker.Internal.Meta
   , lookupMetaBool
   , lookupMetaString
   , lookupMetaStringList
+  , lookupMetaStringMap
   , lookupMetaInt
   , metaValueAsString
   , pandocMeta
@@ -197,6 +198,9 @@ lookupMetaString meta key = lookupMeta' meta key >>= metaToString
 lookupMetaStringList :: Meta -> String -> Maybe [String]
 lookupMetaStringList meta key = lookupMeta' meta key >>= metaToStringList
 
+lookupMetaStringMap :: Meta -> String -> Maybe (M.Map String String)
+lookupMetaStringMap meta key = lookupMeta' meta key >>= metaToStringMap
+
 metaToString :: MetaValue -> Maybe String
 metaToString (MetaString string) = Just string
 metaToString (MetaInlines inlines) = Just $ stringify inlines
@@ -205,6 +209,20 @@ metaToString _ = Nothing
 metaToStringList :: MetaValue -> Maybe [String]
 metaToStringList (MetaList list) = Just $ mapMaybe metaToString list
 metaToStringList _ = Nothing
+
+metaToStringMap :: MetaValue -> Maybe (M.Map String String)
+metaToStringMap (MetaMap metaMap) =
+  case M.foldlWithKey'
+         (\a k v ->
+            case metaToString v of
+              Just string -> M.insert k string a
+              _ -> a)
+         M.empty
+         metaMap of
+    stringMap
+      | null stringMap -> Nothing
+    stringMap -> Just stringMap
+metaToStringMap _ = Nothing
 
 lookupMetaInt :: Meta -> String -> Maybe Int
 lookupMetaInt meta key = lookupMetaString meta key >>= readMaybe
@@ -226,5 +244,5 @@ lookupValue :: String -> Y.Value -> Maybe Y.Value
 lookupValue key (Y.Object hashTable) = H.lookup (T.pack key) hashTable
 lookupValue _ _ = Nothing
 
-pandocMeta :: (Meta -> String -> Maybe a) -> Pandoc -> String -> Maybe a  
-pandocMeta f (Pandoc m _) = f m 
+pandocMeta :: (Meta -> String -> Maybe a) -> Pandoc -> String -> Maybe a
+pandocMeta f (Pandoc m _) = f m

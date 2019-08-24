@@ -6,6 +6,7 @@ import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.MarioMedia
+import Text.Decker.Filter.ShortLink
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Render
 import Text.Decker.Internal.Common
@@ -76,21 +77,21 @@ readAndProcessMarkdown markdownFile disp = do
       case lookupMetaBool meta "mario" of
         Just True ->
           concatM
-            [ expandDeckerMacros
+            [ evaluateShortLinks
+            , expandDeckerMacros
             , renderCodeBlocks
             , includeCode
             , provisionResources
             , renderQuizzes
             , processSlides
             , marioMedia
-          -- , renderMediaTags
-          -- , extractFigures
             , processCitesWithDefault
             , appendScripts
             ]
         _ ->
           concatM
-            [ expandDeckerMacros
+            [ evaluateShortLinks
+            , expandDeckerMacros
             , renderCodeBlocks
             , includeCode
             , provisionResources
