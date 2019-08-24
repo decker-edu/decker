@@ -26,7 +26,7 @@ import Data.String ()
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
-import System.Directory (removeFile, copyFile)
+import System.Directory (removeFile)
 import System.Environment.Blank
 import System.FilePath ()
 import Text.Groom
