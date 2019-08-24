@@ -1,19 +1,17 @@
-// window.addEventListener('ready', function (event) {
-//   deckerStart();
-//   // if (Reveal.isReady()) {
-//   //     deckerStart();
-//   // } else {
-//   //    Reveal.addEventListener("ready", deckerStart);
-//   // }
-// });
+window.addEventListener('ready', function (event) {
+  if (Reveal.isReady()) {
+    deckerStart();
+  } else {
+    Reveal.addEventListener("ready", deckerStart);
+  }
+});
 
-deckerStart();
 
 // Fix some decker-specific things after Reveal
 // has been initialized
 function deckerStart() {
   fixAutoplayWithStart();
-  makeVertical();
+  // makeVertical();
   quizModule.quiz();
   currentDate();
   addSourceCodeLabels();
