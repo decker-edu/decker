@@ -1,19 +1,24 @@
-window.addEventListener('ready', function (event) {
+// window.addEventListener('ready', function (event) {
+//   deckerStart();
+//   // if (Reveal.isReady()) {
+//   //     deckerStart();
+//   // } else {
+//   //    Reveal.addEventListener("ready", deckerStart);
+//   // }
+// });
+
+deckerStart();
+
+// Fix some decker-specific things after Reveal
+// has been initialized
+function deckerStart() {
   fixAutoplayWithStart();
-  if (Reveal.isReady()) {
-    // makeVertical();
-    quizModule.quiz();
-    currentDate();
-  } else {
-    // Reveal.addEventListener("ready", makeVertical);
-  }
-  $("div.sourceCode[label]").each(function() {
-    $("<div/>")
-      .addClass("language-label")
-      .text($(this).attr("label"))
-      .prependTo($(this).children('pre'));
-  });
-});
+  makeVertical();
+  quizModule.quiz();
+  currentDate();
+  addSourceCodeLabels();
+}
+
 
 function fixAutoplayWithStart() {
   for (let vid of document.getElementsByTagName("video")) {
@@ -31,7 +36,7 @@ function fixAutoplayWithStart() {
 // if string provided for date in yaml header is "today"
 function currentDate() {
   var date = document.getElementsByClassName("date")[0];
-  if(!date) return;
+  if (!date) return;
   var dateString = date.textContent;
 
   var today = new Date().toISOString().substr(0, 10);
@@ -85,4 +90,14 @@ function makeVertical() {
   }
   Reveal.sync();
   Reveal.setState(Reveal.getState());
+}
+
+
+function addSourceCodeLabels() {
+  $("div.sourceCode[label]").each(function () {
+    $("<div/>")
+      .addClass("language-label")
+      .text($(this).attr("label"))
+      .prependTo($(this).children('pre'));
+  });
 }
