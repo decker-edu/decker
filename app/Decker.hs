@@ -19,6 +19,7 @@ import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Control.Monad.Extra
+import Control.Concurrent
 import Data.IORef ()
 import Data.List
 import Data.Maybe
@@ -28,7 +29,7 @@ import Development.Shake
 import Development.Shake.FilePath
 import System.Directory (removeFile)
 import System.Environment.Blank
-import System.FilePath ()
+import System.IO
 import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc
@@ -124,6 +125,10 @@ run = do
     phony "server" $ do
       need ["watch"]
       runHttpServer serverPort directories Nothing
+    --
+    phony "presentation" $ do
+      runHttpServer serverPort directories Nothing
+      liftIO $ waitForYes
     --
     phony "example" $ liftIO writeExampleProject
     --
@@ -275,3 +280,14 @@ run = do
         else throw RsyncUrlException
     --
     phony "sync" $ uploadQuizzes (_sources <$> targetsA)
+
+waitForYes :: IO ()
+waitForYes = do
+  threadDelay 1000
+  putStr "\nDecker server running. Push ENTER to terminate."
+  hFlush stdout
+  _ <- getLine
+  putStr "Terminate server? (y/N): "
+  hFlush stdout
+  input <- getLine
+  unless (input == "y") waitForYes
