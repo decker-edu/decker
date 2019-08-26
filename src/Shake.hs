@@ -31,6 +31,7 @@ module Shake
   , writeDeckIndex
   , writeSketchPadIndex
   , withShakeLock
+  , waitForChange
   ) where
 
 import Common
@@ -52,6 +53,9 @@ import Control.Lens.Combinators
 import Control.Monad
 import Data.Aeson as Json
 import Data.Aeson.Lens
+import qualified Data.ByteString.Base16 as B16
+import qualified Data.ByteString.Lazy as B
+import Data.Digest.Pure.MD5
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import Data.IORef
@@ -59,6 +63,7 @@ import Data.List
 import qualified Data.Map.Strict as M
 import Data.Maybe
 import qualified Data.Text as T
+import Data.Text.Encoding
 import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
@@ -76,6 +81,7 @@ import Development.Shake as Shake
   , shakeOptions
   , withResource
   )
+import qualified Network.URI as U
 import System.Directory as Dir
 import qualified System.FSNotify as Notify
 import System.FilePath
@@ -205,6 +211,11 @@ getRelativeSupportDir from = do
   let sup = pub </> ("support" ++ "-" ++ deckerVersion)
   return $ makeRelativeTo from sup
 
+sketchPadId :: T.Text -> T.Text
+sketchPadId text =
+  T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ B.fromStrict $
+  encodeUtf8 text
+
 getSupportDir :: Meta -> FilePath -> FilePath -> Action FilePath
 getSupportDir meta out defaultPath = do
   dirs <- projectDirsA
@@ -219,53 +230,74 @@ getSupportDir meta out defaultPath = do
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
+  let generateIds = lookupBool "generate-ids" False meta
+  if not generateIds
+    then return pandoc
+    else writeDeckIndex' markdownFile out pandoc
+
+writeDeckIndex' :: FilePath -> FilePath -> Pandoc -> Action Pandoc
+writeDeckIndex' markdownFile out pandoc@(Pandoc meta _) = do
+  putNormal $ "# write deck index (" ++ out ++ ")"
   context <- actionContext
   branch <- liftIO $ textFromMaybe <$> gitBranch
   commit <- liftIO $ textFromMaybe <$> gitRevision
   gitUrl <- liftIO $ textFromMaybe <$> gitOriginUrl
+  let repoId = sketchPadId gitUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
-  let title = metaP pandoc "title"
-  let subtitle = metaP pandoc "subtitle"
+  let title = lookupString "title" "" meta
+  let subtitle = lookupString "subtitle" "" meta
   let indexUrl = T.pack $ "/" </> makeRelative publ out
   let sourceDir = T.pack $ makeRelative proj $ takeDirectory markdownFile
   let sourceFile = T.pack $ makeRelative proj markdownFile
-  let slides =
-        [ object
+  let deckId = sketchPadId sourceFile
+  let slideObject i t =
+        object
           [ ("id", String $ T.strip $ T.pack i)
           , ("title", String $ T.strip $ T.pack t)
           ]
-        | (i, t) <- query headers pandoc
-        ]
+  let slides = [slideObject i t | (i, t) <- query headers pandoc]
+  let fixTitleId slides =
+        if title == ""
+          then slides
+          else slideObject "decker-title-slide" title : slides
   let yaml =
         object
           [ ("commit-id", String commit)
           , ("branch", String branch)
           , ("index-url", String indexUrl)
           , ("repository-url", String gitUrl)
+          , ("repository-id", String repoId)
           , ("source-directory", String sourceDir)
           , ("source-file", String sourceFile)
-          , ("title", String title)
-          , ("subtitle", String subtitle)
-          , ("slides", array slides)
+          , ("deck-id", String deckId)
+          , ("title", String $ T.pack title)
+          , ("subtitle", String $ T.pack subtitle)
+          , ("slides", array $ fixTitleId slides)
           ]
   liftIO $ Yaml.encodeFile out yaml
   liftIO $ Json.encodeFile (out -<.> "json") yaml
-  return pandoc
+  return $ injectIds deckId repoId pandoc
   where
     headers (Header 1 (id@(_:_), _, _) text) = [(id, stringify text)]
     headers _ = []
+    injectIds :: T.Text -> T.Text -> Pandoc -> Pandoc
+    injectIds deckId repoId (Pandoc meta blocks) =
+      Pandoc
+        (addMetaField "sketch-pad-deck-id" (T.unpack deckId) $
+         addMetaField "sketch-pad-repository-id" (T.unpack repoId) meta)
+        blocks
 
 textFromMaybe = T.strip . T.pack . fromMaybe "<empty>"
 
-metaP p k = T.strip $ T.pack $ stringify (p ^? meta k . _MetaInlines)
-
 writeSketchPadIndex :: FilePath -> [FilePath] -> Action ()
 writeSketchPadIndex out indexFiles = do
+  putNormal $ "# write sketch-pad index (" ++ out ++ ")"
   context <- actionContext
   branch <- liftIO $ textFromMaybe <$> gitBranch
   commit <- liftIO $ textFromMaybe <$> gitRevision
   gitUrl <- liftIO $ textFromMaybe <$> gitOriginUrl
+  let repoId = sketchPadId gitUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
   decks <-
@@ -276,17 +308,19 @@ writeSketchPadIndex out indexFiles = do
           [ ("commit-id", String commit)
           , ("branch", String branch)
           , ("repository-url", String gitUrl)
+          , ("repository-id", String repoId)
           , ("decks", array decks)
           ]
   liftIO $ Yaml.encodeFile out yaml
   liftIO $ Json.encodeFile (out -<.> "json") yaml
 
-deckEntry :: FilePath -> T.Text -> T.Text -> Yaml.Value
-deckEntry path title subtitle =
+deckEntry :: FilePath -> T.Text -> T.Text -> T.Text -> Yaml.Value
+deckEntry path title subtitle did =
   object
     [ ("path", String $ T.pack path)
     , ("title", String title)
     , ("subtitle", String subtitle)
+    , ("deck-id", String did)
     ]
 
 analyseDeckIndex :: FilePath -> FilePath -> IO (Maybe Yaml.Value)
@@ -303,6 +337,7 @@ analyseDeckIndex relDir indexFile = do
                  (makeRelative relDir indexFile)
                  (yaml ^. key "title" . _String)
                  (yaml ^. key "subtitle" . _String)
+                 (yaml ^. key "deck-id" . _String)
           else Nothing
       Left e -> error $ "No fucking luck: " ++ show e ++ indexFile
 
@@ -367,7 +402,7 @@ allPdfA = mapTargets [_decksPdf, _pagesPdf, _handoutsPdf]
 
 withShakeLock :: Action a -> Action a
 withShakeLock perform = do
-  r <- (_publicResource . _state) <$> actionContext
+  r <- _publicResource . _state <$> actionContext
   withResource r 1 perform
 
 -- Runs the built-in server on the given directory, if it is not already

@@ -30,70 +30,72 @@ data ExternalProgram = ExternalProgram
 
 programs :: [(String, ExternalProgram)]
 programs =
-  [ ( "ssh"
-    , ExternalProgram
-        []
-        "ssh"
-        []
-        ["-V"]
-        (helpText "`ssh` program (https://www.openssh.com)"))
-  , ( "rsync"
-    , ExternalProgram
-        []
-        "rsync"
-        [ "--recursive"
-        , "--no-group"
-        , "--perms"
-        , "--chmod=a+r,go-w"
-        , "--no-owner"
-        , "--copy-links"
-        ]
-        ["--version"]
-        (helpText "`rsync` program (https://rsync.samba.org)"))
-  , ( "unzip"
-    , ExternalProgram
-        []
-        "unzip"
-        []
-        []
-        (helpText "`unzip` program (http://www.info-zip.org)"))
-  , ( "dot"
-    , ExternalProgram
-        []
-        "dot"
-        ["-Tsvg"]
-        ["-V"]
-        (helpText "Graphviz package (http://www.graphviz.org)"))
-  , ( "gnuplot"
-    , ExternalProgram
-        []
-        "gnuplot"
-        ["-d", "-e", "set terminal svg enhanced mouse"]
-        ["-V"]
-        (helpText "Gnuplot package (http://gnuplot.sourceforge.net)"))
-  , ( "pdflatex"
-    , ExternalProgram
-        []
-        "pdflatex"
-        ["-halt-on-error", "-interaction=batchmode", "-no-shell-escape"]
-        ["--version"]
-        (helpText "LaTeX type setter (https://www.tug.org/texlive/)"))
-  , ( "pdf2svg"
-    , ExternalProgram
-        []
-        "pdf2svg"
-        []
-        []
-        (helpText "LaTeX type setter (https://github.com/dawbarton/pdf2svg)"))
-  , ( "decktape"
-    , ExternalProgram
-        []
-        "decktape"
-        ["reveal"]
-        []
-        (helpText
-           "Decktape PDF exporter (https://github.com/astefanutti/decktape)"))
-  ]
+    [ ( "ssh"
+            , ExternalProgram
+            []
+            "ssh"
+            []
+            ["-V"]
+            (helpText "`ssh` program (https://www.openssh.com)"))
+    , ( "rsync"
+            , ExternalProgram
+            []
+            "rsync"
+            [ "--recursive"
+            , "--no-group"
+            , "--perms"
+            , "--chmod=a+r,go-w"
+            , "--no-owner"
+            , "--copy-links"
+            , "--exclude" 
+            , "index.html"  
+            ]
+            ["--version"]
+            (helpText "`rsync` program (https://rsync.samba.org)"))
+    , ( "unzip"
+            , ExternalProgram
+            []
+            "unzip"
+            []
+            []
+            (helpText "`unzip` program (http://www.info-zip.org)"))
+    , ( "dot"
+            , ExternalProgram
+            []
+            "dot"
+            ["-Tsvg"]
+            ["-V"]
+            (helpText "Graphviz package (http://www.graphviz.org)"))
+    , ( "gnuplot"
+            , ExternalProgram
+            []
+            "gnuplot"
+            ["-d", "-e", "set terminal svg enhanced mouse"]
+            ["-V"]
+            (helpText "Gnuplot package (http://gnuplot.sourceforge.net)"))
+    , ( "pdflatex"
+            , ExternalProgram
+            []
+            "pdflatex"
+            ["-halt-on-error", "-interaction=batchmode", "-no-shell-escape"]
+            ["--version"]
+            (helpText "LaTeX type setter (https://www.tug.org/texlive/)"))
+    , ( "pdf2svg"
+            , ExternalProgram
+            []
+            "pdf2svg"
+            []
+            []
+            (helpText "LaTeX type setter (https://github.com/dawbarton/pdf2svg)"))
+    , ( "decktape"
+            , ExternalProgram
+            []
+            "decktape"
+            ["reveal"]
+            []
+            (helpText
+             "Decktape PDF exporter (https://github.com/astefanutti/decktape)"))
+    ]
 
 type Program = [String] -> Action ()
 

@@ -1,0 +1,155 @@
+body {
+  background: white;
+  -webkit-print-color-adjust: exact; // No standard: https://developer.mozilla.org/de/docs/Web/CSS/-webkit-print-color-adjust
+
+  .decker-page {
+    font-family: "Roboto", sans-serif;
+    font-size: 16px;
+    // font-weight: normal;
+    // color: rgba(0, 0, 0, 1);
+    max-width: 800px;
+
+    .page-header {
+      font-size: 160%;
+      font-weight: 700;
+      small {
+        white-space: nowrap;
+      }
+    }
+
+    h1 {
+      font-size: 130%;
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: 120%;
+      font-weight: 700;
+    }
+
+    h3 {
+      font-size: 110%;
+      font-weight: 700;
+    }
+
+    h4 {
+      font-size: 100%;
+      font-weight: 700;
+    }
+
+    .smallcaps {
+      font-variant: small-caps;
+    }
+
+    .line-block {
+      white-space: pre-line;
+    }
+
+    code {
+      font-family: "Source Code Pro", monospace;
+      font-size: 100%;
+      font-weight: 500;
+      color: #06287e;
+    }
+
+    /////////////////////////////////////////////
+    // Lists
+    /////////////////////////////////////////////
+    ol,
+    dl,
+    ul {
+      text-align: left;
+    }
+
+    ol {
+      list-style-type: decimal;
+    }
+
+    ul {
+      list-style-type: disc;
+
+      ul {
+        list-style-type: disc;
+
+        ul {
+          list-style-type: disc;
+        }
+      }
+    }
+
+    a {
+      color: #009;
+      text-decoration: none;
+
+      &:hover {
+        color: blue;
+        text-shadow: none;
+        border: none;
+
+        img {
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          box-shadow: none;
+        }
+      }
+    }
+
+    // iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
+    &.videoWrapper {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 */
+      padding-top: 0;
+      height: 0;
+
+      iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+
+  /////////////////////////////////////////////
+  // Media
+  /////////////////////////////////////////////
+  img {
+    max-width: 75%;
+    margin: 0 auto;
+    display: block;
+    border: none;
+    box-shadow: none;
+    border-radius: 0.25em;
+  }
+
+  figure {
+    margin: 0 0 0 0;
+    text-align: center;
+
+    figcaption {
+      font-size: 0.8em;
+      font-style: italic;
+    }
+  }
+
+  video {
+    width: 100%;
+    margin: 0 auto;
+    display: block;
+  }
+
+  @media print {
+    @page {
+      size: A4; /* DIN A4 standard, Europe */
+      margin: 0;
+    }
+    html,
+    body {
+      overflow: visible;
+    }
+    a:link:after {
+      content: " (" attr(href) ") ";
+    }
+  }
+}

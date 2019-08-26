@@ -1,8 +1,11 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+module Decker where
+
 import Common
 import Exception
 import External
 import Flags (hasPreextractedResources)
+import Format
 import Output
 import Pdf
 import Project
@@ -33,9 +36,17 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Pandoc.Definition
 import Text.Printf (printf)
+import Text.Read
 
 main :: IO ()
 main = do
+  args <- getArgs
+  if length args == 1 && head args == "format"
+    then formatMarkdown
+    else run
+
+run :: IO ()
+run = do
   when isDevelopmentVersion $
     printf
       "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please be sure that you know what you're doing.\n"
@@ -47,7 +58,7 @@ main = do
   directories <- projectDirectories
   --
   let serverPort = 8888
-  let serverUrl = "http://localhost:" ++ (show serverPort)
+  let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
   let index = (directories ^. public) </> "index.html"
   let cruft = ["index.md.generated", "log", "//.shake", "generated", "code"]
@@ -82,7 +93,7 @@ main = do
       need ["index"]
     --
     phony "html" $ do
-      need ["support"]
+      need ["support", "publish-annotations"]
       allHtmlA >>= need
       need ["index"]
     --
@@ -186,7 +197,7 @@ main = do
       "//*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
-        dot [("-o" ++ out), src]
+        dot ["-o" ++ out, src]
     --
     priority 2 $
       "//*.gnuplot.svg" %> \out -> do
@@ -230,36 +241,33 @@ main = do
       metaData <- metaA
       unlessM (Development.Shake.doesDirectoryExist (directories ^. support)) $ do
         liftIO $ createDirectoryIfMissing True (directories ^. public)
-        case metaValueAsString "provisioning" metaData of
-          Just value
-            | value == show SymLink ->
-              liftIO $
-              createFileLink
-                ((directories ^. appData) </> "support")
-                (directories ^. support)
-          Just value
-            | value == show Copy ->
-              liftIO $
-              copyDir
-                ((directories ^. appData) </> "support")
-                (directories ^. support)
-          Nothing ->
-            liftIO $
-            case defaultProvisioning of
-              SymLink ->
-                createFileLink
-                  ((directories ^. appData) </> "support")
-                  (directories ^. support)
-              _ ->
-                copyDir
-                  ((directories ^. appData) </> "support")
-                  (directories ^. support)
-          _ -> return ()
+        let provisioning =
+              fromMaybe defaultProvisioning $
+              metaValueAsString "provisioning" metaData >>= readMaybe
+        if provisioning == SymLink
+          then liftIO $
+               createFileLink
+                 ((directories ^. appData) </> "support")
+                 (directories ^. support)
+          else liftIO $
+               copyDir
+                 ((directories ^. appData) </> "support")
+                 (directories ^. support)
     --
     phony "check" checkExternalPrograms
     --
+    phony "publish-annotations" $ do
+      metaData <- metaA
+      when (isJust $ metaValueAsString "publish-annotations" metaData) $ do
+        let src = (directories ^. project) </> "annotations"
+        let dst = (directories ^. public) </> "annotations"
+        exists <- doesDirectoryExist src
+        when exists $ do
+          putNormal $ "# publish annotations (to " ++ dst ++ ")"
+          liftIO $ copyDir src dst
+    --
     phony "publish" $ do
-      need ["support"]
+      need ["support", "sketch-pad-index"]
       allHtmlA >>= need
       metaData <- metaA
       need ["index"]
@@ -269,7 +277,7 @@ main = do
         then do
           let src = (directories ^. public) ++ "/"
           let dst = intercalate ":" [fromJust host, fromJust path]
-          ssh [(fromJust host), "mkdir -p", (fromJust path)]
+          ssh [fromJust host, "mkdir -p", fromJust path]
           rsync [src, dst]
         else throw RsyncUrlException
     --

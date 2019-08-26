@@ -21,10 +21,3 @@ history: True
 
 ![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
 
-# Three.js in a Box
-
-![](mc/webgl_geometry_minecraft_ao.html){.iframe width="100%" height="500px"}
-
-[](../../resource/support/three.js){.resource}
-
-# ![](mc/webgl_geometry_minecraft_ao.html)

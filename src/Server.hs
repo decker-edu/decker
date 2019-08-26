@@ -68,15 +68,24 @@ runHttpServer :: MVar ServerState -> ProjectDirs -> Int -> IO ()
 runHttpServer state dirs port = do
   let documentRoot = dirs ^. public
   config <- serverConfig dirs port
-  handle (\(SomeException e) -> print e) $
-    simpleHttpServe config $
-    route
-      [ ("/reload", runWebSocketsSnap $ reloader state)
-      , ("/dachdecker", method POST serveDachdecker)
-      , ( "/reload.html" -- Just for testing the thing.
-        , serveFile $ dirs ^. project </> "test" </> "reload.html")
-      , ("/", serveDirectoryNoCaching documentRoot)
-      ]
+  let routes =
+        route
+          [ ("/reload", runWebSocketsSnap $ reloader state)
+          , ("/dachdecker", method POST serveDachdecker)
+          , ( "/reload.html" -- Just for testing the thing.
+            , serveFile $ dirs ^. project </> "test" </> "reload.html")
+          , ("/", serveDirectoryNoCaching documentRoot)
+          ]
+  let tryRun port 0 = fail "decker server: All ports already in use"
+  let tryRun port tries =
+        catch
+          (simpleHttpServe (setPort port config) routes)
+          (\(SomeException e) -> do
+             putStrLn
+               ("decker server: Port " ++
+                show port ++ "already in use, trying port " ++ show (port + 1))
+             tryRun (port + 1) (tries - 1))
+  tryRun port 10
 
 serveDirectoryNoCaching :: MonadSnap m => FilePath -> m ()
 serveDirectoryNoCaching directory = do
@@ -120,8 +129,8 @@ reloadClients = reloadAll . snd
 stopHttpServer :: Server -> IO ()
 stopHttpServer = killThread . fst
 
--- Accepts a request and adds the connection to the client list. Then reads
--- reads the connection forever. Removes the client from the list on disconnect.
+-- Accepts a request and adds the connection to the client list. Then reads the
+-- connection forever. Removes the client from the list on disconnect.
 reloader :: MVar ServerState -> PendingConnection -> IO ()
 reloader state pending = do
   connection <- acceptRequest pending

@@ -22,6 +22,7 @@ module Resources
 
 import Common
 import Exception
+import Flags
 import Project
 import Shake
 import System.Decker.OS

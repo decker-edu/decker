@@ -57,13 +57,23 @@ $endif$
 
   <!-- Decker's standard default CSS -->
   <link rel="stylesheet" href="$decker-support-dir$/decker.css">
+  <script src="$decker-support-dir$/decker.js" type="text/javascript"></script>
 
-  <!-- The last word on CSS for the power user -->
+<!-- Sketch Pad meta data -->
+$if(sketch-pad-viewer-url)$
+<script 
+    id="sketch-pad-script"
+    type="text/javascript" 
+    src="$sketch-pad-viewer-url$" 
+    data-repository-id="$sketch-pad-repository-id$"
+    data-deck-id="$sketch-pad-deck-id$">
+</script>
+$endif$
+
+<!-- The last word on CSS for the power user -->
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
 $endfor$
-
-<script src="$decker-support-dir$/decker.js" type="text/javascript"></script>
 
 $for(header-includes)$
   $header-includes$
@@ -121,7 +131,7 @@ $endfor$
     <div class="slides">
 
 $if(title)$
-<section>
+<section id="decker-title-slide">
   <h1 class="title">$title$</h1>
 $if(subtitle)$
   <p class="subtitle">$subtitle$</p>
@@ -146,47 +156,13 @@ $endif$
 $if(chart)$
 <section class="slide level1">
 <h1>$chartName$</h1>
-<canvas id=“$chartId$" data-chart="$data-chart$" width="$width$" height="$height$">
-<!--
-{
-  "data": {
-    "labels":[$for(labels)$"$labels$"$sep$, $endfor$],
-    "datasets":[
-    $for(datasets)$
-    {
-      $if(datasets.fill)$"fill":"$datasets.fill$",$endif$
-      $if(datasets.borderColor)$"borderColor":"$datasets.borderColor$",$endif$
-      $if(datasets.borderWidth)$"borderWidth":$datasets.borderWidth$,$endif$
-      $if(datasets.borderDash)$"borderDash":$datasets.borderDash$,$endif$
-      $if(datasets.backgroundColor)$"backgroundColor":"$datasets.backgroundColor$",$endif$
-      $if(datasets.label)$"label":"$datasets.label$",$endif$
-      "data":[$for(datasets.data)$$datasets.data$$sep$, $endfor$]
-    }$sep$,$endfor$
-    ]
-  },
-  "options": {
-    $if(options.legend.position)$"legend": {
-      "position": "$options.legend.position$"
-    },$endif$
-    $if(options.scales)$"scales": {
-      $if(options.scales.xAxes)$"xAxes":[{
-        $if(options.scales.xAxes.stacked)$
-          "stacked":$options.scales.xAxes.stacked$,$endif$
-        }],$endif$
-      $if(options.scales.yAxes)$"yAxes":[{
-        $if(options.scales.yAxes.stacked)$
-          "stacked": $options.scales.yAxes.stacked$,$endif$
-        }],$endif$
-    },$endif$
-    $if(options.responsive)$"responsive":$options.responsive$$endif$
-  }
-}
--->
-</canvas>
+<canvas id=“$chartId$" data-chart="$data-chart$" width="$width$" height="$height$"></canvas>
 </section>
 $endif$
 
+<!-- body must not be indented or code blocks render badly -->
 $body$
+
     </div>
   </div>
 
@@ -210,7 +186,7 @@ $if(progress)$
 $endif$
 $if(slideNumber)$
         // Display the page number of the current slide
-        slideNumber: $slideNumber$,
+        slideNumber: "$slideNumber$",
 $endif$
 $if(history)$
         // Push each slide change to the browser history

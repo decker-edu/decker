@@ -679,6 +679,16 @@ body {
             font-weight: 500;
             margin: 0;
 
+            div.language-label {
+              position: absolute;
+              right: 0;
+              top: 0;
+              color: #666;
+              background-color: #eee;
+              padding: 0em 0.4em;
+              border-radius: 0.2em;
+            }
+
             &.numberSource {
               margin-left: 3em;
               border-left: 1px solid #aaaaaa;

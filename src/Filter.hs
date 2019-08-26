@@ -38,7 +38,6 @@ import Development.Shake (Action)
 import Network.HTTP.Conduit hiding (InternalException)
 import Network.HTTP.Simple
 import qualified Network.URI as U
-import Network.URI (parseURI, uriScheme)
 import System.Directory
 import System.FilePath
 import Text.Blaze (customAttribute)
@@ -220,7 +219,7 @@ zapImages inline = inline
 -- start snippet includeCode
 includeCode :: Pandoc -> Decker Pandoc
 includeCode (Pandoc meta blocks) = do
-  included <- doIO $ walkM (P.includeCode Nothing) blocks
+  included <- lift $ walkM (P.includeCodeA Nothing) blocks
   return $ Pandoc meta included
 
 -- end snippet includeCode
@@ -353,8 +352,8 @@ extractLocalImagePathes = Text.Pandoc.Walk.query localImagePath
 
 isHttpUri :: String -> Bool
 isHttpUri url =
-  case parseURI url of
-    Just uri -> uriScheme uri `elem` ["http:", "https:"]
+  case U.parseURI url of
+    Just uri -> U.uriScheme uri `elem` ["http:", "https:"]
     Nothing -> False
 
 renderMediaTags :: Pandoc -> Decker Pandoc

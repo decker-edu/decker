@@ -11,12 +11,12 @@ module Utilities
   , metaValueAsString
   , (<++>)
   , pandocMakePdf
+  , pandocReaderOpts
   , fixMustacheMarkup
   , fixMustacheMarkupText
   , toPandocMeta
   , deckerPandocExtensions
   , readMarkdownOrThrow
-  , pandocReaderOpts
   , DeckerException(..)
   ) where
 
@@ -39,7 +39,7 @@ import Text.Pandoc.Lens
 import Control.Arrow
 import Control.Concurrent
 import Control.Exception
-import Control.Lens ((^.), at)
+import Control.Lens ((.~), (^.), (^?), at, set)
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
@@ -73,6 +73,7 @@ import Text.Pandoc.PDF
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
+import Text.Read (readMaybe)
 
 -- | Monadic version of list concatenation.
 (<++>) :: Monad m => m [a] -> m [a] -> m [a]
@@ -146,7 +147,7 @@ getTemplate :: Meta -> Disposition -> Action String
 getTemplate meta disp = do
   let templateOverridePath =
         case templateFromMeta meta of
-          Just template -> Just $ template </> (getTemplateFileName disp)
+          Just template -> Just $ template </> getTemplateFileName disp
           Nothing -> Nothing
   if isJust templateOverridePath
     then do
@@ -156,12 +157,11 @@ getTemplate meta disp = do
     else liftIO $ getResourceString ("template" </> (getTemplateFileName disp))
 
 -- | Write Pandoc in native format right next to the output file
-writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action Pandoc
+writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
 writeNativeWhileDebugging out mod doc@(Pandoc meta body) = do
   liftIO $
     runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
     T.writeFile (out -<.> mod <.> ".hs")
-  return doc
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: FilePath -> FilePath -> FilePath -> Action ()
@@ -191,9 +191,9 @@ markdownToHtmlDeck markdownFile out index = do
               ]
           , writerCiteMethod = Citeproc
           }
-  writeNativeWhileDebugging out "filtered" pandoc >>=
-    writeDeckIndex markdownFile index >>=
+  writeDeckIndex markdownFile index pandoc >>=
     writePandocFile "revealjs" options out
+  writeNativeWhileDebugging out "filtered" pandoc
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -213,14 +213,14 @@ writePandocFile fmt options out pandoc =
 -- TODO: Move to Common? since much of the version checking is done there (Meta is from Pandoc)
 versionCheck :: Meta -> Action ()
 versionCheck meta =
-  unless isDevelopmentVersion $
-  case lookupMeta "decker-version" meta of
-    Just (MetaInlines version) -> check $ stringify version
-    Just (MetaString version) -> check version
-    _ ->
-      putNormal $
-      "  - Document version unspecified. This is decker version " ++
-      deckerVersion ++ "."
+  unless isDevelopmentVersion $ do
+    let version = lookupMetaString meta "decker-version"
+    case version of
+      Just version -> check version
+      _ ->
+        putNormal $
+        "  - Document version unspecified. This is decker version " ++
+        deckerVersion ++ "."
   where
     check version =
       when (List.trim version /= List.trim deckerVersion) $
@@ -288,9 +288,9 @@ markdownToHtmlPage markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Page Html
-  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate meta disp
-  templateSupportDir <- getSupportDir meta out supportDir
+  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
+  template <- getTemplate docMeta disp
+  templateSupportDir <- getSupportDir docMeta out supportDir
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
@@ -302,6 +302,8 @@ markdownToHtmlPage markdownFile out = do
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
+          , writerTableOfContents = lookupBool "show-toc" False docMeta
+          , writerTOCDepth = lookupInt "toc-depth" 1 docMeta
           }
   writePandocFile "html5" options out pandoc
 
@@ -336,9 +338,9 @@ markdownToHtmlHandout markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Handout Html
-  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate meta disp
-  templateSupportDir <- getSupportDir meta out supportDir
+  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
+  template <- getTemplate docMeta disp
+  templateSupportDir <- getSupportDir docMeta out supportDir
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
@@ -350,6 +352,8 @@ markdownToHtmlHandout markdownFile out = do
                  "MathJax.js?config=TeX-AMS_HTML")
           , writerVariables = [("decker-support-dir", templateSupportDir)]
           , writerCiteMethod = Citeproc
+          , writerTableOfContents = lookupBool "show-toc" False docMeta
+          , writerTOCDepth = lookupInt "toc-depth" 1 docMeta
           }
   writePandocFile "html5" options out pandoc
 
@@ -377,31 +381,34 @@ readMetaMarkdown markdownFile = do
   need [markdownFile]
   -- read external meta data for this directory
   externalMeta <-
-    liftIO $ aggregateMetaData projectDir (takeDirectory markdownFile)
-  -- extract embedded meta data from the document
-  markdown <- liftIO $ E.decodeUtf8 <$> B.readFile markdownFile
-  let pandoc = readMarkdownOrThrow pandocReaderOpts markdown
-  Pandoc fileMeta fileBlocks <- liftIO $ provideSlideIds pandoc
-  let documentMeta = MetaMap $ unMeta fileMeta
+    liftIO $
+    toPandocMeta <$> aggregateMetaData projectDir (takeDirectory markdownFile)
+  markdown <- liftIO $ T.readFile markdownFile
+  let filePandoc@(Pandoc fileMeta fileBlocks) =
+        readMarkdownOrThrow pandocReaderOpts markdown
+  let combinedMeta = mergePandocMeta fileMeta externalMeta
+  let generateIds = lookupBool "generate-ids" False combinedMeta
+  Pandoc fileMeta fileBlocks <- maybeGenerateIds generateIds filePandoc
   -- combine the meta data with preference on the embedded data
-  let combinedMeta = mergePandocMeta documentMeta (toPandocMeta externalMeta)
+  let combinedMeta = mergePandocMeta fileMeta externalMeta
   let mustacheMeta = toMustacheMeta combinedMeta
    -- use mustache to substitute
   let substituted = substituteMetaData markdown mustacheMeta
   -- read markdown with substitutions again
-  let Pandoc _ blocks = readMarkdownOrThrow pandocReaderOpts substituted
-  case combinedMeta of
-    (MetaMap m) -> do
-      versionCheck (Meta m)
-      case lookupMeta "generate-ids" (Meta m) of
-        Just (MetaBool True) ->
-          liftIO $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
-          -- markForWriteBack markdownFile (Pandoc fileMeta fileBlocks)
-        _ -> pure ()
-      mapResources
-        (urlToFilePathIfLocal (takeDirectory markdownFile))
-        (Pandoc (Meta m) blocks)
-    _ -> throw $ PandocException "Meta format conversion failed."
+  let Pandoc _ substitudedBlocks =
+        readMarkdownOrThrow pandocReaderOpts substituted
+  versionCheck combinedMeta
+  let writeBack = lookupBool "write-back.enable" False combinedMeta
+  when (generateIds || writeBack) $
+    writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
+  mapResources
+    (urlToFilePathIfLocal (takeDirectory markdownFile))
+    (Pandoc combinedMeta substitudedBlocks)
+  where
+    maybeGenerateIds doit pandoc =
+      if doit
+        then liftIO $ provideSlideIds pandoc
+        else return pandoc
 
 readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
 readMarkdownOrThrow opts markdown =

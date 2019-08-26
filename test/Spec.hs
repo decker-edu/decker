@@ -1,6 +1,8 @@
 import SketchTests
 import Test.Hspec
 import WatchTests
+import MetaTests
+import IncludeTests
 
 import Control.Lens ((^.))
 import qualified Data.ByteString.Char8 as B
@@ -29,8 +31,10 @@ main = do
   hspec $
   --
    do
-    watchTests
-    sketchTests
+    includeTests
+    -- watchTests
+    -- sketchTests
+    metaTests
     describe "makeRelativeTo" $
       it "calculates the path of file relative to dir. Includes '..'" $ do
         makeRelativeTo "" "img.png" `shouldBe` "img.png"
