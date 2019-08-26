@@ -221,7 +221,7 @@ body {
           margin-left: 1.1em;
           // lists always fill 100% of the space of their parent element.
           // TODO: does this have consequences?
-          width: 100%;
+          width: inherit;
         }
         
         li {
