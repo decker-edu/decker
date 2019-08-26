@@ -75,10 +75,6 @@ RESOURCES += $(support)/whiteboard/whiteboard.js
 $(support)/whiteboard/whiteboard.js: mb-reveal-plugins/whiteboard/whiteboard.js
 	mkdir -p $(@D) && cp $< $@
 
-RESOURCES += $(support)/whiteboard/sponge.png
-$(support)/whiteboard/sponge.png: mb-reveal-plugins/whiteboard/sponge.png
-	mkdir -p $(@D) && cp $< $@
-
 # Fontawesome
 FONTAWESOME += Font-Awesome/js-packages/@fortawesome/fontawesome-free/js/all.js
 FONTAWESOME += Font-Awesome/js-packages/@fortawesome/fontawesome-free/css/all.css
