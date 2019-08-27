@@ -19,6 +19,9 @@ $endif$
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reveal.css">
+$if(thebelab.enable)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/thebelab.css">
+$endif$
   <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -54,6 +57,40 @@ $endfor$
   <![endif]-->
 $if(math)$
   $math$
+$endif$
+$if(thebelab.enable)$
+  <script type="text/x-thebe-config">
+  {
+      bootstrap: false,
+      requestKernel: false,
+      predefinedOutput: false,
+$if(thebelab.local)$
+      kernelOptions: {
+          name: "$thebelab.language$",
+          serverSettings: {
+              baseUrl: "$thebelab.baseUrl$",
+              token: "$thebelab.token$"
+          }
+      },
+$else$
+      binderOptions: {
+          repo: "$thebelab.repo$",
+          ref: "$thebelab.ref$",
+          binderUrl: "$thebelab.binderUrl$",
+          repoProvider: "$thebelab.repoProvider$",
+      },
+      kernelOptions: {
+          name: "$thebelab.language$"
+      },
+$endif$
+      selector: "[data-executable]",
+      mathjaxUrl: false,
+      codeMirrorConfig: {
+          mode: "$thebelab.language$"
+      }
+  }
+  </script>
+  <script src="https://unpkg.com/thebelab@0.4.0/lib/index.js"></script>
 $endif$
 $for(header-includes)$
   $header-includes$
@@ -305,6 +342,9 @@ $if(menu)$
           loadIcons: false
 	    },
 $endif$
+$if(thebelab.enable)$
+        thebelab: $thebelab$,
+$endif$
 $if(mathjax)$
         math: {
           mathjax: "$decker-support-dir$/vendor/mathjax/MathJax.js",
@@ -375,6 +415,9 @@ $if(menu)$
 $endif$
 $if(mathjax)$
           { src: '$decker-support-dir$/vendor/reveal/plugin/math/math.js', async: true },
+$endif$
+$if(thebelab.enable)$
+          { src: '$decker-support-dir$/js/thebelab.js', async: true },
 $endif$
           { src: '$decker-support-dir$/vendor/reveal/plugin/notes/notes.js', async: true }
         ]

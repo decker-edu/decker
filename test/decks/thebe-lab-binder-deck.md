@@ -1,40 +1,23 @@
 ---
 center: False
-css: 'thebe-styling.css'
-header-includes: |
-    <script type="text/x-thebe-config">
-        {
-        bootstrap: true,
-        requestKernel: false,
-        predefinedOutput: false,
-        binderOptions: {
-            repo: "monofon/plc-notebooks",
-            ref: "master",
-            binderUrl: "https://mybinder.org",
-            repoProvider: "github",
-        },
-        kernelOptions: {
-            name: "haskell",
-        },
-        selector: "[data-executable]",
-        mathjaxUrl: false,
-        codeMirrorConfig: {
-            mode: "haskell"
-        }
-        }
-    </script>
-    <script src="https://unpkg.com/thebelab@0.4.0/lib/index.js"></script>
 height: 500.0
 history: True
 margin: '0.0'
 maxScale: 1.0
 minScale: 1.0
 subtitle: Haskell Kernel
+thebelab:
+  baseUrl: 'http://localhost:8192/'
+  binderUrl: 'https://mybinder.org'
+  enable: True
+  language: haskell
+  ref: master
+  repo: 'monofon/plc-notebooks'
+  repoProvider: github
+  token: plc
 title: ThebeLab Test
 width: 960.0
 ---
----
-
 # ThebeLab Binder Deck
 
 ## ThebeLab
@@ -42,7 +25,8 @@ width: 960.0
 A Javascript client library for Jupyter servers that uses the Jupyter API
 
 -   [minrk/thebelab](https://github.com/minrk/thebelab)
--   [ThebeLab - ThebeLab  documentation](https://thebelab.readthedocs.io/en/latest/)
+-   [ThebeLab - ThebeLab
+    documentation](https://thebelab.readthedocs.io/en/latest/)
 
 ## Binder
 
@@ -55,14 +39,15 @@ custom Docker image on GitHub.
 
 # A ThebeLab Code Block {.columns}
 
-## {.left grow=2}
+##  {.left grow="2"}
 
 ``` {.haskell data-executable="true" data-language="haskell"}
 print "Hallo!"
 ```
+
 ## Usage {.right}
 
-1. Click [run]
-2. Be patient!
-3. Edit code
-4. Rinse, repeat
+1.  Click \[run\]
+2.  Be patient!
+3.  Edit code
+4.  Rinse, repeat

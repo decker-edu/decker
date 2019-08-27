@@ -1,38 +1,24 @@
 ---
-css: 'thebe-styling.css'
-header-includes: |
-    <script type="text/x-thebe-config">
-        {
-        bootstrap: true,
-        requestKernel: true,
-        predefinedOutput: false,
-        kernelOptions: {
-            name: "haskell",
-                serverSettings: {
-                "baseUrl": "http://localhost:7777/",
-                "token": "test-secret"
-                }
-        },
-        selector: "[data-executable]",
-        mathjaxUrl: false,
-        codeMirrorConfig: {
-            mode: "haskell"
-        }
-        }
-    </script>
-    <script src="https://unpkg.com/thebelab@0.4.0/lib/index.js"></script>
-height: 500.0
+center: False
+height: 540.0
 history: True
-margin: 0.0
+margin: '0.0'
 maxScale: 1.0
 minScale: 1.0
 subtitle: Haskell Kernel
+thebelab:
+  baseUrl: 'http://localhost:8192/'
+  binderUrl: 'https://mybinder.org'
+  enable: True
+  language: haskell
+  local: True
+  ref: master
+  repo: 'monofon/plc-notebooks'
+  repoProvider: github
+  token: plc
 title: ThebeLab Test
-width: 960
-center: false
+width: 960.0
 ---
----
-
 # ThebeLab Local Deck
 
 ## Start a local Jupyter kernel
@@ -46,13 +32,32 @@ jupyter notebook \
 
 # A ThebeLab Code Block {.columns}
 
-## {.left grow=2}
+##  {.left grow="2"}
 
-``` {.haskell data-executable="true" data-language="haskell"}
+``` {.haskell data-executable="true"}
 print "Hallo!"
 ```
+
 ## Usage {.right}
 
-1. Edit code
-2. Click [run]
-2. Rinse, repeat
+1.  Edit code
+2.  Click \[run\]
+3.  Rinse, repeat
+
+# Multiple cells
+
+``` {.haskell data-executable="true"}
+add :: Num a => a -> a -> a
+add a b = a + b
+```
+
+``` {.haskell data-executable="true"}
+add 1 2
+```
+
+# 
+
+``` {.haskell data-executable="true"}
+sub :: Num a => a -> a -> a
+sub a b = a - b
+```
