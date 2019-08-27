@@ -3,7 +3,7 @@ module Text.Decker.Internal.Meta
   ( toPandocMeta
   , toMustacheMeta
   , mergePandocMeta
-  , joinMeta
+  , mergePandocMeta'
   , readMetaData
   , aggregateMetaData
   , lookupPandocMeta
@@ -28,6 +28,7 @@ import Text.Decker.Writer.Markdown
 import Control.Arrow
 import Control.Exception
 import qualified Data.HashMap.Strict as H
+import qualified Data.List as L
 import Data.List.Safe ((!!))
 import qualified Data.List.Split as L
 import qualified Data.Map.Lazy as Map
@@ -73,8 +74,22 @@ writeMarkdownText options pandoc =
     Right text -> text
     Left err -> throw $ PandocException $ show err
 
+-- | Simple top-level merge of two meta values. Left-biased. 
 mergePandocMeta :: Meta -> Meta -> Meta
 mergePandocMeta (Meta meta1) (Meta meta2) = Meta $ Map.union meta1 meta2
+
+-- | Fine-grained recursive merge of two meta values. Left-biased. 
+mergePandocMeta' :: Meta -> Meta -> Meta
+mergePandocMeta' (Meta left) (Meta right) =
+  case merge (MetaMap left) (MetaMap right) of
+    MetaMap m -> Meta m
+    _ -> throw $ InternalException "This cannot happen."
+  where
+    merge :: MetaValue -> MetaValue -> MetaValue
+    merge (MetaMap mapL) (MetaMap mapR) =
+      MetaMap $ Map.unionWith merge mapL mapR
+    -- merge (MetaList listL) (MetaList listR) = MetaList $ L.union listL listR
+    merge left right = left
 
 -- | Converts YAML meta data to pandoc meta data.
 toPandocMeta :: Y.Value -> Meta

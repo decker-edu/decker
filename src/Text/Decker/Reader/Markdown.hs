@@ -117,11 +117,10 @@ readMetaMarkdown markdownFile = do
   markdown <- liftIO $ T.readFile markdownFile
   let filePandoc@(Pandoc fileMeta _) =
         readMarkdownOrThrow pandocReaderOpts markdown
-  let combinedMeta = mergePandocMeta fileMeta externalMeta
+  let combinedMeta = mergePandocMeta' fileMeta externalMeta
   let generateIds = lookupBool "generate-ids" False combinedMeta
-  Pandoc fileMeta fileBlocks <- maybeGenerateIds generateIds filePandoc
+  Pandoc _ fileBlocks <- maybeGenerateIds generateIds filePandoc
   -- combine the meta data with preference on the embedded data
-  let combinedMeta = mergePandocMeta fileMeta externalMeta
   let mustacheMeta = toMustacheMeta combinedMeta
    -- use mustache to substitute
   let substituted = substituteMetaData markdown mustacheMeta
