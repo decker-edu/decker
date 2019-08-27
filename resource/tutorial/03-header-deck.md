@@ -48,6 +48,21 @@ To be able to move the `public` folder to other devices (e.g. hold a presentatio
 |---------------|----------------------------------|--------------------------------|
 | `provisioning`| `Copy` or `SymLink`              | `support` folder is copied or symlinked inside `public` folder|
 
+# Autoformatting
+
+Decker has an integrated autoformatting tool that can write back a formatted version of the current Markdown document to the same file.
+
+To use this you can add the following to the header:
+
+```
+write-back:
+  enable: true
+```
+
+If `decker server` is running and you save your document, it will be formatted. 
+Same if you save your document and then run `decker html`.
+This works best on editors that auto-reload opened files. 
+
 # YAML-Header (Part 1)
 
 | Parameter     | Options                          | Effect                         |

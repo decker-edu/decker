@@ -96,7 +96,7 @@ provisioningFromMeta meta =
   case lookupMeta "provisioning" meta of
     Just (MetaString s) -> read s
     Just (MetaInlines i) -> read $ stringify i
-    _ -> SymLink
+    _ -> Copy
 
 templateFromMeta :: Meta -> Maybe String
 templateFromMeta meta =

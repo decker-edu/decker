@@ -5,42 +5,17 @@ chart: true
 ---
 
 
-# Charts from Metadata
-
-The first chart is included via an additional `chart-meta.yaml` file and is **always** the first slide after the title.
-
-#
-
-```yaml
-chartName: Metadata Chart Example
-chartId: "Metadata Chart Example"
-data-chart: line
-width:
-height:
-labels: ["January","February","March","April","May","June","July", "August", "September", "October", "November", "December"]
-datasets:
-- data: [65,59,80,81,56,55,40,45,49,58,68,70]
-  label: James Smith
-- data: [28,48,40,19,86,27,90,65,60,45,40,35]
-  label: Derek Jones
-options:
-  legend:
-    position: bottom
-  responsive: true
-
-```
-
-# Charts from JSON Strings
+# Charts from {.json style="font-size:x-small"} Strings
 
 A chart can be included in a slide by adding a canvas element to the `*-deck.md` file  with the data-chart attribute set to the desired chart type.
 
-The chart can be configured within the canvas body by a JSON string embedded into an HTML comment.
+The chart can be configured within the canvas body by a {.json style="font-size:x-small"} string embedded into an HTML comment.
 
 For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/master/chart](https://github.com/rajgoel/reveal.js-plugins/tree/master/chart)
 
 # Filled Line Chart
 
-```json
+```{.json style="font-size:x-small"}
 <canvas id=“filled_line" data-chart="line">
 <!--
 {
@@ -86,7 +61,7 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
 
 # Empty Line Chart
 
-```json
+```{.json style="font-size:x-small"}
 <canvas id=“empty_line" data-chart="line">
 <!--
 {
@@ -150,7 +125,7 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
 
 # Bar Chart
 
-```json
+```{.json style="font-size:x-small"}
 <canvas id=“bar_chart" data-chart="bar">
 <!--
 {
@@ -204,7 +179,7 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
 
 # Stacked Bar Chart
 
-```json
+```{.json style="font-size:x-small"}
 <canvas id=“stacked_bar" data-chart="bar">
 <!--
 {
@@ -274,7 +249,7 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
 
 # Radar Chart Example
 
-```json
+```{.json style="font-size:x-small"}
 <canvas id=“radar" data-chart="radar">
 <!--
 {
@@ -328,7 +303,7 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
 
 # Doughnut Chart Example
 
-```json
+```{.json style="font-size:x-small"}
 <canvas id=“doughnut" data-chart="doughnut">
 <!--
 {
@@ -386,7 +361,7 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
 
 # Pie Chart Example
 
-```json
+```{.json style="font-size:x-small"}
 <canvas id=“pie" data-chart="pie">
 <!--
 {

@@ -274,6 +274,23 @@ Even colored boxes look ok.
     - Bedrooms
 -  Wash dishes
 
+
+# Fragmented Lists
+
+To make list items appear one after another, put `>` before each:
+
+```markdown
+> - Take out trash
+> - Vacuum
+> - Wash dishes
+```
+
+## {.example}
+
+> - Take out trash
+> - Vacuum
+> - Wash dishes
+
 # Sequential Lists {#seqlists}
 
 Use the (\@) symbol to automatically number items in a list.     
@@ -505,12 +522,12 @@ To treat text as verbatim, either:
 -  or indent each line by four spaces.
 
 
-# Verbatim Code Block example {#example-code .sub}
+# Verbatim Code Block example {#example-code}
 
 ## {style="font-size:small;"}
 
 ```markdown
-~~~java
+~~~{.java label="Java"}
 if (a > 3) {
   moveShip(5 * gravity, DOWN);
 }
@@ -519,7 +536,7 @@ if (a > 3) {
 
 ##
 
-~~~java
+~~~{.java label="Java"}
 if (a > 3) {
   moveShip(5 * gravity, DOWN);
 }
@@ -577,12 +594,12 @@ $$ e = mc ^ 2 $$
 
 $$ \lim_{x \to \infty} \exp(-x) = 0 $$
 
-# Java Syntax Highlighting {#java}
+# Syntax Highlighting {#java}
 
-Apply Java syntax highlighting with the `.Java` tag.
+Apply syntax highlighting with the `.java` tag. (`java` can be replaced with any programming language)
 
 ```markdown
-~~~java
+~~~{.java label="Java"}
 String s = "Java highlighting syntax";
 System.out.println (s);
 ~~~
@@ -590,7 +607,7 @@ System.out.println (s);
 
 ##
 
-```java
+```{.java label="Java"}
 String s = "Java highlighting syntax";
 System.out.println (s);
 ```

@@ -12,7 +12,7 @@ import System.Environment
 import System.FilePath
 
 defaultProvisioning :: Provisioning
-defaultProvisioning = SymLink
+defaultProvisioning = Copy
 
 urlPath :: FilePath -> FilePath
 urlPath path = path
