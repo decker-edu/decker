@@ -51,7 +51,7 @@ watch:
 
 clean:
 	stack clean
-	rm -rf dist
+	rm -rf dist public
 	rm -rf resource/support/vendor
 
 .PHONY: build clean test install dist docs resources preextracted

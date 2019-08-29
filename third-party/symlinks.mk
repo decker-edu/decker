@@ -12,7 +12,11 @@ else
 dup = ln -sF
 endif
 
-all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard fontawesome reveal.js-menu
+all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard fontawesome reveal.js-menu thebelab
+
+thebelab: thebelab/lib/index.js
+	@mkdir -p $(support)/thebelab
+	@cp thebelab/lib/*.{js,map} $(support)/thebelab
 
 jquery: jquery/dist/jquery.min.js
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
@@ -56,6 +60,9 @@ fontawesome:
 	@for i in js css webfonts svgs sprites; do \
 		$(dup) $(third)/Font-Awesome/js-packages/@fortawesome/fontawesome-free/$$i $(support)/fontawesome/$$i; \
 	done
+
+thebelab/lib/index.js:
+	cd thebelab && npm run prepare
 
 jquery/dist/jquery.min.js:
 	cd jquery && npm run build
