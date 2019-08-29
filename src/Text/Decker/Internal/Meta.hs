@@ -28,7 +28,7 @@ import Text.Decker.Writer.Markdown
 import Control.Arrow
 import Control.Exception
 import qualified Data.HashMap.Strict as H
-import qualified Data.List as L
+-- import qualified Data.List as L
 import Data.List.Safe ((!!))
 import qualified Data.List.Split as L
 import qualified Data.Map.Lazy as Map

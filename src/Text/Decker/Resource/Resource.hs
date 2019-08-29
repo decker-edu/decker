@@ -15,15 +15,6 @@ module Text.Decker.Resource.Resource
   -- * Provisioning
   , provisionResources
   , provisionResource
-  , provisionMetaResource
-  , provisionTemplateOverrideSupport
-  , provisionTemplateOverrideSupportTopLevel
-  -- * keys
-  , elementAttributes
-  , runtimeMetaKeys
-  , compiletimeMetaKeys
-  , templateOverrideMetaKeys
-  , metaKeys
   ) where
 
 import System.Decker.OS
