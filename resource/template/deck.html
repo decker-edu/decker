@@ -414,7 +414,8 @@ $if(menu)$
           { src: '$decker-support-dir$/vendor/reveal.js-menu/menu.js', async: true },
 $endif$
 $if(mathjax)$
-          { src: '$decker-support-dir$/vendor/reveal/plugin/math/math.js', async: true },
+          //{ src: '$decker-support-dir$/vendor/reveal/plugin/math/math.js', async: true },
+          { src: '$decker-support-dir$/vendor/math/math.js' },
 $endif$
 $if(thebelab.enable)$
           { src: '$decker-support-dir$/js/thebelab.js', async: true },
