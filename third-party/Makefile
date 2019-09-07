@@ -69,11 +69,13 @@ $(support)/bootstrap.min.css.map: bootstrap/dist/css/bootstrap.min.css.map
 RESOURCES += $(support)/piklor.js
 $(support)/piklor.js: piklor.js/src/piklor.min.js
 	mkdir -p $(@D) && cp $< $@
+	echo "\n\nPIKLOR\n\n"
 
-# Whiteboard
-RESOURCES += $(support)/whiteboard/whiteboard.js
-$(support)/whiteboard/whiteboard.js: mb-reveal-plugins/whiteboard/whiteboard.js
-	mkdir -p $(@D) && cp $< $@
+# Mario's plugins
+RESOURCES += $(support)/mb-reveal-plugins
+$(support)/mb-reveal-plugins: mb-reveal-plugins
+	cp -r mb-reveal-plugins $(support)/
+	echo "\n\nMARIO\n\n"
 
 # Fontawesome
 FONTAWESOME += Font-Awesome/js-packages/@fortawesome/fontawesome-free/js/all.js

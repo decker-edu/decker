@@ -39,7 +39,11 @@ $endif$
 $if(base-css)$
   <link rel="stylesheet" href="$base-css$">
 $else$
+$if(mario)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/mario.css">
+$else$
   <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
+$endif$
 $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
@@ -105,6 +109,25 @@ $endfor$
 
 $if(title)$
 <section id="$idprefix$title-slide">
+$if(mario)$ <!-- Mario settings -->
+    <div class="white-on-blue">
+        <div class="title"> $title$ </div>
+        $if(subtitle)$
+        <div class="subtitle"> $subtitle$ </div>
+        $endif$
+    </div>
+    $if(teaser)$
+    <div class="teaser">
+        <img src=$teaser$>
+    </div>
+    $endif$
+    $if(author)$
+    <div class="author"> $author$ </div>
+    $if(affiliation)$
+    <div class="affiliation"> $affiliation$ </div>
+    $endif$
+    $endif$
+$else$ <!-- standard settings -->
   <h1 class="title">$title$</h1>
 $if(subtitle)$
   <p class="subtitle">$subtitle$</p>
@@ -114,6 +137,7 @@ $for(author)$
 $endfor$
 $if(date)$
   <p class="date">$date$</p>
+$endif$
 $endif$
 </section>
 $endif$
@@ -130,6 +154,120 @@ $body$
   <script src="$decker-support-dir$/vendor/reveal/js/reveal.js"></script>
   <script src="$decker-support-dir$/vendor/jquery.js"></script>
   <script src="$decker-support-dir$/vendor/piklor.js"></script>
+
+$if(mario)$ <!-- Mario settings -->
+  <script>
+      Reveal.initialize({
+      
+          // reveal settings
+          controls:     false,
+          progress:     false,
+          slideNumber:  true,
+          history:      true,
+          center:       false,
+          transition:   'none',
+          viewDistance: 2, // otherwise videos start early
+          width:        $if(width)$  $width$  $else$ 1024 $endif$,
+          height:       $if(height)$ $height$ $else$  768 $endif$,
+          minScale:     0.2,
+          maxScale:     5,
+          pdfMaxPagesPerSlide: 1,
+          pdfSeparateFragments: true,
+          hideInactiveCursor: true,
+          hideCursorTime: 3000,
+
+          // setup reveal-menu
+          menu: {
+              side:              'right',
+              numbers:           true,
+              titleSelector:     'h1',
+              hideMissingTitles: false,
+              markers:           false,
+              custom:            false,
+              themes:            false,
+              transitions:       false,
+              openButton:        false,
+              openSlideNumber:   true,
+              keyboard:          true,
+              loadIcons:         false
+          },
+
+          // math macros
+          math: {
+              mathjax: "$decker-support-dir$/vendor/mathjax/MathJax.js",
+              TeX: {
+                  Macros: {
+                      R: "{\\mathrm{{I}\\kern-.15em{R}}}",
+                      laplace: "{\\Delta}",
+                      grad: "{\\nabla}",
+                      T: "^{\\mathsf{T}}",
+                      abs: ['\\left\\lvert #1 \\right\\rvert', 1],
+                      norm: ['\\left\\Vert #1 \\right\\Vert', 1],
+                      iprod: ['\\left\\langle #1 \\right\\rangle', 1],
+                      vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
+                      mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
+                      set: ['\\mathcal{#1}', 1],
+                      func: ['\\mathrm{#1}', 1],
+                      trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
+                      matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
+                      vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
+                      of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
+                      diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
+                      pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2]
+                  }
+              },
+          },
+
+          // setup charts
+          chart: {
+              defaults: {
+                  global: {
+                      "defaultFontFamily": "Lato",
+                      "defaultFontColor": "black",
+                      "defaultFontSize": 20,
+                      title: {
+                          "fontFamily": "Lato",
+                          "fontSize": 30,
+                      },
+                      legend: {
+                          "position": "bottom"
+                      }
+                  },
+                  responsive: "false"
+              },
+              line: {
+                  backgroundColor: [ "rgba(42,157,223,.1)", "rgba(245,159,0,.1)", "rgba(182,200,40,.1)" ],
+                  borderColor:     [ "rgba(42,157,223,1)", "rgba(245,159,0,1)", "rgba(182,200,40,1)" ],
+              },
+              bar: {
+                  backgroundColor: [ "rgba(42,157,223,.8)", "rgba(245,159,0,.8)", "rgba(182,200,40,.8)" ],
+                  borderColor:     [ "rgba(42,157,223,1)", "rgba(245,159,0,1)", "rgba(182,200,40,1)" ]
+              },
+              pie: {
+                  backgroundColor: [ ["rgba(0,0,0,.8)" , "rgba(220,20,20,.8)", "rgba(20,220,20,.8)", "rgba(220,220,20,.8)", "rgba(20,20,220,.8)"] ]},
+              radar: {
+                  borderColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]
+              }
+          },
+
+
+          // plugins
+          dependencies: [
+              { src: '$decker-support-dir$/vendor/Chart.js'},
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/charts/csv2chart.js'},
+              { src: '$decker-support-dir$/vendor/reveal/plugin/notes/notes.js' },
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/math/math.js' },
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/whiteboard/whiteboard.js' }, 
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/quiz/quiz.js' },
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/footer/footer.js' },
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/zoom/zoom.js', async: true },
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/search/search.js', async: true },
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/menu/menu.js', async: true }
+          ]
+      });
+  </script>
+
+$else$ <!-- standard setting -->
 
   <script>
       // Full list of configuration options available at:
@@ -423,8 +561,11 @@ $endif$
         ]
       });
     </script>
+$endif$
+
     <script src="$decker-support-dir$/js/quiz.js" type="text/javascript"></script>
     <script src="$decker-support-dir$/js/decker.js" type="text/javascript"></script>
+
     <!-- Reload on change machinery -->
     <script>
       var socket = new WebSocket("ws://" + location.host + "/reload");
