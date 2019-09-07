@@ -1,0 +1,924 @@
+/**
+ * White theme for reveal.js. This is the opposite of the 'black' theme.
+ *
+ * By Hakim El Hattab, http://hakim.se
+ */
+
+
+@import url("../fonts/lato.css");
+@import url("../vendor/fontawesome/css/all.css");
+
+
+
+/*********************************************
+ * GLOBAL STYLES
+ *********************************************/
+
+body {
+  background: #ffffff;
+  background-color: #ffffff;
+}
+
+.reveal {
+  font-family: "Lato", sans-serif;
+  font-size: 36px;
+  font-weight: normal;
+  color: #222; 
+}
+
+
+::selection {
+  color: #fff;
+  background: #98bdef;
+  text-shadow: none; }
+
+/* do not require section to be immediate child of .slides, since
+* this will not be the case for PDF export! */
+/*.reveal .slides > section, .reveal .slides > section > section {*/
+.reveal .slides section {
+  line-height: 1.3;
+  font-weight: inherit;
+  padding: 0; /* MARIO: prevent 20px at top/bottom by reveal.css */
+  min-height: 100%; /* MARIO: slides should be full height for footer to be positioned correctly */
+  text-align: center;
+}
+
+
+/*********************************************
+ * MARIO: ALIGNMENT & COLUMNS
+ *********************************************/
+
+.reveal .top {
+    vertical-align: top;
+}
+
+.reveal .middle {
+    vertical-align: middle;
+}
+
+.reveal .bottom {
+    vertical-align: bottom;
+}
+
+.reveal .float-left {
+    float: left;
+}
+
+.reveal .float-right {
+    float: right;
+}
+
+.reveal .left {
+    text-align: left;
+}
+
+.reveal .center {
+    text-align: center;
+}
+
+.reveal .right {
+    text-align: right;
+}
+
+.reveal .small {
+    font-size: 0.7em;
+}
+
+.reveal .tiny {
+    font-size: 0.6em;
+}
+
+.reveal .large {
+    font-size: 1.2em;
+}
+
+.reveal .tt {
+    font-family: monospace;
+}
+
+.reveal .boxed {
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px;
+}
+.reveal .boxed ol,
+.reveal .boxed dl,
+.reveal .boxed ul {
+  margin-bottom: 0em;
+}
+
+.reveal .w10 { margin-left: auto; margin-right: auto; width:10%; }
+.reveal .w20 { margin-left: auto; margin-right: auto; width:20%; }
+.reveal .w25 { margin-left: auto; margin-right: auto; width:25%; }
+.reveal .w30 { margin-left: auto; margin-right: auto; width:30%; }
+.reveal .w40 { margin-left: auto; margin-right: auto; width:40%; }
+.reveal .w50 { margin-left: auto; margin-right: auto; width:50%; }
+.reveal .w60 { margin-left: auto; margin-right: auto; width:60%; }
+.reveal .w70 { margin-left: auto; margin-right: auto; width:70%; }
+.reveal .w80 { margin-left: auto; margin-right: auto; width:80%; }
+.reveal .w90 { margin-left: auto; margin-right: auto; width:90%; }
+
+.reveal .col10 { float:left; width:10%; }
+.reveal .col20 { float:left; width:20%; }
+.reveal .col25 { float:left; width:25%; }
+.reveal .col30 { float:left; width:30%; }
+.reveal .col40 { float:left; width:40%; }
+.reveal .col50 { float:left; width:50%; }
+.reveal .col60 { float:left; width:60%; }
+.reveal .col70 { float:left; width:70%; }
+.reveal .col80 { float:left; width:80%; }
+.reveal .col90 { float:left; width:90%; }
+
+
+/*********************************************
+ * HEADERS
+ *********************************************/
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  margin: 0 0 20px 0;
+  font-weight: bold;
+  line-height: 1.2;
+  letter-spacing: normal;
+  text-shadow: none;
+  word-wrap: break-word;
+  text-align: center;
+}
+
+.reveal h1 {
+    margin: 20px 0 40px 0;
+    font-size: 1.50em;
+}
+
+.reveal h2 {
+  font-size: 1.3em; }
+
+.reveal h3 {
+  font-size: 1.1em; }
+
+.reveal h4 {
+  font-size: 1em; }
+
+.reveal h1 {
+  text-shadow: none; }
+
+/*********************************************
+ * OTHER
+ *********************************************/
+.reveal p {
+  margin: 10px 0;
+  line-height: 1.3; }
+
+/* Ensure certain elements are never larger than the slide itself */
+.reveal img,
+.reveal video {
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    max-width: 95%;
+    /*max-height: 95vh;*/
+    vertical-align: middle;
+}
+.reveal iframe {
+    border: 1px solid lightgray;
+    outline: none;
+    overflow: hidden;
+    max-width:  100%;
+    max-height: 100%;
+    vertical-align: middle;
+}
+
+.reveal strong {
+    font-weight: bold;
+}
+
+.reveal .boldblue {
+    font-weight: bold;
+	color: #2a9ddf;
+}
+
+.reveal b {
+    font-weight: bold; }
+
+.reveal em {
+  font-style: italic; }
+
+.reveal del {
+	color: red;
+}
+
+.reveal ol,
+.reveal dl,
+.reveal ul {
+  display: inline-block;
+  text-align: left;
+  margin-bottom: 1em;
+}
+
+.reveal ol li,
+.reveal dl li,
+.reveal ul li {
+    margin-bottom: 0.5em;
+    margin-left: 40px;
+}
+
+.reveal ol {
+  list-style-type: decimal; }
+
+.reveal ul {
+  list-style-type: disc; }
+
+.reveal ul ul,
+.reveal ol ul {
+    list-style-type: circle;
+}
+
+.reveal ol ol {
+    list-style-type: lower-roman;
+}
+
+.reveal ul ul ul,
+.reveal ul ul ol,
+.reveal ul ol ul,
+.reveal ul ol ol,
+.reveal ol ul ul,
+.reveal ol ul ol,
+.reveal ol ol ul,
+.reveal ol ol ol {
+    font-size: 0.9em;
+}
+
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+    display:     block;
+    margin-top:  0.3em;
+    font-size:   0.8em;
+    margin-left: 10px;
+}
+
+.reveal dt {
+  font-weight: bold; }
+
+.reveal dd {
+  margin-left: 40px; }
+
+.reveal q,
+.reveal blockquote {
+  quotes: none; }
+
+.reveal blockquote {
+  display: block;
+  text-align: left;
+  font-size: 0.9em;
+  position: relative;
+  width: 80%;
+  margin: 20px auto;
+  padding: 0px 15px;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2); }
+
+.reveal blockquote p:first-child,
+.reveal blockquote p:last-child {
+  display: inline-block; }
+
+.reveal q {
+  font-style: italic; }
+
+
+/*********************************************
+ * CODE
+ *********************************************/
+
+/* box around block of code */
+.reveal pre {
+  display: block;
+  position: relative;
+  width: 100%;
+  margin: 10px auto;
+  text-align: center;
+}
+
+/* inline code */
+.reveal code {
+    display: inline;
+    padding: 0.2em;
+    text-align: left;
+    /*font-size: 85%;*/
+    font-family: monospace;
+    word-wrap: normal;
+    /*background-color: #f7f7f7;*/
+}
+
+/* block of code (has to override above inline code)*/
+.reveal pre code {
+    display: block;
+    margin: 10px;
+    text-align: left;
+    font-size: 0.5em;
+    font-family: monospace;
+    line-height: 1.45em;
+    padding:  16px;
+    overflow: auto;
+    max-height: 100%;
+    word-wrap: normal;
+    background-color: #f7f7f7;
+}
+
+.reveal pre code.small {
+    font-size: 0.4em;
+}
+
+/*.reveal pre:after {*/
+  /*content: attr(caption);*/
+  /*margin: 0px;*/
+  /*line-height: 1;*/
+  /*font-style: italic; */
+  /*font-size: 0.6em;*/
+  /*text-align: center;*/
+/*}*/
+
+
+/*********************************************
+ * TABLES
+ *********************************************/
+
+.reveal table {
+    margin: auto;
+    border-collapse: collapse;
+    border-spacing: 2px;
+    border-top:    2px solid black;
+    border-bottom: 2px solid black;
+    text-align: center;
+    margin-bottom: 1em;
+    line-height: 1.5em;
+}
+
+.reveal table th {
+  font-weight: bold; }
+
+.reveal table th {
+    border-bottom: 1px solid;
+}
+
+.reveal table th,
+.reveal table td {
+  text-align: left;
+  padding: 0.2em 1em 0.2em 1em;
+}
+
+.reveal table th[align="center"],
+.reveal table td[align="center"] {
+  text-align: center; }
+
+.reveal table th[align="right"],
+.reveal table td[align="right"] {
+  text-align: right; }
+
+.reveal table tbody tr:last-child th,
+.reveal table tbody tr:last-child td {
+  border-bottom: none; }
+
+.reveal sup {
+    vertical-align: super;
+    font-size: 0.7em;
+}
+
+.reveal sub {
+    vertical-align: sub;
+    font-size: 0.7em;
+}
+
+.reveal small {
+  display: inline-block;
+  font-size: 0.6em;
+  line-height: 1.2em;
+  vertical-align: top;
+}
+
+.reveal small * {
+  vertical-align: top;
+}
+
+/*********************************************
+ * LINKS
+ *********************************************/
+.reveal a {
+  color: #2a76dd;
+  text-decoration: none;
+  -webkit-transition: color .15s ease;
+  -moz-transition: color .15s ease;
+  transition: color .15s ease; }
+
+.reveal a:hover {
+  color: #6ca0e8;
+  text-shadow: none;
+  border: none; }
+
+.reveal .roll span:after {
+  color: #fff;
+  background: #1a53a1; }
+
+/*********************************************
+ * IMAGES
+ *********************************************/
+/*
+.reveal section img {
+  margin: 15px 0px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 4px solid #222;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); }
+*/
+
+.reveal section img {
+  /*margin: 15px 0px;*/
+  margin-bottom: 15px;
+  border: 0;
+  box-shadow: none; }
+
+.reveal section img.plain {
+  border: 0;
+  box-shadow: none; }
+
+.reveal a img {
+  -webkit-transition: all .15s linear;
+  -moz-transition: all .15s linear;
+  transition: all .15s linear; }
+
+.reveal a:hover img {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #2a76dd;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.55); }
+
+
+.reveal figure {
+    display: inline-block;
+    /*vertical-align: middle;*/
+}
+
+.reveal img {
+    display: inline-block;
+    margin: 5px 0px 0px 0px;
+    border: 0;
+    box-shadow: none;
+}
+
+.reveal figure img {
+  margin: 5px 0px 0px 0px;
+  border: 0;
+  box-shadow: none;
+}
+
+.reveal figure figcaption, .reveal .caption {
+  margin: 10px 0px 0px 0px;
+  line-height: 1.2;
+  font-style: italic;
+  font-size: 0.6em;
+  text-align: center;
+}
+
+
+/*********************************************
+ * NAVIGATION CONTROLS
+ *********************************************/
+.reveal .controls .navigate-left,
+.reveal .controls .navigate-left.enabled {
+  border-right-color: #2a76dd; }
+
+.reveal .controls .navigate-right,
+.reveal .controls .navigate-right.enabled {
+  border-left-color: #2a76dd; }
+
+.reveal .controls .navigate-up,
+.reveal .controls .navigate-up.enabled {
+  border-bottom-color: #2a76dd; }
+
+.reveal .controls .navigate-down,
+.reveal .controls .navigate-down.enabled {
+  border-top-color: #2a76dd; }
+
+.reveal .controls .navigate-left.enabled:hover {
+  border-right-color: #6ca0e8; }
+
+.reveal .controls .navigate-right.enabled:hover {
+  border-left-color: #6ca0e8; }
+
+.reveal .controls .navigate-up.enabled:hover {
+  border-bottom-color: #6ca0e8; }
+
+.reveal .controls .navigate-down.enabled:hover {
+  border-top-color: #6ca0e8; }
+
+/*********************************************
+ * PROGRESS BAR
+ *********************************************/
+.reveal .progress {
+  background: rgba(0, 0, 0, 0.2); }
+
+.reveal .progress span {
+  background: #2a9ddf;
+  -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985); }
+
+
+
+/*********************************************
+ * MARIO: TITLE SLIDE
+ *********************************************/
+
+.white-on-blue {
+    color: #ffffff;
+    background-color: #2a9ddf;
+}
+
+.reveal .title {
+    margin-top:  50px 0 0 0;
+    padding:     30px;
+    font-weight: bold;
+    font-style:  normal;
+    font-size:   1.5em;
+    text-align:  center;
+}
+
+.reveal .subtitle {
+    margin:      0;
+    padding:     0 30px 30px 30px;
+    font-weight: normal;
+    font-style:  italic;
+    font-size:   1.3em;
+    text-align:  center;
+}
+
+.reveal .teaser img {
+    margin:      50px 0 0 0;
+    height:      300px;
+    width:       auto;
+    object-fit:  contain;
+}
+
+.reveal .author {
+    margin:      50px 0 0 0;
+    font-weight: normal;
+    font-style:  normal;
+    font-size:   1.0em;
+    text-align:  center;
+}
+
+.reveal .affiliation {
+    margin:      10px 0 0 0;
+    font-weight: normal;
+    font-style:  normal;
+    font-size:   0.8em;
+    text-align:  center;
+}
+
+
+/*********************************************
+ * MARIO: SECTIONS
+ *********************************************/
+
+.reveal .section h1 {
+    /* white on blue */
+    color: #ffffff;
+    background-color: #2a9ddf;
+
+    /* large top margin -> vertical centering */
+    margin:      100px auto;
+    padding:      50px;
+
+    /* large bold font */
+    font-weight: bold;
+    font-style:  normal;
+    font-size:   1.5em;
+}
+
+
+/*********************************************
+ * MARIO: image sequence, shown one after the other
+ *********************************************/
+
+.fragment.sequence:not(.current-fragment) {
+    display: none;
+}
+
+
+/*********************************************
+ * MARIO: COMMENT BUBBLES
+ *********************************************/
+
+.reveal .bubble {
+    display: inline-block;
+    font-size: 0.7em;
+    color: #ffffff;
+    background-color: #2a9ddf;
+    padding: 10px;
+    margin: auto;
+    border-radius:5px;
+    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);
+}
+
+.reveal .comment {
+    color: #ffffff;
+    background-color: #2a9ddf;
+    position:absolute;
+    padding:10px;
+    border-radius:5px;
+    font-size: 0.5em;
+    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);
+}
+
+.reveal .comment-left {
+    color: #ffffff;
+    background-color: #2a9ddf;
+    position:absolute;
+    padding:5px;
+    font-size: 80%;
+    border-radius:20px 20px 0px 20px;
+    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);
+}
+
+.reveal .comment-right {
+    color: #ffffff;
+    background-color: #2a9ddf;
+    position:absolute;
+    padding:5px;
+    font-size: 80%;
+    border-radius:20px 20px 20px 0px;
+    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);
+}
+
+.reveal .comment-big {
+    color: #ffffff;
+    background-color: #2a9ddf;
+    padding:10px;
+    border-radius:5px;
+    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);
+}
+
+
+/*********************************************
+ * MARIO: FOOTER COMMENTS
+ * either use footer tag or class
+ *********************************************/
+
+.reveal footer, 
+.reveal .footer {
+    position:   absolute;
+    display:    block;
+    text-align: center;
+	margin:     0px;
+    padding:    0px;
+    font-size:  0.5em;
+    width:      auto;
+    height:     auto;
+    left:       100px;
+    right:      100px;
+    bottom:     0px;
+}
+
+.reveal footer p,
+.reveal .footer p {
+	margin:  0px;
+    padding: 0px;
+}
+
+
+/*********************************************
+ * MARIO: GENERIC HIGHLIGHT
+ *********************************************/
+
+.reveal .highlight {
+    background-color: #fdfbaa;
+}
+
+/*********************************************
+ * MARIO: margin: auto
+ *********************************************/
+
+.reveal .automargin {
+    margin: 10px auto;
+}
+
+/*********************************************
+ * MARIO: ADD SHADOWS (e.g. to images)
+ *********************************************/
+
+.reveal .shadow {
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.25);
+}
+
+.reveal table p {
+    margin: 0px;
+}
+
+.reveal .neg80 {
+    margin-top: -80px;
+}
+
+.reveal .neg60 {
+    margin-top: -60px;
+}
+
+/* class for aligning divs in a row */
+.reveal .ilb {
+    display: inline-block;
+    vertical-align: top;
+}
+
+
+/* MARIO: fix menu positioning */
+.reveal .slide-number {
+  position: fixed;
+}
+
+
+/* CSS for chalkboard color picker */
+.reveal .color-picker {
+    background: rgba(255, 255, 255, 0.75);
+    padding: 0px;
+    border: 1px solid rgba(203, 203, 203, 0.6);
+    border-radius: 2px;
+}
+
+.reveal .color-picker > div {
+    width: 20px;
+    display: inline-block;
+    height: 20px;
+    margin: 3px;
+    border: 1px solid rgba(203, 203, 203, 0.6);
+    border-radius: 100%;
+    opacity: 0.7;
+}
+
+/* make chalkboard scrollbar visible in Safari */
+/*::-webkit-scrollbar {*/
+    /*-webkit-appearance: none;*/
+    /*width: 7px;*/
+    /*background-color: "white";*/
+/*}*/
+/*::-webkit-scrollbar-thumb {*/
+    /*border-radius: 4px;*/
+    /*background-color: rgba(0,0,0,.5);*/
+/*}*/
+
+/*********************************************
+ * MARIO: Task lists
+ *********************************************/
+
+.reveal li input[type="checkbox"] {
+    visibility: hidden;
+    vertical-align: top;
+    margin-right: 1em;
+}
+.reveal li input[type="checkbox"]::before {
+    visibility: visible;
+    opacity: 1;
+    font-weight: bold;
+    font-size: 200%;
+    color: red; 
+    content: "✗";
+}
+.reveal li input[type="checkbox"]:checked::before {
+    color: green; 
+    content: "✓";
+}
+
+/* Firefox doesn't suppprt ::after for <input>,
+ * so we disable the above */
+@-moz-document url-prefix() {
+    .reveal li input[type="checkbox"] {
+        visibility: visible;
+        vertical-align: middle;
+    }
+}
+
+
+/*********************************************
+ * MARIO: Quizzes with task list syntax
+ *********************************************/
+
+.reveal .quiz ul {
+    text-align: center;
+    list-style-type: upper-latin;
+    counter-reset: answer;
+}
+
+.reveal .quiz ul li {
+    display:       inline-block;
+    position:      relative;
+    width:         400px;
+    text-align:    left;
+    margin:        20px;
+    border:        3px solid #2a9ddf;
+    border-radius: 20px;
+    padding:       20px;
+    font-weight:   normal;
+    color:         black;
+}
+
+.reveal .quiz ul li:before {
+    content: counter(answer, upper-latin) ": ";
+    counter-increment: answer;
+    margin-right: 0.5em;
+    font-weight:  bold;
+}
+
+.reveal .quiz ul li input[type="checkbox"] {
+    display: none;
+}
+
+.reveal .quiz .tip {
+    display:          block;
+    visibility:       hidden;
+    max-width:        390px;
+    top:              100%;
+    background-color: grey;
+    color:            #ffffff;
+    text-align:       center;
+    padding:          5px;
+    border-radius:    6px;
+    position:         absolute;
+    z-index:          1;
+    font-size:        1rem;
+}
+
+.reveal .quiz ul li.show-wrong {
+    background-color: #ffaaaa;
+    border:           3px solid red;
+}
+
+.reveal .quiz ul li.show-right {
+    background-color: #aaffaa;
+    border:           3px solid green;
+}
+
+.reveal .show-wrong:hover .tip, 
+.reveal .show-right:hover .tip {
+    visibility: visible;
+}
+
+
+/* old quiz stuff below (delete it later...) */
+
+.reveal .slides > section {
+  counter-reset: wwm-counter;
+}
+
+.reveal .answer {
+    display:  inline-block;
+    position: relative;
+    width:    400px;
+    text-align: left;
+    margin:   20px;
+    border:   3px solid #2a9ddf;
+    border-radius: 20px;
+    padding:  20px;
+    font-weight: normal;
+    color:    black;
+}
+
+.reveal .answer:before {
+  content: counter(wwm-counter, upper-latin) ": ";
+  counter-increment: wwm-counter;
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
+.reveal .tooltip {
+    display: block;
+    visibility: hidden;
+    max-width: 390px;
+    top:        100%;
+    background-color: grey;
+    color:      #ffffff;
+    text-align: center;
+    padding:    5px;
+    border-radius: 6px;
+    position:   absolute;
+    z-index: 1;
+    font-size: 1rem;
+}
+
+.reveal .show-wrong {
+    background-color: #ffaaaa;
+    border:           3px solid red;
+}
+
+.reveal .show-right {
+    background-color: #aaffaa;
+    border:           3px solid green;
+}
+
+.reveal .show-wrong:hover .tooltip, .reveal .show-right:hover .tooltip {
+    visibility: visible;
+}
+
+.reveal .transparent {
+    opacity: 0.1;
+}

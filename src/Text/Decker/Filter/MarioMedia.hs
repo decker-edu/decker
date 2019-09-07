@@ -247,7 +247,7 @@ media (Image (id', att, att') [] (filename, _))
     return
       [ toHtml $
         "<iframe " <> unwords direct <>
-        " data-src=\"revealSlides/mview/mview.html?model=../../" <>
+        " data-src=\"support/mview/mview.html?model=../../" <>
         filename <>
         "\"" <>
         attToString (id', css, att') <>
@@ -261,7 +261,7 @@ media (Image (id', att, att') alt (filename, _))
     [toHtml $ "<figure " <> attToString (id', css, att') <> ">"] <>
     [ toHtml $
       "<iframe " <> unwords direct <>
-      " data-src=\"revealSlides/mview/mview.html?model=../../" <>
+      " data-src=\"support/mview/mview.html?model=../../" <>
       filename <>
       "\"" <>
       attToString (id', css, att') <>
