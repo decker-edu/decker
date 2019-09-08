@@ -221,7 +221,7 @@ media (Image (id', att, att') [] (filename, _))
   | id' == "demo" || checkExtension filename demoExt =
     return
       [ toHtml $
-        "<iframe " <> unwords direct <> " data-src=\"" <> filename <> "\" " <>
+        "<iframe allow=\"fullscreen\"" <> unwords direct <> " data-src=\"" <> filename <> "\" " <>
         attToString (idFilter "demo" id', css, att') <>
         "></iframe>"
       ]
@@ -232,7 +232,7 @@ media (Image (id', att, att') alt (filename, _))
     return $
     [toHtml $ "<figure " <> attToString (idFilter "demo" id', css, att') <> ">"] <>
     [ toHtml $
-      "<iframe " <> unwords direct <> " data-src=\"" <> filename <> "\"" <>
+      "<iframe allow=\"fullscreen\"" <> unwords direct <> " data-src=\"" <> filename <> "\"" <>
       attToString (idFilter "demo" id', css, att') <>
       " ></iframe>"
     ] <>
@@ -246,7 +246,7 @@ media (Image (id', att, att') [] (filename, _))
   | checkExtension filename meshExt =
     return
       [ toHtml $
-        "<iframe " <> unwords direct <>
+        "<iframe allow=\"fullscreen\"" <> unwords direct <>
         " data-src=\"support/mview/mview.html?model=../../" <>
         filename <>
         "\"" <>
@@ -260,7 +260,7 @@ media (Image (id', att, att') alt (filename, _))
     return $
     [toHtml $ "<figure " <> attToString (id', css, att') <> ">"] <>
     [ toHtml $
-      "<iframe " <> unwords direct <>
+      "<iframe allow=\"fullscreen\"" <> unwords direct <>
       " data-src=\"support/mview/mview.html?model=../../" <>
       filename <>
       "\"" <>
