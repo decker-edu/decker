@@ -573,6 +573,32 @@ $endif$
       window.location.reload(true);
       };
     </script>
+
+    <!--define v-space and h-space elements-->
+    <script>
+        class HSpace extends HTMLElement {
+            connectedCallback() {
+                if (this.hasAttribute('width')) {
+                    var w = this.getAttribute('width');
+                    this.style.width  = w + "px";
+                    this.style.display = "inline-block";
+                }
+            }
+        }
+        class VSpace extends HTMLElement {
+            connectedCallback() {
+                if (this.hasAttribute('height')) {
+                    var h = this.getAttribute('height');
+                    this.style.height  = h + "px";
+                    this.style.clear   = "both";
+                    this.style.display = "block";
+                }
+            }
+        }
+        customElements.define('h-space', HSpace);
+        customElements.define('v-space', VSpace);
+    </script>
+
   $for(include-after)$
   $include-after$
   $endfor$
