@@ -62,12 +62,12 @@ fontawesome:
 	done
 
 thebelab/lib/index.js:
-	cd thebelab && npm run prepare
+	(cd thebelab && npm install)
 
 jquery/dist/jquery.min.js:
-	cd jquery && npm run build
+	(cd jquery && npm run build)
 
 Chart.js/dist/Chart.min.js:
-	cd Chart.js && npm install && npx rollup -c rollup.config.js
+	(cd Chart.js && npm install && npx rollup -c rollup.config.js)
 
 .PHONY: clean prepare fontawesome whiteboard piklor.js bootstrap reveal.js mathjax chart.js jquery reveal.js-menu
