@@ -404,8 +404,10 @@ $if(notes-server)$
           { src: '$decker-support-dir$/vendor/reveal/plugin/notes-server/client.js', async: true },
 $endif$
 $if(chart)$
-          { src: '$decker-support-dir$/vendor/Chart.js'},
-          { src: '$decker-support-dir$/vendor/csv2chart.js'},
+          { src: '$decker-support-dir$/vendor/charts/Chart.js'},
+          { src: '$decker-support-dir$/vendor/charts/plugin-errorbars.js'},
+          { src: '$decker-support-dir$/vendor/charts/plugin-colorschemes.js'},
+          { src: '$decker-support-dir$/vendor/charts/csv2chart.js'},
 $endif$
 $if(chalkboard)$
           { src: '$decker-support-dir$/vendor/whiteboard/whiteboard.js'},

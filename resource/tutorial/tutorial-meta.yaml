@@ -12,5 +12,6 @@ fragmentInURL: true
 help: true
 hideInactiveCursor: true
 hideCursorTime: 2000
+history: true
 transition: 'none'
 backgroundTransition: 'none'

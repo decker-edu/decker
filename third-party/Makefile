@@ -75,6 +75,13 @@ RESOURCES += $(support)/whiteboard/whiteboard.js
 $(support)/whiteboard/whiteboard.js: mb-reveal-plugins/whiteboard/whiteboard.js
 	mkdir -p $(@D) && cp $< $@
 
+# Mario chart plugin
+RESOURCES += $(support)/charts/Chart.js
+RESOURCES += $(support)/charts/Plugin.Errorbars.js
+RESOURCES += $(support)/charts/csv2chart.js
+$(support)/charts/%: mb-reveal-plugins/charts/%
+	mkdir -p $(@D) && cp $< $@
+
 # Fontawesome
 FONTAWESOME += Font-Awesome/js-packages/@fortawesome/fontawesome-free/js/all.js
 FONTAWESOME += Font-Awesome/js-packages/@fortawesome/fontawesome-free/css/all.css
