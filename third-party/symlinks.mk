@@ -12,7 +12,7 @@ else
 dup = ln -sF
 endif
 
-all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard charts fontawesome reveal.js-menu
+all: jquery mathjax reveal.js bootstrap piklor.js whiteboard charts fontawesome reveal.js-menu
 
 jquery: jquery/dist/jquery.min.js
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
@@ -57,8 +57,5 @@ fontawesome:
 
 jquery/dist/jquery.min.js:
 	cd jquery && npm run build
-
-Chart.js/dist/Chart.min.js:
-	cd Chart.js && npm install && npx rollup -c rollup.config.js
 
 .PHONY: clean prepare fontawesome whiteboard charts piklor.js bootstrap reveal.js mathjax jquery reveal.js-menu
