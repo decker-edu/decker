@@ -18,11 +18,6 @@ jquery: jquery/dist/jquery.min.js
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
 	@cp jquery/dist/jquery.min.js $(support)/jquery.js
 
-chart.js: Chart.js/dist/Chart.min.js 
-	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
-	@cp Chart.js/dist/Chart.min.js $(support)/Chart.js
-	@$(dup) $(third)/reveal.js-plugins/chart/csv2chart.js $(support)/csv2chart.js
-
 mathjax:
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
 	@for i in MathJax.js config jax/input/TeX jax/output/SVG jax/element extensions; do \
@@ -66,4 +61,4 @@ jquery/dist/jquery.min.js:
 Chart.js/dist/Chart.min.js:
 	cd Chart.js && npm install && npx rollup -c rollup.config.js
 
-.PHONY: clean prepare fontawesome whiteboard charts piklor.js bootstrap reveal.js mathjax chart.js jquery reveal.js-menu
+.PHONY: clean prepare fontawesome whiteboard charts piklor.js bootstrap reveal.js mathjax jquery reveal.js-menu

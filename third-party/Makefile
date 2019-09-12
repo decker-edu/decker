@@ -10,19 +10,6 @@ jquery/dist/jquery.min.js:
 $(support)/jquery.js: jquery/dist/jquery.min.js
 	mkdir -p $(@D) && cp $< $@
 
-# Chart.js
-RESOURCES += $(support)/Chart.js
-$(support)/Chart.js: Chart.js/dist/Chart.min.js
-	mkdir -p $(@D) && cp $< $@
-
-Chart.js/dist/Chart.min.js:
-	cd Chart.js && npm install && npx rollup -c rollup.config.js
-
-# Chart.js Reveal Plugin
-RESOURCES += $(support)/csv2chart.js
-$(support)/csv2chart.js: reveal.js-plugins/chart/csv2chart.js
-	mkdir -p $(@D) && cp $< $@
-
 # MathJax
 MATHJAX = MathJax/MathJax.js
 MATHJAX += MathJax/config/TeX-AMS_SVG.js
