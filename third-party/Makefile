@@ -77,8 +77,9 @@ $(support)/whiteboard/whiteboard.js: mb-reveal-plugins/whiteboard/whiteboard.js
 
 # Mario chart plugin
 RESOURCES += $(support)/charts/Chart.js
-RESOURCES += $(support)/charts/Plugin.Errorbars.js
 RESOURCES += $(support)/charts/csv2chart.js
+RESOURCES += $(support)/charts/plugin-colorschemes.js
+RESOURCES += $(support)/charts/plugin-errorbars.js
 $(support)/charts/%: mb-reveal-plugins/charts/%
 	mkdir -p $(@D) && cp $< $@
 

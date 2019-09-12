@@ -394,6 +394,19 @@ $if(mathjax)$
           },
         },
 $endif$
+$if(chart)$
+          chart: {
+              defaults: {
+                  global: {
+                      legend: { position: "bottom" },
+                      plugins: { colorschemes: { scheme: "tableau.Tableau10" } }
+                  },
+              },
+              bar:   { borderWidth: "1" },
+              line:  { borderWidth: "2" },
+              radar: { borderWidth: "2" },
+          },
+$endif$
 
         // Optional reveal.js plugins
         dependencies: [

@@ -219,9 +219,7 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
                 "May":     { "plus":  3, "minus": 14 },
                 "August":  { "plus": 10, "minus":  4 }
             },
-            "label": "James Smith",
-            "borderColor":     "rgb(0,255,158,1.0)",
-            "backgroundColor": "rgb(0,255,158,0.8)"
+            "label": "James Smith"
         },    {
             "data": [28.0, 48.0, 40.0, 19.0, 86.0, 27.0, 90.0, 65.0, 60.0, 45.0, 40.0, 35.0],
             "errorBars": {
@@ -230,14 +228,10 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
                 "May":      { "plus":  3, "minus": 14 },
                 "June":     { "plus": 10, "minus":  4 }
             },
-            "label": "Derek Jones",
-            "borderColor":     "rgba(14,97,240,1.0)",
-            "backgroundColor": "rgba(14,97,240,0.8)"
+            "label": "Derek Jones"
         }  ]
     },
       "options": {
-          "legend": { "position": "bottom" },
-          "responsive": true,
           "plugins": { "chartJsPluginErrorBars": { "width":20, "lineWidth":2 } }
       }
 }
@@ -245,7 +239,7 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
 </canvas>
 ```
 
-# Bar Chart with Error Bars
+# Bar Chart with Error Bars {.sub}
 
 <canvas id=“bar_chart2" data-chart="bar">
 <!--
@@ -261,9 +255,7 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
                 "May":     { "plus":  3, "minus": 14 },
                 "August":  { "plus": 10, "minus":  4 }
             },
-            "label": "James Smith",
-            "borderColor":     "rgb(0,255,158,1.0)",
-            "backgroundColor": "rgb(0,255,158,0.8)"
+            "label": "James Smith"
         },    {
             "data": [28.0, 48.0, 40.0, 19.0, 86.0, 27.0, 90.0, 65.0, 60.0, 45.0, 40.0, 35.0],
             "errorBars": {
@@ -272,14 +264,10 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
                 "May":      { "plus":  3, "minus": 14 },
                 "June":     { "plus": 10, "minus":  4 }
             },
-            "label": "Derek Jones",
-            "borderColor":     "rgba(14,97,240,1.0)",
-            "backgroundColor": "rgba(14,97,240,0.8)"
+            "label": "Derek Jones"
         }  ]
     },
       "options": {
-          "legend": { "position": "bottom" },
-          "responsive": true,
           "plugins": { "chartJsPluginErrorBars": { "width":20, "lineWidth":2 } }
       }
 }
@@ -287,7 +275,48 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
 </canvas>
 
 
-# Bar Chart with Color Schemes
+# Bar Chart with Specified Color Schemes
+```json
+
+<canvas data-chart="bar">
+<!--
+{
+    "data": {
+        "labels":["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+        "datasets":[
+        {
+            "data": [65.0, 59.0, 80.0, 81.0, 56.0, 55.0, 40.0, 45.0, 49.0, 58.0, 68.0, 70.0],
+            "errorBars": {
+                "January": { "plus": 15, "minus":  3 },
+                "April":   { "plus":  5, "minus": 24 },
+                "May":     { "plus":  3, "minus": 14 },
+                "August":  { "plus": 10, "minus":  4 }
+            },
+            "label": "James Smith"
+        },    {
+            "data": [28.0, 48.0, 40.0, 19.0, 86.0, 27.0, 90.0, 65.0, 60.0, 45.0, 40.0, 35.0],
+            "errorBars": {
+                "February": { "plus": 15, "minus":  3 },
+                "March":    { "plus":  5, "minus": 24 },
+                "May":      { "plus":  3, "minus": 14 },
+                "June":     { "plus": 10, "minus":  4 }
+            },
+            "label": "Derek Jones"
+        }  ]
+    },
+      "options": {
+          "plugins": { 
+              "chartJsPluginErrorBars": { "width":20, "lineWidth":2 },
+              "colorschemes": { "scheme": "brewer.SetOne9" }
+          }
+      }
+}
+-->
+</canvas>
+```
+
+
+# Bar Chart with Specified Color Schemes
 
 <canvas data-chart="bar">
 <!--
@@ -320,7 +349,7 @@ For further information see: [https://github.com/rajgoel/reveal.js-plugins/tree/
           "responsive": true,
           "plugins": { 
               "chartJsPluginErrorBars": { "width":20, "lineWidth":2 },
-              "colorschemes": { "scheme": "brewer.Paired12", "fillAlpha": 1.0 }
+              "colorschemes": { "scheme": "brewer.SetOne9" }
           }
       }
 }
