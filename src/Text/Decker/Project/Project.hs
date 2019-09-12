@@ -57,12 +57,14 @@ import Network.URI
 import qualified System.Directory as D
 import System.Environment
 import System.FilePath
+import System.FilePath.Glob
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Regex.TDFA
 
 data Targets = Targets
   { _sources :: [FilePath]
+  , _meta :: [FilePath]
   , _static :: [FilePath]
   , _decks :: [FilePath]
   , _decksPdf :: [FilePath]
@@ -273,14 +275,17 @@ staticDirs meta =
 scanTargets :: Value -> ProjectDirs -> IO Targets
 scanTargets meta dirs = do
   let exclude = excludeDirs meta
-  srcs <- globFiles (excludeDirs meta) sourceSuffixes (dirs ^. project)
+  metaFiles <- globDir1 (compile "*-meta.yaml") projectDir
+  srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
   let static = map (dirs ^. project </>) (staticDirs meta)
   staticSrc <- concat <$> mapM (fastGlobFiles [] []) static
-  let staticTargets = map ((dirs ^. public </>) . makeRelative (dirs ^. project)) staticSrc
+  let staticTargets =
+        map ((dirs ^. public </>) . makeRelative projectDir) staticSrc
   return
     Targets
       { _sources = sort $ concatMap snd srcs
-      , _static = staticTargets          
+      , _meta = metaFiles
+      , _static = staticTargets
       , _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs
       , _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs
       , _pages = sort $ calcTargets pageSuffix pageHTMLSuffix srcs
@@ -290,11 +295,12 @@ scanTargets meta dirs = do
       , _indices = sort $ calcTargets deckSuffix indexSuffix srcs
       }
   where
+    projectDir = dirs ^. project
     calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]
     calcTargets srcSuffix targetSuffix sources =
       map
         (replaceSuffix srcSuffix targetSuffix . combine (dirs ^. public) .
-         makeRelative (dirs ^. project))
+         makeRelative projectDir)
         (fromMaybe [] $ lookup srcSuffix sources)
 
 getDachdeckerUrl :: IO String

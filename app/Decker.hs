@@ -15,11 +15,11 @@ import Text.Decker.Writer.Format
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Pdf
 
+import Control.Concurrent
 import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Control.Monad.Extra
-import Control.Concurrent
 import Data.IORef ()
 import Data.List
 import Data.Maybe
@@ -126,6 +126,12 @@ run = do
       need ["watch"]
       runHttpServer serverPort directories Nothing
     --
+    phony "fast" $ do
+      runHttpServer serverPort directories Nothing
+      pages <- currentlyServedPages
+      need $ map (directories ^. public </>) pages
+      watchChangesAndRepeat
+    --
     phony "presentation" $ do
       runHttpServer serverPort directories Nothing
       liftIO $ waitForYes
@@ -143,6 +149,7 @@ run = do
     --
     priority 2 $
       "//*-deck.html" %> \out -> do
+        metaFilesA >>= need
         src <- calcSource "-deck.html" "-deck.md" out
         let index = replaceSuffix "-deck.html" "-deck-index.yaml" out
         let annotSrc = replaceSuffix "-deck.md" "-annot.json" src
@@ -153,12 +160,14 @@ run = do
     --
     priority 2 $
       "//*-deck-index.yaml" %> \ind -> do
+        metaFilesA >>= need
         src <- calcSource "-deck-index.yaml" "-deck.md" ind
         let out = replaceSuffix "-deck-index.yaml" "-deck.html" ind
         markdownToHtmlDeck src out ind
     --
     priority 2 $
       "//*-deck.pdf" %> \out -> do
+        metaFilesA >>= need
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         need [src]
         putNormal $ "Started: " ++ src ++ " -> " ++ out
@@ -174,21 +183,25 @@ run = do
     --
     priority 2 $
       "//*-handout.html" %> \out -> do
+        metaFilesA >>= need
         src <- calcSource "-handout.html" "-deck.md" out
         markdownToHtmlHandout src out
     --
     priority 2 $
       "//*-handout.pdf" %> \out -> do
+        metaFilesA >>= need
         src <- calcSource "-handout.pdf" "-deck.md" out
         markdownToPdfHandout src out
     --
     priority 2 $
       "//*-page.html" %> \out -> do
+        metaFilesA >>= need
         src <- calcSource "-page.html" "-page.md" out
         markdownToHtmlPage src out
     --
     priority 2 $
       "//*-page.pdf" %> \out -> do
+        metaFilesA >>= need
         src <- calcSource "-page.pdf" "-page.md" out
         markdownToPdfPage src out
     --

@@ -17,8 +17,10 @@ import Control.Monad.State
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import Data.ByteString.UTF8
+import Data.List
 import Data.Maybe
-import Data.Text
+import qualified Data.Set as Set
+import qualified Data.Text as Text
 import Network.WebSockets
 import Network.WebSockets.Snap
 import Snap.Core
@@ -43,28 +45,38 @@ serverConfig dirs port = do
 -- | Clients are identified by integer ids
 type Client = (Int, Connection)
 
-type ServerState = [Client]
+type ServerState = ([Client], Set.Set FilePath)
 
 type Server = (ThreadId, MVar ServerState)
 
 initState :: IO (MVar ServerState)
-initState = newMVar []
+initState = newMVar ([], Set.fromList ["index.html"])
 
 addClient :: MVar ServerState -> Client -> IO ()
 addClient state client = modifyMVar_ state add
   where
-    add clients = return (client : clients)
+    add (clients, pages) = return (client : clients, pages)
 
 removeClient :: MVar ServerState -> Int -> IO ()
 removeClient state cid = modifyMVar_ state remove
   where
-    remove clients = return [c | c <- clients, cid /= fst c]
+    remove (clients, pages) = return ([c | c <- clients, cid /= fst c], pages)
+
+addPage :: MVar ServerState -> FilePath -> IO ()
+addPage state page = modifyMVar_ state add
+  where
+    add (clients, pages) =
+      return
+        ( clients
+        , if ".html" `isSuffixOf` page
+            then Set.insert page pages
+            else pages)
 
 reloadAll :: MVar ServerState -> IO ()
-reloadAll state = withMVar state $ mapM_ reload
+reloadAll state = withMVar state $ (mapM_ reload . fst)
   where
     reload :: Client -> IO ()
-    reload (_, conn) = sendTextData conn ("reload!" :: Text)
+    reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
 
 -- Runs the server. Never returns.
 runHttpServer :: MVar ServerState -> ProjectDirs -> Int -> IO ()
@@ -84,9 +96,9 @@ runHttpServer state dirs port = do
           , ("/dachdecker", method POST $ serveDachdecker)
           , ( "/reload.html"
             , serveFile $ dirs ^. project </> "test" </> "reload.html")
-          , (supportPath, serveDirectoryNoCaching supportRoot)
+          , (supportPath, serveDirectoryNoCaching state supportRoot)
           , ("/", method PUT $ saveAnnotation (dirs ^. project))
-          , ("/", method GET $ serveDirectoryNoCaching documentRoot)
+          , ("/", method GET $ serveDirectoryNoCaching state documentRoot)
           ]
   let tryRun port 0 = fail "decker server: All ports already in use"
   let tryRun port tries =
@@ -113,17 +125,19 @@ saveAnnotation root = do
       if exists
         then do
           liftIO $ BSL.writeFile destination body
-          writeText $ pack ("annotation stored at: " ++ destination)
+          writeText $ Text.pack ("annotation stored at: " ++ destination)
         else modifyResponse $
              setResponseStatus 500 "Destination directory does not exist"
     else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
 
-serveDirectoryNoCaching :: MonadSnap m => FilePath -> m ()
-serveDirectoryNoCaching directory = do
+serveDirectoryNoCaching :: MonadSnap m => MVar ServerState -> FilePath -> m ()
+serveDirectoryNoCaching state directory = do
   serveDirectory directory
   modifyResponse $ addHeader "Cache-Control" "no-cache,no-store,must-revalidate"
   modifyResponse $ addHeader "Pragma" "no-cache"
   modifyResponse $ addHeader "Expires" "0"
+  path <- getsRequest rqPathInfo
+  liftIO $ addPage state (toString path)
 
 serveDachdecker :: Snap ()
 serveDachdecker = do
@@ -140,7 +154,7 @@ serveDachdecker = do
   case maybeToken of
     Just token ->
       writeText $
-      pack
+      Text.pack
         ("{\"token\": \"" ++
          token ++ "\",\"server\": \"" ++ dachdeckerUrl ++ "\"}")
     Nothing -> liftIO $ putStrLn "Error logging into the Dachdecker server"
@@ -168,4 +182,4 @@ reloader state pending = do
   cid <- randomIO -- Use a random number as client id.
   flip finally (removeClient state cid) $ do
     addClient state (cid, connection)
-    forever (receiveData connection :: IO Text)
+    forever (receiveData connection :: IO Text.Text)

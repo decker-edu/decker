@@ -7,6 +7,7 @@ module Text.Decker.Project.Shake
   , cacheA
   , calcSource
   , calcSource'
+  , currentlyServedPages
   , decksA
   , decksPdfA
   , getRelativeSupportDir
@@ -14,6 +15,7 @@ module Text.Decker.Project.Shake
   , handoutsPdfA
   , loggingA
   , metaA
+  , metaFilesA
   , indicesA
   , openBrowser
   , pagesA
@@ -67,6 +69,7 @@ import qualified Data.HashMap.Strict as HashMap
 import Data.IORef
 import Data.List
 import Data.Maybe
+import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text.Encoding
 import Data.Text.Lens
@@ -200,15 +203,16 @@ waitForChange inDirs =
        done <- newEmptyMVar
        forM_
          inDirs
-         (\dir -> do
+         (\dir
             -- putStrLn $ "watching dir: " ++ dir
+           -> do
             Notify.watchDir
               manager
               dir
               (const True)
-              (\e -> do
+              (\e
                  -- putStrLn $ "changed: " ++ show e
-                 putMVar done ()))
+                -> do putMVar done ()))
        takeMVar done)
 
 getTemplate :: Disposition -> Action String
@@ -424,6 +428,8 @@ targetsA = _targetList <$> actionContext
 
 metaA = _metaData <$> actionContext
 
+metaFilesA = _meta . _targetList <$> actionContext
+
 indicesA = _indices <$> targetsA
 
 staticA :: Action [FilePath]
@@ -463,7 +469,7 @@ withShakeLock perform = do
   r <- _publicResource . _state <$> actionContext
   withResource r 1 perform
 
--- Runs the built-in server on the given directory, if it is not already
+-- | Runs the built-in server on the given directory, if it is not already
 -- running.
 runHttpServer :: Int -> ProjectDirs -> Maybe String -> Action ()
 runHttpServer port dirs url = do
@@ -475,6 +481,17 @@ runHttpServer port dirs url = do
       httpServer <- liftIO $ startHttpServer dirs port
       liftIO $ writeIORef ref $ Just httpServer
       forM_ url openBrowser
+
+-- | Returns a list of all pages currently served, if any.
+currentlyServedPages :: Action [FilePath]
+currentlyServedPages = do
+  ref <- _server . _state <$> actionContext
+  server <- liftIO $ readIORef ref
+  case server of
+    Just (_, state) -> do
+      (_, pages) <- liftIO $ readMVar state
+      return $ Set.toList pages
+    Nothing -> return []
 
 openBrowser :: String -> Action ()
 openBrowser url =
