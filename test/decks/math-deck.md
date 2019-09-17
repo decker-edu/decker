@@ -42,3 +42,23 @@ $$
 # test3
 
 $$\lim_{x \to \infty} \exp(-x) = 0$$
+
+
+# test4
+
+This slide contains a math equation in the speaker notes. Press `s` to show it.
+
+::: notes
+Notes with math!
+$$\sum_i \pi^i \to \infty$$
+:::
+
+
+# test5
+
+Test speaker notes again.
+
+::: notes
+Once more:
+$$\sum_i \pi^i \to \infty$$
+:::
