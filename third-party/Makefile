@@ -68,6 +68,10 @@ RESOURCES += $(support)/charts/csv2chart.js
 RESOURCES += $(support)/charts/plugin-colorschemes.js
 RESOURCES += $(support)/charts/plugin-errorbars.js
 $(support)/charts/%: mb-reveal-plugins/charts/%
+
+# Mario math plugin
+RESOURCES += $(support)/math/math.js
+$(support)/math/math.js: mb-reveal-plugins/math/math.js
 	mkdir -p $(@D) && cp $< $@
 
 # Fontawesome

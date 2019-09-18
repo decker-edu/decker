@@ -348,20 +348,6 @@ $endif$
 $if(mathjax)$
         math: {
           mathjax: "$decker-support-dir$/vendor/mathjax/MathJax.js",
-          config: 'TeX-AMS_SVG',
-          tex2jax: {
-            inlineMath: [['\\(','\\)']],
-            displayMath: [['\\[','\\]']],
-            balanceBraces: true,
-            processEscapes: false,
-            processRefs: true,
-            processEnvironments: true,
-            preview: 'TeX',
-            skipTags: ['script','noscript','style','textarea','pre','code'],
-            ignoreClass: 'tex2jax_ignore',
-            processClass: 'tex2jax_process'
-          },
-          menuSettings: { zoom: "Double-Click" },
           TeX: {
               Macros: {
               R: "{\\mathrm{{I}\\kern-.15em{R}}}",
@@ -429,7 +415,7 @@ $if(menu)$
           { src: '$decker-support-dir$/vendor/reveal.js-menu/menu.js', async: true },
 $endif$
 $if(mathjax)$
-          { src: '$decker-support-dir$/vendor/reveal/plugin/math/math.js', async: true },
+          { src: '$decker-support-dir$/vendor/math/math.js' },
 $endif$
 $if(thebelab.enable)$
           { src: '$decker-support-dir$/js/thebelab.js', async: true },

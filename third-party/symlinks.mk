@@ -12,7 +12,7 @@ else
 dup = ln -sF
 endif
 
-all: jquery mathjax reveal.js bootstrap piklor.js whiteboard charts fontawesome reveal.js-menu
+all: jquery mathjax reveal.js bootstrap piklor.js whiteboard math charts fontawesome reveal.js-menu
 
 jquery: jquery/dist/jquery.min.js
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
@@ -49,6 +49,9 @@ whiteboard:
 charts:
 	@$(dup) $(third)/mb-reveal-plugins/charts $(support)/charts
 
+math:
+	@$(dup) $(third)/mb-reveal-plugins/math $(support)/math
+
 fontawesome:
 	@mkdir -p $(support)/fontawesome
 	@for i in js css webfonts svgs sprites; do \
@@ -58,4 +61,4 @@ fontawesome:
 jquery/dist/jquery.min.js:
 	cd jquery && npm run build
 
-.PHONY: clean prepare fontawesome whiteboard charts piklor.js bootstrap reveal.js mathjax jquery reveal.js-menu
+.PHONY: clean prepare fontawesome whiteboard math charts piklor.js bootstrap reveal.js mathjax jquery reveal.js-menu
