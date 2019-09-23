@@ -290,7 +290,7 @@ removeSupport = do
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
-  let generateIds = lookupBool "generate-ids" False meta
+  let generateIds = getMetaBoolOrElse "generate-ids" False meta
   if not generateIds
     then return pandoc
     else writeDeckIndex' markdownFile out pandoc
@@ -305,8 +305,8 @@ writeDeckIndex' markdownFile out pandoc@(Pandoc meta _) = do
   let repoId = sketchPadId gitUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
-  let title = lookupString "title" "" meta
-  let subtitle = lookupString "subtitle" "" meta
+  let title = getMetaStringOrElse "title" "" meta
+  let subtitle = getMetaStringOrElse "subtitle" "" meta
   let indexUrl = T.pack $ "/" </> makeRelative publ out
   let sourceDir = T.pack $ makeRelative proj $ takeDirectory markdownFile
   let sourceFile = T.pack $ makeRelative proj markdownFile

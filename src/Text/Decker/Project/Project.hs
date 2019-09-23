@@ -273,13 +273,13 @@ alwaysExclude = ["public", "log", "dist", "code", ".shake", ".git", ".vscode"]
 --   meta ^.. key "static-resource-dirs" . values . _String . unpacked
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
-  let metaExclude = lookupMetaStringList "exclude-directories" meta
+  let metaExclude = getMetaStringList "exclude-directories" meta
    in case metaExclude of
         Just dirs -> alwaysExclude ++ dirs
         _ -> alwaysExclude
 
 staticDirs meta =
-  let metaStatic = lookupMetaStringList "static-resource-dirs" meta
+  let metaStatic = getMetaStringList "static-resource-dirs" meta
    in case metaStatic of
         Just dirs -> dirs
         _ -> []

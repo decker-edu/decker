@@ -143,8 +143,8 @@ markdownToHtmlPage markdownFile out = do
               MathJax "Handled by reveal.js in the template"
           , writerVariables = [("decker-support-dir", supportDir)]
           , writerCiteMethod = Citeproc
-          , writerTableOfContents = lookupBool "show-toc" False docMeta
-          , writerTOCDepth = lookupInt "toc-depth" 1 docMeta
+          , writerTableOfContents = getMetaBoolOrElse "show-toc" False docMeta
+          , writerTOCDepth = getMetaIntOrElse "toc-depth" 1 docMeta
           }
   writePandocFile "html5" options out pandoc
 
@@ -164,7 +164,7 @@ markdownToHtmlHandout markdownFile out = do
               MathJax "Handled by reveal.js in the template"
           , writerVariables = [("decker-support-dir", supportDir)]
           , writerCiteMethod = Citeproc
-          , writerTableOfContents = lookupBool "show-toc" False docMeta
-          , writerTOCDepth = lookupInt "toc-depth" 1 docMeta
+          , writerTableOfContents = getMetaBoolOrElse "show-toc" False docMeta
+          , writerTOCDepth = getMetaIntOrElse "toc-depth" 1 docMeta
           }
   writePandocFile "html5" options out pandoc

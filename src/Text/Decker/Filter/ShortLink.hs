@@ -37,11 +37,11 @@ evalUri :: Meta -> URI -> Maybe String
 evalUri meta uri = do
   let scheme = filter (/= ':') (uriScheme uri)
       path = uriPath uri
-  case lookupMetaString ("short-links" <.> scheme) meta of
+  case getMetaString ("short-links" <.> scheme) meta of
     Just template -> fillTemplate template path
     Nothing -> do
-      binding <- lookupMetaString ("short-links" <.> "bind" <.> scheme) meta
-      template <- lookupMetaString ("short-links" <.> scheme <.> binding) meta
+      binding <- getMetaString ("short-links" <.> "bind" <.> scheme) meta
+      template <- getMetaString ("short-links" <.> scheme <.> binding) meta
       fillTemplate template path
 
 fillTemplate template path =

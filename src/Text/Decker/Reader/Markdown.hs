@@ -74,7 +74,7 @@ readAndProcessMarkdown markdownFile disp = do
   where
     baseDir = takeDirectory markdownFile
     pipeline meta =
-      case lookupMetaBool "mario" meta of
+      case getMetaBool "mario" meta of
         Just True ->
           concatM
             [ evaluateShortLinks
@@ -119,7 +119,7 @@ readMetaMarkdown markdownFile = do
   let filePandoc@(Pandoc fileMeta _) =
         readMarkdownOrThrow pandocReaderOpts markdown
   let combinedMeta = mergePandocMeta' fileMeta globalMeta
-  let generateIds = lookupBool "generate-ids" False combinedMeta
+  let generateIds = getMetaBoolOrElse "generate-ids" False combinedMeta
   Pandoc _ fileBlocks <- maybeGenerateIds generateIds filePandoc
   -- combine the meta data with preference on the embedded data
   let mustacheMeta = toMustacheMeta combinedMeta
@@ -129,7 +129,7 @@ readMetaMarkdown markdownFile = do
   let Pandoc _ substitudedBlocks =
         readMarkdownOrThrow pandocReaderOpts substituted
   versionCheck combinedMeta
-  let writeBack = lookupBool "write-back.enable" False combinedMeta
+  let writeBack = getMetaBoolOrElse "write-back.enable" False combinedMeta
   when (generateIds || writeBack) $
     writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
   mapResources

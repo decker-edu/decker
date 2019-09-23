@@ -5,17 +5,17 @@ module Text.Decker.Internal.Meta
   , mergePandocMeta
   , mergePandocMeta'
   , readMetaData
-  , lookupPandocMeta
-  , lookupInt
-  , lookupBool
-  , lookupString
-  , lookupStringList
-  , lookupMetaValue
-  , lookupMetaBool
-  , lookupMetaString
-  , lookupMetaStringList
-  , lookupMetaStringMap
-  , lookupMetaInt
+  -- , lookupPandocMeta
+  , getMetaInt
+  , getMetaIntOrElse
+  , getMetaBool
+  , getMetaBoolOrElse
+  , getMetaString
+  , getMetaStringOrElse
+  , getMetaStringList
+  , getMetaStringListOrElse
+  , getMetaValue
+  , getMetaStringMap
   , pandocMeta
   , DeckerException(..)
   ) where
@@ -123,41 +123,60 @@ readMetaData dir = do
       else return (Y.object [])
   return $ toPandocMeta meta
 
-lookupPandocMeta :: String -> Meta -> Maybe String
-lookupPandocMeta key (Meta m) =
-  case L.splitOn "." key of
-    [] -> Nothing
-    k:ks -> lookup' ks (Map.lookup k m)
-  where
-    lookup' :: [String] -> Maybe MetaValue -> Maybe String
-    lookup' (k:ks) (Just (MetaMap m)) = lookup' ks (Map.lookup k m)
-    lookup' [] (Just (MetaBool b)) = Just $ show b
-    lookup' [] (Just (MetaString s)) = Just s
-    lookup' [] (Just (MetaInlines i)) = Just $ stringify i
-    lookup' _ _ = Nothing
+-- lookupPandocMeta :: String -> Meta -> Maybe String
+-- lookupPandocMeta key (Meta m) =
+--   case L.splitOn "." key of
+--     [] -> Nothing
+--     k:ks -> lookup' ks (Map.lookup k m)
+--   where
+--     lookup' :: [String] -> Maybe MetaValue -> Maybe String
+--     lookup' (k:ks) (Just (MetaMap m)) = lookup' ks (Map.lookup k m)
+--     lookup' [] (Just (MetaBool b)) = Just $ show b
+--     lookup' [] (Just (MetaString s)) = Just s
+--     lookup' [] (Just (MetaInlines i)) = Just $ stringify i
+--     lookup' _ _ = Nothing
+getMetaInt :: String -> Meta -> Maybe Int
+getMetaInt key meta = getMetaString key meta >>= readMaybe
 
-lookupInt :: String -> Int -> Meta -> Int
-lookupInt key def meta =
-  case lookupMetaValue key meta of
+getMetaIntOrElse :: String -> Int -> Meta -> Int
+getMetaIntOrElse key def meta =
+  case getMetaValue key meta of
     Just (MetaString string) -> fromMaybe def $ readMaybe string
     _ -> def
 
-lookupBool :: String -> Bool -> Meta -> Bool
-lookupBool key def meta =
-  case lookupMetaValue key meta of
+-- | Lookup a boolean value in a Pandoc meta data hierarchy. The key string
+-- notation is indexed subkeys separated by '.', eg. `top.list[3].value`.
+getMetaBool :: String -> Meta -> Maybe Bool
+getMetaBool key meta = getMetaValue key meta >>= metaToBool
+
+metaToBool :: MetaValue -> Maybe Bool
+metaToBool (MetaBool bool) = Just bool
+metaToBool _ = Nothing
+
+getMetaBoolOrElse :: String -> Bool -> Meta -> Bool
+getMetaBoolOrElse key def meta =
+  case getMetaValue key meta of
     Just (MetaBool bool) -> bool
     _ -> def
 
-lookupString :: String -> String -> Meta -> String
-lookupString key def meta =
-  case lookupMetaValue key meta of
+-- | Lookup a String value in a Pandoc meta data hierarchy. The key string
+-- notation is indexed subkeys separated by '.', eg. `top.list[3].value`.
+getMetaString :: String -> Meta -> Maybe String
+getMetaString key meta = getMetaValue key meta >>= metaToString
+
+getMetaStringOrElse :: String -> String -> Meta -> String
+getMetaStringOrElse key def meta =
+  case getMetaValue key meta of
     Just (MetaString string) -> string
     Just (MetaInlines inlines) -> stringify inlines
     _ -> def
 
-lookupStringList :: String -> [String] -> Meta -> [String]
-lookupStringList key def meta =
-  case lookupMetaValue key meta of
+getMetaStringList :: String -> Meta -> Maybe [String]
+getMetaStringList key meta = getMetaValue key meta >>= metaToStringList
+
+getMetaStringListOrElse :: String -> [String] -> Meta -> [String]
+getMetaStringListOrElse key def meta =
+  case getMetaValue key meta of
     Just (MetaList list) -> mapMaybe metaToString list
     _ -> def
 
@@ -171,8 +190,8 @@ arrayIndex key =
   reverse (getAllTextSubmatches (key =~ ("^\\[([0-9]+)\\]$" :: String)))
 
 -- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
-lookupMetaValue :: String -> Meta -> Maybe MetaValue
-lookupMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
+getMetaValue :: String -> Meta -> Maybe MetaValue
+getMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
   where
     lookup' (key:path) (MetaMap map) = M.lookup key map >>= lookup' path
     lookup' (key:path) (MetaList list) =
@@ -180,25 +199,8 @@ lookupMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
     lookup' (_:_) _ = Nothing
     lookup' [] mv = Just mv
 
--- | Lookup a boolean value in a Pandoc meta data hierarchy. The key string
--- notation is indexed subkeys separated by '.', eg. `top.list[3].value`.
-lookupMetaBool :: String -> Meta -> Maybe Bool
-lookupMetaBool key meta = lookupMetaValue key meta >>= metaToBool
-
-metaToBool :: MetaValue -> Maybe Bool
-metaToBool (MetaBool bool) = Just bool
-metaToBool _ = Nothing
-
--- | Lookup a String value in a Pandoc meta data hierarchy. The key string
--- notation is indexed subkeys separated by '.', eg. `top.list[3].value`.
-lookupMetaString :: String -> Meta -> Maybe String
-lookupMetaString key meta = lookupMetaValue key meta >>= metaToString
-
-lookupMetaStringList :: String -> Meta -> Maybe [String]
-lookupMetaStringList key meta = lookupMetaValue key meta >>= metaToStringList
-
-lookupMetaStringMap :: String -> Meta -> Maybe (M.Map String String)
-lookupMetaStringMap key meta = lookupMetaValue key meta >>= metaToStringMap
+getMetaStringMap :: String -> Meta -> Maybe (M.Map String String)
+getMetaStringMap key meta = getMetaValue key meta >>= metaToStringMap
 
 metaToString :: MetaValue -> Maybe String
 metaToString (MetaString string) = Just string
@@ -222,9 +224,6 @@ metaToStringMap (MetaMap metaMap) =
       | null stringMap -> Nothing
     stringMap -> Just stringMap
 metaToStringMap _ = Nothing
-
-lookupMetaInt :: String -> Meta -> Maybe Int
-lookupMetaInt key meta = lookupMetaString key meta >>= readMaybe
 
 pandocMeta :: (String -> Meta -> Maybe a) -> Pandoc -> String -> Maybe a
 pandocMeta f (Pandoc m _) = flip f m

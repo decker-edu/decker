@@ -256,7 +256,7 @@ run = do
     --
     phony "publish-annotations" $ do
       metaData <- metaA
-      when (isJust $ lookupMetaString "publish-annotations" metaData) $ do
+      when (isJust $ getMetaString "publish-annotations" metaData) $ do
         let src = (directories ^. project) </> "annotations"
         let dst = (directories ^. public) </> "annotations"
         exists <- doesDirectoryExist src
@@ -269,8 +269,8 @@ run = do
       allHtmlA >>= need
       metaData <- metaA
       need ["index"]
-      let host = lookupMetaString "rsync-destination.host" metaData
-      let path = lookupMetaString "rsync-destination.path" metaData
+      let host = getMetaString "rsync-destination.host" metaData
+      let path = getMetaString "rsync-destination.path" metaData
       if isJust host && isJust path
         then do
           let src = (directories ^. public) ++ "/"
