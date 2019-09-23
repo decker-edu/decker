@@ -19,6 +19,7 @@ module Text.Decker.Project.Project
   , scanTargets
   , isDevelopmentRun
   , excludeDirs
+  , staticDirs
   -- * Types
   , sources
   , decks
@@ -43,6 +44,7 @@ import System.Decker.OS
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Flags
 import Text.Decker.Internal.Helper
+import Text.Decker.Internal.Meta
 import Text.Decker.Project.Glob
 import Text.Decker.Project.Version
 
@@ -158,8 +160,9 @@ deckerResourceDir =
     then preextractedResourceFolder
     else D.getXdgDirectory
            D.XdgData
-           ("decker" ++ "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++
-            deckerGitCommitId)
+           ("decker" ++
+            "-" ++
+            deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
 
 -- | Find out if the decker executable is located below the current directory.
 -- This means most probably that decker was started in the decker development
@@ -261,26 +264,38 @@ sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
 
 alwaysExclude = ["public", "log", "dist", "code", ".shake", ".git", ".vscode"]
 
-excludeDirs :: Value -> [String]
+-- excludeDirs :: Value -> [String]
+-- excludeDirs meta =
+--   let metaExclude =
+--         meta ^.. key "exclude-directories" . values . _String . unpacked
+--    in alwaysExclude ++ metaExclude
+-- staticDirs meta =
+--   meta ^.. key "static-resource-dirs" . values . _String . unpacked
+excludeDirs :: Meta -> [String]
 excludeDirs meta =
-  let metaExclude =
-        meta ^.. key "exclude-directories" . values . _String . unpacked
-   in alwaysExclude ++ metaExclude
+  let metaExclude = lookupMetaStringList "exclude-directories" meta
+   in case metaExclude of
+        Just dirs -> alwaysExclude ++ dirs
+        _ -> alwaysExclude
 
 staticDirs meta =
-  meta ^.. key "static-resource-dirs" . values . _String . unpacked
+  let metaStatic = lookupMetaStringList "static-resource-dirs" meta
+   in case metaStatic of
+        Just dirs -> dirs
+        _ -> []
 
-scanTargets :: Value -> ProjectDirs -> IO Targets
+scanTargets :: Meta -> ProjectDirs -> IO Targets
 scanTargets meta dirs = do
   let exclude = excludeDirs meta
   srcs <- globFiles (excludeDirs meta) sourceSuffixes (dirs ^. project)
   let static = map (dirs ^. project </>) (staticDirs meta)
   staticSrc <- concat <$> mapM (fastGlobFiles [] []) static
-  let staticTargets = map ((dirs ^. public </>) . makeRelative (dirs ^. project)) staticSrc
+  let staticTargets =
+        map ((dirs ^. public </>) . makeRelative (dirs ^. project)) staticSrc
   return
     Targets
       { _sources = sort $ concatMap snd srcs
-      , _static = staticTargets          
+      , _static = staticTargets
       , _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs
       , _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs
       , _pages = sort $ calcTargets pageSuffix pageHTMLSuffix srcs
@@ -293,8 +308,8 @@ scanTargets meta dirs = do
     calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]
     calcTargets srcSuffix targetSuffix sources =
       map
-        (replaceSuffix srcSuffix targetSuffix . combine (dirs ^. public) .
-         makeRelative (dirs ^. project))
+        (replaceSuffix srcSuffix targetSuffix .
+         combine (dirs ^. public) . makeRelative (dirs ^. project))
         (fromMaybe [] $ lookup srcSuffix sources)
 
 getDachdeckerUrl :: IO String

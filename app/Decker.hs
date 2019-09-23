@@ -15,11 +15,11 @@ import Text.Decker.Writer.Format
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Pdf
 
+import Control.Concurrent
 import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Control.Monad.Extra
-import Control.Concurrent
 import Data.IORef ()
 import Data.List
 import Data.Maybe
@@ -256,7 +256,7 @@ run = do
     --
     phony "publish-annotations" $ do
       metaData <- metaA
-      when (isJust $ metaValueAsString "publish-annotations" metaData) $ do
+      when (isJust $ lookupMetaString "publish-annotations" metaData) $ do
         let src = (directories ^. project) </> "annotations"
         let dst = (directories ^. public) </> "annotations"
         exists <- doesDirectoryExist src
@@ -269,8 +269,8 @@ run = do
       allHtmlA >>= need
       metaData <- metaA
       need ["index"]
-      let host = metaValueAsString "rsync-destination.host" metaData
-      let path = metaValueAsString "rsync-destination.path" metaData
+      let host = lookupMetaString "rsync-destination.host" metaData
+      let path = lookupMetaString "rsync-destination.path" metaData
       if isJust host && isJust path
         then do
           let src = (directories ^. public) ++ "/"

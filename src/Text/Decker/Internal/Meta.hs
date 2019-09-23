@@ -5,7 +5,6 @@ module Text.Decker.Internal.Meta
   , mergePandocMeta
   , mergePandocMeta'
   , readMetaData
-  , aggregateMetaData
   , lookupPandocMeta
   , lookupInt
   , lookupBool
@@ -17,7 +16,6 @@ module Text.Decker.Internal.Meta
   , lookupMetaStringList
   , lookupMetaStringMap
   , lookupMetaInt
-  , metaValueAsString
   , pandocMeta
   , DeckerException(..)
   ) where
@@ -28,6 +26,7 @@ import Text.Decker.Writer.Markdown
 import Control.Arrow
 import Control.Exception
 import qualified Data.HashMap.Strict as H
+
 -- import qualified Data.List as L
 import Data.List.Safe ((!!))
 import qualified Data.List.Split as L
@@ -38,6 +37,7 @@ import qualified Data.Text as T
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
 import Prelude hiding ((!!))
+import System.Directory
 import System.FilePath
 import System.FilePath.Glob
 import qualified Text.Mustache.Types as MT
@@ -45,12 +45,6 @@ import Text.Pandoc hiding (writeMarkdown)
 import Text.Pandoc.Shared
 import Text.Read
 import Text.Regex.TDFA
-
-joinMeta :: Y.Value -> Y.Value -> Y.Value
-joinMeta (Y.Object old) (Y.Object new) = Y.Object (H.union new old)
-joinMeta (Y.Object old) _ = Y.Object old
-joinMeta _ (Y.Object new) = Y.Object new
-joinMeta _ _ = throw $ YamlException "Can only join YAML objects."
 
 -- | Converts pandoc meta data to mustache meta data. Inlines and blocks are
 -- rendered to markdown strings with default options.
@@ -119,22 +113,15 @@ decodeYaml yamlFile = do
       YamlException $ "Top-level meta value must be an object: " ++ yamlFile
     Left exception -> throw exception
 
-readMetaData :: FilePath -> IO Y.Value
+readMetaData :: FilePath -> IO Meta
 readMetaData dir = do
-  files <- globDir1 (compile "*-meta.yaml") dir
-  meta <- mapM decodeYaml files
-  return $ foldl joinMeta (Y.object []) meta
-
-aggregateMetaData :: FilePath -> FilePath -> IO Y.Value
-aggregateMetaData top = walkUpTo
-  where
-    walkUpTo dir = do
-      fromHere <- readMetaData dir
-      if equalFilePath top dir
-        then return fromHere
-        else do
-          fromAbove <- walkUpTo (takeDirectory dir)
-          return $ joinMeta fromHere fromAbove
+  let file = dir </> "decker.yaml"
+  exists <- doesFileExist file
+  meta <-
+    if exists
+      then decodeYaml file
+      else return (Y.object [])
+  return $ toPandocMeta meta
 
 lookupPandocMeta :: String -> Meta -> Maybe String
 lookupPandocMeta key (Meta m) =
@@ -174,9 +161,6 @@ lookupStringList key def meta =
     Just (MetaList list) -> mapMaybe metaToString list
     _ -> def
 
-lookupMetaValue :: String -> Meta -> Maybe MetaValue
-lookupMetaValue = flip lookupMeta'
-
 -- | Split a compound meta key at the dots and separate the array indexes.
 splitKey = concatMap (L.split (L.keepDelimsL (L.oneOf "["))) . L.splitOn "."
 
@@ -186,9 +170,9 @@ arrayIndex key =
   listToMaybe $
   reverse (getAllTextSubmatches (key =~ ("^\\[([0-9]+)\\]$" :: String)))
 
--- | Recursively deconstract a compound key and drill into the meta data hierarchy.
-lookupMeta' :: Meta -> String -> Maybe MetaValue
-lookupMeta' meta key = lookup' (splitKey key) (MetaMap (unMeta meta))
+-- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
+lookupMetaValue :: String -> Meta -> Maybe MetaValue
+lookupMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
   where
     lookup' (key:path) (MetaMap map) = M.lookup key map >>= lookup' path
     lookup' (key:path) (MetaList list) =
@@ -198,8 +182,8 @@ lookupMeta' meta key = lookup' (splitKey key) (MetaMap (unMeta meta))
 
 -- | Lookup a boolean value in a Pandoc meta data hierarchy. The key string
 -- notation is indexed subkeys separated by '.', eg. `top.list[3].value`.
-lookupMetaBool :: Meta -> String -> Maybe Bool
-lookupMetaBool meta key = lookupMeta' meta key >>= metaToBool
+lookupMetaBool :: String -> Meta -> Maybe Bool
+lookupMetaBool key meta = lookupMetaValue key meta >>= metaToBool
 
 metaToBool :: MetaValue -> Maybe Bool
 metaToBool (MetaBool bool) = Just bool
@@ -207,14 +191,14 @@ metaToBool _ = Nothing
 
 -- | Lookup a String value in a Pandoc meta data hierarchy. The key string
 -- notation is indexed subkeys separated by '.', eg. `top.list[3].value`.
-lookupMetaString :: Meta -> String -> Maybe String
-lookupMetaString meta key = lookupMeta' meta key >>= metaToString
+lookupMetaString :: String -> Meta -> Maybe String
+lookupMetaString key meta = lookupMetaValue key meta >>= metaToString
 
-lookupMetaStringList :: Meta -> String -> Maybe [String]
-lookupMetaStringList meta key = lookupMeta' meta key >>= metaToStringList
+lookupMetaStringList :: String -> Meta -> Maybe [String]
+lookupMetaStringList key meta = lookupMetaValue key meta >>= metaToStringList
 
-lookupMetaStringMap :: Meta -> String -> Maybe (M.Map String String)
-lookupMetaStringMap meta key = lookupMeta' meta key >>= metaToStringMap
+lookupMetaStringMap :: String -> Meta -> Maybe (M.Map String String)
+lookupMetaStringMap key meta = lookupMetaValue key meta >>= metaToStringMap
 
 metaToString :: MetaValue -> Maybe String
 metaToString (MetaString string) = Just string
@@ -239,25 +223,8 @@ metaToStringMap (MetaMap metaMap) =
     stringMap -> Just stringMap
 metaToStringMap _ = Nothing
 
-lookupMetaInt :: Meta -> String -> Maybe Int
-lookupMetaInt meta key = lookupMetaString meta key >>= readMaybe
+lookupMetaInt :: String -> Meta -> Maybe Int
+lookupMetaInt key meta = lookupMetaString key meta >>= readMaybe
 
-metaValueAsString :: String -> Y.Value -> Maybe String
-metaValueAsString key meta =
-  case L.splitOn "." key of
-    [] -> Nothing
-    k:ks -> lookup' ks (lookupValue k meta)
-  where
-    lookup' :: [String] -> Maybe Y.Value -> Maybe String
-    lookup' [] (Just (Y.String s)) = Just (T.unpack s)
-    lookup' [] (Just (Y.Number n)) = Just (show n)
-    lookup' [] (Just (Y.Bool b)) = Just (show b)
-    lookup' (k:ks) (Just obj@(Y.Object _)) = lookup' ks (lookupValue k obj)
-    lookup' _ _ = Nothing
-
-lookupValue :: String -> Y.Value -> Maybe Y.Value
-lookupValue key (Y.Object hashTable) = H.lookup (T.pack key) hashTable
-lookupValue _ _ = Nothing
-
-pandocMeta :: (Meta -> String -> Maybe a) -> Pandoc -> String -> Maybe a
-pandocMeta f (Pandoc m _) = f m
+pandocMeta :: (String -> Meta -> Maybe a) -> Pandoc -> String -> Maybe a
+pandocMeta f (Pandoc m _) = flip f m

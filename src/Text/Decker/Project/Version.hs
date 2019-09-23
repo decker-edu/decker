@@ -59,7 +59,7 @@ isDevelopmentVersion = not (deckerGitBranch == "master" && isVersionTagMatching)
 versionCheck :: Meta -> Action ()
 versionCheck meta =
   unless isDevelopmentVersion $ do
-    let version = lookupMetaString meta "decker-version"
+    let version = lookupMetaString "decker-version" meta
     case version of
       Just version -> check version
       _ ->

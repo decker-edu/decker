@@ -14,6 +14,7 @@ module Text.Decker.Project.Shake
   , handoutsPdfA
   , loggingA
   , metaA
+  , globalMetaA
   , indicesA
   , openBrowser
   , pagesA
@@ -109,7 +110,8 @@ makeLenses ''MutableActionState
 data ActionContext = ActionContext
   { _dirs :: ProjectDirs
   , _targetList :: Targets
-  , _metaData :: Yaml.Value
+  , _metaData :: Meta
+  , _globalMeta :: Meta
   , _state :: MutableActionState
   , _templates :: [(FilePath, Template)]
   } deriving (Typeable, Show)
@@ -151,7 +153,8 @@ initContext state = do
   meta <- readMetaData $ dirs ^. project
   targets <- scanTargets meta dirs
   templates <- readTemplates (dirs ^. project) (state ^. devRun)
-  return $ ActionContext dirs targets meta state templates
+  -- init context with 2x meta (one will be fixed global meta)
+  return $ ActionContext dirs targets meta meta state templates
 
 cleanup state = do
   srvr <- readIORef $ state ^. server
@@ -200,15 +203,16 @@ waitForChange inDirs =
        done <- newEmptyMVar
        forM_
          inDirs
-         (\dir -> do
+         (\dir
             -- putStrLn $ "watching dir: " ++ dir
+           -> do
             Notify.watchDir
               manager
               dir
               (const True)
-              (\e -> do
+              (\e
                  -- putStrLn $ "changed: " ++ show e
-                 putMVar done ()))
+                -> do putMVar done ()))
        takeMVar done)
 
 getTemplate :: Disposition -> Action String
@@ -253,10 +257,11 @@ copyStaticDirs = do
   meta <- metaA
   public <- publicA
   project <- projectA
-  let staticDirs =
-        meta ^.. key "static-resource-dirs" . values . _String . unpacked
-  let staticSrc = map (project </>) staticDirs
-  let staticDst = map (public </>) staticDirs
+  -- let staticDirs =
+        -- meta ^.. key "static-resource-dirs" . values . _String . unpacked
+  -- let staticDirs = lookupMetaStringList "static-resource-dirs" meta
+  let staticSrc = map (project </>) (staticDirs meta)
+  let staticDst = map (public </>) (staticDirs meta)
   liftIO $ zipWithM_ copyDir staticSrc staticDst
 
 extractSupport :: Action ()
@@ -422,7 +427,11 @@ loggingA = _logging <$> projectDirsA
 targetsA :: Action Targets
 targetsA = _targetList <$> actionContext
 
+metaA :: Action Meta
 metaA = _metaData <$> actionContext
+
+globalMetaA :: Action Meta
+globalMetaA = _globalMeta <$> actionContext
 
 indicesA = _indices <$> targetsA
 
