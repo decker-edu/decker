@@ -12,9 +12,9 @@ For further options which might not be included here see: [https://github.com/ha
 
 # Meta files
 
-- The meta configuration options shown here can also be included in any `*-meta.yaml` file located in the top level of the project directory. These options are then active per default for every slide deck but can be overwritten in a specific slide deck.
+- The meta configuration options shown here can also be included in the `decker.yaml` file located in the top level of the project directory. These options are then active per default for every slide deck but can be overwritten in a specific slide deck.
 
-- For example: The `date` and `menu: true` are added to the `tutorial-meta.yaml` file. If the header of a specific presentation deck includes `menu: false` the menu is not shown in this presentation.
+- For example: The `date` and `menu: true` are added to the `decker.yaml` file. If the header of a specific presentation deck includes `menu: false` the menu is not shown in this presentation.
 
 
 # Example Header
@@ -40,7 +40,7 @@ On Windows, only `Copy` should be used as symlinks on Windows work differently f
 The default setting (without having `provisioning` included in the meta) is `Copy`on Windows and `SymLink` on MacOS/Linux.
 
 To be able to move the `public` folder to other devices (e.g. hold a presentation from a different computer) `provisioning: Copy` is necessary.  
-`provisioning` should be included in a `*-meta.yaml` file.
+`provisioning` should be included in the `decker.yaml` file.
 
 # 
 

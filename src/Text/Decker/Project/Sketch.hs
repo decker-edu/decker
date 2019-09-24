@@ -44,12 +44,12 @@ randomAlpha = getStdRandom (randomR ('a', 'z'))
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
 writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   template <- getTemplate' "template/deck.md"
-  let columns = lookupInt "write-back.line-columns" 80 pmeta
-  let wrap = lookupString "write-back.line-wrap" "" pmeta
+  let columns = getMetaIntOrElse "write-back.line-columns" 80 pmeta
+  let wrap = getMetaStringOrElse "write-back.line-wrap" "" pmeta
   let wrapOpt "none" = WrapNone
       wrapOpt "preserve" = WrapPreserve
       wrapOpt _ = WrapAuto
-  let wrap = lookupString "write-back.line-wrap" "none" pmeta
+  let wrap = getMetaStringOrElse "write-back.line-wrap" "none" pmeta
   let extensions =
         (disableExtension Ext_simple_tables .
          disableExtension Ext_multiline_tables .
