@@ -96,10 +96,14 @@ dependencies:
   - yaml
   - zip
 
+ghc-options:
+  - -Wunused-top-binds
+  - -Wunused-local-binds
+  - -Wincomplete-patterns
+  - -Wunused-matches
+  - -fwarn-unused-imports
+
 library:
-  ghc-options:
-    - -fwarn-unused-imports
-  # - -fwarn-unused-binds
   source-dirs:
     - src
   when:

@@ -63,14 +63,12 @@ readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disp = do
   pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes baseDir
-  processed@(Pandoc meta body) <-
-    processPandoc
-      (pipeline meta)
-      baseDir
-      disp
-      (provisioningFromMeta meta)
-      pandoc
-  return processed
+  processPandoc
+    (pipeline meta)
+    baseDir
+    disp
+    (provisioningFromMeta meta)
+    pandoc
   where
     baseDir = takeDirectory markdownFile
     pipeline meta =
