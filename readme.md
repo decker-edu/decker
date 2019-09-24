@@ -119,7 +119,7 @@ choice. Beware that file updates are not propagated into the container so
 
     Prints information about the current project's directories, the targets
     (files which will be generated) and the meta data options which are found in
-    top level `*-meta.yaml` files.
+    top level `decker.yaml` files.
 
 -   `decker html`
 
