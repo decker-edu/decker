@@ -257,9 +257,6 @@ copyStaticDirs = do
   meta <- metaA
   public <- publicA
   project <- projectA
-  -- let staticDirs =
-        -- meta ^.. key "static-resource-dirs" . values . _String . unpacked
-  -- let staticDirs = lookupMetaStringList "static-resource-dirs" meta
   let staticSrc = map (project </>) (staticDirs meta)
   let staticDst = map (public </>) (staticDirs meta)
   liftIO $ zipWithM_ copyDir staticSrc staticDst

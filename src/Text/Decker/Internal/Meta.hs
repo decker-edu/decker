@@ -5,7 +5,6 @@ module Text.Decker.Internal.Meta
   , mergePandocMeta
   , mergePandocMeta'
   , readMetaData
-  -- , lookupPandocMeta
   , getMetaInt
   , getMetaIntOrElse
   , getMetaBool
@@ -123,18 +122,6 @@ readMetaData dir = do
       else return (Y.object [])
   return $ toPandocMeta meta
 
--- lookupPandocMeta :: String -> Meta -> Maybe String
--- lookupPandocMeta key (Meta m) =
---   case L.splitOn "." key of
---     [] -> Nothing
---     k:ks -> lookup' ks (Map.lookup k m)
---   where
---     lookup' :: [String] -> Maybe MetaValue -> Maybe String
---     lookup' (k:ks) (Just (MetaMap m)) = lookup' ks (Map.lookup k m)
---     lookup' [] (Just (MetaBool b)) = Just $ show b
---     lookup' [] (Just (MetaString s)) = Just s
---     lookup' [] (Just (MetaInlines i)) = Just $ stringify i
---     lookup' _ _ = Nothing
 getMetaInt :: String -> Meta -> Maybe Int
 getMetaInt key meta = getMetaString key meta >>= readMaybe
 

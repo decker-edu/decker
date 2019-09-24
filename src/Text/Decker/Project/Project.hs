@@ -256,21 +256,12 @@ handoutHTMLSuffix = "-handout.html"
 
 handoutPDFSuffix = "-handout.pdf"
 
-metaSuffix = "-meta.yaml"
-
 indexSuffix = "-deck-index.yaml"
 
 sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
 
 alwaysExclude = ["public", "log", "dist", "code", ".shake", ".git", ".vscode"]
 
--- excludeDirs :: Value -> [String]
--- excludeDirs meta =
---   let metaExclude =
---         meta ^.. key "exclude-directories" . values . _String . unpacked
---    in alwaysExclude ++ metaExclude
--- staticDirs meta =
---   meta ^.. key "static-resource-dirs" . values . _String . unpacked
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
   let metaExclude = getMetaStringList "exclude-directories" meta
