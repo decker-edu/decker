@@ -119,7 +119,9 @@ readMetaData dir = do
   meta <-
     if exists
       then decodeYaml file
-      else return (Y.object [])
+      else do
+        putStrLn "WARNING: There is no top level 'decker.yaml' file!"
+        return (Y.object [])
   return $ toPandocMeta meta
 
 getMetaInt :: String -> Meta -> Maybe Int

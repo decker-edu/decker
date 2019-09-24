@@ -27,7 +27,7 @@ main = do
   deckTemplate <- B.readFile (dirs ^. project </> "resource/template/deck.html")
   --
   -- metaFiles <- globDir1 (compile "**/*-meta.yaml") (dirs ^. project)
-  metaFile <- dirs ^. project </> "decker.yaml"
+  let metaFile = dirs ^. project </> "decker.yaml"
   --
   hspec $
   --
