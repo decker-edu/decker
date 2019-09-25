@@ -141,9 +141,11 @@ runShakeOnce state rules = do
   forM_ server reloadClients
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
-    let exclude = excludeDirs (context ^. metaData)
-    inDirs <- fastGlobDirs exclude (context ^. dirs . project)
-    waitForChange inDirs
+    let projectDir = context ^. dirs . project
+    let exclude = map (projectDir </>) $ excludeDirs (context ^. metaData)
+    -- inDirs <- fastGlobDirs exclude (context ^. dirs . project)
+    -- waitForChange inDirs
+    waitForChange' projectDir exclude
   return keepWatching
 
 targetDirs context =
@@ -203,17 +205,33 @@ waitForChange inDirs =
        done <- newEmptyMVar
        forM_
          inDirs
-         (\dir
-            -- putStrLn $ "watching dir: " ++ dir
-           -> do
+         (\dir -> do
+            putStrLn $ "watching dir: " ++ dir
             Notify.watchDir
               manager
               dir
               (const True)
-              (\e
-                 -- putStrLn $ "changed: " ++ show e
-                -> do putMVar done ()))
+              (\e -> do
+                 putStrLn $ "changed: " ++ show e
+                 putMVar done ()))
        takeMVar done)
+
+waitForChange' :: FilePath -> [FilePath] -> IO ()
+waitForChange' inDir exclude =
+  Notify.withManager
+    (\manager -> do
+       done <- newEmptyMVar
+       -- putStrLn $ "watching dir: " ++ inDir
+       Notify.watchTree
+         manager
+         inDir
+         filter
+         (\e -> do
+            -- putStrLn $ "changed: " ++ show e
+            putMVar done ())
+       takeMVar done)
+  where
+    filter event = not $ any (`isPrefixOf` (Notify.eventPath event)) exclude
 
 getTemplate :: Disposition -> Action String
 getTemplate disposition = getTemplate' (templateFileName disposition)

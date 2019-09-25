@@ -9,6 +9,7 @@ exclude-directories:
   - log
   - node_modules
   - public
+  - resource/support/fonts
   - resource/support/vendor
   - src
   - src-unix
