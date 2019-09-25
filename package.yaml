@@ -126,7 +126,6 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
       - -fwarn-unused-imports
-    # - -fwarn-unused-binds
     dependencies:
       - decker
 
