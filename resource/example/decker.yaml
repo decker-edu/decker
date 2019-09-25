@@ -14,3 +14,8 @@ hideInactiveCursor: true
 hideCursorTime: 2000
 transition: "none"
 backgroundTransition: "none"
+# publishing to a remote location (example)
+rsync-destination:
+    host: git@gitlab2.informatik.uni-wuerzburg.de
+    path: /some/path
+

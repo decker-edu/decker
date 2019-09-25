@@ -12,7 +12,7 @@ else
 dup = ln -sF
 endif
 
-all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard fontawesome reveal.js-menu thebelab
+all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard math fontawesome reveal.js-menu thebelab
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab
@@ -54,6 +54,9 @@ piklor.js:
 
 whiteboard:
 	@$(dup) $(third)/mb-reveal-plugins/whiteboard $(support)/whiteboard
+
+math:
+	@$(dup) $(third)/mb-reveal-plugins/math $(support)/math
 
 fontawesome:
 	@mkdir -p $(support)/fontawesome

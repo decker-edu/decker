@@ -177,7 +177,7 @@ processSlides pandoc = mapSlides (concatM actions) pandoc
   where
     actions :: [Slide -> Decker Slide]
     actions =
-      case pandocMeta lookupMetaBool pandoc "mario" of
+      case pandocMeta getMetaBool pandoc "mario" of
         Just True ->
           [ marioCols
           , wrapBoxes

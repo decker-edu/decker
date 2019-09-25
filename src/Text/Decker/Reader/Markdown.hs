@@ -6,9 +6,9 @@ import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.MarioMedia
-import Text.Decker.Filter.ShortLink
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Render
+import Text.Decker.Filter.ShortLink
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Meta
@@ -72,7 +72,7 @@ readAndProcessMarkdown markdownFile disp = do
   where
     baseDir = takeDirectory markdownFile
     pipeline meta =
-      case lookupMetaBool meta "mario" of
+      case getMetaBool "mario" meta of
         Just True ->
           concatM
             [ evaluateShortLinks
@@ -109,14 +109,15 @@ readMetaMarkdown markdownFile = do
   projectDir <- projectA
   need [markdownFile]
   -- read external meta data for this directory
-  externalMeta <-
-    liftIO $
-    toPandocMeta <$> aggregateMetaData projectDir (takeDirectory markdownFile)
+  -- externalMeta <-
+    -- liftIO $
+    -- toPandocMeta <$> aggregateMetaData projectDir (takeDirectory markdownFile)
+  globalMeta <- globalMetaA
   markdown <- liftIO $ T.readFile markdownFile
   let filePandoc@(Pandoc fileMeta _) =
         readMarkdownOrThrow pandocReaderOpts markdown
-  let combinedMeta = mergePandocMeta' fileMeta externalMeta
-  let generateIds = lookupBool "generate-ids" False combinedMeta
+  let combinedMeta = mergePandocMeta' fileMeta globalMeta
+  let generateIds = getMetaBoolOrElse "generate-ids" False combinedMeta
   Pandoc _ fileBlocks <- maybeGenerateIds generateIds filePandoc
   -- combine the meta data with preference on the embedded data
   let mustacheMeta = toMustacheMeta combinedMeta
@@ -126,7 +127,7 @@ readMetaMarkdown markdownFile = do
   let Pandoc _ substitudedBlocks =
         readMarkdownOrThrow pandocReaderOpts substituted
   versionCheck combinedMeta
-  let writeBack = lookupBool "write-back.enable" False combinedMeta
+  let writeBack = getMetaBoolOrElse "write-back.enable" False combinedMeta
   when (generateIds || writeBack) $
     writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
   mapResources

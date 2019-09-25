@@ -75,6 +75,11 @@ RESOURCES += $(support)/whiteboard/whiteboard.js
 $(support)/whiteboard/whiteboard.js: mb-reveal-plugins/whiteboard/whiteboard.js
 	mkdir -p $(@D) && cp $< $@
 
+# Mario math plugin
+RESOURCES += $(support)/math/math.js
+$(support)/whiteboard/math.js: mb-reveal-plugins/math/math.js
+	mkdir -p $(@D) && cp $< $@
+
 # Fontawesome
 FONTAWESOME += Font-Awesome/js-packages/@fortawesome/fontawesome-free/js/all.js
 FONTAWESOME += Font-Awesome/js-packages/@fortawesome/fontawesome-free/css/all.css

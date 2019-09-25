@@ -27,7 +27,7 @@ import Data.String ()
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
-import System.Directory (removeFile)
+import qualified System.Directory as Dir
 import System.Environment.Blank
 import System.IO
 import Text.Groom
@@ -149,7 +149,7 @@ run = do
     --
     priority 2 $
       "//*-deck.html" %> \out -> do
-        metaFilesA >>= need
+        needGlobalMetaFile
         src <- calcSource "-deck.html" "-deck.md" out
         let index = replaceSuffix "-deck.html" "-deck-index.yaml" out
         let annotSrc = replaceSuffix "-deck.md" "-annot.json" src
@@ -160,14 +160,14 @@ run = do
     --
     priority 2 $
       "//*-deck-index.yaml" %> \ind -> do
-        metaFilesA >>= need
+        needGlobalMetaFile
         src <- calcSource "-deck-index.yaml" "-deck.md" ind
         let out = replaceSuffix "-deck-index.yaml" "-deck.html" ind
         markdownToHtmlDeck src out ind
     --
     priority 2 $
       "//*-deck.pdf" %> \out -> do
-        metaFilesA >>= need
+        needGlobalMetaFile
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         need [src]
         putNormal $ "Started: " ++ src ++ " -> " ++ out
@@ -183,25 +183,25 @@ run = do
     --
     priority 2 $
       "//*-handout.html" %> \out -> do
-        metaFilesA >>= need
+        needGlobalMetaFile
         src <- calcSource "-handout.html" "-deck.md" out
         markdownToHtmlHandout src out
     --
     priority 2 $
       "//*-handout.pdf" %> \out -> do
-        metaFilesA >>= need
+        needGlobalMetaFile
         src <- calcSource "-handout.pdf" "-deck.md" out
         markdownToPdfHandout src out
     --
     priority 2 $
       "//*-page.html" %> \out -> do
-        metaFilesA >>= need
+        needGlobalMetaFile
         src <- calcSource "-page.html" "-page.md" out
         markdownToHtmlPage src out
     --
     priority 2 $
       "//*-page.pdf" %> \out -> do
-        metaFilesA >>= need
+        needGlobalMetaFile
         src <- calcSource "-page.pdf" "-page.md" out
         markdownToPdfPage src out
     --
@@ -239,7 +239,7 @@ run = do
         need [src]
         pdflatex ["-output-directory", dir, src]
         pdf2svg [pdf, out]
-        liftIO $ removeFile pdf
+        liftIO $ Dir.removeFile pdf
     --
     phony "clean" $ do
       removeFilesAfter (directories ^. public) ["//"]
@@ -269,7 +269,7 @@ run = do
     --
     phony "publish-annotations" $ do
       metaData <- metaA
-      when (isJust $ metaValueAsString "publish-annotations" metaData) $ do
+      when (isJust $ getMetaString "publish-annotations" metaData) $ do
         let src = (directories ^. project) </> "annotations"
         let dst = (directories ^. public) </> "annotations"
         exists <- doesDirectoryExist src
@@ -282,8 +282,8 @@ run = do
       allHtmlA >>= need
       metaData <- metaA
       need ["index"]
-      let host = metaValueAsString "rsync-destination.host" metaData
-      let path = metaValueAsString "rsync-destination.path" metaData
+      let host = getMetaString "rsync-destination.host" metaData
+      let path = getMetaString "rsync-destination.path" metaData
       if isJust host && isJust path
         then do
           let src = (directories ^. public) ++ "/"
@@ -304,3 +304,10 @@ waitForYes = do
   hFlush stdout
   input <- getLine
   unless (input == "y") waitForYes
+
+needGlobalMetaFile :: Action ()
+needGlobalMetaFile = do
+  projectDir <- projectA
+  let globalMetaFile = projectDir </> globalMetaFileName
+  exists <- doesFileExist globalMetaFile
+  when exists $ need [globalMetaFile]
