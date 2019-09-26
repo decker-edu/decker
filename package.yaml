@@ -28,7 +28,7 @@ extra-source-files:
   - resource/support/css/*
   - resource/support/js/*
   - resource/example/*
-  - third-party/Makefile
+  - third-party/symlinks.mk
 
 synopsis: A markdown based tool for slide deck creation
 category: Tool
@@ -97,10 +97,10 @@ dependencies:
   - zip
 
 ghc-options:
-  - -Wunused-top-binds
-  - -Wunused-local-binds
-  - -Wincomplete-patterns
-  - -Wunused-matches
+  # - -Wunused-top-binds
+  # - -Wunused-local-binds
+  # - -Wincomplete-patterns
+  # - -Wunused-matches
   - -fwarn-unused-imports
 
 library:
