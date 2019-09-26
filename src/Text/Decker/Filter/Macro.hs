@@ -172,7 +172,7 @@ verticalSpace _ _ (space, _) _ = do
       return $
       RawInline (Format "html") $
       printf
-        "<span style=\"display:block; clear:both; width:%s;\"></span>"
+        "<div style=\"display:block; clear:both; width:%s;\"></div>"
         space
     Disposition _ Latex -> return $ Str $ "[" ++ space ++ "]"
 
