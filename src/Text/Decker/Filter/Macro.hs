@@ -13,7 +13,17 @@ import Data.Maybe
 import Data.Text (pack, replace, unpack)
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)
+import Text.Blaze.Html5 as H
+  ( (!)
+  , div
+  , figure
+  , iframe
+  , iframe
+  , p
+  , span
+  , toHtml
+  , toValue
+  )
 import Text.Blaze.Html5.Attributes as A (class_, height, src, style, width)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
@@ -144,6 +154,28 @@ fontAwesome which _ _ (iconName, _) _ = do
       "<i class=\"" ++ which ++ " fa-" ++ iconName ++ "\"></i>"
     Disposition _ Latex -> return $ Str $ "[" ++ iconName ++ "]"
 
+horizontalSpace :: MacroAction
+horizontalSpace _ _ (space, _) _ = do
+  disp <- gets disposition
+  case disp of
+    Disposition _ Html ->
+      return $
+      RawInline (Format "html") $
+      printf "<span style=\"display:inline-block; width:%s;\"></span>" space
+    Disposition _ Latex -> return $ Str $ "[" ++ space ++ "]"
+
+verticalSpace :: MacroAction
+verticalSpace _ _ (space, _) _ = do
+  disp <- gets disposition
+  case disp of
+    Disposition _ Html ->
+      return $
+      RawInline (Format "html") $
+      printf
+        "<span style=\"display:block; clear:both; width:%s;\"></span>"
+        space
+    Disposition _ Latex -> return $ Str $ "[" ++ space ++ "]"
+
 metaValue :: MacroAction
 metaValue _ _ (key, _) meta =
   case splitOn "." key of
@@ -171,6 +203,8 @@ macroMap =
     , ("twitch", webVideo "twitch")
     , ("veer", webVideo "veer")
     , ("veer-photo", webVideo "veer-photo")
+    , ("hspace", horizontalSpace)
+    , ("vspace", verticalSpace)
     ]
 
 readDefault :: Read a => a -> String -> a
