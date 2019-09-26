@@ -6,6 +6,7 @@ module Text.Decker.Internal.Meta
   , mergePandocMeta
   , mergePandocMeta'
   , readMetaData
+  , getAdditionalMeta
   , getMetaInt
   , getMetaIntOrElse
   , getMetaBool
@@ -116,15 +117,35 @@ decodeYaml yamlFile = do
       YamlException $ "Top-level meta value must be an object: " ++ yamlFile
     Left exception -> throw exception
 
+-- Reads the global meta data file for a given directory
 readMetaData :: FilePath -> IO Meta
 readMetaData dir = do
   let file = dir </> globalMetaFileName
+  meta <- readMetaDataFile file
+  getAdditionalMeta meta
+
+-- Check for additional meta files specified in the Meta option "meta-data"
+getAdditionalMeta :: Meta -> IO Meta
+getAdditionalMeta meta = do
+  let m = getMetaStringList "meta-data" meta
+  case m of
+    Just metafiles -> do
+      addmeta <- traverse readMetaDataFile metafiles
+      -- foldr and reversed addmeta list because additional meta should overwrite default meta
+      -- alternative: foldl and flip mergePandocMeta'
+      return $ foldr mergePandocMeta' meta (reverse addmeta)
+    _ -> return meta
+
+-- Read a single meta data file
+readMetaDataFile :: FilePath -> IO Meta
+readMetaDataFile file = do
   exists <- doesFileExist file
+  f <- makeRelativeToCurrentDirectory file
   meta <-
     if exists
       then decodeYaml file
       else do
-        putStrLn "WARNING: There is no top level 'decker.yaml' file!"
+        putStrLn $ "WARNING: file " ++ show f ++ " does not exist!"
         return (Y.object [])
   return $ toPandocMeta meta
 
