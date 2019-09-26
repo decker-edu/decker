@@ -28,3 +28,6 @@
 [submodule "third-party/piklor.js"]
 	path = third-party/piklor.js
 	url = https://github.com/jillix/piklor.js.git
+[submodule "third-party/thebelab"]
+	path = third-party/thebelab
+	url = https://github.com/minrk/thebelab.git

@@ -12,7 +12,11 @@ else
 dup = ln -sF
 endif
 
-all: jquery chart.js mathjax reveal.js bootstrap piklor.js mb-reveal-plugins fontawesome reveal.js-menu
+all: jquery chart.js mathjax reveal.js bootstrap piklor.js mb-reveal-plugins fontawesome reveal.js-menu thebelab
+
+thebelab: thebelab/lib/index.js
+	@mkdir -p $(support)/thebelab
+	@cp thebelab/lib/*.{js,map} $(support)/thebelab
 
 jquery: jquery/dist/jquery.min.js
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
@@ -51,16 +55,22 @@ piklor.js:
 mb-reveal-plugins:
 	@$(dup) $(third)/mb-reveal-plugins $(support)/
 
+math:
+	@$(dup) $(third)/mb-reveal-plugins/math $(support)/math
+
 fontawesome:
 	@mkdir -p $(support)/fontawesome
 	@for i in js css webfonts svgs sprites; do \
 		$(dup) $(third)/Font-Awesome/js-packages/@fortawesome/fontawesome-free/$$i $(support)/fontawesome/$$i; \
 	done
 
+thebelab/lib/index.js:
+	(cd thebelab && npm install && npm run build)
+
 jquery/dist/jquery.min.js:
-	cd jquery && npm run build
+	(cd jquery && npm run build)
 
 Chart.js/dist/Chart.min.js:
-	cd Chart.js && npm install && npx rollup -c rollup.config.js
+	(cd Chart.js && npm install && npx rollup -c rollup.config.js)
 
 .PHONY: clean prepare fontawesome mb-reveal-plugins piklor.js bootstrap reveal.js mathjax chart.js jquery reveal.js-menu

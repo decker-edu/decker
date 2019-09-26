@@ -59,7 +59,7 @@ writeIndexLists out baseUrl = do
       , unlines pagesLinks
       ]
   where
-    makeLink project (html, pdf) = do
+    makeLink (html, pdf) = do
       pdfExists <- doesFileExist pdf
       if pdfExists
         then return $
@@ -79,12 +79,12 @@ writeIndexLists out baseUrl = do
           renderGroup :: FilePath -> Action [String]
           renderGroup key =
             (printf "\n## %s:" (makeRelative project key) :) <$>
-            mapM (makeLink project) (MM.lookup key grouped)
+            mapM makeLink (MM.lookup key grouped)
        in concat <$> mapM renderGroup (MM.keys grouped)
 
 -- | Write Pandoc in native format right next to the output file
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
-writeNativeWhileDebugging out mod doc@(Pandoc meta body) =
+writeNativeWhileDebugging out mod doc =
   liftIO $
   runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
   T.writeFile (out -<.> mod <.> ".hs")
@@ -95,7 +95,7 @@ markdownToHtmlDeck markdownFile out index = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
-  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
+  pandoc <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate disp
   dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
@@ -143,8 +143,8 @@ markdownToHtmlPage markdownFile out = do
               MathJax "Handled by reveal.js in the template"
           , writerVariables = [("decker-support-dir", supportDir)]
           , writerCiteMethod = Citeproc
-          , writerTableOfContents = lookupBool "show-toc" False docMeta
-          , writerTOCDepth = lookupInt "toc-depth" 1 docMeta
+          , writerTableOfContents = getMetaBoolOrElse "show-toc" False docMeta
+          , writerTOCDepth = getMetaIntOrElse "toc-depth" 1 docMeta
           }
   writePandocFile "html5" options out pandoc
 
@@ -164,7 +164,7 @@ markdownToHtmlHandout markdownFile out = do
               MathJax "Handled by reveal.js in the template"
           , writerVariables = [("decker-support-dir", supportDir)]
           , writerCiteMethod = Citeproc
-          , writerTableOfContents = lookupBool "show-toc" False docMeta
-          , writerTOCDepth = lookupInt "toc-depth" 1 docMeta
+          , writerTableOfContents = getMetaBoolOrElse "show-toc" False docMeta
+          , writerTOCDepth = getMetaIntOrElse "toc-depth" 1 docMeta
           }
   writePandocFile "html5" options out pandoc

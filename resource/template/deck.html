@@ -94,7 +94,8 @@ $endif$
       }
   }
   </script>
-  <script src="https://unpkg.com/thebelab@0.4.0/lib/index.js"></script>
+  <script src="https://unpkg.com/thebelab@0.4.0/lib/index.js"></script> 
+  <!-- <script src="$decker-support-dir$/vendor/thebelab/index.js"></script> -->
 $endif$
 $for(header-includes)$
   $header-includes$
@@ -481,25 +482,11 @@ $if(menu)$
 	    },
 $endif$
 $if(thebelab.enable)$
-        thebelab: $thebelab$,
+        thebelab: $thebelab.enable$,
 $endif$
 $if(mathjax)$
         math: {
           mathjax: "$decker-support-dir$/vendor/mathjax/MathJax.js",
-          config: 'TeX-AMS_SVG',
-          tex2jax: {
-            inlineMath: [['\\(','\\)']],
-            displayMath: [['\\[','\\]']],
-            balanceBraces: true,
-            processEscapes: false,
-            processRefs: true,
-            processEnvironments: true,
-            preview: 'TeX',
-            skipTags: ['script','noscript','style','textarea','pre','code'],
-            ignoreClass: 'tex2jax_ignore',
-            processClass: 'tex2jax_process'
-          },
-          menuSettings: { zoom: "Double-Click" },
           TeX: {
               Macros: {
               R: "{\\mathrm{{I}\\kern-.15em{R}}}",
@@ -552,7 +539,8 @@ $if(menu)$
           { src: '$decker-support-dir$/vendor/reveal.js-menu/menu.js', async: true },
 $endif$
 $if(mathjax)$
-          { src: '$decker-support-dir$/vendor/reveal/plugin/math/math.js', async: true },
+          //{ src: '$decker-support-dir$/vendor/reveal/plugin/math/math.js', async: true },
+          { src: '$decker-support-dir$/vendor/math/math.js' },
 $endif$
 $if(thebelab.enable)$
           { src: '$decker-support-dir$/js/thebelab.js', async: true },
