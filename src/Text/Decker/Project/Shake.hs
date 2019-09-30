@@ -454,8 +454,9 @@ targetsA = _targetList <$> actionContext
 metaA :: Action Meta
 metaA = _metaData <$> actionContext
 
+-- | Global meta data for this directory from decker.yaml and specified additional files
 globalMetaA :: Action Meta
-globalMetaA = _globalMeta <$> actionContext
+globalMetaA = (_globalMeta <$> actionContext) >>= getAdditionalMeta
 
 indicesA = _indices <$> targetsA
 

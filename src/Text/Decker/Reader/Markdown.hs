@@ -103,15 +103,12 @@ readMetaMarkdown :: FilePath -> Action Pandoc
 readMetaMarkdown markdownFile = do
   projectDir <- projectA
   need [markdownFile]
-  -- read external meta data for this directory
-  -- externalMeta <-
-    -- liftIO $
-    -- toPandocMeta <$> aggregateMetaData projectDir (takeDirectory markdownFile)
+  -- Global meta data for this directory from decker.yaml and specified additional files
   globalMeta <- globalMetaA
   markdown <- liftIO $ T.readFile markdownFile
   let filePandoc@(Pandoc fileMeta _) =
         readMarkdownOrThrow pandocReaderOpts markdown
-  additionalMeta <- liftIO $ getAdditionalMeta fileMeta
+  additionalMeta <- getAdditionalMeta fileMeta
   let combinedMeta = mergePandocMeta' additionalMeta globalMeta
   let generateIds = getMetaBoolOrElse "generate-ids" False combinedMeta
   Pandoc _ fileBlocks <- maybeGenerateIds generateIds filePandoc
