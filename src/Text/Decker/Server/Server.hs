@@ -121,8 +121,10 @@ pingAll state = withMVar state (mapM_ reload . fst)
     reload :: Client -> IO ()
     reload (_, conn) = sendTextData conn ("ping!" :: Text.Text)
 
--- | Starts the pinger in a separate thread. The thread runs until the server
--- dies.
+-- Safari times out on web sockets to save energy. Prevent this by sending pings
+-- from the server to all connected browsers. Once every 10 seconds should do
+-- it. This starts a pinger in a separate thread. The thread runs until the
+-- server dies.
 startUpdater :: MVar ServerState -> IO ()
 startUpdater state = do
   forkIO $
@@ -203,6 +205,3 @@ reloader state pending = do
   flip finally (removeClient state cid) $ do
     addClient state (cid, connection)
     forever (receiveData connection :: IO Text.Text)
--- Safari times out on web sockets to save energy. Prevent this by sending pings
--- from the server to all connected browsers. Once every 10 seconds should do
--- it.
