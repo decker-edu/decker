@@ -73,7 +73,7 @@ addPage state page = modifyMVar_ state add
             else pages)
 
 reloadAll :: MVar ServerState -> IO ()
-reloadAll state = withMVar state $ (mapM_ reload . fst)
+reloadAll state = withMVar state (mapM_ reload . fst)
   where
     reload :: Client -> IO ()
     reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
@@ -109,7 +109,27 @@ runHttpServer state dirs port = do
                ("decker server: Port " ++
                 show port ++ "already in use, trying port " ++ show (port + 1))
              tryRun (port + 1) (tries - 1))
+  startUpdater state
   tryRun port 10
+
+tenSeconds = 10 * 10 ^ 6
+
+-- | Sends a ping message to all connected browsers.
+pingAll :: MVar ServerState -> IO ()
+pingAll state = withMVar state (mapM_ reload . fst)
+  where
+    reload :: Client -> IO ()
+    reload (_, conn) = sendTextData conn ("ping!" :: Text.Text)
+
+-- | Starts the pinger in a separate thread. The thread runs until the server
+-- dies.
+startUpdater :: MVar ServerState -> IO ()
+startUpdater state = do
+  forkIO $
+    forever $ do
+      threadDelay tenSeconds
+      pingAll state
+  return ()
 
 -- | Save the request body in the project directory under the request path. But
 -- only if the request path ends on "-annot.json" and the local directory
@@ -183,3 +203,6 @@ reloader state pending = do
   flip finally (removeClient state cid) $ do
     addClient state (cid, connection)
     forever (receiveData connection :: IO Text.Text)
+-- Safari times out on web sockets to save energy. Prevent this by sending pings
+-- from the server to all connected browsers. Once every 10 seconds should do
+-- it.
