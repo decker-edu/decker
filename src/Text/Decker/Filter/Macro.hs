@@ -171,9 +171,7 @@ verticalSpace _ _ (space, _) _ = do
     Disposition _ Html ->
       return $
       RawInline (Format "html") $
-      printf
-        "<div style=\"display:block; clear:both; height:%s;\"></div>"
-        space
+      printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
     Disposition _ Latex -> return $ Str $ "[" ++ space ++ "]"
 
 metaValue :: MacroAction
