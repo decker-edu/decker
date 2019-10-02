@@ -65,7 +65,7 @@ fontawesome:
 	done
 
 thebelab/lib/index.js:
-	(cd thebelab && npm install)
+	(cd thebelab && npm install && npm run build)
 
 jquery/dist/jquery.min.js:
 	(cd jquery && npm run build)
