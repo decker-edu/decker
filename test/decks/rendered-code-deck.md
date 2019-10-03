@@ -68,6 +68,7 @@ splot 1 / (x*x + y*y + 1)
 ```
 ````
 
+
 ## Rendered {.right}
 
 ``` {.gnuplot .render}
@@ -83,6 +84,12 @@ splot 1 / (x*x + y*y + 0.5)
 ```
 
 ------
+
+# Gnuplot from a file
+
+![](3d-gnuplot.gnuplot){.gnuplot .render}
+
+---
 
 # Dot Files as Images {layout="columns"}
 

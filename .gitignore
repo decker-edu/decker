@@ -10,6 +10,7 @@ cache/
 log/
 generated/
 code/
+code-????????.*
 *-deck.html
 *-handout.html
 *-page.html

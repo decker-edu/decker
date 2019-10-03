@@ -228,8 +228,15 @@ run = do
     priority 2 $
       "//*.gnuplot.svg" %> \out -> do
         let src = dropExtension out
+        let srcPath = takeDirectory out
+        let root = directories ^. project
         need [src]
-        gnuplot ["-e", "set output \"" ++ out ++ "\"", src]
+        gnuplot
+          [ "-e"
+          , "set output \"" ++
+            out ++ "\"; set loadpath \"" ++ srcPath ++ ":" ++ root ++ "\""
+          , src
+          ]
     --
     priority 2 $
       "//*.tex.svg" %> \out -> do
