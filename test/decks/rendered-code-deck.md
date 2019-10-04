@@ -91,14 +91,6 @@ splot 1 / (x*x + y*y + 0.5)
 
 ---
 
-# Gnuplot with data file
-
-``` {.gnuplot .render width="60%" style="display:block;margin:auto"}
-set xrange [ -2 : 2 ] noreverse nowriteback
-set yrange [ -2 : 2 ] noreverse nowriteback
-plot "gnuplot-data.dat" with points
-```
-
 # Dot Files as Images {layout="columns"}
 
 ## Image Tag {.left}
