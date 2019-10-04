@@ -28,9 +28,9 @@ import Text.Pandoc.Walk
 import Text.Printf
 
 -- | Evaluate code blocks
-renderCodeBlocks :: FilePath -> Pandoc -> Decker Pandoc
-renderCodeBlocks base pandoc =
-  walkM maybeRenderImage pandoc >>= walkM (maybeRenderCodeBlock base)
+renderCodeBlocks :: Pandoc -> Decker Pandoc
+renderCodeBlocks pandoc =
+  walkM maybeRenderImage pandoc >>= walkM maybeRenderCodeBlock
 
 data Processor = Processor
   { extension :: String
@@ -119,7 +119,7 @@ bracketedShakeCompile ::
 bracketedShakeCompile ext preamble postamble source attr = do
   contents <- doIO $ readFile source
   let bracketed = preamble ++ "\n" ++ contents ++ "\n" ++ postamble
-  codePath <- writeCodeIfChanged (takeDirectory source) bracketed (takeExtension source)
+  codePath <- writeCodeIfChanged bracketed (takeExtension source)
   let path = codePath <.> ext
   needFile path
   return $ Image attr [] (path, "")
@@ -158,8 +158,8 @@ maybeRenderImage image@(Image attr@(_, classes, _) _ (url, _)) =
     Nothing -> return image
 maybeRenderImage inline = return inline
 
-maybeRenderCodeBlock :: FilePath -> Block -> Decker Block
-maybeRenderCodeBlock base block@(CodeBlock attr@(x, classes, y) code)
+maybeRenderCodeBlock :: Block -> Decker Block
+maybeRenderCodeBlock block@(CodeBlock attr@(x, classes, y) code)
   -- Let default CodeBlock style be "txt"
  = do
   let cls =
@@ -169,18 +169,18 @@ maybeRenderCodeBlock base block@(CodeBlock attr@(x, classes, y) code)
   let block = CodeBlock (x, cls, y) code
   case findProcessor cls of
     Just processor -> do
-      path <- writeCodeIfChanged base code (extension processor)
+      path <- writeCodeIfChanged code (extension processor)
       inline <- compiler processor path (x, cls, y)
       return $ Plain [inline]
     Nothing -> return block
-maybeRenderCodeBlock base block = return block
+maybeRenderCodeBlock block = return block
 
-writeCodeIfChanged :: FilePath -> String -> String -> Decker FilePath
-writeCodeIfChanged base code ext = do
-  -- projectDir <- _project <$> lift projectDirsA
+writeCodeIfChanged :: String -> String -> Decker FilePath
+writeCodeIfChanged code ext = do
+  projectDir <- _project <$> lift projectDirsA
   let crc = printf "%08x" (calc_crc32 code)
-  let relPath = intercalate "-" ["code", crc]
-  let path = base </> relPath <.> ext
+  let basepath = "code" </> intercalate "-" ["code", crc]
+  let path = projectDir </> basepath <.> ext
   lift $
     withShakeLock $
     liftIO $

@@ -72,7 +72,7 @@ readAndProcessMarkdown markdownFile disp = do
           concatM
             [ evaluateShortLinks
             , expandDeckerMacros
-            , renderCodeBlocks baseDir
+            , renderCodeBlocks
             , includeCode
             , provisionResources
             , renderQuizzes
@@ -85,7 +85,7 @@ readAndProcessMarkdown markdownFile disp = do
           concatM
             [ evaluateShortLinks
             , expandDeckerMacros
-            , renderCodeBlocks baseDir
+            , renderCodeBlocks
             , includeCode
             , provisionResources
             , renderQuizzes
