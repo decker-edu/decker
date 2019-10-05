@@ -20,9 +20,12 @@ module Text.Decker.Internal.Common
   ) where
 
 import Control.Monad.State
+import Control.Exception
 import Development.Shake (Action, need)
 import Network.URI as U
 import Text.Pandoc
+
+import Text.Decker.Internal.Exception
 
 type Decker = StateT DeckerState Action
 
@@ -58,6 +61,7 @@ data Layout
   = Deck
   | Page
   | Handout
+  | Notebook
   deriving (Eq, Show)
 
 data OutputFormat
@@ -78,6 +82,8 @@ templateFileName (Disposition Page Html) = "template/page.html"
 templateFileName (Disposition Page Latex) = "template/page.tex"
 templateFileName (Disposition Handout Html) = "template/handout.html"
 templateFileName (Disposition Handout Latex) = "template/handout.tex"
+templateFileName (Disposition Notebook Html) = throw $ InternalException "No template for Notebook"
+templateFileName (Disposition Notebook Latex) =  throw $ InternalException "No template for Notebook"
 
 data MediaType
   = ImageMedia

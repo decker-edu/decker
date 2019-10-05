@@ -4,6 +4,7 @@ module Text.Decker.Filter.Slide
   , attribValue
   , blocks
   , dropByClass
+  , keepByClass
   , firstClass
   , fromSlides
   , classes
@@ -71,8 +72,8 @@ toSlides blocks = map extractHeader $ filter (not . null) slideBlocks
     killEmpties [] = []
 
 -- Render slides as a list of Blocks. Always separate slides with a horizontal
--- rule. Slides with the `notes` classes are wrapped in ASIDE and
--- are used as spreaker notes by RevalJs.
+-- rule. Slides with the `notes` classes are wrapped in ASIDE and are used as
+-- spreaker notes by RevalJs.
 fromSlides :: [Slide] -> [Block]
 fromSlides = concatMap prependHeader
   where
@@ -109,6 +110,10 @@ attribValue which = lookup which . view (attributes . attrs)
 dropByClass :: HasAttr a => [String] -> [a] -> [a]
 dropByClass which =
   filter (not . any (`elem` which) . view (attributes . attrClasses))
+
+keepByClass :: HasAttr a => [String] -> [a] -> [a]
+keepByClass which =
+  filter (any (`elem` which) . view (attributes . attrClasses))
 
 isBoxDelim :: Block -> Bool
 isBoxDelim (Header 2 _ _) = True

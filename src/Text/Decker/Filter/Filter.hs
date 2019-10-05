@@ -13,6 +13,7 @@ module Text.Decker.Filter.Filter
   , audioExtensions
   , videoExtensions
   , convertMediaAttributes
+  , filterNotebookSlides
   ) where
 
 import Text.Decker.Filter.Layout
@@ -22,6 +23,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 
 import Control.Exception
+import Control.Lens
 import Control.Monad.Loops as Loop
 import Control.Monad.State
 import Data.Default ()
@@ -167,9 +169,25 @@ mapSlides action (Pandoc meta blocks) = do
   slides <- selectActiveContent (toSlides blocks)
   Pandoc meta . fromSlides <$> mapM action slides
 
+filterNotebookSlides :: Pandoc -> Pandoc
+filterNotebookSlides (Pandoc meta blocks) =
+  let inNotebook = fromSlides $ filter notebook (toSlides blocks)
+      stripped = walk strip inNotebook
+      strip (Header level _ inlines) = Header level nullAttr inlines
+      strip block = block
+      notebook slide = "notebook" `elem` (view (attributes . attrClasses) slide)
+   in Pandoc meta (deDiv stripped)
+
 selectActiveSlideContent :: Slide -> Decker Slide
 selectActiveSlideContent (Slide header body) =
   Slide header <$> selectActiveContent body
+
+-- Splice all the Divs back into the stream of Blocks 
+deDiv :: [Block] -> [Block]
+deDiv = foldr flatten []
+  where
+    flatten (Div attr blocks) result = blocks ++ result
+    flatten block result = block : result
 
 -- | Slide specific processing.
 processSlides :: Pandoc -> Decker Pandoc
@@ -202,6 +220,8 @@ selectActiveContent fragments = do
       Disposition Deck _ -> dropByClass ["handout"] fragments
       Disposition Handout _ -> dropByClass ["deck", "notes"] fragments
       Disposition Page _ -> dropByClass ["notes", "deck", "handout"] fragments
+      Disposition Notebook _ ->
+        dropByClass ["notes", "deck", "handout"] fragments
 
 escapeToFilePath :: String -> FilePath
 escapeToFilePath = map repl

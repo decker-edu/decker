@@ -45,7 +45,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Git
-import Text.Decker.Project.Glob
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Template
@@ -72,7 +71,6 @@ import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text.Encoding
-import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
 import Development.Shake hiding (doesDirectoryExist)
@@ -208,15 +206,13 @@ waitForChange inDirs =
        forM_
          inDirs
          (\dir
-            -- putStrLn $ "watching dir: " ++ dir
-           -> do
+           -> 
             Notify.watchDir
               manager
               dir
               (const True)
               (\e
-                 -- putStrLn $ "changed: " ++ show e
-                -> do putMVar done ()))
+                -> putMVar done ()))
        takeMVar done)
 
 waitForChange' :: FilePath -> [FilePath] -> IO ()
@@ -224,17 +220,15 @@ waitForChange' inDir exclude =
   Notify.withManager
     (\manager -> do
        done <- newEmptyMVar
-       -- putStrLn $ "watching dir: " ++ inDir
        Notify.watchTree
          manager
          inDir
          filter
-         (\e -> do
-            -- putStrLn $ "changed: " ++ show e
-            putMVar done ())
+         (\e
+           -> putMVar done ())
        takeMVar done)
   where
-    filter event = not $ any (`isPrefixOf` (Notify.eventPath event)) exclude
+    filter event = not $ any (`isPrefixOf` Notify.eventPath event) exclude
 
 getTemplate :: Disposition -> Action String
 getTemplate disposition = getTemplate' (templateFileName disposition)
