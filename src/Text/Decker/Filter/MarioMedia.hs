@@ -90,7 +90,7 @@ media (Image (id', att, att') [] (filename, _))
   | id' == "video" || checkExtension filename videoExt =
     return $
     [ toHtml $
-      "<video " <> unwords direct <> " src=\"" <> filename <> "\"" <>
+      "<video " <> unwords direct <> " data-src=\"" <> filename <> "\"" <>
       attToString (idFilter "video" id', css, att') <>
       "></video>"
     ]
@@ -103,7 +103,7 @@ media (Image (id', att, att') alt (filename, _))
       "<figure " <> attToString (idFilter "video" id', css, att') <> ">"
     ] <>
     [ toHtml $
-      "<video " <> unwords direct <> " src=\"" <> filename <> "\" style=\"" <>
+      "<video " <> unwords direct <> " data-src=\"" <> filename <> "\" style=\"" <>
       style <>
       "\"></video>"
     ] <>
