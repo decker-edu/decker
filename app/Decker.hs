@@ -239,10 +239,6 @@ run = do
     phony "clean" $ do
       removeFilesAfter (directories ^. public) ["//"]
       removeFilesAfter (directories ^. project) cruft
-      old <- liftIO oldResourcePaths
-      forM_ old $ \dir -> removeFilesAfter dir ["//"]
-      when (isDevelopmentVersion && not hasPreextractedResources) $
-        removeFilesAfter (directories ^. appData) ["//"]
     --
     phony "help" $ do
       text <- getTemplate' "template/help-page.md"
