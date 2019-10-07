@@ -140,11 +140,6 @@ run = do
     --
     phony "tutorial" $ liftIO writeTutorialProject
     --
-    phony "sketch-pad-index" $ do
-      indicesA >>= need
-      indicesA >>=
-        writeSketchPadIndex ((directories ^. public) </> "sketch-pad.yaml")
-    --
     phony "index" $ need ["support", index]
     --
     priority 2 $
@@ -278,7 +273,7 @@ run = do
           liftIO $ copyDir src dst
     --
     phony "publish" $ do
-      need ["support", "sketch-pad-index"]
+      need ["support"]
       allHtmlA >>= need
       metaData <- metaA
       need ["index"]
