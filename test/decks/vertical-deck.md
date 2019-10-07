@@ -1,5 +1,6 @@
 ---
 menu: true
+vertical-slides: true
 ---
 # First slide
 
