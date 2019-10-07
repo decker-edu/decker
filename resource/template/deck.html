@@ -41,6 +41,7 @@ $if(base-css)$
 $else$
 $if(mario)$
   <link rel="stylesheet" href="$decker-support-dir$/css/mario.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/mb-reveal-plugins/highlight/xcode.css">
 $else$
   <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
 $endif$
@@ -236,19 +237,6 @@ $if(mario)$ <!-- Mario settings -->
                   },
                   responsive: "false"
               },
-              line: {
-                  backgroundColor: [ "rgba(42,157,223,.1)", "rgba(245,159,0,.1)", "rgba(182,200,40,.1)" ],
-                  borderColor:     [ "rgba(42,157,223,1)", "rgba(245,159,0,1)", "rgba(182,200,40,1)" ],
-              },
-              bar: {
-                  backgroundColor: [ "rgba(42,157,223,.8)", "rgba(245,159,0,.8)", "rgba(182,200,40,.8)" ],
-                  borderColor:     [ "rgba(42,157,223,1)", "rgba(245,159,0,1)", "rgba(182,200,40,1)" ]
-              },
-              pie: {
-                  backgroundColor: [ ["rgba(0,0,0,.8)" , "rgba(220,20,20,.8)", "rgba(20,220,20,.8)", "rgba(220,220,20,.8)", "rgba(20,20,220,.8)"] ]},
-              radar: {
-                  borderColor: [ "rgba(20,220,220,.8)" , "rgba(220,120,120,.8)", "rgba(20,120,220,.8)" ]
-              }
           },
 
 
@@ -261,6 +249,7 @@ $if(mario)$ <!-- Mario settings -->
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/whiteboard/whiteboard.js' }, 
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/quiz/quiz.js' },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/footer/footer.js' },
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/highlight/highlight.js' },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/zoom/zoom.js', async: true },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/search/search.js', async: true },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/menu/menu.js', async: true }

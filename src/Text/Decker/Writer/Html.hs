@@ -95,14 +95,14 @@ markdownToHtmlDeck markdownFile out index = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
-  pandoc <- readAndProcessMarkdown markdownFile disp
+  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
   template <- getTemplate disp
   dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
           { writerSlideLevel = Just 1
           , writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
+          , writerHighlightStyle = Nothing
           , writerHTMLMathMethod =
               MathJax "Handled by reveal.js in the template"
           , writerVariables =
