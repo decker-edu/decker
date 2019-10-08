@@ -124,7 +124,7 @@ checkIfFreetextAnswer _ = Nothing
 checkIfMC :: Block -> Bool
 checkIfMC (Para ((Str "{X}"):_)) = True
 checkIfMC (Para ((Str "{"):Space:(Str "}"):_)) = True
-checkIfMC (Plain ((Str "{X"):_)) = True
+checkIfMC (Plain ((Str "{X}"):_)) = True
 checkIfMC (Plain ((Str "{"):Space:(Str "}"):_)) = True
 checkIfMC _ = False
 
