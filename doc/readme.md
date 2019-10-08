@@ -5,6 +5,7 @@ These are drafts for design documents that try to reconcile the complex connecti
 -   [Release process and versioning](release-policy-page.md)
 -   [Packaging and distribution](packaging-page.md)
 -   [Resource handling](resource-handling-page.md)
+-   [Formatting options](formatting-options-page.md)
 -   [Graphical user interface architecture](gui-architecture-page.md)
 
 Many aspects first discussed in #73 are addressed here. These documents are meant as a starting point for discussion and will evolve over time.

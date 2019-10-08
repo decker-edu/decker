@@ -25,11 +25,11 @@ formatMarkdown =
                disableExtension Ext_multiline_tables .
                enableExtension Ext_auto_identifiers)
                 pandocExtensions
-        let columns = lookupInt "format.line-columns" 80 meta
+        let columns = getMetaIntOrElse "format.line-columns" 80 meta
         let wrapOpt "none" = WrapNone
             wrapOpt "preserve" = WrapPreserve
             wrapOpt _ = WrapAuto
-        let wrap = lookupString "format.line-wrap" "auto" meta
+        let wrap = getMetaStringOrElse "format.line-wrap" "auto" meta
         let options =
               def
                 { writerTemplate = Just markdownTemplate

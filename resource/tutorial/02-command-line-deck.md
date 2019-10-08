@@ -24,7 +24,7 @@ Prints a help document to stdout in Markdown format.
 
 # `decker info`
 
-Prints information about the current project's directories, the targets (files which will be generated) and the meta data options which are found in top level `*-meta.yaml` files. 
+Prints information about the current project's directories, the targets (files which will be generated) and the meta data options which are found in the top level `decker.yaml` file. 
 
 # `decker example` and `decker tutorial`
 

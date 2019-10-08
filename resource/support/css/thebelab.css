@@ -31,12 +31,25 @@
 }
 
 .reveal .jp-OutputArea pre {
-  margin-left: 0.6em;
-  margin-bottom: 0.4em;
+  margin-left: 0em;
+  margin-bottom: 0.2em;
 }
 
+/* Make the editor content scrollable. Setting .CodeMirror-scroll is essential
+here. */
 .reveal .CodeMirror {
-  margin: 0.8em 1.25em;
+  max-height: 350px;
+  overflow: auto;
+}
+
+.reveal .CodeMirror-scroll {
+  max-height: 350px;
+  overflow: auto;
+}
+
+.reveal .jp-OutputArea {
+  max-height: 70px;
+  overflow: auto;
 }
 
 .reveal pre {

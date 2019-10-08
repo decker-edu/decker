@@ -177,7 +177,7 @@ processSlides pandoc = mapSlides (concatM actions) pandoc
   where
     actions :: [Slide -> Decker Slide]
     actions =
-      case pandocMeta lookupMetaBool pandoc "mario" of
+      case pandocMeta getMetaBool pandoc "mario" of
         Just True ->
           [ marioCols
           , wrapBoxes
@@ -318,7 +318,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
         _ -> lazyLoad (transformImageSize values, Nothing)
     lazyLoad (vs, (Just start)) = (srcAttr, url ++ "#t=" ++ start) : vs
     lazyLoad (vs, Nothing) = (srcAttr, url) : vs
-renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
+renderMediaTag disp (Image (ident, cls, values) inlines (url, tit)) = do
   image <- renderMediaTag disp (Image attrsForward [] (url, tit))
   return $
     Span
@@ -331,7 +331,7 @@ renderMediaTag disp (Image attrs@(ident, cls, values) inlines (url, tit)) = do
 renderMediaTag _ inline = return inline
 
 svgLoadErrorHandler :: IOException -> IO String
-svgLoadErrorHandler e = return "<div>Couldn't load SVG</div>"
+svgLoadErrorHandler _ = return "<div>Couldn't load SVG</div>"
 
 -- | Converts attributes 
 convertMediaAttributes :: Attr -> Attr
@@ -405,7 +405,7 @@ extractFigures pandoc = return $ walk extractFigure pandoc
 extractFigure :: Block -> Block
 extractFigure (Para content) =
   case content of
-    [Span attr inner@(RawInline (Format "html") "<figure>":otherContent)] ->
+    [Span attr inner@(RawInline (Format "html") "<figure>":_)] ->
       Div attr [Plain inner]
     a -> Para a
 extractFigure b = b

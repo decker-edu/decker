@@ -90,7 +90,8 @@ $endif$
       }
   }
   </script>
-  <script src="https://unpkg.com/thebelab@0.4.0/lib/index.js"></script>
+  <script src="https://unpkg.com/thebelab@0.4.0/lib/index.js"></script> 
+  <!-- <script src="$decker-support-dir$/vendor/thebelab/index.js"></script> -->
 $endif$
 $for(header-includes)$
   $header-includes$
@@ -343,7 +344,7 @@ $if(menu)$
 	    },
 $endif$
 $if(thebelab.enable)$
-        thebelab: $thebelab$,
+        thebelab: $thebelab.enable$,
 $endif$
 $if(mathjax)$
         math: {

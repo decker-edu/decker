@@ -7,6 +7,7 @@ module Text.Decker.Project.Shake
   , cacheA
   , calcSource
   , calcSource'
+  , currentlyServedPages
   , decksA
   , decksPdfA
   , getRelativeSupportDir
@@ -14,6 +15,7 @@ module Text.Decker.Project.Shake
   , handoutsPdfA
   , loggingA
   , metaA
+  , globalMetaA
   , indicesA
   , openBrowser
   , pagesA
@@ -67,6 +69,7 @@ import qualified Data.HashMap.Strict as HashMap
 import Data.IORef
 import Data.List
 import Data.Maybe
+import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text.Encoding
 import Data.Text.Lens
@@ -109,7 +112,8 @@ makeLenses ''MutableActionState
 data ActionContext = ActionContext
   { _dirs :: ProjectDirs
   , _targetList :: Targets
-  , _metaData :: Yaml.Value
+  , _metaData :: Meta
+  , _globalMeta :: Meta
   , _state :: MutableActionState
   , _templates :: [(FilePath, Template)]
   } deriving (Typeable, Show)
@@ -138,9 +142,11 @@ runShakeOnce state rules = do
   forM_ server reloadClients
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
-    let exclude = excludeDirs (context ^. metaData)
-    inDirs <- fastGlobDirs exclude (context ^. dirs . project)
-    waitForChange inDirs
+    let projectDir = context ^. dirs . project
+    let exclude = map (projectDir </>) $ excludeDirs (context ^. metaData)
+    -- inDirs <- fastGlobDirs exclude (context ^. dirs . project)
+    -- waitForChange inDirs
+    waitForChange' projectDir exclude
   return keepWatching
 
 targetDirs context =
@@ -151,7 +157,8 @@ initContext state = do
   meta <- readMetaData $ dirs ^. project
   targets <- scanTargets meta dirs
   templates <- readTemplates (dirs ^. project) (state ^. devRun)
-  return $ ActionContext dirs targets meta state templates
+  -- init context with 2x meta (one will be fixed global meta)
+  return $ ActionContext dirs targets meta meta state templates
 
 cleanup state = do
   srvr <- readIORef $ state ^. server
@@ -200,16 +207,34 @@ waitForChange inDirs =
        done <- newEmptyMVar
        forM_
          inDirs
-         (\dir -> do
+         (\dir
             -- putStrLn $ "watching dir: " ++ dir
+           -> do
             Notify.watchDir
               manager
               dir
               (const True)
-              (\e -> do
+              (\e
                  -- putStrLn $ "changed: " ++ show e
-                 putMVar done ()))
+                -> do putMVar done ()))
        takeMVar done)
+
+waitForChange' :: FilePath -> [FilePath] -> IO ()
+waitForChange' inDir exclude =
+  Notify.withManager
+    (\manager -> do
+       done <- newEmptyMVar
+       -- putStrLn $ "watching dir: " ++ inDir
+       Notify.watchTree
+         manager
+         inDir
+         filter
+         (\e
+            -- putStrLn $ "changed: " ++ show e
+           -> do putMVar done ())
+       takeMVar done)
+  where
+    filter event = not $ any (`isPrefixOf` (Notify.eventPath event)) exclude
 
 getTemplate :: Disposition -> Action String
 getTemplate disposition = getTemplate' (templateFileName disposition)
@@ -253,11 +278,15 @@ copyStaticDirs = do
   meta <- metaA
   public <- publicA
   project <- projectA
-  let staticDirs =
-        meta ^.. key "static-resource-dirs" . values . _String . unpacked
-  let staticSrc = map (project </>) staticDirs
-  let staticDst = map (public </>) staticDirs
+  let staticSrc = map (project </>) (staticDirs meta)
+  let staticDst = map ((public </>) . stripParentPrefix) (staticDirs meta)
   liftIO $ zipWithM_ copyDir staticSrc staticDst
+  where
+    stripParentPrefix :: FilePath -> FilePath
+    stripParentPrefix path =
+      if "../" `isPrefixOf` path
+        then stripParentPrefix (drop 3 path)
+        else path
 
 extractSupport :: Action ()
 extractSupport = do
@@ -285,7 +314,7 @@ removeSupport = do
 
 writeDeckIndex :: FilePath -> FilePath -> Pandoc -> Action Pandoc
 writeDeckIndex markdownFile out pandoc@(Pandoc meta _) = do
-  let generateIds = lookupBool "generate-ids" False meta
+  let generateIds = getMetaBoolOrElse "generate-ids" False meta
   if not generateIds
     then return pandoc
     else writeDeckIndex' markdownFile out pandoc
@@ -300,8 +329,8 @@ writeDeckIndex' markdownFile out pandoc@(Pandoc meta _) = do
   let repoId = sketchPadId gitUrl
   let proj = context ^. dirs . project
   let publ = context ^. dirs . public
-  let title = lookupString "title" "" meta
-  let subtitle = lookupString "subtitle" "" meta
+  let title = getMetaStringOrElse "title" "" meta
+  let subtitle = getMetaStringOrElse "subtitle" "" meta
   let indexUrl = T.pack $ "/" </> makeRelative publ out
   let sourceDir = T.pack $ makeRelative proj $ takeDirectory markdownFile
   let sourceFile = T.pack $ makeRelative proj markdownFile
@@ -422,7 +451,11 @@ loggingA = _logging <$> projectDirsA
 targetsA :: Action Targets
 targetsA = _targetList <$> actionContext
 
+metaA :: Action Meta
 metaA = _metaData <$> actionContext
+
+globalMetaA :: Action Meta
+globalMetaA = _globalMeta <$> actionContext
 
 indicesA = _indices <$> targetsA
 
@@ -463,7 +496,7 @@ withShakeLock perform = do
   r <- _publicResource . _state <$> actionContext
   withResource r 1 perform
 
--- Runs the built-in server on the given directory, if it is not already
+-- | Runs the built-in server on the given directory, if it is not already
 -- running.
 runHttpServer :: Int -> ProjectDirs -> Maybe String -> Action ()
 runHttpServer port dirs url = do
@@ -475,6 +508,17 @@ runHttpServer port dirs url = do
       httpServer <- liftIO $ startHttpServer dirs port
       liftIO $ writeIORef ref $ Just httpServer
       forM_ url openBrowser
+
+-- | Returns a list of all pages currently served, if any.
+currentlyServedPages :: Action [FilePath]
+currentlyServedPages = do
+  ref <- _server . _state <$> actionContext
+  server <- liftIO $ readIORef ref
+  case server of
+    Just (_, state) -> do
+      (_, pages) <- liftIO $ readMVar state
+      return $ Set.toList pages
+    Nothing -> return []
 
 openBrowser :: String -> Action ()
 openBrowser url =

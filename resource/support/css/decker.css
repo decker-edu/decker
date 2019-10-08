@@ -15,114 +15,67 @@
   vertical-align: top;
   width: 50%;
 }
-
 .reveal div.css-columns {
-  -webkit-column-count: 2;
-          column-count: 2;
-  -webkit-column-gap: 2em;
-          column-gap: 2em;
-  -webkit-column-rule-style: none;
-          column-rule-style: none;
+  column-count: 2;
+  column-gap: 2em;
+  column-rule-style: none;
   padding-left: 0.7em;
   margin-left: -0.7em;
 }
-
 .reveal div.box {
-  -webkit-column-break-inside: avoid;
-          break-inside: avoid-column;
+  break-inside: avoid-column;
 }
-
 .reveal div.multi-column-row {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-flow: row nowrap;
-          flex-flow: row nowrap;
+  flex-flow: row nowrap;
   margin-bottom: 0.3em;
 }
-
 .reveal div.multi-column-row div.column {
   position: relative;
-  -webkit-box-flex: 1;
-      -ms-flex: 1 1 0px;
-          flex: 1 1 0;
+  flex: 1 1 0;
   margin-left: 1em;
   margin-right: 1em;
 }
-
 .reveal div.multi-column-row div.column:first-child {
   margin-left: 0;
   margin-right: 1em;
 }
-
 .reveal div.multi-column-row div.column:last-child {
   margin-left: 1em;
   margin-right: 0;
 }
-
 .reveal div.multi-column-row div.column .mid {
   position: absolute;
   top: 50%;
-  -webkit-transform: translate(0, -50%);
-          transform: translate(0, -50%);
+  transform: translate(0, -50%);
 }
-
 .reveal div.multi-column-row div.column[data-grow="1"] {
-  -webkit-box-flex: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
+  flex-grow: 1;
 }
-
 .reveal div.multi-column-row div.column[data-grow="2"] {
-  -webkit-box-flex: 2;
-      -ms-flex-positive: 2;
-          flex-grow: 2;
+  flex-grow: 2;
 }
-
 .reveal div.multi-column-row div.column[data-grow="3"] {
-  -webkit-box-flex: 3;
-      -ms-flex-positive: 3;
-          flex-grow: 3;
+  flex-grow: 3;
 }
-
 .reveal div.multi-column-row div.column[data-grow="4"] {
-  -webkit-box-flex: 4;
-      -ms-flex-positive: 4;
-          flex-grow: 4;
+  flex-grow: 4;
 }
-
 .reveal div.multi-column-row div.column[data-grow="5"] {
-  -webkit-box-flex: 5;
-      -ms-flex-positive: 5;
-          flex-grow: 5;
+  flex-grow: 5;
 }
-
 .reveal div.multi-column-row div.column[data-grow="6"] {
-  -webkit-box-flex: 6;
-      -ms-flex-positive: 6;
-          flex-grow: 6;
+  flex-grow: 6;
 }
-
 .reveal div.multi-column-row div.column[data-grow="7"] {
-  -webkit-box-flex: 7;
-      -ms-flex-positive: 7;
-          flex-grow: 7;
+  flex-grow: 7;
 }
-
 .reveal div.multi-column-row div.column[data-grow="8"] {
-  -webkit-box-flex: 8;
-      -ms-flex-positive: 8;
-          flex-grow: 8;
+  flex-grow: 8;
 }
-
 .reveal div.multi-column-row div.column[data-grow="9"] {
-  -webkit-box-flex: 9;
-      -ms-flex-positive: 9;
-          flex-grow: 9;
+  flex-grow: 9;
 }
-
 .reveal div.single-column-row {
   margin-bottom: 0.3em;
 }
@@ -139,7 +92,6 @@
 .reveal .matching {
   text-align: center;
 }
-
 .reveal .matching .dropzones {
   width: 100%;
   min-height: 15vh;
@@ -147,14 +99,12 @@
   display: table;
   table-layout: fixed;
 }
-
 .reveal .matching .dropzone {
   display: table-cell;
   padding: 10px;
   border: 1px solid black;
   text-align: center;
 }
-
 .reveal .matching .draggable {
   display: table-cell;
   margin: auto;
@@ -165,12 +115,10 @@
   border: 1px #111 dashed;
   overflow: hidden;
 }
-
 .reveal .matching .draggableChild {
   max-width: inherit;
   pointer-events: none;
 }
-
 .reveal .matching .dragzone {
   display: table;
   table-layout: fixed;
@@ -182,7 +130,6 @@
   width: 100%;
   position: relative;
 }
-
 .reveal .matching .dragzone:after,
 .reveal .matching .dragzone:before {
   bottom: 100%;
@@ -194,7 +141,6 @@
   position: absolute;
   pointer-events: none;
 }
-
 .reveal .matching .dragzone:after {
   border-color: rgba(136, 183, 213, 0);
   border-bottom-color: #111;
@@ -205,45 +151,29 @@
 .reveal .survey {
   text-align: center;
 }
-
 .reveal .survey div p {
   margin: 0;
 }
-
 .reveal .survey ul {
   list-style-type: none;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: column;
-          flex-direction: column;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
-  -ms-flex-wrap: wrap;
-      flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-wrap: wrap;
   padding: 5pt;
 }
-
 .reveal .survey li {
-  -webkit-box-flex: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
+  flex-grow: 1;
   border: 1pt #111 dashed;
   padding-left: 1em;
   padding-right: 1em;
   border-radius: 0.5em;
   margin: 0.55em;
-  -ms-flex-preferred-size: 30%;
-      flex-basis: 30%;
+  flex-basis: 30%;
 }
-
 .reveal .survey li:hover {
   background-color: gainsboro;
 }
-
 .reveal .survey .tooltip {
   display: none;
 }
@@ -257,114 +187,67 @@
   vertical-align: top;
   width: 50%;
 }
-
 .reveal div.css-columns {
-  -webkit-column-count: 2;
-          column-count: 2;
-  -webkit-column-gap: 2em;
-          column-gap: 2em;
-  -webkit-column-rule-style: none;
-          column-rule-style: none;
+  column-count: 2;
+  column-gap: 2em;
+  column-rule-style: none;
   padding-left: 0.7em;
   margin-left: -0.7em;
 }
-
 .reveal div.box {
-  -webkit-column-break-inside: avoid;
-          break-inside: avoid-column;
+  break-inside: avoid-column;
 }
-
 .reveal div.multi-column-row {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-flow: row nowrap;
-          flex-flow: row nowrap;
+  flex-flow: row nowrap;
   margin-bottom: 0.3em;
 }
-
 .reveal div.multi-column-row div.column {
   position: relative;
-  -webkit-box-flex: 1;
-      -ms-flex: 1 1 0px;
-          flex: 1 1 0;
+  flex: 1 1 0;
   margin-left: 1em;
   margin-right: 1em;
 }
-
 .reveal div.multi-column-row div.column:first-child {
   margin-left: 0;
   margin-right: 1em;
 }
-
 .reveal div.multi-column-row div.column:last-child {
   margin-left: 1em;
   margin-right: 0;
 }
-
 .reveal div.multi-column-row div.column .mid {
   position: absolute;
   top: 50%;
-  -webkit-transform: translate(0, -50%);
-          transform: translate(0, -50%);
+  transform: translate(0, -50%);
 }
-
 .reveal div.multi-column-row div.column[data-grow="1"] {
-  -webkit-box-flex: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
+  flex-grow: 1;
 }
-
 .reveal div.multi-column-row div.column[data-grow="2"] {
-  -webkit-box-flex: 2;
-      -ms-flex-positive: 2;
-          flex-grow: 2;
+  flex-grow: 2;
 }
-
 .reveal div.multi-column-row div.column[data-grow="3"] {
-  -webkit-box-flex: 3;
-      -ms-flex-positive: 3;
-          flex-grow: 3;
+  flex-grow: 3;
 }
-
 .reveal div.multi-column-row div.column[data-grow="4"] {
-  -webkit-box-flex: 4;
-      -ms-flex-positive: 4;
-          flex-grow: 4;
+  flex-grow: 4;
 }
-
 .reveal div.multi-column-row div.column[data-grow="5"] {
-  -webkit-box-flex: 5;
-      -ms-flex-positive: 5;
-          flex-grow: 5;
+  flex-grow: 5;
 }
-
 .reveal div.multi-column-row div.column[data-grow="6"] {
-  -webkit-box-flex: 6;
-      -ms-flex-positive: 6;
-          flex-grow: 6;
+  flex-grow: 6;
 }
-
 .reveal div.multi-column-row div.column[data-grow="7"] {
-  -webkit-box-flex: 7;
-      -ms-flex-positive: 7;
-          flex-grow: 7;
+  flex-grow: 7;
 }
-
 .reveal div.multi-column-row div.column[data-grow="8"] {
-  -webkit-box-flex: 8;
-      -ms-flex-positive: 8;
-          flex-grow: 8;
+  flex-grow: 8;
 }
-
 .reveal div.multi-column-row div.column[data-grow="9"] {
-  -webkit-box-flex: 9;
-      -ms-flex-positive: 9;
-          flex-grow: 9;
+  flex-grow: 9;
 }
-
 .reveal div.single-column-row {
   margin-bottom: 0.3em;
 }
@@ -374,187 +257,42 @@
   margin: 0em -0.7em;
   border-radius: 0.25em;
 }
-
 .reveal div.box h2 {
   margin-top: 0;
 }
-
 .reveal div.box h2:last-child, .reveal div.box h2:empty {
   margin-bottom: 0;
 }
-
 .reveal div.box p {
   margin: 0;
 }
-
-.reveal div.box.question + .question,
-.reveal div.box.question + .answer,
-.reveal div.box.question + .observation,
-.reveal div.box.question + .example,
-.reveal div.box.question + .def,
-.reveal div.box.question + .definition,
-.reveal div.box.question + .note,
-.reveal div.box.question + .ale,
-.reveal div.box.question + .alert,
-.reveal div.box.question + .equ,
-.reveal div.box.question + .equation,
-.reveal div.box.question + .theorem, .reveal div.box.answer + .question,
-.reveal div.box.answer + .answer,
-.reveal div.box.answer + .observation,
-.reveal div.box.answer + .example,
-.reveal div.box.answer + .def,
-.reveal div.box.answer + .definition,
-.reveal div.box.answer + .note,
-.reveal div.box.answer + .ale,
-.reveal div.box.answer + .alert,
-.reveal div.box.answer + .equ,
-.reveal div.box.answer + .equation,
-.reveal div.box.answer + .theorem, .reveal div.box.observation + .question,
-.reveal div.box.observation + .answer,
-.reveal div.box.observation + .observation,
-.reveal div.box.observation + .example,
-.reveal div.box.observation + .def,
-.reveal div.box.observation + .definition,
-.reveal div.box.observation + .note,
-.reveal div.box.observation + .ale,
-.reveal div.box.observation + .alert,
-.reveal div.box.observation + .equ,
-.reveal div.box.observation + .equation,
-.reveal div.box.observation + .theorem, .reveal div.box.example + .question,
-.reveal div.box.example + .answer,
-.reveal div.box.example + .observation,
-.reveal div.box.example + .example,
-.reveal div.box.example + .def,
-.reveal div.box.example + .definition,
-.reveal div.box.example + .note,
-.reveal div.box.example + .ale,
-.reveal div.box.example + .alert,
-.reveal div.box.example + .equ,
-.reveal div.box.example + .equation,
-.reveal div.box.example + .theorem, .reveal div.box.def + .question,
-.reveal div.box.def + .answer,
-.reveal div.box.def + .observation,
-.reveal div.box.def + .example,
-.reveal div.box.def + .def,
-.reveal div.box.def + .definition,
-.reveal div.box.def + .note,
-.reveal div.box.def + .ale,
-.reveal div.box.def + .alert,
-.reveal div.box.def + .equ,
-.reveal div.box.def + .equation,
-.reveal div.box.def + .theorem, .reveal div.box.definition + .question,
-.reveal div.box.definition + .answer,
-.reveal div.box.definition + .observation,
-.reveal div.box.definition + .example,
-.reveal div.box.definition + .def,
-.reveal div.box.definition + .definition,
-.reveal div.box.definition + .note,
-.reveal div.box.definition + .ale,
-.reveal div.box.definition + .alert,
-.reveal div.box.definition + .equ,
-.reveal div.box.definition + .equation,
-.reveal div.box.definition + .theorem, .reveal div.box.note + .question,
-.reveal div.box.note + .answer,
-.reveal div.box.note + .observation,
-.reveal div.box.note + .example,
-.reveal div.box.note + .def,
-.reveal div.box.note + .definition,
-.reveal div.box.note + .note,
-.reveal div.box.note + .ale,
-.reveal div.box.note + .alert,
-.reveal div.box.note + .equ,
-.reveal div.box.note + .equation,
-.reveal div.box.note + .theorem, .reveal div.box.ale + .question,
-.reveal div.box.ale + .answer,
-.reveal div.box.ale + .observation,
-.reveal div.box.ale + .example,
-.reveal div.box.ale + .def,
-.reveal div.box.ale + .definition,
-.reveal div.box.ale + .note,
-.reveal div.box.ale + .ale,
-.reveal div.box.ale + .alert,
-.reveal div.box.ale + .equ,
-.reveal div.box.ale + .equation,
-.reveal div.box.ale + .theorem, .reveal div.box.alert + .question,
-.reveal div.box.alert + .answer,
-.reveal div.box.alert + .observation,
-.reveal div.box.alert + .example,
-.reveal div.box.alert + .def,
-.reveal div.box.alert + .definition,
-.reveal div.box.alert + .note,
-.reveal div.box.alert + .ale,
-.reveal div.box.alert + .alert,
-.reveal div.box.alert + .equ,
-.reveal div.box.alert + .equation,
-.reveal div.box.alert + .theorem, .reveal div.box.equ + .question,
-.reveal div.box.equ + .answer,
-.reveal div.box.equ + .observation,
-.reveal div.box.equ + .example,
-.reveal div.box.equ + .def,
-.reveal div.box.equ + .definition,
-.reveal div.box.equ + .note,
-.reveal div.box.equ + .ale,
-.reveal div.box.equ + .alert,
-.reveal div.box.equ + .equ,
-.reveal div.box.equ + .equation,
-.reveal div.box.equ + .theorem, .reveal div.box.equation + .question,
-.reveal div.box.equation + .answer,
-.reveal div.box.equation + .observation,
-.reveal div.box.equation + .example,
-.reveal div.box.equation + .def,
-.reveal div.box.equation + .definition,
-.reveal div.box.equation + .note,
-.reveal div.box.equation + .ale,
-.reveal div.box.equation + .alert,
-.reveal div.box.equation + .equ,
-.reveal div.box.equation + .equation,
-.reveal div.box.equation + .theorem, .reveal div.box.theorem + .question,
-.reveal div.box.theorem + .answer,
-.reveal div.box.theorem + .observation,
-.reveal div.box.theorem + .example,
-.reveal div.box.theorem + .def,
-.reveal div.box.theorem + .definition,
-.reveal div.box.theorem + .note,
-.reveal div.box.theorem + .ale,
-.reveal div.box.theorem + .alert,
-.reveal div.box.theorem + .equ,
-.reveal div.box.theorem + .equation,
-.reveal div.box.theorem + .theorem {
+.reveal div.box.question + .question, .reveal div.box.question + .answer, .reveal div.box.question + .observation, .reveal div.box.question + .example, .reveal div.box.question + .def, .reveal div.box.question + .definition, .reveal div.box.question + .note, .reveal div.box.question + .ale, .reveal div.box.question + .alert, .reveal div.box.question + .equ, .reveal div.box.question + .equation, .reveal div.box.question + .theorem, .reveal div.box.answer + .question, .reveal div.box.answer + .answer, .reveal div.box.answer + .observation, .reveal div.box.answer + .example, .reveal div.box.answer + .def, .reveal div.box.answer + .definition, .reveal div.box.answer + .note, .reveal div.box.answer + .ale, .reveal div.box.answer + .alert, .reveal div.box.answer + .equ, .reveal div.box.answer + .equation, .reveal div.box.answer + .theorem, .reveal div.box.observation + .question, .reveal div.box.observation + .answer, .reveal div.box.observation + .observation, .reveal div.box.observation + .example, .reveal div.box.observation + .def, .reveal div.box.observation + .definition, .reveal div.box.observation + .note, .reveal div.box.observation + .ale, .reveal div.box.observation + .alert, .reveal div.box.observation + .equ, .reveal div.box.observation + .equation, .reveal div.box.observation + .theorem, .reveal div.box.example + .question, .reveal div.box.example + .answer, .reveal div.box.example + .observation, .reveal div.box.example + .example, .reveal div.box.example + .def, .reveal div.box.example + .definition, .reveal div.box.example + .note, .reveal div.box.example + .ale, .reveal div.box.example + .alert, .reveal div.box.example + .equ, .reveal div.box.example + .equation, .reveal div.box.example + .theorem, .reveal div.box.def + .question, .reveal div.box.def + .answer, .reveal div.box.def + .observation, .reveal div.box.def + .example, .reveal div.box.def + .def, .reveal div.box.def + .definition, .reveal div.box.def + .note, .reveal div.box.def + .ale, .reveal div.box.def + .alert, .reveal div.box.def + .equ, .reveal div.box.def + .equation, .reveal div.box.def + .theorem, .reveal div.box.definition + .question, .reveal div.box.definition + .answer, .reveal div.box.definition + .observation, .reveal div.box.definition + .example, .reveal div.box.definition + .def, .reveal div.box.definition + .definition, .reveal div.box.definition + .note, .reveal div.box.definition + .ale, .reveal div.box.definition + .alert, .reveal div.box.definition + .equ, .reveal div.box.definition + .equation, .reveal div.box.definition + .theorem, .reveal div.box.note + .question, .reveal div.box.note + .answer, .reveal div.box.note + .observation, .reveal div.box.note + .example, .reveal div.box.note + .def, .reveal div.box.note + .definition, .reveal div.box.note + .note, .reveal div.box.note + .ale, .reveal div.box.note + .alert, .reveal div.box.note + .equ, .reveal div.box.note + .equation, .reveal div.box.note + .theorem, .reveal div.box.ale + .question, .reveal div.box.ale + .answer, .reveal div.box.ale + .observation, .reveal div.box.ale + .example, .reveal div.box.ale + .def, .reveal div.box.ale + .definition, .reveal div.box.ale + .note, .reveal div.box.ale + .ale, .reveal div.box.ale + .alert, .reveal div.box.ale + .equ, .reveal div.box.ale + .equation, .reveal div.box.ale + .theorem, .reveal div.box.alert + .question, .reveal div.box.alert + .answer, .reveal div.box.alert + .observation, .reveal div.box.alert + .example, .reveal div.box.alert + .def, .reveal div.box.alert + .definition, .reveal div.box.alert + .note, .reveal div.box.alert + .ale, .reveal div.box.alert + .alert, .reveal div.box.alert + .equ, .reveal div.box.alert + .equation, .reveal div.box.alert + .theorem, .reveal div.box.equ + .question, .reveal div.box.equ + .answer, .reveal div.box.equ + .observation, .reveal div.box.equ + .example, .reveal div.box.equ + .def, .reveal div.box.equ + .definition, .reveal div.box.equ + .note, .reveal div.box.equ + .ale, .reveal div.box.equ + .alert, .reveal div.box.equ + .equ, .reveal div.box.equ + .equation, .reveal div.box.equ + .theorem, .reveal div.box.equation + .question, .reveal div.box.equation + .answer, .reveal div.box.equation + .observation, .reveal div.box.equation + .example, .reveal div.box.equation + .def, .reveal div.box.equation + .definition, .reveal div.box.equation + .note, .reveal div.box.equation + .ale, .reveal div.box.equation + .alert, .reveal div.box.equation + .equ, .reveal div.box.equation + .equation, .reveal div.box.equation + .theorem, .reveal div.box.theorem + .question, .reveal div.box.theorem + .answer, .reveal div.box.theorem + .observation, .reveal div.box.theorem + .example, .reveal div.box.theorem + .def, .reveal div.box.theorem + .definition, .reveal div.box.theorem + .note, .reveal div.box.theorem + .ale, .reveal div.box.theorem + .alert, .reveal div.box.theorem + .equ, .reveal div.box.theorem + .equation, .reveal div.box.theorem + .theorem {
   margin-top: 0.3em;
 }
-
 .reveal div.box.question {
   background-color: rgba(255, 215, 67, 0.4);
 }
-
 .reveal div.box.answer {
   background-color: rgba(153, 205, 58, 0.4);
 }
-
 .reveal div.box.observation {
   background-color: rgba(210, 180, 140, 0.4);
 }
-
 .reveal div.box.example {
   background-color: rgba(176, 197, 222, 0.4);
 }
-
 .reveal div.box.def, .reveal div.box.definition {
   background-color: rgba(245, 222, 179, 0.6);
 }
-
 .reveal div.box.note {
   background-color: rgba(244, 164, 96, 0.4);
 }
-
 .reveal div.box.ale, .reveal div.box.alert {
   background-color: rgba(255, 99, 71, 0.4);
 }
-
 .reveal div.box.equ, .reveal div.box.equation {
   background-color: #ebebeb;
 }
-
 .reveal div.box.theorem {
   background-color: #ebebeb;
 }
@@ -564,7 +302,6 @@
   background: rgba(255, 255, 255, 0.4);
   padding: 0em 0.2em;
 }
-
 .reveal div.box.question div.sourceCode pre, .reveal div.box.answer div.sourceCode pre, .reveal div.box.observation div.sourceCode pre, .reveal div.box.example div.sourceCode pre, .reveal div.box.def div.sourceCode pre, .reveal div.box.definition div.sourceCode pre, .reveal div.box.note div.sourceCode pre, .reveal div.box.ale div.sourceCode pre, .reveal div.box.alert div.sourceCode pre, .reveal div.box.equ div.sourceCode pre, .reveal div.box.equation div.sourceCode pre, .reveal div.box.theorem div.sourceCode pre {
   margin: 0;
 }
@@ -584,7 +321,6 @@
   padding-top: 0;
   height: 0;
 }
-
 .reveal div.videoWrapper iframe {
   position: absolute;
   top: 0;
@@ -598,24 +334,20 @@
   margin: 0 auto;
   display: block;
   border: none;
-  -webkit-box-shadow: none;
-          box-shadow: none;
+  box-shadow: none;
   border-radius: 0.25em;
 }
-
 .reveal img.float-left {
   float: left;
 }
-
 .reveal img.float-right {
   float: right;
 }
 
 .reveal figure {
   margin: 0 0 0 0;
-  text-align: left;
+  text-align: center;
 }
-
 .reveal figure figcaption {
   font-size: 0.8em;
   font-style: italic;
@@ -672,7 +404,6 @@
   border-radius: 0.25em;
   overflow: auto;
 }
-
 .reveal div.sourceCode pre {
   display: block;
   position: relative;
@@ -680,13 +411,11 @@
   text-align: left;
   line-height: 1.5em;
   word-wrap: break-word;
-  -webkit-box-shadow: none;
-          box-shadow: none;
+  box-shadow: none;
   font-size: 90%;
   font-weight: 500;
   margin: 0;
 }
-
 .reveal div.sourceCode pre div.language-label {
   font-family: "Roboto", sans-serif;
   position: absolute;
@@ -697,7 +426,6 @@
   padding: 0em 0.4em;
   border-radius: 0.2em;
 }
-
 .reveal div.sourceCode pre code {
   display: block;
   overflow: auto;
@@ -720,12 +448,6 @@ body {
   font-size: 30px;
   font-weight: normal;
   color: black;
-}
-
-::-moz-selection {
-  color: #fff;
-  background: #98bdef;
-  text-shadow: none;
 }
 
 ::selection {
@@ -756,7 +478,6 @@ body {
 .reveal div[data-align="center"] {
   text-align: center;
 }
-
 .reveal section[data-align="right"] > h1,
 .reveal div[data-align="right"] {
   text-align: right;
@@ -765,16 +486,13 @@ body {
 .reveal .smallcaps {
   font-variant: small-caps;
 }
-
 .reveal .line-block {
   white-space: pre-line;
 }
-
 .reveal .references {
   height: 17.5em;
   overflow-y: scroll;
 }
-
 .reveal .references div {
   margin-bottom: 0.5em;
 }
@@ -817,7 +535,6 @@ body {
 .reveal section.white, .reveal section.inverse, .reveal section.has-dark-background {
   color: #fff;
 }
-
 .reveal section.white h1,
 .reveal section.white h2,
 .reveal section.white h3,
@@ -895,7 +612,6 @@ body {
 .reveal blockquote {
   quotes: none;
 }
-
 .reveal blockquote {
   display: block;
   position: relative;
@@ -904,10 +620,8 @@ body {
   padding: 0.25em;
   font-style: italic;
   background: rgba(255, 255, 255, 0.05);
-  -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-          box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
 }
-
 .reveal blockquote p:first-child, .reveal blockquote p:last-child {
   display: inline-block;
 }
@@ -985,11 +699,17 @@ dd {
   color: #009;
   text-decoration: none;
   -webkit-transition: color 0.15s ease;
+  -moz-transition: color 0.15s ease;
+  -ms-transition: color 0.15s ease;
+  -o-transition: color 0.15s ease;
   transition: color 0.15s ease;
 }
 
 .reveal a img {
   -webkit-transition: color 0.15s linear;
+  -moz-transition: color 0.15s linear;
+  -ms-transition: color 0.15s linear;
+  -o-transition: color 0.15s linear;
   transition: color 0.15s linear;
 }
 
@@ -1002,8 +722,7 @@ dd {
 .reveal a:hover img {
   background: rgba(255, 255, 255, 0.2);
   border: none;
-  -webkit-box-shadow: none;
-          box-shadow: none;
+  box-shadow: none;
 }
 
 .reveal .roll span:after {
@@ -1018,26 +737,26 @@ dd {
   margin: 15px 0px;
   background: rgba(255, 255, 255, 0.12);
   border: none;
-  -webkit-box-shadow: none;
-          box-shadow: none;
+  box-shadow: none;
+  display: block;
+  margin: auto;
 }
 
 .reveal section img.plain {
   border: 0;
-  -webkit-box-shadow: none;
-          box-shadow: none;
+  box-shadow: none;
 }
 
 .reveal a img {
   -webkit-transition: all .15s linear;
+  -moz-transition: all .15s linear;
   transition: all .15s linear;
 }
 
 .reveal a:hover img {
   background: rgba(255, 255, 255, 0.2);
   border-color: #2a76dd;
-  -webkit-box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
-          box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
 }
 
 /*********************************************
@@ -1046,15 +765,12 @@ dd {
 .reveal .controls button {
   opacity: 0;
 }
-
 .reveal .controls .enabled:active {
   margin-top: 0;
 }
-
 .reveal .controls :focus {
   outline: none;
 }
-
 .reveal .controls .slide-number {
   color: #009;
   background-color: rgba(255, 255, 255, 0);
@@ -1071,6 +787,9 @@ dd {
 .reveal .progress span {
   background: #777;
   -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -ms-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -o-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
   transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
 }
 
@@ -1084,7 +803,6 @@ dd {
   font-weight: bold;
   margin-bottom: 0.2em;
 }
-
 .reveal .speaker-notes h1 {
   text-decoration: underline;
   margin-bottom: 0.4em;
@@ -1093,27 +811,21 @@ dd {
 .reveal .medium {
   font-size: 30px;
 }
-
 .reveal .xx-small {
   font-size: 12px;
 }
-
 .reveal .x-small {
   font-size: 18px;
 }
-
 .reveal .small {
   font-size: 24px;
 }
-
 .reveal .large {
   font-size: 36px;
 }
-
 .reveal .x-large {
   font-size: 42px;
 }
-
 .reveal .xx-large {
   font-size: 48px;
 }
@@ -1130,14 +842,10 @@ dd {
   visibility: hidden;
 }
 
-.reveal ::-moz-selection {
-  color: white;
-  background: rgba(0, 0, 0, 0.85);
-  text-shadow: none;
-}
-
 .reveal ::selection {
   color: white;
   background: rgba(0, 0, 0, 0.85);
   text-shadow: none;
 }
+
+/*# sourceMappingURL=decker.css.map */

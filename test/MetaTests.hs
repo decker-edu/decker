@@ -3,8 +3,8 @@ module MetaTests
   ) where
 
 import qualified Data.Map.Strict as M
-import Text.Decker.Internal.Meta
 import Test.Hspec
+import Text.Decker.Internal.Meta
 import Text.Pandoc
 
 m1 =
@@ -27,20 +27,20 @@ m1 =
        ])
 
 metaTests = do
-  describe "lookupMetaBool" $ do
+  describe "getMetaBool" $ do
     it "looks up a top-level boolean meta value" $
-      lookupMetaBool m1 "bool" `shouldBe` Just True
+      getMetaBool "bool" m1 `shouldBe` Just True
     it "looks up a top-level boolean meta value" $
-      lookupMetaBool m1 "none" `shouldBe` Nothing
+      getMetaBool "none" m1 `shouldBe` Nothing
     it "looks up a boolean meta value" $
-      lookupMetaBool m1 "top.bool" `shouldBe` Just True
+      getMetaBool "top.bool" m1 `shouldBe` Just True
     it "looks up a boolean meta value" $
-      lookupMetaBool m1 "top.none" `shouldBe` Nothing
+      getMetaBool "top.none" m1 `shouldBe` Nothing
     it "looks up a boolean meta value in list" $
-      lookupMetaBool m1 "list[2].bool2" `shouldBe` Just True
-  describe "lookupMetaInt" $
+      getMetaBool "list[2].bool2" m1 `shouldBe` Just True
+  describe "getMetaInt" $
     it "looks up a top-level int meta value" $
-    lookupMetaInt m1 "write-back.line-columns" `shouldBe` Just 80
-  describe "lookupMetaString" $
+    getMetaInt "write-back.line-columns" m1 `shouldBe` Just 80
+  describe "getMetaString" $
     it "looks up a top-level int meta value" $
-    lookupMetaString m1 "write-back.line-wrap" `shouldBe` Just "none"
+    getMetaString "write-back.line-wrap" m1 `shouldBe` Just "none"
