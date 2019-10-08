@@ -35,6 +35,7 @@ mathjax:
 
 reveal.js:
 	@mkdir -p $(support)/reveal/plugin
+	@cp $(third)/reveal.js/plugin/markdown/marked.js $(support)/reveal/marked.js
 	@for i in js css lib plugin/math plugin/zoom-js plugin/notes; do \
 		$(dup) $(third)/reveal.js/$$i $(support)/reveal/$$i; \
 	done
