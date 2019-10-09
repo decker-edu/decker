@@ -7,12 +7,14 @@ stages:
 templates:
   image: kkarczmarczyk/node-yarn
   stage: templates
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
   tags:
     - docker
   script:
-    - make resources
+    - make yarn
+  cache:
+    key: ${CI_JOB_NAME}
+    paths:
+      - node_modules
   artifacts:
     paths:
       - resource/support
@@ -57,10 +59,11 @@ build:win:
     - win
   stage: build
   script:
-    - '&.\bin\build.ps1 standalone -skiptemplates -preparepackage'
+    - '&.\bin\build.ps1 preextracted -skiptemplates -preparepackage'
   artifacts:
     paths:
       - decker.exe
+      - resource.zip
       - version.txt
   cache:
     key: build-win
@@ -97,6 +100,7 @@ test:linux:
     - docker build -t $CI_REGISTRY_IMAGE --build-arg MAKE_FLAGS=branch=$CI_COMMIT_REF_NAME .
     - docker push $CI_REGISTRY_IMAGE
 
+  
 deploy:mac:
   stage: deploy
   image: 
@@ -107,12 +111,14 @@ deploy:mac:
   tags:
     - docker
   script:
+    - if [ "$CI_COMMIT_REF_NAME"== "master"]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
-    - mc cp ./decker store/decker/decker-mac
+    - mc cp ./decker store/decker/decker-mac${SUFFIX}
   dependencies:
     - build:mac
   only:
     - master
+    - /^v\d\.\d\.\d-patching$/
 
 deploy:linux:
   stage: deploy
@@ -124,12 +130,14 @@ deploy:linux:
   tags:
     - docker
   script:
+    - if [ "$CI_COMMIT_REF_NAME"== "master"]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
-    - mc cp ./decker store/decker/decker-linux
+    - mc cp ./decker store/decker/decker-linux${SUFFIX}
   dependencies:
     - build:linux
   only:
     - master
+    - /^v\d\.\d\.\d-patching$/
 
 deploy:win:
   stage: deploy
@@ -141,10 +149,13 @@ deploy:win:
   tags:
     - docker
   script:
+    - if [ "$CI_COMMIT_REF_NAME"== "master"]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
-    - mc cp ./decker.exe store/decker/decker-win.exe
-    - mc cp ./version.txt store/decker/version-win.txt
+    - mc cp ./decker.exe store/decker/decker-win${SUFFIX}.exe
+    - mc cp ./resource.zip store/decker/resource-win${SUFFIX}.zip
+    - mc cp ./version.txt store/decker/version-win${SUFFIX}.txt
   dependencies:
     - build:win
   only:
     - master
+    - /^v\d\.\d\.\d-patching$/
