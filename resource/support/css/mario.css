@@ -731,6 +731,9 @@ body {
     vertical-align: top;
 }
 
+.reveal .transparent {
+    opacity: 0.1;
+}
 
 /* MARIO: fix menu positioning */
 .reveal .slide-number {
@@ -738,7 +741,10 @@ body {
 }
 
 
-/* CSS for chalkboard color picker */
+/*********************************************
+ * MARIO: chalkboard color picker
+ *********************************************/
+
 .reveal .color-picker {
     background: rgba(255, 255, 255, 0.75);
     padding: 0px;
@@ -756,16 +762,6 @@ body {
     opacity: 0.7;
 }
 
-/* make chalkboard scrollbar visible in Safari */
-/*::-webkit-scrollbar {*/
-    /*-webkit-appearance: none;*/
-    /*width: 7px;*/
-    /*background-color: "white";*/
-/*}*/
-/*::-webkit-scrollbar-thumb {*/
-    /*border-radius: 4px;*/
-    /*background-color: rgba(0,0,0,.5);*/
-/*}*/
 
 /*********************************************
  * MARIO: Task lists
@@ -804,15 +800,20 @@ body {
  *********************************************/
 
 .reveal .quiz ul {
-    text-align: center;
+    display:         flex;
+    flex-direction:  row;
+    flex-wrap:       wrap;
+    justify-content: center;
+    align-items:     center;
+    align-content:   center;
+    text-align:      center;
     list-style-type: upper-latin;
-    counter-reset: answer;
+    counter-reset:   answer;
 }
 
 .reveal .quiz ul li {
     display:       inline-block;
     position:      relative;
-    width:         400px;
     text-align:    left;
     margin:        20px;
     border:        3px solid #2a9ddf;
@@ -864,61 +865,3 @@ body {
 }
 
 
-/* old quiz stuff below (delete it later...) */
-
-.reveal .slides > section {
-  counter-reset: wwm-counter;
-}
-
-.reveal .answer {
-    display:  inline-block;
-    position: relative;
-    width:    400px;
-    text-align: left;
-    margin:   20px;
-    border:   3px solid #2a9ddf;
-    border-radius: 20px;
-    padding:  20px;
-    font-weight: normal;
-    color:    black;
-}
-
-.reveal .answer:before {
-  content: counter(wwm-counter, upper-latin) ": ";
-  counter-increment: wwm-counter;
-  margin-right: 0.5em;
-  font-weight: bold;
-}
-
-.reveal .tooltip {
-    display: block;
-    visibility: hidden;
-    max-width: 390px;
-    top:        100%;
-    background-color: grey;
-    color:      #ffffff;
-    text-align: center;
-    padding:    5px;
-    border-radius: 6px;
-    position:   absolute;
-    z-index: 1;
-    font-size: 1rem;
-}
-
-.reveal .show-wrong {
-    background-color: #ffaaaa;
-    border:           3px solid red;
-}
-
-.reveal .show-right {
-    background-color: #aaffaa;
-    border:           3px solid green;
-}
-
-.reveal .show-wrong:hover .tooltip, .reveal .show-right:hover .tooltip {
-    visibility: visible;
-}
-
-.reveal .transparent {
-    opacity: 0.1;
-}
