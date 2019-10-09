@@ -231,18 +231,21 @@ $if(mario)$ <!-- Mario settings -->
                           "fontFamily": "Lato",
                           "fontSize": 30,
                       },
-                      legend: {
-                          "position": "bottom"
-                      }
+                      legend: { position: "bottom" },
+                      plugins: { colorschemes: { scheme: "tableau.Tableau10" } }
                   },
                   responsive: "false"
               },
+              bar:   { borderWidth: "1" },
+              line:  { borderWidth: "2" },
+              radar: { borderWidth: "2" }
           },
-
 
           // plugins
           dependencies: [
-              { src: '$decker-support-dir$/vendor/Chart.js'},
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/charts/Chart.js'},
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/charts/plugin-colorschemes.js'},
+              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/charts/plugin-errorbars.js'},
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/charts/csv2chart.js'},
               { src: '$decker-support-dir$/vendor/reveal/plugin/notes/notes.js' },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/math/math.js' },
