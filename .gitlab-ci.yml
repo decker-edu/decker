@@ -7,14 +7,12 @@ stages:
 templates:
   image: kkarczmarczyk/node-yarn
   stage: templates
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   tags:
     - docker
   script:
-    - make yarn
-  cache:
-    key: ${CI_JOB_NAME}
-    paths:
-      - node_modules
+    - make -f symlinks.mk -C third-party copy=true all
   artifacts:
     paths:
       - resource/support
@@ -59,7 +57,8 @@ build:win:
     - win
   stage: build
   script:
-    - '&.\bin\build.ps1 preextracted -skiptemplates -preparepackage'
+    # - '&.\bin\build.ps1 preextracted -skiptemplates -preparepackage'
+    - '&.\bin\build.ps1 standalone -skiptemplates -preparepackage'
   artifacts:
     paths:
       - decker.exe
@@ -69,7 +68,6 @@ build:win:
     key: build-win
     paths:
       - .stack-work
-
 
 test:linux:
   stage: test
