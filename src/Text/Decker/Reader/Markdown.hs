@@ -63,12 +63,7 @@ readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disp = do
   pandoc@(Pandoc meta _) <-
     readMetaMarkdown markdownFile >>= processIncludes baseDir
-  processPandoc
-    (pipeline meta)
-    baseDir
-    disp
-    (provisioningFromMeta meta)
-    pandoc
+  processPandoc (pipeline meta) baseDir disp (provisioningFromMeta meta) pandoc
   where
     baseDir = takeDirectory markdownFile
     pipeline meta =
@@ -116,7 +111,8 @@ readMetaMarkdown markdownFile = do
   markdown <- liftIO $ T.readFile markdownFile
   let filePandoc@(Pandoc fileMeta _) =
         readMarkdownOrThrow pandocReaderOpts markdown
-  let combinedMeta = mergePandocMeta' fileMeta globalMeta
+  additionalMeta <- liftIO $ getAdditionalMeta fileMeta
+  let combinedMeta = mergePandocMeta' additionalMeta globalMeta
   let generateIds = getMetaBoolOrElse "generate-ids" False combinedMeta
   Pandoc _ fileBlocks <- maybeGenerateIds generateIds filePandoc
   -- combine the meta data with preference on the embedded data

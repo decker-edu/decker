@@ -205,14 +205,8 @@ waitForChange inDirs =
        done <- newEmptyMVar
        forM_
          inDirs
-         (\dir
-           -> 
-            Notify.watchDir
-              manager
-              dir
-              (const True)
-              (\e
-                -> putMVar done ()))
+         (\dir ->
+            Notify.watchDir manager dir (const True) (\e -> putMVar done ()))
        takeMVar done)
 
 waitForChange' :: FilePath -> [FilePath] -> IO ()
@@ -220,12 +214,7 @@ waitForChange' inDir exclude =
   Notify.withManager
     (\manager -> do
        done <- newEmptyMVar
-       Notify.watchTree
-         manager
-         inDir
-         filter
-         (\e
-           -> putMVar done ())
+       Notify.watchTree manager inDir filter (\e -> putMVar done ())
        takeMVar done)
   where
     filter event = not $ any (`isPrefixOf` Notify.eventPath event) exclude
@@ -273,8 +262,14 @@ copyStaticDirs = do
   public <- publicA
   project <- projectA
   let staticSrc = map (project </>) (staticDirs meta)
-  let staticDst = map (public </>) (staticDirs meta)
+  let staticDst = map ((public </>) . stripParentPrefix) (staticDirs meta)
   liftIO $ zipWithM_ copyDir staticSrc staticDst
+  where
+    stripParentPrefix :: FilePath -> FilePath
+    stripParentPrefix path =
+      if "../" `isPrefixOf` path
+        then stripParentPrefix (drop 3 path)
+        else path
 
 extractSupport :: Action ()
 extractSupport = do
