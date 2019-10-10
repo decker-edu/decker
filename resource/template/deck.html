@@ -44,6 +44,9 @@ $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
 $endfor$
+$if(highlightjs)$
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/highlight/$highlightjs$.css">
+$endif$
   <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
@@ -400,8 +403,10 @@ $endif$
 $if(menu)$
           { src: '$decker-support-dir$/vendor/reveal.js-menu/menu.js', async: true },
 $endif$
+$if(highlightjs)$
+          { src: '$decker-support-dir$/vendor/highlight/highlight.js' },
+$endif$
 $if(mathjax)$
-          //{ src: '$decker-support-dir$/vendor/reveal/plugin/math/math.js', async: true },
           { src: '$decker-support-dir$/vendor/math/math.js' },
 $endif$
 $if(thebelab.enable)$
