@@ -4,7 +4,6 @@ module Text.Decker.Writer.Html
   , markdownToHtmlDeck
   , markdownToHtmlHandout
   , markdownToHtmlPage
-  , markdownToNotebook
   , toPandocMeta
   , DeckerException(..)
   ) where
@@ -97,13 +96,17 @@ markdownToHtmlDeck markdownFile out index = do
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
+  let highlightStyle =
+        case getMetaString "highlightjs" meta of
+          Nothing -> Just pygments
+          _ -> Nothing
   template <- getTemplate disp
   dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
           { writerSlideLevel = Just 1
           , writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
+          , writerHighlightStyle = highlightStyle
           , writerHTMLMathMethod =
               MathJax "Handled by reveal.js in the template"
           , writerVariables =
@@ -114,8 +117,6 @@ markdownToHtmlDeck markdownFile out index = do
           }
   writeDeckIndex markdownFile index pandoc >>=
     writePandocFile "revealjs" options out
-  when (getMetaBoolOrElse "write-notebook" False meta) $
-    markdownToNotebook markdownFile (out -<.> ".ipynb")
   writeNativeWhileDebugging out "filtered" pandoc
 
 writePandocFile :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
@@ -178,7 +179,8 @@ markdownToNotebook markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Notebook Html
-  pandoc@(Pandoc docMeta _) <- filterNotebookSlides <$> readAndProcessMarkdown markdownFile disp
+  pandoc@(Pandoc docMeta _) <-
+    filterNotebookSlides <$> readAndProcessMarkdown markdownFile disp
   let options =
         pandocWriterOpts
           { writerTemplate = Nothing
