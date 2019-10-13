@@ -117,6 +117,8 @@ markdownToHtmlDeck markdownFile out index = do
           }
   writeDeckIndex markdownFile index pandoc >>=
     writePandocFile "revealjs" options out
+  when (getMetaBoolOrElse "write-notebook" False meta) $
+    markdownToNotebook markdownFile (out -<.> ".ipynb")
   writeNativeWhileDebugging out "filtered" pandoc
 
 writePandocFile :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()

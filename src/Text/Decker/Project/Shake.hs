@@ -169,10 +169,13 @@ isMetaName str = all check $ splitOn "." str
     check s = length s > 1 && isAlpha (head s) && all isAlphaNum (tail s)
 
 handleArguments :: Rules () -> [Flags] -> [String] -> IO (Maybe (Rules ()))
-handleArguments rules flags argValues = 
+handleArguments rules flags targets =
   if FormatFlag `elem` flags
     then formatMarkdown >> return Nothing
-    else return $ Just rules
+    else return $ Just $
+         if null targets
+           then rules
+           else want targets >> withoutActions rules
 
 runShakeOnce :: MutableActionState -> Rules () -> IO Bool
 runShakeOnce state rules = do
