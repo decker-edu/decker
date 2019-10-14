@@ -5,13 +5,19 @@
 // require("./handout.scss");
 
 addSourceCodeLabels();
+extendTables();
 
-document.addEventListener("load", () => {
+function extendTables() {
   $("table").addClass(
     "table table-striped table-bordered table-hover table-condensed table-responsive"
   );
-});
+}
 
+// document.addEventListener("load", () => {
+//   $("table").addClass(
+//     "table table-striped table-bordered table-hover table-condensed table-responsive"
+//   );
+// });
 function addSourceCodeLabels() {
   $("div.sourceCode[label]").each(function () {
     $("<div/>")

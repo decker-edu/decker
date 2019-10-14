@@ -831,6 +831,7 @@ dd {
 }
 
 .reveal .slide-number {
+  position: fixed;
   width: 100%;
   text-align: center;
   background: transparent;
