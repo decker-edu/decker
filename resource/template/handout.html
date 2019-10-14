@@ -32,8 +32,6 @@ $if(base-css)$
 $else$
     <link rel="stylesheet" href="$decker-support-dir$/css/handout.css">
 $endif$
-    <script src="$decker-support-dir$/js/handout.js"></script>
-
     <!-- MathJax config -->
     <script type="text/x-mathjax-config">
       MathJax.Hub.Config({
@@ -120,6 +118,9 @@ $endif$
 <!-- The following line must be left aligned! -->
 $body$
 <!-- The previous line must be left aligned! -->
+
+    <script src="$decker-support-dir$/vendor/jquery.js" type="text/javascript"></script>
+    <script src="$decker-support-dir$/js/handout.js"></script>
 
           $for(include-after)$
           $include-after$

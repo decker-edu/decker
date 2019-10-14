@@ -4,8 +4,20 @@
 // require("bootstrap/dist/css/bootstrap.css");
 // require("./handout.scss");
 
+addSourceCodeLabels();
+
 document.addEventListener("load", () => {
+  console.log("test");
   $("table").addClass(
     "table table-striped table-bordered table-hover table-condensed table-responsive"
   );
 });
+
+function addSourceCodeLabels() {
+  $("div.sourceCode[label]").each(function () {
+    $("<div/>")
+      .addClass("language-label")
+      .text($(this).attr("label"))
+      .prependTo($(this).children('pre'));
+  });
+}
