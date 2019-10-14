@@ -7,7 +7,6 @@
 addSourceCodeLabels();
 
 document.addEventListener("load", () => {
-  console.log("test");
   $("table").addClass(
     "table table-striped table-bordered table-hover table-condensed table-responsive"
   );
