@@ -17,7 +17,7 @@ dup = cp -r
 endif
 
 
-all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard math highlight fontawesome reveal.js-menu thebelab
+all: jquery Chart.js mathjax reveal.js bootstrap piklor.js whiteboard math highlight charts fontawesome reveal.js-menu thebelab
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab
@@ -26,11 +26,6 @@ thebelab: thebelab/lib/index.js
 jquery: jquery/dist/jquery.min.js
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
 	@cp jquery/dist/jquery.min.js $(support)/jquery.js
-
-chart.js: Chart.js/dist/Chart.min.js 
-	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
-	@cp Chart.js/dist/Chart.min.js $(support)/Chart.js
-	@$(dup) $(third)/reveal.js-plugins/chart/csv2chart.js $(support)/csv2chart.js
 
 mathjax:
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
@@ -61,6 +56,9 @@ piklor.js:
 whiteboard:
 	@$(dup) $(third)/mb-reveal-plugins/whiteboard $(support)/whiteboard
 
+charts:
+	@$(dup) $(third)/mb-reveal-plugins/charts $(support)/charts
+
 math:
 	@$(dup) $(third)/mb-reveal-plugins/math $(support)/math
 
@@ -82,4 +80,4 @@ jquery/dist/jquery.min.js:
 Chart.js/dist/Chart.min.js:
 	(cd Chart.js && npm install && npx rollup -c rollup.config.js)
 
-.PHONY: clean prepare fontawesome whiteboard math highlight piklor.js bootstrap reveal.js mathjax chart.js jquery reveal.js-menu
+.PHONY: clean prepare fontawesome whiteboard math highlight charts piklor.js bootstrap reveal.js mathjax jquery reveal.js-menu thebelab
