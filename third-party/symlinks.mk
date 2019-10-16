@@ -12,7 +12,12 @@ else
 dup = ln -sF
 endif
 
-all: jquery mathjax reveal.js bootstrap piklor.js whiteboard math charts fontawesome reveal.js-menu thebelab
+ifeq ($(copy), true)
+dup = cp -r
+endif
+
+
+all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard math charts fontawesome reveal.js-menu thebelab
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab

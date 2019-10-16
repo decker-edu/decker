@@ -39,8 +39,10 @@ launchChrome src out = do
   case command of
     Left msg -> return $ Left msg
     Right cmd -> do
-      (_, _, _, ph) <-
-        createProcess (shell $ cmd ++ " " ++ options) {std_err = CreatePipe}
+      (_, _, _, ph) <- do
+        let invocation = cmd ++ " " ++ options
+        -- putStrLn invocation
+        createProcess (shell invocation) {std_err = CreatePipe}
       code <- waitForProcess ph
       case code of
         ExitFailure _ ->
