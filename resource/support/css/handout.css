@@ -884,8 +884,12 @@ body ::selection {
     body {
       size: A4;
       /* DIN A4 standard, Europe */
-      margin: 0;
+      margin: 25mm 25mm 25mm 25mm;
     }
+  }
+  body div.slide-wrapper {
+    -webkit-column-break-inside: avoid;
+            break-inside: avoid;
   }
   body html,
   body body {
@@ -893,5 +897,7 @@ body ::selection {
   }
   body a:link:after {
     content: " (" attr(href) ") ";
+    font-size: 50%;
+    color: gray;
   }
 }

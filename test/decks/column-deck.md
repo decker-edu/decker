@@ -164,7 +164,7 @@ Some final text
 
 -   Even in *three* columns
 
-## Example {.left .alert}
+## Example {.left .answer}
 
 ![](include/06-metal.png)
 
@@ -186,11 +186,11 @@ And some more still after the box.
 
 # Slide Masters {.columns}
 
-## Example {.left .alert}
+## Example {.left .answer}
 
 ![](include/06-metal.png){width="100%" height="150px"}
 
-## Example {.alert}
+## Example {.answer}
 
 ![](include/06-metal.png){width="100%" height="150px"}
 
@@ -198,7 +198,7 @@ And some more still after the box.
 
 ![](include/06-metal.png){width="100%" height="150px"}
 
-## Example {.alert}
+## Example {.answer}
 
 ![](include/06-metal.png){width="100%" height="150px"}
 
@@ -206,7 +206,7 @@ And some more still after the box.
 
 ![](include/06-metal.png){width="100%" height="150px"}
 
-## Example {.alert}
+## Example {.answer}
 
 ![](include/06-metal.png){width="100%" height="150px"}
 

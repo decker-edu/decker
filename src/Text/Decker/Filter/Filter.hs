@@ -13,6 +13,7 @@ module Text.Decker.Filter.Filter
   , audioExtensions
   , videoExtensions
   , convertMediaAttributes
+  , wrapSlidesinDivs
   ) where
 
 import Text.Decker.Filter.Layout
@@ -58,6 +59,13 @@ splitJoinColumns slide@(Slide header body) = do
   disp <- gets disposition
   case disp of
     Disposition Deck Html -> return $ Slide header $ concatMap wrapRow rowBlocks
+      where rowBlocks =
+              split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
+            wrapRow row@(first:_)
+              | hasClass "split" first = [Div ("", ["css-columns"], []) row]
+            wrapRow row = row
+    Disposition Handout Html ->
+      return $ Slide header $ concatMap wrapRow rowBlocks
       where rowBlocks =
               split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
             wrapRow row@(first:_)
@@ -166,6 +174,10 @@ mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
 mapSlides action (Pandoc meta blocks) = do
   slides <- selectActiveContent (toSlides blocks)
   Pandoc meta . fromSlides <$> mapM action slides
+
+wrapSlidesinDivs :: Pandoc -> Pandoc
+wrapSlidesinDivs (Pandoc meta blocks) =
+  Pandoc meta $ fromSlidesWrapped $ toSlides blocks
 
 selectActiveSlideContent :: Slide -> Decker Slide
 selectActiveSlideContent (Slide header body) =
