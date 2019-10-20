@@ -44,6 +44,9 @@ $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$"/>
 $endfor$
+$if(highlightjs)$
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/highlight/$highlightjs$.css">
+$endif$
   <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
@@ -381,6 +384,19 @@ $if(mathjax)$
           },
         },
 $endif$
+$if(chart)$
+          chart: {
+              defaults: {
+                  global: {
+                      legend: { position: "bottom" },
+                      plugins: { colorschemes: { scheme: "tableau.Tableau10" } }
+                  },
+              },
+              bar:   { borderWidth: "1" },
+              line:  { borderWidth: "2" },
+              radar: { borderWidth: "2" },
+          },
+$endif$
 
         // Optional reveal.js plugins
         dependencies: [
@@ -391,8 +407,10 @@ $if(notes-server)$
           { src: '$decker-support-dir$/vendor/reveal/plugin/notes-server/client.js', async: true },
 $endif$
 $if(chart)$
-          { src: '$decker-support-dir$/vendor/Chart.js'},
-          { src: '$decker-support-dir$/vendor/csv2chart.js'},
+          { src: '$decker-support-dir$/vendor/charts/Chart.js'},
+          { src: '$decker-support-dir$/vendor/charts/plugin-errorbars.js'},
+          { src: '$decker-support-dir$/vendor/charts/plugin-colorschemes.js'},
+          { src: '$decker-support-dir$/vendor/charts/csv2chart.js'},
 $endif$
 $if(chalkboard)$
           { src: '$decker-support-dir$/vendor/whiteboard/whiteboard.js'},
@@ -400,8 +418,10 @@ $endif$
 $if(menu)$
           { src: '$decker-support-dir$/vendor/reveal.js-menu/menu.js', async: true },
 $endif$
+$if(highlightjs)$
+          { src: '$decker-support-dir$/vendor/highlight/highlight.js' },
+$endif$
 $if(mathjax)$
-          //{ src: '$decker-support-dir$/vendor/reveal/plugin/math/math.js', async: true },
           { src: '$decker-support-dir$/vendor/math/math.js' },
 $endif$
 $if(thebelab.enable)$

@@ -17,7 +17,7 @@ dup = cp -r
 endif
 
 
-all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard math fontawesome reveal.js-menu thebelab
+all: jquery Chart.js mathjax reveal.js bootstrap piklor.js whiteboard math highlight charts fontawesome reveal.js-menu thebelab
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab
@@ -27,11 +27,6 @@ jquery: jquery/dist/jquery.min.js
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
 	@cp jquery/dist/jquery.min.js $(support)/jquery.js
 
-chart.js: Chart.js/dist/Chart.min.js 
-	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
-	@cp Chart.js/dist/Chart.min.js $(support)/Chart.js
-	@$(dup) $(third)/reveal.js-plugins/chart/csv2chart.js $(support)/csv2chart.js
-
 mathjax:
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
 	@for i in MathJax.js config jax/input/TeX jax/output/SVG jax/element extensions; do \
@@ -39,7 +34,8 @@ mathjax:
 	done
 
 reveal.js:
-	@mkdir -p $(support)/reveal/plugin
+	@mkdir -p $(support)/reveal/plugin $(support)/reveal/plugin/markdown $(support)/reveal/plugin/markdown
+	@cp $(third)/reveal.js/plugin/markdown/marked.js $(support)/reveal/plugin/markdown/marked.js
 	@for i in js css lib plugin/math plugin/zoom-js plugin/notes; do \
 		$(dup) $(third)/reveal.js/$$i $(support)/reveal/$$i; \
 	done
@@ -60,8 +56,14 @@ piklor.js:
 whiteboard:
 	@$(dup) $(third)/mb-reveal-plugins/whiteboard $(support)/whiteboard
 
+charts:
+	@$(dup) $(third)/mb-reveal-plugins/charts $(support)/charts
+
 math:
 	@$(dup) $(third)/mb-reveal-plugins/math $(support)/math
+
+highlight:
+	@$(dup) $(third)/mb-reveal-plugins/highlight $(support)/highlight
 
 fontawesome:
 	@mkdir -p $(support)/fontawesome
@@ -78,4 +80,4 @@ jquery/dist/jquery.min.js:
 Chart.js/dist/Chart.min.js:
 	(cd Chart.js && npm install && npx rollup -c rollup.config.js)
 
-.PHONY: clean prepare fontawesome whiteboard piklor.js bootstrap reveal.js mathjax chart.js jquery reveal.js-menu
+.PHONY: clean prepare fontawesome whiteboard math highlight charts piklor.js bootstrap reveal.js mathjax jquery reveal.js-menu thebelab

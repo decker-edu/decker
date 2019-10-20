@@ -57,7 +57,6 @@ build:win:
     - win
   stage: build
   script:
-    # - '&.\bin\build.ps1 preextracted -skiptemplates -preparepackage'
     - '&.\bin\build.ps1 standalone -skiptemplates -preparepackage'
   artifacts:
     paths:
@@ -97,7 +96,6 @@ test:linux:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE --build-arg MAKE_FLAGS=branch=$CI_COMMIT_REF_NAME .
     - docker push $CI_REGISTRY_IMAGE
-
   
 deploy:mac:
   stage: deploy
@@ -109,7 +107,7 @@ deploy:mac:
   tags:
     - docker
   script:
-    - if [ $CI_COMMIT_REF_NAME== "master"]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
+    - if [ $CI_COMMIT_REF_NAME=="master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker store/decker/decker-mac${SUFFIX}
   dependencies:
@@ -128,7 +126,7 @@ deploy:linux:
   tags:
     - docker
   script:
-    - if [ $CI_COMMIT_REF_NAME== "master"]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
+    - if [ $CI_COMMIT_REF_NAME=="master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker store/decker/decker-linux${SUFFIX}
   dependencies:
@@ -147,7 +145,7 @@ deploy:win:
   tags:
     - docker
   script:
-    - if [ $CI_COMMIT_REF_NAME== "master"]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
+    - if [ $CI_COMMIT_REF_NAME=="master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker.exe store/decker/decker-win${SUFFIX}.exe
     - mc cp ./version.txt store/decker/version-win${SUFFIX}.txt
