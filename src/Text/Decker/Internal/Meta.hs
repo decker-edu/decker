@@ -40,7 +40,6 @@ import qualified Data.Yaml as Y
 import Prelude hiding ((!!))
 import System.Directory
 import System.FilePath
-import System.FilePath.Glob
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc hiding (writeMarkdown)
 import Text.Pandoc.Shared

@@ -20,8 +20,6 @@ import Text.Blaze.Html5 as H
   , iframe
   , iframe
   , p
-  , span
-  , toHtml
   , toValue
   )
 import Text.Blaze.Html5.Attributes as A (class_, height, src, style, width)

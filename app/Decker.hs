@@ -3,7 +3,6 @@ module Decker where
 
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.External
-import Text.Decker.Internal.Flags (hasPreextractedResources)
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project

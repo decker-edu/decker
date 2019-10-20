@@ -85,7 +85,6 @@ import Development.Shake as Shake
   , getShakeOptions
   , liftIO
   , newResourceIO
-  , shakeArgs
   , shakeArgsWith
   , shakeOptions
   , withResource
