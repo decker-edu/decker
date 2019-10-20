@@ -14,6 +14,7 @@ module Text.Decker.Filter.Filter
   , videoExtensions
   , convertMediaAttributes
   , filterNotebookSlides
+  , wrapSlidesinDivs
   ) where
 
 import Text.Decker.Filter.Layout
@@ -60,6 +61,13 @@ splitJoinColumns slide@(Slide header body) = do
   disp <- gets disposition
   case disp of
     Disposition Deck Html -> return $ Slide header $ concatMap wrapRow rowBlocks
+      where rowBlocks =
+              split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
+            wrapRow row@(first:_)
+              | hasClass "split" first = [Div ("", ["css-columns"], []) row]
+            wrapRow row = row
+    Disposition Handout Html ->
+      return $ Slide header $ concatMap wrapRow rowBlocks
       where rowBlocks =
               split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
             wrapRow row@(first:_)
@@ -177,6 +185,10 @@ filterNotebookSlides (Pandoc meta blocks) =
       strip block = block
       notebook slide = "notebook" `elem` (view (attributes . attrClasses) slide)
    in Pandoc meta (deDiv stripped)
+
+wrapSlidesinDivs :: Pandoc -> Pandoc
+wrapSlidesinDivs (Pandoc meta blocks) =
+  Pandoc meta $ fromSlidesWrapped $ toSlides blocks
 
 selectActiveSlideContent :: Slide -> Decker Slide
 selectActiveSlideContent (Slide header body) =

@@ -1,11 +1,15 @@
-.reveal code {
+code {
     font-family: "Source Code Pro", monospace;
     font-size: 106%;
     font-weight: 500;
     text-transform: none;
 }
+<<<<<<< HEAD
 
 .reveal pre {
+=======
+pre {
+>>>>>>> nicer-handouts
     display: block;
     position: relative;
     width: 90%;
@@ -17,7 +21,7 @@
     word-wrap: break-word;
 }
 
-.reveal pre code {
+pre code {
     display: block;
     padding: 5px;
     overflow: auto;
@@ -25,7 +29,7 @@
     word-wrap: normal;
 }
 
-.reveal div.sourceCode {
+div.sourceCode {
     // margin: space(0 -0.7);
     margin-bottom: 0.5em;
     padding: space(0.4 0.7);

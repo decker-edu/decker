@@ -1,12 +1,12 @@
 /* Ensure certain elements are never larger than the slide itself */
-.reveal img,
-.reveal video,
-.reveal iframe {
+img,
+video,
+iframe {
     max-width: 95%;
     max-height: 95%;
 }
 
-.reveal div.videoWrapper {
+div.videoWrapper {
     position: relative;
     padding-bottom: 56.25%;
     /* 16:9 */
@@ -22,7 +22,7 @@
     }
 }
 
-.reveal img {
+img {
     max-width: 100%;
     margin: 0 auto;
     display: block;
@@ -39,7 +39,7 @@
     }
 }
 
-.reveal figure {
+figure {
     margin: 0 0 0 0;
     text-align: center;
 
@@ -49,18 +49,18 @@
     }
 }
 
-.reveal video {
+video {
     width: 100%;
     margin: 0;
     display: block;
 }
 
-.reveal .img-center img {
+.img-center img {
     margin: 0 auto;
     display: block;
 }
 
-.reveal .img-nocenter img {
+.img-nocenter img {
     margin: 0 0;
     display: inline;
 }

@@ -7,14 +7,20 @@
 @import url("../fonts/roboto.css");
 @import url("../fonts/source-code-pro.css");
 
+$base-font-size: 30px;
+
 @import "helper";
-@import "columns";
-@import "quizzes";
-@import "columns";
-@import "boxes";
-@import "media";
-@import "code";
-// @import "print"; Fucks up printing
+
+.reveal {
+    @import "fonts";
+    @import "columns";
+    @import "quizzes";
+    @import "boxes";
+    @import "media";
+    @import "code";
+}
+@import "print";
+
 
 // Global styles
 body {
@@ -326,8 +332,8 @@ dd {
     background: rgba(255, 255, 255, 0.12);
     border: none;
     box-shadow: none;
-    display:block;
-    margin:auto;
+    display: block;
+    margin: auto;
 }
 
 .reveal section img.plain {
@@ -406,39 +412,6 @@ dd {
             text-decoration: underline;
             margin-bottom: space(0.4);
         }
-    }
-}
-
-/////////////////////////////////////////////
-// Font size modifiers
-/////////////////////////////////////////////
-.reveal {
-    .medium {
-        font-size: $medium-font-size;
-    }
-
-    .xx-small {
-        font-size: $xx-small-font-size;
-    }
-
-    .x-small {
-        font-size: $x-small-font-size;
-    }
-
-    .small {
-        font-size: $small-font-size;
-    }
-
-    .large {
-        font-size: $large-font-size;
-    }
-
-    .x-large {
-        font-size: $x-large-font-size;
-    }
-
-    .xx-large {
-        font-size: $xx-large-font-size;
     }
 }
 

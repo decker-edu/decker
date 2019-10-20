@@ -1,5 +1,10 @@
 ---
 history: True
+center: True
+title: Column Layout
+subtitle: On decker slides
+author: Henrik
+date: 2019-10-20
 ---
 # Slide Columns
 
@@ -58,19 +63,19 @@ history: True
 
 ## Image {.split .def}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ## Image {.ale}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ## Image {.note}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ## Image {.observation}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ---
 
@@ -164,7 +169,7 @@ Some final text
 
 -   Even in *three* columns
 
-## Example {.left .alert}
+## Example {.left .answer}
 
 ![](include/06-metal.png)
 
@@ -186,29 +191,29 @@ And some more still after the box.
 
 # Slide Masters {.columns}
 
-## Example {.left .alert}
+## Example {.left .answer}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
-## Example {.alert}
+## Example {.answer}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ## Example {.center .def}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
-## Example {.alert}
+## Example {.answer}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ## Example {.right .note}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
-## Example {.alert}
+## Example {.answer}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ---
 

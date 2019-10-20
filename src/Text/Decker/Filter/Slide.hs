@@ -7,6 +7,7 @@ module Text.Decker.Filter.Slide
   , keepByClass
   , firstClass
   , fromSlides
+  , fromSlidesWrapped
   , classes
   , hasAnyClass
   , hasClass
@@ -84,6 +85,16 @@ fromSlides = concatMap prependHeader
         [RawBlock "html" "</aside>"]
     prependHeader (Slide (Just header) body) = HorizontalRule : header : body
     prependHeader (Slide Nothing body) = HorizontalRule : body
+
+-- | Converts slides to lists of blocks that are wrapped in divs. Used to
+-- control page breaks in handout generation.
+fromSlidesWrapped :: [Slide] -> [Block]
+fromSlidesWrapped = concatMap wrapBlocks
+  where
+    wrapBlocks (Slide (Just header) body) =
+      [Div ("", ["slide-wrapper"], []) (HorizontalRule : header : body)]
+    wrapBlocks (Slide Nothing body) =
+      [Div ("", ["slide-wrapper"], []) (HorizontalRule : body)]
 
 isSlideSeparator :: Block -> Bool
 isSlideSeparator (Header 1 _ _) = True

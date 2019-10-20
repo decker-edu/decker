@@ -160,7 +160,8 @@ markdownToHtmlHandout markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Handout Html
-  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
+  pandoc@(Pandoc docMeta _) <-
+    wrapSlidesinDivs <$> readAndProcessMarkdown markdownFile disp
   template <- getTemplate disp
   let options =
         pandocWriterOpts
