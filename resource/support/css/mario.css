@@ -427,34 +427,6 @@ body {
 /*********************************************
  * IMAGES
  *********************************************/
-/*
-.reveal section img {
-  margin: 15px 0px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 4px solid #222;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); }
-*/
-
-.reveal section img {
-  /*margin: 15px 0px;*/
-  margin-bottom: 15px;
-  border: 0;
-  box-shadow: none; }
-
-.reveal section img.plain {
-  border: 0;
-  box-shadow: none; }
-
-.reveal a img {
-  -webkit-transition: all .15s linear;
-  -moz-transition: all .15s linear;
-  transition: all .15s linear; }
-
-.reveal a:hover img {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: #2a76dd;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.55); }
-
 
 .reveal figure {
     display: inline-block;
@@ -620,7 +592,7 @@ body {
     padding: 10px;
     margin: auto;
     border-radius:5px;
-    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);
+    /*box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);*/
 }
 
 .reveal .comment {
@@ -630,7 +602,6 @@ body {
     padding:10px;
     border-radius:5px;
     font-size: 0.5em;
-    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);
 }
 
 .reveal .comment-left {
@@ -640,7 +611,6 @@ body {
     padding:5px;
     font-size: 80%;
     border-radius:20px 20px 0px 20px;
-    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);
 }
 
 .reveal .comment-right {
@@ -650,7 +620,6 @@ body {
     padding:5px;
     font-size: 80%;
     border-radius:20px 20px 20px 0px;
-    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);
 }
 
 .reveal .comment-big {
@@ -658,7 +627,6 @@ body {
     background-color: #2a9ddf;
     padding:10px;
     border-radius:5px;
-    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.35);
 }
 
 
