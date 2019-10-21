@@ -54,7 +54,7 @@ Decker uses a few external tools that need to be installed on the system:
     PDF documents
 -   *libbzip2-dev*
 -   [*NodeJS*](https://nodejs.org/) as a prerequisite for Yarn
--   [*Yarn*](https://yarnpkg.com) to install Javascript dependencies
+-   [*coreutils*](https://www.gnu.org/software/coreutils/) the GNU coreutils
 
 ### Installation of external tools on macOS
 
