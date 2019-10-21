@@ -592,6 +592,16 @@ body .decker-handout div.sourceCode {
   border-radius: 0.25em;
   overflow: auto;
 }
+body div.sourceCode pre div.language-label {
+  font-family: "Roboto", sans-serif;
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  background-color: #eee;
+  padding: 0em 0.4em;
+  border-radius: 0.2em;
+}
 
 body .decker-handout div.sourceCode pre {
   display: block;

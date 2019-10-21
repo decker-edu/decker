@@ -831,11 +831,13 @@ dd {
 }
 
 .reveal .slide-number {
+  position: fixed;
   width: 100%;
   text-align: center;
   background: transparent;
   color: gray;
   font-size: 0.4em;
+  z-index: -1;
 }
 
 .reveal .resume-button {
