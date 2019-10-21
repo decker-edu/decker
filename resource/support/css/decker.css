@@ -837,6 +837,7 @@ dd {
   background: transparent;
   color: gray;
   font-size: 0.4em;
+  z-index: -1;
 }
 
 .reveal .resume-button {
