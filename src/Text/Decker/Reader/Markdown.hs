@@ -23,7 +23,9 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
+import Data.ByteString.Char8 as B
 import qualified Data.Text as T
+import Data.Text.Encoding as E
 import qualified Data.Text.IO as T
 import Development.Shake
 import Development.Shake.FilePath as SFP
@@ -39,7 +41,7 @@ processIncludes baseDir (Pandoc meta blocks) =
   where
     processBlocks :: FilePath -> [Block] -> Action [Block]
     processBlocks base blcks =
-      concat . reverse <$> foldM (include base) [] blcks
+      Prelude.concat . Prelude.reverse <$> foldM (include base) [] blcks
     include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
     include base result (Para [Link _ [Str ":include"] (url, _)]) = do
       includeFile <- urlToFilePathIfLocal base url
@@ -105,7 +107,8 @@ readMetaMarkdown markdownFile = do
   need [markdownFile]
   -- Global meta data for this directory from decker.yaml and specified additional files
   globalMeta <- globalMetaA
-  markdown <- liftIO $ T.readFile markdownFile
+  -- markdown <- liftIO $ T.readFile markdownFile
+  markdown <- liftIO $ E.decodeUtf8 <$> B.readFile markdownFile
   let filePandoc@(Pandoc fileMeta _) =
         readMarkdownOrThrow pandocReaderOpts markdown
   additionalMeta <- getAdditionalMeta fileMeta
