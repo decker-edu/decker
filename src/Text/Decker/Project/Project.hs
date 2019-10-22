@@ -126,13 +126,24 @@ relRefResource base resource = do
   let relPath = makeRelativeTo base (sourceFile resource)
   return $ show $ URI "file" Nothing relPath "" ""
 
--- | Find the project directory. The project directory is the first upwards
--- directory that contains a .git directory entry.
+-- | Find the project directory. 
+-- 1. First upwards directory containing `decker.yaml`
+-- 2. First upwards directory containing `.git`
+-- 3. The current working directory
 findProjectDirectory :: IO FilePath
 findProjectDirectory = do
   cwd <- D.getCurrentDirectory
-  searchGitRoot cwd
+  searchYaml cwd cwd
   where
+    searchYaml :: FilePath -> FilePath -> IO FilePath
+    searchYaml start cwd =
+      if isDrive start
+        then searchGitRoot cwd
+        else do
+          hasYaml <- D.doesFileExist (start </> globalMetaFileName)
+          if hasYaml
+            then D.makeAbsolute start
+            else searchYaml (takeDirectory start) cwd
     searchGitRoot :: FilePath -> IO FilePath
     searchGitRoot start =
       if isDrive start
