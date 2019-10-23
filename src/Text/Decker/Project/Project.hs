@@ -133,26 +133,24 @@ relRefResource base resource = do
 findProjectDirectory :: IO FilePath
 findProjectDirectory = do
   cwd <- D.getCurrentDirectory
-  searchYaml cwd cwd
+  print cwd
+  searchRoot cwd Nothing
   where
-    searchYaml :: FilePath -> FilePath -> IO FilePath
-    searchYaml start cwd =
-      if isDrive start
-        then searchGitRoot cwd
-        else do
-          hasYaml <- D.doesFileExist (start </> globalMetaFileName)
-          if hasYaml
-            then D.makeAbsolute start
-            else searchYaml (takeDirectory start) cwd
-    searchGitRoot :: FilePath -> IO FilePath
-    searchGitRoot start =
-      if isDrive start
-        then D.makeAbsolute "."
-        else do
-          hasGit <- D.doesDirectoryExist (start </> ".git")
-          if hasGit
-            then D.makeAbsolute start
-            else searchGitRoot $ takeDirectory start
+    searchRoot :: FilePath -> Maybe FilePath -> IO FilePath
+    searchRoot start gitRoot = do
+      let parent = takeDirectory start
+      hasYaml <- D.doesFileExist (start </> globalMetaFileName)
+      hasGit <- D.doesDirectoryExist (start </> ".git")
+      if hasYaml
+        then D.makeAbsolute start
+        else if isDrive start
+               then case gitRoot of
+                      Just g -> D.makeAbsolute g
+                      Nothing -> D.makeAbsolute "."
+               else case (hasGit, gitRoot) of
+                      (_, Just g) -> searchRoot parent gitRoot
+                      (True, Nothing) -> searchRoot parent (Just start)
+                      _ -> searchRoot parent Nothing
 
 -- Calculate important absolute project directory pathes
 projectDirectories :: IO ProjectDirs
