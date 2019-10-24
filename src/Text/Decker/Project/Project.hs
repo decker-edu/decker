@@ -133,7 +133,6 @@ relRefResource base resource = do
 findProjectDirectory :: IO FilePath
 findProjectDirectory = do
   cwd <- D.getCurrentDirectory
-  print cwd
   searchRoot cwd Nothing
   where
     searchRoot :: FilePath -> Maybe FilePath -> IO FilePath
