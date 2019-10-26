@@ -241,6 +241,10 @@ $if(mario)$ <!-- Mario settings -->
               radar: { borderWidth: "2" }
           },
 
+$if(thebelab.enable)$
+        thebelab: $thebelab.enable$,
+$endif$
+
           // plugins
           dependencies: [
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/charts/Chart.js'},
@@ -257,6 +261,9 @@ $if(mario)$ <!-- Mario settings -->
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/zoom/zoom.js', async: true },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/search/search.js', async: true },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/menu/menu.js', async: true }
+$if(thebelab.enable)$
+             ,{ src: '$decker-support-dir$/js/thebelab.js', async: true }
+$endif$
           ]
       });
   </script>
@@ -553,31 +560,6 @@ $endif$
       socket.onmessage = function () {
       window.location.reload(true);
       };
-    </script>
-
-    <!--define v-space and h-space elements-->
-    <script>
-        class HSpace extends HTMLElement {
-            connectedCallback() {
-                if (this.hasAttribute('width')) {
-                    var w = this.getAttribute('width');
-                    this.style.width  = w + "px";
-                    this.style.display = "inline-block";
-                }
-            }
-        }
-        class VSpace extends HTMLElement {
-            connectedCallback() {
-                if (this.hasAttribute('height')) {
-                    var h = this.getAttribute('height');
-                    this.style.height  = h + "px";
-                    this.style.clear   = "both";
-                    this.style.display = "block";
-                }
-            }
-        }
-        customElements.define('h-space', HSpace);
-        customElements.define('v-space', VSpace);
     </script>
 
   $for(include-after)$
