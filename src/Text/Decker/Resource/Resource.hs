@@ -202,7 +202,7 @@ urlToFilePathIfLocal base uri =
             if isAbsolute filePath
               then absRoot </> makeRelative "/" filePath
               else absBase </> filePath
-      return absPath
+      return $ show $ relativeUri {uriPath = absPath}
 
 -- TODO: provisionResources could stay here since it uses Pandoc/Decker Pandoc
 -- This probably does not need to be introduced to Resources module

@@ -23,7 +23,9 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
+import Data.ByteString.Char8 as B
 import qualified Data.Text as T
+import Data.Text.Encoding as E
 import qualified Data.Text.IO as T
 import Development.Shake
 import Development.Shake.FilePath as SFP
@@ -39,7 +41,7 @@ processIncludes baseDir (Pandoc meta blocks) =
   where
     processBlocks :: FilePath -> [Block] -> Action [Block]
     processBlocks base blcks =
-      concat . reverse <$> foldM (include base) [] blcks
+      Prelude.concat . Prelude.reverse <$> foldM (include base) [] blcks
     include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
     include base result (Para [Link _ [Str ":include"] (url, _)]) = do
       includeFile <- urlToFilePathIfLocal base url
@@ -103,15 +105,13 @@ readMetaMarkdown :: FilePath -> Action Pandoc
 readMetaMarkdown markdownFile = do
   projectDir <- projectA
   need [markdownFile]
-  -- read external meta data for this directory
-  -- externalMeta <-
-    -- liftIO $
-    -- toPandocMeta <$> aggregateMetaData projectDir (takeDirectory markdownFile)
+  -- Global meta data for this directory from decker.yaml and specified additional files
   globalMeta <- globalMetaA
-  markdown <- liftIO $ T.readFile markdownFile
+  -- markdown <- liftIO $ T.readFile markdownFile
+  markdown <- liftIO $ E.decodeUtf8 <$> B.readFile markdownFile
   let filePandoc@(Pandoc fileMeta _) =
         readMarkdownOrThrow pandocReaderOpts markdown
-  additionalMeta <- liftIO $ getAdditionalMeta fileMeta
+  additionalMeta <- getAdditionalMeta fileMeta
   let combinedMeta = mergePandocMeta' additionalMeta globalMeta
   let generateIds = getMetaBoolOrElse "generate-ids" False combinedMeta
   Pandoc _ fileBlocks <- maybeGenerateIds generateIds filePandoc

@@ -37,8 +37,9 @@ import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
+import Development.Shake
 import Prelude hiding ((!!))
-import System.Directory
+import System.Directory as Dir
 import System.FilePath
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc hiding (writeMarkdown)
@@ -120,16 +121,16 @@ decodeYaml yamlFile = do
 readMetaData :: FilePath -> IO Meta
 readMetaData dir = do
   let file = dir </> globalMetaFileName
-  meta <- readMetaDataFile file
-  getAdditionalMeta meta
+  readMetaDataFile file
 
 -- Check for additional meta files specified in the Meta option "meta-data"
-getAdditionalMeta :: Meta -> IO Meta
+getAdditionalMeta :: Meta -> Action Meta
 getAdditionalMeta meta = do
   let m = getMetaStringList "meta-data" meta
   case m of
     Just metafiles -> do
-      addmeta <- traverse readMetaDataFile metafiles
+      addmeta <- liftIO $ traverse readMetaDataFile metafiles
+      need metafiles
       -- foldr and reversed addmeta list because additional meta should overwrite default meta
       -- alternative: foldl and flip mergePandocMeta'
       return $ foldr mergePandocMeta' meta (reverse addmeta)
@@ -138,7 +139,7 @@ getAdditionalMeta meta = do
 -- Read a single meta data file
 readMetaDataFile :: FilePath -> IO Meta
 readMetaDataFile file = do
-  exists <- doesFileExist file
+  exists <- Dir.doesFileExist file
   f <- makeRelativeToCurrentDirectory file
   meta <-
     if exists

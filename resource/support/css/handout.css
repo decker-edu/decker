@@ -348,6 +348,16 @@
   margin: 0em -0.7em;
   border-radius: 0.25em;
 }
+body div.sourceCode pre div.language-label {
+  font-family: "Roboto", sans-serif;
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  background-color: #eee;
+  padding: 0em 0.4em;
+  border-radius: 0.2em;
+}
 
 .decker-handout div.box h2 {
   margin-top: 0;
