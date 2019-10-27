@@ -68,15 +68,15 @@ body {
     float: right;
 }
 
-.reveal .left {
+.reveal .left, .reveal section.left {
     text-align: left;
 }
 
-.reveal .center {
+.reveal .center, .reveal section.center {
     text-align: center;
 }
 
-.reveal .right {
+.reveal .right, .reveal section.right {
     text-align: right;
 }
 
