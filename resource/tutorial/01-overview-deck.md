@@ -26,11 +26,7 @@ An extensive overview of the possibilities of designing slide decks offered by
 How to create simple quizzes with different question types for a self-learning
 scenario.
 
-## [Survey deck](./06-survey-deck.html)
-
-How to include a student response system/clicker quiz.
-
-## [Chart deck](./07-chart-deck.html)
+## [Chart deck](./06-chart-deck.html)
 
 How to include charts using the reveal.js chart plugin.
 
