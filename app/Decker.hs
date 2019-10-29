@@ -47,11 +47,12 @@ ttt =
 main :: IO ()
 main = do
   args <- getArgs
-  case head args of
-    "format" -> formatMarkdown
-    "example" -> writeExampleProject
-    "tutorial" -> writeTutorialProject
-    _ -> run
+  if length args == 1 && head args == "format"
+    then formatMarkdown
+    else case head args of
+           "example" -> writeExampleProject
+           "tutorial" -> writeTutorialProject
+           _ -> run
 
 run :: IO ()
 run = do
