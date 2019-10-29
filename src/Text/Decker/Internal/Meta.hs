@@ -146,10 +146,7 @@ readMetaDataFile file = do
     if exists
       then decodeYaml file
       else do
-        putStrLn $
-          "WARNING: file " ++
-          show f ++
-          " does not exist!\nIf you still have a \"*-meta.yaml\" file in your project please rename it to \"decker.yaml\"!"
+        putStrLn $ "WARNING: file " ++ show f ++ " does not exist!"
         return (Y.object [])
   return $ toPandocMeta meta
 
