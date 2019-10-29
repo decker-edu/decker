@@ -64,7 +64,7 @@ run = do
       deckerGitCommitId
       deckerGitVersionTag
   directories <- projectDirectories
-    --
+  --
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
@@ -78,12 +78,12 @@ run = do
         "\tGoogle Chrome.app has to be located in either /Applications/Google Chrome.app or /Users/<username>/Applications/Google Chrome.app\n" ++
         "\tAlternatively you can add 'chrome' to $PATH.\n" ++
         "# Linux: 'chrome' has to be on $PATH.\n"
-    --
+  --
   runDecker $
-    --
+  --
    do
     want ["html"]
-      --
+    --
     phony "version" $ do
       putNormal $
         "decker version " ++
@@ -94,57 +94,57 @@ run = do
         deckerGitCommitId ++ ", tag: " ++ deckerGitVersionTag ++ ")"
       putNormal $ "pandoc version " ++ pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
-      --
+    --
     phony "decks" $ do
       need ["support"]
       decksA >>= need
       need ["index"]
-      --
+    --
     phony "html" $ do
       need ["support", "publish-annotations"]
       allHtmlA >>= need
       need ["index"]
-      --
+    --
     phony "pdf" $ do
       putNormal pdfMsg
       need ["support"]
       allPdfA >>= need
       need ["index"]
-      --
+    --
     phony "pdf-decks" $ do
       putNormal pdfMsg
       need ["support"]
       decksPdfA >>= need
       need ["index"]
-      --
+    --
     phony "watch" $ do
       need ["html"]
       watchChangesAndRepeat
-      --
+    --
     phony "open" $ do
       need ["html"]
       openBrowser index
-      --
+    --
     phony "server" $ do
       need ["watch"]
       runHttpServer serverPort directories Nothing
-      --
+    --
     phony "fast" $ do
       runHttpServer serverPort directories Nothing
       pages <- currentlyServedPages
       need $ map (directories ^. public </>) pages
       watchChangesAndRepeat
-      --
+    --
     phony "presentation" $ do
       runHttpServer serverPort directories Nothing
       liftIO $ waitForYes
-      --
+    --
     -- phony "example" $ liftIO writeExampleProject
     -- -- 
     -- phony "tutorial" $ liftIO writeTutorialProject
-      --
+    --
     phony "index" $ need ["support", index]
-      --
+    --
     priority 2 $
       "//*-deck.html" %> \out -> do
         needGlobalMetaFile
@@ -155,14 +155,14 @@ run = do
         exists <- doesFileExist annotSrc
         when exists $ copyFileChanged annotSrc annotDst
         markdownToHtmlDeck src out index
-      --
+    --
     priority 2 $
       "//*-deck-index.yaml" %> \ind -> do
         needGlobalMetaFile
         src <- calcSource "-deck-index.yaml" "-deck.md" ind
         let out = replaceSuffix "-deck-index.yaml" "-deck.html" ind
         markdownToHtmlDeck src out ind
-      --
+    --
     priority 2 $
       "//*-deck.pdf" %> \out -> do
         needGlobalMetaFile
@@ -178,31 +178,31 @@ run = do
         case result of
           Right msg -> putNormal msg
           Left msg -> error msg
-      --
+    --
     priority 2 $
       "//*-handout.html" %> \out -> do
         needGlobalMetaFile
         src <- calcSource "-handout.html" "-deck.md" out
         markdownToHtmlHandout src out
-      --
+    --
     priority 2 $
       "//*-handout.pdf" %> \out -> do
         needGlobalMetaFile
         src <- calcSource "-handout.pdf" "-deck.md" out
         markdownToPdfHandout src out
-      --
+    --
     priority 2 $
       "//*-page.html" %> \out -> do
         needGlobalMetaFile
         src <- calcSource "-page.html" "-page.md" out
         markdownToHtmlPage src out
-      --
+    --
     priority 2 $
       "//*-page.pdf" %> \out -> do
         needGlobalMetaFile
         src <- calcSource "-page.pdf" "-page.md" out
         markdownToPdfPage src out
-      --
+    --
     priority 2 $
       index %> \out -> do
         alwaysRerun
@@ -212,23 +212,23 @@ run = do
                 then indexSource
                 else indexSource <.> "generated"
         markdownToHtmlPage src out
-      --
+    --
     indexSource <.> "generated" %> \out -> do
       alwaysRerun
       writeIndexLists out (takeDirectory index)
-      --
+    --
     priority 2 $
       "//*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
         dot ["-o" ++ out, src]
-      --
+    --
     priority 2 $
       "//*.gnuplot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
         gnuplot ["-e", "set output \"" ++ out ++ "\"", src]
-      --
+    --
     priority 2 $
       "//*.tex.svg" %> \out -> do
         let src = dropExtension out
@@ -238,29 +238,29 @@ run = do
         pdflatex ["-output-directory", dir, src]
         pdf2svg [pdf, out]
         liftIO $ Dir.removeFile pdf
-      --
+    --
     phony "clean" $ do
       removeFilesAfter (directories ^. public) ["//"]
       removeFilesAfter (directories ^. project) cruft
-      --
+    --
     phony "help" $ do
       text <- getTemplate' "template/help-page.md"
       liftIO $ putStr text
-      --
+    --
     phony "info" $ do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
       putNormal $ "public directory: " ++ (directories ^. public)
       putNormal $ "support directory: " ++ (directories ^. support)
-        -- putNormal $ "application data directory: " ++ (directories ^. appData)
+      -- putNormal $ "application data directory: " ++ (directories ^. appData)
       putNormal "\ntargets:\n"
       allHtmlA <++> allPdfA >>= mapM_ putNormal
       putNormal "\ntop level meta data:\n"
       groom <$> metaA >>= putNormal
-      --
+    --
     phony "support" writeSupportFilesToPublic
-      --
+    --
     phony "check" checkExternalPrograms
-      --
+    --
     phony "publish-annotations" $ do
       metaData <- metaA
       when (isJust $ getMetaString "publish-annotations" metaData) $ do
@@ -270,7 +270,7 @@ run = do
         when exists $ do
           putNormal $ "# publish annotations (to " ++ dst ++ ")"
           liftIO $ copyDir src dst
-      --
+    --
     phony "publish" $ do
       need ["support"]
       allHtmlA >>= need
@@ -285,7 +285,7 @@ run = do
           ssh [fromJust host, "mkdir -p", fromJust path]
           rsync [src, dst]
         else throw RsyncUrlException
-      --
+    --
     phony "sync" $ uploadQuizzes (_sources <$> targetsA)
 
 waitForYes :: IO ()
