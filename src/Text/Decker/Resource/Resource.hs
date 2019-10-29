@@ -68,11 +68,17 @@ metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
 
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()
-writeExampleProject = extractResourceEntries "example" "."
+writeExampleProject = do
+  cwd <- Dir.getCurrentDirectory
+  print $ "Extracting example project to " ++ cwd ++ "."
+  extractResourceEntries "example" cwd
 
 -- | Write the tutorial project to the current folder
 writeTutorialProject :: IO ()
-writeTutorialProject = extractResourceEntries "tutorial" "."
+writeTutorialProject = do
+  cwd <- Dir.getCurrentDirectory
+  print $ "Extracting tutorial project to " ++ cwd ++ "."
+  extractResourceEntries "tutorial" cwd
 
 writeResourceFiles :: FilePath -> FilePath -> IO ()
 writeResourceFiles prefix destDir = do

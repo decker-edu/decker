@@ -47,9 +47,11 @@ ttt =
 main :: IO ()
 main = do
   args <- getArgs
-  if length args == 1 && head args == "format"
-    then formatMarkdown
-    else run
+  case head args of
+    "format" -> formatMarkdown
+    "example" -> writeExampleProject
+    "tutorial" -> writeTutorialProject
+    _ -> run
 
 run :: IO ()
 run = do
@@ -136,9 +138,9 @@ run = do
       runHttpServer serverPort directories Nothing
       liftIO $ waitForYes
     --
-    phony "example" $ liftIO writeExampleProject
-    --
-    phony "tutorial" $ liftIO writeTutorialProject
+    -- phony "example" $ liftIO writeExampleProject
+    -- --
+    -- phony "tutorial" $ liftIO writeTutorialProject
     --
     phony "index" $ need ["support", index]
     --
