@@ -14,17 +14,23 @@ module Text.Decker.Filter.Quiz
   ( renderQuizzes
   ) where
 
+import Data.List
+import Data.List.Split
 import Text.Decker.Internal.Common
 
 import Text.Pandoc
+import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import Text.Printf
+import Text.Regex.TDFA
 
 -- | Render all types of questions
 renderQuizzes :: Pandoc -> Decker Pandoc
 renderQuizzes pandoc = do
   let mc = walk renderMultipleChoice pandoc
   let match = walk renderMatching mc
-  return $ walk renderFreetextQuestion match
+  let blank = walk renderBlanktext match
+  return $ walk renderFreetextQuestion blank
 
 -- | Renders a multiple choice question
 -- A multiple choice question is a bullet list in the style of a task list.
@@ -62,7 +68,69 @@ renderMatching dl@(DefinitionList items) =
     Nothing -> dl
 renderMatching block = block
 
--- Creates the html representation for a matching question
+-- | Renders a "blanktext" question from a definition list with special syntax
+renderBlanktext :: Block -> Block
+renderBlanktext dl@(DefinitionList items) =
+  case traverse checkIfBlanktext items of
+    Just l -> blanktextHtml l
+    Nothing -> dl
+renderBlanktext block = block
+
+-- | create the html element for the blanktext question
+blanktextHtml :: [([Inline], [Block])] -> Block
+blanktextHtml dListItems = Div ("", ["blanktext"], []) test
+  where
+    (inlines, blocks) = unzip dListItems
+    test = map html (concat blocks)
+    html (Plain x) = Para (generateDropdown $ splitBlankText x)
+
+-- | Split the Blanktext Inline into a List of strings. 
+-- The list elements are either simple text or a String of answer options that gets processed later
+splitBlankText :: [Inline] -> [String]
+splitBlankText inlines =
+  concatMap (split (startsWith "{")) (split (endsWith "}") (stringify inlines))
+
+-- | Takes the List of Strings (text + possible answer options) and if it's a answer list generate a dropdown menu
+generateDropdown :: [String] -> [Inline]
+generateDropdown =
+  concatMap
+    (\x ->
+       if "{" `isPrefixOf` x
+         then [toHtml "<select>"] ++
+              map insertOption (split' x) ++ [toHtml "</select>"]
+         else [Str x])
+  where
+    split' = splitOn "|" . drop 1 . init
+    insertOption :: String -> Inline
+    insertOption x = toHtml (printf "<option value=\"%s\">%s</option>" x x)
+
+{-
+this is a test string {asdf} and it continues {a bit}
+
+after Pandoc:
+[Str "this",Space,Str "is",Space,Str "a",Space,Str "test",Space,Str "string",Space,Str "{asdf}",Space,Str "and",Space,Str "it",Space,Str "continues",Space,Str "{a",Space,Str "bit}"]
+
+- go over list
+- check if it's Str
+- if Str starts with "{"
+- if Str contains "}"
+- if Str contains both return Str
+
+takeWhile Str beginnt nicht mit "{"
+
+-}
+{- | Blank text questions. Possible syntax
+
+{blanktext}
+: Decker is a software built using the programming language {Haskell|Scala|Java} and builds upon {RevealJS|PowerPoint}.
+
+-}
+checkIfBlanktext :: ([Inline], [[Block]]) -> Maybe ([Inline], [Block])
+checkIfBlanktext (Str "{blanktext}":Space:rest, firstBlock:_) =
+  Just (rest, firstBlock)
+checkIfBlanktext _ = Nothing
+
+-- | Creates the html representation for a matching question
 matchingHtml :: [([Inline], [[Block]])] -> Block
 matchingHtml dListItems =
   Div ("", ["matching"], []) [dropzones, dragzone, answerButton]

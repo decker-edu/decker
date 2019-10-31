@@ -1,6 +1,14 @@
 ---
 ---
 
+# Blank Text
+
+{blanktext} Asda
+: Decker is a software built using the programming language {Haskell|Scala|Java|Ruby} and builds upon {RevealJS| PowerPoint}.
+
+{blanktext} asdfa
+: this is a test string {asdf} and it continues {a bit | now}
+
 # Matching Questions
 
 {match} A
