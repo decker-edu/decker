@@ -182,6 +182,8 @@ filterNotebookSlides (Pandoc meta blocks) =
   let inNotebook = fromSlides $ filter notebook (toSlides blocks)
       stripped = walk strip inNotebook
       strip (Header level _ inlines) = Header level nullAttr inlines
+      strip (CodeBlock (_, classes, _) code)
+        | "code" `notElem` classes = CodeBlock nullAttr code
       strip block = block
       notebook slide = "notebook" `elem` (view (attributes . attrClasses) slide)
    in Pandoc meta (deDiv stripped)

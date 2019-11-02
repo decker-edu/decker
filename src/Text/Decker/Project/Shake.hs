@@ -169,6 +169,7 @@ isMetaName str = all check $ splitOn "." str
 
 handleArguments :: Rules () -> [Flags] -> [String] -> IO (Maybe (Rules ()))
 handleArguments rules flags targets =
+  -- TODO: Handle the meta flag
   if FormatFlag `elem` flags
     then formatMarkdown >> return Nothing
     else return $ Just $

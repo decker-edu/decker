@@ -1,4 +1,4 @@
-@import url("../vendor/bootstrap/css/bootstrap.min.css");
+@import url("../vendor/bootstrap.min.css");
 @import url("../vendor/fontawesome/css/all.css");
 @import url("../fonts/roboto.css");
 @import url("../fonts/source-code-pro.css");
@@ -348,16 +348,6 @@
   margin: 0em -0.7em;
   border-radius: 0.25em;
 }
-body div.sourceCode pre div.language-label {
-  font-family: "Roboto", sans-serif;
-  position: absolute;
-  right: 0;
-  top: 0;
-  color: #666;
-  background-color: #eee;
-  padding: 0em 0.4em;
-  border-radius: 0.2em;
-}
 
 .decker-handout div.box h2 {
   margin-top: 0;
@@ -551,6 +541,78 @@ body div.sourceCode pre div.language-label {
 
 .decker-handout div.box.question div.sourceCode pre, .decker-handout div.box.answer div.sourceCode pre, .decker-handout div.box.observation div.sourceCode pre, .decker-handout div.box.example div.sourceCode pre, .decker-handout div.box.def div.sourceCode pre, .decker-handout div.box.definition div.sourceCode pre, .decker-handout div.box.note div.sourceCode pre, .decker-handout div.box.ale div.sourceCode pre, .decker-handout div.box.alert div.sourceCode pre, .decker-handout div.box.equ div.sourceCode pre, .decker-handout div.box.equation div.sourceCode pre, .decker-handout div.box.theorem div.sourceCode pre {
   margin: 0;
+}
+
+.decker-handout code {
+  font-family: "Source Code Pro", monospace;
+  font-size: 106%;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.decker-handout pre {
+  display: block;
+  position: relative;
+  width: 90%;
+  margin: 20px auto;
+  text-align: left;
+  font-size: 0.55em;
+  font-family: monospace;
+  line-height: 1.2em;
+  word-wrap: break-word;
+}
+
+.decker-handout pre code {
+  display: block;
+  padding: 5px;
+  overflow: auto;
+  max-height: 400px;
+  word-wrap: normal;
+}
+
+.decker-handout div.sourceCode {
+  margin-bottom: 0.5em;
+  padding: 0.4em 0.7em;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 0.25em;
+  overflow: auto;
+}
+
+.decker-handout div.sourceCode pre {
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  line-height: 1.5em;
+  word-wrap: break-word;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  font-size: 90%;
+  font-weight: 500;
+  margin: 0;
+}
+
+.decker-handout div.sourceCode pre div.language-label {
+  font-family: "Roboto", sans-serif;
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  background-color: #eee;
+  padding: 0em 0.4em;
+  border-radius: 0.2em;
+}
+
+.decker-handout div.sourceCode pre code {
+  display: block;
+  overflow: auto;
+  max-height: 500px;
+  word-wrap: normal;
+  border: none;
+  font-family: "Source Code Pro", monospace;
+  white-space: pre;
+  position: relative;
+  color: black;
 }
 
 body {
@@ -792,8 +854,5 @@ a:hover img {
   html,
   body {
     overflow: visible;
-  }
-  a:link:after {
-    content: " (" attr(href) ") ";
   }
 }

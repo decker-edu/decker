@@ -1,4 +1,4 @@
-@import url("../vendor/bootstrap/css/bootstrap.min.css");
+@import url("../vendor/bootstrap.min.css");
 @import url("../vendor/fontawesome/css/all.css");
 @import url("../fonts/roboto.css");
 @import url("../fonts/source-code-pro.css");
@@ -20,6 +20,7 @@ $xx-large-font-size: 1.6 * $base-font-size;
     @import "quizzes";
     @import "media";
     @import "boxes";
+    @import "code";
 }
 
 // Global styles
@@ -266,9 +267,5 @@ a:hover img {
     html,
     body {
         overflow: visible;
-    }
-
-    a:link:after {
-        content: " ("attr(href) ") ";
     }
 }
