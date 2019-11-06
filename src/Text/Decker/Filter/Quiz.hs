@@ -82,8 +82,8 @@ blanktextHtml (inlines, blocks) =
   Div ("", ["blanktext"], []) ([title] ++ selects ++ [answerButton])
     -- (inlines, blocks) = unzip dListItems
   where
-    title = Header 2 ("", [], []) (inlines)
-    selects = map html (blocks)
+    title = Header 2 ("", [], []) inlines
+    selects = map html blocks
     html (Plain x) = Para (generateDropdownHtml $ splitBlankText x)
     answerButton =
       Para $
@@ -101,10 +101,17 @@ blanktextHtml (inlines, blocks) =
     generateDropdownHtml =
       concatMap
         (\x ->
-           if "{" `isPrefixOf` x
-             then [toHtml "<select class=\"blankselect\">"] ++
-                  map insertOption (split' x) ++ [toHtml "</select>"]
-             else [Str x])
+           if "{" `isPrefixOf` x &&
+              "}" `isSuffixOf` x && not ("|" `isInfixOf` x)
+             then [ toHtml
+                      (printf
+                         "<input type=\"text\" answer=\"%s\" class=\"blankInput\">"
+                         (filter (/= '!') . drop 1 . init $ x))
+                  ]
+             else if "{" `isPrefixOf` x
+                    then [toHtml "<select class=\"blankselect\">"] ++
+                         map insertOption (split' x) ++ [toHtml "</select>"]
+                    else [Str x])
       where
         split' = splitOn "|" . drop 1 . init
         insertOption :: String -> Inline

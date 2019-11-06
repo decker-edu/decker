@@ -81,7 +81,8 @@
 }
 
 .reveal button,
-.reveal .freetextInput {
+.reveal .freetextInput,
+.reveal .blankInput{
   border-radius: 0.5em;
   font-size: inherit;
   font-family: inherit;
