@@ -72,18 +72,18 @@ renderMatching block = block
 renderBlanktext :: Block -> Block
 renderBlanktext dl@(DefinitionList items) =
   case traverse checkIfBlanktext items of
-    Just l -> blanktextHtml l
+    Just l -> Div ("", [], []) (map blanktextHtml l)
     Nothing -> dl
 renderBlanktext block = block
 
 -- | create the html element for the blanktext question
-blanktextHtml :: [([Inline], [Block])] -> Block
-blanktextHtml dListItems =
+blanktextHtml :: ([Inline], [Block]) -> Block
+blanktextHtml (inlines, blocks) =
   Div ("", ["blanktext"], []) ([title] ++ selects ++ [answerButton])
+    -- (inlines, blocks) = unzip dListItems
   where
-    (inlines, blocks) = unzip dListItems
-    title = Header 2 ("", [], []) (head inlines)
-    selects = map html (concat blocks)
+    title = Header 2 ("", [], []) (inlines)
+    selects = map html (blocks)
     html (Plain x) = Para (generateDropdownHtml $ splitBlankText x)
     answerButton =
       Para $

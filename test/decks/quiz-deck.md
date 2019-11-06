@@ -3,13 +3,11 @@
 
 # Blank Text
 
-{blanktext} Decker Details 
-: Decker is a software built using the programming language {Scala|!Haskell|Java|Ruby} and builds upon {!RevealJS|PowerPoint}. Haskell is a {!functional|object-oriented|imperative} programming language.
+{blanktext} Optional Title
+: Decker is a software built using the programming language {Scala|!Haskell|Java|Ruby} and builds upon {LaTeX Beamer|!RevealJS|PowerPoint}.
 
-##
-
-{blanktext} A new Question
-: 
+{blanktext}
+: You {can't|!can} create blanktext questions without title
 
 # Matching Questions
 
