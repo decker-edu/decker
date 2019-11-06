@@ -89,6 +89,10 @@
   clear: both;
 }
 
+.reveal .blankselect{
+  font-size: inherit;
+}
+
 .reveal .matching {
   text-align: center;
 }

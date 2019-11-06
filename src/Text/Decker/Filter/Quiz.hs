@@ -78,11 +78,16 @@ renderBlanktext block = block
 
 -- | create the html element for the blanktext question
 blanktextHtml :: [([Inline], [Block])] -> Block
-blanktextHtml dListItems = Div ("", ["blanktext"], []) test
+blanktextHtml dListItems =
+  Div ("", ["blanktext"], []) (selects ++ [answerButton])
   where
     (inlines, blocks) = unzip dListItems
-    test = map html (concat blocks)
+    selects = map html (concat blocks)
     html (Plain x) = Para (generateDropdown $ splitBlankText x)
+    answerButton =
+      Para $
+      [toHtml "<button class=\"btAnswerButton\" type=\"button\">"] ++
+      [Str "Show Solution"] ++ [toHtml "</button>"]
 
 -- | Split the Blanktext Inline into a List of strings. 
 -- The list elements are either simple text or a String of answer options that gets processed later
@@ -96,13 +101,24 @@ generateDropdown =
   concatMap
     (\x ->
        if "{" `isPrefixOf` x
-         then [toHtml "<select>"] ++
+         then [toHtml "<select class=\"blankselect\">"] ++
               map insertOption (split' x) ++ [toHtml "</select>"]
          else [Str x])
   where
     split' = splitOn "|" . drop 1 . init
     insertOption :: String -> Inline
-    insertOption x = toHtml (printf "<option value=\"%s\">%s</option>" x x)
+    insertOption ('!':x) =
+      toHtml
+        (printf
+           "<option class=\"blankoption\" answer=\"true\" value=\"%s\">%s</option>"
+           x
+           x)
+    insertOption x =
+      toHtml
+        (printf
+           "<option class=\"blankoption\" answer=\"false\" value=\"%s\">%s</option>"
+           x
+           x)
 
 {-
 this is a test string {asdf} and it continues {a bit}
