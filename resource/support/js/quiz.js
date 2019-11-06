@@ -1,10 +1,39 @@
 
 quizModule = {
     quiz: function () {
+        blanktext();
         initialMatchings = initMatching();
         matchings(initialMatchings);
         multipleChoice();
         freetextAnswerButtons();
+    }
+}
+
+
+function blanktext() {
+    var blanktexts = document.getElementsByClassName("blanktext");
+
+    for (i = 0; i < blanktexts.length; i++) {
+        console.log("I'm here!!")
+        // var selects = blanktexts[i].getElementsByClassName("blankselect");
+        // console.log(selects)
+        const btButton = blanktexts[i].getElementsByClassName("btAnswerButton")[0];
+        console.log(btButton.textContent);
+        btButton.onclick = function () {
+            const selects = this.parentNode.parentNode.getElementsByClassName("blankselect");
+            for (let s of selects) {
+                const correct = s.options[s.selectedIndex].getAttribute("answer");
+                if (correct == "true") {
+                    s.style.backgroundColor = "rgb(151, 255, 122)";
+
+                } else {
+                    s.style.backgroundColor = "rgb(255, 122, 122)";
+                }
+                s.disabled = "true";
+                s.textContent.color = "red";
+                this.disabled = "true";
+            }
+        }
     }
 }
 

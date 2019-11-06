@@ -3,13 +3,13 @@
 
 # Blank Text
 
-{blanktext} Asda
-: Decker is a software built using the programming language {Scala|!Haskell|Java|Ruby} and builds upon {!RevealJS| PowerPoint}.
+{blanktext} Decker Details 
+: Decker is a software built using the programming language {Scala|!Haskell|Java|Ruby} and builds upon {!RevealJS|PowerPoint}. Haskell is a {!functional|object-oriented|imperative} programming language.
 
 ##
 
-{blanktext} asdfa
-: this is a test string {asdf} and it continues {a bit | now}
+{blanktext} A new Question
+: 
 
 # Matching Questions
 

@@ -13,6 +13,16 @@
 
 .reveal {
 
+    .blankselect {
+        font-size: inherit;
+        :disabled{
+            color: black;
+        }
+    }
+}
+
+.reveal {
+
     // Matching/Pairing questions
     .matching {
         text-align: center;

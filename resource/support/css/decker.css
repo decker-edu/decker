@@ -93,6 +93,10 @@
   font-size: inherit;
 }
 
+.reveal .blankselect:disabled{
+  color: black;
+}
+
 .reveal .matching {
   text-align: center;
 }

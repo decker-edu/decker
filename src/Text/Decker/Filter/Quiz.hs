@@ -79,69 +79,50 @@ renderBlanktext block = block
 -- | create the html element for the blanktext question
 blanktextHtml :: [([Inline], [Block])] -> Block
 blanktextHtml dListItems =
-  Div ("", ["blanktext"], []) (selects ++ [answerButton])
+  Div ("", ["blanktext"], []) ([title] ++ selects ++ [answerButton])
   where
     (inlines, blocks) = unzip dListItems
+    title = Header 2 ("", [], []) (head inlines)
     selects = map html (concat blocks)
-    html (Plain x) = Para (generateDropdown $ splitBlankText x)
+    html (Plain x) = Para (generateDropdownHtml $ splitBlankText x)
     answerButton =
       Para $
       [toHtml "<button class=\"btAnswerButton\" type=\"button\">"] ++
       [Str "Show Solution"] ++ [toHtml "</button>"]
+    -- | Split the Blanktext Inline into a List of strings. 
+    -- The list elements are either simple text or a String of answer options that gets processed later
+    splitBlankText :: [Inline] -> [String]
+    splitBlankText inlines =
+      concatMap
+        (split (startsWith "{"))
+        (split (endsWith "}") (stringify inlines))
+    -- | Takes the List of Strings (text + possible answer options) and if it's a answer list generate a dropdown menu
+    generateDropdownHtml :: [String] -> [Inline]
+    generateDropdownHtml =
+      concatMap
+        (\x ->
+           if "{" `isPrefixOf` x
+             then [toHtml "<select class=\"blankselect\">"] ++
+                  map insertOption (split' x) ++ [toHtml "</select>"]
+             else [Str x])
+      where
+        split' = splitOn "|" . drop 1 . init
+        insertOption :: String -> Inline
+        insertOption ('!':x) =
+          toHtml
+            (printf
+               "<option class=\"blankoption\" answer=\"true\" value=\"%s\">%s</option>"
+               x
+               x)
+        insertOption x =
+          toHtml
+            (printf
+               "<option class=\"blankoption\" answer=\"false\" value=\"%s\">%s</option>"
+               x
+               x)
 
--- | Split the Blanktext Inline into a List of strings. 
--- The list elements are either simple text or a String of answer options that gets processed later
-splitBlankText :: [Inline] -> [String]
-splitBlankText inlines =
-  concatMap (split (startsWith "{")) (split (endsWith "}") (stringify inlines))
-
--- | Takes the List of Strings (text + possible answer options) and if it's a answer list generate a dropdown menu
-generateDropdown :: [String] -> [Inline]
-generateDropdown =
-  concatMap
-    (\x ->
-       if "{" `isPrefixOf` x
-         then [toHtml "<select class=\"blankselect\">"] ++
-              map insertOption (split' x) ++ [toHtml "</select>"]
-         else [Str x])
-  where
-    split' = splitOn "|" . drop 1 . init
-    insertOption :: String -> Inline
-    insertOption ('!':x) =
-      toHtml
-        (printf
-           "<option class=\"blankoption\" answer=\"true\" value=\"%s\">%s</option>"
-           x
-           x)
-    insertOption x =
-      toHtml
-        (printf
-           "<option class=\"blankoption\" answer=\"false\" value=\"%s\">%s</option>"
-           x
-           x)
-
-{-
-this is a test string {asdf} and it continues {a bit}
-
-after Pandoc:
-[Str "this",Space,Str "is",Space,Str "a",Space,Str "test",Space,Str "string",Space,Str "{asdf}",Space,Str "and",Space,Str "it",Space,Str "continues",Space,Str "{a",Space,Str "bit}"]
-
-- go over list
-- check if it's Str
-- if Str starts with "{"
-- if Str contains "}"
-- if Str contains both return Str
-
-takeWhile Str beginnt nicht mit "{"
-
--}
-{- | Blank text questions. Possible syntax
-
-{blanktext}
-: Decker is a software built using the programming language {Haskell|Scala|Java} and builds upon {RevealJS|PowerPoint}.
-
--}
 checkIfBlanktext :: ([Inline], [[Block]]) -> Maybe ([Inline], [Block])
+checkIfBlanktext ([Str "{blanktext}"], firstBlock:_) = Just ([], firstBlock)
 checkIfBlanktext (Str "{blanktext}":Space:rest, firstBlock:_) =
   Just (rest, firstBlock)
 checkIfBlanktext _ = Nothing
@@ -163,11 +144,10 @@ matchingHtml dListItems =
       [toHtml "</button>"] ++
       [toHtml "<button class=\"retryButton\" type=\"button\">"] ++
       [Str "Retry"] ++ [toHtml "</button>"]
-
-wrapDrop :: [[Inline]] -> Block
-wrapDrop inlines = Div ("", ["dropzones"], []) dropzones
-  where
-    dropzones = (\i -> Div ("", ["dropzone"], []) [Plain i]) <$> inlines
+    wrapDrop :: [[Inline]] -> Block
+    wrapDrop inlines = Div ("", ["dropzones"], []) dropzones
+      where
+        dropzones = (\i -> Div ("", ["dropzone"], []) [Plain i]) <$> inlines
 
 -- 
 freetextQuestionHtml :: [Inline] -> [Inline] -> [Inline]
