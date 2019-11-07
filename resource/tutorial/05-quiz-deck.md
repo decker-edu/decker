@@ -19,7 +19,7 @@ history: true
 : Decker is a software built using the programming language {Scala|!Haskell|Java|Ruby} and builds upon {LaTeX Beamer|!RevealJS|PowerPoint}.
 
 {blanktext}
-: You {can't|!can} create blanktext questions without title`
+: You {can't|!can} create blanktext questions without title
 ```
 # Blank Text/Multiple Choice
 

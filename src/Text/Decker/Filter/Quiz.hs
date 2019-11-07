@@ -72,19 +72,19 @@ renderMatching block = block
 renderBlanktext :: Block -> Block
 renderBlanktext dl@(DefinitionList items) =
   case traverse checkIfBlanktext items of
-    Just l -> Div ("", [], []) (map blanktextHtml l)
+    Just l -> Div ("", [], []) (map blanktextHtmlDiv l)
     Nothing -> dl
 renderBlanktext block = block
 
 -- | create the html element for the blanktext question
-blanktextHtml :: ([Inline], [Block]) -> Block
-blanktextHtml (inlines, blocks) =
-  Div ("", ["blanktext"], []) ([title] ++ selects ++ [answerButton])
+blanktextHtmlDiv :: ([Inline], [Block]) -> Block
+blanktextHtmlDiv (inlines, blocks) =
+  Div ("", ["blankText"], []) ([title] ++ selects ++ [answerButton])
     -- (inlines, blocks) = unzip dListItems
   where
     title = Header 2 ("", [], []) inlines
     selects = map html blocks
-    html (Plain x) = Para (generateDropdownHtml $ splitBlankText x)
+    html (Plain x) = Para (blanktextHtmlElements $ splitBlankText x)
     answerButton =
       Para $
       [toHtml "<button class=\"btAnswerButton\" type=\"button\">"] ++
@@ -96,37 +96,45 @@ blanktextHtml (inlines, blocks) =
       concatMap
         (split (startsWith "{"))
         (split (endsWith "}") (stringify inlines))
-    -- | Takes the List of Strings (text + possible answer options) and if it's a answer list generate a dropdown menu
-    generateDropdownHtml :: [String] -> [Inline]
-    generateDropdownHtml =
-      concatMap
-        (\x ->
-           if "{" `isPrefixOf` x &&
-              "}" `isSuffixOf` x && not ("|" `isInfixOf` x)
-             then [ toHtml
-                      (printf
-                         "<input type=\"text\" answer=\"%s\" class=\"blankInput\">"
-                         (filter (/= '!') . drop 1 . init $ x))
-                  ]
-             else if "{" `isPrefixOf` x
-                    then [toHtml "<select class=\"blankselect\">"] ++
-                         map insertOption (split' x) ++ [toHtml "</select>"]
-                    else [Str x])
-      where
-        split' = splitOn "|" . drop 1 . init
-        insertOption :: String -> Inline
-        insertOption ('!':x) =
-          toHtml
-            (printf
-               "<option class=\"blankoption\" answer=\"true\" value=\"%s\">%s</option>"
-               x
-               x)
-        insertOption x =
-          toHtml
-            (printf
-               "<option class=\"blankoption\" answer=\"false\" value=\"%s\">%s</option>"
-               x
-               x)
+
+-- | Takes the List of Strings (text + possible answer options) and if it's an answer list generate a dropdown menu
+blanktextHtmlElements :: [String] -> [Inline]
+blanktextHtmlElements =
+  concatMap
+    (\x
+      -- If the answers contain only one element without separators
+      -- Create an HTML input field
+      ->
+       if "{" `isPrefixOf` x && "}" `isSuffixOf` x && not ("|" `isInfixOf` x)
+         then [ toHtml
+                  (printf
+                     "<input type=\"text\" answer=\"%s\" class=\"blankInput\">"
+                     (filter (/= '!') . drop 1 . init $ x))
+              ]
+          -- else the answers contain multiple elements separated by "|"
+          -- Create an HTML select element
+         else if "{" `isPrefixOf` x && "}" `isSuffixOf` x && "|" `isInfixOf` x
+                then [toHtml "<select class=\"blankSelect\">"] ++
+                     map insertOption (split' x) ++ [toHtml "</select>"]
+                -- Else the string is filler text
+                else [Str x])
+  where
+    split' = splitOn "|" . drop 1 . init
+    -- Take an answer option and create an HTML option element. 
+    -- If its prefix is "!" it's a correct answer
+    insertOption :: String -> Inline
+    insertOption ('!':x) =
+      toHtml
+        (printf
+           "<option class=\"blankOption\" answer=\"true\" value=\"%s\">%s</option>"
+           x
+           x)
+    insertOption x =
+      toHtml
+        (printf
+           "<option class=\"blankOption\" answer=\"false\" value=\"%s\">%s</option>"
+           x
+           x)
 
 checkIfBlanktext :: ([Inline], [[Block]]) -> Maybe ([Inline], [Block])
 checkIfBlanktext ([Str "{blanktext}"], firstBlock:_) = Just ([], firstBlock)

@@ -9,47 +9,55 @@ quizModule = {
     }
 }
 
-
+// Adds event listeners to the blankText questions' answerbuttons
 function blanktext() {
-    var blanktexts = document.getElementsByClassName("blanktext");
+    var blanktexts = document.getElementsByClassName("blankText");
 
     for (i = 0; i < blanktexts.length; i++) {
-        console.log("I'm here!!")
         const btButton = blanktexts[i].getElementsByClassName("btAnswerButton")[0];
-        console.log(btButton.textContent);
         btButton.onclick = function () {
-            const selects = this.parentNode.parentNode.getElementsByClassName("blankselect");
+            var selects = this.parentNode.parentNode.getElementsByClassName("blankSelect");
             const blanks = this.parentNode.parentNode.getElementsByClassName("blankInput");
+
+            // Selections
             for (let s of selects) {
                 const correct = s.options[s.selectedIndex].getAttribute("answer");
                 if (correct == "true") {
                     s.style.backgroundColor = "rgb(151, 255, 122)";
-
                 } else {
                     s.style.backgroundColor = "rgb(255, 122, 122)";
                 }
-                s.disabled = "true";
-                s.textContent.color = "red";
+                for (let o of s.options) {
+                    if (o.getAttribute("answer") == "true") {
+                        o.textContent += " ✓";
+                    } else {
+                        o.textContent += " ✗";
+                    }
+                }
             }
-            for (let b of blanks) {
-                const correct = b.getAttribute("answer").trim();
-                console.log(correct);
 
-                if (b.value) {
+            // Blank texts
+            if (Array.from(blanks).every(b => b.value)) {
+                for (let b of blanks) {
+                    const correct = b.getAttribute("answer").trim();
+                    console.log(correct);
+
                     if (b.value.toLowerCase().trim() == correct.toLowerCase()) {
                         b.style.backgroundColor = "rgb(151, 255, 122)";
                     }
                     else {
                         b.style.backgroundColor = "rgb(255, 122, 122)";
-                        b.value += " (" + correct + ")";
+                        if (!b.disabled) {
+                            b.value += " (" + correct + ")";
+                        }
                     }
                     b.disabled = true;
-                    this.disabled = true;
                 }
-                else {
-                    alert("No answer entered!");
-                    return false;
-                }
+            }
+            else {
+                alert("No answer entered for at least one blank!");
+                return false;
+
             }
 
             this.disabled = "true";

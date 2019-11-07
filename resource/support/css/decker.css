@@ -90,11 +90,11 @@
   clear: both;
 }
 
-.reveal .blankselect{
+.reveal .blankSelect{
   font-size: inherit;
 }
 
-.reveal .blankselect:disabled{
+.reveal .blankSelect:disabled{
   color: black;
 }
 
