@@ -6,6 +6,7 @@
   
   This module enables creating different types of quiz questions in decker.
   Currently possible: 
+    - Blanktext/Cloze tests
     - Multiple choice
     - Free text questions 
     - Matching/pair questions
@@ -42,7 +43,7 @@ renderMultipleChoice (BulletList blocks@((firstBlock:_):_))
   | checkIfMC firstBlock =
     Div
       ("", ["survey"], [])
-      [BulletList (map renderAnswerMC blocks), answerButton]
+      [BulletList (map multipleChoiceHtml blocks), answerButton]
   where
     answerButton =
       Para $
@@ -79,14 +80,38 @@ renderBlanktext dl@(DefinitionList items) =
     Nothing -> dl
 renderBlanktext block = block
 
+{-
+Functions that create lower level Html Elements for the question types using Pandocs Block/Inline Data types
+-}
+-- | Renders a multiple choice answer 
+-- Throws away the identifier and sourrounds the content with a div
+-- The div has the class right or wrong according to how it was marked
+multipleChoiceHtml :: [Block] -> [Block]
+multipleChoiceHtml (prelude:rest) =
+  [Div ("", "answer" : cls, []) (prelude' : (map mcTooltipHtml rest))]
+  where
+    (cls, prelude') =
+      case prelude of
+        Para ((Str "{X}"):prest) -> (["right"], Para prest)
+        Para ((Str "{"):Space:(Str "}"):prest) -> (["wrong"], Para prest)
+        Plain ((Str "{X}"):prest) -> (["right"], Para prest)
+        Plain ((Str "{"):Space:(Str "}"):prest) -> (["wrong"], Para prest)
+        prest -> ([], prest)
+
+-- if there is a bullet list create a div class tooltip around
+-- if there are multiple bullet points, all but the first are thrown away
+mcTooltipHtml :: Block -> Block
+mcTooltipHtml (BulletList (content:_)) = Div ("", ["tooltip"], []) content
+mcTooltipHtml block = block
+
 -- | create the html element for the blanktext question
-blanktextHtmlDiv :: ([Inline], [Block]) -> Block
-blanktextHtmlDiv (inlines, blocks) =
+blanktextHtml :: ([Inline], [Block]) -> Block
+blanktextHtml (inlines, blocks) =
   Div ("", ["blankText"], []) ([title] ++ selects ++ [answerButton])
   where
     title = Header 2 ("", [], []) inlines
     selects = map html blocks
-    html (Plain x) = Para (blanktextHtmlElements $ splitBlankText x)
+    html (Plain x) = Para (blanktextHtmlAnswers $ splitBlankText x)
     answerButton =
       Para $
       [toHtml "<button class=\"btAnswerButton\" type=\"button\">"] ++
@@ -100,8 +125,8 @@ blanktextHtmlDiv (inlines, blocks) =
         (split (endsWith "}") (stringify inlines))
 
 -- | Takes the List of Strings (text + possible answer options) and if it's an answer list generate a dropdown menu
-blanktextHtmlElements :: [String] -> [Inline]
-blanktextHtmlElements =
+blanktextHtmlAnswers :: [String] -> [Inline]
+blanktextHtmlAnswers =
   concatMap
     (\x
       -- If the answers contain only one element without separators
@@ -137,12 +162,6 @@ blanktextHtmlElements =
            "<option class=\"blankOption\" answer=\"false\" value=\"%s\">%s</option>"
            x
            x)
-
-checkIfBlanktext :: ([Inline], [[Block]]) -> Maybe ([Inline], [Block])
-checkIfBlanktext ([Str "{blanktext}"], firstBlock:_) = Just ([], firstBlock)
-checkIfBlanktext (Str "{blanktext}":Space:rest, firstBlock:_) =
-  Just (rest, firstBlock)
-checkIfBlanktext _ = Nothing
 
 -- | Creates the html representation for a matching question
 matchingHtml :: [([Inline], [[Block]])] -> Block
@@ -181,12 +200,19 @@ freetextQuestionHtml question answer =
   [toHtml "<button class=\"freetextAnswerButton\" type=\"button\">"] ++
   [Str "Show Solution"] ++ [toHtml "</button>"] ++ [toHtml "</form>"]
 
+-- | Check if a DefinitionList is a blank text question
+checkIfBlanktext :: ([Inline], [[Block]]) -> Maybe ([Inline], [Block])
+checkIfBlanktext ([Str "{blanktext}"], firstBlock:_) = Just ([], firstBlock)
+checkIfBlanktext (Str "{blanktext}":Space:rest, firstBlock:_) =
+  Just (rest, firstBlock)
+checkIfBlanktext _ = Nothing
+
+-- | Check if a DefinitionList is a matching question
 checkIfMatching :: ([Inline], [[Block]]) -> Maybe ([Inline], [[Block]])
 checkIfMatching (Str "{match}":Space:rest, firstBlock:_) =
   Just (rest, [firstBlock])
 checkIfMatching _ = Nothing
 
--- 
 checkIfFreetextQuestion :: Block -> Maybe [Inline]
 checkIfFreetextQuestion (Para (Str "{?}":q)) = Just q
 checkIfFreetextQuestion (Plain (Str "{?}":q)) = Just q
@@ -204,24 +230,3 @@ checkIfMC (Para ((Str "{"):Space:(Str "}"):_)) = True
 checkIfMC (Plain ((Str "{X}"):_)) = True
 checkIfMC (Plain ((Str "{"):Space:(Str "}"):_)) = True
 checkIfMC _ = False
-
--- | Renders a multiple choice answer 
--- Throws away the identifier and sourrounds the content with a div
--- The div has the class right or wrong according to how it was marked
-renderAnswerMC :: [Block] -> [Block]
-renderAnswerMC (prelude:rest) =
-  [Div ("", "answer" : cls, []) (prelude' : (map renderTooltipMC rest))]
-  where
-    (cls, prelude') =
-      case prelude of
-        Para ((Str "{X}"):prest) -> (["right"], Para prest)
-        Para ((Str "{"):Space:(Str "}"):prest) -> (["wrong"], Para prest)
-        Plain ((Str "{X}"):prest) -> (["right"], Para prest)
-        Plain ((Str "{"):Space:(Str "}"):prest) -> (["wrong"], Para prest)
-        prest -> ([], prest)
-
--- if there is a bullet list create a div class tooltip around
--- if there are multiple bullet points, all but the first are thrown away
-renderTooltipMC :: Block -> Block
-renderTooltipMC (BulletList (content:_)) = Div ("", ["tooltip"], []) content
-renderTooltipMC block = block
