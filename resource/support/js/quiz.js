@@ -49,6 +49,7 @@ function blanktext() {
                         b.style.backgroundColor = "rgb(255, 122, 122)";
                         if (!b.disabled) {
                             b.value += " (" + correct + ")";
+                            b.setAttribute("size", b.value.length);
                         }
                     }
                     b.disabled = true;
@@ -341,6 +342,7 @@ function freetextAnswerButtons() {
                 else {
                     questionField.style.backgroundColor = "rgb(255, 122, 122)";
                     questionField.value += " (" + answer + ")";
+                    questionField.setAttribute("size", questionField.value.length);
                 }
                 questionField.disabled = true;
                 this.disabled = true;

@@ -76,7 +76,7 @@ renderMatching block = block
 renderBlanktext :: Block -> Block
 renderBlanktext dl@(DefinitionList items) =
   case traverse checkIfBlanktext items of
-    Just l -> Div ("", [], []) (map blanktextHtmlDiv l)
+    Just l -> Div ("", [], []) (map blanktextHtml l)
     Nothing -> dl
 renderBlanktext block = block
 
