@@ -14,10 +14,11 @@ module Text.Decker.Filter.Quiz
   ( renderQuizzes
   ) where
 
-import Data.List
-import Data.List.Split
+import Text.Decker.Filter.Util
 import Text.Decker.Internal.Common
 
+import Data.List
+import Data.List.Split
 import Text.Pandoc
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
@@ -56,7 +57,9 @@ renderFreetextQuestion :: Block -> Block
 renderFreetextQuestion bl@(BulletList ((firstBlock:_):(sndBlock:_):_)) =
   case (checkIfFreetextQuestion firstBlock, checkIfFreetextAnswer sndBlock) of
     (Just q, Just a) ->
-      Div ("", ["freetextQuestion"], []) [Para $ freetextQuestionHtml q a]
+      Div
+        ("", ["freetextQuestion"], [])
+        [Para $ freetextQuestionHtml q (stringify a)]
     _ -> bl
 renderFreetextQuestion block = block
 
@@ -68,7 +71,7 @@ renderMatching dl@(DefinitionList items) =
     Nothing -> dl
 renderMatching block = block
 
--- | Renders a "blanktext" question from a definition list with special syntax
+-- | Renders a "blanktext" Cloze question from a definition list with special syntax
 renderBlanktext :: Block -> Block
 renderBlanktext dl@(DefinitionList items) =
   case traverse checkIfBlanktext items of
@@ -80,7 +83,6 @@ renderBlanktext block = block
 blanktextHtmlDiv :: ([Inline], [Block]) -> Block
 blanktextHtmlDiv (inlines, blocks) =
   Div ("", ["blankText"], []) ([title] ++ selects ++ [answerButton])
-    -- (inlines, blocks) = unzip dListItems
   where
     title = Header 2 ("", [], []) inlines
     selects = map html blocks
@@ -165,23 +167,19 @@ matchingHtml dListItems =
         dropzones = (\i -> Div ("", ["dropzone"], []) [Plain i]) <$> inlines
 
 -- 
-freetextQuestionHtml :: [Inline] -> [Inline] -> [Inline]
+freetextQuestionHtml :: [Inline] -> String -> [Inline]
 freetextQuestionHtml question answer =
   [toHtml "<form onSubmit=\"return false;\">"] ++
   question ++
   [LineBreak] ++
-  [toHtml "<input type=\"text\" class=\"freetextInput\">"] ++
+  [ toHtml
+      ("<input type=\"text\" answer=\"" ++
+       answer ++ "\" class=\"freetextInput\">")
+  ] ++
   -- 
   [LineBreak] ++
   [toHtml "<button class=\"freetextAnswerButton\" type=\"button\">"] ++
-  [Str "Show Solution"] ++
-  [ Span
-      ( ""
-      , ["freetextAnswer"]
-      , [("style", "display:none; font-color:black;"), ("type", "text")])
-      answer
-  ] ++
-  [toHtml "</button>"] ++ [toHtml "</form>"]
+  [Str "Show Solution"] ++ [toHtml "</button>"] ++ [toHtml "</form>"]
 
 checkIfMatching :: ([Inline], [[Block]]) -> Maybe ([Inline], [[Block]])
 checkIfMatching (Str "{match}":Space:rest, firstBlock:_) =
@@ -227,7 +225,3 @@ renderAnswerMC (prelude:rest) =
 renderTooltipMC :: Block -> Block
 renderTooltipMC (BulletList (content:_)) = Div ("", ["tooltip"], []) content
 renderTooltipMC block = block
-
--- Utility function
-toHtml :: String -> Inline
-toHtml = RawInline (Format "html")

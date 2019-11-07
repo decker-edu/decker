@@ -334,14 +334,13 @@ function freetextAnswerButtons() {
             var questionField = this.parentElement.getElementsByClassName('freetextInput')[0];
             // Has the user entered anything?
             if (questionField.value) {
-                var answer = this.getElementsByClassName('freetextAnswer')[0];
-                answer.style.display = 'block';
-                answer.style.color = "black";
-                if (questionField.value.toLowerCase().trim() == answer.textContent.trim().toLowerCase()) {
+                var answer = questionField.getAttribute("answer").trim();
+                if (questionField.value.toLowerCase().trim() == answer.toLowerCase()) {
                     questionField.style.backgroundColor = "rgb(151, 255, 122)";
                 }
                 else {
                     questionField.style.backgroundColor = "rgb(255, 122, 122)";
+                    questionField.value += " (" + answer + ")";
                 }
                 questionField.disabled = true;
                 this.disabled = true;
