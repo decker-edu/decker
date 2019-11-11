@@ -16,7 +16,9 @@ history: true
 
 ```markdown
 {blanktext} Optional Title
-: Decker is a software built using the programming language {Scala|!Haskell|Java|Ruby} and builds upon {LaTeX Beamer|!RevealJS|PowerPoint}.
+: Decker is a software built using the programming language 
+{Scala|!Haskell|Java|Ruby} and builds upon 
+{LaTeX Beamer|!RevealJS|PowerPoint}.
 
 {blanktext}
 : You {can't|!can} create blanktext questions without title
@@ -30,11 +32,11 @@ history: true
 : You {can't|!can} create blanktext questions without title
 
 # "Fill-in-the-blank" questions/Cloze tests
-You can also add actual blank texts.
+You can also add actual blank texts by providing only one option inside the curly brackets.
 
 ```markdown
 {blanktext}
-: These tests are called {Cloze} tests.
+: These tests are called {Cloze} tests. 
 ```
 
 {blanktext}
