@@ -1,5 +1,6 @@
-date: 2019-04-23
-# Sane defaults for reval.js
+date: 2019-10-28
+# Sane defaults for reveal.js
+provisioning: Copy
 menu: true
 controls: true
 keyboard: true

@@ -48,7 +48,10 @@ main = do
   args <- getArgs
   if length args == 1 && head args == "format"
     then formatMarkdown
-    else run
+    else case head args of
+           "example" -> writeExampleProject
+           "tutorial" -> writeTutorialProject
+           _ -> run
 
 run :: IO ()
 run = do
@@ -135,9 +138,9 @@ run = do
       runHttpServer serverPort directories Nothing
       liftIO $ waitForYes
     --
-    phony "example" $ liftIO writeExampleProject
-    --
-    phony "tutorial" $ liftIO writeTutorialProject
+    -- phony "example" $ liftIO writeExampleProject
+    -- -- 
+    -- phony "tutorial" $ liftIO writeTutorialProject
     --
     phony "index" $ need ["support", index]
     --
@@ -247,7 +250,7 @@ run = do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
       putNormal $ "public directory: " ++ (directories ^. public)
       putNormal $ "support directory: " ++ (directories ^. support)
-      putNormal $ "application data directory: " ++ (directories ^. appData)
+      -- putNormal $ "application data directory: " ++ (directories ^. appData)
       putNormal "\ntargets:\n"
       allHtmlA <++> allPdfA >>= mapM_ putNormal
       putNormal "\ntop level meta data:\n"
