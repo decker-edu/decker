@@ -92,9 +92,5 @@
                 }
             }
         }
-
-        a:link:after {
-            content: " ("attr(href) ") ";
-        }
     }
 }
