@@ -242,8 +242,13 @@ $if(mario)$ <!-- Mario settings -->
           },
 
 $if(thebelab.enable)$
-        thebelab: $thebelab.enable$,
+          thebelab: $thebelab.enable$,
 $endif$
+
+$if(quizServer)$
+          quiz: { server: "$quizServer$" },
+$endif$
+
 
           // plugins
           dependencies: [
@@ -254,7 +259,6 @@ $endif$
               { src: '$decker-support-dir$/vendor/reveal/plugin/notes/notes.js' },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/math/math.js' },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/whiteboard/whiteboard.js' }, 
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/quiz/qrcode.min.js' },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/quiz/quiz.js' },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/footer/footer.js' },
               { src: '$decker-support-dir$/vendor/mb-reveal-plugins/highlight/highlight.js' },
