@@ -1,7 +1,8 @@
 
 quizModule = {
     quiz: function () {
-        blanktext();
+        blanktextButtons();
+        // blanktext();
         initialMatchings = initMatching();
         matchings(initialMatchings);
         multipleChoice();
@@ -9,25 +10,58 @@ quizModule = {
     }
 }
 
-// Adds event listeners to the blankText questions' answerbuttons
-function blanktext() {
-    var blanktexts = document.getElementsByClassName("blankText");
+// For a given blanktext HTML Element returns a Map containing all wrong and correct selects and blanks
+function blanktextCorrect(blanktext) {
+    var selects = blanktext.getElementsByClassName("blankSelect");
+    const blanks = blanktext.getElementsByClassName("blankInput");
+    var wrongSelects = [];
+    var correctSelects = [];
+    var wrongBlanks = [];
+    var correctBlanks = [];
 
-    for (i = 0; i < blanktexts.length; i++) {
-        const btButton = blanktexts[i].getElementsByClassName("btAnswerButton")[0];
-        btButton.onclick = function () {
-            var selects = this.parentNode.parentNode.getElementsByClassName("blankSelect");
-            const blanks = this.parentNode.parentNode.getElementsByClassName("blankInput");
+    for (let s of selects) {
+        const correct = s.options[s.selectedIndex].getAttribute("answer");
+        if (correct == "true") {
+            correctSelects.push(s);
+        }
+        else {
+            wrongSelects.push(s);
+        }
+    }
 
-            // Selections
-            for (let s of selects) {
-                const correct = s.options[s.selectedIndex].getAttribute("answer");
-                if (correct == "true") {
-                    s.style.backgroundColor = "rgb(151, 255, 122)";
-                } else {
-                    s.style.backgroundColor = "rgb(255, 122, 122)";
-                }
-                for (let o of s.options) {
+    for (let b of blanks) {
+        const correct = b.getAttribute("answer").trim();
+        if (b.value.toLowerCase().trim() == correct.toLowerCase()) {
+            correctBlanks.push(b);
+        }
+        else {
+            wrongBlanks.push(b);
+        }
+    }
+    const ret = new Map([["correctSelects", correctSelects], ["wrongSelects", wrongSelects], ["wrongBlanks", wrongBlanks], ["correctBlanks", correctBlanks]]);
+    return ret;
+
+}
+
+function blanktextButtons() {
+    var btButtons = document.getElementsByClassName("btAnswerButton");
+    for (i = 0; i < btButtons.length; i++) {
+        const button = btButtons[i];
+        button.onclick = function () {
+            blanktext = this.closest(".blankText");
+
+            var results = blanktextCorrect(blanktext);
+            var correctSelects = results.get("correctSelects");
+            var wrongSelects = results.get("wrongSelects");
+            var correctBlanks = results.get("correctBlanks");
+            var wrongBlanks = results.get("wrongBlanks");
+            console.log(wrongSelects.toString());
+
+            for (let w of wrongSelects) {
+
+                console.log(w.options.toString());
+                w.style.backgroundColor = "rgb(255, 122, 122)";
+                for (let o of w.options) {
                     if (o.getAttribute("answer") == "true") {
                         o.textContent += " ✓";
                     } else {
@@ -36,32 +70,30 @@ function blanktext() {
                 }
             }
 
-            // Blank texts
-            if (Array.from(blanks).every(b => b.value)) {
-                for (let b of blanks) {
-                    const correct = b.getAttribute("answer").trim();
-                    console.log(correct);
-
-                    if (b.value.toLowerCase().trim() == correct.toLowerCase()) {
-                        b.style.backgroundColor = "rgb(151, 255, 122)";
+            for (let c of correctSelects) {
+                c.style.backgroundColor = "rgb(151, 255, 122)";
+                for (let o of c.options) {
+                    if (o.getAttribute("answer") == "true") {
+                        o.textContent += " ✓";
+                    } else {
+                        o.textContent += " ✗";
                     }
-                    else {
-                        b.style.backgroundColor = "rgb(255, 122, 122)";
-                        if (!b.disabled) {
-                            b.value += " (" + correct + ")";
-                        }
-                    }
-                    b.setAttribute("size", b.value.length);
-                    b.disabled = true;
                 }
             }
-            else {
-                alert("No answer entered for at least one blank!");
-                return false;
 
+            for (let w of wrongBlanks) {
+                w.style.backgroundColor = "rgb(255, 122, 122)";
+                w.value += w.getAttribute("answer");
+                w.setAttribute("size", w.value.length);
+                w.disabled = true;
             }
 
-            this.disabled = "true";
+            for (let c of correctBlanks) {
+                c.style.backgroundColor = "rgb(151, 255, 122)";
+                c.setAttribute("size", c.value.length);
+                c.disabled = true;
+            }
+            this.disabled = true;
         }
     }
 }

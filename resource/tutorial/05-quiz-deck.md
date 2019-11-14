@@ -32,15 +32,15 @@ history: true
 : You {can't|!can} create blanktext questions without title
 
 # "Fill-in-the-blank" questions/Cloze tests
-You can also add actual blank texts by providing only one option inside the curly brackets.
+You can also add actual blank texts by providing only one option inside the curly brackets. Or combine both.
 
 ```markdown
 {blanktext}
-: These tests are called {Cloze} tests. 
+: These tests are called {Cloze} tests and are {!useful|useless}. 
 ```
 
 {blanktext}
-: These tests are called {Cloze} tests.
+: These tests are called {Cloze} tests and are {!useful|useless}. 
 
 # Matching Questions Syntax
 
