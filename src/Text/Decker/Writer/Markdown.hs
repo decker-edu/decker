@@ -496,9 +496,9 @@ blockToMarkdown' opts b@(RawBlock f str)
       report $ BlockNotRendered b
       return empty
 blockToMarkdown' opts HorizontalRule = do
-  -- return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
+  return $ blankline <> text (replicate (writerColumns opts) '-') <> blankline
   -- DECKER: Use only 3 dashes.
-  return $ blankline <> text (replicate 3 '-') <> blankline
+  -- return $ blankline <> text (replicate 3 '-') <> blankline
 blockToMarkdown' opts (Header level attr inlines) = do
   -- first, if we're putting references at the end of a section, we
   -- put them here.
