@@ -41,7 +41,6 @@ import Development.Shake
 import Prelude hiding ((!!))
 import System.Directory as Dir
 import System.FilePath
-import System.FilePath.Glob
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc hiding (writeMarkdown)
 import Text.Pandoc.Shared
@@ -146,7 +145,10 @@ readMetaDataFile file = do
     if exists
       then decodeYaml file
       else do
-        putStrLn $ "WARNING: file " ++ show f ++ " does not exist!"
+        putStrLn $
+          "WARNING: file " ++
+          show f ++
+          " does not exist!\nIf you still have a \"*-meta.yaml\" file in your project please rename it to \"decker.yaml\"!"
         return (Y.object [])
   return $ toPandocMeta meta
 

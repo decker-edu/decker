@@ -35,7 +35,7 @@ chalkboard: example-deck.json
 
 # Important
 
-The meta option `provisioning` determines whether the `support-X.Y.Z` folder in the `public` directory is a symbolic link folder or a copy.  
+The meta option `provisioning` determines whether the `support` folder in the `public` directory is a symbolic link folder or a copy.  
 On Windows, only `Copy` should be used as symlinks on Windows work differently from MacOS/Linux.  
 The default setting (without having `provisioning` included in the meta) is `Copy`on Windows and `SymLink` on MacOS/Linux.
 
@@ -81,7 +81,6 @@ To be able to move the `public` folder to other devices (e.g. hold a presentatio
 | `csl`         | Filepath to .csl file            | Include a citation style (.csl)|
 | `bibliography`| Filepath to .bib file            | Include bibliography           |
 | `chalkboard`  | `true` or `false`                | Include reveal.js chalkboard plugin |
-| `dachdecker`  | Code/id given by dachdecker      | Include a dachdecker survey    |
 | `chart`       | `true` or `false`                | Include reveal.js chart plugin |
 
 # YAML-Header (Part 5)
