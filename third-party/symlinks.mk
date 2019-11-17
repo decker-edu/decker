@@ -17,8 +17,7 @@ dup = cp -r
 endif
 
 
-all: jquery Chart.js mathjax reveal.js bootstrap piklor.js whiteboard math highlight charts fontawesome reveal.js-menu thebelab
-all: jquery chart.js mathjax reveal.js bootstrap piklor.js whiteboard math highlight charts fontawesome reveal.js-menu thebelab mb-reveal-plugins
+all: jquery Chart.js mathjax reveal.js bootstrap piklor.js whiteboard math highlight charts fontawesome reveal.js-menu thebelab mb-reveal-plugins
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab
