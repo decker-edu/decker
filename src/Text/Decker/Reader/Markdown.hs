@@ -26,7 +26,6 @@ import Control.Monad.State
 import Data.ByteString.Char8 as B
 import qualified Data.Text as T
 import Data.Text.Encoding as E
-import qualified Data.Text.IO as T
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Text.CSL.Pandoc

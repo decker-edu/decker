@@ -41,7 +41,6 @@ import Development.Shake
 import Prelude hiding ((!!))
 import System.Directory as Dir
 import System.FilePath
-import System.FilePath.Glob
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc hiding (writeMarkdown)
 import Text.Pandoc.Shared

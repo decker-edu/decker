@@ -49,12 +49,9 @@ import Text.Decker.Project.Glob
 import Text.Decker.Project.Version
 
 import Control.Lens
-import Data.Aeson as Json
-import Data.Aeson.Lens
 import Data.List
 import Data.List.Split (splitOn)
 import Data.Maybe
-import Data.Text.Lens
 import Network.URI
 import qualified System.Directory as D
 import System.Environment

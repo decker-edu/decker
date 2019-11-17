@@ -45,7 +45,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Git
-import Text.Decker.Project.Glob
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Template
@@ -72,7 +71,6 @@ import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text.Encoding
-import Data.Text.Lens
 import Data.Typeable
 import Data.Yaml as Yaml
 import Development.Shake hiding (doesDirectoryExist)
