@@ -12,7 +12,7 @@ templates:
   tags:
     - docker
   script:
-    - make resources
+    - make -f symlinks.mk -C third-party copy=true all
   artifacts:
     paths:
       - resource/support
@@ -61,12 +61,12 @@ build:win:
   artifacts:
     paths:
       - decker.exe
+      - resource.zip
       - version.txt
   cache:
     key: build-win
     paths:
       - .stack-work
-
 
 test:linux:
   stage: test
@@ -85,18 +85,6 @@ test:linux:
   dependencies:
     - build:linux
 
-.deploy:docker:
-  image: docker:latest
-  stage: deploy
-  only:
-    - schedules
-  tags:
-    - decker
-  script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE --build-arg MAKE_FLAGS=branch=$CI_COMMIT_REF_NAME .
-    - docker push $CI_REGISTRY_IMAGE
-
 deploy:mac:
   stage: deploy
   image: 
@@ -107,12 +95,14 @@ deploy:mac:
   tags:
     - docker
   script:
+    - if [ $CI_COMMIT_REF_NAME == "master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
-    - mc cp ./decker store/decker/decker-mac
+    - mc cp ./decker store/decker/decker-mac${SUFFIX}
   dependencies:
     - build:mac
   only:
     - master
+    - /^v\d\.\d\.\d-patching$/
 
 deploy:linux:
   stage: deploy
@@ -124,12 +114,14 @@ deploy:linux:
   tags:
     - docker
   script:
+    - if [ $CI_COMMIT_REF_NAME == "master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
-    - mc cp ./decker store/decker/decker-linux
+    - mc cp ./decker store/decker/decker-linux${SUFFIX}
   dependencies:
     - build:linux
   only:
     - master
+    - /^v\d\.\d\.\d-patching$/
 
 deploy:win:
   stage: deploy
@@ -141,10 +133,12 @@ deploy:win:
   tags:
     - docker
   script:
+    - if [ $CI_COMMIT_REF_NAME == "master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
-    - mc cp ./decker.exe store/decker/decker-win.exe
-    - mc cp ./version.txt store/decker/version-win.txt
+    - mc cp ./decker.exe store/decker/decker-win${SUFFIX}.exe
+    - mc cp ./version.txt store/decker/version-win${SUFFIX}.txt
   dependencies:
     - build:win
   only:
     - master
+    - /^v\d\.\d\.\d-patching$/

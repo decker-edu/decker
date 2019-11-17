@@ -373,7 +373,7 @@
   font-family: "Source Code Pro", monospace;
   font-size: 106%;
   font-weight: 500;
-  color: #06287e;
+  /*color: #06287e;*/
   text-transform: none;
 }
 
@@ -831,11 +831,13 @@ dd {
 }
 
 .reveal .slide-number {
+  position: fixed;
   width: 100%;
   text-align: center;
   background: transparent;
   color: gray;
   font-size: 0.4em;
+  z-index: -1;
 }
 
 .reveal .resume-button {

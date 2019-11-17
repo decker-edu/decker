@@ -1,19 +1,19 @@
 ---
 history: True
 ---
-
 # Iframes
 
 ## Some slides with iframes
 
 1.  Iframe embedded in slide
 2.  Iframe as background
-1.  Iframe embedded in slide showing a PDF
+3.  Iframe embedded in slide showing a PDF
 4.  Iframe as background showing a PDF
 
 # Iframe showing <https://www.uni-wuerzburg.de/startseite>
 
-![](https://www.uni-wuerzburg.de/startseite.html){width="100%" height="500px"}
+![](https://www.uni-wuerzburg.de/startseite.html?some-option=some-value){.iframe
+width="100%" height="500px"}
 
 # ![](https://www.uni-wuerzburg.de/startseite.html)
 
@@ -21,3 +21,19 @@ history: True
 
 ![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
 
+# Iframe showing local HTML file
+
+## While preserving the URI query string
+
+![](../reload.html?model=../../meshes/blubb.off){.iframe .resource}
+
+-   Iframe source should be
+
+``` {.html}
+<iframe 
+    data-src="../reload.html?model=../../meshes/blubb.off" 
+    class="iframe 
+    resource">
+Browser does not support iframe.
+</iframe>
+```

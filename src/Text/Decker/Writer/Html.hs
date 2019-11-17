@@ -95,14 +95,18 @@ markdownToHtmlDeck markdownFile out index = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
-  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
+  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
+  let highlightStyle =
+        case getMetaString "highlightjs" meta of
+          Nothing -> Just pygments
+          _ -> Nothing
   template <- getTemplate disp
   dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
           { writerSlideLevel = Just 1
           , writerTemplate = Just template
-          , writerHighlightStyle = Nothing
+          , writerHighlightStyle = highlightStyle
           , writerHTMLMathMethod =
               MathJax "Handled by reveal.js in the template"
           , writerVariables =
