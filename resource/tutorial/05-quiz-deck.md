@@ -7,9 +7,40 @@ history: true
 
 - This slide deck shows how to create simple quizzes with different question types for a self-learning scenario.
 - Currently supported: 
+  - "Fill-in-the-blank" questions/Cloze tests
   - Matching/pairing questions
   - Multiple choice questions
   - Freetext questions
+
+# Blank Text/Multiple Choice
+
+```markdown
+{blanktext} Optional Title
+: Decker is a software built using the programming language 
+{Scala|!Haskell|Java|Ruby} and builds upon 
+{LaTeX Beamer|!RevealJS|PowerPoint}.
+
+{blanktext}
+: You {can't|!can} create blanktext questions without title
+```
+# Blank Text/Multiple Choice
+
+{blanktext} Optional Title
+: Decker is a software built using the programming language {Scala|!Haskell|Java|Ruby} and builds upon {LaTeX Beamer|!RevealJS|PowerPoint}.
+
+{blanktext}
+: You {can't|!can} create blanktext questions without title
+
+# "Fill-in-the-blank" questions/Cloze tests
+You can also add actual blank texts by providing only one option inside the curly brackets. Or combine both.
+
+```markdown
+{blanktext}
+: These tests are called {Cloze} tests and are {!useful|useless}. 
+```
+
+{blanktext}
+: These tests are called {Cloze} tests and are {!useful|useless}. 
 
 # Matching Questions Syntax
 

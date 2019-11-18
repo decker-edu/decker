@@ -81,12 +81,21 @@
 }
 
 .reveal button,
-.reveal .freetextInput {
+.reveal .freetextInput,
+.reveal .blankInput{
   border-radius: 0.5em;
   font-size: inherit;
   font-family: inherit;
   outline: none;
   clear: both;
+}
+
+.reveal .blankSelect{
+  font-size: inherit;
+}
+
+.reveal .blankSelect:disabled{
+  color: black;
 }
 
 .reveal .matching {
