@@ -83,7 +83,7 @@ function blanktextButtons() {
 
             for (let w of wrongBlanks) {
                 w.style.backgroundColor = "rgb(255, 122, 122)";
-                w.value += w.getAttribute("answer");
+                w.value += " (" + w.getAttribute("answer") + ")";
                 w.setAttribute("size", w.value.length);
                 w.disabled = true;
             }
