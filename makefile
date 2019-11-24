@@ -8,7 +8,6 @@ local-bin-path := $(HOME)/.local/bin
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
 clean-build: clean
-	git submodule update --init
 	make -f symlinks.mk -C third-party all
 	stack build
 
