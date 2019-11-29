@@ -181,6 +181,13 @@ $if(mario)$ <!-- Mario settings -->
           hideInactiveCursor: true,
           hideCursorTime: 3000,
 
+          // whether to mark y-overflowing slides by a red border
+$if(checkOverflow)$
+          checkOverflow: $checkOverflow$,
+$else$
+          checkOverflow: false,
+$endif$
+
           // setup reveal-menu
           menu: {
               side:              'right',
