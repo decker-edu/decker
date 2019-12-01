@@ -9,8 +9,8 @@ jupyter:
     codemirror_mode: ihaskell
     file_extension: '.hs'
     name: haskell
-  nbformat: 4.0
-  nbformat_minor: 2.0
+  nbformat: 4
+  nbformat_minor: 2
 title: Write to Jupyter notebook
 write-back:
   enable: True
