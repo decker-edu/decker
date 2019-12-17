@@ -156,7 +156,7 @@ projectDirectories = do
   let cacheDir = publicDir </> "cache"
   let supportDir = publicDir </> "support"
   appDataDir <- deckerResourceDir
-  let logDir = projectDir </> "log"
+  let logDir = projectDir </> ".log"
   return
     (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
 
@@ -266,7 +266,7 @@ indexSuffix = "-deck-index.yaml"
 
 sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
 
-alwaysExclude = ["public", "log", "dist", "code", ".shake", ".git", ".vscode"]
+alwaysExclude = ["public", ".log", "dist", "code", ".shake", ".git", ".vscode"]
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
