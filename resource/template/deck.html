@@ -215,7 +215,7 @@ $endif$
                       T: "^{\\mathsf{T}}",
                       abs: ['\\left\\lvert #1 \\right\\rvert', 1],
                       norm: ['\\left\\Vert #1 \\right\\Vert', 1],
-                      iprod: ['\\left\\langle #1 \\right\\rangle', 1],
+                      iprod: ['\\left\\langle #1, #2 \\right\\rangle', 2],
                       vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
                       mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
                       set: ['\\mathcal{#1}', 1],
@@ -225,7 +225,10 @@ $endif$
                       vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
                       of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
                       diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
-                      pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2]
+                      pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
+                      d: ['{\\mathrm{d}{#1}}', 1],
+                      e: ['{\\mathrm{e}^{#1}}', 1],
+                      ii: "{\\mathrm{i}}",
                   }
               },
           },
