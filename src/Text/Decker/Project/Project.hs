@@ -42,7 +42,7 @@ module Text.Decker.Project.Project
 
 import System.Decker.OS
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Flags
+-- import Text.Decker.Internal.Flags
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Glob
@@ -161,10 +161,7 @@ projectDirectories = do
     (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
 
 deckerResourceDir :: IO FilePath
-deckerResourceDir =
-  if hasPreextractedResources
-    then preextractedResourceFolder
-    else D.getXdgDirectory
+deckerResourceDir = D.getXdgDirectory
            D.XdgData
            ("decker" ++
             "-" ++
