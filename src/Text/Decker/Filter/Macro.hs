@@ -6,8 +6,7 @@ module Text.Decker.Filter.Macro
 import Text.Decker.Internal.Common
 
 import Control.Monad.State
-import Data.List (find, isInfixOf, isPrefixOf)
-import Data.List.Split
+import Data.List (find)
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
 import qualified Data.Text as Text
@@ -23,7 +22,7 @@ import Text.Pandoc.Walk
 import Text.Printf
 import Text.Read
 
-type MacroAction = [String] -> Attr -> Target -> Meta -> Decker Inline
+type MacroAction = [Text.Text] -> Attr -> Target -> Meta -> Decker Inline
 
 -- iframe resizing, see:
 -- https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
@@ -35,7 +34,7 @@ type MacroAction = [String] -> Attr -> Target -> Meta -> Decker Inline
 -- For twitch embedding settings see:
 -- https://dev.twitch.tv/docs/embed/video-and-clips/ and:
 -- https://dev.twitch.tv/docs/embed/everything/
-embedWebVideosHtml :: String -> [String] -> Attr -> Target -> Inline
+embedWebVideosHtml :: Text.Text -> [Text.Text] -> Attr -> Target -> Inline
 embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
   RawInline (Format "html") (LazyText.toStrict $ renderHtml html)
   where
@@ -100,7 +99,7 @@ toValueT = toValue . Text.unpack
 
 -- Twitch thumbnail from https://www.twitch.tv/p/brand/social-media
 -- Twitch channels unfortunately have no fixed thumbnail
-embedWebVideosPdf :: String -> [String] -> Attr -> Target -> Inline
+embedWebVideosPdf :: Text.Text -> [Text.Text] -> Attr -> Target -> Inline
 embedWebVideosPdf page _ attr (vid, _) =
   Link
     nullAttr
@@ -133,7 +132,7 @@ embedWebVideosPdf page _ attr (vid, _) =
         "twitch" ->
           "https://www.twitch.tv/p/assets/uploads/glitch_solo_750x422.png"
 
-webVideo :: String -> MacroAction
+webVideo :: Text.Text -> MacroAction
 webVideo page args attr target _ = do
   disp <- gets disposition
   case disp of
@@ -157,7 +156,7 @@ horizontalSpace _ _ (space, _) _ = do
     Disposition _ Html ->
       return $
       RawInline (Format "html") $
-      printf "<span style=\"display:inline-block; width:%s;\"></span>" space
+      Text.pack $ printf "<span style=\"display:inline-block; width:%s;\"></span>" space
     Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
 
 verticalSpace :: MacroAction
@@ -167,22 +166,22 @@ verticalSpace _ _ (space, _) _ = do
     Disposition _ Html ->
       return $
       RawInline (Format "html") $
-      printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
+      Text.pack $ printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
     Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
 
 metaValue :: MacroAction
 metaValue _ _ (key, _) meta =
-  case splitOn "." key of
+  case Text.splitOn "." key of
     [] -> return $ Str key
     k:ks -> return $ lookup' ks (lookupMeta k meta)
   where
-    lookup' :: [String] -> Maybe MetaValue -> Inline
+    lookup' :: [Text.Text] -> Maybe MetaValue -> Inline
     lookup' [] (Just (MetaString s)) = Str s
     lookup' [] (Just (MetaInlines i)) = Span nullAttr i
     lookup' (k:ks) (Just (MetaMap metaMap)) = lookup' ks (Map.lookup k metaMap)
     lookup' _ _ = Strikeout [Str key]
 
-type MacroMap = Map.Map String MacroAction
+type MacroMap = Map.Map Text.Text MacroAction
 
 macroMap :: MacroMap
 macroMap =
@@ -201,19 +200,18 @@ macroMap =
     , ("vspace", verticalSpace)
     ]
 
-readDefault :: Read a => a -> String -> a
-readDefault default_ string = fromMaybe default_ (readMaybe string)
+readDefault :: Read a => a -> Text.Text -> a
+readDefault default_ string =
+  fromMaybe default_ (readMaybe $ Text.unpack string)
 
-macroArg :: Int -> [String] -> String -> String
+macroArg :: Int -> [Text.Text] -> Text.Text -> Text.Text
 macroArg n args default_ =
   if length args > n
     then args !! n
     else default_
 
-parseMacro :: String -> Maybe [String]
-parseMacro (pre:invocation)
-  | pre == ':' = Just (words invocation)
-parseMacro _ = Nothing
+parseMacro :: Text.Text -> Maybe [Text.Text]
+parseMacro invocation = Text.words <$> Text.stripPrefix ":" invocation
 
 -- lookup e.g. "youtube" in macroMap and return MacroAction/Decker Inline
 expandInlineMacros :: Meta -> Inline -> Decker Inline
@@ -232,19 +230,19 @@ expandInlineMacros meta inline@(Image attr _ (url, tit))
       case Map.lookup str macroMap of
         Just macro -> macro [] attr (code, tit) meta
         -- TODO: Find a way to do this without needing Data.Text and the whole pack/unpack effort
-          where code = unpack $ replace (pack (str ++ "://")) "" (pack url)
+          where code = Text.replace (str <> "://") "" url
         Nothing -> return inline
     Nothing -> return inline
 expandInlineMacros _ inline = return inline
 
 -- Check inline for special embedding content (currently only web videos) if inline is Image
-findEmbeddingType :: Inline -> Maybe String
+findEmbeddingType :: Inline -> Maybe Text.Text
 findEmbeddingType inline@(Image attr text (url, tit))
-  | "youtube://" `isPrefixOf` url = Just "youtube"
-  | "vimeo://" `isPrefixOf` url = Just "vimeo"
-  | "twitch://" `isPrefixOf` url = Just "twitch"
-  | "veer://" `isPrefixOf` url = Just "veer"
-  | "veer-photo://" `isPrefixOf` url = Just "veer-photo"
+  | "youtube://" `Text.isPrefixOf` url = Just "youtube"
+  | "vimeo://" `Text.isPrefixOf` url = Just "vimeo"
+  | "twitch://" `Text.isPrefixOf` url = Just "twitch"
+  | "veer://" `Text.isPrefixOf` url = Just "veer"
+  | "veer-photo://" `Text.isPrefixOf` url = Just "veer-photo"
   | otherwise = Nothing
 
 expandDeckerMacros :: Pandoc -> Decker Pandoc

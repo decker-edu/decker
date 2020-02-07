@@ -12,6 +12,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Digest.Pure.MD5
+import qualified Data.Text as Text
 import Development.Shake.FilePath as SFP
 import Network.HTTP.Conduit
 import Network.HTTP.Simple
@@ -26,8 +27,8 @@ cacheRemoteImages :: FilePath -> Pandoc -> IO Pandoc
 cacheRemoteImages cacheDir = walkM cacheRemoteImage
   where
     cacheRemoteImage (Image attr inlines (url, title)) = do
-      cachedFile <- cacheRemoteFile cacheDir url
-      return (Image attr inlines (cachedFile, title))
+      cachedFile <- cacheRemoteFile cacheDir (Text.unpack url )
+      return (Image attr inlines (Text.pack cachedFile, title))
     cacheRemoteImage img = return img
 
 cacheRemoteFile :: FilePath -> String -> IO FilePath
