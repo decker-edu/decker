@@ -10,7 +10,6 @@ import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Dachdecker
-import Text.Decker.Writer.Format
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Pdf
 
@@ -46,12 +45,10 @@ ttt =
 main :: IO ()
 main = do
   args <- getArgs
-  if length args == 1 && head args == "format"
-    then formatMarkdown
-    else case head args of
-           "example" -> writeExampleProject
-           "tutorial" -> writeTutorialProject
-           _ -> run
+  case head args of
+    "example" -> writeExampleProject
+    "tutorial" -> writeTutorialProject
+    _ -> run
 
 run :: IO ()
 run = do
@@ -68,7 +65,7 @@ run = do
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
   let index = (directories ^. public) </> "index.html"
-  let cruft = ["index.md.generated", "//.log", "//.shake", "generated", "code"]
+  let cruft = ["index.md.generated", "log", "//.shake", "generated", "code"]
   let pdfMsg =
         "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
         "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++

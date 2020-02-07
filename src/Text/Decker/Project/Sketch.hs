@@ -9,7 +9,6 @@ module Text.Decker.Project.Sketch
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Shake
-import Text.Decker.Writer.Markdown
 import Text.Pandoc.Lens
 
 import Control.Monad
@@ -17,7 +16,7 @@ import qualified Data.Text.IO as T
 import Development.Shake
 import System.Directory
 import System.Random
-import Text.Pandoc hiding (writeMarkdown)
+import Text.Pandoc
 
 idDigits = 4
 
@@ -53,6 +52,8 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   let extensions =
         (disableExtension Ext_simple_tables .
          disableExtension Ext_multiline_tables .
+         disableExtension Ext_grid_tables .
+         disableExtension Ext_raw_html .
          enableExtension Ext_auto_identifiers)
           pandocExtensions
   let options =

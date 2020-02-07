@@ -46,9 +46,12 @@ reveal.js-menu:
 		$(dup) $(third)/reveal.js-menu/$$i $(support)/reveal.js-menu/$$i; \
 	done
 
+# bootstrap:
+# 	@mkdir -p $(support)/bootstrap
+# 	@$(dup) $(third)/bootstrap/dist/css $(support)/bootstrap/css 
+
 bootstrap:
-	@mkdir -p $(support)/bootstrap
-	@$(dup) $(third)/bootstrap/dist/css $(support)/bootstrap/css 
+	@cp $(third)/bootstrap.min.css $(third)/bootstrap.min.css.map $(support)
 
 piklor.js:
 	@$(dup) $(third)/piklor.js/src/piklor.min.js $(support)/piklor.js

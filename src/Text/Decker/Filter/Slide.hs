@@ -4,8 +4,10 @@ module Text.Decker.Filter.Slide
   , attribValue
   , blocks
   , dropByClass
+  , keepByClass
   , firstClass
   , fromSlides
+  , fromSlidesWrapped
   , classes
   , hasAnyClass
   , hasClass
@@ -71,8 +73,8 @@ toSlides blocks = map extractHeader $ filter (not . null) slideBlocks
     killEmpties [] = []
 
 -- Render slides as a list of Blocks. Always separate slides with a horizontal
--- rule. Slides with the `notes` classes are wrapped in ASIDE and
--- are used as spreaker notes by RevalJs.
+-- rule. Slides with the `notes` classes are wrapped in ASIDE and are used as
+-- spreaker notes by RevalJs.
 fromSlides :: [Slide] -> [Block]
 fromSlides = concatMap prependHeader
   where
@@ -83,6 +85,16 @@ fromSlides = concatMap prependHeader
         [RawBlock "html" "</aside>"]
     prependHeader (Slide (Just header) body) = HorizontalRule : header : body
     prependHeader (Slide Nothing body) = HorizontalRule : body
+
+-- | Converts slides to lists of blocks that are wrapped in divs. Used to
+-- control page breaks in handout generation.
+fromSlidesWrapped :: [Slide] -> [Block]
+fromSlidesWrapped = concatMap wrapBlocks
+  where
+    wrapBlocks (Slide (Just header) body) =
+      [Div ("", ["slide-wrapper"], []) (HorizontalRule : header : body)]
+    wrapBlocks (Slide Nothing body) =
+      [Div ("", ["slide-wrapper"], []) (HorizontalRule : body)]
 
 isSlideSeparator :: Block -> Bool
 isSlideSeparator (Header 1 _ _) = True
@@ -109,6 +121,10 @@ attribValue which = lookup which . view (attributes . attrs)
 dropByClass :: HasAttr a => [String] -> [a] -> [a]
 dropByClass which =
   filter (not . any (`elem` which) . view (attributes . attrClasses))
+
+keepByClass :: HasAttr a => [String] -> [a] -> [a]
+keepByClass which =
+  filter (any (`elem` which) . view (attributes . attrClasses))
 
 isBoxDelim :: Block -> Bool
 isBoxDelim (Header 2 _ _) = True

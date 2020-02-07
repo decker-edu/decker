@@ -117,6 +117,8 @@ markdownToHtmlDeck markdownFile out index = do
           }
   writeDeckIndex markdownFile index pandoc >>=
     writePandocFile "revealjs" options out
+  when (getMetaBoolOrElse "write-notebook" False meta) $
+    markdownToNotebook markdownFile (out -<.> ".ipynb")
   writeNativeWhileDebugging out "filtered" pandoc
 
 writePandocFile :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
@@ -158,7 +160,8 @@ markdownToHtmlHandout markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Handout Html
-  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
+  pandoc@(Pandoc docMeta _) <-
+    wrapSlidesinDivs <$> readAndProcessMarkdown markdownFile disp
   template <- getTemplate disp
   let options =
         pandocWriterOpts
@@ -172,3 +175,19 @@ markdownToHtmlHandout markdownFile out = do
           , writerTOCDepth = getMetaIntOrElse "toc-depth" 1 docMeta
           }
   writePandocFile "html5" options out pandoc
+
+-- | Write a markdown file to a HTML file using the page template.
+markdownToNotebook :: FilePath -> FilePath -> Action ()
+markdownToNotebook markdownFile out = do
+  putCurrentDocument out
+  supportDir <- getRelativeSupportDir (takeDirectory out)
+  let disp = Disposition Notebook Html
+  pandoc@(Pandoc docMeta _) <-
+    filterNotebookSlides <$> readAndProcessMarkdown markdownFile disp
+  let options =
+        pandocWriterOpts
+          { writerTemplate = Nothing
+          , writerHighlightStyle = Just pygments
+          , writerVariables = [("decker-support-dir", supportDir)]
+          }
+  writePandocFile "ipynb" options out pandoc

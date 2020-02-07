@@ -7,16 +7,18 @@ local-bin-path := $(HOME)/.local/bin
 
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
+stack-build-opts :=  --fast --file-watch --ghc-options "-j4 +RTS -A128m -n2m -qg -RTS"
+
+build: 
+	stack build $(stack-build-options)
+
 clean-build: clean
 	git submodule update --init
 	make -f symlinks.mk -C third-party all
-	stack build
-
-build: 
-	stack build
+	stack build $(stack-build-options)
 
 less:
-	stack build 2>&1 | less
+	stack build $(stack-build-options) 2>&1 | less 
 
 install: clean-build
 	mkdir -p $(local-bin-path)

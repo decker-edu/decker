@@ -22,7 +22,6 @@ module Text.Decker.Internal.Meta
   ) where
 
 import Text.Decker.Internal.Exception
-import Text.Decker.Writer.Markdown
 
 import Control.Arrow
 import Control.Exception
@@ -42,7 +41,7 @@ import Prelude hiding ((!!))
 import System.Directory as Dir
 import System.FilePath
 import qualified Text.Mustache.Types as MT
-import Text.Pandoc hiding (writeMarkdown)
+import Text.Pandoc
 import Text.Pandoc.Shared
 import Text.Read
 import Text.Regex.TDFA

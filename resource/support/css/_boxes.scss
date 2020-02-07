@@ -1,4 +1,4 @@
-.reveal div.box {
+div.box {
     h2 {
         margin-top: 0;
 
@@ -86,7 +86,7 @@
 }
 
 // Special case: source code inside highlighted box
-.reveal div.box {
+div.box {
 
     &.question,
     &.answer,
