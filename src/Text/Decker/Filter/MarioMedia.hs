@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Text.Decker.Filter.MarioMedia
   ( marioMedia
@@ -6,8 +7,9 @@ module Text.Decker.Filter.MarioMedia
 
 import Control.Exception
 import Data.Char (toLower)
-import Data.List (intercalate)
-import Data.Monoid ((<>))
+import Data.String (IsString)
+import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
 import System.FilePath
 import Text.Pandoc.JSON
 import Text.Pandoc.Walk
@@ -64,7 +66,7 @@ media (Image (id', att, att') [] (filename, _))
   | id' == "audio" || checkExtension filename audioExt =
     return $
     [ toHtml $
-      "<audio " <> unwords direct <> " src=\"" <> filename <> "\"" <>
+      "<audio " <> Text.unwords direct <> " src=\"" <> filename <> "\"" <>
       attToString (idFilter "audio" id', css, att') <>
       "></audio>"
     ]
@@ -75,7 +77,7 @@ media (Image (id', att, att') alt (filename, _))
     return $
     [ toHtml $
       "<figure " <> attToString (idFilter "audio" id', css, att') <> "><audio " <>
-      unwords direct <>
+      Text.unwords direct <>
       " src=\"" <>
       filename <>
       "\"></audio>"
@@ -90,7 +92,7 @@ media (Image (id', att, att') [] (filename, _))
   | id' == "video" || checkExtension filename videoExt =
     return $
     [ toHtml $
-      "<video " <> unwords direct <> " src=\"" <> filename <> "\"" <>
+      "<video " <> Text.unwords direct <> " src=\"" <> filename <> "\"" <>
       attToString (idFilter "video" id', css, att') <>
       "></video>"
     ]
@@ -103,7 +105,7 @@ media (Image (id', att, att') alt (filename, _))
       "<figure " <> attToString (idFilter "video" id', css, att') <> ">"
     ] <>
     [ toHtml $
-      "<video " <> unwords direct <> " src=\"" <> filename <> "\" style=\"" <>
+      "<video " <> Text.unwords direct <> " src=\"" <> filename <> "\" style=\"" <>
       style <>
       "\"></video>"
     ] <>
@@ -120,12 +122,13 @@ media (Image (id', att, att') [] (filename, _))
       (\(fileerror :: IOException) ->
          return
            [ toHtml $
-             "Could not read file: " <> filename <> "<br />" <> show fileerror
+             "Could not read file: " <> filename <> "<br />" <>
+             (Text.pack . show) fileerror
            ]) $ do
-      svg <- readFile filename
+      svg <- Text.readFile (Text.unpack filename)
       return $
         [ toHtml $
-          "<figure " <> unwords direct <> " " <>
+          "<figure " <> Text.unwords direct <> " " <>
           attToString (idFilter "svg" id', css, att') <>
           ">"
         ] -- use attributes on figure, as svg gets dumped in..
@@ -140,12 +143,13 @@ media (Image (id', att, att') alt (filename, _))
       (\(fileerror :: IOException) ->
          return
            [ toHtml $
-             "Could not read file: " <> filename <> "<br />" <> show fileerror
+             "Could not read file: " <> filename <> "<br />" <>
+             (Text.pack . show) fileerror
            ]) $ do
-      svg <- readFile filename
+      svg <- Text.readFile (Text.unpack filename)
       return $
         [ toHtml $
-          "<figure " <> unwords direct <> " " <>
+          "<figure " <> Text.unwords direct <> " " <>
           attToString (idFilter "svg" id', css, att') <>
           ">"
         ] -- use attributes on figure, as svg gets dumped in..
@@ -161,7 +165,8 @@ media (Image (id', att, att') [] (filename, _))
   | id' == "img" || checkExtension filename imgExt =
     return $
     [ toHtml $
-      "<img " <> attToString (idFilter "img" id', css, att') <> unwords direct <>
+      "<img " <> attToString (idFilter "img" id', css, att') <>
+      Text.unwords direct <>
       " src=\"" <>
       filename <>
       "\" style=\"" <>
@@ -176,7 +181,7 @@ media (Image (id', att, att') alt (filename, _))
     return $
     [toHtml $ "<figure " <> attToString (idFilter "img" id', css, att') <> ">"] <>
     [ toHtml $
-      "<img " <> unwords direct <> " src=\"" <> filename <> "\" style=\"" <>
+      "<img " <> Text.unwords direct <> " src=\"" <> filename <> "\" style=\"" <>
       style <>
       "\"></img>"
     ] <>
@@ -191,7 +196,8 @@ media (Image (id', att, att') [] (filename, _))
   | id' == "pdf" || checkExtension filename pdfExt =
     return $
     [ toHtml $
-      "<embed " <> attToString (idFilter "pdf" id', css, att') <> unwords direct <>
+      "<embed " <> attToString (idFilter "pdf" id', css, att') <>
+      Text.unwords direct <>
       " src=\"" <>
       filename <>
       "\" style=\"" <>
@@ -206,7 +212,7 @@ media (Image (id', att, att') alt (filename, _))
     return $
     [toHtml $ "<figure " <> attToString (idFilter "pdf" id', css, att') <> ">"] <>
     [ toHtml $
-      "<embed " <> unwords direct <> " src=\"" <> filename <> "\" style=\"" <>
+      "<embed " <> Text.unwords direct <> " src=\"" <> filename <> "\" style=\"" <>
       style <>
       "\">"
     ] <>
@@ -221,7 +227,7 @@ media (Image (id', att, att') [] (filename, _))
   | id' == "demo" || checkExtension filename demoExt =
     return
       [ toHtml $
-        "<iframe " <> unwords direct <> " data-src=\"" <> filename <> "\" " <>
+        "<iframe " <> Text.unwords direct <> " data-src=\"" <> filename <> "\" " <>
         attToString (idFilter "demo" id', css, att') <>
         "></iframe>"
       ]
@@ -232,7 +238,7 @@ media (Image (id', att, att') alt (filename, _))
     return $
     [toHtml $ "<figure " <> attToString (idFilter "demo" id', css, att') <> ">"] <>
     [ toHtml $
-      "<iframe " <> unwords direct <> " data-src=\"" <> filename <> "\"" <>
+      "<iframe " <> Text.unwords direct <> " data-src=\"" <> filename <> "\"" <>
       attToString (idFilter "demo" id', css, att') <>
       " ></iframe>"
     ] <>
@@ -246,7 +252,7 @@ media (Image (id', att, att') [] (filename, _))
   | checkExtension filename meshExt =
     return
       [ toHtml $
-        "<iframe " <> unwords direct <>
+        "<iframe " <> Text.unwords direct <>
         " data-src=\"revealSlides/mview/mview.html?model=../../" <>
         filename <>
         "\"" <>
@@ -260,7 +266,7 @@ media (Image (id', att, att') alt (filename, _))
     return $
     [toHtml $ "<figure " <> attToString (id', css, att') <> ">"] <>
     [ toHtml $
-      "<iframe " <> unwords direct <>
+      "<iframe " <> Text.unwords direct <>
       " data-src=\"revealSlides/mview/mview.html?model=../../" <>
       filename <>
       "\"" <>
@@ -276,24 +282,25 @@ media (Image (id', att, att') alt (filename, _))
 media x = return [x]
 
 -- return filename extension (strip additional arguments from HTML URLs)
-checkExtension :: String -> [String] -> Bool
+checkExtension :: Text.Text -> [String] -> Bool
 checkExtension fn exts =
-  (fmap toLower . takeExtension . takeWhile (/= '?')) fn `elem` exts
+  (fmap toLower . takeExtension . takeWhile (/= '?') . Text.unpack) fn `elem`
+  exts
 
 -- checkExtension fn exts = (fmap toLower . takeExtension) fn `elem` exts
-idFilter :: String -> String -> String
+idFilter :: (IsString a, Eq a) => a -> a -> a
 idFilter a b
   | a == b = ""
   | otherwise = b
 
-filterStyle :: [(String, String)] -> String
+filterStyle :: [(Text.Text, Text.Text)] -> Text.Text
 filterStyle kvpairs =
   case filter ((== "style") . fst) (convertToStyle ["width", "height"] kvpairs) of
     [] -> ""
-    as -> intercalate ";" $ snd <$> as
+    as -> Text.intercalate ";" $ snd <$> as
 
 marioMedia :: Pandoc -> Decker Pandoc
 marioMedia = doIO . walkM media'
   where
-    media' :: [Inline] -> IO [Inline] 
+    media' :: [Inline] -> IO [Inline]
     media' inlines = concat <$> mapM media inlines

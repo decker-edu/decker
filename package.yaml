@@ -52,7 +52,6 @@ dependencies:
   - filepath
   - fsnotify
   - Glob
-  - git
   - groom
   - hashable
   - HTTP
@@ -63,7 +62,6 @@ dependencies:
   - lens-action
   - lens-aeson
   - listsafe
-  - MissingH
   - modern-uri
   - monad-loops
   - mtl

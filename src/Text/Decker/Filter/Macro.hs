@@ -10,18 +10,11 @@ import Data.List (find, isInfixOf, isPrefixOf)
 import Data.List.Split
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
-import Data.Text (pack, replace, unpack)
+import qualified Data.Text as Text
+import qualified Data.Text.Lazy as LazyText
 import Text.Blaze (customAttribute)
-import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 as H
-  ( (!)
-  , div
-  , figure
-  , iframe
-  , iframe
-  , p
-  , toValue
-  )
+import Text.Blaze.Html.Renderer.Text
+import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)
 import Text.Blaze.Html5.Attributes as A (class_, height, src, style, width)
 import Text.Pandoc
 import Text.Pandoc.Definition ()
@@ -37,21 +30,21 @@ type MacroAction = [String] -> Attr -> Target -> Meta -> Decker Inline
 -- YouTube links: iv_load_policy=3 disables annotations, rel=0 disables related
 -- videos. See:
 -- https://developers.google.com/youtube/player_parameters?hl=de#IFrame_Player_API
--- For vimeo embedding settings see: 
+-- For vimeo embedding settings see:
 -- https://vimeo.zendesk.com/hc/en-us/articles/360001494447-Using-Player-Parameters
 -- For twitch embedding settings see:
--- https://dev.twitch.tv/docs/embed/video-and-clips/
--- and: https://dev.twitch.tv/docs/embed/everything/
+-- https://dev.twitch.tv/docs/embed/video-and-clips/ and:
+-- https://dev.twitch.tv/docs/embed/everything/
 embedWebVideosHtml :: String -> [String] -> Attr -> Target -> Inline
 embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
-  RawInline (Format "html") (renderHtml html)
+  RawInline (Format "html") (LazyText.toStrict $ renderHtml html)
   where
     start =
       case find (\(x, y) -> x == "t" || x == "start") kv of
         Just (_, time) -> time
         _ -> "0"
     autoplay =
-      case find (\(x, y) -> isInfixOf "autoplay" x) kv of
+      case find (\(x, y) -> Text.isInfixOf "autoplay" x) kv of
         Just (_, b) -> b
         _ -> "0"
     url =
@@ -86,9 +79,9 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
       "position:absolute;top:0;left:0;width:100%;height:100%;" :: String
     figureStyle (_, _, kv) =
       foldl (\s (k, v) -> s ++ printf "%s:%s;" k v :: String) "" kv
-    figureClass (_, cls, _) = unwords cls
+    figureClass (_, cls, _) = Text.unwords cls
     html =
-      H.figure ! class_ (toValue (figureClass attr)) !
+      H.figure ! class_ (toValueT (figureClass attr)) !
       style (toValue (figureStyle attr)) $
       H.div ! style (toValue wrapperStyle) $
       iframe ! style (toValue iframeStyle) ! width (toValue vidWidthStr) !
@@ -103,11 +96,16 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
         then (customAttribute "data-autoplay" "")
         else mempty
 
+toValueT = toValue . Text.unpack
+
 -- Twitch thumbnail from https://www.twitch.tv/p/brand/social-media
 -- Twitch channels unfortunately have no fixed thumbnail
 embedWebVideosPdf :: String -> [String] -> Attr -> Target -> Inline
 embedWebVideosPdf page _ attr (vid, _) =
-  Link nullAttr [Image attr [Str text] (imageUrl, "")] (videoUrl, "")
+  Link
+    nullAttr
+    [Image attr [Str $ Text.pack text] (Text.pack imageUrl, "")]
+    (Text.pack videoUrl, "")
   where
     videoUrl =
       case page of
@@ -142,15 +140,15 @@ webVideo page args attr target _ = do
     Disposition _ Html -> return $ embedWebVideosHtml page args attr target
     Disposition _ Latex -> return $ embedWebVideosPdf page args attr target
 
-fontAwesome :: String -> MacroAction
+fontAwesome :: Text.Text -> MacroAction
 fontAwesome which _ _ (iconName, _) _ = do
   disp <- gets disposition
   case disp of
     Disposition _ Html ->
       return $
       RawInline (Format "html") $
-      "<i class=\"" ++ which ++ " fa-" ++ iconName ++ "\"></i>"
-    Disposition _ Latex -> return $ Str $ "[" ++ iconName ++ "]"
+      Text.concat ["<i class=\"", which, " fa-", iconName, "\"></i>"]
+    Disposition _ Latex -> return $ Str $ "[" <> iconName <> "]"
 
 horizontalSpace :: MacroAction
 horizontalSpace _ _ (space, _) _ = do
@@ -160,7 +158,7 @@ horizontalSpace _ _ (space, _) _ = do
       return $
       RawInline (Format "html") $
       printf "<span style=\"display:inline-block; width:%s;\"></span>" space
-    Disposition _ Latex -> return $ Str $ "[" ++ space ++ "]"
+    Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
 
 verticalSpace :: MacroAction
 verticalSpace _ _ (space, _) _ = do
@@ -170,7 +168,7 @@ verticalSpace _ _ (space, _) _ = do
       return $
       RawInline (Format "html") $
       printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
-    Disposition _ Latex -> return $ Str $ "[" ++ space ++ "]"
+    Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
 
 metaValue :: MacroAction
 metaValue _ _ (key, _) meta =

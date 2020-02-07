@@ -3,6 +3,5 @@ flags:
     embed_data_files: true
 packages:
   - "."
-extra-deps:
-  - git-0.3.0
-resolver: nightly-2019-08-04
+extra-deps: []
+resolver: nightly-2020-02-03

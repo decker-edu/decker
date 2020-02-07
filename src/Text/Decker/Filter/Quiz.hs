@@ -20,11 +20,11 @@ import Text.Decker.Internal.Common
 
 import Data.List
 import Data.List.Split
+import qualified Data.Text as Text
 import Text.Pandoc
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
-import Text.Regex.TDFA
 
 -- | Render all types of questions
 renderQuizzes :: Pandoc -> Decker Pandoc
@@ -60,7 +60,7 @@ renderFreetextQuestion bl@(BulletList ((firstBlock:_):(sndBlock:_):_)) =
     (Just q, Just a) ->
       Div
         ("", ["freetextQuestion"], [])
-        [Para $ freetextQuestionHtml q (stringify a)]
+        [Para $ freetextQuestionHtml q (Text.unpack (stringify a))]
     _ -> bl
 renderFreetextQuestion block = block
 
@@ -122,7 +122,7 @@ blanktextHtml (inlines, blocks) =
     splitBlankText inlines =
       concatMap
         (split (startsWith "{"))
-        (split (endsWith "}") (stringify inlines))
+        (split (endsWith "}") (Text.unpack (stringify inlines)))
 
 -- | Takes the List of Strings (text + possible answer options) and if it's an answer list generate a dropdown menu
 blanktextHtmlAnswers :: [String] -> [Inline]
@@ -134,9 +134,10 @@ blanktextHtmlAnswers =
       ->
        if "{" `isPrefixOf` x && "}" `isSuffixOf` x && not ("|" `isInfixOf` x)
          then [ toHtml
-                  (printf
-                     "<input type=\"text\" answer=\"%s\" class=\"blankInput\">"
-                     (filter (/= '!') . drop 1 . init $ x))
+                  (Text.pack
+                     (printf
+                        "<input type=\"text\" answer=\"%s\" class=\"blankInput\">"
+                        (filter (/= '!') . drop 1 . init $ x)))
               ]
           -- else the answers contain multiple elements separated by "|"
           -- Create an HTML select element
@@ -144,7 +145,7 @@ blanktextHtmlAnswers =
                 then [toHtml "<select class=\"blankSelect\">"] ++
                      map insertOption (split' x) ++ [toHtml "</select>"]
                 -- Else the string is filler text
-                else [Str x])
+                else [Str (Text.pack x)])
   where
     split' = splitOn "|" . drop 1 . init
     -- Take an answer option and create an HTML option element. 
@@ -152,16 +153,19 @@ blanktextHtmlAnswers =
     insertOption :: String -> Inline
     insertOption ('!':x) =
       toHtml
-        (printf
-           "<option class=\"blankOption\" answer=\"true\" value=\"%s\">%s</option>"
-           x
-           x)
+        (Text.pack
+           (printf
+              "<option class=\"blankOption\" answer=\"true\" value=\"%s\">%s</option>"
+              x
+              x))
     insertOption x =
       toHtml
-        (printf
-           "<option class=\"blankOption\" answer=\"false\" value=\"%s\">%s</option>"
-           x
-           x)
+        (Text.pack
+          (printf
+             "<option class=\"blankOption\" answer=\"false\" value=\"%s\">%s</option>"
+             x
+             x)
+        )
 
 -- | Creates the html representation for a matching question
 matchingHtml :: [([Inline], [[Block]])] -> Block
@@ -192,8 +196,9 @@ freetextQuestionHtml question answer =
   question ++
   [LineBreak] ++
   [ toHtml
-      ("<input type=\"text\" answer=\"" ++
-       answer ++ "\" class=\"freetextInput\">")
+      (Text.pack
+         ("<input type=\"text\" answer=\"" ++
+          answer ++ "\" class=\"freetextInput\">"))
   ] ++
   -- 
   [LineBreak] ++
