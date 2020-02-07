@@ -112,8 +112,6 @@ library:
       else:
         source-dirs: src-unix
         exposed-modules: "System.Decker.OS"
-    - condition: flag(preextractedresources)
-      cpp-options: "-DPREEXTRACTEDRESOURCES"
 
 executables:
   decker:
@@ -156,9 +154,3 @@ default-extensions:
   - ScopedTypeVariables
   - TemplateHaskell
   - TupleSections
-
-flags:
-  preextractedresources:
-    description: Assumes that the resources are already preextracted and will not extract them again or delete them
-    manual: true
-    default: false

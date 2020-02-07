@@ -52,7 +52,7 @@ $endif$
     var link = document.createElement( 'link' );
     link.rel = 'stylesheet';
     link.type = 'text/css';
-    link.href = window.location.search.match( /print-pdf/gi ) ? '$decker-support-dir$/vendor/reveal/css/print/pdf.css' : '$decker-support-dir$/vendor/reveal/css/print/paper.css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? String.raw`$decker-support-dir$/vendor/reveal/css/print/pdf.css` : String.raw`$decker-support-dir$/vendor/reveal/css/print/paper.css`;
     document.getElementsByTagName( 'head' )[0].appendChild( link );
   </script>
   <!--[if lt IE 9]>
@@ -356,7 +356,7 @@ $if(thebelab.enable)$
 $endif$
 $if(mathjax)$
         math: {
-          mathjax: "$decker-support-dir$/vendor/mathjax/MathJax.js",
+          mathjax: String.raw`$decker-support-dir$/vendor/mathjax/MathJax.js`,
           TeX: {
               Macros: {
               R: "{\\mathrm{{I}\\kern-.15em{R}}}",
@@ -405,34 +405,34 @@ $endif$
 
         // Optional reveal.js plugins
         dependencies: [
-          { src: '$decker-support-dir$/vendor/reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
-          { src: '$decker-support-dir$/vendor/reveal/plugin/zoom-js/zoom.js', async: true },
+          { src: String.raw`$decker-support-dir$/vendor/reveal/lib/js/classList.js`, condition: function() { return !document.body.classList; } },
+          { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/zoom-js/zoom.js`, async: true },
 $if(notes-server)$
-          { src: '$decker-support-dir$/vendor/reveal/socket.io/socket.io.js', async: true },
-          { src: '$decker-support-dir$/vendor/reveal/plugin/notes-server/client.js', async: true },
+          { src: String.raw`$decker-support-dir$/vendor/reveal/socket.io/socket.io.js`, async: true },
+          { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes-server/client.js`, async: true },
 $endif$
 $if(chart)$
-          { src: '$decker-support-dir$/vendor/charts/Chart.js'},
-          { src: '$decker-support-dir$/vendor/charts/plugin-errorbars.js'},
-          { src: '$decker-support-dir$/vendor/charts/plugin-colorschemes.js'},
-          { src: '$decker-support-dir$/vendor/charts/csv2chart.js'},
+          { src: String.raw`$decker-support-dir$/vendor/charts/Chart.js`},
+          { src: String.raw`$decker-support-dir$/vendor/charts/plugin-errorbars.js`},
+          { src: String.raw`$decker-support-dir$/vendor/charts/plugin-colorschemes.js`},
+          { src: String.raw`$decker-support-dir$/vendor/charts/csv2chart.js`},
 $endif$
 $if(chalkboard)$
-          { src: '$decker-support-dir$/vendor/whiteboard/whiteboard.js'},
+          { src: String.raw`$decker-support-dir$/vendor/whiteboard/whiteboard.js`},
 $endif$
 $if(menu)$
-          { src: '$decker-support-dir$/vendor/reveal.js-menu/menu.js', async: true },
+          { src: String.raw`$decker-support-dir$/vendor/reveal.js-menu/menu.js`, async: true },
 $endif$
 $if(highlightjs)$
-          { src: '$decker-support-dir$/vendor/highlight/highlight.js' },
+          { src: String.raw`$decker-support-dir$/vendor/highlight/highlight.js` },
 $endif$
 $if(mathjax)$
-          { src: '$decker-support-dir$/vendor/math/math.js' },
+          { src: String.raw`$decker-support-dir$/vendor/math/math.js` },
 $endif$
 $if(thebelab.enable)$
-          { src: '$decker-support-dir$/js/thebelab.js', async: true },
+          { src: String.raw`$decker-support-dir$/js/thebelab.js`, async: true },
 $endif$
-          { src: '$decker-support-dir$/vendor/reveal/plugin/notes/notes.js', async: true }
+          { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes/notes.js`, async: true }
         ]
       });
     </script>
