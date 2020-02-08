@@ -28,6 +28,9 @@ jquery: jquery/dist/jquery.min.js
 	@cp jquery/dist/jquery.min.js $(support)/jquery.js
 
 mathjax:
+	@$(dup) $(third)/MathJax $(support)/
+
+mathjax-old:
 	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
 	@for i in MathJax.js config jax/input/TeX jax/output/SVG jax/element extensions; do \
 		$(dup) $(third)/MathJax/$$i $(support)/mathjax/$$i; \

@@ -98,7 +98,7 @@ data Provisioning
 -- include files.
 deckerPandocExtensions :: Extensions
 deckerPandocExtensions =
-  (disableExtension Ext_auto_identifiers .
+  (enableExtension Ext_auto_identifiers .
    disableExtension Ext_simple_tables .
    disableExtension Ext_multiline_tables . enableExtension Ext_emoji)
     pandocExtensions
