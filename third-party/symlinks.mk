@@ -24,16 +24,13 @@ thebelab: thebelab/lib/index.js
 	@cp thebelab/lib/*.{js,map} $(support)/thebelab
 
 jquery: jquery/dist/jquery.min.js
-	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
+	@mkdir -p $(support)
 	@cp jquery/dist/jquery.min.js $(support)/jquery.js
 
 mathjax:
-	@$(dup) $(third)/MathJax $(support)/
-
-mathjax-old:
-	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
-	@for i in MathJax.js config jax/input/TeX jax/output/SVG jax/element extensions; do \
-		$(dup) $(third)/MathJax/$$i $(support)/mathjax/$$i; \
+	@mkdir -p $(support)/mathjax/{input,output}
+	@for i in tex-svg.js input/tex input/tex.js output/svg output/svg.js; do \
+		$(dup) $(third)/MathJax/es5/$$i $(support)/mathjax/$$i; \
 	done
 
 reveal.js:
