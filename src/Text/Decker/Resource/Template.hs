@@ -1,12 +1,14 @@
 module Text.Decker.Resource.Template
   ( readTemplates
-  , Template(..)
+  , DeckerTemplate(..)
   ) where
 
 import Text.Decker.Resource.Zip
 
 import Control.Monad
-import qualified Data.ByteString as BS
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text
+import qualified Data.Text.IO as Text
 import System.FilePath
 
 templates =
@@ -18,26 +20,26 @@ templates =
   , "template/page.tex"
   ]
 
-data Template =
-  Template BS.ByteString
+data DeckerTemplate =
+  DeckerTemplate Text.Text
            (Maybe FilePath)
   deriving (Show)
 
-readTemplates :: FilePath -> Bool -> IO [(FilePath, Template)]
+readTemplates :: FilePath -> Bool -> IO [(FilePath, DeckerTemplate)]
 readTemplates root devRun =
   if devRun
     then readTemplatesFs (root </> "resource")
     else readTemplatesZip
 
-readTemplatesFs :: FilePath -> IO [(FilePath, Template)]
+readTemplatesFs :: FilePath -> IO [(FilePath, DeckerTemplate)]
 readTemplatesFs dir = foldM readTemplate [] templates
   where
     readTemplate list path = do
       let file = dir </> path
-      content <- BS.readFile file
-      return $ (path, Template content (Just file)) : list
+      content <- Text.readFile file
+      return $ (path, DeckerTemplate content (Just file)) : list
 
-readTemplatesZip :: IO [(FilePath, Template)]
+readTemplatesZip :: IO [(FilePath, DeckerTemplate)]
 readTemplatesZip =
-  map (\(f, c) -> (f, Template c Nothing)) <$>
+  map (\(f, content) -> (f, DeckerTemplate (Text.decodeUtf8 content) Nothing)) <$>
   extractResourceEntryList templates

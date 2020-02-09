@@ -1,29 +1,30 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Text.Decker.Internal.Common
-  (addScript
+  ( addScript
    -- * Types
-  ,DeckerState(..)
-  ,Layout(..)
-  ,OutputFormat(..)
-  ,Disposition(..)
-  ,MediaType(..)
-  ,Provisioning(..)
-  ,Script(..)
-  ,Decker
+  , DeckerState(..)
+  , Layout(..)
+  , OutputFormat(..)
+  , Disposition(..)
+  , MediaType(..)
+  , Provisioning(..)
+  , Script(..)
+  , Decker
    -- *
-  ,doIO
-  ,needFile
-  ,needFiles
-  ,pandocReaderOpts
-  ,pandocWriterOpts
-  ,templateFileName) where
+  , doIO
+  , needFile
+  , needFiles
+  , pandocReaderOpts
+  , pandocWriterOpts
+  , templateFileName
+  ) where
 
-import Control.Monad.State
 import Control.Exception
-import Development.Shake (Action,need)
+import Control.Monad.State
+import Development.Shake (Action, need)
 import Network.URI as U
-import Text.Pandoc
 import Text.Decker.Internal.Exception
+import Text.Pandoc
 
 type Decker = StateT DeckerState Action
 
@@ -37,51 +38,41 @@ needFiles :: [FilePath] -> Decker ()
 needFiles pathes = lift $ need pathes
 
 addScript :: Script -> Decker ()
-addScript script = modify (\s -> s
-                           { scripts = scripts s ++ [script]
-                           })
+addScript script = modify (\s -> s {scripts = scripts s ++ [script]})
 
-data DeckerState =
-    DeckerState
-    { basePath :: String
-    , disposition :: Disposition
-    , provisioning :: Provisioning
-    , slideCount :: Int
-    , externalReferences :: [U.URI]
-    , scripts :: [Script]
-    }
-    deriving (Eq,Show)
+data DeckerState = DeckerState
+  { basePath :: String
+  , disposition :: Disposition
+  , provisioning :: Provisioning
+  , slideCount :: Int
+  , externalReferences :: [U.URI]
+  , scripts :: [Script]
+  } deriving (Eq, Show)
 
 data Script
-    = ScriptURI
-          { scriptLang :: String
-          , scriptUri :: String
-          }
-    | ScriptSource
-          { scriptLang :: String
-          , scriptSource :: String
-          }
-    deriving (Eq,Show,Ord)
+  = ScriptURI { scriptLang :: String
+              , scriptUri :: String }
+  | ScriptSource { scriptLang :: String
+                 , scriptSource :: String }
+  deriving (Eq, Show, Ord)
 
 data Layout
-    = Deck
-    | Page
-    | Handout
-    | Notebook
-    deriving (Eq,Show)
+  = Deck
+  | Page
+  | Handout
+  | Notebook
+  deriving (Eq, Show)
 
 data OutputFormat
-    = Reveal
-    | Html
-    | Latex
-    deriving (Eq,Show)
+  = Reveal
+  | Html
+  | Latex
+  deriving (Eq, Show)
 
-data Disposition =
-    Disposition
-    { layout :: Layout
-    , format :: OutputFormat
-    }
-    deriving (Eq,Show)
+data Disposition = Disposition
+  { layout :: Layout
+  , format :: OutputFormat
+  } deriving (Eq, Show)
 
 templateFileName :: Disposition -> String
 templateFileName (Disposition Deck Html) = "template/deck.html"
@@ -91,38 +82,33 @@ templateFileName (Disposition Page Latex) = "template/page.tex"
 templateFileName (Disposition Handout Html) = "template/handout.html"
 templateFileName (Disposition Handout Latex) = "template/handout.tex"
 templateFileName (Disposition Notebook Html) =
-    throw $ InternalException "No template for Notebook"
+  throw $ InternalException "No template for Notebook"
 templateFileName (Disposition Notebook Latex) =
-    throw $ InternalException "No template for Notebook"
+  throw $ InternalException "No template for Notebook"
 
 data MediaType
-    = ImageMedia
-    | AudioMedia
-    | VideoMedia
-    | IframeMedia
-    | MeshMedia
+  = ImageMedia
+  | AudioMedia
+  | VideoMedia
+  | IframeMedia
+  | MeshMedia
 
 data Provisioning
-    = Copy -- ^ Copy to public and relative URL
-    | SymLink -- ^ Symbolic link to public and relative URL
-    | Absolute -- ^ Absolute local URL
-    | Relative -- ^ Relative local URL
-    deriving (Eq,Show,Read)
+  = Copy -- ^ Copy to public and relative URL
+  | SymLink -- ^ Symbolic link to public and relative URL
+  | Absolute -- ^ Absolute local URL
+  | Relative -- ^ Relative local URL
+  deriving (Eq, Show, Read)
 
 pandocReaderOpts :: ReaderOptions
 pandocReaderOpts =
-    def
-    { readerExtensions =
-          (disableExtension Ext_auto_identifiers . enableExtension Ext_emoji)
-              pandocExtensions
-    }
+  def {readerExtensions = (enableExtension Ext_emoji) pandocExtensions}
 
 pandocWriterOpts :: WriterOptions
 pandocWriterOpts =
-    def
-    { writerExtensions = (disableExtension Ext_auto_identifiers
-                          . disableExtension Ext_simple_tables
-                          . disableExtension Ext_multiline_tables
-                          . enableExtension Ext_emoji)
+  def
+    { writerExtensions =
+        (disableExtension Ext_simple_tables .
+         disableExtension Ext_multiline_tables . enableExtension Ext_emoji)
           pandocExtensions
     }

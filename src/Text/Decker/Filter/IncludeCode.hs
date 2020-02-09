@@ -235,56 +235,72 @@ allSteps :: Inclusion Text
 allSteps =
   readIncluded >>= splitLines >>= includeByMode >>= dedentLinesMax >>= joinLines
 
+stringTup (k, v) = (Text.unpack k, Text.unpack v)
+
+textTup (k, v) = (Text.pack k, Text.pack v)
+
 includeCode' :: Block -> IO (Either InclusionError Block)
 includeCode' cb@(CodeBlock (id', classes, attrs) _) =
-  case parseInclusion (HM.fromList attrs) of
-    Right (Just spec) ->
-      runInclusion' spec allSteps >>= \case
+  let attrs' = map stringTup attrs
+      classes' = map Text.unpack classes
+   in case parseInclusion (HM.fromList attrs') of
+        Right (Just spec) ->
+          runInclusion' spec allSteps >>= \case
+            Left err -> return (Left err)
+            Right (contents, state) ->
+              return
+                (Right
+                   (CodeBlock
+                      ( id'
+                      , classes
+                      , map textTup $ modifyAttributes state classes' attrs')
+                      contents))
+        Right Nothing -> return (Right cb)
         Left err -> return (Left err)
-        Right (contents, state) ->
-          return
-            (Right
-               (CodeBlock
-                  (id', classes, modifyAttributes state classes attrs)
-                  (Text.unpack contents)))
-    Right Nothing -> return (Right cb)
-    Left err -> return (Left err)
 includeCode' x = return (Right x)
 
 includeCodeA' :: Block -> Action (Either InclusionError Block)
 includeCodeA' cb@(CodeBlock (id', classes, attrs) _) =
-  case parseInclusion (HM.fromList attrs) of
-    Right (Just spec) -> do
-      local <- urlToFilePathIfLocal "." (include spec)
-      need [local]
-      inclusion <- liftIO $ runInclusion' spec {include = local} allSteps
-      case inclusion of
+  let attrs' = map stringTup attrs
+      classes' = map Text.unpack classes
+   in case parseInclusion (HM.fromList attrs') of
+        Right (Just spec) -> do
+          local <- urlToFilePathIfLocal "." (include spec)
+          need [local]
+          inclusion <- liftIO $ runInclusion' spec {include = local} allSteps
+          case inclusion of
+            Left err -> return (Left err)
+            Right (contents, state) ->
+              return
+                (Right
+                   (CodeBlock
+                      ( id'
+                      , classes
+                      , map textTup $ modifyAttributes state classes' attrs')
+                      contents))
+        Right Nothing -> return (Right cb)
         Left err -> return (Left err)
-        Right (contents, state) ->
-          return
-            (Right
-               (CodeBlock
-                  (id', classes, modifyAttributes state classes attrs)
-                  (Text.unpack contents)))
-    Right Nothing -> return (Right cb)
-    Left err -> return (Left err)
 includeCodeA' pi@(Para [Image (id', classes, attrs) _ (url, _)]) =
-  case parseInclusionUrl url of
-    Right (Just rawSpec) -> do
-      local <- urlToFilePathIfLocal "." (include rawSpec)
-      need [local]
-      let spec = rawSpec {include = local}
-      inclusion <- liftIO $ runInclusion' spec allSteps
-      case inclusion of
+  let attrs' = map stringTup attrs
+      classes' = map Text.unpack classes
+   in case parseInclusionUrl (Text.unpack url) of
+        Right (Just rawSpec) -> do
+          local <- urlToFilePathIfLocal "." (include rawSpec)
+          need [local]
+          let spec = rawSpec {include = local}
+          inclusion <- liftIO $ runInclusion' spec allSteps
+          case inclusion of
+            Left err -> return (Left err)
+            Right (contents, state) ->
+              return
+                (Right
+                   (CodeBlock
+                      ( id'
+                      , classes
+                      , map textTup $ modifyAttributes state classes' attrs')
+                      contents))
+        Right Nothing -> return (Right pi)
         Left err -> return (Left err)
-        Right (contents, state) ->
-          return
-            (Right
-               (CodeBlock
-                  (id', classes, modifyAttributes state classes attrs)
-                  (Text.unpack contents)))
-    Right Nothing -> return (Right pi)
-    Left err -> return (Left err)
 includeCodeA' x = return (Right x)
 
 -- | A Pandoc filter that includes code snippets from

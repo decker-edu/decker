@@ -11,6 +11,8 @@ module Text.Decker.Internal.Meta
   , getMetaBool
   , getMetaBoolOrElse
   , getMetaText
+  , getMetaString
+  , getMetaStringList
   , getMetaTextOrElse
   , getMetaTextList
   , getMetaTextListOrElse
@@ -101,7 +103,7 @@ getAdditionalMeta meta = do
   let m = getMetaTextList "meta-data" meta
   case m of
     Just metafiles -> do
-      let filePathes =  map Text.unpack metafiles
+      let filePathes = map Text.unpack metafiles
       addmeta <- liftIO $ traverse readMetaDataFile filePathes
       need filePathes
       -- foldr and reversed addmeta list because additional meta should overwrite default meta
@@ -154,12 +156,20 @@ getMetaBoolOrElse key def meta =
 getMetaText :: Text.Text -> Meta -> Maybe Text.Text
 getMetaText key meta = getMetaValue key meta >>= metaToText
 
+getMetaString :: String -> Meta -> Maybe String
+getMetaString key meta =
+  Text.unpack <$> (getMetaValue (Text.pack key) meta >>= metaToText)
+
 getMetaTextOrElse :: Text.Text -> Text.Text -> Meta -> Text.Text
 getMetaTextOrElse key def meta =
   case getMetaValue key meta of
     Just (MetaString string) -> string
     Just (MetaInlines inlines) -> stringify inlines
     _ -> def
+
+getMetaStringList :: String -> Meta -> Maybe [String]
+getMetaStringList key meta =
+  map Text.unpack <$> (getMetaValue (Text.pack key) meta >>= metaToTextList)
 
 getMetaTextList :: Text.Text -> Meta -> Maybe [Text.Text]
 getMetaTextList key meta = getMetaValue key meta >>= metaToTextList
@@ -187,7 +197,7 @@ getMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
   where
     lookup' (key:path) (MetaMap map) = M.lookup key map >>= lookup' path
     lookup' (key:path) (MetaList list) =
-      ( readMaybe . Text.unpack) key >>= (!!) list >>= lookup' path
+      (readMaybe . Text.unpack) key >>= (!!) list >>= lookup' path
     lookup' (_:_) _ = Nothing
     lookup' [] mv = Just mv
 

@@ -18,6 +18,7 @@ import Data.List.Extra
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
+import qualified Data.Text as Text
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath
 import Text.Blaze.Html.Renderer.String
@@ -38,7 +39,7 @@ data Processor = Processor
   }
 
 -- | The map of all rendering processors.
-processors :: Map.Map String Processor
+processors :: Map.Map Text.Text Processor
 processors =
   Map.fromList
     [ ("dot", Processor ".dot" (shakeCompile ".svg"))
@@ -67,22 +68,22 @@ d3Canvas source (eid, classes, keyvals) = do
   contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "d3.js")
   addScript $ ScriptSource "javascript" contents
-  let classStr = unwords classes
+  let classStr = unwords $ map Text.unpack classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
   case element of
     "canvas" ->
       return $
       RawInline (Format "html") $
-      renderHtml $
+      Text.pack $ renderHtml $
       H.canvas ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
     "div" ->
       return $
       RawInline (Format "html") $
-      renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
+      Text.pack $ renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
     _ ->
       return $
       RawInline (Format "html") $
-      printf "<svg id=\"%v\" class=\"%v\"></svg>" eid classStr
+      Text.pack $ printf "<svg id=\"%v\" class=\"%v\"></svg>" eid classStr
 
 threejsCanvas :: FilePath -> Attr -> Decker Inline
 threejsCanvas source (eid, classes, keyvals) = do
@@ -94,25 +95,25 @@ threejsCanvas source (eid, classes, keyvals) = do
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "three.js")
-  let includes = splitOn "," $ fromMaybe "" $ lookup "includes" keyvals
+  let includes = splitOn "," $ Text.unpack $ fromMaybe "" $ lookup "includes" keyvals
   mapM_ (addScript . ScriptURI "javascript") includes
   addScript $ ScriptSource "javascript" contents
-  let classStr = unwords classes
+  let classStr = unwords $ map Text.unpack classes
   let element = fromMaybe "svg" $ lookup "element" keyvals
   case element of
     "canvas" ->
       return $
       RawInline (Format "html") $
-      renderHtml $
+      Text.pack $ renderHtml $
       H.canvas ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
     "div" ->
       return $
       RawInline (Format "html") $
-      renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
+      Text.pack $ renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
     _ ->
       return $
       RawInline (Format "html") $
-      printf "<svg id=\"%v\" class=\"%v\"></svg>" eid classStr
+      Text.pack $ printf "<svg id=\"%v\" class=\"%v\"></svg>" eid classStr
 
 bracketedShakeCompile ::
      String -> String -> String -> FilePath -> Attr -> Decker Inline
@@ -122,13 +123,13 @@ bracketedShakeCompile ext preamble postamble source attr = do
   codePath <- writeCodeIfChanged bracketed (takeExtension source)
   let path = codePath <.> ext
   needFile path
-  return $ Image attr [] (path, "")
+  return $ Image attr [] (Text.pack path, "")
 
 shakeCompile :: String -> FilePath -> Attr -> Decker Inline
 shakeCompile ext source attr = do
   let path = source <.> ext
   needFile path
-  return $ Image attr [] (path, "")
+  return $ Image attr [] (Text.pack path, "")
 
 -- | Calculates the list of all known file extensions that can be rendered into
 -- an SVG image.
@@ -140,7 +141,7 @@ restrictKeys m s = Map.filterWithKey (\k _ -> k `Set.member` s) m
 
 -- | Selects a processor based on a list of CSS class names. The first processor
 -- that is mentioned in that list is returned.
-findProcessor :: [String] -> Maybe Processor
+findProcessor :: [Text.Text] -> Maybe Processor
 findProcessor classes
   | "render" `elem` classes = listToMaybe $ Map.elems matching
   where
@@ -154,7 +155,7 @@ findProcessor _ = Nothing
 maybeRenderImage :: Inline -> Decker Inline
 maybeRenderImage image@(Image attr@(_, classes, _) _ (url, _)) =
   case findProcessor classes of
-    Just processor -> compiler processor url attr
+    Just processor -> compiler processor (Text.unpack url ) attr
     Nothing -> return image
 maybeRenderImage inline = return inline
 
@@ -169,7 +170,7 @@ maybeRenderCodeBlock block@(CodeBlock attr@(x, classes, y) code)
   let block = CodeBlock (x, cls, y) code
   case findProcessor cls of
     Just processor -> do
-      path <- writeCodeIfChanged code (extension processor)
+      path <- writeCodeIfChanged (Text.unpack code ) (extension processor)
       inline <- compiler processor path (x, cls, y)
       return $ Plain [inline]
     Nothing -> return block
@@ -200,13 +201,13 @@ appendScripts pandoc@(Pandoc meta blocks) = do
   where
     renderScript (ScriptURI language uri) =
       RawBlock (Format "html") $
-      renderHtml $
+      Text.pack $ renderHtml $
       H.script ! class_ "generated decker" ! lang (toValue language) !
       src (toValue uri) $
       ""
     renderScript (ScriptSource language source) =
       RawBlock (Format "html") $
-      printf
+      Text.pack $ printf
         "<script class=\"generated decker\" lang=\"%s\">%s</script>"
         language
         source

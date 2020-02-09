@@ -12,7 +12,6 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
-import Text.Decker.Project.Sketch
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
 import Text.Pandoc.Lens
@@ -138,6 +137,35 @@ readMarkdownOrThrow opts markdown =
     case runPure (readMarkdown opts markdown) of
         Right pandoc -> pandoc
         Left errMsg -> throw $ PandocException (show errMsg)
+
+-- | Writes a pandoc document atoimically to a markdown file. 
+writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
+writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
+  template <- getTemplate' "template/deck.md"
+  let columns = getMetaIntOrElse "write-back.line-columns" 80 pmeta
+  let wrapOpt "none" = WrapNone
+      wrapOpt "preserve" = WrapPreserve
+      wrapOpt _ = WrapAuto
+  let wrap = getMetaTextOrElse "write-back.line-wrap" "none" pmeta
+  let extensions =
+        (disableExtension Ext_simple_tables .
+         disableExtension Ext_multiline_tables .
+         disableExtension Ext_grid_tables .
+         disableExtension Ext_raw_html . enableExtension Ext_auto_identifiers)
+          pandocExtensions
+  let options =
+        def
+          { writerTemplate = Just template
+          , writerExtensions = extensions
+          , writerColumns = columns
+          , writerWrapText = wrapOpt wrap
+          , writerSetextHeaders = False
+          }
+  markdown <- liftIO $ runIO (writeMarkdown options pandoc) >>= handleError
+  fileContent <- liftIO $ T.readFile filepath
+  when (markdown /= fileContent) $
+    withTempFile
+      (\tmp -> liftIO $ T.writeFile tmp markdown >> renameFile tmp filepath)
 
 processCitesWithDefault :: Pandoc -> Decker Pandoc
 processCitesWithDefault = lift . liftIO . processCites'

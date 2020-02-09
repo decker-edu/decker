@@ -23,6 +23,7 @@ import Data.List.Split
 import Data.Maybe
 import Text.Pandoc
 import Text.Pandoc.Definition ()
+import qualified Data.Text as Text
 
 -- A slide has maybe a header followed by zero or more blocks.
 data Slide = Slide
@@ -103,26 +104,26 @@ isSlideSeparator _ = False
 
 demoteHeaders = traverse . _Header . _1 +~ 1
 
-classes :: HasAttr a => a -> [String]
+classes :: HasAttr a => a -> [Text.Text]
 classes = view (attributes . attrClasses)
 
-hasClass :: HasAttr a => String -> a -> Bool
+hasClass :: HasAttr a => Text.Text -> a -> Bool
 hasClass which = elem which . classes
 
-hasAnyClass :: HasAttr a => [String] -> a -> Bool
+hasAnyClass :: HasAttr a => [Text.Text] -> a -> Bool
 hasAnyClass which = isJust . firstClass which
 
-firstClass :: HasAttr a => [String] -> a -> Maybe String
+firstClass :: HasAttr a => [Text.Text] -> a -> Maybe Text.Text
 firstClass which fragment = listToMaybe $ filter (`hasClass` fragment) which
 
-attribValue :: HasAttr a => String -> a -> Maybe String
+attribValue :: HasAttr a => Text.Text -> a -> Maybe Text.Text
 attribValue which = lookup which . view (attributes . attrs)
 
-dropByClass :: HasAttr a => [String] -> [a] -> [a]
+dropByClass :: HasAttr a => [Text.Text] -> [a] -> [a]
 dropByClass which =
   filter (not . any (`elem` which) . view (attributes . attrClasses))
 
-keepByClass :: HasAttr a => [String] -> [a] -> [a]
+keepByClass :: HasAttr a => [Text.Text] -> [a] -> [a]
 keepByClass which =
   filter (any (`elem` which) . view (attributes . attrClasses))
 

@@ -31,6 +31,7 @@ import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.State
 import qualified Data.Map.Lazy as Map
+import qualified Data.Text as Text
 import Development.Shake hiding (Resource)
 import Network.URI
 import qualified System.Directory as Dir
@@ -42,7 +43,7 @@ import Text.Pandoc.Walk
 -- | These resources are needed at runtime. If they are specified as local URLs,
 -- the resource must exists at compile time. Remote URLs are passed through
 -- unchanged.
-elementAttributes :: [String]
+elementAttributes :: [Text.Text]
 elementAttributes =
   [ "src"
   , "data-src"
@@ -52,19 +53,19 @@ elementAttributes =
   , "data-background-iframe"
   ]
 
--- | Resources in meta data that are needed at compile time. They have to be
--- specified as local URLs and must exist.
-runtimeMetaKeys :: [String]
+runtimeMetaKeys :: [Text.Text]
 runtimeMetaKeys = ["css", "base-css"]
 
-templateOverrideMetaKeys :: [String]
+-- | Resources in meta data that are needed at compile time. They have to be
+-- specified as local URLs and must exist.
+templateOverrideMetaKeys :: [Text.Text]
 templateOverrideMetaKeys = ["template"]
 
-compiletimeMetaKeys :: [String]
+compiletimeMetaKeys :: [Text.Text]
 compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
 
-metaKeys :: [String]
-metaKeys = runtimeMetaKeys ++ compiletimeMetaKeys ++ templateOverrideMetaKeys
+metaKeys :: [Text.Text]
+metaKeys = runtimeMetaKeys <> compiletimeMetaKeys <> templateOverrideMetaKeys
 
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()
@@ -103,7 +104,7 @@ linkResource resource = do
   return (publicUrl resource)
 
 provisionMetaResource ::
-     FilePath -> Provisioning -> (String, FilePath) -> Action FilePath
+     FilePath -> Provisioning -> (Text.Text, FilePath) -> Action FilePath
 provisionMetaResource base method (key, url)
   | key `elem` runtimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
@@ -233,21 +234,21 @@ mapAttributes transform (ident, classes, kvs) = do
     mapAttr kv@(key, value) =
       if key `elem` elementAttributes
         then do
-          transformed <- transform value
-          return (key, transformed)
+          transformed <- transform (Text.unpack value)
+          return (key, Text.pack transformed)
         else return kv
 
 mapInline :: (FilePath -> Action FilePath) -> Inline -> Action Inline
 mapInline transform (Image attr inlines (url, title)) = do
   a <- mapAttributes transform attr
-  u <- transform url
-  return $ Image a inlines (u, title)
+  u <- transform (Text.unpack url )
+  return $ Image a inlines (Text.pack u, title)
 mapInline transform lnk@(Link attr@(_, cls, _) inlines (url, title)) =
   if "resource" `elem` cls
     then do
       a <- mapAttributes transform attr
-      u <- transform url
-      return (Link a inlines (u, title))
+      u <- transform (Text.unpack url )
+      return (Link a inlines (Text.pack u, title))
     else return lnk
 mapInline transform (Span attr inlines) = do
   attribs <- mapAttributes transform attr
@@ -270,25 +271,26 @@ mapBlock transform (Div attr blocks) = do
 mapBlock _ block = return block
 
 mapMetaResources ::
-     ((String, FilePath) -> Action FilePath) -> Pandoc -> Action Pandoc
+     ((Text.Text, FilePath) -> Action FilePath) -> Pandoc -> Action Pandoc
 mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
   mapped <- mapM mapMeta $ Map.toList kvmap
   return $ Pandoc (Meta $ Map.fromList mapped) blocks
   where
+    transform' (k, v) = Text.pack <$> transform (k, Text.unpack v)
     mapMeta (k, MetaString v)
       | k `elem` metaKeys = do
-        transformed <- transform (k, v)
+        transformed <- transform' (k, v)
         return (k, MetaString transformed)
     mapMeta (k, MetaInlines inlines)
       | k `elem` metaKeys = do
-        transformed <- transform (k, stringify inlines)
+        transformed <- transform' (k, stringify inlines)
         return (k, MetaString transformed)
     mapMeta (k, MetaList l)
       | k `elem` metaKeys = do
         transformed <- mapM (mapMetaList k) l
         return (k, MetaList transformed)
     mapMeta kv = return kv
-    mapMetaList k (MetaString v) = MetaString <$> transform (k, v)
+    mapMetaList k (MetaString v) = MetaString <$> transform' (k, v)
     mapMetaList k (MetaInlines inlines) =
-      MetaString <$> transform (k, stringify inlines)
+      MetaString <$> transform' (k, stringify inlines)
     mapMetaList _ v = return v

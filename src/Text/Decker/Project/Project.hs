@@ -40,7 +40,6 @@ module Text.Decker.Project.Project
   , ProjectDirs(..)
   ) where
 
-import System.Decker.OS
 import Text.Decker.Internal.Common
 -- import Text.Decker.Internal.Flags
 import Text.Decker.Internal.Helper
@@ -58,8 +57,8 @@ import System.Environment
 import System.FilePath
 import System.FilePath.Glob
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared
 import Text.Regex.TDFA
+import Text.Read
 
 data Targets = Targets
   { _sources :: [FilePath]
@@ -93,18 +92,10 @@ data ProjectDirs = ProjectDirs
 makeLenses ''ProjectDirs
 
 provisioningFromMeta :: Meta -> Provisioning
-provisioningFromMeta meta =
-  case lookupMeta "provisioning" meta of
-    Just (MetaString s) -> read s
-    Just (MetaInlines i) -> read $ stringify i
-    _ -> SymLink
+provisioningFromMeta meta = fromMaybe SymLink $ getMetaString "provisioning" meta >>= readMaybe
 
 dachdeckerFromMeta :: Meta -> Maybe String
-dachdeckerFromMeta meta =
-  case lookupMeta "dachdecker" meta of
-    Just (MetaString s) -> Just s
-    Just (MetaInlines i) -> Just $ stringify i
-    _ -> Nothing
+dachdeckerFromMeta = getMetaString "dachdecker" 
 
 provisioningClasses :: [(String, Provisioning)]
 provisioningClasses =

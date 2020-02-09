@@ -1,6 +1,5 @@
 import IncludeTests
 import MetaTests
-import SketchTests
 import Test.Hspec
 import WatchTests
 
