@@ -11,24 +11,22 @@ module Text.Decker.Writer.Html
 import Text.Decker.Filter.Filter
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
-import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Reader.Markdown
 import Text.Pandoc.Lens
 
-import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad.State
-import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as LB
+import qualified Data.Map as M
 import qualified Data.MultiMap as MM
-import qualified Data.Text.Encoding as E
+import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Development.Shake
 import Development.Shake.FilePath as SFP
-import Text.Pandoc
+import Text.DocTemplates
+import Text.Pandoc hiding (getTemplate)
 import Text.Pandoc.Highlighting
 import Text.Printf
 
@@ -86,7 +84,7 @@ writeIndexLists out baseUrl = do
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
 writeNativeWhileDebugging out mod doc =
   liftIO $
-  runIOQuietly (writeNative pandocWriterOpts doc) >>= handleError >>=
+  runIO (writeNative pandocWriterOpts doc) >>= handleError >>=
   T.writeFile (out -<.> mod <.> ".hs")
 
 -- | Write a markdown file to a HTML file using the page template.
@@ -110,28 +108,22 @@ markdownToHtmlDeck markdownFile out index = do
           , writerHTMLMathMethod =
               MathJax "Handled by reveal.js in the template"
           , writerVariables =
-              [ ("decker-support-dir", supportDir)
-              , ("dachdecker-url", dachdeckerUrl')
-              ]
+              Context $
+              M.fromList
+                [ ("decker-support-dir", SimpleVal $ Text 0 $ T.pack supportDir)
+                , ("dachdecker-url", SimpleVal $ Text 0 $ T.pack dachdeckerUrl')
+                ]
           , writerCiteMethod = Citeproc
           }
-  writeDeckIndex markdownFile index pandoc >>=
-    writePandocFile "revealjs" options out
+  writePandocFile "revealjs" options out pandoc
   when (getMetaBoolOrElse "write-notebook" False meta) $
     markdownToNotebook markdownFile (out -<.> ".ipynb")
   writeNativeWhileDebugging out "filtered" pandoc
 
-writePandocFile :: String -> WriterOptions -> FilePath -> Pandoc -> Action ()
+writePandocFile :: T.Text -> WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocFile fmt options out pandoc =
   liftIO $
-  case getWriter fmt of
-    Right (TextWriter writePandoc, _) ->
-      runIOQuietly (writePandoc options pandoc) >>= handleError >>=
-      B.writeFile out . E.encodeUtf8
-    Right (ByteStringWriter writePandoc, _) ->
-      runIOQuietly (writePandoc options pandoc) >>= handleError >>=
-      LB.writeFile out
-    Left e -> throw $ PandocException e
+  runIO (writeRevealJs options pandoc) >>= handleError >>= T.writeFile out
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage :: FilePath -> FilePath -> Action ()
@@ -147,7 +139,10 @@ markdownToHtmlPage markdownFile out = do
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax "Handled by reveal.js in the template"
-          , writerVariables = [("decker-support-dir", supportDir)]
+          , writerVariables =
+              Context $
+              M.fromList
+                [("decker-support-dir", SimpleVal $ Text 0 $ T.pack supportDir)]
           , writerCiteMethod = Citeproc
           , writerTableOfContents = getMetaBoolOrElse "show-toc" False docMeta
           , writerTOCDepth = getMetaIntOrElse "toc-depth" 1 docMeta
@@ -169,7 +164,10 @@ markdownToHtmlHandout markdownFile out = do
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax "Handled by reveal.js in the template"
-          , writerVariables = [("decker-support-dir", supportDir)]
+          , writerVariables =
+              Context $
+              M.fromList
+                [("decker-support-dir", SimpleVal $ Text 0 $ T.pack supportDir)]
           , writerCiteMethod = Citeproc
           , writerTableOfContents = getMetaBoolOrElse "show-toc" False docMeta
           , writerTOCDepth = getMetaIntOrElse "toc-depth" 1 docMeta
@@ -188,6 +186,9 @@ markdownToNotebook markdownFile out = do
         pandocWriterOpts
           { writerTemplate = Nothing
           , writerHighlightStyle = Just pygments
-          , writerVariables = [("decker-support-dir", supportDir)]
+          , writerVariables =
+              Context $
+              M.fromList
+                [("decker-support-dir", SimpleVal $ Text 0 $ T.pack supportDir)]
           }
   writePandocFile "ipynb" options out pandoc

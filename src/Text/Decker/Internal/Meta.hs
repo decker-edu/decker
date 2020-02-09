@@ -227,5 +227,5 @@ metaToTextMap (MetaMap metaMap) =
     stringMap -> Just stringMap
 metaToTextMap _ = Nothing
 
-pandocMeta :: (String -> Meta -> Maybe a) -> Pandoc -> String -> Maybe a
+pandocMeta :: (Text.Text -> Meta -> Maybe a) -> Pandoc -> Text.Text -> Maybe a
 pandocMeta f (Pandoc m _) = flip f m

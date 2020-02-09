@@ -16,7 +16,7 @@ import Development.Shake
 import System.Decker.OS
 import System.Exit
 import System.Process
-import Text.Pandoc
+import Text.Pandoc hiding (getTemplate)
 import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
 

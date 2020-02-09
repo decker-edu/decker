@@ -48,6 +48,7 @@ dependencies:
   - containers
   - data-default
   - directory
+  - doctemplates
   - extra
   - filepath
   - fsnotify

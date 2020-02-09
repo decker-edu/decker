@@ -19,15 +19,15 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
-import Data.ByteString.Char8 as B
 import qualified Data.Text as T
-import Data.Text.Encoding as E
+import qualified Data.Text.IO as T
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Text.CSL.Pandoc
 import qualified Text.Mustache as M
 import qualified Text.Mustache.Types as MT
 import Text.Pandoc
+import System.Directory
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
@@ -40,7 +40,7 @@ processIncludes baseDir (Pandoc meta blocks) =
 
     include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
     include base result (Para [Link _ [Str ":include"] (url,_)]) = do
-        includeFile <- urlToFilePathIfLocal base url
+        includeFile <- urlToFilePathIfLocal base (T.unpack url )
         need [includeFile]
         Pandoc _ b <- readMetaMarkdown includeFile
         included <- processBlocks (takeDirectory includeFile) b
@@ -102,35 +102,20 @@ readMetaMarkdown :: FilePath -> Action Pandoc
 readMetaMarkdown markdownFile = do
     projectDir <- projectA
     need [markdownFile]
+    markdown <- liftIO $ T.readFile markdownFile
     -- Global meta data for this directory from decker.yaml and specified additional files
     globalMeta <- globalMetaA
-    -- markdown <- liftIO $ T.readFile markdownFile
-    markdown <- liftIO $ E.decodeUtf8 <$> B.readFile markdownFile
-    let filePandoc @ (Pandoc fileMeta _) =
-            readMarkdownOrThrow pandocReaderOpts markdown
+    let filePandoc @ (Pandoc fileMeta fileBlocks) =
+          readMarkdownOrThrow pandocReaderOpts markdown
     additionalMeta <- getAdditionalMeta fileMeta
     let combinedMeta = mergePandocMeta' additionalMeta globalMeta
-    let generateIds = getMetaBoolOrElse "generate-ids" False combinedMeta
-    Pandoc _ fileBlocks <- maybeGenerateIds generateIds filePandoc
-    -- combine the meta data with preference on the embedded data
-    let mustacheMeta = toMustacheMeta combinedMeta
-     -- use mustache to substitute
-    let substituted = substituteMetaData markdown mustacheMeta
-    -- read markdown with substitutions again
-    let Pandoc _ substitudedBlocks =
-            readMarkdownOrThrow pandocReaderOpts substituted
     versionCheck combinedMeta
     let writeBack = getMetaBoolOrElse "write-back.enable" False combinedMeta
-    when (generateIds || writeBack)
+    when (writeBack)
         $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
     mapResources
         (urlToFilePathIfLocal (takeDirectory markdownFile))
-        (Pandoc combinedMeta substitudedBlocks)
-  where
-    maybeGenerateIds doit pandoc =
-        if doit
-            then liftIO $ provideSlideIds pandoc
-            else return pandoc
+        (Pandoc combinedMeta fileBlocks)
 
 readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
 readMarkdownOrThrow opts markdown =

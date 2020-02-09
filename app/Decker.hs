@@ -16,12 +16,12 @@ import Text.Decker.Writer.Pdf
 import Control.Concurrent
 import Control.Exception
 import Control.Lens ((^.))
-import Control.Monad (when)
 import Control.Monad.Extra
 import Data.IORef ()
 import Data.List
 import Data.Maybe
 import Data.String ()
+import qualified Data.Text as Text
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
@@ -88,7 +88,7 @@ run = do
         deckerGitBranch ++
         ", commit: " ++
         deckerGitCommitId ++ ", tag: " ++ deckerGitVersionTag ++ ")"
-      putNormal $ "pandoc version " ++ pandocVersion
+      putNormal $ "pandoc version " ++ (Text.unpack pandocVersion)
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
     phony "decks" $ do
@@ -239,9 +239,10 @@ run = do
       removeFilesAfter (directories ^. public) ["//"]
       removeFilesAfter (directories ^. project) cruft
     --
-    phony "help" $ do
-      text <- getTemplate' "template/help-page.md"
-      liftIO $ putStr text
+    -- TODO: Move help-page out of the template dir
+    -- phony "help" $ do
+    --  text <- getTemplate' "template/help-page.md"
+    --  liftIO $ Text.putStr text
     --
     phony "info" $ do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
