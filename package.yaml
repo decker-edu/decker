@@ -1,9 +1,9 @@
 name: decker
-version: 0.9.0
+version: 0.10.0
 license: OtherLicense
 author: "Henrik Tramberend"
 maintainer: "henrik.tramberend@beuth-hochschule.de"
-copyright: "2018 Henrik Tramberend"
+copyright: "2020 Henrik Tramberend"
 
 build-type: Custom
 

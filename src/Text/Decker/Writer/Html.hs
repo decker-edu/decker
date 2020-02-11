@@ -103,6 +103,7 @@ markdownToHtmlDeck markdownFile out index = do
   let options =
         pandocWriterOpts
           { writerSlideLevel = Just 1
+          , writerSectionDivs = False
           , writerTemplate = Just template
           , writerHighlightStyle = highlightStyle
           , writerHTMLMathMethod =
@@ -136,6 +137,7 @@ markdownToHtmlPage markdownFile out = do
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
+          , writerSectionDivs = False
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax "Handled by reveal.js in the template"

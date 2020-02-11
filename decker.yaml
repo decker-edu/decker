@@ -1,6 +1,7 @@
 project-name: Decker
 publish-annotations: True
 provisioning: SymLink
+vertical-slides: false
 exclude-directories:
   - app
   - bin
@@ -16,7 +17,7 @@ exclude-directories:
   - src-win
   - third-party
 static-resource-dirs:
-- test/static
+  - test/static
 # Sane defaults for reval.js
 menu: true
 center: true
