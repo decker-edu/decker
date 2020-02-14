@@ -61,7 +61,6 @@ build:win:
   artifacts:
     paths:
       - decker.exe
-      - resource.zip
       - version.txt
   cache:
     key: build-win
