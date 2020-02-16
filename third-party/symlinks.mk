@@ -17,7 +17,7 @@ dup = cp -r
 endif
 
 
-all: jquery Chart.js mathjax reveal.js bootstrap piklor.js whiteboard math highlight charts fontawesome reveal.js-menu thebelab mb-reveal-plugins
+all: jquery Chart.js mathjax reveal.js bootstrap piklor.js fontawesome reveal.js-menu thebelab
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab
@@ -53,21 +53,6 @@ bootstrap:
 piklor.js:
 	@$(dup) $(third)/piklor.js/src/piklor.min.js $(support)/piklor.js
 
-mb-reveal-plugins:
-	@$(dup) $(third)/mb-reveal-plugins $(support)/
-
-whiteboard:
-	@$(dup) $(third)/mb-reveal-plugins/whiteboard $(support)/whiteboard
-
-charts:
-	@$(dup) $(third)/mb-reveal-plugins/charts $(support)/charts
-
-math:
-	@$(dup) $(third)/mb-reveal-plugins/math $(support)/math
-
-highlight:
-	@$(dup) $(third)/mb-reveal-plugins/highlight $(support)/highlight
-
 fontawesome:
 	@mkdir -p $(support)/fontawesome
 	@for i in js css webfonts svgs sprites; do \
@@ -83,4 +68,4 @@ jquery/dist/jquery.min.js:
 Chart.js/dist/Chart.min.js:
 	(cd Chart.js && npm install && npx rollup -c rollup.config.js)
 
-.PHONY: clean prepare fontawesome whiteboard math highlight charts piklor.js bootstrap reveal.js mathjax jquery reveal.js-menu thebelab mb-reveal-plugins
+.PHONY: clean prepare fontawesome piklor.js bootstrap reveal.js mathjax jquery reveal.js-menu thebelab 
