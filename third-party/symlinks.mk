@@ -17,7 +17,7 @@ dup = cp -r
 endif
 
 
-all: jquery Chart.js mathjax reveal.js bootstrap piklor.js fontawesome reveal.js-menu thebelab
+all: jquery mathjax reveal.js bootstrap piklor.js fontawesome 
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab
@@ -40,12 +40,6 @@ reveal.js:
 		$(dup) $(third)/reveal.js/$$i $(support)/reveal/$$i; \
 	done
 
-reveal.js-menu:
-	@mkdir -p $(support)/reveal.js-menu
-	@for i in menu.css menu.js; do \
-		$(dup) $(third)/reveal.js-menu/$$i $(support)/reveal.js-menu/$$i; \
-	done
-
 bootstrap:
 	@mkdir -p $(support)/bootstrap
 	@$(dup) $(third)/bootstrap/dist/css $(support)/bootstrap/css 
@@ -65,7 +59,4 @@ thebelab/lib/index.js:
 jquery/dist/jquery.min.js:
 	(cd jquery && npm run build)
 
-Chart.js/dist/Chart.min.js:
-	(cd Chart.js && npm install && npx rollup -c rollup.config.js)
-
-.PHONY: clean prepare fontawesome piklor.js bootstrap reveal.js mathjax jquery reveal.js-menu thebelab 
+.PHONY: clean prepare fontawesome piklor.js bootstrap reveal.js mathjax jquery 
