@@ -83,7 +83,15 @@ var RevealZoom = window.RevealZoom || (function(){
     // zoom to element on double click
 	document.querySelector( '.reveal .slides' ).addEventListener( 'dblclick', function( event ) {
 		event.preventDefault();
-        zoomTo(event.target);
+
+        // which element to zoom to
+        var element = event.target;
+
+        // is it a part of an SVG (or MathJax formula)? then zoom to the SVG
+        var svg = element.closest("svg");
+        if (svg) element = svg;
+
+        zoomTo(element);
 	});
 
 
