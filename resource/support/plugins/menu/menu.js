@@ -520,12 +520,6 @@ var RevealMenu = window.RevealMenu || (function(){
                         RevealSearch.open();
                     }, true);
 
-                    // MARIO: download slides annotations of whiteboard plugin
-					addToolbarButton('Download', 'Download', 'fa-edit', 'fas', function(){
-                        closeMenu();
-                        RevealWhiteboard.downloadNotes();
-                    }, true);
-
                     // MARIO: trigger PDF export
 					addToolbarButton('Print', 'Print', 'fa-print', 'fas', function(){
                         if (confirm("Leave/reload presentation to export PDF?"))
