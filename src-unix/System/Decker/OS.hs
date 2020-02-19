@@ -7,6 +7,8 @@ module System.Decker.OS
 
 import Text.Decker.Internal.Common
 import System.Directory
+import System.Environment
+import System.FilePath
 
 defaultProvisioning :: Provisioning
 defaultProvisioning = SymLink

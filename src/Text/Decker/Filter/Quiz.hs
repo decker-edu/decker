@@ -24,6 +24,7 @@ import Text.Pandoc
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Printf
+import Text.Regex.TDFA
 
 -- | Render all types of questions
 renderQuizzes :: Pandoc -> Decker Pandoc
