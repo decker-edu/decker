@@ -21,11 +21,6 @@ Set-Location "$third\thebelab"
 & npm install
 & npm run build
 
-# Build Chart.js
-Set-Location "$third\Chart.js"
-& npm install
-& npx rollup -c rollup.config.js
-
 Write-Host ("Copy third party dependencies to " + $support) -ForegroundColor Green
 New-Item -Path $support -Force -ItemType "directory"
 Set-Location $third
