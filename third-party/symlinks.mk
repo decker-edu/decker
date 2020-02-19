@@ -17,20 +17,20 @@ dup = cp -r
 endif
 
 
-all: jquery Chart.js mathjax reveal.js bootstrap piklor.js whiteboard math highlight charts fontawesome reveal.js-menu thebelab
+all: jquery mathjax reveal.js bootstrap piklor.js fontawesome thebelab
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab
 	@cp thebelab/lib/*.{js,map} $(support)/thebelab
 
 jquery: jquery/dist/jquery.min.js
-	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
+	@mkdir -p $(support)
 	@cp jquery/dist/jquery.min.js $(support)/jquery.js
 
 mathjax:
-	@mkdir -p $(support)/mathjax/{jax/input,jax/output}
-	@for i in MathJax.js config jax/input/TeX jax/output/SVG jax/element extensions; do \
-		$(dup) $(third)/MathJax/$$i $(support)/mathjax/$$i; \
+	@mkdir -p $(support)/mathjax/{input,output}
+	@for i in tex-svg.js input/tex input/tex.js output/svg output/svg.js; do \
+		$(dup) $(third)/MathJax/es5/$$i $(support)/mathjax/$$i; \
 	done
 
 reveal.js:
@@ -40,33 +40,11 @@ reveal.js:
 		$(dup) $(third)/reveal.js/$$i $(support)/reveal/$$i; \
 	done
 
-reveal.js-menu:
-	@mkdir -p $(support)/reveal.js-menu
-	@for i in menu.css menu.js; do \
-		$(dup) $(third)/reveal.js-menu/$$i $(support)/reveal.js-menu/$$i; \
-	done
-
-# bootstrap:
-# 	@mkdir -p $(support)/bootstrap
-# 	@$(dup) $(third)/bootstrap/dist/css $(support)/bootstrap/css 
-
 bootstrap:
 	@cp $(third)/bootstrap.min.css $(third)/bootstrap.min.css.map $(support)
 
 piklor.js:
 	@$(dup) $(third)/piklor.js/src/piklor.min.js $(support)/piklor.js
-
-whiteboard:
-	@$(dup) $(third)/mb-reveal-plugins/whiteboard $(support)/whiteboard
-
-charts:
-	@$(dup) $(third)/mb-reveal-plugins/charts $(support)/charts
-
-math:
-	@$(dup) $(third)/mb-reveal-plugins/math $(support)/math
-
-highlight:
-	@$(dup) $(third)/mb-reveal-plugins/highlight $(support)/highlight
 
 fontawesome:
 	@mkdir -p $(support)/fontawesome
@@ -80,7 +58,4 @@ thebelab/lib/index.js:
 jquery/dist/jquery.min.js:
 	(cd jquery && npm run build)
 
-Chart.js/dist/Chart.min.js:
-	(cd Chart.js && npm install && npx rollup -c rollup.config.js)
-
-.PHONY: clean prepare fontawesome whiteboard math highlight charts piklor.js bootstrap reveal.js mathjax jquery reveal.js-menu thebelab
+.PHONY: clean prepare fontawesome piklor.js bootstrap reveal.js mathjax jquery thebelab 

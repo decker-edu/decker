@@ -1,6 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module Text.Decker.Filter.MarioMedia
   ( marioMedia
   ) where
@@ -41,7 +38,7 @@ demoExt = [".html", ".htm", ".php"]
 -- | File-extensions that should be treated as 3D model and will be shown with Mario's viewer
 -- in an iframe
 meshExt :: [String]
-meshExt = [".off", ".obj", ".stl", ".pmp"]
+meshExt = [".off", ".obj", ".stl", ".pmp", ".ply", ".xyz"]
 
 -- | main media-plugin.
 --
@@ -92,7 +89,7 @@ media (Image (id', att, att') [] (filename, _))
   | id' == "video" || checkExtension filename videoExt =
     return $
     [ toHtml $
-      "<video " <> Text.unwords direct <> " src=\"" <> filename <> "\"" <>
+      "<video " <> Text.unwords direct <> " data-src=\"" <> filename <> "\"" <>
       attToString (idFilter "video" id', css, att') <>
       "></video>"
     ]
@@ -105,7 +102,8 @@ media (Image (id', att, att') alt (filename, _))
       "<figure " <> attToString (idFilter "video" id', css, att') <> ">"
     ] <>
     [ toHtml $
-      "<video " <> Text.unwords direct <> " src=\"" <> filename <> "\" style=\"" <>
+      "<video " <> Text.unwords direct <> " data-src=\"" <> filename <>
+      "\" style=\"" <>
       style <>
       "\"></video>"
     ] <>
@@ -227,7 +225,9 @@ media (Image (id', att, att') [] (filename, _))
   | id' == "demo" || checkExtension filename demoExt =
     return
       [ toHtml $
-        "<iframe " <> Text.unwords direct <> " data-src=\"" <> filename <> "\" " <>
+        "<iframe allow=\"fullscreen\"" <> Text.unwords direct <> " data-src=\"" <>
+        filename <>
+        "\" " <>
         attToString (idFilter "demo" id', css, att') <>
         "></iframe>"
       ]
@@ -238,7 +238,9 @@ media (Image (id', att, att') alt (filename, _))
     return $
     [toHtml $ "<figure " <> attToString (idFilter "demo" id', css, att') <> ">"] <>
     [ toHtml $
-      "<iframe " <> Text.unwords direct <> " data-src=\"" <> filename <> "\"" <>
+      "<iframe allow=\"fullscreen\"" <> Text.unwords direct <> " data-src=\"" <>
+      filename <>
+      "\"" <>
       attToString (idFilter "demo" id', css, att') <>
       " ></iframe>"
     ] <>
@@ -252,10 +254,11 @@ media (Image (id', att, att') [] (filename, _))
   | checkExtension filename meshExt =
     return
       [ toHtml $
-        "<iframe " <> Text.unwords direct <>
-        " data-src=\"revealSlides/mview/mview.html?model=../../" <>
+        "<iframe allow=\"fullscreen\" data-src=\"support/mview/mview.html\" model=\"" <>
         filename <>
-        "\"" <>
+        "\" " <>
+        Text.unwords direct <>
+        " " <>
         attToString (id', css, att') <>
         "></iframe>"
       ]
@@ -266,10 +269,11 @@ media (Image (id', att, att') alt (filename, _))
     return $
     [toHtml $ "<figure " <> attToString (id', css, att') <> ">"] <>
     [ toHtml $
-      "<iframe " <> Text.unwords direct <>
-      " data-src=\"revealSlides/mview/mview.html?model=../../" <>
+      "<iframe allow=\"fullscreen\" data-src=\"support/mview/mview.html\" model=\"" <>
       filename <>
-      "\"" <>
+      "\" " <>
+      Text.unwords direct <>
+      " " <>
       attToString (id', css, att') <>
       "></iframe>"
     ] <>

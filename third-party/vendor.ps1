@@ -21,17 +21,12 @@ Set-Location "$third\thebelab"
 & npm install
 & npm run build
 
-# Build Chart.js
-Set-Location "$third\Chart.js"
-& npm install
-& npx rollup -c rollup.config.js
-
 Write-Host ("Copy third party dependencies to " + $support) -ForegroundColor Green
 New-Item -Path $support -Force -ItemType "directory"
 Set-Location $third
 
 # Copy jquery
-Copy-Item "$third\jquery\dist\jquery.min.js" "$support\jquery.js -Force"
+Copy-Item "$third\jquery\dist\jquery.min.js" "$support\jquery.js" -Force
 
 # Copy thebelab
 New-Item -Path "$support\thebelab" -Force -ItemType "directory"
@@ -39,10 +34,10 @@ Copy-Item $third\thebelab\lib\*.js "$support\thebelab" -Force
 Copy-Item $third\thebelab\lib\*.map "$support\thebelab" -Force
 
 # Copy mathjax
-New-Item -Path "$support\mathjax\jax\input" -Force -ItemType "directory"
-New-Item -Path "$support\mathjax\jax\output" -Force -ItemType "directory"
-Foreach ($i in ("MathJax.js", "config", "jax\input\TeX", "jax\output\SVG", "jax\element", "extensions")) {
-  Copy-Item -Recurse "$third\MathJax\$i" "$support\mathjax\$i" -Force
+New-Item -Path "$support\mathjax\input" -Force -ItemType "directory"
+New-Item -Path "$support\mathjax\output" -Force -ItemType "directory"
+Foreach ($i in ("tex-svg.js", "input\tex", "input\tex.js". "output\svg", "output\svg.js")) {
+  Copy-Item -Recurse "$third\MathJax\es5\$i" "$support\mathjax\$i" -Force
 }
 
 # Copy reveal.js
@@ -54,30 +49,12 @@ Foreach ($i in ("js", "css", "lib", "plugin\math", "plugin\zoom-js", "plugin\not
   Copy-Item -r "$third\reveal.js\$i" "$support\reveal\$i" -Force
 }
 
-# Copy Reveal.js-menu
-New-Item "$support\reveal.js-menu" -Force -ItemType "directory"
-Foreach ($i in ("menu.css", "menu.js")) {
-  Copy-Item -r "$third\reveal.js-menu\$i" "$support\reveal.js-menu\$i" -Force
-}
-
 # Copy bootstrap
 New-Item "$support\bootstrap" -Force -ItemType "directory"
 Copy-Item -Recurse "$third\bootstrap\dist\css" "$support\bootstrap\css" -Force
 
 # Copy piklor.js
 Copy-Item -Recurse "$third\piklor.js\src\piklor.min.js" "$support\piklor.js" -Force
-
-# Copy whiteboard
-Copy-Item -Recurse "$third\mb-reveal-plugins\whiteboard" "$support\whiteboard" -Force
-
-# Copy Charts
-Copy-Item -Recurse "$third\mb-reveal-plugins\charts" "$support\charts" -Force
-
-# Copy math
-Copy-Item -Recurse "$third\mb-reveal-plugins\math" "$support\math" -Force
-
-# Copy highlight
-Copy-Item -Recurse "$third\mb-reveal-plugins\highlight" "$support\highlight" -Force
 
 # Copy fontawesome
 New-Item "$support\fontawesome" -Force -ItemType "directory"
