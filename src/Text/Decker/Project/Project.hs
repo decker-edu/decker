@@ -40,9 +40,7 @@ module Text.Decker.Project.Project
   , ProjectDirs(..)
   ) where
 
-import System.Decker.OS
 import Text.Decker.Internal.Common
--- import Text.Decker.Internal.Flags
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Glob
