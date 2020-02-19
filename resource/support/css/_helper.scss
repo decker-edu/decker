@@ -1,3 +1,12 @@
+// Font sizes
+$base-font-size: 30px;
+$medium-font-size: 1 * $base-font-size;
+$xx-small-font-size: 0.4 * $base-font-size;
+$x-small-font-size: 0.6 * $base-font-size;
+$small-font-size: 0.8 * $base-font-size;
+$large-font-size: 1.2 * $base-font-size;
+$x-large-font-size: 1.4 * $base-font-size;
+$xx-large-font-size: 1.6 * $base-font-size;
 $base-spacer: 1em;
 
 @function space($sizes: ()) {

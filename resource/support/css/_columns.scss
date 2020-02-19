@@ -1,6 +1,8 @@
-.rightcolumn {
-    >h1 {
-        margin-left: 54%;
+.reveal {
+    .rightcolumn {
+        >h1 {
+            margin-left: 54%;
+        }
     }
 }
 
@@ -8,7 +10,7 @@
 /////////////////////////////////////////////
 // Within section divs
 /////////////////////////////////////////////
-div {
+.reveal div {
 
     /////////////////////////////////////////////
     // Column settings
