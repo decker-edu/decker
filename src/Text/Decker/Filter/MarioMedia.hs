@@ -288,7 +288,7 @@ media x = return [x]
 -- return filename extension (strip additional arguments from HTML URLs)
 checkExtension :: Text.Text -> [String] -> Bool
 checkExtension fn exts =
-  (fmap toLower . takeExtension . takeWhile (/= '?') . Text.unpack) fn `elem`
+  (fmap toLower . takeExtension . takeWhile (/= '?') . takeWhile (/= '#') . Text.unpack) fn `elem`
   exts
 
 -- checkExtension fn exts = (fmap toLower . takeExtension) fn `elem` exts
