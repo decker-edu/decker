@@ -154,21 +154,29 @@ handleBackground slide@(Slide header blocks) =
         ImageMedia -> ("data-background-image", src)
 
 -- | Wrap boxes around H2 headers and the following content. All attributes are
--- promoted from the H2 header to the enclosing DIV.
+-- promoted from the H2 header to the enclosing DIV. Since Pandoc 2.9 the class
+-- "column" needs to be added to boxes to prevent sectioning by the Pandoc
+-- writer (see `Text.Pandoc.Shared.makeSections`). This must only be done for
+-- slide decks, not for handouts or pages.
 wrapBoxes :: Slide -> Decker Slide
 wrapBoxes slide@(Slide header body) = do
   disp <- gets disposition
   case disp of
+    Disposition Deck Html -> return $ Slide header $ concatMap (wrap True) boxes
+    Disposition _ Html -> return $ Slide header $ concatMap (wrap False) boxes
     Disposition _ Latex -> return slide
-    Disposition _ Html -> return $ Slide header $ concatMap wrap boxes
   where
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
-    wrap (Header 2 (id_, cls, kvs) text:blocks) =
-      [ Div
-          ("", "box" : cls, kvs)
-          (Header 2 (id_, deFragment cls, kvs) text : blocks)
-      ]
-    wrap box = box
+    wrap isDeck (Header 2 (id_, cls, kvs) text:blocks) =
+      let tags =
+            if isDeck
+              then ["box", "columns"]
+              else ["box"]
+       in [ Div
+              ("", tags ++ cls, kvs)
+              (Header 2 (id_, deFragment cls, kvs) text : blocks)
+          ]
+    wrap _ box = box
 
 -- | Map over all active slides in a deck. 
 mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
@@ -316,7 +324,8 @@ renderMediaTag disp (Image attrs@(ident, cls, values) [] (url, tit)) =
         IframeMedia -> mediaTag (H.iframe "Browser does not support iframe.")
         ImageMedia -> mediaTag H.img
     appendAttr element (key, value) =
-      element H.! customAttribute (H.stringTag $ Text.unpack key) (H.toValue value)
+      element H.!
+      customAttribute (H.stringTag $ Text.unpack key) (H.toValue value)
     mediaTag tag =
       ifNotEmpty A.id ident $
       ifNotEmpty A.class_ (Text.unwords cls) $
@@ -427,7 +436,8 @@ extractFigure (Para content) =
 extractFigure b = b
 
 -- | Retrieves the start attribute for videos to append it to the url
-retrieveVideoStart :: [(Text.Text, Text.Text)] -> ([(Text.Text, Text.Text)], Maybe Text.Text)
+retrieveVideoStart ::
+     [(Text.Text, Text.Text)] -> ([(Text.Text, Text.Text)], Maybe Text.Text)
 retrieveVideoStart attributes = (attributeRest, urlStartMarker)
   where
     attributeRest = filter (\(k, _) -> k /= "start") attributes

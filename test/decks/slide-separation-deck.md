@@ -34,16 +34,3 @@ This is slide 4, it has no header.
 
 This is slide 5, it also has no header.
 
-------------------------------------------------------------------------
-
-# Slide number 6
-
-::: {#div}
-## Level 2 Header
-
--   With a suttounding DIV
-:::
-
-## Level 2 Header
-
--   Without a suttounding DIV

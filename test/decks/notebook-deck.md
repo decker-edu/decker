@@ -1,5 +1,5 @@
 ---
-history: True
+history: true
 jupyter:
   kernelspec:
     display_name: Haskell
@@ -7,25 +7,25 @@ jupyter:
     name: haskell
   language_info:
     codemirror_mode: ihaskell
-    file_extension: '.hs'
+    file_extension: .hs
     name: haskell
-  nbformat: 4
-  nbformat_minor: 2
+  nbformat: 4.0
+  nbformat_minor: 2.0
 title: Write to Jupyter notebook
 write-back:
-  enable: True
-write-notebook: True
+  enable: true
+write-notebook: true
 ---
 
-# Write deck to notebook {.columns}
+# Write deck to notebook {#write-deck-to-notebook .columns}
 
-## Decker metadata {.left}
+## Decker metadata {#decker-metadata .left}
 
 ``` {.yaml}
 write-notebook: True
 ```
 
-##  {.right}
+##  {#section .right}
 
 ## Jupyter metadata
 
@@ -45,7 +45,7 @@ jupyter:
      version: "8.6.5"
 ```
 
-# In the notebook {.notebook}
+# In the notebook {#in-the-notebook .notebook}
 
 ## Selected content
 
@@ -55,7 +55,7 @@ jupyter:
 
 -   Code blocks marked with `{.code}`
 
-# A live code cell (Haskell) {.notebook}
+# A live code cell (Haskell) {#a-live-code-cell-haskell .notebook}
 
 This cell will be live in the notebook.
 
