@@ -14,12 +14,24 @@ else
 
 // Fix some decker-specific things after Reveal
 // has been initialized
-function deckerStart() {
-  fixAutoplayWithStart();
-  // makeVertical();
-  quizModule.quiz();
-  currentDate();
-  addSourceCodeLabels();
+function deckerStart()
+{
+    fixAutoplayWithStart();
+    // makeVertical();
+    quizModule.quiz();
+    currentDate();
+    addSourceCodeLabels();
+    prepareTaskLists();
+}
+
+
+function prepareTaskLists()
+{
+    for (let cb of document.querySelectorAll('.reveal ul.task-list>li>input[type="checkbox"]'))
+    {
+        var li = cb.parentElement;
+        li.classList.add( cb.checked ? "task-yes" : "task-no" );
+    }
 }
 
 

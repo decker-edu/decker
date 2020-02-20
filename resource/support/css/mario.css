@@ -713,33 +713,52 @@ body {
  * MARIO: Task lists
  *********************************************/
 
-.reveal li input[type="checkbox"] {
-    visibility: hidden;
-    vertical-align: top;
-    margin-right: 1em;
+/* hide checkbox */
+.reveal .task-list li>input[type="checkbox"] {
+    display: none;
 }
-.reveal li input[type="checkbox"]::before {
-    visibility: visible;
-    opacity: 1;
+/* hide item bullets */
+.reveal .task-list li {
+    list-style-type: none;
+    margin-left: 0.5em;
+}
+.reveal .task-list li::before {
+    margin-right: 0.25em;
+}
+/* default: check boxes */
+.reveal .task-list li.task-yes::before {
+    content: "\2612";
+}
+.reveal .task-list li.task-no::before {
+    content: "\2610";
+}
+/* class "check-cross" */
+.reveal .check-cross .task-list li.task-yes::before {
     font-weight: bold;
-    font-size: 200%;
-    color: red; 
-    content: "✗";
-}
-.reveal li input[type="checkbox"]:checked::before {
     color: green; 
     content: "✓";
 }
-
-/* Firefox doesn't suppprt ::after for <input>,
- * so we disable the above */
-@-moz-document url-prefix() {
-    .reveal li input[type="checkbox"] {
-        visibility: visible;
-        vertical-align: middle;
-    }
+.reveal .check-cross .task-list li.task-no::before {
+    font-weight: bold;
+    color: red; 
+    content: "✗";
 }
-
+/* class "plus-minus" */
+.reveal .plus-minus .task-list li.task-yes::before {
+    color: green; 
+    content: "\2295";
+}
+.reveal .plus-minus .task-list li.task-no::before {
+    color: red; 
+    content: "\2296";
+}
+/* class "thumb" */
+.reveal .thumb .task-list li.task-yes::before {
+    content: "👍";
+}
+.reveal .thumb .task-list li.task-no::before {
+    content: "👎";
+}
 
 /*********************************************
  * MARIO: Quizzes with task list syntax
@@ -771,7 +790,7 @@ body {
 }
 
 /* add A, B, C, D... */
-.reveal .quiz ul li:before {
+.reveal .quiz .task-list li:before {
     content: counter(answer, upper-latin) ": ";
     counter-increment: answer;
     margin-right: 0.5em;
