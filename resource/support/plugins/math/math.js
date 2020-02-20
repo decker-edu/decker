@@ -114,7 +114,7 @@ var RevealMath = window.RevealMath || (function(){
                         scale: 1.5,                    // DOES NOT WORK!!!! global scaling factor for all expressions
                         minScale: .5,                  // smallest scaling factor to use
                         matchFontHeight: false,        // true to match ex-height of surrounding font
-                        mtextInheritFont: true,        // true to make mtext elements use surrounding font
+                        mtextInheritFont: false,       // true to make mtext elements use surrounding font
                         merrorInheritFont: true,       // true to make merror text use surrounding font
                         mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
                         skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
