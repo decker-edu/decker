@@ -130,7 +130,8 @@ var RevealMath = window.RevealMath || (function(){
                         tags: 'ams',
                         packages: {
                             '[+]': ['ams']
-                        }
+                        },
+                        inlineMath: [['$', '$'], ['\\(', '\\)']]
                     },
                     options: {
                         // disable menu
