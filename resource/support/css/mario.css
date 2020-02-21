@@ -292,16 +292,43 @@ body {
 
 
 /*********************************************
- * CODE
+ * CODE HIGHLGIHTING OF REVEAL
+ *********************************************/
+
+.reveal .hljs table {
+    margin: initial;
+    border: none;
+}
+
+.reveal .hljs-ln-code,
+.reveal .hljs-ln-numbers {
+    padding: 0;
+    border: 0; 
+}
+
+.reveal .hljs-ln-numbers {
+    opacity: 0.6;
+    padding-right: 0.75em;
+    text-align: right;
+    vertical-align: top; 
+}
+
+.reveal .hljs[data-line-numbers]:not([data-line-numbers=""]) tr:not(.highlight-line) {
+    opacity: 0.3; 
+}
+
+
+/*********************************************
+ * CODE HIGHLIGHTING OF MARIO
  *********************************************/
 
 /* box around block of code */
 .reveal pre {
-  display: block;
-  position: relative;
-  width: 100%;
-  margin: 10px auto;
-  text-align: center;
+    display: inline-block;
+    position: relative;
+    width: auto;
+    margin: 10px auto;
+    text-align: center;
 }
 
 /* inline code */
@@ -309,16 +336,14 @@ body {
     display: inline;
     padding: 0.2em;
     text-align: left;
-    /*font-size: 85%;*/
     font-family: monospace;
     word-wrap: normal;
-    /*background-color: #f7f7f7;*/
 }
 
 /* block of code (has to override above inline code)*/
 .reveal pre code {
     display: block;
-    margin: 10px;
+    margin: 5px;
     text-align: left;
     font-size: 0.5em;
     font-family: monospace;
@@ -334,14 +359,6 @@ body {
     font-size: 0.4em;
 }
 
-/*.reveal pre:after {*/
-  /*content: attr(caption);*/
-  /*margin: 0px;*/
-  /*line-height: 1;*/
-  /*font-style: italic; */
-  /*font-size: 0.6em;*/
-  /*text-align: center;*/
-/*}*/
 
 
 /*********************************************

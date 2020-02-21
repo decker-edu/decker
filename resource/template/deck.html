@@ -158,6 +158,13 @@ $body$
   <script src="$decker-support-dir$/vendor/reveal/js/reveal.js"></script>
   <script src="$decker-support-dir$/vendor/jquery.js"></script>
   <script src="$decker-support-dir$/vendor/piklor.js"></script>
+  <script src="$decker-support-dir$/js/quiz.js"></script>
+  <script src="$decker-support-dir$/js/decker.js"></script>
+  
+  <script>
+      // this has to be done before reveal highlight plugin is initialized
+      prepareCodeHighlighting();
+  </script>
 
 
   <script>
@@ -521,7 +528,7 @@ $endif$
               { src: String.raw`$decker-support-dir$/plugins/print/print.js` },
               { src: String.raw`$decker-support-dir$/plugins/search/search.js`, async: true },
 $if(highlightjs)$
-              { src: String.raw`$decker-support-dir$/plugins/highlight/highlight.js` },
+              { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.js` },
 $endif$
 $if(mario)$              
               { src: String.raw`$decker-support-dir$/plugins/quiz/quiz.js` },
@@ -532,18 +539,12 @@ $endif$
 $if(thebelab.enable)$
               { src: String.raw`$decker-support-dir$/plugins/thebelab.js`, async: true },
 $endif$
-$if(notes-server)$
-              { src: String.raw`$decker-support-dir$/vendor/reveal/socket.io/socket.io.js`, async: true },
-              { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes-server/client.js`, async: true },
-$endif$
               { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes/notes.js`, async: true }
           ]
       });
   </script>
 
 
-    <script src="$decker-support-dir$/js/quiz.js" type="text/javascript"></script>
-    <script src="$decker-support-dir$/js/decker.js" type="text/javascript"></script>
 
     <!-- Reload on change machinery -->
     $if(vertical-slides)$
