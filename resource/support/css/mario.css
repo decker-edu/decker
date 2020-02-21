@@ -376,6 +376,15 @@ body {
     line-height: 1.5em;
 }
 
+.reveal table caption {
+    margin: 10px 0px 0px 0px;
+    line-height: 1.2;
+    font-style: italic;
+    font-size: 0.6em;
+    text-align: center;
+    caption-side: bottom;
+}
+
 .reveal table th {
   font-weight: bold; }
 
