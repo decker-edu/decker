@@ -47,7 +47,7 @@ piklor.js:
 
 fontawesome:
 	@mkdir -p $(support)/fontawesome $(support)/fontawesome/css
-	@for i in js css/all.css webfonts; do \
+	@for i in css/all.css webfonts; do \
 		$(dup) $(third)/Font-Awesome/js-packages/@fortawesome/fontawesome-free/$$i $(support)/fontawesome/$$i; \
 	done
 
