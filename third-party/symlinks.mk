@@ -35,7 +35,7 @@ mathjax:
 
 reveal.js:
 	@mkdir -p $(support)/reveal/plugin
-	@for i in js css lib plugin/highlight plugin/notes ; do \
+	@for i in js css plugin/notes ; do \
 		$(dup) $(third)/reveal.js/$$i $(support)/reveal/$$i; \
 	done
 
@@ -46,8 +46,8 @@ piklor.js:
 	@$(dup) $(third)/piklor.js/src/piklor.min.js $(support)/piklor.js
 
 fontawesome:
-	@mkdir -p $(support)/fontawesome
-	@for i in js css webfonts svgs sprites; do \
+	@mkdir -p $(support)/fontawesome $(support)/fontawesome/css
+	@for i in js css/all.css webfonts; do \
 		$(dup) $(third)/Font-Awesome/js-packages/@fortawesome/fontawesome-free/$$i $(support)/fontawesome/$$i; \
 	done
 
