@@ -14,12 +14,23 @@ else
 
 // Fix some decker-specific things after Reveal
 // has been initialized
-function deckerStart() {
-  fixAutoplayWithStart();
-  // makeVertical();
-  quizModule.quiz();
-  currentDate();
-  addSourceCodeLabels();
+function deckerStart()
+{
+    fixAutoplayWithStart();
+    quizModule.quiz();
+    currentDate();
+    addSourceCodeLabels();
+    prepareTaskLists();
+}
+
+
+function prepareTaskLists()
+{
+    for (let cb of document.querySelectorAll('.reveal ul.task-list>li>input[type="checkbox"]'))
+    {
+        var li = cb.parentElement;
+        li.classList.add( cb.checked ? "task-yes" : "task-no" );
+    }
 }
 
 
@@ -103,4 +114,41 @@ function addSourceCodeLabels() {
       .text($(this).attr("label"))
       .prependTo($(this).children('pre'));
   });
+}
+
+
+function prepareCodeHighlighting()
+{
+    for (let code of document.querySelectorAll('pre>code'))
+    {
+        var pre = code.parentElement;
+
+        // if line numbers to be highlighted are specified...
+        if (pre.hasAttribute("data-line-numbers"))
+        {
+            // ...copy them from <pre> to <code>
+            code.setAttribute("data-line-numbers", pre.getAttribute("data-line-numbers"));
+        }
+        // otherwise, if we specified .line-numbers...
+        else if (pre.classList.contains("line-numbers"))
+        {
+            // ...set empty attribute data-line-numbers, 
+            // so reveal adds line numbers w/o highlighting
+            code.setAttribute("data-line-numbers", "");
+        }
+
+        // construct caption
+        if (pre.hasAttribute("data-caption"))
+        {
+            var parent  = pre.parentElement;
+            var figure  = document.createElement("figure");
+            var caption = document.createElement("figcaption");
+            var content = pre.getAttribute("data-caption");
+
+            parent.insertBefore(figure, pre);
+            figure.appendChild(pre);
+            figure.appendChild(caption);
+            caption.innerHTML = content.trim();
+        }
+    }
 }

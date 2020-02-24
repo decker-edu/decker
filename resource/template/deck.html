@@ -158,6 +158,13 @@ $body$
   <script src="$decker-support-dir$/vendor/reveal/js/reveal.js"></script>
   <script src="$decker-support-dir$/vendor/jquery.js"></script>
   <script src="$decker-support-dir$/vendor/piklor.js"></script>
+  <script src="$decker-support-dir$/js/quiz.js"></script>
+  <script src="$decker-support-dir$/js/decker.js"></script>
+  
+  <script>
+      // this has to be done before reveal highlight plugin is initialized
+      prepareCodeHighlighting();
+  </script>
 
 
   <script>
@@ -173,62 +180,42 @@ $endif$
         // Display controls in the bottom right corner
 $if(controls)$
         controls: $controls$,
-$else$
-        controls: false,
 $endif$
         // Display a presentation progress bar
 $if(progress)$
-        progress: true,
-$else$
-        progress: false,
+        progress: $progress$,
 $endif$
         // Display the page number of the current slide
 $if(slideNumber)$
         slideNumber: '$slideNumber$',
-$else$
-        slideNumber: false,
 $endif$
         // Push each slide change to the browser history
 $if(history)$
         history: $history$,
-$else$
-        history: false,
 $endif$
         // Enable keyboard shortcuts for navigation
 $if(keyboard)$
         keyboard: $keyboard$,
-$else$
-        keyboard: false,
 $endif$
         // Enable the slide overview mode
 $if(overview)$
         overview: $overview$,
-$else$
-        overview: false,
 $endif$
         // Vertical centering of slides
 $if(center)$
         center: $center$,
-$else$
-        center: false,
 $endif$
         // Enables touch navigation on devices with touch input
 $if(touch)$
         touch: $touch$,
-$else$
-        touch: false,
 $endif$
         // Loop the presentation
 $if(loop)$
         loop: $loop$,
-$else$
-        loop: false,
 $endif$
         // Change the presentation direction to be RTL
 $if(rtl)$
         rtl: $rtl$,
-$else$
-        rtl: false,
 $endif$
 $if(navigationMode)$
         // See https://github.com/hakimel/reveal.js/#navigation-mode
@@ -237,53 +224,37 @@ $endif$
 	// Randomizes the order of slides each time the presentation loads
 $if(shuffle)$
         shuffle: $shuffle$,
-$else$
-        shuffle: false,
 $endif$
         // Turns fragments on and off globally
 $if(fragments)$
         fragments: $fragments$,
-$else$
-        fragments: false,
 $endif$
 $if(fragmentInURL)$
-        fragmentInURL: true,
-$else$
-        fragmentInURL: false,
+        fragmentInURL: $fragmentInURL$,
 $endif$
         // Flags if the presentation is running in an embedded mode,
         // i.e. contained within a limited portion of the screen
 $if(embedded)$
         embedded: $embedded$,
-$else$
-        embedded: false,
 $endif$
         // Flags if we should show a help overlay when the questionmark
         // key is pressed
 $if(help)$
         help: $help$,
-$else$
-        help: false,
 $endif$
         // Flags if speaker notes should be visible to all viewers
 $if(showNotes)$
         showNotes: $showNotes$,
-$else$
-        showNotes: false,
 $endif$
         // Number of milliseconds between automatically proceeding to the
         // next slide, disabled when set to 0, this value can be overwritten
         // by using a data-autoslide attribute on your slides
 $if(autoSlide)$
         autoSlide: $autoSlide$,
-$else$
-        autoSlide: false,
 $endif$
         // Stop auto-sliding after user input
 $if(autoSlideStoppable)$
         autoSlideStoppable: $autoSlideStoppable$,
-$else$
-        autoSlideStoppable: false,
 $endif$
 $if(defaultTiming)$
           // Specify the average time in seconds that you think you will spend
@@ -301,14 +272,10 @@ $endif$
 $if(mouseWheel)$
         // Enable slide navigation via mouse wheel
         mouseWheel: $mouseWheel$,
-$else$
-        mouseWheel: false,
 $endif$
           // Hide cursor if inactive
 $if(hideInactiveCursor)$
-          hideInactiveCursor: true,
-$else$
-          hideInactiveCursor: false,
+          hideInactiveCursor: $hideInactiveCursor$,
 $endif$
 $if(hideCursorTime)$
           // Time before the cursor is hidden (in ms)
@@ -317,14 +284,10 @@ $endif$
 $if(hideAddressBar)$
         // Hides the address bar on mobile devices
         hideAddressBar: $hideAddressBar$,
-$else$
-        hideAddressBar: false,
 $endif$
 $if(previewLinks)$
         // Opens links in an iframe preview overlay
         previewLinks: $previewLinks$,
-$else$
-        previewLinks: false,
 $endif$
 $if(transition)$
         // Transition style
@@ -521,7 +484,7 @@ $endif$
               { src: String.raw`$decker-support-dir$/plugins/print/print.js` },
               { src: String.raw`$decker-support-dir$/plugins/search/search.js`, async: true },
 $if(highlightjs)$
-              { src: String.raw`$decker-support-dir$/plugins/highlight/highlight.js` },
+              { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.js` },
 $endif$
 $if(mario)$              
               { src: String.raw`$decker-support-dir$/plugins/quiz/quiz.js` },
@@ -532,18 +495,12 @@ $endif$
 $if(thebelab.enable)$
               { src: String.raw`$decker-support-dir$/plugins/thebelab.js`, async: true },
 $endif$
-$if(notes-server)$
-              { src: String.raw`$decker-support-dir$/vendor/reveal/socket.io/socket.io.js`, async: true },
-              { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes-server/client.js`, async: true },
-$endif$
               { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes/notes.js`, async: true }
           ]
       });
   </script>
 
 
-    <script src="$decker-support-dir$/js/quiz.js" type="text/javascript"></script>
-    <script src="$decker-support-dir$/js/decker.js" type="text/javascript"></script>
 
     <!-- Reload on change machinery -->
     $if(vertical-slides)$
