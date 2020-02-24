@@ -7,14 +7,19 @@
 -- under the `decker` key in the meta data of the resulting document.
 module Text.Decker.Filter.Decker where
 
+import Control.Lens
+import Data.Text (splitOn)
 import Relude
 import System.FilePath
+import Text.Blaze.Html
 import Text.Blaze.Html.Renderer.Text
 import Text.Blaze.Html5 as H
 import Text.Blaze.Html5.Attributes as A
 import Text.Decker.Internal.Exception
 import Text.Pandoc
 import Text.Pandoc.Walk
+import qualified Text.URI as URI
+import Text.URI.Lens
 
 -- | Some WriterOptions and the document meta data are available to all
 -- filters. 
@@ -125,13 +130,13 @@ runFilter' options meta filter x =
   fst <$> runStateT (walkM filter x) (FilterState options meta)
 
 -- | File-extensions that should be treated as image
-plainImageExt :: [String]
-plainImageExt =
-  [".jpg", ".jpeg", ".png", ".gif", ".tif", ".tiff", ".bmp", ".svg"]
+imageExt = ["jpg", "jpeg", "png", "gif", "tif", "tiff", "bmp", "svg"]
+
+videoExt = [".mp4"]
 
 checkExtension extensions path = takeExtension path `elem` extensions
 
-isPlainImage url = checkExtension plainImageExt $ toString url
+isPlainImage url = checkExtension imageExt $ toString url
 
 filterPlainImage :: Inline -> Filter (Maybe Inline)
 filterPlainImage (Image attr [] (url, title))
@@ -154,21 +159,62 @@ toMarkdown inlines = do
     Right text -> return text
     Left err -> bug $ PandocException $ "BUG: " <> show err
 
-class HtmlEncoded a where
-  encodeHtml :: Text -> a
+class RawHtml a where
+  rawHtml :: Text -> a
 
-instance HtmlEncoded Inline where
-  encodeHtml = RawInline (Format "html5")
+instance RawHtml Inline where
+  rawHtml = RawInline (Format "html5")
 
-instance HtmlEncoded [Inline] where
-  encodeHtml text = [RawInline (Format "html5") text]
+instance RawHtml [Inline] where
+  rawHtml text = [RawInline (Format "html5") text]
 
-instance HtmlEncoded Block where
-  encodeHtml = RawBlock (Format "html5")
+instance RawHtml Block where
+  rawHtml = RawBlock (Format "html5")
 
-instance HtmlEncoded [Block] where
-  encodeHtml text = [RawBlock (Format "html5") text]
+instance RawHtml [Block] where
+  rawHtml text = [RawBlock (Format "html5") text]
 
-transformImage :: HtmlEncoded a => Inline -> [Inline] -> Filter (Maybe a)
-transformImage (Image attr inlines (url, title)) caption =
-  return $ Just $ encodeHtml "Generated HTML"
+data MediaType
+  = ImageT
+  | VideoT
+  | AudioT
+  | IframeT
+  | CodeT
+  | PdfT
+  | EmbedSvgT
+  | OffT
+  | RenderT
+
+extIn :: Maybe Text -> [Text] -> Bool
+extIn (Just ext) list = ext `elem` list
+extIn Nothing _ = False
+
+transformImage :: RawHtml a => Inline -> [Inline] -> Filter (Maybe a)
+transformImage (Image attr@(id, classes, values) inlines (url, title)) caption = do
+  uri <- URI.mkURI url
+  let ext = uriPathExtension uri
+  innerHtml <-
+    if | extIn ext imageExt || "image" `elem` classes -> imageHtml uri attr
+       | extIn ext videoExt || "video" `elem` classes -> videoHtml uri attr
+       | otherwise -> imageHtml uri attr
+  outerHtml <-
+    case (inlines, caption) of
+      ([], []) -> return innerHtml
+      (caption, []) -> return innerHtml
+      (_, caption) -> return innerHtml
+  return $ Just $ rawHtml "Generated HTML"
+transformImage inline _ =
+  bug $ InternalException ("transformImage: no match for: " <> show inline)
+
+imageHtml :: URI.URI -> Attr -> Filter Html
+imageHtml uri attr@(id, classes, values) = return H.img
+
+videoHtml :: URI.URI -> Attr -> Filter Html
+videoHtml uri attr@(id, classes, values) = return H.img
+
+uriPathExtension :: URI.URI -> Maybe Text
+uriPathExtension uri =
+  case URI.uriPath uri of
+    (Just (False, pieces)) ->
+      listToMaybe $ reverse $ splitOn "." $ URI.unRText $ last pieces
+    _ -> Nothing
