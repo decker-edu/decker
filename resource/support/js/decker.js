@@ -49,7 +49,7 @@ function fixAutoplayWithStart() {
 // Replace date string on title slide with current date 
 // if string provided for date in yaml header is "today"
 function currentDate() {
-  var date = document.getElementsByClassName("date")[0];
+  var date = document.getElementsByID("date");
   if (!date) return;
   var dateString = date.textContent;
 
@@ -58,18 +58,6 @@ function currentDate() {
   if (dateString === "today") {
     date.textContent = today;
   }
-}
-
-// Allows printPdf() function to be called as onclick event directly from HTML elements
-window.printPdf = function () {
-  url = window.location.href;
-  url = url.replace(".html", ".html?print-pdf");
-  var printWindow = window.open(url);
-
-  printWindow.onload = function () {
-    printWindow.print();
-    printWindow.onfocus = function () { printWindow.close(); }
-  };
 }
 
 function makeVertical() {
