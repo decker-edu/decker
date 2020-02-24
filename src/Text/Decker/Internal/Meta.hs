@@ -1,7 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Text.Decker.Internal.Meta
   ( globalMetaFileName
-  , toPandocMeta
   , mergePandocMeta
   , mergePandocMeta'
   , readMetaData
@@ -19,22 +18,21 @@ module Text.Decker.Internal.Meta
   , getMetaValue
   , getMetaTextMap
   , pandocMeta
+  , toMeta
   , DeckerException(..)
   ) where
 
 import Text.Decker.Internal.Exception
 
-import Control.Arrow
 import Control.Exception
-import qualified Data.HashMap.Strict as H
 
 -- import qualified Data.List as L
+import Data.Aeson.Types (parseEither)
 import Data.List.Safe ((!!))
 import qualified Data.Map.Lazy as Map
 import qualified Data.Map.Strict as M
 import Data.Maybe
 import qualified Data.Text as Text
-import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
 import Development.Shake
 import Prelude hiding ((!!))
@@ -62,24 +60,6 @@ mergePandocMeta' (Meta left) (Meta right) =
     merge (MetaMap mapL) (MetaMap mapR) =
       MetaMap $ Map.unionWith merge mapL mapR
     merge left right = left
-
--- | Converts YAML meta data to pandoc meta data.
-toPandocMeta :: Y.Value -> Meta
-toPandocMeta v@(Y.Object m) =
-  case toPandocMeta' v of
-    (MetaMap map) -> Meta map
-    _ -> Meta M.empty
-toPandocMeta _ = Meta M.empty
-
-toPandocMeta' :: Y.Value -> MetaValue
-toPandocMeta' (Y.Object m) =
-  MetaMap $ Map.fromList $ map (id *** toPandocMeta') $ H.toList m
-toPandocMeta' (Y.Array vector) =
-  MetaList $ map toPandocMeta' $ Vec.toList vector
-toPandocMeta' (Y.String text) = MetaString text
-toPandocMeta' (Y.Number scientific) = MetaString $ Text.pack $ show scientific
-toPandocMeta' (Y.Bool bool) = MetaBool bool
-toPandocMeta' Y.Null = MetaList []
 
 decodeYaml :: FilePath -> IO Y.Value
 decodeYaml yamlFile = do
@@ -116,7 +96,7 @@ readMetaDataFile :: FilePath -> IO Meta
 readMetaDataFile file = do
   exists <- Dir.doesFileExist file
   f <- makeRelativeToCurrentDirectory file
-  meta <-
+  yaml <-
     if exists
       then decodeYaml file
       else do
@@ -125,7 +105,13 @@ readMetaDataFile file = do
           show f ++
           " does not exist!\nIf you still have a \"*-meta.yaml\" file in your project please rename it to \"decker.yaml\"!"
         return (Y.object [])
-  return $ toPandocMeta meta
+  return $ toMeta yaml
+
+toMeta :: Y.Value -> Meta
+toMeta yaml = 
+  case parseEither Y.parseJSON yaml of
+    Right meta -> meta
+    Left err -> throw $ YamlException err
 
 getMetaInt :: Text.Text -> Meta -> Maybe Int
 getMetaInt key meta = getMetaText key meta >>= readMaybe . Text.unpack

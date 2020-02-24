@@ -9,12 +9,11 @@ import Text.Decker.Internal.Meta
 
 import Data.List
 import Data.List.Split
-import Data.Maybe
+import qualified Data.Text as Text
 import Network.URI
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Walk
-import qualified Data.Text as Text
 
 evaluateShortLinks :: Pandoc -> Decker Pandoc
 evaluateShortLinks pandoc@(Pandoc meta _) =
@@ -29,9 +28,9 @@ evalLinks meta inline = inline
 
 evalUrl :: Meta -> Text.Text -> Text.Text
 evalUrl meta url =
-  case parseURI (Text.unpack url ) of
+  case parseURI (Text.unpack url) of
     Just uri
-      | (not . null . uriScheme) uri -> fromMaybe url (Text.pack <$> evalUri meta uri)
+      | (not . null . uriScheme) uri -> maybe url Text.pack (evalUri meta uri)
     Nothing -> url
 
 evalUri :: Meta -> URI -> Maybe String

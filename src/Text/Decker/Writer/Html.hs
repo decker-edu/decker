@@ -4,13 +4,10 @@ module Text.Decker.Writer.Html
   , markdownToHtmlDeck
   , markdownToHtmlHandout
   , markdownToHtmlPage
-  , toPandocMeta
-  , DeckerException(..)
   ) where
 
 import Text.Decker.Filter.Filter
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake

@@ -11,7 +11,7 @@ import Data.Yaml as Yaml (Value(..), decodeEither')
 import Test.Hspec
 
 meta =
-  toPandocMeta $
+  toMeta $
   fromRight Yaml.Null $
   decodeEither' $
   fromString $

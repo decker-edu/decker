@@ -1,4 +1,5 @@
 import IncludeTests
+import MediaTests
 import MetaTests
 import Test.Hspec
 import WatchTests
@@ -29,10 +30,11 @@ main = do
   let metaFile = dirs ^. project </> "decker.yaml"
   --
   hspec $
-  --
+  -- TODO reenable all tests
    do
+    mediaTests
     includeTests
-    shortLinkTests
+    -- shortLinkTests
     -- watchTests
     -- sketchTests
     metaTests
