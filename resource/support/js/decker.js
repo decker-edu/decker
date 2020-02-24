@@ -1,36 +1,30 @@
-if (typeof Reveal === 'undefined')
-{
-    console.error("decker.js has to be loaded after reveal.js");
+if (typeof Reveal === 'undefined') {
+  console.error("decker.js has to be loaded after reveal.js");
 }
-else
-{
-    if (Reveal.isReady()) {
-        deckerStart();
-    } else {
-        Reveal.addEventListener("ready", deckerStart);
-    }
+else {
+  if (Reveal.isReady()) {
+    deckerStart();
+  } else {
+    Reveal.addEventListener("ready", deckerStart);
+  }
 }
 
 
 // Fix some decker-specific things after Reveal
 // has been initialized
-function deckerStart()
-{
-    fixAutoplayWithStart();
-    quizModule.quiz();
-    currentDate();
-    addSourceCodeLabels();
-    prepareTaskLists();
+function deckerStart() {
+  fixAutoplayWithStart();
+  currentDate();
+  addSourceCodeLabels();
+  prepareTaskLists();
 }
 
 
-function prepareTaskLists()
-{
-    for (let cb of document.querySelectorAll('.reveal ul.task-list>li>input[type="checkbox"]'))
-    {
-        var li = cb.parentElement;
-        li.classList.add( cb.checked ? "task-yes" : "task-no" );
-    }
+function prepareTaskLists() {
+  for (let cb of document.querySelectorAll('.reveal ul.task-list>li>input[type="checkbox"]')) {
+    var li = cb.parentElement;
+    li.classList.add(cb.checked ? "task-yes" : "task-no");
+  }
 }
 
 
@@ -49,7 +43,7 @@ function fixAutoplayWithStart() {
 // Replace date string on title slide with current date 
 // if string provided for date in yaml header is "today"
 function currentDate() {
-  var date = document.getElementsByID("date");
+  var date = document.getElementById("date");
   if (!date) return;
   var dateString = date.textContent;
 
@@ -105,38 +99,33 @@ function addSourceCodeLabels() {
 }
 
 
-function prepareCodeHighlighting()
-{
-    for (let code of document.querySelectorAll('pre>code'))
-    {
-        var pre = code.parentElement;
+function prepareCodeHighlighting() {
+  for (let code of document.querySelectorAll('pre>code')) {
+    var pre = code.parentElement;
 
-        // if line numbers to be highlighted are specified...
-        if (pre.hasAttribute("data-line-numbers"))
-        {
-            // ...copy them from <pre> to <code>
-            code.setAttribute("data-line-numbers", pre.getAttribute("data-line-numbers"));
-        }
-        // otherwise, if we specified .line-numbers...
-        else if (pre.classList.contains("line-numbers"))
-        {
-            // ...set empty attribute data-line-numbers, 
-            // so reveal adds line numbers w/o highlighting
-            code.setAttribute("data-line-numbers", "");
-        }
-
-        // construct caption
-        if (pre.hasAttribute("data-caption"))
-        {
-            var parent  = pre.parentElement;
-            var figure  = document.createElement("figure");
-            var caption = document.createElement("figcaption");
-            var content = pre.getAttribute("data-caption");
-
-            parent.insertBefore(figure, pre);
-            figure.appendChild(pre);
-            figure.appendChild(caption);
-            caption.innerHTML = content.trim();
-        }
+    // if line numbers to be highlighted are specified...
+    if (pre.hasAttribute("data-line-numbers")) {
+      // ...copy them from <pre> to <code>
+      code.setAttribute("data-line-numbers", pre.getAttribute("data-line-numbers"));
     }
+    // otherwise, if we specified .line-numbers...
+    else if (pre.classList.contains("line-numbers")) {
+      // ...set empty attribute data-line-numbers, 
+      // so reveal adds line numbers w/o highlighting
+      code.setAttribute("data-line-numbers", "");
+    }
+
+    // construct caption
+    if (pre.hasAttribute("data-caption")) {
+      var parent = pre.parentElement;
+      var figure = document.createElement("figure");
+      var caption = document.createElement("figcaption");
+      var content = pre.getAttribute("data-caption");
+
+      parent.insertBefore(figure, pre);
+      figure.appendChild(pre);
+      figure.appendChild(caption);
+      caption.innerHTML = content.trim();
+    }
+  }
 }
