@@ -1,14 +1,25 @@
-
-quizModule = {
-    quiz: function () {
-        blanktextButtons();
-        // blanktext();
-        initialMatchings = initMatching();
-        matchings(initialMatchings);
-        multipleChoice();
-        freetextAnswerButtons();
+// I am not exactly sure why this is needed 
+// but without it e.g. the math in matching questions is not reloaded
+if (typeof Reveal === 'undefined') {
+    console.error("quiz.js has to be loaded after reveal.js");
+}
+else {
+    if (Reveal.isReady()) {
+        quiz();
+    } else {
+        Reveal.addEventListener("ready", quiz);
     }
 }
+
+
+function quiz() {
+    blanktextButtons();
+    initialMatchings = initMatching();
+    matchings(initialMatchings);
+    multipleChoice();
+    freetextAnswerButtons();
+}
+
 
 // For a given blanktext HTML Element returns a Map containing all wrong and correct selects and blanks
 function blanktextCorrect(blanktext) {

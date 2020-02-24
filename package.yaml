@@ -75,6 +75,7 @@ dependencies:
   - process
   - pureMD5
   - random
+  - relude
   - regex-tdfa
   - scientific
   - shake

@@ -21,7 +21,7 @@ all: jquery mathjax reveal.js bootstrap piklor.js fontawesome thebelab
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab
-	@cp thebelab/lib/*.{js,map} $(support)/thebelab
+	@cp thebelab/lib/*.js $(support)/thebelab
 
 jquery: jquery/dist/jquery.min.js
 	@mkdir -p $(support)
@@ -40,7 +40,7 @@ reveal.js:
 	done
 
 bootstrap:
-	@cp $(third)/bootstrap.min.css $(third)/bootstrap.min.css.map $(support)
+	@cp $(third)/bootstrap.min.css $(support)
 
 piklor.js:
 	@$(dup) $(third)/piklor.js/src/piklor.min.js $(support)/piklor.js

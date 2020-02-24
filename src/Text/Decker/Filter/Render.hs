@@ -74,12 +74,14 @@ d3Canvas source (eid, classes, keyvals) = do
     "canvas" ->
       return $
       RawInline (Format "html") $
-      Text.pack $ renderHtml $
+      Text.pack $
+      renderHtml $
       H.canvas ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
     "div" ->
       return $
       RawInline (Format "html") $
-      Text.pack $ renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
+      Text.pack $
+      renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
     _ ->
       return $
       RawInline (Format "html") $
@@ -95,7 +97,8 @@ threejsCanvas source (eid, classes, keyvals) = do
   supportDir <- lift $ getRelativeSupportDir publicBase
   contents <- doIO $ readFile source
   addScript $ ScriptURI "javascript" (supportDir </> "three.js")
-  let includes = splitOn "," $ Text.unpack $ fromMaybe "" $ lookup "includes" keyvals
+  let includes =
+        splitOn "," $ Text.unpack $ fromMaybe "" $ lookup "includes" keyvals
   mapM_ (addScript . ScriptURI "javascript") includes
   addScript $ ScriptSource "javascript" contents
   let classStr = unwords $ map Text.unpack classes
@@ -104,12 +107,14 @@ threejsCanvas source (eid, classes, keyvals) = do
     "canvas" ->
       return $
       RawInline (Format "html") $
-      Text.pack $ renderHtml $
+      Text.pack $
+      renderHtml $
       H.canvas ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
     "div" ->
       return $
       RawInline (Format "html") $
-      Text.pack $ renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
+      Text.pack $
+      renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
     _ ->
       return $
       RawInline (Format "html") $
@@ -155,7 +160,7 @@ findProcessor _ = Nothing
 maybeRenderImage :: Inline -> Decker Inline
 maybeRenderImage image@(Image attr@(_, classes, _) _ (url, _)) =
   case findProcessor classes of
-    Just processor -> compiler processor (Text.unpack url ) attr
+    Just processor -> compiler processor (Text.unpack url) attr
     Nothing -> return image
 maybeRenderImage inline = return inline
 
@@ -170,7 +175,7 @@ maybeRenderCodeBlock block@(CodeBlock attr@(x, classes, y) code)
   let block = CodeBlock (x, cls, y) code
   case findProcessor cls of
     Just processor -> do
-      path <- writeCodeIfChanged (Text.unpack code ) (extension processor)
+      path <- writeCodeIfChanged (Text.unpack code) (extension processor)
       inline <- compiler processor path (x, cls, y)
       return $ Plain [inline]
     Nothing -> return block
@@ -201,13 +206,15 @@ appendScripts pandoc@(Pandoc meta blocks) = do
   where
     renderScript (ScriptURI language uri) =
       RawBlock (Format "html") $
-      Text.pack $ renderHtml $
+      Text.pack $
+      renderHtml $
       H.script ! class_ "generated decker" ! lang (toValue language) !
       src (toValue uri) $
       ""
     renderScript (ScriptSource language source) =
       RawBlock (Format "html") $
-      Text.pack $ printf
+      Text.pack $
+      printf
         "<script class=\"generated decker\" lang=\"%s\">%s</script>"
         language
         source
