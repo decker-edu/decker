@@ -45,10 +45,11 @@ ttt =
 main :: IO ()
 main = do
   args <- getArgs
-  case head args of
-    "example" -> writeExampleProject
-    "tutorial" -> writeTutorialProject
-    _ -> run
+  if null args then run else
+    case head args of
+      "example" -> writeExampleProject
+      "tutorial" -> writeTutorialProject
+      _ -> run
 
 run :: IO ()
 run = do
@@ -65,7 +66,7 @@ run = do
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
   let index = (directories ^. public) </> "index.html"
-  let cruft = ["index.md.generated", "log", "//.shake", "generated", "code"]
+  let cruft = ["index.md.generated", "//.log", "//.shake", "generated", "code"]
   let pdfMsg =
         "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
         "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++
