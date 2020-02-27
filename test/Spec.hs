@@ -2,21 +2,21 @@ import IncludeTests
 import MediaTests
 import MetaTests
 import Test.Hspec
-import WatchTests
+-- Import WatchTests
 
-import ShortLinkTests
+--  import ShortLinkTests
 
 import Control.Lens ((^.))
 import qualified Data.ByteString.Char8 as B
-import qualified Data.HashMap.Strict as H
+-- import qualified Data.HashMap.Strict as H
 import qualified Data.Map.Strict as M
-import Data.Maybe
-import Data.Text
-import Data.Text.Encoding
-import qualified Data.Yaml as Y
+-- import Data.Maybe
+-- import Data.Text
+-- import Data.Text.Encoding
+-- import qualified Data.Yaml as Y
 import qualified System.Directory as Dir
 import System.FilePath
-import System.FilePath.Glob
+-- import System.FilePath.Glob
 import Text.Decker.Project.Project as P
 import Text.Decker.Resource.Resource
 import Text.Pandoc

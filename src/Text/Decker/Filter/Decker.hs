@@ -7,20 +7,23 @@
 -- under the `decker` key in the meta data of the resulting document.
 module Text.Decker.Filter.Decker where
 
-import Control.Lens
-import Data.Text (splitOn)
+import Control.Monad.Loops
+import qualified Data.List as List
+import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
+import qualified Data.Text as Text
 import Relude
-import System.FilePath
 import Text.Blaze.Html
 import Text.Blaze.Html.Renderer.Text
-import Text.Blaze.Html5 as H
-import Text.Blaze.Html5.Attributes as A
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Internal (Attributable)
 import Text.Decker.Internal.Exception
 import Text.Pandoc
 import Text.Pandoc.Walk
 import qualified Text.URI as URI
-import Text.URI.Lens
 
+-- import Text.URI.Lens
 -- | Some WriterOptions and the document meta data are available to all
 -- filters. 
 data FilterState =
@@ -35,6 +38,87 @@ type FilterFunc a = a -> Filter (Maybe a)
 type InlineFilter = FilterFunc Inline
 
 type BlockFilter = FilterFunc Block
+
+-- | Assemble a Pandoc Attrib inside a filter.
+type ClassSet = Set Text
+
+type AttrMap = Map Text Text
+
+type Attrib = StateT (Text, ClassSet, AttrMap) Filter
+
+setId :: Text -> Attrib ()
+setId newId = modify (\(id, cs, kvs) -> (newId, cs, kvs))
+
+addClass :: Text -> Attrib ()
+addClass cls = modify (\(id, cs, kvs) -> (id, Set.insert cls cs, kvs))
+
+addClasses :: [Text] -> Attrib ()
+addClasses cls =
+  modify (\(id, cs, kvs) -> (id, Set.union (Set.fromList cls) cs, kvs))
+
+addKeyValue :: (Text, Text) -> Attrib ()
+addKeyValue (k, v) = modify (\(id, cs, kvs) -> (id, cs, Map.insert k v kvs))
+
+addKeyValues :: [(Text, Text)] -> Attrib ()
+addKeyValues kvl =
+  modify (\(id, cs, kvs) -> (id, cs, Map.union kvs (Map.fromList kvl)))
+
+addStyle :: (Text, Text) -> Attrib ()
+addStyle (k, v) =
+  modify (\(id, cls, kvs) -> (id, cls, Map.alter addOne "style" kvs))
+  where
+    addOne style = Just $ k <> ":" <> v <> ";" <> (fromMaybe "" style)
+
+assembleAttr :: (Attrib a) -> Filter Attr
+assembleAttr action = do
+  (id, cls, kvs) <- execStateT action ("", Set.empty, Map.empty)
+  return (id, Set.toList cls, Map.toList kvs)
+
+assemble :: [(Attr -> Attrib Attr)] -> Attr -> Filter Attr
+assemble actions attr = do
+  (id, cls, kvs) <-
+    execStateT ((concatM actions) attr) ("", Set.empty, Map.empty)
+  return (id, Set.toList cls, Map.toList kvs)
+
+rmKey :: Text -> [(Text, Text)] -> [(Text, Text)]
+rmKey key = filter ((/= key) . fst)
+
+rmClass :: Text -> [Text] -> [Text]
+rmClass cls = filter ((/= cls))
+
+takeStyle :: Text -> Attr -> Attrib Attr
+takeStyle key (id, cs, kvs) =
+  case List.lookup key kvs of
+    Just value -> do
+      addStyle (key, value)
+      return (id, cs, rmKey key kvs)
+    Nothing -> return (id, cs, kvs)
+
+takeSize :: Attr -> Attrib Attr
+takeSize attr = takeStyle "width" attr >>= takeStyle "height"
+
+takeId :: Attr -> Attrib Attr
+takeId (id, cls, kvs) = do
+  setId id
+  return ("", cls, kvs)
+
+takeCss :: Attr -> Attrib Attr
+takeCss (id, cls, kvs) = do
+  let (css, rest) = List.partition (isCss . fst) kvs
+  mapM_ (\(k, v) -> addStyle ((Text.drop 4 k), v)) css
+  return ("", cls, rest)
+  where
+    isCss key = Text.isPrefixOf "css:" key && Text.length key > 4
+
+takeData :: Attr -> Attrib Attr
+takeData (id, cls, kvs) = do
+  addKeyValues $ map (\(k, v) -> ("data-" <> k, v)) kvs
+  return ("", cls, [])
+
+takeAllClasses :: Attr -> Attrib Attr
+takeAllClasses (id, cls, kvs) = do
+  addClasses cls
+  return (id, [], kvs)
 
 -- | Apply a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
@@ -127,36 +211,29 @@ runFilter options filter pandoc@(Pandoc meta _) = do
 runFilter' ::
      Walkable a b => WriterOptions -> Meta -> (a -> Filter a) -> b -> IO b
 runFilter' options meta filter x =
-  fst <$> runStateT (walkM filter x) (FilterState options meta)
+  evalStateT (walkM filter x) (FilterState options meta)
 
 -- | File-extensions that should be treated as image
 imageExt = ["jpg", "jpeg", "png", "gif", "tif", "tiff", "bmp", "svg"]
 
 videoExt = [".mp4"]
 
-checkExtension extensions path = takeExtension path `elem` extensions
-
-isPlainImage url = checkExtension imageExt $ toString url
-
-filterPlainImage :: Inline -> Filter (Maybe Inline)
-filterPlainImage (Image attr [] (url, title))
-  | isPlainImage url = return $ Just $ Image attr [] (url, title)
-filterPlainImage (Image attr inlines (url, title))
-  | isPlainImage url = do
-    caption <- toMarkdown inlines
-    let html =
-          H.figure $ do
-            H.img ! A.src (H.toValue url)
-            H.figcaption (toHtml caption)
-    return $ Just $ RawInline (Format "html5") (fromLazy $ renderHtml html)
-filterPlainImage image = return Nothing
-
 -- | Renders a list of inlines back to markdown.
 toMarkdown :: [Inline] -> Filter Text
+toMarkdown [] = return ""
 toMarkdown inlines = do
   FilterState options meta <- get
-  case runPure (writeHtml5String options (Pandoc meta [Para inlines])) of
+  case runPure (writeHtml5String options (Pandoc meta [Plain inlines])) of
     Right text -> return text
+    Left err -> bug $ PandocException $ "BUG: " <> show err
+
+-- | Renders a list of inlines to HTML.
+inlinesToHtml :: [Inline] -> Filter Html
+inlinesToHtml [] = return $ H.span ""
+inlinesToHtml inlines = do
+  FilterState options meta <- get
+  case runPure (writeHtml5 options (Pandoc meta [Plain inlines])) of
+    Right html -> return html
     Left err -> bug $ PandocException $ "BUG: " <> show err
 
 class RawHtml a where
@@ -193,28 +270,61 @@ transformImage :: RawHtml a => Inline -> [Inline] -> Filter (Maybe a)
 transformImage (Image attr@(id, classes, values) inlines (url, title)) caption = do
   uri <- URI.mkURI url
   let ext = uriPathExtension uri
-  innerHtml <-
-    if | extIn ext imageExt || "image" `elem` classes -> imageHtml uri attr
-       | extIn ext videoExt || "video" `elem` classes -> videoHtml uri attr
-       | otherwise -> imageHtml uri attr
-  outerHtml <-
-    case (inlines, caption) of
-      ([], []) -> return innerHtml
-      (caption, []) -> return innerHtml
-      (_, caption) -> return innerHtml
-  return $ Just $ rawHtml "Generated HTML"
+  html <-
+    if | extIn ext imageExt || "image" `elem` classes ->
+         imageHtml uri attr caption
+       | extIn ext videoExt || "video" `elem` classes ->
+         videoHtml uri attr caption
+       | otherwise -> imageHtml uri attr caption
+  return $ Just $ rawHtml $ fromLazy $ renderHtml html
 transformImage inline _ =
   bug $ InternalException ("transformImage: no match for: " <> show inline)
 
-imageHtml :: URI.URI -> Attr -> Filter Html
-imageHtml uri attr@(id, classes, values) = return H.img
+instance ToValue [Text] where
+  toValue ts = toValue $ Text.intercalate " " ts
 
-videoHtml :: URI.URI -> Attr -> Filter Html
-videoHtml uri attr@(id, classes, values) = return H.img
+(!*) :: Attributable h => h -> [(Text, Text)] -> h
+(!*) html kvs =
+  foldl' (\h (k, v) -> h ! customAttribute (H.textTag k) (H.toValue v)) html kvs
+
+mkImageTag :: Text -> Attr -> Html
+mkImageTag url (id, cs, kvs) =
+  H.img !? (not (Text.null id), A.id (H.toValue id)) !?
+  (not (null cs), A.class_ (H.toValue cs)) !
+  H.dataAttribute "src" (H.toValue url) !*
+  kvs
+
+mkFigureTag :: Html -> Html -> Attr -> Html
+mkFigureTag content caption (id, cs, kvs) =
+  H.figure !? (not (Text.null id), A.id (H.toValue id)) !?
+  (not (null cs), A.class_ (H.toValue cs)) !*
+  kvs $ do
+    content
+    H.figcaption caption
+
+imageHtml :: URI.URI -> Attr -> [Inline] -> Filter Html
+imageHtml uri attr caption = do
+  captionHtml <- inlinesToHtml caption
+  case caption of
+    [] -> do
+      attr <-
+        assemble [takeId, takeAllClasses, takeSize, takeCss, takeData] attr
+      return $ mkImageTag (URI.render uri) attr
+    caption -> do
+      figureAttr <-
+        assemble [takeId, takeAllClasses, takeSize, takeCss, takeData] attr
+      return $
+        mkFigureTag
+          (mkImageTag (URI.render uri) nullAttr)
+          captionHtml
+          figureAttr
+
+videoHtml :: URI.URI -> Attr -> [Inline] -> Filter Html
+videoHtml uri attr@(id, classes, values) caption = return H.img
 
 uriPathExtension :: URI.URI -> Maybe Text
 uriPathExtension uri =
   case URI.uriPath uri of
     (Just (False, pieces)) ->
-      listToMaybe $ reverse $ splitOn "." $ URI.unRText $ last pieces
+      listToMaybe $ reverse $ Text.splitOn "." $ URI.unRText $ last pieces
     _ -> Nothing
