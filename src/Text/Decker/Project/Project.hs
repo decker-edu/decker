@@ -41,6 +41,7 @@ module Text.Decker.Project.Project
   ) where
 
 import Text.Decker.Internal.Common
+
 -- import Text.Decker.Internal.Flags
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -57,8 +58,8 @@ import System.Environment
 import System.FilePath
 import System.FilePath.Glob
 import Text.Pandoc.Definition
-import Text.Regex.TDFA
 import Text.Read
+import Text.Regex.TDFA
 
 data Targets = Targets
   { _sources :: [FilePath]
@@ -92,10 +93,11 @@ data ProjectDirs = ProjectDirs
 makeLenses ''ProjectDirs
 
 provisioningFromMeta :: Meta -> Provisioning
-provisioningFromMeta meta = fromMaybe SymLink $ getMetaString "provisioning" meta >>= readMaybe
+provisioningFromMeta meta =
+  fromMaybe SymLink $ getMetaString "provisioning" meta >>= readMaybe
 
 dachdeckerFromMeta :: Meta -> Maybe String
-dachdeckerFromMeta = getMetaString "dachdecker" 
+dachdeckerFromMeta = getMetaString "dachdecker"
 
 provisioningClasses :: [(String, Provisioning)]
 provisioningClasses =
@@ -152,13 +154,13 @@ projectDirectories = do
     (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
 
 deckerResourceDir :: IO FilePath
-deckerResourceDir = D.getXdgDirectory
-           D.XdgData
-           ("decker" ++
-            "-" ++
-            deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
+deckerResourceDir =
+  D.getXdgDirectory
+    D.XdgData
+    ("decker" ++
+     "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
 
--- | Find out if the decker executable is located below the current directory.
+-- | Finds out if the decker executable is located below the current directory.
 -- This means most probably that decker was started in the decker development
 -- project using `stack run decker`.
 isDevelopmentRun :: IO Bool
