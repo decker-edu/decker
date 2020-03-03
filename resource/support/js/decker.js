@@ -55,20 +55,19 @@ function currentDate() {
 }
 
 function makeVertical() {
-  const subsections = document.getElementsByClassName("sub");
+  const subsections = Array.from(document.getElementsByClassName("sub")).filter(s => s.nodeName === "SECTION");
   const subsection_bundles = [];
   for (let i = 0; i < subsections.length; i++) {
     const subsection = subsections[i];
-    if (subsection.nodeName !== "SECTION") {
-      continue;
-    }
     const bundle = [subsection];
+    var subtemp = subsection;
     while (
       i + 1 < subsections.length &&
-      subsection.nextElementSibling === subsections[i + 1]
+      subtemp.nextElementSibling === subsections[i + 1]
     ) {
       i += 1;
       bundle.push(subsections[i]);
+      subtemp = subtemp.nextElementSibling;
     }
     subsection_bundles.push(bundle);
   }
@@ -77,6 +76,7 @@ function makeVertical() {
     const supersection = document.createElement("section");
     supersection.classList.add("slide");
     supersection.classList.add("level1");
+    supersection.classList.add("test");
     const section = bundle[0].previousElementSibling;
     section.parentNode.insertBefore(supersection, section);
     supersection.appendChild(section);
