@@ -1,7 +1,7 @@
 Decker Media Filter - Test Report
 =================================
 
-This report is generated during \<pre\>\<code\>make test\</code\>\</pre\> and shows the HTML output for a representative selection of image tags. It is used for debugging and is the authoritative reference for CSS authors.
+This report is generated during testing and shows the HTML output for a representative selection of image tags. It is used for debugging and is the authoritative reference for CSS authors.
 
 <div>
 
@@ -196,7 +196,7 @@ translates to
 
 ``` {.html}
 <p>Inline <figure class="decker">
-    <video class="decker" data-src="/some/path/video.mp4#t=5,30" autoplay="1" controls="1" poster="somewhere/image.png" preload="none">
+    <video class="decker" data-src="/some/path/video.mp4#t=5,30" poster="somewhere/image.png" preload="none" controls="1" autoplay="1">
         
     </video>
     <figcaption class="decker">

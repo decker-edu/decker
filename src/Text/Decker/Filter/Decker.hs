@@ -47,7 +47,24 @@ type ClassSet = Set Text
 
 type AttrMap = Map Text Text
 
-type Attrib = StateT (Text, ClassSet, AttrMap) Filter
+type AttrMap' = [(Text, Text)]
+
+type FastAttrib = (Text, ClassSet, AttrMap)
+
+type Attrib = StateT FastAttrib Filter
+
+type AttribState = (Attr, Attr)
+
+type Attrib' = StateT AttribState Filter
+
+extractAttr :: Attrib' Attr
+extractAttr = do
+  (result, remaining) <- get
+  put (nullAttr, remaining)
+  return result
+
+remainingAttr :: Attrib' Attr
+remainingAttr = snd <$> get
 
 setId :: Text -> Attrib ()
 setId newId = modify (\(id, cs, kvs) -> (newId, cs, kvs))
@@ -88,11 +105,31 @@ assemble' actions attr = do
     runStateT (concatM actions attr) ("", Set.empty, Map.empty)
   return ((id, Set.toList cls, Map.toList kvs), attr')
 
-rmKey :: Text -> [(Text, Text)] -> [(Text, Text)]
+rmKey :: Eq a => a -> [(a, b)] -> [(a, b)]
 rmKey key = filter ((/= key) . fst)
 
 rmClass :: Text -> [Text] -> [Text]
 rmClass cls = filter (/= cls)
+
+alterKey :: Eq a => (Maybe b -> Maybe b) -> a -> [(a, b)] -> [(a, b)]
+alterKey f key kvs =
+  case f $ List.lookup key kvs of
+    Just value -> (key, value) : rmKey key kvs
+    Nothing -> rmKey key kvs
+
+addStyle' :: (Text, Text) -> AttrMap' -> AttrMap'
+addStyle' (k, v) kvs = alterKey addOne "style" kvs
+  where
+    addOne style = Just $ k <> ":" <> v <> ";" <> fromMaybe "" style
+
+takeStyle' :: Text -> Attrib' ()
+takeStyle' key = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      case List.lookup key kvs of
+        Just value ->
+          ((id', cs', addStyle' (key, value) kvs'), (id, cs, rmKey key kvs))
+        Nothing -> state
 
 takeStyle :: Text -> Attr -> Attrib Attr
 takeStyle key (id, cs, kvs) =
@@ -102,13 +139,38 @@ takeStyle key (id, cs, kvs) =
       return (id, cs, rmKey key kvs)
     Nothing -> return (id, cs, kvs)
 
+takeSize' :: Attrib' ()
+takeSize' = do
+  takeStyle' "width"
+  takeStyle' "height"
+
 takeSize :: Attr -> Attrib Attr
 takeSize attr = takeStyle "width" attr >>= takeStyle "height"
+
+takeId' :: Attrib' ()
+takeId' = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      ((id, cs', kvs'), ("", cs, kvs))
 
 takeId :: Attr -> Attrib Attr
 takeId (id, cls, kvs) = do
   setId id
   return ("", cls, kvs)
+
+takeCss' :: Attrib' ()
+takeCss' = do
+    modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      let (css, rest) = List.partition (isCss . fst) kvs
+          added =
+            foldl'
+              (\result (k, v) -> addStyle' (Text.drop 4 k, v) result)
+              kvs'
+              css
+       in ((id', cs', added), (id, cs, rest))
+    isCss key = Text.isPrefixOf "css:" key && Text.length key > 4
 
 takeCss :: Attr -> Attrib Attr
 takeCss (id, cls, kvs) = do
@@ -118,10 +180,22 @@ takeCss (id, cls, kvs) = do
   where
     isCss key = Text.isPrefixOf "css:" key && Text.length key > 4
 
+takeData' :: Attrib' ()
+takeData' = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      ((id', cs', map (first ("data-" <>)) kvs <> kvs'), (id, cs, []))
+
 takeData :: Attr -> Attrib Attr
 takeData (id, cls, kvs) = do
   addKeyValues $ map (first ("data-" <>)) kvs
   return ("", cls, [])
+
+takeAllClasses' :: Attrib' ()
+takeAllClasses' = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      ((id', cs <> cs', kvs'), (id, [], kvs))
 
 takeAllClasses :: Attr -> Attrib Attr
 takeAllClasses (id, cls, kvs) = do
@@ -130,12 +204,26 @@ takeAllClasses (id, cls, kvs) = do
 
 videoClasses = ["autoplay", "controls", "loop", "muted"]
 
+takeVideoClasses' :: Attrib' ()
+takeVideoClasses' = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      let (vcs, rest) = List.partition (`elem` videoClasses) cs
+       in ((id', cs', map (, "1") vcs <> kvs'), (id, rest, kvs))
+
 takeVideoClasses :: Attr -> Attrib Attr
 takeVideoClasses (id, cls, kvs) = do
   mapM_ (addKeyValue . (, "1")) $ filter (`elem` videoClasses) cls
   return (id, filter (`notElem` videoClasses) cls, kvs)
 
 videoAttribs = ["poster", "preload"]
+
+takeVideoAttribs' :: Attrib' ()
+takeVideoAttribs' = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      let (vkvs, rest) = List.partition ((`elem` videoAttribs) . fst) kvs
+       in ((id', cs', vkvs <> kvs'), (id, cs, rest))
 
 takeVideoAttribs :: Attr -> Attrib Attr
 takeVideoAttribs (id, cls, kvs) = do
@@ -306,16 +394,20 @@ renderHtml html = do
       then toText $ Pretty.renderHtml html
       else fromLazy $ Text.renderHtml html
 
+runAttr :: Attr -> Attrib' a -> Filter a
+runAttr attr attrAction = evalStateT attrAction (nullAttr, attr)
+
 transformImage :: RawHtml a => Inline -> [Inline] -> Filter a
 transformImage (Image attr@(_, classes, _) _ (url, _)) caption = do
   uri <- URI.mkURI url
   let ext = uriPathExtension uri
   html <-
+    runAttr attr $
     if | extIn ext imageExt || "image" `elem` classes ->
-         imageHtml uri attr caption
+         imageHtml' uri caption
        | extIn ext videoExt || "video" `elem` classes ->
-         videoHtml uri attr caption
-       | otherwise -> imageHtml uri attr caption
+         videoHtml' uri caption
+       | otherwise -> imageHtml' uri caption
   renderHtml html
 transformImage inline _ =
   bug $ InternalException ("transformImage: no match for: " <> show inline)
@@ -350,6 +442,32 @@ mkFigureTag content caption (id, cs, kvs) =
     content
     H.figcaption ! A.class_ "decker" $ caption
 
+takeUsual' = do
+  print "-------------"
+  print =<< get
+  takeId'
+  print =<< get
+  takeAllClasses'
+  print =<< get
+  takeSize'
+  print =<< get
+  takeCss'
+  print =<< get
+  takeData'
+  print =<< get
+
+imageHtml' :: URI.URI -> [Inline] -> Attrib' Html
+imageHtml' uri caption =
+  case caption of
+    [] -> do
+      takeUsual'
+      mkImageTag (URI.render uri) <$> extractAttr
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      let imageTag = mkImageTag (URI.render uri) nullAttr
+      takeUsual'
+      mkFigureTag imageTag captionHtml <$> extractAttr
+
 imageHtml :: URI.URI -> Attr -> [Inline] -> Filter Html
 imageHtml uri attr caption =
   case caption of
@@ -367,6 +485,17 @@ imageHtml uri attr caption =
           captionHtml
           figureAttr
 
+mediaFragment' :: Attrib' Text
+mediaFragment' = do
+  (result, (id, cs, kvs)) <- get
+  let start = fromMaybe "" $ List.lookup "start" kvs
+      stop = fromMaybe "" $ List.lookup "stop" kvs
+  put (result, (id, cs, rmKey "start" $ rmKey "stop" kvs))
+  return $
+    if Text.null start && Text.null stop
+      then ""
+      else ("t=" <> start <> "," <> stop)
+
 mediaFragment :: Attr -> (Text, Attr)
 mediaFragment attr@(id, cs, kvs) =
   let start = fromMaybe "" $ List.lookup "start" kvs
@@ -375,6 +504,21 @@ mediaFragment attr@(id, cs, kvs) =
         then ("", attr)
         else ( "t=" <> start <> "," <> stop
              , (id, cs, rmKey "start" $ rmKey "stop" kvs))
+
+videoHtml' :: URI.URI -> [Inline] -> Attrib' Html
+videoHtml' uri caption = do
+  mediaFrag <- mediaFragment'
+  let videoUri = (URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag})
+  case caption of
+    [] -> do
+      takeVideoClasses' >> takeVideoAttribs' >> takeUsual'
+      mkVideoTag videoUri <$> extractAttr
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      videoAttr <- takeVideoClasses' >> takeVideoAttribs' >> extractAttr
+      let videoTag = mkVideoTag videoUri videoAttr
+      figureAttr <- takeUsual' >> extractAttr
+      return $ mkFigureTag videoTag captionHtml figureAttr
 
 videoHtml :: URI.URI -> Attr -> [Inline] -> Filter Html
 videoHtml uri imgAttr@(id, classes, values) caption = do
@@ -398,8 +542,6 @@ videoHtml uri imgAttr@(id, classes, values) caption = do
       captionHtml <- inlinesToHtml caption
       (videoAttr, remaining) <-
         assemble' [takeVideoClasses, takeVideoAttribs] attr
-      print videoAttr
-      print remaining
       figureAttr <-
         assemble [takeId, takeAllClasses, takeSize, takeCss, takeData] remaining
       return $

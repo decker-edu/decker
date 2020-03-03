@@ -80,12 +80,12 @@ plainVideo =
 plainVideoHtml =
   RawInline
     (Format "html5")
-    "<video id=\"video\" class=\"decker myclass\" data-src=\"cat.mp4#t=23,42\" autoplay=\"1\" data-annoying=\"100\" loop=\"1\" poster=\"some/where/image.png\" preload=\"none\" style=\"border:1px;width:30%;\"></video>"
+    "<video id=\"video\" class=\"decker myclass\" data-src=\"cat.mp4#t=23,42\" data-annoying=\"100\" style=\"border:1px;width:30%;\" poster=\"some/where/image.png\" preload=\"none\" autoplay=\"1\" loop=\"1\"></video>"
 
 plainVideoCaptionedHtml =
   RawInline
     (Format "html5")
-    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"border:1px;width:30%;\"><video class=\"decker\" data-src=\"cat.mp4#t=23,42\" autoplay=\"1\" loop=\"1\" poster=\"some/where/image.png\" preload=\"none\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"border:1px;width:30%;\"><video class=\"decker\" data-src=\"cat.mp4#t=23,42\" poster=\"some/where/image.png\" preload=\"none\" autoplay=\"1\" loop=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 blockAin = [Para [], Para [Image nullAttr [] ("", "")], Para []]
 
