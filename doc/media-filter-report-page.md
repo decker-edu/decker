@@ -14,21 +14,21 @@ Inline ![](/some/path/image.png)
 translates to
 
 ``` {.html}
-<p>Inline <img class="decker" data-src="/some/path/image.png">
+<p>Inline <img class="decker" data-src="some/path/image.png">
 </p>
 ```
 
 ------------------------------------------------------------------------
 
 ``` {.markdown}
-Inline ![This is a **plain** image.](/some/path/image.png)
+Inline ![This is a **plain** image.](path/image.png)
 ```
 
 translates to
 
 ``` {.html}
 <p>Inline <figure class="decker">
-    <img class="decker" data-src="/some/path/image.png">
+    <img class="decker" data-src="path/image.png">
     <figcaption class="decker">
         This
          
@@ -51,7 +51,7 @@ translates to
 ``` {.markdown}
 Block
 
-![](/some/path/image.png)
+![](https://heise.de/logo.png)
 
 Image: This is a **plain** image.
 ```
@@ -61,7 +61,7 @@ translates to
 ``` {.html}
 <p>Block</p>
 <figure class="decker">
-    <img class="decker" data-src="/some/path/image.png">
+    <img class="decker" data-src="https://heise.de/logo.png">
     <figcaption class="decker">
          
         This
@@ -118,7 +118,7 @@ translates to
 
 ``` {.html}
 <p>Inline <figure id="myid" class="decker myclass" data-myattribute="value" style="border:1px;width:40%;">
-    <img class="decker" data-src="/some/path/image.png">
+    <img class="decker" data-src="some/path/image.png">
     <figcaption class="decker">
         Image
          
@@ -142,7 +142,7 @@ translates to
 
 ``` {.html}
 <p>Inline <figure class="decker" style="width:42%;">
-    <video class="decker" data-src="/some/path/video.mp4#">
+    <video class="decker" data-src="some/path/video.mp4#">
         
     </video>
     <figcaption class="decker">
@@ -166,7 +166,7 @@ translates to
 
 ``` {.html}
 <p>Inline <figure class="decker">
-    <video class="decker" data-src="/some/path/video.mp4#t=5,30" preload="none">
+    <video class="decker" data-src="some/path/video.mp4#t=5,30" preload="none">
         
     </video>
     <figcaption class="decker">
@@ -196,7 +196,7 @@ translates to
 
 ``` {.html}
 <p>Inline <figure class="decker">
-    <video class="decker" data-src="/some/path/video.mp4#t=5,30" poster="somewhere/image.png" preload="none" controls="1" autoplay="1">
+    <video class="decker" data-src="some/path/video.mp4#t=5,30" poster="somewhere/image.png" preload="none" controls="1" autoplay="1">
         
     </video>
     <figcaption class="decker">

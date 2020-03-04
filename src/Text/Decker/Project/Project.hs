@@ -61,6 +61,7 @@ import Text.Pandoc.Definition
 import Text.Read
 import Text.Regex.TDFA
 
+
 data Targets = Targets
   { _sources :: [FilePath]
   , _static :: [FilePath]

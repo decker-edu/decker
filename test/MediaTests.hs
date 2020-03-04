@@ -5,6 +5,7 @@ module MediaTests
   ) where
 
 import Text.Decker.Filter.Decker
+import Text.Decker.Internal.Meta
 
 -- import Text.Blaze.Html
 -- import Text.Blaze.Html.Renderer.Text
@@ -17,16 +18,19 @@ import Test.Hspec as Hspec
 import Text.Pandoc
 import Text.Pandoc.Highlighting
 
+filterMeta =
+  setTextMetaValue "decker.base-dir" "." $
+  setTextMetaValue "decker.project-dir" "/tmp/decker" $
+  setTextMetaValue "decker.public-dir" "/tmp/decker/public" $ nullMeta
+
 -- import qualified Text.URI as URI
 -- | Constructs a filter runner with default parameters
-testFilter = runFilter' def nullMeta
+testFilter = runFilter' def filterMeta
 
 doFilter :: RawHtml a => Filter a -> IO a
-doFilter action = fst <$> runStateT action (FilterState def nullMeta)
+doFilter action = fst <$> runStateT action (FilterState def filterMeta)
 
 mediaTests = do
-  Hspec.runIO $
-    writeSnippetReport "doc/media-filter-report-page.md" testSnippets
   describe "pairwise" $
     it "pairwise matches a list of walkables" $ do
       testFilter filter0 blockAin `shouldReturn` blockAin
@@ -41,6 +45,8 @@ mediaTests = do
       doFilter (transformImage plainVideo []) `shouldReturn` plainVideoHtml
       doFilter (transformImage plainVideo styledCaption) `shouldReturn`
         plainVideoCaptionedHtml
+  Hspec.runIO $
+    writeSnippetReport "doc/media-filter-report-page.md" testSnippets
 
 styledCaption = [Str "A", Space, Strong [Str "logo."]]
 
@@ -138,15 +144,21 @@ setPretty (Pandoc meta blocks) =
 
 compileSnippet :: Text -> IO Text
 compileSnippet markdown = do
-  pandoc <- handleError (runPure (readMarkdown readerOptions markdown))
-  filtered <- mediaFilter def (setPretty pandoc)
+  pandoc@(Pandoc meta blocks) <-
+    handleError (runPure (readMarkdown readerOptions markdown))
+  filtered@(Pandoc fmeta _) <-
+    mediaFilter
+      def
+      (Pandoc (setBoolMetaValue "decker.filter.pretty" True filterMeta) blocks)
+  print "-----------"
+  print $ unMeta fmeta
   handleError (runPure (writeHtml5String def filtered))
 
 testSnippets :: [Text]
 testSnippets =
   [ "Inline ![](/some/path/image.png)"
-  , "Inline ![This is a **plain** image.](/some/path/image.png)"
-  , "Block\n\n![](/some/path/image.png)\n\nImage: This is a **plain** image."
+  , "Inline ![This is a **plain** image.](path/image.png)"
+  , "Block\n\n![](https://heise.de/logo.png)\n\nImage: This is a **plain** image."
   , "Inline ![Image URI with **query string**.](https:/some.where/image.png&key=value)"
   , "Inline ![Image with **attributes**](/some/path/image.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}"
   , "Inline ![A local video.](/some/path/video.mp4){width=\"42%\"}"

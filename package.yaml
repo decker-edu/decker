@@ -49,6 +49,7 @@ dependencies:
   - data-default
   - directory
   - doctemplates
+  - exceptions
   - extra
   - filepath
   - formatting

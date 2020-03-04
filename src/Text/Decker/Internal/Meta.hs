@@ -18,6 +18,11 @@ module Text.Decker.Internal.Meta
   , getMetaTextListOrElse
   , getMetaValue
   , getMetaTextMap
+  , setMetaValue
+  , setBoolMetaValue
+  , setTextMetaValue
+  , addMetaValue
+  , addStringToMetaList
   , pandocMeta
   , DeckerException(..)
   ) where
@@ -200,6 +205,45 @@ getMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
       (readMaybe . Text.unpack) key >>= (!!) list >>= lookup' path
     lookup' (_:_) _ = Nothing
     lookup' [] mv = Just mv
+
+setMetaValue :: Text.Text -> MetaValue -> Meta -> Meta
+setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
+  where
+    set (k:[]) (MetaMap map) = M.insert k value map
+    set (k:p) (MetaMap map) =
+      case M.lookup k map of
+        Just value -> M.insert k (MetaMap $ set p value) map
+        otherwise -> M.insert k (MetaMap $ set p $ MetaMap M.empty) map
+    set _ _ =
+      throw $
+      InternalException $ "Cannot set meta value on non object at: " <> show key
+
+setBoolMetaValue key bool = setMetaValue key (MetaBool bool)
+
+setTextMetaValue key string = setMetaValue key (MetaString string)
+
+addMetaValue :: Text.Text -> MetaValue -> Meta -> Meta
+addMetaValue key value meta =
+  case add (splitKey key) (MetaMap (unMeta meta)) of
+    MetaMap map -> Meta map
+    otherwise -> meta
+  where
+    add [] (MetaList list) = MetaList $ value : list
+    add (k:[]) (MetaMap m) =
+      case M.lookup k m of
+        Just value -> MetaMap $ M.insert k (add [] value) m
+        otherwise -> MetaMap $ M.insert k (add [] $ MetaList []) m
+    add (k:p) (MetaMap m) =
+      case M.lookup k m of
+        Just value -> MetaMap $ M.insert k (add p value) m
+        otherwise -> MetaMap $ M.insert k (add p $ MetaMap M.empty) m
+    add _ _ =
+      throw $
+      InternalException $
+      "Cannot add meta value to non list at: " <> toString key
+
+addStringToMetaList :: Text.Text -> Text.Text -> Meta -> Meta
+addStringToMetaList key string = addMetaValue key (MetaString string)
 
 getMetaTextMap :: Text.Text -> Meta -> Maybe (M.Map Text.Text Text.Text)
 getMetaTextMap key meta = getMetaValue key meta >>= metaToTextMap
