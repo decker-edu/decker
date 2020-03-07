@@ -180,7 +180,7 @@ tripletwise f (w:x:y:zs) = do
 tripletwise _ xs = return xs
 
 -- | Runs the document through the four increaingly detailed filter stages. The
--- matchng granularity ranges from list of blocks to single inline elements.
+-- matching granularity ranges from list of blocks to single inline elements.
 mediaFilter :: WriterOptions -> Pandoc -> IO Pandoc
 mediaFilter options pandoc =
   runFilter options mediaBlockListFilter pandoc >>=
@@ -344,7 +344,7 @@ modifyMeta f = modify (\s -> s {meta = f (meta s)})
 
 processLocalUri :: URI -> Filter URI
 processLocalUri uri
-  -- | The project relative (!) document directory from which this is called.
+  -- | The absolute (!) document directory from which this is called.
  = do
   cwd <- liftIO $ getCurrentDirectory
   baseDir <- toString <$> getMeta "decker.base-dir" "."
@@ -357,21 +357,15 @@ processLocalUri uri
   urlPath <- toString <$> uriPath uri
   -- | Interpret urlPath either project relative or document relative,
   -- depending on the leading slash.
-  print "++++++"
-  print urlPath
   let relPath =
         normalise $
         if hasDrive urlPath
           then dropDrive urlPath
-          else baseDir </> urlPath
-  print relPath
+          else makeRelative projectDir baseDir </> urlPath
   let basePath = projectDir </> baseDir
-  print basePath
   let targetPath = publicDir </> relPath
   let sourcePath = projectDir </> relPath
-  print sourcePath
   let publicRelPath = makeRelativeTo basePath sourcePath
-  print publicRelPath
   publicUri <- setUriPath (toText publicRelPath) uri
   let publicUrl = URI.render publicUri
   storeResourceInfo sourcePath targetPath publicUrl
@@ -387,8 +381,8 @@ getMeta key def = getMetaTextOrElse key def <$> gets meta
 storeResourceInfo :: FilePath -> FilePath -> Text -> Filter ()
 storeResourceInfo source target url = do
   let key = "decker" <.> "filter" <.> "resources" <.> hash9String target
-  setMeta (toText $ key <.> "target") $ toText target
   setMeta (toText $ key <.> "source") $ toText source
+  setMeta (toText $ key <.> "target") $ toText target
   setMeta (toText $ key <.> "url") url
 
 transformImage :: RawHtml a => Inline -> [Inline] -> Filter a

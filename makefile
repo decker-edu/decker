@@ -20,7 +20,11 @@ clean-build: clean
 less:
 	stack build $(stack-build-options) 2>&1 | less 
 
-install: clean-build
+resource-zip:
+	rm -f resource/decker-resources.zip
+	(cd resource; zip -qr decker-resources.zip example support template tutorial)
+
+install: clean-build resource-zip
 	mkdir -p $(local-bin-path)
 	cp $(executable) "$(local-bin-path)/$(decker-name)"
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
@@ -54,4 +58,4 @@ clean:
 	rm -rf dist public
 	rm -rf resource/support/vendor
 
-.PHONY: build clean test install dist docs 
+.PHONY: build clean test install dist docs resource-zip

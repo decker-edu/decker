@@ -15,6 +15,7 @@ module Text.Decker.Resource.Resource
   -- * Provisioning
   , provisionResources
   , provisionResource
+  , publishResource
   ) where
 
 import System.Decker.OS
@@ -174,7 +175,7 @@ provisionResource base method filePath =
                       makeRelativeTo (dirs ^. project) filePath
                   , publicUrl = urlPath $ makeRelativeTo base filePath
                   }
-          provision resource
+          publishResource method base resource
         else return filePath
     Just uri -> do
       dirs <- projectDirsA
@@ -184,18 +185,20 @@ provisionResource base method filePath =
         then do
           need [path]
           let resource = resourcePaths dirs base uri
-          provision resource
+          publishResource method base resource
         else throw $ ResourceException $ "resource does not exist: " ++ path
-  where
-    provision resource = do
-      publicResource <- publicResourceA
-      withResource publicResource 1 $
-        liftIO $
-        case method of
-          Copy -> copyResource resource
-          SymLink -> linkResource resource
-          Absolute -> absRefResource resource
-          Relative -> relRefResource base resource
+
+publishResource :: Provisioning -> FilePath -> Resource -> Action FilePath
+publishResource method base resource = do
+  publicResource <- publicResourceA
+  liftIO $ print resource
+  withResource publicResource 1 $
+    liftIO $
+    case method of
+      Copy -> copyResource resource
+      SymLink -> linkResource resource
+      Absolute -> absRefResource resource
+      Relative -> relRefResource base resource
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
 urlToFilePathIfLocal base uri =
@@ -241,13 +244,13 @@ mapAttributes transform (ident, classes, kvs) = do
 mapInline :: (FilePath -> Action FilePath) -> Inline -> Action Inline
 mapInline transform (Image attr inlines (url, title)) = do
   a <- mapAttributes transform attr
-  u <- transform (Text.unpack url )
+  u <- transform (Text.unpack url)
   return $ Image a inlines (Text.pack u, title)
 mapInline transform lnk@(Link attr@(_, cls, _) inlines (url, title)) =
   if "resource" `elem` cls
     then do
       a <- mapAttributes transform attr
-      u <- transform (Text.unpack url )
+      u <- transform (Text.unpack url)
       return (Link a inlines (Text.pack u, title))
     else return lnk
 mapInline transform (Span attr inlines) = do

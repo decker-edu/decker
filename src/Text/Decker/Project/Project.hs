@@ -38,6 +38,7 @@ module Text.Decker.Project.Project
   , Targets(..)
   , Resource(..)
   , ProjectDirs(..)
+  , fromMetaValue
   ) where
 
 import Text.Decker.Internal.Common
@@ -48,19 +49,26 @@ import Text.Decker.Internal.Meta
 import Text.Decker.Project.Glob
 import Text.Decker.Project.Version
 
-import Control.Lens
+import Control.Arrow
+import Control.Lens hiding ((.=))
+import Data.Aeson
 import Data.List
 import Data.List.Split (splitOn)
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import Data.Maybe
+import Data.Text (Text)
+import qualified Data.Text as Text
+import GHC.Generics (Generic)
 import Network.URI
 import qualified System.Directory as D
 import System.Environment
 import System.FilePath
 import System.FilePath.Glob
 import Text.Pandoc.Definition
+import Text.Pandoc.Shared
 import Text.Read
 import Text.Regex.TDFA
-
 
 data Targets = Targets
   { _sources :: [FilePath]
@@ -80,7 +88,76 @@ data Resource = Resource
   { sourceFile :: FilePath -- ^ Absolute Path to source file
   , publicFile :: FilePath -- ^ Absolute path to file in public folder
   , publicUrl :: FilePath -- ^ Relative URL to served file from base
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic)
+
+instance ToJSON Resource where
+  toJSON (Resource source target url) =
+    object ["source" .= source, "target" .= target, "url" .= url]
+
+instance FromJSON Resource where
+  parseJSON =
+    withObject "Resource" $ \v ->
+      Resource <$> v .: "source" <*> v .: "target" <*> v .: "url"
+
+class ToMetaValue a where
+  toMetaValue :: a -> MetaValue
+
+instance ToMetaValue MetaValue where
+  toMetaValue = id
+
+instance {-# OVERLAPS #-} ToMetaValue a => ToMetaValue [a] where
+  toMetaValue = MetaList . map toMetaValue
+
+instance ToMetaValue a => ToMetaValue [(Text, a)] where
+  toMetaValue = MetaMap . Map.fromList . map (second toMetaValue)
+
+instance ToMetaValue Text where
+  toMetaValue = MetaString
+
+instance ToMetaValue String where
+  toMetaValue = MetaString . Text.pack
+
+instance ToMetaValue Resource where
+  toMetaValue (Resource source target url) =
+    toMetaValue
+      [ ("source" :: Text, source)
+      , ("target" :: Text, target)
+      , ("url" :: Text, url)
+      ]
+
+class FromMetaValue a where
+  fromMetaValue :: MetaValue -> Maybe a
+
+instance {-# OVERLAPS #-} FromMetaValue a => FromMetaValue [a] where
+  fromMetaValue (MetaList list) = Just $ mapMaybe fromMetaValue list
+  fromMetaValue _ = Nothing
+
+instance FromMetaValue a => FromMetaValue [(Text, a)] where
+  fromMetaValue (MetaMap object) =
+    let kes :: Map Text (Maybe a) =
+          Map.filter isJust $ Map.map fromMetaValue object
+     in Just $ zip (Map.keys kes) (map fromJust (Map.elems kes))
+  fromMetaValue _ = Nothing
+
+instance FromMetaValue Text where
+  fromMetaValue (MetaString text) = Just text
+  fromMetaValue (MetaInlines inlines) = Just $ stringify inlines
+  fromMetaValue _ = Nothing
+
+instance FromMetaValue String where
+  fromMetaValue v = Text.unpack <$> fromMetaValue v
+
+rightToMaybe (Right r) = Just r
+
+rightRoMaybe (Left l) = Nothing
+
+instance FromMetaValue Resource where
+  fromMetaValue (MetaMap object) = do
+    source <- Map.lookup "source" object >>= fromMetaValue
+    target <- Map.lookup "target" object >>= fromMetaValue
+    url <- Map.lookup "url" object >>= fromMetaValue
+    return $ Resource source target url
+  fromMetaValue _ = Nothing
 
 data ProjectDirs = ProjectDirs
   { _project :: FilePath

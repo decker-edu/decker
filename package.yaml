@@ -143,6 +143,7 @@ tests:
 
 default-extensions:
   - DeriveDataTypeable
+  - DeriveGeneric
   - EmptyCase
   - FlexibleContexts
   - FlexibleInstances

@@ -26,6 +26,7 @@ auto/
 *.fls
 *.log
 *.synctex.gz
+*.zip
 resource/support/vendor/**
 test/decks/*.svg
 dist/
