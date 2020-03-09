@@ -161,29 +161,34 @@ function matchings(initialMatchings) {
     // matchingAnswerButton has to be first so the sample solution is in the correct order. Very dubious hack
     matchingAnswerButtons(initialMatchings);
     shuffleDraggables();
-    retryButtons(initialMatchings);
+    // retryButtons(initialMatchings);
 }
 
 // Configure retryButtons
-function retryButtons(initialMatchings) {
-    var buttons = document.getElementsByClassName("retryButton");
+// function retryButtons(initialMatchings) {
+//     var buttons = document.getElementsByClassName("retryButton");
 
-    for (i = 0; i < buttons.length; i++) {
-        const initial = initialMatchings[i].cloneNode(true);
+//     for (i = 0; i < buttons.length; i++) {
+//         const initial = initialMatchings[i].cloneNode(true);
 
-        buttons[i].onclick = function () {
-            var curr = this.closest(".matching");
-            curr.parentNode.replaceChild(initial, curr);
-            // Call matchings once again to reset everything. e.g the shuffling etc
-            matchings(initialMatchings);
-        }
-    }
-}
+//         buttons[i].onclick = function () {
+//             var curr = this.closest(".matching");
+//             curr.parentNode.replaceChild(initial, curr);
+//             // Call matchings once again to reset everything. e.g the shuffling etc
+//             matchings(initialMatchings);
+//         }
+//     }
+// }
 
 // Shuffle draggables so the correct pairings aren't always directly below each other
 function shuffleDraggables() {
     var dragzones = document.getElementsByClassName("dragzone");
     for (let container of dragzones) {
+        container.style.border = "black";
+        container.style.borderStyle = "dashed";
+        container.id = "drop".concat(i.toString());
+        container.addEventListener("drop", drop);
+        container.addEventListener("dragover", allowDrop);
         var elementsArray = Array.prototype.slice.call(container.getElementsByClassName('draggable'));
         elementsArray.forEach(function (element) {
             container.removeChild(element);
@@ -358,25 +363,30 @@ function freetextAnswerButtons() {
     const answerButtons = document.getElementsByClassName('freetextAnswerButton');
     for (let button of answerButtons) {
         button.onclick = function () {
-            var questionField = this.parentElement.getElementsByClassName('freetextInput')[0];
-            // Has the user entered anything?
-            if (questionField.value) {
-                var answer = questionField.getAttribute("answer").trim();
-                if (questionField.value.toLowerCase().trim() == answer.toLowerCase()) {
-                    questionField.style.backgroundColor = "rgb(151, 255, 122)";
-                }
-                else {
-                    questionField.style.backgroundColor = "rgb(255, 122, 122)";
-                    questionField.value += " (" + answer + ")";
-                }
-                questionField.setAttribute("size", questionField.value.length);
-                questionField.disabled = true;
-                this.disabled = true;
-            }
-            else {
-                alert("No answer entered!");
-                return false;
-            }
+            clickStuff(this);
         }
     }
+}
+
+function clickStuff(button) {
+    var questionField = button.parentElement.getElementsByClassName('freetextInput')[0];
+    // Has the user entered anything?
+    if (questionField.value) {
+        var answer = questionField.getAttribute("answer").trim();
+        if (questionField.value.toLowerCase().trim() == answer.toLowerCase()) {
+            questionField.style.backgroundColor = "rgb(151, 255, 122)";
+        }
+        else {
+            questionField.style.backgroundColor = "rgb(255, 122, 122)";
+            questionField.value += " (" + answer + ")";
+        }
+        questionField.setAttribute("size", questionField.value.length);
+        questionField.disabled = true;
+        this.disabled = true;
+    }
+    else {
+        alert("No answer entered!");
+        return false;
+    }
+
 }
