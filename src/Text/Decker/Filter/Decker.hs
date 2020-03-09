@@ -76,7 +76,22 @@ alterKey f key kvs =
 addStyle :: (Text, Text) -> AttrMap -> AttrMap
 addStyle (k, v) = alterKey addOne "style"
   where
-    addOne style = Just $ k <> ":" <> v <> ";" <> fromMaybe "" style
+    addOne style = Just $ fromMaybe "" style <> k <> ":" <> v <> ";"
+
+injectStyle :: (Text, Text) -> Attrib ()
+injectStyle (key, value) = modify transform
+  where
+    transform ((id', cs', kvs'), attr) =
+      ((id', cs', addStyle (key, value) kvs'), attr)
+
+-- | Pushes an additional attribute to the source side of the attribute state.
+-- An existing attribute with the same key is overwritten.
+pushAttribute :: (Text, Text) -> Attrib ()
+pushAttribute (key, value) = modify transform
+  where
+    transform (attr', (id, cs, kvs)) =
+      (attr', (id, cs, alterKey replace key kvs))
+    replace _ = Just value
 
 takeStyle :: Text -> Attrib ()
 takeStyle key = modify transform
@@ -139,6 +154,12 @@ takeAllClasses = modify transform
     transform state@((id', cs', kvs'), (id, cs, kvs)) =
       ((id', cs <> cs', kvs'), (id, [], kvs))
 
+injectBorder = do
+  border <- getMetaBoolOrElse "decker.filter.border" False <$> lift (gets meta)
+  if border
+    then injectStyle ("border", "2px solid magenta")
+    else return ()
+
 videoClasses = ["autoplay", "controls", "loop", "muted"]
 
 takeVideoClasses :: Attrib ()
@@ -200,7 +221,11 @@ mediaBlockListFilter = pairwise filterPairs
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
     filterPairs ((Para [image@Image {}]), Para (Str "Image:":caption)) =
-      Just <$> transformImage image caption
+      Just <$> (transformImage image caption >>= renderHtml)
+    -- Any number of consecutive images in a masonry row.
+    filterPairs (LineBlock lines, Para (Str "Image:":caption))
+      | oneImagePerLine lines =
+        Just <$> (transformImages (concat lines) caption >>= renderHtml)
     -- Default filter
     filterPairs (x, y) = return Nothing
     filterTriplets :: (Block, Block, Block) -> Filter (Maybe [Block])
@@ -213,9 +238,13 @@ mediaInlineListFilter = pairwise filterPairs
   --tripletwise filterTriplets inlines >>= pairwise filterPairs
   where
     filterPairs :: (Inline, Inline) -> Filter (Maybe [Inline])
-    -- Default filter
+    filterPairs (img1@Image {}, img2@Image {}) =
+      Just <$> (transformImages [img1, img2] [] >>= renderHtml)
+      -- Default filter
     filterPairs (x, y) = return Nothing
     filterTriplets :: (Inline, Inline, Inline) -> Filter (Maybe [Inline])
+    filterTriplets (img1@Image {}, img2@Image {}, img3@Image {}) =
+      Just <$> (transformImages [img1, img2, img3] [] >>= renderHtml)
     -- Default filter
     filterTriplets (x, y, z) = return Nothing
 
@@ -223,14 +252,24 @@ mediaInlineListFilter = pairwise filterPairs
 mediaBlockFilter :: Block -> Filter Block
 -- A solitary image in a paragraph with a possible caption.
 mediaBlockFilter (Para [image@(Image _ caption _)]) =
-  transformImage image caption
+  transformImage image caption >>= renderHtml
+-- Any number of consecutive images in a masonry row.
+mediaBlockFilter (LineBlock lines)
+  | oneImagePerLine lines = transformImages (concat lines) [] >>= renderHtml
 -- Default filter
 mediaBlockFilter block = return block
+
+oneImagePerLine :: [[Inline]] -> Bool
+oneImagePerLine inlines = all isImage $ concat inlines
+
+isImage Image {} = True
+isImage _ = False
 
 -- | Matches a single Inline element
 mediaInlineFilter :: Inline -> Filter Inline
 -- An inline image with a possible caption.
-mediaInlineFilter image@(Image _ caption _) = transformImage image caption
+mediaInlineFilter image@(Image _ caption _) =
+  transformImage image caption >>= renderHtml
 -- Default filter
 mediaInlineFilter inline = return inline
 
@@ -260,6 +299,12 @@ runFilter' options meta filter x =
 imageExt = ["jpg", "jpeg", "png", "gif", "tif", "tiff", "bmp", "svg"]
 
 videoExt = ["mp4", "mov", "ogg", "avi"]
+
+svgExt = ["svg"]
+
+iframeExt = ["html", "html"]
+
+mviewExt = ["off"]
 
 -- | Renders a list of inlines back to markdown.
 toMarkdown :: [Inline] -> Filter Text
@@ -329,7 +374,7 @@ transformUrl url = do
   case URI.uriScheme uri of
     Just rtext
       | URI.unRText rtext /= "file" -> processRemoteUri uri
-    otherwise -> processLocalUri uri
+    _ -> processLocalUri uri
 
 -- | Adds a remote URL to the `decker.filter.links` list in the meta data.
 processRemoteUri :: URI -> Filter URI
@@ -385,18 +430,38 @@ storeResourceInfo source target url = do
   setMeta (toText $ key <.> "target") $ toText target
   setMeta (toText $ key <.> "url") url
 
-transformImage :: RawHtml a => Inline -> [Inline] -> Filter a
+transformImage :: Inline -> [Inline] -> Filter Html
 transformImage (Image attr@(_, classes, _) _ (url, _)) caption = do
   uri <- transformUrl url
   let ext = uriPathExtension uri
-  html <-
-    runAttr attr $
-    if | extIn ext imageExt || "image" `elem` classes -> imageHtml uri caption
+  runAttr attr $
+    if | extIn ext svgExt && "embed" `elem` classes -> svgHtml uri caption
+       | extIn ext mviewExt || "mview" `elem` classes -> mviewHtml uri caption
+       | extIn ext iframeExt || "iframe" `elem` classes ->
+         iframeHtml uri caption
+       | extIn ext imageExt || "image" `elem` classes -> imageHtml uri caption
        | extIn ext videoExt || "video" `elem` classes -> videoHtml uri caption
        | otherwise -> imageHtml uri caption
-  renderHtml html
 transformImage inline _ =
   bug $ InternalException ("transformImage: no match for: " <> show inline)
+
+-- Lines up a list of images in a div element. Use with flexbox css.
+transformImages :: [Inline] -> [Inline] -> Filter Html
+transformImages images caption = do
+  imageRow <-
+    mapM
+      (\img@(Image _ caption _) -> H.div <$> transformImage img caption)
+      images
+  if null caption
+    then return $
+         H.div ! A.class_ "image-row" ! A.style "border:2px solid cyan;" $
+         toHtml imageRow
+    else do
+      captionHtml <- inlinesToHtml caption
+      return $
+        H.figure ! A.style "border:2px solid cyan;" $ do
+          H.div ! A.class_ "image-row" $ toHtml imageRow
+          H.figcaption captionHtml
 
 instance ToValue [Text] where
   toValue ts = toValue $ Text.intercalate " " ts
@@ -408,6 +473,15 @@ mkVideoTag :: Text -> Attr -> Html
 mkVideoTag url (id, cs, kvs) =
   H.video !? (not (Text.null id), A.id (H.toValue id)) !
   A.class_ (H.toValue ("decker" : cs)) !
+  H.dataAttribute "src" (H.preEscapedToValue url) !*
+  kvs $
+  ""
+
+mkIframeTag :: Text -> Attr -> Html
+mkIframeTag url (id, cs, kvs) =
+  H.iframe !? (not (Text.null id), A.id (H.toValue id)) !
+  A.class_ (H.toValue ("decker" : cs)) !
+  H.customAttribute "allow" "fullscreen" !
   H.dataAttribute "src" (H.preEscapedToValue url) !*
   kvs $
   ""
@@ -440,13 +514,51 @@ imageHtml :: URI -> [Inline] -> Attrib Html
 imageHtml uri caption =
   case caption of
     [] -> do
-      takeUsual
+      injectBorder >> takeUsual
       mkImageTag (URI.render uri) <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
-      let imageTag = mkImageTag (URI.render uri) nullAttr
-      takeUsual
+      imgAttr <- injectStyle ("width", "100%") >> extractAttr
+      let imageTag = mkImageTag (URI.render uri) imgAttr
+      injectBorder >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
+
+svgHtml :: URI -> [Inline] -> Attrib Html
+svgHtml uri caption =
+  case caption of
+    [] -> do
+      injectBorder >> takeUsual
+      mkImageTag (URI.render uri) <$> extractAttr
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      imgAttr <- injectStyle ("width", "100%") >> extractAttr
+      let imageTag = mkImageTag (URI.render uri) imgAttr
+      injectBorder >> takeUsual
+      mkFigureTag imageTag captionHtml <$> extractAttr
+
+mviewHtml :: URI -> [Inline] -> Attrib Html
+mviewHtml uri caption = do
+  let model = URI.render uri
+  pushAttribute ("model", model)
+  mviewUri <- URI.mkURI "/support/vendor/mview/mview.html"
+  iframeHtml mviewUri caption
+
+iframeHtml :: URI -> [Inline] -> Attrib Html
+iframeHtml uri caption =
+  case caption of
+    [] -> do
+      iframeAttr <- injectBorder >> takeUsual >> extractAttr
+      return $ mkIframeTag (URI.render uri) iframeAttr
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      figureAttr <-
+        injectBorder >> takeId >> takeAllClasses >> takeCss >> dropCore >>
+        passI18n >>
+        extractAttr
+      iframeAttr <-
+        injectStyle ("width", "100%") >> takeSize >> takeData >> extractAttr
+      let iframeTag = mkIframeTag (URI.render uri) iframeAttr
+      return $ mkFigureTag iframeTag captionHtml figureAttr
 
 mediaFragment :: Attrib Text
 mediaFragment = do
@@ -462,16 +574,21 @@ mediaFragment = do
 videoHtml :: URI -> [Inline] -> Attrib Html
 videoHtml uri caption = do
   mediaFrag <- mediaFragment
-  let videoUri = URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag}
+  let videoUri =
+        if Text.null mediaFrag
+          then URI.render uri
+          else URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag}
   case caption of
     [] -> do
-      takeVideoClasses >> passVideoAttribs >> takeUsual
+      injectBorder >> takeVideoClasses >> passVideoAttribs >> takeUsual
       mkVideoTag videoUri <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
-      videoAttr <- takeVideoClasses >> passVideoAttribs >> extractAttr
+      videoAttr <-
+        takeVideoClasses >> passVideoAttribs >> injectStyle ("width", "100%") >>
+        extractAttr
       let videoTag = mkVideoTag videoUri videoAttr
-      figureAttr <- takeUsual >> extractAttr
+      figureAttr <- injectBorder >> takeUsual >> extractAttr
       return $ mkFigureTag videoTag captionHtml figureAttr
 
 uriPathExtension :: URI -> Maybe Text

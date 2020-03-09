@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c82df47244fe0c08ce634c110a994f0db6ffc4797b37ac60f1858ebbf4552303
+-- hash: ad1cf8bdbf5da0464b787908bd56de48310b6330be0f6a35622c1066392133f9
 
 name:           decker
 version:        0.10.0
@@ -109,7 +109,7 @@ library
       Paths_decker
   hs-source-dirs:
       src
-  default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
+  default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
   ghc-options: -fwarn-unused-imports
   build-depends:
       Glob
@@ -146,6 +146,7 @@ library
     , mtl
     , multimap
     , mustache
+    , neat-interpolation
     , network-uri
     , pandoc
     , pandoc-citeproc
@@ -191,7 +192,7 @@ executable decker
       Paths_decker
   hs-source-dirs:
       app
-  default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
+  default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
   ghc-options: -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N -fwarn-unused-imports -main-is Decker
   build-depends:
       Glob
@@ -229,6 +230,7 @@ executable decker
     , mtl
     , multimap
     , mustache
+    , neat-interpolation
     , network-uri
     , pandoc
     , pandoc-citeproc
@@ -270,7 +272,7 @@ test-suite decker-test
       Paths_decker
   hs-source-dirs:
       test
-  default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
+  default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
   ghc-options: -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       Glob
@@ -309,6 +311,7 @@ test-suite decker-test
     , mtl
     , multimap
     , mustache
+    , neat-interpolation
     , network-uri
     , pandoc
     , pandoc-citeproc

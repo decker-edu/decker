@@ -1,30 +1,31 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Text.Decker.Internal.Meta
-  ( globalMetaFileName
-  , toPandocMeta
-  , mergePandocMeta
-  , mergePandocMeta'
-  , readMetaData
-  , getAdditionalMeta
-  , getMetaInt
-  , getMetaIntOrElse
-  , getMetaBool
-  , getMetaBoolOrElse
-  , getMetaText
-  , getMetaString
-  , getMetaStringList
-  , getMetaTextOrElse
-  , getMetaTextList
-  , getMetaTextListOrElse
-  , getMetaValue
-  , getMetaTextMap
-  , setMetaValue
-  , setBoolMetaValue
-  , setTextMetaValue
+  ( DeckerException(..)
   , addMetaValue
   , addStringToMetaList
+  , getAdditionalMeta
+  , getMetaBool
+  , getMetaBoolOrElse
+  , getMetaInt
+  , getMetaIntOrElse
+  , getMetaString
+  , getMetaStringList
+  , getMetaText
+  , getMetaTextList
+  , getMetaTextListOrElse
+  , getMetaTextMap
+  , getMetaTextOrElse
+  , getMetaValue
+  , getMetaValueList
+  , globalMetaFileName
+  , mergePandocMeta
+  , mergePandocMeta'
   , pandocMeta
-  , DeckerException(..)
+  , readMetaData
+  , setBoolMetaValue
+  , setMetaValue
+  , setTextMetaValue
+  , toPandocMeta
   ) where
 
 import Text.Decker.Internal.Exception
@@ -78,7 +79,7 @@ toPandocMeta _ = Meta M.empty
 
 toPandocMeta' :: Y.Value -> MetaValue
 toPandocMeta' (Y.Object m) =
-  MetaMap $ Map.fromList $ map (id *** toPandocMeta') $ H.toList m
+  MetaMap $ Map.fromList $ map (second toPandocMeta') $ H.toList m
 toPandocMeta' (Y.Array vector) =
   MetaList $ map toPandocMeta' $ Vec.toList vector
 toPandocMeta' (Y.String text) = MetaString text
@@ -206,14 +207,20 @@ getMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
     lookup' (_:_) _ = Nothing
     lookup' [] mv = Just mv
 
+getMetaValueList :: Text.Text -> Meta -> [MetaValue]
+getMetaValueList key meta =
+  case getMetaValue key meta of
+    Just (MetaList vs) -> vs
+    _ -> []
+
 setMetaValue :: Text.Text -> MetaValue -> Meta -> Meta
 setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
   where
-    set (k:[]) (MetaMap map) = M.insert k value map
+    set [k] (MetaMap map) = M.insert k value map
     set (k:p) (MetaMap map) =
       case M.lookup k map of
         Just value -> M.insert k (MetaMap $ set p value) map
-        otherwise -> M.insert k (MetaMap $ set p $ MetaMap M.empty) map
+        _ -> M.insert k (MetaMap $ set p $ MetaMap M.empty) map
     set _ _ =
       throw $
       InternalException $ "Cannot set meta value on non object at: " <> show key
@@ -226,17 +233,17 @@ addMetaValue :: Text.Text -> MetaValue -> Meta -> Meta
 addMetaValue key value meta =
   case add (splitKey key) (MetaMap (unMeta meta)) of
     MetaMap map -> Meta map
-    otherwise -> meta
+    _ -> meta
   where
     add [] (MetaList list) = MetaList $ value : list
-    add (k:[]) (MetaMap m) =
+    add [k] (MetaMap m) =
       case M.lookup k m of
         Just value -> MetaMap $ M.insert k (add [] value) m
-        otherwise -> MetaMap $ M.insert k (add [] $ MetaList []) m
+        _ -> MetaMap $ M.insert k (add [] $ MetaList []) m
     add (k:p) (MetaMap m) =
       case M.lookup k m of
         Just value -> MetaMap $ M.insert k (add p value) m
-        otherwise -> MetaMap $ M.insert k (add p $ MetaMap M.empty) m
+        _ -> MetaMap $ M.insert k (add p $ MetaMap M.empty) m
     add _ _ =
       throw $
       InternalException $

@@ -7,6 +7,8 @@ import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
 
+import Data.Maybe
+
 -- import Data.Map (Map)
 -- import qualified Data.Map as Map
 import Data.Text (Text)
@@ -73,6 +75,7 @@ fixMustacheMarkupText content =
 runDeckerFilter :: (Pandoc -> IO Pandoc) -> FilePath -> Pandoc -> Action Pandoc
 runDeckerFilter filter base pandoc@(Pandoc meta blocks) = do
   dirs <- projectDirsA
+  -- | Augment document meta.
   let deckerMeta =
         setTextMetaValue "decker.base-dir" (T.pack base) $
         setTextMetaValue "decker.project-dir" (T.pack $ _project dirs) $
@@ -82,61 +85,74 @@ runDeckerFilter filter base pandoc@(Pandoc meta blocks) = do
   return (Pandoc processedMeta resultBlocks)
   where
     processMeta meta = do
-      let resources = getMetaValue "decker.filter.resources" meta
-      liftIO $ print resources
+      let (resources :: [(Text, Resource)]) =
+            fromMaybe [] $
+            getMetaValue "decker.filter.resources" meta >>= fromMetaValue
+      mapM_ (processResource . snd) resources
       return meta
+      where
+        processResource resource@(Resource source target url) = do
+          need [source]
+          publishResource base resource
+          return meta
 
-deckerMediaFilter = runDeckerFilter (mediaFilter def)
+deckerMediaFilter base (Pandoc meta blocks) =
+  runDeckerFilter
+    (mediaFilter def)
+    base
+    (Pandoc (setBoolMetaValue "decker.filter.border" True meta) blocks)
+
+marioPipeline =
+  concatM
+    [ evaluateShortLinks
+    , expandDeckerMacros
+    , renderCodeBlocks
+    , includeCode
+    , provisionResources
+    , renderQuizzes
+    , processSlides
+    , marioMedia
+    , processCitesWithDefault
+    , appendScripts
+    ]
+
+deckerPipeline =
+  concatM
+    [ evaluateShortLinks
+    , expandDeckerMacros
+    , renderCodeBlocks
+    , includeCode
+    , provisionResources
+    , renderQuizzes
+    , processSlides
+    , renderMediaTags
+    , extractFigures
+    , processCitesWithDefault
+    , appendScripts
+    ]
 
 -- | Reads a markdownfile, expands the included files, and substitutes mustache
 -- template variables and calls need.
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disp = do
-  pandoc@(Pandoc meta _) <-
-    readMetaMarkdown markdownFile >>= processIncludes baseDir
-  processPandoc (pipeline meta) baseDir disp (provisioningFromMeta meta) pandoc
-  where
-    baseDir = takeDirectory markdownFile
-    pipeline meta =
-      case getMetaBool "mario" meta of
-        Just True ->
-          concatM
-            [ evaluateShortLinks
-            , expandDeckerMacros
-            , renderCodeBlocks
-            , includeCode
-            , provisionResources
-            , renderQuizzes
-            , processSlides
-            , marioMedia
-            , processCitesWithDefault
-            , appendScripts
-            ]
-        _ ->
-          concatM
-            [ evaluateShortLinks
-            , expandDeckerMacros
-            , renderCodeBlocks
-            , includeCode
-            , provisionResources
-            , renderQuizzes
-            , processSlides
-            , renderMediaTags
-            , extractFigures
-            , processCitesWithDefault
-            , appendScripts
-            ]
+  let baseDir = takeDirectory markdownFile
+  marioRun <- getMetaBoolOrElse "mario" False <$> globalMetaA
+  provisioning <- provisioningFromMeta <$> globalMetaA
+  let pipeline =
+        if marioRun
+          then marioPipeline
+          else deckerPipeline
+  readMetaMarkdown markdownFile >>= processIncludes baseDir >>=
+    processPandoc pipeline baseDir disp provisioning
 
 -- | Reads a markdown file and returns a pandoc document. Handles meta data
 -- extraction and template substitution. All references to local resources are
 -- converted to absolute pathes.
 readMetaMarkdown :: FilePath -> Action Pandoc
 readMetaMarkdown markdownFile = do
-  projectDir <- projectA
   need [markdownFile]
+  projectDir <- projectA
   markdown <- liftIO $ T.readFile markdownFile
-    -- Global meta data for this directory from decker.yaml and specified
-    -- additional files
   globalMeta <- globalMetaA
   let filePandoc@(Pandoc fileMeta fileBlocks) =
         readMarkdownOrThrow pandocReaderOpts markdown
@@ -144,28 +160,11 @@ readMetaMarkdown markdownFile = do
   let combinedMeta = mergePandocMeta' additionalMeta globalMeta
   versionCheck combinedMeta
   let writeBack = getMetaBoolOrElse "write-back.enable" False combinedMeta
-  when (writeBack) $
-    writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
-  base <- liftIO $ makeAbsolute $ takeDirectory markdownFile
-  filtered <-
-    deckerMediaFilter base (Pandoc combinedMeta fileBlocks) >>=
-    processResources base
-  mapResources (urlToFilePathIfLocal base) filtered
-
-processResources :: FilePath -> Pandoc -> Action Pandoc
-processResources base pandoc@(Pandoc meta blocks) = do
-  let resources = getMetaValue "decker.filter.resources" meta >>= fromMetaValue
-  case resources of
-    Just (m :: [(Text, Resource)]) -> do
-      mapM_ process $ map snd m
-      return pandoc
-    _ -> return pandoc
-  return pandoc
-  where
-    process resource@(Resource source target url) = do
-      need [source]
-      publishResource (provisioningFromMeta meta) base resource
-      liftIO $ print url
+  when writeBack $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
+  baseDir <- liftIO $ makeAbsolute $ takeDirectory markdownFile
+  -- This is the new media filter. Runs right after reading.
+  filtered <- deckerMediaFilter baseDir (Pandoc combinedMeta fileBlocks)
+  mapResources (urlToFilePathIfLocal baseDir) filtered
 
 readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
 readMarkdownOrThrow opts markdown =

@@ -104,46 +104,44 @@ linkResource resource = do
   Dir.createFileLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
-provisionMetaResource ::
-     FilePath -> Provisioning -> (Text.Text, FilePath) -> Action FilePath
-provisionMetaResource base method (key, url)
+provisionMetaResource :: FilePath -> (Text.Text, FilePath) -> Action FilePath
+provisionMetaResource base (key, url)
   | key `elem` runtimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
-    provisionResource base method filePath
-provisionMetaResource base method (key, url)
+    provisionResource base filePath
+provisionMetaResource base (key, url)
   | key `elem` templateOverrideMetaKeys = do
-    cwd <- liftIO $ Dir.getCurrentDirectory
+    cwd <- liftIO Dir.getCurrentDirectory
     filePath <- urlToFilePathIfLocal cwd url
-    provisionTemplateOverrideSupportTopLevel cwd method filePath
-provisionMetaResource base _ (key, url)
+    provisionTemplateOverrideSupportTopLevel cwd filePath
+provisionMetaResource base (key, url)
   | key `elem` compiletimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     need [filePath]
     return filePath
-provisionMetaResource _ _ (key, url) = return url
+provisionMetaResource _ (key, url) = return url
 
-provisionTemplateOverrideSupport ::
-     FilePath -> Provisioning -> FilePath -> Action ()
-provisionTemplateOverrideSupport base method url = do
+provisionTemplateOverrideSupport :: FilePath -> FilePath -> Action ()
+provisionTemplateOverrideSupport base url = do
   exists <- liftIO $ Dir.doesDirectoryExist url
   if exists
     then liftIO (Dir.listDirectory url) >>= mapM_ recurseProvision
     else do
       need [url]
-      provisionResource base method url
+      provisionResource base url
       return ()
   where
-    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
+    recurseProvision x = provisionTemplateOverrideSupport url (url </> x)
 
 provisionTemplateOverrideSupportTopLevel ::
-     FilePath -> Provisioning -> FilePath -> Action FilePath
-provisionTemplateOverrideSupportTopLevel base method url = do
+     FilePath -> FilePath -> Action FilePath
+provisionTemplateOverrideSupportTopLevel base url = do
   liftIO (Dir.listDirectory url) >>= filterM dirFilter >>=
     mapM_ recurseProvision
   return $ url
   where
     dirFilter x = liftIO $ Dir.doesDirectoryExist (url </> x)
-    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
+    recurseProvision x = provisionTemplateOverrideSupport url (url </> x)
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs are
 -- resolved against and copied or linked to public from 
@@ -160,8 +158,8 @@ provisionTemplateOverrideSupportTopLevel base method url = do
 --       time.
 --
 -- Returns a public URL relative to base
-provisionResource :: FilePath -> Provisioning -> FilePath -> Action FilePath
-provisionResource base method filePath =
+provisionResource :: FilePath -> FilePath -> Action FilePath
+provisionResource base filePath =
   case parseRelativeReference filePath of
     Nothing ->
       if hasDrive filePath
@@ -175,7 +173,7 @@ provisionResource base method filePath =
                       makeRelativeTo (dirs ^. project) filePath
                   , publicUrl = urlPath $ makeRelativeTo base filePath
                   }
-          publishResource method base resource
+          publishResource base resource
         else return filePath
     Just uri -> do
       dirs <- projectDirsA
@@ -185,13 +183,13 @@ provisionResource base method filePath =
         then do
           need [path]
           let resource = resourcePaths dirs base uri
-          publishResource method base resource
+          publishResource base resource
         else throw $ ResourceException $ "resource does not exist: " ++ path
 
-publishResource :: Provisioning -> FilePath -> Resource -> Action FilePath
-publishResource method base resource = do
+publishResource :: FilePath -> Resource -> Action FilePath
+publishResource base resource = do
   publicResource <- publicResourceA
-  liftIO $ print resource
+  method <- provisioningFromMeta <$> globalMetaA
   withResource publicResource 1 $
     liftIO $
     case method of
@@ -219,10 +217,9 @@ urlToFilePathIfLocal base uri =
 provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
   base <- gets basePath
-  method <- gets provisioning
   lift $
-    mapMetaResources (provisionMetaResource base method) pandoc >>=
-    mapResources (provisionResource base method)
+    mapMetaResources (provisionMetaResource base) pandoc >>=
+    mapResources (provisionResource base)
 
 mapResources :: (FilePath -> Action FilePath) -> Pandoc -> Action Pandoc
 mapResources transform (Pandoc meta blocks) =

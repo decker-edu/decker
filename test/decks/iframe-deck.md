@@ -12,8 +12,8 @@ history: True
 
 # Iframe showing <https://www.uni-wuerzburg.de/startseite>
 
-![](https://www.uni-wuerzburg.de/startseite.html?some-option=some-value){.iframe
-width="100%" height="500px"}
+![This is the most ugly homepage ever.](https://www.uni-wuerzburg.de/startseite.html?some-option=some-value){.iframe
+width="100%" height="400px" model="some-model.off"}
 
 # ![](https://www.uni-wuerzburg.de/startseite.html)
 

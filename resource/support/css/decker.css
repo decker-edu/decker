@@ -507,12 +507,21 @@
   margin: 0;
 }
 
-/* Ensure certain elements are never larger than the slide itself */
-.reveal img,
-.reveal video,
-.reveal iframe {
-  max-width: 95%;
-  max-height: 95%;
+.reveal div.image-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+}
+
+.reveal div.image-row div {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.reveal div.image-row img {
+  display: block;
 }
 
 .reveal div.videoWrapper {
