@@ -23,16 +23,21 @@ import Data.Default ()
 import Data.List
 import Data.List.Split
 import Data.Maybe
+import Data.Map (Map)
+import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import Development.Shake (Action)
 import qualified Network.URI as U
 import System.FilePath
 import Text.Blaze (customAttribute)
+import           Text.Blaze.Html               as Blaze hiding (toHtml) 
+
 import Text.Blaze.Html.Renderer.String
-import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5 as H  
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Decker.Filter.Layout
+import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
@@ -162,12 +167,24 @@ wrapBoxes :: Slide -> Decker Slide
 wrapBoxes slide@(Slide header body) = do
   disp <- gets disposition
   case disp of
-    Disposition Deck Html -> return $ Slide header $ concatMap (wrap True) boxes
-    Disposition _ Html -> return $ Slide header $ concatMap (wrap False) boxes
+    Disposition Deck Html -> return $ Slide header $ concatMap (wrapQuiz True) boxes
+    Disposition _ Html -> return $ Slide header $ concatMap (wrapQuiz False) boxes
     Disposition _ Latex -> return slide
   where
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
-    wrap isDeck (Header 2 (id_, cls, kvs) text:blocks) =
+    wrapQuiz :: Bool -> [Block] -> [Block]
+    wrapQuiz isDeck h@((Header 2 (id_, cls, kvs) text) : blocks) = qlookup cls
+      where
+        qlookup :: [Text.Text] -> [Block]
+        qlookup []         = wrap isDeck h
+        qlookup (c : rest) = case Map.lookup c quizMap of
+          Just q ->
+            [ Plain
+                [RawInline (Format "html") $ Text.pack $ renderHtml $ testbutton q]
+            ]
+          Nothing -> qlookup rest
+    wrapQuiz _ box = box
+    wrap isDeck ((Header 2 (id_, cls, kvs) text):blocks) =
       let tags =
             if isDeck
               then ["box", "columns"]
@@ -177,6 +194,15 @@ wrapBoxes slide@(Slide header body) = do
               (Header 2 (id_, deFragment cls, kvs) text : blocks)
           ]
     wrap _ box = box
+
+
+
+
+
+
+testbutton :: Text.Text -> Html
+testbutton x = H.button $ H.span $ helper x
+
 
 -- | Map over all active slides in a deck. 
 mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
