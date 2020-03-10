@@ -9,8 +9,6 @@ import Control.Monad.State
 
 import Data.Maybe
 
--- import Data.Map (Map)
--- import qualified Data.Map as Map
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -33,8 +31,6 @@ import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
-import qualified Text.Mustache as M
-import qualified Text.Mustache.Types as MT
 import Text.Pandoc
 
 -- import Text.Pandoc.Lens
@@ -94,14 +90,17 @@ runDeckerFilter filter base pandoc@(Pandoc meta blocks) = do
         processResource resource@(Resource source target url) = do
           need [source]
           publishResource base resource
+          -- TODO Remove resource info from meta data
           return meta
 
+-- | Runs the new decker media filter.
 deckerMediaFilter base (Pandoc meta blocks) =
   runDeckerFilter
     (mediaFilter def)
     base
     (Pandoc (setBoolMetaValue "decker.filter.border" True meta) blocks)
 
+-- | The old style decker filter pipeline with Mario's media handling.
 marioPipeline =
   concatM
     [ evaluateShortLinks
@@ -116,6 +115,7 @@ marioPipeline =
     , appendScripts
     ]
 
+-- | The old style decker filter pipeline.
 deckerPipeline =
   concatM
     [ evaluateShortLinks
@@ -131,8 +131,7 @@ deckerPipeline =
     , appendScripts
     ]
 
--- | Reads a markdownfile, expands the included files, and substitutes mustache
--- template variables and calls need.
+-- | Reads a markdownfile, expands the included files, and calls need.
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disp = do
   let baseDir = takeDirectory markdownFile
@@ -162,8 +161,11 @@ readMetaMarkdown markdownFile = do
   let writeBack = getMetaBoolOrElse "write-back.enable" False combinedMeta
   when writeBack $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
   baseDir <- liftIO $ makeAbsolute $ takeDirectory markdownFile
-  -- This is the new media filter. Runs right after reading.
+  -- This is the new media filter. Runs right after reading. Because every matched
+  -- document fragment is converted to raw HTML, the following old style filters
+  -- will not see them.
   filtered <- deckerMediaFilter baseDir (Pandoc combinedMeta fileBlocks)
+  -- TODO remove once old style filters are migrated
   mapResources (urlToFilePathIfLocal baseDir) filtered
 
 readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
@@ -172,7 +174,7 @@ readMarkdownOrThrow opts markdown =
     Right pandoc -> pandoc
     Left errMsg -> throw $ PandocException (show errMsg)
 
--- | Writes a pandoc document atoimically to a markdown file. 
+-- | Writes a pandoc document atomically to a markdown file. 
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
 writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   template <- getTemplate' "template/deck.md"
@@ -203,11 +205,3 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
 
 processCitesWithDefault :: Pandoc -> Decker Pandoc
 processCitesWithDefault = lift . liftIO . processCites'
-
-substituteMetaData :: T.Text -> MT.Value -> T.Text
-substituteMetaData source metaData = do
-  let fixed = fixMustacheMarkupText source
-  let result = M.compileTemplate "internal" fixed
-  case result of
-    Right template -> M.substituteValue template metaData
-    Left errMsg -> throw $ MustacheException (show errMsg)

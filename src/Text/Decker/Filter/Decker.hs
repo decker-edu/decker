@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
--- | This is the Decker filter for Pandoc.
+-- | This is the new Decker filter for Pandoc.
 --
 -- All decker specific meta data is embedded into the document meta data under
 -- the `decker` key. Information gathered during the filter run is appended
@@ -28,8 +28,7 @@ import Text.Pandoc.Walk
 import Text.URI (URI)
 import qualified Text.URI as URI
 
--- import Text.URI.Lens
--- | Some WriterOptions and the document meta data are available to all
+-- | WriterOptions and the document meta data are available to all
 -- filters. 
 data FilterState = FilterState
   { options :: WriterOptions
@@ -39,45 +38,51 @@ data FilterState = FilterState
 -- | All filters live in the Filter monad.
 type Filter = StateT FilterState IO
 
-type FilterFunc a = a -> Filter (Maybe a)
-
-type InlineFilter = FilterFunc Inline
-
-type BlockFilter = FilterFunc Block
-
--- | Assemble a Pandoc Attrib inside a filter.
+-- | An associative list representing element attributes.
 type AttrMap = [(Text, Text)]
 
+-- | The first set contains the transformed attributes that will be extracted
+-- and added to the HTML elements. The second set contains the source
+-- attributes as parsed from the Markdown attribute markup. Many functions
+-- inside the Attrib monad manipulate one or both attribute sets. 
 type AttribState = (Attr, Attr)
 
+-- | The Attrib monad.
 type Attrib = StateT AttribState Filter
 
+-- | Extracts the attributes that have been transformed so far. The attributes
+-- are removed.
 extractAttr :: Attrib Attr
 extractAttr = do
   (result, remaining) <- get
   put (nullAttr, remaining)
   return result
 
-remainingAttr :: Attrib Attr
-remainingAttr = snd <$> get
-
+-- | Removes all values associated with key from the list.
 rmKey :: Eq a => a -> [(a, b)] -> [(a, b)]
 rmKey key = filter ((/= key) . fst)
 
+-- | Removes all instaces of value from the list.
 rmClass :: Text -> [Text] -> [Text]
 rmClass cls = filter (/= cls)
 
+-- | Alters the value at key. Can be used to add, change, or remove key value
+-- pairs from an associative list. (See Data.Map.Strict.alter).
 alterKey :: Eq a => (Maybe b -> Maybe b) -> a -> [(a, b)] -> [(a, b)]
 alterKey f key kvs =
   case f $ List.lookup key kvs of
     Just value -> (key, value) : rmKey key kvs
     Nothing -> rmKey key kvs
 
+-- | Adds a CSS style value pair to the attribute map. If a style attribute
+-- does not yet exist, it is created. The value of an existing style attribute 
+-- is ammended on the left. 
 addStyle :: (Text, Text) -> AttrMap -> AttrMap
 addStyle (k, v) = alterKey addOne "style"
   where
     addOne style = Just $ fromMaybe "" style <> k <> ":" <> v <> ";"
 
+-- | Adds a CSS style value pair to the target attributes.
 injectStyle :: (Text, Text) -> Attrib ()
 injectStyle (key, value) = modify transform
   where
@@ -93,6 +98,9 @@ pushAttribute (key, value) = modify transform
       (attr', (id, cs, alterKey replace key kvs))
     replace _ = Just value
 
+-- | Removea the attribute key from the source attribute map and adds it as a
+-- CSS style value to the target style attribute. Mainly used to translate
+-- witdth an height attributes into CSS style setting.
 takeStyle :: Text -> Attrib ()
 takeStyle key = modify transform
   where
@@ -102,6 +110,8 @@ takeStyle key = modify transform
           ((id', cs', addStyle (key, value) kvs'), (id, cs, rmKey key kvs))
         Nothing -> state
 
+-- | Translates width and height attributes into CSS style values if they
+-- exist.
 takeSize :: Attrib ()
 takeSize = do
   takeStyle "width"
@@ -156,9 +166,7 @@ takeAllClasses = modify transform
 
 injectBorder = do
   border <- getMetaBoolOrElse "decker.filter.border" False <$> lift (gets meta)
-  if border
-    then injectStyle ("border", "2px solid magenta")
-    else return ()
+  when border $ injectStyle ("border", "2px solid magenta")
 
 videoClasses = ["autoplay", "controls", "loop", "muted"]
 
@@ -178,7 +186,7 @@ passVideoAttribs = modify transform
       let (vkvs, rest) = List.partition ((`elem` videoAttribs) . fst) kvs
        in ((id', cs', vkvs <> kvs'), (id, cs, rest))
 
--- | Apply a filter to each pair of successive elements in a list. The filter
+-- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
 -- may reject the pair and return nothing.
 pairwise :: ((a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
@@ -189,7 +197,7 @@ pairwise f (x:y:zs) = do
     Nothing -> (x :) <$> pairwise f (y : zs)
 pairwise _ xs = return xs
 
--- | Apply a filter to each triplet of successive elements in a list.
+-- | Applies a filter to each triplet of successive elements in a list.
 -- The filter may consume the elements and return a list of transformed elements,
 -- or it may reject the triplet and return nothing.
 tripletwise :: ((a, a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
