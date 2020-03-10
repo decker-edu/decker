@@ -153,7 +153,8 @@ compileSnippet markdown = do
     mediaFilter
       def
       (Pandoc (setBoolMetaValue "decker.filter.pretty" True filterMeta) blocks)
-  handleError $ runPure $ writeHtml5String writerOptions $ walk dropPara filtered
+  handleError $
+    runPure $ writeHtml5String writerOptions $ walk dropPara filtered
 
 dropPara (Para inlines) = Plain inlines
 dropPara block = block
@@ -165,39 +166,43 @@ testSnippets =
     , "![](/some/path/image.png)")
   , ( "Plain image with caption"
     , "An image with a caption. The image is surrounded by a figure element."
-    , "![This is a plain image.](path/image.png)")
+    , [text|
+        ![](path/image.png)
+
+        Caption: Caption.
+      |])
   , ( "Plain image with URL query"
     , "Query string and fragment identifier in URLs are preserved."
-    , "![Image URI with query string.](https://some.where/image.png&key=value)")
+    , "![Caption.](https://some.where/image.png&key=value)")
   , ( "Plain image with custom attributes."
     , "Image attributes are handled in complex ways."
-    , "![Image with attributes](/some/path/image.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}")
+    , "![Caption.](/some/path/image.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}")
   , ( "Plain video"
     , "Images that are videos are converted to a video tag."
-    , "![A local video.](/some/path/video.mp4){width=\"42%\"}")
+    , "![Caption.](/some/path/video.mp4){width=\"42%\"}")
   , ( "Plain video with Media Fragments URI"
-    , "Description"
-    , "![A local video with start time.](/some/path/video.mp4){start=\"5\" stop=\"30\" preload=\"none\"}")
+    , "A local video with start time."
+    , "![Caption.](/some/path/video.mp4){start=\"5\" stop=\"30\" preload=\"none\"}")
   , ( "Plain video with specific attributes"
     , "Video tag specific classes are translated to specific attributes."
-    , "![A local video with all features on.](/some/path/video.mp4){.controls .autoplay start=\"5\" stop=\"30\" poster=\"somewhere/image.png\" preload=\"none\"}")
+    , "![Caption.](/some/path/video.mp4){.controls .autoplay start=\"5\" stop=\"30\" poster=\"somewhere/image.png\" preload=\"none\"}")
   , ( "Three images in a row"
     , "Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout."
     , [text|
         | ![](image.png)
-        | ![Not an image](movie.mp4){.autoplay}
+        | ![Caption.](movie.mp4){.autoplay}
         | ![](image.png){css:border=\"1px black\"}
 
       |])
   , ( "Iframe with caption"
     , "A simple iframe with a caption. The URL can be a top level domain because the `iframe` class is specified."
-    , "![Caption](https://www.heise.de/){.iframe}")
+    , "![Caption.](https://www.heise.de/){.iframe}")
   , ( "Iframe with custom attributes and query string"
     , "A simple iframe with custom attributes and a query string that are both transfered correctly."
-    , "![Caption](https://www.heise.de/index.html#some-frag?token=83fd3d4){height=\"400px\" model=\"some-stupid-ass-model.off\" lasersword=\"off\"}")
+    , "![Caption.](https://www.heise.de/index.html#some-frag?token=83fd3d4){height=\"400px\" model=\"some-stupid-ass-model.off\" lasersword=\"off\"}")
   , ( "Mario's model viewer"
     , "A simple iframe with a special url."
-    , "![Caption](http://3d.de/model.off){.mario height=\"400px\" phasers=\"stun\"}")
+    , "![Caption.](http://3d.de/model.off){.mario height=\"400px\" phasers=\"stun\"}")
   ]
 
 runSnippets :: [(Text, Text, Text)] -> IO [(Text, Text, Text, Text)]

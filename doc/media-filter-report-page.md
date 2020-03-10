@@ -35,7 +35,9 @@ Plain image with caption
 An image with a caption. The image is surrounded by a figure element.
 
 ``` {.markdown}
-![This is a plain image.](path/image.png)
+![](path/image.png)
+
+Caption: Caption.
 ```
 
 translates to
@@ -44,15 +46,8 @@ translates to
 <figure class="decker">
     <img class="decker" data-src="path/image.png" style="width:100%;">
     <figcaption class="decker">
-        This
          
-        is
-         
-        a
-         
-        plain
-         
-        image.
+        Caption.
     </figcaption>
 </figure>
 ```
@@ -65,7 +60,7 @@ Plain image with URL query
 Query string and fragment identifier in URLs are preserved.
 
 ``` {.markdown}
-![Image URI with query string.](https://some.where/image.png&key=value)
+![Caption.](https://some.where/image.png&key=value)
 ```
 
 translates to
@@ -74,15 +69,7 @@ translates to
 <figure class="decker">
     <img class="decker" data-src="https://some.where/image.png&key=value" style="width:100%;">
     <figcaption class="decker">
-        Image
-         
-        URI
-         
-        with
-         
-        query
-         
-        string.
+        Caption.
     </figcaption>
 </figure>
 ```
@@ -95,7 +82,7 @@ Plain image with custom attributes.
 Image attributes are handled in complex ways.
 
 ``` {.markdown}
-![Image with attributes](/some/path/image.png){#myid .myclass width="40%" css:border="1px" myattribute="value"}
+![Caption.](/some/path/image.png){#myid .myclass width="40%" css:border="1px" myattribute="value"}
 ```
 
 translates to
@@ -104,11 +91,7 @@ translates to
 <figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;">
     <img class="decker" data-src="some/path/image.png" style="width:100%;">
     <figcaption class="decker">
-        Image
-         
-        with
-         
-        attributes
+        Caption.
     </figcaption>
 </figure>
 ```
@@ -121,7 +104,7 @@ Plain video
 Images that are videos are converted to a video tag.
 
 ``` {.markdown}
-![A local video.](/some/path/video.mp4){width="42%"}
+![Caption.](/some/path/video.mp4){width="42%"}
 ```
 
 translates to
@@ -132,11 +115,7 @@ translates to
         
     </video>
     <figcaption class="decker">
-        A
-         
-        local
-         
-        video.
+        Caption.
     </figcaption>
 </figure>
 ```
@@ -146,10 +125,10 @@ translates to
 Plain video with Media Fragments URI
 ------------------------------------
 
-Description
+A local video with start time.
 
 ``` {.markdown}
-![A local video with start time.](/some/path/video.mp4){start="5" stop="30" preload="none"}
+![Caption.](/some/path/video.mp4){start="5" stop="30" preload="none"}
 ```
 
 translates to
@@ -160,17 +139,7 @@ translates to
         
     </video>
     <figcaption class="decker">
-        A
-         
-        local
-         
-        video
-         
-        with
-         
-        start
-         
-        time.
+        Caption.
     </figcaption>
 </figure>
 ```
@@ -183,7 +152,7 @@ Plain video with specific attributes
 Video tag specific classes are translated to specific attributes.
 
 ``` {.markdown}
-![A local video with all features on.](/some/path/video.mp4){.controls .autoplay start="5" stop="30" poster="somewhere/image.png" preload="none"}
+![Caption.](/some/path/video.mp4){.controls .autoplay start="5" stop="30" poster="somewhere/image.png" preload="none"}
 ```
 
 translates to
@@ -194,19 +163,7 @@ translates to
         
     </video>
     <figcaption class="decker">
-        A
-         
-        local
-         
-        video
-         
-        with
-         
-        all
-         
-        features
-         
-        on.
+        Caption.
     </figcaption>
 </figure>
 ```
@@ -220,7 +177,7 @@ Line blocks filled with only image tags are translated to a row of images. Suppo
 
 ``` {.markdown}
 | ![](image.png)
-| ![Not an image](movie.mp4){.autoplay}
+| ![Caption.](movie.mp4){.autoplay}
 | ![](image.png){css:border=\"1px black\"}
 ```
 
@@ -238,11 +195,7 @@ translates to
                     
                 </video>
                 <figcaption class="decker">
-                    Not
-                     
-                    an
-                     
-                    image
+                    Caption.
                 </figcaption>
             </figure>
         </div>
@@ -268,7 +221,7 @@ Iframe with caption
 A simple iframe with a caption. The URL can be a top level domain because the \`iframe\` class is specified.
 
 ``` {.markdown}
-![Caption](https://www.heise.de/){.iframe}
+![Caption.](https://www.heise.de/){.iframe}
 ```
 
 translates to
@@ -279,7 +232,7 @@ translates to
         
     </iframe>
     <figcaption class="decker">
-        Caption
+        Caption.
     </figcaption>
 </figure>
 ```
@@ -292,7 +245,7 @@ Iframe with custom attributes and query string
 A simple iframe with custom attributes and a query string that are both transfered correctly.
 
 ``` {.markdown}
-![Caption](https://www.heise.de/index.html#some-frag?token=83fd3d4){height="400px" model="some-stupid-ass-model.off" lasersword="off"}
+![Caption.](https://www.heise.de/index.html#some-frag?token=83fd3d4){height="400px" model="some-stupid-ass-model.off" lasersword="off"}
 ```
 
 translates to
@@ -303,7 +256,7 @@ translates to
         
     </iframe>
     <figcaption class="decker">
-        Caption
+        Caption.
     </figcaption>
 </figure>
 ```
@@ -316,7 +269,7 @@ Mario\'s model viewer
 A simple iframe with a special url.
 
 ``` {.markdown}
-![Caption](http://3d.de/model.off){.mario height="400px" phasers="stun"}
+![Caption.](http://3d.de/model.off){.mario height="400px" phasers="stun"}
 ```
 
 translates to
@@ -327,7 +280,7 @@ translates to
         
     </iframe>
     <figcaption class="decker">
-        Caption
+        Caption.
     </figcaption>
 </figure>
 ```
