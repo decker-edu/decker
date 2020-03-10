@@ -67,10 +67,10 @@ testbutton :: Text.Text -> Text.Text
 testbutton x = Text.pack $ renderHtml $ H.button $ H.span $ helper x
 
 renderQuiz :: Quiz -> [Block] -> [Block]
-renderQuiz m@Match b = wrap (Text.pack $ "matchingQuiz " ++ show m)
+renderQuiz m@Match b = concatMap matchList b
 renderQuiz mu@Mult b = concatMap quizTaskList b
-renderQuiz i@Ins b = wrap (Text.pack $ "insertQuiz " ++ show i)
-renderQuiz f@Free b = wrap (Text.pack $ "freeQuiz " ++ show f)
+renderQuiz i@Ins b = concatMap quizTaskList b
+renderQuiz f@Free b = concatMap quizTaskList b
 
 wrap x = [ Plain [ RawInline (Format "html") $ testbutton x ] ]
 
@@ -87,22 +87,39 @@ data Answer =
     Answer { correct :: Bool, answer :: Text.Text, comment :: Text.Text }
     deriving ( Show )
 
+--  the biggest question is how to handle stuff that has been processed already by pandoc
+-- e.g. images, links etc
+data Match = Pair Text.Text Text.Text | Distractor Text.Text
+    deriving ( Show )
+
+matchList :: Block -> [Block]
+matchList (DefinitionList items) = map parseDL items
+  where
+    parseDL (Str "!" : _, bs) =
+        Para [ Str (Text.pack $ show $ Distractor (stringify bs)) ]
+    parseDL (is, bs) = Para [ Str (Text.pack $ show $
+                                   Pair (stringify is) (Text.pack $ show bs))
+                            ]
+matchList b = [ b ]
+
 -- Currently happens in the pipeline after pandoc's tasklist extension 
 -- which means we need to check for the unicode tasklist characters
+-- quizTaskList should not return a Pandoc Block list directly but rather a list of Answers
+-- how to handle Links, images etc?
 quizTaskList :: Block -> [Block]
-quizTaskList (BulletList b@(blocks : _)) = concatMap fromMd b
+quizTaskList (BulletList b@(blocks : _)) = concatMap parseTL b
   where
-    fromMd (Plain (Str "☒" : Space : is) : bs) =
-        [ Plain [ Str (Text.pack $ show $
-                       Answer True (stringify is) (stringify bs))
-                ]
+    parseTL (Plain (Str "☒" : Space : is) : bs) =
+        [ Para [ Str (Text.pack $ show $
+                      Answer True (stringify is) (stringify bs))
+               ]
         ]
-    fromMd (Plain (Str "☐" : Space : is) : bs) =
-        [ Plain [ Str (Text.pack $ show $
-                       Answer False (stringify is) (stringify bs))
-                ]
+    parseTL (Plain (Str "☐" : Space : is) : bs) =
+        [ Para [ Str (Text.pack $ show $
+                      Answer False (stringify is) (stringify bs))
+               ]
         ]
-    fromMd is = is
+    parseTL is = is
 quizTaskList b = [ b ]
 
 {-
@@ -110,12 +127,12 @@ Pandoc has no actual TaskList data type and parses TLs themselves like this
 -- | Convert a list item containing tasklist syntax (e.g. @[x]@)
 -- to using @U+2610 BALLOT BOX@ or @U+2612 BALLOT BOX WITH X@.
 taskListItemFromAscii :: Extensions -> [Block] -> [Block]
-taskListItemFromAscii = handleTaskListItem fromMd
+taskListItemFromAscii = handleTaskListItem parseTL
   where
-    fromMd (Str "[" : Space : Str "]" : Space : is) = Str "☐" : Space : is
-    fromMd (Str "[x]"                 : Space : is) = Str "☒" : Space : is
-    fromMd (Str "[X]"                 : Space : is) = Str "☒" : Space : is
-    fromMd is = is
+    parseTL (Str "[" : Space : Str "]" : Space : is) = Str "☐" : Space : is
+    parseTL (Str "[x]"                 : Space : is) = Str "☒" : Space : is
+    parseTL (Str "[X]"                 : Space : is) = Str "☒" : Space : is
+    parseTL is = is
 -}
 -- | Render all types of questions
 renderQuizzes :: Pandoc -> Decker Pandoc
