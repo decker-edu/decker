@@ -5,6 +5,7 @@ history: True
 
 # Overview
 
+
 ```
 .quiz-match-items, .quiz-mi, .qmi {…}
 
@@ -56,14 +57,16 @@ _-_
 
 All choices get an optional comment to be potentially shown with the result. 
 
-```
+
 - [X] a
-    - So ist das 
+    - So ist das. 
+    - test
 - [ ] b
     - So nicht 
+    - test2
+    - test3
 - [ ] c
     - So auch nicht
-```
 
 # Blanktext/Inserting MC
 
@@ -101,7 +104,6 @@ These questions now include multiple versions of correct answers with additional
 
 
 Das Ergebnis von $2*2=~?$ ist?
-
 
 - 4
     - Die perfekte Lösung 

@@ -172,16 +172,15 @@ wrapBoxes slide@(Slide header body) = do
     Disposition _ Latex -> return slide
   where
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
+    -- A subfunction of wrapBoxes that handles Quizzes before level 2 headers are wrapped in boxes
     wrapQuiz :: Bool -> [Block] -> [Block]
     wrapQuiz isDeck h@((Header 2 (id_, cls, kvs) text) : blocks) = qlookup cls
       where
         qlookup :: [Text.Text] -> [Block]
         qlookup []         = wrap isDeck h
         qlookup (c : rest) = case Map.lookup c quizMap of
-          Just q ->
-            [ Plain
-                [RawInline (Format "html") $ Text.pack $ renderHtml $ testbutton q]
-            ]
+          Just q -> renderQuiz q h
+            -- TODO: Insert here actual quiz handling function that takes h and processes it!
           Nothing -> qlookup rest
     wrapQuiz _ box = box
     wrap isDeck ((Header 2 (id_, cls, kvs) text):blocks) =
@@ -194,14 +193,6 @@ wrapBoxes slide@(Slide header body) = do
               (Header 2 (id_, deFragment cls, kvs) text : blocks)
           ]
     wrap _ box = box
-
-
-
-
-
-
-testbutton :: Text.Text -> Html
-testbutton x = H.button $ H.span $ helper x
 
 
 -- | Map over all active slides in a deck. 
