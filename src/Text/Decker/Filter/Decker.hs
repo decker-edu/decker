@@ -217,21 +217,23 @@ mediaFilter options pandoc =
   runFilter options mediaBlockFilter >>=
   runFilter options mediaInlineFilter
 
+captionLabel = "Caption:"
+
 -- | Filters lists of Blocks that can match in pairs or triplets. 
 --
 -- For example: Match a paragraph containing just an image followed by a
 -- paragraph starting with the string "Image: " as an image that is to be
 -- placed in a figure block with a caption.
 mediaBlockListFilter :: [Block] -> Filter [Block]
-mediaBlockListFilter = pairwise filterPairs
-  --tripletwise filterTriplets blocks >>= pairwise filterPairs
+mediaBlockListFilter blocks =
+  tripletwise filterTriplets blocks >>= pairwise filterPairs
   where
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
-    filterPairs ((Para [image@Image {}]), Para (Str "Image:":caption)) =
+    filterPairs ((Para [image@Image {}]), Para (Str captionLabel:caption)) =
       Just <$> (transformImage image caption >>= renderHtml)
     -- Any number of consecutive images in a masonry row.
-    filterPairs (LineBlock lines, Para (Str "Image:":caption))
+    filterPairs (LineBlock lines, Para (Str captionLabel:caption))
       | oneImagePerLine lines =
         Just <$> (transformImages (concat lines) caption >>= renderHtml)
     -- Default filter
@@ -242,8 +244,8 @@ mediaBlockListFilter = pairwise filterPairs
 
 -- | Filters lists of Inlines that can match in pairs or triplets
 mediaInlineListFilter :: [Inline] -> Filter [Inline]
-mediaInlineListFilter = pairwise filterPairs
-  --tripletwise filterTriplets inlines >>= pairwise filterPairs
+mediaInlineListFilter inlines =
+  tripletwise filterTriplets inlines >>= pairwise filterPairs
   where
     filterPairs :: (Inline, Inline) -> Filter (Maybe [Inline])
     filterPairs (img1@Image {}, img2@Image {}) =

@@ -15,17 +15,16 @@ This report is generated during testing and shows the HTML output for a represen
 Plain image
 -----------
 
-An image that is used inline in paragraph of text.
+An image that is used inline in a paragraph of text.
 
 ``` {.markdown}
-Inline ![](/some/path/image.png)
+![](/some/path/image.png)
 ```
 
 translates to
 
 ``` {.html}
-<p>Inline <img class="decker" data-src="some/path/image.png">
-</p>
+<img class="decker" data-src="some/path/image.png">
 ```
 
 ------------------------------------------------------------------------
@@ -36,13 +35,13 @@ Plain image with caption
 An image with a caption. The image is surrounded by a figure element.
 
 ``` {.markdown}
-Inline ![This is a plain image.](path/image.png)
+![This is a plain image.](path/image.png)
 ```
 
 translates to
 
 ``` {.html}
-<p>Inline <figure class="decker">
+<figure class="decker">
     <img class="decker" data-src="path/image.png" style="width:100%;">
     <figcaption class="decker">
         This
@@ -56,7 +55,6 @@ translates to
         image.
     </figcaption>
 </figure>
-</p>
 ```
 
 ------------------------------------------------------------------------
@@ -67,13 +65,13 @@ Plain image with URL query
 Query string and fragment identifier in URLs are preserved.
 
 ``` {.markdown}
-Inline ![Image URI with query string.](https://some.where/image.png&key=value)
+![Image URI with query string.](https://some.where/image.png&key=value)
 ```
 
 translates to
 
 ``` {.html}
-<p>Inline <figure class="decker">
+<figure class="decker">
     <img class="decker" data-src="https://some.where/image.png&key=value" style="width:100%;">
     <figcaption class="decker">
         Image
@@ -87,7 +85,6 @@ translates to
         string.
     </figcaption>
 </figure>
-</p>
 ```
 
 ------------------------------------------------------------------------
@@ -98,13 +95,13 @@ Plain image with custom attributes.
 Image attributes are handled in complex ways.
 
 ``` {.markdown}
-Inline ![Image with attributes](/some/path/image.png){#myid .myclass width="40%" css:border="1px" myattribute="value"}
+![Image with attributes](/some/path/image.png){#myid .myclass width="40%" css:border="1px" myattribute="value"}
 ```
 
 translates to
 
 ``` {.html}
-<p>Inline <figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;">
+<figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;">
     <img class="decker" data-src="some/path/image.png" style="width:100%;">
     <figcaption class="decker">
         Image
@@ -114,7 +111,6 @@ translates to
         attributes
     </figcaption>
 </figure>
-</p>
 ```
 
 ------------------------------------------------------------------------
@@ -125,13 +121,13 @@ Plain video
 Images that are videos are converted to a video tag.
 
 ``` {.markdown}
-Inline ![A local video.](/some/path/video.mp4){width="42%"}
+![A local video.](/some/path/video.mp4){width="42%"}
 ```
 
 translates to
 
 ``` {.html}
-<p>Inline <figure class="decker" style="width:42%;">
+<figure class="decker" style="width:42%;">
     <video class="decker" data-src="some/path/video.mp4" style="width:100%;">
         
     </video>
@@ -143,7 +139,6 @@ translates to
         video.
     </figcaption>
 </figure>
-</p>
 ```
 
 ------------------------------------------------------------------------
@@ -154,13 +149,13 @@ Plain video with Media Fragments URI
 Description
 
 ``` {.markdown}
-Inline ![A local video with start time.](/some/path/video.mp4){start="5" stop="30" preload="none"}
+![A local video with start time.](/some/path/video.mp4){start="5" stop="30" preload="none"}
 ```
 
 translates to
 
 ``` {.html}
-<p>Inline <figure class="decker">
+<figure class="decker">
     <video class="decker" data-src="some/path/video.mp4#t=5,30" style="width:100%;" preload="none">
         
     </video>
@@ -178,7 +173,6 @@ translates to
         time.
     </figcaption>
 </figure>
-</p>
 ```
 
 ------------------------------------------------------------------------
@@ -189,13 +183,13 @@ Plain video with specific attributes
 Video tag specific classes are translated to specific attributes.
 
 ``` {.markdown}
-Inline ![A local video with all features on.](/some/path/video.mp4){.controls .autoplay start="5" stop="30" poster="somewhere/image.png" preload="none"}
+![A local video with all features on.](/some/path/video.mp4){.controls .autoplay start="5" stop="30" poster="somewhere/image.png" preload="none"}
 ```
 
 translates to
 
 ``` {.html}
-<p>Inline <figure class="decker">
+<figure class="decker">
     <video class="decker" data-src="some/path/video.mp4#t=5,30" style="width:100%;" poster="somewhere/image.png" preload="none" controls="1" autoplay="1">
         
     </video>
@@ -215,7 +209,6 @@ translates to
         on.
     </figcaption>
 </figure>
-</p>
 ```
 
 ------------------------------------------------------------------------
@@ -234,28 +227,37 @@ Line blocks filled with only image tags are translated to a row of images. Suppo
 translates to
 
 ``` {.html}
-<div class="image-row" style="border:2px solid cyan;">
-    <div>
-        <img class="decker" data-src="image.png">
+<figure style="border:2px solid cyan;">
+    <div class="image-row">
+        <div>
+            <img class="decker" data-src="image.png">
+        </div>
+        <div>
+            <figure class="decker">
+                <video class="decker" data-src="movie.mp4" style="width:100%;" autoplay="1">
+                    
+                </video>
+                <figcaption class="decker">
+                    Not
+                     
+                    an
+                     
+                    image
+                </figcaption>
+            </figure>
+        </div>
     </div>
-    <div>
-        <figure class="decker">
-            <video class="decker" data-src="movie.mp4" style="width:100%;" autoplay="1">
-                
-            </video>
-            <figcaption class="decker">
-                Not
-                 
-                an
-                 
-                image
-            </figcaption>
-        </figure>
-    </div>
-</div>
-
-<p>| <img class="decker" data-src="image.png">
-{css:border="1px black"}</p>
+    <figcaption>
+        <img src="image.png" />
+        {css:border=
+        "
+        1px
+         
+        black
+        "
+        }
+    </figcaption>
+</figure>
 ```
 
 ------------------------------------------------------------------------

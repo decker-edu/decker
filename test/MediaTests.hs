@@ -16,6 +16,7 @@ import Relude
 import Test.Hspec as Hspec
 import Text.Pandoc
 import Text.Pandoc.Highlighting
+import Text.Pandoc.Walk
 
 filterMeta =
   setTextMetaValue "decker.base-dir" "." $
@@ -152,31 +153,34 @@ compileSnippet markdown = do
     mediaFilter
       def
       (Pandoc (setBoolMetaValue "decker.filter.pretty" True filterMeta) blocks)
-  handleError (runPure (writeHtml5String writerOptions filtered))
+  handleError $ runPure $ writeHtml5String writerOptions $ walk dropPara filtered
+
+dropPara (Para inlines) = Plain inlines
+dropPara block = block
 
 testSnippets :: [(Text, Text, Text)]
 testSnippets =
   [ ( "Plain image"
-    , "An image that is used inline in paragraph of text."
-    , "Inline ![](/some/path/image.png)")
+    , "An image that is used inline in a paragraph of text."
+    , "![](/some/path/image.png)")
   , ( "Plain image with caption"
     , "An image with a caption. The image is surrounded by a figure element."
-    , "Inline ![This is a plain image.](path/image.png)")
+    , "![This is a plain image.](path/image.png)")
   , ( "Plain image with URL query"
     , "Query string and fragment identifier in URLs are preserved."
-    , "Inline ![Image URI with query string.](https://some.where/image.png&key=value)")
+    , "![Image URI with query string.](https://some.where/image.png&key=value)")
   , ( "Plain image with custom attributes."
     , "Image attributes are handled in complex ways."
-    , "Inline ![Image with attributes](/some/path/image.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}")
+    , "![Image with attributes](/some/path/image.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}")
   , ( "Plain video"
     , "Images that are videos are converted to a video tag."
-    , "Inline ![A local video.](/some/path/video.mp4){width=\"42%\"}")
+    , "![A local video.](/some/path/video.mp4){width=\"42%\"}")
   , ( "Plain video with Media Fragments URI"
     , "Description"
-    , "Inline ![A local video with start time.](/some/path/video.mp4){start=\"5\" stop=\"30\" preload=\"none\"}")
+    , "![A local video with start time.](/some/path/video.mp4){start=\"5\" stop=\"30\" preload=\"none\"}")
   , ( "Plain video with specific attributes"
     , "Video tag specific classes are translated to specific attributes."
-    , "Inline ![A local video with all features on.](/some/path/video.mp4){.controls .autoplay start=\"5\" stop=\"30\" poster=\"somewhere/image.png\" preload=\"none\"}")
+    , "![A local video with all features on.](/some/path/video.mp4){.controls .autoplay start=\"5\" stop=\"30\" poster=\"somewhere/image.png\" preload=\"none\"}")
   , ( "Three images in a row"
     , "Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout."
     , [text|
