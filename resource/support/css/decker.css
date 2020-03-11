@@ -583,6 +583,44 @@
   display: inline;
 }
 
+/*
+ *Required CSS for the new media filters.
+ */
+.reveal img.decker {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.reveal figure.decker > img.decker {
+  width: 100%;
+}
+
+.reveal video.decker {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.reveal figure.decker > video.decker {
+  width: 100%;
+}
+
+.reveal div.image-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+}
+
+.reveal div.image-row div {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.reveal div.image-row img {
+  display: block;
+}
+
 .reveal code {
   font-family: "Source Code Pro", monospace;
   font-size: 106%;

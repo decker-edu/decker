@@ -89,6 +89,11 @@ injectStyle (key, value) = modify transform
     transform ((id', cs', kvs'), attr) =
       ((id', cs', addStyle (key, value) kvs'), attr)
 
+injectAttribute :: (Text, Text) -> Attrib ()
+injectAttribute kv = modify transform
+  where
+    transform ((id', cs', kvs'), attr) = ((id', cs', kv : kvs'), attr)
+
 -- | Pushes an additional attribute to the source side of the attribute state.
 -- An existing attribute with the same key is overwritten.
 pushAttribute :: (Text, Text) -> Attrib ()
@@ -139,6 +144,17 @@ takeCss = modify transform
 coreAttribs :: [Text]
 coreAttribs = ["id", "class", "title", "style"]
 
+dropClass :: Text -> Attrib ()
+dropClass key = modify transform
+  where
+    transform (attr', (id, cs, kvs)) = (attr', (id, rmClass key cs, kvs))
+
+dropAttribute :: Text -> Attrib ()
+dropAttribute key = modify transform
+  where
+    transform (attr', (id, cs, kvs)) =
+      (attr', (id, cs, filter ((/= key) . fst) kvs))
+
 dropCore :: Attrib ()
 dropCore = modify transform
   where
@@ -168,7 +184,7 @@ injectBorder = do
   border <- getMetaBoolOrElse "decker.filter.border" False <$> lift (gets meta)
   when border $ injectStyle ("border", "2px solid magenta")
 
-videoClasses = ["autoplay", "controls", "loop", "muted"]
+videoClasses = ["controls", "loop", "muted"]
 
 takeVideoClasses :: Attrib ()
 takeVideoClasses = modify transform
@@ -177,7 +193,7 @@ takeVideoClasses = modify transform
       let (vcs, rest) = List.partition (`elem` videoClasses) cs
        in ((id', cs', map (, "1") vcs <> kvs'), (id, rest, kvs))
 
-videoAttribs = ["poster", "preload"]
+videoAttribs = ["controls", "loop", "muted", "poster", "preload"]
 
 passVideoAttribs :: Attrib ()
 passVideoAttribs = modify transform
@@ -185,6 +201,14 @@ passVideoAttribs = modify transform
     transform state@((id', cs', kvs'), (id, cs, kvs)) =
       let (vkvs, rest) = List.partition ((`elem` videoAttribs) . fst) kvs
        in ((id', cs', vkvs <> kvs'), (id, cs, rest))
+
+takeAutoplay :: Attrib ()
+takeAutoplay = do
+  (id, cs, kvs) <- snd <$> get
+  when ("autoplay" `elem` cs || "autoplay" `elem` (map fst kvs)) $ do
+    dropClass "autoplay"
+    dropAttribute "autoplay"
+    injectAttribute ("data-autoplay", "1")
 
 -- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
@@ -252,9 +276,6 @@ mediaInlineListFilter inlines =
       Just <$> (transformImages [img1, img2] [] >>= renderHtml)
       -- Default filter
     filterPairs (x, y) = return Nothing
-    filterTriplets :: (Inline, Inline, Inline) -> Filter (Maybe [Inline])
-    filterTriplets (img1@Image {}, img2@Image {}, img3@Image {}) =
-      Just <$> (transformImages [img1, img2, img3] [] >>= renderHtml)
     -- Default filter
     filterTriplets (x, y, z) = return Nothing
 
@@ -464,13 +485,13 @@ transformImages images caption = do
       images
   if null caption
     then return $
-         H.div ! A.class_ "image-row" ! A.style "border:2px solid cyan;" $
+         H.div ! A.class_ "decker image-row" ! A.style "border:2px solid cyan;" $
          toHtml imageRow
     else do
       captionHtml <- inlinesToHtml caption
       return $
-        H.figure ! A.style "border:2px solid cyan;" $ do
-          H.div ! A.class_ "image-row" $ toHtml imageRow
+        H.figure ! A.style "border:2px solid cyan;" ! A.class_ "decker" $ do
+          H.div ! A.class_ "decker image-row" $ toHtml imageRow
           H.figcaption captionHtml
 
 instance ToValue [Text] where
@@ -528,7 +549,7 @@ imageHtml uri caption =
       mkImageTag (URI.render uri) <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
-      imgAttr <- injectStyle ("width", "100%") >> extractAttr
+      imgAttr <- extractAttr
       let imageTag = mkImageTag (URI.render uri) imgAttr
       injectBorder >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
@@ -541,7 +562,7 @@ svgHtml uri caption =
       mkImageTag (URI.render uri) <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
-      imgAttr <- injectStyle ("width", "100%") >> extractAttr
+      imgAttr <- extractAttr
       let imageTag = mkImageTag (URI.render uri) imgAttr
       injectBorder >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
@@ -565,8 +586,7 @@ iframeHtml uri caption =
         injectBorder >> takeId >> takeAllClasses >> takeCss >> dropCore >>
         passI18n >>
         extractAttr
-      iframeAttr <-
-        injectStyle ("width", "100%") >> takeSize >> takeData >> extractAttr
+      iframeAttr <- takeSize >> takeData >> extractAttr
       let iframeTag = mkIframeTag (URI.render uri) iframeAttr
       return $ mkFigureTag iframeTag captionHtml figureAttr
 
@@ -590,13 +610,13 @@ videoHtml uri caption = do
           else URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag}
   case caption of
     [] -> do
-      injectBorder >> takeVideoClasses >> passVideoAttribs >> takeUsual
+      injectBorder >> takeAutoplay >> takeVideoClasses >> passVideoAttribs >>
+        takeUsual
       mkVideoTag videoUri <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       videoAttr <-
-        takeVideoClasses >> passVideoAttribs >> injectStyle ("width", "100%") >>
-        extractAttr
+        takeAutoplay >> takeVideoClasses >> passVideoAttribs >> extractAttr
       let videoTag = mkVideoTag videoUri videoAttr
       figureAttr <- injectBorder >> takeUsual >> extractAttr
       return $ mkFigureTag videoTag captionHtml figureAttr

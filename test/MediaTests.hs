@@ -62,7 +62,7 @@ plainImage =
 plainImageCaptionedHtml =
   RawInline
     (Format "html5")
-    "<figure id=\"logo\" class=\"decker myclass\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"logo.jpg\" style=\"width:100%;\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"logo\" class=\"decker myclass\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"logo.jpg\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 plainImageHtml =
   RawInline
@@ -87,12 +87,12 @@ plainVideo =
 plainVideoHtml =
   RawInline
     (Format "html5")
-    "<video id=\"video\" class=\"decker myclass\" data-src=\"cat.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"some/where/image.png\" preload=\"none\" autoplay=\"1\" loop=\"1\"></video>"
+    "<video id=\"video\" class=\"decker myclass\" data-src=\"cat.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"some/where/image.png\" preload=\"none\" loop=\"1\" data-autoplay=\"1\"></video>"
 
 plainVideoCaptionedHtml =
   RawInline
     (Format "html5")
-    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"cat.mp4#t=23,42\" style=\"width:100%;\" poster=\"some/where/image.png\" preload=\"none\" autoplay=\"1\" loop=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"cat.mp4#t=23,42\" poster=\"some/where/image.png\" preload=\"none\" loop=\"1\" data-autoplay=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 blockAin = [Para [], Para [Image nullAttr [] ("", "")], Para []]
 
@@ -191,8 +191,18 @@ testSnippets =
     , [text|
         | ![](image.png)
         | ![Caption.](movie.mp4){.autoplay}
-        | ![](image.png){css:border=\"1px black\"}
+        | ![](image.png){css:border="1px solid black"}
 
+      |])
+  , ( "Four images in a row with caption"
+    , "Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout."
+    , [text|
+        | ![](image.png)
+        | ![](movie.mp4){.autoplay}
+        | ![](image.png){css:border="1px solid black"}
+        | ![](image.png)
+
+        Caption: Caption
       |])
   , ( "Iframe with caption"
     , "A simple iframe with a caption. The URL can be a top level domain because the `iframe` class is specified."

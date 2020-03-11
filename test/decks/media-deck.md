@@ -68,7 +68,7 @@ Image: Three in a row. With a caption below all three.
 # 3 Somethings in a Row
 
 | ![Someone please fix my flexbox CSS](include/06-metal.png)
-| ![](movie.mp4){.controls .loop}
+| ![:cinema: :cinema: :smile:](movie.mp4){.controls .loop}
 | ![This has it's own caption.](include/06-metal.png)
 
 Image: Three somethings in a row. With a caption below all three. The

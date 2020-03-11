@@ -44,7 +44,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <img class="decker" data-src="path/image.png" style="width:100%;">
+    <img class="decker" data-src="path/image.png">
     <figcaption class="decker">
          
         Caption.
@@ -67,7 +67,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <img class="decker" data-src="https://some.where/image.png&key=value" style="width:100%;">
+    <img class="decker" data-src="https://some.where/image.png&key=value">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -89,7 +89,7 @@ translates to
 
 ``` {.html}
 <figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;">
-    <img class="decker" data-src="some/path/image.png" style="width:100%;">
+    <img class="decker" data-src="some/path/image.png">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -111,7 +111,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" style="width:42%;">
-    <video class="decker" data-src="some/path/video.mp4" style="width:100%;">
+    <video class="decker" data-src="some/path/video.mp4">
         
     </video>
     <figcaption class="decker">
@@ -135,7 +135,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <video class="decker" data-src="some/path/video.mp4#t=5,30" style="width:100%;" preload="none">
+    <video class="decker" data-src="some/path/video.mp4#t=5,30" preload="none">
         
     </video>
     <figcaption class="decker">
@@ -159,7 +159,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <video class="decker" data-src="some/path/video.mp4#t=5,30" style="width:100%;" poster="somewhere/image.png" preload="none" controls="1" autoplay="1">
+    <video class="decker" data-src="some/path/video.mp4#t=5,30" poster="somewhere/image.png" preload="none" controls="1" data-autoplay="1">
         
     </video>
     <figcaption class="decker">
@@ -178,20 +178,20 @@ Line blocks filled with only image tags are translated to a row of images. Suppo
 ``` {.markdown}
 | ![](image.png)
 | ![Caption.](movie.mp4){.autoplay}
-| ![](image.png){css:border=\"1px black\"}
+| ![](image.png)
 ```
 
 translates to
 
 ``` {.html}
-<figure style="border:2px solid cyan;">
-    <div class="image-row">
+<figure style="border:2px solid cyan;" class="decker">
+    <div class="decker image-row">
         <div>
             <img class="decker" data-src="image.png">
         </div>
         <div>
             <figure class="decker">
-                <video class="decker" data-src="movie.mp4" style="width:100%;" autoplay="1">
+                <video class="decker" data-src="movie.mp4" data-autoplay="1">
                     
                 </video>
                 <figcaption class="decker">
@@ -202,15 +202,50 @@ translates to
     </div>
     <figcaption>
         <img src="image.png" />
-        {css:border=
-        "
-        1px
-         
-        black
-        "
-        }
     </figcaption>
 </figure>
+```
+
+------------------------------------------------------------------------
+
+Four images in a row with caption
+---------------------------------
+
+Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout.
+
+``` {.markdown}
+| ![](image.png)
+| ![](movie.mp4){.autoplay}
+| ![](image.png)
+| ![](image.png)
+
+Caption: Caption
+```
+
+translates to
+
+``` {.html}
+<figure style="border:2px solid cyan;" class="decker">
+    <div class="decker image-row">
+        <div>
+            <img class="decker" data-src="image.png">
+        </div>
+        <div>
+            <video class="decker" data-src="movie.mp4" data-autoplay="1">
+                
+            </video>
+        </div>
+    </div>
+    <figcaption>
+        <img src="image.png" />
+         
+        |
+         
+        <img src="image.png" />
+    </figcaption>
+</figure>
+
+Caption: Caption
 ```
 
 ------------------------------------------------------------------------
@@ -228,7 +263,7 @@ translates to
 
 ``` {.html}
 <figure class="decker iframe">
-    <iframe class="decker" allow="fullscreen" data-src="https://www.heise.de/" style="width:100%;">
+    <iframe class="decker" allow="fullscreen" data-src="https://www.heise.de/">
         
     </iframe>
     <figcaption class="decker">
@@ -252,7 +287,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <iframe class="decker" allow="fullscreen" data-src="https://www.heise.de/index.html#some-frag?token=83fd3d4" data-model="some-stupid-ass-model.off" data-lasersword="off" style="width:100%;height:400px;">
+    <iframe class="decker" allow="fullscreen" data-src="https://www.heise.de/index.html#some-frag?token=83fd3d4" data-model="some-stupid-ass-model.off" data-lasersword="off" style="height:400px;">
         
     </iframe>
     <figcaption class="decker">
@@ -276,7 +311,7 @@ translates to
 
 ``` {.html}
 <figure class="decker mario">
-    <iframe class="decker" allow="fullscreen" data-src="/support/vendor/mview/mview.html" data-model="http://3d.de/model.off" data-phasers="stun" style="width:100%;height:400px;">
+    <iframe class="decker" allow="fullscreen" data-src="/support/vendor/mview/mview.html" data-model="http://3d.de/model.off" data-phasers="stun" style="height:400px;">
         
     </iframe>
     <figcaption class="decker">
