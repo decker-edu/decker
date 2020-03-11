@@ -281,8 +281,9 @@ sketchPadId text =
 
 writeSupportFilesToPublic :: Action ()
 writeSupportFilesToPublic = do
+  devRun <- liftIO isDevelopmentRun
   correct <- correctSupportInstalled
-  unless correct $ do
+  unless (correct || devRun) $ do
     removeSupport
     extractSupport
   copyStaticDirs

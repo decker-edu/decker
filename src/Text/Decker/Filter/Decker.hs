@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
--- | This is the Decker filter for Pandoc.
+-- | This is the new Decker filter for Pandoc.
 --
 -- All decker specific meta data is embedded into the document meta data under
 -- the `decker` key. Information gathered during the filter run is appended
@@ -8,13 +8,15 @@
 module Text.Decker.Filter.Decker where
 
 import Text.Decker.Internal.Meta
+import Text.Decker.Project.Project
 
-import Control.Monad.Loops
+import Control.Monad.Catch
+import Data.Digest.Pure.MD5
 import qualified Data.List as List
-import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Relude
+import System.Directory
+import System.FilePath
 import Text.Blaze.Html
 import qualified Text.Blaze.Html.Renderer.Pretty as Pretty
 import qualified Text.Blaze.Html.Renderer.Text as Text
@@ -23,10 +25,10 @@ import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (Attributable)
 import Text.Pandoc
 import Text.Pandoc.Walk
+import Text.URI (URI)
 import qualified Text.URI as URI
 
--- import Text.URI.Lens
--- | Some WriterOptions and the document meta data are available to all
+-- | WriterOptions and the document meta data are available to all
 -- filters. 
 data FilterState = FilterState
   { options :: WriterOptions
@@ -36,114 +38,179 @@ data FilterState = FilterState
 -- | All filters live in the Filter monad.
 type Filter = StateT FilterState IO
 
-type FilterFunc a = a -> Filter (Maybe a)
+-- | An associative list representing element attributes.
+type AttrMap = [(Text, Text)]
 
-type InlineFilter = FilterFunc Inline
+-- | The first set contains the transformed attributes that will be extracted
+-- and added to the HTML elements. The second set contains the source
+-- attributes as parsed from the Markdown attribute markup. Many functions
+-- inside the Attrib monad manipulate one or both attribute sets. 
+type AttribState = (Attr, Attr)
 
-type BlockFilter = FilterFunc Block
+-- | The Attrib monad.
+type Attrib = StateT AttribState Filter
 
--- | Assemble a Pandoc Attrib inside a filter.
-type ClassSet = Set Text
+-- | Extracts the attributes that have been transformed so far. The attributes
+-- are removed.
+extractAttr :: Attrib Attr
+extractAttr = do
+  (result, remaining) <- get
+  put (nullAttr, remaining)
+  return result
 
-type AttrMap = Map Text Text
-
-type Attrib = StateT (Text, ClassSet, AttrMap) Filter
-
-setId :: Text -> Attrib ()
-setId newId = modify (\(id, cs, kvs) -> (newId, cs, kvs))
-
-addClass :: Text -> Attrib ()
-addClass cls = modify (\(id, cs, kvs) -> (id, Set.insert cls cs, kvs))
-
-addClasses :: [Text] -> Attrib ()
-addClasses cls =
-  modify (\(id, cs, kvs) -> (id, Set.union (Set.fromList cls) cs, kvs))
-
-addKeyValue :: (Text, Text) -> Attrib ()
-addKeyValue (k, v) = modify (\(id, cs, kvs) -> (id, cs, Map.insert k v kvs))
-
-addKeyValues :: [(Text, Text)] -> Attrib ()
-addKeyValues kvl =
-  modify (\(id, cs, kvs) -> (id, cs, Map.union kvs (Map.fromList kvl)))
-
-addStyle :: (Text, Text) -> Attrib ()
-addStyle (k, v) =
-  modify (\(id, cls, kvs) -> (id, cls, Map.alter addOne "style" kvs))
-  where
-    addOne style = Just $ k <> ":" <> v <> ";" <> fromMaybe "" style
-
-assembleAttr :: (Attrib a) -> Filter Attr
-assembleAttr action = do
-  (id, cls, kvs) <- execStateT action ("", Set.empty, Map.empty)
-  return (id, Set.toList cls, Map.toList kvs)
-
-assemble :: [(Attr -> Attrib Attr)] -> Attr -> Filter Attr
-assemble actions attr = do
-  (id, cls, kvs) <- execStateT (concatM actions attr) ("", Set.empty, Map.empty)
-  return (id, Set.toList cls, Map.toList kvs)
-
-assemble' :: [(Attr -> Attrib Attr)] -> Attr -> Filter (Attr, Attr)
-assemble' actions attr = do
-  (attr', (id, cls, kvs)) <-
-    runStateT (concatM actions attr) ("", Set.empty, Map.empty)
-  return ((id, Set.toList cls, Map.toList kvs), attr')
-
-rmKey :: Text -> [(Text, Text)] -> [(Text, Text)]
+-- | Removes all values associated with key from the list.
+rmKey :: Eq a => a -> [(a, b)] -> [(a, b)]
 rmKey key = filter ((/= key) . fst)
 
+-- | Removes all instaces of value from the list.
 rmClass :: Text -> [Text] -> [Text]
 rmClass cls = filter (/= cls)
 
-takeStyle :: Text -> Attr -> Attrib Attr
-takeStyle key (id, cs, kvs) =
-  case List.lookup key kvs of
-    Just value -> do
-      addStyle (key, value)
-      return (id, cs, rmKey key kvs)
-    Nothing -> return (id, cs, kvs)
+-- | Alters the value at key. Can be used to add, change, or remove key value
+-- pairs from an associative list. (See Data.Map.Strict.alter).
+alterKey :: Eq a => (Maybe b -> Maybe b) -> a -> [(a, b)] -> [(a, b)]
+alterKey f key kvs =
+  case f $ List.lookup key kvs of
+    Just value -> (key, value) : rmKey key kvs
+    Nothing -> rmKey key kvs
 
-takeSize :: Attr -> Attrib Attr
-takeSize attr = takeStyle "width" attr >>= takeStyle "height"
-
-takeId :: Attr -> Attrib Attr
-takeId (id, cls, kvs) = do
-  setId id
-  return ("", cls, kvs)
-
-takeCss :: Attr -> Attrib Attr
-takeCss (id, cls, kvs) = do
-  let (css, rest) = List.partition (isCss . fst) kvs
-  mapM_ (\(k, v) -> addStyle (Text.drop 4 k, v)) css
-  return ("", cls, rest)
+-- | Adds a CSS style value pair to the attribute map. If a style attribute
+-- does not yet exist, it is created. The value of an existing style attribute 
+-- is ammended on the left. 
+addStyle :: (Text, Text) -> AttrMap -> AttrMap
+addStyle (k, v) = alterKey addOne "style"
   where
+    addOne style = Just $ fromMaybe "" style <> k <> ":" <> v <> ";"
+
+-- | Adds a CSS style value pair to the target attributes.
+injectStyle :: (Text, Text) -> Attrib ()
+injectStyle (key, value) = modify transform
+  where
+    transform ((id', cs', kvs'), attr) =
+      ((id', cs', addStyle (key, value) kvs'), attr)
+
+injectAttribute :: (Text, Text) -> Attrib ()
+injectAttribute kv = modify transform
+  where
+    transform ((id', cs', kvs'), attr) = ((id', cs', kv : kvs'), attr)
+
+-- | Pushes an additional attribute to the source side of the attribute state.
+-- An existing attribute with the same key is overwritten.
+pushAttribute :: (Text, Text) -> Attrib ()
+pushAttribute (key, value) = modify transform
+  where
+    transform (attr', (id, cs, kvs)) =
+      (attr', (id, cs, alterKey replace key kvs))
+    replace _ = Just value
+
+-- | Removea the attribute key from the source attribute map and adds it as a
+-- CSS style value to the target style attribute. Mainly used to translate
+-- witdth an height attributes into CSS style setting.
+takeStyle :: Text -> Attrib ()
+takeStyle key = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      case List.lookup key kvs of
+        Just value ->
+          ((id', cs', addStyle (key, value) kvs'), (id, cs, rmKey key kvs))
+        Nothing -> state
+
+-- | Translates width and height attributes into CSS style values if they
+-- exist.
+takeSize :: Attrib ()
+takeSize = do
+  takeStyle "width"
+  takeStyle "height"
+
+takeId :: Attrib ()
+takeId = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      ((id, cs', kvs'), ("", cs, kvs))
+
+takeCss :: Attrib ()
+takeCss = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      let (css, rest) = List.partition (isCss . fst) kvs
+          added =
+            foldl'
+              (\result (k, v) -> addStyle (Text.drop 4 k, v) result)
+              kvs'
+              css
+       in ((id', cs', added), (id, cs, rest))
     isCss key = Text.isPrefixOf "css:" key && Text.length key > 4
 
-takeData :: Attr -> Attrib Attr
-takeData (id, cls, kvs) = do
-  addKeyValues $ map (first ("data-" <>)) kvs
-  return ("", cls, [])
+coreAttribs :: [Text]
+coreAttribs = ["id", "class", "title", "style"]
 
-takeAllClasses :: Attr -> Attrib Attr
-takeAllClasses (id, cls, kvs) = do
-  addClasses cls
-  return (id, [], kvs)
+dropClass :: Text -> Attrib ()
+dropClass key = modify transform
+  where
+    transform (attr', (id, cs, kvs)) = (attr', (id, rmClass key cs, kvs))
 
-videoClasses = ["autoplay", "controls", "loop", "muted"]
+dropAttribute :: Text -> Attrib ()
+dropAttribute key = modify transform
+  where
+    transform (attr', (id, cs, kvs)) =
+      (attr', (id, cs, filter ((/= key) . fst) kvs))
 
-takeVideoClasses :: Attr -> Attrib Attr
-takeVideoClasses (id, cls, kvs) = do
-  mapM_ (addKeyValue . (, "1")) $ filter (`elem` videoClasses) cls
-  return (id, filter (`notElem` videoClasses) cls, kvs)
+dropCore :: Attrib ()
+dropCore = modify transform
+  where
+    transform (attr', (id, cs, kvs)) =
+      (attr', (id, cs, filter ((`notElem` coreAttribs) . fst) kvs))
 
-videoAttribs = ["poster", "preload"]
+passI18n :: Attrib ()
+passI18n = modify transform
+  where
+    transform ((id', cs', kvs'), (id, cs, kvs)) =
+      let (pass, rest) = List.partition ((`elem` ["dir", "xml:lang"]) . fst) kvs
+       in ((id', cs', kvs' <> pass), (id, cs, rest))
 
-takeVideoAttribs :: Attr -> Attrib Attr
-takeVideoAttribs (id, cls, kvs) = do
-  let (va, oa) = List.partition ((`elem` videoAttribs) . fst) kvs
-  addKeyValues va
-  return (id, cls, oa)
+takeData :: Attrib ()
+takeData = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      ((id', cs', map (first ("data-" <>)) kvs <> kvs'), (id, cs, []))
 
--- | Apply a filter to each pair of successive elements in a list. The filter
+takeAllClasses :: Attrib ()
+takeAllClasses = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      ((id', cs <> cs', kvs'), (id, [], kvs))
+
+injectBorder = do
+  border <- getMetaBoolOrElse "decker.filter.border" False <$> lift (gets meta)
+  when border $ injectStyle ("border", "2px solid magenta")
+
+videoClasses = ["controls", "loop", "muted"]
+
+takeVideoClasses :: Attrib ()
+takeVideoClasses = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      let (vcs, rest) = List.partition (`elem` videoClasses) cs
+       in ((id', cs', map (, "1") vcs <> kvs'), (id, rest, kvs))
+
+videoAttribs = ["controls", "loop", "muted", "poster", "preload"]
+
+passVideoAttribs :: Attrib ()
+passVideoAttribs = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      let (vkvs, rest) = List.partition ((`elem` videoAttribs) . fst) kvs
+       in ((id', cs', vkvs <> kvs'), (id, cs, rest))
+
+takeAutoplay :: Attrib ()
+takeAutoplay = do
+  (id, cs, kvs) <- snd <$> get
+  when ("autoplay" `elem` cs || "autoplay" `elem` (map fst kvs)) $ do
+    dropClass "autoplay"
+    dropAttribute "autoplay"
+    injectAttribute ("data-autoplay", "1")
+
+-- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
 -- may reject the pair and return nothing.
 pairwise :: ((a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
@@ -154,7 +221,7 @@ pairwise f (x:y:zs) = do
     Nothing -> (x :) <$> pairwise f (y : zs)
 pairwise _ xs = return xs
 
--- | Apply a filter to each triplet of successive elements in a list.
+-- | Applies a filter to each triplet of successive elements in a list.
 -- The filter may consume the elements and return a list of transformed elements,
 -- or it may reject the triplet and return nothing.
 tripletwise :: ((a, a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
@@ -166,7 +233,7 @@ tripletwise f (w:x:y:zs) = do
 tripletwise _ xs = return xs
 
 -- | Runs the document through the four increaingly detailed filter stages. The
--- matchng granularity ranges from list of blocks to single inline elements.
+-- matching granularity ranges from list of blocks to single inline elements.
 mediaFilter :: WriterOptions -> Pandoc -> IO Pandoc
 mediaFilter options pandoc =
   runFilter options mediaBlockListFilter pandoc >>=
@@ -174,19 +241,25 @@ mediaFilter options pandoc =
   runFilter options mediaBlockFilter >>=
   runFilter options mediaInlineFilter
 
+captionLabel = "Caption:"
+
 -- | Filters lists of Blocks that can match in pairs or triplets. 
 --
 -- For example: Match a paragraph containing just an image followed by a
 -- paragraph starting with the string "Image: " as an image that is to be
 -- placed in a figure block with a caption.
 mediaBlockListFilter :: [Block] -> Filter [Block]
-mediaBlockListFilter blocks = pairwise filterPairs blocks
-  --tripletwise filterTriplets blocks >>= pairwise filterPairs
+mediaBlockListFilter blocks =
+  tripletwise filterTriplets blocks >>= pairwise filterPairs
   where
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
-    filterPairs ((Para [image@Image {}]), Para (Str "Image:":caption)) =
-      Just <$> transformImage image caption
+    filterPairs ((Para [image@Image {}]), Para (Str captionLabel:caption)) =
+      Just <$> (transformImage image caption >>= renderHtml)
+    -- Any number of consecutive images in a masonry row.
+    filterPairs (LineBlock lines, Para (Str captionLabel:caption))
+      | oneImagePerLine lines =
+        Just <$> (transformImages (concat lines) caption >>= renderHtml)
     -- Default filter
     filterPairs (x, y) = return Nothing
     filterTriplets :: (Block, Block, Block) -> Filter (Maybe [Block])
@@ -195,29 +268,39 @@ mediaBlockListFilter blocks = pairwise filterPairs blocks
 
 -- | Filters lists of Inlines that can match in pairs or triplets
 mediaInlineListFilter :: [Inline] -> Filter [Inline]
-mediaInlineListFilter inlines = pairwise filterPairs inlines
-  --tripletwise filterTriplets inlines >>= pairwise filterPairs
+mediaInlineListFilter inlines =
+  tripletwise filterTriplets inlines >>= pairwise filterPairs
   where
     filterPairs :: (Inline, Inline) -> Filter (Maybe [Inline])
-    -- Default filter
+    filterPairs (img1@Image {}, img2@Image {}) =
+      Just <$> (transformImages [img1, img2] [] >>= renderHtml)
+      -- Default filter
     filterPairs (x, y) = return Nothing
-    filterTriplets :: (Inline, Inline, Inline) -> Filter (Maybe [Inline])
     -- Default filter
     filterTriplets (x, y, z) = return Nothing
 
 -- | Match a single Block element
 mediaBlockFilter :: Block -> Filter Block
 -- A solitary image in a paragraph with a possible caption.
-mediaBlockFilter (Para [image@(Image _ caption _)]) = do
-  transformImage image caption
+mediaBlockFilter (Para [image@(Image _ caption _)]) =
+  transformImage image caption >>= renderHtml
+-- Any number of consecutive images in a masonry row.
+mediaBlockFilter (LineBlock lines)
+  | oneImagePerLine lines = transformImages (concat lines) [] >>= renderHtml
 -- Default filter
 mediaBlockFilter block = return block
+
+oneImagePerLine :: [[Inline]] -> Bool
+oneImagePerLine inlines = all isImage $ concat inlines
+
+isImage Image {} = True
+isImage _ = False
 
 -- | Matches a single Inline element
 mediaInlineFilter :: Inline -> Filter Inline
 -- An inline image with a possible caption.
-mediaInlineFilter image@(Image _ caption _) = do
-  transformImage image caption
+mediaInlineFilter image@(Image _ caption _) =
+  transformImage image caption >>= renderHtml
 -- Default filter
 mediaInlineFilter inline = return inline
 
@@ -233,7 +316,7 @@ runFilter ::
   -> IO Pandoc
 runFilter options filter pandoc@(Pandoc meta _) = do
   (Pandoc _ blocks, FilterState _ meta) <-
-    do runStateT (walkM filter pandoc) (FilterState options meta)
+    runStateT (walkM filter pandoc) (FilterState options meta)
   return $ Pandoc meta blocks
 
 -- Runs a filter on any Walkable structure. Does not carry transformed meta
@@ -247,6 +330,12 @@ runFilter' options meta filter x =
 imageExt = ["jpg", "jpeg", "png", "gif", "tif", "tiff", "bmp", "svg"]
 
 videoExt = ["mp4", "mov", "ogg", "avi"]
+
+svgExt = ["svg"]
+
+iframeExt = ["html", "html"]
+
+mviewExt = ["off"]
 
 -- | Renders a list of inlines back to markdown.
 toMarkdown :: [Inline] -> Filter Text
@@ -306,31 +395,124 @@ renderHtml html = do
       then toText $ Pretty.renderHtml html
       else fromLazy $ Text.renderHtml html
 
-transformImage :: RawHtml a => Inline -> [Inline] -> Filter a
-transformImage (Image attr@(_, classes, _) _ (url, _)) caption = do
+runAttr :: Attr -> Attrib a -> Filter a
+runAttr attr attrAction = evalStateT attrAction (nullAttr, attr)
+
+-- | Transforms a URL and handles local and remote URLs differently.
+transformUrl :: Text -> Filter URI
+transformUrl url = do
   uri <- URI.mkURI url
+  case URI.uriScheme uri of
+    Just rtext
+      | URI.unRText rtext /= "file" -> processRemoteUri uri
+    _ -> processLocalUri uri
+
+-- | Adds a remote URL to the `decker.filter.links` list in the meta data.
+processRemoteUri :: URI -> Filter URI
+processRemoteUri uri = do
+  modifyMeta (addStringToMetaList "decker.filter.links" (URI.render uri))
+  return uri
+
+-- | Applies the modification function f to the meta data in the filter
+-- state.
+modifyMeta :: (Meta -> Meta) -> Filter ()
+modifyMeta f = modify (\s -> s {meta = f (meta s)})
+
+processLocalUri :: URI -> Filter URI
+processLocalUri uri
+  -- | The absolute (!) document directory from which this is called.
+ = do
+  cwd <- liftIO $ getCurrentDirectory
+  baseDir <- toString <$> getMeta "decker.base-dir" "."
+  -- | The absolute (!) project directory from which this is called.
+  projectDir <- toString <$> getMeta "decker.project-dir" (toText cwd)
+  -- | The absolute (!) public directory where everything is published to.
+  publicDir <-
+    toString <$> getMeta "decker.public-dir" (toText $ cwd </> "public")
+  -- | The path component from the URI
+  urlPath <- toString <$> uriPath uri
+  -- | Interpret urlPath either project relative or document relative,
+  -- depending on the leading slash.
+  let relPath =
+        normalise $
+        if hasDrive urlPath
+          then dropDrive urlPath
+          else makeRelative projectDir baseDir </> urlPath
+  let basePath = projectDir </> baseDir
+  let targetPath = publicDir </> relPath
+  let sourcePath = projectDir </> relPath
+  let publicRelPath = makeRelativeTo basePath sourcePath
+  publicUri <- setUriPath (toText publicRelPath) uri
+  let publicUrl = URI.render publicUri
+  storeResourceInfo sourcePath targetPath publicUrl
+  return publicUri
+
+setMeta :: Text -> Text -> Filter ()
+setMeta key value =
+  modify (\s -> s {meta = setMetaValue key (MetaString value) (meta s)})
+
+getMeta :: Text -> Text -> Filter Text
+getMeta key def = getMetaTextOrElse key def <$> gets meta
+
+storeResourceInfo :: FilePath -> FilePath -> Text -> Filter ()
+storeResourceInfo source target url = do
+  let key = "decker" <.> "filter" <.> "resources" <.> hash9String target
+  setMeta (toText $ key <.> "source") $ toText source
+  setMeta (toText $ key <.> "target") $ toText target
+  setMeta (toText $ key <.> "url") url
+
+transformImage :: Inline -> [Inline] -> Filter Html
+transformImage (Image attr@(_, classes, _) _ (url, _)) caption = do
+  uri <- transformUrl url
   let ext = uriPathExtension uri
-  html <-
-    if | extIn ext imageExt || "image" `elem` classes ->
-         imageHtml uri attr caption
-       | extIn ext videoExt || "video" `elem` classes ->
-         videoHtml uri attr caption
-       | otherwise -> imageHtml uri attr caption
-  renderHtml html
+  runAttr attr $
+    if | extIn ext svgExt && "embed" `elem` classes -> svgHtml uri caption
+       | extIn ext mviewExt || "mview" `elem` classes -> mviewHtml uri caption
+       | extIn ext iframeExt || "iframe" `elem` classes ->
+         iframeHtml uri caption
+       | extIn ext imageExt || "image" `elem` classes -> imageHtml uri caption
+       | extIn ext videoExt || "video" `elem` classes -> videoHtml uri caption
+       | otherwise -> imageHtml uri caption
 transformImage inline _ =
   bug $ InternalException ("transformImage: no match for: " <> show inline)
+
+-- Lines up a list of images in a div element. Use with flexbox css.
+transformImages :: [Inline] -> [Inline] -> Filter Html
+transformImages images caption = do
+  imageRow <-
+    mapM
+      (\img@(Image _ caption _) -> H.div <$> transformImage img caption)
+      images
+  if null caption
+    then return $
+         H.div ! A.class_ "decker image-row" ! A.style "border:2px solid cyan;" $
+         toHtml imageRow
+    else do
+      captionHtml <- inlinesToHtml caption
+      return $
+        H.figure ! A.style "border:2px solid cyan;" ! A.class_ "decker" $ do
+          H.div ! A.class_ "decker image-row" $ toHtml imageRow
+          H.figcaption captionHtml
 
 instance ToValue [Text] where
   toValue ts = toValue $ Text.intercalate " " ts
 
 (!*) :: Attributable h => h -> [(Text, Text)] -> h
-(!*) html =
-  foldl' (\h (k, v) -> h ! customAttribute (H.textTag k) (H.toValue v)) html
+(!*) = foldl' (\h (k, v) -> h ! customAttribute (H.textTag k) (H.toValue v))
 
 mkVideoTag :: Text -> Attr -> Html
 mkVideoTag url (id, cs, kvs) =
   H.video !? (not (Text.null id), A.id (H.toValue id)) !
   A.class_ (H.toValue ("decker" : cs)) !
+  H.dataAttribute "src" (H.preEscapedToValue url) !*
+  kvs $
+  ""
+
+mkIframeTag :: Text -> Attr -> Html
+mkIframeTag url (id, cs, kvs) =
+  H.iframe !? (not (Text.null id), A.id (H.toValue id)) !
+  A.class_ (H.toValue ("decker" : cs)) !
+  H.customAttribute "allow" "fullscreen" !
   H.dataAttribute "src" (H.preEscapedToValue url) !*
   kvs $
   ""
@@ -350,64 +532,125 @@ mkFigureTag content caption (id, cs, kvs) =
     content
     H.figcaption ! A.class_ "decker" $ caption
 
-imageHtml :: URI.URI -> Attr -> [Inline] -> Filter Html
-imageHtml uri attr caption =
+takeUsual = do
+  takeId
+  takeAllClasses
+  takeSize
+  takeCss
+  dropCore
+  passI18n
+  takeData
+
+imageHtml :: URI -> [Inline] -> Attrib Html
+imageHtml uri caption =
   case caption of
     [] -> do
-      attr <-
-        assemble [takeId, takeAllClasses, takeSize, takeCss, takeData] attr
-      return $ mkImageTag (URI.render uri) attr
+      injectBorder >> takeUsual
+      mkImageTag (URI.render uri) <$> extractAttr
     caption -> do
-      captionHtml <- inlinesToHtml caption
-      figureAttr <-
-        assemble [takeId, takeAllClasses, takeSize, takeCss, takeData] attr
-      return $
-        mkFigureTag
-          (mkImageTag (URI.render uri) nullAttr)
-          captionHtml
-          figureAttr
+      captionHtml <- lift $ inlinesToHtml caption
+      imgAttr <- extractAttr
+      let imageTag = mkImageTag (URI.render uri) imgAttr
+      injectBorder >> takeUsual
+      mkFigureTag imageTag captionHtml <$> extractAttr
 
-mediaFragment :: Attr -> (Text, Attr)
-mediaFragment attr@(id, cs, kvs) =
+svgHtml :: URI -> [Inline] -> Attrib Html
+svgHtml uri caption =
+  case caption of
+    [] -> do
+      injectBorder >> takeUsual
+      mkImageTag (URI.render uri) <$> extractAttr
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      imgAttr <- extractAttr
+      let imageTag = mkImageTag (URI.render uri) imgAttr
+      injectBorder >> takeUsual
+      mkFigureTag imageTag captionHtml <$> extractAttr
+
+mviewHtml :: URI -> [Inline] -> Attrib Html
+mviewHtml uri caption = do
+  let model = URI.render uri
+  pushAttribute ("model", model)
+  mviewUri <- URI.mkURI "/support/vendor/mview/mview.html"
+  iframeHtml mviewUri caption
+
+iframeHtml :: URI -> [Inline] -> Attrib Html
+iframeHtml uri caption =
+  case caption of
+    [] -> do
+      iframeAttr <- injectBorder >> takeUsual >> extractAttr
+      return $ mkIframeTag (URI.render uri) iframeAttr
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      figureAttr <-
+        injectBorder >> takeId >> takeAllClasses >> takeCss >> dropCore >>
+        passI18n >>
+        extractAttr
+      iframeAttr <- takeSize >> takeData >> extractAttr
+      let iframeTag = mkIframeTag (URI.render uri) iframeAttr
+      return $ mkFigureTag iframeTag captionHtml figureAttr
+
+mediaFragment :: Attrib Text
+mediaFragment = do
+  (result, (id, cs, kvs)) <- get
   let start = fromMaybe "" $ List.lookup "start" kvs
       stop = fromMaybe "" $ List.lookup "stop" kvs
-   in if Text.null start && Text.null stop
-        then ("", attr)
-        else ( "t=" <> start <> "," <> stop
-             , (id, cs, rmKey "start" $ rmKey "stop" kvs))
+  put (result, (id, cs, rmKey "start" $ rmKey "stop" kvs))
+  return $
+    if Text.null start && Text.null stop
+      then ""
+      else "t=" <> start <> "," <> stop
 
-videoHtml :: URI.URI -> Attr -> [Inline] -> Filter Html
-videoHtml uri imgAttr@(id, classes, values) caption = do
-  let (mediaFrag, attr) = mediaFragment imgAttr
-      videoUri = (URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag})
+videoHtml :: URI -> [Inline] -> Attrib Html
+videoHtml uri caption = do
+  mediaFrag <- mediaFragment
+  let videoUri =
+        if Text.null mediaFrag
+          then URI.render uri
+          else URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag}
   case caption of
     [] -> do
-      videoAttr <-
-        assemble
-          [ takeId
-          , takeVideoClasses
-          , takeVideoAttribs
-          , takeAllClasses
-          , takeSize
-          , takeCss
-          , takeData
-          ]
-          attr
-      return $ mkVideoTag videoUri videoAttr
+      injectBorder >> takeAutoplay >> takeVideoClasses >> passVideoAttribs >>
+        takeUsual
+      mkVideoTag videoUri <$> extractAttr
     caption -> do
-      captionHtml <- inlinesToHtml caption
-      (videoAttr, remaining) <-
-        assemble' [takeVideoClasses, takeVideoAttribs] attr
-      print videoAttr
-      print remaining
-      figureAttr <-
-        assemble [takeId, takeAllClasses, takeSize, takeCss, takeData] remaining
-      return $
-        mkFigureTag (mkVideoTag videoUri videoAttr) captionHtml figureAttr
+      captionHtml <- lift $ inlinesToHtml caption
+      videoAttr <-
+        takeAutoplay >> takeVideoClasses >> passVideoAttribs >> extractAttr
+      let videoTag = mkVideoTag videoUri videoAttr
+      figureAttr <- injectBorder >> takeUsual >> extractAttr
+      return $ mkFigureTag videoTag captionHtml figureAttr
 
-uriPathExtension :: URI.URI -> Maybe Text
+uriPathExtension :: URI -> Maybe Text
 uriPathExtension uri =
   case URI.uriPath uri of
     (Just (False, pieces)) ->
       listToMaybe $ reverse $ Text.splitOn "." $ URI.unRText $ last pieces
     _ -> Nothing
+
+uriPath :: MonadThrow m => URI -> m Text
+uriPath uri =
+  return $
+  URI.render
+    URI.emptyURI
+      { URI.uriPath = URI.uriPath uri
+      , URI.uriAuthority = Left (URI.isPathAbsolute uri)
+      }
+
+setUriPath :: MonadThrow m => Text -> URI -> m URI
+setUriPath path uri = do
+  pathUri <- URI.mkURI path
+  return
+    uri
+      { URI.uriPath = URI.uriPath pathUri
+      , URI.uriAuthority =
+          case URI.uriAuthority uri of
+            Left _ -> Left $ URI.isPathAbsolute pathUri
+            auth -> auth
+      }
+
+hash9String :: String -> String
+hash9String text = take 9 $ show $ md5 $ encodeUtf8 text
+
+hash9 :: Text -> Text
+hash9 text = Text.pack $ take 9 $ show $ md5 $ encodeUtf8 text

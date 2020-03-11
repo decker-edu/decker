@@ -5,28 +5,33 @@ module MediaTests
   ) where
 
 import Text.Decker.Filter.Decker
+import Text.Decker.Internal.Meta
 
--- import Text.Blaze.Html
--- import Text.Blaze.Html.Renderer.Text
--- import Text.Blaze.Html5 as H
--- import Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html hiding (text)
+
 import Data.Maybe
 import qualified Data.Text.IO as Text
+import NeatInterpolation
 import Relude
 import Test.Hspec as Hspec
 import Text.Pandoc
 import Text.Pandoc.Highlighting
+import Text.Pandoc.Walk
+
+filterMeta =
+  setTextMetaValue "decker.base-dir" "." $
+  setTextMetaValue "decker.project-dir" "/tmp/decker" $
+  setTextMetaValue "decker.public-dir" "/tmp/decker/public" $ nullMeta
 
 -- import qualified Text.URI as URI
 -- | Constructs a filter runner with default parameters
-testFilter = runFilter' def nullMeta
+testFilter = runFilter' def filterMeta
 
-doFilter :: RawHtml a => Filter a -> IO a
-doFilter action = fst <$> runStateT action (FilterState def nullMeta)
+doFilter :: Filter Html -> IO Inline
+doFilter action =
+  fst <$> runStateT (action >>= renderHtml) (FilterState def filterMeta)
 
 mediaTests = do
-  Hspec.runIO $
-    writeSnippetReport "doc/media-filter-report-page.md" testSnippets
   describe "pairwise" $
     it "pairwise matches a list of walkables" $ do
       testFilter filter0 blockAin `shouldReturn` blockAin
@@ -41,6 +46,8 @@ mediaTests = do
       doFilter (transformImage plainVideo []) `shouldReturn` plainVideoHtml
       doFilter (transformImage plainVideo styledCaption) `shouldReturn`
         plainVideoCaptionedHtml
+  Hspec.runIO $
+    writeSnippetReport "doc/media-filter-report-page.md" testSnippets
 
 styledCaption = [Str "A", Space, Strong [Str "logo."]]
 
@@ -55,12 +62,12 @@ plainImage =
 plainImageCaptionedHtml =
   RawInline
     (Format "html5")
-    "<figure id=\"logo\" class=\"decker myclass\" data-myattribute=\"1\" style=\"border:1px;width:30%;\"><img class=\"decker\" data-src=\"logo.jpg\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"logo\" class=\"decker myclass\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"logo.jpg\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 plainImageHtml =
   RawInline
     (Format "html5")
-    "<img id=\"logo\" class=\"decker myclass\" data-src=\"logo.jpg\" data-myattribute=\"1\" style=\"border:1px;width:30%;\">"
+    "<img id=\"logo\" class=\"decker myclass\" data-src=\"logo.jpg\" data-myattribute=\"1\" style=\"width:30%;border:1px;\">"
 
 plainVideo =
   Image
@@ -80,12 +87,12 @@ plainVideo =
 plainVideoHtml =
   RawInline
     (Format "html5")
-    "<video id=\"video\" class=\"decker myclass\" data-src=\"cat.mp4#t=23,42\" autoplay=\"1\" data-annoying=\"100\" loop=\"1\" poster=\"some/where/image.png\" preload=\"none\" style=\"border:1px;width:30%;\"></video>"
+    "<video id=\"video\" class=\"decker myclass\" data-src=\"cat.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"some/where/image.png\" preload=\"none\" loop=\"1\" data-autoplay=\"1\"></video>"
 
 plainVideoCaptionedHtml =
   RawInline
     (Format "html5")
-    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"border:1px;width:30%;\"><video class=\"decker\" data-src=\"cat.mp4#t=23,42\" autoplay=\"1\" loop=\"1\" poster=\"some/where/image.png\" preload=\"none\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"cat.mp4#t=23,42\" poster=\"some/where/image.png\" preload=\"none\" loop=\"1\" data-autoplay=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 blockAin = [Para [], Para [Image nullAttr [] ("", "")], Para []]
 
@@ -126,6 +133,8 @@ readerOptions =
   def
     {readerExtensions = disableExtension Ext_implicit_figures pandocExtensions}
 
+writerOptions = def {writerExtensions = pandocExtensions}
+
 setPretty (Pandoc meta blocks) =
   Pandoc
     (Meta $
@@ -138,37 +147,92 @@ setPretty (Pandoc meta blocks) =
 
 compileSnippet :: Text -> IO Text
 compileSnippet markdown = do
-  pandoc <- handleError (runPure (readMarkdown readerOptions markdown))
-  filtered <- mediaFilter def (setPretty pandoc)
-  handleError (runPure (writeHtml5String def filtered))
+  pandoc@(Pandoc meta blocks) <-
+    handleError (runPure (readMarkdown readerOptions markdown))
+  filtered@(Pandoc fmeta _) <-
+    mediaFilter
+      def
+      (Pandoc (setBoolMetaValue "decker.filter.pretty" True filterMeta) blocks)
+  handleError $
+    runPure $ writeHtml5String writerOptions $ walk dropPara filtered
 
-testSnippets :: [Text]
+dropPara (Para inlines) = Plain inlines
+dropPara block = block
+
+testSnippets :: [(Text, Text, Text)]
 testSnippets =
-  [ "Inline ![](/some/path/image.png)"
-  , "Inline ![This is a **plain** image.](/some/path/image.png)"
-  , "Block\n\n![](/some/path/image.png)\n\nImage: This is a **plain** image."
-  , "Inline ![Image URI with **query string**.](https:/some.where/image.png&key=value)"
-  , "Inline ![Image with **attributes**](/some/path/image.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}"
-  , "Inline ![A local video.](/some/path/video.mp4){width=\"42%\"}"
-  , "Inline ![A local video with start time.](/some/path/video.mp4){start=\"5\" stop=\"30\" preload=\"none\"}"
-  , "Inline ![A local video with all features on.](/some/path/video.mp4){.controls .autoplay start=\"5\" stop=\"30\" poster=\"somewhere/image.png\" preload=\"none\"}"
+  [ ( "Plain image"
+    , "An image that is used inline in a paragraph of text."
+    , "![](/some/path/image.png)")
+  , ( "Plain image with caption"
+    , "An image with a caption. The image is surrounded by a figure element."
+    , [text|
+        ![](path/image.png)
+
+        Caption: Caption.
+      |])
+  , ( "Plain image with URL query"
+    , "Query string and fragment identifier in URLs are preserved."
+    , "![Caption.](https://some.where/image.png&key=value)")
+  , ( "Plain image with custom attributes."
+    , "Image attributes are handled in complex ways."
+    , "![Caption.](/some/path/image.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}")
+  , ( "Plain video"
+    , "Images that are videos are converted to a video tag."
+    , "![Caption.](/some/path/video.mp4){width=\"42%\"}")
+  , ( "Plain video with Media Fragments URI"
+    , "A local video with start time."
+    , "![Caption.](/some/path/video.mp4){start=\"5\" stop=\"30\" preload=\"none\"}")
+  , ( "Plain video with specific attributes"
+    , "Video tag specific classes are translated to specific attributes."
+    , "![Caption.](/some/path/video.mp4){.controls .autoplay start=\"5\" stop=\"30\" poster=\"somewhere/image.png\" preload=\"none\"}")
+  , ( "Three images in a row"
+    , "Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout."
+    , [text|
+        | ![](image.png)
+        | ![Caption.](movie.mp4){.autoplay}
+        | ![](image.png){css:border="1px solid black"}
+
+      |])
+  , ( "Four images in a row with caption"
+    , "Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout."
+    , [text|
+        | ![](image.png)
+        | ![](movie.mp4){.autoplay}
+        | ![](image.png){css:border="1px solid black"}
+        | ![](image.png)
+
+        Caption: Caption
+      |])
+  , ( "Iframe with caption"
+    , "A simple iframe with a caption. The URL can be a top level domain because the `iframe` class is specified."
+    , "![Caption.](https://www.heise.de/){.iframe}")
+  , ( "Iframe with custom attributes and query string"
+    , "A simple iframe with custom attributes and a query string that are both transfered correctly."
+    , "![Caption.](https://www.heise.de/index.html#some-frag?token=83fd3d4){height=\"400px\" model=\"some-stupid-ass-model.off\" lasersword=\"off\"}")
+  , ( "Mario's model viewer"
+    , "A simple iframe with a special url."
+    , "![Caption.](http://3d.de/model.off){.mario height=\"400px\" phasers=\"stun\"}")
   ]
 
-runSnippets :: [Text] -> IO [(Text, Text)]
-runSnippets snippets = do
-  html <- mapM compileSnippet snippets
-  return $ zip snippets html
+runSnippets :: [(Text, Text, Text)] -> IO [(Text, Text, Text, Text)]
+runSnippets snippets =
+  mapM (\(t, d, s) -> (t, d, s, ) <$> compileSnippet s) snippets
 
-writeSnippetReport :: FilePath -> [Text] -> IO ()
+markdownTemplate = "\n$titleblock$\n\n$body$\n"
+
+writeSnippetReport :: FilePath -> [(Text, Text, Text)] -> IO ()
 writeSnippetReport file snippets = do
   result <- runSnippets snippets
+  template <- either (error . toText) id <$> compileTemplate "" markdownTemplate
   let pandoc = render result
   html <-
     handleError $
     runPure $
     writeMarkdown
       (def
-         { writerExtensions = pandocExtensions
+         { writerTemplate = Just template
+         , writerExtensions = pandocExtensions
          , writerHighlightStyle = Just pygments
          })
       pandoc
@@ -176,8 +240,9 @@ writeSnippetReport file snippets = do
   where
     render result =
       Pandoc
-        nullMeta
-        [ Header 1 nullAttr [Str "Decker Media Filter - Test Report"]
+        (Meta
+           (fromList [("title", MetaString "Decker Media Filter - Test Report")]))
+        [ Header 1 nullAttr [Str "Introduction"]
         , Para
             [ Str "This report is generated during testing and shows "
             , Str "the HTML output for a representative selection of "
@@ -189,8 +254,10 @@ writeSnippetReport file snippets = do
     render' list =
       Div nullAttr $
       concatMap
-        (\(s, r) ->
+        (\(t, d, s, r) ->
            [ HorizontalRule
+           , Header 2 nullAttr [Str t]
+           , Para [Str d]
            , CodeBlock ("", ["markdown"], []) s
            , Para [Str "translates to"]
            , CodeBlock ("", ["html"], []) r

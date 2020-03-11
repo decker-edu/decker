@@ -1,0 +1,40 @@
+/*
+ *Required CSS for the new media filters.
+ */
+
+.reveal {
+  img.decker {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  figure.decker > img.decker {
+    width: 100%;
+  }
+
+  video.decker {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  figure.decker > video.decker {
+    width: 100%;
+  }
+
+  div.image-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  div.image-row div {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+  }
+
+  div.image-row img {
+    display: block;
+  }
+}

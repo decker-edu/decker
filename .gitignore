@@ -26,8 +26,8 @@ auto/
 *.fls
 *.log
 *.synctex.gz
+*.zip
 resource/support/vendor/**
-*.cabal
 test/decks/*.svg
 dist/
 node_modules
