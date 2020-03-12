@@ -24,9 +24,10 @@ import qualified Data.Map as Map
 import qualified Data.Text as Text
 
 import Text.Blaze.Html as Blaze
-import Text.Blaze.Html.Renderer.String
+import Text.Blaze.Html.Renderer.String as S
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Util as U
 import Text.Decker.Internal.Common
 import Text.Pandoc
@@ -74,15 +75,29 @@ helper :: Text.Text -> Html
 helper = H.toHtml
 
 testbutton :: Text.Text -> Text.Text
-testbutton x = Text.pack $ renderHtml $ H.button $ H.span $ helper x
+testbutton x = Text.pack $ S.renderHtml $ H.button $ H.span $ helper x
+
+-- <select><option value="foo">foo</option></select>
+testselect :: RawHtml Inline => Inline
+testselect =
+  rawHtml $
+  Text.pack $
+  S.renderHtml $
+  H.select $ do
+    H.option ! A.value "books" $ "Books"
+    H.option ! A.value "html" $ "HTML"
+    H.option ! A.value "css" $ "CSS"
+    H.option ! A.value "php" $ "PHP"
+    H.option ! A.value "js" $ "JavaScript"
 
 renderQuiz :: Quiz -> [Block] -> [Block]
 renderQuiz m@Match b = concatMap matchList b
-renderQuiz mu@Mult b = concatMap quizTaskList b
-renderQuiz i@Ins b = concatMap quizTaskList b
+renderQuiz mu@Mult b = map tempfunc b
+  where
+    tempfunc bl@(BulletList blocks) = (mcHtml . quizTaskList_) bl
+    tempfunc bl = bl
+renderQuiz i@Ins b = [Para [testselect]]
 renderQuiz f@Free b = concatMap quizTaskList b
-
-wrap x = [Plain [RawInline (Format "html") $ testbutton x]]
 
 -- readMultipleChoice (h@(Header 2 (id_, cls, kvs) text) : blocks) =
 {-
@@ -101,8 +116,6 @@ data Answer =
     }
   deriving (Show)
 
-mcAnswerHtml
-
 --  the biggest question is how to handle stuff that has been processed already by pandoc
 -- e.g. images, links etc
 data Match
@@ -118,12 +131,6 @@ matchList (DefinitionList items) = map parseDL items
     parseDL (is, bs) =
       Para [Str (Text.pack $ show $ Pair (stringify is) (Text.pack $ show bs))]
 matchList b = [b]
-
-test =
-  [ [ Plain
-        [Link ("", [], []) [Str "decker"] ("http://go.uniwue.de/decker", "")]
-    ]
-  ]
 
 -- createMC :: [Answer] -> 
 -- Currently happens in the pipeline after pandoc's tasklist extension 
@@ -143,6 +150,43 @@ quizTaskList (BulletList b@(blocks:_)) = concatMap parseTL b
       ]
     parseTL is = is
 quizTaskList b = [b]
+
+data Answer_ =
+  Answer_
+    { right :: Bool
+    , solution :: [Inline]
+    , comment :: [Block]
+    }
+  deriving (Show)
+
+quizTaskList_ :: Block -> Maybe [Answer_]
+quizTaskList_ (BulletList blocks) = Just (map parseTL blocks)
+  where
+    parseTL (Plain (Str "☒":Space:is):bs) = Answer_ True is bs
+    parseTL (Plain (Str "☐":Space:is):bs) = Answer_ False is bs
+    parseTL is = Answer_ False [] [Null]
+quizTaskList_ b = Nothing
+
+freeHtml :: Maybe [Answer_] -> Block
+freeHtml (Just answers) = Div ("", ["answers"], []) [Para [Str inputHtml]]
+        -- tempName (Answer_ _ _ (Null:r)) = [Para [Str "NO TASKLIST ITEM"]]
+        -- tempName (Answer_ True is bs) = 
+        -- tempName (Answer_ False is bs) =
+        -- [Para is, Div ("", ["tooltip", "wrong"], []) bs] 
+  where
+    inputHtml = Text.pack $ S.renderHtml H.input
+freeHtml Nothing = Para [Str "ERROR SOMETHING"]
+
+mcHtml :: Maybe [Answer_] -> Block
+mcHtml (Just answers) =
+  Div ("", ["answers"], []) [BulletList (map tempName answers)]
+  where
+    tempName (Answer_ _ _ (Null:r)) = [Para [Str "NO TASKLIST ITEM"]]
+    tempName (Answer_ True is bs) =
+      [Para is, Div ("", ["tooltip", "correct"], []) bs]
+    tempName (Answer_ False is bs) =
+      [Para is, Div ("", ["tooltip", "wrong"], []) bs]
+mcHtml Nothing = Para [Str "ERROR SOMETHING"]
 
 {-
 Pandoc has no actual TaskList data type and parses TLs themselves like this
