@@ -586,6 +586,30 @@
 /*
  *Required CSS for the new media filters.
  */
+.reveal div.decker.image.error {
+  font-size: 20pt;
+  background-color: #fee;
+  border: 0.1em solid darkred;
+  padding: 1em;
+}
+
+.reveal div.decker.image.error .message {
+  font-style: italic;
+  margin-left: 20px;
+}
+
+.reveal div.decker.image.error pre.markup {
+  width: 100%;
+  margin-left: 20px;
+}
+
+.reveal div.decker.image.error pre.markup code.markup {
+  font-family: "Source Code Pro", monospace;
+  font-size: 18pt;
+  line-height: 1.4;
+  color: black;
+}
+
 .reveal img.decker {
   max-width: 100%;
   max-height: 100%;
@@ -601,6 +625,15 @@
 }
 
 .reveal figure.decker > video.decker {
+  width: 100%;
+}
+
+.reveal object.decker {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.reveal figure.decker > object.decker {
   width: 100%;
 }
 

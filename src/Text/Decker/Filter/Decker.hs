@@ -14,6 +14,7 @@ import Control.Monad.Catch
 import Data.Digest.Pure.MD5
 import qualified Data.List as List
 import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
 import Relude
 import System.Directory
 import System.FilePath
@@ -333,6 +334,8 @@ videoExt = ["mp4", "mov", "ogg", "avi"]
 
 svgExt = ["svg"]
 
+pdfExt = ["pdf"]
+
 iframeExt = ["html", "html"]
 
 mviewExt = ["off"]
@@ -344,6 +347,14 @@ toMarkdown inlines = do
   FilterState options meta <- get
   case runPure (writeHtml5String options (Pandoc meta [Plain inlines])) of
     Right text -> return text
+    Left err -> bug $ PandocException $ "BUG: " <> show err
+
+-- | Renders a list of inlines to Text.
+inlinesToMarkdown :: [Inline] -> Text
+inlinesToMarkdown [] = ""
+inlinesToMarkdown inlines =
+  case runPure (writeMarkdown def (Pandoc nullMeta [Plain inlines])) of
+    Right html -> html
     Left err -> bug $ PandocException $ "BUG: " <> show err
 
 -- | Renders a list of inlines to HTML.
@@ -398,14 +409,28 @@ renderHtml html = do
 runAttr :: Attr -> Attrib a -> Filter a
 runAttr attr attrAction = evalStateT attrAction (nullAttr, attr)
 
+readLocalUri :: URI -> Filter Text
+readLocalUri uri = do
+  isFile <- isFileUri uri
+  if isFile
+    then resolveFileUri uri >>= lift . Text.readFile
+    else error $ "Cannot read from remote URL" <> URI.render uri
+
+isFileUri :: MonadThrow m => URI -> m Bool
+isFileUri uri =
+  case URI.uriScheme uri of
+    Just rtext
+      | URI.unRText rtext /= "file" -> return False
+    _ -> return True
+
 -- | Transforms a URL and handles local and remote URLs differently.
 transformUrl :: Text -> Filter URI
 transformUrl url = do
   uri <- URI.mkURI url
-  case URI.uriScheme uri of
-    Just rtext
-      | URI.unRText rtext /= "file" -> processRemoteUri uri
-    _ -> processLocalUri uri
+  isFile <- isFileUri uri
+  if isFile
+    then processLocalUri uri
+    else processRemoteUri uri
 
 -- | Adds a remote URL to the `decker.filter.links` list in the meta data.
 processRemoteUri :: URI -> Filter URI
@@ -418,11 +443,27 @@ processRemoteUri uri = do
 modifyMeta :: (Meta -> Meta) -> Filter ()
 modifyMeta f = modify (\s -> s {meta = f (meta s)})
 
-processLocalUri :: URI -> Filter URI
-processLocalUri uri
-  -- | The absolute (!) document directory from which this is called.
- = do
+resolveFileUri :: URI -> Filter FilePath
+resolveFileUri uri = do
+  urlPath <- toString <$> uriPath uri
   cwd <- liftIO $ getCurrentDirectory
+  baseDir <- toString <$> getMeta "decker.base-dir" "."
+  projectDir <- toString <$> getMeta "decker.project-dir" (toText cwd)
+  publicDir <-
+    toString <$> getMeta "decker.public-dir" (toText $ cwd </> "public")
+  urlPath <- toString <$> uriPath uri
+  let relPath =
+        normalise $
+        if hasDrive urlPath
+          then dropDrive urlPath
+          else makeRelative projectDir baseDir </> urlPath
+  let sourcePath = projectDir </> relPath
+  return sourcePath
+
+processLocalUri :: URI -> Filter URI
+processLocalUri uri = do
+  cwd <- liftIO $ getCurrentDirectory
+  -- | The absolute (!) document directory from which this is called.
   baseDir <- toString <$> getMeta "decker.base-dir" "."
   -- | The absolute (!) project directory from which this is called.
   projectDir <- toString <$> getMeta "decker.project-dir" (toText cwd)
@@ -444,7 +485,11 @@ processLocalUri uri
   let publicRelPath = makeRelativeTo basePath sourcePath
   publicUri <- setUriPath (toText publicRelPath) uri
   let publicUrl = URI.render publicUri
-  storeResourceInfo sourcePath targetPath publicUrl
+  exists <- liftIO $ doesFileExist sourcePath
+  if exists
+    then storeResourceInfo sourcePath targetPath publicUrl
+    else throwM $
+         ResourceException $ "Local resource does not exist: " <> relPath
   return publicUri
 
 setMeta :: Text -> Text -> Filter ()
@@ -461,18 +506,35 @@ storeResourceInfo source target url = do
   setMeta (toText $ key <.> "target") $ toText target
   setMeta (toText $ key <.> "url") url
 
+imageError :: Inline -> SomeException -> Filter Html
+imageError img@Image {} (SomeException e) = do
+  let imgMarkup = inlinesToMarkdown [img]
+  return $
+    H.div ! A.class_ "decker image error" $ do
+      H.h2 ! A.class_ "title" $ do
+        H.i ! A.class_ "fa fa-exclamation-triangle" $ ""
+        H.text " Decker error"
+      H.p ! A.class_ "message" $ toHtml (displayException e)
+      H.p $ H.text "encountered while processing"
+      H.pre ! A.class_ "markup" $ do
+        H.code ! A.class_ "markup" $ toHtml imgMarkup
+imageError _ _ = bug $ InternalException ("imageError: non image argument ")
+
 transformImage :: Inline -> [Inline] -> Filter Html
-transformImage (Image attr@(_, classes, _) _ (url, _)) caption = do
-  uri <- transformUrl url
-  let ext = uriPathExtension uri
-  runAttr attr $
-    if | extIn ext svgExt && "embed" `elem` classes -> svgHtml uri caption
-       | extIn ext mviewExt || "mview" `elem` classes -> mviewHtml uri caption
-       | extIn ext iframeExt || "iframe" `elem` classes ->
-         iframeHtml uri caption
-       | extIn ext imageExt || "image" `elem` classes -> imageHtml uri caption
-       | extIn ext videoExt || "video" `elem` classes -> videoHtml uri caption
-       | otherwise -> imageHtml uri caption
+transformImage image@(Image attr@(_, classes, _) _ (url, _)) caption =
+  handle (imageError image) $ do
+    uri <- transformUrl url
+    let ext = uriPathExtension uri
+    runAttr attr $
+      if | extIn ext svgExt && "embed" `elem` classes -> svgHtml uri caption
+         | extIn ext pdfExt || "pdf" `elem` classes ->
+           objectHtml uri "application/pdf" caption
+         | extIn ext mviewExt || "mview" `elem` classes -> mviewHtml uri caption
+         | extIn ext iframeExt || "iframe" `elem` classes ->
+           iframeHtml uri caption
+         | extIn ext imageExt || "image" `elem` classes -> imageHtml uri caption
+         | extIn ext videoExt || "video" `elem` classes -> videoHtml uri caption
+         | otherwise -> imageHtml uri caption
 transformImage inline _ =
   bug $ InternalException ("transformImage: no match for: " <> show inline)
 
@@ -524,6 +586,21 @@ mkImageTag url (id, cs, kvs) =
   H.dataAttribute "src" (H.preEscapedToValue url) !*
   kvs
 
+mkObjectTag :: Text -> Text -> Attr -> Html
+mkObjectTag url mime (id, cs, kvs) =
+  H.object !? (not (Text.null id), A.id (H.toValue id)) !
+  A.class_ (H.toValue ("decker" : cs)) !
+  A.type_ "application/pdf" !
+  A.data_ (H.preEscapedToValue url) !*
+  kvs $
+  ""
+
+mkSvgTag :: Text -> Attr -> Html
+mkSvgTag svg (id, cs, kvs) =
+  H.span !? (not (Text.null id), A.id (H.toValue id)) !
+  A.class_ (H.toValue ("decker svg" : cs)) $
+  H.preEscapedText svg
+
 mkFigureTag :: Html -> Html -> Attr -> Html
 mkFigureTag content caption (id, cs, kvs) =
   H.figure !? (not (Text.null id), A.id (H.toValue id)) !
@@ -554,16 +631,30 @@ imageHtml uri caption =
       injectBorder >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
 
-svgHtml :: URI -> [Inline] -> Attrib Html
-svgHtml uri caption =
+objectHtml :: URI -> Text -> [Inline] -> Attrib Html
+objectHtml uri mime caption =
   case caption of
     [] -> do
       injectBorder >> takeUsual
-      mkImageTag (URI.render uri) <$> extractAttr
+      mkObjectTag (URI.render uri) mime <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       imgAttr <- extractAttr
-      let imageTag = mkImageTag (URI.render uri) imgAttr
+      let imageTag = mkObjectTag (URI.render uri) mime imgAttr
+      injectBorder >> takeUsual
+      mkFigureTag imageTag captionHtml <$> extractAttr
+
+svgHtml :: URI -> [Inline] -> Attrib Html
+svgHtml uri caption = do
+  svg <- lift $ readLocalUri uri
+  case caption of
+    [] -> do
+      injectBorder >> takeUsual
+      mkSvgTag svg <$> extractAttr
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      svgAttr <- extractAttr
+      let imageTag = mkSvgTag svg svgAttr
       injectBorder >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
 
