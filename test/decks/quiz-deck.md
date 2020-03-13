@@ -24,6 +24,11 @@
 * {?} $2*2=~?$ 
 * {!} 4
 
+## $2*2=~?$ {.left .freetext} 
+
+* 4
+
+
 ##  {.question}
 
 * {?} The Answer to the Ultimate Question of Life, the Universe, and Everything is ...?
@@ -39,6 +44,26 @@
 * {?} Name the capital of Germany
 * {!} Berlin 
 
+
+
+# Quiz Slide
+
+Wer ist alt? 
+
+::: quiz
+- [ ] Mario
+    - Der ist nicht alt
+- [x] Marc
+    - Der eigentlich auch nicht
+- [x] Henrik
+    - Der schon gar nicht
+:::
+
+
+
+
+
+#
 # Multiple Choice Questions
 
 ## Question: Which file format does decker use? {.question}
