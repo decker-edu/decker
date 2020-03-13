@@ -1,10 +1,100 @@
 
 quizModule = {
     quiz: function () {
+        blanktextButtons();
+        // blanktext();
         initialMatchings = initMatching();
         matchings(initialMatchings);
         multipleChoice();
         freetextAnswerButtons();
+    }
+}
+
+// For a given blanktext HTML Element returns a Map containing all wrong and correct selects and blanks
+function blanktextCorrect(blanktext) {
+    var selects = blanktext.getElementsByClassName("blankSelect");
+    const blanks = blanktext.getElementsByClassName("blankInput");
+    var wrongSelects = [];
+    var correctSelects = [];
+    var wrongBlanks = [];
+    var correctBlanks = [];
+
+    for (let s of selects) {
+        const correct = s.options[s.selectedIndex].getAttribute("answer");
+        if (correct == "true") {
+            correctSelects.push(s);
+        }
+        else {
+            wrongSelects.push(s);
+        }
+    }
+
+    for (let b of blanks) {
+        const correct = b.getAttribute("answer").trim();
+        if (b.value.toLowerCase().trim() == correct.toLowerCase()) {
+            correctBlanks.push(b);
+        }
+        else {
+            wrongBlanks.push(b);
+        }
+    }
+    const ret = new Map([["correctSelects", correctSelects], ["wrongSelects", wrongSelects], ["wrongBlanks", wrongBlanks], ["correctBlanks", correctBlanks]]);
+    return ret;
+
+}
+
+function blanktextButtons() {
+    var btButtons = document.getElementsByClassName("btAnswerButton");
+    for (i = 0; i < btButtons.length; i++) {
+        const button = btButtons[i];
+        button.onclick = function () {
+            blanktext = this.closest(".blankText");
+
+            var results = blanktextCorrect(blanktext);
+            var correctSelects = results.get("correctSelects");
+            var wrongSelects = results.get("wrongSelects");
+            var correctBlanks = results.get("correctBlanks");
+            var wrongBlanks = results.get("wrongBlanks");
+            console.log(wrongSelects.toString());
+
+            for (let w of wrongSelects) {
+
+                console.log(w.options.toString());
+                w.style.backgroundColor = "rgb(255, 122, 122)";
+                for (let o of w.options) {
+                    if (o.getAttribute("answer") == "true") {
+                        o.textContent += " ✓";
+                    } else {
+                        o.textContent += " ✗";
+                    }
+                }
+            }
+
+            for (let c of correctSelects) {
+                c.style.backgroundColor = "rgb(151, 255, 122)";
+                for (let o of c.options) {
+                    if (o.getAttribute("answer") == "true") {
+                        o.textContent += " ✓";
+                    } else {
+                        o.textContent += " ✗";
+                    }
+                }
+            }
+
+            for (let w of wrongBlanks) {
+                w.style.backgroundColor = "rgb(255, 122, 122)";
+                w.value += " (" + w.getAttribute("answer") + ")";
+                w.setAttribute("size", w.value.length);
+                w.disabled = true;
+            }
+
+            for (let c of correctBlanks) {
+                c.style.backgroundColor = "rgb(151, 255, 122)";
+                c.setAttribute("size", c.value.length);
+                c.disabled = true;
+            }
+            this.disabled = true;
+        }
     }
 }
 
@@ -63,21 +153,6 @@ function matchings(initialMatchings) {
     retryButtons(initialMatchings);
 }
 
-// Copied from revealjs/math.js
-function reloadMath() {
-    // Typeset followed by an immediate reveal.js layout since
-    // the typesetting process could affect slide height
-    MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
-    MathJax.Hub.Queue(Reveal.layout);
-
-    // Reprocess equations in slides when they turn visible
-    Reveal.addEventListener('slidechanged', function (event) {
-
-        MathJax.Hub.Queue(['Typeset', MathJax.Hub, event.currentSlide]);
-
-    });
-}
-
 // Configure retryButtons
 function retryButtons(initialMatchings) {
     var buttons = document.getElementsByClassName("retryButton");
@@ -90,7 +165,6 @@ function retryButtons(initialMatchings) {
             curr.parentNode.replaceChild(initial, curr);
             // Call matchings once again to reset everything. e.g the shuffling etc
             matchings(initialMatchings);
-            reloadMath();
         }
     }
 }
@@ -174,7 +248,6 @@ function matchingAnswerButtons(initialMatchings) {
             }
             // replace the empty dropzone with the correct/sample solution
             matchingField.replaceChild(initialDragzone, currDragzone);
-            reloadMath();
 
             this.nextSibling.disabled = true;
             this.disabled = true;
@@ -277,15 +350,15 @@ function freetextAnswerButtons() {
             var questionField = this.parentElement.getElementsByClassName('freetextInput')[0];
             // Has the user entered anything?
             if (questionField.value) {
-                var answer = this.getElementsByClassName('freetextAnswer')[0];
-                answer.style.display = 'block';
-                answer.style.color = "black";
-                if (questionField.value.toLowerCase().trim() == answer.textContent.trim().toLowerCase()) {
+                var answer = questionField.getAttribute("answer").trim();
+                if (questionField.value.toLowerCase().trim() == answer.toLowerCase()) {
                     questionField.style.backgroundColor = "rgb(151, 255, 122)";
                 }
                 else {
                     questionField.style.backgroundColor = "rgb(255, 122, 122)";
+                    questionField.value += " (" + answer + ")";
                 }
+                questionField.setAttribute("size", questionField.value.length);
                 questionField.disabled = true;
                 this.disabled = true;
             }

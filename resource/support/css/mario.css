@@ -710,28 +710,6 @@ body {
 
 
 /*********************************************
- * MARIO: chalkboard color picker
- *********************************************/
-
-.reveal .color-picker {
-    background: rgba(255, 255, 255, 0.75);
-    padding: 0px;
-    border: 1px solid rgba(203, 203, 203, 0.6);
-    border-radius: 2px;
-}
-
-.reveal .color-picker > div {
-    width: 20px;
-    display: inline-block;
-    height: 20px;
-    margin: 3px;
-    border: 1px solid rgba(203, 203, 203, 0.6);
-    border-radius: 100%;
-    opacity: 0.7;
-}
-
-
-/*********************************************
  * MARIO: Task lists
  *********************************************/
 
@@ -855,5 +833,19 @@ body {
 .reveal .show-wrong:hover .tip, 
 .reveal .show-right:hover .tip {
     visibility: visible;
+}
+
+
+/*********************************************
+ * MARIO: MathJax
+ *********************************************/
+
+.reveal section mjx-container[display="true"] {
+    margin: 0.5em 0em 1em 0em;
+}
+
+.reveal section mjx-container > svg a {
+	color: #2a9ddf;
+	fill: #2a9ddf;
 }
 

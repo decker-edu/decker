@@ -4,9 +4,6 @@
 [submodule "third-party/reveal.js"]
 	path = third-party/reveal.js
 	url = https://github.com/hakimel/reveal.js.git
-[submodule "third-party/reveal.js-menu"]
-	path = third-party/reveal.js-menu
-	url = https://github.com/denehyg/reveal.js-menu.git
 [submodule "third-party/jquery"]
 	path = third-party/jquery
 	url = https://github.com/jquery/jquery.git
@@ -16,15 +13,6 @@
 [submodule "third-party/Font-Awesome"]
 	path = third-party/Font-Awesome
 	url = https://github.com/FortAwesome/Font-Awesome.git
-[submodule "third-party/Chart.js"]
-	path = third-party/Chart.js
-	url = https://github.com/chartjs/Chart.js.git
-[submodule "third-party/reveal.js-plugins"]
-	path = third-party/reveal.js-plugins
-	url = https://github.com/rajgoel/reveal.js-plugins.git
-[submodule "third-party/mb-reveal-plugins"]
-	path = third-party/mb-reveal-plugins
-	url = https://github.com/mbotsch/mb-reveal-plugins.git
 [submodule "third-party/piklor.js"]
 	path = third-party/piklor.js
 	url = https://github.com/jillix/piklor.js.git

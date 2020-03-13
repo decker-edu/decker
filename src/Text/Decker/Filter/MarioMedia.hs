@@ -39,7 +39,7 @@ demoExt = [".html", ".htm", ".php"]
 -- | File-extensions that should be treated as 3D model and will be shown with Mario's viewer
 -- in an iframe
 meshExt :: [String]
-meshExt = [".off", ".obj", ".stl", ".pmp"]
+meshExt = [".off", ".obj", ".stl", ".pmp", ".ply", ".xyz"]
 
 -- | main media-plugin.
 --
@@ -246,10 +246,11 @@ media (Image (id', att, att') [] (filename, _))
   | checkExtension filename meshExt =
     return
       [ toHtml $
-        "<iframe allow=\"fullscreen\"" <> unwords direct <>
-        " data-src=\"support/mview/mview.html?model=../../" <>
+        "<iframe allow=\"fullscreen\" data-src=\"support/mview/mview.html\" model=\"" <> 
         filename <>
-        "\"" <>
+        "\" " <> 
+        unwords direct <>
+        " " <>
         attToString (id', css, att') <>
         "></iframe>"
       ]
@@ -260,10 +261,11 @@ media (Image (id', att, att') alt (filename, _))
     return $
     [toHtml $ "<figure " <> attToString (id', css, att') <> ">"] <>
     [ toHtml $
-      "<iframe allow=\"fullscreen\"" <> unwords direct <>
-      " data-src=\"support/mview/mview.html?model=../../" <>
+      "<iframe allow=\"fullscreen\" data-src=\"support/mview/mview.html\" model=\"" <> 
       filename <>
-      "\"" <>
+      "\" " <> 
+      unwords direct <>
+      " " <>
       attToString (id', css, att') <>
       "></iframe>"
     ] <>
@@ -278,7 +280,7 @@ media x = return [x]
 -- return filename extension (strip additional arguments from HTML URLs)
 checkExtension :: String -> [String] -> Bool
 checkExtension fn exts =
-  (fmap toLower . takeExtension . takeWhile (/= '?')) fn `elem` exts
+  (fmap toLower . takeExtension . takeWhile (/= '?') . takeWhile (/= '#')) fn `elem` exts
 
 -- checkExtension fn exts = (fmap toLower . takeExtension) fn `elem` exts
 idFilter :: String -> String -> String

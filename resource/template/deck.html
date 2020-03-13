@@ -20,7 +20,7 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reveal.css">
 $if(thebelab.enable)$
-  <link rel="stylesheet" href="$decker-support-dir$/css/thebelab.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/thebelab/thebelab.css">
 $endif$
   <style>
       code{white-space: pre-wrap;}
@@ -41,7 +41,6 @@ $if(base-css)$
 $else$
 $if(mario)$
   <link rel="stylesheet" href="$decker-support-dir$/css/mario.css">
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/mb-reveal-plugins/highlight/xcode.css">
 $else$
   <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
 $endif$
@@ -50,14 +49,14 @@ $for(css)$
   <link rel="stylesheet" href="$css$"/>
 $endfor$
 $if(highlightjs)$
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/highlight/$highlightjs$.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
 $endif$
   <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
     link.rel = 'stylesheet';
     link.type = 'text/css';
-    link.href = window.location.search.match( /print-pdf/gi ) ? '$decker-support-dir$/vendor/reveal/css/print/pdf.css' : '$decker-support-dir$/vendor/reveal/css/print/paper.css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? String.raw`$decker-support-dir$/vendor/reveal/css/print/pdf.css` : String.raw`$decker-support-dir$/vendor/reveal/css/print/paper.css`;
     document.getElementsByTagName( 'head' )[0].appendChild( link );
   </script>
   <!--[if lt IE 9]>
@@ -98,8 +97,7 @@ $endif$
       }
   }
   </script>
-  <script src="https://unpkg.com/thebelab@0.4.0/lib/index.js"></script> 
-  <!-- <script src="$decker-support-dir$/vendor/thebelab/index.js"></script> -->
+   <script src="$decker-support-dir$/vendor/thebelab/index.js"></script> 
 $endif$
 $for(header-includes)$
   $header-includes$
@@ -118,38 +116,39 @@ $if(mario)$ <!-- Mario settings -->
     <div class="white-on-blue">
         <div class="title"> $title$ </div>
         $if(subtitle)$
-        <div class="subtitle"> $subtitle$ </div>
+            <div class="subtitle"> $subtitle$ </div>
         $endif$
     </div>
     $if(teaser)$
-    <div class="teaser">
-        <img src=$teaser$>
-    </div>
+        <div class="teaser">
+            <img src=$teaser$>
+        </div>
     $endif$
     $if(author)$
-    <div class="author"> $author$ </div>
-    $if(affiliation)$
-    <div class="affiliation"> $affiliation$ </div>
-    $endif$
+        <div class="author"> $author$ </div>
+        $if(affiliation)$
+            <div class="affiliation"> $affiliation$ </div>
+        $endif$
     $endif$
 $else$ <!-- standard settings -->
-  <h1 class="title">$title$</h1>
-$if(subtitle)$
-  <p class="subtitle">$subtitle$</p>
-$endif$
-$for(author)$
-  <p class="author">$author$</p>
-$endfor$
-$if(date)$
-  <p class="date">$date$</p>
-$endif$
+    <h1 class="title">$title$</h1>
+    $if(subtitle)$
+        <p class="subtitle">$subtitle$</p>
+    $endif$
+    $for(author)$
+        <p class="author">$author$</p>
+    $endfor$
+    $if(date)$
+        <p class="date">$date$</p>
+    $endif$
 $endif$
 </section>
 $endif$
+
 $if(toc)$
-<section id="$idprefix$TOC">
-$table-of-contents$
-</section>
+    <section id="$idprefix$TOC">
+    $table-of-contents$
+    </section>
 $endif$
 
 $body$
@@ -160,144 +159,17 @@ $body$
   <script src="$decker-support-dir$/vendor/jquery.js"></script>
   <script src="$decker-support-dir$/vendor/piklor.js"></script>
 
-$if(mario)$ <!-- Mario settings -->
-  <script>
-      Reveal.initialize({
-      
-          // reveal settings
-          controls:     false,
-          progress:     false,
-          slideNumber:  true,
-          history:      true,
-          center:       false,
-          transition:   'none',
-          viewDistance: 2, // otherwise videos start early
-          width:        $if(width)$  $width$  $else$ 1024 $endif$,
-          height:       $if(height)$ $height$ $else$  768 $endif$,
-          minScale:     0.2,
-          maxScale:     5,
-          pdfMaxPagesPerSlide: 1,
-          pdfSeparateFragments: true,
-          hideInactiveCursor: true,
-          hideCursorTime: 3000,
-
-          // whether to mark y-overflowing slides by a red border
-$if(checkOverflow)$
-          checkOverflow: $checkOverflow$,
-$else$
-          checkOverflow: false,
-$endif$
-
-          // setup reveal-menu
-          menu: {
-              side:              'right',
-              numbers:           true,
-              titleSelector:     'h1',
-              hideMissingTitles: false,
-              markers:           false,
-              custom:            false,
-              themes:            false,
-              transitions:       false,
-              openButton:        false,
-              openSlideNumber:   true,
-              keyboard:          true,
-              loadIcons:         false
-          },
-
-          // math macros
-          math: {
-              mathjax: "$decker-support-dir$/vendor/mathjax/MathJax.js",
-              TeX: {
-                  Macros: {
-                      R: "{\\mathrm{{I}\\kern-.15em{R}}}",
-                      laplace: "{\\Delta}",
-                      grad: "{\\nabla}",
-                      T: "^{\\mathsf{T}}",
-                      abs: ['\\left\\lvert #1 \\right\\rvert', 1],
-                      norm: ['\\left\\Vert #1 \\right\\Vert', 1],
-                      iprod: ['\\left\\langle #1 \\right\\rangle', 1],
-                      vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
-                      mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
-                      set: ['\\mathcal{#1}', 1],
-                      func: ['\\mathrm{#1}', 1],
-                      trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
-                      matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
-                      vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
-                      of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
-                      diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
-                      pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2]
-                  }
-              },
-          },
-
-          // setup charts
-          chart: {
-              defaults: {
-                  global: {
-                      "defaultFontFamily": "Lato",
-                      "defaultFontColor": "black",
-                      "defaultFontSize": 20,
-                      title: {
-                          "fontFamily": "Lato",
-                          "fontSize": 30,
-                      },
-                      tooltips: {
-                          mode: 'index',
-                          intersect: false,
-                      },
-                      hover: {
-                          mode: 'nearest',
-                          intersect: true
-                      },
-                      legend: { position: "bottom" },
-                      plugins: { colorschemes: { scheme: "tableau.Classic10" } }
-                  },
-                  responsive: "false"
-              },
-              bar:   { borderWidth: "1" },
-              line:  { borderWidth: "3", fill: "false", tension: "0" },
-              radar: { borderWidth: "2" }
-          },
-
-$if(thebelab.enable)$
-          thebelab: $thebelab.enable$,
-$endif$
-
-$if(quizServer)$
-          quiz: { server: "$quizServer$" },
-$endif$
-
-
-          // plugins
-          dependencies: [
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/charts/Chart.js'},
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/charts/plugin-colorschemes.js'},
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/charts/plugin-errorbars.js'},
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/charts/csv2chart.js'},
-              { src: '$decker-support-dir$/vendor/reveal/plugin/notes/notes.js' },
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/math/math.js' },
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/whiteboard/whiteboard.js' }, 
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/quiz/quiz.js' },
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/print/print.js' },
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/highlight/highlight.js' },
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/zoom/zoom.js', async: true },
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/search/search.js', async: true },
-              { src: '$decker-support-dir$/vendor/mb-reveal-plugins/menu/menu.js', async: true }
-$if(thebelab.enable)$
-             ,{ src: '$decker-support-dir$/js/thebelab.js', async: true }
-$endif$
-          ]
-      });
-  </script>
-
-$else$ <!-- standard setting -->
 
   <script>
       // Full list of configuration options available at:
       // https://github.com/hakimel/reveal.js#configuration
       Reveal.initialize({
         pdfMaxPagesPerSlide: 1,
+$if(pdfSeparateFragments)$
+        pdfSeparateFragments: $pdfSeparateFragments$,
+$else$
         pdfSeparateFragments: false,
+$endif$
         // Display controls in the bottom right corner
 $if(controls)$
         controls: $controls$,
@@ -358,11 +230,26 @@ $if(rtl)$
 $else$
         rtl: false,
 $endif$
+$if(navigationMode)$
+        // See https://github.com/hakimel/reveal.js/#navigation-mode
+        navigationMode: $navigationMode$,
+$endif$
+	// Randomizes the order of slides each time the presentation loads
+$if(shuffle)$
+        shuffle: $shuffle$,
+$else$
+        shuffle: false,
+$endif$
         // Turns fragments on and off globally
 $if(fragments)$
         fragments: $fragments$,
 $else$
         fragments: false,
+$endif$
+$if(fragmentInURL)$
+        fragmentInURL: true,
+$else$
+        fragmentInURL: false,
 $endif$
         // Flags if the presentation is running in an embedded mode,
         // i.e. contained within a limited portion of the screen
@@ -398,11 +285,34 @@ $if(autoSlideStoppable)$
 $else$
         autoSlideStoppable: false,
 $endif$
+$if(defaultTiming)$
+          // Specify the average time in seconds that you think you will spend
+          // presenting each slide. This is used to show a pacing timer in the
+          // speaker view
+          defaultTiming: $defaultTiming$,
+$endif$
+$if(totalTime)$
+          // Specify the total time in seconds that is available to
+          // present.  If this is set to a nonzero value, the pacing
+          // timer will work out the time available for each slide,
+          // instead of using the defaultTiming value
+          totalTime: $totalTime$,
+$endif$
 $if(mouseWheel)$
         // Enable slide navigation via mouse wheel
         mouseWheel: $mouseWheel$,
 $else$
         mouseWheel: false,
+$endif$
+          // Hide cursor if inactive
+$if(hideInactiveCursor)$
+          hideInactiveCursor: true,
+$else$
+          hideInactiveCursor: false,
+$endif$
+$if(hideCursorTime)$
+          // Time before the cursor is hidden (in ms)
+          hideCursorTime: $hideCursorTime$,
 $endif$
 $if(hideAddressBar)$
         // Hides the address bar on mobile devices
@@ -473,23 +383,40 @@ $endif$
 $if(maxScale)$
         maxScale: $maxScale$,
 $endif$
-$if(zoomKey)$
-        // Modifier key used to click-zoom to part of the slide
-        zoomKey: '$zoomKey$',
+        // whether to mark y-overflowing slides by a red border
+$if(checkOverflow)$
+        checkOverflow: $checkOverflow$,
+$else$
+        checkOverflow: false,
 $endif$
+     
+
+        // setup reveal-menu
 $if(menu)$
+$if(mario)$
+        menu: {
+            side:              'right',
+            numbers:           true,
+            titleSelector:     'h1',
+            hideMissingTitles: false,
+            markers:           false,
+            custom:            false,
+            themes:            false,
+            transitions:       false,
+            openButton:        false,
+            openSlideNumber:   true,
+            keyboard:          true,
+            loadIcons:         false
+        },
+$else$
         menu: {
           side: 'left',
-          // 'normal', 'wide', 'third', 'half', 'full', or
           width: 'wide',
           numbers: false,
           titleSelector: 'h1',
           useTextContentForMissingTitles: false,
           hideMissingTitles: false,
           markers: true,
-          // Specify custom panels to be included in the menu, by
-          // providing an array of objects with 'title', 'icon'
-          // properties, and either a 'src' or 'content' property.
           custom: false,  
           themes: false,
           transitions: false,
@@ -503,32 +430,29 @@ $if(menu)$
           loadIcons: false
 	    },
 $endif$
-$if(thebelab.enable)$
-        thebelab: $thebelab.enable$,
 $endif$
-$if(mathjax)$
+
+        // mathjax
         math: {
-          mathjax: "$decker-support-dir$/vendor/mathjax/MathJax.js",
-          TeX: {
-              Macros: {
-              R: "{\\mathrm{{I}\\kern-.15em{R}}}",
+          mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`,
+          macros: {
+              R: "{{\\mathrm{{I}\\kern-.15em{R}}}}",
               laplace: "{\\Delta}",
               grad: "{\\nabla}",
               T: "^{\\mathsf{T}}",
-  
+              abs: ['\\left\\lvert #1 \\right\\rvert', 1],
               norm: ['\\left\\Vert #1 \\right\\Vert', 1],
               iprod: ['\\left\\langle #1 \\right\\rangle', 1],
-              vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
-              mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
+              vec: ['{\\mathbf{#1}}', 1],
+              mat: ['{\\mathbf{#1}}', 1],
               set: ['\\mathcal{#1}', 1],
               func: ['\\mathrm{#1}', 1],
               trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
               matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
               vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
-              of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
+              of: ['\\mkern{-0mu}\\left( #1 \\right\)', 1],
               diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
               pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
-  
               vc: ['\\mathbf{#1}', 1],
               abs: ['\\lvert#1\\rvert', 1],
               norm: ['\\lVert#1\\rVert', 1],
@@ -537,58 +461,86 @@ $if(mathjax)$
               mt: ['\\boldsymbol{#1}', 1],
               pt: ['\\boldsymbol{#1}', 1],
               textcolor: ['\\color{#1}', 1]
-              }
           },
         },
-$endif$
-$if(chart)$
+
+
+          // setup charts
           chart: {
               defaults: {
                   global: {
+$if(mario)$
+                      "defaultFontFamily": "Lato",
+                      "defaultFontColor": "black",
+                      "defaultFontSize": 20,
+                      title: {
+                          "fontFamily": "Lato",
+                          "fontSize": 30,
+                      },
+$endif$
+                      tooltips: {
+                          mode: 'index',
+                          intersect: false,
+                      },
+                      hover: {
+                          mode: 'nearest',
+                          intersect: true
+                      },
                       legend: { position: "bottom" },
-                      plugins: { colorschemes: { scheme: "tableau.Tableau10" } }
+                      plugins: { colorschemes: { scheme: "tableau.Classic10" } }
                   },
+                  responsive: "false"
               },
               bar:   { borderWidth: "1" },
-              line:  { borderWidth: "2" },
-              radar: { borderWidth: "2" },
+              line:  { borderWidth: "2", tension: "0" },
+              radar: { borderWidth: "2" }
           },
+
+
+$if(thebelab.enable)$
+          // Henrik's ThebeLab plugin
+          thebelab: $thebelab.enable$,
 $endif$
 
-        // Optional reveal.js plugins
-        dependencies: [
-          { src: '$decker-support-dir$/vendor/reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
-          { src: '$decker-support-dir$/vendor/reveal/plugin/zoom-js/zoom.js', async: true },
-$if(notes-server)$
-          { src: '$decker-support-dir$/vendor/reveal/socket.io/socket.io.js', async: true },
-          { src: '$decker-support-dir$/vendor/reveal/plugin/notes-server/client.js', async: true },
+
+$if(quizServer)$
+          // Mario's multiple-choice quiz
+          quiz: { server: "$quizServer$" },
 $endif$
-$if(chart)$
-          { src: '$decker-support-dir$/vendor/charts/Chart.js'},
-          { src: '$decker-support-dir$/vendor/charts/plugin-errorbars.js'},
-          { src: '$decker-support-dir$/vendor/charts/plugin-colorschemes.js'},
-          { src: '$decker-support-dir$/vendor/charts/csv2chart.js'},
-$endif$
-$if(chalkboard)$
-          { src: '$decker-support-dir$/vendor/whiteboard/whiteboard.js'},
-$endif$
-$if(menu)$
-          { src: '$decker-support-dir$/vendor/reveal.js-menu/menu.js', async: true },
-$endif$
+
+
+          // plugins
+          dependencies: [
+              { src: String.raw`$decker-support-dir$/plugins/charts/Chart.js`},
+              { src: String.raw`$decker-support-dir$/plugins/charts/plugin-errorbars.js`},
+              { src: String.raw`$decker-support-dir$/plugins/charts/plugin-colorschemes.js`},
+              { src: String.raw`$decker-support-dir$/plugins/charts/csv2chart.js`},
+              { src: String.raw`$decker-support-dir$/plugins/math/math.js` },
+              { src: String.raw`$decker-support-dir$/plugins/whiteboard/whiteboard.js`},
+              { src: String.raw`$decker-support-dir$/plugins/zoom/zoom.js` },
+              { src: String.raw`$decker-support-dir$/plugins/print/print.js` },
+              { src: String.raw`$decker-support-dir$/plugins/search/search.js`, async: true },
 $if(highlightjs)$
-          { src: '$decker-support-dir$/vendor/highlight/highlight.js' },
+              { src: String.raw`$decker-support-dir$/plugins/highlight/highlight.js` },
 $endif$
-$if(mathjax)$
-          { src: '$decker-support-dir$/vendor/math/math.js' },
+$if(mario)$              
+              { src: String.raw`$decker-support-dir$/plugins/quiz/quiz.js` },
+$endif$    
+$if(menu)$
+              { src: String.raw`$decker-support-dir$/plugins/menu/menu.js`, async: true },
 $endif$
 $if(thebelab.enable)$
-          { src: '$decker-support-dir$/js/thebelab.js', async: true },
+              { src: String.raw`$decker-support-dir$/plugins/thebelab.js`, async: true },
 $endif$
-          { src: '$decker-support-dir$/vendor/reveal/plugin/notes/notes.js', async: true }
-        ]
+$if(notes-server)$
+              { src: String.raw`$decker-support-dir$/vendor/reveal/socket.io/socket.io.js`, async: true },
+              { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes-server/client.js`, async: true },
+$endif$
+              { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes/notes.js`, async: true }
+          ]
       });
-    </script>
-$endif$
+  </script>
+
 
     <script src="$decker-support-dir$/js/quiz.js" type="text/javascript"></script>
     <script src="$decker-support-dir$/js/decker.js" type="text/javascript"></script>

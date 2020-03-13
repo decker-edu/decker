@@ -42,7 +42,7 @@ module Text.Decker.Project.Project
 
 import System.Decker.OS
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Flags
+-- import Text.Decker.Internal.Flags
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Glob
@@ -156,15 +156,12 @@ projectDirectories = do
   let cacheDir = publicDir </> "cache"
   let supportDir = publicDir </> "support"
   appDataDir <- deckerResourceDir
-  let logDir = projectDir </> "log"
+  let logDir = projectDir </> ".log"
   return
     (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
 
 deckerResourceDir :: IO FilePath
-deckerResourceDir =
-  if hasPreextractedResources
-    then preextractedResourceFolder
-    else D.getXdgDirectory
+deckerResourceDir = D.getXdgDirectory
            D.XdgData
            ("decker" ++
             "-" ++
@@ -266,7 +263,7 @@ indexSuffix = "-deck-index.yaml"
 
 sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
 
-alwaysExclude = ["public", "log", "dist", "code", ".shake", ".git", ".vscode"]
+alwaysExclude = ["public", ".log", "dist", "code", ".shake", ".git", ".vscode"]
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =

@@ -2,12 +2,22 @@
 
     // General Button css and freetext question Input 
     button,
-    .freetextInput {
+    .freetextInput,
+    .blankInput {
         border-radius: 0.5em;
         font-size: inherit;
         font-family: inherit;
         outline: none;
         clear: both;
+    }
+}
+
+.reveal {
+    .blankSelect {
+        font-size: inherit;
+        :disabled{
+            color: black;
+        }
     }
 }
 
