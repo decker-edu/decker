@@ -338,7 +338,7 @@ pdfExt = ["pdf"]
 
 iframeExt = ["html", "html"]
 
-mviewExt = ["off"]
+mviewExt = ["off", "obj", "stl", "ply", "pmp"]
 
 -- | Renders a list of inlines back to markdown.
 toMarkdown :: [Inline] -> Filter Text
@@ -662,7 +662,7 @@ mviewHtml :: URI -> [Inline] -> Attrib Html
 mviewHtml uri caption = do
   let model = URI.render uri
   pushAttribute ("model", model)
-  mviewUri <- URI.mkURI "/support/vendor/mview/mview.html"
+  mviewUri <- URI.mkURI "/support/mview/mview.html"
   iframeHtml mviewUri caption
 
 iframeHtml :: URI -> [Inline] -> Attrib Html
