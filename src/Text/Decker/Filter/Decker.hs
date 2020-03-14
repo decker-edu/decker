@@ -9,6 +9,8 @@ module Text.Decker.Filter.Decker where
 
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
+import Text.Decker.Filter.Monad
+import Text.Decker.Filter.Attrib
 
 import Control.Monad.Catch
 import Data.Digest.Pure.MD5
@@ -28,188 +30,6 @@ import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.URI (URI)
 import qualified Text.URI as URI
-
--- | WriterOptions and the document meta data are available to all
--- filters. 
-data FilterState = FilterState
-  { options :: WriterOptions
-  , meta :: Meta
-  }
-
--- | All filters live in the Filter monad.
-type Filter = StateT FilterState IO
-
--- | An associative list representing element attributes.
-type AttrMap = [(Text, Text)]
-
--- | The first set contains the transformed attributes that will be extracted
--- and added to the HTML elements. The second set contains the source
--- attributes as parsed from the Markdown attribute markup. Many functions
--- inside the Attrib monad manipulate one or both attribute sets. 
-type AttribState = (Attr, Attr)
-
--- | The Attrib monad.
-type Attrib = StateT AttribState Filter
-
--- | Extracts the attributes that have been transformed so far. The attributes
--- are removed.
-extractAttr :: Attrib Attr
-extractAttr = do
-  (result, remaining) <- get
-  put (nullAttr, remaining)
-  return result
-
--- | Removes all values associated with key from the list.
-rmKey :: Eq a => a -> [(a, b)] -> [(a, b)]
-rmKey key = filter ((/= key) . fst)
-
--- | Removes all instaces of value from the list.
-rmClass :: Text -> [Text] -> [Text]
-rmClass cls = filter (/= cls)
-
--- | Alters the value at key. Can be used to add, change, or remove key value
--- pairs from an associative list. (See Data.Map.Strict.alter).
-alterKey :: Eq a => (Maybe b -> Maybe b) -> a -> [(a, b)] -> [(a, b)]
-alterKey f key kvs =
-  case f $ List.lookup key kvs of
-    Just value -> (key, value) : rmKey key kvs
-    Nothing -> rmKey key kvs
-
--- | Adds a CSS style value pair to the attribute map. If a style attribute
--- does not yet exist, it is created. The value of an existing style attribute 
--- is ammended on the left. 
-addStyle :: (Text, Text) -> AttrMap -> AttrMap
-addStyle (k, v) = alterKey addOne "style"
-  where
-    addOne style = Just $ fromMaybe "" style <> k <> ":" <> v <> ";"
-
--- | Adds a CSS style value pair to the target attributes.
-injectStyle :: (Text, Text) -> Attrib ()
-injectStyle (key, value) = modify transform
-  where
-    transform ((id', cs', kvs'), attr) =
-      ((id', cs', addStyle (key, value) kvs'), attr)
-
-injectAttribute :: (Text, Text) -> Attrib ()
-injectAttribute kv = modify transform
-  where
-    transform ((id', cs', kvs'), attr) = ((id', cs', kv : kvs'), attr)
-
--- | Pushes an additional attribute to the source side of the attribute state.
--- An existing attribute with the same key is overwritten.
-pushAttribute :: (Text, Text) -> Attrib ()
-pushAttribute (key, value) = modify transform
-  where
-    transform (attr', (id, cs, kvs)) =
-      (attr', (id, cs, alterKey replace key kvs))
-    replace _ = Just value
-
--- | Removea the attribute key from the source attribute map and adds it as a
--- CSS style value to the target style attribute. Mainly used to translate
--- witdth an height attributes into CSS style setting.
-takeStyle :: Text -> Attrib ()
-takeStyle key = modify transform
-  where
-    transform state@((id', cs', kvs'), (id, cs, kvs)) =
-      case List.lookup key kvs of
-        Just value ->
-          ((id', cs', addStyle (key, value) kvs'), (id, cs, rmKey key kvs))
-        Nothing -> state
-
--- | Translates width and height attributes into CSS style values if they
--- exist.
-takeSize :: Attrib ()
-takeSize = do
-  takeStyle "width"
-  takeStyle "height"
-
-takeId :: Attrib ()
-takeId = modify transform
-  where
-    transform state@((id', cs', kvs'), (id, cs, kvs)) =
-      ((id, cs', kvs'), ("", cs, kvs))
-
-takeCss :: Attrib ()
-takeCss = modify transform
-  where
-    transform state@((id', cs', kvs'), (id, cs, kvs)) =
-      let (css, rest) = List.partition (isCss . fst) kvs
-          added =
-            foldl'
-              (\result (k, v) -> addStyle (Text.drop 4 k, v) result)
-              kvs'
-              css
-       in ((id', cs', added), (id, cs, rest))
-    isCss key = Text.isPrefixOf "css:" key && Text.length key > 4
-
-coreAttribs :: [Text]
-coreAttribs = ["id", "class", "title", "style"]
-
-dropClass :: Text -> Attrib ()
-dropClass key = modify transform
-  where
-    transform (attr', (id, cs, kvs)) = (attr', (id, rmClass key cs, kvs))
-
-dropAttribute :: Text -> Attrib ()
-dropAttribute key = modify transform
-  where
-    transform (attr', (id, cs, kvs)) =
-      (attr', (id, cs, filter ((/= key) . fst) kvs))
-
-dropCore :: Attrib ()
-dropCore = modify transform
-  where
-    transform (attr', (id, cs, kvs)) =
-      (attr', (id, cs, filter ((`notElem` coreAttribs) . fst) kvs))
-
-passI18n :: Attrib ()
-passI18n = modify transform
-  where
-    transform ((id', cs', kvs'), (id, cs, kvs)) =
-      let (pass, rest) = List.partition ((`elem` ["dir", "xml:lang"]) . fst) kvs
-       in ((id', cs', kvs' <> pass), (id, cs, rest))
-
-takeData :: Attrib ()
-takeData = modify transform
-  where
-    transform state@((id', cs', kvs'), (id, cs, kvs)) =
-      ((id', cs', map (first ("data-" <>)) kvs <> kvs'), (id, cs, []))
-
-takeAllClasses :: Attrib ()
-takeAllClasses = modify transform
-  where
-    transform state@((id', cs', kvs'), (id, cs, kvs)) =
-      ((id', cs <> cs', kvs'), (id, [], kvs))
-
-injectBorder = do
-  border <- getMetaBoolOrElse "decker.filter.border" False <$> lift (gets meta)
-  when border $ injectStyle ("border", "2px solid magenta")
-
-videoClasses = ["controls", "loop", "muted"]
-
-takeVideoClasses :: Attrib ()
-takeVideoClasses = modify transform
-  where
-    transform state@((id', cs', kvs'), (id, cs, kvs)) =
-      let (vcs, rest) = List.partition (`elem` videoClasses) cs
-       in ((id', cs', map (, "1") vcs <> kvs'), (id, rest, kvs))
-
-videoAttribs = ["controls", "loop", "muted", "poster", "preload"]
-
-passVideoAttribs :: Attrib ()
-passVideoAttribs = modify transform
-  where
-    transform state@((id', cs', kvs'), (id, cs, kvs)) =
-      let (vkvs, rest) = List.partition ((`elem` videoAttribs) . fst) kvs
-       in ((id', cs', vkvs <> kvs'), (id, cs, rest))
-
-takeAutoplay :: Attrib ()
-takeAutoplay = do
-  (id, cs, kvs) <- snd <$> get
-  when ("autoplay" `elem` cs || "autoplay" `elem` (map fst kvs)) $ do
-    dropClass "autoplay"
-    dropAttribute "autoplay"
-    injectAttribute ("data-autoplay", "1")
 
 -- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
@@ -506,6 +326,9 @@ storeResourceInfo source target url = do
   setMeta (toText $ key <.> "target") $ toText target
   setMeta (toText $ key <.> "url") url
 
+-- | Generates an HTML error message for Image inlines from the image
+-- source and the actual exception. The Image element is rendered back
+-- to Markdown format and included in the errorr message.
 imageError :: Inline -> SomeException -> Filter Html
 imageError img@Image {} (SomeException e) = do
   let imgMarkup = inlinesToMarkdown [img]
@@ -516,9 +339,8 @@ imageError img@Image {} (SomeException e) = do
         H.text " Decker error"
       H.p ! A.class_ "message" $ toHtml (displayException e)
       H.p $ H.text "encountered while processing"
-      H.pre ! A.class_ "markup" $ do
-        H.code ! A.class_ "markup" $ toHtml imgMarkup
-imageError _ _ = bug $ InternalException ("imageError: non image argument ")
+      H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
+imageError _ _ = bug $ InternalException "imageError: non image argument "
 
 transformImage :: Inline -> [Inline] -> Filter Html
 transformImage image@(Image attr@(_, classes, _) _ (url, _)) caption =

@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e1d6038a4900cc20c6e9c70a76330974d0ec4b0a16ef987ebfaccae61ee4647e
+-- hash: b4ecc9f7ac05a7e131b2526783b61c74f724b6a24bbf2d1608397ad23f1e7de3
 
 name:           decker
 version:        0.10.0
@@ -71,6 +71,7 @@ custom-setup
 
 library
   exposed-modules:
+      Text.Decker.Filter.Attrib
       Text.Decker.Filter.CRC32
       Text.Decker.Filter.Decker
       Text.Decker.Filter.Filter
@@ -79,6 +80,7 @@ library
       Text.Decker.Filter.Macro
       Text.Decker.Filter.MarioCols
       Text.Decker.Filter.MarioMedia
+      Text.Decker.Filter.Monad
       Text.Decker.Filter.Quiz
       Text.Decker.Filter.Range
       Text.Decker.Filter.Render
