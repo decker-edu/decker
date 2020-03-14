@@ -896,3 +896,33 @@ body {
 	fill: #2a9ddf;
 }
 
+
+/*********************************************
+ * MARIO: fullscreen for iframes
+ *********************************************/
+
+.reveal div.fs-container { 
+    margin:   auto;
+    border:   0px;
+    padding:  0px;
+    position: relative;
+}
+
+.reveal button.fs-button { 
+    z-index:          100;
+    display:          inline-block;
+    position:         absolute;
+    top:              0px;
+    right:            0px;
+    cursor:           pointer;
+    padding:          2px;
+    border:           none;
+    background-color: rgba(255,255,255,0.5);
+    opacity:          0.2;
+    font-size:        20px;
+}
+
+.reveal button.fs-button:hover { 
+    opacity:          1.0;
+    background-color: rgba(255,255,255,0.8);
+}
