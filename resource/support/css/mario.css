@@ -987,10 +987,12 @@ body {
     border:         3px solid #2a9ddf;
     border-radius:  20px;
     padding:        20px;
+    background:     white;
 }
 .reveal .matching .dropzone .draggable {
-    display: block;
-    border:  none;
+    display:    block;
+    border:     none;
+    background: inherit;
 }
 
 .reveal .matching .draggableChild {
@@ -1052,11 +1054,19 @@ body {
     border:      2px solid #2a9ddf;
 }
 
-.reveal button {
+.reveal button.freetextAnswerButton,
+.reveal button.btAnswerButton,
+.reveal button.matchingAnswerButton,
+.reveal button.retryButton
+{
     font:        inherit;
     font-size:   0.7em;
     font-weight: normal;
     margin:      0.5em;
     padding:     10px;
+    background:  #eeeeee;
+    border: 2px solid #dddddd;
+    border-radius: 5px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
 
