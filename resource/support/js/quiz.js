@@ -258,10 +258,11 @@ function matchingAnswerButtons(initialMatchings) {
                 drag.setAttribute("draggable", false);
             }
             // replace the empty dropzone with the correct/sample solution
-            matchingField.replaceChild(initialDragzone, currDragzone);
+            //matchingField.replaceChild(initialDragzone, currDragzone);
 
-            this.nextSibling.disabled = true;
             this.disabled = true;
+            // why should retry-button be disabled?
+            //this.nextSibling.disabled = true;
         }
     }
 }
