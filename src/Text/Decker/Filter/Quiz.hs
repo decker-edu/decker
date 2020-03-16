@@ -77,35 +77,16 @@ helper = H.toHtml
 testbutton :: Text.Text -> Text.Text
 testbutton x = Text.pack $ S.renderHtml $ H.button $ H.span $ helper x
 
-testlist :: [(AttributeValue, Html)]
-testlist = [("Books", "Books"), ("css", "css")]
-
-testlist2 = [("css", "css")]
-
-testselect :: Inline
-testselect = rawHtml $ Text.pack $ S.renderHtml $ options testlist
-  where
-    options xs =
-      case xs of
-        [(x, y)] ->
-          H.span $ do
-            H.input
-            H.button $ helper "Solution"
-            H.button $ helper "test"
-        xs ->
-          H.select $
-          (foldr
-             (\(x, y) -> (>>) (H.option ! A.value x $ y))
-             (H.option ! A.value "end" $ "end")
-             xs)
-
 renderQuiz :: Quiz -> [Block] -> [Block]
 renderQuiz m@Match b = concatMap matchList b
 renderQuiz mu@Mult b = map tempfunc b
   where
     tempfunc bl@(BulletList blocks) = (mcHtml . quizTaskList_) bl
     tempfunc bl = bl
-renderQuiz i@Ins b = [Para [testselect]]
+renderQuiz i@Ins b = map tempfunc b
+  where
+    tempfunc bl@(BulletList blocks) = (insertHtml . quizTaskList_) bl
+    tempfunc bl = bl
 renderQuiz f@Free b = map tempfunc_ b
   where
     tempfunc_ bl@(BulletList blocks) = (freeHtml . quizTaskList_) bl
@@ -178,6 +159,30 @@ quizTaskList_ (BulletList blocks) = Just (map parseTL blocks)
     parseTL (Plain (Str "☐":Space:is):bs) = Answer_ False is bs
     parseTL is = Answer_ False [] [Null]
 quizTaskList_ b = Nothing
+
+testlist :: [(AttributeValue, Html)]
+testlist = [("Books", "Books"), ("css", "css")]
+
+testlist2 = [("css", "css")]
+
+insertHtml :: Maybe [Answer_] -> Block
+insertHtml (Just answers) = Div ("", ["answers"], []) [Plain [insertHtml]]
+  where
+    insertHtml :: Inline
+    insertHtml = rawHtml $ Text.pack $ S.renderHtml $ options testlist
+    options xs =
+      case xs of
+        [(x, y)] ->
+          H.span $ do
+            H.input
+            H.button $ helper "Solution"
+            H.button $ helper "test"
+        xs ->
+          H.select $
+          (foldr
+             (\(x, y) -> (>>) (H.option ! A.value x $ y))
+             (H.option ! A.value "end" $ "end")
+             xs)
 
 freeHtml :: Maybe [Answer_] -> Block
 freeHtml (Just answers) = Div ("", ["answers"], []) [Para [inputHtml]]
