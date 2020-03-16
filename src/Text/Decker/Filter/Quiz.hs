@@ -107,10 +107,9 @@ mcTooltipHtml block = block
 -- | create the html element for the blanktext question
 blanktextHtml :: ([Inline], [Block]) -> Block
 blanktextHtml (inlines, blocks) =
-  Div ("", ["blankText"], []) (selects ++ [answerButton])
-  --Div ("", ["blankText"], []) ([title] ++ selects ++ [answerButton])
+  Div ("", ["blankText", "columns"], []) (selects ++ [answerButton])
   where
-    --title = Header 2 ("", [], []) inlines
+    title = Header 2 ("", [], []) inlines
     selects = map html blocks
     html (Plain x) = Para (blanktextHtmlAnswers $ splitBlankText x)
     answerButton =
@@ -162,11 +161,10 @@ blanktextHtmlAnswers =
     insertOption x =
       toHtml
         (Text.pack
-          (printf
-             "<option class=\"blankOption\" answer=\"false\" value=\"%s\">%s</option>"
-             x
-             x)
-        )
+           (printf
+              "<option class=\"blankOption\" answer=\"false\" value=\"%s\">%s</option>"
+              x
+              x))
 
 -- | Creates the html representation for a matching question
 matchingHtml :: [([Inline], [[Block]])] -> Block
