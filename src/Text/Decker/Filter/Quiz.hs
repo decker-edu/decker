@@ -184,7 +184,7 @@ matchingHtml dListItems =
       [Str "Show Solution"] ++
       [toHtml "</button>"] ++
       [toHtml "<button class=\"retryButton\" type=\"button\">"] ++
-      [Str "Retry"] ++ [toHtml "</button>"]
+      [Str "Restart"] ++ [toHtml "</button>"]
     wrapDrop :: [[Inline]] -> Block
     wrapDrop inlines = Div ("", ["dropzones"], []) dropzones
       where
