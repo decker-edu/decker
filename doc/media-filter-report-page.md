@@ -24,7 +24,46 @@ An image that is used inline in a paragraph of text.
 translates to
 
 ``` {.html}
-<img class="decker" data-src="some/path/image.png">
+<img class="decker" data-src="/some/path/image.png">
+```
+
+------------------------------------------------------------------------
+
+SVG image
+---------
+
+An SVG image that is embedded into the HTML document.
+
+``` {.markdown}
+![](/test/decks/empty.svg){.embed}
+```
+
+translates to
+
+``` {.html}
+<span class="decker svg embed">
+    <svg>This space intentionally left blank</svg>
+
+</span>
+```
+
+------------------------------------------------------------------------
+
+Embedded PDF
+------------
+
+A PDF document that is embedded through an object tag.
+
+``` {.markdown}
+![](https://adobe.com/some.pdf)
+```
+
+translates to
+
+``` {.html}
+<object class="decker" src="https://adobe.com/some.pdf">
+    
+</object>
 ```
 
 ------------------------------------------------------------------------
@@ -89,7 +128,7 @@ translates to
 
 ``` {.html}
 <figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;">
-    <img class="decker" data-src="some/path/image.png">
+    <img class="decker" data-src="/some/path/image.png">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -111,7 +150,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" style="width:42%;">
-    <video class="decker" data-src="some/path/video.mp4">
+    <video class="decker" data-src="/some/path/video.mp4">
         
     </video>
     <figcaption class="decker">
@@ -135,7 +174,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <video class="decker" data-src="some/path/video.mp4#t=5,30" preload="none">
+    <video class="decker" data-src="/some/path/video.mp4#t=5,30" preload="none">
         
     </video>
     <figcaption class="decker">
@@ -159,7 +198,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <video class="decker" data-src="some/path/video.mp4#t=5,30" poster="somewhere/image.png" preload="none" controls="1" data-autoplay="1">
+    <video class="decker" data-src="/some/path/video.mp4#t=5,30" poster="somewhere/image.png" preload="none" controls="1" data-autoplay="1">
         
     </video>
     <figcaption class="decker">
@@ -178,7 +217,7 @@ Line blocks filled with only image tags are translated to a row of images. Suppo
 ``` {.markdown}
 | ![](image.png)
 | ![Caption.](movie.mp4){.autoplay}
-| ![](image.png)
+| ![](image.png){css:border="1px solid black"}
 ```
 
 translates to
@@ -201,7 +240,7 @@ translates to
         </div>
     </div>
     <figcaption>
-        <img src="image.png" />
+        <img src="image.png" css:border="1px solid black" />
     </figcaption>
 </figure>
 ```
@@ -216,7 +255,7 @@ Line blocks filled with only image tags are translated to a row of images. Suppo
 ``` {.markdown}
 | ![](image.png)
 | ![](movie.mp4){.autoplay}
-| ![](image.png)
+| ![](image.png){css:border="1px solid black"}
 | ![](image.png)
 
 Caption: Caption
@@ -237,7 +276,7 @@ translates to
         </div>
     </div>
     <figcaption>
-        <img src="image.png" />
+        <img src="image.png" css:border="1px solid black" />
          
         |
          
@@ -263,7 +302,7 @@ translates to
 
 ``` {.html}
 <figure class="decker iframe">
-    <iframe class="decker" allow="fullscreen" data-src="https://www.heise.de/">
+    <iframe class="decker" allow="fullscreen" data-src="https://www.heise.de/.">
         
     </iframe>
     <figcaption class="decker">

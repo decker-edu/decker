@@ -98,7 +98,7 @@ deckerMediaFilter base (Pandoc meta blocks) =
   runDeckerFilter
     (mediaFilter def)
     base
-    (Pandoc (setBoolMetaValue "decker.filter.border" True meta) blocks)
+    (Pandoc meta blocks)
 
 -- | The old style decker filter pipeline with Mario's media handling.
 marioPipeline =

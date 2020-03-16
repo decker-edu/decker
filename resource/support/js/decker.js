@@ -17,6 +17,7 @@ function deckerStart() {
   currentDate();
   addSourceCodeLabels();
   prepareTaskLists();
+  prepareFullscreenIframes();
 }
 
 
@@ -129,3 +130,43 @@ function prepareCodeHighlighting() {
     }
   }
 }
+
+
+function prepareFullscreenIframes() {
+    for (let iframe of document.querySelectorAll('iframe.decker')) {
+        var parent = iframe.parentElement;
+
+        var div = document.createElement("div");
+        div.classList.add("fs-container");
+        div.style.width  = iframe.style.width;
+        div.style.height = iframe.style.height;
+    
+        var btn = document.createElement("button");
+        btn.classList.add("fs-button");
+        btn.innerHTML = '<i class="fas fa-expand-arrows-alt" style="font-size:20px"></i>';
+        div.btn = btn;
+
+        parent.insertBefore(div, iframe);
+        div.appendChild(iframe);
+        div.appendChild(btn);
+
+        iframe.style.width  = "100%";
+        iframe.style.height = "100%";
+
+        btn.onclick = function() { 
+            var container = this.parentElement;
+            if (document.fullscreenElement == container)
+                document.exitFullscreen();
+            else 
+                container.requestFullscreen();
+        }; 
+
+        div.onfullscreenchange = function() {
+            if (document.fullscreenElement == this)
+                this.btn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>';
+            else
+                this.btn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i>';
+        };
+    }
+}
+

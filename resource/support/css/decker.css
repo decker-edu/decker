@@ -583,9 +583,59 @@
   display: inline;
 }
 
+.reveal div.fs-container {
+  margin: auto;
+  border: 0px;
+  padding: 0px;
+  position: relative;
+}
+
+.reveal button.fs-button {
+  z-index: 100;
+  display: inline-block;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  cursor: pointer;
+  padding: 2px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.5);
+  opacity: 0.2;
+  font-size: 20px;
+}
+
+.reveal button.fs-button:hover {
+  opacity: 1.0;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
 /*
  *Required CSS for the new media filters.
  */
+.reveal div.decker.image.error {
+  font-size: 20pt;
+  background-color: #fee;
+  border: 0.1em solid darkred;
+  padding: 1em;
+}
+
+.reveal div.decker.image.error .message {
+  font-style: italic;
+  margin-left: 20px;
+}
+
+.reveal div.decker.image.error pre.markup {
+  width: 100%;
+  margin-left: 20px;
+}
+
+.reveal div.decker.image.error pre.markup code.markup {
+  font-family: "Source Code Pro", monospace;
+  font-size: 18pt;
+  line-height: 1.4;
+  color: black;
+}
+
 .reveal img.decker {
   max-width: 100%;
   max-height: 100%;
@@ -601,6 +651,15 @@
 }
 
 .reveal figure.decker > video.decker {
+  width: 100%;
+}
+
+.reveal object.decker {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.reveal figure.decker > object.decker {
   width: 100%;
 }
 

@@ -20,8 +20,8 @@ import Text.Pandoc.Walk
 
 filterMeta =
   setTextMetaValue "decker.base-dir" "." $
-  setTextMetaValue "decker.project-dir" "/tmp/decker" $
-  setTextMetaValue "decker.public-dir" "/tmp/decker/public" $ nullMeta
+  setTextMetaValue "decker.project-dir" "." $
+  setTextMetaValue "decker.public-dir" "." $ nullMeta
 
 -- import qualified Text.URI as URI
 -- | Constructs a filter runner with default parameters
@@ -164,6 +164,12 @@ testSnippets =
   [ ( "Plain image"
     , "An image that is used inline in a paragraph of text."
     , "![](/some/path/image.png)")
+  , ( "SVG image"
+    , "An SVG image that is embedded into the HTML document."
+    , "![](/test/decks/empty.svg){.embed}")
+  , ( "Embedded PDF"
+    , "A PDF document that is embedded through an object tag."
+    , "![](https://adobe.com/some.pdf)")
   , ( "Plain image with caption"
     , "An image with a caption. The image is surrounded by a figure element."
     , [text|

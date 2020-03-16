@@ -63,7 +63,7 @@ title: 'Image, Audio and Video Handling'
 | ![](include/06-metal-v.png)
 | ![This has it's own caption.](include/06-metal.png)
 
-Image: Three in a row. With a caption below all three.
+Caption: Three in a row. With a caption below all three.
 
 # 3 Somethings in a Row
 
@@ -71,5 +71,18 @@ Image: Three in a row. With a caption below all three.
 | ![:cinema: :cinema: :smile:](movie.mp4){.controls .loop}
 | ![This has it's own caption.](include/06-metal.png)
 
-Image: Three somethings in a row. With a caption below all three. The
+Caption: Three somethings in a row. With a caption below all three. The
 second one is a :cinema:.
+
+# PDF
+
+![This is a PDF document.](include/06-metal.pdf){width="100%"}
+
+# Ganz Schlimm Emdedded
+
+![Directly embedded SVG](graph.dot.svg){.embed}
+
+# Image with incorrect URL
+
+![A non existing (local) image.](this-does-not-exist.png)
+
