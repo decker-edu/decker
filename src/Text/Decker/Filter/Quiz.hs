@@ -77,18 +77,27 @@ helper = H.toHtml
 testbutton :: Text.Text -> Text.Text
 testbutton x = Text.pack $ S.renderHtml $ H.button $ H.span $ helper x
 
--- <select><option value="foo">foo</option></select>
-testselect :: RawHtml Inline => Inline
-testselect =
-  rawHtml $
-  Text.pack $
-  S.renderHtml $
-  H.select $ do
-    H.option ! A.value "books" $ "Books"
-    H.option ! A.value "html" $ "HTML"
-    H.option ! A.value "css" $ "CSS"
-    H.option ! A.value "php" $ "PHP"
-    H.option ! A.value "js" $ "JavaScript"
+testlist :: [(AttributeValue, Html)]
+testlist = [("Books", "Books"), ("css", "css")]
+
+testlist2 = [("css", "css")]
+
+testselect :: Inline
+testselect = rawHtml $ Text.pack $ S.renderHtml $ options testlist
+  where
+    options xs =
+      case xs of
+        [(x, y)] ->
+          H.span $ do
+            H.input
+            H.button $ helper "Solution"
+            H.button $ helper "test"
+        xs ->
+          H.select $
+          (foldr
+             (\(x, y) -> (>>) (H.option ! A.value x $ y))
+             (H.option ! A.value "end" $ "end")
+             xs)
 
 renderQuiz :: Quiz -> [Block] -> [Block]
 renderQuiz m@Match b = concatMap matchList b
@@ -97,7 +106,10 @@ renderQuiz mu@Mult b = map tempfunc b
     tempfunc bl@(BulletList blocks) = (mcHtml . quizTaskList_) bl
     tempfunc bl = bl
 renderQuiz i@Ins b = [Para [testselect]]
-renderQuiz f@Free b = concatMap quizTaskList b
+renderQuiz f@Free b = map tempfunc_ b
+  where
+    tempfunc_ bl@(BulletList blocks) = (freeHtml . quizTaskList_) bl
+    tempfunc_ bl = bl
 
 -- readMultipleChoice (h@(Header 2 (id_, cls, kvs) text) : blocks) =
 {-
@@ -168,13 +180,20 @@ quizTaskList_ (BulletList blocks) = Just (map parseTL blocks)
 quizTaskList_ b = Nothing
 
 freeHtml :: Maybe [Answer_] -> Block
-freeHtml (Just answers) = Div ("", ["answers"], []) [Para [Str inputHtml]]
+freeHtml (Just answers) = Div ("", ["answers"], []) [Para [inputHtml]]
         -- tempName (Answer_ _ _ (Null:r)) = [Para [Str "NO TASKLIST ITEM"]]
         -- tempName (Answer_ True is bs) = 
         -- tempName (Answer_ False is bs) =
         -- [Para is, Div ("", ["tooltip", "wrong"], []) bs] 
   where
-    inputHtml = Text.pack $ S.renderHtml H.input
+    inputHtml =
+      rawHtml $
+      Text.pack $
+      S.renderHtml $
+      H.span $ do
+        H.input
+        H.button $ helper "Solution"
+        H.button $ helper "test"
 freeHtml Nothing = Para [Str "ERROR SOMETHING"]
 
 mcHtml :: Maybe [Answer_] -> Block
@@ -286,8 +305,8 @@ blanktextHtml :: ([Inline], [Block]) -> Block
 blanktextHtml (inlines, blocks) =
   Div ("", ["blankText"], []) (selects ++ [answerButton])
   --Div ("", ["blankText"], []) ([title] ++ selects ++ [answerButton])
-  where
     --title = Header 2 ("", [], []) inlines
+  where
     selects = map html blocks
     html (Plain x) = Para (blanktextHtmlAnswers $ splitBlankText x)
     answerButton =
