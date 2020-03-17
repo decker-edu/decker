@@ -167,22 +167,26 @@ testlist2 = [("css", "css")]
 
 insertHtml :: Maybe [Answer_] -> Block
 insertHtml (Just answers) = Div ("", ["answers"], []) [Plain [insertHtml]]
+    -- manageAnswerList :: [Answer_] -> [(AttributeValue, Html)]
   where
+    manageAnswerList ans =
+      map
+        (\x ->
+           ( toValue $ stringify $ solution x
+           , Blaze.toHtml $ stringify $ solution x))
+        ans
     insertHtml :: Inline
-    insertHtml = rawHtml $ Text.pack $ S.renderHtml $ options testlist
+    insertHtml =
+      rawHtml $ Text.pack $ S.renderHtml $ options (manageAnswerList answers)
+    -- options :: [(AttributeValue, Html)] -> Html
     options xs =
       case xs of
-        [(x, y)] ->
-          H.span $ do
-            H.input
-            H.button $ helper "Solution"
-            H.button $ helper "test"
+        [(x, y)] -> H.span $ H.input ! A.value x
+            -- H.button $ helper "Solution"
+            -- H.button $ helper "test"
         xs ->
           H.select $
-          (foldr
-             (\(x, y) -> (>>) (H.option ! A.value x $ y))
-             (H.option ! A.value "end" $ "end")
-             xs)
+          (foldr (\(x, y) -> (>>) (H.option ! A.value x $ y)) (H.area) xs)
 
 freeHtml :: Maybe [Answer_] -> Block
 freeHtml (Just answers) = Div ("", ["answers"], []) [Para [inputHtml]]

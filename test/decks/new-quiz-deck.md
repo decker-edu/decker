@@ -90,9 +90,6 @@ and builds upon (now without all comments)
  
 
 - [ ] LaTeX Beamer
-- [X] RevealJS
-    - Yes, that is it
-- [ ] PowerPoint
 
 
 
