@@ -64,8 +64,10 @@ helper :: Text.Text -> Html
 helper = H.toHtml
 
 renderQuiz :: Quiz -> [Block] -> [Block]
-renderQuiz Match b =
-  [Div ("", ["quiz-mi", "columns"], []) $ concatMap matchList b]
+renderQuiz Match b = [Div ("", ["quiz-mi", "columns"], []) $ map tempfunc b]
+  where
+    tempfunc bl@(DefinitionList blocks) = (matchHtml . matchList) bl
+    tempfunc bl = Div ("", ["question", "columns"], []) [bl]
 renderQuiz Mult b = [Div ("", ["quiz-mc", "columns"], []) $ map tempfunc b]
   where
     tempfunc bl@(BulletList blocks) = (mcHtml . quizTaskList_) bl
@@ -98,18 +100,25 @@ data Answer =
 --  the biggest question is how to handle stuff that has been processed already by pandoc
 -- e.g. images, links etc
 data Match
-  = Pair Text.Text Text.Text
-  | Distractor Text.Text
+  = Pair [Inline] [[Block]]
+  | Distractor [[Block]]
   deriving (Show)
 
-matchList :: Block -> [Block]
-matchList (DefinitionList items) = map parseDL items
+matchList :: Block -> Maybe [Match]
+matchList (DefinitionList items) = Just $ map parseDL items
   where
-    parseDL (Str "!":_, bs) =
-      Para [Str (Text.pack $ show $ Distractor (stringify bs))]
-    parseDL (is, bs) =
-      Para [Str (Text.pack $ show $ Pair (stringify is) (Text.pack $ show bs))]
-matchList b = [b]
+    parseDL (Str "!":_, bs) = Distractor bs
+    parseDL (is, bs) = Pair is bs
+matchList b = Nothing
+
+matchHtml :: Maybe [Match] -> Block
+matchHtml (Just matches) =
+  Div ("", ["answers", "columns"], []) $ map tempName matches
+  where
+    tempName :: Match -> Block
+    tempName (Distractor bs) = Div ("", ["distractor"], []) (concat bs)
+    tempName (Pair is bs) = Div ("", ["pair"], []) (Plain is : concat bs)
+matchHtml Nothing = Plain [Str "NO MATCH"]
 
 data Answer_ =
   Answer_
