@@ -78,19 +78,20 @@ testbutton :: Text.Text -> Text.Text
 testbutton x = Text.pack $ S.renderHtml $ H.button $ H.span $ helper x
 
 renderQuiz :: Quiz -> [Block] -> [Block]
-renderQuiz m@Match b = concatMap matchList b
-renderQuiz mu@Mult b = map tempfunc b
+renderQuiz Match b =
+  [Div ("", ["quiz-mi", "columns"], []) $ concatMap matchList b]
+renderQuiz Mult b = [Div ("", ["quiz-mc", "columns"], []) $ map tempfunc b]
   where
     tempfunc bl@(BulletList blocks) = (mcHtml . quizTaskList_) bl
-    tempfunc bl = bl
-renderQuiz i@Ins b = map tempfunc b
+    tempfunc bl = Div ("", ["question", "columns"], []) [bl]
+renderQuiz Ins b = [Div ("", ["quiz-ic", "columns"], []) $ map tempfunc b]
   where
     tempfunc bl@(BulletList blocks) = (insertHtml . quizTaskList_) bl
-    tempfunc bl = bl
-renderQuiz f@Free b = map tempfunc_ b
+    tempfunc bl = Div ("", ["question", "columns"], []) [bl]
+renderQuiz Free b = [Div ("", ["quiz-ft", "columns"], []) $ map tempfunc_ b]
   where
     tempfunc_ bl@(BulletList blocks) = (freeHtml . quizTaskList_) bl
-    tempfunc_ bl = bl
+    tempfunc_ bl = Div ("", ["question", "columns"], []) [bl]
 
 -- readMultipleChoice (h@(Header 2 (id_, cls, kvs) text) : blocks) =
 {-
@@ -130,19 +131,16 @@ matchList b = [b]
 -- which means we need to check for the unicode tasklist characters
 -- quizTaskList should not return a Pandoc Block list directly but rather a list of Answers
 -- how to handle Links, images etc?
-quizTaskList :: Block -> [Block]
-quizTaskList (BulletList b@(blocks:_)) = concatMap parseTL b
+quizTaskList :: Block -> Block
+quizTaskList (BulletList b) = BulletList (map parseTL b)
   where
+    parseTL :: [Block] -> [Block]
     parseTL (Plain (Str "☒":Space:is):bs) =
-      [ Para
-          [Str (Text.pack $ show $ Answer True (stringify is) (stringify bs))]
-      ]
+      Plain [Span ("", ["correct"], []) is] : bs
     parseTL (Plain (Str "☐":Space:is):bs) =
-      [ Para
-          [Str (Text.pack $ show $ Answer False (stringify is) (stringify bs))]
-      ]
+      Plain [Span ("", ["correct"], []) is] : bs
     parseTL is = is
-quizTaskList b = [b]
+quizTaskList b = b
 
 data Answer_ =
   Answer_
@@ -165,31 +163,38 @@ testlist = [("Books", "Books"), ("css", "css")]
 
 testlist2 = [("css", "css")]
 
-insertHtml :: Maybe [Answer_] -> Block
-insertHtml (Just answers) = Div ("", ["answers"], []) [Plain [insertHtml]]
-    -- manageAnswerList :: [Answer_] -> [(AttributeValue, Html)]
+-- | This div is hidden 
+solutionDiv :: [Answer_] -> Block
+solutionDiv answers = Div ("", ["solutions"], []) $ map tempName answers
   where
-    manageAnswerList ans =
-      map
-        (\x ->
-           ( toValue $ stringify $ solution x
-           , Blaze.toHtml $ stringify $ solution x))
-        ans
+    tempName (Answer_ _ _ (Null:r)) = Plain [Str "NO TASKLIST ITEM"]
+    tempName (Answer_ True is bs) =
+      Div
+        ("", ["solution", "correct"], [])
+        [Plain is, Div ("", ["tooltip", "correct"], []) bs]
+    tempName (Answer_ False is bs) =
+      Div
+        ("", ["solution", "wrong"], [])
+        [Plain is, Div ("", ["tooltip", "wrong"], []) bs]
+
+insertHtml :: Maybe [Answer_] -> Block
+insertHtml (Just answers) =
+  Div ("", ["answers", "columns"], []) [Plain [insertHtml], solutionDiv answers]
+  where
+    manageAnswerList = map (\x -> (helper $ stringify $ solution x))
     insertHtml :: Inline
     insertHtml =
       rawHtml $ Text.pack $ S.renderHtml $ options (manageAnswerList answers)
-    -- options :: [(AttributeValue, Html)] -> Html
     options xs =
       case xs of
-        [(x, y)] -> H.span $ H.input ! A.value x
-            -- H.button $ helper "Solution"
-            -- H.button $ helper "test"
+        [x] -> H.input ! A.class_ "blankInput"
         xs ->
-          H.select $
-          (foldr (\(x, y) -> (>>) (H.option ! A.value x $ y)) (H.area) xs)
+          H.select ! A.class_ "blankSelect" $
+          (foldr (\x -> (>>) (H.option x)) (H.area) xs)
 
 freeHtml :: Maybe [Answer_] -> Block
-freeHtml (Just answers) = Div ("", ["answers"], []) [Para [inputHtml]]
+freeHtml (Just answers) =
+  Div ("", ["answers"], []) [Para [inputHtml], solutionDiv answers]
         -- tempName (Answer_ _ _ (Null:r)) = [Para [Str "NO TASKLIST ITEM"]]
         -- tempName (Answer_ True is bs) = 
         -- tempName (Answer_ False is bs) =
@@ -200,8 +205,9 @@ freeHtml (Just answers) = Div ("", ["answers"], []) [Para [inputHtml]]
       Text.pack $
       S.renderHtml $
       H.span $ do
-        H.input
-        H.button $ helper "Solution"
+        H.input ! A.class_ "freetextInput"
+        H.br
+        H.button ! A.class_ "freetextAnswerButton" $ helper "Solution"
         H.button $ helper "test"
 freeHtml Nothing = Para [Str "ERROR SOMETHING"]
 
@@ -209,11 +215,11 @@ mcHtml :: Maybe [Answer_] -> Block
 mcHtml (Just answers) =
   Div ("", ["answers"], []) [BulletList (map tempName answers)]
   where
-    tempName (Answer_ _ _ (Null:r)) = [Para [Str "NO TASKLIST ITEM"]]
+    tempName (Answer_ _ _ (Null:r)) = [Plain [Str "NO TASKLIST ITEM"]]
     tempName (Answer_ True is bs) =
-      [Para is, Div ("", ["tooltip", "correct"], []) bs]
+      [Plain is, Div ("", ["tooltip", "correct"], []) bs]
     tempName (Answer_ False is bs) =
-      [Para is, Div ("", ["tooltip", "wrong"], []) bs]
+      [Plain is, Div ("", ["tooltip", "wrong"], []) bs]
 mcHtml Nothing = Para [Str "ERROR SOMETHING"]
 
 {-
