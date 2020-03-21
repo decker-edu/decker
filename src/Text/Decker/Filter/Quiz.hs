@@ -60,22 +60,8 @@ data Quiz
   | Free
   deriving (Show)
 
--- wrapQuiz :: [Block] -> [Block]
--- wrapQuiz h@((Header 2 (id_, cls, kvs) text) : blocks) = qlookup cls
---  where
---   qlookup :: [Text.Text] -> [Block]
---   qlookup []         = h
---   qlookup (c : rest) = case Map.lookup c quizMap of
---     Just q ->
---       [ Plain
---           [RawInline (Format "html") $ Text.pack $ renderHtml $ testbutton q]
---       ]
---     Nothing -> qlookup rest
 helper :: Text.Text -> Html
 helper = H.toHtml
-
-testbutton :: Text.Text -> Text.Text
-testbutton x = Text.pack $ S.renderHtml $ H.button $ H.span $ helper x
 
 renderQuiz :: Quiz -> [Block] -> [Block]
 renderQuiz Match b =
@@ -93,7 +79,6 @@ renderQuiz Free b = [Div ("", ["quiz-ft", "columns"], []) $ map tempfunc_ b]
     tempfunc_ bl@(BulletList blocks) = (freeHtml . quizTaskList_) bl
     tempfunc_ bl = Div ("", ["question", "columns"], []) [bl]
 
--- readMultipleChoice (h@(Header 2 (id_, cls, kvs) text) : blocks) =
 {-
 Structure of Multiple choice question:
 1. Header 2 is just the heading, can be used as question
@@ -126,22 +111,6 @@ matchList (DefinitionList items) = map parseDL items
       Para [Str (Text.pack $ show $ Pair (stringify is) (Text.pack $ show bs))]
 matchList b = [b]
 
--- createMC :: [Answer] -> 
--- Currently happens in the pipeline after pandoc's tasklist extension 
--- which means we need to check for the unicode tasklist characters
--- quizTaskList should not return a Pandoc Block list directly but rather a list of Answers
--- how to handle Links, images etc?
-quizTaskList :: Block -> Block
-quizTaskList (BulletList b) = BulletList (map parseTL b)
-  where
-    parseTL :: [Block] -> [Block]
-    parseTL (Plain (Str "☒":Space:is):bs) =
-      Plain [Span ("", ["correct"], []) is] : bs
-    parseTL (Plain (Str "☐":Space:is):bs) =
-      Plain [Span ("", ["correct"], []) is] : bs
-    parseTL is = is
-quizTaskList b = b
-
 data Answer_ =
   Answer_
     { right :: Bool
@@ -157,11 +126,6 @@ quizTaskList_ (BulletList blocks) = Just (map parseTL blocks)
     parseTL (Plain (Str "☐":Space:is):bs) = Answer_ False is bs
     parseTL is = Answer_ False [] [Null]
 quizTaskList_ b = Nothing
-
-testlist :: [(AttributeValue, Html)]
-testlist = [("Books", "Books"), ("css", "css")]
-
-testlist2 = [("css", "css")]
 
 -- | This div is hidden 
 solutionDiv :: [Answer_] -> Block
@@ -195,10 +159,6 @@ insertHtml (Just answers) =
 freeHtml :: Maybe [Answer_] -> Block
 freeHtml (Just answers) =
   Div ("", ["answers"], []) [Para [inputHtml], solutionDiv answers]
-        -- tempName (Answer_ _ _ (Null:r)) = [Para [Str "NO TASKLIST ITEM"]]
-        -- tempName (Answer_ True is bs) = 
-        -- tempName (Answer_ False is bs) =
-        -- [Para is, Div ("", ["tooltip", "wrong"], []) bs] 
   where
     inputHtml =
       rawHtml $
@@ -208,12 +168,13 @@ freeHtml (Just answers) =
         H.input ! A.class_ "freetextInput"
         H.br
         H.button ! A.class_ "freetextAnswerButton" $ helper "Solution"
-        H.button $ helper "test"
 freeHtml Nothing = Para [Str "ERROR SOMETHING"]
 
 mcHtml :: Maybe [Answer_] -> Block
 mcHtml (Just answers) =
-  Div ("", ["answers"], []) [BulletList (map tempName answers)]
+  Div
+    ("", ["answers", "survey"], [])
+    [BulletList (map tempName answers), solutionDiv answers]
   where
     tempName (Answer_ _ _ (Null:r)) = [Plain [Str "NO TASKLIST ITEM"]]
     tempName (Answer_ True is bs) =
