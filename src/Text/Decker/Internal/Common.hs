@@ -92,6 +92,8 @@ data MediaType
   | VideoMedia
   | IframeMedia
   | MeshMedia
+  | SvgMedia
+  | StreamMedia
 
 data Provisioning
   = Copy -- ^ Copy to public and relative URL

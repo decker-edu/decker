@@ -7,25 +7,21 @@
 -- under the `decker` key in the meta data of the resulting document.
 module Text.Decker.Filter.Decker where
 
-import Text.Decker.Internal.Meta
-import Text.Decker.Project.Project
-import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Attrib
+import Text.Decker.Filter.Header
+import Text.Decker.Filter.Local
+import Text.Decker.Filter.Monad
+import Text.Decker.Filter.Streaming
+import Text.Decker.Internal.Meta
 
 import Control.Monad.Catch
-import Data.Digest.Pure.MD5
 import qualified Data.List as List
+import qualified Data.Map as Map
 import qualified Data.Text as Text
-import qualified Data.Text.IO as Text
 import Relude
-import System.Directory
-import System.FilePath
 import Text.Blaze.Html
-import qualified Text.Blaze.Html.Renderer.Pretty as Pretty
-import qualified Text.Blaze.Html.Renderer.Text as Text
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Text.Blaze.Internal (Attributable)
 import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.URI (URI)
@@ -76,11 +72,11 @@ mediaBlockListFilter blocks =
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
     filterPairs ((Para [image@Image {}]), Para (Str captionLabel:caption)) =
-      Just <$> (transformImage image caption >>= renderHtml)
+      Just . single . Para . single <$> transformImage image caption
     -- Any number of consecutive images in a masonry row.
     filterPairs (LineBlock lines, Para (Str captionLabel:caption))
       | oneImagePerLine lines =
-        Just <$> (transformImages (concat lines) caption >>= renderHtml)
+        Just . single <$> transformImages (concat lines) caption
     -- Default filter
     filterPairs (x, y) = return Nothing
     filterTriplets :: (Block, Block, Block) -> Filter (Maybe [Block])
@@ -93,8 +89,6 @@ mediaInlineListFilter inlines =
   tripletwise filterTriplets inlines >>= pairwise filterPairs
   where
     filterPairs :: (Inline, Inline) -> Filter (Maybe [Inline])
-    filterPairs (img1@Image {}, img2@Image {}) =
-      Just <$> (transformImages [img1, img2] [] >>= renderHtml)
       -- Default filter
     filterPairs (x, y) = return Nothing
     -- Default filter
@@ -102,12 +96,14 @@ mediaInlineListFilter inlines =
 
 -- | Match a single Block element
 mediaBlockFilter :: Block -> Filter Block
+-- A level one header.
+mediaBlockFilter header@(Header 1 attr text) = transformHeader1 header
 -- A solitary image in a paragraph with a possible caption.
 mediaBlockFilter (Para [image@(Image _ caption _)]) =
-  transformImage image caption >>= renderHtml
+  Para . single <$> transformImage image caption
 -- Any number of consecutive images in a masonry row.
 mediaBlockFilter (LineBlock lines)
-  | oneImagePerLine lines = transformImages (concat lines) [] >>= renderHtml
+  | oneImagePerLine lines = transformImages (concat lines) []
 -- Default filter
 mediaBlockFilter block = return block
 
@@ -120,8 +116,7 @@ isImage _ = False
 -- | Matches a single Inline element
 mediaInlineFilter :: Inline -> Filter Inline
 -- An inline image with a possible caption.
-mediaInlineFilter image@(Image _ caption _) =
-  transformImage image caption >>= renderHtml
+mediaInlineFilter image@(Image _ caption _) = transformImage image caption
 -- Default filter
 mediaInlineFilter inline = return inline
 
@@ -147,192 +142,17 @@ runFilter' ::
 runFilter' options meta filter x =
   evalStateT (walkM filter x) (FilterState options meta)
 
--- | File-extensions that should be treated as image
-imageExt = ["jpg", "jpeg", "png", "gif", "tif", "tiff", "bmp", "svg"]
-
-videoExt = ["mp4", "mov", "ogg", "avi"]
-
-svgExt = ["svg"]
-
-pdfExt = ["pdf"]
-
-iframeExt = ["html", "html"]
-
-mviewExt = ["off", "obj", "stl", "ply", "pmp"]
-
--- | Renders a list of inlines back to markdown.
-toMarkdown :: [Inline] -> Filter Text
-toMarkdown [] = return ""
-toMarkdown inlines = do
-  FilterState options meta <- get
-  case runPure (writeHtml5String options (Pandoc meta [Plain inlines])) of
-    Right text -> return text
-    Left err -> bug $ PandocException $ "BUG: " <> show err
-
--- | Renders a list of inlines to Text.
-inlinesToMarkdown :: [Inline] -> Text
-inlinesToMarkdown [] = ""
-inlinesToMarkdown inlines =
-  case runPure (writeMarkdown def (Pandoc nullMeta [Plain inlines])) of
-    Right html -> html
-    Left err -> bug $ PandocException $ "BUG: " <> show err
-
--- | Renders a list of inlines to HTML.
-inlinesToHtml :: [Inline] -> Filter Html
-inlinesToHtml [] = return $ H.span ""
-inlinesToHtml inlines = do
-  FilterState options meta <- get
-  case runPure (writeHtml5 options (Pandoc meta [Plain inlines])) of
-    Right html -> return html
-    Left err -> bug $ PandocException $ "BUG: " <> show err
-
-class RawHtml a where
-  rawHtml :: Text -> a
-
-instance RawHtml Inline where
-  rawHtml = RawInline (Format "html5")
-
-instance RawHtml [Inline] where
-  rawHtml text = [RawInline (Format "html5") text]
-
-instance RawHtml Block where
-  rawHtml = RawBlock (Format "html5")
-
-instance RawHtml [Block] where
-  rawHtml text = [RawBlock (Format "html5") text]
-
-data MediaType
-  = ImageT
-  | VideoT
-  | AudioT
-  | IframeT
-  | CodeT
-  | PdfT
-  | EmbedSvgT
-  | OffT
-  | RenderT
-
 extIn :: Maybe Text -> [Text] -> Bool
 extIn (Just ext) list = ext `elem` list
 extIn Nothing _ = False
 
-renderHtml :: RawHtml a => Html -> Filter a
-renderHtml html = do
-  pretty <- getMetaBoolOrElse "decker.filter.pretty" False <$> gets meta
-  return $
-    rawHtml $
-    toText $
-    if pretty
-      then toText $ Pretty.renderHtml html
-      else fromLazy $ Text.renderHtml html
-
-runAttr :: Attr -> Attrib a -> Filter a
-runAttr attr attrAction = evalStateT attrAction (nullAttr, attr)
-
-readLocalUri :: URI -> Filter Text
-readLocalUri uri = do
-  isFile <- isFileUri uri
-  if isFile
-    then resolveFileUri uri >>= lift . Text.readFile
-    else error $ "Cannot read from remote URL" <> URI.render uri
-
-isFileUri :: MonadThrow m => URI -> m Bool
-isFileUri uri =
-  case URI.uriScheme uri of
-    Just rtext
-      | URI.unRText rtext /= "file" -> return False
-    _ -> return True
-
--- | Transforms a URL and handles local and remote URLs differently.
-transformUrl :: Text -> Filter URI
-transformUrl url = do
-  uri <- URI.mkURI url
-  isFile <- isFileUri uri
-  if isFile
-    then processLocalUri uri
-    else processRemoteUri uri
-
--- | Adds a remote URL to the `decker.filter.links` list in the meta data.
-processRemoteUri :: URI -> Filter URI
-processRemoteUri uri = do
-  modifyMeta (addStringToMetaList "decker.filter.links" (URI.render uri))
-  return uri
-
--- | Applies the modification function f to the meta data in the filter
--- state.
-modifyMeta :: (Meta -> Meta) -> Filter ()
-modifyMeta f = modify (\s -> s {meta = f (meta s)})
-
-resolveFileUri :: URI -> Filter FilePath
-resolveFileUri uri = do
-  urlPath <- toString <$> uriPath uri
-  cwd <- liftIO $ getCurrentDirectory
-  baseDir <- toString <$> getMeta "decker.base-dir" "."
-  projectDir <- toString <$> getMeta "decker.project-dir" (toText cwd)
-  publicDir <-
-    toString <$> getMeta "decker.public-dir" (toText $ cwd </> "public")
-  urlPath <- toString <$> uriPath uri
-  let relPath =
-        normalise $
-        if hasDrive urlPath
-          then dropDrive urlPath
-          else makeRelative projectDir baseDir </> urlPath
-  let sourcePath = projectDir </> relPath
-  return sourcePath
-
-processLocalUri :: URI -> Filter URI
-processLocalUri uri = do
-  cwd <- liftIO $ getCurrentDirectory
-  -- | The absolute (!) document directory from which this is called.
-  baseDir <- toString <$> getMeta "decker.base-dir" "."
-  -- | The absolute (!) project directory from which this is called.
-  projectDir <- toString <$> getMeta "decker.project-dir" (toText cwd)
-  -- | The absolute (!) public directory where everything is published to.
-  publicDir <-
-    toString <$> getMeta "decker.public-dir" (toText $ cwd </> "public")
-  -- | The path component from the URI
-  urlPath <- toString <$> uriPath uri
-  -- | Interpret urlPath either project relative or document relative,
-  -- depending on the leading slash.
-  let relPath =
-        normalise $
-        if hasDrive urlPath
-          then dropDrive urlPath
-          else makeRelative projectDir baseDir </> urlPath
-  let basePath = projectDir </> baseDir
-  let targetPath = publicDir </> relPath
-  let sourcePath = projectDir </> relPath
-  let publicRelPath = makeRelativeTo basePath sourcePath
-  publicUri <- setUriPath (toText publicRelPath) uri
-  let publicUrl = URI.render publicUri
-  exists <- liftIO $ doesFileExist sourcePath
-  if exists
-    then storeResourceInfo sourcePath targetPath publicUrl
-    else throwM $
-         ResourceException $ "Local resource does not exist: " <> relPath
-  return publicUri
-
-setMeta :: Text -> Text -> Filter ()
-setMeta key value =
-  modify (\s -> s {meta = setMetaValue key (MetaString value) (meta s)})
-
-getMeta :: Text -> Text -> Filter Text
-getMeta key def = getMetaTextOrElse key def <$> gets meta
-
-storeResourceInfo :: FilePath -> FilePath -> Text -> Filter ()
-storeResourceInfo source target url = do
-  let key = "decker" <.> "filter" <.> "resources" <.> hash9String target
-  setMeta (toText $ key <.> "source") $ toText source
-  setMeta (toText $ key <.> "target") $ toText target
-  setMeta (toText $ key <.> "url") url
-
 -- | Generates an HTML error message for Image inlines from the image
 -- source and the actual exception. The Image element is rendered back
--- to Markdown format and included in the errorr message.
-imageError :: Inline -> SomeException -> Filter Html
+-- to Markdown format and included in the error message.
+imageError :: Inline -> SomeException -> Filter Inline
 imageError img@Image {} (SomeException e) = do
   let imgMarkup = inlinesToMarkdown [img]
-  return $
+  renderHtml $
     H.div ! A.class_ "decker image error" $ do
       H.h2 ! A.class_ "title" $ do
         H.i ! A.class_ "fa fa-exclamation-triangle" $ ""
@@ -342,47 +162,40 @@ imageError img@Image {} (SomeException e) = do
       H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
 imageError _ _ = bug $ InternalException "imageError: non image argument "
 
-transformImage :: Inline -> [Inline] -> Filter Html
+imageTransformer =
+  Map.fromList
+    [ (EmbedSvgT, svgHtml)
+    , (PdfT, objectHtml "application/pdf")
+    , (MviewT, mviewHtml)
+    , (IframeT, iframeHtml)
+    , (ImageT, imageHtml)
+    , (VideoT, videoHtml)
+    , (StreamT, streamHtml)
+    ]
+
+transformImage :: Inline -> [Inline] -> Filter Inline
 transformImage image@(Image attr@(_, classes, _) _ (url, _)) caption =
   handle (imageError image) $ do
     uri <- transformUrl url
-    let ext = uriPathExtension uri
-    runAttr attr $
-      if | extIn ext svgExt && "embed" `elem` classes -> svgHtml uri caption
-         | extIn ext pdfExt || "pdf" `elem` classes ->
-           objectHtml uri "application/pdf" caption
-         | extIn ext mviewExt || "mview" `elem` classes -> mviewHtml uri caption
-         | extIn ext iframeExt || "iframe" `elem` classes ->
-           iframeHtml uri caption
-         | extIn ext imageExt || "image" `elem` classes -> imageHtml uri caption
-         | extIn ext videoExt || "video" `elem` classes -> videoHtml uri caption
-         | otherwise -> imageHtml uri caption
-transformImage inline _ =
-  bug $ InternalException ("transformImage: no match for: " <> show inline)
+    let mediaType = classifyMedia uri attr
+    case Map.lookup mediaType imageTransformer of
+      Just transform -> runAttr attr (transform uri caption) >>= renderHtml
+      Nothing -> return image
 
 -- Lines up a list of images in a div element. Use with flexbox css.
-transformImages :: [Inline] -> [Inline] -> Filter Html
+transformImages :: [Inline] -> [Inline] -> Filter Block
 transformImages images caption = do
   imageRow <-
-    mapM
-      (\img@(Image _ caption _) -> H.div <$> transformImage img caption)
-      images
+    mapM (\img@(Image _ caption _) -> transformImage img caption) images
   if null caption
-    then return $
-         H.div ! A.class_ "decker image-row" ! A.style "border:2px solid cyan;" $
-         toHtml imageRow
+    then renderHtml $
+         H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
     else do
       captionHtml <- inlinesToHtml caption
-      return $
-        H.figure ! A.style "border:2px solid cyan;" ! A.class_ "decker" $ do
-          H.div ! A.class_ "decker image-row" $ toHtml imageRow
+      renderHtml $
+        H.figure ! A.class_ "decker" $ do
+          H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
           H.figcaption captionHtml
-
-instance ToValue [Text] where
-  toValue ts = toValue $ Text.intercalate " " ts
-
-(!*) :: Attributable h => h -> [(Text, Text)] -> h
-(!*) = foldl' (\h (k, v) -> h ! customAttribute (H.textTag k) (H.toValue v))
 
 mkVideoTag :: Text -> Attr -> Html
 mkVideoTag url (id, cs, kvs) =
@@ -423,23 +236,6 @@ mkSvgTag svg (id, cs, kvs) =
   A.class_ (H.toValue ("decker svg" : cs)) $
   H.preEscapedText svg
 
-mkFigureTag :: Html -> Html -> Attr -> Html
-mkFigureTag content caption (id, cs, kvs) =
-  H.figure !? (not (Text.null id), A.id (H.toValue id)) !
-  A.class_ (H.toValue ("decker" : cs)) !*
-  kvs $ do
-    content
-    H.figcaption ! A.class_ "decker" $ caption
-
-takeUsual = do
-  takeId
-  takeAllClasses
-  takeSize
-  takeCss
-  dropCore
-  passI18n
-  takeData
-
 imageHtml :: URI -> [Inline] -> Attrib Html
 imageHtml uri caption =
   case caption of
@@ -453,8 +249,8 @@ imageHtml uri caption =
       injectBorder >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
 
-objectHtml :: URI -> Text -> [Inline] -> Attrib Html
-objectHtml uri mime caption =
+objectHtml :: Text -> URI -> [Inline] -> Attrib Html
+objectHtml mime uri caption =
   case caption of
     [] -> do
       injectBorder >> takeUsual
@@ -533,37 +329,3 @@ videoHtml uri caption = do
       let videoTag = mkVideoTag videoUri videoAttr
       figureAttr <- injectBorder >> takeUsual >> extractAttr
       return $ mkFigureTag videoTag captionHtml figureAttr
-
-uriPathExtension :: URI -> Maybe Text
-uriPathExtension uri =
-  case URI.uriPath uri of
-    (Just (False, pieces)) ->
-      listToMaybe $ reverse $ Text.splitOn "." $ URI.unRText $ last pieces
-    _ -> Nothing
-
-uriPath :: MonadThrow m => URI -> m Text
-uriPath uri =
-  return $
-  URI.render
-    URI.emptyURI
-      { URI.uriPath = URI.uriPath uri
-      , URI.uriAuthority = Left (URI.isPathAbsolute uri)
-      }
-
-setUriPath :: MonadThrow m => Text -> URI -> m URI
-setUriPath path uri = do
-  pathUri <- URI.mkURI path
-  return
-    uri
-      { URI.uriPath = URI.uriPath pathUri
-      , URI.uriAuthority =
-          case URI.uriAuthority uri of
-            Left _ -> Left $ URI.isPathAbsolute pathUri
-            auth -> auth
-      }
-
-hash9String :: String -> String
-hash9String text = take 9 $ show $ md5 $ encodeUtf8 text
-
-hash9 :: Text -> Text
-hash9 text = Text.pack $ take 9 $ show $ md5 $ encodeUtf8 text
