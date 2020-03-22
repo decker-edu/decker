@@ -1,6 +1,7 @@
 ---
 title: New Quiz Syntax Test deck
 history: True
+# mario: True
 ---
 
 # Overview
@@ -26,9 +27,12 @@ All we are missing here are distractors, i.e. a way to have choices which are no
 
 ## Matching Questions {.quiz-mi} 
 
+Drag the elements to create correct pairings
+
 
 A
 : drag to A
+: test2
 
 Haskell 
 : ![](include/06-metal.png)
@@ -68,6 +72,20 @@ All choices get an optional comment to be potentially shown with the result.
 - [ ] c
     - So auch nicht
 
+
+# Audience Response System { .quiz }
+
+Wer bekommt am Ende die Prinzessin?
+
+- [ ] Donkey Kong 
+    - Nein, der ist böse!
+- [ ] Sponge Bob 
+    - Nein, der lebt unter Wasser!
+- [ ] Kleine A-Loch
+    - Nein, den mag keiner!
+- [X] Supermario
+    - Klar!
+
 # Blanktext/Inserting MC
 
 Like multiple-choice, however, the choices are shown as drop-down lists embedded inside the text. Hence, beware of the whitespaces below. 
@@ -91,7 +109,7 @@ and builds upon (now without all comments)
 
 - [ ] LaTeX Beamer
 
-
+##
 
 These questions now include multiple versions of correct answers with additional optional comments (as before). Hence the Syntax is slightly different in its compact representation. 
 

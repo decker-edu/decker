@@ -104,20 +104,36 @@ data Match
   | Distractor [[Block]]
   deriving (Show)
 
-matchList :: Block -> Maybe [Match]
-matchList (DefinitionList items) = Just $ map parseDL items
+matchList :: Block -> Maybe [(Int, Match)]
+matchList (DefinitionList items) =
+  Just $ zip [0 .. length items] (map parseDL items)
   where
     parseDL (Str "!":_, bs) = Distractor bs
     parseDL (is, bs) = Pair is bs
 matchList b = Nothing
 
-matchHtml :: Maybe [Match] -> Block
+matchHtml :: Maybe [(Int, Match)] -> Block
 matchHtml (Just matches) =
-  Div ("", ["answers", "columns"], []) $ map tempName matches
+  Div ("", ["answers", "columns"], []) $ [dropzone, dragzone]
   where
-    tempName :: Match -> Block
-    tempName (Distractor bs) = Div ("", ["distractor"], []) (concat bs)
-    tempName (Pair is bs) = Div ("", ["pair"], []) (Plain is : concat bs)
+    (dropzones, draggables) = unzip $ map pairs matches
+    dragzone = Div ("", ["dragzone"], []) (concat draggables)
+    dropzone = Div ("", ["dropzones"], []) dropzones
+    draggable :: Text.Text -> [Block] -> Block
+    draggable index =
+      Div ("", ["draggable"], [("draggable", "true"), ("id", index)])
+    draggableDist :: Text.Text -> [Block] -> Block
+    draggableDist index =
+      Div
+        ( ""
+        , ["draggable", "distractor"]
+        , [("draggable", "true"), ("id", index)])
+    pairs :: (Int, Match) -> (Block, [Block])
+    pairs (i, Distractor bs) =
+      (Null, map (draggableDist (Text.pack $ show i)) bs)
+    pairs (i, Pair is bs) =
+      ( Div ("", ["dropzone"], []) [Plain is]
+      , map (draggable (Text.pack $ show i)) bs)
 matchHtml Nothing = Plain [Str "NO MATCH"]
 
 data Answer_ =

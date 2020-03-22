@@ -136,7 +136,7 @@ function matchings(initialMatchings) {
     var draggables = document.getElementsByClassName("draggable");
 
     for (i = 0; i < dropzones.length; i++) {
-        dropzones[i].id = "drop".concat(i.toString());
+        // dropzones[i].id = "drop".concat(i.toString());
         dropzones[i].addEventListener("drop", drop);
         dropzones[i].addEventListener("dragover", allowDrop);
 
@@ -148,7 +148,7 @@ function matchings(initialMatchings) {
     }
 
     for (i = 0; i < draggables.length; i++) {
-        draggables[i].id = "drag".concat(i.toString());
+        // draggables[i].id = "drag".concat(i.toString());
         draggables[i].addEventListener("dragstart", drag);
 
         // disable children (e.g. images) from being dragged themselves
@@ -186,7 +186,7 @@ function shuffleDraggables() {
     for (let container of dragzones) {
         container.style.border = "black";
         container.style.borderStyle = "dashed";
-        container.id = "drop".concat(i.toString());
+        // container.id = "drop".concat(i.toString());
         container.addEventListener("drop", drop);
         container.addEventListener("dragover", allowDrop);
         var elementsArray = Array.prototype.slice.call(container.getElementsByClassName('draggable'));
