@@ -64,44 +64,35 @@ helper :: Text.Text -> Html
 helper = H.toHtml
 
 renderQuiz :: Quiz -> [Block] -> [Block]
-renderQuiz Match b = [Div ("", ["quiz-mi", "columns"], []) $ map tempfunc b]
-  where
-    tempfunc bl@(DefinitionList blocks) = (matchHtml . matchList) bl
-    tempfunc bl = Div ("", ["question", "columns"], []) [bl]
-renderQuiz Mult b = [Div ("", ["quiz-mc", "columns"], []) $ map tempfunc b]
-  where
-    tempfunc bl@(BulletList blocks) = (mcHtml . quizTaskList_) bl
-    tempfunc bl = Div ("", ["question", "columns"], []) [bl]
-renderQuiz Ins b = [Div ("", ["quiz-ic", "columns"], []) $ map tempfunc b]
-  where
-    tempfunc bl@(BulletList blocks) = (insertHtml . quizTaskList_) bl
-    tempfunc bl = Div ("", ["question", "columns"], []) [bl]
-renderQuiz Free b = [Div ("", ["quiz-ft", "columns"], []) $ map tempfunc_ b]
-  where
-    tempfunc_ bl@(BulletList blocks) = (freeHtml . quizTaskList_) bl
-    tempfunc_ bl = Div ("", ["question", "columns"], []) [bl]
+renderQuiz Match b =
+  [Div ("", ["quiz-mi", "columns"], []) $ map (renderQuiz_ Match) b]
+renderQuiz Mult b =
+  [Div ("", ["quiz-mc", "columns"], []) $ map (renderQuiz_ Mult) b]
+renderQuiz Ins b =
+  [Div ("", ["quiz-ic", "columns"], []) $ map (renderQuiz_ Ins) b]
+renderQuiz Free b =
+  [Div ("", ["quiz-ft", "columns"], []) $ map (renderQuiz_ Free) b]
 
-{-
-Structure of Multiple choice question:
-1. Header 2 is just the heading, can be used as question
-2. some content
-3. tasklist with questions
-repeat 2. + 3. if needed
-=> map over blocks if tasklist then process
--}
-data Answer =
-  Answer
-    { correct :: Bool
-    , answer :: Text.Text
-    , tooltip :: Text.Text
-    }
-  deriving (Show)
+renderQuiz_ :: Quiz -> Block -> Block
+renderQuiz_ Mult bl@(BulletList blocks) = (mcHtml . quizTaskList Mult) bl
+renderQuiz_ Ins bl@(BulletList blocks) = (insertHtml . quizTaskList Ins) bl
+renderQuiz_ Free bl@(BulletList blocks) = (freeHtml . quizTaskList Free) bl
+renderQuiz_ Match bl@(DefinitionList blocks) = (matchHtml . matchList) bl
+renderQuiz_ _ bl = Div ("", ["question", "columns"], []) [bl]
 
 --  the biggest question is how to handle stuff that has been processed already by pandoc
 -- e.g. images, links etc
 data Match
   = Pair [Inline] [[Block]]
   | Distractor [[Block]]
+  deriving (Show)
+
+data Answer =
+  Answer
+    { correct :: Bool
+    , solution :: [Inline]
+    , comment :: [Block]
+    }
   deriving (Show)
 
 matchList :: Block -> Maybe [(Int, Match)]
@@ -114,7 +105,7 @@ matchList b = Nothing
 
 matchHtml :: Maybe [(Int, Match)] -> Block
 matchHtml (Just matches) =
-  Div ("", ["answers", "columns"], []) $ [dropzone, dragzone]
+  Div ("", ["answers", "columns"], []) [dropzone, dragzone]
   where
     (dropzones, draggables) = unzip $ map pairs matches
     dragzone = Div ("", ["dragzone"], []) (concat draggables)
@@ -136,37 +127,31 @@ matchHtml (Just matches) =
       , map (draggable (Text.pack $ show i)) bs)
 matchHtml Nothing = Plain [Str "NO MATCH"]
 
-data Answer_ =
-  Answer_
-    { right :: Bool
-    , solution :: [Inline]
-    , comment :: [Block]
-    }
-  deriving (Show)
-
-quizTaskList_ :: Block -> Maybe [Answer_]
-quizTaskList_ (BulletList blocks) = Just (map parseTL blocks)
+-- This TaskList Parsing is potentially dangerous. Does every system know these checkbox symbols?
+quizTaskList :: Quiz -> Block -> Maybe [Answer]
+quizTaskList q (BulletList blocks) = Just (map (parseTL q) blocks)
   where
-    parseTL (Plain (Str "☒":Space:is):bs) = Answer_ True is bs
-    parseTL (Plain (Str "☐":Space:is):bs) = Answer_ False is bs
-    parseTL is = Answer_ False [] [Null]
-quizTaskList_ b = Nothing
+    parseTL _ (Plain (Str "☒":Space:is):bs) = Answer True is bs
+    parseTL _ (Plain (Str "☐":Space:is):bs) = Answer False is bs
+    parseTL Free (Plain is:bs) = Answer True is bs
+    parseTL _ is = Answer False [] [Null]
+quizTaskList q b = Nothing
 
 -- | This div is hidden 
-solutionDiv :: [Answer_] -> Block
+solutionDiv :: [Answer] -> Block
 solutionDiv answers = Div ("", ["solutions"], []) $ map tempName answers
   where
-    tempName (Answer_ _ _ (Null:r)) = Plain [Str "NO TASKLIST ITEM"]
-    tempName (Answer_ True is bs) =
+    tempName (Answer _ _ (Null:r)) = Plain [Str "NO TASKLIST ITEM"]
+    tempName (Answer True is bs) =
       Div
         ("", ["solution", "correct"], [])
         [Plain is, Div ("", ["tooltip", "correct"], []) bs]
-    tempName (Answer_ False is bs) =
+    tempName (Answer False is bs) =
       Div
         ("", ["solution", "wrong"], [])
         [Plain is, Div ("", ["tooltip", "wrong"], []) bs]
 
-insertHtml :: Maybe [Answer_] -> Block
+insertHtml :: Maybe [Answer] -> Block
 insertHtml (Just answers) =
   Div ("", ["answers", "columns"], []) [Plain [insertHtml], solutionDiv answers]
   where
@@ -181,7 +166,7 @@ insertHtml (Just answers) =
           H.select ! A.class_ "blankSelect" $
           (foldr (\x -> (>>) (H.option x)) (H.area) xs)
 
-freeHtml :: Maybe [Answer_] -> Block
+freeHtml :: Maybe [Answer] -> Block
 freeHtml (Just answers) =
   Div ("", ["answers"], []) [Para [inputHtml], solutionDiv answers]
   where
@@ -195,16 +180,16 @@ freeHtml (Just answers) =
         H.button ! A.class_ "freetextAnswerButton" $ helper "Solution"
 freeHtml Nothing = Para [Str "ERROR SOMETHING"]
 
-mcHtml :: Maybe [Answer_] -> Block
+mcHtml :: Maybe [Answer] -> Block
 mcHtml (Just answers) =
   Div
     ("", ["answers", "survey"], [])
     [BulletList (map tempName answers), solutionDiv answers]
   where
-    tempName (Answer_ _ _ (Null:r)) = [Plain [Str "NO TASKLIST ITEM"]]
-    tempName (Answer_ True is bs) =
+    tempName (Answer _ _ (Null:r)) = [Plain [Str "NO TASKLIST ITEM"]]
+    tempName (Answer True is bs) =
       [Plain is, Div ("", ["tooltip", "correct"], []) bs]
-    tempName (Answer_ False is bs) =
+    tempName (Answer False is bs) =
       [Plain is, Div ("", ["tooltip", "wrong"], []) bs]
 mcHtml Nothing = Para [Str "ERROR SOMETHING"]
 
