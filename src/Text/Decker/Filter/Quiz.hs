@@ -28,6 +28,7 @@ import Text.Blaze.Html.Renderer.String as S
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Decker.Filter.Decker
+import Text.Decker.Filter.Local
 import Text.Decker.Filter.Util as U
 import Text.Decker.Internal.Common
 import Text.Pandoc
@@ -65,13 +66,19 @@ helper = H.toHtml
 
 renderQuiz :: Quiz -> [Block] -> [Block]
 renderQuiz Match b =
-  [Div ("", ["quiz-mi", "columns"], []) $ map (renderQuiz_ Match) b]
+  [ Div ("", ["quiz-mi", "columns"], [("score", "0")]) $
+    map (renderQuiz_ Match) b
+  ]
 renderQuiz Mult b =
-  [Div ("", ["quiz-mc", "columns"], []) $ map (renderQuiz_ Mult) b]
+  [ Div ("", ["quiz-mc", "columns"], [("score", "0")]) $
+    map (renderQuiz_ Mult) b
+  ]
 renderQuiz Ins b =
-  [Div ("", ["quiz-ic", "columns"], []) $ map (renderQuiz_ Ins) b]
+  [Div ("", ["quiz-ic", "columns"], [("score", "0")]) $ map (renderQuiz_ Ins) b]
 renderQuiz Free b =
-  [Div ("", ["quiz-ft", "columns"], []) $ map (renderQuiz_ Free) b]
+  [ Div ("", ["quiz-ft", "columns"], [("score", "0")]) $
+    map (renderQuiz_ Free) b
+  ]
 
 renderQuiz_ :: Quiz -> Block -> Block
 renderQuiz_ Mult bl@(BulletList blocks) = (mcHtml . quizTaskList Mult) bl
@@ -106,24 +113,25 @@ matchList b = Nothing
 matchHtml :: Maybe [(Int, Match)] -> Block
 matchHtml (Just matches) =
   Div ("", ["answers", "columns"], []) [dropzone, dragzone]
+    -- 
   where
     (dropzones, draggables) = unzip $ map pairs matches
     dragzone = Div ("", ["dragzone"], []) (concat draggables)
     dropzone = Div ("", ["dropzones"], []) dropzones
     draggable :: Text.Text -> [Block] -> Block
     draggable index =
-      Div ("", ["draggable"], [("draggable", "true"), ("id", index)])
+      Div ("", ["draggable"], [("draggable", "true"), ("answerId", index)])
     draggableDist :: Text.Text -> [Block] -> Block
     draggableDist index =
       Div
         ( ""
         , ["draggable", "distractor"]
-        , [("draggable", "true"), ("id", index)])
+        , [("draggable", "true"), ("answerId", index)])
     pairs :: (Int, Match) -> (Block, [Block])
     pairs (i, Distractor bs) =
       (Null, map (draggableDist (Text.pack $ show i)) bs)
     pairs (i, Pair is bs) =
-      ( Div ("", ["dropzone"], []) [Plain is]
+      ( Div ("", ["dropzone"], [("answerId", Text.pack $ show i)]) [Plain is]
       , map (draggable (Text.pack $ show i)) bs)
 matchHtml Nothing = Plain [Str "NO MATCH"]
 
@@ -137,7 +145,7 @@ quizTaskList q (BulletList blocks) = Just (map (parseTL q) blocks)
     parseTL _ is = Answer False [] [Null]
 quizTaskList q b = Nothing
 
--- | This div is hidden 
+-- | This div is hidden after Free, Ins and Mult questions and contains the solutions + tooltips
 solutionDiv :: [Answer] -> Block
 solutionDiv answers = Div ("", ["solutions"], []) $ map tempName answers
   where
@@ -153,18 +161,20 @@ solutionDiv answers = Div ("", ["solutions"], []) $ map tempName answers
 
 insertHtml :: Maybe [Answer] -> Block
 insertHtml (Just answers) =
-  Div ("", ["answers", "columns"], []) [Plain [insertHtml], solutionDiv answers]
+  Div
+    ("", ["answers", "columns"], [])
+    [Plain [insertHtml'], solutionDiv answers]
   where
     manageAnswerList = map (\x -> (helper $ stringify $ solution x))
-    insertHtml :: Inline
-    insertHtml =
+    insertHtml' :: Inline
+    insertHtml' =
       rawHtml $ Text.pack $ S.renderHtml $ options (manageAnswerList answers)
     options xs =
       case xs of
         [x] -> H.input ! A.class_ "blankInput"
         xs ->
           H.select ! A.class_ "blankSelect" $
-          (foldr (\x -> (>>) (H.option x)) (H.area) xs)
+          (foldr (\x -> (>>) (H.option x)) H.area xs)
 
 freeHtml :: Maybe [Answer] -> Block
 freeHtml (Just answers) =

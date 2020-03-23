@@ -276,18 +276,27 @@ function allowDrop(ev) {
     ev.preventDefault();
 }
 
-function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.id);
+var elements = [];
+function drag(event) {
+    var index = elements.indexOf(event.target);
+    if (index == -1) {
+        // not already existing in the array, add it now
+        elements.push(event.target);
+        index = elements.length - 1;
+    }
+
+    event.dataTransfer.setData('index', index);
 }
 
-function drop(ev) {
-    ev.preventDefault();
-    var data = ev.dataTransfer.getData("text");
-    if (ev.target.className == "draggable") {
+function drop(event) {
+    event.preventDefault();
+    var element = elements[event.dataTransfer.getData('index')];
+    if (event.target.className == "draggable") {
         return false;
     }
-    ev.target.appendChild(document.getElementById(data));
-    ev.target.disabled = true;
+
+    event.target.appendChild(element);
+    event.target.disabled = true;
 }
 
 /*
