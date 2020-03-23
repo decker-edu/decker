@@ -48,7 +48,7 @@ dist: install
 	rm dist/$(decker-name)
 
 test:
-	stack test
+	stack -j1 test
 
 watch:
 	stack test --file-watch

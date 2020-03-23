@@ -20,7 +20,6 @@ import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
-import Text.Decker.Filter.MarioMedia
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Render
 import Text.Decker.Filter.ShortLink
@@ -33,23 +32,22 @@ import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
 import Text.Pandoc
 
--- import Text.Pandoc.Lens
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: FilePath -> Pandoc -> Action Pandoc
-processIncludes baseDir (Pandoc meta blocks) =
-  Pandoc meta <$> processBlocks baseDir blocks
+processIncludes topBaseDir (Pandoc meta blocks) =
+  Pandoc meta <$> processBlocks blocks
   where
-    processBlocks :: FilePath -> [Block] -> Action [Block]
-    processBlocks base blcks =
-      Prelude.concat . Prelude.reverse <$> foldM (include base) [] blcks
-    include :: FilePath -> [[Block]] -> Block -> Action [[Block]]
-    include base result (Para [Link _ [Str ":include"] (url, _)]) = do
-      includeFile <- urlToFilePathIfLocal base (T.unpack url)
+    processBlocks :: [Block] -> Action [Block]
+    processBlocks blcks =
+      Prelude.concat . Prelude.reverse <$> foldM include [] blcks
+    include :: [[Block]] -> Block -> Action [[Block]]
+    include result (Para [Link _ [Str ":include"] (url, _)]) = do
+      includeFile <- urlToFilePathIfLocal topBaseDir (T.unpack url)
       need [includeFile]
-      Pandoc _ b <- readMetaMarkdown includeFile
-      included <- processBlocks (takeDirectory includeFile) b
+      Pandoc _ b <- readMetaMarkdown topBaseDir includeFile
+      included <- processBlocks b
       return $ included : result
-    include _ result block = return $ [block] : result
+    include result block = return $ [block] : result
 
 -- | Fixes pandoc escaped # markup in mustache template {{}} markup.
 fixMustacheMarkupText :: T.Text -> T.Text
@@ -68,12 +66,14 @@ fixMustacheMarkupText content =
 --    b) Provision the resources (copy to public)
 -- 4. Remove all traces of this from the meta data
 -- 
-runDeckerFilter :: (Pandoc -> IO Pandoc) -> FilePath -> Pandoc -> Action Pandoc
-runDeckerFilter filter base pandoc@(Pandoc meta blocks) = do
+runDeckerFilter ::
+     (Pandoc -> IO Pandoc) -> FilePath -> FilePath -> Pandoc -> Action Pandoc
+runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks) = do
   dirs <- projectDirsA
   -- | Augment document meta.
   let deckerMeta =
-        setTextMetaValue "decker.base-dir" (T.pack base) $
+        setTextMetaValue "decker.base-dir" (T.pack docBase) $
+        setTextMetaValue "decker.top-base-dir" (T.pack topBase) $
         setTextMetaValue "decker.project-dir" (T.pack $ _project dirs) $
         setTextMetaValue "decker.public-dir" (T.pack $ _public dirs) meta
   (Pandoc resultMeta resultBlocks) <- liftIO $ filter (Pandoc deckerMeta blocks)
@@ -89,16 +89,17 @@ runDeckerFilter filter base pandoc@(Pandoc meta blocks) = do
       where
         processResource resource@(Resource source target url) = do
           need [source]
-          publishResource base resource
+          publishResource topBase resource
           -- TODO Remove resource info from meta data
           return meta
 
 -- | Runs the new decker media filter.
-deckerMediaFilter base (Pandoc meta blocks) =
-  runDeckerFilter
-    (mediaFilter def)
-    base
-    (Pandoc meta blocks)
+deckerMediaFilter topBase docBase (Pandoc meta blocks) =
+  runDeckerFilter (mediaFilter options) topBase docBase (Pandoc meta blocks)
+  where
+    options =
+      def
+        {writerHTMLMathMethod = MathJax "Handled by reveal.js in the template"}
 
 -- | The old style decker filter pipeline with Mario's media handling.
 marioPipeline =
@@ -110,7 +111,7 @@ marioPipeline =
     , provisionResources
     , renderQuizzes
     , processSlides
-    , marioMedia
+    -- , marioMedia
     , processCitesWithDefault
     , appendScripts
     ]
@@ -125,32 +126,30 @@ deckerPipeline =
     , provisionResources
     , renderQuizzes
     , processSlides
-    , renderMediaTags
-    , extractFigures
+    -- , renderMediaTags
+    -- , extractFigures
     , processCitesWithDefault
     , appendScripts
     ]
 
 -- | Reads a markdownfile, expands the included files, and calls need.
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
-readAndProcessMarkdown markdownFile disp = do
-  let baseDir = takeDirectory markdownFile
-  marioRun <- getMetaBoolOrElse "mario" False <$> globalMetaA
+readAndProcessMarkdown markdownFile disp
+  --let topLevelBase = makeRelative projectDir $ takeDirectory markdownFile
+ = do
+  topLevelBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
   provisioning <- provisioningFromMeta <$> globalMetaA
-  let pipeline =
-        if marioRun
-          then marioPipeline
-          else deckerPipeline
-  readMetaMarkdown markdownFile >>= processIncludes baseDir >>=
-    processPandoc pipeline baseDir disp provisioning
+  readMetaMarkdown topLevelBase markdownFile >>= processIncludes topLevelBase >>=
+    processPandoc deckerPipeline topLevelBase disp provisioning
 
 -- | Reads a markdown file and returns a pandoc document. Handles meta data
 -- extraction and template substitution. All references to local resources are
 -- converted to absolute pathes.
-readMetaMarkdown :: FilePath -> Action Pandoc
-readMetaMarkdown markdownFile = do
-  need [markdownFile]
+readMetaMarkdown :: FilePath -> FilePath -> Action Pandoc
+readMetaMarkdown topLevelBase markdownFile = do
   projectDir <- projectA
+  docBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
+  need [markdownFile]
   markdown <- liftIO $ T.readFile markdownFile
   globalMeta <- globalMetaA
   let filePandoc@(Pandoc fileMeta fileBlocks) =
@@ -160,13 +159,13 @@ readMetaMarkdown markdownFile = do
   versionCheck combinedMeta
   let writeBack = getMetaBoolOrElse "write-back.enable" False combinedMeta
   when writeBack $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
-  baseDir <- liftIO $ makeAbsolute $ takeDirectory markdownFile
   -- This is the new media filter. Runs right after reading. Because every matched
   -- document fragment is converted to raw HTML, the following old style filters
   -- will not see them.
-  filtered <- deckerMediaFilter baseDir (Pandoc combinedMeta fileBlocks)
+  filtered <-
+    deckerMediaFilter topLevelBase docBase (Pandoc combinedMeta fileBlocks)
   -- TODO remove once old style filters are migrated
-  mapResources (urlToFilePathIfLocal baseDir) filtered
+  mapResources (urlToFilePathIfLocal topLevelBase) filtered
 
 readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
 readMarkdownOrThrow opts markdown =

@@ -5,9 +5,8 @@ module MediaTests
   ) where
 
 import Text.Decker.Filter.Decker
+import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Meta
-
-import Text.Blaze.Html hiding (text)
 
 import Data.Maybe
 import qualified Data.Text.IO as Text
@@ -19,6 +18,7 @@ import Text.Pandoc.Highlighting
 import Text.Pandoc.Walk
 
 filterMeta =
+  setTextMetaValue "decker.top-base-dir" "." $
   setTextMetaValue "decker.base-dir" "." $
   setTextMetaValue "decker.project-dir" "." $
   setTextMetaValue "decker.public-dir" "." $ nullMeta
@@ -27,9 +27,8 @@ filterMeta =
 -- | Constructs a filter runner with default parameters
 testFilter = runFilter' def filterMeta
 
-doFilter :: Filter Html -> IO Inline
-doFilter action =
-  fst <$> runStateT (action >>= renderHtml) (FilterState def filterMeta)
+doFilter :: Filter Inline -> IO Inline
+doFilter action = fst <$> runStateT (action) (FilterState def filterMeta)
 
 mediaTests = do
   describe "pairwise" $
@@ -57,17 +56,17 @@ plainImage =
      , ["myclass"]
      , [("width", "30%"), ("css:border", "1px"), ("myattribute", "1")])
      []
-     ("logo.jpg", ""))
+     ("/test/decks/include/06-metal.png", ""))
 
 plainImageCaptionedHtml =
   RawInline
-    (Format "html5")
-    "<figure id=\"logo\" class=\"decker myclass\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"logo.jpg\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    (Format "html")
+    "<figure id=\"logo\" class=\"decker myclass\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"test/decks/include/06-metal.png\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 plainImageHtml =
   RawInline
-    (Format "html5")
-    "<img id=\"logo\" class=\"decker myclass\" data-src=\"logo.jpg\" data-myattribute=\"1\" style=\"width:30%;border:1px;\">"
+    (Format "html")
+    "<img id=\"logo\" class=\"decker myclass\" data-src=\"test/decks/include/06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\">"
 
 plainVideo =
   Image
@@ -76,23 +75,23 @@ plainVideo =
     , [ ("width", "30%")
       , ("css:border", "1px")
       , ("annoying", "100")
-      , ("poster", "some/where/image.png")
+      , ("poster", "/test/decks/include/06-metal.png")
       , ("preload", "none")
       , ("start", "23")
       , ("stop", "42")
       ])
     []
-    ("cat.mp4", "")
+    ("/test/decks/pacman-perfect-game.mp4", "")
 
 plainVideoHtml =
   RawInline
-    (Format "html5")
-    "<video id=\"video\" class=\"decker myclass\" data-src=\"cat.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"some/where/image.png\" preload=\"none\" loop=\"1\" data-autoplay=\"1\"></video>"
+    (Format "html")
+    "<video id=\"video\" class=\"decker myclass\" data-src=\"test/decks/pacman-perfect-game.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"/test/decks/include/06-metal.png\" preload=\"none\" loop=\"1\" data-autoplay=\"1\"></video>"
 
 plainVideoCaptionedHtml =
   RawInline
-    (Format "html5")
-    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"cat.mp4#t=23,42\" poster=\"some/where/image.png\" preload=\"none\" loop=\"1\" data-autoplay=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    (Format "html")
+    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"test/decks/pacman-perfect-game.mp4#t=23,42\" poster=\"/test/decks/include/06-metal.png\" preload=\"none\" loop=\"1\" data-autoplay=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 blockAin = [Para [], Para [Image nullAttr [] ("", "")], Para []]
 
@@ -163,7 +162,7 @@ testSnippets :: [(Text, Text, Text)]
 testSnippets =
   [ ( "Plain image"
     , "An image that is used inline in a paragraph of text."
-    , "![](/some/path/image.png)")
+    , "![The *caption* can contain markup: $e=mc^2$.](/test/decks/include/06-metal.png)")
   , ( "SVG image"
     , "An SVG image that is embedded into the HTML document."
     , "![](/test/decks/empty.svg){.embed}")
@@ -173,7 +172,7 @@ testSnippets =
   , ( "Plain image with caption"
     , "An image with a caption. The image is surrounded by a figure element."
     , [text|
-        ![](path/image.png)
+        ![](/test/decks/include/06-metal.png)
 
         Caption: Caption.
       |])
@@ -182,31 +181,31 @@ testSnippets =
     , "![Caption.](https://some.where/image.png&key=value)")
   , ( "Plain image with custom attributes."
     , "Image attributes are handled in complex ways."
-    , "![Caption.](/some/path/image.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}")
+    , "![Caption.](/test/decks/include/06-metal.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}")
   , ( "Plain video"
     , "Images that are videos are converted to a video tag."
-    , "![Caption.](/some/path/video.mp4){width=\"42%\"}")
+    , "![Caption.](test/decks/pacman-perfect-game.mp4){width=\"42%\"}")
   , ( "Plain video with Media Fragments URI"
     , "A local video with start time."
-    , "![Caption.](/some/path/video.mp4){start=\"5\" stop=\"30\" preload=\"none\"}")
+    , "![Caption.](test/decks/pacman-perfect-game.mp4){start=\"5\" stop=\"30\" preload=\"none\"}")
   , ( "Plain video with specific attributes"
     , "Video tag specific classes are translated to specific attributes."
-    , "![Caption.](/some/path/video.mp4){.controls .autoplay start=\"5\" stop=\"30\" poster=\"somewhere/image.png\" preload=\"none\"}")
+    , "![Caption.](test/decks/pacman-perfect-game.mp4){.controls .autoplay start=\"5\" stop=\"30\" poster=\"/test/decks/include/06-metal.png\" preload=\"none\"}")
   , ( "Three images in a row"
     , "Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout."
     , [text|
-        | ![](image.png)
-        | ![Caption.](movie.mp4){.autoplay}
-        | ![](image.png){css:border="1px solid black"}
+        | ![](/test/decks/include/06-metal.png)
+        | ![Caption.](test/decks/pacman-perfect-game.mp4){.autoplay}
+        | ![](/test/decks/include/06-metal.png){css:border="1px solid black"}
 
       |])
   , ( "Four images in a row with caption"
     , "Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout."
     , [text|
-        | ![](image.png)
-        | ![](movie.mp4){.autoplay}
-        | ![](image.png){css:border="1px solid black"}
-        | ![](image.png)
+        | ![](/test/decks/include/06-metal.png)
+        | ![](test/decks/pacman-perfect-game.mp4){.autoplay}
+        | ![](/test/decks/include/06-metal.png){css:border="1px solid black"}
+        | ![](/test/decks/include/06-metal.png)
 
         Caption: Caption
       |])
@@ -219,6 +218,18 @@ testSnippets =
   , ( "Mario's model viewer"
     , "A simple iframe with a special url."
     , "![Caption.](http://3d.de/model.off){.mario height=\"400px\" phasers=\"stun\"}")
+  , ( "Youtube video stream"
+    , "An image with source URL scheme `youtube:` results in an embedded video player."
+    , "![](youtube:1234567890)")
+  , ( "Twitch it baby"
+    , "An image with source URL scheme `twitch:` results in an embedded video player."
+    , "![](twitch:1234567890)")
+  , ( "Background image"
+    , "The last image in a level 1 header is promoted to the slide background."
+    , "# Background Image ![](/test/decks/include/06-metal.png){size=\"cover\"}")
+  , ( "Background video"
+    , "The last image in a level 1 header is promoted to the slide background."
+    , "# Background Image ![](test/decks/pacman-perfect-game.mp4){.loop .muted color=\"black\"}")
   ]
 
 runSnippets :: [(Text, Text, Text)] -> IO [(Text, Text, Text, Text)]

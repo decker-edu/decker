@@ -1,6 +1,7 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Text.Decker.Filter.Macro
   ( expandDeckerMacros
+  , embedWebVideosHtml
   ) where
 
 import Text.Decker.Internal.Common
@@ -156,7 +157,8 @@ horizontalSpace _ _ (space, _) _ = do
     Disposition _ Html ->
       return $
       RawInline (Format "html") $
-      Text.pack $ printf "<span style=\"display:inline-block; width:%s;\"></span>" space
+      Text.pack $
+      printf "<span style=\"display:inline-block; width:%s;\"></span>" space
     Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
 
 verticalSpace :: MacroAction
@@ -166,7 +168,8 @@ verticalSpace _ _ (space, _) _ = do
     Disposition _ Html ->
       return $
       RawInline (Format "html") $
-      Text.pack $ printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
+      Text.pack $
+      printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
     Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
 
 metaValue :: MacroAction
@@ -235,7 +238,8 @@ expandInlineMacros meta inline@(Image attr _ (url, tit))
     Nothing -> return inline
 expandInlineMacros _ inline = return inline
 
--- Check inline for special embedding content (currently only web videos) if inline is Image
+-- Check inline for special embedding content (currently only web videos) if
+-- inline is Image
 findEmbeddingType :: Inline -> Maybe Text.Text
 findEmbeddingType inline@(Image attr text (url, tit))
   | "youtube://" `Text.isPrefixOf` url = Just "youtube"

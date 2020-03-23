@@ -136,10 +136,6 @@ run = do
       runHttpServer serverPort directories Nothing
       liftIO $ waitForYes
     --
-    -- phony "example" $ liftIO writeExampleProject
-    -- -- 
-    -- phony "tutorial" $ liftIO writeTutorialProject
-    --
     phony "index" $ need ["support", index]
     --
     priority 2 $

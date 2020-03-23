@@ -19,6 +19,7 @@ module Text.Decker.Filter.Slide
 import Text.Pandoc.Lens
 
 import Control.Lens
+import Data.List
 import Data.List.Split
 import Data.Maybe
 import Text.Pandoc
@@ -34,11 +35,11 @@ data Slide = Slide
 -- | A lens for header access on a slide. See
 -- https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/a-little-lens-starter-tutorial
 header :: Lens' Slide (Maybe Block)
-header = lens (\(Slide h _) -> h) (\(Slide _ b) h -> (Slide h b))
+header = lens (\(Slide h _) -> h) (\(Slide _ b) h -> Slide h b)
 
 -- | A lens for blocks access on a slide. 
 blocks :: Lens' Slide [Block]
-blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> (Slide h b))
+blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> Slide h b)
 
 -- | A Prism for slides
 _Slide :: Prism' Slide (Maybe Block, [Block])
@@ -114,7 +115,7 @@ hasAnyClass :: HasAttr a => [Text.Text] -> a -> Bool
 hasAnyClass which = isJust . firstClass which
 
 firstClass :: HasAttr a => [Text.Text] -> a -> Maybe Text.Text
-firstClass which fragment = listToMaybe $ filter (`hasClass` fragment) which
+firstClass which fragment = find (`hasClass` fragment) which
 
 attribValue :: HasAttr a => Text.Text -> a -> Maybe Text.Text
 attribValue which = lookup which . view (attributes . attrs)
