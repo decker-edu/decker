@@ -6,10 +6,50 @@ import Text.Decker.Filter.Monad
 
 import Text.Decker.Internal.Meta
 
+import Data.Bifunctor
 import qualified Data.List as List
 import qualified Data.Text as Text
 import Relude
 import Text.Pandoc
+
+-- | An associative list representing element attributes.
+type AttrMap = [(Text, Text)]
+
+-- | The first set contains the transformed attributes that will be extracted
+-- and added to the HTML elements. The second set contains the source
+-- attributes as parsed from the Markdown attribute markup. Many functions
+-- inside the Attrib monad manipulate one or both attribute sets. 
+type AttribState = (Attr, Attr)
+
+-- | The Attrib monad.
+type Attrib = StateT AttribState Filter
+
+runAttr :: Attr -> Attrib a -> Filter a
+runAttr attr attrAction = evalStateT attrAction (nullAttr, attr)
+
+runAttrOn :: Attr -> Attr -> Attrib a -> Filter a
+runAttrOn init attr attrAction = evalStateT attrAction (init, attr)
+
+filterAttr :: Attr -> Attrib Attr -> Filter Attr
+filterAttr attr attrAction = evalStateT attrAction (nullAttr, attr)
+
+augmentAttr :: Attr -> Attr -> Attrib Attr -> Filter Attr
+augmentAttr init attr attrAction = evalStateT attrAction (init, attr)
+
+src :: Attrib Attr
+src = do
+  (_, s) <- get
+  return s
+
+srcAttributes :: Attrib [(Text, Text)]
+srcAttributes = do
+  (_, (_, _, kvs)) <- get
+  return kvs
+
+srcAttribute :: Text -> Attrib (Maybe Text)
+srcAttribute key = do
+  (_, (_, _, kvs)) <- get
+  return $ fst <$> find ((==) key . fst) kvs
 
 -- | Extracts the attributes that have been transformed so far. The attributes
 -- are removed.
@@ -51,9 +91,10 @@ injectStyle (key, value) = modify transform
       ((id', cs', addStyle (key, value) kvs'), attr)
 
 injectAttribute :: (Text, Text) -> Attrib ()
-injectAttribute kv = modify transform
+injectAttribute (k, v) = modify transform
   where
-    transform ((id', cs', kvs'), attr) = ((id', cs', kv : kvs'), attr)
+    transform ((id', cs', kvs'), attr) =
+      ((id', cs', (k, v) : filter ((/= k) . fst) kvs'), attr)
 
 -- | Pushes an additional attribute to the source side of the attribute state.
 -- An existing attribute with the same key is overwritten.
@@ -145,28 +186,40 @@ injectBorder = do
   border <- getMetaBoolOrElse "decker.filter.border" False <$> lift (gets meta)
   when border $ injectStyle ("border", "2px solid magenta")
 
-videoClasses = ["controls", "loop", "muted"]
-
 takeVideoClasses :: Attrib ()
-takeVideoClasses = modify transform
+takeVideoClasses = takeClasses identity ["controls", "loop", "muted"]
+
+takeClasses :: (Text -> Text) -> [Text] -> Attrib ()
+takeClasses f classes = modify transform
   where
     transform state@((id', cs', kvs'), (id, cs, kvs)) =
-      let (vcs, rest) = List.partition (`elem` videoClasses) cs
-       in ((id', cs', map (, "1") vcs <> kvs'), (id, rest, kvs))
-
-videoAttribs = ["controls", "loop", "muted", "poster", "preload"]
+      let (vcs, rest) = List.partition (`elem` classes) cs
+       in ((id', cs', map ((, "1") . f) vcs <> kvs'), (id, rest, kvs))
 
 passVideoAttribs :: Attrib ()
-passVideoAttribs = modify transform
+passVideoAttribs =
+  passAttribs identity ["controls", "loop", "muted", "poster", "preload"]
+
+passAttribs :: (Text -> Text) -> [Text] -> Attrib ()
+passAttribs f keys = modify transform
   where
     transform state@((id', cs', kvs'), (id, cs, kvs)) =
-      let (vkvs, rest) = List.partition ((`elem` videoAttribs) . fst) kvs
-       in ((id', cs', vkvs <> kvs'), (id, cs, rest))
+      let (vkvs, rest) = List.partition ((`elem` keys) . fst) kvs
+       in ((id', cs', map (first f) vkvs <> kvs'), (id, cs, rest))
 
 takeAutoplay :: Attrib ()
 takeAutoplay = do
   (id, cs, kvs) <- snd <$> get
-  when ("autoplay" `elem` cs || "autoplay" `elem` (map fst kvs)) $ do
+  when ("autoplay" `elem` cs || "autoplay" `elem` map fst kvs) $ do
     dropClass "autoplay"
     dropAttribute "autoplay"
     injectAttribute ("data-autoplay", "1")
+
+takeUsual = do
+  takeId
+  takeAllClasses
+  takeSize
+  takeCss
+  dropCore
+  passI18n
+  takeData

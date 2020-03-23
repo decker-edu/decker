@@ -289,10 +289,9 @@ mcTooltipHtml block = block
 -- | create the html element for the blanktext question
 blanktextHtml :: ([Inline], [Block]) -> Block
 blanktextHtml (inlines, blocks) =
-  Div ("", ["blankText"], []) (selects ++ [answerButton])
-  --Div ("", ["blankText"], []) ([title] ++ selects ++ [answerButton])
-    --title = Header 2 ("", [], []) inlines
+  Div ("", ["blankText", "columns"], []) (selects ++ [answerButton])
   where
+    title = Header 2 ("", [], []) inlines
     selects = map html blocks
     html (Plain x) = Para (blanktextHtmlAnswers $ splitBlankText x)
     answerButton =
