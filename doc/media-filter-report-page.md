@@ -18,13 +18,47 @@ Plain image
 An image that is used inline in a paragraph of text.
 
 ``` {.markdown}
-![](/test/decks/include/06-metal.png)
+![The *caption* can contain markup: $e=mc^2$.](/test/decks/include/06-metal.png)
 ```
 
 translates to
 
 ``` {.html}
-<img class="decker" data-src="test/decks/include/06-metal.png">
+<figure class="decker">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <figcaption class="decker">
+        The
+         
+        <em>
+            caption
+        </em>
+         
+        can
+         
+        contain
+         
+        markup:
+         
+        <span class="math inline">
+            <em>
+                e
+            </em>
+             
+            =
+             
+            <em>
+                m
+            </em>
+            <em>
+                c
+            </em>
+            <sup>
+                2
+            </sup>
+        </span>
+        .
+    </figcaption>
+</figure>
 ```
 
 ------------------------------------------------------------------------
@@ -346,7 +380,7 @@ translates to
 
 ``` {.html}
 <figure class="decker mario">
-    <iframe class="decker" allow="fullscreen" data-src="/support/mview/mview.html" data-model="http://3d.de/model.off" data-phasers="stun" style="height:400px;">
+    <iframe class="decker" allow="fullscreen" data-src="support/mview/mview.html" data-model="http://3d.de/model.off" data-phasers="stun" style="height:400px;">
         
     </iframe>
     <figcaption class="decker">

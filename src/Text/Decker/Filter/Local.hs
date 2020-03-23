@@ -15,6 +15,7 @@ import System.Directory
 import System.FilePath
 import Text.Blaze.Html
 import qualified Text.Blaze.Html.Renderer.Pretty as Pretty
+import qualified Text.Blaze.Html.Renderer.Pretty as H
 import qualified Text.Blaze.Html.Renderer.Text as Text
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -130,11 +131,12 @@ mkFigureTag content caption (id, cs, kvs) =
     H.figcaption ! A.class_ "decker" $ caption
 
 -- | Renders a list of inlines to Text.
-inlinesToMarkdown :: [Inline] -> Text
-inlinesToMarkdown [] = ""
-inlinesToMarkdown inlines =
-  case runPure (writeMarkdown def (Pandoc nullMeta [Plain inlines])) of
-    Right html -> html
+inlinesToMarkdown :: [Inline] -> Filter Text
+inlinesToMarkdown [] = return ""
+inlinesToMarkdown inlines = do
+  FilterState options meta <- get
+  case runPure (writeMarkdown options (Pandoc nullMeta [Plain inlines])) of
+    Right html -> return html
     Left err -> bug $ PandocException $ "BUG: " <> show err
 
 -- | Renders a list of inlines to HTML.

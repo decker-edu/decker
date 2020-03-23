@@ -162,7 +162,7 @@ testSnippets :: [(Text, Text, Text)]
 testSnippets =
   [ ( "Plain image"
     , "An image that is used inline in a paragraph of text."
-    , "![](/test/decks/include/06-metal.png)")
+    , "![The *caption* can contain markup: $e=mc^2$.](/test/decks/include/06-metal.png)")
   , ( "SVG image"
     , "An SVG image that is embedded into the HTML document."
     , "![](/test/decks/empty.svg){.embed}")

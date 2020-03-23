@@ -151,7 +151,7 @@ extIn Nothing _ = False
 -- to Markdown format and included in the error message.
 imageError :: Inline -> SomeException -> Filter Inline
 imageError img@Image {} (SomeException e) = do
-  let imgMarkup = inlinesToMarkdown [img]
+  imgMarkup <- inlinesToMarkdown [img]
   renderHtml $
     H.div ! A.class_ "decker image error" $ do
       H.h2 ! A.class_ "title" $ do
@@ -162,7 +162,7 @@ imageError img@Image {} (SomeException e) = do
       H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
 imageError _ _ = bug $ InternalException "imageError: non image argument "
 
-imageTransformer =
+imageTransformers =
   Map.fromList
     [ (EmbedSvgT, svgHtml)
     , (PdfT, objectHtml "application/pdf")
@@ -178,7 +178,7 @@ transformImage image@(Image attr@(_, classes, _) _ (url, _)) caption =
   handle (imageError image) $ do
     uri <- transformUrl url
     let mediaType = classifyMedia uri attr
-    case Map.lookup mediaType imageTransformer of
+    case Map.lookup mediaType imageTransformers of
       Just transform -> runAttr attr (transform uri caption) >>= renderHtml
       Nothing -> return image
 

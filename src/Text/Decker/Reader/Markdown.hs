@@ -66,7 +66,8 @@ fixMustacheMarkupText content =
 --    b) Provision the resources (copy to public)
 -- 4. Remove all traces of this from the meta data
 -- 
-runDeckerFilter :: (Pandoc -> IO Pandoc) -> FilePath -> FilePath -> Pandoc -> Action Pandoc
+runDeckerFilter ::
+     (Pandoc -> IO Pandoc) -> FilePath -> FilePath -> Pandoc -> Action Pandoc
 runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks) = do
   dirs <- projectDirsA
   -- | Augment document meta.
@@ -94,7 +95,11 @@ runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks) = do
 
 -- | Runs the new decker media filter.
 deckerMediaFilter topBase docBase (Pandoc meta blocks) =
-  runDeckerFilter (mediaFilter def) topBase docBase (Pandoc meta blocks)
+  runDeckerFilter (mediaFilter options) topBase docBase (Pandoc meta blocks)
+  where
+    options =
+      def
+        {writerHTMLMathMethod = MathJax "Handled by reveal.js in the template"}
 
 -- | The old style decker filter pipeline with Mario's media handling.
 marioPipeline =
@@ -129,8 +134,9 @@ deckerPipeline =
 
 -- | Reads a markdownfile, expands the included files, and calls need.
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
-readAndProcessMarkdown markdownFile disp = do
+readAndProcessMarkdown markdownFile disp
   --let topLevelBase = makeRelative projectDir $ takeDirectory markdownFile
+ = do
   topLevelBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
   provisioning <- provisioningFromMeta <$> globalMetaA
   readMetaMarkdown topLevelBase markdownFile >>= processIncludes topLevelBase >>=
@@ -156,7 +162,8 @@ readMetaMarkdown topLevelBase markdownFile = do
   -- This is the new media filter. Runs right after reading. Because every matched
   -- document fragment is converted to raw HTML, the following old style filters
   -- will not see them.
-  filtered <- deckerMediaFilter topLevelBase docBase (Pandoc combinedMeta fileBlocks)
+  filtered <-
+    deckerMediaFilter topLevelBase docBase (Pandoc combinedMeta fileBlocks)
   -- TODO remove once old style filters are migrated
   mapResources (urlToFilePathIfLocal topLevelBase) filtered
 
