@@ -178,9 +178,9 @@ insertHtml (Just answers) =
       rawHtml $ Text.pack $ S.renderHtml $ options (manageAnswerList answers)
     options xs =
       case xs of
-        [(x, y)] -> H.input ! A.class_ "blankInput"
+        [(x, y)] -> H.input
         xs ->
-          H.select ! A.class_ "blankSelect" $
+          H.select $
           (foldr
              (\(x, y) ->
                 (>>) (H.option ! H.customAttribute "correct" (H.toValue y) $ x))
@@ -204,9 +204,13 @@ mcHtml (Just answers) =
   where
     tempName (Answer _ _ (Null:r)) = [Plain [Str "NO TASKLIST ITEM"]]
     tempName (Answer True is bs) =
-      [Plain is, Div ("", ["tooltip", "correct"], []) bs]
+      [ Div ("", ["correct"], []) [Plain is]
+      , Div ("", ["tooltip", "correct"], []) bs
+      ]
     tempName (Answer False is bs) =
-      [Plain is, Div ("", ["tooltip", "wrong"], []) bs]
+      [ Div ("", ["wrong"], []) [Plain is]
+      , Div ("", ["tooltip", "wrong"], []) bs
+      ]
 mcHtml Nothing = Para [Str "ERROR SOMETHING"]
 
 {-

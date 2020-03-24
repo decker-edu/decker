@@ -21,6 +21,27 @@ function quiz() {
 }
 
 
+function quizMI() {
+    var miQuestions = document.getElementsByClassName("quiz-mi");
+
+    for (let mi of miQuestions) {
+        shuffleDraggables(mi);
+    }
+}
+
+function quizMC() {
+    var mcQuestions = document.getElementsByClassName("quiz-mc");
+}
+
+function quizFT() {
+    var ftQuestions = document.getElementsByClassName("quiz-ft");
+}
+
+function quizIC() {
+    var icQuestions = document.getElementsByClassName("quiz-ic");
+}
+
+
 // For a given blanktext HTML Element returns a Map containing all wrong and correct selects and blanks
 function blanktextCorrect(blanktext) {
     var selects = blanktext.getElementsByClassName("blankSelect");

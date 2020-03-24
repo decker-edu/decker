@@ -5,26 +5,29 @@
 }
 
 .reveal {
+    [class*="quiz-"]{
 
     // General Button css and freetext question Input 
     button,
-    .freetextInput,
-    .blankInput {
+    input
+    {
         border-radius: 0.5em;
         font-size: inherit;
         font-family: inherit;
         outline: none;
         clear: both;
     }
-}
+}}
 
 .reveal {
-    .blankSelect {
+    [class*="quiz-"]{
+    select{
         font-size: inherit;
         :disabled{
             color: black;
         }
     }
+}
 }
 
 .reveal {a

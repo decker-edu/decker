@@ -101,9 +101,8 @@
   display: none;
 }
 
-.reveal button,
-.reveal .freetextInput,
-.reveal .blankInput {
+.reveal [class*="quiz-"] button,
+.reveal [class*="quiz-"] input {
   border-radius: 0.5em;
   font-size: inherit;
   font-family: inherit;
@@ -111,11 +110,11 @@
   clear: both;
 }
 
-.reveal .blankSelect {
+.reveal [class*="quiz-"] select {
   font-size: inherit;
 }
 
-.reveal .blankSelect :disabled {
+.reveal [class*="quiz-"] select :disabled {
   color: black;
 }
 
