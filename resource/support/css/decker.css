@@ -119,12 +119,14 @@
   color: black;
 }
 
-.reveal .matching,
+.reveal a
+.matching,
 .reveal .quiz-mi {
   text-align: center;
 }
 
-.reveal .matching .dropzones,
+.reveal a
+.matching .dropzones,
 .reveal .quiz-mi .dropzones {
   width: 100%;
   min-height: 15vh;
@@ -133,7 +135,8 @@
   table-layout: fixed;
 }
 
-.reveal .matching .dropzone,
+.reveal a
+.matching .dropzone,
 .reveal .quiz-mi .dropzone {
   display: table-cell;
   padding: 10px;
@@ -141,7 +144,8 @@
   text-align: center;
 }
 
-.reveal .matching .draggable,
+.reveal a
+.matching .draggable,
 .reveal .quiz-mi .draggable {
   display: table-cell;
   margin: auto;
@@ -153,13 +157,15 @@
   overflow: hidden;
 }
 
-.reveal .matching .draggableChild,
+.reveal a
+.matching .draggableChild,
 .reveal .quiz-mi .draggableChild {
   max-width: inherit;
   pointer-events: none;
 }
 
-.reveal .matching .dragzone,
+.reveal a
+.matching .dragzone,
 .reveal .quiz-mi .dragzone {
   display: table;
   table-layout: fixed;
@@ -172,8 +178,10 @@
   position: relative;
 }
 
-.reveal .matching .dragzone:after,
-.reveal .matching .dragzone:before,
+.reveal a
+.matching .dragzone:after,
+.reveal a
+.matching .dragzone:before,
 .reveal .quiz-mi .dragzone:after,
 .reveal .quiz-mi .dragzone:before {
   bottom: 100%;
@@ -186,7 +194,8 @@
   pointer-events: none;
 }
 
-.reveal .matching .dragzone:after,
+.reveal a
+.matching .dragzone:after,
 .reveal .quiz-mi .dragzone:after {
   border-color: rgba(136, 183, 213, 0);
   border-bottom-color: #111;
@@ -194,15 +203,18 @@
   margin-left: -30px;
 }
 
-.reveal .survey {
+.reveal .survey,
+.reveal .quiz-mc {
   text-align: center;
 }
 
-.reveal .survey div p {
+.reveal .survey div p,
+.reveal .quiz-mc div p {
   margin: 0;
 }
 
-.reveal .survey ul {
+.reveal .survey ul,
+.reveal .quiz-mc ul {
   list-style-type: none;
   display: flex;
   flex-direction: column;
@@ -211,7 +223,8 @@
   padding: 5pt;
 }
 
-.reveal .survey li {
+.reveal .survey li,
+.reveal .quiz-mc li {
   flex-grow: 1;
   border: 1pt #111 dashed;
   padding-left: 1em;
@@ -221,11 +234,13 @@
   flex-basis: 30%;
 }
 
-.reveal .survey li:hover {
+.reveal .survey li:hover,
+.reveal .quiz-mc li:hover {
   background-color: gainsboro;
 }
 
-.reveal .survey .tooltip {
+.reveal .survey .tooltip,
+.reveal .quiz-mc .tooltip {
   display: none;
 }
 

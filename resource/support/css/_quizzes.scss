@@ -27,7 +27,7 @@
     }
 }
 
-.reveal {
+.reveal {a
 
     // Matching/Pairing questions
     .matching,
@@ -107,7 +107,8 @@
 .reveal {
 
     // Multiple Choice        
-    .survey {
+    .survey, 
+    .quiz-mc{
 
         // To align solution button in center
         text-align: center;

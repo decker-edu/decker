@@ -67,18 +67,25 @@ helper = H.toHtml
 renderQuiz :: Quiz -> [Block] -> [Block]
 renderQuiz Match b =
   [ Div ("", ["quiz-mi", "columns"], [("score", "0")]) $
-    map (renderQuiz_ Match) b
+    (map (renderQuiz_ Match) b) ++ [solutionButton]
   ]
 renderQuiz Mult b =
   [ Div ("", ["quiz-mc", "columns"], [("score", "0")]) $
-    map (renderQuiz_ Mult) b
+    (map (renderQuiz_ Mult) b) ++ [solutionButton]
   ]
 renderQuiz Ins b =
-  [Div ("", ["quiz-ic", "columns"], [("score", "0")]) $ map (renderQuiz_ Ins) b]
+  [ Div ("", ["quiz-ic", "columns"], [("score", "0")]) $
+    (map (renderQuiz_ Ins) b) ++ [solutionButton]
+  ]
 renderQuiz Free b =
   [ Div ("", ["quiz-ft", "columns"], [("score", "0")]) $
-    map (renderQuiz_ Free) b
+    (map (renderQuiz_ Free) b) ++ [solutionButton]
   ]
+
+solutionButton =
+  rawHtml $
+  Text.pack $
+  S.renderHtml $ H.button ! A.class_ "solutionButton" $ helper "Show Solution"
 
 renderQuiz_ :: Quiz -> Block -> Block
 renderQuiz_ Mult bl@(BulletList blocks) = (mcHtml . quizTaskList Mult) bl
@@ -165,16 +172,20 @@ insertHtml (Just answers) =
     ("", ["answers", "columns"], [])
     [Plain [insertHtml'], solutionDiv answers]
   where
-    manageAnswerList = map (\x -> (helper $ stringify $ solution x))
+    manageAnswerList = map (\x -> (helper $ stringify $ solution x, correct x))
     insertHtml' :: Inline
     insertHtml' =
       rawHtml $ Text.pack $ S.renderHtml $ options (manageAnswerList answers)
     options xs =
       case xs of
-        [x] -> H.input ! A.class_ "blankInput"
+        [(x, y)] -> H.input ! A.class_ "blankInput"
         xs ->
           H.select ! A.class_ "blankSelect" $
-          (foldr (\x -> (>>) (H.option x)) H.area xs)
+          (foldr
+             (\(x, y) ->
+                (>>) (H.option ! H.customAttribute "correct" (H.toValue y) $ x))
+             H.area
+             xs)
 
 freeHtml :: Maybe [Answer] -> Block
 freeHtml (Just answers) =
@@ -182,12 +193,7 @@ freeHtml (Just answers) =
   where
     inputHtml =
       rawHtml $
-      Text.pack $
-      S.renderHtml $
-      H.span $ do
-        H.input ! A.class_ "freetextInput"
-        H.br
-        H.button ! A.class_ "freetextAnswerButton" $ helper "Solution"
+      Text.pack $ S.renderHtml $ H.span $ H.input ! A.class_ "freetextInput"
 freeHtml Nothing = Para [Str "ERROR SOMETHING"]
 
 mcHtml :: Maybe [Answer] -> Block
