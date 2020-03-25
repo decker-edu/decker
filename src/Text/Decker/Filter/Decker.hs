@@ -242,7 +242,8 @@ mkObjectTag url mime (id, cs, kvs) =
 mkSvgTag :: Text -> Attr -> Html
 mkSvgTag svg (id, cs, kvs) =
   H.span !? (not (Text.null id), A.id (H.toValue id)) !
-  A.class_ (H.toValue ("decker svg" : cs)) $
+  A.class_ (H.toValue ("decker svg" : cs)) !*
+  kvs $
   H.preEscapedText svg
 
 audioHtml :: URI -> [Inline] -> Attrib Html
@@ -261,8 +262,7 @@ audioHtml uri caption = do
       mkAudioTag audioUri <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
-      audioAttr <-
-        takeAutoplay >> audioAttribs >> extractAttr
+      audioAttr <- takeAutoplay >> audioAttribs >> extractAttr
       let audioTag = mkAudioTag audioUri audioAttr
       figureAttr <- injectBorder >> takeUsual >> extractAttr
       return $ mkFigureTag audioTag captionHtml figureAttr
@@ -303,9 +303,9 @@ svgHtml uri caption = do
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       svgAttr <- extractAttr
-      let imageTag = mkSvgTag svg svgAttr
+      let svgTag = mkSvgTag svg svgAttr
       injectBorder >> takeUsual
-      mkFigureTag imageTag captionHtml <$> extractAttr
+      mkFigureTag svgTag captionHtml <$> extractAttr
 
 mviewHtml :: URI -> [Inline] -> Attrib Html
 mviewHtml uri caption = do

@@ -165,7 +165,7 @@ testSnippets =
     , "![$e=mc^2$](/test/decks/include/06-metal.png)")
   , ( "SVG image"
     , "An SVG image that is embedded into the HTML document."
-    , "![](/test/decks/empty.svg){.embed}")
+    , "![](/test/decks/empty.svg){.embed css:border=\"1px\"}")
   , ( "Embedded PDF"
     , "A PDF document that is embedded through an object tag."
     , "![](https://adobe.com/some.pdf)")
@@ -181,7 +181,7 @@ testSnippets =
     , "![Caption.](https://some.where/image.png&key=value)")
   , ( "Plain image with custom attributes."
     , "Image attributes are handled in complex ways."
-    , "![Caption.](/test/decks/include/06-metal.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}")
+    , "![Caption.](/test/decks/include/06-metal.png){#myid .myclass width=\"40%\" css:border=\"1px\" css:background-color=\"magenta\" myattribute=\"value\"}")
   , ( "Plain audio"
     , "Images that are audio clips are converted to an audio tag."
     , "![Caption.](test/decks/audio.mp3){.autoplay .controls}")
