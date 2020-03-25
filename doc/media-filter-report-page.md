@@ -18,7 +18,7 @@ Plain image
 An image that is used inline in a paragraph of text.
 
 ``` {.markdown}
-![The *caption* can contain markup: $e=mc^2$.](/test/decks/include/06-metal.png)
+![$e=mc^2$](/test/decks/include/06-metal.png)
 ```
 
 translates to
@@ -27,18 +27,6 @@ translates to
 <figure class="decker">
     <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
-        The
-         
-        <em>
-            caption
-        </em>
-         
-        can
-         
-        contain
-         
-        markup:
-         
         <span class="math inline">
             <em>
                 e
@@ -56,7 +44,6 @@ translates to
                 2
             </sup>
         </span>
-        .
     </figcaption>
 </figure>
 ```
@@ -69,13 +56,13 @@ SVG image
 An SVG image that is embedded into the HTML document.
 
 ``` {.markdown}
-![](/test/decks/empty.svg){.embed}
+![](/test/decks/empty.svg){.embed css:border="1px"}
 ```
 
 translates to
 
 ``` {.html}
-<span class="decker svg embed">
+<span class="decker svg embed" style="border:1px;">
     <svg>This space intentionally left blank</svg>
 
 </span>
@@ -155,13 +142,13 @@ Plain image with custom attributes.
 Image attributes are handled in complex ways.
 
 ``` {.markdown}
-![Caption.](/test/decks/include/06-metal.png){#myid .myclass width="40%" css:border="1px" myattribute="value"}
+![Caption.](/test/decks/include/06-metal.png){#myid .myclass width="40%" css:border="1px" css:background-color="magenta" myattribute="value"}
 ```
 
 translates to
 
 ``` {.html}
-<figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;">
+<figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;background-color:magenta;">
     <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
         Caption.
