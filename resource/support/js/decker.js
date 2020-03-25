@@ -138,8 +138,12 @@ function prepareFullscreenIframes() {
 
         var div = document.createElement("div");
         div.classList.add("fs-container");
-        div.style.width  = iframe.style.width;
-        div.style.height = iframe.style.height;
+        div.style.width  = iframe.style.width  || "100%";
+        div.style.height = iframe.style.height || "100%";
+        if (iframe.classList.contains("stretch")) {
+            div.classList.add("stretch");
+            iframe.classList.remove("stretch");
+        }
     
         var btn = document.createElement("button");
         btn.classList.add("fs-button");
