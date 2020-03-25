@@ -18,27 +18,97 @@ justToList = reverse . justToList'
     justToList' ((Just x):xs) = x : justToList xs
     justToList' (Nothing:_) = []
 
+youtubeDefaults =
+  [ ("autoplay", "0")
+  , ("cc_load_policy", "0")
+  , ("controls", "2")
+  , ("iv_load_policy", "3")
+  , ("modestbranding", "")
+  , ("rel", "0")
+  , ("showinfo", "0")
+  ]
+
 -- https://developers.google.com/youtube/player_parameters?hl=de#IFrame_Player_API
 youtubeParams =
-  [ ("autoplay", "")
-  , ("cc_load_policy", "")
-  , ("color", "")
-  , ("controls", "")
-  , ("disablekb", "")
-  , ("end", "")
-  , ("fs", "")
-  , ("hl", "")
-  , ("iv_load_policy", "")
-  , ("loop", "")
-  , ("modestbranding", "")
-  , ("playsinline", "")
-  , ("rel", "")
-  , ("showinfo", "")
-  , ("start", "")
+  [ "autoplay"
+  , "cc_load_policy"
+  , "color"
+  , "controls"
+  , "disablekb"
+  , "enablejsapi"
+  , "end"
+  , "fs"
+  , "hl"
+  , "iv_load_policy"
+  , "loop"
+  , "modestbranding"
+  , "origin"
+  , "playsinline"
+  , "playlist"
+  , "rel"
+  , "showinfo"
+  , "start"
+  ]
+
+youtubeFlags =
+  [ "autoplay"
+  , "cc_load_policy"
+  , "disablekb"
+  , "enablejsapi"
+  , "fs"
+  , "loop"
+  , "modestbranding"
+  , "playsinline"
+  , "rel"
+  , "showinfo"
   ]
 
 -- https://vimeo.zendesk.com/hc/en-us/articles/360001494447-Using-Player-Parameters
-vimeoParams = [""]
+vimeoDefaults =
+  [ ("byline", "0")
+  , ("controls", "1")
+  , ("dnt", "1")
+  , ("fun", "0")
+  , ("title", "0")
+  , ("transparent", "false")
+  ]
+
+vimeoParams =
+  [ "autopause"
+  , "autoplay"
+  , "background"
+  , "byline"
+  , "color"
+  , "controls"
+  , "dnt"
+  , "fun"
+  , "loop"
+  , "muted"
+  , "playsinline"
+  , "portrait"
+  , "quality"
+  , "speed"
+  , "textrack"
+  , "title"
+  , "transparent"
+  ]
+
+vimeoFlags =
+  [ "autopause"
+  , "autoplay"
+  , "background"
+  , "byline"
+  , "controls"
+  , "dnt"
+  , "fun"
+  , "loop"
+  , "muted"
+  , "playsinline"
+  , "portrait"
+  , "speed"
+  , "title"
+  , "transparent"
+  ]
 
 -- TODO this is just an adapter for the old stuff
 streamHtml :: URI -> [Inline] -> Attrib Html
