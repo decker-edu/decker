@@ -116,6 +116,9 @@ function prepareSAGE()
             iframe.style.width  = sageCell.style.width  || "100%";
             iframe.style.height = sageCell.style.height || "500px";
         }
+        if (sageCell.classList.contains("print")) {
+            iframe.classList.add("print");
+        }
         iframe.sandbox = 'allow-scripts allow-same-origin';
         iframe.setAttribute("data-src", url);
     
