@@ -162,7 +162,7 @@ testSnippets :: [(Text, Text, Text)]
 testSnippets =
   [ ( "Plain image"
     , "An image that is used inline in a paragraph of text."
-    , "![The *caption* can contain markup: $e=mc^2$.](/test/decks/include/06-metal.png)")
+    , "![$e=mc^2$](/test/decks/include/06-metal.png)")
   , ( "SVG image"
     , "An SVG image that is embedded into the HTML document."
     , "![](/test/decks/empty.svg){.embed}")
@@ -182,6 +182,9 @@ testSnippets =
   , ( "Plain image with custom attributes."
     , "Image attributes are handled in complex ways."
     , "![Caption.](/test/decks/include/06-metal.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}")
+  , ( "Plain audio"
+    , "Images that are audio clips are converted to an audio tag."
+    , "![Caption.](test/decks/audio.mp3){.autoplay .controls}")
   , ( "Plain video"
     , "Images that are videos are converted to a video tag."
     , "![Caption.](test/decks/pacman-perfect-game.mp4){width=\"42%\"}")

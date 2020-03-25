@@ -171,6 +171,30 @@ translates to
 
 ------------------------------------------------------------------------
 
+Plain audio
+-----------
+
+Images that are audio clips are converted to an audio tag.
+
+``` {.markdown}
+![Caption.](test/decks/audio.mp3){.autoplay .controls}
+```
+
+translates to
+
+``` {.html}
+<figure class="decker">
+    <audio class="decker" data-src="test/decks/audio.mp3" controls="1" data-autoplay="1">
+        
+    </audio>
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
+```
+
+------------------------------------------------------------------------
+
 Plain video
 -----------
 
