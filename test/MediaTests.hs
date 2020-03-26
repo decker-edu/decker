@@ -165,7 +165,7 @@ testSnippets =
     , "![$e=mc^2$](/test/decks/include/06-metal.png)")
   , ( "SVG image"
     , "An SVG image that is embedded into the HTML document."
-    , "![](/test/decks/empty.svg){.embed css:border=\"1px\"}")
+    , "![](/test/decks/empty.svg){.embed css:background-color=\"magenta\"}")
   , ( "Embedded PDF"
     , "A PDF document that is embedded through an object tag."
     , "![](https://adobe.com/some.pdf)")

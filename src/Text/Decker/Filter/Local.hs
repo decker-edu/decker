@@ -141,10 +141,19 @@ inlinesToMarkdown inlines = do
 
 -- | Renders a list of inlines to HTML.
 inlinesToHtml :: [Inline] -> Filter Html
-inlinesToHtml [] = return $ H.span ""
+inlinesToHtml [] = return $ toHtml ("" :: Text)
 inlinesToHtml inlines = do
   FilterState options meta <- get
   case runPure (writeHtml5 options (Pandoc meta [Plain inlines])) of
+    Right html -> return html
+    Left err -> bug $ PandocException $ "BUG: " <> show err
+
+-- | Renders a list of blocks to HTML.
+blocksToHtml :: [Block] -> Filter Html
+blocksToHtml [] = return $ toHtml ("" :: Text)
+blocksToHtml blocks = do
+  FilterState options meta <- get
+  case runPure (writeHtml5 options (Pandoc meta blocks)) of
     Right html -> return html
     Left err -> bug $ PandocException $ "BUG: " <> show err
 
