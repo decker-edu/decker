@@ -15,16 +15,14 @@ import System.Directory
 import System.FilePath
 import Text.Blaze.Html
 import qualified Text.Blaze.Html.Renderer.Pretty as Pretty
-import qualified Text.Blaze.Html.Renderer.Pretty as H
 import qualified Text.Blaze.Html.Renderer.Text as Text
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (Attributable)
-import qualified Text.Blaze.Internal as H
 import Text.Pandoc
 import Text.URI (URI)
 import qualified Text.URI as URI
-
+{-
 instance H.ToMarkup Block where
   toMarkup (RawBlock (Format "html") html) =
     H.Content (H.PreEscaped (H.Text html)) ()
@@ -36,6 +34,7 @@ instance H.ToMarkup Inline where
     H.Content (H.PreEscaped (H.Text html)) ()
   toMarkup inline =
     bug $ InternalException $ "toMarkup: illegal inline argument" <> show inline
+-}
 
 instance ToValue [Text] where
   toValue ts = toValue $ Text.intercalate " " ts
@@ -141,12 +140,53 @@ inlinesToMarkdown inlines = do
 
 -- | Renders a list of inlines to HTML.
 inlinesToHtml :: [Inline] -> Filter Html
-inlinesToHtml [] = return $ H.span ""
-inlinesToHtml inlines = do
+inlinesToHtml [] = return $ toHtml ("" :: Text)
+inlinesToHtml inlines = blocksToHtml [Plain inlines]
+
+-- | Renders a list of blocks to HTML.
+blocksToHtml :: [Block] -> Filter Html
+blocksToHtml [] = return $ toHtml ("" :: Text)
+blocksToHtml blocks = do
   FilterState options meta <- get
-  case runPure (writeHtml5 options (Pandoc meta [Plain inlines])) of
+  case runPure (writeHtml5 options (Pandoc meta blocks)) of
     Right html -> return html
     Left err -> bug $ PandocException $ "BUG: " <> show err
+
+writerHtmlOptions =
+  def
+    { writerTemplate = Nothing
+    , writerHTMLMathMethod = MathJax "Handled by reveal.js in the template"
+    , writerExtensions =
+        (enableExtension Ext_auto_identifiers . enableExtension Ext_emoji)
+          pandocExtensions
+    }
+
+-- | Renders a list of inlines to HTML. IO version that has no access
+-- to the real meta data and the real writer options.
+inlinesToHtml' :: [Inline] -> Html
+inlinesToHtml' [] = toHtml ("" :: Text)
+inlinesToHtml' inlines = blocksToHtml' [Plain inlines]
+
+-- | Renders a list of blocks to HTML. IO version that has no access
+-- to the real meta data and the real writer options.
+blocksToHtml' :: [Block] -> Html
+blocksToHtml' [] = toHtml ("" :: Text)
+blocksToHtml' blocks =
+  case runPure (writeHtml5 writerHtmlOptions (Pandoc nullMeta blocks)) of
+    Right html -> html
+    Left err -> bug $ PandocException $ "BUG: " <> show err
+
+instance H.ToMarkup Inline where
+  toMarkup inline = inlinesToHtml' [inline]
+
+instance H.ToMarkup [Inline] where
+  toMarkup = inlinesToHtml'
+
+instance H.ToMarkup Block where
+  toMarkup block = blocksToHtml' [block]
+
+instance H.ToMarkup [Block] where
+  toMarkup = blocksToHtml'
 
 readLocalUri :: URI -> Filter Text
 readLocalUri uri = do

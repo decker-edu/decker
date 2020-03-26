@@ -56,13 +56,13 @@ SVG image
 An SVG image that is embedded into the HTML document.
 
 ``` {.markdown}
-![](/test/decks/empty.svg){.embed css:border="1px"}
+![](/test/decks/empty.svg){.embed css:background-color="magenta"}
 ```
 
 translates to
 
 ``` {.html}
-<span class="decker svg embed" style="border:1px;">
+<span class="decker svg embed" style="background-color:magenta;">
     <svg>This space intentionally left blank</svg>
 
 </span>
