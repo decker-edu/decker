@@ -13,6 +13,8 @@ import qualified Data.Text.IO as Text
 import NeatInterpolation
 import Relude
 import Test.Hspec as Hspec
+import Text.Blaze.Html (toHtml)
+import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Pandoc
 import Text.Pandoc.Highlighting
 import Text.Pandoc.Walk
@@ -45,6 +47,13 @@ mediaTests = do
       doFilter (transformImage plainVideo []) `shouldReturn` plainVideoHtml
       doFilter (transformImage plainVideo styledCaption) `shouldReturn`
         plainVideoCaptionedHtml
+  describe "toHtml" $
+    it "transforms Pandoc Blocks and Inlines to Blaze Html" $ do
+      renderHtml (toHtml (Str "Hallo")) `shouldBe` "Hallo"
+      renderHtml (toHtml (Para [Str "Hallo"])) `shouldBe` "<p>Hallo</p>"
+      renderHtml (toHtml [(Str "Hallo"), (Str "Hallo")]) `shouldBe` "HalloHallo"
+      renderHtml (toHtml [(Para [Str "Hallo"]), (Para [Str "Hallo"])]) `shouldBe`
+        "<p>Hallo</p>\n<p>Hallo</p>"
   Hspec.runIO $
     writeSnippetReport "doc/media-filter-report-page.md" testSnippets
 
