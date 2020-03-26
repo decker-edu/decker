@@ -13,6 +13,8 @@ import qualified Data.Text.IO as Text
 import NeatInterpolation
 import Relude
 import Test.Hspec as Hspec
+import Text.Blaze.Html (toHtml)
+import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Pandoc
 import Text.Pandoc.Highlighting
 import Text.Pandoc.Walk
@@ -45,6 +47,13 @@ mediaTests = do
       doFilter (transformImage plainVideo []) `shouldReturn` plainVideoHtml
       doFilter (transformImage plainVideo styledCaption) `shouldReturn`
         plainVideoCaptionedHtml
+  describe "toHtml" $
+    it "transforms Pandoc Blocks and Inlines to Blaze Html" $ do
+      renderHtml (toHtml (Str "Hallo")) `shouldBe` "Hallo"
+      renderHtml (toHtml (Para [Str "Hallo"])) `shouldBe` "<p>Hallo</p>"
+      renderHtml (toHtml [(Str "Hallo"), (Str "Hallo")]) `shouldBe` "HalloHallo"
+      renderHtml (toHtml [(Para [Str "Hallo"]), (Para [Str "Hallo"])]) `shouldBe`
+        "<p>Hallo</p>\n<p>Hallo</p>"
   Hspec.runIO $
     writeSnippetReport "doc/media-filter-report-page.md" testSnippets
 
@@ -162,10 +171,10 @@ testSnippets :: [(Text, Text, Text)]
 testSnippets =
   [ ( "Plain image"
     , "An image that is used inline in a paragraph of text."
-    , "![](/test/decks/include/06-metal.png)")
+    , "![$e=mc^2$](/test/decks/include/06-metal.png)")
   , ( "SVG image"
     , "An SVG image that is embedded into the HTML document."
-    , "![](/test/decks/empty.svg){.embed}")
+    , "![](/test/decks/empty.svg){.embed css:background-color=\"magenta\"}")
   , ( "Embedded PDF"
     , "A PDF document that is embedded through an object tag."
     , "![](https://adobe.com/some.pdf)")
@@ -181,7 +190,10 @@ testSnippets =
     , "![Caption.](https://some.where/image.png&key=value)")
   , ( "Plain image with custom attributes."
     , "Image attributes are handled in complex ways."
-    , "![Caption.](/test/decks/include/06-metal.png){#myid .myclass width=\"40%\" css:border=\"1px\" myattribute=\"value\"}")
+    , "![Caption.](/test/decks/include/06-metal.png){#myid .myclass width=\"40%\" css:border=\"1px\" css:background-color=\"magenta\" myattribute=\"value\"}")
+  , ( "Plain audio"
+    , "Images that are audio clips are converted to an audio tag."
+    , "![Caption.](test/decks/audio.mp3){.autoplay .controls}")
   , ( "Plain video"
     , "Images that are videos are converted to a video tag."
     , "![Caption.](test/decks/pacman-perfect-game.mp4){width=\"42%\"}")

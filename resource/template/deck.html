@@ -160,10 +160,12 @@ $body$
   <script src="$decker-support-dir$/vendor/piklor.js"></script>
   <script src="$decker-support-dir$/js/quiz.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
+  <script src="$decker-support-dir$/js/sage.js"></script>
   
   <script>
       // this has to be done before reveal highlight plugin is initialized
       prepareCodeHighlighting();
+      prepareSAGE();
   </script>
 
 
@@ -493,7 +495,7 @@ $if(menu)$
               { src: String.raw`$decker-support-dir$/plugins/menu/menu.js`, async: true },
 $endif$
 $if(thebelab.enable)$
-              { src: String.raw`$decker-support-dir$/plugins/thebelab.js`, async: true },
+              { src: String.raw`$decker-support-dir$/plugins/thebelab/thebelab.js`, async: true },
 $endif$
               { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes/notes.js`, async: true }
           ]

@@ -20,7 +20,7 @@ transformHeader1 h1@(Header 1 headAttr inlines)
   where
     buildHeader img@(Image imgAttr alt (url, title), rest) = do
       uri <- transformUrl url
-      runAttrOn headAttr imgAttr $ do
+      runAttrOn headAttr imgAttr $
         case classifyMedia uri imgAttr of
           ImageT -> do
             injectAttribute ("data-background-image", URI.render uri)
@@ -42,8 +42,7 @@ transformHeader1 h1@(Header 1 headAttr inlines)
             passAttribs ("data-background-" <>) ["interactive"]
             attr <- extractAttr
             return $ Header 1 attr rest
-          _ -> do
-            return h1
+          _ -> return h1
     buildHeader _ =
       bug $ InternalException "transformHeader: no last image in header"
 transformHeader1 h@Header {} = return h

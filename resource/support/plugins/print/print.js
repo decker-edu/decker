@@ -11,7 +11,7 @@ var RevealPrint = (function(){
         {
             var height = Reveal.getConfig().height;
             Reveal.getSlides().forEach( function( slide ) {
-                slide.style.minHeight = height + "px";
+                slide.style.height = height + "px";
             });
         }
     }

@@ -7,7 +7,7 @@ local-bin-path := $(HOME)/.local/bin
 
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
-stack-build-opts :=  --fast --file-watch --ghc-options "-j4 +RTS -A128m -n2m -qg -RTS"
+stack-build-opts := --fast --ghc-options "-j4 +RTS -A128m -n2m -qg -RTS"
 
 build: 
 	stack build $(stack-build-options)
@@ -48,10 +48,10 @@ dist: install
 	rm dist/$(decker-name)
 
 test:
-	stack -j1 test
+	stack test $(stack-build-options) -j1
 
 watch:
-	stack test --file-watch
+	stack test $(stack-build-options) -j1 --file-watch
 
 clean:
 	stack clean

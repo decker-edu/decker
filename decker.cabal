@@ -4,7 +4,11 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
+<<<<<<< HEAD
 -- hash: 1974d1fcb3260f3b7d023be9a6e02ffda69d54891d151ee12e29e31cc737c0e0
+=======
+-- hash: 8a4d8cd75c03cf10fbfc790340600322c5ef64608bdbdd7e01651431c712b325
+>>>>>>> 215-pandoc-2.9-mario
 
 name:           decker
 version:        0.10.0
@@ -49,6 +53,7 @@ extra-source-files:
     resource/support/js/handout.js
     resource/support/js/page.js
     resource/support/js/quiz.js
+    resource/support/js/sage.js
     resource/example/chicago-author-date.csl
     resource/example/decker.yaml
     resource/example/example-deck.md

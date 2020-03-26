@@ -151,7 +151,7 @@ extIn Nothing _ = False
 -- to Markdown format and included in the error message.
 imageError :: Inline -> SomeException -> Filter Inline
 imageError img@Image {} (SomeException e) = do
-  let imgMarkup = inlinesToMarkdown [img]
+  imgMarkup <- inlinesToMarkdown [img]
   renderHtml $
     H.div ! A.class_ "decker image error" $ do
       H.h2 ! A.class_ "title" $ do
@@ -162,7 +162,7 @@ imageError img@Image {} (SomeException e) = do
       H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
 imageError _ _ = bug $ InternalException "imageError: non image argument "
 
-imageTransformer =
+imageTransformers =
   Map.fromList
     [ (EmbedSvgT, svgHtml)
     , (PdfT, objectHtml "application/pdf")
@@ -171,6 +171,7 @@ imageTransformer =
     , (ImageT, imageHtml)
     , (VideoT, videoHtml)
     , (StreamT, streamHtml)
+    , (AudioT, audioHtml)
     ]
 
 transformImage :: Inline -> [Inline] -> Filter Inline
@@ -178,7 +179,7 @@ transformImage image@(Image attr@(_, classes, _) _ (url, _)) caption =
   handle (imageError image) $ do
     uri <- transformUrl url
     let mediaType = classifyMedia uri attr
-    case Map.lookup mediaType imageTransformer of
+    case Map.lookup mediaType imageTransformers of
       Just transform -> runAttr attr (transform uri caption) >>= renderHtml
       Nothing -> return image
 
@@ -196,6 +197,14 @@ transformImages images caption = do
         H.figure ! A.class_ "decker" $ do
           H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
           H.figcaption captionHtml
+
+mkAudioTag :: Text -> Attr -> Html
+mkAudioTag url (id, cs, kvs) =
+  H.audio !? (not (Text.null id), A.id (H.toValue id)) !
+  A.class_ (H.toValue ("decker" : cs)) !
+  H.dataAttribute "src" (H.preEscapedToValue url) !*
+  kvs $
+  ""
 
 mkVideoTag :: Text -> Attr -> Html
 mkVideoTag url (id, cs, kvs) =
@@ -233,8 +242,30 @@ mkObjectTag url mime (id, cs, kvs) =
 mkSvgTag :: Text -> Attr -> Html
 mkSvgTag svg (id, cs, kvs) =
   H.span !? (not (Text.null id), A.id (H.toValue id)) !
-  A.class_ (H.toValue ("decker svg" : cs)) $
+  A.class_ (H.toValue ("decker svg" : cs)) !*
+  kvs $
   H.preEscapedText svg
+
+audioHtml :: URI -> [Inline] -> Attrib Html
+audioHtml uri caption = do
+  mediaFrag <- mediaFragment
+  let audioUri =
+        if Text.null mediaFrag
+          then URI.render uri
+          else URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag}
+  let audioAttribs =
+        takeClasses identity ["controls", "loop", "muted"] >>
+        passAttribs identity ["controls", "loop", "muted", "preload"]
+  case caption of
+    [] -> do
+      injectBorder >> takeAutoplay >> audioAttribs >> takeUsual
+      mkAudioTag audioUri <$> extractAttr
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      audioAttr <- takeAutoplay >> audioAttribs >> extractAttr
+      let audioTag = mkAudioTag audioUri audioAttr
+      figureAttr <- injectBorder >> takeUsual >> extractAttr
+      return $ mkFigureTag audioTag captionHtml figureAttr
 
 imageHtml :: URI -> [Inline] -> Attrib Html
 imageHtml uri caption =
@@ -272,9 +303,9 @@ svgHtml uri caption = do
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       svgAttr <- extractAttr
-      let imageTag = mkSvgTag svg svgAttr
+      let svgTag = mkSvgTag svg svgAttr
       injectBorder >> takeUsual
-      mkFigureTag imageTag captionHtml <$> extractAttr
+      mkFigureTag svgTag captionHtml <$> extractAttr
 
 mviewHtml :: URI -> [Inline] -> Attrib Html
 mviewHtml uri caption = do

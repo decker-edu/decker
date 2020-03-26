@@ -18,13 +18,34 @@ Plain image
 An image that is used inline in a paragraph of text.
 
 ``` {.markdown}
-![](/test/decks/include/06-metal.png)
+![$e=mc^2$](/test/decks/include/06-metal.png)
 ```
 
 translates to
 
 ``` {.html}
-<img class="decker" data-src="test/decks/include/06-metal.png">
+<figure class="decker">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <figcaption class="decker">
+        <span class="math inline">
+            <em>
+                e
+            </em>
+             
+            =
+             
+            <em>
+                m
+            </em>
+            <em>
+                c
+            </em>
+            <sup>
+                2
+            </sup>
+        </span>
+    </figcaption>
+</figure>
 ```
 
 ------------------------------------------------------------------------
@@ -35,13 +56,13 @@ SVG image
 An SVG image that is embedded into the HTML document.
 
 ``` {.markdown}
-![](/test/decks/empty.svg){.embed}
+![](/test/decks/empty.svg){.embed css:background-color="magenta"}
 ```
 
 translates to
 
 ``` {.html}
-<span class="decker svg embed">
+<span class="decker svg embed" style="background-color:magenta;">
     <svg>This space intentionally left blank</svg>
 
 </span>
@@ -121,14 +142,38 @@ Plain image with custom attributes.
 Image attributes are handled in complex ways.
 
 ``` {.markdown}
-![Caption.](/test/decks/include/06-metal.png){#myid .myclass width="40%" css:border="1px" myattribute="value"}
+![Caption.](/test/decks/include/06-metal.png){#myid .myclass width="40%" css:border="1px" css:background-color="magenta" myattribute="value"}
 ```
 
 translates to
 
 ``` {.html}
-<figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;">
+<figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;background-color:magenta;">
     <img class="decker" data-src="test/decks/include/06-metal.png">
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
+```
+
+------------------------------------------------------------------------
+
+Plain audio
+-----------
+
+Images that are audio clips are converted to an audio tag.
+
+``` {.markdown}
+![Caption.](test/decks/audio.mp3){.autoplay .controls}
+```
+
+translates to
+
+``` {.html}
+<figure class="decker">
+    <audio class="decker" data-src="test/decks/audio.mp3" controls="1" data-autoplay="1">
+        
+    </audio>
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -346,7 +391,7 @@ translates to
 
 ``` {.html}
 <figure class="decker mario">
-    <iframe class="decker" allow="fullscreen" data-src="/support/mview/mview.html" data-model="http://3d.de/model.off" data-phasers="stun" style="height:400px;">
+    <iframe class="decker" allow="fullscreen" data-src="support/mview/mview.html" data-model="http://3d.de/model.off" data-phasers="stun" style="height:400px;">
         
     </iframe>
     <figcaption class="decker">

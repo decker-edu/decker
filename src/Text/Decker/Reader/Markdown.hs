@@ -96,7 +96,16 @@ runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks) = do
 
 -- | Runs the new decker media filter.
 deckerMediaFilter topBase docBase (Pandoc meta blocks) =
-  runDeckerFilter (mediaFilter def) topBase docBase (Pandoc meta blocks)
+  runDeckerFilter (mediaFilter options) topBase docBase (Pandoc meta blocks)
+  where
+    options =
+      def
+        { writerTemplate = Nothing
+        , writerHTMLMathMethod = MathJax "Handled by reveal.js in the template"
+        , writerExtensions =
+            (enableExtension Ext_auto_identifiers . enableExtension Ext_emoji)
+              pandocExtensions
+        }
 
 -- | The old style decker filter pipeline with Mario's media handling.
 marioPipeline =
