@@ -20,6 +20,7 @@ import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
+import Text.Decker.Filter.NewQuiz
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Render
 import Text.Decker.Filter.ShortLink
@@ -66,7 +67,8 @@ fixMustacheMarkupText content =
 --    b) Provision the resources (copy to public)
 -- 4. Remove all traces of this from the meta data
 -- 
-runDeckerFilter :: (Pandoc -> IO Pandoc) -> FilePath -> FilePath -> Pandoc -> Action Pandoc
+runDeckerFilter ::
+     (Pandoc -> IO Pandoc) -> FilePath -> FilePath -> Pandoc -> Action Pandoc
 runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks) = do
   dirs <- projectDirsA
   -- | Augment document meta.
@@ -121,6 +123,7 @@ deckerPipeline =
     , provisionResources
     , renderQuizzes
     , processSlides
+    , parseQuizzes
     -- , renderMediaTags
     -- , extractFigures
     , processCitesWithDefault
@@ -129,8 +132,9 @@ deckerPipeline =
 
 -- | Reads a markdownfile, expands the included files, and calls need.
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
-readAndProcessMarkdown markdownFile disp = do
+readAndProcessMarkdown markdownFile disp
   --let topLevelBase = makeRelative projectDir $ takeDirectory markdownFile
+ = do
   topLevelBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
   provisioning <- provisioningFromMeta <$> globalMetaA
   readMetaMarkdown topLevelBase markdownFile >>= processIncludes topLevelBase >>=
@@ -156,7 +160,8 @@ readMetaMarkdown topLevelBase markdownFile = do
   -- This is the new media filter. Runs right after reading. Because every matched
   -- document fragment is converted to raw HTML, the following old style filters
   -- will not see them.
-  filtered <- deckerMediaFilter topLevelBase docBase (Pandoc combinedMeta fileBlocks)
+  filtered <-
+    deckerMediaFilter topLevelBase docBase (Pandoc combinedMeta fileBlocks)
   -- TODO remove once old style filters are migrated
   mapResources (urlToFilePathIfLocal topLevelBase) filtered
 

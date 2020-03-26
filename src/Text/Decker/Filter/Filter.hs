@@ -167,24 +167,22 @@ wrapBoxes :: Slide -> Decker Slide
 wrapBoxes slide@(Slide header body) = do
   disp <- gets disposition
   case disp of
-    Disposition Deck Html ->
-      return $ Slide header $ concatMap (wrapQuiz True) boxes
-    Disposition _ Html ->
-      return $ Slide header $ concatMap (wrapQuiz False) boxes
+    Disposition Deck Html -> return $ Slide header $ concatMap (wrap True) boxes
+    Disposition _ Html -> return $ Slide header $ concatMap (wrap False) boxes
     Disposition _ Latex -> return slide
   where
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
     -- A subfunction of wrapBoxes that handles Quizzes before level 2 headers are wrapped in boxes
-    wrapQuiz :: Bool -> [Block] -> [Block]
-    wrapQuiz isDeck h@((Header 2 (id_, cls, kvs) text):blocks) = qlookup cls
-      where
-        qlookup :: [Text.Text] -> [Block]
-        qlookup [] = wrap isDeck h
-        qlookup (c:rest) =
-          case Map.lookup c quizMap of
-            Just q -> renderQuiz q h
-            Nothing -> qlookup rest
-    wrapQuiz _ box = box
+    -- wrapQuiz :: Bool -> [Block] -> [Block]
+    -- wrapQuiz isDeck h@((Header 2 (id_, cls, kvs) text):blocks) = qlookup cls
+    --   where
+    --     qlookup :: [Text.Text] -> [Block]
+    --     qlookup [] = wrap isDeck h
+    --     qlookup (c:rest) =
+    --       case Map.lookup c quizMap of
+    --         Just q -> renderQuiz q h
+    --         Nothing -> qlookup rest
+    -- wrapQuiz _ box = box
     wrap isDeck ((Header 2 (id_, cls, kvs) text):blocks) =
       let tags =
             if isDeck

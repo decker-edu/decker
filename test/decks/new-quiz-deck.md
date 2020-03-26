@@ -55,6 +55,14 @@ _-_
 !
 : Distractor B
 
+``` {.yaml}
+score: 5
+category: CG
+lectureId: cg1
+topic: yeah
+title: this
+```
+
 # Multiple Choice
 
 ## Multiple-Choice {.quiz-mc}
