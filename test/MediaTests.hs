@@ -54,6 +54,7 @@ mediaTests = do
       renderHtml (toHtml [(Str "Hallo"), (Str "Hallo")]) `shouldBe` "HalloHallo"
       renderHtml (toHtml [(Para [Str "Hallo"]), (Para [Str "Hallo"])]) `shouldBe`
         "<p>Hallo</p>\n<p>Hallo</p>"
+      renderHtml (toHtml (RawInline (Format "html") "Hallo")) `shouldBe` "Hallo"
   Hspec.runIO $
     writeSnippetReport "doc/media-filter-report-page.md" testSnippets
 
@@ -188,6 +189,15 @@ testSnippets =
   , ( "Plain image with URL query"
     , "Query string and fragment identifier in URLs are preserved."
     , "![Caption.](https://some.where/image.png&key=value)")
+  , ( "Plain image with size attributes."
+    , " Percentage values for `width` and `height` are transfered to the figure element, other values go to the image element."
+    , "![Caption.](/test/decks/include/06-metal.png){width=\"40%\"}")
+  , ( "Plain image with size attributes."
+    , " Percentage values for `width` and `height` are transfered to the figure element, other values go to the image element."
+    , "![Caption.](/test/decks/include/06-metal.png){height=\"200px\"}")
+  , ( "Plain image with size attributes."
+    , " Percentage values for `width` and `height` are transfered to the figure element, other values go to the image element."
+    , "![Caption.](/test/decks/include/06-metal.png){height=\"200px\" width=\"40%\"}")
   , ( "Plain image with custom attributes."
     , "Image attributes are handled in complex ways."
     , "![Caption.](/test/decks/include/06-metal.png){#myid .myclass width=\"40%\" css:border=\"1px\" css:background-color=\"magenta\" myattribute=\"value\"}")

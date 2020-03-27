@@ -136,6 +136,72 @@ translates to
 
 ------------------------------------------------------------------------
 
+Plain image with size attributes.
+---------------------------------
+
+ Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
+
+``` {.markdown}
+![Caption.](/test/decks/include/06-metal.png){width="40%"}
+```
+
+translates to
+
+``` {.html}
+<figure class="decker" style="width:40%;">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
+```
+
+------------------------------------------------------------------------
+
+Plain image with size attributes.
+---------------------------------
+
+ Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
+
+``` {.markdown}
+![Caption.](/test/decks/include/06-metal.png){height="200px"}
+```
+
+translates to
+
+``` {.html}
+<figure class="decker">
+    <img class="decker" data-src="test/decks/include/06-metal.png" style="height:200px;">
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
+```
+
+------------------------------------------------------------------------
+
+Plain image with size attributes.
+---------------------------------
+
+ Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
+
+``` {.markdown}
+![Caption.](/test/decks/include/06-metal.png){height="200px" width="40%"}
+```
+
+translates to
+
+``` {.html}
+<figure class="decker" style="width:40%;">
+    <img class="decker" data-src="test/decks/include/06-metal.png" style="height:200px;">
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
+```
+
+------------------------------------------------------------------------
+
 Plain image with custom attributes.
 -----------------------------------
 

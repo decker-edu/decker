@@ -140,7 +140,8 @@ deckerPipeline =
 -- | Reads a markdownfile, expands the included files, and calls need.
 readAndProcessMarkdown :: FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown markdownFile disp
-  --let topLevelBase = makeRelative projectDir $ takeDirectory markdownFile
+  -- TODO decide whether absolute or relative is better
+  -- let topLevelBase = makeRelative projectDir $ takeDirectory markdownFile
  = do
   topLevelBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
   provisioning <- provisioningFromMeta <$> globalMetaA

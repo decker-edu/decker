@@ -109,20 +109,28 @@ pushAttribute (key, value) = modify transform
 -- CSS style value to the target style attribute. Mainly used to translate
 -- witdth an height attributes into CSS style setting.
 takeStyle :: Text -> Attrib ()
-takeStyle key = modify transform
+takeStyle = takeStyleIf (const True)
+
+-- | Transfers an attribute to the targets if it exists and the value satisfies
+-- the predicate.
+takeStyleIf :: (Text -> Bool) -> Text -> Attrib ()
+takeStyleIf p key = modify transform
   where
     transform state@((id', cs', kvs'), (id, cs, kvs)) =
       case List.lookup key kvs of
-        Just value ->
-          ((id', cs', addStyle (key, value) kvs'), (id, cs, rmKey key kvs))
-        Nothing -> state
+        Just value
+          | p value ->
+            ((id', cs', addStyle (key, value) kvs'), (id, cs, rmKey key kvs))
+        _ -> state
 
 -- | Translates width and height attributes into CSS style values if they
 -- exist.
-takeSize :: Attrib ()
-takeSize = do
-  takeStyle "width"
-  takeStyle "height"
+takeSizeIf :: (Text -> Bool) -> Attrib ()
+takeSizeIf p = do
+  takeStyleIf p "width"
+  takeStyleIf p "height"
+
+takeSize = takeSizeIf (const True)
 
 takeId :: Attrib ()
 takeId = modify transform
@@ -218,7 +226,6 @@ takeAutoplay = do
 takeUsual = do
   takeId
   takeAllClasses
-  takeSize
   takeCss
   dropCore
   passI18n
