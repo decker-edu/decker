@@ -80,6 +80,13 @@ All choices get an optional comment to be potentially shown with the result.
 - [ ] c
     - So auch nicht
 
+``` {.yaml}
+score: 5
+category: CG
+lectureId: cg1
+topic: yeah
+title: this
+```
 
 # Audience Response System { .quiz }
 
@@ -100,22 +107,31 @@ Like multiple-choice, however, the choices are shown as drop-down lists embedded
 
 ## Inserting Multiple-Choices in Text {.quiz-ic} 
 
-Decker is a software built using the programming language 
+- [ ] Scala
+    - nein
+    
+Decker 
+
+
+[decker](http://go.uniwue.de/decker)
+
+[decker](http://go.uniwue.de/decker)
 
 - [ ] Scala
-    - nein, wäre aber besser gewesen 
+    - nein
 - [X] Haskell
-    - Tja, pandoc halt 
+    - pandoc
 - [ ] Java
-    - Gut, dass nicht 
+    - Gut
 - [ ] Ruby 
-    - Zum Glück nicht (mehr) 
+    - glück
 
 
-and builds upon (now without all comments)
- 
+and builds
 
 - [ ] LaTeX Beamer
+
+ende
 
 ##
 

@@ -135,7 +135,8 @@ renderQuizzes quiz@(FreeText ti tgs cat id_ q ch) =
 renderQuizzes quiz@(InsertChoices ti tgs cat id_ q) =
   Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
 renderQuizzes quiz@(MultipleChoice ti tgs cat id_ q ch) =
-  Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
+  renderMultipleChoice quiz
+  -- Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
 
 -- Takes a Quiz and a list of blocks, parses the blocks and modifies the given quiz
 parseAndSetQuiz :: Quiz -> [Block] -> Quiz
@@ -238,22 +239,28 @@ parseQuizTLItem _ is = Choice False [Str "NoTasklistItem"] [Plain []]
 setQuizHeader :: Block -> Quiz -> Quiz
 setQuizHeader (Header 2 (id_, cls, kvs) text) q = set title text q
 setQuizHeader _ q = q
--- renderMultipleChoice :: Quiz -> Block
--- renderMultipleChoice quiz@(MultipleChoice title tgs cat id_ q ch) =
---   Div ("", tgs, [("category", cat), ("qID", id_)]) [Para title, choiceBlock]
---   where
---     choiceBlock = rawHtml $ T.pack $ S.renderHtml $ choiceList
---     choiceList = H.ul $ (foldr (\x -> (>>) (handleChoices x)) H.area ch)
---     handleChoices :: Choice -> Html
---     handleChoices (Choice correct text comment) =
---       if correct
---         then H.li $
---              A.class_ "correct" $ do
---                inlinesToHtml' text
---                H.div ! A.class_ "tooltip" $ blocksToHtml' comment
---         else H.li $
---              A.class_ "wrong" $ do
---                inlinesToHtml' text
---                H.div ! A.class_ "tooltip" $ blocksToHtml' comment
--- renderMultipleChoice q =
---   Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE"]]
+
+renderMultipleChoice :: Quiz -> Block
+renderMultipleChoice quiz@(MultipleChoice title tgs cat id_ q ch) =
+  Div ("", tgs, [("category", cat), ("qID", id_)]) $
+  [Para title] ++ q ++ [choiceBlock]
+  where
+    choiceBlock = rawHtml $ T.pack $ S.renderHtml $ choiceList
+    choiceList =
+      H.ul ! A.class_ "choices" $ (foldr (\x -> (>>) (handleChoices x)) H.br ch)
+    reduceTooltip :: [Block] -> [Block]
+    reduceTooltip [BulletList blocks] = concat blocks
+    reduceTooltip bs = bs
+    handleChoices :: Choice -> Html
+    handleChoices (Choice correct text comment) =
+      if correct
+        then H.li ! A.class_ "correct" $ do
+               inlinesToHtml' text
+               H.div ! A.class_ "tooltip" $
+                 blocksToHtml' (reduceTooltip comment)
+        else H.li ! A.class_ "wrong" $ do
+               inlinesToHtml' text
+               H.div ! A.class_ "tooltip" $
+                 blocksToHtml' (reduceTooltip comment)
+renderMultipleChoice q =
+  Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE"]]
