@@ -107,15 +107,9 @@ Like multiple-choice, however, the choices are shown as drop-down lists embedded
 
 ## Inserting Multiple-Choices in Text {.quiz-ic} 
 
-- [ ] Scala
-    - nein
     
-Decker 
+Decker is a software built using  
 
-
-[decker](http://go.uniwue.de/decker)
-
-[decker](http://go.uniwue.de/decker)
 
 - [ ] Scala
     - nein
@@ -127,11 +121,11 @@ Decker
     - glück
 
 
-and builds
+and builds upon
 
 - [ ] LaTeX Beamer
 
-ende
+.
 
 ##
 

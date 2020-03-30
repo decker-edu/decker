@@ -132,8 +132,8 @@ renderQuizzes quiz@(MatchItems ti tgs cat id_ q p) =
   Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
 renderQuizzes quiz@(FreeText ti tgs cat id_ q ch) =
   Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
-renderQuizzes quiz@(InsertChoices ti tgs cat id_ q) =
-  Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
+renderQuizzes quiz@(InsertChoices ti tgs cat id_ q) = renderInsertChoices quiz
+  -- Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
 renderQuizzes quiz@(MultipleChoice ti tgs cat id_ q ch) =
   renderMultipleChoice quiz
   -- Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
@@ -246,6 +246,7 @@ renderMultipleChoice quiz@(MultipleChoice title tgs cat id_ q ch) =
   [Para title] ++ q ++ [choiceBlock]
   where
     choiceBlock = rawHtml $ T.pack $ S.renderHtml $ choiceList
+    choiceList :: Html
     choiceList =
       H.ul ! A.class_ "choices" $ (foldr (\x -> (>>) (handleChoices x)) H.br ch)
     reduceTooltip :: [Block] -> [Block]
@@ -263,4 +264,33 @@ renderMultipleChoice quiz@(MultipleChoice title tgs cat id_ q ch) =
                H.div ! A.class_ "tooltip" $
                  blocksToHtml' (reduceTooltip comment)
 renderMultipleChoice q =
-  Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE"]]
+  Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
+
+renderInsertChoices :: Quiz -> Block
+renderInsertChoices quiz@(InsertChoices title tgs cat id_ q) =
+  Div ("", tgs, [("category", cat), ("qID", id_)]) $
+  [Para title] ++ questionBlocks q
+  where
+    questionBlocks :: [([Block], [Choice])] -> [Block]
+    questionBlocks =
+      map (\x -> (rawHtml $ T.pack $ S.renderHtml $ handleTuple x))
+    handleTuple :: ([Block], [Choice]) -> Html
+    handleTuple ([], [c]) = input c
+    handleTuple ([], chs) = select chs
+    handleTuple (bs, []) = blocksToHtml' (map reduceBlock bs)
+    handleTuple (bs, [c]) = blocksToHtml' (map reduceBlock bs) >> input c
+    handleTuple (bs, chs) = blocksToHtml' (map reduceBlock bs) >> select chs
+    reduceBlock :: Block -> Block
+    reduceBlock (Para is) = Plain ([Str " "] ++ is ++ [Str " "])
+    reduceBlock p = p
+    input :: Choice -> Html
+    input (Choice correct text comment) = H.input
+    select :: [Choice] -> Html
+    select choices = H.select $ (foldr (\x -> (>>) (options x)) H.br choices)
+    options :: Choice -> Html
+    options (Choice correct text comment) =
+      if correct
+        then H.option ! A.class_ "correct" $ inlinesToHtml' text
+        else H.option ! A.class_ "wrong" $ inlinesToHtml' text
+renderInsertChoices q =
+  Div ("", [], []) [Para [Str "ERROR NO INSERT CHOICES QUIZ"]]
