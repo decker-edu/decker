@@ -118,15 +118,15 @@
   color: black;
 }
 
-.reveal a
-.matching,
+.reveal .matching,
 .reveal .quiz-mi {
   text-align: center;
 }
 
-.reveal a
-.matching .dropzones,
-.reveal .quiz-mi .dropzones {
+.reveal .matching .dropzones,
+.reveal .matching .buckets,
+.reveal .quiz-mi .dropzones,
+.reveal .quiz-mi .buckets {
   width: 100%;
   min-height: 15vh;
   max-height: 20vh;
@@ -134,18 +134,22 @@
   table-layout: fixed;
 }
 
-.reveal a
-.matching .dropzone,
-.reveal .quiz-mi .dropzone {
+.reveal .matching .dropzone,
+.reveal .matching .bucket,
+.reveal .quiz-mi .dropzone,
+.reveal .quiz-mi .bucket {
   display: table-cell;
   padding: 10px;
   border: 1px solid black;
   text-align: center;
 }
 
-.reveal a
-.matching .draggable,
-.reveal .quiz-mi .draggable {
+.reveal .matching .draggable,
+.reveal .matching .distractor,
+.reveal .matching .matchItem,
+.reveal .quiz-mi .draggable,
+.reveal .quiz-mi .distractor,
+.reveal .quiz-mi .matchItem {
   display: table-cell;
   margin: auto;
   padding: 1%;
@@ -156,19 +160,21 @@
   overflow: hidden;
 }
 
-.reveal a
-.matching .draggableChild,
+.reveal .matching .draggableChild,
 .reveal .quiz-mi .draggableChild {
   max-width: inherit;
   pointer-events: none;
 }
 
-.reveal a
-.matching .dragzone,
-.reveal .quiz-mi .dragzone {
+.reveal .matching .dragzone,
+.reveal .matching .matchItems,
+.reveal .quiz-mi .dragzone,
+.reveal .quiz-mi .matchItems {
   display: table;
   table-layout: fixed;
   border-spacing: 5px;
+  border: black;
+  border-style: dashed;
   margin-top: 5%;
   min-height: 15vh;
   max-height: 20vh;
@@ -177,12 +183,14 @@
   position: relative;
 }
 
-.reveal a
-.matching .dragzone:after,
-.reveal a
-.matching .dragzone:before,
+.reveal .matching .dragzone:after,
+.reveal .matching .dragzone:before,
+.reveal .matching .matchItems:after,
+.reveal .matching .matchItems:before,
 .reveal .quiz-mi .dragzone:after,
-.reveal .quiz-mi .dragzone:before {
+.reveal .quiz-mi .dragzone:before,
+.reveal .quiz-mi .matchItems:after,
+.reveal .quiz-mi .matchItems:before {
   bottom: 100%;
   left: 50%;
   border: solid transparent;
@@ -193,9 +201,10 @@
   pointer-events: none;
 }
 
-.reveal a
-.matching .dragzone:after,
-.reveal .quiz-mi .dragzone:after {
+.reveal .matching .dragzone:after,
+.reveal .matching .matchItems:after,
+.reveal .quiz-mi .dragzone:after,
+.reveal .quiz-mi .matchItems:after {
   border-color: rgba(136, 183, 213, 0);
   border-bottom-color: #111;
   border-width: 30px;
@@ -497,6 +506,7 @@
   background-color: rgba(255, 255, 255, 0.5);
   opacity: 0.2;
   font-size: 20px;
+  outline: none;
 }
 
 .reveal button.fs-button:hover {

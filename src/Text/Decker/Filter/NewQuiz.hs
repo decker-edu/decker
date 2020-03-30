@@ -128,10 +128,10 @@ handleQuizzes pandoc = return $ walk parseQuizboxes pandoc
 
 -- Take the parsed Quizzes and render them to html
 renderQuizzes :: Quiz -> Block
-renderQuizzes quiz@(MatchItems ti tgs cat id_ q p) =
-  Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
-renderQuizzes quiz@(FreeText ti tgs cat id_ q ch) =
-  Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
+renderQuizzes quiz@(MatchItems ti tgs cat id_ q p) = renderMatching quiz
+  -- Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
+renderQuizzes quiz@(FreeText ti tgs cat id_ q ch) = renderFreeText quiz
+  -- Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
 renderQuizzes quiz@(InsertChoices ti tgs cat id_ q) = renderInsertChoices quiz
   -- Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
 renderQuizzes quiz@(MultipleChoice ti tgs cat id_ q ch) =
@@ -294,3 +294,33 @@ renderInsertChoices quiz@(InsertChoices title tgs cat id_ q) =
         else H.option ! A.class_ "wrong" $ inlinesToHtml' text
 renderInsertChoices q =
   Div ("", [], []) [Para [Str "ERROR NO INSERT CHOICES QUIZ"]]
+
+-- 
+renderMatching :: Quiz -> Block
+renderMatching quiz@(MatchItems title tgs cat id_ qs matches) =
+  Div ("", tgs, [("category", cat), ("qID", id_)]) $
+  [Para title, bucketsDiv, itemsDiv]
+  where
+    (buckets, items) = unzip $ map pairs matches
+    itemsDiv = Div ("", ["matchItems"], []) (concat items)
+    bucketsDiv = Div ("", ["buckets"], []) buckets
+    item :: T.Text -> [Block] -> Block
+    item index =
+      Div ("", ["matchItem"], [("draggable", "true"), ("bucketId", index)])
+    distractor :: [Block] -> Block
+    distractor = Div ("", ["distractor"], [("draggable", "true")])
+    pairs :: Match -> (Block, [Block])
+    pairs (Distractor bs) = (Text.Pandoc.Definition.Null, map distractor bs)
+    pairs (Pair i is bs) =
+      ( Div ("", ["bucket"], [("bucketId", T.pack $ show i)]) [Plain is]
+      , map (item (T.pack $ show i)) bs)
+renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
+
+renderFreeText :: Quiz -> Block
+renderFreeText quiz@(FreeText title tgs cat id_ q ch) =
+  Div ("", tgs, [("category", cat), ("qID", id_)]) $
+  [Para title] ++ q ++ [inputRaw]
+  where
+    inputRaw = rawHtml $ T.pack $ S.renderHtml $ H.input
+    input :: Choice -> Html
+    input (Choice correct text comment) = H.input

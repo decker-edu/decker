@@ -30,14 +30,15 @@
 }
 }
 
-.reveal {a
+.reveal {
 
     // Matching/Pairing questions
     .matching,
     .quiz-mi {
         text-align: center;
 
-        .dropzones {
+        .dropzones,
+        .buckets {
             width: 100%;
             min-height: 15vh;
             max-height: 20vh;
@@ -45,14 +46,17 @@
             table-layout: fixed;
         }
 
-        .dropzone {
+        .dropzone,
+        .bucket{
             display: table-cell;
             padding: 10px;
             border: 1px solid black;
             text-align: center;
         }
 
-        .draggable {
+        .draggable,
+        .distractor,
+        .matchItem {
             display: table-cell;
             margin: auto;
             padding: 1%;
@@ -71,10 +75,13 @@
 
         // Arrow from here: http://www.cssarrowplease.com/
         // Creates an arrow that points from dragzone to dropzone to indicate dragging direction
-        .dragzone {
+        .dragzone,
+        .matchItems {
             display: table;
             table-layout: fixed;
             border-spacing: 5px;
+            border: black;
+            border-style: dashed;
             margin-top: 5%;
             min-height: 15vh;
             max-height: 20vh;
@@ -84,7 +91,9 @@
         }
 
         .dragzone:after,
-        .dragzone:before {
+        .dragzone:before,
+        .matchItems:after,
+        .matchItems:before {
             bottom: 100%;
             left: 50%;
             border: solid transparent;
@@ -95,7 +104,8 @@
             pointer-events: none;
         }
 
-        .dragzone:after {
+        .dragzone:after,
+        .matchItems:after {
             border-color: rgba(136, 183, 213, 0);
             border-bottom-color: #111;
             border-width: 30px;
