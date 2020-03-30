@@ -1,5 +1,5 @@
 module Text.Decker.Filter.NewQuiz
-  ( parseQuizzes
+  ( handleQuizzes
   ) where
 
 import Control.Lens hiding (Choice)
@@ -97,38 +97,64 @@ quizClasses =
 
 -- | Has to be called in the Markdown.hs deckerPipeline after processSlides
 -- | Depends on h2 headers being wrapped in boxes
-parseQuizzes :: Pandoc -> Decker Pandoc
-parseQuizzes pandoc = return $ walk parseQuizboxes pandoc
-
-parseQuizboxes :: Block -> Block
-parseQuizboxes d@(Div (id_, tgs@("box":cls), kvs) blocks)
-  | any (`elem` cls) ["qmi", "quiz-mi", "quiz-match-items"] =
-    quizDiv defaultMatch
-  | any (`elem` cls) ["qmc", "quiz-mc", "quiz-multiple-choice"] =
-    quizDiv defaultMC
-  | any (`elem` cls) ["qic", "quiz-ic", "quiz-insert-choices"] =
-    quizDiv defaultIC
-  | any (`elem` cls) ["qft", "quiz-ft", "quiz-free-text"] = quizDiv defaultFree
-  | otherwise = d
+handleQuizzes :: Pandoc -> Decker Pandoc
+handleQuizzes pandoc = return $ walk parseQuizboxes pandoc
   where
-    quizDiv q =
-      Div (id_, tgs, kvs) [Para [Str (parseAndSet (set tags tgs q) blocks)]]
-parseQuizboxes bl = bl
+    parseQuizboxes :: Block -> Block
+    parseQuizboxes d@(Div (id_, tgs@("box":cls), kvs) blocks)
+      | any (`elem` cls) ["qmi", "quiz-mi", "quiz-match-items"] =
+        renderQuizzes (parseQuizzes (set tags tgs defaultMatch) blocks)
+      | any (`elem` cls) ["qmc", "quiz-mc", "quiz-multiple-choice"] =
+        renderQuizzes (parseQuizzes (set tags tgs defaultMC) blocks)
+      | any (`elem` cls) ["qic", "quiz-ic", "quiz-insert-choices"] =
+        renderQuizzes (parseQuizzes (set tags tgs defaultIC) blocks)
+      | any (`elem` cls) ["qft", "quiz-ft", "quiz-free-text"] =
+        renderQuizzes (parseQuizzes (set tags tgs defaultFree) blocks)
+      | otherwise = d
+    parseQuizboxes bl = bl
+    setTags :: Quiz -> [T.Text] -> Quiz
+    setTags q ts = set tags ts q
+    -- The default "new" quizzes
+    defaultMatch = MatchItems [Str "Empty"] [] "" "" [] []
+    defaultMC = MultipleChoice [Str "Empty"] [] "" "" [] []
+    defaultIC = InsertChoices [Str "Empty"] [] "" "" []
+    defaultFree = FreeText [Str "Empty"] [] "" "" [] []
 
-defaultMatch = MatchItems [Str "Empty"] [] "" "" [] []
+-- Take the parsed Quizzes and render them to html
+renderQuizzes :: Quiz -> Block
+renderQuizzes quiz@(MatchItems ti tgs cat id_ q p) =
+  Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
+renderQuizzes quiz@(FreeText ti tgs cat id_ q ch) =
+  Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
+renderQuizzes quiz@(InsertChoices ti tgs cat id_ q) =
+  Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
+renderQuizzes quiz@(MultipleChoice ti tgs cat id_ q ch) =
+  Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
 
-defaultMC = MultipleChoice [Str "Empty"] [] "" "" [] []
+-- 
+parseQuizzes :: Quiz -> [Block] -> Quiz
+parseQuizzes q bs = combineICQuestions (foldr parseAndSetQuiz q bs)
 
-defaultIC = InsertChoices [Str "Empty"] [] "" "" []
-
-defaultFree = FreeText [Str "Empty"] [] "" "" [] []
-
-setTags :: Quiz -> [T.Text] -> Quiz
-setTags q ts = set tags ts q
-
--- | Temporary
-parseAndSet :: Quiz -> [Block] -> T.Text
-parseAndSet q bs = T.pack $ show (foldr parseAndSetQuiz q bs)
+-- | This function combines the (Question, Choices) tuples of InsertChoice questions
+-- These tuples are of type ([Block], [Choice])
+-- This is because in `parseAndSetQuiz` they are created alternatingly as (bs, []) and ([],chs)
+-- This combine function makes it so that the questions field in InsertChoice is 
+-- an alternating list of "Question text -> quiz element -> question text" etc
+combineICQuestions :: Quiz -> Quiz
+combineICQuestions quiz@(InsertChoices ti tgs cat id_ q) =
+  set questions (combineQTuples q) quiz
+    -- These tuples can only be ([],a) or (a,[]) per default
+    -- They're created like this in parseAndSetQuiz
+  where
+    combineQTuples :: [([Block], [Choice])] -> [([Block], [Choice])]
+    combineQTuples bc@[(a, b)] = bc
+    -- combine two question blocks
+    combineQTuples ((a, []):(b, []):rest) = combineQTuples ((a ++ b, []) : rest)
+    -- combine Question with a choice block
+    combineQTuples ((a, []):([], b):rest) = (a, b) : (combineQTuples rest)
+    -- If the head has anything other than an empty choice then ignore it
+    combineQTuples (a:(y, b):rest) = a : combineQTuples ((y, b) : rest)
+combineICQuestions q = q
 
 -- | This monolithic function parses a Pandoc Block and uses lenses to set the field in the given quiz item
 parseAndSetQuiz :: Block -> Quiz -> Quiz

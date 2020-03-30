@@ -132,7 +132,7 @@ deckerPipeline =
     , provisionResources
     , renderQuizzes
     , processSlides
-    , parseQuizzes
+    , handleQuizzes
     -- , renderMediaTags
     -- , extractFigures
     , processCitesWithDefault
