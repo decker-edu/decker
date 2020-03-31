@@ -305,7 +305,7 @@ body {
 
 /* box around block of code */
 .reveal pre {
-    display: inline-block;
+    display: block;
     position: relative;
     width: auto;
     margin: 10px auto;
