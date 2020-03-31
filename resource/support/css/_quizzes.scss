@@ -5,6 +5,10 @@
 }
 
 .reveal {
+    .qic,
+    .qft,
+    .qmc,
+    .qmi,
     [class*="quiz-"]{
 
     // General Button css and freetext question Input 
@@ -20,6 +24,8 @@
 }}
 
 .reveal {
+    .qic,
+    .qft,
     [class*="quiz-"]{
     select{
         font-size: inherit;
@@ -34,7 +40,9 @@
 
     // Matching/Pairing questions
     .matching,
-    .quiz-mi {
+    .quiz-mi,
+    .qmi,
+    .quiz-match-items {
         text-align: center;
 
         .dropzones,
@@ -121,10 +129,12 @@
 
     // Multiple Choice        
     .survey, 
-    .quiz-mc{
+    .quiz-multiple-choice,
+    .quiz-mc,
+    .qmc{
 
         // To align solution button in center
-        text-align: center;
+        // text-align: center;
 
         // To avoid that MC boxes are bigger when used directly below lvl 1 header 
         div p {

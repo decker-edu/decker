@@ -84,7 +84,6 @@ score: 5
 category: CG
 lectureId: cg1
 topic: yeah
-title: this
 ```
 
 # Audience Response System { .quiz }
@@ -167,3 +166,84 @@ Das Ergebnis von $2*2=~?$ ist?
     - RTL, no not really?
 - [ ] *
     - ganz falsch, so oder so?
+
+
+# Minimal Matching
+
+## Matching Question {.qmi}
+
+Question
+
+A
+: A1
+: A2
+
+B
+: B1
+
+!
+: C
+
+``` {.yaml}
+score: 5
+category: CG
+lectureId: cg1
+topic: yeah
+```
+
+# Minimal Multiple Choice 
+
+## Multiple Choice Question {.qmc}
+
+Question text
+
+- [ ] A
+  - nope
+- [X] B
+  - yes
+
+``` {.yaml}
+score: 1
+category: CG
+lectureId: cg1
+topic: elementary 
+```
+
+# Minimal Insert 
+
+## Insert Choices Question {.qic}
+
+- [X] A
+  - of course
+- [ ] B 
+  - uhm ...
+
+is the first letter in the ABC. The second one is
+
+- [ ] B
+  - yep
+
+``` {.yaml}
+score: 1
+category: elementaryschool
+lectureId: abc1
+topic: The alphabet 
+```
+
+# Minimal FreeText 
+
+## FreeText Question TL {.qft}
+
+What's the first letter in the alphabet?
+
+- A
+  - yep
+- B
+  - nope
+
+## {.qft}
+
+What's the fourth letter?
+
+- [ ] C
+- [X] D

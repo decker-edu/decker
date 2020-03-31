@@ -157,6 +157,7 @@ combineICQuestions quiz@(InsertChoices ti tgs cat lId sc tpc q) =
     -- They're created like this in parseAndSetQuizFields
   where
     combineQTuples :: [([Block], [Choice])] -> [([Block], [Choice])]
+    combineQTuples [] = []
     combineQTuples bc@[(a, b)] = bc
     -- combine two question blocks
     combineQTuples ((a, []):(b, []):rest) = combineQTuples ((a ++ b, []) : rest)
@@ -192,7 +193,7 @@ parseAndSetQuizFields q (CodeBlock (id_, cls, kvs) code) =
     setTopic :: Quiz -> Quiz
     setTopic q =
       case getMetaString "topic" meta of
-        Just s -> set score (T.pack s) q
+        Just s -> set topic (T.pack s) q
         Nothing -> q
     setLectureID :: Quiz -> Quiz
     setLectureID q =
@@ -256,8 +257,11 @@ solutionButton =
 
 renderMultipleChoice :: Quiz -> Block
 renderMultipleChoice quiz@(MultipleChoice title tgs cat lId sc tpc q ch) =
-  Div ("", tgs, [("category", cat), ("lectureId", lId)]) $
-  [Para title] ++ q ++ [choiceBlock] ++ [solutionButton]
+  Div
+    ( ""
+    , tgs
+    , [("category", cat), ("lectureId", lId), ("score", sc), ("topic", tpc)]) $
+  [Header 2 ("", [], []) title] ++ q ++ [choiceBlock] ++ [solutionButton]
   where
     choiceBlock = rawHtml $ T.pack $ S.renderHtml $ choiceList
     choiceList :: Html
@@ -282,8 +286,11 @@ renderMultipleChoice q =
 
 renderInsertChoices :: Quiz -> Block
 renderInsertChoices quiz@(InsertChoices title tgs cat lId sc tpc q) =
-  Div ("", tgs, [("category", cat), ("lectureId", lId)]) $
-  [Para title] ++ questionBlocks q ++ [solutionButton]
+  Div
+    ( ""
+    , tgs
+    , [("category", cat), ("lectureId", lId), ("score", sc), ("topic", tpc)]) $
+  [Header 2 ("", [], []) title] ++ questionBlocks q ++ [solutionButton]
   where
     questionBlocks :: [([Block], [Choice])] -> [Block]
     questionBlocks =
@@ -312,8 +319,11 @@ renderInsertChoices q =
 -- 
 renderMatching :: Quiz -> Block
 renderMatching quiz@(MatchItems title tgs cat lId sc tpc qs matches) =
-  Div ("", tgs, [("category", cat), ("lectureId", lId)]) $
-  [Para title, bucketsDiv, itemsDiv, solutionButton]
+  Div
+    ( ""
+    , tgs
+    , [("category", cat), ("lectureId", lId), ("score", sc), ("topic", tpc)])
+    [Header 2 ("", [], []) title, bucketsDiv, itemsDiv, solutionButton]
   where
     (buckets, items) = unzip $ map pairs matches
     itemsDiv = Div ("", ["matchItems"], []) (concat items)
@@ -322,7 +332,7 @@ renderMatching quiz@(MatchItems title tgs cat lId sc tpc qs matches) =
     item index =
       Div ("", ["matchItem"], [("draggable", "true"), ("bucketId", index)])
     distractor :: [Block] -> Block
-    distractor = Div ("", ["distractor"], [("draggable", "true")])
+    distractor = Div ("", ["matchItem", "distractor"], [("draggable", "true")])
     pairs :: Match -> (Block, [Block])
     pairs (Distractor bs) = (Text.Pandoc.Definition.Null, map distractor bs)
     pairs (Pair i is bs) =
@@ -332,9 +342,13 @@ renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
 renderFreeText :: Quiz -> Block
 renderFreeText quiz@(FreeText title tgs cat lId sc tpc q ch) =
-  Div ("", tgs, [("category", cat), ("lectureId", lId)]) $
-  [Para title] ++ q ++ [inputRaw] ++ [solutionButton]
+  Div
+    ( ""
+    , tgs
+    , [("category", cat), ("lectureId", lId), ("score", sc), ("topic", tpc)]) $
+  [Header 2 ("", [], []) title] ++ q ++ [inputRaw] ++ [solutionButton]
   where
     inputRaw = rawHtml $ T.pack $ S.renderHtml $ H.input
     input :: Choice -> Html
     input (Choice correct text comment) = H.input
+renderFreeText q = Div ("", [], []) [Para [Str "ERROR NO FREETEXT QUIZ"]]
