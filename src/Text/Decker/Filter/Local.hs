@@ -22,6 +22,7 @@ import Text.Blaze.Internal (Attributable)
 import Text.Pandoc
 import Text.URI (URI)
 import qualified Text.URI as URI
+
 {-
 instance H.ToMarkup Block where
   toMarkup (RawBlock (Format "html") html) =
@@ -35,7 +36,6 @@ instance H.ToMarkup Inline where
   toMarkup inline =
     bug $ InternalException $ "toMarkup: illegal inline argument" <> show inline
 -}
-
 instance ToValue [Text] where
   toValue ts = toValue $ Text.intercalate " " ts
 
@@ -309,22 +309,35 @@ setUriPath path uri = do
             auth -> auth
       }
 
+setQuery :: MonadThrow m => [Text] -> [(Text, Text)] -> URI -> m URI
+setQuery flags params uri = do
+  qFlags <- map URI.QueryFlag <$> mapM URI.mkQueryKey flags
+  qParams <- mapM mkParam params
+  return $ uri {URI.uriQuery = qFlags <> qParams}
+  where
+    mkParam (k, v) = do
+      qKey <- URI.mkQueryKey k
+      qVal <- URI.mkQueryValue v
+      return $ URI.QueryParam qKey qVal
+
 addQueryFlag :: MonadThrow m => Text -> URI -> m URI
 addQueryFlag flag uri = do
-  let query = filter isFlag $ URI.uriQuery uri
+  let query = filter (not . thisFlag) $ URI.uriQuery uri
   qFlag <- URI.QueryFlag <$> URI.mkQueryKey flag
   return $ uri {URI.uriQuery = qFlag : query}
   where
-    isFlag (URI.QueryFlag rtext) = URI.unRText rtext /= flag
+    thisFlag (URI.QueryFlag rtext) = URI.unRText rtext == flag
+    thisFlag _ = False
 
 addQueryParam :: MonadThrow m => (Text, Text) -> URI -> m URI
 addQueryParam (key, value) uri = do
-  let query = filter isParam $ URI.uriQuery uri
+  let query = filter (not . thisParam) $ URI.uriQuery uri
   qKey <- URI.mkQueryKey key
   qVal <- URI.mkQueryValue value
   return $ uri {URI.uriQuery = URI.QueryParam qKey qVal : query}
   where
-    isParam (URI.QueryParam rtext _) = URI.unRText rtext /= key
+    thisParam (URI.QueryParam rtext _) = URI.unRText rtext == key
+    thisParam _ = False
 
 setMeta :: Text -> Text -> Filter ()
 setMeta key value =

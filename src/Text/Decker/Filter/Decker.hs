@@ -162,6 +162,7 @@ imageError img@Image {} (SomeException e) = do
       H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
 imageError _ _ = bug $ InternalException "imageError: non image argument "
 
+imageTransformers :: Map MediaT (URI -> [Inline] -> Attrib Html)
 imageTransformers =
   Map.fromList
     [ (EmbedSvgT, svgHtml)
@@ -170,7 +171,7 @@ imageTransformers =
     , (IframeT, iframeHtml)
     , (ImageT, imageHtml)
     , (VideoT, videoHtml)
-    , (StreamT, streamHtml)
+    , (StreamT, streamHtml')
     , (AudioT, audioHtml)
     ]
 

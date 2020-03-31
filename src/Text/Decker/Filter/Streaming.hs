@@ -5,10 +5,16 @@ module Text.Decker.Filter.Streaming where
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Macro
+import Text.Decker.Internal.Exception
 
+import Control.Monad.Catch
+import qualified Data.Text as Text
 import Relude
 import Text.Blaze.Html
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
 import Text.Pandoc
+import Text.Printf
 import Text.URI (URI)
 import qualified Text.URI as URI
 
@@ -19,8 +25,7 @@ justToList = reverse . justToList'
     justToList' (Nothing:_) = []
 
 youtubeDefaults =
-  [ ("autoplay", "0")
-  , ("cc_load_policy", "0")
+  [ ("cc_load_policy", "0")
   , ("controls", "2")
   , ("iv_load_policy", "3")
   , ("modestbranding", "")
@@ -30,8 +35,7 @@ youtubeDefaults =
 
 -- https://developers.google.com/youtube/player_parameters?hl=de#IFrame_Player_API
 youtubeParams =
-  [ "autoplay"
-  , "cc_load_policy"
+  [ "cc_load_policy"
   , "color"
   , "controls"
   , "disablekb"
@@ -51,8 +55,7 @@ youtubeParams =
   ]
 
 youtubeFlags =
-  [ "autoplay"
-  , "cc_load_policy"
+  [ "cc_load_policy"
   , "disablekb"
   , "enablejsapi"
   , "fs"
@@ -62,6 +65,10 @@ youtubeFlags =
   , "rel"
   , "showinfo"
   ]
+
+twitchParams = ["autoplay", "mute", "time"]
+
+twitchFlags = ["autoplay", "mute"]
 
 -- https://vimeo.zendesk.com/hc/en-us/articles/360001494447-Using-Player-Parameters
 vimeoDefaults =
@@ -75,7 +82,6 @@ vimeoDefaults =
 
 vimeoParams =
   [ "autopause"
-  , "autoplay"
   , "background"
   , "byline"
   , "color"
@@ -95,7 +101,6 @@ vimeoParams =
 
 vimeoFlags =
   [ "autopause"
-  , "autoplay"
   , "background"
   , "byline"
   , "controls"
@@ -124,27 +129,102 @@ streamHtml uri caption = do
       _ -> uriPath uri
   return $
     toHtml $ embedWebVideosHtml (fromMaybe "" scheme) args attr (streamId, "")
-{-
- -streamHtml :: URI -> [Inline] -> Attrib Html
- -streamHtml uri caption = do
- -  streamTag <-
- -    case uriScheme uri of
- -      "youtube" -> youtubeTag uri
- -      _ -> throwM $ ResourceException "Unsupported stream service: youtube"
- -  case caption of
- -    [] -> do
- -      injectBorder >> takeUsual
- -      mkStreamTag uri <$> extractAttr
- -    caption -> do
- -      captionHtml <- lift $ inlinesToHtml caption
- -      svgAttr <- extractAttr
- -      let imageTag = mkStreamTag uri svgAttr
- -      injectBorder >> takeUsual
- -      mkFigureTag imageTag captionHtml <$> extractAttr
- -
- -mkStreamTag :: URI -> Attr -> Html
- -mkStreamTag uri (id, cs, kvs) =
- -  H.span !? (not (Text.null id), A.id (H.toValue id)) !
- -  A.class_ (H.toValue ("decker svg" : cs)) $
- -  H.preEscapedText svg
- -}
+
+streamHtml' :: URI -> [Inline] -> Attrib Html
+streamHtml' uri caption = do
+  let scheme = uriScheme uri
+  streamId <-
+    case URI.uriAuthority uri of
+      Right (URI.Authority _ host _) -> pure $ URI.unRText host
+      _ -> uriPath uri
+  streamUri <-
+    case scheme of
+      Just "youtube" -> mkYoutubeUri streamId
+      Just "vimeo" -> mkVimeoUri streamId
+      Just "twitch" -> mkTwitchUri streamId
+      _ ->
+        throwM $
+        ResourceException $
+        "Unsupported stream service: " <> toString (fromMaybe "<none>" scheme)
+  case caption of
+    [] -> do
+      iframeAttr <- takeIframeAttr >> extractAttr
+      wrapperAttr <- injectBorder >> takeWrapperAttr >> takeUsual >> extractAttr
+      return $ mkStreamTag streamUri wrapperAttr iframeAttr
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      iframeAttr <- takeIframeAttr >> extractAttr
+      wrapperAttr <- takeWrapperAttr >> extractAttr
+      figAttr <- injectBorder >> takeUsual >> extractAttr
+      let streamTag = mkStreamTag streamUri wrapperAttr iframeAttr
+      return $ mkFigureTag streamTag captionHtml figAttr
+
+takeWrapperAttr :: Attrib ()
+takeWrapperAttr = do
+  aspect <- calcAspect . fromMaybe "" <$> cutAttrib "aspect"
+  injectStyle ("position", "relative")
+  injectStyle ("padding-top", "25px")
+  injectStyle ("padding-bottom", aspect)
+  injectStyle ("height", "0")
+
+takeIframeAttr :: Attrib ()
+takeIframeAttr = do
+  injectStyle ("position", "absolute")
+  injectStyle ("top", "0")
+  injectStyle ("left", "0")
+  injectStyle ("width", "100%")
+  injectStyle ("height", "100%")
+  injectAttribute ("allowfullscreen", "1")
+  injectAttribute ("frameborder", "0")
+  takeAutoplay
+
+mkYoutubeUri :: Text -> Attrib URI
+mkYoutubeUri streamId = do
+  params <- cutAttribs youtubeParams
+  flags <- cutClasses youtubeFlags
+  uri <- URI.mkURI $ "https://www.youtube.com/embed/" <> streamId
+  setQuery [] (merge [params, map (, "1") flags, youtubeDefaults]) uri
+
+mkVimeoUri :: Text -> Attrib URI
+mkVimeoUri streamId = do
+  params <- cutAttribs vimeoParams
+  flags <- cutClasses vimeoFlags
+  uri <- URI.mkURI $ "https://player.vimeo.com/video/" <> streamId
+  setQuery [] (merge [params, map (, "1") flags, vimeoDefaults]) uri
+
+mkTwitchUri :: Text -> Attrib URI
+mkTwitchUri streamId = do
+  params <- cutAttribs twitchParams
+  flags <- cutClasses twitchFlags
+  uri <- URI.mkURI "https://player.twitch.tv/"
+  setQuery [] (merge [("video", streamId) : params, map (, "1") flags]) uri
+
+calcAspect :: Text -> Text
+calcAspect ratio =
+  fromMaybe "56.25%" $
+  case Text.splitOn ":" ratio of
+    [w, h] -> do
+      wf <- readMaybe $ toString w :: Maybe Float
+      hf <- readMaybe $ toString h :: Maybe Float
+      return $ Text.pack (printf "%.2f%%" (hf / wf * 100.0))
+    _ -> Nothing
+
+mkAttrTag :: Html -> Attr -> Html
+mkAttrTag tag (id, cs, kvs) =
+  tag !? (not (Text.null id), A.id (H.toValue id)) !?
+  (not (null cs), A.class_ (H.toValue ("decker" : cs))) !*
+  kvs
+
+mkMediaTag :: Html -> URI -> Bool -> Attr -> Html
+mkMediaTag tag uri dataSrc attr =
+  let srcAttr =
+        if dataSrc
+          then H.dataAttribute "src"
+          else A.src
+   in mkAttrTag tag attr ! srcAttr (H.preEscapedToValue $ URI.render uri)
+
+mkStreamTag :: URI -> Attr -> Attr -> Html
+mkStreamTag uri wrapperAttr iframeAttr =
+  let inner =
+        mkMediaTag (H.iframe "Iframe showing video here.") uri True iframeAttr
+   in mkAttrTag (H.div inner) wrapperAttr
