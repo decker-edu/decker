@@ -91,23 +91,6 @@ data Quiz
 
 makeLenses ''Quiz
 
--- | A Match can be either a
-quizClasses :: [T.Text]
-quizClasses =
-  [ "quiz-match-items"
-  , "quiz-mi"
-  , "qmi"
-  , "quiz-multiple-choice"
-  , "quiz-mc"
-  , "qmc"
-  , "quiz-insert-choices"
-  , "quiz-ic"
-  , "qic"
-  , "quiz-free-text"
-  , "quiz-ft"
-  , "qft"
-  ]
-
 -- | Has to be called in the Markdown.hs deckerPipeline after processSlides
 -- | Depends on h2 headers being wrapped in boxes
 handleQuizzes :: Pandoc -> Decker Pandoc
@@ -172,7 +155,6 @@ parseAndSetQuizFields :: Quiz -> Block -> Quiz
 -- Set the title
 parseAndSetQuizFields q (Header 2 (id_, cls, kvs) text) = set title text q
 -- Set the meta information
--- Probably should be outsourced to (a) separate function(s)
 parseAndSetQuizFields q (CodeBlock (id_, cls, kvs) code) =
   if "yaml" `elem` cls
     then (setCategory . setLectureID . setScore . setTopic) q
@@ -242,11 +224,6 @@ parseQuizTLItem _ (Plain (Str "☒":Space:is):bs) = Choice True is bs
 parseQuizTLItem _ (Plain (Str "☐":Space:is):bs) = Choice False is bs
 parseQuizTLItem FreeText {} (Plain is:bs) = Choice True is bs
 parseQuizTLItem _ is = Choice False [Str "NoTasklistItem"] [Plain []]
-
--- | Parse and set the Quiz title from the h2 header
-setQuizHeader :: Block -> Quiz -> Quiz
-setQuizHeader (Header 2 (id_, cls, kvs) text) q = set title text q
-setQuizHeader _ q = q
 
 solutionButton =
   rawHtml $
