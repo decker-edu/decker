@@ -49,7 +49,7 @@ data Quiz
       { _title :: [Inline]
       , _tags :: [T.Text]
       , _category :: T.Text
-      , _qId :: T.Text
+      , _lectureId :: T.Text
       , _score :: T.Text
       , _topic :: T.Text
       , _question :: [Block]
@@ -60,7 +60,7 @@ data Quiz
       { _title :: [Inline]
       , _tags :: [T.Text]
       , _category :: T.Text
-      , _qId :: T.Text
+      , _lectureId :: T.Text
       , _score :: T.Text
       , _topic :: T.Text
       , _question :: [Block]
@@ -72,7 +72,7 @@ data Quiz
       { _title :: [Inline]
       , _tags :: [T.Text]
       , _category :: T.Text
-      , _qId :: T.Text
+      , _lectureId :: T.Text
       , _score :: T.Text
       , _topic :: T.Text
       , _questions :: [([Block], [Choice])]
@@ -81,7 +81,7 @@ data Quiz
       { _title :: [Inline]
       , _tags :: [T.Text]
       , _category :: T.Text
-      , _qId :: T.Text
+      , _lectureId :: T.Text
       , _score :: T.Text
       , _topic :: T.Text
       , _question :: [Block]
@@ -151,7 +151,7 @@ parseAndSetQuiz q bs = combineICQuestions (foldl parseAndSetQuizFields q bs)
 -- This combine function makes it so that the questions field in InsertChoice is 
 -- an alternating list of "Question text -> quiz element -> question text" etc
 combineICQuestions :: Quiz -> Quiz
-combineICQuestions quiz@(InsertChoices ti tgs cat qId sc tpc q) =
+combineICQuestions quiz@(InsertChoices ti tgs cat lId sc tpc q) =
   set questions (combineQTuples q) quiz
     -- These tuples can only be ([],a) or (a,[]) per default
     -- They're created like this in parseAndSetQuizFields
@@ -197,7 +197,7 @@ parseAndSetQuizFields q (CodeBlock (id_, cls, kvs) code) =
     setLectureID :: Quiz -> Quiz
     setLectureID q =
       case getMetaString "lectureId" meta of
-        Just s -> set qId (T.pack s) q
+        Just s -> set lectureId (T.pack s) q
         Nothing -> q
     decodeYaml :: T.Text -> Meta
     decodeYaml text =
@@ -215,23 +215,23 @@ parseAndSetQuizFields quiz@MatchItems {} (DefinitionList items) =
 parseAndSetQuizFields quiz@FreeText {} (BulletList blocks) =
   set choices (map (parseQuizTLItem quiz) blocks) quiz
 -- parse and Set choices for InsertChoices
-parseAndSetQuizFields quiz@(InsertChoices ti tgs cat qId sc tpc q) (BulletList blocks) =
+parseAndSetQuizFields quiz@(InsertChoices ti tgs cat lId sc tpc q) (BulletList blocks) =
   set questions (q ++ [([], map (parseQuizTLItem quiz) blocks)]) quiz
 -- Parse and set choices for MultipleChoice
 parseAndSetQuizFields quiz@MultipleChoice {} (BulletList blocks) =
   set choices (map (parseQuizTLItem quiz) blocks) quiz
 -- The questions are prepended
 -- Parse and set question for matching
-parseAndSetQuizFields quiz@(MatchItems ti tgs cat qId sc tpc q p) b =
+parseAndSetQuizFields quiz@(MatchItems ti tgs cat lId sc tpc q p) b =
   set question (q ++ [b]) quiz
 -- Parse and set questions for FreeText
-parseAndSetQuizFields quiz@(FreeText ti tgs cat qId sc tpc q ch) b =
+parseAndSetQuizFields quiz@(FreeText ti tgs cat lId sc tpc q ch) b =
   set question (q ++ [b]) quiz
 -- Set question for InsertChoices
-parseAndSetQuizFields quiz@(InsertChoices ti tgs cat qId sc tpc q) b =
+parseAndSetQuizFields quiz@(InsertChoices ti tgs cat lId sc tpc q) b =
   set questions (q ++ [([b], [])]) quiz
 -- Set question for Multiple Choice
-parseAndSetQuizFields quiz@(MultipleChoice ti tgs cat qId sc tpc q ch) b =
+parseAndSetQuizFields quiz@(MultipleChoice ti tgs cat lId sc tpc q ch) b =
   set question (q ++ [b]) quiz
 -- Default
 parseAndSetQuizFields q _ = q
@@ -250,13 +250,14 @@ setQuizHeader _ q = q
 solutionButton =
   rawHtml $
   T.pack $
-  S.renderHtml $
-  H.button ! A.class_ "solutionButton" $ H.toHtml ("Show Solution" :: T.Text)
+  S.renderHtml $ do
+    H.br
+    H.button ! A.class_ "solutionButton" $ H.toHtml ("Show Solution" :: T.Text)
 
 renderMultipleChoice :: Quiz -> Block
-renderMultipleChoice quiz@(MultipleChoice title tgs cat qId sc tpc q ch) =
-  Div ("", tgs, [("category", cat), ("qID", qId)]) $
-  [Para title] ++ q ++ [choiceBlock]
+renderMultipleChoice quiz@(MultipleChoice title tgs cat lId sc tpc q ch) =
+  Div ("", tgs, [("category", cat), ("lectureId", lId)]) $
+  [Para title] ++ q ++ [choiceBlock] ++ [solutionButton]
   where
     choiceBlock = rawHtml $ T.pack $ S.renderHtml $ choiceList
     choiceList :: Html
@@ -280,9 +281,9 @@ renderMultipleChoice q =
   Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
 
 renderInsertChoices :: Quiz -> Block
-renderInsertChoices quiz@(InsertChoices title tgs cat qId sc tpc q) =
-  Div ("", tgs, [("category", cat), ("qID", qId)]) $
-  [Para title] ++ questionBlocks q
+renderInsertChoices quiz@(InsertChoices title tgs cat lId sc tpc q) =
+  Div ("", tgs, [("category", cat), ("lectureId", lId)]) $
+  [Para title] ++ questionBlocks q ++ [solutionButton]
   where
     questionBlocks :: [([Block], [Choice])] -> [Block]
     questionBlocks =
@@ -310,9 +311,9 @@ renderInsertChoices q =
 
 -- 
 renderMatching :: Quiz -> Block
-renderMatching quiz@(MatchItems title tgs cat qId sc tpc qs matches) =
-  Div ("", tgs, [("category", cat), ("qID", qId)]) $
-  [Para title, bucketsDiv, itemsDiv]
+renderMatching quiz@(MatchItems title tgs cat lId sc tpc qs matches) =
+  Div ("", tgs, [("category", cat), ("lectureId", lId)]) $
+  [Para title, bucketsDiv, itemsDiv, solutionButton]
   where
     (buckets, items) = unzip $ map pairs matches
     itemsDiv = Div ("", ["matchItems"], []) (concat items)
@@ -330,9 +331,9 @@ renderMatching quiz@(MatchItems title tgs cat qId sc tpc qs matches) =
 renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
 renderFreeText :: Quiz -> Block
-renderFreeText quiz@(FreeText title tgs cat qId sc tpc q ch) =
-  Div ("", tgs, [("category", cat), ("qID", qId)]) $
-  [Para title] ++ q ++ [inputRaw]
+renderFreeText quiz@(FreeText title tgs cat lId sc tpc q ch) =
+  Div ("", tgs, [("category", cat), ("lectureId", lId)]) $
+  [Para title] ++ q ++ [inputRaw] ++ [solutionButton]
   where
     inputRaw = rawHtml $ T.pack $ S.renderHtml $ H.input
     input :: Choice -> Html
