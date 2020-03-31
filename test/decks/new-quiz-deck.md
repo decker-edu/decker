@@ -60,7 +60,6 @@ score: 5
 category: CG
 lectureId: cg1
 topic: yeah
-title: this
 ```
 
 # Multiple Choice

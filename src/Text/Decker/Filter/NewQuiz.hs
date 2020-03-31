@@ -50,6 +50,8 @@ data Quiz
       , _tags :: [T.Text]
       , _category :: T.Text
       , _qId :: T.Text
+      , _score :: T.Text
+      , _topic :: T.Text
       , _question :: [Block]
       , _choices :: [Choice]
       }
@@ -59,6 +61,8 @@ data Quiz
       , _tags :: [T.Text]
       , _category :: T.Text
       , _qId :: T.Text
+      , _score :: T.Text
+      , _topic :: T.Text
       , _question :: [Block]
       , _pairs :: [Match]
       }
@@ -69,6 +73,8 @@ data Quiz
       , _tags :: [T.Text]
       , _category :: T.Text
       , _qId :: T.Text
+      , _score :: T.Text
+      , _topic :: T.Text
       , _questions :: [([Block], [Choice])]
       }
   | FreeText
@@ -76,6 +82,8 @@ data Quiz
       , _tags :: [T.Text]
       , _category :: T.Text
       , _qId :: T.Text
+      , _score :: T.Text
+      , _topic :: T.Text
       , _question :: [Block]
       , _choices :: [Choice]
       }
@@ -121,26 +129,21 @@ handleQuizzes pandoc = return $ walk parseQuizboxes pandoc
     setTags :: Quiz -> [T.Text] -> Quiz
     setTags q ts = set tags ts q
     -- The default "new" quizzes
-    defaultMatch = MatchItems [Str "Empty"] [] "" "" [] []
-    defaultMC = MultipleChoice [Str "Empty"] [] "" "" [] []
-    defaultIC = InsertChoices [Str "Empty"] [] "" "" []
-    defaultFree = FreeText [Str "Empty"] [] "" "" [] []
+    defaultMatch = MatchItems [Str "Empty"] [] "" "" "" "" [] []
+    defaultMC = MultipleChoice [Str "Empty"] [] "" "" "" "" [] []
+    defaultIC = InsertChoices [Str "Empty"] [] "" "" "" "" []
+    defaultFree = FreeText [Str "Empty"] [] "" "" "" "" [] []
 
 -- Take the parsed Quizzes and render them to html
 renderQuizzes :: Quiz -> Block
-renderQuizzes quiz@(MatchItems ti tgs cat id_ q p) = renderMatching quiz
-  -- Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
-renderQuizzes quiz@(FreeText ti tgs cat id_ q ch) = renderFreeText quiz
-  -- Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
-renderQuizzes quiz@(InsertChoices ti tgs cat id_ q) = renderInsertChoices quiz
-  -- Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
-renderQuizzes quiz@(MultipleChoice ti tgs cat id_ q ch) =
-  renderMultipleChoice quiz
-  -- Div ("", tgs, []) [Para [Str (T.pack $ show quiz)]]
+renderQuizzes quiz@MatchItems {} = renderMatching quiz
+renderQuizzes quiz@FreeText {} = renderFreeText quiz
+renderQuizzes quiz@InsertChoices {} = renderInsertChoices quiz
+renderQuizzes quiz@MultipleChoice {} = renderMultipleChoice quiz
 
 -- Takes a Quiz and a list of blocks, parses the blocks and modifies the given quiz
 parseAndSetQuiz :: Quiz -> [Block] -> Quiz
-parseAndSetQuiz q bs = combineICQuestions (foldr parseAndSetQuizFields q bs)
+parseAndSetQuiz q bs = combineICQuestions (foldl parseAndSetQuizFields q bs)
 
 -- | This function combines the (Question, Choices) tuples of InsertChoice questions
 -- These tuples are of type ([Block], [Choice])
@@ -148,7 +151,7 @@ parseAndSetQuiz q bs = combineICQuestions (foldr parseAndSetQuizFields q bs)
 -- This combine function makes it so that the questions field in InsertChoice is 
 -- an alternating list of "Question text -> quiz element -> question text" etc
 combineICQuestions :: Quiz -> Quiz
-combineICQuestions quiz@(InsertChoices ti tgs cat id_ q) =
+combineICQuestions quiz@(InsertChoices ti tgs cat qId sc tpc q) =
   set questions (combineQTuples q) quiz
     -- These tuples can only be ([],a) or (a,[]) per default
     -- They're created like this in parseAndSetQuizFields
@@ -164,29 +167,33 @@ combineICQuestions quiz@(InsertChoices ti tgs cat id_ q) =
 combineICQuestions q = q
 
 -- | This monolithic function parses a Pandoc Block and uses lenses to set the field in the given quiz item
-parseAndSetQuizFields :: Block -> Quiz -> Quiz
+parseAndSetQuizFields :: Quiz -> Block -> Quiz
 -- Set the title
-parseAndSetQuizFields (Header 2 (id_, cls, kvs) text) q = set title text q
+parseAndSetQuizFields q (Header 2 (id_, cls, kvs) text) = set title text q
 -- Set the meta information
 -- Probably should be outsourced to (a) separate function(s)
-parseAndSetQuizFields (CodeBlock (id_, cls, kvs) code) q =
+parseAndSetQuizFields q (CodeBlock (id_, cls, kvs) code) =
   if "yaml" `elem` cls
-    then (setCategory . setLectureID) q
+    then (setCategory . setLectureID . setScore . setTopic) q
     else q
   where
+    meta :: Meta
     meta = decodeYaml code
-    quizMetaOptions :: [String]
-    quizMetaOptions = ["category", "score", "lectureID", "topic"]
     setCategory :: Quiz -> Quiz
     setCategory q =
       case getMetaString "category" meta of
         Just s -> set category (T.pack s) q
         Nothing -> q
-    -- setScore :: Quiz -> Meta -> Quiz
-    -- setScore q =
-    --   case getMetaString "score" meta of
-    --     Just s -> set score (T.pack s) q
-    --     Nothing -> q
+    setScore :: Quiz -> Quiz
+    setScore q =
+      case getMetaString "score" meta of
+        Just s -> set score (T.pack s) q
+        Nothing -> q
+    setTopic :: Quiz -> Quiz
+    setTopic q =
+      case getMetaString "topic" meta of
+        Just s -> set score (T.pack s) q
+        Nothing -> q
     setLectureID :: Quiz -> Quiz
     setLectureID q =
       case getMetaString "lectureId" meta of
@@ -198,41 +205,41 @@ parseAndSetQuizFields (CodeBlock (id_, cls, kvs) code) q =
         Right a -> toPandocMeta a
         Left exception -> Meta M.empty
 -- Set quiz pairs/Match Items
-parseAndSetQuizFields (DefinitionList items) quiz@(MatchItems ti ta cat id_ q p) =
+parseAndSetQuizFields quiz@MatchItems {} (DefinitionList items) =
   set pairs (map parseDL (zip [0 .. length items] items)) quiz
   where
     parseDL :: (Int, ([Inline], [[Block]])) -> Match
     parseDL (i, (Str "!":_, bs)) = Distractor bs
     parseDL (i, (is, bs)) = Pair i is bs
 -- parse and set choices for FreeText
-parseAndSetQuizFields (BulletList blocks) quiz@(FreeText ti ta cat id_ q ch) =
+parseAndSetQuizFields quiz@FreeText {} (BulletList blocks) =
   set choices (map (parseQuizTLItem quiz) blocks) quiz
 -- parse and Set choices for InsertChoices
-parseAndSetQuizFields (BulletList blocks) quiz@(InsertChoices ti ta cat id_ q) =
-  set questions (([], map (parseQuizTLItem quiz) blocks) : q) quiz
+parseAndSetQuizFields quiz@(InsertChoices ti tgs cat qId sc tpc q) (BulletList blocks) =
+  set questions (q ++ [([], map (parseQuizTLItem quiz) blocks)]) quiz
 -- Parse and set choices for MultipleChoice
-parseAndSetQuizFields (BulletList blocks) quiz@(MultipleChoice ti ta cat id_ q ch) =
+parseAndSetQuizFields quiz@MultipleChoice {} (BulletList blocks) =
   set choices (map (parseQuizTLItem quiz) blocks) quiz
+-- The questions are prepended
 -- Parse and set question for matching
-parseAndSetQuizFields b quiz@(MatchItems ti ta cat id_ q p) =
-  set question (b : q) quiz
+parseAndSetQuizFields quiz@(MatchItems ti tgs cat qId sc tpc q p) b =
+  set question (q ++ [b]) quiz
 -- Parse and set questions for FreeText
-parseAndSetQuizFields b quiz@(FreeText ti ta cat id_ q ch) =
-  set question (b : q) quiz
+parseAndSetQuizFields quiz@(FreeText ti tgs cat qId sc tpc q ch) b =
+  set question (q ++ [b]) quiz
 -- Set question for InsertChoices
-parseAndSetQuizFields b quiz@(InsertChoices ti ta cat id_ q) =
-  set questions (([b], []) : q) quiz
+parseAndSetQuizFields quiz@(InsertChoices ti tgs cat qId sc tpc q) b =
+  set questions (q ++ [([b], [])]) quiz
 -- Set question for Multiple Choice
-parseAndSetQuizFields b quiz@(MultipleChoice ti ta cat id_ q ch) =
-  set question (b : q) quiz
+parseAndSetQuizFields quiz@(MultipleChoice ti tgs cat qId sc tpc q ch) b =
+  set question (q ++ [b]) quiz
 -- Default
-parseAndSetQuizFields _ q = q
+parseAndSetQuizFields q _ = q
 
 parseQuizTLItem :: Quiz -> [Block] -> Choice
 parseQuizTLItem _ (Plain (Str "☒":Space:is):bs) = Choice True is bs
 parseQuizTLItem _ (Plain (Str "☐":Space:is):bs) = Choice False is bs
-parseQuizTLItem (FreeText title ts cat qId questions chs) (Plain is:bs) =
-  Choice True is bs
+parseQuizTLItem FreeText {} (Plain is:bs) = Choice True is bs
 parseQuizTLItem _ is = Choice False [Str "NoTasklistItem"] [Plain []]
 
 -- | Parse and set the Quiz title from the h2 header
@@ -240,9 +247,15 @@ setQuizHeader :: Block -> Quiz -> Quiz
 setQuizHeader (Header 2 (id_, cls, kvs) text) q = set title text q
 setQuizHeader _ q = q
 
+solutionButton =
+  rawHtml $
+  T.pack $
+  S.renderHtml $
+  H.button ! A.class_ "solutionButton" $ H.toHtml ("Show Solution" :: T.Text)
+
 renderMultipleChoice :: Quiz -> Block
-renderMultipleChoice quiz@(MultipleChoice title tgs cat id_ q ch) =
-  Div ("", tgs, [("category", cat), ("qID", id_)]) $
+renderMultipleChoice quiz@(MultipleChoice title tgs cat qId sc tpc q ch) =
+  Div ("", tgs, [("category", cat), ("qID", qId)]) $
   [Para title] ++ q ++ [choiceBlock]
   where
     choiceBlock = rawHtml $ T.pack $ S.renderHtml $ choiceList
@@ -267,8 +280,8 @@ renderMultipleChoice q =
   Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
 
 renderInsertChoices :: Quiz -> Block
-renderInsertChoices quiz@(InsertChoices title tgs cat id_ q) =
-  Div ("", tgs, [("category", cat), ("qID", id_)]) $
+renderInsertChoices quiz@(InsertChoices title tgs cat qId sc tpc q) =
+  Div ("", tgs, [("category", cat), ("qID", qId)]) $
   [Para title] ++ questionBlocks q
   where
     questionBlocks :: [([Block], [Choice])] -> [Block]
@@ -297,8 +310,8 @@ renderInsertChoices q =
 
 -- 
 renderMatching :: Quiz -> Block
-renderMatching quiz@(MatchItems title tgs cat id_ qs matches) =
-  Div ("", tgs, [("category", cat), ("qID", id_)]) $
+renderMatching quiz@(MatchItems title tgs cat qId sc tpc qs matches) =
+  Div ("", tgs, [("category", cat), ("qID", qId)]) $
   [Para title, bucketsDiv, itemsDiv]
   where
     (buckets, items) = unzip $ map pairs matches
@@ -317,8 +330,8 @@ renderMatching quiz@(MatchItems title tgs cat id_ qs matches) =
 renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
 renderFreeText :: Quiz -> Block
-renderFreeText quiz@(FreeText title tgs cat id_ q ch) =
-  Div ("", tgs, [("category", cat), ("qID", id_)]) $
+renderFreeText quiz@(FreeText title tgs cat qId sc tpc q ch) =
+  Div ("", tgs, [("category", cat), ("qID", qId)]) $
   [Para title] ++ q ++ [inputRaw]
   where
     inputRaw = rawHtml $ T.pack $ S.renderHtml $ H.input
