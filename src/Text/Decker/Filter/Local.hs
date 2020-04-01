@@ -41,6 +41,8 @@ instance ToValue [Text] where
 
 class RawHtml a where
   rawHtml :: Text -> a
+  rawHtml' :: Html -> a
+  rawHtml' = rawHtml . toStrict . Text.renderHtml
 
 instance RawHtml Inline where
   rawHtml = RawInline (Format "html")
