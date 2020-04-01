@@ -189,7 +189,7 @@ parseAndSetQuizFields q (CodeBlock (id_, cls, kvs) code) =
         Left exception -> Meta M.empty
 -- Set quiz pairs/Match Items
 parseAndSetQuizFields quiz@MatchItems {} (DefinitionList items) =
-  set pairs (map parseDL (zip [0 .. length items] items)) quiz
+  set pairs (map parseDL (zip [1 .. length items + 1] items)) quiz
   where
     parseDL :: (Int, ([Inline], [[Block]])) -> Match
     parseDL (i, (Str "!":_, bs)) = Distractor bs

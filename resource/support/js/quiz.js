@@ -13,19 +13,21 @@ else {
 
 
 function quiz() {
+    quizMI();
     blanktextButtons();
-    initialMatchings = initMatching();
-    matchings(initialMatchings);
     multipleChoice();
     freetextAnswerButtons();
 }
 
 
 function quizMI() {
-    var miQuestions = document.getElementsByClassName("quiz-mi");
+    // var miQuestions = document.getElementsByClassName("quiz-mi");
+    var miQuestions = document.querySelectorAll(".qmi,.quiz-mi,.quiz-match-items");
 
     for (let mi of miQuestions) {
-        shuffleDraggables(mi);
+        shuffleMatchItems(mi);
+        matchings(mi);
+        matchingAnswerButton(mi);
     }
 }
 
@@ -130,46 +132,23 @@ function blanktextButtons() {
     }
 }
 
-// Save the initial state of matching questions for retry and show solution buttons
-function initMatching() {
-    // Manual deep copy of the initial states of all matching questions
-    const m = document.getElementsByClassName("matching");
-    var initialMatchings = [];
-    for (let i of m) {
-        // Replace reveal.js data-src with src to avoid lazy loading
-        var imgs = i.getElementsByTagName("img");
-        for (let img of imgs) {
-            src = img.getAttribute("data-src");
-            if (src) {
-                img.setAttribute("src", src);
-                img.removeAttribute("data-src");
-            }
-        }
-        var node = i.cloneNode(true);
-        initialMatchings.push(node);
-    }
-    return initialMatchings;
-}
-
 // Adds event listeners for dragging and dropping to the elements of "matching" questions
-function matchings(initialMatchings) {
-    var dropzones = document.getElementsByClassName("dropzone");
-    var draggables = document.getElementsByClassName("draggable");
+function matchings(matchQuestion) {
+    var dropzones = matchQuestion.getElementsByClassName("bucket");
+    var draggables = matchQuestion.getElementsByClassName("matchItem");
 
     for (i = 0; i < dropzones.length; i++) {
-        // dropzones[i].id = "drop".concat(i.toString());
         dropzones[i].addEventListener("drop", drop);
         dropzones[i].addEventListener("dragover", allowDrop);
 
         for (let child of dropzones[i].children) {
-            if (!child.classList.contains("draggable")) {
+            if (!child.classList.contains("matchItem")) {
                 child.setAttribute("style", "pointer-events:none");
             }
         }
     }
 
     for (i = 0; i < draggables.length; i++) {
-        // draggables[i].id = "drag".concat(i.toString());
         draggables[i].addEventListener("dragstart", drag);
 
         // disable children (e.g. images) from being dragged themselves
@@ -178,39 +157,25 @@ function matchings(initialMatchings) {
             child.className = "draggableChild";
         }
     }
-    // Order of execution here is important. 
-    // matchingAnswerButton has to be first so the sample solution is in the correct order. Very dubious hack
-    matchingAnswerButtons(initialMatchings);
-    shuffleDraggables();
-    // retryButtons(initialMatchings);
 }
 
-// Configure retryButtons
-// function retryButtons(initialMatchings) {
-//     var buttons = document.getElementsByClassName("retryButton");
+// Shuffle matchItems so the correct pairings aren't always directly below each other
+function shuffleMatchItems(matchQuestion) {
 
-//     for (i = 0; i < buttons.length; i++) {
-//         const initial = initialMatchings[i].cloneNode(true);
+    // Fisher-Yates Shuffle
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 
-//         buttons[i].onclick = function () {
-//             var curr = this.closest(".matching");
-//             curr.parentNode.replaceChild(initial, curr);
-//             // Call matchings once again to reset everything. e.g the shuffling etc
-//             matchings(initialMatchings);
-//         }
-//     }
-// }
-
-// Shuffle draggables so the correct pairings aren't always directly below each other
-function shuffleDraggables() {
-    var dragzones = document.getElementsByClassName("dragzone");
-    for (let container of dragzones) {
-        container.style.border = "black";
-        container.style.borderStyle = "dashed";
-        // container.id = "drop".concat(i.toString());
+    var matchItems = matchQuestion.getElementsByClassName("matchItems");
+    for (let container of matchItems) {
         container.addEventListener("drop", drop);
         container.addEventListener("dragover", allowDrop);
-        var elementsArray = Array.prototype.slice.call(container.getElementsByClassName('draggable'));
+        var elementsArray = Array.prototype.slice.call(container.getElementsByClassName('matchItem'));
         elementsArray.forEach(function (element) {
             container.removeChild(element);
         })
@@ -221,75 +186,72 @@ function shuffleDraggables() {
     }
 }
 
-// Fisher-Yates (aka Knuth) Shuffle (from stackoverflow)
-function shuffleArray(array) {
-    var currentIndex = array.length, temporaryValue, randomIndex;
 
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-        // Pick a remaining element...
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
 
-        // And swap it with the current element.
-        temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
+
+function matchingAnswerButton(matchQuestion) {
+    // A paragraph that will be shown on hover and tells whether an item is correct
+    function solution(tooltip) {
+        var para = document.createElement("p");
+        var node = document.createTextNode("(" + tooltip + ")");
+        para.appendChild(node);
+        para.className = "solution";
+
+        return (para);
     }
 
-    return array;
-}
+    var answerButton = matchQuestion.getElementsByClassName("solutionButton")[0];
 
-//   Provides the functionality of the "show solution" button for matching questions
-function matchingAnswerButtons(initialMatchings) {
-    var answerButtons = document.getElementsByClassName("matchingAnswerButton");
+    answerButton.onclick = function () {
 
-    for (let button of answerButtons) {
-        button.onclick = function () {
-            // Hack to get the index
-            const j = Array.prototype.slice.call(answerButtons).indexOf(this);
-
-            // Get the initial and current states of the dragzones
-            var initialDragzone = initialMatchings[j].getElementsByClassName("dragzone")[0].cloneNode(true);
-            var matchingField = this.closest(".matching");
-            var currDragzone = matchingField.getElementsByClassName("dragzone")[0];
-
-            var dropzones = matchingField.getElementsByClassName("dropzone");
-
-            for (let drop of dropzones) {
-                var draggables = drop.getElementsByClassName("draggable");
-
-                // Alert if there's any empty dropzone (i.e. not all pairs are completed)
-                if (draggables.length == 0) {
-                    alert("Please complete all pairs.");
-                    return;
-                }
+        var buckets = matchQuestion.getElementsByClassName("bucket");
+        var remainingItems = matchQuestion.getElementsByClassName("matchItems")[0].children;
+        for (let bucket of buckets) {
+            var matchItems = bucket.getElementsByClassName("matchItem");
+            if (matchItems.length == 0) {
+                alert("Please complete all pairs.");
+                return;
             }
+        }
 
-            // Color the dropzones green/red depending on correct pairing
-            for (let drop of dropzones) {
-                var first = drop.getElementsByClassName("draggable")[0];
-                if (first.id.replace("drag", "") == drop.id.replace("drop", "")) {
-                    drop.style.backgroundColor = "rgb(151, 255, 122)";
-                    first.setAttribute("draggable", false);
+        for (let rem of remainingItems) {
+            const matchId = rem.getAttribute("data-bucketid")
+            rem.setAttribute("draggable", false);
+            if (matchId == null) {
+                rem.style.backgroundColor = "yellow";
+                rem.append(solution("distractor"));
+            } else {
+                rem.style.backgroundColor = "rgb(255, 122, 122)";
+                rem.append(solution("bucket: " + matchId));
+            }
+        }
+
+        for (let bucket of buckets) {
+            var droppedItems = bucket.getElementsByClassName("matchItem");
+            var bucketId = bucket.getAttribute("data-bucketid");
+            for (let matchItem of droppedItems) {
+
+                matchItem.setAttribute("draggable", false);
+                var matchId = matchItem.getAttribute("data-bucketid");
+                if (matchId == null) {
+                    matchItem.style.backgroundColor = "yellow";
+                    matchItem.append(solution("distractor"));
+                } else if (matchId == bucketId) {
+                    // green
+                    matchItem.style.backgroundColor = "rgb(151, 255, 122)";
                 }
                 else {
-                    drop.style.backgroundColor = "rgb(255, 122, 122)";
-                    first.setAttribute("draggable", false);
+                    // red
+                    matchItem.style.backgroundColor = "rgb(255, 122, 122)";
+                    matchItem.append(solution("bucket: " + matchId));
+
                 }
             }
-            // Color the sample solutions green
-            for (let drag of initialDragzone.children) {
-                drag.style.backgroundColor = "rgb(151, 255, 122)";
-                drag.setAttribute("draggable", false);
-            }
-            // replace the empty dropzone with the correct/sample solution
-            //matchingField.replaceChild(initialDragzone, currDragzone);
-
-            this.nextSibling.disabled = true;
-            this.disabled = true;
         }
+        this.disabled = true;
     }
+
+
 }
 
 // Functions for dragging and dropping in the matching questions 
