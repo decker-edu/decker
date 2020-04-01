@@ -6,12 +6,10 @@ import Control.Lens hiding (Choice)
 import qualified Data.Text as T
 import Data.Text.Encoding as E
 import Data.Yaml
-import Text.Blaze.Html as Blaze
-import Text.Blaze.Html.Renderer.String as S
+import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 
 import qualified Data.Map.Strict as M
@@ -145,7 +143,7 @@ combineICQuestions quiz@(InsertChoices ti tgs cat lId sc tpc q) =
     -- combine two question blocks
     combineQTuples ((a, []):(b, []):rest) = combineQTuples ((a ++ b, []) : rest)
     -- combine Question with a choice block
-    combineQTuples ((a, []):([], b):rest) = (a, b) : (combineQTuples rest)
+    combineQTuples ((a, []):([], b):rest) = (a, b) : combineQTuples rest
     -- If the head has anything other than an empty choice then ignore it
     combineQTuples (a:(y, b):rest) = a : combineQTuples ((y, b) : rest)
 combineICQuestions q = q
@@ -216,8 +214,6 @@ parseAndSetQuizFields quiz@(InsertChoices ti tgs cat lId sc tpc q) b =
 -- Set question for Multiple Choice
 parseAndSetQuizFields quiz@(MultipleChoice ti tgs cat lId sc tpc q ch) b =
   set question (q ++ [b]) quiz
--- Default
-parseAndSetQuizFields q _ = q
 
 parseQuizTLItem :: Quiz -> [Block] -> Choice
 parseQuizTLItem _ (Plain (Str "☒":Space:is):bs) = Choice True is bs
@@ -226,9 +222,7 @@ parseQuizTLItem FreeText {} (Plain is:bs) = Choice True is bs
 parseQuizTLItem _ is = Choice False [Str "NoTasklistItem"] [Plain []]
 
 solutionButton =
-  rawHtml $
-  T.pack $
-  S.renderHtml $ do
+  rawHtml' $ do
     H.br
     H.button ! A.class_ "solutionButton" $ H.toHtml ("Show Solution" :: T.Text)
 
@@ -240,10 +234,10 @@ renderMultipleChoice quiz@(MultipleChoice title tgs cat lId sc tpc q ch) =
     , [("category", cat), ("lectureId", lId), ("score", sc), ("topic", tpc)]) $
   [Header 2 ("", [], []) title] ++ q ++ [choiceBlock] ++ [solutionButton]
   where
-    choiceBlock = rawHtml $ T.pack $ S.renderHtml $ choiceList
+    choiceBlock = rawHtml' choiceList
     choiceList :: Html
     choiceList =
-      H.ul ! A.class_ "choices" $ (foldr (\x -> (>>) (handleChoices x)) H.br ch)
+      H.ul ! A.class_ "choices" $ foldr ((>>) . handleChoices) H.br ch
     reduceTooltip :: [Block] -> [Block]
     reduceTooltip [BulletList blocks] = concat blocks
     reduceTooltip bs = bs
@@ -251,13 +245,11 @@ renderMultipleChoice quiz@(MultipleChoice title tgs cat lId sc tpc q ch) =
     handleChoices (Choice correct text comment) =
       if correct
         then H.li ! A.class_ "correct" $ do
-               inlinesToHtml' text
-               H.div ! A.class_ "tooltip" $
-                 blocksToHtml' (reduceTooltip comment)
+               toHtml text
+               H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
         else H.li ! A.class_ "wrong" $ do
-               inlinesToHtml' text
-               H.div ! A.class_ "tooltip" $
-                 blocksToHtml' (reduceTooltip comment)
+               toHtml text
+               H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
 renderMultipleChoice q =
   Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
 
@@ -270,26 +262,25 @@ renderInsertChoices quiz@(InsertChoices title tgs cat lId sc tpc q) =
   [Header 2 ("", [], []) title] ++ questionBlocks q ++ [solutionButton]
   where
     questionBlocks :: [([Block], [Choice])] -> [Block]
-    questionBlocks =
-      map (\x -> (rawHtml $ T.pack $ S.renderHtml $ handleTuple x))
+    questionBlocks = map (rawHtml' . handleTuple)
     handleTuple :: ([Block], [Choice]) -> Html
     handleTuple ([], [c]) = input c
     handleTuple ([], chs) = select chs
-    handleTuple (bs, []) = blocksToHtml' (map reduceBlock bs)
-    handleTuple (bs, [c]) = blocksToHtml' (map reduceBlock bs) >> input c
-    handleTuple (bs, chs) = blocksToHtml' (map reduceBlock bs) >> select chs
+    handleTuple (bs, []) = toHtml (map reduceBlock bs)
+    handleTuple (bs, [c]) = toHtml (map reduceBlock bs) >> input c
+    handleTuple (bs, chs) = toHtml (map reduceBlock bs) >> select chs
     reduceBlock :: Block -> Block
     reduceBlock (Para is) = Plain ([Str " "] ++ is ++ [Str " "])
     reduceBlock p = p
     input :: Choice -> Html
     input (Choice correct text comment) = H.input
     select :: [Choice] -> Html
-    select choices = H.select $ (foldr (\x -> (>>) (options x)) H.br choices)
+    select choices = H.select (foldr ((>>) . options) H.br choices)
     options :: Choice -> Html
     options (Choice correct text comment) =
       if correct
-        then H.option ! A.class_ "correct" $ inlinesToHtml' text
-        else H.option ! A.class_ "wrong" $ inlinesToHtml' text
+        then H.option ! A.class_ "correct" $ toHtml text
+        else H.option ! A.class_ "wrong" $ toHtml text
 renderInsertChoices q =
   Div ("", [], []) [Para [Str "ERROR NO INSERT CHOICES QUIZ"]]
 
@@ -325,7 +316,7 @@ renderFreeText quiz@(FreeText title tgs cat lId sc tpc q ch) =
     , [("category", cat), ("lectureId", lId), ("score", sc), ("topic", tpc)]) $
   [Header 2 ("", [], []) title] ++ q ++ [inputRaw] ++ [solutionButton]
   where
-    inputRaw = rawHtml $ T.pack $ S.renderHtml $ H.input
+    inputRaw = rawHtml' H.input
     input :: Choice -> Html
     input (Choice correct text comment) = H.input
 renderFreeText q = Div ("", [], []) [Para [Str "ERROR NO FREETEXT QUIZ"]]
