@@ -8,6 +8,7 @@ import Text.Decker.Internal.Meta
 
 import Data.Bifunctor
 import qualified Data.List as List
+import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
 import Relude
 import Text.Pandoc
@@ -67,6 +68,10 @@ rmKey key = filter ((/= key) . fst)
 rmClass :: Text -> [Text] -> [Text]
 rmClass cls = filter (/= cls)
 
+-- | Merges associative lists with left bias.
+merge :: Ord a => [[(a, b)]] -> [(a, b)]
+merge xs = Map.toList $ Map.unions $ map Map.fromList xs
+
 -- | Alters the value at key. Can be used to add, change, or remove key value
 -- pairs from an associative list. (See Data.Map.Strict.alter).
 alterKey :: Eq a => (Maybe b -> Maybe b) -> a -> [(a, b)] -> [(a, b)]
@@ -109,20 +114,28 @@ pushAttribute (key, value) = modify transform
 -- CSS style value to the target style attribute. Mainly used to translate
 -- witdth an height attributes into CSS style setting.
 takeStyle :: Text -> Attrib ()
-takeStyle key = modify transform
+takeStyle = takeStyleIf (const True)
+
+-- | Transfers an attribute to the targets if it exists and the value satisfies
+-- the predicate.
+takeStyleIf :: (Text -> Bool) -> Text -> Attrib ()
+takeStyleIf p key = modify transform
   where
     transform state@((id', cs', kvs'), (id, cs, kvs)) =
       case List.lookup key kvs of
-        Just value ->
-          ((id', cs', addStyle (key, value) kvs'), (id, cs, rmKey key kvs))
-        Nothing -> state
+        Just value
+          | p value ->
+            ((id', cs', addStyle (key, value) kvs'), (id, cs, rmKey key kvs))
+        _ -> state
 
 -- | Translates width and height attributes into CSS style values if they
 -- exist.
-takeSize :: Attrib ()
-takeSize = do
-  takeStyle "width"
-  takeStyle "height"
+takeSizeIf :: (Text -> Bool) -> Attrib ()
+takeSizeIf p = do
+  takeStyleIf p "width"
+  takeStyleIf p "height"
+
+takeSize = takeSizeIf (const True)
 
 takeId :: Attrib ()
 takeId = modify transform
@@ -196,6 +209,27 @@ takeClasses f classes = modify transform
       let (vcs, rest) = List.partition (`elem` classes) cs
        in ((id', cs', map ((, "1") . f) vcs <> kvs'), (id, rest, kvs))
 
+cutAttrib :: Text -> Attrib (Maybe Text)
+cutAttrib key = do
+  (attr', (id, cs, kvs)) <- get
+  let (vkvs, rkvs) = List.partition ((== key) . fst) kvs
+  put (attr', (id, cs, rkvs))
+  return $ snd <$> listToMaybe vkvs
+
+cutAttribs :: [Text] -> Attrib [(Text, Text)]
+cutAttribs keys = do
+  (attr', (id, cs, kvs)) <- get
+  let (vkvs, rkvs) = List.partition ((`elem` keys) . fst) kvs
+  put (attr', (id, cs, rkvs))
+  return vkvs
+
+cutClasses :: [Text] -> Attrib [Text]
+cutClasses classes = do
+  (attr', (id, cs, kvs)) <- get
+  let (vcs, rcs) = List.partition (`elem` classes) cs
+  put (attr', (id, rcs, kvs))
+  return vcs
+
 passVideoAttribs :: Attrib ()
 passVideoAttribs =
   passAttribs identity ["controls", "loop", "muted", "poster", "preload"]
@@ -218,7 +252,6 @@ takeAutoplay = do
 takeUsual = do
   takeId
   takeAllClasses
-  takeSize
   takeCss
   dropCore
   passI18n

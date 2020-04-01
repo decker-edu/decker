@@ -162,6 +162,7 @@ imageError img@Image {} (SomeException e) = do
       H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
 imageError _ _ = bug $ InternalException "imageError: non image argument "
 
+imageTransformers :: Map MediaT (URI -> [Inline] -> Attrib Html)
 imageTransformers =
   Map.fromList
     [ (EmbedSvgT, svgHtml)
@@ -170,7 +171,7 @@ imageTransformers =
     , (IframeT, iframeHtml)
     , (ImageT, imageHtml)
     , (VideoT, videoHtml)
-    , (StreamT, streamHtml)
+    , (StreamT, streamHtml')
     , (AudioT, audioHtml)
     ]
 
@@ -258,39 +259,41 @@ audioHtml uri caption = do
         passAttribs identity ["controls", "loop", "muted", "preload"]
   case caption of
     [] -> do
-      injectBorder >> takeAutoplay >> audioAttribs >> takeUsual
+      injectBorder >> takeAutoplay >> audioAttribs >> takeSize >> takeUsual
       mkAudioTag audioUri <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       audioAttr <- takeAutoplay >> audioAttribs >> extractAttr
       let audioTag = mkAudioTag audioUri audioAttr
-      figureAttr <- injectBorder >> takeUsual >> extractAttr
+      figureAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
       return $ mkFigureTag audioTag captionHtml figureAttr
+
+isPercent = Text.isSuffixOf "%"
 
 imageHtml :: URI -> [Inline] -> Attrib Html
 imageHtml uri caption =
   case caption of
     [] -> do
-      injectBorder >> takeUsual
+      injectBorder >> takeSize >> takeUsual
       mkImageTag (URI.render uri) <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
-      imgAttr <- extractAttr
+      imgAttr <- takeSizeIf (not . isPercent) >> extractAttr
       let imageTag = mkImageTag (URI.render uri) imgAttr
-      injectBorder >> takeUsual
+      injectBorder >> takeSizeIf isPercent >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
 
 objectHtml :: Text -> URI -> [Inline] -> Attrib Html
 objectHtml mime uri caption =
   case caption of
     [] -> do
-      injectBorder >> takeUsual
+      injectBorder >> takeSize >> takeUsual
       mkObjectTag (URI.render uri) mime <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
-      imgAttr <- extractAttr
-      let imageTag = mkObjectTag (URI.render uri) mime imgAttr
-      injectBorder >> takeUsual
+      objAttr <- takeSizeIf (not . isPercent) >> extractAttr
+      let imageTag = mkObjectTag (URI.render uri) mime objAttr
+      injectBorder >> takeSizeIf isPercent >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
 
 svgHtml :: URI -> [Inline] -> Attrib Html
@@ -298,13 +301,13 @@ svgHtml uri caption = do
   svg <- lift $ readLocalUri uri
   case caption of
     [] -> do
-      injectBorder >> takeUsual
+      injectBorder >> takeSize >> takeUsual
       mkSvgTag svg <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
-      svgAttr <- extractAttr
+      svgAttr <- takeSizeIf (not . isPercent) >> extractAttr
       let svgTag = mkSvgTag svg svgAttr
-      injectBorder >> takeUsual
+      injectBorder >> takeSizeIf isPercent >> takeUsual
       mkFigureTag svgTag captionHtml <$> extractAttr
 
 mviewHtml :: URI -> [Inline] -> Attrib Html
@@ -318,15 +321,17 @@ iframeHtml :: URI -> [Inline] -> Attrib Html
 iframeHtml uri caption =
   case caption of
     [] -> do
-      iframeAttr <- injectBorder >> takeUsual >> extractAttr
+      iframeAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
       return $ mkIframeTag (URI.render uri) iframeAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       figureAttr <-
-        injectBorder >> takeId >> takeAllClasses >> takeCss >> dropCore >>
+        injectBorder >> takeSizeIf isPercent >> takeId >> takeAllClasses >>
+        takeCss >>
+        dropCore >>
         passI18n >>
         extractAttr
-      iframeAttr <- takeSize >> takeData >> extractAttr
+      iframeAttr <- takeSizeIf (not . isPercent) >> takeData >> extractAttr
       let iframeTag = mkIframeTag (URI.render uri) iframeAttr
       return $ mkFigureTag iframeTag captionHtml figureAttr
 
@@ -351,12 +356,16 @@ videoHtml uri caption = do
   case caption of
     [] -> do
       injectBorder >> takeAutoplay >> takeVideoClasses >> passVideoAttribs >>
+        takeSize >>
         takeUsual
       mkVideoTag videoUri <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       videoAttr <-
-        takeAutoplay >> takeVideoClasses >> passVideoAttribs >> extractAttr
+        takeSizeIf (not . isPercent) >> takeAutoplay >> takeVideoClasses >>
+        passVideoAttribs >>
+        extractAttr
       let videoTag = mkVideoTag videoUri videoAttr
-      figureAttr <- injectBorder >> takeUsual >> extractAttr
+      figureAttr <-
+        injectBorder >> takeSizeIf isPercent >> takeUsual >> extractAttr
       return $ mkFigureTag videoTag captionHtml figureAttr

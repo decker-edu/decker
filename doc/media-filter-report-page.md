@@ -136,6 +136,72 @@ translates to
 
 ------------------------------------------------------------------------
 
+Plain image with size attributes.
+---------------------------------
+
+ Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
+
+``` {.markdown}
+![Caption.](/test/decks/include/06-metal.png){width="40%"}
+```
+
+translates to
+
+``` {.html}
+<figure class="decker" style="width:40%;">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
+```
+
+------------------------------------------------------------------------
+
+Plain image with size attributes.
+---------------------------------
+
+ Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
+
+``` {.markdown}
+![Caption.](/test/decks/include/06-metal.png){height="200px"}
+```
+
+translates to
+
+``` {.html}
+<figure class="decker">
+    <img class="decker" data-src="test/decks/include/06-metal.png" style="height:200px;">
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
+```
+
+------------------------------------------------------------------------
+
+Plain image with size attributes.
+---------------------------------
+
+ Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
+
+``` {.markdown}
+![Caption.](/test/decks/include/06-metal.png){height="200px" width="40%"}
+```
+
+translates to
+
+``` {.html}
+<figure class="decker" style="width:40%;">
+    <img class="decker" data-src="test/decks/include/06-metal.png" style="height:200px;">
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
+```
+
+------------------------------------------------------------------------
+
 Plain image with custom attributes.
 -----------------------------------
 
@@ -408,13 +474,43 @@ Youtube video stream
 An image with source URL scheme \`youtube:\` results in an embedded video player.
 
 ``` {.markdown}
-![](youtube:1234567890)
+![](youtube:1234567890){#video1 .autoplay}
 ```
 
 translates to
 
 ``` {.html}
-<figure class="" style=""><div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%;" width="560" height="315" src="https://www.youtube.com/embed/1234567890?iv_load_policy=3&amp;disablekb=1&amp;rel=0&amp;modestbranding=1&amp;autohide=1&amp;start=0" frameborder="0" allowfullscreen=""><p></p></iframe></div></figure>
+<div id="video1" style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
+    <iframe data-autoplay="1" frameborder="0" allowfullscreen="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?cc_load_policy=0&controls=2&iv_load_policy=3&modestbranding=&rel=0&showinfo=0">
+        Iframe showing video here.
+    </iframe>
+</div>
+```
+
+------------------------------------------------------------------------
+
+Vimeo it baby
+-------------
+
+An image with source URL scheme \`vimeo:\` results in an embedded video player.
+
+``` {.markdown}
+![Caption.](vimeo://1234567890){#video2 .some-class aspect="4:3" some-attribute="yeah"}
+```
+
+translates to
+
+``` {.html}
+<figure id="video2" class="decker some-class" data-some-attribute="yeah">
+    <div style="position:relative;padding-top:25px;padding-bottom:75.00%;height:0;">
+        <iframe frameborder="0" allowfullscreen="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.vimeo.com/video/1234567890?byline=0&controls=1&dnt=1&fun=0&title=0&transparent=false">
+            Iframe showing video here.
+        </iframe>
+    </div>
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
 ```
 
 ------------------------------------------------------------------------
@@ -425,13 +521,22 @@ Twitch it baby
 An image with source URL scheme \`twitch:\` results in an embedded video player.
 
 ``` {.markdown}
-![](twitch:1234567890)
+![Caption.](twitch:1234567890){.autoplay aspect="5:3"}
 ```
 
 translates to
 
 ``` {.html}
-<figure class="" style=""><div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%;" width="560" height="315" src="https://player.twitch.tv/?channel=1234567890&amp;autoplay=1&amp;muted=1" frameborder="0" allowfullscreen=""><p></p></iframe></div></figure>
+<figure class="decker">
+    <div style="position:relative;padding-top:25px;padding-bottom:60.00%;height:0;">
+        <iframe frameborder="0" allowfullscreen="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.twitch.tv/?autoplay=1&video=1234567890">
+            Iframe showing video here.
+        </iframe>
+    </div>
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
 ```
 
 ------------------------------------------------------------------------
