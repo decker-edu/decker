@@ -14,14 +14,13 @@ else {
 
 function quiz() {
     quizMI();
+    quizMC();
     blanktextButtons();
-    multipleChoice();
     freetextAnswerButtons();
 }
 
 
 function quizMI() {
-    // var miQuestions = document.getElementsByClassName("quiz-mi");
     var miQuestions = document.querySelectorAll(".qmi,.quiz-mi,.quiz-match-items");
 
     for (let mi of miQuestions) {
@@ -31,9 +30,69 @@ function quizMI() {
     }
 }
 
+/*
+Handles Multiple choice questions
+(Choosing/clicking and coloring of answers. Showing correct solutions etc)
+*/
 function quizMC() {
-    var mcQuestions = document.getElementsByClassName("quiz-mc");
+    var mcQuestions = document.querySelectorAll(".qmc,.quiz-mc,.quiz-multiple-choice");
+
+    for (let mc of mcQuestions) {
+
+        const answers = mc.getElementsByTagName("li");
+        var answerButton = mc.getElementsByClassName("solutionButton")[0];
+
+        let defBorder = answers[0].style.border;
+
+        for (let answer of answers) {
+
+            answer.addEventListener("click", function () {
+                if (this.style.border == defBorder) {
+                    this.style.border = "thick solid black";
+                }
+                else {
+                    this.style.border = defBorder;
+                }
+            });
+        }
+
+        answerButton.addEventListener("click", function () {
+            let answered = false;
+            for (let answer of answers) {
+                if (answer.style.border == defBorder) {
+                    continue;
+                }
+                else {
+                    answered = true;
+                }
+            }
+
+            if (answered) {
+                this.disabled = true;
+                for (let answer of answers) {
+                    const is_right = answer.classList.contains("correct");
+                    answer.style.backgroundColor = (is_right) ? "#97ff7a" : "#ff7a7a";
+
+                    // tooltip display needs improvement
+                    // const tooltips = answer.getElementsByClassName("tooltip");
+                    // for (let tooltip of tooltips) {
+                    //     tooltip.style.display = "inline-block";
+                    // }
+                    answer.style.pointerEvents = "none";
+                }
+            }
+
+            else {
+                alert("No answer chosen!");
+                return false;
+            }
+        }
+        );
+    }
 }
+
+
+
 
 function quizFT() {
     var ftQuestions = document.getElementsByClassName("quiz-ft");
@@ -280,72 +339,6 @@ function drop(event) {
 
     event.target.appendChild(element);
     event.target.disabled = true;
-}
-
-/*
-Handles Multiple choice questions
-(Choosing/clicking and coloring of answers. Showing correct solutions etc)
-*/
-function multipleChoice() {
-    const surveys = document.getElementsByClassName("survey");
-    let survey_num = 0;
-    for (let survey of surveys) {
-        survey.setAttribute("data-survey-num", survey_num);
-        const local_survey_num = survey_num;
-        survey_num += 1;
-        var answerButton = survey.getElementsByClassName("mcAnswerButton")[0];
-        const answers = survey.getElementsByTagName("li");
-        let defBorder = answers[0].style.border;
-
-        let answer_num = 0;
-        // highlight chosen answer(s)
-        for (let answer of answers) {
-            const local_answer_num = answer_num;
-
-            answer.addEventListener("click", function () {
-                if (this.style.border == defBorder) {
-                    this.style.border = "thick solid black";
-                }
-                else {
-                    this.style.border = defBorder;
-                }
-            });
-            answer_num += 1;
-        }
-
-        // Show correct solutions, lock all interaction with answers
-        // Popup if no box was selected
-        answerButton.onclick = function () {
-            let answered = false;
-            for (let answer of answers) {
-                if (answer.style.border == defBorder) {
-                    continue;
-                }
-                else {
-                    answered = true;
-                }
-            }
-
-            if (answered) {
-                this.disabled = true;
-                for (let answer of answers) {
-                    var answer_div = answer.getElementsByClassName("answer")[0];
-                    const is_right = answer_div.classList.contains("right");
-                    answer.style.backgroundColor = (is_right) ? "#97ff7a" : "#ff7a7a";
-                    const tooltips = answer.getElementsByClassName("tooltip");
-                    for (let tooltip of tooltips) {
-                        tooltip.style.display = "inline";
-                    }
-                    answer.style.pointerEvents = "none";
-                }
-            }
-            else {
-                alert("No answer chosen!");
-                return false;
-            }
-        };
-    }
-
 }
 
 /*

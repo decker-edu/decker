@@ -74,9 +74,11 @@
         }
         .matchItem .solution{
             visibility: hidden;
+            font-size: large;
         }
         .matchItem:hover .solution{
             visibility: visible;
+            font-size: large;
         }
 
         // Disable interaction with the elements inside draggable

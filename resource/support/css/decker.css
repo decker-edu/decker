@@ -175,12 +175,14 @@
 .reveal .qmi .matchItem .solution,
 .reveal .quiz-match-items .matchItem .solution {
   visibility: hidden;
+  font-size: large;
 }
 
 .reveal .quiz-mi .matchItem:hover .solution,
 .reveal .qmi .matchItem:hover .solution,
 .reveal .quiz-match-items .matchItem:hover .solution {
   visibility: visible;
+  font-size: large;
 }
 
 .reveal .quiz-mi .draggableChild,
