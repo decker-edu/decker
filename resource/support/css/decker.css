@@ -97,7 +97,8 @@
   margin-bottom: 0.3em;
 }
 
-.reveal .solutions {
+.reveal .solutionList,
+.reveal .tooltipList {
   display: none;
 }
 

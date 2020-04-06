@@ -15,6 +15,8 @@ else {
 function quiz() {
     quizMI();
     quizMC();
+    quizIC();
+    quizFT();
     blanktextButtons();
     freetextAnswerButtons();
 }
@@ -40,7 +42,7 @@ function quizMC() {
     for (let mc of mcQuestions) {
 
         const answers = mc.getElementsByTagName("li");
-        var answerButton = mc.getElementsByClassName("solutionButton")[0];
+        const answerButton = mc.getElementsByClassName("solutionButton")[0];
 
         let defBorder = answers[0].style.border;
 
@@ -95,13 +97,40 @@ function quizMC() {
 
 
 function quizFT() {
-    var ftQuestions = document.getElementsByClassName("quiz-ft");
+    var ftQuestions = document.querySelectorAll(".qft,.quiz-ft,.quiz-free-text");
+
 }
 
 function quizIC() {
-    var icQuestions = document.getElementsByClassName("quiz-ic");
-}
+    var icQuestions = document.querySelectorAll(".qic,.quiz-ic,.quiz-insert-choices");
 
+    for (let ic of icQuestions) {
+        const button = ic.getElementsByClassName("solutionButton")[0];
+        const selects = ic.getElementsByTagName("select");
+
+        button.onclick = function () {
+            for (let s of selects) {
+                if (s.options[s.selectedIndex].className == "correct") {
+                    s.style.backgroundColor = "rgb(151, 255, 122)";
+
+                }
+                else {
+                    s.style.backgroundColor = "rgb(255, 122, 122)";
+                }
+
+                for (let o of s.options) {
+                    if (o.className == "correct") {
+                        o.textContent += " ✓";
+                    } else {
+                        o.textContent += " ✗";
+                    }
+                }
+            }
+
+
+        }
+    }
+}
 
 // For a given blanktext HTML Element returns a Map containing all wrong and correct selects and blanks
 function blanktextCorrect(blanktext) {
@@ -193,8 +222,8 @@ function blanktextButtons() {
 
 // Adds event listeners for dragging and dropping to the elements of "matching" questions
 function matchings(matchQuestion) {
-    var dropzones = matchQuestion.getElementsByClassName("bucket");
-    var draggables = matchQuestion.getElementsByClassName("matchItem");
+    const dropzones = matchQuestion.getElementsByClassName("bucket");
+    const draggables = matchQuestion.getElementsByClassName("matchItem");
 
     for (i = 0; i < dropzones.length; i++) {
         dropzones[i].addEventListener("drop", drop);
@@ -230,11 +259,11 @@ function shuffleMatchItems(matchQuestion) {
         return array;
     }
 
-    var matchItems = matchQuestion.getElementsByClassName("matchItems");
+    const matchItems = matchQuestion.getElementsByClassName("matchItems");
     for (let container of matchItems) {
         container.addEventListener("drop", drop);
         container.addEventListener("dragover", allowDrop);
-        var elementsArray = Array.prototype.slice.call(container.getElementsByClassName('matchItem'));
+        const elementsArray = Array.prototype.slice.call(container.getElementsByClassName('matchItem'));
         elementsArray.forEach(function (element) {
             container.removeChild(element);
         })
@@ -251,22 +280,22 @@ function shuffleMatchItems(matchQuestion) {
 function matchingAnswerButton(matchQuestion) {
     // A paragraph that will be shown on hover and tells whether an item is correct
     function solution(tooltip) {
-        var para = document.createElement("p");
-        var node = document.createTextNode("(" + tooltip + ")");
+        const para = document.createElement("p");
+        const node = document.createTextNode("(" + tooltip + ")");
         para.appendChild(node);
         para.className = "solution";
 
         return (para);
     }
 
-    var answerButton = matchQuestion.getElementsByClassName("solutionButton")[0];
+    const answerButton = matchQuestion.getElementsByClassName("solutionButton")[0];
 
     answerButton.onclick = function () {
 
-        var buckets = matchQuestion.getElementsByClassName("bucket");
-        var remainingItems = matchQuestion.getElementsByClassName("matchItems")[0].children;
+        const buckets = matchQuestion.getElementsByClassName("bucket");
+        const remainingItems = matchQuestion.getElementsByClassName("matchItems")[0].children;
         for (let bucket of buckets) {
-            var matchItems = bucket.getElementsByClassName("matchItem");
+            const matchItems = bucket.getElementsByClassName("matchItem");
             if (matchItems.length == 0) {
                 alert("Please complete all pairs.");
                 return;
@@ -286,12 +315,12 @@ function matchingAnswerButton(matchQuestion) {
         }
 
         for (let bucket of buckets) {
-            var droppedItems = bucket.getElementsByClassName("matchItem");
-            var bucketId = bucket.getAttribute("data-bucketid");
+            const droppedItems = bucket.getElementsByClassName("matchItem");
+            const bucketId = bucket.getAttribute("data-bucketid");
             for (let matchItem of droppedItems) {
 
                 matchItem.setAttribute("draggable", false);
-                var matchId = matchItem.getAttribute("data-bucketid");
+                const matchId = matchItem.getAttribute("data-bucketid");
                 if (matchId == null) {
                     matchItem.style.backgroundColor = "yellow";
                     matchItem.append(solution("distractor"));

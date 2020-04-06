@@ -244,6 +244,23 @@ renderMultipleChoice quiz@(MultipleChoice title tgs qm q ch) =
 renderMultipleChoice q =
   Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
 
+solutionList :: [Choice] -> Html
+solutionList choices =
+  H.ul ! A.class_ "solutionList" $ foldr ((>>) . handleChoices) H.br choices
+  where
+    reduceTooltip :: [Block] -> [Block]
+    reduceTooltip [BulletList blocks] = concat blocks
+    reduceTooltip bs = bs
+    handleChoices :: Choice -> Html
+    handleChoices (Choice correct text comment) =
+      if correct
+        then H.li ! A.class_ "correct" $ do
+               toHtml text
+               H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
+        else H.li ! A.class_ "wrong" $ do
+               toHtml text
+               H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
+
 renderInsertChoices :: Quiz -> Block
 renderInsertChoices quiz@(InsertChoices title tgs qm q) =
   Div ("", tgs, []) $
@@ -261,9 +278,10 @@ renderInsertChoices quiz@(InsertChoices title tgs qm q) =
     reduceBlock (Para is) = Plain ([Str " "] ++ is ++ [Str " "])
     reduceBlock p = p
     input :: Choice -> Html
-    input (Choice correct text comment) = H.input
+    input c@(Choice correct text comment) = H.input >> solutionList [c]
     select :: [Choice] -> Html
-    select choices = H.select (foldr ((>>) . options) H.br choices)
+    select choices =
+      H.select (foldr ((>>) . options) H.br choices) >> solutionList choices
     options :: Choice -> Html
     options (Choice correct text comment) =
       if correct
@@ -298,7 +316,7 @@ renderFreeText quiz@(FreeText title tgs qm q ch) =
   Div ("", tgs, []) $
   [Header 2 ("", [], []) title] ++ q ++ [inputRaw] ++ [solutionButton]
   where
-    inputRaw = rawHtml' H.input
+    inputRaw = rawHtml' (H.input >> solutionList ch)
     input :: Choice -> Html
     input (Choice correct text comment) = H.input
 renderFreeText q = Div ("", [], []) [Para [Str "ERROR NO FREETEXT QUIZ"]]
