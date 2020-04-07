@@ -1,4 +1,5 @@
 ---
+title: Filled Line Chart
 chart: true
 ---
 

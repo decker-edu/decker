@@ -1,7 +1,8 @@
 ---
 csl: 'acm-sig-proceedings.csl'
 css:
-- 'dummy.css'
+- dummy.css
+title: Meta Resources
 ---
 
 # Meta Resources

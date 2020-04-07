@@ -1,3 +1,7 @@
+---
+title: Example
+---
+
 # Introduction
 
 [\#include](include/relative.md)

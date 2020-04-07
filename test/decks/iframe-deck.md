@@ -1,6 +1,8 @@
 ---
+title: Iframes
 history: True
 ---
+
 # Iframes
 
 ## Some slides with iframes
