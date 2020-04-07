@@ -225,28 +225,13 @@ renderMultipleChoice quiz@(MultipleChoice title tgs qm q ch) =
   Div ("", tgs, []) $
   [Header 2 ("", [], []) title] ++ q ++ [choiceBlock] ++ [solutionButton]
   where
-    choiceBlock = rawHtml' choiceList
-    choiceList :: Html
-    choiceList =
-      H.ul ! A.class_ "choices" $ foldr ((>>) . handleChoices) H.br ch
-    reduceTooltip :: [Block] -> [Block]
-    reduceTooltip [BulletList blocks] = concat blocks
-    reduceTooltip bs = bs
-    handleChoices :: Choice -> Html
-    handleChoices (Choice correct text comment) =
-      if correct
-        then H.li ! A.class_ "correct" $ do
-               toHtml text
-               H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
-        else H.li ! A.class_ "wrong" $ do
-               toHtml text
-               H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
+    choiceBlock = rawHtml' $ choiceList "choices" ch
 renderMultipleChoice q =
   Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
 
-solutionList :: [Choice] -> Html
-solutionList choices =
-  H.ul ! A.class_ "solutionList" $ foldr ((>>) . handleChoices) H.br choices
+choiceList :: AttributeValue -> [Choice] -> Html
+choiceList t choices =
+  H.ul ! A.class_ t $ foldr ((>>) . handleChoices) H.br choices
   where
     reduceTooltip :: [Block] -> [Block]
     reduceTooltip [BulletList blocks] = concat blocks
@@ -278,10 +263,12 @@ renderInsertChoices quiz@(InsertChoices title tgs qm q) =
     reduceBlock (Para is) = Plain ([Str " "] ++ is ++ [Str " "])
     reduceBlock p = p
     input :: Choice -> Html
-    input c@(Choice correct text comment) = H.input >> solutionList [c]
+    input c@(Choice correct text comment) =
+      H.input >> choiceList "solutionList" [c]
     select :: [Choice] -> Html
     select choices =
-      H.select (foldr ((>>) . options) H.br choices) >> solutionList choices
+      H.select (foldr ((>>) . options) H.br choices) >>
+      choiceList "solutionList" choices
     options :: Choice -> Html
     options (Choice correct text comment) =
       if correct
@@ -307,7 +294,9 @@ renderMatching quiz@(MatchItems title tgs qm qs matches) =
     pairs :: Match -> (Block, [Block])
     pairs (Distractor bs) = (Text.Pandoc.Definition.Null, map distractor bs)
     pairs (Pair i is bs) =
-      ( Div ("", ["bucket"], [("bucketId", T.pack $ show i)]) [Plain is]
+      ( Div
+          ("", ["bucket"], [("bucketId", T.pack $ show i)])
+          [Plain $ is ++ [Span ("", ["bucketId"], []) [Str $ T.pack $ show i]]]
       , map (item (T.pack $ show i)) bs)
 renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
@@ -316,7 +305,7 @@ renderFreeText quiz@(FreeText title tgs qm q ch) =
   Div ("", tgs, []) $
   [Header 2 ("", [], []) title] ++ q ++ [inputRaw] ++ [solutionButton]
   where
-    inputRaw = rawHtml' (H.input >> solutionList ch)
+    inputRaw = rawHtml' (H.input >> choiceList "solutionList" ch)
     input :: Choice -> Html
     input (Choice correct text comment) = H.input
 renderFreeText q = Div ("", [], []) [Para [Str "ERROR NO FREETEXT QUIZ"]]

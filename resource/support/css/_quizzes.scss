@@ -46,6 +46,12 @@
     .quiz-match-items {
         text-align: center;
 
+        .bucketId{
+            float:right;
+            margin:0 0 0 auto;
+            font-size: small;
+        }
+
         .buckets {
             width: 100%;
             min-height: 15vh;

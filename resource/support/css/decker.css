@@ -137,6 +137,14 @@
   text-align: center;
 }
 
+.reveal .quiz-mi .bucketId,
+.reveal .qmi .bucketId,
+.reveal .quiz-match-items .bucketId {
+  float: right;
+  margin: 0 0 0 auto;
+  font-size: small;
+}
+
 .reveal .quiz-mi .buckets,
 .reveal .qmi .buckets,
 .reveal .quiz-match-items .buckets {

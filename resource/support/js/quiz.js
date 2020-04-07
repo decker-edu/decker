@@ -99,6 +99,25 @@ function quizMC() {
 function quizFT() {
     var ftQuestions = document.querySelectorAll(".qft,.quiz-ft,.quiz-free-text");
 
+    for (let ft of ftQuestions) {
+        const solutions = ft.getElementsByClassName("solutionList")[0];
+        const button = ft.getElementsByClassName("solutionButton")[0];
+        const input = ft.getElementsByTagName("input")[0];
+
+        button.onclick = function () {
+            if (input.value == "") {
+                alert("No answer entered!");
+            } else {
+                const answer = input.value;
+                for (let s of solutions) {
+                    // Iterate through the solutions
+                    // Compare with the entered answer string
+                    // When and how to show tooltips?
+                }
+            }
+
+        }
+    }
 }
 
 function quizIC() {
@@ -310,7 +329,7 @@ function matchingAnswerButton(matchQuestion) {
                 rem.append(solution("distractor"));
             } else {
                 rem.style.backgroundColor = "rgb(255, 122, 122)";
-                rem.append(solution("bucket: " + matchId));
+                rem.append(solution("Bucket " + matchId));
             }
         }
 
@@ -331,7 +350,7 @@ function matchingAnswerButton(matchQuestion) {
                 else {
                     // red
                     matchItem.style.backgroundColor = "rgb(255, 122, 122)";
-                    matchItem.append(solution("bucket: " + matchId));
+                    matchItem.append(solution("Bucket " + matchId));
 
                 }
             }
