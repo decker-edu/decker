@@ -278,19 +278,19 @@ function shuffleMatchItems(matchQuestion) {
         return array;
     }
 
-    const matchItems = matchQuestion.getElementsByClassName("matchItems");
-    for (let container of matchItems) {
-        container.addEventListener("drop", drop);
-        container.addEventListener("dragover", allowDrop);
-        const elementsArray = Array.prototype.slice.call(container.getElementsByClassName('matchItem'));
-        elementsArray.forEach(function (element) {
-            container.removeChild(element);
-        })
-        shuffleArray(elementsArray);
-        elementsArray.forEach(function (element) {
-            container.appendChild(element);
-        })
-    }
+    const matchItems = matchQuestion.getElementsByClassName("matchItems")[0];
+    // for (let container of matchItems) {
+    // container.addEventListener("drop", drop);
+    // container.addEventListener("dragover", allowDrop);
+    const elementsArray = Array.prototype.slice.call(matchItems.getElementsByClassName('matchItem'));
+    elementsArray.forEach(function (element) {
+        matchItems.removeChild(element);
+    })
+    shuffleArray(elementsArray);
+    elementsArray.forEach(function (element) {
+        matchItems.appendChild(element);
+    })
+    // }
 }
 
 
@@ -316,7 +316,7 @@ function matchingAnswerButton(matchQuestion) {
         for (let bucket of buckets) {
             const matchItems = bucket.getElementsByClassName("matchItem");
             if (matchItems.length == 0) {
-                alert("Please complete all pairs.");
+                alert("Each bucket has at least one element belonging to it!");
                 return;
             }
         }
@@ -381,7 +381,7 @@ function drag(event) {
 function drop(event) {
     event.preventDefault();
     var element = elements[event.dataTransfer.getData('index')];
-    if (event.target.className == "draggable") {
+    if (event.target.className == "matchItem") {
         return false;
     }
 
