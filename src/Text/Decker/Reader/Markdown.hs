@@ -20,7 +20,6 @@ import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
-import Text.Decker.Filter.NewQuiz
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.Render
 import Text.Decker.Filter.ShortLink
@@ -115,8 +114,8 @@ marioPipeline =
     , renderCodeBlocks
     , includeCode
     , provisionResources
-    , renderQuizzes
     , processSlides
+    , handleQuizzes
     -- , marioMedia
     , processCitesWithDefault
     , appendScripts
@@ -130,7 +129,6 @@ deckerPipeline =
     , renderCodeBlocks
     , includeCode
     , provisionResources
-    , renderQuizzes
     , processSlides
     , handleQuizzes
     -- , renderMediaTags
