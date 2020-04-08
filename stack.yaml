@@ -1,7 +1,10 @@
 flags:
   pandoc-citeproc:
     embed_data_files: true
+  regex-posix:
+      _regex-posix-clib: true
 packages:
   - "."
-extra-deps: []
+extra-deps:
+   - regex-posix-clib-2.7
 resolver: lts-15.3
