@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8a4d8cd75c03cf10fbfc790340600322c5ef64608bdbdd7e01651431c712b325
+-- hash: 5c65c2fb8be6b8151fe769547d83b4daa9c4ae972586fb2851fbd4977321461c
 
 name:           decker
 version:        0.10.0
@@ -99,6 +99,7 @@ library
       Text.Decker.Internal.External
       Text.Decker.Internal.Helper
       Text.Decker.Internal.Meta
+      Text.Decker.Internal.URI
       Text.Decker.Project.Git
       Text.Decker.Project.Glob
       Text.Decker.Project.Project

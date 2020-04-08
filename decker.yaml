@@ -1,6 +1,7 @@
 project-name: Decker
 publish-annotations: True
 provisioning: SymLink
+template-source: 'exe:'
 vertical-slides: false
 exclude-directories:
   - app

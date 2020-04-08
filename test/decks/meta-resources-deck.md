@@ -1,7 +1,9 @@
 ---
 csl: 'acm-sig-proceedings.csl'
-css:
-- dummy.css
+css: dummy.css
+deep:
+  down:
+    bool: true
 title: Meta Resources
 ---
 
@@ -9,7 +11,7 @@ title: Meta Resources
 
 Resource references in meta data values
 
--   `css:` {{\#css}}
-    -   `{{{.}}}` {{/css}}
--   `csl: {{{csl}}}`
+-   `css:` [:meta](css)
+-   `csl:` [:meta](csl)
+-   `deep.down.bool:` [:meta](deep.down.bool)
 -   Slide background should be gray

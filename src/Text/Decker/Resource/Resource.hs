@@ -28,7 +28,6 @@ import Text.Decker.Resource.Zip
 
 import Control.Exception
 import Control.Lens ((^.))
-import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.State
 import qualified Data.Map.Lazy as Map
@@ -57,16 +56,11 @@ elementAttributes =
 runtimeMetaKeys :: [Text.Text]
 runtimeMetaKeys = ["css", "base-css"]
 
--- | Resources in meta data that are needed at compile time. They have to be
--- specified as local URLs and must exist.
-templateOverrideMetaKeys :: [Text.Text]
-templateOverrideMetaKeys = ["template"]
-
 compiletimeMetaKeys :: [Text.Text]
 compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
 
 metaKeys :: [Text.Text]
-metaKeys = runtimeMetaKeys <> compiletimeMetaKeys <> templateOverrideMetaKeys
+metaKeys = runtimeMetaKeys <> compiletimeMetaKeys
 
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()
@@ -110,38 +104,11 @@ provisionMetaResource base (key, url)
     filePath <- urlToFilePathIfLocal base url
     provisionResource base filePath
 provisionMetaResource base (key, url)
-  | key `elem` templateOverrideMetaKeys = do
-    cwd <- liftIO Dir.getCurrentDirectory
-    filePath <- urlToFilePathIfLocal cwd url
-    provisionTemplateOverrideSupportTopLevel cwd filePath
-provisionMetaResource base (key, url)
   | key `elem` compiletimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     need [filePath]
     return filePath
 provisionMetaResource _ (key, url) = return url
-
-provisionTemplateOverrideSupport :: FilePath -> FilePath -> Action ()
-provisionTemplateOverrideSupport base url = do
-  exists <- liftIO $ Dir.doesDirectoryExist url
-  if exists
-    then liftIO (Dir.listDirectory url) >>= mapM_ recurseProvision
-    else do
-      need [url]
-      provisionResource base url
-      return ()
-  where
-    recurseProvision x = provisionTemplateOverrideSupport url (url </> x)
-
-provisionTemplateOverrideSupportTopLevel ::
-     FilePath -> FilePath -> Action FilePath
-provisionTemplateOverrideSupportTopLevel base url = do
-  liftIO (Dir.listDirectory url) >>= filterM dirFilter >>=
-    mapM_ recurseProvision
-  return $ url
-  where
-    dirFilter x = liftIO $ Dir.doesDirectoryExist (url </> x)
-    recurseProvision x = provisionTemplateOverrideSupport url (url </> x)
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs are
 -- resolved against and copied or linked to public from 

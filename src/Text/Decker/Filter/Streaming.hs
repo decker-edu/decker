@@ -6,6 +6,7 @@ import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Macro
 import Text.Decker.Internal.Exception
+import Text.Decker.Internal.URI
 
 import Control.Monad.Catch
 import qualified Data.Text as Text
@@ -15,7 +16,6 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Pandoc
 import Text.Printf
-import Text.URI (URI)
 import qualified Text.URI as URI
 
 justToList :: [Maybe a] -> [a]
@@ -126,7 +126,7 @@ streamHtml uri caption = do
   streamId <-
     case URI.uriAuthority uri of
       Right (URI.Authority _ host _) -> pure $ URI.unRText host
-      _ -> uriPath uri
+      _ -> return $ uriPath uri
   return $
     toHtml $ embedWebVideosHtml (fromMaybe "" scheme) args attr (streamId, "")
 
@@ -136,7 +136,7 @@ streamHtml' uri caption = do
   streamId <-
     case URI.uriAuthority uri of
       Right (URI.Authority _ host _) -> pure $ URI.unRText host
-      _ -> uriPath uri
+      _ -> return $ uriPath uri
   streamUri <-
     case scheme of
       Just "youtube" -> mkYoutubeUri streamId

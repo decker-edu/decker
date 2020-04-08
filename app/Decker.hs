@@ -45,11 +45,12 @@ ttt =
 main :: IO ()
 main = do
   args <- getArgs
-  if null args then run else
-    case head args of
-      "example" -> writeExampleProject
-      "tutorial" -> writeTutorialProject
-      _ -> run
+  if null args
+    then run
+    else case head args of
+           "example" -> writeExampleProject
+           "tutorial" -> writeTutorialProject
+           _ -> run
 
 run :: IO ()
 run = do
@@ -245,7 +246,8 @@ run = do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
       putNormal $ "public directory: " ++ (directories ^. public)
       putNormal $ "support directory: " ++ (directories ^. support)
-      -- putNormal $ "application data directory: " ++ (directories ^. appData)
+      templateSource <- templateSourceA
+      putNormal $ "template source: " <> show templateSource
       putNormal "\ntargets:\n"
       allHtmlA <++> allPdfA >>= mapM_ putNormal
       putNormal "\ntop level meta data:\n"

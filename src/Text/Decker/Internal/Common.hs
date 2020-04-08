@@ -61,18 +61,19 @@ data Layout
   | Page
   | Handout
   | Notebook
-  deriving (Eq, Show)
+  deriving (Ord, Eq, Show)
 
 data OutputFormat
   = Reveal
   | Html
   | Latex
-  deriving (Eq, Show)
+  | Markdown
+  deriving (Ord, Eq, Show)
 
 data Disposition = Disposition
   { layout :: Layout
   , format :: OutputFormat
-  } deriving (Eq, Show)
+  } deriving (Ord, Eq, Show)
 
 templateFileName :: Disposition -> String
 templateFileName (Disposition Deck Html) = "template/deck.html"

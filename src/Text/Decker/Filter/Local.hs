@@ -4,6 +4,7 @@ module Text.Decker.Filter.Local where
 
 import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.URI
 import Text.Decker.Project.Project
 
 import Control.Monad.Catch
@@ -20,7 +21,6 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (Attributable)
 import Text.Pandoc
-import Text.URI (URI)
 import qualified Text.URI as URI
 
 {-
@@ -235,7 +235,7 @@ processLocalUri uri = do
   -- | The absolute (!) public directory where everything is published to.
   publicDir <- toString <$> getMeta "decker.public-dir" (cwd <> "/public")
   -- | The path component from the URI
-  urlPath <- toString <$> uriPath uri
+  let urlPath = toString $ uriPath uri
   -- | Interpret urlPath either project relative or document relative,
   -- depending on the leading slash.
   let relPath =
@@ -265,13 +265,12 @@ storeResourceInfo source target url = do
 
 resolveFileUri :: URI -> Filter FilePath
 resolveFileUri uri = do
-  urlPath <- toString <$> uriPath uri
+  let urlPath = toString $ uriPath uri
   cwd <- liftIO getCurrentDirectory
   baseDir <- toString <$> getMeta "decker.base-dir" "."
   projectDir <- toString <$> getMeta "decker.project-dir" (toText cwd)
   publicDir <-
     toString <$> getMeta "decker.public-dir" (toText $ cwd </> "public")
-  urlPath <- toString <$> uriPath uri
   let relPath =
         normalise $
         if hasDrive urlPath
@@ -279,67 +278,6 @@ resolveFileUri uri = do
           else makeRelative projectDir baseDir </> urlPath
   let sourcePath = projectDir </> relPath
   return sourcePath
-
-uriPathExtension :: URI -> Maybe Text
-uriPathExtension uri =
-  case URI.uriPath uri of
-    (Just (False, pieces)) ->
-      listToMaybe $ reverse $ Text.splitOn "." $ URI.unRText $ last pieces
-    _ -> Nothing
-
-uriPath :: MonadThrow m => URI -> m Text
-uriPath uri =
-  return $
-  URI.render
-    URI.emptyURI
-      { URI.uriPath = URI.uriPath uri
-      , URI.uriAuthority = Left (URI.isPathAbsolute uri)
-      }
-
-uriScheme :: URI -> Maybe Text
-uriScheme uri = URI.unRText <$> URI.uriScheme uri
-
-setUriPath :: MonadThrow m => Text -> URI -> m URI
-setUriPath path uri = do
-  pathUri <- URI.mkURI path
-  return
-    uri
-      { URI.uriPath = URI.uriPath pathUri
-      , URI.uriAuthority =
-          case URI.uriAuthority uri of
-            Left _ -> Left $ URI.isPathAbsolute pathUri
-            auth -> auth
-      }
-
-setQuery :: MonadThrow m => [Text] -> [(Text, Text)] -> URI -> m URI
-setQuery flags params uri = do
-  qFlags <- map URI.QueryFlag <$> mapM URI.mkQueryKey flags
-  qParams <- mapM mkParam params
-  return $ uri {URI.uriQuery = qFlags <> qParams}
-  where
-    mkParam (k, v) = do
-      qKey <- URI.mkQueryKey k
-      qVal <- URI.mkQueryValue v
-      return $ URI.QueryParam qKey qVal
-
-addQueryFlag :: MonadThrow m => Text -> URI -> m URI
-addQueryFlag flag uri = do
-  let query = filter (not . thisFlag) $ URI.uriQuery uri
-  qFlag <- URI.QueryFlag <$> URI.mkQueryKey flag
-  return $ uri {URI.uriQuery = qFlag : query}
-  where
-    thisFlag (URI.QueryFlag rtext) = URI.unRText rtext == flag
-    thisFlag _ = False
-
-addQueryParam :: MonadThrow m => (Text, Text) -> URI -> m URI
-addQueryParam (key, value) uri = do
-  let query = filter (not . thisParam) $ URI.uriQuery uri
-  qKey <- URI.mkQueryKey key
-  qVal <- URI.mkQueryValue value
-  return $ uri {URI.uriQuery = URI.QueryParam qKey qVal : query}
-  where
-    thisParam (URI.QueryParam rtext _) = URI.unRText rtext == key
-    thisParam _ = False
 
 setMeta :: Text -> Text -> Filter ()
 setMeta key value =

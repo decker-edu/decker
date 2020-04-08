@@ -30,6 +30,7 @@ module Text.Decker.Project.Shake
   , stopHttpServer
   , supportA
   , targetsA
+  , templateSourceA
   , staticA
   , watchChangesAndRepeat
   , writeSupportFilesToPublic
@@ -45,7 +46,6 @@ import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Template
-import Text.Decker.Resource.Zip
 import Text.Decker.Server.Server
 
 import Control.Concurrent
@@ -95,6 +95,7 @@ data ActionContext = ActionContext
   , _metaData :: Meta
   , _globalMeta :: Meta
   , _state :: MutableActionState
+  , _templateSource :: TemplateSource
   , _templates :: [(FilePath, DeckerTemplate)]
   } deriving (Typeable, Show)
 
@@ -172,13 +173,18 @@ runShakeOnce state rules = do
 targetDirs context =
   unique $ map takeDirectory (context ^. targetList . sources)
 
+initContext :: MutableActionState -> IO ActionContext
 initContext state = do
   dirs <- projectDirectories
   meta <- readMetaData $ dirs ^. project
   targets <- scanTargets meta dirs
-  templates <- readTemplates (dirs ^. project) (state ^. devRun)
+  let templateSource =
+        calcTemplateSource
+          (getMetaText "template-source" meta)
+          (state ^. devRun)
+  templates <- readTemplates templateSource
   -- init context with 2x meta (one will be fixed global meta)
-  return $ ActionContext dirs targets meta meta state templates
+  return $ ActionContext dirs targets meta meta state templateSource templates
 
 cleanup state = do
   srvr <- readIORef $ state ^. server
@@ -251,18 +257,13 @@ getTemplate disposition = getTemplate' (templateFileName disposition)
 getTemplate' :: FilePath -> Action (Template T.Text)
 getTemplate' path = do
   context <- actionContext
-  let (DeckerTemplate content source) =
+  let (DeckerTemplate template source) =
         fromJust $ lookup path (context ^. templates)
-  source <-
-    case source of
-      Just source -> do
-        need [source]
-        return source
-      Nothing -> return ""
-  compiled <- liftIO $ compileTemplate source content 
-  case compiled of
-    Right template -> return template
-    Left err -> error err
+  case source of
+    Just source -> do
+      need [source]
+    Nothing -> return ()
+  return template
 
 isDevRun :: Action Bool
 isDevRun = do
@@ -309,7 +310,7 @@ extractSupport = do
   let publicDir = context ^. dirs . public
   let supportDir = context ^. dirs . support
   liftIO $ do
-    extractResourceEntries "support" publicDir
+    copySupportFiles (context ^. templateSource) Copy publicDir
     BC.writeFile (supportDir </> ".version") (BC.pack deckerGitCommitId)
 
 correctSupportInstalled :: Action Bool
@@ -352,6 +353,9 @@ loggingA = _logging <$> projectDirsA
 
 targetsA :: Action Targets
 targetsA = _targetList <$> actionContext
+
+templateSourceA :: Action TemplateSource
+templateSourceA = _templateSource <$> actionContext
 
 metaA :: Action Meta
 metaA = _metaData <$> actionContext
