@@ -166,8 +166,9 @@ parseAndSetQuizFields q (CodeBlock (id_, cls, kvs) code) =
         Right a -> toPandocMeta a
         Left exception -> Meta M.empty
 -- Set quiz pairs/Match Items
+-- Zip with index
 parseAndSetQuizFields quiz@MatchItems {} (DefinitionList items) =
-  set pairs (map parseDL (zip [1 .. length items + 1] items)) quiz
+  set pairs (map parseDL (zip [1 ..] items)) quiz
   where
     parseDL :: (Int, ([Inline], [[Block]])) -> Match
     parseDL (i, (Str "!":_, bs)) = Distractor bs
@@ -195,12 +196,17 @@ parseAndSetQuizFields quiz@(InsertChoices ti tgs qm q) b =
 parseAndSetQuizFields quiz@(MultipleChoice ti tgs qm q ch) b =
   set question (q ++ [b]) quiz
 
+-- | Parse a Pandoc Bullet/Task list item to a Choice
+-- Pandoc replaces [X] internally with unicode checkboxes before quiz parsing
+-- This is why we pattern match for "☒" and "☐" here
 parseQuizTLItem :: Quiz -> [Block] -> Choice
 parseQuizTLItem _ (Plain (Str "☒":Space:is):bs) = Choice True is bs
 parseQuizTLItem _ (Plain (Str "☐":Space:is):bs) = Choice False is bs
 parseQuizTLItem FreeText {} (Plain is:bs) = Choice True is bs
 parseQuizTLItem _ is = Choice False [Str "NoTasklistItem"] [Plain []]
 
+-- | Set the quizMeta field of a Quiz using lenses
+-- available meta options are hardcoded here
 setQuizMeta :: Quiz -> Meta -> Quiz
 setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
   where
@@ -215,6 +221,7 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
         "lectureId" -> set lectureId (getMetaTextOrElse t "" m) qm
         "topic" -> set topic (getMetaTextOrElse t "" m) qm
 
+-- | A simple Html button
 solutionButton =
   rawHtml' $ do
     H.br
@@ -229,6 +236,8 @@ renderMultipleChoice quiz@(MultipleChoice title tgs qm q ch) =
 renderMultipleChoice q =
   Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
 
+-- | Transform a list of Choices to an HTML <ul>
+-- This is used directly in multiple choice questions and as "solutionList" in IC and FT questions
 choiceList :: AttributeValue -> [Choice] -> Html
 choiceList t choices =
   H.ul ! A.class_ t $ foldr ((>>) . handleChoices) H.br choices

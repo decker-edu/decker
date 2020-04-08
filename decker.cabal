@@ -85,7 +85,6 @@ library
       Text.Decker.Filter.MarioCols
       Text.Decker.Filter.MarioMedia
       Text.Decker.Filter.Monad
-      Text.Decker.Filter.NewQuiz
       Text.Decker.Filter.Quiz
       Text.Decker.Filter.Range
       Text.Decker.Filter.Render
