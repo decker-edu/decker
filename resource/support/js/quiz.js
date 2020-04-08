@@ -24,7 +24,7 @@ function quiz() {
 
 function quizMI() {
     var miQuestions = document.querySelectorAll(".qmi,.quiz-mi,.quiz-match-items");
-
+    console.log(miQuestions.length);
     for (let mi of miQuestions) {
         shuffleMatchItems(mi);
         matchings(mi);
@@ -243,7 +243,6 @@ function blanktextButtons() {
 function matchings(matchQuestion) {
     const dropzones = matchQuestion.getElementsByClassName("bucket");
     const draggables = matchQuestion.getElementsByClassName("matchItem");
-
     for (i = 0; i < dropzones.length; i++) {
         dropzones[i].addEventListener("drop", drop);
         dropzones[i].addEventListener("dragover", allowDrop);
@@ -279,9 +278,8 @@ function shuffleMatchItems(matchQuestion) {
     }
 
     const matchItems = matchQuestion.getElementsByClassName("matchItems")[0];
-    // for (let container of matchItems) {
-    // container.addEventListener("drop", drop);
-    // container.addEventListener("dragover", allowDrop);
+    matchItems.addEventListener("drop", drop);
+    matchItems.addEventListener("dragover", allowDrop);
     const elementsArray = Array.prototype.slice.call(matchItems.getElementsByClassName('matchItem'));
     elementsArray.forEach(function (element) {
         matchItems.removeChild(element);
@@ -290,7 +288,6 @@ function shuffleMatchItems(matchQuestion) {
     elementsArray.forEach(function (element) {
         matchItems.appendChild(element);
     })
-    // }
 }
 
 
@@ -381,7 +378,7 @@ function drag(event) {
 function drop(event) {
     event.preventDefault();
     var element = elements[event.dataTransfer.getData('index')];
-    if (event.target.className == "matchItem") {
+    if (event.target.classList.contains("matchItem")) {
         return false;
     }
 
