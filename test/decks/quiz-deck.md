@@ -29,7 +29,6 @@ Drag the elements to create correct pairings
 
 A
 : drag to A
-: A2
 
 Image 
 : ![](include/06-metal.png)
@@ -43,8 +42,8 @@ decker
 C
 : $\Leftarrow$ C
 
-_-_
-: $\Leftarrow$ -
+Empty
+: !
 
 !
 : Distractor A

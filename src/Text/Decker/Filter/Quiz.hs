@@ -172,6 +172,7 @@ parseAndSetQuizFields quiz@MatchItems {} (DefinitionList items) =
   where
     parseDL :: (Int, ([Inline], [[Block]])) -> Match
     parseDL (i, (Str "!":_, bs)) = Distractor bs
+    parseDL (i, (is, [Plain (Str "!":inl)]:bs)) = Pair i is [[Plain []]]
     parseDL (i, (is, bs)) = Pair i is bs
 -- parse and set choices for FreeText
 parseAndSetQuizFields quiz@FreeText {} (BulletList blocks) =
@@ -303,10 +304,21 @@ renderMatching quiz@(MatchItems title tgs qm qs matches) =
     pairs :: Match -> (Block, [Block])
     pairs (Distractor bs) = (Text.Pandoc.Definition.Null, map distractor bs)
     pairs (Pair i is bs) =
-      ( Div
-          ("", ["bucket"], [("bucketId", T.pack $ show i)])
-          [Plain $ is ++ [Span ("", ["bucketId"], []) [Str $ T.pack $ show i]]]
-      , map (item (T.pack $ show i)) bs)
+      case bs of
+        [[Plain []]] ->
+          ( Div
+              ("", ["bucket"], [("bucketId", T.pack $ show i)])
+              [ Plain $
+                is ++ [Span ("", ["bucketId"], []) [Str $ T.pack $ show i]]
+              ]
+          , [])
+        _ ->
+          ( Div
+              ("", ["bucket"], [("bucketId", T.pack $ show i)])
+              [ Plain $
+                is ++ [Span ("", ["bucketId"], []) [Str $ T.pack $ show i]]
+              ]
+          , map (item (T.pack $ show i)) bs)
 renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
 renderFreeText :: Quiz -> Block
