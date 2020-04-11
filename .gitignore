@@ -1,5 +1,6 @@
 .DS_Store
 *.prof
+.decker
 .stack-work/
 .stack-work-profile/
 stack.yaml.lock

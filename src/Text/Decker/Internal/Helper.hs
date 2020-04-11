@@ -14,11 +14,11 @@ module Text.Decker.Internal.Helper
   , fileIsNewer
   , handleLeft
   , handleLeftM
+  , isDevelopmentRun
   ) where
 
 import Text.Decker.Internal.Exception
 
-import Control.Exception
 import Control.Monad.Catch
 import Control.Monad.State
 import qualified Data.List as List
@@ -27,6 +27,7 @@ import qualified Data.Set as Set
 import Relude
 import System.CPUTime
 import qualified System.Directory as Dir
+import System.Environment
 import System.FilePath
 import Text.Pandoc
 import Text.Printf
@@ -115,3 +116,12 @@ handleLeft (Left e) = error $ toText e
 handleLeftM :: (ToString a, MonadThrow m) => Either a b -> m b
 handleLeftM (Right x) = return x
 handleLeftM (Left e) = throwM $ InternalException $ toString e
+
+-- | Finds out if the decker executable is located below the current directory.
+-- This means most probably that decker was started in the decker development
+-- project using `stack run decker`.
+isDevelopmentRun :: IO Bool
+isDevelopmentRun = do
+  cwd <- Dir.getCurrentDirectory
+  exePath <- getExecutablePath
+  return $ cwd `isPrefixOf` exePath

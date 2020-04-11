@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5c65c2fb8be6b8151fe769547d83b4daa9c4ae972586fb2851fbd4977321461c
+-- hash: e62dc164efd9a61fbf3fd4a2afac00eb5a91800a17414ffa4473b4dd1f26ef42
 
 name:           decker
 version:        0.10.0
@@ -23,6 +23,7 @@ extra-source-files:
     makefile
     resource/template/deck.html
     resource/template/deck.md
+    resource/template/default.yaml
     resource/template/handout.html
     resource/template/handout.tex
     resource/template/help-page.md

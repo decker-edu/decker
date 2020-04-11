@@ -1,43 +1,29 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Text.Decker.Project.Shake
   ( runDecker
-  , allHtmlA
-  , allPdfA
   , appDataA
   , cacheA
   , calcSource
   , calcSource'
   , currentlyServedPages
-  , decksA
-  , decksPdfA
   , getRelativeSupportDir
-  , handoutsA
-  , handoutsPdfA
+  , isDevRun
   , loggingA
-  , metaA
-  , globalMetaA
-  , indicesA
   , openBrowser
-  , pagesA
-  , pagesPdfA
   , projectA
   , projectDirsA
   , publicA
   , publicResourceA
   , putCurrentDocument
+  , readStaticMetaData
   , runHttpServer
   , startHttpServer
   , stopHttpServer
   , supportA
-  , targetsA
   , templateSourceA
-  , staticA
   , watchChangesAndRepeat
-  , writeSupportFilesToPublic
   , withShakeLock
-  , getTemplate
-  , getTemplate'
-  , isDevRun
+  , writeSupportFilesToPublic
   ) where
 
 import Text.Decker.Internal.Common
@@ -91,9 +77,7 @@ makeLenses ''MutableActionState
 
 data ActionContext = ActionContext
   { _dirs :: ProjectDirs
-  , _targetList :: Targets
   , _metaData :: Meta
-  , _globalMeta :: Meta
   , _state :: MutableActionState
   , _templateSource :: TemplateSource
   , _templates :: [(FilePath, DeckerTemplate)]
@@ -166,25 +150,27 @@ runShakeOnce state rules = do
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
     let projectDir = context ^. dirs . project
-    let exclude = map (projectDir </>) $ excludeDirs (context ^. metaData)
+    meta <- readMetaDataFile (projectDir </> "decker.yaml")
+    let exclude = map (projectDir </>) $ excludeDirs meta
     waitForChange' projectDir exclude
   return keepWatching
 
-targetDirs context =
-  unique $ map takeDirectory (context ^. targetList . sources)
+readStaticMetaData :: FilePath -> Action Meta
+readStaticMetaData file = do
+  need [file]
+  meta <- liftIO $ readMetaDataFile file
+  moreMeta <- getAdditionalMeta (takeDirectory file) meta
+  templateSource <-
+    liftIO $ calcTemplateSource (getMetaText "template-source" moreMeta)
+  defaultMeta <- readTemplateMeta templateSource
+  return $ mergePandocMeta' moreMeta defaultMeta
 
 initContext :: MutableActionState -> IO ActionContext
 initContext state = do
   dirs <- projectDirectories
-  meta <- readMetaData $ dirs ^. project
-  targets <- scanTargets meta dirs
-  let templateSource =
-        calcTemplateSource
-          (getMetaText "template-source" meta)
-          (state ^. devRun)
+  templateSource <- calcTemplateSource (getMetaText "template-source" nullMeta)
   templates <- readTemplates templateSource
-  -- init context with 2x meta (one will be fixed global meta)
-  return $ ActionContext dirs targets meta meta state templateSource templates
+  return $ ActionContext dirs nullMeta state templateSource templates
 
 cleanup state = do
   srvr <- readIORef $ state ^. server
@@ -206,6 +192,7 @@ deckerShakeOptions ctx = do
       { shakeFiles = ".shake"
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
+      -- , shakeChange = ChangeModtimeAndDigest
       , shakeAbbreviations =
           [ (ctx ^. dirs . project ++ "/", "")
           , (ctx ^. dirs . public ++ "/", "")
@@ -216,14 +203,8 @@ actionContextKey :: TypeRep
 actionContextKey = typeOf (undefined :: ActionContext)
 
 actionContext :: Action ActionContext
-actionContext = do
-  options <- getShakeOptions
-  let extra = shakeExtra options
-  let dyn =
-        fromMaybe
-          (error "Error looking up action context")
-          (HashMap.lookup actionContextKey extra)
-  return $ fromMaybe (error "Error upcasting action context") (fromDynamic dyn)
+actionContext =
+  fromMaybe (error "Error getting action context") <$> getShakeExtra
 
 waitForChange :: [FilePath] -> IO ()
 waitForChange inDirs =
@@ -280,18 +261,17 @@ sketchPadId text =
   T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ BL.fromStrict $
   encodeUtf8 text
 
-writeSupportFilesToPublic :: Action ()
-writeSupportFilesToPublic = do
+writeSupportFilesToPublic :: Meta -> Action ()
+writeSupportFilesToPublic meta = do
   devRun <- liftIO isDevelopmentRun
   correct <- correctSupportInstalled
   unless (correct || devRun) $ do
     removeSupport
     extractSupport
-  copyStaticDirs
+  copyStaticDirs meta
 
-copyStaticDirs :: Action ()
-copyStaticDirs = do
-  meta <- metaA
+copyStaticDirs :: Meta -> Action ()
+copyStaticDirs meta = do
   public <- publicA
   project <- projectA
   let staticSrc = map (project </>) (staticDirs meta)
@@ -351,52 +331,8 @@ appDataA = _appData <$> projectDirsA
 loggingA :: Action FilePath
 loggingA = _logging <$> projectDirsA
 
-targetsA :: Action Targets
-targetsA = _targetList <$> actionContext
-
 templateSourceA :: Action TemplateSource
 templateSourceA = _templateSource <$> actionContext
-
-metaA :: Action Meta
-metaA = _metaData <$> actionContext
-
--- | Global meta data for this directory from decker.yaml and specified additional files
-globalMetaA :: Action Meta
-globalMetaA = (_globalMeta <$> actionContext) >>= getAdditionalMeta
-
-indicesA = _indices <$> targetsA
-
-staticA :: Action [FilePath]
-staticA = _static <$> targetsA
-
-decksA :: Action [FilePath]
-decksA = _decks <$> targetsA
-
-decksPdfA :: Action [FilePath]
-decksPdfA = _decksPdf <$> targetsA
-
-pagesA :: Action [FilePath]
-pagesA = _pages <$> targetsA
-
-pagesPdfA :: Action [FilePath]
-pagesPdfA = _pagesPdf <$> targetsA
-
-handoutsA :: Action [FilePath]
-handoutsA = _handouts <$> targetsA
-
-handoutsPdfA :: Action [FilePath]
-handoutsPdfA = _handoutsPdf <$> targetsA
-
-mapTargets :: [(Targets -> [FilePath])] -> Action [FilePath]
-mapTargets fs = do
-  ts <- targetsA
-  return $ concatMap ($ ts) fs
-
-allHtmlA :: Action [FilePath]
-allHtmlA = mapTargets [_decks, _pages, _handouts]
-
-allPdfA :: Action [FilePath]
-allPdfA = mapTargets [_decksPdf, _pagesPdf, _handoutsPdf]
 
 withShakeLock :: Action a -> Action a
 withShakeLock perform = do

@@ -9,10 +9,13 @@ import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
-import Text.Decker.Server.Dachdecker
+import Text.Decker.Resource.Template
+
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Pdf
 
+-- TODO Is this still used?
+--import Text.Decker.Server.Dachdecker
 import Control.Concurrent
 import Control.Exception
 import Control.Lens ((^.))
@@ -33,15 +36,6 @@ import qualified Text.Mustache as M ()
 import Text.Pandoc
 import Text.Printf (printf)
 
-ttt =
-  [ "template/deck.html"
-  , "template/deck.md"
-  , "template/handout.html"
-  , "template/handout.tex"
-  , "template/page.html"
-  , "template/page.tex"
-  ]
-
 main :: IO ()
 main = do
   args <- getArgs
@@ -51,6 +45,33 @@ main = do
            "example" -> writeExampleProject
            "tutorial" -> writeTutorialProject
            _ -> run
+
+type ParamCache a = FilePath -> Action a
+
+type Cache a = Action a
+
+prepCaches ::
+     ProjectDirs
+  -> Rules (Cache Meta, Cache Targets, ParamCache (Template Text.Text))
+prepCaches directories = do
+  let deckerMetaFile = (directories ^. project) </> "decker.yaml"
+  let deckerTargetsFile = (directories ^. project) </> ".decker/targets.yaml"
+  getGlobalMeta <- ($ deckerMetaFile) <$> newCache readStaticMetaData
+  getTargets <- ($ deckerTargetsFile) <$> newCache readTargetsFile
+  getTemplate <-
+    newCache
+      (\path -> do
+         meta <- getGlobalMeta
+         readTemplate meta path)
+  deckerTargetsFile %> \targetFile -> do
+    alwaysRerun
+    meta <- getGlobalMeta
+    scanTargetsToFile meta directories targetFile
+  return (getGlobalMeta, getTargets, getTemplate)
+
+needSel sel = needSels [sel]
+
+needSels sels targets = need (concatMap (targets ^.) sels)
 
 run :: IO ()
 run = do
@@ -66,7 +87,7 @@ run = do
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
-  let index = (directories ^. public) </> "index.html"
+  let indexFile = (directories ^. public) </> "index.html"
   let cruft = ["index.md.generated", "//.log", "//.shake", "generated", "code"]
   let pdfMsg =
         "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
@@ -77,9 +98,9 @@ run = do
         "\tAlternatively you can add 'chrome' to $PATH.\n" ++
         "# Linux: 'chrome' has to be on $PATH.\n"
   --
-  runDecker $
-  --
-   do
+  runDecker $ do
+    (getGlobalMeta, getTargets, getTemplate) <- prepCaches directories
+    --
     want ["html"]
     --
     phony "version" $ do
@@ -90,30 +111,26 @@ run = do
         deckerGitBranch ++
         ", commit: " ++
         deckerGitCommitId ++ ", tag: " ++ deckerGitVersionTag ++ ")"
-      putNormal $ "pandoc version " ++ (Text.unpack pandocVersion)
+      putNormal $ "pandoc version " ++ Text.unpack pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
     phony "decks" $ do
       need ["support"]
-      decksA >>= need
-      need ["index"]
+      getTargets >>= needSel decks
     --
     phony "html" $ do
-      need ["support", "publish-annotations"]
-      allHtmlA >>= need
-      need ["index"]
+      need ["support"]
+      getTargets >>= needSels [decks, pages, handouts]
     --
     phony "pdf" $ do
       putNormal pdfMsg
       need ["support"]
-      allPdfA >>= need
-      need ["index"]
+      getTargets >>= needSels [decksPdf, handoutsPdf, pagesPdf]
     --
     phony "pdf-decks" $ do
       putNormal pdfMsg
       need ["support"]
-      decksPdfA >>= need
-      need ["index"]
+      getTargets >>= needSel decksPdf
     --
     phony "watch" $ do
       need ["html"]
@@ -121,7 +138,7 @@ run = do
     --
     phony "open" $ do
       need ["html"]
-      openBrowser index
+      openBrowser indexFile
     --
     phony "server" $ do
       need ["watch"]
@@ -135,31 +152,16 @@ run = do
     --
     phony "presentation" $ do
       runHttpServer serverPort directories Nothing
-      liftIO $ waitForYes
-    --
-    phony "index" $ need ["support", index]
+      liftIO waitForYes
     --
     priority 2 $
       "//*-deck.html" %> \out -> do
-        needGlobalMetaFile
         src <- calcSource "-deck.html" "-deck.md" out
-        let index = replaceSuffix "-deck.html" "-deck-index.yaml" out
-        let annotSrc = replaceSuffix "-deck.md" "-annot.json" src
-        let annotDst = replaceSuffix "-deck.html" "-annot.json" out
-        exists <- doesFileExist annotSrc
-        when exists $ copyFileChanged annotSrc annotDst
-        markdownToHtmlDeck src out index
-    --
-    priority 2 $
-      "//*-deck-index.yaml" %> \ind -> do
-        needGlobalMetaFile
-        src <- calcSource "-deck-index.yaml" "-deck.md" ind
-        let out = replaceSuffix "-deck-index.yaml" "-deck.html" ind
-        markdownToHtmlDeck src out ind
+        meta <- getGlobalMeta
+        markdownToHtmlDeck meta getTemplate src out
     --
     priority 2 $
       "//*-deck.pdf" %> \out -> do
-        needGlobalMetaFile
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         need [src]
         putNormal $ "Started: " ++ src ++ " -> " ++ out
@@ -175,41 +177,41 @@ run = do
     --
     priority 2 $
       "//*-handout.html" %> \out -> do
-        needGlobalMetaFile
         src <- calcSource "-handout.html" "-deck.md" out
-        markdownToHtmlHandout src out
+        meta <- getGlobalMeta
+        markdownToHtmlHandout meta getTemplate src out
     --
     priority 2 $
       "//*-handout.pdf" %> \out -> do
-        needGlobalMetaFile
         src <- calcSource "-handout.pdf" "-deck.md" out
-        markdownToPdfHandout src out
+        meta <- getGlobalMeta
+        markdownToPdfHandout meta getTemplate src out
     --
     priority 2 $
       "//*-page.html" %> \out -> do
-        needGlobalMetaFile
         src <- calcSource "-page.html" "-page.md" out
-        markdownToHtmlPage src out
+        meta <- getGlobalMeta
+        markdownToHtmlPage meta getTemplate src out
     --
     priority 2 $
       "//*-page.pdf" %> \out -> do
-        needGlobalMetaFile
         src <- calcSource "-page.pdf" "-page.md" out
-        markdownToPdfPage src out
+        meta <- getGlobalMeta
+        markdownToPdfPage meta getTemplate src out
     --
     priority 2 $
-      index %> \out -> do
-        alwaysRerun
+      indexFile %> \out -> do
         exists <- Development.Shake.doesFileExist indexSource
         let src =
               if exists
                 then indexSource
                 else indexSource <.> "generated"
-        markdownToHtmlPage src out
+        meta <- getGlobalMeta
+        markdownToHtmlPage meta getTemplate src out
     --
     indexSource <.> "generated" %> \out -> do
-      alwaysRerun
-      writeIndexLists out (takeDirectory index)
+      targets <- getTargets
+      writeIndexLists targets out (takeDirectory indexFile)
     --
     priority 2 $
       "//*.dot.svg" %> \out -> do
@@ -248,32 +250,26 @@ run = do
       putNormal $ "support directory: " ++ (directories ^. support)
       templateSource <- templateSourceA
       putNormal $ "template source: " <> show templateSource
-      putNormal "\ntargets:\n"
-      allHtmlA <++> allPdfA >>= mapM_ putNormal
+      -- TODO
+      --putNormal "\ntargets:\n"
+      --allHtmlA <++> allPdfA >>= mapM_ putNormal
       putNormal "\ntop level meta data:\n"
-      groom <$> metaA >>= putNormal
+      meta <- getGlobalMeta
+      putNormal (groom meta)
     --
-    phony "support" writeSupportFilesToPublic
+    phony "support" $ do
+      need [indexFile]
+      meta <- getGlobalMeta
+      writeSupportFilesToPublic meta
     --
     phony "check" checkExternalPrograms
     --
-    phony "publish-annotations" $ do
-      metaData <- metaA
-      when (isJust $ getMetaString "publish-annotations" metaData) $ do
-        let src = (directories ^. project) </> "annotations"
-        let dst = (directories ^. public) </> "annotations"
-        exists <- doesDirectoryExist src
-        when exists $ do
-          putNormal $ "# publish annotations (to " ++ dst ++ ")"
-          liftIO $ copyDir src dst
-    --
     phony "publish" $ do
+      meta <- getGlobalMeta
       need ["support"]
-      allHtmlA >>= need
-      metaData <- metaA
-      need ["index"]
-      let host = getMetaString "rsync-destination.host" metaData
-      let path = getMetaString "rsync-destination.path" metaData
+      getTargets >>= needSels [decks, handouts, pages]
+      let host = getMetaString "rsync-destination.host" meta
+      let path = getMetaString "rsync-destination.path" meta
       if isJust host && isJust path
         then do
           let src = (directories ^. public) ++ "/"
@@ -281,9 +277,10 @@ run = do
           ssh [fromJust host, "mkdir -p", fromJust path]
           rsync [src, dst]
         else throw RsyncUrlException
-    --
-    phony "sync" $ uploadQuizzes (_sources <$> targetsA)
+    -- TODO Is this still needed?
+    --phony "sync" $ uploadQuizzes (_sources <$> targetsA)
 
+-- TODO Does this even make sense with all the diagnostic output?
 waitForYes :: IO ()
 waitForYes = do
   threadDelay 1000
@@ -294,10 +291,3 @@ waitForYes = do
   hFlush stdout
   input <- getLine
   unless (input == "y") waitForYes
-
-needGlobalMetaFile :: Action ()
-needGlobalMetaFile = do
-  projectDir <- projectA
-  let globalMetaFile = projectDir </> globalMetaFileName
-  exists <- doesFileExist globalMetaFile
-  when exists $ need [globalMetaFile]

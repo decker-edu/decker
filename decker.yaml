@@ -1,7 +1,5 @@
 project-name: Decker
-publish-annotations: True
 provisioning: SymLink
-template-source: 'exe:'
 vertical-slides: false
 exclude-directories:
   - app
@@ -19,19 +17,3 @@ exclude-directories:
   - third-party
 static-resource-dirs:
   - test/static
-# Sane defaults for reval.js
-menu: true
-center: true
-controls: true
-keyboard: true
-progress: true
-hash: true
-overview: true
-touch: true
-fragments: true
-fragmentInURL: true
-help: true
-hideInactiveCursor: true
-hideCursorTime: 2000
-transition: "none"
-backgroundTransition: "none"
