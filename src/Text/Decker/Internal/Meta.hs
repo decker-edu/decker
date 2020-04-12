@@ -8,6 +8,7 @@ module Text.Decker.Internal.Meta
   , getMetaBoolOrElse
   , getMetaInt
   , getMetaIntOrElse
+  , getMetaStringOrElse
   , getMetaString
   , getMetaStringList
   , getMetaText
@@ -25,6 +26,7 @@ module Text.Decker.Internal.Meta
   , setMetaValue
   , setTextMetaValue
   , toPandocMeta
+  , toPandocMeta'
   , decodeYaml
   , readMetaDataFile
   ) where
@@ -142,6 +144,9 @@ getMetaText key meta = getMetaValue key meta >>= metaToText
 getMetaString :: String -> Meta -> Maybe String
 getMetaString key meta =
   Text.unpack <$> (getMetaValue (Text.pack key) meta >>= metaToText)
+
+getMetaStringOrElse :: Text.Text -> String -> Meta -> String
+getMetaStringOrElse key def meta = toString $ getMetaTextOrElse key (toText def) meta
 
 getMetaTextOrElse :: Text.Text -> Text.Text -> Meta -> Text.Text
 getMetaTextOrElse key def meta =

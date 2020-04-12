@@ -1,14 +1,11 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Text.Decker.Project.Shake
   ( runDecker
-  , appDataA
-  , cacheA
   , calcSource
   , calcSource'
   , currentlyServedPages
   , getRelativeSupportDir
   , isDevRun
-  , loggingA
   , openBrowser
   , projectA
   , projectDirsA
@@ -188,8 +185,9 @@ deckerShakeOptions ctx = do
       , shakeThreads = cores
       -- , shakeChange = ChangeModtimeAndDigest
       , shakeAbbreviations =
-          [ (ctx ^. dirs . project ++ "/", "")
-          , (ctx ^. dirs . public ++ "/", "")
+          [ (ctx ^. dirs . project ++ "/", "${project}/")
+          , (ctx ^. dirs . public ++ "/", "${public}/")
+          , (ctx ^. dirs . support ++ "/", "${support}/")
           ]
       }
 
@@ -296,17 +294,8 @@ projectA = _project <$> projectDirsA
 publicA :: Action FilePath
 publicA = _public <$> projectDirsA
 
-cacheA :: Action FilePath
-cacheA = _cache <$> projectDirsA
-
 supportA :: Action FilePath
 supportA = _support <$> projectDirsA
-
-appDataA :: Action FilePath
-appDataA = _appData <$> projectDirsA
-
-loggingA :: Action FilePath
-loggingA = _logging <$> projectDirsA
 
 withShakeLock :: Action a -> Action a
 withShakeLock perform = do

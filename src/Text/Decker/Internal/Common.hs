@@ -1,16 +1,12 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Text.Decker.Internal.Common
-  ( addScript
-   -- * Types
-  , DeckerState(..)
+  ( DeckerState(..)
   , Layout(..)
   , OutputFormat(..)
   , Disposition(..)
   , MediaType(..)
   , Provisioning(..)
-  , Script(..)
   , Decker
-   -- *
   , doIO
   , needFile
   , needFiles
@@ -37,24 +33,13 @@ needFile file = lift $ need [file]
 needFiles :: [FilePath] -> Decker ()
 needFiles pathes = lift $ need pathes
 
-addScript :: Script -> Decker ()
-addScript script = modify (\s -> s {scripts = scripts s ++ [script]})
-
 data DeckerState = DeckerState
   { basePath :: String
   , disposition :: Disposition
   , provisioning :: Provisioning
   , slideCount :: Int
   , externalReferences :: [U.URI]
-  , scripts :: [Script]
   } deriving (Eq, Show)
-
-data Script
-  = ScriptURI { scriptLang :: String
-              , scriptUri :: String }
-  | ScriptSource { scriptLang :: String
-                 , scriptSource :: String }
-  deriving (Eq, Show, Ord)
 
 data Layout
   = Deck
@@ -93,8 +78,8 @@ data MediaType
   | VideoMedia
   | IframeMedia
   | MeshMedia
-  | SvgMedia
-  | StreamMedia
+  | SvgMedia
+  | StreamMedia
 
 data Provisioning
   = Copy -- ^ Copy to public and relative URL
@@ -126,5 +111,3 @@ pandocWriterOpts =
          disableExtension Ext_multiline_tables . enableExtension Ext_emoji)
           pandocExtensions
     }
-
-

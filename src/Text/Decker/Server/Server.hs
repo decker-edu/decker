@@ -33,7 +33,7 @@ import System.Random
 -- Logging and port configuration for the server.
 serverConfig :: ProjectDirs -> Int -> IO (Config Snap a)
 serverConfig dirs port = do
-  let logDir = dirs ^. logging
+  let logDir = dirs ^. transient
   let accessLog = logDir </> "server-access.log"
   let errorLog = logDir </> "server-error.log"
   createDirectoryIfMissing True logDir

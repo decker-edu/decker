@@ -109,7 +109,6 @@ marioPipeline =
     , renderQuizzes
     , processSlides
     , processCitesWithDefault
-    , appendScripts
     ]
 
 -- | The old style decker filter pipeline.
@@ -123,7 +122,6 @@ deckerPipeline =
     , renderQuizzes
     , processSlides
     , processCitesWithDefault
-    , appendScripts
     ]
 
 -- | Reads a markdownfile, expands the included files, and calls need.

@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e62dc164efd9a61fbf3fd4a2afac00eb5a91800a17414ffa4473b4dd1f26ef42
+-- hash: 1fcf31f72b375f8cc7d90155de761c37c92e687dd5061571e57befd6faaac57e
 
 name:           decker
 version:        0.10.0
@@ -93,7 +93,6 @@ library
       Text.Decker.Filter.Slide
       Text.Decker.Filter.Streaming
       Text.Decker.Filter.Util
-      Text.Decker.Internal.Cache
       Text.Decker.Internal.Common
       Text.Decker.Internal.CompileTime
       Text.Decker.Internal.Exception

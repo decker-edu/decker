@@ -2,7 +2,6 @@
 module Text.Decker.Filter.Render
   ( renderCodeBlocks
   , renderedCodeExtensions
-  , appendScripts
   ) where
 
 import Text.Decker.Filter.CRC32
@@ -10,20 +9,15 @@ import Text.Decker.Internal.Common
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 
-import Control.Lens ((^.))
 import Control.Monad.Extra
 import Control.Monad.State
 import Data.List
-import Data.List.Extra
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath
-import Text.Blaze.Html.Renderer.String
-import Text.Blaze.Html5 as H ((!), canvas, div, script, toValue)
-import Text.Blaze.Html5.Attributes as A (class_, id, lang, src)
 import Text.Pandoc
 import Text.Pandoc.Walk
 import Text.Printf
@@ -45,8 +39,6 @@ processors =
     [ ("dot", Processor ".dot" (shakeCompile ".svg"))
     , ("gnuplot", Processor ".gnuplot" (shakeCompile ".svg"))
     , ("tikz", Processor ".tex" (bracketedShakeCompile ".svg" tikzPre tikzPost))
-    , ("d3", Processor ".js" d3Canvas)
-    , ("threejs", Processor ".js" threejsCanvas)
     ]
 
 tikzPre :: String
@@ -57,71 +49,6 @@ tikzPre =
 tikzPost :: String
 tikzPost = "\\end{document}"
 
-d3Canvas :: FilePath -> Attr -> Decker Inline
-d3Canvas source (eid, classes, keyvals) = do
-  needFile source
-  -- TODO: Clean this up. See Path.hs.
-  base <- gets basePath
-  dirs <- lift projectDirsA
-  let publicBase = dirs ^. public </> makeRelativeTo (dirs ^. project) base
-  supportDir <- lift $ getRelativeSupportDir publicBase
-  contents <- doIO $ readFile source
-  addScript $ ScriptURI "javascript" (supportDir </> "d3.js")
-  addScript $ ScriptSource "javascript" contents
-  let classStr = unwords $ map Text.unpack classes
-  let element = fromMaybe "svg" $ lookup "element" keyvals
-  case element of
-    "canvas" ->
-      return $
-      RawInline (Format "html") $
-      Text.pack $
-      renderHtml $
-      H.canvas ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
-    "div" ->
-      return $
-      RawInline (Format "html") $
-      Text.pack $
-      renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
-    _ ->
-      return $
-      RawInline (Format "html") $
-      Text.pack $ printf "<svg id=\"%v\" class=\"%v\"></svg>" eid classStr
-
-threejsCanvas :: FilePath -> Attr -> Decker Inline
-threejsCanvas source (eid, classes, keyvals) = do
-  needFile source
-  -- TODO: Clean this up. See Path.hs.
-  base <- gets basePath
-  dirs <- lift projectDirsA
-  let publicBase = dirs ^. public </> makeRelativeTo (dirs ^. project) base
-  supportDir <- lift $ getRelativeSupportDir publicBase
-  contents <- doIO $ readFile source
-  addScript $ ScriptURI "javascript" (supportDir </> "three.js")
-  let includes =
-        splitOn "," $ Text.unpack $ fromMaybe "" $ lookup "includes" keyvals
-  mapM_ (addScript . ScriptURI "javascript") includes
-  addScript $ ScriptSource "javascript" contents
-  let classStr = unwords $ map Text.unpack classes
-  let element = fromMaybe "svg" $ lookup "element" keyvals
-  case element of
-    "canvas" ->
-      return $
-      RawInline (Format "html") $
-      Text.pack $
-      renderHtml $
-      H.canvas ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
-    "div" ->
-      return $
-      RawInline (Format "html") $
-      Text.pack $
-      renderHtml $ H.div ! A.id (toValue eid) ! A.class_ (toValue classStr) $ ""
-    _ ->
-      return $
-      RawInline (Format "html") $
-      Text.pack $ printf "<svg id=\"%v\" class=\"%v\"></svg>" eid classStr
-
-bracketedShakeCompile ::
-     String -> String -> String -> FilePath -> Attr -> Decker Inline
 bracketedShakeCompile ext preamble postamble source attr = do
   contents <- doIO $ readFile source
   let bracketed = preamble ++ "\n" ++ contents ++ "\n" ++ postamble
@@ -195,28 +122,3 @@ writeCodeIfChanged code ext = do
       writeFile path code
   return path
 
-appendScripts :: Pandoc -> Decker Pandoc
-appendScripts pandoc@(Pandoc meta blocks) = do
-  disp <- gets disposition
-  case disp of
-    (Disposition _ Html) -> do
-      collected <- nubOrd <$> gets scripts
-      return $ Pandoc meta (blocks ++ map renderScript collected)
-    (Disposition _ _) -> return pandoc
-  where
-    renderScript (ScriptURI language uri) =
-      RawBlock (Format "html") $
-      Text.pack $
-      renderHtml $
-      H.script ! class_ "generated decker" ! lang (toValue language) !
-      src (toValue uri) $
-      ""
-    renderScript (ScriptSource language source) =
-      RawBlock (Format "html") $
-      Text.pack $
-      printf
-        "<script class=\"generated decker\" lang=\"%s\">%s</script>"
-        language
-        source
-      -- renderHtml $
-      -- H.script ! class_ "generated decker" ! lang = language $ preEscapedToHtml source

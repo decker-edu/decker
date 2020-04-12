@@ -20,8 +20,10 @@ import Control.Concurrent
 import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad.Extra
+import Data.Aeson
 import Data.IORef ()
 import Data.List
+import qualified Data.Map as Map
 import Data.Maybe
 import Data.String ()
 import qualified Data.Text as Text
@@ -56,7 +58,20 @@ prepCaches ::
 prepCaches directories = do
   let deckerMetaFile = (directories ^. project) </> "decker.yaml"
   let deckerTargetsFile = (directories ^. project) </> ".decker/targets.yaml"
-  getGlobalMeta <- ($ deckerMetaFile) <$> newCache readStaticMetaData
+  getGlobalMeta <-
+    ($ deckerMetaFile) <$>
+    newCache
+      (\file -> do
+         meta <- readStaticMetaData file
+         let dirs =
+               Meta $
+               Map.fromList
+                 [ ( "decker"
+                   , MetaMap $
+                     Map.fromList
+                       [("directories", toPandocMeta' (toJSON directories))])
+                 ]
+         return $ mergePandocMeta' dirs meta)
   getTargets <- ($ deckerTargetsFile) <$> newCache readTargetsFile
   getTemplate <-
     newCache
@@ -88,7 +103,7 @@ run = do
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
   let indexFile = (directories ^. public) </> "index.html"
-  let cruft = ["index.md.generated", "//.log", "//.shake", "generated", "code"]
+  let cruft = ["index.md.generated", "//.decker", "//.shake", "generated", "code"]
   let pdfMsg =
         "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
         "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++
@@ -211,7 +226,8 @@ run = do
     --
     indexSource <.> "generated" %> \out -> do
       targets <- getTargets
-      writeIndexLists targets out (takeDirectory indexFile)
+      meta <- getGlobalMeta
+      writeIndexLists meta targets out (takeDirectory indexFile)
     --
     priority 2 $
       "//*.dot.svg" %> \out -> do
