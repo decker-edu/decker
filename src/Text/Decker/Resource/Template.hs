@@ -1,11 +1,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Resource.Template
-  ( DeckerTemplate(..)
-  , TemplateSource
+  ( TemplateSource
   , TemplateCache
   , calcTemplateSource
-  , readTemplates
   , copySupportFiles
   , readTemplate
   , readTemplateMeta
@@ -32,20 +30,13 @@ import System.FilePath
 import Text.Pandoc hiding (getTemplate)
 import qualified Text.URI as URI
 
-{- | Defines the interface to template packs that can be selected at runtime.
-
--}
+{- | Defines the interface to template packs that can be selected at runtime. -}
 data TemplateSource
   = DeckerExecutable
   | LocalDir FilePath
   | LocalZip FilePath
   | Unsupported Text
   deriving (Ord, Eq, Show)
-
-data DeckerTemplate =
-  DeckerTemplate (Template Text)
-                 (Maybe FilePath)
-  deriving (Show)
 
 type TemplateCache = FilePath -> Action (Template Text)
 
@@ -76,32 +67,6 @@ parseTemplateUri uri =
          | (Text.toLower <$> ext) == Just "zip" -> LocalZip $ toString base
          | trailing -> LocalDir $ toString base
          | otherwise -> Unsupported (URI.render uri)
-
-readTemplates :: TemplateSource -> IO [(FilePath, DeckerTemplate)]
-readTemplates DeckerExecutable = do
-  executable <- getExecutablePath
-  readTemplatesZip executable
-readTemplates (LocalZip zipPath) = readTemplatesZip zipPath
-readTemplates (LocalDir baseDir) = readTemplatesFs baseDir
-readTemplates (Unsupported uri) = return []
-
-readTemplatesFs :: FilePath -> IO [(FilePath, DeckerTemplate)]
-readTemplatesFs dir = foldM readTemplate [] (Map.elems templateFiles)
-  where
-    readTemplate list path = do
-      let file = dir </> path
-      content <- Text.readFile file
-      compiled <- handleLeft <$> compileTemplate file content
-      return $ (path, DeckerTemplate compiled (Just file)) : list
-
-readTemplatesZip :: FilePath -> IO [(FilePath, DeckerTemplate)]
-readTemplatesZip archivePath = do
-  entries <- extractEntryList (Map.elems templateFiles) archivePath
-  forM entries compile
-  where
-    compile (path, content) = do
-      compiled <- handleLeft <$> compileTemplate "" (decodeUtf8 content)
-      return (path, DeckerTemplate compiled Nothing)
 
 copySupportFiles :: TemplateSource -> Provisioning -> FilePath -> IO ()
 copySupportFiles DeckerExecutable _ destination = do

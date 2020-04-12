@@ -20,7 +20,6 @@ module Text.Decker.Project.Shake
   , startHttpServer
   , stopHttpServer
   , supportA
-  , templateSourceA
   , watchChangesAndRepeat
   , withShakeLock
   , writeSupportFilesToPublic
@@ -61,7 +60,7 @@ import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
 import System.Process
-import Text.Pandoc hiding (getTemplate)
+import Text.Pandoc
 
 instance Show (IORef a) where
   show _ = "IORef"
@@ -77,10 +76,7 @@ makeLenses ''MutableActionState
 
 data ActionContext = ActionContext
   { _dirs :: ProjectDirs
-  , _metaData :: Meta
   , _state :: MutableActionState
-  , _templateSource :: TemplateSource
-  , _templates :: [(FilePath, DeckerTemplate)]
   } deriving (Typeable, Show)
 
 makeLenses ''ActionContext
@@ -168,9 +164,7 @@ readStaticMetaData file = do
 initContext :: MutableActionState -> IO ActionContext
 initContext state = do
   dirs <- projectDirectories
-  templateSource <- calcTemplateSource (getMetaText "template-source" nullMeta)
-  templates <- readTemplates templateSource
-  return $ ActionContext dirs nullMeta state templateSource templates
+  return $ ActionContext dirs state
 
 cleanup state = do
   srvr <- readIORef $ state ^. server
@@ -227,25 +221,6 @@ waitForChange' inDir exclude =
   where
     filter event = not $ any (`isPrefixOf` Notify.eventPath event) exclude
 
-getTemplate :: Disposition -> Action (Template T.Text)
-getTemplate disposition = getTemplate' (templateFileName disposition)
-
--- | Get a template by path either from the embedded ZIP archive or from the
--- file system. In the later case, call need on the template file.
---
--- TODO: Add proper error handling
---
-getTemplate' :: FilePath -> Action (Template T.Text)
-getTemplate' path = do
-  context <- actionContext
-  let (DeckerTemplate template source) =
-        fromJust $ lookup path (context ^. templates)
-  case source of
-    Just source -> do
-      need [source]
-    Nothing -> return ()
-  return template
-
 isDevRun :: Action Bool
 isDevRun = do
   context <- actionContext
@@ -265,9 +240,11 @@ writeSupportFilesToPublic :: Meta -> Action ()
 writeSupportFilesToPublic meta = do
   devRun <- liftIO isDevelopmentRun
   correct <- correctSupportInstalled
+  templateSource <-
+    liftIO $ calcTemplateSource (getMetaText "template-source" meta)
   unless (correct || devRun) $ do
     removeSupport
-    extractSupport
+    extractSupport templateSource
   copyStaticDirs meta
 
 copyStaticDirs :: Meta -> Action ()
@@ -284,13 +261,13 @@ copyStaticDirs meta = do
         then stripParentPrefix (drop 3 path)
         else path
 
-extractSupport :: Action ()
-extractSupport = do
+extractSupport :: TemplateSource -> Action ()
+extractSupport templateSource= do
   context <- actionContext
   let publicDir = context ^. dirs . public
   let supportDir = context ^. dirs . support
   liftIO $ do
-    copySupportFiles (context ^. templateSource) Copy publicDir
+    copySupportFiles templateSource Copy publicDir
     BC.writeFile (supportDir </> ".version") (BC.pack deckerGitCommitId)
 
 correctSupportInstalled :: Action Bool
@@ -330,9 +307,6 @@ appDataA = _appData <$> projectDirsA
 
 loggingA :: Action FilePath
 loggingA = _logging <$> projectDirsA
-
-templateSourceA :: Action TemplateSource
-templateSourceA = _templateSource <$> actionContext
 
 withShakeLock :: Action a -> Action a
 withShakeLock perform = do

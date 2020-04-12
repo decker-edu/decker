@@ -248,13 +248,14 @@ run = do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
       putNormal $ "public directory: " ++ (directories ^. public)
       putNormal $ "support directory: " ++ (directories ^. support)
-      templateSource <- templateSourceA
-      putNormal $ "template source: " <> show templateSource
-      -- TODO
-      --putNormal "\ntargets:\n"
-      --allHtmlA <++> allPdfA >>= mapM_ putNormal
-      putNormal "\ntop level meta data:\n"
       meta <- getGlobalMeta
+      targets <- getTargets
+      templateSource <-
+        liftIO $ calcTemplateSource (getMetaText "template-source" meta)
+      putNormal $ "template source: " <> show templateSource
+      putNormal "\ntargets:\n"
+      putNormal (groom targets)
+      putNormal "\ntop level meta data:\n"
       putNormal (groom meta)
     --
     phony "support" $ do
