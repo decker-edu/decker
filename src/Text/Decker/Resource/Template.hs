@@ -71,7 +71,7 @@ parseTemplateUri uri =
   let ext = uriPathExtension uri
       scheme = uriScheme uri
       base = uriPath uri
-      trailing = URI.uriAuthority uri == Left True
+      trailing = maybe False fst (URI.uriPath uri)
    in if | scheme == Just "exe" -> DeckerExecutable
          | (Text.toLower <$> ext) == Just "zip" -> LocalZip $ toString base
          | trailing -> LocalDir $ toString base
