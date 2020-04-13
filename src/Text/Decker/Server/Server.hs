@@ -7,13 +7,14 @@ module Text.Decker.Server.Server
   ) where
 
 import Text.Decker.Project.Project
+
 -- TODO is this still used?
 -- import Text.Decker.Server.Dachdecker (login)
-
 import Control.Concurrent
 
 import Control.Lens
 import Control.Monad
+import Control.Monad.Catch
 import Control.Monad.State
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
@@ -102,9 +103,9 @@ runHttpServer state dirs port = do
           ]
   let tryRun port 0 = fail "decker server: All ports already in use"
   let tryRun port tries =
-        catch
+        catchAll
           (simpleHttpServe (setPort port config) routes)
-          (\(SomeException e) -> do
+          (\_ -> do
              putStrLn
                ("decker server: Port " ++
                 show port ++ "already in use, trying port " ++ show (port + 1))
@@ -161,7 +162,6 @@ serveDirectoryNoCaching state directory = do
  -         token ++ "\",\"server\": \"" ++ dachdeckerUrl ++ "\"}")
  -    Nothing -> liftIO $ putStrLn "Error logging into the Dachdecker server"
  -}
-
 -- | Starts a server in a new thread and returns the thread id.
 startHttpServer :: ProjectDirs -> Int -> IO Server
 startHttpServer dirs port = do
