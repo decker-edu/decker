@@ -76,12 +76,6 @@ writeTutorialProject = do
   putStrLn $ "Extracting tutorial project to " ++ cwd ++ "."
   extractResourceEntries "tutorial" cwd
 
-writeResourceFiles :: FilePath -> FilePath -> IO ()
-writeResourceFiles prefix destDir = do
-  dataDir <- deckerResourceDir
-  let src = dataDir </> prefix
-  copyDir src destDir
-
 -- | Copies single Resource file and returns Filepath
 copyResource :: Resource -> IO FilePath
 copyResource resource = do
@@ -103,10 +97,16 @@ provisionMetaResource ::
 provisionMetaResource method base (key, url)
   | key `elem` runtimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
+    putNormal base
+    putNormal url
+    putNormal $ "run-time: " <> filePath
     provisionResource method base filePath
 provisionMetaResource method base (key, url)
   | key `elem` compiletimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
+    putNormal base
+    putNormal url
+    putNormal $ "compile-time: " <> filePath
     need [filePath]
     return filePath
 provisionMetaResource _ _ (key, url) = return url
@@ -127,12 +127,12 @@ provisionMetaResource _ _ (key, url) = return url
 --
 -- Returns a public URL relative to base
 provisionResource :: Provisioning -> FilePath -> FilePath -> Action FilePath
-provisionResource method base filePath =
+provisionResource method base filePath = do
+  dirs <- projectDirsA
   case parseRelativeReference filePath of
     Nothing ->
       if hasDrive filePath
         then do
-          dirs <- projectDirsA
           let resource =
                 Resource
                   { sourceFile = filePath
@@ -144,7 +144,6 @@ provisionResource method base filePath =
           publishResource method base resource
         else return filePath
     Just uri -> do
-      dirs <- projectDirsA
       let path = uriPath uri
       fileExists <- doesFileExist path
       if fileExists

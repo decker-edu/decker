@@ -36,7 +36,7 @@ data TemplateSource
   | LocalDir FilePath
   | LocalZip FilePath
   | Unsupported Text
-  deriving (Ord, Eq, Show)
+  deriving (Ord, Eq, Show, Read)
 
 type TemplateCache = FilePath -> Action (Template Text)
 
@@ -71,10 +71,11 @@ parseTemplateUri uri =
 copySupportFiles :: TemplateSource -> Provisioning -> FilePath -> IO ()
 copySupportFiles DeckerExecutable _ destination = do
   deckerExecutable <- getExecutablePath
-  extractSubEntries "support" deckerExecutable destination
+  extractSubEntries "support" deckerExecutable (takeDirectory destination)
 copySupportFiles (LocalZip zipPath) _ destination =
-  extractSubEntries "support" zipPath destination
-copySupportFiles (LocalDir baseDir) _ destination = copyDir baseDir destination
+  extractSubEntries "support" zipPath (takeDirectory destination)
+copySupportFiles (LocalDir baseDir) _ destination =
+  copyDir (baseDir </> "support") destination
 copySupportFiles (Unsupported uri) provisioning destination =
   bug $ ResourceException $ "Unsupported template source: " <> toString uri
 

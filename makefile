@@ -27,7 +27,7 @@ resource-zip:
 	rm -f resource/decker-resources.zip
 	(cd resource; zip -qr decker-resources.zip example support template tutorial)
 
-install: clean-build resource-zip
+install: clean-build
 	mkdir -p $(local-bin-path)
 	cp $(executable) "$(local-bin-path)/$(decker-name)"
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)

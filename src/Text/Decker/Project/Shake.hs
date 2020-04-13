@@ -26,7 +26,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
-import Text.Decker.Project.Version
 import Text.Decker.Resource.Template
 import Text.Decker.Server.Server
 
@@ -34,9 +33,8 @@ import Control.Concurrent
 import Control.Exception
 import Control.Lens
 import Control.Monad
-import qualified Data.ByteString as B
+import Control.Monad.Catch
 import qualified Data.ByteString.Base16 as B16
-import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy as BL
 import Data.Char
 import Data.Digest.Pure.MD5
@@ -88,7 +86,7 @@ initMutableActionState = do
 runDecker :: Rules () -> IO ()
 runDecker rules = do
   state <- initMutableActionState
-  catch (repeatIfTrue $ runShakeOnce state rules) (putError "Terminated: ")
+  catchAll (repeatIfTrue $ runShakeOnce state rules) (putError "Terminated: ")
   cleanup state
 
 data Flags
@@ -135,7 +133,7 @@ runShakeOnce :: MutableActionState -> Rules () -> IO Bool
 runShakeOnce state rules = do
   context <- initContext state
   options <- deckerShakeOptions context
-  catch
+  catchAll
     (shakeArgsWith options deckerFlags (handleArguments rules))
     (putError "Error: ")
   server <- readIORef (state ^. server)
@@ -236,14 +234,16 @@ sketchPadId text =
 
 writeSupportFilesToPublic :: Meta -> Action ()
 writeSupportFilesToPublic meta = do
-  devRun <- liftIO isDevelopmentRun
-  correct <- correctSupportInstalled
   templateSource <-
     liftIO $ calcTemplateSource (getMetaText "template-source" meta)
-  unless (correct || devRun) $ do
-    removeSupport
-    extractSupport templateSource
-  copyStaticDirs meta
+  correct <- correctSupportInstalled templateSource
+  if correct 
+    then putNormal "# support files up to date"
+    else do
+      putNormal $ "# copy support files from: " <> show templateSource
+      removeSupport
+      extractSupport templateSource
+  -- copyStaticDirs meta
 
 copyStaticDirs :: Meta -> Action ()
 copyStaticDirs meta = do
@@ -260,28 +260,26 @@ copyStaticDirs meta = do
         else path
 
 extractSupport :: TemplateSource -> Action ()
-extractSupport templateSource= do
+extractSupport templateSource = do
   context <- actionContext
-  let publicDir = context ^. dirs . public
   let supportDir = context ^. dirs . support
   liftIO $ do
-    copySupportFiles templateSource Copy publicDir
-    BC.writeFile (supportDir </> ".version") (BC.pack deckerGitCommitId)
+    copySupportFiles templateSource Copy supportDir
+    writeFile (supportDir </> ".origin") (show templateSource)
 
-correctSupportInstalled :: Action Bool
-correctSupportInstalled = do
+correctSupportInstalled :: TemplateSource -> Action Bool
+correctSupportInstalled templateSource = do
   context <- actionContext
   let supportDir = context ^. dirs . support
-  liftIO $ handle (\(SomeException _) -> return False) $ do
-    supportCommitId <- B.readFile (supportDir </> ".version")
-    return $ supportCommitId == BC.pack deckerGitCommitId
+  liftIO $ handleAll (\_ -> return False) $ do
+    installed <- read <$> readFile (supportDir </> ".origin")
+    return (installed == templateSource)
 
 removeSupport :: Action ()
 removeSupport = do
   context <- actionContext
   let supportDir = context ^. dirs . support
-  liftIO $ handle (\(SomeException _) -> return ()) $
-    removeDirectoryRecursive supportDir
+  liftIO $ handleAll (\_ -> return ()) $ removeDirectoryRecursive supportDir
 
 publicResourceA = _publicResource . _state <$> actionContext
 
@@ -359,7 +357,7 @@ calcSource' target = do
   return $ dirs ^. project </> makeRelative (dirs ^. public) target
 
 putCurrentDocument :: FilePath -> Action ()
-putCurrentDocument out = do
-  public <- publicA
-  let rel = makeRelative public out
-  putNormal $ "# pandoc (for " ++ rel ++ ")"
+putCurrentDocument out = putNormal $ "# pand (for " ++ out ++ ")"
+  --public <- publicA
+  --let rel = makeRelative public out
+  --putNormal $ "# pand (for " ++ rel ++ ")"

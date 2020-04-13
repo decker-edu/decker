@@ -18,7 +18,6 @@ module Text.Decker.Internal.Common
 import Control.Exception
 import Control.Monad.State
 import Development.Shake (Action, need)
-import Network.URI as U
 import Text.Decker.Internal.Exception
 import Text.Pandoc
 
@@ -37,8 +36,6 @@ data DeckerState = DeckerState
   { basePath :: String
   , disposition :: Disposition
   , provisioning :: Provisioning
-  , slideCount :: Int
-  , externalReferences :: [U.URI]
   } deriving (Eq, Show)
 
 data Layout

@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1fcf31f72b375f8cc7d90155de761c37c92e687dd5061571e57befd6faaac57e
+-- hash: 6ca4c1cad2e9c8995a8b7e2e9d7f79126dcd7b4a56a5f04ac2cae6f6e5da9f65
 
 name:           decker
 version:        0.10.0
@@ -26,7 +26,6 @@ extra-source-files:
     resource/template/default.yaml
     resource/template/handout.html
     resource/template/handout.tex
-    resource/template/help-page.md
     resource/template/page.html
     resource/template/page.tex
     resource/support/css/_boxes.scss
@@ -109,7 +108,6 @@ library
       Text.Decker.Resource.Resource
       Text.Decker.Resource.Template
       Text.Decker.Resource.Zip
-      Text.Decker.Server.Dachdecker
       Text.Decker.Server.Server
       Text.Decker.Writer.Html
       Text.Decker.Writer.Pdf

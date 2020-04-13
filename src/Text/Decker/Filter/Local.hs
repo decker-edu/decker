@@ -226,14 +226,14 @@ modifyMeta f = modify (\s -> s {meta = f (meta s)})
 
 processLocalUri :: URI -> Filter URI
 processLocalUri uri = do
-  cwd <- toText <$> liftIO getCurrentDirectory
+  cwd <- liftIO getCurrentDirectory
   -- | The project relative (!) document directory from which this is called.
-  docBaseDir <- toString <$> getMeta "decker.base-dir" cwd
-  topBaseDir <- toString <$> getMeta "decker.top-base-dir" cwd
+  docBaseDir <- getMetaS "decker.base-dir" cwd
+  topBaseDir <- getMetaS "decker.top-base-dir" cwd
   -- | The absolute (!) project directory from which this is called.
-  projectDir <- toString <$> getMeta "decker.project-dir" cwd
+  projectDir <- getMetaS "decker.directories.project" cwd
   -- | The absolute (!) public directory where everything is published to.
-  publicDir <- toString <$> getMeta "decker.public-dir" (cwd <> "/public")
+  publicDir <- getMetaS "decker.directories.public" (cwd <> "/public")
   -- | The path component from the URI
   let urlPath = toString $ uriPath uri
   -- | Interpret urlPath either project relative or document relative,
@@ -285,6 +285,9 @@ setMeta key value =
 
 getMeta :: Text -> Text -> Filter Text
 getMeta key def = getMetaTextOrElse key def <$> gets meta
+
+getMetaS :: Text -> String -> Filter String
+getMetaS key def = toString <$> getMeta key (toText def)
 
 hash9String :: String -> String
 hash9String text = take 9 $ show $ md5 $ encodeUtf8 text
