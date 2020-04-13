@@ -93,7 +93,7 @@ makeLenses ''Quiz
 -- | Has to be called in the Markdown.hs deckerPipeline after processSlides
 -- | Depends on h2 headers being wrapped in boxes
 handleQuizzes :: Pandoc -> Decker Pandoc
-handleQuizzes pandoc = return $ walk parseQuizboxes pandoc
+handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
   where
     parseQuizboxes :: Block -> Block
     parseQuizboxes d@(Div (id_, tgs@("box":cls), kvs) blocks)
@@ -230,8 +230,8 @@ solutionButton =
 
 renderMultipleChoice :: Quiz -> Block
 renderMultipleChoice quiz@(MultipleChoice title tgs qm q ch) =
-  Div ("", tgs, []) $
-  [Header 2 ("", [], []) title] ++ q ++ [choiceBlock] ++ [solutionButton]
+  Div ("", tgs, []) $ [Header 2 ("", [], []) title] ++ q ++ [choiceBlock]
+  -- ++ [solutionButton]
   where
     choiceBlock = rawHtml' $ choiceList "choices" ch
 renderMultipleChoice q =

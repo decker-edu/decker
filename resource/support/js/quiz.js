@@ -46,16 +46,45 @@ function quizMC() {
 
         let defBorder = answers[0].style.border;
 
+        function standardClick() {
+
+            if (this.style.border == defBorder) {
+                this.style.border = "3px solid black";
+            }
+            else {
+                this.style.border = defBorder;
+            }
+        };
+
+
         for (let answer of answers) {
 
             answer.addEventListener("click", function () {
-                if (this.style.border == defBorder) {
-                    this.style.border = "thick solid black";
+                const is_right = this.classList.contains("correct");
+                const tooltip = answer.querySelectorAll(".tooltip")[0];
+                tooltip.style.visibility = "visible";
+
+                if (is_right) {
+                    this.style.backgroundColor = "#aaffaa";
+                    this.style.border = "3px solid green";
                 }
                 else {
-                    this.style.border = defBorder;
+                    this.style.backgroundColor = "#ffaaaa";
+                    this.style.border = "3px solid red";
                 }
+
+                this.addEventListener("mouseover", function () {
+                    tooltip.style.visibility = "visible";
+                });
+                this.addEventListener("mouseout", function () {
+                    tooltip.style.visibility = "hidden";
+                });
+
             });
+
+            // This Event listener is for when there's an answer Button.
+            // TODO: How to know which mode to use from JS?
+            // answer.addEventListener("click", standardClick);
         }
 
         answerButton.addEventListener("click", function () {
@@ -75,12 +104,13 @@ function quizMC() {
                     const is_right = answer.classList.contains("correct");
                     answer.style.backgroundColor = (is_right) ? "#97ff7a" : "#ff7a7a";
 
-                    // tooltip display needs improvement
-                    // const tooltips = answer.getElementsByClassName("tooltip");
-                    // for (let tooltip of tooltips) {
-                    //     tooltip.style.display = "inline-block";
-                    // }
-                    answer.style.pointerEvents = "none";
+                    answer.addEventListener("mouseover", function () {
+                        event.target.querySelectorAll(".tooltip")[0].style.visibility = "visible";
+                    });
+                    answer.addEventListener("mouseout", function () {
+                        event.target.querySelectorAll(".tooltip")[0].style.visibility = "hidden";
+                    });
+                    answer.removeEventListener("click", _standardClick);
                 }
             }
 

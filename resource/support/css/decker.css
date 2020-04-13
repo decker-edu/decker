@@ -242,50 +242,64 @@
   margin-left: -30px;
 }
 
-.reveal .survey div p,
-.reveal .quiz-multiple-choice div p,
-.reveal .quiz-mc div p,
-.reveal .qmc div p {
-  margin: 0;
-}
-
 .reveal .survey ul,
 .reveal .quiz-multiple-choice ul,
 .reveal .quiz-mc ul,
 .reveal .qmc ul {
-  list-style-type: none;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  flex-direction: row;
   flex-wrap: wrap;
-  padding: 5pt;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  text-align: center;
+  counter-reset: answer;
 }
 
 .reveal .survey li,
 .reveal .quiz-multiple-choice li,
 .reveal .quiz-mc li,
 .reveal .qmc li {
-  flex-grow: 1;
-  border: 1pt #111 dashed;
-  padding-left: 1em;
-  padding-right: 1em;
-  border-radius: 0.5em;
-  margin: 0.55em;
-  flex-basis: 30%;
+  display: inline-block;
+  position: relative;
+  text-align: left;
+  margin: 20px;
+  border: 3px solid #2a9ddf;
+  border-radius: 20px;
+  padding: 20px;
+  font-weight: normal;
+  color: black;
 }
 
-.reveal .survey li:hover,
-.reveal .quiz-multiple-choice li:hover,
-.reveal .quiz-mc li:hover,
-.reveal .qmc li:hover {
-  background-color: gainsboro;
+.reveal .survey li:before,
+.reveal .quiz-multiple-choice li:before,
+.reveal .quiz-mc li:before,
+.reveal .qmc li:before {
+  content: counter(answer, upper-latin) ": ";
+  counter-increment: answer;
+  margin-right: 0.5em;
+  font-weight: bold;
 }
 
 .reveal .survey .tooltip,
 .reveal .quiz-multiple-choice .tooltip,
 .reveal .quiz-mc .tooltip,
 .reveal .qmc .tooltip {
-  display: none;
+  display: block;
+  visibility: hidden;
+  max-width: 95%;
+  top: 100%;
+  left: 5px;
+  background-color: grey;
+  color: #ffffff;
+  text-align: center;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: absolute;
+  z-index: 1;
+  font-size: 1rem;
 }
 
 .reveal .rightcolumn > h1 {
