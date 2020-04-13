@@ -1,0 +1,18 @@
+# Sane defaults for reval.js
+backgroundTransition: "none"
+center: true
+controls: true
+fragmentInURL: true
+fragments: true
+hash: true
+help: true
+hideCursorTime: 2000
+hideInactiveCursor: true
+history: true
+keyboard: true
+menu: true
+overview: true
+progress: true
+touch: true
+transition: "none"
+title: "|title|"

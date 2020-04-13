@@ -111,7 +111,7 @@ var RevealMath = window.RevealMath || (function(){
                         }
                     },
                     svg: {
-                        scale: 1.5,                    // DOES NOT WORK!!!! global scaling factor for all expressions
+                        scale: 0.9,                    // global scaling factor for all expressions
                         minScale: .5,                  // smallest scaling factor to use
                         matchFontHeight: false,        // true to match ex-height of surrounding font
                         mtextInheritFont: false,       // true to make mtext elements use surrounding font

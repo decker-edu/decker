@@ -21,11 +21,12 @@ module Text.Decker.Internal.Meta
   , mergePandocMeta
   , mergePandocMeta'
   , pandocMeta
-  , readMetaData
   , setBoolMetaValue
   , setMetaValue
   , setTextMetaValue
   , toPandocMeta
+  , decodeYaml
+  , readMetaDataFile
   ) where
 
 import Text.Decker.Internal.Exception
@@ -33,8 +34,6 @@ import Text.Decker.Internal.Exception
 import Control.Arrow
 import Control.Exception
 import qualified Data.HashMap.Strict as H
-
--- import qualified Data.List as L
 import Data.List.Safe ((!!))
 import qualified Data.Map.Lazy as Map
 import qualified Data.Map.Strict as M
@@ -44,7 +43,6 @@ import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
 import Development.Shake
 import Prelude hiding ((!!))
-import System.Directory as Dir
 import System.FilePath
 import Text.Pandoc
 import Text.Pandoc.Shared
@@ -97,41 +95,20 @@ decodeYaml yamlFile = do
       YamlException $ "Top-level meta value must be an object: " ++ yamlFile
     Left exception -> throw exception
 
--- Reads the global meta data file for a given directory
-readMetaData :: FilePath -> IO Meta
-readMetaData dir = do
-  let file = dir </> globalMetaFileName
-  readMetaDataFile file
-
 -- Check for additional meta files specified in the Meta option "meta-data"
-getAdditionalMeta :: Meta -> Action Meta
-getAdditionalMeta meta = do
-  let m = getMetaTextList "meta-data" meta
-  case m of
-    Just metafiles -> do
-      let filePathes = map Text.unpack metafiles
-      addmeta <- liftIO $ traverse readMetaDataFile filePathes
-      need filePathes
-      -- foldr and reversed addmeta list because additional meta should overwrite default meta
-      -- alternative: foldl and flip mergePandocMeta'
-      return $ foldr mergePandocMeta' meta (reverse addmeta)
-    _ -> return meta
+getAdditionalMeta :: FilePath -> Meta -> Action Meta
+getAdditionalMeta baseDir meta = do
+  let moreFiles =
+        map
+          ((baseDir </>) . Text.unpack)
+          (getMetaTextListOrElse "meta-data" [] meta)
+  need moreFiles
+  moreMeta <- liftIO $ traverse readMetaDataFile moreFiles
+  return $ foldr mergePandocMeta' meta (reverse moreMeta)
 
--- Read a single meta data file
+-- Reads a single meta data file.
 readMetaDataFile :: FilePath -> IO Meta
-readMetaDataFile file = do
-  exists <- Dir.doesFileExist file
-  f <- makeRelativeToCurrentDirectory file
-  meta <-
-    if exists
-      then decodeYaml file
-      else do
-        putStrLn $
-          "WARNING: file " ++
-          show f ++
-          " does not exist!\nIf you still have a \"*-meta.yaml\" file in your project please rename it to \"decker.yaml\"!"
-        return (Y.object [])
-  return $ toPandocMeta meta
+readMetaDataFile file = toPandocMeta <$> Y.decodeFileThrow file
 
 getMetaInt :: Text.Text -> Meta -> Maybe Int
 getMetaInt key meta = getMetaText key meta >>= readMaybe . Text.unpack
@@ -181,10 +158,7 @@ getMetaTextList :: Text.Text -> Meta -> Maybe [Text.Text]
 getMetaTextList key meta = getMetaValue key meta >>= metaToTextList
 
 getMetaTextListOrElse :: Text.Text -> [Text.Text] -> Meta -> [Text.Text]
-getMetaTextListOrElse key def meta =
-  case getMetaValue key meta of
-    Just (MetaList list) -> mapMaybe metaToText list
-    _ -> def
+getMetaTextListOrElse key def meta = fromMaybe def $ getMetaTextList key meta
 
 -- | Split a compound meta key at the dots and separate the array indexes.
 splitKey = concatMap splitIndex . Text.splitOn "."

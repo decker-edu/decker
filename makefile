@@ -10,14 +10,17 @@ decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 stack-build-opts := --fast --ghc-options "-j4 +RTS -A128m -n2m -qg -RTS"
 
 build: 
+	rm decker.cabal
 	stack build $(stack-build-options)
 
 clean-build: clean
 	git submodule update --init
 	make -f symlinks.mk -C third-party all
+	rm decker.cabal
 	stack build $(stack-build-options)
 
 less:
+	rm decker.cabal
 	stack build $(stack-build-options) 2>&1 | less 
 
 resource-zip:
@@ -34,6 +37,7 @@ version:
 	@echo "$(decker-name)"
 
 build-profile:
+	rm decker.cabal
 	stack build --work-dir .stack-work-profile --profile
 
 profile: build-profile
