@@ -61,13 +61,10 @@ processIncludes globalMeta topBaseDir (Pandoc meta blocks) =
 runDeckerFilter ::
      (Pandoc -> IO Pandoc) -> FilePath -> FilePath -> Pandoc -> Action Pandoc
 runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks) = do
-  dirs <- projectDirsA
   -- | Augment document meta.
   let deckerMeta =
         setTextMetaValue "decker.base-dir" (T.pack docBase) $
-        setTextMetaValue "decker.top-base-dir" (T.pack topBase) $
-        setTextMetaValue "decker.project-dir" (T.pack $ _project dirs) $
-        setTextMetaValue "decker.public-dir" (T.pack $ _public dirs) meta
+        setTextMetaValue "decker.top-base-dir" (T.pack topBase) meta
   (Pandoc resultMeta resultBlocks) <- liftIO $ filter (Pandoc deckerMeta blocks)
   processedMeta <- processMeta resultMeta
   return (Pandoc processedMeta resultBlocks)

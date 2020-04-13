@@ -103,7 +103,8 @@ run = do
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
   let indexFile = (directories ^. public) </> "index.html"
-  let cruft = ["index.md.generated", "//.decker", "//.shake", "generated", "code"]
+  let cruft =
+        ["index.md.generated", "//.decker", "//.shake", "generated", "code"]
   let pdfMsg =
         "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
         "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++
@@ -129,22 +130,16 @@ run = do
       putNormal $ "pandoc version " ++ Text.unpack pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
-    phony "decks" $ do
-      need ["support"]
-      getTargets >>= needSel decks
+    phony "decks" $ do getTargets >>= needSel decks
     --
-    phony "html" $ do
-      need ["support"]
-      getTargets >>= needSels [decks, pages, handouts]
+    phony "html" $ do getTargets >>= needSels [decks, pages, handouts]
     --
     phony "pdf" $ do
       putNormal pdfMsg
-      need ["support"]
       getTargets >>= needSels [decksPdf, handoutsPdf, pagesPdf]
     --
     phony "pdf-decks" $ do
       putNormal pdfMsg
-      need ["support"]
       getTargets >>= needSel decksPdf
     --
     phony "watch" $ do
@@ -156,18 +151,15 @@ run = do
       openBrowser indexFile
     --
     phony "server" $ do
-      need ["watch"]
+      need ["watch", "support"]
       runHttpServer serverPort directories Nothing
     --
     phony "fast" $ do
+      need ["support"]
       runHttpServer serverPort directories Nothing
       pages <- currentlyServedPages
       need $ map (directories ^. public </>) pages
       watchChangesAndRepeat
-    --
-    phony "presentation" $ do
-      runHttpServer serverPort directories Nothing
-      liftIO waitForYes
     --
     priority 2 $
       "//*-deck.html" %> \out -> do
@@ -255,11 +247,6 @@ run = do
       removeFilesAfter (directories ^. public) ["//"]
       removeFilesAfter (directories ^. project) cruft
     --
-    -- TODO: Move help-page out of the template dir
-    -- phony "help" $ do
-    --  text <- getTemplate' "template/help-page.md"
-    --  liftIO $ Text.putStr text
-    --
     phony "info" $ do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
       putNormal $ "public directory: " ++ (directories ^. public)
@@ -282,8 +269,8 @@ run = do
     phony "check" checkExternalPrograms
     --
     phony "publish" $ do
-      meta <- getGlobalMeta
       need ["support"]
+      meta <- getGlobalMeta
       getTargets >>= needSels [decks, handouts, pages]
       let host = getMetaString "rsync-destination.host" meta
       let path = getMetaString "rsync-destination.path" meta
