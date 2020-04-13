@@ -11,7 +11,7 @@ import Text.Decker.Project.Project
 -- import Text.Decker.Server.Dachdecker (login)
 
 import Control.Concurrent
-import Control.Exception
+
 import Control.Lens
 import Control.Monad
 import Control.Monad.State
