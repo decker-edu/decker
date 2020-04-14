@@ -204,6 +204,7 @@ parseQuizTLItem :: Quiz -> [Block] -> Choice
 parseQuizTLItem _ (Plain (Str "☒":Space:is):bs) = Choice True is bs
 parseQuizTLItem _ (Plain (Str "☐":Space:is):bs) = Choice False is bs
 parseQuizTLItem FreeText {} (Plain is:bs) = Choice True is bs
+parseQuizTLItem InsertChoices {} (Plain is:bs) = Choice True is bs
 parseQuizTLItem _ is = Choice False [Str "NoTasklistItem"] [Plain []]
 
 -- | Set the quizMeta field of a Quiz using lenses
@@ -323,8 +324,8 @@ renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
 renderFreeText :: Quiz -> Block
 renderFreeText quiz@(FreeText title tgs qm q ch) =
-  Div ("", tgs, []) $
-  [Header 2 ("", [], []) title] ++ q ++ [inputRaw] ++ [solutionButton]
+  Div ("", tgs, []) $ [Header 2 ("", [], []) title] ++ q ++ [inputRaw]
+  --  ++ [solutionButton]
   where
     inputRaw = rawHtml' (H.input >> choiceList "solutionList" ch)
     input :: Choice -> Html

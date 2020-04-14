@@ -1,18 +1,11 @@
 .reveal {
-    .solutionList,
-    .tooltipList{
-        display: none;
-    }
-}
-
-.reveal {
     .qic,
     .qft,
     .qmc,
     .qmi,
     [class*="quiz-"]{
     
-
+    position: relative;
     // General Button css and freetext question Input 
     button,
     input
@@ -22,6 +15,31 @@
         font-family: inherit;
         outline: none;
         clear: both;
+    }
+    .solutionList{
+
+        .correct:before {
+            content: "✓";
+            margin-right: 0.5em;
+            font-weight:  bold;
+        }
+        .wrong:before{
+            content: "✗";
+            margin-right: 0.5em;
+            font-weight: bold;
+        }
+        list-style-type: none;
+        visibility:       hidden;
+        max-width:        95%;
+        background-color: grey;
+        color:            #ffffff;
+        margin:           5px;
+        padding:          5px;
+        border-radius:    6px;
+        border:           none;
+        position:         absolute;
+        z-index:          99;
+        font-size:        1rem;
     }
 }}
 

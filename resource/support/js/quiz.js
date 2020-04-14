@@ -56,97 +56,147 @@ function quizMC() {
             }
         };
 
-
-        for (let answer of answers) {
-
-            answer.addEventListener("click", function () {
-                const is_right = this.classList.contains("correct");
-                const tooltip = answer.querySelectorAll(".tooltip")[0];
-                tooltip.style.visibility = "visible";
-
-                if (is_right) {
-                    this.style.backgroundColor = "#aaffaa";
-                    this.style.border = "3px solid green";
-                }
-                else {
-                    this.style.backgroundColor = "#ffaaaa";
-                    this.style.border = "3px solid red";
-                }
-
-                this.addEventListener("mouseover", function () {
-                    tooltip.style.visibility = "visible";
-                });
-                this.addEventListener("mouseout", function () {
-                    tooltip.style.visibility = "hidden";
-                });
-
-            });
-
-            // This Event listener is for when there's an answer Button.
-            // TODO: How to know which mode to use from JS?
-            // answer.addEventListener("click", standardClick);
-        }
-
-        answerButton.addEventListener("click", function () {
-            let answered = false;
+        if (answerButton) {
             for (let answer of answers) {
-                if (answer.style.border == defBorder) {
-                    continue;
-                }
-                else {
-                    answered = true;
-                }
+                answer.addEventListener("click", standardClick);
             }
-
-            if (answered) {
-                this.disabled = true;
+            answerButton.addEventListener("click", function () {
+                let answered = false;
                 for (let answer of answers) {
-                    const is_right = answer.classList.contains("correct");
-                    answer.style.backgroundColor = (is_right) ? "#97ff7a" : "#ff7a7a";
+                    if (answer.style.border == defBorder) {
+                        continue;
+                    }
+                    else {
+                        answered = true;
+                    }
+                }
 
-                    answer.addEventListener("mouseover", function () {
-                        event.target.querySelectorAll(".tooltip")[0].style.visibility = "visible";
-                    });
-                    answer.addEventListener("mouseout", function () {
-                        event.target.querySelectorAll(".tooltip")[0].style.visibility = "hidden";
-                    });
-                    answer.removeEventListener("click", _standardClick);
+                if (answered) {
+                    this.disabled = true;
+                    for (let answer of answers) {
+                        const is_right = answer.classList.contains("correct");
+                        answer.style.backgroundColor = (is_right) ? "#97ff7a" : "#ff7a7a";
+
+                        answer.addEventListener("mouseover", function () {
+                            event.target.querySelectorAll(".tooltip")[0].style.visibility = "visible";
+                        });
+                        answer.addEventListener("mouseout", function () {
+                            event.target.querySelectorAll(".tooltip")[0].style.visibility = "hidden";
+                        });
+                        answer.removeEventListener("click", _standardClick);
+                    }
+                }
+
+                else {
+                    alert("No answer chosen!");
+                    return false;
                 }
             }
+            );
 
-            else {
-                alert("No answer chosen!");
-                return false;
+        }
+        else {
+            for (let answer of answers) {
+
+                answer.addEventListener("click", function () {
+                    const is_right = this.classList.contains("correct");
+                    const tooltip = answer.querySelectorAll(".tooltip")[0];
+                    tooltip.style.visibility = "visible";
+
+                    if (is_right) {
+                        this.style.backgroundColor = "#aaffaa";
+                        this.style.border = "3px solid green";
+                    }
+                    else {
+                        this.style.backgroundColor = "#ffaaaa";
+                        this.style.border = "3px solid red";
+                    }
+
+                    this.addEventListener("mouseover", function () {
+                        tooltip.style.visibility = "visible";
+                    });
+                    this.addEventListener("mouseout", function () {
+                        tooltip.style.visibility = "hidden";
+                    });
+                });
             }
         }
-        );
+
     }
 }
+/**
+ * @param {string} answer - The input answer
+ * @param {HTMLElement} solutionList 
+ * 
+ * Iterate over solutionlist. 
+ * check if given answer is equivalent to at least one of the correct solutions
+ * 
+ */
+function handleSolutionList(solutionList, answer) {
+    const solutions = solutionList.getElementsByTagName("li");
 
+    // Bool
+    var correct = false;
+    for (let s of solutions) {
+        const is_right = s.classList.contains("correct");
 
+        const solution = s.innerHTML.replace(/<div.*div>/, "").toLowerCase().trim();
+
+        if (is_right && answer == solution) {
+            correct = true;
+        }
+    }
+    return correct;
+}
 
 
 function quizFT() {
     var ftQuestions = document.querySelectorAll(".qft,.quiz-ft,.quiz-free-text");
-
     for (let ft of ftQuestions) {
         const solutions = ft.getElementsByClassName("solutionList")[0];
-        const button = ft.getElementsByClassName("solutionButton")[0];
+        const solutionButton = ft.getElementsByClassName("solutionButton")[0];
         const input = ft.getElementsByTagName("input")[0];
 
-        button.onclick = function () {
-            if (input.value == "") {
-                alert("No answer entered!");
-            } else {
-                const answer = input.value;
-                for (let s of solutions) {
-                    // Iterate through the solutions
-                    // Compare with the entered answer string
-                    // When and how to show tooltips?
+        if (solutionButton) {
+            solutionButton.onclick = function () {
+                if (input.value == "") {
+                    alert("No answer entered!");
+                } else {
+                    const answer = input.value;
+                    for (let s of solutions) {
+                        // Iterate through the solutions
+                        // Compare with the entered answer string
+                        // When and how to show tooltips?
+                    }
                 }
             }
-
         }
+        else {
+            input.addEventListener("keydown", function (event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                    this.readOnly = true;
+                    solutions.style.visibility = "visible";
+
+                    const answer = input.value.toLowerCase().trim();
+                    const correct = handleSolutionList(solutions, answer);
+
+                    this.style.backgroundColor = (correct) ? "#aaffaa" : "#ffaaaa";
+                    this.addEventListener("mouseover", function () {
+                        solutions.style.visibility = "visible";
+                    });
+                    this.addEventListener("mouseout", function () {
+                        solutions.style.visibility = "hidden";
+                    });
+                }
+                else {
+                    return false;
+                }
+            });
+        }
+
+
+
     }
 }
 

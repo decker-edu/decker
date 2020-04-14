@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /**
  * Decker theme for reveal.js.
  *
@@ -97,9 +98,12 @@
   margin-bottom: 0.3em;
 }
 
-.reveal .solutionList,
-.reveal .tooltipList {
-  display: none;
+.reveal .qic,
+.reveal .qft,
+.reveal .qmc,
+.reveal .qmi,
+.reveal [class*="quiz-"] {
+  position: relative;
 }
 
 .reveal .qic button,
@@ -117,6 +121,45 @@
   font-family: inherit;
   outline: none;
   clear: both;
+}
+
+.reveal .qic .solutionList,
+.reveal .qft .solutionList,
+.reveal .qmc .solutionList,
+.reveal .qmi .solutionList,
+.reveal [class*="quiz-"] .solutionList {
+  list-style-type: none;
+  visibility: hidden;
+  max-width: 95%;
+  background-color: grey;
+  color: #ffffff;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: absolute;
+  z-index: 99;
+  font-size: 1rem;
+}
+
+.reveal .qic .solutionList .correct:before,
+.reveal .qft .solutionList .correct:before,
+.reveal .qmc .solutionList .correct:before,
+.reveal .qmi .solutionList .correct:before,
+.reveal [class*="quiz-"] .solutionList .correct:before {
+  content: "✓";
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
+.reveal .qic .solutionList .wrong:before,
+.reveal .qft .solutionList .wrong:before,
+.reveal .qmc .solutionList .wrong:before,
+.reveal .qmi .solutionList .wrong:before,
+.reveal [class*="quiz-"] .solutionList .wrong:before {
+  content: "✗";
+  margin-right: 0.5em;
+  font-weight: bold;
 }
 
 .reveal .qic select,
