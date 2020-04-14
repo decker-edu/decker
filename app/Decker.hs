@@ -154,6 +154,10 @@ run = do
       need ["watch", "support"]
       runHttpServer serverPort directories Nothing
     --
+    phony "presentation" $ do
+      runHttpServer serverPort directories Nothing
+      liftIO waitForYes
+    --
     phony "fast" $ do
       need ["support"]
       runHttpServer serverPort directories Nothing

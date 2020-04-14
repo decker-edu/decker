@@ -243,7 +243,7 @@ writeSupportFilesToPublic meta = do
       putNormal $ "# copy support files from: " <> show templateSource
       removeSupport
       extractSupport templateSource
-  -- copyStaticDirs meta
+  copyStaticDirs meta
 
 copyStaticDirs :: Meta -> Action ()
 copyStaticDirs meta = do
