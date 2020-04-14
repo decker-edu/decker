@@ -214,7 +214,6 @@ function quizIC() {
 
         for (let sel of selects) {
             const solutions = sel.nextElementSibling;
-            console.log(solutions);
             const options = sel.options;
 
             sel.addEventListener("change", function () {
@@ -351,6 +350,8 @@ function blanktextButtons() {
 function matchings(matchQuestion) {
     const dropzones = matchQuestion.getElementsByClassName("bucket");
     const draggables = matchQuestion.getElementsByClassName("matchItem");
+    const itemCount = matchQuestion.querySelectorAll(".matchItem:not(.distractor)").length;
+
     for (i = 0; i < dropzones.length; i++) {
         dropzones[i].addEventListener("drop", drop);
         dropzones[i].addEventListener("dragover", allowDrop);
@@ -418,23 +419,27 @@ function matchingAnswerButton(matchQuestion) {
 
         const buckets = matchQuestion.getElementsByClassName("bucket");
         const remainingItems = matchQuestion.getElementsByClassName("matchItems")[0].children;
-        for (let bucket of buckets) {
-            const matchItems = bucket.getElementsByClassName("matchItem");
-            if (matchItems.length == 0) {
-                alert("Each bucket has at least one element belonging to it!");
-                return;
-            }
+        const bucketsDiv = matchQuestion.getElementsByClassName("buckets")[0];
+        const assignedItems = bucketsDiv.getElementsByClassName("matchItem");
+        if (assignedItems.length == 0) {
+            alert("You haven't assigned any items!");
+            return;
         }
 
         for (let rem of remainingItems) {
             const matchId = rem.getAttribute("data-bucketid")
-            rem.setAttribute("draggable", false);
+            const hasTooltip = rem.getElementsByClassName("solution").length > 0;
+            // rem.setAttribute("draggable", false);
             if (matchId == null) {
                 rem.style.backgroundColor = "yellow";
-                rem.append(solution("distractor"));
+                if (!hasTooltip) {
+                    rem.append(solution("distractor"));
+                }
             } else {
                 rem.style.backgroundColor = "rgb(255, 122, 122)";
-                rem.append(solution("Bucket " + matchId));
+                if (!hasTooltip) {
+                    rem.append(solution("Bucket " + matchId));
+                }
             }
         }
 
@@ -442,12 +447,15 @@ function matchingAnswerButton(matchQuestion) {
             const droppedItems = bucket.getElementsByClassName("matchItem");
             const bucketId = bucket.getAttribute("data-bucketid");
             for (let matchItem of droppedItems) {
+                const hasTooltip = matchItem.getElementsByClassName("solution").length > 0;
 
-                matchItem.setAttribute("draggable", false);
+                // matchItem.setAttribute("draggable", false);
                 const matchId = matchItem.getAttribute("data-bucketid");
                 if (matchId == null) {
                     matchItem.style.backgroundColor = "yellow";
-                    matchItem.append(solution("distractor"));
+                    if (!hasTooltip) {
+                        matchItem.append(solution("distractor"));
+                    }
                 } else if (matchId == bucketId) {
                     // green
                     matchItem.style.backgroundColor = "rgb(151, 255, 122)";
@@ -455,16 +463,34 @@ function matchingAnswerButton(matchQuestion) {
                 else {
                     // red
                     matchItem.style.backgroundColor = "rgb(255, 122, 122)";
-                    matchItem.append(solution("Bucket " + matchId));
+                    if (!hasTooltip) {
+                        matchItem.append(solution("Bucket " + matchId));
+                    }
+
 
                 }
             }
         }
-        this.disabled = true;
+        // this.disabled = true;
     }
-
-
 }
+
+// TODO: to call from drop()
+// function matchingSolutions(matchQuestion) {
+//     const numberSource = matchQuestion.querySelectorAll(".matchItem:not(.distractor)").length;
+//     const numberTargets = matchQuestion.querySelectorAll(".bucket:not(.distractor)").length;
+//     console.log("check for solution");
+
+//     if (numberSource > numberTargets) {
+//         console.log("more items");
+//     } else if (numberSource > numberTargets) {
+//         console.log("more buckets");
+//     }
+//     else {
+//         console.log("same number");
+//     }
+
+// }
 
 // Functions for dragging and dropping in the matching questions 
 function allowDrop(ev) {
@@ -489,6 +515,10 @@ function drop(event) {
     if (event.target.classList.contains("matchItem")) {
         return false;
     }
+
+    // TODO: Call to a function that checks which solutions have been assigned correctly 
+    // matchingSolutions(event.target.closest(".qmi,.quiz-mi,.quiz-match-items"));
+
 
     event.target.appendChild(element);
     event.target.disabled = true;

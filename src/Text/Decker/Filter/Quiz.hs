@@ -311,17 +311,11 @@ renderMatching quiz@(MatchItems title tgs qm qs matches) =
       case bs of
         [[Plain []]] ->
           ( Div
-              ("", ["bucket"], [("bucketId", T.pack $ show i)])
-              [ Plain $
-                is ++ [Span ("", ["bucketId"], []) [Str $ T.pack $ show i]]
-              ]
+              ("", ["bucket", "distractor"], [("bucketId", T.pack $ show i)])
+              [Plain is]
           , [])
         _ ->
-          ( Div
-              ("", ["bucket"], [("bucketId", T.pack $ show i)])
-              [ Plain $
-                is ++ [Span ("", ["bucketId"], []) [Str $ T.pack $ show i]]
-              ]
+          ( Div ("", ["bucket"], [("bucketId", T.pack $ show i)]) [Plain is]
           , map (item (T.pack $ show i)) bs)
 renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 

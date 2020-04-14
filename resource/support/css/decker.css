@@ -180,17 +180,10 @@
   text-align: center;
 }
 
-.reveal .quiz-mi .bucketId,
-.reveal .qmi .bucketId,
-.reveal .quiz-match-items .bucketId {
-  float: right;
-  margin: 0 0 0 auto;
-  font-size: small;
-}
-
 .reveal .quiz-mi .buckets,
 .reveal .qmi .buckets,
 .reveal .quiz-match-items .buckets {
+  counter-reset: bid;
   width: 100%;
   min-height: 15vh;
   max-height: 20vh;
@@ -198,20 +191,26 @@
   table-layout: fixed;
 }
 
-.reveal .quiz-mi .bucket,
-.reveal .qmi .bucket,
-.reveal .quiz-match-items .bucket {
+.reveal .quiz-mi .buckets .bucket,
+.reveal .qmi .buckets .bucket,
+.reveal .quiz-match-items .buckets .bucket {
   display: table-cell;
   padding: 10px;
   border: 1px solid black;
   text-align: center;
 }
 
-.reveal .quiz-mi .distractor,
+.reveal .quiz-mi .buckets .bucket:before,
+.reveal .qmi .buckets .bucket:before,
+.reveal .quiz-match-items .buckets .bucket:before {
+  content: counter(bid) ": ";
+  counter-increment: bid;
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
 .reveal .quiz-mi .matchItem,
-.reveal .qmi .distractor,
 .reveal .qmi .matchItem,
-.reveal .quiz-match-items .distractor,
 .reveal .quiz-match-items .matchItem {
   display: table-cell;
   margin: auto;
