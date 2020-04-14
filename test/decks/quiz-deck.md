@@ -105,7 +105,7 @@ Decker is a software built using
 
 and builds upon
 
-- [ ] LaTeX Beamer
+- Pandoc
 
 .
 

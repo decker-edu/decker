@@ -149,6 +149,29 @@ function handleSolutionList(solutionList, answer) {
     return correct;
 }
 
+function inputEvent(input, solutions) {
+    input.addEventListener("keydown", function (event) {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            this.readOnly = true;
+            solutions.style.visibility = "visible";
+
+            const answer = input.value.toLowerCase().trim();
+            const correct = handleSolutionList(solutions, answer);
+
+            this.style.backgroundColor = (correct) ? "#aaffaa" : "#ffaaaa";
+            this.addEventListener("mouseover", function () {
+                solutions.style.visibility = "visible";
+            });
+            this.addEventListener("mouseout", function () {
+                solutions.style.visibility = "hidden";
+            });
+        }
+        else {
+            return false;
+        }
+    });
+}
 
 function quizFT() {
     var ftQuestions = document.querySelectorAll(".qft,.quiz-ft,.quiz-free-text");
@@ -172,27 +195,8 @@ function quizFT() {
             }
         }
         else {
-            input.addEventListener("keydown", function (event) {
-                if (event.keyCode === 13) {
-                    event.preventDefault();
-                    this.readOnly = true;
-                    solutions.style.visibility = "visible";
+            inputEvent(input, solutions);
 
-                    const answer = input.value.toLowerCase().trim();
-                    const correct = handleSolutionList(solutions, answer);
-
-                    this.style.backgroundColor = (correct) ? "#aaffaa" : "#ffaaaa";
-                    this.addEventListener("mouseover", function () {
-                        solutions.style.visibility = "visible";
-                    });
-                    this.addEventListener("mouseout", function () {
-                        solutions.style.visibility = "hidden";
-                    });
-                }
-                else {
-                    return false;
-                }
-            });
         }
 
 
@@ -206,28 +210,52 @@ function quizIC() {
     for (let ic of icQuestions) {
         const button = ic.getElementsByClassName("solutionButton")[0];
         const selects = ic.getElementsByTagName("select");
+        const inputs = ic.getElementsByTagName("input");
 
-        button.onclick = function () {
-            for (let s of selects) {
-                if (s.options[s.selectedIndex].className == "correct") {
-                    s.style.backgroundColor = "rgb(151, 255, 122)";
+        for (let sel of selects) {
+            const solutions = sel.nextElementSibling;
+            console.log(solutions);
+            const options = sel.options;
 
-                }
-                else {
-                    s.style.backgroundColor = "rgb(255, 122, 122)";
-                }
+            sel.addEventListener("change", function () {
+                const selected = sel.options[sel.selectedIndex];
+                const is_right = selected.classList.contains("correct");
+                sel.style.backgroundColor = (is_right) ? "#aaffaa" : "#ffaaaa";
 
-                for (let o of s.options) {
-                    if (o.className == "correct") {
-                        o.textContent += " ✓";
-                    } else {
-                        o.textContent += " ✗";
-                    }
-                }
-            }
-
-
+                solutions.style.visibility = "visible";
+                this.addEventListener("mouseover", function () {
+                    solutions.style.visibility = "visible";
+                });
+                this.addEventListener("mouseout", function () {
+                    solutions.style.visibility = "hidden";
+                });
+            });
         }
+
+        for (let i of inputs) {
+            const solutions = i.nextElementSibling;
+            inputEvent(i, solutions);
+        }
+
+        // button.onclick = function () {
+        //     for (let s of selects) {
+        //         if (s.options[s.selectedIndex].className == "correct") {
+        //             s.style.backgroundColor = "rgb(151, 255, 122)";
+
+        //         }
+        //         else {
+        //             s.style.backgroundColor = "rgb(255, 122, 122)";
+        //         }
+
+        //         for (let o of s.options) {
+        //             if (o.className == "correct") {
+        //                 o.textContent += " ✓";
+        //             } else {
+        //                 o.textContent += " ✗";
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
 

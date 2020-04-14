@@ -242,7 +242,8 @@ renderMultipleChoice q =
 -- This is used directly in multiple choice questions and as "solutionList" in IC and FT questions
 choiceList :: AttributeValue -> [Choice] -> Html
 choiceList t choices =
-  H.ul ! A.class_ t $ foldr ((>>) . handleChoices) H.br choices
+  H.ul ! A.class_ t $
+  foldr ((>>) . handleChoices) (H.span $ H.toHtml ("" :: T.Text)) choices
   where
     reduceTooltip :: [Block] -> [Block]
     reduceTooltip [BulletList blocks] = concat blocks
@@ -259,8 +260,8 @@ choiceList t choices =
 
 renderInsertChoices :: Quiz -> Block
 renderInsertChoices quiz@(InsertChoices title tgs qm q) =
-  Div ("", tgs, []) $
-  [Header 2 ("", [], []) title] ++ questionBlocks q ++ [solutionButton]
+  Div ("", tgs, []) $ [Header 2 ("", [], []) title] ++ questionBlocks q
+  -- ++ [solutionButton]
   where
     questionBlocks :: [([Block], [Choice])] -> [Block]
     questionBlocks = map (rawHtml' . handleTuple)
@@ -278,7 +279,9 @@ renderInsertChoices quiz@(InsertChoices title tgs qm q) =
       H.input >> choiceList "solutionList" [c]
     select :: [Choice] -> Html
     select choices =
-      H.select (foldr ((>>) . options) H.br choices) >>
+      (H.select $
+       (H.option ! A.class_ "wrong" $ H.toHtml ("..." :: T.Text)) >>
+       (foldr ((>>) . options) H.br choices)) >>
       choiceList "solutionList" choices
     options :: Choice -> Html
     options (Choice correct text comment) =
