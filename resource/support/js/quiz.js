@@ -161,19 +161,26 @@ function inputEvent(input, solutions) {
     input.addEventListener("keydown", function (event) {
         if (event.keyCode === 13) {
             event.preventDefault();
-            solutions.style.visibility = "visible";
+            // solutions.style.visibility = "visible";
+
 
             const answer = input.value.toLowerCase().trim();
             const correct = handleSolutionList(solutions, answer);
 
 
             this.style.backgroundColor = (correct) ? "#aaffaa" : "#ffaaaa";
-            this.style.border =
-                this.addEventListener("mouseover", function () {
-                    solutions.style.visibility = "visible";
-                });
+            this.style.border = (correct) ? "5px solid black" : "2px dotted black";
+            solutions.style.display = (correct) ? "inline-block" : "none";
+            this.addEventListener("mouseover", function () {
+                // solutions.style.visibility = "visible";
+                if (correct) {
+                    solutions.style.display = "inline-block";
+                }
+            });
             this.addEventListener("mouseout", function () {
-                solutions.style.visibility = "hidden";
+                // solutions.style.visibility = "hidden";
+                solutions.style.display = "none";
+
             });
         }
         else {
@@ -190,7 +197,9 @@ function quizFT() {
         const input = ft.getElementsByTagName("input")[0];
 
         solutionButton.onclick = function () {
-            solutions.style.visibility = "visible";
+            // solutions.style.visibility = "visible";
+            solutions.style.display = "inline-block";
+
             for (let l of solutions.getElementsByTagName("li")) {
                 if (l.classList.contains("correct")) {
                     l.style.display = "block";
@@ -198,15 +207,13 @@ function quizFT() {
 
             }
             setTimeout(function () {
-                solutions.style.visibility = "hidden";
+                // solutions.style.visibility = "hidden";
+                solutions.style.display = "none";
+
             }, 2000)
 
         }
         inputEvent(input, solutions);
-
-
-
-
     }
 }
 
@@ -227,13 +234,17 @@ function quizIC() {
                 const is_right = selected.classList.contains("correct");
                 sel.style.backgroundColor = (is_right) ? "#aaffaa" : "#ffaaaa";
 
-                solutions.style.visibility = "visible";
+                // solutions.style.visibility = "visible";
+
                 this.addEventListener("mouseover", function () {
                     solutions.getElementsByTagName("li")[sel.selectedIndex - 1].style.display = "block";
-                    solutions.style.visibility = "visible";
+                    // solutions.style.visibility = "visible";
+                    solutions.style.display = "inline-block";
                 });
                 this.addEventListener("mouseout", function () {
-                    solutions.style.visibility = "hidden";
+                    // solutions.style.visibility = "hidden";
+                    solutions.style.display = "none";
+
                 });
             });
         }
@@ -245,9 +256,13 @@ function quizIC() {
         button.onclick = function () {
             const solutionLists = ic.getElementsByClassName("solutionList");
             for (let s of solutionLists) {
-                s.style.visibility = "visible";
+                // s.style.visibility = "visible";
+                s.style.display = "inline-block";
+
                 setTimeout(function () {
-                    s.style.visibility = "hidden";
+                    // s.style.visibility = "hidden";
+                    s.style.display = "none";
+
                 }, 2000)
 
                 for (let l of s.getElementsByTagName("li")) {
@@ -255,26 +270,6 @@ function quizIC() {
                 }
             }
         }
-
-        // button.onclick = function () {
-        //     for (let s of selects) {
-        //         if (s.options[s.selectedIndex].className == "correct") {
-        //             s.style.backgroundColor = "rgb(151, 255, 122)";
-
-        //         }
-        //         else {
-        //             s.style.backgroundColor = "rgb(255, 122, 122)";
-        //         }
-
-        //         for (let o of s.options) {
-        //             if (o.className == "correct") {
-        //                 o.textContent += " ✓";
-        //             } else {
-        //                 o.textContent += " ✗";
-        //             }
-        //         }
-        //     }
-        // }
     }
 }
 
@@ -369,7 +364,8 @@ function matchingAnswerButton(matchQuestion) {
                     rem.append(solution("distractor"));
                 }
             } else {
-                rem.style.backgroundColor = "rgb(255, 122, 122)";
+                rem.style.backgroundColor = "#ffaaaa";
+
                 // if (!hasTooltip) {
                 //     rem.append(solution("Bucket " + matchId));
                 // }
@@ -391,11 +387,12 @@ function matchingAnswerButton(matchQuestion) {
                     }
                 } else if (matchId == bucketId) {
                     // green
-                    matchItem.style.backgroundColor = "rgb(151, 255, 122)";
+                    matchItem.style.backgroundColor = "#aaffaa";
+                    matchItem.style.border = "2px solid black";
                 }
                 else {
                     // red
-                    matchItem.style.backgroundColor = "rgb(255, 122, 122)";
+                    matchItem.style.backgroundColor = "#ffaaaa";
                     // if (!hasTooltip) {
                     //     matchItem.append(solution("Bucket " + matchId));
                     // }
