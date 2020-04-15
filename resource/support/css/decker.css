@@ -134,12 +134,19 @@
   background-color: grey;
   color: #ffffff;
   margin: 5px;
-  padding: 5px;
   border-radius: 6px;
   border: none;
   position: absolute;
   z-index: 99;
   font-size: 1rem;
+}
+
+.reveal .qic .solutionList li,
+.reveal .qft .solutionList li,
+.reveal .qmc .solutionList li,
+.reveal .qmi .solutionList li,
+.reveal [class*="quiz-"] .solutionList li {
+  display: none;
 }
 
 .reveal .qic .solutionList .correct:before,

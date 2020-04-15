@@ -17,8 +17,6 @@ function quiz() {
     quizMC();
     quizIC();
     quizFT();
-    blanktextButtons();
-    freetextAnswerButtons();
 }
 
 
@@ -139,31 +137,44 @@ function handleSolutionList(solutionList, answer) {
     var correct = false;
     for (let s of solutions) {
         const is_right = s.classList.contains("correct");
-
         const solution = s.innerHTML.replace(/<div.*div>/, "").toLowerCase().trim();
 
         if (is_right && answer == solution) {
             correct = true;
+            return { listItem: s, correctness: correct };
         }
     }
-    return correct;
+    return { listItem: null, correctness: correct };
 }
 
+/**
+ * Compare the value entered in the input field to the solutions provided in the solutionList
+ * If a correct solution is entered 
+ * @param {HTMLElement} input  -- The input field
+ * @param {HTMLElement} solutions  -- The solutionList
+ */
 function inputEvent(input, solutions) {
     input.addEventListener("keydown", function (event) {
         if (event.keyCode === 13) {
             event.preventDefault();
-            this.readOnly = true;
             solutions.style.visibility = "visible";
 
             const answer = input.value.toLowerCase().trim();
-            const correct = handleSolutionList(solutions, answer);
+            const temp = handleSolutionList(solutions, answer);
 
-            this.style.backgroundColor = (correct) ? "#aaffaa" : "#ffaaaa";
-            this.addEventListener("mouseover", function () {
-                solutions.style.visibility = "visible";
-            });
+
+            this.style.backgroundColor = (temp.correctness) ? "#aaffaa" : "#ffaaaa";
+            this.style.border =
+                this.addEventListener("mouseover", function () {
+                    if (temp.listItem) {
+                        temp.listItem.style.display = "block";
+                    }
+                    solutions.style.visibility = "visible";
+                });
             this.addEventListener("mouseout", function () {
+                if (temp.listItem) {
+                    temp.listItem.style.display = "none";
+                }
                 solutions.style.visibility = "hidden";
             });
         }
@@ -258,93 +269,6 @@ function quizIC() {
     }
 }
 
-// For a given blanktext HTML Element returns a Map containing all wrong and correct selects and blanks
-function blanktextCorrect(blanktext) {
-    var selects = blanktext.getElementsByClassName("blankSelect");
-    const blanks = blanktext.getElementsByClassName("blankInput");
-    var wrongSelects = [];
-    var correctSelects = [];
-    var wrongBlanks = [];
-    var correctBlanks = [];
-
-    for (let s of selects) {
-        const correct = s.options[s.selectedIndex].getAttribute("answer");
-        if (correct == "true") {
-            correctSelects.push(s);
-        }
-        else {
-            wrongSelects.push(s);
-        }
-    }
-
-    for (let b of blanks) {
-        const correct = b.getAttribute("answer").trim();
-        if (b.value.toLowerCase().trim() == correct.toLowerCase()) {
-            correctBlanks.push(b);
-        }
-        else {
-            wrongBlanks.push(b);
-        }
-    }
-    const ret = new Map([["correctSelects", correctSelects], ["wrongSelects", wrongSelects], ["wrongBlanks", wrongBlanks], ["correctBlanks", correctBlanks]]);
-    return ret;
-
-}
-
-function blanktextButtons() {
-    var btButtons = document.getElementsByClassName("btAnswerButton");
-    for (i = 0; i < btButtons.length; i++) {
-        const button = btButtons[i];
-        button.onclick = function () {
-            blanktext = this.closest(".blankText");
-
-            var results = blanktextCorrect(blanktext);
-            var correctSelects = results.get("correctSelects");
-            var wrongSelects = results.get("wrongSelects");
-            var correctBlanks = results.get("correctBlanks");
-            var wrongBlanks = results.get("wrongBlanks");
-            console.log(wrongSelects.toString());
-
-            for (let w of wrongSelects) {
-
-                console.log(w.options.toString());
-                w.style.backgroundColor = "rgb(255, 122, 122)";
-                for (let o of w.options) {
-                    if (o.getAttribute("answer") == "true") {
-                        o.textContent += " ✓";
-                    } else {
-                        o.textContent += " ✗";
-                    }
-                }
-            }
-
-            for (let c of correctSelects) {
-                c.style.backgroundColor = "rgb(151, 255, 122)";
-                for (let o of c.options) {
-                    if (o.getAttribute("answer") == "true") {
-                        o.textContent += " ✓";
-                    } else {
-                        o.textContent += " ✗";
-                    }
-                }
-            }
-
-            for (let w of wrongBlanks) {
-                w.style.backgroundColor = "rgb(255, 122, 122)";
-                w.value += " (" + w.getAttribute("answer") + ")";
-                w.setAttribute("size", w.value.length);
-                w.disabled = true;
-            }
-
-            for (let c of correctBlanks) {
-                c.style.backgroundColor = "rgb(151, 255, 122)";
-                c.setAttribute("size", c.value.length);
-                c.disabled = true;
-            }
-            this.disabled = true;
-        }
-    }
-}
 
 // Adds event listeners for dragging and dropping to the elements of "matching" questions
 function matchings(matchQuestion) {
@@ -437,9 +361,9 @@ function matchingAnswerButton(matchQuestion) {
                 }
             } else {
                 rem.style.backgroundColor = "rgb(255, 122, 122)";
-                if (!hasTooltip) {
-                    rem.append(solution("Bucket " + matchId));
-                }
+                // if (!hasTooltip) {
+                //     rem.append(solution("Bucket " + matchId));
+                // }
             }
         }
 
@@ -463,9 +387,9 @@ function matchingAnswerButton(matchQuestion) {
                 else {
                     // red
                     matchItem.style.backgroundColor = "rgb(255, 122, 122)";
-                    if (!hasTooltip) {
-                        matchItem.append(solution("Bucket " + matchId));
-                    }
+                    // if (!hasTooltip) {
+                    //     matchItem.append(solution("Bucket " + matchId));
+                    // }
 
 
                 }
@@ -475,22 +399,33 @@ function matchingAnswerButton(matchQuestion) {
     }
 }
 
-// TODO: to call from drop()
-// function matchingSolutions(matchQuestion) {
-//     const numberSource = matchQuestion.querySelectorAll(".matchItem:not(.distractor)").length;
-//     const numberTargets = matchQuestion.querySelectorAll(".bucket:not(.distractor)").length;
-//     console.log("check for solution");
+// TODO: to call from drop() (Work in Progress!)
+function matchingSolutions(matchQuestion) {
+    const numberSource = matchQuestion.querySelectorAll(".matchItem:not(.distractor)").length;
+    const numberTargets = matchQuestion.querySelectorAll(".bucket:not(.distractor)").length;
+    console.log("check for solution");
 
-//     if (numberSource > numberTargets) {
-//         console.log("more items");
-//     } else if (numberSource > numberTargets) {
-//         console.log("more buckets");
-//     }
-//     else {
-//         console.log("same number");
-//     }
+    const buckets = matchQuestion.getElementsByClassName("bucket");
+    const remainingItems = matchQuestion.getElementsByClassName("matchItems")[0].querySelectorAll(".matchItem:not(.distractor)");
+    const bucketsDiv = matchQuestion.getElementsByClassName("buckets")[0];
+    const assignedItems = bucketsDiv.getElementsByClassName("matchItem");
 
-// }
+    if (numberSource > numberTargets) {
+        console.log("more items");
+        if (remainingItems.length == 0) {
+            console.log("all assigned");
+        }
+    } else if (numberSource < numberTargets) {
+        console.log("more buckets");
+    }
+    else {
+        console.log("same number");
+        if (remainingItems.length == 0) {
+            console.log("all assigned");
+        }
+    }
+
+}
 
 // Functions for dragging and dropping in the matching questions 
 function allowDrop(ev) {
@@ -516,45 +451,9 @@ function drop(event) {
         return false;
     }
 
+    event.target.appendChild(element);
+
     // TODO: Call to a function that checks which solutions have been assigned correctly 
     // matchingSolutions(event.target.closest(".qmi,.quiz-mi,.quiz-match-items"));
-
-
-    event.target.appendChild(element);
-    event.target.disabled = true;
-}
-
-/*
-Provides the functionality for the solution button of free text questions
-*/
-function freetextAnswerButtons() {
-    const answerButtons = document.getElementsByClassName('freetextAnswerButton');
-    for (let button of answerButtons) {
-        button.onclick = function () {
-            clickStuff(this);
-        }
-    }
-}
-
-function clickStuff(button) {
-    var questionField = button.parentElement.getElementsByClassName('freetextInput')[0];
-    // Has the user entered anything?
-    if (questionField.value) {
-        var answer = questionField.getAttribute("answer").trim();
-        if (questionField.value.toLowerCase().trim() == answer.toLowerCase()) {
-            questionField.style.backgroundColor = "rgb(151, 255, 122)";
-        }
-        else {
-            questionField.style.backgroundColor = "rgb(255, 122, 122)";
-            questionField.value += " (" + answer + ")";
-        }
-        questionField.setAttribute("size", questionField.value.length);
-        questionField.disabled = true;
-        this.disabled = true;
-    }
-    else {
-        alert("No answer entered!");
-        return false;
-    }
-
+    // event.target.disabled = true;
 }

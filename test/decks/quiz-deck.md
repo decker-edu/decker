@@ -30,6 +30,7 @@ Drag the elements to create correct pairings
 A
 : drag to A
 
+
 Image 
 : ![](include/06-metal.png)
 
