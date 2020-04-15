@@ -40,88 +40,33 @@ function quizMC() {
     for (let mc of mcQuestions) {
 
         const answers = mc.getElementsByTagName("li");
-        const answerButton = mc.getElementsByClassName("solutionButton")[0];
 
-        let defBorder = answers[0].style.border;
+        for (let answer of answers) {
 
-        function standardClick() {
+            answer.addEventListener("click", function () {
+                const is_right = this.classList.contains("correct");
+                const tooltip = answer.querySelectorAll(".tooltip")[0];
+                tooltip.style.visibility = "visible";
 
-            if (this.style.border == defBorder) {
-                this.style.border = "3px solid black";
-            }
-            else {
-                this.style.border = defBorder;
-            }
-        };
-
-        // This is just for when we don't want interactive feedback but rather a collective feedback for one question once the answerButton is pressed 
-        if (answerButton) {
-            for (let answer of answers) {
-                answer.addEventListener("click", standardClick);
-            }
-            answerButton.addEventListener("click", function () {
-                let answered = false;
-                for (let answer of answers) {
-                    if (answer.style.border == defBorder) {
-                        continue;
-                    }
-                    else {
-                        answered = true;
-                    }
+                if (is_right) {
+                    this.style.backgroundColor = "#aaffaa";
+                    this.style.border = "5px solid black";
                 }
-
-                if (answered) {
-                    this.disabled = true;
-                    for (let answer of answers) {
-                        const is_right = answer.classList.contains("correct");
-                        answer.style.backgroundColor = (is_right) ? "#97ff7a" : "#ff7a7a";
-
-                        answer.addEventListener("mouseover", function () {
-                            event.target.querySelectorAll(".tooltip")[0].style.visibility = "visible";
-                        });
-                        answer.addEventListener("mouseout", function () {
-                            event.target.querySelectorAll(".tooltip")[0].style.visibility = "hidden";
-                        });
-                        answer.removeEventListener("click", _standardClick);
-                    }
-                }
-
                 else {
-                    alert("No answer chosen!");
-                    return false;
+                    this.style.backgroundColor = "#ffaaaa";
+                    this.style.border = "2px dotted black";
                 }
-            }
-            );
 
-        }
-        else {
-            for (let answer of answers) {
-
-                answer.addEventListener("click", function () {
-                    const is_right = this.classList.contains("correct");
-                    const tooltip = answer.querySelectorAll(".tooltip")[0];
+                this.addEventListener("mouseover", function () {
                     tooltip.style.visibility = "visible";
-
-                    if (is_right) {
-                        this.style.backgroundColor = "#aaffaa";
-                        this.style.border = "5px solid black";
-                    }
-                    else {
-                        this.style.backgroundColor = "#ffaaaa";
-                        this.style.border = "2px dotted black";
-                    }
-
-                    this.addEventListener("mouseover", function () {
-                        tooltip.style.visibility = "visible";
-                    });
-                    this.addEventListener("mouseout", function () {
-                        tooltip.style.visibility = "hidden";
-                    });
                 });
-            }
+                this.addEventListener("mouseout", function () {
+                    tooltip.style.visibility = "hidden";
+                });
+            });
         }
-
     }
+
 }
 /**
  * @param {string} answer - The input answer
@@ -134,7 +79,6 @@ function quizMC() {
 function handleSolutionList(solutionList, answer) {
     const solutions = solutionList.getElementsByTagName("li");
 
-    // Bool
     var correct = false;
     for (let s of solutions) {
         const is_right = s.classList.contains("correct");
@@ -144,11 +88,9 @@ function handleSolutionList(solutionList, answer) {
             correct = true;
             s.style.display = "block";
             return correct;
-            // return { listItem: s, correctness: correct };
         }
     }
     return correct;
-    // return { listItem: null, correctness: correct };
 }
 
 /**
@@ -163,14 +105,13 @@ function inputEvent(input, solutions) {
             event.preventDefault();
             // solutions.style.visibility = "visible";
 
-
             const answer = input.value.toLowerCase().trim();
             const correct = handleSolutionList(solutions, answer);
-
 
             this.style.backgroundColor = (correct) ? "#aaffaa" : "#ffaaaa";
             this.style.border = (correct) ? "5px solid black" : "2px dotted black";
             solutions.style.display = (correct) ? "inline-block" : "none";
+
             this.addEventListener("mouseover", function () {
                 // solutions.style.visibility = "visible";
                 if (correct) {
