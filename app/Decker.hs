@@ -130,16 +130,22 @@ run = do
       putNormal $ "pandoc version " ++ Text.unpack pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
-    phony "decks" $ do getTargets >>= needSel decks
+    phony "decks" $ do
+      need ["support"]
+      getTargets >>= needSel decks
     --
-    phony "html" $ do getTargets >>= needSels [decks, pages, handouts]
+    phony "html" $ do
+      need ["support"]
+      getTargets >>= needSels [decks, pages, handouts]
     --
     phony "pdf" $ do
       putNormal pdfMsg
+      need ["support"]
       getTargets >>= needSels [decksPdf, handoutsPdf, pagesPdf]
     --
     phony "pdf-decks" $ do
       putNormal pdfMsg
+      need ["support"]
       getTargets >>= needSel decksPdf
     --
     phony "watch" $ do
@@ -155,6 +161,7 @@ run = do
       runHttpServer serverPort directories Nothing
     --
     phony "presentation" $ do
+      need ["support"]
       runHttpServer serverPort directories Nothing
       liftIO waitForYes
     --
