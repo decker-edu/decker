@@ -260,8 +260,8 @@ choiceList t choices =
 
 renderInsertChoices :: Quiz -> Block
 renderInsertChoices quiz@(InsertChoices title tgs qm q) =
-  Div ("", tgs, []) $ [Header 2 ("", [], []) title] ++ questionBlocks q
-  -- ++ [solutionButton]
+  Div ("", tgs, []) $
+  [Header 2 ("", [], []) title] ++ questionBlocks q ++ [solutionButton]
   where
     questionBlocks :: [([Block], [Choice])] -> [Block]
     questionBlocks = map (rawHtml' . handleTuple)
@@ -321,8 +321,8 @@ renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
 renderFreeText :: Quiz -> Block
 renderFreeText quiz@(FreeText title tgs qm q ch) =
-  Div ("", tgs, []) $ [Header 2 ("", [], []) title] ++ q ++ [inputRaw]
-  --  ++ [solutionButton]
+  Div ("", tgs, []) $
+  [Header 2 ("", [], []) title] ++ q ++ [inputRaw] ++ [solutionButton]
   where
     inputRaw = rawHtml' (H.input >> choiceList "solutionList" ch)
     input :: Choice -> Html
