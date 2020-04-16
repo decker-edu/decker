@@ -82,11 +82,12 @@ function handleSolutionList(solutionList, answer) {
     var correct = false;
     for (let s of solutions) {
         const is_right = s.classList.contains("correct");
-        const solution = s.innerHTML.replace(/<div.*div>/, "").toLowerCase().trim();
-
+        // Get only the solution text and not the tooltip div
+        const solution = s.innerHTML.replace(/(<div)(.|[\r\n])*(<\/div>)/, "").toLowerCase().trim();
         if (is_right && answer == solution) {
             correct = true;
             s.style.display = "block";
+            s.classList.add("solved");
             return correct;
         }
     }
@@ -103,23 +104,22 @@ function inputEvent(input, solutions) {
     input.addEventListener("keydown", function (event) {
         if (event.keyCode === 13) {
             event.preventDefault();
-            // solutions.style.visibility = "visible";
 
             const answer = input.value.toLowerCase().trim();
             const correct = handleSolutionList(solutions, answer);
 
+            //Change the appearance of the input element
             this.style.backgroundColor = (correct) ? "#aaffaa" : "#ffaaaa";
             this.style.border = (correct) ? "5px solid black" : "2px dotted black";
-            solutions.style.display = (correct) ? "inline-block" : "none";
 
+            // Display the tooltip/solution box
+            solutions.style.display = (correct) ? "inline-block" : "none";
             this.addEventListener("mouseover", function () {
-                // solutions.style.visibility = "visible";
                 if (correct) {
                     solutions.style.display = "inline-block";
                 }
             });
             this.addEventListener("mouseout", function () {
-                // solutions.style.visibility = "hidden";
                 solutions.style.display = "none";
 
             });
@@ -129,17 +129,33 @@ function inputEvent(input, solutions) {
         }
     });
 }
-
+/**
+ * Handle FreeText questions
+ */
 function quizFT() {
     var ftQuestions = document.querySelectorAll(".qft,.quiz-ft,.quiz-free-text");
+
     for (let ft of ftQuestions) {
         const solutions = ft.getElementsByClassName("solutionList")[0];
         const solutionButton = ft.getElementsByClassName("solutionButton")[0];
         const input = ft.getElementsByTagName("input")[0];
+        inputEvent(input, solutions);
 
         solutionButton.onclick = function () {
-            // solutions.style.visibility = "visible";
             solutions.style.display = "inline-block";
+
+
+            // Hide tooltip box after 3 seconds
+            setTimeout(function () {
+                solutions.style.display = "none";
+                // Hide solutions only if they haven't been solved yet
+                Array.from(solutions.getElementsByTagName("li")).map(x => {
+                    if (!x.classList.contains("solved")) {
+                        x.style.display = "none";
+                    }
+                })
+
+            }, 3000)
 
             for (let l of solutions.getElementsByTagName("li")) {
                 if (l.classList.contains("correct")) {
@@ -147,15 +163,9 @@ function quizFT() {
                 }
 
             }
-            setTimeout(function () {
-                // solutions.style.visibility = "hidden";
-                solutions.style.display = "none";
-                Array.from(solutions.getElementsByTagName("li")).map(x => x.style.display = "none");
 
-            }, 3000)
 
         }
-        inputEvent(input, solutions);
     }
 }
 
@@ -175,12 +185,16 @@ function quizIC() {
                 const selected = sel.options[sel.selectedIndex];
                 const is_right = selected.classList.contains("correct");
                 sel.style.backgroundColor = (is_right) ? "#aaffaa" : "#ffaaaa";
+                sel.style.border = (is_right) ? "5px solid black" : "2px dotted black";
 
-                // solutions.style.visibility = "visible";
 
                 this.addEventListener("mouseover", function () {
+                    // Hide all other tooltips/solutions
+                    Array.from(solutions.getElementsByTagName("li")).map(x => x.style.display = "none");
+                    // Display only current choice tooltip
                     solutions.getElementsByTagName("li")[sel.selectedIndex - 1].style.display = "block";
-                    // solutions.style.visibility = "visible";
+
+                    // Display the solution list
                     solutions.style.display = "inline-block";
                 });
                 this.addEventListener("mouseout", function () {

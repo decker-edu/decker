@@ -246,7 +246,8 @@ choiceList t choices =
   foldr ((>>) . handleChoices) (H.span $ H.toHtml ("" :: T.Text)) choices
   where
     reduceTooltip :: [Block] -> [Block]
-    reduceTooltip [BulletList blocks] = concat blocks
+    reduceTooltip [BulletList blocks] -- = concat blocks
+     = concatMap (\x -> x ++ [Plain [LineBreak]]) blocks
     reduceTooltip bs = bs
     handleChoices :: Choice -> Html
     handleChoices (Choice correct text comment) =
