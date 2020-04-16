@@ -15,7 +15,6 @@ import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Template
 import Text.Pandoc.Lens
 
-import Control.Lens ((^.))
 import Control.Monad.State
 import qualified Data.Map as M
 import qualified Data.MultiMap as MM
@@ -29,10 +28,9 @@ import Text.Pandoc.Highlighting
 import Text.Printf
 
 -- | Generates an index.md file with links to all generated files of interest.
-writeIndexLists :: Targets -> FilePath -> FilePath -> Action ()
-writeIndexLists targets out baseUrl = do
-  dirs <- projectDirsA
-  let projectDir = dirs ^. project
+writeIndexLists :: Meta -> Targets -> FilePath -> FilePath -> Action ()
+writeIndexLists meta targets out baseUrl = do
+  let projectDir = getMetaStringOrElse "decker.directories.project" "." meta
   let decks = zip (_decks targets) (_decksPdf targets)
   let handouts = zip (_handouts targets) (_handoutsPdf targets)
   let pages = zip (_pages targets) (_pagesPdf targets)

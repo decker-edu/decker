@@ -28,12 +28,12 @@ module Text.Decker.Project.Project
   , pagesPdf
   , handouts
   , handoutsPdf
+  , projectDir 
+  , publicDir
   , project
   , public
-  , cache
   , support
-  , appData
-  , logging
+  , transient
   , getDachdeckerUrl
   , Targets(..)
   , Resource(..)
@@ -173,13 +173,16 @@ instance FromMetaValue Resource where
 data ProjectDirs = ProjectDirs
   { _project :: FilePath
   , _public :: FilePath
-  , _cache :: FilePath
   , _support :: FilePath
-  , _appData :: FilePath
-  , _logging :: FilePath
+  , _transient :: FilePath
   } deriving (Eq, Show)
 
 makeLenses ''ProjectDirs
+
+$(deriveJSON
+    defaultOptions
+      {fieldLabelModifier = drop 1, constructorTagModifier = map toLower}
+    ''ProjectDirs)
 
 provisioningFromMeta :: Meta -> Provisioning
 provisioningFromMeta meta =
@@ -235,12 +238,10 @@ projectDirectories :: IO ProjectDirs
 projectDirectories = do
   projectDir <- findProjectDirectory
   let publicDir = projectDir </> "public"
-  let cacheDir = publicDir </> "cache"
   let supportDir = publicDir </> "support"
-  appDataDir <- deckerResourceDir
-  let logDir = projectDir </> ".log"
+  let transientDir = projectDir </> ".decker"
   return
-    (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
+    (ProjectDirs projectDir publicDir supportDir transientDir)
 
 deckerResourceDir :: IO FilePath
 deckerResourceDir =
@@ -394,3 +395,9 @@ getDachdeckerUrl = do
           Just val -> val
           Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
   return url
+
+
+projectDir :: Meta -> FilePath
+projectDir = getMetaStringOrElse "decker.directories.project" "."
+publicDir :: Meta -> FilePath
+publicDir = getMetaStringOrElse "decker.directories.public" "."

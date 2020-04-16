@@ -20,8 +20,10 @@ import Control.Concurrent
 import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad.Extra
+import Data.Aeson
 import Data.IORef ()
 import Data.List
+import qualified Data.Map as Map
 import Data.Maybe
 import Data.String ()
 import qualified Data.Text as Text
@@ -56,7 +58,20 @@ prepCaches ::
 prepCaches directories = do
   let deckerMetaFile = (directories ^. project) </> "decker.yaml"
   let deckerTargetsFile = (directories ^. project) </> ".decker/targets.yaml"
-  getGlobalMeta <- ($ deckerMetaFile) <$> newCache readStaticMetaData
+  getGlobalMeta <-
+    ($ deckerMetaFile) <$>
+    newCache
+      (\file -> do
+         meta <- readStaticMetaData file
+         let dirs =
+               Meta $
+               Map.fromList
+                 [ ( "decker"
+                   , MetaMap $
+                     Map.fromList
+                       [("directories", toPandocMeta' (toJSON directories))])
+                 ]
+         return $ mergePandocMeta' dirs meta)
   getTargets <- ($ deckerTargetsFile) <$> newCache readTargetsFile
   getTemplate <-
     newCache
@@ -88,7 +103,8 @@ run = do
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
   let indexFile = (directories ^. public) </> "index.html"
-  let cruft = ["index.md.generated", "//.log", "//.shake", "generated", "code"]
+  let cruft =
+        ["index.md.generated", "//.decker", "//.shake", "generated", "code"]
   let pdfMsg =
         "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
         "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++
@@ -141,18 +157,20 @@ run = do
       openBrowser indexFile
     --
     phony "server" $ do
-      need ["watch"]
+      need ["watch", "support"]
       runHttpServer serverPort directories Nothing
     --
+    phony "presentation" $ do
+      need ["support"]
+      runHttpServer serverPort directories Nothing
+      liftIO waitForYes
+    --
     phony "fast" $ do
+      need ["support"]
       runHttpServer serverPort directories Nothing
       pages <- currentlyServedPages
       need $ map (directories ^. public </>) pages
       watchChangesAndRepeat
-    --
-    phony "presentation" $ do
-      runHttpServer serverPort directories Nothing
-      liftIO waitForYes
     --
     priority 2 $
       "//*-deck.html" %> \out -> do
@@ -211,7 +229,8 @@ run = do
     --
     indexSource <.> "generated" %> \out -> do
       targets <- getTargets
-      writeIndexLists targets out (takeDirectory indexFile)
+      meta <- getGlobalMeta
+      writeIndexLists meta targets out (takeDirectory indexFile)
     --
     priority 2 $
       "//*.dot.svg" %> \out -> do
@@ -239,11 +258,6 @@ run = do
       removeFilesAfter (directories ^. public) ["//"]
       removeFilesAfter (directories ^. project) cruft
     --
-    -- TODO: Move help-page out of the template dir
-    -- phony "help" $ do
-    --  text <- getTemplate' "template/help-page.md"
-    --  liftIO $ Text.putStr text
-    --
     phony "info" $ do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
       putNormal $ "public directory: " ++ (directories ^. public)
@@ -266,8 +280,8 @@ run = do
     phony "check" checkExternalPrograms
     --
     phony "publish" $ do
-      meta <- getGlobalMeta
       need ["support"]
+      meta <- getGlobalMeta
       getTargets >>= needSels [decks, handouts, pages]
       let host = getMetaString "rsync-destination.host" meta
       let path = getMetaString "rsync-destination.path" meta
