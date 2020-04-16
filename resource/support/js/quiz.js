@@ -150,8 +150,9 @@ function quizFT() {
             setTimeout(function () {
                 // solutions.style.visibility = "hidden";
                 solutions.style.display = "none";
+                Array.from(solutions.getElementsByTagName("li")).map(x => x.style.display = "none");
 
-            }, 2000)
+            }, 3000)
 
         }
         inputEvent(input, solutions);
@@ -200,15 +201,18 @@ function quizIC() {
                 // s.style.visibility = "visible";
                 s.style.display = "inline-block";
 
-                setTimeout(function () {
-                    // s.style.visibility = "hidden";
-                    s.style.display = "none";
-
-                }, 2000)
-
                 for (let l of s.getElementsByTagName("li")) {
                     l.style.display = "block";
                 }
+
+                setTimeout(function () {
+                    // s.style.visibility = "hidden";
+                    s.style.display = "none";
+                    Array.from(s.getElementsByTagName("li")).map(x => x.style.display = "none");
+
+                }, 3000)
+
+
             }
         }
     }
@@ -239,6 +243,9 @@ function matchings(matchQuestion) {
         for (let child of draggables[i].children) {
             child.setAttribute('draggable', false);
             child.className = "draggableChild";
+            if (!child.tagName == "a") {
+                child.style.pointerEvents = "none";
+            }
         }
     }
 }

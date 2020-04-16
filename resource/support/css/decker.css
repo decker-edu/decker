@@ -248,7 +248,6 @@
 .reveal .qmi .draggableChild,
 .reveal .quiz-match-items .draggableChild {
   max-width: inherit;
-  pointer-events: none;
 }
 
 .reveal .quiz-mi .matchItems,

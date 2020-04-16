@@ -112,7 +112,7 @@
         // Disable interaction with the elements inside draggable
         .draggableChild {
             max-width: inherit;
-            pointer-events: none;
+            // pointer-events: none;
         }
 
         // Arrow from here: http://www.cssarrowplease.com/
