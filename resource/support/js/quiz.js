@@ -30,9 +30,9 @@ function quizMI() {
     }
 }
 
-/*
-Handles Multiple choice questions
-(Choosing/clicking and coloring of answers. Showing correct solutions etc)
+/**
+* Handles Multiple choice questions
+* (Choosing/clicking and coloring of answers. Showing correct solutions etc)
 */
 function quizMC() {
     var mcQuestions = document.querySelectorAll(".qmc,.quiz-mc,.quiz-multiple-choice");
@@ -72,7 +72,7 @@ function quizMC() {
  * @param {string} answer - The input answer
  * @param {HTMLElement} solutionList 
  * 
- * Iterate over solutionlist. 
+ * Iterate over solutionList. 
  * check if given answer is equivalent to at least one of the correct solutions
  * 
  */
@@ -169,6 +169,10 @@ function quizFT() {
     }
 }
 
+/**
+ * Handles InsertChoices questions
+ * 
+ */
 function quizIC() {
     var icQuestions = document.querySelectorAll(".qic,.quiz-ic,.quiz-insert-choices");
 
@@ -179,7 +183,6 @@ function quizIC() {
 
         for (let sel of selects) {
             const solutions = sel.nextElementSibling;
-            const options = sel.options;
 
             sel.addEventListener("change", function () {
                 const selected = sel.options[sel.selectedIndex];
@@ -188,6 +191,7 @@ function quizIC() {
                 sel.style.border = (is_right) ? "5px solid black" : "2px dotted black";
 
 
+                // Show tooltip box on mouseover
                 this.addEventListener("mouseover", function () {
                     // Hide all other tooltips/solutions
                     Array.from(solutions.getElementsByTagName("li")).map(x => x.style.display = "none");
@@ -197,6 +201,7 @@ function quizIC() {
                     // Display the solution list
                     solutions.style.display = "inline-block";
                 });
+                // hide on mouseout
                 this.addEventListener("mouseout", function () {
                     // solutions.style.visibility = "hidden";
                     solutions.style.display = "none";
@@ -205,10 +210,13 @@ function quizIC() {
             });
         }
 
+        // Handle correctness check and tooltip display for all input fields
         for (let i of inputs) {
             const solutions = i.nextElementSibling;
             inputEvent(i, solutions);
         }
+
+        // Show all entire solution/tooltip boxes
         button.onclick = function () {
             const solutionLists = ic.getElementsByClassName("solutionList");
             for (let s of solutionLists) {
@@ -291,7 +299,11 @@ function shuffleMatchItems(matchQuestion) {
 
 
 
-
+/**
+ * Check correctness of current state of a matching questions on button click
+ * Which elements have been dropped correctly etc?
+ * @param {HTMLElement} matchQuestion 
+ */
 function matchingAnswerButton(matchQuestion) {
     // A paragraph that will be shown on hover and tells whether an item is correct
     function solution(tooltip) {
@@ -319,9 +331,8 @@ function matchingAnswerButton(matchQuestion) {
         for (let rem of remainingItems) {
             const matchId = rem.getAttribute("data-bucketid")
             const hasTooltip = rem.getElementsByClassName("solution").length > 0;
-            // rem.setAttribute("draggable", false);
             if (matchId == null) {
-                rem.style.backgroundColor = "yellow";
+                rem.style.backgroundColor = "#aaffaa";
                 if (!hasTooltip) {
                     rem.append(solution("distractor"));
                 }
@@ -329,7 +340,7 @@ function matchingAnswerButton(matchQuestion) {
                 rem.style.backgroundColor = "#ffaaaa";
 
                 // if (!hasTooltip) {
-                //     rem.append(solution("Bucket " + matchId));
+                // rem.append(solution("Bucket " + matchId));
                 // }
             }
         }
@@ -340,12 +351,12 @@ function matchingAnswerButton(matchQuestion) {
             for (let matchItem of droppedItems) {
                 const hasTooltip = matchItem.getElementsByClassName("solution").length > 0;
 
-                // matchItem.setAttribute("draggable", false);
                 const matchId = matchItem.getAttribute("data-bucketid");
                 if (matchId == null) {
-                    matchItem.style.backgroundColor = "yellow";
-                    if (!hasTooltip) {
-                        matchItem.append(solution("distractor"));
+                    matchItem.style.backgroundColor = "#ffaaaa";
+                    if (hasTooltip) {
+                        matchItem.removeChild(matchItem.getElementsByClassName("solution")[0]);
+                        // matchItem.append(solution("distractor"));
                     }
                 } else if (matchId == bucketId) {
                     // green
@@ -356,18 +367,18 @@ function matchingAnswerButton(matchQuestion) {
                     // red
                     matchItem.style.backgroundColor = "#ffaaaa";
                     // if (!hasTooltip) {
-                    //     matchItem.append(solution("Bucket " + matchId));
+                    // matchItem.append(solution("Bucket " + matchId));
                     // }
 
 
                 }
             }
         }
-        // this.disabled = true;
     }
 }
 
 // TODO: to call from drop() (Work in Progress!)
+// This is the start of an implementation that shows the solutions for matching once certain amounts of elements have been moved from the source area to the target area/buckets
 function matchingSolutions(matchQuestion) {
     const numberSource = matchQuestion.querySelectorAll(".matchItem:not(.distractor)").length;
     const numberTargets = matchQuestion.querySelectorAll(".bucket:not(.distractor)").length;
