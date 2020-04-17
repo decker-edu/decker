@@ -242,13 +242,13 @@ testSnippets =
     , "![Caption.](http://3d.de/model.off){.mario height=\"400px\" phasers=\"stun\"}")
   , ( "Youtube video stream"
     , "An image with source URL scheme `youtube:` results in an embedded video player."
-    , "![](youtube:1234567890){#video1 .autoplay}")
+    , "![](youtube:1234567890){#video1 .autoplay .controls}")
   , ( "Vimeo it baby"
     , "An image with source URL scheme `vimeo:` results in an embedded video player."
-    , "![Caption.](vimeo://1234567890){#video2 .some-class aspect=\"4:3\" some-attribute=\"yeah\"}")
+    , "![Caption.](vimeo://1234567890){#video2 .some-class autoplay=\"1\" aspect=\"4:3\" some-attribute=\"yeah\"}")
   , ( "Twitch it baby"
     , "An image with source URL scheme `twitch:` results in an embedded video player."
-    , "![Caption.](twitch:1234567890){.autoplay aspect=\"5:3\"}")
+    , "![Caption.](twitch:1234567890){.autoplay .controls aspect=\"5:3\"}")
   , ( "Background image"
     , "The last image in a level 1 header is promoted to the slide background."
     , "# Background Image ![](/test/decks/include/06-metal.png){size=\"cover\"}")

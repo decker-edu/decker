@@ -172,87 +172,86 @@ run = do
       need $ map (directories ^. public </>) pages
       watchChangesAndRepeat
     --
-    priority 2 $
-      "//*-deck.html" %> \out -> do
-        src <- calcSource "-deck.html" "-deck.md" out
-        meta <- getGlobalMeta
-        markdownToHtmlDeck meta getTemplate src out
+    (directories ^. public) <//> "*-deck.html" %> \out -> do
+      src <- calcSource "-deck.html" "-deck.md" out
+      let annotDst = replaceSuffix "-deck.html" "-annot.json" out
+      annotSrc <- calcSource' annotDst
+      exists <- liftIO $ Dir.doesFileExist annotSrc
+      when exists $ do need [annotDst]
+      meta <- getGlobalMeta
+      markdownToHtmlDeck meta getTemplate src out
     --
-    priority 2 $
-      "//*-deck.pdf" %> \out -> do
-        let src = replaceSuffix "-deck.pdf" "-deck.html" out
-        need [src]
-        putNormal $ "Started: " ++ src ++ " -> " ++ out
-        runHttpServer serverPort directories Nothing
-        result <-
-          liftIO $
-          launchChrome
-            (serverUrl </> makeRelative (directories ^. public) src)
-            out
-        case result of
-          Right msg -> putNormal msg
-          Left msg -> error msg
+    (directories ^. public) <//> "*-deck.pdf" %> \out -> do
+      let src = replaceSuffix "-deck.pdf" "-deck.html" out
+      need [src]
+      putNormal $ "Started: " ++ src ++ " -> " ++ out
+      runHttpServer serverPort directories Nothing
+      result <-
+        liftIO $
+        launchChrome
+          (serverUrl </> makeRelative (directories ^. public) src)
+          out
+      case result of
+        Right msg -> putNormal msg
+        Left msg -> error msg
     --
-    priority 2 $
-      "//*-handout.html" %> \out -> do
-        src <- calcSource "-handout.html" "-deck.md" out
-        meta <- getGlobalMeta
-        markdownToHtmlHandout meta getTemplate src out
+    (directories ^. public) <//> "*-handout.html" %> \out -> do
+      src <- calcSource "-handout.html" "-deck.md" out
+      meta <- getGlobalMeta
+      markdownToHtmlHandout meta getTemplate src out
     --
-    priority 2 $
-      "//*-handout.pdf" %> \out -> do
-        src <- calcSource "-handout.pdf" "-deck.md" out
-        meta <- getGlobalMeta
-        markdownToPdfHandout meta getTemplate src out
+    (directories ^. public) <//> "*-handout.pdf" %> \out -> do
+      src <- calcSource "-handout.pdf" "-deck.md" out
+      meta <- getGlobalMeta
+      markdownToPdfHandout meta getTemplate src out
     --
-    priority 2 $
-      "//*-page.html" %> \out -> do
-        src <- calcSource "-page.html" "-page.md" out
-        meta <- getGlobalMeta
-        markdownToHtmlPage meta getTemplate src out
+    (directories ^. public) <//> "*-page.html" %> \out -> do
+      src <- calcSource "-page.html" "-page.md" out
+      meta <- getGlobalMeta
+      markdownToHtmlPage meta getTemplate src out
     --
-    priority 2 $
-      "//*-page.pdf" %> \out -> do
-        src <- calcSource "-page.pdf" "-page.md" out
-        meta <- getGlobalMeta
-        markdownToPdfPage meta getTemplate src out
+    (directories ^. public) <//> "*-page.pdf" %> \out -> do
+      src <- calcSource "-page.pdf" "-page.md" out
+      meta <- getGlobalMeta
+      markdownToPdfPage meta getTemplate src out
     --
-    priority 2 $
-      indexFile %> \out -> do
-        exists <- Development.Shake.doesFileExist indexSource
-        let src =
-              if exists
-                then indexSource
-                else indexSource <.> "generated"
-        meta <- getGlobalMeta
-        markdownToHtmlPage meta getTemplate src out
+    (directories ^. public) <//> "*-annot.json" %> \out -> do
+      src <- calcSource' out
+      putNormal $ "# copy (for " <> out <> ")"
+      copyFile' src out
+    --
+    indexFile %> \out -> do
+      exists <- doesFileExist indexSource
+      let src =
+            if exists
+              then indexSource
+              else indexSource <.> "generated"
+      meta <- getGlobalMeta
+      markdownToHtmlPage meta getTemplate src out
     --
     indexSource <.> "generated" %> \out -> do
       targets <- getTargets
       meta <- getGlobalMeta
       writeIndexLists meta targets out (takeDirectory indexFile)
     --
-    priority 2 $
-      "//*.dot.svg" %> \out -> do
-        let src = dropExtension out
-        need [src]
-        dot ["-o" ++ out, src]
+    (directories ^. project) <//> "*.dot.svg" %> \out -> do
+      let src = dropExtension out
+      need [src]
+      dot ["-o" ++ out, src]
     --
-    priority 2 $
-      "//*.gnuplot.svg" %> \out -> do
-        let src = dropExtension out
-        need [src]
-        gnuplot ["-e", "set output \"" ++ out ++ "\"", src]
+    (directories ^. project) <//> "*.gnuplot.svg" %> \out -> do
+      let src = dropExtension out
+      need [src]
+      gnuplot ["-e", "set output \"" ++ out ++ "\"", src]
     --
-    priority 2 $
-      "//*.tex.svg" %> \out -> do
-        let src = dropExtension out
-        let pdf = src -<.> ".pdf"
-        let dir = takeDirectory src
-        need [src]
-        pdflatex ["-output-directory", dir, src]
-        pdf2svg [pdf, out]
-        liftIO $ Dir.removeFile pdf
+    (directories ^. project) <//> "*.tex.svg" %> \out -> do
+      let src = dropExtension out
+      let pdf = src -<.> ".pdf"
+      let dir = takeDirectory src
+      need [src]
+      pdflatex ["-output-directory", dir, src]
+      pdf2svg [pdf, out]
+      liftIO $ Dir.removeFile pdf
     --
     phony "clean" $ do
       removeFilesAfter (directories ^. public) ["//"]
@@ -295,7 +294,6 @@ run = do
     -- TODO Is this still needed?
     --phony "sync" $ uploadQuizzes (_sources <$> targetsA)
 
--- TODO Does this even make sense with all the diagnostic output?
 waitForYes :: IO ()
 waitForYes = do
   threadDelay 1000

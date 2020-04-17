@@ -28,7 +28,7 @@ module Text.Decker.Project.Project
   , pagesPdf
   , handouts
   , handoutsPdf
-  , projectDir 
+  , projectDir
   , publicDir
   , project
   , public
@@ -80,7 +80,7 @@ data Targets = Targets
   , _pagesPdf :: [FilePath]
   , _handouts :: [FilePath]
   , _handoutsPdf :: [FilePath]
-  , _indices :: [FilePath]
+  , _annotations :: [FilePath]
   } deriving (Show)
 
 makeLenses ''Targets
@@ -240,8 +240,7 @@ projectDirectories = do
   let publicDir = projectDir </> "public"
   let supportDir = publicDir </> "support"
   let transientDir = projectDir </> ".decker"
-  return
-    (ProjectDirs projectDir publicDir supportDir transientDir)
+  return (ProjectDirs projectDir publicDir supportDir transientDir)
 
 deckerResourceDir :: IO FilePath
 deckerResourceDir =
@@ -333,9 +332,11 @@ handoutHTMLSuffix = "-handout.html"
 
 handoutPDFSuffix = "-handout.pdf"
 
+annotationSuffix = "-annot.json"
+
 indexSuffix = "-deck-index.yaml"
 
-sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
+sourceSuffixes = [deckSuffix, pageSuffix, annotationSuffix, indexSuffix]
 
 alwaysExclude =
   ["public", ".decker", ".log", "dist", "code", ".shake", ".git", ".vscode"]
@@ -376,7 +377,7 @@ scanTargets meta dirs = do
       , _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs
       , _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs
       , _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs
-      , _indices = sort $ calcTargets deckSuffix indexSuffix srcs
+      , _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs
       }
   where
     projectDir = dirs ^. project
@@ -396,8 +397,8 @@ getDachdeckerUrl = do
           Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
   return url
 
-
 projectDir :: Meta -> FilePath
 projectDir = getMetaStringOrElse "decker.directories.project" "."
+
 publicDir :: Meta -> FilePath
 publicDir = getMetaStringOrElse "decker.directories.public" "."
