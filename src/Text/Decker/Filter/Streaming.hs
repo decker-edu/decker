@@ -57,6 +57,7 @@ youtubeParams =
 youtubeFlags =
   [ "cc_load_policy"
   , "disablekb"
+  , "controls"
   , "enablejsapi"
   , "fs"
   , "loop"
