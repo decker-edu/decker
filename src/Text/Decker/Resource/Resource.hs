@@ -97,16 +97,10 @@ provisionMetaResource ::
 provisionMetaResource method base (key, url)
   | key `elem` runtimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
-    putNormal base
-    putNormal url
-    putNormal $ "run-time: " <> filePath
     provisionResource method base filePath
 provisionMetaResource method base (key, url)
   | key `elem` compiletimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
-    putNormal base
-    putNormal url
-    putNormal $ "compile-time: " <> filePath
     need [filePath]
     return filePath
 provisionMetaResource _ _ (key, url) = return url

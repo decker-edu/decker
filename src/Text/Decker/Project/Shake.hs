@@ -357,7 +357,4 @@ calcSource' target = do
   return $ dirs ^. project </> makeRelative (dirs ^. public) target
 
 putCurrentDocument :: FilePath -> Action ()
-putCurrentDocument out = putNormal $ "# pand (for " ++ out ++ ")"
-  --public <- publicA
-  --let rel = makeRelative public out
-  --putNormal $ "# pand (for " ++ rel ++ ")"
+putCurrentDocument out = putNormal $ "# pandoc (for " ++ out ++ ")"
