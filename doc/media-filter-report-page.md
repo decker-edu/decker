@@ -25,7 +25,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <img class="decker" data-src="/Users/henrik/workspace/decker/test/decks/include/06-metal.png">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
         <span class="math inline">
             <em>
@@ -62,26 +62,10 @@ An SVG image that is embedded into the HTML document.
 translates to
 
 ``` {.html}
-<div class="decker image error">
-    <h2 class="title">
-        <i class="fa fa-exclamation-triangle">
-            
-        </i>
-         Decker error
-    </h2>
-    <p class="message">
-        ./Users/henrik/workspace/decker/test/decks/empty.svg: openFile: does not exist (No such file or directory)
-    </p>
-    <p>
-        encountered while processing
-    </p>
-    <pre class="markup">
-        <code class="markup">
-            ![](/test/decks/empty.svg)
+<span class="decker svg embed" style="background-color:magenta;">
+    <svg>This space intentionally left blank</svg>
 
-        </code>
-    </pre>
-</div>
+</span>
 ```
 
 ------------------------------------------------------------------------
@@ -120,7 +104,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <img class="decker" data-src="/Users/henrik/workspace/decker/test/decks/include/06-metal.png">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
          
         Caption.
@@ -165,7 +149,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" style="width:40%;">
-    <img class="decker" data-src="/Users/henrik/workspace/decker/test/decks/include/06-metal.png">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -187,7 +171,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <img class="decker" data-src="/Users/henrik/workspace/decker/test/decks/include/06-metal.png" style="height:200px;">
+    <img class="decker" data-src="test/decks/include/06-metal.png" style="height:200px;">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -209,7 +193,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" style="width:40%;">
-    <img class="decker" data-src="/Users/henrik/workspace/decker/test/decks/include/06-metal.png" style="height:200px;">
+    <img class="decker" data-src="test/decks/include/06-metal.png" style="height:200px;">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -231,7 +215,7 @@ translates to
 
 ``` {.html}
 <figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;background-color:magenta;">
-    <img class="decker" data-src="/Users/henrik/workspace/decker/test/decks/include/06-metal.png">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -253,7 +237,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <audio class="decker" data-src="/Users/henrik/workspace/decker/test/decks/audio.mp3" controls="1" data-autoplay="1">
+    <audio class="decker" data-src="test/decks/audio.mp3" controls="1" data-autoplay="1">
         
     </audio>
     <figcaption class="decker">
@@ -277,7 +261,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" style="width:42%;">
-    <video class="decker" data-src="/Users/henrik/workspace/decker/test/decks/pacman-perfect-game.mp4">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4">
         
     </video>
     <figcaption class="decker">
@@ -301,7 +285,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <video class="decker" data-src="/Users/henrik/workspace/decker/test/decks/pacman-perfect-game.mp4#t=5,30" preload="none">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4#t=5,30" preload="none">
         
     </video>
     <figcaption class="decker">
@@ -325,7 +309,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <video class="decker" data-src="/Users/henrik/workspace/decker/test/decks/pacman-perfect-game.mp4#t=5,30" poster="/test/decks/include/06-metal.png" preload="none" controls="1" data-autoplay="1">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4#t=5,30" poster="/test/decks/include/06-metal.png" preload="none" controls="1" data-autoplay="1">
         
     </video>
     <figcaption class="decker">
@@ -352,10 +336,10 @@ translates to
 ``` {.html}
 <figure class="decker">
     <div class="decker image-row">
-        <img class="decker" data-src="/Users/henrik/workspace/decker/test/decks/include/06-metal.png">
+        <img class="decker" data-src="test/decks/include/06-metal.png">
 
         <figure class="decker">
-    <video class="decker" data-src="/Users/henrik/workspace/decker/test/decks/pacman-perfect-game.mp4" data-autoplay="1">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
         
     </video>
     <figcaption class="decker">
@@ -391,9 +375,9 @@ translates to
 ``` {.html}
 <figure class="decker">
     <div class="decker image-row">
-        <img class="decker" data-src="/Users/henrik/workspace/decker/test/decks/include/06-metal.png">
+        <img class="decker" data-src="test/decks/include/06-metal.png">
 
-        <video class="decker" data-src="/Users/henrik/workspace/decker/test/decks/pacman-perfect-game.mp4" data-autoplay="1">
+        <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
     
 </video>
 
@@ -490,16 +474,18 @@ Youtube video stream
 An image with source URL scheme \`youtube:\` results in an embedded video player.
 
 ``` {.markdown}
-![](youtube:1234567890){#video1 .autoplay .controls}
+![](youtube:1234567890){#video1 .autoplay .controls width="75%"}
 ```
 
 translates to
 
 ``` {.html}
-<div id="video1" class="decker controls" style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
-    <iframe data-autoplay="1" frameborder="0" allowfullscreen="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?cc_load_policy=0&controls=2&iv_load_policy=3&modestbranding=&rel=0&showinfo=0">
-        Iframe showing video here.
-    </iframe>
+<div id="video1" class="decker" style="width:75%;">
+    <div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
+        <iframe frameborder="0" allowfullscreen="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?autoplay=1&cc_load_policy=0&controls=1&iv_load_policy=3&modestbranding=&rel=0&showinfo=0">
+            Iframe showing video here.
+        </iframe>
+    </div>
 </div>
 ```
 
@@ -511,15 +497,15 @@ Vimeo it baby
 An image with source URL scheme \`vimeo:\` results in an embedded video player.
 
 ``` {.markdown}
-![Caption.](vimeo://1234567890){#video2 .some-class autoplay="1" aspect="4:3" some-attribute="yeah"}
+![Caption.](vimeo://1234567890){#video2 .some-class autoplay="1" aspect="4:3" width="75%" some-attribute="yeah"}
 ```
 
 translates to
 
 ``` {.html}
-<figure id="video2" class="decker some-class" data-some-attribute="yeah">
+<figure id="video2" class="decker some-class" data-some-attribute="yeah" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:75.00%;height:0;">
-        <iframe data-autoplay="1" frameborder="0" allowfullscreen="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.vimeo.com/video/1234567890?byline=0&controls=1&dnt=1&fun=0&title=0&transparent=false">
+        <iframe frameborder="0" allowfullscreen="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.vimeo.com/video/1234567890?autoplay=1&byline=0&controls=1&dnt=1&fun=0&title=0&transparent=false">
             Iframe showing video here.
         </iframe>
     </div>
@@ -537,13 +523,13 @@ Twitch it baby
 An image with source URL scheme \`twitch:\` results in an embedded video player.
 
 ``` {.markdown}
-![Caption.](twitch:1234567890){.autoplay .controls aspect="5:3"}
+![Caption.](twitch:1234567890){.autoplay .controls aspect="5:3" width="75%"}
 ```
 
 translates to
 
 ``` {.html}
-<figure class="decker controls">
+<figure class="decker controls" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:60.00%;height:0;">
         <iframe frameborder="0" allowfullscreen="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.twitch.tv/?autoplay=1&video=1234567890">
             Iframe showing video here.
@@ -569,7 +555,7 @@ The last image in a level 1 header is promoted to the slide background.
 translates to
 
 ``` {.html}
-<h1 data-background-size="cover" data-background-image="/Users/henrik/workspace/decker/test/decks/include/06-metal.png" id="background-image" data-background-size="cover" data-background-image="/Users/henrik/workspace/decker/test/decks/include/06-metal.png">Background Image  </h1>
+<h1 data-background-size="cover" data-background-image="test/decks/include/06-metal.png" id="background-image" data-background-size="cover" data-background-image="test/decks/include/06-metal.png">Background Image  </h1>
 ```
 
 ------------------------------------------------------------------------
@@ -586,7 +572,7 @@ The last image in a level 1 header is promoted to the slide background.
 translates to
 
 ``` {.html}
-<h1 data-background-video-loop="1" data-background-video-muted="1" data-background-video="/Users/henrik/workspace/decker/test/decks/pacman-perfect-game.mp4" id="background-image" data-background-video-loop="1" data-background-video-muted="1" data-background-video="/Users/henrik/workspace/decker/test/decks/pacman-perfect-game.mp4">Background Image  </h1>
+<h1 data-background-video-loop="1" data-background-video-muted="1" data-background-video="test/decks/pacman-perfect-game.mp4" id="background-image" data-background-video-loop="1" data-background-video-muted="1" data-background-video="test/decks/pacman-perfect-game.mp4">Background Image  </h1>
 ```
 
 </div>
