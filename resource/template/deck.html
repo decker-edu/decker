@@ -22,6 +22,14 @@ $endif$
 $if(thebelab.enable)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/thebelab/thebelab.css">
 $endif$
+  <!-- This is the global variable for the default alignment. It currently is set
+       via the according YAML variable which defaults from the default.yaml to left.
+       Can be overriden in local YAML and for whole slides or individual elements -->
+  <style>
+        :root {
+          --align-global: $align-global$;  
+        }
+  </style>       
   <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -111,8 +119,8 @@ $endfor$
     <div class="slides">
 
 $if(title)$
-<section id="$idprefix$title-slide">
 $if(mario)$ <!-- Mario settings -->
+<section id="$idprefix$title-slide">
     <div class="white-on-blue">
         <div class="title"> $title$ </div>
         $if(subtitle)$
@@ -131,15 +139,33 @@ $if(mario)$ <!-- Mario settings -->
         $endif$
     $endif$
 $else$ <!-- standard settings -->
-    <h1 class="title">$title$</h1>
-    $if(subtitle)$
-        <p class="subtitle">$subtitle$</p>
+$if(title-header)$
+<section id="$idprefix$title-slide" 
+        data-background-size="100%" 
+        data-background-position="0px 0px" 
+        data-background-image=$decker-support-dir$/$title-header$>
+$else$
+<section id="$idprefix$title-slide">
+$endif$
+        <div class="title"> $title$</div>
+        $if(subtitle)$
+            <div class="subtitle"> $subtitle$ </div>
+        $endif$
+    $if(title-teaser)$
+        <div class="title-teaser">
+                <img src=$decker-support-dir$/$title-teaser$>
+        </div>
     $endif$
-    $for(author)$
-        <p class="author">$author$</p>
-    $endfor$
-    $if(date)$
-        <p id="date">$date$</p>
+    $if(author)$
+        <div class="author"> $author$ </div>
+        $if(affiliation)$
+           $if(affiliation-logo)$
+              <div class="affiliation-logo">
+                  <img src=$decker-support-dir$/$affiliation-logo$>
+              </div>
+            $endif$
+            <div class="affiliation"> $affiliation$ </div>
+        $endif$
     $endif$
 $endif$
 </section>
