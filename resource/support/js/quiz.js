@@ -333,6 +333,8 @@ function matchingAnswerButton(matchQuestion) {
             const hasTooltip = rem.getElementsByClassName("solution").length > 0;
             if (matchId == null) {
                 rem.style.backgroundColor = "#aaffaa";
+                rem.style.border = "3px solid black";
+
                 if (!hasTooltip) {
                     rem.append(solution("distractor"));
                 }
@@ -361,7 +363,7 @@ function matchingAnswerButton(matchQuestion) {
                 } else if (matchId == bucketId) {
                     // green
                     matchItem.style.backgroundColor = "#aaffaa";
-                    matchItem.style.border = "2px solid black";
+                    matchItem.style.border = "3px solid black";
                 }
                 else {
                     // red

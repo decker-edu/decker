@@ -76,6 +76,7 @@
             table-layout: fixed;
 
             .bucket{
+                font-size: large;
                 display: table-cell;
                 padding: 10px;
                 border: 1px solid black;
@@ -91,6 +92,7 @@
 
         .matchItem {
             display: table-cell;
+            font-size: large;
             margin: auto;
             padding: 1%;
             max-width: 50%;

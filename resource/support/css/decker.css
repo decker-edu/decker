@@ -202,6 +202,7 @@
 .reveal .quiz-mi .buckets .bucket,
 .reveal .qmi .buckets .bucket,
 .reveal .quiz-match-items .buckets .bucket {
+  font-size: large;
   display: table-cell;
   padding: 10px;
   border: 1px solid black;
@@ -221,6 +222,7 @@
 .reveal .qmi .matchItem,
 .reveal .quiz-match-items .matchItem {
   display: table-cell;
+  font-size: large;
   margin: auto;
   padding: 1%;
   max-width: 50%;
