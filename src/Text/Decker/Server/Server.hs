@@ -162,7 +162,7 @@ serveDirectoryNoCaching state directory = do
   path <- getsRequest rqPathInfo
   liftIO $ addPage state (toString path)
 
--- TODO is this still used
+-- TODO is this still used?
 {-
  -serveDachdecker :: Snap ()
  -serveDachdecker = do

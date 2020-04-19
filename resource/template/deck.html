@@ -528,18 +528,19 @@ $endif$
       });
   </script>
 
+  $if(vertical-slides)$
+      <script>makeVertical();</script>
+  $endif$
 
 
-    <!-- Reload on change machinery -->
-    $if(vertical-slides)$
-        <script>makeVertical();</script>
-    $endif$
-    <script>
-      var socket = new WebSocket("ws://" + location.host + "/reload");
-      socket.onmessage = function (event) {
-        if (event.data.startsWith("reload!")) window.location.reload(true);
-      };
-    </script>
+  <!-- Reload on change machinery -->
+  <script>
+    var socket = new WebSocket("ws://" + location.host + "/reload");
+    socket.onmessage = function (event) {
+      if (event.data.startsWith("reload!")) 
+        window.location.reload(true);
+    };
+  </script>
 
   $for(include-after)$
   $include-after$
