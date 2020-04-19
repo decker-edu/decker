@@ -86,3 +86,9 @@ second one is a :cinema:.
 
 ![A non existing (local) image.](this-does-not-exist.png)
 
+# Empty image URL
+
+![]()
+
+
+
