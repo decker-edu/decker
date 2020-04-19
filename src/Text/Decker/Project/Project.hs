@@ -239,7 +239,7 @@ projectDirectories = do
   projectDir <- findProjectDirectory
   let publicDir = projectDir </> "public"
   let supportDir = publicDir </> "support"
-  let transientDir = projectDir </> ".decker"
+  let transientDir = projectDir </> deckerFiles
   return (ProjectDirs projectDir publicDir supportDir transientDir)
 
 deckerResourceDir :: IO FilePath
@@ -338,8 +338,7 @@ indexSuffix = "-deck-index.yaml"
 
 sourceSuffixes = [deckSuffix, pageSuffix, annotationSuffix, indexSuffix]
 
-alwaysExclude =
-  ["public", ".decker", ".log", "dist", "code", ".shake", ".git", ".vscode"]
+alwaysExclude = ["public", deckerFiles, "dist", ".git", ".vscode"]
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =

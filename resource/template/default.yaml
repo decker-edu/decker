@@ -1,3 +1,4 @@
+provisioning: Copy
 # Sane defaults for reval.js
 backgroundTransition: "none"
 center: true

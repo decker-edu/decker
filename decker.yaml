@@ -1,12 +1,8 @@
 project-name: Decker
-provisioning: SymLink
-vertical-slides: false
 exclude-directories:
   - app
   - bin
-  - code
   - dist
-  - log
   - node_modules
   - public
   - resource/support/fonts
