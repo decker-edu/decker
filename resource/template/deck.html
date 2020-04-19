@@ -536,8 +536,8 @@ $endif$
     $endif$
     <script>
       var socket = new WebSocket("ws://" + location.host + "/reload");
-      socket.onmessage = function () {
-      window.location.reload(true);
+      socket.onmessage = function (event) {
+        if (event.data.startsWith("reload!")) window.location.reload(true);
       };
     </script>
 
