@@ -7,19 +7,9 @@ stack.yaml.lock
 .shake/
 TAGS
 public/
-cache/
-log/
-generated/
-code/
 *-deck.html
 *-handout.html
 *-page.html
-index.md.generated
-generated-index.md
-generated-index.html
-index.html
-server.log
-auto/
 .vscode/
 *.swp
 *.aux
@@ -32,6 +22,4 @@ resource/support/vendor/**
 test/decks/*.svg
 dist/
 node_modules
-sketch-pad-index.yaml
-annotations/
 TODO.md

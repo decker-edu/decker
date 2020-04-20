@@ -1,3 +1,4 @@
+provisioning: Copy
 # Sane defaults for reval.js
 backgroundTransition: "none"
 center: true
@@ -16,3 +17,4 @@ progress: true
 touch: true
 transition: "none"
 title: "|title|"
+align-global: left

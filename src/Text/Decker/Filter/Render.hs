@@ -112,7 +112,7 @@ writeCodeIfChanged :: String -> String -> Decker FilePath
 writeCodeIfChanged code ext = do
   projectDir <- _project <$> lift projectDirsA
   let crc = printf "%08x" (calc_crc32 code)
-  let basepath = "code" </> intercalate "-" ["code", crc]
+  let basepath = deckerFiles </> "code" </> intercalate "-" ["code", crc]
   let path = projectDir </> basepath <.> ext
   lift $
     withShakeLock $

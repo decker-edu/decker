@@ -178,7 +178,7 @@ deckerShakeOptions ctx = do
   cores <- getNumCapabilities
   return $
     shakeOptions
-      { shakeFiles = ".shake"
+      { shakeFiles = deckerFiles
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
       -- , shakeChange = ChangeModtimeAndDigest

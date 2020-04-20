@@ -1,6 +1,7 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Decker where
 
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
@@ -57,7 +58,7 @@ prepCaches ::
   -> Rules (Cache Meta, Cache Targets, ParamCache (Template Text.Text))
 prepCaches directories = do
   let deckerMetaFile = (directories ^. project) </> "decker.yaml"
-  let deckerTargetsFile = (directories ^. project) </> ".decker/targets.yaml"
+  let deckerTargetsFile = (directories ^. project) </> deckerFiles </> "targets.yaml"
   getGlobalMeta <-
     ($ deckerMetaFile) <$>
     newCache
@@ -102,9 +103,10 @@ run = do
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
+  let generatedIndexSource = (directories ^. project) </> deckerFiles </> "index.md.generated"
   let indexFile = (directories ^. public) </> "index.html"
   let cruft =
-        ["index.md.generated", "//.decker", "//.shake", "generated", "code"]
+        ["index.md.generated", "//" <> deckerFiles, "//.shake"]
   let pdfMsg =
         "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
         "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++
@@ -177,7 +179,7 @@ run = do
       let annotDst = replaceSuffix "-deck.html" "-annot.json" out
       annotSrc <- calcSource' annotDst
       exists <- liftIO $ Dir.doesFileExist annotSrc
-      when exists $ do need [annotDst]
+      when exists $ need [annotDst]
       meta <- getGlobalMeta
       markdownToHtmlDeck meta getTemplate src out
     --
@@ -225,11 +227,11 @@ run = do
       let src =
             if exists
               then indexSource
-              else indexSource <.> "generated"
+              else generatedIndexSource
       meta <- getGlobalMeta
       markdownToHtmlPage meta getTemplate src out
     --
-    indexSource <.> "generated" %> \out -> do
+    generatedIndexSource %> \out -> do
       targets <- getTargets
       meta <- getGlobalMeta
       writeIndexLists meta targets out (takeDirectory indexFile)

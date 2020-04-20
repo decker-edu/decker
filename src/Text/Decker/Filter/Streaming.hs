@@ -37,6 +37,7 @@ youtubeDefaults =
 youtubeParams =
   [ "cc_load_policy"
   , "color"
+  , "autoplay"
   , "controls"
   , "disablekb"
   , "enablejsapi"
@@ -57,6 +58,7 @@ youtubeParams =
 youtubeFlags =
   [ "cc_load_policy"
   , "disablekb"
+  , "autoplay"
   , "controls"
   , "enablejsapi"
   , "fs"
@@ -83,6 +85,7 @@ vimeoDefaults =
 
 vimeoParams =
   [ "autopause"
+  , "autoplay"
   , "background"
   , "byline"
   , "color"
@@ -102,6 +105,7 @@ vimeoParams =
 
 vimeoFlags =
   [ "autopause"
+  , "autoplay"
   , "background"
   , "byline"
   , "controls"
@@ -147,17 +151,15 @@ streamHtml' uri caption = do
         throwM $
         ResourceException $
         "Unsupported stream service: " <> toString (fromMaybe "<none>" scheme)
+  iframeAttr <- takeIframeAttr >> extractAttr
+  wrapperAttr <- takeWrapperAttr >> extractAttr
+  figAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
+  let streamTag = mkStreamTag streamUri wrapperAttr iframeAttr
   case caption of
     [] -> do
-      iframeAttr <- takeIframeAttr >> extractAttr
-      wrapperAttr <- injectBorder >> takeWrapperAttr >> takeUsual >> extractAttr
-      return $ mkStreamTag streamUri wrapperAttr iframeAttr
+      return $ mkDivTag streamTag figAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
-      iframeAttr <- takeIframeAttr >> extractAttr
-      wrapperAttr <- takeWrapperAttr >> extractAttr
-      figAttr <- injectBorder >> takeUsual >> extractAttr
-      let streamTag = mkStreamTag streamUri wrapperAttr iframeAttr
       return $ mkFigureTag streamTag captionHtml figAttr
 
 takeWrapperAttr :: Attrib ()
@@ -229,3 +231,10 @@ mkStreamTag uri wrapperAttr iframeAttr =
   let inner =
         mkMediaTag (H.iframe "Iframe showing video here.") uri True iframeAttr
    in mkAttrTag (H.div inner) wrapperAttr
+
+mkDivTag :: Html -> Attr -> Html
+mkDivTag content (id, cs, kvs) =
+  H.div !? (not (Text.null id), A.id (H.toValue id)) !
+  A.class_ (H.toValue ("decker" : cs)) !*
+  kvs $
+  content

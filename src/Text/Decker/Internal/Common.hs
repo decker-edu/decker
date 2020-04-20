@@ -12,14 +12,15 @@ module Text.Decker.Internal.Common
   , needFiles
   , pandocReaderOpts
   , pandocWriterOpts
-  , templateFileName
+  , deckerFiles
   ) where
 
-import Control.Exception
 import Control.Monad.State
 import Development.Shake (Action, need)
-import Text.Decker.Internal.Exception
 import Text.Pandoc
+
+-- | Decker temporary build files are stored here.
+deckerFiles = ".decker"
 
 type Decker = StateT DeckerState Action
 
@@ -56,18 +57,6 @@ data Disposition = Disposition
   { layout :: Layout
   , format :: OutputFormat
   } deriving (Ord, Eq, Show)
-
-templateFileName :: Disposition -> String
-templateFileName (Disposition Deck Html) = "template/deck.html"
-templateFileName (Disposition Deck Latex) = "template/deck.tex"
-templateFileName (Disposition Page Html) = "template/page.html"
-templateFileName (Disposition Page Latex) = "template/page.tex"
-templateFileName (Disposition Handout Html) = "template/handout.html"
-templateFileName (Disposition Handout Latex) = "template/handout.tex"
-templateFileName (Disposition Notebook Html) =
-  throw $ InternalException "No template for Notebook"
-templateFileName (Disposition Notebook Latex) =
-  throw $ InternalException "No template for Notebook"
 
 data MediaType
   = ImageMedia
