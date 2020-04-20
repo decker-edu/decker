@@ -178,15 +178,11 @@ deckerShakeOptions ctx = do
   cores <- getNumCapabilities
   return $
     shakeOptions
-      { shakeFiles = deckerFiles
+      { shakeFiles = ctx ^. dirs . transient
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
       -- , shakeChange = ChangeModtimeAndDigest
-      , shakeAbbreviations =
-          [ (ctx ^. dirs . project ++ "/", "${project}/")
-          , (ctx ^. dirs . public ++ "/", "${public}/")
-          , (ctx ^. dirs . support ++ "/", "${support}/")
-          ]
+      , shakeAbbreviations = [(ctx ^. dirs . project ++ "/", "/")]
       }
 
 actionContextKey :: TypeRep
@@ -237,7 +233,7 @@ writeSupportFilesToPublic meta = do
   templateSource <-
     liftIO $ calcTemplateSource (getMetaText "template-source" meta)
   correct <- correctSupportInstalled templateSource
-  if correct 
+  if correct
     then putNormal "# support files up to date"
     else do
       putNormal $ "# copy support files from: " <> show templateSource

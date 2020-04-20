@@ -11,6 +11,7 @@ module Text.Decker.Internal.Meta
   , getMetaStringOrElse
   , getMetaString
   , getMetaStringList
+  , getMetaStringListOrElse
   , getMetaText
   , getMetaTextList
   , getMetaTextListOrElse
@@ -146,7 +147,8 @@ getMetaString key meta =
   Text.unpack <$> (getMetaValue (Text.pack key) meta >>= metaToText)
 
 getMetaStringOrElse :: Text.Text -> String -> Meta -> String
-getMetaStringOrElse key def meta = toString $ getMetaTextOrElse key (toText def) meta
+getMetaStringOrElse key def meta =
+  toString $ getMetaTextOrElse key (toText def) meta
 
 getMetaTextOrElse :: Text.Text -> Text.Text -> Meta -> Text.Text
 getMetaTextOrElse key def meta =
@@ -155,9 +157,12 @@ getMetaTextOrElse key def meta =
     Just (MetaInlines inlines) -> stringify inlines
     _ -> def
 
-getMetaStringList :: String -> Meta -> Maybe [String]
-getMetaStringList key meta =
-  map Text.unpack <$> (getMetaValue (Text.pack key) meta >>= metaToTextList)
+getMetaStringList :: Text.Text -> Meta -> Maybe [String]
+getMetaStringList key meta = map Text.unpack <$> getMetaTextList key meta
+
+getMetaStringListOrElse :: Text.Text -> [String] -> Meta -> [String]
+getMetaStringListOrElse key def meta =
+  fromMaybe def $ getMetaStringList key meta
 
 getMetaTextList :: Text.Text -> Meta -> Maybe [Text.Text]
 getMetaTextList key meta = getMetaValue key meta >>= metaToTextList

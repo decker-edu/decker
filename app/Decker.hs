@@ -58,7 +58,7 @@ prepCaches ::
   -> Rules (Cache Meta, Cache Targets, ParamCache (Template Text.Text))
 prepCaches directories = do
   let deckerMetaFile = (directories ^. project) </> "decker.yaml"
-  let deckerTargetsFile = (directories ^. project) </> deckerFiles </> "targets.yaml"
+  let deckerTargetsFile = (directories ^. transient) </> "targets.yaml"
   getGlobalMeta <-
     ($ deckerMetaFile) <$>
     newCache
@@ -103,10 +103,9 @@ run = do
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
-  let generatedIndexSource = (directories ^. project) </> deckerFiles </> "index.md.generated"
+  let generatedIndexSource = (directories ^. transient) </> "index.md.generated"
   let indexFile = (directories ^. public) </> "index.html"
-  let cruft =
-        ["index.md.generated", "//" <> deckerFiles, "//.shake"]
+  let cruft = ["//" <> deckerFiles]
   let pdfMsg =
         "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
         "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++
