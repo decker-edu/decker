@@ -71,7 +71,7 @@ renderRow areaMap (MultiColumn areas) =
   Div
     ( ""
     , [ "multi-column-row"
-      , "multi-column-row-" <> ( Text.pack $ show (length areas) )
+      , "multi-column-row-" <> Text.pack (show (length areas))
       ]
     , []) $
   mapMaybe renderArea (zip [1 ..] areas)
@@ -85,9 +85,9 @@ renderColumn (i, blocks) =
         (readMaybe . Text.unpack)
    in Div
         ( ""
-        , [ "grow-" <> ( Text.pack $ show grow )
+        , [ "grow-" <> Text.pack (show grow)
           , "column"
-          , "column-" <> (Text.pack $ show i)
+          , "column-" <> Text.pack (show i)
           ]
         , blocks ^. attributes . attrs)
         blocks
