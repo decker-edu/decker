@@ -342,16 +342,9 @@ alwaysExclude = ["public", deckerFiles, "dist", ".git", ".vscode"]
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
-  let metaExclude = getMetaStringList "exclude-directories" meta
-   in case metaExclude of
-        Just dirs -> alwaysExclude ++ dirs
-        _ -> alwaysExclude
+  alwaysExclude <> getMetaStringListOrElse "exclude-directories" [] meta
 
-staticDirs meta =
-  let metaStatic = getMetaStringList "static-resource-dirs" meta
-   in case metaStatic of
-        Just dirs -> dirs
-        _ -> []
+staticDirs = getMetaStringListOrElse "static-resource-dirs" []
 
 scanTargetsToFile :: Meta -> ProjectDirs -> FilePath -> Action ()
 scanTargetsToFile meta dirs file = do

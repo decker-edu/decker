@@ -1,4 +1,5 @@
 project-name: Decker
+provisioning: Copy
 exclude-directories:
   - app
   - bin

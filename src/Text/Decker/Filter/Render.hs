@@ -66,7 +66,7 @@ shakeCompile ext source attr = do
 -- | Calculates the list of all known file extensions that can be rendered into
 -- an SVG image.
 renderedCodeExtensions :: [String]
-renderedCodeExtensions = [".dot", ".gnuplot", ".tex", ".js"]
+renderedCodeExtensions = [".dot", ".gnuplot", ".tex"]
 
 restrictKeys :: Ord a1 => Map.Map a1 a -> Set.Set a1 -> Map.Map a1 a
 restrictKeys m s = Map.filterWithKey (\k _ -> k `Set.member` s) m
@@ -92,14 +92,7 @@ maybeRenderImage image@(Image attr@(_, classes, _) _ (url, _)) =
 maybeRenderImage inline = return inline
 
 maybeRenderCodeBlock :: Block -> Decker Block
-maybeRenderCodeBlock block@(CodeBlock attr@(x, classes, y) code)
-  -- Let default CodeBlock style be "txt"
- = do
-  let cls =
-        case classes of
-          [] -> ["txt"]
-          _ -> classes
-  let block = CodeBlock (x, cls, y) code
+maybeRenderCodeBlock block@(CodeBlock attr@(x, cls, y) code) =
   case findProcessor cls of
     Just processor -> do
       path <- writeCodeIfChanged (Text.unpack code) (extension processor)
@@ -112,6 +105,7 @@ writeCodeIfChanged :: String -> String -> Decker FilePath
 writeCodeIfChanged code ext = do
   projectDir <- _project <$> lift projectDirsA
   let crc = printf "%08x" (calc_crc32 code)
+  -- TODO get rid of the deckerFiles reference once the Decker monad is removed
   let basepath = deckerFiles </> "code" </> intercalate "-" ["code", crc]
   let path = projectDir </> basepath <.> ext
   lift $
@@ -121,4 +115,3 @@ writeCodeIfChanged code ext = do
       createDirectoryIfMissing True (takeDirectory path)
       writeFile path code
   return path
-

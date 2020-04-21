@@ -11,7 +11,7 @@ stack-build-opts := --fast --ghc-options "-j4 +RTS -A128m -n2m -qg -RTS"
 
 build: 
 	rm decker.cabal
-	stack build $(stack-build-options)
+	stack build
 
 clean-build: clean
 	git submodule update --init

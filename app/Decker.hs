@@ -2,7 +2,6 @@
 module Decker where
 
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Exception
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -18,14 +17,12 @@ import Text.Decker.Writer.Pdf
 -- TODO Is this still used?
 --import Text.Decker.Server.Dachdecker
 import Control.Concurrent
-import Control.Exception
 import Control.Lens ((^.))
 import Control.Monad.Extra
 import Data.Aeson
 import Data.IORef ()
 import Data.List
 import qualified Data.Map as Map
-import Data.Maybe
 import Data.String ()
 import qualified Data.Text as Text
 import Data.Version
@@ -36,7 +33,7 @@ import System.Environment.Blank
 import System.IO
 import Text.Groom
 import qualified Text.Mustache as M ()
-import Text.Pandoc
+import Text.Pandoc hiding (lookupMeta)
 import Text.Printf (printf)
 
 main :: IO ()
@@ -58,7 +55,7 @@ prepCaches ::
   -> Rules (Cache Meta, Cache Targets, ParamCache (Template Text.Text))
 prepCaches directories = do
   let deckerMetaFile = (directories ^. project) </> "decker.yaml"
-  let deckerTargetsFile = (directories ^. project) </> deckerFiles </> "targets.yaml"
+  let deckerTargetsFile = (directories ^. transient) </> "targets.yaml"
   getGlobalMeta <-
     ($ deckerMetaFile) <$>
     newCache
@@ -103,10 +100,9 @@ run = do
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = (directories ^. project) </> "index.md"
-  let generatedIndexSource = (directories ^. project) </> deckerFiles </> "index.md.generated"
+  let generatedIndexSource = (directories ^. transient) </> "index.md.generated"
   let indexFile = (directories ^. public) </> "index.html"
-  let cruft =
-        ["index.md.generated", "//" <> deckerFiles, "//.shake"]
+  let cruft = ["//" <> deckerFiles]
   let pdfMsg =
         "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
         "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++
@@ -266,7 +262,7 @@ run = do
       meta <- getGlobalMeta
       targets <- getTargets
       templateSource <-
-        liftIO $ calcTemplateSource (getMetaText "template-source" meta)
+        liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
       putNormal $ "template source: " <> show templateSource
       putNormal "\ntargets:\n"
       putNormal (groom targets)
@@ -284,15 +280,12 @@ run = do
       need ["support"]
       meta <- getGlobalMeta
       getTargets >>= needSels [decks, handouts, pages]
-      let host = getMetaString "rsync-destination.host" meta
-      let path = getMetaString "rsync-destination.path" meta
-      if isJust host && isJust path
-        then do
-          let src = (directories ^. public) ++ "/"
-          let dst = intercalate ":" [fromJust host, fromJust path]
-          ssh [fromJust host, "mkdir -p", fromJust path]
-          rsync [src, dst]
-        else throw RsyncUrlException
+      let host = lookupMetaOrFail "rsync-destination.host" meta
+      let path = lookupMetaOrFail "rsync-destination.path" meta
+      let src = (directories ^. public) ++ "/"
+      let dst = intercalate ":" [host, path]
+      ssh [host, "mkdir -p", path]
+      rsync [src, dst]
     -- TODO Is this still needed?
     --phony "sync" $ uploadQuizzes (_sources <$> targetsA)
 
