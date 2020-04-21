@@ -21,6 +21,7 @@
     border:    none;
     outline:   none;
     color:     #2a9ddf;
+    background: white;
 }
 
 .reveal button.whiteboard:disabled {
