@@ -1,6 +1,7 @@
 ---
 title: Decker Quiz Overview
 history: true
+vertical-slides: true
 ---
 
 # Introduction
@@ -12,120 +13,216 @@ history: true
   - Multiple choice questions
   - Freetext questions
 
-# Blank Text/Multiple Choice
 
-```markdown
-{blanktext} Optional Title
-: Decker is a software built using the programming language 
-{Scala|!Haskell|Java|Ruby} and builds upon 
-{LaTeX Beamer|!RevealJS|PowerPoint}.
+# Quiz Syntax
 
-{blanktext}
-: You {can't|!can} create blanktext questions without title
+## Class definition
+
+For each question type you can use either of the three tags to create quizzes
+
 ```
-# Blank Text/Multiple Choice
+.quiz-match-items, .quiz-mi, .qmi
 
-{blanktext} Optional Title
-: Decker is a software built using the programming language {Scala|!Haskell|Java|Ruby} and builds upon {LaTeX Beamer|!RevealJS|PowerPoint}.
+.quiz-multiple-choice, .quiz-mc, .qmc
 
-{blanktext}
-: You {can't|!can} create blanktext questions without title
+.quiz-insert-choices, .quiz-ic, .qic 
 
-# "Fill-in-the-blank" questions/Cloze tests
-You can also add actual blank texts by providing only one option inside the curly brackets. Or combine both.
-
-```markdown
-{blanktext}
-: These tests are called {Cloze} tests and are {!useful|useless}. 
+.quiz-free-text, .quiz-ft, .qft
 ```
 
-{blanktext}
-: These tests are called {Cloze} tests and are {!useful|useless}. 
+# Basic syntax
 
-# Matching Questions Syntax
+Questions are defined by level 2 headers. That means creating a question **needs**
 
-- This type of questions asks to create pairs by dragging each element from a number of elements to the corresponding area.
-- Currently only supports exact 1:1 pairing.
-
-```markdown
-{match} A
-: pair with A
-
-{match} Haskell
-: ![](img/haskell.png)
-
-...
 ```
+## Question title {.qmc}
+```
+
+(where `.qmc` can be replaced by any of the other quiz classes)
+
+
+The quiz syntax is based on the markdown task list syntax. A markdown task list looks like this
+
+```
+- [ ] This box is not checked
+- [X] This box is checked
+- [ ] Another unchecked box
+```
+
+You can add tooltips by creating a nested list e.g.
+
+```
+- [ ] A
+  - tooltip A
+- [X] B
+  - tooltip B
+```
+
+# Quiz Meta
+
+Add a `YAML` code block to a question to provide meta information on the specific question.
+
+This is work in progress. Currently it does not do anything. (17. Apr 2020)
+````
+``` {.yaml}
+score: 5
+category: FP
+lectureId: fp1
+topic: Functional Programming Introduction
+```
+````
 
 # Matching Questions
 
-{match} A
-: pair with A
+These questions generate quizzes where a user can drag and drop items to sort them into "buckets".
 
-{match} Haskell 
-: ![](img/haskell.png)
+This uses the Pandoc [definition list syntax](https://pandoc.org/MANUAL.html#definition-lists).
 
-{match} B
-: drag to B
+You can provide distractor items (items not belonging to any bucket) or empty buckets (no item belonging in those empty buckets) by using the exclamation mark "!".
 
-{match} decker
-: [decker](http://go.uniwue.de/decker)
-
-{match} C
-: $\Leftarrow$ C
-
-# Freetext Questions Syntax
-
-- Freetext questions consist of a bullet list of two elements with specific syntax
-- Two separate questions have to be separated for example by using a level two header
-
-```markdown
-* {?} Question text
-* {!} Correct solution
-
-## 
-
-* {?} Question 2
-* {!} Answer
+# Matching Questions {.sub}
 
 ```
+## Matching Question {.qmi}
 
-# Freetext Questions {layout="columns"}
+Question text
 
-## {.left} 
-* {?} $2*2=~?$ 
-* {!} 4
+BucketA
+: A1
+: A2
 
-## 
+BucketB
+: B1
 
-* {?} The Answer to the Ultimate Question of Life, the Universe, and Everything is ...?
-* {!} 42
+!
+: Distractor
 
-## {.right}
-
-* {?} Is this a question? 
-* {!} yes
-
-##
-
-* {?} Name the capital of Germany
-* {!} Berlin 
-
-# Multiple Choice Questions Syntax
-
-```markdown
-* { } wrong answer
-* { } another wrong answer
-* {X} correct answer
-* { } wrong answer again
+Empty Bucket
+: !
 ```
+
+# Matching Questions Example
+
+## Matching Question {.qmi}
+
+Question text
+
+BucketA
+: A1
+: A2
+
+BucketB
+: B1
+
+!
+: Distractor
+
+Empty Bucket
+: !
 
 # Multiple Choice Questions
 
-## Question: Which file format does decker use? {.question}
+Classic multiple choice questions
 
-* { } .docx
-* { } .csv
-* { } .xml
-* {X} .md
+```
+## Multiple Choice Question {.qmc}
+
+Which of these letters is the second in the alphabet?
+
+- [ ] A
+  - nope
+- [X] B
+  - yes
+```
+
+# Multiple Choice Questions Example {.sub}
+
+## Multiple Choice Question {.qmc}
+
+Question text
+
+- [ ] A
+  - nope
+- [X] B
+  - yes
+
+# InsertChoices Questions
+
+This will create a sort of blank text questions.
+If multiple items are provided in the task list, they will be rendered as a drop down menu where the user can click answers.
+
+If only one item/solution is provided it will be rendered as a blank.
+
+```
+## Insert Choices Question {.qic}
+
+- [X] A
+  - of course
+- [ ] B 
+  - uhm ...
+
+is the first letter in the ABC. The second one is
+
+- [ ] B
+  - yep
+
+```
+
+# InsertChoices Questions Example {.sub}
+
+## Insert Choices Question {.qic}
+
+- [X] A
+  - of course
+- [ ] B 
+  - uhm ...
+
+is the first letter in the ABC. The second one is
+
+- [ ] B
+  - yep
+
+
+# FreeText questions
+
+This will create a simple input field/text box where the user can write their answer.
+
+```
+## FreeText Question TL {.qft}
+
+What's the first letter in the alphabet?
+
+- A
+  - yep
+- B
+  - nope
+
+## {.qft}
+
+What's the fourth letter?
+
+- [ ] C
+- [X] D
+
+```
+
+# FreeTExt Question Example {.sub}
+
+## FreeText Question TL {.qft}
+
+What's the first letter in the alphabet?
+
+- A
+  - yep
+- B
+  - nope
+
+## {.qft}
+
+What's the fourth letter?
+
+- [ ] C
+- [X] D
+
+
 

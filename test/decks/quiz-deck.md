@@ -1,7 +1,6 @@
 ---
 title: New Quiz Syntax Test deck
 history: True
-# mario: True
 ---
 
 # Overview
@@ -18,8 +17,6 @@ history: True
 ```
 
 # Matching
-
-All we are missing here are distractors, i.e. a way to have choices which are not to be dragged to some place. However, if we can decide on a special target symbol for the latter, we couls also include this. I propose ‚!'.
 
 #
 
@@ -70,9 +67,8 @@ All choices get an optional comment to be potentially shown with the result.
     - So ist das. 
     - test
 - [ ] b
-    - So nicht 
-    - test2
-    - test3
+    - So nicht. 
+    - Tooltip2
 - [ ] c
     - So auch nicht
 
@@ -95,26 +91,26 @@ Decker is a software built using
 
 
 - [ ] Scala
-    - nein
+    - Unfortunately not.
 - [X] Haskell
-    - pandoc
+    - Due to Pandoc.
 - [ ] Java
-    - Gut
+    - Surely not.
 - [ ] Ruby 
-    - glück
+    - hm no
 
 
 and builds upon
 
 - Pandoc
+  - See previous tooltip.
 
 .
 
-##
 
-These questions now include multiple versions of correct answers with additional optional comments (as before). Hence the Syntax is slightly different in its compact representation. 
 
 # Free Text
+These questions now include multiple versions of correct answers with additional optional comments (as before). Hence the Syntax is slightly different in its compact representation. 
 
 ## Free Text {.quiz-ft} 
 
