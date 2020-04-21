@@ -8,6 +8,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Project.Shake
+import Text.Decker.Resource.Template
 import Text.Decker.Reader.Markdown
 
 import Control.Exception
@@ -39,10 +40,10 @@ launchChrome src out = do
   case command of
     Left msg -> return $ Left msg
     Right cmd -> do
-      (_, _, _, ph) <- do
-        let invocation = cmd ++ " " ++ options
+      (_, _, _, ph) <-
+        do let invocation = cmd ++ " " ++ options
         -- putStrLn invocation
-        createProcess (shell invocation) {std_err = CreatePipe}
+           createProcess (shell invocation) {std_err = CreatePipe}
       code <- waitForProcess ph
       case code of
         ExitFailure _ ->
@@ -53,12 +54,12 @@ launchChrome src out = do
         ExitSuccess -> return $ Right ("Completed: " ++ src ++ " -> " ++ out)
 
 -- | Write a markdown file to a PDF file using the handout template.
-markdownToPdfPage :: FilePath -> FilePath -> Action ()
-markdownToPdfPage markdownFile out = do
+markdownToPdfPage :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+markdownToPdfPage meta getTemplate markdownFile out = do
   putCurrentDocument out
   let disp = Disposition Page Latex
-  pandoc <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate disp 
+  pandoc <- readAndProcessMarkdown meta markdownFile disp
+  template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
@@ -78,12 +79,13 @@ pandocMakePdf options out pandoc =
       Right pdf -> liftIO $ LB.writeFile out pdf
 
 -- | Write a markdown file to a PDF file using the handout template.
-markdownToPdfHandout :: FilePath -> FilePath -> Action ()
-markdownToPdfHandout markdownFile out = do
+markdownToPdfHandout ::
+     Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+markdownToPdfHandout meta getTemplate markdownFile out = do
   putCurrentDocument out
   let disp = Disposition Handout Latex
-  pandoc <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate disp 
+  pandoc <- readAndProcessMarkdown meta markdownFile disp
+  template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
           { writerTemplate = Just template

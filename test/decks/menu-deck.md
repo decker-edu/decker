@@ -1,4 +1,5 @@
 ---
+title: Menu
 menu: true
 ---
 

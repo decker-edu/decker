@@ -5,6 +5,7 @@ module Text.Decker.Filter.Macro
   ) where
 
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Meta
 
 import Control.Monad.State
 import Data.List (find)
@@ -174,15 +175,13 @@ verticalSpace _ _ (space, _) _ = do
 
 metaValue :: MacroAction
 metaValue _ _ (key, _) meta =
-  case Text.splitOn "." key of
-    [] -> return $ Str key
-    k:ks -> return $ lookup' ks (lookupMeta k meta)
+  return $ fromMaybe (Strikeout [Str key]) (getMetaValue key meta >>= toInline)
   where
-    lookup' :: [Text.Text] -> Maybe MetaValue -> Inline
-    lookup' [] (Just (MetaString s)) = Str s
-    lookup' [] (Just (MetaInlines i)) = Span nullAttr i
-    lookup' (k:ks) (Just (MetaMap metaMap)) = lookup' ks (Map.lookup k metaMap)
-    lookup' _ _ = Strikeout [Str key]
+    toInline (MetaBool False) = Just $ Str "false"
+    toInline (MetaBool True) = Just $ Str "true"
+    toInline (MetaString s) = Just $ Str s
+    toInline (MetaInlines i) = Just $ Span nullAttr i
+    toInline _ = Nothing
 
 type MacroMap = Map.Map Text.Text MacroAction
 

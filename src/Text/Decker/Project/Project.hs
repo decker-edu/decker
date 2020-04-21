@@ -1,8 +1,8 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
--- | Providing an interface for the paths used in decker
--- 
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Text.Decker.Project.Project
   ( resourcePaths
+  , scanTargetsToFile
   , deckerResourceDir
   , oldResourcePaths
   -- , linkResource
@@ -28,17 +28,18 @@ module Text.Decker.Project.Project
   , pagesPdf
   , handouts
   , handoutsPdf
+  , projectDir
+  , publicDir
   , project
   , public
-  , cache
   , support
-  , appData
-  , logging
+  , transient
   , getDachdeckerUrl
   , Targets(..)
   , Resource(..)
   , ProjectDirs(..)
   , fromMetaValue
+  , readTargetsFile
   ) where
 
 import Text.Decker.Internal.Common
@@ -49,22 +50,22 @@ import Text.Decker.Internal.Meta
 import Text.Decker.Project.Glob
 import Text.Decker.Project.Version
 
-import Control.Arrow
 import Control.Lens hiding ((.=))
 import Data.Aeson
-import Data.List
+import Data.Aeson.TH
+import Data.Char
+import qualified Data.List as List
 import Data.List.Split (splitOn)
-import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Maybe
-import Data.Text (Text)
 import qualified Data.Text as Text
-import GHC.Generics (Generic)
+import qualified Data.Yaml as Yaml
+import Development.Shake hiding (Resource)
 import Network.URI
+import Relude
 import qualified System.Directory as D
 import System.Environment
 import System.FilePath
-import System.FilePath.Glob
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared
 import Text.Read
@@ -79,10 +80,20 @@ data Targets = Targets
   , _pagesPdf :: [FilePath]
   , _handouts :: [FilePath]
   , _handoutsPdf :: [FilePath]
-  , _indices :: [FilePath]
+  , _annotations :: [FilePath]
   } deriving (Show)
 
 makeLenses ''Targets
+
+$(deriveJSON
+    defaultOptions
+      {fieldLabelModifier = drop 1, constructorTagModifier = map toLower}
+    ''Targets)
+
+readTargetsFile :: FilePath -> Action Targets
+readTargetsFile targetFile = do
+  need [targetFile]
+  liftIO (Yaml.decodeFileThrow targetFile)
 
 data Resource = Resource
   { sourceFile :: FilePath -- ^ Absolute Path to source file
@@ -162,13 +173,16 @@ instance FromMetaValue Resource where
 data ProjectDirs = ProjectDirs
   { _project :: FilePath
   , _public :: FilePath
-  , _cache :: FilePath
   , _support :: FilePath
-  , _appData :: FilePath
-  , _logging :: FilePath
+  , _transient :: FilePath
   } deriving (Eq, Show)
 
 makeLenses ''ProjectDirs
+
+$(deriveJSON
+    defaultOptions
+      {fieldLabelModifier = drop 1, constructorTagModifier = map toLower}
+    ''ProjectDirs)
 
 provisioningFromMeta :: Meta -> Provisioning
 provisioningFromMeta meta =
@@ -224,12 +238,9 @@ projectDirectories :: IO ProjectDirs
 projectDirectories = do
   projectDir <- findProjectDirectory
   let publicDir = projectDir </> "public"
-  let cacheDir = publicDir </> "cache"
   let supportDir = publicDir </> "support"
-  appDataDir <- deckerResourceDir
-  let logDir = projectDir </> ".log"
-  return
-    (ProjectDirs projectDir publicDir cacheDir supportDir appDataDir logDir)
+  let transientDir = projectDir </> deckerFiles
+  return (ProjectDirs projectDir publicDir supportDir transientDir)
 
 deckerResourceDir :: IO FilePath
 deckerResourceDir =
@@ -237,15 +248,6 @@ deckerResourceDir =
     D.XdgData
     ("decker" ++
      "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
-
--- | Finds out if the decker executable is located below the current directory.
--- This means most probably that decker was started in the decker development
--- project using `stack run decker`.
-isDevelopmentRun :: IO Bool
-isDevelopmentRun = do
-  cwd <- D.getCurrentDirectory
-  exePath <- getExecutablePath
-  return $ cwd `isPrefixOf` exePath
 
 -- | Get the absolute paths of resource folders 
 -- with version numbers older than the current one
@@ -330,29 +332,28 @@ handoutHTMLSuffix = "-handout.html"
 
 handoutPDFSuffix = "-handout.pdf"
 
+annotationSuffix = "-annot.json"
+
 indexSuffix = "-deck-index.yaml"
 
-sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix]
+sourceSuffixes = [deckSuffix, pageSuffix, annotationSuffix, indexSuffix]
 
-alwaysExclude = ["public", ".log", "dist", "code", ".shake", ".git", ".vscode"]
+alwaysExclude = ["public", deckerFiles, "dist", ".git", ".vscode"]
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
-  let metaExclude = getMetaStringList "exclude-directories" meta
-   in case metaExclude of
-        Just dirs -> alwaysExclude ++ dirs
-        _ -> alwaysExclude
+  alwaysExclude <> getMetaStringListOrElse "exclude-directories" [] meta
 
-staticDirs meta =
-  let metaStatic = getMetaStringList "static-resource-dirs" meta
-   in case metaStatic of
-        Just dirs -> dirs
-        _ -> []
+staticDirs = getMetaStringListOrElse "static-resource-dirs" []
+
+scanTargetsToFile :: Meta -> ProjectDirs -> FilePath -> Action ()
+scanTargetsToFile meta dirs file = do
+  targets <- liftIO $ scanTargets meta dirs
+  writeFileChanged file $ decodeUtf8 $ encode targets
 
 scanTargets :: Meta -> ProjectDirs -> IO Targets
 scanTargets meta dirs = do
   let exclude = excludeDirs meta
-  metaFiles <- globDir1 (compile "*-meta.yaml") projectDir
   srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
   let static = map (dirs ^. project </>) (staticDirs meta)
   staticSrc <- concat <$> mapM (fastGlobFiles [] []) static
@@ -368,7 +369,7 @@ scanTargets meta dirs = do
       , _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs
       , _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs
       , _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs
-      , _indices = sort $ calcTargets deckSuffix indexSuffix srcs
+      , _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs
       }
   where
     projectDir = dirs ^. project
@@ -377,7 +378,7 @@ scanTargets meta dirs = do
       map
         (replaceSuffix srcSuffix targetSuffix .
          combine (dirs ^. public) . makeRelative (dirs ^. project))
-        (fromMaybe [] $ lookup srcSuffix sources)
+        (fromMaybe [] $ List.lookup srcSuffix sources)
 
 getDachdeckerUrl :: IO String
 getDachdeckerUrl = do
@@ -387,3 +388,9 @@ getDachdeckerUrl = do
           Just val -> val
           Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
   return url
+
+projectDir :: Meta -> FilePath
+projectDir = getMetaStringOrElse "decker.directories.project" "."
+
+publicDir :: Meta -> FilePath
+publicDir = getMetaStringOrElse "decker.directories.public" "."

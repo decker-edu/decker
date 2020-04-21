@@ -12,9 +12,9 @@ import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Reader.Markdown
+import Text.Decker.Resource.Template
 import Text.Pandoc.Lens
 
-import Control.Lens ((^.))
 import Control.Monad.State
 import qualified Data.Map as M
 import qualified Data.MultiMap as MM
@@ -28,14 +28,12 @@ import Text.Pandoc.Highlighting
 import Text.Printf
 
 -- | Generates an index.md file with links to all generated files of interest.
-writeIndexLists :: FilePath -> FilePath -> Action ()
-writeIndexLists out baseUrl = do
-  dirs <- projectDirsA
-  ts <- targetsA
-  let projectDir = dirs ^. project
-  let decks = zip (_decks ts) (_decksPdf ts)
-  let handouts = zip (_handouts ts) (_handoutsPdf ts)
-  let pages = zip (_pages ts) (_pagesPdf ts)
+writeIndexLists :: Meta -> Targets -> FilePath -> FilePath -> Action ()
+writeIndexLists meta targets out baseUrl = do
+  let projectDir = getMetaStringOrElse "decker.directories.project" "." meta
+  let decks = zip (_decks targets) (_decksPdf targets)
+  let handouts = zip (_handouts targets) (_handoutsPdf targets)
+  let pages = zip (_pages targets) (_pagesPdf targets)
   decksLinks <- makeGroupedLinks projectDir decks
   handoutsLinks <- makeGroupedLinks projectDir handouts
   pagesLinks <- makeGroupedLinks projectDir pages
@@ -84,18 +82,19 @@ writeNativeWhileDebugging out mod doc =
   runIO (writeNative pandocWriterOpts doc) >>= handleError >>=
   T.writeFile (out -<.> mod <.> ".hs")
 
+
 -- | Write a markdown file to a HTML file using the page template.
-markdownToHtmlDeck :: FilePath -> FilePath -> FilePath -> Action ()
-markdownToHtmlDeck markdownFile out index = do
+markdownToHtmlDeck :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+markdownToHtmlDeck meta getTemplate markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
-  pandoc@(Pandoc meta _) <- readAndProcessMarkdown markdownFile disp
+  pandoc@(Pandoc meta _) <- readAndProcessMarkdown meta markdownFile disp
   let highlightStyle =
         case getMetaString "highlightjs" meta of
           Nothing -> Just pygments
           _ -> Nothing
-  template <- getTemplate disp
+  template <- getTemplate (templateFile disp)
   dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
@@ -115,7 +114,7 @@ markdownToHtmlDeck markdownFile out index = do
           }
   writePandocFile "revealjs" options out pandoc
   when (getMetaBoolOrElse "write-notebook" False meta) $
-    markdownToNotebook markdownFile (out -<.> ".ipynb")
+    markdownToNotebook meta markdownFile (out -<.> ".ipynb")
   writeNativeWhileDebugging out "filtered" pandoc
 
 writePandocFile :: T.Text -> WriterOptions -> FilePath -> Pandoc -> Action ()
@@ -124,13 +123,13 @@ writePandocFile fmt options out pandoc =
   runIO (writeRevealJs options pandoc) >>= handleError >>= T.writeFile out
 
 -- | Write a markdown file to a HTML file using the page template.
-markdownToHtmlPage :: FilePath -> FilePath -> Action ()
-markdownToHtmlPage markdownFile out = do
+markdownToHtmlPage :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+markdownToHtmlPage meta getTemplate markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Page Html
-  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate disp
+  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown meta markdownFile disp
+  template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
@@ -149,14 +148,14 @@ markdownToHtmlPage markdownFile out = do
   writePandocFile "html5" options out pandoc
 
 -- | Write a markdown file to a HTML file using the handout template.
-markdownToHtmlHandout :: FilePath -> FilePath -> Action ()
-markdownToHtmlHandout markdownFile out = do
+markdownToHtmlHandout :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+markdownToHtmlHandout meta getTemplate markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Handout Html
   pandoc@(Pandoc docMeta _) <-
-    wrapSlidesinDivs <$> readAndProcessMarkdown markdownFile disp
-  template <- getTemplate disp
+    wrapSlidesinDivs <$> readAndProcessMarkdown meta markdownFile disp
+  template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
@@ -174,13 +173,13 @@ markdownToHtmlHandout markdownFile out = do
   writePandocFile "html5" options out pandoc
 
 -- | Write a markdown file to a HTML file using the page template.
-markdownToNotebook :: FilePath -> FilePath -> Action ()
-markdownToNotebook markdownFile out = do
+markdownToNotebook :: Meta -> FilePath -> FilePath -> Action ()
+markdownToNotebook meta markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Notebook Html
   pandoc@(Pandoc docMeta _) <-
-    filterNotebookSlides <$> readAndProcessMarkdown markdownFile disp
+    filterNotebookSlides <$> readAndProcessMarkdown meta markdownFile disp
   let options =
         pandocWriterOpts
           { writerTemplate = Nothing

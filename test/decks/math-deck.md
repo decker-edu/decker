@@ -1,4 +1,5 @@
 ---
+title: Custom LaTeX Macros
 controls: true
 menu: true
 history: true

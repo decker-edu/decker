@@ -1,5 +1,6 @@
 ---
-history: True
+history: true
+title: Background Videos
 ---
 
 # Background Videos

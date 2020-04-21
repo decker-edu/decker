@@ -18,19 +18,26 @@ import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Pandoc
 import Text.Pandoc.Highlighting
 import Text.Pandoc.Walk
+import System.Directory
 
-filterMeta =
-  setTextMetaValue "decker.top-base-dir" "." $
-  setTextMetaValue "decker.base-dir" "." $
-  setTextMetaValue "decker.project-dir" "." $
-  setTextMetaValue "decker.public-dir" "." $ nullMeta
+filterMeta = do
+  cwd <- toText <$> getCurrentDirectory
+  return $
+    setTextMetaValue "decker.top-base-dir" cwd $
+    setTextMetaValue "decker.base-dir" cwd $
+    setTextMetaValue "decker.project-dir" cwd $
+    setTextMetaValue "decker.public-dir" cwd $ nullMeta
 
 -- import qualified Text.URI as URI
 -- | Constructs a filter runner with default parameters
-testFilter = runFilter' def filterMeta
+testFilter b f = do
+  meta <- filterMeta 
+  runFilter' def meta b f
 
 doFilter :: Filter Inline -> IO Inline
-doFilter action = fst <$> runStateT (action) (FilterState def filterMeta)
+doFilter action = do
+  meta <- filterMeta 
+  fst <$> runStateT (action) (FilterState def meta)
 
 mediaTests = do
   describe "pairwise" $
@@ -156,12 +163,13 @@ setPretty (Pandoc meta blocks) =
 
 compileSnippet :: Text -> IO Text
 compileSnippet markdown = do
+  fMeta <- filterMeta
   pandoc@(Pandoc meta blocks) <-
     handleError (runPure (readMarkdown readerOptions markdown))
   filtered@(Pandoc fmeta _) <-
     mediaFilter
       def
-      (Pandoc (setBoolMetaValue "decker.filter.pretty" True filterMeta) blocks)
+      (Pandoc (setBoolMetaValue "decker.filter.pretty" True fMeta) blocks)
   handleError $
     runPure $ writeHtml5String writerOptions $ walk dropPara filtered
 
@@ -242,13 +250,13 @@ testSnippets =
     , "![Caption.](http://3d.de/model.off){.mario height=\"400px\" phasers=\"stun\"}")
   , ( "Youtube video stream"
     , "An image with source URL scheme `youtube:` results in an embedded video player."
-    , "![](youtube:1234567890){#video1 .autoplay}")
+    , "![](youtube:1234567890){#video1 .autoplay .controls width=\"75%\"}")
   , ( "Vimeo it baby"
     , "An image with source URL scheme `vimeo:` results in an embedded video player."
-    , "![Caption.](vimeo://1234567890){#video2 .some-class aspect=\"4:3\" some-attribute=\"yeah\"}")
+    , "![Caption.](vimeo://1234567890){#video2 .some-class autoplay=\"1\" aspect=\"4:3\" width=\"75%\" some-attribute=\"yeah\"}")
   , ( "Twitch it baby"
     , "An image with source URL scheme `twitch:` results in an embedded video player."
-    , "![Caption.](twitch:1234567890){.autoplay aspect=\"5:3\"}")
+    , "![Caption.](twitch:1234567890){.autoplay .controls aspect=\"5:3\" width=\"75%\"}")
   , ( "Background image"
     , "The last image in a level 1 header is promoted to the slide background."
     , "# Background Image ![](/test/decks/include/06-metal.png){size=\"cover\"}")

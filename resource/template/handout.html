@@ -97,12 +97,14 @@ $endif$
     <script type="text/javascript" id="MathJax-script" async src="$decker-support-dir$/vendor/mathjax/tex-svg.js">
     </script>
 
-        <script>
-            var socket = new WebSocket("ws://" + location.host + "/reload");
-            socket.onmessage = function () {
-                window.location.reload(true);
-            };
-        </script>
+    <script>
+      var socket = new WebSocket("ws://" + location.host + "/reload");
+      socket.onmessage = function (event) {
+        if (event.data.startsWith("reload!")) 
+          window.location.reload(true);
+      };
+    </script>
+
         $for(header-includes)$
         $header-includes$
         $endfor$
