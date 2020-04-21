@@ -724,18 +724,18 @@ let RevealWhiteboard = (function(){
     // convert points to quadratic Bezier spline
     function pointsToBezier(points, stroke)
     {
-        let path = "";
+        let path = [];
         let c;
 
-        path += ('M '  + printPoint(points[0]));
-        path += (' L ' + printPoint(center(points[0], points[1])));
+        path.push('M '  + printPoint(points[0]));
+        path.push(' L ' + printPoint(center(points[0], points[1])));
 
         for (let i=1; i<points.length-1; ++i)
         {
             c = center(points[i], points[i+1]);
-            path += (' Q ' + printPoint(points[i]) + ' ' + printPoint(c));
+            path.push(' Q ' + printPoint(points[i]) + ' ' + printPoint(c));
         }
-        path += (' L ' + printPoint(points[points.length-1]));
+        path.push(' L ' + printPoint(points[points.length-1]));
 
         stroke.setAttribute('d', path);
     }
@@ -856,6 +856,12 @@ let RevealWhiteboard = (function(){
                 });
                 break;
             }
+
+            case ToolType.LASER: {
+                showCursor();
+                triggerHideCursor();
+                break;
+            }
         }
 
         // don't propagate event any further
@@ -901,9 +907,11 @@ let RevealWhiteboard = (function(){
                 break;
             }
 
-            //case ToolType.LASER: {
-                //break;
-            //}
+            case ToolType.LASER: {
+                showCursor();
+                triggerHideCursor();
+                break;
+            }
         }
 
         // don't propagate event any further
