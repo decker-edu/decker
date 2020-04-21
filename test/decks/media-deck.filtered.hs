@@ -1,0 +1,55 @@
+[HorizontalRule
+,Header 1 ("local-image",[],[]) [Str "Local",Space,Str "Image"]
+,RawBlock (Format "html5") "<figure class=\"decker\" style=\"border:2px solid magenta;\"><img class=\"decker\" data-src=\"include/06-metal.png\"><figcaption class=\"decker\">Caption</figcaption></figure>"
+,HorizontalRule
+,Header 1 ("local-image-50",[],[]) [Str "Local",Space,Str "Image",Space,Str "50%"]
+,RawBlock (Format "html5") "<img class=\"decker\" data-src=\"include/06-metal.png\" style=\"border:2px solid magenta;width:50%;\">"
+,HorizontalRule
+,Header 1 ("local-video-autoplay",[],[]) [Str "Local",Space,Str "Video",Space,Str "Autoplay"]
+,RawBlock (Format "html5") "<figure class=\"decker\" style=\"border:2px solid magenta;\"><video class=\"decker\" data-src=\"movie.mp4\" data-autoplay=\"1\"></video><figcaption class=\"decker\">Caption</figcaption></figure>"
+,HorizontalRule
+,Header 1 ("local-video-50",[],[]) [Str "Local",Space,Str "Video",Space,Str "50%"]
+,RawBlock (Format "html5") "<video class=\"decker\" data-src=\"movie.mp4\" style=\"border:2px solid magenta;width:50%;\" controls=\"1\" data-autoplay=\"1\"></video>"
+,HorizontalRule
+,Header 1 ("local-video-100px",[],[]) [Str "Local",Space,Str "Video",Space,Str "100px"]
+,RawBlock (Format "html5") "<video class=\"decker\" data-src=\"movie.mp4\" style=\"border:2px solid magenta;width:auto;height:100px;\" controls=\"1\" data-autoplay=\"1\"></video>"
+,HorizontalRule
+,Header 1 ("local-video-200px-x-200px",[],[]) [Str "Local",Space,Str "Video",Space,Str "200px",Space,Str "x",Space,Str "200px"]
+,RawBlock (Format "html5") "<video class=\"decker\" data-src=\"movie.mp4\" style=\"border:2px solid magenta;width:200px;height:200px;\" controls=\"1\" data-autoplay=\"1\"></video>"
+,HorizontalRule
+,Header 1 ("local-audio",[],[]) [Str "Local",Space,Str "audio"]
+,RawBlock (Format "html5") "<img class=\"decker controls autoplay\" data-src=\"audio.mp3\" style=\"border:2px solid magenta;width:100px;height:100px;\">"
+,HorizontalRule
+,Header 1 ("local-video-and-audio",[],[]) [Str "Local",Space,Str "Video",Space,Str "And",Space,Str "Audio"]
+,RawBlock (Format "html5") "<video class=\"decker\" data-src=\"movie.mp4\" controls=\"1\" data-autoplay=\"1\" style=\"border:2px solid magenta;\"></video>"
+,RawBlock (Format "html5") "<img class=\"decker autoplay\" data-src=\"audio.mp3\" style=\"border:2px solid magenta;\">"
+,HorizontalRule
+,Header 1 ("local-video-1",[],[]) [Str "Local",Space,Str "Video",Space,Str "1"]
+,RawBlock (Format "html5") "<video class=\"decker\" data-src=\"movie.mp4\" controls=\"1\" data-autoplay=\"1\" style=\"border:2px solid magenta;\"></video>"
+,HorizontalRule
+,Header 1 ("local-video-2",[],[]) [Str "Local",Space,Str "Video",Space,Str "2"]
+,RawBlock (Format "html5") "<video class=\"decker\" data-src=\"movie.mp4\" controls=\"1\" data-autoplay=\"1\" style=\"border:2px solid magenta;\"></video>"
+,HorizontalRule
+,Header 1 ("local-video-3",[],[]) [Str "Local",Space,Str "Video",Space,Str "3"]
+,RawBlock (Format "html5") "<video class=\"decker\" data-src=\"movie.mp4\" controls=\"1\" data-autoplay=\"1\" style=\"border:2px solid magenta;\"></video>"
+,HorizontalRule
+,Header 1 ("local-video-4",[],[]) [Str "Local",Space,Str "Video",Space,Str "4"]
+,RawBlock (Format "html5") "<video class=\"decker\" data-src=\"movie.mp4#t=0.2,0.5\" controls=\"1\" style=\"border:2px solid magenta;\"></video>"
+,HorizontalRule
+,Header 1 ("local-video-5",[],[]) [Str "Local",Space,Str "Video",Space,Str "5"]
+,RawBlock (Format "html5") "<video class=\"decker\" data-src=\"movie.mp4\" controls=\"1\" loop=\"1\" data-autoplay=\"1\" style=\"border:2px solid magenta;\"></video>"
+,HorizontalRule
+,Header 1 ("images-in-a-row",[],[]) [Str "3",Space,Str "Images",Space,Str "in",Space,Str "a",Space,Str "Row"]
+,RawBlock (Format "html5") "<figure style=\"border:2px solid cyan;\" class=\"decker\"><div class=\"decker image-row\"><div><figure class=\"decker\" style=\"border:2px solid magenta;\"><img class=\"decker\" data-src=\"include/06-metal.png\"><figcaption class=\"decker\">Someone please fix my flexbox CSS</figcaption></figure></div><div><img class=\"decker\" data-src=\"include/06-metal-v.png\" style=\"border:2px solid magenta;\"></div><div><figure class=\"decker\" style=\"border:2px solid magenta;\"><img class=\"decker\" data-src=\"include/06-metal.png\"><figcaption class=\"decker\">This has it\8217s own caption.</figcaption></figure></div></div><figcaption> Three in a row. With a caption below all three.</figcaption></figure>"
+,HorizontalRule
+,Header 1 ("somethings-in-a-row",[],[]) [Str "3",Space,Str "Somethings",Space,Str "in",Space,Str "a",Space,Str "Row"]
+,RawBlock (Format "html5") "<figure style=\"border:2px solid cyan;\" class=\"decker\"><div class=\"decker image-row\"><div><figure class=\"decker\" style=\"border:2px solid magenta;\"><img class=\"decker\" data-src=\"include/06-metal.png\"><figcaption class=\"decker\">Someone please fix my flexbox CSS</figcaption></figure></div><div><figure class=\"decker\" style=\"border:2px solid magenta;\"><video class=\"decker\" data-src=\"movie.mp4\" controls=\"1\" loop=\"1\"></video><figcaption class=\"decker\"><span class=\"emoji\" data-emoji=\"cinema\">\127910</span> <span class=\"emoji\" data-emoji=\"cinema\">\127910</span> <span class=\"emoji\" data-emoji=\"smile\">\128516</span></figcaption></figure></div><div><figure class=\"decker\" style=\"border:2px solid magenta;\"><img class=\"decker\" data-src=\"include/06-metal.png\"><figcaption class=\"decker\">This has it\8217s own caption.</figcaption></figure></div></div><figcaption> Three somethings in a row. With a caption below all three. The second one is a <span class=\"emoji\" data-emoji=\"cinema\">\127910</span>.</figcaption></figure>"
+,HorizontalRule
+,Header 1 ("pdf",[],[]) [Str "PDF"]
+,RawBlock (Format "html5") "<figure class=\"decker\" style=\"border:2px solid magenta;width:100%;\"><object class=\"decker\" type=\"application/pdf\" data=\"include/06-metal.pdf\"></object><figcaption class=\"decker\">This is a PDF document.</figcaption></figure>"
+,HorizontalRule
+,Header 1 ("ganz-schlimm-emdedded",[],[]) [Str "Ganz",Space,Str "Schlimm",Space,Str "Emdedded"]
+,RawBlock (Format "html5") "<figure class=\"decker embed\" style=\"border:2px solid magenta;\"><span class=\"decker svg\"><?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n<!-- Generated by graphviz version 2.40.1 (20161225.0304)\n -->\n<!-- Title: %3 Pages: 1 -->\n<svg width=\"206pt\" height=\"188pt\"\n viewBox=\"0.00 0.00 206.00 188.00\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<g id=\"graph0\" class=\"graph\" transform=\"scale(1 1) rotate(0) translate(4 184)\">\n<title>%3</title>\n<polygon fill=\"#ffffff\" stroke=\"transparent\" points=\"-4,4 -4,-184 202,-184 202,4 -4,4\"/>\n<!-- A -->\n<g id=\"node1\" class=\"node\">\n<title>A</title>\n<ellipse fill=\"#9acd32\" stroke=\"#000000\" cx=\"63\" cy=\"-162\" rx=\"27\" ry=\"18\"/>\n<text text-anchor=\"middle\" x=\"63\" y=\"-157.8\" font-family=\"Times,serif\" font-size=\"14.00\" fill=\"#000000\">A</text>\n</g>\n<!-- B -->\n<g id=\"node2\" class=\"node\">\n<title>B</title>\n<ellipse fill=\"#d3d3d3\" stroke=\"#000000\" cx=\"27\" cy=\"-90\" rx=\"27\" ry=\"18\"/>\n<text text-anchor=\"middle\" x=\"27\" y=\"-85.8\" font-family=\"Times,serif\" font-size=\"14.00\" fill=\"#000000\">B</text>\n</g>\n<!-- A&#45;&gt;B -->\n<g id=\"edge1\" class=\"edge\">\n<title>A&#45;&gt;B</title>\n<path fill=\"none\" stroke=\"#000000\" d=\"M54.2854,-144.5708C50.0403,-136.0807 44.8464,-125.6929 40.1337,-116.2674\"/>\n<polygon fill=\"#000000\" stroke=\"#000000\" points=\"43.237,-114.6477 35.6343,-107.2687 36.976,-117.7782 43.237,-114.6477\"/>\n</g>\n<!-- C -->\n<g id=\"node3\" class=\"node\">\n<title>C</title>\n<ellipse fill=\"#d3d3d3\" stroke=\"#000000\" cx=\"99\" cy=\"-90\" rx=\"27\" ry=\"18\"/>\n<text text-anchor=\"middle\" x=\"99\" y=\"-85.8\" font-family=\"Times,serif\" font-size=\"14.00\" fill=\"#000000\">C</text>\n</g>\n<!-- A&#45;&gt;C -->\n<g id=\"edge2\" class=\"edge\">\n<title>A&#45;&gt;C</title>\n<path fill=\"none\" stroke=\"#000000\" d=\"M71.7146,-144.5708C75.9597,-136.0807 81.1536,-125.6929 85.8663,-116.2674\"/>\n<polygon fill=\"#000000\" stroke=\"#000000\" points=\"89.024,-117.7782 90.3657,-107.2687 82.763,-114.6477 89.024,-117.7782\"/>\n</g>\n<!-- D -->\n<g id=\"node4\" class=\"node\">\n<title>D</title>\n<ellipse fill=\"#d3d3d3\" stroke=\"#000000\" cx=\"27\" cy=\"-18\" rx=\"27\" ry=\"18\"/>\n<text text-anchor=\"middle\" x=\"27\" y=\"-13.8\" font-family=\"Times,serif\" font-size=\"14.00\" fill=\"#000000\">D</text>\n</g>\n<!-- B&#45;&gt;D -->\n<g id=\"edge6\" class=\"edge\">\n<title>B&#45;&gt;D</title>\n<path fill=\"none\" stroke=\"#000000\" d=\"M27,-71.8314C27,-64.131 27,-54.9743 27,-46.4166\"/>\n<polygon fill=\"#000000\" stroke=\"#000000\" points=\"30.5001,-46.4132 27,-36.4133 23.5001,-46.4133 30.5001,-46.4132\"/>\n</g>\n<!-- C&#45;&gt;D -->\n<g id=\"edge3\" class=\"edge\">\n<title>C&#45;&gt;D</title>\n<path fill=\"none\" stroke=\"#000000\" d=\"M83.7307,-74.7307C73.803,-64.803 60.6847,-51.6847 49.5637,-40.5637\"/>\n<polygon fill=\"#000000\" stroke=\"#000000\" points=\"51.7933,-37.8436 42.2473,-33.2473 46.8436,-42.7933 51.7933,-37.8436\"/>\n</g>\n<!-- E -->\n<g id=\"node5\" class=\"node\">\n<title>E</title>\n<ellipse fill=\"#d3d3d3\" stroke=\"#000000\" cx=\"99\" cy=\"-18\" rx=\"27\" ry=\"18\"/>\n<text text-anchor=\"middle\" x=\"99\" y=\"-13.8\" font-family=\"Times,serif\" font-size=\"14.00\" fill=\"#000000\">E</text>\n</g>\n<!-- C&#45;&gt;E -->\n<g id=\"edge4\" class=\"edge\">\n<title>C&#45;&gt;E</title>\n<path fill=\"none\" stroke=\"#000000\" d=\"M99,-71.8314C99,-64.131 99,-54.9743 99,-46.4166\"/>\n<polygon fill=\"#000000\" stroke=\"#000000\" points=\"102.5001,-46.4132 99,-36.4133 95.5001,-46.4133 102.5001,-46.4132\"/>\n</g>\n<!-- F -->\n<g id=\"node6\" class=\"node\">\n<title>F</title>\n<ellipse fill=\"#d3d3d3\" stroke=\"#000000\" cx=\"171\" cy=\"-18\" rx=\"27\" ry=\"18\"/>\n<text text-anchor=\"middle\" x=\"171\" y=\"-13.8\" font-family=\"Times,serif\" font-size=\"14.00\" fill=\"#000000\">F</text>\n</g>\n<!-- C&#45;&gt;F -->\n<g id=\"edge5\" class=\"edge\">\n<title>C&#45;&gt;F</title>\n<path fill=\"none\" stroke=\"#000000\" d=\"M114.2693,-74.7307C124.197,-64.803 137.3153,-51.6847 148.4363,-40.5637\"/>\n<polygon fill=\"#000000\" stroke=\"#000000\" points=\"151.1564,-42.7933 155.7527,-33.2473 146.2067,-37.8436 151.1564,-42.7933\"/>\n</g>\n</g>\n</svg>\n</span><figcaption class=\"decker\">Directly embedded SVG</figcaption></figure>"
+,HorizontalRule
+,Header 1 ("image-with-incorrect-url",[],[]) [Str "Image",Space,Str "with",Space,Str "incorrect",Space,Str "URL"]
+,RawBlock (Format "html5") "<div class=\"decker image error\"><div class=\"message\">Local resource does not exit: test/decks/this-does-not-exist.png</div></div>"]

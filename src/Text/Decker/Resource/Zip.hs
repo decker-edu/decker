@@ -2,6 +2,9 @@ module Text.Decker.Resource.Zip
   ( extractResourceEntries
   , extractResourceEntry
   , extractResourceEntryList
+  , extractEntry
+  , extractSubEntries
+  , extractEntryList
   ) where
 
 import Text.Decker.Internal.Exception
@@ -63,3 +66,28 @@ extractResources = do
     Dir.createDirectoryIfMissing True dataDir
     withArchive deckerExecutable (unpackInto dataDir)
     putStrLn $ "# resources extracted to " ++ dataDir
+
+extractSubEntries :: FilePath -> FilePath -> FilePath -> IO ()
+extractSubEntries prefix archivePath destinationDirectory =
+  withArchive archivePath $ do
+    subEntries <- filterWithKey (subEntry prefix) <$> getEntries
+    forM_ (keys subEntries) saveSubEntry
+  where
+    subEntry dir sel _ = dir `isPrefixOf` unEntrySelector sel
+    saveSubEntry sel = do
+      let path = destinationDirectory </> unEntrySelector sel
+      let dir = takeDirectory path
+      liftIO $ Dir.createDirectoryIfMissing True dir
+      saveEntry sel path
+
+extractEntry :: FilePath -> FilePath -> IO BS.ByteString
+extractEntry entryName archivePath = do
+  withArchive archivePath $ mkEntrySelector entryName >>= getEntry
+
+extractEntryList :: [FilePath] -> FilePath -> IO [(FilePath, BS.ByteString)]
+extractEntryList entryNames archivePath = do
+  withArchive archivePath $ foldM extractEntry [] entryNames
+  where
+    extractEntry entryList entryName = do
+      bs <- mkEntrySelector entryName >>= getEntry
+      return $ (entryName, bs) : entryList

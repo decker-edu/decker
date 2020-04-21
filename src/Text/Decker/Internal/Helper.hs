@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Text.Decker.Internal.Helper
   ( dropSuffix
   , replaceSuffix
@@ -10,19 +12,25 @@ module Text.Decker.Internal.Helper
   , copyDir
   , copyFileIfNewer
   , fileIsNewer
+  , handleLeft
+  , handleLeftM
+  , isDevelopmentRun
   ) where
 
+import Text.Decker.Internal.Exception
+
+import Control.Monad.Catch
 import Control.Monad.State
+import qualified Data.List as List
 import qualified Data.List.Extra as List
-import Data.Maybe
 import qualified Data.Set as Set
+import Relude
 import System.CPUTime
 import qualified System.Directory as Dir
+import System.Environment
+import System.FilePath
 import Text.Pandoc
 import Text.Printf
-import Control.Monad.Extra
-import Control.Exception
-import System.FilePath
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -65,10 +73,10 @@ time name action = do
 copyDir :: FilePath -> FilePath -> IO ()
 copyDir src dst = do
   unlessM (Dir.doesDirectoryExist src) $
-    throw (userError "src does not exist or is not a directory")
+    throwM (ResourceException "src does not exist or is not a directory")
   dstExists <- Dir.doesDirectoryExist dst
-  if dstExists && (last (splitPath src) /= last (splitPath dst))
-    then copyDir src (dst </> last (splitPath src))
+  if dstExists && (List.last (splitPath src) /= List.last (splitPath dst))
+    then copyDir src (dst </> List.last (splitPath src))
     else do
       Dir.createDirectoryIfMissing True dst
       contents <- Dir.listDirectory src
@@ -100,3 +108,20 @@ fileIsNewer a b = do
              return (at > bt)
            else return False
     else return aexists
+
+handleLeft :: ToText a => Either a b -> b
+handleLeft (Right x) = x
+handleLeft (Left e) = error $ toText e
+
+handleLeftM :: (ToString a, MonadThrow m) => Either a b -> m b
+handleLeftM (Right x) = return x
+handleLeftM (Left e) = throwM $ InternalException $ toString e
+
+-- | Finds out if the decker executable is located below the current directory.
+-- This means most probably that decker was started in the decker development
+-- project using `stack run decker`.
+isDevelopmentRun :: IO Bool
+isDevelopmentRun = do
+  cwd <- Dir.getCurrentDirectory
+  exePath <- getExecutablePath
+  return $ cwd `isPrefixOf` exePath

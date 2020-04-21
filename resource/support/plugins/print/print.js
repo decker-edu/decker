@@ -11,7 +11,7 @@ var RevealPrint = (function(){
         {
             var height = Reveal.getConfig().height;
             Reveal.getSlides().forEach( function( slide ) {
-                slide.style.minHeight = height + "px";
+                slide.style.height = height + "px";
             });
         }
     }
@@ -73,7 +73,7 @@ var RevealPrint = (function(){
      */
     function setupIframes()
     {
-        for (var e of document.querySelectorAll('.reveal section iframe.pdf'))
+        for (var e of document.querySelectorAll('.reveal section figure.print iframe, .reveal section iframe.print'))
         {
             if (e.hasAttribute("data-src"))
             {

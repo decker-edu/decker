@@ -39,7 +39,7 @@ body {
   line-height: 1.3;
   font-weight: inherit;
   padding: 0; /* MARIO: prevent 20px at top/bottom by reveal.css */
-  min-height: 100%; /* MARIO: slides should be full height for footer to be positioned correctly */
+  /*min-height: 100%; [> MARIO: slides should be full height for footer to be positioned correctly <]*/
   text-align: center;
 }
 
@@ -171,25 +171,6 @@ body {
 .reveal p {
   margin: 10px 0;
   line-height: 1.3; }
-
-/* Ensure certain elements are never larger than the slide itself */
-.reveal img,
-.reveal video {
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    max-width: 95%;
-    /*max-height: 95vh;*/
-    vertical-align: middle;
-}
-.reveal iframe {
-    border: 1px solid lightgray;
-    outline: none;
-    overflow: hidden;
-    max-width:  100%;
-    max-height: 100%;
-    vertical-align: middle;
-}
 
 .reveal strong {
     font-weight: bold;
@@ -324,7 +305,7 @@ body {
 
 /* box around block of code */
 .reveal pre {
-    display: inline-block;
+    display: block;
     position: relative;
     width: auto;
     margin: 10px auto;
@@ -451,28 +432,50 @@ body {
   background: #1a53a1; }
 
 /*********************************************
- * IMAGES
+ * MEDIA: images, videos, iframes, figures
  *********************************************/
+
+.reveal img,
+.reveal video {
+    display: inline-block;
+    /* remove the following two lines to get sizing of 
+     * rendered code block sizing working */
+    /*width: auto;*/
+    /*height: auto;*/
+    object-fit: contain;
+    max-width: 100%;
+    max-height: 100%;
+    vertical-align: middle;
+    margin: 0px;
+    border: 0px;
+    box-shadow: none;
+}
+
+.reveal iframe {
+    border: 1px solid lightgray;
+    outline: none;
+    overflow: hidden;
+    max-width:  100%;
+    max-height: 100%;
+    vertical-align: middle;
+}
 
 .reveal figure {
     display: inline-block;
     /*vertical-align: middle;*/
 }
 
-.reveal img {
-    display: inline-block;
-    margin: 5px 0px 0px 0px;
-    border: 0;
-    box-shadow: none;
-}
-
-.reveal figure img {
-  margin: 5px 0px 0px 0px;
-  border: 0;
+.reveal figure>img,
+.reveal figure>video,
+.reveal figure>iframe {
+  margin: auto;
+  border: 0px;
   box-shadow: none;
+  max-width: 100%;
+  max-height: 100%;
 }
 
-.reveal figure figcaption, .reveal .caption {
+.reveal figure figcaption {
   margin: 10px 0px 0px 0px;
   line-height: 1.2;
   font-style: italic;
@@ -892,5 +895,181 @@ body {
 .reveal section mjx-container > svg a {
 	color: #2a9ddf;
 	fill: #2a9ddf;
+}
+
+
+/*********************************************
+ * MARIO: fullscreen for iframes
+ *********************************************/
+
+.reveal div.fs-container { 
+    margin:   auto;
+    border:   0px;
+    padding:  0px;
+    position: relative;
+}
+
+.reveal div.fs-container:fullscreen {
+    overflow-x:       hidden;
+    overflow-y:       auto;
+    background-color: white;
+    padding:          20px;
+}
+
+.reveal div.fs-container:fullscreen>iframe {
+    border: none;
+}
+
+.reveal button.fs-button { 
+    z-index:          100;
+    display:          inline-block;
+    position:         absolute;
+    top:              0px;
+    right:            0px;
+    cursor:           pointer;
+    padding:          2px;
+    border:           none;
+    background-color: rgba(255,255,255,0.5);
+    opacity:          0.2;
+    font-size:        20px;
+    outline:          none;
+}
+
+.reveal button.fs-button:hover { 
+    opacity:          1.0;
+    background-color: rgba(255,255,255,0.8);
+}
+
+
+/*********************************************
+ * MARIO: bibliogrphy
+ *********************************************/
+
+.reveal .references {
+    margin:        auto;
+    max-height:    600px;
+    width:         90%;
+    overflow-y:    auto;
+}
+
+.reveal .references>div {
+    padding-left:  1em;
+    text-indent:   -1em;
+    text-align:    left;
+    margin-bottom: 1em;
+}
+
+
+/*********************************************
+ * MARIO: matching questions
+ *********************************************/
+
+.reveal .matching {
+  text-align: center;
+}
+
+.reveal .matching .dropzones {
+    width:        100%;
+    display:      table;
+    table-layout: fixed;
+}
+
+.reveal .matching .dropzone {
+    display:    table-cell;
+    padding:    10px;
+    border:     1px solid black;
+    text-align: center;
+}
+
+.reveal .matching .draggable {
+    display:        table-cell;
+    margin:         auto;
+    vertical-align: middle;
+    overflow:       hidden;
+    margin:         0em 0.5em;
+    border:         3px solid #2a9ddf;
+    border-radius:  20px;
+    padding:        20px;
+    background:     white;
+}
+.reveal .matching .dropzone .draggable {
+    display:    block;
+    border:     none;
+    background: inherit;
+}
+
+.reveal .matching .draggableChild {
+    pointer-events: none;
+}
+
+.reveal .matching .dragzone {
+    display:        table;
+    table-layout:   fixed;
+    border-spacing: 20px;
+    margin-top:     5%;
+    text-align:     center;
+    width:          100%;
+    position:       relative;
+}
+
+.reveal .matching .dragzone:after,
+.reveal .matching .dragzone:before {
+    bottom:         100%;
+    left:           50%;
+    border:         solid transparent;
+    content:        " ";
+    height:         0px;
+    width:          0px;
+    position:       absolute;
+    pointer-events: none;
+}
+
+.reveal .matching .dragzone:after {
+    border-color:        rgba(136, 183, 213, 0);
+    border-bottom-color: #111;
+    border-width:        30px;
+    margin-left:         -30px;
+}
+
+.reveal select {
+    font:        inherit;
+    font-size:   0.9em;
+    font-weight: normal;
+    padding:     5px;
+    border:      2px solid #2a9ddf;
+    background:  white;
+}
+
+.reveal select option {
+    font:        inherit;
+    font-size:   0.9em;
+    max-height:  1em;
+    min-height:  1em !important;
+    font-weight: normal;
+}
+
+.reveal input {
+    font:        inherit;
+    font-size:   0.9em;
+    font-weight: normal;
+    margin:      0.5em;
+    padding:     10px;
+    border:      2px solid #2a9ddf;
+}
+
+.reveal button.freetextAnswerButton,
+.reveal button.btAnswerButton,
+.reveal button.matchingAnswerButton,
+.reveal button.retryButton
+{
+    font:        inherit;
+    font-size:   0.7em;
+    font-weight: normal;
+    margin:      0.5em;
+    padding:     10px;
+    background:  #eeeeee;
+    border: 2px solid #dddddd;
+    border-radius: 5px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
 

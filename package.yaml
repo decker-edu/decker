@@ -49,6 +49,7 @@ dependencies:
   - data-default
   - directory
   - doctemplates
+  - exceptions
   - extra
   - filepath
   - formatting
@@ -69,6 +70,7 @@ dependencies:
   - mtl
   - multimap
   - mustache
+  - neat-interpolation
   - network-uri
   - pandoc
   - pandoc-citeproc
@@ -142,6 +144,7 @@ tests:
 
 default-extensions:
   - DeriveDataTypeable
+  - DeriveGeneric
   - EmptyCase
   - FlexibleContexts
   - FlexibleInstances
@@ -153,6 +156,7 @@ default-extensions:
   - NamedFieldPuns
   - NoMonomorphismRestriction
   - OverloadedStrings
+  - QuasiQuotes
   - RecordWildCards
   - ScopedTypeVariables
   - TemplateHaskell

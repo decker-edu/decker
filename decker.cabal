@@ -1,0 +1,349 @@
+cabal-version: 1.24
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 6ca4c1cad2e9c8995a8b7e2e9d7f79126dcd7b4a56a5f04ac2cae6f6e5da9f65
+
+name:           decker
+version:        0.10.0
+synopsis:       A markdown based tool for slide deck creation
+description:    Please see the README at <https://gitlab2.informatik.uni-wuerzburg.de/decker/decker#readme>
+category:       Tool
+author:         Henrik Tramberend
+maintainer:     henrik.tramberend@beuth-hochschule.de
+copyright:      2020 Henrik Tramberend
+license:        OtherLicense
+license-file:   LICENSE
+build-type:     Custom
+extra-source-files:
+    readme.md
+    Dockerfile
+    makefile
+    resource/template/deck.html
+    resource/template/deck.md
+    resource/template/default.yaml
+    resource/template/handout.html
+    resource/template/handout.tex
+    resource/template/page.html
+    resource/template/page.tex
+    resource/support/css/_boxes.scss
+    resource/support/css/_code.scss
+    resource/support/css/_columns.scss
+    resource/support/css/_fonts.scss
+    resource/support/css/_helper.scss
+    resource/support/css/_media.scss
+    resource/support/css/_new-media.scss
+    resource/support/css/_print.scss
+    resource/support/css/_quizzes.scss
+    resource/support/css/decker.css
+    resource/support/css/decker.scss
+    resource/support/css/handout.css
+    resource/support/css/handout.scss
+    resource/support/css/makefile
+    resource/support/css/mario.css
+    resource/support/css/page.css
+    resource/support/css/page.scss
+    resource/support/js/decker.js
+    resource/support/js/handout.js
+    resource/support/js/page.js
+    resource/support/js/quiz.js
+    resource/support/js/sage.js
+    resource/example/chicago-author-date.csl
+    resource/example/decker.yaml
+    resource/example/example-deck.md
+    resource/example/example-page.md
+    resource/example/example.bib
+    third-party/symlinks.mk
+
+custom-setup
+  setup-depends:
+      Cabal
+    , Glob
+    , base >=4.7 && <5
+    , binary
+    , bytestring
+    , conduit
+    , directory
+    , extra
+    , filepath
+    , zip
+
+library
+  exposed-modules:
+      Text.Decker.Filter.Attrib
+      Text.Decker.Filter.Attributes
+      Text.Decker.Filter.CRC32
+      Text.Decker.Filter.Decker
+      Text.Decker.Filter.Filter
+      Text.Decker.Filter.Header
+      Text.Decker.Filter.IncludeCode
+      Text.Decker.Filter.Layout
+      Text.Decker.Filter.Local
+      Text.Decker.Filter.Macro
+      Text.Decker.Filter.MarioCols
+      Text.Decker.Filter.MarioMedia
+      Text.Decker.Filter.Monad
+      Text.Decker.Filter.Quiz
+      Text.Decker.Filter.Range
+      Text.Decker.Filter.Render
+      Text.Decker.Filter.ShortLink
+      Text.Decker.Filter.Slide
+      Text.Decker.Filter.Streaming
+      Text.Decker.Filter.Util
+      Text.Decker.Internal.Common
+      Text.Decker.Internal.CompileTime
+      Text.Decker.Internal.Exception
+      Text.Decker.Internal.External
+      Text.Decker.Internal.Helper
+      Text.Decker.Internal.Meta
+      Text.Decker.Internal.URI
+      Text.Decker.Project.Git
+      Text.Decker.Project.Glob
+      Text.Decker.Project.Project
+      Text.Decker.Project.Shake
+      Text.Decker.Project.Version
+      Text.Decker.Reader.Markdown
+      Text.Decker.Resource.Resource
+      Text.Decker.Resource.Template
+      Text.Decker.Resource.Zip
+      Text.Decker.Server.Server
+      Text.Decker.Writer.Html
+      Text.Decker.Writer.Pdf
+      Text.Pandoc.Lens
+  other-modules:
+      Paths_decker
+  hs-source-dirs:
+      src
+  default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
+  ghc-options: -fwarn-unused-imports
+  build-depends:
+      Glob
+    , HTTP
+    , aeson
+    , ansi-terminal
+    , array
+    , base >=4.7 && <5
+    , base16-bytestring
+    , base64-bytestring
+    , blaze-html
+    , blaze-markup
+    , bytestring
+    , containers
+    , data-default
+    , directory
+    , doctemplates
+    , exceptions
+    , extra
+    , filepath
+    , formatting
+    , fsnotify
+    , groom
+    , hashable
+    , http-client
+    , http-conduit
+    , http-types
+    , lens
+    , lens-action
+    , lens-aeson
+    , listsafe
+    , modern-uri
+    , monad-loops
+    , mtl
+    , multimap
+    , mustache
+    , neat-interpolation
+    , network-uri
+    , pandoc
+    , pandoc-citeproc
+    , pandoc-types
+    , process
+    , pureMD5
+    , random
+    , regex-tdfa
+    , relude
+    , scientific
+    , shake
+    , snap-core
+    , snap-server
+    , split
+    , tagsoup
+    , template-haskell
+    , text
+    , time
+    , transformers
+    , unordered-containers
+    , utf8-string
+    , vector
+    , websockets
+    , websockets-snap
+    , wreq
+    , yaml
+    , zip
+  if os(windows)
+    exposed-modules:
+        System.Decker.OS
+    hs-source-dirs:
+        src-win
+  else
+    exposed-modules:
+        System.Decker.OS
+    hs-source-dirs:
+        src-unix
+  default-language: Haskell2010
+
+executable decker
+  main-is: Decker.hs
+  other-modules:
+      Paths_decker
+  hs-source-dirs:
+      app
+  default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
+  ghc-options: -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N -fwarn-unused-imports -main-is Decker
+  build-depends:
+      Glob
+    , HTTP
+    , aeson
+    , ansi-terminal
+    , array
+    , base >=4.7 && <5
+    , base16-bytestring
+    , base64-bytestring
+    , blaze-html
+    , blaze-markup
+    , bytestring
+    , containers
+    , data-default
+    , decker
+    , directory
+    , doctemplates
+    , exceptions
+    , extra
+    , filepath
+    , formatting
+    , fsnotify
+    , groom
+    , hashable
+    , http-client
+    , http-conduit
+    , http-types
+    , lens
+    , lens-action
+    , lens-aeson
+    , listsafe
+    , modern-uri
+    , monad-loops
+    , mtl
+    , multimap
+    , mustache
+    , neat-interpolation
+    , network-uri
+    , pandoc
+    , pandoc-citeproc
+    , pandoc-types
+    , process
+    , pureMD5
+    , random
+    , regex-tdfa
+    , relude
+    , scientific
+    , shake
+    , snap-core
+    , snap-server
+    , split
+    , tagsoup
+    , template-haskell
+    , text
+    , time
+    , transformers
+    , unordered-containers
+    , utf8-string
+    , vector
+    , websockets
+    , websockets-snap
+    , wreq
+    , yaml
+    , zip
+  default-language: Haskell2010
+
+test-suite decker-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      IncludeTests
+      MediaTests
+      MetaTests
+      ShortLinkTests
+      WatchTests
+      Paths_decker
+  hs-source-dirs:
+      test
+  default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
+  ghc-options: -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Glob
+    , HTTP
+    , aeson
+    , ansi-terminal
+    , array
+    , base >=4.7 && <5
+    , base16-bytestring
+    , base64-bytestring
+    , blaze-html
+    , blaze-markup
+    , bytestring
+    , containers
+    , data-default
+    , decker
+    , directory
+    , doctemplates
+    , exceptions
+    , extra
+    , filepath
+    , formatting
+    , fsnotify
+    , groom
+    , hashable
+    , hspec
+    , http-client
+    , http-conduit
+    , http-types
+    , lens
+    , lens-action
+    , lens-aeson
+    , listsafe
+    , modern-uri
+    , monad-loops
+    , mtl
+    , multimap
+    , mustache
+    , neat-interpolation
+    , network-uri
+    , pandoc
+    , pandoc-citeproc
+    , pandoc-types
+    , process
+    , pureMD5
+    , random
+    , regex-tdfa
+    , relude
+    , scientific
+    , shake
+    , snap-core
+    , snap-server
+    , split
+    , tagsoup
+    , template-haskell
+    , text
+    , time
+    , transformers
+    , unordered-containers
+    , utf8-string
+    , vector
+    , websockets
+    , websockets-snap
+    , wreq
+    , yaml
+    , zip
+  default-language: Haskell2010

@@ -15,6 +15,7 @@ module Text.Decker.Resource.Resource
   -- * Provisioning
   , provisionResources
   , provisionResource
+  , publishResource
   ) where
 
 import System.Decker.OS
@@ -27,7 +28,6 @@ import Text.Decker.Resource.Zip
 
 import Control.Exception
 import Control.Lens ((^.))
-import Control.Monad
 import Control.Monad.Extra
 import Control.Monad.State
 import qualified Data.Map.Lazy as Map
@@ -56,16 +56,11 @@ elementAttributes =
 runtimeMetaKeys :: [Text.Text]
 runtimeMetaKeys = ["css", "base-css"]
 
--- | Resources in meta data that are needed at compile time. They have to be
--- specified as local URLs and must exist.
-templateOverrideMetaKeys :: [Text.Text]
-templateOverrideMetaKeys = ["template"]
-
 compiletimeMetaKeys :: [Text.Text]
 compiletimeMetaKeys = ["bibliography", "csl", "citation-abbreviations"]
 
 metaKeys :: [Text.Text]
-metaKeys = runtimeMetaKeys <> compiletimeMetaKeys <> templateOverrideMetaKeys
+metaKeys = runtimeMetaKeys <> compiletimeMetaKeys
 
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()
@@ -80,12 +75,6 @@ writeTutorialProject = do
   cwd <- Dir.getCurrentDirectory
   putStrLn $ "Extracting tutorial project to " ++ cwd ++ "."
   extractResourceEntries "tutorial" cwd
-
-writeResourceFiles :: FilePath -> FilePath -> IO ()
-writeResourceFiles prefix destDir = do
-  dataDir <- deckerResourceDir
-  let src = dataDir </> prefix
-  copyDir src destDir
 
 -- | Copies single Resource file and returns Filepath
 copyResource :: Resource -> IO FilePath
@@ -104,45 +93,17 @@ linkResource resource = do
   return (publicUrl resource)
 
 provisionMetaResource ::
-     FilePath -> Provisioning -> (Text.Text, FilePath) -> Action FilePath
-provisionMetaResource base method (key, url)
+     Provisioning -> FilePath -> (Text.Text, FilePath) -> Action FilePath
+provisionMetaResource method base (key, url)
   | key `elem` runtimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
-    provisionResource base method filePath
-provisionMetaResource base method (key, url)
-  | key `elem` templateOverrideMetaKeys = do
-    cwd <- liftIO $ Dir.getCurrentDirectory
-    filePath <- urlToFilePathIfLocal cwd url
-    provisionTemplateOverrideSupportTopLevel cwd method filePath
-provisionMetaResource base _ (key, url)
+    provisionResource method base filePath
+provisionMetaResource method base (key, url)
   | key `elem` compiletimeMetaKeys = do
     filePath <- urlToFilePathIfLocal base url
     need [filePath]
     return filePath
 provisionMetaResource _ _ (key, url) = return url
-
-provisionTemplateOverrideSupport ::
-     FilePath -> Provisioning -> FilePath -> Action ()
-provisionTemplateOverrideSupport base method url = do
-  exists <- liftIO $ Dir.doesDirectoryExist url
-  if exists
-    then liftIO (Dir.listDirectory url) >>= mapM_ recurseProvision
-    else do
-      need [url]
-      provisionResource base method url
-      return ()
-  where
-    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
-
-provisionTemplateOverrideSupportTopLevel ::
-     FilePath -> Provisioning -> FilePath -> Action FilePath
-provisionTemplateOverrideSupportTopLevel base method url = do
-  liftIO (Dir.listDirectory url) >>= filterM dirFilter >>=
-    mapM_ recurseProvision
-  return $ url
-  where
-    dirFilter x = liftIO $ Dir.doesDirectoryExist (url </> x)
-    recurseProvision x = provisionTemplateOverrideSupport url method (url </> x)
 
 -- | Determines if a URL can be resolved to a local file. Absolute file URLs are
 -- resolved against and copied or linked to public from 
@@ -159,13 +120,13 @@ provisionTemplateOverrideSupportTopLevel base method url = do
 --       time.
 --
 -- Returns a public URL relative to base
-provisionResource :: FilePath -> Provisioning -> FilePath -> Action FilePath
-provisionResource base method filePath =
+provisionResource :: Provisioning -> FilePath -> FilePath -> Action FilePath
+provisionResource method base filePath = do
+  dirs <- projectDirsA
   case parseRelativeReference filePath of
     Nothing ->
       if hasDrive filePath
         then do
-          dirs <- projectDirsA
           let resource =
                 Resource
                   { sourceFile = filePath
@@ -174,28 +135,28 @@ provisionResource base method filePath =
                       makeRelativeTo (dirs ^. project) filePath
                   , publicUrl = urlPath $ makeRelativeTo base filePath
                   }
-          provision resource
+          publishResource method base resource
         else return filePath
     Just uri -> do
-      dirs <- projectDirsA
       let path = uriPath uri
       fileExists <- doesFileExist path
       if fileExists
         then do
           need [path]
           let resource = resourcePaths dirs base uri
-          provision resource
+          publishResource method base resource
         else throw $ ResourceException $ "resource does not exist: " ++ path
-  where
-    provision resource = do
-      publicResource <- publicResourceA
-      withResource publicResource 1 $
-        liftIO $
-        case method of
-          Copy -> copyResource resource
-          SymLink -> linkResource resource
-          Absolute -> absRefResource resource
-          Relative -> relRefResource base resource
+
+publishResource :: Provisioning -> FilePath -> Resource -> Action FilePath
+publishResource method base resource = do
+  publicResource <- publicResourceA
+  withResource publicResource 1 $
+    liftIO $
+    case method of
+      Copy -> copyResource resource
+      SymLink -> linkResource resource
+      Absolute -> absRefResource resource
+      Relative -> relRefResource base resource
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
 urlToFilePathIfLocal base uri =
@@ -218,8 +179,8 @@ provisionResources pandoc = do
   base <- gets basePath
   method <- gets provisioning
   lift $
-    mapMetaResources (provisionMetaResource base method) pandoc >>=
-    mapResources (provisionResource base method)
+    mapMetaResources (provisionMetaResource method base) pandoc >>=
+    mapResources (provisionResource method base)
 
 mapResources :: (FilePath -> Action FilePath) -> Pandoc -> Action Pandoc
 mapResources transform (Pandoc meta blocks) =
@@ -241,13 +202,13 @@ mapAttributes transform (ident, classes, kvs) = do
 mapInline :: (FilePath -> Action FilePath) -> Inline -> Action Inline
 mapInline transform (Image attr inlines (url, title)) = do
   a <- mapAttributes transform attr
-  u <- transform (Text.unpack url )
+  u <- transform (Text.unpack url)
   return $ Image a inlines (Text.pack u, title)
 mapInline transform lnk@(Link attr@(_, cls, _) inlines (url, title)) =
   if "resource" `elem` cls
     then do
       a <- mapAttributes transform attr
-      u <- transform (Text.unpack url )
+      u <- transform (Text.unpack url)
       return (Link a inlines (Text.pack u, title))
     else return lnk
 mapInline transform (Span attr inlines) = do

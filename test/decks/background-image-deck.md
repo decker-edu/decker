@@ -1,5 +1,6 @@
 ---
-history: True
+history: true
+title: Background Images
 ---
 
 # Background Images
@@ -38,7 +39,7 @@ history: True
 
     # Image in Title 1 ![](include/06-metal.png){size="cover"}
 
-# Image in Title 2 ![](include/06-metal.png){size="30%" repeat="repeat"}
+# Image in Title 2 ![](include/06-metal.png){size="33%" repeat="repeat" opacity="50%"}
 
 ## Source
 

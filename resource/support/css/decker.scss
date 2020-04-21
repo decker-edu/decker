@@ -13,6 +13,7 @@
 @import "columns";
 @import "boxes";
 @import "media";
+@import "new-media";
 @import "code";
 // @import "print"; Fucks up printing
 
@@ -47,7 +48,9 @@ body {
     text-align: left;
     font-weight: inherit;
     padding: space(0);
+    text-align:  var(--align-global);
 }
+
 
 .reveal p {
     margin: space(1 0);
@@ -318,34 +321,8 @@ dd {
     background: #1a53a1;
 }
 
-/*********************************************
- * IMAGES
- *********************************************/
-.reveal section img {
-    margin: 15px 0px;
-    background: rgba(255, 255, 255, 0.12);
-    border: none;
-    box-shadow: none;
-    display:block;
-    margin:auto;
-}
 
-.reveal section img.plain {
-    border: 0;
-    box-shadow: none;
-}
 
-.reveal a img {
-    -webkit-transition: all .15s linear;
-    -moz-transition: all .15s linear;
-    transition: all .15s linear;
-}
-
-.reveal a:hover img {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: #2a76dd;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
-}
 
 /*********************************************
  * NAVIGATION CONTROLS
@@ -473,4 +450,111 @@ dd {
         background: rgba(0, 0, 0, 0.85);
         text-shadow: none;
     }
+}
+
+/*********************************************
+ * TITLE SLIDE, now supporting Marc's and 
+ * Mario's versions
+ *********************************************/
+
+ .white-on-blue {
+    color: #ffffff;
+    background-color: #003366;
+}
+
+.reveal .title {
+    margin:  100px 0 0 0;
+    padding:     0px;
+    font-size:   1.6em;
+    text-align:  center;
+}
+
+.reveal .subtitle {
+    margin:      0 0 0 0;
+    padding:     0 0px 0px 0px;
+    font-weight: normal;
+    font-size:   1.2em;
+    text-align:  center;
+}
+
+.reveal .title-teaser img {
+    margin:      20px 0px 20px 0;
+    height:      300px;
+    width:       auto;
+    object-fit:  contain;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.reveal .affiliation-logo img {
+    margin:      0px 0 0 0;
+    height:      70px;
+    width:       auto;
+    object-fit:  contain;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.reveal .author {
+    margin:      0px 0 0 0;
+    font-weight: normal;
+    font-style:  normal;
+    font-size:   1.0em;
+    text-align:  center;
+}
+
+.reveal .affiliation {
+    margin:      0px 0 0 0;
+    font-weight: normal;
+    font-style:  normal;
+    font-size:   1.0em;
+    text-align:  center;
+}
+
+/*********************************************
+ * Alignment, beware of semantics as borrowed
+ * from CSS 
+ *********************************************/
+
+
+.reveal .float-left {
+    float: left;
+}
+
+.reveal .float-right {
+    float: right;
+}
+
+.reveal .vertical-align-top,
+.reveal .align-top
+ {
+    vertical-align: top;
+}
+
+.reveal .vertical-align-middle,
+.reveal .align-middle {
+    vertical-align: middle;
+}
+
+.reveal .vertical-align-bottom,
+.reveal .align-bottom {
+    vertical-align: bottom;
+}
+
+
+.reveal .align-left, 
+.reveal section.align-left {
+    text-align: left;
+}
+
+.reveal .align-center, 
+.reveal section.align-center {
+    text-align: center;
+}
+
+.reveal .align-right, 
+.reveal section.align-right {
+    text-align: right;
 }

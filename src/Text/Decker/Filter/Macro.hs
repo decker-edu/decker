@@ -1,9 +1,11 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Text.Decker.Filter.Macro
   ( expandDeckerMacros
+  , embedWebVideosHtml
   ) where
 
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Meta
 
 import Control.Monad.State
 import Data.List (find)
@@ -156,7 +158,8 @@ horizontalSpace _ _ (space, _) _ = do
     Disposition _ Html ->
       return $
       RawInline (Format "html") $
-      Text.pack $ printf "<span style=\"display:inline-block; width:%s;\"></span>" space
+      Text.pack $
+      printf "<span style=\"display:inline-block; width:%s;\"></span>" space
     Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
 
 verticalSpace :: MacroAction
@@ -166,20 +169,19 @@ verticalSpace _ _ (space, _) _ = do
     Disposition _ Html ->
       return $
       RawInline (Format "html") $
-      Text.pack $ printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
+      Text.pack $
+      printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
     Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
 
 metaValue :: MacroAction
 metaValue _ _ (key, _) meta =
-  case Text.splitOn "." key of
-    [] -> return $ Str key
-    k:ks -> return $ lookup' ks (lookupMeta k meta)
+  return $ fromMaybe (Strikeout [Str key]) (getMetaValue key meta >>= toInline)
   where
-    lookup' :: [Text.Text] -> Maybe MetaValue -> Inline
-    lookup' [] (Just (MetaString s)) = Str s
-    lookup' [] (Just (MetaInlines i)) = Span nullAttr i
-    lookup' (k:ks) (Just (MetaMap metaMap)) = lookup' ks (Map.lookup k metaMap)
-    lookup' _ _ = Strikeout [Str key]
+    toInline (MetaBool False) = Just $ Str "false"
+    toInline (MetaBool True) = Just $ Str "true"
+    toInline (MetaString s) = Just $ Str s
+    toInline (MetaInlines i) = Just $ Span nullAttr i
+    toInline _ = Nothing
 
 type MacroMap = Map.Map Text.Text MacroAction
 
@@ -191,9 +193,9 @@ macroMap =
     , ("fas", fontAwesome "fas")
     , ("far", fontAwesome "far")
     , ("fab", fontAwesome "fab")
-    , ("youtube", webVideo "youtube")
-    , ("vimeo", webVideo "vimeo")
-    , ("twitch", webVideo "twitch")
+    --, ("youtube", webVideo "youtube")
+    --, ("vimeo", webVideo "vimeo")
+    --, ("twitch", webVideo "twitch")
     , ("veer", webVideo "veer")
     , ("veer-photo", webVideo "veer-photo")
     , ("hspace", horizontalSpace)
@@ -235,7 +237,8 @@ expandInlineMacros meta inline@(Image attr _ (url, tit))
     Nothing -> return inline
 expandInlineMacros _ inline = return inline
 
--- Check inline for special embedding content (currently only web videos) if inline is Image
+-- Check inline for special embedding content (currently only web videos) if
+-- inline is Image
 findEmbeddingType :: Inline -> Maybe Text.Text
 findEmbeddingType inline@(Image attr text (url, tit))
   | "youtube://" `Text.isPrefixOf` url = Just "youtube"

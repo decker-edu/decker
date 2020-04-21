@@ -7,18 +7,19 @@ module Text.Decker.Server.Server
   ) where
 
 import Text.Decker.Project.Project
-import Text.Decker.Server.Dachdecker (login)
 
+-- TODO is this still used?
+-- import Text.Decker.Server.Dachdecker (login)
 import Control.Concurrent
-import Control.Exception
+
 import Control.Lens
 import Control.Monad
+import Control.Monad.Catch
 import Control.Monad.State
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import Data.ByteString.UTF8
 import Data.List
-import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Network.WebSockets
@@ -33,7 +34,7 @@ import System.Random
 -- Logging and port configuration for the server.
 serverConfig :: ProjectDirs -> Int -> IO (Config Snap a)
 serverConfig dirs port = do
-  let logDir = dirs ^. logging
+  let logDir = dirs ^. transient
   let accessLog = logDir </> "server-access.log"
   let errorLog = logDir </> "server-error.log"
   createDirectoryIfMissing True logDir
@@ -73,7 +74,7 @@ addPage state page = modifyMVar_ state add
             else pages)
 
 reloadAll :: MVar ServerState -> IO ()
-reloadAll state = withMVar state $ (mapM_ reload . fst)
+reloadAll state = withMVar state (mapM_ reload . fst)
   where
     reload :: Client -> IO ()
     reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
@@ -93,7 +94,7 @@ runHttpServer state dirs port = do
   let routes =
         route
           [ ("/reload", runWebSocketsSnap $ reloader state)
-          , ("/dachdecker", method POST $ serveDachdecker)
+          -- , ("/dachdecker", method POST $ serveDachdecker)
           , ( "/reload.html"
             , serveFile $ dirs ^. project </> "test" </> "reload.html")
           , (supportPath, serveDirectoryNoCaching state supportRoot)
@@ -102,14 +103,36 @@ runHttpServer state dirs port = do
           ]
   let tryRun port 0 = fail "decker server: All ports already in use"
   let tryRun port tries =
-        catch
+        catchAll
           (simpleHttpServe (setPort port config) routes)
-          (\(SomeException e) -> do
+          (\_ -> do
              putStrLn
                ("decker server: Port " ++
                 show port ++ "already in use, trying port " ++ show (port + 1))
              tryRun (port + 1) (tries - 1))
+  startUpdater state
   tryRun port 10
+
+tenSeconds = 10 * 10 ^ 6
+
+-- | Sends a ping message to all connected browsers.
+pingAll :: MVar ServerState -> IO ()
+pingAll state = withMVar state (mapM_ reload . fst)
+  where
+    reload :: Client -> IO ()
+    reload (_, conn) = sendTextData conn ("ping!" :: Text.Text)
+
+-- Safari times out on web sockets to save energy. Prevent this by sending pings
+-- from the server to all connected browsers. Once every 10 seconds should do
+-- it. This starts a pinger in a separate thread. The thread runs until the
+-- server dies.
+startUpdater :: MVar ServerState -> IO ()
+startUpdater state = do
+  forkIO $
+    forever $ do
+      threadDelay tenSeconds
+      pingAll state
+  return ()
 
 -- | Save the request body in the project directory under the request path. But
 -- only if the request path ends on "-annot.json" and the local directory
@@ -139,26 +162,28 @@ serveDirectoryNoCaching state directory = do
   path <- getsRequest rqPathInfo
   liftIO $ addPage state (toString path)
 
-serveDachdecker :: Snap ()
-serveDachdecker = do
-  dachdeckerUrl <- liftIO getDachdeckerUrl
-  username <- getPostParam "user"
-  password <- getPostParam "password"
-  maybeToken <-
-    if isJust username && isJust password
-      then liftIO $
-           login (toString $ fromJust username) (toString $ fromJust password)
-      else do
-        liftIO $ putStrLn "Missing either username or password"
-        return Nothing
-  case maybeToken of
-    Just token ->
-      writeText $
-      Text.pack
-        ("{\"token\": \"" ++
-         token ++ "\",\"server\": \"" ++ dachdeckerUrl ++ "\"}")
-    Nothing -> liftIO $ putStrLn "Error logging into the Dachdecker server"
-
+-- TODO is this still used?
+{-
+ -serveDachdecker :: Snap ()
+ -serveDachdecker = do
+ -  dachdeckerUrl <- liftIO getDachdeckerUrl
+ -  username <- getPostParam "user"
+ -  password <- getPostParam "password"
+ -  maybeToken <-
+ -    if isJust username && isJust password
+ -      then liftIO $
+ -           login (toString $ fromJust username) (toString $ fromJust password)
+ -      else do
+ -        liftIO $ putStrLn "Missing either username or password"
+ -        return Nothing
+ -  case maybeToken of
+ -    Just token ->
+ -      writeText $
+ -      Text.pack
+ -        ("{\"token\": \"" ++
+ -         token ++ "\",\"server\": \"" ++ dachdeckerUrl ++ "\"}")
+ -    Nothing -> liftIO $ putStrLn "Error logging into the Dachdecker server"
+ -}
 -- | Starts a server in a new thread and returns the thread id.
 startHttpServer :: ProjectDirs -> Int -> IO Server
 startHttpServer dirs port = do

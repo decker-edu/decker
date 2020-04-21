@@ -1,60 +1,40 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Text.Decker.Project.Shake
   ( runDecker
-  , allHtmlA
-  , allPdfA
-  , appDataA
-  , cacheA
   , calcSource
   , calcSource'
   , currentlyServedPages
-  , decksA
-  , decksPdfA
   , getRelativeSupportDir
-  , handoutsA
-  , handoutsPdfA
-  , loggingA
-  , metaA
-  , globalMetaA
-  , indicesA
+  , isDevRun
   , openBrowser
-  , pagesA
-  , pagesPdfA
   , projectA
   , projectDirsA
   , publicA
   , publicResourceA
   , putCurrentDocument
+  , readStaticMetaData
   , runHttpServer
   , startHttpServer
   , stopHttpServer
   , supportA
-  , targetsA
-  , staticA
   , watchChangesAndRepeat
-  , writeSupportFilesToPublic
   , withShakeLock
-  , getTemplate
-  , getTemplate'
-  , isDevRun
+  , writeSupportFilesToPublic
   ) where
 
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
-import Text.Decker.Project.Version
 import Text.Decker.Resource.Template
-import Text.Decker.Resource.Zip
 import Text.Decker.Server.Server
 
 import Control.Concurrent
 import Control.Exception
 import Control.Lens
 import Control.Monad
-import qualified Data.ByteString as B
+import Control.Monad.Catch
 import qualified Data.ByteString.Base16 as B16
-import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy as BL
 import Data.Char
 import Data.Digest.Pure.MD5
@@ -75,7 +55,7 @@ import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
 import System.Process
-import Text.Pandoc hiding (getTemplate)
+import Text.Pandoc
 
 instance Show (IORef a) where
   show _ = "IORef"
@@ -91,11 +71,7 @@ makeLenses ''MutableActionState
 
 data ActionContext = ActionContext
   { _dirs :: ProjectDirs
-  , _targetList :: Targets
-  , _metaData :: Meta
-  , _globalMeta :: Meta
   , _state :: MutableActionState
-  , _templates :: [(FilePath, DeckerTemplate)]
   } deriving (Typeable, Show)
 
 makeLenses ''ActionContext
@@ -110,7 +86,7 @@ initMutableActionState = do
 runDecker :: Rules () -> IO ()
 runDecker rules = do
   state <- initMutableActionState
-  catch (repeatIfTrue $ runShakeOnce state rules) (putError "Terminated: ")
+  catchAll (repeatIfTrue $ runShakeOnce state rules) (putError "Terminated: ")
   cleanup state
 
 data Flags
@@ -157,7 +133,7 @@ runShakeOnce :: MutableActionState -> Rules () -> IO Bool
 runShakeOnce state rules = do
   context <- initContext state
   options <- deckerShakeOptions context
-  catch
+  catchAll
     (shakeArgsWith options deckerFlags (handleArguments rules))
     (putError "Error: ")
   server <- readIORef (state ^. server)
@@ -165,20 +141,25 @@ runShakeOnce state rules = do
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
     let projectDir = context ^. dirs . project
-    let exclude = map (projectDir </>) $ excludeDirs (context ^. metaData)
+    meta <- readMetaDataFile (projectDir </> "decker.yaml")
+    let exclude = map (projectDir </>) $ excludeDirs meta
     waitForChange' projectDir exclude
   return keepWatching
 
-targetDirs context =
-  unique $ map takeDirectory (context ^. targetList . sources)
+readStaticMetaData :: FilePath -> Action Meta
+readStaticMetaData file = do
+  need [file]
+  meta <- liftIO $ readMetaDataFile file
+  moreMeta <- getAdditionalMeta (takeDirectory file) meta
+  templateSource <-
+    liftIO $ calcTemplateSource (getMetaText "template-source" moreMeta)
+  defaultMeta <- readTemplateMeta templateSource
+  return $ mergePandocMeta' moreMeta defaultMeta
 
+initContext :: MutableActionState -> IO ActionContext
 initContext state = do
   dirs <- projectDirectories
-  meta <- readMetaData $ dirs ^. project
-  targets <- scanTargets meta dirs
-  templates <- readTemplates (dirs ^. project) (state ^. devRun)
-  -- init context with 2x meta (one will be fixed global meta)
-  return $ ActionContext dirs targets meta meta state templates
+  return $ ActionContext dirs state
 
 cleanup state = do
   srvr <- readIORef $ state ^. server
@@ -197,27 +178,19 @@ deckerShakeOptions ctx = do
   cores <- getNumCapabilities
   return $
     shakeOptions
-      { shakeFiles = ".shake"
+      { shakeFiles = ctx ^. dirs . transient
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
-      , shakeAbbreviations =
-          [ (ctx ^. dirs . project ++ "/", "")
-          , (ctx ^. dirs . public ++ "/", "")
-          ]
+      -- , shakeChange = ChangeModtimeAndDigest
+      , shakeAbbreviations = [(ctx ^. dirs . project ++ "/", "/")]
       }
 
 actionContextKey :: TypeRep
 actionContextKey = typeOf (undefined :: ActionContext)
 
 actionContext :: Action ActionContext
-actionContext = do
-  options <- getShakeOptions
-  let extra = shakeExtra options
-  let dyn =
-        fromMaybe
-          (error "Error looking up action context")
-          (HashMap.lookup actionContextKey extra)
-  return $ fromMaybe (error "Error upcasting action context") (fromDynamic dyn)
+actionContext =
+  fromMaybe (error "Error getting action context") <$> getShakeExtra
 
 waitForChange :: [FilePath] -> IO ()
 waitForChange inDirs =
@@ -240,30 +213,6 @@ waitForChange' inDir exclude =
   where
     filter event = not $ any (`isPrefixOf` Notify.eventPath event) exclude
 
-getTemplate :: Disposition -> Action (Template T.Text)
-getTemplate disposition = getTemplate' (templateFileName disposition)
-
--- | Get a template by path either from the embedded ZIP archive or from the
--- file system. In the later case, call need on the template file.
---
--- TODO: Add proper error handling
---
-getTemplate' :: FilePath -> Action (Template T.Text)
-getTemplate' path = do
-  context <- actionContext
-  let (DeckerTemplate content source) =
-        fromJust $ lookup path (context ^. templates)
-  source <-
-    case source of
-      Just source -> do
-        need [source]
-        return source
-      Nothing -> return ""
-  compiled <- liftIO $ compileTemplate source content 
-  case compiled of
-    Right template -> return template
-    Left err -> error err
-
 isDevRun :: Action Bool
 isDevRun = do
   context <- actionContext
@@ -279,17 +228,21 @@ sketchPadId text =
   T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ BL.fromStrict $
   encodeUtf8 text
 
-writeSupportFilesToPublic :: Action ()
-writeSupportFilesToPublic = do
-  correct <- correctSupportInstalled
-  unless correct $ do
-    removeSupport
-    extractSupport
-  copyStaticDirs
+writeSupportFilesToPublic :: Meta -> Action ()
+writeSupportFilesToPublic meta = do
+  templateSource <-
+    liftIO $ calcTemplateSource (getMetaText "template-source" meta)
+  correct <- correctSupportInstalled templateSource
+  if correct
+    then putNormal "# support files up to date"
+    else do
+      putNormal $ "# copy support files from: " <> show templateSource
+      removeSupport
+      extractSupport templateSource
+  copyStaticDirs meta
 
-copyStaticDirs :: Action ()
-copyStaticDirs = do
-  meta <- metaA
+copyStaticDirs :: Meta -> Action ()
+copyStaticDirs meta = do
   public <- publicA
   project <- projectA
   let staticSrc = map (project </>) (staticDirs meta)
@@ -302,29 +255,27 @@ copyStaticDirs = do
         then stripParentPrefix (drop 3 path)
         else path
 
-extractSupport :: Action ()
-extractSupport = do
+extractSupport :: TemplateSource -> Action ()
+extractSupport templateSource = do
   context <- actionContext
-  let publicDir = context ^. dirs . public
   let supportDir = context ^. dirs . support
   liftIO $ do
-    extractResourceEntries "support" publicDir
-    BC.writeFile (supportDir </> ".version") (BC.pack deckerGitCommitId)
+    copySupportFiles templateSource Copy supportDir
+    writeFile (supportDir </> ".origin") (show templateSource)
 
-correctSupportInstalled :: Action Bool
-correctSupportInstalled = do
+correctSupportInstalled :: TemplateSource -> Action Bool
+correctSupportInstalled templateSource = do
   context <- actionContext
   let supportDir = context ^. dirs . support
-  liftIO $ handle (\(SomeException _) -> return False) $ do
-    supportCommitId <- B.readFile (supportDir </> ".version")
-    return $ supportCommitId == BC.pack deckerGitCommitId
+  liftIO $ handleAll (\_ -> return False) $ do
+    installed <- read <$> readFile (supportDir </> ".origin")
+    return (installed == templateSource)
 
 removeSupport :: Action ()
 removeSupport = do
   context <- actionContext
   let supportDir = context ^. dirs . support
-  liftIO $ handle (\(SomeException _) -> return ()) $
-    removeDirectoryRecursive supportDir
+  liftIO $ handleAll (\_ -> return ()) $ removeDirectoryRecursive supportDir
 
 publicResourceA = _publicResource . _state <$> actionContext
 
@@ -337,61 +288,8 @@ projectA = _project <$> projectDirsA
 publicA :: Action FilePath
 publicA = _public <$> projectDirsA
 
-cacheA :: Action FilePath
-cacheA = _cache <$> projectDirsA
-
 supportA :: Action FilePath
 supportA = _support <$> projectDirsA
-
-appDataA :: Action FilePath
-appDataA = _appData <$> projectDirsA
-
-loggingA :: Action FilePath
-loggingA = _logging <$> projectDirsA
-
-targetsA :: Action Targets
-targetsA = _targetList <$> actionContext
-
-metaA :: Action Meta
-metaA = _metaData <$> actionContext
-
--- | Global meta data for this directory from decker.yaml and specified additional files
-globalMetaA :: Action Meta
-globalMetaA = (_globalMeta <$> actionContext) >>= getAdditionalMeta
-
-indicesA = _indices <$> targetsA
-
-staticA :: Action [FilePath]
-staticA = _static <$> targetsA
-
-decksA :: Action [FilePath]
-decksA = _decks <$> targetsA
-
-decksPdfA :: Action [FilePath]
-decksPdfA = _decksPdf <$> targetsA
-
-pagesA :: Action [FilePath]
-pagesA = _pages <$> targetsA
-
-pagesPdfA :: Action [FilePath]
-pagesPdfA = _pagesPdf <$> targetsA
-
-handoutsA :: Action [FilePath]
-handoutsA = _handouts <$> targetsA
-
-handoutsPdfA :: Action [FilePath]
-handoutsPdfA = _handoutsPdf <$> targetsA
-
-mapTargets :: [(Targets -> [FilePath])] -> Action [FilePath]
-mapTargets fs = do
-  ts <- targetsA
-  return $ concatMap ($ ts) fs
-
-allHtmlA :: Action [FilePath]
-allHtmlA = mapTargets [_decks, _pages, _handouts]
-
-allPdfA :: Action [FilePath]
-allPdfA = mapTargets [_decksPdf, _pagesPdf, _handoutsPdf]
 
 withShakeLock :: Action a -> Action a
 withShakeLock perform = do
@@ -455,7 +353,4 @@ calcSource' target = do
   return $ dirs ^. project </> makeRelative (dirs ^. public) target
 
 putCurrentDocument :: FilePath -> Action ()
-putCurrentDocument out = do
-  public <- publicA
-  let rel = makeRelative public out
-  putNormal $ "# pandoc (for " ++ rel ++ ")"
+putCurrentDocument out = putNormal $ "# pandoc (for " ++ out ++ ")"
