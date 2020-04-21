@@ -186,9 +186,11 @@ let RevealWhiteboard = (function(){
         svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.classList.add("whiteboard");
         svg.setAttribute( 'data-prevent-swipe', '' );
-        svg.style.width         = "100%";
-        svg.style.height        = height ? height : Reveal.getConfig().height + "px";
         svg.style.pointerEvents = "none";
+
+        // SVG dimensions
+        if (!height) height = Reveal.getConfig().height;
+        setHeight(svg, height);
 
         // prevent accidential click, double-click, and context menu
         svg.oncontextmenu = killEvent;
@@ -435,7 +437,7 @@ let RevealWhiteboard = (function(){
         let boardHeight = svg.clientHeight;
         let height = boardHeight + pageHeight;
 
-        svg.style.height = height + "px";
+        setHeight(svg, height);
         adjustWhiteboardWidth();
     }
 
@@ -455,8 +457,17 @@ let RevealWhiteboard = (function(){
         console.log("set height to " + height);
 
         // set height, adjust width
-        svg.style.height = height + "px";
+        setHeight(svg, height);
         adjustWhiteboardWidth();
+    }
+
+
+    function setHeight(svg, height)
+    {
+        const width = Reveal.getConfig().width;
+        svg.setAttribute( 'viewBox', '0 0 ' + width + ' ' + height );
+        svg.style.width  = width  + "px";
+        svg.style.height = height + "px";
     }
 
 
@@ -772,9 +783,10 @@ let RevealWhiteboard = (function(){
      */
     function startStroke(evt)
     {
-        // convert pointer/touch position to local coordiantes
-        let mouseX = evt.offsetX;
-        let mouseY = evt.offsetY;
+        // mouse position
+        const slideZoom  = slides.style.zoom || 1;
+        const mouseX = evt.offsetX / slideZoom;
+        const mouseY = evt.offsetY / slideZoom;
 
         // add stroke to SVG
         stroke = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -797,7 +809,12 @@ let RevealWhiteboard = (function(){
     {
         if (stroke && evt.target==svg)
         {
-            const newPoint = [ evt.offsetX, evt.offsetY ];
+            // mouse position
+            const slideZoom  = slides.style.zoom || 1;
+            const mouseX = evt.offsetX / slideZoom;
+            const mouseY = evt.offsetY / slideZoom;
+
+            const newPoint = [ mouseX, mouseY ];
             const oldPoint = points[points.length-1];
 
             // only do something if mouse position changed and we are within bounds
@@ -832,6 +849,9 @@ let RevealWhiteboard = (function(){
 
     function pointerdown(evt) 
     {
+        console.log("pointer down: " + evt.offsetX + " " + evt.offsetY);
+        console.log("pointer down: " + evt.clientX + " " + evt.clientY);
+
         // only when whiteboard is active
         if (!whiteboardActive) return;
 
@@ -840,6 +860,7 @@ let RevealWhiteboard = (function(){
 
         // cancel timeouts
         clearTimeout( hideCursorTimeout );
+
 
         switch(tool)
         {
