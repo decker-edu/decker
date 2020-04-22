@@ -18,12 +18,12 @@
 }
 
 .reveal .slides.pulseBorder {
-    animation-name: pulseBorder;
+    animation-name:            pulseBorder;
     animation-iteration-count: 4;
     animation-timing-function: ease;
-    animation-direction: alternate;
-    animation-duration: 0.5s;
-    border-bottom: none;
+    animation-direction:       alternate;
+    animation-duration:        0.5s;
+    border-bottom:             none;
 }
 
 .reveal.overview .slides {
@@ -31,15 +31,16 @@
 }
 
 .reveal button.whiteboard {
-    position:  absolute;
-    top:       auto;
-    right:     auto;
-    z-index:   40;
-    font-size: 16px;
-    padding:   3px;
-    border:    none;
-    outline:   none;
-    color:     #2a9ddf;
+    position:   absolute;
+    top:        auto;
+    right:      auto;
+    z-index:    40;
+    font-size:  16px;
+    padding:    3px;
+    border:     none;
+    outline:    none;
+    color:      #2a9ddf;
+    background: white;
 }
 
 .reveal button.whiteboard:disabled {
