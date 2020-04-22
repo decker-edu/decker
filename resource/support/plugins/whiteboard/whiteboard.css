@@ -10,10 +10,10 @@
 
 @keyframes pulseBorder {
   from {
-    border-bottom: 1px dashed #2a9ddf;
+    border-bottom: 5px dashed #2a9ddf11;
   }
   to {
-    border-bottom: 5px dashed #2a9ddf;
+    border-bottom: 5px dashed #2a9ddfff;
   }
 }
 
@@ -30,7 +30,8 @@
     overflow: visible;
 }
 
-.reveal button.whiteboard {
+button.whiteboard {
+    display:     block;
     position:    absolute;
     top:         auto;
     right:       auto;
@@ -44,8 +45,17 @@
     font-family: "Font Awesome 5 Free";
 }
 
-.reveal button.whiteboard:disabled {
-    color:     lightgrey;
+/* hide outline around focused buttons */
+button.whiteboard:focus {
+    outline: none;
+}
+/* hide outline around focused buttons */
+button.whiteboard::-moz-focus-inner {
+   border: 0;
+}
+
+button.whiteboard:disabled {
+    color: lightgrey;
 }
 
 .reveal .color-picker {
