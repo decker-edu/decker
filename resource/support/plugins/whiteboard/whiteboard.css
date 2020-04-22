@@ -31,16 +31,17 @@
 }
 
 .reveal button.whiteboard {
-    position:   absolute;
-    top:        auto;
-    right:      auto;
-    z-index:    40;
-    font-size:  16px;
-    padding:    3px;
-    border:     none;
-    outline:    none;
-    color:      #2a9ddf;
-    background: white;
+    position:    absolute;
+    top:         auto;
+    right:       auto;
+    z-index:     40;
+    font-size:   16px;
+    padding:     3px;
+    border:      none;
+    outline:     none;
+    color:       #2a9ddf;
+    background:  white;
+    font-family: "Font Awesome 5 Free";
 }
 
 .reveal button.whiteboard:disabled {
