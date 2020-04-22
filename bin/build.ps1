@@ -11,6 +11,9 @@ Param(
     [switch] $local
 )
 
+# Sets prefered action if error occurs to "Stop".
+# Stops script execution even when non-terminating errors occur.
+$ErrorActionPreference = "Stop"
 
 <# Check if running as Administrator #>
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
