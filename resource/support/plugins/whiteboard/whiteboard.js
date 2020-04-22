@@ -461,6 +461,10 @@ let RevealWhiteboard = (function(){
         // mark bottom boundary
         if (scribbleHeight > pageHeight)
         {
+            // (re-)start border pulsing
+            // (see here: https://css-tricks.com/restart-css-animation/)
+            slides.classList.remove("pulseBorder");
+            void slides.offsetWidth;
             slides.classList.add("pulseBorder");
         }
         else
