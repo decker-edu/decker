@@ -96,10 +96,6 @@ let RevealWhiteboard = (function(){
     // global whiteboard status
     let whiteboardActive = false;
 
-    // does the user have a pen?
-    let penDetected = false;
-
-
 
     /************************************************************************
      * Setup GUI
@@ -463,7 +459,14 @@ let RevealWhiteboard = (function(){
         var height = pageHeight * Math.max(1, Math.ceil(scribbleHeight/pageHeight));
 
         // mark bottom boundary
-        slides.style.borderBottom = scribbleHeight > pageHeight ? '3px dashed #2a9ddf' : 'none';
+        if (scribbleHeight > pageHeight)
+        {
+            slides.classList.add("pulseBorder");
+        }
+        else
+        {
+            slides.classList.remove("pulseBorder");
+        }
 
         // set height, adjust width
         svg.style.height = height + "px";
@@ -845,10 +848,7 @@ let RevealWhiteboard = (function(){
         // only pen and mouse events
         if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
 
-        // detect pen (used for "always on")
-        if (evt.pointerType == 'pen') penDetected = true;
-
-        // show cursur, cancel cursor-hiding timeouts
+        // cancel timeouts
         showCursor();
         clearTimeout( hideCursorTimeout );
 
@@ -870,6 +870,8 @@ let RevealWhiteboard = (function(){
             }
 
             case ToolType.LASER: {
+                showCursor();
+                triggerHideCursor();
                 break;
             }
         }
@@ -944,6 +946,10 @@ let RevealWhiteboard = (function(){
         {
             case ToolType.PEN: {
                 stopStroke(evt);
+                break;
+            }
+
+            case ToolType.ERASER: {
                 break;
             }
         }

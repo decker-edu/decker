@@ -5,6 +5,25 @@
 .reveal .slides {
     overflow-x: hidden;
     overflow-y: auto;
+    box-sizing: border-box;
+}
+
+@keyframes pulseBorder {
+  from {
+    border-bottom: 1px dashed #2a9ddf;
+  }
+  to {
+    border-bottom: 5px dashed #2a9ddf;
+  }
+}
+
+.reveal .slides.pulseBorder {
+    animation-name: pulseBorder;
+    animation-iteration-count: 4;
+    animation-timing-function: ease;
+    animation-direction: alternate;
+    animation-duration: 0.5s;
+    border-bottom: none;
 }
 
 .reveal.overview .slides {
@@ -21,7 +40,6 @@
     border:    none;
     outline:   none;
     color:     #2a9ddf;
-    background: white;
 }
 
 .reveal button.whiteboard:disabled {
