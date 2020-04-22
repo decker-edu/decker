@@ -96,6 +96,10 @@ let RevealWhiteboard = (function(){
     // global whiteboard status
     let whiteboardActive = false;
 
+    // does the user have a pen?
+    let penDetected = false;
+
+
 
     /************************************************************************
      * Setup GUI
@@ -186,11 +190,14 @@ let RevealWhiteboard = (function(){
         svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.classList.add("whiteboard");
         svg.setAttribute( 'data-prevent-swipe', '' );
+        svg.setAttribute( 'preserveAspectRatio', 'none' );
         svg.style.pointerEvents = "none";
+        svg.style.border = "1px solid transparent";
 
         // SVG dimensions
+        svg.style.width  = "100%";
         if (!height) height = Reveal.getConfig().height;
-        setHeight(svg, height);
+        svg.style.height = height + "px";
 
         // prevent accidential click, double-click, and context menu
         svg.oncontextmenu = killEvent;
@@ -437,7 +444,8 @@ let RevealWhiteboard = (function(){
         let boardHeight = svg.clientHeight;
         let height = boardHeight + pageHeight;
 
-        setHeight(svg, height);
+        // set height, adjust width
+        svg.style.height = height + "px";
         adjustWhiteboardWidth();
     }
 
@@ -454,41 +462,23 @@ let RevealWhiteboard = (function(){
         // rounding
         var height = pageHeight * Math.max(1, Math.ceil(scribbleHeight/pageHeight));
 
-        console.log("set height to " + height);
+        // mark bottom boundary
+        slides.style.borderBottom = scribbleHeight > pageHeight ? '3px dashed #2a9ddf' : 'none';
 
         // set height, adjust width
-        setHeight(svg, height);
-        adjustWhiteboardWidth();
-    }
-
-
-    function setHeight(svg, height)
-    {
-        const width = Reveal.getConfig().width;
-        svg.setAttribute( 'viewBox', '0 0 ' + width + ' ' + height );
-        svg.style.width  = width  + "px";
         svg.style.height = height + "px";
+        adjustWhiteboardWidth();
     }
 
 
     function adjustWhiteboardWidth()
     {
-        // adjust width of slide container
-        if (slides.scrollHeight > slides.clientHeight)
+        let currentWidth = slides.clientWidth;
+        let targetWidth  = Reveal.getConfig().width;
+        if (currentWidth != targetWidth)
         {
-            let currentWidth = slides.clientWidth;
-            let targetWidth  = Reveal.getConfig().width;
-            if (currentWidth != targetWidth)
-            {
-                slides.style.width = (2*targetWidth - currentWidth) + "px";
-                console.log("set width to " + (2*targetWidth - currentWidth));
-            }
-        }
-        else
-        {
-            let w = Reveal.getConfig().width;
-            slides.style.width = w + "px";
-            console.log("set width to " + w);
+            const width = (2*targetWidth - currentWidth);
+            slides.style.width = width + "px";
         }
     }
 
@@ -849,16 +839,17 @@ let RevealWhiteboard = (function(){
 
     function pointerdown(evt) 
     {
-        console.log("pointer down: " + evt.offsetX + " " + evt.offsetY);
-        console.log("pointer down: " + evt.clientX + " " + evt.clientY);
-
         // only when whiteboard is active
         if (!whiteboardActive) return;
 
         // only pen and mouse events
         if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
 
-        // cancel timeouts
+        // detect pen (used for "always on")
+        if (evt.pointerType == 'pen') penDetected = true;
+
+        // show cursur, cancel cursor-hiding timeouts
+        showCursor();
         clearTimeout( hideCursorTimeout );
 
 
@@ -879,8 +870,6 @@ let RevealWhiteboard = (function(){
             }
 
             case ToolType.LASER: {
-                showCursor();
-                triggerHideCursor();
                 break;
             }
         }
@@ -955,10 +944,6 @@ let RevealWhiteboard = (function(){
         {
             case ToolType.PEN: {
                 stopStroke(evt);
-                break;
-            }
-
-            case ToolType.ERASER: {
                 break;
             }
         }
@@ -1052,28 +1037,25 @@ let RevealWhiteboard = (function(){
             setupSVG();
             svg.style.display = 'block';
 
-            adjustWhiteboardHeight();
-
             // scroll to top
             slides.scrollTop  = 0;
+
+            // set height based on annotations
+            adjustWhiteboardHeight();
         }
     }
 
 
     // whenever slide changes, update slideIndices and redraw
-    Reveal.addEventListener( 'ready',          slideChanged );
-    Reveal.addEventListener( 'slidechanged',   slideChanged );
-    Reveal.addEventListener( 'fragmentshown',  slideChanged );
-    Reveal.addEventListener( 'fragmenthidden', slideChanged );
+    Reveal.addEventListener( 'ready',        slideChanged );
+    Reveal.addEventListener( 'slidechanged', slideChanged );
 
     // update GUI (button) on slide change
-    Reveal.addEventListener( 'ready',          updateGUI );
-    Reveal.addEventListener( 'slidechanged',   updateGUI );
-    Reveal.addEventListener( 'fragmentshown',  updateGUI );
-    Reveal.addEventListener( 'fragmenthidden', updateGUI );
+    Reveal.addEventListener( 'ready',        updateGUI );
+    Reveal.addEventListener( 'slidechanged', updateGUI );
 
     // eraser cursor has to be updated on resize (i.e. scale change)
-    Reveal.addEventListener( 'resize',         updateGUI );
+    Reveal.addEventListener( 'resize', updateGUI );
 
 
 
@@ -1098,21 +1080,8 @@ let RevealWhiteboard = (function(){
             console.log("Pointer events:   " + !!(window.PointerEvent));
             console.log("Coalesced events: " + !!(window.PointerEvent && (new PointerEvent("pointermove")).getCoalescedEvents));
 
-            return new Promise( function(resolve) {
-                
-                //if (printMode)
-                //{
-                    //// load scribbles, create whiteboard slides, then resolve promise
-                    //loadAnnotations().then(createPrintout).then(resolve);
-                //}
-                //else
-                {
-                    // load scribbles, then resolve promise
-                    loadAnnotations().then(resolve);
-                }
-            });
+            return new Promise( (resolve) => loadAnnotations().then(resolve) );
         },
-
 
         // menu plugin need access to trigger it
         downloadNotes: downloadAnnotations
