@@ -857,28 +857,27 @@ let RevealWhiteboard = (function(){
         clearTimeout( hideCursorTimeout );
 
 
-        switch(tool)
+        // laser mode or right mouse button
+        if (tool == ToolType.LASER || evt.buttons == 2)
         {
-            case ToolType.PEN: {
-                startStroke(evt);
-                break;
-            }
-
-            case ToolType.ERASER: {
-                const point = [evt.offsetX, evt.offsetY];
-                svg.querySelectorAll( 'path' ).forEach( stroke => {
-                    if (isPointInStroke(stroke, point))
-                        stroke.remove();
-                });
-                break;
-            }
-
-            case ToolType.LASER: {
-                showCursor();
-                triggerHideCursor();
-                break;
-            }
+            showCursor();
+            triggerHideCursor();
         }
+        // eraser mode or middle mouse button
+        else if (tool == ToolType.ERASER || evt.buttons == 4)
+        {
+            const point = [evt.offsetX, evt.offsetY];
+            svg.querySelectorAll( 'path' ).forEach( stroke => {
+                if (isPointInStroke(stroke, point))
+                    stroke.remove();
+            });
+        }
+        // pencil mode
+        else if (tool == ToolType.PEN)
+        {
+            startStroke(evt);
+        }
+
 
         // don't propagate event any further
         killEvent(evt);
@@ -901,34 +900,37 @@ let RevealWhiteboard = (function(){
             return;
         }
 
-        // mouse button pressed
-        switch(tool)
+
+        // laser mode or right mouse button
+        if (tool == ToolType.LASER || evt.buttons == 2)
         {
-            case ToolType.PEN: {
-                let events = [evt];
-                if (evt.getCoalescedEvents) 
-                    events = evt.getCoalescedEvents() || events;
-                for (let e of events) 
-                    if (e.buttons > 0) 
-                        continueStroke(e);
-                break;
-            }
-
-            case ToolType.ERASER: {
-                const point = [evt.offsetX, evt.offsetY];
-                svg.querySelectorAll( 'path' ).forEach( stroke => {
-                    if (isPointInStroke(stroke, point))
-                        stroke.remove();
-                });
-                break;
-            }
-
-            case ToolType.LASER: {
-                showCursor();
-                triggerHideCursor();
-                break;
-            }
+            showCursor(laserCursor);
+            triggerHideCursor();
         }
+
+        // eraser mode or middle mouse button
+        else if (tool == ToolType.ERASER || evt.buttons == 4)
+        {
+            showCursor(eraserCursor);
+            const point = [evt.offsetX, evt.offsetY];
+            svg.querySelectorAll( 'path' ).forEach( stroke => {
+                if (isPointInStroke(stroke, point))
+                    stroke.remove();
+            });
+        }
+
+        // pencil mode
+        else if (tool == ToolType.PEN)
+        {
+            showCursor(penCursor);
+            let events = [evt];
+            if (evt.getCoalescedEvents) 
+                events = evt.getCoalescedEvents() || events;
+            for (let e of events) 
+                if (e.buttons > 0) 
+                    continueStroke(e);
+        }
+
 
         // don't propagate event any further
         killEvent(evt);
@@ -946,16 +948,9 @@ let RevealWhiteboard = (function(){
         // re-activate cursor hiding
         triggerHideCursor();
 
-        switch(tool)
+        if (tool == ToolType.PEN)
         {
-            case ToolType.PEN: {
-                stopStroke(evt);
-                break;
-            }
-
-            case ToolType.ERASER: {
-                break;
-            }
+            stopStroke(evt);
         }
 
         // don't propagate event any further
