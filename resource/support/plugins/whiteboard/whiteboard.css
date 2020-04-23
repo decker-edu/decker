@@ -6,6 +6,13 @@
     overflow-x: hidden;
     overflow-y: auto;
     box-sizing: border-box;
+    
+    /* enable scrolling */
+    pointer-events: auto;
+
+    /* enable touch navigation */
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: auto;
 }
 
 @keyframes pulseBorder {

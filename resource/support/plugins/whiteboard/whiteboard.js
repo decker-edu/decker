@@ -196,6 +196,15 @@ let RevealWhiteboard = (function(){
         if (!height) height = Reveal.getConfig().height;
         svg.style.height = height + "px";
 
+        // background grid
+        const h = Math.floor(Math.min(Reveal.getConfig().height, Reveal.getConfig().width) / 25);
+        svg.innerHTML = 
+           `<defs>
+              <pattern id="grid" width="${h}" height="${h}" patternUnits="userSpaceOnUse">
+                <path d="M ${h} 0 L 0 0 0 ${h}" fill="none" stroke="#EEEEEE" stroke-width="2"/>
+              </pattern>
+            </defs>`;
+
         // prevent accidential click, double-click, and context menu
         svg.oncontextmenu = killEvent;
         svg.onclick       = killEvent;
@@ -211,10 +220,6 @@ let RevealWhiteboard = (function(){
 
         return svg;
     }
-
-
-    slides.style.WebkitOverflowScrolling = 'auto';
-    slides.style.pointerEvents           = "auto";
 
 
     /*
@@ -436,10 +441,24 @@ let RevealWhiteboard = (function(){
      */
     function addWhiteboardPage()
     {
+        // compute new height
         if (tool != ToolType.PEN) return;
         let pageHeight  = Reveal.getConfig().height;
         let boardHeight = svg.clientHeight;
         let height = boardHeight + pageHeight;
+
+        // add background grid
+        let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        svg.appendChild(rect);
+        rect.setAttribute('width', '100%');
+        rect.setAttribute('height', pageHeight);
+        rect.setAttribute('y', boardHeight);
+        rect.style.fill          = 'url(#grid)';
+        rect.style.stroke        = 'none';
+        rect.style.stroke        = 'lightgrey';
+        rect.style.strokeWidth   = '2';
+        rect.style.pointerEvents = 'none';
+        rect.style.shapeRendering = 'crispEdges';
 
         // set height, adjust width
         svg.style.height = height + "px";
