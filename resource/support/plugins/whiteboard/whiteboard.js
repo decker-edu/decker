@@ -16,8 +16,9 @@
 
 let RevealWhiteboard = (function(){
 
-    const DEBUG = false;
     const LOCAL_STORAGE = false;
+    const QUADRATIC_SPLINE = true;
+    const STROKE_STEP_THRESHOLD = 2;
 
 
     /************************************************************************
@@ -733,17 +734,27 @@ let RevealWhiteboard = (function(){
     function pointsToBezier(points, stroke)
     {
         let path = "";
-        let c;
 
-        path += ('M '  + printPoint(points[0]));
-        path += (' L ' + printPoint(center(points[0], points[1])));
-
-        for (let i=1; i<points.length-1; ++i)
+        if (QUADRATIC_SPLINE)
         {
-            c = center(points[i], points[i+1]);
-            path += (' Q ' + printPoint(points[i]) + ' ' + printPoint(c));
+            let c;
+
+            path += ('M '  + printPoint(points[0]));
+            path += (' L ' + printPoint(center(points[0], points[1])));
+
+            for (let i=1; i<points.length-1; ++i)
+            {
+                c = center(points[i], points[i+1]);
+                path += (' Q ' + printPoint(points[i]) + ' ' + printPoint(c));
+            }
+            path += (' L ' + printPoint(points[points.length-1]));
         }
-        path += (' L ' + printPoint(points[points.length-1]));
+        else
+        {
+            path += ('M '  + printPoint(points[0]));
+            for (let i=1; i<points.length; ++i)
+                path += (' L ' + printPoint(points[i]));
+        }
 
         stroke.setAttribute('d', path);
     }
@@ -815,7 +826,7 @@ let RevealWhiteboard = (function(){
             const oldPoint = points[points.length-1];
 
             // only do something if mouse position changed and we are within bounds
-            if (distance(newPoint, oldPoint) > 4)
+            if (distance(newPoint, oldPoint) > STROKE_STEP_THRESHOLD)
             {
                 points.push(newPoint);
                 pointsToBezier(points, stroke);
@@ -829,6 +840,19 @@ let RevealWhiteboard = (function(){
      */
     function stopStroke(evt)
     {
+        if (stroke && evt.target==svg)
+        {
+            // mouse position
+            const slideZoom = slides.style.zoom || 1;
+            const mouseX    = evt.offsetX / slideZoom;
+            const mouseY    = evt.offsetY / slideZoom;
+            const newPoint  = [ mouseX, mouseY ];
+
+            // add final point to stroke
+            points.push(newPoint);
+            pointsToBezier(points, stroke);
+        }
+
         // reset stroke
         stroke = null;
 
@@ -863,6 +887,7 @@ let RevealWhiteboard = (function(){
             showCursor();
             triggerHideCursor();
         }
+
         // eraser mode or middle mouse button
         else if (tool == ToolType.ERASER || evt.buttons == 4)
         {
@@ -872,6 +897,7 @@ let RevealWhiteboard = (function(){
                     stroke.remove();
             });
         }
+
         // pencil mode
         else if (tool == ToolType.PEN)
         {
@@ -945,13 +971,13 @@ let RevealWhiteboard = (function(){
         // only pen and mouse events
         if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
 
-        // re-activate cursor hiding
-        triggerHideCursor();
-
         if (tool == ToolType.PEN)
         {
             stopStroke(evt);
         }
+
+        // re-activate cursor hiding
+        triggerHideCursor();
 
         // don't propagate event any further
         killEvent(evt);
