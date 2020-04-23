@@ -140,28 +140,28 @@ let RevealWhiteboard = (function(){
     let buttonWhiteboard = createButton(8, 8, "fa-edit");
     buttonWhiteboard.onclick = toggleWhiteboard;
 
-    let buttonSave      = createButton(40, 8, "fa-save");
+    let buttonSave      = createButton(38, 8, "fa-save");
     buttonSave.onclick  = saveAnnotations;
 
-    let buttonAdd       = createButton(72, 8, "fa-plus");
+    let buttonAdd       = createButton(68, 8, "fa-plus");
     buttonAdd.onclick   = addWhiteboardPage;
 
-    let buttonGrid      = createButton(104, 8, "fa-border-all");
+    let buttonGrid      = createButton(98, 8, "fa-border-all");
     buttonGrid.onclick  = toggleGrid;
 
-    let buttonUndo      = createButton(136, 8, "fa-undo");
+    let buttonUndo      = createButton(128, 8, "fa-undo");
     buttonUndo.onclick  = undoStroke;
 
-    let buttonPen        = createButton(8, 40, "fa-pen");
+    let buttonPen        = createButton(8, 38, "fa-pen");
     buttonPen.onclick    = function(){ 
         if (tool == ToolType.PEN) pk.open();
         else selectTool(ToolType.PEN); 
     }
 
-    let buttonEraser     = createButton(8, 72, "fa-eraser");
+    let buttonEraser     = createButton(8, 68, "fa-eraser");
     buttonEraser.onclick = function(){ selectTool(ToolType.ERASER); }
 
-    let buttonLaser      = createButton(8, 104, "fa-magic");
+    let buttonLaser      = createButton(8, 98, "fa-magic");
     buttonLaser.onclick = function(){ selectTool(ToolType.LASER); }
 
 
