@@ -535,11 +535,13 @@ $endif$
 
   <!-- Reload on change machinery -->
   <script>
+  if (location.hostname == "localhost" || location.hostname == "0.0.0.0") {
     var socket = new WebSocket("ws://" + location.host + "/reload");
     socket.onmessage = function (event) {
       if (event.data.startsWith("reload!")) 
         window.location.reload(true);
     };
+  };
   </script>
 
   $for(include-after)$
