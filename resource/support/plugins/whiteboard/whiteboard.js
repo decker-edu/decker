@@ -119,20 +119,16 @@ let RevealWhiteboard = (function(){
     /*
      * create a button on the left side
      */
-    let buttonOffset = 8;
     function createButton(left, bottom, icon)
     {
         let b = document.createElement( 'button' );
         b.classList.add("whiteboard");
         b.style.left   = left + "px";
         b.style.bottom = bottom + "px";
-        if (icon)
-        {
-            b.classList.add("fas");
-            b.classList.add(icon);
-        }
+        b.style.visibility = 'hidden'; // hide per default (for PDF export)
+        b.classList.add("fas");
+        b.classList.add(icon);
         reveal.appendChild(b);
-        buttonOffset = buttonOffset + 32;
         return b;
     }
 
@@ -364,7 +360,8 @@ let RevealWhiteboard = (function(){
         if (!whiteboardActive)
         {
             // hide buttons
-            buttonWhiteboard.style.color  = 'lightgrey';
+            buttonWhiteboard.style.visibility = 'visible';
+            buttonWhiteboard.style.color      = 'lightgrey';
             buttonSave.style.visibility   = 'hidden';
             buttonAdd.style.visibility    = 'hidden';
             buttonGrid.style.visibility   = 'hidden';
@@ -387,7 +384,8 @@ let RevealWhiteboard = (function(){
 
 
         // whiteboard is active
-        buttonWhiteboard.style.color  = '#2a9ddf';
+        buttonWhiteboard.style.visibility = 'visible';
+        buttonWhiteboard.style.color      = '#2a9ddf';
         buttonSave.style.visibility   = 'visible';
         buttonAdd.style.visibility    = 'visible';
         buttonGrid.style.visibility   = 'visible';
@@ -635,10 +633,12 @@ let RevealWhiteboard = (function(){
                                     let slide = document.getElementById(page.slide);
                                     if (slide)
                                     {
-                                        let svg = setupSVG(slide, page.height);
+                                        // use global SVG
+                                        svg = setupSVG(slide, page.height);
                                         if (svg)
                                         {
                                             svg.innerHTML = page.svg;
+                                            adjustWhiteboardHeight(); // needed for PDF export
                                         }
                                     }
                                 });
@@ -687,7 +687,7 @@ let RevealWhiteboard = (function(){
 
         // decker filenames vs. Mario filenames
         let filename;
-        if (basename.substring(basename.length-5, basename.length) == "-deck")
+        if (basename.endsWith("-deck"))
             filename = basename.substring(0, basename.length-5) + "-annot.json";
         else
             filename = basename + ".json";
@@ -706,7 +706,7 @@ let RevealWhiteboard = (function(){
 
         // decker filenames vs. Mario filenames
         let filename;
-        if (basename.substring(basename.length-5, basename.length) == "-deck")
+        if (basename.endsWith("-deck"))
             filename = basename.substring(0, basename.length-5) + "-annot.json";
         else
             filename = basename + ".json";
