@@ -889,7 +889,7 @@ body {
  *********************************************/
 
 .reveal section mjx-container[display="true"] {
-    margin: 0.5em 0em 1em 0em;
+    margin: 0.7em 0em 1em 0em;
 }
 
 .reveal section mjx-container > svg a {
