@@ -52,17 +52,19 @@ let RevealWhiteboard = (function(){
 
 
     /************************************************************************
-     ** Configuration options, global letiables
+     ** Configuration options, global variables
      ************************************************************************/
 
     // default values or user configuration?
     const config     = Reveal.getConfig().whiteboard || {};
-    const colors     = config.colors || [ "black", "red", "green", "blue", "yellow", "cyan", "magenta" ];
-    const background = config.background || "white";
+
+    // colors
+    const colors = config.colors || [ "black", "red", "green", "blue", "yellow", "cyan", "magenta" ];
+    let penColor = config.penColor || "blue";
 
     // reveal elements
-    let reveal      = document.querySelector( '.reveal' );
-    let slides      = document.querySelector( '.reveal .slides' );
+    let reveal = document.querySelector( '.reveal' );
+    let slides = document.querySelector( '.reveal .slides' );
 
     // different cursors used by whiteboard
     let eraserCursor;
@@ -70,7 +72,6 @@ let RevealWhiteboard = (function(){
     let laserCursor;
     let penCursor;
     let currentCursor;
-    let penColor = "red";
 
     // canvas for dynamic cursor generation
     let cursorCanvas = document.createElement( 'canvas' );
@@ -139,28 +140,28 @@ let RevealWhiteboard = (function(){
     let buttonWhiteboard = createButton(8, 8, "fa-edit");
     buttonWhiteboard.onclick = toggleWhiteboard;
 
-    let buttonSave      = createButton(38, 8, "fa-save");
+    let buttonSave      = createButton(8, 38, "fa-save");
     buttonSave.onclick  = saveAnnotations;
 
-    let buttonAdd       = createButton(68, 8, "fa-plus");
+    let buttonAdd       = createButton(8, 68, "fa-plus");
     buttonAdd.onclick   = addWhiteboardPage;
 
-    let buttonGrid      = createButton(98, 8, "fa-border-all");
+    let buttonGrid      = createButton(8, 98, "fa-border-all");
     buttonGrid.onclick  = toggleGrid;
 
-    let buttonUndo      = createButton(128, 8, "fa-undo");
+    let buttonUndo      = createButton(8, 128, "fa-undo");
     buttonUndo.onclick  = undoStroke;
 
-    let buttonPen        = createButton(8, 38, "fa-pen");
+    let buttonPen        = createButton(8, 168, "fa-pen");
     buttonPen.onclick    = function(){ 
         if (tool == ToolType.PEN) pk.open();
         else selectTool(ToolType.PEN); 
     }
 
-    let buttonEraser     = createButton(8, 68, "fa-eraser");
+    let buttonEraser     = createButton(8, 198, "fa-eraser");
     buttonEraser.onclick = function(){ selectTool(ToolType.ERASER); }
 
-    let buttonLaser      = createButton(8, 98, "fa-magic");
+    let buttonLaser      = createButton(8, 228, "fa-magic");
     buttonLaser.onclick = function(){ selectTool(ToolType.LASER); }
 
 
@@ -214,6 +215,37 @@ let RevealWhiteboard = (function(){
 
         return svg;
     }
+
+
+    /*
+     * setup hidden SVG for defining grid pattern
+     */
+    function setupGridPattern()
+    {
+        let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.style.position      = 'absolute';
+        svg.style.left          = '0px';
+        svg.style.top           = '0px';
+        svg.style.width         = '10px';
+        svg.style.height        = '10px';
+        svg.style.pointerEvents = 'none';
+        slides.insertBefore(svg, slides.firstChild);
+
+        const pageWidth   = Reveal.getConfig().width;
+        const pageHeight  = Reveal.getConfig().height;
+        const h           = Math.floor(Math.min(pageWidth, pageHeight) / 25);
+
+        svg.innerHTML = 
+            `<defs>
+                 <pattern id="smallPattern" width="${h}" height="${h}" patternUnits="userSpaceOnUse">
+                     <path d="M ${h} 0 L 0 0 0 ${h}" fill="none" stroke="#EEEEEE" stroke-width="2"/>
+                 </pattern>
+                 <pattern id="gridPattern" width="${pageWidth}" height="${pageHeight}" patternUnits="userSpaceOnUse">
+                     <rect width="${pageWidth}" height="${pageHeight}" fill="url(#smallPattern)" stroke="lightgrey" stroke-width="3"/>
+                 </pattern>
+             </defs>`;
+    }
+    setupGridPattern();
 
 
     /*
@@ -397,7 +429,7 @@ let RevealWhiteboard = (function(){
         buttonEraser.style.visibility = 'visible';
         buttonLaser.style.visibility  = 'visible';
         if (svg) {
-            svg.style.border = "1px solid " + penColor;
+            svg.style.border = "1px dashed lightgrey";
             svg.style.pointerEvents = "auto";
         }
 
@@ -410,7 +442,7 @@ let RevealWhiteboard = (function(){
         buttonSave.style.color = needSave ? "#2a9ddf" : "lightgrey";
 
         // grid icon
-        buttonGrid.style.color = (svg && svg.getElementById('gridRect')) ? "#2a9ddf" : "lightgrey";
+        buttonGrid.style.color = (svg && getGridRect()) ? "#2a9ddf" : "lightgrey";
 
         // tool icons
         buttonLaser.style.color  = "lightgrey";
@@ -419,7 +451,7 @@ let RevealWhiteboard = (function(){
         switch (tool)
         {
             case ToolType.PEN:
-                buttonPen.style.color = "#2a9ddf";
+                buttonPen.style.color = penColor;
                 selectCursor(penCursor);
                 break;
 
@@ -473,7 +505,7 @@ let RevealWhiteboard = (function(){
         svg.style.height = svgHeight + "px";
 
         // if grid exists, adjust its height
-        let rect = svg.getElementById('gridRect');
+        let rect = getGridRect();
         if (rect) rect.setAttribute('height', svgHeight - pageHeight);
 
         // update scrollbar of slides container
@@ -515,9 +547,10 @@ let RevealWhiteboard = (function(){
     {
         if (confirm("Delete notes and board on this slide?"))
         {
-            svg.querySelectorAll( 'svg>path' ).forEach( stroke => { svg.removeChild(stroke); } );
-            svg.querySelectorAll( 'svg>rect' ).forEach( rect => { svg.removeChild(rect); } );
+            svg.querySelectorAll( 'svg>path' ).forEach( stroke => { stroke.remove(); } );
+            svg.querySelector( 'svg>rect' ).remove();
             setWhiteboardHeight(Reveal.getConfig().height);
+            updateGUI();
         }
     };
 
@@ -536,70 +569,54 @@ let RevealWhiteboard = (function(){
 
 
     /*
-     * User triggers undo (mapped to key 'z')
+     * return grid rect
+     */
+    function getGridRect()
+    {
+        if (svg) return svg.querySelector('svg>rect');
+    }
+
+
+    /*
+     * add/remove background rectangle with grid pattern
      */
     function toggleGrid()
     {
         if (!svg) return;
 
         // if grid exists, remove it
-        let rect = svg.getElementById('gridRect');
+        let rect = getGridRect();
         if (rect) 
         {
-            svg.removeChild(rect);
-            let defs = svg.getElementById('gridDefs');
-            if (defs) svg.removeChild(defs);
+            rect.remove();
         }
 
         // otherwise, add it
         else
         {
-            const pageWidth   = Reveal.getConfig().width;
             const pageHeight  = Reveal.getConfig().height;
             const boardHeight = svg.clientHeight;
-            const h           = Math.floor(Math.min(Reveal.getConfig().height, Reveal.getConfig().width) / 25);
-
-            // add grid pattern definition
-            if (!svg.getElementById('gridDefs'))
-            {
-                let defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-                if (svg.children.length > 0)
-                    svg.insertBefore(defs, svg.children[0]);
-                else
-                    svg.appendChild(defs);
-
-                defs.id = 'gridDefs';
-                defs.innerHTML = 
-                    `<pattern id="smallPattern" width="${h}" height="${h}" patternUnits="userSpaceOnUse">
-                    <path d="M ${h} 0 L 0 0 0 ${h}" fill="none" stroke="#EEEEEE" stroke-width="2"/>
-                    </pattern>
-                    <pattern id="gridPattern" width="${pageWidth}" height="${pageHeight}" patternUnits="userSpaceOnUse">
-                    <rect width="${pageWidth}" height="${pageHeight}" fill="url(#smallPattern)" stroke="lightgrey" stroke-width="3"/>
-                    </pattern>`;
-            }
 
             // add large rect with this pattern
-            if (!svg.getElementById('gridRect'))
-            {
-                let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                if (svg.children.length > 1)
-                    svg.insertBefore(rect, svg.children[1]);
-                else
-                    svg.appendChild(rect);
+            let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            if (svg.children.length > 1)
+                svg.insertBefore(rect, svg.children[1]);
+            else
+                svg.appendChild(rect);
 
-                rect.id = 'gridRect';
-                rect.setAttribute('height', boardHeight - pageHeight);
-                rect.setAttribute('y', pageHeight);
-                rect.setAttribute('width', '100%');
-                rect.style.fill          = 'url(#gridPattern)';
-                rect.style.stroke        = 'none';
-                rect.style.pointerEvents = 'none';
-                rect.style.shapeRendering = 'crispEdges';
-            }
+            rect.setAttribute('x', 0);
+            rect.setAttribute('y', pageHeight);
+            rect.setAttribute('width', '100%');
+            rect.setAttribute('height', Math.max(0, boardHeight - pageHeight));
+
+            rect.style.fill          = 'url(#gridPattern)';
+            rect.style.stroke        = 'none';
+            rect.style.pointerEvents = 'none';
         }
 
         updateGUI();
     }
+
 
 
 
