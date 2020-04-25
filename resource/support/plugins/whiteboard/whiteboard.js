@@ -637,7 +637,7 @@ let RevealWhiteboard = (function(){
                                     if (slide)
                                     {
                                         // use global SVG
-                                        svg = setupSVG(slide, page.height);
+                                        svg = setupSVG(slide);
                                         if (svg)
                                         {
                                             svg.innerHTML = page.svg;
@@ -728,8 +728,7 @@ let RevealWhiteboard = (function(){
         slides.querySelectorAll( 'svg.whiteboard' ).forEach( svg => { 
             if (svg.children.length) {
                 storage.annotations.push( { slide: svg.parentElement.id,
-                                            height: svg.clientHeight, 
-                                            svg: svg.innerHTML } );
+                                            svg:   svg.innerHTML } );
             }
         });
        
