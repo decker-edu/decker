@@ -442,20 +442,9 @@ let RevealWhiteboard = (function(){
     function addWhiteboardPage()
     {
         if (!svg) return;
-
-        // compute new height
-        if (tool != ToolType.PEN) return;
         let pageHeight  = Reveal.getConfig().height;
         let boardHeight = svg.clientHeight;
-        let height = boardHeight + pageHeight;
-
-        // set height, adjust width
-        svg.style.height = height + "px";
-        adjustWhiteboardWidth();
-
-        // adjust grid height (if it exists)
-        let rect = svg.getElementById('gridRect');
-        if (rect) rect.setAttribute('height', height - pageHeight);
+        setWhiteboardHeight(boardHeight + pageHeight);
     }
 
 
@@ -470,12 +459,39 @@ let RevealWhiteboard = (function(){
 
         // rounding
         var height = pageHeight * Math.max(1, Math.ceil(scribbleHeight/pageHeight));
+        setWhiteboardHeight(height);
+    }
 
-        // mark bottom boundary
-        if (scribbleHeight > pageHeight)
+
+    function setWhiteboardHeight(svgHeight)
+    {
+        const pageHeight   = Reveal.getConfig().height;
+        const pageWidth    = Reveal.getConfig().width;
+        const needScollbar = svgHeight > pageHeight;
+
+        // set height of SVG
+        svg.style.height = svgHeight + "px";
+
+        // if grid exists, adjust its height
+        let rect = svg.getElementById('gridRect');
+        if (rect) rect.setAttribute('height', svgHeight - pageHeight);
+
+        // update scrollbar of slides container
+        slides.style.overflowY = needScollbar ? 'scroll' : 'hidden';
+
+        // adjust with of slides container to accomodate scrollbar
+        let currentWidth = slides.clientWidth;
+        if (currentWidth != pageWidth)
+        {
+            const width = (2*pageWidth - currentWidth);
+            slides.style.width = width + "px";
+        }
+
+        // activate/deactivate pulsing border indicator
+        if (needScollbar)
         {
             // (re-)start border pulsing
-            // (see here: https://css-tricks.com/restart-css-animation/)
+            // (taken from https://css-tricks.com/restart-css-animation/)
             slides.classList.remove("pulseBorder");
             void slides.offsetWidth; // this does the magic!
             slides.classList.add("pulseBorder");
@@ -483,22 +499,6 @@ let RevealWhiteboard = (function(){
         else
         {
             slides.classList.remove("pulseBorder");
-        }
-
-        // set height, adjust width
-        svg.style.height = height + "px";
-        adjustWhiteboardWidth();
-    }
-
-
-    function adjustWhiteboardWidth()
-    {
-        let currentWidth = slides.clientWidth;
-        let targetWidth  = Reveal.getConfig().width;
-        if (currentWidth != targetWidth)
-        {
-            const width = (2*targetWidth - currentWidth);
-            slides.style.width = width + "px";
         }
     }
 
@@ -517,7 +517,7 @@ let RevealWhiteboard = (function(){
         {
             svg.querySelectorAll( 'svg>path' ).forEach( stroke => { svg.removeChild(stroke); } );
             svg.querySelectorAll( 'svg>rect' ).forEach( rect => { svg.removeChild(rect); } );
-            svg.style.height = Reveal.getConfig().height + "px";
+            setWhiteboardHeight(Reveal.getConfig().height);
         }
     };
 
@@ -1159,17 +1159,22 @@ let RevealWhiteboard = (function(){
             setupSVG();
             svg.style.display = 'block';
 
-            // scroll to top
-            slides.scrollTop  = 0;
-
             // set height based on annotations
             adjustWhiteboardHeight();
+
+            // setup slides container
+            slides.scrollTop  = 0;
+            slides.style.overflowY =
+                svg.clientHeight > slides.clientHeight ? 'scroll' : 'hidden';
+
+            // adjust fragment visibility
+            fragmentChanged();
         }
     }
 
 
     // handle fragments
-    function fragmentChanged(evt)
+    function fragmentChanged()
     {
         // determine current fragment index
         currentFragmentIndex = Reveal.getIndices().f;
