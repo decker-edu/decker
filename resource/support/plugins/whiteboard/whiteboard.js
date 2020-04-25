@@ -97,6 +97,9 @@ let RevealWhiteboard = (function(){
     // global whiteboard status
     let whiteboardActive = false;
 
+    // currently active fragment
+    let currentFragmentIndex = 0;
+
 
     /************************************************************************
      * Setup GUI
@@ -885,6 +888,12 @@ let RevealWhiteboard = (function(){
         // add point, convert to Bezier spline
         points = [ [ mouseX, mouseY ], [mouseX+1, mouseY+1] ];
         pointsToBezier(points, stroke);
+
+        // add fragment index to stroke
+        if (currentFragmentIndex != undefined)
+        {
+            stroke.setAttribute('data-frag', currentFragmentIndex);
+        } 
     };
 
 
@@ -1138,6 +1147,9 @@ let RevealWhiteboard = (function(){
     {
         if ( !printMode ) 
         {
+            // determine current fragment index
+            currentFragmentIndex = Reveal.getIndices().f;
+
             // hide all SVG's
             slides.querySelectorAll( 'svg.whiteboard' ).forEach( svg => { 
                 svg.style.display = 'none';
@@ -1156,9 +1168,31 @@ let RevealWhiteboard = (function(){
     }
 
 
+    // handle fragments
+    function fragmentChanged(evt)
+    {
+        // determine current fragment index
+        currentFragmentIndex = Reveal.getIndices().f;
+
+        if (currentFragmentIndex != undefined)
+        {
+            // adjust fragment visibility
+            svg.querySelectorAll('svg>path[data-frag]').forEach( stroke => { 
+                stroke.style.visibility = 
+                    stroke.getAttribute('data-frag') > currentFragmentIndex ? 'hidden' : 'visible';
+            });
+        }
+    }
+
+
+
     // whenever slide changes, update slideIndices and redraw
     Reveal.addEventListener( 'ready',        slideChanged );
     Reveal.addEventListener( 'slidechanged', slideChanged );
+
+    // whenever fragment changes, update stroke visibility
+    Reveal.addEventListener( 'fragmentshown',   fragmentChanged );
+    Reveal.addEventListener( 'fragmenthidden',  fragmentChanged );
 
     // update GUI (button) on slide change
     Reveal.addEventListener( 'ready',        updateGUI );
