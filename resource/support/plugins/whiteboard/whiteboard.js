@@ -646,7 +646,10 @@ let RevealWhiteboard = (function(){
                     {
                         try
                         {
+                            // parse JSON
                             const storage = JSON.parse(req.responseText);
+
+                            // create SVGs
                             if (storage.whiteboardVersion && storage.whiteboardVersion >= 2)
                             {
                                 storage.annotations.forEach( page => {
@@ -658,11 +661,18 @@ let RevealWhiteboard = (function(){
                                         if (svg)
                                         {
                                             svg.innerHTML = page.svg;
-                                            adjustWhiteboardHeight(); // needed for PDF export
                                         }
                                     }
                                 });
                                 console.log("whiteboard loaded");
+                            }
+
+                            // adjust height for PDF export
+                            if (printMode)
+                            {
+                                slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
+                                    svg=mysvg; adjustWhiteboardHeight();
+                                });
                             }
                         }
                         catch(err)
@@ -675,6 +685,7 @@ let RevealWhiteboard = (function(){
                 {
                     console.warn('Failed to get file ' + filename);
                 }
+
                 resolve();
             }
 
