@@ -58,8 +58,6 @@ mediaFilter options pandoc =
   runFilter options mediaBlockFilter >>=
   runFilter options mediaInlineFilter
 
-captionLabel = "Caption:"
-
 -- | Filters lists of Blocks that can match in pairs or triplets. 
 --
 -- For example: Match a paragraph containing just an image followed by a
@@ -71,10 +69,10 @@ mediaBlockListFilter blocks =
   where
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
-    filterPairs ((Para [image@Image {}]), Para (Str captionLabel:caption)) =
+    filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) =
       Just . single . Para . single <$> transformImage image caption
     -- Any number of consecutive images in a masonry row.
-    filterPairs (LineBlock lines, Para (Str captionLabel:caption))
+    filterPairs (LineBlock lines, Para (Str "Caption:":caption))
       | oneImagePerLine lines =
         Just . single <$> transformImages (concat lines) caption
     -- Default filter
