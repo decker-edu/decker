@@ -216,7 +216,7 @@ transformUrl url = do
 -- | Adds a remote URL to the `decker.filter.links` list in the meta data.
 processRemoteUri :: URI -> Filter URI
 processRemoteUri uri = do
-  modifyMeta (addStringToMetaList "decker.filter.links" (URI.render uri))
+  modifyMeta (addMetaValue "decker.filter.links" (URI.render uri))
   return uri
 
 -- | Applies the modification function f to the meta data in the filter
@@ -251,17 +251,13 @@ processLocalUri uri = do
   let publicUrl = URI.render publicUri
   exists <- liftIO $ doesFileExist sourcePath
   if exists
-    then storeResourceInfo sourcePath targetPath publicUrl
+    then needFile targetPath
     else throwM $
          ResourceException $ "Local resource does not exist: " <> relPath
   return publicUri
 
-storeResourceInfo :: FilePath -> FilePath -> Text -> Filter ()
-storeResourceInfo source target url = do
-  let key = "decker" <.> "filter" <.> "resources" <.> hash9String target
-  setMeta (toText $ key <.> "source") $ toText source
-  setMeta (toText $ key <.> "target") $ toText target
-  setMeta (toText $ key <.> "url") url
+needFile :: FilePath -> Filter ()
+needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
 
 resolveFileUri :: URI -> Filter FilePath
 resolveFileUri uri = do
@@ -280,8 +276,7 @@ resolveFileUri uri = do
   return sourcePath
 
 setMeta :: Text -> Text -> Filter ()
-setMeta key value =
-  modify (\s -> s {meta = setMetaValue key (MetaString value) (meta s)})
+setMeta key value = modifyMeta (setMetaValue key (MetaString value))
 
 getMeta :: Text -> Text -> Filter Text
 getMeta key def = getMetaTextOrElse key def <$> gets meta

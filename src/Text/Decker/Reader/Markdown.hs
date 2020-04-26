@@ -13,6 +13,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.URI
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
@@ -22,15 +23,13 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import Control.Monad.State
-import Data.Maybe
-import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Development.Shake hiding (Resource)
 import Development.Shake.FilePath as SFP
 import System.Directory
 import Text.CSL.Pandoc
-import Text.Pandoc
+import Text.Pandoc hiding (lookupMeta)
 
 -- Transitively splices all include files into the pandoc document.
 processIncludes :: Meta -> FilePath -> Pandoc -> Action Pandoc
@@ -60,27 +59,18 @@ processIncludes globalMeta topBaseDir (Pandoc meta blocks) =
 -- 
 runDeckerFilter ::
      (Pandoc -> IO Pandoc) -> FilePath -> FilePath -> Pandoc -> Action Pandoc
-runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks) = do
+runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks)
   -- | Augment document meta.
+ = do
   let deckerMeta =
-        setTextMetaValue "decker.base-dir" (T.pack docBase) $
-        setTextMetaValue "decker.top-base-dir" (T.pack topBase) meta
+        setMetaValue "decker.base-dir" docBase $
+        setMetaValue "decker.top-base-dir" topBase meta
   (Pandoc resultMeta resultBlocks) <- liftIO $ filter (Pandoc deckerMeta blocks)
   processedMeta <- processMeta resultMeta
   return (Pandoc processedMeta resultBlocks)
   where
-    processMeta meta = do
-      let (resources :: [(Text, Resource)]) =
-            fromMaybe [] $
-            getMetaValue "decker.filter.resources" meta >>= fromMetaValue
-      mapM_ (processResource . snd) resources
-      -- TODO Remove resource info from meta data
-      return meta
-      where
-        processResource resource@(Resource source target url) = do
-          let method = provisioningFromMeta meta
-          need [source]
-          publishResource method topBase resource
+    processMeta meta =
+      need (lookupMetaOrElse [] "decker.filter.resources" meta) >> return meta
 
 -- | Runs the new decker media filter.
 deckerMediaFilter topBase docBase (Pandoc meta blocks) =
@@ -95,19 +85,6 @@ deckerMediaFilter topBase docBase (Pandoc meta blocks) =
               pandocExtensions
         }
 
--- | The old style decker filter pipeline with Mario's media handling.
-marioPipeline =
-  concatM
-    [ evaluateShortLinks
-    , expandDeckerMacros
-    , renderCodeBlocks
-    , includeCode
-    , provisionResources
-    , renderQuizzes
-    , processSlides
-    , processCitesWithDefault
-    ]
-
 -- | The old style decker filter pipeline.
 deckerPipeline =
   concatM
@@ -115,7 +92,7 @@ deckerPipeline =
     , expandDeckerMacros
     , renderCodeBlocks
     , includeCode
-    , provisionResources
+    -- , provisionResources
     , renderQuizzes
     , processSlides
     , processCitesWithDefault
@@ -144,7 +121,8 @@ readMetaMarkdown globalMeta topLevelBase markdownFile = do
   markdown <- liftIO $ T.readFile markdownFile
   let filePandoc@(Pandoc fileMeta fileBlocks) =
         readMarkdownOrThrow pandocReaderOpts markdown
-  additionalMeta <- getAdditionalMeta docBase fileMeta
+  fileMeta' <- liftIO $ mapMeta (makeAbsolutePathIfLocal projectDir docBase) fileMeta
+  additionalMeta <- getAdditionalMeta fileMeta'
   let combinedMeta = mergePandocMeta' additionalMeta globalMeta
   versionCheck combinedMeta
   let writeBack = getMetaBoolOrElse "write-back.enable" False combinedMeta

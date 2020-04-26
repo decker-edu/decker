@@ -23,10 +23,10 @@ import System.Directory
 filterMeta = do
   cwd <- toText <$> getCurrentDirectory
   return $
-    setTextMetaValue "decker.top-base-dir" cwd $
-    setTextMetaValue "decker.base-dir" cwd $
-    setTextMetaValue "decker.project-dir" cwd $
-    setTextMetaValue "decker.public-dir" cwd $ nullMeta
+    setMetaValue "decker.top-base-dir" cwd $
+    setMetaValue "decker.base-dir" cwd $
+    setMetaValue "decker.project-dir" cwd $
+    setMetaValue "decker.public-dir" cwd $ nullMeta
 
 -- import qualified Text.URI as URI
 -- | Constructs a filter runner with default parameters
@@ -169,7 +169,7 @@ compileSnippet markdown = do
   filtered@(Pandoc fmeta _) <-
     mediaFilter
       def
-      (Pandoc (setBoolMetaValue "decker.filter.pretty" True fMeta) blocks)
+      (Pandoc (setMetaValue "decker.filter.pretty" True fMeta) blocks)
   handleError $
     runPure $ writeHtml5String writerOptions $ walk dropPara filtered
 

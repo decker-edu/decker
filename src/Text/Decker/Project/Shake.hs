@@ -20,11 +20,13 @@ module Text.Decker.Project.Shake
   , watchChangesAndRepeat
   , withShakeLock
   , writeSupportFilesToPublic
+  , getAdditionalMeta
   ) where
 
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.URI
 import Text.Decker.Project.Project
 import Text.Decker.Resource.Template
 import Text.Decker.Server.Server
@@ -55,7 +57,7 @@ import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
 import System.Process
-import Text.Pandoc
+import Text.Pandoc hiding (lookupMeta)
 
 instance Show (IORef a) where
   show _ = "IORef"
@@ -146,16 +148,6 @@ runShakeOnce state rules = do
     waitForChange' projectDir exclude
   return keepWatching
 
-readStaticMetaData :: FilePath -> Action Meta
-readStaticMetaData file = do
-  need [file]
-  meta <- liftIO $ readMetaDataFile file
-  moreMeta <- getAdditionalMeta (takeDirectory file) meta
-  templateSource <-
-    liftIO $ calcTemplateSource (getMetaText "template-source" moreMeta)
-  defaultMeta <- readTemplateMeta templateSource
-  return $ mergePandocMeta' moreMeta defaultMeta
-
 initContext :: MutableActionState -> IO ActionContext
 initContext state = do
   dirs <- projectDirectories
@@ -181,6 +173,7 @@ deckerShakeOptions ctx = do
       { shakeFiles = ctx ^. dirs . transient
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
+      , shakeVerbosity = Verbose
       -- , shakeChange = ChangeModtimeAndDigest
       , shakeAbbreviations = [(ctx ^. dirs . project ++ "/", "/")]
       }
@@ -354,3 +347,33 @@ calcSource' target = do
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = putNormal $ "# pandoc (for " ++ out ++ ")"
+
+-- Check for additional meta files specified in the Meta option `meta-data`.
+-- Assumes that file are specified with absolute pathes.
+getAdditionalMeta :: Meta -> Action Meta
+getAdditionalMeta meta = do
+  let moreFiles = lookupMetaOrElse [] "meta-data" meta
+  moreMeta <- traverse readMetaData moreFiles
+  return $ foldr mergePandocMeta' meta (reverse moreMeta)
+
+-- | Reads a meta data file. All values that are pathes to local project files are
+-- made absoplute. Files referenced in `meta-data` are recursively loaded and merged.
+readMetaData :: FilePath -> Action Meta
+readMetaData file = do
+  need [file]
+  let base = takeDirectory file
+  project <- projectA
+  meta <-
+    liftIO $
+    (readMetaDataFile file >>= mapMeta (makeAbsolutePathIfLocal project base))
+  getAdditionalMeta meta
+
+-- | Reads static meta data from the `decker.yaml` file in the project root.
+-- Also reads meta data from files listed in `meta-data`
+readStaticMetaData :: FilePath -> Action Meta
+readStaticMetaData file = do
+  meta <- readMetaData file
+  templateSource <-
+    liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
+  defaultMeta <- readTemplateMeta templateSource
+  return $ mergePandocMeta' meta defaultMeta

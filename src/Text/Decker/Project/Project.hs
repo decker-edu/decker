@@ -21,6 +21,7 @@ module Text.Decker.Project.Project
   , excludeDirs
   , staticDirs
   -- * Types
+  , static
   , sources
   , decks
   , decksPdf
@@ -28,6 +29,7 @@ module Text.Decker.Project.Project
   , pagesPdf
   , handouts
   , handoutsPdf
+  , annotations
   , projectDir
   , publicDir
   , project
@@ -58,7 +60,6 @@ import qualified Data.List as List
 import Data.List.Split (splitOn)
 import qualified Data.Map.Strict as Map
 import Data.Maybe
-import qualified Data.Text as Text
 import qualified Data.Yaml as Yaml
 import Development.Shake hiding (Resource)
 import Network.URI
@@ -66,8 +67,7 @@ import Relude
 import qualified System.Directory as D
 import System.Environment
 import System.FilePath
-import Text.Pandoc.Definition
-import Text.Pandoc.Shared
+import Text.Pandoc.Builder
 import Text.Read
 import Text.Regex.TDFA
 
@@ -110,23 +110,8 @@ instance FromJSON Resource where
     withObject "Resource" $ \v ->
       Resource <$> v .: "source" <*> v .: "target" <*> v .: "url"
 
-class ToMetaValue a where
-  toMetaValue :: a -> MetaValue
-
-instance ToMetaValue MetaValue where
-  toMetaValue = id
-
-instance {-# OVERLAPS #-} ToMetaValue a => ToMetaValue [a] where
-  toMetaValue = MetaList . map toMetaValue
-
-instance ToMetaValue a => ToMetaValue [(Text, a)] where
+instance {-# OVERLAPS #-} ToMetaValue a => ToMetaValue [(Text, a)] where
   toMetaValue = MetaMap . Map.fromList . map (second toMetaValue)
-
-instance ToMetaValue Text where
-  toMetaValue = MetaString
-
-instance ToMetaValue String where
-  toMetaValue = MetaString . Text.pack
 
 instance ToMetaValue Resource where
   toMetaValue (Resource source target url) =
@@ -136,31 +121,16 @@ instance ToMetaValue Resource where
       , ("url" :: Text, url)
       ]
 
-class FromMetaValue a where
-  fromMetaValue :: MetaValue -> Maybe a
-
-instance {-# OVERLAPS #-} FromMetaValue a => FromMetaValue [a] where
-  fromMetaValue (MetaList list) = Just $ mapMaybe fromMetaValue list
-  fromMetaValue _ = Nothing
-
-instance FromMetaValue a => FromMetaValue [(Text, a)] where
+instance {-# OVERLAPS #-} FromMetaValue a => FromMetaValue [(Text, a)] where
   fromMetaValue (MetaMap object) =
     let kes :: Map Text (Maybe a) =
           Map.filter isJust $ Map.map fromMetaValue object
      in Just $ zip (Map.keys kes) (map fromJust (Map.elems kes))
   fromMetaValue _ = Nothing
 
-instance FromMetaValue Text where
-  fromMetaValue (MetaString text) = Just text
-  fromMetaValue (MetaInlines inlines) = Just $ stringify inlines
-  fromMetaValue _ = Nothing
-
-instance FromMetaValue String where
-  fromMetaValue v = Text.unpack <$> fromMetaValue v
-
 rightToMaybe (Right r) = Just r
 
-rightRoMaybe (Left l) = Nothing
+leftToMaybe (Left l) = Nothing
 
 instance FromMetaValue Resource where
   fromMetaValue (MetaMap object) = do

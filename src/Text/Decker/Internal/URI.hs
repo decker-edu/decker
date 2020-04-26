@@ -9,11 +9,15 @@ module Text.Decker.Internal.URI
   , addQueryFlag
   , addQueryParam
   , URI
+  , absolutePathIfLocal
+  , makeAbsolutePathIfLocal
   ) where
 
 import Control.Monad.Catch
 import qualified Data.Text as Text
 import Relude
+import System.Directory
+import System.FilePath
 import Text.URI (URI)
 import qualified Text.URI as URI
 
@@ -31,6 +35,33 @@ uriPath uri =
       { URI.uriPath = URI.uriPath uri
       , URI.uriAuthority = Left (URI.isPathAbsolute uri)
       }
+
+isUriAbsolute :: URI -> Bool
+isUriAbsolute uri = isJust (URI.uriScheme uri)
+
+absolutePathIfLocal :: FilePath -> FilePath -> Text -> IO (Maybe Text)
+absolutePathIfLocal project base uriString =
+  catchAll decide (\_ -> return Nothing)
+  where
+    decide = do
+      uri <- URI.mkURI uriString
+      if not (isUriAbsolute uri)
+        then do
+          let path = toString (uriPath uri)
+          let absPath =
+                if URI.isPathAbsolute uri
+                  then project </> drop 1 path
+                  else base </> path
+          exists <- doesFileExist absPath
+          return $
+            if exists
+              then Just (toText absPath)
+              else Nothing
+        else return Nothing
+
+makeAbsolutePathIfLocal :: FilePath -> FilePath -> Text -> IO Text
+makeAbsolutePathIfLocal project base uriString =
+  fromMaybe uriString <$> absolutePathIfLocal project base uriString
 
 uriScheme :: URI -> Maybe Text
 uriScheme uri = URI.unRText <$> URI.uriScheme uri

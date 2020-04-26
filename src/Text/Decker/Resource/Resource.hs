@@ -22,6 +22,7 @@ import System.Decker.OS
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
+import Text.Decker.Internal.URI
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Resource.Zip
@@ -33,7 +34,7 @@ import Control.Monad.State
 import qualified Data.Map.Lazy as Map
 import qualified Data.Text as Text
 import Development.Shake hiding (Resource)
-import Network.URI
+import qualified Network.URI as URI
 import qualified System.Directory as Dir
 import System.FilePath
 import Text.Pandoc
@@ -92,6 +93,24 @@ linkResource resource = do
   Dir.createFileLink (sourceFile resource) (publicFile resource)
   return (publicUrl resource)
 
+needMetaResource :: FilePath -> (Text.Text, FilePath) -> Action FilePath
+needMetaResource base (key, url)
+  | key `elem` compiletimeMetaKeys = do
+    project <- projectA
+    absolutePath <- liftIO $ absolutePathIfLocal project base (Text.pack url)
+    case absolutePath of
+      Just path -> need [toString path] >> return (toString path)
+      Nothing -> return url
+needMetaResource base (key, url) = do
+  project <- projectA
+  public <- publicA
+  absolutePath <- liftIO $ absolutePathIfLocal project base (Text.pack url)
+  case absolutePath of
+    Just path ->
+      need [public </> makeRelative project (toString path)] >>
+      return (toString path)
+    Nothing -> return url
+
 provisionMetaResource ::
      Provisioning -> FilePath -> (Text.Text, FilePath) -> Action FilePath
 provisionMetaResource method base (key, url)
@@ -123,7 +142,7 @@ provisionMetaResource _ _ (key, url) = return url
 provisionResource :: Provisioning -> FilePath -> FilePath -> Action FilePath
 provisionResource method base filePath = do
   dirs <- projectDirsA
-  case parseRelativeReference filePath of
+  case URI.parseRelativeReference filePath of
     Nothing ->
       if hasDrive filePath
         then do
@@ -138,7 +157,7 @@ provisionResource method base filePath = do
           publishResource method base resource
         else return filePath
     Just uri -> do
-      let path = uriPath uri
+      let path = URI.uriPath uri
       fileExists <- doesFileExist path
       if fileExists
         then do
@@ -160,20 +179,18 @@ publishResource method base resource = do
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
 urlToFilePathIfLocal base uri =
-  case parseRelativeReference uri of
+  case URI.parseRelativeReference uri of
     Nothing -> return uri
     Just relativeUri -> do
-      let filePath = uriPath relativeUri
+      let filePath = URI.uriPath relativeUri
       absBase <- liftIO $ Dir.makeAbsolute base
       absRoot <- projectA
       let absPath =
             if isAbsolute filePath
               then absRoot </> makeRelative "/" filePath
               else absBase </> filePath
-      return $ show $ relativeUri {uriPath = absPath}
+      return $ show $ relativeUri {URI.uriPath = absPath}
 
--- TODO: provisionResources could stay here since it uses Pandoc/Decker Pandoc
--- This probably does not need to be introduced to Resources module
 provisionResources :: Pandoc -> Decker Pandoc
 provisionResources pandoc = do
   base <- gets basePath
@@ -181,6 +198,11 @@ provisionResources pandoc = do
   lift $
     mapMetaResources (provisionMetaResource method base) pandoc >>=
     mapResources (provisionResource method base)
+
+needMetaResources :: Pandoc -> Decker Pandoc
+needMetaResources pandoc = do
+  base <- gets basePath
+  lift $ mapMetaResources (needMetaResource base) pandoc
 
 mapResources :: (FilePath -> Action FilePath) -> Pandoc -> Action Pandoc
 mapResources transform (Pandoc meta blocks) =

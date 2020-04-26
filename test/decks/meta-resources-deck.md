@@ -6,6 +6,8 @@ deep:
     bool: true
 meta-data:
 - 'chart-meta.yaml'
+- level1.yaml
+something: '/test/decks/include/06-metal.png'
 title: Meta Resources
 ---
 
@@ -30,3 +32,15 @@ Resource references in meta data values
 
 -   `chartId`: [:meta](chartId)
 -   `data-chart`: [:meta](data-chart)
+
+# Transitive meta data file
+
+## Inclusion chain
+
+``` {.txt}
+meta-resources-deck.md <- level1.yaml <- include/level2.yaml <- 06-metal-v.png
+```
+
+## Absolute image path
+
+-   metal-image: [:meta](metal-image)
