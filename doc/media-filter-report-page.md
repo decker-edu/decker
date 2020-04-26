@@ -114,6 +114,40 @@ translates to
 
 ------------------------------------------------------------------------
 
+Plain image with caption
+------------------------
+
+An image with a caption containg a citation.
+
+``` {.markdown}
+![](/test/decks/include/06-metal.png)
+
+Caption: Caption [see @tramberend2003].
+```
+
+translates to
+
+``` {.html}
+<figure class="decker">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <figcaption class="decker">
+         
+        Caption
+         
+        <span class="citation" data-cites="tramberend2003">
+            (see
+             
+            Tramberend
+             
+            2003)
+        </span>
+        .
+    </figcaption>
+</figure>
+```
+
+------------------------------------------------------------------------
+
 Plain image with URL query
 --------------------------
 

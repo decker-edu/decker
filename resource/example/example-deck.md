@@ -1,8 +1,8 @@
 ---
-bibliography: 'example.bib'
+bibliography: 'resource/example/example.bib'
 chalkboard: 'example-deck.json'
 controls: True
-csl: 'chicago-author-date.csl'
+csl: 'resource/example/chicago-author-date.csl'
 history: True
 menu: True
 title: Decker Slide Tool Reference Guide

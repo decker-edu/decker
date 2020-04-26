@@ -2,8 +2,8 @@
 title: Decker Slide Tool Reference Guide
 history: true
 menu: true
-bibliography: example.bib
-csl: chicago-author-date.csl
+bibliography: resource/tutorial/example.bib
+csl: resource/tutorial/chicago-author-date.csl
 controls: true
 chalkboard: example-deck.json
 ---

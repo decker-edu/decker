@@ -1,6 +1,6 @@
 ---
-csl: 'acm-sig-proceedings.csl'
-css: dummy.css
+csl: 'test/decks/acm-sig-proceedings.csl'
+css: /test/decks/dummy.css
 deep:
   down:
     bool: true

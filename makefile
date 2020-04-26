@@ -7,7 +7,7 @@ local-bin-path := $(HOME)/.local/bin
 
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
-stack-build-opts := --fast --ghc-options "-j4 +RTS -A128m -n2m -qg -RTS"
+stack-build-opts := --fast --ghc-options "-j8 +RTS -A128m -n2m -qg -RTS"
 
 build: 
 	rm decker.cabal
@@ -17,7 +17,7 @@ clean-build: clean
 	git submodule update --init
 	make -f symlinks.mk -C third-party all
 	rm decker.cabal
-	stack build $(stack-build-options)
+	stack build $(stack-build-opts)
 
 less:
 	rm decker.cabal
@@ -52,10 +52,10 @@ dist: install
 	rm dist/$(decker-name)
 
 test:
-	stack test $(stack-build-options) -j1
+	stack test -j1
 
 watch:
-	stack test $(stack-build-options) -j1 --file-watch
+	stack test -j1 --file-watch
 
 clean:
 	stack clean
