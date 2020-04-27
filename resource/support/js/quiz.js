@@ -265,7 +265,7 @@ function matchings(matchQuestion) {
         for (let child of draggables[i].children) {
             child.setAttribute('draggable', false);
             child.className = "draggableChild";
-            if (!child.tagName == "a") {
+            if (child.tagName !== "a") {
                 child.style.pointerEvents = "none";
             }
         }
