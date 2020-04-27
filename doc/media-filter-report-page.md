@@ -95,6 +95,32 @@ Plain image with caption
 An image with a caption. The image is surrounded by a figure element.
 
 ``` {.markdown}
+![Caption.](/test/decks/include/06-metal.png)
+
+This is not a caption, but the next paragraph.
+```
+
+translates to
+
+``` {.html}
+<figure class="decker">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <figcaption class="decker">
+        Caption.
+    </figcaption>
+</figure>
+
+This is not a caption, but the next paragraph.
+```
+
+------------------------------------------------------------------------
+
+Plain image with caption
+------------------------
+
+An image with a caption. The image is surrounded by a figure element.
+
+``` {.markdown}
 ![](/test/decks/include/06-metal.png)
 
 Caption: Caption.
@@ -334,11 +360,10 @@ Line blocks filled with only image tags are translated to a row of images. Suppo
 translates to
 
 ``` {.html}
-<figure class="decker">
-    <div class="decker image-row">
-        <img class="decker" data-src="test/decks/include/06-metal.png">
+<div class="decker image-row">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
 
-        <figure class="decker">
+    <figure class="decker">
     <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
         
     </video>
@@ -347,11 +372,9 @@ translates to
     </figcaption>
 </figure>
 
-    </div>
-    <figcaption>
-        <img src="/test/decks/include/06-metal.png" css:border="1px solid black" />
-    </figcaption>
-</figure>
+</div>
+
+| <img class="decker" data-src="test/decks/include/06-metal.png" style="border:1px solid black;">
 ```
 
 ------------------------------------------------------------------------
@@ -373,23 +396,17 @@ Caption: Caption
 translates to
 
 ``` {.html}
-<figure class="decker">
-    <div class="decker image-row">
-        <img class="decker" data-src="test/decks/include/06-metal.png">
+<div class="decker image-row">
+    <img class="decker" data-src="test/decks/include/06-metal.png">
 
-        <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
     
 </video>
 
-    </div>
-    <figcaption>
-        <img src="/test/decks/include/06-metal.png" css:border="1px solid black" />
-         
-        |
-         
-        <img src="/test/decks/include/06-metal.png" />
-    </figcaption>
-</figure>
+</div>
+
+| <img class="decker" data-src="test/decks/include/06-metal.png" style="border:1px solid black;">
+ | <img class="decker" data-src="test/decks/include/06-metal.png">
 
 Caption: Caption
 ```
