@@ -103,6 +103,7 @@
 .reveal .qmc,
 .reveal .qmi,
 .reveal [class*="quiz-"] {
+  display: inline;
   position: relative;
 }
 
@@ -130,6 +131,7 @@
 .reveal [class*="quiz-"] .solutionList {
   list-style-type: none;
   display: none;
+  min-width: fit-content;
   max-width: 95%;
   background-color: grey;
   color: #ffffff;

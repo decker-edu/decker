@@ -4,7 +4,7 @@
     .qmc,
     .qmi,
     [class*="quiz-"]{
-    
+    display: inline;
     position: relative;
     // General Button css and freetext question Input 
     button,
@@ -33,6 +33,7 @@
         list-style-type: none;
         // visibility:       hidden;
         display: none;
+        min-width: fit-content;
         max-width:        95%;
         background-color: grey;
         color:            #ffffff;
