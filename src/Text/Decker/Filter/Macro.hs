@@ -8,7 +8,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 
 import Control.Monad.State
-import Data.List (find)
+import Data.List (find, intersperse)
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
 import qualified Data.Text as Text
@@ -173,14 +173,18 @@ verticalSpace _ _ (space, _) _ = do
       printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
     Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
 
-metaValue :: MacroAction
-metaValue _ _ (key, _) meta =
+metaMacro :: MacroAction
+metaMacro _ _ (key, _) meta =
   return $ fromMaybe (Strikeout [Str key]) (getMetaValue key meta >>= toInline)
   where
+    toInline :: MetaValue -> Maybe Inline
     toInline (MetaBool False) = Just $ Str "false"
     toInline (MetaBool True) = Just $ Str "true"
     toInline (MetaString s) = Just $ Str s
     toInline (MetaInlines i) = Just $ Span nullAttr i
+    toInline (MetaList l) =
+      Just $ Span nullAttr  $ intersperse (Str ", ") (mapMaybe toInline l)
+    toInline (MetaMap _) = Just $ Str "true"
     toInline _ = Nothing
 
 type MacroMap = Map.Map Text.Text MacroAction
@@ -188,16 +192,11 @@ type MacroMap = Map.Map Text.Text MacroAction
 macroMap :: MacroMap
 macroMap =
   Map.fromList
-    [ ("meta", metaValue)
+    [ ("meta", metaMacro)
     , ("fa", fontAwesome "fas")
     , ("fas", fontAwesome "fas")
     , ("far", fontAwesome "far")
     , ("fab", fontAwesome "fab")
-    --, ("youtube", webVideo "youtube")
-    --, ("vimeo", webVideo "vimeo")
-    --, ("twitch", webVideo "twitch")
-    , ("veer", webVideo "veer")
-    , ("veer-photo", webVideo "veer-photo")
     , ("hspace", horizontalSpace)
     , ("vspace", verticalSpace)
     ]

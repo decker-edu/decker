@@ -118,7 +118,8 @@ readMetaMarkdown globalMeta topLevelBase markdownFile = do
   markdown <- liftIO $ T.readFile markdownFile
   let filePandoc@(Pandoc fileMeta fileBlocks) =
         readMarkdownOrThrow pandocReaderOpts markdown
-  fileMeta' <- liftIO $ mapMeta (makeAbsolutePathIfLocal projectDir docBase) fileMeta
+  fileMeta' <-
+    liftIO $ mapMeta (makeAbsolutePathIfLocal projectDir docBase) fileMeta
   additionalMeta <- getAdditionalMeta fileMeta'
   let combinedMeta = mergePandocMeta' additionalMeta globalMeta
   versionCheck combinedMeta
@@ -127,10 +128,28 @@ readMetaMarkdown globalMeta topLevelBase markdownFile = do
   -- This is the new media filter. Runs right after reading. Because every matched
   -- document fragment is converted to raw HTML, the following old style filters
   -- will not see them.
-  cited <- liftIO $ processCites' (Pandoc combinedMeta fileBlocks)
+  neededMeta <- needMetaResources topLevelBase combinedMeta
+  cited <- liftIO $ processCites' (Pandoc neededMeta fileBlocks)
   filtered <- deckerMediaFilter topLevelBase docBase cited
   -- TODO remove once old style filters are migrated
   mapResources (urlToFilePathIfLocal topLevelBase) filtered
+
+needMetaResources :: FilePath -> Meta -> Action Meta
+needMetaResources base = mapMetaWithKey needTemplateResources
+  where
+    needTemplateResources key value = do
+      let path = T.unpack value
+      exists <- liftIO $ doesPathExist path
+      if exists &&
+         (key == "css" || key == "base-css" || "template." `T.isPrefixOf` key)
+        then do
+          project <- projectA
+          public <- publicA
+          let url = makeRelativeTo base path
+          let target = public </> makeRelativeTo project path
+          need [target]
+          return (T.pack url)
+        else return value
 
 readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
 readMarkdownOrThrow opts markdown =

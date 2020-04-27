@@ -52,7 +52,7 @@ absolutePathIfLocal project base uriString =
                 if URI.isPathAbsolute uri
                   then project </> drop 1 path
                   else base </> path
-          exists <- doesFileExist absPath
+          exists <- doesPathExist absPath
           return $
             if exists
               then Just (toText absPath)

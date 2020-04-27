@@ -32,6 +32,7 @@ module Text.Decker.Internal.Meta
   , lookupMetaOrElse
   , lookupMetaOrFail
   , mapMeta
+  , mapMetaWithKey
   ) where
 
 import Text.Decker.Internal.Exception
@@ -43,6 +44,7 @@ import qualified Data.Map.Lazy as Map
 import qualified Data.Map.Strict as M
 import Data.Maybe
 import qualified Data.Text as Text
+import qualified Data.Set as Set
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
 import Relude
@@ -67,6 +69,8 @@ mergePandocMeta' (Meta left) (Meta right) =
     merge :: MetaValue -> MetaValue -> MetaValue
     merge (MetaMap mapL) (MetaMap mapR) =
       MetaMap $ Map.unionWith merge mapL mapR
+    merge (MetaList listL) (MetaList listR) =
+      MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
     merge left right = left
 
 -- | Converts YAML meta data to pandoc meta data.
@@ -313,7 +317,7 @@ lookupMetaOrFail key meta =
 -- | Map an IO action over string values and stringified inline values.
 -- Converts MetaInlines to MetaStrings. This may be a problem in some distant
 -- future.
-mapMeta :: (Text -> IO Text) -> Meta -> IO Meta
+mapMeta :: (MonadFail m, Monad m) => (Text -> m Text) -> Meta -> m Meta
 mapMeta f meta = do
   (MetaMap m) <- map' (MetaMap (unMeta meta))
   return (Meta m)
@@ -326,16 +330,20 @@ mapMeta f meta = do
     map' (MetaInlines i) = MetaString <$> f (stringify i)
     map' v = return v
 
--- | Map meta values in maps with the key.
-mapMetaWithKey :: (Text -> Text -> IO Text) -> Meta -> IO Meta
+-- | Map meta values in maps with the compound key.
+mapMetaWithKey ::
+     (MonadFail m, Monad m) => (Text -> Text -> m Text) -> Meta -> m Meta
 mapMetaWithKey f meta = do
   (MetaMap m) <- map' "" (MetaMap (unMeta meta))
   return (Meta m)
   where
-    map' _ (MetaMap m) =
+    map' k' (MetaMap m) =
       MetaMap . Map.fromList <$>
-      mapM (\(k, v) -> (k, ) <$> map' k v) (Map.toList m)
-    map' k (MetaList l) = MetaList <$> mapM (map' k) l
+      mapM (\(k, v) -> (k, ) <$> map' (join k' k) v) (Map.toList m)
+    map' k (MetaList l) =
+      MetaList <$>
+      mapM (\(n, v) -> map' (k <> "[" <> show n <> "]") v) (zip [0 ..] l)
     map' k (MetaString s) = MetaString <$> f k s
     map' k (MetaInlines i) = MetaString <$> f k (stringify i)
     map' _ v = return v
+    join x y = Text.intercalate "." $ filter (not . Text.null) [x, y]

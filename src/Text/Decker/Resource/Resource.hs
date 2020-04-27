@@ -277,3 +277,5 @@ mapMetaResources transform (Pandoc (Meta kvmap) blocks) = do
     mapMetaList k (MetaInlines inlines) =
       MetaString <$> transform' (k, stringify inlines)
     mapMetaList _ v = return v
+
+
