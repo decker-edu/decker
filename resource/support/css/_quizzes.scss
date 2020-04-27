@@ -112,10 +112,10 @@
         }
 
         // Disable interaction with the elements inside draggable
-        .draggableChild {
-            max-width: inherit;
-            // pointer-events: none;
-        }
+        // .draggableChild {
+        //     max-width: inherit;
+        //     pointer-events: none;
+        // }
 
         // Arrow from here: http://www.cssarrowplease.com/
         // Creates an arrow that points from dragzone to dropzone to indicate dragging direction

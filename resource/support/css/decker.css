@@ -246,12 +246,6 @@
   font-size: large;
 }
 
-.reveal .quiz-mi .draggableChild,
-.reveal .qmi .draggableChild,
-.reveal .quiz-match-items .draggableChild {
-  max-width: inherit;
-}
-
 .reveal .quiz-mi .matchItems,
 .reveal .qmi .matchItems,
 .reveal .quiz-match-items .matchItems {
