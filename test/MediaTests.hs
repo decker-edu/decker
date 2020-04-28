@@ -24,20 +24,13 @@ import Text.Pandoc.Walk
 filterMeta = do
   cwd <- toText <$> getCurrentDirectory
   return $
-<<<<<<< Updated upstream
+    setMetaValue "bibliography" ("test/decks/bibliography.bib"::Text) $
+    setMetaValue "csl" ("resource/example/chicago-author-date.csl"::Text) $
+    setMetaValue "suppress-bibliography" True $
     setMetaValue "decker.top-base-dir" cwd $
     setMetaValue "decker.base-dir" cwd $
     setMetaValue "decker.project-dir" cwd $
     setMetaValue "decker.public-dir" cwd $ nullMeta
-=======
-    setTextMetaValue "bibliography" "test/decks/bibliography.bib" $
-    setTextMetaValue "csl" "resource/example/chicago-author-date.csl" $
-    setTextMetaValue "suppress-bibliography" "true" $
-    setTextMetaValue "decker.top-base-dir" cwd $
-    setTextMetaValue "decker.base-dir" cwd $
-    setTextMetaValue "decker.project-dir" cwd $
-    setTextMetaValue "decker.public-dir" cwd $ nullMeta
->>>>>>> Stashed changes
 
 -- import qualified Text.URI as URI
 -- | Constructs a filter runner with default parameters
@@ -163,16 +156,6 @@ readerOptions =
 writerOptions =
   def {writerExtensions = pandocExtensions, writerCiteMethod = Citeproc}
 
-setPretty (Pandoc meta blocks) =
-  Pandoc
-    (Meta $
-     fromList
-       [ ( "decker"
-         , MetaMap $
-           fromList [("filter", MetaMap $ fromList [("pretty", MetaBool True)])])
-       ])
-    blocks
-
 compileSnippet :: Text -> IO Text
 compileSnippet markdown = do
   fMeta <- filterMeta
@@ -180,7 +163,7 @@ compileSnippet markdown = do
     handleError (runPure (readMarkdown readerOptions markdown))
   cited <-
     processCites'
-      (Pandoc (setBoolMetaValue "decker.filter.pretty" True fMeta) blocks)
+      (Pandoc (setMetaValue "decker.filter.pretty" True fMeta) blocks)
   filtered <- mediaFilter writerOptions cited
   handleError $
     runPure $ writeHtml5String writerOptions $ walk dropPara filtered
