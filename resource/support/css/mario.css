@@ -26,6 +26,9 @@ body {
   color: #222; 
 }
 
+.reveal .slides section .fragment {
+  transition: none; 
+}
 
 ::selection {
   color: #fff;
@@ -860,7 +863,7 @@ body {
     border:           none;
     position:         absolute;
     z-index:          1;
-    font-size:        1rem;
+    font-size:        1.5rem;
 }
 
 /* once clicked, wrong answers are red */
