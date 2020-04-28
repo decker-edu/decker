@@ -315,17 +315,14 @@ let RevealWhiteboard = (function(){
 
         // render eraser cursor
         ctx.clearRect(0, 0, 20, 20); 
+        ctx.fillStyle = "rgba(255,255,255,0)";
+        ctx.fillRect(0, 0, 20, 20);
         ctx.strokeStyle = "rgba(128, 128, 128, 0.8)";
-        ctx.fillStyle   = "rgba(255, 255, 255, 0.8)";
-        ctx.lineWidth   = 1;
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(10, 10, eraserRadius*Reveal.getScale(), 0, 2*Math.PI);
-        ctx.fill(); 
+        ctx.arc(10, 10, eraserRadius-2, 0, 2*Math.PI);
         ctx.stroke(); 
         eraserCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
-
-        // reset cursor
-        //slides.style.cursor = tool ? 'none' : '';
     }
 
 
@@ -977,6 +974,25 @@ let RevealWhiteboard = (function(){
     };
 
 
+    /*
+     * erase a stroke:
+     * compute mouse position, compute "collision" with each stroke
+     */
+    function eraseStroke(evt)
+    {
+        // mouse position
+        const slideZoom  = slides.style.zoom || 1;
+        const mouseX = evt.offsetX / slideZoom;
+        const mouseY = evt.offsetY / slideZoom;
+        const point  = [mouseX, mouseY];
+
+        svg.querySelectorAll( 'path' ).forEach( stroke => {
+            if (isPointInStroke(stroke, point))
+                stroke.remove();
+        });
+    };
+
+
 
 
     /*****************************************************************
@@ -1006,11 +1022,8 @@ let RevealWhiteboard = (function(){
         // eraser mode or middle mouse button
         else if (tool == ToolType.ERASER || evt.buttons == 4)
         {
-            const point = [evt.offsetX, evt.offsetY];
-            svg.querySelectorAll( 'path' ).forEach( stroke => {
-                if (isPointInStroke(stroke, point))
-                    stroke.remove();
-            });
+            showCursor(eraserCursor);
+            eraseStroke(evt);
         }
 
         // pencil mode
@@ -1053,11 +1066,7 @@ let RevealWhiteboard = (function(){
         else if (tool == ToolType.ERASER || evt.buttons == 4)
         {
             showCursor(eraserCursor);
-            const point = [evt.offsetX, evt.offsetY];
-            svg.querySelectorAll( 'path' ).forEach( stroke => {
-                if (isPointInStroke(stroke, point))
-                    stroke.remove();
-            });
+            eraseStroke(evt);
         }
 
         // pencil mode
