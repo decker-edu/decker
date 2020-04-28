@@ -277,7 +277,8 @@ renderInsertChoices quiz@(InsertChoices title tgs qm q) =
     reduceBlock p = p
     input :: Choice -> Html
     input c@(Choice correct text comment) =
-      H.input >> choiceList "solutionList" [c]
+      (H.input ! A.placeholder "Type and press 'Enter'") >>
+      choiceList "solutionList" [c]
     select :: [Choice] -> Html
     select choices =
       (H.select $
@@ -325,7 +326,10 @@ renderFreeText quiz@(FreeText title tgs qm q ch) =
   Div ("", tgs, []) $
   [Header 2 ("", [], []) title] ++ q ++ [inputRaw] ++ [solutionButton]
   where
-    inputRaw = rawHtml' (H.input >> choiceList "solutionList" ch)
-    input :: Choice -> Html
-    input (Choice correct text comment) = H.input
+    inputRaw =
+      rawHtml'
+        ((H.input ! A.placeholder "Type and press 'Enter'") >>
+         choiceList "solutionList" ch)
+    -- input :: Choice -> Html
+    -- input (Choice correct text comment) = H.input
 renderFreeText q = Div ("", [], []) [Para [Str "ERROR NO FREETEXT QUIZ"]]
