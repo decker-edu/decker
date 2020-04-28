@@ -22,7 +22,7 @@ justToList :: [Maybe a] -> [a]
 justToList = reverse . justToList'
   where
     justToList' ((Just x):xs) = x : justToList xs
-    justToList' (Nothing:_) = []
+    justToList' _ = []
 
 youtubeDefaults =
   [ ("cc_load_policy", "0")

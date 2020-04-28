@@ -108,7 +108,7 @@ run = do
   runDecker $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches directories
     --
-    want ["html"]
+    want ["decks"]
     --
     phony "version" $ do
       putNormal $

@@ -100,11 +100,11 @@ dependencies:
   - zip
 
 ghc-options:
-  # - -Wunused-top-binds
-  # - -Wunused-local-binds
-  # - -Wincomplete-patterns
-  # - -Wunused-matches
+  - -Wunused-top-binds
+  - -Wunused-local-binds
+  - -Wincomplete-patterns
   - -fwarn-unused-imports
+  # - -Wunused-matches
 
 library:
   source-dirs:

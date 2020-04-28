@@ -10,6 +10,7 @@ module Text.Decker.Project.Shake
   , projectA
   , projectDirsA
   , publicA
+  , publicResource
   , publicResourceA
   , putCurrentDocument
   , readStaticMetaData
@@ -36,10 +37,7 @@ import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
-import qualified Data.ByteString.Base16 as B16
-import qualified Data.ByteString.Lazy as BL
 import Data.Char
-import Data.Digest.Pure.MD5
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import Data.IORef
@@ -47,8 +45,6 @@ import Data.List
 import Data.List.Extra
 import Data.Maybe
 import qualified Data.Set as Set
-import qualified Data.Text as T
-import Data.Text.Encoding
 import Data.Typeable
 import Development.Shake hiding (doesDirectoryExist, putError)
 import System.Console.GetOpt
@@ -145,7 +141,7 @@ runShakeOnce state rules = do
     let projectDir = context ^. dirs . project
     meta <- readMetaDataFile (projectDir </> "decker.yaml")
     let exclude = map (projectDir </>) $ excludeDirs meta
-    waitForChange' projectDir exclude
+    waitForChange projectDir exclude
   return keepWatching
 
 initContext :: MutableActionState -> IO ActionContext
@@ -185,19 +181,8 @@ actionContext :: Action ActionContext
 actionContext =
   fromMaybe (error "Error getting action context") <$> getShakeExtra
 
-waitForChange :: [FilePath] -> IO ()
-waitForChange inDirs =
-  Notify.withManager
-    (\manager -> do
-       done <- newEmptyMVar
-       forM_
-         inDirs
-         (\dir ->
-            Notify.watchDir manager dir (const True) (\e -> putMVar done ()))
-       takeMVar done)
-
-waitForChange' :: FilePath -> [FilePath] -> IO ()
-waitForChange' inDir exclude =
+waitForChange :: FilePath -> [FilePath] -> IO ()
+waitForChange inDir exclude =
   Notify.withManager
     (\manager -> do
        done <- newEmptyMVar
@@ -215,11 +200,6 @@ getRelativeSupportDir :: FilePath -> Action FilePath
 getRelativeSupportDir from = do
   sup <- _support . _dirs <$> actionContext
   return $ makeRelativeTo from sup
-
-sketchPadId :: T.Text -> T.Text
-sketchPadId text =
-  T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ BL.fromStrict $
-  encodeUtf8 text
 
 writeSupportFilesToPublic :: Meta -> Action ()
 writeSupportFilesToPublic meta = do
@@ -320,14 +300,6 @@ openBrowser url =
      | "darwin" `isInfixOf` os -> liftIO $ callProcess "open" [url]
      | otherwise ->
        putNormal $ "Unable to open browser on this platform for url: " ++ url
-
-reloadBrowsers :: Action ()
-reloadBrowsers = do
-  ref <- _server . _state <$> actionContext
-  server <- liftIO $ readIORef ref
-  case server of
-    Just serv -> liftIO $ reloadClients serv
-    Nothing -> return ()
 
 calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target = do

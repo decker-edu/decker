@@ -258,11 +258,9 @@ processLocalUri uri ext = do
           then dropDrive urlPath
           else makeRelative projectDir docBaseDir </> urlPath
   let sourcePath = projectDir </> relPath
-  let topPath = projectDir </> topBaseDir
   let targetPath = publicDir </> relPath <.> extString
   let publicRelPath = makeRelativeTo topBaseDir sourcePath
   publicUri <- setUriPath (toText (publicRelPath <.> extString)) uri
-  let publicUrl = URI.render publicUri
   exists <- liftIO $ doesFileExist sourcePath
   if exists
     then needFile targetPath

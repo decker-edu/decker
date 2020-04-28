@@ -208,6 +208,7 @@ transformImage image@(Image attr@(_, classes, _) _ (url, _)) caption =
     case Map.lookup mediaType imageTransformers of
       Just transform -> runAttr attr (transform uri caption) >>= renderHtml
       Nothing -> return image
+transformImage inline _ = return inline
 
 -- Lines up a list of images in a div element. Use with flexbox css.
 transformImages :: [Inline] -> [Inline] -> Filter Block
@@ -253,6 +254,7 @@ transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
           Text.writeFile absPath text
       uri <- lift $ URI.mkURI ("/" <> toText relPath)
       renderCodeHtml uri caption
+transformCodeBlock block _ = return block
 
 mkAudioTag :: Text -> Attr -> Html
 mkAudioTag url (id, cs, kvs) =

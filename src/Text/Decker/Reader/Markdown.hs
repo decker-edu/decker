@@ -113,7 +113,7 @@ readMetaMarkdown globalMeta topLevelBase markdownFile = do
   docBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
   need [markdownFile]
   markdown <- liftIO $ T.readFile markdownFile
-  let filePandoc@(Pandoc fileMeta fileBlocks) =
+  let Pandoc fileMeta fileBlocks =
         readMarkdownOrThrow pandocReaderOpts markdown
   fileMeta' <-
     liftIO $ mapMeta (makeAbsolutePathIfLocal projectDir docBase) fileMeta
@@ -183,6 +183,3 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   when (markdown /= fileContent) $
     withTempFile
       (\tmp -> liftIO $ T.writeFile tmp markdown >> renameFile tmp filepath)
-
-processCitesWithDefault :: Pandoc -> Decker Pandoc
-processCitesWithDefault = lift . liftIO . processCites'

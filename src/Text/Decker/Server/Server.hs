@@ -102,7 +102,7 @@ runHttpServer state dirs port = do
           , ("/", method GET $ serveDirectoryNoCaching state documentRoot)
           ]
   let tryRun port 0 = fail "decker server: All ports already in use"
-  let tryRun port tries =
+      tryRun port tries =
         catchAll
           (simpleHttpServe (setPort port config) routes)
           (\_ -> do

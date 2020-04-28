@@ -31,7 +31,7 @@ evalUrl meta url =
   case parseURI (Text.unpack url) of
     Just uri
       | (not . null . uriScheme) uri -> maybe url Text.pack (evalUri meta uri)
-    Nothing -> url
+    _ -> url
 
 evalUri :: Meta -> URI -> Maybe String
 evalUri meta uri = do
@@ -57,4 +57,3 @@ fillTemplate template path =
 
 a <.> b = a ++ "." ++ b
 
-dot = intercalate "."

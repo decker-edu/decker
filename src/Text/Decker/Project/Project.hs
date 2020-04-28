@@ -129,10 +129,6 @@ instance {-# OVERLAPS #-} FromMetaValue a => FromMetaValue [(Text, a)] where
      in Just $ zip (Map.keys kes) (map fromJust (Map.elems kes))
   fromMetaValue _ = Nothing
 
-rightToMaybe (Right r) = Just r
-
-leftToMaybe (Left l) = Nothing
-
 instance FromMetaValue Resource where
   fromMetaValue (MetaMap object) = do
     source <- Map.lookup "source" object >>= fromMetaValue
@@ -179,14 +175,6 @@ provisioningFromMeta meta =
 
 dachdeckerFromMeta :: Meta -> Maybe String
 dachdeckerFromMeta = getMetaString "dachdecker"
-
-provisioningClasses :: [(String, Provisioning)]
-provisioningClasses =
-  [ ("copy", Copy)
-  , ("symlink", SymLink)
-  , ("absolute", Absolute)
-  , ("relative", Relative)
-  ]
 
 absRefResource :: Resource -> IO FilePath
 absRefResource resource =
@@ -251,8 +239,8 @@ oldResourcePaths = do
     deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
     oldVersion name =
       case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
-        [] -> False
         _:x:y:z:_ -> convert [x, y, z] < currentVersion
+        _ -> False
 
 resourcePaths :: ProjectDirs -> FilePath -> URI -> Resource
 resourcePaths dirs base uri =
@@ -315,8 +303,6 @@ pageHTMLSuffix = "-page.html"
 
 pagePDFSuffix = "-page.pdf"
 
-handoutSuffix = "-deck.md"
-
 handoutHTMLSuffix = "-handout.html"
 
 handoutPDFSuffix = "-handout.pdf"
@@ -342,7 +328,6 @@ scanTargetsToFile meta dirs file = do
 
 scanTargets :: Meta -> ProjectDirs -> IO Targets
 scanTargets meta dirs = do
-  let exclude = excludeDirs meta
   srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
   let static = map (dirs ^. project </>) (staticDirs meta)
   staticSrc <- concat <$> mapM (fastGlobFiles [] []) static
