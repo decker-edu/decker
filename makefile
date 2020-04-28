@@ -21,7 +21,7 @@ clean-build: clean
 
 less:
 	rm decker.cabal
-	stack build $(stack-build-options) 2>&1 | less 
+	stack build 2>&1 | less 
 
 resource-zip:
 	rm -f resource/decker-resources.zip
@@ -56,6 +56,9 @@ test:
 
 watch:
 	stack test -j1 --file-watch
+
+server:
+	stack run -- decker server
 
 clean:
 	stack clean

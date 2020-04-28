@@ -185,6 +185,13 @@ testSnippets =
   , ( "Plain image with caption"
     , "An image with a caption. The image is surrounded by a figure element."
     , [text|
+        ![Caption.](/test/decks/include/06-metal.png)
+
+        This is not a caption, but the next paragraph.
+      |])
+  , ( "Plain image with caption"
+    , "An image with a caption. The image is surrounded by a figure element."
+    , [text|
         ![](/test/decks/include/06-metal.png)
 
         Caption: Caption.
