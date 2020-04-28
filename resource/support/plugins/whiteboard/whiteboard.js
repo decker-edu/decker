@@ -292,6 +292,8 @@ let RevealWhiteboard = (function(){
     function updateCursor()
     {
         let ctx = cursorCanvas.getContext("2d");
+        cursorCanvas.width  = 20;
+        cursorCanvas.height = 20;
 
         // convert penColor to rgb
         let elem = document.body.appendChild(document.createElement('fictum'));
@@ -313,16 +315,21 @@ let RevealWhiteboard = (function(){
         ctx.fillRect(0, 0, 20, 20);
         penCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
 
-        // render eraser cursor
-        ctx.clearRect(0, 0, 20, 20); 
+        // render eraser cursor (adjust canvas size and eraser radius using Reveal scale)
+        const slideScale = Reveal.getScale();
+        const radius = eraserRadius * slideScale;
+        const width  = 2*radius;
+        cursorCanvas.width  = width;
+        cursorCanvas.height = width;
+        ctx.clearRect(0, 0, width, width); 
         ctx.fillStyle = "rgba(255,255,255,0)";
-        ctx.fillRect(0, 0, 20, 20);
+        ctx.fillRect(0, 0, width, width);
         ctx.strokeStyle = "rgba(128, 128, 128, 0.8)";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(10, 10, eraserRadius-2, 0, 2*Math.PI);
+        ctx.arc(radius, radius, radius-2, 0, 2*Math.PI);
         ctx.stroke(); 
-        eraserCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
+        eraserCursor = "url(" + cursorCanvas.toDataURL() + ") " + radius + " " + radius + ", auto";
     }
 
 
