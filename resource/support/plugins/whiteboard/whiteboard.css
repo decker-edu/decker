@@ -68,7 +68,7 @@ button.whiteboard:disabled {
 .reveal .color-picker {
     position:      absolute;
     left:          40px;
-    bottom:        40px;
+    bottom:        160px;
     top:           auto;
     right:         auto;
     z-index:       40;
