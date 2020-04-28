@@ -41,6 +41,7 @@ module Text.Decker.Project.Project
   , Resource(..)
   , ProjectDirs(..)
   , fromMetaValue
+  , toMetaValue
   , readTargetsFile
   ) where
 
@@ -153,6 +154,24 @@ $(deriveJSON
     defaultOptions
       {fieldLabelModifier = drop 1, constructorTagModifier = map toLower}
     ''ProjectDirs)
+
+instance ToMetaValue ProjectDirs where
+  toMetaValue (ProjectDirs project public support transient) =
+    toMetaValue
+      [ ("project" :: Text, project)
+      , ("public" :: Text, public)
+      , ("support" :: Text, support)
+      , ("transient" :: Text, transient)
+      ]
+
+instance FromMetaValue ProjectDirs where
+  fromMetaValue (MetaMap object) = do
+    project <- Map.lookup "project" object >>= fromMetaValue
+    public <- Map.lookup "public" object >>= fromMetaValue
+    support <- Map.lookup "support" object >>= fromMetaValue
+    transient <- Map.lookup "transient" object >>= fromMetaValue
+    return $ ProjectDirs project public support transient
+  fromMetaValue _ = Nothing
 
 provisioningFromMeta :: Meta -> Provisioning
 provisioningFromMeta meta =

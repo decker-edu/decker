@@ -151,6 +151,7 @@ runShakeOnce state rules = do
 initContext :: MutableActionState -> IO ActionContext
 initContext state = do
   dirs <- projectDirectories
+  createDirectoryIfMissing True (dirs ^. transient)
   return $ ActionContext dirs state
 
 cleanup state = do
@@ -371,7 +372,8 @@ readMetaData file = do
 -- Also reads meta data from files listed in `meta-data`
 readStaticMetaData :: FilePath -> Action Meta
 readStaticMetaData file = do
-  meta <- readMetaData file
+  dirs <- projectDirsA
+  meta <- setMetaValue "decker.directories" dirs <$> readMetaData file
   templateSource <-
     liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
   defaultMeta <- readTemplateMeta templateSource

@@ -7,7 +7,8 @@ import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Quiz
-import Text.Decker.Filter.Render
+
+-- import Text.Decker.Filter.Render
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
@@ -59,18 +60,14 @@ processIncludes globalMeta topBaseDir (Pandoc meta blocks) =
 -- 
 runDeckerFilter ::
      (Pandoc -> IO Pandoc) -> FilePath -> FilePath -> Pandoc -> Action Pandoc
-runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks)
-  -- | Augment document meta.
- = do
+runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks) = do
+  dirs <- projectDirsA
   let deckerMeta =
         setMetaValue "decker.base-dir" docBase $
         setMetaValue "decker.top-base-dir" topBase meta
   (Pandoc resultMeta resultBlocks) <- liftIO $ filter (Pandoc deckerMeta blocks)
-  processedMeta <- processMeta resultMeta
-  return (Pandoc processedMeta resultBlocks)
-  where
-    processMeta meta =
-      need (lookupMetaOrElse [] "decker.filter.resources" meta) >> return meta
+  need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
+  return (Pandoc meta resultBlocks)
 
 -- | Runs the new decker media filter.
 deckerMediaFilter topBase docBase (Pandoc meta blocks) =
@@ -91,7 +88,7 @@ deckerPipeline =
   concatM
     [ evaluateShortLinks
     , expandDeckerMacros
-    , renderCodeBlocks
+    -- , renderCodeBlocks
     , includeCode
     -- , provisionResources
     , renderQuizzes
@@ -130,9 +127,7 @@ readMetaMarkdown globalMeta topLevelBase markdownFile = do
   -- will not see them.
   neededMeta <- needMetaResources topLevelBase combinedMeta
   cited <- liftIO $ processCites' (Pandoc neededMeta fileBlocks)
-  filtered <- deckerMediaFilter topLevelBase docBase cited
-  -- TODO remove once old style filters are migrated
-  mapResources (urlToFilePathIfLocal topLevelBase) filtered
+  deckerMediaFilter topLevelBase docBase cited
 
 needMetaResources :: FilePath -> Meta -> Action Meta
 needMetaResources base = mapMetaWithKey needTemplateResources

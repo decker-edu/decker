@@ -19,7 +19,7 @@ transformHeader1 h1@(Header 1 headAttr inlines)
   | containsImage inlines = buildHeader $ lastImage inlines
   where
     buildHeader img@(Image imgAttr alt (url, title), rest) = do
-      uri <- transformUrl url
+      uri <- transformUrl url ""
       runAttrOn headAttr imgAttr $
         case classifyMedia uri imgAttr of
           ImageT -> do

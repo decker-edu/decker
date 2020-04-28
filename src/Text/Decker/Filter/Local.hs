@@ -71,7 +71,7 @@ pdfExt = ["pdf"]
 
 svgExt = ["svg"]
 
-renderExt = ["dot", "gnuplot"]
+renderExt = ["dot", "gnuplot", "tex"]
 
 mviewExt = ["off", "obj", "stl", "ply", "pmp"]
 
@@ -154,6 +154,15 @@ blocksToHtml blocks = do
     Right html -> return html
     Left err -> bug $ PandocException $ "BUG: " <> show err
 
+-- | Renders a list of blocks to Markdown.
+blocksToMarkdown :: [Block] -> Filter Text
+blocksToMarkdown [] = return "" 
+blocksToMarkdown blocks = do
+  FilterState options meta <- get
+  case runPure (writeMarkdown options (Pandoc meta blocks)) of
+    Right html -> return html
+    Left err -> bug $ PandocException $ "BUG: " <> show err
+
 writerHtmlOptions =
   def
     { writerTemplate = Nothing
@@ -205,12 +214,16 @@ isFileUri uri =
     _ -> return True
 
 -- | Transforms a URL and handles local and remote URLs differently.
-transformUrl :: Text -> Filter URI
-transformUrl url = do
+transformUrl :: Text -> Text -> Filter URI
+transformUrl url ext = do
   uri <- URI.mkURI url
+  transformUri uri ext
+
+transformUri :: URI -> Text -> Filter URI
+transformUri uri ext = do
   isFile <- isFileUri uri
   if isFile
-    then processLocalUri uri
+    then processLocalUri uri ext
     else processRemoteUri uri
 
 -- | Adds a remote URL to the `decker.filter.links` list in the meta data.
@@ -224,20 +237,21 @@ processRemoteUri uri = do
 modifyMeta :: (Meta -> Meta) -> Filter ()
 modifyMeta f = modify (\s -> s {meta = f (meta s)})
 
-processLocalUri :: URI -> Filter URI
-processLocalUri uri = do
+processLocalUri :: URI -> Text -> Filter URI
+processLocalUri uri ext = do
   cwd <- liftIO getCurrentDirectory
   -- | The project relative (!) document directory from which this is called.
-  docBaseDir <- getMetaS "decker.base-dir" cwd
-  topBaseDir <- getMetaS "decker.top-base-dir" cwd
+  docBaseDir <- lookupMetaOrFail "decker.base-dir" <$> gets meta
+  topBaseDir <- lookupMetaOrFail "decker.top-base-dir" <$> gets meta
   -- | The absolute (!) project directory from which this is called.
-  projectDir <- getMetaS "decker.directories.project" cwd
+  projectDir <- lookupMetaOrFail "decker.directories.project" <$> gets meta
   -- | The absolute (!) public directory where everything is published to.
-  publicDir <- getMetaS "decker.directories.public" (cwd <> "/public")
+  publicDir <- lookupMetaOrFail "decker.directories.public" <$> gets meta
   -- | The path component from the URI
   let urlPath = toString $ uriPath uri
   -- | Interpret urlPath either project relative or document relative,
   -- depending on the leading slash.
+  let extString = toString ext
   let relPath =
         normalise $
         if hasDrive urlPath
@@ -245,9 +259,9 @@ processLocalUri uri = do
           else makeRelative projectDir docBaseDir </> urlPath
   let sourcePath = projectDir </> relPath
   let topPath = projectDir </> topBaseDir
-  let targetPath = publicDir </> relPath
+  let targetPath = publicDir </> relPath <.> extString
   let publicRelPath = makeRelativeTo topBaseDir sourcePath
-  publicUri <- setUriPath (toText publicRelPath) uri
+  publicUri <- setUriPath (toText (publicRelPath <.> extString)) uri
   let publicUrl = URI.render publicUri
   exists <- liftIO $ doesFileExist sourcePath
   if exists

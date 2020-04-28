@@ -2,6 +2,7 @@
 module Text.Decker.Filter.Render
   ( renderCodeBlocks
   , renderedCodeExtensions
+  , writeCodeIfChanged 
   ) where
 
 import Text.Decker.Filter.CRC32
