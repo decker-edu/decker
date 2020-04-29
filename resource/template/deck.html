@@ -144,11 +144,11 @@ $if(mario)$ <!-- Mario settings -->
         $endif$
     $endif$
 $else$ <!-- standard settings -->
-$if(title-header)$
+$if(template.title-header)$
 <section id="$idprefix$title-slide" 
         data-background-size="100%" 
         data-background-position="0px 0px" 
-        data-background-image=$title-header$>
+        data-background-image=$template.title-header$>
 $else$
 <section id="$idprefix$title-slide">
 $endif$
