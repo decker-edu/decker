@@ -204,7 +204,7 @@ getRelativeSupportDir from = do
 writeSupportFilesToPublic :: Meta -> Action ()
 writeSupportFilesToPublic meta = do
   templateSource <-
-    liftIO $ calcTemplateSource (getMetaText "template-source" meta)
+    liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
   correct <- correctSupportInstalled templateSource
   if correct
     then putNormal "# support files up to date"

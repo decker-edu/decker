@@ -17,9 +17,8 @@ import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.Text
 import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)
 import Text.Blaze.Html5.Attributes as A (class_, height, src, style, width)
-import Text.Pandoc
-import Text.Pandoc.Definition ()
-import Text.Pandoc.Shared
+import Text.Pandoc hiding (lookupMeta)
+import Text.Pandoc.Shared  hiding (lookupMeta)
 import Text.Pandoc.Walk
 import Text.Printf
 import Text.Read
@@ -134,7 +133,7 @@ verticalSpace _ _ (space, _) _ = do
 
 metaMacro :: MacroAction
 metaMacro _ _ (key, _) meta =
-  return $ fromMaybe (Strikeout [Str key]) (getMetaValue key meta >>= toInline)
+  return $ fromMaybe (Strikeout [Str key]) (lookupMeta key meta >>= toInline)
   where
     toInline :: MetaValue -> Maybe Inline
     toInline (MetaBool False) = Just $ Str "false"

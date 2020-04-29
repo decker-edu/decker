@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a94b4d41b0e797f09d2ff6f0e7daed94fcd4a7a438122bec8b6f921be048a407
+-- hash: 8611c30aef173a43128d3828f883ca253bbbf0ff174050b9b5938da8dc52fe75
 
 name:           decker
 version:        0.10.0
@@ -199,7 +199,7 @@ executable decker
   hs-source-dirs:
       app
   default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
-  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N -fwarn-unused-imports -main-is Decker
+  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports -main-is Decker
   build-depends:
       Glob
     , HTTP
@@ -279,7 +279,7 @@ test-suite decker-test
   hs-source-dirs:
       test
   default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
-  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports
   build-depends:
       Glob
     , HTTP

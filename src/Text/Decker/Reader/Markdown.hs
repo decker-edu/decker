@@ -120,7 +120,7 @@ readMetaMarkdown globalMeta topLevelBase markdownFile = do
   additionalMeta <- getAdditionalMeta fileMeta'
   let combinedMeta = mergePandocMeta' additionalMeta globalMeta
   versionCheck combinedMeta
-  let writeBack = getMetaBoolOrElse "write-back.enable" False combinedMeta
+  let writeBack = lookupMetaOrElse False "write-back.enable" combinedMeta
   when writeBack $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
   -- This is the new media filter. Runs right after reading. Because every matched
   -- document fragment is converted to raw HTML, the following old style filters
@@ -159,11 +159,12 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
     liftIO
       (compileTemplate "" "$if(titleblock)$\n$titleblock$\n\n$endif$\n\n$body$" >>=
        handleLeftM)
-  let columns = getMetaIntOrElse "write-back.line-columns" 80 pmeta
-  let wrapOpt "none" = WrapNone
+  let columns = lookupMetaOrElse 80 "write-back.line-columns" pmeta
+  let wrapOpt :: T.Text -> WrapOption
+      wrapOpt "none" = WrapNone
       wrapOpt "preserve" = WrapPreserve
       wrapOpt _ = WrapAuto
-  let wrap = getMetaTextOrElse "write-back.line-wrap" "none" pmeta
+  let wrap = lookupMetaOrElse "none" "write-back.line-wrap" pmeta
   let extensions =
         (disableExtension Ext_simple_tables .
          disableExtension Ext_multiline_tables .

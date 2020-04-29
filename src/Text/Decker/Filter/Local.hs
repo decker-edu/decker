@@ -20,7 +20,7 @@ import qualified Text.Blaze.Html.Renderer.Text as Text
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (Attributable)
-import Text.Pandoc
+import Text.Pandoc hiding (lookupMeta)
 import qualified Text.URI as URI
 
 {-
@@ -112,7 +112,7 @@ maybeElem Nothing _ = False
 
 renderHtml :: RawHtml a => Html -> Filter a
 renderHtml html = do
-  pretty <- getMetaBoolOrElse "decker.filter.pretty" False <$> gets meta
+  pretty <- lookupMetaOrElse False "decker.filter.pretty" <$> gets meta
   return $
     rawHtml $
     toText $
@@ -156,7 +156,7 @@ blocksToHtml blocks = do
 
 -- | Renders a list of blocks to Markdown.
 blocksToMarkdown :: [Block] -> Filter Text
-blocksToMarkdown [] = return "" 
+blocksToMarkdown [] = return ""
 blocksToMarkdown blocks = do
   FilterState options meta <- get
   case runPure (writeMarkdown options (Pandoc meta blocks)) of
@@ -291,7 +291,7 @@ setMeta :: Text -> Text -> Filter ()
 setMeta key value = modifyMeta (setMetaValue key (MetaString value))
 
 getMeta :: Text -> Text -> Filter Text
-getMeta key def = getMetaTextOrElse key def <$> gets meta
+getMeta key def = lookupMetaOrElse def key <$> gets meta
 
 getMetaS :: Text -> String -> Filter String
 getMetaS key def = toString <$> getMeta key (toText def)

@@ -507,14 +507,27 @@ A simple iframe with a special url.
 translates to
 
 ``` {.html}
-<figure class="decker mario">
-    <iframe class="decker" allow="fullscreen" data-src="support/mview/mview.html" data-model="http://3d.de/model.off" data-phasers="stun" style="height:400px;">
-        
-    </iframe>
-    <figcaption class="decker">
-        Caption.
-    </figcaption>
-</figure>
+<div class="decker image error">
+    <h2 class="title">
+        <i class="fa fa-exclamation-triangle">
+            
+        </i>
+         Decker error
+    </h2>
+    <p class="message">
+        Local resource does not exist: support/mview/mview.html
+    </p>
+    <p>
+        encountered while processing
+    </p>
+    <pre class="markup">
+        <code class="markup">
+            ![Caption.](http://3d.de/model.off){.mario height=&quot;400px&quot;
+phasers=&quot;stun&quot;}
+
+        </code>
+    </pre>
+</div>
 ```
 
 ------------------------------------------------------------------------

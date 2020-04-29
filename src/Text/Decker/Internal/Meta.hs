@@ -4,29 +4,12 @@ module Text.Decker.Internal.Meta
   ( DeckerException(..)
   , FromMetaValue(..)
   , addMetaValue
-  , getMetaBool
-  , getMetaBoolOrElse
-  , getMetaInt
-  , getMetaIntOrElse
-  , getMetaStringOrElse
-  , getMetaString
-  , getMetaStringList
-  , getMetaStringListOrElse
-  , getMetaText
-  , getMetaTextList
-  , getMetaTextListOrElse
-  , getMetaTextMap
-  , getMetaTextOrElse
-  , getMetaValue
-  , getMetaValueList
   , globalMetaFileName
-  , mergePandocMeta
   , mergePandocMeta'
   , pandocMeta
   , setMetaValue
   , toPandocMeta
   , toPandocMeta'
-  , decodeYaml
   , readMetaDataFile
   , lookupMeta
   , lookupMetaOrElse
@@ -54,10 +37,6 @@ import Text.Pandoc.Shared hiding (toString, toText)
 
 -- | Name of the one global meta data file
 globalMetaFileName = "decker.yaml"
-
--- | Simple top-level merge of two meta values. Left-biased. 
-mergePandocMeta :: Meta -> Meta -> Meta
-mergePandocMeta (Meta meta1) (Meta meta2) = Meta $ Map.union meta1 meta2
 
 -- | Fine-grained recursive merge of two meta values. Left-biased. 
 mergePandocMeta' :: Meta -> Meta -> Meta
@@ -91,76 +70,9 @@ toPandocMeta' (Y.Number scientific) = MetaString $ Text.pack $ show scientific
 toPandocMeta' (Y.Bool bool) = MetaBool bool
 toPandocMeta' Y.Null = MetaList []
 
-decodeYaml :: FilePath -> IO Y.Value
-decodeYaml yamlFile = do
-  result <- Y.decodeFileEither yamlFile
-  case result of
-    Right object@(Y.Object _) -> return object
-    Right _ ->
-      throw $
-      YamlException $ "Top-level meta value must be an object: " ++ yamlFile
-    Left exception -> throw exception
-
 -- | Reads a single meta data file.
 readMetaDataFile :: FilePath -> IO Meta
 readMetaDataFile file = toPandocMeta <$> Y.decodeFileThrow file
-
-getMetaInt :: Text -> Meta -> Maybe Int
-getMetaInt key meta = getMetaText key meta >>= readMaybe . Text.unpack
-
-getMetaIntOrElse :: Text -> Int -> Meta -> Int
-getMetaIntOrElse key def meta =
-  case getMetaValue key meta of
-    Just (MetaString string) -> fromMaybe def $ readMaybe $ Text.unpack string
-    _ -> def
-
--- | Lookup a boolean value in a Pandoc meta data hierarchy. The key string
--- notation is indexed subkeys separated by '.', eg. `top.list[3].value`.
-getMetaBool :: Text -> Meta -> Maybe Bool
-getMetaBool key meta = getMetaValue key meta >>= metaToBool
-
-metaToBool :: MetaValue -> Maybe Bool
-metaToBool (MetaBool bool) = Just bool
-metaToBool _ = Nothing
-
-getMetaBoolOrElse :: Text -> Bool -> Meta -> Bool
-getMetaBoolOrElse key def meta =
-  case getMetaValue key meta of
-    Just (MetaBool bool) -> bool
-    _ -> def
-
--- | Lookup a String value in a Pandoc meta data hierarchy. The key string
--- notation is indexed subkeys separated by '.', eg. `top.list[3].value`.
-getMetaText :: Text -> Meta -> Maybe Text
-getMetaText key meta = getMetaValue key meta >>= metaToText
-
-getMetaString :: String -> Meta -> Maybe String
-getMetaString key meta =
-  Text.unpack <$> (getMetaValue (Text.pack key) meta >>= metaToText)
-
-getMetaStringOrElse :: Text -> String -> Meta -> String
-getMetaStringOrElse key def meta =
-  toString $ getMetaTextOrElse key (toText def) meta
-
-getMetaTextOrElse :: Text -> Text -> Meta -> Text
-getMetaTextOrElse key def meta =
-  case getMetaValue key meta of
-    Just (MetaString string) -> string
-    Just (MetaInlines inlines) -> stringify inlines
-    _ -> def
-
-getMetaStringList :: Text -> Meta -> Maybe [String]
-getMetaStringList key meta = map Text.unpack <$> getMetaTextList key meta
-
-getMetaStringListOrElse :: Text -> [String] -> Meta -> [String]
-getMetaStringListOrElse key def meta =
-  fromMaybe def $ getMetaStringList key meta
-
-getMetaTextList :: Text -> Meta -> Maybe [Text]
-getMetaTextList key meta = getMetaValue key meta >>= metaToTextList
-
-getMetaTextListOrElse :: Text -> [Text] -> Meta -> [Text]
-getMetaTextListOrElse key def meta = fromMaybe def $ getMetaTextList key meta
 
 -- | Split a compound meta key at the dots and separate the array indexes.
 splitKey = concatMap splitIndex . Text.splitOn "."
@@ -182,12 +94,6 @@ getMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
       (readMaybe . Text.unpack) key >>= (!!) list >>= lookup' path
     lookup' (_:_) _ = Nothing
     lookup' [] mv = Just mv
-
-getMetaValueList :: Text -> Meta -> [MetaValue]
-getMetaValueList key meta =
-  case getMetaValue key meta of
-    Just (MetaList vs) -> vs
-    _ -> []
 
 -- | Sets a meta value at the compund key in the meta data. If any intermediate
 -- containers do not exist, they are created. 
@@ -225,32 +131,6 @@ addMetaValue key value meta =
       InternalException $
       "Cannot add meta value to non list at: " <> toString key
 
-getMetaTextMap :: Text -> Meta -> Maybe (M.Map Text Text)
-getMetaTextMap key meta = getMetaValue key meta >>= metaToTextMap
-
-metaToText :: MetaValue -> Maybe Text
-metaToText (MetaString string) = Just string
-metaToText (MetaInlines inlines) = Just $ stringify inlines
-metaToText _ = Nothing
-
-metaToTextList :: MetaValue -> Maybe [Text]
-metaToTextList (MetaList list) = Just $ mapMaybe metaToText list
-metaToTextList _ = Nothing
-
-metaToTextMap :: MetaValue -> Maybe (M.Map Text Text)
-metaToTextMap (MetaMap metaMap) =
-  case M.foldlWithKey'
-         (\a k v ->
-            case metaToText v of
-              Just string -> M.insert k string a
-              _ -> a)
-         M.empty
-         metaMap of
-    stringMap
-      | null stringMap -> Nothing
-    stringMap -> Just stringMap
-metaToTextMap _ = Nothing
-
 pandocMeta :: (Text -> Meta -> Maybe a) -> Pandoc -> Text -> Maybe a
 pandocMeta f (Pandoc m _) = flip f m
 
@@ -259,6 +139,9 @@ instance (Ord a, ToMetaValue a) => ToMetaValue (Set a) where
 
 class FromMetaValue a where
   fromMetaValue :: MetaValue -> Maybe a
+
+instance FromMetaValue MetaValue where
+  fromMetaValue v = Just v
 
 instance FromMetaValue Bool where
   fromMetaValue (MetaBool bool) = Just bool

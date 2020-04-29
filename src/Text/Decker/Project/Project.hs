@@ -14,7 +14,7 @@ module Text.Decker.Project.Project
   , findProjectDirectory
   , projectDirectories
   , provisioningFromMeta
-  , dachdeckerFromMeta
+  -- , dachdeckerFromMeta
   , invertPath
   , scanTargets
   , isDevelopmentRun
@@ -68,7 +68,7 @@ import Relude
 import qualified System.Directory as D
 import System.Environment
 import System.FilePath
-import Text.Pandoc.Builder
+import Text.Pandoc.Builder hiding (lookupMeta)
 import Text.Read
 import Text.Regex.TDFA
 
@@ -171,11 +171,10 @@ instance FromMetaValue ProjectDirs where
 
 provisioningFromMeta :: Meta -> Provisioning
 provisioningFromMeta meta =
-  fromMaybe SymLink $ getMetaString "provisioning" meta >>= readMaybe
+  fromMaybe SymLink $ lookupMeta "provisioning" meta >>= readMaybe
 
-dachdeckerFromMeta :: Meta -> Maybe String
-dachdeckerFromMeta = getMetaString "dachdecker"
-
+-- dachdeckerFromMeta :: Meta -> Maybe String
+-- dachdeckerFromMeta = getMetaString "dachdecker"
 absRefResource :: Resource -> IO FilePath
 absRefResource resource =
   return $ show $ URI "file" Nothing (sourceFile resource) "" ""
@@ -317,9 +316,9 @@ alwaysExclude = ["public", deckerFiles, "dist", ".git", ".vscode"]
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
-  alwaysExclude <> getMetaStringListOrElse "exclude-directories" [] meta
+  alwaysExclude <> lookupMetaOrElse [] "exclude-directories" meta
 
-staticDirs = getMetaStringListOrElse "static-resource-dirs" []
+staticDirs = lookupMetaOrElse [] "static-resource-dirs"
 
 scanTargetsToFile :: Meta -> ProjectDirs -> FilePath -> Action ()
 scanTargetsToFile meta dirs file = do
@@ -364,7 +363,7 @@ getDachdeckerUrl = do
   return url
 
 projectDir :: Meta -> FilePath
-projectDir = getMetaStringOrElse "decker.directories.project" "."
+projectDir = lookupMetaOrElse "." "decker.directories.project"
 
 publicDir :: Meta -> FilePath
-publicDir = getMetaStringOrElse "decker.directories.public" "."
+publicDir = lookupMetaOrElse "." "decker.directories.public"

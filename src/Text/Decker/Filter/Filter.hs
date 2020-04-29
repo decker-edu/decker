@@ -21,7 +21,7 @@ import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
-import Text.Pandoc
+import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
 import Text.Pandoc.Walk
@@ -139,7 +139,7 @@ processSlides pandoc = mapSlides (concatM actions) pandoc
   where
     actions :: [Slide -> Decker Slide]
     actions =
-      case pandocMeta getMetaBool pandoc "mario" of
+      case pandocMeta lookupMeta pandoc "mario" of
         Just True ->
           [ marioCols
           , wrapBoxes
