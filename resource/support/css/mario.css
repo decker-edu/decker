@@ -541,32 +541,32 @@ body {
     background-color: #2a9ddf;
 }
 
-.reveal .title {
+.reveal div.title {
     margin-top:  50px 0 0 0;
     padding:     30px;
     font-weight: bold;
     font-style:  normal;
-    font-size:   1.5em;
+    font-size:   2em;
     text-align:  center;
 }
 
-.reveal .subtitle {
+.reveal div.subtitle {
     margin:      0;
     padding:     0 30px 30px 30px;
     font-weight: normal;
     font-style:  italic;
-    font-size:   1.3em;
+    font-size:   1.5em;
     text-align:  center;
 }
 
-.reveal .teaser img {
+.reveal img.teaser {
     margin:      50px 0 0 0;
     height:      300px;
     width:       auto;
     object-fit:  contain;
 }
 
-.reveal .author {
+.reveal div.author {
     margin:      50px 0 0 0;
     font-weight: normal;
     font-style:  normal;
@@ -574,12 +574,18 @@ body {
     text-align:  center;
 }
 
-.reveal .affiliation {
+.reveal div.affiliation {
     margin:      10px 0 0 0;
     font-weight: normal;
     font-style:  normal;
     font-size:   0.8em;
     text-align:  center;
+}
+
+.reveal div.authors {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
 }
 
 
