@@ -901,6 +901,12 @@ body {
     margin: 0.7em 0em 1em 0em;
 }
 
+/* make svg fit to container */
+.reveal section mjx-container > svg {
+	object-fit: contain;
+    max-width: 100%;
+}
+
 .reveal section mjx-container > svg a {
 	color: #2a9ddf;
 	fill: #2a9ddf;
@@ -977,29 +983,71 @@ body {
   text-align: center;
 }
 
+.reveal .matching .dropzones,
+.reveal .matching .dragzone {
+    display:         flex;
+    flex-flow:       row nowrap;
+    align-items:     stretch;
+    justify-content: space-around;
+    position:        relative;
+    width:           100%;
+    min-height:      100px;
+    padding:         15px;
+    border:          2px solid #dddddd;
+    border-radius:   5px;
+    box-sizing:      border-box;
+}
+
 .reveal .matching .dropzones {
-    width:        100%;
-    display:      table;
-    table-layout: fixed;
+    margin-bottom: 60px;
+}
+
+.reveal .matching .dragzone:before,
+.reveal .matching .dropzones:before {
+    position:   absolute;
+    top:        -15px;
+    left:       10px;
+    font-size:  15px;
+    background: white;
+    padding:    5px;
+    color:      grey;
+}
+.reveal .matching .dragzone:before {
+    content: "drag from here";
+}
+.reveal .matching .dropzones:before {
+    content: "drop here";
+}
+
+.reveal .matching .dragzone:after {
+    position:      absolute;
+    content:       " ";
+    width:         0;
+    height:        0;
+    top:           -30px;
+    border-left:   30px solid transparent;
+    border-right:  30px solid transparent;
+    border-bottom: 30px solid #dddddd;
 }
 
 .reveal .matching .dropzone {
-    display:    table-cell;
+    display:    block;
+    flex-grow:  1;
     padding:    10px;
+    margin:     5px;
     border:     1px solid black;
     text-align: center;
 }
 
 .reveal .matching .draggable {
-    display:        table-cell;
-    margin:         auto;
+    display:        block;
     vertical-align: middle;
     overflow:       hidden;
-    margin:         0em 0.5em;
-    border:         3px solid #2a9ddf;
-    border-radius:  20px;
-    padding:        20px;
+    border:         2px solid #2a9ddf;
+    border-radius:  10px;
+    padding:        10px;
     background:     white;
+    cursor:         grab;
 }
 .reveal .matching .dropzone .draggable {
     display:    block;
@@ -1009,35 +1057,6 @@ body {
 
 .reveal .matching .draggableChild {
     pointer-events: none;
-}
-
-.reveal .matching .dragzone {
-    display:        table;
-    table-layout:   fixed;
-    border-spacing: 20px;
-    margin-top:     5%;
-    text-align:     center;
-    width:          100%;
-    position:       relative;
-}
-
-.reveal .matching .dragzone:after,
-.reveal .matching .dragzone:before {
-    bottom:         100%;
-    left:           50%;
-    border:         solid transparent;
-    content:        " ";
-    height:         0px;
-    width:          0px;
-    position:       absolute;
-    pointer-events: none;
-}
-
-.reveal .matching .dragzone:after {
-    border-color:        rgba(136, 183, 213, 0);
-    border-bottom-color: #111;
-    border-width:        30px;
-    margin-left:         -30px;
 }
 
 .reveal select {
