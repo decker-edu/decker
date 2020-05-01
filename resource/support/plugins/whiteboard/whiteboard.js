@@ -554,8 +554,20 @@ let RevealWhiteboard = (function(){
     {
         if (confirm("Delete notes and board on this slide?"))
         {
-            svg.querySelectorAll( 'svg>path' ).forEach( stroke => { stroke.remove(); } );
-            svg.querySelector( 'svg>rect' ).remove();
+            let strokes = svg.querySelectorAll( 'svg>path' );
+            if (strokes)
+            {
+                strokes.forEach( stroke => { stroke.remove(); } );
+                needSave = true;
+            }
+
+            let grid = svg.querySelector( 'svg>rect' );
+            if (grid)
+            {
+                grid.remove();
+                needSave = true;
+            }
+
             setWhiteboardHeight(Reveal.getConfig().height);
             updateGUI();
         }
@@ -621,6 +633,7 @@ let RevealWhiteboard = (function(){
             rect.style.pointerEvents = 'none';
         }
 
+        needSave = true;
         updateGUI();
     }
 
@@ -998,7 +1011,10 @@ let RevealWhiteboard = (function(){
 
         svg.querySelectorAll( 'path' ).forEach( stroke => {
             if (isPointInStroke(stroke, point))
+            {
                 stroke.remove();
+                needSave = true; // call updateGUI in pointer handler
+            }
         });
     };
 
@@ -1034,6 +1050,7 @@ let RevealWhiteboard = (function(){
         {
             showCursor(eraserCursor);
             eraseStroke(evt);
+            if (needSave) updateGUI();
         }
 
         // pencil mode
@@ -1077,6 +1094,7 @@ let RevealWhiteboard = (function(){
         {
             showCursor(eraserCursor);
             eraseStroke(evt);
+            if (needSave) updateGUI();
         }
 
         // pencil mode
