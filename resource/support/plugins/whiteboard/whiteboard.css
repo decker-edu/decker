@@ -2,7 +2,7 @@
  * chalkboard color picker
  *********************************************/
 
-.reveal .slides {
+.reveal .slides.needScrollbar {
     overflow-x: hidden;
     overflow-y: auto;
     box-sizing: border-box;

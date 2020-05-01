@@ -501,9 +501,9 @@ let RevealWhiteboard = (function(){
 
     function setWhiteboardHeight(svgHeight)
     {
-        const pageHeight   = Reveal.getConfig().height;
-        const pageWidth    = Reveal.getConfig().width;
-        const needScollbar = svgHeight > pageHeight;
+        const pageHeight    = Reveal.getConfig().height;
+        const pageWidth     = Reveal.getConfig().width;
+        const needScrollbar = svgHeight > pageHeight;
 
         // set height of SVG
         svg.style.height = svgHeight + "px";
@@ -513,7 +513,10 @@ let RevealWhiteboard = (function(){
         if (rect) rect.setAttribute('height', svgHeight - pageHeight);
 
         // update scrollbar of slides container
-        slides.style.overflowY = needScollbar ? 'scroll' : 'hidden';
+        if (needScrollbar)
+            slides.classList.add('needScrollbar');
+        else
+            slides.classList.remove('needScrollbar');
 
         // adjust with of slides container to accomodate scrollbar
         let currentWidth = slides.clientWidth;
@@ -524,7 +527,7 @@ let RevealWhiteboard = (function(){
         }
 
         // activate/deactivate pulsing border indicator
-        if (needScollbar)
+        if (needScrollbar)
         {
             // (re-)start border pulsing
             // (taken from https://css-tricks.com/restart-css-animation/)
@@ -1207,8 +1210,10 @@ let RevealWhiteboard = (function(){
 
             // setup slides container
             slides.scrollTop  = 0;
-            slides.style.overflowY =
-                svg.clientHeight > slides.clientHeight ? 'scroll' : 'hidden';
+            if (svg.clientHeight > slides.clientHeight)
+                slides.classList.add('needScrollbar');
+            else
+                slides.classList.remove('needScrollbar');
 
             // adjust fragment visibility
             fragmentChanged();
