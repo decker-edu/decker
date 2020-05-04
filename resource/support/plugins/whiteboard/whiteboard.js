@@ -20,35 +20,8 @@ let RevealWhiteboard = (function(){
     const QUADRATIC_SPLINE = true;
     const STROKE_STEP_THRESHOLD = 2;
 
-
-    /************************************************************************
-     ** Tools
-     ************************************************************************/
-
-    /*
-     * return path to this script
-     */
-    function scriptPath()
-    {
-        // obtain plugin path from the script element
-        let src;
-        if (document.currentScript) {
-            src = document.currentScript.src;
-        } else {
-            let sel = document.querySelector('script[src$="/whiteboard.js"]')
-            if (sel) {
-                src = sel.src;
-            }
-        }
-
-        let path = typeof src === undefined ? src
-            : src.slice(0, src.lastIndexOf("/") + 1);
-        return path;
-    }
-
-    const path = scriptPath();
-
-
+    const activeColor   = 'var(--whiteboard-active-color)';
+    const inactiveColor = 'var(--whiteboard-inactive-color)';
 
 
     /************************************************************************
@@ -60,7 +33,8 @@ let RevealWhiteboard = (function(){
 
     // colors
     const colors = config.colors || [ "black", "red", "green", "blue", "yellow", "cyan", "magenta" ];
-    let penColor = config.penColor || "blue";
+    let penColor  = config.penColor || "blue";
+    let penRadius = 2;
 
     // reveal elements
     let reveal = document.querySelector( '.reveal' );
@@ -101,24 +75,14 @@ let RevealWhiteboard = (function(){
     // currently active fragment
     let currentFragmentIndex = 0;
 
+    // did we see a pencil?
+    let penDetected = false;
+
+
 
     /************************************************************************
      * Setup GUI
      ************************************************************************/
-
-    // load css
-    function loadCSS()
-    {
-        let head  = document.getElementsByTagName('head')[0];
-        let link  = document.createElement('link');
-        link.rel  = 'stylesheet';
-        link.type = 'text/css';
-        link.href = path + "/whiteboard.css";
-        link.media = 'all';
-        head.appendChild(link);
-    }
-    loadCSS();
-
 
     /*
      * create a button on the left side
@@ -313,9 +277,11 @@ let RevealWhiteboard = (function(){
         ctx.clearRect(0, 0, 20, 20); 
         ctx.fillStyle = grdPen;
         ctx.fillRect(0, 0, 20, 20);
-        penCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
+        if (!penDetected)
+            penCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
 
-        // render eraser cursor (adjust canvas size and eraser radius using Reveal scale)
+        // render eraser cursor 
+        // (adjust canvas size and eraser radius using Reveal scale)
         const slideScale = Reveal.getScale();
         const radius = eraserRadius * slideScale;
         const width  = 2*radius;
@@ -400,7 +366,7 @@ let RevealWhiteboard = (function(){
         {
             // hide buttons
             buttonWhiteboard.style.visibility = 'visible';
-            buttonWhiteboard.style.color      = 'lightgrey';
+            buttonWhiteboard.style.color      = inactiveColor;
             buttonSave.style.visibility   = 'hidden';
             buttonAdd.style.visibility    = 'hidden';
             buttonGrid.style.visibility   = 'hidden';
@@ -424,7 +390,7 @@ let RevealWhiteboard = (function(){
 
         // whiteboard is active
         buttonWhiteboard.style.visibility = 'visible';
-        buttonWhiteboard.style.color      = '#2a9ddf';
+        buttonWhiteboard.style.color      = activeColor;
         buttonSave.style.visibility   = 'visible';
         buttonAdd.style.visibility    = 'visible';
         buttonGrid.style.visibility   = 'visible';
@@ -443,15 +409,15 @@ let RevealWhiteboard = (function(){
 
 
         // save icon
-        buttonSave.style.color = needSave ? "#2a9ddf" : "lightgrey";
+        buttonSave.style.color = needSave ? activeColor : inactiveColor;
 
         // grid icon
-        buttonGrid.style.color = (svg && getGridRect()) ? "#2a9ddf" : "lightgrey";
+        buttonGrid.style.color = (svg && getGridRect()) ? activeColor : inactiveColor;
 
         // tool icons
-        buttonLaser.style.color  = "lightgrey";
-        buttonEraser.style.color = "lightgrey";
-        buttonPen.style.color    = "lightgrey";
+        buttonLaser.style.color  = inactiveColor;
+        buttonEraser.style.color = inactiveColor;
+        buttonPen.style.color    = inactiveColor;
         switch (tool)
         {
             case ToolType.PEN:
@@ -460,12 +426,12 @@ let RevealWhiteboard = (function(){
                 break;
 
             case ToolType.ERASER:
-                buttonEraser.style.color = "#2a9ddf";
+                buttonEraser.style.color = activeColor;
                 selectCursor(eraserCursor);
                 break;
 
             case ToolType.LASER:
-                buttonLaser.style.color = "#2a9ddf";
+                buttonLaser.style.color = activeColor;
                 selectCursor(laserCursor);
                 break;
         }
@@ -930,7 +896,7 @@ let RevealWhiteboard = (function(){
         svg.appendChild(stroke);
         stroke.style.fill = 'none';
         stroke.style.stroke = penColor;
-        stroke.style.strokeWidth = '2px';
+        stroke.style.strokeWidth = penRadius+'px';
 
         // add point, convert to Bezier spline
         points = [ [ mouseX, mouseY ], [mouseX+1, mouseY+1] ];
@@ -1032,6 +998,14 @@ let RevealWhiteboard = (function(){
 
         // only pen and mouse events
         if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
+
+        // hide cursor once we see a pen event
+        // (only show cursor when user draws with a mouse)
+        if (evt.pointerType == 'pen') 
+        {
+            penDetected = true;
+            penCursor   = 'none';
+        }
 
         // cancel timeouts
         showCursor();

@@ -1,6 +1,8 @@
-/*********************************************
- * chalkboard color picker
- *********************************************/
+
+:root {
+  --whiteboard-active-color: #2a9ddf;
+  --whiteboard-inactive-color: lightgrey;
+}
 
 .reveal .slides.needScrollbar {
     overflow-x: hidden;
@@ -17,10 +19,10 @@
 
 @keyframes pulseBorder {
   from {
-    border-bottom: 5px dashed #2a9ddf11;
+    border-bottom: 5px dashed #ffffff00;
   }
   to {
-    border-bottom: 5px dashed #2a9ddfff;
+    border-bottom: 5px dashed var(--whiteboard-active-color);
   }
 }
 
@@ -47,7 +49,7 @@ button.whiteboard {
     padding:     3px;
     border:      none;
     outline:     none;
-    color:       #2a9ddf;
+    color:       var(--whiteboard-active-color);
     background:  white;
     font-family: "Font Awesome 5 Free";
 }
@@ -59,10 +61,6 @@ button.whiteboard:focus {
 /* hide outline around focused buttons */
 button.whiteboard::-moz-focus-inner {
    border: 0;
-}
-
-button.whiteboard:disabled {
-    color: lightgrey;
 }
 
 .reveal .color-picker {
