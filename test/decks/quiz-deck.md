@@ -20,6 +20,25 @@ history: True
 
 #
 
+## test {.qmi}
+
+Gravity
+: $(0, -k\,m, 0)\T$
+
+Damping
+: $-k \, \dot{\vec{x}}$
+
+Collisions
+: $k \, d \, \vec{n}$
+
+Inertia
+: $m \, \ddot{\vec{x}}$
+
+Springs
+: $-k \, \left( \norm{\vec{x}_0 - \vec{x}_1} - L \right) \, \frac{ \vec{x}_0 - \vec{x}_1 }{\norm{\vec{x}_0 - \vec{x}_1}}$
+
+#
+
 ## Matching Questions {.quiz-mi} 
 
 Drag the elements to create correct pairings

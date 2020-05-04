@@ -61,48 +61,90 @@
 }
 
 .reveal {
-
-    // Matching/Pairing questions
     .quiz-mi,
     .qmi,
-    .quiz-match-items {
+    .quiz-match-items{
         text-align: center;
-
-        .buckets {
-            counter-reset: bid;
-            width: 100%;
-            min-height: 15vh;
-            max-height: 20vh;
-            display: table;
-            table-layout: fixed;
-
-            .bucket{
-                font-size: large;
-                display: table-cell;
-                padding: 10px;
-                border: 1px solid black;
-                text-align: center;
-            }
-            .bucket:before {
-                content: counter(bid) ": ";
-                counter-increment: bid;
-                margin-right: 0.5em;
-                font-weight:  bold;
-            }
+        font-size: large;
+        
+        // Adapt mathjax container size to size of bucket
+        mjx-container > svg {
+            object-fit: contain;
+            max-width: 100%;
+        }
+        .buckets,
+        .matchItems{
+            display:         flex;
+            flex-flow:       row nowrap;
+            align-items:     stretch;
+            justify-content: space-around;
+            position:        relative;
+            width:           100%;
+            min-height:      100px;
+            padding:         15px;
+            border:          2px solid #dddddd;
+            border-radius:   5px;
+            box-sizing:      border-box;
         }
 
-        .matchItem {
-            display: table-cell;
-            font-size: large;
-            margin: auto;
-            padding: 1%;
-            max-width: 50%;
+
+        .buckets{
+            margin-bottom: 60px;
+        }
+
+        .buckets:before,
+        .matchItems:before{
+            position:   absolute;
+            top:        -15px;
+            left:       10px;
+            font-size:  15px;
+            background: white;
+            padding:    5px;
+            color:      grey;
+        }
+        .matchItems:before{
+            content: "drag from here";
+        }
+        .buckets:before{
+            content: "drop here";
+        }
+        .matchItems:after{
+            position:      absolute;
+            content:       " ";
+            width:         0;
+            height:        0;
+            top:           -30px;
+            border-left:   30px solid transparent;
+            border-right:  30px solid transparent;
+            border-bottom: 30px solid #dddddd;
+        }
+
+        .bucket{
+            display:    block;
+            flex:       1 0 0;
+            padding:    10px;
+            margin:     5px;
+            border:     1px solid black;
+            text-align: center
+        }
+
+        .matchItem{
+            img{
+                max-width: 50%;
+            }
+            display:        block;
             vertical-align: middle;
-            border-radius: 0.5em;
-            border: 1px #111 dashed;
-            overflow: hidden;
-      
+            overflow:       hidden;
+            border:         2px solid #2a9ddf;
+            border-radius:  10px;
+            padding:        10px;
+            background:     white;
+            cursor:         grab;
+            object-fit: contain;
+            margin-left: 2px;
+            margin-right: 2px;
         }
+
         .matchItem .solution{
             visibility: hidden;
             font-size: large;
@@ -112,68 +154,21 @@
             font-size: large;
         }
 
-        // Disable interaction with the elements inside draggable
-        // .draggableChild {
-        //     max-width: inherit;
-        //     pointer-events: none;
-        // }
-
-        // Arrow from here: http://www.cssarrowplease.com/
-        // Creates an arrow that points from dragzone to dropzone to indicate dragging direction
-        .matchItems {
-            display: table;
-            table-layout: fixed;
-            border-spacing: 5px;
-            border: black;
-            border-style: dashed;
-            margin-top: 5%;
-            min-height: 15vh;
-            max-height: 20vh;
-            text-align: center;
-            width: 100%;
-            position: relative;
+        .bucket{
+            .matchItem{
+                display:    block;
+                border:     none;
+                background: inherit
+            }
         }
-
-        .matchItems:after,
-        .matchItems:before {
-            bottom: 100%;
-            left: 50%;
-            border: solid transparent;
-            content: " ";
-            height: 0;
-            width: 0;
-            position: absolute;
-            pointer-events: none;
-        }
-
-        .matchItems:after {
-            border-color: rgba(136, 183, 213, 0);
-            border-bottom-color: #111;
-            border-width: 30px;
-            margin-left: -30px;
-        }
-
-        // Arrow def end;
     }
-
 }
-
 .reveal {
 
     // Multiple Choice        
-    .survey, 
     .quiz-multiple-choice,
     .quiz-mc,
     .qmc{
-
-        // ul {
-        //     list-style-type: none;
-        //     display: flex;
-        //     flex-direction: column;
-        //     justify-content: space-between;
-        //     flex-wrap: wrap;
-        //     padding: 5pt;
-        // }
         ul {
             display:         flex;
             flex-direction:  row;
@@ -185,16 +180,6 @@
             counter-reset:   answer;
         }
 
-        // li {
-        //     flex-grow: 1;
-        //     border: 1pt #111 dashed;
-        //     padding-left: 1em;
-        //     padding-right: 1em;
-        //     border-radius: 0.5em;
-        //     margin: 0.55em;
-        //     flex-basis: 30%;
-
-        // }
         li {
             display:       inline-block;
             position:      relative;
@@ -233,7 +218,5 @@
             font-size:        1rem;
         }
 
-
-        
     }
 }
