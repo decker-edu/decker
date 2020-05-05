@@ -20,9 +20,6 @@ let RevealWhiteboard = (function(){
     const QUADRATIC_SPLINE = true;
     const STROKE_STEP_THRESHOLD = 2;
 
-    const activeColor   = 'var(--whiteboard-active-color)';
-    const inactiveColor = 'var(--whiteboard-inactive-color)';
-
 
     /************************************************************************
      ** Configuration options, global variables
@@ -35,6 +32,10 @@ let RevealWhiteboard = (function(){
     const colors = config.colors || [ "black", "red", "green", "blue", "yellow", "cyan", "magenta" ];
     let penColor  = config.penColor || "blue";
     let penRadius = 2;
+
+    // colors for buttons
+    const activeColor   = 'var(--whiteboard-active-color)';
+    const inactiveColor = 'var(--whiteboard-inactive-color)';
 
     // reveal elements
     let reveal = document.querySelector( '.reveal' );
@@ -826,7 +827,7 @@ let RevealWhiteboard = (function(){
 
     
     // convert points to quadratic Bezier spline
-    function pointsToBezier(points, stroke)
+    function renderStroke(points, stroke)
     {
         let path = "";
 
@@ -900,7 +901,7 @@ let RevealWhiteboard = (function(){
 
         // add point, convert to Bezier spline
         points = [ [ mouseX, mouseY ], [mouseX+1, mouseY+1] ];
-        pointsToBezier(points, stroke);
+        renderStroke(points, stroke);
 
         // add fragment index to stroke
         if (currentFragmentIndex != undefined)
@@ -916,23 +917,35 @@ let RevealWhiteboard = (function(){
      */
     function continueStroke( evt )
     {
-        if (stroke && evt.target==svg)
+        // collect coalesced events
+        let events = [evt];
+        if (evt.getCoalescedEvents) 
+            events = evt.getCoalescedEvents() || events;
+
+        // process events
+        for (let evt of events) 
         {
-            // mouse position
-            const slideZoom  = slides.style.zoom || 1;
-            const mouseX = evt.offsetX / slideZoom;
-            const mouseY = evt.offsetY / slideZoom;
-
-            const newPoint = [ mouseX, mouseY ];
-            const oldPoint = points[points.length-1];
-
-            // only do something if mouse position changed and we are within bounds
-            if (distance(newPoint, oldPoint) > STROKE_STEP_THRESHOLD)
+            if (evt.buttons > 0) 
             {
-                points.push(newPoint);
-                pointsToBezier(points, stroke);
+                if (stroke && evt.target==svg)
+                {
+                    // mouse position
+                    const slideZoom  = slides.style.zoom || 1;
+                    const mouseX = evt.offsetX / slideZoom;
+                    const mouseY = evt.offsetY / slideZoom;
+
+                    const newPoint = [ mouseX, mouseY ];
+                    const oldPoint = points[points.length-1];
+
+                    // only do something if mouse position changed and we are within bounds
+                    if (distance(newPoint, oldPoint) > STROKE_STEP_THRESHOLD)
+                        points.push(newPoint);
+                }
             }
         }
+
+        // update svg stroke
+        renderStroke(points, stroke);
     };
 
 
@@ -951,15 +964,14 @@ let RevealWhiteboard = (function(){
 
             // add final point to stroke
             points.push(newPoint);
-            pointsToBezier(points, stroke);
+            renderStroke(points, stroke);
         }
 
         // reset stroke
         stroke = null;
 
         // new stroke -> we have to save
-        needSave = true;
-        updateGUI();
+        needSave = true; // call updateGUI in pointer handler
     };
 
 
@@ -1068,19 +1080,13 @@ let RevealWhiteboard = (function(){
         {
             showCursor(eraserCursor);
             eraseStroke(evt);
-            if (needSave) updateGUI();
         }
 
         // pencil mode
         else if (tool == ToolType.PEN)
         {
             showCursor(penCursor);
-            let events = [evt];
-            if (evt.getCoalescedEvents) 
-                events = evt.getCoalescedEvents() || events;
-            for (let e of events) 
-                if (e.buttons > 0) 
-                    continueStroke(e);
+            continueStroke(evt);
         }
 
 
@@ -1101,6 +1107,9 @@ let RevealWhiteboard = (function(){
         {
             stopStroke(evt);
         }
+
+        // enable save button
+        if (needSave) updateGUI();
 
         // re-activate cursor hiding
         triggerHideCursor();
