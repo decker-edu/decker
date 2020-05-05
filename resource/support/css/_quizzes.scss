@@ -64,8 +64,11 @@
     .quiz-mi,
     .qmi,
     .quiz-match-items{
+        display: block;
+        overflow-y: scroll !important;
+        overflow-x: hidden !important; 
+        height: 75vh;
         text-align: center;
-        font-size: large;
         
         // Adapt mathjax container size to size of bucket
         mjx-container > svg {
@@ -74,6 +77,7 @@
         }
         .buckets,
         .matchItems{
+            font-size: large;
             display:         flex;
             flex-flow:       row nowrap;
             align-items:     stretch;

@@ -187,8 +187,11 @@
 .reveal .quiz-mi,
 .reveal .qmi,
 .reveal .quiz-match-items {
+  display: block;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  height: 75vh;
   text-align: center;
-  font-size: large;
 }
 
 .reveal .quiz-mi mjx-container > svg,
@@ -204,6 +207,7 @@
 .reveal .qmi .matchItems,
 .reveal .quiz-match-items .buckets,
 .reveal .quiz-match-items .matchItems {
+  font-size: large;
   display: flex;
   flex-flow: row nowrap;
   align-items: stretch;
