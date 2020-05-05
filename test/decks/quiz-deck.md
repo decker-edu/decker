@@ -119,10 +119,11 @@ Decker is a software built using
     - hm no
 
 
-and builds upon
+and builds upon the tool
 
-- Pandoc
+- [X] Pandoc
   - See previous tooltip.
+- [ ] PowerPoint
 
 .
 

@@ -173,13 +173,11 @@
 }
 
 .reveal .qic select,
-.reveal .qft select,
 .reveal [class*="quiz-"] select {
   font-size: inherit;
 }
 
 .reveal .qic select :disabled,
-.reveal .qft select :disabled,
 .reveal [class*="quiz-"] select :disabled {
   color: black;
 }
@@ -199,6 +197,12 @@
 .reveal .quiz-match-items mjx-container > svg {
   object-fit: contain;
   max-width: 100%;
+}
+
+.reveal .quiz-mi .draggableChild,
+.reveal .qmi .draggableChild,
+.reveal .quiz-match-items .draggableChild {
+  pointer-events: none;
 }
 
 .reveal .quiz-mi .buckets,

@@ -204,8 +204,8 @@ parseQuizTLItem :: Quiz -> [Block] -> Choice
 parseQuizTLItem _ (Plain (Str "☒":Space:is):bs) = Choice True is bs
 parseQuizTLItem _ (Plain (Str "☐":Space:is):bs) = Choice False is bs
 parseQuizTLItem FreeText {} (Plain is:bs) = Choice True is bs
-parseQuizTLItem InsertChoices {} (Plain is:bs) = Choice True is bs
-parseQuizTLItem _ is = Choice False [Str "NoTasklistItem"] [Plain []]
+-- parseQuizTLItem InsertChoices {} (Plain is:bs) = Choice True is bs
+parseQuizTLItem _ is = Choice False [Str "Error: NoTasklistItem"] [Plain []]
 
 -- | Set the quizMeta field of a Quiz using lenses
 -- available meta options are hardcoded here
@@ -261,24 +261,24 @@ choiceList t choices =
 
 renderInsertChoices :: Quiz -> Block
 renderInsertChoices quiz@(InsertChoices title tgs qm q) =
-  Div ("", tgs, []) $
-  [Header 2 ("", [], []) title] ++ questionBlocks q ++ [solutionButton]
+  Div ("", tgs, []) $ [Header 2 ("", [], []) title] ++ questionBlocks q
+  -- ++ [solutionButton]
   where
     questionBlocks :: [([Block], [Choice])] -> [Block]
     questionBlocks = map (rawHtml' . handleTuple)
     handleTuple :: ([Block], [Choice]) -> Html
-    handleTuple ([], [c]) = input c
+    -- handleTuple ([], [c]) = input c
     handleTuple ([], chs) = select chs
     handleTuple (bs, []) = toHtml (map reduceBlock bs)
-    handleTuple (bs, [c]) = toHtml (map reduceBlock bs) >> input c
+    -- handleTuple (bs, [c]) = toHtml (map reduceBlock bs) >> input c
     handleTuple (bs, chs) = toHtml (map reduceBlock bs) >> select chs
     reduceBlock :: Block -> Block
     reduceBlock (Para is) = Plain ([Str " "] ++ is ++ [Str " "])
     reduceBlock p = p
-    input :: Choice -> Html
-    input c@(Choice correct text comment) =
-      (H.input ! A.placeholder "Type and press 'Enter'") >>
-      choiceList "solutionList" [c]
+    -- input :: Choice -> Html
+    -- input c@(Choice correct text comment) =
+    --   (H.input ! A.placeholder "Type and press 'Enter'") >>
+    --   choiceList "solutionList" [c]
     select :: [Choice] -> Html
     select choices =
       (H.select $

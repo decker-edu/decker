@@ -177,9 +177,9 @@ function quizIC() {
     var icQuestions = document.querySelectorAll(".qic,.quiz-ic,.quiz-insert-choices");
 
     for (let ic of icQuestions) {
-        const button = ic.getElementsByClassName("solutionButton")[0];
+        // const button = ic.getElementsByClassName("solutionButton")[0];
         const selects = ic.getElementsByTagName("select");
-        const inputs = ic.getElementsByTagName("input");
+        // const inputs = ic.getElementsByTagName("input");
 
         for (let sel of selects) {
             const solutions = sel.nextElementSibling;
@@ -211,32 +211,32 @@ function quizIC() {
         }
 
         // Handle correctness check and tooltip display for all input fields
-        for (let i of inputs) {
-            const solutions = i.nextElementSibling;
-            inputEvent(i, solutions);
-        }
+        // for (let i of inputs) {
+        //     const solutions = i.nextElementSibling;
+        //     inputEvent(i, solutions);
+        // }
 
         // Show all entire solution/tooltip boxes
-        button.onclick = function () {
-            const solutionLists = ic.getElementsByClassName("solutionList");
-            for (let s of solutionLists) {
-                // s.style.visibility = "visible";
-                s.style.display = "inline-block";
+        // button.onclick = function () {
+        //     const solutionLists = ic.getElementsByClassName("solutionList");
+        //     for (let s of solutionLists) {
+        //         // s.style.visibility = "visible";
+        //         s.style.display = "inline-block";
 
-                for (let l of s.getElementsByTagName("li")) {
-                    l.style.display = "block";
-                }
+        //         for (let l of s.getElementsByTagName("li")) {
+        //             l.style.display = "block";
+        //         }
 
-                setTimeout(function () {
-                    // s.style.visibility = "hidden";
-                    s.style.display = "none";
-                    Array.from(s.getElementsByTagName("li")).map(x => x.style.display = "none");
+        //         setTimeout(function () {
+        //             // s.style.visibility = "hidden";
+        //             s.style.display = "none";
+        //             Array.from(s.getElementsByTagName("li")).map(x => x.style.display = "none");
 
-                }, 3000)
+        //         }, 3000)
 
 
-            }
-        }
+        //     }
+        // }
     }
 }
 
@@ -368,6 +368,7 @@ function matchingAnswerButton(matchQuestion) {
                 else {
                     // red
                     matchItem.style.backgroundColor = "#ffaaaa";
+                    matchItem.style.border = "2px dotted black";
                     // if (!hasTooltip) {
                     // matchItem.append(solution("Bucket " + matchId));
                     // }
