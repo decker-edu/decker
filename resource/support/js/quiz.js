@@ -46,7 +46,9 @@ function quizMC() {
             answer.addEventListener("click", function () {
                 const is_right = this.classList.contains("correct");
                 const tooltip = answer.querySelectorAll(".tooltip")[0];
-                tooltip.style.visibility = "visible";
+                if (tooltip.textContent) {
+                    tooltip.style.visibility = "visible";
+                }
 
                 if (is_right) {
                     this.style.backgroundColor = "#aaffaa";
@@ -58,7 +60,9 @@ function quizMC() {
                 }
 
                 this.addEventListener("mouseover", function () {
-                    tooltip.style.visibility = "visible";
+                    if (tooltip.textContent) {
+                        tooltip.style.visibility = "visible";
+                    }
                 });
                 this.addEventListener("mouseout", function () {
                     tooltip.style.visibility = "hidden";
