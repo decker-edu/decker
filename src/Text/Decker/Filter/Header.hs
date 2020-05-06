@@ -45,9 +45,23 @@ transformHeader1 h1@(Header 1 headAttr inlines)
           _ -> return h1
     buildHeader _ =
       bug $ InternalException "transformHeader: no last image in header"
+-- Handle data-background-{image,video,iframe} file attributes
+transformHeader1 h1@(Header 1 (id, cls, kvs) inlines) = do
+  transformed <- mapM transformBgUrls kvs
+  return (Header 1 (id, cls, transformed) inlines)
 transformHeader1 h@Header {} = return h
 transformHeader1 _ =
   bug $ InternalException "transformHeader: non header argument"
+
+transformBgUrls :: (Text, Text) -> Filter (Text, Text)
+transformBgUrls (k, v) =
+  if k `elem`
+     [ "data-background-image"
+     , "data-background-video"
+     , "data-background-iframe"
+     ]
+    then (k, ) . URI.render <$> transformUrl v ""
+    else return (k, v)
 
 containsImage :: [Inline] -> Bool
 containsImage = getAny . query check
