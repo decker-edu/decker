@@ -33,7 +33,7 @@
 
 .reveal img {
     max-width: 100%;
-    margin: 0 auto;
+    //margin: 0 auto;
     display: block;
     border: none;
     box-shadow: none;
@@ -49,7 +49,7 @@
 }
 
 .reveal figure {
-    margin: 0 0 0 0;
+    //margin: 0 0 0 0;
     text-align: center;
 
     figcaption {
@@ -60,22 +60,22 @@
 
 .reveal video {
     width: 100%;
-    margin: 0;
+    //margin: 0;
     display: block;
 }
 
 .reveal .img-center img {
-    margin: 0 auto;
+    //margin: 0 auto;
     display: block;
 }
 
 .reveal .img-nocenter img {
-    margin: 0 0;
+    //margin: 0 0;
     display: inline;
 }
 
 .reveal div.fs-container { 
-    margin:   auto;
+    //margin:   auto;
     border:   0px;
     padding:  0px;
     position: relative;
@@ -100,3 +100,4 @@
     opacity:          1.0;
     background-color: rgba(255,255,255,0.8);
 }
+

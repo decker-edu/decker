@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6ca4c1cad2e9c8995a8b7e2e9d7f79126dcd7b4a56a5f04ac2cae6f6e5da9f65
+-- hash: 33bd14fe86cfd705386922fa0924ad0d289f10459602777bae835592ecfc9df7
 
 name:           decker
 version:        0.10.0
@@ -37,6 +37,7 @@ extra-source-files:
     resource/support/css/_new-media.scss
     resource/support/css/_print.scss
     resource/support/css/_quizzes.scss
+    resource/support/css/_titlepage.scss
     resource/support/css/decker.css
     resource/support/css/decker.scss
     resource/support/css/handout.css

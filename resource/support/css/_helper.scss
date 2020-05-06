@@ -1,19 +1,23 @@
-// Font sizes
-$base-font-size: 30px;
-$medium-font-size: 1 * $base-font-size;
-$xx-small-font-size: 0.4 * $base-font-size;
-$x-small-font-size: 0.6 * $base-font-size;
-$small-font-size: 0.8 * $base-font-size;
-$large-font-size: 1.2 * $base-font-size;
-$x-large-font-size: 1.4 * $base-font-size;
-$xx-large-font-size: 1.6 * $base-font-size;
-$base-spacer: 1em;
 
+// This is the old helper function no disfunct
+// due to change to css variables aka custom properties
+// @function space-old($sizes: ()) {
+//     $multiplied: ();
+
+//     @each $size in $sizes {
+//         $multiplied: append($multiplied, $size * $base-spacer);
+//     }
+
+//     @return $multiplied;
+// }
+
+// This is the ne helper function which now 
+// works with css variables aka custom properties
 @function space($sizes: ()) {
     $multiplied: ();
 
     @each $size in $sizes {
-        $multiplied: append($multiplied, $size * $base-spacer);
+        $multiplied: append($multiplied, calc(var(--spacing-vertical-base) * #{$size}));
     }
 
     @return $multiplied;
