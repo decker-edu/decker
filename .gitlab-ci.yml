@@ -151,7 +151,7 @@ review:
   tags:
     - docker
   script:
-    - curl --cacert $REVIEW_CA --key $REVIEW_KEY --cert $REVIEW_CRT -F 'decker=@./decker' -X PUT https://cypher.informatik.uni-wuerzburg.de:19368/$CI_REF_NAME
+    - curl --cacert $REVIEW_CA --key $REVIEW_KEY --cert $REVIEW_CRT -F 'decker=@./decker' -X PUT https://cypher.informatik.uni-wuerzburg.de:19368/$CI_COMMIT_REF_NAME
   environment:
     name: review/$CI_COMMIT_REF_NAME
     url: http://review.decker.informatik.uni-wuerzburg.de/$CI_COMMIT_REF_NAME
@@ -168,7 +168,7 @@ stop_review:
   tags:
     - docker
   script:
-    - curl --cacert $REVIEW_CA --key $REVIEW_KEY --cert $REVIEW_CRT -X DELETE https://cypher.informatik.uni-wuerzburg.de:19368/$CI_REF_NAME
+    - curl --cacert $REVIEW_CA --key $REVIEW_KEY --cert $REVIEW_CRT -X DELETE https://cypher.informatik.uni-wuerzburg.de:19368/$CI_COMMIT_REF_NAME
   when: manual
   environment:
     name: review/$CI_COMMIT_REF_NAME
