@@ -178,39 +178,39 @@ function quizFT() {
  * 
  */
 function quizIC() {
-    var icQuestions = document.querySelectorAll(".qic,.quiz-ic,.quiz-insert-choices");
+    var icQuestions = document.querySelectorAll(
+        ".qic,.quiz-ic,.quiz-insert-choices"
+    );
 
     for (let ic of icQuestions) {
         // const button = ic.getElementsByClassName("solutionButton")[0];
         const selects = ic.getElementsByTagName("select");
         // const inputs = ic.getElementsByTagName("input");
 
+        const tipDiv = ic.querySelector(".tooltip-div");
         for (let sel of selects) {
             const solutions = sel.nextElementSibling;
-
             sel.addEventListener("change", function () {
                 const selected = sel.options[sel.selectedIndex];
                 const is_right = selected.classList.contains("correct");
-                sel.style.backgroundColor = (is_right) ? "#aaffaa" : "#ffaaaa";
-                sel.style.border = (is_right) ? "5px solid black" : "2px dotted black";
-
-
-                // Show tooltip box on mouseover
-                this.addEventListener("mouseover", function () {
-                    // Hide all other tooltips/solutions
-                    Array.from(solutions.getElementsByTagName("li")).map(x => x.style.display = "none");
-                    // Display only current choice tooltip
-                    solutions.getElementsByTagName("li")[sel.selectedIndex - 1].style.display = "block";
-
-                    // Display the solution list
-                    solutions.style.display = "inline-block";
-                });
-                // hide on mouseout
-                this.addEventListener("mouseout", function () {
-                    // solutions.style.visibility = "hidden";
-                    solutions.style.display = "none";
-
-                });
+                sel.style.backgroundColor = is_right ? "#aaffaa" : "#ffaaaa";
+                sel.style.border = is_right ? "5px solid black" : "2px dotted black";
+            });
+            // Show tooltip box on mouseover
+            sel.addEventListener("mouseover", function () {
+                // Hide all other tooltips/solutions
+                Array.from(solutions.getElementsByTagName("li")).map(
+                    (x) => (x.style.display = "none")
+                );
+                // Display only current choice tooltip
+                var choice = solutions.getElementsByTagName("li")[sel.selectedIndex - 1].querySelector(".tooltip");
+                var cln = choice.cloneNode(true);
+                cln.style.display = "block";
+                tipDiv.appendChild(cln);
+            });
+            // hide on mouseout
+            sel.addEventListener("mouseout", function () {
+                tipDiv.innerHTML = "";
             });
         }
 
@@ -220,7 +220,7 @@ function quizIC() {
         //     inputEvent(i, solutions);
         // }
 
-        // Show all entire solution/tooltip boxes
+        // // Show all entire solution/tooltip boxes
         // button.onclick = function () {
         //     const solutionLists = ic.getElementsByClassName("solutionList");
         //     for (let s of solutionLists) {
@@ -234,13 +234,12 @@ function quizIC() {
         //         setTimeout(function () {
         //             // s.style.visibility = "hidden";
         //             s.style.display = "none";
-        //             Array.from(s.getElementsByTagName("li")).map(x => x.style.display = "none");
-
-        //         }, 3000)
-
-
+        //             Array.from(s.getElementsByTagName("li")).map(
+        //                 (x) => (x.style.display = "none")
+        //             );
+        //         }, 3000);
         //     }
-        // }
+        // };
     }
 }
 

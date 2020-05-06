@@ -31,31 +31,40 @@
             font-weight: bold;
         }
         list-style-type: none;
-        // visibility:       hidden;
         display: none;
-        min-width: fit-content;
-        max-width:        95%;
+        // max-width: fit-content;
+        // max-width:        95vw;
         background-color: grey;
         color:            #ffffff;
         margin:           5px;
         padding:          5px;
         border-radius:    6px;
         border:           none;
-        position:         absolute;
+        position:         fixed;
         z-index:          99;
         font-size:        1rem;
     }
+    .tooltip-div {
+        font-size: 0.6em;
+        background-color: #f4f4f7;
+        margin-top: 0.5em;
+      }
 }}
 
 .reveal {
     .qic,
-    [class*="quiz-"]{
-    select{
-        font-size: inherit;
-        :disabled{
-            color: black;
+    [class*="quiz-i"]{
+        display:  block;
+        overflow-y: scroll !important;
+        overflow-x: hidden !important; 
+        max-height: 75vh;
+        // max-width: 100vw;
+        select{
+            font-size: inherit;
+            :disabled{
+                color: black;
+            }
         }
-    }
 }
 }
 
@@ -66,7 +75,7 @@
         display: block;
         overflow-y: scroll !important;
         overflow-x: hidden !important; 
-        height: 75vh;
+        max-height: 75vh;
         text-align: center;
         
         // Adapt mathjax container size to size of bucket

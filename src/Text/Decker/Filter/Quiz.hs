@@ -261,9 +261,11 @@ choiceList t choices =
 
 renderInsertChoices :: Quiz -> Block
 renderInsertChoices quiz@(InsertChoices title tgs qm q) =
-  Div ("", tgs, []) $ [Header 2 ("", [], []) title] ++ questionBlocks q
+  Div ("", tgs, []) $
+  [Header 2 ("", [], []) title] ++ questionBlocks q ++ tooltipDiv
   -- ++ [solutionButton]
   where
+    tooltipDiv = [Div ("", [T.pack "tooltip-div"], []) []]
     questionBlocks :: [([Block], [Choice])] -> [Block]
     questionBlocks = map (rawHtml' . handleTuple)
     handleTuple :: ([Block], [Choice]) -> Html

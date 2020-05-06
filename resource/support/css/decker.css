@@ -131,15 +131,13 @@
 .reveal [class*="quiz-"] .solutionList {
   list-style-type: none;
   display: none;
-  min-width: fit-content;
-  max-width: 95%;
   background-color: grey;
   color: #ffffff;
   margin: 5px;
   padding: 5px;
   border-radius: 6px;
   border: none;
-  position: absolute;
+  position: fixed;
   z-index: 99;
   font-size: 1rem;
 }
@@ -172,13 +170,31 @@
   font-weight: bold;
 }
 
+.reveal .qic .tooltip-div,
+.reveal .qft .tooltip-div,
+.reveal .qmc .tooltip-div,
+.reveal .qmi .tooltip-div,
+.reveal [class*="quiz-"] .tooltip-div {
+  font-size: 0.6em;
+  background-color: #f4f4f7;
+  margin-top: 0.5em;
+}
+
+.reveal .qic,
+.reveal [class*="quiz-i"] {
+  display: block;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  max-height: 75vh;
+}
+
 .reveal .qic select,
-.reveal [class*="quiz-"] select {
+.reveal [class*="quiz-i"] select {
   font-size: inherit;
 }
 
 .reveal .qic select :disabled,
-.reveal [class*="quiz-"] select :disabled {
+.reveal [class*="quiz-i"] select :disabled {
   color: black;
 }
 
@@ -188,7 +204,7 @@
   display: block;
   overflow-y: scroll !important;
   overflow-x: hidden !important;
-  height: 75vh;
+  max-height: 75vh;
   text-align: center;
 }
 
