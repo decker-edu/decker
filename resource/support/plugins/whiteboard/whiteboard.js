@@ -76,9 +76,6 @@ let RevealWhiteboard = (function(){
     // currently active fragment
     let currentFragmentIndex = 0;
 
-    // did we see a pencil?
-    let penDetected = false;
-
 
 
     /************************************************************************
@@ -278,8 +275,7 @@ let RevealWhiteboard = (function(){
         ctx.clearRect(0, 0, 20, 20); 
         ctx.fillStyle = grdPen;
         ctx.fillRect(0, 0, 20, 20);
-        if (!penDetected)
-            penCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
+        penCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
 
         // render eraser cursor 
         // (adjust canvas size and eraser radius using Reveal scale)
@@ -917,6 +913,9 @@ let RevealWhiteboard = (function(){
      */
     function continueStroke( evt )
     {
+        // we need an active stroke
+        if (!stroke) return;
+
         // collect coalesced events
         let events = [evt];
         if (evt.getCoalescedEvents) 
@@ -925,22 +924,19 @@ let RevealWhiteboard = (function(){
         // process events
         for (let evt of events) 
         {
-            if (evt.buttons > 0) 
+            if (evt.buttons > 0 && evt.target==svg)
             {
-                if (stroke && evt.target==svg)
-                {
-                    // mouse position
-                    const slideZoom  = slides.style.zoom || 1;
-                    const mouseX = evt.offsetX / slideZoom;
-                    const mouseY = evt.offsetY / slideZoom;
+                // mouse position
+                const slideZoom  = slides.style.zoom || 1;
+                const mouseX = evt.offsetX / slideZoom;
+                const mouseY = evt.offsetY / slideZoom;
 
-                    const newPoint = [ mouseX, mouseY ];
-                    const oldPoint = points[points.length-1];
+                const newPoint = [ mouseX, mouseY ];
+                const oldPoint = points[points.length-1];
 
-                    // only do something if mouse position changed and we are within bounds
-                    if (distance(newPoint, oldPoint) > STROKE_STEP_THRESHOLD)
-                        points.push(newPoint);
-                }
+                // only do something if mouse position changed and we are within bounds
+                if (distance(newPoint, oldPoint) > STROKE_STEP_THRESHOLD)
+                    points.push(newPoint);
             }
         }
 
@@ -1011,37 +1007,26 @@ let RevealWhiteboard = (function(){
         // only pen and mouse events
         if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
 
-        // hide cursor once we see a pen event
-        // (only show cursor when user draws with a mouse)
-        if (evt.pointerType == 'pen') 
-        {
-            penDetected = true;
-            penCursor   = 'none';
-        }
-
-        // cancel timeouts
-        showCursor();
+        // remove timer for cursor hiding
         clearTimeout( hideCursorTimeout );
 
-
         // laser mode or right mouse button
-        if (tool == ToolType.LASER || evt.buttons == 2)
+        if (tool==ToolType.LASER || (tool==ToolType.PEN && evt.buttons==2))
         {
-            showCursor();
-            triggerHideCursor();
+            showCursor( laserCursor );
         }
 
         // eraser mode or middle mouse button
-        else if (tool == ToolType.ERASER || evt.buttons == 4)
+        else if (tool==ToolType.ERASER || (tool==ToolType.PEN && evt.buttons==4))
         {
             showCursor(eraserCursor);
             eraseStroke(evt);
-            if (needSave) updateGUI();
         }
 
         // pencil mode
         else if (tool == ToolType.PEN)
         {
+            hideCursor();
             startStroke(evt);
         }
 
@@ -1069,23 +1054,21 @@ let RevealWhiteboard = (function(){
 
 
         // laser mode or right mouse button
-        if (tool == ToolType.LASER || evt.buttons == 2)
+        if (tool==ToolType.LASER || (tool==ToolType.PEN && evt.buttons==2))
         {
-            showCursor(laserCursor);
-            triggerHideCursor();
+            //showCursor(laserCursor);
+            //triggerHideCursor();
         }
 
         // eraser mode or middle mouse button
-        else if (tool == ToolType.ERASER || evt.buttons == 4)
+        else if (tool==ToolType.ERASER || (tool==ToolType.PEN && evt.buttons==4))
         {
-            showCursor(eraserCursor);
             eraseStroke(evt);
         }
 
         // pencil mode
         else if (tool == ToolType.PEN)
         {
-            showCursor(penCursor);
             continueStroke(evt);
         }
 
@@ -1103,6 +1086,7 @@ let RevealWhiteboard = (function(){
         // only pen and mouse events
         if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
 
+        // finish pen stroke
         if (tool == ToolType.PEN)
         {
             stopStroke(evt);
