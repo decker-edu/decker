@@ -1,34 +1,37 @@
 ---
-bibliography: 'resource/example/example.bib'
+bibliography: example.bib
 chalkboard: 'example-deck.json'
-controls: True
-csl: 'resource/example/chicago-author-date.csl'
-history: True
-menu: True
+controls: true
+csl: 'chicago-author-date.csl'
+history: true
+menu: true
 title: Decker Slide Tool Reference Guide
 ---
+
 # Navigation
 
-Navigate this presentation with the controls in the bottom-right corner, your
-arrow keys or the space bar.
+Navigate this presentation with the controls in the bottom-right corner,
+your arrow keys or the space bar.
 
-Some explanations have examples on a separate slide. These will be arranged
-below the respective slide and will be indicated by a down arrow in the
-controls. Use the down arrow key to see them. If you use the space bar to go
-through the presentation, the examples will automatically follow their
-explanation.
+Some explanations have examples on a separate slide. These will be
+arranged below the respective slide and will be indicated by a down
+arrow in the controls. Use the down arrow key to see them. If you use
+the space bar to go through the presentation, the examples will
+automatically follow their explanation.
 
-The <i class="fas fa-bars"></i> icon in the bottom-left corner opens a menu
-showing a table of contents of all slides.
+The `<i class="fas fa-bars">`{=html}`</i>`{=html} icon in the
+bottom-left corner opens a menu showing a table of contents of all
+slides.
 
 # Markdown Syntax {#syntax}
 
-The Decker Slide Tool assists you in creating media-rich presentations with a
-few easy to use Markdown commands. This user guide will highlight some of the
-main styling features of Decker and provide examples on how to use each feature.
+The Decker Slide Tool assists you in creating media-rich presentations
+with a few easy to use Markdown commands. This user guide will highlight
+some of the main styling features of Decker and provide examples on how
+to use each feature.
 
-Visit <http://pandoc.org> for additional information on Pandoc-Markdown text
-formatting.
+Visit <http://pandoc.org> for additional information on Pandoc-Markdown
+text formatting.
 
 # New Slides {#slides}
 
@@ -66,7 +69,7 @@ Diese erste Steinbrücke Deutschlands soll bereits um ...
 Ein Hauptwerk der deutschen Baukunst zur Zeit der ...
 ```
 
-# Multicolumn example {#example-multicolumn  layout="columns"}
+# Multicolumn example {#example-multicolumn layout="columns"}
 
 ## Die Residenz {.left}
 
@@ -74,7 +77,8 @@ Die Würzburger Residenz ist das Hauptwerk des süddeutschen Barock.
 
 ## Alte Mainbrücke {.center}
 
-Die erste Steinbrücke Deutschlands soll bereits um 1120 errichtet worden sein.
+Die erste Steinbrücke Deutschlands soll bereits um 1120 errichtet worden
+sein.
 
 ## Dom St. Kilian {.right}
 
@@ -99,7 +103,7 @@ First/top column spans across the following columns.
 Third/bottom column spans across the columns above.
 ```
 
-# Top and Bottom Example {#example-topBottom  layout="columns"}
+# Top and Bottom Example {#example-topBottom layout="columns"}
 
 ## Top Colum {.top}
 
@@ -137,7 +141,7 @@ _This is italic text_
 *This is italic text*\
 *This is italic text*\
 ~~Strikethrough~~\
-<u>underline</u>\
+`<u>`{=html}underline`</u>`{=html}\
 H~2~O is a liquid.\
 2^3^ equals 8.
 
@@ -218,7 +222,7 @@ Even colored boxes look ok.
 -  Note text
 ```
 
-# Highlight Blocks example {#example-blocks }
+# Highlight Blocks example {#example-blocks}
 
 ## Alert Block {.alert .split}
 
@@ -307,19 +311,19 @@ Additional sources:
   doi:10.1093/acprof:oso/9780195365825.001.0001.
 ```
 
-# Sequential Lists example {#example-seqlists }
+# Sequential Lists example {#example-seqlists}
 
 (1) Salman Rushdie, *The Ground beneath Her Feet* (New York: Henry Holt,
     1999), 25.
 
-(2) Bob Stewart, "Wag of the Tail: Reflecting on Pet Ownership," in *Enriching
-    Our Lives with Animals*, ed. John Jaimeson, Tony Bannerman and Selena Wong
-    (Toronto, ON: Petlove Press, 2007),100.
+(2) Bob Stewart, "Wag of the Tail: Reflecting on Pet Ownership," in
+    *Enriching Our Lives with Animals*, ed. John Jaimeson, Tony
+    Bannerman and Selena Wong (Toronto, ON: Petlove Press, 2007),100.
 
 Additional sources:
 
-(3) Elliot Antokoletz, *Musical Symbolism in the Operas of Debussy and Bartok*
-    (New York: Oxford University Press, 2008),
+(3) Elliot Antokoletz, *Musical Symbolism in the Operas of Debussy and
+    Bartok* (New York: Oxford University Press, 2008),
     doi:10.1093/acprof:oso/9780195365825.001.0001.
 
 # Links
@@ -337,7 +341,7 @@ Enter the text to be displayed followed by the URL or slide ID.
 # Slide Title {#slide-id}
 ```
 
-# Links example {#example-links }
+# Links example {#example-links}
 
 ##  {style="font-size:small;"}
 
@@ -360,7 +364,7 @@ Include images in presentations:
 ![Image Caption](image-file-location){css-formatting}
 ```
 
-# Images example {#example-images }
+# Images example {#example-images}
 
 ## 
 
@@ -380,7 +384,7 @@ Include videos in presentations:
 ![title](video-file-location){css-formatting}
 ```
 
-# Videos example {#example-movies_1 }
+# Videos example {#example-movies_1}
 
 ``` {.markdown}
 Video with controls:
@@ -409,15 +413,16 @@ Include YouTube and Vimeo videos or Twitch channels in presentations:
 ![](service://video-id){css-formatting}
 ```
 
-*Note 1:* Replace `service` with `youtube`, `vimeo` or `twitch` and add video id
-or twitch channel name (replaces `video-id`).
+*Note 1:* Replace `service` with `youtube`, `vimeo` or `twitch` and add
+video id or twitch channel name (replaces `video-id`).
 
 *Note 2:* The video ID is usually found in the URL.
 
-**YouTube example URL:** https://www.youtube.com/watch?v=<u>qEcmwHRG2Mo</u>\
+**YouTube example URL:**
+https://www.youtube.com/watch?v=`<u>`{=html}qEcmwHRG2Mo`</u>`{=html}\
 **YouTube video ID:** qEcmwHRG2Mo
 
-# External Videos example {#example-movies_2 }
+# External Videos example {#example-movies_2}
 
 ``` {.markdown}
 ![](youtube://qEcmwHRG2Mo){width="65%" start="10"}
@@ -435,7 +440,7 @@ Fullscreen videos are identified in the slide header:
 
 *Note:* Do not include a slide title.
 
-# ![](movies/jmu-hci-intro.mp4) {#example-movies_3  data-menu-title="Fullscreen Videos Example" controls="1"}
+# ![](movies/jmu-hci-intro.mp4) {#example-movies_3 data-menu-title="Fullscreen Videos Example" controls="1"}
 
 # Audio
 
@@ -445,9 +450,9 @@ Include audio clips in presentations:
 ![title](audio-file-location){css-formatting}
 ```
 
-# Audio example {#example-audio }
+# Audio example {#example-audio}
 
-##  {}
+## 
 
 ``` {.markdown .xxx-small}
 Audio with controls:
@@ -465,13 +470,14 @@ Audio with controls: ![Wildbach](audio/wildbach.mp3){controls="1"}
 
 ##  {.example}
 
-Audio with controls and autoplay: ![Wildbach](audio/wildbach.mp3){controls="1"
-data-autoplay="true"}
+Audio with controls and autoplay:
+![Wildbach](audio/wildbach.mp3){controls="1" data-autoplay="true"}
 
 # Tables
 
-Tables are created with pipes (\|) and hyphens (-). Align text with colons (:)
-on the left, right, or on both sides of the hyphens in the header row.
+Tables are created with pipes (\|) and hyphens (-). Align text with
+colons (:) on the left, right, or on both sides of the hyphens in the
+header row.
 
 ``` {.markdown}
 | Right Align | Left Align | Center Align | Default |
@@ -480,7 +486,7 @@ on the left, right, or on both sides of the hyphens in the header row.
 |        data | data       |     data     | data    |
 ```
 
-# Tables example {#example-tables }
+# Tables example {#example-tables}
 
 ##  {style="font-size:small;"}
 
@@ -513,7 +519,7 @@ To treat text as verbatim, either:
 -   surround text with three tildes ( \~ ) or backticks ( \` )\
 -   or indent each line by four spaces.
 
-# Verbatim Code Block example {#example-code }
+# Verbatim Code Block example {#example-code}
 
 ##  {style="font-size:small;"}
 
@@ -629,11 +635,14 @@ alert (s);
 <iframe class = "stretch" src = "https://www.uni-wuerzburg.de/"></iframe>
 ```
 
-#  {#example-externalWebsite  data-menu-title="External Website Example"}
+#  {#example-externalWebsite data-menu-title="External Website Example"}
 
+```{=html}
 <iframe class="stretch" src="https://www.uni-wuerzburg.de/">
+```
+```{=html}
 </iframe>
-
+```
 # Embed PDF documents {#embedPDF style="font-size:small;"}
 
 ``` {.markdown}
@@ -642,6 +651,7 @@ alert (s);
 
 ![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
 
+```{=html}
 <!-- The given path (../../resource/support/...) won't work; therefore I excluded this part for now
 # Embed JavaScript {#embedJavascript}
 
@@ -651,26 +661,31 @@ alert (s);
 
 # ![](webgl_geometry_minecraft_ao.html)
 -->
-
+```
 # Chalkboard
 
 Dynamically make notes on presentations:
 
--   Make notes on slides: click <i class="fas fa-pen"></i> or type 'd'
--   Use an eraser: click <i class="fas fa-eraser"></i> or type 'e'
--   Show the chalkboard: click <i class="fas fa-edit"></i> or type 'w'
--   Draw on chalkboard: click <i class="fas fa-edit"></i> and then
-    <i class="fas fa-pen"></i> or type 'w' and then 'd'
+-   Make notes on slides: click
+    `<i class="fas fa-pen">`{=html}`</i>`{=html} or type 'd'
+-   Use an eraser: click `<i class="fas fa-eraser">`{=html}`</i>`{=html}
+    or type 'e'
+-   Show the chalkboard: click
+    `<i class="fas fa-edit">`{=html}`</i>`{=html} or type 'w'
+-   Draw on chalkboard: click
+    `<i class="fas fa-edit">`{=html}`</i>`{=html} and then
+    `<i class="fas fa-pen">`{=html}`</i>`{=html} or type 'w' and then
+    'd'
 -   Clear the chalkboard: press the 'Del' key
 -   Download notes: type 'n'
--   Extend the chalkboard: open the chalkboard with drawing turned on ('d' and
-    'w') and press ENTER
+-   Extend the chalkboard: open the chalkboard with drawing turned on
+    ('d' and 'w') and press ENTER
 
 # Speaker Notes {#speakerNotes}
 
-Slides with headers with the `.notes` tag are not included in a presentation.
-They only appear in the handout and in the speaker view (press `s` on this slide
-to access the speaker view).
+Slides with headers with the `.notes` tag are not included in a
+presentation. They only appear in the handout and in the speaker view
+(press `s` on this slide to access the speaker view).
 
 ## 
 
@@ -689,8 +704,8 @@ to access the speaker view).
 
 -   Make the non-game experience more rewarding
 
--   Motivation has limits. A large leaderboard divide may cause the player to
-    abandon the game.
+-   Motivation has limits. A large leaderboard divide may cause the
+    player to abandon the game.
 
     -   [Blockquotes](#block-quotes)
     -   [Line Blocks](#line-blocks)
@@ -698,8 +713,8 @@ to access the speaker view).
 
 # Citations
 
-Add citations to your slide deck. Be sure to include a `csl` and a `bib` file in
-your [YAML header](#yaml).
+Add citations to your slide deck. Be sure to include a `csl` and a `bib`
+file in your [YAML header](#yaml).
 
 ##  {style="font-size:small;"}
 
