@@ -27,7 +27,7 @@ import Development.Shake
 import Relude
 import System.Environment
 import System.FilePath
-import Text.Pandoc hiding (getTemplate)
+import Text.Pandoc hiding (getTemplate, lookupMeta)
 import qualified Text.URI as URI
 
 {- | Defines the interface to template packs that can be selected at runtime. -}
@@ -91,7 +91,7 @@ calcTemplateSource uriStr = do
 readTemplate :: Meta -> FilePath -> Action (Template Text)
 readTemplate meta file = do
   templateSource <-
-    liftIO $ calcTemplateSource (getMetaText "template-source" meta)
+    liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
   text <- readTemplateText templateSource
   liftIO (handleLeft <$> compileTemplate "" text)
   where

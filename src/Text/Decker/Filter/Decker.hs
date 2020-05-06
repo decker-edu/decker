@@ -8,22 +8,28 @@
 module Text.Decker.Filter.Decker where
 
 import Text.Decker.Filter.Attrib
+import Text.Decker.Filter.CRC32
 import Text.Decker.Filter.Header
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Streaming
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 
 import Control.Monad.Catch
 import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
 import Relude
+import System.Directory
+import System.FilePath
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Text.Pandoc
+import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
+import Text.Printf
 import Text.URI (URI)
 import qualified Text.URI as URI
 
@@ -71,6 +77,9 @@ mediaBlockListFilter blocks =
     -- An image followed by an explicit caption paragraph.
     filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) =
       Just . single . Para . single <$> transformImage image caption
+    -- An code block followed by an explicit caption paragraph.
+    filterPairs (code@CodeBlock {}, Para (Str captionLabel:caption)) =
+      Just . single <$> transformCodeBlock code caption
     -- Any number of consecutive images in a masonry row.
     filterPairs (LineBlock lines, Para (Str "Caption:":caption))
       | oneImagePerLine lines =
@@ -99,6 +108,8 @@ mediaBlockFilter header@(Header 1 attr text) = transformHeader1 header
 -- A solitary image in a paragraph with a possible caption.
 mediaBlockFilter (Para [image@(Image _ caption _)]) =
   Para . single <$> transformImage image caption
+-- A solitary code block in a paragraph with a possible caption.
+mediaBlockFilter (code@CodeBlock {}) = transformCodeBlock code []
 -- Any number of consecutive images in a masonry row.
 mediaBlockFilter (LineBlock lines)
   | oneImagePerLine lines = transformImages (concat lines) []
@@ -147,8 +158,8 @@ extIn Nothing _ = False
 -- | Generates an HTML error message for Image inlines from the image
 -- source and the actual exception. The Image element is rendered back
 -- to Markdown format and included in the error message.
-imageError :: Inline -> SomeException -> Filter Inline
-imageError img@Image {} (SomeException e) = do
+inlineError :: Inline -> SomeException -> Filter Inline
+inlineError img@Image {} (SomeException e) = do
   imgMarkup <- inlinesToMarkdown [img]
   renderHtml $
     H.div ! A.class_ "decker image error" $ do
@@ -158,7 +169,20 @@ imageError img@Image {} (SomeException e) = do
       H.p ! A.class_ "message" $ toHtml (displayException e)
       H.p $ H.text "encountered while processing"
       H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
-imageError _ _ = bug $ InternalException "imageError: non image argument "
+inlineError _ _ = bug $ InternalException "inlineError: non image argument "
+
+blockError :: Block -> SomeException -> Filter Block
+blockError code@CodeBlock {} (SomeException e) = do
+  codeMarkup <- blocksToMarkdown [code]
+  renderHtml $
+    H.div ! A.class_ "decker image error" $ do
+      H.h2 ! A.class_ "title" $ do
+        H.i ! A.class_ "fa fa-exclamation-triangle" $ ""
+        H.text " Decker error"
+      H.p ! A.class_ "message" $ toHtml (displayException e)
+      H.p $ H.text "encountered while processing"
+      H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml codeMarkup
+blockError _ _ = bug $ InternalException "blockError: non code argument "
 
 imageTransformers :: Map MediaT (URI -> [Inline] -> Attrib Html)
 imageTransformers =
@@ -171,16 +195,18 @@ imageTransformers =
     , (VideoT, videoHtml)
     , (StreamT, streamHtml')
     , (AudioT, audioHtml)
+    , (RenderT, renderCodeHtml)
     ]
 
 transformImage :: Inline -> [Inline] -> Filter Inline
 transformImage image@(Image attr@(_, classes, _) _ (url, _)) caption =
-  handle (imageError image) $ do
-    uri <- transformUrl url
+  handle (inlineError image) $ do
+    uri <- URI.mkURI url
     let mediaType = classifyMedia uri attr
     case Map.lookup mediaType imageTransformers of
       Just transform -> runAttr attr (transform uri caption) >>= renderHtml
       Nothing -> return image
+transformImage inline _ = return inline
 
 -- Lines up a list of images in a div element. Use with flexbox css.
 transformImages :: [Inline] -> [Inline] -> Filter Block
@@ -196,6 +222,37 @@ transformImages images caption = do
         H.figure ! A.class_ "decker" $ do
           H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
           H.figcaption captionHtml
+
+language cls = listToMaybe $ filter (`elem` ["dot", "gnuplot", "tex"]) cls
+
+transformCodeBlock :: Block -> [Inline] -> Filter Block
+transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
+  handle (blockError code) $ do
+    case language classes of
+      Just ext
+        | "render" `elem` classes -> do
+          transient <-
+            lookupMetaOrFail "decker.directories.transient" <$> gets meta
+          project <- lookupMetaOrFail "decker.directories.project" <$> gets meta
+          runAttr attr (transform project transient ext) >>= renderHtml
+      _ -> return code
+  where
+    transform :: FilePath -> FilePath -> Text -> Attrib Html
+    transform project transient ext = do
+      dropClass ext
+      let crc = printf "%08x" (calc_crc32 $ toString text)
+      let relPath =
+            deckerFiles </> "code" </> intercalate "-" ["code", crc] <.>
+            toString ext
+      let absPath = project </> relPath
+      exists <- liftIO $ doesFileExist absPath
+      unless exists $
+        liftIO $ do
+          createDirectoryIfMissing True (project </> deckerFiles </> "code")
+          Text.writeFile absPath text
+      uri <- lift $ URI.mkURI ("/" <> toText relPath)
+      renderCodeHtml uri caption
+transformCodeBlock block _ = return block
 
 mkAudioTag :: Text -> Attr -> Html
 mkAudioTag url (id, cs, kvs) =
@@ -247,6 +304,7 @@ mkSvgTag svg (id, cs, kvs) =
 
 audioHtml :: URI -> [Inline] -> Attrib Html
 audioHtml uri caption = do
+  uri <- lift $ transformUri uri ""
   mediaFrag <- mediaFragment
   let audioUri =
         if Text.null mediaFrag
@@ -269,7 +327,8 @@ audioHtml uri caption = do
 isPercent = Text.isSuffixOf "%"
 
 imageHtml :: URI -> [Inline] -> Attrib Html
-imageHtml uri caption =
+imageHtml uri caption = do
+  uri <- lift $ transformUri uri ""
   case caption of
     [] -> do
       injectBorder >> takeSize >> takeUsual
@@ -282,7 +341,8 @@ imageHtml uri caption =
       mkFigureTag imageTag captionHtml <$> extractAttr
 
 objectHtml :: Text -> URI -> [Inline] -> Attrib Html
-objectHtml mime uri caption =
+objectHtml mime uri caption = do
+  uri <- lift $ transformUri uri ""
   case caption of
     [] -> do
       injectBorder >> takeSize >> takeUsual
@@ -296,6 +356,7 @@ objectHtml mime uri caption =
 
 svgHtml :: URI -> [Inline] -> Attrib Html
 svgHtml uri caption = do
+  uri <- lift $ transformUri uri ""
   svg <- lift $ readLocalUri uri
   case caption of
     [] -> do
@@ -310,13 +371,16 @@ svgHtml uri caption = do
 
 mviewHtml :: URI -> [Inline] -> Attrib Html
 mviewHtml uri caption = do
+  uri <- lift $ transformUri uri ""
   let model = URI.render uri
   pushAttribute ("model", model)
-  mviewUri <- URI.mkURI "support/mview/mview.html"
+  -- specify mview URL project relative
+  mviewUri <- URI.mkURI "public:support/mview/mview.html"
   iframeHtml mviewUri caption
 
 iframeHtml :: URI -> [Inline] -> Attrib Html
-iframeHtml uri caption =
+iframeHtml uri caption = do
+  uri <- lift $ transformUri uri ""
   case caption of
     [] -> do
       iframeAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
@@ -346,6 +410,7 @@ mediaFragment = do
 
 videoHtml :: URI -> [Inline] -> Attrib Html
 videoHtml uri caption = do
+  uri <- lift $ transformUri uri ""
   mediaFrag <- mediaFragment
   let videoUri =
         if Text.null mediaFrag
@@ -367,3 +432,18 @@ videoHtml uri caption = do
       figureAttr <-
         injectBorder >> takeSizeIf isPercent >> takeUsual >> extractAttr
       return $ mkFigureTag videoTag captionHtml figureAttr
+
+-- | Render an SVG image from the code linked to here.
+renderCodeHtml :: URI -> [Inline] -> Attrib Html
+renderCodeHtml uri caption = do
+  uri <- lift $ transformUri uri "svg"
+  case caption of
+    [] -> do
+      injectBorder >> takeSize >> takeUsual
+      mkImageTag (URI.render uri) <$> extractAttr
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      imgAttr <- takeSizeIf (not . isPercent) >> extractAttr
+      let imageTag = mkImageTag (URI.render uri) imgAttr
+      injectBorder >> takeSizeIf isPercent >> takeUsual
+      mkFigureTag imageTag captionHtml <$> extractAttr

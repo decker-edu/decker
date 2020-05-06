@@ -44,8 +44,8 @@ $if(highlighting-css)$
 $highlighting-css$
   </style>
 $endif$
-$if(base-css)$
-  <link rel="stylesheet" href="$base-css$">
+$if(template.base-css)$
+  <link rel="stylesheet" href="$template.base-css$">
 $else$
 $if(mario)$
   <link rel="stylesheet" href="$decker-support-dir$/css/mario.css">
@@ -53,8 +53,8 @@ $else$
   <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
 $endif$
 $endif$
-$for(css)$
-  <link rel="stylesheet" href="$css$"/>
+$for(template.css)$
+  <link rel="stylesheet" href="$template.css$"/>
 $endfor$
 $if(highlightjs)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
@@ -70,6 +70,11 @@ $endif$
   <!--[if lt IE 9]>
   <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
   <![endif]-->
+$for(style)$
+  <style>
+  $style$
+  </style>
+$endfor$
 $if(math)$
   $math$
 $endif$
@@ -127,9 +132,9 @@ $if(mario)$ <!-- Mario settings -->
             <div class="subtitle"> $subtitle$ </div>
         $endif$
     </div>
-    $if(teaser)$
+    $if(template.teaser)$
         <div class="teaser">
-            <img src=$teaser$>
+            <img src=$template.teaser$>
         </div>
     $endif$
     $if(author)$
@@ -139,11 +144,11 @@ $if(mario)$ <!-- Mario settings -->
         $endif$
     $endif$
 $else$ <!-- standard settings -->
-$if(title-header)$
+$if(template.title-header)$
 <section id="$idprefix$title-slide" 
         data-background-size="100%" 
         data-background-position="0px 0px" 
-        data-background-image=$title-header$>
+        data-background-image=$template.title-header$>
 $else$
 <section id="$idprefix$title-slide">
 $endif$
@@ -151,17 +156,17 @@ $endif$
         $if(subtitle)$
             <div class="subtitle"> $subtitle$ </div>
         $endif$
-    $if(title-teaser)$
+    $if(template.title-teaser)$
         <div class="title-teaser">
-                <img src=$title-teaser$>
+                <img src=$template.title-teaser$>
         </div>
     $endif$
     $if(author)$
         <div class="author"> $author$ </div>
         $if(affiliation)$
-           $if(affiliation-logo)$
+           $if(template.affiliation-logo)$
               <div class="affiliation-logo">
-                  <img src=$affiliation-logo$>
+                  <img src=$template.affiliation-logo$>
               </div>
             $endif$
             <div class="affiliation"> $affiliation$ </div>
@@ -194,6 +199,9 @@ $body$
       prepareSAGE();
   </script>
 
+$for(template.include-js)$
+<script src="$template.include-js$"></script>
+$endfor$
 
   <script>
       // Full list of configuration options available at:
