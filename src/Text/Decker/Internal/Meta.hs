@@ -26,8 +26,8 @@ import Data.List.Safe ((!!))
 import qualified Data.Map.Lazy as Map
 import qualified Data.Map.Strict as M
 import Data.Maybe
-import qualified Data.Text as Text
 import qualified Data.Set as Set
+import qualified Data.Text as Text
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
 import Relude
@@ -141,7 +141,7 @@ class FromMetaValue a where
   fromMetaValue :: MetaValue -> Maybe a
 
 instance FromMetaValue MetaValue where
-  fromMetaValue v = Just v
+  fromMetaValue = Just
 
 instance FromMetaValue Bool where
   fromMetaValue (MetaBool bool) = Just bool

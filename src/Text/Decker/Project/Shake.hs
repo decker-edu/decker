@@ -8,6 +8,7 @@ module Text.Decker.Project.Shake
   , isDevRun
   , openBrowser
   , projectA
+  , supportA
   , projectDirsA
   , publicA
   , publicResource
@@ -17,7 +18,6 @@ module Text.Decker.Project.Shake
   , runHttpServer
   , startHttpServer
   , stopHttpServer
-  , supportA
   , watchChangesAndRepeat
   , withShakeLock
   , writeSupportFilesToPublic
