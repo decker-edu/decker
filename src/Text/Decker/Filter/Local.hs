@@ -210,7 +210,7 @@ isFileUri :: MonadThrow m => URI -> m Bool
 isFileUri uri =
   case URI.uriScheme uri of
     Just rtext
-      | URI.unRText rtext /= "file" -> return False
+      | URI.unRText rtext `notElem` ["file", "public"] -> return False
     _ -> return True
 
 -- | Transforms a URL and handles local and remote URLs differently.
@@ -249,9 +249,11 @@ processLocalUri uri ext = do
   publicDir <- lookupMetaOrFail "decker.directories.public" <$> gets meta
   -- | The path component from the URI
   let urlPath = toString $ uriPath uri
+  let urlScheme = toString $ maybe "" URI.unRText $ URI.uriScheme uri
   -- | Interpret urlPath either project relative or document relative,
   -- depending on the leading slash.
   let extString = toString ext
+  -- calculate path relative to project dir
   let relPath =
         normalise $
         if hasDrive urlPath
@@ -259,14 +261,17 @@ processLocalUri uri ext = do
           else makeRelative projectDir docBaseDir </> urlPath
   let sourcePath = projectDir </> relPath
   let targetPath = publicDir </> relPath <.> extString
-  let publicRelPath = makeRelativeTo topBaseDir sourcePath
-  publicUri <- setUriPath (toText (publicRelPath <.> extString)) uri
-  exists <- liftIO $ doesFileExist sourcePath
-  if exists
-    then needFile targetPath
-    else throwM $
-         ResourceException $ "Local resource does not exist: " <> relPath
-  return publicUri
+  if urlScheme == "public"
+    then do
+      URI.mkURI $ toText $ makeRelativeTo topBaseDir (projectDir </> urlPath)
+    else do
+      exists <- liftIO $ doesFileExist sourcePath
+      if exists
+        then needFile targetPath
+        else throwM $
+             ResourceException $ "Local resource does not exist: " <> relPath
+      let publicRelPath = makeRelativeTo topBaseDir sourcePath
+      setUriPath (toText (publicRelPath <.> extString)) uri
 
 needFile :: FilePath -> Filter ()
 needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)

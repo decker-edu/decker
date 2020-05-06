@@ -4,10 +4,6 @@ module Text.Decker.Project.Project
   ( resourcePaths
   , scanTargetsToFile
   , deckerResourceDir
-  , oldResourcePaths
-  -- , linkResource
-  , relRefResource
-  , absRefResource
   , removeCommonPrefix
   , isPrefix
   , makeRelativeTo
@@ -36,7 +32,7 @@ module Text.Decker.Project.Project
   , public
   , support
   , transient
-  , getDachdeckerUrl
+  -- , getDachdeckerUrl
   , Targets(..)
   , Resource(..)
   , ProjectDirs(..)

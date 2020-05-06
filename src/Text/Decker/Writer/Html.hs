@@ -95,7 +95,7 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
           Nothing -> Just pygments
           Just (_ :: T.Text) -> Nothing
   template <- getTemplate (templateFile disp)
-  dachdeckerUrl' <- liftIO getDachdeckerUrl
+  -- dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
           { writerSlideLevel = Just 1
@@ -108,7 +108,7 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
               Context $
               M.fromList
                 [ ("decker-support-dir", SimpleVal $ Text 0 $ T.pack supportDir)
-                , ("dachdecker-url", SimpleVal $ Text 0 $ T.pack dachdeckerUrl')
+                -- , ("dachdecker-url", SimpleVal $ Text 0 $ T.pack dachdeckerUrl')
                 ]
           , writerCiteMethod = Citeproc
           }

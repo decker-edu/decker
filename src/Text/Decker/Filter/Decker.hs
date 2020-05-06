@@ -374,7 +374,8 @@ mviewHtml uri caption = do
   uri <- lift $ transformUri uri ""
   let model = URI.render uri
   pushAttribute ("model", model)
-  mviewUri <- URI.mkURI "support/mview/mview.html"
+  -- specify mview URL project relative
+  mviewUri <- URI.mkURI "public:support/mview/mview.html"
   iframeHtml mviewUri caption
 
 iframeHtml :: URI -> [Inline] -> Attrib Html
