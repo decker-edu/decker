@@ -109,7 +109,7 @@ splot 1 / (x*x + y*y + 0.5)
 
 ## Rendered and included {.right}
 
-![](tikz.tex){.tikz .render}
+![](tikz.tex){.tex .render}
 
 ------
 
