@@ -19,10 +19,8 @@ import Text.Decker.Writer.Pdf
 import Control.Concurrent
 import Control.Lens ((^.))
 import Control.Monad.Extra
-import Data.Aeson
 import Data.IORef ()
 import Data.List
-import qualified Data.Map as Map
 import Data.String ()
 import qualified Data.Text as Text
 import Data.Version
@@ -55,20 +53,7 @@ prepCaches ::
 prepCaches directories = do
   let deckerMetaFile = (directories ^. project) </> "decker.yaml"
   let deckerTargetsFile = (directories ^. transient) </> "targets.yaml"
-  getGlobalMeta <-
-    ($ deckerMetaFile) <$>
-    newCache
-      (\file -> do
-         meta <- readStaticMetaData file
-         let dirs =
-               Meta $
-               Map.fromList
-                 [ ( "decker"
-                   , MetaMap $
-                     Map.fromList
-                       [("directories", toPandocMeta' (toJSON directories))])
-                 ]
-         return $ mergePandocMeta' dirs meta)
+  getGlobalMeta <- ($ deckerMetaFile) <$> newCache readStaticMetaData
   getTargets <- ($ deckerTargetsFile) <$> newCache readTargetsFile
   getTemplate <-
     newCache

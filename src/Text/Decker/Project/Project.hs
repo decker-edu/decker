@@ -54,7 +54,6 @@ import Data.Aeson
 import Data.Aeson.TH
 import Data.Char
 import qualified Data.List as List
-import Data.List.Split (splitOn)
 import qualified Data.Map.Strict as Map
 import Data.Maybe
 import qualified Data.Yaml as Yaml
@@ -62,11 +61,8 @@ import Development.Shake hiding (Resource)
 import Network.URI
 import Relude
 import qualified System.Directory as D
-import System.Environment
 import System.FilePath
 import Text.Pandoc.Builder hiding (lookupMeta)
-import Text.Read
-import Text.Regex.TDFA
 
 data Targets = Targets
   { _sources :: [FilePath]
@@ -171,14 +167,18 @@ provisioningFromMeta meta =
 
 -- dachdeckerFromMeta :: Meta -> Maybe String
 -- dachdeckerFromMeta = getMetaString "dachdecker"
-absRefResource :: Resource -> IO FilePath
-absRefResource resource =
-  return $ show $ URI "file" Nothing (sourceFile resource) "" ""
+{-
+ -absRefResource :: Resource -> IO FilePath
+ -absRefResource resource =
+ -  return $ show $ URI "file" Nothing (sourceFile resource) "" ""
+ -}
 
-relRefResource :: FilePath -> Resource -> IO FilePath
-relRefResource base resource = do
-  let relPath = makeRelativeTo base (sourceFile resource)
-  return $ show $ URI "file" Nothing relPath "" ""
+{-
+ -relRefResource :: FilePath -> Resource -> IO FilePath
+ -relRefResource base resource = do
+ -  let relPath = makeRelativeTo base (sourceFile resource)
+ -  return $ show $ URI "file" Nothing relPath "" ""
+ -}
 
 -- | Find the project directory. 
 -- 1. First upwards directory containing `decker.yaml`
@@ -221,21 +221,23 @@ deckerResourceDir =
     ("decker" ++
      "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
 
--- | Get the absolute paths of resource folders 
--- with version numbers older than the current one
-oldResourcePaths :: IO [FilePath]
-oldResourcePaths = do
-  dir <- D.getXdgDirectory D.XdgData []
-  files <- D.listDirectory dir
-  return $ map (dir </>) $ filter oldVersion files
-  where
-    convert = map (read :: String -> Int)
-    currentVersion = convert (splitOn "." deckerVersion)
-    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
-    oldVersion name =
-      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
-        _:x:y:z:_ -> convert [x, y, z] < currentVersion
-        _ -> False
+{-
+ --- | Get the absolute paths of resource folders 
+ --- with version numbers older than the current one
+ -oldResourcePaths :: IO [FilePath]
+ -oldResourcePaths = do
+ -  dir <- D.getXdgDirectory D.XdgData []
+ -  files <- D.listDirectory dir
+ -  return $ map (dir </>) $ filter oldVersion files
+ -  where
+ -    convert = map (read :: String -> Int)
+ -    currentVersion = convert (splitOn "." deckerVersion)
+ -    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
+ -    oldVersion name =
+ -      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
+ -        _:x:y:z:_ -> convert [x, y, z] < currentVersion
+ -        _ -> False
+ -}
 
 resourcePaths :: ProjectDirs -> FilePath -> URI -> Resource
 resourcePaths dirs base uri =
@@ -349,14 +351,16 @@ scanTargets meta dirs = do
          combine (dirs ^. public) . makeRelative (dirs ^. project))
         (fromMaybe [] $ List.lookup srcSuffix sources)
 
-getDachdeckerUrl :: IO String
-getDachdeckerUrl = do
-  env <- System.Environment.lookupEnv "DACHDECKER_SERVER"
-  let url =
-        case env of
-          Just val -> val
-          Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
-  return url
+{-
+ -getDachdeckerUrl :: IO String
+ -getDachdeckerUrl = do
+ -  env <- System.Environment.lookupEnv "DACHDECKER_SERVER"
+ -  let url =
+ -        case env of
+ -          Just val -> val
+ -          Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
+ -  return url
+ -}
 
 projectDir :: Meta -> FilePath
 projectDir = lookupMetaOrElse "." "decker.directories.project"

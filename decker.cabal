@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8611c30aef173a43128d3828f883ca253bbbf0ff174050b9b5938da8dc52fe75
+-- hash: 3b8ccd51949142c393732a39a91e5f89cc828ff98462b0d3f9cc05d7d2edb2f3
 
 name:           decker
 version:        0.10.0
@@ -195,6 +195,7 @@ library
 executable decker
   main-is: Decker.hs
   other-modules:
+      Shaker
       Paths_decker
   hs-source-dirs:
       app

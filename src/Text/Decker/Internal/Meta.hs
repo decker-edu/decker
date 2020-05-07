@@ -10,12 +10,12 @@ module Text.Decker.Internal.Meta
   , setMetaValue
   , toPandocMeta
   , toPandocMeta'
-  , readMetaDataFile
   , lookupMeta
   , lookupMetaOrElse
   , lookupMetaOrFail
   , mapMeta
   , mapMetaWithKey
+  , readMetaDataFile
   ) where
 
 import Text.Decker.Internal.Exception
@@ -69,10 +69,6 @@ toPandocMeta' (Y.String text) = MetaString text
 toPandocMeta' (Y.Number scientific) = MetaString $ Text.pack $ show scientific
 toPandocMeta' (Y.Bool bool) = MetaBool bool
 toPandocMeta' Y.Null = MetaList []
-
--- | Reads a single meta data file.
-readMetaDataFile :: FilePath -> IO Meta
-readMetaDataFile file = toPandocMeta <$> Y.decodeFileThrow file
 
 -- | Split a compound meta key at the dots and separate the array indexes.
 splitKey = concatMap splitIndex . Text.splitOn "."
@@ -230,3 +226,9 @@ mapMetaWithKey f meta = do
     map' k (MetaInlines i) = MetaString <$> f k (stringify i)
     map' _ v = return v
     join x y = Text.intercalate "." $ filter (not . Text.null) [x, y]
+
+-- | Reads a single meta data file.
+readMetaDataFile :: FilePath -> IO Meta
+readMetaDataFile file = toPandocMeta <$> Y.decodeFileThrow file
+
+

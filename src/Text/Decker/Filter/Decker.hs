@@ -223,11 +223,11 @@ transformImages images caption = do
           H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
           H.figcaption captionHtml
 
-language cls = listToMaybe $ filter (`elem` ["dot", "gnuplot", "tex"]) cls
+language cls = find (`elem` ["dot", "gnuplot", "tex"]) cls
 
 transformCodeBlock :: Block -> [Inline] -> Filter Block
 transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
-  handle (blockError code) $ do
+  handle (blockError code) $
     case language classes of
       Just ext
         | "render" `elem` classes -> do
