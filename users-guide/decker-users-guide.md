@@ -5,7 +5,7 @@ title: 'Decker User''s Guide'
 toc-title: Contents
 ---
 
-Material that is only relevant for advanced users, developers, true
+🚧 Material that is only relevant for advanced users, developers, true
 Decker nerds and Mario is marked with a construction sign (🚧). Eltern
 haften für ihre Kinder.
 
@@ -72,7 +72,6 @@ be provided in several contexts. For example
 
     ``` {.markdown}
     ## A very important image
-
     ![](image.png)
     ```
 
@@ -171,6 +170,77 @@ control various aspects of the generated slide sets.
 # Decker's Markdown
 
 ## Media handling
+
+External media files like images or movies can be included in a
+presentation in a variety of ways. The central mechanism is the standard
+Markdown inline image tag as used by Pandoc.
+
+``` {.markdown}
+![Image caption](/path/to/image.ext){width="100%"}
+```
+
+Several parameters describing the image can be encoded:
+
+`[Image caption]`
+:   If the image caption inside the square brackets `[]` is provided,
+    the image will be set with the caption text right below the image.
+    The caption text may contain further Markdown markup.
+
+`(/path/to/image.ext)`
+:   The image itself is referenced with an URL inside the round brackets
+    `()`. A relativ reference (as described in [RFC
+    3986](https://tools.ietf.org/html/rfc3986#section-4.2)) here is
+    interpreted as a path to a resource in the local file system that is
+    either specified relative to the project's root directory or
+    relative to the file containing the image tag.
+
+`.ext`
+:   The filename extension determines the media type of the image.
+    Depending on the extension and media type the referenced resource
+    may further be processed by decker to generate the final embedded
+    media element.
+
+`{width="100%"}`
+:   The attributes annotation can be used to control various aspects of
+    processing and presentation for the image, for example the width of
+    the image relative to it's surrounding element (see [Local
+    Paths](#local-paths)).
+
+### Figures and captions
+
+Embedded media will be rendered as a figure with caption if either
+
+-   the square brackets of the image tag contain a caption text.
+
+    ``` {.markdown}
+    ![This is the caption text.](some/image.png)
+    ```
+
+-   Or the image tag occurs on an otherwise empty paragraph followed
+    directly by another paragraph that starts with the word `Caption:`.
+    The second paragraph provides the text for the caption
+
+    ``` {.markdown}
+    ![](some/image.png)
+
+    Caption: This is the caption text.
+    ```
+
+### Images
+
+### Pdfs
+
+### 3D polygonal models
+
+### Iframes
+
+### Videos
+
+### Video streams
+
+### Audio
+
+### Graphs and diagrams
 
 ## Slide layout
 
