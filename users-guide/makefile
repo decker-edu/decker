@@ -9,5 +9,6 @@ $(guide-pdf): $(guide-md)
 	pandoc --standalone --toc --toc-depth=2 -o $@ $<
 
 watch: $(guide-html) $(guide-pdf)
+	open -a safari $(guide-html)
 	ls $(guide-md) | entr make $^ 
 
