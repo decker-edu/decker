@@ -20,7 +20,7 @@ import qualified Text.Blaze.Html.Renderer.Text as Text
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (Attributable)
-import Text.Pandoc
+import Text.Pandoc hiding (lookupMeta)
 import qualified Text.URI as URI
 
 {-
@@ -71,7 +71,7 @@ pdfExt = ["pdf"]
 
 svgExt = ["svg"]
 
-renderExt = ["dot", "gnuplot"]
+renderExt = ["dot", "gnuplot", "tex"]
 
 mviewExt = ["off", "obj", "stl", "ply", "pmp"]
 
@@ -112,7 +112,7 @@ maybeElem Nothing _ = False
 
 renderHtml :: RawHtml a => Html -> Filter a
 renderHtml html = do
-  pretty <- getMetaBoolOrElse "decker.filter.pretty" False <$> gets meta
+  pretty <- lookupMetaOrElse False "decker.filter.pretty" <$> gets meta
   return $
     rawHtml $
     toText $
@@ -151,6 +151,15 @@ blocksToHtml [] = return $ toHtml ("" :: Text)
 blocksToHtml blocks = do
   FilterState options meta <- get
   case runPure (writeHtml5 options (Pandoc meta blocks)) of
+    Right html -> return html
+    Left err -> bug $ PandocException $ "BUG: " <> show err
+
+-- | Renders a list of blocks to Markdown.
+blocksToMarkdown :: [Block] -> Filter Text
+blocksToMarkdown [] = return ""
+blocksToMarkdown blocks = do
+  FilterState options meta <- get
+  case runPure (writeMarkdown options (Pandoc meta blocks)) of
     Right html -> return html
     Left err -> bug $ PandocException $ "BUG: " <> show err
 
@@ -201,22 +210,26 @@ isFileUri :: MonadThrow m => URI -> m Bool
 isFileUri uri =
   case URI.uriScheme uri of
     Just rtext
-      | URI.unRText rtext /= "file" -> return False
+      | URI.unRText rtext `notElem` ["file", "public"] -> return False
     _ -> return True
 
 -- | Transforms a URL and handles local and remote URLs differently.
-transformUrl :: Text -> Filter URI
-transformUrl url = do
+transformUrl :: Text -> Text -> Filter URI
+transformUrl url ext = do
   uri <- URI.mkURI url
+  transformUri uri ext
+
+transformUri :: URI -> Text -> Filter URI
+transformUri uri ext = do
   isFile <- isFileUri uri
   if isFile
-    then processLocalUri uri
+    then processLocalUri uri ext
     else processRemoteUri uri
 
 -- | Adds a remote URL to the `decker.filter.links` list in the meta data.
 processRemoteUri :: URI -> Filter URI
 processRemoteUri uri = do
-  modifyMeta (addStringToMetaList "decker.filter.links" (URI.render uri))
+  modifyMeta (addMetaValue "decker.filter.links" (URI.render uri))
   return uri
 
 -- | Applies the modification function f to the meta data in the filter
@@ -224,44 +237,44 @@ processRemoteUri uri = do
 modifyMeta :: (Meta -> Meta) -> Filter ()
 modifyMeta f = modify (\s -> s {meta = f (meta s)})
 
-processLocalUri :: URI -> Filter URI
-processLocalUri uri = do
+processLocalUri :: URI -> Text -> Filter URI
+processLocalUri uri ext = do
   cwd <- liftIO getCurrentDirectory
   -- | The project relative (!) document directory from which this is called.
-  docBaseDir <- getMetaS "decker.base-dir" cwd
-  topBaseDir <- getMetaS "decker.top-base-dir" cwd
+  docBaseDir <- lookupMetaOrFail "decker.base-dir" <$> gets meta
+  topBaseDir <- lookupMetaOrFail "decker.top-base-dir" <$> gets meta
   -- | The absolute (!) project directory from which this is called.
-  projectDir <- getMetaS "decker.directories.project" cwd
+  projectDir <- lookupMetaOrFail "decker.directories.project" <$> gets meta
   -- | The absolute (!) public directory where everything is published to.
-  publicDir <- getMetaS "decker.directories.public" (cwd <> "/public")
+  publicDir <- lookupMetaOrFail "decker.directories.public" <$> gets meta
   -- | The path component from the URI
   let urlPath = toString $ uriPath uri
+  let urlScheme = toString $ maybe "" URI.unRText $ URI.uriScheme uri
   -- | Interpret urlPath either project relative or document relative,
   -- depending on the leading slash.
+  let extString = toString ext
+  -- calculate path relative to project dir
   let relPath =
         normalise $
         if hasDrive urlPath
           then dropDrive urlPath
           else makeRelative projectDir docBaseDir </> urlPath
   let sourcePath = projectDir </> relPath
-  let topPath = projectDir </> topBaseDir
-  let targetPath = publicDir </> relPath
-  let publicRelPath = makeRelativeTo topBaseDir sourcePath
-  publicUri <- setUriPath (toText publicRelPath) uri
-  let publicUrl = URI.render publicUri
-  exists <- liftIO $ doesFileExist sourcePath
-  if exists
-    then storeResourceInfo sourcePath targetPath publicUrl
-    else throwM $
-         ResourceException $ "Local resource does not exist: " <> relPath
-  return publicUri
+  let targetPath = publicDir </> relPath <.> extString
+  if urlScheme == "public"
+    then do
+      URI.mkURI $ toText $ makeRelativeTo topBaseDir (projectDir </> urlPath)
+    else do
+      exists <- liftIO $ doesFileExist sourcePath
+      if exists
+        then needFile targetPath
+        else throwM $
+             ResourceException $ "Local resource does not exist: " <> relPath
+      let publicRelPath = makeRelativeTo topBaseDir sourcePath
+      setUriPath (toText (publicRelPath <.> extString)) uri
 
-storeResourceInfo :: FilePath -> FilePath -> Text -> Filter ()
-storeResourceInfo source target url = do
-  let key = "decker" <.> "filter" <.> "resources" <.> hash9String target
-  setMeta (toText $ key <.> "source") $ toText source
-  setMeta (toText $ key <.> "target") $ toText target
-  setMeta (toText $ key <.> "url") url
+needFile :: FilePath -> Filter ()
+needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
 
 resolveFileUri :: URI -> Filter FilePath
 resolveFileUri uri = do
@@ -280,11 +293,10 @@ resolveFileUri uri = do
   return sourcePath
 
 setMeta :: Text -> Text -> Filter ()
-setMeta key value =
-  modify (\s -> s {meta = setMetaValue key (MetaString value) (meta s)})
+setMeta key value = modifyMeta (setMetaValue key (MetaString value))
 
 getMeta :: Text -> Text -> Filter Text
-getMeta key def = getMetaTextOrElse key def <$> gets meta
+getMeta key def = lookupMetaOrElse def key <$> gets meta
 
 getMetaS :: Text -> String -> Filter String
 getMetaS key def = toString <$> getMeta key (toText def)

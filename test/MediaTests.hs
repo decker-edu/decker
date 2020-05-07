@@ -12,31 +12,35 @@ import Data.Maybe
 import qualified Data.Text.IO as Text
 import NeatInterpolation
 import Relude
+import System.Directory
 import Test.Hspec as Hspec
 import Text.Blaze.Html (toHtml)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
+import Text.CSL.Pandoc
 import Text.Pandoc
 import Text.Pandoc.Highlighting
 import Text.Pandoc.Walk
-import System.Directory
 
 filterMeta = do
   cwd <- toText <$> getCurrentDirectory
   return $
-    setTextMetaValue "decker.top-base-dir" cwd $
-    setTextMetaValue "decker.base-dir" cwd $
-    setTextMetaValue "decker.project-dir" cwd $
-    setTextMetaValue "decker.public-dir" cwd $ nullMeta
+    setMetaValue "bibliography" ("test/decks/bibliography.bib"::Text) $
+    setMetaValue "csl" ("resource/example/chicago-author-date.csl"::Text) $
+    setMetaValue "suppress-bibliography" True $
+    setMetaValue "decker.top-base-dir" cwd $
+    setMetaValue "decker.base-dir" cwd $
+    setMetaValue "decker.directories.project" cwd $
+    setMetaValue "decker.directories.public" cwd $ nullMeta
 
 -- import qualified Text.URI as URI
 -- | Constructs a filter runner with default parameters
 testFilter b f = do
-  meta <- filterMeta 
+  meta <- filterMeta
   runFilter' def meta b f
 
 doFilter :: Filter Inline -> IO Inline
 doFilter action = do
-  meta <- filterMeta 
+  meta <- filterMeta
   fst <$> runStateT (action) (FilterState def meta)
 
 mediaTests = do
@@ -149,27 +153,18 @@ readerOptions =
   def
     {readerExtensions = disableExtension Ext_implicit_figures pandocExtensions}
 
-writerOptions = def {writerExtensions = pandocExtensions}
-
-setPretty (Pandoc meta blocks) =
-  Pandoc
-    (Meta $
-     fromList
-       [ ( "decker"
-         , MetaMap $
-           fromList [("filter", MetaMap $ fromList [("pretty", MetaBool True)])])
-       ])
-    blocks
+writerOptions =
+  def {writerExtensions = pandocExtensions, writerCiteMethod = Citeproc}
 
 compileSnippet :: Text -> IO Text
 compileSnippet markdown = do
   fMeta <- filterMeta
-  pandoc@(Pandoc meta blocks) <-
+  (Pandoc _ blocks) <-
     handleError (runPure (readMarkdown readerOptions markdown))
-  filtered@(Pandoc fmeta _) <-
-    mediaFilter
-      def
-      (Pandoc (setBoolMetaValue "decker.filter.pretty" True fMeta) blocks)
+  cited <-
+    processCites'
+      (Pandoc (setMetaValue "decker.filter.pretty" True fMeta) blocks)
+  filtered <- mediaFilter writerOptions cited
   handleError $
     runPure $ writeHtml5String writerOptions $ walk dropPara filtered
 
@@ -200,6 +195,13 @@ testSnippets =
         ![](/test/decks/include/06-metal.png)
 
         Caption: Caption.
+      |])
+  , ( "Plain image with caption"
+    , "An image with a caption containg a citation."
+    , [text|
+        ![](/test/decks/include/06-metal.png)
+
+        Caption: Caption [see @tramberend2003].
       |])
   , ( "Plain image with URL query"
     , "Query string and fragment identifier in URLs are preserved."

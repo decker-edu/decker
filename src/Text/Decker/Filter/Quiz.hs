@@ -218,10 +218,10 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
     setMeta' :: Meta -> T.Text -> QuizMeta -> QuizMeta
     setMeta' m t qm =
       case t of
-        "score" -> set score (getMetaIntOrElse t 0 m) qm
-        "category" -> set category (getMetaTextOrElse t "" m) qm
-        "lectureId" -> set lectureId (getMetaTextOrElse t "" m) qm
-        "topic" -> set topic (getMetaTextOrElse t "" m) qm
+        "score" -> set score (lookupMetaOrElse 0 t m) qm
+        "category" -> set category (lookupMetaOrElse "" t m) qm
+        "lectureId" -> set lectureId (lookupMetaOrElse "" t m) qm
+        "topic" -> set topic (lookupMetaOrElse "" t m) qm
 
 -- | A simple Html button
 solutionButton =

@@ -8,7 +8,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 
 import Control.Monad.State
-import Data.List (find)
+import Data.List (find, intersperse)
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
 import qualified Data.Text as Text
@@ -17,9 +17,8 @@ import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.Text
 import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)
 import Text.Blaze.Html5.Attributes as A (class_, height, src, style, width)
-import Text.Pandoc
-import Text.Pandoc.Definition ()
-import Text.Pandoc.Shared
+import Text.Pandoc hiding (lookupMeta)
+import Text.Pandoc.Shared  hiding (lookupMeta)
 import Text.Pandoc.Walk
 import Text.Printf
 import Text.Read
@@ -68,6 +67,7 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
           printf
             "https://h5.veer.tv/photo-player?pid=%s&amp;utm_medium=embed"
             vid :: String
+        _ -> error $ "Unknown streaming service: " <> toString vid
     vidWidthStr = macroArg 0 args "560"
     vidHeightStr = macroArg 1 args "315"
     vidWidth = readDefault 560.0 vidWidthStr :: Float
@@ -99,48 +99,6 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
 
 toValueT = toValue . Text.unpack
 
--- Twitch thumbnail from https://www.twitch.tv/p/brand/social-media
--- Twitch channels unfortunately have no fixed thumbnail
-embedWebVideosPdf :: Text.Text -> [Text.Text] -> Attr -> Target -> Inline
-embedWebVideosPdf page _ attr (vid, _) =
-  Link
-    nullAttr
-    [Image attr [Str $ Text.pack text] (Text.pack imageUrl, "")]
-    (Text.pack videoUrl, "")
-  where
-    videoUrl =
-      case page of
-        "youtube" ->
-          printf
-            "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1"
-            vid :: String
-        "vimeo" ->
-          printf
-            "https://player.vimeo.com/video/%s?quality=autop&autoplay=0&muted=1"
-            vid :: String
-        "twitch" ->
-          printf "https://player.twitch.tv/?channel=%s&autoplay=0&muted=1" vid :: String
-    text =
-      case page of
-        "youtube" -> printf "YouTube: %s" vid :: String
-        "vimeo" -> printf "Vimeo: %s" vid :: String
-        "twitch" -> printf "Twitch: %s" vid :: String
-    imageUrl =
-      case page of
-        "youtube" ->
-          printf "http://img.youtube.com/vi/%s/maxresdefault.jpg" vid :: String
-        "vimeo" ->
-          printf "https://i.vimeocdn.com/video/%s_560x315.jpg" vid :: String
-        "twitch" ->
-          "https://www.twitch.tv/p/assets/uploads/glitch_solo_750x422.png"
-
-webVideo :: Text.Text -> MacroAction
-webVideo page args attr target _ = do
-  disp <- gets disposition
-  case disp of
-    Disposition _ Html -> return $ embedWebVideosHtml page args attr target
-    Disposition _ Latex -> return $ embedWebVideosPdf page args attr target
-
 fontAwesome :: Text.Text -> MacroAction
 fontAwesome which _ _ (iconName, _) _ = do
   disp <- gets disposition
@@ -149,7 +107,7 @@ fontAwesome which _ _ (iconName, _) _ = do
       return $
       RawInline (Format "html") $
       Text.concat ["<i class=\"", which, " fa-", iconName, "\"></i>"]
-    Disposition _ Latex -> return $ Str $ "[" <> iconName <> "]"
+    Disposition _ _ -> return $ Str $ "[" <> iconName <> "]"
 
 horizontalSpace :: MacroAction
 horizontalSpace _ _ (space, _) _ = do
@@ -160,7 +118,7 @@ horizontalSpace _ _ (space, _) _ = do
       RawInline (Format "html") $
       Text.pack $
       printf "<span style=\"display:inline-block; width:%s;\"></span>" space
-    Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
+    Disposition _ _ -> return $ Str $ "[" <> space <> "]"
 
 verticalSpace :: MacroAction
 verticalSpace _ _ (space, _) _ = do
@@ -171,16 +129,20 @@ verticalSpace _ _ (space, _) _ = do
       RawInline (Format "html") $
       Text.pack $
       printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
-    Disposition _ Latex -> return $ Str $ "[" <> space <> "]"
+    Disposition _ _ -> return $ Str $ "[" <> space <> "]"
 
-metaValue :: MacroAction
-metaValue _ _ (key, _) meta =
-  return $ fromMaybe (Strikeout [Str key]) (getMetaValue key meta >>= toInline)
+metaMacro :: MacroAction
+metaMacro _ _ (key, _) meta =
+  return $ fromMaybe (Strikeout [Str key]) (lookupMeta key meta >>= toInline)
   where
+    toInline :: MetaValue -> Maybe Inline
     toInline (MetaBool False) = Just $ Str "false"
     toInline (MetaBool True) = Just $ Str "true"
     toInline (MetaString s) = Just $ Str s
     toInline (MetaInlines i) = Just $ Span nullAttr i
+    toInline (MetaList l) =
+      Just $ Span nullAttr $ intersperse (Str ", ") (mapMaybe toInline l)
+    toInline (MetaMap _) = Just $ Str "true"
     toInline _ = Nothing
 
 type MacroMap = Map.Map Text.Text MacroAction
@@ -188,16 +150,11 @@ type MacroMap = Map.Map Text.Text MacroAction
 macroMap :: MacroMap
 macroMap =
   Map.fromList
-    [ ("meta", metaValue)
+    [ ("meta", metaMacro)
     , ("fa", fontAwesome "fas")
     , ("fas", fontAwesome "fas")
     , ("far", fontAwesome "far")
     , ("fab", fontAwesome "fab")
-    --, ("youtube", webVideo "youtube")
-    --, ("vimeo", webVideo "vimeo")
-    --, ("twitch", webVideo "twitch")
-    , ("veer", webVideo "veer")
-    , ("veer-photo", webVideo "veer-photo")
     , ("hspace", horizontalSpace)
     , ("vspace", verticalSpace)
     ]
@@ -246,7 +203,7 @@ findEmbeddingType inline@(Image attr text (url, tit))
   | "twitch://" `Text.isPrefixOf` url = Just "twitch"
   | "veer://" `Text.isPrefixOf` url = Just "veer"
   | "veer-photo://" `Text.isPrefixOf` url = Just "veer-photo"
-  | otherwise = Nothing
+findEmbeddingType _ = Nothing
 
 expandDeckerMacros :: Pandoc -> Decker Pandoc
 expandDeckerMacros doc@(Pandoc meta _) = walkM (expandInlineMacros meta) doc

@@ -15,9 +15,11 @@ module Text.Decker.Internal.Helper
   , handleLeft
   , handleLeftM
   , isDevelopmentRun
+  , warnVersion
   ) where
 
 import Text.Decker.Internal.Exception
+import Text.Decker.Project.Version
 
 import Control.Monad.Catch
 import Control.Monad.State
@@ -125,3 +127,14 @@ isDevelopmentRun = do
   cwd <- Dir.getCurrentDirectory
   exePath <- getExecutablePath
   return $ cwd `isPrefixOf` exePath
+
+warnVersion :: IO ()
+warnVersion = do
+  devRun <- isDevelopmentRun
+  when (isDevelopmentVersion && not devRun) $
+    printf
+      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please be sure that you know what you're doing.\n"
+      deckerVersion
+      deckerGitBranch
+      deckerGitCommitId
+      deckerGitVersionTag

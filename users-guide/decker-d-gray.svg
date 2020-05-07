@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="582.875 318.875 50.25 54.25" width="50.25" height="54.25">
+  <defs/>
+  <metadata> Produced by OmniGraffle 7.9 
+    <dc:date>2020-04-23 09:58:30 +0000</dc:date>
+  </metadata>
+  <g id="Canvas_1" stroke-dasharray="none" fill-opacity="1" fill="none" stroke="none" stroke-opacity="1">
+    <title>Canvas 1</title>
+    <g id="Canvas_1: Layer 1">
+      <title>Layer 1</title>
+      <g id="Graphic_52">
+        <rect x="584" y="320" width="48" height="52" fill="white"/>
+        <rect x="584" y="320" width="48" height="52" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".25"/>
+      </g>
+      <g id="Graphic_53">
+        <path d="M 589 324 L 619 324 C 619.5523 324 620 324.4477 620 325 L 620 331 C 620 331.5523 619.5523 332 619 332 L 589 332 C 588.4477 332 588 331.5523 588 331 L 588 325 C 588 324.4477 588.4477 324 589 324 Z" fill="#9a9a9a"/>
+        <path d="M 589 324 L 619 324 C 619.5523 324 620 324.4477 620 325 L 620 331 C 620 331.5523 619.5523 332 619 332 L 589 332 C 588.4477 332 588 331.5523 588 331 L 588 325 C 588 324.4477 588.4477 324 589 324 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".25"/>
+      </g>
+      <g id="Graphic_54">
+        <path d="M 601 336 L 627 336 C 627.5523 336 628 336.4477 628 337 L 628 343 C 628 343.5523 627.5523 344 627 344 L 601 344 C 600.4477 344 600 343.5523 600 343 L 600 337 C 600 336.4477 600.4477 336 601 336 Z" fill="#b9b9b9"/>
+        <path d="M 601 336 L 627 336 C 627.5523 336 628 336.4477 628 337 L 628 343 C 628 343.5523 627.5523 344 627 344 L 601 344 C 600.4477 344 600 343.5523 600 343 L 600 337 C 600 336.4477 600.4477 336 601 336 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".25"/>
+      </g>
+      <g id="Graphic_55">
+        <path d="M 601 348 L 627 348 C 627.5523 348 628 348.4477 628 349 L 628 355 C 628 355.5523 627.5523 356 627 356 L 601 356 C 600.4477 356 600 355.5523 600 355 L 600 349 C 600 348.4477 600.4477 348 601 348 Z" fill="#ccc"/>
+        <path d="M 601 348 L 627 348 C 627.5523 348 628 348.4477 628 349 L 628 355 C 628 355.5523 627.5523 356 627 356 L 601 356 C 600.4477 356 600 355.5523 600 355 L 600 349 C 600 348.4477 600.4477 348 601 348 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".25"/>
+      </g>
+      <g id="Graphic_56">
+        <path d="M 589 360 L 619 360 C 619.5523 360 620 360.4477 620 361 L 620 367 C 620 367.5523 619.5523 368 619 368 L 589 368 C 588.4477 368 588 367.5523 588 367 L 588 361 C 588 360.4477 588.4477 360 589 360 Z" fill="#dcdcdc"/>
+        <path d="M 589 360 L 619 360 C 619.5523 360 620 360.4477 620 361 L 620 367 C 620 367.5523 619.5523 368 619 368 L 589 368 C 588.4477 368 588 367.5523 588 367 L 588 361 C 588 360.4477 588.4477 360 589 360 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".25"/>
+      </g>
+      <g id="Graphic_57">
+        <path d="M 589 336 L 595 336 C 595.5523 336 596 336.4477 596 337 L 596 355 C 596 355.5523 595.5523 356 595 356 L 589 356 C 588.4477 356 588 355.5523 588 355 L 588 337 C 588 336.4477 588.4477 336 589 336 Z" fill="#8a8a8a"/>
+        <path d="M 589 336 L 595 336 C 595.5523 336 596 336.4477 596 337 L 596 355 C 596 355.5523 595.5523 356 595 356 L 589 356 C 588.4477 356 588 355.5523 588 355 L 588 337 C 588 336.4477 588.4477 336 589 336 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".25"/>
+      </g>
+    </g>
+  </g>
+</svg>
