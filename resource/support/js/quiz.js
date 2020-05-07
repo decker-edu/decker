@@ -78,24 +78,30 @@ function quizMC() {
  * 
  * Iterate over solutionList. 
  * check if given answer is equivalent to at least one of the correct solutions
- * 
+ * returns two booleans
+ * correct: whether the given answer is correct
+ * predef: whether the given answer is equivalent to one of the predefined possible answers
+ * those predefined answers can be correct or wrong
+ * This way, the tooltip will also show for expected wrong answers!
  */
 function handleSolutionList(solutionList, answer) {
     const solutions = solutionList.getElementsByTagName("li");
 
-    var correct = false;
     for (let s of solutions) {
         const is_right = s.classList.contains("correct");
         // Get only the solution text and not the tooltip div
         const solution = s.innerHTML.replace(/(<div)(.|[\r\n])*(<\/div>)/, "").toLowerCase().trim();
         if (is_right && answer == solution) {
-            correct = true;
             s.style.display = "block";
             s.classList.add("solved");
-            return correct;
+            return { correct: true, predef: true };
+        } else if (!is_right && answer == solution) {
+            s.style.display = "block";
+            s.classList.add("solved");
+            return { correct: false, predef: true };
         }
     }
-    return correct;
+    return { correct: false, predef: false };
 }
 
 /**
@@ -110,16 +116,17 @@ function inputEvent(input, solutions) {
             event.preventDefault();
 
             const answer = input.value.toLowerCase().trim();
-            const correct = handleSolutionList(solutions, answer);
+            const handled = handleSolutionList(solutions, answer);
 
             //Change the appearance of the input element
-            this.style.backgroundColor = (correct) ? "#aaffaa" : "#ffaaaa";
-            this.style.border = (correct) ? "5px solid black" : "2px dotted black";
+            this.style.backgroundColor = (handled.correct) ? "#aaffaa" : "#ffaaaa";
+            this.style.border = (handled.correct) ? "5px solid black" : "2px dotted black";
 
             // Display the tooltip/solution box
-            solutions.style.display = (correct) ? "inline-block" : "none";
+            // Show the tooltip box for any expected answer. be it correct or wrong
+            solutions.style.display = (handled.predef) ? "inline-block" : "none";
             this.addEventListener("mouseover", function () {
-                if (correct) {
+                if (handled.predef) {
                     solutions.style.display = "inline-block";
                 }
             });
