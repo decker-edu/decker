@@ -109,14 +109,17 @@ readTemplate meta file = do
 
 readTemplateMeta :: TemplateSource -> Action Meta
 readTemplateMeta DeckerExecutable = do
-  executable <- liftIO $ getExecutablePath
+  executable <- liftIO getExecutablePath
+  putVerbose $ "# extracting meta data from: " <> executable
   liftIO $
     toPandocMeta <$> (extractEntry defaultMetaPath executable >>= decodeThrow)
-readTemplateMeta (LocalZip zipPath) =
+readTemplateMeta (LocalZip zipPath) = do
+  putVerbose $ "# extracting meta data from: " <> zipPath
   liftIO $
-  toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
+    toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
 readTemplateMeta (LocalDir baseDir) = do
   let defaultMeta = baseDir </> defaultMetaPath
+  putVerbose $ "# loading meta data from: " <> defaultMetaPath
   need [defaultMeta]
   liftIO $ readMetaDataFile defaultMeta
 readTemplateMeta (Unsupported uri) = return nullMeta

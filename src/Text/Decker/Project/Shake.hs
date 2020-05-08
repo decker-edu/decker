@@ -321,17 +321,18 @@ putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = putNormal $ "# pandoc (for " ++ out ++ ")"
 
 -- Check for additional meta files specified in the Meta option `meta-data`.
--- Assumes that file are specified with absolute pathes.
+-- Assumes that file are specified with absolute paths.
 getAdditionalMeta :: Meta -> Action Meta
 getAdditionalMeta meta = do
   let moreFiles = lookupMetaOrElse [] "meta-data" meta
   moreMeta <- traverse readMetaData moreFiles
   return $ foldr mergePandocMeta' meta (reverse moreMeta)
 
--- | Reads a meta data file. All values that are pathes to local project files are
--- made absoplute. Files referenced in `meta-data` are recursively loaded and merged.
+-- | Reads a meta data file. All values that are paths to local project files are
+-- made absolute. Files referenced in `meta-data` are recursively loaded and merged.
 readMetaData :: FilePath -> Action Meta
 readMetaData file = do
+  putVerbose $ "# reading meta data from: " <> file
   need [file]
   let base = takeDirectory file
   project <- projectA
