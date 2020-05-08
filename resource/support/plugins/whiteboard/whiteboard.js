@@ -1017,7 +1017,7 @@ let RevealWhiteboard = (function(){
         }
 
         // eraser mode or middle mouse button
-        else if (tool==ToolType.ERASER || (tool==ToolType.PEN && evt.buttons==4))
+        else if (tool==ToolType.ERASER || (tool==ToolType.PEN && evt.buttons>=4))
         {
             showCursor(eraserCursor);
             eraseStroke(evt);
@@ -1061,7 +1061,7 @@ let RevealWhiteboard = (function(){
         }
 
         // eraser mode or middle mouse button
-        else if (tool==ToolType.ERASER || (tool==ToolType.PEN && evt.buttons==4))
+        else if (tool==ToolType.ERASER || (tool==ToolType.PEN && evt.buttons>=4))
         {
             eraseStroke(evt);
         }
