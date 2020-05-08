@@ -3,6 +3,7 @@ stages:
   - build
   - test
   - deploy
+  - stop
 
 templates:
   image: kkarczmarczyk/node-yarn
@@ -141,3 +142,34 @@ deploy:win:
   only:
     - master
     - /^v\d\.\d\.\d-patching$/
+
+review:
+  stage: deploy
+  image: 
+    name: curlimages/curl:latest
+    entrypoint: [""]
+  tags:
+    - docker
+  script:
+    - curl --cacert $REVIEW_CA --key $REVIEW_KEY --cert $REVIEW_CRT -F 'decker=@./decker' -X PUT https://cypher.informatik.uni-wuerzburg.de:19368/$CI_COMMIT_REF_NAME
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: http://review.decker.informatik.uni-wuerzburg.de/$CI_COMMIT_REF_NAME
+    on_stop: stop_review
+    auto_stop_in: 2 week
+  dependencies:
+    - build:linux
+
+stop_review:
+  stage: stop
+  image: 
+    name: curlimages/curl:latest
+    entrypoint: [""]
+  tags:
+    - docker
+  script:
+    - curl --cacert $REVIEW_CA --key $REVIEW_KEY --cert $REVIEW_CRT -X DELETE https://cypher.informatik.uni-wuerzburg.de:19368/$CI_COMMIT_REF_NAME
+  when: manual
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop

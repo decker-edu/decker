@@ -2,7 +2,6 @@
 
 module Text.Decker.Filter.Monad where
 
-
 import Relude
 import Text.Pandoc
 
@@ -15,4 +14,3 @@ data FilterState = FilterState
 
 -- | All filters live in the Filter monad.
 type Filter = StateT FilterState IO
-

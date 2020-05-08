@@ -7,16 +7,13 @@ module Text.Decker.Resource.Zip
   , extractEntryList
   ) where
 
-import Text.Decker.Internal.Exception
-import Text.Decker.Project.Project
 
 import Codec.Archive.Zip
-import Control.Exception
 import Control.Monad
 import Control.Monad.IO.Class
 import qualified Data.ByteString as BS
 import Data.List (isPrefixOf)
-import Data.Map.Strict (filterWithKey, keys, size)
+import Data.Map.Strict (filterWithKey, keys)
 import qualified System.Directory as Dir
 import System.Environment
 import System.FilePath
@@ -52,20 +49,6 @@ extractResourceEntryList entryNames = do
     extractEntry entryList entryName = do
       bs <- mkEntrySelector entryName >>= getEntry
       return $ (entryName, bs) : entryList
-
--- | Extract resources from the executable into the XDG data directory.
-extractResources :: IO ()
-extractResources = do
-  deckerExecutable <- getExecutablePath
-  dataDir <- deckerResourceDir
-  exists <- Dir.doesDirectoryExist dataDir
-  unless exists $ do
-    numFiles <- withArchive deckerExecutable getEntries
-    unless ((size numFiles) > 0) $
-      throw $ ResourceException "No resource zip found in decker executable."
-    Dir.createDirectoryIfMissing True dataDir
-    withArchive deckerExecutable (unpackInto dataDir)
-    putStrLn $ "# resources extracted to " ++ dataDir
 
 extractSubEntries :: FilePath -> FilePath -> FilePath -> IO ()
 extractSubEntries prefix archivePath destinationDirectory =

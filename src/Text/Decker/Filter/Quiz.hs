@@ -97,6 +97,7 @@ multipleChoiceHtml (prelude:rest) =
         Plain ((Str "{X}"):prest) -> (["right"], Para prest)
         Plain ((Str "{"):Space:(Str "}"):prest) -> (["wrong"], Para prest)
         prest -> ([], prest)
+multipleChoiceHtml blocks = blocks
 
 -- if there is a bullet list create a div class tooltip around
 -- if there are multiple bullet points, all but the first are thrown away
@@ -109,9 +110,9 @@ blanktextHtml :: ([Inline], [Block]) -> Block
 blanktextHtml (inlines, blocks) =
   Div ("", ["blankText", "columns"], []) (selects ++ [answerButton])
   where
-    title = Header 2 ("", [], []) inlines
     selects = map html blocks
     html (Plain x) = Para (blanktextHtmlAnswers $ splitBlankText x)
+    html block = block
     answerButton =
       Para $
       [toHtml "<button class=\"btAnswerButton\" type=\"button\">"] ++

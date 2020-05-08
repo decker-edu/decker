@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6ca4c1cad2e9c8995a8b7e2e9d7f79126dcd7b4a56a5f04ac2cae6f6e5da9f65
+-- hash: 3b8ccd51949142c393732a39a91e5f89cc828ff98462b0d3f9cc05d7d2edb2f3
 
 name:           decker
 version:        0.10.0
@@ -87,7 +87,6 @@ library
       Text.Decker.Filter.Monad
       Text.Decker.Filter.Quiz
       Text.Decker.Filter.Range
-      Text.Decker.Filter.Render
       Text.Decker.Filter.ShortLink
       Text.Decker.Filter.Slide
       Text.Decker.Filter.Streaming
@@ -117,7 +116,7 @@ library
   hs-source-dirs:
       src
   default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
-  ghc-options: -fwarn-unused-imports
+  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports
   build-depends:
       Glob
     , HTTP
@@ -196,11 +195,12 @@ library
 executable decker
   main-is: Decker.hs
   other-modules:
+      Shaker
       Paths_decker
   hs-source-dirs:
       app
   default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
-  ghc-options: -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N -fwarn-unused-imports -main-is Decker
+  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports -main-is Decker
   build-depends:
       Glob
     , HTTP
@@ -280,7 +280,7 @@ test-suite decker-test
   hs-source-dirs:
       test
   default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
-  ghc-options: -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports
   build-depends:
       Glob
     , HTTP

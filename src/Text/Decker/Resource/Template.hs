@@ -27,7 +27,7 @@ import Development.Shake
 import Relude
 import System.Environment
 import System.FilePath
-import Text.Pandoc hiding (getTemplate)
+import Text.Pandoc hiding (getTemplate, lookupMeta)
 import qualified Text.URI as URI
 
 {- | Defines the interface to template packs that can be selected at runtime. -}
@@ -91,7 +91,7 @@ calcTemplateSource uriStr = do
 readTemplate :: Meta -> FilePath -> Action (Template Text)
 readTemplate meta file = do
   templateSource <-
-    liftIO $ calcTemplateSource (getMetaText "template-source" meta)
+    liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
   text <- readTemplateText templateSource
   liftIO (handleLeft <$> compileTemplate "" text)
   where
@@ -109,14 +109,17 @@ readTemplate meta file = do
 
 readTemplateMeta :: TemplateSource -> Action Meta
 readTemplateMeta DeckerExecutable = do
-  executable <- liftIO $ getExecutablePath
+  executable <- liftIO getExecutablePath
+  putVerbose $ "# extracting meta data from: " <> executable
   liftIO $
     toPandocMeta <$> (extractEntry defaultMetaPath executable >>= decodeThrow)
-readTemplateMeta (LocalZip zipPath) =
+readTemplateMeta (LocalZip zipPath) = do
+  putVerbose $ "# extracting meta data from: " <> zipPath
   liftIO $
-  toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
+    toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
 readTemplateMeta (LocalDir baseDir) = do
   let defaultMeta = baseDir </> defaultMetaPath
+  putVerbose $ "# loading meta data from: " <> defaultMetaPath
   need [defaultMeta]
   liftIO $ readMetaDataFile defaultMeta
 readTemplateMeta (Unsupported uri) = return nullMeta

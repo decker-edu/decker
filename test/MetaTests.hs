@@ -6,7 +6,7 @@ import Text.Decker.Internal.Meta
 
 import qualified Data.Map.Strict as M
 import Test.Hspec
-import Text.Pandoc
+import Text.Pandoc hiding (lookupMeta)
 
 m1 =
   Meta
@@ -45,21 +45,21 @@ m3' =
 metaTests = do
   describe "getMetaBool" $ do
     it "looks up a top-level boolean meta value" $
-      getMetaBool "bool" m1 `shouldBe` Just True
+      lookupMeta "bool" m1 `shouldBe` Just True
     it "looks up a top-level boolean meta value" $
-      getMetaBool "none" m1 `shouldBe` Nothing
+      lookupMeta "none" m1 `shouldBe` (Nothing :: Maybe Bool)
     it "looks up a boolean meta value" $
-      getMetaBool "top.bool" m1 `shouldBe` Just True
+      lookupMeta "top.bool" m1 `shouldBe` Just True
     it "looks up a boolean meta value" $
-      getMetaBool "top.none" m1 `shouldBe` Nothing
+      lookupMeta "top.none" m1 `shouldBe` (Nothing :: Maybe Bool)
     it "looks up a boolean meta value in list" $
-      getMetaBool "list[2].bool2" m1 `shouldBe` Just True
+      lookupMeta "list[2].bool2" m1 `shouldBe` Just True
   describe "getMetaInt" $
     it "looks up a top-level int meta value" $
-    getMetaInt "write-back.line-columns" m1 `shouldBe` Just 80
+    lookupMeta "write-back.line-columns" m1 `shouldBe` Just (80 :: Int)
   describe "getMetaString" $
     it "looks up a top-level int meta value" $
-    getMetaString "write-back.line-wrap" m1 `shouldBe` Just "none"
+    lookupMeta "write-back.line-wrap" m1 `shouldBe` Just ("none" :: String)
   describe "setMetaValue" $ do
     it "should set the value in a nested map" $
       setMetaValue "level1.one" (MetaString "1") m2 `shouldBe` m2'

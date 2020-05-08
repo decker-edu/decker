@@ -1,18 +1,18 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Text.Decker.Filter.ShortLink
   ( evaluateShortLinks
   , fillTemplate
   , evalUrl
   ) where
 
-import Text.Decker.Internal.Common
-import Text.Decker.Internal.Meta
-
 import Data.List
 import Data.List.Split
-import qualified Data.Text as Text
 import Network.URI
-import Text.Pandoc
-import Text.Pandoc.Definition ()
+import Relude
+import Text.Decker.Internal.Common
+import Text.Decker.Internal.Meta
+import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
 
 evaluateShortLinks :: Pandoc -> Decker Pandoc
@@ -26,22 +26,24 @@ evalLinks meta (Image attr alt (url, title)) =
   Image attr alt (evalUrl meta url, title)
 evalLinks meta inline = inline
 
-evalUrl :: Meta -> Text.Text -> Text.Text
+evalUrl :: Meta -> Text -> Text
 evalUrl meta url =
-  case parseURI (Text.unpack url) of
+  case parseURI (toString url) of
     Just uri
-      | (not . null . uriScheme) uri -> maybe url Text.pack (evalUri meta uri)
-    Nothing -> url
+      | (not . null . uriScheme) uri -> maybe url toText (evalUri meta uri)
+    _ -> url
 
 evalUri :: Meta -> URI -> Maybe String
 evalUri meta uri = do
-  let scheme = filter (/= ':') (uriScheme uri)
+  let scheme = toText $ filter (/= ':') (uriScheme uri)
       path = uriPath uri
-  case getMetaString ("short-links" <.> scheme) meta of
+  case lookupMeta ("short-links" <> "." <> scheme) meta of
     Just template -> fillTemplate template path
     Nothing -> do
-      binding <- getMetaString ("short-links" <.> "bind" <.> scheme) meta
-      template <- getMetaString ("short-links" <.> scheme <.> binding) meta
+      binding :: Text <-
+        lookupMeta ("short-links" <> "." <> "bind" <> "." <> scheme) meta
+      template <-
+        lookupMeta ("short-links" <> "." <> scheme <> "." <> binding) meta
       fillTemplate template path
 
 fillTemplate template path =
@@ -54,7 +56,3 @@ fillTemplate template path =
         match
           | length match > 1 -> Just $ intercalate path match
         _ -> Just template
-
-a <.> b = a ++ "." ++ b
-
-dot = intercalate "."

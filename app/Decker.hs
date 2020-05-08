@@ -19,10 +19,8 @@ import Text.Decker.Writer.Pdf
 import Control.Concurrent
 import Control.Lens ((^.))
 import Control.Monad.Extra
-import Data.Aeson
 import Data.IORef ()
 import Data.List
-import qualified Data.Map as Map
 import Data.String ()
 import qualified Data.Text as Text
 import Data.Version
@@ -34,7 +32,6 @@ import System.IO
 import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc hiding (lookupMeta)
-import Text.Printf (printf)
 
 main :: IO ()
 main = do
@@ -56,20 +53,7 @@ prepCaches ::
 prepCaches directories = do
   let deckerMetaFile = (directories ^. project) </> "decker.yaml"
   let deckerTargetsFile = (directories ^. transient) </> "targets.yaml"
-  getGlobalMeta <-
-    ($ deckerMetaFile) <$>
-    newCache
-      (\file -> do
-         meta <- readStaticMetaData file
-         let dirs =
-               Meta $
-               Map.fromList
-                 [ ( "decker"
-                   , MetaMap $
-                     Map.fromList
-                       [("directories", toPandocMeta' (toJSON directories))])
-                 ]
-         return $ mergePandocMeta' dirs meta)
+  getGlobalMeta <- ($ deckerMetaFile) <$> newCache readStaticMetaData
   getTargets <- ($ deckerTargetsFile) <$> newCache readTargetsFile
   getTemplate <-
     newCache
@@ -88,13 +72,7 @@ needSels sels targets = need (concatMap (targets ^.) sels)
 
 run :: IO ()
 run = do
-  when isDevelopmentVersion $
-    printf
-      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please be sure that you know what you're doing.\n"
-      deckerVersion
-      deckerGitBranch
-      deckerGitCommitId
-      deckerGitVersionTag
+  warnVersion
   directories <- projectDirectories
   --
   let serverPort = 8888
@@ -115,7 +93,7 @@ run = do
   runDecker $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches directories
     --
-    want ["html"]
+    want ["decks"]
     --
     phony "version" $ do
       putNormal $
@@ -170,86 +148,103 @@ run = do
       need $ map (directories ^. public </>) pages
       watchChangesAndRepeat
     --
-    (directories ^. public) <//> "*-deck.html" %> \out -> do
-      src <- calcSource "-deck.html" "-deck.md" out
-      let annotDst = replaceSuffix "-deck.html" "-annot.json" out
-      annotSrc <- calcSource' annotDst
-      exists <- liftIO $ Dir.doesFileExist annotSrc
-      when exists $ need [annotDst]
-      meta <- getGlobalMeta
-      markdownToHtmlDeck meta getTemplate src out
+    alternatives $ do
+      (directories ^. public) <//> "*-deck.html" %> \out -> do
+        src <- calcSource "-deck.html" "-deck.md" out
+        let annotDst = replaceSuffix "-deck.html" "-annot.json" out
+        annotSrc <- calcSource' annotDst
+        exists <- liftIO $ Dir.doesFileExist annotSrc
+        when exists $ need [annotDst]
+        meta <- getGlobalMeta
+        markdownToHtmlDeck meta getTemplate src out
+      --
+      (directories ^. public) <//> "*-deck.pdf" %> \out -> do
+        let src = replaceSuffix "-deck.pdf" "-deck.html" out
+        need [src]
+        putNormal $ "Started: " ++ src ++ " -> " ++ out
+        runHttpServer serverPort directories Nothing
+        result <-
+          liftIO $
+          launchChrome
+            (serverUrl </> makeRelative (directories ^. public) src)
+            out
+        case result of
+          Right msg -> putNormal msg
+          Left msg -> error msg
+      --
+      (directories ^. public) <//> "*-handout.html" %> \out -> do
+        src <- calcSource "-handout.html" "-deck.md" out
+        meta <- getGlobalMeta
+        markdownToHtmlHandout meta getTemplate src out
+      --
+      (directories ^. public) <//> "*-handout.pdf" %> \out -> do
+        src <- calcSource "-handout.pdf" "-deck.md" out
+        meta <- getGlobalMeta
+        markdownToPdfHandout meta getTemplate src out
+      --
+      (directories ^. public) <//> "*-page.html" %> \out -> do
+        src <- calcSource "-page.html" "-page.md" out
+        meta <- getGlobalMeta
+        markdownToHtmlPage meta getTemplate src out
+      --
+      (directories ^. public) <//> "*-page.pdf" %> \out -> do
+        src <- calcSource "-page.pdf" "-page.md" out
+        meta <- getGlobalMeta
+        markdownToPdfPage meta getTemplate src out
+      --
+      (directories ^. public) <//> "*-annot.json" %> \out -> do
+        src <- calcSource' out
+        putNormal $ "# copy (for " <> out <> ")"
+        copyFile' src out
+      --
+      indexFile %> \out -> do
+        exists <- doesFileExist indexSource
+        let src =
+              if exists
+                then indexSource
+                else generatedIndexSource
+        meta <- getGlobalMeta
+        markdownToHtmlPage meta getTemplate src out
+      --
+      generatedIndexSource %> \out -> do
+        targets <- getTargets
+        meta <- getGlobalMeta
+        writeIndexLists meta targets out (takeDirectory indexFile)
+      --
+      (directories ^. project) <//> "*.dot.svg" %> \out -> do
+        let src = dropExtension out
+        need [src]
+        dot ["-o" ++ out, src]
+      --
+      (directories ^. project) <//> "*.gnuplot.svg" %> \out -> do
+        let src = dropExtension out
+        need [src]
+        gnuplot ["-e", "set output \"" ++ out ++ "\"", src]
+      --
+      (directories ^. project) <//> "*.tex.svg" %> \out -> do
+        let src = dropExtension out
+        let pdf = src -<.> ".pdf"
+        let dir = takeDirectory src
+        need [src]
+        pdflatex ["-output-directory", dir, src]
+        pdf2svg [pdf, out]
+        liftIO $ Dir.removeFile pdf
+      --
+      -- Catch all. Just copy project/* to public/*. This nicely handles ALL
+      -- resources. Just `need` them where you need them.
+      (directories ^. public) <//> "//" %> \out -> do
+        let src =
+              (directories ^. project) </>
+              makeRelative (directories ^. public) out
+        copyFile' src out
     --
-    (directories ^. public) <//> "*-deck.pdf" %> \out -> do
-      let src = replaceSuffix "-deck.pdf" "-deck.html" out
-      need [src]
-      putNormal $ "Started: " ++ src ++ " -> " ++ out
-      runHttpServer serverPort directories Nothing
-      result <-
-        liftIO $
-        launchChrome
-          (serverUrl </> makeRelative (directories ^. public) src)
-          out
-      case result of
-        Right msg -> putNormal msg
-        Left msg -> error msg
-    --
-    (directories ^. public) <//> "*-handout.html" %> \out -> do
-      src <- calcSource "-handout.html" "-deck.md" out
-      meta <- getGlobalMeta
-      markdownToHtmlHandout meta getTemplate src out
-    --
-    (directories ^. public) <//> "*-handout.pdf" %> \out -> do
-      src <- calcSource "-handout.pdf" "-deck.md" out
-      meta <- getGlobalMeta
-      markdownToPdfHandout meta getTemplate src out
-    --
-    (directories ^. public) <//> "*-page.html" %> \out -> do
-      src <- calcSource "-page.html" "-page.md" out
-      meta <- getGlobalMeta
-      markdownToHtmlPage meta getTemplate src out
-    --
-    (directories ^. public) <//> "*-page.pdf" %> \out -> do
-      src <- calcSource "-page.pdf" "-page.md" out
-      meta <- getGlobalMeta
-      markdownToPdfPage meta getTemplate src out
-    --
-    (directories ^. public) <//> "*-annot.json" %> \out -> do
-      src <- calcSource' out
-      putNormal $ "# copy (for " <> out <> ")"
-      copyFile' src out
-    --
-    indexFile %> \out -> do
-      exists <- doesFileExist indexSource
-      let src =
-            if exists
-              then indexSource
-              else generatedIndexSource
-      meta <- getGlobalMeta
-      markdownToHtmlPage meta getTemplate src out
-    --
-    generatedIndexSource %> \out -> do
+    phony "static-files" $ do
       targets <- getTargets
-      meta <- getGlobalMeta
-      writeIndexLists meta targets out (takeDirectory indexFile)
+      need (targets ^. static)
     --
-    (directories ^. project) <//> "*.dot.svg" %> \out -> do
-      let src = dropExtension out
-      need [src]
-      dot ["-o" ++ out, src]
-    --
-    (directories ^. project) <//> "*.gnuplot.svg" %> \out -> do
-      let src = dropExtension out
-      need [src]
-      gnuplot ["-e", "set output \"" ++ out ++ "\"", src]
-    --
-    (directories ^. project) <//> "*.tex.svg" %> \out -> do
-      let src = dropExtension out
-      let pdf = src -<.> ".pdf"
-      let dir = takeDirectory src
-      need [src]
-      pdflatex ["-output-directory", dir, src]
-      pdf2svg [pdf, out]
-      liftIO $ Dir.removeFile pdf
+    phony "annotations" $ do
+      targets <- getTargets
+      need (targets ^. annotations)
     --
     phony "clean" $ do
       removeFilesAfter (directories ^. public) ["//"]
@@ -270,7 +265,7 @@ run = do
       putNormal (groom meta)
     --
     phony "support" $ do
-      need [indexFile]
+      need [indexFile, "static-files", "annotations"]
       meta <- getGlobalMeta
       writeSupportFilesToPublic meta
     --
