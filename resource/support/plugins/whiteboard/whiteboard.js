@@ -31,7 +31,7 @@ let RevealWhiteboard = (function(){
     // colors
     const penColors = config.colors || [ "blue", "red", "green", "cyan", "magenta", "yellow", "black" ];
     let penColor  = penColors[0];
-    let penRadius = 2;
+    let penWidth = 2;
 
     // colors for buttons
     const activeColor   = 'var(--whiteboard-active-color)';
@@ -128,10 +128,22 @@ let RevealWhiteboard = (function(){
     penColors.forEach( color => {
         let b = document.createElement( 'button' );
         b.classList.add("whiteboard", "fas", "fa-pen");
-        b.onclick = () => { selectColor(color); }
+        b.onclick = () => { selectPenColor(color); }
         b.style.color = color;
         colorPicker.appendChild(b);
     });
+
+
+    // generate penWidth slider
+    let penWidthSlider = document.createElement( 'input' );
+    penWidthSlider.id = "whiteboardSlider";
+    penWidthSlider.type="range";
+    penWidthSlider.min=1;
+    penWidthSlider.max=10;
+    penWidthSlider.value=2;
+    colorPicker.appendChild(penWidthSlider);
+    penWidthSlider.onchange = () => { selectPenRadius(parseInt(penWidthSlider.value)); };
+    penWidthSlider.oninput  = () => { penWidthSlider.style.setProperty('--size', (parseInt(penWidthSlider.value)+1)+'px'); }
 
 
     // create whiteboard SVG for current slide
@@ -360,12 +372,23 @@ let RevealWhiteboard = (function(){
     }
 
 
-    function selectColor(col)
+    function selectPenColor(col)
     {
         colorPicker.style.visibility = 'hidden';
+        penWidthSlider.style.setProperty("--color", col);
         penColor = col;
         buttonPen.style.color = penColor;
         createPenCursor();
+        selectCursor(penCursor);
+    }
+
+
+    function selectPenRadius(radius)
+    {
+        penWidth = radius;
+        colorPicker.style.visibility = 'hidden';
+        penWidthSlider.value = radius;
+        penWidthSlider.style.setProperty("--size", (radius+1)+'px');
         selectCursor(penCursor);
     }
 
@@ -869,10 +892,12 @@ let RevealWhiteboard = (function(){
         svg.appendChild(stroke);
         stroke.style.fill = 'none';
         stroke.style.stroke = penColor;
-        stroke.style.strokeWidth = penRadius+'px';
+        stroke.style.strokeWidth = penWidth+'px';
+        stroke.style.strokeLinecap = 'round';
+        stroke.style.strokeLinejoin = 'round';
 
         // add point, convert to Bezier spline
-        points = [ [ mouseX, mouseY ], [mouseX+1, mouseY+1] ];
+        points = [ [ mouseX, mouseY ], [mouseX, mouseY] ];
         renderStroke(points, stroke);
 
         // add fragment index to stroke
@@ -1243,7 +1268,8 @@ let RevealWhiteboard = (function(){
             // set default state
             toggleWhiteboard(false);
             selectTool(ToolType.PEN);
-            selectColor(penColors[0]);
+            selectPenColor(penColors[0]);
+            selectPenRadius(2);
 
             // hide buttons in print mode
             if (printMode) buttons.style.display = 'none';

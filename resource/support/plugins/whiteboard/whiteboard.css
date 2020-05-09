@@ -62,6 +62,26 @@
 }
 
 
+/* whiteboard button */
+button.whiteboard {
+    display:     inline-block;
+    position:    relative;
+    font-size:   16px;
+    padding:     8px;
+    border:      none;
+    outline:     none;
+    color:       var(--whiteboard-inactive-color);
+    background:  none;
+    font-family: "Font Awesome 5 Free";
+}
+
+/* hide outline around focused/clicked buttons */
+button.whiteboard:focus,
+button.whiteboard::-moz-focus-inner {
+    outline: none;
+    border: 0;
+}
+
 /* container for the whiteboard buttons */
 #whiteboardButtons,
 #whiteboardColorPicker {
@@ -86,59 +106,46 @@
 }
 #whiteboardColorPicker {
     left:           40px;
-    bottom:         160px;
-    display:        flex;
-    flex-direction: row;
+    bottom:         145px;
+    display:        block;
 }
 
 
-/* whiteboard button */
-button.whiteboard {
-    display:     block;
-    position:    relative;
-    font-size:   16px;
-    padding:     8px;
-    border:      none;
-    outline:     none;
-    color:       var(--whiteboard-inactive-color);
-    background:  none;
-    font-family: "Font Awesome 5 Free";
+#whiteboardSlider {
+    --size:  1px;
+    --color: black;
+    display: block;
+    -webkit-appearance: none;
+    appearance: none;
+    width:      calc(100% - 10px);
+    height:     2px;
+    padding:    0px;
+    margin:     5px;
+    background: lightgrey;
+    border:     0;
+    outline:    none;
 }
 
-
-/* hide outline around focused/clicked buttons */
-button.whiteboard:focus {
+#whiteboardSlider:focus,
+#whiteboardSlider::-moz-focus-inner {
     outline: none;
-}
-button.whiteboard::-moz-focus-inner {
-   border: 0;
+    border: 0;
 }
 
-
-/* color-picker container */
-.reveal .color-picker {
-    position:      absolute;
-    left:          40px;
-    bottom:        160px;
-    top:           auto;
-    right:         auto;
-    z-index:       40;
-    padding:       3px;
-    background:    rgba(255, 255, 255, 0.75);
-    padding:       0px;
-    border:        1px solid rgba(203, 203, 203, 0.6);
-    border-radius: 2px;
+#whiteboardSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width:  var(--size);
+  height: var(--size);
+  background: var(--color);
+  border-radius: 100%;
+  cursor: pointer;
 }
 
-
-/* color picker button */
-.reveal .color-picker > div {
-    width:         20px;
-    display:       inline-block;
-    height:        20px;
-    margin:        3px;
-    border:        1px solid rgba(203, 203, 203, 0.6);
-    border-radius: 100%;
-    opacity:       0.7;
+#whiteboardSlider::-moz-range-thumb {
+  width:  var(--size);
+  height: var(--size);
+  background: var(--color);
+  border-radius: 100%;
+  cursor: pointer;
 }
-
