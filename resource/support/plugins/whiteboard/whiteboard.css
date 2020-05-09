@@ -1,9 +1,14 @@
 
+/* colors for active/inactive buttons 
+ * active color is also used for additional page indicator */
 :root {
   --whiteboard-active-color: #2a9ddf;
   --whiteboard-inactive-color: lightgrey;
+  --whiteboard-background-color: rgb(250,250,250);
 }
 
+
+/* adjust Reveal slide container when we need a scrollbar */
 .reveal .slides.needScrollbar {
     overflow-x: hidden;
     overflow-y: auto;
@@ -17,6 +22,8 @@
     -webkit-overflow-scrolling: auto;
 }
 
+
+/* the animation for indicating additional pages on the bottom */
 @keyframes pulseBorder {
   from {
     border-bottom: 5px dashed #ffffff00;
@@ -26,6 +33,8 @@
   }
 }
 
+
+/* activate pulsing border indiciator */
 .reveal .slides.pulseBorder {
     animation-name:            pulseBorder;
     animation-iteration-count: 4;
@@ -35,31 +44,56 @@
     border-bottom:             none;
 }
 
+
+/* have to show overflow when in Reveal's overview mode */
 .reveal.overview .slides {
     overflow: visible;
 }
 
 
-#whiteboardButtons {
+/* style for SVG whiteboard pages */
+.reveal svg.whiteboard {
+    border:     none;
+    box-sizing: border-box;
+    position:   absolute;
+    top:        0px;
+    left:       0px;
+    z-index:    39;
+}
+
+
+/* container for the whiteboard buttons */
+#whiteboardButtons,
+#whiteboardColorPicker {
     position:       absolute;
     top:            auto;
     right:          auto;
-    left:           3px;
-    bottom:         3px;
-    display:        flex;
-    flex-direction: column-reverse;
     padding:        0;
     margin:         0;
     z-index:        40;
     border:         1px solid #eeeeee;
     border-radius:  4px;
-    background:     white;
+    background:     var(--whiteboard-background-color);
+}
+#whiteboardButtons {
+    left:           3px;
+    bottom:         3px;
+    display:        flex;
+    flex-direction: column-reverse;
     overflow:       hidden;
     height:         34px;
-    transition:     height 0.2s linear;
+    transition:     height 0.2s linear 0.2s;
+}
+#whiteboardColorPicker {
+    left:           40px;
+    bottom:         160px;
+    display:        flex;
+    flex-direction: row;
 }
 
-#whiteboardButtons>button {
+
+/* whiteboard button */
+button.whiteboard {
     display:     block;
     position:    relative;
     font-size:   16px;
@@ -67,18 +101,21 @@
     border:      none;
     outline:     none;
     color:       var(--whiteboard-inactive-color);
+    background:  none;
     font-family: "Font Awesome 5 Free";
 }
 
-/* hide outline around focused buttons */
-#whiteboardButtons>button:focus {
+
+/* hide outline around focused/clicked buttons */
+button.whiteboard:focus {
     outline: none;
 }
-/* hide outline around focused buttons */
-#whiteboardButtons>button::-moz-focus-inner {
+button.whiteboard::-moz-focus-inner {
    border: 0;
 }
 
+
+/* color-picker container */
 .reveal .color-picker {
     position:      absolute;
     left:          40px;
@@ -93,6 +130,8 @@
     border-radius: 2px;
 }
 
+
+/* color picker button */
 .reveal .color-picker > div {
     width:         20px;
     display:       inline-block;
@@ -101,14 +140,5 @@
     border:        1px solid rgba(203, 203, 203, 0.6);
     border-radius: 100%;
     opacity:       0.7;
-}
-
-.reveal svg.whiteboard {
-    border:     none;
-    box-sizing: border-box;
-    position:   absolute;
-    top:        0px;
-    left:       0px;
-    z-index:    39;
 }
 

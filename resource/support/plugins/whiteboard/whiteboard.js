@@ -26,11 +26,11 @@ let RevealWhiteboard = (function(){
      ************************************************************************/
 
     // default values or user configuration?
-    const config     = Reveal.getConfig().whiteboard || {};
+    const config = Reveal.getConfig().whiteboard || {};
 
     // colors
-    const colors = config.colors || [ "black", "red", "green", "blue", "yellow", "cyan", "magenta" ];
-    let penColor  = config.penColor || "blue";
+    const penColors = config.colors || [ "blue", "red", "green", "cyan", "magenta", "yellow", "black" ];
+    let penColor  = penColors[0];
     let penRadius = 2;
 
     // colors for buttons
@@ -88,38 +88,50 @@ let RevealWhiteboard = (function(){
 
 
     // function to generate a button
-    function createButton(icon, callback)
+    function createButton(icon, callback, active=false)
     {
         let b = document.createElement( 'button' );
         b.classList.add("whiteboard");
         b.classList.add("fas");
         b.classList.add(icon);
         b.onclick = callback;
+        b.style.color = active ? activeColor : inactiveColor;
         buttons.appendChild(b);
         return b;
     }
 
 
-    let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard);
-    let buttonSave      = createButton("fa-save", saveAnnotations);
-    let buttonAdd       = createButton("fa-plus", addWhiteboardPage);
-    let buttonGrid      = createButton("fa-border-all", toggleGrid);
-    let buttonUndo      = createButton("fa-undo", undoStroke);
-    let buttonPen        = createButton("fa-pen", () => { 
-        if (tool == ToolType.PEN) pk.open();
-        else selectTool(ToolType.PEN); 
+    let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard, false);
+    let buttonSave       = createButton("fa-save", saveAnnotations, false);
+    let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true);
+    let buttonGrid       = createButton("fa-border-all", toggleGrid, false);
+    let buttonUndo       = createButton("fa-undo", undoStroke, true);
+    let buttonPen        = createButton("fa-pen", () => {
+        if (tool != ToolType.PEN) {
+            selectTool(ToolType.PEN);
+        }
+        else {
+            if (colorPicker.style.visibility == 'visible')
+                colorPicker.style.visibility = 'hidden';
+            else
+                colorPicker.style.visibility = 'visible';
+        }
     });
-    let buttonEraser     = createButton("fa-eraser", () => { selectTool(ToolType.ERASER); } );
-    let buttonLaser      = createButton("fa-magic", () => { selectTool(ToolType.LASER); } );
+    let buttonEraser = createButton("fa-eraser", () => { selectTool(ToolType.ERASER); } );
+    let buttonLaser  = createButton("fa-magic", () => { selectTool(ToolType.LASER); } );
 
 
-    // add color picker
-    let pkdiv = document.createElement( 'div' );
-    pkdiv.classList.add("color-picker");
-    reveal.appendChild(pkdiv);
-    let pkoptions = { template: "<div class=\"whiteboard\" data-col=\"{color}\" style=\"background-color: {color}\"></div>" };
-    let pk = new Piklor(pkdiv, colors, pkoptions);
-    pk.colorChosen( (col) => { selectColor(col); } );
+    // generate color picker container
+    let colorPicker = document.createElement( 'div' );
+    colorPicker.id = 'whiteboardColorPicker';
+    reveal.appendChild(colorPicker);
+    penColors.forEach( color => {
+        let b = document.createElement( 'button' );
+        b.classList.add("whiteboard", "fas", "fa-pen");
+        b.onclick = () => { selectColor(color); }
+        b.style.color = color;
+        colorPicker.appendChild(b);
+    });
 
 
     // create whiteboard SVG for current slide
@@ -350,6 +362,7 @@ let RevealWhiteboard = (function(){
 
     function selectColor(col)
     {
+        colorPicker.style.visibility = 'hidden';
         penColor = col;
         buttonPen.style.color = penColor;
         createPenCursor();
@@ -548,10 +561,7 @@ let RevealWhiteboard = (function(){
 
             // add large rect with this pattern
             let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            if (svg.children.length > 1)
-                svg.insertBefore(rect, svg.children[1]);
-            else
-                svg.appendChild(rect);
+            svg.insertBefore(rect, svg.firstChild);
 
             rect.setAttribute('x', 0);
             rect.setAttribute('y', pageHeight);
@@ -1233,7 +1243,7 @@ let RevealWhiteboard = (function(){
             // set default state
             toggleWhiteboard(false);
             selectTool(ToolType.PEN);
-            selectColor("red");
+            selectColor(penColors[0]);
 
             // hide buttons in print mode
             if (printMode) buttons.style.display = 'none';
