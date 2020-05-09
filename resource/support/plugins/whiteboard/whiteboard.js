@@ -53,14 +53,13 @@ let RevealWhiteboard = (function(){
     cursorCanvas.id     = "CursorCanvas";
     cursorCanvas.width  = 20;
     cursorCanvas.height = 20;
-    initCursors();
 
     // store which tools are active
     const ToolType = { PEN: 1, ERASER: 2, LASER: 3 };
     let tool = ToolType.PEN;
 
-    // letiable used to block leaving HTML page
-    let needSave = false;
+    // variable used to block leaving HTML page
+    let unsavedAnnotations = false;
 
     // is the user generating a PDF?
     const printMode = ( /print-pdf/gi ).test( window.location.search );
@@ -82,49 +81,36 @@ let RevealWhiteboard = (function(){
      * Setup GUI
      ************************************************************************/
 
-    /*
-     * create a button on the left side
-     */
-    function createButton(left, bottom, icon)
+    // generate container for whiteboard buttons
+    let buttons = document.createElement( 'div' );
+    buttons.id = 'whiteboardButtons';
+    reveal.appendChild(buttons);
+
+
+    // function to generate a button
+    function createButton(icon, callback)
     {
         let b = document.createElement( 'button' );
         b.classList.add("whiteboard");
-        b.style.left   = left + "px";
-        b.style.bottom = bottom + "px";
-        b.style.visibility = 'hidden'; // hide per default (for PDF export)
         b.classList.add("fas");
         b.classList.add(icon);
-        reveal.appendChild(b);
+        b.onclick = callback;
+        buttons.appendChild(b);
         return b;
     }
 
 
-    let buttonWhiteboard = createButton(8, 8, "fa-edit");
-    buttonWhiteboard.onclick = toggleWhiteboard;
-
-    let buttonSave      = createButton(8, 38, "fa-save");
-    buttonSave.onclick  = saveAnnotations;
-
-    let buttonAdd       = createButton(8, 68, "fa-plus");
-    buttonAdd.onclick   = addWhiteboardPage;
-
-    let buttonGrid      = createButton(8, 98, "fa-border-all");
-    buttonGrid.onclick  = toggleGrid;
-
-    let buttonUndo      = createButton(8, 128, "fa-undo");
-    buttonUndo.onclick  = undoStroke;
-
-    let buttonPen        = createButton(8, 168, "fa-pen");
-    buttonPen.onclick    = function(){ 
+    let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard);
+    let buttonSave      = createButton("fa-save", saveAnnotations);
+    let buttonAdd       = createButton("fa-plus", addWhiteboardPage);
+    let buttonGrid      = createButton("fa-border-all", toggleGrid);
+    let buttonUndo      = createButton("fa-undo", undoStroke);
+    let buttonPen        = createButton("fa-pen", () => { 
         if (tool == ToolType.PEN) pk.open();
         else selectTool(ToolType.PEN); 
-    }
-
-    let buttonEraser     = createButton(8, 198, "fa-eraser");
-    buttonEraser.onclick = function(){ selectTool(ToolType.ERASER); }
-
-    let buttonLaser      = createButton(8, 228, "fa-magic");
-    buttonLaser.onclick = function(){ selectTool(ToolType.LASER); }
+    });
+    let buttonEraser     = createButton("fa-eraser", () => { selectTool(ToolType.ERASER); } );
+    let buttonLaser      = createButton("fa-magic", () => { selectTool(ToolType.LASER); } );
 
 
     // add color picker
@@ -133,7 +119,7 @@ let RevealWhiteboard = (function(){
     reveal.appendChild(pkdiv);
     let pkoptions = { template: "<div class=\"whiteboard\" data-col=\"{color}\" style=\"background-color: {color}\"></div>" };
     let pk = new Piklor(pkdiv, colors, pkoptions);
-    pk.colorChosen( (col) => { penColor = col; updateGUI(); } );
+    pk.colorChosen( (col) => { selectColor(col); } );
 
 
     // create whiteboard SVG for current slide
@@ -226,10 +212,7 @@ let RevealWhiteboard = (function(){
      * Interal GUI functions related to mouse cursor
      ******************************************************************/
 
-    /*
-     * create laser and eraser cursor
-     */
-    function initCursors()
+    function createLaserCursor()
     {
         let ctx = cursorCanvas.getContext("2d");
 
@@ -248,10 +231,7 @@ let RevealWhiteboard = (function(){
     }
 
 
-    /*
-     * adjust pen cursor to have current color
-     */
-    function updateCursor()
+    function createPenCursor()
     {
         let ctx = cursorCanvas.getContext("2d");
         cursorCanvas.width  = 20;
@@ -276,14 +256,22 @@ let RevealWhiteboard = (function(){
         ctx.fillStyle = grdPen;
         ctx.fillRect(0, 0, 20, 20);
         penCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
+    }
 
-        // render eraser cursor 
+
+    function createEraserCursor()
+    {
+        let ctx = cursorCanvas.getContext("2d");
+        cursorCanvas.width  = 20;
+        cursorCanvas.height = 20;
+
         // (adjust canvas size and eraser radius using Reveal scale)
         const slideScale = Reveal.getScale();
         const radius = eraserRadius * slideScale;
         const width  = 2*radius;
         cursorCanvas.width  = width;
         cursorCanvas.height = width;
+
         ctx.clearRect(0, 0, width, width); 
         ctx.fillStyle = "rgba(255,255,255,0)";
         ctx.fillRect(0, 0, width, width);
@@ -330,88 +318,13 @@ let RevealWhiteboard = (function(){
      ******************************************************************/
 
     /*
-     * select active tool (pen, eraser, laser pointer)
-     * and update GUI (which updates cursor)
+     * select active tool and update buttons & cursor
      */
     function selectTool(newTool)
     {
         tool = newTool;
-        updateGUI();
-    }
 
-
-    function toggleWhiteboard()
-    {
-        whiteboardActive = !whiteboardActive;
-        updateGUI();
-    }
-
-
-    /*
-     * Update GUI:
-     * update icons based on selected tool
-     * generate pen and laser cursors based on selected color
-     * select cursor based on selected tool
-     * enable/disable canvas pointerEvents
-     */
-    function updateGUI()
-    {
-        if (printMode) return;
-
-        // is whiteboard disabled?
-        if (!whiteboardActive)
-        {
-            // hide buttons
-            buttonWhiteboard.style.visibility = 'visible';
-            buttonWhiteboard.style.color      = inactiveColor;
-            buttonSave.style.visibility   = 'hidden';
-            buttonAdd.style.visibility    = 'hidden';
-            buttonGrid.style.visibility   = 'hidden';
-            buttonUndo.style.visibility   = 'hidden';
-            buttonPen.style.visibility    = 'hidden';
-            buttonEraser.style.visibility = 'hidden';
-            buttonLaser.style.visibility  = 'hidden';
-
-            // reset SVG
-            if (svg) {
-                svg.style.border = "1px solid transparent";
-                svg.style.pointerEvents = "none";
-            }
-
-            // reset cursor
-            clearTimeout( hideCursorTimeout );
-            slides.style.cursor = '';
-            return;
-        }
-
-
-        // whiteboard is active
-        buttonWhiteboard.style.visibility = 'visible';
-        buttonWhiteboard.style.color      = activeColor;
-        buttonSave.style.visibility   = 'visible';
-        buttonAdd.style.visibility    = 'visible';
-        buttonGrid.style.visibility   = 'visible';
-        buttonUndo.style.visibility   = 'visible';
-        buttonPen.style.visibility    = 'visible';
-        buttonEraser.style.visibility = 'visible';
-        buttonLaser.style.visibility  = 'visible';
-        if (svg) {
-            svg.style.border = "1px dashed lightgrey";
-            svg.style.pointerEvents = "auto";
-        }
-
-
-        // update cursor using current color
-        updateCursor();
-
-
-        // save icon
-        buttonSave.style.color = needSave ? activeColor : inactiveColor;
-
-        // grid icon
-        buttonGrid.style.color = (svg && getGridRect()) ? activeColor : inactiveColor;
-
-        // tool icons
+        // update tool icons, update cursor
         buttonLaser.style.color  = inactiveColor;
         buttonEraser.style.color = inactiveColor;
         buttonPen.style.color    = inactiveColor;
@@ -433,6 +346,59 @@ let RevealWhiteboard = (function(){
                 break;
         }
     }
+
+
+    function selectColor(col)
+    {
+        penColor = col;
+        buttonPen.style.color = penColor;
+        createPenCursor();
+        selectCursor(penCursor);
+    }
+
+
+    function toggleWhiteboard(state)
+    {
+        whiteboardActive = (typeof state === 'boolean') ? state : !whiteboardActive;
+        
+        if (!whiteboardActive)
+        {
+            // hide buttons
+            buttonWhiteboard.style.color   = inactiveColor;
+            whiteboardButtons.style.height = '34px';
+
+            // reset SVG
+            if (svg) {
+                svg.style.border = "1px solid transparent";
+                svg.style.pointerEvents = "none";
+            }
+
+            // reset cursor
+            clearTimeout( hideCursorTimeout );
+            slides.style.cursor = '';
+        }
+        else
+        {
+            // show buttons
+            buttonWhiteboard.style.color   = activeColor;
+            whiteboardButtons.style.height = '258px';
+
+            // activate SVG
+            if (svg) {
+                svg.style.border = "1px dashed lightgrey";
+                svg.style.pointerEvents = "auto";
+            }
+        }
+    }
+
+
+    // set unsavedAnnotations and update save icon
+    function needToSave(b)
+    {
+        unsavedAnnotations = b;
+        buttonSave.style.color = unsavedAnnotations ? activeColor : inactiveColor;
+    }
+
 
 
     /*
@@ -521,18 +487,18 @@ let RevealWhiteboard = (function(){
             if (strokes)
             {
                 strokes.forEach( stroke => { stroke.remove(); } );
-                needSave = true;
+                needToSave(true);
             }
 
             let grid = svg.querySelector( 'svg>rect' );
             if (grid)
             {
                 grid.remove();
-                needSave = true;
+                buttonGrid.style.color = inactiveColor;
+                needToSave(true);
             }
 
             setWhiteboardHeight(Reveal.getConfig().height);
-            updateGUI();
         }
     };
 
@@ -571,6 +537,7 @@ let RevealWhiteboard = (function(){
         if (rect) 
         {
             rect.remove();
+            buttonGrid.style.color = activeColor;
         }
 
         // otherwise, add it
@@ -594,10 +561,11 @@ let RevealWhiteboard = (function(){
             rect.style.fill          = 'url(#gridPattern)';
             rect.style.stroke        = 'none';
             rect.style.pointerEvents = 'none';
+
+            buttonGrid.style.color = activeColor;
         }
 
-        needSave = true;
-        updateGUI();
+        needToSave(true);
     }
 
 
@@ -759,8 +727,7 @@ let RevealWhiteboard = (function(){
         xhr.onloadend = function() {
             if (xhr.status == 200) {
                 console.log("whiteboard: save success");
-                needSave = false;
-                updateGUI();
+                needToSave(false);
             } else {
                 console.log("whiteboard: could not save to decker, download instead");
                 downloadAnnotations();
@@ -788,8 +755,7 @@ let RevealWhiteboard = (function(){
         a.click();
         document.body.removeChild(a);
 
-        needSave = false;
-        updateGUI();
+        needToSave(false);
     }
 
 
@@ -967,7 +933,7 @@ let RevealWhiteboard = (function(){
         stroke = null;
 
         // new stroke -> we have to save
-        needSave = true; // call updateGUI in pointer handler
+        needToSave(true);
     };
 
 
@@ -987,7 +953,7 @@ let RevealWhiteboard = (function(){
             if (isPointInStroke(stroke, point))
             {
                 stroke.remove();
-                needSave = true; // call updateGUI in pointer handler
+                needToSave(true);
             }
         });
     };
@@ -1090,10 +1056,8 @@ let RevealWhiteboard = (function(){
         if (tool == ToolType.PEN)
         {
             stopStroke(evt);
+            selectCursor(penCursor); // might be laser/eraser due to buttons pressed
         }
-
-        // enable save button
-        if (needSave) updateGUI();
 
         // re-activate cursor hiding
         triggerHideCursor();
@@ -1131,7 +1095,7 @@ let RevealWhiteboard = (function(){
             return;
         }
 
-        if (needSave) return "blabla";
+        if (unsavedAnnotations) return "blabla";
     }
 
 
@@ -1202,6 +1166,9 @@ let RevealWhiteboard = (function(){
 
             // adjust fragment visibility
             fragmentChanged();
+
+            // update SVG grid icon
+            buttonGrid.style.color = (svg && getGridRect()) ? activeColor : inactiveColor;
         }
     }
 
@@ -1232,12 +1199,8 @@ let RevealWhiteboard = (function(){
     Reveal.addEventListener( 'fragmentshown',   fragmentChanged );
     Reveal.addEventListener( 'fragmenthidden',  fragmentChanged );
 
-    // update GUI (button) on slide change
-    Reveal.addEventListener( 'ready',        updateGUI );
-    Reveal.addEventListener( 'slidechanged', updateGUI );
-
     // eraser cursor has to be updated on resize (i.e. scale change)
-    Reveal.addEventListener( 'resize', updateGUI );
+    Reveal.addEventListener( 'resize', createEraserCursor );
 
 
 
@@ -1262,6 +1225,20 @@ let RevealWhiteboard = (function(){
             console.log("Pointer events:   " + !!(window.PointerEvent));
             console.log("Coalesced events: " + !!(window.PointerEvent && (new PointerEvent("pointermove")).getCoalescedEvents));
 
+            // generate cursors
+            createLaserCursor();
+            createEraserCursor();
+            createPenCursor();
+
+            // set default state
+            toggleWhiteboard(false);
+            selectTool(ToolType.PEN);
+            selectColor("red");
+
+            // hide buttons in print mode
+            if (printMode) buttons.style.display = 'none';
+
+            // load annotations
             return new Promise( (resolve) => loadAnnotations().then(resolve) );
         },
 

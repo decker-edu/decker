@@ -39,27 +39,43 @@
     overflow: visible;
 }
 
-button.whiteboard {
+
+#whiteboardButtons {
+    position:       absolute;
+    top:            auto;
+    right:          auto;
+    left:           3px;
+    bottom:         3px;
+    display:        flex;
+    flex-direction: column-reverse;
+    padding:        0;
+    margin:         0;
+    z-index:        40;
+    border:         1px solid #eeeeee;
+    border-radius:  4px;
+    background:     white;
+    overflow:       hidden;
+    height:         34px;
+    transition:     height 0.2s linear;
+}
+
+#whiteboardButtons>button {
     display:     block;
-    position:    absolute;
-    top:         auto;
-    right:       auto;
-    z-index:     40;
+    position:    relative;
     font-size:   16px;
-    padding:     3px;
+    padding:     8px;
     border:      none;
     outline:     none;
-    color:       var(--whiteboard-active-color);
-    background:  white;
+    color:       var(--whiteboard-inactive-color);
     font-family: "Font Awesome 5 Free";
 }
 
 /* hide outline around focused buttons */
-button.whiteboard:focus {
+#whiteboardButtons>button:focus {
     outline: none;
 }
 /* hide outline around focused buttons */
-button.whiteboard::-moz-focus-inner {
+#whiteboardButtons>button::-moz-focus-inner {
    border: 0;
 }
 
