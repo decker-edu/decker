@@ -401,8 +401,14 @@ let RevealWhiteboard = (function(){
         if (!whiteboardActive)
         {
             // hide buttons
-            buttonWhiteboard.style.color   = inactiveColor;
-            whiteboardButtons.style.height = '34px';
+            buttonWhiteboard.style.color = inactiveColor;
+            buttonSave.style.display   = 'none';
+            buttonAdd.style.display    = 'none';
+            buttonGrid.style.display   = 'none';
+            buttonUndo.style.display   = 'none';
+            buttonPen.style.display    = 'none';
+            buttonEraser.style.display = 'none';
+            buttonLaser.style.display  = 'none';
 
             // reset SVG
             if (svg) {
@@ -418,7 +424,13 @@ let RevealWhiteboard = (function(){
         {
             // show buttons
             buttonWhiteboard.style.color   = activeColor;
-            whiteboardButtons.style.height = '258px';
+            buttonSave.style.display   = 'inline-block';
+            buttonAdd.style.display    = 'inline-block';
+            buttonGrid.style.display   = 'inline-block';
+            buttonUndo.style.display   = 'inline-block';
+            buttonPen.style.display    = 'inline-block';
+            buttonEraser.style.display = 'inline-block';
+            buttonLaser.style.display  = 'inline-block';
 
             // activate SVG
             if (svg) {

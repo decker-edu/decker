@@ -101,8 +101,6 @@ button.whiteboard::-moz-focus-inner {
     display:        flex;
     flex-direction: column-reverse;
     overflow:       hidden;
-    height:         34px;
-    transition:     height 0.2s linear 0.2s;
 }
 #whiteboardColorPicker {
     left:           40px;
