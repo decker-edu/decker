@@ -74,7 +74,6 @@ button.whiteboard {
     background:  none;
     font-family: "Font Awesome 5 Free";
 }
-
 /* hide outline around focused/clicked buttons */
 button.whiteboard:focus,
 button.whiteboard::-moz-focus-inner {
@@ -82,7 +81,8 @@ button.whiteboard::-moz-focus-inner {
     border: 0;
 }
 
-/* container for the whiteboard buttons */
+
+/* container for the whiteboard tools and color picker */
 #whiteboardButtons,
 #whiteboardColorPicker {
     position:       absolute;
@@ -111,13 +111,14 @@ button.whiteboard::-moz-focus-inner {
 }
 
 
+/* slides for choosing pen width */
 #whiteboardSlider {
     --size:  1px;
     --color: black;
     display: block;
     -webkit-appearance: none;
     appearance: none;
-    width:      calc(100% - 10px);
+    width:      200px;
     height:     2px;
     padding:    0px;
     margin:     5px;
@@ -126,26 +127,26 @@ button.whiteboard::-moz-focus-inner {
     outline:    none;
 }
 
-#whiteboardSlider:focus,
-#whiteboardSlider::-moz-focus-inner {
-    outline: none;
-    border: 0;
-}
-
+/* shape of slider knob in Chrome */
 #whiteboardSlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width:  var(--size);
-  height: var(--size);
-  background: var(--color);
-  border-radius: 100%;
-  cursor: pointer;
+    -webkit-appearance: none;
+    appearance:         none;
+    width:              var(--size);
+    height:             var(--size);
+    background:         var(--color);
+    border-radius:      100%;
+    cursor:             pointer;
+    outline:            none;
+    border:             0;
 }
 
+/* shape of slider knob in Firefox */
 #whiteboardSlider::-moz-range-thumb {
-  width:  var(--size);
-  height: var(--size);
-  background: var(--color);
-  border-radius: 100%;
-  cursor: pointer;
+    width:         var(--size);
+    height:        var(--size);
+    background:    var(--color);
+    border-radius: 100%;
+    cursor:        pointer;
+    outline:       none;
+    border:        0;
 }
