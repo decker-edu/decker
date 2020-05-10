@@ -53,9 +53,6 @@ Foreach ($i in ("js", "css", "lib", "plugin\math", "plugin\zoom-js", "plugin\not
 New-Item "$support\bootstrap" -Force -ItemType "directory"
 Copy-Item -Recurse "$third\bootstrap\dist\css" "$support\bootstrap\css" -Force
 
-# Copy piklor.js
-Copy-Item -Recurse "$third\piklor.js\src\piklor.min.js" "$support\piklor.js" -Force
-
 # Copy fontawesome
 New-Item "$support\fontawesome" -Force -ItemType "directory"
 Foreach ($i in ( "js", "css", "webfonts", "svgs", "sprites")) {

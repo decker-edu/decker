@@ -17,7 +17,7 @@ dup = cp -r
 endif
 
 
-all: jquery mathjax reveal.js bootstrap piklor.js fontawesome thebelab
+all: jquery mathjax reveal.js bootstrap fontawesome thebelab
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab
@@ -42,9 +42,6 @@ reveal.js:
 bootstrap:
 	@cp $(third)/bootstrap.min.css $(support)
 
-piklor.js:
-	@$(dup) $(third)/piklor.js/src/piklor.min.js $(support)/piklor.js
-
 fontawesome:
 	@mkdir -p $(support)/fontawesome $(support)/fontawesome/css
 	@for i in css/all.css webfonts; do \
@@ -57,4 +54,4 @@ thebelab/lib/index.js:
 jquery/dist/jquery.min.js:
 	(cd jquery && npm run build)
 
-.PHONY: clean prepare fontawesome piklor.js bootstrap reveal.js mathjax jquery thebelab 
+.PHONY: clean prepare fontawesome bootstrap reveal.js mathjax jquery thebelab 
