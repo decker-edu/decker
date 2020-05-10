@@ -38,6 +38,10 @@ data TemplateSource
   | Unsupported Text
   deriving (Ord, Eq, Show, Read)
 
+partialDir :: TemplateSource -> FilePath
+partialDir (LocalDir path) = path </> "template" </> "deck.html"
+partialDir _ = ""
+
 type TemplateCache = FilePath -> Action (Template Text)
 
 templateFiles =
@@ -62,10 +66,10 @@ parseTemplateUri uri =
   let ext = uriPathExtension uri
       scheme = uriScheme uri
       base = uriPath uri
-      trailing = maybe False fst (URI.uriPath uri)
-   in if | scheme == Just "exe" -> DeckerExecutable
-         | (Text.toLower <$> ext) == Just "zip" -> LocalZip $ toString base
-         | trailing -> LocalDir $ toString base
+   in if | scheme == Just "exe" && base == "" -> DeckerExecutable
+         | scheme == Nothing && (Text.toLower <$> ext) == Just "zip" ->
+           LocalZip $ toString base
+         | scheme == Nothing -> LocalDir $ toString base
          | otherwise -> Unsupported (URI.render uri)
 
 copySupportFiles :: TemplateSource -> Provisioning -> FilePath -> IO ()
@@ -81,19 +85,22 @@ copySupportFiles (Unsupported uri) provisioning destination =
 
 defaultMetaPath = "template/default.yaml"
 
-calcTemplateSource :: Maybe Text -> IO TemplateSource
-calcTemplateSource uriStr = do
-  devRun <- isDevelopmentRun
-  if devRun
-    then return $ LocalDir "resource/"
-    else return $ maybe DeckerExecutable parseTemplateUri (uriStr >>= URI.mkURI)
+-- Determines which template source is in effect. Three cases.
+calcTemplateSource :: Meta -> IO TemplateSource
+calcTemplateSource meta =
+  case lookupMeta "template-source" meta of
+    Just text -> parseTemplateUri <$> URI.mkURI text
+    Nothing -> do
+      devRun <- isDevelopmentRun
+      if devRun
+        then return $ LocalDir "resource"
+        else return $ DeckerExecutable
 
 readTemplate :: Meta -> FilePath -> Action (Template Text)
 readTemplate meta file = do
-  templateSource <-
-    liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
+  templateSource <- liftIO $ calcTemplateSource meta
   text <- readTemplateText templateSource
-  liftIO (handleLeft <$> compileTemplate "" text)
+  liftIO (handleLeft <$> compileTemplate (partialDir templateSource) text)
   where
     readTemplateText DeckerExecutable = do
       deckerExecutable <- liftIO getExecutablePath

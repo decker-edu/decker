@@ -256,8 +256,7 @@ run = do
       putNormal $ "support directory: " ++ (directories ^. support)
       meta <- getGlobalMeta
       targets <- getTargets
-      templateSource <-
-        liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
+      templateSource <- liftIO $ calcTemplateSource meta
       putNormal $ "template source: " <> show templateSource
       putNormal "\ntargets:\n"
       putNormal (groom targets)

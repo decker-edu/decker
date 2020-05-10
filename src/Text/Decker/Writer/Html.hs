@@ -103,7 +103,7 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
           , writerTemplate = Just template
           , writerHighlightStyle = highlightStyle
           , writerHTMLMathMethod =
-              MathJax "Handled by reveal.js in the template"
+              MathJax (lookupMetaOrElse "" "mathjax-url" meta)
           , writerVariables =
               Context $
               M.fromList
@@ -136,7 +136,7 @@ markdownToHtmlPage meta getTemplate markdownFile out = do
           , writerSectionDivs = False
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
-              MathJax "Handled by reveal.js in the template"
+              MathJax (lookupMetaOrElse "" "mathjax-url" meta)
           , writerVariables =
               Context $
               M.fromList
@@ -161,7 +161,7 @@ markdownToHtmlHandout meta getTemplate markdownFile out = do
           { writerTemplate = Just template
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
-              MathJax "Handled by reveal.js in the template"
+              MathJax (lookupMetaOrElse "" "mathjax-url" meta)
           , writerVariables =
               Context $
               M.fromList
