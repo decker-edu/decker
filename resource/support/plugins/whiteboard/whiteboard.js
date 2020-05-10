@@ -77,6 +77,24 @@ let RevealWhiteboard = (function(){
     let currentFragmentIndex = 0;
 
 
+    // handle browser features
+    const weHavePointerEvents   = !!(window.PointerEvent);
+    const weHaveCoalescedEvents = !!(window.PointerEvent && (new PointerEvent("pointermove")).getCoalescedEvents);
+    let   userShouldBeWarned    = !weHavePointerEvents || !weHaveCoalescedEvents;
+    let   userHasBeenWarned     = false;
+
+    function warnUser() {
+        if (!weHavePointerEvents)
+        {
+            alert("Your browser does not support pointer events.\nWhiteboard will not work.\nBetter use Chrome/Chromium or Firefox.");
+        }
+        else if (!weHaveCoalescedEvents)
+        {
+            alert("Your browser does not support coalesced pointer events.\nWhiteboard drawing might be laggy.\nBetter use Chrome/Chromium or Firefox.");
+        }
+        userHasBeenWarned = true;
+    }
+
 
     /************************************************************************
      * Setup GUI
@@ -416,6 +434,8 @@ let RevealWhiteboard = (function(){
         }
         else
         {
+            if (userShouldBeWarned && !userHasBeenWarned) warnUser();
+
             // show buttons
             buttons.classList.add('active');
 
@@ -1188,6 +1208,9 @@ let RevealWhiteboard = (function(){
             setupSVG();
             svg.style.display = 'block';
 
+            // activate/deactivate SVG
+            toggleWhiteboard(whiteboardActive); 
+
             // set height based on annotations
             adjustWhiteboardHeight();
 
@@ -1262,10 +1285,6 @@ let RevealWhiteboard = (function(){
 
 	return {
 		init: function() { 
-
-            // print some infos
-            console.log("Pointer events:   " + !!(window.PointerEvent));
-            console.log("Coalesced events: " + !!(window.PointerEvent && (new PointerEvent("pointermove")).getCoalescedEvents));
 
             // generate cursors
             createLaserCursor();
