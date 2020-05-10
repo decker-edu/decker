@@ -40,6 +40,7 @@ let RevealWhiteboard = (function(){
     // reveal elements
     let reveal = document.querySelector( '.reveal' );
     let slides = document.querySelector( '.reveal .slides' );
+    let slideZoom = slides.style.zoom || 1;
 
     // different cursors used by whiteboard
     let eraserCursor;
@@ -883,7 +884,6 @@ let RevealWhiteboard = (function(){
     function startStroke(evt)
     {
         // mouse position
-        const slideZoom  = slides.style.zoom || 1;
         const mouseX = evt.offsetX / slideZoom;
         const mouseY = evt.offsetY / slideZoom;
 
@@ -928,7 +928,6 @@ let RevealWhiteboard = (function(){
             if (evt.buttons > 0 && evt.target==svg)
             {
                 // mouse position
-                const slideZoom  = slides.style.zoom || 1;
                 const mouseX = evt.offsetX / slideZoom;
                 const mouseY = evt.offsetY / slideZoom;
 
@@ -954,7 +953,6 @@ let RevealWhiteboard = (function(){
         if (stroke && evt.target==svg)
         {
             // mouse position
-            const slideZoom = slides.style.zoom || 1;
             const mouseX    = evt.offsetX / slideZoom;
             const mouseY    = evt.offsetY / slideZoom;
             const newPoint  = [ mouseX, mouseY ];
@@ -979,7 +977,6 @@ let RevealWhiteboard = (function(){
     function eraseStroke(evt)
     {
         // mouse position
-        const slideZoom  = slides.style.zoom || 1;
         const mouseX = evt.offsetX / slideZoom;
         const mouseY = evt.offsetY / slideZoom;
         const point  = [mouseX, mouseY];
@@ -1034,6 +1031,7 @@ let RevealWhiteboard = (function(){
 
         // don't propagate event any further
         killEvent(evt);
+        return false;
     }
 
 
@@ -1076,6 +1074,7 @@ let RevealWhiteboard = (function(){
 
         // don't propagate event any further
         killEvent(evt);
+        return false;
     }
 
 
@@ -1099,6 +1098,7 @@ let RevealWhiteboard = (function(){
 
         // don't propagate event any further
         killEvent(evt);
+        return false;
     }
 
 
@@ -1204,6 +1204,9 @@ let RevealWhiteboard = (function(){
 
             // update SVG grid icon
             buttonGrid.style.color = (svg && getGridRect()) ? activeColor : inactiveColor;
+
+            // just to be sure, update slide zoom
+            slideZoom = slides.style.zoom || 1;
         }
     }
 
@@ -1235,7 +1238,12 @@ let RevealWhiteboard = (function(){
     Reveal.addEventListener( 'fragmenthidden',  fragmentChanged );
 
     // eraser cursor has to be updated on resize (i.e. scale change)
-    Reveal.addEventListener( 'resize', createEraserCursor );
+    Reveal.addEventListener( 'resize', () => { 
+        // size of eraser cursor has to be adjusted
+        createEraserCursor();
+        // slide zoom might change
+        slideZoom = slides.style.zoom || 1;
+    });
 
 
 
