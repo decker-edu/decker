@@ -103,6 +103,7 @@ let RevealWhiteboard = (function(){
 
 
     let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard, false);
+    buttonWhiteboard.id  = "whiteboardButton";
     let buttonSave       = createButton("fa-save", saveAnnotations, false);
     let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true);
     let buttonGrid       = createButton("fa-border-all", toggleGrid, false);
@@ -401,14 +402,7 @@ let RevealWhiteboard = (function(){
         if (!whiteboardActive)
         {
             // hide buttons
-            buttonWhiteboard.style.color = inactiveColor;
-            buttonSave.style.display   = 'none';
-            buttonAdd.style.display    = 'none';
-            buttonGrid.style.display   = 'none';
-            buttonUndo.style.display   = 'none';
-            buttonPen.style.display    = 'none';
-            buttonEraser.style.display = 'none';
-            buttonLaser.style.display  = 'none';
+            buttons.classList.remove('active');
 
             // reset SVG
             if (svg) {
@@ -423,14 +417,7 @@ let RevealWhiteboard = (function(){
         else
         {
             // show buttons
-            buttonWhiteboard.style.color   = activeColor;
-            buttonSave.style.display   = 'inline-block';
-            buttonAdd.style.display    = 'inline-block';
-            buttonGrid.style.display   = 'inline-block';
-            buttonUndo.style.display   = 'inline-block';
-            buttonPen.style.display    = 'inline-block';
-            buttonEraser.style.display = 'inline-block';
-            buttonLaser.style.display  = 'inline-block';
+            buttons.classList.add('active');
 
             // activate SVG
             if (svg) {

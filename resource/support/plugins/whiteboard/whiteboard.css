@@ -63,27 +63,73 @@
 
 
 /* whiteboard button */
-button.whiteboard {
+.reveal button.whiteboard {
     display:     inline-block;
     position:    relative;
     font-size:   16px;
     padding:     8px;
     border:      none;
     outline:     none;
-    color:       var(--whiteboard-inactive-color);
     background:  none;
     font-family: "Font Awesome 5 Free";
 }
 /* hide outline around focused/clicked buttons */
-button.whiteboard:focus,
-button.whiteboard::-moz-focus-inner {
+.reveal button.whiteboard:focus,
+.reveal button.whiteboard::-moz-focus-inner {
     outline: none;
     border: 0;
 }
 
 
-/* container for the whiteboard tools and color picker */
-#whiteboardButtons,
+/* container for whiteboard tools */
+#whiteboardButtons {
+    position:       absolute;
+    top:            auto;
+    right:          auto;
+    padding:        0;
+    margin:         0;
+    z-index:        40;
+    border-radius:  4px;
+    border:         1px solid transparent;
+    background:     none;
+    left:           3px;
+    bottom:         3px;
+    display:        flex;
+    flex-direction: column-reverse;
+    overflow:       hidden;
+}
+#whiteboardButtons.active {
+    border:         1px solid #eeeeee;
+    background:     var(--whiteboard-background-color);
+}
+
+
+/* toggle whiteboard buttons with .active on container */
+#whiteboardButtons>button {
+    display: none;
+}
+#whiteboardButtons.active>button {
+    display: inline-block;
+}
+
+
+/* toggle main whiteboard button with .active on container */
+#whiteboardButtons>#whiteboardButton {
+    display: inline-block;
+    color: var(--whiteboard-inactive-color);
+    opacity: 0.5;
+}
+#whiteboardButtons>#whiteboardButton:hover {
+    opacity: 1.0;
+}
+#whiteboardButtons.active>#whiteboardButton {
+    display: inline-block;
+    color: var(--whiteboard-active-color);
+    opacity: 1.0;
+}
+
+
+/* container for color picker */
 #whiteboardColorPicker {
     position:       absolute;
     top:            auto;
@@ -94,15 +140,6 @@ button.whiteboard::-moz-focus-inner {
     border:         1px solid #eeeeee;
     border-radius:  4px;
     background:     var(--whiteboard-background-color);
-}
-#whiteboardButtons {
-    left:           3px;
-    bottom:         3px;
-    display:        flex;
-    flex-direction: column-reverse;
-    overflow:       hidden;
-}
-#whiteboardColorPicker {
     left:           40px;
     bottom:         145px;
     display:        block;
