@@ -116,15 +116,14 @@
 /* toggle main whiteboard button with .active on container */
 #whiteboardButtons>#whiteboardButton {
     display: inline-block;
-    color: var(--whiteboard-inactive-color);
     opacity: 0.5;
 }
 #whiteboardButtons>#whiteboardButton:hover {
+    display: inline-block;
     opacity: 1.0;
 }
 #whiteboardButtons.active>#whiteboardButton {
     display: inline-block;
-    color: var(--whiteboard-active-color);
     opacity: 1.0;
 }
 

@@ -421,6 +421,7 @@ let RevealWhiteboard = (function(){
         {
             // hide buttons
             buttons.classList.remove('active');
+            buttonWhiteboard.style.color = inactiveColor;
 
             // reset SVG
             if (svg) {
@@ -438,6 +439,7 @@ let RevealWhiteboard = (function(){
 
             // show buttons
             buttons.classList.add('active');
+            buttonWhiteboard.style.color = activeColor;
 
             // activate SVG
             if (svg) {
