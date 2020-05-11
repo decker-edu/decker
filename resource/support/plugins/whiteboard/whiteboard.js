@@ -132,9 +132,9 @@ let RevealWhiteboard = (function(){
         }
         else {
             if (colorPicker.style.visibility == 'visible')
-                colorPicker.style.visibility = 'hidden';
+                hideColorPicker();
             else
-                colorPicker.style.visibility = 'visible';
+                showColorPicker();
         }
     });
     let buttonEraser = createButton("fa-eraser", () => { selectTool(ToolType.ERASER); } );
@@ -394,7 +394,7 @@ let RevealWhiteboard = (function(){
 
     function selectPenColor(col)
     {
-        colorPicker.style.visibility = 'hidden';
+        hideColorPicker();
         penWidthSlider.style.setProperty("--color", col);
         penColor = col;
         buttonPen.style.color = penColor;
@@ -402,11 +402,22 @@ let RevealWhiteboard = (function(){
         selectCursor(penCursor);
     }
 
+    function showColorPicker()
+    {
+        colorPicker.style.visibility = 'visible';
+    }
+
+
+    function hideColorPicker()
+    {
+        colorPicker.style.visibility = 'hidden';
+    }
+
 
     function selectPenRadius(radius)
     {
+        hideColorPicker();
         penWidth = radius;
-        colorPicker.style.visibility = 'hidden';
         penWidthSlider.value = radius;
         penWidthSlider.style.setProperty("--size", (radius+1)+'px');
         selectCursor(penCursor);
@@ -422,6 +433,7 @@ let RevealWhiteboard = (function(){
             // hide buttons
             buttons.classList.remove('active');
             buttonWhiteboard.style.color = inactiveColor;
+            hideColorPicker();
 
             // reset SVG
             if (svg) {
@@ -1198,6 +1210,9 @@ let RevealWhiteboard = (function(){
     {
         if ( !printMode ) 
         {
+            // hide pen dialog
+            hideColorPicker();
+
             // determine current fragment index
             currentFragmentIndex = Reveal.getIndices().f;
 
@@ -1238,6 +1253,9 @@ let RevealWhiteboard = (function(){
     // handle fragments
     function fragmentChanged()
     {
+        // hide pen dialog
+        hideColorPicker();
+
         // determine current fragment index
         currentFragmentIndex = Reveal.getIndices().f;
 
@@ -1263,6 +1281,8 @@ let RevealWhiteboard = (function(){
 
     // eraser cursor has to be updated on resize (i.e. scale change)
     Reveal.addEventListener( 'resize', () => { 
+        // hide pen dialog
+        hideColorPicker();
         // size of eraser cursor has to be adjusted
         createEraserCursor();
         // slide zoom might change
