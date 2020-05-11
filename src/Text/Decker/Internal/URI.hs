@@ -45,8 +45,10 @@ absolutePathIfLocal project base uriString =
   where
     decide = do
       uri <- URI.mkURI uriString
-      if not (isUriAbsolute uri)
-        then do
+      case uriScheme uri of
+        Just "file" -> return $ Just $ uriPath uri
+        Just _ -> return Nothing
+        Nothing -> do
           let path = toString (uriPath uri)
           let absPath =
                 if URI.isPathAbsolute uri
@@ -57,7 +59,6 @@ absolutePathIfLocal project base uriString =
             if exists
               then Just (toText absPath)
               else Nothing
-        else return Nothing
 
 makeAbsolutePathIfLocal :: FilePath -> FilePath -> Text -> IO Text
 makeAbsolutePathIfLocal project base uriString =

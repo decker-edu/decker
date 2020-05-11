@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3b8ccd51949142c393732a39a91e5f89cc828ff98462b0d3f9cc05d7d2edb2f3
+-- hash: 4365a21903a4854c74f267cad4f699ac1957e0fac38a61bc613b473de72b966b
 
 name:           decker
 version:        0.10.0
@@ -195,12 +195,11 @@ library
 executable decker
   main-is: Decker.hs
   other-modules:
-      Shaker
       Paths_decker
   hs-source-dirs:
       app
   default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
-  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports -main-is Decker
+  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N -main-is Decker
   build-depends:
       Glob
     , HTTP

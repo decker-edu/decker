@@ -16,6 +16,7 @@ module Text.Decker.Internal.Helper
   , handleLeftM
   , isDevelopmentRun
   , warnVersion
+  , tryRemoveDirectory
   ) where
 
 import Text.Decker.Internal.Exception
@@ -31,6 +32,7 @@ import System.CPUTime
 import qualified System.Directory as Dir
 import System.Environment
 import System.FilePath
+import System.Directory
 import Text.Pandoc
 import Text.Printf
 
@@ -138,3 +140,9 @@ warnVersion = do
       deckerGitBranch
       deckerGitCommitId
       deckerGitVersionTag
+
+tryRemoveDirectory :: FilePath -> IO ()
+tryRemoveDirectory path = do
+  exists <- doesDirectoryExist path
+  when exists $ removeDirectoryRecursive path
+
