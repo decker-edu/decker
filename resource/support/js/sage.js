@@ -113,8 +113,8 @@ function prepareSAGE()
             sageCell.classList.remove("stretch");
         }
         else { 
-            iframe.style.width  = sageCell.style.width  || "100%";
-            iframe.style.height = sageCell.style.height || "500px";
+            iframe.style.width  = sageCell.getAttribute('width')  || sageCell.style.width  || "100%";
+            iframe.style.height = sageCell.getAttribute('height') || sageCell.style.height || "500px";
         }
         if (sageCell.classList.contains("print")) {
             iframe.classList.add("print");
