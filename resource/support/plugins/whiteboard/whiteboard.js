@@ -1175,9 +1175,18 @@ let RevealWhiteboard = (function(){
     }, true );
 
 
-    // when drawing, stop ANY click (e.g. menu icon)
+    // when drawing, prevent touch events triggering clicks 
+    // (e.g. menu icon, control arrows)
     // only allow clicks for our (.whiteboard) buttons
-    window.addEventListener( "click", function(evt) 
+    window.addEventListener( "touchstart", function(evt) 
+    {
+        if (whiteboardActive && !evt.target.classList.contains("whiteboard"))
+        {
+            killEvent(evt);
+            return false;
+        }
+    }, true );
+    window.addEventListener( "touchend", function(evt) 
     {
         if (whiteboardActive && !evt.target.classList.contains("whiteboard"))
         {
@@ -1250,7 +1259,7 @@ let RevealWhiteboard = (function(){
         // determine current fragment index
         currentFragmentIndex = Reveal.getIndices().f;
 
-        if (currentFragmentIndex != undefined)
+        if (svg && currentFragmentIndex != undefined)
         {
             // adjust fragment visibility
             svg.querySelectorAll('svg>path[data-frag]').forEach( stroke => { 
