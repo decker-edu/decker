@@ -171,6 +171,7 @@ deckerShakeOptions ctx = do
       { shakeFiles = ctx ^. dirs . transient
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
+      , shakeColor = True
       -- , shakeChange = ChangeModtimeAndDigest
       , shakeAbbreviations = [(ctx ^. dirs . project, "${project}")]
       }
