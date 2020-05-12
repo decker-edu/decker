@@ -106,6 +106,15 @@ var RevealMath = window.RevealMath || (function(){
                     },
                     startup: {
                         ready: () => {
+                            // bug-fix / work-around for MathJax issue 2402
+                            if (MathJax.version === '3.0.5') {
+                                const SVGWrapper = MathJax._.output.svg.Wrapper.SVGWrapper;
+                                const CommonWrapper = SVGWrapper.prototype.__proto__;
+                                SVGWrapper.prototype.unicodeChars = function (text, variant) {
+                                    if (!variant) variant = this.variant || 'normal';
+                                    return CommonWrapper.unicodeChars.call(this, text, variant);
+                                }
+                            }
                             console.log('mathjax loaded');
                             //MathJax.startup.defaultReady();
                         }

@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 33bd14fe86cfd705386922fa0924ad0d289f10459602777bae835592ecfc9df7
+-- hash: daac999d6ee46f80d9b40869c0f5a03dbdfe8f83255b1843be56c6a2ceea4800
 
 name:           decker
 version:        0.10.0
@@ -88,7 +88,6 @@ library
       Text.Decker.Filter.Monad
       Text.Decker.Filter.Quiz
       Text.Decker.Filter.Range
-      Text.Decker.Filter.Render
       Text.Decker.Filter.ShortLink
       Text.Decker.Filter.Slide
       Text.Decker.Filter.Streaming
@@ -118,7 +117,7 @@ library
   hs-source-dirs:
       src
   default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
-  ghc-options: -fwarn-unused-imports
+  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports
   build-depends:
       Glob
     , HTTP
@@ -201,7 +200,7 @@ executable decker
   hs-source-dirs:
       app
   default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
-  ghc-options: -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N -fwarn-unused-imports -main-is Decker
+  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports -main-is Decker
   build-depends:
       Glob
     , HTTP
@@ -281,7 +280,7 @@ test-suite decker-test
   hs-source-dirs:
       test
   default-extensions: DeriveDataTypeable DeriveGeneric EmptyCase FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving InstanceSigs LambdaCase MultiParamTypeClasses MultiWayIf NamedFieldPuns NoMonomorphismRestriction OverloadedStrings QuasiQuotes RecordWildCards ScopedTypeVariables TemplateHaskell TupleSections
-  ghc-options: -fwarn-unused-imports -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wunused-top-binds -Wunused-local-binds -Wincomplete-patterns -fwarn-unused-imports
   build-depends:
       Glob
     , HTTP

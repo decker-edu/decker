@@ -22,7 +22,7 @@ justToList :: [Maybe a] -> [a]
 justToList = reverse . justToList'
   where
     justToList' ((Just x):xs) = x : justToList xs
-    justToList' (Nothing:_) = []
+    justToList' _ = []
 
 youtubeDefaults =
   [ ("cc_load_policy", "0")
@@ -229,7 +229,7 @@ mkMediaTag tag uri dataSrc attr =
 mkStreamTag :: URI -> Attr -> Attr -> Html
 mkStreamTag uri wrapperAttr iframeAttr =
   let inner =
-        mkMediaTag (H.iframe "Iframe showing video here.") uri True iframeAttr
+        mkMediaTag (H.iframe "Iframe showing video here.") uri False iframeAttr
    in mkAttrTag (H.div inner) wrapperAttr
 
 mkDivTag :: Html -> Attr -> Html

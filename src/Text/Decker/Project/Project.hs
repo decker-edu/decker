@@ -4,23 +4,20 @@ module Text.Decker.Project.Project
   ( resourcePaths
   , scanTargetsToFile
   , deckerResourceDir
-  , oldResourcePaths
-  -- , linkResource
-  , relRefResource
-  , absRefResource
   , removeCommonPrefix
   , isPrefix
   , makeRelativeTo
   , findProjectDirectory
   , projectDirectories
   , provisioningFromMeta
-  , dachdeckerFromMeta
+  -- , dachdeckerFromMeta
   , invertPath
   , scanTargets
   , isDevelopmentRun
   , excludeDirs
   , staticDirs
   -- * Types
+  , static
   , sources
   , decks
   , decksPdf
@@ -28,17 +25,19 @@ module Text.Decker.Project.Project
   , pagesPdf
   , handouts
   , handoutsPdf
+  , annotations
   , projectDir
   , publicDir
   , project
   , public
   , support
   , transient
-  , getDachdeckerUrl
+  -- , getDachdeckerUrl
   , Targets(..)
   , Resource(..)
   , ProjectDirs(..)
   , fromMetaValue
+  , toMetaValue
   , readTargetsFile
   ) where
 
@@ -55,21 +54,15 @@ import Data.Aeson
 import Data.Aeson.TH
 import Data.Char
 import qualified Data.List as List
-import Data.List.Split (splitOn)
 import qualified Data.Map.Strict as Map
 import Data.Maybe
-import qualified Data.Text as Text
 import qualified Data.Yaml as Yaml
 import Development.Shake hiding (Resource)
 import Network.URI
 import Relude
 import qualified System.Directory as D
-import System.Environment
 import System.FilePath
-import Text.Pandoc.Definition
-import Text.Pandoc.Shared
-import Text.Read
-import Text.Regex.TDFA
+import Text.Pandoc.Builder hiding (lookupMeta)
 
 data Targets = Targets
   { _sources :: [FilePath]
@@ -110,23 +103,8 @@ instance FromJSON Resource where
     withObject "Resource" $ \v ->
       Resource <$> v .: "source" <*> v .: "target" <*> v .: "url"
 
-class ToMetaValue a where
-  toMetaValue :: a -> MetaValue
-
-instance ToMetaValue MetaValue where
-  toMetaValue = id
-
-instance {-# OVERLAPS #-} ToMetaValue a => ToMetaValue [a] where
-  toMetaValue = MetaList . map toMetaValue
-
-instance ToMetaValue a => ToMetaValue [(Text, a)] where
+instance {-# OVERLAPS #-} ToMetaValue a => ToMetaValue [(Text, a)] where
   toMetaValue = MetaMap . Map.fromList . map (second toMetaValue)
-
-instance ToMetaValue Text where
-  toMetaValue = MetaString
-
-instance ToMetaValue String where
-  toMetaValue = MetaString . Text.pack
 
 instance ToMetaValue Resource where
   toMetaValue (Resource source target url) =
@@ -136,31 +114,12 @@ instance ToMetaValue Resource where
       , ("url" :: Text, url)
       ]
 
-class FromMetaValue a where
-  fromMetaValue :: MetaValue -> Maybe a
-
-instance {-# OVERLAPS #-} FromMetaValue a => FromMetaValue [a] where
-  fromMetaValue (MetaList list) = Just $ mapMaybe fromMetaValue list
-  fromMetaValue _ = Nothing
-
-instance FromMetaValue a => FromMetaValue [(Text, a)] where
+instance {-# OVERLAPS #-} FromMetaValue a => FromMetaValue [(Text, a)] where
   fromMetaValue (MetaMap object) =
     let kes :: Map Text (Maybe a) =
           Map.filter isJust $ Map.map fromMetaValue object
      in Just $ zip (Map.keys kes) (map fromJust (Map.elems kes))
   fromMetaValue _ = Nothing
-
-instance FromMetaValue Text where
-  fromMetaValue (MetaString text) = Just text
-  fromMetaValue (MetaInlines inlines) = Just $ stringify inlines
-  fromMetaValue _ = Nothing
-
-instance FromMetaValue String where
-  fromMetaValue v = Text.unpack <$> fromMetaValue v
-
-rightToMaybe (Right r) = Just r
-
-rightRoMaybe (Left l) = Nothing
 
 instance FromMetaValue Resource where
   fromMetaValue (MetaMap object) = do
@@ -184,29 +143,42 @@ $(deriveJSON
       {fieldLabelModifier = drop 1, constructorTagModifier = map toLower}
     ''ProjectDirs)
 
+instance ToMetaValue ProjectDirs where
+  toMetaValue (ProjectDirs project public support transient) =
+    toMetaValue
+      [ ("project" :: Text, project)
+      , ("public" :: Text, public)
+      , ("support" :: Text, support)
+      , ("transient" :: Text, transient)
+      ]
+
+instance FromMetaValue ProjectDirs where
+  fromMetaValue (MetaMap object) = do
+    project <- Map.lookup "project" object >>= fromMetaValue
+    public <- Map.lookup "public" object >>= fromMetaValue
+    support <- Map.lookup "support" object >>= fromMetaValue
+    transient <- Map.lookup "transient" object >>= fromMetaValue
+    return $ ProjectDirs project public support transient
+  fromMetaValue _ = Nothing
+
 provisioningFromMeta :: Meta -> Provisioning
 provisioningFromMeta meta =
-  fromMaybe SymLink $ getMetaString "provisioning" meta >>= readMaybe
+  fromMaybe SymLink $ lookupMeta "provisioning" meta >>= readMaybe
 
-dachdeckerFromMeta :: Meta -> Maybe String
-dachdeckerFromMeta = getMetaString "dachdecker"
+-- dachdeckerFromMeta :: Meta -> Maybe String
+-- dachdeckerFromMeta = getMetaString "dachdecker"
+{-
+ -absRefResource :: Resource -> IO FilePath
+ -absRefResource resource =
+ -  return $ show $ URI "file" Nothing (sourceFile resource) "" ""
+ -}
 
-provisioningClasses :: [(String, Provisioning)]
-provisioningClasses =
-  [ ("copy", Copy)
-  , ("symlink", SymLink)
-  , ("absolute", Absolute)
-  , ("relative", Relative)
-  ]
-
-absRefResource :: Resource -> IO FilePath
-absRefResource resource =
-  return $ show $ URI "file" Nothing (sourceFile resource) "" ""
-
-relRefResource :: FilePath -> Resource -> IO FilePath
-relRefResource base resource = do
-  let relPath = makeRelativeTo base (sourceFile resource)
-  return $ show $ URI "file" Nothing relPath "" ""
+{-
+ -relRefResource :: FilePath -> Resource -> IO FilePath
+ -relRefResource base resource = do
+ -  let relPath = makeRelativeTo base (sourceFile resource)
+ -  return $ show $ URI "file" Nothing relPath "" ""
+ -}
 
 -- | Find the project directory. 
 -- 1. First upwards directory containing `decker.yaml`
@@ -249,21 +221,23 @@ deckerResourceDir =
     ("decker" ++
      "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
 
--- | Get the absolute paths of resource folders 
--- with version numbers older than the current one
-oldResourcePaths :: IO [FilePath]
-oldResourcePaths = do
-  dir <- D.getXdgDirectory D.XdgData []
-  files <- D.listDirectory dir
-  return $ map (dir </>) $ filter oldVersion files
-  where
-    convert = map (read :: String -> Int)
-    currentVersion = convert (splitOn "." deckerVersion)
-    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
-    oldVersion name =
-      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
-        [] -> False
-        _:x:y:z:_ -> convert [x, y, z] < currentVersion
+{-
+ --- | Get the absolute paths of resource folders 
+ --- with version numbers older than the current one
+ -oldResourcePaths :: IO [FilePath]
+ -oldResourcePaths = do
+ -  dir <- D.getXdgDirectory D.XdgData []
+ -  files <- D.listDirectory dir
+ -  return $ map (dir </>) $ filter oldVersion files
+ -  where
+ -    convert = map (read :: String -> Int)
+ -    currentVersion = convert (splitOn "." deckerVersion)
+ -    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
+ -    oldVersion name =
+ -      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
+ -        _:x:y:z:_ -> convert [x, y, z] < currentVersion
+ -        _ -> False
+ -}
 
 resourcePaths :: ProjectDirs -> FilePath -> URI -> Resource
 resourcePaths dirs base uri =
@@ -326,8 +300,6 @@ pageHTMLSuffix = "-page.html"
 
 pagePDFSuffix = "-page.pdf"
 
-handoutSuffix = "-deck.md"
-
 handoutHTMLSuffix = "-handout.html"
 
 handoutPDFSuffix = "-handout.pdf"
@@ -342,9 +314,9 @@ alwaysExclude = ["public", deckerFiles, "dist", ".git", ".vscode"]
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
-  alwaysExclude <> getMetaStringListOrElse "exclude-directories" [] meta
+  alwaysExclude <> lookupMetaOrElse [] "exclude-directories" meta
 
-staticDirs = getMetaStringListOrElse "static-resource-dirs" []
+staticDirs = lookupMetaOrElse [] "static-resource-dirs"
 
 scanTargetsToFile :: Meta -> ProjectDirs -> FilePath -> Action ()
 scanTargetsToFile meta dirs file = do
@@ -353,7 +325,6 @@ scanTargetsToFile meta dirs file = do
 
 scanTargets :: Meta -> ProjectDirs -> IO Targets
 scanTargets meta dirs = do
-  let exclude = excludeDirs meta
   srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
   let static = map (dirs ^. project </>) (staticDirs meta)
   staticSrc <- concat <$> mapM (fastGlobFiles [] []) static
@@ -380,17 +351,19 @@ scanTargets meta dirs = do
          combine (dirs ^. public) . makeRelative (dirs ^. project))
         (fromMaybe [] $ List.lookup srcSuffix sources)
 
-getDachdeckerUrl :: IO String
-getDachdeckerUrl = do
-  env <- System.Environment.lookupEnv "DACHDECKER_SERVER"
-  let url =
-        case env of
-          Just val -> val
-          Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
-  return url
+{-
+ -getDachdeckerUrl :: IO String
+ -getDachdeckerUrl = do
+ -  env <- System.Environment.lookupEnv "DACHDECKER_SERVER"
+ -  let url =
+ -        case env of
+ -          Just val -> val
+ -          Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
+ -  return url
+ -}
 
 projectDir :: Meta -> FilePath
-projectDir = getMetaStringOrElse "decker.directories.project" "."
+projectDir = lookupMetaOrElse "." "decker.directories.project"
 
 publicDir :: Meta -> FilePath
-publicDir = getMetaStringOrElse "decker.directories.public" "."
+publicDir = lookupMetaOrElse "." "decker.directories.public"

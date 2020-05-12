@@ -14,287 +14,230 @@
 "use strict";
 
 
-var RevealWhiteboard = (function(){
+let RevealWhiteboard = (function(){
 
-    var DEBUG = false;
-    var LOCAL_STORAGE = false;
-
-
-    /************************************************************************
-     ** Tools
-     ************************************************************************/
-
-    /*
-     * return path to this script
-     */
-    function scriptPath()
-    {
-        // obtain plugin path from the script element
-        var src;
-        if (document.currentScript) {
-            src = document.currentScript.src;
-        } else {
-            var sel = document.querySelector('script[src$="/whiteboard.js"]')
-            if (sel) {
-                src = sel.src;
-            }
-        }
-
-        var path = typeof src === undefined ? src
-            : src.slice(0, src.lastIndexOf("/") + 1);
-        return path;
-    }
-
-
+    const LOCAL_STORAGE = false;
+    const QUADRATIC_SPLINE = true;
+    const STROKE_STEP_THRESHOLD = 2;
 
 
     /************************************************************************
      ** Configuration options, global variables
      ************************************************************************/
 
-    var path = scriptPath();
-
     // default values or user configuration?
-    var config     = Reveal.getConfig().whiteboard || {};
-    var colors     = config.colors || [ "black", "red", "green", "blue", "yellow", "cyan", "magenta" ];
-    var background = config.background || "white";
+    const config = Reveal.getConfig().whiteboard || {};
 
-    // handle CSS zoom (Chrome), CSS scale (others), and highDPI/retina scale
-    // (has to be updated later on, i.e., after reveal layout)
-    var reveal      = document.querySelector( '.reveal' );
-    var slides      = document.querySelector( '.reveal .slides' );
-    var slideZoom   = slides.style.zoom || 1;
-    var slideScale  = Reveal.getScale();
-    var slideRect   = slides.getBoundingClientRect();
-    var slideScroll = 0;
-    var canvasScale = window.devicePixelRatio || 1;
+    // colors
+    const penColors = config.colors || [ "blue", "red", "green", "cyan", "magenta", "yellow", "black" ];
+    let penColor  = penColors[0];
+    let penWidth = 2;
+
+    // colors for buttons
+    const activeColor   = 'var(--whiteboard-active-color)';
+    const inactiveColor = 'var(--whiteboard-inactive-color)';
+
+    // reveal elements
+    let reveal = document.querySelector( '.reveal' );
+    let slides = document.querySelector( '.reveal .slides' );
+    let slideZoom = slides.style.zoom || 1;
 
     // different cursors used by whiteboard
-    var eraserCursor;
-    var eraserRadius = 10;
-    var laserCursor;
-    var penCursor;
-    var currentCursor;
-    var penColor  = "red";
-
-
-    // setup light saber
-    var lightsaber = document.createElement('div');
-    var handle = document.createElement('label');
-    var plasma = document.createElement('div');
-    lightsaber.id = "lightsaber";
-    plasma.classList.add("plasma");
-    lightsaber.appendChild(handle);
-    lightsaber.appendChild(plasma);
-    document.body.appendChild(lightsaber);
-    var laserOn  = new Audio(path+'/laserOn.mp3');
-    var laserHum = new Audio(path+'/laserHum.mp3'); laserHum.loop=true;
-    var laserOff = new Audio(path+'/laserOff.mp3');
-    laserOn.onended  = function(){ laserHum.play(); }
-    laserOff.onended = function(){ lightsaber.style.visibility = "hidden"; }
-   
+    let eraserCursor;
+    let eraserRadius = 10;
+    let laserCursor;
+    let penCursor;
+    let currentCursor;
 
     // canvas for dynamic cursor generation
-    var cursorCanvas = document.createElement( 'canvas' );
+    let cursorCanvas = document.createElement( 'canvas' );
     cursorCanvas.id     = "CursorCanvas";
     cursorCanvas.width  = 20;
     cursorCanvas.height = 20;
-    initCursors();
 
     // store which tools are active
-    var boardMode = false;
-    var ToolType = { NONE: 0, PEN: 1, ERASER: 2 };
-    var tool = ToolType.NONE;
-    var mode = 0; // 0: draw on slides, 1: draw on whiteboard
-    var laser = false;
-
-    // current stroke recording event data (type, coordinates, color)
-    var activeStroke = null;
+    const ToolType = { PEN: 1, ERASER: 2, LASER: 3 };
+    let tool = ToolType.PEN;
 
     // variable used to block leaving HTML page
-    var needSave = false;
-
-    // current slide's indices
-    var slideIndices =  { h:0, v:0 };
+    let unsavedAnnotations = false;
 
     // is the user generating a PDF?
-    var printMode = ( /print-pdf/gi ).test( window.location.search );
+    const printMode = ( /print-pdf/gi ).test( window.location.search );
+
+    // whiteboard canvas
+    let svg = null;
+    let stroke = null;
+    let points = null; 
+
+    // global whiteboard status
+    let whiteboardActive = false;
+
+    // currently active fragment
+    let currentFragmentIndex = 0;
 
 
+    // handle browser features
+    const weHavePointerEvents   = !!(window.PointerEvent);
+    const weHaveCoalescedEvents = !!(window.PointerEvent && (new PointerEvent("pointermove")).getCoalescedEvents);
+    let   userShouldBeWarned    = !weHavePointerEvents || !weHaveCoalescedEvents;
+    let   userHasBeenWarned     = false;
+
+    function warnUser() {
+        if (!weHavePointerEvents)
+        {
+            alert("Your browser does not support pointer events.\nWhiteboard will not work.\nBetter use Chrome/Chromium or Firefox.");
+        }
+        else if (!weHaveCoalescedEvents)
+        {
+            alert("Your browser does not support coalesced pointer events.\nWhiteboard drawing might be laggy.\nBetter use Chrome/Chromium or Firefox.");
+        }
+        userHasBeenWarned = true;
+    }
 
 
     /************************************************************************
      * Setup GUI
      ************************************************************************/
 
-    // load css
-    function loadCSS()
-    {
-        var head  = document.getElementsByTagName('head')[0];
-        var link  = document.createElement('link');
-        link.rel  = 'stylesheet';
-        link.type = 'text/css';
-        link.href = path + "/whiteboard.css";
-        link.media = 'all';
-        head.appendChild(link);
-    }
-    loadCSS();
+    // generate container for whiteboard buttons
+    let buttons = document.createElement( 'div' );
+    buttons.id = 'whiteboardButtons';
+    reveal.appendChild(buttons);
 
 
-    /*
-     * create a button on the left side
-     */
-    function createButton(left, bottom, icon)
+    // function to generate a button
+    function createButton(icon, callback, active=false)
     {
-        var b = document.createElement( 'div' );
+        let b = document.createElement( 'button' );
         b.classList.add("whiteboard");
-        b.style.position     = "absolute";
-        b.style.zIndex       = 40;
-        b.style.left         = left + "px";
-        b.style.bottom       = bottom + "px";
-        b.style.top          = "auto";
-        b.style.right        = "auto";
-        b.style.fontSize     = "16px";
-        b.style.padding      = "3px";
-        b.style.borderRadius = "3px";
-        b.style.color        = "lightgrey";
-        if (icon)
-        {
-            b.classList.add("fas");
-            b.classList.add(icon);
-        }
-        reveal.appendChild(b);
+        b.classList.add("fas");
+        b.classList.add(icon);
+        b.onclick = callback;
+        b.style.color = active ? activeColor : inactiveColor;
+        buttons.appendChild(b);
         return b;
     }
 
-    var buttonSave      = createButton(8, 8, "fa-save");
-    buttonSave.onclick  = function(){ saveAnnotations(); }
 
-    var buttonBoard      = createButton(8, 40, "fa-edit");
-    buttonBoard.onclick  = function(){ toggleWhiteboard(); }
+    let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard, false);
+    buttonWhiteboard.id  = "whiteboardButton";
+    let buttonSave       = createButton("fa-save", saveAnnotations, false);
+    let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true);
+    let buttonGrid       = createButton("fa-border-all", toggleGrid, false);
+    let buttonUndo       = createButton("fa-undo", undoStroke, true);
+    let buttonPen        = createButton("fa-pen", () => {
+        if (tool != ToolType.PEN) {
+            selectTool(ToolType.PEN);
+        }
+        else {
+            if (colorPicker.style.visibility == 'visible')
+                hideColorPicker();
+            else
+                showColorPicker();
+        }
+    });
+    let buttonEraser = createButton("fa-eraser", () => { selectTool(ToolType.ERASER); } );
+    let buttonLaser  = createButton("fa-magic", () => { selectTool(ToolType.LASER); } );
 
-    var buttonPen        = createButton(8, 72, "fa-pen");
-    buttonPen.onclick    = function(){ 
-        if (pktimer)    clearTimeout(pktimer);
-        if (!pk.isOpen) selectTool(ToolType.PEN); 
+
+    // generate color picker container
+    let colorPicker = document.createElement( 'div' );
+    colorPicker.id = 'whiteboardColorPicker';
+    reveal.appendChild(colorPicker);
+    penColors.forEach( color => {
+        let b = document.createElement( 'button' );
+        b.classList.add("whiteboard", "fas", "fa-pen");
+        b.onclick = () => { selectPenColor(color); }
+        b.style.color = color;
+        colorPicker.appendChild(b);
+    });
+
+
+    // generate penWidth slider
+    let penWidthSlider = document.createElement( 'input' );
+    penWidthSlider.id = "whiteboardSlider";
+    penWidthSlider.type="range";
+    penWidthSlider.min=1;
+    penWidthSlider.max=10;
+    penWidthSlider.value=2;
+    colorPicker.appendChild(penWidthSlider);
+    penWidthSlider.onchange = () => { selectPenRadius(parseInt(penWidthSlider.value)); };
+    penWidthSlider.oninput  = () => { penWidthSlider.style.setProperty('--size', (parseInt(penWidthSlider.value)+1)+'px'); }
+
+
+    // create whiteboard SVG for current slide
+    // is currently called for each slide, even if we don't have strokes yet
+    function setupSVG(slide, height)
+    {
+        // get slide
+        if (!slide)  slide = Reveal.getCurrentSlide();
+        if (!slide) return;
+
+        // does SVG exist already?
+        svg = slide.querySelector('svg.whiteboard');
+        if (svg) return svg;
+
+        // otherwise, let's create the SVG
+        svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.classList.add("whiteboard");
+        svg.setAttribute( 'data-prevent-swipe', '' );
+        svg.setAttribute( 'preserveAspectRatio', 'none' );
+        svg.style.pointerEvents = "none";
+        svg.style.border = "1px solid transparent";
+
+        // SVG dimensions
+        const pageHeight = Reveal.getConfig().height;
+        svg.style.width  = "100%";
+        if (!height) height = pageHeight;
+        svg.style.height = height + "px";
+
+        // prevent accidential click, double-click, and context menu
+        svg.oncontextmenu = killEvent;
+        svg.onclick       = killEvent;
+        svg.ondblclick    = killEvent;
+
+        // add SVG to slide
+        slide.appendChild( svg );
+
+        // slide indices (used for saving)
+        let idx = Reveal.getIndices(slide);
+        svg.h = idx.h;
+        svg.v = idx.v ? idx.v : 0;
+
+        return svg;
     }
-
-    var buttonEraser     = createButton(8, 104, "fa-eraser");
-    buttonEraser.onclick = function(){ selectTool(ToolType.ERASER); }
-
-    var laserTimer;
-    var buttonLaser      = createButton(8, 136, "fa-magic");
-    buttonLaser.onclick  = function(){ toggleLaser(); }
-
-
-
-    // add color picker to long-tap of buttonPen
-    var pkdiv = createButton(40, 40);
-    pkdiv.setAttribute("class", "color-picker");
-    var pkoptions = { template: "<div class=\"whiteboard\" data-col=\"{color}\" style=\"background-color: {color}\"></div>" };
-    var pk = new Piklor(pkdiv, colors, pkoptions);
-    pk.colorChosen(function (col) { penColor = col; updateGUI(); });
-    var pktimer;
-    buttonPen.onmousedown = function(){ pktimer = setTimeout(function(){pk.open();}, 500); }
-
-
-    // create container for canvases
-    var container = document.createElement( 'div' );
-    container.setAttribute( 'data-prevent-swipe', '' );
-    container.style.transition              = "none";
-    container.style.margin                  = "0";
-    container.style.padding                 = "0";
-    container.style.border                  = "1px solid transparent";
-    container.style.boxSizing               = "content-box";
-    container.style.position                = "absolute";
-    container.style.top                     = "0px";
-    container.style.left                    = "0px";
-    container.style.width                   = "100%";
-    container.style.height                  = "100%";
-    container.style.maxHeight               = "100%";
-    container.style.zIndex                  = "34";
-    container.style.pointerEvents           = "none";
-    container.style.overflowX               = 'hidden';
-    container.style.overflowY               = 'hidden';
-    container.style.touchAction             = 'pan-y'; // avoid Chrome's 'go-back' by horizontal swipe
-    container.style.WebkitOverflowScrolling = 'auto';
-    slides.appendChild( container );
-
-
-    // create canvases
-    var drawingCanvas = [ {id: "annotations" }, {id: "whiteboard" } ];
-    setupDrawingCanvas(0);
-    setupDrawingCanvas(1);
 
 
     /*
-     * create a drawing canvas
+     * setup hidden SVG for defining grid pattern
      */
-    function setupDrawingCanvas( id )
+    function setupGridPattern()
     {
-        // size of slides
-        var width  = Reveal.getConfig().width;
-        var height = Reveal.getConfig().height;
+        let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.style.position      = 'absolute';
+        svg.style.left          = '0px';
+        svg.style.top           = '0px';
+        svg.style.width         = '10px';
+        svg.style.height        = '10px';
+        svg.style.pointerEvents = 'none';
+        slides.insertBefore(svg, slides.firstChild);
 
-        // create canvas
-        var canvas = document.createElement( 'canvas' );
-        canvas.setAttribute( 'data-prevent-swipe', '' );
-        canvas.style.background = id==0 ? "rgba(0,0,0,0)" : background;
-        canvas.style.border     = "none";
-        canvas.style.boxSizing  = "border-box";
-        canvas.style.position   = "relative";
-        canvas.style.width      = "100%";
-        canvas.style.height     = height + "px";
-        canvas.width            = width  * canvasScale;
-        canvas.height           = height * canvasScale;
-        canvas.style.position   = "absolute";
-        canvas.style.top        = "0px";
-        canvas.style.left       = "0px";
+        const pageWidth   = Reveal.getConfig().width;
+        const pageHeight  = Reveal.getConfig().height;
+        const h           = Math.floor(Math.min(pageWidth, pageHeight) / 25);
 
-        // DO NOT USE low-latency context, it fails on Chrome/Linux for whiteboards with >2 pages
-        //var opts = {lowLatency: true, desynchronized: true};
-        //var ctx = canvas.getContext("2d", opts);
-        //if (ctx.getContextAttributes && ctx.getContextAttributes().desynchronized)
-            //console.log('Low latency canvas supported!');
-
-        // setup highDPI scaling & draw style
-        var ctx = canvas.getContext("2d");
-        ctx.scale(canvasScale, canvasScale);
-        ctx.lineCap   = 'round';
-        ctx.lineJoint = 'round';
-        ctx.lineWidth = 2;
-
-        // differences between the two canvases
-        if ( id == "0" )
-        {
-            canvas.id = 'drawOnSlides';
-            canvas.style.zIndex = "34";
-        }
-        else
-        {
-            canvas.id = 'drawOnBoard';
-            canvas.style.zIndex = "36";
-            canvas.style.visibility = "hidden";
-        }
-
-        // add canvas to container
-        container.appendChild( canvas );
-
-        // store relevant information
-        drawingCanvas[id].canvas    = canvas;
-        drawingCanvas[id].container = container;
-        drawingCanvas[id].context   = ctx;
-        drawingCanvas[id].width     = width;
-        drawingCanvas[id].height    = height;
-
-        // prevent accidential click, double-click, and context menu
-        canvas.oncontextmenu = killEvent;
-        canvas.onclick       = killEvent;
-        canvas.ondblclick    = function(evt) {
-            killEvent(evt);
-            if (!tool && laser) toggleLightSaber(evt);
-        }
+        svg.innerHTML = 
+            `<defs>
+                 <pattern id="smallPattern" width="${h}" height="${h}" patternUnits="userSpaceOnUse">
+                     <path d="M ${h} 0 L 0 0 0 ${h}" fill="none" stroke="#EEEEEE" stroke-width="2"/>
+                 </pattern>
+                 <pattern id="gridPattern" width="${pageWidth}" height="${pageHeight}" patternUnits="userSpaceOnUse">
+                     <rect width="${pageWidth}" height="${pageHeight}" fill="url(#smallPattern)" stroke="lightgrey" stroke-width="3"/>
+                 </pattern>
+             </defs>`;
     }
+    setupGridPattern();
 
 
     /*
@@ -313,17 +256,14 @@ var RevealWhiteboard = (function(){
      * Interal GUI functions related to mouse cursor
      ******************************************************************/
 
-    /*
-     * create laser and eraser cursor
-     */
-    function initCursors()
+    function createLaserCursor()
     {
-        var ctx = cursorCanvas.getContext("2d");
+        let ctx = cursorCanvas.getContext("2d");
 
         // setup color gradient
-        var col1 = "rgba(255, 0, 0, 1.0)";
-        var col2 = "rgba(255, 0, 0, 0.0)";
-        var grdLaser = ctx.createRadialGradient(10, 10, 1, 10, 10, 10);
+        let col1 = "rgba(255, 0, 0, 1.0)";
+        let col2 = "rgba(255, 0, 0, 0.0)";
+        let grdLaser = ctx.createRadialGradient(10, 10, 1, 10, 10, 10);
         grdLaser.addColorStop(0, col1);
         grdLaser.addColorStop(1, col2);
 
@@ -335,24 +275,23 @@ var RevealWhiteboard = (function(){
     }
 
 
-    /*
-     * adjust pen cursor to have current color
-     */
-    function updateCursor()
+    function createPenCursor()
     {
-        var ctx  = cursorCanvas.getContext("2d");
+        let ctx = cursorCanvas.getContext("2d");
+        cursorCanvas.width  = 20;
+        cursorCanvas.height = 20;
 
         // convert penColor to rgb
-        var elem = document.body.appendChild(document.createElement('fictum'));
+        let elem = document.body.appendChild(document.createElement('fictum'));
         elem.style.color = penColor;
-        var color = getComputedStyle(elem).color;
-        var rgb = color.substring(color.indexOf('(')+1, color.lastIndexOf(')')).split(/,\s*/);
+        let color = getComputedStyle(elem).color;
+        let rgb = color.substring(color.indexOf('(')+1, color.lastIndexOf(')')).split(/,\s*/);
         document.body.removeChild(elem);
 
         // setup color gradient with pen color
-        var col1 = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",1.0)";
-        var col2 = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",0.0)";
-        var grdPen   = ctx.createRadialGradient(10, 10, 1, 10, 10, 3);
+        let col1 = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",1.0)";
+        let col2 = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",0.0)";
+        let grdPen   = ctx.createRadialGradient(10, 10, 1, 10, 10, 3);
         grdPen.addColorStop(0, col1);
         grdPen.addColorStop(1, col2);
 
@@ -361,20 +300,31 @@ var RevealWhiteboard = (function(){
         ctx.fillStyle = grdPen;
         ctx.fillRect(0, 0, 20, 20);
         penCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
+    }
 
-        // render eraser cursor
-        ctx.clearRect(0, 0, 20, 20); 
+
+    function createEraserCursor()
+    {
+        let ctx = cursorCanvas.getContext("2d");
+        cursorCanvas.width  = 20;
+        cursorCanvas.height = 20;
+
+        // (adjust canvas size and eraser radius using Reveal scale)
+        const slideScale = Reveal.getScale();
+        const radius = eraserRadius * slideScale;
+        const width  = 2*radius;
+        cursorCanvas.width  = width;
+        cursorCanvas.height = width;
+
+        ctx.clearRect(0, 0, width, width); 
+        ctx.fillStyle = "rgba(255,255,255,0)";
+        ctx.fillRect(0, 0, width, width);
         ctx.strokeStyle = "rgba(128, 128, 128, 0.8)";
-        ctx.fillStyle   = "rgba(255, 255, 255, 0.8)";
-        ctx.lineWidth   = 1;
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(10, 10, eraserRadius*Reveal.getScale(), 0, 2*Math.PI);
-        ctx.fill(); 
+        ctx.arc(radius, radius, radius-2, 0, 2*Math.PI);
         ctx.stroke(); 
-        eraserCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
-
-        // reset cursor
-        container.style.cursor = tool ? 'none' : '';
+        eraserCursor = "url(" + cursorCanvas.toDataURL() + ") " + radius + " " + radius + ", auto";
     }
 
 
@@ -388,17 +338,17 @@ var RevealWhiteboard = (function(){
 	function showCursor(cur)
     {
         if (cur != undefined) selectCursor(cur);
-        container.style.cursor = currentCursor;
+        slides.style.cursor = currentCursor;
 	}
 
     // hide cursor
 	function hideCursor() 
     {
-        container.style.cursor='none';
+        slides.style.cursor='none';
     }
 
     // hide cursor after 1 sec
-    var hideCursorTimeout;
+    let hideCursorTimeout;
 	function triggerHideCursor() 
     {
         clearTimeout( hideCursorTimeout );
@@ -412,206 +362,113 @@ var RevealWhiteboard = (function(){
      ******************************************************************/
 
     /*
-     * select active tool (pen, eraser, laser pointer)
-     * and update GUI (which updates cursor)
+     * select active tool and update buttons & cursor
      */
     function selectTool(newTool)
     {
-        tool = (tool==newTool ? ToolType.NONE : newTool);
-        updateGUI();
-    }
+        tool = newTool;
 
-
-    /*
-     * toggle laser on/off.
-     * when laser is active, reveal's cursor is overridden.
-     */
-    function toggleLaser()
-    {
-        laser = !laser;
-        updateGUI();
-    }
-
-    function toggleLightSaber(evt)
-    {
-        laserOn.pause();
-        laserOn.currentTime = 0;
-        laserOff.pause();
-        laserOff.currentTime = 0;
-        laserHum.pause();
-        laserHum.currentTime = 0;
-
-        if (lightsaber.style.visibility == "visible")
-        {
-            laserOff.play();
-            lightsaber.classList.remove("on");
-            document.body.style.cursor = laserCursor;
-        }
-        else
-        {
-            document.body.style.cursor = 'none';
-            lightsaber.style.left = evt.pageX + "px";
-            lightsaber.style.top  = evt.pageY + "px";
-            lightsaber.style.visibility = "visible";
-            lightsaber.classList.add("on");
-            laserOn.play();
-        }
-    }
-
-
-
-    /*
-     * Update GUI:
-     * update icons based on selected tool
-     * generate pen and laser cursors based on selected color
-     * select cursor based on selected tool
-     * enable/disable canvas pointerEvents
-     */
-    function updateGUI()
-    {
-        if (printMode) return;
-
-
-        // update cursor using current color
-        updateCursor();
-
-
-        // reset icon states
-        buttonLaser.style.color  = "lightgrey";
-        buttonEraser.style.color = "lightgrey";
-        buttonPen.style.color    = "lightgrey";
-        buttonBoard.style.color  = "lightgrey";
-
-
-        // set laser button
-        if (laser) 
-        {
-            buttonLaser.style.color = "#2a9ddf";
-            if (lightsaber.style.visibility == "visible")
-                document.body.style.cursor = 'none';
-            else
-                document.body.style.cursor = laserCursor;
-        }
-        else
-        {
-            document.body.style.cursor = '';
-        }
-
-
-        // highlight active tool icon & select cursor
+        // update tool icons, update cursor
+        buttonLaser.style.color  = inactiveColor;
+        buttonEraser.style.color = inactiveColor;
+        buttonPen.style.color    = inactiveColor;
         switch (tool)
         {
             case ToolType.PEN:
-                buttonPen.style.color = "#2a9ddf";
+                buttonPen.style.color = penColor;
                 selectCursor(penCursor);
                 break;
 
             case ToolType.ERASER:
-                buttonEraser.style.color = "#2a9ddf";
+                buttonEraser.style.color = activeColor;
                 selectCursor(eraserCursor);
                 break;
 
-            case ToolType.NONE:
-                clearTimeout( hideCursorTimeout );
-                selectCursor('');
+            case ToolType.LASER:
+                buttonLaser.style.color = activeColor;
+                selectCursor(laserCursor);
                 break;
         }
+    }
 
 
-        // set whiteboard button
-        if (boardMode)
-            buttonBoard.style.color  = "#2a9ddf";
-        else if (hasSlideData(Reveal.getIndices(), 1))
-            buttonBoard.style.color = "red";
+    function selectPenColor(col)
+    {
+        hideColorPicker();
+        penWidthSlider.style.setProperty("--color", col);
+        penColor = col;
+        buttonPen.style.color = penColor;
+        createPenCursor();
+        selectCursor(penCursor);
+    }
+
+    function showColorPicker()
+    {
+        colorPicker.style.visibility = 'visible';
+    }
 
 
-        // canvas setup
-        if (tool)
+    function hideColorPicker()
+    {
+        colorPicker.style.visibility = 'hidden';
+    }
+
+
+    function selectPenRadius(radius)
+    {
+        hideColorPicker();
+        penWidth = radius;
+        penWidthSlider.value = radius;
+        penWidthSlider.style.setProperty("--size", (radius+1)+'px');
+        selectCursor(penCursor);
+    }
+
+
+    function toggleWhiteboard(state)
+    {
+        whiteboardActive = (typeof state === 'boolean') ? state : !whiteboardActive;
+        
+        if (!whiteboardActive)
         {
-            container.style.border = "1px solid " + penColor;
+            // hide buttons
+            buttons.classList.remove('active');
+            buttonWhiteboard.style.color = inactiveColor;
+            hideColorPicker();
+
+            // reset SVG
+            if (svg) {
+                svg.style.border = "1px solid transparent";
+                svg.style.pointerEvents = "none";
+            }
+
+            // reset cursor
+            clearTimeout( hideCursorTimeout );
+            slides.style.cursor = '';
         }
         else
         {
-            container.style.border = "1px solid transparent";
-        }
-        drawingCanvas[mode].canvas.style.pointerEvents = (tool || laser) ? "auto" : "none";
+            if (userShouldBeWarned && !userHasBeenWarned) warnUser();
 
-    }
+            // show buttons
+            buttons.classList.add('active');
+            buttonWhiteboard.style.color = activeColor;
 
-
-    /*
-     * return height of current scribbles (max y-coordinate)
-     */
-    function whiteboardHeight( indices ) 
-    { 
-        if (!indices) indices = slideIndices;
-
-        // minimum height: one Reveal page
-        var height = 1;
-
-        // find maximum y-coordinate of slide's curves
-        if (hasSlideData(indices, 1))
-        {
-            var slideData = getSlideData(indices, 1);
-            for (var i=0; i<slideData.events.length; i++)
-            {
-                var event = slideData.events[i];
-                if (event.type == "draw")
-                {
-                    for (var j=1; j<event.coords.length; j+=2)
-                    {
-                        var y = event.coords[j];
-                        if (y > height) height = y;
-                    }
-                }
+            // activate SVG
+            if (svg) {
+                svg.style.border = "1px dashed lightgrey";
+                svg.style.pointerEvents = "auto";
             }
         }
-        
-        height = Math.round(height);
-        if (DEBUG) console.log("slide height: " + height);
-
-        return height;
     }
 
 
-    /*
-     * adjust board height to fit scribbles
-     */
-    function adjustWhiteboardHeight( indices ) 
-    { 
-        if (!indices) indices = slideIndices;
-        var pageHeight     = Reveal.getConfig().height;
-        var scribbleHeight = whiteboardHeight( indices );
-        var height = pageHeight * Math.max(1, Math.ceil(scribbleHeight/pageHeight));
-        setWhiteboardHeight(height);
-    }
-
-
-    /*
-     * set whiteboard height to specified value
-     */
-    function setWhiteboardHeight(height)
+    // set unsavedAnnotations and update save icon
+    function needToSave(b)
     {
-        // set canvas properties
-        var canvas = drawingCanvas[1].canvas;
-        canvas.style.height = height + "px";
-        canvas.height = height * canvasScale;
-        if (DEBUG) console.log("set slide height to " + height);
-
-        // adjust canvas width to css width, which might change due to scrollbar
-        var width = canvas.clientWidth;
-        canvas.width = width * canvasScale;
-        if (DEBUG) console.log("set slide width to " + width);
-
-        // update context
-        var ctx = drawingCanvas[1].context;
-        ctx.scale(canvasScale, canvasScale);
-        ctx.lineCap   = 'round';
-        ctx.lineJoin  = 'round';
-        ctx.lineWidth = 2;
-
-        // remember to restore previous drawings with playbackEvents(1)!
+        unsavedAnnotations = b;
+        buttonSave.style.color = unsavedAnnotations ? activeColor : inactiveColor;
     }
+
 
 
     /*
@@ -619,11 +476,68 @@ var RevealWhiteboard = (function(){
      */
     function addWhiteboardPage()
     {
-        if (!tool || mode!=1) return;
-        var pageHeight  = Reveal.getConfig().height;
-        var boardHeight = drawingCanvas[1].canvas.clientHeight;
-        setWhiteboardHeight( boardHeight + pageHeight );
-        playbackEvents(1);
+        if (!svg) return;
+        let pageHeight  = Reveal.getConfig().height;
+        let boardHeight = svg.clientHeight;
+        setWhiteboardHeight(boardHeight + pageHeight);
+    }
+
+
+    function adjustWhiteboardHeight()
+    {
+        // height of one page
+        let pageHeight = Reveal.getConfig().height;
+
+        // height of current board
+        let bbox = svg.getBBox();
+        let scribbleHeight = bbox.y + bbox.height;
+
+        // rounding
+        var height = pageHeight * Math.max(1, Math.ceil(scribbleHeight/pageHeight));
+        setWhiteboardHeight(height);
+    }
+
+
+    function setWhiteboardHeight(svgHeight)
+    {
+        const pageHeight    = Reveal.getConfig().height;
+        const pageWidth     = Reveal.getConfig().width;
+        const needScrollbar = svgHeight > pageHeight;
+
+        // set height of SVG
+        svg.style.height = svgHeight + "px";
+
+        // if grid exists, adjust its height
+        let rect = getGridRect();
+        if (rect) rect.setAttribute('height', svgHeight - pageHeight);
+
+        // update scrollbar of slides container
+        if (needScrollbar)
+            slides.classList.add('needScrollbar');
+        else
+            slides.classList.remove('needScrollbar');
+
+        // adjust with of slides container to accomodate scrollbar
+        let currentWidth = slides.clientWidth;
+        if (currentWidth != pageWidth)
+        {
+            const width = (2*pageWidth - currentWidth);
+            slides.style.width = width + "px";
+        }
+
+        // activate/deactivate pulsing border indicator
+        if (needScrollbar)
+        {
+            // (re-)start border pulsing
+            // (taken from https://css-tricks.com/restart-css-animation/)
+            slides.classList.remove("pulseBorder");
+            void slides.offsetWidth; // this does the magic!
+            slides.classList.add("pulseBorder");
+        }
+        else
+        {
+            slides.classList.remove("pulseBorder");
+        }
     }
 
 
@@ -637,112 +551,96 @@ var RevealWhiteboard = (function(){
      */
     function clearSlide()
     {
-        var ok = confirm("Delete notes and board on this slide?");
-        if ( ok )
+        if (confirm("Delete notes and board on this slide?"))
         {
-            activeStroke = null;
-            closeWhiteboard();
+            let strokes = svg.querySelectorAll( 'svg>path' );
+            if (strokes)
+            {
+                strokes.forEach( stroke => { stroke.remove(); } );
+                needToSave(true);
+            }
 
-            clearCanvas( drawingCanvas[0].context );
-            clearCanvas( drawingCanvas[1].context );
+            let grid = svg.querySelector( 'svg>rect' );
+            if (grid)
+            {
+                grid.remove();
+                buttonGrid.style.color = inactiveColor;
+                needToSave(true);
+            }
 
-            mode = 1;
-            var slideData = getSlideData();
-            slideData.events = [];
-
-            mode = 0;
-            var slideData = getSlideData();
-            slideData.events = [];
+            setWhiteboardHeight(Reveal.getConfig().height);
         }
     };
+
 
 
     /*
      * User triggers undo (mapped to key 'z')
      */
-    function drawUndo()
+    function undoStroke()
     {
-        if (hasSlideData( slideIndices, mode ))
+        if (svg.lastChild) 
         {
-            var slideData = getSlideData( slideIndices, mode );
-            slideData.events.pop();
-            playbackEvents( mode );
+            svg.removeChild(svg.lastChild);
         }
     }
 
 
     /*
-     * Toggle whiteboard visibility (mapped to 't')
+     * return grid rect
      */
-    function toggleWhiteboard()
+    function getGridRect()
     {
-        if ( boardMode )
-        {
-            closeWhiteboard();
-        }
-        else
-        {
-            showWhiteboard();
-        }
-        updateGUI();
-    };
-
-
-    /**
-     * Opens an overlay for the whiteboard.
-     */
-    function showWhiteboard()
-    {
-        activeStroke = null;
-        mode         = 1;
-        boardMode    = true;
-
-        // set container to board mode
-        container.style.pointerEvents = "auto";
-        container.style.overflowX     = "hidden";
-        container.style.overflowY     = "scroll";
-
-        // show board, adjust height, re-draw scribbles
-        drawingCanvas[1].canvas.style.visibility = "visible";
-        adjustWhiteboardHeight();
-        playbackEvents(1);
+        if (svg) return svg.querySelector('svg>rect');
     }
 
 
-    /**
-     * Closes open whiteboard.
+    /*
+     * add/remove background rectangle with grid pattern
      */
-    function closeWhiteboard()
+    function toggleGrid()
     {
-        activeStroke = null;
-        mode         = 0;
-        boardMode    = false;
+        if (!svg) return;
 
-        // hide board
-        drawingCanvas[1].canvas.style.visibility = "hidden";
+        // if grid exists, remove it
+        let rect = getGridRect();
+        if (rect) 
+        {
+            rect.remove();
+            buttonGrid.style.color = activeColor;
+        }
 
-        // set container to slides mode
-        container.style.pointerEvents = "none";
-        container.style.overflow = "hidden";
-        container.scrollTop = "0px";
+        // otherwise, add it
+        else
+        {
+            const pageHeight  = Reveal.getConfig().height;
+            const boardHeight = svg.clientHeight;
+
+            // add large rect with this pattern
+            let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            svg.insertBefore(rect, svg.firstChild);
+
+            rect.setAttribute('x', 0);
+            rect.setAttribute('y', pageHeight);
+            rect.setAttribute('width', '100%');
+            rect.setAttribute('height', Math.max(0, boardHeight - pageHeight));
+
+            rect.style.fill          = 'url(#gridPattern)';
+            rect.style.stroke        = 'none';
+            rect.style.pointerEvents = 'none';
+
+            buttonGrid.style.color = activeColor;
+        }
+
+        needToSave(true);
     }
 
 
 
 
     /*****************************************************************
-     ** Storage
+     ** Load and save
      ******************************************************************/
-
-    var storage = [
-        { width: drawingCanvas[0].width,
-          height: drawingCanvas[0].height,
-          data: []},
-        { width: drawingCanvas[1].width,
-          height: drawingCanvas[1].height,
-          data: []}
-    ];
-
 
     /*
      * load scribbles from file
@@ -752,24 +650,11 @@ var RevealWhiteboard = (function(){
     {
         return new Promise( function(resolve) {
 
-            // DEBUG: local storage
-            if (LOCAL_STORAGE)
-            {
-                var data = localStorage.getItem('whiteboard');
-                if (data)
-                {
-                    console.log("load from local storage");
-                    storage = JSON.parse(data);
-                    resolve();
-                    return;
-                }
-            }
-
             // determine scribble filename
-            var filename = annotationURL();
+            let filename = annotationURL();
 
             console.log("whiteboard load " + filename);
-            var req = new XMLHttpRequest();
+            let req = new XMLHttpRequest();
 
             req.onload = function()
             {
@@ -779,12 +664,34 @@ var RevealWhiteboard = (function(){
                     {
                         try
                         {
-                            storage = JSON.parse(req.responseText);
-                            if ( drawingCanvas[0].width != storage[0].width || drawingCanvas[0].height != storage[0].height )
+                            // parse JSON
+                            const storage = JSON.parse(req.responseText);
+
+                            // create SVGs
+                            if (storage.whiteboardVersion && storage.whiteboardVersion >= 2)
                             {
-                                alert("Whiteboard: Loaded data does not match width/height of presentation");
+                                storage.annotations.forEach( page => {
+                                    let slide = document.getElementById(page.slide);
+                                    if (slide)
+                                    {
+                                        // use global SVG
+                                        svg = setupSVG(slide);
+                                        if (svg)
+                                        {
+                                            svg.innerHTML = page.svg;
+                                        }
+                                    }
+                                });
+                                console.log("whiteboard loaded");
                             }
-                            console.log("whiteboard loaded");
+
+                            // adjust height for PDF export
+                            if (printMode)
+                            {
+                                slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
+                                    svg=mysvg; adjustWhiteboardHeight();
+                                });
+                            }
                         }
                         catch(err)
                         {
@@ -796,6 +703,7 @@ var RevealWhiteboard = (function(){
                 {
                     console.warn('Failed to get file ' + filename);
                 }
+
                 resolve();
             }
 
@@ -823,12 +731,12 @@ var RevealWhiteboard = (function(){
      */
     function annotationFilename()
     {
-        var url = location.pathname;
-        var basename = (url.split('\\').pop().split('/').pop().split('.'))[0];
+        let url = location.pathname;
+        let basename = (url.split('\\').pop().split('/').pop().split('.'))[0];
 
         // decker filenames vs. Mario filenames
-        var filename;
-        if (basename.substring(basename.length-5, basename.length) == "-deck")
+        let filename;
+        if (basename.endsWith("-deck"))
             filename = basename.substring(0, basename.length-5) + "-annot.json";
         else
             filename = basename + ".json";
@@ -842,12 +750,12 @@ var RevealWhiteboard = (function(){
      */
     function annotationURL()
     {
-        var url = location.origin + location.pathname;
-        var basename = url.substring(0, url.lastIndexOf("."));
+        let url = location.origin + location.pathname;
+        let basename = url.substring(0, url.lastIndexOf("."));
 
         // decker filenames vs. Mario filenames
-        var filename;
-        if (basename.substring(basename.length-5, basename.length) == "-deck")
+        let filename;
+        if (basename.endsWith("-deck"))
             filename = basename.substring(0, basename.length-5) + "-annot.json";
         else
             filename = basename + ".json";
@@ -861,12 +769,16 @@ var RevealWhiteboard = (function(){
      */
     function annotationJSON()
     {
-        // function to adjust precision of numbers when converting to JSON
-        function twoDigits(key, val) {
-            if (val != undefined)
-                return val.toFixed ? Number(val.toFixed(2)) : val;
-        }
-        var blob = new Blob( [ JSON.stringify( storage, twoDigits ) ], { type: "application/json"} );
+        let storage = { whiteboardVersion: 2.0, annotations: [] };
+            
+        slides.querySelectorAll( 'svg.whiteboard' ).forEach( svg => { 
+            if (svg.children.length) {
+                storage.annotations.push( { slide: svg.parentElement.id,
+                                            svg:   svg.innerHTML } );
+            }
+        });
+       
+        let blob = new Blob( [ JSON.stringify( storage ) ], { type: "application/json"} );
         return blob;
     }
 
@@ -877,13 +789,12 @@ var RevealWhiteboard = (function(){
     function saveAnnotations()
     {
         console.log("whiteboard: save annotations to decker");
-        var xhr = new XMLHttpRequest();
+        let xhr = new XMLHttpRequest();
         xhr.open('put', annotationURL(), true);
         xhr.onloadend = function() {
             if (xhr.status == 200) {
                 console.log("whiteboard: save success");
-                needSave = false;
-                buttonSave.style.color = "lightgrey";
+                needToSave(false);
             } else {
                 console.log("whiteboard: could not save to decker, download instead");
                 downloadAnnotations();
@@ -898,7 +809,7 @@ var RevealWhiteboard = (function(){
      */
     function downloadAnnotations()
     {
-        var a = document.createElement('a');
+        let a = document.createElement('a');
         a.classList.add("whiteboard"); // otherwise a.click() is prevented/cancelled by global listener
         document.body.appendChild(a);
         try {
@@ -911,366 +822,86 @@ var RevealWhiteboard = (function(){
         a.click();
         document.body.removeChild(a);
 
-        needSave = false;
-        buttonSave.style.color = "lightgrey";
+        needToSave(false);
     }
 
 
-    /*
-     * get data object for given slide and given canvas
-     */
-    function getSlideData( indices, id )
+
+
+    /*****************************************************************
+     ** Geometry helper functions
+     ******************************************************************/
+
+    // Euclidean distance between points p and q 
+    function distance(p, q)
     {
-        if ( id == undefined ) id = mode;
-        if (!indices) indices = slideIndices;
-
-        // distinguish slide fragments only for slide annotations,
-        // not for whiteboard mode
-        for (var i = 0; i < storage[id].data.length; i++)
-        {
-            if (storage[id].data[i].slide.h === indices.h &&
-                storage[id].data[i].slide.v === indices.v &&
-                (id==1 || storage[id].data[i].slide.f === indices.f) )
-            {
-                return storage[id].data[i];
-            }
-        }
-
-        // no data found -> add it
-        storage[id].data.push( { slide: indices, events: [] } );
-        return storage[id].data[storage[id].data.length-1];
+        const dx = p[0]-q[0];
+        const dy = p[1]-q[1];
+        return Math.sqrt( dx*dx + dy*dy );
     }
 
 
-    /*
-     * return whether there are scribbles on given slide?
-     */
-    function hasSlideData( indices, id )
+    // compute midpoint between p0 and p1
+    function center(p0, p1)
     {
-        if ( id == undefined ) id = mode;
-        if (!indices) indices = slideIndices;
+        return [ 0.5*(p0[0]+p1[0]), 0.5*(p0[1]+p1[1]) ];
+    }
 
-        // distinguish slide fragments only for slide annotations,
-        // not for whiteboard mode
-        for (var i = 0; i < storage[id].data.length; i++)
+    
+    // return string representation of point p (two decimal digits)
+    function printPoint(p)
+    {
+        return (p[0].toFixed(2) + ' ' + p[1].toFixed(2));
+    }
+
+    
+    // convert points to quadratic Bezier spline
+    function renderStroke(points, stroke)
+    {
+        let path = "";
+
+        if (QUADRATIC_SPLINE)
         {
-            if (storage[id].data[i].slide.h === indices.h &&
-                storage[id].data[i].slide.v === indices.v &&
-                (id==1 || storage[id].data[i].slide.f === indices.f) )
+            let c;
+
+            path += ('M '  + printPoint(points[0]));
+            path += (' L ' + printPoint(center(points[0], points[1])));
+
+            for (let i=1; i<points.length-1; ++i)
             {
-                return storage[id].data[i].events.length > 0;
+                c = center(points[i], points[i+1]);
+                path += (' Q ' + printPoint(points[i]) + ' ' + printPoint(c));
             }
+            path += (' L ' + printPoint(points[points.length-1]));
         }
+        else
+        {
+            path += ('M '  + printPoint(points[0]));
+            for (let i=1; i<points.length; ++i)
+                path += (' L ' + printPoint(points[i]));
+        }
+
+        stroke.setAttribute('d', path);
+    }
+
+
+    // is point close enough to stroke to be counted as intersection?
+    function isPointInStroke(path, point)
+    {
+        const length = path.getTotalLength();
+        const precision = 10;
+        let   p;
+        let   d;
+
+        for (let s=0; s<length; s+=precision)
+        {
+            p = path.getPointAtLength(s);
+            d = distance( point, [p.x, p.y] );
+            if (d < precision) return true;
+        }
+
         return false;
     }
-
-
-
-
-    /*****************************************************************
-     * Generate PDF
-     ******************************************************************/
-
-    function createPrintout( )
-    {
-        console.log("whiteboard: create printout");
-
-        // slide dimensions
-        var width   = Reveal.getConfig().width;
-        var height  = Reveal.getConfig().height;
-
-        // setup canvas
-        var canvasScale = 2.0;
-        var canvas = document.createElement( 'canvas' );
-        canvas.style.background = "rgba(0,0,0,0)";
-        canvas.style.border     = "none";
-        canvas.style.width      = width  + "px";
-        canvas.style.height     = height + "px";
-        canvas.width            = width  * canvasScale;
-        canvas.height           = height * canvasScale;
-
-        // setup context
-        var ctx = canvas.getContext("2d");
-        ctx.scale(canvasScale, canvasScale);
-        ctx.lineCap   = 'round';
-        ctx.lineJoint = 'round';
-        ctx.lineWidth = 2;
-
-
-        // slide annotations
-        for (var i = 0; i < storage[0].data.length; i++)
-        {
-            // get slide indices
-            var h = storage[0].data[i].slide.h;
-            var v = storage[0].data[i].slide.v;
-            var f = storage[0].data[i].slide.f;
-
-            // only use scribble on slides with fragments when fragments are
-            // exported as separate PDF pages
-            if (f != undefined && !Reveal.getConfig().pdfSeparateFragments)
-                continue;
-
-            // get slide data
-            var slide = (f!=undefined) ? Reveal.getSlide(h,v,f) : Reveal.getSlide(h,v);
-            var slideData = getSlideData( storage[0].data[i].slide, 0 );
-
-            // draw strokes to image
-            clearCanvas(ctx, canvasScale);
-            for (var j = 0; j < slideData.events.length; j++)
-                playEvent(ctx, slideData.events[j]);
-
-            // convert canvas to image, add to slide
-            var img = new Image();
-            img.src = canvas.toDataURL();
-            img.style.position  = "absolute";
-            img.style.top       = "0px";
-            img.style.left      = "0px";
-            img.style.width     = width + "px";
-            img.style.height    = height + "px";
-            img.style.border    = "none";
-            img.style.margin    = "0px";
-            img.style.boxSizing = "border-box";
-            img.style.zIndex    = "34";
-            slide.appendChild( img );
-
-            // add fragment data
-            if (f != undefined)
-            {
-                assignFragmentIndex( slide ); // we need fragment-index per fragment!
-                img.classList.add("fragment");
-                img.classList.add("sequence");
-                img.setAttribute("data-fragment-index", f);
-            }
-        }
-
-
-        // collect next-slides for all slides with board stuff
-        var nextSlide = [];
-        for (var i = 0; i < storage[1].data.length; i++)
-        {
-            var h = storage[1].data[i].slide.h;
-            var v = storage[1].data[i].slide.v;
-            var slide = Reveal.getSlide(h,v);
-            nextSlide.push( slide.nextSibling );
-        }
-
-
-        // go through board storage, paint image, insert slide
-        for (var i = 0; i < storage[1].data.length; i++)
-        {
-            var h         = storage[1].data[i].slide.h;
-            var v         = storage[1].data[i].slide.v;
-            var slide     = Reveal.getSlide(h,v);
-            var slideData = getSlideData( storage[1].data[i].slide, 1 );
-            var parent    = Reveal.getSlide( storage[1].data[i].slide.h, storage[1].data[i].slide.v ).parentElement;
-
-            if ( slideData.events.length )
-            {
-                var scribbleHeight = whiteboardHeight( storage[1].data[i].slide );
-
-                // split oversize whiteboards into multiple slides
-                for (var y = 0; y < scribbleHeight; y += height)
-                {
-                    // draw strokes to image (translate to respective page)
-                    clearCanvas(ctx, canvasScale);
-                    ctx.save();
-                    ctx.translate(0, -y);
-                    for (var j = 0; j < slideData.events.length; j++)
-                        playEvent(ctx, slideData.events[j]);
-                    ctx.restore();
-
-                    // create new slide element
-                    var newSlide = document.createElement( 'section' );
-                    newSlide.classList.add( 'present' );
-                    newSlide.style.width  = "100%";
-                    newSlide.style.height = canvas.height/canvasScale + "px";
-
-                    // convert page to image, add image to slide
-                    var img = new Image();
-                    img.src = canvas.toDataURL();
-                    img.style.position  = "absolute";
-                    img.style.top       = "0px";
-                    img.style.left      = "0px";
-                    img.style.width     = width  + "px";
-                    img.style.height    = height + "px";
-                    img.style.maxHeight = height + "px";
-                    img.style.border    = "none";
-                    img.style.margin    = "0px";
-                    img.style.zIndex    = "34";
-                    newSlide.appendChild( img );
-
-                    if ( nextSlide[i] != null ) {
-                        parent.insertBefore( newSlide, nextSlide[i] );
-                    }
-                    else {
-                        parent.append( newSlide );
-                    }
-                }
-            }
-        }
-    }
-
-
-    /*
-     * this function is (mostly) copied from reveal.js.
-     * it sorts fragments and assigns a data-fragment-index to each fragment
-     */
-	function assignFragmentIndex( slide ) 
-    {
-        // all fragments of current slide
-        var fragments = slide.querySelectorAll( '.fragment' );
-		fragments = Array.prototype.slice.call( fragments );
-
-		var ordered = [],
-			unordered = [],
-			sorted = [];
-
-		// Group ordered and unordered elements
-		fragments.forEach( function( fragment, i ) {
-			if( fragment.hasAttribute( 'data-fragment-index' ) ) {
-				var index = parseInt( fragment.getAttribute( 'data-fragment-index' ), 10 );
-				if( !ordered[index] ) ordered[index] = [];
-				ordered[index].push( fragment );
-			}
-			else {
-				unordered.push( [ fragment ] );
-			}
-		} );
-
-		// Append fragments without explicit indices in their
-		// DOM order
-		ordered = ordered.concat( unordered );
-
-		// Manually count the index up per group to ensure there
-		// are no gaps
-		var index = 0;
-
-		// Push all fragments in their sorted order to an array,
-		// this flattens the groups
-		ordered.forEach( function( group ) {
-			group.forEach( function( fragment ) {
-				sorted.push( fragment );
-				fragment.setAttribute( 'data-fragment-index', index );
-			} );
-			index ++;
-		} );
-	}
-
-
-
-    /*****************************************************************
-     * Record and play-back events
-     * Call low-level drawing routines
-     ******************************************************************/
-
-    /*
-     * Push current event to slide's event list
-     */
-    function recordEvent( event )
-    {
-        var slideData = getSlideData();
-        slideData.events.push(event);
-        needSave = true;
-        buttonSave.style.color = "#2a9ddf";
-    }
-
-
-    /*
-     * Playback all events of the current slide for given canvas
-     */
-    function playbackEvents( id, ctx )
-    {
-        if (ctx == undefined) ctx = drawingCanvas[id].context;
-
-        clearCanvas( ctx );
-
-        if (hasSlideData( slideIndices, id))
-        {
-            var slideData = getSlideData( slideIndices, id );
-            var index = 0;
-            while ( index < slideData.events.length )
-            {
-                playEvent( ctx, slideData.events[index] );
-                index++;
-            }
-        }
-    };
-
-
-    /* 
-     * Playback one event (i.e. stroke)
-     */
-    function playEvent( ctx, event )
-    {
-        switch ( event.type )
-        {
-            case "draw":
-                drawCurve( ctx, event);
-                break;
-            case "erase":
-                eraseCurve( ctx, event );
-                break;
-        }
-    };
-
-
-    /*
-     * clear given canvas
-     */
-    function clearCanvas( ctx, scale=canvasScale )
-    {
-        ctx.clearRect( 0, 0, ctx.canvas.width/scale, ctx.canvas.height/scale );
-    }
-
-
-    /*
-     * Draw the curve stored in event to canvas ID
-     */
-    function drawCurve( ctx, event )
-    {
-        ctx.strokeStyle = event.color;
-
-        // draw curve as quadratic spline
-        var coords = event.coords;
-        var cx, cy;
-        if (coords.length > 4)
-        {
-            ctx.beginPath();
-            ctx.moveTo(coords[0], coords[1]);
-            cx = 0.5 * (coords[0] + coords[2]);
-            cy = 0.5 * (coords[1] + coords[3]);
-            ctx.lineTo(cx, cy);
-
-            for (var i=2; i<coords.length-3; i+=2)
-            {
-                cx = 0.5 * (coords[i  ] + coords[i+2]);
-                cy = 0.5 * (coords[i+1] + coords[i+3]);
-                ctx.quadraticCurveTo(coords[i], coords[i+1], cx, cy);
-            }
-            ctx.stroke();
-        }
-    };
-
-
-    /*
-     * Erase the "curve" stored in event to canvas ID
-     */
-    function eraseCurve( ctx, event )
-    {
-        ctx.save();
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.lineWidth = 2 * eraserRadius;
-        ctx.beginPath();
-
-        var coords = event.coords;
-        ctx.moveTo(coords[0], coords[1]);
-        for (var i=2; i<coords.length-1; i+=2)
-            ctx.lineTo(coords[i], coords[i+1]);
-
-        ctx.stroke();
-        ctx.restore();
-    };
-
 
 
     /*****************************************************************
@@ -1281,170 +912,117 @@ var RevealWhiteboard = (function(){
 
     /*
      * start a stroke:
-     * compute mouse position from event data, remember it
-     * setup new stroke event (draw or erase)
-     * call low-level draw/erase
-     * update mouse cursor
+     * compute mouse position, setup new stroke
      */
     function startStroke(evt)
     {
-        // cancel timeouts
-        clearTimeout( hideCursorTimeout );
+        // mouse position
+        const mouseX = evt.offsetX / slideZoom;
+        const mouseY = evt.offsetY / slideZoom;
 
-        // update scale, zoom, and bounding rectangle
-        slideZoom  = slides.style.zoom || 1;
+        // add stroke to SVG
+        stroke = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        svg.appendChild(stroke);
+        stroke.style.fill = 'none';
+        stroke.style.stroke = penColor;
+        stroke.style.strokeWidth = penWidth+'px';
+        stroke.style.strokeLinecap = 'round';
+        stroke.style.strokeLinejoin = 'round';
 
-        // convert pointer/touch position to local coordiantes
-        var mouseX = evt.offsetX / slideZoom;
-        var mouseY = evt.offsetY / slideZoom;
+        // add point, convert to Bezier spline
+        points = [ [ mouseX, mouseY ], [mouseX, mouseY] ];
+        renderStroke(points, stroke);
 
-        if (mouseY < drawingCanvas[mode].canvas.height && mouseX < drawingCanvas[mode].canvas.width)
+        // add fragment index to stroke
+        if (currentFragmentIndex != undefined)
         {
-            var ctx = drawingCanvas[mode].context;
-
-            // erase mode
-            if ((tool==ToolType.ERASER) || (evt.buttons > 1))
-            {
-                showCursor(eraserCursor);
-                activeStroke = { type:  "erase", 
-                                 coords: [mouseX, mouseY, mouseX, mouseY] };
-                eraseCurve(ctx, activeStroke);
-            }
-            // draw mode
-            else
-            {
-                showCursor(penCursor);
-                // add start point twice to get endpoint interpolation for quadratic splines
-                // but change if by one pixel to make single points more visible
-                // (lines from point to same point are too small)
-                activeStroke = { type:  "draw", 
-                                 color: penColor, 
-                                 coords: [mouseX, mouseY, mouseX+1, mouseY] };
-                drawCurve(ctx, activeStroke);
-            }
-        }
-
-        // don't propagate event any further
-        killEvent(evt);
+            stroke.setAttribute('data-frag', currentFragmentIndex);
+        } 
     };
 
 
     /*
      * continue the active stroke:
-     * compute mouse position from event data, remember it
-     * append data to active stroke
-     * call low-level draw/erase
+     * append mouse point to active stroke
      */
     function continueStroke( evt )
     {
-        if (activeStroke)
+        // we need an active stroke
+        if (!stroke) return;
+
+        // collect coalesced events
+        let events = [evt];
+        if (evt.getCoalescedEvents) 
+            events = evt.getCoalescedEvents() || events;
+
+        // process events
+        for (let evt of events) 
         {
-            // convert touch position to mouse position
-            var mouseX = evt.offsetX / slideZoom;
-            var mouseY = evt.offsetY / slideZoom;
-
-            // last position
-            var n = activeStroke.coords.length;
-            var lastX  = activeStroke.coords[n-2];
-            var lastY  = activeStroke.coords[n-1];
-
-            // (squared) distance to last mouse position
-            var dist = (mouseX-lastX)*(mouseX-lastX) + (mouseY-lastY)*(mouseY-lastY);
-
-            // only do something if mouse position changed and we are within bounds
-            if ((dist > 4) &&
-                (mouseY < drawingCanvas[mode].canvas.height) && 
-                (mouseX < drawingCanvas[mode].canvas.width))
+            if (evt.buttons > 0 && evt.target==svg)
             {
-                var ctx = drawingCanvas[mode].context;
+                // mouse position
+                const mouseX = evt.offsetX / slideZoom;
+                const mouseY = evt.offsetY / slideZoom;
 
-                activeStroke.coords.push(mouseX);
-                activeStroke.coords.push(mouseY);
+                const newPoint = [ mouseX, mouseY ];
+                const oldPoint = points[points.length-1];
 
-                if ( activeStroke.type == "erase" )
-                {
-                    eraseCurve(ctx, activeStroke);
-                }
-                else
-                {
-                    drawCurve(ctx, activeStroke);
-                }
+                // only do something if mouse position changed and we are within bounds
+                if (distance(newPoint, oldPoint) > STROKE_STEP_THRESHOLD)
+                    points.push(newPoint);
             }
-
-            // don't propagate event any further
-            killEvent(evt);
         }
+
+        // update svg stroke
+        renderStroke(points, stroke);
     };
 
 
     /*
      * stop current stroke:
-     * stroke stroke to slide data
-     * adjust height of board
      */
     function stopStroke(evt)
     {
-        if (activeStroke)
+        if (stroke && evt.target==svg)
         {
-            // don't propagate event any further
-            killEvent(evt);
+            // mouse position
+            const mouseX    = evt.offsetX / slideZoom;
+            const mouseY    = evt.offsetY / slideZoom;
+            const newPoint  = [ mouseX, mouseY ];
 
-            // duplicate last control point to get endpoint interpolation
-            // of quadratic spline curves
-            if ( activeStroke.type == "draw" )
-            {
-                var n     = activeStroke.coords.length;
-                var lastX = activeStroke.coords[n-2];
-                var lastY = activeStroke.coords[n-1];
-                activeStroke.coords.push(lastX);
-                activeStroke.coords.push(lastY);
-
-                var ctx = drawingCanvas[mode].context;
-                drawCurve(ctx, activeStroke);
-            }
-
-            // save stroke to slide's event data
-            recordEvent( activeStroke );
-
-            // inactive stroke
-            activeStroke = null;
+            // add final point to stroke
+            points.push(newPoint);
+            renderStroke(points, stroke);
         }
 
-        // pen mode? switch back to pen cursor
-        if (tool==ToolType.PEN) 
-        {
-            showCursor(penCursor);
-        }
-        triggerHideCursor();
+        // reset stroke
+        stroke = null;
+
+        // new stroke -> we have to save
+        needToSave(true);
     };
 
 
-    function duplicatePrevious()
+    /*
+     * erase a stroke:
+     * compute mouse position, compute "collision" with each stroke
+     */
+    function eraseStroke(evt)
     {
-        let cur = Reveal.getIndices();
+        // mouse position
+        const mouseX = evt.offsetX / slideZoom;
+        const mouseY = evt.offsetY / slideZoom;
+        const point  = [mouseX, mouseY];
 
-        if (cur.f === undefined || cur.f < 0) {
-            // no previous frame
-            console.log("duplicate: no previous frame");
-            return;
-        }
-        if (hasSlideData(cur))
-        {
-            if (!confirm("Really copy from last slide? Current slide is not empty")) {
-                return;
+        svg.querySelectorAll( 'path' ).forEach( stroke => {
+            if (isPointInStroke(stroke, point))
+            {
+                stroke.remove();
+                needToSave(true);
             }
-        }
-        let last = {
-            h: cur.h,
-            v: cur.v,
-            f: cur.f - 1};
+        });
+    };
 
-        function jsonCopy(src) { return JSON.parse(JSON.stringify(src)); }
-        var data = getSlideData(cur);
-        data.events = jsonCopy(getSlideData(last).events);
-        console.log("duplicated", last, " to ", cur);
-        playbackEvents(0);
-    }
 
 
 
@@ -1454,95 +1032,106 @@ var RevealWhiteboard = (function(){
 
     function pointerdown(evt) 
     {
-        // no tool selected -> return
-        if (!tool) return;
+        // only when whiteboard is active
+        if (!whiteboardActive) return;
 
-        switch(evt.pointerType)
+        // only pen and mouse events
+        if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
+
+        // remove timer for cursor hiding
+        clearTimeout( hideCursorTimeout );
+
+        // laser mode or right mouse button
+        if (tool==ToolType.LASER || (tool==ToolType.PEN && evt.buttons==2))
         {
-            case "pen":
-            case "mouse":
-                switch(tool)
-                {
-                    case ToolType.PEN:
-                    case ToolType.ERASER:
-                        startStroke(evt);
-                        break;
-                }
-                break;
-
-            case "touch":
-                showCursor(laserCursor);
-                triggerHideCursor();
-                break;
+            showCursor( laserCursor );
         }
+
+        // eraser mode or middle mouse button
+        else if (tool==ToolType.ERASER || (tool==ToolType.PEN && evt.buttons>=4))
+        {
+            showCursor(eraserCursor);
+            eraseStroke(evt);
+        }
+
+        // pencil mode
+        else if (tool == ToolType.PEN)
+        {
+            hideCursor();
+            startStroke(evt);
+        }
+
+
+        // don't propagate event any further
+        killEvent(evt);
+        return false;
     }
 
 
     function pointermove(evt) 
     {
-        // no tool selected -> return
-        if (!tool) return;
+        // only when whiteboard is active
+        if (!whiteboardActive) return;
 
-        // no mouse button pressed -> show laser, active auto-hide, return
-        if (!evt.buttons && !laser)
+        // only pen and mouse events
+        if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
+
+        // no mouse button pressed -> show cursor, active auto-hide, return
+        if (!evt.buttons)
         {
             showCursor();
             triggerHideCursor();
             return;
         }
 
-        // mouse button pressed
-        switch(evt.pointerType)
-        {
-            case "pen":
-            case "mouse":
-                switch(tool)
-                {
-                    case ToolType.PEN:
-                    case ToolType.ERASER:
-                        // try to exploit coalesced events
-                        var events = [evt];
-                        if (evt.getCoalescedEvents) 
-                        {
-                            events = evt.getCoalescedEvents() || events;
-                            if (DEBUG) console.log( events.length + " coalesced move events");
-                        }
-                        for (let e of events) 
-                            if (e.buttons > 0) 
-                                continueStroke(e);
-                        break;
-                }
-                break;
 
-            case "touch":
-                showCursor(laserCursor);
-                triggerHideCursor();
-                break;
+        // laser mode or right mouse button
+        if (tool==ToolType.LASER || (tool==ToolType.PEN && evt.buttons==2))
+        {
+            //showCursor(laserCursor);
+            //triggerHideCursor();
         }
+
+        // eraser mode or middle mouse button
+        else if (tool==ToolType.ERASER || (tool==ToolType.PEN && evt.buttons>=4))
+        {
+            eraseStroke(evt);
+        }
+
+        // pencil mode
+        else if (tool == ToolType.PEN)
+        {
+            continueStroke(evt);
+        }
+
+
+        // don't propagate event any further
+        killEvent(evt);
+        return false;
     }
 
 
     function pointerup(evt) 
     {
-        // no tool selected -> return
-        if (!tool) return;
+        // only when whiteboard is active
+        if (!whiteboardActive) return;
 
-        switch(evt.pointerType)
+        // only pen and mouse events
+        if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
+
+        // finish pen stroke
+        if (tool == ToolType.PEN)
         {
-            case "pen":
-            case "mouse":
-                switch(tool)
-                {
-                    case ToolType.PEN:
-                    case ToolType.ERASER:
-                        stopStroke(evt);
-                        break;
-                }
-                break;
-
-            case "touch":
-                break;
+            stopStroke(evt);
+            selectCursor(penCursor); // might be laser/eraser due to buttons pressed
         }
+
+        // re-activate cursor hiding
+        triggerHideCursor();
+
+        // don't propagate event any further
+        killEvent(evt);
+        return false;
     }
 
 
@@ -1554,30 +1143,14 @@ var RevealWhiteboard = (function(){
     // setup pointer events
     if (window.PointerEvent)
     {
-        container.addEventListener( 'pointerdown', pointerdown, true );
-        container.addEventListener( 'pointermove', pointermove, {passive: false} );
-        container.addEventListener( 'pointerup',   pointerup );
+        slides.addEventListener( 'pointerdown', pointerdown, true );
+        slides.addEventListener( 'pointermove', pointermove );
+        slides.addEventListener( 'pointerup',   pointerup );
     }
     else
     {
         console.err("whiteboard requires PointerEvents");
     }
-
-
-    // toggle light saber 
-    window.addEventListener( 'dblclick', function(evt){
-        if (laser) toggleLightSaber(evt);
-    });
-
-
-    // move light saber 
-    window.addEventListener( 'pointermove', function(evt){
-        if (lightsaber.style.visibility == "visible")
-        {
-            lightsaber.style.left = evt.pageX + "px";
-            lightsaber.style.top  = evt.pageY + "px";
-        }
-    });
 
 
     // Intercept page leave when data is not saved
@@ -1590,17 +1163,16 @@ var RevealWhiteboard = (function(){
             return;
         }
 
-        if (needSave) return "blabla";
+        if (unsavedAnnotations) return "blabla";
     }
 
 
     // when drawing, stop ANY context menu from being opened
     window.addEventListener( "contextmenu", function(evt) 
     {
-        if (tool)
+        if (whiteboardActive)
         {
-            evt.preventDefault();
-            evt.stopPropagation();
+            killEvent(evt);
             return false;
         }
     }, true );
@@ -1610,10 +1182,9 @@ var RevealWhiteboard = (function(){
     // only allow clicks for our (.whiteboard) buttons
     window.addEventListener( "click", function(evt) 
     {
-        if (tool && !evt.target.classList.contains("whiteboard"))
+        if (whiteboardActive && !evt.target.classList.contains("whiteboard"))
         {
-            evt.preventDefault();
-            evt.stopPropagation();
+            killEvent(evt);
             return false;
         }
     }, true );
@@ -1628,8 +1199,8 @@ var RevealWhiteboard = (function(){
         if ((evt.ctrlKey || evt.metaKey) && (!evt.shiftKey) &&
             String.fromCharCode(evt.which).toLowerCase() == 'z') 
         {
-            evt.preventDefault();
-            drawUndo();
+            killEvent(evt);
+            undoStroke();
         }
     });
 
@@ -1637,28 +1208,86 @@ var RevealWhiteboard = (function(){
     // what to do when the slide changes 
     function slideChanged(evt)
     {
-        if ( !printMode ) {
-            slideIndices = Reveal.getIndices();
-            closeWhiteboard();
-            playbackEvents( 0 );
+        if ( !printMode ) 
+        {
+            // hide pen dialog
+            hideColorPicker();
+
+            // determine current fragment index
+            currentFragmentIndex = Reveal.getIndices().f;
+
+            // hide all SVG's
+            slides.querySelectorAll( 'svg.whiteboard' ).forEach( svg => { 
+                svg.style.display = 'none';
+            });
+
+            // show current slide's SVG
+            setupSVG();
+            svg.style.display = 'block';
+
+            // activate/deactivate SVG
+            toggleWhiteboard(whiteboardActive); 
+
+            // set height based on annotations
+            adjustWhiteboardHeight();
+
+            // setup slides container
+            slides.scrollTop  = 0;
+            if (svg.clientHeight > slides.clientHeight)
+                slides.classList.add('needScrollbar');
+            else
+                slides.classList.remove('needScrollbar');
+
+            // adjust fragment visibility
+            fragmentChanged();
+
+            // update SVG grid icon
+            buttonGrid.style.color = (svg && getGridRect()) ? activeColor : inactiveColor;
+
+            // just to be sure, update slide zoom
+            slideZoom = slides.style.zoom || 1;
         }
     }
 
 
-    // whenever slide changes, update slideIndices and redraw
-    Reveal.addEventListener( 'ready',          slideChanged );
-    Reveal.addEventListener( 'slidechanged',   slideChanged );
-    Reveal.addEventListener( 'fragmentshown',  slideChanged );
-    Reveal.addEventListener( 'fragmenthidden', slideChanged );
+    // handle fragments
+    function fragmentChanged()
+    {
+        // hide pen dialog
+        hideColorPicker();
 
-    // update GUI (button) on slide change
-    Reveal.addEventListener( 'ready',          updateGUI );
-    Reveal.addEventListener( 'slidechanged',   updateGUI );
-    Reveal.addEventListener( 'fragmentshown',  updateGUI );
-    Reveal.addEventListener( 'fragmenthidden', updateGUI );
+        // determine current fragment index
+        currentFragmentIndex = Reveal.getIndices().f;
+
+        if (currentFragmentIndex != undefined)
+        {
+            // adjust fragment visibility
+            svg.querySelectorAll('svg>path[data-frag]').forEach( stroke => { 
+                stroke.style.visibility = 
+                    stroke.getAttribute('data-frag') > currentFragmentIndex ? 'hidden' : 'visible';
+            });
+        }
+    }
+
+
+
+    // whenever slide changes, update slideIndices and redraw
+    Reveal.addEventListener( 'ready',        slideChanged );
+    Reveal.addEventListener( 'slidechanged', slideChanged );
+
+    // whenever fragment changes, update stroke visibility
+    Reveal.addEventListener( 'fragmentshown',   fragmentChanged );
+    Reveal.addEventListener( 'fragmenthidden',  fragmentChanged );
 
     // eraser cursor has to be updated on resize (i.e. scale change)
-    Reveal.addEventListener( 'resize',         updateGUI );
+    Reveal.addEventListener( 'resize', () => { 
+        // hide pen dialog
+        hideColorPicker();
+        // size of eraser cursor has to be adjusted
+        createEraserCursor();
+        // slide zoom might change
+        slideZoom = slides.style.zoom || 1;
+    });
 
 
 
@@ -1670,59 +1299,32 @@ var RevealWhiteboard = (function(){
         description: 'Clear Slide' }, 
         clearSlide );
 
-    Reveal.addKeyBinding( { keyCode: 68, key: 'D', 
-        description: 'Toggle Drawing' }, 
-        function(){ selectTool(ToolType.PEN); } );
-
-    Reveal.addKeyBinding( { keyCode: 69, key: 'E',
-        description: 'Toggle Eraser' },
-        function(){ selectTool(ToolType.ERASER); });
-
-    Reveal.addKeyBinding( { keyCode: 76, key: 'L', 
-        description: 'Toggle Laser' }, 
-        toggleLaser );
-
     Reveal.addKeyBinding( { keyCode: 87, key: 'W', 
         description: 'Toggle Whiteboard' }, 
         toggleWhiteboard );
-
-    Reveal.addKeyBinding( { keyCode: 90, key: 'Z', 
-        description: 'Whiteboard Undo' }, 
-        drawUndo );
-
-    Reveal.addKeyBinding( { keyCode: 13, key: 'Enter', 
-        description: 'Extend whiteboard by one page' }, 
-        addWhiteboardPage );
-
-    Reveal.addKeyBinding( { keyCode: 82, key: 'R', 
-        description: 'Repeat (duplicate) drawings from previous frame' }, 
-        duplicatePrevious );
 
 
 
 	return {
 		init: function() { 
 
-            // print some infos
-            console.log("HighDPI scaling:  " + canvasScale);
-            console.log("Pointer events:   " + !!(window.PointerEvent));
-            console.log("Coalesced events: " + !!(window.PointerEvent && (new PointerEvent("pointermove")).getCoalescedEvents));
+            // generate cursors
+            createLaserCursor();
+            createEraserCursor();
+            createPenCursor();
 
-            return new Promise( function(resolve) {
-                
-                if (printMode)
-                {
-                    // load scribbles, create whiteboard slides, then resolve promise
-                    loadAnnotations().then(createPrintout).then(resolve);
-                }
-                else
-                {
-                    // load scribbles, then resolve promise
-                    loadAnnotations().then(resolve);
-                }
-            });
+            // set default state
+            toggleWhiteboard(false);
+            selectTool(ToolType.PEN);
+            selectPenColor(penColors[0]);
+            selectPenRadius(2);
+
+            // hide buttons in print mode
+            if (printMode) buttons.style.display = 'none';
+
+            // load annotations
+            return new Promise( (resolve) => loadAnnotations().then(resolve) );
         },
-
 
         // menu plugin need access to trigger it
         downloadNotes: downloadAnnotations
