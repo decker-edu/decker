@@ -881,7 +881,7 @@ let RevealWhiteboard = (function(){
         let   p;
         let   d;
 
-        for (let s=0; s<length; s+=precision)
+        for (let s=0; s<=length; s+=precision)
         {
             p = path.getPointAtLength(s);
             d = distance( point, [p.x, p.y] );
