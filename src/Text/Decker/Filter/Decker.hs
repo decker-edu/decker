@@ -59,7 +59,8 @@ tripletwise _ xs = return xs
 -- matching granularity ranges from list of blocks to single inline elements.
 mediaFilter :: WriterOptions -> Pandoc -> IO Pandoc
 mediaFilter options pandoc =
-  runFilter options mediaBlockListFilter pandoc >>=
+  runFilter options transformHeader1 pandoc >>=
+  runFilter options mediaBlockListFilter >>=
   runFilter options mediaInlineListFilter >>=
   runFilter options mediaBlockFilter >>=
   runFilter options mediaInlineFilter

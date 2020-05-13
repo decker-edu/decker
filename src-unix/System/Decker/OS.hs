@@ -33,7 +33,7 @@ chrome = do
   localExists <- localChrome >>= \h -> doesFileExist h
   globalExists <- doesFileExist chromeLocation
   if globalExists
-    then return $ Right chromeCommand
+    then return $ Right chromeLocation
     else if localExists
            then localChromeCommand
            else do

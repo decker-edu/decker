@@ -1,7 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Decker where
 
-import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -26,6 +25,7 @@ import qualified Data.Text as Text
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
+import NeatInterpolation
 import qualified System.Directory as Dir
 import System.Environment.Blank
 import System.IO
@@ -80,15 +80,25 @@ run = do
   let indexSource = (directories ^. project) </> "index.md"
   let generatedIndexSource = (directories ^. transient) </> "index.md.generated"
   let indexFile = (directories ^. public) </> "index.html"
-  let cruft = ["//" <> deckerFiles]
-  let pdfMsg =
-        "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
-        "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++
-        "\tPlease add 'print: true' or 'menu: true' to your slide deck and use the print button on the title slide.\n" ++
-        "# MacOS: Follow the Google Chrome installer instructions.\n" ++
-        "\tGoogle Chrome.app has to be located in either /Applications/Google Chrome.app or /Users/<username>/Applications/Google Chrome.app\n" ++
-        "\tAlternatively you can add 'chrome' to $PATH.\n" ++
-        "# Linux: 'chrome' has to be on $PATH.\n"
+  let pdfMsg = Text.unpack
+        [text|
+          # 
+          # To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be
+          # installed.
+          # 
+          # Windows: Currently 'decker pdf' does not work on Windows.
+          #   Please add 'print: true' or 'menu: true' to your slide deck and use
+          #   the print button on the title slide.
+          #
+          # MacOS: Follow the Google Chrome installer instructions.
+          #   'Google Chrome.app' has to be located in either of these locations
+          #
+          #   - '/Applications/Google Chrome.app' 
+          #   - '/Users/<username>/Applications/Google Chrome.app'
+          #
+          # Linux: 'chrome' has to be on $$PATH.
+          # 
+        |]
   --
   runDecker $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches directories
@@ -117,7 +127,7 @@ run = do
     phony "pdf" $ do
       putNormal pdfMsg
       need ["support"]
-      getTargets >>= needSels [decksPdf, handoutsPdf, pagesPdf]
+      getTargets >>= needSel decksPdf
     --
     phony "pdf-decks" $ do
       putNormal pdfMsg
@@ -160,16 +170,13 @@ run = do
       --
       (directories ^. public) <//> "*-deck.pdf" %> \out -> do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
+        let url = serverUrl </> makeRelative (directories ^. public) src
         need [src]
-        putNormal $ "Started: " ++ src ++ " -> " ++ out
         runHttpServer serverPort directories Nothing
-        result <-
-          liftIO $
-          launchChrome
-            (serverUrl </> makeRelative (directories ^. public) src)
-            out
+        putNormal $ "# chrome started ... (for " <> out <> ")"
+        result <- liftIO $ launchChrome url out
         case result of
-          Right msg -> putNormal msg
+          Right msg -> putNormal $ "# chrome finished (for " <> out <> ")"
           Left msg -> error msg
       --
       (directories ^. public) <//> "*-handout.html" %> \out -> do
@@ -247,8 +254,8 @@ run = do
       need (targets ^. annotations)
     --
     phony "clean" $ do
-      removeFilesAfter (directories ^. public) ["//"]
-      removeFilesAfter (directories ^. project) cruft
+      liftIO $ tryRemoveDirectory (directories ^. public)
+      liftIO $ tryRemoveDirectory (directories ^. transient)
     --
     phony "info" $ do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
@@ -256,8 +263,7 @@ run = do
       putNormal $ "support directory: " ++ (directories ^. support)
       meta <- getGlobalMeta
       targets <- getTargets
-      templateSource <-
-        liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
+      templateSource <- liftIO $ calcTemplateSource meta
       putNormal $ "template source: " <> show templateSource
       putNormal "\ntargets:\n"
       putNormal (groom targets)

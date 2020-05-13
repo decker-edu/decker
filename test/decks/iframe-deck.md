@@ -19,9 +19,11 @@ width="100%" height="400px" model="some-model.off"}
 
 # ![](https://www.uni-wuerzburg.de/startseite.html)
 
-# Iframe showing <http://pandoc.org/MANUAL.pdf>
+# Iframe showing <https://pandoc.org/MANUAL.pdf>
 
-![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
+![](https://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
+
+# ![](include/06-metal.pdf)
 
 # Iframe showing local HTML file
 

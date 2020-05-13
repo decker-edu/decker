@@ -29,8 +29,14 @@ Strangely, this does not work.
 
 ![](include/06-metal.png)
 
-# Naked Images
+------------------------------------------------------------------------
 
-## Image with figure
+# Naked Images {.columns }
 
-![Alt text as figure](include/06-metal.png)
+## Image with figure {.left}
+
+![Alt text as figure](include/06-metal.png){width="100%"}
+
+![Alt text as figure](include/06-metal-v.png){width="30%"}
+
+## Right Column {.right}
