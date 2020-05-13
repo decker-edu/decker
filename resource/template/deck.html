@@ -166,22 +166,22 @@ $endfor$
     <div class="slides">
 
 $if(title)$
-$if(mario)$
-<!-- Mario settings -->
-<section id="$idprefix$title-slide">
+   $if(mario)$
+      <!-- Mario settings -->
+      <section id="$idprefix$title-slide">
 
-    <div class="white-on-blue">
+      <div class="white-on-blue">
         <div class="title"> $title$ </div>
         $if(subtitle)$
             <div class="subtitle"> $subtitle$ </div>
         $endif$
-    </div>
+      </div>
 
-    $if(teaser)$
-        <img class="teaser" src=$teaser$>
-    $endif$
+      $if(teaser)$
+         <img class="teaser" src=$teaser$>
+      $endif$
 
-    $if(authors)$
+      $if(authors)$
         <div class="authors">
         $for(authors)$
             $if(it.name)$
@@ -194,76 +194,48 @@ $if(mario)$
             $endif$
         $endfor$
         </div>
-    $endif$
+      $endif$
 
-    $if(author)$
+      $if(author)$
         <div class="author"> $author$ </div>
-    $endif$
+      $endif$
 
-    $if(affiliation)$
+      $if(affiliation)$
         <div class="affiliation"> $affiliation$ </div>
-    $endif$
-
-$else$ <!-- standard settings -->
-$if(template.title-header)$
-<section id="$idprefix$title-slide" 
-        data-background-size="100%" 
-        data-background-position="0px 0px" 
-        data-background-image=$template.title-header$>
-$else$
-<section id="$idprefix$title-slide">
-$endif$
-        <div class="title"> $title$</div>
-        $if(subtitle)$
-            <div class="subtitle"> $subtitle$ </div>
-        $endif$
-    $if(template.title-teaser)$
-        <div class="title-teaser">
-                <img src=$template.title-teaser$>
-        </div>
-    $endif$
-    $if(author)$
-        <div class="author"> $author$ </div>
-        $if(affiliation)$
-           $if(template.affiliation-logo)$
-              <div class="affiliation-logo">
-                  <img src=$template.affiliation-logo$>
-              </div>
+      $endif$
+      </section>
+   $else$ <!-- standard settings -->
+      $if(title-header)$
+         <section id="$idprefix$title-slide" 
+            data-background-size="100%" 
+            data-background-position="0px 0px" 
+            data-background-image=$title-header$>
+      $else$
+         <section id="$idprefix$title-slide">
+      $endif$
+      <div class="title"> $title$</div>
+      $if(subtitle)$
+         <div class="subtitle"> $subtitle$ </div>
+      $endif$
+      $if(title-teaser)$
+         <div class="title-teaser">
+           <img src=$title-teaser$>
+         </div>
+      $endif$
+      $if(author)$
+         <div class="author"> $author$ </div>
+         $if(affiliation)$
+            $if(affiliation-logo)$
+               <div class="affiliation-logo">
+               <img src=$affiliation-logo$>
+               </div>
             $endif$
             <div class="affiliation"> $affiliation$ </div>
-        $endif$
-        $endif$
-        $else$
-        <!-- standard settings -->
-        $if(title-header)$
-        <section id="$idprefix$title-slide" data-background-size="100%" data-background-position="0px 0px"
-                data-background-image=$title-header$>
-                $else$
-                <section id="$idprefix$title-slide">
-                        $endif$
-                        <div class="title"> $title$</div>
-                        $if(subtitle)$
-                        <div class="subtitle"> $subtitle$ </div>
-                        $endif$
-                        $if(title-teaser)$
-                        <div class="title-teaser">
-                                <img src=$title-teaser$>
-                        </div>
-                        $endif$
-                        $if(author)$
-                        <div class="author"> $author$ </div>
-                        $if(affiliation)$
-                        $if(affiliation-logo)$
-                        <div class="affiliation-logo">
-                                <img src=$affiliation-logo$>
-                        </div>
-                        $endif$
-                        <div class="affiliation"> $affiliation$ </div>
-                        $endif$
-                        $endif$
-                        $endif$
-                </section>
-                $endif$
+         $endif$ 
+         </section>
+      $endif$     
+   $endif$     
+$endif$
 
 $if(toc)$
     <section id="$idprefix$TOC">
