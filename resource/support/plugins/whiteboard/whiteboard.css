@@ -62,6 +62,12 @@
 }
 
 
+/* children of SVG (strokes, grid) should not get pointer events */
+.reveal svg.whiteboard * {
+    pointer-events: none;
+}
+
+
 /* whiteboard button */
 .reveal button.whiteboard {
     display:     inline-block;

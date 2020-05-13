@@ -8,8 +8,8 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Project.Shake
-import Text.Decker.Resource.Template
 import Text.Decker.Reader.Markdown
+import Text.Decker.Resource.Template
 
 import Control.Exception
 import qualified Data.ByteString.Lazy as LB
@@ -36,22 +36,18 @@ chromeOptions src out =
 launchChrome :: FilePath -> FilePath -> IO (Either String String)
 launchChrome src out = do
   command <- chrome
-  let options = unwords (chromeOptions src out)
+  let options = chromeOptions src out
   case command of
     Left msg -> return $ Left msg
     Right cmd -> do
-      (_, _, _, ph) <-
-        do let invocation = cmd ++ " " ++ options
-        -- putStrLn invocation
-           createProcess (shell invocation) {std_err = CreatePipe}
-      code <- waitForProcess ph
-      case code of
-        ExitFailure _ ->
-          return $
-          Left
-            ("Google Chrome is most likely not installed. " ++
-             "Please install Google Chrome to use 'decker pdf' or 'decker pdf-decks'")
-        ExitSuccess -> return $ Right ("Completed: " ++ src ++ " -> " ++ out)
+      -- putStrLn (cmd <> " " <> unwords options)
+      (exitCode, stdOut, stdErr) <-
+        readProcessWithExitCode cmd options ""
+      return $
+        case exitCode of
+          ExitSuccess -> Right ("Completed: " ++ src ++ " -> " ++ out)
+          ExitFailure code ->
+            Left ("Error " <> show code <> ": " <> stdOut <> "\n" <> stdErr)
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfPage :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()

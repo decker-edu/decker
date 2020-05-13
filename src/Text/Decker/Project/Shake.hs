@@ -53,6 +53,7 @@ import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
 import System.Process
+import Text.Groom
 import Text.Pandoc hiding (lookupMeta)
 
 instance Show (IORef a) where
@@ -170,8 +171,9 @@ deckerShakeOptions ctx = do
       { shakeFiles = ctx ^. dirs . transient
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
+      , shakeColor = True
       -- , shakeChange = ChangeModtimeAndDigest
-      , shakeAbbreviations = [(ctx ^. dirs . project ++ "/", "/")]
+      , shakeAbbreviations = [(ctx ^. dirs . project, "${project}")]
       }
 
 actionContextKey :: TypeRep
@@ -203,8 +205,7 @@ getRelativeSupportDir from = do
 
 writeSupportFilesToPublic :: Meta -> Action ()
 writeSupportFilesToPublic meta = do
-  templateSource <-
-    liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
+  templateSource <- liftIO $ calcTemplateSource meta
   correct <- correctSupportInstalled templateSource
   if correct
     then putNormal "# support files up to date"
@@ -232,7 +233,7 @@ extractSupport :: TemplateSource -> Action ()
 extractSupport templateSource = do
   context <- actionContext
   let supportDir = context ^. dirs . support
-  liftIO $ do
+  liftIO $ handleAll (\_ -> return ()) $ do
     copySupportFiles templateSource Copy supportDir
     writeFile (supportDir </> ".origin") (show templateSource)
 
@@ -347,7 +348,8 @@ readStaticMetaData :: FilePath -> Action Meta
 readStaticMetaData file = do
   dirs <- projectDirsA
   meta <- setMetaValue "decker.directories" dirs <$> readMetaData file
-  templateSource <-
-    liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
+  putVerbose "decker.yaml:"
+  putVerbose $ groom meta
+  templateSource <- liftIO $ calcTemplateSource meta
   defaultMeta <- readTemplateMeta templateSource
   return $ mergePandocMeta' meta defaultMeta

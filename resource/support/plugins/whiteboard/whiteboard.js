@@ -132,9 +132,9 @@ let RevealWhiteboard = (function(){
         }
         else {
             if (colorPicker.style.visibility == 'visible')
-                hideColorPicker();
+                colorPicker.style.visibility = 'hidden';
             else
-                showColorPicker();
+                colorPicker.style.visibility = 'visible';
         }
     });
     let buttonEraser = createButton("fa-eraser", () => { selectTool(ToolType.ERASER); } );
@@ -394,7 +394,7 @@ let RevealWhiteboard = (function(){
 
     function selectPenColor(col)
     {
-        hideColorPicker();
+        colorPicker.style.visibility = 'hidden';
         penWidthSlider.style.setProperty("--color", col);
         penColor = col;
         buttonPen.style.color = penColor;
@@ -402,22 +402,11 @@ let RevealWhiteboard = (function(){
         selectCursor(penCursor);
     }
 
-    function showColorPicker()
-    {
-        colorPicker.style.visibility = 'visible';
-    }
-
-
-    function hideColorPicker()
-    {
-        colorPicker.style.visibility = 'hidden';
-    }
-
 
     function selectPenRadius(radius)
     {
-        hideColorPicker();
         penWidth = radius;
+        colorPicker.style.visibility = 'hidden';
         penWidthSlider.value = radius;
         penWidthSlider.style.setProperty("--size", (radius+1)+'px');
         selectCursor(penCursor);
@@ -433,7 +422,6 @@ let RevealWhiteboard = (function(){
             // hide buttons
             buttons.classList.remove('active');
             buttonWhiteboard.style.color = inactiveColor;
-            hideColorPicker();
 
             // reset SVG
             if (svg) {
@@ -893,7 +881,7 @@ let RevealWhiteboard = (function(){
         let   p;
         let   d;
 
-        for (let s=0; s<length; s+=precision)
+        for (let s=0; s<=length; s+=precision)
         {
             p = path.getPointAtLength(s);
             d = distance( point, [p.x, p.y] );
@@ -958,7 +946,7 @@ let RevealWhiteboard = (function(){
         // process events
         for (let evt of events) 
         {
-            if (evt.buttons > 0 && evt.target==svg)
+            if (evt.buttons > 0)
             {
                 // mouse position
                 const mouseX = evt.offsetX / slideZoom;
@@ -983,7 +971,7 @@ let RevealWhiteboard = (function(){
      */
     function stopStroke(evt)
     {
-        if (stroke && evt.target==svg)
+        if (stroke)
         {
             // mouse position
             const mouseX    = evt.offsetX / slideZoom;
@@ -1035,6 +1023,9 @@ let RevealWhiteboard = (function(){
         // only when whiteboard is active
         if (!whiteboardActive) return;
 
+        // event has to happen for SVG
+        if (evt.target != svg) return;
+
         // only pen and mouse events
         if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
 
@@ -1072,6 +1063,9 @@ let RevealWhiteboard = (function(){
     {
         // only when whiteboard is active
         if (!whiteboardActive) return;
+
+        // event has to happen for SVG
+        if (evt.target != svg) return;
 
         // only pen and mouse events
         if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
@@ -1115,6 +1109,9 @@ let RevealWhiteboard = (function(){
     {
         // only when whiteboard is active
         if (!whiteboardActive) return;
+
+        // event has to happen for SVG
+        if (evt.target != svg) return;
 
         // only pen and mouse events
         if (evt.pointerType != 'pen' && evt.pointerType != 'mouse') return;
@@ -1178,9 +1175,18 @@ let RevealWhiteboard = (function(){
     }, true );
 
 
-    // when drawing, stop ANY click (e.g. menu icon)
+    // when drawing, prevent touch events triggering clicks 
+    // (e.g. menu icon, control arrows)
     // only allow clicks for our (.whiteboard) buttons
-    window.addEventListener( "click", function(evt) 
+    window.addEventListener( "touchstart", function(evt) 
+    {
+        if (whiteboardActive && !evt.target.classList.contains("whiteboard"))
+        {
+            killEvent(evt);
+            return false;
+        }
+    }, true );
+    window.addEventListener( "touchend", function(evt) 
     {
         if (whiteboardActive && !evt.target.classList.contains("whiteboard"))
         {
@@ -1210,9 +1216,6 @@ let RevealWhiteboard = (function(){
     {
         if ( !printMode ) 
         {
-            // hide pen dialog
-            hideColorPicker();
-
             // determine current fragment index
             currentFragmentIndex = Reveal.getIndices().f;
 
@@ -1253,13 +1256,10 @@ let RevealWhiteboard = (function(){
     // handle fragments
     function fragmentChanged()
     {
-        // hide pen dialog
-        hideColorPicker();
-
         // determine current fragment index
         currentFragmentIndex = Reveal.getIndices().f;
 
-        if (currentFragmentIndex != undefined)
+        if (svg && currentFragmentIndex != undefined)
         {
             // adjust fragment visibility
             svg.querySelectorAll('svg>path[data-frag]').forEach( stroke => { 
@@ -1281,8 +1281,6 @@ let RevealWhiteboard = (function(){
 
     // eraser cursor has to be updated on resize (i.e. scale change)
     Reveal.addEventListener( 'resize', () => { 
-        // hide pen dialog
-        hideColorPicker();
         // size of eraser cursor has to be adjusted
         createEraserCursor();
         // slide zoom might change

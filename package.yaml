@@ -124,6 +124,10 @@ executables:
     source-dirs: app
     dependencies:
       - decker
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
 
 tests:
   decker-test:

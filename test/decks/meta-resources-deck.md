@@ -26,11 +26,12 @@ Resource references in meta data values
 
 # Template default meta data
 
-## From `resource/template/default.yaml`
+## From [:meta](template-source)
 
 -   `history:` [:meta](history)
 -   `fragments:` [:meta](fragments)
 -   `controls:` [:meta](fragments)
+-   `test:` [:meta](test)
 
 ## Meta Data from `meta-data`
 
