@@ -4,11 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
-<<<<<<< HEAD
--- hash: 8611c30aef173a43128d3828f883ca253bbbf0ff174050b9b5938da8dc52fe75
-=======
 -- hash: 4365a21903a4854c74f267cad4f699ac1957e0fac38a61bc613b473de72b966b
->>>>>>> master
 
 name:           decker
 version:        0.10.0
