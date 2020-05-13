@@ -138,10 +138,13 @@ streamHtml uri caption = do
 streamHtml' :: URI -> [Inline] -> Attrib Html
 streamHtml' uri caption = do
   let scheme = uriScheme uri
-  streamId <-
-    case URI.uriAuthority uri of
-      Right (URI.Authority _ host _) -> pure $ URI.unRText host
-      _ -> return $ uriPath uri
+  {-
+   -streamId <-
+   -  case URI.uriAuthority uri of
+   -    Right (URI.Authority _ host _) -> pure $ URI.unRText host
+   -    _ -> return $ uriPath uri
+   -}
+  let streamId = uriPath uri
   streamUri <-
     case scheme of
       Just "youtube" -> mkYoutubeUri streamId
