@@ -153,12 +153,15 @@ streamHtml' uri caption = do
         "Unsupported stream service: " <> toString (fromMaybe "<none>" scheme)
   iframeAttr <- takeIframeAttr >> extractAttr
   wrapperAttr <- takeWrapperAttr >> extractAttr
-  figAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
   let streamTag = mkStreamTag streamUri wrapperAttr iframeAttr
   case caption of
     [] -> do
-      return $ mkDivTag streamTag figAttr
+      divAttr <-
+        injectClass "nofigure" >> injectBorder >> takeSize >> takeUsual >>
+        extractAttr
+      return $ mkDivTag streamTag divAttr
     caption -> do
+      figAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
       captionHtml <- lift $ inlinesToHtml caption
       return $ mkFigureTag streamTag captionHtml figAttr
 
