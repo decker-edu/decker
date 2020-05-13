@@ -27,7 +27,7 @@ import Development.Shake
 import Relude
 import System.Environment
 import System.FilePath
-import Text.Pandoc hiding (getTemplate)
+import Text.Pandoc hiding (getTemplate, lookupMeta)
 import qualified Text.URI as URI
 
 {- | Defines the interface to template packs that can be selected at runtime. -}
@@ -37,6 +37,10 @@ data TemplateSource
   | LocalZip FilePath
   | Unsupported Text
   deriving (Ord, Eq, Show, Read)
+
+partialDir :: TemplateSource -> FilePath
+partialDir (LocalDir path) = path </> "template" </> "deck.html"
+partialDir _ = ""
 
 type TemplateCache = FilePath -> Action (Template Text)
 
@@ -62,10 +66,10 @@ parseTemplateUri uri =
   let ext = uriPathExtension uri
       scheme = uriScheme uri
       base = uriPath uri
-      trailing = maybe False fst (URI.uriPath uri)
-   in if | scheme == Just "exe" -> DeckerExecutable
-         | (Text.toLower <$> ext) == Just "zip" -> LocalZip $ toString base
-         | trailing -> LocalDir $ toString base
+   in if | scheme == Just "exe" && base == "" -> DeckerExecutable
+         | scheme == Nothing && (Text.toLower <$> ext) == Just "zip" ->
+           LocalZip $ toString base
+         | scheme == Nothing -> LocalDir $ toString base
          | otherwise -> Unsupported (URI.render uri)
 
 copySupportFiles :: TemplateSource -> Provisioning -> FilePath -> IO ()
@@ -81,19 +85,22 @@ copySupportFiles (Unsupported uri) provisioning destination =
 
 defaultMetaPath = "template/default.yaml"
 
-calcTemplateSource :: Maybe Text -> IO TemplateSource
-calcTemplateSource uriStr = do
-  devRun <- isDevelopmentRun
-  if devRun
-    then return $ LocalDir "resource/"
-    else return $ maybe DeckerExecutable parseTemplateUri (uriStr >>= URI.mkURI)
+-- Determines which template source is in effect. Three cases.
+calcTemplateSource :: Meta -> IO TemplateSource
+calcTemplateSource meta =
+  case lookupMeta "template-source" meta of
+    Just text -> parseTemplateUri <$> URI.mkURI text
+    Nothing -> do
+      devRun <- isDevelopmentRun
+      if devRun
+        then return $ LocalDir "resource"
+        else return $ DeckerExecutable
 
 readTemplate :: Meta -> FilePath -> Action (Template Text)
 readTemplate meta file = do
-  templateSource <-
-    liftIO $ calcTemplateSource (getMetaText "template-source" meta)
+  templateSource <- liftIO $ calcTemplateSource meta
   text <- readTemplateText templateSource
-  liftIO (handleLeft <$> compileTemplate "" text)
+  liftIO (handleLeft <$> compileTemplate (partialDir templateSource) text)
   where
     readTemplateText DeckerExecutable = do
       deckerExecutable <- liftIO getExecutablePath
@@ -109,14 +116,17 @@ readTemplate meta file = do
 
 readTemplateMeta :: TemplateSource -> Action Meta
 readTemplateMeta DeckerExecutable = do
-  executable <- liftIO $ getExecutablePath
+  executable <- liftIO getExecutablePath
+  putVerbose $ "# extracting meta data from: " <> executable
   liftIO $
     toPandocMeta <$> (extractEntry defaultMetaPath executable >>= decodeThrow)
-readTemplateMeta (LocalZip zipPath) =
+readTemplateMeta (LocalZip zipPath) = do
+  putVerbose $ "# extracting meta data from: " <> zipPath
   liftIO $
-  toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
+    toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
 readTemplateMeta (LocalDir baseDir) = do
   let defaultMeta = baseDir </> defaultMetaPath
+  putVerbose $ "# loading meta data from: " <> defaultMetaPath
   need [defaultMeta]
   liftIO $ readMetaDataFile defaultMeta
 readTemplateMeta (Unsupported uri) = return nullMeta

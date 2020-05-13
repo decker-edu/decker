@@ -23,14 +23,14 @@ import qualified Data.Text.IO as T
 import Development.Shake
 import Development.Shake.FilePath as SFP
 import Text.DocTemplates
-import Text.Pandoc hiding (getTemplate)
+import Text.Pandoc hiding (getTemplate, lookupMeta)
 import Text.Pandoc.Highlighting
 import Text.Printf
 
 -- | Generates an index.md file with links to all generated files of interest.
 writeIndexLists :: Meta -> Targets -> FilePath -> FilePath -> Action ()
 writeIndexLists meta targets out baseUrl = do
-  let projectDir = getMetaStringOrElse "decker.directories.project" "." meta
+  let projectDir = lookupMetaOrElse "decker.directories.project" "." meta
   let decks = zip (_decks targets) (_decksPdf targets)
   let handouts = zip (_handouts targets) (_handoutsPdf targets)
   let pages = zip (_pages targets) (_pagesPdf targets)
@@ -91,11 +91,11 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
   let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndProcessMarkdown meta markdownFile disp
   let highlightStyle =
-        case getMetaString "highlightjs" meta of
+        case lookupMeta "highlightjs" meta of
           Nothing -> Just pygments
-          _ -> Nothing
+          Just (_ :: T.Text) -> Nothing
   template <- getTemplate (templateFile disp)
-  dachdeckerUrl' <- liftIO getDachdeckerUrl
+  -- dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
           { writerSlideLevel = Just 1
@@ -103,17 +103,17 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
           , writerTemplate = Just template
           , writerHighlightStyle = highlightStyle
           , writerHTMLMathMethod =
-              MathJax "Handled by reveal.js in the template"
+              MathJax (lookupMetaOrElse "" "mathjax-url" meta)
           , writerVariables =
               Context $
               M.fromList
                 [ ("decker-support-dir", SimpleVal $ Text 0 $ T.pack supportDir)
-                , ("dachdecker-url", SimpleVal $ Text 0 $ T.pack dachdeckerUrl')
+                -- , ("dachdecker-url", SimpleVal $ Text 0 $ T.pack dachdeckerUrl')
                 ]
           , writerCiteMethod = Citeproc
           }
   writePandocFile "revealjs" options out pandoc
-  when (getMetaBoolOrElse "write-notebook" False meta) $
+  when (lookupMetaOrElse False "write-notebook" meta) $
     markdownToNotebook meta markdownFile (out -<.> ".ipynb")
   writeNativeWhileDebugging out "filtered" pandoc
 
@@ -136,14 +136,14 @@ markdownToHtmlPage meta getTemplate markdownFile out = do
           , writerSectionDivs = False
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
-              MathJax "Handled by reveal.js in the template"
+              MathJax (lookupMetaOrElse "" "mathjax-url" meta)
           , writerVariables =
               Context $
               M.fromList
                 [("decker-support-dir", SimpleVal $ Text 0 $ T.pack supportDir)]
           , writerCiteMethod = Citeproc
-          , writerTableOfContents = getMetaBoolOrElse "show-toc" False docMeta
-          , writerTOCDepth = getMetaIntOrElse "toc-depth" 1 docMeta
+          , writerTableOfContents = lookupMetaOrElse False "show-toc" docMeta
+          , writerTOCDepth = lookupMetaOrElse 1 "toc-depth" docMeta
           }
   writePandocFile "html5" options out pandoc
 
@@ -161,14 +161,14 @@ markdownToHtmlHandout meta getTemplate markdownFile out = do
           { writerTemplate = Just template
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
-              MathJax "Handled by reveal.js in the template"
+              MathJax (lookupMetaOrElse "" "mathjax-url" meta)
           , writerVariables =
               Context $
               M.fromList
                 [("decker-support-dir", SimpleVal $ Text 0 $ T.pack supportDir)]
           , writerCiteMethod = Citeproc
-          , writerTableOfContents = getMetaBoolOrElse "show-toc" False docMeta
-          , writerTOCDepth = getMetaIntOrElse "toc-depth" 1 docMeta
+          , writerTableOfContents = lookupMetaOrElse False "show-toc" docMeta
+          , writerTOCDepth = lookupMetaOrElse 1 "toc-depth"  docMeta
           }
   writePandocFile "html5" options out pandoc
 

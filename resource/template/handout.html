@@ -27,8 +27,8 @@
         </style>
         $endif$
 
-$if(base-css)$
-    <link rel="stylesheet" href="$base-css$">
+$if(template.base-css)$
+    <link rel="stylesheet" href="$template.base-css$">
 $else$
     <link rel="stylesheet" href="$decker-support-dir$/css/handout.css">
 $endif$
@@ -108,8 +108,8 @@ $endif$
         $for(header-includes)$
         $header-includes$
         $endfor$
-        $for(css)$
-        <link rel="stylesheet" href="$css$">
+        $for(template.css)$
+        <link rel="stylesheet" href="$template.css$">
         $endfor$
     </head>
 

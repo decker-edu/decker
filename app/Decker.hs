@@ -1,7 +1,6 @@
 {-- Author: Henrik Tramberend <henrik@tramberend.de> --}
 module Decker where
 
-import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -19,22 +18,20 @@ import Text.Decker.Writer.Pdf
 import Control.Concurrent
 import Control.Lens ((^.))
 import Control.Monad.Extra
-import Data.Aeson
 import Data.IORef ()
 import Data.List
-import qualified Data.Map as Map
 import Data.String ()
 import qualified Data.Text as Text
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
+import NeatInterpolation
 import qualified System.Directory as Dir
 import System.Environment.Blank
 import System.IO
 import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc hiding (lookupMeta)
-import Text.Printf (printf)
 
 main :: IO ()
 main = do
@@ -56,20 +53,7 @@ prepCaches ::
 prepCaches directories = do
   let deckerMetaFile = (directories ^. project) </> "decker.yaml"
   let deckerTargetsFile = (directories ^. transient) </> "targets.yaml"
-  getGlobalMeta <-
-    ($ deckerMetaFile) <$>
-    newCache
-      (\file -> do
-         meta <- readStaticMetaData file
-         let dirs =
-               Meta $
-               Map.fromList
-                 [ ( "decker"
-                   , MetaMap $
-                     Map.fromList
-                       [("directories", toPandocMeta' (toJSON directories))])
-                 ]
-         return $ mergePandocMeta' dirs meta)
+  getGlobalMeta <- ($ deckerMetaFile) <$> newCache readStaticMetaData
   getTargets <- ($ deckerTargetsFile) <$> newCache readTargetsFile
   getTemplate <-
     newCache
@@ -88,13 +72,7 @@ needSels sels targets = need (concatMap (targets ^.) sels)
 
 run :: IO ()
 run = do
-  when isDevelopmentVersion $
-    printf
-      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please be sure that you know what you're doing.\n"
-      deckerVersion
-      deckerGitBranch
-      deckerGitCommitId
-      deckerGitVersionTag
+  warnVersion
   directories <- projectDirectories
   --
   let serverPort = 8888
@@ -102,20 +80,30 @@ run = do
   let indexSource = (directories ^. project) </> "index.md"
   let generatedIndexSource = (directories ^. transient) </> "index.md.generated"
   let indexFile = (directories ^. public) </> "index.html"
-  let cruft = ["//" <> deckerFiles]
-  let pdfMsg =
-        "\n# To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be installed.\n" ++
-        "# Windows: Currently 'decker pdf' does not work on Windows.\n" ++
-        "\tPlease add 'print: true' or 'menu: true' to your slide deck and use the print button on the title slide.\n" ++
-        "# MacOS: Follow the Google Chrome installer instructions.\n" ++
-        "\tGoogle Chrome.app has to be located in either /Applications/Google Chrome.app or /Users/<username>/Applications/Google Chrome.app\n" ++
-        "\tAlternatively you can add 'chrome' to $PATH.\n" ++
-        "# Linux: 'chrome' has to be on $PATH.\n"
+  let pdfMsg = Text.unpack
+        [text|
+          # 
+          # To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be
+          # installed.
+          # 
+          # Windows: Currently 'decker pdf' does not work on Windows.
+          #   Please add 'print: true' or 'menu: true' to your slide deck and use
+          #   the print button on the title slide.
+          #
+          # MacOS: Follow the Google Chrome installer instructions.
+          #   'Google Chrome.app' has to be located in either of these locations
+          #
+          #   - '/Applications/Google Chrome.app' 
+          #   - '/Users/<username>/Applications/Google Chrome.app'
+          #
+          # Linux: 'chrome' has to be on $$PATH.
+          # 
+        |]
   --
   runDecker $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches directories
     --
-    want ["html"]
+    want ["decks"]
     --
     phony "version" $ do
       putNormal $
@@ -139,7 +127,7 @@ run = do
     phony "pdf" $ do
       putNormal pdfMsg
       need ["support"]
-      getTargets >>= needSels [decksPdf, handoutsPdf, pagesPdf]
+      getTargets >>= needSel decksPdf
     --
     phony "pdf-decks" $ do
       putNormal pdfMsg
@@ -170,90 +158,104 @@ run = do
       need $ map (directories ^. public </>) pages
       watchChangesAndRepeat
     --
-    (directories ^. public) <//> "*-deck.html" %> \out -> do
-      src <- calcSource "-deck.html" "-deck.md" out
-      let annotDst = replaceSuffix "-deck.html" "-annot.json" out
-      annotSrc <- calcSource' annotDst
-      exists <- liftIO $ Dir.doesFileExist annotSrc
-      when exists $ need [annotDst]
-      meta <- getGlobalMeta
-      markdownToHtmlDeck meta getTemplate src out
+    alternatives $ do
+      (directories ^. public) <//> "*-deck.html" %> \out -> do
+        src <- calcSource "-deck.html" "-deck.md" out
+        let annotDst = replaceSuffix "-deck.html" "-annot.json" out
+        annotSrc <- calcSource' annotDst
+        exists <- liftIO $ Dir.doesFileExist annotSrc
+        when exists $ need [annotDst]
+        meta <- getGlobalMeta
+        markdownToHtmlDeck meta getTemplate src out
+      --
+      (directories ^. public) <//> "*-deck.pdf" %> \out -> do
+        let src = replaceSuffix "-deck.pdf" "-deck.html" out
+        let url = serverUrl </> makeRelative (directories ^. public) src
+        need [src]
+        runHttpServer serverPort directories Nothing
+        putNormal $ "# chrome started ... (for " <> out <> ")"
+        result <- liftIO $ launchChrome url out
+        case result of
+          Right msg -> putNormal $ "# chrome finished (for " <> out <> ")"
+          Left msg -> error msg
+      --
+      (directories ^. public) <//> "*-handout.html" %> \out -> do
+        src <- calcSource "-handout.html" "-deck.md" out
+        meta <- getGlobalMeta
+        markdownToHtmlHandout meta getTemplate src out
+      --
+      (directories ^. public) <//> "*-handout.pdf" %> \out -> do
+        src <- calcSource "-handout.pdf" "-deck.md" out
+        meta <- getGlobalMeta
+        markdownToPdfHandout meta getTemplate src out
+      --
+      (directories ^. public) <//> "*-page.html" %> \out -> do
+        src <- calcSource "-page.html" "-page.md" out
+        meta <- getGlobalMeta
+        markdownToHtmlPage meta getTemplate src out
+      --
+      (directories ^. public) <//> "*-page.pdf" %> \out -> do
+        src <- calcSource "-page.pdf" "-page.md" out
+        meta <- getGlobalMeta
+        markdownToPdfPage meta getTemplate src out
+      --
+      (directories ^. public) <//> "*-annot.json" %> \out -> do
+        src <- calcSource' out
+        putNormal $ "# copy (for " <> out <> ")"
+        copyFile' src out
+      --
+      indexFile %> \out -> do
+        exists <- doesFileExist indexSource
+        let src =
+              if exists
+                then indexSource
+                else generatedIndexSource
+        meta <- getGlobalMeta
+        markdownToHtmlPage meta getTemplate src out
+      --
+      generatedIndexSource %> \out -> do
+        targets <- getTargets
+        meta <- getGlobalMeta
+        writeIndexLists meta targets out (takeDirectory indexFile)
+      --
+      (directories ^. project) <//> "*.dot.svg" %> \out -> do
+        let src = dropExtension out
+        need [src]
+        dot ["-o" ++ out, src]
+      --
+      (directories ^. project) <//> "*.gnuplot.svg" %> \out -> do
+        let src = dropExtension out
+        need [src]
+        gnuplot ["-e", "set output \"" ++ out ++ "\"", src]
+      --
+      (directories ^. project) <//> "*.tex.svg" %> \out -> do
+        let src = dropExtension out
+        let pdf = src -<.> ".pdf"
+        let dir = takeDirectory src
+        need [src]
+        pdflatex ["-output-directory", dir, src]
+        pdf2svg [pdf, out]
+        liftIO $ Dir.removeFile pdf
+      --
+      -- Catch all. Just copy project/* to public/*. This nicely handles ALL
+      -- resources. Just `need` them where you need them.
+      (directories ^. public) <//> "//" %> \out -> do
+        let src =
+              (directories ^. project) </>
+              makeRelative (directories ^. public) out
+        copyFile' src out
     --
-    (directories ^. public) <//> "*-deck.pdf" %> \out -> do
-      let src = replaceSuffix "-deck.pdf" "-deck.html" out
-      need [src]
-      putNormal $ "Started: " ++ src ++ " -> " ++ out
-      runHttpServer serverPort directories Nothing
-      result <-
-        liftIO $
-        launchChrome
-          (serverUrl </> makeRelative (directories ^. public) src)
-          out
-      case result of
-        Right msg -> putNormal msg
-        Left msg -> error msg
-    --
-    (directories ^. public) <//> "*-handout.html" %> \out -> do
-      src <- calcSource "-handout.html" "-deck.md" out
-      meta <- getGlobalMeta
-      markdownToHtmlHandout meta getTemplate src out
-    --
-    (directories ^. public) <//> "*-handout.pdf" %> \out -> do
-      src <- calcSource "-handout.pdf" "-deck.md" out
-      meta <- getGlobalMeta
-      markdownToPdfHandout meta getTemplate src out
-    --
-    (directories ^. public) <//> "*-page.html" %> \out -> do
-      src <- calcSource "-page.html" "-page.md" out
-      meta <- getGlobalMeta
-      markdownToHtmlPage meta getTemplate src out
-    --
-    (directories ^. public) <//> "*-page.pdf" %> \out -> do
-      src <- calcSource "-page.pdf" "-page.md" out
-      meta <- getGlobalMeta
-      markdownToPdfPage meta getTemplate src out
-    --
-    (directories ^. public) <//> "*-annot.json" %> \out -> do
-      src <- calcSource' out
-      putNormal $ "# copy (for " <> out <> ")"
-      copyFile' src out
-    --
-    indexFile %> \out -> do
-      exists <- doesFileExist indexSource
-      let src =
-            if exists
-              then indexSource
-              else generatedIndexSource
-      meta <- getGlobalMeta
-      markdownToHtmlPage meta getTemplate src out
-    --
-    generatedIndexSource %> \out -> do
+    phony "static-files" $ do
       targets <- getTargets
-      meta <- getGlobalMeta
-      writeIndexLists meta targets out (takeDirectory indexFile)
+      need (targets ^. static)
     --
-    (directories ^. project) <//> "*.dot.svg" %> \out -> do
-      let src = dropExtension out
-      need [src]
-      dot ["-o" ++ out, src]
-    --
-    (directories ^. project) <//> "*.gnuplot.svg" %> \out -> do
-      let src = dropExtension out
-      need [src]
-      gnuplot ["-e", "set output \"" ++ out ++ "\"", src]
-    --
-    (directories ^. project) <//> "*.tex.svg" %> \out -> do
-      let src = dropExtension out
-      let pdf = src -<.> ".pdf"
-      let dir = takeDirectory src
-      need [src]
-      pdflatex ["-output-directory", dir, src]
-      pdf2svg [pdf, out]
-      liftIO $ Dir.removeFile pdf
+    phony "annotations" $ do
+      targets <- getTargets
+      need (targets ^. annotations)
     --
     phony "clean" $ do
-      removeFilesAfter (directories ^. public) ["//"]
-      removeFilesAfter (directories ^. project) cruft
+      liftIO $ tryRemoveDirectory (directories ^. public)
+      liftIO $ tryRemoveDirectory (directories ^. transient)
     --
     phony "info" $ do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
@@ -261,8 +263,7 @@ run = do
       putNormal $ "support directory: " ++ (directories ^. support)
       meta <- getGlobalMeta
       targets <- getTargets
-      templateSource <-
-        liftIO $ calcTemplateSource (lookupMeta "template-source" meta)
+      templateSource <- liftIO $ calcTemplateSource meta
       putNormal $ "template source: " <> show templateSource
       putNormal "\ntargets:\n"
       putNormal (groom targets)
@@ -270,7 +271,7 @@ run = do
       putNormal (groom meta)
     --
     phony "support" $ do
-      need [indexFile]
+      need [indexFile, "static-files", "annotations"]
       meta <- getGlobalMeta
       writeSupportFilesToPublic meta
     --

@@ -74,16 +74,6 @@ data Provisioning
   | Relative -- ^ Relative local URL
   deriving (Eq, Show, Read)
 
--- Remove automatic identifier creation for headers. It does not work well with
--- the current include mechanism if slides have duplicate titles in separate
--- include files. Switched back on for now.
-deckerPandocExtensions :: Extensions
-deckerPandocExtensions =
-  (enableExtension Ext_auto_identifiers .
-   disableExtension Ext_simple_tables .
-   disableExtension Ext_multiline_tables . enableExtension Ext_emoji)
-    pandocExtensions
-
 pandocReaderOpts :: ReaderOptions
 pandocReaderOpts =
   def {readerExtensions = (enableExtension Ext_emoji) pandocExtensions}

@@ -19,7 +19,7 @@ transformHeader1 h1@(Header 1 headAttr inlines)
   | containsImage inlines = buildHeader $ lastImage inlines
   where
     buildHeader img@(Image imgAttr alt (url, title), rest) = do
-      uri <- transformUrl url
+      uri <- transformUrl url ""
       runAttrOn headAttr imgAttr $
         case classifyMedia uri imgAttr of
           ImageT -> do
@@ -42,12 +42,33 @@ transformHeader1 h1@(Header 1 headAttr inlines)
             passAttribs ("data-background-" <>) ["interactive"]
             attr <- extractAttr
             return $ Header 1 attr rest
+          PdfT -> do
+            injectAttribute ("data-background-iframe", URI.render uri)
+            takeClasses ("data-background-" <>) ["interactive"]
+            passAttribs ("data-background-" <>) ["interactive"]
+            attr <- extractAttr
+            return $ Header 1 attr rest
           _ -> return h1
     buildHeader _ =
       bug $ InternalException "transformHeader: no last image in header"
+-- Handle data-background-{image,video,iframe} file attributes
+transformHeader1 h1@(Header 1 (id, cls, kvs) inlines) = do
+  transformed <- mapM transformBgUrls kvs
+  return (Header 1 (id, cls, transformed) inlines)
 transformHeader1 h@Header {} = return h
-transformHeader1 _ =
-  bug $ InternalException "transformHeader: non header argument"
+transformHeader1 block = return block
+--transformHeader1 _ =
+  --bug $ InternalException "transformHeader: non header argument"
+
+transformBgUrls :: (Text, Text) -> Filter (Text, Text)
+transformBgUrls (k, v) =
+  if k `elem`
+     [ "data-background-image"
+     , "data-background-video"
+     , "data-background-iframe"
+     ]
+    then (k, ) . URI.render <$> transformUrl v ""
+    else return (k, v)
 
 containsImage :: [Inline] -> Bool
 containsImage = getAny . query check

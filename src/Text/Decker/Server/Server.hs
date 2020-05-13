@@ -102,7 +102,7 @@ runHttpServer state dirs port = do
           , ("/", method GET $ serveDirectoryNoCaching state documentRoot)
           ]
   let tryRun port 0 = fail "decker server: All ports already in use"
-  let tryRun port tries =
+      tryRun port tries =
         catchAll
           (simpleHttpServe (setPort port config) routes)
           (\_ -> do
@@ -140,7 +140,9 @@ startUpdater state = do
 saveAnnotation :: MonadSnap m => FilePath -> m ()
 saveAnnotation root = do
   path <- getsRequest rqPathInfo
-  if BS.isSuffixOf "-annot.json" path
+  liftIO $ putStrLn $ "saving: " <> toString path
+  if BS.isSuffixOf "-annot.json" path ||
+     BS.isSuffixOf "-annot.png" path || BS.isSuffixOf "-annot.pkdrawing" path
     then do
       let destination = root </> toString path
       body <- readRequestBody 10000000

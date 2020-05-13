@@ -10,7 +10,6 @@ import Text.Decker.Internal.Common
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
-import Data.Char (isSpace)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.Maybe
@@ -173,21 +172,7 @@ includeByMode ls =
       return (take (rangeEnd range - startIndex) (drop startIndex ls))
       where startIndex = pred (rangeStart range)
     EntireFileMode -> return ls
-
-dedentLines :: Lines -> Inclusion Lines
-dedentLines ls = do
-  d <- asks dedent
-  case d of
-    Just n -> return (map (dedentLine n) ls)
-    Nothing -> return ls
-  where
-    dedentLine 0 line = line
-    dedentLine n line =
-      case Text.uncons line of
-        Just (c, cs)
-          | isSpace c -> dedentLine (pred n) cs
-          | otherwise -> Text.cons c cs
-        Nothing -> ""
+    _ -> return ls
 
 dedentLinesMax :: Lines -> Inclusion Lines
 dedentLinesMax ls = do
@@ -239,26 +224,6 @@ stringTup (k, v) = (Text.unpack k, Text.unpack v)
 
 textTup (k, v) = (Text.pack k, Text.pack v)
 
-includeCode' :: Block -> IO (Either InclusionError Block)
-includeCode' cb@(CodeBlock (id', classes, attrs) _) =
-  let attrs' = map stringTup attrs
-      classes' = map Text.unpack classes
-   in case parseInclusion (HM.fromList attrs') of
-        Right (Just spec) ->
-          runInclusion' spec allSteps >>= \case
-            Left err -> return (Left err)
-            Right (contents, state) ->
-              return
-                (Right
-                   (CodeBlock
-                      ( id'
-                      , classes
-                      , map textTup $ modifyAttributes state classes' attrs')
-                      contents))
-        Right Nothing -> return (Right cb)
-        Left err -> return (Left err)
-includeCode' x = return (Right x)
-
 includeCodeA' :: Block -> Action (Either InclusionError Block)
 includeCodeA' cb@(CodeBlock (id', classes, attrs) _) =
   let attrs' = map stringTup attrs
@@ -302,11 +267,6 @@ includeCodeA' pi@(Para [Image (id', classes, attrs) _ (url, _)]) =
         Right Nothing -> return (Right pi)
         Left err -> return (Left err)
 includeCodeA' x = return (Right x)
-
--- | A Pandoc filter that includes code snippets from
--- external files.
-includeCode_ :: Maybe Format -> Block -> IO Block
-includeCode_ _ = includeCode' >=> either printAndFail return
 
 -- | A Pandoc filter that includes code snippets from
 -- external files. Shake Action version.

@@ -1,3 +1,6 @@
+revealjs-url: https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.8.0
+mathjax-url: https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.0.5/es5/startup.js
+mathjax: true
 provisioning: Copy
 # Sane defaults for reval.js
 backgroundTransition: "none"
@@ -17,6 +20,5 @@ progress: true
 touch: true
 transition: "none"
 title: "|title|"
-test: "default.yaml test value"
 align-global: left
              

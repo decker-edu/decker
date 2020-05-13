@@ -100,11 +100,11 @@ dependencies:
   - zip
 
 ghc-options:
-  # - -Wunused-top-binds
-  # - -Wunused-local-binds
-  # - -Wincomplete-patterns
-  # - -Wunused-matches
+  - -Wunused-top-binds
+  - -Wunused-local-binds
+  - -Wincomplete-patterns
   - -fwarn-unused-imports
+  # - -Wunused-matches
 
 library:
   source-dirs:
@@ -122,22 +122,17 @@ executables:
   decker:
     main: Decker
     source-dirs: app
+    dependencies:
+      - decker
     ghc-options:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
-      - -fwarn-unused-imports
-    dependencies:
-      - decker
 
 tests:
   decker-test:
     main: Spec.hs
     source-dirs: test
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
     dependencies:
       - decker
       - hspec

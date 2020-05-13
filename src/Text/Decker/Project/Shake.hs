@@ -8,23 +8,26 @@ module Text.Decker.Project.Shake
   , isDevRun
   , openBrowser
   , projectA
+  , supportA
   , projectDirsA
   , publicA
+  , publicResource
   , publicResourceA
   , putCurrentDocument
   , readStaticMetaData
   , runHttpServer
   , startHttpServer
   , stopHttpServer
-  , supportA
   , watchChangesAndRepeat
   , withShakeLock
   , writeSupportFilesToPublic
+  , getAdditionalMeta
   ) where
 
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.URI
 import Text.Decker.Project.Project
 import Text.Decker.Resource.Template
 import Text.Decker.Server.Server
@@ -34,10 +37,7 @@ import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
-import qualified Data.ByteString.Base16 as B16
-import qualified Data.ByteString.Lazy as BL
 import Data.Char
-import Data.Digest.Pure.MD5
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import Data.IORef
@@ -45,8 +45,6 @@ import Data.List
 import Data.List.Extra
 import Data.Maybe
 import qualified Data.Set as Set
-import qualified Data.Text as T
-import Data.Text.Encoding
 import Data.Typeable
 import Development.Shake hiding (doesDirectoryExist, putError)
 import System.Console.GetOpt
@@ -55,7 +53,8 @@ import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
 import System.Process
-import Text.Pandoc
+import Text.Groom
+import Text.Pandoc hiding (lookupMeta)
 
 instance Show (IORef a) where
   show _ = "IORef"
@@ -143,22 +142,13 @@ runShakeOnce state rules = do
     let projectDir = context ^. dirs . project
     meta <- readMetaDataFile (projectDir </> "decker.yaml")
     let exclude = map (projectDir </>) $ excludeDirs meta
-    waitForChange' projectDir exclude
+    waitForChange projectDir exclude
   return keepWatching
-
-readStaticMetaData :: FilePath -> Action Meta
-readStaticMetaData file = do
-  need [file]
-  meta <- liftIO $ readMetaDataFile file
-  moreMeta <- getAdditionalMeta (takeDirectory file) meta
-  templateSource <-
-    liftIO $ calcTemplateSource (getMetaText "template-source" moreMeta)
-  defaultMeta <- readTemplateMeta templateSource
-  return $ mergePandocMeta' moreMeta defaultMeta
 
 initContext :: MutableActionState -> IO ActionContext
 initContext state = do
   dirs <- projectDirectories
+  createDirectoryIfMissing True (dirs ^. transient)
   return $ ActionContext dirs state
 
 cleanup state = do
@@ -181,8 +171,9 @@ deckerShakeOptions ctx = do
       { shakeFiles = ctx ^. dirs . transient
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
+      , shakeColor = True
       -- , shakeChange = ChangeModtimeAndDigest
-      , shakeAbbreviations = [(ctx ^. dirs . project ++ "/", "/")]
+      , shakeAbbreviations = [(ctx ^. dirs . project, "${project}")]
       }
 
 actionContextKey :: TypeRep
@@ -192,19 +183,8 @@ actionContext :: Action ActionContext
 actionContext =
   fromMaybe (error "Error getting action context") <$> getShakeExtra
 
-waitForChange :: [FilePath] -> IO ()
-waitForChange inDirs =
-  Notify.withManager
-    (\manager -> do
-       done <- newEmptyMVar
-       forM_
-         inDirs
-         (\dir ->
-            Notify.watchDir manager dir (const True) (\e -> putMVar done ()))
-       takeMVar done)
-
-waitForChange' :: FilePath -> [FilePath] -> IO ()
-waitForChange' inDir exclude =
+waitForChange :: FilePath -> [FilePath] -> IO ()
+waitForChange inDir exclude =
   Notify.withManager
     (\manager -> do
        done <- newEmptyMVar
@@ -223,15 +203,9 @@ getRelativeSupportDir from = do
   sup <- _support . _dirs <$> actionContext
   return $ makeRelativeTo from sup
 
-sketchPadId :: T.Text -> T.Text
-sketchPadId text =
-  T.take 9 $ decodeUtf8 $ B16.encode $ md5DigestBytes $ md5 $ BL.fromStrict $
-  encodeUtf8 text
-
 writeSupportFilesToPublic :: Meta -> Action ()
 writeSupportFilesToPublic meta = do
-  templateSource <-
-    liftIO $ calcTemplateSource (getMetaText "template-source" meta)
+  templateSource <- liftIO $ calcTemplateSource meta
   correct <- correctSupportInstalled templateSource
   if correct
     then putNormal "# support files up to date"
@@ -259,7 +233,7 @@ extractSupport :: TemplateSource -> Action ()
 extractSupport templateSource = do
   context <- actionContext
   let supportDir = context ^. dirs . support
-  liftIO $ do
+  liftIO $ handleAll (\_ -> return ()) $ do
     copySupportFiles templateSource Copy supportDir
     writeFile (supportDir </> ".origin") (show templateSource)
 
@@ -328,14 +302,6 @@ openBrowser url =
      | otherwise ->
        putNormal $ "Unable to open browser on this platform for url: " ++ url
 
-reloadBrowsers :: Action ()
-reloadBrowsers = do
-  ref <- _server . _state <$> actionContext
-  server <- liftIO $ readIORef ref
-  case server of
-    Just serv -> liftIO $ reloadClients serv
-    Nothing -> return ()
-
 calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target = do
   dirs <- projectDirsA
@@ -354,3 +320,36 @@ calcSource' target = do
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = putNormal $ "# pandoc (for " ++ out ++ ")"
+
+-- Check for additional meta files specified in the Meta option `meta-data`.
+-- Assumes that file are specified with absolute paths.
+getAdditionalMeta :: Meta -> Action Meta
+getAdditionalMeta meta = do
+  let moreFiles = lookupMetaOrElse [] "meta-data" meta
+  moreMeta <- traverse readMetaData moreFiles
+  return $ foldr mergePandocMeta' meta (reverse moreMeta)
+
+-- | Reads a meta data file. All values that are paths to local project files are
+-- made absolute. Files referenced in `meta-data` are recursively loaded and merged.
+readMetaData :: FilePath -> Action Meta
+readMetaData file = do
+  putVerbose $ "# reading meta data from: " <> file
+  need [file]
+  let base = takeDirectory file
+  project <- projectA
+  meta <-
+    liftIO $
+    (readMetaDataFile file >>= mapMeta (makeAbsolutePathIfLocal project base))
+  getAdditionalMeta meta
+
+-- | Reads static meta data from the `decker.yaml` file in the project root.
+-- Also reads meta data from files listed in `meta-data`
+readStaticMetaData :: FilePath -> Action Meta
+readStaticMetaData file = do
+  dirs <- projectDirsA
+  meta <- setMetaValue "decker.directories" dirs <$> readMetaData file
+  putVerbose "decker.yaml:"
+  putVerbose $ groom meta
+  templateSource <- liftIO $ calcTemplateSource meta
+  defaultMeta <- readTemplateMeta templateSource
+  return $ mergePandocMeta' meta defaultMeta

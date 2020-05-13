@@ -196,7 +196,7 @@ takeAllClasses = modify transform
       ((id', cs <> cs', kvs'), (id, [], kvs))
 
 injectBorder = do
-  border <- getMetaBoolOrElse "decker.filter.border" False <$> lift (gets meta)
+  border <- lookupMetaOrElse False "decker.filter.border" <$> lift (gets meta)
   when border $ injectStyle ("border", "2px solid magenta")
 
 takeVideoClasses :: Attrib ()
