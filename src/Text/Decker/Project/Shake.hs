@@ -348,8 +348,6 @@ readStaticMetaData :: FilePath -> Action Meta
 readStaticMetaData file = do
   dirs <- projectDirsA
   meta <- setMetaValue "decker.directories" dirs <$> readMetaData file
-  putVerbose "decker.yaml:"
-  putVerbose $ groom meta
   templateSource <- liftIO $ calcTemplateSource meta
   defaultMeta <- readTemplateMeta templateSource
   return $ mergePandocMeta' meta defaultMeta
