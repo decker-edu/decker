@@ -53,7 +53,6 @@ import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
 import System.Process
-import Text.Groom
 import Text.Pandoc hiding (lookupMeta)
 
 instance Show (IORef a) where
