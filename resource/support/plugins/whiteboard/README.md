@@ -1,49 +1,53 @@
 # Whiteboard Plugin
 
-This plugin adds an interactive board to reveal.js. It is based on version 0.6 of 
-[Asvin Goel's chalkboard plugin](https://github.com/rajgoel/reveal.js-plugins/).
+This plugin adds an interactive board to [reveal.js](https://github.com/hakimel/reveal.js/). 
+It was inspired by and initially based on version 0.6 of 
+[Asvin Goel's chalkboard plugin](https://github.com/rajgoel/reveal.js-plugins/). 
+Using this plugin, you can draw on your to add annotations, and you can append empty pages at the bottom of each slide, e.g., for longer derivations or more complex drawings. 
 
-Using this plugin, you can annotate your slides and use an empty whiteboard behind each slide for longer derivations or more complex drawings. These two modes are called *slide annotations* and *whiteboard drawings* in the following.
 
-The whiteboard plugin is tested using a Lenovo X1 Yoga running Linux and a MacBook with Astropad.
+## Features
+
+- Low-latency drawing by exploiting coalesced pointer events 
+  (thanks to Martin Heistermann, Bern University).
+- Crisp and resolution-independent annotations due to vector-based SVG rendering.
+- Quadratic splines with endpoint interpolation yield smooth pen strokes.
+- Support for multiple pen colors and stroke widths.
+- Annotations can be exported to PDF (see [reveal.js PDF export](https://github.com/hakimel/reveal.js/#pdf-export)). 
+- Automatric hiding of mouse cursor after 3 seconds.
+- Show user warning when trying to close/leave the presentation with unsaved annotations.
+
+
+## Requirements
+
+The whiteboard plugin requires a browser that supports [pointer events](https://caniuse.com/#feat=pointer) and that for optimal performance should also support [coalesced pointer events](https://caniuse.com/#feat=mdn-api_pointerevent_getcoalescedevents). Exporting additional whiteboard pages to PDF requires `pdfMaxPagesPerSlide` to be set to a sufficiently large value.
+
+The plugin was tested on these configurations:
+
+- Lenovo X1 Yoga running Linux
+- MacBookPro+iPad with Apple Sidecar
+- MacBookPro+iPad with [Astropad](https://astropad.com/)
+- MacBookPro with Wacom Cintiq
 
 
 ## Usage
 
-- 'w' and board icon on bottom left show/hide the whiteboard behind each slide.
-  When there are drawings on the board, this icon will be marked red to inform users about it.
-- 'd' and pen icon on bottom left enable/disable drawing on the slide or the board.
-- 'e' and eraser icon on bottom left toggle eraser mode.
-- hold pen icon for 1s to show color dialog.
-- use left mouse or pen for drawing.
-- use right mouse or pen-with-button-pressed for erasing.
-- use touch events for controlling the virtual laser pointer.
-- 'z' un-does last stroke.
-- 'Enter' extends the board by one page height.
-- 'DEL' deletes all drawings for the current slide.
-- The notes icon in the bottom right menu downloads the annotations and drawings to a JSON file. 
-  Copy this file into the folder of your HTML presentation 
-  to have the scribbles auto-loaded when starting the presentation.
+The whiteboard plugin is mainly controlled through the buttons in the lower left corner (from bottom to top):
+- Toggle whiteboard on/off.
+- Save whiteboard annotations (see below).
+- Add whiteboard page to the bottom of the current slide.
+- Toggle background grid on/off for the additional whiteboard pages.
+- Undo: deletes last pen stroke.
+- Select pen tool. If already selected, show pen property dialog.
+- Select eraser tool. You can also erase in pen-mode by using the middle-mouse button or using the eraser tip of the Wacom pen.
+- Select laser pointer. You can also trigger the laser pointer in pen-mode by using the right mouse button.
 
+We also have the following keyboard shortcuts:
+- `w` toggles whiteboard on/off.
+- `Ctrl+z` triggers undo, i.e., deltes last pen stroke.
+- `Delete` deletes all annotations for the current slide.
 
-## Changes to Asvin Goel's original version
-
-- Removed recording drawings and automatic playback.
-- Removed network-transmitting drawings to another client.
-- Removed original chalkboard effect to get cleaner drawing.
-- Support for mouse events, touch events, pointer events (most efficient), and (somewhat) iPad stylus.
-- More responsive drawing by exploiting Chrome's coalesced pointer events 
-  (thanks to Martin Heistermann, Bern University!).
-- Support for highDPI displays (thanks to Martin Heistermann). 
-- Curves are rendered as Bezier curves to achieve a smoother appearance.
-- Drawing supports multiple colors.
-- Whiteboard drawings are more consistent under window rescaling.
-- Both slide annotations and board drawings are exported to PDF.
-- Cursor auto-hide, cool eraser cursor, laser pointer cursor in current pen color.
-- Board can be enlarged by pressing `Return` for even longer derivations (thanks to Markus Nebel for the idea!).
-- Prevent leaving presentation without saving board drawings.
-- Supports latest reveal API and plugin structure.
-
+Whiteboard annotations are saved to your browser's download directory, or, when used in combination with our [decker tool](https://gitlab2.informatik.uni-wuerzburg.de/decker/decker), to your slide deck directory. When not using decker, you have to copy the downloaded annotation file to the directory where your reveal.js presentation resides.
 
 
 ## License
@@ -51,7 +55,5 @@ The whiteboard plugin is tested using a Lenovo X1 Yoga running Linux and a MacBo
 MIT licensed
 
 Copyright (C) 2016 Asvin Goel\
-Copyright (C) 2017-2019 Mario Botsch
+Copyright (C) 2017-2020 Mario Botsch
 
-CSS-based light saber adapted from https://codepen.io/ncerminara/pen/KzurJ
-Light saber sounds from https://www.soundboard.com/sb/LightsaberSounds

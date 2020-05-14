@@ -15,16 +15,22 @@ title: Background Videos
 
 ## Source
 
-    # RevealJs Style {data-background-video="movie.mp4"}
+```markdown
+# RevealJs Style {data-background-video="movie.mp4"}
+```
 
 # Video in Title 1 ![](movie.mp4)
 
 ## Source
 
-    # Image in Title 1 ![](movie.mp4)
+```markdown
+# Image in Title 1 ![](movie.mp4)
+```
 
 # Video in Title 2 ![](movie.mp4){loop="1"}
 
 ## Source
 
-    # Image in Title 2 ![](movie.mp4){loop="1"}
+```markdown
+# Image in Title 2 ![](movie.mp4){loop="1"}
+```

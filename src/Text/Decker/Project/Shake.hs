@@ -53,7 +53,6 @@ import qualified System.FSNotify as Notify
 import System.FilePath
 import System.Info
 import System.Process
-import Text.Groom
 import Text.Pandoc hiding (lookupMeta)
 
 instance Show (IORef a) where
@@ -348,8 +347,6 @@ readStaticMetaData :: FilePath -> Action Meta
 readStaticMetaData file = do
   dirs <- projectDirsA
   meta <- setMetaValue "decker.directories" dirs <$> readMetaData file
-  putVerbose "decker.yaml:"
-  putVerbose $ groom meta
   templateSource <- liftIO $ calcTemplateSource meta
   defaultMeta <- readTemplateMeta templateSource
   return $ mergePandocMeta' meta defaultMeta

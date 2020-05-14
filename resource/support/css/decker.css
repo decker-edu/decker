@@ -705,8 +705,7 @@
 }
 
 .reveal img.decker,
-.reveal video.decker,
-.reveal div.decker {
+.reveal video.decker {
   display: inline-block;
   /* remove the following two lines to get sizing of 
        * rendered code block sizing working */

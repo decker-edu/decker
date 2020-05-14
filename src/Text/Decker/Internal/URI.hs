@@ -36,8 +36,8 @@ uriPath uri =
       , URI.uriAuthority = Left (URI.isPathAbsolute uri)
       }
 
-isUriAbsolute :: URI -> Bool
-isUriAbsolute uri = isJust (URI.uriScheme uri)
+--isUriAbsolute :: URI -> Bool
+--isUriAbsolute uri = isJust (URI.uriScheme uri)
 
 absolutePathIfLocal :: FilePath -> FilePath -> Text -> IO (Maybe Text)
 absolutePathIfLocal project base uriString =
