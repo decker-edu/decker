@@ -138,10 +138,13 @@ streamHtml uri caption = do
 streamHtml' :: URI -> [Inline] -> Attrib Html
 streamHtml' uri caption = do
   let scheme = uriScheme uri
-  streamId <-
-    case URI.uriAuthority uri of
-      Right (URI.Authority _ host _) -> pure $ URI.unRText host
-      _ -> return $ uriPath uri
+  {-
+   -streamId <-
+   -  case URI.uriAuthority uri of
+   -    Right (URI.Authority _ host _) -> pure $ URI.unRText host
+   -    _ -> return $ uriPath uri
+   -}
+  let streamId = uriPath uri
   streamUri <-
     case scheme of
       Just "youtube" -> mkYoutubeUri streamId
@@ -153,12 +156,15 @@ streamHtml' uri caption = do
         "Unsupported stream service: " <> toString (fromMaybe "<none>" scheme)
   iframeAttr <- takeIframeAttr >> extractAttr
   wrapperAttr <- takeWrapperAttr >> extractAttr
-  figAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
   let streamTag = mkStreamTag streamUri wrapperAttr iframeAttr
   case caption of
     [] -> do
-      return $ mkDivTag streamTag figAttr
+      divAttr <-
+        injectClass "nofigure" >> injectBorder >> takeSize >> takeUsual >>
+        extractAttr
+      return $ mkDivTag streamTag divAttr
     caption -> do
+      figAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
       captionHtml <- lift $ inlinesToHtml caption
       return $ mkFigureTag streamTag captionHtml figAttr
 
