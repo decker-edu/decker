@@ -19,46 +19,62 @@ title: Background Images
 
 ## Source
 
-    # RevealJs Style {data-background-image="include/06-metal.png"}
+```markdown
+# RevealJs Style {data-background-image="include/06-metal.png"}
+```
 
 # Image in Title 1 ![](include/06-metal.png)
 
 ## Source
 
-    # Image in Title 1 ![](include/06-metal.png)
+```markdown
+# Image in Title 1 ![](include/06-metal.png)
+```
 
 # Image in Title 1 ![](include/06-metal.png){size="contain"}
 
 ## Source
 
-    # Image in Title 1 ![](include/06-metal.png){size="contain"}
+```markdown
+# Image in Title 1 ![](include/06-metal.png){size="contain"}
+```
 
 # Image in Title 1 ![](include/06-metal.png){size="cover"}
 
 ## Source
 
-    # Image in Title 1 ![](include/06-metal.png){size="cover"}
+```markdown
+# Image in Title 1 ![](include/06-metal.png){size="cover"}
+```
 
 # Image in Title 2 ![](include/06-metal.png){size="33%" repeat="repeat" opacity="50%"}
 
 ## Source
 
-    # Image in Title 2 ![](include/06-metal.png){size="50%" repeat="repeat"}
+```markdown
+# Image in Title 2 ![](include/06-metal.png){size="50%" repeat="repeat"}
+```
 
 # Image in Title 3 ![](include/06-metal.png){size="50%" repeat="no-repeat" color="red"}
 
 ## Source
 
-    # Image in Title 3 ![](include/06-metal.png){size="50%" repeat="no-repeat" color="red"}
+```markdown
+# Image in Title 3 ![](include/06-metal.png){size="50%" repeat="no-repeat" color="red"}
+```
 
 # Image in Title 4 ![](include/06-metal.png){size="50%" repeat="no-repeat" color="black" position="10px 10px"}
 
 ## Source
 
-    # Image in Title 4 ![](include/06-metal.png){size="50%" repeat="no-repeat" position="10px 10px"}
+```markdown
+# Image in Title 4 ![](include/06-metal.png){size="50%" repeat="no-repeat" position="10px 10px"}
+```
 
 # Image in Title 5 ![](include/06-metal.png){size="300%" repeat="no-repeat" color="white" position="-600px -300px"}
 
 ## Source
 
-    # Image in Title 5 ![](include/06-metal.png){size="300%" repeat="no-repeat" position="-600px -300px"}
+```markdown
+# Image in Title 5 ![](include/06-metal.png){size="300%" repeat="no-repeat" position="-600px -300px"}
+```

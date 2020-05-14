@@ -142,7 +142,7 @@ body video {
     }
   }
   body html,
-  body body {
+body body {
     overflow: visible;
   }
   body a:link:after {
