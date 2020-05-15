@@ -78,7 +78,8 @@ let RevealWhiteboard = (function(){
 
     // here we save SVG snapshots for undo/redo
     let undoHistory = [];
-    
+    const undoBufferSize = 10;
+
 
     // handle browser features
     const weHavePointerEvents   = !!(window.PointerEvent);
@@ -646,6 +647,7 @@ let RevealWhiteboard = (function(){
     function pushUndoHistory()
     {
         undoHistory.push( svg.innerHTML );
+        if (undoHistory.length > undoBufferSize) undoHistory.shift();
         buttonUndo.style.color = activeColor;
     }
 
