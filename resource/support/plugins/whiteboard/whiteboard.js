@@ -76,6 +76,9 @@ let RevealWhiteboard = (function(){
     // currently active fragment
     let currentFragmentIndex = 0;
 
+    // here we save SVG snapshots for undo/redo
+    let undoHistory = [];
+    
 
     // handle browser features
     const weHavePointerEvents   = !!(window.PointerEvent);
@@ -125,7 +128,7 @@ let RevealWhiteboard = (function(){
     let buttonSave       = createButton("fa-save", saveAnnotations, false);
     let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true);
     let buttonGrid       = createButton("fa-border-all", toggleGrid, false);
-    let buttonUndo       = createButton("fa-undo", undoStroke, true);
+    let buttonUndo       = createButton("fa-undo", undo, false);
     let buttonPen        = createButton("fa-pen", () => {
         if (tool != ToolType.PEN) {
             selectTool(ToolType.PEN);
@@ -529,11 +532,14 @@ let RevealWhiteboard = (function(){
         // activate/deactivate pulsing border indicator
         if (needScrollbar)
         {
-            // (re-)start border pulsing
-            // (taken from https://css-tricks.com/restart-css-animation/)
-            slides.classList.remove("pulseBorder");
-            void slides.offsetWidth; // this does the magic!
-            slides.classList.add("pulseBorder");
+            if ( !printMode ) 
+            {
+                // (re-)start border pulsing
+                // (taken from https://css-tricks.com/restart-css-animation/)
+                slides.classList.remove("pulseBorder");
+                void slides.offsetWidth; // this does the magic!
+                slides.classList.add("pulseBorder");
+            }
         }
         else
         {
@@ -573,18 +579,6 @@ let RevealWhiteboard = (function(){
         }
     };
 
-
-
-    /*
-     * User triggers undo (mapped to key 'z')
-     */
-    function undoStroke()
-    {
-        if (svg.lastChild) 
-        {
-            svg.removeChild(svg.lastChild);
-        }
-    }
 
 
     /*
@@ -636,6 +630,37 @@ let RevealWhiteboard = (function(){
         needToSave(true);
     }
 
+
+
+
+    /*****************************************************************
+     ** Undo and re-do
+     ******************************************************************/
+
+    function clearUndoHistory()
+    {
+        undoHistory = [];
+        buttonUndo.style.color = inactiveColor;
+    }
+
+    function pushUndoHistory()
+    {
+        undoHistory.push( svg.innerHTML );
+        buttonUndo.style.color = activeColor;
+    }
+
+    function undo()
+    {
+        if (undoHistory.length)
+        {
+            svg.innerHTML = undoHistory.pop();
+
+            if (!undoHistory.length)
+            {
+                buttonUndo.style.color = inactiveColor;
+            }
+        }
+    }
 
 
 
@@ -921,6 +946,9 @@ let RevealWhiteboard = (function(){
         const mouseX = evt.offsetX / slideZoom;
         const mouseY = evt.offsetY / slideZoom;
 
+        // remember current state for later undo
+        pushUndoHistory();
+
         // add stroke to SVG
         stroke = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         svg.appendChild(stroke);
@@ -1018,6 +1046,7 @@ let RevealWhiteboard = (function(){
         svg.querySelectorAll( 'path' ).forEach( stroke => {
             if (isPointInStroke(stroke, point))
             {
+                pushUndoHistory();
                 stroke.remove();
                 needToSave(true);
             }
@@ -1219,7 +1248,7 @@ let RevealWhiteboard = (function(){
             String.fromCharCode(evt.which).toLowerCase() == 'z') 
         {
             killEvent(evt);
-            undoStroke();
+            undo();
         }
     });
 
@@ -1262,6 +1291,9 @@ let RevealWhiteboard = (function(){
 
             // update SVG grid icon
             buttonGrid.style.color = (svg && getGridRect()) ? activeColor : inactiveColor;
+
+            // clear undo history (updates icon)
+            clearUndoHistory();
 
             // just to be sure, update slide zoom
             slideZoom = slides.style.zoom || 1;
