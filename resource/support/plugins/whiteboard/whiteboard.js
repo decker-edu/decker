@@ -643,25 +643,32 @@ let RevealWhiteboard = (function(){
     {
         undoHistory = [];
         buttonUndo.style.color = inactiveColor;
+        buttonUndo.setAttribute('data-tooltip', 'undo');
     }
 
     function pushUndoHistory(action)
     {
-        undoHistory.push( svg.innerHTML );
-        if (undoHistory.length > undoBufferSize) undoHistory.shift();
+        undoHistory.push( { action: action, svg: svg.innerHTML } );
         buttonUndo.style.color = activeColor;
-        buttonUndo.setAttribute('data-tooltip', action ? 'undo: '+action : 'undo');
+        buttonUndo.setAttribute('data-tooltip', 'undo: ' + action);
+        if (undoHistory.length > undoBufferSize) undoHistory.shift();
     }
 
     function undo()
     {
         if (undoHistory.length)
         {
-            svg.innerHTML = undoHistory.pop();
+            svg.innerHTML = undoHistory.pop().svg;
 
-            if (!undoHistory.length)
+            if (undoHistory.length)
+            {
+                let action = undoHistory[undoHistory.length-1].action;
+                buttonUndo.setAttribute('data-tooltip', 'undo: ' + action);
+            }
+            else
             {
                 buttonUndo.style.color = inactiveColor;
+                buttonUndo.setAttribute('data-tooltip', 'undo');
             }
 
             needToSave(true);
