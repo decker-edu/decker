@@ -87,7 +87,6 @@
     border: 0;
 }
 
-
 /* container for whiteboard tools */
 #whiteboardButtons {
     position:       absolute;
@@ -103,7 +102,6 @@
     bottom:         calc(var(--whiteboard-icon-size) * 0.25);
     display:        flex;
     flex-direction: column-reverse;
-    overflow:       hidden;
 }
 #whiteboardButtons.active {
     border:         1px solid #eeeeee;
@@ -119,6 +117,29 @@
     display: inline-block;
 }
 
+/* button tooltips, specified by data-tooltip
+ * use :after, since :before is used by fontawesome */
+#whiteboardButtons.active>button[data-tooltip]::after {
+    content:       attr(data-tooltip);
+    padding:       0.5em;
+    border-radius: 0.25em;
+    font-family:   "Lato", sans-serif;
+    position:      absolute;
+    left:          100%;
+    top:           50%;
+    width:         max-content;
+    height:        auto;
+    transform:     translateY(-50%) translateX(5px);
+    background:    grey;
+    color:         white;
+    display:       inline-block;
+    opacity:       0;
+}
+/* activate tooltip after 1s delay */
+#whiteboardButtons.active>button[data-tooltip]:hover::after {
+    opacity: 1;
+    transition: opacity 0s linear 1s;
+}
 
 /* toggle main whiteboard button with .active on container */
 #whiteboardButtons>#whiteboardButton {
@@ -193,3 +214,4 @@
     outline:       none;
     border:        0;
 }
+

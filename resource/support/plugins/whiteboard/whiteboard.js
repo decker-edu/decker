@@ -111,7 +111,7 @@ let RevealWhiteboard = (function(){
 
 
     // function to generate a button
-    function createButton(icon, callback, active=false)
+    function createButton(icon, callback, active=false, tooltip)
     {
         let b = document.createElement( 'button' );
         b.classList.add("whiteboard");
@@ -119,17 +119,18 @@ let RevealWhiteboard = (function(){
         b.classList.add(icon);
         b.onclick = callback;
         b.style.color = active ? activeColor : inactiveColor;
+        if (tooltip) b.setAttribute('data-tooltip', tooltip);
         buttons.appendChild(b);
         return b;
     }
 
 
-    let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard, false);
+    let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard, false, 'toggle whiteboard');
     buttonWhiteboard.id  = "whiteboardButton";
-    let buttonSave       = createButton("fa-save", saveAnnotations, false);
-    let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true);
-    let buttonGrid       = createButton("fa-border-all", toggleGrid, false);
-    let buttonUndo       = createButton("fa-undo", undo, false);
+    let buttonSave       = createButton("fa-save", saveAnnotations, false, 'save annotations');
+    let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true, 'add whiteboard page');
+    let buttonGrid       = createButton("fa-border-all", toggleGrid, false, 'toggle background grid');
+    let buttonUndo       = createButton("fa-undo", undo, false, 'undo');
     let buttonPen        = createButton("fa-pen", () => {
         if (tool != ToolType.PEN) {
             selectTool(ToolType.PEN);
@@ -140,9 +141,9 @@ let RevealWhiteboard = (function(){
             else
                 showColorPicker();
         }
-    });
-    let buttonEraser = createButton("fa-eraser", () => { selectTool(ToolType.ERASER); } );
-    let buttonLaser  = createButton("fa-magic", () => { selectTool(ToolType.LASER); } );
+    }, false, 'pen / properties');
+    let buttonEraser = createButton("fa-eraser", () => { selectTool(ToolType.ERASER); }, false, 'eraser' );
+    let buttonLaser  = createButton("fa-magic", () => { selectTool(ToolType.LASER); }, false, 'laser pointer' );
 
 
     // generate color picker container
@@ -644,11 +645,12 @@ let RevealWhiteboard = (function(){
         buttonUndo.style.color = inactiveColor;
     }
 
-    function pushUndoHistory()
+    function pushUndoHistory(action)
     {
         undoHistory.push( svg.innerHTML );
         if (undoHistory.length > undoBufferSize) undoHistory.shift();
         buttonUndo.style.color = activeColor;
+        buttonUndo.setAttribute('data-tooltip', action ? 'undo: '+action : 'undo');
     }
 
     function undo()
@@ -661,6 +663,8 @@ let RevealWhiteboard = (function(){
             {
                 buttonUndo.style.color = inactiveColor;
             }
+
+            needToSave(true);
         }
     }
 
@@ -949,7 +953,7 @@ let RevealWhiteboard = (function(){
         const mouseY = evt.offsetY / slideZoom;
 
         // remember current state for later undo
-        pushUndoHistory();
+        pushUndoHistory('paint stroke');
 
         // add stroke to SVG
         stroke = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -1048,7 +1052,7 @@ let RevealWhiteboard = (function(){
         svg.querySelectorAll( 'path' ).forEach( stroke => {
             if (isPointInStroke(stroke, point))
             {
-                pushUndoHistory();
+                pushUndoHistory('erase stroke');
                 stroke.remove();
                 needToSave(true);
             }
