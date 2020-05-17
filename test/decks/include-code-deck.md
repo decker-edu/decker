@@ -1,5 +1,5 @@
 ---
-history: True
+history: true
 title: Include Code
 ---
 
@@ -51,7 +51,6 @@ readIncluded = liftIO . Text.readFile =<< asks include
 -- >8
 ```
 
-
 ## Inclusion
 
 ``` {.haskell include="/src/Text/Decker/Filter/IncludeCode.hs" label="Haskell" snippet="include-shorter"}
@@ -85,3 +84,27 @@ isSnippetTag tag name line =
 
 ![](code:/src/Text/Decker/Filter/IncludeCode.hs#include-even-shorter){.haskell
 label="Haskell"}
+
+------------------------------------------------------------------------
+
+# Many small code blocks
+
+Paragraph one
+
+``` {.txt}
+Code block 1
+```
+
+This is code block 2
+
+``` {.txt}
+Code block 2
+```
+
+Paragraph three
+
+``` {.txt}
+Code block 3
+```
+
+Paragraph 4
