@@ -76,6 +76,10 @@ let RevealWhiteboard = (function(){
     // currently active fragment
     let currentFragmentIndex = 0;
 
+    // here we save SVG snapshots for undo/redo
+    let undoHistory = [];
+    const undoBufferSize = 10;
+
 
     // handle browser features
     const weHavePointerEvents   = !!(window.PointerEvent);
@@ -107,7 +111,7 @@ let RevealWhiteboard = (function(){
 
 
     // function to generate a button
-    function createButton(icon, callback, active=false)
+    function createButton(icon, callback, active=false, tooltip)
     {
         let b = document.createElement( 'button' );
         b.classList.add("whiteboard");
@@ -115,17 +119,18 @@ let RevealWhiteboard = (function(){
         b.classList.add(icon);
         b.onclick = callback;
         b.style.color = active ? activeColor : inactiveColor;
+        if (tooltip) b.setAttribute('data-tooltip', tooltip);
         buttons.appendChild(b);
         return b;
     }
 
 
-    let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard, false);
+    let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard, false, 'toggle whiteboard');
     buttonWhiteboard.id  = "whiteboardButton";
-    let buttonSave       = createButton("fa-save", saveAnnotations, false);
-    let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true);
-    let buttonGrid       = createButton("fa-border-all", toggleGrid, false);
-    let buttonUndo       = createButton("fa-undo", undoStroke, true);
+    let buttonSave       = createButton("fa-save", saveAnnotations, false, 'save annotations');
+    let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true, 'add whiteboard page');
+    let buttonGrid       = createButton("fa-border-all", toggleGrid, false, 'toggle background grid');
+    let buttonUndo       = createButton("fa-undo", undo, false, 'undo');
     let buttonPen        = createButton("fa-pen", () => {
         if (tool != ToolType.PEN) {
             selectTool(ToolType.PEN);
@@ -136,9 +141,9 @@ let RevealWhiteboard = (function(){
             else
                 showColorPicker();
         }
-    });
-    let buttonEraser = createButton("fa-eraser", () => { selectTool(ToolType.ERASER); } );
-    let buttonLaser  = createButton("fa-magic", () => { selectTool(ToolType.LASER); } );
+    }, false, 'pen / properties');
+    let buttonEraser = createButton("fa-eraser", () => { selectTool(ToolType.ERASER); }, false, 'eraser' );
+    let buttonLaser  = createButton("fa-magic", () => { selectTool(ToolType.LASER); }, false, 'laser pointer' );
 
 
     // generate color picker container
@@ -529,11 +534,14 @@ let RevealWhiteboard = (function(){
         // activate/deactivate pulsing border indicator
         if (needScrollbar)
         {
-            // (re-)start border pulsing
-            // (taken from https://css-tricks.com/restart-css-animation/)
-            slides.classList.remove("pulseBorder");
-            void slides.offsetWidth; // this does the magic!
-            slides.classList.add("pulseBorder");
+            if ( !printMode ) 
+            {
+                // (re-)start border pulsing
+                // (taken from https://css-tricks.com/restart-css-animation/)
+                slides.classList.remove("pulseBorder");
+                void slides.offsetWidth; // this does the magic!
+                slides.classList.add("pulseBorder");
+            }
         }
         else
         {
@@ -573,18 +581,6 @@ let RevealWhiteboard = (function(){
         }
     };
 
-
-
-    /*
-     * User triggers undo (mapped to key 'z')
-     */
-    function undoStroke()
-    {
-        if (svg.lastChild) 
-        {
-            svg.removeChild(svg.lastChild);
-        }
-    }
 
 
     /*
@@ -636,6 +632,48 @@ let RevealWhiteboard = (function(){
         needToSave(true);
     }
 
+
+
+
+    /*****************************************************************
+     ** Undo and re-do
+     ******************************************************************/
+
+    function clearUndoHistory()
+    {
+        undoHistory = [];
+        buttonUndo.style.color = inactiveColor;
+        buttonUndo.setAttribute('data-tooltip', 'undo');
+    }
+
+    function pushUndoHistory(action)
+    {
+        undoHistory.push( { action: action, svg: svg.innerHTML } );
+        buttonUndo.style.color = activeColor;
+        buttonUndo.setAttribute('data-tooltip', 'undo: ' + action);
+        if (undoHistory.length > undoBufferSize) undoHistory.shift();
+    }
+
+    function undo()
+    {
+        if (undoHistory.length)
+        {
+            svg.innerHTML = undoHistory.pop().svg;
+
+            if (undoHistory.length)
+            {
+                let action = undoHistory[undoHistory.length-1].action;
+                buttonUndo.setAttribute('data-tooltip', 'undo: ' + action);
+            }
+            else
+            {
+                buttonUndo.style.color = inactiveColor;
+                buttonUndo.setAttribute('data-tooltip', 'undo');
+            }
+
+            needToSave(true);
+        }
+    }
 
 
 
@@ -921,6 +959,9 @@ let RevealWhiteboard = (function(){
         const mouseX = evt.offsetX / slideZoom;
         const mouseY = evt.offsetY / slideZoom;
 
+        // remember current state for later undo
+        pushUndoHistory('paint stroke');
+
         // add stroke to SVG
         stroke = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         svg.appendChild(stroke);
@@ -1018,6 +1059,7 @@ let RevealWhiteboard = (function(){
         svg.querySelectorAll( 'path' ).forEach( stroke => {
             if (isPointInStroke(stroke, point))
             {
+                pushUndoHistory('erase stroke');
                 stroke.remove();
                 needToSave(true);
             }
@@ -1219,7 +1261,7 @@ let RevealWhiteboard = (function(){
             String.fromCharCode(evt.which).toLowerCase() == 'z') 
         {
             killEvent(evt);
-            undoStroke();
+            undo();
         }
     });
 
@@ -1262,6 +1304,9 @@ let RevealWhiteboard = (function(){
 
             // update SVG grid icon
             buttonGrid.style.color = (svg && getGridRect()) ? activeColor : inactiveColor;
+
+            // clear undo history (updates icon)
+            clearUndoHistory();
 
             // just to be sure, update slide zoom
             slideZoom = slides.style.zoom || 1;

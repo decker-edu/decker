@@ -16,7 +16,7 @@ chmod a+x decker
 
 ## Installation from source
 
-1.  Install [stack](https://docs.haskellstack.org/en/stable/README/) and [Node.js](https://www.npmjs.com/get-npm) (for `npm`)
+1.  Install [stack](https://docs.haskellstack.org/en/stable/README/), [Node.js](https://www.npmjs.com/get-npm) (for `npm`) and [sassc](https://github.com/sass/sassc) (Mac: `brew install sassc`, Linux: available for most package managers)
 2.  Clone this repo.
 3.  `cd decker`
 4.  `git submodule update --init --recursive`
