@@ -2,8 +2,9 @@
 /* colors for active/inactive buttons 
  * active color is also used for additional page indicator */
 :root {
-  --whiteboard-active-color: #2a9ddf;
-  --whiteboard-inactive-color: lightgrey;
+  --whiteboard-icon-size:        2vmin;
+  --whiteboard-active-color:     #2a9ddf;
+  --whiteboard-inactive-color:   lightgrey;
   --whiteboard-background-color: rgb(250,250,250);
 }
 
@@ -56,8 +57,8 @@
     border:     none;
     box-sizing: border-box;
     position:   absolute;
-    top:        0px;
-    left:       0px;
+    top:        0;
+    left:       0;
     z-index:    39;
 }
 
@@ -72,8 +73,8 @@
 .reveal button.whiteboard {
     display:     inline-block;
     position:    relative;
-    font-size:   16px;
-    padding:     8px;
+    font-size:   var(--whiteboard-icon-size);
+    padding:     calc(var(--whiteboard-icon-size) * 0.5);
     border:      none;
     outline:     none;
     background:  none;
@@ -86,7 +87,6 @@
     border: 0;
 }
 
-
 /* container for whiteboard tools */
 #whiteboardButtons {
     position:       absolute;
@@ -95,14 +95,13 @@
     padding:        0;
     margin:         0;
     z-index:        40;
-    border-radius:  4px;
+    border-radius:  calc(var(--whiteboard-icon-size) * 0.5);
     border:         1px solid transparent;
     background:     none;
-    left:           3px;
-    bottom:         3px;
+    left:           calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:         calc(var(--whiteboard-icon-size) * 0.25);
     display:        flex;
     flex-direction: column-reverse;
-    overflow:       hidden;
 }
 #whiteboardButtons.active {
     border:         1px solid #eeeeee;
@@ -118,6 +117,29 @@
     display: inline-block;
 }
 
+/* button tooltips, specified by data-tooltip
+ * use :after, since :before is used by fontawesome */
+#whiteboardButtons.active>button[data-tooltip]::after {
+    content:       attr(data-tooltip);
+    padding:       0.5em;
+    border-radius: 0.25em;
+    font-family:   "Lato", sans-serif;
+    position:      absolute;
+    left:          100%;
+    top:           50%;
+    width:         max-content;
+    height:        auto;
+    transform:     translateY(-50%) translateX(5px);
+    background:    grey;
+    color:         white;
+    display:       inline-block;
+    opacity:       0;
+}
+/* activate tooltip after 1s delay */
+#whiteboardButtons.active>button[data-tooltip]:hover::after {
+    opacity: 1;
+    transition: opacity 0s linear 1s;
+}
 
 /* toggle main whiteboard button with .active on container */
 #whiteboardButtons>#whiteboardButton {
@@ -143,28 +165,30 @@
     margin:         0;
     z-index:        40;
     border:         1px solid #eeeeee;
-    border-radius:  4px;
+    border-radius:  calc(var(--whiteboard-icon-size) * 0.5);
     background:     var(--whiteboard-background-color);
-    left:           40px;
-    bottom:         145px;
+    left:           calc(var(--whiteboard-icon-size) * 2.5);
+    bottom:         calc(var(--whiteboard-icon-size) * 9.25);
     display:        block;
+    visibility:     hidden;
 }
 
 
 /* slides for choosing pen width */
 #whiteboardSlider {
-    --size:  1px;
-    --color: black;
-    display: block;
+    --size:             1px;
+    --color:            black;
+    display:            block;
+    text-align:         center;
     -webkit-appearance: none;
-    appearance: none;
-    width:      200px;
-    height:     2px;
-    padding:    0px;
-    margin:     5px;
-    background: lightgrey;
-    border:     0;
-    outline:    none;
+    appearance:         none;
+    width:              calc(var(--whiteboard-icon-size) * 13);
+    height:             2px;
+    padding:            0px;
+    margin:             calc(var(--whiteboard-icon-size) * 0.5);
+    background:         lightgrey;
+    border:             0;
+    outline:            none;
 }
 
 /* shape of slider knob in Chrome */
@@ -190,3 +214,4 @@
     outline:       none;
     border:        0;
 }
+

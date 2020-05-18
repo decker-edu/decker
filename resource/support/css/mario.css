@@ -741,9 +741,16 @@ body {
     opacity: 0.1;
 }
 
-/* MARIO: fix menu positioning */
+/* MARIO: determine menu positioning and sizes relative to vmin */
 .reveal .slide-number {
-  position: fixed;
+    position:    fixed;
+    font-size:   2vmin;
+    padding:     1vmin;
+    right:       0.5vmin;
+    bottom:      0.5vmin;
+    font-family: "Lato", sans-serif;
+    color:       black;
+    background:  white;
 }
 
 
