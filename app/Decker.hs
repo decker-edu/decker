@@ -25,6 +25,7 @@ import qualified Data.Text as Text
 import Data.Version
 import Development.Shake
 import Development.Shake.FilePath
+import GHC.IO.Encoding
 import NeatInterpolation
 import qualified System.Directory as Dir
 import System.Environment.Blank
@@ -35,6 +36,7 @@ import Text.Pandoc hiding (lookupMeta)
 
 main :: IO ()
 main = do
+  setLocaleEncoding utf8
   args <- getArgs
   if null args
     then run
@@ -80,8 +82,9 @@ run = do
   let indexSource = (directories ^. project) </> "index.md"
   let generatedIndexSource = (directories ^. transient) </> "index.md.generated"
   let indexFile = (directories ^. public) </> "index.html"
-  let pdfMsg = Text.unpack
-        [text|
+  let pdfMsg =
+        Text.unpack
+          [text|
           # 
           # To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be
           # installed.
