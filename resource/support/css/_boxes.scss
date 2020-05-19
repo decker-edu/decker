@@ -21,7 +21,6 @@ $border-marker-default-color: red;
 .reveal ul,
 .reveal ol,
 .reveal dl,
-.reveal figure,
 .reveal blockquote,
 .reveal table,
 .reveal h1,
@@ -34,28 +33,62 @@ $border-marker-default-color: red;
     padding-right:var(--border-decoration-padding);
 }
 
+// Special handling again of plain page without enclosing 
+// div element for border decoration. This actually is a
+// crude work-around to mimic the missing div we want
+// around all elements to use for border deco
+.reveal section
+{
+   >figure:first-of-type {
+      margin-left: var(--border-decoration-width);
+      padding-left: var(--border-decoration-padding);
+   }
+   >figure:last-of-type {
+      margin-right: var(--border-decoration-width);
+      padding-right: var(--border-decoration-padding);
+   }
+}
+
+
+
 //////////////////////////////////////////////
 // Now the horizontal position if lists
 // Beware, they work differently sine 
 // left borders are the Text, not the list
 // symbol. Hence they need special treatment
 //////////////////////////////////////////////
-.reveal ol,
-.reveal ul,
-.reveal dl,
+.reveal ul
  {
     list-style-position: outside; // outside means we have to increase margin
                                    // if we don't and go inside then the spacing 
                                    // between item icon and text looks bad
-    margin-left: calc(var(--border-decoration-padding) * 2); 
-    padding-left: calc(var(--border-decoration-width) * 2);
-    // all deeper levels get less margin since
-    // they don't have to respect the colored box border model
-    ol,
-    ul,
-    dl {
-        margin-left: var(--border-decoration-padding); 
-        padding-left: var(--border-decoration-width);
+    margin-left: calc(var(--border-decoration-padding) + var(--border-decoration-width)); 
+    padding-left: calc(var(--border-decoration-width) + var(--border-decoration-padding));
+}
+
+.reveal ol
+ {
+    list-style-position: outside; // outside means we have to increase margin
+                                   // if we don't and go inside then the spacing 
+                                   // between item icon and text looks bad
+    margin-left: calc(var(--border-decoration-padding)+ var(--border-decoration-width)); 
+    padding-left: calc(var(--border-decoration-width) + var(--border-decoration-padding) + 1em);
+}
+
+.reveal ol,
+.reveal ul {
+   // all deeper levels get less margin since
+   // they don't have to respect the colored box border model
+   ol,
+   ul {
+       margin-left: var(--border-decoration-padding); 
+       padding-left: var(--border-decoration-width);
+   }
+   ol {
+     margin-bottom: 0;//calc(var(--margin-bottom-ol) / 2); 
+   }
+   ul {
+      margin-bottom: 0;//calc(var(--margin-bottom-ul) / 2); 
     }
 }
 
@@ -100,12 +133,13 @@ $border-marker-default-color: red;
         margin-right: 0; // var(--border-decoration-width);
         padding-right: 0; //var(--border-decoration-padding);
     }
-    ol,
+   
     ul,
-    dl {
+    ol {
         margin-left: var(--border-decoration-padding); 
         padding-left: var(--border-decoration-width);
     }
+    
     h2 {
         
         margin-top: 0;

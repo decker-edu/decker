@@ -26,13 +26,10 @@
   }
   
   img.decker,
-  video.decker,
-  div.decker {
+  video.decker {
       // The next line would apply the parents text-align spec
       // to this element
-      // display: inline-block;
-      // We are using Mario's always centered syntax, has to be discussed
-      display: block;
+      display: inline-block;
       /* remove the following two lines to get sizing of 
        * rendered code block sizing working */
       /*width: auto;*/
@@ -55,23 +52,23 @@ iframe.decker {
     vertical-align: middle;
 }
 
-figure.decker {
+figure.decker,
+div.nofigure {
     // The next line would apply the parents text-align spec
     // to this element
-    // display: inline-block;
-    // We are using Mario's always centered syntax, has to be discussed
-    display: block;
+    display: inline-block;
+    >img.decker,
+    >video.decker,
+    >iframe.decker {
+      margin: auto;
+      border: 0px;
+      box-shadow: none;
+      max-width: 100%;
+      max-height: 100%;
+    }
 }
 
-figure.decker>img.decker,
-figure.decker>video.decker,
-figure.decker>iframe.decker {
-  margin: auto;
-  border: 0px;
-  box-shadow: none;
-  max-width: 100%;
-  max-height: 100%;
-}
+
 
 figure.decker figcaption.decker {
   margin: 0px 0px 0px 0px; // was top 10 px

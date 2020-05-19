@@ -44,7 +44,6 @@ body {
     text-align:  var(--align-global);
 }
 
-
 .reveal {
 
     @each $position in center,
@@ -365,3 +364,9 @@ dd {
 .reveal img {margin-bottom: var(--margin-bottom-img);}
 .reveal table {margin-bottom: var(--margin-bottom-table);}
 .reveal .columns {margin-bottom: var(--margin-bottom-columns);}
+// Except an empty p which sometimes is insertet by the 
+// transformation process
+
+.reveal p:empty {
+   margin-bottom: 0;
+}

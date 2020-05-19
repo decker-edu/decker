@@ -19,4 +19,11 @@ transition: "none"
 title: "|title|"
 test: "default.yaml test value"
 align-global: left
-             
+# These are some sane defaults we need
+margin: 0.05
+margin-columns: 0em
+font-size-base: 30px
+spacing-vertical-base: 0.5em
+border-decoration-width: 20px
+border-decoration-padding: 10px
+border-decoration-style: solid  

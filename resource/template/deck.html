@@ -67,7 +67,10 @@ $endif$
                 /* The next custom properties for the look of the decoration */
                 --border-decoration-width: $border-decoration-width$;
                 --border-decoration-padding: $border-decoration-padding$;
-                --border-decoration-style: $border-decoration-style$;       
+                --border-decoration-style: $border-decoration-style$;  
+                --whiteboard-active-color: $whiteboard-active-color$;
+                --whiteboard-inactive-color: $whiteboard-inactive-color$;
+                --whiteboard-background-color: $whiteboard-background-color$;      
         } 
   </style>
    
@@ -170,20 +173,20 @@ $if(title)$
       <!-- Mario settings -->
       <section id="$idprefix$title-slide">
 
-      <div class="white-on-blue">
-        <div class="title"> $title$ </div>
-        $if(subtitle)$
+         <div class="white-on-blue">
+            <div class="title"> $title$ </div>
+         $if(subtitle)$
             <div class="subtitle"> $subtitle$ </div>
-        $endif$
-      </div>
+         $endif$
+         </div>
 
-      $if(teaser)$
+         $if(teaser)$
          <img class="teaser" src=$teaser$>
-      $endif$
+         $endif$
 
-      $if(authors)$
-        <div class="authors">
-        $for(authors)$
+         $if(authors)$
+         <div class="authors">
+         $for(authors)$
             $if(it.name)$
                 <div class="author">
                     $it.name$ 
@@ -192,17 +195,17 @@ $if(title)$
                     $endif$
                 </div>
             $endif$
-        $endfor$
-        </div>
-      $endif$
+         $endfor$
+         </div>
+         $endif$
 
-      $if(author)$
-        <div class="author"> $author$ </div>
-      $endif$
+         $if(author)$
+         <div class="author"> $author$ </div>
+         $endif$
 
-      $if(affiliation)$
-        <div class="affiliation"> $affiliation$ </div>
-      $endif$
+         $if(affiliation)$
+         <div class="affiliation"> $affiliation$ </div>
+         $endif$
       </section>
    $else$ <!-- standard settings -->
       $if(template.title-header)$
@@ -213,28 +216,28 @@ $if(title)$
       $else$
          <section id="$idprefix$title-slide">
       $endif$
-      <div class="title"> $title$</div>
-      $if(subtitle)$
-         <div class="subtitle"> $subtitle$ </div>
-      $endif$
-      $if(template.title-teaser)$
-         <div class="title-teaser">
-           <img src=$template.title-teaser$>
-         </div>
-      $endif$
-      $if(author)$
-         <div class="author"> $author$ </div>
-         $if(affiliation)$
-            $if(template.affiliation-logo)$
-               <div class="affiliation-logo">
-               <img src=$template.affiliation-logo$>
+            <div class="title"> $title$</div>
+            $if(subtitle)$
+               <div class="subtitle"> $subtitle$ </div>
+            $endif$
+            $if(template.title-teaser)$
+               <div class="title-teaser">
+                  <img src=$template.title-teaser$>
                </div>
             $endif$
-            <div class="affiliation"> $affiliation$ </div>
-         $endif$ 
-         </section>
-      $endif$     
-   $endif$     
+            $if(author)$
+               <div class="author"> $author$ </div>
+            $endif$
+            $if(template.affiliation-logo)$
+               <div class="affiliation-logo">
+                  <img src=$template.affiliation-logo$>
+               </div>
+            $endif$
+            $if(affiliation)$
+               <div class="affiliation"> $affiliation$ </div>
+            $endif$ 
+         </section>      
+   $endif$
 $endif$
 
 $if(toc)$
@@ -511,10 +514,9 @@ $else$
               of: ['\\mkern{-0mu}\\left( #1 \\right\)', 1],
               diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
               pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
-              vc: ['\\mathbf{#1}', 1],
+              vc: ['{\\mathbf{#1}}', 1],
               abs: ['\\lvert#1\\rvert', 1],
-              norm: ['\\lVert#1\\rVert', 1],
-              det: ['\\lvert#1\\rvert', 1],
+              det: ['\\left\\Vert #1 \\right\\Vert', 1],
               qt: ['\\hat{\\vc {#1}}', 1],
               mt: ['\\boldsymbol{#1}', 1],
               pt: ['\\boldsymbol{#1}', 1],
