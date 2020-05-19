@@ -890,35 +890,33 @@ let RevealWhiteboard = (function(){
     // return string representation of point p (two decimal digits)
     function printPoint(p)
     {
-        return (p[0].toFixed(2) + ' ' + p[1].toFixed(2));
+        return (p[0].toFixed(1) + ' ' + p[1].toFixed(1));
     }
 
     
     // convert points to quadratic Bezier spline
     function renderStroke(points, stroke)
     {
+        const n=points.length;
+        if (n < 2) return;
+
         let path = "";
+        let c;
 
-        if (QUADRATIC_SPLINE)
+        path += ('M '  + printPoint(points[0]));
+        path += (' L ' + printPoint(center(points[0], points[1])));
+
+        if (n > 2)
         {
-            let c;
-
-            path += ('M '  + printPoint(points[0]));
-            path += (' L ' + printPoint(center(points[0], points[1])));
-
+            path += ' Q ';
             for (let i=1; i<points.length-1; ++i)
             {
                 c = center(points[i], points[i+1]);
-                path += (' Q ' + printPoint(points[i]) + ' ' + printPoint(c));
+                path += (' ' + printPoint(points[i]) + ' ' + printPoint(c));
             }
-            path += (' L ' + printPoint(points[points.length-1]));
         }
-        else
-        {
-            path += ('M '  + printPoint(points[0]));
-            for (let i=1; i<points.length; ++i)
-                path += (' L ' + printPoint(points[i]));
-        }
+
+        path += (' L ' + printPoint(points[n-1]));
 
         stroke.setAttribute('d', path);
     }
@@ -965,11 +963,8 @@ let RevealWhiteboard = (function(){
         // add stroke to SVG
         stroke = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         svg.appendChild(stroke);
-        stroke.style.fill = 'none';
         stroke.style.stroke = penColor;
         stroke.style.strokeWidth = penWidth+'px';
-        stroke.style.strokeLinecap = 'round';
-        stroke.style.strokeLinejoin = 'round';
 
         // add point, convert to Bezier spline
         points = [ [ mouseX, mouseY ], [mouseX, mouseY] ];

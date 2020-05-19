@@ -62,10 +62,16 @@
     z-index:    39;
 }
 
-
 /* children of SVG (strokes, grid) should not get pointer events */
 .reveal svg.whiteboard * {
     pointer-events: none;
+}
+
+/* default style for strokes (up to color and width) */
+.reveal svg.whiteboard>path {
+    fill:            none;
+    stroke-linecap:  round;
+    stroke-linejoin: round;
 }
 
 
