@@ -18,7 +18,6 @@ touch: true
 transition: "none"
 title: "|title|"
 test123: "test123"
-align-global: left
 # These are some sane defaults we need
 margin: 0.05
 margin-columns: 0em
