@@ -35,7 +35,7 @@ import qualified Text.URI as URI
 
 -- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
--- may reject the pair and return nothing.
+-- may reject the pair and return Nothing.
 pairwise :: ((a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
 pairwise f (x:y:zs) = do
   match <- f (x, y)
@@ -46,7 +46,7 @@ pairwise _ xs = return xs
 
 -- | Applies a filter to each triplet of successive elements in a list.
 -- The filter may consume the elements and return a list of transformed elements,
--- or it may reject the triplet and return nothing.
+-- or it may reject the triplet and return Nothing.
 tripletwise :: ((a, a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
 tripletwise f (w:x:y:zs) = do
   match <- f (w, x, y)
@@ -79,7 +79,7 @@ mediaBlockListFilter blocks =
     filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) =
       Just . single . Para . single <$> transformImage image caption
     -- An code block followed by an explicit caption paragraph.
-    filterPairs (code@CodeBlock {}, Para (Str captionLabel:caption)) =
+    filterPairs (code@CodeBlock {}, Para (Str "Caption:":caption)) =
       Just . single <$> transformCodeBlock code caption
     -- Any number of consecutive images in a masonry row.
     filterPairs (LineBlock lines, Para (Str "Caption:":caption))
@@ -226,17 +226,20 @@ transformImages images caption = do
 
 language cls = find (`elem` ["dot", "gnuplot", "tex"]) cls
 
+-- TODO this is incomplete
+--   - captions are just swallowed but never rendered.
+--   - caption recognition is disabled for now (see mediaBlockListFilter)
 transformCodeBlock :: Block -> [Inline] -> Filter Block
 transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
   handle (blockError code) $
-    case language classes of
-      Just ext
-        | "render" `elem` classes -> do
-          transient <-
-            lookupMetaOrFail "decker.directories.transient" <$> gets meta
-          project <- lookupMetaOrFail "decker.directories.project" <$> gets meta
-          runAttr attr (transform project transient ext) >>= renderHtml
-      _ -> return code
+  case language classes of
+    Just ext
+      | "render" `elem` classes -> do
+        transient <-
+          lookupMetaOrFail "decker.directories.transient" <$> gets meta
+        project <- lookupMetaOrFail "decker.directories.project" <$> gets meta
+        runAttr attr (transform project transient ext) >>= renderHtml
+    _ -> return code
   where
     transform :: FilePath -> FilePath -> Text -> Attrib Html
     transform project transient ext = do

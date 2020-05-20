@@ -17,7 +17,7 @@ progress: true
 touch: true
 transition: "none"
 title: "|title|"
-test: "default.yaml test value"
+test123: "test123"
 align-global: left
 # These are some sane defaults we need
 margin: 0.05
