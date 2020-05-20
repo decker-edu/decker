@@ -112,6 +112,7 @@ dd {
 }
 
 .reveal table {
+   display: inline-block;
     margin-bottom: var(--margin-bottom-table); // auto;
     border-collapse: collapse;
     border-spacing: 0;

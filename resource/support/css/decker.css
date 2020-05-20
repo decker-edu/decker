@@ -240,7 +240,6 @@
 .reveal ul,
 .reveal ol,
 .reveal dl,
-.reveal figure,
 .reveal blockquote,
 .reveal table,
 .reveal h1,
@@ -252,25 +251,57 @@
   padding-right: var(--border-decoration-padding);
 }
 
-.reveal ol,
-.reveal ul,
-.reveal dl {
-  list-style-position: outside;
-  margin-left: calc(var(--border-decoration-padding) * 2);
-  padding-left: calc(var(--border-decoration-width) * 2);
+.reveal section > figure:first-of-type {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
 }
 
-.reveal ol ol,
-.reveal ol ul,
-.reveal ol dl,
+.reveal section > figure:last-of-type {
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
+}
+
+.reveal ul,
+.reveal ol {
+  list-style-position: inside;
+}
+
 .reveal ul ol,
+.reveal ol ol {
+  margin-left: 0px;
+  padding-left: 0px;
+}
+
 .reveal ul ul,
-.reveal ul dl,
-.reveal dl ol,
-.reveal dl ul,
-.reveal dl dl {
-  margin-left: var(--border-decoration-padding);
-  padding-left: var(--border-decoration-width);
+.reveal ol ul {
+  margin-left: 0.3em;
+}
+
+.reveal ul ol, .reveal ul ul,
+.reveal ol ol,
+.reveal ol ul {
+  margin-bottom: 0;
+}
+
+ul > li {
+  list-style-type: none;
+  position: relative;
+  left: .5em;
+}
+
+ul > li:before {
+  content: "\2022";
+  /* escaped unicode character */
+  font-size: 1.5em;
+  /* the default unicode bullet size is very small */
+  line-height: 0;
+  /* kills huge line height on resized bullet */
+  position: relative;
+  /* position bullet relative to list item */
+  top: 0.1em;
+  /* vertical align bullet position relative to list item */
+  left: -.3em;
+  /* position the bullet L- R relative to list item */
 }
 
 .reveal ol {
@@ -283,10 +314,6 @@
 
 .reveal ol ol ol {
   list-style-type: decimal;
-}
-
-.reveal ul {
-  list-style-type: disc;
 }
 
 .reveal div.box.columns {
@@ -312,13 +339,6 @@
   padding-left: 0;
   margin-right: 0;
   padding-right: 0;
-}
-
-.reveal div.box.columns ol,
-.reveal div.box.columns ul,
-.reveal div.box.columns dl {
-  margin-left: var(--border-decoration-padding);
-  padding-left: var(--border-decoration-width);
 }
 
 .reveal div.box.columns h2 {
@@ -416,9 +436,8 @@
 }
 
 .reveal img.decker,
-.reveal video.decker,
-.reveal div.decker {
-  display: block;
+.reveal video.decker {
+  display: inline-block;
   /* remove the following two lines to get sizing of 
        * rendered code block sizing working */
   /*width: auto;*/
@@ -443,13 +462,17 @@
   vertical-align: middle;
 }
 
-.reveal figure.decker {
-  display: block;
+.reveal figure.decker,
+.reveal div.nofigure {
+  display: inline-block;
 }
 
 .reveal figure.decker > img.decker,
 .reveal figure.decker > video.decker,
-.reveal figure.decker > iframe.decker {
+.reveal figure.decker > iframe.decker,
+.reveal div.nofigure > img.decker,
+.reveal div.nofigure > video.decker,
+.reveal div.nofigure > iframe.decker {
   margin: auto;
   border: 0px;
   -webkit-box-shadow: none;
@@ -992,6 +1015,7 @@ dd {
 }
 
 .reveal table {
+  display: inline-block;
   margin-bottom: var(--margin-bottom-table);
   border-collapse: collapse;
   border-spacing: 0;
@@ -1244,5 +1268,9 @@ dd {
 
 .reveal .columns {
   margin-bottom: var(--margin-bottom-columns);
+}
+
+.reveal p:empty {
+  margin-bottom: 0;
 }
 /*# sourceMappingURL=decker.css.map */

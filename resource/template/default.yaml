@@ -23,7 +23,9 @@ align-global: left
 margin: 0.05
 margin-columns: 0em
 font-size-base: 30px
+align-global: left
 spacing-vertical-base: 0.5em
 border-decoration-width: 20px
 border-decoration-padding: 10px
 border-decoration-style: solid  
+
