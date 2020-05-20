@@ -16,8 +16,6 @@
 
 let RevealWhiteboard = (function(){
 
-    const LOCAL_STORAGE = false;
-    const QUADRATIC_SPLINE = true;
     const STROKE_STEP_THRESHOLD = 2;
 
 
@@ -693,49 +691,46 @@ let RevealWhiteboard = (function(){
             let filename = annotationURL();
 
             console.log("whiteboard load " + filename);
-            let req = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
 
-            req.onload = function()
+            xhr.onloadend = function()
             {
-                if (req.readyState == 4)
+                if (xhr.status == 200 || xhr.status == 0)
                 {
-                    if (req.status == 200 || req.status == 0)
+                    try
                     {
-                        try
-                        {
-                            // parse JSON
-                            const storage = JSON.parse(req.responseText);
+                        // parse JSON
+                        const storage = JSON.parse(xhr.responseText);
 
-                            // create SVGs
-                            if (storage.whiteboardVersion && storage.whiteboardVersion >= 2)
-                            {
-                                storage.annotations.forEach( page => {
-                                    let slide = document.getElementById(page.slide);
-                                    if (slide)
+                        // create SVGs
+                        if (storage.whiteboardVersion && storage.whiteboardVersion >= 2)
+                        {
+                            storage.annotations.forEach( page => {
+                                let slide = document.getElementById(page.slide);
+                                if (slide)
+                                {
+                                    // use global SVG
+                                    svg = setupSVG(slide);
+                                    if (svg)
                                     {
-                                        // use global SVG
-                                        svg = setupSVG(slide);
-                                        if (svg)
-                                        {
-                                            svg.innerHTML = page.svg;
-                                        }
+                                        svg.innerHTML = page.svg;
                                     }
-                                });
-                                console.log("whiteboard loaded");
-                            }
+                                }
+                            });
+                            console.log("whiteboard loaded");
+                        }
 
-                            // adjust height for PDF export
-                            if (printMode)
-                            {
-                                slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
-                                    svg=mysvg; adjustWhiteboardHeight();
-                                });
-                            }
-                        }
-                        catch(err)
+                        // adjust height for PDF export
+                        if (printMode)
                         {
-                            console.error("Cannot parse " + filename + ": " + err);
+                            slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
+                                svg=mysvg; adjustWhiteboardHeight();
+                            });
                         }
+                    }
+                    catch(err)
+                    {
+                        console.error("Cannot parse " + filename + ": " + err);
                     }
                 }
                 else
@@ -746,21 +741,8 @@ let RevealWhiteboard = (function(){
                 resolve();
             }
 
-            req.onerror = function()
-            {
-                console.warn('Failed to get file ' + filename);
-                resolve();
-            }
-
-            try
-            {
-                req.open('GET', filename, true);
-                req.send();
-            }
-            catch(err)
-            {
-                console.warn('Failed to get file ' + filename + ': ' + err);
-            }
+            xhr.open('GET', filename, true);
+            xhr.send();
         });
     }
 
@@ -1203,13 +1185,6 @@ let RevealWhiteboard = (function(){
     // Intercept page leave when data is not saved
     window.onbeforeunload = function(e)
     {
-        if (LOCAL_STORAGE)
-        {
-            console.log("save to local storage");
-            localStorage['whiteboard'] = JSON.stringify(storage);
-            return;
-        }
-
         if (unsavedAnnotations) return "blabla";
     }
 
