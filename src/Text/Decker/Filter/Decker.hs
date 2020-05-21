@@ -337,15 +337,19 @@ isPercent = Text.isSuffixOf "%"
 imageHtml :: URI -> [Inline] -> Attrib Html
 imageHtml uri caption = do
   uri <- lift $ transformUri uri ""
+  let rendered = URI.render uri
+  let fileName = toText $ takeFileName $ toString rendered
   case caption of
     [] -> do
-      injectBorder >> takeSize >> takeUsual
-      mkImageTag (URI.render uri) <$> extractAttr
+      injectBorder >> takeSize >> takeUsual >>
+        injectAttribute ("alt", fileName)
+      mkImageTag rendered <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       imgAttr <- takeSizeIf (not . isPercent) >> extractAttr
-      let imageTag = mkImageTag (URI.render uri) imgAttr
-      injectBorder >> takeSizeIf isPercent >> takeUsual
+      let imageTag = mkImageTag rendered imgAttr
+      injectBorder >> takeSizeIf isPercent >> takeUsual >>
+        injectAttribute ("alt", fileName)
       mkFigureTag imageTag captionHtml <$> extractAttr
 
 objectHtml :: Text -> URI -> [Inline] -> Attrib Html

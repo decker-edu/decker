@@ -82,12 +82,12 @@ plainImage =
 plainImageCaptionedHtml =
   RawInline
     (Format "html")
-    "<figure id=\"logo\" class=\"decker myclass\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"test/decks/include/06-metal.png\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"logo\" class=\"decker myclass\" alt=\"06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"test/decks/include/06-metal.png\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 plainImageHtml =
   RawInline
     (Format "html")
-    "<img id=\"logo\" class=\"decker myclass\" data-src=\"test/decks/include/06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\">"
+    "<img id=\"logo\" class=\"decker myclass\" data-src=\"test/decks/include/06-metal.png\" alt=\"06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\">"
 
 plainVideo =
   Image

@@ -24,7 +24,7 @@ An image that is used inline in a paragraph of text.
 translates to
 
 ``` {.html}
-<figure class="decker">
+<figure class="decker" alt="06-metal.png">
     <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
         <span class="math inline">
@@ -103,7 +103,7 @@ This is not a caption, but the next paragraph.
 translates to
 
 ``` {.html}
-<figure class="decker">
+<figure class="decker" alt="06-metal.png">
     <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
         Caption.
@@ -129,7 +129,7 @@ Caption: Caption.
 translates to
 
 ``` {.html}
-<figure class="decker">
+<figure class="decker" alt="06-metal.png">
     <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
          
@@ -154,7 +154,7 @@ Caption: Caption [see @tramberend2003].
 translates to
 
 ``` {.html}
-<figure class="decker">
+<figure class="decker" alt="06-metal.png">
     <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
          
@@ -186,7 +186,7 @@ Query string and fragment identifier in URLs are preserved.
 translates to
 
 ``` {.html}
-<figure class="decker">
+<figure class="decker" alt="image.png&amp;key=value">
     <img class="decker" data-src="https://some.where/image.png&key=value">
     <figcaption class="decker">
         Caption.
@@ -208,7 +208,7 @@ Plain image with size attributes.
 translates to
 
 ``` {.html}
-<figure class="decker" style="width:40%;">
+<figure class="decker" alt="06-metal.png" style="width:40%;">
     <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
         Caption.
@@ -230,7 +230,7 @@ Plain image with size attributes.
 translates to
 
 ``` {.html}
-<figure class="decker">
+<figure class="decker" alt="06-metal.png">
     <img class="decker" data-src="test/decks/include/06-metal.png" style="height:200px;">
     <figcaption class="decker">
         Caption.
@@ -252,7 +252,7 @@ Plain image with size attributes.
 translates to
 
 ``` {.html}
-<figure class="decker" style="width:40%;">
+<figure class="decker" alt="06-metal.png" style="width:40%;">
     <img class="decker" data-src="test/decks/include/06-metal.png" style="height:200px;">
     <figcaption class="decker">
         Caption.
@@ -274,7 +274,7 @@ Image attributes are handled in complex ways.
 translates to
 
 ``` {.html}
-<figure id="myid" class="decker myclass" data-myattribute="value" style="width:40%;border:1px;background-color:magenta;">
+<figure id="myid" class="decker myclass" alt="06-metal.png" data-myattribute="value" style="width:40%;border:1px;background-color:magenta;">
     <img class="decker" data-src="test/decks/include/06-metal.png">
     <figcaption class="decker">
         Caption.
@@ -395,7 +395,7 @@ translates to
 
 ``` {.html}
 <div class="decker image-row">
-    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <img class="decker" data-src="test/decks/include/06-metal.png" alt="06-metal.png">
 
     <figure class="decker">
     <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
@@ -408,7 +408,7 @@ translates to
 
 </div>
 
-| <img class="decker" data-src="test/decks/include/06-metal.png" style="border:1px solid black;">
+| <img class="decker" data-src="test/decks/include/06-metal.png" alt="06-metal.png" style="border:1px solid black;">
 ```
 
 ------------------------------------------------------------------------
@@ -431,7 +431,7 @@ translates to
 
 ``` {.html}
 <div class="decker image-row">
-    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <img class="decker" data-src="test/decks/include/06-metal.png" alt="06-metal.png">
 
     <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
     
@@ -439,8 +439,8 @@ translates to
 
 </div>
 
-| <img class="decker" data-src="test/decks/include/06-metal.png" style="border:1px solid black;">
- | <img class="decker" data-src="test/decks/include/06-metal.png">
+| <img class="decker" data-src="test/decks/include/06-metal.png" alt="06-metal.png" style="border:1px solid black;">
+ | <img class="decker" data-src="test/decks/include/06-metal.png" alt="06-metal.png">
 
 Caption: Caption
 ```
