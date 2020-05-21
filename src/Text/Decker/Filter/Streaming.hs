@@ -183,8 +183,7 @@ takeIframeAttr = do
   injectStyle ("left", "0")
   injectStyle ("width", "100%")
   injectStyle ("height", "100%")
-  injectAttribute ("allowfullscreen", "1")
-  injectAttribute ("frameborder", "0")
+  injectAttribute ("allow", "fullscreen")
   takeAutoplay
 
 mkYoutubeUri :: Text -> Attrib URI

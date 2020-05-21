@@ -53,5 +53,7 @@ Caption: Caption on an extra line.
 
 ## Two mages with caption {.left}
 
-![Caption 1](include/06-metal.png){width="45%"}![Caption
+hallo ![Caption 1](include/06-metal.png){width="45%"} holla ![Caption
 2](include/06-metal.png){width="45%"}
+
+Just a line of text
