@@ -9,17 +9,14 @@ decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
 
 build: css
-	rm decker.cabal
 	stack build
 
 clean-build: clean css
 	git submodule update --init
 	make -f symlinks.mk -C third-party all
-	rm decker.cabal
 	stack build
 
 less:
-	rm decker.cabal
 	stack build 2>&1 | less 
 
 resource-zip:
@@ -36,7 +33,6 @@ version:
 	@echo "$(decker-name)"
 
 build-profile:
-	rm decker.cabal
 	stack build --work-dir .stack-work-profile --profile
 
 profile: build-profile
