@@ -23,21 +23,67 @@ $endif$
 $if(thebelab.enable)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/thebelab/thebelab.css">
 $endif$
-  <!-- This is the global variable for the default alignment. It currently is set
-       via the according YAML variable which defaults from the default.yaml to left.
-       Can be overriden in local YAML and for whole slides or individual elements -->
   <style>
+        /* This is the global style block for decker's layout css variables (aka css custom properties) 
+        for all kinds of parameterization. Variables are set via an according YAML variable 
+        which defaults from the default.yaml. 
+        Can't be sourced out to external css file since variable substitution is performed
+        by pandoc which does not process the css */
+
         :root {
-          --align-global: $align-global$;  
-        }
-  </style>       
+                /* This is the global variable for the default alignment. Defaults to left.    */
+                /* Can be overriden in local YAML and for whole slides or individual elements  */
+                --align-global: $align-global$;
+                /* Column spacing, in same awkward unit as reveal's margin which is fraction of 
+                space. Beware, does strange things if set too large. */
+                --margin-columns: calc($margin-columns$ * 100%);
+                /* Now all the different font sizes */
+                --font-size-base: $font-size-base$;
+                --font-size-medium: calc(var(--font-size-base) * 1);
+                --font-size-xx-small: calc(var(--font-size-base) * 0.4);
+                --font-size-x-small: calc(var(--font-size-base) * 0.6);
+                --font-size-small: calc(var(--font-size-base) * 0.8);
+                --font-size-large: calc(var(--font-size-base) * 1.2);
+                --font-size-x-large: calc(var(--font-size-base) * 1.4);
+                --font-size-xx-large: calc(var(--font-size-base) * 1.6);
+                /* This one defines the basic vertical spacing between elements */
+                --spacing-vertical-base: $spacing-vertical-base$;
+                --margin-bottom-elements-base: $spacing-vertical-base$;
+                --margin-bottom-h1: calc(var(--margin-bottom-elements-base) * 1);
+                --margin-bottom-h2: calc(var(--margin-bottom-elements-base) * 0);
+                --margin-bottom-h2-block: calc(var(--margin-bottom-elements-base) * 0.8);
+                --margin-bottom-h3: calc(var(--margin-bottom-elements-base) * 0);
+                --margin-bottom-h3-block: calc(var(--margin-bottom-elements-base) * 0.8);
+                --margin-bottom-p: calc(var(--margin-bottom-elements-base) * 0.8);
+                --margin-bottom-ol: calc(var(--margin-bottom-elements-base) * 0.8);
+                --margin-bottom-ul: calc(var(--margin-bottom-elements-base) * 0.8);
+                --margin-bottom-dl: calc(var(--margin-bottom-elements-base) * 0.8);
+                --margin-bottom-figure: calc(var(--margin-bottom-elements-base) * 0.8);
+                --margin-bottom-img: calc(var(--margin-bottom-elements-base) * 0.8);
+                --margin-bottom-blockquote: calc(var(--margin-bottom-elements-base) * 0.8);
+                --margin-bottom-table: calc(var(--margin-bottom-elements-base) * 1);
+                --margin-bottom-columns: calc(var(--margin-bottom-elements-base) * 0);       
+                --margin-bottom-references: calc(var(--margin-bottom-elements-base) * 0.3);
+                /* The next custom properties for the look of the decoration */
+                --border-decoration-width: $border-decoration-width$;
+                --border-decoration-padding: $border-decoration-padding$;
+                --border-decoration-style: $border-decoration-style$;  
+                /* whiteboard buttons */
+                --whiteboard-icon-size: $whiteboard-icon-size$;
+                --whiteboard-active-color: $whiteboard-active-color$;
+                --whiteboard-inactive-color: $whiteboard-inactive-color$;
+                --whiteboard-background-color: $whiteboard-background-color$;      
+        } 
+  </style>
+   
   <style>
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
       span.underline{text-decoration: underline;}
       div.column{display: inline-block; vertical-align: top; width: 50%;}
 $if(quotes)$
-      q { quotes: "“" "”" "‘" "’"; }
+      q { quotes: auto; }
+      blockquote { quotes: auto; }
 $endif$
   </style>
 $if(highlighting-css)$
@@ -125,24 +171,23 @@ $endfor$
     <div class="slides">
 
 $if(title)$
-$if(mario)$ <!-- Mario settings -->
-<section id="$idprefix$title-slide">
-    <h1 style="display:none">Title</h1>
-
-    <div class="white-on-blue">
-        <div class="title"> $title$ </div>
-        $if(subtitle)$
+   $if(mario)$ <!-- Mario settings -->
+      <section id="$idprefix$title-slide">
+         <h1 style="display:none">Title</h1>
+         <div class="white-on-blue">
+            <div class="title"> $title$ </div>
+         $if(subtitle)$
             <div class="subtitle"> $subtitle$ </div>
-        $endif$
-    </div>
+         $endif$
+         </div>
 
-    $if(teaser)$
-        <img class="teaser" src=$teaser$>
-    $endif$
+         $if(teaser)$
+         <img class="teaser" src=$teaser$>
+         $endif$
 
-    $if(authors)$
-        <div class="authors">
-        $for(authors)$
+         $if(authors)$
+         <div class="authors">
+         $for(authors)$
             $if(it.name)$
                 <div class="author">
                     $it.name$ 
@@ -151,50 +196,49 @@ $if(mario)$ <!-- Mario settings -->
                     $endif$
                 </div>
             $endif$
-        $endfor$
-        </div>
-    $endif$
+         $endfor$
+         </div>
+         $endif$
 
-    $if(author)$
-        <div class="author"> $author$ </div>
-    $endif$
+         $if(author)$
+         <div class="author"> $author$ </div>
+         $endif$
 
-    $if(affiliation)$
-        <div class="affiliation"> $affiliation$ </div>
-    $endif$
-
-$else$ <!-- standard settings -->
-$if(template.title-header)$
-<section id="$idprefix$title-slide" 
-        data-background-size="100%" 
-        data-background-position="0px 0px" 
-        data-background-image=$template.title-header$>
-$else$
-<section id="$idprefix$title-slide">
-$endif$
-        <h1 style="display:none">Title</h1>
-        <div class="title"> $title$</div>
-        $if(subtitle)$
-            <div class="subtitle"> $subtitle$ </div>
-        $endif$
-    $if(template.title-teaser)$
-        <div class="title-teaser">
-                <img src=$template.title-teaser$>
-        </div>
-    $endif$
-    $if(author)$
-        <div class="author"> $author$ </div>
-        $if(affiliation)$
-           $if(template.affiliation-logo)$
-              <div class="affiliation-logo">
-                  <img src=$template.affiliation-logo$>
-              </div>
+         $if(affiliation)$
+         <div class="affiliation"> $affiliation$ </div>
+         $endif$
+      </section>
+   $else$ <!-- standard settings -->
+      $if(template.title-header)$
+         <section id="$idprefix$title-slide" 
+            data-background-size="100%" 
+            data-background-position="0px 0px" 
+            data-background-image=$template.title-header$>
+      $else$
+         <section id="$idprefix$title-slide">
+      $endif$
+            <div class="title"> $title$</div>
+            $if(subtitle)$
+               <div class="subtitle"> $subtitle$ </div>
             $endif$
-            <div class="affiliation"> $affiliation$ </div>
-        $endif$
-    $endif$
-$endif$
-</section>
+            $if(template.title-teaser)$
+               <div class="title-teaser">
+                  <img src=$template.title-teaser$>
+               </div>
+            $endif$
+            $if(author)$
+               <div class="author"> $author$ </div>
+            $endif$
+            $if(template.affiliation-logo)$
+               <div class="affiliation-logo">
+                  <img src=$template.affiliation-logo$>
+               </div>
+            $endif$
+            $if(affiliation)$
+               <div class="affiliation"> $affiliation$ </div>
+            $endif$ 
+         </section>      
+   $endif$
 $endif$
 
 $if(toc)$
