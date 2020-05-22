@@ -365,9 +365,9 @@ dd {
 .reveal img {margin-bottom: var(--margin-bottom-img);}
 .reveal table {margin-bottom: var(--margin-bottom-table);}
 .reveal .columns {margin-bottom: var(--margin-bottom-columns);}
-// Except an empty p which sometimes is insertet by the 
-// transformation process
+// Except an empty p which sometimes is inserted by the 
+// transformation process, that should be ignored completely
 
 .reveal p:empty {
-   margin-bottom: 0;
+   display: none;
 }
