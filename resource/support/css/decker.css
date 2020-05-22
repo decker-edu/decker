@@ -610,6 +610,8 @@ ul > li:before {
 .reveal .qmc .solutionList li,
 .reveal .qmi .solutionList li,
 .reveal [class*="quiz-"] .solutionList li {
+  padding: 5px;
+  margin-right: 1em;
   display: none;
 }
 
@@ -619,7 +621,6 @@ ul > li:before {
 .reveal .qmi .solutionList .correct:before,
 .reveal [class*="quiz-"] .solutionList .correct:before {
   content: "✓";
-  margin-right: 0.5em;
   font-weight: bold;
 }
 
@@ -629,7 +630,6 @@ ul > li:before {
 .reveal .qmi .solutionList .wrong:before,
 .reveal [class*="quiz-"] .solutionList .wrong:before {
   content: "✗";
-  margin-right: 0.5em;
   font-weight: bold;
 }
 

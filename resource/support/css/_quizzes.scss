@@ -21,16 +21,16 @@
     }
     .solutionList{
         li{
+            padding: 5px;
+            margin-right: 1em;
             display: none;
         }
         .correct:before {
             content: "✓";
-            margin-right: 0.5em;
             font-weight:  bold;
         }
         .wrong:before{
             content: "✗";
-            margin-right: 0.5em;
             font-weight: bold;
         }
         list-style-type: none;
