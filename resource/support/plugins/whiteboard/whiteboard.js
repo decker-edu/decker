@@ -16,8 +16,6 @@
 
 let RevealWhiteboard = (function(){
 
-    const LOCAL_STORAGE = false;
-    const QUADRATIC_SPLINE = true;
     const STROKE_STEP_THRESHOLD = 2;
 
 
@@ -693,49 +691,46 @@ let RevealWhiteboard = (function(){
             let filename = annotationURL();
 
             console.log("whiteboard load " + filename);
-            let req = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest();
 
-            req.onload = function()
+            xhr.onloadend = function()
             {
-                if (req.readyState == 4)
+                if (xhr.status == 200 || xhr.status == 0)
                 {
-                    if (req.status == 200 || req.status == 0)
+                    try
                     {
-                        try
-                        {
-                            // parse JSON
-                            const storage = JSON.parse(req.responseText);
+                        // parse JSON
+                        const storage = JSON.parse(xhr.responseText);
 
-                            // create SVGs
-                            if (storage.whiteboardVersion && storage.whiteboardVersion >= 2)
-                            {
-                                storage.annotations.forEach( page => {
-                                    let slide = document.getElementById(page.slide);
-                                    if (slide)
+                        // create SVGs
+                        if (storage.whiteboardVersion && storage.whiteboardVersion >= 2)
+                        {
+                            storage.annotations.forEach( page => {
+                                let slide = document.getElementById(page.slide);
+                                if (slide)
+                                {
+                                    // use global SVG
+                                    svg = setupSVG(slide);
+                                    if (svg)
                                     {
-                                        // use global SVG
-                                        svg = setupSVG(slide);
-                                        if (svg)
-                                        {
-                                            svg.innerHTML = page.svg;
-                                        }
+                                        svg.innerHTML = page.svg;
                                     }
-                                });
-                                console.log("whiteboard loaded");
-                            }
+                                }
+                            });
+                            console.log("whiteboard loaded");
+                        }
 
-                            // adjust height for PDF export
-                            if (printMode)
-                            {
-                                slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
-                                    svg=mysvg; adjustWhiteboardHeight();
-                                });
-                            }
-                        }
-                        catch(err)
+                        // adjust height for PDF export
+                        if (printMode)
                         {
-                            console.error("Cannot parse " + filename + ": " + err);
+                            slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
+                                svg=mysvg; adjustWhiteboardHeight();
+                            });
                         }
+                    }
+                    catch(err)
+                    {
+                        console.error("Cannot parse " + filename + ": " + err);
                     }
                 }
                 else
@@ -746,21 +741,8 @@ let RevealWhiteboard = (function(){
                 resolve();
             }
 
-            req.onerror = function()
-            {
-                console.warn('Failed to get file ' + filename);
-                resolve();
-            }
-
-            try
-            {
-                req.open('GET', filename, true);
-                req.send();
-            }
-            catch(err)
-            {
-                console.warn('Failed to get file ' + filename + ': ' + err);
-            }
+            xhr.open('GET', filename, true);
+            xhr.send();
         });
     }
 
@@ -890,35 +872,33 @@ let RevealWhiteboard = (function(){
     // return string representation of point p (two decimal digits)
     function printPoint(p)
     {
-        return (p[0].toFixed(2) + ' ' + p[1].toFixed(2));
+        return (p[0].toFixed(1) + ' ' + p[1].toFixed(1));
     }
 
     
     // convert points to quadratic Bezier spline
     function renderStroke(points, stroke)
     {
+        const n=points.length;
+        if (n < 2) return;
+
         let path = "";
+        let c;
 
-        if (QUADRATIC_SPLINE)
+        path += ('M '  + printPoint(points[0]));
+        path += (' L ' + printPoint(center(points[0], points[1])));
+
+        if (n > 2)
         {
-            let c;
-
-            path += ('M '  + printPoint(points[0]));
-            path += (' L ' + printPoint(center(points[0], points[1])));
-
+            path += ' Q ';
             for (let i=1; i<points.length-1; ++i)
             {
                 c = center(points[i], points[i+1]);
-                path += (' Q ' + printPoint(points[i]) + ' ' + printPoint(c));
+                path += (' ' + printPoint(points[i]) + ' ' + printPoint(c));
             }
-            path += (' L ' + printPoint(points[points.length-1]));
         }
-        else
-        {
-            path += ('M '  + printPoint(points[0]));
-            for (let i=1; i<points.length; ++i)
-                path += (' L ' + printPoint(points[i]));
-        }
+
+        path += (' L ' + printPoint(points[n-1]));
 
         stroke.setAttribute('d', path);
     }
@@ -965,11 +945,8 @@ let RevealWhiteboard = (function(){
         // add stroke to SVG
         stroke = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         svg.appendChild(stroke);
-        stroke.style.fill = 'none';
         stroke.style.stroke = penColor;
         stroke.style.strokeWidth = penWidth+'px';
-        stroke.style.strokeLinecap = 'round';
-        stroke.style.strokeLinejoin = 'round';
 
         // add point, convert to Bezier spline
         points = [ [ mouseX, mouseY ], [mouseX, mouseY] ];
@@ -1208,13 +1185,6 @@ let RevealWhiteboard = (function(){
     // Intercept page leave when data is not saved
     window.onbeforeunload = function(e)
     {
-        if (LOCAL_STORAGE)
-        {
-            console.log("save to local storage");
-            localStorage['whiteboard'] = JSON.stringify(storage);
-            return;
-        }
-
         if (unsavedAnnotations) return "blabla";
     }
 

@@ -82,12 +82,12 @@ plainImage =
 plainImageCaptionedHtml =
   RawInline
     (Format "html")
-    "<figure id=\"logo\" class=\"decker myclass\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"test/decks/include/06-metal.png\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"logo\" class=\"decker myclass\" alt=\"06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"test/decks/include/06-metal.png\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 plainImageHtml =
   RawInline
     (Format "html")
-    "<img id=\"logo\" class=\"decker myclass\" data-src=\"test/decks/include/06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\">"
+    "<img id=\"logo\" class=\"decker myclass\" data-src=\"test/decks/include/06-metal.png\" alt=\"06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\">"
 
 plainVideo =
   Image
@@ -107,12 +107,12 @@ plainVideo =
 plainVideoHtml =
   RawInline
     (Format "html")
-    "<video id=\"video\" class=\"decker myclass\" data-src=\"test/decks/pacman-perfect-game.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"/test/decks/include/06-metal.png\" preload=\"none\" loop=\"1\" data-autoplay=\"1\"></video>"
+    "<video id=\"video\" class=\"decker myclass\" data-src=\"test/decks/pacman-perfect-game.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"/test/decks/include/06-metal.png\" preload=\"none\" loop=\"loop\" data-autoplay=\"1\"></video>"
 
 plainVideoCaptionedHtml =
   RawInline
     (Format "html")
-    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"test/decks/pacman-perfect-game.mp4#t=23,42\" poster=\"/test/decks/include/06-metal.png\" preload=\"none\" loop=\"1\" data-autoplay=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"test/decks/pacman-perfect-game.mp4#t=23,42\" poster=\"/test/decks/include/06-metal.png\" preload=\"none\" loop=\"loop\" data-autoplay=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 blockAin = [Para [], Para [Image nullAttr [] ("", "")], Para []]
 
@@ -262,7 +262,7 @@ testSnippets =
     , "![](youtube:1234567890){#video1 .autoplay .controls width=\"75%\"}")
   , ( "Vimeo it baby"
     , "An image with source URL scheme `vimeo:` results in an embedded video player."
-    , "![Caption.](vimeo://1234567890){#video2 .some-class autoplay=\"1\" aspect=\"4:3\" width=\"75%\" some-attribute=\"yeah\"}")
+    , "![Caption.](vimeo://1234567890){#video2 .some-class autoplay=\"autoplay\" aspect=\"4:3\" width=\"75%\" some-attribute=\"yeah\"}")
   , ( "Twitch it baby"
     , "An image with source URL scheme `twitch:` results in an embedded video player."
     , "![Caption.](twitch:1234567890){.autoplay .controls aspect=\"5:3\" width=\"75%\"}")

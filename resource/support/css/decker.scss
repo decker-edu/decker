@@ -6,15 +6,14 @@
 @import url("../vendor/fontawesome/css/all.css");
 @import url("../fonts/roboto.css");
 @import url("../fonts/source-code-pro.css");
-
+@import "fonts";
 @import "helper";
 @import "columns";
-@import "quizzes";
-@import "columns";
 @import "boxes";
-@import "media";
 @import "new-media";
 @import "code";
+@import "quizzes";
+@import "titlepage";
 // @import "print"; Fucks up printing
 
 // Global styles
@@ -25,18 +24,14 @@ body {
 
 .reveal {
     font-family: "Roboto", Helvetica, sans-serif;
-    font-size: $medium-font-size;
+    font-size: var(--font-size-medium);
     font-weight: normal;
     color: rgba(0, 0, 0, 1);
 }
 
-::selection {
-    color: #fff;
-    background: #98bdef;
-    text-shadow: none;
-}
-
-::-moz-selection {
+::selection,
+::-moz-selection
+ {
     color: #fff;
     background: #98bdef;
     text-shadow: none;
@@ -44,16 +39,9 @@ body {
 
 .reveal .slides section,
 .reveal .slides section>section {
-    line-height: 1.4;
-    text-align: left;
+    line-height: 1.3;
     font-weight: inherit;
-    padding: space(0);
     text-align:  var(--align-global);
-}
-
-
-.reveal p {
-    margin: space(1 0);
 }
 
 .reveal {
@@ -82,136 +70,25 @@ body {
         overflow-y: scroll;
 
         div {
-            margin-bottom: space(0.5);
+            margin-bottom: var(--margin-bottom-references);
         }
     }
 
-}
-
-// Headers
-.reveal h1,
-.reveal h2,
-.reveal h3,
-.reveal h4,
-.reveal h5,
-.reveal h6 {
-    color: rgba(0, 0, 0, 0.87);
-    font-family: "Roboto", sans-serif;
-    letter-spacing: normal;
-    text-transform: none;
-    text-shadow: none;
-    word-wrap: break-word;
-    font-weight: normal;
-    text-shadow: none;
-}
-
-.reveal h1 {
-    font-size: 1.6em;
-    margin: space(0 0 0.5 0);
-}
-
-.reveal h2 {
-    font-weight: 500;
-    font-size: 1.2em;
-    margin-bottom: space(0.1);
-}
-
-.reveal h3 {
-    font-size: 1.3em;
-}
-
-.reveal h4 {
-    font-size: 1em;
-}
-
-.reveal section {
-
-    &.white,
-    &.inverse,
-    &.has-dark-background {
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            color: #eee;
-        }
-
-        color: #fff;
-    }
-}
-
-// Elements
-.reveal p {
-    margin: 20px 0;
-    line-height: 1.3;
-}
-
-.reveal strong,
-.reveal b {
-    font-weight: bold;
-}
-
-.reveal em {
-    font-style: italic;
-}
-
-.reveal ol,
-.reveal dl,
-.reveal ul {
-    display: inline-block;
-    text-align: left;
-    margin: 0 0 0 1em;
-}
-
-.reveal ol {
-    list-style-type: decimal;
-}
-
-.reveal ul {
-    list-style-type: disc;
-}
-
-.reveal ul ul {
-    list-style-type: disc;
-}
-
-.reveal ul ul ul {
-    list-style-type: disc;
-}
-
-.reveal ul ul,
-.reveal ul ol,
-.reveal ol ol,
-.reveal ol ul {
-    display: block;
-    margin-left: 40px;
-}
-
-.reveal dt {
-    font-weight: bold;
-}
-
-.reveal dd {
-    margin-left: 40px;
 }
 
 .reveal {
-
     q,
     blockquote {
-        quotes: none;
+        // quotes: auto; -> don't overwrite here, is a reveal option set by yaml
+        font-style: italic;
     }
 
     blockquote {
         display: block;
         position: relative;
         width: 70%;
-        margin: space(1) auto;
+        margin-bottom: var(--margin-bottom-blockquote); 
         padding: space(0.25);
-        font-style: italic;
         background: rgba(255, 255, 255, 0.05);
         box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
 
@@ -225,6 +102,7 @@ body {
     }
 }
 
+
 dt {
     font-weight: bold;
 }
@@ -234,7 +112,8 @@ dd {
 }
 
 .reveal table {
-    margin: auto;
+   display: inline-block;
+    margin-bottom: var(--margin-bottom-table); // auto;
     border-collapse: collapse;
     border-spacing: 0;
 }
@@ -363,7 +242,8 @@ dd {
 }
 
 /////////////////////////////////////////////
-// Speaker notes
+// Speaker notes, not yet tested and optimized
+// for new layout engine
 /////////////////////////////////////////////
 .reveal {
     .speaker-notes {
@@ -386,38 +266,6 @@ dd {
     }
 }
 
-/////////////////////////////////////////////
-// Font size modifiers
-/////////////////////////////////////////////
-.reveal {
-    .medium {
-        font-size: $medium-font-size;
-    }
-
-    .xx-small {
-        font-size: $xx-small-font-size;
-    }
-
-    .x-small {
-        font-size: $x-small-font-size;
-    }
-
-    .small {
-        font-size: $small-font-size;
-    }
-
-    .large {
-        font-size: $large-font-size;
-    }
-
-    .x-large {
-        font-size: $x-large-font-size;
-    }
-
-    .xx-large {
-        font-size: $xx-large-font-size;
-    }
-}
 
 /////////////////////////////////////////////
 // Slide numbers
@@ -450,67 +298,6 @@ dd {
         background: rgba(0, 0, 0, 0.85);
         text-shadow: none;
     }
-}
-
-/*********************************************
- * TITLE SLIDE, now supporting Marc's and 
- * Mario's versions
- *********************************************/
-
- .white-on-blue {
-    color: #ffffff;
-    background-color: #003366;
-}
-
-.reveal .title {
-    margin:  100px 0 0 0;
-    padding:     0px;
-    font-size:   1.6em;
-    text-align:  center;
-}
-
-.reveal .subtitle {
-    margin:      0 0 0 0;
-    padding:     0 0px 0px 0px;
-    font-weight: normal;
-    font-size:   1.2em;
-    text-align:  center;
-}
-
-.reveal .title-teaser img {
-    margin:      20px 0px 20px 0;
-    height:      300px;
-    width:       auto;
-    object-fit:  contain;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.reveal .affiliation-logo img {
-    margin:      0px 0 0 0;
-    height:      70px;
-    width:       auto;
-    object-fit:  contain;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.reveal .author {
-    margin:      0px 0 0 0;
-    font-weight: normal;
-    font-style:  normal;
-    font-size:   1.0em;
-    text-align:  center;
-}
-
-.reveal .affiliation {
-    margin:      0px 0 0 0;
-    font-weight: normal;
-    font-style:  normal;
-    font-size:   1.0em;
-    text-align:  center;
 }
 
 /*********************************************
@@ -557,4 +344,30 @@ dd {
 .reveal .align-right, 
 .reveal section.align-right {
     text-align: right;
+}
+
+
+/////////////////////////////////////////////////////////
+// This sets all bottom margins for elements. Please 
+// make sure to not change this individually somewhere else
+// we want one place to allow user-specified changes 
+/////////////////////////////////////////////////////////
+
+.reveal h1 {margin-bottom: var(--margin-bottom-h1);}
+.reveal h2 {margin-bottom: var(--margin-bottom-h2);} // our block headings
+.reveal div.box.columns {margin-bottom: var(--margin-bottom-h2-block);} // our blocks
+.reveal h3 {margin-bottom: var(--margin-bottom-h3);} // We don't use now, for later
+.reveal p {margin-bottom: var(--margin-bottom-p);}
+.reveal ol {margin-bottom: var(--margin-bottom-ol);}
+.reveal ul {margin-bottom: var(--margin-bottom-ul);}
+.reveal dl {margin-bottom: var(--margin-bottom-dl);}
+.reveal figure {margin-bottom: var(--margin-bottom-figure);}
+.reveal img {margin-bottom: var(--margin-bottom-img);}
+.reveal table {margin-bottom: var(--margin-bottom-table);}
+.reveal .columns {margin-bottom: var(--margin-bottom-columns);}
+// Except an empty p which sometimes is inserted by the 
+// transformation process, that should be ignored completely
+
+.reveal p:empty {
+   display: none;
 }

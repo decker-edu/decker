@@ -77,7 +77,7 @@ mediaBlockListFilter blocks =
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
     filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) =
-      Just . single . Para . single <$> transformImage image caption
+      Just . single . forceBlock <$> transformImage image caption
     -- An code block followed by an explicit caption paragraph.
     filterPairs (code@CodeBlock {}, Para (Str "Caption:":caption)) =
       Just . single <$> transformCodeBlock code caption
@@ -108,7 +108,7 @@ mediaBlockFilter :: Block -> Filter Block
 mediaBlockFilter header@(Header 1 attr text) = transformHeader1 header
 -- A solitary image in a paragraph with a possible caption.
 mediaBlockFilter (Para [image@(Image _ caption _)]) =
-  Para . single <$> transformImage image caption
+  forceBlock <$> transformImage image caption
 -- A solitary code block in a paragraph with a possible caption.
 mediaBlockFilter (code@CodeBlock {}) = transformCodeBlock code []
 -- Any number of consecutive images in a masonry row.
@@ -116,6 +116,10 @@ mediaBlockFilter (LineBlock lines)
   | oneImagePerLine lines = transformImages (concat lines) []
 -- Default filter
 mediaBlockFilter block = return block
+
+forceBlock :: Inline -> Block
+forceBlock (RawInline format html) = RawBlock format html
+forceBlock inline = Plain [inline]
 
 oneImagePerLine :: [[Inline]] -> Bool
 oneImagePerLine inlines = all isImage $ concat inlines
@@ -333,15 +337,19 @@ isPercent = Text.isSuffixOf "%"
 imageHtml :: URI -> [Inline] -> Attrib Html
 imageHtml uri caption = do
   uri <- lift $ transformUri uri ""
+  let rendered = URI.render uri
+  let fileName = toText $ takeFileName $ toString rendered
   case caption of
     [] -> do
-      injectBorder >> takeSize >> takeUsual
-      mkImageTag (URI.render uri) <$> extractAttr
+      injectBorder >> takeSize >> takeUsual >>
+        injectAttribute ("alt", fileName)
+      mkImageTag rendered <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       imgAttr <- takeSizeIf (not . isPercent) >> extractAttr
-      let imageTag = mkImageTag (URI.render uri) imgAttr
-      injectBorder >> takeSizeIf isPercent >> takeUsual
+      let imageTag = mkImageTag rendered imgAttr
+      injectBorder >> takeSizeIf isPercent >> takeUsual >>
+        injectAttribute ("alt", fileName)
       mkFigureTag imageTag captionHtml <$> extractAttr
 
 objectHtml :: Text -> URI -> [Inline] -> Attrib Html

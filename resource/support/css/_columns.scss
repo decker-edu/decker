@@ -1,11 +1,3 @@
-.reveal {
-    .rightcolumn {
-        >h1 {
-            margin-left: 54%;
-        }
-    }
-}
-
 
 /////////////////////////////////////////////
 // Within section divs
@@ -22,12 +14,11 @@
     }
 
     // For `{.split}`-Syntax
+    // this is not adopted to mimic the variable gap width yet
     &.css-columns {
         column-count: 2;
-        column-gap: space(2);
+        column-gap: var(--margin-columns);
         column-rule-style: none;
-        padding-left: space(0.7);
-        margin-left: space(-0.7);
     }
 
     &.box {
@@ -38,25 +29,23 @@
     &.multi-column-row {
         display: flex;
         flex-flow: row nowrap;
-        margin-bottom: space(0.3);
+        margin-bottom: var(--margin-bottom-columns);
 
         div {
             &.column {
-                $margin-size: space(1);
-
+                $margin-size: var(--margin-columns); 
                 position: relative;
                 flex: 1 1 0;
-
-                margin-left: $margin-size;
-                margin-right: $margin-size;
+                margin-left: var(--margin-columns); 
+                margin-right: var(--margin-columns); 
 
                 &:first-child {
                     margin-left: 0;
-                    margin-right: $margin-size;
+                    margin-right: var(--margin-columns); 
                 }
 
                 &:last-child {
-                    margin-left: $margin-size;
+                    margin-left: var(--margin-columns); 
                     margin-right: 0;
                 }
 
@@ -77,6 +66,6 @@
 
     &.single-column-row {
         //no space if multi row nested below
-        margin-bottom: space(0.3);
+        margin-bottom: var(--margin-bottom-columns);
     }
 }

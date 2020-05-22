@@ -25,18 +25,35 @@ Strangely, this does not work.
 
 # Naked Images
 
-## Image without figure
+## Image without caption
 
 ![](include/06-metal.png)
 
 ------------------------------------------------------------------------
 
-# Naked Images {.columns }
+# Naked Images {.columns}
 
-## Image with figure {.left}
+## Image with caption {.left}
 
-![Alt text as figure](include/06-metal.png){width="100%"}
+![Alt text as caption](include/06-metal.png)
 
-![Alt text as figure](include/06-metal-v.png){width="30%"}
+------------------------------------------------------------------------
 
-## Right Column {.right}
+# Naked Images {.columns}
+
+## Image with caption {.left}
+
+![](include/06-metal.png)
+
+Caption: Caption on an extra line.
+
+------------------------------------------------------------------------
+
+# Naked Image Pair {.columns}
+
+## Two mages with caption {.left}
+
+hallo ![Caption 1](include/06-metal.png){width="45%"} holla ![Caption
+2](include/06-metal.png){width="45%"}
+
+Just a line of text

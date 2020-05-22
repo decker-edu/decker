@@ -120,8 +120,43 @@ renderHtml html = do
       then toText $ Pretty.renderHtml html
       else fromLazy $ Text.renderHtml html
 
+booleanAttribs =
+  [ "allowfullscreen"
+  , "async"
+  , "autofocus"
+  , "autoplay"
+  , "checked"
+  , "controls"
+  , "default"
+  , "defer"
+  , "disabled"
+  , "formnovalidate"
+  , "hidden"
+  , "inert"
+  , "ismap"
+  , "itemscope"
+  , "loop"
+  , "multiple"
+  , "muted"
+  , "novalidate"
+  , "open"
+  , "readonly"
+  , "required"
+  , "reversed"
+  , "scoped"
+  , "seamless"
+  , "selected"
+  , "typemustmatch"
+  ]
+
 (!*) :: Attributable h => h -> [(Text, Text)] -> h
-(!*) = foldl' (\h (k, v) -> h ! customAttribute (H.textTag k) (H.toValue v))
+(!*) =
+  foldl' (\h (k, v) -> h ! customAttribute (H.textTag k) (handleBoolean k v))
+  where
+    handleBoolean k v =
+      if k `elem` booleanAttribs
+        then H.toValue k
+        else H.toValue v
 
 mkFigureTag :: Html -> Html -> Attr -> Html
 mkFigureTag content caption (id, cs, kvs) =

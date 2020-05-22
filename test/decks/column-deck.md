@@ -1,11 +1,12 @@
 ---
-history: True
-center: True
-title: Column Layout
-subtitle: On decker slides
 author: Henrik
-date: 2019-10-20
+center: true
+date: '2019-10-20'
+history: true
+subtitle: On decker slides
+title: Column Layout
 ---
+
 # Slide Columns
 
 ## Mechanisms
@@ -13,11 +14,11 @@ date: 2019-10-20
 -   Box classes (`.split` and `.join`)
 -   Slide masters (`layout` slide attribute)
 
----
+------------------------------------------------------------------------
 
 # Box Classes
 
----
+------------------------------------------------------------------------
 
 # Box Classes
 
@@ -40,7 +41,7 @@ date: 2019-10-20
 
 -   No columns here, just a very long line spanning the entire slide
 
----
+------------------------------------------------------------------------
 
 # Box Classes
 
@@ -57,7 +58,7 @@ date: 2019-10-20
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Boxed Box Classes
 
@@ -77,11 +78,11 @@ date: 2019-10-20
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -99,7 +100,7 @@ date: 2019-10-20
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters
 
@@ -119,7 +120,7 @@ Some text
 
 Some final text
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -141,7 +142,7 @@ Some final text
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -161,7 +162,7 @@ Some final text
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -187,7 +188,7 @@ And some more still after the box.
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -215,7 +216,7 @@ And some more still after the box.
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 

@@ -1,0 +1,60 @@
+/*********************************************
+ * TITLE SLIDE, now supporting Marc's and 
+ * Mario's versions
+ *********************************************/
+
+ .white-on-blue {
+  color: #ffffff;
+  background-color: #003366;
+}
+
+.reveal .title {
+  margin:  100px 0 0 0;
+  padding:     0px;
+  font-size:   var(--font-size-x-large);
+  text-align:  center;
+}
+
+.reveal .subtitle {
+  margin:      0 0 0 0;
+  padding:     0 0px 0px 0px;
+  font-weight: normal;
+  font-size:   var(--font-size-normal);
+  text-align:  center;
+}
+
+.reveal .title-teaser img {
+  margin:      20px 0px 20px 0;
+  height:      300px;
+  width:       auto;
+  object-fit:  contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reveal .affiliation-logo img {
+  margin:      0px 0 0 0;
+  height:      70px;
+  width:       auto;
+  object-fit:  contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reveal .author {
+  margin:      0px 0 0 0;
+  font-weight: normal;
+  font-style:  normal;
+  font-size:   var(--font-size-normal);
+  text-align:  center;
+}
+
+.reveal .affiliation {
+  margin:      0px 0 0 0;
+  font-weight: normal;
+  font-style:  normal;
+  font-size:   var(--font-size-normal);
+  text-align:  center;
+}
