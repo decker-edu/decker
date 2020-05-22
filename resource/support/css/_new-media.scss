@@ -27,7 +27,7 @@
   
   img.decker,
   video.decker {
-      // The next line would apply the parents text-align spec
+      // The next line also applies the parents text-align spec
       // to this element
       display: inline-block;
       /* remove the following two lines to get sizing of 
@@ -54,7 +54,7 @@ iframe.decker {
 
 figure.decker,
 div.nofigure {
-    // The next line would apply the parents text-align spec
+    // The next line also applies the parents text-align spec
     // to this element
     display: inline-block;
     >img.decker,
@@ -71,7 +71,7 @@ div.nofigure {
 
 
 figure.decker figcaption.decker {
-  margin: 0px 0px 0px 0px; // was top 10 px
+  margin: 0px 0px 0px 0px; 
   line-height: 1.2;
   font-style: italic;
   font-size: 0.8em;
