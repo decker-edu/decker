@@ -21,7 +21,7 @@ test123: "test123"
 # These are some sane defaults we need
 margin: 0.05
 margin-columns: 0em
-font-size-base: 30px
+font-size-base: 28px
 align-global: left
 spacing-vertical-base: 0.5em
 border-decoration-width: 20px

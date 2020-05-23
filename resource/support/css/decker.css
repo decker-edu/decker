@@ -128,35 +128,24 @@
 }
 
 .reveal div.css-columns {
-  -webkit-column-count: 2;
-          column-count: 2;
-  -webkit-column-gap: var(--margin-columns);
-          column-gap: var(--margin-columns);
-  -webkit-column-rule-style: none;
-          column-rule-style: none;
+  column-count: 2;
+  column-gap: var(--margin-columns);
+  column-rule-style: none;
 }
 
 .reveal div.box {
-  -webkit-column-break-inside: avoid;
-          break-inside: avoid-column;
+  break-inside: avoid-column;
 }
 
 .reveal div.multi-column-row {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-flow: row nowrap;
-          flex-flow: row nowrap;
+  flex-flow: row nowrap;
   margin-bottom: var(--margin-bottom-columns);
 }
 
 .reveal div.multi-column-row div.column {
   position: relative;
-  -webkit-box-flex: 1;
-      -ms-flex: 1 1 0px;
-          flex: 1 1 0;
+  flex: 1 1 0;
   margin-left: var(--margin-columns);
   margin-right: var(--margin-columns);
 }
@@ -174,62 +163,43 @@
 .reveal div.multi-column-row div.column .mid {
   position: absolute;
   top: 50%;
-  -webkit-transform: translate(0, -50%);
-          transform: translate(0, -50%);
+  transform: translate(0, -50%);
 }
 
 .reveal div.multi-column-row div.column[data-grow="1"] {
-  -webkit-box-flex: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
+  flex-grow: 1;
 }
 
 .reveal div.multi-column-row div.column[data-grow="2"] {
-  -webkit-box-flex: 2;
-      -ms-flex-positive: 2;
-          flex-grow: 2;
+  flex-grow: 2;
 }
 
 .reveal div.multi-column-row div.column[data-grow="3"] {
-  -webkit-box-flex: 3;
-      -ms-flex-positive: 3;
-          flex-grow: 3;
+  flex-grow: 3;
 }
 
 .reveal div.multi-column-row div.column[data-grow="4"] {
-  -webkit-box-flex: 4;
-      -ms-flex-positive: 4;
-          flex-grow: 4;
+  flex-grow: 4;
 }
 
 .reveal div.multi-column-row div.column[data-grow="5"] {
-  -webkit-box-flex: 5;
-      -ms-flex-positive: 5;
-          flex-grow: 5;
+  flex-grow: 5;
 }
 
 .reveal div.multi-column-row div.column[data-grow="6"] {
-  -webkit-box-flex: 6;
-      -ms-flex-positive: 6;
-          flex-grow: 6;
+  flex-grow: 6;
 }
 
 .reveal div.multi-column-row div.column[data-grow="7"] {
-  -webkit-box-flex: 7;
-      -ms-flex-positive: 7;
-          flex-grow: 7;
+  flex-grow: 7;
 }
 
 .reveal div.multi-column-row div.column[data-grow="8"] {
-  -webkit-box-flex: 8;
-      -ms-flex-positive: 8;
-          flex-grow: 8;
+  flex-grow: 8;
 }
 
 .reveal div.multi-column-row div.column[data-grow="9"] {
-  -webkit-box-flex: 9;
-      -ms-flex-positive: 9;
-          flex-grow: 9;
+  flex-grow: 9;
 }
 
 .reveal div.single-column-row {
@@ -442,15 +412,13 @@ ul > li:before {
        * rendered code block sizing working */
   /*width: auto;*/
   /*height: auto;*/
-  -o-object-fit: contain;
-     object-fit: contain;
+  object-fit: contain;
   max-width: 100%;
   max-height: 100%;
   vertical-align: middle;
   margin: auto;
   border: 0px;
-  -webkit-box-shadow: none;
-          box-shadow: none;
+  box-shadow: none;
 }
 
 .reveal iframe.decker {
@@ -475,8 +443,7 @@ ul > li:before {
 .reveal div.nofigure > iframe.decker {
   margin: auto;
   border: 0px;
-  -webkit-box-shadow: none;
-          box-shadow: none;
+  box-shadow: none;
   max-width: 100%;
   max-height: 100%;
 }
@@ -499,27 +466,16 @@ ul > li:before {
 }
 
 .reveal div.image-row {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: row;
-          flex-direction: row;
-  -webkit-box-align: stretch;
-      -ms-flex-align: stretch;
-          align-items: stretch;
+  flex-direction: row;
+  align-items: stretch;
   width: 100%;
 }
 
 .reveal div.image-row div {
-  -webkit-box-flex: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
-  -ms-flex-negative: 1;
-      flex-shrink: 1;
-  -ms-flex-preferred-size: auto;
-      flex-basis: auto;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
 }
 
 .reveal div.image-row img {
@@ -568,8 +524,7 @@ ul > li:before {
   text-align: left;
   line-height: 1.5em;
   word-wrap: break-word;
-  -webkit-box-shadow: none;
-          box-shadow: none;
+  box-shadow: none;
   font-size: 90%;
   font-weight: 500;
   margin: 0;
@@ -797,23 +752,12 @@ ul > li:before {
 .reveal .quiz-multiple-choice ul,
 .reveal .quiz-mc ul,
 .reveal .qmc ul {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: row;
-          flex-direction: row;
-  -ms-flex-wrap: wrap;
-      flex-wrap: wrap;
-  -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  -ms-flex-line-pack: center;
-      align-content: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
   text-align: center;
   counter-reset: answer;
 }
@@ -892,8 +836,7 @@ ul > li:before {
   margin: 20px 0px 20px 0;
   height: 300px;
   width: auto;
-  -o-object-fit: contain;
-     object-fit: contain;
+  object-fit: contain;
   display: block;
   margin-left: auto;
   margin-right: auto;
@@ -903,8 +846,7 @@ ul > li:before {
   margin: 0px 0 0 0;
   height: 70px;
   width: auto;
-  -o-object-fit: contain;
-     object-fit: contain;
+  object-fit: contain;
   display: block;
   margin-left: auto;
   margin-right: auto;
@@ -936,13 +878,6 @@ body {
   font-size: var(--font-size-medium);
   font-weight: normal;
   color: black;
-}
-
-::-moz-selection,
-::-moz-selection {
-  color: #fff;
-  background: #98bdef;
-  text-shadow: none;
 }
 
 ::selection,
@@ -998,8 +933,7 @@ body {
   margin-bottom: var(--margin-bottom-blockquote);
   padding: calc(var(--spacing-vertical-base) * 0.25);
   background: rgba(255, 255, 255, 0.05);
-  -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-          box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
 .reveal blockquote p:first-child, .reveal blockquote p:last-child {
@@ -1080,11 +1014,17 @@ dd {
   color: #009;
   text-decoration: none;
   -webkit-transition: color 0.15s ease;
+  -moz-transition: color 0.15s ease;
+  -ms-transition: color 0.15s ease;
+  -o-transition: color 0.15s ease;
   transition: color 0.15s ease;
 }
 
 .reveal a img {
   -webkit-transition: color 0.15s linear;
+  -moz-transition: color 0.15s linear;
+  -ms-transition: color 0.15s linear;
+  -o-transition: color 0.15s linear;
   transition: color 0.15s linear;
 }
 
@@ -1097,8 +1037,7 @@ dd {
 .reveal a:hover img {
   background: rgba(255, 255, 255, 0.2);
   border: none;
-  -webkit-box-shadow: none;
-          box-shadow: none;
+  box-shadow: none;
 }
 
 .reveal .roll span:after {
@@ -1137,6 +1076,9 @@ dd {
 .reveal .progress span {
   background: #777;
   -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -ms-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -o-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
   transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
 }
 
@@ -1166,12 +1108,6 @@ dd {
 
 .reveal .resume-button {
   visibility: hidden;
-}
-
-.reveal ::-moz-selection {
-  color: white;
-  background: rgba(0, 0, 0, 0.85);
-  text-shadow: none;
 }
 
 .reveal ::selection {
@@ -1271,6 +1207,5 @@ dd {
 }
 
 .reveal p:empty {
-  margin-bottom: 0;
+  display: none;
 }
-/*# sourceMappingURL=decker.css.map */
