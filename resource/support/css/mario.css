@@ -175,6 +175,9 @@ body {
   margin: 10px 0;
   line-height: 1.3; }
 
+/* MARIO: remove empty paragraphs */
+.reveal p:empty { display: none; }
+
 .reveal strong {
     font-weight: bold;
 }
