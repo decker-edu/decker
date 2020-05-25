@@ -1086,8 +1086,7 @@ let RevealWhiteboard = (function(){
 
 
         // don't propagate event any further
-        killEvent(evt);
-        return false;
+        return killEvent(evt);
     }
 
 
@@ -1132,8 +1131,7 @@ let RevealWhiteboard = (function(){
 
 
         // don't propagate event any further
-        killEvent(evt);
-        return false;
+        return killEvent(evt);
     }
 
 
@@ -1159,8 +1157,7 @@ let RevealWhiteboard = (function(){
         triggerHideCursor();
 
         // don't propagate event any further
-        killEvent(evt);
-        return false;
+        return killEvent(evt);
     }
 
 
@@ -1194,8 +1191,7 @@ let RevealWhiteboard = (function(){
     {
         if (whiteboardActive)
         {
-            killEvent(evt);
-            return false;
+            return killEvent(evt);
         }
     }, true );
 
@@ -1203,22 +1199,26 @@ let RevealWhiteboard = (function(){
     // when drawing, prevent touch events triggering clicks 
     // (e.g. menu icon, control arrows)
     // only allow clicks for our (.whiteboard) buttons
-    window.addEventListener( "touchstart", function(evt) 
+    function preventTouchClick(evt)
     {
         if (whiteboardActive && !evt.target.classList.contains("whiteboard"))
         {
-            killEvent(evt);
-            return false;
+            return killEvent(evt);
         }
-    }, true );
-    window.addEventListener( "touchend", function(evt) 
+    }
+    window.addEventListener( "touchstart", preventTouchClick, true );
+    window.addEventListener( "touchend",   preventTouchClick, true );
+  
+
+    // prevent iPad pen to trigge scrolling (by killing touchstart
+    // whenever force is detected
+    function preventPenScroll(evt) 
     {
-        if (whiteboardActive && !evt.target.classList.contains("whiteboard"))
-        {
-            killEvent(evt);
-            return false;
+        if (evt.targetTouches[0].force) {
+            return killEvent(evt);
         }
-    }, true );
+    }
+    slides.addEventListener( "touchstart", preventPenScroll );
 
 
     // bind to undo event (CTRL-Z or CMD-Z).
@@ -1230,8 +1230,8 @@ let RevealWhiteboard = (function(){
         if ((evt.ctrlKey || evt.metaKey) && (!evt.shiftKey) &&
             String.fromCharCode(evt.which).toLowerCase() == 'z') 
         {
-            killEvent(evt);
             undo();
+            return killEvent(evt);
         }
     });
 
