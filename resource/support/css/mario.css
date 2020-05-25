@@ -26,6 +26,9 @@ body {
   color: #222; 
 }
 
+.reveal .slides section .fragment {
+  transition: none; 
+}
 
 ::selection {
   color: #fff;
@@ -39,7 +42,7 @@ body {
   line-height: 1.3;
   font-weight: inherit;
   padding: 0; /* MARIO: prevent 20px at top/bottom by reveal.css */
-  min-height: 100%; /* MARIO: slides should be full height for footer to be positioned correctly */
+  /*min-height: 100%; [> MARIO: slides should be full height for footer to be positioned correctly <]*/
   text-align: center;
 }
 
@@ -172,24 +175,8 @@ body {
   margin: 10px 0;
   line-height: 1.3; }
 
-/* Ensure certain elements are never larger than the slide itself */
-.reveal img,
-.reveal video {
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    max-width: 95%;
-    /*max-height: 95vh;*/
-    vertical-align: middle;
-}
-.reveal iframe {
-    border: 1px solid lightgray;
-    outline: none;
-    overflow: hidden;
-    max-width:  100%;
-    max-height: 100%;
-    vertical-align: middle;
-}
+/* MARIO: remove empty paragraphs */
+.reveal p:empty { display: none; }
 
 .reveal strong {
     font-weight: bold;
@@ -292,16 +279,43 @@ body {
 
 
 /*********************************************
- * CODE
+ * CODE HIGHLGIHTING OF REVEAL
+ *********************************************/
+
+.reveal .hljs table {
+    margin: initial;
+    border: none;
+}
+
+.reveal .hljs-ln-code,
+.reveal .hljs-ln-numbers {
+    padding: 0;
+    border: 0; 
+}
+
+.reveal .hljs-ln-numbers {
+    opacity: 0.6;
+    padding-right: 0.75em;
+    text-align: right;
+    vertical-align: top; 
+}
+
+.reveal .hljs[data-line-numbers]:not([data-line-numbers=""]) tr:not(.highlight-line) {
+    opacity: 0.3; 
+}
+
+
+/*********************************************
+ * CODE HIGHLIGHTING OF MARIO
  *********************************************/
 
 /* box around block of code */
 .reveal pre {
-  display: block;
-  position: relative;
-  width: 100%;
-  margin: 10px auto;
-  text-align: center;
+    display: block;
+    position: relative;
+    width: auto;
+    margin: 10px auto;
+    text-align: center;
 }
 
 /* inline code */
@@ -309,16 +323,14 @@ body {
     display: inline;
     padding: 0.2em;
     text-align: left;
-    /*font-size: 85%;*/
     font-family: monospace;
     word-wrap: normal;
-    /*background-color: #f7f7f7;*/
 }
 
 /* block of code (has to override above inline code)*/
 .reveal pre code {
     display: block;
-    margin: 10px;
+    margin: 5px;
     text-align: left;
     font-size: 0.5em;
     font-family: monospace;
@@ -334,14 +346,6 @@ body {
     font-size: 0.4em;
 }
 
-/*.reveal pre:after {*/
-  /*content: attr(caption);*/
-  /*margin: 0px;*/
-  /*line-height: 1;*/
-  /*font-style: italic; */
-  /*font-size: 0.6em;*/
-  /*text-align: center;*/
-/*}*/
 
 
 /*********************************************
@@ -357,6 +361,15 @@ body {
     text-align: center;
     margin-bottom: 1em;
     line-height: 1.5em;
+}
+
+.reveal table caption {
+    margin: 10px 0px 0px 0px;
+    line-height: 1.2;
+    font-style: italic;
+    font-size: 0.6em;
+    text-align: center;
+    caption-side: bottom;
 }
 
 .reveal table th {
@@ -425,28 +438,50 @@ body {
   background: #1a53a1; }
 
 /*********************************************
- * IMAGES
+ * MEDIA: images, videos, iframes, figures
  *********************************************/
+
+.reveal img,
+.reveal video {
+    display: inline-block;
+    /* remove the following two lines to get sizing of 
+     * rendered code block sizing working */
+    /*width: auto;*/
+    /*height: auto;*/
+    object-fit: contain;
+    max-width: 100%;
+    max-height: 100%;
+    vertical-align: middle;
+    margin: 0px;
+    border: 0px;
+    box-shadow: none;
+}
+
+.reveal iframe {
+    border: 1px solid lightgray;
+    outline: none;
+    overflow: hidden;
+    max-width:  100%;
+    max-height: 100%;
+    vertical-align: middle;
+}
 
 .reveal figure {
     display: inline-block;
     /*vertical-align: middle;*/
 }
 
-.reveal img {
-    display: inline-block;
-    margin: 5px 0px 0px 0px;
-    border: 0;
-    box-shadow: none;
-}
-
-.reveal figure img {
-  margin: 5px 0px 0px 0px;
-  border: 0;
+.reveal figure>img,
+.reveal figure>video,
+.reveal figure>iframe {
+  margin: auto;
+  border: 0px;
   box-shadow: none;
+  max-width: 100%;
+  max-height: 100%;
 }
 
-.reveal figure figcaption, .reveal .caption {
+.reveal figure figcaption {
   margin: 10px 0px 0px 0px;
   line-height: 1.2;
   font-style: italic;
@@ -509,32 +544,32 @@ body {
     background-color: #2a9ddf;
 }
 
-.reveal .title {
+.reveal div.title {
     margin-top:  50px 0 0 0;
     padding:     30px;
     font-weight: bold;
     font-style:  normal;
-    font-size:   1.5em;
+    font-size:   2em;
     text-align:  center;
 }
 
-.reveal .subtitle {
+.reveal div.subtitle {
     margin:      0;
     padding:     0 30px 30px 30px;
     font-weight: normal;
     font-style:  italic;
-    font-size:   1.3em;
+    font-size:   1.5em;
     text-align:  center;
 }
 
-.reveal .teaser img {
+.reveal img.teaser {
     margin:      50px 0 0 0;
     height:      300px;
     width:       auto;
     object-fit:  contain;
 }
 
-.reveal .author {
+.reveal div.author {
     margin:      50px 0 0 0;
     font-weight: normal;
     font-style:  normal;
@@ -542,12 +577,18 @@ body {
     text-align:  center;
 }
 
-.reveal .affiliation {
+.reveal div.affiliation {
     margin:      10px 0 0 0;
     font-weight: normal;
     font-style:  normal;
     font-size:   0.8em;
     text-align:  center;
+}
+
+.reveal div.authors {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
 }
 
 
@@ -703,9 +744,16 @@ body {
     opacity: 0.1;
 }
 
-/* MARIO: fix menu positioning */
+/* MARIO: determine menu positioning and sizes relative to vmin */
 .reveal .slide-number {
-  position: fixed;
+    position:    fixed;
+    font-size:   2vmin;
+    padding:     1vmin;
+    right:       0.5vmin;
+    bottom:      0.5vmin;
+    font-family: "Lato", sans-serif;
+    color:       black;
+    background:  white;
 }
 
 
@@ -713,33 +761,52 @@ body {
  * MARIO: Task lists
  *********************************************/
 
-.reveal li input[type="checkbox"] {
-    visibility: hidden;
-    vertical-align: top;
-    margin-right: 1em;
+/* hide checkbox */
+.reveal .task-list li>input[type="checkbox"] {
+    display: none;
 }
-.reveal li input[type="checkbox"]::before {
-    visibility: visible;
-    opacity: 1;
+/* hide item bullets */
+.reveal .task-list li {
+    list-style-type: none;
+    margin-left: 0.5em;
+}
+.reveal .task-list li::before {
+    margin-right: 0.25em;
+}
+/* default: check boxes */
+.reveal .task-list li.task-yes::before {
+    content: "\2612";
+}
+.reveal .task-list li.task-no::before {
+    content: "\2610";
+}
+/* class "check-cross" */
+.reveal .check-cross .task-list li.task-yes::before {
     font-weight: bold;
-    font-size: 200%;
-    color: red; 
-    content: "✗";
-}
-.reveal li input[type="checkbox"]:checked::before {
     color: green; 
     content: "✓";
 }
-
-/* Firefox doesn't suppprt ::after for <input>,
- * so we disable the above */
-@-moz-document url-prefix() {
-    .reveal li input[type="checkbox"] {
-        visibility: visible;
-        vertical-align: middle;
-    }
+.reveal .check-cross .task-list li.task-no::before {
+    font-weight: bold;
+    color: red; 
+    content: "✗";
 }
-
+/* class "plus-minus" */
+.reveal .plus-minus .task-list li.task-yes::before {
+    color: green; 
+    content: "\2295";
+}
+.reveal .plus-minus .task-list li.task-no::before {
+    color: red; 
+    content: "\2296";
+}
+/* class "thumb" */
+.reveal .thumb .task-list li.task-yes::before {
+    content: "👍";
+}
+.reveal .thumb .task-list li.task-no::before {
+    content: "👎";
+}
 
 /*********************************************
  * MARIO: Quizzes with task list syntax
@@ -771,7 +838,7 @@ body {
 }
 
 /* add A, B, C, D... */
-.reveal .quiz ul li:before {
+.reveal .quiz .task-list li:before {
     content: counter(answer, upper-latin) ": ";
     counter-increment: answer;
     margin-right: 0.5em;
@@ -812,7 +879,7 @@ body {
     border:           none;
     position:         absolute;
     z-index:          1;
-    font-size:        1rem;
+    font-size:        1.5rem;
 }
 
 /* once clicked, wrong answers are red */
@@ -841,11 +908,206 @@ body {
  *********************************************/
 
 .reveal section mjx-container[display="true"] {
-    margin: 0.5em 0em 1em 0em;
+    margin: 0.7em 0em 1em 0em;
+}
+
+/* make svg fit to container */
+.reveal section mjx-container > svg {
+	object-fit: contain;
+    max-width: 100%;
 }
 
 .reveal section mjx-container > svg a {
 	color: #2a9ddf;
 	fill: #2a9ddf;
+}
+
+
+/*********************************************
+ * MARIO: fullscreen for iframes
+ *********************************************/
+
+.reveal div.fs-container { 
+    margin:   auto;
+    border:   0px;
+    padding:  0px;
+    position: relative;
+}
+
+.reveal div.fs-container:fullscreen {
+    overflow-x:       hidden;
+    overflow-y:       auto;
+    background-color: white;
+    padding:          20px;
+}
+
+.reveal div.fs-container:fullscreen>iframe {
+    border: none;
+}
+
+.reveal button.fs-button { 
+    z-index:          100;
+    display:          inline-block;
+    position:         absolute;
+    top:              0px;
+    right:            0px;
+    cursor:           pointer;
+    padding:          2px;
+    border:           none;
+    background-color: rgba(255,255,255,0.5);
+    opacity:          0.2;
+    font-size:        20px;
+    outline:          none;
+}
+
+.reveal button.fs-button:hover { 
+    opacity:          1.0;
+    background-color: rgba(255,255,255,0.8);
+}
+
+
+/*********************************************
+ * MARIO: bibliogrphy
+ *********************************************/
+
+.reveal .references {
+    margin:        auto;
+    max-height:    600px;
+    width:         90%;
+    overflow-y:    auto;
+}
+
+.reveal .references>div {
+    padding-left:  1em;
+    text-indent:   -1em;
+    text-align:    left;
+    margin-bottom: 1em;
+}
+
+
+/*********************************************
+ * MARIO: matching questions
+ *********************************************/
+
+.reveal .matching {
+  text-align: center;
+}
+
+.reveal .matching .dropzones,
+.reveal .matching .dragzone {
+    display:         flex;
+    flex-flow:       row nowrap;
+    align-items:     stretch;
+    justify-content: space-around;
+    position:        relative;
+    width:           100%;
+    min-height:      100px;
+    padding:         15px;
+    border:          2px solid #dddddd;
+    border-radius:   5px;
+    box-sizing:      border-box;
+}
+
+.reveal .matching .dropzones {
+    margin-bottom: 60px;
+}
+
+.reveal .matching .dragzone:before,
+.reveal .matching .dropzones:before {
+    position:   absolute;
+    top:        -15px;
+    left:       10px;
+    font-size:  15px;
+    background: white;
+    padding:    5px;
+    color:      grey;
+}
+.reveal .matching .dragzone:before {
+    content: "drag from here";
+}
+.reveal .matching .dropzones:before {
+    content: "drop here";
+}
+
+.reveal .matching .dragzone:after {
+    position:      absolute;
+    content:       " ";
+    width:         0;
+    height:        0;
+    top:           -30px;
+    border-left:   30px solid transparent;
+    border-right:  30px solid transparent;
+    border-bottom: 30px solid #dddddd;
+}
+
+.reveal .matching .dropzone {
+    display:    block;
+    flex:       1 0 0;
+    padding:    10px;
+    margin:     5px;
+    border:     1px solid black;
+    text-align: center;
+}
+
+.reveal .matching .draggable {
+    display:        block;
+    vertical-align: middle;
+    overflow:       hidden;
+    border:         2px solid #2a9ddf;
+    border-radius:  10px;
+    padding:        10px;
+    background:     white;
+    cursor:         grab;
+}
+.reveal .matching .dropzone .draggable {
+    display:    block;
+    border:     none;
+    background: inherit;
+}
+
+.reveal .matching .draggableChild {
+    pointer-events: none;
+}
+
+.reveal select {
+    font:        inherit;
+    font-size:   0.9em;
+    font-weight: normal;
+    padding:     5px;
+    border:      2px solid #2a9ddf;
+    background:  white;
+}
+
+.reveal select option {
+    font:        inherit;
+    font-size:   0.9em;
+    max-height:  1em;
+    min-height:  1em !important;
+    font-weight: normal;
+}
+
+.reveal input {
+    font:        inherit;
+    font-size:   0.9em;
+    font-weight: normal;
+    margin:      0.5em;
+    padding:     10px;
+    border:      2px solid #2a9ddf;
+}
+
+.reveal button.freetextAnswerButton,
+.reveal button.btAnswerButton,
+.reveal button.matchingAnswerButton,
+.reveal button.retryButton
+{
+    font:        inherit;
+    font-size:   0.7em;
+    font-weight: normal;
+    margin:      0.5em;
+    padding:     10px;
+    background:  #eeeeee;
+    border: 2px solid #dddddd;
+    border-radius: 5px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
 

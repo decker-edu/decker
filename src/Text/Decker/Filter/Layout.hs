@@ -12,24 +12,25 @@ import Control.Monad.State
 import Data.List
 import Data.List.Split
 import Data.Maybe
+import qualified Data.Text as Text
 import Text.Pandoc.Lens
 import Text.Read hiding (lift)
 
 -- | Slide layouts are rows of one ore more columns.
 data RowLayout = RowLayout
-  { name :: String
+  { name :: Text.Text
   , rows :: [Row]
   } deriving (Eq, Show)
 
 -- | A row consists of one or more columns. 
 data Row
-  = SingleColumn String
-  | MultiColumn [String]
+  = SingleColumn Text.Text
+  | MultiColumn [Text.Text]
   deriving (Eq, Show)
 
 type Area = [Block]
 
-type AreaMap = [(String, Area)]
+type AreaMap = [(Text.Text, Area)]
 
 rowLayouts :: [RowLayout]
 rowLayouts =
@@ -47,16 +48,16 @@ rowLayouts =
       ]
   ]
 
-rowAreas :: Row -> [String]
+rowAreas :: Row -> [Text.Text]
 rowAreas (SingleColumn area) = [area]
 rowAreas (MultiColumn areas) = areas
 
-layoutAreas :: RowLayout -> [String]
+layoutAreas :: RowLayout -> [Text.Text]
 layoutAreas l = concatMap rowAreas $ rows l
 
 hasRowLayout :: Block -> Maybe RowLayout
 hasRowLayout block = do
-  let long = attribValue "layout" block >>= findLayout 
+  let long = attribValue "layout" block >>= findLayout
   let short = map findLayout (classes block)
   listToMaybe $ catMaybes $ long : short
   where
@@ -67,7 +68,12 @@ renderRow areaMap (SingleColumn area) =
   lookup area areaMap >>= Just . Div ("", ["single-column-row"], [])
 renderRow areaMap (MultiColumn areas) =
   Just $
-  Div ("", ["multi-column-row", "multi-column-row-" ++ show (length areas)], []) $
+  Div
+    ( ""
+    , [ "multi-column-row"
+      , "multi-column-row-" <> Text.pack (show (length areas))
+      ]
+    , []) $
   mapMaybe renderArea (zip [1 ..] areas)
   where
     renderArea (i, area) = lookup area areaMap >>= Just . renderColumn . (i, )
@@ -76,17 +82,20 @@ renderColumn :: (Int, [Block]) -> Block
 renderColumn (i, blocks) =
   let grow =
         fromMaybe (1 :: Int) $ lookup "grow" (blocks ^. attributes . attrs) >>=
-        readMaybe
+        (readMaybe . Text.unpack)
    in Div
         ( ""
-        , ["grow-" ++ show grow, "column", "column-" ++ show i]
+        , [ "grow-" <> Text.pack (show grow)
+          , "column"
+          , "column-" <> Text.pack (show i)
+          ]
         , blocks ^. attributes . attrs)
         blocks
 
 renderLayout :: AreaMap -> RowLayout -> [Block]
 renderLayout areaMap l = mapMaybe (renderRow areaMap) (rows l)
 
-slideAreas :: [String] -> [Block] -> AreaMap
+slideAreas :: [Text.Text] -> [Block] -> AreaMap
 slideAreas names blocks =
   mapMaybe (\area -> firstClass names (head area) >>= Just . (, area)) $
   filter (not . null) $

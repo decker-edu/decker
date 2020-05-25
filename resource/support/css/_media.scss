@@ -1,9 +1,18 @@
-/* Ensure certain elements are never larger than the slide itself */
-.reveal img,
-.reveal video,
-.reveal iframe {
-    max-width: 95%;
-    max-height: 95%;
+.reveal div.image-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+}
+
+.reveal div.image-row div {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+}
+
+.reveal div.image-row img {
+    display: block;
 }
 
 .reveal div.videoWrapper {
@@ -24,7 +33,7 @@
 
 .reveal img {
     max-width: 100%;
-    margin: 0 auto;
+    //margin: 0 auto;
     display: block;
     border: none;
     box-shadow: none;
@@ -40,7 +49,7 @@
 }
 
 .reveal figure {
-    margin: 0 0 0 0;
+    //margin: 0 0 0 0;
     text-align: center;
 
     figcaption {
@@ -51,16 +60,44 @@
 
 .reveal video {
     width: 100%;
-    margin: 0;
+    //margin: 0;
     display: block;
 }
 
 .reveal .img-center img {
-    margin: 0 auto;
+    //margin: 0 auto;
     display: block;
 }
 
 .reveal .img-nocenter img {
-    margin: 0 0;
+    //margin: 0 0;
     display: inline;
 }
+
+.reveal div.fs-container { 
+    //margin:   auto;
+    border:   0px;
+    padding:  0px;
+    position: relative;
+}
+
+.reveal button.fs-button { 
+    z-index:          100;
+    display:          inline-block;
+    position:         absolute;
+    top:              0px;
+    right:            0px;
+    cursor:           pointer;
+    padding:          2px;
+    border:           none;
+    background-color: rgba(255,255,255,0.5);
+    opacity:          0.2;
+    font-size:        20px;
+    outline:          none;
+}
+
+.reveal button.fs-button:hover { 
+    opacity:          1.0;
+    background-color: rgba(255,255,255,0.8);
+}
+

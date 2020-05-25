@@ -1,0 +1,35 @@
+provisioning: Copy
+# Sane defaults for reval.js
+backgroundTransition: "none"
+center: true
+controls: true
+fragmentInURL: true
+fragments: true
+hash: true
+help: true
+hideCursorTime: 2000
+hideInactiveCursor: true
+history: true
+keyboard: true
+menu: true
+overview: true
+progress: true
+touch: true
+transition: "none"
+title: "|title|"
+test123: "test123"
+# These are some sane defaults we need
+margin: 0.05
+margin-columns: 0em
+font-size-base: 30px
+align-global: left
+spacing-vertical-base: 0.5em
+border-decoration-width: 20px
+border-decoration-padding: 10px
+border-decoration-style: solid  
+# default settings for whiteboard buttons
+whiteboard-icon-size:        2vmin
+whiteboard-active-color:     rgb(42,157,223)
+whiteboard-inactive-color:   lightgrey
+whiteboard-background-color: rgb(250,250,250)
+

@@ -17,11 +17,11 @@ dup = cp -r
 endif
 
 
-all: jquery mathjax reveal.js bootstrap piklor.js fontawesome thebelab
+all: jquery mathjax reveal.js bootstrap fontawesome thebelab
 
 thebelab: thebelab/lib/index.js
 	@mkdir -p $(support)/thebelab
-	@cp thebelab/lib/*.{js,map} $(support)/thebelab
+	@cp thebelab/lib/*.js $(support)/thebelab
 
 jquery: jquery/dist/jquery.min.js
 	@mkdir -p $(support)
@@ -34,22 +34,17 @@ mathjax:
 	done
 
 reveal.js:
-	@mkdir -p $(support)/reveal/plugin $(support)/reveal/plugin/markdown $(support)/reveal/plugin/markdown
-	@cp $(third)/reveal.js/plugin/markdown/marked.js $(support)/reveal/plugin/markdown/marked.js
-	@for i in js css lib plugin/math plugin/zoom-js plugin/notes; do \
+	@mkdir -p $(support)/reveal/plugin
+	@for i in js css plugin/notes ; do \
 		$(dup) $(third)/reveal.js/$$i $(support)/reveal/$$i; \
 	done
 
 bootstrap:
-	@mkdir -p $(support)/bootstrap
-	@$(dup) $(third)/bootstrap/dist/css $(support)/bootstrap/css 
-
-piklor.js:
-	@$(dup) $(third)/piklor.js/src/piklor.min.js $(support)/piklor.js
+	@cp $(third)/bootstrap.min.css $(support)
 
 fontawesome:
-	@mkdir -p $(support)/fontawesome
-	@for i in js css webfonts svgs sprites; do \
+	@mkdir -p $(support)/fontawesome $(support)/fontawesome/css
+	@for i in css/all.css webfonts; do \
 		$(dup) $(third)/Font-Awesome/js-packages/@fortawesome/fontawesome-free/$$i $(support)/fontawesome/$$i; \
 	done
 
@@ -59,4 +54,4 @@ thebelab/lib/index.js:
 jquery/dist/jquery.min.js:
 	(cd jquery && npm run build)
 
-.PHONY: clean prepare fontawesome piklor.js bootstrap reveal.js mathjax jquery thebelab 
+.PHONY: clean prepare fontawesome bootstrap reveal.js mathjax jquery thebelab 

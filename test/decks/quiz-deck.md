@@ -1,4 +1,5 @@
 ---
+title: Blank Text with Multiple Choice
 history: True
 ---
 

@@ -1,9 +1,9 @@
 name: decker
-version: 0.9.0
+version: 0.10.0
 license: OtherLicense
 author: "Henrik Tramberend"
 maintainer: "henrik.tramberend@beuth-hochschule.de"
-copyright: "2018 Henrik Tramberend"
+copyright: "2020 Henrik Tramberend"
 
 build-type: Custom
 
@@ -48,11 +48,13 @@ dependencies:
   - containers
   - data-default
   - directory
+  - doctemplates
+  - exceptions
   - extra
   - filepath
+  - formatting
   - fsnotify
   - Glob
-  - git
   - groom
   - hashable
   - HTTP
@@ -63,12 +65,12 @@ dependencies:
   - lens-action
   - lens-aeson
   - listsafe
-  - MissingH
   - modern-uri
   - monad-loops
   - mtl
   - multimap
   - mustache
+  - neat-interpolation
   - network-uri
   - pandoc
   - pandoc-citeproc
@@ -76,6 +78,7 @@ dependencies:
   - process
   - pureMD5
   - random
+  - relude
   - regex-tdfa
   - scientific
   - shake
@@ -97,11 +100,11 @@ dependencies:
   - zip
 
 ghc-options:
-  # - -Wunused-top-binds
-  # - -Wunused-local-binds
-  # - -Wincomplete-patterns
-  # - -Wunused-matches
+  - -Wunused-top-binds
+  - -Wunused-local-binds
+  - -Wincomplete-patterns
   - -fwarn-unused-imports
+  # - -Wunused-matches
 
 library:
   source-dirs:
@@ -119,28 +122,24 @@ executables:
   decker:
     main: Decker
     source-dirs: app
+    dependencies:
+      - decker
     ghc-options:
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N
-      - -fwarn-unused-imports
-    dependencies:
-      - decker
 
 tests:
   decker-test:
     main: Spec.hs
     source-dirs: test
-    ghc-options:
-      - -threaded
-      - -rtsopts
-      - -with-rtsopts=-N
     dependencies:
       - decker
       - hspec
 
 default-extensions:
   - DeriveDataTypeable
+  - DeriveGeneric
   - EmptyCase
   - FlexibleContexts
   - FlexibleInstances
@@ -152,6 +151,7 @@ default-extensions:
   - NamedFieldPuns
   - NoMonomorphismRestriction
   - OverloadedStrings
+  - QuasiQuotes
   - RecordWildCards
   - ScopedTypeVariables
   - TemplateHaskell

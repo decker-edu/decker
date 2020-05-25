@@ -1,4 +1,5 @@
 ---
+title: Slide with quiz
 dachdecker: 060f8b51-c232-42da-90a7-17291a5ba730
 ---
 

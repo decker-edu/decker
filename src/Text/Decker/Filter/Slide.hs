@@ -4,8 +4,10 @@ module Text.Decker.Filter.Slide
   , attribValue
   , blocks
   , dropByClass
+  , keepByClass
   , firstClass
   , fromSlides
+  , fromSlidesWrapped
   , classes
   , hasAnyClass
   , hasClass
@@ -17,10 +19,12 @@ module Text.Decker.Filter.Slide
 import Text.Pandoc.Lens
 
 import Control.Lens
+import Data.List
 import Data.List.Split
 import Data.Maybe
 import Text.Pandoc
 import Text.Pandoc.Definition ()
+import qualified Data.Text as Text
 
 -- A slide has maybe a header followed by zero or more blocks.
 data Slide = Slide
@@ -31,11 +35,11 @@ data Slide = Slide
 -- | A lens for header access on a slide. See
 -- https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/a-little-lens-starter-tutorial
 header :: Lens' Slide (Maybe Block)
-header = lens (\(Slide h _) -> h) (\(Slide _ b) h -> (Slide h b))
+header = lens (\(Slide h _) -> h) (\(Slide _ b) h -> Slide h b)
 
 -- | A lens for blocks access on a slide. 
 blocks :: Lens' Slide [Block]
-blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> (Slide h b))
+blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> Slide h b)
 
 -- | A Prism for slides
 _Slide :: Prism' Slide (Maybe Block, [Block])
@@ -71,8 +75,8 @@ toSlides blocks = map extractHeader $ filter (not . null) slideBlocks
     killEmpties [] = []
 
 -- Render slides as a list of Blocks. Always separate slides with a horizontal
--- rule. Slides with the `notes` classes are wrapped in ASIDE and
--- are used as spreaker notes by RevalJs.
+-- rule. Slides with the `notes` classes are wrapped in ASIDE and are used as
+-- spreaker notes by RevalJs.
 fromSlides :: [Slide] -> [Block]
 fromSlides = concatMap prependHeader
   where
@@ -84,6 +88,16 @@ fromSlides = concatMap prependHeader
     prependHeader (Slide (Just header) body) = HorizontalRule : header : body
     prependHeader (Slide Nothing body) = HorizontalRule : body
 
+-- | Converts slides to lists of blocks that are wrapped in divs. Used to
+-- control page breaks in handout generation.
+fromSlidesWrapped :: [Slide] -> [Block]
+fromSlidesWrapped = concatMap wrapBlocks
+  where
+    wrapBlocks (Slide (Just header) body) =
+      [Div ("", ["slide-wrapper"], []) (HorizontalRule : header : body)]
+    wrapBlocks (Slide Nothing body) =
+      [Div ("", ["slide-wrapper"], []) (HorizontalRule : body)]
+
 isSlideSeparator :: Block -> Bool
 isSlideSeparator (Header 1 _ _) = True
 isSlideSeparator HorizontalRule = True
@@ -91,24 +105,28 @@ isSlideSeparator _ = False
 
 demoteHeaders = traverse . _Header . _1 +~ 1
 
-classes :: HasAttr a => a -> [String]
+classes :: HasAttr a => a -> [Text.Text]
 classes = view (attributes . attrClasses)
 
-hasClass :: HasAttr a => String -> a -> Bool
+hasClass :: HasAttr a => Text.Text -> a -> Bool
 hasClass which = elem which . classes
 
-hasAnyClass :: HasAttr a => [String] -> a -> Bool
+hasAnyClass :: HasAttr a => [Text.Text] -> a -> Bool
 hasAnyClass which = isJust . firstClass which
 
-firstClass :: HasAttr a => [String] -> a -> Maybe String
-firstClass which fragment = listToMaybe $ filter (`hasClass` fragment) which
+firstClass :: HasAttr a => [Text.Text] -> a -> Maybe Text.Text
+firstClass which fragment = find (`hasClass` fragment) which
 
-attribValue :: HasAttr a => String -> a -> Maybe String
+attribValue :: HasAttr a => Text.Text -> a -> Maybe Text.Text
 attribValue which = lookup which . view (attributes . attrs)
 
-dropByClass :: HasAttr a => [String] -> [a] -> [a]
+dropByClass :: HasAttr a => [Text.Text] -> [a] -> [a]
 dropByClass which =
   filter (not . any (`elem` which) . view (attributes . attrClasses))
+
+keepByClass :: HasAttr a => [Text.Text] -> [a] -> [a]
+keepByClass which =
+  filter (any (`elem` which) . view (attributes . attrClasses))
 
 isBoxDelim :: Block -> Bool
 isBoxDelim (Header 2 _ _) = True

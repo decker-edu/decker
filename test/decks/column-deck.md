@@ -1,6 +1,12 @@
 ---
-history: True
+author: Henrik
+center: true
+date: '2019-10-20'
+history: true
+subtitle: On decker slides
+title: Column Layout
 ---
+
 # Slide Columns
 
 ## Mechanisms
@@ -8,11 +14,11 @@ history: True
 -   Box classes (`.split` and `.join`)
 -   Slide masters (`layout` slide attribute)
 
----
+------------------------------------------------------------------------
 
 # Box Classes
 
----
+------------------------------------------------------------------------
 
 # Box Classes
 
@@ -35,7 +41,7 @@ history: True
 
 -   No columns here, just a very long line spanning the entire slide
 
----
+------------------------------------------------------------------------
 
 # Box Classes
 
@@ -52,31 +58,31 @@ history: True
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Boxed Box Classes
 
 ## Image {.split .def}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ## Image {.ale}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ## Image {.note}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ## Image {.observation}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -94,7 +100,7 @@ history: True
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters
 
@@ -114,7 +120,7 @@ Some text
 
 Some final text
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -136,7 +142,7 @@ Some final text
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -156,7 +162,7 @@ Some final text
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -164,7 +170,7 @@ Some final text
 
 -   Even in *three* columns
 
-## Example {.left .alert}
+## Example {.left .answer}
 
 ![](include/06-metal.png)
 
@@ -182,35 +188,35 @@ And some more still after the box.
 
 ![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
-## Example {.left .alert}
+## Example {.left .answer}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
-## Example {.alert}
+## Example {.answer}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ## Example {.center .def}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
-## Example {.alert}
+## Example {.answer}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
 ## Example {.right .note}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
-## Example {.alert}
+## Example {.answer}
 
-![](include/06-metal.png){width="100%" height="150px"}
+![](include/06-metal.png)
 
----
+------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 

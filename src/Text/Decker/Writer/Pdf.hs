@@ -9,6 +9,7 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Project.Shake
 import Text.Decker.Reader.Markdown
+import Text.Decker.Resource.Template
 
 import Control.Exception
 import qualified Data.ByteString.Lazy as LB
@@ -16,7 +17,7 @@ import Development.Shake
 import System.Decker.OS
 import System.Exit
 import System.Process
-import Text.Pandoc
+import Text.Pandoc hiding (getTemplate)
 import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
 
@@ -35,30 +36,26 @@ chromeOptions src out =
 launchChrome :: FilePath -> FilePath -> IO (Either String String)
 launchChrome src out = do
   command <- chrome
-  let options = unwords (chromeOptions src out)
+  let options = chromeOptions src out
   case command of
     Left msg -> return $ Left msg
     Right cmd -> do
-      (_, _, _, ph) <- do
-        let invocation = cmd ++ " " ++ options
-        -- putStrLn invocation
-        createProcess (shell invocation) {std_err = CreatePipe}
-      code <- waitForProcess ph
-      case code of
-        ExitFailure _ ->
-          return $
-          Left
-            ("Google Chrome is most likely not installed. " ++
-             "Please install Google Chrome to use 'decker pdf' or 'decker pdf-decks'")
-        ExitSuccess -> return $ Right ("Completed: " ++ src ++ " -> " ++ out)
+      -- putStrLn (cmd <> " " <> unwords options)
+      (exitCode, stdOut, stdErr) <-
+        readProcessWithExitCode cmd options ""
+      return $
+        case exitCode of
+          ExitSuccess -> Right ("Completed: " ++ src ++ " -> " ++ out)
+          ExitFailure code ->
+            Left ("Error " <> show code <> ": " <> stdOut <> "\n" <> stdErr)
 
 -- | Write a markdown file to a PDF file using the handout template.
-markdownToPdfPage :: FilePath -> FilePath -> Action ()
-markdownToPdfPage markdownFile out = do
+markdownToPdfPage :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+markdownToPdfPage meta getTemplate markdownFile out = do
   putCurrentDocument out
   let disp = Disposition Page Latex
-  pandoc <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate disp 
+  pandoc <- readAndProcessMarkdown meta markdownFile disp
+  template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
@@ -78,12 +75,13 @@ pandocMakePdf options out pandoc =
       Right pdf -> liftIO $ LB.writeFile out pdf
 
 -- | Write a markdown file to a PDF file using the handout template.
-markdownToPdfHandout :: FilePath -> FilePath -> Action ()
-markdownToPdfHandout markdownFile out = do
+markdownToPdfHandout ::
+     Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+markdownToPdfHandout meta getTemplate markdownFile out = do
   putCurrentDocument out
   let disp = Disposition Handout Latex
-  pandoc <- readAndProcessMarkdown markdownFile disp
-  template <- getTemplate disp 
+  pandoc <- readAndProcessMarkdown meta markdownFile disp
+  template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
           { writerTemplate = Just template

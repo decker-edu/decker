@@ -1,43 +1,132 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Text.Decker.Resource.Template
-  ( readTemplates
-  , Template(..)
+  ( TemplateSource
+  , TemplateCache
+  , calcTemplateSource
+  , copySupportFiles
+  , readTemplate
+  , readTemplateMeta
+  , templateFile
   ) where
 
+import Text.Decker.Internal.Common
+import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Helper
+import Text.Decker.Internal.Meta
+import Text.Decker.Internal.URI
 import Text.Decker.Resource.Zip
 
 import Control.Monad
-import qualified Data.ByteString as BS
+import qualified Data.Map.Strict as Map
+import Data.Maybe
+import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
+import Data.Yaml
+import Development.Shake
+import Relude
+import System.Environment
 import System.FilePath
+import Text.Pandoc hiding (getTemplate, lookupMeta)
+import qualified Text.URI as URI
 
-templates =
-  [ "template/deck.html"
-  , "template/deck.md"
-  , "template/handout.html"
-  , "template/handout.tex"
-  , "template/page.html"
-  , "template/page.tex"
-  ]
+{- | Defines the interface to template packs that can be selected at runtime. -}
+data TemplateSource
+  = DeckerExecutable
+  | LocalDir FilePath
+  | LocalZip FilePath
+  | Unsupported Text
+  deriving (Ord, Eq, Show, Read)
 
-data Template =
-  Template BS.ByteString
-           (Maybe FilePath)
-  deriving (Show)
+partialDir :: TemplateSource -> FilePath
+partialDir (LocalDir path) = path </> "template" </> "deck.html"
+partialDir _ = ""
 
-readTemplates :: FilePath -> Bool -> IO [(FilePath, Template)]
-readTemplates root devRun =
-  if devRun
-    then readTemplatesFs (root </> "resource")
-    else readTemplatesZip
+type TemplateCache = FilePath -> Action (Template Text)
 
-readTemplatesFs :: FilePath -> IO [(FilePath, Template)]
-readTemplatesFs dir = foldM readTemplate [] templates
+templateFiles =
+  Map.fromList
+    [ (Disposition Deck Html, "template/deck.html")
+    , (Disposition Deck Markdown, "template/deck.md")
+    , (Disposition Page Html, "template/page.html")
+    , (Disposition Page Latex, "template/page.tex")
+    , (Disposition Handout Html, "template/handout.html")
+    , (Disposition Handout Latex, "template/handout.tex")
+    ]
+
+templateFile :: Disposition -> FilePath
+templateFile disp =
+  case Map.lookup disp templateFiles of
+    Just file -> file
+    Nothing ->
+      bug $ ResourceException $ "Unsupported disposition: " <> show disp
+
+parseTemplateUri :: URI -> TemplateSource
+parseTemplateUri uri =
+  let ext = uriPathExtension uri
+      scheme = uriScheme uri
+      base = uriPath uri
+   in if | scheme == Just "exe" && base == "" -> DeckerExecutable
+         | scheme == Nothing && (Text.toLower <$> ext) == Just "zip" ->
+           LocalZip $ toString base
+         | scheme == Nothing -> LocalDir $ toString base
+         | otherwise -> Unsupported (URI.render uri)
+
+copySupportFiles :: TemplateSource -> Provisioning -> FilePath -> IO ()
+copySupportFiles DeckerExecutable _ destination = do
+  deckerExecutable <- getExecutablePath
+  extractSubEntries "support" deckerExecutable (takeDirectory destination)
+copySupportFiles (LocalZip zipPath) _ destination =
+  extractSubEntries "support" zipPath (takeDirectory destination)
+copySupportFiles (LocalDir baseDir) _ destination =
+  copyDir (baseDir </> "support") destination
+copySupportFiles (Unsupported uri) provisioning destination =
+  bug $ ResourceException $ "Unsupported template source: " <> toString uri
+
+defaultMetaPath = "template/default.yaml"
+
+-- Determines which template source is in effect. Three cases.
+calcTemplateSource :: Meta -> IO TemplateSource
+calcTemplateSource meta =
+  case lookupMeta "template-source" meta of
+    Just text -> parseTemplateUri <$> URI.mkURI text
+    Nothing -> do
+      devRun <- isDevelopmentRun
+      if devRun
+        then return $ LocalDir "resource"
+        else return $ DeckerExecutable
+
+readTemplate :: Meta -> FilePath -> Action (Template Text)
+readTemplate meta file = do
+  templateSource <- liftIO $ calcTemplateSource meta
+  text <- readTemplateText templateSource
+  liftIO (handleLeft <$> compileTemplate (partialDir templateSource) text)
   where
-    readTemplate list path = do
-      let file = dir </> path
-      content <- BS.readFile file
-      return $ (path, Template content (Just file)) : list
+    readTemplateText DeckerExecutable = do
+      deckerExecutable <- liftIO getExecutablePath
+      liftIO (decodeUtf8 <$> extractEntry file deckerExecutable)
+    readTemplateText (LocalZip path) =
+      liftIO (decodeUtf8 <$> extractEntry file path)
+    readTemplateText (LocalDir base) = do
+      let path = base </> file
+      need [path]
+      liftIO (Text.readFile path)
+    readTemplateText (Unsupported uri) =
+      bug $ ResourceException $ "Unsupported template source: " <> toString uri
 
-readTemplatesZip :: IO [(FilePath, Template)]
-readTemplatesZip =
-  map (\(f, c) -> (f, Template c Nothing)) <$>
-  extractResourceEntryList templates
+readTemplateMeta :: TemplateSource -> Action Meta
+readTemplateMeta DeckerExecutable = do
+  executable <- liftIO getExecutablePath
+  putVerbose $ "# extracting meta data from: " <> executable
+  liftIO $
+    toPandocMeta <$> (extractEntry defaultMetaPath executable >>= decodeThrow)
+readTemplateMeta (LocalZip zipPath) = do
+  putVerbose $ "# extracting meta data from: " <> zipPath
+  liftIO $
+    toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
+readTemplateMeta (LocalDir baseDir) = do
+  let defaultMeta = baseDir </> defaultMetaPath
+  putVerbose $ "# loading meta data from: " <> defaultMetaPath
+  need [defaultMeta]
+  liftIO $ readMetaDataFile defaultMeta
+readTemplateMeta (Unsupported uri) = return nullMeta

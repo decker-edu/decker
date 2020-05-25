@@ -1,0 +1,123 @@
+/////////////////////////////
+// Default Font Size and its
+// relative specs
+////////////////////////////
+
+.medium,
+.font-medium,
+.font-size-medium,
+.normal, 
+.font-normal,
+.font-size-normal {
+    font-size: var(--font-size-medium);
+}
+
+.xx-small,
+.font-xx-small,
+.font-size-xx-small {
+    font-size: var(--font-size-xx-small);
+}
+
+.x-small,
+.font-x-small,
+.font-size-x-small {
+    font-size: var(--font-size-x-small);
+}
+
+.small,
+.font-small,
+.font-size-small {
+    font-size: var(--font-size-small);
+}
+
+.large,
+.font-large,
+.font-size-large {
+    font-size: var(--font-size-large);
+}
+
+.x-large,
+.font-x-large,
+.font-size-x-large {
+    font-size: var(--font-size-x-large);
+}
+
+.xx-large,
+.font-xx-large,
+.font-size-xx-large {
+    font-size: var(--font-size-xx-large);
+}
+
+/////////////////////////////
+// Defaults for Fonts
+////////////////////////////
+
+
+// Headers
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+    color: rgba(0, 0, 0, 0.87);
+    font-family: "Roboto", sans-serif;
+    letter-spacing: normal;
+    text-transform: none;
+    text-shadow: none;
+    word-wrap: break-word;
+    font-weight: normal;
+    text-shadow: none;
+
+}
+
+.reveal h1 {
+    font-size: var(--font-size-xx-large);
+}
+
+.reveal h2 {
+    font-weight: 500;
+    font-size: var(--font-size-large); 
+}
+
+.reveal h3 {
+    font-size: var(--font-size-medium);
+}
+
+.reveal h4 {
+    font-size: var(--font-size-medium);
+}
+
+.reveal section {
+
+    &.white,
+    &.inverse,
+    &.has-dark-background {
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            color: #eee;
+        }
+
+        color: #fff;
+    }
+}
+
+// Elements
+.reveal p {
+    line-height: 1.3;
+}
+
+.reveal strong,
+.reveal b {
+    font-weight: bold;
+}
+
+.reveal em {
+    font-style: italic;
+}
+

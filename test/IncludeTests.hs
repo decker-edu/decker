@@ -4,7 +4,6 @@ module IncludeTests
 
 import Test.Hspec
 import Text.Decker.Filter.IncludeCode
-import Text.Decker.Project.Shake
 
 includeTests = do
   describe "parseInclusionUrl" $ do

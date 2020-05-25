@@ -31,7 +31,7 @@ Copy-Item "$third\jquery\dist\jquery.min.js" "$support\jquery.js" -Force
 # Copy thebelab
 New-Item -Path "$support\thebelab" -Force -ItemType "directory"
 Copy-Item $third\thebelab\lib\*.js "$support\thebelab" -Force
-Copy-Item $third\thebelab\lib\*.map "$support\thebelab" -Force
+# Copy-Item $third\thebelab\lib\*.map "$support\thebelab" -Force
 
 # Copy mathjax
 New-Item -Path "$support\mathjax\input" -Force -ItemType "directory"
@@ -42,22 +42,23 @@ Foreach ($i in ("tex-svg.js", "input\tex", "input\tex.js". "output\svg", "output
 
 # Copy reveal.js
 New-Item "$support\reveal\plugin" -Force -ItemType "directory"
-New-Item "$support\reveal\plugin\markdown" -Force -ItemType "directory"
-New-Item "$support\reveal\plugin\markdown" -Force -ItemType "directory"
-Copy-Item "$third\reveal.js\plugin\markdown\marked.js" "$support\reveal\plugin\markdown\marked.js" -Force
-Foreach ($i in ("js", "css", "lib", "plugin\math", "plugin\zoom-js", "plugin\notes")) {
+# New-Item "$support\reveal\plugin\markdown" -Force -ItemType "directory"
+# New-Item "$support\reveal\plugin\markdown" -Force -ItemType "directory"
+# Copy-Item "$third\reveal.js\plugin\markdown\marked.js" "$support\reveal\plugin\markdown\marked.js" -Force
+# Foreach ($i in ("js", "css", "lib", "plugin\math", "plugin\zoom-js", "plugin\notes")) {
+Foreach ($i in ("js", "css", "plugin\notes")) {  
   Copy-Item -r "$third\reveal.js\$i" "$support\reveal\$i" -Force
 }
 
 # Copy bootstrap
-New-Item "$support\bootstrap" -Force -ItemType "directory"
-Copy-Item -Recurse "$third\bootstrap\dist\css" "$support\bootstrap\css" -Force
-
-# Copy piklor.js
-Copy-Item -Recurse "$third\piklor.js\src\piklor.min.js" "$support\piklor.js" -Force
+# New-Item "$support\bootstrap" -Force -ItemType "directory"
+# Copy-Item -Recurse "$third\bootstrap\dist\css" "$support\bootstrap\css" -Force
+Copy-Item "$third\bootstrap.min.css" "$support\bootstrap.min.css" -Force
 
 # Copy fontawesome
-New-Item "$support\fontawesome" -Force -ItemType "directory"
-Foreach ($i in ( "js", "css", "webfonts", "svgs", "sprites")) {
+New-Item "$support\fontawesome\css" -Force -ItemType "directory"
+New-Item "$support\fontawesome\webfonts" -Force -ItemType "directory"
+# Foreach ($i in ( "js", "css", "webfonts", "svgs", "sprites")) {
+Foreach ($i in ( "css\all.css", "webfonts")) {
   Copy-Item -Recurse "$third\Font-Awesome\js-packages\@fortawesome\fontawesome-free\$i" "$support\fontawesome\$i" -Force
 }

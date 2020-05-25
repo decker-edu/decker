@@ -1,98 +1,223 @@
-/*********************************************
- * chalkboard color picker
- *********************************************/
 
-.reveal .color-picker {
-    background: rgba(255, 255, 255, 0.75);
-    padding: 0px;
-    border: 1px solid rgba(203, 203, 203, 0.6);
-    border-radius: 2px;
+/* colors for active/inactive buttons 
+ * active color is also used for additional page indicator */
+:root {
+  --whiteboard-icon-size:        2vmin;
+  --whiteboard-active-color:     #2a9ddf;
+  --whiteboard-inactive-color:   lightgrey;
+  --whiteboard-background-color: rgb(250,250,250);
 }
 
-.reveal .color-picker > div {
-    width: 20px;
+
+/* adjust Reveal slide container when we need a scrollbar */
+.reveal .slides.needScrollbar {
+    overflow-x: hidden;
+    overflow-y: auto;
+    box-sizing: border-box;
+    
+    /* enable scrolling */
+    pointer-events: auto;
+
+    /* enable touch navigation */
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: auto;
+}
+
+
+/* the animation for indicating additional pages on the bottom */
+@keyframes pulseBorder {
+  from {
+    border-bottom: 5px dashed #ffffff00;
+  }
+  to {
+    border-bottom: 5px dashed var(--whiteboard-active-color);
+  }
+}
+
+
+/* activate pulsing border indiciator */
+.reveal .slides.pulseBorder {
+    animation-name:            pulseBorder;
+    animation-iteration-count: 4;
+    animation-timing-function: ease;
+    animation-direction:       alternate;
+    animation-duration:        0.5s;
+    border-bottom:             none;
+}
+
+
+/* have to show overflow when in Reveal's overview mode */
+.reveal.overview .slides {
+    overflow: visible;
+}
+
+
+/* style for SVG whiteboard pages */
+.reveal svg.whiteboard {
+    border:     none;
+    box-sizing: border-box;
+    position:   absolute;
+    top:        0;
+    left:       0;
+    z-index:    39;
+}
+
+/* children of SVG (strokes, grid) should not get pointer events */
+.reveal svg.whiteboard * {
+    pointer-events: none;
+}
+
+/* default style for strokes (up to color and width) */
+.reveal svg.whiteboard>path {
+    fill:            none;
+    stroke-linecap:  round;
+    stroke-linejoin: round;
+}
+
+
+/* whiteboard button */
+.reveal button.whiteboard {
+    display:     inline-block;
+    position:    relative;
+    font-size:   var(--whiteboard-icon-size);
+    padding:     calc(var(--whiteboard-icon-size) * 0.5);
+    border:      none;
+    outline:     none;
+    background:  none;
+    font-family: "Font Awesome 5 Free";
+}
+/* hide outline around focused/clicked buttons */
+.reveal button.whiteboard:focus,
+.reveal button.whiteboard::-moz-focus-inner {
+    outline: none;
+    border: 0;
+}
+
+/* container for whiteboard tools */
+#whiteboardButtons {
+    position:       absolute;
+    top:            auto;
+    right:          auto;
+    padding:        0;
+    margin:         0;
+    z-index:        40;
+    border-radius:  calc(var(--whiteboard-icon-size) * 0.5);
+    border:         1px solid transparent;
+    background:     none;
+    left:           calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:         calc(var(--whiteboard-icon-size) * 0.25);
+    display:        flex;
+    flex-direction: column-reverse;
+}
+#whiteboardButtons.active {
+    border:         1px solid #eeeeee;
+    background:     var(--whiteboard-background-color);
+}
+
+
+/* toggle whiteboard buttons with .active on container */
+#whiteboardButtons>button {
+    display: none;
+}
+#whiteboardButtons.active>button {
     display: inline-block;
-    height: 20px;
-    margin: 3px;
-    border: 1px solid rgba(203, 203, 203, 0.6);
+}
+
+/* button tooltips, specified by data-tooltip
+ * use :after, since :before is used by fontawesome */
+#whiteboardButtons.active>button[data-tooltip]::after {
+    content:       attr(data-tooltip);
+    padding:       0.5em;
+    border-radius: 0.25em;
+    font-family:   "Lato", sans-serif;
+    position:      absolute;
+    left:          100%;
+    top:           50%;
+    width:         max-content;
+    height:        auto;
+    transform:     translateY(-50%) translateX(5px);
+    background:    grey;
+    color:         white;
+    display:       inline-block;
+    opacity:       0;
+}
+/* activate tooltip after 1s delay */
+#whiteboardButtons.active>button[data-tooltip]:hover::after {
+    opacity: 1;
+    transition: opacity 0s linear 1s;
+}
+
+/* toggle main whiteboard button with .active on container */
+#whiteboardButtons>#whiteboardButton {
+    display: inline-block;
+    opacity: 0.5;
+}
+#whiteboardButtons>#whiteboardButton:hover {
+    display: inline-block;
+    opacity: 1.0;
+}
+#whiteboardButtons.active>#whiteboardButton {
+    display: inline-block;
+    opacity: 1.0;
+}
+
+
+/* container for color picker */
+#whiteboardColorPicker {
+    position:       absolute;
+    top:            auto;
+    right:          auto;
+    padding:        0;
+    margin:         0;
+    z-index:        40;
+    border:         1px solid #eeeeee;
+    border-radius:  calc(var(--whiteboard-icon-size) * 0.5);
+    background:     var(--whiteboard-background-color);
+    left:           calc(var(--whiteboard-icon-size) * 2.5);
+    bottom:         calc(var(--whiteboard-icon-size) * 9.25);
+    display:        block;
+    visibility:     hidden;
+}
+
+
+/* slides for choosing pen width */
+#whiteboardSlider {
+    --size:             1px;
+    --color:            black;
+    display:            block;
+    text-align:         center;
+    -webkit-appearance: none;
+    appearance:         none;
+    width:              calc(var(--whiteboard-icon-size) * 13);
+    height:             2px;
+    padding:            0px;
+    margin:             calc(var(--whiteboard-icon-size) * 0.5);
+    background:         lightgrey;
+    border:             0;
+    outline:            none;
+}
+
+/* shape of slider knob in Chrome */
+#whiteboardSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance:         none;
+    width:              var(--size);
+    height:             var(--size);
+    background:         var(--color);
+    border-radius:      100%;
+    cursor:             pointer;
+    outline:            none;
+    border:             0;
+}
+
+/* shape of slider knob in Firefox */
+#whiteboardSlider::-moz-range-thumb {
+    width:         var(--size);
+    height:        var(--size);
+    background:    var(--color);
     border-radius: 100%;
-    opacity: 0.7;
-}
-
-
-
-/*********************************************
- * cool light saber 
- * (adapted from https://codepen.io/ncerminara/pen/KzurJ)
- *********************************************/
-
-#lightsaber { 
-    width: 10px;
-    height: 75px;
-    margin: auto;
-    position: absolute; 
-    z-index: 123;
-    visibility: hidden;
-    transform: translate(-5px, -60px);
-}
-
-#lightsaber label {
-    cursor: none;
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	z-index: 88;
-	text-indent: -9999px;
-	width: 8px;
-	height: 20px;
-	border-bottom: solid 3px grey;
-	border-top: solid 2px grey;
-	border-radius: 2px 2px 3px 3px;
-	background: linear-gradient(to right, rgba(226,226,226,1) 0%,rgba(219,219,219,1) 50%,rgba(209,209,209,1) 51%,rgba(254,254,254,1) 100%);
-}
-
-#lightsaber .plasma {
-	transition: height 500ms;
-	border-radius: 12px 12px 0 0;
-	position: absolute;
-	bottom: 25px;
-	left: 0px;
-	width: 7px;
-	display: block;
-	filter: blur(1px);
-	height: 0;
-    /* green color */
-	/*background: linear-gradient(to right, rgb(135,220,90) 0%,rgb(254,254,254) 30%,rgb(254,254,254) 50%,rgb(254,254,254) 70%,rgb(135,220,90) 100%);*/
-	/*box-shadow: 0 0 8px #7EC855;*/
-	background: linear-gradient(to right, rgba(229,17,21,1) 0%,rgba(254,254,254,1) 30%,rgba(254,254,254,1) 47%,rgba(254,254,254,1) 71%,rgba(229,17,21,1) 100%);
-	box-shadow: 0 0 8px #e51115;
-	animation-name: glow_animation;
-	animation-duration: 2s;
-	animation-iteration-count: infinite;
-}
-
-#lightsaber.on div.plasma {
-	height: 50px;
-}
-
-@keyframes glow_animation {
-  0% {
-   transform: scaleX(1);
-  }
-  20% {
-   transform: scaleX(1.2);
-  }
-  30% {
-    transform: scaleX(1.3);
-  }
-  60% {
-    transform: scaleX(1.1);
-  }
-  80% {
-    transform: scaleX(1.2);
-  }
-  100% {
-    transform: scaleX(1);
-  }
+    cursor:        pointer;
+    outline:       none;
+    border:        0;
 }
 

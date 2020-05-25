@@ -2,18 +2,18 @@ module Text.Decker.Resource.Zip
   ( extractResourceEntries
   , extractResourceEntry
   , extractResourceEntryList
+  , extractEntry
+  , extractSubEntries
+  , extractEntryList
   ) where
 
-import Text.Decker.Internal.Exception
-import Text.Decker.Project.Project
 
 import Codec.Archive.Zip
-import Control.Exception
 import Control.Monad
 import Control.Monad.IO.Class
 import qualified Data.ByteString as BS
 import Data.List (isPrefixOf)
-import Data.Map.Strict (filterWithKey, keys, size)
+import Data.Map.Strict (filterWithKey, keys)
 import qualified System.Directory as Dir
 import System.Environment
 import System.FilePath
@@ -50,16 +50,27 @@ extractResourceEntryList entryNames = do
       bs <- mkEntrySelector entryName >>= getEntry
       return $ (entryName, bs) : entryList
 
--- | Extract resources from the executable into the XDG data directory.
-extractResources :: IO ()
-extractResources = do
-  deckerExecutable <- getExecutablePath
-  dataDir <- deckerResourceDir
-  exists <- Dir.doesDirectoryExist dataDir
-  unless exists $ do
-    numFiles <- withArchive deckerExecutable getEntries
-    unless ((size numFiles) > 0) $
-      throw $ ResourceException "No resource zip found in decker executable."
-    Dir.createDirectoryIfMissing True dataDir
-    withArchive deckerExecutable (unpackInto dataDir)
-    putStrLn $ "# resources extracted to " ++ dataDir
+extractSubEntries :: FilePath -> FilePath -> FilePath -> IO ()
+extractSubEntries prefix archivePath destinationDirectory =
+  withArchive archivePath $ do
+    subEntries <- filterWithKey (subEntry prefix) <$> getEntries
+    forM_ (keys subEntries) saveSubEntry
+  where
+    subEntry dir sel _ = dir `isPrefixOf` unEntrySelector sel
+    saveSubEntry sel = do
+      let path = destinationDirectory </> unEntrySelector sel
+      let dir = takeDirectory path
+      liftIO $ Dir.createDirectoryIfMissing True dir
+      saveEntry sel path
+
+extractEntry :: FilePath -> FilePath -> IO BS.ByteString
+extractEntry entryName archivePath = do
+  withArchive archivePath $ mkEntrySelector entryName >>= getEntry
+
+extractEntryList :: [FilePath] -> FilePath -> IO [(FilePath, BS.ByteString)]
+extractEntryList entryNames archivePath = do
+  withArchive archivePath $ foldM extractEntry [] entryNames
+  where
+    extractEntry entryList entryName = do
+      bs <- mkEntrySelector entryName >>= getEntry
+      return $ (entryName, bs) : entryList

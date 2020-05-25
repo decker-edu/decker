@@ -5,7 +5,7 @@ module Text.Decker.Filter.MarioCols
   ) where
 
 import Data.Maybe (fromMaybe, isJust)
-import Data.Monoid ((<>))
+import qualified Data.Text as Text
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Pandoc.JSON
@@ -44,8 +44,8 @@ cols :: [Block] -> [Block]
 cols (Header 2 attr [Str wa, Space, Str wb]:a:b:rest)
   | isInt wa && isInt wb = outerDiv : rest
   where
-    wa' = fromMaybe 1 (readMaybe wa) :: Int
-    wb' = fromMaybe 1 (readMaybe wb) :: Int
+    wa' = fromMaybe 1 (readMaybe $ Text.unpack wa) :: Int
+    wb' = fromMaybe 1 (readMaybe $ Text.unpack wb) :: Int
     total = wa' + wb'
     pa = (100 * wa') `div` total
     pb = (100 * wb') `div` total
@@ -53,9 +53,9 @@ cols (Header 2 attr [Str wa, Space, Str wb]:a:b:rest)
 cols (Header 3 attr [Str wa, Space, Str wb, Space, Str wc]:a:b:c:rest) =
   outerDiv : rest
   where
-    wa' = fromMaybe 1 (readMaybe wa) :: Int
-    wb' = fromMaybe 1 (readMaybe wb) :: Int
-    wc' = fromMaybe 1 (readMaybe wc) :: Int
+    wa' = fromMaybe 1 (readMaybe $ Text.unpack wa) :: Int
+    wb' = fromMaybe 1 (readMaybe $ Text.unpack wb) :: Int
+    wc' = fromMaybe 1 (readMaybe $ Text.unpack wc) :: Int
     total = wa' + wb' + wc'
     pa = (100 * wa') `div` total
     pb = (100 * wb') `div` total
@@ -65,16 +65,20 @@ cols x = x
 
 makeDiv :: Int -> Block -> Block
 makeDiv width content =
-  Div ("", [], [("style", "width:" <> show width <> "%;float:left")]) [content]
+  Div
+    ( ""
+    , []
+    , [("style", "width:" <> (Text.pack $ show width) <> "%;float:left")])
+    [content]
 
 clearDiv :: Block
 clearDiv = Div ("", [], [("style", "clear: both")]) [Plain [toHtml ""]]
 
-toHtml :: String -> Inline
+toHtml :: Text.Text -> Inline
 toHtml = RawInline (Format "html")
 
-isInt :: String -> Bool
-isInt str = isJust (readMaybe str :: Maybe Int)
+isInt :: Text.Text -> Bool
+isInt str = isJust (readMaybe $ Text.unpack str :: Maybe Int)
 
 marioCols :: Slide -> Decker Slide
 marioCols (Slide header blocks) = return (Slide header (cols blocks))

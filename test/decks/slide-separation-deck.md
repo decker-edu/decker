@@ -1,3 +1,7 @@
+---
+title: Slide Separation Tests
+---
+
 # Slide Separation
 
 ## Implicit
@@ -16,18 +20,17 @@
 
 -   Next slide will start with `---`
 
-------
+------------------------------------------------------------------------
 
 # Slide number 3
 
 -   Next slide will start with `---`
 
-------
+------------------------------------------------------------------------
 
 This is slide 4, it has no header.
 
-------
+------------------------------------------------------------------------
 
 This is slide 5, it also has no header.
 
-------

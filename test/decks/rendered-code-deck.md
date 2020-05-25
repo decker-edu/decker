@@ -1,4 +1,5 @@
 ---
+title: Rendered Code Blocks
 history: True
 ---
 
@@ -22,7 +23,7 @@ Code blocks can be rendered as SVG images
 ``` {.dot .render width="80%"}
 digraph {
   node [style = filled]
-  A {fillcolor = yellowgreen}
+  A {fillcolor = yellow}
   A -> B 
   A -> C
   C -> D
@@ -38,7 +39,7 @@ digraph {
 ``` {.dot .render width="80%"}
 digraph {
   node [style = filled]
-  A [fillcolor = yellowgreen]
+  A [fillcolor = yellow]
   A -> B 
   A -> C
   C -> D
@@ -103,18 +104,23 @@ splot 1 / (x*x + y*y + 0.5)
 ## Image Tag {.left}
 
 ``` {.markdown}
-![](tikz.tex){.tikz .render}
+![](tikz.tex){.render}
 ```
 
 ## Rendered and included {.right}
 
-![](tikz.tex){.tikz .render}
+![](tikz.tex){.tex .render}
 
 ------
 
 # Tikz Embedded
 
-``` {.tikz .render width="50%"}
+``` {.tex .render width="50%"}
+\documentclass{standalone}
+\usepackage{tikz}
+\usepackage{verbatim}
+\begin{document}
+\pagestyle{empty}
 \begin{tikzpicture}[scale=3,cap=round]
   % Local definitions
   \def\costhirty{0.8660256}
@@ -166,5 +172,6 @@ splot 1 / (x*x + y*y + 0.5)
 
   \draw (0,0) -- (t);
 \end{tikzpicture}
+\end{document}
 ```
 
