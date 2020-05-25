@@ -38,7 +38,6 @@ uriPath uri =
 
 --isUriAbsolute :: URI -> Bool
 --isUriAbsolute uri = isJust (URI.uriScheme uri)
-
 absolutePathIfLocal :: FilePath -> FilePath -> Text -> IO (Maybe Text)
 absolutePathIfLocal project base uriString =
   catchAll decide (\_ -> return Nothing)
@@ -50,15 +49,18 @@ absolutePathIfLocal project base uriString =
         Just _ -> return Nothing
         Nothing -> do
           let path = toString (uriPath uri)
-          let absPath =
-                if URI.isPathAbsolute uri
-                  then project </> drop 1 path
-                  else base </> path
-          exists <- doesPathExist absPath
-          return $
-            if exists
-              then Just (toText absPath)
-              else Nothing
+          if null path
+            then return Nothing
+            else do
+              let absPath =
+                    if URI.isPathAbsolute uri
+                      then project </> drop 1 path
+                      else base </> path
+              exists <- doesPathExist absPath
+              return $
+                if exists
+                  then Just (toText absPath)
+                  else Nothing
 
 makeAbsolutePathIfLocal :: FilePath -> FilePath -> Text -> IO Text
 makeAbsolutePathIfLocal project base uriString =
