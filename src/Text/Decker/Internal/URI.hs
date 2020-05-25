@@ -38,7 +38,6 @@ uriPath uri =
 
 --isUriAbsolute :: URI -> Bool
 --isUriAbsolute uri = isJust (URI.uriScheme uri)
-
 absolutePathIfLocal :: FilePath -> FilePath -> Text -> IO (Maybe Text)
 absolutePathIfLocal project base uriString =
   catchAll decide (\_ -> return Nothing)
@@ -69,7 +68,7 @@ uriScheme uri = URI.unRText <$> URI.uriScheme uri
 
 setUriPath :: MonadThrow m => Text -> URI -> m URI
 setUriPath path uri = do
-  pathUri <- URI.mkURI path
+  pathUri <- URI.mkURI (Text.replace "\\" "/" path)
   return
     uri
       { URI.uriPath = URI.uriPath pathUri

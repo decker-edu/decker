@@ -271,9 +271,7 @@ processLocalUri uri ext = do
         else throwM $
              ResourceException $ "Local resource does not exist: " <> relPath
       let publicRelPath = makeRelativeTo topBaseDir sourcePath
-      let publicRelPath' =
-            Text.replace "\\" "/" (toText (publicRelPath <.> extString))
-      setUriPath publicRelPath' uri
+      setUriPath (toText (publicRelPath <.> extString)) uri
 
 needFile :: FilePath -> Filter ()
 needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
