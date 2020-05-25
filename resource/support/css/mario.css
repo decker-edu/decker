@@ -911,12 +911,6 @@ body {
     margin: 0.7em 0em 1em 0em;
 }
 
-/* make svg fit to container */
-.reveal section mjx-container > svg {
-	object-fit: contain;
-    max-width: 100%;
-}
-
 .reveal section mjx-container > svg a {
 	color: #2a9ddf;
 	fill: #2a9ddf;
