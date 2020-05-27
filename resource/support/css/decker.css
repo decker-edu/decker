@@ -247,7 +247,8 @@
   margin-left: 0.3em;
 }
 
-.reveal ul ol, .reveal ul ul,
+.reveal ul ol,
+.reveal ul ul,
 .reveal ol ol,
 .reveal ol ul {
   margin-bottom: 0;
@@ -256,7 +257,7 @@
 ul > li {
   list-style-type: none;
   position: relative;
-  left: .5em;
+  left: 0.5em;
 }
 
 ul > li:before {
@@ -270,7 +271,7 @@ ul > li:before {
   /* position bullet relative to list item */
   top: 0.1em;
   /* vertical align bullet position relative to list item */
-  left: -.3em;
+  left: -0.3em;
   /* position the bullet L- R relative to list item */
 }
 
@@ -289,7 +290,7 @@ ul > li:before {
 .reveal div.box.columns {
   margin-left: var(--border-decoration-width);
   padding-left: var(--border-decoration-padding);
-  margin-right: calc(var(--border-decoration-padding) + var(--border-decoration-width));
+  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
   /* Now comes the part for the decorated boxes */
   /* Now comes the specification of the indivdual
     color used for the border as decoration */
@@ -328,7 +329,7 @@ ul > li:before {
   margin-left: 0;
   border-left: var(--border-decoration-width) var(--border-decoration-style) red;
   padding-left: var(--border-decoration-padding);
-  margin-right: calc(var(--border-decoration-padding) + var(--border-decoration-width));
+  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
 }
 
 .reveal div.box.columns.question {
@@ -881,6 +882,10 @@ ul > li:before {
   padding: 0 0px 0px 0px;
   font-weight: normal;
   font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal #date {
   text-align: center;
 }
 
