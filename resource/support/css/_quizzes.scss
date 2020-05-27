@@ -16,6 +16,9 @@
         outline: none;
         clear: both;
     }
+    input{
+        border: 2px solid black;
+    }
     .solutionButton{
         font-size: large;
     }
@@ -63,6 +66,7 @@
         max-height: 75vh;
         // max-width: 100vw;
         select{
+            border: 2px solid black;
             font-size: inherit;
             :disabled{
                 color: black;
@@ -154,7 +158,7 @@
             display:        block;
             vertical-align: middle;
             overflow:       hidden;
-            border:         2px solid #2a9ddf;
+            border:         2px dotted black;
             border-radius:  10px;
             padding:        10px;
             background:     white;
@@ -176,7 +180,7 @@
         .bucket{
             .matchItem{
                 display:    block;
-                border:     2px solid #2a9ddf;
+                border:     2px dotted black;
                 background: inherit
             }
         }
@@ -204,7 +208,7 @@
             position:      relative;
             text-align:    left;
             margin:        20px;
-            border:        3px solid #2a9ddf;
+            border:        2px solid #2a9ddf;
             border-radius: 20px;
             padding:       20px;
             font-weight:   normal;
