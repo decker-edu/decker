@@ -640,16 +640,6 @@ ul > li:before {
   font-weight: bold;
 }
 
-.reveal .qic .tooltip-div,
-.reveal .qft .tooltip-div,
-.reveal .qmc .tooltip-div,
-.reveal .qmi .tooltip-div,
-.reveal [class*="quiz-"] .tooltip-div {
-  font-size: 0.6em;
-  background-color: #f4f4f7;
-  margin-top: 0.5em;
-}
-
 .reveal .qic,
 .reveal [class*="quiz-i"] {
   display: block;
@@ -667,6 +657,13 @@ ul > li:before {
 .reveal .qic select :disabled,
 .reveal [class*="quiz-i"] select :disabled {
   color: black;
+}
+
+.reveal .qic .tooltip-div,
+.reveal [class*="quiz-i"] .tooltip-div {
+  font-size: 0.6em;
+  background-color: #f4f4f7;
+  margin-top: 0.5em;
 }
 
 .reveal .quiz-mi,
