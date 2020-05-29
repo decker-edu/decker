@@ -112,10 +112,10 @@ handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
     setTags q ts = set tags ts q
     -- The default "new" quizzes
     defaultMeta = QuizMeta "" "" 0 ""
-    defaultMatch = MatchItems [Str "Empty"] [] defaultMeta [] []
-    defaultMC = MultipleChoice [Str "Empty"] [] defaultMeta [] []
-    defaultIC = InsertChoices [Str "Empty"] [] defaultMeta []
-    defaultFree = FreeText [Str "Empty"] [] defaultMeta [] []
+    defaultMatch = MatchItems [] [] defaultMeta [] []
+    defaultMC = MultipleChoice [] [] defaultMeta [] []
+    defaultIC = InsertChoices [] [] defaultMeta []
+    defaultFree = FreeText [] [] defaultMeta [] []
 
 -- Take the parsed Quizzes and render them to html
 renderQuizzes :: Quiz -> Block
@@ -231,9 +231,13 @@ solutionButton =
 
 renderMultipleChoice :: Quiz -> Block
 renderMultipleChoice quiz@(MultipleChoice title tgs qm q ch) =
-  Div ("", tgs, []) $ [Header 2 ("", [], []) title] ++ q ++ [choiceBlock]
+  Div ("", tgs, []) $ header ++ q ++ [choiceBlock]
   -- ++ [solutionButton]
   where
+    header =
+      case title of
+        [] -> []
+        _ -> [Header 2 ("", [], []) title]
     choiceBlock = rawHtml' $ choiceList "choices" ch
 renderMultipleChoice q =
   Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
@@ -261,10 +265,13 @@ choiceList t choices =
 
 renderInsertChoices :: Quiz -> Block
 renderInsertChoices quiz@(InsertChoices title tgs qm q) =
-  Div ("", tgs, []) $
-  [Header 2 ("", [], []) title] ++ questionBlocks q ++ tooltipDiv
+  Div ("", tgs, []) $ header ++ questionBlocks q ++ tooltipDiv
   -- ++ [solutionButton]
   where
+    header =
+      case title of
+        [] -> []
+        _ -> [Header 2 ("", [], []) title]
     tooltipDiv = [Div ("", [T.pack "tooltip-div"], []) []]
     questionBlocks :: [([Block], [Choice])] -> [Block]
     questionBlocks = map (rawHtml' . handleTuple)
@@ -298,9 +305,12 @@ renderInsertChoices q =
 -- 
 renderMatching :: Quiz -> Block
 renderMatching quiz@(MatchItems title tgs qm qs matches) =
-  Div ("", tgs, []) $
-  [Header 2 ("", [], []) title] ++ qs ++ [bucketsDiv, itemsDiv, solutionButton]
+  Div ("", tgs, []) $ header ++ qs ++ [bucketsDiv, itemsDiv, solutionButton]
   where
+    header =
+      case title of
+        [] -> []
+        _ -> [Header 2 ("", [], []) title]
     (buckets, items) = unzip $ map pairs matches
     itemsDiv = Div ("", ["matchItems"], []) (concat items)
     bucketsDiv = Div ("", ["buckets"], []) buckets
@@ -325,9 +335,12 @@ renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
 renderFreeText :: Quiz -> Block
 renderFreeText quiz@(FreeText title tgs qm q ch) =
-  Div ("", tgs, []) $
-  [Header 2 ("", [], []) title] ++ q ++ [inputRaw] ++ [solutionButton]
+  Div ("", tgs, []) $ header ++ q ++ [inputRaw] ++ [solutionButton]
   where
+    header =
+      case title of
+        [] -> []
+        _ -> [Header 2 ("", [], []) title]
     inputRaw =
       rawHtml'
         ((H.input ! A.placeholder "Type and press 'Enter'") >>
