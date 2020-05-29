@@ -1,4 +1,7 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf #-}
+
 module Text.Decker.Project.Shake
   ( runDecker
   , calcSource

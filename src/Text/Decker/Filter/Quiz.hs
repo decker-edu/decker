@@ -1,7 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Text.Decker.Filter.Quiz
   ( handleQuizzes
   ) where
 
+import Control.Exception
 import Control.Lens hiding (Choice)
 import qualified Data.Text as T
 import Data.Text.Encoding as E
@@ -108,8 +112,8 @@ handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
       | otherwise = d
     parseQuizboxes bl = bl
     -- Give the tag-/classlist of the surrounding div box to the quiz
-    setTags :: Quiz -> [T.Text] -> Quiz
-    setTags q ts = set tags ts q
+    -- setTags :: Quiz -> [T.Text] -> Quiz
+    -- setTags q ts = set tags ts q
     -- The default "new" quizzes
     defaultMeta = QuizMeta "" "" 0 ""
     defaultMatch = MatchItems [Str "Empty"] [] defaultMeta [] []
@@ -222,6 +226,7 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
         "category" -> set category (lookupMetaOrElse "" t m) qm
         "lectureId" -> set lectureId (lookupMetaOrElse "" t m) qm
         "topic" -> set topic (lookupMetaOrElse "" t m) qm
+        _ -> throw $ InternalException $ "Internal error: unknown attribute: " <> show t
 
 -- | A simple Html button
 solutionButton =

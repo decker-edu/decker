@@ -1,4 +1,5 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 module Decker where
 
 import Text.Decker.Internal.External
@@ -205,11 +206,12 @@ run = do
         copyFile' src out
       --
       indexFile %> \out -> do
-        exists <- doesFileExist indexSource
+        exists <- liftIO $ Dir.doesFileExist indexSource
         let src =
               if exists
                 then indexSource
                 else generatedIndexSource
+        need [src]
         meta <- getGlobalMeta
         markdownToHtmlPage meta getTemplate src out
       --

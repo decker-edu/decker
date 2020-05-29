@@ -1,4 +1,7 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module Text.Decker.Filter.Local where
 
@@ -10,7 +13,6 @@ import Text.Decker.Project.Project
 import Control.Monad.Catch
 import Data.Digest.Pure.MD5
 import qualified Data.Text as Text
-import qualified Data.Text.IO as Text
 import Relude
 import System.Directory
 import System.FilePath
@@ -22,6 +24,8 @@ import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (Attributable)
 import Text.Pandoc hiding (lookupMeta)
 import qualified Text.URI as URI
+import qualified Data.Text.IO as Text
+
 
 {-
 instance H.ToMarkup Block where
@@ -248,7 +252,7 @@ isFileUri uri =
       | URI.unRText rtext `notElem` ["file", "public"] -> return False
     _ -> return True
 
--- | Transforms a URL and handles local and remote URLs differently.
+-- | Transforms a URL and handle local and remote URLs differently.
 transformUrl :: Text -> Text -> Filter URI
 transformUrl url ext = do
   uri <- URI.mkURI url
@@ -272,12 +276,14 @@ processRemoteUri uri = do
 modifyMeta :: (Meta -> Meta) -> Filter ()
 modifyMeta f = modify (\s -> s {meta = f (meta s)})
 
-processLocalUri :: URI -> Text -> Filter URI
-processLocalUri uri ext = do
-  cwd <- liftIO getCurrentDirectory
+processLocalUri' :: URI -> Text -> Filter URI
+processLocalUri' uri ext = do
+  putStrLn $ "1--- " <> (toString $ URI.render uri)
   -- | The project relative (!) document directory from which this is called.
   docBaseDir <- lookupMetaOrFail "decker.base-dir" <$> gets meta
   topBaseDir <- lookupMetaOrFail "decker.top-base-dir" <$> gets meta
+  putStrLn $ "b--- " <> toString docBaseDir
+  putStrLn $ "t--- " <> toString topBaseDir
   -- | The absolute (!) project directory from which this is called.
   projectDir <- lookupMetaOrFail "decker.directories.project" <$> gets meta
   -- | The absolute (!) public directory where everything is published to.
@@ -296,6 +302,8 @@ processLocalUri uri ext = do
           else makeRelative projectDir docBaseDir </> urlPath
   let sourcePath = projectDir </> relPath
   let targetPath = publicDir </> relPath <.> extString
+  putStrLn $ "2--- " <> sourcePath
+  putStrLn $ "3--- " <> targetPath
   if urlScheme == "public"
     then do
       URI.mkURI $ toText $ makeRelativeTo topBaseDir (projectDir </> urlPath)
@@ -306,6 +314,42 @@ processLocalUri uri ext = do
         else throwM $
              ResourceException $ "Local resource does not exist: " <> relPath
       let publicRelPath = makeRelativeTo topBaseDir sourcePath
+      setUriPath (toText (publicRelPath <.> extString)) uri
+
+processLocalUri :: URI -> Text -> Filter URI
+processLocalUri uri ext = do
+  unless (URI.isPathAbsolute uri) $ throwM $ InternalException $ "processLocalUri: relative path detected in URI: " <> show uri
+  -- | The project relative (!) document directory from which this is called.
+  docBaseDir <- lookupMetaOrFail "decker.base-dir" <$> gets meta
+  putStrLn $ "b--- " <> toString docBaseDir
+  -- | The absolute (!) project directory from which this is called.
+  projectDir <- lookupMetaOrFail "decker.directories.project" <$> gets meta
+  -- | The absolute (!) public directory where everything is published to.
+  publicDir <- lookupMetaOrFail "decker.directories.public" <$> gets meta
+  -- | The path component from the URI
+  let urlPath = toString $ uriPath uri
+  let urlScheme = toString $ maybe "" URI.unRText $ URI.uriScheme uri
+  -- | Interpret urlPath either project relative or document relative,
+  -- depending on the leading slash.
+  let extString = toString ext
+  -- calculate path relative to project dir
+  let relPath = makeRelative projectDir urlPath
+  let targetPath = publicDir </> relPath <.> extString
+  let publicRelPath = makeRelativeTo docBaseDir urlPath
+  putStrLn $ "0--- " <> show uri
+  putStrLn $ "1--- " <> (toString $ URI.render uri)
+  putStrLn $ "2--- " <> urlPath
+  putStrLn $ "3--- " <> targetPath
+  putStrLn $ "4--- " <> publicRelPath
+  if urlScheme == "public"
+    then URI.mkURI $ toText publicRelPath
+    else do
+      putStrLn $ "2a-- " <> urlPath
+      exists <- liftIO $ doesFileExist urlPath
+      if exists
+        then needFile targetPath
+        else throwM $
+             ResourceException $ "Local resource does not exist: " <> urlPath
       setUriPath (toText (publicRelPath <.> extString)) uri
 
 needFile :: FilePath -> Filter ()

@@ -1,4 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Text.Decker.Internal.Meta
   ( DeckerException(..)
@@ -8,6 +12,8 @@ module Text.Decker.Internal.Meta
   , mergePandocMeta'
   , pandocMeta
   , setMetaValue
+  , adjustMetaValue
+  , adjustMetaValueM
   , toPandocMeta
   , toPandocMeta'
   , lookupMeta
@@ -104,6 +110,43 @@ setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
     set _ _ =
       throw $
       InternalException $ "Cannot set meta value on non object at: " <> show key
+
+-- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
+-- Apply the function to the value if the key exists.
+adjustMetaValue :: (MetaValue -> MetaValue) -> Text -> Meta -> Meta
+adjustMetaValue f key meta = Meta $ adjust (splitKey key) (MetaMap (unMeta meta))
+  where
+    adjust :: [Text] -> MetaValue -> Map Text MetaValue
+    adjust [k] (MetaMap map) = M.adjust f k map
+    adjust (k:p) (MetaMap map) =
+      case M.lookup k map of
+        Just value -> M.insert k (MetaMap $ adjust p value) map
+        _ -> map
+    adjust _ _ =
+      throw $
+      InternalException $ "Cannot adjust meta value on non object at: " <> show key
+
+-- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
+-- Apply the IO action to the value if the key exists.
+adjustMetaValueM :: Monad m => (MetaValue -> m MetaValue) -> Text -> Meta -> m Meta
+adjustMetaValueM action key meta =
+  Meta <$> adjust (splitKey key) (MetaMap (unMeta meta))
+  where
+    -- adjust :: Monad m => [Text] -> MetaValue -> m (Map Text MetaValue)
+    adjust [k] (MetaMap map) = 
+      case M.lookup k map of
+        Just v -> do
+          v' <- action v
+          return $ M.insert k v' map
+        _ -> return map
+    adjust (k:p) (MetaMap map) =
+      case M.lookup k map of
+        Just value -> do 
+          m' <- adjust p value
+          return $ M.insert k (MetaMap m') map
+        _ -> return map
+    adjust _ _ =
+      throw $ InternalException $ "Cannot adjust meta value on non object at: " <> show key
 
 -- | Adds a meta value to the list found at the compund key in the meta data.
 -- If any intermediate containers do not exist, they are created. 

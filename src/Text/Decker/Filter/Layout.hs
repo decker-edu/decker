@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 module Text.Decker.Filter.Layout
   ( layoutSlide
   ) where

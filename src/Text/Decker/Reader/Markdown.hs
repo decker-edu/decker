@@ -1,16 +1,34 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
+
 module Text.Decker.Reader.Markdown
   ( readAndProcessMarkdown
+  , readAndFilterMarkdownFile
   ) where
 
+import Control.Exception
+import Control.Monad
+import Control.Monad.Loops
+
+import qualified Data.List as List
+import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
+
+import Development.Shake hiding ( Resource )
+import Development.Shake.FilePath as SFP
+
+import Relude
+
+import System.Directory
+
+import Text.CSL.Pandoc
 import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Quiz
-
--- import Text.Decker.Filter.Render
 import Text.Decker.Filter.ShortLink
-import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -19,37 +37,190 @@ import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
+-- import Text.Groom
+import Text.Pandoc hiding ( lookupMeta )
+import Text.Pandoc.Shared ( stringify )
+import Text.Pandoc.Walk
 
-import Control.Exception
-import Control.Monad
-import Control.Monad.Loops
-import Control.Monad.State
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import Development.Shake hiding (Resource)
-import Development.Shake.FilePath as SFP
-import System.Directory
-import Text.CSL.Pandoc
-import Text.Pandoc hiding (lookupMeta)
+readAndFilterMarkdownFile :: Meta -> FilePath -> Action Pandoc
+readAndFilterMarkdownFile globalMeta path
+  = readMarkdownFile globalMeta path
+  >>= liftIO . processCites'
+  >>= deckerMediaFilter globalMeta (takeDirectory path) (takeDirectory path)
 
--- Transitively splices all include files into the pandoc document.
-processIncludes :: Meta -> FilePath -> Pandoc -> Action Pandoc
-processIncludes globalMeta topBaseDir (Pandoc meta blocks) =
-  Pandoc meta <$> processBlocks blocks
+readMarkdownFile :: Meta -> FilePath -> Action Pandoc
+readMarkdownFile globalMeta path
+  = do putVerbose $ "# --> readMarkdownFile: " <> path
+       let base = takeDirectory path
+       parseMarkdownFile path
+         >>= writeBack globalMeta path
+         >>= expandMeta globalMeta base
+         >>= adjustResourcePaths globalMeta base
+         >>= checkVersion
+         >>= includeMarkdownFiles globalMeta base
+
+parseMarkdownFile :: FilePath -> Action Pandoc
+parseMarkdownFile path
+  = do markdown <- liftIO $ Text.readFile path
+       case runPure (readMarkdown pandocReaderOpts markdown) of
+         Right pandoc -> return pandoc
+         Left errMsg
+           -> liftIO $ throwIO $ PandocException (show errMsg)
+
+writeBack :: Meta -> FilePath -> Pandoc -> Action Pandoc
+writeBack meta path pandoc
+  = do let writeBack = lookupMetaOrElse False "write-back.enable" meta
+       when writeBack $ writeToMarkdownFile path pandoc
+       return pandoc
+
+expandMeta :: Meta -> FilePath -> Pandoc -> Action Pandoc
+expandMeta globalMeta base (Pandoc docMeta content)
+  = do let project
+             = lookupMetaOrFail "decker.directories.project" globalMeta
+       -- putVerbose $ "# --> expandMeta: base: " <> base
+       moreMeta <- adjustMetaPaths project base docMeta
+         >>= readAdditionalMeta project base
+       -- putVerbose $ "# --> expandMeta: meta: " <> groom moreMeta
+       return $ Pandoc moreMeta content
+
+-- | Traverses the pandoc AST and adjusts local resource paths.
+-- Pathes are considered in these places:
+-- 1. Url field on Image
+-- 2. src and data-src attributes on Image
+--
+adjustResourcePaths :: Meta -> FilePath -> Pandoc -> Action Pandoc
+adjustResourcePaths meta base pandoc
+  = walkM adjustInline pandoc >>= walkM adjustBlock
   where
-    processBlocks :: [Block] -> Action [Block]
-    processBlocks blcks =
-      Prelude.concat . Prelude.reverse <$> foldM include [] blcks
-    include :: [[Block]] -> Block -> Action [[Block]]
-    include result (Para [Link _ [Str ":include"] (url, _)]) = do
-      includeFile <- urlToFilePathIfLocal topBaseDir (T.unpack url)
-      need [includeFile]
-      Pandoc _ b <- readMetaMarkdown globalMeta topBaseDir includeFile
-      included <- processBlocks b
-      return $ included : result
-    include result block = return $ [block] : result
+    project :: String
+    project = lookupMetaOrFail "decker.directories.project" meta
 
--- | Runs a new style decker filter. That means
+    -- Adjusts the image url and all source attributes. Which source is used
+    -- and how is decided by the media plugin. Calling need is the
+    -- responsibility of the media plugin. 
+    adjustInline :: Inline -> Action Inline
+    adjustInline (Image ( id, cls, kvs ) alt ( url, title ))
+      = do localUrl <- adjustUrl url
+           localAttr <- adjustAttribs srcAttribs kvs
+           return
+             $ Image ( id, cls, localAttr ) alt ( localUrl, title )
+    adjustInline inline = return inline
+
+    adjustUrl :: Text -> Action Text
+    adjustUrl url = liftIO $ makeAbsolutePathIfLocal project base url
+
+    -- Adjusts code block and header attributes.
+    adjustBlock :: Block -> Action Block
+    adjustBlock (CodeBlock ( id, cls, kvs ) text)
+      = do local <- adjustAttribs srcAttribs kvs
+           return $ CodeBlock ( id, cls, local ) text
+    adjustBlock (Header 1 ( id, cls, kvs ) inlines)
+      = do local <- adjustAttribs bgAttribs kvs
+           return $ Header 1 ( id, cls, local ) inlines
+    adjustBlock block = return block
+
+    -- Adjusts the value of one attribute.
+    adjustAttrib :: ( Text, Text ) -> Action ( Text, Text )
+    adjustAttrib ( k, v )
+      = ( k,  ) <$> (liftIO $ makeAbsolutePathIfLocal project base v)
+
+    -- Adjusts the values of all key value attributes that are listed in keys.
+    adjustAttribs
+      :: [ Text ] -> [ ( Text, Text ) ] -> Action [ ( Text, Text ) ]
+    adjustAttribs keys kvs
+      = do let ( paths, other )
+                 = List.partition ((`elem` keys) . fst) kvs
+           local <- mapM adjustAttrib paths
+           return $ local <> other
+
+    -- Source attributes potentially used on images and code blocks.
+    srcAttribs = [ "src", "data-src" ]
+
+    -- Source attributes used on header blocks by reveal.js.
+    bgAttribs
+      = [ "data-background-image"
+        , "data-background-video"
+        , "data-background-iframe"
+        ]
+
+checkVersion :: Pandoc -> Action Pandoc
+checkVersion pandoc = return pandoc
+
+-- | Traverses the pandoc AST and transitively embeds included Markdown files.
+includeMarkdownFiles :: Meta -> FilePath -> Pandoc -> Action Pandoc
+includeMarkdownFiles globalMeta docBase (Pandoc docMeta content)
+  = Pandoc docMeta <$> processBlocks content
+  where
+    processBlocks :: [ Block ] -> Action [ Block ]
+    processBlocks blcks = concat . reverse <$> foldM include [] blcks
+
+    include :: [ [ Block ] ] -> Block -> Action [ [ Block ] ]
+    include document (Para [ Link _ [ Str ":include" ] ( url, _ ) ])
+      = do let project
+                 = lookupMetaOrFail
+                   "decker.directories.project"
+                   globalMeta
+           path <- toString
+             <$> (liftIO $ makeAbsolutePathIfLocal project docBase url)
+           putVerbose
+             $ "# --> include: " <> toString url <> " (" <> path <> ")"
+           need [ path ]
+           Pandoc _ includedBlocks <- readMarkdownFile globalMeta path
+           return $ includedBlocks : document
+    include document block = return $ [ block ] : document
+
+-- | Adjusts meta data values that are file pathes. TODO find a more reasonable
+-- strategy.
+adjustMetaPaths :: FilePath -> FilePath -> Meta -> Action Meta
+adjustMetaPaths project base meta
+  = do adjustRuntimePaths
+         [ "csl", "bibliography", "meta-data", "static-resource-dirs" ]
+         meta
+  where
+    adjustRuntimePaths :: [ Text ] -> Meta -> Action Meta
+    adjustRuntimePaths keys meta
+      = foldM
+        (\meta' key -> adjustMetaValueM toAbsolute key meta')
+        meta
+        keys
+
+    toAbsolute :: MetaValue -> Action MetaValue
+    toAbsolute (MetaInlines inlines)
+      = toAbsolute $ MetaString $ stringify inlines
+    toAbsolute (MetaString uri)
+      = do local <- liftIO $ absolutePathIfLocal project base uri
+           case local of
+             Just local
+               -> do Development.Shake.doesFileExist $ toString local
+                     -- putVerbose $ "# --> adjustMetaPaths: uri: " <> show uri <> ", local: " <> show local
+                     return (MetaString local)
+             Nothing -> return (MetaString uri)
+    toAbsolute (MetaList uris) = MetaList <$> traverse toAbsolute uris
+    toAbsolute value = return value
+
+-- | Check for additional meta files specified in the Meta option `meta-data`.
+-- Assumes that file are specified with absolute paths.
+readAdditionalMeta :: FilePath -> FilePath -> Meta -> Action Meta
+readAdditionalMeta project base meta
+  = do let metaFiles
+             = lookupMetaOrElse [] "meta-data" meta :: [ String ]
+       putVerbose $ "# --> readAdditionalMeta: " <> show metaFiles
+       moreMeta <- traverse (readMetaData project) metaFiles
+       return $ foldr mergePandocMeta' meta (reverse moreMeta)
+
+-- | Reads a meta data file. All values that are paths to local project files
+-- are made absolute. Files referenced in `meta-data` are recursively loaded
+-- and merged.
+readMetaData :: FilePath -> FilePath -> Action Meta
+readMetaData project path
+  = do need [ path ]
+       putVerbose $ "# --> readMetaData: " <> path
+       let base = takeDirectory path
+       meta <- (liftIO $ readMetaDataFile path)
+         >>= adjustMetaPaths project base
+       readAdditionalMeta project base meta
+
+-- | Runs a new style decker filter. That means
 --
 -- 1. Put the decker path info into the documents meta data
 -- 2. Run the filter.
@@ -57,129 +228,188 @@ processIncludes globalMeta topBaseDir (Pandoc meta blocks) =
 --    a) Call need on every dependency.
 --    b) Provision the resources (copy to public)
 -- 4. Remove all traces of this from the meta data
--- 
-runDeckerFilter ::
-     (Pandoc -> IO Pandoc) -> FilePath -> FilePath -> Pandoc -> Action Pandoc
-runDeckerFilter filter topBase docBase pandoc@(Pandoc meta blocks) = do
-  dirs <- projectDirsA
-  let deckerMeta =
-        setMetaValue "decker.base-dir" docBase $
-        setMetaValue "decker.top-base-dir" topBase meta
-  (Pandoc resultMeta resultBlocks) <- liftIO $ filter (Pandoc deckerMeta blocks)
-  need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
-  return (Pandoc meta resultBlocks)
+--
+runDeckerFilter :: (Pandoc -> IO Pandoc)
+  -> FilePath
+  -> FilePath
+  -> Pandoc
+  -> Action Pandoc
+runDeckerFilter filter topBase docBase pandoc @ (Pandoc meta blocks)
+  = do dirs <- projectDirsA
+       let deckerMeta
+             = setMetaValue "decker.base-dir" docBase
+             $ setMetaValue "decker.top-base-dir" topBase meta
+       (Pandoc resultMeta resultBlocks) <- liftIO
+         $ filter (Pandoc deckerMeta blocks)
+       need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
+       return (Pandoc meta resultBlocks)
 
 -- | Runs the new decker media filter.
-deckerMediaFilter topBase docBase (Pandoc meta blocks) =
-  runDeckerFilter (mediaFilter options) topBase docBase (Pandoc meta blocks)
+deckerMediaFilter globalMeta topBase docBase (Pandoc docMeta blocks)
+  = do let combined = mergePandocMeta' docMeta globalMeta
+       runDeckerFilter
+         (mediaFilter options)
+         topBase
+         docBase
+         (Pandoc combined blocks)
   where
-    options =
-      def
-        { writerTemplate = Nothing
-        , writerHTMLMathMethod = MathJax "Handled by reveal.js in the template"
-        , writerExtensions =
-            (enableExtension Ext_auto_identifiers . enableExtension Ext_emoji)
-              pandocExtensions
-        , writerCiteMethod = Citeproc
-        }
+    options
+      = def { writerTemplate = Nothing
+            , writerHTMLMathMethod
+                = MathJax "Handled by reveal.js in the template"
+            , writerExtensions = (enableExtension Ext_auto_identifiers
+                                  . enableExtension Ext_emoji)
+                pandocExtensions
+            , writerCiteMethod = Citeproc
+            }
 
 -- | The old style decker filter pipeline.
-deckerPipeline =
-  concatM
+deckerPipeline
+  = concatM
     [ evaluateShortLinks
     , expandDeckerMacros
-    -- , renderCodeBlocks
+                                                    -- , renderCodeBlocks
     , includeCode
-    -- , provisionResources
+                                                    -- , provisionResources
     , processSlides
     , handleQuizzes
-    -- , processCitesWithDefault
-    ]
+    ]-- , processCitesWithDefault
 
 -- | Reads a markdownfile, expands the included files, and calls need.
-readAndProcessMarkdown :: Meta -> FilePath -> Disposition -> Action Pandoc
-readAndProcessMarkdown meta markdownFile disp = do
-  topLevelBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
-  let provisioning = provisioningFromMeta meta
-  readMetaMarkdown meta topLevelBase markdownFile >>=
-    processIncludes meta topLevelBase >>=
-    processPandoc deckerPipeline topLevelBase disp provisioning
+readAndProcessMarkdown
+  :: Meta -> FilePath -> Disposition -> Action Pandoc
+readAndProcessMarkdown meta markdownFile disp
+  = do topLevelBase
+         <- liftIO $ makeAbsolute $ takeDirectory markdownFile
+       let provisioning = provisioningFromMeta meta
+       readMetaMarkdown meta topLevelBase markdownFile
+         >>= processPandoc
+           deckerPipeline
+           topLevelBase
+           disp
+           provisioning
 
 -- | Reads a markdown file and returns a pandoc document. Handles meta data
 -- extraction.
 readMetaMarkdown :: Meta -> FilePath -> FilePath -> Action Pandoc
-readMetaMarkdown globalMeta topLevelBase markdownFile = do
-  projectDir <- projectA
-  docBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
-  need [markdownFile]
-  markdown <- liftIO $ T.readFile markdownFile
-  let Pandoc fileMeta fileBlocks = readMarkdownOrThrow pandocReaderOpts markdown
-  fileMeta' <-
-    liftIO $ mapMeta (makeAbsolutePathIfLocal projectDir docBase) fileMeta
-  additionalMeta <- getAdditionalMeta fileMeta'
-  let combinedMeta = mergePandocMeta' additionalMeta globalMeta
-  versionCheck combinedMeta
-  let writeBack = lookupMetaOrElse False "write-back.enable" combinedMeta
-  when writeBack $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
-  -- This is the new media filter. Runs right after reading. Because every matched
-  -- document fragment is converted to raw HTML, the following old style filters
-  -- will not see them.
-  neededMeta <- needMetaResources topLevelBase combinedMeta
-  cited <- liftIO $ processCites' (Pandoc neededMeta fileBlocks)
-  deckerMediaFilter topLevelBase docBase cited
+readMetaMarkdown globalMeta topLevelBase markdownFile
+  = do need [ markdownFile ]
+       projectDir <- projectA
+       docBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
+       Pandoc fileMeta fileBlocks
+         <- liftIO $ readMarkdownOrThrow markdownFile
+       fileMeta' <- liftIO
+         $ mapMeta
+           (makeAbsolutePathIfLocal projectDir docBase)
+           fileMeta
+       additionalMeta <- getAdditionalMeta fileMeta'
+       let combinedMeta = mergePandocMeta' additionalMeta globalMeta
+       versionCheck combinedMeta
+       let writeBack
+             = lookupMetaOrElse False "write-back.enable" combinedMeta
+       when writeBack
+         $ writeToMarkdownFile
+           markdownFile
+           (Pandoc fileMeta fileBlocks)
+         -- This is the new media filter. Runs right after reading. Because every matched
+         -- document fragment is converted to raw HTML, the following old style filters
+         -- will not see them.
+       neededMeta <- needMetaResources topLevelBase combinedMeta
+       cited <- liftIO $ processCites' (Pandoc neededMeta fileBlocks)
+       deckerMediaFilter globalMeta topLevelBase docBase cited
+         >>= processIncludes neededMeta topLevelBase
+
+-- Transitively splices all include files into the pandoc document.
+processIncludes :: Meta -> FilePath -> Pandoc -> Action Pandoc
+processIncludes globalMeta topBaseDir (Pandoc meta blocks)
+  = Pandoc meta <$> processBlocks blocks
+  where
+    processBlocks :: [ Block ] -> Action [ Block ]
+    processBlocks blcks = concat . reverse <$> foldM include [] blcks
+
+    include :: [ [ Block ] ] -> Block -> Action [ [ Block ] ]
+    include result (Para [ Link _ [ Str ":include" ] ( url, _ ) ])
+      = do includeFile
+             <- urlToFilePathIfLocal topBaseDir (toString url)
+           putVerbose $ "## include: topBaseDir: " <> topBaseDir
+           putVerbose
+             $ "## include: "
+             <> toString url
+             <> " ("
+             <> includeFile
+             <> ")"
+           need [ includeFile ]
+           Pandoc _ includedBlocks
+             <- readMetaMarkdown globalMeta topBaseDir includeFile
+           return $ includedBlocks : result
+    include result block = return $ [ block ] : result
 
 needMetaResources :: FilePath -> Meta -> Action Meta
 needMetaResources base = mapMetaWithKey needTemplateResources
   where
-    needTemplateResources key value = do
-      let path = T.unpack value
-      exists <- liftIO $ doesPathExist path
-      if exists &&
-         (key == "css" || key == "base-css" || "template." `T.isPrefixOf` key)
-        then do
-          project <- projectA
-          public <- publicA
-          let url = makeRelativeTo base path
-          let target = public </> makeRelativeTo project path
-          need [target]
-          return (T.pack url)
-        else return value
+    needTemplateResources key value
+      = do let path = toString value
+           exists <- liftIO $ doesPathExist path
+           if exists
+             && (key == "css"
+                 || key == "base-css"
+                 || "template." `Text.isPrefixOf` key)
+              then do project <- projectA
+                      public <- publicA
+                      let url = makeRelativeTo base path
+                      let target
+                            = public </> makeRelativeTo project path
+                      need [ target ]
+                      return (toText url)
+              else return value
 
-readMarkdownOrThrow :: ReaderOptions -> T.Text -> Pandoc
-readMarkdownOrThrow opts markdown =
-  case runPure (readMarkdown opts markdown) of
-    Right pandoc -> pandoc
-    Left errMsg -> throw $ PandocException (show errMsg)
+-- | Standard Pandoc + Emoji support
+pandocReaderOpts :: ReaderOptions
+pandocReaderOpts
+  = def
+  { readerExtensions = (enableExtension Ext_emoji) pandocExtensions
+  }
+
+readMarkdownOrThrow :: FilePath -> IO Pandoc
+readMarkdownOrThrow path
+  = do markdown <- Text.readFile path
+       case runPure (readMarkdown pandocReaderOpts markdown) of
+         Right pandoc -> return pandoc
+         Left errMsg -> throwIO $ PandocException (show errMsg)
 
 -- | Writes a pandoc document atomically to a markdown file. 
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
-writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
-  template <-
-    liftIO
-      (compileTemplate "" "$if(titleblock)$\n$titleblock$\n\n$endif$\n\n$body$" >>=
-       handleLeftM)
-  let columns = lookupMetaOrElse 80 "write-back.line-columns" pmeta
-  let wrapOpt :: T.Text -> WrapOption
-      wrapOpt "none" = WrapNone
-      wrapOpt "preserve" = WrapPreserve
-      wrapOpt _ = WrapAuto
-  let wrap = lookupMetaOrElse "none" "write-back.line-wrap" pmeta
-  let extensions =
-        (disableExtension Ext_simple_tables .
-         disableExtension Ext_multiline_tables .
-         disableExtension Ext_grid_tables .
-         disableExtension Ext_raw_html . enableExtension Ext_auto_identifiers)
-          pandocExtensions
-  let options =
-        def
-          { writerTemplate = Just template
-          , writerExtensions = extensions
-          , writerColumns = columns
-          , writerWrapText = wrapOpt wrap
-          , writerSetextHeaders = False
-          }
-  markdown <- liftIO $ runIO (writeMarkdown options pandoc) >>= handleError
-  fileContent <- liftIO $ T.readFile filepath
-  when (markdown /= fileContent) $
-    withTempFile
-      (\tmp -> liftIO $ T.writeFile tmp markdown >> renameFile tmp filepath)
+writeToMarkdownFile filepath pandoc @ (Pandoc pmeta _)
+  = do template <- liftIO
+         (compileTemplate
+            ""
+            "$if(titleblock)$\n$titleblock$\n\n$endif$\n\n$body$"
+          >>= handleLeftM)
+       let columns
+             = lookupMetaOrElse 80 "write-back.line-columns" pmeta
+       let wrapOpt :: Text -> WrapOption
+           wrapOpt "none" = WrapNone
+           wrapOpt "preserve" = WrapPreserve
+           wrapOpt _ = WrapAuto
+       let wrap = lookupMetaOrElse "none" "write-back.line-wrap" pmeta
+       let extensions
+             = (disableExtension Ext_simple_tables
+                . disableExtension Ext_multiline_tables
+                . disableExtension Ext_grid_tables
+                . disableExtension Ext_raw_html
+                . enableExtension Ext_auto_identifiers)
+               pandocExtensions
+       let options
+             = def { writerTemplate = Just template
+                   , writerExtensions = extensions
+                   , writerColumns = columns
+                   , writerWrapText = wrapOpt wrap
+                   , writerSetextHeaders = False
+                   }
+       markdown <- liftIO
+         $ runIO (writeMarkdown options pandoc) >>= handleError
+       fileContent <- liftIO $ Text.readFile filepath
+       when (markdown /= fileContent)
+         $ withTempFile
+           (\tmp -> liftIO
+            $ Text.writeFile tmp markdown >> renameFile tmp filepath)

@@ -1,4 +1,7 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Text.Decker.Writer.Html
   ( writeIndexLists
   , markdownToHtmlDeck
@@ -15,6 +18,7 @@ import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Template
 import Text.Pandoc.Lens
 
+-- import Text.CSL.Pandoc
 import Control.Monad.State
 import qualified Data.Map as M
 import qualified Data.MultiMap as MM
@@ -89,7 +93,9 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
-  pandoc@(Pandoc meta _) <- readAndProcessMarkdown meta markdownFile disp
+  -- pandoc@(Pandoc meta _) <- readAndProcessMarkdown meta markdownFile disp
+  let docBase = takeDirectory markdownFile
+  pandoc@(Pandoc meta _) <- readAndFilterMarkdownFile meta markdownFile 
   let highlightStyle =
         case lookupMeta "highlightjs" meta of
           Nothing -> Just pygments
@@ -128,7 +134,8 @@ markdownToHtmlPage meta getTemplate markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Page Html
-  pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown meta markdownFile disp
+  pandoc@(Pandoc docMeta _) <- readAndFilterMarkdownFile meta markdownFile 
+  -- pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown meta markdownFile disp
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
@@ -154,7 +161,9 @@ markdownToHtmlHandout meta getTemplate markdownFile out = do
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Handout Html
   pandoc@(Pandoc docMeta _) <-
-    wrapSlidesinDivs <$> readAndProcessMarkdown meta markdownFile disp
+    wrapSlidesinDivs <$> readAndFilterMarkdownFile meta markdownFile
+  -- pandoc@(Pandoc docMeta _) <- 
+    -- wrapSlidesinDivs <$> readAndProcessMarkdown meta markdownFile disp
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
@@ -178,8 +187,10 @@ markdownToNotebook meta markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Notebook Html
+  --pandoc@(Pandoc docMeta _) <-
+    --filterNotebookSlides <$> readAndProcessMarkdown meta markdownFile disp
   pandoc@(Pandoc docMeta _) <-
-    filterNotebookSlides <$> readAndProcessMarkdown meta markdownFile disp
+    filterNotebookSlides <$> readAndFilterMarkdownFile meta markdownFile 
   let options =
         pandocWriterOpts
           { writerTemplate = Nothing

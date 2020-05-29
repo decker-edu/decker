@@ -10,7 +10,6 @@ module Text.Decker.Internal.Common
   , doIO
   , needFile
   , needFiles
-  , pandocReaderOpts
   , pandocWriterOpts
   , deckerFiles
   ) where
@@ -73,10 +72,6 @@ data Provisioning
   | Absolute -- ^ Absolute local URL
   | Relative -- ^ Relative local URL
   deriving (Eq, Show, Read)
-
-pandocReaderOpts :: ReaderOptions
-pandocReaderOpts =
-  def {readerExtensions = (enableExtension Ext_emoji) pandocExtensions}
 
 pandocWriterOpts :: WriterOptions
 pandocWriterOpts =

@@ -1,4 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module Text.Decker.Resource.Template
   ( TemplateSource

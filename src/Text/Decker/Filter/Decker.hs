@@ -1,4 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- | This is the new Decker filter for Pandoc.
 --
@@ -36,34 +38,35 @@ import qualified Text.URI as URI
 -- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
 -- may reject the pair and return Nothing.
-pairwise :: ((a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
-pairwise f (x:y:zs) = do
-  match <- f (x, y)
-  case match of
-    Just rs -> (rs ++) <$> pairwise f zs
-    Nothing -> (x :) <$> pairwise f (y : zs)
+pairwise :: (( a, a ) -> Filter (Maybe [ a ])) -> [ a ] -> Filter [ a ]
+pairwise f (x : y : zs) =
+    do match <- f ( x, y )
+       case match of
+           Just rs -> (rs ++) <$> pairwise f zs
+           Nothing -> (x :) <$> pairwise f (y : zs)
 pairwise _ xs = return xs
 
 -- | Applies a filter to each triplet of successive elements in a list.
 -- The filter may consume the elements and return a list of transformed elements,
 -- or it may reject the triplet and return Nothing.
-tripletwise :: ((a, a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
-tripletwise f (w:x:y:zs) = do
-  match <- f (w, x, y)
-  case match of
-    Just rs -> (rs ++) <$> tripletwise f zs
-    Nothing -> (w :) <$> tripletwise f (x : y : zs)
+tripletwise ::
+    (( a, a, a ) -> Filter (Maybe [ a ])) -> [ a ] -> Filter [ a ]
+tripletwise f (w : x : y : zs) =
+    do match <- f ( w, x, y )
+       case match of
+           Just rs -> (rs ++) <$> tripletwise f zs
+           Nothing -> (w :) <$> tripletwise f (x : y : zs)
 tripletwise _ xs = return xs
 
 -- | Runs the document through the four increaingly detailed filter stages. The
 -- matching granularity ranges from list of blocks to single inline elements.
 mediaFilter :: WriterOptions -> Pandoc -> IO Pandoc
 mediaFilter options pandoc =
-  runFilter options transformHeader1 pandoc >>=
-  runFilter options mediaBlockListFilter >>=
-  runFilter options mediaInlineListFilter >>=
-  runFilter options mediaBlockFilter >>=
-  runFilter options mediaInlineFilter
+    runFilter options transformHeader1 pandoc >>=
+    runFilter options mediaBlockListFilter >>=
+    runFilter options mediaInlineListFilter >>=
+    runFilter options mediaBlockFilter >>=
+    runFilter options mediaInlineFilter
 
 -- | Filters lists of Blocks that can match in pairs or triplets. 
 --
@@ -76,7 +79,7 @@ mediaBlockListFilter blocks =
   where
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
-    filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) =
+    filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) = do
       Just . single . forceBlock <$> transformImage image caption
     -- An code block followed by an explicit caption paragraph.
     filterPairs (code@CodeBlock {}, Para (Str "Caption:":caption)) =
@@ -104,10 +107,8 @@ mediaInlineListFilter inlines =
 
 -- | Match a single Block element
 mediaBlockFilter :: Block -> Filter Block
--- A level one header.
-mediaBlockFilter header@(Header 1 attr text) = transformHeader1 header
 -- A solitary image in a paragraph with a possible caption.
-mediaBlockFilter (Para [image@(Image _ caption _)]) =
+mediaBlockFilter (Para [image@(Image _ caption _)]) = do
   forceBlock <$> transformImage image caption
 -- A solitary code block in a paragraph with a possible caption.
 mediaBlockFilter (code@CodeBlock {}) = transformCodeBlock code []
@@ -130,7 +131,8 @@ isImage _ = False
 -- | Matches a single Inline element
 mediaInlineFilter :: Inline -> Filter Inline
 -- An inline image with a possible caption.
-mediaInlineFilter image@(Image _ caption _) = transformImage image caption
+mediaInlineFilter image@(Image _ caption _) = do
+  transformImage image caption
 -- Default filter
 mediaInlineFilter inline = return inline
 
@@ -341,8 +343,7 @@ imageHtml uri caption = do
   let fileName = toText $ takeFileName $ toString rendered
   case caption of
     [] -> do
-      injectBorder >> takeSize >> takeUsual >>
-        injectAttribute ("alt", fileName)
+      injectBorder >> takeSize >> takeUsual >> injectAttribute ("alt", fileName)
       mkImageTag rendered <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
