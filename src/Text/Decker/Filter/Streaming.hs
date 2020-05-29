@@ -10,6 +10,7 @@ import Text.Decker.Internal.URI
 
 import Control.Monad.Catch
 import qualified Data.Text as Text
+import Network.HTTP.Base (urlDecode)
 import Relude
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
@@ -190,8 +191,14 @@ mkYoutubeUri :: Text -> Attrib URI
 mkYoutubeUri streamId = do
   params <- cutAttribs youtubeParams
   flags <- cutClasses youtubeFlags
+  let loop = Text.pack "loop"
+  let newFlags =
+        case flags of
+          loop ->
+            return $ Text.pack "playlist=" <> streamId <> Text.pack "&loop"
+          _ -> flags
   uri <- URI.mkURI $ "https://www.youtube.com/embed/" <> streamId
-  setQuery [] (merge [params, map (, "1") flags, youtubeDefaults]) uri
+  setQuery [] (merge [params, map (, "1") newFlags, youtubeDefaults]) uri
 
 mkVimeoUri :: Text -> Attrib URI
 mkVimeoUri streamId = do
@@ -234,7 +241,7 @@ mkMediaTag tag uri dataSrc attr =
 mkStreamTag :: URI -> Attr -> Attr -> Html
 mkStreamTag uri wrapperAttr iframeAttr =
   let inner =
-        mkMediaTag (H.iframe "Iframe showing video here.") uri False iframeAttr
+        mkMediaTag (H.iframe "Iframe showing video here.") uri True iframeAttr
    in mkAttrTag (H.div inner) wrapperAttr
 
 mkDivTag :: Html -> Attr -> Html
