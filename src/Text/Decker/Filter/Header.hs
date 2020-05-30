@@ -23,12 +23,6 @@ transformHeader1 h1 @ (Header 1 headAttr inlines)
   where
     buildHeader img @ ( Image imgAttr alt ( url, title ), rest )
       = do uri <- transformUrl url ""
-           putStrLn
-             $ "image in header: "
-             <> show uri
-             <> " ("
-             <> show url
-             <> ")"
            runAttrOn headAttr imgAttr
              $ case classifyMedia uri imgAttr of
                ImageT
