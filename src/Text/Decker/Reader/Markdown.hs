@@ -2,17 +2,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 
-module Text.Decker.Reader.Markdown
-  ( readAndProcessMarkdown
-  , readAndFilterMarkdownFile
-  ) where
+module Text.Decker.Reader.Markdown ( readAndFilterMarkdownFile ) where
 
 import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 
 import qualified Data.List as List
-import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 
 import Development.Shake hiding ( Resource )
@@ -34,10 +30,7 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
-import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
-import Text.Decker.Project.Version
-import Text.Decker.Resource.Resource
 import Text.Pandoc hiding ( lookupMeta )
 import Text.Pandoc.Shared ( stringify )
 import Text.Pandoc.Walk
@@ -264,87 +257,10 @@ deckerPipeline
     , handleQuizzes
     ]-- , processCitesWithDefault
 
--- | Reads a markdownfile, expands the included files, and calls need.
-readAndProcessMarkdown :: Meta -> FilePath -> Disposition -> Action Pandoc
-readAndProcessMarkdown meta markdownFile disp
-  = do topLevelBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
-       let provisioning = provisioningFromMeta meta
-       readMetaMarkdown meta topLevelBase markdownFile
-         >>= processPandoc deckerPipeline topLevelBase disp provisioning
-
--- | Reads a markdown file and returns a pandoc document. Handles meta data
--- extraction.
-readMetaMarkdown :: Meta -> FilePath -> FilePath -> Action Pandoc
-readMetaMarkdown globalMeta topLevelBase markdownFile
-  = do need [ markdownFile ]
-       projectDir <- projectA
-       docBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
-       Pandoc fileMeta fileBlocks <- liftIO $ readMarkdownOrThrow markdownFile
-       fileMeta' <- liftIO
-         $ mapMeta (makeAbsolutePathIfLocal projectDir docBase) fileMeta
-       additionalMeta <- getAdditionalMeta fileMeta'
-       let combinedMeta = mergePandocMeta' additionalMeta globalMeta
-       versionCheck combinedMeta
-       let writeBack = lookupMetaOrElse False "write-back.enable" combinedMeta
-       when writeBack
-         $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
-         -- This is the new media filter. Runs right after reading. Because every matched
-         -- document fragment is converted to raw HTML, the following old style filters
-         -- will not see them.
-       neededMeta <- needMetaResources topLevelBase combinedMeta
-       cited <- liftIO $ processCites' (Pandoc neededMeta fileBlocks)
-       deckerMediaFilter globalMeta topLevelBase docBase cited
-         >>= processIncludes neededMeta topLevelBase
-
--- Transitively splices all include files into the pandoc document.
-processIncludes :: Meta -> FilePath -> Pandoc -> Action Pandoc
-processIncludes globalMeta topBaseDir (Pandoc meta blocks)
-  = Pandoc meta <$> processBlocks blocks
-  where
-    processBlocks :: [ Block ] -> Action [ Block ]
-    processBlocks blcks = concat . reverse <$> foldM include [] blcks
-
-    include :: [ [ Block ] ] -> Block -> Action [ [ Block ] ]
-    include result (Para [ Link _ [ Str ":include" ] ( url, _ ) ])
-      = do includeFile <- urlToFilePathIfLocal topBaseDir (toString url)
-           putVerbose $ "## include: topBaseDir: " <> topBaseDir
-           putVerbose
-             $ "## include: " <> toString url <> " (" <> includeFile <> ")"
-           need [ includeFile ]
-           Pandoc _ includedBlocks
-             <- readMetaMarkdown globalMeta topBaseDir includeFile
-           return $ includedBlocks : result
-    include result block = return $ [ block ] : result
-
-needMetaResources :: FilePath -> Meta -> Action Meta
-needMetaResources base = mapMetaWithKey needTemplateResources
-  where
-    needTemplateResources key value
-      = do let path = toString value
-           exists <- liftIO $ doesPathExist path
-           if exists
-             && (key == "css"
-                 || key == "base-css"
-                 || "template." `Text.isPrefixOf` key)
-              then do project <- projectA
-                      public <- publicA
-                      let url = makeRelativeTo base path
-                      let target = public </> makeRelativeTo project path
-                      need [ target ]
-                      return (toText url)
-              else return value
-
 -- | Standard Pandoc + Emoji support
 pandocReaderOpts :: ReaderOptions
 pandocReaderOpts
   = def { readerExtensions = (enableExtension Ext_emoji) pandocExtensions }
-
-readMarkdownOrThrow :: FilePath -> IO Pandoc
-readMarkdownOrThrow path
-  = do markdown <- Text.readFile path
-       case runPure (readMarkdown pandocReaderOpts markdown) of
-         Right pandoc -> return pandoc
-         Left errMsg -> throwIO $ PandocException (show errMsg)
 
 -- | Writes a pandoc document atomically to a markdown file. 
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
