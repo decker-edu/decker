@@ -175,8 +175,15 @@ body {
   margin: 10px 0;
   line-height: 1.3; }
 
-/* MARIO: remove empty paragraphs */
-.reveal p:empty { display: none; }
+/* MARIO: do not completely remove empty paragraphs with display:none.
+ * Instead let them cause a line break, but not eat up more space */
+.reveal p:empty { 
+    display: block;
+    margin:  0;
+    padding: 0;
+    height:  0;
+    width:   auto;
+}
 
 .reveal strong {
     font-weight: bold;
