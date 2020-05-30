@@ -35,6 +35,9 @@ import Text.Pandoc hiding ( lookupMeta )
 import Text.Pandoc.Shared ( stringify )
 import Text.Pandoc.Walk
 
+-- | Reads a Markdown file and run all the the Decker specific filters on it.
+-- The path is assumed to be an absolute path in the local file system under
+-- the project root directory. Throws an exception if something goes wrong
 readAndFilterMarkdownFile :: Disposition -> Meta -> FilePath -> Action Pandoc
 readAndFilterMarkdownFile disp globalMeta path
   = do let docBase = (takeDirectory path)
@@ -43,6 +46,10 @@ readAndFilterMarkdownFile disp globalMeta path
          >>= deckerMediaFilter globalMeta docBase docBase
          >>= processPandoc deckerPipeline docBase disp Copy
 
+-- | Reads a Markdown file from the local file system. Local resource paths are
+-- converted to absolute paths. Additional meta data is read and merged into
+-- the document. Other Markdown files may be transitively included. Throws an
+-- exception if something goes wrong
 readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path
   = do putVerbose $ "# --> readMarkdownFile: " <> path
@@ -54,6 +61,12 @@ readMarkdownFile globalMeta path
          >>= checkVersion
          >>= includeMarkdownFiles globalMeta base
 
+-- | Standard Pandoc + Emoji support
+pandocReaderOpts :: ReaderOptions
+pandocReaderOpts
+  = def { readerExtensions = (enableExtension Ext_emoji) pandocExtensions }
+
+-- | Parses a Markdown file and throws an exception if something goes wrong.
 parseMarkdownFile :: FilePath -> Action Pandoc
 parseMarkdownFile path
   = do markdown <- liftIO $ Text.readFile path
@@ -61,25 +74,29 @@ parseMarkdownFile path
          Right pandoc -> return pandoc
          Left errMsg -> liftIO $ throwIO $ PandocException (show errMsg)
 
+-- | Writes a Pandoc document to a file in Markdown format. Throws an exception
+-- if something goes wrong
 writeBack :: Meta -> FilePath -> Pandoc -> Action Pandoc
 writeBack meta path pandoc
   = do let writeBack = lookupMetaOrElse False "write-back.enable" meta
        when writeBack $ writeToMarkdownFile path pandoc
        return pandoc
 
+-- | Reads additional meta data from files listed in `meta-data:`. In case of
+-- conflict, order of encouter determines preference. Later values win.
 expandMeta :: Meta -> FilePath -> Pandoc -> Action Pandoc
 expandMeta globalMeta base (Pandoc docMeta content)
   = do let project = lookupMetaOrFail "decker.directories.project" globalMeta
-       -- putVerbose $ "# --> expandMeta: base: " <> base
        moreMeta <- adjustMetaPaths project base docMeta
          >>= readAdditionalMeta project base
-       -- putVerbose $ "# --> expandMeta: meta: " <> groom moreMeta
        return $ Pandoc moreMeta content
 
--- | Traverses the pandoc AST and adjusts local resource paths.
--- Pathes are considered in these places:
--- 1. Url field on Image
--- 2. src and data-src attributes on Image
+-- | Traverses the pandoc AST and adjusts local resource paths. Paths are
+-- considered in these places:
+--
+-- 1. Url field on Image elements
+-- 2. src and data-src attributes on Image and CodeBlock elements
+-- 3. data-backgound-* attributes in Header 1 elements
 --
 adjustResourcePaths :: Meta -> FilePath -> Pandoc -> Action Pandoc
 adjustResourcePaths meta base pandoc
@@ -158,7 +175,7 @@ includeMarkdownFiles globalMeta docBase (Pandoc docMeta content)
            return $ includedBlocks : document
     include document block = return $ [ block ] : document
 
--- | Adjusts meta data values that are file pathes. TODO find a more reasonable
+-- | Adjusts meta data values that are file pathes. TODO find a more flexible
 -- strategy.
 adjustMetaPaths :: FilePath -> FilePath -> Meta -> Action Meta
 adjustMetaPaths project base meta
@@ -178,7 +195,6 @@ adjustMetaPaths project base meta
            case local of
              Just local
                -> do Development.Shake.doesFileExist $ toString local
-                     -- putVerbose $ "# --> adjustMetaPaths: uri: " <> show uri <> ", local: " <> show local
                      return (MetaString local)
              Nothing -> return (MetaString uri)
     toAbsolute (MetaList uris) = MetaList <$> traverse toAbsolute uris
@@ -256,11 +272,6 @@ deckerPipeline
     , processSlides
     , handleQuizzes
     ]-- , processCitesWithDefault
-
--- | Standard Pandoc + Emoji support
-pandocReaderOpts :: ReaderOptions
-pandocReaderOpts
-  = def { readerExtensions = (enableExtension Ext_emoji) pandocExtensions }
 
 -- | Writes a pandoc document atomically to a markdown file. 
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
