@@ -64,8 +64,8 @@
             "overfull": 10,
             "indent": 1,
             "overfull-once": 200,
-            "max-line-length": 72,
-            "linebreak": 80
+            "max-line-length": 80,
+            "linebreak": 90
         },
         "indent": {
             "deriving": 2,

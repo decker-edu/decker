@@ -94,8 +94,7 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
   -- pandoc@(Pandoc meta _) <- readAndProcessMarkdown meta markdownFile disp
-  let docBase = takeDirectory markdownFile
-  pandoc@(Pandoc meta _) <- readAndFilterMarkdownFile meta markdownFile 
+  pandoc@(Pandoc meta _) <- readAndFilterMarkdownFile disp meta markdownFile 
   let highlightStyle =
         case lookupMeta "highlightjs" meta of
           Nothing -> Just pygments
@@ -134,7 +133,7 @@ markdownToHtmlPage meta getTemplate markdownFile out = do
   putCurrentDocument out
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Page Html
-  pandoc@(Pandoc docMeta _) <- readAndFilterMarkdownFile meta markdownFile 
+  pandoc@(Pandoc docMeta _) <- readAndFilterMarkdownFile disp meta markdownFile 
   -- pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown meta markdownFile disp
   template <- getTemplate (templateFile disp)
   let options =
@@ -161,7 +160,7 @@ markdownToHtmlHandout meta getTemplate markdownFile out = do
   supportDir <- getRelativeSupportDir (takeDirectory out)
   let disp = Disposition Handout Html
   pandoc@(Pandoc docMeta _) <-
-    wrapSlidesinDivs <$> readAndFilterMarkdownFile meta markdownFile
+    wrapSlidesinDivs <$> readAndFilterMarkdownFile disp meta markdownFile
   -- pandoc@(Pandoc docMeta _) <- 
     -- wrapSlidesinDivs <$> readAndProcessMarkdown meta markdownFile disp
   template <- getTemplate (templateFile disp)
@@ -190,7 +189,7 @@ markdownToNotebook meta markdownFile out = do
   --pandoc@(Pandoc docMeta _) <-
     --filterNotebookSlides <$> readAndProcessMarkdown meta markdownFile disp
   pandoc@(Pandoc docMeta _) <-
-    filterNotebookSlides <$> readAndFilterMarkdownFile meta markdownFile 
+    filterNotebookSlides <$> readAndFilterMarkdownFile disp meta markdownFile 
   let options =
         pandocWriterOpts
           { writerTemplate = Nothing

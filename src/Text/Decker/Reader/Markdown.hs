@@ -29,6 +29,7 @@ import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.ShortLink
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -37,16 +38,17 @@ import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
--- import Text.Groom
 import Text.Pandoc hiding ( lookupMeta )
 import Text.Pandoc.Shared ( stringify )
 import Text.Pandoc.Walk
 
-readAndFilterMarkdownFile :: Meta -> FilePath -> Action Pandoc
-readAndFilterMarkdownFile globalMeta path
-  = readMarkdownFile globalMeta path
-  >>= liftIO . processCites'
-  >>= deckerMediaFilter globalMeta (takeDirectory path) (takeDirectory path)
+readAndFilterMarkdownFile :: Disposition -> Meta -> FilePath -> Action Pandoc
+readAndFilterMarkdownFile disp globalMeta path
+  = do let docBase = (takeDirectory path)
+       readMarkdownFile globalMeta path
+         >>= liftIO . processCites'
+         >>= deckerMediaFilter globalMeta docBase docBase
+         >>= processPandoc deckerPipeline docBase disp Copy
 
 readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path
@@ -64,8 +66,7 @@ parseMarkdownFile path
   = do markdown <- liftIO $ Text.readFile path
        case runPure (readMarkdown pandocReaderOpts markdown) of
          Right pandoc -> return pandoc
-         Left errMsg
-           -> liftIO $ throwIO $ PandocException (show errMsg)
+         Left errMsg -> liftIO $ throwIO $ PandocException (show errMsg)
 
 writeBack :: Meta -> FilePath -> Pandoc -> Action Pandoc
 writeBack meta path pandoc
@@ -75,8 +76,7 @@ writeBack meta path pandoc
 
 expandMeta :: Meta -> FilePath -> Pandoc -> Action Pandoc
 expandMeta globalMeta base (Pandoc docMeta content)
-  = do let project
-             = lookupMetaOrFail "decker.directories.project" globalMeta
+  = do let project = lookupMetaOrFail "decker.directories.project" globalMeta
        -- putVerbose $ "# --> expandMeta: base: " <> base
        moreMeta <- adjustMetaPaths project base docMeta
          >>= readAdditionalMeta project base
@@ -102,8 +102,7 @@ adjustResourcePaths meta base pandoc
     adjustInline (Image ( id, cls, kvs ) alt ( url, title ))
       = do localUrl <- adjustUrl url
            localAttr <- adjustAttribs srcAttribs kvs
-           return
-             $ Image ( id, cls, localAttr ) alt ( localUrl, title )
+           return $ Image ( id, cls, localAttr ) alt ( localUrl, title )
     adjustInline inline = return inline
 
     adjustUrl :: Text -> Action Text
@@ -128,8 +127,7 @@ adjustResourcePaths meta base pandoc
     adjustAttribs
       :: [ Text ] -> [ ( Text, Text ) ] -> Action [ ( Text, Text ) ]
     adjustAttribs keys kvs
-      = do let ( paths, other )
-                 = List.partition ((`elem` keys) . fst) kvs
+      = do let ( paths, other ) = List.partition ((`elem` keys) . fst) kvs
            local <- mapM adjustAttrib paths
            return $ local <> other
 
@@ -157,9 +155,7 @@ includeMarkdownFiles globalMeta docBase (Pandoc docMeta content)
     include :: [ [ Block ] ] -> Block -> Action [ [ Block ] ]
     include document (Para [ Link _ [ Str ":include" ] ( url, _ ) ])
       = do let project
-                 = lookupMetaOrFail
-                   "decker.directories.project"
-                   globalMeta
+                 = lookupMetaOrFail "decker.directories.project" globalMeta
            path <- toString
              <$> (liftIO $ makeAbsolutePathIfLocal project docBase url)
            putVerbose
@@ -179,10 +175,7 @@ adjustMetaPaths project base meta
   where
     adjustRuntimePaths :: [ Text ] -> Meta -> Action Meta
     adjustRuntimePaths keys meta
-      = foldM
-        (\meta' key -> adjustMetaValueM toAbsolute key meta')
-        meta
-        keys
+      = foldM (\meta' key -> adjustMetaValueM toAbsolute key meta') meta keys
 
     toAbsolute :: MetaValue -> Action MetaValue
     toAbsolute (MetaInlines inlines)
@@ -202,8 +195,7 @@ adjustMetaPaths project base meta
 -- Assumes that file are specified with absolute paths.
 readAdditionalMeta :: FilePath -> FilePath -> Meta -> Action Meta
 readAdditionalMeta project base meta
-  = do let metaFiles
-             = lookupMetaOrElse [] "meta-data" meta :: [ String ]
+  = do let metaFiles = lookupMetaOrElse [] "meta-data" meta :: [ String ]
        putVerbose $ "# --> readAdditionalMeta: " <> show metaFiles
        moreMeta <- traverse (readMetaData project) metaFiles
        return $ foldr mergePandocMeta' meta (reverse moreMeta)
@@ -229,11 +221,8 @@ readMetaData project path
 --    b) Provision the resources (copy to public)
 -- 4. Remove all traces of this from the meta data
 --
-runDeckerFilter :: (Pandoc -> IO Pandoc)
-  -> FilePath
-  -> FilePath
-  -> Pandoc
-  -> Action Pandoc
+runDeckerFilter
+  :: (Pandoc -> IO Pandoc) -> FilePath -> FilePath -> Pandoc -> Action Pandoc
 runDeckerFilter filter topBase docBase pandoc @ (Pandoc meta blocks)
   = do dirs <- projectDirsA
        let deckerMeta
@@ -254,14 +243,14 @@ deckerMediaFilter globalMeta topBase docBase (Pandoc docMeta blocks)
          (Pandoc combined blocks)
   where
     options
-      = def { writerTemplate = Nothing
-            , writerHTMLMathMethod
-                = MathJax "Handled by reveal.js in the template"
-            , writerExtensions = (enableExtension Ext_auto_identifiers
-                                  . enableExtension Ext_emoji)
-                pandocExtensions
-            , writerCiteMethod = Citeproc
-            }
+      = def
+      { writerTemplate = Nothing
+      , writerHTMLMathMethod = MathJax "Handled by reveal.js in the template"
+      , writerExtensions
+          = (enableExtension Ext_auto_identifiers . enableExtension Ext_emoji)
+            pandocExtensions
+      , writerCiteMethod = Citeproc
+      }
 
 -- | The old style decker filter pipeline.
 deckerPipeline
@@ -276,18 +265,12 @@ deckerPipeline
     ]-- , processCitesWithDefault
 
 -- | Reads a markdownfile, expands the included files, and calls need.
-readAndProcessMarkdown
-  :: Meta -> FilePath -> Disposition -> Action Pandoc
+readAndProcessMarkdown :: Meta -> FilePath -> Disposition -> Action Pandoc
 readAndProcessMarkdown meta markdownFile disp
-  = do topLevelBase
-         <- liftIO $ makeAbsolute $ takeDirectory markdownFile
+  = do topLevelBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
        let provisioning = provisioningFromMeta meta
        readMetaMarkdown meta topLevelBase markdownFile
-         >>= processPandoc
-           deckerPipeline
-           topLevelBase
-           disp
-           provisioning
+         >>= processPandoc deckerPipeline topLevelBase disp provisioning
 
 -- | Reads a markdown file and returns a pandoc document. Handles meta data
 -- extraction.
@@ -296,21 +279,15 @@ readMetaMarkdown globalMeta topLevelBase markdownFile
   = do need [ markdownFile ]
        projectDir <- projectA
        docBase <- liftIO $ makeAbsolute $ takeDirectory markdownFile
-       Pandoc fileMeta fileBlocks
-         <- liftIO $ readMarkdownOrThrow markdownFile
+       Pandoc fileMeta fileBlocks <- liftIO $ readMarkdownOrThrow markdownFile
        fileMeta' <- liftIO
-         $ mapMeta
-           (makeAbsolutePathIfLocal projectDir docBase)
-           fileMeta
+         $ mapMeta (makeAbsolutePathIfLocal projectDir docBase) fileMeta
        additionalMeta <- getAdditionalMeta fileMeta'
        let combinedMeta = mergePandocMeta' additionalMeta globalMeta
        versionCheck combinedMeta
-       let writeBack
-             = lookupMetaOrElse False "write-back.enable" combinedMeta
+       let writeBack = lookupMetaOrElse False "write-back.enable" combinedMeta
        when writeBack
-         $ writeToMarkdownFile
-           markdownFile
-           (Pandoc fileMeta fileBlocks)
+         $ writeToMarkdownFile markdownFile (Pandoc fileMeta fileBlocks)
          -- This is the new media filter. Runs right after reading. Because every matched
          -- document fragment is converted to raw HTML, the following old style filters
          -- will not see them.
@@ -329,15 +306,10 @@ processIncludes globalMeta topBaseDir (Pandoc meta blocks)
 
     include :: [ [ Block ] ] -> Block -> Action [ [ Block ] ]
     include result (Para [ Link _ [ Str ":include" ] ( url, _ ) ])
-      = do includeFile
-             <- urlToFilePathIfLocal topBaseDir (toString url)
+      = do includeFile <- urlToFilePathIfLocal topBaseDir (toString url)
            putVerbose $ "## include: topBaseDir: " <> topBaseDir
            putVerbose
-             $ "## include: "
-             <> toString url
-             <> " ("
-             <> includeFile
-             <> ")"
+             $ "## include: " <> toString url <> " (" <> includeFile <> ")"
            need [ includeFile ]
            Pandoc _ includedBlocks
              <- readMetaMarkdown globalMeta topBaseDir includeFile
@@ -357,8 +329,7 @@ needMetaResources base = mapMetaWithKey needTemplateResources
               then do project <- projectA
                       public <- publicA
                       let url = makeRelativeTo base path
-                      let target
-                            = public </> makeRelativeTo project path
+                      let target = public </> makeRelativeTo project path
                       need [ target ]
                       return (toText url)
               else return value
@@ -366,9 +337,7 @@ needMetaResources base = mapMetaWithKey needTemplateResources
 -- | Standard Pandoc + Emoji support
 pandocReaderOpts :: ReaderOptions
 pandocReaderOpts
-  = def
-  { readerExtensions = (enableExtension Ext_emoji) pandocExtensions
-  }
+  = def { readerExtensions = (enableExtension Ext_emoji) pandocExtensions }
 
 readMarkdownOrThrow :: FilePath -> IO Pandoc
 readMarkdownOrThrow path
@@ -385,8 +354,7 @@ writeToMarkdownFile filepath pandoc @ (Pandoc pmeta _)
             ""
             "$if(titleblock)$\n$titleblock$\n\n$endif$\n\n$body$"
           >>= handleLeftM)
-       let columns
-             = lookupMetaOrElse 80 "write-back.line-columns" pmeta
+       let columns = lookupMetaOrElse 80 "write-back.line-columns" pmeta
        let wrapOpt :: Text -> WrapOption
            wrapOpt "none" = WrapNone
            wrapOpt "preserve" = WrapPreserve
@@ -411,5 +379,5 @@ writeToMarkdownFile filepath pandoc @ (Pandoc pmeta _)
        fileContent <- liftIO $ Text.readFile filepath
        when (markdown /= fileContent)
          $ withTempFile
-           (\tmp -> liftIO
-            $ Text.writeFile tmp markdown >> renameFile tmp filepath)
+           (\tmp
+            -> liftIO $ Text.writeFile tmp markdown >> renameFile tmp filepath)

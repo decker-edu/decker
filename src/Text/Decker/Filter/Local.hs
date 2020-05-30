@@ -319,32 +319,18 @@ processLocalUri' uri ext = do
 processLocalUri :: URI -> Text -> Filter URI
 processLocalUri uri ext = do
   unless (URI.isPathAbsolute uri) $ throwM $ InternalException $ "processLocalUri: relative path detected in URI: " <> show uri
-  -- | The project relative (!) document directory from which this is called.
   docBaseDir <- lookupMetaOrFail "decker.base-dir" <$> gets meta
-  putStrLn $ "b--- " <> toString docBaseDir
-  -- | The absolute (!) project directory from which this is called.
   projectDir <- lookupMetaOrFail "decker.directories.project" <$> gets meta
-  -- | The absolute (!) public directory where everything is published to.
   publicDir <- lookupMetaOrFail "decker.directories.public" <$> gets meta
-  -- | The path component from the URI
   let urlPath = toString $ uriPath uri
   let urlScheme = toString $ maybe "" URI.unRText $ URI.uriScheme uri
-  -- | Interpret urlPath either project relative or document relative,
-  -- depending on the leading slash.
   let extString = toString ext
-  -- calculate path relative to project dir
   let relPath = makeRelative projectDir urlPath
   let targetPath = publicDir </> relPath <.> extString
   let publicRelPath = makeRelativeTo docBaseDir urlPath
-  putStrLn $ "0--- " <> show uri
-  putStrLn $ "1--- " <> (toString $ URI.render uri)
-  putStrLn $ "2--- " <> urlPath
-  putStrLn $ "3--- " <> targetPath
-  putStrLn $ "4--- " <> publicRelPath
   if urlScheme == "public"
     then URI.mkURI $ toText publicRelPath
     else do
-      putStrLn $ "2a-- " <> urlPath
       exists <- liftIO $ doesFileExist urlPath
       if exists
         then needFile targetPath
@@ -359,17 +345,9 @@ resolveFileUri :: URI -> Filter FilePath
 resolveFileUri uri = do
   let urlPath = toString $ uriPath uri
   cwd <- liftIO getCurrentDirectory
-  baseDir <- toString <$> getMeta "decker.base-dir" "."
-  projectDir <- toString <$> getMeta "decker.project-dir" (toText cwd)
-  publicDir <-
-    toString <$> getMeta "decker.public-dir" (toText $ cwd </> "public")
-  let relPath =
-        normalise $
-        if hasDrive urlPath
-          then dropDrive urlPath
-          else makeRelative projectDir baseDir </> urlPath
-  let sourcePath = projectDir </> relPath
-  return sourcePath
+  docBase <- lookupMetaOrFail "decker.base-dir" <$> gets meta
+  project <- lookupMetaOrFail "decker.directories.project" <$> gets meta
+  return $ makeAbsolutePath project docBase urlPath
 
 setMeta :: Text -> Text -> Filter ()
 setMeta key value = modifyMeta (setMetaValue key (MetaString value))
