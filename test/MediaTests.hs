@@ -260,6 +260,9 @@ testSnippets =
   , ( "Youtube video stream"
     , "An image with source URL scheme `youtube:` results in an embedded video player."
     , "![](youtube:1234567890){#video1 .autoplay .controls width=\"75%\"}")
+  , ( "Youtube video stream"
+    , "With reveal.js style autoplay and looping."
+    , "![](youtube:1234567890){#video2 .autoplay .loop}")
   , ( "Vimeo it baby"
     , "An image with source URL scheme `vimeo:` results in an embedded video player."
     , "![Caption.](vimeo://1234567890){#video2 .some-class autoplay=\"autoplay\" aspect=\"4:3\" width=\"75%\" some-attribute=\"yeah\"}")

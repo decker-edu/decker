@@ -533,7 +533,30 @@ translates to
 ``` {.html}
 <div id="video1" class="decker nofigure" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
-        <iframe allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://www.youtube.com/embed/1234567890?autoplay=1&cc_load_policy=0&controls=1&iv_load_policy=3&modestbranding=&rel=0&showinfo=0">
+        <iframe data-autoplay="1" allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?cc_load_policy=0&controls=1&iv_load_policy=3&modestbranding=1&rel=0&showinfo=0">
+            Iframe showing video here.
+        </iframe>
+    </div>
+</div>
+```
+
+------------------------------------------------------------------------
+
+Youtube video stream
+--------------------
+
+With reveal.js style autoplay and looping.
+
+``` {.markdown}
+![](youtube:1234567890){#video2 .autoplay .loop}
+```
+
+translates to
+
+``` {.html}
+<div id="video2" class="decker nofigure">
+    <div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
+        <iframe data-autoplay="1" allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?cc_load_policy=0&controls=2&iv_load_policy=3&loop=1&modestbranding=1&playlist=1234567890&rel=0&showinfo=0">
             Iframe showing video here.
         </iframe>
     </div>
@@ -556,7 +579,7 @@ translates to
 ``` {.html}
 <figure id="video2" class="decker some-class" data-some-attribute="yeah" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:75.00%;height:0;">
-        <iframe allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://player.vimeo.com/video/?autoplay=autoplay&byline=0&controls=1&dnt=1&fun=0&title=0&transparent=false">
+        <iframe data-autoplay="1" allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.vimeo.com/video/?byline=0&controls=1&dnt=1&fun=0&title=0&transparent=false">
             Iframe showing video here.
         </iframe>
     </div>
@@ -582,7 +605,7 @@ translates to
 ``` {.html}
 <figure class="decker controls" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:60.00%;height:0;">
-        <iframe allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://player.twitch.tv/?autoplay=1&video=1234567890">
+        <iframe allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.twitch.tv/?autoplay=1&video=1234567890">
             Iframe showing video here.
         </iframe>
     </div>

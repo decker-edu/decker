@@ -10,7 +10,6 @@ import Text.Decker.Internal.URI
 
 import Control.Monad.Catch
 import qualified Data.Text as Text
-import Network.HTTP.Base (urlDecode)
 import Relude
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
@@ -29,7 +28,7 @@ youtubeDefaults =
   [ ("cc_load_policy", "0")
   , ("controls", "2")
   , ("iv_load_policy", "3")
-  , ("modestbranding", "")
+  , ("modestbranding", "1")
   , ("rel", "0")
   , ("showinfo", "0")
   ]
@@ -38,7 +37,7 @@ youtubeDefaults =
 youtubeParams =
   [ "cc_load_policy"
   , "color"
-  , "autoplay"
+  -- , "autoplay" is handled by reveal.js
   , "controls"
   , "disablekb"
   , "enablejsapi"
@@ -59,7 +58,7 @@ youtubeParams =
 youtubeFlags =
   [ "cc_load_policy"
   , "disablekb"
-  , "autoplay"
+  -- , "autoplay" is handled by reveal.js
   , "controls"
   , "enablejsapi"
   , "fs"
@@ -86,7 +85,7 @@ vimeoDefaults =
 
 vimeoParams =
   [ "autopause"
-  , "autoplay"
+  -- , "autoplay" is handled by reveal.js
   , "background"
   , "byline"
   , "color"
@@ -106,7 +105,7 @@ vimeoParams =
 
 vimeoFlags =
   [ "autopause"
-  , "autoplay"
+  -- , "autoplay" is handled by reveal.js
   , "background"
   , "byline"
   , "controls"
@@ -155,7 +154,7 @@ streamHtml' uri caption = do
         throwM $
         ResourceException $
         "Unsupported stream service: " <> toString (fromMaybe "<none>" scheme)
-  iframeAttr <- takeIframeAttr >> extractAttr
+  iframeAttr <- takeIframeAttr >> takeAutoplay >> extractAttr
   wrapperAttr <- takeWrapperAttr >> extractAttr
   let streamTag = mkStreamTag streamUri wrapperAttr iframeAttr
   case caption of
@@ -189,16 +188,15 @@ takeIframeAttr = do
 
 mkYoutubeUri :: Text -> Attrib URI
 mkYoutubeUri streamId = do
-  params <- cutAttribs youtubeParams
   flags <- cutClasses youtubeFlags
-  let loop = Text.pack "loop"
-  let newFlags =
-        case flags of
-          loop ->
-            return $ Text.pack "playlist=" <> streamId <> Text.pack "&loop"
-          _ -> flags
+  params <- enableLoop flags <$> cutAttribs youtubeParams
   uri <- URI.mkURI $ "https://www.youtube.com/embed/" <> streamId
-  setQuery [] (merge [params, map (, "1") newFlags, youtubeDefaults]) uri
+  setQuery [] (merge [params, map (, "1") flags, youtubeDefaults]) uri
+  where
+    enableLoop flags params =
+      if "loop" `elem` flags
+        then ("playlist", streamId) : params
+        else params
 
 mkVimeoUri :: Text -> Attrib URI
 mkVimeoUri streamId = do
