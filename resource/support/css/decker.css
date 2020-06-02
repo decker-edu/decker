@@ -1033,7 +1033,7 @@ dd {
   border-bottom: none;
 }
 
-.reveal .slide-number {
+.reveal table .slide-number {
   color: #009;
   background-color: rgba(255, 255, 255, 0);
 }
@@ -1151,11 +1151,12 @@ dd {
 }
 
 .reveal .slide-number {
-  width: 100%;
-  text-align: center;
   background: transparent;
   color: gray;
   font-size: 0.4em;
+  position: fixed;
+  right: 50%;
+  bottom: 2vmin;
 }
 
 .reveal .resume-button {
