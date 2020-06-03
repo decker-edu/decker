@@ -73,6 +73,11 @@ needSel sel = needSels [sel]
 
 needSels sels targets = need (concatMap (targets ^.) sels)
 
+-- | Functionality for "decker clean" command
+-- Removes public and .decker directory
+-- located outside of Shake 
+-- due to unlinking differences and parallel processes on Windows 
+-- which prevented files from being deleted 
 runClean :: IO ()
 runClean = do
   warnVersion
@@ -267,10 +272,6 @@ run = do
     phony "annotations" $ do
       targets <- getTargets
       need (targets ^. annotations)
-    --
-    -- phony "clean" $ do
-      -- liftIO $ tryRemoveDirectory (directories ^. public)
-      -- liftIO $ tryRemoveDirectory (directories ^. transient)
     --
     phony "info" $ do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
