@@ -20,6 +20,7 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reveal.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
 $if(thebelab.enable)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/thebelab/thebelab.css">
 $endif$
@@ -454,7 +455,7 @@ $endif$
 $if(menu)$
 $if(mario)$
         menu: {
-            side:              'right',
+            side:              'left',
             numbers:           true,
             titleSelector:     'h1',
             hideMissingTitles: false,
@@ -462,8 +463,8 @@ $if(mario)$
             custom:            false,
             themes:            false,
             transitions:       false,
-            openButton:        false,
-            openSlideNumber:   true,
+            openButton:        true,
+            openSlideNumber:   false,
             keyboard:          true,
             loadIcons:         false
         },

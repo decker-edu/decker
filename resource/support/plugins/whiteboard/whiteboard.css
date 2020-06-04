@@ -155,10 +155,12 @@
 }
 #whiteboardButtons>#whiteboardButton:hover {
     display: inline-block;
+    color:   var(--whiteboard-active-color) !important;
     opacity: 1.0;
 }
 #whiteboardButtons.active>#whiteboardButton {
     display: inline-block;
+    color:   var(--whiteboard-active-color);
     opacity: 1.0;
 }
 

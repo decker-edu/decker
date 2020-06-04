@@ -17,13 +17,16 @@ var RevealMenu = window.RevealMenu || (function(){
 	
 	var module = {};
 
-	loadResource(options.path + 'menu.css', 'stylesheet', function() {
-		if (loadIcons) {
-			loadResource(options.path + 'font-awesome/css/all.css', 'stylesheet', loadPlugin)
-		} else {
-			loadPlugin();
-		}
-	})
+    // MARIO: load menu.css in deck.html, so that we can overload the style with custom css
+    // MARIO: load FontAwesome in deck.html (we load it there anyway)
+	//loadResource(options.path + 'menu.css', 'stylesheet', function() {
+		//if (loadIcons) {
+			//loadResource(options.path + 'font-awesome/css/all.css', 'stylesheet', loadPlugin)
+		//} else {
+			//loadPlugin();
+		//}
+	//})
+    loadPlugin();
 
 
 	function loadPlugin() {
