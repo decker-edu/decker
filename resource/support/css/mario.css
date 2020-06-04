@@ -1101,7 +1101,7 @@ body {
     pointer-events: none;
 }
 
-.reveal select {
+.reveal select.blankSelect {
     font:        inherit;
     font-size:   0.9em;
     font-weight: normal;
@@ -1110,15 +1110,13 @@ body {
     background:  white;
 }
 
-.reveal select option {
+.reveal option.blankOption {
     font:        inherit;
-    font-size:   0.9em;
-    max-height:  1em;
-    min-height:  1em !important;
+    font-size:   16px;
     font-weight: normal;
 }
 
-.reveal input {
+.reveal .freetextQuestion input {
     font:        inherit;
     font-size:   0.9em;
     font-weight: normal;
