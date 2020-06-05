@@ -1055,10 +1055,16 @@ body {
     color:      grey;
 }
 .reveal .matching .dragzone:before {
-    content: "drag from here";
+    content: "drag objects from here...";
 }
 .reveal .matching .dropzones:before {
-    content: "drop here";
+    content: "...and drop them here into the correct category";
+}
+:lang(de) .reveal .matching .dragzone:before {
+    content: "Objekte per Drag&Drop nach oben ziehen...";
+}
+:lang(de) .reveal .matching .dropzones:before {
+    content: "...und hier in die richtige Kategorie einsortieren";
 }
 
 .reveal .matching .dragzone:after {
