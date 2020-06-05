@@ -82,8 +82,9 @@ test:linux:
     paths:
       - .stack-work
       - .stack
-  dependencies:
-    - build:linux
+  needs: 
+    - job: build:linux
+      artifacts: true
 
 deploy:mac:
   stage: deploy
@@ -98,11 +99,14 @@ deploy:mac:
     - if [ $CI_COMMIT_REF_NAME == "master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker store/decker/decker-mac${SUFFIX}
-  dependencies:
-    - build:mac
-  only:
-    - master
-    - /^v\d\.\d\.\d-patching$/
+  needs:
+    - job: build:mac
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      when: always
+    - if '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
+      when: always
 
 deploy:linux:
   stage: deploy
@@ -117,11 +121,14 @@ deploy:linux:
     - if [ $CI_COMMIT_REF_NAME == "master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker store/decker/decker-linux${SUFFIX}
-  dependencies:
-    - build:linux
-  only:
-    - master
-    - /^v\d\.\d\.\d-patching$/
+  needs:
+    - job: build:linux
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      when: always
+    - if '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
+      when: always
 
 deploy:win:
   stage: deploy
@@ -137,14 +144,19 @@ deploy:win:
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker.exe store/decker/decker-win${SUFFIX}.exe
     - mc cp ./version.txt store/decker/version-win${SUFFIX}.txt
-  dependencies:
-    - build:win
-  only:
-    - master
-    - /^v\d\.\d\.\d-patching$/
+  needs:
+    - job: build:win
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      when: always
+    - if '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
+      when: always
 
 review:
   stage: deploy
+  variables:
+    GIT_STRATEGY: none
   image: 
     name: curlimages/curl:latest
     entrypoint: [""]
@@ -157,11 +169,14 @@ review:
     url: http://review.decker.informatik.uni-wuerzburg.de/$CI_COMMIT_REF_NAME
     on_stop: stop_review
     auto_stop_in: 2 week
-  dependencies:
-    - build:linux
+  needs:
+    - job: build:linux
+      artifacts: true
 
 stop_review:
   stage: stop
+  variables:
+    GIT_STRATEGY: none
   image: 
     name: curlimages/curl:latest
     entrypoint: [""]
