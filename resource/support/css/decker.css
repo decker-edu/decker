@@ -730,10 +730,22 @@ ul > li:before {
   content: "drag from here";
 }
 
+.reveal .quiz-mi .matchItems:lang(de):before,
+.reveal .qmi .matchItems:lang(de):before,
+.reveal .quiz-match-items .matchItems:lang(de):before {
+  content: "Von hier ziehen";
+}
+
 .reveal .quiz-mi .buckets:before,
 .reveal .qmi .buckets:before,
 .reveal .quiz-match-items .buckets:before {
   content: "drop here";
+}
+
+.reveal .quiz-mi .buckets:lang(de):before,
+.reveal .qmi .buckets:lang(de):before,
+.reveal .quiz-match-items .buckets:lang(de):before {
+  content: "Hier ablegen";
 }
 
 .reveal .quiz-mi .matchItems:after,

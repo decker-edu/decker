@@ -124,8 +124,15 @@
         .matchItems:before{
             content: "drag from here";
         }
+
+        .matchItems:lang(de):before{
+            content: "Von hier ziehen";
+        }
         .buckets:before{
             content: "drop here";
+        }
+        .buckets:lang(de):before{
+            content: "Hier ablegen";
         }
         .matchItems:after{
             position:      absolute;

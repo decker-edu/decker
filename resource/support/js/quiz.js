@@ -13,12 +13,28 @@ else {
 
 
 function quiz() {
+    quizLocalisation();
     quizMI();
     quizMC();
     quizIC();
     quizFT();
 }
 
+function quizLocalisation() {
+    var solutionButtons = document.querySelectorAll(".solutionButton");
+    for (let button of solutionButtons) {
+        if (document.documentElement.lang == "de") {
+            button.textContent = "Auflösen";
+        }
+    }
+
+    var inputs = document.getElementsByTagName("input");
+    for (let input of inputs) {
+        if (document.documentElement.lang == "de") {
+            input.placeholder = "Eingeben und 'Enter'";
+        }
+    }
+}
 
 function quizMI() {
     var miQuestions = document.querySelectorAll(".qmi,.quiz-mi,.quiz-match-items");
