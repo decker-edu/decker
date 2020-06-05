@@ -82,13 +82,13 @@ test:linux:
     paths:
       - .stack-work
       - .stack
-  needs: 
+  needs:
     - job: build:linux
       artifacts: true
 
 deploy:mac:
   stage: deploy
-  image: 
+  image:
     name: minio/mc:latest
     entrypoint: [""]
   variables:
@@ -105,12 +105,12 @@ deploy:mac:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
-    - if '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
+    - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
       when: always
 
 deploy:linux:
   stage: deploy
-  image: 
+  image:
     name: minio/mc:latest
     entrypoint: [""]
   variables:
@@ -127,12 +127,12 @@ deploy:linux:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
-    - if '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
+    - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
       when: always
 
 deploy:win:
   stage: deploy
-  image: 
+  image:
     name: minio/mc:latest
     entrypoint: [""]
   variables:
@@ -150,14 +150,14 @@ deploy:win:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
-    - if '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
+    - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
       when: always
 
 review:
   stage: deploy
   variables:
     GIT_STRATEGY: none
-  image: 
+  image:
     name: curlimages/curl:latest
     entrypoint: [""]
   tags:
@@ -177,7 +177,7 @@ stop_review:
   stage: stop
   variables:
     GIT_STRATEGY: none
-  image: 
+  image:
     name: curlimages/curl:latest
     entrypoint: [""]
   tags:
