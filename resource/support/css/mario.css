@@ -948,23 +948,26 @@ body {
 }
 
 .reveal button.fs-button { 
-    z-index:          100;
-    display:          inline-block;
-    position:         absolute;
-    top:              0px;
-    right:            0px;
-    cursor:           pointer;
-    padding:          2px;
-    border:           none;
-    background-color: rgba(255,255,255,0.5);
-    opacity:          0.2;
-    font-size:        20px;
-    outline:          none;
+    z-index:    100;
+    display:    inline-block;
+    position:   absolute;
+    top:        0px;
+    right:      0px;
+    cursor:     pointer;
+    padding:    2px;
+    border:     none;
+    outline:    none;
+    background-color: rgba(255,255,255,0.2);
+    font-size:  var(--whiteboard-icon-size);
+    padding:    calc(var(--whiteboard-icon-size) * 0.5);
+    opacity:    0.5;
+    color:      var(--whiteboard-inactive-color);
 }
 
 .reveal button.fs-button:hover { 
-    opacity:          1.0;
-    background-color: rgba(255,255,255,0.8);
+    opacity: 1.0;
+    color: var(--whiteboard-active-color);
+    background-color: rgba(255,255,255,0.5);
 }
 
 
