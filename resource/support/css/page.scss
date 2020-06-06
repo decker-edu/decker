@@ -1,155 +1,94 @@
-@import url("../vendor/bootstrap.min.css");
+@import url("../vendor/css/light.min.css");
 @import url("../vendor/fontawesome/css/all.css");
-@import url("../fonts/roboto.css");
-@import url("../fonts/source-code-pro.css");
 
-body {
-  background: white;
-  -webkit-print-color-adjust: exact; // No standard: https://developer.mozilla.org/de/docs/Web/CSS/-webkit-print-color-adjust
+header > h1 {
+  font-size: 2em;
+}
 
-  .decker-page {
-    font-family: "Roboto", sans-serif;
-    font-size: 16px;
-    font-weight: normal;
-    // color: rgba(0, 0, 0, 1);
-    max-width: 800px;
+body > h1:first-of-type {
+  font-size: 1.75em;
+}
 
-    .page-header {
-      font-size: 160%;
-      small {
-        white-space: nowrap;
-      }
-    }
+h1 {
+  font-size: 1.5em;
+}
 
-    h1 {
-      font-size: 130%;
-    }
+h2 {
+  font-size: 1.25em;
+}
 
-    h2 {
-      font-size: 120%;
-    }
+h3,
+h4,
+h5,
+h6 {
+  font-size: 1em;
+}
 
-    h3 {
-      font-size: 110%;
-    }
+header h1 {
+  margin-bottom: 0;
+}
 
-    h4 {
-      font-size: 100%;
-    }
+header h2 {
+  margin-top: 0;
+  color: var(--muted);
+}
 
-    .smallcaps {
-      font-variant: small-caps;
-    }
+header nav {
+  margin-bottom: 0.5rem;
+}
 
-    .line-block {
-      white-space: pre-line;
-    }
+header {
+  background: var(--background-alt);
+  border-bottom: 1px solid var(--border);
+  padding: 2rem 1.5rem;
 
-    code {
-      font-family: "Source Code Pro", monospace;
-      font-size: 100%;
-      font-weight: 500;
-      color: #06287e;
-    }
+  /* This sets the right and left margins to cancel out the body's margins. It's width is still the same, but the background stretches across the page's width. */
 
-    /////////////////////////////////////////////
-    // Lists
-    /////////////////////////////////////////////
-    ol,
-    dl,
-    ul {
-      text-align: left;
-    }
+  margin: -2rem calc(0px - (50vw - 50%)) 2rem;
 
-    ol {
-      list-style-type: decimal;
-    }
+  /* Shorthand for:
+	margin-top: -2rem;
+	margin-bottom: 2rem;
+	margin-left: calc(0px - (50vw - 50%));
+	margin-right: calc(0px - (50vw - 50%)); */
 
-    ul {
-      list-style-type: disc;
+  padding-left: calc(50vw - 50%);
+  padding-right: calc(50vw - 50%);
+}
 
-      ul {
-        list-style-type: disc;
+header h1,
+header h2,
+header h3 {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
 
-        ul {
-          list-style-type: disc;
-        }
-      }
-    }
+header > *:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
 
-    a {
-      color: #009;
-      text-decoration: none;
+header > *:last-child {
+  margin-bottom: 0;
+}
 
-      &:hover {
-        color: blue;
-        text-shadow: none;
-        border: none;
 
-        img {
-          background: rgba(255, 255, 255, 0.2);
-          border: none;
-          box-shadow: none;
-        }
-      }
-    }
+// iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
+div.videoWrapper {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  padding-top: 0;
+  height: 0;
 
-    // iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
-    &.videoWrapper {
-      position: relative;
-      padding-bottom: 56.25%; /* 16:9 */
-      padding-top: 0;
-      height: 0;
-
-      iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-      }
-    }
-  }
-
-  /////////////////////////////////////////////
-  // Media
-  /////////////////////////////////////////////
-  img {
-    max-width: 75%;
-    margin: 0 auto;
-    display: block;
-    border: none;
-    box-shadow: none;
-    border-radius: 0.25em;
-  }
-
-  figure {
-    margin: 0 0 0 0;
-    text-align: center;
-
-    figcaption {
-      font-size: 0.8em;
-      font-style: italic;
-    }
-  }
-
-  video {
+  iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    margin: 0 auto;
-    display: block;
+    height: 100%;
   }
+}
 
-  @media print {
-    @page {
-      size: A4; /* DIN A4 standard, Europe */
-      margin: 0;
-    }
-    html,
-    body {
-      overflow: visible;
-    }
-    a:link:after {
-      content: " (" attr(href) ") ";
-    }
-  }
+::-webkit-scrollbar {
+  display: none;
 }

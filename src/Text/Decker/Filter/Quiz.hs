@@ -25,34 +25,26 @@ import Text.Decker.Internal.Meta
 -- Pair: consisting of a bucket where items should be dropped; The items which belong to the bucket
 -- Distractor: Just a list of items without accompanying bucket
 data Match
-  = Pair
-      { bucketID :: Int
-      , bucket :: [Inline]
-      , items :: [[Block]]
-      }
-  | Distractor
-      { items :: [[Block]]
-      }
+  = Pair { bucketID :: Int
+         , bucket :: [Inline]
+         , items :: [[Block]] }
+  | Distractor { items :: [[Block]] }
   deriving (Show)
 
 -- | A Choice consists of a Boolean (correct), the answer text and a tooltip comment
-data Choice =
-  Choice
-    { correct :: Bool
-    , text :: [Inline]
-    , comment :: [Block]
-    }
-  deriving (Show)
+data Choice = Choice
+  { correct :: Bool
+  , text :: [Inline]
+  , comment :: [Block]
+  } deriving (Show)
 
 -- | Set different (optional) meta options for quizzes in a yaml code block
-data QuizMeta =
-  QuizMeta
-    { _category :: T.Text
-    , _lectureId :: T.Text
-    , _score :: Int
-    , _topic :: T.Text
-    }
-  deriving (Show)
+data QuizMeta = QuizMeta
+  { _category :: T.Text
+  , _lectureId :: T.Text
+  , _score :: Int
+  , _topic :: T.Text
+  } deriving (Show)
 
 makeLenses ''QuizMeta
 
@@ -61,35 +53,30 @@ makeLenses ''QuizMeta
 data Quiz
   = MultipleChoice
   -- Multiple Choice questions consist of one question (e.g. h2 header and some blocks) and a following choices/selection part
-      { _title :: [Inline]
-      , _tags :: [T.Text]
-      , _quizMeta :: QuizMeta
-      , _question :: [Block]
-      , _choices :: [Choice]
-      }
+     { _title :: [Inline]
+     , _tags :: [T.Text]
+     , _quizMeta :: QuizMeta
+     , _question :: [Block]
+     , _choices :: [Choice] }
   | MatchItems
   -- Matching Questions consist of one question and a pairing "area" for sorting items via dragging and dropping
-      { _title :: [Inline]
-      , _tags :: [T.Text]
-      , _quizMeta :: QuizMeta
-      , _question :: [Block]
-      , _pairs :: [Match]
-      }
+     { _title :: [Inline]
+     , _tags :: [T.Text]
+     , _quizMeta :: QuizMeta
+     , _question :: [Block]
+     , _pairs :: [Match] }
   | InsertChoices
   -- These questions can have multiple question and answer/choices parts. 
   -- This is why questions is a list of tuples. 
-      { _title :: [Inline]
-      , _tags :: [T.Text]
-      , _quizMeta :: QuizMeta
-      , _questions :: [([Block], [Choice])]
-      }
-  | FreeText
-      { _title :: [Inline]
-      , _tags :: [T.Text]
-      , _quizMeta :: QuizMeta
-      , _question :: [Block]
-      , _choices :: [Choice]
-      }
+     { _title :: [Inline]
+     , _tags :: [T.Text]
+     , _quizMeta :: QuizMeta
+     , _questions :: [([Block], [Choice])] }
+  | FreeText { _title :: [Inline]
+             , _tags :: [T.Text]
+             , _quizMeta :: QuizMeta
+             , _question :: [Block]
+             , _choices :: [Choice] }
   deriving (Show)
 
 makeLenses ''Quiz
@@ -116,10 +103,10 @@ handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
     -- setTags q ts = set tags ts q
     -- The default "new" quizzes
     defaultMeta = QuizMeta "" "" 0 ""
-    defaultMatch = MatchItems [Str "Empty"] [] defaultMeta [] []
-    defaultMC = MultipleChoice [Str "Empty"] [] defaultMeta [] []
-    defaultIC = InsertChoices [Str "Empty"] [] defaultMeta []
-    defaultFree = FreeText [Str "Empty"] [] defaultMeta [] []
+    defaultMatch = MatchItems [] [] defaultMeta [] []
+    defaultMC = MultipleChoice [] [] defaultMeta [] []
+    defaultIC = InsertChoices [] [] defaultMeta []
+    defaultFree = FreeText [] [] defaultMeta [] []
 
 -- Take the parsed Quizzes and render them to html
 renderQuizzes :: Quiz -> Block
@@ -226,7 +213,7 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
         "category" -> set category (lookupMetaOrElse "" t m) qm
         "lectureId" -> set lectureId (lookupMetaOrElse "" t m) qm
         "topic" -> set topic (lookupMetaOrElse "" t m) qm
-        _ -> throw $ InternalException $ "Internal error: unknown attribute: " <> show t
+        _ -> throw $ InternalException $ "Unknown meta data key: " <> show t
 
 -- | A simple Html button
 solutionButton =
@@ -236,9 +223,13 @@ solutionButton =
 
 renderMultipleChoice :: Quiz -> Block
 renderMultipleChoice quiz@(MultipleChoice title tgs qm q ch) =
-  Div ("", tgs, []) $ [Header 2 ("", [], []) title] ++ q ++ [choiceBlock]
+  Div ("", tgs, []) $ header ++ q ++ [choiceBlock]
   -- ++ [solutionButton]
   where
+    header =
+      case title of
+        [] -> []
+        _ -> [Header 2 ("", [], []) title]
     choiceBlock = rawHtml' $ choiceList "choices" ch
 renderMultipleChoice q =
   Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
@@ -266,10 +257,13 @@ choiceList t choices =
 
 renderInsertChoices :: Quiz -> Block
 renderInsertChoices quiz@(InsertChoices title tgs qm q) =
-  Div ("", tgs, []) $
-  [Header 2 ("", [], []) title] ++ questionBlocks q ++ tooltipDiv
+  Div ("", tgs, []) $ header ++ questionBlocks q ++ tooltipDiv
   -- ++ [solutionButton]
   where
+    header =
+      case title of
+        [] -> []
+        _ -> [Header 2 ("", [], []) title]
     tooltipDiv = [Div ("", [T.pack "tooltip-div"], []) []]
     questionBlocks :: [([Block], [Choice])] -> [Block]
     questionBlocks = map (rawHtml' . handleTuple)
@@ -303,9 +297,12 @@ renderInsertChoices q =
 -- 
 renderMatching :: Quiz -> Block
 renderMatching quiz@(MatchItems title tgs qm qs matches) =
-  Div ("", tgs, []) $
-  [Header 2 ("", [], []) title] ++ qs ++ [bucketsDiv, itemsDiv, solutionButton]
+  Div ("", tgs, []) $ header ++ qs ++ [bucketsDiv, itemsDiv, solutionButton]
   where
+    header =
+      case title of
+        [] -> []
+        _ -> [Header 2 ("", [], []) title]
     (buckets, items) = unzip $ map pairs matches
     itemsDiv = Div ("", ["matchItems"], []) (concat items)
     bucketsDiv = Div ("", ["buckets"], []) buckets
@@ -330,9 +327,12 @@ renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
 renderFreeText :: Quiz -> Block
 renderFreeText quiz@(FreeText title tgs qm q ch) =
-  Div ("", tgs, []) $
-  [Header 2 ("", [], []) title] ++ q ++ [inputRaw] ++ [solutionButton]
+  Div ("", tgs, []) $ header ++ q ++ [inputRaw] ++ [solutionButton]
   where
+    header =
+      case title of
+        [] -> []
+        _ -> [Header 2 ("", [], []) title]
     inputRaw =
       rawHtml'
         ((H.input ! A.placeholder "Type and press 'Enter'") >>

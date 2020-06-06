@@ -163,7 +163,7 @@ If only one item/solution is provided it will be rendered as a blank.
 
 is the first letter in the ABC. The second one is
 
-- [ ] B
+- [X] B
   - yep
 
 ```
@@ -179,7 +179,7 @@ is the first letter in the ABC. The second one is
 
 is the first letter in the ABC. The second one is
 
-- [ ] B
+- [X] B
   - yep
 
 
@@ -192,9 +192,9 @@ This will create a simple input field/text box where the user can write their an
 
 What's the first letter in the alphabet?
 
-- A
+- [X] A
   - yep
-- B
+- [ ] B
   - nope
 
 ## {.qft}
@@ -206,15 +206,15 @@ What's the fourth letter?
 
 ```
 
-# FreeTExt Question Example {.sub}
+# FreeText Question Example without h2 title {.sub}
 
-## FreeText Question TL {.qft}
+## {.qft}
 
 What's the first letter in the alphabet?
 
-- A
+- [X] A
   - yep
-- B
+- [ ] B
   - nope
 
 ## {.qft}

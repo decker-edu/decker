@@ -118,7 +118,7 @@ setUriScheme scheme uri = uri {URI.uriScheme = URI.mkScheme scheme}
 
 setUriPath :: MonadThrow m => Text -> URI -> m URI
 setUriPath path uri = do
-  pathUri <- URI.mkURI path
+  pathUri <- URI.mkURI (Text.replace "\\" "/" path)
   return
     uri
       { URI.uriPath = URI.uriPath pathUri

@@ -34,7 +34,7 @@ import Text.Printf
 -- | Generates an index.md file with links to all generated files of interest.
 writeIndexLists :: Meta -> Targets -> FilePath -> FilePath -> Action ()
 writeIndexLists meta targets out baseUrl = do
-  let projectDir = lookupMetaOrElse "decker.directories.project" "." meta
+  let projectDir = lookupMetaOrElse "" "decker.directories.project" meta
   let decks = zip (_decks targets) (_decksPdf targets)
   let handouts = zip (_handouts targets) (_handoutsPdf targets)
   let pages = zip (_pages targets) (_pagesPdf targets)

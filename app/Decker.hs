@@ -17,7 +17,7 @@ import Data.Version
 
 import Development.Shake
 import Development.Shake.FilePath
-
+import GHC.IO.Encoding
 import NeatInterpolation
 
 import qualified System.Directory as Dir
@@ -41,6 +41,7 @@ import Text.Pandoc hiding (lookupMeta)
 
 main :: IO ()
 main = do
+  setLocaleEncoding utf8
   args <- getArgs
   if null args
     then run
