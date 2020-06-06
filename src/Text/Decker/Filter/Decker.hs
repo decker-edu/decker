@@ -38,35 +38,34 @@ import qualified Text.URI as URI
 -- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
 -- may reject the pair and return Nothing.
-pairwise :: (( a, a ) -> Filter (Maybe [ a ])) -> [ a ] -> Filter [ a ]
-pairwise f (x : y : zs) =
-    do match <- f ( x, y )
-       case match of
-           Just rs -> (rs ++) <$> pairwise f zs
-           Nothing -> (x :) <$> pairwise f (y : zs)
+pairwise :: ((a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
+pairwise f (x:y:zs) = do
+  match <- f (x, y)
+  case match of
+    Just rs -> (rs ++) <$> pairwise f zs
+    Nothing -> (x :) <$> pairwise f (y : zs)
 pairwise _ xs = return xs
 
 -- | Applies a filter to each triplet of successive elements in a list.
 -- The filter may consume the elements and return a list of transformed elements,
 -- or it may reject the triplet and return Nothing.
-tripletwise ::
-    (( a, a, a ) -> Filter (Maybe [ a ])) -> [ a ] -> Filter [ a ]
-tripletwise f (w : x : y : zs) =
-    do match <- f ( w, x, y )
-       case match of
-           Just rs -> (rs ++) <$> tripletwise f zs
-           Nothing -> (w :) <$> tripletwise f (x : y : zs)
+tripletwise :: ((a, a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
+tripletwise f (w:x:y:zs) = do
+  match <- f (w, x, y)
+  case match of
+    Just rs -> (rs ++) <$> tripletwise f zs
+    Nothing -> (w :) <$> tripletwise f (x : y : zs)
 tripletwise _ xs = return xs
 
 -- | Runs the document through the four increaingly detailed filter stages. The
 -- matching granularity ranges from list of blocks to single inline elements.
 mediaFilter :: WriterOptions -> Pandoc -> IO Pandoc
 mediaFilter options pandoc =
-    runFilter options transformHeader1 pandoc >>=
-    runFilter options mediaBlockListFilter >>=
-    runFilter options mediaInlineListFilter >>=
-    runFilter options mediaBlockFilter >>=
-    runFilter options mediaInlineFilter
+  runFilter options transformHeader1 pandoc >>=
+  runFilter options mediaBlockListFilter >>=
+  runFilter options mediaInlineListFilter >>=
+  runFilter options mediaBlockFilter >>=
+  runFilter options mediaInlineFilter
 
 -- | Filters lists of Blocks that can match in pairs or triplets. 
 --
@@ -260,7 +259,7 @@ transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
         liftIO $ do
           createDirectoryIfMissing True (project </> deckerFiles </> "code")
           Text.writeFile absPath text
-      uri <- lift $ URI.mkURI ("/" <> toText relPath)
+      uri <- lift $ URI.mkURI (toText absPath)
       renderCodeHtml uri caption
 transformCodeBlock block _ = return block
 
@@ -387,7 +386,6 @@ mviewHtml uri caption = do
   uri <- lift $ transformUri uri ""
   let model = URI.render uri
   pushAttribute ("model", model)
-  -- specify mview URL project relative
   mviewUri <- URI.mkURI "public:support/mview/mview.html"
   iframeHtml mviewUri caption
 

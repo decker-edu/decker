@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Text.Decker.Server.Server
   ( startHttpServer
   , stopHttpServer
@@ -6,30 +7,34 @@ module Text.Decker.Server.Server
   , Server
   ) where
 
-import Text.Decker.Project.Project
-
 -- TODO is this still used?
 -- import Text.Decker.Server.Dachdecker (login)
 import Control.Concurrent
-
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
+
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import Data.ByteString.UTF8
 import Data.List
 import qualified Data.Set as Set
 import qualified Data.Text as Text
+
 import Network.WebSockets
 import Network.WebSockets.Snap
+
 import Snap.Core
 import Snap.Http.Server
 import Snap.Util.FileServe
+
 import System.Directory
 import System.FilePath
 import System.Random
+
+import Text.Decker.Internal.Helper
+import Text.Decker.Project.Project
 
 -- Logging and port configuration for the server.
 serverConfig :: ProjectDirs -> Int -> IO (Config Snap a)
@@ -94,7 +99,7 @@ runHttpServer state dirs port = do
   let routes =
         route
           [ ("/reload", runWebSocketsSnap $ reloader state)
-          -- , ("/dachdecker", method POST $ serveDachdecker)
+                 -- , ("/dachdecker", method POST $ serveDachdecker)
           , ( "/reload.html"
             , serveFile $ dirs ^. project </> "test" </> "reload.html")
           , (supportPath, serveDirectoryNoCaching state supportRoot)

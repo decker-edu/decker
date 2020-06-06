@@ -1,6 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Text.Decker.Resource.Template
   ( TemplateSource
@@ -12,24 +12,29 @@ module Text.Decker.Resource.Template
   , templateFile
   ) where
 
+import Control.Monad
+
+import qualified Data.Map.Strict as Map
+import Data.Maybe
+import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
+import Data.Yaml
+
+import Development.Shake
+
+import Relude
+
+import System.Environment
+import System.FilePath
+
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
 import Text.Decker.Resource.Zip
-
-import Control.Monad
-import qualified Data.Map.Strict as Map
-import Data.Maybe
-import qualified Data.Text as Text
-import qualified Data.Text.IO as Text
-import Data.Yaml
-import Development.Shake
-import Relude
-import System.Environment
-import System.FilePath
 import Text.Pandoc hiding (getTemplate, lookupMeta)
+import Text.URI (URI)
 import qualified Text.URI as URI
 
 {- | Defines the interface to template packs that can be selected at runtime. -}

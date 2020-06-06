@@ -1,20 +1,13 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Text.Decker.Internal.Common
-  ( DeckerState(..)
-  , Layout(..)
-  , OutputFormat(..)
-  , Disposition(..)
-  , MediaType(..)
-  , Provisioning(..)
-  , Decker
-  , doIO
-  , needFile
-  , needFiles
-  , pandocWriterOpts
-  , deckerFiles
-  ) where
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
+module Text.Decker.Internal.Common where
+
+import Control.Lens hiding ((.=))
 import Control.Monad.State
+import Data.Aeson
+import Data.Aeson.TH
+import Data.Char
 import Development.Shake (Action, need)
 import Text.Pandoc
 
@@ -82,3 +75,17 @@ pandocWriterOpts =
          disableExtension Ext_multiline_tables . enableExtension Ext_emoji)
           pandocExtensions
     }
+
+data ProjectDirs = ProjectDirs
+  { _project :: FilePath
+  , _public :: FilePath
+  , _support :: FilePath
+  , _transient :: FilePath
+  } deriving (Eq, Show)
+
+makeLenses ''ProjectDirs
+
+$(deriveJSON
+    defaultOptions
+      {fieldLabelModifier = drop 1, constructorTagModifier = map toLower}
+    ''ProjectDirs)

@@ -1,45 +1,34 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE MultiWayIf #-}
 
 module Text.Decker.Filter.Local where
 
-import Text.Decker.Filter.Monad
-import Text.Decker.Internal.Meta
-import Text.Decker.Internal.URI
-import Text.Decker.Project.Project
-
 import Control.Monad.Catch
+
 import Data.Digest.Pure.MD5
 import qualified Data.Text as Text
+import qualified Data.Text.IO as Text
+
 import Relude
+
 import System.Directory
-import System.FilePath
+
 import Text.Blaze.Html
 import qualified Text.Blaze.Html.Renderer.Pretty as Pretty
 import qualified Text.Blaze.Html.Renderer.Text as Text
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (Attributable)
+import Text.Decker.Filter.Monad
+import Text.Decker.Internal.Helper
+import Text.Decker.Internal.Meta
+import Text.Decker.Internal.URI
 import Text.Pandoc hiding (lookupMeta)
+import Text.URI (URI)
 import qualified Text.URI as URI
-import qualified Data.Text.IO as Text
 
-
-{-
-instance H.ToMarkup Block where
-  toMarkup (RawBlock (Format "html") html) =
-    H.Content (H.PreEscaped (H.Text html)) ()
-  toMarkup block =
-    bug $ InternalException $ "toMarkup: illegal block argument: " <> show block
-
-instance H.ToMarkup Inline where
-  toMarkup (RawInline (Format "html") html) =
-    H.Content (H.PreEscaped (H.Text html)) ()
-  toMarkup inline =
-    bug $ InternalException $ "toMarkup: illegal inline argument" <> show inline
--}
 instance ToValue [Text] where
   toValue ts = toValue $ Text.intercalate " " ts
 
@@ -276,67 +265,25 @@ processRemoteUri uri = do
 modifyMeta :: (Meta -> Meta) -> Filter ()
 modifyMeta f = modify (\s -> s {meta = f (meta s)})
 
-processLocalUri' :: URI -> Text -> Filter URI
-processLocalUri' uri ext = do
-  putStrLn $ "1--- " <> (toString $ URI.render uri)
-  -- | The project relative (!) document directory from which this is called.
-  docBaseDir <- lookupMetaOrFail "decker.base-dir" <$> gets meta
-  topBaseDir <- lookupMetaOrFail "decker.top-base-dir" <$> gets meta
-  putStrLn $ "b--- " <> toString docBaseDir
-  putStrLn $ "t--- " <> toString topBaseDir
-  -- | The absolute (!) project directory from which this is called.
-  projectDir <- lookupMetaOrFail "decker.directories.project" <$> gets meta
-  -- | The absolute (!) public directory where everything is published to.
-  publicDir <- lookupMetaOrFail "decker.directories.public" <$> gets meta
-  -- | The path component from the URI
-  let urlPath = toString $ uriPath uri
-  let urlScheme = toString $ maybe "" URI.unRText $ URI.uriScheme uri
-  -- | Interpret urlPath either project relative or document relative,
-  -- depending on the leading slash.
-  let extString = toString ext
-  -- calculate path relative to project dir
-  let relPath =
-        normalise $
-        if hasDrive urlPath
-          then dropDrive urlPath
-          else makeRelative projectDir docBaseDir </> urlPath
-  let sourcePath = projectDir </> relPath
-  let targetPath = publicDir </> relPath <.> extString
-  putStrLn $ "2--- " <> sourcePath
-  putStrLn $ "3--- " <> targetPath
-  if urlScheme == "public"
-    then do
-      URI.mkURI $ toText $ makeRelativeTo topBaseDir (projectDir </> urlPath)
-    else do
-      exists <- liftIO $ doesFileExist sourcePath
-      if exists
-        then needFile targetPath
-        else throwM $
-             ResourceException $ "Local resource does not exist: " <> relPath
-      let publicRelPath = makeRelativeTo topBaseDir sourcePath
-      setUriPath (toText (publicRelPath <.> extString)) uri
-
 processLocalUri :: URI -> Text -> Filter URI
 processLocalUri uri ext = do
-  unless (URI.isPathAbsolute uri) $ throwM $ InternalException $ "processLocalUri: relative path detected in URI: " <> show uri
-  docBaseDir <- lookupMetaOrFail "decker.base-dir" <$> gets meta
-  projectDir <- lookupMetaOrFail "decker.directories.project" <$> gets meta
-  publicDir <- lookupMetaOrFail "decker.directories.public" <$> gets meta
-  let urlPath = toString $ uriPath uri
-  let urlScheme = toString $ maybe "" URI.unRText $ URI.uriScheme uri
-  let extString = toString ext
-  let relPath = makeRelative projectDir urlPath
-  let targetPath = publicDir </> relPath <.> extString
-  let publicRelPath = makeRelativeTo docBaseDir urlPath
-  if urlScheme == "public"
-    then URI.mkURI $ toText publicRelPath
-    else do
-      exists <- liftIO $ doesFileExist urlPath
-      if exists
-        then needFile targetPath
-        else throwM $
-             ResourceException $ "Local resource does not exist: " <> urlPath
-      setUriPath (toText (publicRelPath <.> extString)) uri
+  base <- lookupMetaOrFail "decker.base-dir" <$> gets meta
+  project <- lookupMetaOrFail "decker.directories.project" <$> gets meta
+  public <- lookupMetaOrFail "decker.directories.public" <$> gets meta
+  -- putThrough "processLocalUri 1" (URI.render uri)
+  case uriScheme uri of
+    Just "public" ->
+      (setUriPath (public <> "/" <> uriPath uri) $ setUriScheme "" uri) -- >>= putThrough "processLocalUri 2"
+    otherwise -> do
+      checkAbsoluteUri uri
+      target <- addPathExtension ext uri
+      needFile $ toString $ targetPath project public target
+      targetUri base target -- >>= putThrough "processLocalUri 3"
+
+checkAbsoluteUri :: MonadThrow m => URI -> m ()
+checkAbsoluteUri uri =
+  unless (URI.isPathAbsolute uri) $
+  throwM $ InternalException $ "relative path detected in URI: " <> show uri
 
 needFile :: FilePath -> Filter ()
 needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)

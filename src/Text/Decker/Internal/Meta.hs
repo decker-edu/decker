@@ -1,8 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
 
 module Text.Decker.Internal.Meta
   ( DeckerException(..)
@@ -14,19 +14,20 @@ module Text.Decker.Internal.Meta
   , setMetaValue
   , adjustMetaValue
   , adjustMetaValueM
+  , adjustMetaStringsBelowM
   , toPandocMeta
   , toPandocMeta'
   , lookupMeta
   , lookupMetaOrElse
   , lookupMetaOrFail
   , mapMeta
+  , mapMetaValuesM
   , mapMetaWithKey
   , readMetaDataFile
   ) where
 
-import Text.Decker.Internal.Exception
-
 import Control.Exception
+
 import qualified Data.HashMap.Strict as H
 import Data.List.Safe ((!!))
 import qualified Data.Map.Lazy as Map
@@ -36,7 +37,10 @@ import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
+
 import Relude
+
+import Text.Decker.Internal.Exception
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Builder hiding (fromList, lookupMeta, toList)
 import Text.Pandoc.Shared hiding (toString, toText)
@@ -114,7 +118,8 @@ setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
 -- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
 -- Apply the function to the value if the key exists.
 adjustMetaValue :: (MetaValue -> MetaValue) -> Text -> Meta -> Meta
-adjustMetaValue f key meta = Meta $ adjust (splitKey key) (MetaMap (unMeta meta))
+adjustMetaValue f key meta =
+  Meta $ adjust (splitKey key) (MetaMap (unMeta meta))
   where
     adjust :: [Text] -> MetaValue -> Map Text MetaValue
     adjust [k] (MetaMap map) = M.adjust f k map
@@ -124,16 +129,17 @@ adjustMetaValue f key meta = Meta $ adjust (splitKey key) (MetaMap (unMeta meta)
         _ -> map
     adjust _ _ =
       throw $
-      InternalException $ "Cannot adjust meta value on non object at: " <> show key
+      InternalException $
+      "Cannot adjust meta value on non object at: " <> show key
 
 -- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
 -- Apply the IO action to the value if the key exists.
-adjustMetaValueM :: Monad m => (MetaValue -> m MetaValue) -> Text -> Meta -> m Meta
+adjustMetaValueM ::
+     Monad m => (MetaValue -> m MetaValue) -> Text -> Meta -> m Meta
 adjustMetaValueM action key meta =
   Meta <$> adjust (splitKey key) (MetaMap (unMeta meta))
   where
-    -- adjust :: Monad m => [Text] -> MetaValue -> m (Map Text MetaValue)
-    adjust [k] (MetaMap map) = 
+    adjust [k] (MetaMap map) =
       case M.lookup k map of
         Just v -> do
           v' <- action v
@@ -141,12 +147,20 @@ adjustMetaValueM action key meta =
         _ -> return map
     adjust (k:p) (MetaMap map) =
       case M.lookup k map of
-        Just value -> do 
+        Just value -> do
           m' <- adjust p value
           return $ M.insert k (MetaMap m') map
         _ -> return map
     adjust _ _ =
-      throw $ InternalException $ "Cannot adjust meta value on non object at: " <> show key
+      throw $
+      InternalException $
+      "Cannot adjust meta value on non object at: " <> show key
+
+-- | Recursively traverse all meta values below the compound key that can be
+-- stringified and transform them by the supplied action.
+adjustMetaStringsBelowM ::
+     (MonadFail m, Monad m) => (Text -> m Text) -> Text -> Meta -> m Meta
+adjustMetaStringsBelowM action = adjustMetaValueM (mapMetaValuesM action)
 
 -- | Adds a meta value to the list found at the compund key in the meta data.
 -- If any intermediate containers do not exist, they are created. 
@@ -241,8 +255,15 @@ lookupMetaOrFail key meta =
 -- future.
 mapMeta :: (MonadFail m, Monad m) => (Text -> m Text) -> Meta -> m Meta
 mapMeta f meta = do
-  (MetaMap m) <- map' (MetaMap (unMeta meta))
+  (MetaMap m) <- mapMetaValuesM f (MetaMap (unMeta meta))
   return (Meta m)
+
+-- | Map an IO action over string values and stringified inline values.
+-- Converts MetaInlines to MetaStrings. This may be a problem in some distant
+-- future.
+mapMetaValuesM ::
+     (MonadFail m, Monad m) => (Text -> m Text) -> MetaValue -> m MetaValue
+mapMetaValuesM f value = map' value
   where
     map' (MetaMap m) =
       MetaMap . Map.fromList <$>
@@ -273,5 +294,3 @@ mapMetaWithKey f meta = do
 -- | Reads a single meta data file.
 readMetaDataFile :: FilePath -> IO Meta
 readMetaDataFile file = toPandocMeta <$> Y.decodeFileThrow file
-
-

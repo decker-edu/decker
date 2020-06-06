@@ -1,0 +1,47 @@
+conf_forward:
+  options_ghc:
+  - -XLambdaCase
+  - -XMultiWayIf
+  - -XGADTs
+  - -XPatternGuards
+  - -XViewPatterns
+  - -XRecursiveDo
+  - -XTupleSections
+  - -XExplicitForAll
+  - -XImplicitParams
+  - -XQuasiQuotes
+  - -XTemplateHaskell
+  - -XBangPatterns
+conf_errorHandling:
+  econf_ExactPrintFallback: ExactPrintFallbackModeInline
+  econf_Werror: false
+  econf_omit_output_valid_check: false
+  econf_produceOutputOnErrors: false
+conf_preprocessor:
+  ppconf_CPPMode: CPPModeAbort
+  ppconf_hackAroundIncludes: false
+conf_obfuscate: false
+conf_roundtrip_exactprint_only: false
+conf_version: 1
+conf_layout:
+  lconfig_reformatModulePreamble: true
+  lconfig_altChooser:
+    tag: AltChooserBoundedSearch
+    contents: 3
+  lconfig_allowSingleLineExportList: true
+  lconfig_importColumn: 50
+  lconfig_hangingTypeSignature: false
+  lconfig_importAsColumn: 50
+  lconfig_alignmentLimit: 30
+  lconfig_allowHangingQuasiQuotes: true
+  lconfig_indentListSpecial: false
+  lconfig_indentAmount: 2
+  lconfig_alignmentBreakOnMultiline: false
+  lconfig_experimentalSemicolonNewlines: false
+  lconfig_cols: 80
+  lconfig_indentPolicy: IndentPolicyFree
+  lconfig_indentWhereSpecial: false
+  lconfig_columnAlignMode:
+    tag: ColumnAlignModeDisabled
+    contents: 0.7
+
