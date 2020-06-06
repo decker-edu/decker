@@ -1,6 +1,3 @@
-[submodule "third-party/bootstrap"]
-	path = third-party/bootstrap
-	url = https://github.com/twbs/bootstrap.git
 [submodule "third-party/reveal.js"]
 	path = third-party/reveal.js
 	url = https://github.com/hakimel/reveal.js.git
@@ -16,3 +13,9 @@
 [submodule "third-party/thebelab"]
 	path = third-party/thebelab
 	url = https://github.com/minrk/thebelab.git
+[submodule "third-party/water.css"]
+	path = third-party/water.css
+	url = https://github.com/kognise/water.css.git
+[submodule "third-party/vanilla-lazyload"]
+	path = third-party/vanilla-lazyload
+	url = https://github.com/verlok/vanilla-lazyload.git

@@ -1,7 +1,5 @@
-@import url("../vendor/bootstrap.min.css");
+@import url("../vendor/css/light.min.css");
 @import url("../vendor/fontawesome/css/all.css");
-@import url("../fonts/roboto.css");
-@import url("../fonts/source-code-pro.css");
 
 /////////////////////////////////////////////
 // Variables
@@ -46,7 +44,6 @@ body {
     /////////////////////////////////////////////
     // General slide settings
     /////////////////////////////////////////////
-    font-family: "Roboto", sans-serif;
     font-size: $medium-font-size;
     font-weight: normal;
     color: rgba(0, 0, 0, 1);
@@ -892,4 +889,8 @@ body {
       content: " (" attr(href) ") ";
     }
   }
+}
+
+::-webkit-scrollbar {
+  display: none;
 }
