@@ -14,7 +14,6 @@ import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Exception
-import Text.Decker.Internal.Helper
 import Text.Pandoc
 import Text.Pandoc.Walk
 import qualified Text.URI as URI

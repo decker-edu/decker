@@ -22,7 +22,6 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (Attributable)
 import Text.Decker.Filter.Monad
-import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
 import Text.Pandoc hiding (lookupMeta)

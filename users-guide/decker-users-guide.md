@@ -99,13 +99,13 @@ project
     └── slide-deck.md
 ```
 
-`slides/slide-deck.md`:
+`slides/slide-deck.md` contains:
 
-:   ``` {.markdown}
-    # First slide
-    ![Project relative path](/images/image.png)
-    ![Document relative path](../images/image.png)
-    ```
+``` {.markdown}
+# First slide
+![Project relative path](/images/image.png)
+![Document relative path](../images/image.png)
+```
 
 Both image paths reference the same image file.
 
@@ -255,3 +255,19 @@ Embedded media will be rendered as a figure with caption if either
 ## GraphViz
 
 ## Gnuplot
+
+# Hacking on Decker
+
+## Conventions
+
+### Commit emoji convention
+
+(Lifted from https://spacevim.org/conventions/.)
+
+-   :memo: Add comment or doc.
+-   :gift: New feature.
+-   :bug: Bug fix.
+-   :bomb: Breaking compatibility.
+-   :white\_check\_mark: Write test.
+-   :fire: Remove something.
+-   :beer: I'm happy like reduced code complexity.
