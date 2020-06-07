@@ -1,6 +1,9 @@
 @import url("../vendor/css/light.min.css");
 @import url("../vendor/fontawesome/css/all.css");
 
+@import "columns";
+@import "new-media";
+
 header > h1 {
   font-size: 2em;
 }
@@ -72,23 +75,10 @@ header > *:last-child {
   margin-bottom: 0;
 }
 
-
-// iframe resizing, see: https://css-tricks.com/NetMag/FluidWidthVideo/Article-FluidWidthVideo.php
-div.videoWrapper {
-  position: relative;
-  padding-bottom: 56.25%; /* 16:9 */
-  padding-top: 0;
-  height: 0;
-
-  iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-}
-
 ::-webkit-scrollbar {
   display: none;
+}
+
+body {
+  -webkit-print-color-adjust: exact;
 }
