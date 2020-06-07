@@ -103,6 +103,7 @@ body {
     border: 1px solid black;
     border-radius: 5px;
     padding: 10px;
+    box-sizing: border-box;
 }
 .reveal .boxed ol,
 .reveal .boxed dl,
