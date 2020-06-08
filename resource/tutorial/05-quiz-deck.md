@@ -225,5 +225,8 @@ What's the fourth letter?
 - [ ] C
 - [X] D
 
+```yaml
+lang: de
+```
 
 

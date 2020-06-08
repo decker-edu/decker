@@ -224,6 +224,7 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
         "category" -> set category (lookupMetaOrElse "" t m) qm
         "lectureId" -> set lectureId (lookupMetaOrElse "" t m) qm
         "topic" -> set topic (lookupMetaOrElse "" t m) qm
+        "lang" -> set lang (lookupMetaOrElse (view lang qm) t m) qm
         _ -> throw $ InternalException $ "Unknown meta data key: " <> show t
 
 -- | A simple Html button
