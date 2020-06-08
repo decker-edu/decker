@@ -9,4 +9,4 @@ title: Streaming Video Test
 # Youtube
 
 ![Airbus A320 - Approach and Landing in
-Munich](youtube:TbppXMGrsvw){width="100%"}
+Munich](youtube:TbppXMGrsvw)
