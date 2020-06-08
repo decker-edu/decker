@@ -13,6 +13,18 @@ haften für ihre Kinder.
 
 ## Pandoc
 
+Decker uses the universal markup converter
+[Pandoc](https://pandoc.org/MANUAL.html#pandocs-markdown) to translate
+slide content in Markdown format to interactive HTML slide decks. A
+working knowledge of the Pandoc dialect of Markdown is very helpful when
+working with Decker.
+
+-   [Pandoc User's
+    Guide](https://pandoc.org/MANUAL.html#pandocs-markdown)
+
+This document mainly describes additional features and conventions that
+Decker adds to Pandoc's Markdown.
+
 ## Reveal.js
 
 ## Features
@@ -24,6 +36,22 @@ haften für ihre Kinder.
 ## Working on a project
 
 ## Publishing
+
+Decker can use a locally installed [Rsync](https://rsync.samba.org) to
+publish the entire project to a remote location with the command
+
+``` {.sh}
+> decker publish
+```
+
+The remote location is specified in the meta data variable
+`rsync-destination:` using the URL formats that Rsync understands. For
+example, to publish the entire project directly into the document
+directory of a remote webserver the `decker.yaml` file would contain:
+
+``` {.yaml}
+rsync-destination: author@public.server.com:/var/www/html/cg-lectures
+```
 
 # Options
 
