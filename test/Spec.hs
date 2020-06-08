@@ -17,6 +17,7 @@ import System.FilePath
 
 import Test.Hspec
 
+import Text.Decker.Internal.Helper as H
 import Text.Decker.Internal.URI
 import Text.Decker.Project.Project as P
 import qualified Text.URI as URI
@@ -48,14 +49,14 @@ main = do
               --
     describe "removeCommonPrefix" $
       it "removes the common prefix from two pathes." $ do
-        P.removeCommonPrefix ("", "") `shouldBe` ("", "")
-        P.removeCommonPrefix ("fasel/bla", "fasel/bla/lall") `shouldBe`
+        H.removeCommonPrefix ("", "") `shouldBe` ("", "")
+        H.removeCommonPrefix ("fasel/bla", "fasel/bla/lall") `shouldBe`
           ("", "lall")
-        P.removeCommonPrefix ("lurgel/hopp", "fasel/bla/lall") `shouldBe`
+        H.removeCommonPrefix ("lurgel/hopp", "fasel/bla/lall") `shouldBe`
           (joinPath ["lurgel", "hopp"], joinPath ["fasel", "bla", "lall"])
-        P.removeCommonPrefix ("/lurgel/hopp", "fasel/bla/lall") `shouldBe`
+        H.removeCommonPrefix ("/lurgel/hopp", "fasel/bla/lall") `shouldBe`
           (joinPath ["/lurgel", "hopp"], joinPath ["fasel", "bla", "lall"])
-        P.removeCommonPrefix ("/lurgel/hopp", "/fasel/bla/lall") `shouldBe`
+        H.removeCommonPrefix ("/lurgel/hopp", "/fasel/bla/lall") `shouldBe`
           (joinPath ["lurgel", "hopp"], joinPath ["fasel", "bla", "lall"])
     describe "makeAbsolutePath" $
       it "creates an absolute path" $ do
