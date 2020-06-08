@@ -730,21 +730,9 @@ ul > li:before {
   content: attr(data-hint);
 }
 
-.reveal .quiz-mi .matchItems:lang(de):before,
-.reveal .qmi .matchItems:lang(de):before,
-.reveal .quiz-match-items .matchItems:lang(de):before {
-  content: attr(data-hint);
-}
-
 .reveal .quiz-mi .buckets:before,
 .reveal .qmi .buckets:before,
 .reveal .quiz-match-items .buckets:before {
-  content: attr(data-hint);
-}
-
-.reveal .quiz-mi .buckets:lang(de):before,
-.reveal .qmi .buckets:lang(de):before,
-.reveal .quiz-match-items .buckets:lang(de):before {
   content: attr(data-hint);
 }
 

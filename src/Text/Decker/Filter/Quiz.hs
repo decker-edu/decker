@@ -236,7 +236,7 @@ solutionButton lang =
     buttonText :: T.Text
     buttonText =
       if lang == "de"
-        then "Auflösen"
+        then "Lösung"
         else "Show Solution"
 
 renderMultipleChoice :: Quiz -> Block

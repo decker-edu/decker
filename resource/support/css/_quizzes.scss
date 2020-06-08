@@ -126,13 +126,7 @@
             content: attr(data-hint);
         }
 
-        .matchItems:lang(de):before{
-            content: attr(data-hint);
-        }
         .buckets:before{
-            content: attr(data-hint);
-        }
-        .buckets:lang(de):before{
             content: attr(data-hint);
         }
         
