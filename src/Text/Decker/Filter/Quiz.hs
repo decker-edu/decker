@@ -48,6 +48,7 @@ data QuizMeta =
     , _lectureId :: T.Text
     , _score :: Int
     , _topic :: T.Text
+    , _lang :: T.Text
     }
   deriving (Show)
 
@@ -112,7 +113,7 @@ handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
     -- setTags :: Quiz -> [T.Text] -> Quiz
     -- setTags q ts = set tags ts q
     -- The default "new" quizzes
-    defaultMeta = QuizMeta "" "" 0 ""
+    defaultMeta = QuizMeta "" "" 0 "" (lookupMetaOrElse "en" "lang" meta)
     defaultMatch = MatchItems [] [] defaultMeta [] []
     defaultMC = MultipleChoice [] [] defaultMeta [] []
     defaultIC = InsertChoices [] [] defaultMeta []
@@ -215,7 +216,7 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
   where
     setMetaForEach :: Meta -> QuizMeta -> QuizMeta
     setMetaForEach m qm =
-      foldr (setMeta' m) qm ["score", "category", "lectureId", "topic"]
+      foldr (setMeta' m) qm ["score", "category", "lectureId", "topic", "lang"]
     setMeta' :: Meta -> T.Text -> QuizMeta -> QuizMeta
     setMeta' m t qm =
       case t of
@@ -226,10 +227,16 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
         _ -> throw $ InternalException $ "Unknown meta data key: " <> show t
 
 -- | A simple Html button
-solutionButton =
+solutionButton lang =
   rawHtml' $ do
     H.br
-    H.button ! A.class_ "solutionButton" $ H.toHtml ("Show Solution" :: T.Text)
+    H.button ! A.class_ "solutionButton" $ H.toHtml buttonText
+  where
+    buttonText :: T.Text
+    buttonText =
+      if lang == "de"
+        then "Auflösen"
+        else "Show Solution"
 
 renderMultipleChoice :: Quiz -> Block
 renderMultipleChoice quiz@(MultipleChoice title tgs qm q ch) =
@@ -307,7 +314,8 @@ renderInsertChoices q =
 -- 
 renderMatching :: Quiz -> Block
 renderMatching quiz@(MatchItems title tgs qm qs matches) =
-  Div ("", tgs, []) $ header ++ qs ++ [itemsDiv, bucketsDiv, solutionButton]
+  Div ("", tgs, []) $
+  header ++ qs ++ [itemsDiv, bucketsDiv, solutionButton (view lang qm)]
   where
     header =
       case title of
@@ -337,15 +345,20 @@ renderMatching q = Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
 renderFreeText :: Quiz -> Block
 renderFreeText quiz@(FreeText title tgs qm q ch) =
-  Div ("", tgs, []) $ header ++ q ++ [inputRaw] ++ [solutionButton]
+  Div ("", tgs, []) $
+  header ++ q ++ [inputRaw] ++ [solutionButton (view lang qm)]
   where
     header =
       case title of
         [] -> []
         _ -> [Header 2 ("", [], []) title]
+    placeholderText =
+      if (view lang qm) == "de"
+        then "Eingeben und 'Enter'"
+        else "Type and press 'Enter'"
     inputRaw =
       rawHtml'
-        ((H.input ! A.placeholder "Type and press 'Enter'") >>
+        ((H.input ! A.placeholder placeholderText) >>
          choiceList "solutionList" ch)
     -- input :: Choice -> Html
     -- input (Choice correct text comment) = H.input

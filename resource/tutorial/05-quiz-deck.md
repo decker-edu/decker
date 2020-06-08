@@ -1,6 +1,7 @@
 ---
 title: Decker Quiz Overview
 history: true
+lang: de
 # vertical-slides: true
 ---
 

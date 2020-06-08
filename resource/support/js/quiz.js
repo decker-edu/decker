@@ -13,7 +13,7 @@ else {
 
 
 function quiz() {
-    quizLocalisation();
+    // quizLocalisation();
     quizMI();
     quizMC();
     quizIC();
