@@ -22,26 +22,34 @@ import Text.Decker.Internal.Meta
 -- Pair: consisting of a bucket where items should be dropped; The items which belong to the bucket
 -- Distractor: Just a list of items without accompanying bucket
 data Match
-  = Pair { bucketID :: Int
-         , bucket :: [Inline]
-         , items :: [[Block]] }
-  | Distractor { items :: [[Block]] }
+  = Pair
+      { bucketID :: Int
+      , bucket :: [Inline]
+      , items :: [[Block]]
+      }
+  | Distractor
+      { items :: [[Block]]
+      }
   deriving (Show)
 
 -- | A Choice consists of a Boolean (correct), the answer text and a tooltip comment
-data Choice = Choice
-  { correct :: Bool
-  , text :: [Inline]
-  , comment :: [Block]
-  } deriving (Show)
+data Choice =
+  Choice
+    { correct :: Bool
+    , text :: [Inline]
+    , comment :: [Block]
+    }
+  deriving (Show)
 
 -- | Set different (optional) meta options for quizzes in a yaml code block
-data QuizMeta = QuizMeta
-  { _category :: T.Text
-  , _lectureId :: T.Text
-  , _score :: Int
-  , _topic :: T.Text
-  } deriving (Show)
+data QuizMeta =
+  QuizMeta
+    { _category :: T.Text
+    , _lectureId :: T.Text
+    , _score :: Int
+    , _topic :: T.Text
+    }
+  deriving (Show)
 
 makeLenses ''QuizMeta
 
@@ -50,30 +58,35 @@ makeLenses ''QuizMeta
 data Quiz
   = MultipleChoice
   -- Multiple Choice questions consist of one question (e.g. h2 header and some blocks) and a following choices/selection part
-     { _title :: [Inline]
-     , _tags :: [T.Text]
-     , _quizMeta :: QuizMeta
-     , _question :: [Block]
-     , _choices :: [Choice] }
+      { _title :: [Inline]
+      , _tags :: [T.Text]
+      , _quizMeta :: QuizMeta
+      , _question :: [Block]
+      , _choices :: [Choice]
+      }
   | MatchItems
   -- Matching Questions consist of one question and a pairing "area" for sorting items via dragging and dropping
-     { _title :: [Inline]
-     , _tags :: [T.Text]
-     , _quizMeta :: QuizMeta
-     , _question :: [Block]
-     , _pairs :: [Match] }
+      { _title :: [Inline]
+      , _tags :: [T.Text]
+      , _quizMeta :: QuizMeta
+      , _question :: [Block]
+      , _pairs :: [Match]
+      }
   | InsertChoices
   -- These questions can have multiple question and answer/choices parts. 
   -- This is why questions is a list of tuples. 
-     { _title :: [Inline]
-     , _tags :: [T.Text]
-     , _quizMeta :: QuizMeta
-     , _questions :: [([Block], [Choice])] }
-  | FreeText { _title :: [Inline]
-             , _tags :: [T.Text]
-             , _quizMeta :: QuizMeta
-             , _question :: [Block]
-             , _choices :: [Choice] }
+      { _title :: [Inline]
+      , _tags :: [T.Text]
+      , _quizMeta :: QuizMeta
+      , _questions :: [([Block], [Choice])]
+      }
+  | FreeText
+      { _title :: [Inline]
+      , _tags :: [T.Text]
+      , _quizMeta :: QuizMeta
+      , _question :: [Block]
+      , _choices :: [Choice]
+      }
   deriving (Show)
 
 makeLenses ''Quiz
@@ -294,7 +307,7 @@ renderInsertChoices q =
 -- 
 renderMatching :: Quiz -> Block
 renderMatching quiz@(MatchItems title tgs qm qs matches) =
-  Div ("", tgs, []) $ header ++ qs ++ [bucketsDiv, itemsDiv, solutionButton]
+  Div ("", tgs, []) $ header ++ qs ++ [itemsDiv, bucketsDiv, solutionButton]
   where
     header =
       case title of

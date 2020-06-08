@@ -703,9 +703,9 @@ ul > li:before {
   box-sizing: border-box;
 }
 
-.reveal .quiz-mi .buckets,
-.reveal .qmi .buckets,
-.reveal .quiz-match-items .buckets {
+.reveal .quiz-mi .matchItems,
+.reveal .qmi .matchItems,
+.reveal .quiz-match-items .matchItems {
   margin-bottom: 60px;
 }
 
@@ -733,7 +733,7 @@ ul > li:before {
 .reveal .quiz-mi .matchItems:lang(de):before,
 .reveal .qmi .matchItems:lang(de):before,
 .reveal .quiz-match-items .matchItems:lang(de):before {
-  content: "Von hier ziehen";
+  content: "Objekte per Drag&Drop ziehen...";
 }
 
 .reveal .quiz-mi .buckets:before,
@@ -745,7 +745,7 @@ ul > li:before {
 .reveal .quiz-mi .buckets:lang(de):before,
 .reveal .qmi .buckets:lang(de):before,
 .reveal .quiz-match-items .buckets:lang(de):before {
-  content: "Hier ablegen";
+  content: "...und hier in die richtige Kategorie einsortieren.";
 }
 
 .reveal .quiz-mi .matchItems:after,
@@ -755,10 +755,10 @@ ul > li:before {
   content: " ";
   width: 0;
   height: 0;
-  top: -30px;
+  bottom: -30px;
   border-left: 30px solid transparent;
   border-right: 30px solid transparent;
-  border-bottom: 30px solid #dddddd;
+  border-top: 30px solid #dddddd;
 }
 
 .reveal .quiz-mi .bucket,

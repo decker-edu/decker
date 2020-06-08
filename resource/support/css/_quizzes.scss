@@ -90,6 +90,7 @@
         .draggableChild {
             pointer-events: none;
         } 
+
         .buckets,
         .matchItems{
             font-size: large;
@@ -107,7 +108,7 @@
         }
 
 
-        .buckets{
+        .matchItems{
             margin-bottom: 60px;
         }
 
@@ -126,23 +127,24 @@
         }
 
         .matchItems:lang(de):before{
-            content: "Von hier ziehen";
+            content: "Objekte per Drag&Drop ziehen...";
         }
         .buckets:before{
             content: "drop here";
         }
         .buckets:lang(de):before{
-            content: "Hier ablegen";
+            content: "...und hier in die richtige Kategorie einsortieren.";
         }
+        
         .matchItems:after{
             position:      absolute;
             content:       " ";
             width:         0;
             height:        0;
-            top:           -30px;
+            bottom:           -30px;
             border-left:   30px solid transparent;
             border-right:  30px solid transparent;
-            border-bottom: 30px solid #dddddd;
+            border-top: 30px solid #dddddd;
         }
 
         .bucket{
