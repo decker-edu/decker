@@ -492,9 +492,20 @@ let RevealWhiteboard = (function(){
         // height of one page
         let pageHeight = Reveal.getConfig().height;
 
-        // height of current board
+        // hide grid for height computation
+        let rect = getGridRect();
+        let display;
+        if (rect) {
+            display = rect.style.display;
+            rect.style.display = "none"; 
+        }
+
+        // height of current board (w/o grid)
         let bbox = svg.getBBox();
         let scribbleHeight = bbox.y + bbox.height;
+
+        // show grid again
+        if (rect) rect.style.display = display;
 
         // rounding
         var height = pageHeight * Math.max(1, Math.ceil(scribbleHeight/pageHeight));
