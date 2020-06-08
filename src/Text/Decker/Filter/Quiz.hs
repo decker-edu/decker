@@ -112,7 +112,7 @@ handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
     setTags q ts =
       if elem "columns" ts
         then set tags ts q
-        else set tags (ts ++ ["columns"]) q
+        else set tags (ts ++ ["columns", "box"]) q
     -- The default "new" quizzes
     defaultMeta = QuizMeta "" "" 0 ""
     defaultMatch = MatchItems [] [] defaultMeta [] []
