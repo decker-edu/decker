@@ -98,6 +98,9 @@ $if(mario)$
   <link rel="stylesheet" href="$decker-support-dir$/css/mario.css">
 $else$
   <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
+$if(stretch-media)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/stretch-media.css">
+$endif$
 $endif$
 $endif$
 $for(template.css)$
@@ -117,11 +120,6 @@ $endif$
   <!--[if lt IE 9]>
   <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
   <![endif]-->
-$for(style)$
-  <style>
-  $style$
-  </style>
-$endfor$
 $if(math)$
   $math$
 $endif$
@@ -161,6 +159,11 @@ $endif$
 $endif$
 $for(header-includes)$
   $header-includes$
+$endfor$
+$for(style)$
+  <style>
+  $style$
+  </style>
 $endfor$
 </head>
 <body>
@@ -252,7 +255,7 @@ $body$
   </div>
 
   <script src="$decker-support-dir$/vendor/reveal/js/reveal.js"></script>
-  <script src="$decker-support-dir$/vendor/js/jquery.js"></script>
+  <script src="$decker-support-dir$/vendor/js/jquery.min.js"></script>
   <script src="$decker-support-dir$/js/quiz.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
   <script src="$decker-support-dir$/js/sage.js"></script>
