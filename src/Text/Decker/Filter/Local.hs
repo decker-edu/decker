@@ -269,15 +269,15 @@ processLocalUri uri ext = do
   base <- lookupMetaOrFail "decker.base-dir" <$> gets meta
   project <- lookupMetaOrFail "decker.directories.project" <$> gets meta
   public <- lookupMetaOrFail "decker.directories.public" <$> gets meta
-  -- putThrough "processLocalUri 1" (URI.render uri)
   case uriScheme uri of
-    Just "public" ->
-      (setUriPath (public <> "/" <> uriPath uri) $ setUriScheme "" uri) -- >>= putThrough "processLocalUri 2"
+    Just "public" -> do
+      source <- setUriPath (project <> "/" <> uriPath uri) $ setUriScheme "" uri
+      targetUri base source
     otherwise -> do
       checkAbsoluteUri uri
-      target <- addPathExtension ext uri
-      needFile $ toString $ targetPath project public target
-      targetUri base target -- >>= putThrough "processLocalUri 3"
+      source <- addPathExtension ext uri
+      needFile $ toString $ targetPath project public source
+      targetUri base source
 
 checkAbsoluteUri :: MonadThrow m => URI -> m ()
 checkAbsoluteUri uri =
