@@ -5,6 +5,9 @@
 .reveal figure.decker {
   width: 100%;
 }
+.reveal div.nofigure.decker {
+  width: 100%;
+}
 .reveal figure.decker > img.decker {
   width: 100%;
 }
