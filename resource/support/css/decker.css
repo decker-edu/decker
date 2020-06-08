@@ -727,25 +727,25 @@ ul > li:before {
 .reveal .quiz-mi .matchItems:before,
 .reveal .qmi .matchItems:before,
 .reveal .quiz-match-items .matchItems:before {
-  content: "drag from here";
+  content: attr(data-hint);
 }
 
 .reveal .quiz-mi .matchItems:lang(de):before,
 .reveal .qmi .matchItems:lang(de):before,
 .reveal .quiz-match-items .matchItems:lang(de):before {
-  content: "Objekte per Drag&Drop ziehen...";
+  content: attr(data-hint);
 }
 
 .reveal .quiz-mi .buckets:before,
 .reveal .qmi .buckets:before,
 .reveal .quiz-match-items .buckets:before {
-  content: "drop here";
+  content: attr(data-hint);
 }
 
 .reveal .quiz-mi .buckets:lang(de):before,
 .reveal .qmi .buckets:lang(de):before,
 .reveal .quiz-match-items .buckets:lang(de):before {
-  content: "...und hier in die richtige Kategorie einsortieren.";
+  content: attr(data-hint);
 }
 
 .reveal .quiz-mi .matchItems:after,

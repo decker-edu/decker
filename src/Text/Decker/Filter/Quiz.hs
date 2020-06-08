@@ -323,8 +323,17 @@ renderMatching quiz@(MatchItems title tgs qm qs matches) =
         [] -> []
         _ -> [Header 2 ("", [], []) title]
     (buckets, items) = unzip $ map pairs matches
-    itemsDiv = Div ("", ["matchItems"], []) (concat items)
-    bucketsDiv = Div ("", ["buckets"], []) buckets
+    dropHint =
+      if view lang qm == "de"
+        then ( "data-hint"
+             , "...und hier in die richtige Kategorie einsortieren.")
+        else ("data-hint", "...and put them here into the correct category.")
+    dragHint =
+      if view lang qm == "de"
+        then ("data-hint", "Objekte per Drag&Drop ziehen...")
+        else ("data-hint", "Drag items from here...")
+    itemsDiv = Div ("", ["matchItems"], [dragHint]) (concat items)
+    bucketsDiv = Div ("", ["buckets"], [dropHint]) buckets
     item :: T.Text -> [Block] -> Block
     item index =
       Div ("", ["matchItem"], [("draggable", "true"), ("bucketId", index)])

@@ -123,17 +123,17 @@
             color:      grey;
         }
         .matchItems:before{
-            content: "drag from here";
+            content: attr(data-hint);
         }
 
         .matchItems:lang(de):before{
-            content: "Objekte per Drag&Drop ziehen...";
+            content: attr(data-hint);
         }
         .buckets:before{
-            content: "drop here";
+            content: attr(data-hint);
         }
         .buckets:lang(de):before{
-            content: "...und hier in die richtige Kategorie einsortieren.";
+            content: attr(data-hint);
         }
         
         .matchItems:after{
