@@ -70,9 +70,7 @@ pandocWriterOpts :: WriterOptions
 pandocWriterOpts =
   def
     { writerExtensions =
-        (enableExtension Ext_auto_identifiers .
-         disableExtension Ext_simple_tables .
-         disableExtension Ext_multiline_tables . enableExtension Ext_emoji)
+        (enableExtension Ext_emoji)
           pandocExtensions
     }
 
