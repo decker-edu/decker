@@ -2,6 +2,7 @@ module Text.Decker.Filter.Quiz
   ( handleQuizzes
   ) where
 
+import Control.Exception
 import Control.Lens hiding (Choice)
 import qualified Data.Text as T
 import Data.Text.Encoding as E
@@ -225,6 +226,7 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
         "category" -> set category (lookupMetaOrElse "" t m) qm
         "lectureId" -> set lectureId (lookupMetaOrElse "" t m) qm
         "topic" -> set topic (lookupMetaOrElse "" t m) qm
+        _ -> throw $ InternalException $ "Unknown meta data key: " <> show t
 
 -- | A simple Html button
 solutionButton =

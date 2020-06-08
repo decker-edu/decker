@@ -195,9 +195,9 @@ If there are wrong answers that are to be expected you can add those by not chec
 
 What's the first letter in the alphabet?
 
-- A
+- [X] A
   - yep
-- B
+- [ ] B
   - nope
 
 ## {.qft}
@@ -210,15 +210,15 @@ What's the fourth letter?
 
 ```
 
-# FreeText Question Example {.sub}
+# FreeText Question Example without h2 title {.sub}
 
-## FreeText Question TL {.qft}
+## {.qft}
 
 What's the first letter in the alphabet?
 
-- A
+- [X] A
   - yep
-- B
+- [ ] B
   - nope
 
 ## {.qft}
