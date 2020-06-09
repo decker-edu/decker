@@ -156,20 +156,32 @@ function prepareFullscreenIframes() {
     iframe.style.width = "100%";
     iframe.style.height = "100%";
 
-    btn.onclick = function () {
-      var container = this.parentElement;
-      if (document.fullscreenElement == container)
-        document.exitFullscreen();
-      else
-        container.requestFullscreen();
+    btn.onclick = function() {
+        var doc = window.document;
+        var container = this.parentElement;
+
+        var requestFullScreen = container.requestFullscreen || container.mozRequestFullScreen || container.webkitRequestFullScreen || container.msRequestFullscreen;
+        var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+        var fsElement = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+
+        if (fsElement == container)
+            cancelFullScreen.call(doc);
+        else
+            requestFullScreen.call(container);
     };
 
-    div.onfullscreenchange = function () {
-      if (document.fullscreenElement == this)
-        this.btn.innerHTML = '<i class="fas fa-compress-arrows-alt"></i>';
-      else
-        this.btn.innerHTML = '<i class="fas fa-expand-arrows-alt"></i>';
+    function onFullscreenChange() {
+        var doc = window.document;
+        var fsElement = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+
+        this.btn.innerHTML = 
+            fsElement == this ? 
+            '<i class="fas fa-compress-arrows-alt"></i>' :
+            '<i class="fas fa-expand-arrows-alt"></i>';
     };
+
+    div.addEventListener('fullscreenchange', onFullscreenChange);
+    div.addEventListener('webkitfullscreenchange', onFullscreenChange);
   }
 }
 
