@@ -8,13 +8,16 @@
 @import url("../fonts/source-code-pro.css");
 @import "fonts";
 @import "helper";
-@import "columns";
 @import "boxes";
-@import "new-media";
 @import "code";
 @import "quizzes";
 @import "titlepage";
 // @import "print"; Fucks up printing
+
+.reveal {
+  @import "new-media";
+  @import "columns";
+}
 
 // Global styles
 body {

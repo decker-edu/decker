@@ -98,20 +98,23 @@ handleQuizzes :: Pandoc -> Decker Pandoc
 handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
   where
     parseQuizboxes :: Block -> Block
-    parseQuizboxes d@(Div (id_, tgs@("box":cls), kvs) blocks)
-      | any (`elem` cls) ["qmi", "quiz-mi", "quiz-match-items"] =
-        renderQuizzes (parseAndSetQuiz (set tags tgs defaultMatch) blocks)
-      | any (`elem` cls) ["qmc", "quiz-mc", "quiz-multiple-choice"] =
-        renderQuizzes (parseAndSetQuiz (set tags tgs defaultMC) blocks)
-      | any (`elem` cls) ["qic", "quiz-ic", "quiz-insert-choices"] =
-        renderQuizzes (parseAndSetQuiz (set tags tgs defaultIC) blocks)
-      | any (`elem` cls) ["qft", "quiz-ft", "quiz-free-text"] =
-        renderQuizzes (parseAndSetQuiz (set tags tgs defaultFree) blocks)
+    parseQuizboxes d@(Div (id_, tgs, kvs) blocks)
+      | any (`elem` tgs) ["qmi", "quiz-mi", "quiz-match-items"] =
+        renderQuizzes (parseAndSetQuiz (setTags defaultMatch tgs) blocks)
+      | any (`elem` tgs) ["qmc", "quiz-mc", "quiz-multiple-choice"] =
+        renderQuizzes (parseAndSetQuiz (setTags defaultMC tgs) blocks)
+      | any (`elem` tgs) ["qic", "quiz-ic", "quiz-insert-choices"] =
+        renderQuizzes (parseAndSetQuiz (setTags defaultIC tgs) blocks)
+      | any (`elem` tgs) ["qft", "quiz-ft", "quiz-free-text"] =
+        renderQuizzes (parseAndSetQuiz (setTags defaultFree tgs) blocks)
       | otherwise = d
     parseQuizboxes bl = bl
     -- Give the tag-/classlist of the surrounding div box to the quiz
-    -- setTags :: Quiz -> [T.Text] -> Quiz
-    -- setTags q ts = set tags ts q
+    setTags :: Quiz -> [T.Text] -> Quiz
+    setTags q ts =
+      if elem "columns" ts
+        then set tags ts q
+        else set tags (ts ++ ["columns", "box"]) q
     -- The default "new" quizzes
     defaultMeta = QuizMeta "" "" 0 "" (lookupMetaOrElse "en" "lang" meta)
     defaultMatch = MatchItems [] [] defaultMeta [] []
