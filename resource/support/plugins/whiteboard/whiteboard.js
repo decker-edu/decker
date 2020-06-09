@@ -35,6 +35,10 @@ let RevealWhiteboard = (function(){
     const activeColor   = 'var(--whiteboard-active-color)';
     const inactiveColor = 'var(--whiteboard-inactive-color)';
 
+    // reveal setting wrt slide dimension
+    const pageHeight = Reveal.getConfig().height;
+    const pageWidth  = Reveal.getConfig().width;
+
     // reveal elements
     let reveal = document.querySelector( '.reveal' );
     let slides = document.querySelector( '.reveal .slides' );
@@ -190,7 +194,6 @@ let RevealWhiteboard = (function(){
         svg.style.border = "1px solid transparent";
 
         // SVG dimensions
-        const pageHeight = Reveal.getConfig().height;
         svg.style.width  = "100%";
         if (!height) height = pageHeight;
         svg.style.height = height + "px";
@@ -226,9 +229,7 @@ let RevealWhiteboard = (function(){
         svg.style.pointerEvents = 'none';
         slides.insertBefore(svg, slides.firstChild);
 
-        const pageWidth   = Reveal.getConfig().width;
-        const pageHeight  = Reveal.getConfig().height;
-        const h           = Math.floor(Math.min(pageWidth, pageHeight) / 25);
+        const h = Math.floor(Math.min(pageWidth, pageHeight) / 25);
 
         svg.innerHTML = 
             `<defs>
@@ -481,7 +482,6 @@ let RevealWhiteboard = (function(){
     function addWhiteboardPage()
     {
         if (!svg) return;
-        let pageHeight  = Reveal.getConfig().height;
         let boardHeight = svg.clientHeight;
         setWhiteboardHeight(boardHeight + pageHeight);
     }
@@ -489,10 +489,7 @@ let RevealWhiteboard = (function(){
 
     function adjustWhiteboardHeight()
     {
-        // height of one page
-        let pageHeight = Reveal.getConfig().height;
-
-        // hide grid for height computation
+        // hide grid, so that height computation only depends on strokes
         let rect = getGridRect();
         let display;
         if (rect) {
@@ -515,8 +512,6 @@ let RevealWhiteboard = (function(){
 
     function setWhiteboardHeight(svgHeight)
     {
-        const pageHeight    = Reveal.getConfig().height;
-        const pageWidth     = Reveal.getConfig().width;
         const needScrollbar = svgHeight > pageHeight;
 
         // set height of SVG
@@ -586,7 +581,7 @@ let RevealWhiteboard = (function(){
                 needToSave(true);
             }
 
-            setWhiteboardHeight(Reveal.getConfig().height);
+            setWhiteboardHeight(pageHeight);
         }
     };
 
@@ -619,7 +614,6 @@ let RevealWhiteboard = (function(){
         // otherwise, add it
         else
         {
-            const pageHeight  = Reveal.getConfig().height;
             const boardHeight = svg.clientHeight;
 
             // add large rect with this pattern
@@ -1309,7 +1303,9 @@ let RevealWhiteboard = (function(){
             // adjust fragment visibility
             svg.querySelectorAll('svg>path[data-frag]').forEach( stroke => { 
                 stroke.style.visibility = 
-                    stroke.getAttribute('data-frag') > currentFragmentIndex ? 'hidden' : 'visible';
+                    ((stroke.getAttribute('data-frag') > currentFragmentIndex) && 
+                     (stroke.getBBox().y < pageHeight))
+                    ? 'hidden' : 'visible';
             });
         }
     }
