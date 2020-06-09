@@ -151,7 +151,6 @@ Question text
 This will create a sort of blank text questions.
 If multiple items are provided in the task list, they will be rendered as a drop down menu where the user can click answers.
 
-If only one item/solution is provided it will be rendered as a blank.
 
 ```
 ## Insert Choices Question {.qic}
@@ -165,6 +164,7 @@ is the first letter in the ABC. The second one is
 
 - [X] B
   - yep
+- [ ] C
 
 ```
 
@@ -181,11 +181,14 @@ is the first letter in the ABC. The second one is
 
 - [X] B
   - yep
+- [ ] C
 
 
 # FreeText questions
 
 This will create a simple input field/text box where the user can write their answer.
+
+If there are wrong answers that are to be expected you can add those by not checking the task box. They will then show as wrong when clicking "Show Solution".
 
 ```
 ## FreeText Question TL {.qft}
@@ -202,6 +205,7 @@ What's the first letter in the alphabet?
 What's the fourth letter?
 
 - [ ] C
+  - info
 - [X] D
 
 ```
@@ -222,6 +226,7 @@ What's the first letter in the alphabet?
 What's the fourth letter?
 
 - [ ] C
+  - info
 - [X] D
 
 
