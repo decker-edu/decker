@@ -156,6 +156,10 @@ div.nofigure > iframe.decker {
   max-height: 100%;
 }
 
+div.decker.nofigure {
+  width: 100%;
+}
+
 figure.decker figcaption.decker {
   margin: 0px 0px 0px 0px;
   line-height: 1.2;

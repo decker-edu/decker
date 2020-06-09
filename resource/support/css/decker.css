@@ -810,6 +810,10 @@ ul > li:before {
   max-height: 100%;
 }
 
+.reveal div.decker.nofigure {
+  width: 100%;
+}
+
 .reveal figure.decker figcaption.decker {
   margin: 0px 0px 0px 0px;
   line-height: 1.2;
