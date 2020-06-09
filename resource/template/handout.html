@@ -117,58 +117,54 @@ $endif$
         $for(include-before)$
         $include-before$
         $endfor$
-        <div class="container decker-handout">
-            $if(title)$
-            <header>
-                <div class="page-header">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <h1 class="title">$title$</h1>
-                            $if(subtitle)$
-                            <h2 class="subtitle">$subtitle$</p>
-                            $endif$
-                            $if(author)$
-                            <p class="lead author">$author$</p>
-                            $endif$
-                            $if(date)$
-                            <p id="date" class="lead">$date$</p>
-                            $endif$
-                        </div>
-                    </div>
-                </div>
-            </header>
-            $endif$
-            <div class="row">
-                <div class="col-lg-12">
-                    $if(toc)$
-                    $if(toc-title)$
-                    <h1 id="$idprefix$TOC-title class=" toc-title">$toc-title$</h1>
-                    $endif$
-                    <nav id="$idprefix$TOC">
-                        $toc$
-                    </nav>
-                    $endif$
+        $if(title)$
+        <header>
+          <h1 class="title">$title$</h1>
+          $if(subtitle)$
+          <h2 class="subtitle">$subtitle$</p>
+          $endif$
+          $if(author)$
+          <p class="lead author">$author$</p>
+          $endif$
+          $if(date)$
+          <p id="date" class="lead">$date$</p>
+          $endif$
+        </header>
+        $endif$
+        $if(toc)$
+        $if(toc-title)$
+        <h1 id="$idprefix$TOC-title class=" toc-title">$toc-title$</h1>
+        $endif$
+        <nav id="$idprefix$TOC">
+            $toc$
+        </nav>
+        $endif$
 
 <!-- body must not be indented or code blocks render badly -->
 <!-- The following line must be left aligned! -->
 $body$
 <!-- The previous line must be left aligned! -->
 
-    <script src="$decker-support-dir$/vendor/jquery.js" type="text/javascript"></script>
-    <script src="$decker-support-dir$/js/handout.js"></script>
+        <script src="$decker-support-dir$/vendor/js/jquery.min.js" type="text/javascript"></script>
+        <script src="$decker-support-dir$/vendor/js/lazyload.min.js" type="text/javascript"></script>
+        <script src="$decker-support-dir$/js/handout.js"></script>
 
-          $for(include-after)$
-          $include-after$
-          $endfor$
-          $if(author)$
-          <hr>
-          <address>
-            $if(date)$
-            <p class="date">$date$</p>
-            $endif$
-            <p class="author">$copyright$ $author$</p>
-            $endif$
-          </address>
-        </div>
+        $for(include-after)$
+        $include-after$
+        $endfor$
+        $if(author)$
+        <hr>
+        <address>
+          $if(date)$
+          <p class="date">$date$</p>
+          $endif$
+          <p class="author">$copyright$ $author$</p>
+          $endif$
+        </address>
+        <script>
+          var lazyLoadInstance = new LazyLoad({
+            elements_selector: "img, video, iframe"
+          });
+        </script>
     </body>
   </html>

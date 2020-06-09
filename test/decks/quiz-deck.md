@@ -98,7 +98,6 @@ lectureId: cg1
 topic: yeah
 ```
 
-
 # Blanktext/Inserting MC
 
 Like multiple-choice, however, the choices are shown as drop-down lists embedded inside the text. Hence, beware of the whitespaces below. 
@@ -167,3 +166,50 @@ Das Ergebnis von $2*2=~?$ ist?
     - RTL, no not really?
 - [ ] *
     - ganz falsch, so oder so?
+
+# fenced divs syntax
+
+::: qft
+
+Das Ergebnis von $2*2=~?$ ist?
+
+
+- [X] 4
+    - Die perfekte Lösung 
+- [X] vier
+    - Auch ok 
+- [X] four
+    - Deutscher Studiengang
+- [ ] fier
+    - RTL, no not really?
+- [ ] *
+    - ganz falsch, so oder so?
+:::
+
+
+#
+
+::: qic
+
+Decker is a software built using  
+
+
+- [ ] Scala
+    - Unfortunately not.
+- [X] Haskell
+    - Due to Pandoc.
+- [ ] Java
+    - Surely not.
+- [ ] Ruby 
+    - hm no
+
+
+and builds upon the tool
+
+- [X] Pandoc
+  - See previous tooltip.
+- [ ] PowerPoint
+
+.
+
+:::

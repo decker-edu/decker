@@ -140,6 +140,7 @@
     color:         white;
     display:       inline-block;
     opacity:       0;
+    pointer-events: none;
 }
 /* activate tooltip after 1s delay */
 #whiteboardButtons.active>button[data-tooltip]:hover::after {
