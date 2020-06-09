@@ -43,6 +43,7 @@ main = do
     else case head args of
            "example" -> writeExampleProject
            "tutorial" -> writeTutorialProject
+           "clean" -> runClean
            _ -> run
 
 type ParamCache a = FilePath -> Action a
@@ -71,6 +72,22 @@ prepCaches directories = do
 needSel sel = needSels [sel]
 
 needSels sels targets = need (concatMap (targets ^.) sels)
+
+-- | Functionality for "decker clean" command
+-- Removes public and .decker directory.
+-- Located outside of Shake 
+-- due to unlinking differences and parallel processes on Windows 
+-- which prevented files (.shake.lock) from being deleted on Win
+runClean :: IO ()
+runClean = do
+  warnVersion
+  directories <- projectDirectories
+  let publicDir = directories ^. public
+  let transientDir = directories ^. transient
+  putStrLn $ "# Removing " ++ publicDir
+  putStrLn $ "# Removing " ++ transientDir
+  tryRemoveDirectory (directories ^. public)
+  tryRemoveDirectory (directories ^. transient)
 
 run :: IO ()
 run = do
@@ -255,10 +272,6 @@ run = do
     phony "annotations" $ do
       targets <- getTargets
       need (targets ^. annotations)
-    --
-    phony "clean" $ do
-      liftIO $ tryRemoveDirectory (directories ^. public)
-      liftIO $ tryRemoveDirectory (directories ^. transient)
     --
     phony "info" $ do
       putNormal $ "\nproject directory: " ++ (directories ^. project)
