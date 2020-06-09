@@ -10,6 +10,7 @@ module Text.Decker.Resource.Resource
   , urlToFilePathIfLocal
   ) where
 
+import Text.Decker.Internal.Helper (warnVersion)
 import Text.Decker.Project.Shake
 import Text.Decker.Resource.Zip
 
@@ -22,6 +23,7 @@ import System.FilePath
 -- | Write the example project to the current folder
 writeExampleProject :: IO ()
 writeExampleProject = do
+  warnVersion
   cwd <- Dir.getCurrentDirectory
   putStrLn $ "Extracting example project to " ++ cwd ++ "."
   extractResourceEntries "example" cwd
@@ -29,6 +31,7 @@ writeExampleProject = do
 -- | Write the tutorial project to the current folder
 writeTutorialProject :: IO ()
 writeTutorialProject = do
+  warnVersion
   cwd <- Dir.getCurrentDirectory
   putStrLn $ "Extracting tutorial project to " ++ cwd ++ "."
   extractResourceEntries "tutorial" cwd
