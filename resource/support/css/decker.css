@@ -885,7 +885,7 @@ ul > li:before {
   text-align: center;
 }
 
-.reveal #date {
+.reveal .date {
   text-align: center;
 }
 
