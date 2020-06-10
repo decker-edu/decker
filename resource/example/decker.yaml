@@ -15,8 +15,21 @@ hideInactiveCursor: true
 hideCursorTime: 2000
 transition: "none"
 backgroundTransition: "none"
+# Dictionary used for localisation (currently used only for quizzes)
+dictionary:
+  de: 
+    solution-button: Lösung
+    input-placeholder: Eingeben und 'Enter'
+    qmi-drag-hint: Objekte per Drag&Drop ziehen...
+    qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
+  en:
+    solution-button: Show Solution
+    input-placeholder: Type and press 'Enter'
+    qmi-drag-hint: Drag items from here...
+    qmi-drop-hint: ...and put them here into the correct category.
 # publishing to a remote location (example)
 rsync-destination:
     host: git@gitlab2.informatik.uni-wuerzburg.de
     path: /some/path
+
 
