@@ -84,7 +84,7 @@ let RevealMath = window.RevealMath || (function(){
                         var s = eqn.closest("section");
                         if (s)
                         {
-                            a.href.baseVal = "#" + s.id;
+                            a.href.baseVal = location.origin + location.pathname + "#" + s.id;
                         }
                     }
                 }
