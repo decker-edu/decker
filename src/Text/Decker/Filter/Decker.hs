@@ -1,4 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- | This is the new Decker filter for Pandoc.
 --
@@ -76,7 +78,7 @@ mediaBlockListFilter blocks =
   where
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
-    filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) =
+    filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) = do
       Just . single . forceBlock <$> transformImage image caption
     -- An code block followed by an explicit caption paragraph.
     filterPairs (code@CodeBlock {}, Para (Str "Caption:":caption)) =
@@ -104,10 +106,8 @@ mediaInlineListFilter inlines =
 
 -- | Match a single Block element
 mediaBlockFilter :: Block -> Filter Block
--- A level one header.
-mediaBlockFilter header@(Header 1 attr text) = transformHeader1 header
 -- A solitary image in a paragraph with a possible caption.
-mediaBlockFilter (Para [image@(Image _ caption _)]) =
+mediaBlockFilter (Para [image@(Image _ caption _)]) = do
   forceBlock <$> transformImage image caption
 -- A solitary code block in a paragraph with a possible caption.
 mediaBlockFilter (code@CodeBlock {}) = transformCodeBlock code []
@@ -130,7 +130,8 @@ isImage _ = False
 -- | Matches a single Inline element
 mediaInlineFilter :: Inline -> Filter Inline
 -- An inline image with a possible caption.
-mediaInlineFilter image@(Image _ caption _) = transformImage image caption
+mediaInlineFilter image@(Image _ caption _) = do
+  transformImage image caption
 -- Default filter
 mediaInlineFilter inline = return inline
 
@@ -258,7 +259,7 @@ transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
         liftIO $ do
           createDirectoryIfMissing True (project </> deckerFiles </> "code")
           Text.writeFile absPath text
-      uri <- lift $ URI.mkURI ("/" <> toText relPath)
+      uri <- lift $ URI.mkURI (toText absPath)
       renderCodeHtml uri caption
 transformCodeBlock block _ = return block
 
@@ -341,8 +342,7 @@ imageHtml uri caption = do
   let fileName = toText $ takeFileName $ toString rendered
   case caption of
     [] -> do
-      injectBorder >> takeSize >> takeUsual >>
-        injectAttribute ("alt", fileName)
+      injectBorder >> takeSize >> takeUsual >> injectAttribute ("alt", fileName)
       mkImageTag rendered <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
@@ -386,7 +386,6 @@ mviewHtml uri caption = do
   uri <- lift $ transformUri uri ""
   let model = URI.render uri
   pushAttribute ("model", model)
-  -- specify mview URL project relative
   mviewUri <- URI.mkURI "public:support/mview/mview.html"
   iframeHtml mviewUri caption
 

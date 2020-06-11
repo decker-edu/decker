@@ -1,11 +1,15 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module MetaTests
   ( metaTests
   ) where
 
-import Text.Decker.Internal.Meta
-
 import qualified Data.Map.Strict as M
+import qualified Data.Text as Text
+
 import Test.Hspec
+
+import Text.Decker.Internal.Meta
 import Text.Pandoc hiding (lookupMeta)
 
 m1 =
@@ -42,6 +46,56 @@ m3' =
          , MetaList [MetaString "img.png", MetaString "some/where/img.png"])
        ])
 
+m4 =
+  Meta
+    (M.fromList [("level1", MetaMap (M.fromList [("one", MetaString "brot")]))])
+
+m4' =
+  Meta
+    (M.fromList [("level1", MetaMap (M.fromList [("one", MetaString "BROT")]))])
+
+m4'' = Meta (M.fromList [("level1", MetaString "Gone.")])
+
+m5 =
+  Meta
+    (M.fromList
+       [ ( "level1"
+         , MetaMap
+             (M.fromList
+                [("one", MetaList [MetaString "brot", MetaString "butter"])]))
+       ])
+
+m5' =
+  Meta
+    (M.fromList
+       [ ( "level1"
+         , MetaMap
+             (M.fromList
+                [("one", MetaList [MetaString "BROT", MetaString "BUTTER"])]))
+       ])
+
+m6 =
+  Meta
+    (M.fromList
+       [ ( "level1"
+         , MetaMap
+             (M.fromList
+                [ ("one", MetaList [MetaString "brot", MetaString "butter"])
+                , ("two", MetaString "salz")
+                ]))
+       ])
+
+m6' =
+  Meta
+    (M.fromList
+       [ ( "level1"
+         , MetaMap
+             (M.fromList
+                [ ("one", MetaList [MetaString "BROT", MetaString "BUTTER"])
+                , ("two", MetaString "SALZ")
+                ]))
+       ])
+
 metaTests = do
   describe "getMetaBool" $ do
     it "looks up a top-level boolean meta value" $
@@ -61,7 +115,46 @@ metaTests = do
     it "looks up a top-level int meta value" $
     lookupMeta "write-back.line-wrap" m1 `shouldBe` Just ("none" :: String)
   describe "setMetaValue" $ do
-    it "should set the value in a nested map" $
+    it "sets the value in a nested map" $
       setMetaValue "level1.one" (MetaString "1") m2 `shouldBe` m2'
-    it "should set the value in a nested map" $
+    it "sets the value in a nested map" $
       addMetaValue "list" (MetaString "img.png") m3 `shouldBe` m3'
+  describe "adjustMetaValue" $ do
+    it "adjusts a value in a nested map" $
+      adjustMetaValue upCase "level1.one" m4 `shouldBe` m4'
+    it "does not touch anything that is not there" $
+      adjustMetaValue upCase "level1.two" m4 `shouldBe` m4
+    it "does work on the top level" $
+      adjustMetaValue replace "level1" m4 `shouldBe` m4''
+    it "does work on list values" $
+      adjustMetaValue upCase "level1.one" m5 `shouldBe` m5'
+  describe "adjustMetaValueM" $ do
+    it "does adjust a value in a nested map" $
+      adjustMetaValueM upCaseM "level1.one" m4 `shouldReturn` m4'
+    it "does not touch anything that is not there" $
+      adjustMetaValueM upCaseM "level1.two" m4 `shouldReturn` m4
+    it "does work on the top level" $
+      adjustMetaValueM replaceM "level1" m4 `shouldReturn` m4''
+    it "does work on list values" $
+      adjustMetaValueM upCaseM "level1.one" m5 `shouldReturn` m5'
+  describe "adjustMetaStringsBelowM" $ do
+    it "does adjust all string-ish values below the key" $
+      adjustMetaStringsBelowM upCaseTextM "level1" m6 `shouldReturn` m6'
+
+replace :: MetaValue -> MetaValue
+replace _ = (MetaString "Gone.")
+
+replaceM :: MetaValue -> IO MetaValue
+replaceM _ = return (MetaString "Gone.")
+
+upCase :: MetaValue -> MetaValue
+upCase (MetaString text) = MetaString $ Text.toUpper text
+upCase (MetaList list) = MetaList $ map upCase list
+upCase value = value
+
+upCaseM :: MetaValue -> IO MetaValue
+upCaseM (MetaString text) = return $ MetaString $ Text.toUpper text
+upCaseM (MetaList list) = MetaList <$> mapM upCaseM list
+upCaseM value = return value
+
+upCaseTextM = return . Text.toUpper

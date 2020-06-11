@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 -- | Conversion of lvl-x-headings to x-column-layouts in HTML
 --   especially for use in revealjs-slides
 module Text.Decker.Filter.MarioCols

@@ -9,3 +9,5 @@ relative resource and include pathes.
 
 ![A simple metal material (Image taken from
 [CGG](https://tramberend.beuth-hochschule.de/course/sommer-2017/cgg/)).](06-metal.png){width="50%"}
+
+# Same image as background ![](06-metal-v.png#fuckfuck)

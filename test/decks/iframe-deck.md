@@ -1,6 +1,6 @@
 ---
+history: true
 title: Iframes
-history: True
 ---
 
 # Iframes
@@ -12,18 +12,29 @@ history: True
 3.  Iframe embedded in slide showing a PDF
 4.  Iframe as background showing a PDF
 
+------------------------------------------------------------------------
+
 # Iframe showing <https://www.uni-wuerzburg.de/startseite>
 
-![This is the most ugly homepage ever.](https://www.uni-wuerzburg.de/startseite.html?some-option=some-value){.iframe
+![This is the most ugly homepage
+ever.](https://www.uni-wuerzburg.de/startseite.html?some-option=some-value){.iframe
 width="100%" height="400px" model="some-model.off"}
 
+------------------------------------------------------------------------
+
 # ![](https://www.uni-wuerzburg.de/startseite.html)
+
+------------------------------------------------------------------------
 
 # Iframe showing <https://pandoc.org/MANUAL.pdf>
 
 ![](https://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
 
+------------------------------------------------------------------------
+
 # ![](include/06-metal.pdf)
+
+------------------------------------------------------------------------
 
 # Iframe showing local HTML file
 

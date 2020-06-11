@@ -29,6 +29,12 @@ install: clean-build
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
 
+unclean-install: build
+	mkdir -p $(local-bin-path)
+	cp $(executable) "$(local-bin-path)/$(decker-name)"
+	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
+	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
+
 version:
 	@echo "$(decker-name)"
 

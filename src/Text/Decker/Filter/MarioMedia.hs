@@ -1,3 +1,6 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
+  
 module Text.Decker.Filter.MarioMedia
   ( marioMedia
   ) where

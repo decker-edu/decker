@@ -1,3 +1,6 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Text.Decker.Project.Version
   ( deckerVersion
   , deckerGitBranch
