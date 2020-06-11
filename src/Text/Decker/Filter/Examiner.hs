@@ -7,9 +7,6 @@ module Text.Decker.Filter.Examiner
   , Choice(..)
   , OneAnswer(..)
   , Difficulty(..)
-  , Exam(..)
-  , PrintOption(..)
-  , Templates
   ) where
 
 import Data.Aeson.TH
@@ -17,7 +14,6 @@ import Data.Aeson.Types
 import Data.Typeable
 import GHC.Generics
 import Relude
-import qualified Text.Mustache as M
 
 data Question a = Question
   { qstTopicId :: Text
@@ -58,24 +54,6 @@ data Difficulty
   | Hard
   deriving (Eq, Show, Typeable)
 
-data PrintOption
-  = SinglePdf
-  | MultiplePdfs
-  deriving (Eq, Show, Typeable)
-
-data Exam = Exam
-  { examTitle :: Text
-  , examModule :: Text
-  , examStudentInfoFile :: FilePath
-  , examDateTime :: Text
-  , examDurationInMinutes :: Int
-  , examNumberOfQuestions :: Int
-  , examTracks :: [Int]
-  , examLectureIds :: [Text]
-  , examExcludedTopicIds :: [Text]
-  , examPrinting :: PrintOption
-  } deriving (Eq, Show, Typeable)
-
 $(deriveJSON defaultOptions {fieldLabelModifier = drop 6} ''Choice)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop 3} ''OneAnswer)
@@ -105,10 +83,7 @@ instance FromJSON a => FromJSON (Question a) where
 --       { fieldLabelModifier = drop 3
 --       }
 --       ''Question)
-$(deriveJSON defaultOptions {fieldLabelModifier = drop 4} ''Exam)
-
 $(deriveJSON defaultOptions ''Difficulty)
 
-$(deriveJSON defaultOptions ''PrintOption)
-
-type Templates = [(TypeRep, M.Template)]
+--readQuestion :: FilePath -> IO Question
+--readQuestion path = undefined
