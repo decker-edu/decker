@@ -22,11 +22,12 @@ Set-Location "$third\thebelab"
 & npm run build
 
 Write-Host ("Copy third party dependencies to " + $support) -ForegroundColor Green
-New-Item -Path $support -Force -ItemType "directory"
+New-Item -Path "$support" -Force -ItemType "directory"
 Set-Location $third
 
 # Copy jquery
-Copy-Item "$third\jquery\dist\jquery.min.js" "$support\jquery.js" -Force
+New-Item -Path "$support\js" -Force -ItemType "directory"
+Copy-Item "$third\jquery\dist\jquery.min.js" "$support\js\jquery.js" -Force
 
 # Copy thebelab
 New-Item -Path "$support\thebelab" -Force -ItemType "directory"
@@ -46,8 +47,12 @@ Foreach ($i in ("js", "css", "plugin\notes")) {
   Copy-Item -r "$third\reveal.js\$i" "$support\reveal\$i" -Force
 }
 
-# Copy bootstrap
-Copy-Item "$third\bootstrap.min.css" "$support\bootstrap.min.css" -Force
+# Copy lazyload
+Copy-Item "$third\vanilla-lazyload\dist\lazyload.min.js" "$support\js\lazyload.min.js"
+
+# Copy water.css
+New-Item "$support\css" -Force -ItemType "directory"
+Copy-Item "$third\water.css\dist\light.min.css" "$support\css\light.min.css"
 
 # Copy fontawesome
 New-Item "$support\fontawesome\css" -Force -ItemType "directory"

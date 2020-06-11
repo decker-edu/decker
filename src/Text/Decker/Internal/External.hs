@@ -61,7 +61,7 @@ programs =
     , ExternalProgram
         []
         "gnuplot"
-        ["-d", "-e", "set terminal svg enhanced mouse"]
+        ["-d", "-e", "set terminal svg"]
         ["-V"]
         (helpText "Gnuplot package (http://gnuplot.sourceforge.net)"))
   , ( "pdflatex"

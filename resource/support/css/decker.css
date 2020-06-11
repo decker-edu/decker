@@ -388,6 +388,14 @@ ul > li:before {
   clear: both;
 }
 
+.reveal .qic input,
+.reveal .qft input,
+.reveal .qmc input,
+.reveal .qmi input,
+.reveal [class*="quiz-"] input {
+  border: 2px solid black;
+}
+
 .reveal .qic .solutionButton,
 .reveal .qft .solutionButton,
 .reveal .qmc .solutionButton,
@@ -442,16 +450,6 @@ ul > li:before {
   font-weight: bold;
 }
 
-.reveal .qic .tooltip-div,
-.reveal .qft .tooltip-div,
-.reveal .qmc .tooltip-div,
-.reveal .qmi .tooltip-div,
-.reveal [class*="quiz-"] .tooltip-div {
-  font-size: 0.6em;
-  background-color: #f4f4f7;
-  margin-top: 0.5em;
-}
-
 .reveal .qic,
 .reveal [class*="quiz-i"] {
   display: block;
@@ -462,12 +460,20 @@ ul > li:before {
 
 .reveal .qic select,
 .reveal [class*="quiz-i"] select {
+  border: 2px solid black;
   font-size: inherit;
 }
 
 .reveal .qic select :disabled,
 .reveal [class*="quiz-i"] select :disabled {
   color: black;
+}
+
+.reveal .qic .tooltip-div,
+.reveal [class*="quiz-i"] .tooltip-div {
+  font-size: 0.6em;
+  background-color: #f4f4f7;
+  margin-top: 0.5em;
 }
 
 .reveal .quiz-mi,
@@ -576,7 +582,7 @@ ul > li:before {
   display: block;
   vertical-align: middle;
   overflow: hidden;
-  border: 2px solid #2a9ddf;
+  border: 2px dotted black;
   border-radius: 10px;
   padding: 10px;
   background: white;
@@ -610,7 +616,7 @@ ul > li:before {
 .reveal .qmi .bucket .matchItem,
 .reveal .quiz-match-items .bucket .matchItem {
   display: block;
-  border: 2px solid #2a9ddf;
+  border: 2px dotted black;
   background: inherit;
 }
 
@@ -634,7 +640,7 @@ ul > li:before {
   position: relative;
   text-align: left;
   margin: 20px;
-  border: 3px solid #2a9ddf;
+  border: 2px solid #2a9ddf;
   border-radius: 20px;
   padding: 20px;
   font-weight: normal;

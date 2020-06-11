@@ -1,11 +1,17 @@
+////////////////////////////////////////////////
+// This scss file defines the layout and design of the decker Quizzes
+// match item, insert choices, multipl choice and freetext questions
+////////////////////////////////////////////////
+
+// 
 .reveal {
     .qic,
     .qft,
     .qmc,
     .qmi,
     [class*="quiz-"]{
-    // display: inline;
     position: relative;
+
     // General Button css and freetext question Input 
     button,
     input
@@ -16,9 +22,16 @@
         outline: none;
         clear: both;
     }
+    input{
+        border: 2px solid black;
+    }
     .solutionButton{
         font-size: large;
     }
+
+    // solutionList is the div that appears next to 
+    // a QFT input field 
+    // Previously this was used for QIC questions as well
     .solutionList{
         li{
             padding: 5px;
@@ -35,8 +48,6 @@
         }
         list-style-type: none;
         display: none;
-        // max-width: fit-content;
-        // max-width:        95vw;
         background-color: grey;
         color:            #ffffff;
         margin:           5px;
@@ -47,13 +58,13 @@
         z-index:          99;
         font-size:        1rem;
     }
-    .tooltip-div {
-        font-size: 0.6em;
-        background-color: #f4f4f7;
-        margin-top: 0.5em;
-      }
+
 }}
 
+// Designs specific to QIC questions
+// the choice for overflow scrolling stems from the
+// concern that users might want to use very long tooltips
+// possibly with images
 .reveal {
     .qic,
     [class*="quiz-i"]{
@@ -61,16 +72,25 @@
         overflow-y: scroll !important;
         overflow-x: hidden !important; 
         max-height: 75vh;
-        // max-width: 100vw;
         select{
+            border: 2px solid black;
             font-size: inherit;
             :disabled{
                 color: black;
             }
         }
+        // tooltip-div is the box that appears on hover 
+        // after having answered a QIC select element
+        .tooltip-div {
+            font-size: 0.6em;
+            background-color: #f4f4f7;
+            margin-top: 0.5em;
+        }
 }
 }
 
+// CSS specific to match item/QMI questions
+// 
 .reveal {
     .quiz-mi,
     .qmi,
@@ -154,7 +174,7 @@
             display:        block;
             vertical-align: middle;
             overflow:       hidden;
-            border:         2px solid #2a9ddf;
+            border:         2px dotted black;
             border-radius:  10px;
             padding:        10px;
             background:     white;
@@ -176,15 +196,15 @@
         .bucket{
             .matchItem{
                 display:    block;
-                border:     2px solid #2a9ddf;
+                border:     2px dotted black;
                 background: inherit
             }
         }
     }
 }
-.reveal {
 
-    // Multiple Choice        
+// CSS specific to multiple choice/QMC questions
+.reveal {
     .quiz-multiple-choice,
     .quiz-mc,
     .qmc{
@@ -204,7 +224,7 @@
             position:      relative;
             text-align:    left;
             margin:        20px;
-            border:        3px solid #2a9ddf;
+            border:        2px solid #2a9ddf;
             border-radius: 20px;
             padding:       20px;
             font-weight:   normal;

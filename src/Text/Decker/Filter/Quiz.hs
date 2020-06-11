@@ -25,26 +25,34 @@ import Text.Decker.Internal.Meta
 -- Pair: consisting of a bucket where items should be dropped; The items which belong to the bucket
 -- Distractor: Just a list of items without accompanying bucket
 data Match
-  = Pair { bucketID :: Int
-         , bucket :: [Inline]
-         , items :: [[Block]] }
-  | Distractor { items :: [[Block]] }
+  = Pair
+      { bucketID :: Int
+      , bucket :: [Inline]
+      , items :: [[Block]]
+      }
+  | Distractor
+      { items :: [[Block]]
+      }
   deriving (Show)
 
 -- | A Choice consists of a Boolean (correct), the answer text and a tooltip comment
-data Choice = Choice
-  { correct :: Bool
-  , text :: [Inline]
-  , comment :: [Block]
-  } deriving (Show)
+data Choice =
+  Choice
+    { correct :: Bool
+    , text :: [Inline]
+    , comment :: [Block]
+    }
+  deriving (Show)
 
 -- | Set different (optional) meta options for quizzes in a yaml code block
-data QuizMeta = QuizMeta
-  { _category :: T.Text
-  , _lectureId :: T.Text
-  , _score :: Int
-  , _topic :: T.Text
-  } deriving (Show)
+data QuizMeta =
+  QuizMeta
+    { _category :: T.Text
+    , _lectureId :: T.Text
+    , _score :: Int
+    , _topic :: T.Text
+    }
+  deriving (Show)
 
 makeLenses ''QuizMeta
 
@@ -53,30 +61,35 @@ makeLenses ''QuizMeta
 data Quiz
   = MultipleChoice
   -- Multiple Choice questions consist of one question (e.g. h2 header and some blocks) and a following choices/selection part
-     { _title :: [Inline]
-     , _tags :: [T.Text]
-     , _quizMeta :: QuizMeta
-     , _question :: [Block]
-     , _choices :: [Choice] }
+      { _title :: [Inline]
+      , _tags :: [T.Text]
+      , _quizMeta :: QuizMeta
+      , _question :: [Block]
+      , _choices :: [Choice]
+      }
   | MatchItems
   -- Matching Questions consist of one question and a pairing "area" for sorting items via dragging and dropping
-     { _title :: [Inline]
-     , _tags :: [T.Text]
-     , _quizMeta :: QuizMeta
-     , _question :: [Block]
-     , _pairs :: [Match] }
+      { _title :: [Inline]
+      , _tags :: [T.Text]
+      , _quizMeta :: QuizMeta
+      , _question :: [Block]
+      , _pairs :: [Match]
+      }
   | InsertChoices
   -- These questions can have multiple question and answer/choices parts. 
   -- This is why questions is a list of tuples. 
-     { _title :: [Inline]
-     , _tags :: [T.Text]
-     , _quizMeta :: QuizMeta
-     , _questions :: [([Block], [Choice])] }
-  | FreeText { _title :: [Inline]
-             , _tags :: [T.Text]
-             , _quizMeta :: QuizMeta
-             , _question :: [Block]
-             , _choices :: [Choice] }
+      { _title :: [Inline]
+      , _tags :: [T.Text]
+      , _quizMeta :: QuizMeta
+      , _questions :: [([Block], [Choice])]
+      }
+  | FreeText
+      { _title :: [Inline]
+      , _tags :: [T.Text]
+      , _quizMeta :: QuizMeta
+      , _question :: [Block]
+      , _choices :: [Choice]
+      }
   deriving (Show)
 
 makeLenses ''Quiz
@@ -87,20 +100,23 @@ handleQuizzes :: Pandoc -> Decker Pandoc
 handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
   where
     parseQuizboxes :: Block -> Block
-    parseQuizboxes d@(Div (id_, tgs@("box":cls), kvs) blocks)
-      | any (`elem` cls) ["qmi", "quiz-mi", "quiz-match-items"] =
-        renderQuizzes (parseAndSetQuiz (set tags tgs defaultMatch) blocks)
-      | any (`elem` cls) ["qmc", "quiz-mc", "quiz-multiple-choice"] =
-        renderQuizzes (parseAndSetQuiz (set tags tgs defaultMC) blocks)
-      | any (`elem` cls) ["qic", "quiz-ic", "quiz-insert-choices"] =
-        renderQuizzes (parseAndSetQuiz (set tags tgs defaultIC) blocks)
-      | any (`elem` cls) ["qft", "quiz-ft", "quiz-free-text"] =
-        renderQuizzes (parseAndSetQuiz (set tags tgs defaultFree) blocks)
+    parseQuizboxes d@(Div (id_, tgs, kvs) blocks)
+      | any (`elem` tgs) ["qmi", "quiz-mi", "quiz-match-items"] =
+        renderQuizzes (parseAndSetQuiz (setTags defaultMatch tgs) blocks)
+      | any (`elem` tgs) ["qmc", "quiz-mc", "quiz-multiple-choice"] =
+        renderQuizzes (parseAndSetQuiz (setTags defaultMC tgs) blocks)
+      | any (`elem` tgs) ["qic", "quiz-ic", "quiz-insert-choices"] =
+        renderQuizzes (parseAndSetQuiz (setTags defaultIC tgs) blocks)
+      | any (`elem` tgs) ["qft", "quiz-ft", "quiz-free-text"] =
+        renderQuizzes (parseAndSetQuiz (setTags defaultFree tgs) blocks)
       | otherwise = d
     parseQuizboxes bl = bl
     -- Give the tag-/classlist of the surrounding div box to the quiz
-    -- setTags :: Quiz -> [T.Text] -> Quiz
-    -- setTags q ts = set tags ts q
+    setTags :: Quiz -> [T.Text] -> Quiz
+    setTags q ts =
+      if elem "columns" ts
+        then set tags ts q
+        else set tags (ts ++ ["columns", "box"]) q
     -- The default "new" quizzes
     defaultMeta = QuizMeta "" "" 0 ""
     defaultMatch = MatchItems [] [] defaultMeta [] []
