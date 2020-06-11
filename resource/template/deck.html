@@ -175,7 +175,7 @@ $endfor$
 
 $if(title)$
    $if(mario)$ <!-- Mario settings -->
-      <section id="$idprefix$title-slide">
+      <section id="$idprefix$title-slide" class="title-page">
          <h1 style="display:none">Title</h1>
          <div class="white-on-blue">
             <div class="title"> $title$ </div>
@@ -212,34 +212,43 @@ $if(title)$
          $endif$
       </section>
    $else$ <!-- standard settings -->
-      $if(template.title-header)$
-         <section id="$idprefix$title-slide" 
-            data-background-size="100%" 
-            data-background-position="0px 0px" 
-            data-background-image=$template.title-header$>
+      $if(template.title-page.banner)$
+         <section id="$idprefix$title-slide" class="title-page"> 
+             <div class="title-page banner">
+                <img src=$template.title-page.banner$>
+             </div>
+            <!-- data-background-size="100%"
+            data-background-position="0px 0px"
+            data-background-image=$template.title-page.banner$> old version as background -->
       $else$
-         <section id="$idprefix$title-slide">
+         <section id="$idprefix$title-slide" class="title-page">
       $endif$
-            <div class="title"> $title$</div>
-            $if(subtitle)$
-               <div class="subtitle"> $subtitle$ </div>
-            $endif$
-            $if(template.title-teaser)$
-               <div class="title-teaser">
-                  <img src=$template.title-teaser$>
-               </div>
-            $endif$
-            $if(author)$
-               <div class="author"> $author$ </div>
-            $endif$
-            $if(template.affiliation-logo)$
-               <div class="affiliation-logo">
-                  <img src=$template.affiliation-logo$>
-               </div>
-            $endif$
-            $if(affiliation)$
-               <div class="affiliation"> $affiliation$ </div>
-            $endif$ 
+        <div class="valign-block" style="height:550px">
+            <div class="valigned">
+                <div class="title"> $title$</div>
+                $if(subtitle)$
+                   <div class="subtitle"> $subtitle$ </div>
+                $endif$
+                $if(template.title-page.teaser-img)$
+                   <div class="teaser-img">
+                      <img src=$template.title-page.teaser-img$>
+                   </div>
+                $else$
+                   <div style="height:100px"> </div>      
+                $endif$
+                $if(author)$
+                   <div class="author"> $author$ </div>
+                $endif$
+                $if(template.title-page.affiliation-logo)$
+                   <div class="affiliation-logo">
+                      <img src=$template.title-page.affiliation-logo$>
+                   </div>
+                $endif$
+                $if(affiliation)$
+                   <div class="affiliation"> $affiliation$ </div>
+                $endif$ 
+            </div>
+        </div>
          </section>      
    $endif$
 $endif$

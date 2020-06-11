@@ -685,32 +685,55 @@ ul > li:before {
   background-color: #003366;
 }
 
-.reveal .title {
-  margin: 100px 0 0 0;
+.reveal .title-page .banner img {
+  margin: 0px 0px 10px 0px;
+  width: 100%;
+  object-fit: contain;
+}
+
+.reveal .title-page .title {
+  margin: 0px;
+  width: 100%;
+  display: block;
   padding: 0px;
   font-size: var(--font-size-x-large);
   text-align: center;
 }
 
-.reveal .subtitle {
-  margin: 0 0 0 0;
-  padding: 0 0px 0px 0px;
+.reveal .title-page .subtitle {
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
   font-weight: normal;
   font-size: var(--font-size-normal);
   text-align: center;
 }
 
-.reveal .title-teaser img {
-  margin: 20px 0px 20px 0;
-  height: 300px;
+.reveal .title-page .teaser-img {
+  margin: 20px auto;
+  height: 10%;
   width: auto;
-  object-fit: contain;
   display: block;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-.reveal .affiliation-logo img {
+.reveal .title-page .teaser-img img {
+  margin: 0px;
+  display: block;
+  margin: auto;
+  object-fit: contain;
+  height: 100%;
+  width: 100%;
+}
+
+.reveal .title-page .author {
+  margin: 0px;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .title-page .affiliation-logo img {
   margin: 0px 0 0 0;
   height: 70px;
   width: auto;
@@ -720,7 +743,7 @@ ul > li:before {
   margin-right: auto;
 }
 
-.reveal .author {
+.reveal .title-page .affiliation {
   margin: 0px 0 0 0;
   font-weight: normal;
   font-style: normal;
@@ -728,12 +751,20 @@ ul > li:before {
   text-align: center;
 }
 
-.reveal .affiliation {
-  margin: 0px 0 0 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
+.reveal .title-page .valign-block {
   text-align: center;
+}
+
+.reveal .title-page .valign-block:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.reveal .title-page .valigned {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .reveal {
