@@ -41,11 +41,10 @@
             // Center horizontally
             display: block;
             margin: auto;
-            // Now make the image always fill container
-            // while sticking to aspect ratio
+            // Make the image as max 250px high retaining aspect ratio
             object-fit:  contain;
-            height: 100%;
-            width: 100%;
+            max-height: 250px;
+            width: auto;
          }
       }
       .author {
