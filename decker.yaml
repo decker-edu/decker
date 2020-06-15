@@ -14,15 +14,3 @@ exclude-directories:
   - third-party
 static-resource-dirs:
   - test/static
-dictionary:
-  de: 
-    solution-button: Lösung
-    input-placeholder: Eingeben und 'Enter'
-    qmi-drag-hint: Objekte per Drag&Drop ziehen...
-    qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
-  en:
-    solution-button: Show Solution
-    input-placeholder: Type and press 'Enter'
-    qmi-drag-hint: Drag items from here...
-    qmi-drop-hint: ...and put them here into the correct category.
-

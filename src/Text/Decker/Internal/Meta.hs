@@ -13,6 +13,7 @@ module Text.Decker.Internal.Meta
   , lookupMeta
   , lookupMetaOrElse
   , lookupMetaOrFail
+  , lookupInDictionary
   , mapMeta
   , mapMetaWithKey
   , readMetaDataFile
@@ -193,6 +194,23 @@ lookupMetaOrFail key meta =
     Just value -> value
     Nothing -> error $ "Cannot read meta value: " <> key
 
+lookupInDictionary :: Text -> Meta -> Text
+lookupInDictionary key meta =
+  case lookupMeta "lang" meta of
+    Just lang ->
+      lookupMetaOrElse
+        enDefault
+        (Text.intercalate "." ["dictionary", lang, key])
+        meta
+    _ -> enDefault
+  where
+    enDefault :: Text
+    enDefault =
+      lookupMetaOrElse
+        (Text.intercalate " " ["Dictionary entry for", key, "not available!"])
+        (Text.intercalate "." ["dictionary", "en", key])
+        meta
+
 -- | Map an IO action over string values and stringified inline values.
 -- Converts MetaInlines to MetaStrings. This may be a problem in some distant
 -- future.
@@ -230,5 +248,3 @@ mapMetaWithKey f meta = do
 -- | Reads a single meta data file.
 readMetaDataFile :: FilePath -> IO Meta
 readMetaDataFile file = toPandocMeta <$> Y.decodeFileThrow file
-
-

@@ -231,17 +231,14 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
         _ -> throw $ InternalException $ "Unknown meta data key: " <> show t
 
 -- | A simple Html button
-solutionButton :: Meta -> T.Text -> Block
-solutionButton meta lang =
+solutionButton :: Meta -> Block
+solutionButton meta =
   rawHtml' $ do
     H.br
     H.button ! A.class_ "solutionButton" $ H.toHtml buttonText
   where
     buttonText :: T.Text
-    buttonText =
-      if lang == "de"
-        then lookupMetaOrFail "dictionary.de.solution-button" meta
-        else lookupMetaOrFail "dictionary.en.solution-button" meta
+    buttonText = lookupInDictionary "solution-button" meta
 
 renderMultipleChoice :: Meta -> Quiz -> Block
 renderMultipleChoice meta quiz@(MultipleChoice title tgs qm q ch) =
@@ -315,20 +312,15 @@ renderMatching :: Meta -> Quiz -> Block
 renderMatching meta quiz@(MatchItems title tgs qm qs matches) =
   Div ("", tgs, []) $ header ++ qs ++ [itemsDiv, bucketsDiv, button]
   where
-    button = solutionButton meta (view lang qm)
+    newMeta = setMetaValue "lang" (view lang qm) meta
+    button = solutionButton newMeta
     header =
       case title of
         [] -> []
         _ -> [Header 2 ("", [], []) title]
     (buckets, items) = unzip $ map pairs matches
-    dropHint =
-      if view lang qm == "de"
-        then ("data-hint", lookupMetaOrFail "dictionary.de.qmi-drop-hint" meta)
-        else ("data-hint", lookupMetaOrFail "dictionary.en.qmi-drop-hint" meta)
-    dragHint =
-      if view lang qm == "de"
-        then ("data-hint", lookupMetaOrFail "dictionary.de.qmi-drag-hint" meta)
-        else ("data-hint", lookupMetaOrFail "dictionary.en.qmi-drag-hint" meta)
+    dropHint = ("data-hint", lookupInDictionary "qmi-drop-hint" newMeta)
+    dragHint = ("data-hint", lookupInDictionary "qmi-drag-hint" newMeta)
     itemsDiv = Div ("", ["matchItems"], [dragHint]) (concat items)
     bucketsDiv = Div ("", ["buckets"], [dropHint]) buckets
     item :: T.Text -> [Block] -> Block
@@ -354,20 +346,16 @@ renderFreeText :: Meta -> Quiz -> Block
 renderFreeText meta quiz@(FreeText title tgs qm q ch) =
   Div ("", tgs, []) $ header ++ q ++ [inputRaw] ++ [button]
   where
-    button = solutionButton meta (view lang qm)
+    newMeta = setMetaValue "lang" (view lang qm) meta
+    button = solutionButton newMeta
     header =
       case title of
         [] -> []
         _ -> [Header 2 ("", [], []) title]
     placeholderText :: T.Text
-    placeholderText =
-      if (view lang qm) == "de"
-        then lookupMetaOrFail "dictionary.de.input-placeholder" meta
-        else lookupMetaOrFail "dictionary.en.input-placeholder" meta
+    placeholderText = lookupInDictionary "input-placeholder" newMeta
     inputRaw =
       rawHtml'
         ((H.input ! A.placeholder (H.textValue placeholderText)) >>
          choiceList "solutionList" ch)
-    -- input :: Choice -> Html
-    -- input (Choice correct text comment) = H.input
 renderFreeText meta q = Div ("", [], []) [Para [Str "ERROR NO FREETEXT QUIZ"]]
