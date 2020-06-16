@@ -174,9 +174,13 @@ let RevealWhiteboard = (function(){
 
 
     // adjust slide height: slides should always have full page height,
-    // even if they have not ;-). Might happen when setting center:true
-    // in Reveal's settings. In this case change the centering through
-    // margin (done by Reveal) to a centering through padding.
+    // even if they have not ;-). Might happen when using center:true
+    // in Reveal's settings. In this case Reveal centers the slide by
+    // adding a margin to the css:top variable. This is not compatible
+    // with the whiteboard, since then the whiteboard page would be taller
+    // than the slide itself. We fix this by removing the top-setting and
+    // instead centering the slide through top/bottom padding. This allows
+    // us to enforce full slide height (as configured in Reveal's settings).
     function adjustSlideHeight()
     {
         if (Reveal.getConfig().center)
@@ -1280,7 +1284,7 @@ let RevealWhiteboard = (function(){
                 svg.style.display = 'none';
             });
 
-            // adjust slide height
+            // adjust slide height (call before setupSVG!)
             adjustSlideHeight();
 
             // setup and show current slide's SVG (adjust slide height before!)
@@ -1339,7 +1343,6 @@ let RevealWhiteboard = (function(){
 
 
     // whenever slide changes, update slideIndices and redraw
-    //Reveal.addEventListener( 'ready',        slideChanged );
     Reveal.addEventListener( 'slidechanged', slideChanged );
 
     // whenever fragment changes, update stroke visibility
