@@ -173,6 +173,28 @@ let RevealWhiteboard = (function(){
     penWidthSlider.oninput  = () => { penWidthSlider.style.setProperty('--size', (parseInt(penWidthSlider.value)+1)+'px'); }
 
 
+    // adjust slide height: slides should always have full page height,
+    // even if they have not ;-). Might happen when setting center:true
+    // in Reveal's settings. In this case change the centering through
+    // margin (done by Reveal) to a centering through padding.
+    function adjustSlideHeight()
+    {
+        if (Reveal.getConfig().center)
+        {
+            let slide = Reveal.getCurrentSlide();
+            const top = slide.style.top;
+            console.log(top);
+            if (top != '' && top != '0px')
+            {
+                slide.style.top = '';
+                slide.style.paddingTop = top;
+                slide.style.paddingBottom = top;
+                slide.style.height = pageHeight + 'px';
+            }
+        }
+    }
+
+
     // create whiteboard SVG for current slide
     // is currently called for each slide, even if we don't have strokes yet
     function setupSVG(slide, height)
@@ -719,6 +741,7 @@ let RevealWhiteboard = (function(){
                                     if (svg)
                                     {
                                         svg.innerHTML = page.svg;
+                                        svg.style.display = 'none';
                                     }
                                 }
                             });
@@ -1257,7 +1280,10 @@ let RevealWhiteboard = (function(){
                 svg.style.display = 'none';
             });
 
-            // show current slide's SVG
+            // adjust slide height
+            adjustSlideHeight();
+
+            // setup and show current slide's SVG (adjust slide height before!)
             setupSVG();
             svg.style.display = 'block';
 
@@ -1313,7 +1339,7 @@ let RevealWhiteboard = (function(){
 
 
     // whenever slide changes, update slideIndices and redraw
-    Reveal.addEventListener( 'ready',        slideChanged );
+    //Reveal.addEventListener( 'ready',        slideChanged );
     Reveal.addEventListener( 'slidechanged', slideChanged );
 
     // whenever fragment changes, update stroke visibility
