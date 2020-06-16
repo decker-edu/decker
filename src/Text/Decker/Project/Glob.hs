@@ -1,4 +1,7 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiWayIf #-}
+
 module Text.Decker.Project.Glob
   ( fastGlobFiles
   , fastGlobDirs

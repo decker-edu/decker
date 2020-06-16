@@ -1,22 +1,27 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 
 module Text.Decker.Filter.Header where
+
+import qualified Data.List as List
+import Data.Maybe
+import Data.Monoid
+
+import Relude
 
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Exception
-
-import Data.Maybe
-import Data.Monoid
-import Relude
 import Text.Pandoc
 import Text.Pandoc.Walk
 import qualified Text.URI as URI
 
 transformHeader1 :: Block -> Filter Block
 transformHeader1 h1@(Header 1 headAttr inlines)
-  | containsImage inlines = buildHeader $ lastImage inlines
+  | containsImage inlines =
+    (buildHeader $ lastImage inlines) -- >>= putThrough "buildHeader"
   where
     buildHeader img@(Image imgAttr alt (url, title), rest) = do
       uri <- transformUrl url ""
@@ -51,24 +56,20 @@ transformHeader1 h1@(Header 1 headAttr inlines)
           _ -> return h1
     buildHeader _ =
       bug $ InternalException "transformHeader: no last image in header"
--- Handle data-background-{image,video,iframe} file attributes
 transformHeader1 h1@(Header 1 (id, cls, kvs) inlines) = do
-  transformed <- mapM transformBgUrls kvs
-  return (Header 1 (id, cls, transformed) inlines)
+  local <- adjustAttribs bgAttribs kvs
+  return (Header 1 (id, cls, local) inlines)
+  where
+    adjustAttrib :: (Text, Text) -> Filter (Text, Text)
+    adjustAttrib (k, v) = (k, ) <$> (URI.render <$> transformUrl v "")
+    -- Adjusts the values of all key value attributes that are listed in keys.
+    adjustAttribs :: [Text] -> [(Text, Text)] -> Filter [(Text, Text)]
+    adjustAttribs keys kvs = do
+      let (paths, other) = List.partition ((`elem` keys) . fst) kvs
+      local <- mapM adjustAttrib paths
+      return $ local <> other
 transformHeader1 h@Header {} = return h
 transformHeader1 block = return block
---transformHeader1 _ =
-  --bug $ InternalException "transformHeader: non header argument"
-
-transformBgUrls :: (Text, Text) -> Filter (Text, Text)
-transformBgUrls (k, v) =
-  if k `elem`
-     [ "data-background-image"
-     , "data-background-video"
-     , "data-background-iframe"
-     ]
-    then (k, ) . URI.render <$> transformUrl v ""
-    else return (k, v)
 
 containsImage :: [Inline] -> Bool
 containsImage = getAny . query check

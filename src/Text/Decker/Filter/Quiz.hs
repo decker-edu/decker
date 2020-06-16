@@ -1,3 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Text.Decker.Filter.Quiz
   ( handleQuizzes
   ) where
