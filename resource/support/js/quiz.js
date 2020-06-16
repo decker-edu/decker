@@ -432,6 +432,7 @@ function drop(event) {
     event.preventDefault();
     var element = elements[event.dataTransfer.getData('index')];
     if (event.target.classList.contains("matchItem")) {
+        event.target.parentNode.appendChild(element);
         return false;
     }
 
