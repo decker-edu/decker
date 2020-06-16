@@ -96,6 +96,7 @@
     .qmi,
     .quiz-match-items{
         display: block;
+        // If quiz overflows to the bottom (e.g. too many/too large items) create a scroll bar
         overflow-y: scroll !important;
         overflow-x: hidden !important; 
         max-height: 75vh;
@@ -142,23 +143,26 @@
             padding:    5px;
             color:      grey;
         }
+        // Use "data-hint" attribute to get drag and drop hint 
+        // in the correct language (can be customized in yaml header)
         .matchItems:before{
             content: attr(data-hint);
         }
-
         .buckets:before{
             content: attr(data-hint);
         }
         
+        // The little triangle showing the drag direction. 
+        // Just an optical gimmick
         .matchItems:after{
             position:      absolute;
             content:       " ";
             width:         0;
             height:        0;
-            bottom:           -30px;
+            bottom:        -30px;
             border-left:   30px solid transparent;
             border-right:  30px solid transparent;
-            border-top: 30px solid #dddddd;
+            border-top:    30px solid #dddddd;
         }
 
         .bucket{
@@ -171,6 +175,7 @@
         }
 
         .matchItem{
+            // Scale down image to prevent quiz from overflowing
             img{
                 max-width: 50%;
             }
@@ -187,15 +192,6 @@
             margin-right: 2px;
         }
 
-        .matchItem .solution{
-            visibility: hidden;
-            font-size: large;
-        }
-        .matchItem:hover .solution{
-            visibility: visible;
-            font-size: large;
-        }
-
         .bucket{
             .matchItem{
                 display:    block;
@@ -207,6 +203,7 @@
 }
 
 // CSS specific to multiple choice/QMC questions
+// Design mostly adapted 1:1 from Mario's clicker quiz
 .reveal {
     .quiz-multiple-choice,
     .quiz-mc,
@@ -242,6 +239,7 @@
             font-weight:  bold;
         }
 
+        // The tooltip showing on hover under the MC "button" after clicking
         .tooltip  {
             display:          block;
             visibility:       hidden;
