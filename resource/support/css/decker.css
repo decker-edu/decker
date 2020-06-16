@@ -721,8 +721,8 @@ ul > li:before {
   display: block;
   margin: auto;
   object-fit: contain;
-  height: 100%;
-  width: 100%;
+  max-height: 250px;
+  width: auto;
 }
 
 .reveal .title-page .author {
