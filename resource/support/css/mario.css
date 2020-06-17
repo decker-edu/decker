@@ -927,7 +927,7 @@ body {
  * MARIO: fullscreen for iframes
  *********************************************/
 
-.reveal div.fs-container { 
+ .reveal div.fs-container { 
     margin:   auto;
     border:   0px;
     padding:  0px;
@@ -947,6 +947,10 @@ body {
     height: 100% !important;
 }
 
+.reveal div.fs-container>iframe {
+    box-sizing: border-box;
+}
+
 .reveal div.fs-container:fullscreen>iframe {
     border: none;
 }
@@ -955,8 +959,8 @@ body {
     z-index:          100;
     display:          inline-block;
     position:         absolute;
-    top:              0px;
-    right:            0px;
+    top:              2px;
+    right:            2px;
     cursor:           pointer;
     outline:          none;
     font-size:        20px;

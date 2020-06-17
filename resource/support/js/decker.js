@@ -130,11 +130,17 @@ function prepareCodeHighlighting() {
   }
 }
 
-
+// wrap iframe demos in a div that offers a fullscreen button.
+// only do this if the browser supports the Fullscreen API.
+// don't do this for Safari, since its webkit-prefixed version
+// does not work propertly: one cannot put an iframe to fullscreen
+// if the slides are in fullscreen already (which is the standard
+// presentation setting).
+// we wrap the div in any case to make the css simpler.
 function prepareFullscreenIframes() {
   for (let iframe of document.querySelectorAll('iframe.decker')) {
+    // wrap div around iframe
     var parent = iframe.parentElement;
-
     var div = document.createElement("div");
     div.classList.add("fs-container");
     div.style.width = iframe.style.width || "100%";
@@ -143,46 +149,41 @@ function prepareFullscreenIframes() {
       div.classList.add("stretch");
       iframe.classList.remove("stretch");
     }
+    parent.insertBefore(div, iframe);
+    div.appendChild(iframe);
 
+    // iframe should be full width/height within div
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+
+    // if fullscreen API is not supported then don't add the button
+    if (!div.requestFullscreen) continue;
+
+    // add fullscreen button
     var btn = document.createElement("button");
     btn.classList.add("fs-button");
     btn.innerHTML = '<i class="fas fa-expand-arrows-alt" style="font-size:20px"></i>';
     div.btn = btn;
-
-    parent.insertBefore(div, iframe);
-    div.appendChild(iframe);
     div.appendChild(btn);
 
-    iframe.style.width = "100%";
-    iframe.style.height = "100%";
-
+    // handle button click: enter/exit fullscreen
     btn.onclick = function () {
       var doc = window.document;
       var container = this.parentElement;
-
-      var requestFullScreen = container.requestFullscreen || container.mozRequestFullScreen || container.webkitRequestFullScreen || container.msRequestFullscreen;
-      var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-      var fsElement = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
-
-      if (fsElement == container)
-        cancelFullScreen.call(doc);
+      if (doc.fullscreenElement == container)
+        doc.exitFullscreen();
       else
-        requestFullScreen.call(container);
+        container.requestFullscreen();
     };
 
-
-    function onFullscreenChange() {
+    // handle fullscreen change: adjust button icon
+    div.onfullscreenchange = function () {
       var doc = window.document;
-      var fsElement = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
-
       this.btn.innerHTML =
-        fsElement == this ?
+        doc.fullscreenElement == this ?
           '<i class="fas fa-compress-arrows-alt"></i>' :
           '<i class="fas fa-expand-arrows-alt"></i>';
     };
-    div.addEventListener('fullscreenchange', onFullscreenChange);
-    div.addEventListener('webkitfullscreenchange', onFullscreenChange);
-
   }
 }
 
