@@ -63,7 +63,7 @@ videoExt = ["mp4", "mov", "ogg", "avi"]
 
 audioExt = ["mp3", "aiff", "wav"]
 
-iframeExt = ["html", "htm"]
+iframeExt = ["html", "htm", "php"]
 
 codeExt = ["cpp", "java", "hs", "js"]
 
