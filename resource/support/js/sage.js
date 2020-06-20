@@ -34,7 +34,7 @@ function build_sage_url(html)
     }
     button.sagecell_evalButton {
         font-size:     20px;
-        margin-bottom: 10px;
+        margin-bottom: 30px;
         outline:       none;
     }
     .sagecell .CodeMirror-scroll {
