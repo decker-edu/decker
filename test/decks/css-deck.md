@@ -76,7 +76,7 @@ ghci> :type [1,2,3,4]
 
 # Smile
 
-``` {..markdown}
+``` {.{..markdown}}
 :smile:
 ```
 
@@ -84,5 +84,5 @@ ghci> :type [1,2,3,4]
 
 ## Also see
 
--   [Emoji unicode characters for use on the
-    web](https://apps.timwhitlock.info/emoji/tables/unicode)
+-   [Complete list of github markdown emoji markup ·
+    GitHub](https://gist.github.com/rxaviers/7360908)

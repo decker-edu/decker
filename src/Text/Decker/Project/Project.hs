@@ -1,17 +1,18 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Text.Decker.Project.Project
   ( resourcePaths
   , scanTargetsToFile
   , deckerResourceDir
-  , removeCommonPrefix
-  , isPrefix
-  , makeRelativeTo
   , findProjectDirectory
   , projectDirectories
   , provisioningFromMeta
   -- , dachdeckerFromMeta
-  , invertPath
   , scanTargets
   , isDevelopmentRun
   , excludeDirs
@@ -129,20 +130,6 @@ instance FromMetaValue Resource where
     return $ Resource source target url
   fromMetaValue _ = Nothing
 
-data ProjectDirs = ProjectDirs
-  { _project :: FilePath
-  , _public :: FilePath
-  , _support :: FilePath
-  , _transient :: FilePath
-  } deriving (Eq, Show)
-
-makeLenses ''ProjectDirs
-
-$(deriveJSON
-    defaultOptions
-      {fieldLabelModifier = drop 1, constructorTagModifier = map toLower}
-    ''ProjectDirs)
-
 instance ToMetaValue ProjectDirs where
   toMetaValue (ProjectDirs project public support transient) =
     toMetaValue
@@ -172,14 +159,12 @@ provisioningFromMeta meta =
  -absRefResource resource =
  -  return $ show $ URI "file" Nothing (sourceFile resource) "" ""
  -}
-
 {-
  -relRefResource :: FilePath -> Resource -> IO FilePath
  -relRefResource base resource = do
  -  let relPath = makeRelativeTo base (sourceFile resource)
  -  return $ show $ URI "file" Nothing relPath "" ""
  -}
-
 -- | Find the project directory. 
 -- 1. First upwards directory containing `decker.yaml`
 -- 2. First upwards directory containing `.git`
@@ -238,7 +223,6 @@ deckerResourceDir =
  -        _:x:y:z:_ -> convert [x, y, z] < currentVersion
  -        _ -> False
  -}
-
 resourcePaths :: ProjectDirs -> FilePath -> URI -> Resource
 resourcePaths dirs base uri =
   Resource
@@ -254,39 +238,6 @@ resourcePaths dirs base uri =
           (uriQuery uri)
           (uriFragment uri)
     }
-
--- | Express the second path argument as relative to the first. 
--- Both arguments are expected to be absolute pathes. 
-makeRelativeTo :: FilePath -> FilePath -> FilePath
-makeRelativeTo dir file =
-  let (d, f) = removeCommonPrefix (normalise dir, normalise file)
-   in normalise $ invertPath d </> f
-
-invertPath :: FilePath -> FilePath
-invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
-
-removeCommonPrefix :: (FilePath, FilePath) -> (FilePath, FilePath)
-removeCommonPrefix =
-  mapTuple joinPath . removeCommonPrefix_ . mapTuple splitDirectories
-  where
-    removeCommonPrefix_ :: ([FilePath], [FilePath]) -> ([FilePath], [FilePath])
-    removeCommonPrefix_ (al@(a:as), bl@(b:bs))
-      | a == b = removeCommonPrefix_ (as, bs)
-      | otherwise = (al, bl)
-    removeCommonPrefix_ pathes = pathes
-
-isPrefix :: FilePath -> FilePath -> Bool
-isPrefix prefix whole = isPrefix_ (splitPath prefix) (splitPath whole)
-  where
-    isPrefix_ :: Eq a => [a] -> [a] -> Bool
-    isPrefix_ (a:as) (b:bs)
-      | a == b = isPrefix_ as bs
-      | otherwise = False
-    isPrefix_ [] _ = True
-    isPrefix_ _ _ = False
-
-mapTuple :: (t1 -> t) -> (t1, t1) -> (t, t)
-mapTuple f (a, b) = (f a, f b)
 
 deckSuffix = "-deck.md"
 
@@ -361,7 +312,6 @@ scanTargets meta dirs = do
  -          Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
  -  return url
  -}
-
 projectDir :: Meta -> FilePath
 projectDir = lookupMetaOrElse "." "decker.directories.project"
 

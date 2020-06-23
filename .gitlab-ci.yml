@@ -1,33 +1,37 @@
 stages:
-  - templates
+  - ci-img
   - build
   - test
   - deploy
-  - stop
 
-templates:
-  image: kkarczmarczyk/node-yarn
-  stage: templates
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+ci-img:
   tags:
     - docker
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  stage: ci-img
   script:
-    - make -f symlinks.mk -C third-party copy=true all
-  artifacts:
-    paths:
-      - resource/support
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context=$CI_PROJECT_DIR --dockerfile=$CI_PROJECT_DIR/Dockerfile --target=base --verbosity=warn --destination=$CI_REGISTRY_IMAGE/ci:base
+  rules:
+    - if: "$CI_MERGE_REQUEST_IID == null"
+      changes:
+        - Dockerfile
+        - .gitlab-ci.yml
+      when: always
 
 build:linux:
   stage: build
   tags:
     - docker
   image:
-    name: fpco/stack-build
+    name: $CI_REGISTRY_IMAGE/ci:base
     entrypoint: [""]
   script:
-    - STACK_ROOT=`pwd`/.stack make clean-build
-    - cp $(STACK_ROOT=`pwd`/.stack stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
+    - mkdir -p /cache/decker
+    - STACK_ROOT=/cache/decker make clean-build
+    - cp $(STACK_ROOT=/cache/decker stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
   artifacts:
     paths:
       - decker
@@ -35,7 +39,7 @@ build:linux:
     key: stack_work
     paths:
       - .stack-work
-      - .stack
+  interruptible: true
 
 build:mac:
   tags:
@@ -43,7 +47,7 @@ build:mac:
   stage: build
   script:
     - git rev-parse --short HEAD
-    - make build
+    - make clean-build
     - cp $(stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker
   cache:
     key: ${CI_JOB_NAME}
@@ -52,13 +56,16 @@ build:mac:
   artifacts:
     paths:
       - decker
+  when: always
+  interruptible: true
+  needs: []
 
 build:win:
   tags:
     - win
   stage: build
   script:
-    - '&.\bin\build.ps1 standalone -skiptemplates -preparepackage'
+    - '&.\bin\build.ps1 standalone -preparepackage'
   artifacts:
     paths:
       - decker.exe
@@ -67,27 +74,31 @@ build:win:
     key: build-win
     paths:
       - .stack-work
+  when: always
+  interruptible: true
+  needs: []
 
 test:linux:
   stage: test
   tags:
     - docker
   image:
-    name: fpco/stack-build
+    name: $CI_REGISTRY_IMAGE/ci:base
     entrypoint: [""]
   script:
-    - STACK_ROOT=`pwd`/.stack make test
+    - STACK_ROOT=/cache/decker make test
   cache:
     key: stack_work
     paths:
       - .stack-work
-      - .stack
-  dependencies:
-    - build:linux
+  needs:
+    - job: build:linux
+      artifacts: true
+  interruptible: true
 
 deploy:mac:
   stage: deploy
-  image: 
+  image:
     name: minio/mc:latest
     entrypoint: [""]
   variables:
@@ -98,15 +109,20 @@ deploy:mac:
     - if [ $CI_COMMIT_REF_NAME == "master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker store/decker/decker-mac${SUFFIX}
-  dependencies:
-    - build:mac
-  only:
-    - master
-    - /^v\d\.\d\.\d-patching$/
+  needs:
+    - job: build:mac
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      when: always
+    - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
+      when: always
+  interruptible: true
+  resource_group: deploy_mac
 
 deploy:linux:
   stage: deploy
-  image: 
+  image:
     name: minio/mc:latest
     entrypoint: [""]
   variables:
@@ -117,15 +133,20 @@ deploy:linux:
     - if [ $CI_COMMIT_REF_NAME == "master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker store/decker/decker-linux${SUFFIX}
-  dependencies:
-    - build:linux
-  only:
-    - master
-    - /^v\d\.\d\.\d-patching$/
+  needs:
+    - job: build:linux
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      when: always
+    - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
+      when: always
+  interruptible: true
+  resource_group: deploy_linux
 
 deploy:win:
   stage: deploy
-  image: 
+  image:
     name: minio/mc:latest
     entrypoint: [""]
   variables:
@@ -137,39 +158,13 @@ deploy:win:
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker.exe store/decker/decker-win${SUFFIX}.exe
     - mc cp ./version.txt store/decker/version-win${SUFFIX}.txt
-  dependencies:
-    - build:win
-  only:
-    - master
-    - /^v\d\.\d\.\d-patching$/
-
-review:
-  stage: deploy
-  image: 
-    name: curlimages/curl:latest
-    entrypoint: [""]
-  tags:
-    - docker
-  script:
-    - curl --cacert $REVIEW_CA --key $REVIEW_KEY --cert $REVIEW_CRT -F 'decker=@./decker' -X PUT https://cypher.informatik.uni-wuerzburg.de:19368/$CI_COMMIT_REF_NAME
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    url: http://review.decker.informatik.uni-wuerzburg.de/$CI_COMMIT_REF_NAME
-    on_stop: stop_review
-    auto_stop_in: 2 week
-  dependencies:
-    - build:linux
-
-stop_review:
-  stage: stop
-  image: 
-    name: curlimages/curl:latest
-    entrypoint: [""]
-  tags:
-    - docker
-  script:
-    - curl --cacert $REVIEW_CA --key $REVIEW_KEY --cert $REVIEW_CRT -X DELETE https://cypher.informatik.uni-wuerzburg.de:19368/$CI_COMMIT_REF_NAME
-  when: manual
-  environment:
-    name: review/$CI_COMMIT_REF_NAME
-    action: stop
+  needs:
+    - job: build:win
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      when: always
+    - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
+      when: always
+  interruptible: true
+  resource_group: deploy_win

@@ -1,21 +1,26 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TupleSections #-}
 
 module Text.Decker.Filter.Streaming where
 
+import Control.Monad.Catch
+
+import qualified Data.Text as Text
+
+import Relude
+
+import Text.Blaze.Html
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Macro
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.URI
-
-import Control.Monad.Catch
-import qualified Data.Text as Text
-import Relude
-import Text.Blaze.Html
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
 import Text.Pandoc
 import Text.Printf
+import Text.URI (URI)
 import qualified Text.URI as URI
 
 justToList :: [Maybe a] -> [a]
@@ -138,12 +143,6 @@ streamHtml uri caption = do
 streamHtml' :: URI -> [Inline] -> Attrib Html
 streamHtml' uri caption = do
   let scheme = uriScheme uri
-  {-
-   -streamId <-
-   -  case URI.uriAuthority uri of
-   -    Right (URI.Authority _ host _) -> pure $ URI.unRText host
-   -    _ -> return $ uriPath uri
-   -}
   let streamId = uriPath uri
   streamUri <-
     case scheme of

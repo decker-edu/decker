@@ -119,14 +119,21 @@ $endif$
     $for(include-before)$
     $include-before$
     $endfor$
-    $if(title)$
+
     <header>
+    $if(template.index-page.banner)$
+    <div class="index-page-banner">
+       <img src=$template.index-page.banner$>
+    </div>
+    $endif$
+    $if(title)$
       <h1>$title$</h1>
       $if(subtitle)$
       <h2>$subtitle$</h2>
       $endif$
-    </header>
     $endif$
+    </header>
+
     $if(toc)$
     $if(toc-title)$
     <h1 id="$idprefix$TOC-title class="toc-title">$toc-title$</h1>

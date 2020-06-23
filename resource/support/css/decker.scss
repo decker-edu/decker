@@ -385,3 +385,60 @@ dd {
 .reveal p:empty {
   display: none;
 }
+
+/*********************************************
+ * MARIO: fullscreen for iframes
+ *********************************************/
+
+ .reveal div.fs-container { 
+  margin:   auto;
+  border:   0px;
+  padding:  0px;
+  position: relative;
+}
+
+.reveal div.fs-container:fullscreen {
+  overflow-x:       hidden;
+  overflow-y:       auto;
+  background-color: white;
+  padding:          20px;
+}
+
+/* needed for mobile Safari */
+*:-webkit-full-screen {
+  width:  100% !important;
+  height: 100% !important;
+}
+
+.reveal div.fs-container>iframe {
+  box-sizing: border-box;
+}
+
+.reveal div.fs-container:fullscreen>iframe {
+  border: none;
+}
+
+.reveal button.fs-button { 
+  z-index:          100;
+  display:          inline-block;
+  position:         absolute;
+  top:              2px;
+  right:            2px;
+  cursor:           pointer;
+  outline:          none;
+  font-size:        20px;
+  width:            24px;
+  height:           24px;
+  padding:          2px;
+  border:           none;
+  border-radius:    4px;
+  opacity:          0.5;
+  color:            var(--whiteboard-inactive-color);
+  background-color: rgba(255,255,255,0.5);
+}
+
+.reveal button.fs-button:hover { 
+  opacity:          1.0;
+  color:            var(--whiteboard-active-color);
+  background-color: rgba(255,255,255,0.8);
+}
