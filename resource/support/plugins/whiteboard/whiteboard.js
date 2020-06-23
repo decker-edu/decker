@@ -756,7 +756,10 @@ let RevealWhiteboard = (function(){
                         if (printMode)
                         {
                             slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
-                                svg=mysvg; adjustWhiteboardHeight();
+                                svg=mysvg; 
+                                svg.style.display = 'block';
+                                adjustSlideHeight();
+                                adjustWhiteboardHeight();
                             });
                         }
                     }
