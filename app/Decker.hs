@@ -303,14 +303,26 @@ run = do
       need ["support"]
       meta <- getGlobalMeta
       getTargets >>= needSels [decks, handouts, pages]
-      let host = lookupMetaOrFail "rsync-destination.host" meta
-      let path = lookupMetaOrFail "rsync-destination.path" meta
       let src = (directories ^. public) ++ "/"
-      let dst = intercalate ":" [host, path]
-      ssh [host, "mkdir -p", path]
-      rsync [src, dst]
+      case lookupMeta "publish.rsync.destination" meta of
+        Just destination -> publishWithRsync src destination meta
+        _ -> do
+          let host = lookupMetaOrFail "rsync-destination.host" meta
+          let path = lookupMetaOrFail "rsync-destination.path" meta
+          let dst = intercalate ":" [host, path]
+          ssh [host, "mkdir -p", path]
+          rsync [src, dst]
     -- TODO Is this still needed?
     --phony "sync" $ uploadQuizzes (_sources <$> targetsA)
+
+publishWithRsync :: String -> String -> Meta -> Action ()
+publishWithRsync source destination meta = do
+  let options = lookupMetaOrElse [] "publish.rsync.options" meta :: [String]
+  putNormal source
+  putNormal destination
+  putNormal $ show $ options <> [source, destination]       
+  rsync $ options <> [source, destination]        
+  
 
 waitForYes :: IO ()
 waitForYes = do

@@ -45,8 +45,6 @@ programs =
         , "--chmod=a+r,go-w"
         , "--no-owner"
         , "--copy-links"
-        , "--exclude"
-        , "index.html"
         ]
         ["--version"]
         (helpText "`rsync` program (https://rsync.samba.org)"))
