@@ -318,9 +318,6 @@ run = do
 publishWithRsync :: String -> String -> Meta -> Action ()
 publishWithRsync source destination meta = do
   let options = lookupMetaOrElse [] "publish.rsync.options" meta :: [String]
-  putNormal source
-  putNormal destination
-  putNormal $ show $ options <> [source, destination]       
   rsync $ options <> [source, destination]        
   
 

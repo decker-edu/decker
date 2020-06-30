@@ -1,4 +1,6 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Text.Decker.Internal.External
   ( ssh
   , rsync
@@ -11,6 +13,8 @@ module Text.Decker.Internal.External
 
 import Text.Decker.Internal.Exception
 
+import qualified Data.List as List
+import Relude
 import Control.Exception
 import Data.Maybe
 import Development.Shake
@@ -34,7 +38,7 @@ programs =
         "ssh"
         []
         ["-V"]
-        (helpText "`ssh` program (https://www.openssh.com)"))
+        (helpText "`ssh` (https://www.openssh.com)"))
   , ( "rsync"
     , ExternalProgram
         []
@@ -47,35 +51,35 @@ programs =
         , "--copy-links"
         ]
         ["--version"]
-        (helpText "`rsync` program (https://rsync.samba.org)"))
+        (helpText "`rsync` (https://rsync.samba.org)"))
   , ( "dot"
     , ExternalProgram
         []
         "dot"
         ["-Tsvg"]
         ["-V"]
-        (helpText "Graphviz package (http://www.graphviz.org)"))
+        (helpText "Graphviz (http://www.graphviz.org)"))
   , ( "gnuplot"
     , ExternalProgram
         []
         "gnuplot"
         ["-d", "-e", "set terminal svg"]
         ["-V"]
-        (helpText "Gnuplot package (http://gnuplot.sourceforge.net)"))
+        (helpText "Gnuplot (http://gnuplot.sourceforge.net)"))
   , ( "pdflatex"
     , ExternalProgram
         []
         "pdflatex"
         ["-halt-on-error", "-interaction=batchmode", "-no-shell-escape"]
         ["--version"]
-        (helpText "LaTeX type setter (https://www.tug.org/texlive/)"))
+        (helpText "LaTeX (https://www.tug.org/texlive/)"))
   , ( "pdf2svg"
     , ExternalProgram
         []
         "pdf2svg"
         []
         []
-        (helpText "LaTeX type setter (https://github.com/dawbarton/pdf2svg)"))
+        (helpText "LaTeX (https://github.com/dawbarton/pdf2svg)"))
   ]
 
 type Program = [String] -> Action ()
@@ -99,14 +103,11 @@ pdf2svg :: Program
 pdf2svg = makeProgram "pdf2svg"
 
 helpText :: String -> String
-helpText name =
-  "The " ++
-  name ++
-  " could not be found. Make sure it is installed and available via the `PATH` environment variable."
+helpText name = name ++ " reported a problem:"
 
 makeProgram :: String -> ([String] -> Action ())
 makeProgram name =
-  let external = fromJust $ lookup name programs
+  let external = fromJust $ List.lookup name programs
    in (\arguments -> do
          (Exit code, Stdout out, Stderr err) <-
            command
@@ -124,7 +125,7 @@ checkProgram :: String -> Action Bool
 checkProgram name =
   liftIO $
   handle (\(SomeException _) -> return False) $ do
-    let external = fromJust $ lookup name programs
+    let external = fromJust $ List.lookup name programs
     (code, _, _) <-
       readProcessWithExitCode (path external) (testArgs external) ""
     case code of
