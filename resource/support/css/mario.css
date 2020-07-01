@@ -348,6 +348,7 @@ body {
     max-height: 100%;
     word-wrap: normal;
     background-color: #f7f7f7;
+    box-sizing: border-box;
 }
 
 .reveal pre code.small {
