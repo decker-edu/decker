@@ -46,7 +46,7 @@ New-Item "$support\reveal\plugin" -Force -ItemType "directory"
 # New-Item "$support\reveal\plugin\markdown" -Force -ItemType "directory"
 # Copy-Item "$third\reveal.js\plugin\markdown\marked.js" "$support\reveal\plugin\markdown\marked.js" -Force
 # Foreach ($i in ("js", "css", "lib", "plugin\math", "plugin\zoom-js", "plugin\notes")) {
-Foreach ($i in ("js", "css", "plugin\notes")) {  
+Foreach ($i in ("js", "css", "plugin\notes", "plugin\highlight")) {  
   Copy-Item -r "$third\reveal.js\$i" "$support\reveal\$i" -Force
 }
 

@@ -339,7 +339,6 @@ body {
 /* block of code (has to override above inline code)*/
 .reveal pre code {
     display: block;
-    margin: 5px;
     text-align: left;
     font-size: 0.5em;
     font-family: monospace;
