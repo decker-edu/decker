@@ -581,6 +581,9 @@ $endif$
               { src: String.raw`$decker-support-dir$/plugins/zoom/zoom.js` },
               { src: String.raw`$decker-support-dir$/plugins/print/print.js` },
               { src: String.raw`$decker-support-dir$/plugins/search/search.js`, async: true },
+$if(highlightjs)$
+              { src: String.raw`$decker-support-dir$/plugins/highlight/highlight.js` },
+$endif$
 $if(mario)$              
               { src: String.raw`$decker-support-dir$/plugins/quiz/quiz.js` },
 $endif$    
@@ -589,9 +592,6 @@ $if(menu)$
 $endif$
 $if(thebelab.enable)$
               { src: String.raw`$decker-support-dir$/plugins/thebelab/thebelab.js`, async: true },
-$endif$
-$if(highlightjs)$
-              { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.js` },
 $endif$
               { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes/notes.js`, async: true }
           ]
