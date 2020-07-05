@@ -35,6 +35,10 @@ unclean-install: build
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
 
+install-link: build
+	mkdir -p $(local-bin-path)
+	ln -s $(executable) "$(local-bin-path)/$(base-name)-dev"
+
 version:
 	@echo "$(decker-name)"
 

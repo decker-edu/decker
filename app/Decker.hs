@@ -262,9 +262,9 @@ run = do
         pdflatex ["-output-directory", dir, src]
         pdf2svg [pdf, out]
         liftIO $ Dir.removeFile pdf
-                     --
-                     -- Catch all. Just copy project/* to public/*. This nicely handles ALL
-                     -- resources. Just `need` them where you need them.
+      --
+      -- Catch all. Just copy project/* to public/*. This nicely handles ALL
+      -- resources. Just `need` them where you need them.
       (directories ^. public) <//> "//" %> \out -> do
         let src =
               (directories ^. project) </>
@@ -318,8 +318,7 @@ run = do
 publishWithRsync :: String -> String -> Meta -> Action ()
 publishWithRsync source destination meta = do
   let options = lookupMetaOrElse [] "publish.rsync.options" meta :: [String]
-  rsync $ options <> [source, destination]        
-  
+  rsync $ options <> [source, destination]
 
 waitForYes :: IO ()
 waitForYes = do

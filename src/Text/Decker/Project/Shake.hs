@@ -212,21 +212,6 @@ writeSupportFilesToPublic meta = do
       putNormal $ "# copy support files from: " <> show templateSource
       removeSupport
       extractSupport templateSource
-  copyStaticDirs meta
-
-copyStaticDirs :: Meta -> Action ()
-copyStaticDirs meta = do
-  public <- publicA
-  project <- projectA
-  let staticSrc = map (project </>) (staticDirs meta)
-  let staticDst = map ((public </>) . stripParentPrefix) (staticDirs meta)
-  liftIO $ zipWithM_ copyDir staticSrc staticDst
-  where
-    stripParentPrefix :: FilePath -> FilePath
-    stripParentPrefix path =
-      if "../" `isPrefixOf` path
-        then stripParentPrefix (drop 3 path)
-        else path
 
 extractSupport :: TemplateSource -> Action ()
 extractSupport templateSource = do

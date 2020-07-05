@@ -2,25 +2,23 @@
 
 module Text.Decker.Internal.Helper where
 
-import Control.Monad.Catch
-import Control.Monad.State
-
-import qualified Data.List as List
-import qualified Data.List.Extra as List
-import qualified Data.Set as Set
-
-import Relude
-
-import System.CPUTime
-import qualified System.Directory as Dir
-import System.Directory
-import System.Environment
-import System.FilePath
-
 import Text.Decker.Internal.Exception
 import Text.Decker.Project.Version
 import Text.Pandoc
 import Text.Printf
+
+import Control.Exception
+import Control.Monad.Catch
+import Control.Monad.State
+import qualified Data.List as List
+import qualified Data.List.Extra as List
+import qualified Data.Set as Set
+import Development.Shake.FilePath
+import Relude
+import System.CPUTime
+import qualified System.Directory as Dir
+import System.Directory
+import System.Environment
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -129,7 +127,7 @@ warnVersion = do
 
 tryRemoveDirectory :: FilePath -> IO ()
 tryRemoveDirectory path = do
-  exists <- doesDirectoryExist path
+  exists <- System.Directory.doesDirectoryExist path
   when exists $ removeDirectoryRecursive path
 
 -- | Express the second path argument as relative to the first. 
@@ -138,6 +136,16 @@ makeRelativeTo :: FilePath -> FilePath -> FilePath
 makeRelativeTo dir file =
   let (d, f) = removeCommonPrefix (normalise dir, normalise file)
    in normalise $ invertPath d </> f
+
+makeRelativeTo' :: FilePath -> FilePath -> IO FilePath
+makeRelativeTo' dir file = do
+  rel <- makeRelativeEx dir file
+  case rel of
+    Just path -> return path
+    Nothing ->
+      throw $
+      InternalException $
+      "Cannot express '" <> file <> "' relative to '" <> dir <> "'"
 
 invertPath :: FilePath -> FilePath
 invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
