@@ -100,6 +100,12 @@ c:[{cN:"comment",b:/\(\*/,e:/\*\)/},e.ASM,e.QSM,e.CNM,{b:/\{/,e:/\}/,i:/:/}]}});
 				}
 			} );
 
+            // MARIO: highlight inline code as well (if code class is given)
+			document.querySelectorAll( '.reveal :not(pre) > code' ).forEach( function( code ) {
+                if (code.classList.length) {
+                    hljs.highlightBlock( code );
+                }
+            } );
 		},
 
 		/**
