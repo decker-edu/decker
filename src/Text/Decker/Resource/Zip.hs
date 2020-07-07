@@ -16,7 +16,7 @@ import Data.List (isPrefixOf)
 import Data.Map.Strict (filterWithKey, keys)
 import qualified System.Directory as Dir
 import System.Environment
-import System.FilePath
+import System.FilePath.Posix
 
 -- | Extracts entries from the embedded resource archive that match the prefix
 -- directory into the destination directory. The entry path from the archive is

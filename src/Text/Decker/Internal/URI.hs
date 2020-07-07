@@ -13,8 +13,9 @@ import Development.Shake
 import Relude
 
 import System.Directory
-import System.FilePath
+import System.FilePath.Posix
 
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.URI (URI)
 import qualified Text.URI as URI
@@ -41,6 +42,21 @@ absolutePathIfLocal project base uriString = do
   case absolute of
     Just absolute -> return $ Just $ URI.render absolute
     Nothing -> return Nothing
+
+makeProjectPath :: FilePath -> FilePath -> FilePath
+makeProjectPath base path =
+  if hasDrive path
+    then dropDrive path
+    else base </> path
+
+makeProjectUriPath :: FilePath -> Text -> IO Text
+makeProjectUriPath base uriString = do
+  uri <- URI.mkURI uriString
+  if uriScheme uri == Nothing && not (null (uriFilePath uri))
+    then do
+      let path = makeProjectPath base (uriFilePath uri)
+      URI.render <$> setUriPath (toText path) uri
+    else return uriString
 
 makeAbsolutePath :: FilePath -> FilePath -> FilePath -> FilePath
 makeAbsolutePath project base path =
@@ -84,21 +100,17 @@ needUriPath uri = need [toString $ uriPath uri]
 needTargetUri :: FilePath -> FilePath -> FilePath -> Text -> Action Text
 needTargetUri project public base source = do
   uri <- liftIO $ URI.mkURI source
-  let target = targetFilePath project public uri
+  let target = targetFilePath uri
   need [target]
   URI.render <$> (liftIO $ targetUri base uri)
 
-targetFilePath :: FilePath -> FilePath -> URI -> FilePath
-targetFilePath project public uri =
+targetFilePath :: URI -> FilePath
+targetFilePath uri =
   let source = toString $ uriPath uri
-      relative = makeRelative project source
-   in public </> relative
+   in publicDir </> source
 
-targetPath :: Text -> Text -> URI -> Text
-targetPath project public uri =
-  let source = toString $ uriPath uri
-      relative = makeRelative (toString project) source
-   in toText $ (toString public) </> relative
+targetPath :: URI -> Text
+targetPath = toText . targetFilePath
 
 targetUri :: MonadThrow m => FilePath -> URI -> m URI
 targetUri base uri = do

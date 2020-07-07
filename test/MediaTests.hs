@@ -31,9 +31,7 @@ filterMeta = do
     setMetaValue "csl" ("resource/example/chicago-author-date.csl"::Text) $
     setMetaValue "suppress-bibliography" True $
     setMetaValue "decker.top-base-dir" cwd $
-    setMetaValue "decker.base-dir" cwd $
-    setMetaValue "decker.directories.project" cwd $
-    setMetaValue "decker.directories.public" cwd $ nullMeta
+    setMetaValue "decker.base-dir" cwd $ nullMeta
 
 -- import qualified Text.URI as URI
 -- | Constructs a filter runner with default parameters
