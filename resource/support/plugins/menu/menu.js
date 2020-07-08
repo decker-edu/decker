@@ -542,12 +542,12 @@ var RevealMenu = window.RevealMenu || (function(){
                     }, true);
 
                     // MARIO: go back to index page
-					addToolbarButton('Back to Index', 'Index', 'fa-file-alt', 'far', function(){
-                        if (confirm("Leave presentation and go to index page?"))
-                        {
-                            window.open("index.html","_self")
-                        }
-                    }, true);
+					//addToolbarButton('Back to Index', 'Index', 'fa-file-alt', 'far', function(){
+                        //if (confirm("Leave presentation and go to index page?"))
+                        //{
+                            //window.open("index.html","_self")
+                        //}
+                    //}, true);
 
 
 					if (custom) {
