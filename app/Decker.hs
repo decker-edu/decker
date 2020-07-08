@@ -16,7 +16,8 @@ import qualified Data.Text as Text
 import Data.Version
 
 import Development.Shake
-import Development.Shake.FilePath
+import System.FilePath.Posix
+-- import Development.Shake.FilePath
 import GHC.IO.Encoding
 import NeatInterpolation
 

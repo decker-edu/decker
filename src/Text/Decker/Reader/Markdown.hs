@@ -15,8 +15,8 @@ import Control.Monad.Loops
 import qualified Data.List as List
 import qualified Data.Text.IO as Text
 
+import System.FilePath.Posix
 import Development.Shake hiding (Resource)
-import Development.Shake.FilePath as SFP
 
 import Relude
 

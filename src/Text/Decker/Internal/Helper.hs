@@ -12,12 +12,12 @@ import Control.Monad.State
 import qualified Data.List as List
 import qualified Data.List.Extra as List
 import qualified Data.Set as Set
-import Development.Shake.FilePath
 import Relude
 import System.CPUTime
 import qualified System.Directory as Dir
 import System.Directory
 import System.Environment
+import System.FilePath.Posix
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)

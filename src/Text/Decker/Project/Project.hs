@@ -54,19 +54,17 @@ import qualified System.FilePath as FP
 import System.FilePath.Posix
 import Text.Pandoc.Builder hiding (lookupMeta)
 
-data Targets =
-  Targets
-    { _sources :: [FilePath]
-    , _static :: [FilePath]
-    , _decks :: [FilePath]
-    , _decksPdf :: [FilePath]
-    , _pages :: [FilePath]
-    , _pagesPdf :: [FilePath]
-    , _handouts :: [FilePath]
-    , _handoutsPdf :: [FilePath]
-    , _annotations :: [FilePath]
-    }
-  deriving (Show)
+data Targets = Targets
+  { _sources :: [FilePath]
+  , _static :: [FilePath]
+  , _decks :: [FilePath]
+  , _decksPdf :: [FilePath]
+  , _pages :: [FilePath]
+  , _pagesPdf :: [FilePath]
+  , _handouts :: [FilePath]
+  , _handoutsPdf :: [FilePath]
+  , _annotations :: [FilePath]
+  } deriving (Show)
 
 makeLenses ''Targets
 
@@ -80,13 +78,11 @@ readTargetsFile targetFile = do
   need [targetFile]
   liftIO (Yaml.decodeFileThrow targetFile)
 
-data Resource =
-  Resource
-    { sourceFile :: FilePath -- ^ Absolute Path to source file
-    , publicFile :: FilePath -- ^ Absolute path to file in public folder
-    , publicUrl :: FilePath -- ^ Relative URL to served file from base
-    }
-  deriving (Eq, Show, Generic)
+data Resource = Resource
+  { sourceFile :: FilePath -- ^ Absolute Path to source file
+  , publicFile :: FilePath -- ^ Absolute path to file in public folder
+  , publicUrl :: FilePath -- ^ Relative URL to served file from base
+  } deriving (Eq, Show, Generic)
 
 instance ToJSON Resource where
   toJSON (Resource source target url) =
