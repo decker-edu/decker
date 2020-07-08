@@ -1,32 +1,27 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- Import WatchTests
---  import ShortLinkTests
-import qualified Data.ByteString.Char8 as B
-
-import IncludeTests
-
-import MediaTests
-
-import MetaTests
-
-import System.FilePath.Posix
-
-import Test.Hspec
-
 import Text.Decker.Internal.Helper as H
 import Text.Decker.Internal.URI
 
--- mediaTests
--- includeTests
--- shortLinkTests
--- watchTests
--- sketchTests
+import WatchTests
+import ShortLinkTests
+import IncludeTests
+import MediaTests
+import MetaTests
+
+import System.FilePath.Posix
+import qualified Data.ByteString.Char8 as B
+import Test.Hspec
+
 main = do
   deckTemplate <- B.readFile "resource/template/deck.html"
        --
   hspec $ do
+    shortLinkTests
+    includeTests
+    mediaTests
     metaTests
+    watchTests
     describe "makeRelativeTo" $
       it "calculates the path of file relative to dir. Includes '..'" $ do
         makeRelativeTo "" "img.png" `shouldBe` "img.png"
