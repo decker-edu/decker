@@ -50,20 +50,23 @@ import qualified Data.Yaml as Yaml
 import Development.Shake hiding (Resource)
 import Relude
 import qualified System.Directory as Directory
+import qualified System.FilePath as FP
 import System.FilePath.Posix
 import Text.Pandoc.Builder hiding (lookupMeta)
 
-data Targets = Targets
-  { _sources :: [FilePath]
-  , _static :: [FilePath]
-  , _decks :: [FilePath]
-  , _decksPdf :: [FilePath]
-  , _pages :: [FilePath]
-  , _pagesPdf :: [FilePath]
-  , _handouts :: [FilePath]
-  , _handoutsPdf :: [FilePath]
-  , _annotations :: [FilePath]
-  } deriving (Show)
+data Targets =
+  Targets
+    { _sources :: [FilePath]
+    , _static :: [FilePath]
+    , _decks :: [FilePath]
+    , _decksPdf :: [FilePath]
+    , _pages :: [FilePath]
+    , _pagesPdf :: [FilePath]
+    , _handouts :: [FilePath]
+    , _handoutsPdf :: [FilePath]
+    , _annotations :: [FilePath]
+    }
+  deriving (Show)
 
 makeLenses ''Targets
 
@@ -77,11 +80,13 @@ readTargetsFile targetFile = do
   need [targetFile]
   liftIO (Yaml.decodeFileThrow targetFile)
 
-data Resource = Resource
-  { sourceFile :: FilePath -- ^ Absolute Path to source file
-  , publicFile :: FilePath -- ^ Absolute path to file in public folder
-  , publicUrl :: FilePath -- ^ Relative URL to served file from base
-  } deriving (Eq, Show, Generic)
+data Resource =
+  Resource
+    { sourceFile :: FilePath -- ^ Absolute Path to source file
+    , publicFile :: FilePath -- ^ Absolute path to file in public folder
+    , publicUrl :: FilePath -- ^ Relative URL to served file from base
+    }
+  deriving (Eq, Show, Generic)
 
 instance ToJSON Resource where
   toJSON (Resource source target url) =
@@ -132,9 +137,9 @@ findProjectRoot = do
       hasYaml <- Directory.doesFileExist (dir </> globalMetaFileName)
       hasGit <- Directory.doesDirectoryExist (dir </> ".git")
       if | hasYaml || hasGit -> return dir
-         | isDrive dir -> return start
-         | otherwise -> search (takeDirectory dir) start
-      return dir
+         | FP.isDrive dir -> return start
+         | otherwise -> search (FP.takeDirectory dir) start
+      -- return dir
 
 -- Move CWD to the project directory.
 setProjectDirectory :: IO ()
@@ -169,7 +174,7 @@ alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode"]
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
-  map normalise $ 
+  map normalise $
   alwaysExclude <> lookupMetaOrElse [] "exclude-directories" meta
 
 staticDirs = lookupMetaOrElse [] "static-resource-dirs"

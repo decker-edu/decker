@@ -7,7 +7,6 @@ module Text.Decker.Resource.Zip
   , extractEntryList
   ) where
 
-
 import Codec.Archive.Zip
 import Control.Monad
 import Control.Monad.IO.Class
@@ -16,6 +15,7 @@ import Data.List (isPrefixOf)
 import Data.Map.Strict (filterWithKey, keys)
 import qualified System.Directory as Dir
 import System.Environment
+import qualified System.FilePath as FP
 import System.FilePath.Posix
 
 -- | Extracts entries from the embedded resource archive that match the prefix
@@ -32,7 +32,7 @@ extractResourceEntries prefix destinationDirectory = do
     subEntry dir sel _ = dir `isPrefixOf` unEntrySelector sel
     saveSubEntry sel = do
       let path = destinationDirectory </> unEntrySelector sel
-      let dir = takeDirectory path
+      let dir = FP.takeDirectory path
       liftIO $ Dir.createDirectoryIfMissing True dir
       saveEntry sel path
 
@@ -59,7 +59,7 @@ extractSubEntries prefix archivePath destinationDirectory =
     subEntry dir sel _ = dir `isPrefixOf` unEntrySelector sel
     saveSubEntry sel = do
       let path = destinationDirectory </> unEntrySelector sel
-      let dir = takeDirectory path
+      let dir = FP.takeDirectory path
       liftIO $ Dir.createDirectoryIfMissing True dir
       saveEntry sel path
 
