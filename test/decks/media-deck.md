@@ -1,5 +1,6 @@
 ---
 history: true
+stretch-media: true
 title: 'Image, Audio and Video Handling'
 ---
 
@@ -76,7 +77,7 @@ second one is a :cinema:.
 
 # PDF
 
-![This is a PDF document.](include/06-metal.pdf){width="100%"}
+![This is a PDF document.](include/06-metal.pdf){width="900px" height="520px"}
 
 # Ganz Schlimm Emdedded
 
@@ -89,6 +90,3 @@ second one is a :cinema:.
 # Empty image URL
 
 ![]()
-
-
-

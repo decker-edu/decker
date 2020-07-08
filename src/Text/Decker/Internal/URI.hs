@@ -1,23 +1,21 @@
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
-module Text.Decker.Internal.URI
-  ( uriPathExtension
-  , uriPath
-  , uriScheme
-  , setUriPath
-  , setQuery
-  , addQueryFlag
-  , addQueryParam
-  , URI
-  , absolutePathIfLocal
-  , makeAbsolutePathIfLocal
-  ) where
+module Text.Decker.Internal.URI where
 
 import Control.Monad.Catch
+
 import qualified Data.Text as Text
+
+import Development.Shake
+
 import Relude
+
 import System.Directory
 import System.FilePath
+
+import Text.Decker.Internal.Helper
 import Text.URI (URI)
 import qualified Text.URI as URI
 
@@ -36,40 +34,91 @@ uriPath uri =
       , URI.uriAuthority = Left (URI.isPathAbsolute uri)
       }
 
---isUriAbsolute :: URI -> Bool
---isUriAbsolute uri = isJust (URI.uriScheme uri)
-
 absolutePathIfLocal :: FilePath -> FilePath -> Text -> IO (Maybe Text)
-absolutePathIfLocal project base uriString =
-  catchAll decide (\_ -> return Nothing)
-  where
-    decide = do
-      uri <- URI.mkURI uriString
-      case uriScheme uri of
-        Just "file" -> return $ Just $ uriPath uri
-        Just _ -> return Nothing
-        Nothing -> do
-          let path = toString (uriPath uri)
-          let absPath =
-                if URI.isPathAbsolute uri
-                  then project </> drop 1 path
-                  else base </> path
-          exists <- doesPathExist absPath
-          return $
-            if exists
-              then Just (toText absPath)
-              else Nothing
+absolutePathIfLocal project base uriString = do
+  uri <- URI.mkURI uriString
+  absolute <- absoluteUriPathIfLocal project base uri
+  case absolute of
+    Just absolute -> return $ Just $ URI.render absolute
+    Nothing -> return Nothing
+
+makeAbsolutePath :: FilePath -> FilePath -> FilePath -> FilePath
+makeAbsolutePath project base path =
+  if hasDrive path
+    then project </> dropDrive path
+    else base </> path
+
+uriFilePath :: URI -> FilePath
+uriFilePath uri = toString (uriPath uri)
+
+isUriPathLocal :: URI -> Bool
+isUriPathLocal uri =
+  let path = uriPath uri
+      schemeLocal =
+        case uriScheme uri of
+          Just "file" -> True
+          Just _ -> False
+          Nothing -> True
+   in schemeLocal && not (Text.null path)
+
+absoluteUriPathIfLocal :: FilePath -> FilePath -> URI -> IO (Maybe URI)
+absoluteUriPathIfLocal project docBase uri =
+  handleAll (\_ -> return Nothing) $
+  if | uriScheme uri == Just "public" -> return (Just uri)
+     | isUriPathLocal uri ->
+       do let absolute = makeAbsolutePath project docBase (uriFilePath uri)
+          exists <- doesPathExist absolute
+          if exists
+            then Just <$> setUriPath (toText absolute) uri
+            else return Nothing
+     | otherwise -> return Nothing
 
 makeAbsolutePathIfLocal :: FilePath -> FilePath -> Text -> IO Text
-makeAbsolutePathIfLocal project base uriString =
-  fromMaybe uriString <$> absolutePathIfLocal project base uriString
+makeAbsolutePathIfLocal project base uriString = do
+  uri <- URI.mkURI uriString
+  URI.render <$> makeAbsoluteUriPathIfLocal project base uri
+
+needUriPath :: URI -> Action ()
+needUriPath uri = need [toString $ uriPath uri]
+
+needTargetUri :: FilePath -> FilePath -> FilePath -> Text -> Action Text
+needTargetUri project public base source = do
+  uri <- liftIO $ URI.mkURI source
+  let target = targetFilePath project public uri
+  need [target]
+  URI.render <$> (liftIO $ targetUri base uri)
+
+targetFilePath :: FilePath -> FilePath -> URI -> FilePath
+targetFilePath project public uri =
+  let source = toString $ uriPath uri
+      relative = makeRelative project source
+   in public </> relative
+
+targetPath :: Text -> Text -> URI -> Text
+targetPath project public uri =
+  let source = toString $ uriPath uri
+      relative = makeRelative (toString project) source
+   in toText $ (toString public) </> relative
+
+targetUri :: MonadThrow m => FilePath -> URI -> m URI
+targetUri base uri = do
+  let source = toString $ uriPath uri
+  let relative = toText $ makeRelativeTo base source
+  setUriPath relative uri
+
+makeAbsoluteUriPathIfLocal :: FilePath -> FilePath -> URI -> IO URI
+makeAbsoluteUriPathIfLocal project base uri =
+  fromMaybe uri <$> absoluteUriPathIfLocal project base uri
 
 uriScheme :: URI -> Maybe Text
 uriScheme uri = URI.unRText <$> URI.uriScheme uri
 
+setUriScheme :: Text -> URI -> URI
+setUriScheme scheme uri = uri {URI.uriScheme = URI.mkScheme scheme}
+
 setUriPath :: MonadThrow m => Text -> URI -> m URI
 setUriPath path uri = do
-  pathUri <- URI.mkURI path
+  pathUri <- URI.mkURI (Text.replace "\\" "/" path)
   return
     uri
       { URI.uriPath = URI.uriPath pathUri
@@ -78,6 +127,12 @@ setUriPath path uri = do
             Left _ -> Left $ URI.isPathAbsolute pathUri
             auth -> auth
       }
+
+addPathExtension :: MonadThrow m => Text -> URI -> m URI
+addPathExtension ext uri =
+  if not (Text.null ext)
+    then setUriPath (uriPath uri <> "." <> ext) uri
+    else return uri
 
 setQuery :: MonadThrow m => [Text] -> [(Text, Text)] -> URI -> m URI
 setQuery flags params uri = do

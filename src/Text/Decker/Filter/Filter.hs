@@ -1,4 +1,4 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+{-# LANGUAGE OverloadedStrings #-}
 module Text.Decker.Filter.Filter
   ( OutputFormat(..)
   , Disposition(..)
@@ -90,7 +90,7 @@ wrapBoxes slide@(Slide header body) = do
     Disposition _ _ -> return slide
   where
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
-    wrap isDeck (Header 2 (id_, cls, kvs) text:blocks) =
+    wrap isDeck ((Header 2 (id_, cls, kvs) text):blocks) =
       let tags =
             if isDeck
               then ["box", "columns"]
@@ -148,11 +148,7 @@ processSlides pandoc = mapSlides (concatM actions) pandoc
           , layoutSlide
           ]
         _ ->
-          [ wrapBoxes
-          , selectActiveSlideContent
-          , splitJoinColumns
-          , layoutSlide
-          ]
+          [wrapBoxes, selectActiveSlideContent, splitJoinColumns, layoutSlide]
 
 selectActiveContent :: HasAttr a => [a] -> Decker [a]
 selectActiveContent fragments = do
@@ -174,4 +170,3 @@ escapeToFilePath = map repl
       if c `elem` [':', '!', '/']
         then '|'
         else c
-

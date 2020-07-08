@@ -130,7 +130,6 @@ function prepareCodeHighlighting() {
   }
 }
 
-
 // wrap iframe demos in a div that offers a fullscreen button.
 // only do this if the browser supports the Fullscreen API.
 // don't do this for Safari, since its webkit-prefixed version
@@ -168,22 +167,22 @@ function prepareFullscreenIframes() {
     div.appendChild(btn);
 
     // handle button click: enter/exit fullscreen
-    btn.onclick = function() {
-        var doc = window.document;
-        var container = this.parentElement;
-        if (doc.fullscreenElement == container)
-            doc.exitFullscreen();
-        else
-            container.requestFullscreen();
+    btn.onclick = function () {
+      var doc = window.document;
+      var container = this.parentElement;
+      if (doc.fullscreenElement == container)
+        doc.exitFullscreen();
+      else
+        container.requestFullscreen();
     };
 
     // handle fullscreen change: adjust button icon
-    div.onfullscreenchange = function() {
-        var doc = window.document;
-        this.btn.innerHTML = 
-            doc.fullscreenElement == this ? 
-            '<i class="fas fa-compress-arrows-alt"></i>' :
-            '<i class="fas fa-expand-arrows-alt"></i>';
+    div.onfullscreenchange = function () {
+      var doc = window.document;
+      this.btn.innerHTML =
+        doc.fullscreenElement == this ?
+          '<i class="fas fa-compress-arrows-alt"></i>' :
+          '<i class="fas fa-expand-arrows-alt"></i>';
     };
   }
 }

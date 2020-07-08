@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 module Text.Decker.Filter.Layout
   ( layoutSlide
   ) where
@@ -105,14 +107,7 @@ layoutSlide :: Slide -> Decker Slide
 layoutSlide slide@(Slide (Just header) body) = do
   disp <- gets disposition
   case disp of
-    Disposition Deck Html ->
-      case hasRowLayout header of
-        Just layout ->
-          let names = layoutAreas layout
-              areas = slideAreas names body
-           in return $ Slide (Just header) $ renderLayout areas layout
-        Nothing -> return slide
-    Disposition Handout Html ->
+    Disposition _ Html ->
       case hasRowLayout header of
         Just layout ->
           let names = layoutAreas layout

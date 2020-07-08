@@ -137,22 +137,22 @@ tests:
       - decker
       - hspec
 
-default-extensions:
-  - DeriveDataTypeable
-  - DeriveGeneric
-  - EmptyCase
-  - FlexibleContexts
-  - FlexibleInstances
-  - GeneralizedNewtypeDeriving
-  - InstanceSigs
-  - LambdaCase
-  - MultiParamTypeClasses
-  - MultiWayIf
-  - NamedFieldPuns
-  - NoMonomorphismRestriction
-  - OverloadedStrings
-  - QuasiQuotes
-  - RecordWildCards
-  - ScopedTypeVariables
-  - TemplateHaskell
-  - TupleSections
+#default-extensions:
+  #- DeriveDataTypeable
+  #- DeriveGeneric
+  #- EmptyCase
+  #- FlexibleContexts
+  #- FlexibleInstances
+  #- GeneralizedNewtypeDeriving
+  #- InstanceSigs
+  #- LambdaCase
+  #- MultiParamTypeClasses
+  #- MultiWayIf
+  #- NamedFieldPuns
+  #- NoMonomorphismRestriction
+  #- OverloadedStrings
+  #- QuasiQuotes
+  #- RecordWildCards
+  #- ScopedTypeVariables
+  #- TemplateHaskell
+  #- TupleSections

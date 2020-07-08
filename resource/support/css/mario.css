@@ -818,6 +818,128 @@ body {
 }
 
 /*********************************************
+ * MARIO: MathJax
+ *********************************************/
+
+.reveal section mjx-container[display="true"] {
+    margin: 0.7em 0em 1em 0em;
+}
+
+.reveal section mjx-container > svg a {
+	color: #2a9ddf;
+	fill: #2a9ddf;
+}
+
+
+/*********************************************
+ * MARIO: fullscreen for iframes
+ *********************************************/
+
+ .reveal div.fs-container { 
+    margin:   auto;
+    border:   0px;
+    padding:  0px;
+    position: relative;
+}
+
+.reveal div.fs-container:fullscreen {
+    overflow-x:       hidden;
+    overflow-y:       auto;
+    background-color: white;
+    padding:          20px;
+}
+
+/* needed for mobile Safari */
+*:-webkit-full-screen {
+    width:  100% !important;
+    height: 100% !important;
+}
+
+.reveal div.fs-container>iframe {
+    box-sizing: border-box;
+}
+
+.reveal div.fs-container:fullscreen>iframe {
+    border: none;
+}
+
+.reveal button.fs-button { 
+    z-index:          100;
+    display:          inline-block;
+    position:         absolute;
+    top:              2px;
+    right:            2px;
+    cursor:           pointer;
+    outline:          none;
+    font-size:        20px;
+    width:            24px;
+    height:           24px;
+    padding:          2px;
+    border:           none;
+    border-radius:    4px;
+    opacity:          0.5;
+    color:            var(--whiteboard-inactive-color);
+    background-color: rgba(255,255,255,0.5);
+}
+
+.reveal button.fs-button:hover { 
+    opacity:          1.0;
+    color:            var(--whiteboard-active-color);
+    background-color: rgba(255,255,255,0.8);
+}
+
+
+
+/*********************************************
+ * MARIO: menu icon in top left corner
+ *********************************************/
+
+.reveal .slide-menu-button {
+    position:   fixed;
+    left:       calc(var(--whiteboard-icon-size) * 0.25);
+    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:     auto;
+    right:      auto;
+    padding:    0;
+    margin:     auto;
+    z-index:    40;
+    background: none;
+    font-size:  var(--whiteboard-icon-size);
+    padding:    calc(var(--whiteboard-icon-size) * 0.5);
+    opacity:    0.5;
+    color:      var(--whiteboard-inactive-color);
+}
+
+.reveal .slide-menu-button:hover {
+    opacity: 1.0;
+    color: var(--whiteboard-active-color);
+}
+
+.reveal .slide-menu-button a {
+    color: inherit;
+}
+
+
+/*********************************************
+ * MARIO: bibliogrphy
+ *********************************************/
+
+.reveal .references {
+    margin:        auto;
+    max-height:    600px;
+    width:         90%;
+    overflow-y:    auto;
+}
+
+.reveal .references>div {
+    padding-left:  1em;
+    text-indent:   -1em;
+    text-align:    left;
+    margin-bottom: 1em;
+}
+
+
+/*********************************************
  * MARIO: Quizzes with task list syntax
  *********************************************/
 
@@ -914,130 +1036,10 @@ body {
 
 
 /*********************************************
- * MARIO: MathJax
- *********************************************/
-
-.reveal section mjx-container[display="true"] {
-    margin: 0.7em 0em 1em 0em;
-}
-
-.reveal section mjx-container > svg a {
-	color: #2a9ddf;
-	fill: #2a9ddf;
-}
-
-
-/*********************************************
- * MARIO: fullscreen for iframes
- *********************************************/
-
-.reveal div.fs-container { 
-    margin:   auto;
-    border:   0px;
-    padding:  0px;
-    position: relative;
-}
-
-.reveal div.fs-container:fullscreen {
-    overflow-x:       hidden;
-    overflow-y:       auto;
-    background-color: white;
-    padding:          20px;
-}
-
-/* needed for mobile Safari */
-*:-webkit-full-screen {
-    width:  100% !important;
-    height: 100% !important;
-}
-
-.reveal div.fs-container>iframe {
-    box-sizing: border-box;
-}
-
-.reveal div.fs-container:fullscreen>iframe {
-    border: none;
-}
-
-.reveal button.fs-button { 
-    z-index:          100;
-    display:          inline-block;
-    position:         absolute;
-    top:              2px;
-    right:            2px;
-    cursor:           pointer;
-    outline:          none;
-    font-size:        20px;
-    width:            24px;
-    height:           24px;
-    padding:          2px;
-    border:           none;
-    border-radius:    4px;
-    opacity:          0.5;
-    color:            var(--whiteboard-inactive-color);
-    background-color: rgba(255,255,255,0.5);
-}
-
-.reveal button.fs-button:hover { 
-    opacity:          1.0;
-    color:            var(--whiteboard-active-color);
-    background-color: rgba(255,255,255,0.8);
-}
-
-
-/*********************************************
- * MARIO: menu icon in top left corner
- *********************************************/
-
-.reveal .slide-menu-button {
-    position:   fixed;
-    left:       calc(var(--whiteboard-icon-size) * 0.25);
-    top:        calc(var(--whiteboard-icon-size) * 0.25);
-    bottom:     auto;
-    right:      auto;
-    padding:    0;
-    margin:     auto;
-    z-index:    40;
-    background: none;
-    font-size:  var(--whiteboard-icon-size);
-    padding:    calc(var(--whiteboard-icon-size) * 0.5);
-    opacity:    0.5;
-    color:      var(--whiteboard-inactive-color);
-}
-
-.reveal .slide-menu-button:hover {
-    opacity: 1.0;
-    color: var(--whiteboard-active-color);
-}
-
-.reveal .slide-menu-button a {
-    color: inherit;
-}
-
-
-/*********************************************
- * MARIO: bibliogrphy
- *********************************************/
-
-.reveal .references {
-    margin:        auto;
-    max-height:    600px;
-    width:         90%;
-    overflow-y:    auto;
-}
-
-.reveal .references>div {
-    padding-left:  1em;
-    text-indent:   -1em;
-    text-align:    left;
-    margin-bottom: 1em;
-}
-
-
-/*********************************************
  * MARIO: matching questions
  *********************************************/
 
+/*
 .reveal .matching {
   text-align: center;
 }
@@ -1162,5 +1164,322 @@ body {
     border: 2px solid #dddddd;
     border-radius: 5px;
     box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+*/
+
+
+/*********************************************
+ * MARIO: new quizzes
+ *********************************************/
+
+.reveal .qic button,
+.reveal .qft button,
+.reveal .qmc button,
+.reveal .qmi button,
+.reveal [class*="quiz-"] button {
+    font:        inherit;
+    font-size:   0.7em;
+    font-weight: normal;
+    font-family: inherit;
+    margin:      0.5em;
+    padding:     10px;
+    background:  #eeeeee;
+    border: 2px solid #dddddd;
+    border-radius: 5px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.reveal .quiz-ft button,
+.reveal .qft button {
+    display: none;
+}
+
+.reveal .qic input,
+.reveal .qft input,
+.reveal .qmc input,
+.reveal .qmi input,
+.reveal [class*="quiz-"] input {
+    font:        inherit;
+    font-size:   0.9em;
+    font-weight: normal;
+    font-family: inherit;
+    margin:      0.5em;
+    padding:     10px;
+    border:      2px solid #2a9ddf;
+}
+
+.reveal .qic .solutionList,
+.reveal .qft .solutionList,
+.reveal .qmc .solutionList,
+.reveal .qmi .solutionList,
+.reveal [class*="quiz-"] .solutionList {
+  list-style-type: none;
+  display: none;
+  background-color: grey;
+  color: #ffffff;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: fixed;
+  z-index: 99;
+  font-size: 1rem;
+}
+
+.reveal .qic .solutionList li,
+.reveal .qft .solutionList li,
+.reveal .qmc .solutionList li,
+.reveal .qmi .solutionList li,
+.reveal [class*="quiz-"] .solutionList li {
+    display: none;
+    margin-left: 5px;
+}
+
+.reveal .qic .solutionList .correct:before,
+.reveal .qft .solutionList .correct:before,
+.reveal .qmc .solutionList .correct:before,
+.reveal .qmi .solutionList .correct:before,
+.reveal [class*="quiz-"] .solutionList .correct:before {
+    content: "✓";
+    font: inherit;
+    margin-right: 0.5em;
+}
+
+.reveal .qic .solutionList .wrong:before,
+.reveal .qft .solutionList .wrong:before,
+.reveal .qmc .solutionList .wrong:before,
+.reveal .qmi .solutionList .wrong:before,
+.reveal [class*="quiz-"] .solutionList .wrong:before {
+    content: "✗";
+    font: inherit;
+    margin-right: 0.5em;
+}
+
+.reveal .qft .solutionList .tooltip,
+.reveal [class*="quiz-f"] .solutionList .tooltip {
+    margin-left: 1.3em;
+}
+
+.reveal .qic select,
+.reveal [class*="quiz-i"] select {
+    font:        inherit;
+    font-size:   0.9em;
+    font-weight: normal;
+    padding:     5px;
+    border:      2px solid #2a9ddf;
+    background:  white;
+}
+
+.reveal .qic select :disabled,
+.reveal [class*="quiz-i"] select :disabled {
+  color: black;
+}
+
+.reveal .qic option,
+.reveal [class*="quiz-i"] option {
+    font:        inherit;
+    font-size:   16px;
+    font-weight: normal;
+}
+
+.reveal .qic .tooltip-div,
+.reveal [class*="quiz-i"] .tooltip-div {
+  font-size: 0.6em;
+  background-color: #f4f4f7;
+  margin-top: 0.5em;
+}
+
+.reveal .quiz-mi,
+.reveal .qmi,
+.reveal .quiz-match-items {
+  display: block;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.reveal .quiz-mi .draggableChild,
+.reveal .qmi .draggableChild,
+.reveal .quiz-match-items .draggableChild {
+  pointer-events: none;
+}
+
+.reveal .quiz-mi .buckets,
+.reveal .quiz-mi .matchItems,
+.reveal .qmi .buckets,
+.reveal .qmi .matchItems,
+.reveal .quiz-match-items .buckets,
+.reveal .quiz-match-items .matchItems {
+    display:         flex;
+    flex-flow:       row nowrap;
+    align-items:     stretch;
+    justify-content: space-around;
+    position:        relative;
+    width:           100%;
+    min-height:      100px;
+    padding:         15px;
+    border:          2px solid #dddddd;
+    border-radius:   5px;
+    box-sizing:      border-box;
+    margin-top:      20px;
+}
+
+.reveal .quiz-mi .buckets,
+.reveal .qmi .buckets,
+.reveal .quiz-match-items .buckets {
+    margin-bottom: 60px;
+}
+
+.reveal .quiz-mi .buckets:before,
+.reveal .quiz-mi .matchItems:before,
+.reveal .qmi .buckets:before,
+.reveal .qmi .matchItems:before,
+.reveal .quiz-match-items .buckets:before,
+.reveal .quiz-match-items .matchItems:before {
+    position:   absolute;
+    top:        -15px;
+    left:       10px;
+    font-size:  15px;
+    background: white;
+    padding:    5px;
+    color:      grey;
+}
+
+.reveal .quiz-mi .matchItems:before,
+.reveal .qmi .matchItems:before,
+.reveal .quiz-match-items .matchItems:before {
+    content: "drag objects from here...";
+}
+
+.reveal .quiz-mi .buckets:before,
+.reveal .qmi .buckets:before,
+.reveal .quiz-match-items .buckets:before {
+    content: "...and drop them here into the correct category";
+}
+
+:lang(de) .reveal .quiz-mi .matchItems:before,
+:lang(de) .reveal .qmi .matchItems:before,
+:lang(de) .reveal .quiz-match-items .matchItems:before {
+    content: "Objekte per Drag&Drop nach oben ziehen...";
+}
+
+:lang(de) .reveal .quiz-mi .buckets:before,
+:lang(de) .reveal .qmi .buckets:before,
+:lang(de) .reveal .quiz-match-items .buckets:before {
+    content: "...und hier in die richtige Kategorie einsortieren";
+}
+
+.reveal .quiz-mi .matchItems:after,
+.reveal .qmi .matchItems:after,
+.reveal .quiz-match-items .matchItems:after {
+  position: absolute;
+  content: " ";
+  width: 0;
+  height: 0;
+  top: -30px;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-bottom: 30px solid #dddddd;
+}
+
+.reveal .quiz-mi .bucket,
+.reveal .qmi .bucket,
+.reveal .quiz-match-items .bucket {
+  display: block;
+  flex: 1 0 0;
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid black;
+  text-align: center;
+}
+
+.reveal .quiz-mi .matchItem,
+.reveal .qmi .matchItem,
+.reveal .quiz-match-items .matchItem {
+    display:        block;
+    vertical-align: middle;
+    overflow:       hidden;
+    border:         2px solid #2a9ddf;
+    border-radius:  10px;
+    padding:        10px;
+    background:     white;
+    cursor:         grab;
+}
+
+.reveal .quiz-mi .matchItem .solution,
+.reveal .qmi .matchItem .solution,
+.reveal .quiz-match-items .matchItem .solution {
+  visibility: hidden;
+  font-size: large;
+}
+
+.reveal .quiz-mi .matchItem:hover .solution,
+.reveal .qmi .matchItem:hover .solution,
+.reveal .quiz-match-items .matchItem:hover .solution {
+  visibility: visible;
+  font-size: large;
+}
+
+.reveal .quiz-mi .bucket .matchItem,
+.reveal .qmi .bucket .matchItem,
+.reveal .quiz-match-items .bucket .matchItem {
+  display: block;
+  border: none;
+  background: inherit;
+}
+
+.reveal .quiz-multiple-choice ul,
+.reveal .quiz-mc ul,
+.reveal .qmc ul {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  text-align: center;
+  counter-reset: answer;
+}
+
+.reveal .quiz-multiple-choice li,
+.reveal .quiz-mc li,
+.reveal .qmc li {
+  display: inline-block;
+  position: relative;
+  text-align: left;
+  margin: 20px;
+  border: 2px solid #2a9ddf;
+  border-radius: 20px;
+  padding: 20px;
+  font-weight: normal;
+  color: black;
+}
+
+.reveal .quiz-multiple-choice li:before,
+.reveal .quiz-mc li:before,
+.reveal .qmc li:before {
+  content: counter(answer, upper-latin) ": ";
+  counter-increment: answer;
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
+.reveal .quiz-multiple-choice .tooltip,
+.reveal .quiz-mc .tooltip,
+.reveal .qmc .tooltip {
+  display: block;
+  visibility: hidden;
+  max-width: 95%;
+  top: 100%;
+  left: 5px;
+  background-color: grey;
+  color: #ffffff;
+  text-align: center;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: absolute;
+  z-index: 1;
+  font-size: 1rem;
 }
 

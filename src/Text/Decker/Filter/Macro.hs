@@ -1,4 +1,4 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+{-# LANGUAGE OverloadedStrings #-}
 module Text.Decker.Filter.Macro
   ( expandDeckerMacros
   , embedWebVideosHtml

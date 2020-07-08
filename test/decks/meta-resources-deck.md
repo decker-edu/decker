@@ -1,4 +1,8 @@
 ---
+color:
+  black: '\#000'
+  magenta: '\#f0f'
+  white: '\#fff'
 csl: 'acm-sig-proceedings.csl'
 deep:
   down:
@@ -12,6 +16,7 @@ static-resource-dirs:
 template:
   css: dummy.css
 title: Meta Resources
+whiteboard-background-color: '\#f0f'
 ---
 
 # Meta Resources
@@ -50,6 +55,8 @@ Resource references in meta data values
 
 -   `exclude-directories`: [:meta](exclude-directories)
 
+------------------------------------------------------------------------
+
 # Transitive meta data files
 
 ## Inclusion chain
@@ -60,7 +67,9 @@ meta-resources-deck.md <- level1.yaml <- include/level2.yaml <- 06-metal-v.png
 
 ## Absolute image path
 
--   metal-image: [:meta](metal-image)
+-   metal-image: [:meta](template.metal-image)
+
+------------------------------------------------------------------------
 
 # `template/default.yaml` (1) {.columns}
 
@@ -84,9 +93,10 @@ test: "default.yaml test value"
 
 ## Variable `test123` {.right}
 
-- expexted: `test123`
-- actual: [:meta](test123)
+-   expexted: `test123`
+-   actual: [:meta](test123)
 
+------------------------------------------------------------------------
 
 # `template/default.yaml` (2) {.columns}
 
@@ -108,10 +118,23 @@ template-source: 'exe:'
 test: "default.yaml test value"
 ```
 
-## Values  {.right}
+## Values {.right}
 
-- expexted: `default.yaml test value`
-- actual: [](test)
+-   expexted: `default.yaml test value`
+-   actual: [](test)
 
+------------------------------------------------------------------------
 
+# Hex color values in meta data
 
+## White
+
+-   [:meta](color.white)
+
+## Black
+
+-   [:meta](color.black)
+
+## Magenta
+
+-   [:meta](color.magenta)

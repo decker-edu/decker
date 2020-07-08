@@ -1,0 +1,10 @@
+.shake
+.stack-work
+.stack
+.stack-work-profile
+.git
+decker.cabal
+node_modules
+public/
+resource/support/vendor/**
+stack.yaml.lock

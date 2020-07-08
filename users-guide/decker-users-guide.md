@@ -13,6 +13,18 @@ haften für ihre Kinder.
 
 ## Pandoc
 
+Decker uses the universal markup converter
+[Pandoc](https://pandoc.org/MANUAL.html#pandocs-markdown) to translate
+slide content in Markdown format to interactive HTML slide decks. A
+working knowledge of the Pandoc dialect of Markdown is very helpful when
+working with Decker.
+
+-   [Pandoc User's
+    Guide](https://pandoc.org/MANUAL.html#pandocs-markdown)
+
+This document mainly describes additional features and conventions that
+Decker adds to Pandoc's Markdown.
+
 ## Reveal.js
 
 ## Features
@@ -24,6 +36,38 @@ haften für ihre Kinder.
 ## Working on a project
 
 ## Publishing
+
+Decker can use a locally installed [Rsync](https://rsync.samba.org) to
+publish the entire project to a remote location with the command
+
+``` {.sh}
+> decker publish
+```
+
+The remote location is specified in the meta data variable
+`publish.rsync.destination:` using the URL formats that Rsync
+understands. For example, to publish the entire project directly into
+the document directory of a remote webserver the `decker.yaml` file
+would contain:
+
+``` {.yaml}
+publish:
+  rsync:
+    destination: author@public.server.com:/var/www/html/cg-lectures
+```
+
+To more precisely control the behaviour of Rsync, a list of options can
+be specified in the variable `publish.rsync.options`. For example, to
+*mirror* (as opposed to *copy* ) the public directory to the destination
+the setting would be:
+
+``` {.yaml}
+publish:
+  rsync:
+    destination: author@public.server.com:/var/www/html/cg-lectures
+    options: 
+      - --delete
+```
 
 # Options
 
@@ -99,13 +143,13 @@ project
     └── slide-deck.md
 ```
 
-`slides/slide-deck.md`:
+`slides/slide-deck.md` contains:
 
-:   ``` {.markdown}
-    # First slide
-    ![Project relative path](/images/image.png)
-    ![Document relative path](../images/image.png)
-    ```
+``` {.markdown}
+# First slide
+![Project relative path](/images/image.png)
+![Document relative path](../images/image.png)
+```
 
 Both image paths reference the same image file.
 
@@ -255,3 +299,19 @@ Embedded media will be rendered as a figure with caption if either
 ## GraphViz
 
 ## Gnuplot
+
+# Hacking on Decker
+
+## Conventions
+
+### Commit emoji convention
+
+(Lifted from https://spacevim.org/conventions/.)
+
+-   :memo: Add comment or doc.
+-   :gift: New feature.
+-   :bug: Bug fix.
+-   :bomb: Breaking compatibility.
+-   :white\_check\_mark: Write test.
+-   :fire: Remove something.
+-   :beer: I'm happy like reduced code complexity.
