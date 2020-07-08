@@ -517,10 +517,10 @@ var RevealMenu = window.RevealMenu || (function(){
                     // MARIO: why do we need this?
 					//addToolbarButton('Slides', 'Slides', 'fa-images', 'fas', openPanel, true);
 
-                    // MARIO: trigger search of RevealSearch plugin
+                    // MARIO: toggle search dialog of RevealSearch plugin
 					addToolbarButton('Search Dialog', 'Search', 'fa-search', 'fas', function(){
                         closeMenu();
-                        RevealSearch.open();
+                        RevealSearch.toggle();
                     }, true);
 
                     // MARIO: disable fragment animations
