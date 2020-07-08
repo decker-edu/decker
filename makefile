@@ -59,6 +59,9 @@ dist: install
 test:
 	stack test -j1
 
+documentation:
+	stack haddock
+
 watch:
 	stack test -j1 --file-watch
 
