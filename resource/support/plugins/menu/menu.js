@@ -518,17 +518,9 @@ var RevealMenu = window.RevealMenu || (function(){
 					//addToolbarButton('Slides', 'Slides', 'fa-images', 'fas', openPanel, true);
 
                     // MARIO: trigger search of RevealSearch plugin
-					addToolbarButton('Open Search Dialog', 'Search', 'fa-search', 'fas', function(){
+					addToolbarButton('Search Dialog', 'Search', 'fa-search', 'fas', function(){
                         closeMenu();
                         RevealSearch.open();
-                    }, true);
-
-                    // MARIO: trigger PDF export
-					addToolbarButton('Export to PDF', 'Print', 'fa-print', 'fas', function(){
-                        if (confirm("Leave/reload presentation to export PDF?"))
-                        {
-                            window.open("?print-pdf","_self")
-                        }
                     }, true);
 
                     // MARIO: disable fragment animations
@@ -539,6 +531,22 @@ var RevealMenu = window.RevealMenu || (function(){
                         Reveal.configure({ fragments: !animState });
                         icon.classList.remove('fa-circle-check', 'fa-circle');
                         icon.classList.add( animState ? 'fa-circle' : 'fa-circle-check' );
+                    }, true);
+
+                    // MARIO: trigger PDF export
+					addToolbarButton('Export to PDF', 'Print', 'fa-print', 'fas', function(){
+                        if (confirm("Leave/reload presentation to export PDF?"))
+                        {
+                            window.open("?print-pdf","_self")
+                        }
+                    }, true);
+
+                    // MARIO: go back to index page
+					addToolbarButton('Back to Index', 'Index', 'fa-file-alt', 'far', function(){
+                        if (confirm("Leave presentation and go to index page?"))
+                        {
+                            window.open("index.html","_self")
+                        }
                     }, true);
 
 
