@@ -1,0 +1,19 @@
+@import url("../fonts/lato.css");
+
+body {
+  background: #ffffff;
+  background-color: #ffffff;
+  font-family: "Lato";
+  color: #222; 
+}
+
+header {
+    background: #2a9ddf;
+}
+
+header > h1 {
+    color: white;
+    text-align: center;
+    font-size: 45px;
+}
+
