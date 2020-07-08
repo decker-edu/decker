@@ -518,7 +518,7 @@ var RevealMenu = window.RevealMenu || (function(){
 					//addToolbarButton('Slides', 'Slides', 'fa-images', 'fas', openPanel, true);
 
                     // MARIO: toggle search dialog of RevealSearch plugin
-					addToolbarButton('Search Dialog', 'Search', 'fa-search', 'fas', function(){
+					addToolbarButton('Toggle Search Dialog', 'Search', 'fa-search', 'fas', function(){
                         closeMenu();
                         RevealSearch.toggle();
                     }, true);
@@ -533,21 +533,16 @@ var RevealMenu = window.RevealMenu || (function(){
                         icon.classList.add( animState ? 'fa-circle' : 'fa-circle-check' );
                     }, true);
 
-                    // MARIO: trigger PDF export
-					addToolbarButton('Export to PDF', 'Print', 'fa-print', 'fas', function(){
-                        if (confirm("Leave/reload presentation to export PDF?"))
-                        {
-                            window.open("?print-pdf","_self")
-                        }
-                    }, true);
-
-                    // MARIO: go back to index page
-					//addToolbarButton('Back to Index', 'Index', 'fa-file-alt', 'far', function(){
-                        //if (confirm("Leave presentation and go to index page?"))
-                        //{
-                            //window.open("index.html","_self")
-                        //}
-                    //}, true);
+                    // MARIO: trigger PDF export (does not work in Electron app)
+                    if (!isElectron())
+                    {
+                        addToolbarButton('Export to PDF', 'Print', 'fa-print', 'fas', function(){
+                            if (confirm("Leave/reload presentation to export PDF?"))
+                            {
+                                window.open("?print-pdf","_self")
+                            }
+                        }, true);
+                    }
 
 
 					if (custom) {

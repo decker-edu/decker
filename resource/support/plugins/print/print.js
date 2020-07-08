@@ -184,7 +184,7 @@ var RevealPrint = (function(){
                     setupTitle();
 
                     // automatically press the print button when not in headless mode
-                    if (!navigator.webdriver)
+                    if (!navigator.webdriver && !isElectron())
                     {
                         Reveal.addEventListener( 'pdf-ready', function() {
                             setTimeout( window.print, 1000 );
