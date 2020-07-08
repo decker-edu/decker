@@ -105,6 +105,7 @@ adjustMetaPaths globalMeta base meta = do
   where
     adjust base path = do
       let apath = makeProjectPath base (toString path)
+      -- putNormal $ "==> " <> apath
       return $ toText apath
 
 -- | Adjusts meta data values that reference files needed at run-time (by some
@@ -116,8 +117,11 @@ needMetaTargets base meta = do
     adjustMetaVariables (adjustC base) (compiletimePathVariables meta)
   where
     adjustR base path = do
-      need [publicDir </> toString path]
-      relativePath <- liftIO $ makeRelativeTo' base (toString path)
+      let stringPath =  toString path
+      -- putNormal $ "==> " <> stringPath
+      need [publicDir </> stringPath]
+      let relativePath = makeRelativeTo base stringPath
+      -- putNormal $ "<== " <> relativePath
       return $ toText $ relativePath
     adjustC base path = do
       let pathString = toString path
@@ -209,9 +213,7 @@ compiletimePathVariables meta =
 
 runtimePathVariables :: Meta -> [Text]
 runtimePathVariables meta =
-  List.nub $
-  ["template", "css", "css-base"] <>
-  lookupMetaOrElse [] "runtime-path-variables" meta
+  List.nub $ ["template"] <> lookupMetaOrElse [] "runtime-path-variables" meta
 
 -- | Calculates paths relative to docBase for all runtime paths contained in
 -- the meta data. Also calls need on those files.

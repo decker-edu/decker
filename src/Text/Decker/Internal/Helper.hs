@@ -7,7 +7,6 @@ import Text.Decker.Project.Version
 import Text.Pandoc
 import Text.Printf
 
-import Control.Exception
 import Control.Monad.Catch
 import Control.Monad.State
 import qualified Data.List as List
@@ -136,16 +135,6 @@ makeRelativeTo :: FilePath -> FilePath -> FilePath
 makeRelativeTo dir file =
   let (d, f) = removeCommonPrefix (normalise dir, normalise file)
    in normalise $ invertPath d </> f
-
-makeRelativeTo' :: FilePath -> FilePath -> IO FilePath
-makeRelativeTo' dir file = do
-  rel <- makeRelativeEx dir file
-  case rel of
-    Just path -> return path
-    Nothing ->
-      throw $
-      InternalException $
-      "Cannot express '" <> file <> "' relative to '" <> dir <> "'"
 
 invertPath :: FilePath -> FilePath
 invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
