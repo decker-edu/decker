@@ -1,10 +1,10 @@
 @import url("../fonts/lato.css");
 
 body {
-  background: #ffffff;
-  background-color: #ffffff;
-  font-family: "Lato";
-  color: #222; 
+    background: #ffffff;
+    background-color: #ffffff;
+    font-family: "Lato";
+    color: #222; 
 }
 
 header {
@@ -17,3 +17,6 @@ header > h1 {
     font-size: 45px;
 }
 
+a {
+    color: #2a9ddf;
+}
