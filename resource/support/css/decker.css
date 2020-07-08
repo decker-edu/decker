@@ -146,59 +146,44 @@
   padding-right: var(--border-decoration-padding);
 }
 
-.reveal ul,
-.reveal ol {
-  list-style-position: inside;
+.reveal ol,
+.reveal dl,
+.reveal ul {
+  display: inline-block;
+  text-align: left;
+  margin-bottom: 0;
 }
 
-.reveal ul ol,
-.reveal ol ol {
-  margin-left: 0px;
-  padding-left: 0px;
+.reveal ol li,
+.reveal dl li,
+.reveal ul li {
+  margin-bottom: 0;
+  margin-left: 40px;
+}
+
+.reveal ol {
+  list-style-type: decimal;
+}
+
+.reveal ul {
+  list-style-type: disc;
 }
 
 .reveal ul ul,
 .reveal ol ul {
-  margin-left: 0.3em;
-}
-
-.reveal ul ol, .reveal ul ul,
-.reveal ol ol,
-.reveal ol ul {
-  margin-bottom: 0;
-}
-
-ul > li {
-  list-style-type: none;
-  position: relative;
-  left: .5em;
-}
-
-ul > li:before {
-  content: "\2022";
-  /* escaped unicode character */
-  font-size: 1.5em;
-  /* the default unicode bullet size is very small */
-  line-height: 0;
-  /* kills huge line height on resized bullet */
-  position: relative;
-  /* position bullet relative to list item */
-  top: 0.1em;
-  /* vertical align bullet position relative to list item */
-  left: -.3em;
-  /* position the bullet L- R relative to list item */
-}
-
-.reveal ol {
-  list-style-type: decimal;
+  list-style-type: circle;
 }
 
 .reveal ol ol {
-  list-style-type: lower-alpha;
+  list-style-type: lower-roman;
 }
 
-.reveal ol ol ol {
-  list-style-type: decimal;
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+  display: block;
+  margin-top: 0.3em;
 }
 
 .reveal div.box.columns {
