@@ -9,11 +9,14 @@ body {
 
 header {
     background: #2a9ddf;
+    text-align: center;
+}
+
+header > h1, header > h2 {
+    color: white;
 }
 
 header > h1 {
-    color: white;
-    text-align: center;
     font-size: 45px;
 }
 
