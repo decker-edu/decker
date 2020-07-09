@@ -252,7 +252,7 @@ run = do
       (directories ^. project) <//> "*.gnuplot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
-        gnuplot ["-e", "set output \"" ++ out ++ "\"", src]
+        gnuplot ["-e", "'set output \"" ++ out ++ "\"'", src]
                      --
       (directories ^. project) <//> "*.tex.svg" %> \out -> do
         let src = dropExtension out
