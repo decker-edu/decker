@@ -10,10 +10,12 @@ import MediaTests
 import MetaTests
 
 import System.FilePath.Posix
+import GHC.IO.Encoding
 import qualified Data.ByteString.Char8 as B
 import Test.Hspec
 
 main = do
+  setLocaleEncoding utf8
   deckTemplate <- B.readFile "resource/template/deck.html"
        --
   hspec $ do
