@@ -106,6 +106,18 @@ let RevealWhiteboard = (function(){
      * Setup GUI
      ************************************************************************/
 
+    // generate file open dialog
+    let fileInput = document.createElement( 'input' );
+    fileInput.type = "file";
+    fileInput.style.display = "none";
+    reveal.appendChild(fileInput);
+    fileInput.onchange = function(evt) {
+        if (evt.target.files.length) {
+            loadAnnotationsFromFile(evt.target.files[0]);
+        }
+    }
+
+
     // generate container for whiteboard buttons
     let buttons = document.createElement( 'div' );
     buttons.id = 'whiteboardButtons';
@@ -129,6 +141,7 @@ let RevealWhiteboard = (function(){
 
     let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard, false, 'toggle whiteboard');
     buttonWhiteboard.id  = "whiteboardButton";
+    let buttonOpen       = createButton("fa-folder-open", () => { fileInput.click(); }, true, 'load annotations');
     let buttonSave       = createButton("fa-save", saveAnnotations, false, 'save annotations');
     let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true, 'add whiteboard page');
     let buttonGrid       = createButton("fa-border-all", toggleGrid, false, 'toggle background grid');
@@ -172,7 +185,7 @@ let RevealWhiteboard = (function(){
     penWidthSlider.onchange = () => { selectPenRadius(parseInt(penWidthSlider.value)); };
     penWidthSlider.oninput  = () => { penWidthSlider.style.setProperty('--size', (parseInt(penWidthSlider.value)+1)+'px'); }
 
-
+   
     // adjust slide height: slides should always have full page height,
     // even if they have not ;-). Might happen when using center:true
     // in Reveal's settings. In this case Reveal centers the slide by
@@ -711,10 +724,10 @@ let RevealWhiteboard = (function(){
      ******************************************************************/
 
     /*
-     * load scribbles from file
+     * load scribbles from default URL
      * use Promise to ensure loading in init()
      */
-    function loadAnnotations()
+    function loadAnnotationsFromURL()
     {
         return new Promise( function(resolve) {
 
@@ -730,38 +743,8 @@ let RevealWhiteboard = (function(){
                 {
                     try
                     {
-                        // parse JSON
                         const storage = JSON.parse(xhr.responseText);
-
-                        // create SVGs
-                        if (storage.whiteboardVersion && storage.whiteboardVersion >= 2)
-                        {
-                            storage.annotations.forEach( page => {
-                                let slide = document.getElementById(page.slide);
-                                if (slide)
-                                {
-                                    // use global SVG
-                                    svg = setupSVG(slide);
-                                    if (svg)
-                                    {
-                                        svg.innerHTML = page.svg;
-                                        svg.style.display = 'none';
-                                    }
-                                }
-                            });
-                            console.log("whiteboard loaded");
-                        }
-
-                        // adjust height for PDF export
-                        if (printMode)
-                        {
-                            slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
-                                svg=mysvg; 
-                                svg.style.display = 'block';
-                                adjustSlideHeight();
-                                adjustWhiteboardHeight();
-                            });
-                        }
+                        parseAnnotations(storage);
                     }
                     catch(err)
                     {
@@ -779,6 +762,77 @@ let RevealWhiteboard = (function(){
             xhr.open('GET', filename, true);
             xhr.send();
         });
+    }
+
+    
+    /*
+     * load scribbles from local file
+     * use Promise to ensure loading in init()
+     */
+    function loadAnnotationsFromFile(filename)
+    {
+        if (window.File && window.FileReader && window.FileList) 
+        {
+            var reader = new FileReader();
+
+            reader.onload = function(evt) {
+                try
+                {
+                    const storage = JSON.parse(evt.target.result);
+                    parseAnnotations(storage);
+
+                    // re-setup current slide
+                    slideChanged();
+                }
+                catch(err)
+                {
+                    console.error("Cannot parse " + filename + ": " + err);
+                }
+            }
+
+            reader.readAsText(filename);
+        }
+        else {
+            console.log("Your browser does not support the File API");
+        }
+    }
+
+
+
+    /*
+     * parse the annnotations blob loaded from URL or file
+     */
+    function parseAnnotations(storage)
+    {
+        // create SVGs
+        if (storage.whiteboardVersion && storage.whiteboardVersion >= 2)
+        {
+            storage.annotations.forEach( page => {
+                let slide = document.getElementById(page.slide);
+                if (slide)
+                {
+                    // use global SVG
+                    svg = setupSVG(slide);
+                    if (svg)
+                    {
+                        svg.innerHTML = page.svg;
+                        svg.style.display = 'none';
+                    }
+                }
+            });
+            console.log("whiteboard loaded");
+        }
+
+        // adjust height for PDF export
+        if (printMode)
+        {
+            slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
+                svg=mysvg; 
+                svg.style.display = 'block';
+                adjustSlideHeight();
+                adjustWhiteboardHeight();
+            });
+        }
     }
 
 
@@ -1346,6 +1400,7 @@ let RevealWhiteboard = (function(){
 
 
     // whenever slide changes, update slideIndices and redraw
+    Reveal.addEventListener( 'ready', slideChanged );
     Reveal.addEventListener( 'slidechanged', slideChanged );
 
     // whenever fragment changes, update stroke visibility
@@ -1396,7 +1451,7 @@ let RevealWhiteboard = (function(){
             if (printMode) buttons.style.display = 'none';
 
             // load annotations
-            return new Promise( (resolve) => loadAnnotations().then(resolve) );
+            return new Promise( (resolve) => loadAnnotationsFromURL().then(resolve) );
         },
 
         // menu plugin need access to trigger it
