@@ -16,7 +16,17 @@ $endif$
 $if(template.favicon)$
   <link rel="shortcut icon" href="$template.favicon$">
 $endif$
+$if(mario)$
+    $if(title)$
+        $if(subtitle)$
+          <title>$title$: $subtitle$</title>
+        $else$
+          <title>$title$</title>
+        $endif$
+    $endif$
+$else$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
+$endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
