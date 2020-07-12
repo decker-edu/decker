@@ -141,7 +141,7 @@ let RevealWhiteboard = (function(){
 
     let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard, false, 'toggle whiteboard');
     buttonWhiteboard.id  = "whiteboardButton";
-    let buttonOpen       = createButton("fa-folder-open", () => { fileInput.click(); }, true, 'load annotations');
+    //let buttonOpen       = createButton("fa-folder-open", () => { fileInput.click(); }, true, 'load annotations');
     let buttonSave       = createButton("fa-save", saveAnnotations, false, 'save annotations');
     let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true, 'add whiteboard page');
     let buttonGrid       = createButton("fa-border-all", toggleGrid, false, 'toggle background grid');
@@ -731,6 +731,17 @@ let RevealWhiteboard = (function(){
     {
         return new Promise( function(resolve) {
 
+            // electron? try to load annotation from local file
+            if (window.loadAnnotation) {
+                window.loadAnnotation(annotationURL()).then( (storage) => {
+                    if (storage) {
+                        parseAnnotations(storage);
+                        resolve();
+                        return;
+                    }
+                });
+            }
+
             // determine scribble filename
             let filename = annotationURL();
 
@@ -877,7 +888,7 @@ let RevealWhiteboard = (function(){
     /*
      * return annotations as JSON object
      */
-    function annotationJSON()
+    function annotationData()
     {
         let storage = { whiteboardVersion: 2.0, annotations: [] };
             
@@ -888,8 +899,16 @@ let RevealWhiteboard = (function(){
             }
         });
        
-        let blob = new Blob( [ JSON.stringify( storage ) ], { type: "application/json"} );
-        return blob;
+        return storage;
+    }
+
+
+    /*
+     * return annotations as Blob
+     */
+    function annotationBlob()
+    {
+        return new Blob( [ JSON.stringify( annotationData() ) ], { type: "application/json"} );
     }
 
 
@@ -898,6 +917,16 @@ let RevealWhiteboard = (function(){
      */
     function saveAnnotations()
     {
+        // electron app?
+        if (window.saveAnnotation) {
+            if (window.saveAnnotation(annotationData(), annotationURL()))
+            {
+                console.log("whiteboard: save success");
+                needToSave(false);
+                return;
+            }
+        }
+
         console.log("whiteboard: save annotations to decker");
         let xhr = new XMLHttpRequest();
         xhr.open('put', annotationURL(), true);
@@ -910,7 +939,7 @@ let RevealWhiteboard = (function(){
                 downloadAnnotations();
             }
         };
-        xhr.send(annotationJSON());
+        xhr.send(annotationBlob());
     }
 
 
@@ -924,7 +953,7 @@ let RevealWhiteboard = (function(){
         document.body.appendChild(a);
         try {
             a.download = annotationFilename();
-            a.href = window.URL.createObjectURL( annotationJSON() );
+            a.href = window.URL.createObjectURL( annotationBlob() );
 
         } catch( error ) {
             console.error("whiteboard download error: " + error);

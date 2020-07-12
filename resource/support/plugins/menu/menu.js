@@ -534,15 +534,19 @@ var RevealMenu = window.RevealMenu || (function(){
                     }, true);
 
                     // MARIO: trigger PDF export (does not work in Electron app)
-                    if (!isElectron())
-                    {
-                        addToolbarButton('Export to PDF', 'Print', 'fa-print', 'fas', function(){
+                    addToolbarButton('Export to PDF', 'Print', 'fa-print', 'fas', function(){
+                        let url = window.location.href + '?print-pdf';
+                        // electron app
+                        if (window.printPDF) {
+                            window.printPDF(url);
+                        }
+                        // normal browser mode
+                        else {
                             if (confirm("Leave/reload presentation to export PDF?"))
-                            {
-                                window.open("?print-pdf","_self")
-                            }
-                        }, true);
-                    }
+                                window.open(url, "_self");
+                        }
+                        closeMenu();
+                    }, true);
 
 
 					if (custom) {
