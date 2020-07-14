@@ -56,64 +56,110 @@ $border-marker-default-color: red;
 // experiment a lot wit a version using outside since it was the only mode for
 // which Safari and Chrome used the same spacing between bullet and text. Chrome
 // adds a nasty gap iin inside mode which can not easily be corrected. 
+//
+// NOTE: See below, went back to old style
+//
 //////////////////////////////////////////////
-.reveal ul,
-.reveal ol
- {
-   list-style-position: inside; // outside means we have to increase margin
-                                 // if we don't and go inside then the spacing 
-                                 // between item icon and text looks bad between browsers
-   //margin-left: calc(var(--border-decoration-padding) + var(--border-decoration-width)); 
-   //padding-left: calc(var(--border-decoration-width) + var(--border-decoration-padding));
-
-   // all deeper levels get a fixed margin/padding since
-   // they don't have to respect the colored box border model
-   // and they should not be affected by the decoration model 
-   ol  {
-      margin-left: 0px; 
-      padding-left: 0px; 
-   }
-   ul {
-      margin-left:  0.3em; // this counteracts the left spacing necessary to 
-                           // counteract the chrome problem below 
-   }
-   ol, ul {
-     margin-bottom: 0; 
-   }
-}
+//.reveal ul,
+//.reveal ol
+// {
+//   list-style-position: inside; // outside means we have to increase margin
+//                                 // if we don't and go inside then the spacing
+//                                 // between item icon and text looks bad between browsers
+//   //margin-left: calc(var(--border-decoration-padding) + var(--border-decoration-width));
+//   //padding-left: calc(var(--border-decoration-width) + var(--border-decoration-padding));
+//
+//   // all deeper levels get a fixed margin/padding since
+//   // they don't have to respect the colored box border model
+//   // and they should not be affected by the decoration model
+//   ol  {
+//      margin-left: 0px;
+//      padding-left: 0px;
+//   }
+//   ul {
+//      margin-left:  0.3em; // this counteracts the left spacing necessary to
+//                           // counteract the chrome problem below
+//   }
+//   ol, ul {
+//     margin-bottom: 0;
+//   }
+//}
 
 // This one unifies the nasty spacing problem in chrome, e.g., it adds
 // an unwanted additional gap between the bullet and the text 
 // However, this method does not vertically align multi-line text properly
 // at the left margin. Seems one of the HTML/CSS things where there is no
 // silver bullet.
-ul {
-   >li {
-      list-style-type: none;
-      position:relative;
-      left: .5em;
-    }
-   >li:before  {
-         content:"\2022";    /* escaped unicode character */
-         font-size:1.5em;    /* the default unicode bullet size is very small */
-         line-height:0;      /* kills huge line height on resized bullet */
-         position:relative;  /* position bullet relative to list item */
-         top:0.1em;           /* vertical align bullet position relative to list item */
-         left:-.3em;         /* position the bullet L- R relative to list item */
-   }
-}
+//ul {
+//   >li {
+//      list-style-type: none;
+//      position:relative;
+//      left: .5em;
+//    }
+//   >li:before  {
+//         content:"\2022";    /* escaped unicode character */
+//         font-size:1.5em;    /* the default unicode bullet size is very small */
+//         line-height:0;      /* kills huge line height on resized bullet */
+//         position:relative;  /* position bullet relative to list item */
+//         top:0.1em;           /* vertical align bullet position relative to list item */
+//         left:-.3em;         /* position the bullet L- R relative to list item */
+//   }
+//}
 
 /////////////////////////////////////////
 // Now just and only the list styles
 /////////////////////////////////////////
+//.reveal ol {
+//    list-style-type: decimal;
+//    ol {
+//        list-style-type: lower-alpha;
+//        ol {
+//            list-style-type: decimal;
+//        }
+//    }
+//}
+
+
+// From Marios version, needs more space but what the heck, looks nice enough
+// Fiddled to long with the desired horrrizontal alignment above, could
+// finally achieve it but to a price, lines too long looked nasty hence
+// back to the good old one...
+.reveal ol,
+.reveal dl,
+.reveal ul {
+  display: inline-block;
+  text-align: left;
+  margin-bottom: 0;
+}
+
+.reveal ol li,
+.reveal dl li,
+.reveal ul li {
+    margin-bottom: 0;
+    margin-left: 40px;
+}
+
 .reveal ol {
-    list-style-type: decimal;
-    ol {
-        list-style-type: lower-alpha;
-        ol {
-            list-style-type: decimal;
-        }
-    }
+  list-style-type: decimal; }
+
+.reveal ul {
+  list-style-type: disc; }
+
+.reveal ul ul,
+.reveal ol ul {
+    list-style-type: circle;
+}
+
+.reveal ol ol {
+    list-style-type: lower-roman;
+}
+
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+    display:     block;
+    margin-top:  0.3em;
 }
 
 
