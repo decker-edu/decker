@@ -15,24 +15,21 @@ import Text.Decker.Resource.Zip
 
 import Development.Shake hiding (Resource)
 import qualified Network.URI as URI
-import qualified System.Directory as Dir
 import System.FilePath.Posix
 
 -- | Write the example project to the current folder
-writeExampleProject :: IO ()
-writeExampleProject = do
+writeExampleProject :: FilePath -> IO ()
+writeExampleProject dir = do
   warnVersion
-  cwd <- Dir.getCurrentDirectory
-  putStrLn $ "# Extracting example project to " ++ cwd ++ "."
-  extractResourceEntries "example" cwd
+  putStrLn $ "# Extracting example project to " ++ dir ++ "."
+  extractResourceEntries "example" dir
 
 -- | Write the tutorial project to the current folder
-writeTutorialProject :: IO ()
-writeTutorialProject = do
+writeTutorialProject :: FilePath -> IO ()
+writeTutorialProject dir = do
   warnVersion
-  cwd <- Dir.getCurrentDirectory
-  putStrLn $ "# Extracting tutorial project to " ++ cwd ++ "."
-  extractResourceEntries "tutorial" cwd
+  putStrLn $ "# Extracting tutorial project to " ++ dir ++ "."
+  extractResourceEntries "tutorial" dir
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
 urlToFilePathIfLocal base uri =

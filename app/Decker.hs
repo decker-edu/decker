@@ -17,7 +17,6 @@ import Data.Version
 
 import Development.Shake
 import System.FilePath.Posix
--- import Development.Shake.FilePath
 import GHC.IO.Encoding
 import NeatInterpolation
 
@@ -44,13 +43,14 @@ import Text.Pandoc hiding (lookupMeta)
 main :: IO ()
 main = do
   setLocaleEncoding utf8
+  startDir <- Dir.getCurrentDirectory
   setProjectDirectory
   args <- getArgs
   if null args
     then run
     else case head args of
-           "example" -> writeExampleProject
-           "tutorial" -> writeTutorialProject
+           "example" -> writeExampleProject startDir
+           "tutorial" -> writeTutorialProject startDir
            "clean" -> runClean
            _ -> run
 
