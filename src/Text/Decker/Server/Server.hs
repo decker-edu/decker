@@ -10,7 +10,6 @@ module Text.Decker.Server.Server
 -- TODO is this still used?
 -- import Text.Decker.Server.Dachdecker (login)
 import Control.Concurrent
-import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
@@ -30,19 +29,18 @@ import Snap.Http.Server
 import Snap.Util.FileServe
 
 import System.Directory
-import System.FilePath
+import System.FilePath.Posix
 import System.Random
 
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
-import Text.Decker.Project.Project
 
 -- Logging and port configuration for the server.
-serverConfig :: ProjectDirs -> Int -> IO (Config Snap a)
-serverConfig dirs port = do
-  let logDir = dirs ^. transient
-  let accessLog = logDir </> "server-access.log"
-  let errorLog = logDir </> "server-error.log"
-  createDirectoryIfMissing True logDir
+serverConfig :: Int -> IO (Config Snap a)
+serverConfig port = do
+  let accessLog = transientDir </> "server-access.log"
+  let errorLog = transientDir </> "server-error.log"
+  createDirectoryIfMissing True transientDir
   return
     (setPort port $
      setAccessLog (ConfigFileLog accessLog) $
@@ -85,26 +83,23 @@ reloadAll state = withMVar state (mapM_ reload . fst)
     reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
 
 -- Runs the server. Never returns.
-runHttpServer :: MVar ServerState -> ProjectDirs -> Int -> IO ()
-runHttpServer state dirs port = do
-  let supportPath =
-        fromString $ "/" ++ makeRelativeTo (dirs ^. public) (dirs ^. support)
-  let documentRoot = dirs ^. public
+runHttpServer :: MVar ServerState -> Int -> IO ()
+runHttpServer state port = do
   devRun <- isDevelopmentRun
   let supportRoot =
         if devRun
-          then dirs ^. project </> "resource" </> "support"
-          else dirs ^. support
-  config <- serverConfig dirs port
+          then devSupportDir
+          else supportDir
+  config <- serverConfig port
   let routes =
         route
           [ ("/reload", runWebSocketsSnap $ reloader state)
                  -- , ("/dachdecker", method POST $ serveDachdecker)
           , ( "/reload.html"
-            , serveFile $ dirs ^. project </> "test" </> "reload.html")
-          , (supportPath, serveDirectoryNoCaching state supportRoot)
-          , ("/", method PUT $ saveAnnotation (dirs ^. project))
-          , ("/", method GET $ serveDirectoryNoCaching state documentRoot)
+            , serveFile $ "test" </> "reload.html")
+          , (fromString supportPath, serveDirectoryNoCaching state supportRoot)
+          , ("/", method PUT $ saveAnnotation)
+          , ("/", method GET $ serveDirectoryNoCaching state publicDir)
           ]
   let tryRun port 0 = fail "decker server: All ports already in use"
       tryRun port tries =
@@ -142,14 +137,14 @@ startUpdater state = do
 -- | Save the request body in the project directory under the request path. But
 -- only if the request path ends on "-annot.json" and the local directory
 -- already exists. 
-saveAnnotation :: MonadSnap m => FilePath -> m ()
-saveAnnotation root = do
+saveAnnotation :: MonadSnap m => m ()
+saveAnnotation = do
   path <- getsRequest rqPathInfo
   liftIO $ putStrLn $ "saving: " <> toString path
   if BS.isSuffixOf "-annot.json" path ||
      BS.isSuffixOf "-annot.png" path || BS.isSuffixOf "-annot.pkdrawing" path
     then do
-      let destination = root </> toString path
+      let destination = toString path
       body <- readRequestBody 10000000
       exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
       if exists
@@ -192,10 +187,10 @@ serveDirectoryNoCaching state directory = do
  -    Nothing -> liftIO $ putStrLn "Error logging into the Dachdecker server"
  -}
 -- | Starts a server in a new thread and returns the thread id.
-startHttpServer :: ProjectDirs -> Int -> IO Server
-startHttpServer dirs port = do
+startHttpServer :: Int -> IO Server
+startHttpServer port = do
   state <- initState
-  threadId <- forkIO $ runHttpServer state dirs port
+  threadId <- forkIO $ runHttpServer state port
   return (threadId, state)
 
 -- | Sends a reload messsage to all attached clients

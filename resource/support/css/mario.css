@@ -927,7 +927,7 @@ body {
  * MARIO: fullscreen for iframes
  *********************************************/
 
-.reveal div.fs-container { 
+ .reveal div.fs-container { 
     margin:   auto;
     border:   0px;
     padding:  0px;
@@ -941,6 +941,16 @@ body {
     padding:          20px;
 }
 
+/* needed for mobile Safari */
+*:-webkit-full-screen {
+    width:  100% !important;
+    height: 100% !important;
+}
+
+.reveal div.fs-container>iframe {
+    box-sizing: border-box;
+}
+
 .reveal div.fs-container:fullscreen>iframe {
     border: none;
 }
@@ -949,21 +959,27 @@ body {
     z-index:          100;
     display:          inline-block;
     position:         absolute;
-    top:              0px;
-    right:            0px;
+    top:              2px;
+    right:            2px;
     cursor:           pointer;
+    outline:          none;
+    font-size:        20px;
+    width:            24px;
+    height:           24px;
     padding:          2px;
     border:           none;
+    border-radius:    4px;
+    opacity:          0.5;
+    color:            var(--whiteboard-inactive-color);
     background-color: rgba(255,255,255,0.5);
-    opacity:          0.2;
-    font-size:        20px;
-    outline:          none;
 }
 
 .reveal button.fs-button:hover { 
     opacity:          1.0;
+    color:            var(--whiteboard-active-color);
     background-color: rgba(255,255,255,0.8);
 }
+
 
 
 /*********************************************

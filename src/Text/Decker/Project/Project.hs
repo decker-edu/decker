@@ -1,17 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Text.Decker.Project.Project
-  ( resourcePaths
-  , scanTargetsToFile
-  , deckerResourceDir
-  , findProjectDirectory
-  , projectDirectories
-  , provisioningFromMeta
+  ( scanTargetsToFile
+  , setProjectDirectory
   -- , dachdeckerFromMeta
   , scanTargets
   , isDevelopmentRun
@@ -27,16 +24,9 @@ module Text.Decker.Project.Project
   , handouts
   , handoutsPdf
   , annotations
-  , projectDir
-  , publicDir
-  , project
-  , public
-  , support
-  , transient
   -- , getDachdeckerUrl
   , Targets(..)
   , Resource(..)
-  , ProjectDirs(..)
   , fromMetaValue
   , toMetaValue
   , readTargetsFile
@@ -48,7 +38,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Glob
-import Text.Decker.Project.Version
 
 import Control.Lens hiding ((.=))
 import Data.Aeson
@@ -59,10 +48,10 @@ import qualified Data.Map.Strict as Map
 import Data.Maybe
 import qualified Data.Yaml as Yaml
 import Development.Shake hiding (Resource)
-import Network.URI
 import Relude
-import qualified System.Directory as D
-import System.FilePath
+import qualified System.Directory as Directory
+import qualified System.FilePath as FP
+import System.FilePath.Posix
 import Text.Pandoc.Builder hiding (lookupMeta)
 
 data Targets = Targets
@@ -130,114 +119,30 @@ instance FromMetaValue Resource where
     return $ Resource source target url
   fromMetaValue _ = Nothing
 
-instance ToMetaValue ProjectDirs where
-  toMetaValue (ProjectDirs project public support transient) =
-    toMetaValue
-      [ ("project" :: Text, project)
-      , ("public" :: Text, public)
-      , ("support" :: Text, support)
-      , ("transient" :: Text, transient)
-      ]
-
-instance FromMetaValue ProjectDirs where
-  fromMetaValue (MetaMap object) = do
-    project <- Map.lookup "project" object >>= fromMetaValue
-    public <- Map.lookup "public" object >>= fromMetaValue
-    support <- Map.lookup "support" object >>= fromMetaValue
-    transient <- Map.lookup "transient" object >>= fromMetaValue
-    return $ ProjectDirs project public support transient
-  fromMetaValue _ = Nothing
-
-provisioningFromMeta :: Meta -> Provisioning
-provisioningFromMeta meta =
-  fromMaybe SymLink $ lookupMeta "provisioning" meta >>= readMaybe
-
--- dachdeckerFromMeta :: Meta -> Maybe String
--- dachdeckerFromMeta = getMetaString "dachdecker"
-{-
- -absRefResource :: Resource -> IO FilePath
- -absRefResource resource =
- -  return $ show $ URI "file" Nothing (sourceFile resource) "" ""
- -}
-{-
- -relRefResource :: FilePath -> Resource -> IO FilePath
- -relRefResource base resource = do
- -  let relPath = makeRelativeTo base (sourceFile resource)
- -  return $ show $ URI "file" Nothing relPath "" ""
- -}
 -- | Find the project directory. 
 -- 1. First upwards directory containing `decker.yaml`
 -- 2. First upwards directory containing `.git`
 -- 3. The current working directory
-findProjectDirectory :: IO FilePath
-findProjectDirectory = do
-  cwd <- D.getCurrentDirectory
-  searchRoot cwd Nothing
+findProjectRoot :: IO FilePath
+findProjectRoot = do
+  cwd <- Directory.getCurrentDirectory
+  search cwd cwd
   where
-    searchRoot :: FilePath -> Maybe FilePath -> IO FilePath
-    searchRoot start gitRoot = do
-      let parent = takeDirectory start
-      hasYaml <- D.doesFileExist (start </> globalMetaFileName)
-      hasGit <- D.doesDirectoryExist (start </> ".git")
-      if hasYaml
-        then D.makeAbsolute start
-        else if isDrive start
-               then case gitRoot of
-                      Just g -> D.makeAbsolute g
-                      Nothing -> D.makeAbsolute "."
-               else case (hasGit, gitRoot) of
-                      (_, Just g) -> searchRoot parent gitRoot
-                      (True, Nothing) -> searchRoot parent (Just start)
-                      _ -> searchRoot parent Nothing
+    search :: FilePath -> FilePath -> IO FilePath
+    search dir start = do
+      hasYaml <- Directory.doesFileExist (dir </> globalMetaFileName)
+      hasGit <- Directory.doesDirectoryExist (dir </> ".git")
+      if | hasYaml || hasGit -> return dir
+         | FP.isDrive dir -> return start
+         | otherwise -> search (FP.takeDirectory dir) start
+      -- return dir
 
--- Calculate important absolute project directory pathes
-projectDirectories :: IO ProjectDirs
-projectDirectories = do
-  projectDir <- findProjectDirectory
-  let publicDir = projectDir </> "public"
-  let supportDir = publicDir </> "support"
-  let transientDir = projectDir </> deckerFiles
-  return (ProjectDirs projectDir publicDir supportDir transientDir)
-
-deckerResourceDir :: IO FilePath
-deckerResourceDir =
-  D.getXdgDirectory
-    D.XdgData
-    ("decker" ++
-     "-" ++ deckerVersion ++ "-" ++ deckerGitBranch ++ "-" ++ deckerGitCommitId)
-
-{-
- --- | Get the absolute paths of resource folders 
- --- with version numbers older than the current one
- -oldResourcePaths :: IO [FilePath]
- -oldResourcePaths = do
- -  dir <- D.getXdgDirectory D.XdgData []
- -  files <- D.listDirectory dir
- -  return $ map (dir </>) $ filter oldVersion files
- -  where
- -    convert = map (read :: String -> Int)
- -    currentVersion = convert (splitOn "." deckerVersion)
- -    deckerRegex = "decker-([0-9]+)[.]([0-9]+)[.]([0-9]+)-" :: String
- -    oldVersion name =
- -      case getAllTextSubmatches (name =~ deckerRegex) :: [String] of
- -        _:x:y:z:_ -> convert [x, y, z] < currentVersion
- -        _ -> False
- -}
-resourcePaths :: ProjectDirs -> FilePath -> URI -> Resource
-resourcePaths dirs base uri =
-  Resource
-    { sourceFile = uriPath uri
-    , publicFile =
-        dirs ^. public </> makeRelativeTo (dirs ^. project) (uriPath uri)
-    , publicUrl =
-        show $
-        URI
-          ""
-          Nothing
-          (makeRelativeTo base (uriPath uri))
-          (uriQuery uri)
-          (uriFragment uri)
-    }
+-- Move CWD to the project directory.
+setProjectDirectory :: IO ()
+setProjectDirectory = do
+  projectDir <- findProjectRoot
+  Directory.setCurrentDirectory projectDir
+  putStrLn $ "# Running decker in: " <> projectDir
 
 deckSuffix = "-deck.md"
 
@@ -261,30 +166,29 @@ indexSuffix = "-deck-index.yaml"
 
 sourceSuffixes = [deckSuffix, pageSuffix, annotationSuffix, indexSuffix]
 
-alwaysExclude = ["public", deckerFiles, "dist", ".git", ".vscode"]
+alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode"]
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
+  map normalise $
   alwaysExclude <> lookupMetaOrElse [] "exclude-directories" meta
 
 staticDirs = lookupMetaOrElse [] "static-resource-dirs"
 
-scanTargetsToFile :: Meta -> ProjectDirs -> FilePath -> Action ()
-scanTargetsToFile meta dirs file = do
-  targets <- liftIO $ scanTargets meta dirs
+scanTargetsToFile :: Meta -> FilePath -> Action ()
+scanTargetsToFile meta file = do
+  targets <- liftIO $ scanTargets meta
   writeFileChanged file $ decodeUtf8 $ encode targets
 
-scanTargets :: Meta -> ProjectDirs -> IO Targets
-scanTargets meta dirs = do
+scanTargets :: Meta -> IO Targets
+scanTargets meta = do
   srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
-  let static = map (dirs ^. project </>) (staticDirs meta)
-  staticSrc <- concat <$> mapM (fastGlobFiles [] []) static
-  let staticTargets =
-        map ((dirs ^. public </>) . makeRelative (dirs ^. project)) staticSrc
+  staticSrc <-
+    concat <$> mapM (fastGlobFiles [] []) (map normalise $ staticDirs meta)
   return
     Targets
       { _sources = sort $ concatMap snd srcs
-      , _static = staticTargets
+      , _static = sort $ map (publicDir </>) staticSrc
       , _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs
       , _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs
       , _pages = sort $ calcTargets pageSuffix pageHTMLSuffix srcs
@@ -294,26 +198,8 @@ scanTargets meta dirs = do
       , _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs
       }
   where
-    projectDir = dirs ^. project
     calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]
     calcTargets srcSuffix targetSuffix sources =
       map
-        (replaceSuffix srcSuffix targetSuffix .
-         combine (dirs ^. public) . makeRelative (dirs ^. project))
+        (replaceSuffix srcSuffix targetSuffix . combine publicDir)
         (fromMaybe [] $ List.lookup srcSuffix sources)
-
-{-
- -getDachdeckerUrl :: IO String
- -getDachdeckerUrl = do
- -  env <- System.Environment.lookupEnv "DACHDECKER_SERVER"
- -  let url =
- -        case env of
- -          Just val -> val
- -          Nothing -> "https://dach.decker.informatik.uni-wuerzburg.de"
- -  return url
- -}
-projectDir :: Meta -> FilePath
-projectDir = lookupMetaOrElse "." "decker.directories.project"
-
-publicDir :: Meta -> FilePath
-publicDir = lookupMetaOrElse "." "decker.directories.public"

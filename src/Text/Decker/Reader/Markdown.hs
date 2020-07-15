@@ -15,8 +15,8 @@ import Control.Monad.Loops
 import qualified Data.List as List
 import qualified Data.Text.IO as Text
 
+import System.FilePath.Posix
 import Development.Shake hiding (Resource)
-import Development.Shake.FilePath as SFP
 
 import Relude
 
@@ -35,7 +35,6 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
-import Text.Decker.Project.Shake
 import Text.Decker.Resource.Template
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
@@ -92,31 +91,43 @@ writeBack meta path pandoc = do
 expandMeta :: Meta -> FilePath -> Pandoc -> Action Pandoc
 expandMeta globalMeta base (Pandoc docMeta content) = do
   expanded <-
-    makePathsAbsolute globalMeta base docMeta >>=
+    adjustMetaPaths globalMeta base docMeta >>=
     readAdditionalMeta globalMeta base
   return (Pandoc expanded content)
 
--- | Adjusts meta data values that reference files needed at run-time (by some
--- plugin, presumeably) and at compile-time (by some template). Lists of these
--- variables can be specified in the meta data.
-makePathsAbsolute :: Meta -> FilePath -> Meta -> Action Meta
-makePathsAbsolute globalMeta base meta = do
-  let project = lookupMetaOrFail "decker.directories.project" globalMeta
-      variables = pathVariables globalMeta
-  adjustMetaVariables
-    (liftIO . makeAbsolutePathIfLocal project base)
-    variables
-    meta
+-- | Adjusts meta data values that reference local files needed at run-time (by
+-- some plugin, presumeably) and at compile-time (by some template). Lists of
+-- these variables can be specified in the meta data.
+adjustMetaPaths :: Meta -> FilePath -> Meta -> Action Meta
+adjustMetaPaths globalMeta base meta = do
+  let variables = pathVariables globalMeta
+  adjustMetaVariables (adjust base) variables meta
+  where
+    adjust base path = do
+      let apath = makeProjectPath base (toString path)
+      -- putNormal $ "==> " <> apath
+      return $ toText apath
 
 -- | Adjusts meta data values that reference files needed at run-time (by some
 -- plugin, presumeably) and at compile-time (by some template). Lists of these
 -- variables can be specified in the meta data.
-needTargets :: FilePath -> Meta -> Action Meta
-needTargets base meta = do
-  let project = lookupMetaOrFail "decker.directories.project" meta
-      public = lookupMetaOrFail "decker.directories.public" meta
-      variables = runtimePathVariables meta
-  adjustMetaVariables (needTargetUri project public base) variables meta
+needMetaTargets :: FilePath -> Meta -> Action Meta
+needMetaTargets base meta = do
+  adjustMetaVariables (adjustR base) (runtimePathVariables meta) meta >>=
+    adjustMetaVariables (adjustC base) (compiletimePathVariables meta)
+  where
+    adjustR base path = do
+      let stringPath =  toString path
+      -- putNormal $ "==> " <> stringPath
+      need [publicDir </> stringPath]
+      let relativePath = makeRelativeTo base stringPath
+      -- putNormal $ "<== " <> relativePath
+      return $ toText $ relativePath
+    adjustC base path = do
+      let pathString = toString path
+      isDir <- liftIO $ Dir.doesDirectoryExist pathString
+      unless isDir (need [pathString])
+      return path
 
 adjustMetaVariables :: (Text -> Action Text) -> [Text] -> Meta -> Action Meta
 adjustMetaVariables action keys meta = foldM func meta keys
@@ -140,12 +151,10 @@ mergeDocumentMeta globalMeta (Pandoc docMeta content) = do
 adjustResourcePaths :: Meta -> FilePath -> Pandoc -> Action Pandoc
 adjustResourcePaths meta base pandoc =
   walkM adjustInline pandoc >>= walkM adjustBlock
-  where
-    project :: String
-    project = lookupMetaOrFail "decker.directories.project" meta
     -- Adjusts the image url and all source attributes. Which source is used
     -- and how is decided by the media plugin. Calling need is the
     -- responsibility of the media plugin. 
+  where
     adjustInline :: Inline -> Action Inline
     adjustInline (Image (id, cls, kvs) alt (url, title)) = do
       localUrl <- adjustUrl url
@@ -153,7 +162,7 @@ adjustResourcePaths meta base pandoc =
       return $ Image (id, cls, localAttr) alt (localUrl, title)
     adjustInline inline = return inline
     adjustUrl :: Text -> Action Text
-    adjustUrl url = liftIO $ makeAbsolutePathIfLocal project base url
+    adjustUrl url = liftIO $ makeProjectUriPath base url
     -- Adjusts code block and header attributes.
     adjustBlock :: Block -> Action Block
     adjustBlock (CodeBlock (id, cls, kvs) text) = do
@@ -165,8 +174,7 @@ adjustResourcePaths meta base pandoc =
     adjustBlock block = return block
     -- Adjusts the value of one attribute.
     adjustAttrib :: (Text, Text) -> Action (Text, Text)
-    adjustAttrib (k, v) =
-      (k, ) <$> (liftIO $ makeAbsolutePathIfLocal project base v)
+    adjustAttrib (k, v) = (k, ) <$> (liftIO $ makeProjectUriPath base v)
     -- Adjusts the values of all key value attributes that are listed in keys.
     adjustAttribs :: [Text] -> [(Text, Text)] -> Action [(Text, Text)]
     adjustAttribs keys kvs = do
@@ -186,9 +194,7 @@ includeMarkdownFiles globalMeta docBase (Pandoc docMeta content) =
     processBlocks blcks = concat . reverse <$> foldM include [] blcks
     include :: [[Block]] -> Block -> Action [[Block]]
     include document (Para [Link _ [Str ":include"] (url, _)]) = do
-      let project = lookupMetaOrFail "decker.directories.project" globalMeta
-      path <-
-        toString <$> (liftIO $ makeAbsolutePathIfLocal project docBase url)
+      let path = makeProjectPath docBase (toString url)
       putVerbose $ "# --> include: " <> toString url <> " (" <> path <> ")"
       need [path]
       Pandoc _ includedBlocks <- readMarkdownFile globalMeta path
@@ -210,10 +216,10 @@ runtimePathVariables meta =
   List.nub $ ["template"] <> lookupMetaOrElse [] "runtime-path-variables" meta
 
 -- | Calculates paths relative to docBase for all runtime paths contained in
--- the meta data.
+-- the meta data. Also calls need on those files.
 calcRelativeResourePathes :: FilePath -> Pandoc -> Action Pandoc
 calcRelativeResourePathes base (Pandoc meta content) = do
-  calculated <- needTargets base meta
+  calculated <- needMetaTargets base meta
   return (Pandoc calculated content)
 
 -- | Check for additional meta files specified in the Meta option `meta-data`.
@@ -234,11 +240,11 @@ readMetaData globalMeta path = do
   putVerbose $ "# --> readMetaData: " <> path
   let base = takeDirectory path
   meta <- (liftIO $ readMetaDataFile path)
-  makePathsAbsolute globalMeta base meta >>= readAdditionalMeta globalMeta base
+  adjustMetaPaths globalMeta base meta >>= readAdditionalMeta globalMeta base
 
-readDeckerMeta :: ProjectDirs -> FilePath -> Action Meta
-readDeckerMeta dirs file = do
-  meta <- setMetaValue "decker.directories" dirs <$> readMetaData nullMeta file
+readDeckerMeta :: FilePath -> Action Meta
+readDeckerMeta file = do
+  meta <- readMetaData nullMeta file
   templateSource <- liftIO $ calcTemplateSource meta
   defaultMeta <- readTemplateMeta templateSource
   return $ mergePandocMeta' meta defaultMeta
@@ -254,7 +260,6 @@ readDeckerMeta dirs file = do
 --
 runDeckerFilter :: (Pandoc -> IO Pandoc) -> FilePath -> Pandoc -> Action Pandoc
 runDeckerFilter filter docBase pandoc@(Pandoc docMeta blocks) = do
-  dirs <- projectDirsA
   let deckerMeta = setMetaValue "decker.base-dir" docBase docMeta
   (Pandoc resultMeta resultBlocks) <- liftIO $ filter (Pandoc deckerMeta blocks)
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)

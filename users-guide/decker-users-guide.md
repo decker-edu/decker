@@ -45,12 +45,28 @@ publish the entire project to a remote location with the command
 ```
 
 The remote location is specified in the meta data variable
-`rsync-destination:` using the URL formats that Rsync understands. For
-example, to publish the entire project directly into the document
-directory of a remote webserver the `decker.yaml` file would contain:
+`publish.rsync.destination:` using the URL formats that Rsync
+understands. For example, to publish the entire project directly into
+the document directory of a remote webserver the `decker.yaml` file
+would contain:
 
 ``` {.yaml}
-rsync-destination: author@public.server.com:/var/www/html/cg-lectures
+publish:
+  rsync:
+    destination: author@public.server.com:/var/www/html/cg-lectures
+```
+
+To more precisely control the behaviour of Rsync, a list of options can
+be specified in the variable `publish.rsync.options`. For example, to
+*mirror* (as opposed to *copy* ) the public directory to the destination
+the setting would be:
+
+``` {.yaml}
+publish:
+  rsync:
+    destination: author@public.server.com:/var/www/html/cg-lectures
+    options: 
+      - --delete
 ```
 
 # Options
