@@ -69,8 +69,7 @@
     .qic,
     [class*="quiz-i"]{
         display:  block;
-        overflow-y: scroll !important;
-        overflow-x: hidden !important; 
+        overflow-y: auto;
         max-height: 75vh;
         select{
             border: 2px solid black;
@@ -97,8 +96,7 @@
     .quiz-match-items{
         display: block;
         // If quiz overflows to the bottom (e.g. too many/too large items) create a scroll bar
-        overflow-y: scroll !important;
-        overflow-x: hidden !important; 
+        overflow-y: auto;
         max-height: 75vh;
         text-align: center;
         
