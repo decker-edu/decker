@@ -167,7 +167,9 @@ $body$
       $if(date)$
       <p id="date">$date$</p>
       $endif$
-      <p class="author">$copyright$ $author$</p>
+      <p class="author">
+        $copyright$ $author$$if(affiliation)$, $affiliation$ $endif$
+      </p>
     </address>
     $endif$
     <script>
