@@ -146,59 +146,44 @@
   padding-right: var(--border-decoration-padding);
 }
 
-.reveal ul,
-.reveal ol {
-  list-style-position: inside;
+.reveal ol,
+.reveal dl,
+.reveal ul {
+  display: inline-block;
+  text-align: left;
+  margin-bottom: 0;
 }
 
-.reveal ul ol,
-.reveal ol ol {
-  margin-left: 0px;
-  padding-left: 0px;
+.reveal ol li,
+.reveal dl li,
+.reveal ul li {
+  margin-bottom: 0;
+  margin-left: 40px;
+}
+
+.reveal ol {
+  list-style-type: decimal;
+}
+
+.reveal ul {
+  list-style-type: disc;
 }
 
 .reveal ul ul,
 .reveal ol ul {
-  margin-left: 0.3em;
-}
-
-.reveal ul ol, .reveal ul ul,
-.reveal ol ol,
-.reveal ol ul {
-  margin-bottom: 0;
-}
-
-ul > li {
-  list-style-type: none;
-  position: relative;
-  left: .5em;
-}
-
-ul > li:before {
-  content: "\2022";
-  /* escaped unicode character */
-  font-size: 1.5em;
-  /* the default unicode bullet size is very small */
-  line-height: 0;
-  /* kills huge line height on resized bullet */
-  position: relative;
-  /* position bullet relative to list item */
-  top: 0.1em;
-  /* vertical align bullet position relative to list item */
-  left: -.3em;
-  /* position the bullet L- R relative to list item */
-}
-
-.reveal ol {
-  list-style-type: decimal;
+  list-style-type: circle;
 }
 
 .reveal ol ol {
-  list-style-type: lower-alpha;
+  list-style-type: lower-roman;
 }
 
-.reveal ol ol ol {
-  list-style-type: decimal;
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+  display: block;
+  margin-top: 0.3em;
 }
 
 .reveal div.box.columns {
@@ -685,32 +670,55 @@ ul > li:before {
   background-color: #003366;
 }
 
-.reveal .title {
-  margin: 100px 0 0 0;
+.reveal .title-page .banner img {
+  margin: 0px 0px 10px 0px;
+  width: 100%;
+  object-fit: contain;
+}
+
+.reveal .title-page .title {
+  margin: 0px;
+  width: 100%;
+  display: block;
   padding: 0px;
   font-size: var(--font-size-x-large);
   text-align: center;
 }
 
-.reveal .subtitle {
-  margin: 0 0 0 0;
-  padding: 0 0px 0px 0px;
+.reveal .title-page .subtitle {
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
   font-weight: normal;
   font-size: var(--font-size-normal);
   text-align: center;
 }
 
-.reveal .title-teaser img {
-  margin: 20px 0px 20px 0;
-  height: 300px;
+.reveal .title-page .teaser-img {
+  margin: 20px auto;
+  height: 10%;
   width: auto;
-  object-fit: contain;
   display: block;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-.reveal .affiliation-logo img {
+.reveal .title-page .teaser-img img {
+  margin: 0px;
+  display: block;
+  margin: auto;
+  object-fit: contain;
+  max-height: 250px;
+  width: auto;
+}
+
+.reveal .title-page .author {
+  margin: 0px;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .title-page .affiliation-logo img {
   margin: 0px 0 0 0;
   height: 70px;
   width: auto;
@@ -720,7 +728,7 @@ ul > li:before {
   margin-right: auto;
 }
 
-.reveal .author {
+.reveal .title-page .affiliation {
   margin: 0px 0 0 0;
   font-weight: normal;
   font-style: normal;
@@ -728,12 +736,20 @@ ul > li:before {
   text-align: center;
 }
 
-.reveal .affiliation {
-  margin: 0px 0 0 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
+.reveal .title-page .valign-block {
   text-align: center;
+}
+
+.reveal .title-page .valign-block:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.reveal .title-page .valigned {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .reveal {
@@ -1270,4 +1286,60 @@ dd {
 
 .reveal p:empty {
   display: none;
+}
+
+/*********************************************
+ * MARIO: fullscreen for iframes
+ *********************************************/
+.reveal div.fs-container {
+  margin: auto;
+  border: 0px;
+  padding: 0px;
+  position: relative;
+}
+
+.reveal div.fs-container:fullscreen {
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: white;
+  padding: 20px;
+}
+
+/* needed for mobile Safari */
+*:-webkit-full-screen {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.reveal div.fs-container > iframe {
+  box-sizing: border-box;
+}
+
+.reveal div.fs-container:fullscreen > iframe {
+  border: none;
+}
+
+.reveal button.fs-button {
+  z-index: 100;
+  display: inline-block;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  cursor: pointer;
+  outline: none;
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  opacity: 0.5;
+  color: var(--whiteboard-inactive-color);
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.reveal button.fs-button:hover {
+  opacity: 1.0;
+  color: var(--whiteboard-active-color);
+  background-color: rgba(255, 255, 255, 0.8);
 }

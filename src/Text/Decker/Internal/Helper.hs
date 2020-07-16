@@ -2,25 +2,22 @@
 
 module Text.Decker.Internal.Helper where
 
-import Control.Monad.Catch
-import Control.Monad.State
-
-import qualified Data.List as List
-import qualified Data.List.Extra as List
-import qualified Data.Set as Set
-
-import Relude
-
-import System.CPUTime
-import qualified System.Directory as Dir
-import System.Directory
-import System.Environment
-import System.FilePath
-
 import Text.Decker.Internal.Exception
 import Text.Decker.Project.Version
 import Text.Pandoc
 import Text.Printf
+
+import Control.Monad.Catch
+import Control.Monad.State
+import qualified Data.List as List
+import qualified Data.List.Extra as List
+import qualified Data.Set as Set
+import Relude
+import System.CPUTime
+import qualified System.Directory as Dir
+import System.Directory
+import System.Environment
+import System.FilePath.Posix
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -129,7 +126,7 @@ warnVersion = do
 
 tryRemoveDirectory :: FilePath -> IO ()
 tryRemoveDirectory path = do
-  exists <- doesDirectoryExist path
+  exists <- System.Directory.doesDirectoryExist path
   when exists $ removeDirectoryRecursive path
 
 -- | Express the second path argument as relative to the first. 
