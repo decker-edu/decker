@@ -241,7 +241,7 @@ solutionButton meta =
     H.button ! A.class_ "solutionButton" $ H.toHtml buttonText
   where
     buttonText :: T.Text
-    buttonText = lookupInDictionary "solution-button" meta
+    buttonText = lookupInDictionary "quiz.solution-button" meta
 
 renderMultipleChoice :: Meta -> Quiz -> Block
 renderMultipleChoice meta quiz@(MultipleChoice title tgs qm q ch) =
@@ -322,8 +322,8 @@ renderMatching meta quiz@(MatchItems title tgs qm qs matches) =
         [] -> []
         _ -> [Header 2 ("", [], []) title]
     (buckets, items) = unzip $ map pairs matches
-    dropHint = ("data-hint", lookupInDictionary "qmi-drop-hint" newMeta)
-    dragHint = ("data-hint", lookupInDictionary "qmi-drag-hint" newMeta)
+    dropHint = ("data-hint", lookupInDictionary "quiz.qmi-drop-hint" newMeta)
+    dragHint = ("data-hint", lookupInDictionary "quiz.qmi-drag-hint" newMeta)
     itemsDiv = Div ("", ["matchItems"], [dragHint]) (concat items)
     bucketsDiv = Div ("", ["buckets"], [dropHint]) buckets
     item :: T.Text -> [Block] -> Block
@@ -356,7 +356,7 @@ renderFreeText meta quiz@(FreeText title tgs qm q ch) =
         [] -> []
         _ -> [Header 2 ("", [], []) title]
     placeholderText :: T.Text
-    placeholderText = lookupInDictionary "input-placeholder" newMeta
+    placeholderText = lookupInDictionary "quiz.input-placeholder" newMeta
     inputRaw =
       rawHtml'
         ((H.input ! A.placeholder (H.textValue placeholderText)) >>
