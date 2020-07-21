@@ -21,9 +21,10 @@
         font-family: inherit;
         outline: none;
         clear: both;
-    }
-    input{
         border: 2px solid black;
+    }
+    input:placeholder-shown {
+        text-overflow: ellipsis;
     }
     .solutionButton{
         font-size: large;

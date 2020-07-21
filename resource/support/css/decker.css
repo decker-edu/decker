@@ -371,14 +371,15 @@
   font-family: inherit;
   outline: none;
   clear: both;
+  border: 2px solid black;
 }
 
-.reveal .qic input,
-.reveal .qft input,
-.reveal .qmc input,
-.reveal .qmi input,
-.reveal [class*="quiz-"] input {
-  border: 2px solid black;
+.reveal .qic input:placeholder-shown,
+.reveal .qft input:placeholder-shown,
+.reveal .qmc input:placeholder-shown,
+.reveal .qmi input:placeholder-shown,
+.reveal [class*="quiz-"] input:placeholder-shown {
+  text-overflow: ellipsis;
 }
 
 .reveal .qic .solutionButton,
