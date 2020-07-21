@@ -12,7 +12,7 @@ meta-data:
 - level1.yaml
 something: '/test/decks/include/06-metal.png'
 static-resource-dirs:
-- code
+- assets
 template:
   css: dummy.css
 title: Meta Resources

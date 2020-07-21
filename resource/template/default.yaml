@@ -32,3 +32,18 @@ whiteboard-icon-size: 2vmin
 whiteboard-active-color: rgb(42,157,223)
 whiteboard-inactive-color: lightgrey
 whiteboard-background-color: rgb(250,250,250)
+# Language dictionary. Currently for quiz elements
+dictionary:
+  de: 
+    quiz:
+      solution-button: Lösung
+      input-placeholder: Eingeben und 'Enter'
+      qmi-drag-hint: Objekte per Drag&Drop ziehen...
+      qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
+  en:
+    quiz:
+      solution-button: Show Solution
+      input-placeholder: Type and press 'Enter'
+      qmi-drag-hint: Drag items from here...
+      qmi-drop-hint: ...and put them here into the correct category.
+

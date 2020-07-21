@@ -1,6 +1,7 @@
 ---
 title: New Quiz Syntax Test deck
 history: True
+lang: de
 ---
 
 # Overview
@@ -36,6 +37,10 @@ Inertia
 
 Springs
 : $-k \, \left( \norm{\vec{x}_0 - \vec{x}_1} - L \right) \, \frac{ \vec{x}_0 - \vec{x}_1 }{\norm{\vec{x}_0 - \vec{x}_1}}$
+
+```yaml
+lang: en
+```
 
 #
 

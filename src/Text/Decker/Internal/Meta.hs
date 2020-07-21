@@ -21,6 +21,7 @@ module Text.Decker.Internal.Meta
   , lookupMeta
   , lookupMetaOrElse
   , lookupMetaOrFail
+  , lookupInDictionary
   , mapMeta
   , mapMetaM
   , mapMetaValues
@@ -257,6 +258,23 @@ lookupMetaOrFail key meta =
   case lookupMeta key meta of
     Just value -> value
     Nothing -> error $ "Cannot read meta value: " <> key
+
+lookupInDictionary :: Text -> Meta -> Text
+lookupInDictionary key meta =
+  case lookupMeta "lang" meta of
+    Just lang ->
+      lookupMetaOrElse
+        enDefault
+        (Text.intercalate "." ["dictionary", lang, key])
+        meta
+    _ -> enDefault
+  where
+    enDefault :: Text
+    enDefault =
+      lookupMetaOrElse
+        (Text.intercalate " " ["Dictionary entry for", key, "not available!"])
+        (Text.intercalate "." ["dictionary", "en", key])
+        meta
 
 -- | Map a function over string values and stringified inline values.
 -- Converts MetaInlines to MetaStrings. This may be a problem in some distant

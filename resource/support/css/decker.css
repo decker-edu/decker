@@ -371,14 +371,15 @@
   font-family: inherit;
   outline: none;
   clear: both;
+  border: 2px solid black;
 }
 
-.reveal .qic input,
-.reveal .qft input,
-.reveal .qmc input,
-.reveal .qmi input,
-.reveal [class*="quiz-"] input {
-  border: 2px solid black;
+.reveal .qic input:placeholder-shown,
+.reveal .qft input:placeholder-shown,
+.reveal .qmc input:placeholder-shown,
+.reveal .qmi input:placeholder-shown,
+.reveal [class*="quiz-"] input:placeholder-shown {
+  text-overflow: ellipsis;
 }
 
 .reveal .qic .solutionButton,
@@ -438,8 +439,7 @@
 .reveal .qic,
 .reveal [class*="quiz-i"] {
   display: block;
-  overflow-y: scroll !important;
-  overflow-x: hidden !important;
+  overflow-y: auto;
   max-height: 75vh;
 }
 
@@ -465,8 +465,7 @@
 .reveal .qmi,
 .reveal .quiz-match-items {
   display: block;
-  overflow-y: scroll !important;
-  overflow-x: hidden !important;
+  overflow-y: auto;
   max-height: 75vh;
   text-align: center;
 }
@@ -504,9 +503,9 @@
   box-sizing: border-box;
 }
 
-.reveal .quiz-mi .buckets,
-.reveal .qmi .buckets,
-.reveal .quiz-match-items .buckets {
+.reveal .quiz-mi .matchItems,
+.reveal .qmi .matchItems,
+.reveal .quiz-match-items .matchItems {
   margin-bottom: 60px;
 }
 
@@ -528,13 +527,13 @@
 .reveal .quiz-mi .matchItems:before,
 .reveal .qmi .matchItems:before,
 .reveal .quiz-match-items .matchItems:before {
-  content: "drag from here";
+  content: attr(data-hint);
 }
 
 .reveal .quiz-mi .buckets:before,
 .reveal .qmi .buckets:before,
 .reveal .quiz-match-items .buckets:before {
-  content: "drop here";
+  content: attr(data-hint);
 }
 
 .reveal .quiz-mi .matchItems:after,
@@ -544,10 +543,10 @@
   content: " ";
   width: 0;
   height: 0;
-  top: -30px;
+  bottom: -30px;
   border-left: 30px solid transparent;
   border-right: 30px solid transparent;
-  border-bottom: 30px solid #dddddd;
+  border-top: 30px solid #dddddd;
 }
 
 .reveal .quiz-mi .bucket,
@@ -581,20 +580,6 @@
 .reveal .qmi .matchItem img,
 .reveal .quiz-match-items .matchItem img {
   max-width: 50%;
-}
-
-.reveal .quiz-mi .matchItem .solution,
-.reveal .qmi .matchItem .solution,
-.reveal .quiz-match-items .matchItem .solution {
-  visibility: hidden;
-  font-size: large;
-}
-
-.reveal .quiz-mi .matchItem:hover .solution,
-.reveal .qmi .matchItem:hover .solution,
-.reveal .quiz-match-items .matchItem:hover .solution {
-  visibility: visible;
-  font-size: large;
 }
 
 .reveal .quiz-mi .bucket .matchItem,

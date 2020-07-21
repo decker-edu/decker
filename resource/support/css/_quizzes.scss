@@ -21,9 +21,10 @@
         font-family: inherit;
         outline: none;
         clear: both;
-    }
-    input{
         border: 2px solid black;
+    }
+    input:placeholder-shown {
+        text-overflow: ellipsis;
     }
     .solutionButton{
         font-size: large;
@@ -69,8 +70,7 @@
     .qic,
     [class*="quiz-i"]{
         display:  block;
-        overflow-y: scroll !important;
-        overflow-x: hidden !important; 
+        overflow-y: auto;
         max-height: 75vh;
         select{
             border: 2px solid black;
@@ -96,8 +96,8 @@
     .qmi,
     .quiz-match-items{
         display: block;
-        overflow-y: scroll !important;
-        overflow-x: hidden !important; 
+        // If quiz overflows to the bottom (e.g. too many/too large items) create a scroll bar
+        overflow-y: auto;
         max-height: 75vh;
         text-align: center;
         
@@ -110,6 +110,7 @@
         .draggableChild {
             pointer-events: none;
         } 
+
         .buckets,
         .matchItems{
             font-size: large;
@@ -127,7 +128,7 @@
         }
 
 
-        .buckets{
+        .matchItems{
             margin-bottom: 60px;
         }
 
@@ -141,21 +142,26 @@
             padding:    5px;
             color:      grey;
         }
+        // Use "data-hint" attribute to get drag and drop hint 
+        // in the correct language (can be customized in yaml header)
         .matchItems:before{
-            content: "drag from here";
+            content: attr(data-hint);
         }
         .buckets:before{
-            content: "drop here";
+            content: attr(data-hint);
         }
+        
+        // The little triangle showing the drag direction. 
+        // Just an optical gimmick
         .matchItems:after{
             position:      absolute;
             content:       " ";
             width:         0;
             height:        0;
-            top:           -30px;
+            bottom:        -30px;
             border-left:   30px solid transparent;
             border-right:  30px solid transparent;
-            border-bottom: 30px solid #dddddd;
+            border-top:    30px solid #dddddd;
         }
 
         .bucket{
@@ -168,6 +174,7 @@
         }
 
         .matchItem{
+            // Scale down image to prevent quiz from overflowing
             img{
                 max-width: 50%;
             }
@@ -184,15 +191,6 @@
             margin-right: 2px;
         }
 
-        .matchItem .solution{
-            visibility: hidden;
-            font-size: large;
-        }
-        .matchItem:hover .solution{
-            visibility: visible;
-            font-size: large;
-        }
-
         .bucket{
             .matchItem{
                 display:    block;
@@ -204,6 +202,7 @@
 }
 
 // CSS specific to multiple choice/QMC questions
+// Design mostly adapted 1:1 from Mario's clicker quiz
 .reveal {
     .quiz-multiple-choice,
     .quiz-mc,
@@ -239,6 +238,7 @@
             font-weight:  bold;
         }
 
+        // The tooltip showing on hover under the MC "button" after clicking
         .tooltip  {
             display:          block;
             visibility:       hidden;
