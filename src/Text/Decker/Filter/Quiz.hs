@@ -3,6 +3,12 @@
 
 module Text.Decker.Filter.Quiz
   ( handleQuizzes
+  , Quiz(..)
+  , Match(..)
+  , Choice(..)
+  , QuizMeta(..)
+  , defaultMeta
+  , renderQuizzes
   ) where
 
 import Control.Exception
@@ -25,34 +31,26 @@ import Text.Decker.Internal.Meta
 -- Pair: consisting of a bucket where items should be dropped; The items which belong to the bucket
 -- Distractor: Just a list of items without accompanying bucket
 data Match
-  = Pair
-      { bucketID :: Int
-      , bucket :: [Inline]
-      , items :: [[Block]]
-      }
-  | Distractor
-      { items :: [[Block]]
-      }
+  = Pair { bucketID :: Int
+         , bucket :: [Inline]
+         , items :: [[Block]] }
+  | Distractor { items :: [[Block]] }
   deriving (Show)
 
 -- | A Choice consists of a Boolean (correct), the answer text and a tooltip comment
-data Choice =
-  Choice
-    { correct :: Bool
-    , text :: [Inline]
-    , comment :: [Block]
-    }
-  deriving (Show)
+data Choice = Choice
+  { correct :: Bool
+  , text :: [Inline]
+  , comment :: [Block]
+  } deriving (Show)
 
 -- | Set different (optional) meta options for quizzes in a yaml code block
-data QuizMeta =
-  QuizMeta
-    { _category :: T.Text
-    , _lectureId :: T.Text
-    , _score :: Int
-    , _topic :: T.Text
-    }
-  deriving (Show)
+data QuizMeta = QuizMeta
+  { _category :: T.Text
+  , _lectureId :: T.Text
+  , _score :: Int
+  , _topic :: T.Text
+  } deriving (Show)
 
 makeLenses ''QuizMeta
 
@@ -61,35 +59,30 @@ makeLenses ''QuizMeta
 data Quiz
   = MultipleChoice
   -- Multiple Choice questions consist of one question (e.g. h2 header and some blocks) and a following choices/selection part
-      { _title :: [Inline]
-      , _tags :: [T.Text]
-      , _quizMeta :: QuizMeta
-      , _question :: [Block]
-      , _choices :: [Choice]
-      }
+     { _title :: [Inline]
+     , _tags :: [T.Text]
+     , _quizMeta :: QuizMeta
+     , _question :: [Block]
+     , _choices :: [Choice] }
   | MatchItems
   -- Matching Questions consist of one question and a pairing "area" for sorting items via dragging and dropping
-      { _title :: [Inline]
-      , _tags :: [T.Text]
-      , _quizMeta :: QuizMeta
-      , _question :: [Block]
-      , _pairs :: [Match]
-      }
+     { _title :: [Inline]
+     , _tags :: [T.Text]
+     , _quizMeta :: QuizMeta
+     , _question :: [Block]
+     , _pairs :: [Match] }
   | InsertChoices
   -- These questions can have multiple question and answer/choices parts. 
   -- This is why questions is a list of tuples. 
-      { _title :: [Inline]
-      , _tags :: [T.Text]
-      , _quizMeta :: QuizMeta
-      , _questions :: [([Block], [Choice])]
-      }
-  | FreeText
-      { _title :: [Inline]
-      , _tags :: [T.Text]
-      , _quizMeta :: QuizMeta
-      , _question :: [Block]
-      , _choices :: [Choice]
-      }
+     { _title :: [Inline]
+     , _tags :: [T.Text]
+     , _quizMeta :: QuizMeta
+     , _questions :: [([Block], [Choice])] }
+  | FreeText { _title :: [Inline]
+             , _tags :: [T.Text]
+             , _quizMeta :: QuizMeta
+             , _question :: [Block]
+             , _choices :: [Choice] }
   deriving (Show)
 
 makeLenses ''Quiz
@@ -117,12 +110,17 @@ handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
       if elem "columns" ts
         then set tags ts q
         else set tags (ts ++ ["columns", "box"]) q
-    -- The default "new" quizzes
-    defaultMeta = QuizMeta "" "" 0 ""
-    defaultMatch = MatchItems [] [] defaultMeta [] []
-    defaultMC = MultipleChoice [] [] defaultMeta [] []
-    defaultIC = InsertChoices [] [] defaultMeta []
-    defaultFree = FreeText [] [] defaultMeta [] []
+
+-- The default "new" quizzes
+defaultMeta = QuizMeta "" "" 0 ""
+
+defaultMatch = MatchItems [] [] defaultMeta [] []
+
+defaultMC = MultipleChoice [] [] defaultMeta [] []
+
+defaultIC = InsertChoices [] [] defaultMeta []
+
+defaultFree = FreeText [] [] defaultMeta [] []
 
 -- Take the parsed Quizzes and render them to html
 renderQuizzes :: Quiz -> Block
@@ -265,9 +263,11 @@ choiceList t choices =
     handleChoices (Choice correct text comment) =
       if correct
         then H.li ! A.class_ "correct" $ do
+               H.div ! A.class_ "check-box" $ ""
                toHtml text
                H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
         else H.li ! A.class_ "wrong" $ do
+               H.div ! A.class_ "check-box" $ ""
                toHtml text
                H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
 
