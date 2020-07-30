@@ -1,0 +1,44 @@
+Points: 5
+BasePath: "."
+LectureId: texture
+TopicId: texture-transformation
+Answer:
+  Answers:
+    - Correct: R(180)
+      Detail: "1"
+    - Correct: S(1, -1)
+      Detail: "2"
+    - Correct: S(3, 3)
+      Detail: "3"
+    - Correct: S(0.5, 0.5) T(0.5, 0.5)
+      Detail: "4"
+    - Correct: R(-45)T(0.5, 0.5)
+      Detail: "5"
+    - Correct: R(90)
+      Detail: ""
+    - Correct: S(-1,1)
+      Detail: ""
+    - Correct: S(0.3, 0.3)
+      Detail: ""
+    - Correct: S(-1,1) T(0.5, 0.5)
+      Detail: ""
+    - Correct: R(45)
+      Detail: ""
+  tag: MultipleAnswers
+  WidthInMm: 30
+CurrentNumber: 0
+Title: Transformation von Texturkoordinaten
+Difficulty: Medium
+Comment: ""
+Question: |
+
+  ![Anwendung einer transformierten Textur auf 6
+  Quadraten](13-texture-transform-1920x1080@1000-numbered.png)
+
+  Das unmarkierte Quadrat unten links im Bild ist mit einer Textur (blauer
+  Pfeil, oranger Pfeil) versehen. Die Texturkoordinaten wurden für dieses
+  Quadrat *nicht* transformiert. 
+
+  Die Quadrate 1 bis 5 zeigen dieselbe Textur, allerdings mit transformierten
+  Texturkoordinaten. Geben Sie jeweils die verwendete, unter Umständen
+  zusammengesetzte, Transformation für diese 5 Quadrate an.

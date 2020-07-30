@@ -61,6 +61,8 @@ pdfExt = ["pdf"]
 
 svgExt = ["svg"]
 
+yamlExt = ["yaml", "yml"]
+
 renderExt = ["dot", "gnuplot", "tex"]
 
 mviewExt = ["off", "obj", "stl", "ply", "pmp"]
@@ -78,6 +80,7 @@ data MediaT
   | MviewT
   | RenderT
   | StreamT
+  | ExamQuestT
   deriving (Show, Eq, Ord)
 
 classifyMedia :: URI -> Attr -> MediaT
@@ -93,6 +96,7 @@ classifyMedia uri (_, classes, _) =
          | ext `maybeElem` pdfExt || "pdf" `elem` classes -> PdfT
          | ext `maybeElem` mviewExt || "mview" `elem` classes -> MviewT
          | ext `maybeElem` codeExt || "code" `elem` classes -> CodeT
+         | ext `maybeElem` yamlExt && "question" `elem` classes -> ExamQuestT
          | scheme `maybeElem` streamScheme -> StreamT
          | otherwise -> ImageT
 

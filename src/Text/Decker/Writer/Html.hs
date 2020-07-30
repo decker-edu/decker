@@ -103,7 +103,7 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
   let options =
         pandocWriterOpts
           { writerSlideLevel = Just 1
-          , writerSectionDivs = False
+          , writerSectionDivs = True
           , writerTemplate = Just template
           , writerHighlightStyle = highlightStyle
           , writerHTMLMathMethod =

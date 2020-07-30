@@ -7,46 +7,57 @@ module Text.Decker.Filter.Examiner
   , Choice(..)
   , OneAnswer(..)
   , Difficulty(..)
+  , examinerFilter
   ) where
 
+import Control.Exception
 import Data.Aeson.TH
 import Data.Aeson.Types
 import Data.Typeable
+import qualified Data.Yaml as Y
 import GHC.Generics
 import Relude
+import Text.Pandoc
+import Text.Pandoc.Walk
+import qualified Text.URI as URI
 
-data Question a = Question
+import Text.Decker.Filter.Local
+import Text.Decker.Filter.Monad
+import Text.Decker.Internal.Common
+import Text.Decker.Internal.Exception
+
+data Question = Question
   { qstTopicId :: Text
   , qstLectureId :: Text
-  , qstTitle :: a
+  , qstTitle :: Text
   , qstPoints :: Int
-  , qstQuestion :: a
-  , qstAnswer :: Answer a
+  , qstQuestion :: Text
+  , qstAnswer :: Answer
   , qstDifficulty :: Difficulty
-  , qstComment :: a
+  , qstComment :: Text
   , qstCurrentNumber :: Int
   , qstFilePath :: String
-  } deriving (Eq, Show, Typeable, Generic, Functor, Foldable, Traversable)
+  } deriving (Eq, Show, Typeable, Generic)
 
-data Choice a = Choice
-  { choiceTheAnswer :: a
+data Choice = Choice
+  { choiceTheAnswer :: Text
   , choiceCorrect :: Bool
-  } deriving (Eq, Show, Typeable, Functor, Foldable, Traversable)
+  } deriving (Eq, Show, Typeable)
 
-data OneAnswer a = OneAnswer
-  { oneDetail :: a
-  , oneCorrect :: a
-  } deriving (Eq, Show, Typeable, Functor, Foldable, Traversable)
+data OneAnswer = OneAnswer
+  { oneDetail :: Text
+  , oneCorrect :: Text
+  } deriving (Eq, Show, Typeable)
 
-data Answer a
-  = MultipleChoice { answChoices :: [Choice a] }
-  | FillText { answFillText :: a
-             , answCorrectWords :: [a] }
+data Answer
+  = MultipleChoice { answChoices :: [Choice] }
+  | FillText { answFillText :: Text
+             , answCorrectWords :: [Text] }
   | FreeForm { answHeightInMm :: Int
-             , answCorrectAnswer :: a }
+             , answCorrectAnswer :: Text }
   | MultipleAnswers { answWidthInMm :: Int
-                    , answAnswers :: [OneAnswer a] }
-  deriving (Eq, Show, Typeable, Functor, Foldable, Traversable)
+                    , answAnswers :: [OneAnswer] }
+  deriving (Eq, Show, Typeable)
 
 data Difficulty
   = Easy
@@ -62,11 +73,11 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop 4} ''Answer)
 
 questionOptions = defaultOptions {fieldLabelModifier = drop 3}
 
-instance ToJSON a => ToJSON (Question a) where
+instance ToJSON Question where
   toJSON = genericToJSON questionOptions
   toEncoding = genericToEncoding questionOptions
 
-instance FromJSON a => FromJSON (Question a) where
+instance FromJSON Question where
   parseJSON (Object q) =
     Question <$> q .: "TopicId" <*> q .: "LectureId" <*> q .: "Title" <*>
     q .: "Points" <*>
@@ -78,12 +89,113 @@ instance FromJSON a => FromJSON (Question a) where
     q .:? "FilePath" .!= "."
   parseJSON invalid = typeMismatch "Question" invalid
 
--- $(deriveJSON
---       defaultOptions
---       { fieldLabelModifier = drop 3
---       }
---       ''Question)
 $(deriveJSON defaultOptions ''Difficulty)
 
---readQuestion :: FilePath -> IO Question
---readQuestion path = undefined
+readQuestion :: FilePath -> IO Question
+readQuestion file = do
+  result <- liftIO $ Y.decodeFileEither file
+  case result of
+    Right question -> return question
+    Left exception ->
+      throw $
+      YamlException $
+      "Error parsing question: " ++ file ++ ", " ++ show exception
+
+-- | Renders a question to Pandoc AST.
+--
+-- The question is enclosed in a DIV that has class `columns` to prevent the
+-- HTML writer from sectioning at top-level divs.
+renderQuestion :: Question -> Block
+renderQuestion qst =
+  Div
+    ("", ["exa-quest", "columns"], [])
+    ([Header 2 nullAttr (parseToInlines (qstTitle qst))] <>
+     [Div ("", ["exa-quest"], []) $ parseToBlocks (qstQuestion qst)] <>
+     renderAnswer (qstAnswer qst) <>
+     [RawBlock "html" "<button>Fertig</button>"])
+  where
+    renderChoice c =
+      Div ("", ["check-box"], []) [] : parseToBlocks (choiceTheAnswer c)
+    renderAnswer (MultipleChoice choices) =
+      [Div ("", ["exa-mc"], []) [BulletList $ map renderChoice choices]]
+    renderAnswer (FillText text correct) = undefined
+    renderAnswer (FreeForm height answer) =
+      [ Div
+          ("", ["exa-ff"], [])
+          [ RawBlock "html" "<textarea class=\"answer\"></textarea>"
+          , Div ("", ["correct"], []) $ parseToBlocks answer
+          ]
+      ]
+    renderAnswer (MultipleAnswers width answers) = undefined
+
+{--
+toQuiz :: Question -> IO Quiz.Quiz
+toQuiz q = do
+  title <- parseToInlines (qstTitle q)
+  question <- parseToBlocks (qstQuestion q)
+  toQuiz' title question (qstAnswer q)
+  where
+    toQuiz' title question (MultipleChoice choices) = do
+      choices' <-
+        forM
+          choices
+          (\choice -> do
+             inlines <- parseToInlines (choiceTheAnswer choice)
+             return $ Quiz.Choice (choiceCorrect choice) inlines [])
+      return $
+        Quiz.MultipleChoice
+          title
+          ["exa-quiz", "exa-mc"]
+          Quiz.defaultMeta
+          question
+          choices'
+    toQuiz' title question (MultipleAnswers width answers) =
+      throw $ InternalException "Not yet implemented"
+    toQuiz' title question (FillText fillText words) =
+      throw $ InternalException "Not yet implemented"
+    toQuiz' title question (FreeForm height correct) = do
+      choice <- parseToBlocks correct
+      return $
+        Quiz.FreeText
+          title
+          ["exa-quiz", "exa-ft"]
+          Quiz.defaultMeta
+          question
+          [Quiz.Choice True [] choice]
+--}
+parseToBlocks :: Text -> [Block]
+parseToBlocks text =
+  case runPure (readMarkdown pandocReaderOpts text) of
+    Left err -> throw $ InternalException $ show err
+    Right (Pandoc _ blocks) -> blocks
+
+parseToBlock :: Text -> Block
+parseToBlock text = do
+  case parseToBlocks text of
+    [block] -> block
+    _ ->
+      throw $
+      InternalException $
+      "cannot parse Markdown to a single block: " <> toString text
+
+parseToInlines :: Text -> [Inline]
+parseToInlines text = toInlines $ parseToBlock text
+
+toInlines :: Block -> [Inline]
+toInlines (Para inlines) = inlines
+toInlines block =
+  throw $ InternalException $ "cannot convert block to inlines: " <> show block
+
+examinerFilter :: Pandoc -> Filter Pandoc
+examinerFilter pandoc = walkM expandQuestion pandoc
+  where
+    expandQuestion :: Block -> Filter Block
+    expandQuestion (Para [Image (id, cls, kvs) _ (url, _)])
+      | "question" `elem` cls = do
+        uri <- URI.mkURI url
+        source <- transformUri uri "" >>= readLocalUri
+        let result = Y.decodeEither' $ encodeUtf8 source
+        case result of
+          Left err -> throw $ InternalException $ show err
+          Right question -> return $ renderQuestion question
+    expandQuestion block = return block

@@ -202,6 +202,7 @@ imageTransformers =
     , (StreamT, streamHtml')
     , (AudioT, audioHtml)
     , (RenderT, renderCodeHtml)
+    -- , (ExamQuestT, examQuestHtml)
     ]
 
 transformImage :: Inline -> [Inline] -> Filter Inline
@@ -248,8 +249,7 @@ transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
       dropClass ext
       let crc = printf "%08x" (calc_crc32 $ toString text)
       let path =
-            transientDir </> "code" </>
-            intercalate "-" ["code", crc] <.>
+            transientDir </> "code" </> intercalate "-" ["code", crc] <.>
             toString ext
       exists <- liftIO $ doesFileExist path
       unless exists $
@@ -455,3 +455,20 @@ renderCodeHtml uri caption = do
       let imageTag = mkImageTag (URI.render uri) imgAttr
       injectBorder >> takeSizeIf isPercent >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
+{--
+examQuestHtml :: URI -> [Inline] -> Attrib Html
+examQuestHtml uri caption = do
+  uri <- lift $ transformUri uri ""
+  source <- lift $ readLocalUri uri
+  let result = Y.decodeEither' (encodeUtf8 source)
+  case result of
+    Left err -> throwM $ InternalException $ show err
+    Right question -> do
+      quiz <- liftIO $ toQuiz question
+      liftIO $ putStrLn $ groom quiz
+      let block = renderQuizzes quiz
+      opts <- lift $ gets options
+      case runPure (writeHtml5 opts (Pandoc nullMeta [block])) of
+        Left err -> throwM $ InternalException $ show err
+        Right html -> return html
+--}

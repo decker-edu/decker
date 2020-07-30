@@ -1,0 +1,86 @@
+.reveal section.exa-mc {
+  overflow-y: scroll;
+  overflow-x: scroll;
+  max-height: 80%;
+}
+
+.reveal section.exa-mc button {
+  margin-top: 0.5em;
+  margin-left: 2.5em;
+  padding: 0.5em 1em;
+  font-size: 20px;
+  font-weight: bold;
+  opacity: 0.2;
+}
+.reveal section.exa-mc button:hover {
+  opacity: 1;
+}
+
+.reveal section.exa-mc ul.choices {
+  display: block;
+  justify-content: left;
+  text-align: left;
+}
+
+.reveal ul.choices li {
+  display: block;
+  position: static;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.reveal ul.choices li:before {
+  content: "";
+  margin: 0;
+}
+
+.reveal ul.choices li div.check-box {
+  vertical-align: middle;
+  display: inline-block;
+  height: 0.8em;
+  width: 0.8em;
+  background-color: #eee;
+  border: 0.1em solid #bbb;
+  margin-right: 0.5em;
+}
+
+.reveal ul.choices li div.check-box:hover {
+  border: 0.1em solid #555;
+}
+
+.reveal ul.choices li div.check-box[data-checked] {
+  background-color: #aaa;
+  border: 0.1em solid #444;
+}
+
+.reveal ul.choices {
+  margin-left: 2.5em;
+  padding-left: 1.5em;
+  text-indent: -1.5em;
+  padding: 0 1em;
+}
+
+.reveal ul.choices li {
+  list-style-type: none;
+}
+
+.reveal ul.choices[data-solved] li.correct div.check-box {
+  background-color: #eee;
+  border: 0.1em solid #d00;
+}
+
+.reveal ul.choices[data-solved] li.correct div.check-box[data-checked] {
+  background-color: #aaa;
+  border: 0.1em solid #0d0;
+}
+
+.reveal ul.choices[data-solved] li.wrong div.check-box {
+  background-color: #eee;
+  border: 0.1em solid #0d0;
+}
+
+.reveal ul.choices[data-solved] li.wrong div.check-box[data-checked] {
+  background-color: #aaa;
+  border: 0.1em solid #d00;
+}

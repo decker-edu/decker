@@ -8,7 +8,6 @@ module Text.Decker.Filter.Quiz
   , Choice(..)
   , QuizMeta(..)
   , defaultMeta
-  , renderQuizzes
   ) where
 
 import Control.Exception
@@ -263,11 +262,9 @@ choiceList t choices =
     handleChoices (Choice correct text comment) =
       if correct
         then H.li ! A.class_ "correct" $ do
-               H.div ! A.class_ "check-box" $ ""
                toHtml text
                H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
         else H.li ! A.class_ "wrong" $ do
-               H.div ! A.class_ "check-box" $ ""
                toHtml text
                H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
 

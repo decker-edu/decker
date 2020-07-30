@@ -77,10 +77,11 @@ deFragment :: [Text.Text] -> [Text.Text]
 deFragment = filter (`notElem` fragmentRelated)
 
 -- | Wrap boxes around H2 headers and the following content. All attributes are
--- promoted from the H2 header to the enclosing DIV. Since Pandoc 2.9 the class
--- "column" needs to be added to boxes to prevent sectioning by the Pandoc
--- writer (see `Text.Pandoc.Shared.makeSections`). This must only be done for
--- slide decks, not for handouts or pages.
+-- promoted from the H2 header to the enclosing DIV. 
+--
+-- Since Pandoc 2.9 the class "column" needs to be added to boxes to prevent
+-- sectioning by the Pandoc writer (see `Text.Pandoc.Shared.makeSections`).
+-- This must only be done for slide decks, not for handouts or pages.
 wrapBoxes :: Slide -> Decker Slide
 wrapBoxes slide@(Slide header body) = do
   disp <- gets disposition

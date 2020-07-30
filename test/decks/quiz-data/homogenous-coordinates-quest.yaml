@@ -1,0 +1,28 @@
+Points: 5
+LectureId: transformation-1
+TopicId: homogenous-coordinates
+Answer:
+  tag: MultipleChoice
+  Choices:
+    - Correct: true
+      TheAnswer: Ein Vektor mit $w=1$ repräsentiert einen Punkt.
+    - Correct: true
+      TheAnswer: Ein Vektor mit $w=0$ repräsentiert eine Richtung.
+    - Correct: true
+      TheAnswer: Der Wert von $w$ verändert sich bei Anwendung einer affinen Abbildung nicht.
+    - Correct: false
+      TheAnswer: Ein Vektor mit $w=0$ repräsentiert einen Punkt.
+    - Correct: false
+      TheAnswer: Ein Vektor mit $w=1$ repräsentiert eine Richtung.
+    - Correct: false
+      TheAnswer: Ein Vektor mit $w=0$ repräsentiert eine Normale.
+    - Correct: false
+      TheAnswer: Ein Vektor mit $w=1$ repräsentiert eine Normale.
+Title: Homogene Koordinaten
+Difficulty: Easy
+Comment: ""
+Question: |
+  Bei der Betrachtung eines 3D-Vektors in homogenen Koordinaten wird diesem
+  eine 4. Koordinate $w$ hinzugefügt. Welche Aussagen über die
+  *Homogenisierende* $w$ treffen bezüglich der Anwendung von affinen
+  Koordinaten zu?

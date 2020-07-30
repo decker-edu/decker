@@ -15,8 +15,8 @@ import Control.Monad.Loops
 import qualified Data.List as List
 import qualified Data.Text.IO as Text
 
-import System.FilePath.Posix
 import Development.Shake hiding (Resource)
+import System.FilePath.Posix
 
 import Relude
 
@@ -28,8 +28,10 @@ import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
+import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.ShortLink
+import Text.Decker.Filter.Examiner
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
@@ -48,6 +50,7 @@ readAndFilterMarkdownFile disp globalMeta path = do
   readMarkdownFile globalMeta path >>= mergeDocumentMeta globalMeta >>=
     (liftIO . processCites') >>=
     calcRelativeResourePathes docBase >>=
+    runNewFilter examinerFilter docBase >>=
     deckerMediaFilter docBase >>=
     processPandoc deckerPipeline docBase disp Copy
 
@@ -64,11 +67,6 @@ readMarkdownFile globalMeta path = do
     adjustResourcePaths globalMeta base >>=
     checkVersion >>=
     includeMarkdownFiles globalMeta base
-
--- | Standard Pandoc + Emoji support
-pandocReaderOpts :: ReaderOptions
-pandocReaderOpts =
-  def {readerExtensions = (enableExtension Ext_emoji) pandocExtensions}
 
 -- | Parses a Markdown file and throws an exception if something goes wrong.
 parseMarkdownFile :: FilePath -> Action Pandoc
@@ -117,7 +115,7 @@ needMetaTargets base meta = do
     adjustMetaVariables (adjustC base) (compiletimePathVariables meta)
   where
     adjustR base path = do
-      let stringPath =  toString path
+      let stringPath = toString path
       -- putNormal $ "==> " <> stringPath
       need [publicDir </> stringPath]
       let relativePath = makeRelativeTo base stringPath
@@ -262,6 +260,14 @@ runDeckerFilter :: (Pandoc -> IO Pandoc) -> FilePath -> Pandoc -> Action Pandoc
 runDeckerFilter filter docBase pandoc@(Pandoc docMeta blocks) = do
   let deckerMeta = setMetaValue "decker.base-dir" docBase docMeta
   (Pandoc resultMeta resultBlocks) <- liftIO $ filter (Pandoc deckerMeta blocks)
+  need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
+  return (Pandoc docMeta resultBlocks)
+
+runNewFilter :: (Pandoc -> Filter Pandoc) -> FilePath -> Pandoc -> Action Pandoc
+runNewFilter filter docBase pandoc@(Pandoc docMeta blocks) = do
+  let deckerMeta = setMetaValue "decker.base-dir" docBase docMeta
+  (Pandoc resultMeta resultBlocks) <-
+    liftIO $ runFilter pandocWriterOpts filter (Pandoc deckerMeta blocks)
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
   return (Pandoc docMeta resultBlocks)
 

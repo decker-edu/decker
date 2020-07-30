@@ -1,0 +1,43 @@
+LectureId: ray-intersection
+TopicId: composite-pattern
+Answer:
+  tag: FreeForm
+  HeightInMm: 60
+  CorrectAnswer: |
+    ```java
+    int max() {
+        int m = Int.NEGATIVE\_INFINITY;
+        for (Number n : numbers)
+            m = Math.max(m, n.max());
+        return m; 
+    }
+    ```
+Title: Kompositum Entwurfsmuster
+Difficulty: Medium
+Comment: ""
+Points: 5
+Question: |
+    Das Kompositum-Entwurfsmuster beschreibt einen Baum als 
+    *rekursive* Datenstruktur. Betrachten Sie die folgende Anwendung des
+    Patterns zur Repräsentation einer Baumstruktur, die ganze Zahlen enthält.
+    Die einzig unterstütze Operation ist die Bildung des Maximums über alle 
+    Zahlenwerte im Baum.
+
+    ```java
+    interface Numbers { 
+        int max(); 
+    }
+    class Single implements Numbers {
+      int n;
+      int max() { 
+        return n;
+      }
+    }
+    class Group implements Numbers {
+      Numbers[] numbers;
+      int max() { ... }
+    }
+    ```
+
+    Geben Sie die noch fehlende Implementierung der Methode 
+    `Group.max()` an.
