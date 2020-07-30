@@ -19,7 +19,6 @@ function quiz() {
     quizFT();
 }
 
-
 function quizMI() {
     var miQuestions = document.querySelectorAll(".qmi,.quiz-mi,.quiz-match-items");
     console.log(miQuestions.length);
@@ -206,18 +205,17 @@ function quizIC() {
             // Show tooltip box on mouseover
             sel.addEventListener("mouseover", function () {
                 // Hide all other tooltips/solutions
-                Array.from(solutions.getElementsByTagName("li")).map(
-                    (x) => (x.style.display = "none")
-                );
+                tipDiv.innerHTML = "";
                 // Display only current choice tooltip
                 var choice = solutions.getElementsByTagName("li")[sel.selectedIndex - 1].querySelector(".tooltip");
                 var cln = choice.cloneNode(true);
                 cln.style.display = "block";
                 tipDiv.appendChild(cln);
             });
-            // hide on mouseout
-            sel.addEventListener("mouseout", function () {
-                tipDiv.innerHTML = "";
+
+            // Hide tooltip if mouse is leaving it
+            tipDiv.addEventListener("mouseleave", function () {
+                this.innerHTML = "";
             });
         }
 
@@ -433,6 +431,7 @@ function drop(event) {
     event.preventDefault();
     var element = elements[event.dataTransfer.getData('index')];
     if (event.target.classList.contains("matchItem")) {
+        event.target.parentNode.appendChild(element);
         return false;
     }
 

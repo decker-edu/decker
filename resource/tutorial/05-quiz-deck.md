@@ -1,7 +1,6 @@
 ---
 title: Decker Quiz Overview
 history: true
-# vertical-slides: true
 ---
 
 # Introduction
@@ -41,7 +40,7 @@ Questions are defined by level 2 headers. That means creating a question **needs
 (where `.qmc` can be replaced by any of the other quiz classes)
 
 
-The quiz syntax is based on the markdown task list syntax. A markdown task list looks like this
+The quiz syntax (apart from matching questions) is based on the markdown task list syntax. A markdown task list looks like this
 
 ```
 - [ ] This box is not checked
@@ -58,13 +57,30 @@ You can add tooltips by creating a nested list e.g.
   - tooltip B
 ```
 
+# Fenced Divs Syntax
+
+Alternatively, quizzes can be defined using the **fenced divs** syntax:
+
+```
+::: qmc
+- [ ] A
+  - tooltip A
+- [X] B
+  - tooltip B
+:::
+```
+
 # Quiz Meta
 
-Add a `YAML` code block to a question to provide meta information on the specific question.
+Add a `YAML` code block below a question to provide meta information on the specific question.
 
-This is work in progress. Currently it does not do anything. (17. Apr 2020)
+- This is work in progress. Currently apart from `lang: de` or `lang: en` it does not do anything. (21. Jul 2020)
+- If you put `lang: de` in the header of your slide deck, the static quiz content (e.g. buttons) will appear with german text.
+- If you put `lang: de` only in the yaml block of a single question, only this question will be localized.
+
 ````
 ``` {.yaml}
+lang: de
 score: 5
 category: FP
 lectureId: fp1
@@ -229,5 +245,8 @@ What's the fourth letter?
   - info
 - [X] D
 
+```yaml
+lang: en
+```
 
 
