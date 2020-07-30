@@ -1,0 +1,79 @@
+.reveal div.exa-quest {
+  overflow-y: scroll;
+  overflow-x: scroll;
+  max-height: 600px;
+}
+
+.reveal div.exa-quest button {
+  margin-top: 0.3em;
+  padding: 0.5em 1em;
+  font-size: 20px;
+  font-weight: bold;
+  opacity: 0.2;
+}
+
+.reveal div.exa-quest button:hover {
+  opacity: 1;
+}
+
+.reveal div.exa-quest p,
+.reveal div.exa-quest h2 {
+  margin: 0em;
+  padding: 0;
+  padding-bottom: 0.3em;
+}
+
+.reveal div.exa-quest div.answer {
+  margin: 0em;
+  padding-left: 1em;
+  padding-top: 0.3em;
+}
+
+.reveal div.exa-mc div.choice {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: center;
+}
+
+.reveal div.exa-mc div.choice p {
+  margin: 0;
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
+  padding-left: 0.7em;
+  padding-right: 0;
+}
+
+.reveal div.exa-mc div.choice div.check-box {
+  display: inline-block;
+  flex-basis: auto;
+  width: 1.2em;
+  height: 1.2em;
+  background-size: cover;
+  vertical-align: middle;
+}
+
+.reveal div.exa-mc div.choice div.check-box {
+  background-image: url("static/check-box-0.svg");
+}
+
+.reveal div.exa-mc div.choice div.check-box[data-checked] {
+  background-image: url("static/check-box-1.svg");
+}
+
+.reveal div.exa-mc[data-solved] div.choice.correct div.check-box {
+  background-image: url("static/check-box-0w.svg");
+}
+
+.reveal div.exa-mc[data-solved] div.choice.wrong div.check-box[data-checked] {
+  background-image: url("static/check-box-1w.svg");
+}
+
+.reveal div.exa-mc[data-solved] div.choice.wrong div.check-box {
+  background-image: url("static/check-box-0c.svg");
+}
+
+.reveal div.exa-mc[data-solved] div.choice.correct div.check-box[data-checked] {
+  background-image: url("static/check-box-1c.svg");
+}

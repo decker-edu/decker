@@ -15,7 +15,7 @@ import Data.Aeson.TH
 import Data.Aeson.Types
 import Data.Typeable
 import qualified Data.Yaml as Y
-import GHC.Generics
+import GHC.Generics hiding (Meta)
 import Relude
 import Text.Pandoc
 import Text.Pandoc.Walk
@@ -24,7 +24,7 @@ import qualified Text.URI as URI
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Meta
 
 data Question = Question
   { qstTopicId :: Text
@@ -105,24 +105,37 @@ readQuestion file = do
 --
 -- The question is enclosed in a DIV that has class `columns` to prevent the
 -- HTML writer from sectioning at top-level divs.
-renderQuestion :: Question -> Block
-renderQuestion qst =
+renderQuestion :: Meta -> Question -> Block
+renderQuestion meta qst =
   Div
     ("", ["exa-quest", "columns"], [])
     ([Header 2 nullAttr (parseToInlines (qstTitle qst))] <>
-     [Div ("", ["exa-quest"], []) $ parseToBlocks (qstQuestion qst)] <>
+     [Div ("", ["question"], []) $ parseToBlocks (qstQuestion qst)] <>
      renderAnswer (qstAnswer qst) <>
-     [RawBlock "html" "<button>Fertig</button>"])
+     [ RawBlock
+         "html"
+         ("<button>" <> lookupInDictionary "exam.solve-button" meta <>
+          "</button>")
+     ])
   where
+    correct (Choice _ True) = "correct"
+    correct (Choice _ False) = "wrong"
     renderChoice c =
-      Div ("", ["check-box"], []) [] : parseToBlocks (choiceTheAnswer c)
+      [ Div ("", ["choice", correct c], []) $
+        Div ("", ["check-box"], []) [] :
+        [Div ("", ["content"], []) $ parseToBlocks (choiceTheAnswer c)]
+      ]
     renderAnswer (MultipleChoice choices) =
-      [Div ("", ["exa-mc"], []) [BulletList $ map renderChoice choices]]
+      [Div ("", ["answer", "exa-mc"], []) $ concatMap renderChoice choices]
     renderAnswer (FillText text correct) = undefined
     renderAnswer (FreeForm height answer) =
       [ Div
-          ("", ["exa-ff"], [])
-          [ RawBlock "html" "<textarea class=\"answer\"></textarea>"
+          ("", ["answer", "exa-ff"], [])
+          [ RawBlock
+              "html"
+              ("<textarea class=\"answer\" placeholder=\"" <>
+               lookupInDictionary "exam.placeholder" meta <>
+               "\"></textarea>")
           , Div ("", ["correct"], []) $ parseToBlocks answer
           ]
       ]
@@ -187,7 +200,7 @@ toInlines block =
   throw $ InternalException $ "cannot convert block to inlines: " <> show block
 
 examinerFilter :: Pandoc -> Filter Pandoc
-examinerFilter pandoc = walkM expandQuestion pandoc
+examinerFilter pandoc@(Pandoc meta _) = walkM expandQuestion pandoc
   where
     expandQuestion :: Block -> Filter Block
     expandQuestion (Para [Image (id, cls, kvs) _ (url, _)])
@@ -197,5 +210,5 @@ examinerFilter pandoc = walkM expandQuestion pandoc
         let result = Y.decodeEither' $ encodeUtf8 source
         case result of
           Left err -> throw $ InternalException $ show err
-          Right question -> return $ renderQuestion question
+          Right question -> return $ renderQuestion meta question
     expandQuestion block = return block
