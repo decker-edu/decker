@@ -24,7 +24,6 @@ window.addEventListener("load", () => {
     // Free form answer
     let ffAnswer = exam.querySelector(".reveal div.exa-ff");
     if (ffAnswer !== null) {
-      let solution = ffAnswer.querySelector("div.correct");
       let textarea = ffAnswer.querySelector("textarea");
       button.addEventListener("click", e => {
         setAttribute(ffAnswer, "solved", true);

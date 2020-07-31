@@ -140,9 +140,12 @@ renderQuestion meta qst =
                show height <>
                "\"" <>
                "></textarea>")
-          , RawBlock "html" $
-            "<h3>" <> lookupInDictionary "exam.solution" meta <> "</h3>"
-          , Div ("", ["correct"], []) $ parseToBlocks answer
+          , Div
+              ("", ["solution"], [])
+              [ RawBlock "html" $
+                "<h3>" <> lookupInDictionary "exam.solution" meta <> "</h3>"
+              , Div ("", ["correct"], []) $ parseToBlocks answer
+              ]
           ]
       ]
     renderAnswer (MultipleAnswers width answers) = undefined

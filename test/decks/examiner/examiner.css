@@ -105,6 +105,7 @@
   margin: 0em;
   padding-left: 0em;
   padding-top: 0.3em;
+  font-weight: bold;
 }
 
 .reveal div.exa-ff textarea {
@@ -116,10 +117,10 @@
   font-size: 27px;
 }
 
-.reveal div.exa-ff div.correct {
+.reveal div.exa-ff div.solution {
   display: none;
 }
 
-.reveal div.exa-ff[data-solved] div.correct {
+.reveal div.exa-ff[data-solved] div.solution {
   display: block;
 }
