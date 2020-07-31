@@ -65,11 +65,11 @@ e)  Release management. More releases, more often. Whenever we have any
 
 ## Plans for Winter 2020 (Henrik)
 
-a.  [ ] `decker server` als Production Server
+1.  [ ] `decker server` als Production Server
     -   [ ] Lasttests, besonders für Videos
     -   [ ] Feedback Service
     -   [ ] Quiz Service
-b.  [ ] Eingebettete kurze Erklärvideos
+2.  [ ] Eingebettete kurze Erklärvideos
     -   [ ] per Slide
     -   [ ] per Deck
     -   [ ] auch in Handouts
@@ -78,14 +78,14 @@ b.  [ ] Eingebettete kurze Erklärvideos
         -   [ ] Full-screen Video Overlay (keine Slidenavigation)
         -   [ ] Kleine schwebende Videobriefmarke in der Ecke
             (Slidenavigation möglich)
-c.  [ ] Feedback und Kommentare
+3.  [ ] Feedback und Kommentare
     -   [ ] Volltext Feedback und Kommentare pro Slide und Deck
     -   [ ] Rating Page pro Deck (5-Star)
     -   [ ] Übertragung an den Server
     -   [ ] Statistische Auswertung der Ratings
     -   [ ] Veröffentlichungen der Ratings und der Kommentare
         (vielleicht moderiert) auf der Modulseite
-d.  [ ] Selbsttest mit Auswertung
+4.  [ ] Selbsttest mit Auswertung
     -   [x] Import von Examiner (Klausurgenerierung) Fragen
     -   [x] Einbettung überall per Media Tag
         (`![](some-quest.yaml){.question}`)
@@ -96,7 +96,7 @@ d.  [ ] Selbsttest mit Auswertung
     -   [ ] Auch im Handout
     -   [ ] Export des gesamten Fragenkatalogs nach *Moodle XML Format*
         (`decker exam-catalog`)
-e.  [ ] Path Tracer App (C++ -\> WASM)
+5.  [ ] Path Tracer App (C++ -\> WASM)
     -   [ ] Einbettung per iFrame
     -   [ ] Parallelisierung per WebWorker
     -   [ ] Interaktion per editerbarem Textfeld
