@@ -36,12 +36,14 @@ category: Tool
 description: Please see the README at <https://gitlab2.informatik.uni-wuerzburg.de/decker/decker#readme>
 
 dependencies:
-  - base >= 4.7 && < 5
+  - Glob
+  - HTTP
   - aeson
   - ansi-terminal
   - array
-  - base64-bytestring
+  - base >= 4.7 && < 5
   - base16-bytestring
+  - base64-bytestring
   - blaze-html
   - blaze-markup
   - bytestring
@@ -54,10 +56,9 @@ dependencies:
   - filepath
   - formatting
   - fsnotify
-  - Glob
   - groom
   - hashable
-  - HTTP
+  - hspec
   - http-client
   - http-conduit
   - http-types
@@ -78,8 +79,8 @@ dependencies:
   - process
   - pureMD5
   - random
-  - relude
   - regex-tdfa
+  - relude
   - scientific
   - shake
   - snap-core
@@ -135,7 +136,6 @@ tests:
     source-dirs: test
     dependencies:
       - decker
-      - hspec
 
 #default-extensions:
   #- DeriveDataTypeable

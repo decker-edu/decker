@@ -13,11 +13,11 @@ module Text.Decker.Internal.External
 
 import Text.Decker.Internal.Exception
 
-import qualified Data.List as List
-import Relude
 import Control.Exception
+import qualified Data.List as List
 import Data.Maybe
 import Development.Shake
+import Relude
 import System.Console.ANSI
 import System.Exit
 import System.Process
@@ -63,7 +63,7 @@ programs =
     , ExternalProgram
         []
         "gnuplot"
-        ["-d", "-e", "set terminal svg"]
+        ["-d", "-e", "'set terminal svg'"]
         ["-V"]
         (helpText "Gnuplot (http://gnuplot.sourceforge.net)"))
   , ( "pdflatex"
@@ -105,8 +105,8 @@ pdf2svg = makeProgram "pdf2svg"
 helpText :: String -> String
 helpText name = name ++ " reported a problem:"
 
-makeProgram :: String -> ([String] -> Action ())
-makeProgram name =
+makeProgram' :: String -> ([String] -> Action ())
+makeProgram' name =
   let external = fromJust $ List.lookup name programs
    in (\arguments -> do
          (Exit code, Stdout out, Stderr err) <-
@@ -120,6 +120,14 @@ makeProgram name =
              throw $
              ExternalException $
              "\n" ++ help external ++ "\n\n" ++ err ++ "\n\n" ++ out)
+
+makeProgram :: String -> [String] -> Action ()
+makeProgram name =
+  let external = fromJust $ List.lookup name programs
+   in (\arguments -> do
+         let command =
+               intercalate " " $ [path external] <> args external <> arguments
+         liftIO $ callCommand command)
 
 checkProgram :: String -> Action Bool
 checkProgram name =

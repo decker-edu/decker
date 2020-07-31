@@ -7,13 +7,9 @@ module Text.Decker.Project.Shake
   , calcSource
   , calcSource'
   , currentlyServedPages
-  , getRelativeSupportDir
+  , relativeSupportDir
   , isDevRun
   , openBrowser
-  , projectA
-  , supportA
-  , projectDirsA
-  , publicA
   , publicResource
   , publicResourceA
   , putCurrentDocument
@@ -50,7 +46,7 @@ import Development.Shake hiding (doesDirectoryExist, putError)
 import System.Console.GetOpt
 import System.Directory as Dir
 import qualified System.FSNotify as Notify
-import System.FilePath
+import System.FilePath.Posix
 import System.Info
 import System.Process
 import Text.Pandoc hiding (lookupMeta)
@@ -68,8 +64,7 @@ data MutableActionState = MutableActionState
 makeLenses ''MutableActionState
 
 data ActionContext = ActionContext
-  { _dirs :: ProjectDirs
-  , _state :: MutableActionState
+  { _state :: MutableActionState
   } deriving (Typeable, Show)
 
 makeLenses ''ActionContext
@@ -133,22 +128,20 @@ runShakeOnce state rules = do
   options <- deckerShakeOptions context
   catchAll
     (shakeArgsWith options deckerFlags (handleArguments rules))
-    (putError "Error: ")
+    (putError "ERROR:\n")
   server <- readIORef (state ^. server)
   forM_ server reloadClients
   keepWatching <- readIORef (state ^. watch)
   when keepWatching $ do
-    let projectDir = context ^. dirs . project
-    meta <- readMetaDataFile (projectDir </> "decker.yaml")
-    let exclude = map (projectDir </>) $ excludeDirs meta
+    meta <- readMetaDataFile globalMetaFileName
+    exclude <- mapM canonicalizePath (excludeDirs meta)
     waitForChange projectDir exclude
   return keepWatching
 
 initContext :: MutableActionState -> IO ActionContext
 initContext state = do
-  dirs <- projectDirectories
-  createDirectoryIfMissing True (dirs ^. transient)
-  return $ ActionContext dirs state
+  createDirectoryIfMissing True transientDir
+  return $ ActionContext state
 
 cleanup state = do
   srvr <- readIORef $ state ^. server
@@ -160,19 +153,22 @@ watchChangesAndRepeat = do
   liftIO $ writeIORef ref True
 
 putError :: String -> SomeException -> IO ()
-putError prefix (SomeException e) = putStrLn $ prefix ++ show e
+putError prefix (SomeException e) =
+  putStrLn $ prefix ++ (unlines $ lastN 2 $ lines $ show e)
+
+lastN n = reverse . take n . reverse
 
 deckerShakeOptions :: ActionContext -> IO ShakeOptions
 deckerShakeOptions ctx = do
   cores <- getNumCapabilities
   return $
     shakeOptions
-      { shakeFiles = ctx ^. dirs . transient
+      { shakeFiles = transientDir
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
+      -- , shakeStaunch = True
       , shakeColor = True
       -- , shakeChange = ChangeModtimeAndDigest
-      , shakeAbbreviations = [(ctx ^. dirs . project, "${project}")]
       }
 
 actionContextKey :: TypeRep
@@ -197,10 +193,8 @@ isDevRun = do
   context <- actionContext
   return (context ^. state . devRun)
 
-getRelativeSupportDir :: FilePath -> Action FilePath
-getRelativeSupportDir from = do
-  sup <- _support . _dirs <$> actionContext
-  return $ makeRelativeTo from sup
+relativeSupportDir :: FilePath -> FilePath
+relativeSupportDir from = makeRelativeTo from supportDir
 
 writeSupportFilesToPublic :: Meta -> Action ()
 writeSupportFilesToPublic meta = do
@@ -212,26 +206,10 @@ writeSupportFilesToPublic meta = do
       putNormal $ "# copy support files from: " <> show templateSource
       removeSupport
       extractSupport templateSource
-  copyStaticDirs meta
-
-copyStaticDirs :: Meta -> Action ()
-copyStaticDirs meta = do
-  public <- publicA
-  project <- projectA
-  let staticSrc = map (project </>) (staticDirs meta)
-  let staticDst = map ((public </>) . stripParentPrefix) (staticDirs meta)
-  liftIO $ zipWithM_ copyDir staticSrc staticDst
-  where
-    stripParentPrefix :: FilePath -> FilePath
-    stripParentPrefix path =
-      if "../" `isPrefixOf` path
-        then stripParentPrefix (drop 3 path)
-        else path
 
 extractSupport :: TemplateSource -> Action ()
 extractSupport templateSource = do
   context <- actionContext
-  let supportDir = context ^. dirs . support
   liftIO $ handleAll (\_ -> return ()) $ do
     copySupportFiles templateSource Copy supportDir
     writeFile (supportDir </> ".origin") (show templateSource)
@@ -239,7 +217,6 @@ extractSupport templateSource = do
 correctSupportInstalled :: TemplateSource -> Action Bool
 correctSupportInstalled templateSource = do
   context <- actionContext
-  let supportDir = context ^. dirs . support
   liftIO $ handleAll (\_ -> return False) $ do
     installed <- read <$> readFile (supportDir </> ".origin")
     return (installed == templateSource)
@@ -247,22 +224,9 @@ correctSupportInstalled templateSource = do
 removeSupport :: Action ()
 removeSupport = do
   context <- actionContext
-  let supportDir = context ^. dirs . support
   liftIO $ handleAll (\_ -> return ()) $ removeDirectoryRecursive supportDir
 
 publicResourceA = _publicResource . _state <$> actionContext
-
-projectDirsA :: Action ProjectDirs
-projectDirsA = _dirs <$> actionContext
-
-projectA :: Action FilePath
-projectA = _project <$> projectDirsA
-
-publicA :: Action FilePath
-publicA = _public <$> projectDirsA
-
-supportA :: Action FilePath
-supportA = _support <$> projectDirsA
 
 withShakeLock :: Action a -> Action a
 withShakeLock perform = do
@@ -271,14 +235,14 @@ withShakeLock perform = do
 
 -- | Runs the built-in server on the given directory, if it is not already
 -- running.
-runHttpServer :: Int -> ProjectDirs -> Maybe String -> Action ()
-runHttpServer port dirs url = do
+runHttpServer :: Int -> Maybe String -> Action ()
+runHttpServer port url = do
   ref <- _server . _state <$> actionContext
   server <- liftIO $ readIORef ref
   case server of
     Just _ -> return ()
     Nothing -> do
-      httpServer <- liftIO $ startHttpServer dirs port
+      httpServer <- liftIO $ startHttpServer port
       liftIO $ writeIORef ref $ Just httpServer
       forM_ url openBrowser
 
@@ -303,20 +267,15 @@ openBrowser url =
 
 calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target = do
-  dirs <- projectDirsA
   let src =
-        (replaceSuffix targetSuffix srcSuffix . combine (dirs ^. project) .
-         makeRelative (dirs ^. public))
-          target
+        (replaceSuffix targetSuffix srcSuffix . makeRelative publicDir) target
   need [src]
   return src
 
 -- |  calcSource without the call to need and without the suffix replacement
 calcSource' :: FilePath -> Action FilePath
 calcSource' target = do
-  dirs <- projectDirsA
-  return $ dirs ^. project </> makeRelative (dirs ^. public) target
+  return $ makeRelative publicDir target
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = putNormal $ "# pandoc (for " ++ out ++ ")"
-

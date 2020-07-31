@@ -146,59 +146,44 @@
   padding-right: var(--border-decoration-padding);
 }
 
-.reveal ul,
-.reveal ol {
-  list-style-position: inside;
+.reveal ol,
+.reveal dl,
+.reveal ul {
+  display: inline-block;
+  text-align: left;
+  margin-bottom: 0;
 }
 
-.reveal ul ol,
-.reveal ol ol {
-  margin-left: 0px;
-  padding-left: 0px;
+.reveal ol li,
+.reveal dl li,
+.reveal ul li {
+  margin-bottom: 0;
+  margin-left: 40px;
+}
+
+.reveal ol {
+  list-style-type: decimal;
+}
+
+.reveal ul {
+  list-style-type: disc;
 }
 
 .reveal ul ul,
 .reveal ol ul {
-  margin-left: 0.3em;
-}
-
-.reveal ul ol, .reveal ul ul,
-.reveal ol ol,
-.reveal ol ul {
-  margin-bottom: 0;
-}
-
-ul > li {
-  list-style-type: none;
-  position: relative;
-  left: .5em;
-}
-
-ul > li:before {
-  content: "\2022";
-  /* escaped unicode character */
-  font-size: 1.5em;
-  /* the default unicode bullet size is very small */
-  line-height: 0;
-  /* kills huge line height on resized bullet */
-  position: relative;
-  /* position bullet relative to list item */
-  top: 0.1em;
-  /* vertical align bullet position relative to list item */
-  left: -.3em;
-  /* position the bullet L- R relative to list item */
-}
-
-.reveal ol {
-  list-style-type: decimal;
+  list-style-type: circle;
 }
 
 .reveal ol ol {
-  list-style-type: lower-alpha;
+  list-style-type: lower-roman;
 }
 
-.reveal ol ol ol {
-  list-style-type: decimal;
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+  display: block;
+  margin-top: 0.3em;
 }
 
 .reveal div.box.columns {
@@ -386,14 +371,15 @@ ul > li:before {
   font-family: inherit;
   outline: none;
   clear: both;
+  border: 2px solid black;
 }
 
-.reveal .qic input,
-.reveal .qft input,
-.reveal .qmc input,
-.reveal .qmi input,
-.reveal [class*="quiz-"] input {
-  border: 2px solid black;
+.reveal .qic input:placeholder-shown,
+.reveal .qft input:placeholder-shown,
+.reveal .qmc input:placeholder-shown,
+.reveal .qmi input:placeholder-shown,
+.reveal [class*="quiz-"] input:placeholder-shown {
+  text-overflow: ellipsis;
 }
 
 .reveal .qic .solutionButton,
@@ -453,8 +439,7 @@ ul > li:before {
 .reveal .qic,
 .reveal [class*="quiz-i"] {
   display: block;
-  overflow-y: scroll !important;
-  overflow-x: hidden !important;
+  overflow-y: auto;
   max-height: 75vh;
 }
 
@@ -480,8 +465,7 @@ ul > li:before {
 .reveal .qmi,
 .reveal .quiz-match-items {
   display: block;
-  overflow-y: scroll !important;
-  overflow-x: hidden !important;
+  overflow-y: auto;
   max-height: 75vh;
   text-align: center;
 }
@@ -519,9 +503,9 @@ ul > li:before {
   box-sizing: border-box;
 }
 
-.reveal .quiz-mi .buckets,
-.reveal .qmi .buckets,
-.reveal .quiz-match-items .buckets {
+.reveal .quiz-mi .matchItems,
+.reveal .qmi .matchItems,
+.reveal .quiz-match-items .matchItems {
   margin-bottom: 60px;
 }
 
@@ -543,13 +527,13 @@ ul > li:before {
 .reveal .quiz-mi .matchItems:before,
 .reveal .qmi .matchItems:before,
 .reveal .quiz-match-items .matchItems:before {
-  content: "drag from here";
+  content: attr(data-hint);
 }
 
 .reveal .quiz-mi .buckets:before,
 .reveal .qmi .buckets:before,
 .reveal .quiz-match-items .buckets:before {
-  content: "drop here";
+  content: attr(data-hint);
 }
 
 .reveal .quiz-mi .matchItems:after,
@@ -559,10 +543,10 @@ ul > li:before {
   content: " ";
   width: 0;
   height: 0;
-  top: -30px;
+  bottom: -30px;
   border-left: 30px solid transparent;
   border-right: 30px solid transparent;
-  border-bottom: 30px solid #dddddd;
+  border-top: 30px solid #dddddd;
 }
 
 .reveal .quiz-mi .bucket,
@@ -596,20 +580,6 @@ ul > li:before {
 .reveal .qmi .matchItem img,
 .reveal .quiz-match-items .matchItem img {
   max-width: 50%;
-}
-
-.reveal .quiz-mi .matchItem .solution,
-.reveal .qmi .matchItem .solution,
-.reveal .quiz-match-items .matchItem .solution {
-  visibility: hidden;
-  font-size: large;
-}
-
-.reveal .quiz-mi .matchItem:hover .solution,
-.reveal .qmi .matchItem:hover .solution,
-.reveal .quiz-match-items .matchItem:hover .solution {
-  visibility: visible;
-  font-size: large;
 }
 
 .reveal .quiz-mi .bucket .matchItem,

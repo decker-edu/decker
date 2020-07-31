@@ -25,7 +25,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" alt="06-metal.png">
-    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
         <span class="math inline">
             <em>
@@ -104,7 +104,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" alt="06-metal.png">
-    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -130,7 +130,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" alt="06-metal.png">
-    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
          
         Caption.
@@ -155,7 +155,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" alt="06-metal.png">
-    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
          
         Caption
@@ -209,7 +209,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" alt="06-metal.png" style="width:40%;">
-    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -231,7 +231,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" alt="06-metal.png">
-    <img class="decker" data-src="test/decks/include/06-metal.png" style="height:200px;">
+    <img class="decker" data-src="/test/decks/include/06-metal.png" style="height:200px;">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -253,7 +253,7 @@ translates to
 
 ``` {.html}
 <figure class="decker" alt="06-metal.png" style="width:40%;">
-    <img class="decker" data-src="test/decks/include/06-metal.png" style="height:200px;">
+    <img class="decker" data-src="/test/decks/include/06-metal.png" style="height:200px;">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -275,7 +275,7 @@ translates to
 
 ``` {.html}
 <figure id="myid" class="decker myclass" alt="06-metal.png" data-myattribute="value" style="width:40%;border:1px;background-color:magenta;">
-    <img class="decker" data-src="test/decks/include/06-metal.png">
+    <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -395,7 +395,7 @@ translates to
 
 ``` {.html}
 <div class="decker image-row">
-    <img class="decker" data-src="test/decks/include/06-metal.png" alt="06-metal.png">
+    <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png">
 
     <figure class="decker">
     <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
@@ -408,7 +408,7 @@ translates to
 
 </div>
 
-| <img class="decker" data-src="test/decks/include/06-metal.png" alt="06-metal.png" style="border:1px solid black;">
+| <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png" style="border:1px solid black;">
 ```
 
 ------------------------------------------------------------------------
@@ -431,7 +431,7 @@ translates to
 
 ``` {.html}
 <div class="decker image-row">
-    <img class="decker" data-src="test/decks/include/06-metal.png" alt="06-metal.png">
+    <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png">
 
     <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
     
@@ -439,8 +439,8 @@ translates to
 
 </div>
 
-| <img class="decker" data-src="test/decks/include/06-metal.png" alt="06-metal.png" style="border:1px solid black;">
- | <img class="decker" data-src="test/decks/include/06-metal.png" alt="06-metal.png">
+| <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png" style="border:1px solid black;">
+ | <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png">
 
 Caption: Caption
 ```
@@ -606,7 +606,7 @@ The last image in a level 1 header is promoted to the slide background.
 translates to
 
 ``` {.html}
-<h1 data-background-size="cover" data-background-image="test/decks/include/06-metal.png" id="background-image" data-background-size="cover" data-background-image="test/decks/include/06-metal.png">Background Image  </h1>
+<h1 data-background-size="cover" data-background-image="/test/decks/include/06-metal.png" id="background-image" data-background-size="cover" data-background-image="/test/decks/include/06-metal.png">Background Image  </h1>
 ```
 
 ------------------------------------------------------------------------

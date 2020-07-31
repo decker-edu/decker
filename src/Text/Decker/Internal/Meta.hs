@@ -14,13 +14,17 @@ module Text.Decker.Internal.Meta
   , setMetaValue
   , adjustMetaValue
   , adjustMetaValueM
+  , adjustMetaStringsBelow
   , adjustMetaStringsBelowM
   , toPandocMeta
   , toPandocMeta'
   , lookupMeta
   , lookupMetaOrElse
   , lookupMetaOrFail
+  , lookupInDictionary
   , mapMeta
+  , mapMetaM
+  , mapMetaValues
   , mapMetaValuesM
   , mapMetaWithKey
   , readMetaDataFile
@@ -157,6 +161,11 @@ adjustMetaValueM action key meta =
       "Cannot adjust meta value on non object at: " <> show key
 
 -- | Recursively traverse all meta values below the compound key that can be
+-- stringified and transform them by the supplied function.
+adjustMetaStringsBelow :: (Text -> Text) -> Text -> Meta -> Meta
+adjustMetaStringsBelow func = adjustMetaValue (mapMetaValues func)
+
+-- | Recursively traverse all meta values below the compound key that can be
 -- stringified and transform them by the supplied action.
 adjustMetaStringsBelowM ::
      (MonadFail m, Monad m) => (Text -> m Text) -> Text -> Meta -> m Meta
@@ -250,11 +259,36 @@ lookupMetaOrFail key meta =
     Just value -> value
     Nothing -> error $ "Cannot read meta value: " <> key
 
+lookupInDictionary :: Text -> Meta -> Text
+lookupInDictionary key meta =
+  case lookupMeta "lang" meta of
+    Just lang ->
+      lookupMetaOrElse
+        enDefault
+        (Text.intercalate "." ["dictionary", lang, key])
+        meta
+    _ -> enDefault
+  where
+    enDefault :: Text
+    enDefault =
+      lookupMetaOrElse
+        (Text.intercalate " " ["Dictionary entry for", key, "not available!"])
+        (Text.intercalate "." ["dictionary", "en", key])
+        meta
+
+-- | Map a function over string values and stringified inline values.
+-- Converts MetaInlines to MetaStrings. This may be a problem in some distant
+-- future.
+mapMeta :: (Text -> Text) -> Meta -> Meta
+mapMeta f meta =
+  let (MetaMap m) = mapMetaValues f (MetaMap (unMeta meta))
+   in Meta m
+
 -- | Map an IO action over string values and stringified inline values.
 -- Converts MetaInlines to MetaStrings. This may be a problem in some distant
 -- future.
-mapMeta :: (MonadFail m, Monad m) => (Text -> m Text) -> Meta -> m Meta
-mapMeta f meta = do
+mapMetaM :: (MonadFail m, Monad m) => (Text -> m Text) -> Meta -> m Meta
+mapMetaM f meta = do
   (MetaMap m) <- mapMetaValuesM f (MetaMap (unMeta meta))
   return (Meta m)
 
@@ -272,6 +306,19 @@ mapMetaValuesM f value = map' value
     map' (MetaString s) = MetaString <$> f s
     map' (MetaInlines i) = MetaString <$> f (stringify i)
     map' v = return v
+
+-- | Map a function over string values and stringified inline values.
+-- Converts MetaInlines to MetaStrings. This may be a problem in some distant
+-- future.
+mapMetaValues :: (Text -> Text) -> MetaValue -> MetaValue
+mapMetaValues f value = map' value
+  where
+    map' (MetaMap m) =
+      MetaMap . Map.fromList $ map (\(k, v) -> (k, ) $ map' v) (Map.toList m)
+    map' (MetaList l) = MetaList $ map map' l
+    map' (MetaString s) = MetaString $ f s
+    map' (MetaInlines i) = MetaString $ f (stringify i)
+    map' v = v
 
 -- | Map meta values in maps with the compound key.
 mapMetaWithKey ::

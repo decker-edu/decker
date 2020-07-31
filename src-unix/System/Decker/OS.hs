@@ -1,18 +1,9 @@
 {-- Author: Jan-Philipp Stauffert <jan-philipp.stauffert@uni-wuerzburg.de.de> --}
 module System.Decker.OS
-  ( defaultProvisioning
-  , urlPath
-  , chrome
+  ( chrome
   ) where
 
-import Text.Decker.Internal.Common
 import System.Directory
-
-defaultProvisioning :: Provisioning
-defaultProvisioning = SymLink
-
-urlPath :: FilePath -> FilePath
-urlPath path = path
 
 -- Look for chrome executable on $PATH
 chromeExecutable :: IO (Either String String)

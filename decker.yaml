@@ -1,5 +1,4 @@
 project-name: Decker
-provisioning: Copy
 exclude-directories:
   - app
   - bin
@@ -14,3 +13,4 @@ exclude-directories:
   - third-party
 static-resource-dirs:
   - test/static
+  
