@@ -1035,138 +1035,6 @@ body {
 }
 
 
-/*********************************************
- * MARIO: matching questions
- *********************************************/
-
-/*
-.reveal .matching {
-  text-align: center;
-}
-
-.reveal .matching .dropzones,
-.reveal .matching .dragzone {
-    display:         flex;
-    flex-flow:       row nowrap;
-    align-items:     stretch;
-    justify-content: space-around;
-    position:        relative;
-    width:           100%;
-    min-height:      100px;
-    padding:         15px;
-    border:          2px solid #dddddd;
-    border-radius:   5px;
-    box-sizing:      border-box;
-}
-
-.reveal .matching .dropzones {
-    margin-bottom: 60px;
-}
-
-.reveal .matching .dragzone:before,
-.reveal .matching .dropzones:before {
-    position:   absolute;
-    top:        -15px;
-    left:       10px;
-    font-size:  15px;
-    background: white;
-    padding:    5px;
-    color:      grey;
-}
-.reveal .matching .dragzone:before {
-    content: "drag objects from here...";
-}
-.reveal .matching .dropzones:before {
-    content: "...and drop them here into the correct category";
-}
-:lang(de) .reveal .matching .dragzone:before {
-    content: "Objekte per Drag&Drop nach oben ziehen...";
-}
-:lang(de) .reveal .matching .dropzones:before {
-    content: "...und hier in die richtige Kategorie einsortieren";
-}
-
-.reveal .matching .dragzone:after {
-    position:      absolute;
-    content:       " ";
-    width:         0;
-    height:        0;
-    top:           -30px;
-    border-left:   30px solid transparent;
-    border-right:  30px solid transparent;
-    border-bottom: 30px solid #dddddd;
-}
-
-.reveal .matching .dropzone {
-    display:    block;
-    flex:       1 0 0;
-    padding:    10px;
-    margin:     5px;
-    border:     1px solid black;
-    text-align: center;
-}
-
-.reveal .matching .draggable {
-    display:        block;
-    vertical-align: middle;
-    overflow:       hidden;
-    border:         2px solid #2a9ddf;
-    border-radius:  10px;
-    padding:        10px;
-    background:     white;
-    cursor:         grab;
-}
-.reveal .matching .dropzone .draggable {
-    display:    block;
-    border:     none;
-    background: inherit;
-}
-
-.reveal .matching .draggableChild {
-    pointer-events: none;
-}
-
-.reveal select.blankSelect {
-    font:        inherit;
-    font-size:   0.9em;
-    font-weight: normal;
-    padding:     5px;
-    border:      2px solid #2a9ddf;
-    background:  white;
-}
-
-.reveal option.blankOption {
-    font:        inherit;
-    font-size:   16px;
-    font-weight: normal;
-}
-
-.reveal .freetextQuestion input {
-    font:        inherit;
-    font-size:   0.9em;
-    font-weight: normal;
-    margin:      0.5em;
-    padding:     10px;
-    border:      2px solid #2a9ddf;
-}
-
-.reveal button.freetextAnswerButton,
-.reveal button.btAnswerButton,
-.reveal button.matchingAnswerButton,
-.reveal button.retryButton
-{
-    font:        inherit;
-    font-size:   0.7em;
-    font-weight: normal;
-    margin:      0.5em;
-    padding:     10px;
-    background:  #eeeeee;
-    border: 2px solid #dddddd;
-    border-radius: 5px;
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-}
-*/
-
 
 /*********************************************
  * MARIO: new quizzes
@@ -1320,13 +1188,15 @@ body {
     border:          2px solid #dddddd;
     border-radius:   5px;
     box-sizing:      border-box;
+    margin-bottom:   60px;
     margin-top:      20px;
 }
 
 .reveal .quiz-mi .buckets,
 .reveal .qmi .buckets,
 .reveal .quiz-match-items .buckets {
-    margin-bottom: 60px;
+    margin-bottom:   20px;
+    margin-top:      60px;
 }
 
 .reveal .quiz-mi .buckets:before,
@@ -1347,7 +1217,7 @@ body {
 .reveal .quiz-mi .matchItems:before,
 .reveal .qmi .matchItems:before,
 .reveal .quiz-match-items .matchItems:before {
-    content: "drag objects from here...";
+    content: "Drag objects from here...";
 }
 
 .reveal .quiz-mi .buckets:before,
@@ -1359,7 +1229,7 @@ body {
 :lang(de) .reveal .quiz-mi .matchItems:before,
 :lang(de) .reveal .qmi .matchItems:before,
 :lang(de) .reveal .quiz-match-items .matchItems:before {
-    content: "Objekte per Drag&Drop nach oben ziehen...";
+    content: "Objekte per Drag & Drop nach unten ziehen...";
 }
 
 :lang(de) .reveal .quiz-mi .buckets:before,
@@ -1375,10 +1245,10 @@ body {
   content: " ";
   width: 0;
   height: 0;
-  top: -30px;
+  bottom: -30px;
   border-left: 30px solid transparent;
   border-right: 30px solid transparent;
-  border-bottom: 30px solid #dddddd;
+  border-top: 30px solid #dddddd;
 }
 
 .reveal .quiz-mi .bucket,
