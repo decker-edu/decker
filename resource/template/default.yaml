@@ -36,6 +36,7 @@ whiteboard-background-color: rgb(250,250,250)
 dictionary:
   de: 
     exam:
+      solution: Lösung
       solve-button: Lösen
       placeholder: Antwort eingeben
     quiz:
@@ -45,6 +46,7 @@ dictionary:
       qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
   en:
     exam:
+      solution: Solution
       solve-button: Solve
       placeholder: Type in answer
     quiz:

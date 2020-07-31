@@ -23,7 +23,7 @@
   padding-bottom: 0.3em;
 }
 
-.reveal div.exa-quest div.answer {
+.reveal div.exa-quest div.exa-mc {
   margin: 0em;
   padding-left: 1em;
   padding-top: 0.3em;
@@ -52,6 +52,23 @@
   height: 1.2em;
   background-size: cover;
   vertical-align: middle;
+  border: 1px solid rgba(0, 0, 0, 0);
+}
+
+.reveal div.exa-mc div.choice div.check-box:hover {
+  background-color: lightgrey;
+}
+
+.reveal div.exa-mc[data-solved] div.choice div.check-box:hover {
+  background-color: transparent;
+}
+
+.reveal div.exa-mc div.choice div.check-box:active {
+  background-color: grey;
+}
+
+.reveal div.exa-mc[data-solved] div.choice div.check-box:active {
+  background-color: transparent;
 }
 
 .reveal div.exa-mc div.choice div.check-box {
@@ -76,4 +93,33 @@
 
 .reveal div.exa-mc[data-solved] div.choice.correct div.check-box[data-checked] {
   background-image: url("static/check-box-1c.svg");
+}
+
+.reveal div.exa-ff {
+  margin: 0em;
+  padding-left: 0em;
+  padding-top: 0.3em;
+}
+
+.reveal div.exa-ff h3 {
+  margin: 0em;
+  padding-left: 0em;
+  padding-top: 0.3em;
+}
+
+.reveal div.exa-ff textarea {
+  width: 95%;
+  padding: 0.2em;
+  margin: 0.3em;
+  resize: none;
+  font-family: "Source Code Pro", monospace;
+  font-size: 27px;
+}
+
+.reveal div.exa-ff div.correct {
+  display: none;
+}
+
+.reveal div.exa-ff[data-solved] div.correct {
+  display: block;
 }

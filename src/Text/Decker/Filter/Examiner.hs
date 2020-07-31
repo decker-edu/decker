@@ -135,7 +135,13 @@ renderQuestion meta qst =
               "html"
               ("<textarea class=\"answer\" placeholder=\"" <>
                lookupInDictionary "exam.placeholder" meta <>
-               "\"></textarea>")
+               "\" " <>
+               "rows=\"" <>
+               show height <>
+               "\"" <>
+               "></textarea>")
+          , RawBlock "html" $
+            "<h3>" <> lookupInDictionary "exam.solution" meta <> "</h3>"
           , Div ("", ["correct"], []) $ parseToBlocks answer
           ]
       ]

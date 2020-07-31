@@ -2,7 +2,7 @@ LectureId: ray-intersection
 TopicId: composite-pattern
 Answer:
   tag: FreeForm
-  HeightInMm: 60
+  HeightInMm: 6
   CorrectAnswer: |
     ```java
     int max() {
