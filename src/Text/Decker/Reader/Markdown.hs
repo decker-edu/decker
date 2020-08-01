@@ -11,20 +11,17 @@ module Text.Decker.Reader.Markdown
 import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
-
 import qualified Data.List as List
 import qualified Data.Text.IO as Text
-
 import Development.Shake hiding (Resource)
 import System.FilePath.Posix
-
 import Relude
-
 import System.Directory as Dir
-
 import Text.CSL.Pandoc
-import Text.Decker.Filter.Attrib
+import Text.Pandoc hiding (lookupMeta)
+
 import Text.Decker.Filter.Decker
+import Text.Decker.Filter.Paths
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
@@ -38,8 +35,6 @@ import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
 import Text.Decker.Resource.Template
-import Text.Pandoc hiding (lookupMeta)
-import Text.Pandoc.Walk
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -64,7 +59,7 @@ readMarkdownFile globalMeta path = do
   let base = takeDirectory path
   parseMarkdownFile path >>= writeBack globalMeta path >>=
     expandMeta globalMeta base >>=
-    adjustResourcePaths globalMeta base >>=
+    adjustResourcePathsA globalMeta base >>=
     checkVersion >>=
     includeMarkdownFiles globalMeta base
 
@@ -138,47 +133,6 @@ mergeDocumentMeta :: Meta -> Pandoc -> Action Pandoc
 mergeDocumentMeta globalMeta (Pandoc docMeta content) = do
   let combinedMeta = mergePandocMeta' docMeta globalMeta
   return (Pandoc combinedMeta content)
-
--- | Traverses the pandoc AST and adjusts local resource paths. Paths are
--- considered in these places:
---
--- 1. Url field on Image elements
--- 2. src and data-src attributes on Image and CodeBlock elements
--- 3. data-backgound-* attributes in Header 1 elements
---
-adjustResourcePaths :: Meta -> FilePath -> Pandoc -> Action Pandoc
-adjustResourcePaths meta base pandoc =
-  walkM adjustInline pandoc >>= walkM adjustBlock
-    -- Adjusts the image url and all source attributes. Which source is used
-    -- and how is decided by the media plugin. Calling need is the
-    -- responsibility of the media plugin. 
-  where
-    adjustInline :: Inline -> Action Inline
-    adjustInline (Image (id, cls, kvs) alt (url, title)) = do
-      localUrl <- adjustUrl url
-      localAttr <- adjustAttribs srcAttribs kvs
-      return $ Image (id, cls, localAttr) alt (localUrl, title)
-    adjustInline inline = return inline
-    adjustUrl :: Text -> Action Text
-    adjustUrl url = liftIO $ makeProjectUriPath base url
-    -- Adjusts code block and header attributes.
-    adjustBlock :: Block -> Action Block
-    adjustBlock (CodeBlock (id, cls, kvs) text) = do
-      local <- adjustAttribs srcAttribs kvs
-      return $ CodeBlock (id, cls, local) text
-    adjustBlock (Header 1 (id, cls, kvs) inlines) = do
-      local <- adjustAttribs bgAttribs kvs
-      return $ Header 1 (id, cls, local) inlines
-    adjustBlock block = return block
-    -- Adjusts the value of one attribute.
-    adjustAttrib :: (Text, Text) -> Action (Text, Text)
-    adjustAttrib (k, v) = (k, ) <$> (liftIO $ makeProjectUriPath base v)
-    -- Adjusts the values of all key value attributes that are listed in keys.
-    adjustAttribs :: [Text] -> [(Text, Text)] -> Action [(Text, Text)]
-    adjustAttribs keys kvs = do
-      let (paths, other) = List.partition ((`elem` keys) . fst) kvs
-      local <- mapM adjustAttrib paths
-      return $ local <> other
 
 checkVersion :: Pandoc -> Action Pandoc
 checkVersion pandoc = return pandoc

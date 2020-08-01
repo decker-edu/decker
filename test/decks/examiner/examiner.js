@@ -1,7 +1,6 @@
 console.log("Adding examiner load event handler.");
 window.addEventListener("load", () => {
   let exams = document.querySelectorAll("div.exa-quest");
-  console.log(exams);
   for (exam of exams) {
     let button = exam.getElementsByTagName("button")[0];
     // Multiple choice answer
@@ -18,7 +17,7 @@ window.addEventListener("load", () => {
       }
       button.addEventListener("click", e => {
         setAttribute(mcAnswer, "solved", true);
-        button.setAttribute("disabled");
+        setAttribute(button, "solved", true);
       });
     }
     // Free form answer
@@ -27,12 +26,36 @@ window.addEventListener("load", () => {
       let textarea = ffAnswer.querySelector("textarea");
       button.addEventListener("click", e => {
         setAttribute(ffAnswer, "solved", true);
-        button.setAttribute("disabled", true);
+        setAttribute(button, "solved", true);
         textarea.setAttribute("readonly", true);
+      });
+    }
+    // Multiple answers
+    let maAnswer = exam.querySelector(".reveal table.exa-ma");
+    if (maAnswer !== null) {
+      let rows = exam.querySelectorAll(".reveal table.exa-ma tr.detail");
+      button.addEventListener("click", e => {
+        setAttribute(maAnswer, "solved", true);
+        setAttribute(button, "solved", true);
+        for (row of rows) {
+            console.log(row);
+            let correct = getAttribute(row, "correct");
+            let select = row.querySelector("select");
+            if (select.value === correct) {
+                setAttribute(row, "right", true);
+            } else {
+                setAttribute(row, "wrong", true);
+            }
+            select.setAttribute("disabled", true);
+        }
       });
     }
   }
 });
+
+function getAttribute(e, attrName) {
+  return e.getAttribute("data-" + attrName);
+}
 
 function hasAttribute(e, attrName) {
   return e.getAttribute("data-" + attrName) !== null;

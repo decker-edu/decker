@@ -13,16 +13,21 @@ module Text.Decker.Filter.Examiner
 import Control.Exception
 import Data.Aeson.TH
 import Data.Aeson.Types
+import qualified Data.Text as Text
 import Data.Typeable
 import qualified Data.Yaml as Y
 import GHC.Generics hiding (Meta)
 import Relude
+import Text.Blaze.Html
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
 import Text.Pandoc
 import Text.Pandoc.Walk
 import qualified Text.URI as URI
 
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
+import Text.Decker.Filter.Paths
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 
@@ -105,17 +110,15 @@ readQuestion file = do
 --
 -- The question is enclosed in a DIV that has class `columns` to prevent the
 -- HTML writer from sectioning at top-level divs.
-renderQuestion :: Meta -> Question -> Block
-renderQuestion meta qst =
+renderQuestion :: Meta -> FilePath -> Question -> Block
+renderQuestion meta base qst =
   Div
     ("", ["exa-quest", "columns"], [])
-    ([Header 2 nullAttr (parseToInlines (qstTitle qst))] <>
-     [Div ("", ["question"], []) $ parseToBlocks (qstQuestion qst)] <>
+    ([Header 2 nullAttr (parseToInlines base (qstTitle qst))] <>
+     [Div ("", ["question"], []) $ parseToBlocks base (qstQuestion qst)] <>
      renderAnswer (qstAnswer qst) <>
-     [ RawBlock
-         "html"
-         ("<button>" <> lookupInDictionary "exam.solve-button" meta <>
-          "</button>")
+     [ rawHtml' $
+       H.div $ H.button $ toHtml $ lookupInDictionary "exam.solve-button" meta
      ])
   where
     correct (Choice _ True) = "correct"
@@ -123,32 +126,40 @@ renderQuestion meta qst =
     renderChoice c =
       [ Div ("", ["choice", correct c], []) $
         Div ("", ["check-box"], []) [] :
-        [Div ("", ["content"], []) $ parseToBlocks (choiceTheAnswer c)]
+        [Div ("", ["content"], []) $ parseToBlocks base (choiceTheAnswer c)]
       ]
     renderAnswer (MultipleChoice choices) =
       [Div ("", ["answer", "exa-mc"], []) $ concatMap renderChoice choices]
-    renderAnswer (FillText text correct) = undefined
+    renderAnswer (FillText text correct) =
+      throw $ InternalException "FillText questions not yet implemented"
     renderAnswer (FreeForm height answer) =
       [ Div
           ("", ["answer", "exa-ff"], [])
-          [ RawBlock
-              "html"
-              ("<textarea class=\"answer\" placeholder=\"" <>
-               lookupInDictionary "exam.placeholder" meta <>
-               "\" " <>
-               "rows=\"" <>
-               show height <>
-               "\"" <>
-               "></textarea>")
+          [ rawHtml' $
+            H.textarea ! A.class_ "answer" !
+            A.placeholder (toValue $ lookupInDictionary "exam.placeholder" meta) !
+            A.rows (show height) $
+            ""
           , Div
               ("", ["solution"], [])
-              [ RawBlock "html" $
-                "<h3>" <> lookupInDictionary "exam.solution" meta <> "</h3>"
-              , Div ("", ["correct"], []) $ parseToBlocks answer
+              [ rawHtml' $
+                H.h3 (toHtml $ lookupInDictionary "exam.solution" meta)
+              , Div ("", ["correct"], []) $ parseToBlocks base answer
               ]
           ]
       ]
-    renderAnswer (MultipleAnswers width answers) = undefined
+    -- For now, use OS drop-downs. Later maybe use https://github.com/vorotina/vanilla-select.
+    renderAnswer (MultipleAnswers width answers) =
+      let select =
+            H.select $ H.optgroup $ toHtml $ map mkOption answers
+          mkOption (OneAnswer _ correct) = H.option $ toHtml correct
+          mkDetail (OneAnswer detail correct) =
+            H.tr ! A.class_ "detail" ! dataAttribute "correct" (toValue correct) $
+            toHtml [H.td $ toHtml detail, H.td select]
+       in rawHtml' $
+          H.table ! A.class_ "answer exa-ma" $
+          H.tbody $
+          toHtml $ map mkDetail $ filter (not . Text.null . oneDetail) answers
 
 {--
 toQuiz :: Question -> IO Quiz.Quiz
@@ -185,23 +196,23 @@ toQuiz q = do
           question
           [Quiz.Choice True [] choice]
 --}
-parseToBlocks :: Text -> [Block]
-parseToBlocks text =
-  case runPure (readMarkdown pandocReaderOpts text) of
+parseToBlocks :: FilePath -> Text -> [Block]
+parseToBlocks base text =
+  case adjustResourcePaths base <$> runPure (readMarkdown pandocReaderOpts text) of
     Left err -> throw $ InternalException $ show err
     Right (Pandoc _ blocks) -> blocks
 
-parseToBlock :: Text -> Block
-parseToBlock text = do
-  case parseToBlocks text of
+parseToBlock :: FilePath -> Text -> Block
+parseToBlock base text = do
+  case parseToBlocks base text of
     [block] -> block
     _ ->
       throw $
       InternalException $
       "cannot parse Markdown to a single block: " <> toString text
 
-parseToInlines :: Text -> [Inline]
-parseToInlines text = toInlines $ parseToBlock text
+parseToInlines :: FilePath -> Text -> [Inline]
+parseToInlines base text = toInlines $ parseToBlock base text
 
 toInlines :: Block -> [Inline]
 toInlines (Para inlines) = inlines
@@ -211,6 +222,7 @@ toInlines block =
 examinerFilter :: Pandoc -> Filter Pandoc
 examinerFilter pandoc@(Pandoc meta _) = walkM expandQuestion pandoc
   where
+    base = lookupMetaOrFail "decker.base-dir" meta
     expandQuestion :: Block -> Filter Block
     expandQuestion (Para [Image (id, cls, kvs) _ (url, _)])
       | "question" `elem` cls = do
@@ -219,5 +231,5 @@ examinerFilter pandoc@(Pandoc meta _) = walkM expandQuestion pandoc
         let result = Y.decodeEither' $ encodeUtf8 source
         case result of
           Left err -> throw $ InternalException $ show err
-          Right question -> return $ renderQuestion meta question
+          Right question -> return $ renderQuestion meta base question
     expandQuestion block = return block

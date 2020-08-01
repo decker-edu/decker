@@ -4,25 +4,25 @@ LectureId: texture
 TopicId: texture-transformation
 Answer:
   Answers:
-    - Correct: R(180)
-      Detail: "1"
-    - Correct: S(1, -1)
-      Detail: "2"
-    - Correct: S(3, 3)
-      Detail: "3"
-    - Correct: S(0.5, 0.5) T(0.5, 0.5)
-      Detail: "4"
-    - Correct: R(-45)T(0.5, 0.5)
-      Detail: "5"
-    - Correct: R(90)
+    - Correct: Rz(180)
+      Detail: "Bild 1"
+    - Correct: Sxy(1, -1)
+      Detail: "Bild 2"
+    - Correct: Sxy(3, 3)
+      Detail: "Bild 3"
+    - Correct: Sxy(0.5, 0.5) Txy(0.5, 0.5)
+      Detail: "Bild 4"
+    - Correct: Rz(-45)Txy(0.5, 0.5)
+      Detail: "Bild 5"
+    - Correct: Rz(90)
       Detail: ""
-    - Correct: S(-1,1)
+    - Correct: Sxy(-1,1)
       Detail: ""
-    - Correct: S(0.3, 0.3)
+    - Correct: Sxy(0.3, 0.3)
       Detail: ""
-    - Correct: S(-1,1) T(0.5, 0.5)
+    - Correct: Sxy(-1,1) Txy(0.5, 0.5)
       Detail: ""
-    - Correct: R(45)
+    - Correct: Rz(45)
       Detail: ""
   tag: MultipleAnswers
   WidthInMm: 30
@@ -33,7 +33,7 @@ Comment: ""
 Question: |
 
   ![Anwendung einer transformierten Textur auf 6
-  Quadraten](13-texture-transform-1920x1080@1000-numbered.png)
+  Quadrate](data/13-texture-transform-1920x1080@1000-numbered.png)
 
   Das unmarkierte Quadrat unten links im Bild ist mit einer Textur (blauer
   Pfeil, oranger Pfeil) versehen. Die Texturkoordinaten wurden für dieses

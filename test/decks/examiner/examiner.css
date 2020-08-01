@@ -16,6 +16,10 @@
   opacity: 1;
 }
 
+.reveal div.exa-quest button[data-solved] {
+  display: none;
+}
+
 .reveal div.exa-quest p,
 .reveal div.exa-quest h2 {
   margin: 0em;
@@ -124,3 +128,39 @@
 .reveal div.exa-ff[data-solved] div.solution {
   display: block;
 }
+
+.reveal div.exa-ma {
+  margin: 0em;
+  padding-left: 1em;
+  padding-top: 0.3em;
+}
+
+select {
+  -webkit-appearance: none;
+}
+
+.reveal table.exa-ma select {
+  font-size: 30px;
+}
+
+.reveal table.exa-ma select optgroup {
+  font-size: 15px;
+}
+
+.reveal table.exa-ma tr.detail {
+  padding: 0.2em 0em;
+}
+
+.reveal table.exa-ma tr.detail td {
+  padding: 0.2em 1em;
+  border: none;
+}
+
+.reveal table.exa-ma tr.detail[data-right] {
+  background-color: #4f4;
+}
+
+.reveal table.exa-ma tr.detail[data-wrong] {
+  background-color: #f44;
+}
+
