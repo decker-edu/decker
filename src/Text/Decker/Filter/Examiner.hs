@@ -120,12 +120,22 @@ renderQuestion meta base qst =
       , ("data-topic-id", show $ qstTopicId qst)
       , ("data-lecture-id", show $ qstLectureId qst)
       ])
-    ([Div ("", ["difficulty"], []) []] <>
+    ([ Div
+         ( ""
+         , ["difficulty"]
+         , [ ( "title"
+             , lookupInDictionary ("exam." <> (show $ qstDifficulty qst)) meta)
+           ])
+         []
+     ] <>
      (rawHtml' $ H.h2 $ toHtml $ qstTitle qst) <>
      [Div ("", ["question"], []) $ parseToBlocks base (qstQuestion qst)] <>
      renderAnswer (qstAnswer qst) <>
      [ rawHtml' $
-       H.div $ H.button $ toHtml $ lookupInDictionary "exam.solve-button" meta
+       H.div $ do
+         H.button $ toHtml $ lookupInDictionary "exam.solve-button" meta
+         H.div ! A.class_ "score" $
+           toHtml $ (lookupInDictionary "exam.points" meta <> ": ")
      ])
   where
     correct (Choice _ True) = "correct"

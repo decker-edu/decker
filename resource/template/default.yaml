@@ -39,6 +39,10 @@ dictionary:
       solution: Lösung
       solve-button: Lösen
       placeholder: Antwort eingeben
+      points: Punkte
+      Easy: Leicht
+      Medium: Mittelschwer
+      Hard: Schwer
     quiz:
       solve-button: Lösung
       input-placeholder: Eingeben und 'Enter'
@@ -49,6 +53,10 @@ dictionary:
       solution: Solution
       solve-button: Solve
       placeholder: Type in answer
+      points: Points
+      Easy: Easy
+      Medium: Medium
+      Hard: Hard
     quiz:
       solution-button: Show Solution
       input-placeholder: Type and press 'Enter'
