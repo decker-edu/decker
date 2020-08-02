@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" viewBox="252 303 32 20" width="32" height="20">
+  <defs/>
+  <metadata> Produced by OmniGraffle 7.9 
+    <dc:date>2020-08-02 10:28:42 +0000</dc:date>
+  </metadata>
+  <g id="Arbeitsfl_che_1" stroke-dasharray="none" fill-opacity="1" stroke="none" stroke-opacity="1" fill="none">
+    <title>Canvas 1</title>
+    <g id="Arbeitsfl_che_1: Layer 1">
+      <title>Layer 1</title>
+      <g id="Group_42">
+        <g id="Line_25">
+          <line x1="254" y1="313" x2="282" y2="313" stroke="#666" stroke-linecap="square" stroke-linejoin="round" stroke-width="3"/>
+        </g>
+        <g id="Line_26">
+          <line x1="255" y1="317" x2="255" y2="309" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+        </g>
+        <g id="Line_27">
+          <line x1="281" y1="317" x2="281" y2="309" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+        </g>
+        <g id="Line_28">
+          <line x1="258" y1="319" x2="258" y2="307" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+        </g>
+        <g id="Line_29">
+          <line x1="278" y1="319" x2="278" y2="307" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+        </g>
+        <g id="Line_30">
+          <line x1="261" y1="321" x2="261" y2="305" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+        </g>
+        <g id="Line_31">
+          <line x1="275" y1="321" x2="275" y2="305" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+        </g>
+        <g id="Graphic_37"/>
+      </g>
+    </g>
+  </g>
+</svg>

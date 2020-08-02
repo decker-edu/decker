@@ -1,7 +1,26 @@
+function gradeMC(exam) {
+  console.log("Grade " + exam);
+  let mcAnswer = exam.querySelector("div.exa-mc");
+  console.log(mcAnswer);
+  if (mcAnswer !== null) {
+    let choices = mcAnswer.querySelectorAll("div.exa-mc div.choice");
+    let n = choices.length;
+    let c = 0;
+    for (choice of choices) {
+      let check = choice.querySelector("div.check-box");
+      let checkIsCorrect = choice.classList.contains("correct");
+      let isChecked = hasAttribute(check, "checked");
+      if (checkIsCorrect && isChecked) {
+        c += 1;
+      }
+    }
+    console.log("grade: " + c + "/" + n);
+  }
+}
+
 window.addEventListener("load", () => {
   let exams = document.querySelectorAll("div.exa-quest");
   for (exam of exams) {
-    console.log(exam);
     let button = exam.getElementsByTagName("button")[0];
 
     // Multiple choice answer
@@ -17,6 +36,7 @@ window.addEventListener("load", () => {
         });
       }
       button.addEventListener("click", e => {
+        gradeMC(exam);
         setAttribute(mcAnswer, "solved", true);
         setAttribute(button, "solved", true);
       });

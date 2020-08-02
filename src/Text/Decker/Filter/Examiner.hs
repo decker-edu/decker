@@ -113,8 +113,15 @@ readQuestion file = do
 renderQuestion :: Meta -> FilePath -> Question -> Block
 renderQuestion meta base qst =
   Div
-    ("", ["exa-quest", "columns"], [])
-    ([Header 2 nullAttr (parseToInlines base (qstTitle qst))] <>
+    ( ""
+    , ["exa-quest"]
+    , [ ("data-points", show $ qstPoints qst)
+      , ("data-difficulty", show $ qstDifficulty qst)
+      , ("data-topic-id", show $ qstTopicId qst)
+      , ("data-lecture-id", show $ qstLectureId qst)
+      ])
+    ([Div ("", ["difficulty"], []) []] <>
+     (rawHtml' $ H.h2 $ toHtml $ qstTitle qst) <>
      [Div ("", ["question"], []) $ parseToBlocks base (qstQuestion qst)] <>
      renderAnswer (qstAnswer qst) <>
      [ rawHtml' $
@@ -150,8 +157,7 @@ renderQuestion meta base qst =
       ]
     -- For now, use OS drop-downs. Later maybe use https://github.com/vorotina/vanilla-select.
     renderAnswer (MultipleAnswers width answers) =
-      let select =
-            H.select $ H.optgroup $ toHtml $ map mkOption answers
+      let select = H.select $ H.optgroup $ toHtml $ map mkOption answers
           mkOption (OneAnswer _ correct) = H.option $ toHtml correct
           mkDetail (OneAnswer detail correct) =
             H.tr ! A.class_ "detail" ! dataAttribute "correct" (toValue correct) $

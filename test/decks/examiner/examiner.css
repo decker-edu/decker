@@ -31,12 +31,31 @@ textarea {
 }
 
 .handout div.exa-quest {
-    padding: 1em;
-    border: solid 1px lightgray;
+  padding: 1em;
+  border: solid 1px lightgray;
+}
+
+div.exa-quest div.difficulty {
+  float: right;
+  width: 2em;
+  height: 1.2em;
+  background-size: cover;
+}
+
+div.exa-quest[data-difficulty="Easy"] div.difficulty {
+  background-image: url("static/dumbell-easy.svg");
+}
+
+div.exa-quest[data-difficulty="Medium"] div.difficulty {
+  background-image: url("static/dumbell-medium.svg");
+}
+
+div.exa-quest[data-difficulty="Hard"] div.difficulty {
+  background-image: url("static/dumbell-hard.svg");
 }
 
 div.exa-quest button:hover {
-    background-color: #ddd;
+  background-color: #ddd;
 }
 
 div.exa-quest button[data-solved] {
@@ -157,9 +176,6 @@ div.exa-ma {
   padding-top: 0.3em;
 }
 
-table.exa-ma tr.detail {
-}
-
 table.exa-ma tr.detail td {
   border: none;
 }
@@ -171,4 +187,3 @@ table.exa-ma tr.detail[data-right] {
 table.exa-ma tr.detail[data-wrong] {
   background-color: #f44;
 }
-

@@ -13,7 +13,7 @@ Answer:
     - TheAnswer: $R_z(-\pi/2)T_x(z)R_z(\pi/2)$
       Correct: false
 Title: Ersatztransformation
-Difficulty: Easy
+Difficulty: Hard
 Comment: ""
 Question: |
 
