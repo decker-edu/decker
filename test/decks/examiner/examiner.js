@@ -1,12 +1,13 @@
-console.log("Adding examiner load event handler.");
 window.addEventListener("load", () => {
   let exams = document.querySelectorAll("div.exa-quest");
   for (exam of exams) {
+    console.log(exam);
     let button = exam.getElementsByTagName("button")[0];
+
     // Multiple choice answer
-    let mcAnswer = exam.querySelector(".reveal div.exa-mc");
+    let mcAnswer = exam.querySelector("div.exa-mc");
     if (mcAnswer !== null) {
-      let choices = mcAnswer.querySelectorAll(".reveal div.exa-mc div.choice");
+      let choices = mcAnswer.querySelectorAll("div.exa-mc div.choice");
       for (choice of choices) {
         let check = choice.querySelector("div.check-box");
         check.addEventListener("click", e => {
@@ -20,8 +21,9 @@ window.addEventListener("load", () => {
         setAttribute(button, "solved", true);
       });
     }
+
     // Free form answer
-    let ffAnswer = exam.querySelector(".reveal div.exa-ff");
+    let ffAnswer = exam.querySelector("div.exa-ff");
     if (ffAnswer !== null) {
       let textarea = ffAnswer.querySelector("textarea");
       button.addEventListener("click", e => {
@@ -30,23 +32,23 @@ window.addEventListener("load", () => {
         textarea.setAttribute("readonly", true);
       });
     }
+
     // Multiple answers
-    let maAnswer = exam.querySelector(".reveal table.exa-ma");
+    let maAnswer = exam.querySelector("table.exa-ma");
     if (maAnswer !== null) {
-      let rows = exam.querySelectorAll(".reveal table.exa-ma tr.detail");
+      let rows = exam.querySelectorAll("table.exa-ma tr.detail");
       button.addEventListener("click", e => {
         setAttribute(maAnswer, "solved", true);
         setAttribute(button, "solved", true);
         for (row of rows) {
-            console.log(row);
-            let correct = getAttribute(row, "correct");
-            let select = row.querySelector("select");
-            if (select.value === correct) {
-                setAttribute(row, "right", true);
-            } else {
-                setAttribute(row, "wrong", true);
-            }
-            select.setAttribute("disabled", true);
+          let correct = getAttribute(row, "correct");
+          let select = row.querySelector("select");
+          if (select.value === correct) {
+            setAttribute(row, "right", true);
+          } else {
+            setAttribute(row, "wrong", true);
+          }
+          select.setAttribute("disabled", true);
         }
       });
     }

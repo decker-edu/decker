@@ -1,39 +1,63 @@
+input,
+button,
+textarea,
+select {
+  color: black;
+  background-color: #efefef;
+
+  font-family: inherit;
+  font-size: inherit;
+
+  margin-right: 6px;
+  margin-bottom: 6px;
+  padding: 10px;
+
+  border: none;
+  border-radius: 6px;
+  outline: none;
+}
+
+input,
+select,
+button,
+textarea {
+  -webkit-appearance: none;
+}
+
 .reveal div.exa-quest {
   overflow-y: scroll;
   overflow-x: scroll;
   max-height: 600px;
 }
 
-.reveal div.exa-quest button {
-  margin-top: 0.3em;
-  padding: 0.5em 1em;
-  font-size: 20px;
-  font-weight: bold;
-  opacity: 0.2;
+.handout div.exa-quest {
+    padding: 1em;
+    border: solid 1px lightgray;
 }
 
-.reveal div.exa-quest button:hover {
-  opacity: 1;
+div.exa-quest button:hover {
+    background-color: #ddd;
 }
 
-.reveal div.exa-quest button[data-solved] {
+div.exa-quest button[data-solved] {
   display: none;
 }
 
-.reveal div.exa-quest p,
-.reveal div.exa-quest h2 {
+div.exa-quest p,
+div.exa-quest h2 {
   margin: 0em;
   padding: 0;
   padding-bottom: 0.3em;
 }
 
-.reveal div.exa-quest div.exa-mc {
+div.exa-quest div.exa-mc {
   margin: 0em;
   padding-left: 1em;
   padding-top: 0.3em;
+  padding-bottom: 1em;
 }
 
-.reveal div.exa-mc div.choice {
+div.exa-mc div.choice {
   display: flex;
   flex-flow: row nowrap;
   justify-content: flex-start;
@@ -41,7 +65,7 @@
   align-content: center;
 }
 
-.reveal div.exa-mc div.choice p {
+div.exa-mc div.choice p {
   margin: 0;
   padding-top: 0.1em;
   padding-bottom: 0.1em;
@@ -49,7 +73,7 @@
   padding-right: 0;
 }
 
-.reveal div.exa-mc div.choice div.check-box {
+div.exa-mc div.choice div.check-box {
   display: inline-block;
   flex-basis: auto;
   width: 1.2em;
@@ -59,108 +83,92 @@
   border: 1px solid rgba(0, 0, 0, 0);
 }
 
-.reveal div.exa-mc div.choice div.check-box:hover {
+div.exa-mc div.choice div.check-box:hover {
   background-color: lightgrey;
 }
 
-.reveal div.exa-mc[data-solved] div.choice div.check-box:hover {
+div.exa-mc[data-solved] div.choice div.check-box:hover {
   background-color: transparent;
 }
 
-.reveal div.exa-mc div.choice div.check-box:active {
+div.exa-mc div.choice div.check-box:active {
   background-color: grey;
 }
 
-.reveal div.exa-mc[data-solved] div.choice div.check-box:active {
+div.exa-mc[data-solved] div.choice div.check-box:active {
   background-color: transparent;
 }
 
-.reveal div.exa-mc div.choice div.check-box {
+div.exa-mc div.choice div.check-box {
   background-image: url("static/check-box-0.svg");
 }
 
-.reveal div.exa-mc div.choice div.check-box[data-checked] {
+div.exa-mc div.choice div.check-box[data-checked] {
   background-image: url("static/check-box-1.svg");
 }
 
-.reveal div.exa-mc[data-solved] div.choice.correct div.check-box {
+div.exa-mc[data-solved] div.choice.correct div.check-box {
   background-image: url("static/check-box-0w.svg");
 }
 
-.reveal div.exa-mc[data-solved] div.choice.wrong div.check-box[data-checked] {
+div.exa-mc[data-solved] div.choice.wrong div.check-box[data-checked] {
   background-image: url("static/check-box-1w.svg");
 }
 
-.reveal div.exa-mc[data-solved] div.choice.wrong div.check-box {
+div.exa-mc[data-solved] div.choice.wrong div.check-box {
   background-image: url("static/check-box-0c.svg");
 }
 
-.reveal div.exa-mc[data-solved] div.choice.correct div.check-box[data-checked] {
+div.exa-mc[data-solved] div.choice.correct div.check-box[data-checked] {
   background-image: url("static/check-box-1c.svg");
 }
 
-.reveal div.exa-ff {
+div.exa-ff {
   margin: 0em;
   padding-left: 0em;
   padding-top: 0.3em;
+  padding-bottom: 0em;
 }
 
-.reveal div.exa-ff h3 {
+div.exa-ff h3 {
   margin: 0em;
   padding-left: 0em;
   padding-top: 0.3em;
   font-weight: bold;
 }
 
-.reveal div.exa-ff textarea {
-  width: 95%;
-  padding: 0.2em;
-  margin: 0.3em;
+div.exa-ff textarea {
+  width: 100%;
   resize: none;
   font-family: "Source Code Pro", monospace;
-  font-size: 27px;
 }
 
-.reveal div.exa-ff div.solution {
+div.exa-ff div.solution {
   display: none;
 }
 
-.reveal div.exa-ff[data-solved] div.solution {
+div.exa-ff[data-solved] div.solution {
   display: block;
 }
 
-.reveal div.exa-ma {
+div.exa-ma {
   margin: 0em;
   padding-left: 1em;
   padding-top: 0.3em;
 }
 
-select {
-  -webkit-appearance: none;
+table.exa-ma tr.detail {
 }
 
-.reveal table.exa-ma select {
-  font-size: 30px;
-}
-
-.reveal table.exa-ma select optgroup {
-  font-size: 15px;
-}
-
-.reveal table.exa-ma tr.detail {
-  padding: 0.2em 0em;
-}
-
-.reveal table.exa-ma tr.detail td {
-  padding: 0.2em 1em;
+table.exa-ma tr.detail td {
   border: none;
 }
 
-.reveal table.exa-ma tr.detail[data-right] {
+table.exa-ma tr.detail[data-right] {
   background-color: #4f4;
 }
 
-.reveal table.exa-ma tr.detail[data-wrong] {
+table.exa-ma tr.detail[data-wrong] {
   background-color: #f44;
 }
 

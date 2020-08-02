@@ -113,7 +113,7 @@ $endif$
         $endfor$
     </head>
 
-    <body onload="initHandout();">
+    <body class="handout" onload="initHandout();">
         $for(include-before)$
         $include-before$
         $endfor$
@@ -166,5 +166,8 @@ $body$
             elements_selector: "img, video, iframe"
           });
         </script>
+        $for(template.include-js)$
+        <script src="$template.include-js$"></script>
+        $endfor$
     </body>
   </html>
