@@ -38,20 +38,20 @@ textarea {
 div.exa-quest div.difficulty {
   float: right;
   width: 2em;
-  height: 1.2em;
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 div.exa-quest[data-difficulty="Easy"] div.difficulty {
-  background-image: url("static/dumbell-easy.svg");
+  content: url("static/dumbell-easy.svg");
 }
 
 div.exa-quest[data-difficulty="Medium"] div.difficulty {
-  background-image: url("static/dumbell-medium.svg");
+  content: url("static/dumbell-medium.svg");
 }
 
 div.exa-quest[data-difficulty="Hard"] div.difficulty {
-  background-image: url("static/dumbell-hard.svg");
+  content: url("static/dumbell-hard.svg");
 }
 
 div.exa-quest button:hover {
@@ -138,7 +138,10 @@ div.exa-quest[data-solved] div.exa-mc div.choice.correct div.check-box {
   background-image: url("static/check-box-0w.svg");
 }
 
-div.exa-quest[data-solved] div.exa-mc div.choice.wrong div.check-box[data-checked] {
+div.exa-quest[data-solved]
+  div.exa-mc
+  div.choice.wrong
+  div.check-box[data-checked] {
   background-image: url("static/check-box-1w.svg");
 }
 
@@ -146,7 +149,10 @@ div.exa-quest[data-solved] div.exa-mc div.choice.wrong div.check-box {
   background-image: url("static/check-box-0c.svg");
 }
 
-div.exa-quest[data-solved] div.exa-mc div.choice.correct div.check-box[data-checked] {
+div.exa-quest[data-solved]
+  div.exa-mc
+  div.choice.correct
+  div.check-box[data-checked] {
   background-image: url("static/check-box-1c.svg");
 }
 

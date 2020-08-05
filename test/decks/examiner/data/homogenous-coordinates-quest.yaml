@@ -24,5 +24,4 @@ Comment: ""
 Question: |
   Bei der Betrachtung eines 3D-Vektors in homogenen Koordinaten wird diesem
   eine 4. Koordinate $w$ hinzugefügt. Welche Aussagen über die
-  *Homogenisierende* $w$ treffen bezüglich der Anwendung von affinen
-  Koordinaten zu?
+  *Homogenisierende* $w$ treffen zu?
