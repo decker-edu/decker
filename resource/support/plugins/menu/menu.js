@@ -533,17 +533,19 @@ var RevealMenu = window.RevealMenu || (function(){
                         icon.classList.add( animState ? 'fa-circle' : 'fa-circle-check' );
                     }, true);
 
-                    // MARIO: trigger PDF export (does not work in Electron app)
+                    // MARIO: trigger PDF export
                     addToolbarButton('Export to PDF', 'Print', 'fa-print', 'fas', function(){
-                        let url = window.location.href + '?print-pdf';
+						let url = location.protocol + '//' + location.host + location.pathname + '?print-pdf';
+
                         // electron app
                         if (window.printPDF) {
                             window.printPDF(url);
                         }
                         // normal browser mode
                         else {
-                            if (confirm("Leave/reload presentation to export PDF?"))
-                                window.open(url, "_self");
+                            if (confirm("Leave/reload presentation to export PDF?")) {
+								window.open(url, "_self");
+							}
                         }
                         closeMenu();
                     }, true);

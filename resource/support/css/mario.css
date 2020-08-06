@@ -8,6 +8,13 @@
 @import url("../fonts/lato.css");
 @import url("../vendor/fontawesome/css/all.css");
 
+:root {
+ --dark-green:#639a00;
+ --light-green:#84b819;
+ --dark-grey:#616161;
+ --emphColor: var(--dark-green);
+ --whiteboard-active-color: var(--light-green);
+}
 
 
 /*********************************************
@@ -193,7 +200,7 @@ body {
 
 .reveal .boldblue {
     font-weight: bold;
-	color: #2a9ddf;
+	color: var(--emphColor);
 }
 
 .reveal b {
@@ -431,14 +438,14 @@ body {
  * LINKS
  *********************************************/
 .reveal a {
-  color: #2a76dd;
+  color: var(--dark-green);
   text-decoration: none;
   -webkit-transition: color .15s ease;
   -moz-transition: color .15s ease;
   transition: color .15s ease; }
 
 .reveal a:hover {
-  color: #6ca0e8;
+  color: var(--light-green);
   text-shadow: none;
   border: none; }
 
@@ -537,7 +544,7 @@ body {
   background: rgba(0, 0, 0, 0.2); }
 
 .reveal .progress span {
-  background: #2a9ddf;
+  background: var(--emphColor);
   -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
   -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
   transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985); }
@@ -550,7 +557,7 @@ body {
 
 .white-on-blue {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
 }
 
 .reveal div.title {
@@ -608,7 +615,7 @@ body {
 .reveal .section h1 {
     /* white on blue */
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
 
     /* large top margin -> vertical centering */
     margin:      100px auto;
@@ -638,7 +645,7 @@ body {
     display: inline-block;
     font-size: 0.7em;
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     padding: 10px;
     margin: auto;
     border-radius:5px;
@@ -647,7 +654,7 @@ body {
 
 .reveal .comment {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     position:absolute;
     padding:10px;
     border-radius:5px;
@@ -656,7 +663,7 @@ body {
 
 .reveal .comment-left {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     position:absolute;
     padding:5px;
     font-size: 80%;
@@ -665,7 +672,7 @@ body {
 
 .reveal .comment-right {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     position:absolute;
     padding:5px;
     font-size: 80%;
@@ -674,7 +681,7 @@ body {
 
 .reveal .comment-big {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     padding:10px;
     border-radius:5px;
 }
@@ -826,8 +833,8 @@ body {
 }
 
 .reveal section mjx-container > svg a {
-	color: #2a9ddf;
-	fill: #2a9ddf;
+	color: var(--emphColor);
+	fill: var(--emphColor);
 }
 
 
@@ -962,7 +969,7 @@ body {
     position:      relative;
     text-align:    left;
     margin:        0.5em;
-    border:        3px solid #2a9ddf;
+    border:        3px solid var(--emphColor);
     border-radius: 0.5em;
     padding:       0.5em;
     font-weight:   normal;
@@ -1073,7 +1080,7 @@ body {
     font-family: inherit;
     margin:      0.5em;
     padding:     10px;
-    border:      2px solid #2a9ddf;
+    border:      2px solid var(--emphColor);
 }
 
 .reveal .qic .solutionList,
@@ -1134,7 +1141,7 @@ body {
     font-size:   0.9em;
     font-weight: normal;
     padding:     5px;
-    border:      2px solid #2a9ddf;
+    border:      2px solid var(--emphColor);
     background:  white;
 }
 
@@ -1268,7 +1275,7 @@ body {
     display:        block;
     vertical-align: middle;
     overflow:       hidden;
-    border:         2px solid #2a9ddf;
+    border:         2px solid var(--emphColor);
     border-radius:  10px;
     padding:        10px;
     background:     white;
@@ -1317,7 +1324,7 @@ body {
   position: relative;
   text-align: left;
   margin: 20px;
-  border: 2px solid #2a9ddf;
+  border: 2px solid var(--emphColor);
   border-radius: 20px;
   padding: 20px;
   font-weight: normal;
