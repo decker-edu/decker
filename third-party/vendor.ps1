@@ -43,7 +43,7 @@ Foreach ($i in ("tex-svg.js", "input\tex", "input\tex.js". "output\svg", "output
 
 # Copy reveal.js
 New-Item "$support\reveal\plugin" -Force -ItemType "directory"
-Foreach ($i in ("js", "css", "plugin\notes")) {  
+Foreach ($i in ("js", "css", "plugin\notes", "plugin\highlight")) {  
   Copy-Item -r "$third\reveal.js\$i" "$support\reveal\$i" -Force
 }
 

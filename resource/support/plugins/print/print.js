@@ -83,37 +83,72 @@ var RevealPrint = (function(){
     }
 
 
-    /* remove controls from videos, since they mess up printing
+    /* 
+     * Remove controls from videos, since they mess up printing.
+     * If we have >5 videos and are printing from headless Chrome,
+     * this will stall due a Chrome bug. Hence we disable videos
+     * from the sixth video on in this configuration.
      */
     function setupVideos()
     {
-        for (var vid of document.getElementsByTagName("video")) 
+        let numVideos = 0;
+        let maxVideos = 5; // headless Chrome can handle 5 videos
+        
+        // go through all slides
+        for (let slide of document.getElementsByTagName("section"))
         {
-            if (vid.hasAttribute("data-src"))
+            // do we have a background video?
+            if (slide.hasAttribute("data-background-video"))
             {
-                var src = vid.getAttribute("data-src");
-                if (!src.includes("#t="))
-                    src = src + "#t=0.5";
+                // handle headless Chrome bug
+                if (navigator.webdriver && numVideos >= maxVideos)
+                {
+                    slide.removeAttribute("data-background-video");
+                }
 
-                vid.src = src;
-                vid.removeAttribute("data-src");
+                // play video to 0.5s to get a poster frame
+                else
+                {
+                    var src = slide.getAttribute("data-background-video");
+                    if (!src.includes("#t="))
+                    {
+                        src = src + "#t=0.5";
+                        slide.setAttribute("data-background-video", src);
+                    }
+                }
+
+                numVideos++;
             }
 
-            vid.removeAttribute("controls");
-            vid.removeAttribute("data-autoplay");
-            vid.removeAttribute("autoplay");
-        }
-
-        for (var e of document.getElementsByTagName("section")) 
-        {
-            if (e.hasAttribute("data-background-video"))
+            // do we have videos on this slide?
+            for (let video of slide.getElementsByTagName("video"))
             {
-                var src = e.getAttribute("data-background-video");
-                if (!src.includes("#t="))
+                // handle headless Chrome bug
+                if (navigator.webdriver && numVideos >= maxVideos)
                 {
-                    src = src + "#t=0.5";
-                    e.setAttribute("data-background-video", src);
+                    video.setAttribute("preload", "none");
+                    video.style.border = "1px dashed red";
                 }
+
+                // play video to 0.5s to get a poster frame
+                else
+                {
+                    if (video.hasAttribute("data-src"))
+                    {
+                        var src = video.getAttribute("data-src");
+                        if (!src.includes("#t="))
+                            src = src + "#t=0.5";
+
+                        video.src = src;
+                        video.removeAttribute("data-src");
+                    }
+
+                    video.removeAttribute("controls");
+                    video.removeAttribute("data-autoplay");
+                    video.removeAttribute("autoplay");
+                }
+
+                numVideos++;
             }
         }
     }
@@ -149,7 +184,7 @@ var RevealPrint = (function(){
                     setupTitle();
 
                     // automatically press the print button when not in headless mode
-                    if (!navigator.webdriver)
+                    if (!navigator.webdriver && !isElectron())
                     {
                         Reveal.addEventListener( 'pdf-ready', function() {
                             setTimeout( window.print, 1000 );

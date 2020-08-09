@@ -1,0 +1,37 @@
+@import url("../fonts/lato.css");
+
+:root {
+ --dark-green:#639a00;
+ --light-green:#84b819;
+ --dark-grey:#616161;
+ --emphColor: var(--dark-green);
+ --whiteboard-active-color: var(--light-green);
+}
+
+body {
+    background: #ffffff;
+    background-color: #ffffff;
+    font-family: "Lato";
+    color: #222; 
+}
+
+header {
+    background: var(--dark-green);
+    text-align: center;
+}
+
+header > h1, header > h2 {
+    color: white;
+}
+
+header > h1 {
+    font-size: 45px;
+}
+
+a {
+    color: var(--dark-green);
+}
+
+a:hover {
+    color: var(--light-green);
+}
