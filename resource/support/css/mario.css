@@ -1007,8 +1007,7 @@ body {
 }
 
 /* tool tip */
-.reveal .quiz ul li ul li,
-.reveal .quiz .tip {
+.reveal .quiz ul li ul li {
     display:          block;
     visibility:       hidden;
     max-width:        95%;
@@ -1038,11 +1037,9 @@ body {
     border:           3px solid green;
 }
 
-/* before being clicked, tool tips are hidden */
+/* tool tips are shown on hover */
 .reveal .show-right:hover ul li, 
-.reveal .show-wrong:hover ul li, 
-.reveal .show-wrong:hover .tip, 
-.reveal .show-right:hover .tip {
+.reveal .show-wrong:hover ul li {
     visibility: visible;
 }
 
