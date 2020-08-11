@@ -37,39 +37,17 @@ function quizMC() {
     var mcQuestions = document.querySelectorAll(".qmc,.quiz-mc,.quiz-multiple-choice");
 
     for (let mc of mcQuestions) {
-
-        const answers = mc.getElementsByTagName("li");
+        var answers = mc.getElementsByTagName("li");
 
         for (let answer of answers) {
-
             answer.addEventListener("click", function () {
-                const is_right = this.classList.contains("correct");
-                const tooltip = answer.querySelectorAll(".tooltip")[0];
-                if (tooltip.textContent) {
-                    tooltip.style.visibility = "visible";
-                }
+                var correct = this.classList.contains("correct");
+                var tooltip = answer.querySelectorAll(".tooltip")[0];
 
-                if (is_right) {
-                    this.style.backgroundColor = "#aaffaa";
-                    this.style.border = "2px solid black";
-                }
-                else {
-                    this.style.backgroundColor = "#ffaaaa";
-                    this.style.border = "2px dotted black";
-                }
-
-                this.addEventListener("mouseover", function () {
-                    if (tooltip.textContent) {
-                        tooltip.style.visibility = "visible";
-                    }
-                });
-                this.addEventListener("mouseout", function () {
-                    tooltip.style.visibility = "hidden";
-                });
+                this.classList.add(correct ? "show-right" : "show-wrong");
             });
         }
     }
-
 }
 /**
  * @param {string} answer - The input answer

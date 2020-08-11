@@ -231,6 +231,25 @@
 
         }
 
+        // once clicked, wrong answers are red
+        .show-wrong {
+            background-color: #ffaaaa;
+            border:           2px dotted black;
+        }
+        
+        // once clicked, correct answers are green
+        .show-right {
+            background-color: #aaffaa;
+            border:           2px solid black;
+        }
+        
+        .show-right:hover,
+        .show-wrong:hover{
+            .tooltip{
+                visibility: visible;
+            }
+        }
+
         li:before {
             content: counter(answer, upper-latin) ": ";
             counter-increment: answer;
