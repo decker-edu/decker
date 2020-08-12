@@ -151,8 +151,6 @@ function quizFT() {
                 }
 
             }
-
-
         }
     }
 }
@@ -196,33 +194,6 @@ function quizIC() {
                 this.innerHTML = "";
             });
         }
-
-        // Handle correctness check and tooltip display for all input fields
-        // for (let i of inputs) {
-        //     const solutions = i.nextElementSibling;
-        //     inputEvent(i, solutions);
-        // }
-
-        // // Show all entire solution/tooltip boxes
-        // button.onclick = function () {
-        //     const solutionLists = ic.getElementsByClassName("solutionList");
-        //     for (let s of solutionLists) {
-        //         // s.style.visibility = "visible";
-        //         s.style.display = "inline-block";
-
-        //         for (let l of s.getElementsByTagName("li")) {
-        //             l.style.display = "block";
-        //         }
-
-        //         setTimeout(function () {
-        //             // s.style.visibility = "hidden";
-        //             s.style.display = "none";
-        //             Array.from(s.getElementsByTagName("li")).map(
-        //                 (x) => (x.style.display = "none")
-        //             );
-        //         }, 3000);
-        //     }
-        // };
     }
 }
 
@@ -321,9 +292,6 @@ function matchingAnswerButton(matchQuestion) {
                 rem.style.backgroundColor = "#aaffaa";
                 rem.style.border = "2px solid black";
 
-                // if (!hasTooltip) {
-                // rem.append(solution("distractor"));
-                // }
             } else {
                 rem.style.backgroundColor = "#ffaaaa";
 
@@ -359,35 +327,6 @@ function matchingAnswerButton(matchQuestion) {
     }
 }
 
-// TODO: to call from drop() (Work in Progress!)
-// This is the start of an implementation that shows the solutions for matching once certain amounts of elements have been moved from the source area to the target area/buckets
-function matchingSolutions(matchQuestion) {
-    const numberSource = matchQuestion.querySelectorAll(".matchItem:not(.distractor)").length;
-    const numberTargets = matchQuestion.querySelectorAll(".bucket:not(.distractor)").length;
-    console.log("check for solution");
-
-    const buckets = matchQuestion.getElementsByClassName("bucket");
-    const remainingItems = matchQuestion.getElementsByClassName("matchItems")[0].querySelectorAll(".matchItem:not(.distractor)");
-    const bucketsDiv = matchQuestion.getElementsByClassName("buckets")[0];
-    const assignedItems = bucketsDiv.getElementsByClassName("matchItem");
-
-    if (numberSource > numberTargets) {
-        console.log("more items");
-        if (remainingItems.length == 0) {
-            console.log("all assigned");
-        }
-    } else if (numberSource < numberTargets) {
-        console.log("more buckets");
-    }
-    else {
-        console.log("same number");
-        if (remainingItems.length == 0) {
-            console.log("all assigned");
-        }
-    }
-
-}
-
 // Functions for dragging and dropping in the matching questions 
 function allowDrop(ev) {
     ev.preventDefault();
@@ -414,8 +353,4 @@ function drop(event) {
     }
 
     event.target.appendChild(element);
-
-    // TODO: Call to a function that checks which solutions have been assigned correctly 
-    // matchingSolutions(event.target.closest(".qmi,.quiz-mi,.quiz-match-items"));
-    // event.target.disabled = true;
 }
