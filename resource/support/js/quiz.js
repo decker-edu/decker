@@ -42,7 +42,6 @@ function quizMC() {
         for (let answer of answers) {
             answer.addEventListener("click", function () {
                 var correct = this.classList.contains("correct");
-                var tooltip = answer.querySelectorAll(".tooltip")[0];
 
                 this.classList.add(correct ? "show-right" : "show-wrong");
             });
@@ -69,11 +68,9 @@ function handleSolutionList(solutionList, answer) {
         // Get only the solution text and not the tooltip div
         const solution = s.innerHTML.replace(/(<div)(.|[\r\n])*(<\/div>)/, "").toLowerCase().trim();
         if (is_right && answer == solution) {
-            s.style.display = "block";
             s.classList.add("solved");
             return { correct: true, predef: true };
         } else if (!is_right && answer == solution) {
-            s.style.display = "block";
             s.classList.add("solved");
             return { correct: false, predef: true };
         }
@@ -95,20 +92,21 @@ function inputEvent(input, solutions) {
             const answer = input.value.toLowerCase().trim();
             const handled = handleSolutionList(solutions, answer);
 
-            //Change the appearance of the input element
-            this.style.backgroundColor = (handled.correct) ? "#aaffaa" : "#ffaaaa";
-            this.style.border = (handled.correct) ? "2px solid black" : "2px dotted black";
+            //Change the appearance of the input element depending on correctness of answer
+            this.classList.remove("show-right");
+            this.classList.remove("show-wrong");
+            this.classList.add(handled.correct ? "show-right" : "show-wrong");
 
             // Display the tooltip/solution box
             // Show the tooltip box for any expected answer. be it correct or wrong
-            solutions.style.display = (handled.predef) ? "inline-block" : "none";
+            solutions.classList.add(handled.predef ? "solved" : "");
             this.addEventListener("mouseover", function () {
                 if (handled.predef) {
-                    solutions.style.display = "inline-block";
+                    solutions.classList.add("solved");
                 }
             });
             this.addEventListener("mouseout", function () {
-                solutions.style.display = "none";
+                solutions.classList.remove("solved");
 
             });
         }
@@ -130,27 +128,31 @@ function quizFT() {
         inputEvent(input, solutions);
 
         solutionButton.onclick = function () {
-            solutions.style.display = "inline-block";
+            solutions.classList.add("solved");
+            // solutions.style.display = "inline-block";
+
+            for (let l of solutions.getElementsByTagName("li")) {
+                if (l.classList.contains("correct")) {
+                    l.classList.add("solved");
+                }
+            }
 
 
             // Hide tooltip box after 3 seconds
             setTimeout(function () {
-                solutions.style.display = "none";
+                solutions.classList.remove("solved");
                 // Hide solutions only if they haven't been solved yet
                 Array.from(solutions.getElementsByTagName("li")).map(x => {
-                    if (!x.classList.contains("solved")) {
-                        x.style.display = "none";
-                    }
+                    x.classList.remove("solved");
+                    // if (!x.classList.contains("solved")) {
+
+                    // x.style.display = "none";
+                    // }
                 })
 
             }, 3000)
 
-            for (let l of solutions.getElementsByTagName("li")) {
-                if (l.classList.contains("correct")) {
-                    l.style.display = "block";
-                }
 
-            }
         }
     }
 }

@@ -12,6 +12,19 @@
     [class*="quiz-"]{
     position: relative;
 
+    // once clicked, wrong answers are red
+    .show-wrong {
+        background-color: #ffaaaa;
+        border:           2px dotted black;
+    }
+    
+    // once clicked, correct answers are green
+    .show-right {
+        background-color: #aaffaa;
+        border:           2px solid black;
+    }
+    
+
     // General Button css and freetext question Input 
     button,
     input
@@ -30,14 +43,26 @@
         font-size: large;
     }
 
+   
+
+}}
+
+.reveal{
+    .qft,
+    [class*="quiz-f"]{
+    
     // solutionList is the div that appears next to 
     // a QFT input field 
     // Previously this was used for QIC questions as well
+
     .solutionList{
         li{
             padding: 5px;
             margin-right: 1em;
             display: none;
+        }
+        .solved{
+            display: block;
         }
         .correct:before {
             content: "✓";
@@ -59,8 +84,12 @@
         z-index:          99;
         font-size:        1rem;
     }
+    .solved{
+        display: inline-block;
+    }
 
-}}
+    }
+}
 
 // Designs specific to QIC questions
 // the choice for overflow scrolling stems from the
@@ -231,17 +260,17 @@
 
         }
 
-        // once clicked, wrong answers are red
-        .show-wrong {
-            background-color: #ffaaaa;
-            border:           2px dotted black;
-        }
+        // // once clicked, wrong answers are red
+        // .show-wrong {
+        //     background-color: #ffaaaa;
+        //     border:           2px dotted black;
+        // }
         
-        // once clicked, correct answers are green
-        .show-right {
-            background-color: #aaffaa;
-            border:           2px solid black;
-        }
+        // // once clicked, correct answers are green
+        // .show-right {
+        //     background-color: #aaffaa;
+        //     border:           2px solid black;
+        // }
         
         .show-right:hover,
         .show-wrong:hover{

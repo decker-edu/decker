@@ -356,6 +356,24 @@
   position: relative;
 }
 
+.reveal .qic .show-wrong,
+.reveal .qft .show-wrong,
+.reveal .qmc .show-wrong,
+.reveal .qmi .show-wrong,
+.reveal [class*="quiz-"] .show-wrong {
+  background-color: #ffaaaa;
+  border: 2px dotted black;
+}
+
+.reveal .qic .show-right,
+.reveal .qft .show-right,
+.reveal .qmc .show-right,
+.reveal .qmi .show-right,
+.reveal [class*="quiz-"] .show-right {
+  background-color: #aaffaa;
+  border: 2px solid black;
+}
+
 .reveal .qic button,
 .reveal .qic input,
 .reveal .qft button,
@@ -390,11 +408,8 @@
   font-size: large;
 }
 
-.reveal .qic .solutionList,
 .reveal .qft .solutionList,
-.reveal .qmc .solutionList,
-.reveal .qmi .solutionList,
-.reveal [class*="quiz-"] .solutionList {
+.reveal [class*="quiz-f"] .solutionList {
   list-style-type: none;
   display: none;
   background-color: grey;
@@ -408,32 +423,33 @@
   font-size: 1rem;
 }
 
-.reveal .qic .solutionList li,
 .reveal .qft .solutionList li,
-.reveal .qmc .solutionList li,
-.reveal .qmi .solutionList li,
-.reveal [class*="quiz-"] .solutionList li {
+.reveal [class*="quiz-f"] .solutionList li {
   padding: 5px;
   margin-right: 1em;
   display: none;
 }
 
-.reveal .qic .solutionList .correct:before,
+.reveal .qft .solutionList .solved,
+.reveal [class*="quiz-f"] .solutionList .solved {
+  display: block;
+}
+
 .reveal .qft .solutionList .correct:before,
-.reveal .qmc .solutionList .correct:before,
-.reveal .qmi .solutionList .correct:before,
-.reveal [class*="quiz-"] .solutionList .correct:before {
+.reveal [class*="quiz-f"] .solutionList .correct:before {
   content: "✓";
   font-weight: bold;
 }
 
-.reveal .qic .solutionList .wrong:before,
 .reveal .qft .solutionList .wrong:before,
-.reveal .qmc .solutionList .wrong:before,
-.reveal .qmi .solutionList .wrong:before,
-.reveal [class*="quiz-"] .solutionList .wrong:before {
+.reveal [class*="quiz-f"] .solutionList .wrong:before {
   content: "✗";
   font-weight: bold;
+}
+
+.reveal .qft .solved,
+.reveal [class*="quiz-f"] .solved {
+  display: inline-block;
 }
 
 .reveal .qic,
@@ -615,20 +631,6 @@
   padding: 20px;
   font-weight: normal;
   color: black;
-}
-
-.reveal .quiz-multiple-choice .show-wrong,
-.reveal .quiz-mc .show-wrong,
-.reveal .qmc .show-wrong {
-  background-color: #ffaaaa;
-  border: 2px dotted black;
-}
-
-.reveal .quiz-multiple-choice .show-right,
-.reveal .quiz-mc .show-right,
-.reveal .qmc .show-right {
-  background-color: #aaffaa;
-  border: 2px solid black;
 }
 
 .reveal .quiz-multiple-choice .show-right:hover .tooltip,
