@@ -3,91 +3,50 @@
 // match item, insert choices, multipl choice and freetext questions
 ////////////////////////////////////////////////
 
-// 
-.reveal {
-    .qic,
-    .qft,
-    .qmc,
-    .qmi,
-    [class*="quiz-"]{
-    position: relative;
 
-    // once clicked, wrong answers are red
-    .show-wrong {
-        background-color: #ffaaaa;
-        border:           2px dotted black;
-    }
-    
-    // once clicked, correct answers are green
-    .show-right {
-        background-color: #aaffaa;
-        border:           2px solid black;
-    }
-    
-
-    // General Button css and freetext question Input 
-    button,
-    input
-    {
-        border-radius: 0.5em;
-        font-size: inherit;
-        font-family: inherit;
-        outline: none;
-        clear: both;
-        border: 2px solid black;
-    }
-    input:placeholder-shown {
-        text-overflow: ellipsis;
-    }
-    .solutionButton{
-        font-size: large;
-    }
-
-   
-
-}}
 
 .reveal{
     .qft,
     [class*="quiz-f"]{
     
-    // solutionList is the div that appears next to 
-    // a QFT input field 
-    // Previously this was used for QIC questions as well
-
-    .solutionList{
-        li{
-            padding: 5px;
-            margin-right: 1em;
+        // solutionList is the tooltip div that appears next to 
+        // a QFT input field 
+        // Previously this was used for QIC questions as well. For QIC 
+        .solutionList{
+            li{
+                padding: 5px;
+                margin-right: 1em;
+                // The default list items defined in decker.scss have 40px left margin
+                // overwrite this 40px here
+                margin-left: 1em;
+                display: none;
+            }
+            .solved{
+                display: block;
+            }
+            .correct:before {
+                content: "✓ ";
+                font-weight:  bold;
+            }
+            .wrong:before{
+                content: "✗ ";
+                font-weight: bold;
+            }
+            list-style-type: none;
             display: none;
+            background-color: grey;
+            color:            #ffffff;
+            margin:           5px;
+            padding:          5px;
+            border-radius:    6px;
+            border:           none;
+            position:         fixed;
+            z-index:          99;
+            font-size:        1rem;
         }
         .solved{
             display: block;
         }
-        .correct:before {
-            content: "✓";
-            font-weight:  bold;
-        }
-        .wrong:before{
-            content: "✗";
-            font-weight: bold;
-        }
-        list-style-type: none;
-        display: none;
-        background-color: grey;
-        color:            #ffffff;
-        margin:           5px;
-        padding:          5px;
-        border-radius:    6px;
-        border:           none;
-        position:         fixed;
-        z-index:          99;
-        font-size:        1rem;
-    }
-    .solved{
-        display: inline-block;
-    }
-
     }
 }
 
@@ -108,12 +67,25 @@
                 color: black;
             }
         }
-        // tooltip-div is the box that appears on hover 
-        // after having answered a QIC select element
+
+        // solutionList only serves a "backend" purpose with QIC questions
+        .solutionList{
+            display: none;
+        }
+
         .tooltip-div {
+            /* tooltip-div is the box that appears on hover 
+            after having answered a QIC select element
+            This div is a placeholder where only the tooltip of the
+            currently selected/hovered option is shown
+            */
             font-size: 0.6em;
             background-color: #f4f4f7;
             margin-top: 0.5em;
+            .tooltip{
+                display: block;
+            }
+
         }
 }
 }
@@ -136,7 +108,9 @@
             max-width: 100%;
         }
 
-        .draggableChild {
+        // Child items of draggable boxes should not be draggable themselves
+        // Links should be able to be clicked therefore exclude a
+        .draggableChild:not(a) {
             pointer-events: none;
         } 
 
@@ -155,8 +129,8 @@
             border-radius:   5px;
             box-sizing:      border-box;
         }
-
-
+        
+        // matchItems is socially distancing itself from the buckets div
         .matchItems{
             margin-bottom: 60px;
         }
@@ -219,19 +193,11 @@
             margin-left: 2px;
             margin-right: 2px;
         }
-
-        .bucket{
-            .matchItem{
-                display:    block;
-                border:     2px dotted black;
-                background: inherit
-            }
-        }
     }
 }
 
 // CSS specific to multiple choice/QMC questions
-// Design mostly adapted 1:1 from Mario's clicker quiz
+// Design mostly adapted from Mario's quiz
 .reveal {
     .quiz-multiple-choice,
     .quiz-mc,
@@ -260,18 +226,6 @@
 
         }
 
-        // // once clicked, wrong answers are red
-        // .show-wrong {
-        //     background-color: #ffaaaa;
-        //     border:           2px dotted black;
-        // }
-        
-        // // once clicked, correct answers are green
-        // .show-right {
-        //     background-color: #aaffaa;
-        //     border:           2px solid black;
-        // }
-        
         .show-right:hover,
         .show-wrong:hover{
             .tooltip{
@@ -307,3 +261,45 @@
 
     }
 }
+
+// General settings for all quiz styles
+.reveal {
+    .qic,
+    .qft,
+    .qmc,
+    .qmi,
+    [class*="quiz-"]{
+    position: relative;
+
+    // wrong answers are red and have dotted black border 
+    // (better accessability for visually impaired people)
+    .show-wrong {
+        background-color: #ffaaaa;
+        border:           2px dotted black;
+    }
+    
+    // correct answers are green and have solid black border
+    .show-right {
+        background-color: #aaffaa;
+        border:           2px solid black;
+    }
+    
+
+    // General Button css and freetext question Input 
+    button,
+    input
+    {
+        border-radius: 0.5em;
+        font-size: inherit;
+        font-family: inherit;
+        outline: none;
+        clear: both;
+        border: 2px solid black;
+    }
+    input:placeholder-shown {
+        text-overflow: ellipsis;
+    }
+    .solutionButton{
+        font-size: large;
+    }
+}}
