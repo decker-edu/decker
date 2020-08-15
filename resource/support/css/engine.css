@@ -1,0 +1,135 @@
+div.q-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 60%;
+  right: 0;
+  z-index: 300;
+  background-color: rgba(0, 0, 0, 0);
+
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: stretch;
+
+  font-family: "Roboto", Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: rgba(0, 0, 0, 1);
+}
+
+div.q-header {
+  flex: 0 1 content;
+
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: baseline;
+
+  background-color: rgba(127, 0, 0, 0.3);
+  padding: 5px;
+  font-size: 16px;
+}
+
+div.q-header input {
+  flex: 1 1;
+  font-family: "Roboto", Helvetica, sans-serif;
+  min-width: 2em;
+  font-size: 16px;
+}
+
+div.q-header div.q-close {
+  flex: 0 1 content;
+  align-self: center;
+
+  color: gray;
+  background-color: rgba(0, 0, 0, 0);
+  padding: 2px 4px;
+  margin: 0;
+  margin-left: 0.5em;
+
+  font-size: 120%;
+
+  border: none;
+  border-radius: 4px;
+  outline: none;
+}
+
+div.q-list {
+  flex: 1 1;
+  background-color: rgba(0, 127, 0, 0.3);
+  padding: 5px;
+  font-size: 16px;
+}
+
+div.q-list div {
+  background-color: rgba(255, 255, 255, 0.7);
+  font-family: "Roboto", Helvetica, sans-serif;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  outline: none;
+  margin-bottom: 0.5em;
+  padding: 0.5em;
+
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+}
+
+div.q-list div div.content {
+  flex: 1 1;
+  margin: 0;
+  padding: 0;
+  background-color: rgb(0, 0, 0, 0);
+}
+
+div.q-list div button {
+  flex: 0 1 content;
+
+  color: black;
+  background-color: rgba(0, 0, 0, 0);
+  border: none;
+  border-radius: 4px;
+  outline: none;
+  padding: 1px 2px;
+  margin: 0;
+  margin-left: 0.5em;
+}
+
+div.q-input {
+  flex: 0 1;
+  background-color: rgba(0, 0, 127, 0.3);
+  padding: 5px;
+  font-size: 16px;
+}
+
+div.q-input textarea {
+  display: block;
+  background-color: rgba(255, 255, 255, 0.7);
+  width: 98%;
+  resize: none;
+  font-family: "Roboto", Helvetica, sans-serif;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  outline: none;
+}
+
+div.q-footer {
+  flex: 0 1 content;
+
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: baseline;
+
+  background-color: rgba(0, 127, 127, 0.3);
+  padding: 5px;
+  font-size: 16px;
+}
+
+div.q-footer input {
+  flex: 1 1;
+  font-family: "Roboto", Helvetica, sans-serif;
+  font-size: 16px;
+  min-width: 10em;
+  color: grey;
+}
