@@ -33,18 +33,22 @@ div.q-header input {
   flex: 1 1;
   font-family: "Roboto", Helvetica, sans-serif;
   min-width: 2em;
+  max-width: 100em;
   font-size: 16px;
 }
 
+div.q-header input.check {
+  flex: 0 1 1em;
+  align-self: center;
+}
+
 div.q-header div.q-close {
-  flex: 0 1 content;
+  flex: 0 1 1em;
   align-self: center;
 
   color: gray;
   background-color: rgba(0, 0, 0, 0);
   padding: 2px 4px;
-  margin: 0;
-  margin-left: 0.5em;
 
   font-size: 120%;
 

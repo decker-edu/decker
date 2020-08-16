@@ -17,6 +17,7 @@ function buildInterface(api) {
   let panel = document.createElement("div");
   let header = document.createElement("div");
   let user = document.createElement("input");
+  let check = document.createElement("input");
   let close = document.createElement("div");
   let container = document.createElement("div");
   let input = document.createElement("div");
@@ -34,7 +35,11 @@ function buildInterface(api) {
   panel.classList.add("q-panel");
   header.classList.add("q-header");
   user.setAttribute("placeholder", "Enter user token");
+  check.setAttribute("type", "checkbox");
+  check.setAttribute("title", "Store user token (session)");
+  check.classList.add("check");
   header.appendChild(user);
+  header.appendChild(check);
   header.appendChild(close);
   close.classList.add("q-close");
   close.appendChild(cross);
@@ -75,6 +80,19 @@ function buildInterface(api) {
     slideid.value = context.slide;
   };
 
+  let updateUser = () => {
+    let val = window.localStorage.getItem("token");
+    console.log("update: token=" + val);
+    if (val !== null) {
+      user.value = val;
+      user.setAttribute("disabled", true);
+      check.checked = true;
+    } else {
+      user.removeAttribute("disabled");
+      check.checked = false;
+    }
+  };
+
   let renderDelete = () => {
     api.updateCommentList(getContext, renderList);
   };
@@ -96,7 +114,6 @@ function buildInterface(api) {
 
       let div = document.createElement("div");
       div.appendChild(content);
-      
 
       if (comment.delete) {
         let del = document.createElement("button");
@@ -114,9 +131,21 @@ function buildInterface(api) {
   user.addEventListener("keydown", e => {
     if (e.key === "Enter") {
       api.updateCommentList(getContext, renderList);
-      updateIds();
       e.stopPropagation();
       document.activeElement.blur();
+    }
+  });
+
+  check.addEventListener("click", e => {
+    if (check.checked && user.value) {
+      console.log("click");
+      window.localStorage.setItem("token", user.value);
+      user.setAttribute("disabled", true);
+    } else {
+      console.log("clack");
+      window.localStorage.removeItem("token");
+      user.removeAttribute("disabled");
+      check.checked = false;
     }
   });
 
@@ -131,11 +160,13 @@ function buildInterface(api) {
 
   api.updateCommentList(getContext, renderList);
   updateIds();
+  updateUser();
 
   Reveal.addEventListener("slidechanged", event => {
     console.log(getContext());
     console.log(event.currentSlide.id);
     api.updateCommentList(getContext, renderList);
     updateIds();
+    updateUser();
   });
 }

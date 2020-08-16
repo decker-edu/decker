@@ -1,7 +1,7 @@
 ---
 title: Decker Engine Test
-decker-engine-base-url: https://tramberend.beuth-hochschule.de/decker
-# decker-engine-base-url: "http://localhost:8081"
+# decker-engine-base-url: https://tramberend.beuth-hochschule.de/decker
+decker-engine-base-url: "http://localhost:8081"
 deck-id: decker-engine-test
 controls: 0
 author: Henrik Tramberend
