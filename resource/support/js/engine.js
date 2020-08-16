@@ -5,7 +5,6 @@ async function prepareEngine(api) {
     buildInterface(api);
   } else {
     Reveal.addEventListener("ready", event => {
-      console.log("Reveal ready at: " + event.currentSlide.id);
       buildInterface(api);
     });
   }
@@ -13,6 +12,8 @@ async function prepareEngine(api) {
 
 function buildInterface(api) {
   let body = document.querySelector("body");
+
+  let open = document.createElement("div");
 
   let panel = document.createElement("div");
   let header = document.createElement("div");
@@ -33,12 +34,18 @@ function buildInterface(api) {
   cross.classList.add("far", "fa-window-close");
 
   let lock = document.createElement("i");
-  lock.classList.add("fas", "fa-lock", "lock");
+  lock.classList.add("far", "fa-lock", "lock");
 
   let unlock = document.createElement("i");
-  unlock.classList.add("fas", "fa-unlock", "unlock");
+  unlock.classList.add("far", "fa-unlock", "unlock");
+
+  let qmark = document.createElement("i");
+  qmark.classList.add("far", "fa-question-circle");
 
   panel.classList.add("q-panel");
+  open.appendChild(qmark);
+  open.classList.add("q-open");
+
   header.classList.add("q-header");
   user.setAttribute("type", "text");
   user.setAttribute("placeholder", "Enter user token");
@@ -72,6 +79,7 @@ function buildInterface(api) {
   panel.appendChild(input);
   panel.appendChild(footer);
 
+  document.body.appendChild(open);
   document.body.appendChild(panel);
 
   let getContext = () => {
@@ -90,7 +98,6 @@ function buildInterface(api) {
 
   let updateUser = () => {
     let val = window.localStorage.getItem("token");
-    console.log("update: token=" + val);
     if (val !== null) {
       user.value = val;
       user.setAttribute("disabled", true);
@@ -113,7 +120,6 @@ function buildInterface(api) {
   };
 
   let renderList = list => {
-    console.log(list);
     while (container.firstChild) {
       container.removeChild(container.lastChild);
     }
@@ -137,6 +143,18 @@ function buildInterface(api) {
     }
     container.scrollTop = 0;
   };
+
+  close.addEventListener("click", _ => {
+    open.classList.remove("checked");
+    panel.classList.remove("open");
+  });
+
+  open.addEventListener("click", _ => {
+    open.classList.add("checked");
+    panel.classList.add("open");
+    api.updateCommentList(getContext, renderList);
+    document.activeElement.blur();
+  });
 
   user.addEventListener("keydown", e => {
     if (e.key === "Enter") {
@@ -174,8 +192,6 @@ function buildInterface(api) {
   updateUser();
 
   Reveal.addEventListener("slidechanged", event => {
-    console.log(getContext());
-    console.log(event.currentSlide.id);
     api.updateCommentList(getContext, renderList);
     updateIds();
     updateUser();

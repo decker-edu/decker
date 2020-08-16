@@ -1,10 +1,42 @@
+div.q-open.checked {
+  display: none;
+}
+
+div.q-open:not(.checked) {
+  display: static;
+}
+
+div.q-open {
+  position: fixed;
+  top: 8px;
+  right: 6px;
+
+  color: gray;
+  background-color: rgba(0, 0, 0, 0);
+  padding: 2px 4px;
+
+  font-size: 120%;
+
+  border: none;
+  border-radius: 4px;
+  outline: none;
+}
+
+div.q-panel.open {
+  transform: translateX(0);
+}
+
+div.q-panel:not(.open) {
+  transform: translateX(100%);
+}
+
 div.q-panel {
   position: fixed;
   top: 0;
   bottom: 0;
   left: 60%;
   right: 0;
-  z-index: 300;
+  z-index: 100;
   background-color: rgba(0, 0, 0, 0);
 
   display: flex;
@@ -15,6 +47,8 @@ div.q-panel {
   font-size: 16px;
   font-weight: normal;
   color: rgba(0, 0, 0, 1);
+
+  transition: 0.3s ease-in-out;
 }
 
 div.q-header {
@@ -24,8 +58,8 @@ div.q-header {
   flex-flow: row nowrap;
   align-items: center;
 
-  background-color: rgba(127, 0, 0, 0.3);
-  padding: 5px;
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.3em;
   font-size: 16px;
 }
 
@@ -39,6 +73,12 @@ div.q-header input[type="password"] {
   flex: 1 1;
   min-width: 2em;
   max-width: 100em;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 4px;
+  outline: none;
+  padding-left: 0.3em;
+  margin: 0;
 }
 
 div.q-header div.q-check {
@@ -87,20 +127,20 @@ div.q-header div.q-close {
 
 div.q-list {
   flex: 1 1;
-  background-color: rgba(0, 127, 0, 0.3);
-  padding: 5px;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.3em;
   font-size: 16px;
 }
 
 div.q-list div {
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.9);
   font-family: "Roboto", Helvetica, sans-serif;
   font-size: 14px;
   border: none;
   border-radius: 4px;
   outline: none;
   margin-bottom: 0.5em;
-  padding: 0.5em;
+  padding: 0.3em;
 
   display: flex;
   flex-flow: row nowrap;
@@ -117,26 +157,23 @@ div.q-list div div.content {
 div.q-list div button {
   flex: 0 1 content;
 
-  color: black;
+  color: gray;
   background-color: rgba(0, 0, 0, 0);
   border: none;
-  border-radius: 4px;
-  outline: none;
-  padding: 1px 2px;
   margin: 0;
-  margin-left: 0.5em;
+  padding:0;
 }
 
 div.q-input {
   flex: 0 1;
-  background-color: rgba(0, 0, 127, 0.3);
-  padding: 5px;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.3em;
   font-size: 16px;
 }
 
 div.q-input textarea {
   display: block;
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.9);
   width: 98%;
   resize: none;
   font-family: "Roboto", Helvetica, sans-serif;
@@ -144,6 +181,7 @@ div.q-input textarea {
   border: none;
   border-radius: 4px;
   outline: none;
+  padding-left: 0.3em;
 }
 
 div.q-footer {
@@ -153,8 +191,8 @@ div.q-footer {
   flex-flow: row nowrap;
   align-items: baseline;
 
-  background-color: rgba(0, 127, 127, 0.3);
-  padding: 5px;
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.3em;
   font-size: 16px;
 }
 
@@ -162,6 +200,11 @@ div.q-footer input {
   flex: 1 1;
   font-family: "Roboto", Helvetica, sans-serif;
   font-size: 16px;
+  padding-left: 0.3em;
   min-width: 10em;
   color: grey;
+  margin: 0;
+  border: none;
+  border-radius: 4px;
+  outline: none;
 }
