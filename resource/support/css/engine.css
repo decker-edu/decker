@@ -8,14 +8,12 @@ div.q-open:not(.checked) {
 
 div.q-open {
   position: fixed;
-  top: 8px;
-  right: 6px;
+  top: 14px;
+  right: 14px;
 
   color: gray;
   background-color: rgba(0, 0, 0, 0);
   padding: 2px 4px;
-
-  font-size: 120%;
 
   border: none;
   border-radius: 4px;
@@ -48,6 +46,7 @@ div.q-panel {
   font-weight: normal;
   color: rgba(0, 0, 0, 1);
 
+  padding: 10px;
   transition: 0.3s ease-in-out;
 }
 
@@ -65,7 +64,7 @@ div.q-header {
 
 div.q-header input {
   font-family: "Roboto", Helvetica, sans-serif;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 div.q-header input[type="text"],
@@ -82,13 +81,11 @@ div.q-header input[type="password"] {
 }
 
 div.q-header div.q-check {
-  flex: 0 1 1em;
+  flex: 0 1;
 
   color: gray;
   background-color: rgba(0, 0, 0, 0);
   padding: 2px 4px;
-
-  font-size: 120%;
 
   border: none;
   border-radius: 4px;
@@ -112,13 +109,11 @@ div.q-header div.q-check:not(.checked) i.unlock {
 }
 
 div.q-header div.q-close {
-  flex: 0 1 1em;
+  flex: 0 1; 
 
   color: gray;
   background-color: rgba(0, 0, 0, 0);
   padding: 2px 4px;
-
-  font-size: 120%;
 
   border: none;
   border-radius: 4px;
@@ -168,7 +163,7 @@ div.q-input {
   flex: 0 1;
   background-color: rgba(0, 0, 0, 0.2);
   padding: 0.3em;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 div.q-input textarea {
@@ -199,9 +194,9 @@ div.q-footer {
 div.q-footer input {
   flex: 1 1;
   font-family: "Roboto", Helvetica, sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   padding-left: 0.3em;
-  min-width: 10em;
+  min-width: 2em;
   color: grey;
   margin: 0;
   border: none;

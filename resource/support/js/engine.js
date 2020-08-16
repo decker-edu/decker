@@ -31,7 +31,7 @@ function buildInterface(api) {
   trash.classList.add("far", "fa-trash-alt");
 
   let cross = document.createElement("i");
-  cross.classList.add("far", "fa-window-close");
+  cross.classList.add("far", "fa-times-circle");
 
   let lock = document.createElement("i");
   lock.classList.add("far", "fa-lock", "lock");
@@ -165,17 +165,20 @@ function buildInterface(api) {
   });
 
   check.addEventListener("click", _ => {
-    if (check.classList.contains("checked") && user.value) {
+    if (check.classList.contains("checked")) {
       check.classList.remove("checked");
       window.localStorage.removeItem("token");
       user.removeAttribute("disabled");
       user.type = "text";
     } else {
-      check.classList.add("checked");
-      window.localStorage.setItem("token", user.value);
-      user.setAttribute("disabled", true);
-      user.type = "password";
+      if (user.value) {
+        check.classList.add("checked");
+        window.localStorage.setItem("token", user.value);
+        user.setAttribute("disabled", true);
+        user.type = "password";
+      }
     }
+    api.updateCommentList(getContext, renderList);
   });
 
   text.addEventListener("keydown", e => {

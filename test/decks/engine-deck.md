@@ -1,10 +1,9 @@
 ---
-title: Decker Engine Test
-decker-engine-base-url: https://tramberend.beuth-hochschule.de/decker
-# decker-engine-base-url: "http://localhost:8081"
-deck-id: decker-engine-test
-controls: 0
 author: Henrik Tramberend
+controls: 0
+deck-id: 'decker-engine-test'
+decker-engine-base-url: 'https://tramberend.beuth-hochschule.de/decker'
+title: Decker Engine Test
 ---
 
 # Decker Engine
@@ -50,7 +49,7 @@ author: Henrik Tramberend
     -   [ ] Hundreds of simultaneous connections
     -   [ ] Malicious attacks
 
-# Decker Engine Backstage Area
+# Decker Engine Backstage Area {.inverse background="black"}
 
 ## Test page
 
