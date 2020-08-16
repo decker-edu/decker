@@ -22,7 +22,7 @@ div.q-header {
 
   display: flex;
   flex-flow: row nowrap;
-  align-items: baseline;
+  align-items: center;
 
   background-color: rgba(127, 0, 0, 0.3);
   padding: 5px;
@@ -30,21 +30,49 @@ div.q-header {
 }
 
 div.q-header input {
-  flex: 1 1;
   font-family: "Roboto", Helvetica, sans-serif;
-  min-width: 2em;
-  max-width: 100em;
   font-size: 16px;
 }
 
-div.q-header input.check {
+div.q-header input[type="text"],
+div.q-header input[type="password"] {
+  flex: 1 1;
+  min-width: 2em;
+  max-width: 100em;
+}
+
+div.q-header div.q-check {
   flex: 0 1 1em;
-  align-self: center;
+
+  color: gray;
+  background-color: rgba(0, 0, 0, 0);
+  padding: 2px 4px;
+
+  font-size: 120%;
+
+  border: none;
+  border-radius: 4px;
+  outline: none;
+}
+
+div.q-header div.q-check.checked i.lock {
+  display: static;
+}
+
+div.q-header div.q-check.checked i.unlock {
+  display: none;
+}
+
+div.q-header div.q-check:not(.checked) i.lock {
+  display: none;
+}
+
+div.q-header div.q-check:not(.checked) i.unlock {
+  display: static;
 }
 
 div.q-header div.q-close {
   flex: 0 1 1em;
-  align-self: center;
 
   color: gray;
   background-color: rgba(0, 0, 0, 0);

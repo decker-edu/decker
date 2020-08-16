@@ -17,7 +17,7 @@ function buildInterface(api) {
   let panel = document.createElement("div");
   let header = document.createElement("div");
   let user = document.createElement("input");
-  let check = document.createElement("input");
+  let check = document.createElement("div");
   let close = document.createElement("div");
   let container = document.createElement("div");
   let input = document.createElement("div");
@@ -32,12 +32,20 @@ function buildInterface(api) {
   let cross = document.createElement("i");
   cross.classList.add("far", "fa-window-close");
 
+  let lock = document.createElement("i");
+  lock.classList.add("fas", "fa-lock", "lock");
+
+  let unlock = document.createElement("i");
+  unlock.classList.add("fas", "fa-unlock", "unlock");
+
   panel.classList.add("q-panel");
   header.classList.add("q-header");
+  user.setAttribute("type", "text");
   user.setAttribute("placeholder", "Enter user token");
-  check.setAttribute("type", "checkbox");
   check.setAttribute("title", "Store user token (session)");
-  check.classList.add("check");
+  check.classList.add("q-check");
+  check.appendChild(lock);
+  check.appendChild(unlock);
   header.appendChild(user);
   header.appendChild(check);
   header.appendChild(close);
@@ -86,10 +94,12 @@ function buildInterface(api) {
     if (val !== null) {
       user.value = val;
       user.setAttribute("disabled", true);
-      check.checked = true;
+      check.classList.add("checked");
+      user.type = "password";
     } else {
       user.removeAttribute("disabled");
-      check.checked = false;
+      check.classList.remove("checked");
+      user.type = "text";
     }
   };
 
@@ -136,16 +146,17 @@ function buildInterface(api) {
     }
   });
 
-  check.addEventListener("click", e => {
-    if (check.checked && user.value) {
-      console.log("click");
-      window.localStorage.setItem("token", user.value);
-      user.setAttribute("disabled", true);
-    } else {
-      console.log("clack");
+  check.addEventListener("click", _ => {
+    if (check.classList.contains("checked") && user.value) {
+      check.classList.remove("checked");
       window.localStorage.removeItem("token");
       user.removeAttribute("disabled");
-      check.checked = false;
+      user.type = "text";
+    } else {
+      check.classList.add("checked");
+      window.localStorage.setItem("token", user.value);
+      user.setAttribute("disabled", true);
+      user.type = "password";
     }
   });
 
