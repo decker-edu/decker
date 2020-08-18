@@ -2,6 +2,8 @@
 title: New Quiz Syntax Test deck
 history: True
 lang: de
+quiz:
+  style: fancy
 ---
 
 # Overview
@@ -40,6 +42,8 @@ Springs
 
 ```yaml
 lang: en
+quiz:
+  style: plain
 ```
 
 #
