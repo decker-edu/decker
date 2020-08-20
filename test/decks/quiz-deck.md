@@ -101,10 +101,12 @@ All choices get an optional comment to be potentially shown with the result.
     - So auch nicht
 
 ``` {.yaml}
-score: 5
-category: CG
-lectureId: cg1
-topic: yeah
+Points: 5
+LectureId: cg1
+TopicId: yeah
+Difficulty: Easy
+quiz:
+  style: plain
 ```
 
 # Blanktext/Inserting MC

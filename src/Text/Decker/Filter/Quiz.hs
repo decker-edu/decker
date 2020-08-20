@@ -32,10 +32,10 @@ data Choice = Choice {correct :: Bool, text :: [Inline], comment :: [Block]}
 
 -- | Set different (optional) meta options for quizzes in a yaml code block
 data QuizMeta = QuizMeta
-    { _category :: T.Text,
-      _lectureId :: T.Text,
-      _score :: Int,
-      _topic :: T.Text,
+    { _lectureId :: T.Text,
+      _topicId :: T.Text,
+      _points :: Int,
+      _difficulty :: T.Text,
       _lang :: T.Text,
       _style :: T.Text
     }
@@ -107,7 +107,15 @@ handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
                 then set tags ts q
                 else set tags (ts ++ ["columns", "box"]) q
         -- The default "new" quizzes
-        defaultMeta = QuizMeta "" "" 0 "" (lookupMetaOrElse "en" "lang" meta) (lookupMetaOrElse "fancy" "quiz.style" meta)
+        defaultMeta =
+            QuizMeta
+                { _lectureId = "",
+                  _topicId = "",
+                  _points = 0,
+                  _difficulty = "",
+                  _lang = (lookupMetaOrElse "en" "lang" meta),
+                  _style = (lookupMetaOrElse "fancy" "quiz.style" meta)
+                }
         defaultMatch = MatchItems [] [] defaultMeta [] []
         defaultMC = MultipleChoice [] [] defaultMeta [] []
         defaultIC = InsertChoices [] [] defaultMeta []
@@ -215,14 +223,14 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
             foldr
                 (setMeta' m)
                 qm
-                ["score", "category", "lectureId", "topic", "lang", "quiz.style"]
+                ["Points", "LectureId", "TopicId", "Difficulty", "lang", "quiz.style"]
         setMeta' :: Meta -> T.Text -> QuizMeta -> QuizMeta
         setMeta' m t qm =
             case t of
-                "score" -> set score (lookupMetaOrElse 0 t m) qm
-                "category" -> set category (lookupMetaOrElse "" t m) qm
-                "lectureId" -> set lectureId (lookupMetaOrElse "" t m) qm
-                "topic" -> set topic (lookupMetaOrElse "" t m) qm
+                "Points" -> set points (lookupMetaOrElse 0 t m) qm
+                "LectureId" -> set lectureId (lookupMetaOrElse "" t m) qm
+                "TopicId" -> set topicId (lookupMetaOrElse "" t m) qm
+                "Difficulty" -> set difficulty (lookupMetaOrElse "Easy" t m) qm
                 "lang" -> set lang (lookupMetaOrElse (view lang qm) t m) qm
                 "quiz.style" -> set style (lookupMetaOrElse (view style qm) t m) qm
                 _ -> throw $ InternalException $ "Unknown meta data key: " <> show t
@@ -235,11 +243,21 @@ solutionButton meta =
         buttonText :: T.Text
         buttonText = lookupInDictionary "quiz.solution-button" meta
 
+quizDiv :: Meta -> Quiz -> [Block] -> Block
+quizDiv meta quiz = Div ("", cls, [lid, tid, pts, diff])
+    where
+        qm = view quizMeta quiz
+        cls = view tags quiz ++ [view style qm]
+        diff = ("data-difficulty", view difficulty qm)
+        lid = ("data-lecture-id", view lectureId qm)
+        tid = ("data-topic-id", view topicId qm)
+        pts = ("data-points", T.pack $ show $ view points qm)
+
 renderMultipleChoice :: Meta -> Quiz -> Block
 renderMultipleChoice meta quiz@(MultipleChoice title tgs qm q ch) =
-    Div ("", cls, []) $ header ++ q ++ [choiceBlock]
+    quizDiv meta quiz $ header ++ q ++ [choiceBlock]
     where
-        cls = tgs ++ [view style qm]
+        -- cls = tgs ++ [view style qm]
         -- ++ [solutionButton]
         header =
             case title of
@@ -275,7 +293,7 @@ choiceList t choices =
 
 renderInsertChoices :: Meta -> Quiz -> Block
 renderInsertChoices meta quiz@(InsertChoices title tgs qm q) =
-    Div ("", cls, []) $ header ++ questionBlocks q ++ tooltipDiv
+    quizDiv meta quiz $ header ++ questionBlocks q ++ tooltipDiv
     where
         cls = tgs ++ [view style qm]
         -- ++ [solutionButton]
@@ -311,7 +329,7 @@ renderInsertChoices meta q =
 --
 renderMatching :: Meta -> Quiz -> Block
 renderMatching meta quiz@(MatchItems title tgs qm qs matches) =
-    Div ("", cls, []) $ header ++ qs ++ [itemsDiv, bucketsDiv, button]
+    quizDiv meta quiz $ header ++ qs ++ [itemsDiv, bucketsDiv, button]
     where
         cls = tgs ++ [view style qm]
         newMeta = setMetaValue "lang" (view lang qm) meta
@@ -359,7 +377,7 @@ renderMatching meta q =
 
 renderFreeText :: Meta -> Quiz -> Block
 renderFreeText meta quiz@(FreeText title tgs qm q ch) =
-    Div ("", cls, []) $ header ++ q ++ [inputRaw] ++ [button]
+    quizDiv meta quiz $ header ++ q ++ [inputRaw] ++ [button]
     where
         cls = tgs ++ [view style qm]
         newMeta = setMetaValue "lang" (view lang qm) meta
