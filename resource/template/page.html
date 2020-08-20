@@ -8,6 +8,9 @@
     <meta name="author" content="$author-meta$"> $endfor$ $if(date-meta)$
     <meta name="dcterms.date" content="$date-meta$"> $endif$ $if(keywords)$
     <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$"> $endif$
+$if(template.favicon)$
+    <link rel="shortcut icon" href="$template.favicon$">
+$endif$
     <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
     <style type="text/css">
       code {
@@ -31,6 +34,9 @@ $if(template.base-css)$
     <link rel="stylesheet" href="$template.base-css$">
 $else$
     <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
+$endif$
+$if(mario)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/mario-page.css">
 $endif$
 
     <!-- MathJax config -->
@@ -161,7 +167,9 @@ $body$
       $if(date)$
       <p id="date">$date$</p>
       $endif$
-      <p class="author">$copyright$ $author$</p>
+      <p class="author">
+        $copyright$ $author$$if(affiliation)$, $affiliation$ $endif$
+      </p>
     </address>
     $endif$
     <script>

@@ -8,6 +8,10 @@
 @import url("../fonts/lato.css");
 @import url("../vendor/fontawesome/css/all.css");
 
+:root {
+ --emphColor: #2a9ddf;
+ --whiteboard-active-color: #2a9ddf;
+}
 
 
 /*********************************************
@@ -103,6 +107,7 @@ body {
     border: 1px solid black;
     border-radius: 5px;
     padding: 10px;
+    box-sizing: border-box;
 }
 .reveal .boxed ol,
 .reveal .boxed dl,
@@ -125,6 +130,7 @@ body {
 .reveal .col20 { float:left; width:20%; }
 .reveal .col25 { float:left; width:25%; }
 .reveal .col30 { float:left; width:30%; }
+.reveal .col33 { float:left; width:33%; }
 .reveal .col40 { float:left; width:40%; }
 .reveal .col50 { float:left; width:50%; }
 .reveal .col60 { float:left; width:60%; }
@@ -175,8 +181,15 @@ body {
   margin: 10px 0;
   line-height: 1.3; }
 
-/* MARIO: remove empty paragraphs */
-.reveal p:empty { display: none; }
+/* MARIO: do not completely remove empty paragraphs with display:none.
+ * Instead let them cause a line break, but not eat up more space */
+.reveal p:empty { 
+    display: block;
+    margin:  0;
+    padding: 0;
+    height:  0;
+    width:   auto;
+}
 
 .reveal strong {
     font-weight: bold;
@@ -184,7 +197,7 @@ body {
 
 .reveal .boldblue {
     font-weight: bold;
-	color: #2a9ddf;
+	color: var(--emphColor);
 }
 
 .reveal b {
@@ -314,7 +327,7 @@ body {
     display: block;
     position: relative;
     width: auto;
-    margin: 10px auto;
+    margin: 10px;
     text-align: center;
 }
 
@@ -330,7 +343,6 @@ body {
 /* block of code (has to override above inline code)*/
 .reveal pre code {
     display: block;
-    margin: 5px;
     text-align: left;
     font-size: 0.5em;
     font-family: monospace;
@@ -340,6 +352,7 @@ body {
     max-height: 100%;
     word-wrap: normal;
     background-color: #f7f7f7;
+    box-sizing: border-box;
 }
 
 .reveal pre code.small {
@@ -367,7 +380,7 @@ body {
     margin: 10px 0px 0px 0px;
     line-height: 1.2;
     font-style: italic;
-    font-size: 0.6em;
+    font-size: 0.8em;
     text-align: center;
     caption-side: bottom;
 }
@@ -422,14 +435,14 @@ body {
  * LINKS
  *********************************************/
 .reveal a {
-  color: #2a76dd;
+  color: #2a9ddf;
   text-decoration: none;
   -webkit-transition: color .15s ease;
   -moz-transition: color .15s ease;
   transition: color .15s ease; }
 
 .reveal a:hover {
-  color: #6ca0e8;
+  color: #2a9ddf;
   text-shadow: none;
   border: none; }
 
@@ -528,7 +541,7 @@ body {
   background: rgba(0, 0, 0, 0.2); }
 
 .reveal .progress span {
-  background: #2a9ddf;
+  background: var(--emphColor);
   -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
   -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
   transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985); }
@@ -541,7 +554,7 @@ body {
 
 .white-on-blue {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
 }
 
 .reveal div.title {
@@ -599,7 +612,7 @@ body {
 .reveal .section h1 {
     /* white on blue */
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
 
     /* large top margin -> vertical centering */
     margin:      100px auto;
@@ -629,7 +642,7 @@ body {
     display: inline-block;
     font-size: 0.7em;
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     padding: 10px;
     margin: auto;
     border-radius:5px;
@@ -638,7 +651,7 @@ body {
 
 .reveal .comment {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     position:absolute;
     padding:10px;
     border-radius:5px;
@@ -647,7 +660,7 @@ body {
 
 .reveal .comment-left {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     position:absolute;
     padding:5px;
     font-size: 80%;
@@ -656,7 +669,7 @@ body {
 
 .reveal .comment-right {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     position:absolute;
     padding:5px;
     font-size: 80%;
@@ -665,7 +678,7 @@ body {
 
 .reveal .comment-big {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     padding:10px;
     border-radius:5px;
 }
@@ -753,7 +766,7 @@ body {
     bottom:      0.5vmin;
     font-family: "Lato", sans-serif;
     color:       black;
-    background:  white;
+    background:  #ffffff00;
 }
 
 
@@ -809,6 +822,128 @@ body {
 }
 
 /*********************************************
+ * MARIO: MathJax
+ *********************************************/
+
+.reveal section mjx-container[display="true"] {
+    margin: 0.7em 0em 1em 0em;
+}
+
+.reveal section mjx-container > svg a {
+	color: var(--emphColor);
+	fill: var(--emphColor);
+}
+
+
+/*********************************************
+ * MARIO: fullscreen for iframes
+ *********************************************/
+
+ .reveal div.fs-container { 
+    margin:   auto;
+    border:   0px;
+    padding:  0px;
+    position: relative;
+}
+
+.reveal div.fs-container:fullscreen {
+    overflow-x:       hidden;
+    overflow-y:       auto;
+    background-color: white;
+    padding:          20px;
+}
+
+/* needed for mobile Safari */
+*:-webkit-full-screen {
+    width:  100% !important;
+    height: 100% !important;
+}
+
+.reveal div.fs-container>iframe {
+    box-sizing: border-box;
+}
+
+.reveal div.fs-container:fullscreen>iframe {
+    border: none;
+}
+
+.reveal button.fs-button { 
+    z-index:          100;
+    display:          inline-block;
+    position:         absolute;
+    top:              2px;
+    right:            2px;
+    cursor:           pointer;
+    outline:          none;
+    font-size:        20px;
+    width:            24px;
+    height:           24px;
+    padding:          2px;
+    border:           none;
+    border-radius:    4px;
+    opacity:          0.5;
+    color:            var(--whiteboard-inactive-color);
+    background-color: rgba(255,255,255,0.5);
+}
+
+.reveal button.fs-button:hover { 
+    opacity:          1.0;
+    color:            var(--whiteboard-active-color);
+    background-color: rgba(255,255,255,0.8);
+}
+
+
+
+/*********************************************
+ * MARIO: menu icon in top left corner
+ *********************************************/
+
+.reveal .slide-menu-button {
+    position:   fixed;
+    left:       calc(var(--whiteboard-icon-size) * 0.25);
+    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:     auto;
+    right:      auto;
+    padding:    0;
+    margin:     auto;
+    z-index:    40;
+    background: none;
+    font-size:  var(--whiteboard-icon-size);
+    padding:    calc(var(--whiteboard-icon-size) * 0.5);
+    opacity:    0.5;
+    color:      var(--whiteboard-inactive-color);
+}
+
+.reveal .slide-menu-button:hover {
+    opacity: 1.0;
+    color: var(--whiteboard-active-color);
+}
+
+.reveal .slide-menu-button a {
+    color: inherit;
+}
+
+
+/*********************************************
+ * MARIO: bibliogrphy
+ *********************************************/
+
+.reveal .references {
+    margin:        auto;
+    max-height:    600px;
+    width:         90%;
+    overflow-y:    auto;
+}
+
+.reveal .references>div {
+    padding-left:  1em;
+    text-indent:   -1em;
+    text-align:    left;
+    margin-bottom: 1em;
+}
+
+
+/*********************************************
  * MARIO: Quizzes with task list syntax
  *********************************************/
 
@@ -822,6 +957,7 @@ body {
     align-content:   center;
     text-align:      center;
     counter-reset:   answer;
+    margin-top:      1em;
 }
 
 /* one quiz item */
@@ -829,10 +965,10 @@ body {
     display:       inline-block;
     position:      relative;
     text-align:    left;
-    margin:        20px;
-    border:        3px solid #2a9ddf;
-    border-radius: 20px;
-    padding:       20px;
+    margin:        0.5em;
+    border:        3px solid var(--emphColor);
+    border-radius: 0.5em;
+    padding:       0.5em;
     font-weight:   normal;
     color:         black;
 }
@@ -903,114 +1039,148 @@ body {
 }
 
 
-/*********************************************
- * MARIO: MathJax
- *********************************************/
-
-.reveal section mjx-container[display="true"] {
-    margin: 0.7em 0em 1em 0em;
-}
-
-/* make svg fit to container */
-.reveal section mjx-container > svg {
-	object-fit: contain;
-    max-width: 100%;
-}
-
-.reveal section mjx-container > svg a {
-	color: #2a9ddf;
-	fill: #2a9ddf;
-}
-
 
 /*********************************************
- * MARIO: fullscreen for iframes
+ * MARIO: new quizzes
  *********************************************/
 
- .reveal div.fs-container { 
-    margin:   auto;
-    border:   0px;
-    padding:  0px;
-    position: relative;
+.reveal .qic button,
+.reveal .qft button,
+.reveal .qmc button,
+.reveal .qmi button,
+.reveal [class*="quiz-"] button {
+    font:        inherit;
+    font-size:   0.7em;
+    font-weight: normal;
+    font-family: inherit;
+    margin:      0.5em;
+    padding:     10px;
+    background:  #eeeeee;
+    border: 2px solid #dddddd;
+    border-radius: 5px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
 
-.reveal div.fs-container:fullscreen {
-    overflow-x:       hidden;
-    overflow-y:       auto;
-    background-color: white;
-    padding:          20px;
+.reveal .quiz-ft button,
+.reveal .qft button {
+    display: none;
 }
 
-/* needed for mobile Safari */
-*:-webkit-full-screen {
-    width:  100% !important;
-    height: 100% !important;
+.reveal .qic input,
+.reveal .qft input,
+.reveal .qmc input,
+.reveal .qmi input,
+.reveal [class*="quiz-"] input {
+    font:        inherit;
+    font-size:   0.9em;
+    font-weight: normal;
+    font-family: inherit;
+    margin:      0.5em;
+    padding:     10px;
+    border:      2px solid var(--emphColor);
 }
 
-.reveal div.fs-container>iframe {
-    box-sizing: border-box;
+.reveal .qic .solutionList,
+.reveal .qft .solutionList,
+.reveal .qmc .solutionList,
+.reveal .qmi .solutionList,
+.reveal [class*="quiz-"] .solutionList {
+  list-style-type: none;
+  display: none;
+  background-color: grey;
+  color: #ffffff;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: fixed;
+  z-index: 99;
+  font-size: 1rem;
 }
 
-.reveal div.fs-container:fullscreen>iframe {
-    border: none;
+.reveal .qic .solutionList li,
+.reveal .qft .solutionList li,
+.reveal .qmc .solutionList li,
+.reveal .qmi .solutionList li,
+.reveal [class*="quiz-"] .solutionList li {
+    display: none;
+    margin-left: 5px;
 }
 
-.reveal button.fs-button { 
-    z-index:          100;
-    display:          inline-block;
-    position:         absolute;
-    top:              2px;
-    right:            2px;
-    cursor:           pointer;
-    outline:          none;
-    font-size:        20px;
-    width:            24px;
-    height:           24px;
-    padding:          2px;
-    border:           none;
-    border-radius:    4px;
-    opacity:          0.5;
-    color:            var(--whiteboard-inactive-color);
-    background-color: rgba(255,255,255,0.5);
+.reveal .qic .solutionList .correct:before,
+.reveal .qft .solutionList .correct:before,
+.reveal .qmc .solutionList .correct:before,
+.reveal .qmi .solutionList .correct:before,
+.reveal [class*="quiz-"] .solutionList .correct:before {
+    content: "✓";
+    font: inherit;
+    margin-right: 0.5em;
 }
 
-.reveal button.fs-button:hover { 
-    opacity:          1.0;
-    color:            var(--whiteboard-active-color);
-    background-color: rgba(255,255,255,0.8);
+.reveal .qic .solutionList .wrong:before,
+.reveal .qft .solutionList .wrong:before,
+.reveal .qmc .solutionList .wrong:before,
+.reveal .qmi .solutionList .wrong:before,
+.reveal [class*="quiz-"] .solutionList .wrong:before {
+    content: "✗";
+    font: inherit;
+    margin-right: 0.5em;
 }
 
-
-
-/*********************************************
- * MARIO: bibliogrphy
- *********************************************/
-
-.reveal .references {
-    margin:        auto;
-    max-height:    600px;
-    width:         90%;
-    overflow-y:    auto;
+.reveal .qft .solutionList .tooltip,
+.reveal [class*="quiz-f"] .solutionList .tooltip {
+    margin-left: 1.3em;
 }
 
-.reveal .references>div {
-    padding-left:  1em;
-    text-indent:   -1em;
-    text-align:    left;
-    margin-bottom: 1em;
+.reveal .qic select,
+.reveal [class*="quiz-i"] select {
+    font:        inherit;
+    font-size:   0.9em;
+    font-weight: normal;
+    padding:     5px;
+    border:      2px solid var(--emphColor);
+    background:  white;
 }
 
+.reveal .qic select :disabled,
+.reveal [class*="quiz-i"] select :disabled {
+  color: black;
+}
 
-/*********************************************
- * MARIO: matching questions
- *********************************************/
+.reveal .qic option,
+.reveal [class*="quiz-i"] option {
+    font:        inherit;
+    font-size:   16px;
+    font-weight: normal;
+}
 
-.reveal .matching {
+.reveal .qic .tooltip-div,
+.reveal [class*="quiz-i"] .tooltip-div {
+  font-size: 0.6em;
+  background-color: #f4f4f7;
+  margin-top: 0.5em;
+}
+
+.reveal .quiz-mi,
+.reveal .qmi,
+.reveal .quiz-match-items {
+  display: block;
+  overflow-y: auto;
   text-align: center;
 }
 
-.reveal .matching .dropzones,
-.reveal .matching .dragzone {
+.reveal .quiz-mi .draggableChild,
+.reveal .qmi .draggableChild,
+.reveal .quiz-match-items .draggableChild {
+  pointer-events: none;
+}
+
+.reveal .quiz-mi .buckets,
+.reveal .quiz-mi .matchItems,
+.reveal .qmi .buckets,
+.reveal .qmi .matchItems,
+.reveal .quiz-match-items .buckets,
+.reveal .quiz-match-items .matchItems {
     display:         flex;
     flex-flow:       row nowrap;
     align-items:     stretch;
@@ -1022,14 +1192,23 @@ body {
     border:          2px solid #dddddd;
     border-radius:   5px;
     box-sizing:      border-box;
+    margin-bottom:   60px;
+    margin-top:      20px;
 }
 
-.reveal .matching .dropzones {
-    margin-bottom: 60px;
+.reveal .quiz-mi .buckets,
+.reveal .qmi .buckets,
+.reveal .quiz-match-items .buckets {
+    margin-bottom:   20px;
+    margin-top:      60px;
 }
 
-.reveal .matching .dragzone:before,
-.reveal .matching .dropzones:before {
+.reveal .quiz-mi .buckets:before,
+.reveal .quiz-mi .matchItems:before,
+.reveal .qmi .buckets:before,
+.reveal .qmi .matchItems:before,
+.reveal .quiz-match-items .buckets:before,
+.reveal .quiz-match-items .matchItems:before {
     position:   absolute;
     top:        -15px;
     left:       10px;
@@ -1038,92 +1217,143 @@ body {
     padding:    5px;
     color:      grey;
 }
-.reveal .matching .dragzone:before {
-    content: "drag from here";
-}
-.reveal .matching .dropzones:before {
-    content: "drop here";
+
+.reveal .quiz-mi .matchItems:before,
+.reveal .qmi .matchItems:before,
+.reveal .quiz-match-items .matchItems:before {
+    content: "Drag objects from here...";
 }
 
-.reveal .matching .dragzone:after {
-    position:      absolute;
-    content:       " ";
-    width:         0;
-    height:        0;
-    top:           -30px;
-    border-left:   30px solid transparent;
-    border-right:  30px solid transparent;
-    border-bottom: 30px solid #dddddd;
+.reveal .quiz-mi .buckets:before,
+.reveal .qmi .buckets:before,
+.reveal .quiz-match-items .buckets:before {
+    content: "...and drop them here into the correct category";
 }
 
-.reveal .matching .dropzone {
-    display:    block;
-    flex:       1 0 0;
-    padding:    10px;
-    margin:     5px;
-    border:     1px solid black;
-    text-align: center;
+:lang(de) .reveal .quiz-mi .matchItems:before,
+:lang(de) .reveal .qmi .matchItems:before,
+:lang(de) .reveal .quiz-match-items .matchItems:before {
+    content: "Objekte per Drag & Drop nach unten ziehen...";
 }
 
-.reveal .matching .draggable {
+:lang(de) .reveal .quiz-mi .buckets:before,
+:lang(de) .reveal .qmi .buckets:before,
+:lang(de) .reveal .quiz-match-items .buckets:before {
+    content: "...und hier in die richtige Kategorie einsortieren";
+}
+
+.reveal .quiz-mi .matchItems:after,
+.reveal .qmi .matchItems:after,
+.reveal .quiz-match-items .matchItems:after {
+  position: absolute;
+  content: " ";
+  width: 0;
+  height: 0;
+  bottom: -30px;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-top: 30px solid #dddddd;
+}
+
+.reveal .quiz-mi .bucket,
+.reveal .qmi .bucket,
+.reveal .quiz-match-items .bucket {
+  display: block;
+  flex: 1 0 0;
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid black;
+  text-align: center;
+}
+
+.reveal .quiz-mi .matchItem,
+.reveal .qmi .matchItem,
+.reveal .quiz-match-items .matchItem {
     display:        block;
     vertical-align: middle;
     overflow:       hidden;
-    border:         2px solid #2a9ddf;
+    border:         2px solid var(--emphColor);
     border-radius:  10px;
     padding:        10px;
     background:     white;
     cursor:         grab;
 }
-.reveal .matching .dropzone .draggable {
-    display:    block;
-    border:     none;
-    background: inherit;
+
+.reveal .quiz-mi .matchItem .solution,
+.reveal .qmi .matchItem .solution,
+.reveal .quiz-match-items .matchItem .solution {
+  visibility: hidden;
+  font-size: large;
 }
 
-.reveal .matching .draggableChild {
-    pointer-events: none;
+.reveal .quiz-mi .matchItem:hover .solution,
+.reveal .qmi .matchItem:hover .solution,
+.reveal .quiz-match-items .matchItem:hover .solution {
+  visibility: visible;
+  font-size: large;
 }
 
-.reveal select {
-    font:        inherit;
-    font-size:   0.9em;
-    font-weight: normal;
-    padding:     5px;
-    border:      2px solid #2a9ddf;
-    background:  white;
+.reveal .quiz-mi .bucket .matchItem,
+.reveal .qmi .bucket .matchItem,
+.reveal .quiz-match-items .bucket .matchItem {
+  display: block;
+  border: none;
+  background: inherit;
 }
 
-.reveal select option {
-    font:        inherit;
-    font-size:   0.9em;
-    max-height:  1em;
-    min-height:  1em !important;
-    font-weight: normal;
+.reveal .quiz-multiple-choice ul,
+.reveal .quiz-mc ul,
+.reveal .qmc ul {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  text-align: center;
+  counter-reset: answer;
 }
 
-.reveal input {
-    font:        inherit;
-    font-size:   0.9em;
-    font-weight: normal;
-    margin:      0.5em;
-    padding:     10px;
-    border:      2px solid #2a9ddf;
+.reveal .quiz-multiple-choice li,
+.reveal .quiz-mc li,
+.reveal .qmc li {
+  display: inline-block;
+  position: relative;
+  text-align: left;
+  margin: 20px;
+  border: 2px solid var(--emphColor);
+  border-radius: 20px;
+  padding: 20px;
+  font-weight: normal;
+  color: black;
 }
 
-.reveal button.freetextAnswerButton,
-.reveal button.btAnswerButton,
-.reveal button.matchingAnswerButton,
-.reveal button.retryButton
-{
-    font:        inherit;
-    font-size:   0.7em;
-    font-weight: normal;
-    margin:      0.5em;
-    padding:     10px;
-    background:  #eeeeee;
-    border: 2px solid #dddddd;
-    border-radius: 5px;
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+.reveal .quiz-multiple-choice li:before,
+.reveal .quiz-mc li:before,
+.reveal .qmc li:before {
+  content: counter(answer, upper-latin) ": ";
+  counter-increment: answer;
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
+.reveal .quiz-multiple-choice .tooltip,
+.reveal .quiz-mc .tooltip,
+.reveal .qmc .tooltip {
+  display: block;
+  visibility: hidden;
+  max-width: 95%;
+  top: 100%;
+  left: 5px;
+  background-color: grey;
+  color: #ffffff;
+  text-align: center;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: absolute;
+  z-index: 1;
+  font-size: 1rem;
 }
 

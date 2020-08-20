@@ -35,6 +35,10 @@ let RevealWhiteboard = (function(){
     const activeColor   = 'var(--whiteboard-active-color)';
     const inactiveColor = 'var(--whiteboard-inactive-color)';
 
+    // reveal setting wrt slide dimension
+    const pageHeight = Reveal.getConfig().height;
+    const pageWidth  = Reveal.getConfig().width;
+
     // reveal elements
     let reveal = document.querySelector( '.reveal' );
     let slides = document.querySelector( '.reveal .slides' );
@@ -102,6 +106,18 @@ let RevealWhiteboard = (function(){
      * Setup GUI
      ************************************************************************/
 
+    // generate file open dialog
+    let fileInput = document.createElement( 'input' );
+    fileInput.type = "file";
+    fileInput.style.display = "none";
+    reveal.appendChild(fileInput);
+    fileInput.onchange = function(evt) {
+        if (evt.target.files.length) {
+            loadAnnotationsFromFile(evt.target.files[0]);
+        }
+    }
+
+
     // generate container for whiteboard buttons
     let buttons = document.createElement( 'div' );
     buttons.id = 'whiteboardButtons';
@@ -125,6 +141,7 @@ let RevealWhiteboard = (function(){
 
     let buttonWhiteboard = createButton("fa-edit", toggleWhiteboard, false, 'toggle whiteboard');
     buttonWhiteboard.id  = "whiteboardButton";
+    //let buttonOpen       = createButton("fa-folder-open", () => { fileInput.click(); }, true, 'load annotations');
     let buttonSave       = createButton("fa-save", saveAnnotations, false, 'save annotations');
     let buttonAdd        = createButton("fa-plus", addWhiteboardPage, true, 'add whiteboard page');
     let buttonGrid       = createButton("fa-border-all", toggleGrid, false, 'toggle background grid');
@@ -168,6 +185,32 @@ let RevealWhiteboard = (function(){
     penWidthSlider.onchange = () => { selectPenRadius(parseInt(penWidthSlider.value)); };
     penWidthSlider.oninput  = () => { penWidthSlider.style.setProperty('--size', (parseInt(penWidthSlider.value)+1)+'px'); }
 
+   
+    // adjust slide height: slides should always have full page height,
+    // even if they have not ;-). Might happen when using center:true
+    // in Reveal's settings. In this case Reveal centers the slide by
+    // adding a margin to the css:top variable. This is not compatible
+    // with the whiteboard, since then the whiteboard page would be taller
+    // than the slide itself. We fix this by removing the top-setting and
+    // instead centering the slide through top/bottom padding. This allows
+    // us to enforce full slide height (as configured in Reveal's settings).
+    function adjustSlideHeight()
+    {
+        if (Reveal.getConfig().center)
+        {
+            let slide = Reveal.getCurrentSlide();
+            const top = slide.style.top;
+            console.log(top);
+            if (top != '' && top != '0px')
+            {
+                slide.style.top = '';
+                slide.style.paddingTop = top;
+                slide.style.paddingBottom = top;
+                slide.style.height = pageHeight + 'px';
+            }
+        }
+    }
+
 
     // create whiteboard SVG for current slide
     // is currently called for each slide, even if we don't have strokes yet
@@ -190,7 +233,6 @@ let RevealWhiteboard = (function(){
         svg.style.border = "1px solid transparent";
 
         // SVG dimensions
-        const pageHeight = Reveal.getConfig().height;
         svg.style.width  = "100%";
         if (!height) height = pageHeight;
         svg.style.height = height + "px";
@@ -226,9 +268,7 @@ let RevealWhiteboard = (function(){
         svg.style.pointerEvents = 'none';
         slides.insertBefore(svg, slides.firstChild);
 
-        const pageWidth   = Reveal.getConfig().width;
-        const pageHeight  = Reveal.getConfig().height;
-        const h           = Math.floor(Math.min(pageWidth, pageHeight) / 25);
+        const h = Math.floor(Math.min(pageWidth, pageHeight) / 25);
 
         svg.innerHTML = 
             `<defs>
@@ -481,7 +521,6 @@ let RevealWhiteboard = (function(){
     function addWhiteboardPage()
     {
         if (!svg) return;
-        let pageHeight  = Reveal.getConfig().height;
         let boardHeight = svg.clientHeight;
         setWhiteboardHeight(boardHeight + pageHeight);
     }
@@ -489,12 +528,20 @@ let RevealWhiteboard = (function(){
 
     function adjustWhiteboardHeight()
     {
-        // height of one page
-        let pageHeight = Reveal.getConfig().height;
+        // hide grid, so that height computation only depends on strokes
+        let rect = getGridRect();
+        let display;
+        if (rect) {
+            display = rect.style.display;
+            rect.style.display = "none"; 
+        }
 
-        // height of current board
+        // height of current board (w/o grid)
         let bbox = svg.getBBox();
         let scribbleHeight = bbox.y + bbox.height;
+
+        // show grid again
+        if (rect) rect.style.display = display;
 
         // rounding
         var height = pageHeight * Math.max(1, Math.ceil(scribbleHeight/pageHeight));
@@ -504,8 +551,6 @@ let RevealWhiteboard = (function(){
 
     function setWhiteboardHeight(svgHeight)
     {
-        const pageHeight    = Reveal.getConfig().height;
-        const pageWidth     = Reveal.getConfig().width;
         const needScrollbar = svgHeight > pageHeight;
 
         // set height of SVG
@@ -575,7 +620,7 @@ let RevealWhiteboard = (function(){
                 needToSave(true);
             }
 
-            setWhiteboardHeight(Reveal.getConfig().height);
+            setWhiteboardHeight(pageHeight);
         }
     };
 
@@ -608,7 +653,6 @@ let RevealWhiteboard = (function(){
         // otherwise, add it
         else
         {
-            const pageHeight  = Reveal.getConfig().height;
             const boardHeight = svg.clientHeight;
 
             // add large rect with this pattern
@@ -680,12 +724,23 @@ let RevealWhiteboard = (function(){
      ******************************************************************/
 
     /*
-     * load scribbles from file
+     * load scribbles from default URL
      * use Promise to ensure loading in init()
      */
-    function loadAnnotations()
+    function loadAnnotationsFromURL()
     {
         return new Promise( function(resolve) {
+
+            // electron? try to load annotation from local file
+            if (window.loadAnnotation) {
+                window.loadAnnotation(annotationURL()).then( (storage) => {
+                    if (storage) {
+                        parseAnnotations(storage);
+                        resolve();
+                        return;
+                    }
+                });
+            }
 
             // determine scribble filename
             let filename = annotationURL();
@@ -699,34 +754,8 @@ let RevealWhiteboard = (function(){
                 {
                     try
                     {
-                        // parse JSON
                         const storage = JSON.parse(xhr.responseText);
-
-                        // create SVGs
-                        if (storage.whiteboardVersion && storage.whiteboardVersion >= 2)
-                        {
-                            storage.annotations.forEach( page => {
-                                let slide = document.getElementById(page.slide);
-                                if (slide)
-                                {
-                                    // use global SVG
-                                    svg = setupSVG(slide);
-                                    if (svg)
-                                    {
-                                        svg.innerHTML = page.svg;
-                                    }
-                                }
-                            });
-                            console.log("whiteboard loaded");
-                        }
-
-                        // adjust height for PDF export
-                        if (printMode)
-                        {
-                            slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
-                                svg=mysvg; adjustWhiteboardHeight();
-                            });
-                        }
+                        parseAnnotations(storage);
                     }
                     catch(err)
                     {
@@ -744,6 +773,77 @@ let RevealWhiteboard = (function(){
             xhr.open('GET', filename, true);
             xhr.send();
         });
+    }
+
+    
+    /*
+     * load scribbles from local file
+     * use Promise to ensure loading in init()
+     */
+    function loadAnnotationsFromFile(filename)
+    {
+        if (window.File && window.FileReader && window.FileList) 
+        {
+            var reader = new FileReader();
+
+            reader.onload = function(evt) {
+                try
+                {
+                    const storage = JSON.parse(evt.target.result);
+                    parseAnnotations(storage);
+
+                    // re-setup current slide
+                    slideChanged();
+                }
+                catch(err)
+                {
+                    console.error("Cannot parse " + filename + ": " + err);
+                }
+            }
+
+            reader.readAsText(filename);
+        }
+        else {
+            console.log("Your browser does not support the File API");
+        }
+    }
+
+
+
+    /*
+     * parse the annnotations blob loaded from URL or file
+     */
+    function parseAnnotations(storage)
+    {
+        // create SVGs
+        if (storage.whiteboardVersion && storage.whiteboardVersion >= 2)
+        {
+            storage.annotations.forEach( page => {
+                let slide = document.getElementById(page.slide);
+                if (slide)
+                {
+                    // use global SVG
+                    svg = setupSVG(slide);
+                    if (svg)
+                    {
+                        svg.innerHTML = page.svg;
+                        svg.style.display = 'none';
+                    }
+                }
+            });
+            console.log("whiteboard loaded");
+        }
+
+        // adjust height for PDF export
+        if (printMode)
+        {
+            slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
+                svg=mysvg; 
+                svg.style.display = 'block';
+                adjustSlideHeight();
+                adjustWhiteboardHeight();
+            });
+        }
     }
 
 
@@ -788,7 +888,7 @@ let RevealWhiteboard = (function(){
     /*
      * return annotations as JSON object
      */
-    function annotationJSON()
+    function annotationData()
     {
         let storage = { whiteboardVersion: 2.0, annotations: [] };
             
@@ -799,8 +899,16 @@ let RevealWhiteboard = (function(){
             }
         });
        
-        let blob = new Blob( [ JSON.stringify( storage ) ], { type: "application/json"} );
-        return blob;
+        return storage;
+    }
+
+
+    /*
+     * return annotations as Blob
+     */
+    function annotationBlob()
+    {
+        return new Blob( [ JSON.stringify( annotationData() ) ], { type: "application/json"} );
     }
 
 
@@ -809,6 +917,16 @@ let RevealWhiteboard = (function(){
      */
     function saveAnnotations()
     {
+        // electron app?
+        if (window.saveAnnotation) {
+            if (window.saveAnnotation(annotationData(), annotationURL()))
+            {
+                console.log("whiteboard: save success");
+                needToSave(false);
+                return;
+            }
+        }
+
         console.log("whiteboard: save annotations to decker");
         let xhr = new XMLHttpRequest();
         xhr.open('put', annotationURL(), true);
@@ -821,7 +939,7 @@ let RevealWhiteboard = (function(){
                 downloadAnnotations();
             }
         };
-        xhr.send(annotationJSON());
+        xhr.send(annotationBlob());
     }
 
 
@@ -835,7 +953,7 @@ let RevealWhiteboard = (function(){
         document.body.appendChild(a);
         try {
             a.download = annotationFilename();
-            a.href = window.URL.createObjectURL( annotationJSON() );
+            a.href = window.URL.createObjectURL( annotationBlob() );
 
         } catch( error ) {
             console.error("whiteboard download error: " + error);
@@ -1086,8 +1204,7 @@ let RevealWhiteboard = (function(){
 
 
         // don't propagate event any further
-        killEvent(evt);
-        return false;
+        return killEvent(evt);
     }
 
 
@@ -1132,8 +1249,7 @@ let RevealWhiteboard = (function(){
 
 
         // don't propagate event any further
-        killEvent(evt);
-        return false;
+        return killEvent(evt);
     }
 
 
@@ -1159,8 +1275,7 @@ let RevealWhiteboard = (function(){
         triggerHideCursor();
 
         // don't propagate event any further
-        killEvent(evt);
-        return false;
+        return killEvent(evt);
     }
 
 
@@ -1194,8 +1309,7 @@ let RevealWhiteboard = (function(){
     {
         if (whiteboardActive)
         {
-            killEvent(evt);
-            return false;
+            return killEvent(evt);
         }
     }, true );
 
@@ -1203,22 +1317,26 @@ let RevealWhiteboard = (function(){
     // when drawing, prevent touch events triggering clicks 
     // (e.g. menu icon, control arrows)
     // only allow clicks for our (.whiteboard) buttons
-    window.addEventListener( "touchstart", function(evt) 
+    function preventTouchClick(evt)
     {
         if (whiteboardActive && !evt.target.classList.contains("whiteboard"))
         {
-            killEvent(evt);
-            return false;
+            return killEvent(evt);
         }
-    }, true );
-    window.addEventListener( "touchend", function(evt) 
+    }
+    window.addEventListener( "touchstart", preventTouchClick, true );
+    window.addEventListener( "touchend",   preventTouchClick, true );
+  
+
+    // prevent iPad pen to trigge scrolling (by killing touchstart
+    // whenever force is detected
+    function preventPenScroll(evt) 
     {
-        if (whiteboardActive && !evt.target.classList.contains("whiteboard"))
-        {
-            killEvent(evt);
-            return false;
+        if (evt.targetTouches[0].force) {
+            return killEvent(evt);
         }
-    }, true );
+    }
+    slides.addEventListener( "touchstart", preventPenScroll );
 
 
     // bind to undo event (CTRL-Z or CMD-Z).
@@ -1230,8 +1348,8 @@ let RevealWhiteboard = (function(){
         if ((evt.ctrlKey || evt.metaKey) && (!evt.shiftKey) &&
             String.fromCharCode(evt.which).toLowerCase() == 'z') 
         {
-            killEvent(evt);
             undo();
+            return killEvent(evt);
         }
     });
 
@@ -1252,7 +1370,10 @@ let RevealWhiteboard = (function(){
                 svg.style.display = 'none';
             });
 
-            // show current slide's SVG
+            // adjust slide height (call before setupSVG!)
+            adjustSlideHeight();
+
+            // setup and show current slide's SVG (adjust slide height before!)
             setupSVG();
             svg.style.display = 'block';
 
@@ -1298,7 +1419,9 @@ let RevealWhiteboard = (function(){
             // adjust fragment visibility
             svg.querySelectorAll('svg>path[data-frag]').forEach( stroke => { 
                 stroke.style.visibility = 
-                    stroke.getAttribute('data-frag') > currentFragmentIndex ? 'hidden' : 'visible';
+                    ((stroke.getAttribute('data-frag') > currentFragmentIndex) && 
+                     (stroke.getBBox().y < pageHeight))
+                    ? 'hidden' : 'visible';
             });
         }
     }
@@ -1306,7 +1429,7 @@ let RevealWhiteboard = (function(){
 
 
     // whenever slide changes, update slideIndices and redraw
-    Reveal.addEventListener( 'ready',        slideChanged );
+    Reveal.addEventListener( 'ready', slideChanged );
     Reveal.addEventListener( 'slidechanged', slideChanged );
 
     // whenever fragment changes, update stroke visibility
@@ -1357,7 +1480,7 @@ let RevealWhiteboard = (function(){
             if (printMode) buttons.style.display = 'none';
 
             // load annotations
-            return new Promise( (resolve) => loadAnnotations().then(resolve) );
+            return new Promise( (resolve) => loadAnnotationsFromURL().then(resolve) );
         },
 
         // menu plugin need access to trigger it

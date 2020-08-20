@@ -27,10 +27,10 @@
 /* the animation for indicating additional pages on the bottom */
 @keyframes pulseBorder {
   from {
-    border-bottom: 5px dashed #ffffff00;
+    border-bottom: 5px dotted #ffffff00;
   }
   to {
-    border-bottom: 5px dashed var(--whiteboard-active-color);
+    border-bottom: 5px dotted var(--whiteboard-active-color);
   }
 }
 
@@ -38,11 +38,11 @@
 /* activate pulsing border indiciator */
 .reveal .slides.pulseBorder {
     animation-name:            pulseBorder;
-    animation-iteration-count: 4;
+    animation-iteration-count: 6;
     animation-timing-function: ease;
     animation-direction:       alternate;
     animation-duration:        0.5s;
-    border-bottom:             none;
+    border-bottom:             5px dotted #ffffff00;
 }
 
 
@@ -155,10 +155,12 @@
 }
 #whiteboardButtons>#whiteboardButton:hover {
     display: inline-block;
+    color:   var(--whiteboard-active-color) !important;
     opacity: 1.0;
 }
 #whiteboardButtons.active>#whiteboardButton {
     display: inline-block;
+    color:   var(--whiteboard-active-color);
     opacity: 1.0;
 }
 

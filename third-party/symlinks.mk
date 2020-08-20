@@ -35,7 +35,7 @@ mathjax:
 
 reveal.js:
 	@mkdir -p $(support)/reveal/plugin
-	@for i in js css plugin/notes ; do \
+	@for i in js css plugin/notes plugin/highlight ; do \
 		$(dup) $(third)/reveal.js/$$i $(support)/reveal/$$i; \
 	done
 

@@ -13,13 +13,27 @@ $endif$
 $if(keywords)$
   <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
 $endif$
+$if(template.favicon)$
+  <link rel="shortcut icon" href="$template.favicon$">
+$endif$
+$if(mario)$
+    $if(title)$
+        $if(subtitle)$
+          <title>$title$: $subtitle$</title>
+        $else$
+          <title>$title$</title>
+        $endif$
+    $endif$
+$else$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
+$endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reveal.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
 $if(thebelab.enable)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/thebelab/thebelab.css">
 $endif$
@@ -184,8 +198,8 @@ $if(title)$
          $endif$
          </div>
 
-         $if(teaser)$
-         <img class="teaser" src=$teaser$>
+         $if(template.teaser)$
+         <img class="teaser" src=$template.teaser$>
          $endif$
 
          $if(authors)$
@@ -466,7 +480,7 @@ $endif$
 $if(menu)$
 $if(mario)$
         menu: {
-            side:              'right',
+            side:              'left',
             numbers:           true,
             titleSelector:     'h1',
             hideMissingTitles: false,
@@ -474,8 +488,8 @@ $if(mario)$
             custom:            false,
             themes:            false,
             transitions:       false,
-            openButton:        false,
-            openSlideNumber:   true,
+            openButton:        true,
+            openSlideNumber:   false,
             keyboard:          true,
             loadIcons:         false
         },
@@ -516,7 +530,7 @@ $else$
               T:         "^{\\mathsf{T}}",
               abs:       ['\\left\\lvert #1 \\right\\rvert', 1],
               det:       ['\\left\\lvert #1 \\right\\rvert', 1],
-              norm:      ['\\left\\lVert #1 \\right\\rVert', 1],
+              norm:      ['\\left\\Vert #1 \\right\\Vert', 1],
               iprod:     ['\\left\\langle #1 \\right\\rangle', 1],
               vec:       ['{\\mathbf{\\boldsymbol{#1}}}', 1],
               mat:       ['{\\mathbf{\\boldsymbol{#1}}}', 1],
@@ -552,12 +566,8 @@ $if(mario)$
                       },
 $endif$
                       tooltips: {
-                          mode: 'index',
-                          intersect: false,
-                      },
-                      hover: {
-                          mode: 'nearest',
-                          intersect: true
+                          mode: 'point',
+                          intersect: true,
                       },
                       legend: { position: "bottom" },
                       plugins: { colorschemes: { scheme: "tableau.Classic10" } }

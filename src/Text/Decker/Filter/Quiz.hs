@@ -230,7 +230,6 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
 solutionButton :: Meta -> Block
 solutionButton meta =
   rawHtml' $ do
-    H.br
     H.button ! A.class_ "solutionButton" $ H.toHtml buttonText
   where
     buttonText :: T.Text
