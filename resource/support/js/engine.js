@@ -4,14 +4,18 @@ async function prepareEngine(api) {
   if (Reveal.isReady()) {
     buildInterface(api);
   } else {
-    Reveal.addEventListener("ready", event => {
+    Reveal.addEventListener("ready", _ => {
       buildInterface(api);
     });
   }
 }
 
-function buildInterface(api) {
-  let body = document.querySelector("body");
+async function buildInterface(api) {
+  var serverToken;
+  api
+    .getToken()
+    .then(t => (serverToken = t))
+    .catch((serverToken = null));
 
   let open = document.createElement("div");
 
@@ -82,9 +86,16 @@ function buildInterface(api) {
   document.body.appendChild(open);
   document.body.appendChild(panel);
 
+  // Found on StackOverflow
+  const hashCode = s =>
+    s.split("").reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0);
+
+  let url = new URL(window.location.href);
+  let refererId = hashCode(url.host + url.pathname);
+
   let getContext = () => {
     return {
-      deck: body.getAttribute("data-deckid"),
+      deck: refererId,
       slide: Reveal.getCurrentSlide().id,
       token: user.value
     };
@@ -96,27 +107,37 @@ function buildInterface(api) {
     slideid.value = context.slide;
   };
 
-  let updateUser = () => {
-    let val = window.localStorage.getItem("token");
-    if (val !== null) {
-      user.value = val;
+  let initUser = () => {
+    let localToken = window.localStorage.getItem("token");
+    if (serverToken && serverToken.authorized) {
+      user.value = serverToken.authorized;
+      user.setAttribute("disabled", true);
+      check.classList.add("checked");
+      user.type = "password";
+    } else if (localToken) {
+      user.value = localToken;
       user.setAttribute("disabled", true);
       check.classList.add("checked");
       user.type = "password";
     } else {
+      user.value = hashCode(Math.random().toString());
       user.removeAttribute("disabled");
       check.classList.remove("checked");
       user.type = "text";
     }
   };
 
-  let renderDelete = () => {
-    api.updateCommentList(getContext, renderList);
+  let updateComments = () => {
+    let context = getContext();
+    api
+      .getComments(context.deck, context.slide, context.token)
+      .then(renderList)
+      .catch(console.log);
   };
 
   let renderSubmit = () => {
+    updateComments();
     text.value = "";
-    api.updateCommentList(getContext, renderList);
   };
 
   let renderList = list => {
@@ -135,7 +156,8 @@ function buildInterface(api) {
         let del = document.createElement("button");
         del.appendChild(trash.cloneNode(true));
         del.addEventListener("click", _ => {
-          api.deleteComment(getContext, comment.delete, renderDelete);
+          let context = getContext();
+          api.deleteComment(comment.delete, context.token).then(updateComments);
         });
         div.appendChild(del);
       }
@@ -152,51 +174,57 @@ function buildInterface(api) {
   open.addEventListener("click", _ => {
     open.classList.add("checked");
     panel.classList.add("open");
-    api.updateCommentList(getContext, renderList);
+    updateComments();
     document.activeElement.blur();
   });
 
-  user.addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      api.updateCommentList(getContext, renderList);
-      e.stopPropagation();
-      document.activeElement.blur();
-    }
-  });
-
-  check.addEventListener("click", _ => {
-    if (check.classList.contains("checked")) {
-      check.classList.remove("checked");
-      window.localStorage.removeItem("token");
-      user.removeAttribute("disabled");
-      user.type = "text";
-    } else {
-      if (user.value) {
-        check.classList.add("checked");
-        window.localStorage.setItem("token", user.value);
-        user.setAttribute("disabled", true);
-        user.type = "password";
+  if (!(serverToken && serverToken.authorized)) {
+    user.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        updateComments();
+        e.stopPropagation();
+        document.activeElement.blur();
       }
-    }
-    api.updateCommentList(getContext, renderList);
-  });
+    });
+
+    check.addEventListener("click", _ => {
+      if (check.classList.contains("checked")) {
+        check.classList.remove("checked");
+        window.localStorage.removeItem("token");
+        user.removeAttribute("disabled");
+        user.type = "text";
+      } else {
+        if (user.value) {
+          check.classList.add("checked");
+          window.localStorage.setItem("token", user.value);
+          user.setAttribute("disabled", true);
+          user.type = "password";
+        }
+      }
+      updateComments();
+    });
+  }
 
   text.addEventListener("keydown", e => {
     if (e.key === "Enter" && e.shiftKey) {
-      api.submitComment(getContext, text.value, renderSubmit);
+      let context = getContext();
+      api
+        .submitComment(context.deck, context.slide, context.token, text.value)
+        .then(renderSubmit)
+        .catch(console.log);
       e.stopPropagation();
       e.preventDefault();
       document.activeElement.blur();
     }
   });
 
-  api.updateCommentList(getContext, renderList);
-  updateIds();
-  updateUser();
-
-  Reveal.addEventListener("slidechanged", event => {
-    api.updateCommentList(getContext, renderList);
+  Reveal.addEventListener("slidechanged", _ => {
+    updateComments();
     updateIds();
-    updateUser();
+    initUser();
   });
+
+  updateComments();
+  updateIds();
+  initUser();
 }

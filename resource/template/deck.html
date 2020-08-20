@@ -291,9 +291,10 @@ $body$
 
 $if(decker-engine-base-url)$
   <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
-  <script type="module">
-    import * as api from "$decker-engine-base-url$/decker-util.js";
-    import {prepareEngine} from "$decker-support-dir$/js/engine.js";
+  <script type="module" crossorigin>
+    import deckerApi from "$decker-engine-base-url$/decker-util.js";
+    import {prepareEngine} from "./$decker-support-dir$/js/engine.js";
+    let api = deckerApi("$decker-engine-base-url$");
     prepareEngine(api);
   </script>
 $endif$
