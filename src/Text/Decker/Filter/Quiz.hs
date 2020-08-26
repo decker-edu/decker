@@ -1,7 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Text.Decker.Filter.Quiz (handleQuizzes) where
+module Text.Decker.Filter.Quiz (handleQuizzes
+  , Quiz(..)
+  , Match(..)
+  , Choice(..)
+  , QuizMeta(..)
+  ) where
 
 import Control.Exception
 import Control.Lens hiding (Choice)
@@ -32,12 +37,13 @@ data Choice = Choice {correct :: Bool, text :: [Inline], comment :: [Block]}
 
 -- | Set different (optional) meta options for quizzes in a yaml code block
 data QuizMeta = QuizMeta
-    { _lectureId :: T.Text,
-      _topicId :: T.Text,
-      _points :: Int,
-      _difficulty :: T.Text,
+    { _category :: T.Text,
+      _lectureId :: T.Text,
+      _score :: Int,
+      _topic :: T.Text,
       _lang :: T.Text,
-      _style :: T.Text
+      _style :: T.Text,
+      _solution :: T.Text
     }
     deriving (Show)
 
@@ -107,15 +113,7 @@ handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
                 then set tags ts q
                 else set tags (ts ++ ["columns", "box"]) q
         -- The default "new" quizzes
-        defaultMeta =
-            QuizMeta
-                { _lectureId = "",
-                  _topicId = "",
-                  _points = 0,
-                  _difficulty = "",
-                  _lang = (lookupMetaOrElse "en" "lang" meta),
-                  _style = (lookupMetaOrElse "fancy" "quiz.style" meta)
-                }
+        defaultMeta = QuizMeta "" "" 0 "" (lookupMetaOrElse "en" "lang" meta) (lookupMetaOrElse "fancy" "quiz.style" meta) (lookupMetaOrElse "" "quiz.solution" meta)
         defaultMatch = MatchItems [] [] defaultMeta [] []
         defaultMC = MultipleChoice [] [] defaultMeta [] []
         defaultIC = InsertChoices [] [] defaultMeta []
@@ -223,16 +221,17 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
             foldr
                 (setMeta' m)
                 qm
-                ["Points", "LectureId", "TopicId", "Difficulty", "lang", "quiz.style"]
+                ["score", "category", "lectureId", "topic", "lang", "quiz.style", "quiz.solution"]
         setMeta' :: Meta -> T.Text -> QuizMeta -> QuizMeta
         setMeta' m t qm =
             case t of
-                "Points" -> set points (lookupMetaOrElse 0 t m) qm
-                "LectureId" -> set lectureId (lookupMetaOrElse "" t m) qm
-                "TopicId" -> set topicId (lookupMetaOrElse "" t m) qm
-                "Difficulty" -> set difficulty (lookupMetaOrElse "Easy" t m) qm
+                "score" -> set score (lookupMetaOrElse 0 t m) qm
+                "category" -> set category (lookupMetaOrElse "" t m) qm
+                "lectureId" -> set lectureId (lookupMetaOrElse "" t m) qm
+                "topic" -> set topic (lookupMetaOrElse "" t m) qm
                 "lang" -> set lang (lookupMetaOrElse (view lang qm) t m) qm
                 "quiz.style" -> set style (lookupMetaOrElse (view style qm) t m) qm
+                "quiz.solution" -> set solution (lookupMetaOrElse (view solution qm) t m) qm
                 _ -> throw $ InternalException $ "Unknown meta data key: " <> show t
 
 -- | A simple Html button
@@ -241,29 +240,29 @@ solutionButton meta =
     rawHtml' $ do H.button ! A.class_ "solutionButton" $ H.toHtml buttonText
     where
         buttonText :: T.Text
-        buttonText = lookupInDictionary "quiz.solution-button" meta
+        buttonText = lookupInDictionary "quiz.solution" meta
 
-quizDiv :: Meta -> Quiz -> [Block] -> Block
-quizDiv meta quiz = Div ("", cls, [lid, tid, pts, diff])
+resetButton :: Meta -> Block
+resetButton meta =
+    rawHtml' $ do H.button ! A.class_ "resetButton" $ H.toHtml buttonText
     where
-        qm = view quizMeta quiz
-        cls = view tags quiz ++ [view style qm]
-        diff = ("data-difficulty", view difficulty qm)
-        lid = ("data-lecture-id", view lectureId qm)
-        tid = ("data-topic-id", view topicId qm)
-        pts = ("data-points", T.pack $ show $ view points qm)
+        buttonText :: T.Text
+        buttonText = lookupInDictionary "quiz.reset-button" meta
 
 renderMultipleChoice :: Meta -> Quiz -> Block
 renderMultipleChoice meta quiz@(MultipleChoice title tgs qm q ch) =
-    quizDiv meta quiz $ header ++ q ++ [choiceBlock]
+    Div ("", cls, []) $ header ++ q ++ [choiceBlock] ++ [sButton] ++ [rButton]
     where
-        -- cls = tgs ++ [view style qm]
+        cls = tgs ++ [view style qm] ++ [view solution qm]
         -- ++ [solutionButton]
         header =
             case title of
                 [] -> []
                 _ -> [Header 2 ("", [], []) title]
         choiceBlock = rawHtml' $ choiceList "choices" ch
+        newMeta = setMetaValue "lang" (view lang qm) meta
+        sButton = solutionButton newMeta
+        rButton = resetButton newMeta
 renderMultipleChoice meta q =
     Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
 
@@ -293,9 +292,9 @@ choiceList t choices =
 
 renderInsertChoices :: Meta -> Quiz -> Block
 renderInsertChoices meta quiz@(InsertChoices title tgs qm q) =
-    quizDiv meta quiz $ header ++ questionBlocks q ++ tooltipDiv
+    Div ("", cls, []) $ header ++ questionBlocks q ++ tooltipDiv ++ [sButton] ++ [rButton] ++ [sol]
     where
-        cls = tgs ++ [view style qm]
+        cls = tgs ++ [view style qm] ++ [view solution qm]
         -- ++ [solutionButton]
         header =
             case title of
@@ -321,19 +320,26 @@ renderInsertChoices meta quiz@(InsertChoices title tgs qm q) =
         options :: Choice -> Html
         options (Choice correct text comment) =
             if correct
-                then H.option ! A.class_ "correct" $ toHtml $ stringify text
-                else H.option ! A.class_ "wrong" $ toHtml $ stringify text
+                then H.option ! A.class_ "correct" ! value $ toHtml $ stringify text
+                else H.option ! A.class_ "wrong" ! value $ toHtml $ stringify text
+            where value = A.value $ textValue $ stringify text
+        newMeta = setMetaValue "lang" (view lang qm) meta
+        sButton = solutionButton newMeta
+        rButton = resetButton newMeta
+        sol = rawHtml' $ H.ul ! A.class_ "solutionDiv" $ ""
+
 renderInsertChoices meta q =
     Div ("", [], []) [Para [Str "ERROR NO INSERT CHOICES QUIZ"]]
 
 --
 renderMatching :: Meta -> Quiz -> Block
 renderMatching meta quiz@(MatchItems title tgs qm qs matches) =
-    quizDiv meta quiz $ header ++ qs ++ [itemsDiv, bucketsDiv, button]
+    Div ("", cls, []) $ header ++ qs ++ [itemsDiv, bucketsDiv, sButton, rButton]
     where
-        cls = tgs ++ [view style qm]
+        cls = tgs ++ [view style qm] ++ [view solution qm]
         newMeta = setMetaValue "lang" (view lang qm) meta
-        button = solutionButton newMeta
+        sButton = solutionButton newMeta
+        rButton = resetButton newMeta
         header =
             case title of
                 [] -> []
@@ -377,11 +383,12 @@ renderMatching meta q =
 
 renderFreeText :: Meta -> Quiz -> Block
 renderFreeText meta quiz@(FreeText title tgs qm q ch) =
-    quizDiv meta quiz $ header ++ q ++ [inputRaw] ++ [button]
+    Div ("", cls, []) $ header ++ q ++ [inputRaw] ++ [sButton] ++ [rButton] ++ [sol]
     where
-        cls = tgs ++ [view style qm]
+        cls = tgs ++ [view style qm] ++ [view solution qm]
         newMeta = setMetaValue "lang" (view lang qm) meta
-        button = solutionButton newMeta
+        sButton = solutionButton newMeta
+        rButton = resetButton newMeta
         header =
             case title of
                 [] -> []
@@ -393,5 +400,6 @@ renderFreeText meta quiz@(FreeText title tgs qm q ch) =
                 ( (H.input ! A.placeholder (H.textValue placeholderText))
                       >> choiceList "solutionList" ch
                 )
+        sol = rawHtml' $ H.ul ! A.class_ "solutionDiv" $ ""
 renderFreeText meta q =
     Div ("", [], []) [Para [Str "ERROR NO FREETEXT QUIZ"]]

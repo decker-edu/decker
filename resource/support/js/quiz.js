@@ -1,308 +1,317 @@
-// I am not exactly sure why this is needed 
-// but without it e.g. the math in matching questions is not reloaded
-if (typeof Reveal === 'undefined') {
-    console.error("quiz.js has to be loaded after reveal.js");
-}
-else {
-    if (Reveal.isReady()) {
-        quiz();
-    } else {
-        Reveal.addEventListener("ready", quiz);
-    }
-}
+"use strict";
 
-
-function quiz() {
-    quizMI();
-    quizMC();
-    quizIC();
-    quizFT();
-}
-
-
-
-/**
-* Handles Multiple choice questions
-* (Choosing/clicking and coloring of answers. Showing correct solutions etc)
-*/
-function quizMC() {
-    var mcQuestions = document.querySelectorAll(".qmc,.quiz-mc,.quiz-multiple-choice");
-
-    for (let mc of mcQuestions) {
-        var answers = mc.getElementsByTagName("li");
-
-        for (let answer of answers) {
-            answer.addEventListener("click", function () {
-                var correct = this.classList.contains("correct");
-
-                this.classList.add(correct ? "show-right" : "show-wrong");
+var RevealQuiz = (() => {
+    return {
+        init: function() { 
+            return new Promise( function(resolve) {
+                quizMI();
+                quizMC();
+                quizIC();
+                quizFT();
+                resolve();
             });
         }
     }
+})();
+
+/**
+ * Multiple choice questions
+ * Listen for selections
+ */
+function quizMC() {
+    var mcQuestions = document.querySelectorAll(".qmc,.quiz-mc,.quiz-multiple-choice");
+
+    for (var question of mcQuestions) {
+        var answers = question.getElementsByTagName("li");
+
+        for (var answer of answers) {
+            answer.addEventListener("click", function () {
+                var correct = this.classList.contains("correct");
+                // toggle answer on click
+                this.classList.forEach(c => {
+                    c.match(/show-/g) ? this.classList.remove(c) : this.classList.add(correct ? "show-right" : "show-wrong");
+                });
+            });
+        }
+
+        hideSolutionButton(question);
+        // TODO: add function to show solution and reset
+    }
 }
+
+/**
+ * Free Text questions
+ * Listen for <enter> key in input field - show if correct / incorrect
+ * Listen for click of solution button - show correct response
+ */
+function quizFT() {
+    const ftQuestions = document.querySelectorAll(".qft,.quiz-ft,.quiz-free-text");
+    
+    for (let question of ftQuestions) {
+        const solutions = question.querySelector(".solutionList");
+        const choices = solutions.getElementsByTagName('li');
+        const solutionDiv = question.querySelector('.solutionDiv');
+        const input = question.querySelector("input");
+        var buffer = [];
+
+        // Add correct solution to solution div
+        for (let c of choices) {
+            if (c.classList.contains('correct')) {
+                solutionDiv.appendChild(c.cloneNode(true)); 
+            }
+        }
+
+        // Add click listeners to solution, reset buttons
+        const solutionButton = question.querySelector('.solutionButton');
+        const resetButton = question.querySelector('.resetButton');
+        solutionButton.addEventListener('click', showSolution);
+        resetButton.addEventListener('click', resetQuestion);    
+
+        // TODO: discuss with group functionality/use
+        // for now, default to show solution button 
+        // hideSolutionButton(question);
+        question.querySelector('.resetButton').classList.add('hidden');
+
+        // Listen for enter, delete, backspace in input field
+        input.addEventListener("keydown", (e) => {
+            buffer.push(e.key.toLowerCase());
+            if (buffer[buffer.length-1] === buffer[buffer.length-2]) { return; };
+            if (e.keyCode === 13) { checkInput() }
+            if (e.keyCode === 8 || e.keyCode === 46) { resetQuestion() }
+        });
+
+        // Check value of input field against solutions
+        function checkInput() {
+            event.preventDefault();
+            const answer = input.value.toLowerCase().trim();
+            const checked = checkAnswer(solutions, answer);
+            input.classList.add(checked.correct ? "show-right" : "show-wrong");
+
+            // Display the tooltip/solution box for any expected answer, correct or incorrect
+            input.addEventListener("mouseover", () => {
+                if (checked.predef) { solutions.classList.add("solved") }
+            });
+            input.addEventListener("mouseout", () => {
+                solutions.classList.remove("solved");
+            });
+        }
+        // Show the solution div 
+        function showSolution() {
+            solutionDiv.classList.add('solved');
+            this.classList.add('disabled');
+            resetButton.classList.remove('hidden');
+        }
+        // Return to original state
+        function resetQuestion() {
+            for (let c of choices) { c.classList.remove('solved'); }
+            solutionDiv.classList.remove('solved');
+            input.classList.remove("show-right", "show-wrong");
+            input.value = "";
+            solutionButton.classList.remove('disabled');
+            resetButton.classList.add('hidden');
+        }
+    }
+}
+
+/**
+ * Select Choice question
+ * Listen for selections - show if correct / incorrect
+ */
+function quizIC() {
+    var icQuestions = document.querySelectorAll(".qic,.quiz-ic,.quiz-insert-choices");
+
+    for (let question of icQuestions) {
+        const selects = question.getElementsByTagName("select");
+        const tipDiv = question.querySelector(".tooltip-div");
+
+        for (let sel of selects) {
+            const solutionList = sel.nextElementSibling;
+
+            // Listen for selections - color appropriately
+            sel.addEventListener('change', function() {
+                tipDiv.innerHTML = "";
+                sel.classList.add('solved');
+                let ind = sel.selectedIndex;
+                let answer = sel.options[ind].innerText;
+                let checked = checkAnswer(solutionList, answer);
+
+                sel.classList.remove("show-right","show-wrong");
+                sel.classList.add(checked.correct ? "show-right" : "show-wrong");
+
+                var answers = solutionList.getElementsByTagName('li');
+                var tip = answers.item(sel.selectedIndex - 1).querySelector('.tooltip');
+                var cln = tip.cloneNode(true);
+                tipDiv.appendChild(cln);
+            })
+
+            // Show tooltip box on mouseover
+            sel.addEventListener("mouseover", function() {
+                if (sel.classList.contains('solved')) {
+                    tipDiv.classList.add('solved');
+                }
+            });
+            sel.addEventListener("mouseleave", () => {
+                tipDiv.classList.remove('solved');
+            });
+        }
+
+        hideSolutionButton(question);
+        // TODO: Add function to show solution, reset
+    }
+}
+
+/**
+ * Matching Item questions
+ * Build drag and drop or if 'plain' build select drop-down
+ */
+function quizMI() {
+    var miQuestions = document.querySelectorAll(".qmi,.quiz-mi,.quiz-match-items");
+    for (var question of miQuestions) {
+        shuffleMatchItems(question);
+        buildDragDrop(question);
+    }
+}
+
+/********************
+ * Helper Functions
+ ********************/
+
+/**
+ * Show solution button if specified in yaml
+ * @param {Element} question 
+ */
+function hideSolutionButton(question) {
+    question.querySelector('.solutionButton').classList.add(question.classList.contains('show-solution') ? 'display' : 'hidden');
+    question.querySelector('.resetButton').classList.add('hidden');
+}
+
 /**
  * @param {string} answer - The input answer
- * @param {HTMLElement} solutionList 
+ * @param {Element} solutionList 
  * 
- * Iterate over solutionList. 
- * check if given answer is equivalent to at least one of the correct solutions
- * returns two booleans
- * correct: whether the given answer is correct
- * predef: whether the given answer is equivalent to one of the predefined possible answers
- * those predefined answers can be correct or wrong
- * This way, the tooltip will also show for expected wrong answers!
+ * Iterate over solutionList, check if answer is equivalent to at least one correct solution.
+ * Returns two booleans - 
+ *   correct: whether the given answer is correct
+ *   predef: whether the given answer is equivalent to one of the predefined possible answers
+ * Predefined answers can be correct or wrong.
+ * Tooltip will also show for expected wrong answers!
  */
 function checkAnswer(solutionList, answer) {
     const solutions = solutionList.getElementsByTagName("li");
 
-    for (let s of solutions) {
+    for (var s of solutions) {
         const is_right = s.classList.contains("correct");
         // Get only the solution text and not the tooltip div
         const solution = s.innerHTML.replace(/(<div)(.|[\r\n])*(<\/div>)/, "").toLowerCase().trim();
-        if (is_right && answer == solution) {
+        if (answer == solution) {
             s.classList.add("solved");
-            return { correct: true, predef: true };
-        } else if (!is_right && answer == solution) {
-            s.classList.add("solved");
-            return { correct: false, predef: true };
-        }
+            return {correct: (is_right ? true : false), predef: true};
+        } 
     }
     return { correct: false, predef: false };
 }
 
 /**
- * Compare the value entered in the input field to the solutions provided in the solutionList
- * If a correct solution is entered 
- * @param {HTMLElement} input  -- The input field
- * @param {HTMLElement} solutions  -- The solutionList
+ * Shuffle matchItems so the correct pairings aren't always directly below each other
+ * @param {Element} question 
  */
-function inputEvent(input, solutions) {
-    input.addEventListener("keydown", function (event) {
-        if (event.keyCode === 13) {
-            event.preventDefault();
+function shuffleMatchItems(question) {
 
-            const answer = input.value.toLowerCase().trim();
-            const checked = checkAnswer(solutions, answer);
-
-            //Change the appearance of the input element depending on correctness of answer
-            this.classList.remove("show-right");
-            this.classList.remove("show-wrong");
-            this.classList.add(checked.correct ? "show-right" : "show-wrong");
-
-            // Display the tooltip/solution box
-            // Show the tooltip box for any expected answer. be it correct or wrong
-            solutions.classList.add(checked.predef ? "solved" : "");
-            this.addEventListener("mouseover", function () {
-                if (checked.predef) {
-                    solutions.classList.add("solved");
-                }
-            });
-            this.addEventListener("mouseout", function () {
-                solutions.classList.remove("solved");
-            });
+    // Fisher-Yates Shuffle
+    const shuffleArray = array => {
+        for (var i = array.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
-        else {
-            return false;
-        }
-    });
-}
-/**
- * Handle FreeText questions
- */
-function quizFT() {
-    var ftQuestions = document.querySelectorAll(".qft,.quiz-ft,.quiz-free-text");
-
-    for (let ft of ftQuestions) {
-        const solutions = ft.getElementsByClassName("solutionList")[0];
-        const solutionButton = ft.getElementsByClassName("solutionButton")[0];
-        const input = ft.getElementsByTagName("input")[0];
-        inputEvent(input, solutions);
-
-        solutionButton.onclick = function () {
-            solutions.classList.add("solved");
-
-            for (let l of solutions.getElementsByTagName("li")) {
-                if (l.classList.contains("correct")) {
-                    l.classList.add("solved");
-                }
-            }
-
-            // Hide tooltip box after 3 seconds
-            setTimeout(function () {
-                solutions.classList.remove("solved");
-                // Hide individual solution items as well again
-                Array.from(solutions.getElementsByTagName("li")).map(x => {
-                    x.classList.remove("solved");
-                })
-
-            }, 3000)
-
-
-        }
+        return array;
     }
+
+    const matchItems = question.querySelector(".matchItems");
+    const elementsArray = Array.prototype.slice.call(matchItems.getElementsByClassName('matchItem'));
+
+    elementsArray.map(element => { matchItems.removeChild(element) })
+    shuffleArray(elementsArray);
+    elementsArray.map(element => { matchItems.appendChild(element) });
 }
 
 /**
- * Handles InsertChoices questions
- * 
+ * Construct drag and drop listeners for Matching questions
+ * @param {Element} question 
  */
-function quizIC() {
-    var icQuestions = document.querySelectorAll(
-        ".qic,.quiz-ic,.quiz-insert-choices"
-    );
+function buildDragDrop(question) {
+    const dropzones = question.getElementsByClassName("bucket");
+    const draggables = question.getElementsByClassName("matchItem");
 
-    for (let ic of icQuestions) {
-        const selects = ic.getElementsByTagName("select");
+    const matchItems = question.querySelector(".matchItems");
+    matchItems.addEventListener("drop", drop);
+    matchItems.addEventListener("dragover", e => e.preventDefault());
 
-        const tipDiv = ic.querySelector(".tooltip-div");
-        for (let sel of selects) {
-            const solutions = sel.nextElementSibling;
-            sel.addEventListener("change", function () {
-                const selected = sel.options[sel.selectedIndex];
-                const is_right = selected.classList.contains("correct");
-
-                sel.classList.remove("show-right");
-                sel.classList.remove("show-wrong");
-                sel.classList.add(is_right ? "show-right" : "show-wrong");
-            });
-            // Show tooltip box on mouseover
-            sel.addEventListener("mouseover", function () {
-                // Hide all other tooltips/solutions
-                tipDiv.innerHTML = "";
-                // Display only current choice tooltip
-                var choice = solutions.getElementsByTagName("li")[sel.selectedIndex - 1].querySelector(".tooltip");
-                var cln = choice.cloneNode(true);
-                tipDiv.appendChild(cln);
-            });
-
-            // Hide tooltip if mouse is leaving it
-            tipDiv.addEventListener("mouseleave", function () {
-                this.innerHTML = "";
-            });
-        }
-    }
-}
-
-function quizMI() {
-    var miQuestions = document.querySelectorAll(".qmi,.quiz-mi,.quiz-match-items");
-    console.log(miQuestions.length);
-    for (let mi of miQuestions) {
-        shuffleMatchItems(mi);
-        matchings(mi);
-        matchingAnswerButton(mi);
-    }
-}
-
-// Adds event listeners for dragging and dropping to the elements of "matching" questions
-function matchings(matchQuestion) {
-    const dropzones = matchQuestion.getElementsByClassName("bucket");
-    const draggables = matchQuestion.getElementsByClassName("matchItem");
-
-    for (i = 0; i < dropzones.length; i++) {
+    for (var i = 0; i < dropzones.length; i++) {
         dropzones[i].addEventListener("drop", drop);
-        dropzones[i].addEventListener("dragover", allowDrop);
+        dropzones[i].addEventListener("dragover", e => e.preventDefault());
 
-        for (let child of dropzones[i].children) {
+        for (var child of dropzones[i].children) {
             if (!child.classList.contains("matchItem")) {
                 child.classList.add("draggableChild");
             }
         }
     }
 
-    for (i = 0; i < draggables.length; i++) {
+    for (var i = 0; i < draggables.length; i++) {
         draggables[i].addEventListener("dragstart", drag);
 
         // disable children (e.g. images) from being dragged themselves
-        for (let child of draggables[i].children) {
+        for (var child of draggables[i].children) {
             child.setAttribute('draggable', false);
             child.classList.add("draggableChild");
         }
     }
+    matchingAnswerButton(question);
 }
-
-// Shuffle matchItems so the correct pairings aren't always directly below each other
-function shuffleMatchItems(matchQuestion) {
-
-    // Fisher-Yates Shuffle
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            let j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
-
-    const matchItems = matchQuestion.getElementsByClassName("matchItems")[0];
-    matchItems.addEventListener("drop", drop);
-    matchItems.addEventListener("dragover", allowDrop);
-    const elementsArray = Array.prototype.slice.call(matchItems.getElementsByClassName('matchItem'));
-    elementsArray.forEach(function (element) {
-        matchItems.removeChild(element);
-    })
-    shuffleArray(elementsArray);
-    elementsArray.forEach(function (element) {
-        matchItems.appendChild(element);
-    })
-}
-
-
 
 /**
- * Check correctness of current state of a matching questions on button click
- * Which elements have been dropped correctly etc?
- * @param {HTMLElement} matchQuestion 
+ * Correct matching questions on button click
+ * @param {Element} question 
  */
-function matchingAnswerButton(matchQuestion) {
-    const answerButton = matchQuestion.getElementsByClassName("solutionButton")[0];
+function matchingAnswerButton(question) {
+    const answerButton = question.querySelector(".solutionButton");
 
-    answerButton.onclick = function () {
-
-        const buckets = matchQuestion.getElementsByClassName("bucket");
-        const remainingItems = matchQuestion.getElementsByClassName("matchItems")[0].children;
-        const bucketsDiv = matchQuestion.getElementsByClassName("buckets")[0];
+    answerButton.addEventListener('click', () => {
+        const buckets = question.getElementsByClassName("bucket");
+        const remainingItems = question.querySelector(".matchItems").children;
+        const bucketsDiv = question.querySelector(".buckets");
         const assignedItems = bucketsDiv.getElementsByClassName("matchItem");
+
         if (assignedItems.length == 0) {
             alert("You haven't assigned any items!");
             return;
         }
 
-        for (let rem of remainingItems) {
+        for (var rem of remainingItems) {
             const matchId = rem.getAttribute("data-bucketid")
-
-            rem.classList.remove("show-right");
-            rem.classList.remove("show-wrong");
-            if (matchId == null) {
-                rem.classList.add("show-right");
-            } else {
-                rem.classList.add("show-wrong");
-
-            }
+            rem.classList.remove("show-right","show-wrong");
+            rem.classList.add(matchId == null ? "show-right" : "show-wrong");
         }
 
-        for (let bucket of buckets) {
+        for (var bucket of buckets) {
             const droppedItems = bucket.getElementsByClassName("matchItem");
             const bucketId = bucket.getAttribute("data-bucketid");
-            for (let matchItem of droppedItems) {
-                matchItem.classList.remove("show-right");
-                matchItem.classList.remove("show-wrong");
+            for (var matchItem of droppedItems) {
+                matchItem.classList.remove("show-right","show-wrong");
 
                 const matchId = matchItem.getAttribute("data-bucketid");
-                if (matchId == null) {
-                    matchItem.classList.add("show-wrong");
-                } else if (matchId == bucketId) {
-                    matchItem.classList.add("show-right");
-                }
-                else {
-                    matchItem.classList.add("show-wrong");
-                }
+                matchItem.classList.add(matchId == bucketId ? "show-right" : "show-wrong");
+                // if (matchId == null) {
+                //     matchItem.classList.add("show-wrong");
+                // } else if (matchId == bucketId) {
+                //     matchItem.classList.add("show-right");
+                // }
+                // else {
+                //     matchItem.classList.add("show-wrong");
+                // }
             }
         }
-    }
-}
-
-// Functions for dragging and dropping in the matching questions 
-function allowDrop(ev) {
-    ev.preventDefault();
+    })
 }
 
 var elements = [];
@@ -316,14 +325,17 @@ function drag(event) {
 
     event.dataTransfer.setData('index', index);
 }
-
 function drop(event) {
     event.preventDefault();
     var element = elements[event.dataTransfer.getData('index')];
     if (event.target.classList.contains("matchItem")) {
         event.target.parentNode.appendChild(element);
-        return false;
+        return;
     }
 
     event.target.appendChild(element);
 }
+
+
+Reveal.registerPlugin( 'quiz', RevealQuiz );
+
