@@ -251,7 +251,7 @@ resetButton meta =
 
 renderMultipleChoice :: Meta -> Quiz -> Block
 renderMultipleChoice meta quiz@(MultipleChoice title tgs qm q ch) =
-    Div ("", cls, []) $ header ++ q ++ [choiceBlock] ++ [sButton] ++ [rButton]
+    Div ("", cls, []) $ header ++ q ++ [choiceBlock]
     where
         cls = tgs ++ [view style qm] ++ [view solution qm]
         -- ++ [solutionButton]
@@ -260,9 +260,6 @@ renderMultipleChoice meta quiz@(MultipleChoice title tgs qm q ch) =
                 [] -> []
                 _ -> [Header 2 ("", [], []) title]
         choiceBlock = rawHtml' $ choiceList "choices" ch
-        newMeta = setMetaValue "lang" (view lang qm) meta
-        sButton = solutionButton newMeta
-        rButton = resetButton newMeta
 renderMultipleChoice meta q =
     Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
 
@@ -292,7 +289,7 @@ choiceList t choices =
 
 renderInsertChoices :: Meta -> Quiz -> Block
 renderInsertChoices meta quiz@(InsertChoices title tgs qm q) =
-    Div ("", cls, []) $ header ++ questionBlocks q ++ tooltipDiv ++ [sButton] ++ [rButton] ++ [sol]
+    Div ("", cls, []) $ header ++ questionBlocks q ++ tooltipDiv
     where
         cls = tgs ++ [view style qm] ++ [view solution qm]
         -- ++ [solutionButton]
@@ -323,23 +320,17 @@ renderInsertChoices meta quiz@(InsertChoices title tgs qm q) =
                 then H.option ! A.class_ "correct" ! value $ toHtml $ stringify text
                 else H.option ! A.class_ "wrong" ! value $ toHtml $ stringify text
             where value = A.value $ textValue $ stringify text
-        newMeta = setMetaValue "lang" (view lang qm) meta
-        sButton = solutionButton newMeta
-        rButton = resetButton newMeta
-        sol = rawHtml' $ H.ul ! A.class_ "solutionDiv" $ ""
-
 renderInsertChoices meta q =
     Div ("", [], []) [Para [Str "ERROR NO INSERT CHOICES QUIZ"]]
 
 --
 renderMatching :: Meta -> Quiz -> Block
 renderMatching meta quiz@(MatchItems title tgs qm qs matches) =
-    Div ("", cls, []) $ header ++ qs ++ [itemsDiv, bucketsDiv, sButton, rButton]
+    Div ("", cls, []) $ header ++ qs ++ [itemsDiv, bucketsDiv, sButton]
     where
         cls = tgs ++ [view style qm] ++ [view solution qm]
         newMeta = setMetaValue "lang" (view lang qm) meta
         sButton = solutionButton newMeta
-        rButton = resetButton newMeta
         header =
             case title of
                 [] -> []
