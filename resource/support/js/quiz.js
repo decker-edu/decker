@@ -14,10 +14,6 @@ var RevealQuiz = (() => {
     }
 })();
 
-/**
- * Multiple choice questions
- * Listen for selections
- */
 function quizMC() {
     for (let question of document.querySelectorAll(".qmc,.quiz-mc,.quiz-multiple-choice")) {
         for (let answer of question.getElementsByTagName("li")) {
@@ -35,11 +31,6 @@ function quizMC() {
     }
 }
 
-/**
- * Free Text questions
- * Listen for <enter> key in input field - show if correct / incorrect
- * Listen for click of solution button - show correct response
- */
 function quizFT() {
     for (let question of document.querySelectorAll(".qft,.quiz-ft,.quiz-free-text")) {
         const solutions = question.querySelector(".solutionList");
@@ -119,10 +110,6 @@ function quizFT() {
     }
 }
 
-/**
- * Select Choice question
- * Listen for selections - show if correct / incorrect
- */
 function quizIC() {
     const icQuestions = document.querySelectorAll(".qic,.quiz-ic,.quiz-insert-choices");
 
@@ -159,10 +146,6 @@ function quizIC() {
     }
 }
 
-/**
- * Matching Item questions
- * Build drag and drop or if 'plain' build select drop-down
- */
 function quizMI() {
     const miQuestions = document.querySelectorAll(".qmi,.quiz-mi,.quiz-match-items");
     for (let question of miQuestions) {
@@ -170,7 +153,6 @@ function quizMI() {
         question.classList.contains('plain') ? buildPlainMatch(question) : buildDragDrop(question);    
     }
 }
-
 
 /********************
  * Helper Functions
@@ -305,43 +287,36 @@ function matchingAnswerButton(question, button) {
 function buildPlainMatch(question) {
     const matchItems = question.querySelector('.matchItems');
     const buckets = question.querySelector('.buckets');
-    const questions = buckets.querySelectorAll('.bucket');
-    const solutionButton = question.querySelector('.solutionButton');
     const selectTag = buildSelect(matchItems, buckets);
 
-    for (let q of questions) {
-        buckets.removeChild(q);
-        const matchDiv = document.createElement('div');
-        matchDiv.classList.add('matchDiv');
-        matchItems.parentNode.insertBefore(matchDiv, matchItems);
-        matchDiv.appendChild(matchItems);
-        matchDiv.appendChild(buckets);
+    const matchDiv = document.createElement('div');
+    matchDiv.classList.add('matchDiv');
+    matchItems.parentNode.insertBefore(matchDiv, matchItems);        
+    [matchItems, buckets].forEach(ele => { matchDiv.appendChild(ele); });
+
+    for (let bucket of buckets.querySelectorAll('.bucket')) {
+        buckets.removeChild(bucket);
 
         const matchQuestion = document.createElement('div');
         matchQuestion.classList.add("matchQuestion");
         matchItems.appendChild(matchQuestion);
 
         const lab = document.createElement('label');
-        lab.setAttribute('data-value', q.getAttribute('data-bucketId'));
-        lab.innerHTML = q.innerHTML;
-        matchQuestion.appendChild(lab);
-        matchQuestion.appendChild(selectTag.cloneNode(true));
+        lab.setAttribute('data-value', bucket.classList.contains('distractor') ? '0' : bucket.getAttribute('data-bucketId'));
+        lab.innerHTML = bucket.innerHTML;
+        [lab,selectTag.cloneNode(true)].forEach(ele => { matchQuestion.appendChild(ele); });
     }
 
-    solutionButton.addEventListener('click', function() {
+    question.querySelector('.solutionButton').addEventListener('click', () => {
         const qns = matchItems.querySelectorAll('.matchQuestion');
         for (let q of qns) {
             const sel = q.querySelector('select');
-            const idCorrect = sel.previousElementSibling.getAttribute('data-value');
-
-            // style <select> green or red based on correctness
-            const idSelected = sel.options[sel.selectedIndex].value;
             sel.classList.remove("show-right","show-wrong");
+            const idCorrect = sel.previousElementSibling.getAttribute('data-value');
+            const idSelected = sel.options[sel.selectedIndex].value;
             sel.classList.add(idCorrect == idSelected ? "show-right" : "show-wrong");
-            this.classList.add('disabled');
         }   
     });
-
     // No solutionDiv or tooltips because none defined in MD
 }
 
@@ -356,15 +331,14 @@ function buildSelect(matchItems, buckets) {
     
     const blankOpt = document.createElement('option');
     blankOpt.innerText = '...';
+    blankOpt.value = '0';
     sel.appendChild(blankOpt);
     for (let i = 0; i < answers.length; i++) {
         const opt = document.createElement('option');
         const char = String.fromCharCode(i + 65) + ".";
         opt.innerHTML = char; 
-        opt.value = answers[i].getAttribute('data-bucketId') || '0'; 
+        opt.value = answers[i].getAttribute('data-bucketId') || '0'; 
         sel.appendChild(opt);
-
-        // Append to '.buckets'
         buckets.appendChild(answers[i]); 
     }
     return sel;

@@ -305,6 +305,7 @@ $border-radius: 6px;
         // Users may have long tooltips with images
         overflow-y: auto;
         max-height: 80vh;
+        padding-top: 0.2em;
         .bucket {
             display:    block;
             flex:       1 0 0;

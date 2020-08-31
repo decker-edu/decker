@@ -2,8 +2,6 @@
 title: New Quiz Syntax Test deck
 history: True
 lang: de
-quiz:
-  style: fancy
 ---
 
 # Overview
@@ -21,9 +19,34 @@ quiz:
 
 # Matching
 
-#
+# Matching 1 - Fancy
 
-## test {.qmi}
+## {.qmi}
+
+Gravity
+: $(0, -k\,m, 0)\T$
+
+Damping
+: $-k \, \dot{\vec{x}}$
+
+Collisions
+: $k \, d \, \vec{n}$
+
+Inertia
+: $m \, \ddot{\vec{x}}$
+
+Springs
+: $-k \, \left( \norm{\vec{x}_0 - \vec{x}_1} - L \right) \, \frac{ \vec{x}_0 - \vec{x}_1 }{\norm{\vec{x}_0 - \vec{x}_1}}$
+
+```yaml
+lang: en
+quiz:
+  style: fancy
+```
+
+# Matching 2 - Plain
+
+## {.qmi}
 
 Gravity
 : $(0, -k\,m, 0)\T$
@@ -46,9 +69,9 @@ quiz:
   style: plain
 ```
 
-#
+# Matching 3 - Fancy
 
-## Matching Questions {.quiz-mi} 
+## {.quiz-mi} 
 
 Drag the elements to create correct pairings
 
@@ -77,16 +100,60 @@ Empty
 !
 : Distractor B
 
-``` {.yaml}
+```yaml
 score: 5
 category: CG
 lectureId: cg1
 topic: yeah
+quiz:
+    style: fancy
+```
+
+# Matching 4 - Plain
+
+## {.quiz-mi} 
+
+Drag the elements to create correct pairings
+
+A
+: drag to A
+
+
+Image 
+: ![](include/06-metal.png)
+
+B
+: drag to B
+
+decker
+: [decker](http://go.uniwue.de/decker)
+
+C
+: $\Leftarrow$ C
+
+Empty
+: !
+
+!
+: Distractor A
+
+!
+: Distractor B
+
+```yaml
+score: 5
+category: CG
+lectureId: cg1
+topic: yeah
+quiz:
+    style: plain
 ```
 
 # Multiple Choice
 
-## Multiple-Choice {.quiz-mc}
+# Mutliple Choice 1 - Fancy
+
+## {.quiz-mc}
 
 All choices get an optional comment to be potentially shown with the result. 
 
@@ -100,7 +167,32 @@ All choices get an optional comment to be potentially shown with the result.
 - [ ] c
     - So auch nicht
 
-``` {.yaml}
+```yaml
+Points: 5
+LectureId: cg1
+TopicId: yeah
+Difficulty: Easy
+quiz:
+  style: fancy
+```
+
+# Mutliple Choice 2 - Plain
+
+## {.quiz-mc}
+
+All choices get an optional comment to be potentially shown with the result. 
+
+
+- [X] a
+    - So ist das. 
+    - test
+- [ ] b
+    - So nicht. 
+    - Tooltip2
+- [ ] c
+    - So auch nicht
+
+```yaml
 Points: 5
 LectureId: cg1
 TopicId: yeah
@@ -113,7 +205,40 @@ quiz:
 
 Like multiple-choice, however, the choices are shown as drop-down lists embedded inside the text. Hence, beware of the whitespaces below. 
 
-## Inserting Multiple-Choices in Text {.quiz-ic} 
+# Insert MC 1 - Fancy
+
+## {.quiz-ic} 
+
+Decker is a software built using  
+
+
+- [ ] Scala
+    - Unfortunately not.
+- [X] Haskell
+    - Due to Pandoc.
+- [ ] Java
+    - Surely not.
+- [ ] Ruby 
+    - hm no
+
+
+and builds upon the tool
+
+- [X] Pandoc
+  - See previous tooltip.
+- [ ] PowerPoint
+
+.
+
+```yaml
+Points: 5
+quiz:
+  style: fancy
+```
+
+# Insert MC 2 - Plain
+
+## {.quiz-ic} 
 
     
 Decker is a software built using  
@@ -137,12 +262,19 @@ and builds upon the tool
 
 .
 
-
+```yaml
+Points: 5
+quiz:
+  style: plain
+```
 
 # Free Text
+
 These questions now include multiple versions of correct answers with additional optional comments (as before). Hence the Syntax is slightly different in its compact representation. 
 
-## Free Text {.quiz-ft} 
+# Free Text 1 - Fancy
+
+## {.quiz-ft} 
 
 
 Das Ergebnis von $2*2=~?$ ist?
@@ -156,13 +288,41 @@ Das Ergebnis von $2*2=~?$ ist?
 - fier
     - RTL? 
 
+```yaml
+Points: 5
+quiz:
+  style: fancy
+```
+
+# Free Text 2 - Plain
+
+## {.quiz-ft} 
+
+
+Das Ergebnis von $2*2=~?$ ist?
+
+- 4
+    - Die perfekte Lösung 
+- vier
+    - Auch ok 
+- four
+    - Deutscher Studiengang
+- fier
+    - RTL? 
+
+```yaml
+Points: 5
+quiz:
+  style: plain
+```
+
 # Free text alternative
 
 However, to have only one syntax to remember I propose we also accept this alternative form below. It would also allow us to use the comments to have almost right/wrong answers which we comment to the users. All we need here is a way to specify cases and a default. Saying this, if we add context dependent reg expressions to the matching list, that would be great for the utility, i.e., everything which matches but which is not in the already given list before, see:
 
+# Free Text Alternative 1 - Fancy
 
-## Free Text {.quiz-ft} 
-
+## {.quiz-ft} 
 
 Das Ergebnis von $2*2=~?$ ist?
 
@@ -177,6 +337,35 @@ Das Ergebnis von $2*2=~?$ ist?
     - RTL, no not really?
 - [ ] *
     - ganz falsch, so oder so?
+
+```yaml
+Points: 5
+quiz:
+  style: fancy
+```
+
+# Free Text Alternative 2 - Plain
+
+## {.quiz-ft} 
+
+Das Ergebnis von $2*2=~?$ ist?
+
+- [X] 4
+    - Die perfekte Lösung 
+- [X] vier
+    - Auch ok 
+- [X] four
+    - Deutscher Studiengang
+- [ ] fier
+    - RTL, no not really?
+- [ ] *
+    - ganz falsch, so oder so?
+
+```yaml
+Points: 5
+quiz:
+  style: plain
+```
 
 # fenced divs syntax
 

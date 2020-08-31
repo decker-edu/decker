@@ -785,6 +785,7 @@
   text-align: center;
   overflow-y: auto;
   max-height: 80vh;
+  padding-top: 0.2em;
 }
 
 .reveal .qmi .bucket,
