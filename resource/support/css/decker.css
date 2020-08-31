@@ -812,7 +812,7 @@
 .reveal .quiz-match-items .buckets,
 .reveal .quiz-match-items .matchItems {
   font-size: var(--font-size-small);
-  display: flex;
+  display: inline-flex;
   flex-flow: row nowrap;
   align-items: stretch;
   justify-content: space-around;

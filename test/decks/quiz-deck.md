@@ -40,8 +40,6 @@ Springs
 
 ```yaml
 lang: en
-quiz:
-  style: fancy
 ```
 
 # Matching 2 - Plain
@@ -105,8 +103,6 @@ score: 5
 category: CG
 lectureId: cg1
 topic: yeah
-quiz:
-    style: fancy
 ```
 
 # Matching 4 - Plain
@@ -172,8 +168,6 @@ Points: 5
 LectureId: cg1
 TopicId: yeah
 Difficulty: Easy
-quiz:
-  style: fancy
 ```
 
 # Mutliple Choice 2 - Plain
@@ -232,8 +226,6 @@ and builds upon the tool
 
 ```yaml
 Points: 5
-quiz:
-  style: fancy
 ```
 
 # Insert MC 2 - Plain
@@ -290,8 +282,6 @@ Das Ergebnis von $2*2=~?$ ist?
 
 ```yaml
 Points: 5
-quiz:
-  style: fancy
 ```
 
 # Free Text 2 - Plain
@@ -340,8 +330,6 @@ Das Ergebnis von $2*2=~?$ ist?
 
 ```yaml
 Points: 5
-quiz:
-  style: fancy
 ```
 
 # Free Text Alternative 2 - Plain

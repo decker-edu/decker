@@ -313,6 +313,10 @@ function buildPlainMatch(question) {
             const sel = q.querySelector('select');
             sel.classList.remove("show-right","show-wrong");
             const idCorrect = sel.previousElementSibling.getAttribute('data-value');
+            // color individual options based on correctness
+            for (let opt of sel.querySelectorAll('option')) {
+                opt.classList.add(opt.value == idCorrect ? 'show-right' : 'show-wrong');
+            }
             const idSelected = sel.options[sel.selectedIndex].value;
             sel.classList.add(idCorrect == idSelected ? "show-right" : "show-wrong");
         }   
