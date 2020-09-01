@@ -384,26 +384,31 @@ $border-radius: 6px;
         }
         &.plain {
             text-align: var(--align-global);
-            .buckets {
-                grid-row: 2;
-                grid-column: 2;
-                counter-reset: opt;
-                max-width: 90%;
+            .buckets, 
+            .matchItems, 
+            button {
+                float: left;
+                width: max-content;
+                margin: 0;
             }
             .buckets,
             .matchItems {
                 border: none;
                 display: block;
+                margin-top: 2vh;
                 &:before,
                 &:after {
                     content: unset;
                     border: none;
                 }
             }
+            .buckets {
+                counter-reset: opt;
+                max-width: 65%;
+            }
             .matchItems {
-                grid-column: 1;
-                grid-row: 2;
-                margin: 0;
+                margin-right: 3vw;
+                max-width: 50%;
             }
             .matchItem {
                 border: none;
@@ -415,24 +420,8 @@ $border-radius: 6px;
                     font-weight:  bold;
                 }
             }
-            .matchDiv {
-                display: grid;
-                grid-column-gap: 1.5em;
-            }
             .matchQuestion {
-                clear: both;
                 margin-bottom: 0.5em;
-            }
-            button {
-                margin: 0;
-                width: max-content;
-                grid-row: 3;
-                grid-column: 1;
-            }
-            h2,
-            img,
-            p {
-                grid-column: 1 / 3;
             }
             label {
                 margin-right: 0.5em;

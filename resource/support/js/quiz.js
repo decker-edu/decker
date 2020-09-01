@@ -289,10 +289,10 @@ function buildPlainMatch(question) {
     const buckets = question.querySelector('.buckets');
     const selectTag = buildSelect(matchItems, buckets);
 
-    const matchDiv = document.createElement('div');
-    matchDiv.classList.add('matchDiv');
-    matchItems.parentNode.insertBefore(matchDiv, matchItems);        
-    [matchItems, buckets].forEach(ele => { matchDiv.appendChild(ele); });
+    // const matchDiv = document.createElement('div');
+    // matchDiv.classList.add('matchDiv');
+    // matchItems.parentNode.insertBefore(matchDiv, matchItems);        
+    // [matchItems, buckets].forEach(ele => { matchDiv.appendChild(ele); });
 
     for (let bucket of buckets.querySelectorAll('.bucket')) {
         buckets.removeChild(bucket);
