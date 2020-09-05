@@ -127,7 +127,7 @@ div.q-list {
   font-size: 16px;
 }
 
-div.q-list div {
+div.q-list div.item {
   background-color: rgba(255, 255, 255, 0.9);
   font-family: "Roboto", Helvetica, sans-serif;
   font-size: 14px;
@@ -147,6 +147,11 @@ div.q-list div div.content {
   margin: 0;
   padding: 0;
   background-color: rgb(0, 0, 0, 0);
+  overflow: hidden;
+}
+
+div.q-list div div.content img {
+  width: 100%;
 }
 
 div.q-list div button {

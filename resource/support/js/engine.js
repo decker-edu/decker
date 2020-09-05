@@ -1,5 +1,6 @@
 export { prepareEngine };
 
+// TODO Make into a proper Reveal plugin
 async function prepareEngine(api) {
   if (Reveal.isReady()) {
     buildInterface(api);
@@ -15,7 +16,12 @@ async function buildInterface(api) {
   api
     .getToken()
     .then(t => (serverToken = t))
-    .catch((serverToken = null));
+    .catch(e => {
+      // Nothing goes without a token
+      console.log("getToken() failed: " + e);
+      console.log("retrying ...");
+      setTimeout(buildInterface, 1000);
+    });
 
   let open = document.createElement("div");
 
@@ -33,6 +39,9 @@ async function buildInterface(api) {
 
   let trash = document.createElement("i");
   trash.classList.add("far", "fa-trash-alt");
+
+  let edit = document.createElement("i");
+  edit.classList.add("far", "fa-edit");
 
   let cross = document.createElement("i");
   cross.classList.add("far", "fa-times-circle");
@@ -68,6 +77,7 @@ async function buildInterface(api) {
   input.classList.add("q-input");
   input.appendChild(text);
   text.setAttribute("rows", 4);
+  text.setAttribute("wrap", "hard");
   text.setAttribute("placeholder", "Enter question");
 
   footer.classList.add("q-footer");
@@ -147,21 +157,32 @@ async function buildInterface(api) {
     for (let comment of list) {
       let content = document.createElement("div");
       content.classList.add("content");
-      content.textContent = comment.html;
+      content.innerHTML = comment.html;
 
-      let div = document.createElement("div");
-      div.appendChild(content);
+      let item = document.createElement("div");
+      item.classList.add("item");
+      item.appendChild(content);
 
       if (comment.delete) {
+        let box = document.createElement("div");
         let del = document.createElement("button");
         del.appendChild(trash.cloneNode(true));
         del.addEventListener("click", _ => {
           let context = getContext();
           api.deleteComment(comment.delete, context.token).then(updateComments);
         });
-        div.appendChild(del);
+        let mod = document.createElement("button");
+        mod.appendChild(edit.cloneNode(true));
+        mod.addEventListener("click", _ => {
+          let context = getContext();
+          api.deleteComment(comment.delete, context.token).then(updateComments);
+          text.value = comment.markdown;
+        });
+        box.appendChild(mod);
+        box.appendChild(del);
+        item.appendChild(box);
       }
-      container.appendChild(div);
+      container.appendChild(item);
     }
     container.scrollTop = 0;
   };
