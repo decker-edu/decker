@@ -65,6 +65,7 @@ $border-radius: 6px;
         select {
             border: $border;
             font-size: inherit;
+            margin-bottom: 0.3em;
             :disabled {
                 color: #000;
             }
@@ -429,6 +430,46 @@ $border-radius: 6px;
             select {
                 padding: 0 1em;
                 float: right;
+            }
+        }
+    }
+}
+
+// Adjust for printed quizzes
+@media print {
+    .reveal {
+        .qic,
+        .qft,
+        .qmc,
+        .qmi,
+        [class*="quiz-"] {
+            &.plain {
+                button, 
+                .solutionDiv {
+                    display: none;
+                }
+                input, 
+                select {
+                    color: #fff;
+                    background-color: #fff;
+                    border: none;
+                    border-bottom: 1px solid #000;
+                    border-radius: unset;
+                }
+                input {
+                    margin-bottom: 0.5em;
+                    min-width: 35%;
+                    &::placeholder {
+                        color: #fff;
+                    }
+                }
+            }
+        }
+
+        .qic,
+        [class*="quiz-i"] {
+            select {
+                min-width: 35%;
             }
         }
     }

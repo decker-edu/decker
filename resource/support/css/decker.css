@@ -459,6 +459,7 @@
 .reveal [class*="quiz-"] select {
   border: 2px var(--border-decoration-style) #000;
   font-size: inherit;
+  margin-bottom: 0.3em;
 }
 
 .reveal .qic select :disabled,
@@ -993,6 +994,56 @@
 .reveal .quiz-match-items.plain select {
   padding: 0 1em;
   float: right;
+}
+
+@media print {
+  .reveal .qic.plain button,
+.reveal .qic.plain .solutionDiv,
+.reveal .qft.plain button,
+.reveal .qft.plain .solutionDiv,
+.reveal .qmc.plain button,
+.reveal .qmc.plain .solutionDiv,
+.reveal .qmi.plain button,
+.reveal .qmi.plain .solutionDiv,
+.reveal [class*="quiz-"].plain button,
+.reveal [class*="quiz-"].plain .solutionDiv {
+    display: none;
+  }
+  .reveal .qic.plain input,
+.reveal .qic.plain select,
+.reveal .qft.plain input,
+.reveal .qft.plain select,
+.reveal .qmc.plain input,
+.reveal .qmc.plain select,
+.reveal .qmi.plain input,
+.reveal .qmi.plain select,
+.reveal [class*="quiz-"].plain input,
+.reveal [class*="quiz-"].plain select {
+    color: #fff;
+    background-color: #fff;
+    border: none;
+    border-bottom: 1px solid #000;
+    border-radius: unset;
+  }
+  .reveal .qic.plain input,
+.reveal .qft.plain input,
+.reveal .qmc.plain input,
+.reveal .qmi.plain input,
+.reveal [class*="quiz-"].plain input {
+    margin-bottom: 0.5em;
+    min-width: 35%;
+  }
+  .reveal .qic.plain input::placeholder,
+.reveal .qft.plain input::placeholder,
+.reveal .qmc.plain input::placeholder,
+.reveal .qmi.plain input::placeholder,
+.reveal [class*="quiz-"].plain input::placeholder {
+    color: #fff;
+  }
+  .reveal .qic select,
+.reveal [class*="quiz-i"] select {
+    min-width: 35%;
+  }
 }
 
 /*********************************************
