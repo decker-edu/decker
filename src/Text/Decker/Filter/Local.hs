@@ -1,41 +1,31 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Text.Decker.Filter.Local where
 
-import Text.Decker.Filter.Monad
-import Text.Decker.Internal.Meta
-import Text.Decker.Internal.URI
-import Text.Decker.Project.Project
-
 import Control.Monad.Catch
+
 import Data.Digest.Pure.MD5
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
+
 import Relude
-import System.Directory
-import System.FilePath
+
 import Text.Blaze.Html
 import qualified Text.Blaze.Html.Renderer.Pretty as Pretty
 import qualified Text.Blaze.Html.Renderer.Text as Text
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (Attributable)
+import Text.Decker.Filter.Monad
+import Text.Decker.Internal.Meta
+import Text.Decker.Internal.URI
 import Text.Pandoc hiding (lookupMeta)
+import Text.URI (URI)
 import qualified Text.URI as URI
 
-{-
-instance H.ToMarkup Block where
-  toMarkup (RawBlock (Format "html") html) =
-    H.Content (H.PreEscaped (H.Text html)) ()
-  toMarkup block =
-    bug $ InternalException $ "toMarkup: illegal block argument: " <> show block
-
-instance H.ToMarkup Inline where
-  toMarkup (RawInline (Format "html") html) =
-    H.Content (H.PreEscaped (H.Text html)) ()
-  toMarkup inline =
-    bug $ InternalException $ "toMarkup: illegal inline argument" <> show inline
--}
 instance ToValue [Text] where
   toValue ts = toValue $ Text.intercalate " " ts
 
@@ -63,7 +53,7 @@ videoExt = ["mp4", "mov", "ogg", "avi"]
 
 audioExt = ["mp3", "aiff", "wav"]
 
-iframeExt = ["html", "htm"]
+iframeExt = ["html", "htm", "php"]
 
 codeExt = ["cpp", "java", "hs", "js"]
 
@@ -248,7 +238,7 @@ isFileUri uri =
       | URI.unRText rtext `notElem` ["file", "public"] -> return False
     _ -> return True
 
--- | Transforms a URL and handles local and remote URLs differently.
+-- | Transforms a URL and handle local and remote URLs differently.
 transformUrl :: Text -> Text -> Filter URI
 transformUrl url ext = do
   uri <- URI.mkURI url
@@ -256,10 +246,20 @@ transformUrl url ext = do
 
 transformUri :: URI -> Text -> Filter URI
 transformUri uri ext = do
-  isFile <- isFileUri uri
-  if isFile
-    then processLocalUri uri ext
-    else processRemoteUri uri
+  base <- lookupMetaOrFail "decker.base-dir" <$> gets meta
+  case uriScheme uri of
+    Just "public" -> do
+      targetUri base (setUriScheme "" uri)
+    Nothing -> do
+      if null (uriFilePath uri)
+        then return uri
+        else do
+          source <- addPathExtension ext uri
+          needFile $ targetFilePath source
+          targetUri base source
+    _ -> do
+      modifyMeta (addMetaValue "decker.filter.links" (URI.render uri))
+      return uri
 
 -- | Adds a remote URL to the `decker.filter.links` list in the meta data.
 processRemoteUri :: URI -> Filter URI
@@ -272,41 +272,10 @@ processRemoteUri uri = do
 modifyMeta :: (Meta -> Meta) -> Filter ()
 modifyMeta f = modify (\s -> s {meta = f (meta s)})
 
-processLocalUri :: URI -> Text -> Filter URI
-processLocalUri uri ext = do
-  cwd <- liftIO getCurrentDirectory
-  -- | The project relative (!) document directory from which this is called.
-  docBaseDir <- lookupMetaOrFail "decker.base-dir" <$> gets meta
-  topBaseDir <- lookupMetaOrFail "decker.top-base-dir" <$> gets meta
-  -- | The absolute (!) project directory from which this is called.
-  projectDir <- lookupMetaOrFail "decker.directories.project" <$> gets meta
-  -- | The absolute (!) public directory where everything is published to.
-  publicDir <- lookupMetaOrFail "decker.directories.public" <$> gets meta
-  -- | The path component from the URI
-  let urlPath = toString $ uriPath uri
-  let urlScheme = toString $ maybe "" URI.unRText $ URI.uriScheme uri
-  -- | Interpret urlPath either project relative or document relative,
-  -- depending on the leading slash.
-  let extString = toString ext
-  -- calculate path relative to project dir
-  let relPath =
-        normalise $
-        if hasDrive urlPath
-          then dropDrive urlPath
-          else makeRelative projectDir docBaseDir </> urlPath
-  let sourcePath = projectDir </> relPath
-  let targetPath = publicDir </> relPath <.> extString
-  if urlScheme == "public"
-    then do
-      URI.mkURI $ toText $ makeRelativeTo topBaseDir (projectDir </> urlPath)
-    else do
-      exists <- liftIO $ doesFileExist sourcePath
-      if exists
-        then needFile targetPath
-        else throwM $
-             ResourceException $ "Local resource does not exist: " <> relPath
-      let publicRelPath = makeRelativeTo topBaseDir sourcePath
-      setUriPath (toText (publicRelPath <.> extString)) uri
+checkAbsoluteUri :: MonadThrow m => URI -> m ()
+checkAbsoluteUri uri =
+  unless (URI.isPathAbsolute uri) $
+  throwM $ InternalException $ "relative path detected in URI: " <> show uri
 
 needFile :: FilePath -> Filter ()
 needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
@@ -314,18 +283,8 @@ needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
 resolveFileUri :: URI -> Filter FilePath
 resolveFileUri uri = do
   let urlPath = toString $ uriPath uri
-  cwd <- liftIO getCurrentDirectory
-  baseDir <- toString <$> getMeta "decker.base-dir" "."
-  projectDir <- toString <$> getMeta "decker.project-dir" (toText cwd)
-  publicDir <-
-    toString <$> getMeta "decker.public-dir" (toText $ cwd </> "public")
-  let relPath =
-        normalise $
-        if hasDrive urlPath
-          then dropDrive urlPath
-          else makeRelative projectDir baseDir </> urlPath
-  let sourcePath = projectDir </> relPath
-  return sourcePath
+  docBase <- lookupMetaOrFail "decker.base-dir" <$> gets meta
+  return $ makeProjectPath docBase urlPath
 
 setMeta :: Text -> Text -> Filter ()
 setMeta key value = modifyMeta (setMetaValue key (MetaString value))

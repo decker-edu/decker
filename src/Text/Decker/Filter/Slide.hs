@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Text.Decker.Filter.Slide
   ( Slide(..)
   , _Slide

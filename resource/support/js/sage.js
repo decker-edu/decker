@@ -34,7 +34,7 @@ function build_sage_url(html)
     }
     button.sagecell_evalButton {
         font-size:     20px;
-        margin-bottom: 10px;
+        margin-bottom: 30px;
         outline:       none;
     }
     .sagecell .CodeMirror-scroll {
@@ -46,17 +46,22 @@ function build_sage_url(html)
     sagecell.makeSagecell({ inputLocation: 'div.compute.sage',
                             evalButtonText: 'Evaluate',
                             linked: true,
-                            languages: ['sage', 'python', 'r'],
+                            languages: ['sage', 'python', 'r', 'octave'],
                             hide: ['fullScreen'] });
     sagecell.makeSagecell({ inputLocation: 'div.compute.python',
                             evalButtonText: 'Evaluate',
                             linked: true,
-                            languages: ['python', 'sage', 'r'],
+                            languages: ['python', 'sage', 'r', 'octave'],
                             hide: ['fullScreen'] });
     sagecell.makeSagecell({ inputLocation: 'div.compute.rr',
                             evalButtonText: 'Evaluate',
                             linked: true,
-                            languages: ['r', 'python', 'sage'],
+                            languages: ['r', 'sage', 'python', 'octave'],
+                            hide: ['fullScreen'] });
+    sagecell.makeSagecell({ inputLocation: 'div.compute.octave',
+                            evalButtonText: 'Evaluate',
+                            linked: true,
+                            languages: ['octave', 'sage', 'python', 'r'],
                             hide: ['fullScreen'] });
     </script>
 ${html}

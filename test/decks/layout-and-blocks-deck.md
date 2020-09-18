@@ -5,9 +5,9 @@ title: Decker Layout and Parameters
 subtitle: What the World (minus Henrik ;) Wanted 
 affiliation: 'Chair for Human-Computer Interaction'
 template:
-  affiliation-logo: /assets/title-logo-hci.png
-  title-teaser: /assets/title-teaser-icg.png
-  title-header: /assets/title-banner-jmu.jpg
+  affiliation-logo: assets/title-logo-hci.png
+  title-teaser: assets/title-teaser-icg.png
+  title-header: assets/title-banner-jmu.jpg
 date: '23.4.2020'
 history: True
 center: 1

@@ -8,6 +8,9 @@
     <meta name="author" content="$author-meta$"> $endfor$ $if(date-meta)$
     <meta name="dcterms.date" content="$date-meta$"> $endif$ $if(keywords)$
     <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$"> $endif$
+$if(template.favicon)$
+    <link rel="shortcut icon" href="$template.favicon$">
+$endif$
     <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
     <style type="text/css">
       code {
@@ -32,9 +35,9 @@ $if(template.base-css)$
 $else$
     <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
 $endif$
-
-    <script src="$decker-support-dir$/vendor/jquery.js" type="text/javascript"></script>
-    <script src="$decker-support-dir$/js/page.js"></script>
+$if(mario)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/mario-page.css">
+$endif$
 
     <!-- MathJax config -->
     <script>
@@ -122,53 +125,57 @@ $endif$
     $for(include-before)$
     $include-before$
     $endfor$
-    <div class="container decker-page">
-      $if(title)$
-      <header>
-        <div class="page-header">
-          <div class="row">
-            <div class="col-lg-12">
-              <h1 class="title">$title$</h1>
-              $if(subtitle)$
-              <p class="lead subtitle">$subtitle$</p>
-              $endif$
-            </div>
-          </div>
-        </div>
-      </header>
+
+    <header>
+    $if(template.index-page.banner)$
+    <div class="index-page-banner">
+       <img src=$template.index-page.banner$>
+    </div>
+    $endif$
+    $if(title)$
+      <h1>$title$</h1>
+      $if(subtitle)$
+      <h2>$subtitle$</h2>
       $endif$
-      <div class="row">
-        <div class="col-lg-12">
-          $if(toc)$
-          $if(toc-title)$
-          <h1 id="$idprefix$TOC-title class="toc-title">$toc-title$</h1>
-          $endif$
-          <nav id="$idprefix$TOC">
-            $toc$
-          </nav>
-          $endif$
+    $endif$
+    </header>
+
+    $if(toc)$
+    $if(toc-title)$
+    <h1 id="$idprefix$TOC-title class="toc-title">$toc-title$</h1>
+    $endif$
+    <nav id="$idprefix$TOC">
+      $toc$
+    </nav>
+    $endif$
 
 <!-- body must not be indented or code blocks render badly -->
 <!-- The following line must be left aligned! -->
 $body$
 <!-- The previous line must be left aligned! -->
 
-          $for(include-after)$
-          $include-after$
-          $endfor$
-          $if(author)$
-          <hr>
-          <address>
-            $if(date)$
-            <p id="date">$date$</p>
-            $endif$
-            <p class="author">$copyright$ $author$</p>
-          </address>
-          $endif$
-        </div>
-      </div>
-    </div>
+    <script src="$decker-support-dir$/vendor/js/jquery.min.js" type="text/javascript"></script>
+    <script src="$decker-support-dir$/vendor/js/lazyload.min.js" type="text/javascript"></script>
+    <script src="$decker-support-dir$/js/page.js"></script>
+
+    $for(include-after)$
+    $include-after$
+    $endfor$
+    $if(author)$
+    <hr>
+    <address>
+      $if(date)$
+      <p id="date">$date$</p>
+      $endif$
+      <p class="author">
+        $copyright$ $author$$if(affiliation)$, $affiliation$ $endif$
+      </p>
+    </address>
+    $endif$
+    <script>
+      var lazyLoadInstance = new LazyLoad({
+        elements_selector: "img, video, iframe"
+      });
+    </script>
   </body>
-
-
   </html>

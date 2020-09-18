@@ -54,7 +54,7 @@ markdownToPdfPage :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
 markdownToPdfPage meta getTemplate markdownFile out = do
   putCurrentDocument out
   let disp = Disposition Page Latex
-  pandoc <- readAndProcessMarkdown meta markdownFile disp
+  pandoc <- readAndFilterMarkdownFile disp meta markdownFile
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
@@ -80,7 +80,7 @@ markdownToPdfHandout ::
 markdownToPdfHandout meta getTemplate markdownFile out = do
   putCurrentDocument out
   let disp = Disposition Handout Latex
-  pandoc <- readAndProcessMarkdown meta markdownFile disp
+  pandoc <- readAndFilterMarkdownFile disp meta markdownFile
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts

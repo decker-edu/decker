@@ -121,91 +121,6 @@
   font-style: italic;
 }
 
-.reveal div.column {
-  display: inline-block;
-  vertical-align: top;
-  width: 50%;
-}
-
-.reveal div.css-columns {
-  column-count: 2;
-  column-gap: var(--margin-columns);
-  column-rule-style: none;
-}
-
-.reveal div.box {
-  break-inside: avoid-column;
-}
-
-.reveal div.multi-column-row {
-  display: flex;
-  flex-flow: row nowrap;
-  margin-bottom: var(--margin-bottom-columns);
-}
-
-.reveal div.multi-column-row div.column {
-  position: relative;
-  flex: 1 1 0;
-  margin-left: var(--margin-columns);
-  margin-right: var(--margin-columns);
-}
-
-.reveal div.multi-column-row div.column:first-child {
-  margin-left: 0;
-  margin-right: var(--margin-columns);
-}
-
-.reveal div.multi-column-row div.column:last-child {
-  margin-left: var(--margin-columns);
-  margin-right: 0;
-}
-
-.reveal div.multi-column-row div.column .mid {
-  position: absolute;
-  top: 50%;
-  transform: translate(0, -50%);
-}
-
-.reveal div.multi-column-row div.column[data-grow="1"] {
-  flex-grow: 1;
-}
-
-.reveal div.multi-column-row div.column[data-grow="2"] {
-  flex-grow: 2;
-}
-
-.reveal div.multi-column-row div.column[data-grow="3"] {
-  flex-grow: 3;
-}
-
-.reveal div.multi-column-row div.column[data-grow="4"] {
-  flex-grow: 4;
-}
-
-.reveal div.multi-column-row div.column[data-grow="5"] {
-  flex-grow: 5;
-}
-
-.reveal div.multi-column-row div.column[data-grow="6"] {
-  flex-grow: 6;
-}
-
-.reveal div.multi-column-row div.column[data-grow="7"] {
-  flex-grow: 7;
-}
-
-.reveal div.multi-column-row div.column[data-grow="8"] {
-  flex-grow: 8;
-}
-
-.reveal div.multi-column-row div.column[data-grow="9"] {
-  flex-grow: 9;
-}
-
-.reveal div.single-column-row {
-  margin-bottom: var(--margin-bottom-columns);
-}
-
 .reveal p,
 .reveal ul,
 .reveal ol,
@@ -231,60 +146,44 @@
   padding-right: var(--border-decoration-padding);
 }
 
-.reveal ul,
-.reveal ol {
-  list-style-position: inside;
-}
-
-.reveal ul ol,
-.reveal ol ol {
-  margin-left: 0px;
-  padding-left: 0px;
-}
-
-.reveal ul ul,
-.reveal ol ul {
-  margin-left: 0.3em;
-}
-
-.reveal ul ol,
-.reveal ul ul,
-.reveal ol ol,
-.reveal ol ul {
+.reveal ol,
+.reveal dl,
+.reveal ul {
+  display: inline-block;
+  text-align: left;
   margin-bottom: 0;
 }
 
-ul > li {
-  list-style-type: none;
-  position: relative;
-  left: 0.5em;
-}
-
-ul > li:before {
-  content: "\2022";
-  /* escaped unicode character */
-  font-size: 1.5em;
-  /* the default unicode bullet size is very small */
-  line-height: 0;
-  /* kills huge line height on resized bullet */
-  position: relative;
-  /* position bullet relative to list item */
-  top: 0.1em;
-  /* vertical align bullet position relative to list item */
-  left: -0.3em;
-  /* position the bullet L- R relative to list item */
+.reveal ol li,
+.reveal dl li,
+.reveal ul li {
+  margin-bottom: 0;
+  margin-left: 40px;
 }
 
 .reveal ol {
   list-style-type: decimal;
 }
 
-.reveal ol ol {
-  list-style-type: lower-alpha;
+.reveal ul {
+  list-style-type: disc;
 }
 
-.reveal ol ol ol {
-  list-style-type: decimal;
+.reveal ul ul,
+.reveal ol ul {
+  list-style-type: circle;
+}
+
+.reveal ol ol {
+  list-style-type: lower-roman;
+}
+
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+  display: block;
+  margin-top: 0.3em;
 }
 
 .reveal div.box.columns {
@@ -378,10 +277,477 @@ ul > li:before {
   margin: 0;
 }
 
-/*
+.reveal code {
+  font-family: "Source Code Pro", monospace;
+  font-size: 106%;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.reveal pre {
+  display: block;
+  position: relative;
+  width: 90%;
+  margin: 20px auto;
+  text-align: left;
+  font-size: 0.55em;
+  font-family: monospace;
+  line-height: 1.2em;
+  word-wrap: break-word;
+}
+
+.reveal pre code {
+  display: block;
+  padding: 5px;
+  overflow: auto;
+  max-height: 400px;
+  word-wrap: normal;
+}
+
+.reveal div.sourceCode {
+  margin-bottom: 0.5em;
+  padding: calc(var(--spacing-vertical-base) * 0.4) calc(var(--spacing-vertical-base) * 0.7);
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 0.25em;
+  overflow: auto;
+}
+
+.reveal div.sourceCode pre {
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  line-height: 1.5em;
+  word-wrap: break-word;
+  box-shadow: none;
+  font-size: 90%;
+  font-weight: 500;
+  margin: 0;
+}
+
+.reveal div.sourceCode pre div.language-label {
+  font-family: "Roboto", sans-serif;
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  background-color: #eee;
+  padding: 0em 0.4em;
+  border-radius: 0.2em;
+}
+
+.reveal div.sourceCode pre code {
+  display: block;
+  overflow: auto;
+  max-height: 500px;
+  word-wrap: normal;
+  border: none;
+  font-family: "Source Code Pro", monospace;
+  white-space: pre;
+  position: relative;
+  color: black;
+}
+
+.reveal .qic,
+.reveal .qft,
+.reveal .qmc,
+.reveal .qmi,
+.reveal [class*="quiz-"] {
+  position: relative;
+}
+
+.reveal .qic button,
+.reveal .qic input,
+.reveal .qft button,
+.reveal .qft input,
+.reveal .qmc button,
+.reveal .qmc input,
+.reveal .qmi button,
+.reveal .qmi input,
+.reveal [class*="quiz-"] button,
+.reveal [class*="quiz-"] input {
+  border-radius: 0.5em;
+  font-size: inherit;
+  font-family: inherit;
+  outline: none;
+  clear: both;
+  border: 2px solid black;
+}
+
+.reveal .qic input:placeholder-shown,
+.reveal .qft input:placeholder-shown,
+.reveal .qmc input:placeholder-shown,
+.reveal .qmi input:placeholder-shown,
+.reveal [class*="quiz-"] input:placeholder-shown {
+  text-overflow: ellipsis;
+}
+
+.reveal .qic .solutionButton,
+.reveal .qft .solutionButton,
+.reveal .qmc .solutionButton,
+.reveal .qmi .solutionButton,
+.reveal [class*="quiz-"] .solutionButton {
+  font-size: large;
+}
+
+.reveal .qic .solutionList,
+.reveal .qft .solutionList,
+.reveal .qmc .solutionList,
+.reveal .qmi .solutionList,
+.reveal [class*="quiz-"] .solutionList {
+  list-style-type: none;
+  display: none;
+  background-color: grey;
+  color: #ffffff;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: fixed;
+  z-index: 99;
+  font-size: 1rem;
+}
+
+.reveal .qic .solutionList li,
+.reveal .qft .solutionList li,
+.reveal .qmc .solutionList li,
+.reveal .qmi .solutionList li,
+.reveal [class*="quiz-"] .solutionList li {
+  padding: 5px;
+  margin-right: 1em;
+  display: none;
+}
+
+.reveal .qic .solutionList .correct:before,
+.reveal .qft .solutionList .correct:before,
+.reveal .qmc .solutionList .correct:before,
+.reveal .qmi .solutionList .correct:before,
+.reveal [class*="quiz-"] .solutionList .correct:before {
+  content: "✓";
+  font-weight: bold;
+}
+
+.reveal .qic .solutionList .wrong:before,
+.reveal .qft .solutionList .wrong:before,
+.reveal .qmc .solutionList .wrong:before,
+.reveal .qmi .solutionList .wrong:before,
+.reveal [class*="quiz-"] .solutionList .wrong:before {
+  content: "✗";
+  font-weight: bold;
+}
+
+.reveal .qic,
+.reveal [class*="quiz-i"] {
+  display: block;
+  overflow-y: auto;
+  max-height: 75vh;
+}
+
+.reveal .qic select,
+.reveal [class*="quiz-i"] select {
+  border: 2px solid black;
+  font-size: inherit;
+}
+
+.reveal .qic select :disabled,
+.reveal [class*="quiz-i"] select :disabled {
+  color: black;
+}
+
+.reveal .qic .tooltip-div,
+.reveal [class*="quiz-i"] .tooltip-div {
+  font-size: 0.6em;
+  background-color: #f4f4f7;
+  margin-top: 0.5em;
+}
+
+.reveal .quiz-mi,
+.reveal .qmi,
+.reveal .quiz-match-items {
+  display: block;
+  overflow-y: auto;
+  max-height: 75vh;
+  text-align: center;
+}
+
+.reveal .quiz-mi mjx-container > svg,
+.reveal .qmi mjx-container > svg,
+.reveal .quiz-match-items mjx-container > svg {
+  object-fit: contain;
+  max-width: 100%;
+}
+
+.reveal .quiz-mi .draggableChild,
+.reveal .qmi .draggableChild,
+.reveal .quiz-match-items .draggableChild {
+  pointer-events: none;
+}
+
+.reveal .quiz-mi .buckets,
+.reveal .quiz-mi .matchItems,
+.reveal .qmi .buckets,
+.reveal .qmi .matchItems,
+.reveal .quiz-match-items .buckets,
+.reveal .quiz-match-items .matchItems {
+  font-size: large;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: stretch;
+  justify-content: space-around;
+  position: relative;
+  width: 100%;
+  min-height: 100px;
+  padding: 15px;
+  border: 2px solid #dddddd;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.reveal .quiz-mi .matchItems,
+.reveal .qmi .matchItems,
+.reveal .quiz-match-items .matchItems {
+  margin-bottom: 60px;
+}
+
+.reveal .quiz-mi .buckets:before,
+.reveal .quiz-mi .matchItems:before,
+.reveal .qmi .buckets:before,
+.reveal .qmi .matchItems:before,
+.reveal .quiz-match-items .buckets:before,
+.reveal .quiz-match-items .matchItems:before {
+  position: absolute;
+  top: -15px;
+  left: 10px;
+  font-size: 15px;
+  background: white;
+  padding: 5px;
+  color: grey;
+}
+
+.reveal .quiz-mi .matchItems:before,
+.reveal .qmi .matchItems:before,
+.reveal .quiz-match-items .matchItems:before {
+  content: attr(data-hint);
+}
+
+.reveal .quiz-mi .buckets:before,
+.reveal .qmi .buckets:before,
+.reveal .quiz-match-items .buckets:before {
+  content: attr(data-hint);
+}
+
+.reveal .quiz-mi .matchItems:after,
+.reveal .qmi .matchItems:after,
+.reveal .quiz-match-items .matchItems:after {
+  position: absolute;
+  content: " ";
+  width: 0;
+  height: 0;
+  bottom: -30px;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-top: 30px solid #dddddd;
+}
+
+.reveal .quiz-mi .bucket,
+.reveal .qmi .bucket,
+.reveal .quiz-match-items .bucket {
+  display: block;
+  flex: 1 0 0;
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid black;
+  text-align: center;
+}
+
+.reveal .quiz-mi .matchItem,
+.reveal .qmi .matchItem,
+.reveal .quiz-match-items .matchItem {
+  display: block;
+  vertical-align: middle;
+  overflow: hidden;
+  border: 2px dotted black;
+  border-radius: 10px;
+  padding: 10px;
+  background: white;
+  cursor: grab;
+  object-fit: contain;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.reveal .quiz-mi .matchItem img,
+.reveal .qmi .matchItem img,
+.reveal .quiz-match-items .matchItem img {
+  max-width: 50%;
+}
+
+.reveal .quiz-mi .bucket .matchItem,
+.reveal .qmi .bucket .matchItem,
+.reveal .quiz-match-items .bucket .matchItem {
+  display: block;
+  border: 2px dotted black;
+  background: inherit;
+}
+
+.reveal .quiz-multiple-choice ul,
+.reveal .quiz-mc ul,
+.reveal .qmc ul {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  text-align: center;
+  counter-reset: answer;
+}
+
+.reveal .quiz-multiple-choice li,
+.reveal .quiz-mc li,
+.reveal .qmc li {
+  display: inline-block;
+  position: relative;
+  text-align: left;
+  margin: 20px;
+  border: 2px solid #2a9ddf;
+  border-radius: 20px;
+  padding: 20px;
+  font-weight: normal;
+  color: black;
+}
+
+.reveal .quiz-multiple-choice li:before,
+.reveal .quiz-mc li:before,
+.reveal .qmc li:before {
+  content: counter(answer, upper-latin) ": ";
+  counter-increment: answer;
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
+.reveal .quiz-multiple-choice .tooltip,
+.reveal .quiz-mc .tooltip,
+.reveal .qmc .tooltip {
+  display: block;
+  visibility: hidden;
+  max-width: 95%;
+  top: 100%;
+  left: 5px;
+  background-color: grey;
+  color: #ffffff;
+  text-align: center;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: absolute;
+  z-index: 1;
+  font-size: 1rem;
+}
+
+/*********************************************
+ * TITLE SLIDE, now supporting Marc's and 
+ * Mario's versions
+ *********************************************/
+.white-on-blue {
+  color: #ffffff;
+  background-color: #003366;
+}
+
+.reveal .title-page .banner img {
+  margin: 0px 0px 10px 0px;
+  width: 100%;
+  object-fit: contain;
+}
+
+.reveal .title-page .title {
+  margin: 0px;
+  width: 100%;
+  display: block;
+  padding: 0px;
+  font-size: var(--font-size-x-large);
+  text-align: center;
+}
+
+.reveal .title-page .subtitle {
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+  font-weight: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .date {
+  text-align: center;
+}
+
+.reveal .title-page .teaser-img {
+  margin: 20px auto;
+  height: 10%;
+  width: auto;
+  display: block;
+}
+
+.reveal .title-page .teaser-img img {
+  margin: 0px;
+  display: block;
+  margin: auto;
+  object-fit: contain;
+  max-height: 250px;
+  width: auto;
+}
+
+.reveal .title-page .author {
+  margin: 0px;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .title-page .affiliation-logo img {
+  margin: 0px 0 0 0;
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reveal .title-page .affiliation {
+  margin: 0px 0 0 0;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .title-page .valign-block {
+  text-align: center;
+}
+
+.reveal .title-page .valign-block:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.reveal .title-page .valigned {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.reveal {
+  /*
  *Required CSS for the new media filters. Adopted to Mario's semantic with
  *further fine-tuning
  */
+}
+
 .reveal div.decker.image.error {
   font-size: 20pt;
   background-color: #fee;
@@ -483,446 +849,89 @@ ul > li:before {
   display: block;
 }
 
-.reveal code {
-  font-family: "Source Code Pro", monospace;
-  font-size: 106%;
-  font-weight: 500;
-  text-transform: none;
+.reveal div.column {
+  display: inline-block;
+  vertical-align: top;
+  width: 50%;
 }
 
-.reveal pre {
-  display: block;
-  position: relative;
-  width: 90%;
-  margin: 20px auto;
-  text-align: left;
-  font-size: 0.55em;
-  font-family: monospace;
-  line-height: 1.2em;
-  word-wrap: break-word;
+.reveal div.css-columns {
+  column-count: 2;
+  column-gap: var(--margin-columns);
+  column-rule-style: none;
 }
 
-.reveal pre code {
-  display: block;
-  padding: 5px;
-  overflow: auto;
-  max-height: 400px;
-  word-wrap: normal;
+.reveal div.box {
+  break-inside: avoid-column;
 }
 
-.reveal div.sourceCode {
-  margin-bottom: 0.5em;
-  padding: calc(var(--spacing-vertical-base) * 0.4) calc(var(--spacing-vertical-base) * 0.7);
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 0.25em;
-  overflow: auto;
-}
-
-.reveal div.sourceCode pre {
-  display: block;
-  position: relative;
-  width: 100%;
-  text-align: left;
-  line-height: 1.5em;
-  word-wrap: break-word;
-  box-shadow: none;
-  font-size: 90%;
-  font-weight: 500;
-  margin: 0;
-}
-
-.reveal div.sourceCode pre div.language-label {
-  font-family: "Roboto", sans-serif;
-  position: absolute;
-  right: 0;
-  top: 0;
-  color: #666;
-  background-color: #eee;
-  padding: 0em 0.4em;
-  border-radius: 0.2em;
-}
-
-.reveal div.sourceCode pre code {
-  display: block;
-  overflow: auto;
-  max-height: 500px;
-  word-wrap: normal;
-  border: none;
-  font-family: "Source Code Pro", monospace;
-  white-space: pre;
-  position: relative;
-  color: black;
-}
-
-.reveal .qic,
-.reveal .qft,
-.reveal .qmc,
-.reveal .qmi,
-.reveal [class*="quiz-"] {
-  position: relative;
-}
-
-.reveal .qic button,
-.reveal .qic input,
-.reveal .qft button,
-.reveal .qft input,
-.reveal .qmc button,
-.reveal .qmc input,
-.reveal .qmi button,
-.reveal .qmi input,
-.reveal [class*="quiz-"] button,
-.reveal [class*="quiz-"] input {
-  border-radius: 0.5em;
-  font-size: inherit;
-  font-family: inherit;
-  outline: none;
-  clear: both;
-}
-
-.reveal .qic .solutionButton,
-.reveal .qft .solutionButton,
-.reveal .qmc .solutionButton,
-.reveal .qmi .solutionButton,
-.reveal [class*="quiz-"] .solutionButton {
-  font-size: large;
-}
-
-.reveal .qic .solutionList,
-.reveal .qft .solutionList,
-.reveal .qmc .solutionList,
-.reveal .qmi .solutionList,
-.reveal [class*="quiz-"] .solutionList {
-  list-style-type: none;
-  display: none;
-  background-color: grey;
-  color: #ffffff;
-  margin: 5px;
-  padding: 5px;
-  border-radius: 6px;
-  border: none;
-  position: fixed;
-  z-index: 99;
-  font-size: 1rem;
-}
-
-.reveal .qic .solutionList li,
-.reveal .qft .solutionList li,
-.reveal .qmc .solutionList li,
-.reveal .qmi .solutionList li,
-.reveal [class*="quiz-"] .solutionList li {
-  padding: 5px;
-  margin-right: 1em;
-  display: none;
-}
-
-.reveal .qic .solutionList .correct:before,
-.reveal .qft .solutionList .correct:before,
-.reveal .qmc .solutionList .correct:before,
-.reveal .qmi .solutionList .correct:before,
-.reveal [class*="quiz-"] .solutionList .correct:before {
-  content: "✓";
-  font-weight: bold;
-}
-
-.reveal .qic .solutionList .wrong:before,
-.reveal .qft .solutionList .wrong:before,
-.reveal .qmc .solutionList .wrong:before,
-.reveal .qmi .solutionList .wrong:before,
-.reveal [class*="quiz-"] .solutionList .wrong:before {
-  content: "✗";
-  font-weight: bold;
-}
-
-.reveal .qic .tooltip-div,
-.reveal .qft .tooltip-div,
-.reveal .qmc .tooltip-div,
-.reveal .qmi .tooltip-div,
-.reveal [class*="quiz-"] .tooltip-div {
-  font-size: 0.6em;
-  background-color: #f4f4f7;
-  margin-top: 0.5em;
-}
-
-.reveal .qic,
-.reveal [class*="quiz-i"] {
-  display: block;
-  overflow-y: scroll !important;
-  overflow-x: hidden !important;
-  max-height: 75vh;
-}
-
-.reveal .qic select,
-.reveal [class*="quiz-i"] select {
-  font-size: inherit;
-}
-
-.reveal .qic select :disabled,
-.reveal [class*="quiz-i"] select :disabled {
-  color: black;
-}
-
-.reveal .quiz-mi,
-.reveal .qmi,
-.reveal .quiz-match-items {
-  display: block;
-  overflow-y: scroll !important;
-  overflow-x: hidden !important;
-  max-height: 75vh;
-  text-align: center;
-}
-
-.reveal .quiz-mi mjx-container > svg,
-.reveal .qmi mjx-container > svg,
-.reveal .quiz-match-items mjx-container > svg {
-  object-fit: contain;
-  max-width: 100%;
-}
-
-.reveal .quiz-mi .draggableChild,
-.reveal .qmi .draggableChild,
-.reveal .quiz-match-items .draggableChild {
-  pointer-events: none;
-}
-
-.reveal .quiz-mi .buckets,
-.reveal .quiz-mi .matchItems,
-.reveal .qmi .buckets,
-.reveal .qmi .matchItems,
-.reveal .quiz-match-items .buckets,
-.reveal .quiz-match-items .matchItems {
-  font-size: large;
+.reveal div.multi-column-row {
   display: flex;
   flex-flow: row nowrap;
-  align-items: stretch;
-  justify-content: space-around;
+  margin-bottom: var(--margin-bottom-columns);
+}
+
+.reveal div.multi-column-row div.column {
   position: relative;
-  width: 100%;
-  min-height: 100px;
-  padding: 15px;
-  border: 2px solid #dddddd;
-  border-radius: 5px;
-  box-sizing: border-box;
+  flex: 1 1 0;
+  margin-left: var(--margin-columns);
+  margin-right: var(--margin-columns);
 }
 
-.reveal .quiz-mi .buckets,
-.reveal .qmi .buckets,
-.reveal .quiz-match-items .buckets {
-  margin-bottom: 60px;
+.reveal div.multi-column-row div.column:first-child {
+  margin-left: 0;
+  margin-right: var(--margin-columns);
 }
 
-.reveal .quiz-mi .buckets:before,
-.reveal .quiz-mi .matchItems:before,
-.reveal .qmi .buckets:before,
-.reveal .qmi .matchItems:before,
-.reveal .quiz-match-items .buckets:before,
-.reveal .quiz-match-items .matchItems:before {
+.reveal div.multi-column-row div.column:last-child {
+  margin-left: var(--margin-columns);
+  margin-right: 0;
+}
+
+.reveal div.multi-column-row div.column .mid {
   position: absolute;
-  top: -15px;
-  left: 10px;
-  font-size: 15px;
-  background: white;
-  padding: 5px;
-  color: grey;
+  top: 50%;
+  transform: translate(0, -50%);
 }
 
-.reveal .quiz-mi .matchItems:before,
-.reveal .qmi .matchItems:before,
-.reveal .quiz-match-items .matchItems:before {
-  content: "drag from here";
+.reveal div.multi-column-row div.column[data-grow="1"] {
+  flex-grow: 1;
 }
 
-.reveal .quiz-mi .buckets:before,
-.reveal .qmi .buckets:before,
-.reveal .quiz-match-items .buckets:before {
-  content: "drop here";
+.reveal div.multi-column-row div.column[data-grow="2"] {
+  flex-grow: 2;
 }
 
-.reveal .quiz-mi .matchItems:after,
-.reveal .qmi .matchItems:after,
-.reveal .quiz-match-items .matchItems:after {
-  position: absolute;
-  content: " ";
-  width: 0;
-  height: 0;
-  top: -30px;
-  border-left: 30px solid transparent;
-  border-right: 30px solid transparent;
-  border-bottom: 30px solid #dddddd;
+.reveal div.multi-column-row div.column[data-grow="3"] {
+  flex-grow: 3;
 }
 
-.reveal .quiz-mi .bucket,
-.reveal .qmi .bucket,
-.reveal .quiz-match-items .bucket {
-  display: block;
-  flex: 1 0 0;
-  padding: 10px;
-  margin: 5px;
-  border: 1px solid black;
-  text-align: center;
+.reveal div.multi-column-row div.column[data-grow="4"] {
+  flex-grow: 4;
 }
 
-.reveal .quiz-mi .matchItem,
-.reveal .qmi .matchItem,
-.reveal .quiz-match-items .matchItem {
-  display: block;
-  vertical-align: middle;
-  overflow: hidden;
-  border: 2px solid #2a9ddf;
-  border-radius: 10px;
-  padding: 10px;
-  background: white;
-  cursor: grab;
-  object-fit: contain;
-  margin-left: 2px;
-  margin-right: 2px;
+.reveal div.multi-column-row div.column[data-grow="5"] {
+  flex-grow: 5;
 }
 
-.reveal .quiz-mi .matchItem img,
-.reveal .qmi .matchItem img,
-.reveal .quiz-match-items .matchItem img {
-  max-width: 50%;
+.reveal div.multi-column-row div.column[data-grow="6"] {
+  flex-grow: 6;
 }
 
-.reveal .quiz-mi .matchItem .solution,
-.reveal .qmi .matchItem .solution,
-.reveal .quiz-match-items .matchItem .solution {
-  visibility: hidden;
-  font-size: large;
+.reveal div.multi-column-row div.column[data-grow="7"] {
+  flex-grow: 7;
 }
 
-.reveal .quiz-mi .matchItem:hover .solution,
-.reveal .qmi .matchItem:hover .solution,
-.reveal .quiz-match-items .matchItem:hover .solution {
-  visibility: visible;
-  font-size: large;
+.reveal div.multi-column-row div.column[data-grow="8"] {
+  flex-grow: 8;
 }
 
-.reveal .quiz-mi .bucket .matchItem,
-.reveal .qmi .bucket .matchItem,
-.reveal .quiz-match-items .bucket .matchItem {
-  display: block;
-  border: 2px solid #2a9ddf;
-  background: inherit;
+.reveal div.multi-column-row div.column[data-grow="9"] {
+  flex-grow: 9;
 }
 
-.reveal .quiz-multiple-choice ul,
-.reveal .quiz-mc ul,
-.reveal .qmc ul {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  align-content: center;
-  text-align: center;
-  counter-reset: answer;
-}
-
-.reveal .quiz-multiple-choice li,
-.reveal .quiz-mc li,
-.reveal .qmc li {
-  display: inline-block;
-  position: relative;
-  text-align: left;
-  margin: 20px;
-  border: 3px solid #2a9ddf;
-  border-radius: 20px;
-  padding: 20px;
-  font-weight: normal;
-  color: black;
-}
-
-.reveal .quiz-multiple-choice li:before,
-.reveal .quiz-mc li:before,
-.reveal .qmc li:before {
-  content: counter(answer, upper-latin) ": ";
-  counter-increment: answer;
-  margin-right: 0.5em;
-  font-weight: bold;
-}
-
-.reveal .quiz-multiple-choice .tooltip,
-.reveal .quiz-mc .tooltip,
-.reveal .qmc .tooltip {
-  display: block;
-  visibility: hidden;
-  max-width: 95%;
-  top: 100%;
-  left: 5px;
-  background-color: grey;
-  color: #ffffff;
-  text-align: center;
-  margin: 5px;
-  padding: 5px;
-  border-radius: 6px;
-  border: none;
-  position: absolute;
-  z-index: 1;
-  font-size: 1rem;
-}
-
-/*********************************************
- * TITLE SLIDE, now supporting Marc's and 
- * Mario's versions
- *********************************************/
-.white-on-blue {
-  color: #ffffff;
-  background-color: #003366;
-}
-
-.reveal .title {
-  margin: 100px 0 0 0;
-  padding: 0px;
-  font-size: var(--font-size-x-large);
-  text-align: center;
-}
-
-.reveal .subtitle {
-  margin: 0 0 0 0;
-  padding: 0 0px 0px 0px;
-  font-weight: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
-}
-
-.reveal .date {
-  text-align: center;
-}
-
-.reveal .title-teaser img {
-  margin: 20px 0px 20px 0;
-  height: 300px;
-  width: auto;
-  object-fit: contain;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.reveal .affiliation-logo img {
-  margin: 0px 0 0 0;
-  height: 70px;
-  width: auto;
-  object-fit: contain;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.reveal .author {
-  margin: 0px 0 0 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
-}
-
-.reveal .affiliation {
-  margin: 0px 0 0 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
+.reveal div.single-column-row {
+  margin-bottom: var(--margin-bottom-columns);
 }
 
 body {
@@ -1038,7 +1047,7 @@ dd {
   border-bottom: none;
 }
 
-.reveal .slide-number {
+.reveal table .slide-number {
   color: #009;
   background-color: rgba(255, 255, 255, 0);
 }
@@ -1156,11 +1165,12 @@ dd {
 }
 
 .reveal .slide-number {
-  width: 100%;
-  text-align: center;
   background: transparent;
   color: gray;
   font-size: 0.4em;
+  position: fixed;
+  right: 50%;
+  bottom: 2vmin;
 }
 
 .reveal .resume-button {
@@ -1265,4 +1275,60 @@ dd {
 
 .reveal p:empty {
   display: none;
+}
+
+/*********************************************
+ * MARIO: fullscreen for iframes
+ *********************************************/
+.reveal div.fs-container {
+  margin: auto;
+  border: 0px;
+  padding: 0px;
+  position: relative;
+}
+
+.reveal div.fs-container:fullscreen {
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: white;
+  padding: 20px;
+}
+
+/* needed for mobile Safari */
+*:-webkit-full-screen {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.reveal div.fs-container > iframe {
+  box-sizing: border-box;
+}
+
+.reveal div.fs-container:fullscreen > iframe {
+  border: none;
+}
+
+.reveal button.fs-button {
+  z-index: 100;
+  display: inline-block;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  cursor: pointer;
+  outline: none;
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  opacity: 0.5;
+  color: var(--whiteboard-inactive-color);
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.reveal button.fs-button:hover {
+  opacity: 1.0;
+  color: var(--whiteboard-active-color);
+  background-color: rgba(255, 255, 255, 0.8);
 }

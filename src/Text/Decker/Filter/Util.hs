@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Text.Decker.Filter.Util
   ( attToString
   , convertToStyle

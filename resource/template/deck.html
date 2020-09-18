@@ -13,13 +13,27 @@ $endif$
 $if(keywords)$
   <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
 $endif$
+$if(template.favicon)$
+  <link rel="shortcut icon" href="$template.favicon$">
+$endif$
+$if(mario)$
+    $if(title)$
+        $if(subtitle)$
+          <title>$title$: $subtitle$</title>
+        $else$
+          <title>$title$</title>
+        $endif$
+    $endif$
+$else$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
+$endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reveal.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
 $if(thebelab.enable)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/thebelab/thebelab.css">
 $endif$
@@ -98,6 +112,9 @@ $if(mario)$
   <link rel="stylesheet" href="$decker-support-dir$/css/mario.css">
 $else$
   <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
+$if(stretch-media)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/stretch-media.css">
+$endif$
 $endif$
 $endif$
 $for(template.css)$
@@ -117,11 +134,6 @@ $endif$
   <!--[if lt IE 9]>
   <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
   <![endif]-->
-$for(style)$
-  <style>
-  $style$
-  </style>
-$endfor$
 $if(math)$
   $math$
 $endif$
@@ -162,6 +174,11 @@ $endif$
 $for(header-includes)$
   $header-includes$
 $endfor$
+$for(style)$
+  <style>
+  $style$
+  </style>
+$endfor$
 </head>
 <body>
 $for(include-before)$
@@ -172,7 +189,7 @@ $endfor$
 
 $if(title)$
    $if(mario)$ <!-- Mario settings -->
-      <section id="$idprefix$title-slide">
+      <section id="$idprefix$title-slide" class="title-page">
          <h1 style="display:none">Title</h1>
          <div class="white-on-blue">
             <div class="title"> $title$ </div>
@@ -181,8 +198,8 @@ $if(title)$
          $endif$
          </div>
 
-         $if(teaser)$
-         <img class="teaser" src=$teaser$>
+         $if(template.teaser)$
+         <img class="teaser" src=$template.teaser$>
          $endif$
          $if(authors)$
          <div class="authors">
@@ -212,37 +229,46 @@ $if(title)$
          $endif$
       </section>
    $else$ <!-- standard settings -->
-      $if(template.title-header)$
-         <section id="$idprefix$title-slide" 
-            data-background-size="100%" 
-            data-background-position="0px 0px" 
-            data-background-image=$template.title-header$>
+      $if(template.title-page.banner)$
+         <section id="$idprefix$title-slide" class="title-page"> 
+             <div class="title-page banner">
+                <img src=$template.title-page.banner$>
+             </div>
+            <!-- data-background-size="100%"
+            data-background-position="0px 0px"
+            data-background-image=$template.title-page.banner$> old version as background -->
       $else$
-         <section id="$idprefix$title-slide">
+         <section id="$idprefix$title-slide" class="title-page">
       $endif$
-            <div class="title"> $title$</div>
-            $if(subtitle)$
-               <div class="subtitle"> $subtitle$ </div>
-            $endif$
-            $if(template.title-teaser)$
-               <div class="title-teaser">
-                  <img src=$template.title-teaser$>
-               </div>
-            $endif$
-            $if(date)$
-                <div class="date"> $date$ </div>
-            $endif$
-            $if(author)$
-               <div class="author"> $author$ </div>
-            $endif$
-            $if(template.affiliation-logo)$
-               <div class="affiliation-logo">
-                  <img src=$template.affiliation-logo$>
-               </div>
-            $endif$
-            $if(affiliation)$
-               <div class="affiliation"> $affiliation$ </div>
-            $endif$ 
+        <div class="valign-block" style="height:550px">
+            <div class="valigned">
+                <div class="title"> $title$</div>
+                $if(subtitle)$
+                   <div class="subtitle"> $subtitle$ </div>
+                $endif$
+                $if(template.title-page.teaser-img)$
+                   <div class="teaser-img">
+                      <img src=$template.title-page.teaser-img$>
+                   </div>
+                $else$
+                   <div style="height:100px"> </div>      
+                $endif$
+                $if(date)$
+                   <div class="date"> $date$ </div>
+                $endif$
+                $if(author)$
+                   <div class="author"> $author$ </div>
+                $endif$
+                $if(template.title-page.affiliation-logo)$
+                   <div class="affiliation-logo">
+                      <img src=$template.title-page.affiliation-logo$>
+                   </div>
+                $endif$
+                $if(affiliation)$
+                   <div class="affiliation"> $affiliation$ </div>
+                $endif$ 
+            </div>
+        </div>
          </section>      
    $endif$
 $endif$
@@ -258,7 +284,7 @@ $body$
   </div>
 
   <script src="$decker-support-dir$/vendor/reveal/js/reveal.js"></script>
-  <script src="$decker-support-dir$/vendor/jquery.js"></script>
+  <script src="$decker-support-dir$/vendor/js/jquery.min.js"></script>
   <script src="$decker-support-dir$/js/quiz.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
   <script src="$decker-support-dir$/js/sage.js"></script>
@@ -460,7 +486,7 @@ $endif$
 $if(menu)$
 $if(mario)$
         menu: {
-            side:              'right',
+            side:              'left',
             numbers:           true,
             titleSelector:     'h1',
             hideMissingTitles: false,
@@ -468,8 +494,8 @@ $if(mario)$
             custom:            false,
             themes:            false,
             transitions:       false,
-            openButton:        false,
-            openSlideNumber:   true,
+            openButton:        true,
+            openSlideNumber:   false,
             keyboard:          true,
             loadIcons:         false
         },
@@ -510,7 +536,7 @@ $else$
               T:         "^{\\mathsf{T}}",
               abs:       ['\\left\\lvert #1 \\right\\rvert', 1],
               det:       ['\\left\\lvert #1 \\right\\rvert', 1],
-              norm:      ['\\left\\lVert #1 \\right\\rVert', 1],
+              norm:      ['\\left\\Vert #1 \\right\\Vert', 1],
               iprod:     ['\\left\\langle #1 \\right\\rangle', 1],
               vec:       ['{\\mathbf{\\boldsymbol{#1}}}', 1],
               mat:       ['{\\mathbf{\\boldsymbol{#1}}}', 1],
@@ -522,9 +548,9 @@ $else$
               of:        ['\\left( #1 \\right\)', 1],
               diff:      ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
               pdiff:     ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
-              vc:        ['\\mathbf{#1}', 1],
+              vc:        ['{\\mathbf{\\boldsymbol{#1}}}', 1],
               qt:        ['\\hat{\\vc {#1}}', 1],
-              mt:        ['\\boldsymbol{#1}', 1],
+              mt:        ['{\\mathbf{\\boldsymbol{#1}}}', 1],
               pt:        ['\\boldsymbol{#1}', 1],
               textcolor: ['\\color{#1}', 1]
           }
@@ -546,12 +572,8 @@ $if(mario)$
                       },
 $endif$
                       tooltips: {
-                          mode: 'index',
-                          intersect: false,
-                      },
-                      hover: {
-                          mode: 'nearest',
-                          intersect: true
+                          mode: 'point',
+                          intersect: true,
                       },
                       legend: { position: "bottom" },
                       plugins: { colorschemes: { scheme: "tableau.Classic10" } }

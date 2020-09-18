@@ -17,13 +17,16 @@ var RevealMenu = window.RevealMenu || (function(){
 	
 	var module = {};
 
-	loadResource(options.path + 'menu.css', 'stylesheet', function() {
-		if (loadIcons) {
-			loadResource(options.path + 'font-awesome/css/all.css', 'stylesheet', loadPlugin)
-		} else {
-			loadPlugin();
-		}
-	})
+    // MARIO: load menu.css in deck.html, so that we can overload the style with custom css
+    // MARIO: load FontAwesome in deck.html (we load it there anyway)
+	//loadResource(options.path + 'menu.css', 'stylesheet', function() {
+		//if (loadIcons) {
+			//loadResource(options.path + 'font-awesome/css/all.css', 'stylesheet', loadPlugin)
+		//} else {
+			//loadPlugin();
+		//}
+	//})
+    loadPlugin();
 
 
 	function loadPlugin() {
@@ -514,18 +517,37 @@ var RevealMenu = window.RevealMenu || (function(){
                     // MARIO: why do we need this?
 					//addToolbarButton('Slides', 'Slides', 'fa-images', 'fas', openPanel, true);
 
-                    // MARIO: trigger search of RevealSearch plugin
-					addToolbarButton('Search', 'Search', 'fa-search', 'fas', function(){
+                    // MARIO: toggle search dialog of RevealSearch plugin
+					addToolbarButton('Toggle Search Dialog', 'Search', 'fa-search', 'fas', function(){
                         closeMenu();
-                        RevealSearch.open();
+                        RevealSearch.toggle();
+                    }, true);
+
+                    // MARIO: disable fragment animations
+					let animButton = addToolbarButton('Toggle Animations', 'Animations', Reveal.getConfig().fragments ? 'fa-check-circle' : 'fa-circle', 'far', function(){
+                        let animState = Reveal.getConfig().fragments;
+                        let icon      = animButton.firstChild;
+
+                        Reveal.configure({ fragments: !animState });
+                        icon.classList.remove('fa-circle-check', 'fa-circle');
+                        icon.classList.add( animState ? 'fa-circle' : 'fa-circle-check' );
                     }, true);
 
                     // MARIO: trigger PDF export
-					addToolbarButton('Print', 'Print', 'fa-print', 'fas', function(){
-                        if (confirm("Leave/reload presentation to export PDF?"))
-                        {
-                            window.open("?print-pdf","_self")
+                    addToolbarButton('Export to PDF', 'Print', 'fa-print', 'fas', function(){
+						let url = location.protocol + '//' + location.host + location.pathname + '?print-pdf';
+
+                        // electron app
+                        if (window.printPDF) {
+                            window.printPDF(url);
                         }
+                        // normal browser mode
+                        else {
+                            if (confirm("Leave/reload presentation to export PDF?")) {
+								window.open(url, "_self");
+							}
+                        }
+                        closeMenu();
                     }, true);
 
 

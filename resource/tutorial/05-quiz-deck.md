@@ -1,7 +1,6 @@
 ---
 title: Decker Quiz Overview
 history: true
-# vertical-slides: true
 ---
 
 # Introduction
@@ -41,7 +40,7 @@ Questions are defined by level 2 headers. That means creating a question **needs
 (where `.qmc` can be replaced by any of the other quiz classes)
 
 
-The quiz syntax is based on the markdown task list syntax. A markdown task list looks like this
+The quiz syntax (apart from matching questions) is based on the markdown task list syntax. A markdown task list looks like this
 
 ```
 - [ ] This box is not checked
@@ -58,13 +57,30 @@ You can add tooltips by creating a nested list e.g.
   - tooltip B
 ```
 
+# Fenced Divs Syntax
+
+Alternatively, quizzes can be defined using the **fenced divs** syntax:
+
+```
+::: qmc
+- [ ] A
+  - tooltip A
+- [X] B
+  - tooltip B
+:::
+```
+
 # Quiz Meta
 
-Add a `YAML` code block to a question to provide meta information on the specific question.
+Add a `YAML` code block below a question to provide meta information on the specific question.
 
-This is work in progress. Currently it does not do anything. (17. Apr 2020)
+- This is work in progress. Currently apart from `lang: de` or `lang: en` it does not do anything. (21. Jul 2020)
+- If you put `lang: de` in the header of your slide deck, the static quiz content (e.g. buttons) will appear with german text.
+- If you put `lang: de` only in the yaml block of a single question, only this question will be localized.
+
 ````
 ``` {.yaml}
+lang: de
 score: 5
 category: FP
 lectureId: fp1
@@ -151,7 +167,6 @@ Question text
 This will create a sort of blank text questions.
 If multiple items are provided in the task list, they will be rendered as a drop down menu where the user can click answers.
 
-If only one item/solution is provided it will be rendered as a blank.
 
 ```
 ## Insert Choices Question {.qic}
@@ -163,8 +178,9 @@ If only one item/solution is provided it will be rendered as a blank.
 
 is the first letter in the ABC. The second one is
 
-- [ ] B
+- [X] B
   - yep
+- [ ] C
 
 ```
 
@@ -179,22 +195,25 @@ is the first letter in the ABC. The second one is
 
 is the first letter in the ABC. The second one is
 
-- [ ] B
+- [X] B
   - yep
+- [ ] C
 
 
 # FreeText questions
 
 This will create a simple input field/text box where the user can write their answer.
 
+If there are wrong answers that are to be expected you can add those by not checking the task box. They will then show as wrong when clicking "Show Solution".
+
 ```
 ## FreeText Question TL {.qft}
 
 What's the first letter in the alphabet?
 
-- A
+- [X] A
   - yep
-- B
+- [ ] B
   - nope
 
 ## {.qft}
@@ -202,19 +221,20 @@ What's the first letter in the alphabet?
 What's the fourth letter?
 
 - [ ] C
+  - info
 - [X] D
 
 ```
 
-# FreeTExt Question Example {.sub}
+# FreeText Question Example without h2 title {.sub}
 
-## FreeText Question TL {.qft}
+## {.qft}
 
 What's the first letter in the alphabet?
 
-- A
+- [X] A
   - yep
-- B
+- [ ] B
   - nope
 
 ## {.qft}
@@ -222,7 +242,11 @@ What's the first letter in the alphabet?
 What's the fourth letter?
 
 - [ ] C
+  - info
 - [X] D
 
+```yaml
+lang: en
+```
 
 

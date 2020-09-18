@@ -212,5 +212,6 @@ function Hilitor(id, tag)
 	}, false );
 	if( window.Reveal ) Reveal.registerKeyboardShortcut( 'CTRL + Shift + F', 'Search' );
 	closeSearch();
-	return { open: openSearch };
+    // MARIO: also export toggle
+	return { open: openSearch, toggle: toggleSearch };
 })();

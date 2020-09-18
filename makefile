@@ -29,6 +29,16 @@ install: clean-build
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
 	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
 
+unclean-install: build
+	mkdir -p $(local-bin-path)
+	cp $(executable) "$(local-bin-path)/$(decker-name)"
+	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
+	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
+
+install-link: build
+	mkdir -p $(local-bin-path)
+	ln -s $(executable) "$(local-bin-path)/$(base-name)-dev"
+
 version:
 	@echo "$(decker-name)"
 
@@ -48,6 +58,9 @@ dist: install
 
 test:
 	stack test -j1
+
+documentation:
+	stack haddock
 
 watch:
 	stack test -j1 --file-watch

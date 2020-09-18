@@ -12,7 +12,7 @@ meta-data:
 - level1.yaml
 something: '/test/decks/include/06-metal.png'
 static-resource-dirs:
-- code
+- assets
 template:
   css: dummy.css
 title: Meta Resources
@@ -55,6 +55,8 @@ Resource references in meta data values
 
 -   `exclude-directories`: [:meta](exclude-directories)
 
+------------------------------------------------------------------------
+
 # Transitive meta data files
 
 ## Inclusion chain
@@ -65,7 +67,9 @@ meta-resources-deck.md <- level1.yaml <- include/level2.yaml <- 06-metal-v.png
 
 ## Absolute image path
 
--   metal-image: [:meta](metal-image)
+-   metal-image: [:meta](template.metal-image)
+
+------------------------------------------------------------------------
 
 # `template/default.yaml` (1) {.columns}
 
@@ -91,6 +95,8 @@ test: "default.yaml test value"
 
 -   expexted: `test123`
 -   actual: [:meta](test123)
+
+------------------------------------------------------------------------
 
 # `template/default.yaml` (2) {.columns}
 

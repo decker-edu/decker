@@ -1,11 +1,17 @@
+////////////////////////////////////////////////
+// This scss file defines the layout and design of the decker Quizzes
+// match item, insert choices, multipl choice and freetext questions
+////////////////////////////////////////////////
+
+// 
 .reveal {
     .qic,
     .qft,
     .qmc,
     .qmi,
     [class*="quiz-"]{
-    // display: inline;
     position: relative;
+
     // General Button css and freetext question Input 
     button,
     input
@@ -15,10 +21,18 @@
         font-family: inherit;
         outline: none;
         clear: both;
+        border: 2px solid black;
+    }
+    input:placeholder-shown {
+        text-overflow: ellipsis;
     }
     .solutionButton{
         font-size: large;
     }
+
+    // solutionList is the div that appears next to 
+    // a QFT input field 
+    // Previously this was used for QIC questions as well
     .solutionList{
         li{
             padding: 5px;
@@ -35,8 +49,6 @@
         }
         list-style-type: none;
         display: none;
-        // max-width: fit-content;
-        // max-width:        95vw;
         background-color: grey;
         color:            #ffffff;
         margin:           5px;
@@ -47,37 +59,45 @@
         z-index:          99;
         font-size:        1rem;
     }
-    .tooltip-div {
-        font-size: 0.6em;
-        background-color: #f4f4f7;
-        margin-top: 0.5em;
-      }
+
 }}
 
+// Designs specific to QIC questions
+// the choice for overflow scrolling stems from the
+// concern that users might want to use very long tooltips
+// possibly with images
 .reveal {
     .qic,
     [class*="quiz-i"]{
         display:  block;
-        overflow-y: scroll !important;
-        overflow-x: hidden !important; 
+        overflow-y: auto;
         max-height: 75vh;
-        // max-width: 100vw;
         select{
+            border: 2px solid black;
             font-size: inherit;
             :disabled{
                 color: black;
             }
         }
+        // tooltip-div is the box that appears on hover 
+        // after having answered a QIC select element
+        .tooltip-div {
+            font-size: 0.6em;
+            background-color: #f4f4f7;
+            margin-top: 0.5em;
+        }
 }
 }
 
+// CSS specific to match item/QMI questions
+// 
 .reveal {
     .quiz-mi,
     .qmi,
     .quiz-match-items{
         display: block;
-        overflow-y: scroll !important;
-        overflow-x: hidden !important; 
+        // If quiz overflows to the bottom (e.g. too many/too large items) create a scroll bar
+        overflow-y: auto;
         max-height: 75vh;
         text-align: center;
         
@@ -90,6 +110,7 @@
         .draggableChild {
             pointer-events: none;
         } 
+
         .buckets,
         .matchItems{
             font-size: large;
@@ -107,7 +128,7 @@
         }
 
 
-        .buckets{
+        .matchItems{
             margin-bottom: 60px;
         }
 
@@ -121,21 +142,26 @@
             padding:    5px;
             color:      grey;
         }
+        // Use "data-hint" attribute to get drag and drop hint 
+        // in the correct language (can be customized in yaml header)
         .matchItems:before{
-            content: "drag from here";
+            content: attr(data-hint);
         }
         .buckets:before{
-            content: "drop here";
+            content: attr(data-hint);
         }
+        
+        // The little triangle showing the drag direction. 
+        // Just an optical gimmick
         .matchItems:after{
             position:      absolute;
             content:       " ";
             width:         0;
             height:        0;
-            top:           -30px;
+            bottom:        -30px;
             border-left:   30px solid transparent;
             border-right:  30px solid transparent;
-            border-bottom: 30px solid #dddddd;
+            border-top:    30px solid #dddddd;
         }
 
         .bucket{
@@ -148,13 +174,14 @@
         }
 
         .matchItem{
+            // Scale down image to prevent quiz from overflowing
             img{
                 max-width: 50%;
             }
             display:        block;
             vertical-align: middle;
             overflow:       hidden;
-            border:         2px solid #2a9ddf;
+            border:         2px dotted black;
             border-radius:  10px;
             padding:        10px;
             background:     white;
@@ -164,27 +191,19 @@
             margin-right: 2px;
         }
 
-        .matchItem .solution{
-            visibility: hidden;
-            font-size: large;
-        }
-        .matchItem:hover .solution{
-            visibility: visible;
-            font-size: large;
-        }
-
         .bucket{
             .matchItem{
                 display:    block;
-                border:     2px solid #2a9ddf;
+                border:     2px dotted black;
                 background: inherit
             }
         }
     }
 }
-.reveal {
 
-    // Multiple Choice        
+// CSS specific to multiple choice/QMC questions
+// Design mostly adapted 1:1 from Mario's clicker quiz
+.reveal {
     .quiz-multiple-choice,
     .quiz-mc,
     .qmc{
@@ -204,7 +223,7 @@
             position:      relative;
             text-align:    left;
             margin:        20px;
-            border:        3px solid #2a9ddf;
+            border:        2px solid #2a9ddf;
             border-radius: 20px;
             padding:       20px;
             font-weight:   normal;
@@ -219,6 +238,7 @@
             font-weight:  bold;
         }
 
+        // The tooltip showing on hover under the MC "button" after clicking
         .tooltip  {
             display:          block;
             visibility:       hidden;

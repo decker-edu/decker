@@ -1,26 +1,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Internal.Helper
-  ( dropSuffix
-  , replaceSuffix
-  , repeatIfTrue
-  , whenTrue
-  , unique
-  , time
-  , (<++>)
-  , runIOQuietly
-  , copyDir
-  , copyFileIfNewer
-  , fileIsNewer
-  , handleLeft
-  , handleLeftM
-  , isDevelopmentRun
-  , warnVersion
-  , tryRemoveDirectory
-  ) where
+module Text.Decker.Internal.Helper where
 
 import Text.Decker.Internal.Exception
 import Text.Decker.Project.Version
+import Text.Pandoc
+import Text.Printf
 
 import Control.Monad.Catch
 import Control.Monad.State
@@ -30,11 +15,9 @@ import qualified Data.Set as Set
 import Relude
 import System.CPUTime
 import qualified System.Directory as Dir
-import System.Environment
-import System.FilePath
 import System.Directory
-import Text.Pandoc
-import Text.Printf
+import System.Environment
+import System.FilePath.Posix
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -143,6 +126,43 @@ warnVersion = do
 
 tryRemoveDirectory :: FilePath -> IO ()
 tryRemoveDirectory path = do
-  exists <- doesDirectoryExist path
+  exists <- System.Directory.doesDirectoryExist path
   when exists $ removeDirectoryRecursive path
 
+-- | Express the second path argument as relative to the first. 
+-- Both arguments are expected to be absolute pathes. 
+makeRelativeTo :: FilePath -> FilePath -> FilePath
+makeRelativeTo dir file =
+  let (d, f) = removeCommonPrefix (normalise dir, normalise file)
+   in normalise $ invertPath d </> f
+
+invertPath :: FilePath -> FilePath
+invertPath fp = joinPath $ map (const "..") $ filter ("." /=) $ splitPath fp
+
+removeCommonPrefix :: (FilePath, FilePath) -> (FilePath, FilePath)
+removeCommonPrefix =
+  mapTuple joinPath . removeCommonPrefix_ . mapTuple splitDirectories
+  where
+    removeCommonPrefix_ :: ([FilePath], [FilePath]) -> ([FilePath], [FilePath])
+    removeCommonPrefix_ (al@(a:as), bl@(b:bs))
+      | a == b = removeCommonPrefix_ (as, bs)
+      | otherwise = (al, bl)
+    removeCommonPrefix_ pathes = pathes
+
+isPrefix :: FilePath -> FilePath -> Bool
+isPrefix prefix whole = isPrefix_ (splitPath prefix) (splitPath whole)
+  where
+    isPrefix_ :: Eq a => [a] -> [a] -> Bool
+    isPrefix_ (a:as) (b:bs)
+      | a == b = isPrefix_ as bs
+      | otherwise = False
+    isPrefix_ [] _ = True
+    isPrefix_ _ _ = False
+
+mapTuple :: (t1 -> t) -> (t1, t1) -> (t, t)
+mapTuple f (a, b) = (f a, f b)
+
+putThrough :: (MonadIO m, Show a) => String -> a -> m a
+putThrough info value = do
+  liftIO $ putStrLn $ "  " <> info <> ": " <> show value
+  return value

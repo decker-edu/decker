@@ -1,6 +1,7 @@
 ---
 title: New Quiz Syntax Test deck
 history: True
+lang: de
 ---
 
 # Overview
@@ -36,6 +37,10 @@ Inertia
 
 Springs
 : $-k \, \left( \norm{\vec{x}_0 - \vec{x}_1} - L \right) \, \frac{ \vec{x}_0 - \vec{x}_1 }{\norm{\vec{x}_0 - \vec{x}_1}}$
+
+```yaml
+lang: en
+```
 
 #
 
@@ -97,7 +102,6 @@ category: CG
 lectureId: cg1
 topic: yeah
 ```
-
 
 # Blanktext/Inserting MC
 
@@ -167,3 +171,50 @@ Das Ergebnis von $2*2=~?$ ist?
     - RTL, no not really?
 - [ ] *
     - ganz falsch, so oder so?
+
+# fenced divs syntax
+
+::: qft
+
+Das Ergebnis von $2*2=~?$ ist?
+
+
+- [X] 4
+    - Die perfekte Lösung 
+- [X] vier
+    - Auch ok 
+- [X] four
+    - Deutscher Studiengang
+- [ ] fier
+    - RTL, no not really?
+- [ ] *
+    - ganz falsch, so oder so?
+:::
+
+
+#
+
+::: qic
+
+Decker is a software built using  
+
+
+- [ ] Scala
+    - Unfortunately not.
+- [X] Haskell
+    - Due to Pandoc.
+- [ ] Java
+    - Surely not.
+- [ ] Ruby 
+    - hm no
+
+
+and builds upon the tool
+
+- [X] Pandoc
+  - See previous tooltip.
+- [ ] PowerPoint
+
+.
+
+:::

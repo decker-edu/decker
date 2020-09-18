@@ -410,7 +410,7 @@ Video with autoplay: ![](movies/jmu-hci-intro.mp4){data-autoplay="true"}
 Include YouTube and Vimeo videos or Twitch channels in presentations:
 
 ``` {.markdown}
-![](service://video-id){css-formatting}
+![](service:video-id){css-formatting}
 ```
 
 *Note 1:* Replace `service` with `youtube`, `vimeo` or `twitch` and add
@@ -425,10 +425,10 @@ https://www.youtube.com/watch?v=`<u>`{=html}qEcmwHRG2Mo`</u>`{=html}\
 # External Videos example {#example-movies_2}
 
 ``` {.markdown}
-![](youtube://qEcmwHRG2Mo){width="65%" start="10"}
+![](youtube:qEcmwHRG2Mo){width="65%" start="10"}
 ```
 
-![](youtube://qEcmwHRG2Mo){width="65%" start="10"}
+![](youtube:qEcmwHRG2Mo){width="65%" start="10"}
 
 # Fullscreen Videos {#fullscreen}
 

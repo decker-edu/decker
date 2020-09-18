@@ -1,16 +1,18 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 
 module Text.Decker.Filter.Attrib where
-
-import Text.Decker.Filter.Monad
-
-import Text.Decker.Internal.Meta
 
 import Data.Bifunctor
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
+
 import Relude
+
+import Text.Decker.Filter.Monad
+import Text.Decker.Internal.Meta
 import Text.Pandoc
 
 -- | An associative list representing element attributes.
@@ -24,6 +26,15 @@ type AttribState = (Attr, Attr)
 
 -- | The Attrib monad.
 type Attrib = StateT AttribState Filter
+
+-- Source attributes potentially used on images and code blocks.
+srcAttribs :: [Text]
+srcAttribs = ["src", "data-src", "poster"]
+
+-- Source attributes used on header blocks by reveal.js.
+bgAttribs :: [Text]
+bgAttribs =
+  ["data-background-image", "data-background-video", "data-background-iframe"]
 
 runAttr :: Attr -> Attrib a -> Filter a
 runAttr attr attrAction = evalStateT attrAction (nullAttr, attr)

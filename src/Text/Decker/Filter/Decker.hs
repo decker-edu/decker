@@ -1,4 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- | This is the new Decker filter for Pandoc.
 --
@@ -23,7 +25,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import Relude
 import System.Directory
-import System.FilePath
+import System.FilePath.Posix
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -76,7 +78,7 @@ mediaBlockListFilter blocks =
   where
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
-    filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) =
+    filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) = do
       Just . single . forceBlock <$> transformImage image caption
     -- An code block followed by an explicit caption paragraph.
     filterPairs (code@CodeBlock {}, Para (Str "Caption:":caption)) =
@@ -104,10 +106,8 @@ mediaInlineListFilter inlines =
 
 -- | Match a single Block element
 mediaBlockFilter :: Block -> Filter Block
--- A level one header.
-mediaBlockFilter header@(Header 1 attr text) = transformHeader1 header
 -- A solitary image in a paragraph with a possible caption.
-mediaBlockFilter (Para [image@(Image _ caption _)]) =
+mediaBlockFilter (Para [image@(Image _ caption _)]) = do
   forceBlock <$> transformImage image caption
 -- A solitary code block in a paragraph with a possible caption.
 mediaBlockFilter (code@CodeBlock {}) = transformCodeBlock code []
@@ -130,7 +130,8 @@ isImage _ = False
 -- | Matches a single Inline element
 mediaInlineFilter :: Inline -> Filter Inline
 -- An inline image with a possible caption.
-mediaInlineFilter image@(Image _ caption _) = transformImage image caption
+mediaInlineFilter image@(Image _ caption _) = do
+  transformImage image caption
 -- Default filter
 mediaInlineFilter inline = return inline
 
@@ -239,26 +240,23 @@ transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
   case language classes of
     Just ext
       | "render" `elem` classes -> do
-        transient <-
-          lookupMetaOrFail "decker.directories.transient" <$> gets meta
-        project <- lookupMetaOrFail "decker.directories.project" <$> gets meta
-        runAttr attr (transform project transient ext) >>= renderHtml
+        runAttr attr (transform ext) >>= renderHtml
     _ -> return code
   where
-    transform :: FilePath -> FilePath -> Text -> Attrib Html
-    transform project transient ext = do
+    transform :: Text -> Attrib Html
+    transform ext = do
       dropClass ext
       let crc = printf "%08x" (calc_crc32 $ toString text)
-      let relPath =
-            deckerFiles </> "code" </> intercalate "-" ["code", crc] <.>
+      let path =
+            transientDir </> "code" </>
+            intercalate "-" ["code", crc] <.>
             toString ext
-      let absPath = project </> relPath
-      exists <- liftIO $ doesFileExist absPath
+      exists <- liftIO $ doesFileExist path
       unless exists $
         liftIO $ do
-          createDirectoryIfMissing True (project </> deckerFiles </> "code")
-          Text.writeFile absPath text
-      uri <- lift $ URI.mkURI ("/" <> toText relPath)
+          createDirectoryIfMissing True (takeDirectory path)
+          Text.writeFile path text
+      uri <- lift $ URI.mkURI (toText path)
       renderCodeHtml uri caption
 transformCodeBlock block _ = return block
 
@@ -341,8 +339,7 @@ imageHtml uri caption = do
   let fileName = toText $ takeFileName $ toString rendered
   case caption of
     [] -> do
-      injectBorder >> takeSize >> takeUsual >>
-        injectAttribute ("alt", fileName)
+      injectBorder >> takeSize >> takeUsual >> injectAttribute ("alt", fileName)
       mkImageTag rendered <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
@@ -386,7 +383,6 @@ mviewHtml uri caption = do
   uri <- lift $ transformUri uri ""
   let model = URI.render uri
   pushAttribute ("model", model)
-  -- specify mview URL project relative
   mviewUri <- URI.mkURI "public:support/mview/mview.html"
   iframeHtml mviewUri caption
 

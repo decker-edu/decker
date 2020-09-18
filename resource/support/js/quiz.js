@@ -19,7 +19,6 @@ function quiz() {
     quizFT();
 }
 
-
 function quizMI() {
     var miQuestions = document.querySelectorAll(".qmi,.quiz-mi,.quiz-match-items");
     console.log(miQuestions.length);
@@ -52,7 +51,7 @@ function quizMC() {
 
                 if (is_right) {
                     this.style.backgroundColor = "#aaffaa";
-                    this.style.border = "5px solid black";
+                    this.style.border = "2px solid black";
                 }
                 else {
                     this.style.backgroundColor = "#ffaaaa";
@@ -120,7 +119,7 @@ function inputEvent(input, solutions) {
 
             //Change the appearance of the input element
             this.style.backgroundColor = (handled.correct) ? "#aaffaa" : "#ffaaaa";
-            this.style.border = (handled.correct) ? "5px solid black" : "2px dotted black";
+            this.style.border = (handled.correct) ? "2px solid black" : "2px dotted black";
 
             // Display the tooltip/solution box
             // Show the tooltip box for any expected answer. be it correct or wrong
@@ -201,23 +200,22 @@ function quizIC() {
                 const selected = sel.options[sel.selectedIndex];
                 const is_right = selected.classList.contains("correct");
                 sel.style.backgroundColor = is_right ? "#aaffaa" : "#ffaaaa";
-                sel.style.border = is_right ? "5px solid black" : "2px dotted black";
+                sel.style.border = is_right ? "2px solid black" : "2px dotted black";
             });
             // Show tooltip box on mouseover
             sel.addEventListener("mouseover", function () {
                 // Hide all other tooltips/solutions
-                Array.from(solutions.getElementsByTagName("li")).map(
-                    (x) => (x.style.display = "none")
-                );
+                tipDiv.innerHTML = "";
                 // Display only current choice tooltip
                 var choice = solutions.getElementsByTagName("li")[sel.selectedIndex - 1].querySelector(".tooltip");
                 var cln = choice.cloneNode(true);
                 cln.style.display = "block";
                 tipDiv.appendChild(cln);
             });
-            // hide on mouseout
-            sel.addEventListener("mouseout", function () {
-                tipDiv.innerHTML = "";
+
+            // Hide tooltip if mouse is leaving it
+            tipDiv.addEventListener("mouseleave", function () {
+                this.innerHTML = "";
             });
         }
 
@@ -343,17 +341,14 @@ function matchingAnswerButton(matchQuestion) {
             const hasTooltip = rem.getElementsByClassName("solution").length > 0;
             if (matchId == null) {
                 rem.style.backgroundColor = "#aaffaa";
-                rem.style.border = "3px solid black";
+                rem.style.border = "2px solid black";
 
-                if (!hasTooltip) {
-                    rem.append(solution("distractor"));
-                }
+                // if (!hasTooltip) {
+                // rem.append(solution("distractor"));
+                // }
             } else {
                 rem.style.backgroundColor = "#ffaaaa";
 
-                // if (!hasTooltip) {
-                // rem.append(solution("Bucket " + matchId));
-                // }
             }
         }
 
@@ -368,20 +363,16 @@ function matchingAnswerButton(matchQuestion) {
                     matchItem.style.backgroundColor = "#ffaaaa";
                     if (hasTooltip) {
                         matchItem.removeChild(matchItem.getElementsByClassName("solution")[0]);
-                        // matchItem.append(solution("distractor"));
                     }
                 } else if (matchId == bucketId) {
                     // green
                     matchItem.style.backgroundColor = "#aaffaa";
-                    matchItem.style.border = "3px solid black";
+                    matchItem.style.border = "2px solid black";
                 }
                 else {
                     // red
                     matchItem.style.backgroundColor = "#ffaaaa";
                     matchItem.style.border = "2px dotted black";
-                    // if (!hasTooltip) {
-                    // matchItem.append(solution("Bucket " + matchId));
-                    // }
 
 
                 }
@@ -440,6 +431,7 @@ function drop(event) {
     event.preventDefault();
     var element = elements[event.dataTransfer.getData('index')];
     if (event.target.classList.contains("matchItem")) {
+        event.target.parentNode.appendChild(element);
         return false;
     }
 

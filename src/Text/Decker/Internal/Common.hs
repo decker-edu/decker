@@ -1,37 +1,16 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
-module Text.Decker.Internal.Common
-  ( DeckerState(..)
-  , Layout(..)
-  , OutputFormat(..)
-  , Disposition(..)
-  , MediaType(..)
-  , Provisioning(..)
-  , Decker
-  , doIO
-  , needFile
-  , needFiles
-  , pandocReaderOpts
-  , pandocWriterOpts
-  , deckerFiles
-  ) where
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+
+module Text.Decker.Internal.Common where
 
 import Control.Monad.State
-import Development.Shake (Action, need)
+import Development.Shake (Action)
 import Text.Pandoc
-
--- | Decker temporary build files are stored here.
-deckerFiles = ".decker"
 
 type Decker = StateT DeckerState Action
 
 doIO :: IO a -> Decker a
 doIO = lift . liftIO
-
-needFile :: FilePath -> Decker ()
-needFile file = lift $ need [file]
-
-needFiles :: [FilePath] -> Decker ()
-needFiles pathes = lift $ need pathes
 
 data DeckerState = DeckerState
   { basePath :: String
@@ -74,16 +53,13 @@ data Provisioning
   | Relative -- ^ Relative local URL
   deriving (Eq, Show, Read)
 
-pandocReaderOpts :: ReaderOptions
-pandocReaderOpts =
-  def {readerExtensions = (enableExtension Ext_emoji) pandocExtensions}
-
 pandocWriterOpts :: WriterOptions
 pandocWriterOpts =
-  def
-    { writerExtensions =
-        (enableExtension Ext_auto_identifiers .
-         disableExtension Ext_simple_tables .
-         disableExtension Ext_multiline_tables . enableExtension Ext_emoji)
-          pandocExtensions
-    }
+  def {writerExtensions = (enableExtension Ext_emoji) pandocExtensions}
+
+projectDir = "."
+publicDir = "public"
+supportDir = "public/support"
+devSupportDir = "resource/support"
+supportPath = "/support"
+transientDir = ".decker"

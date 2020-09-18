@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Text.Decker.Internal.CompileTime
   ( lookupGitBranch
   , lookupGitCommitId

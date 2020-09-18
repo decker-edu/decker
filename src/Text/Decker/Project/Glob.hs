@@ -1,4 +1,7 @@
-{-- Author: Henrik Tramberend <henrik@tramberend.de> --}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiWayIf #-}
+
 module Text.Decker.Project.Glob
   ( fastGlobFiles
   , fastGlobDirs
@@ -9,14 +12,14 @@ module Text.Decker.Project.Glob
 import Control.Monad
 import Data.List
 import System.Directory (doesDirectoryExist, doesFileExist, listDirectory)
-import System.FilePath
+import System.FilePath.Posix
 
 -- | Glob for files a little more efficiently. 'exclude' contains a list of
 -- directories that will be culled from the traversal. Hidden directories are
 -- ignored. 'suffixes' is the list of file suffixes that are included in the
 -- glob.
 fastGlobFiles :: [String] -> [String] -> FilePath -> IO [FilePath]
-fastGlobFiles exclude suffixes root = sort <$> glob root
+fastGlobFiles exclude suffixes root = sort . map normalise <$> glob root
   where
     absExclude = map (root </>) exclude
     absListDirectory dir =
@@ -42,7 +45,7 @@ fastGlobFiles exclude suffixes root = sort <$> glob root
 -- | Glob for directories efficiently. 'exclude' contains a list of directories
 -- (relative to 'root') that will be culled from the traversal.
 fastGlobDirs :: [String] -> FilePath -> IO [FilePath]
-fastGlobDirs exclude root = glob root
+fastGlobDirs exclude root = map normalise <$> glob root
   where
     absExclude = map (root </>) exclude
     absListDirectory dir =
