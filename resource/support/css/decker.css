@@ -695,6 +695,10 @@
   width: auto;
 }
 
+.reveal .title-page .date {
+  text-align: center;
+}
+
 .reveal .title-page .author {
   margin: 0px;
   font-weight: normal;
