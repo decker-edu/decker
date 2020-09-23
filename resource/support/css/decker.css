@@ -928,7 +928,6 @@
 .reveal .quiz-match-items.plain .buckets,
 .reveal .quiz-match-items.plain .matchItems {
   border: none;
-  display: block;
   margin-top: 2vh;
 }
 
@@ -950,6 +949,7 @@
 .reveal .qmi.plain .buckets,
 .reveal .quiz-mi.plain .buckets,
 .reveal .quiz-match-items.plain .buckets {
+  display: block;
   counter-reset: opt;
   max-width: 65%;
 }
@@ -957,6 +957,8 @@
 .reveal .qmi.plain .matchItems,
 .reveal .quiz-mi.plain .matchItems,
 .reveal .quiz-match-items.plain .matchItems {
+  display: flex;
+  flex-flow: column nowrap;
   margin-right: 3vw;
   max-width: 50%;
 }

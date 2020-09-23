@@ -395,7 +395,6 @@ $border-radius: 6px;
             .buckets,
             .matchItems {
                 border: none;
-                display: block;
                 margin-top: 2vh;
                 &:before,
                 &:after {
@@ -404,10 +403,13 @@ $border-radius: 6px;
                 }
             }
             .buckets {
+                display: block;
                 counter-reset: opt;
                 max-width: 65%;
             }
             .matchItems {
+                display: flex;
+                flex-flow: column nowrap;
                 margin-right: 3vw;
                 max-width: 50%;
             }
