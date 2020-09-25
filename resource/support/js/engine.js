@@ -44,7 +44,7 @@ async function buildInterface(api, initialToken) {
   var serverToken = initialToken;
 
   if (DEBUG) {
-    console.log(serverToken);
+    console.log("token:", initialToken);
   }
 
   let open = document.createElement("div");
@@ -199,7 +199,7 @@ async function buildInterface(api, initialToken) {
       check.classList.add("checked");
       user.type = "password";
     } else {
-      user.value = hashCode(Math.random().toString());
+      user.value = serverToken.random;
       user.removeAttribute("disabled");
       check.classList.remove("checked");
       user.type = "text";
