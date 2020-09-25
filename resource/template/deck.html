@@ -201,7 +201,6 @@ $if(title)$
          $if(template.teaser)$
          <img class="teaser" src=$template.teaser$>
          $endif$
-
          $if(authors)$
          <div class="authors">
          $for(authors)$
@@ -223,6 +222,10 @@ $if(title)$
 
          $if(affiliation)$
          <div class="affiliation"> $affiliation$ </div>
+         $endif$
+
+         $if(date)$
+         <div class="date"> $date$ </div>
          $endif$
       </section>
    $else$ <!-- standard settings -->
@@ -249,6 +252,9 @@ $if(title)$
                    </div>
                 $else$
                    <div style="height:100px"> </div>      
+                $endif$
+                $if(date)$
+                   <div class="date"> $date$ </div>
                 $endif$
                 $if(author)$
                    <div class="author"> $author$ </div>
