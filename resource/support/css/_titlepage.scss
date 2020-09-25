@@ -3,7 +3,7 @@
  * Mario's versions
  *********************************************/
 
- .white-on-blue {
+.white-on-blue {
   color: #ffffff;
   background-color: #003366;
 }
@@ -46,6 +46,9 @@
             max-height: 250px;
             width: auto;
          }
+      }
+      .date {
+        text-align: center;
       }
       .author {
          margin:      0px;
