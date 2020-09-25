@@ -14,5 +14,3 @@ exclude-directories:
 static-resource-dirs:
   - test/static
   - test/decks/examiner/static
-meta-data:
-  - publish.yaml
