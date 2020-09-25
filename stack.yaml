@@ -2,9 +2,16 @@ flags:
   pandoc-citeproc:
     embed_data_files: true
   regex-posix:
-      _regex-posix-clib: true
+    _regex-posix-clib: true
 packages:
   - "."
 extra-deps:
-   - regex-posix-clib-2.7
-resolver: lts-15.10
+  - pandoc-2.10.1
+  - commonmark-0.1.0.1
+  - commonmark-extensions-0.2.0.1
+  - commonmark-pandoc-0.2.0.0
+  - hslua-1.1.2
+  - jira-wiki-markup-1.3.2
+  - pandoc-types-1.21
+  - regex-posix-clib-2.7
+resolver: lts-16.8

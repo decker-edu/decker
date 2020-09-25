@@ -16,9 +16,7 @@ import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Template
-import Text.Pandoc.Lens
 
--- import Text.CSL.Pandoc
 import Control.Monad.State
 import qualified Data.Map as M
 import qualified Data.MultiMap as MM

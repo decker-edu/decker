@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Text.Decker.Filter.Filter
   ( OutputFormat(..)
   , Disposition(..)
