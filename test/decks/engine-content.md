@@ -1,60 +1,115 @@
-# Decker Engine
+# Transformationen in homogenen Koordinaten {#arny}
 
-## How stupid can a name be?
+Eine affine Transformation in Matrixschreibweise
 
--   Amazing what lack of imagination can do to a perfectly fine webapp
+$$
+A(\mathbf{p})
+=
+\left(\begin{array}{ccc}
+a&b&c\\
+d&e&f\\
+g&h&i
+\end{array}\right)
+\cdot 
+\left(\begin{array}{c}
+p_{x}\\
+p_{y}\\
+p_{z}
+\end{array}\right)
++
+\left(\begin{array}{c}
+t_{x}\\
+t_{y}\\
+t_{z}
+\end{array}\right)
+$$
 
-## Any other questions?
+lautet in homogenen Koordinaten
 
--   Just type them into the text area and submit them with ⇧⏎
-    (Shift-Return)
--   If you want to be able to delete a question later, provide a user
-    token
+$$
+A(\mathbf{p})
+=
+\left(\begin{array}{cccc}
+a&b&c&\color{red}{t_{x}}\\
+d&e&f&\color{red}{t_{y}}\\
+g&h&i&\color{red}{t_{z}}\\
+0&0&0&\color{red}{1}
+\end{array}\right)
+\cdot 
+\left(\begin{array}{c}
+p_{x}\\
+p_{y}\\
+p_{z}\\
+\color{red}{p_{w}}
+\end{array}\right)
+$$
 
-# TODO (1) {.x-small}
+------------------------------------------------------------------------
 
-## Frontend
+# Translation {#w0jo}
 
-- [ ] Allow up-voting for questions
--   [ ] Ask server for token at startup
-    -   [ ] Pass Basic Auth headers to XHR call with
-        `XHR.withCredentials = true`
-    - Offer to delete token
-    - Do not allow custom tokens but still offer to store 
--   [ ] Slide the question pane in and out of view
-    -   [x] Add question mark to slide
-    -   [x] Add close button to pane
-    -   [x] Animate sliding
-    -   [ ] Disable the key binding for `?`
--   [x] Remove the background colors
--   [x] Find just the right level of transparency
--   [ ] Offer to generate the user token from HTML basic authentication
-    headers if available
--   [x] Offer to store user token in local storage
--   [ ] Provide an API to an authenticated lecturer
-    -   [ ] Generate overviews (like *all questions for a deck sorted by
-        slide*)
-    -   [ ] Allow to delete any question
+## Eigenschaften
 
-# TODO (2)
+$$
+\begin{eqnarray}
+T(\mathbf{0}) & = & I \qquad\mbox{(Einheitsmatrix)} \\
+T(\mathbf{t})\cdot T(\mathbf{s}) & = & T(\mathbf{t}+\mathbf{s}) \\
+T(\mathbf{t})\cdot T(\mathbf{s}) & = & T(\mathbf{s})\cdot T(\mathbf{t}) \\
+T^{-1}(\mathbf{t}) & = & T(-\mathbf{t})
+\end{eqnarray}
+$$
 
-## Backend
+Translationen haben keinen Effekt auf Richtungen!
 
--   [ ] Create token endpoint using Basic Auth headers
--   [ ] Improve the API
-    -   [x] Remove internal ids and tokens from the endpoint URLs
--   [ ] Battle test the server
-    -   [ ] Large videos
-    -   [ ] Hundreds of simultaneous connections
-    -   [ ] Malicious attacks
+$$
+T(\mathbf{t})
+=
+\left(\begin{array}{cccc}
+a&b&c&\color{red}{t_{x}}\\
+d&e&f&\color{red}{t_{y}}\\
+g&h&i&\color{red}{t_{z}}\\
+0&0&0&\color{red}{1}
+\end{array}\right)
+\cdot 
+\left(\begin{array}{c}
+p_{x}\\
+p_{y}\\
+p_{z}\\
+\color{red}{0}
+\end{array}\right)
+$$
 
-# Decker Engine Backstage Area {.inverse background="black"}
+------------------------------------------------------------------------
 
-## Test page
+# Rotation {#ut0l}
 
--   [test.html](https://tramberend.beuth-hochschule.de/decker/test.html)
+## Eigenschaften
 
-## API Doc
+$$
+\begin{eqnarray}
+R_{\mathbf{a}}(0) & = & I \qquad\mbox{(Einheitsmatrix)} \\
+R_{\mathbf{a}}^{-1}(\alpha) &=& R_{\mathbf{a}}(-\alpha) \\
+R_{\mathbf{a}}^{-1}(\alpha) &=& R^{T}_{\mathbf{a}}(\alpha) \\
+R_{\mathbf{a}}(\alpha)\cdot R_{\mathbf{a}}(\beta) &=& R_{\mathbf{a}}(\alpha + \beta) \\
+R_{\mathbf{a}}(\alpha)\cdot R_{\mathbf{a}}(\beta) &=& R_{\mathbf{a}}(\beta)\cdot R_{\mathbf{a}}(\alpha) \\
+&\mbox{aber}&\nonumber\\
+R_{\mathbf{a}}(\alpha)\cdot R_{\mathbf{b}}(\beta) &\neq& R_{\mathbf{b}}(\beta)\cdot R_{\mathbf{a}}(\alpha)
+\end{eqnarray}
+$$
 
--   [doc.md](https://tramberend.beuth-hochschule.de/decker/doc.md)
+Dabei ist $R_{\mathbf{a}}$ eine Rotation mit Rotationsachse $\mathbf{a}$
+
+---
+
+# Beispiel: Rotation um einen Punkt {#oqn3}
+
+1.  Verschiebe Rotationszentrum $\mathbf{p}$ nach $\mathbf{0}$
+2.  Rotiere um $\mathbf{0}$
+3.  Verschiebe zurück
+
+$$
+R_z(\mathbf{p},\alpha) = T(\mathbf{p})\cdot R_{z}(\alpha)\cdot T(-\mathbf{p})
+$$
+
+![](rotate-point.png)
 
