@@ -292,18 +292,7 @@ $body$
 $if(decker-engine-base-url)$
   <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
   <script type="module" crossorigin>
-    import {prepareEngine} from "./$decker-support-dir$/js/engine.js";
-    var timeout = 100; // ms
-    let contactEngine = (base) => {
-      import(base + "/decker-util.js")
-        .then(engine => {
-          prepareEngine(engine.buildApi(base));
-        })
-        .catch((e) => {
-          console.log("Can't contact decker engine:" + e);
-          setTimeout(() => contactEngine(base), timeout *= 1.5);
-        });
-    };
+    import {contactEngine} from "./$decker-support-dir$/js/engine.js";
     contactEngine("$decker-engine-base-url$");
   </script>
 $endif$

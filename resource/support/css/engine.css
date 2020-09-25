@@ -23,6 +23,10 @@ div.q-open {
   font-size: 1.5em;
 }
 
+div.q-badge[data-count="0"] {
+    visibility: hidden;
+}
+
 div.q-badge {
   position: absolute;
   top: 0;
@@ -70,6 +74,10 @@ div.q-panel {
   border-radius: 4px;
 }
 
+div.q-panel.authorized div.q-footer {
+    display: none;
+}
+
 div.q-header {
   flex: 0 1 content;
 
@@ -90,6 +98,10 @@ div.q-header input {
 div.q-header div.q-title {
   flex: 0 1;
   margin-right: 1em;
+}
+
+div.q-header div.q-counter[data-count="0"] {
+    visibility: hidden;
 }
 
 div.q-header div.q-counter {
@@ -235,14 +247,28 @@ div.q-footer {
   font-size: 16px;
 }
 
-div.q-footer input {
-  flex: 1 1;
+div.q-footer div.credentials {
+  display: flex;
+  flex: 1 0;
+}
+
+div.q-footer div.credentials.visible {
+  visibility: visible;
+}
+
+div.q-footer div.credentials:not(.visible) {
+  visibility: hidden;
+}
+
+div.q-footer div.credentials input {
+  flex: 1 0;
   font-family: "Roboto", Helvetica, sans-serif;
-  font-size: 14px;
-  padding-left: 0.3em;
-  min-width: 2em;
+  font-size: 0.8em;
   color: grey;
   margin: 0;
+  margin-left: 0.5em;
+  padding-left: 0.5em;
+  width: 40%;
   border: none;
   border-radius: 4px;
   outline: none;
@@ -254,6 +280,20 @@ div.q-footer div.q-login {
   color: gray;
   background-color: rgba(0, 0, 0, 0);
   padding: 2px 4px;
+}
+
+div.q-footer div.q-login:not(.admin) {
+  opacity: 0;
+  color: gray;
+}
+
+div.q-footer div.q-login.admin {
+  opacity: 1;
+  color: red;
+}
+
+div.q-footer div.q-login:hover {
+  opacity: 1;
 }
 
 div.content {

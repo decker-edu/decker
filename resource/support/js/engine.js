@@ -1,19 +1,29 @@
-export { prepareEngine };
+export { contactEngine };
+
+// TODO Make into a proper Reveal plugin
 
 const DEBUG = false;
 const DEBUG_AUTH = false;
 
-// TODO Make into a proper Reveal plugin
+var timeout = 100; // ms
+
+function contactEngine(base) {
+  import(base + "/decker-util.js")
+    .then(engine => {
+      prepareEngine(engine.buildApi(base));
+    })
+    .catch(e => {
+      console.log("Can't contact decker engine:" + e);
+      setTimeout(() => contactEngine(base), (timeout *= 1.5));
+    });
+}
+
 async function prepareEngine(api) {
   var serverToken;
   api
     .getToken()
     .then(token => {
-      if (DEBUG_AUTH) {
-        serverToken = { random: "DEBUG_AUTH", authorized: "henrik" };
-      } else {
-        serverToken = token;
-      }
+      serverToken = token;
       if (Reveal.isReady()) {
         buildInterface(api, serverToken);
       } else {
@@ -26,7 +36,7 @@ async function prepareEngine(api) {
       // Nothing goes without a token
       console.log("getToken() failed: " + e);
       console.log("retrying ...");
-      setTimeout(buildInterface, 1000);
+      setTimeout(() => prepareEngine(api), 1000);
     });
 }
 
@@ -51,9 +61,10 @@ async function buildInterface(api, initialToken) {
   let input = document.createElement("div");
   let text = document.createElement("textarea");
   let footer = document.createElement("div");
-  let deckid = document.createElement("input");
-  let slideid = document.createElement("input");
   let login = document.createElement("div");
+  let credentials = document.createElement("div");
+  let username = document.createElement("input");
+  let password = document.createElement("input");
 
   let trash = document.createElement("i");
   trash.classList.add("far", "fa-trash-alt");
@@ -78,6 +89,14 @@ async function buildInterface(api, initialToken) {
   let gear = document.createElement("i");
   gear.classList.add("fas", "fa-cog", "gears");
   gear.setAttribute("title", "Login as admin");
+
+  let signin = document.createElement("i");
+  signin.classList.add("fas", "fa-sign-in-alt", "gears");
+  signin.setAttribute("title", "Login as admin");
+
+  let signout = document.createElement("i");
+  signout.classList.add("fas", "fa-sign-out-alt", "gears");
+  signout.setAttribute("title", "Logout admin");
 
   let qmark = document.createElement("i");
   qmark.classList.add("far", "fa-question-circle");
@@ -119,20 +138,18 @@ async function buildInterface(api, initialToken) {
   );
 
   footer.classList.add("q-footer");
-  deckid.setAttribute("placeholder", "Deck ID");
-  deckid.setAttribute("disabled", true);
-  slideid.setAttribute("placeholder", "Slide ID");
-  slideid.setAttribute("disabled", true);
+  username.setAttribute("placeholder", "Login");
+  password.setAttribute("placeholder", "Password");
+  password.type = "password";
 
-  login.appendChild(gear);
+  login.appendChild(signin);
   login.classList.add("q-login");
 
   footer.appendChild(login);
-
-  if (DEBUG) {
-    footer.appendChild(deckid);
-    footer.appendChild(slideid);
-  }
+  footer.appendChild(credentials);
+  credentials.appendChild(username);
+  credentials.appendChild(password);
+  credentials.classList.add("credentials");
 
   panel.appendChild(header);
   panel.appendChild(container);
@@ -151,11 +168,10 @@ async function buildInterface(api, initialToken) {
   url.query = "";
   url.username = "";
   url.password = "";
-  deckid.value = url.href;
 
   let getContext = () => {
     return {
-      deck: deckid.value,
+      deck: url,
       slide: Reveal.getCurrentSlide().id,
       token: user.value
     };
@@ -163,8 +179,6 @@ async function buildInterface(api, initialToken) {
 
   let updateIds = () => {
     let context = getContext();
-    deckid.value = context.deck;
-    slideid.value = context.slide;
   };
 
   let initUser = () => {
@@ -177,6 +191,8 @@ async function buildInterface(api, initialToken) {
       user.type = "password";
       check.classList.add("hidden");
       user.classList.add("hidden");
+      panel.classList.add("authorized");
+      login.classList.add("admin");
     } else if (localToken) {
       user.value = localToken;
       user.setAttribute("disabled", true);
@@ -209,7 +225,10 @@ async function buildInterface(api, initialToken) {
 
   let renderList = list => {
     counter.textContent = list.length;
+    counter.setAttribute("data-count", list.length);
     badge.textContent = list.length;
+    badge.setAttribute("data-count", list.length);
+
     while (container.firstChild) {
       container.removeChild(container.lastChild);
     }
@@ -264,21 +283,47 @@ async function buildInterface(api, initialToken) {
   });
 
   login.addEventListener("click", _ => {
-    console.log("Login click");
-    api
-      .getLogin()
-      .then(token => {
-        if (DEBUG_AUTH) {
-          serverToken = { random: "DEBUG_AUTH", authorized: "henrik" };
-        } else {
-          serverToken = token;
-        }
-        console.log(serverToken);
-        updateComments();
-      })
-      .catch(e => {
-        console.log("getLogin() failed: " + e);
-      });
+    if (login.classList.contains("admin")) {
+      serverToken.admin = null;
+      username.value = "";
+      password.value = "";
+      login.classList.remove("admin");
+      credentials.classList.remove("visible");
+      updateComments();
+    } else {
+      if (credentials.classList.contains("visible")) {
+        credentials.classList.remove("visible");
+      } else {
+        credentials.classList.add("visible");
+      }
+    }
+  });
+
+  password.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+
+    if (login.classList.contains("admin")) {
+      serverToken.admin = null;
+      username.value = "";
+      password.value = "";
+      login.classList.remove("admin");
+      credentials.classList.remove("visible");
+      updateComments();
+    } else {
+      api
+        .getLogin({ login: username.value, password: password.value })
+        .then(token => {
+          serverToken.admin = token.admin;
+          login.classList.add("admin");
+          username.value = "";
+          password.value = "";
+          credentials.classList.remove("visible");
+          updateComments();
+        })
+        .catch(e => {
+          password.value = "";
+        });
+    }
   });
 
   if (!(serverToken && serverToken.authorized)) {
