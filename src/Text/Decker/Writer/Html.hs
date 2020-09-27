@@ -168,6 +168,7 @@ markdownToHtmlHandout meta getTemplate markdownFile out = do
   let options =
         pandocWriterOpts
           { writerTemplate = Just template
+          , writerSectionDivs = False
           , writerHighlightStyle = Just pygments
           , writerHTMLMathMethod =
               MathJax (lookupMetaOrElse "" "mathjax-url" meta)
