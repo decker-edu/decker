@@ -1,13 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
-module Text.Decker.Filter.Layout
-  ( layoutSlide
-  ) where
 
-import Text.Decker.Filter.Slide
-import Text.Decker.Internal.Common
-import Text.Pandoc hiding (Row)
-import Text.Pandoc.Definition ()
+module Text.Decker.Filter.Layout
+  ( layoutSlide,
+  )
+where
 
 import Control.Lens
 import Control.Monad.State
@@ -15,16 +12,21 @@ import Data.List
 import Data.List.Split
 import Data.Maybe
 import qualified Data.Text as Text
+import Text.Decker.Filter.Slide
+import Text.Decker.Internal.Common
+import Text.Pandoc hiding (Row)
+import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
 import Text.Read hiding (lift)
 
 -- | Slide layouts are rows of one ore more columns.
 data RowLayout = RowLayout
-  { name :: Text.Text
-  , rows :: [Row]
-  } deriving (Eq, Show)
+  { name :: Text.Text,
+    rows :: [Row]
+  }
+  deriving (Eq, Show)
 
--- | A row consists of one or more columns. 
+-- | A row consists of one or more columns.
 data Row
   = SingleColumn Text.Text
   | MultiColumn [Text.Text]
@@ -38,15 +40,15 @@ rowLayouts :: [RowLayout]
 rowLayouts =
   [ RowLayout
       "columns"
-      [ SingleColumn "top"
-      , MultiColumn ["left", "center", "right"]
-      , SingleColumn "bottom"
-      ]
-  , RowLayout
+      [ SingleColumn "top",
+        MultiColumn ["left", "center", "right"],
+        SingleColumn "bottom"
+      ],
+    RowLayout
       "grid"
-      [ MultiColumn ["top-left", "top", "top-right"]
-      , MultiColumn ["left", "center", "right"]
-      , MultiColumn ["bottom-left", "bottom", "bottom-right"]
+      [ MultiColumn ["top-left", "top", "top-right"],
+        MultiColumn ["left", "center", "right"],
+        MultiColumn ["bottom-left", "bottom", "bottom-right"]
       ]
   ]
 
@@ -70,28 +72,31 @@ renderRow areaMap (SingleColumn area) =
   lookup area areaMap >>= Just . Div ("", ["single-column-row"], [])
 renderRow areaMap (MultiColumn areas) =
   Just $
-  Div
-    ( ""
-    , [ "multi-column-row"
-      , "multi-column-row-" <> Text.pack (show (length areas))
-      ]
-    , []) $
-  mapMaybe renderArea (zip [1 ..] areas)
+    Div
+      ( "",
+        [ "multi-column-row",
+          "multi-column-row-" <> Text.pack (show (length areas))
+        ],
+        []
+      )
+      $ mapMaybe renderArea (zip [1 ..] areas)
   where
-    renderArea (i, area) = lookup area areaMap >>= Just . renderColumn . (i, )
+    renderArea (i, area) = lookup area areaMap >>= Just . renderColumn . (i,)
 
 renderColumn :: (Int, [Block]) -> Block
 renderColumn (i, blocks) =
   let grow =
-        fromMaybe (1 :: Int) $ lookup "grow" (blocks ^. attributes . attrs) >>=
-        (readMaybe . Text.unpack)
+        fromMaybe (1 :: Int) $
+          lookup "grow" (blocks ^. attributes . attrs)
+            >>= (readMaybe . Text.unpack)
    in Div
-        ( ""
-        , [ "grow-" <> Text.pack (show grow)
-          , "column"
-          , "column-" <> Text.pack (show i)
-          ]
-        , blocks ^. attributes . attrs)
+        ( "",
+          [ "grow-" <> Text.pack (show grow),
+            "column",
+            "column-" <> Text.pack (show i)
+          ],
+          blocks ^. attributes . attrs
+        )
         blocks
 
 renderLayout :: AreaMap -> RowLayout -> [Block]
@@ -99,9 +104,9 @@ renderLayout areaMap l = mapMaybe (renderRow areaMap) (rows l)
 
 slideAreas :: [Text.Text] -> [Block] -> AreaMap
 slideAreas names blocks =
-  mapMaybe (\area -> firstClass names (head area) >>= Just . (, area)) $
-  filter (not . null) $
-  split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
+  mapMaybe (\area -> firstClass names (head area) >>= Just . (,area)) $
+    filter (not . null) $
+      split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
 
 layoutSlide :: Slide -> Decker Slide
 layoutSlide slide@(Slide (Just header) body) = do
