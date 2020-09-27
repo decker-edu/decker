@@ -1,8 +1,23 @@
 @import url("../vendor/css/light.min.css");
 @import url("../vendor/fontawesome/css/all.css");
 
+@import "fonts";
 @import "columns";
 @import "new-media";
+@import "boxes";
+@import "quizzes";
+@import "code";
+
+ul,
+ol,
+p {
+  margin: 0;
+  padding: 0;
+}
+
+div.box {
+  margin-top: 1em;
+}
 
 header > h1 {
   font-size: 2em;

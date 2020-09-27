@@ -7,48 +7,150 @@
 @import url("../vendor/fontawesome/css/all.css");
 @import url("../fonts/roboto.css");
 @import url("../fonts/source-code-pro.css");
-.medium,
-.font-medium,
-.font-size-medium,
-.normal,
-.font-normal,
-.font-size-normal {
+/*********************************************
+ * TITLE SLIDE, now supporting Marc's and 
+ * Mario's versions
+ *********************************************/
+.white-on-blue {
+  color: #ffffff;
+  background-color: #003366;
+}
+
+.reveal .title-page .banner img {
+  margin: 0px 0px 10px 0px;
+  width: 100%;
+  object-fit: contain;
+}
+
+.reveal .title-page .title {
+  margin: 0px;
+  width: 100%;
+  display: block;
+  padding: 0px;
+  font-size: var(--font-size-x-large);
+  text-align: center;
+}
+
+.reveal .title-page .subtitle {
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+  font-weight: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .title-page .teaser-img {
+  margin: 20px auto;
+  height: 10%;
+  width: auto;
+  display: block;
+}
+
+.reveal .title-page .teaser-img img {
+  margin: 0px;
+  display: block;
+  margin: auto;
+  object-fit: contain;
+  max-height: 250px;
+  width: auto;
+}
+
+.reveal .title-page .date {
+  text-align: center;
+}
+
+.reveal .title-page .author {
+  margin: 0px;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .title-page .affiliation-logo img {
+  margin: 0px 0 0 0;
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reveal .title-page .affiliation {
+  margin: 0px 0 0 0;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .title-page .valign-block {
+  text-align: center;
+}
+
+.reveal .title-page .valign-block:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.reveal .title-page .valigned {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.reveal {
+  /*
+ *Required CSS for the new media filters. Adopted to Mario's semantic with
+ *further fine-tuning
+ */
+}
+
+.reveal .medium,
+.reveal .font-medium,
+.reveal .font-size-medium,
+.reveal .normal,
+.reveal .font-normal,
+.reveal .font-size-normal {
   font-size: var(--font-size-medium);
 }
 
-.xx-small,
-.font-xx-small,
-.font-size-xx-small {
+.reveal .xx-small,
+.reveal .font-xx-small,
+.reveal .font-size-xx-small {
   font-size: var(--font-size-xx-small);
 }
 
-.x-small,
-.font-x-small,
-.font-size-x-small {
+.reveal .x-small,
+.reveal .font-x-small,
+.reveal .font-size-x-small {
   font-size: var(--font-size-x-small);
 }
 
-.small,
-.font-small,
-.font-size-small {
+.reveal .small,
+.reveal .font-small,
+.reveal .font-size-small {
   font-size: var(--font-size-small);
 }
 
-.large,
-.font-large,
-.font-size-large {
+.reveal .large,
+.reveal .font-large,
+.reveal .font-size-large {
   font-size: var(--font-size-large);
 }
 
-.x-large,
-.font-x-large,
-.font-size-x-large {
+.reveal .x-large,
+.reveal .font-x-large,
+.reveal .font-size-x-large {
   font-size: var(--font-size-x-large);
 }
 
-.xx-large,
-.font-xx-large,
-.font-size-xx-large {
+.reveal .xx-large,
+.reveal .font-xx-large,
+.reveal .font-size-xx-large {
   font-size: var(--font-size-xx-large);
 }
 
@@ -59,7 +161,6 @@
 .reveal h5,
 .reveal h6 {
   color: rgba(0, 0, 0, 0.87);
-  font-family: "Roboto", sans-serif;
   letter-spacing: normal;
   text-transform: none;
   text-shadow: none;
@@ -646,108 +747,6 @@
   font-size: 1rem;
 }
 
-/*********************************************
- * TITLE SLIDE, now supporting Marc's and 
- * Mario's versions
- *********************************************/
-.white-on-blue {
-  color: #ffffff;
-  background-color: #003366;
-}
-
-.reveal .title-page .banner img {
-  margin: 0px 0px 10px 0px;
-  width: 100%;
-  object-fit: contain;
-}
-
-.reveal .title-page .title {
-  margin: 0px;
-  width: 100%;
-  display: block;
-  padding: 0px;
-  font-size: var(--font-size-x-large);
-  text-align: center;
-}
-
-.reveal .title-page .subtitle {
-  width: 100%;
-  margin: 0px;
-  padding: 0px;
-  font-weight: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
-}
-
-.reveal .date {
-  text-align: center;
-}
-
-.reveal .title-page .teaser-img {
-  margin: 20px auto;
-  height: 10%;
-  width: auto;
-  display: block;
-}
-
-.reveal .title-page .teaser-img img {
-  margin: 0px;
-  display: block;
-  margin: auto;
-  object-fit: contain;
-  max-height: 250px;
-  width: auto;
-}
-
-.reveal .title-page .author {
-  margin: 0px;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
-}
-
-.reveal .title-page .affiliation-logo img {
-  margin: 0px 0 0 0;
-  height: 70px;
-  width: auto;
-  object-fit: contain;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.reveal .title-page .affiliation {
-  margin: 0px 0 0 0;
-  font-weight: normal;
-  font-style: normal;
-  font-size: var(--font-size-normal);
-  text-align: center;
-}
-
-.reveal .title-page .valign-block {
-  text-align: center;
-}
-
-.reveal .title-page .valign-block:before {
-  content: '';
-  display: inline-block;
-  height: 100%;
-  vertical-align: middle;
-}
-
-.reveal .title-page .valigned {
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.reveal {
-  /*
- *Required CSS for the new media filters. Adopted to Mario's semantic with
- *further fine-tuning
- */
-}
-
 .reveal div.decker.image.error {
   font-size: 20pt;
   background-color: #fee;
@@ -1328,7 +1327,7 @@ dd {
 }
 
 .reveal button.fs-button:hover {
-  opacity: 1.0;
+  opacity: 1;
   color: var(--whiteboard-active-color);
   background-color: rgba(255, 255, 255, 0.8);
 }

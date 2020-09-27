@@ -3,258 +3,248 @@
 // match item, insert choices, multipl choice and freetext questions
 ////////////////////////////////////////////////
 
-// 
-.reveal {
-    .qic,
-    .qft,
-    .qmc,
-    .qmi,
-    [class*="quiz-"]{
-    position: relative;
+//
 
-    // General Button css and freetext question Input 
-    button,
-    input
-    {
-        border-radius: 0.5em;
-        font-size: inherit;
-        font-family: inherit;
-        outline: none;
-        clear: both;
-        border: 2px solid black;
-    }
-    input:placeholder-shown {
-        text-overflow: ellipsis;
-    }
-    .solutionButton{
-        font-size: large;
-    }
+.qic,
+.qft,
+.qmc,
+.qmi,
+[class*="quiz-"] {
+  position: relative;
 
-    // solutionList is the div that appears next to 
-    // a QFT input field 
-    // Previously this was used for QIC questions as well
-    .solutionList{
-        li{
-            padding: 5px;
-            margin-right: 1em;
-            display: none;
-        }
-        .correct:before {
-            content: "✓";
-            font-weight:  bold;
-        }
-        .wrong:before{
-            content: "✗";
-            font-weight: bold;
-        }
-        list-style-type: none;
-        display: none;
-        background-color: grey;
-        color:            #ffffff;
-        margin:           5px;
-        padding:          5px;
-        border-radius:    6px;
-        border:           none;
-        position:         fixed;
-        z-index:          99;
-        font-size:        1rem;
-    }
+  // General Button css and freetext question Input
+  button,
+  input {
+    border-radius: 0.5em;
+    font-size: inherit;
+    font-family: inherit;
+    outline: none;
+    clear: both;
+    border: 2px solid black;
+  }
+  input:placeholder-shown {
+    text-overflow: ellipsis;
+  }
+  .solutionButton {
+    font-size: large;
+  }
 
-}}
+  // solutionList is the div that appears next to
+  // a QFT input field
+  // Previously this was used for QIC questions as well
+  .solutionList {
+    li {
+      padding: 5px;
+      margin-right: 1em;
+      display: none;
+    }
+    .correct:before {
+      content: "✓";
+      font-weight: bold;
+    }
+    .wrong:before {
+      content: "✗";
+      font-weight: bold;
+    }
+    list-style-type: none;
+    display: none;
+    background-color: grey;
+    color: #ffffff;
+    margin: 5px;
+    padding: 5px;
+    border-radius: 6px;
+    border: none;
+    position: fixed;
+    z-index: 99;
+    font-size: 1rem;
+  }
+}
 
 // Designs specific to QIC questions
 // the choice for overflow scrolling stems from the
 // concern that users might want to use very long tooltips
 // possibly with images
-.reveal {
-    .qic,
-    [class*="quiz-i"]{
-        display:  block;
-        overflow-y: auto;
-        max-height: 75vh;
-        select{
-            border: 2px solid black;
-            font-size: inherit;
-            :disabled{
-                color: black;
-            }
-        }
-        // tooltip-div is the box that appears on hover 
-        // after having answered a QIC select element
-        .tooltip-div {
-            font-size: 0.6em;
-            background-color: #f4f4f7;
-            margin-top: 0.5em;
-        }
-}
+.qic,
+[class*="quiz-i"] {
+  display: block;
+  overflow-y: auto;
+  max-height: 75vh;
+  select {
+    border: 2px solid black;
+    font-size: inherit;
+    :disabled {
+      color: black;
+    }
+  }
+  // tooltip-div is the box that appears on hover
+  // after having answered a QIC select element
+  .tooltip-div {
+    font-size: 0.6em;
+    background-color: #f4f4f7;
+    margin-top: 0.5em;
+  }
 }
 
 // CSS specific to match item/QMI questions
-// 
-.reveal {
-    .quiz-mi,
-    .qmi,
-    .quiz-match-items{
-        display: block;
-        // If quiz overflows to the bottom (e.g. too many/too large items) create a scroll bar
-        overflow-y: auto;
-        max-height: 75vh;
-        text-align: center;
-        
-        // Adapt mathjax container size to size of bucket
-        mjx-container > svg {
-            object-fit: contain;
-            max-width: 100%;
-        }
+//
+.quiz-mi,
+.qmi,
+.quiz-match-items {
+  display: block;
+  // If quiz overflows to the bottom (e.g. too many/too large items) create a scroll bar
+  overflow-y: auto;
+  max-height: 75vh;
+  text-align: center;
 
-        .draggableChild {
-            pointer-events: none;
-        } 
+  // Adapt mathjax container size to size of bucket
+  mjx-container > svg {
+    object-fit: contain;
+    max-width: 100%;
+  }
 
-        .buckets,
-        .matchItems{
-            font-size: large;
-            display:         flex;
-            flex-flow:       row nowrap;
-            align-items:     stretch;
-            justify-content: space-around;
-            position:        relative;
-            width:           100%;
-            min-height:      100px;
-            padding:         15px;
-            border:          2px solid #dddddd;
-            border-radius:   5px;
-            box-sizing:      border-box;
-        }
+  .draggableChild {
+    pointer-events: none;
+  }
 
+  .buckets,
+  .matchItems {
+    font-size: large;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: stretch;
+    justify-content: space-around;
+    position: relative;
+    width: 100%;
+    min-height: 100px;
+    padding: 15px;
+    border: 2px solid #dddddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
 
-        .matchItems{
-            margin-bottom: 60px;
-        }
+  .matchItems {
+    margin-bottom: 60px;
+  }
 
-        .buckets:before,
-        .matchItems:before{
-            position:   absolute;
-            top:        -15px;
-            left:       10px;
-            font-size:  15px;
-            background: white;
-            padding:    5px;
-            color:      grey;
-        }
-        // Use "data-hint" attribute to get drag and drop hint 
-        // in the correct language (can be customized in yaml header)
-        .matchItems:before{
-            content: attr(data-hint);
-        }
-        .buckets:before{
-            content: attr(data-hint);
-        }
-        
-        // The little triangle showing the drag direction. 
-        // Just an optical gimmick
-        .matchItems:after{
-            position:      absolute;
-            content:       " ";
-            width:         0;
-            height:        0;
-            bottom:        -30px;
-            border-left:   30px solid transparent;
-            border-right:  30px solid transparent;
-            border-top:    30px solid #dddddd;
-        }
+  .buckets:before,
+  .matchItems:before {
+    position: absolute;
+    top: -15px;
+    left: 10px;
+    font-size: 15px;
+    background: white;
+    padding: 5px;
+    color: grey;
+  }
+  // Use "data-hint" attribute to get drag and drop hint
+  // in the correct language (can be customized in yaml header)
+  .matchItems:before {
+    content: attr(data-hint);
+  }
+  .buckets:before {
+    content: attr(data-hint);
+  }
 
-        .bucket{
-            display:    block;
-            flex:       1 0 0;
-            padding:    10px;
-            margin:     5px;
-            border:     1px solid black;
-            text-align: center
-        }
+  // The little triangle showing the drag direction.
+  // Just an optical gimmick
+  .matchItems:after {
+    position: absolute;
+    content: " ";
+    width: 0;
+    height: 0;
+    bottom: -30px;
+    border-left: 30px solid transparent;
+    border-right: 30px solid transparent;
+    border-top: 30px solid #dddddd;
+  }
 
-        .matchItem{
-            // Scale down image to prevent quiz from overflowing
-            img{
-                max-width: 50%;
-            }
-            display:        block;
-            vertical-align: middle;
-            overflow:       hidden;
-            border:         2px dotted black;
-            border-radius:  10px;
-            padding:        10px;
-            background:     white;
-            cursor:         grab;
-            object-fit: contain;
-            margin-left: 2px;
-            margin-right: 2px;
-        }
+  .bucket {
+    display: block;
+    flex: 1 0 0;
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid black;
+    text-align: center;
+  }
 
-        .bucket{
-            .matchItem{
-                display:    block;
-                border:     2px dotted black;
-                background: inherit
-            }
-        }
+  .matchItem {
+    // Scale down image to prevent quiz from overflowing
+    img {
+      max-width: 50%;
     }
+    display: block;
+    vertical-align: middle;
+    overflow: hidden;
+    border: 2px dotted black;
+    border-radius: 10px;
+    padding: 10px;
+    background: white;
+    cursor: grab;
+    object-fit: contain;
+    margin-left: 2px;
+    margin-right: 2px;
+  }
+
+  .bucket {
+    .matchItem {
+      display: block;
+      border: 2px dotted black;
+      background: inherit;
+    }
+  }
 }
 
 // CSS specific to multiple choice/QMC questions
 // Design mostly adapted 1:1 from Mario's clicker quiz
-.reveal {
-    .quiz-multiple-choice,
-    .quiz-mc,
-    .qmc{
-        ul {
-            display:         flex;
-            flex-direction:  row;
-            flex-wrap:       wrap;
-            justify-content: center;
-            align-items:     center;
-            align-content:   center;
-            text-align:      center;
-            counter-reset:   answer;
-        }
+.quiz-multiple-choice,
+.quiz-mc,
+.qmc {
+  ul {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    text-align: center;
+    counter-reset: answer;
+  }
 
-        li {
-            display:       inline-block;
-            position:      relative;
-            text-align:    left;
-            margin:        20px;
-            border:        2px solid #2a9ddf;
-            border-radius: 20px;
-            padding:       20px;
-            font-weight:   normal;
-            color:         black;
-        }
+  li {
+    display: inline-block;
+    position: relative;
+    text-align: left;
+    margin: 20px;
+    border: 2px solid #2a9ddf;
+    border-radius: 20px;
+    padding: 20px;
+    font-weight: normal;
+    color: black;
+  }
 
-        li:before {
-            content: counter(answer, upper-latin) ": ";
-            counter-increment: answer;
-            margin-right: 0.5em;
-            font-weight:  bold;
-        }
+  li:before {
+    content: counter(answer, upper-latin) ": ";
+    counter-increment: answer;
+    margin-right: 0.5em;
+    font-weight: bold;
+  }
 
-        // The tooltip showing on hover under the MC "button" after clicking
-        .tooltip  {
-            display:          block;
-            visibility:       hidden;
-            max-width:        95%;
-            top:              100%;
-            left:             5px;
-            background-color: grey;
-            color:            #ffffff;
-            text-align:       center;
-            margin:           5px;
-            padding:          5px;
-            border-radius:    6px;
-            border:           none;
-            position:         absolute;
-            z-index:          1;
-            font-size:        1rem;
-        }
-
-    }
+  // The tooltip showing on hover under the MC "button" after clicking
+  .tooltip {
+    display: block;
+    visibility: hidden;
+    max-width: 95%;
+    top: 100%;
+    left: 5px;
+    background-color: grey;
+    color: #ffffff;
+    text-align: center;
+    margin: 5px;
+    padding: 5px;
+    border-radius: 6px;
+    border: none;
+    position: absolute;
+    z-index: 1;
+    font-size: 1rem;
+  }
 }

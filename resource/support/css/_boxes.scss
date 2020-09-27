@@ -2,66 +2,63 @@ $border-marker-default-color: red;
 
 ////////////////////////////////////////////////
 // The next one implements the new layout syntax
-// for elements not below a h2 element "block" 
+// for elements not below a h2 element "block"
 // with potential margin marker. Note that the
 // margin marker also means that we can never
-// fill-up the whole canvas with the reveal 
+// fill-up the whole canvas with the
 // margin configuration unless we also reduce
-// margin marker width an padding to 0 
+// margin marker width an padding to 0
 ////////////////////////////////////////////////
 
-// This is the outside of our div box.  
+// This is the outside of our div box.
 // This one artificially adds the spacing as margin and padding
-// which later is added by the enclosing div box which uses 
-// border width and padding-left as spacer 
-// NOTE: This should urgently be removed in favor of a cleaner 
+// which later is added by the enclosing div box which uses
+// border width and padding-left as spacer
+// NOTE: This should urgently be removed in favor of a cleaner
 // box model which also add an arbitrary box for a single no
 // column slide.
-.reveal p,
-.reveal ul,
-.reveal ol,
-.reveal dl,
-.reveal blockquote,
-.reveal table,
-.reveal h1,
-.reveal h2,
-.reveal h3
-{
-    margin-left: var(--border-decoration-width);
-    padding-left: var(--border-decoration-padding);
-    margin-right: var(--border-decoration-width);
-    padding-right:var(--border-decoration-padding);
+p,
+ul,
+ol,
+dl,
+blockquote,
+table,
+h1,
+h2,
+h3 {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
 }
 
-// Special handling again of plain page without enclosing 
+// Special handling again of plain page without enclosing
 // div element for border decoration. This actually is a
 // crude work-around to mimic the missing div we want
 // around all elements to use for border deco
-.reveal section
-{
-   >figure:first-of-type {
-      margin-left: var(--border-decoration-width);
-      padding-left: var(--border-decoration-padding);
-   }
-   >figure:last-of-type {
-      margin-right: var(--border-decoration-width);
-      padding-right: var(--border-decoration-padding);
-   }
+section {
+  > figure:first-of-type {
+    margin-left: var(--border-decoration-width);
+    padding-left: var(--border-decoration-padding);
+  }
+  > figure:last-of-type {
+    margin-right: var(--border-decoration-width);
+    padding-right: var(--border-decoration-padding);
+  }
 }
 
-
 //////////////////////////////////////////////
-// Now the horizontal position if lists. Beware, they work differently since 
-// left borders are the text with list-style-position: outside. However I did 
+// Now the horizontal position if lists. Beware, they work differently since
+// left borders are the text with list-style-position: outside. However I did
 // experiment a lot wit a version using outside since it was the only mode for
 // which Safari and Chrome used the same spacing between bullet and text. Chrome
-// adds a nasty gap iin inside mode which can not easily be corrected. 
+// adds a nasty gap iin inside mode which can not easily be corrected.
 //
 // NOTE: See below, went back to old style
 //
 //////////////////////////////////////////////
-//.reveal ul,
-//.reveal ol
+//ul,
+//ol
 // {
 //   list-style-position: inside; // outside means we have to increase margin
 //                                 // if we don't and go inside then the spacing
@@ -86,7 +83,7 @@ $border-marker-default-color: red;
 //}
 
 // This one unifies the nasty spacing problem in chrome, e.g., it adds
-// an unwanted additional gap between the bullet and the text 
+// an unwanted additional gap between the bullet and the text
 // However, this method does not vertically align multi-line text properly
 // at the left margin. Seems one of the HTML/CSS things where there is no
 // silver bullet.
@@ -109,7 +106,7 @@ $border-marker-default-color: red;
 /////////////////////////////////////////
 // Now just and only the list styles
 /////////////////////////////////////////
-//.reveal ol {
+//ol {
 //    list-style-type: decimal;
 //    ol {
 //        list-style-type: lower-alpha;
@@ -119,172 +116,174 @@ $border-marker-default-color: red;
 //    }
 //}
 
-
 // From Marios version, needs more space but what the heck, looks nice enough
 // Fiddled to long with the desired horrrizontal alignment above, could
 // finally achieve it but to a price, lines too long looked nasty hence
 // back to the good old one...
-.reveal ol,
-.reveal dl,
-.reveal ul {
+ol,
+dl,
+ul {
   display: inline-block;
   text-align: left;
   margin-bottom: 0;
 }
 
-.reveal ol li,
-.reveal dl li,
-.reveal ul li {
-    margin-bottom: 0;
-    margin-left: 40px;
+ol li,
+dl li,
+ul li {
+  margin-bottom: 0;
+  margin-left: 40px;
 }
 
-.reveal ol {
-  list-style-type: decimal; }
-
-.reveal ul {
-  list-style-type: disc; }
-
-.reveal ul ul,
-.reveal ol ul {
-    list-style-type: circle;
+ol {
+  list-style-type: decimal;
 }
 
-.reveal ol ol {
-    list-style-type: lower-roman;
+ul {
+  list-style-type: disc;
 }
 
-.reveal ul ul,
-.reveal ul ol,
-.reveal ol ol,
-.reveal ol ul {
-    display:     block;
-    margin-top:  0.3em;
+ul ul,
+ol ul {
+  list-style-type: circle;
 }
 
+ol ol {
+  list-style-type: lower-roman;
+}
 
+ul ul,
+ul ol,
+ol ol,
+ol ul {
+  display: block;
+  margin-top: 0.3em;
+}
 
 /////////////////////////////////////////
 // The boxes and their border decoration
 /////////////////////////////////////////
-.reveal div.box.columns {
-    // First set the box to extend full width but set own margin and padding
-    // to reflect the "decoration margin"
-    margin-left: var(--border-decoration-width); 
-    padding-left: var(--border-decoration-padding);
-    margin-right: calc(var(--border-decoration-padding) + var(--border-decoration-width));
-    p,
-    ul,
-    ol,
-    dl,
-    figure,
-    blockquote,
-    table,
-    h1,
-    h2,
-    h3 {
-        margin-left: 0; // var(--border-decoration-width);
-        padding-left: 0; // var(--border-decoration-padding);
-        margin-right: 0; // var(--border-decoration-width);
-        padding-right: 0; //var(--border-decoration-padding);
+div.box.columns {
+  // First set the box to extend full width but set own margin and padding
+  // to reflect the "decoration margin"
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: calc(
+    var(--border-decoration-padding) + var(--border-decoration-width)
+  );
+  p,
+  ul,
+  ol,
+  dl,
+  figure,
+  blockquote,
+  table,
+  h1,
+  h2,
+  h3 {
+    margin-left: 0; // var(--border-decoration-width);
+    padding-left: 0; // var(--border-decoration-padding);
+    margin-right: 0; // var(--border-decoration-width);
+    padding-right: 0; //var(--border-decoration-padding);
+  }
+
+  h2 {
+    margin-top: 0;
+    &:last-child,
+    &:empty {
+      margin-bottom: 0;
     }
-   
-    
-    h2 {
-        
-        margin-top: 0;
-        &:last-child,
-        &:empty {
-            margin-bottom: 0; 
-        }
-    }
-    /* Now comes the part for the decorated boxes */
-    &.question,
-    &.answer,
-    &.observation,
-    &.example,
-    &.def,
-    &.definition,
-    &.note,
-    &.ale,
-    &.alert,
-    &.equ,
-    &.equation,
-    &.theorem {
-        /* First define the enclosing box and its properties.
+  }
+  /* Now comes the part for the decorated boxes */
+  &.question,
+  &.answer,
+  &.observation,
+  &.example,
+  &.def,
+  &.definition,
+  &.note,
+  &.ale,
+  &.alert,
+  &.equ,
+  &.equation,
+  &.theorem {
+    /* First define the enclosing box and its properties.
         This is the current semantic: The box uses border and padding for
         the "margin" left and right where the left "margin" is used for decoraton
         and spacing to the encloded elements which then span the whole width without
         any margin or padding. */
-        margin-left: 0; // swap margin for real border
-        border-left: var(--border-decoration-width) var(--border-decoration-style) $border-marker-default-color;
-        padding-left: var(--border-decoration-padding);
-        margin-right: calc(var(--border-decoration-padding) + var(--border-decoration-width));   
-    }
+    margin-left: 0; // swap margin for real border
+    border-left: var(--border-decoration-width) var(--border-decoration-style)
+      $border-marker-default-color;
+    padding-left: var(--border-decoration-padding);
+    margin-right: calc(
+      var(--border-decoration-padding) + var(--border-decoration-width)
+    );
+  }
 
-    /* Now comes the specification of the indivdual
+  /* Now comes the specification of the indivdual
     color used for the border as decoration */
-    &.question {
-        border-color: rgb(255, 1, 1);
-    }
+  &.question {
+    border-color: rgb(255, 1, 1);
+  }
 
-    &.answer {
-        border-color: rgb(77, 77, 77);
-    }
+  &.answer {
+    border-color: rgb(77, 77, 77);
+  }
 
-    &.observation {
-        border-color: rgb(0, 0, 255);
-    }
+  &.observation {
+    border-color: rgb(0, 0, 255);
+  }
 
-    &.example {
-        border-color: rgb(0, 0, 255);
-    }
+  &.example {
+    border-color: rgb(0, 0, 255);
+  }
 
-    &.def,
-    &.definition {
-        border-color: rgb(77, 77, 77);
-    }
+  &.def,
+  &.definition {
+    border-color: rgb(77, 77, 77);
+  }
 
-    &.note {
-        border-color: rgb(255, 147, 0);
-    }
+  &.note {
+    border-color: rgb(255, 147, 0);
+  }
 
-    &.ale,
-    &.alert {
-        border-color: rgb(250, 1, 1);
-    }
+  &.ale,
+  &.alert {
+    border-color: rgb(250, 1, 1);
+  }
 
-    &.equ,
-    &.equation {
-        border-color: rgb(77, 77, 77);
-    }
+  &.equ,
+  &.equation {
+    border-color: rgb(77, 77, 77);
+  }
 
-    &.theorem {
-        border-color: rgb(77, 77, 77);
-    }
+  &.theorem {
+    border-color: rgb(77, 77, 77);
+  }
 }
 
 // Special case: source code inside highlighted box
-.reveal div.box {
-    &.question,
-    &.answer,
-    &.observation,
-    &.example,
-    &.def,
-    &.definition,
-    &.note,
-    &.ale,
-    &.alert,
-    &.equ,
-    &.equation,
-    &.theorem {
-        div.sourceCode {
-            margin: 0;
-            background: rgba(255, 255, 255, 0.4);
-            padding: space(0 0.2);
-            pre {
-                margin: 0;
-            }
-        }
+div.box {
+  &.question,
+  &.answer,
+  &.observation,
+  &.example,
+  &.def,
+  &.definition,
+  &.note,
+  &.ale,
+  &.alert,
+  &.equ,
+  &.equation,
+  &.theorem {
+    div.sourceCode {
+      margin: 0;
+      background: rgba(255, 255, 255, 0.4);
+      padding: space(0 0.2);
+      pre {
+        margin: 0;
+      }
     }
+  }
 }

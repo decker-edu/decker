@@ -234,8 +234,6 @@ Some more Text
 
 ![](include/06-metal.png)
 
-## 
-
 Some more Text
 
 # Slide Masters {.grid}

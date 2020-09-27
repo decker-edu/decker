@@ -1,5 +1,119 @@
+@charset "UTF-8";
 @import url("../vendor/css/light.min.css");
 @import url("../vendor/fontawesome/css/all.css");
+.medium,
+.font-medium,
+.font-size-medium,
+.normal,
+.font-normal,
+.font-size-normal {
+  font-size: var(--font-size-medium);
+}
+
+.xx-small,
+.font-xx-small,
+.font-size-xx-small {
+  font-size: var(--font-size-xx-small);
+}
+
+.x-small,
+.font-x-small,
+.font-size-x-small {
+  font-size: var(--font-size-x-small);
+}
+
+.small,
+.font-small,
+.font-size-small {
+  font-size: var(--font-size-small);
+}
+
+.large,
+.font-large,
+.font-size-large {
+  font-size: var(--font-size-large);
+}
+
+.x-large,
+.font-x-large,
+.font-size-x-large {
+  font-size: var(--font-size-x-large);
+}
+
+.xx-large,
+.font-xx-large,
+.font-size-xx-large {
+  font-size: var(--font-size-xx-large);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: rgba(0, 0, 0, 0.87);
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  word-wrap: break-word;
+  font-weight: normal;
+  text-shadow: none;
+}
+
+h1 {
+  font-size: var(--font-size-xx-large);
+}
+
+h2 {
+  font-weight: 500;
+  font-size: var(--font-size-large);
+}
+
+h3 {
+  font-size: var(--font-size-medium);
+}
+
+h4 {
+  font-size: var(--font-size-medium);
+}
+
+section.white, section.inverse, section.has-dark-background {
+  color: #fff;
+}
+
+section.white h1,
+section.white h2,
+section.white h3,
+section.white h4,
+section.white h5,
+section.white h6, section.inverse h1,
+section.inverse h2,
+section.inverse h3,
+section.inverse h4,
+section.inverse h5,
+section.inverse h6, section.has-dark-background h1,
+section.has-dark-background h2,
+section.has-dark-background h3,
+section.has-dark-background h4,
+section.has-dark-background h5,
+section.has-dark-background h6 {
+  color: #eee;
+}
+
+p {
+  line-height: 1.3;
+}
+
+strong,
+b {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
 div.column {
   display: inline-block;
   vertical-align: top;
@@ -188,6 +302,542 @@ div.image-row div {
 
 div.image-row img {
   display: block;
+}
+
+p,
+ul,
+ol,
+dl,
+blockquote,
+table,
+h1,
+h2,
+h3 {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
+}
+
+section > figure:first-of-type {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+}
+
+section > figure:last-of-type {
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
+}
+
+ol,
+dl,
+ul {
+  display: inline-block;
+  text-align: left;
+  margin-bottom: 0;
+}
+
+ol li,
+dl li,
+ul li {
+  margin-bottom: 0;
+  margin-left: 40px;
+}
+
+ol {
+  list-style-type: decimal;
+}
+
+ul {
+  list-style-type: disc;
+}
+
+ul ul,
+ol ul {
+  list-style-type: circle;
+}
+
+ol ol {
+  list-style-type: lower-roman;
+}
+
+ul ul,
+ul ol,
+ol ol,
+ol ul {
+  display: block;
+  margin-top: 0.3em;
+}
+
+div.box.columns {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
+  /* Now comes the part for the decorated boxes */
+  /* Now comes the specification of the indivdual
+    color used for the border as decoration */
+}
+
+div.box.columns p,
+div.box.columns ul,
+div.box.columns ol,
+div.box.columns dl,
+div.box.columns figure,
+div.box.columns blockquote,
+div.box.columns table,
+div.box.columns h1,
+div.box.columns h2,
+div.box.columns h3 {
+  margin-left: 0;
+  padding-left: 0;
+  margin-right: 0;
+  padding-right: 0;
+}
+
+div.box.columns h2 {
+  margin-top: 0;
+}
+
+div.box.columns h2:last-child, div.box.columns h2:empty {
+  margin-bottom: 0;
+}
+
+div.box.columns.question, div.box.columns.answer, div.box.columns.observation, div.box.columns.example, div.box.columns.def, div.box.columns.definition, div.box.columns.note, div.box.columns.ale, div.box.columns.alert, div.box.columns.equ, div.box.columns.equation, div.box.columns.theorem {
+  /* First define the enclosing box and its properties.
+        This is the current semantic: The box uses border and padding for
+        the "margin" left and right where the left "margin" is used for decoraton
+        and spacing to the encloded elements which then span the whole width without
+        any margin or padding. */
+  margin-left: 0;
+  border-left: var(--border-decoration-width) var(--border-decoration-style) red;
+  padding-left: var(--border-decoration-padding);
+  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
+}
+
+div.box.columns.question {
+  border-color: #ff0101;
+}
+
+div.box.columns.answer {
+  border-color: #4d4d4d;
+}
+
+div.box.columns.observation {
+  border-color: blue;
+}
+
+div.box.columns.example {
+  border-color: blue;
+}
+
+div.box.columns.def, div.box.columns.definition {
+  border-color: #4d4d4d;
+}
+
+div.box.columns.note {
+  border-color: #ff9300;
+}
+
+div.box.columns.ale, div.box.columns.alert {
+  border-color: #fa0101;
+}
+
+div.box.columns.equ, div.box.columns.equation {
+  border-color: #4d4d4d;
+}
+
+div.box.columns.theorem {
+  border-color: #4d4d4d;
+}
+
+div.box.question div.sourceCode, div.box.answer div.sourceCode, div.box.observation div.sourceCode, div.box.example div.sourceCode, div.box.def div.sourceCode, div.box.definition div.sourceCode, div.box.note div.sourceCode, div.box.ale div.sourceCode, div.box.alert div.sourceCode, div.box.equ div.sourceCode, div.box.equation div.sourceCode, div.box.theorem div.sourceCode {
+  margin: 0;
+  background: rgba(255, 255, 255, 0.4);
+  padding: space(0 0.2);
+}
+
+div.box.question div.sourceCode pre, div.box.answer div.sourceCode pre, div.box.observation div.sourceCode pre, div.box.example div.sourceCode pre, div.box.def div.sourceCode pre, div.box.definition div.sourceCode pre, div.box.note div.sourceCode pre, div.box.ale div.sourceCode pre, div.box.alert div.sourceCode pre, div.box.equ div.sourceCode pre, div.box.equation div.sourceCode pre, div.box.theorem div.sourceCode pre {
+  margin: 0;
+}
+
+.qic,
+.qft,
+.qmc,
+.qmi,
+[class*="quiz-"] {
+  position: relative;
+}
+
+.qic button,
+.qic input,
+.qft button,
+.qft input,
+.qmc button,
+.qmc input,
+.qmi button,
+.qmi input,
+[class*="quiz-"] button,
+[class*="quiz-"] input {
+  border-radius: 0.5em;
+  font-size: inherit;
+  font-family: inherit;
+  outline: none;
+  clear: both;
+  border: 2px solid black;
+}
+
+.qic input:placeholder-shown,
+.qft input:placeholder-shown,
+.qmc input:placeholder-shown,
+.qmi input:placeholder-shown,
+[class*="quiz-"] input:placeholder-shown {
+  text-overflow: ellipsis;
+}
+
+.qic .solutionButton,
+.qft .solutionButton,
+.qmc .solutionButton,
+.qmi .solutionButton,
+[class*="quiz-"] .solutionButton {
+  font-size: large;
+}
+
+.qic .solutionList,
+.qft .solutionList,
+.qmc .solutionList,
+.qmi .solutionList,
+[class*="quiz-"] .solutionList {
+  list-style-type: none;
+  display: none;
+  background-color: grey;
+  color: #ffffff;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: fixed;
+  z-index: 99;
+  font-size: 1rem;
+}
+
+.qic .solutionList li,
+.qft .solutionList li,
+.qmc .solutionList li,
+.qmi .solutionList li,
+[class*="quiz-"] .solutionList li {
+  padding: 5px;
+  margin-right: 1em;
+  display: none;
+}
+
+.qic .solutionList .correct:before,
+.qft .solutionList .correct:before,
+.qmc .solutionList .correct:before,
+.qmi .solutionList .correct:before,
+[class*="quiz-"] .solutionList .correct:before {
+  content: "✓";
+  font-weight: bold;
+}
+
+.qic .solutionList .wrong:before,
+.qft .solutionList .wrong:before,
+.qmc .solutionList .wrong:before,
+.qmi .solutionList .wrong:before,
+[class*="quiz-"] .solutionList .wrong:before {
+  content: "✗";
+  font-weight: bold;
+}
+
+.qic,
+[class*="quiz-i"] {
+  display: block;
+  overflow-y: auto;
+  max-height: 75vh;
+}
+
+.qic select,
+[class*="quiz-i"] select {
+  border: 2px solid black;
+  font-size: inherit;
+}
+
+.qic select :disabled,
+[class*="quiz-i"] select :disabled {
+  color: black;
+}
+
+.qic .tooltip-div,
+[class*="quiz-i"] .tooltip-div {
+  font-size: 0.6em;
+  background-color: #f4f4f7;
+  margin-top: 0.5em;
+}
+
+.quiz-mi,
+.qmi,
+.quiz-match-items {
+  display: block;
+  overflow-y: auto;
+  max-height: 75vh;
+  text-align: center;
+}
+
+.quiz-mi mjx-container > svg,
+.qmi mjx-container > svg,
+.quiz-match-items mjx-container > svg {
+  object-fit: contain;
+  max-width: 100%;
+}
+
+.quiz-mi .draggableChild,
+.qmi .draggableChild,
+.quiz-match-items .draggableChild {
+  pointer-events: none;
+}
+
+.quiz-mi .buckets,
+.quiz-mi .matchItems,
+.qmi .buckets,
+.qmi .matchItems,
+.quiz-match-items .buckets,
+.quiz-match-items .matchItems {
+  font-size: large;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: stretch;
+  justify-content: space-around;
+  position: relative;
+  width: 100%;
+  min-height: 100px;
+  padding: 15px;
+  border: 2px solid #dddddd;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.quiz-mi .matchItems,
+.qmi .matchItems,
+.quiz-match-items .matchItems {
+  margin-bottom: 60px;
+}
+
+.quiz-mi .buckets:before,
+.quiz-mi .matchItems:before,
+.qmi .buckets:before,
+.qmi .matchItems:before,
+.quiz-match-items .buckets:before,
+.quiz-match-items .matchItems:before {
+  position: absolute;
+  top: -15px;
+  left: 10px;
+  font-size: 15px;
+  background: white;
+  padding: 5px;
+  color: grey;
+}
+
+.quiz-mi .matchItems:before,
+.qmi .matchItems:before,
+.quiz-match-items .matchItems:before {
+  content: attr(data-hint);
+}
+
+.quiz-mi .buckets:before,
+.qmi .buckets:before,
+.quiz-match-items .buckets:before {
+  content: attr(data-hint);
+}
+
+.quiz-mi .matchItems:after,
+.qmi .matchItems:after,
+.quiz-match-items .matchItems:after {
+  position: absolute;
+  content: " ";
+  width: 0;
+  height: 0;
+  bottom: -30px;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-top: 30px solid #dddddd;
+}
+
+.quiz-mi .bucket,
+.qmi .bucket,
+.quiz-match-items .bucket {
+  display: block;
+  flex: 1 0 0;
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid black;
+  text-align: center;
+}
+
+.quiz-mi .matchItem,
+.qmi .matchItem,
+.quiz-match-items .matchItem {
+  display: block;
+  vertical-align: middle;
+  overflow: hidden;
+  border: 2px dotted black;
+  border-radius: 10px;
+  padding: 10px;
+  background: white;
+  cursor: grab;
+  object-fit: contain;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.quiz-mi .matchItem img,
+.qmi .matchItem img,
+.quiz-match-items .matchItem img {
+  max-width: 50%;
+}
+
+.quiz-mi .bucket .matchItem,
+.qmi .bucket .matchItem,
+.quiz-match-items .bucket .matchItem {
+  display: block;
+  border: 2px dotted black;
+  background: inherit;
+}
+
+.quiz-multiple-choice ul,
+.quiz-mc ul,
+.qmc ul {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  text-align: center;
+  counter-reset: answer;
+}
+
+.quiz-multiple-choice li,
+.quiz-mc li,
+.qmc li {
+  display: inline-block;
+  position: relative;
+  text-align: left;
+  margin: 20px;
+  border: 2px solid #2a9ddf;
+  border-radius: 20px;
+  padding: 20px;
+  font-weight: normal;
+  color: black;
+}
+
+.quiz-multiple-choice li:before,
+.quiz-mc li:before,
+.qmc li:before {
+  content: counter(answer, upper-latin) ": ";
+  counter-increment: answer;
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
+.quiz-multiple-choice .tooltip,
+.quiz-mc .tooltip,
+.qmc .tooltip {
+  display: block;
+  visibility: hidden;
+  max-width: 95%;
+  top: 100%;
+  left: 5px;
+  background-color: grey;
+  color: #ffffff;
+  text-align: center;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: absolute;
+  z-index: 1;
+  font-size: 1rem;
+}
+
+code {
+  font-family: "Source Code Pro", monospace;
+  font-size: 106%;
+  font-weight: 500;
+  text-transform: none;
+}
+
+pre {
+  display: block;
+  position: relative;
+  width: 90%;
+  margin: 20px auto;
+  text-align: left;
+  font-size: 0.55em;
+  font-family: monospace;
+  line-height: 1.2em;
+  word-wrap: break-word;
+}
+
+pre code {
+  display: block;
+  padding: 5px;
+  overflow: auto;
+  max-height: 400px;
+  word-wrap: normal;
+}
+
+div.sourceCode {
+  margin-bottom: 0.5em;
+  padding: space(0.4 0.7);
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 0.25em;
+  overflow: auto;
+}
+
+div.sourceCode pre {
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  line-height: 1.5em;
+  word-wrap: break-word;
+  box-shadow: none;
+  font-size: 90%;
+  font-weight: 500;
+  margin: 0;
+}
+
+div.sourceCode pre div.language-label {
+  font-family: "Roboto", sans-serif;
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  background-color: #eee;
+  padding: 0em 0.4em;
+  border-radius: 0.2em;
+}
+
+div.sourceCode pre code {
+  display: block;
+  overflow: auto;
+  max-height: 500px;
+  word-wrap: normal;
+  border: none;
+  font-family: "Source Code Pro", monospace;
+  white-space: pre;
+  position: relative;
+  color: black;
+}
+
+ul,
+ol,
+p {
+  margin: 0;
+  padding: 0;
+}
+
+div.box {
+  margin-top: 1em;
 }
 
 header > h1 {
