@@ -1,6 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Attrib where
 
@@ -8,20 +8,20 @@ import Data.Bifunctor
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
-
 import Relude
-
+import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Meta
 import Text.Pandoc
+import qualified Text.URI as URI
 
 -- | An associative list representing element attributes.
 type AttrMap = [(Text, Text)]
 
--- | The first set contains the transformed attributes that will be extracted
--- and added to the HTML elements. The second set contains the source
--- attributes as parsed from the Markdown attribute markup. Many functions
--- inside the Attrib monad manipulate one or both attribute sets. 
+-- |  The first set contains the transformed attributes that will be extracted
+--  and added to the HTML elements. The second set contains the source
+--  attributes as parsed from the Markdown attribute markup. Many functions
+--  inside the Attrib monad manipulate one or both attribute sets.
 type AttribState = (Attr, Attr)
 
 -- | The Attrib monad.
@@ -91,9 +91,9 @@ alterKey f key kvs =
     Just value -> (key, value) : rmKey key kvs
     Nothing -> rmKey key kvs
 
--- | Adds a CSS style value pair to the attribute map. If a style attribute
--- does not yet exist, it is created. The value of an existing style attribute 
--- is ammended on the left. 
+-- |  Adds a CSS style value pair to the attribute map. If a style attribute
+--  does not yet exist, it is created. The value of an existing style attribute
+--  is ammended on the left.
 addStyle :: (Text, Text) -> AttrMap -> AttrMap
 addStyle (k, v) = alterKey addOne "style"
   where
@@ -131,14 +131,14 @@ pushAttribute (key, value) = modify transform
       (attr', (id, cs, alterKey replace key kvs))
     replace _ = Just value
 
--- | Removes the attribute key from the source attribute map and adds it as a
--- CSS style value to the target style attribute. Mainly used to translate
--- witdth an height attributes into CSS style setting.
+-- |  Removes the attribute key from the source attribute map and adds it as a
+--  CSS style value to the target style attribute. Mainly used to translate
+--  witdth an height attributes into CSS style setting.
 takeStyle :: Text -> Attrib ()
 takeStyle = takeStyleIf (const True)
 
--- | Transfers an attribute to the targets if it exists and the value satisfies
--- the predicate.
+-- |  Transfers an attribute to the targets if it exists and the value satisfies
+--  the predicate.
 takeStyleIf :: (Text -> Bool) -> Text -> Attrib ()
 takeStyleIf p key = modify transform
   where
@@ -228,7 +228,7 @@ takeClasses f classes = modify transform
   where
     transform state@((id', cs', kvs'), (id, cs, kvs)) =
       let (vcs, rest) = List.partition (`elem` classes) cs
-       in ((id', cs', map ((, "1") . f) vcs <> kvs'), (id, rest, kvs))
+       in ((id', cs', map ((,"1") . f) vcs <> kvs'), (id, rest, kvs))
 
 cutAttrib :: Text -> Attrib (Maybe Text)
 cutAttrib key = do
@@ -262,6 +262,12 @@ passAttribs f keys = modify transform
       let (vkvs, rest) = List.partition ((`elem` keys) . fst) kvs
        in ((id', cs', map (first f) vkvs <> kvs'), (id, cs, rest))
 
+xformRersourceAttribs :: [Text] -> Attrib ()
+xformRersourceAttribs keys = do
+  (res, (id, cs, kvs)) <- get
+  local <- lift $ adjustAttribPaths keys kvs
+  put (res, (id, cs, local))
+
 takeAutoplay :: Attrib ()
 takeAutoplay = do
   (id, cs, kvs) <- snd <$> get
@@ -277,3 +283,14 @@ takeUsual = do
   dropCore
   passI18n
   takeData
+
+-- Adjusts the values of all path values that are listed in keys.
+adjustAttribPaths :: [Text] -> [(Text, Text)] -> Filter [(Text, Text)]
+adjustAttribPaths keys kvs = do
+  let (paths, other) = List.partition ((`elem` keys) . fst) kvs
+  local <- mapM adjustAttrib paths
+  return $ local <> other
+  where
+    adjustAttrib :: (Text, Text) -> Filter (Text, Text)
+    adjustAttrib (k, v) = do
+      (k,) <$> (URI.render <$> transformUrl v "")

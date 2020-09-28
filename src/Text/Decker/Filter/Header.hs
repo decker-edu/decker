@@ -1,15 +1,12 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Header where
 
-import qualified Data.List as List
 import Data.Maybe
 import Data.Monoid
-
 import Relude
-
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
@@ -21,9 +18,9 @@ import qualified Text.URI as URI
 transformHeader1 :: Block -> Filter Block
 transformHeader1 h1@(Header 1 headAttr inlines)
   | containsImage inlines =
-    (buildHeader $ lastImage inlines) -- >>= putThrough "buildHeader"
+    (buildMediaHeader $ lastImage inlines) -- >>= putThrough "buildMediaHeader"
   where
-    buildHeader img@(Image imgAttr alt (url, title), rest) = do
+    buildMediaHeader img@(Image imgAttr alt (url, title), rest) = do
       uri <- transformUrl url ""
       runAttrOn headAttr imgAttr $
         case classifyMedia uri imgAttr of
@@ -54,20 +51,11 @@ transformHeader1 h1@(Header 1 headAttr inlines)
             attr <- extractAttr
             return $ Header 1 attr rest
           _ -> return h1
-    buildHeader _ =
+    buildMediaHeader _ =
       bug $ InternalException "transformHeader: no last image in header"
 transformHeader1 h1@(Header 1 (id, cls, kvs) inlines) = do
-  local <- adjustAttribs bgAttribs kvs
+  local <- adjustAttribPaths bgAttribs kvs
   return (Header 1 (id, cls, local) inlines)
-  where
-    adjustAttrib :: (Text, Text) -> Filter (Text, Text)
-    adjustAttrib (k, v) = (k, ) <$> (URI.render <$> transformUrl v "")
-    -- Adjusts the values of all key value attributes that are listed in keys.
-    adjustAttribs :: [Text] -> [(Text, Text)] -> Filter [(Text, Text)]
-    adjustAttribs keys kvs = do
-      let (paths, other) = List.partition ((`elem` keys) . fst) kvs
-      local <- mapM adjustAttrib paths
-      return $ local <> other
 transformHeader1 h@Header {} = return h
 transformHeader1 block = return block
 

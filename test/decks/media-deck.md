@@ -20,9 +20,9 @@ title: 'Image, Audio and Video Handling'
 
 ![](movie.mp4){.controls .autoplay width="50%"}
 
-# Local Video 100px
+# Local Video with Poster
 
-![](movie.mp4){.controls .autoplay height="100px" width="auto"}
+![With caption and poster.](movie.mp4){.controls width="100%" poster="assets/title-logo-hci.png"}
 
 # Local Video 200px x 200px
 
@@ -77,9 +77,9 @@ second one is a :cinema:.
 
 # PDF
 
-![This is a PDF document.](include/06-metal.pdf){width="900px" height="520px"}
+![This is a PDF document.](include/06-metal.pdf){width="900px"
+height="520px"}
 
 # Ganz Schlimm Emdedded
 
 ![Directly embedded SVG](graph.dot.svg){.embed}
-

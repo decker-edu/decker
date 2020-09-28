@@ -1,6 +1,6 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE FlexibleContexts #-}
 
 -- | This is the new Decker filter for Pandoc.
 --
@@ -8,15 +8,6 @@
 -- the `decker` key. Information gathered during the filter run is appended
 -- under the `decker` key in the meta data of the resulting document.
 module Text.Decker.Filter.Decker where
-
-import Text.Decker.Filter.Attrib
-import Text.Decker.Filter.CRC32
-import Text.Decker.Filter.Header
-import Text.Decker.Filter.Local
-import Text.Decker.Filter.Monad
-import Text.Decker.Filter.Streaming
-import Text.Decker.Internal.Common
-import Text.Decker.Internal.Meta
 
 import Control.Monad.Catch
 import qualified Data.List as List
@@ -29,6 +20,14 @@ import System.FilePath.Posix
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import Text.Decker.Filter.Attrib
+import Text.Decker.Filter.CRC32
+import Text.Decker.Filter.Header
+import Text.Decker.Filter.Local
+import Text.Decker.Filter.Monad
+import Text.Decker.Filter.Streaming
+import Text.Decker.Internal.Common
+import Text.Decker.Internal.Meta
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
 import Text.Printf
@@ -39,7 +38,7 @@ import qualified Text.URI as URI
 -- may consume the elements and return a list of transformed elements, or it
 -- may reject the pair and return Nothing.
 pairwise :: ((a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
-pairwise f (x:y:zs) = do
+pairwise f (x : y : zs) = do
   match <- f (x, y)
   case match of
     Just rs -> (rs ++) <$> pairwise f zs
@@ -50,7 +49,7 @@ pairwise _ xs = return xs
 -- The filter may consume the elements and return a list of transformed elements,
 -- or it may reject the triplet and return Nothing.
 tripletwise :: ((a, a, a) -> Filter (Maybe [a])) -> [a] -> Filter [a]
-tripletwise f (w:x:y:zs) = do
+tripletwise f (w : x : y : zs) = do
   match <- f (w, x, y)
   case match of
     Just rs -> (rs ++) <$> tripletwise f zs
@@ -61,13 +60,13 @@ tripletwise _ xs = return xs
 -- matching granularity ranges from list of blocks to single inline elements.
 mediaFilter :: WriterOptions -> Pandoc -> IO Pandoc
 mediaFilter options pandoc =
-  runFilter options transformHeader1 pandoc >>=
-  runFilter options mediaBlockListFilter >>=
-  runFilter options mediaInlineListFilter >>=
-  runFilter options mediaBlockFilter >>=
-  runFilter options mediaInlineFilter
+  runFilter options transformHeader1 pandoc
+    >>= runFilter options mediaBlockListFilter
+    >>= runFilter options mediaInlineListFilter
+    >>= runFilter options mediaBlockFilter
+    >>= runFilter options mediaInlineFilter
 
--- | Filters lists of Blocks that can match in pairs or triplets. 
+-- | Filters lists of Blocks that can match in pairs or triplets.
 --
 -- For example: Match a paragraph containing just an image followed by a
 -- paragraph starting with the string "Image: " as an image that is to be
@@ -78,13 +77,13 @@ mediaBlockListFilter blocks =
   where
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
-    filterPairs ((Para [image@Image {}]), Para (Str "Caption:":caption)) = do
+    filterPairs ((Para [image@Image {}]), Para (Str "Caption:" : caption)) = do
       Just . single . forceBlock <$> transformImage image caption
     -- An code block followed by an explicit caption paragraph.
-    filterPairs (code@CodeBlock {}, Para (Str "Caption:":caption)) =
+    filterPairs (code@CodeBlock {}, Para (Str "Caption:" : caption)) =
       Just . single <$> transformCodeBlock code caption
     -- Any number of consecutive images in a masonry row.
-    filterPairs (LineBlock lines, Para (Str "Caption:":caption))
+    filterPairs (LineBlock lines, Para (Str "Caption:" : caption))
       | oneImagePerLine lines =
         Just . single <$> transformImages (concat lines) caption
     -- Default filter
@@ -99,7 +98,7 @@ mediaInlineListFilter inlines =
   tripletwise filterTriplets inlines >>= pairwise filterPairs
   where
     filterPairs :: (Inline, Inline) -> Filter (Maybe [Inline])
-      -- Default filter
+    -- Default filter
     filterPairs (x, y) = return Nothing
     -- Default filter
     filterTriplets (x, y, z) = return Nothing
@@ -140,11 +139,11 @@ mediaInlineFilter inline = return inline
 -- the filter. The filter runs in the Filter monad and has access to options
 -- and meta data via `gets` and `puts`.
 runFilter ::
-     Walkable a Pandoc
-  => WriterOptions
-  -> (a -> Filter a)
-  -> Pandoc
-  -> IO Pandoc
+  Walkable a Pandoc =>
+  WriterOptions ->
+  (a -> Filter a) ->
+  Pandoc ->
+  IO Pandoc
 runFilter options filter pandoc@(Pandoc meta _) = do
   (Pandoc _ blocks, FilterState _ meta) <-
     runStateT (walkM filter pandoc) (FilterState options meta)
@@ -153,7 +152,7 @@ runFilter options filter pandoc@(Pandoc meta _) = do
 -- Runs a filter on any Walkable structure. Does not carry transformed meta
 -- data over if chained. Mainly for writing tests.
 runFilter' ::
-     Walkable a b => WriterOptions -> Meta -> (a -> Filter a) -> b -> IO b
+  Walkable a b => WriterOptions -> Meta -> (a -> Filter a) -> b -> IO b
 runFilter' options meta filter x =
   evalStateT (walkM filter x) (FilterState options meta)
 
@@ -161,9 +160,9 @@ extIn :: Maybe Text -> [Text] -> Bool
 extIn (Just ext) list = ext `elem` list
 extIn Nothing _ = False
 
--- | Generates an HTML error message for Image inlines from the image
--- source and the actual exception. The Image element is rendered back
--- to Markdown format and included in the error message.
+-- |  Generates an HTML error message for Image inlines from the image
+--  source and the actual exception. The Image element is rendered back
+--  to Markdown format and included in the error message.
 inlineError :: Inline -> SomeException -> Filter Inline
 inlineError img@Image {} (SomeException e) = do
   imgMarkup <- inlinesToMarkdown [img]
@@ -193,16 +192,16 @@ blockError _ _ = bug $ InternalException "blockError: non code argument "
 imageTransformers :: Map MediaT (URI -> [Inline] -> Attrib Html)
 imageTransformers =
   Map.fromList
-    [ (EmbedSvgT, svgHtml)
-    , (PdfT, objectHtml "application/pdf")
-    , (MviewT, mviewHtml)
-    , (IframeT, iframeHtml)
-    , (ImageT, imageHtml)
-    , (VideoT, videoHtml)
-    , (StreamT, streamHtml')
-    , (AudioT, audioHtml)
-    , (RenderT, renderCodeHtml)
-    -- , (ExamQuestT, examQuestHtml)
+    [ (EmbedSvgT, svgHtml),
+      (PdfT, objectHtml "application/pdf"),
+      (MviewT, mviewHtml),
+      (IframeT, iframeHtml),
+      (ImageT, imageHtml),
+      (VideoT, videoHtml),
+      (StreamT, streamHtml'),
+      (AudioT, audioHtml),
+      (RenderT, renderCodeHtml)
+      -- , (ExamQuestT, examQuestHtml)
     ]
 
 transformImage :: Inline -> [Inline] -> Filter Inline
@@ -221,8 +220,9 @@ transformImages images caption = do
   imageRow <-
     mapM (\img@(Image _ caption _) -> transformImage img caption) images
   if null caption
-    then renderHtml $
-         H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
+    then
+      renderHtml $
+        H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
     else do
       captionHtml <- inlinesToHtml caption
       renderHtml $
@@ -238,19 +238,19 @@ language cls = find (`elem` ["dot", "gnuplot", "tex"]) cls
 transformCodeBlock :: Block -> [Inline] -> Filter Block
 transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
   handle (blockError code) $
-  case language classes of
-    Just ext
-      | "render" `elem` classes -> do
-        runAttr attr (transform ext) >>= renderHtml
-    _ -> return code
+    case language classes of
+      Just ext
+        | "render" `elem` classes -> do
+          runAttr attr (transform ext) >>= renderHtml
+      _ -> return code
   where
     transform :: Text -> Attrib Html
     transform ext = do
       dropClass ext
       let crc = printf "%08x" (calc_crc32 $ toString text)
       let path =
-            transientDir </> "code" </> intercalate "-" ["code", crc] <.>
-            toString ext
+            transientDir </> "code" </> intercalate "-" ["code", crc]
+              <.> toString ext
       exists <- liftIO $ doesFileExist path
       unless exists $
         liftIO $ do
@@ -262,51 +262,51 @@ transformCodeBlock block _ = return block
 
 mkAudioTag :: Text -> Attr -> Html
 mkAudioTag url (id, cs, kvs) =
-  H.audio !? (not (Text.null id), A.id (H.toValue id)) !
-  A.class_ (H.toValue ("decker" : cs)) !
-  H.dataAttribute "src" (H.preEscapedToValue url) !*
-  kvs $
-  ""
+  H.audio !? (not (Text.null id), A.id (H.toValue id))
+    ! A.class_ (H.toValue ("decker" : cs))
+    ! H.dataAttribute "src" (H.preEscapedToValue url)
+    !* kvs
+    $ ""
 
 mkVideoTag :: Text -> Attr -> Html
 mkVideoTag url (id, cs, kvs) =
-  H.video !? (not (Text.null id), A.id (H.toValue id)) !
-  A.class_ (H.toValue ("decker" : cs)) !
-  H.dataAttribute "src" (H.preEscapedToValue url) !*
-  kvs $
-  ""
+  H.video !? (not (Text.null id), A.id (H.toValue id))
+    ! A.class_ (H.toValue ("decker" : cs))
+    ! H.dataAttribute "src" (H.preEscapedToValue url)
+    !* kvs
+    $ ""
 
 mkIframeTag :: Text -> Attr -> Html
 mkIframeTag url (id, cs, kvs) =
-  H.iframe !? (not (Text.null id), A.id (H.toValue id)) !
-  A.class_ (H.toValue ("decker" : cs)) !
-  H.customAttribute "allow" "fullscreen" !
-  H.dataAttribute "src" (H.preEscapedToValue url) !*
-  kvs $
-  ""
+  H.iframe !? (not (Text.null id), A.id (H.toValue id))
+    ! A.class_ (H.toValue ("decker" : cs))
+    ! H.customAttribute "allow" "fullscreen"
+    ! H.dataAttribute "src" (H.preEscapedToValue url)
+    !* kvs
+    $ ""
 
 mkImageTag :: Text -> Attr -> Html
 mkImageTag url (id, cs, kvs) =
-  H.img !? (not (Text.null id), A.id (H.toValue id)) !
-  A.class_ (H.toValue ("decker" : cs)) !
-  H.dataAttribute "src" (H.preEscapedToValue url) !*
-  kvs
+  H.img !? (not (Text.null id), A.id (H.toValue id))
+    ! A.class_ (H.toValue ("decker" : cs))
+    ! H.dataAttribute "src" (H.preEscapedToValue url)
+    !* kvs
 
 mkObjectTag :: Text -> Text -> Attr -> Html
 mkObjectTag url mime (id, cs, kvs) =
-  H.object !? (not (Text.null id), A.id (H.toValue id)) !
-  A.class_ (H.toValue ("decker" : cs)) !
-  A.type_ "application/pdf" !
-  A.data_ (H.preEscapedToValue url) !*
-  kvs $
-  ""
+  H.object !? (not (Text.null id), A.id (H.toValue id))
+    ! A.class_ (H.toValue ("decker" : cs))
+    ! A.type_ "application/pdf"
+    ! A.data_ (H.preEscapedToValue url)
+    !* kvs
+    $ ""
 
 mkSvgTag :: Text -> Attr -> Html
 mkSvgTag svg (id, cs, kvs) =
-  H.span !? (not (Text.null id), A.id (H.toValue id)) !
-  A.class_ (H.toValue ("decker svg" : cs)) !*
-  kvs $
-  H.preEscapedText svg
+  H.span !? (not (Text.null id), A.id (H.toValue id))
+    ! A.class_ (H.toValue ("decker svg" : cs))
+    !* kvs
+    $ H.preEscapedText svg
 
 audioHtml :: URI -> [Inline] -> Attrib Html
 audioHtml uri caption = do
@@ -317,8 +317,8 @@ audioHtml uri caption = do
           then URI.render uri
           else URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag}
   let audioAttribs =
-        takeClasses identity ["controls", "loop", "muted"] >>
-        passAttribs identity ["controls", "loop", "muted", "preload"]
+        takeClasses identity ["controls", "loop", "muted"]
+          >> passAttribs identity ["controls", "loop", "muted", "preload"]
   case caption of
     [] -> do
       injectBorder >> takeAutoplay >> audioAttribs >> takeSize >> takeUsual
@@ -345,8 +345,8 @@ imageHtml uri caption = do
       captionHtml <- lift $ inlinesToHtml caption
       imgAttr <- takeSizeIf (not . isPercent) >> extractAttr
       let imageTag = mkImageTag rendered imgAttr
-      injectBorder >> takeSizeIf isPercent >> takeUsual >>
-        injectAttribute ("alt", fileName)
+      injectBorder >> takeSizeIf isPercent >> takeUsual
+        >> injectAttribute ("alt", fileName)
       mkFigureTag imageTag captionHtml <$> extractAttr
 
 objectHtml :: Text -> URI -> [Inline] -> Attrib Html
@@ -396,11 +396,11 @@ iframeHtml uri caption = do
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       figureAttr <-
-        injectBorder >> takeSizeIf isPercent >> takeId >> takeAllClasses >>
-        takeCss >>
-        dropCore >>
-        passI18n >>
-        extractAttr
+        injectBorder >> takeSizeIf isPercent >> takeId >> takeAllClasses
+          >> takeCss
+          >> dropCore
+          >> passI18n
+          >> extractAttr
       iframeAttr <- takeSizeIf (not . isPercent) >> takeData >> extractAttr
       let iframeTag = mkIframeTag (URI.render uri) iframeAttr
       return $ mkFigureTag iframeTag captionHtml figureAttr
@@ -424,18 +424,22 @@ videoHtml uri caption = do
         if Text.null mediaFrag
           then URI.render uri
           else URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag}
+  xformRersourceAttribs ["poster"]
   case caption of
     [] -> do
-      injectBorder >> takeAutoplay >> takeVideoClasses >> passVideoAttribs >>
-        takeSize >>
-        takeUsual
+      injectBorder
+      takeAutoplay
+      takeVideoClasses
+      passVideoAttribs
+      takeSize
+      takeUsual
       mkVideoTag videoUri <$> extractAttr
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       videoAttr <-
-        takeSizeIf (not . isPercent) >> takeAutoplay >> takeVideoClasses >>
-        passVideoAttribs >>
-        extractAttr
+        takeSizeIf (not . isPercent) >> takeAutoplay >> takeVideoClasses
+          >> passVideoAttribs
+          >> extractAttr
       let videoTag = mkVideoTag videoUri videoAttr
       figureAttr <-
         injectBorder >> takeSizeIf isPercent >> takeUsual >> extractAttr
@@ -455,6 +459,7 @@ renderCodeHtml uri caption = do
       let imageTag = mkImageTag (URI.render uri) imgAttr
       injectBorder >> takeSizeIf isPercent >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
+
 {--
 examQuestHtml :: URI -> [Inline] -> Attrib Html
 examQuestHtml uri caption = do
