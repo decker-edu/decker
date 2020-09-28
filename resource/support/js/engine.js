@@ -136,6 +136,9 @@ async function buildInterface(api, initialToken) {
     "placeholder",
     "Type question, ⇧⏎ (Shift - Return) to enter"
   );
+  // prevent propagating keypress up to Reveal, since otherwise '?'
+  // triggers the help dialog.
+  text.addEventListener('keypress', (e) => { e.stopPropagation(); });
 
   footer.classList.add("q-footer");
   username.setAttribute("placeholder", "Login");
