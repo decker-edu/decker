@@ -43,15 +43,15 @@ div.exa-quest div.difficulty {
 }
 
 div.exa-quest[data-difficulty="Easy"] div.difficulty {
-  content: url("static/dumbell-easy.svg");
+  content: url("../assets/dumbell-easy.svg");
 }
 
 div.exa-quest[data-difficulty="Medium"] div.difficulty {
-  content: url("static/dumbell-medium.svg");
+  content: url("../assets/dumbell-medium.svg");
 }
 
 div.exa-quest[data-difficulty="Hard"] div.difficulty {
-  content: url("static/dumbell-hard.svg");
+  content: url("../assets/dumbell-hard.svg");
 }
 
 div.exa-quest button:hover {
@@ -127,33 +127,33 @@ div.exa-quest[data-solved] div.exa-mc div.choice div.check-box:active {
 }
 
 div.exa-mc div.choice div.check-box {
-  background-image: url("static/check-box-0.svg");
+  background-image: url("../assets/check-box-0.svg");
 }
 
 div.exa-mc div.choice div.check-box[data-checked] {
-  background-image: url("static/check-box-1.svg");
+  background-image: url("../assets/check-box-1.svg");
 }
 
 div.exa-quest[data-solved] div.exa-mc div.choice.correct div.check-box {
-  background-image: url("static/check-box-0w.svg");
+  background-image: url("../assets/check-box-0w.svg");
 }
 
 div.exa-quest[data-solved]
   div.exa-mc
   div.choice.wrong
   div.check-box[data-checked] {
-  background-image: url("static/check-box-1w.svg");
+  background-image: url("../assets/check-box-1w.svg");
 }
 
 div.exa-quest[data-solved] div.exa-mc div.choice.wrong div.check-box {
-  background-image: url("static/check-box-0c.svg");
+  background-image: url("../assets/check-box-0c.svg");
 }
 
 div.exa-quest[data-solved]
   div.exa-mc
   div.choice.correct
   div.check-box[data-checked] {
-  background-image: url("static/check-box-1c.svg");
+  background-image: url("../assets/check-box-1c.svg");
 }
 
 div.exa-ff {

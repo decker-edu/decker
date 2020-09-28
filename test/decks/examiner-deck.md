@@ -1,11 +1,7 @@
 ---
 lang: de
-template:
-  css:
-  - examiner.css
-  include-js:
-  - examiner.js
 title: Examiner Questions Import
+examiner-questions: true
 ---
 
 # Overview {.columns}
