@@ -67,23 +67,23 @@ async function buildInterface(api, initialToken) {
   let password = document.createElement("input");
 
   let trash = document.createElement("i");
-  trash.classList.add("far", "fa-trash-alt");
+  trash.classList.add("fas", "fa-trash-alt");
   trash.setAttribute("title", "Delete question");
 
   let edit = document.createElement("i");
-  edit.classList.add("far", "fa-edit");
+  edit.classList.add("fas", "fa-edit");
   edit.setAttribute("title", "Edit question");
 
   let cross = document.createElement("i");
-  cross.classList.add("far", "fa-times-circle");
+  cross.classList.add("fas", "fa-times-circle");
   cross.setAttribute("title", "Close panel");
 
   let lock = document.createElement("i");
-  lock.classList.add("far", "fa-lock", "lock");
+  lock.classList.add("fas", "fa-lock", "lock");
   lock.setAttribute("title", "Lock user token");
 
   let unlock = document.createElement("i");
-  unlock.classList.add("far", "fa-unlock", "unlock");
+  unlock.classList.add("fas", "fa-unlock", "unlock");
   unlock.setAttribute("title", "User token is locked");
 
   let gear = document.createElement("i");
@@ -99,7 +99,7 @@ async function buildInterface(api, initialToken) {
   signout.setAttribute("title", "Logout admin");
 
   let qmark = document.createElement("i");
-  qmark.classList.add("far", "fa-question-circle");
+  qmark.classList.add("fas", "fa-question-circle");
 
   panel.classList.add("q-panel");
   open.appendChild(qmark);
