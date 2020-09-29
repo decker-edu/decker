@@ -13,5 +13,3 @@ exclude-directories:
   - third-party
 static-resource-dirs:
   - test/static
-meta-data:
-  - publish.yaml
