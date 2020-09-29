@@ -247,6 +247,13 @@
   padding-right: var(--border-decoration-padding);
 }
 
+.reveal div.exa-quest {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
+}
+
 .reveal ol,
 .reveal dl,
 .reveal ul {
@@ -290,7 +297,7 @@
 .reveal div.box.columns {
   margin-left: var(--border-decoration-width);
   padding-left: var(--border-decoration-padding);
-  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
+  margin-right: calc(var(--border-decoration-padding) + var(--border-decoration-width));
   /* Now comes the part for the decorated boxes */
   /* Now comes the specification of the indivdual
     color used for the border as decoration */
@@ -329,7 +336,7 @@
   margin-left: 0;
   border-left: var(--border-decoration-width) var(--border-decoration-style) red;
   padding-left: var(--border-decoration-padding);
-  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
+  margin-right: calc(var(--border-decoration-padding) + var(--border-decoration-width));
 }
 
 .reveal div.box.columns.question {
@@ -747,6 +754,111 @@
   font-size: 1rem;
 }
 
+<<<<<<< HEAD
+=======
+/*********************************************
+ * TITLE SLIDE, now supporting Marc's and 
+ * Mario's versions
+ *********************************************/
+.white-on-blue {
+  color: #ffffff;
+  background-color: #003366;
+}
+
+.reveal .title-page .banner img {
+  margin: 0px 0px 10px 0px;
+  width: 100%;
+  object-fit: contain;
+}
+
+.reveal .title-page .title {
+  margin: 0px;
+  width: 100%;
+  display: block;
+  padding: 0px;
+  font-size: var(--font-size-x-large);
+  text-align: center;
+}
+
+.reveal .title-page .subtitle {
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+  font-weight: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .title-page .teaser-img {
+  margin: 20px auto;
+  height: 10%;
+  width: auto;
+  display: block;
+}
+
+.reveal .title-page .teaser-img img {
+  margin: 0px;
+  display: block;
+  margin: auto;
+  object-fit: contain;
+  max-height: 250px;
+  width: auto;
+}
+
+.reveal .title-page .date {
+  text-align: center;
+}
+
+.reveal .title-page .author {
+  margin: 0px;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .title-page .affiliation-logo img {
+  margin: 0px 0 0 0;
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reveal .title-page .affiliation {
+  margin: 0px 0 0 0;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .title-page .valign-block {
+  text-align: center;
+}
+
+.reveal .title-page .valign-block:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.reveal .title-page .valigned {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.reveal {
+  /*
+ *Required CSS for the new media filters. Adopted to Mario's semantic with
+ *further fine-tuning
+ */
+}
+
+>>>>>>> 262-integrate-examiner
 .reveal div.decker.image.error {
   font-size: 20pt;
   background-color: #fee;

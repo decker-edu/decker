@@ -1,7 +1,6 @@
 ---
 lang: de
 title: Examiner Questions Import
-examiner-questions: true
 ---
 
 # Overview {.columns}

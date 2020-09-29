@@ -73,9 +73,13 @@ $if(template.base-css)$
 $else$
     <link rel="stylesheet" href="$decker-support-dir$/css/handout.css">
 $endif$
+
 $if(stretch-media)$
-  <link rel="stylesheet" href="$decker-support-dir$/css/stretch-media.css">
+    <link rel="stylesheet" href="$decker-support-dir$/css/stretch-media.css">
 $endif$
+
+    <link rel="stylesheet" href="$decker-support-dir$/css/examiner.css">
+
 
     <!-- MathJax config -->
     <script>
@@ -193,6 +197,11 @@ $body$
         <script src="$decker-support-dir$/vendor/js/jquery.min.js" type="text/javascript"></script>
         <script src="$decker-support-dir$/vendor/js/lazyload.min.js" type="text/javascript"></script>
         <script src="$decker-support-dir$/js/handout.js"></script>
+
+        <script type="module">
+          import {prepareExaminer} from "./$decker-support-dir$/js/examiner.js";
+          prepareExaminer();
+        </script>
 
         $for(include-after)$
         $include-after$
