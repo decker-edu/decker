@@ -305,13 +305,11 @@ $if(decker-engine-base-url)$
   </script>
 $endif$
 
-$if(examiner-questions)$
   <link rel="stylesheet" href="$decker-support-dir$/css/examiner.css">
   <script type="module">
     import {prepareExaminer} from "./$decker-support-dir$/js/examiner.js";
     prepareExaminer();
   </script>
-$endif$
 
 $for(template.include-js)$
 <script src="$template.include-js$"></script>

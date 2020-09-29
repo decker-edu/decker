@@ -49,6 +49,13 @@ $border-marker-default-color: red;
    }
 }
 
+.reveal div.exa-quest
+{
+    margin-left: var(--border-decoration-width);
+    padding-left: var(--border-decoration-padding);
+    margin-right: var(--border-decoration-width);
+    padding-right:var(--border-decoration-padding);
+}
 
 //////////////////////////////////////////////
 // Now the horizontal position if lists. Beware, they work differently since 
