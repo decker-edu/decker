@@ -180,7 +180,7 @@ $for(style)$
   </style>
 $endfor$
 </head>
-<body>
+<body data-deckid="$deck-id$">
 $for(include-before)$
 $include-before$
 $endfor$
@@ -294,6 +294,14 @@ $body$
       prepareCodeHighlighting();
       prepareSAGE();
   </script>
+
+$if(decker-engine-base-url)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
+  <script type="module" crossorigin>
+    import {contactEngine} from "./$decker-support-dir$/js/engine.js";
+    contactEngine("$decker-engine-base-url$");
+  </script>
+$endif$
 
 $for(template.include-js)$
 <script src="$template.include-js$"></script>
