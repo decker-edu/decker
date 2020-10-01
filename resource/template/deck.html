@@ -325,6 +325,11 @@ $endif$
 $if(slideNumber)$
         slideNumber: '$slideNumber$',
 $endif$
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+$if(hash)$
+        hash: $hash$,
+$endif$
         // Push each slide change to the browser history
 $if(history)$
         history: $history$,
