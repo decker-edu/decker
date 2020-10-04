@@ -331,6 +331,10 @@ $endif$
 $if(slideNumber)$
         slideNumber: '$slideNumber$',
 $endif$
+        // Add slide id to the fragment but not to history
+$if(hash)$
+        hash: $hash$,
+$endif$
         // Push each slide change to the browser history
 $if(history)$
         history: $history$,
