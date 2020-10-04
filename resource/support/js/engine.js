@@ -55,8 +55,8 @@ async function buildInterface(api, initialToken) {
   let title = document.createElement("div");
   let counter = document.createElement("div");
   let user = document.createElement("input");
-  let check = document.createElement("div");
-  let close = document.createElement("div");
+  let check = document.createElement("button");
+  let close = document.createElement("button");
   let container = document.createElement("div");
   let input = document.createElement("div");
   let text = document.createElement("textarea");
@@ -73,6 +73,14 @@ async function buildInterface(api, initialToken) {
   let edit = document.createElement("i");
   edit.classList.add("fas", "fa-edit");
   edit.setAttribute("title", "Edit question");
+
+  let thumb = document.createElement("i");
+  thumb.classList.add("far", "fa-thumbs-up");
+  thumb.setAttribute("title", "Up-vote question");
+
+  let thumbS = document.createElement("i");
+  thumbS.classList.add("fas", "fa-thumbs-up");
+  thumbS.setAttribute("title", "Down-vote question");
 
   let cross = document.createElement("i");
   cross.classList.add("fas", "fa-times-circle");
@@ -138,7 +146,9 @@ async function buildInterface(api, initialToken) {
   );
   // prevent propagating keypress up to Reveal, since otherwise '?'
   // triggers the help dialog.
-  text.addEventListener('keypress', (e) => { e.stopPropagation(); });
+  text.addEventListener("keypress", e => {
+    e.stopPropagation();
+  });
 
   footer.classList.add("q-footer");
   username.setAttribute("placeholder", "Login");
@@ -226,7 +236,14 @@ async function buildInterface(api, initialToken) {
     text.value = "";
   };
 
+  let canDelete = comment => {
+    let context = getContext();
+    return serverToken.admin !== null || comment.author === context.token;
+  };
+
   let renderList = list => {
+    let context = getContext();
+
     counter.textContent = list.length;
     counter.setAttribute("data-count", list.length);
     badge.textContent = list.length;
@@ -244,29 +261,69 @@ async function buildInterface(api, initialToken) {
       item.classList.add("item");
       item.appendChild(content);
 
-      if (comment.delete) {
-        let box = document.createElement("div");
+      let box = document.createElement("div");
+      box.classList.add("controls");
+      content.insertBefore(box, content.firstChild);
+
+      // Upvote button
+      let vote = document.createElement("button");
+      if (comment.didvote) {
+        vote.appendChild(thumbS.cloneNode(true));
+      } else {
+        vote.appendChild(thumb.cloneNode(true));
+      }
+      vote.classList.add("vote");
+      if (comment.author !== context.token) {
+        vote.classList.add("canvote");
+        if (comment.didvote) {
+          vote.classList.add("didvote");
+        }
+        vote.addEventListener("click", _ => {
+          let context = getContext();
+          let vote = {
+            comment: comment.id,
+            voter: context.token,
+          };
+          api.voteComment(vote).then(updateComments);
+        });
+      } else {
+        vote.classList.add("cantvote");
+      }
+      // Number of upvotes
+      let votes = document.createElement("span");
+      votes.textContent = comment.votes;
+      votes.classList.add("votes");
+
+      box.appendChild(votes);
+      box.appendChild(vote);
+
+      if (canDelete(comment)) {
+        // Delete button
         let del = document.createElement("button");
         del.appendChild(trash.cloneNode(true));
         del.addEventListener("click", _ => {
           let context = getContext();
+          console.log(comment);
+          console.log(context);
+          console.log(serverToken);
+          console.log(comment.id, serverToken.admin || context.token);
           api
-            .deleteComment(comment.delete, serverToken.admin || context.token)
+            .deleteComment(comment.id, serverToken.admin || context.token)
             .then(updateComments);
         });
+        // Edit button
         let mod = document.createElement("button");
         mod.appendChild(edit.cloneNode(true));
         mod.addEventListener("click", _ => {
           let context = getContext();
           api
-            .deleteComment(comment.delete, serverToken.admin || context.token)
+            .deleteComment(comment.id, serverToken.admin || context.token)
             .then(updateComments);
           text.value = comment.markdown;
           text.focus();
         });
         box.appendChild(mod);
         box.appendChild(del);
-        item.appendChild(box);
       }
       container.appendChild(item);
     }
