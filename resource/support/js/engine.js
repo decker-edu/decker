@@ -291,7 +291,8 @@ async function buildInterface(api, initialToken) {
       }
       // Number of upvotes
       let votes = document.createElement("span");
-      votes.textContent = comment.votes;
+    
+      votes.textContent = comment.votes > 0 ? comment.votes : "";
       votes.classList.add("votes");
 
       box.appendChild(votes);
