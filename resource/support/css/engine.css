@@ -36,7 +36,11 @@ div.q-badge {
   color: white;
   font-size: 0.5em;
   font-weight: bold;
-
+  line-height: 1;
+  text-align: center;
+  vertical-align: baseline;
+  white-space: nowrap;
+  font-family: sans-serif;
   border-radius: 0.5em;
   padding: 2px 4px;
 }
@@ -107,13 +111,17 @@ div.q-header div.q-counter[data-count="0"] {
 div.q-header div.q-counter {
   flex: 0 1;
   margin-right: 1em;
+  font-size: 14px;
+  padding: 3px 6px;
   background-color: red;
   color: white;
   font-weight: bold;
+  line-height: 1;
+  text-align: center;
+  vertical-align: baseline;
+  white-space: nowrap;
+  font-family: sans-serif;
   border-radius: 0.5em;
-  font-size: 0.8em;
-  padding: 0.2em 0.4em;
-  vertical-align: center;
 }
 
 div.q-header .hidden {
