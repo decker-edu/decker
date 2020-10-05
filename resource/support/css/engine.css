@@ -24,7 +24,7 @@ div.q-open {
 }
 
 div.q-badge[data-count="0"] {
-    visibility: hidden;
+  visibility: hidden;
 }
 
 div.q-badge {
@@ -36,7 +36,11 @@ div.q-badge {
   color: white;
   font-size: 0.5em;
   font-weight: bold;
-
+  line-height: 1;
+  text-align: center;
+  vertical-align: baseline;
+  white-space: nowrap;
+  font-family: sans-serif;
   border-radius: 0.5em;
   padding: 2px 4px;
 }
@@ -53,7 +57,7 @@ div.q-panel {
   position: fixed;
   top: 0;
   bottom: 0;
-  left: 60%;
+  left: 50%;
   right: 0;
   z-index: 100;
   background-color: rgba(0, 0, 0, 0);
@@ -75,7 +79,7 @@ div.q-panel {
 }
 
 div.q-panel.authorized div.q-footer {
-    display: none;
+  display: none;
 }
 
 div.q-header {
@@ -101,19 +105,23 @@ div.q-header div.q-title {
 }
 
 div.q-header div.q-counter[data-count="0"] {
-    visibility: hidden;
+  visibility: hidden;
 }
 
 div.q-header div.q-counter {
   flex: 0 1;
   margin-right: 1em;
+  font-size: 14px;
+  padding: 3px 6px;
   background-color: red;
   color: white;
   font-weight: bold;
+  line-height: 1;
+  text-align: center;
+  vertical-align: baseline;
+  white-space: nowrap;
+  font-family: sans-serif;
   border-radius: 0.5em;
-  font-size: 0.8em;
-  padding: 0.2em 0.4em;
-  vertical-align: center;
 }
 
 div.q-header .hidden {
@@ -129,11 +137,11 @@ div.q-header input[type="password"] {
   border: none;
   border-radius: 4px;
   outline: none;
-  padding-left: 0.3em;
+  padding: 0.3em;
   margin: 0;
 }
 
-div.q-header div.q-check {
+div.q-header button.q-check {
   flex: 0 1;
 
   color: gray;
@@ -145,23 +153,23 @@ div.q-header div.q-check {
   outline: none;
 }
 
-div.q-header div.q-check.checked i.lock {
+div.q-header button.q-check.checked i.lock {
   display: static;
 }
 
-div.q-header div.q-check.checked i.unlock {
+div.q-header button.q-check.checked i.unlock {
   display: none;
 }
 
-div.q-header div.q-check:not(.checked) i.lock {
+div.q-header button.q-check:not(.checked) i.lock {
   display: none;
 }
 
-div.q-header div.q-check:not(.checked) i.unlock {
+div.q-header button.q-check:not(.checked) i.unlock {
   display: static;
 }
 
-div.q-header div.q-close {
+div.q-header button.q-close {
   flex: 0 1;
 
   color: gray;
@@ -185,6 +193,7 @@ div.q-list div.item {
   background-color: rgba(255, 255, 255, 0.9);
   font-family: "Roboto", Helvetica, sans-serif;
   font-size: 0.8em;
+  line-height: 125%;
   border: none;
   border-radius: 4px;
   outline: none;
@@ -205,14 +214,34 @@ div.q-list div.item div.content {
   overflow: hidden;
 }
 
-div.q-list div.item button {
-  flex: 0 1 content;
+div.content div.controls {
+  float: right;
+  margin-left: 0.5em;
+}
 
+div.q-panel button {
   color: gray;
   background-color: rgba(0, 0, 0, 0);
   border: none;
-  margin: 0.1em;
+  margin: 0;
   padding: 0;
+  margin-left: 0.2em;
+}
+
+div.q-panel button:hover {
+  color: darkred;
+}
+
+div.q-panel button.cantvote {
+  color: lightgray;
+}
+
+div.q-panel button.cantvote:hover {
+  color: lightgray;
+}
+
+div.q-list div.item button {
+  flex: 0 1 content;
 }
 
 div.q-input {
@@ -267,7 +296,7 @@ div.q-footer div.credentials input {
   color: grey;
   margin: 0;
   margin-left: 0.5em;
-  padding-left: 0.5em;
+  padding: 0.3em;
   width: 40%;
   border: none;
   border-radius: 4px;
@@ -283,8 +312,8 @@ div.q-footer div.q-login {
 }
 
 div.q-footer div.q-login:not(.admin) {
-  opacity: 0;
-  color: gray;
+  opacity: 1;
+  color: lightgray;
 }
 
 div.q-footer div.q-login.admin {
@@ -294,6 +323,7 @@ div.q-footer div.q-login.admin {
 
 div.q-footer div.q-login:hover {
   opacity: 1;
+  color: gray;
 }
 
 div.content {
