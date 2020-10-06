@@ -912,12 +912,11 @@ body {
     top:        calc(var(--whiteboard-icon-size) * 0.25);
     bottom:     auto;
     right:      auto;
-    padding:    0;
+    padding:    calc(var(--whiteboard-icon-size) * 0.5);
     margin:     auto;
     z-index:    40;
     background: none;
     font-size:  var(--whiteboard-icon-size);
-    padding:    calc(var(--whiteboard-icon-size) * 0.5);
     opacity:    0.5;
     color:      var(--whiteboard-inactive-color);
 }
@@ -942,12 +941,10 @@ div.q-open {
     right:      calc(var(--whiteboard-icon-size) * 0.25);
     top:        calc(var(--whiteboard-icon-size) * 0.25);
     bottom:     auto;
-    padding:    0;
-    margin:     auto;
+    margin:     calc(var(--whiteboard-icon-size) * 0.5);
     z-index:    40;
     background: none;
     font-size:  var(--whiteboard-icon-size);
-    padding:    calc(var(--whiteboard-icon-size) * 0.5);
     opacity:    0.5;
     color:      var(--whiteboard-inactive-color);
 }
@@ -961,6 +958,10 @@ div.q-footer div.q-login:hover {
 
 div.q-list {
     overflow-y: auto;
+}
+
+div.q-badge {
+    border-radius: 50%;
 }
 
 
