@@ -132,7 +132,9 @@ run = do
         " (branch: " ++
         deckerGitBranch ++
         ", commit: " ++
-        deckerGitCommitId ++ ", tag: " ++ deckerGitVersionTag ++ ")"
+        deckerGitCommitId ++
+        ", tag: " ++
+        deckerGitVersionTag ++ ", build date: " ++ deckerBuildDate ++ ")"
       putNormal $ "pandoc version " ++ Text.unpack pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
               --
