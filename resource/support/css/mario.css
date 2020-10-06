@@ -942,11 +942,15 @@ div.q-open {
     top:        calc(var(--whiteboard-icon-size) * 0.25);
     bottom:     auto;
     margin:     calc(var(--whiteboard-icon-size) * 0.5);
+    padding:    0.2em;
     z-index:    40;
     background: none;
     font-size:  var(--whiteboard-icon-size);
-    opacity:    0.5;
     color:      var(--whiteboard-inactive-color);
+}
+
+div.q-open.i {
+  opacity: 0.5;
 }
 
 div.q-open:hover,
@@ -961,7 +965,30 @@ div.q-list {
 }
 
 div.q-badge {
+    font-size: 0.6em;
     border-radius: 50%;
+}
+
+div.q-header div.q-counter {
+    border-radius: 50%;
+}
+
+div.q-panel {
+  font-size: 1.5em;
+  background-color: rgba(100, 100, 100, 0.2);
+  left: 66%;
+}
+
+div.q-panel button {
+  font-size: 1em;
+}
+
+div.q-input {
+  font-size: 1em;
+}
+
+div.q-input textarea {
+  font-size: 0.8em;
 }
 
 
