@@ -9,7 +9,6 @@ template:
   title-teaser: assets/title-teaser-icg.png
   title-header: assets/title-banner-jmu.jpg
 date: '23.4.2020'
-history: True
 center: 1
 progress: 1
 controls: 1

@@ -1,5 +1,4 @@
 ---
-history: true
 subtitle: Test cases
 title: CSS Styling
 ---

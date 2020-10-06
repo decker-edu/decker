@@ -1,5 +1,4 @@
 ---
-history: True
 short-links:
   beuth: 'https://www.beuth-hochschule.de/@@'
   bind:
