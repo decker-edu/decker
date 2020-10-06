@@ -933,6 +933,38 @@ body {
 
 
 /*********************************************
+ * MARIO: question dialog
+ *********************************************/
+
+div.q-open {
+    position:   fixed;
+    left:       auto;
+    right:      calc(var(--whiteboard-icon-size) * 0.25);
+    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:     auto;
+    padding:    0;
+    margin:     auto;
+    z-index:    40;
+    background: none;
+    font-size:  var(--whiteboard-icon-size);
+    padding:    calc(var(--whiteboard-icon-size) * 0.5);
+    opacity:    0.5;
+    color:      var(--whiteboard-inactive-color);
+}
+
+div.q-open:hover,
+div.q-panel button:hover,
+div.q-footer div.q-login:hover {
+    opacity: 1.0;
+    color: var(--whiteboard-active-color);
+}
+
+div.q-list {
+    overflow-y: auto;
+}
+
+
+/*********************************************
  * MARIO: bibliogrphy
  *********************************************/
 
