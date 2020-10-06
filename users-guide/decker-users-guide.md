@@ -213,25 +213,25 @@ control various aspects of the generated slide sets.
 
 ### Dictionary
 
-Decker has some content that can be adapted to the language of the presentation. This is a work-in-progress and is currently used for quizzes.
+Decker has some content that can be adapted to the language of the
+presentation. This is a work-in-progress and is currently used for
+quizzes.
 
 The current default dictionary looks like this:
 
-```
-dictionary:
-  de: 
-    quiz:
-      solution-button: Lösung
-      input-placeholder: Eingeben und 'Enter'
-      qmi-drag-hint: Objekte per Drag&Drop ziehen...
-      qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
-  en:
-    quiz:
-      solution-button: Show Solution
-      input-placeholder: Type and press 'Enter'
-      qmi-drag-hint: Drag items from here...
-      qmi-drop-hint: ...and put them here into the correct category.
-```
+    dictionary:
+      de: 
+        quiz:
+          solution-button: Lösung
+          input-placeholder: Eingeben und 'Enter'
+          qmi-drag-hint: Objekte per Drag&Drop ziehen...
+          qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
+      en:
+        quiz:
+          solution-button: Show Solution
+          input-placeholder: Type and press 'Enter'
+          qmi-drag-hint: Drag items from here...
+          qmi-drop-hint: ...and put them here into the correct category.
 
 This dictionary can be partially or completely defined new by the user.
 
@@ -314,165 +314,205 @@ Embedded media will be rendered as a figure with caption if either
 
 ## Whiteboard
 
+## Questions
+
+The audience of a deck can annotate slides with questions. The questions
+are aggregated on a server and are visible by all audience members and
+the author.
+
+The slide author can later choose to address the questions by changeing
+or extending the information in the deck.
+
+To enable this feature a deck must specify the URL of a Decker Engine
+server in the meta data by setting the variable
+`decker-engine-base-url`. For example:
+
+``` {.yaml}
+decker-engine-base-url: 'https://tramberend.beuth-hochschule.de/decker'
+```
+
+### Endpoints with authorization
+
+There are two modes of operation depending on the deployment details of
+the server, *authorized* and *public*.
+
+If the server is running behind a proxy with Basic Authentication
+enabled, questions can only be added if the user has been authenticated
+by the proxy. Administrators are recognized automatically, no further
+authorization is necessary.
+
+The `de-api` endpoint works that way:
+
+``` {.yaml}
+decker-engine-base-url: 'https://tramberend.beuth-hochschule.de/de-api'
+```
+
+### Public endpoints
+
+If the server is publicly available without authentication, the user is
+assigned a token that allows her to later delete or edit all questions
+that where added using that token. The token can be entered by hand or
+stored in the browser's local storage. Administrators need to
+authenticate with a username and a password.
+
+The `decker` endpoint works that way:
+
+``` {.yaml}
+decker-engine-base-url: 'https://tramberend.beuth-hochschule.de/decker'
+```
+
+### Admistrators
+
+Users that are authorized as administrators can edit and delete all
+questions in a set.
+
 ## Quizzes
 
 ### Class definition
 
-For each question type you can use either of the three tags to create quizzes
+For each question type you can use either of the three tags to create
+quizzes
 
-```
-.quiz-match-items, .quiz-mi, .qmi
+    .quiz-match-items, .quiz-mi, .qmi
 
-.quiz-multiple-choice, .quiz-mc, .qmc
+    .quiz-multiple-choice, .quiz-mc, .qmc
 
-.quiz-insert-choices, .quiz-ic, .qic 
+    .quiz-insert-choices, .quiz-ic, .qic 
 
-.quiz-free-text, .quiz-ft, .qft
-```
+    .quiz-free-text, .quiz-ft, .qft
 
 ### Basic syntax
 
-The quiz syntax is based on the markdown task list syntax. A markdown task list looks like this
+The quiz syntax is based on the markdown task list syntax. A markdown
+task list looks like this
 
-```
-- [ ] This box is not checked
-- [X] This box is checked
-- [ ] Another unchecked box
-```
+    - [ ] This box is not checked
+    - [X] This box is checked
+    - [ ] Another unchecked box
 
-Questions are defined by level 2 headers. That means creating a question **needs**
+Questions are defined by level 2 headers. That means creating a question
+**needs**
 
-```
-## Question title {.qmc}
-```
+    ## Question title {.qmc}
 
 (where `.qmc` can be replaced by any of the other quiz classes)
 
 You can add tooltips by creating a nested list e.g.
 
-```
-- [ ] A
-  - tooltip A
-- [X] B
-  - tooltip B
-```
+    - [ ] A
+      - tooltip A
+    - [X] B
+      - tooltip B
 
 ### Fenced Divs Syntax
 
 Alternatively, quizzes can be defined using the **fenced divs** syntax:
 
-```
-::: qmc
-- [ ] A
-  - tooltip A
-- [X] B
-  - tooltip B
-:::
-```
-
+    ::: qmc
+    - [ ] A
+      - tooltip A
+    - [X] B
+      - tooltip B
+    :::
 
 ### Matching Questions
 
-These questions generate quizzes where a user can drag and drop items to sort them into "buckets".
+These questions generate quizzes where a user can drag and drop items to
+sort them into "buckets".
 
-This uses the Pandoc [definition list syntax](https://pandoc.org/MANUAL.html#definition-lists).
+This uses the Pandoc [definition list
+syntax](https://pandoc.org/MANUAL.html#definition-lists).
 
-You can provide distractor items (items not belonging to any bucket) or empty buckets (no item belonging in those empty buckets) by using the exclamation mark "!".
+You can provide distractor items (items not belonging to any bucket) or
+empty buckets (no item belonging in those empty buckets) by using the
+exclamation mark "!".
 
-```
-## Matching Question {.qmi}
+    ## Matching Question {.qmi}
 
-Question text
+    Question text
 
-BucketA
-: A1
-: A2
+    BucketA
+    : A1
+    : A2
 
-BucketB
-: B1
+    BucketB
+    : B1
 
-!
-: Distractor
+    !
+    : Distractor
 
-Empty Bucket
-: !
-```
+    Empty Bucket
+    : !
 
 ### Multiple Choice Questions
 
 Classic multiple choice questions
 
-```
-## Multiple Choice Question {.qmc}
+    ## Multiple Choice Question {.qmc}
 
-Question text
+    Question text
 
-- [ ] A
-  - nope
-- [X] B
-  - yes
-```
+    - [ ] A
+      - nope
+    - [X] B
+      - yes
 
 ### InsertChoices Questions
 
-This will create a sort of blank text questions.
-If multiple items are provided in the task list, they will be rendered as a drop down menu where the user can click answers.
+This will create a sort of blank text questions. If multiple items are
+provided in the task list, they will be rendered as a drop down menu
+where the user can click answers.
 
 If only one item/solution is provided it will be rendered as a blank.
 
-```
-## Insert Choices Question {.qic}
+    ## Insert Choices Question {.qic}
 
-- [X] A
-  - of course
-- [ ] B 
-  - uhm ...
+    - [X] A
+      - of course
+    - [ ] B 
+      - uhm ...
 
-is the first letter in the ABC. The second one is
+    is the first letter in the ABC. The second one is
 
-- [ ] B
-  - yep
-
-```
+    - [ ] B
+      - yep
 
 ### FreeText questions
 
-This will create a simple input field/text box where the user can write their answer.
+This will create a simple input field/text box where the user can write
+their answer.
 
-```
-## FreeText Question TL {.qft}
+    ## FreeText Question TL {.qft}
 
-What's the first letter in the alphabet?
+    What's the first letter in the alphabet?
 
-- A
-  - yep
-- B
-  - nope
+    - A
+      - yep
+    - B
+      - nope
 
-## {.qft}
+    ## {.qft}
 
-What's the fourth letter?
+    What's the fourth letter?
 
-- [ ] C
-- [X] D
-
-```
+    - [ ] C
+    - [X] D
 
 ### Quiz Meta
 
-Add a `YAML` code block to a question to provide meta information on the specific question.
+Add a `YAML` code block to a question to provide meta information on the
+specific question.
 
-This is work in progress. Currently apart from `lang: de` or `lang: en` it does not do anything. (21. Jul 2020)
-````
-``` {.yaml}
-lang: de
-score: 5
-category: FP
-lectureId: fp1
-topic: Functional Programming Introduction
-```
-````
+This is work in progress. Currently apart from `lang: de` or `lang: en`
+it does not do anything. (21. Jul 2020)
 
+    ``` {.yaml}
+    lang: de
+    score: 5
+    category: FP
+    lectureId: fp1
+    topic: Functional Programming Introduction
+    ```
 
 ## ThebeLab 🚧 {#thebelab}
 
@@ -494,6 +534,6 @@ topic: Functional Programming Introduction
 -   :gift: New feature.
 -   :bug: Bug fix.
 -   :bomb: Breaking compatibility.
--   :white\_check\_mark: Write test.
+-   :white_check_mark: Write test.
 -   :fire: Remove something.
 -   :beer: I'm happy like reduced code complexity.

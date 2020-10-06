@@ -180,7 +180,7 @@ $for(style)$
   </style>
 $endfor$
 </head>
-<body>
+<body data-deckid="$deck-id$">
 $for(include-before)$
 $include-before$
 $endfor$
@@ -201,7 +201,6 @@ $if(title)$
          $if(template.teaser)$
          <img class="teaser" src=$template.teaser$>
          $endif$
-
          $if(authors)$
          <div class="authors">
          $for(authors)$
@@ -223,6 +222,10 @@ $if(title)$
 
          $if(affiliation)$
          <div class="affiliation"> $affiliation$ </div>
+         $endif$
+
+         $if(date)$
+         <div class="date"> $date$ </div>
          $endif$
       </section>
    $else$ <!-- standard settings -->
@@ -249,6 +252,9 @@ $if(title)$
                    </div>
                 $else$
                    <div style="height:100px"> </div>      
+                $endif$
+                $if(date)$
+                   <div class="date"> $date$ </div>
                 $endif$
                 $if(author)$
                    <div class="author"> $author$ </div>
@@ -288,6 +294,14 @@ $body$
       prepareCodeHighlighting();
       prepareSAGE();
   </script>
+
+$if(decker-engine-base-url)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
+  <script type="module" crossorigin>
+    import {contactEngine} from "./$decker-support-dir$/js/engine.js";
+    contactEngine("$decker-engine-base-url$");
+  </script>
+$endif$
 
 $for(template.include-js)$
 <script src="$template.include-js$"></script>

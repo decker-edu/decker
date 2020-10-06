@@ -189,7 +189,7 @@
 .reveal div.box.columns {
   margin-left: var(--border-decoration-width);
   padding-left: var(--border-decoration-padding);
-  margin-right: calc(var(--border-decoration-padding) + var(--border-decoration-width));
+  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
   /* Now comes the part for the decorated boxes */
   /* Now comes the specification of the indivdual
     color used for the border as decoration */
@@ -228,7 +228,7 @@
   margin-left: 0;
   border-left: var(--border-decoration-width) var(--border-decoration-style) red;
   padding-left: var(--border-decoration-padding);
-  margin-right: calc(var(--border-decoration-padding) + var(--border-decoration-width));
+  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
 }
 
 .reveal div.box.columns.question {
@@ -676,6 +676,10 @@
   padding: 0px;
   font-weight: normal;
   font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.reveal .date {
   text-align: center;
 }
 

@@ -132,7 +132,9 @@ run = do
         " (branch: " ++
         deckerGitBranch ++
         ", commit: " ++
-        deckerGitCommitId ++ ", tag: " ++ deckerGitVersionTag ++ ")"
+        deckerGitCommitId ++
+        ", tag: " ++
+        deckerGitVersionTag ++ ", build date: " ++ deckerBuildDate ++ ")"
       putNormal $ "pandoc version " ++ Text.unpack pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
               --
@@ -155,8 +157,8 @@ run = do
       getTargets >>= needSel decksPdf
               --
     phony "watch" $ do
-      need ["html"]
       watchChangesAndRepeat
+      need ["html"]
               --
     phony "open" $ do
       need ["html"]
@@ -172,11 +174,11 @@ run = do
       liftIO waitForYes
               --
     phony "fast" $ do
+      watchChangesAndRepeat
       need ["support"]
       runHttpServer serverPort Nothing
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
-      watchChangesAndRepeat
               --
     priority 3 $ do
       publicDir <//> "*-deck.html" %> \out -> do
