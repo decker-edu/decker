@@ -425,6 +425,7 @@ function drag(event) {
     }
 
     event.dataTransfer.setData('index', index);
+    event.dataTransfer.setDragImage(event.target, event.target.clientWidth/2, event.target.clientHeight/2);
 }
 
 function drop(event) {
