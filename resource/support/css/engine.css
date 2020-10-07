@@ -26,7 +26,7 @@ div.open-button {
 
   transition-property: visibility;
 
-  font-size: 5vh;
+  font-size: 3vh;
 }
 
 /* Badge for the open button*/
@@ -78,7 +78,7 @@ div.q-panel {
   align-items: stretch;
 
   font-family: "Roboto", Helvetica, sans-serif;
-  font-size: 3vh;
+  font-size: 2.5vh;
   font-weight: normal;
   color: rgba(0, 0, 0, 1);
 
