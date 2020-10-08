@@ -164,7 +164,7 @@ mkFigureTag content caption (id, cs, kvs) =
 inlinesToMarkdown :: [Inline] -> Filter Text
 inlinesToMarkdown [] = return ""
 inlinesToMarkdown inlines = do
-  FilterState options meta <- get
+  FilterState options meta dispo <- get
   case runPure (writeMarkdown options (Pandoc nullMeta [Plain inlines])) of
     Right html -> return html
     Left err -> bug $ PandocException $ "BUG: " <> show err
@@ -178,7 +178,7 @@ inlinesToHtml inlines = blocksToHtml [Plain inlines]
 blocksToHtml :: [Block] -> Filter Html
 blocksToHtml [] = return $ toHtml ("" :: Text)
 blocksToHtml blocks = do
-  FilterState options meta <- get
+  FilterState options meta dispo <- get
   case runPure (writeHtml5 options (Pandoc meta blocks)) of
     Right html -> return html
     Left err -> bug $ PandocException $ "BUG: " <> show err
@@ -187,7 +187,7 @@ blocksToHtml blocks = do
 blocksToMarkdown :: [Block] -> Filter Text
 blocksToMarkdown [] = return ""
 blocksToMarkdown blocks = do
-  FilterState options meta <- get
+  FilterState options meta dispo <- get
   case runPure (writeMarkdown options (Pandoc meta blocks)) of
     Right html -> return html
     Left err -> bug $ PandocException $ "BUG: " <> show err

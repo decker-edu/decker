@@ -10,6 +10,7 @@ import Relude
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Pandoc
 import Text.Pandoc.Walk
@@ -17,10 +18,11 @@ import qualified Text.URI as URI
 
 transformHeader1 :: Block -> Filter Block
 transformHeader1 h1@(Header 1 headAttr inlines)
-  | containsImage inlines =
-    (buildMediaHeader $ lastImage inlines) -- >>= putThrough "buildMediaHeader"
+  | containsImage inlines = do
+    disp <- gets dispo
+    (buildMediaHeader disp $ lastImage inlines) -- >>= putThrough "buildMediaHeader"
   where
-    buildMediaHeader img@(Image imgAttr alt (url, title), rest) = do
+    buildMediaHeader (Disposition Deck Html) (Image imgAttr alt (url, title), rest) = do
       uri <- transformUrl url ""
       runAttrOn headAttr imgAttr $
         case classifyMedia uri imgAttr of
@@ -51,7 +53,12 @@ transformHeader1 h1@(Header 1 headAttr inlines)
             attr <- extractAttr
             return $ Header 1 attr rest
           _ -> return h1
-    buildMediaHeader _ =
+    buildMediaHeader (Disposition Handout Html) (img@(Image imgAttr alt (url, title)), rest) = do
+      uri <- transformUrl url ""
+      runAttrOn headAttr imgAttr $ do
+        attr <- extractAttr
+        return $ Div nullAttr [Header 1 attr rest, Para [img]]
+    buildMediaHeader _ _ =
       bug $ InternalException "transformHeader: no last image in header"
 transformHeader1 h1@(Header 1 (id, cls, kvs) inlines) = do
   local <- adjustAttribPaths bgAttribs kvs

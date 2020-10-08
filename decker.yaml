@@ -13,3 +13,6 @@ exclude-directories:
   - third-party
 static-resource-dirs:
   - test/static
+publish:
+  rsync:
+    destination: henrik@tramberend.beuth-hochschule.de:/var/www/public/decker

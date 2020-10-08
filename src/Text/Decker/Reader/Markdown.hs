@@ -1,12 +1,13 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Reader.Markdown
-  ( readAndFilterMarkdownFile
-  , readDeckerMeta
-  , readMetaData
-  ) where
+  ( readAndFilterMarkdownFile,
+    readDeckerMeta,
+    readMetaData,
+  )
+where
 
 import Control.Exception
 import Control.Monad
@@ -14,27 +15,26 @@ import Control.Monad.Loops
 import qualified Data.List as List
 import qualified Data.Text.IO as Text
 import Development.Shake hiding (Resource)
-import System.FilePath.Posix
 import Relude
 import System.Directory as Dir
+import System.FilePath.Posix
 import Text.CSL.Pandoc
-import Text.Pandoc hiding (lookupMeta)
-
 import Text.Decker.Filter.Decker
-import Text.Decker.Filter.Paths
+import Text.Decker.Filter.Examiner
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Monad
+import Text.Decker.Filter.Paths
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.ShortLink
-import Text.Decker.Filter.Examiner
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
 import Text.Decker.Resource.Template
+import Text.Pandoc hiding (lookupMeta)
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -42,12 +42,12 @@ import Text.Decker.Resource.Template
 readAndFilterMarkdownFile :: Disposition -> Meta -> FilePath -> Action Pandoc
 readAndFilterMarkdownFile disp globalMeta path = do
   let docBase = (takeDirectory path)
-  readMarkdownFile globalMeta path >>= mergeDocumentMeta globalMeta >>=
-    (liftIO . processCites') >>=
-    calcRelativeResourePathes docBase >>=
-    runNewFilter examinerFilter docBase >>=
-    deckerMediaFilter docBase >>=
-    processPandoc deckerPipeline docBase disp Copy
+  readMarkdownFile globalMeta path >>= mergeDocumentMeta globalMeta
+    >>= (liftIO . processCites')
+    >>= calcRelativeResourePathes docBase
+    >>= runNewFilter disp examinerFilter docBase
+    >>= deckerMediaFilter disp docBase
+    >>= processPandoc deckerPipeline docBase disp Copy
 
 -- | Reads a Markdown file from the local file system. Local resource paths are
 -- converted to absolute paths. Additional meta data is read and merged into
@@ -57,11 +57,11 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   putVerbose $ "# --> readMarkdownFile: " <> path
   let base = takeDirectory path
-  parseMarkdownFile path >>= writeBack globalMeta path >>=
-    expandMeta globalMeta base >>=
-    adjustResourcePathsA globalMeta base >>=
-    checkVersion >>=
-    includeMarkdownFiles globalMeta base
+  parseMarkdownFile path >>= writeBack globalMeta path
+    >>= expandMeta globalMeta base
+    >>= adjustResourcePathsA globalMeta base
+    >>= checkVersion
+    >>= includeMarkdownFiles globalMeta base
 
 -- | Parses a Markdown file and throws an exception if something goes wrong.
 parseMarkdownFile :: FilePath -> Action Pandoc
@@ -84,8 +84,8 @@ writeBack meta path pandoc = do
 expandMeta :: Meta -> FilePath -> Pandoc -> Action Pandoc
 expandMeta globalMeta base (Pandoc docMeta content) = do
   expanded <-
-    adjustMetaPaths globalMeta base docMeta >>=
-    readAdditionalMeta globalMeta base
+    adjustMetaPaths globalMeta base docMeta
+      >>= readAdditionalMeta globalMeta base
   return (Pandoc expanded content)
 
 -- | Adjusts meta data values that reference local files needed at run-time (by
@@ -106,8 +106,8 @@ adjustMetaPaths globalMeta base meta = do
 -- variables can be specified in the meta data.
 needMetaTargets :: FilePath -> Meta -> Action Meta
 needMetaTargets base meta = do
-  adjustMetaVariables (adjustR base) (runtimePathVariables meta) meta >>=
-    adjustMetaVariables (adjustC base) (compiletimePathVariables meta)
+  adjustMetaVariables (adjustR base) (runtimePathVariables meta) meta
+    >>= adjustMetaVariables (adjustC base) (compiletimePathVariables meta)
   where
     adjustR base path = do
       let stringPath = toString path
@@ -160,8 +160,8 @@ pathVariables meta =
 compiletimePathVariables :: Meta -> [Text]
 compiletimePathVariables meta =
   List.nub $
-  ["csl", "bibliography", "meta-data", "static-resource-dirs"] <>
-  lookupMetaOrElse [] "compiletime-path-variables" meta
+    ["csl", "bibliography", "meta-data", "static-resource-dirs"]
+      <> lookupMetaOrElse [] "compiletime-path-variables" meta
 
 runtimePathVariables :: Meta -> [Text]
 runtimePathVariables meta =
@@ -209,7 +209,6 @@ readDeckerMeta file = do
 --    a) Call need on every dependency.
 --    b) Provision the resources (copy to public)
 -- 4. Remove all traces of this from the meta data
---
 runDeckerFilter :: (Pandoc -> IO Pandoc) -> FilePath -> Pandoc -> Action Pandoc
 runDeckerFilter filter docBase pandoc@(Pandoc docMeta blocks) = do
   let deckerMeta = setMetaValue "decker.base-dir" docBase docMeta
@@ -217,46 +216,48 @@ runDeckerFilter filter docBase pandoc@(Pandoc docMeta blocks) = do
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
   return (Pandoc docMeta resultBlocks)
 
-runNewFilter :: (Pandoc -> Filter Pandoc) -> FilePath -> Pandoc -> Action Pandoc
-runNewFilter filter docBase pandoc@(Pandoc docMeta blocks) = do
+runNewFilter :: Disposition -> (Pandoc -> Filter Pandoc) -> FilePath -> Pandoc -> Action Pandoc
+runNewFilter dispo filter docBase pandoc@(Pandoc docMeta blocks) = do
   let deckerMeta = setMetaValue "decker.base-dir" docBase docMeta
   (Pandoc resultMeta resultBlocks) <-
-    liftIO $ runFilter pandocWriterOpts filter (Pandoc deckerMeta blocks)
+    liftIO $ runFilter dispo pandocWriterOpts filter (Pandoc deckerMeta blocks)
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
   return (Pandoc docMeta resultBlocks)
 
--- | Runs the new decker media filter.
-deckerMediaFilter docBase = runDeckerFilter (mediaFilter options) docBase
+-- |  Runs the new decker media filter.
+deckerMediaFilter :: Disposition -> String -> Pandoc -> Action Pandoc
+deckerMediaFilter dispo docBase = runDeckerFilter (mediaFilter dispo options) docBase
   where
     options =
       def
-        { writerTemplate = Nothing
-        , writerHTMLMathMethod = MathJax "Handled by reveal.js in the template"
-        , writerExtensions =
+        { writerTemplate = Nothing,
+          writerHTMLMathMethod = MathJax "Handled by reveal.js in the template",
+          writerExtensions =
             (enableExtension Ext_auto_identifiers . enableExtension Ext_emoji)
-              pandocExtensions
-        , writerCiteMethod = Citeproc
+              pandocExtensions,
+          writerCiteMethod = Citeproc
         }
 
--- | The old style decker filter pipeline.
+-- |  The old style decker filter pipeline.
 deckerPipeline =
   concatM
-    [ evaluateShortLinks
-    , expandDeckerMacros
-                                                        -- , renderCodeBlocks
-    , includeCode
-                                                        -- , provisionResources
-    , processSlides
-    , handleQuizzes
+    [ evaluateShortLinks,
+      expandDeckerMacros,
+      -- , renderCodeBlocks
+      includeCode,
+      -- , provisionResources
+      processSlides,
+      handleQuizzes
     ] -- , processCitesWithDefault
 
--- | Writes a pandoc document atomically to a markdown file. 
+-- | Writes a pandoc document atomically to a markdown file.
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
 writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   template <-
     liftIO
-      (compileTemplate "" "$if(titleblock)$\n$titleblock$\n\n$endif$\n\n$body$" >>=
-       handleLeftM)
+      ( compileTemplate "" "$if(titleblock)$\n$titleblock$\n\n$endif$\n\n$body$"
+          >>= handleLeftM
+      )
   let columns = lookupMetaOrElse 80 "write-back.line-columns" pmeta
   let wrapOpt :: Text -> WrapOption
       wrapOpt "none" = WrapNone
@@ -264,18 +265,20 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
       wrapOpt _ = WrapAuto
   let wrap = lookupMetaOrElse "none" "write-back.line-wrap" pmeta
   let extensions =
-        (disableExtension Ext_simple_tables .
-         disableExtension Ext_multiline_tables .
-         disableExtension Ext_grid_tables .
-         disableExtension Ext_raw_html . enableExtension Ext_auto_identifiers)
+        ( disableExtension Ext_simple_tables
+            . disableExtension Ext_multiline_tables
+            . disableExtension Ext_grid_tables
+            . disableExtension Ext_raw_html
+            . enableExtension Ext_auto_identifiers
+        )
           pandocExtensions
   let options =
         def
-          { writerTemplate = Just template
-          , writerExtensions = extensions
-          , writerColumns = columns
-          , writerWrapText = wrapOpt wrap
-          , writerSetextHeaders = False
+          { writerTemplate = Just template,
+            writerExtensions = extensions,
+            writerColumns = columns,
+            writerWrapText = wrapOpt wrap,
+            writerSetextHeaders = False
           }
   markdown <- liftIO $ runIO (writeMarkdown options pandoc) >>= handleError
   fileContent <- liftIO $ Text.readFile filepath

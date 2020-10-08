@@ -58,13 +58,13 @@ tripletwise _ xs = return xs
 
 -- | Runs the document through the four increaingly detailed filter stages. The
 -- matching granularity ranges from list of blocks to single inline elements.
-mediaFilter :: WriterOptions -> Pandoc -> IO Pandoc
-mediaFilter options pandoc =
-  runFilter options transformHeader1 pandoc
-    >>= runFilter options mediaBlockListFilter
-    >>= runFilter options mediaInlineListFilter
-    >>= runFilter options mediaBlockFilter
-    >>= runFilter options mediaInlineFilter
+mediaFilter :: Disposition -> WriterOptions -> Pandoc -> IO Pandoc
+mediaFilter dispo options pandoc =
+  runFilter dispo options transformHeader1 pandoc
+    >>= runFilter dispo options mediaBlockListFilter
+    >>= runFilter dispo options mediaInlineListFilter
+    >>= runFilter dispo options mediaBlockFilter
+    >>= runFilter dispo options mediaInlineFilter
 
 -- | Filters lists of Blocks that can match in pairs or triplets.
 --
@@ -140,21 +140,22 @@ mediaInlineFilter inline = return inline
 -- and meta data via `gets` and `puts`.
 runFilter ::
   Walkable a Pandoc =>
+    Disposition ->
   WriterOptions ->
   (a -> Filter a) ->
   Pandoc ->
   IO Pandoc
-runFilter options filter pandoc@(Pandoc meta _) = do
-  (Pandoc _ blocks, FilterState _ meta) <-
-    runStateT (walkM filter pandoc) (FilterState options meta)
+runFilter dispo options filter pandoc@(Pandoc meta _) = do
+  (Pandoc _ blocks, FilterState _ meta dispo) <-
+    runStateT (walkM filter pandoc) (FilterState options meta dispo)
   return $ Pandoc meta blocks
 
 -- Runs a filter on any Walkable structure. Does not carry transformed meta
 -- data over if chained. Mainly for writing tests.
 runFilter' ::
-  Walkable a b => WriterOptions -> Meta -> (a -> Filter a) -> b -> IO b
-runFilter' options meta filter x =
-  evalStateT (walkM filter x) (FilterState options meta)
+  Walkable a b => Disposition -> WriterOptions -> Meta -> (a -> Filter a) -> b -> IO b
+runFilter' dispo options meta filter x =
+  evalStateT (walkM filter x) (FilterState options meta dispo)
 
 extIn :: Maybe Text -> [Text] -> Bool
 extIn (Just ext) list = ext `elem` list

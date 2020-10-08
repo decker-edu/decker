@@ -34,12 +34,12 @@ filterMeta = do
 -- | Constructs a filter runner with default parameters
 testFilter b f = do
   meta <- filterMeta
-  runFilter' def meta b f
+  runFilter' (Disposition Deck Html) def meta b f
 
 doFilter :: Filter Inline -> IO Inline
 doFilter action = do
   meta <- filterMeta
-  fst <$> runStateT (action) (FilterState def meta)
+  fst <$> runStateT (action) (FilterState def meta dispo)
 
 mediaTests = do
   describe "pairwise" $
