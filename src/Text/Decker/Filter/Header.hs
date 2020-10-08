@@ -10,6 +10,8 @@ import Relude
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
+import Text.Decker.Filter.Util
+import Text.Decker.Filter.Image
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Pandoc
@@ -55,9 +57,10 @@ transformHeader1 h1@(Header 1 headAttr inlines)
           _ -> return h1
     buildMediaHeader (Disposition Handout Html) (img@(Image imgAttr alt (url, title)), rest) = do
       uri <- transformUrl url ""
+      image <- transformImage img alt
       runAttrOn headAttr imgAttr $ do
         attr <- extractAttr
-        return $ Div nullAttr [Header 1 attr rest, Para [img]]
+        return $ Div nullAttr [Header 1 attr rest, forceBlock image]
     buildMediaHeader _ _ =
       bug $ InternalException "transformHeader: no last image in header"
 transformHeader1 h1@(Header 1 (id, cls, kvs) inlines) = do

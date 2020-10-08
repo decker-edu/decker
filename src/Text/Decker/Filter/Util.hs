@@ -1,16 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Text.Decker.Filter.Util
-  ( attToString
-  , convertToStyle
-  , revealjsSpecialAttrs
-  , revealjsRewriteAttr
-  , classToRevealAttr
-  , toHtml
-  , toBlockHtml
-  , addToAtt
-  , addToStyle
-  ) where
+module Text.Decker.Filter.Util where
 
 import Data.List (partition)
 import qualified Data.Text as Text
@@ -19,7 +9,7 @@ import Text.Pandoc.Definition
 -- | adds a given String to the list if not in there; Does nothing if the
 --   given String is already present.
 addToAtt :: Eq a => a -> [a] -> [a]
-addToAtt toAdd (a:as)
+addToAtt toAdd (a : as)
   | a == toAdd = toAdd : as
   | otherwise = a : addToAtt toAdd as
 addToAtt toAdd [] = [toAdd]
@@ -30,14 +20,15 @@ addToAtt toAdd [] = [toAdd]
 --   Useful when trying to add CSS-styles directly to (generated) elements
 addToStyle :: Text.Text -> [(Text.Text, Text.Text)] -> [(Text.Text, Text.Text)]
 -- we are looking for style and inject
-addToStyle toAdd (("style", val):as) =
-  ( "style"
-  , if toAdd `Text.isInfixOf` val
+addToStyle toAdd (("style", val) : as) =
+  ( "style",
+    if toAdd `Text.isInfixOf` val
       then val
-      else Text.concat [val, " ", toAdd]) :
+      else Text.concat [val, " ", toAdd]
+  ) :
   as
 -- if we land here the current one is not style -> skip
-addToStyle toAdd (a:as) = a : addToStyle toAdd as
+addToStyle toAdd (a : as) = a : addToStyle toAdd as
 -- if we land here we have no more to skip -> add
 addToStyle toAdd [] = [("style", toAdd)]
 
@@ -48,21 +39,21 @@ addToStyle toAdd [] = [("style", toAdd)]
 attToString :: Attr -> Text.Text
 attToString ("", classes, kvpairs) =
   Text.concat
-    [ "class=\""
-    , Text.unwords classes
-    , "\" "
-    , Text.unwords ((\(k, v) -> Text.concat [k, "=\"", v, "\""]) <$> kvpairs')
+    [ "class=\"",
+      Text.unwords classes,
+      "\" ",
+      Text.unwords ((\(k, v) -> Text.concat [k, "=\"", v, "\""]) <$> kvpairs')
     ]
   where
     kvpairs' = convertToStyle ["width", "height", "transform"] kvpairs
 attToString (id', classes, kvpairs) =
   Text.concat
-    [ "id=\""
-    , id'
-    , "\" class=\""
-    , Text.unwords classes
-    , "\" "
-    , Text.unwords ((\(k, v) -> Text.concat [k, "=\"", v, "\""]) <$> kvpairs')
+    [ "id=\"",
+      id',
+      "\" class=\"",
+      Text.unwords classes,
+      "\" ",
+      Text.unwords ((\(k, v) -> Text.concat [k, "=\"", v, "\""]) <$> kvpairs')
     ]
   where
     kvpairs' = convertToStyle ["width", "height", "transform"] kvpairs
@@ -70,7 +61,7 @@ attToString (id', classes, kvpairs) =
 -- | helper function for 'attToString', but can also be used
 --   if you want to extract styles from kv-pair
 convertToStyle ::
-     [Text.Text] -> [(Text.Text, Text.Text)] -> [(Text.Text, Text.Text)]
+  [Text.Text] -> [(Text.Text, Text.Text)] -> [(Text.Text, Text.Text)]
 convertToStyle keys kvpairs = ("style", newstyle) : rest
   where
     oldstyle =
@@ -82,8 +73,8 @@ convertToStyle keys kvpairs = ("style", newstyle) : rest
     newstyle =
       Text.concat
         [ Text.concat $
-          map (\(k, v) -> Text.concat [k, ":", v, ";"]) stylesToAdd
-        , oldstyle
+            map (\(k, v) -> Text.concat [k, ":", v, ";"]) stylesToAdd,
+          oldstyle
         ]
 
 -- | revealjs has some special attributes that has to be
@@ -97,18 +88,18 @@ convertToStyle keys kvpairs = ("style", newstyle) : rest
 --   is a wrapper for splitting the class-attribute
 revealjsSpecialAttrs :: [Text.Text]
 revealjsSpecialAttrs =
-  [ "data-markdown"
-  , "data-timing"
-  , "data-template"
-  , "data-autoplay"
-  , "data-prevent-swipe"
-  , "data-background-interactive"
-  , "data-trim"
-  , "data-noescape"
-  , "data-ignore"
-  , "controls"
-  , "loop"
-  , "muted"
+  [ "data-markdown",
+    "data-timing",
+    "data-template",
+    "data-autoplay",
+    "data-prevent-swipe",
+    "data-background-interactive",
+    "data-trim",
+    "data-noescape",
+    "data-ignore",
+    "controls",
+    "loop",
+    "muted"
   ]
 
 -- | revealjs has some special attributes that has to be
@@ -147,3 +138,13 @@ toHtml = RawInline (Format "html")
 --   intent is more clear.
 toBlockHtml :: Text.Text -> Block
 toBlockHtml = RawBlock (Format "html")
+
+forceBlock :: Inline -> Block
+forceBlock (RawInline format html) = RawBlock format html
+forceBlock inline = Plain [inline]
+
+oneImagePerLine :: [[Inline]] -> Bool
+oneImagePerLine inlines = all isImage $ concat inlines
+
+isImage Image {} = True
+isImage _ = False

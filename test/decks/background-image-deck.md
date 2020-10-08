@@ -23,7 +23,7 @@ title: Background Images
 # RevealJs Style {data-background-image="include/06-metal.png"}
 ```
 
-# Image in Title 1 ![](include/06-metal.png)
+# Image in Title 1 ![This caption is only visible in handouts](include/06-metal.png)
 
 ## Source
 
