@@ -189,7 +189,7 @@
 .reveal div.box.columns {
   margin-left: var(--border-decoration-width);
   padding-left: var(--border-decoration-padding);
-  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
+  margin-right: calc(var(--border-decoration-padding) + var(--border-decoration-width));
   /* Now comes the part for the decorated boxes */
   /* Now comes the specification of the indivdual
     color used for the border as decoration */
@@ -228,7 +228,7 @@
   margin-left: 0;
   border-left: var(--border-decoration-width) var(--border-decoration-style) red;
   padding-left: var(--border-decoration-padding);
-  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
+  margin-right: calc(var(--border-decoration-padding) + var(--border-decoration-width));
 }
 
 .reveal div.box.columns.question {
@@ -679,10 +679,6 @@
   text-align: center;
 }
 
-.reveal .date {
-  text-align: center;
-}
-
 .reveal .title-page .teaser-img {
   margin: 20px auto;
   height: 10%;
@@ -697,6 +693,10 @@
   object-fit: contain;
   max-height: 250px;
   width: auto;
+}
+
+.reveal .title-page .date {
+  text-align: center;
 }
 
 .reveal .title-page .author {
@@ -1331,4 +1331,28 @@ dd {
   opacity: 1.0;
   color: var(--whiteboard-active-color);
   background-color: rgba(255, 255, 255, 0.8);
+}
+
+/*********************************************
+ * MARIO: menu icon in top left corner
+ *********************************************/
+.reveal .slide-menu-button {
+  position: fixed;
+  left: calc(var(--whiteboard-icon-size) * 0.25);
+  top: calc(var(--whiteboard-icon-size) * 0.25);
+  bottom: auto;
+  right: auto;
+  padding: 0;
+  margin: auto;
+  z-index: 40;
+  background: none;
+  font-size: var(--whiteboard-icon-size);
+  padding: calc(var(--whiteboard-icon-size) * 0.5);
+  opacity: 0.5;
+  color: var(--whiteboard-inactive-color);
+}
+
+.reveal .slide-menu-button:hover {
+  opacity: 1.0;
+  color: var(--whiteboard-active-color);
 }
