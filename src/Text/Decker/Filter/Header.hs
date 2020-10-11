@@ -10,7 +10,6 @@ import Relude
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
-import Text.Decker.Filter.Util
 import Text.Decker.Filter.Image
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
@@ -60,7 +59,7 @@ transformHeader1 h1@(Header 1 headAttr inlines)
       image <- transformImage img alt
       runAttrOn headAttr imgAttr $ do
         attr <- extractAttr
-        return $ Div nullAttr [Header 1 attr rest, forceBlock image]
+        return $ Div nullAttr [Header 1 attr rest, Div nullAttr [Plain [image]]]
     buildMediaHeader _ _ =
       bug $ InternalException "transformHeader: no last image in header"
 transformHeader1 h1@(Header 1 (id, cls, kvs) inlines) = do
@@ -69,12 +68,15 @@ transformHeader1 h1@(Header 1 (id, cls, kvs) inlines) = do
 transformHeader1 h@Header {} = return h
 transformHeader1 block = return block
 
+-- | Returns true, if the list contains an image.
 containsImage :: [Inline] -> Bool
 containsImage = getAny . query check
   where
     check Image {} = Any True
     check _ = Any False
 
+-- Returns the last image from a list of inlines, zaps all others and returns
+-- the rest. Throws if there is no image.
 lastImage :: [Inline] -> (Inline, [Inline])
 lastImage inlines =
   (fromJust $ listToMaybe $ reverse $ query image inlines, zapImages inlines)
@@ -82,6 +84,7 @@ lastImage inlines =
     image i@(Image {}) = [i]
     image _ = []
 
+-- | Replaces all images with spaces.
 zapImages :: [Inline] -> [Inline]
 zapImages = walk zap
   where
