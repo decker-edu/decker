@@ -1,4 +1,4 @@
-export { contactEngine };
+export {contactEngine};
 
 // TODO Make into a proper Reveal plugin
 
@@ -356,6 +356,7 @@ async function buildInterface(api, initialToken) {
         credentials.classList.remove("visible");
       } else {
         credentials.classList.add("visible");
+        username.focus();
       }
     }
   });
@@ -363,28 +364,19 @@ async function buildInterface(api, initialToken) {
   password.addEventListener("keydown", e => {
     if (e.key !== "Enter") return;
 
-    if (login.classList.contains("admin")) {
-      serverToken.admin = null;
-      username.value = "";
-      password.value = "";
-      login.classList.remove("admin");
-      credentials.classList.remove("visible");
-      updateComments();
-    } else {
-      api
-        .getLogin({ login: username.value, password: password.value })
-        .then(token => {
-          serverToken.admin = token.admin;
-          login.classList.add("admin");
-          username.value = "";
-          password.value = "";
-          credentials.classList.remove("visible");
-          updateComments();
-        })
-        .catch(e => {
-          password.value = "";
-        });
-    }
+    api
+      .getLogin({login: username.value, password: password.value})
+      .then(token => {
+        updateComments();
+      })
+      .catch(e => {
+        console.log("Login failed");
+      })
+      .finally(() => {
+        username.value = "";
+        password.value = "";
+        credentials.classList.remove("visible");
+      });
   });
 
   if (!(serverToken && serverToken.authorized)) {
