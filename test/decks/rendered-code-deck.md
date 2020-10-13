@@ -1,6 +1,5 @@
 ---
 title: Rendered Code Blocks
-history: True
 ---
 
 # Rendered Code Blocks

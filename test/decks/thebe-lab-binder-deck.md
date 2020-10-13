@@ -1,6 +1,5 @@
 ---
 height: 500.0
-history: true
 margin: 0.0
 maxScale: 1.0
 minScale: 1.0
