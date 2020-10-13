@@ -45,7 +45,9 @@ lazyload:
 
 water.css:
 	@mkdir -p $(support)/css
-	@cp $(third)/water.css/dist/light.min.css $(support)/css
+	(cd water.css && yarn build)
+	@cp $(third)/water.css/out/*.min.css $(support)/css
+	chmod a-x $(support)/css/*
 
 fontawesome:
 	@mkdir -p $(support)/fontawesome $(support)/fontawesome/css
