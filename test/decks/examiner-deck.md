@@ -1,6 +1,7 @@
 ---
 lang: de
 title: Examiner Questions Import
+zoom: false
 ---
 
 # Overview {.columns}

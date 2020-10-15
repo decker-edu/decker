@@ -329,6 +329,13 @@ section > figure:last-of-type {
   padding-right: var(--border-decoration-padding);
 }
 
+div.exa-quest {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
+}
+
 ol,
 dl,
 ul {
@@ -909,6 +916,10 @@ header > *:first-child {
 
 header > *:last-child {
   margin-bottom: 0;
+}
+
+table {
+  table-layout: auto;
 }
 
 ::-webkit-scrollbar {

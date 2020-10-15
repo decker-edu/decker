@@ -94,6 +94,10 @@ header > *:last-child {
   margin-bottom: 0;
 }
 
+table {
+    table-layout: auto;
+}
+
 ::-webkit-scrollbar {
   display: none;
 }

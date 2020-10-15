@@ -58,16 +58,36 @@ div.exa-quest button:hover {
   background-color: #ddd;
 }
 
-div.exa-quest[data-solved] button {
+div.exa-quest button:active {
+  background-color: darkgray;
+}
+
+div.exa-quest button.solve {
+  display: inline;
+}
+
+div.exa-quest button.again {
   display: none;
+}
+
+div.exa-quest[data-solved] button.solve {
+  display: none;
+}
+
+div.exa-quest[data-solved] button.again {
+  display: inline;
 }
 
 div.exa-quest div.score {
   display: none;
 }
 
+div.exa-quest div.score span:first-child::after {
+  content: ": ";
+}
+
 div.exa-quest[data-solved] div.score {
-  display: block;
+  display: inline;
 }
 
 div.exa-quest p,
@@ -79,7 +99,7 @@ div.exa-quest h2 {
 
 div.exa-quest div.exa-mc {
   margin: 0em;
-  padding-left: 1em;
+  padding-left: 0.5em;
   padding-top: 0.3em;
   padding-bottom: 1em;
 }
@@ -101,59 +121,73 @@ div.exa-mc div.choice p {
 }
 
 div.exa-mc div.choice div.check-box {
-  display: inline-block;
   flex-basis: auto;
-  width: 1.2em;
-  height: 1.2em;
-  background-size: cover;
+  white-space: nowrap;
   vertical-align: middle;
-  border: 1px solid rgba(0, 0, 0, 0);
 }
 
-div.exa-mc div.choice div.check-box:hover {
+div.exa-mc i.correct {
+  color: darkgreen;
+  width: 1.3em;
+  text-align: center;
+  visibility: hidden;
+}
+
+div.exa-mc i.wrong {
+  color: darkred;
+  width: 1.3em;
+  text-align: center;
+  visibility: hidden;
+}
+
+div.exa-mc div.choice div.check-box span:hover {
   background-color: lightgrey;
 }
 
-div.exa-quest[data-solved] div.exa-mc div.choice div.check-box:hover {
+div.exa-quest[data-solved] div.exa-mc div.choice div.check-box span:hover {
   background-color: transparent;
 }
 
-div.exa-mc div.choice div.check-box:active {
+div.exa-mc div.choice div.check-box span:active {
   background-color: grey;
+}
+
+div.exa-mc i.checked {
+  display: none;
+}
+
+div.exa-mc i.unchecked {
+  display: inline;
 }
 
 div.exa-quest[data-solved] div.exa-mc div.choice div.check-box:active {
   background-color: transparent;
 }
 
-div.exa-mc div.choice div.check-box {
-  background-image: url("../assets/check-box-0.svg");
+/* Box has been checked */
+div.exa-mc div.choice div.check-box[data-checked] i.checked {
+  display: inline;
+}
+div.exa-mc div.choice div.check-box[data-checked] i.unchecked {
+  display: none;
 }
 
-div.exa-mc div.choice div.check-box[data-checked] {
-  background-image: url("../assets/check-box-1.svg");
-}
-
-div.exa-quest[data-solved] div.exa-mc div.choice.correct div.check-box {
-  background-image: url("../assets/check-box-0w.svg");
-}
-
-div.exa-quest[data-solved]
-  div.exa-mc
-  div.choice.wrong
-  div.check-box[data-checked] {
-  background-image: url("../assets/check-box-1w.svg");
-}
-
-div.exa-quest[data-solved] div.exa-mc div.choice.wrong div.check-box {
-  background-image: url("../assets/check-box-0c.svg");
-}
-
+/* Correct answer has been checked */
 div.exa-quest[data-solved]
   div.exa-mc
   div.choice.correct
-  div.check-box[data-checked] {
-  background-image: url("../assets/check-box-1c.svg");
+  div.check-box[data-checked]
+  i.correct {
+  visibility: visible;
+}
+
+/* Wrong answer has been checked */
+div.exa-quest[data-solved]
+  div.exa-mc
+  div.choice.wrong
+  div.check-box[data-checked]
+  i.wrong {
+  visibility: visible;
 }
 
 div.exa-ff {
@@ -184,9 +218,28 @@ div.exa-quest[data-solved] div.exa-ff div.solution {
   display: block;
 }
 
-div.exa-ma {
+table.exa-ma i.correct {
+  color: darkgreen;
+  width: 1.3em;
+  text-align: center;
+  display: none;
+}
+
+table.exa-ma i.wrong {
+  color: darkred;
+  width: 1.3em;
+  text-align: center;
+  display: none;
+}
+
+table.exa-ma td.result {
+  width: 1em;
+  text-align: center;
+}
+
+table.exa-ma {
   margin: 0em;
-  padding-left: 1em;
+  padding-left: 0em;
   padding-top: 0.3em;
 }
 
@@ -194,10 +247,10 @@ table.exa-ma tr.detail td {
   border: none;
 }
 
-table.exa-ma tr.detail[data-right] {
-  background-color: #4f4;
+table.exa-ma tr.detail[data-right] i.correct {
+  display: inline;
 }
 
-table.exa-ma tr.detail[data-wrong] {
-  background-color: #f44;
+table.exa-ma tr.detail[data-wrong] i.wrong {
+  display: inline;
 }

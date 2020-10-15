@@ -1,14 +1,19 @@
-{-# LANGUAGE NoImplicitPrelude, TemplateHaskell, OverloadedStrings,
-  DeriveGeneric, DeriveFunctor, DeriveTraversable #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Examiner
-  ( Question(..)
-  , Answer(..)
-  , Choice(..)
-  , OneAnswer(..)
-  , Difficulty(..)
-  , examinerFilter
-  ) where
+  ( Question (..),
+    Answer (..),
+    Choice (..),
+    OneAnswer (..),
+    Difficulty (..),
+    examinerFilter,
+  )
+where
 
 import Control.Exception
 import Data.Aeson.TH
@@ -21,47 +26,55 @@ import Relude
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Text.Pandoc
-import Text.Pandoc.Walk
-import qualified Text.URI as URI
-
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Paths
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
+import Text.Pandoc
+import Text.Pandoc.Walk
+import qualified Text.URI as URI
 
 data Question = Question
-  { qstTopicId :: Text
-  , qstLectureId :: Text
-  , qstTitle :: Text
-  , qstPoints :: Int
-  , qstQuestion :: Text
-  , qstAnswer :: Answer
-  , qstDifficulty :: Difficulty
-  , qstComment :: Text
-  , qstCurrentNumber :: Int
-  , qstFilePath :: String
-  } deriving (Eq, Show, Typeable, Generic)
+  { qstTopicId :: Text,
+    qstLectureId :: Text,
+    qstTitle :: Text,
+    qstPoints :: Int,
+    qstQuestion :: Text,
+    qstAnswer :: Answer,
+    qstDifficulty :: Difficulty,
+    qstComment :: Text,
+    qstCurrentNumber :: Int,
+    qstFilePath :: String
+  }
+  deriving (Eq, Show, Typeable, Generic)
 
 data Choice = Choice
-  { choiceTheAnswer :: Text
-  , choiceCorrect :: Bool
-  } deriving (Eq, Show, Typeable)
+  { choiceTheAnswer :: Text,
+    choiceCorrect :: Bool
+  }
+  deriving (Eq, Show, Typeable)
 
 data OneAnswer = OneAnswer
-  { oneDetail :: Text
-  , oneCorrect :: Text
-  } deriving (Eq, Show, Typeable)
+  { oneDetail :: Text,
+    oneCorrect :: Text
+  }
+  deriving (Eq, Show, Typeable)
 
 data Answer
-  = MultipleChoice { answChoices :: [Choice] }
-  | FillText { answFillText :: Text
-             , answCorrectWords :: [Text] }
-  | FreeForm { answHeightInMm :: Int
-             , answCorrectAnswer :: Text }
-  | MultipleAnswers { answWidthInMm :: Int
-                    , answAnswers :: [OneAnswer] }
+  = MultipleChoice {answChoices :: [Choice]}
+  | FillText
+      { answFillText :: Text,
+        answCorrectWords :: [Text]
+      }
+  | FreeForm
+      { answHeightInMm :: Int,
+        answCorrectAnswer :: Text
+      }
+  | MultipleAnswers
+      { answWidthInMm :: Int,
+        answAnswers :: [OneAnswer]
+      }
   deriving (Eq, Show, Typeable)
 
 data Difficulty
@@ -84,14 +97,14 @@ instance ToJSON Question where
 
 instance FromJSON Question where
   parseJSON (Object q) =
-    Question <$> q .: "TopicId" <*> q .: "LectureId" <*> q .: "Title" <*>
-    q .: "Points" <*>
-    q .: "Question" <*>
-    q .: "Answer" <*>
-    q .: "Difficulty" <*>
-    q .: "Comment" <*>
-    q .:? "CurrentNumber" .!= 0 <*>
-    q .:? "FilePath" .!= "."
+    Question <$> q .: "TopicId" <*> q .: "LectureId" <*> q .: "Title"
+      <*> q .: "Points"
+      <*> q .: "Question"
+      <*> q .: "Answer"
+      <*> q .: "Difficulty"
+      <*> q .: "Comment"
+      <*> q .:? "CurrentNumber" .!= 0
+      <*> q .:? "FilePath" .!= "."
   parseJSON invalid = typeMismatch "Question" invalid
 
 $(deriveJSON defaultOptions ''Difficulty)
@@ -103,8 +116,8 @@ readQuestion file = do
     Right question -> return question
     Left exception ->
       throw $
-      YamlException $
-      "Error parsing question: " ++ file ++ ", " ++ show exception
+        YamlException $
+          "Error parsing question: " ++ file ++ ", " ++ show exception
 
 -- | Renders a question to Pandoc AST.
 --
@@ -113,37 +126,43 @@ readQuestion file = do
 renderQuestion :: Meta -> FilePath -> Question -> Block
 renderQuestion meta base qst =
   Div
-    ( ""
-    , ["exa-quest"]
-    , [ ("data-points", show $ qstPoints qst)
-      , ("data-difficulty", show $ qstDifficulty qst)
-      , ("data-topic-id", show $ qstTopicId qst)
-      , ("data-lecture-id", show $ qstLectureId qst)
-      ])
-    ([ Div
-         ( ""
-         , ["difficulty"]
-         , [ ( "title"
-             , lookupInDictionary ("exam." <> (show $ qstDifficulty qst)) meta)
-           ])
-         []
-     ] <>
-     (rawHtml' $ H.h2 $ toHtml $ qstTitle qst) <>
-     [Div ("", ["question"], []) $ parseToBlocks base (qstQuestion qst)] <>
-     renderAnswer (qstAnswer qst) <>
-     [ rawHtml' $
-       H.div $ do
-         H.button $ toHtml $ lookupInDictionary "exam.solve-button" meta
-         H.div ! A.class_ "score" $
-           toHtml $ (lookupInDictionary "exam.points" meta <> ": ")
-     ])
+    ( "",
+      ["exa-quest"],
+      [ ("data-points", show $ qstPoints qst),
+        ("data-difficulty", show $ qstDifficulty qst),
+        ("data-topic-id", show $ qstTopicId qst),
+        ("data-lecture-id", show $ qstLectureId qst)
+      ]
+    )
+    ( [ Div
+          ( "",
+            ["difficulty"],
+            [ ( "title",
+                lookupInDictionary ("exam." <> (show $ qstDifficulty qst)) meta
+              )
+            ]
+          )
+          []
+      ]
+        <> (rawHtml' $ H.h2 $ toHtml $ qstTitle qst)
+        <> [Div ("", ["question"], []) $ parseToBlocks base (qstQuestion qst)]
+        <> renderAnswer (qstAnswer qst)
+        <> [ rawHtml' $
+               H.div $ do
+                 H.button ! A.class_ "solve" $ toHtml $ lookupInDictionary "exam.solve-button" meta
+                 H.button ! A.class_ "again" $ toHtml $ lookupInDictionary "exam.again-button" meta
+                 H.div ! A.class_ "score" $ do
+                   H.span $ toHtml $ (lookupInDictionary "exam.points" meta)
+                   H.span ! A.class_ "display" $ ""
+           ]
+    )
   where
     correct (Choice _ True) = "correct"
     correct (Choice _ False) = "wrong"
     renderChoice c =
       [ Div ("", ["choice", correct c], []) $
-        Div ("", ["check-box"], []) [] :
-        [Div ("", ["content"], []) $ parseToBlocks base (choiceTheAnswer c)]
+          Div ("", ["check-box"], []) [] :
+          [Div ("", ["content"], []) $ parseToBlocks base (choiceTheAnswer c)]
       ]
     renderAnswer (MultipleChoice choices) =
       [Div ("", ["answer", "exa-mc"], []) $ concatMap renderChoice choices]
@@ -153,29 +172,30 @@ renderQuestion meta base qst =
       [ Div
           ("", ["answer", "exa-ff"], [])
           [ rawHtml' $
-            H.textarea ! A.class_ "answer" !
-            A.placeholder (toValue $ lookupInDictionary "exam.placeholder" meta) !
-            A.rows (show height) $
-            ""
-          , Div
+              H.textarea ! A.class_ "answer"
+                ! A.placeholder (toValue $ lookupInDictionary "exam.placeholder" meta)
+                ! A.rows (show height)
+                $ "",
+            Div
               ("", ["solution"], [])
               [ rawHtml' $
-                H.h3 (toHtml $ lookupInDictionary "exam.solution" meta)
-              , Div ("", ["correct"], []) $ parseToBlocks base answer
+                  H.h3 (toHtml $ lookupInDictionary "exam.solution" meta),
+                Div ("", ["correct"], []) $ parseToBlocks base answer
               ]
           ]
       ]
-    -- For now, use OS drop-downs. Later maybe use https://github.com/vorotina/vanilla-select.
+    -- For now, use OS drop-downs. Later maybe use
+    -- https://github.com/vorotina/vanilla-select.
     renderAnswer (MultipleAnswers width answers) =
       let select = H.select $ H.optgroup $ toHtml $ map mkOption answers
           mkOption (OneAnswer _ correct) = H.option $ toHtml correct
           mkDetail (OneAnswer detail correct) =
             H.tr ! A.class_ "detail" ! dataAttribute "correct" (toValue correct) $
-            toHtml [H.td $ toHtml detail, H.td select]
+              toHtml [H.td ! A.class_ "result" $ "", H.td $ toHtml detail, H.td select]
        in rawHtml' $
-          H.table ! A.class_ "answer exa-ma" $
-          H.tbody $
-          toHtml $ map mkDetail $ filter (not . Text.null . oneDetail) answers
+            H.table ! A.class_ "answer exa-ma" $
+              H.tbody $
+                toHtml $ map mkDetail $ filter (not . Text.null . oneDetail) answers
 
 {--
 toQuiz :: Question -> IO Quiz.Quiz
@@ -224,8 +244,8 @@ parseToBlock base text = do
     [block] -> block
     _ ->
       throw $
-      InternalException $
-      "cannot parse Markdown to a single block: " <> toString text
+        InternalException $
+          "cannot parse Markdown to a single block: " <> toString text
 
 parseToInlines :: FilePath -> Text -> [Inline]
 parseToInlines base text = toInlines $ parseToBlock base text

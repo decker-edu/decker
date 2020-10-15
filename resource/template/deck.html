@@ -624,7 +624,9 @@ $endif$
               { src: String.raw`$decker-support-dir$/plugins/charts/csv2chart.js`},
               { src: String.raw`$decker-support-dir$/plugins/math/math.js` },
               { src: String.raw`$decker-support-dir$/plugins/whiteboard/whiteboard.js`},
+$if(zoom)$
               { src: String.raw`$decker-support-dir$/plugins/zoom/zoom.js` },
+$endif$
               { src: String.raw`$decker-support-dir$/plugins/print/print.js` },
               { src: String.raw`$decker-support-dir$/plugins/search/search.js`, async: true },
 $if(highlightjs)$
