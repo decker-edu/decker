@@ -3,7 +3,6 @@ bibliography: example.bib
 chalkboard: 'example-deck.json'
 controls: true
 csl: 'chicago-author-date.csl'
-history: true
 menu: true
 title: Decker Slide Tool Reference Guide
 ---

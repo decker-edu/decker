@@ -112,15 +112,15 @@ async function buildInterface(api, initialToken) {
   panel.classList.add("q-panel");
   open.appendChild(qmark);
   open.appendChild(badge);
-  open.classList.add("q-open");
+  open.classList.add("open-button");
   open.setAttribute("title", "Open questions panel");
-  badge.classList.add("q-badge");
+  badge.classList.add("open-badge", "badge");
 
   header.classList.add("q-header");
   title.textContent = "Questions";
   title.classList.add("q-title");
   counter.textContent = "0";
-  counter.classList.add("q-counter");
+  counter.classList.add("counter", "badge");
   user.setAttribute("type", "text");
   user.setAttribute("placeholder", "Enter user token");
   check.setAttribute("title", "Store user token (session)");
@@ -282,7 +282,7 @@ async function buildInterface(api, initialToken) {
           let context = getContext();
           let vote = {
             comment: comment.id,
-            voter: context.token,
+            voter: context.token
           };
           api.voteComment(vote).then(updateComments);
         });
@@ -291,7 +291,7 @@ async function buildInterface(api, initialToken) {
       }
       // Number of upvotes
       let votes = document.createElement("span");
-    
+
       votes.textContent = comment.votes > 0 ? comment.votes : "";
       votes.classList.add("votes");
 

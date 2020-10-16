@@ -1,6 +1,5 @@
 ---
 title: Decker on the command line
-history: true
 ---
 
 # Introduction

@@ -93,8 +93,37 @@ test:linux:
       - .stack-work
   needs:
     - job: build:linux
-      artifacts: true
   interruptible: true
+
+test:mac:
+  stage: test
+  tags:
+    - mac
+  script:
+    - make test
+  cache:
+    key: stack_work
+    paths:
+      - .stack-work
+  needs:
+    - job: build:mac
+  interruptible: true
+
+test:win:
+  tags:
+    - win
+  stage: test
+  script:
+    - '& stack test -j1'
+  cache:
+    key: test-win
+    paths:
+      - .stack-work
+  when: always
+  needs:
+    - job: build:win
+  interruptible: true
+
 
 deploy:mac:
   stage: deploy

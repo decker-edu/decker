@@ -2,7 +2,6 @@
 title: Custom LaTeX Macros
 controls: true
 menu: true
-history: true
 ---
 
 # Custom LaTeX Macros {layout=columns}

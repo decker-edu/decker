@@ -1,5 +1,4 @@
 ---
-history: true
 title: Iframes
 ---
 
@@ -52,3 +51,23 @@ width="100%" height="400px" model="some-model.off"}
 Browser does not support iframe.
 </iframe>
 ```
+
+------------------------------------------------------------------------
+
+# Iframe showing local HTML file
+
+## While preserving the URI query string
+
+![](../reload.html?f=x%2By&g=&x_min=-1&x_max=1&x_steps=100&y_min=-1&y_max=1&y_steps=100&z_min=0&z_max=0&ncontours=60&heatmap_coloring=0){.iframe .resource}
+
+-   Iframe source should be
+
+``` {.html}
+<iframe 
+    data-src="../reload.html?f=x%2By&g=&x_min=-1&x_max=1&x_steps=100&y_min=-1&y_max=1&y_steps=100&z_min=0&z_max=0&ncontours=60&heatmap_coloring=0" 
+    class="iframe 
+    resource">
+Browser does not support iframe.
+</iframe>
+```
+

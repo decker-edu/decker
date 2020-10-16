@@ -1,7 +1,6 @@
 ---
 center: False
 height: 540.0
-history: True
 margin: '0.0'
 maxScale: 1.0
 minScale: 1.0
