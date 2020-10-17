@@ -198,9 +198,9 @@ let RevealWhiteboard = (function(){
 
         Reveal.getSlides().forEach(function (slide) {
 
-            slide.style.height = config.height + "px";
+            slide.style.height = pageHeight + "px";
 
-            if (config.center || slide.classList.contains('center'))
+            if (Reveal.getConfig().center || slide.classList.contains('center'))
             {
                 // div for centering with flex layout
                 let vcenter = document.createElement("div");
