@@ -162,7 +162,8 @@ $else$
           repoProvider: "$thebelab.repoProvider$",
       },
       kernelOptions: {
-          name: "$thebelab.language$"
+          name: "$thebelab.language$",
+          kernelName: "$thebelab.language$"
       },
 $endif$
       selector: "[data-executable]",
@@ -172,7 +173,7 @@ $endif$
       }
   }
   </script>
-   <script src="$decker-support-dir$/vendor/thebelab/index.js"></script> 
+   <script src="https://unpkg.com/thebelab@latest/lib/index.js"></script> 
 $endif$
 $for(header-includes)$
   $header-includes$
