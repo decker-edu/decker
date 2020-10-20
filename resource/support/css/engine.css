@@ -261,7 +261,7 @@ div.q-panel div.q-input textarea {
   padding: 0.3em;
   height: 6em;
   width: calc(100% - 0.6em);
-  
+
   border: none;
   border-radius: var(--border-radius);
   outline: none;
@@ -399,4 +399,30 @@ div.q-panel div.content h2 {
 div.q-panel div.content img {
   width: 100%;
   image-rendering: pixelated;
+}
+
+section#questions-overview div.scroll-y {
+  height: 500px;
+  overflow-y: scroll;
+}
+
+section#questions-overview table {
+  font-size: 70%;
+}
+
+section#questions-overview table h1 {
+  font-weight: bold;
+  font-size: 120%;
+}
+
+section#questions-overview table h2 {
+  font-weight: bold;
+  font-size: 110%;
+}
+
+section#questions-overview table tr td:first-child {
+  max-width: 6em;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
