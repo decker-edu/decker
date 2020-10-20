@@ -186,29 +186,47 @@ let RevealWhiteboard = (function(){
     penWidthSlider.oninput  = () => { penWidthSlider.style.setProperty('--size', (parseInt(penWidthSlider.value)+1)+'px'); }
 
    
-    // adjust slide height: slides should always have full page height,
-    // even if they have not ;-). Might happen when using center:true
-    // in Reveal's settings. In this case Reveal centers the slide by
-    // adding a margin to the css:top variable. This is not compatible
-    // with the whiteboard, since then the whiteboard page would be taller
-    // than the slide itself. We fix this by removing the top-setting and
-    // instead centering the slide through top/bottom padding. This allows
-    // us to enforce full slide height (as configured in Reveal's settings).
-    function adjustSlideHeight()
+    /* Set slides to full height, such that they contain the full-height whiteboard.
+     * For centered slides, also enforce full height, and wrap the slide content
+     * in a flex-box to achieve vertical centering. This is necessary, since
+     * Reveal's slide centering leads to slides that do not have full height,
+     * which in turn do not allow for a full-height whiteboard.
+    */
+    function setupSlides()
     {
-        if (Reveal.getConfig().center)
-        {
-            let slide = Reveal.getCurrentSlide();
-            const top = slide.style.top;
-            console.log(top);
-            if (top != '' && top != '0px')
+        const config = Reveal.getConfig;
+
+        Reveal.getSlides().forEach(function (slide) {
+
+            slide.style.height = pageHeight + "px";
+
+            if (Reveal.getConfig().center || slide.classList.contains('center'))
             {
-                slide.style.top = '';
-                slide.style.paddingTop = top;
-                slide.style.paddingBottom = top;
-                slide.style.height = pageHeight + 'px';
+                // div for centering with flex layout
+                let vcenter = document.createElement("div");
+                vcenter.classList.add("v-center");
+
+                // div for wrapping slide content
+                var wrapper = document.createElement("div");
+                wrapper.classList.add("v-wrapper");
+
+                // move children from slide to wrapping div
+                for (let i=0; i<slide.children.length; ) {
+                    let e = slide.children[i];
+                    // skip whiteboard and footer
+                    if (e.classList.contains('whiteboard') || e.classList.contains('footer')) {
+                        ++i;
+                    }
+                    else {
+                        wrapper.appendChild(e);
+                    }
+                }
+
+                // add divs to slide
+                slide.appendChild(vcenter);
+                vcenter.appendChild(wrapper);
             }
-        }
+        });
     }
 
 
@@ -840,7 +858,6 @@ let RevealWhiteboard = (function(){
             slides.querySelectorAll( 'svg.whiteboard' ).forEach( mysvg => { 
                 svg=mysvg; 
                 svg.style.display = 'block';
-                adjustSlideHeight();
                 adjustWhiteboardHeight();
             });
         }
@@ -1370,9 +1387,6 @@ let RevealWhiteboard = (function(){
                 svg.style.display = 'none';
             });
 
-            // adjust slide height (call before setupSVG!)
-            adjustSlideHeight();
-
             // setup and show current slide's SVG (adjust slide height before!)
             setupSVG();
             svg.style.display = 'block';
@@ -1427,8 +1441,8 @@ let RevealWhiteboard = (function(){
     }
 
 
-
     // whenever slide changes, update slideIndices and redraw
+    Reveal.addEventListener( 'ready', setupSlides );
     Reveal.addEventListener( 'ready', slideChanged );
     Reveal.addEventListener( 'slidechanged', slideChanged );
 

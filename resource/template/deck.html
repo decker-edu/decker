@@ -105,6 +105,12 @@ $if(highlighting-css)$
 $highlighting-css$
   </style>
 $endif$
+$if(highlightjs)$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
+$endif$
+$if(decker-engine-base-url)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
+$endif$
 $if(template.base-css)$
   <link rel="stylesheet" href="$template.base-css$">
 $else$
@@ -120,9 +126,6 @@ $endif$
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
-$if(highlightjs)$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
-$endif$
   <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
@@ -159,7 +162,8 @@ $else$
           repoProvider: "$thebelab.repoProvider$",
       },
       kernelOptions: {
-          name: "$thebelab.language$"
+          name: "$thebelab.language$",
+          kernelName: "$thebelab.language$"
       },
 $endif$
       selector: "[data-executable]",
@@ -169,7 +173,7 @@ $endif$
       }
   }
   </script>
-   <script src="$decker-support-dir$/vendor/thebelab/index.js"></script> 
+   <script src="https://unpkg.com/thebelab@latest/lib/index.js"></script> 
 $endif$
 $for(header-includes)$
   $header-includes$
@@ -296,7 +300,6 @@ $body$
   </script>
 
 $if(decker-engine-base-url)$
-  <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
   <script type="module" crossorigin>
     import {contactEngine} from "./$decker-support-dir$/js/engine.js";
     contactEngine("$decker-engine-base-url$")
@@ -332,7 +335,8 @@ $endif$
 $if(slideNumber)$
         slideNumber: '$slideNumber$',
 $endif$
-        // Add slide id to the fragment but not to history
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
 $if(hash)$
         hash: $hash$,
 $endif$

@@ -1,6 +1,5 @@
 ---
 title: New Quiz Syntax Test deck
-history: True
 lang: de
 ---
 

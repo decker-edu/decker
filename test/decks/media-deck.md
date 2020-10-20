@@ -1,5 +1,4 @@
 ---
-history: true
 stretch-media: true
 title: 'Image, Audio and Video Handling'
 ---

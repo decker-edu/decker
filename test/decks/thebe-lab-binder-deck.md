@@ -1,20 +1,18 @@
 ---
+title: ThebeLab Test
+subtitle: Haskell Kernel
+width: 960.0
 height: 500.0
-history: true
 margin: 0.0
 maxScale: 1.0
 minScale: 1.0
-subtitle: Haskell Kernel
 thebelab:
-  baseUrl: 'http://localhost:8192/'
-  binderUrl: 'https://mybinder.org'
   enable: true
+  binderUrl: 'https://mybinder.org'
   language: haskell
-  ref: master
   repo: 'monofon/plc-notebooks'
-  token: plc
-title: ThebeLab Test
-width: 960.0
+  ref: master
+  repoProvider: github
 ---
 
 # ThebeLab Binder Deck
@@ -42,7 +40,13 @@ from a custom Docker image on GitHub.
 ##  {.left grow="2"}
 
 ``` {.haskell data-executable="true" data-language="haskell"}
-print "Hallo!"
+print "Was Gauss konnte, kann Haskell auch"
+
+sumtorial :: Integer -> Integer
+sumtorial 0 = 0
+sumtorial n = n + sumtorial (n-1)
+
+sumtorial 100
 ```
 
 ## Usage {.right}

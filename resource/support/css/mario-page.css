@@ -1,11 +1,8 @@
 @import url("../fonts/lato.css");
 
 :root {
- --dark-green:#639a00;
- --light-green:#84b819;
- --dark-grey:#616161;
- --emphColor: var(--dark-green);
- --whiteboard-active-color: var(--light-green);
+  --blue: #2a9ddf;
+  --light-blue: #30B3FF;
 }
 
 body {
@@ -16,7 +13,7 @@ body {
 }
 
 header {
-    background: var(--dark-green);
+    background: var(--blue);
     text-align: center;
 }
 
@@ -29,9 +26,9 @@ header > h1 {
 }
 
 a {
-    color: var(--dark-green);
+    color: var(--blue);
 }
 
 a:hover {
-    color: var(--light-green);
+    color: var(--light-blue);
 }

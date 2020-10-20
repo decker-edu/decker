@@ -9,8 +9,10 @@
 @import url("../vendor/fontawesome/css/all.css");
 
 :root {
- --emphColor: #2a9ddf;
- --whiteboard-active-color: #2a9ddf;
+  --blue: #2a9ddf;
+  --light-blue: #30B3FF;
+  --emphColor: var(--blue);
+  --whiteboard-active-color: var(--blue);
 }
 
 
@@ -179,16 +181,17 @@ body {
  *********************************************/
 .reveal p {
   margin: 10px 0;
-  line-height: 1.3; }
+  line-height: 1.3; 
+}
 
 /* MARIO: do not completely remove empty paragraphs with display:none.
  * Instead let them cause a line break, but not eat up more space */
 .reveal p:empty { 
-    display: block;
-    margin:  0;
-    padding: 0;
-    height:  0;
-    width:   auto;
+  display: block;
+  margin:  0;
+  padding: 0;
+  height:  0;
+  width:   auto;
 }
 
 .reveal strong {
@@ -196,12 +199,12 @@ body {
 }
 
 .reveal .boldblue {
-    font-weight: bold;
-	color: var(--emphColor);
+  font-weight: bold;
+  color: var(--emphColor);
 }
 
 .reveal b {
-    font-weight: bold; }
+  font-weight: bold; }
 
 .reveal em {
   font-style: italic; }
@@ -233,11 +236,11 @@ body {
 
 .reveal ul ul,
 .reveal ol ul {
-    list-style-type: circle;
+  list-style-type: circle;
 }
 
 .reveal ol ol {
-    list-style-type: lower-roman;
+  list-style-type: lower-roman;
 }
 
 .reveal ul ul ul,
@@ -248,28 +251,31 @@ body {
 .reveal ol ul ol,
 .reveal ol ol ul,
 .reveal ol ol ol {
-    font-size: 0.9em;
+  font-size: 0.9em;
 }
 
 .reveal ul ul,
 .reveal ul ol,
 .reveal ol ol,
 .reveal ol ul {
-    display:     block;
-    margin-top:  0.3em;
-    font-size:   0.8em;
-    margin-left: 10px;
+  display:     block;
+  margin-top:  0.3em;
+  font-size:   0.8em;
+  margin-left: 10px;
 }
 
 .reveal dt {
-  font-weight: bold; }
+  font-weight: bold; 
+}
 
 .reveal dd {
-  margin-left: 40px; }
+  margin-left: 40px; 
+}
 
 .reveal q,
 .reveal blockquote {
-  quotes: none; }
+  quotes: none; 
+}
 
 .reveal blockquote {
   display: block;
@@ -281,14 +287,17 @@ body {
   padding: 0px 15px;
   font-style: italic;
   background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2); }
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2); 
+}
 
 .reveal blockquote p:first-child,
 .reveal blockquote p:last-child {
-  display: inline-block; }
+  display: inline-block; 
+}
 
 .reveal q {
-  font-style: italic; }
+  font-style: italic; 
+}
 
 
 /*********************************************
@@ -435,14 +444,14 @@ body {
  * LINKS
  *********************************************/
 .reveal a {
-  color: #2a9ddf;
+  color: var(--blue);
   text-decoration: none;
   -webkit-transition: color .15s ease;
   -moz-transition: color .15s ease;
   transition: color .15s ease; }
 
 .reveal a:hover {
-  color: #2a9ddf;
+  color: var(--light-blue);
   text-shadow: none;
   border: none; }
 
@@ -456,32 +465,31 @@ body {
 
 .reveal img,
 .reveal video {
-    display: inline-block;
-    /* remove the following two lines to get sizing of 
-     * rendered code block sizing working */
-    /*width: auto;*/
-    /*height: auto;*/
-    object-fit: contain;
-    max-width: 100%;
-    max-height: 100%;
-    vertical-align: middle;
-    margin: 0px;
-    border: 0px;
-    box-shadow: none;
+  display: inline-block;
+  /* remove the following two lines to get sizing of 
+    * rendered code block sizing working */
+  /*width: auto;*/
+  /*height: auto;*/
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+  margin: 0px;
+  border: 0px;
+  box-shadow: none;
 }
 
 .reveal iframe {
-    border: 1px solid lightgray;
-    outline: none;
-    overflow: hidden;
-    max-width:  100%;
-    max-height: 100%;
-    vertical-align: middle;
+  border: 1px solid lightgray;
+  outline: none;
+  overflow: hidden;
+  max-width:  100%;
+  max-height: 100%;
+  vertical-align: middle;
 }
 
 .reveal figure {
-    display: inline-block;
-    /*vertical-align: middle;*/
+  display: inline-block;
 }
 
 .reveal figure>img,
@@ -904,12 +912,11 @@ body {
     top:        calc(var(--whiteboard-icon-size) * 0.25);
     bottom:     auto;
     right:      auto;
-    padding:    0;
+    padding:    calc(var(--whiteboard-icon-size) * 0.5);
     margin:     auto;
     z-index:    40;
     background: none;
     font-size:  var(--whiteboard-icon-size);
-    padding:    calc(var(--whiteboard-icon-size) * 0.5);
     opacity:    0.5;
     color:      var(--whiteboard-inactive-color);
 }
@@ -921,6 +928,44 @@ body {
 
 .reveal .slide-menu-button a {
     color: inherit;
+}
+
+
+/*********************************************
+ * MARIO: style Henrik's question panel
+ *********************************************/
+
+div.open-button {
+    position:   fixed;
+    left:       auto;
+    right:      calc(var(--whiteboard-icon-size) * 0.25);
+    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:     auto;
+    margin:     calc(var(--whiteboard-icon-size) * 0.5);
+    padding:    0.2em;
+    z-index:    40;
+    background: none;
+    font-size:  var(--whiteboard-icon-size);
+    color:      var(--whiteboard-inactive-color);
+}
+
+div.open-button.i {
+  opacity: 0.5;
+}
+
+div.open-button:hover,
+div.q-panel div.q-header button:hover,
+div.q-panel div.q-footer div.q-login:not(.admin):hover {
+    opacity: 1.0;
+    color: var(--whiteboard-active-color);
+}
+
+div.open-badge {
+    font-size: 0.5em;
+}
+
+div.q-panel {
+  background-color: rgba(100, 100, 100, 0.2);
 }
 
 
@@ -999,8 +1044,7 @@ body {
 }
 
 /* tool tip */
-.reveal .quiz ul li ul li,
-.reveal .quiz .tip {
+.reveal .quiz ul li ul li {
     display:          block;
     visibility:       hidden;
     max-width:        95%;
@@ -1030,11 +1074,9 @@ body {
     border:           3px solid green;
 }
 
-/* before being clicked, tool tips are hidden */
+/* tool tips are shown on hover */
 .reveal .show-right:hover ul li, 
-.reveal .show-wrong:hover ul li, 
-.reveal .show-wrong:hover .tip, 
-.reveal .show-right:hover .tip {
+.reveal .show-wrong:hover ul li {
     visibility: visible;
 }
 

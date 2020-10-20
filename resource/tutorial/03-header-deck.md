@@ -1,6 +1,5 @@
 ---
 title: YAML-Header options
-history: true
 ---
 
 # Introduction
@@ -24,7 +23,6 @@ This header is located directly at the top of the `*.md` file.
 ```yaml
 ---
 title: Decker Slide Tool Reference Guide
-history: true
 menu: true
 bibliography: example.bib
 csl: chicago-author-date.csl

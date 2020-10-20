@@ -2,7 +2,6 @@
 author: Henrik
 center: true
 date: '2019-10-20'
-history: true
 subtitle: On decker slides
 title: Column Layout
 ---
