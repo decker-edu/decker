@@ -7,7 +7,7 @@ const DEBUG_AUTH = false;
 
 var timeout = 100; // ms
 
-function contactEngine(base) {
+async function contactEngine(base) {
   import(base + "/decker-util.js")
     .then(engine => {
       prepareEngine(engine.buildApi(base));
@@ -26,9 +26,11 @@ async function prepareEngine(api) {
       serverToken = token;
       if (Reveal.isReady()) {
         buildInterface(api, serverToken);
+        buildOverview(api, serverToken);
       } else {
         Reveal.addEventListener("ready", _ => {
           buildInterface(api, serverToken);
+          buildOverview(api, serverToken);
         });
       }
     })
@@ -40,7 +42,16 @@ async function prepareEngine(api) {
     });
 }
 
-async function buildInterface(api, initialToken) {
+function deckId() {
+  let url = new URL(window.location);
+  url.hash = "";
+  url.query = "";
+  url.username = "";
+  url.password = "";
+  return url.toString();
+}
+
+function buildInterface(api, initialToken) {
   var serverToken = initialToken;
 
   if (DEBUG) {
@@ -176,15 +187,9 @@ async function buildInterface(api, initialToken) {
   const hashCode = s =>
     s.split("").reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0);
 
-  let url = new URL(window.location);
-  url.hash = "";
-  url.query = "";
-  url.username = "";
-  url.password = "";
-
   let getContext = () => {
     return {
-      deck: url,
+      deck: deckId(),
       slide: Reveal.getCurrentSlide().id,
       token: user.value
     };
@@ -428,3 +433,71 @@ async function buildInterface(api, initialToken) {
   updateComments();
   updateIds();
 }
+
+function buildOverview(api, initialToken) {
+  var serverToken = initialToken;
+
+  let slides = document.querySelector("div.reveal div.slides");
+
+  let slide = document.createElement("section");
+  slide.setAttribute("id", "questions-overview")
+  slide.classList.add("slide", "level1", "questions", "overview");
+
+  let h1 = document.createElement("h1");
+  h1.textContent = "Questions Overview";
+
+  let scroll = document.createElement("div");
+  scroll.classList.add("scroll-y");
+
+  let table = document.createElement("table");
+  table.classList.add("questions");
+
+  scroll.appendChild(table)
+
+  slide.appendChild(h1);
+  slide.appendChild(scroll);
+
+  slides.appendChild(slide);
+
+  let updateList = list => {
+    console.log(list);
+    let tr = document.createElement("tr");
+    let th1 = document.createElement("th");
+    th1.textContent = "Slide";
+    let th2 = document.createElement("th");
+    th2.innerHTML = "<i class=\"far fa-thumbs-up\"></i>";
+    let th3 = document.createElement("th");
+    th3.textContent = "Question";
+    tr.appendChild(th1);
+    tr.appendChild(th2);
+    tr.appendChild(th3);
+    table.appendChild(tr);
+
+    for (let comment of list) {
+      let tr = document.createElement("tr");
+
+      let td1 = document.createElement("td");
+      let link = document.createElement("a");
+      link.setAttribute("href", `#${comment.slide}`);
+      link.textContent = comment.slide;
+      td1.appendChild(link);
+      
+      let td2 = document.createElement("td");
+      td2.textContent = comment.votes;
+      
+      let td3 = document.createElement("td");
+      td3.innerHTML = comment.html;
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+      tr.appendChild(td3);
+      table.appendChild(tr);
+    }
+  };
+
+  api
+    .getComments(deckId())
+    .then(updateList)
+    .catch(console.log);
+}
+
+
