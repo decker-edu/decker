@@ -195,10 +195,6 @@ function buildInterface(api, initialToken) {
     };
   };
 
-  let updateIds = () => {
-    let context = getContext();
-  };
-
   let initUser = () => {
     let localToken = window.localStorage.getItem("token");
     if (serverToken && serverToken.authorized) {
@@ -426,18 +422,14 @@ function buildInterface(api, initialToken) {
 
   Reveal.addEventListener("slidechanged", _ => {
     updateComments();
-    updateIds();
   });
 
   initUser();
   updateComments();
-  updateIds();
 }
 
 function buildOverview(api, initialToken) {
   var serverToken = initialToken;
-
-  let slides = document.querySelector("div.reveal div.slides");
 
   let slide = document.createElement("section");
   slide.setAttribute("id", "questions-overview")
@@ -457,41 +449,34 @@ function buildOverview(api, initialToken) {
   slide.appendChild(h1);
   slide.appendChild(scroll);
 
+  let slides = document.querySelector("div.reveal div.slides");
   slides.appendChild(slide);
 
   let updateList = list => {
-    console.log(list);
-    let tr = document.createElement("tr");
-    let th1 = document.createElement("th");
-    th1.textContent = "Slide";
-    let th2 = document.createElement("th");
-    th2.innerHTML = "<i class=\"far fa-thumbs-up\"></i>";
-    let th3 = document.createElement("th");
-    th3.textContent = "Question";
-    tr.appendChild(th1);
-    tr.appendChild(th2);
-    tr.appendChild(th3);
-    table.appendChild(tr);
+    let fragment = document.createDocumentFragment();
+
+    let header = document.createElement("tr");
+    header.innerHTML =
+      `<th>Slide</th>
+       <th><i class="far fa-thumbs-up"></i>
+       </th><th>Question</th>`;
+    fragment.appendChild(header);
 
     for (let comment of list) {
       let tr = document.createElement("tr");
-
-      let td1 = document.createElement("td");
-      let link = document.createElement("a");
-      link.setAttribute("href", `#${comment.slide}`);
-      link.textContent = comment.slide;
-      td1.appendChild(link);
-      
-      let td2 = document.createElement("td");
-      td2.textContent = comment.votes;
-      
-      let td3 = document.createElement("td");
-      td3.innerHTML = comment.html;
-      tr.appendChild(td1);
-      tr.appendChild(td2);
-      tr.appendChild(td3);
-      table.appendChild(tr);
+      tr.innerHTML =
+        `<td>
+           <a href="#${comment.slide}" 
+              title="Go to slide #${comment.slide}">
+             ${comment.slide}
+           </a>
+         </td>
+         <td>${comment.votes}</td>
+         <td>${comment.html}</td>`;
+      fragment.appendChild(tr);
     }
+
+    table.appendChild(fragment);
   };
 
   api
