@@ -166,6 +166,7 @@ deckerShakeOptions ctx = do
       { shakeFiles = transientDir
       , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
       , shakeThreads = cores
+      , shakeLiveFiles = [liveFile]
       -- , shakeStaunch = True
       , shakeColor = True
       -- , shakeChange = ChangeModtimeAndDigest
