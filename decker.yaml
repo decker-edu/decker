@@ -1,15 +1,18 @@
 project-name: Decker
 exclude-directories:
   - app
+  - attic
   - bin
   - dist
   - node_modules
   - public
-  - resource/support/fonts
-  - resource/support/vendor
+  - resource/support
+  - resource/template
   - src
   - src-unix
   - src-win
+  - test/minimal
   - third-party
+  - users-guide
 static-resource-dirs:
   - test/static

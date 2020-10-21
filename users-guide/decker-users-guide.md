@@ -69,6 +69,22 @@ publish:
       - --delete
 ```
 
+# Targets
+
+Decker uses [Shake](https://shakebuild.com) as it's underlying build and
+dependency tracking system.
+
+## `> decker unused`{.sh}
+
+Prints a list of unused files in the project.
+
+First determines the set of *live* files in a project directory. All
+files that are tracked by the build system are considered to be in the
+live set. Then the set of all files that are located in potential source
+file locations is determined. Unused files that are present in the
+source set but have not been picked up by the build system are
+considered to be *unused*.
+
 # Options
 
 # Meta Data

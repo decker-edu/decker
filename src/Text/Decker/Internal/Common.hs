@@ -6,6 +6,7 @@ module Text.Decker.Internal.Common where
 import Control.Monad.State
 import Development.Shake (Action)
 import Text.Pandoc
+import System.FilePath
 
 type Decker = StateT DeckerState Action
 
@@ -63,3 +64,4 @@ supportDir = "public/support"
 devSupportDir = "resource/support"
 supportPath = "/support"
 transientDir = ".decker"
+liveFile = transientDir </> "live.txt"
