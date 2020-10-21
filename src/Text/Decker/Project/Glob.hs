@@ -21,9 +21,9 @@ import System.FilePath.Posix
 fastGlobFiles :: [String] -> [String] -> FilePath -> IO [FilePath]
 fastGlobFiles exclude suffixes root = sort . map normalise <$> glob root
   where
-    absExclude = map (root </>) exclude
+    absExclude = map (normalise . (root </>)) exclude
     absListDirectory dir =
-      map (dir </>) . filter (not . isPrefixOf ".") <$> listDirectory dir
+      map (normalise . (dir </>)) . filter (not . isPrefixOf ".") <$> listDirectory dir
     glob :: FilePath -> IO [String]
     glob root = do
       dirExists <- doesDirectoryExist root
@@ -47,9 +47,9 @@ fastGlobFiles exclude suffixes root = sort . map normalise <$> glob root
 fastGlobDirs :: [String] -> FilePath -> IO [FilePath]
 fastGlobDirs exclude root = map normalise <$> glob root
   where
-    absExclude = map (root </>) exclude
+    absExclude = map (normalise . (root </>)) exclude
     absListDirectory dir =
-      map (dir </>) . filter (not . isPrefixOf ".") <$> listDirectory dir
+      map (normalise . (dir </>)) . filter (not . isPrefixOf ".") <$> listDirectory dir
     glob dir = do
       dirExists <- doesDirectoryExist dir
       if dirExists && notElem dir absExclude
