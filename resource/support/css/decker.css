@@ -681,7 +681,6 @@
 
 .reveal .title-page .teaser-img {
   margin: 20px auto;
-  height: 10%;
   width: auto;
   display: block;
 }
@@ -691,7 +690,8 @@
   display: block;
   margin: auto;
   object-fit: contain;
-  max-height: 250px;
+  max-height: 25vh;
+  max-width: 100%;
   width: auto;
 }
 
@@ -709,7 +709,7 @@
 
 .reveal .title-page .affiliation-logo img {
   margin: 0px 0 0 0;
-  height: 70px;
+  height: 10vh;
   width: auto;
   object-fit: contain;
   display: block;
@@ -731,7 +731,6 @@
 
 .reveal .title-page .valign-block:before {
   content: '';
-  display: inline-block;
   height: 100%;
   vertical-align: middle;
 }
