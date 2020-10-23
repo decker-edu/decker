@@ -68,11 +68,11 @@ function quizFT() {
         resetButton.addEventListener('click', resetQuestion);    
         question.querySelector('.resetButton').classList.add(plain ? 'disabled' : 'hidden'); 
     
-        const choices = solutions.getElementsByTagName('li');
+        const optList = solutions.getElementsByTagName('li');
         const solutionDiv = question.querySelector('.solutionDiv');
 
         // Populate solutionDiv to reserve space - hide if fancy style
-        for (let c of choices) {
+        for (let c of optList) {
             if (c.classList.contains('correct')) { solutionDiv.appendChild(c.cloneNode(true)); }
         }
         if (!plain) { solutionDiv.classList.add('hidden'); }
@@ -85,7 +85,7 @@ function quizFT() {
                 resetButton.classList.remove('disabled');
             } else {
                 solutions.classList.add('solved');
-                for (let c of choices) {
+                for (let c of optList) {
                     if (c.classList.contains('correct')) { c.classList.add("solved"); }
                 }
                 // Hide tooltip box after 3 seconds
@@ -100,7 +100,7 @@ function quizFT() {
 
         // Return to original state
         function resetQuestion() {
-            for (let c of choices) { c.classList.remove('solved'); }
+            for (let c of optList) { c.classList.remove('solved'); }
             solutionDiv.classList.remove('solved');
             input.classList.remove("show-right", "show-wrong");
             input.value = "";
@@ -111,7 +111,7 @@ function quizFT() {
 }
 
 function quizIC() {
-    const icQuestions = document.querySelectorAll(".qic,.quiz-ic,.quiz-insert-choices");
+    const icQuestions = document.querySelectorAll(".qic,.quiz-ic,.quiz-insert-optList");
 
     for (let question of icQuestions) {
         const selects = question.getElementsByTagName("select");
@@ -281,71 +281,127 @@ function matchingAnswerButton(question, button) {
 }
 
 /**
- * Construct select tags with options for Matching questions
+ * Construct Matching questions with drop-down lists for answers
  * @param {Element} question 
  */
 function buildPlainMatch(question) {
     const matchItems = question.querySelector('.matchItems');
     const buckets = question.querySelector('.buckets');
-    const selectTag = buildSelect(matchItems, buckets);
+    const solutionButton = question.querySelector('.solutionButton');
 
-    // const matchDiv = document.createElement('div');
-    // matchDiv.classList.add('matchDiv');
-    // matchItems.parentNode.insertBefore(matchDiv, matchItems);        
-    // [matchItems, buckets].forEach(ele => { matchDiv.appendChild(ele); });
+    const matchDiv = document.createElement('div');
+    matchDiv.classList.add('matchDiv');
+    [matchItems, buckets].forEach(el => matchDiv.appendChild(el));
+    question.insertBefore(matchDiv, solutionButton);
 
-    for (let bucket of buckets.querySelectorAll('.bucket')) {
-        buckets.removeChild(bucket);
+    const choices = buildSelect(buckets, matchItems.querySelectorAll('.matchItem'));
 
+    let allBuckets = buckets.querySelectorAll('.bucket');
+    for (let i=0; i<allBuckets.length; i++) {
         const matchQuestion = document.createElement('div');
-        matchQuestion.classList.add("matchQuestion");
+        matchQuestion.classList.add('matchQuestion');
+        matchQuestion.id = i.toString();
         matchItems.appendChild(matchQuestion);
 
         const lab = document.createElement('label');
-        lab.setAttribute('data-value', bucket.classList.contains('distractor') ? '0' : bucket.getAttribute('data-bucketId'));
-        lab.innerHTML = bucket.innerHTML;
-        [lab,selectTag.cloneNode(true)].forEach(ele => { matchQuestion.appendChild(ele); });
-    }
+        lab.setAttribute('data-value', allBuckets[i].classList.contains('distractor') ? '0' : allBuckets[i].getAttribute('data-bucketId'));
+        lab.innerHTML = allBuckets[i].innerHTML;
 
-    question.querySelector('.solutionButton').addEventListener('click', () => {
-        const qns = matchItems.querySelectorAll('.matchQuestion');
-        for (let q of qns) {
-            const sel = q.querySelector('select');
-            sel.classList.remove("show-right","show-wrong");
-            const idCorrect = sel.previousElementSibling.getAttribute('data-value');
-            // color individual options based on correctness
-            for (let opt of sel.querySelectorAll('option')) {
-                opt.classList.add(opt.value == idCorrect ? 'show-right' : 'show-wrong');
+        const blank = document.createElement('p');
+        blank.innerText = '...';
+        blank.id = matchQuestion.id + "-0";
+        blank.classList.add('selected','blank', 'option');
+        blank.setAttribute('value',lab.getAttribute('data-value'));
+        blank.addEventListener('click', function() {showList(this.parentElement.nextElementSibling)});
+        
+        const optList = document.createElement('div');
+        optList.classList.add('optList');
+        optList.addEventListener('click', function() {showList(this.nextElementSibling)});
+        optList.appendChild(blank);
+
+        const chClone = choices.cloneNode(true);            // exclude first blank option
+        for (let i=1; i<chClone.children.length; i++) {
+            chClone.children[i].addEventListener('click', makeSelection);
+        }
+
+        buckets.removeChild(allBuckets[i]);
+        [lab,optList,chClone].forEach(ele => { matchQuestion.appendChild(ele); });
+    }
+    function showList(opt) {                                // hide any other open lists
+        for (let sh of document.getElementsByClassName('shown')) { sh.classList.remove('shown') };
+        opt.classList.add('shown');
+        document.addEventListener('click', hideList);
+    }
+    function makeSelection() {
+        let ol = this.parentElement.previousElementSibling;
+        let newId = this.parentElement.parentElement.id + "-" + this.innerText;
+        this.classList.toggle('selected');
+        if (this.classList.contains('selected')) {
+            let cl = this.cloneNode(true);
+            ol.appendChild(cl);
+            cl.addEventListener('click', function() {showList(this.parentElement.nextElementSibling)});
+            cl.id = newId;
+        } else {
+            ol.removeChild(document.getElementById(newId));
+        }
+    }
+    function hideList(event) {
+        let parentCL = event.target.parentElement.classList;
+        if (!parentCL.contains('optList') && !parentCL.contains('shown') && !event.target.classList.contains('shown')) {
+            question.getElementsByClassName('shown')[0].classList.remove('shown');
+            document.removeEventListener('click', hideList);
+        }
+    }
+    solutionButton.addEventListener('click', () => {
+        const matches = matchItems.querySelectorAll('.matchQuestion');
+        for (let mq of matches) {
+            let list = mq.querySelector('.optList');
+            let correct = list.previousElementSibling.getAttribute('data-value');
+            let allCorrect = []; let allSelected = [];
+
+            for (let l of list.children) {
+                allSelected.push(l.id.slice(-2));
+                l.classList.add(l.getAttribute('value') === correct ? 'correct' : 'incorrect');
             }
-            const idSelected = sel.options[sel.selectedIndex].value;
-            sel.classList.add(idCorrect == idSelected ? "show-right" : "show-wrong");
+            allSelected.shift();                            // remove blank response
+
+            let opts = list.nextElementSibling;
+            for (let o of opts.children) { 
+                o.removeEventListener('click', makeSelection);
+                if (o.getAttribute('value') === correct) {
+                    allCorrect.push(o.textContent);
+                    o.classList.add(o.classList.contains('selected') ? 'correct' : 'correct-notSelected');
+                } else if (o.classList.contains('selected')) {
+                    o.classList.add('incorrect');
+                }
+            };
+            
+            allSelected.length !== allCorrect.length ? list.classList.add('incorrect') : list.classList.add(JSON.stringify(allSelected.sort()) === JSON.stringify(allCorrect) ? 'correct' : 'incorrect');
         }   
     });
-    // No solutionDiv or tooltips because none defined in MD
 }
 
 /**
- * Build and append option tags from tags with class 'matchItem'
- * @param {Element} matchItems 
+ * Build drop-down lists for plain matching questions
  * @param {Element} buckets 
+ * @param {NodeList} answers 
  */
-function buildSelect(matchItems, buckets) {
-    const answers = matchItems.querySelectorAll('.matchItem');
-    const sel = document.createElement('select');
-    
-    const blankOpt = document.createElement('option');
-    blankOpt.innerText = '...';
-    blankOpt.value = '0';
-    sel.appendChild(blankOpt);
-    for (let i = 0; i < answers.length; i++) {
-        const opt = document.createElement('option');
-        const char = String.fromCharCode(i + 65) + ".";
-        opt.innerHTML = char; 
-        opt.value = answers[i].getAttribute('data-bucketId') || '0'; 
-        sel.appendChild(opt);
+function buildSelect(buckets, answers) {
+    const optList = document.createElement('div');
+    optList.classList.add('options');
+    const blank = document.createElement('p');
+    blank.classList.add('option'); 
+    blank.innerText = '...';
+    optList.appendChild(blank);
+    for (let i=0; i<answers.length; i++) {
+        const opt = document.createElement('p');
+        opt.classList.add('option'); 
+        opt.innerHTML = String.fromCharCode(i + 65) + ".";; 
+        opt.setAttribute('value', answers[i].getAttribute('data-bucketId') || '0'); 
+        optList.appendChild(opt);
         buckets.appendChild(answers[i]); 
     }
-    return sel;
+    return optList;
 }
 
 var elements = [];
@@ -370,6 +426,5 @@ function drop(event) {
 
     event.target.appendChild(element);
 }
-
 
 Reveal.registerPlugin( 'quiz', RevealQuiz );

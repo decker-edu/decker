@@ -1,8 +1,8 @@
 /********************
- * QUIZ STYLING
- ********************/
+* QUIZ STYLING
+********************/
 
-$red:#ff0000;
+$red:#ff5e5e;
 $green: #009900;
 $blue: #2a9ddf;
 $right: #aaffaa;
@@ -13,8 +13,9 @@ $text: #555;
 $tooltip: #808080;
 $border: 2px var(--border-decoration-style) #000;
 $border-dotted: 2px dotted #000;
+$border-dashed: 1px dashed #000;
 $border-radius: 6px;
- 
+
 .reveal {
     .qic,
     .qft,
@@ -99,14 +100,14 @@ $border-radius: 6px;
                 }
             }
             li {
-                &.show-right:before {
+                &.show-right::before {
                     content: "\f058";
                     font-family: "Font Awesome 5 Free";
                     font-weight: 400;
                     font-size: var(--font-size-medium);
                     color: $green;
                 }
-                &.show-wrong:before {
+                &.show-wrong::before {
                     content: "\f057";
                     font-family: "Font Awesome 5 Free";
                     font-weight: 400;
@@ -116,7 +117,7 @@ $border-radius: 6px;
             }
         }
     }
- 
+
     .qmc,
     .quiz-mc,
     .quiz-multiple-choice {
@@ -130,7 +131,7 @@ $border-radius: 6px;
             border-radius: 20px;
             font-weight: normal;
             color: #000;
-            &:before {
+            &::before {
                 content: counter(answer, upper-latin) ": ";
                 counter-increment: answer;
                 margin-right: 0.5em;
@@ -172,7 +173,7 @@ $border-radius: 6px;
                 margin: 0;
                 padding: 0.1em 0 0.1em 0.7em;
                 border: none;
-                &:before {
+                &::before {
                     content: "\f111";
                     font-family: "Font Awesome 5 Free";
                     font-weight: 400;
@@ -188,7 +189,7 @@ $border-radius: 6px;
             }
         }
     }
- 
+
     .qft,
     [class*="quiz-f"] {
         // Users may have long tooltips with images
@@ -210,7 +211,7 @@ $border-radius: 6px;
                 visibility: visible;
                 width: 91%; 
             }
-            .correct:before {
+            .correct::before {
                 content: "✓ ";
                 font-weight: bold;
             }
@@ -240,11 +241,11 @@ $border-radius: 6px;
             &.solved {
                 display: block;
             }
-            .correct:before {
+            .correct::before {
                 content: "✓ ";
                 font-weight: bold;
             }
-            .wrong:before {
+            .wrong::before {
                 content: "✗ ";
                 font-weight: bold;
             }
@@ -332,7 +333,7 @@ $border-radius: 6px;
             border: 2px var(--border-decoration-style) $button;
             border-radius: $border-radius;
             box-sizing: border-box;
-            &:before {
+            &::before {
                 position: absolute;
                 top: -15px;
                 left: 10px;
@@ -346,7 +347,7 @@ $border-radius: 6px;
         }
         .matchItems {
             margin-bottom: 60px;
-            &:after {
+            &::after {
                 position: absolute;
                 content: " ";
                 width: 0;
@@ -385,53 +386,154 @@ $border-radius: 6px;
         }
         &.plain {
             text-align: var(--align-global);
-            .buckets, 
-            .matchItems, 
-            button {
-                float: left;
-                width: max-content;
-                margin: 0;
-            }
-            .buckets,
+            height: inherit;
+            overflow: inherit;
+            .matchDiv, 
             .matchItems {
+                display: flex;
+                justify-content: start;
+            }
+            .matchItems {
+                flex-flow: column nowrap;
+                counter-reset: item;
                 border: none;
                 margin-top: 2vh;
-                &:before,
-                &:after {
+                max-width: max-content;
+                padding: 15px 0;
+                &::before,
+                &::after {
                     content: unset;
                     border: none;
                 }
             }
-            .buckets {
-                display: block;
-                counter-reset: opt;
-                max-width: 65%;
-            }
-            .matchItems {
-                display: flex;
-                flex-flow: column nowrap;
-                margin-right: 3vw;
-                max-width: 50%;
-            }
             .matchItem {
                 border: none;
                 padding: 0 0 0.5em 0;
-                &:before {
-                    content: counter(opt, upper-latin) ": ";
-                    counter-increment: opt;
+                &::before {
+                    content: counter(item, upper-latin) ": ";
+                    counter-increment: item;
                     margin-right: 0.5em;
                     font-weight:  bold;
                 }
             }
             .matchQuestion {
-                margin-bottom: 0.5em;
+                margin-bottom: 1em;
             }
-            label {
-                margin-right: 0.5em;
+            .optList, 
+            .options {
+                width: 7vw;
+                margin-left: 1em;
+                border: $border;
+                padding: 0 0.1em;
+                background-color: #f1f1f1;
+                text-align: center;
+                p {
+                &::before,
+                &::after {
+                    content: "✓ ";
+                    font-weight: bolder;
+                }
+                &::after {
+                    color: #f1f1f1;
+                }
+                }
             }
-            select {
-                padding: 0 1em;
+            .optList {
                 float: right;
+                &.correct p::before,
+                &.incorrect p.correct::before,
+                &.incorrect p.incorrect::before {
+                color: initial;
+                }
+                &.correct {
+                    background-color: $right;
+                    p {
+                    &:first-child::before,
+                    &::after {
+                        color: $right;
+                    }
+                    }
+                }
+                &.incorrect {
+                    background-color: $wrong;
+                    p {
+                    &.blank.correct::before,
+                    &::after {
+                        color: $wrong;
+                    }
+                    }
+                }
+                p {
+                    display: none;
+                    margin: 0;
+                    &::before {
+                        color: inherit;
+                    }
+                    &:first-child::before {
+                        color: #f1f1f1;
+                    }
+                    &:last-child {
+                        display: block;
+                    }
+                }
+            }
+            .options {
+                display: none;
+                position: absolute;
+                right: 0;
+                margin-right: 0.67em;
+                &.shown {
+                    display: initial;
+                }
+                p {
+                    &::before {
+                        color: #f1f1f1;
+                    }
+                    &.selected::before {
+                        color: inherit;
+                    }
+                    &.correct {
+                        border: none;
+                        background-color: $right;
+                        &::before {
+                            color: $green;
+                        } 
+                        &::after {
+                            color: $right;
+                        }
+                    }
+                    &.incorrect {
+                        border: none;
+                        background-color: $wrong;
+                        &::before {
+                            color: $red;
+                        }
+                        &::after {
+                            color: $wrong;
+                        }
+                    }
+                    &.correct-notSelected {
+                        background-color: $right;
+                        border: $border-dotted;
+                        &::before,
+                        &::after {
+                            color: $right;
+                        }
+                    }
+                }
+            }
+            .buckets {
+                display: block;
+                border: none;
+                margin: 2vh 0 0 1vw;
+                &::before,
+                &::after {
+                    content: unset;
+                    border: none;
+                }
+            }
+            button {
+                width: max-content;
             }
         }
     }
@@ -439,39 +541,63 @@ $border-radius: 6px;
 
 // Adjust for printed quizzes
 @media print {
-    .reveal {
-        .qic,
-        .qft,
-        .qmc,
-        .qmi,
-        [class*="quiz-"] {
-            &.plain {
-                button, 
-                .solutionDiv {
-                    display: none;
-                }
-                input, 
-                select {
-                    color: #fff;
-                    background-color: #fff;
-                    border: none;
-                    border-bottom: 1px solid #000;
-                    border-radius: unset;
-                }
-                input {
-                    margin-bottom: 0.5em;
-                    min-width: 35%;
-                    &::placeholder {
+    .reveal .slides {
+        transform: none !important;
+        section {
+            break-after: always !important;
+            .qic,
+            .qft,
+            .qmc,
+            .qmi,
+            [class*="quiz-"] {
+                &.plain {
+                    button, 
+                    .solutionDiv {
+                        display: none;
+                    }
+                    input, 
+                    select {
                         color: #fff;
+                        background-color: #fff;
+                        border: none;
+                        border-bottom: 1px solid #000;
+                        border-radius: unset;
+                    }
+                    input {
+                        margin-bottom: 0.5em;
+                        min-width: 35%;
+                        &::placeholder {
+                            color: #fff;
+                        }
                     }
                 }
             }
-        }
 
-        .qic,
-        [class*="quiz-i"] {
-            select {
-                min-width: 35%;
+            .qic,
+            [class*="quiz-i"] {
+                select {
+                    min-width: 35%;
+                }
+            }
+
+            .qmi,
+            [class*="quiz-"] {
+                &.plain {
+                    width: 100%;
+                    .matchQuestion {
+                        font-size: var(--font-size-small) !important;
+                        .optList p {
+                            color: #f1f1f1;
+                            font-size: var(--font-size-small) !important;
+                        }
+                    }
+                    .matchItems {
+                        margin-bottom: 0;
+                    }
+                    .buckets .matchItem {
+                        font-size: var(--font-size-small) !important;
+                    }
+                }
             }
         }
     }
