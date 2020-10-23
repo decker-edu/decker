@@ -1074,7 +1074,6 @@
   display: none;
   position: absolute;
   right: 0;
-  margin-right: 0.67em;
 }
 
 .reveal .qmi.plain .options.shown,
@@ -1174,6 +1173,9 @@
 @media print {
   .reveal .slides {
     transform: none !important;
+  }
+  .reveal .slides section {
+    break-after: always !important;
   }
   .reveal .slides section .qic.plain button,
 .reveal .slides section .qic.plain .solutionDiv,
