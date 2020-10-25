@@ -24,11 +24,11 @@ import Text.Pandoc.Walk
 -- 2. src and data-src attributes on Image and CodeBlock elements
 -- 3. data-backgound-* attributes in Header 1 elements
 --
+-- Adjusts the image url and all source attributes. Which source is used
+-- and how is decided by the media plugin. Calling need is the
+-- responsibility of the media plugin. 
 adjustResourcePaths :: FilePath -> Pandoc -> Pandoc
 adjustResourcePaths base = walk adjustInline . walk adjustBlock
-    -- Adjusts the image url and all source attributes. Which source is used
-    -- and how is decided by the media plugin. Calling need is the
-    -- responsibility of the media plugin. 
   where
     adjustInline :: Inline -> Inline
     adjustInline (Image (id, cls, kvs) alt (url, title)) =
@@ -60,9 +60,6 @@ adjustResourcePaths base = walk adjustInline . walk adjustBlock
 adjustResourcePathsA :: Meta -> FilePath -> Pandoc -> Action Pandoc
 adjustResourcePathsA meta base pandoc =
   walkM adjustInline pandoc >>= walkM adjustBlock
-    -- Adjusts the image url and all source attributes. Which source is used
-    -- and how is decided by the media plugin. Calling need is the
-    -- responsibility of the media plugin. 
   where
     adjustInline :: Inline -> Action Inline
     adjustInline (Image (id, cls, kvs) alt (url, title)) = do

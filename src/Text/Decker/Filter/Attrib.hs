@@ -29,7 +29,7 @@ type Attrib = StateT AttribState Filter
 
 -- Source attributes potentially used on images and code blocks.
 srcAttribs :: [Text]
-srcAttribs = ["src", "data-src", "poster"]
+srcAttribs = ["src", "data-src", "poster", "image"]
 
 -- Source attributes used on header blocks by reveal.js.
 bgAttribs :: [Text]

@@ -34,6 +34,7 @@ Resource references in meta data values
 ## From [:meta](template-source)
 
 -   `history:` [:meta](history)
+-   `hash:` [:meta](hash)
 -   `fragments:` [:meta](fragments)
 -   `controls:` [:meta](fragments)
 -   `test:` [:meta](test)

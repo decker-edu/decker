@@ -109,6 +109,7 @@ instance FromJSON Question where
 
 $(deriveJSON defaultOptions ''Difficulty)
 
+{--
 readQuestion :: FilePath -> IO Question
 readQuestion file = do
   result <- liftIO $ Y.decodeFileEither file
@@ -118,6 +119,7 @@ readQuestion file = do
       throw $
         YamlException $
           "Error parsing question: " ++ file ++ ", " ++ show exception
+--}
 
 -- | Renders a question to Pandoc AST.
 --
@@ -238,6 +240,7 @@ parseToBlocks base text =
     Left err -> throw $ InternalException $ show err
     Right (Pandoc _ blocks) -> blocks
 
+{--
 parseToBlock :: FilePath -> Text -> Block
 parseToBlock base text = do
   case parseToBlocks base text of
@@ -254,6 +257,7 @@ toInlines :: Block -> [Inline]
 toInlines (Para inlines) = inlines
 toInlines block =
   throw $ InternalException $ "cannot convert block to inlines: " <> show block
+--}
 
 examinerFilter :: Pandoc -> Filter Pandoc
 examinerFilter pandoc@(Pandoc meta _) = walkM expandQuestion pandoc

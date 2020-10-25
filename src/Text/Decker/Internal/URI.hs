@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Internal.URI where
 
@@ -8,11 +8,10 @@ import Control.Monad.Catch
 import qualified Data.Text as Text
 import Relude
 import System.FilePath.Posix
-import Text.URI (URI)
-import qualified Text.URI as URI
-
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
+import Text.URI (URI)
+import qualified Text.URI as URI
 
 -- | Extracts the path extension from the URI path, if there is any.
 uriPathExtension :: URI -> Maybe Text
@@ -27,8 +26,8 @@ uriPath :: URI -> Text
 uriPath uri =
   URI.render
     URI.emptyURI
-      { URI.uriPath = URI.uriPath uri
-      , URI.uriAuthority = Left (URI.isPathAbsolute uri)
+      { URI.uriPath = URI.uriPath uri,
+        URI.uriAuthority = Left (URI.isPathAbsolute uri)
       }
 
 -- | Adjusts a path to be relative to the current project root (which is also
@@ -39,7 +38,6 @@ uriPath uri =
 -- The @/@ is just removed.
 --
 -- 2. Relative paths, are considered to be relative to `base`.
--- 
 makeProjectPath :: FilePath -> FilePath -> FilePath
 makeProjectPath base path =
   if hasDrive path
@@ -52,11 +50,16 @@ makeProjectPath base path =
 makeProjectUriPath :: FilePath -> Text -> IO Text
 makeProjectUriPath base uriString = do
   uri <- URI.mkURI uriString
-  if uriScheme uri == Nothing && not (null (uriFilePath uri))
-    then do
+  case uriScheme uri of
+    Nothing | not (null (uriFilePath uri)) -> do
       let path = makeProjectPath base (uriFilePath uri)
       URI.render <$> setUriPath (toText path) uri
-    else return uriString
+    _ -> return uriString
+
+isAbsoluteUri :: MonadThrow m => Text -> m Bool
+isAbsoluteUri uriString = do
+  uri <- URI.mkURI uriString
+  return $ not (uriScheme uri == Nothing && not (Text.null (uriPath uri)))
 
 -- | Extracts the URI path component.
 uriFilePath :: URI -> FilePath
@@ -92,8 +95,8 @@ setUriPath path uri = do
   pathUri <- URI.mkURI path
   return
     uri
-      { URI.uriPath = URI.uriPath pathUri
-      , URI.uriAuthority =
+      { URI.uriPath = URI.uriPath pathUri,
+        URI.uriAuthority =
           case URI.uriAuthority uri of
             Left _ -> Left $ URI.isPathAbsolute pathUri
             auth -> auth

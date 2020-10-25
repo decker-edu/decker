@@ -227,6 +227,7 @@ mviewHtml uri caption = do
 iframeHtml :: URI -> [Inline] -> Attrib Html
 iframeHtml uri caption = do
   uri <- lift $ transformUri uri ""
+  xformRersourceAttribs ["image"]
   case caption of
     [] -> do
       iframeAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
