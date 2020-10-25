@@ -110,6 +110,7 @@ function prepareExaminer() {
       // Multiple choice answer
       let mcAnswer = exam.querySelector("div.exa-mc");
       if (mcAnswer !== null) {
+        shuffleChildren(mcAnswer);
         let choices = mcAnswer.querySelectorAll("div.exa-mc div.choice");
         for (let choice of choices) {
           addCheckBox(exam, choice);
@@ -123,6 +124,7 @@ function prepareExaminer() {
           for (let choice of choices) {
             checkChoice(choice, false);
           }
+          shuffleChildren(mcAnswer);
         });
       }
 
@@ -145,6 +147,7 @@ function prepareExaminer() {
       // Multiple answers
       let maAnswer = exam.querySelector("table.exa-ma");
       if (maAnswer !== null) {
+        // shuffleChildren(maAnswer.firstChild);
         let rows = exam.querySelectorAll("table.exa-ma tr.detail");
         for (let row of rows) {
           let result = row.querySelector("td.result");
@@ -178,6 +181,7 @@ function prepareExaminer() {
             removeAttribute(row, "right");
             removeAttribute(row, "wrong");
           }
+          // shuffleChildren(maAnswer.firstChild);
         });
       }
     }
@@ -214,4 +218,27 @@ function toggleClass(e, className) {
   } else {
     e.classList.add(className);
   }
+}
+
+function shuffleChildren(node) {
+  let array = [];
+  while (node.firstChild)
+    array.push(node.removeChild(node.firstChild));
+  shuffle(array);
+  for (let child of array)
+    node.appendChild(child);
+}
+
+
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+  while (0 !== currentIndex) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+  return array;
 }
