@@ -15,6 +15,7 @@ menu: true
 overview: true
 progress: true
 touch: true
+vertical-slides: true
 transition: "none"
 title: "|title|"
 test123: "test123"

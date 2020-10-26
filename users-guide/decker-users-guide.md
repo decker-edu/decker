@@ -209,7 +209,7 @@ control various aspects of the generated slide sets.
 :   mark overrflowing slides with a red border (defaults to `false`)
 
 `vertical-slides`
-:   allow vertical slides (defaults to `false`)
+:   allow vertical slides (defaults to `true`)
 
 ### Dictionary
 
