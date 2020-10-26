@@ -1474,7 +1474,23 @@ let RevealWhiteboard = (function(){
         description: 'Toggle Whiteboard' }, 
         toggleWhiteboard );
 
+    for (let i = 0; i < 7; i++) {
+      Reveal.addKeyBinding( { keyCode: 49+i, key: String.fromCharCode(49+i), 
+        description: 'Toggle Whiteboard' }, 
+        () => { selectPenColor(penColors[i]); } );
+    }
 
+    Reveal.addKeyBinding( { keyCode: 56, key: '8', 
+      description: 'Toggle Whiteboard' }, 
+      () => { selectPenRadius(2); } );
+
+    Reveal.addKeyBinding( { keyCode: 57, key: '9', 
+      description: 'Toggle Whiteboard' }, 
+      () => { selectPenRadius(4); } );
+
+    Reveal.addKeyBinding( { keyCode: 48, key: '0', 
+      description: 'Toggle Whiteboard' }, 
+      () => { selectPenRadius(6); } );
 
 	return {
 		init: function() { 
