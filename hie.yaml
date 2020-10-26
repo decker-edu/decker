@@ -1,0 +1,19 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "decker:lib"
+
+    - path: "./src-win"
+      component: "decker:lib"
+
+    - path: "./src-unix"
+      component: "decker:lib"
+
+    - path: "./app/Decker.hs"
+      component: "decker:exe:decker"
+
+    - path: "./app/Paths_decker.hs"
+      component: "decker:exe:decker"
+
+    - path: "./test"
+      component: "decker:test:decker-test"
