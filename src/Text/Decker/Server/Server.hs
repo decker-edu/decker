@@ -158,9 +158,7 @@ saveAnnotation = do
 serveDirectoryNoCaching :: MonadSnap m => MVar ServerState -> FilePath -> m ()
 serveDirectoryNoCaching state directory = do
   serveDirectory directory
-  modifyResponse $ addHeader "Cache-Control" "no-cache,no-store,must-revalidate"
-  modifyResponse $ addHeader "Pragma" "no-cache"
-  modifyResponse $ addHeader "Expires" "0"
+  modifyResponse $ addHeader "Cache-Control" "no-store"
   path <- getsRequest rqPathInfo
   liftIO $ addPage state (toString path)
 
