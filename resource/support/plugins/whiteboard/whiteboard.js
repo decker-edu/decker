@@ -852,6 +852,14 @@ let RevealWhiteboard = (function(){
             console.log("whiteboard loaded");
         }
 
+        // fix inconsistency for centered slides
+        if (storage.whiteboardVersion == 2 && Reveal.getConfig().center) 
+        {
+            document.querySelectorAll( 'svg.whiteboard path' ).forEach( path => { 
+                path.setAttribute('transform', 'translate(0 40)');
+            });
+        }
+
         // adjust height for PDF export
         if (printMode)
         {
@@ -907,7 +915,7 @@ let RevealWhiteboard = (function(){
      */
     function annotationData()
     {
-        let storage = { whiteboardVersion: 2.0, annotations: [] };
+        let storage = { whiteboardVersion: 3.0, annotations: [] };
             
         slides.querySelectorAll( 'svg.whiteboard' ).forEach( svg => { 
             if (svg.children.length) {
@@ -1442,7 +1450,6 @@ let RevealWhiteboard = (function(){
 
 
     // whenever slide changes, update slideIndices and redraw
-    Reveal.addEventListener( 'ready', setupSlides );
     Reveal.addEventListener( 'ready', slideChanged );
     Reveal.addEventListener( 'slidechanged', slideChanged );
 
@@ -1489,6 +1496,9 @@ let RevealWhiteboard = (function(){
             selectTool(ToolType.PEN);
             selectPenColor(penColors[0]);
             selectPenRadius(2);
+
+            // put centered slides in flex-layout
+            setupSlides();
 
             // hide buttons in print mode
             if (printMode) buttons.style.display = 'none';
