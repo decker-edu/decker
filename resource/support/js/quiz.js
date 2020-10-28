@@ -300,18 +300,16 @@ function buildPlainMatch(question) {
     for (let i=0; i<allBuckets.length; i++) {
         const matchQuestion = document.createElement('div');
         matchQuestion.classList.add('matchQuestion');
-        matchQuestion.id = i.toString();
         matchItems.appendChild(matchQuestion);
 
         const lab = document.createElement('label');
-        lab.setAttribute('data-value', allBuckets[i].classList.contains('distractor') ? '0' : allBuckets[i].getAttribute('data-bucketId'));
+        lab.setAttribute('data-bucketId', allBuckets[i].classList.contains('distractor') ? '0' : allBuckets[i].getAttribute('data-bucketId'));
         lab.innerHTML = allBuckets[i].innerHTML;
 
         const blank = document.createElement('p');
         blank.innerText = '...';
-        blank.id = matchQuestion.id + "-0";
         blank.classList.add('selected','blank', 'option');
-        blank.setAttribute('value',lab.getAttribute('data-value'));
+        blank.setAttribute('data-bucketId',lab.getAttribute('data-bucketId'));
         blank.addEventListener('click', function() {showList(this.parentElement.nextElementSibling)});
         
         const optList = document.createElement('div');
@@ -334,15 +332,15 @@ function buildPlainMatch(question) {
     }
     function makeSelection() {
         let ol = this.parentElement.previousElementSibling;
-        let newId = this.parentElement.parentElement.id + "-" + this.innerText;
         this.classList.toggle('selected');
         if (this.classList.contains('selected')) {
             let cl = this.cloneNode(true);
             ol.appendChild(cl);
             cl.addEventListener('click', function() {showList(this.parentElement.nextElementSibling)});
-            cl.id = newId;
         } else {
-            ol.removeChild(document.getElementById(newId));
+            for (let child of ol.children) {
+                if (child.innerText === this.innerText) { ol.removeChild(child); }
+            }
         }
     }
     function hideList(event) {
@@ -356,19 +354,19 @@ function buildPlainMatch(question) {
         const matches = matchItems.querySelectorAll('.matchQuestion');
         for (let mq of matches) {
             let list = mq.querySelector('.optList');
-            let correct = list.previousElementSibling.getAttribute('data-value');
+            let correct = list.previousElementSibling.getAttribute('data-bucketId');
             let allCorrect = []; let allSelected = [];
 
             for (let l of list.children) {
-                allSelected.push(l.id.slice(-2));
-                l.classList.add(l.getAttribute('value') === correct ? 'correct' : 'incorrect');
+                allSelected.push(l.textContent);
+                l.classList.add(l.getAttribute('data-bucketId') === correct ? 'correct' : 'incorrect');
             }
             allSelected.shift();                            // remove blank response
 
             let opts = list.nextElementSibling;
             for (let o of opts.children) { 
                 o.removeEventListener('click', makeSelection);
-                if (o.getAttribute('value') === correct) {
+                if (o.getAttribute('data-bucketId') === correct) {
                     allCorrect.push(o.textContent);
                     o.classList.add(o.classList.contains('selected') ? 'correct' : 'correct-notSelected');
                 } else if (o.classList.contains('selected')) {
@@ -397,7 +395,7 @@ function buildSelect(buckets, answers) {
         const opt = document.createElement('p');
         opt.classList.add('option'); 
         opt.innerHTML = String.fromCharCode(i + 65) + ".";; 
-        opt.setAttribute('value', answers[i].getAttribute('data-bucketId') || '0'); 
+        opt.setAttribute('data-bucketId', answers[i].getAttribute('data-bucketId') || '0'); 
         optList.appendChild(opt);
         buckets.appendChild(answers[i]); 
     }
