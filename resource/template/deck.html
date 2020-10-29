@@ -162,7 +162,8 @@ $else$
           repoProvider: "$thebelab.repoProvider$",
       },
       kernelOptions: {
-          name: "$thebelab.language$"
+          name: "$thebelab.language$",
+          kernelName: "$thebelab.language$"
       },
 $endif$
       selector: "[data-executable]",
@@ -172,7 +173,7 @@ $endif$
       }
   }
   </script>
-   <script src="$decker-support-dir$/vendor/thebelab/index.js"></script> 
+   <script src="https://unpkg.com/thebelab@latest/lib/index.js"></script> 
 $endif$
 $for(header-includes)$
   $header-includes$
@@ -243,7 +244,7 @@ $if(title)$
       $else$
          <section id="$idprefix$title-slide" class="title-page">
       $endif$
-        <div class="valign-block" style="height:550px">
+        <div class="valign-block">
             <div class="valigned">
                 <div class="title"> $title$</div>
                 $if(subtitle)$
@@ -301,7 +302,8 @@ $body$
 $if(decker-engine-base-url)$
   <script type="module" crossorigin>
     import {contactEngine} from "./$decker-support-dir$/js/engine.js";
-    contactEngine("$decker-engine-base-url$");
+    contactEngine("$decker-engine-base-url$")
+      .then(() => Reveal.sync());
   </script>
 $endif$
 

@@ -198,7 +198,7 @@ run = do
         putNormal $ "# chrome started ... (for " <> out <> ")"
         result <- liftIO $ launchChrome url out
         case result of
-          Right msg -> putNormal $ "# chrome finished (for " <> out <> ")"
+          Right _ -> putNormal $ "# chrome finished (for " <> out <> ")"
           Left msg -> error msg
                      --
       publicDir <//> "*-handout.html" %> \out -> do
@@ -249,7 +249,7 @@ run = do
       "**/*.gnuplot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
-        gnuplot ["-e", "'set output \"" ++ out ++ "\"'", src]
+        gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src]
                      --
       "**/*.tex.svg" %> \out -> do
         let src = dropExtension out

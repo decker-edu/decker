@@ -44,9 +44,9 @@ function fixAutoplayWithStart() {
 // Replace date string on title slide with current date 
 // if string provided for date in yaml header is "today"
 function currentDate() {
-  var date = document.getElementById("date");
+  var date = document.querySelector(".date");
   if (!date) return;
-  var dateString = date.textContent;
+  var dateString = date.textContent.trim();
 
   var today = new Date().toISOString().substr(0, 10);
 
@@ -189,20 +189,20 @@ function prepareFullscreenIframes() {
 
 
 function isElectron() {
-    // Renderer process
-    if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
-        return true;
-    }
+  // Renderer process
+  if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
+    return true;
+  }
 
-    // Main process
-    if (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) {
-        return true;
-    }
+  // Main process
+  if (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) {
+    return true;
+  }
 
-    // Detect the user agent when the `nodeIntegration` option is set to true
-    if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
-        return true;
-    }
+  // Detect the user agent when the `nodeIntegration` option is set to true
+  if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
+    return true;
+  }
 
-    return false;
+  return false;
 }
