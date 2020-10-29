@@ -8,6 +8,26 @@
   --whiteboard-background-color: rgb(250,250,250);
 }
 
+/* vertically center slides (override Reveal's mechanism) */
+.reveal .slides section .v-center {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+.reveal .slides section .v-wrapper {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
 
 /* adjust Reveal slide container when we need a scrollbar */
 .reveal .slides.needScrollbar {
