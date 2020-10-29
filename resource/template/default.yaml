@@ -16,6 +16,7 @@ progress: true
 test123: "test123"
 title: "|title|"
 touch: true
+vertical-slides: true
 transition: "none"
 zoom: true
 

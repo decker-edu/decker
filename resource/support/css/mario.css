@@ -25,7 +25,7 @@ body {
 
 .reveal {
   font-family: "Lato", sans-serif;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: normal;
   color: #222; 
 }
@@ -45,9 +45,8 @@ body {
 .reveal .slides section {
   line-height: 1.3;
   font-weight: inherit;
-  padding: 0; /* MARIO: prevent 20px at top/bottom by reveal.css */
-  /*min-height: 100%; [> MARIO: slides should be full height for footer to be positioned correctly <]*/
   text-align: center;
+  padding: 0;
 }
 
 
