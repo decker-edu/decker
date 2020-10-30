@@ -173,6 +173,29 @@ deploy:linux:
   interruptible: true
   resource_group: deploy_linux
 
+deploy:docker:
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  tags:
+    - docker
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  stage: ci-img
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context=$CI_PROJECT_DIR --dockerfile=$CI_PROJECT_DIR/Dockerfile-prebuilt --verbosity=warn --destination=$CI_REGISTRY_IMAGE:latest
+  needs:
+    - job: build:linux
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      when: always
+    - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
+      when: always
+  interruptible: true
+
 deploy:win:
   stage: deploy
   image:

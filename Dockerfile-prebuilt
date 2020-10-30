@@ -1,0 +1,26 @@
+FROM ubuntu:focal as decker
+
+RUN apt-get update && apt-get install -y \
+    graphviz \
+    gnuplot \
+    rsync \
+    unzip \
+    zip
+
+COPY decker /usr/bin/decker 
+ADD https://dl.min.io/client/mc/release/linux-amd64/mc /usr/bin/mc
+RUN chmod +x /usr/bin/mc
+
+#set the encoding on UTF-8, so the parser works correctly, german language is also added for umlaute
+#source of fix: https://blog.mkowalski.net/2016/05/16/solving-locale-issues-with-docker-containers/
+RUN apt-get install --reinstall -y locales && \
+    sed -i 's/# de_DE.UTF-8 UTF-8/de_DE.UTF-8 UTF-8/' /etc/locale.gen && \
+    locale-gen de_DE.UTF-8
+ENV LANG de_DE.UTF-8
+ENV LANGUAGE de_DE
+ENV LC_ALL de_DE.UTF-8
+RUN dpkg-reconfigure --frontend noninteractive locales
+
+WORKDIR /decker
+
+ENTRYPOINT ["decker"]
