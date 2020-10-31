@@ -378,7 +378,11 @@ function buildInterface(api, initialToken, publicUrl) {
       updateComments();
     } else {
       api
-        .getLogin({login: username.value, password: password.value})
+        .getLogin({
+          login: username.value,
+          password: password.value,
+          deck: publicUrl || deckId()
+        })
         .then(token => {
           serverToken.admin = token.admin;
           login.classList.add("admin");
@@ -387,7 +391,7 @@ function buildInterface(api, initialToken, publicUrl) {
           credentials.classList.remove("visible");
           updateComments();
         })
-        .catch(e => {
+        .catch(_ => {
           password.value = "";
         });
     }
