@@ -476,7 +476,7 @@
 .reveal .qmi.plain button,
 .reveal [class*="quiz-"].plain button {
   border: none;
-  margin: 10px 1em auto auto;
+  margin: 0;
   padding: 5px 10px;
   background-color: #ddd;
   color: #000;
@@ -636,6 +636,13 @@
 .reveal .quiz-multiple-choice.plain ul {
   display: inline-block;
   text-align: inherit;
+}
+
+.reveal .qmc.plain.inline li,
+.reveal .quiz-mc.plain.inline li,
+.reveal .quiz-multiple-choice.plain.inline li {
+  padding: 0.1em 0.7em 0.1em 0;
+  display: inline;
 }
 
 .reveal .qft,
@@ -820,7 +827,7 @@
   position: relative;
   width: 100%;
   min-height: 100px;
-  padding: 15px;
+  padding: 15px 15px 0 15px;
   border: 2px var(--border-decoration-style) #ddd;
   border-radius: 6px;
   box-sizing: border-box;
@@ -925,9 +932,9 @@
   flex-flow: column nowrap;
   counter-reset: item;
   border: none;
-  margin-top: 2vh;
+  margin: 2vh 0 0 0;
   max-width: max-content;
-  padding: 15px 0;
+  padding-top: 15px;
 }
 
 .reveal .qmi.plain .matchItems::before, .reveal .qmi.plain .matchItems::after,

@@ -74,7 +74,7 @@ $border-radius: 6px;
         &.plain {
             button {
                 border: none;
-                margin: 10px 1em auto auto;
+                margin: 0;
                 padding: 5px 10px; 
                 background-color: $button;
                 color: #000;
@@ -186,6 +186,10 @@ $border-radius: 6px;
             ul {
                 display: inline-block;
                 text-align: inherit;
+            }
+            &.inline li {
+                padding: 0.1em 0.7em 0.1em 0;
+                display: inline;
             }
         }
     }
@@ -329,7 +333,7 @@ $border-radius: 6px;
             position: relative;
             width: 100%;
             min-height: 100px;
-            padding: 15px;
+            padding: 15px 15px 0 15px;
             border: 2px var(--border-decoration-style) $button;
             border-radius: $border-radius;
             box-sizing: border-box;
@@ -397,9 +401,9 @@ $border-radius: 6px;
                 flex-flow: column nowrap;
                 counter-reset: item;
                 border: none;
-                margin-top: 2vh;
+                margin: 2vh 0 0 0;
                 max-width: max-content;
-                padding: 15px 0;
+                padding-top: 15px;
                 &::before,
                 &::after {
                     content: unset;
@@ -428,14 +432,14 @@ $border-radius: 6px;
                 background-color: #f1f1f1;
                 text-align: center;
                 p {
-                &::before,
-                &::after {
-                    content: "✓ ";
-                    font-weight: bolder;
-                }
-                &::after {
-                    color: #f1f1f1;
-                }
+                    &::before,
+                    &::after {
+                        content: "✓ ";
+                        font-weight: bolder;
+                    }
+                    &::after {
+                        color: #f1f1f1;
+                    }
                 }
             }
             .optList {
@@ -443,24 +447,24 @@ $border-radius: 6px;
                 &.correct p::before,
                 &.incorrect p.correct::before,
                 &.incorrect p.incorrect::before {
-                color: initial;
+                    color: initial;
                 }
                 &.correct {
                     background-color: $right;
                     p {
-                    &:first-child::before,
-                    &::after {
-                        color: $right;
-                    }
+                        &:first-child::before,
+                        &::after {
+                            color: $right;
+                        }
                     }
                 }
                 &.incorrect {
                     background-color: $wrong;
                     p {
-                    &.blank.correct::before,
-                    &::after {
-                        color: $wrong;
-                    }
+                        &.blank.correct::before,
+                        &::after {
+                            color: $wrong;
+                        }
                     }
                 }
                 p {
