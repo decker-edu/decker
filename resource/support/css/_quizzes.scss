@@ -173,6 +173,7 @@ $border-radius: 6px;
                 margin: 0;
                 padding: 0.1em 0 0.1em 0.7em;
                 border: none;
+                display: block;
                 &::before {
                     content: "\f111";
                     font-family: "Font Awesome 5 Free";

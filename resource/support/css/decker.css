@@ -614,6 +614,7 @@
   margin: 0;
   padding: 0.1em 0 0.1em 0.7em;
   border: none;
+  display: block;
 }
 
 .reveal .qmc.plain li::before,
