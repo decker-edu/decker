@@ -35,10 +35,10 @@ async function prepareEngine(api, publicUrl) {
       }
 
       if (Reveal.isReady() && Reveal.hasPlugin('menu') && Reveal.getPlugin('menu').isInit()) {
-        buildMenu(api, serverToken);
+        buildMenu(api, serverToken, publicUrl);
       } else {
         Reveal.addEventListener("menu-ready", _ => {
-          buildMenu(api, serverToken publicUrl);
+          buildMenu(api, serverToken, publicUrl);
         });
       }
     })
