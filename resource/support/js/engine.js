@@ -26,16 +26,20 @@ async function prepareEngine(api) {
       serverToken = token;
       if (Reveal.isReady()) {
         buildInterface(api, serverToken);
-        buildOverview(api, serverToken);
+        // buildOverview(api, serverToken);
       } else {
         Reveal.addEventListener("ready", _ => {
           buildInterface(api, serverToken);
-          buildOverview(api, serverToken);
+          // buildOverview(api, serverToken);
         });
       }
+      if (Reveal.isReady() && Reveal.hasPlugin('menu') && Reveal.getPlugin('menu').isInit()) {
+        buildMenu(api, serverToken);
+      } else {
         Reveal.addEventListener("menu-ready", _ => {
           buildMenu(api, serverToken);
         });
+      }
     })
     .catch(e => {
       // Nothing goes without a token
