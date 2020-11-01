@@ -33,6 +33,9 @@ async function prepareEngine(api) {
           buildOverview(api, serverToken);
         });
       }
+        Reveal.addEventListener("menu-ready", _ => {
+          buildMenu(api, serverToken);
+        });
     })
     .catch(e => {
       // Nothing goes without a token
@@ -99,7 +102,7 @@ function buildInterface(api, initialToken) {
 
   let lock = document.createElement("i");
   lock.classList.add("fas", "fa-lock", "lock");
-  lock.setAttribute("title", "Lock user token");
+  lock.setAttribute("title", "Lock user ");
 
   let unlock = document.createElement("i");
   unlock.classList.add("fas", "fa-unlock", "unlock");
@@ -509,3 +512,33 @@ function buildOverview(api, initialToken) {
 }
 
 
+
+function buildMenu(api, initialToken) {
+  var serverToken = initialToken;
+
+  let updateMenu = list => {
+    for (let comment of list) {
+
+      // get slide info
+      const slideID = comment.slide;
+      const slide = document.getElementById(slideID);
+      const indices = Reveal.getIndices(slide);
+
+      // build query string, get menu item
+      let query = 'ul.slide-menu-items > li.slide-menu-item';
+      if (indices.h) query += '[data-slide-h=\"' + indices.h + '\"]';
+      if (indices.v) query += '[data-slide-v=\"' + indices.v + '\"]';
+      let li = document.querySelector(query);
+
+      // update question counter
+      if (li) {
+        li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
+      }
+    }
+  };
+
+  api
+    .getComments(deckId())
+    .then(updateMenu)
+    .catch(console.log);
+}
