@@ -108,7 +108,7 @@ $endif$
 $if(highlightjs)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
 $endif$
-$if(decker-engine-base-url)$
+$if(decker-engine.base-url)$
   <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
 $endif$
 $if(template.base-css)$
@@ -299,10 +299,10 @@ $body$
       prepareSAGE();
   </script>
 
-$if(decker-engine-base-url)$
+$if(decker-engine.base-url)$
   <script type="module" crossorigin>
     import {contactEngine} from "./$decker-support-dir$/js/engine.js";
-    contactEngine("$decker-engine-base-url$")
+    contactEngine("$decker-engine.base-url$", "$decker-engine.public-url$")
       .then(() => Reveal.sync());
   </script>
 $endif$

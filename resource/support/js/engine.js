@@ -1,16 +1,16 @@
-export { contactEngine };
+export {contactEngine};
 
 // TODO Make into a proper Reveal plugin
 
-const DEBUG = false;
+const DEBUG = true;
 const DEBUG_AUTH = false;
 
 var timeout = 100; // ms
 
-async function contactEngine(base) {
+async function contactEngine(base, publicUrl) {
   import(base + "/decker-util.js")
     .then(engine => {
-      prepareEngine(engine.buildApi(base));
+      prepareEngine(engine.buildApi(base), publicUrl);
     })
     .catch(e => {
       console.log("Can't contact decker engine:" + e);
@@ -18,26 +18,27 @@ async function contactEngine(base) {
     });
 }
 
-async function prepareEngine(api) {
+async function prepareEngine(api, publicUrl) {
   var serverToken;
   api
     .getToken()
     .then(token => {
       serverToken = token;
       if (Reveal.isReady()) {
-        buildInterface(api, serverToken);
-        // buildOverview(api, serverToken);
+        buildInterface(api, serverToken, publicUrl);
+        //buildOverview(api, serverToken, publicUrl);
       } else {
         Reveal.addEventListener("ready", _ => {
-          buildInterface(api, serverToken);
-          // buildOverview(api, serverToken);
+          buildInterface(api, serverToken, publicUrl);
+          //buildOverview(api, serverToken, publicUrl);
         });
       }
+
       if (Reveal.isReady() && Reveal.hasPlugin('menu') && Reveal.getPlugin('menu').isInit()) {
         buildMenu(api, serverToken);
       } else {
         Reveal.addEventListener("menu-ready", _ => {
-          buildMenu(api, serverToken);
+          buildMenu(api, serverToken publicUrl);
         });
       }
     })
@@ -58,11 +59,12 @@ function deckId() {
   return url.toString();
 }
 
-function buildInterface(api, initialToken) {
+function buildInterface(api, initialToken, publicUrl) {
   var serverToken = initialToken;
 
   if (DEBUG) {
     console.log("token:", initialToken);
+    console.log("publicUrl:", publicUrl);
   }
 
   let open = document.createElement("div");
@@ -196,7 +198,7 @@ function buildInterface(api, initialToken) {
 
   let getContext = () => {
     return {
-      deck: deckId(),
+      deck: publicUrl || deckId(),
       slide: Reveal.getCurrentSlide().id,
       token: user.value
     };
@@ -384,7 +386,11 @@ function buildInterface(api, initialToken) {
       updateComments();
     } else {
       api
-        .getLogin({ login: username.value, password: password.value })
+        .getLogin({
+          login: username.value,
+          password: password.value,
+          deck: publicUrl || deckId()
+        })
         .then(token => {
           serverToken.admin = token.admin;
           login.classList.add("admin");
@@ -393,7 +399,7 @@ function buildInterface(api, initialToken) {
           credentials.classList.remove("visible");
           updateComments();
         })
-        .catch(e => {
+        .catch(_ => {
           password.value = "";
         });
     }
@@ -449,7 +455,7 @@ function buildInterface(api, initialToken) {
   updateIds();
 }
 
-function buildOverview(api, initialToken) {
+function buildOverview(api, initialToken, publicUrl) {
   var serverToken = initialToken;
 
   let slides = document.querySelector("div.reveal div.slides");
@@ -496,10 +502,10 @@ function buildOverview(api, initialToken) {
       link.setAttribute("href", `#${comment.slide}`);
       link.textContent = comment.slide;
       td1.appendChild(link);
-      
+
       let td2 = document.createElement("td");
       td2.textContent = comment.votes;
-      
+
       let td3 = document.createElement("td");
       td3.innerHTML = comment.html;
       tr.appendChild(td1);
@@ -510,14 +516,14 @@ function buildOverview(api, initialToken) {
   };
 
   api
-    .getComments(deckId())
+    .getComments(publicUrl || deckId())
     .then(updateList)
     .catch(console.log);
 }
 
 
 
-function buildMenu(api, initialToken) {
+function buildMenu(api, initialToken, publicUrl) {
   var serverToken = initialToken;
 
   let updateMenu = list => {
@@ -542,7 +548,7 @@ function buildMenu(api, initialToken) {
   };
 
   api
-    .getComments(deckId())
+    .getComments(publicUrl || deckId())
     .then(updateMenu)
     .catch(console.log);
 }

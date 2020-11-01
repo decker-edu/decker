@@ -325,10 +325,11 @@ or extending the information in the deck.
 
 To enable this feature a deck must specify the URL of a Decker Engine
 server in the meta data by setting the variable
-`decker-engine-base-url`. For example:
+`decker-engine.base-url`. For example:
 
 ``` {.yaml}
-decker-engine-base-url: 'https://tramberend.beuth-hochschule.de/decker'
+decker-engine:
+  base-url: 'https://tramberend.beuth-hochschule.de/decker'
 ```
 
 ### Endpoints with authorization
@@ -344,7 +345,8 @@ authorization is necessary.
 The `de-api` endpoint works that way:
 
 ``` {.yaml}
-decker-engine-base-url: 'https://tramberend.beuth-hochschule.de/de-api'
+decker-engine:
+  base-url: 'https://tramberend.beuth-hochschule.de/de-api'
 ```
 
 ### Public endpoints
@@ -358,13 +360,33 @@ authenticate with a username and a password.
 The `decker` endpoint works that way:
 
 ``` {.yaml}
-decker-engine-base-url: 'https://tramberend.beuth-hochschule.de/decker'
+decker-engine:
+  base-url: 'https://tramberend.beuth-hochschule.de/decker'
 ```
 
 ### Admistrators
 
 Users that are authorized as administrators can edit and delete all
 questions in a set.
+
+### Deck Identification
+
+Decks are identified by their public URL. This can be problematic if a
+deck is served locally, for example from
+`http://localhost:8888/test/decks/engine-deck.html` during video
+recording, but is supposed to show the questions on the published
+version. For this situation the public URL of a deck can be set in the
+meta data.
+
+``` {.yaml}
+decker-engine:
+  public-url: 'https://tramberend.beuth-hochschule.de/public/decker/test/decks/engine-deck.html'
+```
+
+If `decker-engine.public-url` is specified, it overrides the actual deck
+URL as far as deck identification for decker engine is concerned. The
+questions shown if the deck is served locally will be the questions
+added where added to the published deck.
 
 ## Quizzes
 
