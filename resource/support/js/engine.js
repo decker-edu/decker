@@ -8,8 +8,7 @@ var timeout = 500;
 let engine = {
   api: undefined,
   deckId: undefined, // The unique deck identifier.
-  token: undefined,
-  slideId: undefined
+  token: undefined
 }
 
 // Contacts the engine API at base.
