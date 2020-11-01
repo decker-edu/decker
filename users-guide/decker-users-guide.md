@@ -380,13 +380,13 @@ meta data.
 
 ``` {.yaml}
 decker-engine:
-  public-url: 'https://tramberend.beuth-hochschule.de/public/decker/test/decks/engine-deck.html'
+  deck-id: 'https://tramberend.beuth-hochschule.de/public/decker/test/decks/engine-deck.html'
 ```
 
-If `decker-engine.public-url` is specified, it overrides the actual deck
+If `decker-engine.deck-id` is specified, it overrides the actual deck
 URL as far as deck identification for decker engine is concerned. The
 questions shown if the deck is served locally will be the questions
-added where added to the published deck.
+that where added to the published deck.
 
 ## Quizzes
 
