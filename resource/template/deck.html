@@ -108,7 +108,7 @@ $endif$
 $if(highlightjs)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
 $endif$
-$if(decker-engine-base-url)$
+$if(decker-engine.base-url)$
   <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
 $endif$
 $if(template.base-css)$
@@ -299,11 +299,10 @@ $body$
       prepareSAGE();
   </script>
 
-$if(decker-engine-base-url)$
+$if(decker-engine.base-url)$
   <script type="module" crossorigin>
     import {contactEngine} from "./$decker-support-dir$/js/engine.js";
-    contactEngine("$decker-engine-base-url$")
-      .then(() => Reveal.sync());
+    contactEngine("$decker-engine.base-url$", "$decker-engine.deck-id$")
   </script>
 $endif$
 
@@ -503,7 +502,15 @@ $if(checkOverflow)$
 $else$
         checkOverflow: false,
 $endif$
-     
+
+
+        // whether to use vertical slides (in decker.js)
+ $if(vertical-slides)$
+        verticalSlides: $vertical-slides$,
+$else$
+        verticalSlides: false,
+$endif$
+
 
         // setup reveal-menu
 $if(menu)$
@@ -651,10 +658,6 @@ $endif$
           ]
       });
   </script>
-
-  $if(vertical-slides)$
-      <script>makeVertical();</script>
-  $endif$
 
 
   <!-- Reload on change machinery -->

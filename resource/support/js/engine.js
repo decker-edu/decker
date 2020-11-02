@@ -1,48 +1,36 @@
 export {contactEngine};
 
-// TODO Make into a proper Reveal plugin
+// TODO Make into a proper Reveal 4 plugin
 
-const DEBUG = false;
-const DEBUG_AUTH = false;
+// Start with a 0.5 s retry interval. Back off exponentally.
+var timeout = 500;
 
-var timeout = 100; // ms
+let engine = {
+  api: undefined,
+  deckId: undefined, // The unique deck identifier.
+  token: undefined
+}
 
-async function contactEngine(base) {
+// Contacts the engine API at base.
+function contactEngine(base, deckId) {
+  engine.deckId = deckId || deckUrl();
+
+  // Try to import the API utility module.
   import(base + "/decker-util.js")
-    .then(engine => {
-      prepareEngine(engine.buildApi(base));
+    .then(util => {
+      console.log("Decker engine contacted at: ", base);
+      engine.api = util.buildApi(base);
+      prepareEngine();
     })
     .catch(e => {
       console.log("Can't contact decker engine:" + e);
-      setTimeout(() => contactEngine(base), (timeout *= 1.5));
+      console.log("Retrying ..." + e);
+      setTimeout(() => contactEngine(base, deckId), (timeout *= 2));
     });
 }
 
-async function prepareEngine(api) {
-  var serverToken;
-  api
-    .getToken()
-    .then(token => {
-      serverToken = token;
-      if (Reveal.isReady()) {
-        buildInterface(api, serverToken);
-        buildOverview(api, serverToken);
-      } else {
-        Reveal.addEventListener("ready", _ => {
-          buildInterface(api, serverToken);
-          buildOverview(api, serverToken);
-        });
-      }
-    })
-    .catch(e => {
-      // Nothing goes without a token
-      console.log("getToken() failed: " + e);
-      console.log("retrying ...");
-      setTimeout(() => prepareEngine(api), 1000);
-    });
-}
-
-function deckId() {
+// Strips the document URI from everything that can not be part of the deck id. 
+function deckUrl() {
   let url = new URL(window.location);
   url.hash = "";
   url.query = "";
@@ -51,13 +39,41 @@ function deckId() {
   return url.toString();
 }
 
-function buildInterface(api, initialToken) {
-  var serverToken = initialToken;
+// Prepares the questions panel for operation.
+function prepareEngine() {
+  engine.api
+    .getToken()
+    .then(token => {
+      // Globally set the server token.
+      engine.token = token;
 
-  if (DEBUG) {
-    console.log("token:", initialToken);
-  }
+      // Build the panel, once Reval is ready.
+      if (Reveal.isReady()) {
+        buildInterface();
+      } else {
+        Reveal.addEventListener("ready", _ => {
+          buildInterface();
+        });
+      }
 
+      // Build the menu, once Reval and the menu are ready.
+      if (Reveal.isReady() && Reveal.hasPlugin('menu') && Reveal.getPlugin('menu').isInit()) {
+        buildMenu();
+      } else {
+        Reveal.addEventListener("menu-ready", _ => {
+          buildMenu();
+        });
+      }
+    })
+    .catch(e => {
+      // Nothing goes without a token
+      console.log("API function getToken() failed: " + e);
+      throw (e);
+    });
+}
+
+// Builds the panel and sets up event handlers.
+function buildInterface() {
   let open = document.createElement("div");
   let badge = document.createElement("div");
 
@@ -99,7 +115,7 @@ function buildInterface(api, initialToken) {
 
   let lock = document.createElement("i");
   lock.classList.add("fas", "fa-lock", "lock");
-  lock.setAttribute("title", "Lock user token");
+  lock.setAttribute("title", "Lock user ");
 
   let unlock = document.createElement("i");
   unlock.classList.add("fas", "fa-unlock", "unlock");
@@ -183,23 +199,11 @@ function buildInterface(api, initialToken) {
   document.body.appendChild(open);
   document.body.appendChild(panel);
 
-  // Found on StackOverflow
-  const hashCode = s =>
-    s.split("").reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0);
-
-  let getContext = () => {
-    return {
-      deck: deckId(),
-      slide: Reveal.getCurrentSlide().id,
-      token: user.value
-    };
-  };
-
   let initUser = () => {
     let localToken = window.localStorage.getItem("token");
-    if (serverToken && serverToken.authorized) {
+    if (engine.token && engine.token.authorized) {
       // Some higher power has authorized this user. Lock token in.
-      user.value = serverToken.authorized;
+      user.value = engine.token.authorized;
       user.setAttribute("disabled", true);
       check.classList.add("checked");
       user.type = "password";
@@ -213,7 +217,7 @@ function buildInterface(api, initialToken) {
       check.classList.add("checked");
       user.type = "password";
     } else {
-      user.value = serverToken.random;
+      user.value = engine.token.random;
       user.removeAttribute("disabled");
       check.classList.remove("checked");
       user.type = "text";
@@ -221,12 +225,12 @@ function buildInterface(api, initialToken) {
   };
 
   let updateComments = () => {
-    let context = getContext();
-    api
+    let slideId = Reveal.getCurrentSlide().id;
+    engine.api
       .getComments(
-        context.deck,
-        context.slide,
-        serverToken.admin || context.token
+        engine.deckId,
+        slideId,
+        engine.token.admin || user.value
       )
       .then(renderList)
       .catch(console.log);
@@ -238,13 +242,10 @@ function buildInterface(api, initialToken) {
   };
 
   let canDelete = comment => {
-    let context = getContext();
-    return serverToken.admin !== null || comment.author === context.token;
+    return engine.token.admin !== null || comment.author === user.value;
   };
 
   let renderList = list => {
-    let context = getContext();
-
     counter.textContent = list.length;
     counter.setAttribute("data-count", list.length);
     badge.textContent = list.length;
@@ -274,18 +275,17 @@ function buildInterface(api, initialToken) {
         vote.appendChild(thumb.cloneNode(true));
       }
       vote.classList.add("vote");
-      if (comment.author !== context.token) {
+      if (comment.author !== user.value) {
         vote.classList.add("canvote");
         if (comment.didvote) {
           vote.classList.add("didvote");
         }
         vote.addEventListener("click", _ => {
-          let context = getContext();
           let vote = {
             comment: comment.id,
-            voter: context.token
+            voter: user.value
           };
-          api.voteComment(vote).then(updateComments);
+          engine.api.voteComment(vote).then(updateComments);
         });
       } else {
         vote.classList.add("cantvote");
@@ -304,22 +304,16 @@ function buildInterface(api, initialToken) {
         let del = document.createElement("button");
         del.appendChild(trash.cloneNode(true));
         del.addEventListener("click", _ => {
-          let context = getContext();
-          console.log(comment);
-          console.log(context);
-          console.log(serverToken);
-          console.log(comment.id, serverToken.admin || context.token);
-          api
-            .deleteComment(comment.id, serverToken.admin || context.token)
+          engine.api
+            .deleteComment(comment.id, engine.token.admin || user.value)
             .then(updateComments);
         });
         // Edit button
         let mod = document.createElement("button");
         mod.appendChild(edit.cloneNode(true));
         mod.addEventListener("click", _ => {
-          let context = getContext();
-          api
-            .deleteComment(comment.id, serverToken.admin || context.token)
+          engine.api
+            .deleteComment(comment.id, engine.token.admin || user.value)
             .then(updateComments);
           text.value = comment.markdown;
           text.focus();
@@ -346,7 +340,7 @@ function buildInterface(api, initialToken) {
 
   login.addEventListener("click", _ => {
     if (login.classList.contains("admin")) {
-      serverToken.admin = null;
+      engine.token.admin = null;
       username.value = "";
       password.value = "";
       login.classList.remove("admin");
@@ -365,22 +359,35 @@ function buildInterface(api, initialToken) {
   password.addEventListener("keydown", e => {
     if (e.key !== "Enter") return;
 
-    api
-      .getLogin({login: username.value, password: password.value})
-      .then(token => {
-        updateComments();
-      })
-      .catch(e => {
-        console.log("Login failed");
-      })
-      .finally(() => {
-        username.value = "";
-        password.value = "";
-        credentials.classList.remove("visible");
-      });
+    if (login.classList.contains("admin")) {
+      engine.token.admin = null;
+      username.value = "";
+      password.value = "";
+      login.classList.remove("admin");
+      credentials.classList.remove("visible");
+      updateComments();
+    } else {
+      engine.api
+        .getLogin({
+          login: username.value,
+          password: password.value,
+          deck: engine.deckId 
+        })
+        .then(token => {
+          engine.token.admin = token.admin;
+          login.classList.add("admin");
+          username.value = "";
+          password.value = "";
+          credentials.classList.remove("visible");
+          updateComments();
+        })
+        .catch(_ => {
+          password.value = "";
+        });
+    }
   });
 
-  if (!(serverToken && serverToken.authorized)) {
+  if (!(engine.token.authorized)) {
     user.addEventListener("keydown", e => {
       if (e.key === "Enter") {
         updateComments();
@@ -409,9 +416,9 @@ function buildInterface(api, initialToken) {
 
   text.addEventListener("keydown", e => {
     if (e.key === "Enter" && e.shiftKey) {
-      let context = getContext();
-      api
-        .submitComment(context.deck, context.slide, context.token, text.value)
+      let slideId = Reveal.getCurrentSlide().id;
+      engine.api
+        .submitComment(engine.deckId, slideId, user.value, text.value)
         .then(renderSubmit)
         .catch(console.log);
       e.stopPropagation();
@@ -428,61 +435,32 @@ function buildInterface(api, initialToken) {
   updateComments();
 }
 
-function buildOverview(api, initialToken) {
-  var serverToken = initialToken;
-
-  let slide = document.createElement("section");
-  slide.setAttribute("id", "questions-overview")
-  slide.classList.add("slide", "level1", "questions", "overview");
-
-  let h1 = document.createElement("h1");
-  h1.textContent = "Questions Overview";
-
-  let scroll = document.createElement("div");
-  scroll.classList.add("scroll-y");
-
-  let table = document.createElement("table");
-  table.classList.add("questions");
-
-  scroll.appendChild(table)
-
-  slide.appendChild(h1);
-  slide.appendChild(scroll);
-
-  let slides = document.querySelector("div.reveal div.slides");
-  slides.appendChild(slide);
-
-  let updateList = list => {
-    let fragment = document.createDocumentFragment();
-
-    let header = document.createElement("tr");
-    header.innerHTML =
-      `<th>Slide</th>
-       <th><i class="far fa-thumbs-up"></i>
-       </th><th>Question</th>`;
-    fragment.appendChild(header);
-
+function buildMenu() {
+  let updateMenu = list => {
     for (let comment of list) {
-      let tr = document.createElement("tr");
-      tr.innerHTML =
-        `<td>
-           <a href="#${comment.slide}" 
-              title="Go to slide #${comment.slide}">
-             ${comment.slide}
-           </a>
-         </td>
-         <td>${comment.votes}</td>
-         <td>${comment.html}</td>`;
-      fragment.appendChild(tr);
+
+      // get slide info
+      const slideID = comment.slide;
+      const slide = document.getElementById(slideID);
+      const indices = Reveal.getIndices(slide);
+
+      // build query string, get menu item
+      let query = 'ul.slide-menu-items > li.slide-menu-item';
+      if (indices.h) query += '[data-slide-h=\"' + indices.h + '\"]';
+      if (indices.v) query += '[data-slide-v=\"' + indices.v + '\"]';
+      let li = document.querySelector(query);
+
+      // update question counter
+      if (li) {
+        li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
+      }
     }
 
     table.appendChild(fragment);
   };
 
-  api
-    .getComments(deckId())
-    .then(updateList)
+  engine.api
+    .getComments(engine.deckId)
+    .then(updateMenu)
     .catch(console.log);
 }
-
-

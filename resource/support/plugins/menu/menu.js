@@ -994,3 +994,6 @@ var RevealMenu = window.RevealMenu || (function(){
 	
 	return module;
 })();
+
+// MARIO: we have to register the plugin
+Reveal.registerPlugin( 'menu', RevealMenu );

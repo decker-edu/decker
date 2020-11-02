@@ -693,19 +693,19 @@ body {
     position:   absolute;
     display:    block;
     text-align: center;
-	margin:     0px;
+    margin:     0px;
     padding:    0px;
     font-size:  0.5em;
     width:      auto;
     height:     auto;
     left:       100px;
     right:      100px;
-    bottom:     0px;
+    bottom:     0.5em;
 }
 
 .reveal footer p,
 .reveal .footer p {
-	margin:  0px;
+    margin:  0px;
     padding: 0px;
 }
 

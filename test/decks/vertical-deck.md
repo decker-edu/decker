@@ -1,6 +1,7 @@
 ---
 menu: true
 title: Vertical Slides
+vertical-slides: true
 ---
 
 # First slide

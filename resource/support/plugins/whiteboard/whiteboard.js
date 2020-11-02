@@ -202,6 +202,9 @@ let RevealWhiteboard = (function(){
 
             if (Reveal.getConfig().center || slide.classList.contains('center'))
             {
+                // Reveal implements centering by adjusting css:top. Remove this.
+                slide.style.top = '';
+
                 // div for centering with flex layout
                 let vcenter = document.createElement("div");
                 vcenter.classList.add("v-center");
@@ -1450,6 +1453,7 @@ let RevealWhiteboard = (function(){
 
 
     // whenever slide changes, update slideIndices and redraw
+    Reveal.addEventListener( 'ready', setupSlides );
     Reveal.addEventListener( 'ready', slideChanged );
     Reveal.addEventListener( 'slidechanged', slideChanged );
 
@@ -1512,9 +1516,6 @@ let RevealWhiteboard = (function(){
             selectTool(ToolType.PEN);
             selectPenColor(penColors[0]);
             selectPenRadius(2);
-
-            // put centered slides in flex-layout
-            setupSlides();
 
             // hide buttons in print mode
             if (printMode) buttons.style.display = 'none';
