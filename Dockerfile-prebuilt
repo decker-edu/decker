@@ -18,7 +18,11 @@ RUN apt-get install -y \
     gnuplot \
     rsync \
     unzip \
-    zip
+    zip \
+    wget
+
+RUN  wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    dpkg --unpack google-chrome-stable_current_amd64.deb && apt-get install -f -y
 
 COPY decker /usr/bin/decker 
 
