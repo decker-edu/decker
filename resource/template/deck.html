@@ -496,7 +496,15 @@ $if(checkOverflow)$
 $else$
         checkOverflow: false,
 $endif$
-     
+
+
+        // whether to use vertical slides (in decker.js)
+ $if(vertical-slides)$
+        verticalSlides: $vertical-slides$,
+$else$
+        verticalSlides: false,
+$endif$
+
 
         // setup reveal-menu
 $if(menu)$
@@ -642,10 +650,6 @@ $endif$
           ]
       });
   </script>
-
-  $if(vertical-slides)$
-      <script>makeVertical();</script>
-  $endif$
 
 
   <!-- Reload on change machinery -->

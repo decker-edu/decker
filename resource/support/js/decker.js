@@ -18,6 +18,9 @@ function deckerStart() {
   addSourceCodeLabels();
   prepareTaskLists();
   prepareFullscreenIframes();
+  if (Reveal.getConfig().verticalSlides) {
+    setupVerticalSlides();
+  }
 }
 
 
@@ -55,7 +58,7 @@ function currentDate() {
   }
 }
 
-function makeVertical() {
+function setupVerticalSlides() {
   const subsections = Array.from(document.getElementsByClassName("sub")).filter(s => s.nodeName === "SECTION");
   const subsection_bundles = [];
   for (let i = 0; i < subsections.length; i++) {
