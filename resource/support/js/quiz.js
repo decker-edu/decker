@@ -41,8 +41,8 @@ function quizFT() {
         input.addEventListener("keydown", e => {
             buffer.push(e.key.toLowerCase());
             if (buffer[buffer.length-1] === buffer[buffer.length-2]) { return; };
-            if (e.keyCode === 13) { checkInput() }
-            if (e.keyCode === 8 || e.keyCode === 46) { resetQuestion() }
+            if (e.code === "Enter") { checkInput() };
+            if (e.code === "Backspace" || e.code === "Delete") { resetQuestion() };
         });
 
         // Check value of input field against solutions
@@ -125,7 +125,7 @@ function quizIC() {
                 tipDiv.innerHTML = "";
                 sel.classList.add('solved');
                 const ind = sel.selectedIndex;
-                const answer = sel.options[ind].innerText;
+                const answer = sel.options[ind].innerText.toLowerCase().trim();
                 const checked = checkAnswer(solutionList, answer);
 
                 sel.classList.remove("show-right","show-wrong");
@@ -298,6 +298,7 @@ function buildPlainMatch(question) {
 
     let allBuckets = buckets.querySelectorAll('.bucket');
     for (let i=0; i<allBuckets.length; i++) {
+        allBuckets[i].removeAttribute('draggable');
         const matchQuestion = document.createElement('div');
         matchQuestion.classList.add('matchQuestion');
         matchItems.appendChild(matchQuestion);
@@ -332,6 +333,8 @@ function buildPlainMatch(question) {
     }
     function makeSelection() {
         let ol = this.parentElement.previousElementSibling;
+        this.classList.remove('correct', 'incorrect', 'correct-notSelected');      // allow multiple attempts to solve
+        this.parentElement.previousElementSibling.classList.remove('correct','incorrect');
         this.classList.toggle('selected');
         if (this.classList.contains('selected')) {
             let cl = this.cloneNode(true);
@@ -365,7 +368,7 @@ function buildPlainMatch(question) {
 
             let opts = list.nextElementSibling;
             for (let o of opts.children) { 
-                o.removeEventListener('click', makeSelection);
+                // o.removeEventListener('click', makeSelection);
                 if (o.getAttribute('data-bucketId') === correct) {
                     allCorrect.push(o.textContent);
                     o.classList.add(o.classList.contains('selected') ? 'correct' : 'correct-notSelected');

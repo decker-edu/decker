@@ -587,14 +587,15 @@
 .reveal .quiz-multiple-choice .tooltip {
   display: block;
   visibility: hidden;
-  max-width: 95%;
+  width: max-content;
+  max-width: -moz-available;
+  max-width: fit-content;
   top: 100%;
   left: 5px;
   background-color: #808080;
   color: #fff;
   text-align: center;
-  margin: 5px;
-  padding: 5px;
+  padding: 0.2em;
   border-radius: 6px;
   border: none;
   position: absolute;
@@ -650,6 +651,11 @@
 .reveal [class*="quiz-f"] {
   overflow-y: auto;
   max-height: 80vh;
+}
+
+.reveal .qft input,
+.reveal [class*="quiz-f"] input {
+  margin-right: 0.5em;
 }
 
 .reveal .qft .solutionDiv,
@@ -749,6 +755,11 @@
   padding: 0 0 0.2em 1em;
 }
 
+.reveal .qft.plain .solutionButton,
+.reveal [class*="quiz-f"].plain .solutionButton {
+  margin-right: 0.5em;
+}
+
 .reveal .qic,
 .reveal [class*="quiz-i"] {
   overflow-y: auto;
@@ -785,6 +796,11 @@
 .reveal [class*="quiz-i"].plain .tooltip-div.solved {
   visibility: visible;
   width: 91%;
+}
+
+.reveal .qic.plain select,
+.reveal [class*="quiz-i"].plain select {
+  outline: none;
 }
 
 .reveal .qmi,
@@ -879,8 +895,7 @@
   background: #fff;
   cursor: grab;
   object-fit: contain;
-  margin-left: 2px;
-  margin-right: 2px;
+  margin: 0 2px 6px 2px;
 }
 
 .reveal .qmi .matchItem.show-right,
@@ -918,24 +933,34 @@
 }
 
 .reveal .qmi.plain .matchDiv,
+.reveal .quiz-mi.plain .matchDiv,
+.reveal .quiz-match-items.plain .matchDiv {
+  padding: 0.5em;
+  margin: 0.5em 0;
+  border-radius: 7px;
+  width: 100%;
+  border: 1px solid #eee;
+  justify-content: space-between;
+}
+
+.reveal .qmi.plain .matchDiv,
 .reveal .qmi.plain .matchItems,
 .reveal .quiz-mi.plain .matchDiv,
 .reveal .quiz-mi.plain .matchItems,
 .reveal .quiz-match-items.plain .matchDiv,
 .reveal .quiz-match-items.plain .matchItems {
   display: flex;
-  justify-content: start;
 }
 
 .reveal .qmi.plain .matchItems,
 .reveal .quiz-mi.plain .matchItems,
 .reveal .quiz-match-items.plain .matchItems {
-  flex-flow: column nowrap;
+  flex-direction: column;
+  justify-content: start;
   counter-reset: item;
   border: none;
-  margin: 2vh 0 0 0;
+  margin: 0;
   max-width: max-content;
-  padding-top: 15px;
 }
 
 .reveal .qmi.plain .matchItems::before, .reveal .qmi.plain .matchItems::after,
@@ -947,11 +972,20 @@
   border: none;
 }
 
+.reveal .qmi.plain .matchItems,
+.reveal .qmi.plain .buckets,
+.reveal .quiz-mi.plain .matchItems,
+.reveal .quiz-mi.plain .buckets,
+.reveal .quiz-match-items.plain .matchItems,
+.reveal .quiz-match-items.plain .buckets {
+  padding: 0 15px 0 0;
+}
+
 .reveal .qmi.plain .matchItem,
 .reveal .quiz-mi.plain .matchItem,
 .reveal .quiz-match-items.plain .matchItem {
   border: none;
-  padding: 0 0 0.5em 0;
+  padding: 0 0 0.3em 0;
 }
 
 .reveal .qmi.plain .matchItem::before,
@@ -961,6 +995,12 @@
   counter-increment: item;
   margin-right: 0.5em;
   font-weight: bold;
+}
+
+.reveal .qmi.plain .matchItem:last-of-type,
+.reveal .quiz-mi.plain .matchItem:last-of-type,
+.reveal .quiz-match-items.plain .matchItem:last-of-type {
+  padding-bottom: 0;
 }
 
 .reveal .qmi.plain .matchQuestion,
@@ -1081,7 +1121,7 @@
 .reveal .quiz-match-items.plain .options {
   display: none;
   position: absolute;
-  right: 0;
+  right: 0.66em;
 }
 
 .reveal .qmi.plain .options.shown,
@@ -1096,28 +1136,36 @@
   color: #f1f1f1;
 }
 
-.reveal .qmi.plain .options p.selected::before,
+.reveal .qmi.plain .options p.selected::before, .reveal .qmi.plain .options p.selected.correct::before, .reveal .qmi.plain .options p.selected.incorrect::before,
 .reveal .quiz-mi.plain .options p.selected::before,
-.reveal .quiz-match-items.plain .options p.selected::before {
+.reveal .quiz-mi.plain .options p.selected.correct::before,
+.reveal .quiz-mi.plain .options p.selected.incorrect::before,
+.reveal .quiz-match-items.plain .options p.selected::before,
+.reveal .quiz-match-items.plain .options p.selected.correct::before,
+.reveal .quiz-match-items.plain .options p.selected.incorrect::before {
   color: inherit;
 }
 
-.reveal .qmi.plain .options p.correct,
+.reveal .qmi.plain .options p.correct-notSelected::before,
+.reveal .quiz-mi.plain .options p.correct-notSelected::before,
+.reveal .quiz-match-items.plain .options p.correct-notSelected::before {
+  color: #aaffaa;
+}
+
+.reveal .qmi.plain .options p.correct, .reveal .qmi.plain .options p.correct-notSelected,
 .reveal .quiz-mi.plain .options p.correct,
-.reveal .quiz-match-items.plain .options p.correct {
-  border: none;
+.reveal .quiz-mi.plain .options p.correct-notSelected,
+.reveal .quiz-match-items.plain .options p.correct,
+.reveal .quiz-match-items.plain .options p.correct-notSelected {
   background-color: #aaffaa;
+  border: 2px dotted #000;
 }
 
-.reveal .qmi.plain .options p.correct::before,
-.reveal .quiz-mi.plain .options p.correct::before,
-.reveal .quiz-match-items.plain .options p.correct::before {
-  color: #009900;
-}
-
-.reveal .qmi.plain .options p.correct::after,
+.reveal .qmi.plain .options p.correct::after, .reveal .qmi.plain .options p.correct-notSelected::after,
 .reveal .quiz-mi.plain .options p.correct::after,
-.reveal .quiz-match-items.plain .options p.correct::after {
+.reveal .quiz-mi.plain .options p.correct-notSelected::after,
+.reveal .quiz-match-items.plain .options p.correct::after,
+.reveal .quiz-match-items.plain .options p.correct-notSelected::after {
   color: #aaffaa;
 }
 
@@ -1128,31 +1176,10 @@
   background-color: #ffaaaa;
 }
 
-.reveal .qmi.plain .options p.incorrect::before,
-.reveal .quiz-mi.plain .options p.incorrect::before,
-.reveal .quiz-match-items.plain .options p.incorrect::before {
-  color: #ff5e5e;
-}
-
 .reveal .qmi.plain .options p.incorrect::after,
 .reveal .quiz-mi.plain .options p.incorrect::after,
 .reveal .quiz-match-items.plain .options p.incorrect::after {
   color: #ffaaaa;
-}
-
-.reveal .qmi.plain .options p.correct-notSelected,
-.reveal .quiz-mi.plain .options p.correct-notSelected,
-.reveal .quiz-match-items.plain .options p.correct-notSelected {
-  background-color: #aaffaa;
-  border: 2px dotted #000;
-}
-
-.reveal .qmi.plain .options p.correct-notSelected::before, .reveal .qmi.plain .options p.correct-notSelected::after,
-.reveal .quiz-mi.plain .options p.correct-notSelected::before,
-.reveal .quiz-mi.plain .options p.correct-notSelected::after,
-.reveal .quiz-match-items.plain .options p.correct-notSelected::before,
-.reveal .quiz-match-items.plain .options p.correct-notSelected::after {
-  color: #aaffaa;
 }
 
 .reveal .qmi.plain .buckets,
@@ -1160,7 +1187,8 @@
 .reveal .quiz-match-items.plain .buckets {
   display: block;
   border: none;
-  margin: 2vh 0 0 1vw;
+  margin-left: 1vw;
+  width: auto;
 }
 
 .reveal .qmi.plain .buckets::before, .reveal .qmi.plain .buckets::after,

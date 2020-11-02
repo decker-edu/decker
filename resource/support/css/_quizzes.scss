@@ -151,14 +151,15 @@ $border-radius: 6px;
         .tooltip  {
             display: block;
             visibility: hidden;
-            max-width: 95%;
+            width: max-content;
+            max-width: -moz-available;
+            max-width: fit-content;
             top: 100%;
             left: 5px;
             background-color: $tooltip;
             color: #fff;
             text-align: center;
-            margin: 5px;
-            padding: 5px;
+            padding: 0.2em;
             border-radius: $border-radius;
             border: none;
             position: absolute;
@@ -200,6 +201,9 @@ $border-radius: 6px;
         // Users may have long tooltips with images
         overflow-y: auto;
         max-height: 80vh;
+        input {
+            margin-right: 0.5em;
+        }
         .solutionDiv {
             background-color: $solution;
             color: $text;
@@ -270,6 +274,9 @@ $border-radius: 6px;
                     }
                 }
             }
+            .solutionButton {
+                margin-right: 0.5em;
+            }
         }
     }
 
@@ -300,6 +307,9 @@ $border-radius: 6px;
                     visibility: visible;
                     width: 91%; 
                 }
+            }
+            select {
+                outline: none;
             }
         }
     }
@@ -371,8 +381,7 @@ $border-radius: 6px;
             background:#fff;
             cursor: grab;
             object-fit: contain;
-            margin-left: 2px;
-            margin-right: 2px;
+            margin: 0 2px 6px 2px;
             &.show-right {
                 background-color: $right;
                 border: $border;
@@ -393,32 +402,46 @@ $border-radius: 6px;
             text-align: var(--align-global);
             height: inherit;
             overflow: inherit;
+            .matchDiv {
+                padding: 0.5em;
+                margin: 0.5em 0;
+                border-radius: 7px;
+                width: 100%;
+                border: 1px solid $solution;
+                justify-content: space-between;
+            }
             .matchDiv, 
             .matchItems {
                 display: flex;
-                justify-content: start;
             }
             .matchItems {
-                flex-flow: column nowrap;
+                flex-direction: column;
+                justify-content: start;
                 counter-reset: item;
                 border: none;
-                margin: 2vh 0 0 0;
+                margin: 0;
                 max-width: max-content;
-                padding-top: 15px;
                 &::before,
                 &::after {
                     content: unset;
                     border: none;
                 }
             }
+            .matchItems,
+            .buckets {
+                padding: 0 15px 0 0;
+            }
             .matchItem {
                 border: none;
-                padding: 0 0 0.5em 0;
+                padding: 0 0 0.3em 0;
                 &::before {
                     content: counter(item, upper-latin) ": ";
                     counter-increment: item;
                     margin-right: 0.5em;
                     font-weight:  bold;
+                }
+                &:last-of-type {
+                    padding-bottom: 0;
                 }
             }
             .matchQuestion {
@@ -485,7 +508,7 @@ $border-radius: 6px;
             .options {
                 display: none;
                 position: absolute;
-                right: 0;
+                right: 0.66em;
                 &.shown {
                     display: initial;
                 }
@@ -493,15 +516,18 @@ $border-radius: 6px;
                     &::before {
                         color: #f1f1f1;
                     }
-                    &.selected::before {
+                    &.selected::before,
+                    &.selected.correct::before,
+                    &.selected.incorrect::before {
                         color: inherit;
                     }
-                    &.correct {
-                        border: none;
+                    &.correct-notSelected::before {
+                        color: $right;
+                    }
+                    &.correct,
+                    &.correct-notSelected {
                         background-color: $right;
-                        &::before {
-                            color: $green;
-                        } 
+                        border: $border-dotted;
                         &::after {
                             color: $right;
                         }
@@ -509,19 +535,8 @@ $border-radius: 6px;
                     &.incorrect {
                         border: none;
                         background-color: $wrong;
-                        &::before {
-                            color: $red;
-                        }
                         &::after {
                             color: $wrong;
-                        }
-                    }
-                    &.correct-notSelected {
-                        background-color: $right;
-                        border: $border-dotted;
-                        &::before,
-                        &::after {
-                            color: $right;
                         }
                     }
                 }
@@ -529,7 +544,8 @@ $border-radius: 6px;
             .buckets {
                 display: block;
                 border: none;
-                margin: 2vh 0 0 1vw;
+                margin-left: 1vw;
+                width: auto;
                 &::before,
                 &::after {
                     content: unset;

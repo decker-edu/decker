@@ -458,6 +458,21 @@ What's the fourth letter?
 
 ```
 
+### Quiz Styling
+
+The default style of quizzes includes decorative and interactive features. To switch to a plain style, specify in YAML metadata, or use the `.plain` tag in the question header. 
+
+```.yaml
+quiz: 
+  style: plain
+```
+
+```
+# Question 1
+
+## {.qmc .plain}
+```
+
 ### Quiz Meta
 
 Add a `YAML` code block to a question to provide meta information on the specific question.
@@ -470,6 +485,8 @@ score: 5
 category: FP
 lectureId: fp1
 topic: Functional Programming Introduction
+quiz:
+  style: plain
 ```
 ````
 
