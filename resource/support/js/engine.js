@@ -455,8 +455,6 @@ function buildMenu() {
         li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
       }
     }
-
-    table.appendChild(fragment);
   };
 
   engine.api
