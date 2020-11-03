@@ -29,5 +29,7 @@ RUN ln -s /usr/bin/google-chrome-stable /usr/bin/chrome
 COPY decker /usr/bin/decker 
 
 WORKDIR /decker
+RUN groupadd -r decker && useradd --no-log-init -r -g decker decker
+USER decker
 
 ENTRYPOINT ["decker"]
