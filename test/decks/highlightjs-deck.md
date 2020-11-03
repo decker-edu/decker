@@ -1,5 +1,4 @@
 ---
-history: True
 title: Code Hightlighing with Highlight.js
 highlightjs: atom-one-light
 ---

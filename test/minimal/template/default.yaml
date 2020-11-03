@@ -12,7 +12,7 @@ hash: true
 help: true
 hideCursorTime: 2000
 hideInactiveCursor: true
-history: true
+history: false
 keyboard: true
 menu: true
 overview: true

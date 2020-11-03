@@ -2,7 +2,6 @@
 author: Henrik Tramberend
 copyright: Copyright 2019
 date: '2019-10-19'
-history: True
 menu: True
 showNotes: True
 subtitle: Generate handouts from slide source

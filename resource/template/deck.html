@@ -105,6 +105,12 @@ $if(highlighting-css)$
 $highlighting-css$
   </style>
 $endif$
+$if(highlightjs)$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
+$endif$
+$if(decker-engine.base-url)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
+$endif$
 $if(template.base-css)$
   <link rel="stylesheet" href="$template.base-css$">
 $else$
@@ -120,9 +126,6 @@ $endif$
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
-$if(highlightjs)$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
-$endif$
   <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
@@ -159,7 +162,8 @@ $else$
           repoProvider: "$thebelab.repoProvider$",
       },
       kernelOptions: {
-          name: "$thebelab.language$"
+          name: "$thebelab.language$",
+          kernelName: "$thebelab.language$"
       },
 $endif$
       selector: "[data-executable]",
@@ -169,7 +173,7 @@ $endif$
       }
   }
   </script>
-   <script src="$decker-support-dir$/vendor/thebelab/index.js"></script> 
+   <script src="https://unpkg.com/thebelab@latest/lib/index.js"></script> 
 $endif$
 $for(header-includes)$
   $header-includes$
@@ -180,7 +184,7 @@ $for(style)$
   </style>
 $endfor$
 </head>
-<body>
+<body data-deckid="$deck-id$">
 $for(include-before)$
 $include-before$
 $endfor$
@@ -201,7 +205,6 @@ $if(title)$
          $if(template.teaser)$
          <img class="teaser" src=$template.teaser$>
          $endif$
-
          $if(authors)$
          <div class="authors">
          $for(authors)$
@@ -224,6 +227,10 @@ $if(title)$
          $if(affiliation)$
          <div class="affiliation"> $affiliation$ </div>
          $endif$
+
+         $if(date)$
+         <div class="date"> $date$ </div>
+         $endif$
       </section>
    $else$ <!-- standard settings -->
       $if(template.title-page.banner)$
@@ -237,7 +244,7 @@ $if(title)$
       $else$
          <section id="$idprefix$title-slide" class="title-page">
       $endif$
-        <div class="valign-block" style="height:550px">
+        <div class="valign-block">
             <div class="valigned">
                 <div class="title"> $title$</div>
                 $if(subtitle)$
@@ -249,6 +256,9 @@ $if(title)$
                    </div>
                 $else$
                    <div style="height:100px"> </div>      
+                $endif$
+                $if(date)$
+                   <div class="date"> $date$ </div>
                 $endif$
                 $if(author)$
                    <div class="author"> $author$ </div>
@@ -289,6 +299,13 @@ $body$
       prepareSAGE();
   </script>
 
+$if(decker-engine.base-url)$
+  <script type="module" crossorigin>
+    import {contactEngine} from "./$decker-support-dir$/js/engine.js";
+    contactEngine("$decker-engine.base-url$", "$decker-engine.deck-id$")
+  </script>
+$endif$
+
 $for(template.include-js)$
 <script src="$template.include-js$"></script>
 $endfor$
@@ -310,6 +327,11 @@ $endif$
         // Display the page number of the current slide
 $if(slideNumber)$
         slideNumber: '$slideNumber$',
+$endif$
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+$if(hash)$
+        hash: $hash$,
 $endif$
         // Push each slide change to the browser history
 $if(history)$
@@ -474,13 +496,22 @@ $if(checkOverflow)$
 $else$
         checkOverflow: false,
 $endif$
-     
+
+
+        // whether to use vertical slides (in decker.js)
+ $if(vertical-slides)$
+        verticalSlides: $vertical-slides$,
+$else$
+        verticalSlides: false,
+$endif$
+
 
         // setup reveal-menu
 $if(menu)$
 $if(mario)$
         menu: {
             side:              'left',
+            width:             'wide',
             numbers:           true,
             titleSelector:     'h1',
             hideMissingTitles: false,
@@ -619,10 +650,6 @@ $endif$
           ]
       });
   </script>
-
-  $if(vertical-slides)$
-      <script>makeVertical();</script>
-  $endif$
 
 
   <!-- Reload on change machinery -->

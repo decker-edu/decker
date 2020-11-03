@@ -1,6 +1,5 @@
 ---
 title: Decker Quiz Overview
-history: true
 ---
 
 # Introduction

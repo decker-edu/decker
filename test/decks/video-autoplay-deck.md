@@ -1,5 +1,4 @@
 ---
-history: true
 title: Video Autoplay
 ---
 

@@ -164,15 +164,6 @@ let RevealMath = window.RevealMath || (function(){
                 },
                 startup: {
                     ready: () => {
-                        // bug-fix / work-around for MathJax issue 2402
-                        if (MathJax.version === '3.0.5') {
-                            const SVGWrapper = MathJax._.output.svg.Wrapper.SVGWrapper;
-                            const CommonWrapper = SVGWrapper.prototype.__proto__;
-                            SVGWrapper.prototype.unicodeChars = function (text, variant) {
-                                if (!variant) variant = this.variant || 'normal';
-                                return CommonWrapper.unicodeChars.call(this, text, variant);
-                            }
-                        }
                         console.log('mathjax loaded');
                         //MathJax.startup.defaultReady();
                     }
@@ -181,7 +172,7 @@ let RevealMath = window.RevealMath || (function(){
                     scale: 0.9,                    // global scaling factor for all expressions
                     minScale: .5,                  // smallest scaling factor to use
                     matchFontHeight: false,        // true to match ex-height of surrounding font
-                    mtextInheritFont: false,       // true to make mtext elements use surrounding font
+                    mtextInheritFont: true,       // true to make mtext elements use surrounding font
                     merrorInheritFont: true,       // true to make merror text use surrounding font
                     mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
                     skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
@@ -200,15 +191,15 @@ let RevealMath = window.RevealMath || (function(){
                     }
                 },
                 options: {
-                    // disable menu (we do zooming via Reveal's zoom plugin)
-                    renderActions: {
-                        addMenu: [0, '', '']
-                    },
+                    enableMenu: false,
                     // disable assistive-mml, since it messes up speaker notes
                     menuOptions: {
                         settings: {
-                            assistiveMml: false 
+                            assistiveMml: false
                         }
+                    },
+                    renderActions: {
+                        assistiveMml: []  // disable assistive mathml
                     }
                 }
             };
@@ -235,7 +226,7 @@ let RevealMath = window.RevealMath || (function(){
                     // the typesetting process could affect slide height
                     window.MathJax.startup.defaultReady();
                     MathJax.startup.promise.then(() => {
-                        //console.log("mathjax typeset done");
+                        console.log("mathjax typeset done");
                         Reveal.layout();
                         fixLinks();
                         setupMathIncremental();

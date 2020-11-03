@@ -63,7 +63,7 @@ programs =
     , ExternalProgram
         []
         "gnuplot"
-        ["-d", "-e", "'set terminal svg'"]
+        ["-d", "-e", "\"set terminal svg\""]
         ["-V"]
         (helpText "Gnuplot (http://gnuplot.sourceforge.net)"))
   , ( "pdflatex"

@@ -1318,7 +1318,6 @@
 
 .reveal .title-page .teaser-img {
   margin: 20px auto;
-  height: 10%;
   width: auto;
   display: block;
 }
@@ -1328,8 +1327,13 @@
   display: block;
   margin: auto;
   object-fit: contain;
-  max-height: 250px;
+  max-height: 25vh;
+  max-width: 100%;
   width: auto;
+}
+
+.reveal .title-page .date {
+  text-align: center;
 }
 
 .reveal .title-page .author {
@@ -1342,7 +1346,7 @@
 
 .reveal .title-page .affiliation-logo img {
   margin: 0px 0 0 0;
-  height: 70px;
+  height: 10vh;
   width: auto;
   object-fit: contain;
   display: block;
@@ -1364,7 +1368,6 @@
 
 .reveal .title-page .valign-block:before {
   content: '';
-  display: inline-block;
   height: 100%;
   vertical-align: middle;
 }
@@ -1964,4 +1967,28 @@ dd {
   opacity: 1.0;
   color: var(--whiteboard-active-color);
   background-color: rgba(255, 255, 255, 0.8);
+}
+
+/*********************************************
+ * MARIO: menu icon in top left corner
+ *********************************************/
+.reveal .slide-menu-button {
+  position: fixed;
+  left: calc(var(--whiteboard-icon-size) * 0.25);
+  top: calc(var(--whiteboard-icon-size) * 0.25);
+  bottom: auto;
+  right: auto;
+  padding: 0;
+  margin: auto;
+  z-index: 40;
+  background: none;
+  font-size: var(--whiteboard-icon-size);
+  padding: calc(var(--whiteboard-icon-size) * 0.5);
+  opacity: 0.5;
+  color: var(--whiteboard-inactive-color);
+}
+
+.reveal .slide-menu-button:hover {
+  opacity: 1.0;
+  color: var(--whiteboard-active-color);
 }

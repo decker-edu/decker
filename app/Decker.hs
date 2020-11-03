@@ -132,7 +132,9 @@ run = do
         " (branch: " ++
         deckerGitBranch ++
         ", commit: " ++
-        deckerGitCommitId ++ ", tag: " ++ deckerGitVersionTag ++ ")"
+        deckerGitCommitId ++
+        ", tag: " ++
+        deckerGitVersionTag ++ ", build date: " ++ deckerBuildDate ++ ")"
       putNormal $ "pandoc version " ++ Text.unpack pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
               --
@@ -155,8 +157,8 @@ run = do
       getTargets >>= needSel decksPdf
               --
     phony "watch" $ do
-      need ["html"]
       watchChangesAndRepeat
+      need ["html"]
               --
     phony "open" $ do
       need ["html"]
@@ -172,11 +174,11 @@ run = do
       liftIO waitForYes
               --
     phony "fast" $ do
+      watchChangesAndRepeat
       need ["support"]
       runHttpServer serverPort Nothing
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
-      watchChangesAndRepeat
               --
     priority 3 $ do
       publicDir <//> "*-deck.html" %> \out -> do
@@ -196,7 +198,7 @@ run = do
         putNormal $ "# chrome started ... (for " <> out <> ")"
         result <- liftIO $ launchChrome url out
         case result of
-          Right msg -> putNormal $ "# chrome finished (for " <> out <> ")"
+          Right _ -> putNormal $ "# chrome finished (for " <> out <> ")"
           Left msg -> error msg
                      --
       publicDir <//> "*-handout.html" %> \out -> do
@@ -247,7 +249,7 @@ run = do
       "**/*.gnuplot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
-        gnuplot ["-e", "'set output \"" ++ out ++ "\"'", src]
+        gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src]
                      --
       "**/*.tex.svg" %> \out -> do
         let src = dropExtension out

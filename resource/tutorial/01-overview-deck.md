@@ -1,5 +1,4 @@
 ---
-history: True
 title: Decker Tutorial Overview
 ---
 
