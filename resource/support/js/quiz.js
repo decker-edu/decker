@@ -304,7 +304,7 @@ function buildPlainMatch(question) {
         matchItems.appendChild(matchQuestion);
 
         const lab = document.createElement('label');
-        lab.setAttribute('data-bucketId', allBuckets[i].classList.contains('distractor') ? '0' : allBuckets[i].getAttribute('data-bucketId'));
+        lab.setAttribute('data-bucketId', allBuckets[i].classList.contains('distractor') ? "" : allBuckets[i].getAttribute('data-bucketId'));
         lab.innerHTML = allBuckets[i].innerHTML;
 
         const blank = document.createElement('p');

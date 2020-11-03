@@ -928,8 +928,9 @@
 .reveal .quiz-mi.plain,
 .reveal .quiz-match-items.plain {
   text-align: var(--align-global);
-  height: inherit;
-  overflow: inherit;
+  height: 550px;
+  display: flex;
+  flex-direction: column;
 }
 
 .reveal .qmi.plain .matchDiv,
@@ -941,6 +942,8 @@
   width: 100%;
   border: 1px solid #eee;
   justify-content: space-between;
+  flex-grow: 9;
+  overflow-y: scroll;
 }
 
 .reveal .qmi.plain .matchDiv,
@@ -1053,16 +1056,6 @@
   float: right;
 }
 
-.reveal .qmi.plain .optList.correct p::before, .reveal .qmi.plain .optList.incorrect p.correct::before, .reveal .qmi.plain .optList.incorrect p.incorrect::before,
-.reveal .quiz-mi.plain .optList.correct p::before,
-.reveal .quiz-mi.plain .optList.incorrect p.correct::before,
-.reveal .quiz-mi.plain .optList.incorrect p.incorrect::before,
-.reveal .quiz-match-items.plain .optList.correct p::before,
-.reveal .quiz-match-items.plain .optList.incorrect p.correct::before,
-.reveal .quiz-match-items.plain .optList.incorrect p.incorrect::before {
-  color: initial;
-}
-
 .reveal .qmi.plain .optList.correct,
 .reveal .quiz-mi.plain .optList.correct,
 .reveal .quiz-match-items.plain .optList.correct {
@@ -1077,10 +1070,22 @@
   color: #aaffaa;
 }
 
+.reveal .qmi.plain .optList.correct p::before,
+.reveal .quiz-mi.plain .optList.correct p::before,
+.reveal .quiz-match-items.plain .optList.correct p::before {
+  color: initial;
+}
+
 .reveal .qmi.plain .optList.incorrect,
 .reveal .quiz-mi.plain .optList.incorrect,
 .reveal .quiz-match-items.plain .optList.incorrect {
   background-color: #ffaaaa;
+}
+
+.reveal .qmi.plain .optList.incorrect p.correct::before,
+.reveal .quiz-mi.plain .optList.incorrect p.correct::before,
+.reveal .quiz-match-items.plain .optList.incorrect p.correct::before {
+  color: initial;
 }
 
 .reveal .qmi.plain .optList.incorrect p.blank.correct::before, .reveal .qmi.plain .optList.incorrect p::after,
@@ -1089,6 +1094,12 @@
 .reveal .quiz-match-items.plain .optList.incorrect p.blank.correct::before,
 .reveal .quiz-match-items.plain .optList.incorrect p::after {
   color: #ffaaaa;
+}
+
+.reveal .qmi.plain .optList.incorrect p.incorrect::before,
+.reveal .quiz-mi.plain .optList.incorrect p.incorrect::before,
+.reveal .quiz-match-items.plain .optList.incorrect p.incorrect::before {
+  color: initial;
 }
 
 .reveal .qmi.plain .optList p,

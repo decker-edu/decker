@@ -241,7 +241,7 @@ $border-radius: 6px;
                 list-style-type: none;
                 margin: 0 1em;
                 padding: 0.5em 0.6em 0.7em 2em;
-                border-radius: 6px;
+                border-radius: $border-radius;
                 &.solved {
                     display: block;
                     background-color: $tooltip;
@@ -402,13 +402,17 @@ $border-radius: 6px;
             text-align: var(--align-global);
             height: inherit;
             overflow: inherit;
+            // height: 550px;
+            // display: flex;
+            // flex-direction: column;
             .matchDiv {
                 padding: 0.5em;
                 margin: 0.5em 0;
                 border-radius: 7px;
-                width: 100%;
                 border: 1px solid $solution;
                 justify-content: space-between;
+                // flex-grow: 9;
+                // overflow-y: scroll;
             }
             .matchDiv, 
             .matchItems {
@@ -468,11 +472,6 @@ $border-radius: 6px;
             }
             .optList {
                 float: right;
-                &.correct p::before,
-                &.incorrect p.correct::before,
-                &.incorrect p.incorrect::before {
-                    color: initial;
-                }
                 &.correct {
                     background-color: $right;
                     p {
@@ -480,14 +479,26 @@ $border-radius: 6px;
                         &::after {
                             color: $right;
                         }
+                        &::before {
+                            color: initial;
+                        }
                     }
                 }
                 &.incorrect {
                     background-color: $wrong;
                     p {
+                        &.correct::before {
+                            color: initial;
+                        }
                         &.blank.correct::before,
                         &::after {
                             color: $wrong;
+                        }
+                        &.incorrect::before {
+                            // background-color: $wrong;
+                            // content: "✗ ";
+                            // color: $red;
+                            color: initial;
                         }
                     }
                 }
@@ -521,6 +532,10 @@ $border-radius: 6px;
                     &.selected.incorrect::before {
                         color: inherit;
                     }
+                    // &.selected.incorrect::before {
+                    //     content: "✗ ";
+                    //     color: $red;
+                    // }
                     &.correct-notSelected::before {
                         color: $right;
                     }

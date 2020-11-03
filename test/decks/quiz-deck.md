@@ -308,6 +308,49 @@ lectureId: cg1
 topic: yeah
 ```
 
+
+# Matching 5 - Plain
+
+## Question text {.qmi .plain}
+
+Das unmarkierte Quadrat unten links im Bild ist mit einer Textur (blauer
+Pfeil, oranger Pfeil) versehen. Die Texturkoordinaten wurden für dieses
+Quadrat *nicht* transformiert. 
+
+Die Quadrate 1 bis 5 zeigen dieselbe Textur, allerdings mit transformierten
+Texturkoordinaten. Geben Sie jeweils die verwendete, unter Umständen
+zusammengesetzte, Transformation für diese 5 Quadrate an.
+
+Bild 1
+: Rz(180)
+
+Bild 2
+: Sxy(1, -1)
+
+Bild 3
+: Sxy(3, 3)
+
+Bild 4
+: Sxy(0.5, 0.5) Txy(0.5, 0.5)
+
+Bild 5
+: Rz(-45)Txy(0.5, 0.5)
+
+!
+: Sxy(-1,1)
+
+!
+: Sxy(0.3, 0.3)
+
+!
+: Sxy(-1,1) Txy(0.5, 0.5)
+
+!
+: Rz(45)
+
+Bild 6
+: ! 
+
 # Blanktext/Inserting MC
 
 Like multiple-choice, however, the choices are shown as drop-down lists embedded inside the text. Hence, beware of the whitespaces below. 
@@ -424,7 +467,7 @@ Points: 5
 
 # Free text alternative
 
-However, to have only one syntax to remember I propose we also accept this alternative form below. It would also allow us to use the comments to have almost right/wrong answers which we comment to the users. All we need here is a way to specify cases and a default. Saying this, if we add context dependent reg expressions to the matching list, that would be great for the utility, i.e., everything which matches but which is not in the already given list before, see:
+This alternate forms allows you to define free-text questions as lists without brackets. All answers are correct.
 
 # Free Text Alternative 1 - Fancy
 
@@ -433,16 +476,14 @@ However, to have only one syntax to remember I propose we also accept this alter
 Das Ergebnis von $2*2=~?$ ist?
 
 
-- [X] 4
+- 4
     - Die perfekte Lösung 
-- [X] vier
+- vier
     - Auch ok 
-- [X] four
+- four
     - Deutscher Studiengang
-- [ ] fier
+- fier
     - RTL, no not really?
-- [ ] *
-    - ganz falsch, so oder so?
 
 ```yaml
 Points: 5
@@ -454,20 +495,17 @@ Points: 5
 
 Das Ergebnis von $2*2=~?$ ist?
 
-
-- [X] 4
+- 4
     - Die perfekte Lösung 
-- [X] vier
+- vier
     - Auch ok 
-- [X] four
+- four
     - Deutscher Studiengang
-- [ ] fier
+- fier
     - RTL, no not really?
-- [ ] *
-    - ganz falsch, so oder so?
 
 ```yaml
-Points: 5
+Points:
 ```
 
 # fenced divs syntax
