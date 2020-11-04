@@ -72,6 +72,12 @@
 }
 
 
+/* animate scroll down */
+.reveal .slides.animateScroll {
+    scroll-behavior: smooth;
+}
+
+
 /* style for SVG whiteboard pages */
 .reveal svg.whiteboard {
     border:     none;

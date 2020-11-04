@@ -202,9 +202,6 @@ let RevealWhiteboard = (function(){
 
             if (Reveal.getConfig().center || slide.classList.contains('center'))
             {
-                // Reveal implements centering by adjusting css:top. Remove this.
-                slide.style.top = '';
-
                 // div for centering with flex layout
                 let vcenter = document.createElement("div");
                 vcenter.classList.add("v-center");
@@ -544,6 +541,8 @@ let RevealWhiteboard = (function(){
         if (!svg) return;
         let boardHeight = svg.clientHeight;
         setWhiteboardHeight(boardHeight + pageHeight);
+        slides.classList.add('animateScroll');
+        slides.scrollTop = boardHeight;
     }
 
 
@@ -1409,6 +1408,7 @@ let RevealWhiteboard = (function(){
             adjustWhiteboardHeight();
 
             // setup slides container
+            slides.classList.remove('animateScroll')
             slides.scrollTop  = 0;
             if (svg.clientHeight > slides.clientHeight)
                 slides.classList.add('needScrollbar');
