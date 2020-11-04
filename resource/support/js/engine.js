@@ -55,15 +55,6 @@ function prepareEngine() {
           buildInterface();
         });
       }
-
-      // Build the menu, once Reval and the menu are ready.
-      if (Reveal.isReady() && Reveal.hasPlugin('menu') && Reveal.getPlugin('menu').isInit()) {
-        buildMenu();
-      } else {
-        Reveal.addEventListener("menu-ready", _ => {
-          buildMenu();
-        });
-      }
     })
     .catch(e => {
       // Nothing goes without a token
@@ -241,6 +232,44 @@ function buildInterface() {
     text.value = "";
   };
 
+  // given the list of questions, update question counter of menu items
+  let updateMenuItems = (list) => {
+    document.querySelectorAll('ul.slide-menu-items > li.slide-menu-item').forEach( (li) => {
+      li.removeAttribute('data-questions');
+    });
+
+    for (let comment of list) {
+      // get slide info
+      const slideID = comment.slide;
+      const slide = document.getElementById(slideID);
+      const indices = Reveal.getIndices(slide);
+
+      // build query string, get menu item
+      let query = 'ul.slide-menu-items > li.slide-menu-item';
+      if (indices.h) query += '[data-slide-h=\"' + indices.h + '\"]';
+      if (indices.v) query += '[data-slide-v=\"' + indices.v + '\"]';
+      let li = document.querySelector(query);
+
+      // update question counter
+      if (li) {
+        li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
+      }
+    }
+  };
+
+  // query list of questions, then update menu items
+  let updateMenu = () => {
+    engine.api
+      .getComments(engine.deckId)
+      .then(updateMenuItems)
+      .catch(console.log);
+  };
+
+  let updateCommentsAndMenu = () => {
+    updateComments();
+    updateMenu();
+  };
+
   let canDelete = comment => {
     return engine.token.admin !== null || comment.author === user.value;
   };
@@ -306,7 +335,7 @@ function buildInterface() {
         del.addEventListener("click", _ => {
           engine.api
             .deleteComment(comment.id, engine.token.admin || user.value)
-            .then(updateComments);
+            .then(updateCommentsAndMenu);
         });
         // Edit button
         let mod = document.createElement("button");
@@ -314,7 +343,7 @@ function buildInterface() {
         mod.addEventListener("click", _ => {
           engine.api
             .deleteComment(comment.id, engine.token.admin || user.value)
-            .then(updateComments);
+            .then(updateCommentsAndMenu);
           text.value = comment.markdown;
           text.focus();
         });
@@ -423,41 +452,12 @@ function buildInterface() {
       e.stopPropagation();
       e.preventDefault();
       document.activeElement.blur();
+      updateMenu();
     }
   });
 
-  Reveal.addEventListener("slidechanged", _ => {
-    updateComments();
-  });
+  Reveal.addEventListener("slidechanged", updateCommentsAndMenu);
 
   initUser();
-  updateComments();
-}
-
-function buildMenu() {
-  let updateMenu = list => {
-    for (let comment of list) {
-
-      // get slide info
-      const slideID = comment.slide;
-      const slide = document.getElementById(slideID);
-      const indices = Reveal.getIndices(slide);
-
-      // build query string, get menu item
-      let query = 'ul.slide-menu-items > li.slide-menu-item';
-      if (indices.h) query += '[data-slide-h=\"' + indices.h + '\"]';
-      if (indices.v) query += '[data-slide-v=\"' + indices.v + '\"]';
-      let li = document.querySelector(query);
-
-      // update question counter
-      if (li) {
-        li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
-      }
-    }
-  };
-
-  engine.api
-    .getComments(engine.deckId)
-    .then(updateMenu)
-    .catch(console.log);
+  updateCommentsAndMenu();
 }
