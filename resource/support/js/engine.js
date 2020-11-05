@@ -228,7 +228,7 @@ function buildInterface() {
   };
 
   let renderSubmit = () => {
-    updateComments();
+    updateCommentsAndMenu();
     text.value = "";
   };
 
@@ -452,7 +452,6 @@ function buildInterface() {
       e.stopPropagation();
       e.preventDefault();
       document.activeElement.blur();
-      updateMenu();
     }
   });
 
