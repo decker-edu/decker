@@ -13,7 +13,7 @@ title: 'Image, Audio and Video Handling'
 
 # Local Video Autoplay
 
-![Caption](movie.mp4){.autoplay}
+![Caption](movie.mp4){.autoplay .loop}
 
 # Local Video 50%
 

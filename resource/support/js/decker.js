@@ -21,6 +21,7 @@ function deckerStart() {
   if (Reveal.getConfig().verticalSlides) {
     setupVerticalSlides();
   }
+  videoPlaybackRate();
 }
 
 
@@ -208,4 +209,42 @@ function isElectron() {
   }
 
   return false;
+}
+
+
+// Inject GUI for local video playback speed
+function videoPlaybackRate() {
+  let videos = document.querySelectorAll("video");
+
+  var speed = 1.0;
+
+  const step = 0.2;
+  const min = 0.6;
+  const max = 1.8;
+
+  Reveal.addKeyBinding({
+    keyCode: 82, key: 'R',
+    description: 'Accelerate Video Playback'
+  },
+    () => {
+      if (speed < max) {
+        speed += step;
+        for (let video of videos) {
+          video.playbackRate = speed;
+        }
+      }
+    });
+
+  Reveal.addKeyBinding({
+    keyCode: 69, key: 'E',
+    description: 'Decellerate Video Playback'
+  },
+    () => {
+      if (speed > min) {
+        speed -= step;
+        for (let video of videos) {
+          video.playbackRate = speed;
+        }
+      }
+    });
 }
