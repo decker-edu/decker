@@ -492,8 +492,11 @@ let RevealWhiteboard = (function(){
         
         if (!whiteboardActive)
         {
+            // hide scrollbar
+            slides.classList.remove('whiteboardActive');
+
             // hide buttons
-            buttons.classList.remove('active');
+            buttons.classList.remove('whiteboardActive');
             buttonWhiteboard.style.color = inactiveColor;
             hideColorPicker();
 
@@ -511,8 +514,11 @@ let RevealWhiteboard = (function(){
         {
             if (userShouldBeWarned && !userHasBeenWarned) warnUser();
 
+            // show scrollbar
+            slides.classList.add('whiteboardActive');
+
             // show buttons
-            buttons.classList.add('active');
+            buttons.classList.add('whiteboardActive');
             buttonWhiteboard.style.color = activeColor;
 
             // activate SVG
