@@ -1,7 +1,5 @@
 ---
 title: Decker Quiz Overview
-history: true
-# vertical-slides: true
 ---
 
 # Introduction
@@ -41,7 +39,7 @@ Questions are defined by level 2 headers. That means creating a question **needs
 (where `.qmc` can be replaced by any of the other quiz classes)
 
 
-The quiz syntax is based on the markdown task list syntax. A markdown task list looks like this
+The quiz syntax (apart from matching questions) is based on the markdown task list syntax. A markdown task list looks like this
 
 ```
 - [ ] This box is not checked
@@ -58,19 +56,51 @@ You can add tooltips by creating a nested list e.g.
   - tooltip B
 ```
 
+# Fenced Divs Syntax
+
+Alternatively, quizzes can be defined using the **fenced divs** syntax:
+
+```
+::: qmc
+- [ ] A
+  - tooltip A
+- [X] B
+  - tooltip B
+:::
+```
+
 # Quiz Meta
 
-Add a `YAML` code block to a question to provide meta information on the specific question.
+Add a `YAML` code block below a question to provide meta information on the specific question.
 
-This is work in progress. Currently it does not do anything. (17. Apr 2020)
+- This is work in progress. Currently apart from `lang: de` or `lang: en` it does not do anything. (21. Jul 2020)
+- If you put `lang: de` in the header of your slide deck, the static quiz content (e.g. buttons) will appear with german text.
+- If you put `lang: de` only in the yaml block of a single question, only this question will be localized.
+
 ````
 ``` {.yaml}
+lang: de
 score: 5
 category: FP
 lectureId: fp1
 topic: Functional Programming Introduction
 ```
 ````
+
+# Quiz Styling
+
+The default style of Decker quizzes includes drag and drop interactions and decorative coloring. To switch to a plain style, specify the following in the YAML code block, or use the `.plain` tag.
+
+```{.yaml}
+quiz:
+  style: plain
+````
+
+or on a per-question basis:
+
+```{.markdown}
+## {.qmc .plain}
+```
 
 # Matching Questions
 
@@ -120,6 +150,25 @@ BucketB
 Empty Bucket
 : !
 
+# Matching Questions Example - Plain
+
+## Matching Question {.qmi .plain}
+
+Question text
+
+BucketA
+: A1
+: A2
+
+BucketB
+: B1
+
+!
+: Distractor
+
+Empty Bucket
+: !
+
 # Multiple Choice Questions
 
 Classic multiple choice questions
@@ -138,6 +187,28 @@ Which of these letters is the second in the alphabet?
 # Multiple Choice Questions Example {.sub}
 
 ## Multiple Choice Question {.qmc}
+
+Question text
+
+- [ ] A
+  - nope
+- [X] B
+  - yes
+
+# Multiple Choice Questions Example - Plain {.sub}
+
+## Multiple Choice Question {.qmc .plain}
+
+Question text
+
+- [ ] A
+  - nope
+- [X] B
+  - yes
+
+# Multiple Choice Questions Example - Plain Inline {.sub}
+
+## Multiple Choice Question {.qmc .plain .inline}
 
 Question text
 
@@ -183,6 +254,20 @@ is the first letter in the ABC. The second one is
   - yep
 - [ ] C
 
+# InsertChoices Questions Example Plain {.sub}
+
+## Insert Choices Question {.qic .plain}
+
+- [X] A
+  - of course
+- [ ] B 
+  - uhm ...
+
+is the first letter in the ABC. The second one is
+
+- [X] B
+  - yep
+- [ ] C
 
 # FreeText questions
 
@@ -191,7 +276,7 @@ This will create a simple input field/text box where the user can write their an
 If there are wrong answers that are to be expected you can add those by not checking the task box. They will then show as wrong when clicking "Show Solution".
 
 ```
-## FreeText Question TL {.qft}
+## FreeText Question {.qft}
 
 What's the first letter in the alphabet?
 
@@ -210,9 +295,9 @@ What's the fourth letter?
 
 ```
 
-# FreeText Question Example without h2 title {.sub}
+# FreeText Question Example {.sub}
 
-## {.qft}
+## FreeText Question {.qft}
 
 What's the first letter in the alphabet?
 
@@ -229,5 +314,22 @@ What's the fourth letter?
   - info
 - [X] D
 
+# FreeText Question Example - Plain {.sub}
 
+## FreeText Question {.qft .plain}
+
+What's the first letter in the alphabet?
+
+- [X] A
+  - yep
+- [ ] B
+  - nope
+
+## {.qft .plain}
+
+What's the fourth letter?
+
+- [ ] C
+  - info
+- [X] D
 

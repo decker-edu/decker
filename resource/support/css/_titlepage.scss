@@ -3,7 +3,7 @@
  * Mario's versions
  *********************************************/
 
- .white-on-blue {
+.white-on-blue {
   color: #ffffff;
   background-color: #003366;
 }
@@ -33,7 +33,6 @@
        }
       .teaser-img {
          margin: 20px auto;
-         height: 10%;
          width:  auto;
          display: block;
          img {
@@ -41,11 +40,16 @@
             // Center horizontally
             display: block;
             margin: auto;
-            // Make the image as max 250px high retaining aspect ratio
+            // Make the image as max 25vh high retaining aspect ratio
+            // Max height 25vh means the image will take at max one fourth of the title page viewport
             object-fit:  contain;
-            max-height: 250px;
+            max-height: 25vh;
+            max-width: 100%;
             width: auto;
          }
+      }
+      .date {
+        text-align: center;
       }
       .author {
          margin:      0px;
@@ -56,7 +60,7 @@
        }
       .affiliation-logo img {
          margin:      0px 0 0 0;
-         height:      70px;
+         height:      10vh;
          width:       auto;
          object-fit:  contain;
          display: block;
@@ -75,7 +79,7 @@
        }
        .valign-block:before {
          content: '';
-         display: inline-block;
+         // display: inline-block;
          height: 100%; 
          vertical-align: middle;
         }

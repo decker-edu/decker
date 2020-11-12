@@ -27,7 +27,7 @@ Set-Location $third
 
 # Copy jquery
 New-Item -Path "$support\js" -Force -ItemType "directory"
-Copy-Item "$third\jquery\dist\jquery.min.js" "$support\js\jquery.js" -Force
+Copy-Item "$third\jquery\dist\jquery.min.js" "$support\js\jquery.min.js" -Force
 
 # Copy thebelab
 New-Item -Path "$support\thebelab" -Force -ItemType "directory"
@@ -43,7 +43,7 @@ Foreach ($i in ("tex-svg.js", "input\tex", "input\tex.js". "output\svg", "output
 
 # Copy reveal.js
 New-Item "$support\reveal\plugin" -Force -ItemType "directory"
-Foreach ($i in ("js", "css", "plugin\notes")) {  
+Foreach ($i in ("js", "css", "plugin\notes", "plugin\highlight")) {  
   Copy-Item -r "$third\reveal.js\$i" "$support\reveal\$i" -Force
 }
 

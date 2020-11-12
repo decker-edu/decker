@@ -2,25 +2,22 @@
 
 module Text.Decker.Internal.Helper where
 
-import Control.Monad.Catch
-import Control.Monad.State
-
-import qualified Data.List as List
-import qualified Data.List.Extra as List
-import qualified Data.Set as Set
-
-import Relude
-
-import System.CPUTime
-import qualified System.Directory as Dir
-import System.Directory
-import System.Environment
-import System.FilePath
-
 import Text.Decker.Internal.Exception
 import Text.Decker.Project.Version
 import Text.Pandoc
 import Text.Printf
+
+import Control.Monad.Catch
+import Control.Monad.State
+import qualified Data.List as List
+import qualified Data.List.Extra as List
+import qualified Data.Set as Set
+import Relude
+import System.CPUTime
+import qualified System.Directory as Dir
+import System.Directory
+import System.Environment
+import System.FilePath.Posix
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -121,15 +118,16 @@ warnVersion = do
   devRun <- isDevelopmentRun
   when (isDevelopmentVersion && not devRun) $
     printf
-      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s). Please be sure that you know what you're doing.\n"
+      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s, build date: %s). Please be sure that you know what you're doing.\n"
       deckerVersion
       deckerGitBranch
       deckerGitCommitId
       deckerGitVersionTag
+      deckerBuildDate
 
 tryRemoveDirectory :: FilePath -> IO ()
 tryRemoveDirectory path = do
-  exists <- doesDirectoryExist path
+  exists <- System.Directory.doesDirectoryExist path
   when exists $ removeDirectoryRecursive path
 
 -- | Express the second path argument as relative to the first. 

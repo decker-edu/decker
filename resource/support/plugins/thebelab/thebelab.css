@@ -48,7 +48,7 @@ here. */
 }
 
 .reveal .jp-OutputArea {
-  max-height: 70px;
+  /* max-height: 70px; This does not make sense to Mario */
   overflow: auto;
 }
 

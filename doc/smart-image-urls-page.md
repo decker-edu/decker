@@ -1,6 +1,6 @@
 ---
 author: Henrik
-bibliography: 'test/decks/bibliography.bib'
+bibliography: '/test/decks/bibliography.bib'
 subtitle: Proposal
 title: Smart Image URLs
 ---

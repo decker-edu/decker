@@ -8,6 +8,12 @@
 @import url("../fonts/lato.css");
 @import url("../vendor/fontawesome/css/all.css");
 
+:root {
+  --blue: #2a9ddf;
+  --light-blue: #30B3FF;
+  --emphColor: var(--blue);
+  --whiteboard-active-color: var(--blue);
+}
 
 
 /*********************************************
@@ -21,7 +27,7 @@ body {
 
 .reveal {
   font-family: "Lato", sans-serif;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: normal;
   color: #222; 
 }
@@ -41,9 +47,8 @@ body {
 .reveal .slides section {
   line-height: 1.3;
   font-weight: inherit;
-  padding: 0; /* MARIO: prevent 20px at top/bottom by reveal.css */
-  /*min-height: 100%; [> MARIO: slides should be full height for footer to be positioned correctly <]*/
   text-align: center;
+  padding: 0;
 }
 
 
@@ -103,6 +108,7 @@ body {
     border: 1px solid black;
     border-radius: 5px;
     padding: 10px;
+    box-sizing: border-box;
 }
 .reveal .boxed ol,
 .reveal .boxed dl,
@@ -125,6 +131,7 @@ body {
 .reveal .col20 { float:left; width:20%; }
 .reveal .col25 { float:left; width:25%; }
 .reveal .col30 { float:left; width:30%; }
+.reveal .col33 { float:left; width:33%; }
 .reveal .col40 { float:left; width:40%; }
 .reveal .col50 { float:left; width:50%; }
 .reveal .col60 { float:left; width:60%; }
@@ -173,22 +180,30 @@ body {
  *********************************************/
 .reveal p {
   margin: 10px 0;
-  line-height: 1.3; }
+  line-height: 1.3; 
+}
 
-/* MARIO: remove empty paragraphs */
-.reveal p:empty { display: none; }
+/* MARIO: do not completely remove empty paragraphs with display:none.
+ * Instead let them cause a line break, but not eat up more space */
+.reveal p:empty { 
+  display: block;
+  margin:  0;
+  padding: 0;
+  height:  0;
+  width:   auto;
+}
 
 .reveal strong {
     font-weight: bold;
 }
 
 .reveal .boldblue {
-    font-weight: bold;
-	color: #2a9ddf;
+  font-weight: bold;
+  color: var(--emphColor);
 }
 
 .reveal b {
-    font-weight: bold; }
+  font-weight: bold; }
 
 .reveal em {
   font-style: italic; }
@@ -220,11 +235,11 @@ body {
 
 .reveal ul ul,
 .reveal ol ul {
-    list-style-type: circle;
+  list-style-type: circle;
 }
 
 .reveal ol ol {
-    list-style-type: lower-roman;
+  list-style-type: lower-roman;
 }
 
 .reveal ul ul ul,
@@ -235,28 +250,31 @@ body {
 .reveal ol ul ol,
 .reveal ol ol ul,
 .reveal ol ol ol {
-    font-size: 0.9em;
+  font-size: 0.9em;
 }
 
 .reveal ul ul,
 .reveal ul ol,
 .reveal ol ol,
 .reveal ol ul {
-    display:     block;
-    margin-top:  0.3em;
-    font-size:   0.8em;
-    margin-left: 10px;
+  display:     block;
+  margin-top:  0.3em;
+  font-size:   0.8em;
+  margin-left: 10px;
 }
 
 .reveal dt {
-  font-weight: bold; }
+  font-weight: bold; 
+}
 
 .reveal dd {
-  margin-left: 40px; }
+  margin-left: 40px; 
+}
 
 .reveal q,
 .reveal blockquote {
-  quotes: none; }
+  quotes: none; 
+}
 
 .reveal blockquote {
   display: block;
@@ -268,14 +286,17 @@ body {
   padding: 0px 15px;
   font-style: italic;
   background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2); }
+  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2); 
+}
 
 .reveal blockquote p:first-child,
 .reveal blockquote p:last-child {
-  display: inline-block; }
+  display: inline-block; 
+}
 
 .reveal q {
-  font-style: italic; }
+  font-style: italic; 
+}
 
 
 /*********************************************
@@ -314,7 +335,7 @@ body {
     display: block;
     position: relative;
     width: auto;
-    margin: 10px auto;
+    margin: 10px;
     text-align: center;
 }
 
@@ -330,7 +351,6 @@ body {
 /* block of code (has to override above inline code)*/
 .reveal pre code {
     display: block;
-    margin: 5px;
     text-align: left;
     font-size: 0.5em;
     font-family: monospace;
@@ -340,6 +360,7 @@ body {
     max-height: 100%;
     word-wrap: normal;
     background-color: #f7f7f7;
+    box-sizing: border-box;
 }
 
 .reveal pre code.small {
@@ -367,7 +388,7 @@ body {
     margin: 10px 0px 0px 0px;
     line-height: 1.2;
     font-style: italic;
-    font-size: 0.6em;
+    font-size: 0.8em;
     text-align: center;
     caption-side: bottom;
 }
@@ -422,14 +443,14 @@ body {
  * LINKS
  *********************************************/
 .reveal a {
-  color: #2a76dd;
+  color: var(--blue);
   text-decoration: none;
   -webkit-transition: color .15s ease;
   -moz-transition: color .15s ease;
   transition: color .15s ease; }
 
 .reveal a:hover {
-  color: #6ca0e8;
+  color: var(--light-blue);
   text-shadow: none;
   border: none; }
 
@@ -443,32 +464,31 @@ body {
 
 .reveal img,
 .reveal video {
-    display: inline-block;
-    /* remove the following two lines to get sizing of 
-     * rendered code block sizing working */
-    /*width: auto;*/
-    /*height: auto;*/
-    object-fit: contain;
-    max-width: 100%;
-    max-height: 100%;
-    vertical-align: middle;
-    margin: 0px;
-    border: 0px;
-    box-shadow: none;
+  display: inline-block;
+  /* remove the following two lines to get sizing of 
+    * rendered code block sizing working */
+  /*width: auto;*/
+  /*height: auto;*/
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+  margin: 0px;
+  border: 0px;
+  box-shadow: none;
 }
 
 .reveal iframe {
-    border: 1px solid lightgray;
-    outline: none;
-    overflow: hidden;
-    max-width:  100%;
-    max-height: 100%;
-    vertical-align: middle;
+  border: 1px solid lightgray;
+  outline: none;
+  overflow: hidden;
+  max-width:  100%;
+  max-height: 100%;
+  vertical-align: middle;
 }
 
 .reveal figure {
-    display: inline-block;
-    /*vertical-align: middle;*/
+  display: inline-block;
 }
 
 .reveal figure>img,
@@ -528,7 +548,7 @@ body {
   background: rgba(0, 0, 0, 0.2); }
 
 .reveal .progress span {
-  background: #2a9ddf;
+  background: var(--emphColor);
   -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
   -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
   transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985); }
@@ -541,7 +561,7 @@ body {
 
 .white-on-blue {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
 }
 
 .reveal div.title {
@@ -599,7 +619,7 @@ body {
 .reveal .section h1 {
     /* white on blue */
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
 
     /* large top margin -> vertical centering */
     margin:      100px auto;
@@ -629,7 +649,7 @@ body {
     display: inline-block;
     font-size: 0.7em;
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     padding: 10px;
     margin: auto;
     border-radius:5px;
@@ -638,7 +658,7 @@ body {
 
 .reveal .comment {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     position:absolute;
     padding:10px;
     border-radius:5px;
@@ -647,7 +667,7 @@ body {
 
 .reveal .comment-left {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     position:absolute;
     padding:5px;
     font-size: 80%;
@@ -656,7 +676,7 @@ body {
 
 .reveal .comment-right {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     position:absolute;
     padding:5px;
     font-size: 80%;
@@ -665,7 +685,7 @@ body {
 
 .reveal .comment-big {
     color: #ffffff;
-    background-color: #2a9ddf;
+    background-color: var(--emphColor);
     padding:10px;
     border-radius:5px;
 }
@@ -681,19 +701,19 @@ body {
     position:   absolute;
     display:    block;
     text-align: center;
-	margin:     0px;
+    margin:     0px;
     padding:    0px;
     font-size:  0.5em;
     width:      auto;
     height:     auto;
     left:       100px;
     right:      100px;
-    bottom:     0px;
+    bottom:     0.5em;
 }
 
 .reveal footer p,
 .reveal .footer p {
-	margin:  0px;
+    margin:  0px;
     padding: 0px;
 }
 
@@ -753,7 +773,7 @@ body {
     bottom:      0.5vmin;
     font-family: "Lato", sans-serif;
     color:       black;
-    background:  white;
+    background:  #ffffff00;
 }
 
 
@@ -809,101 +829,6 @@ body {
 }
 
 /*********************************************
- * MARIO: Quizzes with task list syntax
- *********************************************/
-
-/* quiz flex layout */
-.reveal .quiz ul {
-    display:         flex;
-    flex-direction:  row;
-    flex-wrap:       wrap;
-    justify-content: center;
-    align-items:     center;
-    align-content:   center;
-    text-align:      center;
-    counter-reset:   answer;
-}
-
-/* one quiz item */
-.reveal .quiz ul li {
-    display:       inline-block;
-    position:      relative;
-    text-align:    left;
-    margin:        20px;
-    border:        3px solid #2a9ddf;
-    border-radius: 20px;
-    padding:       20px;
-    font-weight:   normal;
-    color:         black;
-}
-
-/* add A, B, C, D... */
-.reveal .quiz .task-list li:before {
-    content: counter(answer, upper-latin) ": ";
-    counter-increment: answer;
-    margin-right: 0.5em;
-    font-weight:  bold;
-}
-
-/* remove task list checkbox */
-.reveal .quiz ul li input[type="checkbox"] {
-    display: none;
-}
-
-/* 2nd level ul contains tool tip */
-.reveal .quiz ul li ul {
-    display: inline-block;
-    margin:  0;
-    padding: 0;
-}
-
-/* don't need this for 2nd level */
-.reveal .quiz ul li ul li:before {
-    display: none;
-}
-
-/* tool tip */
-.reveal .quiz ul li ul li,
-.reveal .quiz .tip {
-    display:          block;
-    visibility:       hidden;
-    max-width:        95%;
-    top:              100%;
-    left:             5px;
-    background-color: grey;
-    color:            #ffffff;
-    text-align:       center;
-    margin:           5px;
-    padding:          5px;
-    border-radius:    6px;
-    border:           none;
-    position:         absolute;
-    z-index:          1;
-    font-size:        1.5rem;
-}
-
-/* once clicked, wrong answers are red */
-.reveal .quiz ul li.show-wrong {
-    background-color: #ffaaaa;
-    border:           3px solid red;
-}
-
-/* once clicked, correct answers are green */
-.reveal .quiz ul li.show-right {
-    background-color: #aaffaa;
-    border:           3px solid green;
-}
-
-/* before being clicked, tool tips are hidden */
-.reveal .show-right:hover ul li, 
-.reveal .show-wrong:hover ul li, 
-.reveal .show-wrong:hover .tip, 
-.reveal .show-right:hover .tip {
-    visibility: visible;
-}
-
-
-/*********************************************
  * MARIO: MathJax
  *********************************************/
 
@@ -911,15 +836,9 @@ body {
     margin: 0.7em 0em 1em 0em;
 }
 
-/* make svg fit to container */
-.reveal section mjx-container > svg {
-	object-fit: contain;
-    max-width: 100%;
-}
-
 .reveal section mjx-container > svg a {
-	color: #2a9ddf;
-	fill: #2a9ddf;
+	color: var(--emphColor);
+	fill: var(--emphColor);
 }
 
 
@@ -983,6 +902,73 @@ body {
 
 
 /*********************************************
+ * MARIO: menu icon in top left corner
+ *********************************************/
+
+.reveal .slide-menu-button {
+    position:   fixed;
+    left:       calc(var(--whiteboard-icon-size) * 0.25);
+    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:     auto;
+    right:      auto;
+    padding:    calc(var(--whiteboard-icon-size) * 0.5);
+    margin:     auto;
+    z-index:    40;
+    background: none;
+    font-size:  var(--whiteboard-icon-size);
+    opacity:    0.5;
+    color:      var(--whiteboard-inactive-color);
+}
+
+.reveal .slide-menu-button:hover {
+    opacity: 1.0;
+    color: var(--whiteboard-active-color);
+}
+
+.reveal .slide-menu-button a {
+    color: inherit;
+}
+
+
+/*********************************************
+ * MARIO: style Henrik's question panel
+ *********************************************/
+
+div.open-button {
+    position:   fixed;
+    left:       auto;
+    right:      calc(var(--whiteboard-icon-size) * 0.25);
+    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:     auto;
+    margin:     calc(var(--whiteboard-icon-size) * 0.5);
+    padding:    0.2em;
+    z-index:    40;
+    background: none;
+    font-size:  var(--whiteboard-icon-size);
+    color:      var(--whiteboard-inactive-color);
+}
+
+div.open-button.i {
+  opacity: 0.5;
+}
+
+div.open-button:hover,
+div.q-panel div.q-header button:hover,
+div.q-panel div.q-footer div.q-login:not(.admin):hover {
+    opacity: 1.0;
+    color: var(--whiteboard-active-color);
+}
+
+div.open-badge {
+    font-size: 0.5em;
+}
+
+div.q-panel {
+  background-color: rgba(100, 100, 100, 0.2);
+}
+
+
+/*********************************************
  * MARIO: bibliogrphy
  *********************************************/
 
@@ -1002,15 +988,240 @@ body {
 
 
 /*********************************************
- * MARIO: matching questions
+ * MARIO: Quizzes with task list syntax
  *********************************************/
 
-.reveal .matching {
+/* quiz flex layout */
+.reveal .quiz ul {
+    display:         flex;
+    flex-direction:  row;
+    flex-wrap:       wrap;
+    justify-content: center;
+    align-items:     center;
+    align-content:   center;
+    text-align:      center;
+    counter-reset:   answer;
+    margin-top:      1em;
+}
+
+/* one quiz item */
+.reveal .quiz ul li {
+    display:       inline-block;
+    position:      relative;
+    text-align:    left;
+    margin:        0.5em;
+    border:        3px solid var(--emphColor);
+    border-radius: 0.5em;
+    padding:       0.5em;
+    font-weight:   normal;
+    color:         black;
+}
+
+/* add A, B, C, D... */
+.reveal .quiz .task-list li:before {
+    content: counter(answer, upper-latin) ": ";
+    counter-increment: answer;
+    margin-right: 0.5em;
+    font-weight:  bold;
+}
+
+/* remove task list checkbox */
+.reveal .quiz ul li input[type="checkbox"] {
+    display: none;
+}
+
+/* 2nd level ul contains tool tip */
+.reveal .quiz ul li ul {
+    display: inline-block;
+    margin:  0;
+    padding: 0;
+}
+
+/* don't need this for 2nd level */
+.reveal .quiz ul li ul li:before {
+    display: none;
+}
+
+/* tool tip */
+.reveal .quiz ul li ul li {
+    display:          block;
+    visibility:       hidden;
+    max-width:        95%;
+    top:              100%;
+    left:             5px;
+    background-color: grey;
+    color:            #ffffff;
+    text-align:       center;
+    margin:           5px;
+    padding:          5px;
+    border-radius:    6px;
+    border:           none;
+    position:         absolute;
+    z-index:          1;
+    font-size:        1.5rem;
+}
+
+/* once clicked, wrong answers are red */
+.reveal .quiz ul li.show-wrong {
+    background-color: #ffaaaa;
+    border:           3px solid red;
+}
+
+/* once clicked, correct answers are green */
+.reveal .quiz ul li.show-right {
+    background-color: #aaffaa;
+    border:           3px solid green;
+}
+
+/* tool tips are shown on hover */
+.reveal .show-right:hover ul li, 
+.reveal .show-wrong:hover ul li {
+    visibility: visible;
+}
+
+
+
+/*********************************************
+ * MARIO: new quizzes
+ *********************************************/
+
+.reveal .qic button,
+.reveal .qft button,
+.reveal .qmc button,
+.reveal .qmi button,
+.reveal [class*="quiz-"] button {
+    font:        inherit;
+    font-size:   0.7em;
+    font-weight: normal;
+    font-family: inherit;
+    margin:      0.5em;
+    padding:     10px;
+    background:  #eeeeee;
+    border: 2px solid #dddddd;
+    border-radius: 5px;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.reveal .quiz-ft button,
+.reveal .qft button {
+    display: none;
+}
+
+.reveal .qic input,
+.reveal .qft input,
+.reveal .qmc input,
+.reveal .qmi input,
+.reveal [class*="quiz-"] input {
+    font:        inherit;
+    font-size:   0.9em;
+    font-weight: normal;
+    font-family: inherit;
+    margin:      0.5em;
+    padding:     10px;
+    border:      2px solid var(--emphColor);
+}
+
+.reveal .qic .solutionList,
+.reveal .qft .solutionList,
+.reveal .qmc .solutionList,
+.reveal .qmi .solutionList,
+.reveal [class*="quiz-"] .solutionList {
+  list-style-type: none;
+  display: none;
+  background-color: grey;
+  color: #ffffff;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: fixed;
+  z-index: 99;
+  font-size: 1rem;
+}
+
+.reveal .qic .solutionList li,
+.reveal .qft .solutionList li,
+.reveal .qmc .solutionList li,
+.reveal .qmi .solutionList li,
+.reveal [class*="quiz-"] .solutionList li {
+    display: none;
+    margin-left: 5px;
+}
+
+.reveal .qic .solutionList .correct:before,
+.reveal .qft .solutionList .correct:before,
+.reveal .qmc .solutionList .correct:before,
+.reveal .qmi .solutionList .correct:before,
+.reveal [class*="quiz-"] .solutionList .correct:before {
+    content: "✓";
+    font: inherit;
+    margin-right: 0.5em;
+}
+
+.reveal .qic .solutionList .wrong:before,
+.reveal .qft .solutionList .wrong:before,
+.reveal .qmc .solutionList .wrong:before,
+.reveal .qmi .solutionList .wrong:before,
+.reveal [class*="quiz-"] .solutionList .wrong:before {
+    content: "✗";
+    font: inherit;
+    margin-right: 0.5em;
+}
+
+.reveal .qft .solutionList .tooltip,
+.reveal [class*="quiz-f"] .solutionList .tooltip {
+    margin-left: 1.3em;
+}
+
+.reveal .qic select,
+.reveal [class*="quiz-i"] select {
+    font:        inherit;
+    font-size:   0.9em;
+    font-weight: normal;
+    padding:     5px;
+    border:      2px solid var(--emphColor);
+    background:  white;
+}
+
+.reveal .qic select :disabled,
+.reveal [class*="quiz-i"] select :disabled {
+  color: black;
+}
+
+.reveal .qic option,
+.reveal [class*="quiz-i"] option {
+    font:        inherit;
+    font-size:   16px;
+    font-weight: normal;
+}
+
+.reveal .qic .tooltip-div,
+.reveal [class*="quiz-i"] .tooltip-div {
+  font-size: 0.6em;
+  background-color: #f4f4f7;
+  margin-top: 0.5em;
+}
+
+.reveal .quiz-mi,
+.reveal .qmi,
+.reveal .quiz-match-items {
+  display: block;
+  overflow-y: auto;
   text-align: center;
 }
 
-.reveal .matching .dropzones,
-.reveal .matching .dragzone {
+.reveal .quiz-mi .draggableChild,
+.reveal .qmi .draggableChild,
+.reveal .quiz-match-items .draggableChild {
+  pointer-events: none;
+}
+
+.reveal .quiz-mi .buckets,
+.reveal .quiz-mi .matchItems,
+.reveal .qmi .buckets,
+.reveal .qmi .matchItems,
+.reveal .quiz-match-items .buckets,
+.reveal .quiz-match-items .matchItems {
     display:         flex;
     flex-flow:       row nowrap;
     align-items:     stretch;
@@ -1022,14 +1233,23 @@ body {
     border:          2px solid #dddddd;
     border-radius:   5px;
     box-sizing:      border-box;
+    margin-bottom:   60px;
+    margin-top:      20px;
 }
 
-.reveal .matching .dropzones {
-    margin-bottom: 60px;
+.reveal .quiz-mi .buckets,
+.reveal .qmi .buckets,
+.reveal .quiz-match-items .buckets {
+    margin-bottom:   20px;
+    margin-top:      60px;
 }
 
-.reveal .matching .dragzone:before,
-.reveal .matching .dropzones:before {
+.reveal .quiz-mi .buckets:before,
+.reveal .quiz-mi .matchItems:before,
+.reveal .qmi .buckets:before,
+.reveal .qmi .matchItems:before,
+.reveal .quiz-match-items .buckets:before,
+.reveal .quiz-match-items .matchItems:before {
     position:   absolute;
     top:        -15px;
     left:       10px;
@@ -1038,92 +1258,143 @@ body {
     padding:    5px;
     color:      grey;
 }
-.reveal .matching .dragzone:before {
-    content: "drag from here";
-}
-.reveal .matching .dropzones:before {
-    content: "drop here";
+
+.reveal .quiz-mi .matchItems:before,
+.reveal .qmi .matchItems:before,
+.reveal .quiz-match-items .matchItems:before {
+    content: "Drag objects from here...";
 }
 
-.reveal .matching .dragzone:after {
-    position:      absolute;
-    content:       " ";
-    width:         0;
-    height:        0;
-    top:           -30px;
-    border-left:   30px solid transparent;
-    border-right:  30px solid transparent;
-    border-bottom: 30px solid #dddddd;
+.reveal .quiz-mi .buckets:before,
+.reveal .qmi .buckets:before,
+.reveal .quiz-match-items .buckets:before {
+    content: "...and drop them here into the correct category";
 }
 
-.reveal .matching .dropzone {
-    display:    block;
-    flex:       1 0 0;
-    padding:    10px;
-    margin:     5px;
-    border:     1px solid black;
-    text-align: center;
+:lang(de) .reveal .quiz-mi .matchItems:before,
+:lang(de) .reveal .qmi .matchItems:before,
+:lang(de) .reveal .quiz-match-items .matchItems:before {
+    content: "Objekte per Drag & Drop nach unten ziehen...";
 }
 
-.reveal .matching .draggable {
+:lang(de) .reveal .quiz-mi .buckets:before,
+:lang(de) .reveal .qmi .buckets:before,
+:lang(de) .reveal .quiz-match-items .buckets:before {
+    content: "...und hier in die richtige Kategorie einsortieren";
+}
+
+.reveal .quiz-mi .matchItems:after,
+.reveal .qmi .matchItems:after,
+.reveal .quiz-match-items .matchItems:after {
+  position: absolute;
+  content: " ";
+  width: 0;
+  height: 0;
+  bottom: -30px;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-top: 30px solid #dddddd;
+}
+
+.reveal .quiz-mi .bucket,
+.reveal .qmi .bucket,
+.reveal .quiz-match-items .bucket {
+  display: block;
+  flex: 1 0 0;
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid black;
+  text-align: center;
+}
+
+.reveal .quiz-mi .matchItem,
+.reveal .qmi .matchItem,
+.reveal .quiz-match-items .matchItem {
     display:        block;
     vertical-align: middle;
     overflow:       hidden;
-    border:         2px solid #2a9ddf;
+    border:         2px solid var(--emphColor);
     border-radius:  10px;
     padding:        10px;
     background:     white;
     cursor:         grab;
 }
-.reveal .matching .dropzone .draggable {
-    display:    block;
-    border:     none;
-    background: inherit;
+
+.reveal .quiz-mi .matchItem .solution,
+.reveal .qmi .matchItem .solution,
+.reveal .quiz-match-items .matchItem .solution {
+  visibility: hidden;
+  font-size: large;
 }
 
-.reveal .matching .draggableChild {
-    pointer-events: none;
+.reveal .quiz-mi .matchItem:hover .solution,
+.reveal .qmi .matchItem:hover .solution,
+.reveal .quiz-match-items .matchItem:hover .solution {
+  visibility: visible;
+  font-size: large;
 }
 
-.reveal select {
-    font:        inherit;
-    font-size:   0.9em;
-    font-weight: normal;
-    padding:     5px;
-    border:      2px solid #2a9ddf;
-    background:  white;
+.reveal .quiz-mi .bucket .matchItem,
+.reveal .qmi .bucket .matchItem,
+.reveal .quiz-match-items .bucket .matchItem {
+  display: block;
+  border: none;
+  background: inherit;
 }
 
-.reveal select option {
-    font:        inherit;
-    font-size:   0.9em;
-    max-height:  1em;
-    min-height:  1em !important;
-    font-weight: normal;
+.reveal .quiz-multiple-choice ul,
+.reveal .quiz-mc ul,
+.reveal .qmc ul {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  text-align: center;
+  counter-reset: answer;
 }
 
-.reveal input {
-    font:        inherit;
-    font-size:   0.9em;
-    font-weight: normal;
-    margin:      0.5em;
-    padding:     10px;
-    border:      2px solid #2a9ddf;
+.reveal .quiz-multiple-choice li,
+.reveal .quiz-mc li,
+.reveal .qmc li {
+  display: inline-block;
+  position: relative;
+  text-align: left;
+  margin: 20px;
+  border: 2px solid var(--emphColor);
+  border-radius: 20px;
+  padding: 20px;
+  font-weight: normal;
+  color: black;
 }
 
-.reveal button.freetextAnswerButton,
-.reveal button.btAnswerButton,
-.reveal button.matchingAnswerButton,
-.reveal button.retryButton
-{
-    font:        inherit;
-    font-size:   0.7em;
-    font-weight: normal;
-    margin:      0.5em;
-    padding:     10px;
-    background:  #eeeeee;
-    border: 2px solid #dddddd;
-    border-radius: 5px;
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+.reveal .quiz-multiple-choice li:before,
+.reveal .quiz-mc li:before,
+.reveal .qmc li:before {
+  content: counter(answer, upper-latin) ": ";
+  counter-increment: answer;
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
+.reveal .quiz-multiple-choice .tooltip,
+.reveal .quiz-mc .tooltip,
+.reveal .qmc .tooltip {
+  display: block;
+  visibility: hidden;
+  max-width: 95%;
+  top: 100%;
+  left: 5px;
+  background-color: grey;
+  color: #ffffff;
+  text-align: center;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: absolute;
+  z-index: 1;
+  font-size: 1rem;
 }
 

@@ -1,5 +1,4 @@
 ---
-history: true
 stretch-media: true
 title: 'Image, Audio and Video Handling'
 ---
@@ -83,10 +82,3 @@ second one is a :cinema:.
 
 ![Directly embedded SVG](graph.dot.svg){.embed}
 
-# Image with incorrect URL
-
-![A non existing (local) image.](this-does-not-exist.png)
-
-# Empty image URL
-
-![]()

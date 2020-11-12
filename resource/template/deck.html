@@ -13,13 +13,27 @@ $endif$
 $if(keywords)$
   <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
 $endif$
+$if(template.favicon)$
+  <link rel="shortcut icon" href="$template.favicon$">
+$endif$
+$if(mario)$
+    $if(title)$
+        $if(subtitle)$
+          <title>$title$: $subtitle$</title>
+        $else$
+          <title>$title$</title>
+        $endif$
+    $endif$
+$else$
   <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
+$endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reveal.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
 $if(thebelab.enable)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/thebelab/thebelab.css">
 $endif$
@@ -91,6 +105,12 @@ $if(highlighting-css)$
 $highlighting-css$
   </style>
 $endif$
+$if(highlightjs)$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
+$endif$
+$if(decker-engine.base-url)$
+  <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
+$endif$
 $if(template.base-css)$
   <link rel="stylesheet" href="$template.base-css$">
 $else$
@@ -106,9 +126,6 @@ $endif$
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
-$if(highlightjs)$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
-$endif$
   <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
@@ -145,7 +162,8 @@ $else$
           repoProvider: "$thebelab.repoProvider$",
       },
       kernelOptions: {
-          name: "$thebelab.language$"
+          name: "$thebelab.language$",
+          kernelName: "$thebelab.language$"
       },
 $endif$
       selector: "[data-executable]",
@@ -155,7 +173,7 @@ $endif$
       }
   }
   </script>
-   <script src="$decker-support-dir$/vendor/thebelab/index.js"></script> 
+   <script src="https://unpkg.com/thebelab@latest/lib/index.js"></script> 
 $endif$
 $for(header-includes)$
   $header-includes$
@@ -166,7 +184,7 @@ $for(style)$
   </style>
 $endfor$
 </head>
-<body>
+<body data-deckid="$deck-id$">
 $for(include-before)$
 $include-before$
 $endfor$
@@ -184,10 +202,9 @@ $if(title)$
          $endif$
          </div>
 
-         $if(teaser)$
-         <img class="teaser" src=$teaser$>
+         $if(template.teaser)$
+         <img class="teaser" src=$template.teaser$>
          $endif$
-
          $if(authors)$
          <div class="authors">
          $for(authors)$
@@ -210,6 +227,10 @@ $if(title)$
          $if(affiliation)$
          <div class="affiliation"> $affiliation$ </div>
          $endif$
+
+         $if(date)$
+         <div class="date"> $date$ </div>
+         $endif$
       </section>
    $else$ <!-- standard settings -->
       $if(template.title-page.banner)$
@@ -223,7 +244,7 @@ $if(title)$
       $else$
          <section id="$idprefix$title-slide" class="title-page">
       $endif$
-        <div class="valign-block" style="height:550px">
+        <div class="valign-block">
             <div class="valigned">
                 <div class="title"> $title$</div>
                 $if(subtitle)$
@@ -235,6 +256,9 @@ $if(title)$
                    </div>
                 $else$
                    <div style="height:100px"> </div>      
+                $endif$
+                $if(date)$
+                   <div class="date"> $date$ </div>
                 $endif$
                 $if(author)$
                    <div class="author"> $author$ </div>
@@ -275,6 +299,13 @@ $body$
       prepareSAGE();
   </script>
 
+$if(decker-engine.base-url)$
+  <script type="module" crossorigin>
+    import {contactEngine} from "./$decker-support-dir$/js/engine.js";
+    contactEngine("$decker-engine.base-url$", "$decker-engine.deck-id$")
+  </script>
+$endif$
+
 $for(template.include-js)$
 <script src="$template.include-js$"></script>
 $endfor$
@@ -296,6 +327,11 @@ $endif$
         // Display the page number of the current slide
 $if(slideNumber)$
         slideNumber: '$slideNumber$',
+$endif$
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+$if(hash)$
+        hash: $hash$,
 $endif$
         // Push each slide change to the browser history
 $if(history)$
@@ -460,13 +496,22 @@ $if(checkOverflow)$
 $else$
         checkOverflow: false,
 $endif$
-     
+
+
+        // whether to use vertical slides (in decker.js)
+ $if(vertical-slides)$
+        verticalSlides: $vertical-slides$,
+$else$
+        verticalSlides: false,
+$endif$
+
 
         // setup reveal-menu
 $if(menu)$
 $if(mario)$
         menu: {
-            side:              'right',
+            side:              'left',
+            width:             'wide',
             numbers:           true,
             titleSelector:     'h1',
             hideMissingTitles: false,
@@ -474,8 +519,8 @@ $if(mario)$
             custom:            false,
             themes:            false,
             transitions:       false,
-            openButton:        false,
-            openSlideNumber:   true,
+            openButton:        true,
+            openSlideNumber:   false,
             keyboard:          true,
             loadIcons:         false
         },
@@ -516,7 +561,7 @@ $else$
               T:         "^{\\mathsf{T}}",
               abs:       ['\\left\\lvert #1 \\right\\rvert', 1],
               det:       ['\\left\\lvert #1 \\right\\rvert', 1],
-              norm:      ['\\left\\lVert #1 \\right\\rVert', 1],
+              norm:      ['\\left\\Vert #1 \\right\\Vert', 1],
               iprod:     ['\\left\\langle #1 \\right\\rangle', 1],
               vec:       ['{\\mathbf{\\boldsymbol{#1}}}', 1],
               mat:       ['{\\mathbf{\\boldsymbol{#1}}}', 1],
@@ -552,12 +597,8 @@ $if(mario)$
                       },
 $endif$
                       tooltips: {
-                          mode: 'index',
-                          intersect: false,
-                      },
-                      hover: {
-                          mode: 'nearest',
-                          intersect: true
+                          mode: 'point',
+                          intersect: true,
                       },
                       legend: { position: "bottom" },
                       plugins: { colorschemes: { scheme: "tableau.Classic10" } }
@@ -609,10 +650,6 @@ $endif$
           ]
       });
   </script>
-
-  $if(vertical-slides)$
-      <script>makeVertical();</script>
-  $endif$
 
 
   <!-- Reload on change machinery -->

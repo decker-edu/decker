@@ -25,7 +25,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import Relude
 import System.Directory
-import System.FilePath
+import System.FilePath.Posix
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -240,26 +240,23 @@ transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
   case language classes of
     Just ext
       | "render" `elem` classes -> do
-        transient <-
-          lookupMetaOrFail "decker.directories.transient" <$> gets meta
-        project <- lookupMetaOrFail "decker.directories.project" <$> gets meta
-        runAttr attr (transform project transient ext) >>= renderHtml
+        runAttr attr (transform ext) >>= renderHtml
     _ -> return code
   where
-    transform :: FilePath -> FilePath -> Text -> Attrib Html
-    transform project transient ext = do
+    transform :: Text -> Attrib Html
+    transform ext = do
       dropClass ext
       let crc = printf "%08x" (calc_crc32 $ toString text)
-      let relPath =
-            deckerFiles </> "code" </> intercalate "-" ["code", crc] <.>
+      let path =
+            transientDir </> "code" </>
+            intercalate "-" ["code", crc] <.>
             toString ext
-      let absPath = project </> relPath
-      exists <- liftIO $ doesFileExist absPath
+      exists <- liftIO $ doesFileExist path
       unless exists $
         liftIO $ do
-          createDirectoryIfMissing True (project </> deckerFiles </> "code")
-          Text.writeFile absPath text
-      uri <- lift $ URI.mkURI (toText absPath)
+          createDirectoryIfMissing True (takeDirectory path)
+          Text.writeFile path text
+      uri <- lift $ URI.mkURI (toText path)
       renderCodeHtml uri caption
 transformCodeBlock block _ = return block
 

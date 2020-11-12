@@ -13,8 +13,6 @@ import qualified Data.Text.IO as Text
 
 import Relude
 
-import System.Directory
-
 import Text.Blaze.Html
 import qualified Text.Blaze.Html.Renderer.Pretty as Pretty
 import qualified Text.Blaze.Html.Renderer.Text as Text
@@ -55,7 +53,7 @@ videoExt = ["mp4", "mov", "ogg", "avi"]
 
 audioExt = ["mp3", "aiff", "wav"]
 
-iframeExt = ["html", "htm"]
+iframeExt = ["html", "htm", "php"]
 
 codeExt = ["cpp", "java", "hs", "js"]
 
@@ -248,10 +246,20 @@ transformUrl url ext = do
 
 transformUri :: URI -> Text -> Filter URI
 transformUri uri ext = do
-  isFile <- isFileUri uri
-  if isFile
-    then processLocalUri uri ext
-    else processRemoteUri uri
+  base <- lookupMetaOrFail "decker.base-dir" <$> gets meta
+  case uriScheme uri of
+    Just "public" -> do
+      targetUri base (setUriScheme "" uri)
+    Nothing -> do
+      if null (uriFilePath uri)
+        then return uri
+        else do
+          source <- addPathExtension ext uri
+          needFile $ targetFilePath source
+          targetUri base source
+    _ -> do
+      modifyMeta (addMetaValue "decker.filter.links" (URI.render uri))
+      return uri
 
 -- | Adds a remote URL to the `decker.filter.links` list in the meta data.
 processRemoteUri :: URI -> Filter URI
@@ -264,21 +272,6 @@ processRemoteUri uri = do
 modifyMeta :: (Meta -> Meta) -> Filter ()
 modifyMeta f = modify (\s -> s {meta = f (meta s)})
 
-processLocalUri :: URI -> Text -> Filter URI
-processLocalUri uri ext = do
-  base <- lookupMetaOrFail "decker.base-dir" <$> gets meta
-  project <- lookupMetaOrFail "decker.directories.project" <$> gets meta
-  public <- lookupMetaOrFail "decker.directories.public" <$> gets meta
-  case uriScheme uri of
-    Just "public" -> do
-      source <- setUriPath (project <> "/" <> uriPath uri) $ setUriScheme "" uri
-      targetUri base source
-    otherwise -> do
-      checkAbsoluteUri uri
-      source <- addPathExtension ext uri
-      needFile $ toString $ targetPath project public source
-      targetUri base source
-
 checkAbsoluteUri :: MonadThrow m => URI -> m ()
 checkAbsoluteUri uri =
   unless (URI.isPathAbsolute uri) $
@@ -290,10 +283,8 @@ needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
 resolveFileUri :: URI -> Filter FilePath
 resolveFileUri uri = do
   let urlPath = toString $ uriPath uri
-  cwd <- liftIO getCurrentDirectory
   docBase <- lookupMetaOrFail "decker.base-dir" <$> gets meta
-  project <- lookupMetaOrFail "decker.directories.project" <$> gets meta
-  return $ makeAbsolutePath project docBase urlPath
+  return $ makeProjectPath docBase urlPath
 
 setMeta :: Text -> Text -> Filter ()
 setMeta key value = modifyMeta (setMetaValue key (MetaString value))

@@ -15,7 +15,6 @@ import Data.Maybe
 import qualified Data.Text.IO as Text
 import NeatInterpolation
 import Relude
-import System.Directory
 import Test.Hspec as Hspec
 import Text.Blaze.Html (toHtml)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
@@ -25,15 +24,11 @@ import Text.Pandoc.Highlighting
 import Text.Pandoc.Walk
 
 filterMeta = do
-  cwd <- toText <$> getCurrentDirectory
   return $
-    setMetaValue "bibliography" ("test/decks/bibliography.bib"::Text) $
-    setMetaValue "csl" ("resource/example/chicago-author-date.csl"::Text) $
+    setMetaValue "bibliography" ("test/decks/bibliography.bib" :: Text) $
+    setMetaValue "csl" ("resource/example/chicago-author-date.csl" :: Text) $
     setMetaValue "suppress-bibliography" True $
-    setMetaValue "decker.top-base-dir" cwd $
-    setMetaValue "decker.base-dir" cwd $
-    setMetaValue "decker.directories.project" cwd $
-    setMetaValue "decker.directories.public" cwd $ nullMeta
+    setMetaValue "decker.base-dir" ("" :: Text) $ nullMeta
 
 -- import qualified Text.URI as URI
 -- | Constructs a filter runner with default parameters
@@ -80,17 +75,17 @@ plainImage =
      , ["myclass"]
      , [("width", "30%"), ("css:border", "1px"), ("myattribute", "1")])
      []
-     ("/test/decks/include/06-metal.png", ""))
+     ("include/06-metal.png", ""))
 
 plainImageCaptionedHtml =
   RawInline
     (Format "html")
-    "<figure id=\"logo\" class=\"decker myclass\" alt=\"06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"test/decks/include/06-metal.png\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"logo\" class=\"decker myclass\" alt=\"06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\"><img class=\"decker\" data-src=\"include/06-metal.png\"><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 plainImageHtml =
   RawInline
     (Format "html")
-    "<img id=\"logo\" class=\"decker myclass\" data-src=\"test/decks/include/06-metal.png\" alt=\"06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\">"
+    "<img id=\"logo\" class=\"decker myclass\" data-src=\"include/06-metal.png\" alt=\"06-metal.png\" data-myattribute=\"1\" style=\"width:30%;border:1px;\">"
 
 plainVideo =
   Image
@@ -99,23 +94,23 @@ plainVideo =
     , [ ("width", "30%")
       , ("css:border", "1px")
       , ("annoying", "100")
-      , ("poster", "/test/decks/include/06-metal.png")
+      , ("poster", "include/06-metal.png")
       , ("preload", "none")
       , ("start", "23")
       , ("stop", "42")
       ])
     []
-    ("/test/decks/pacman-perfect-game.mp4", "")
+    ("pacman-perfect-game.mp4", "")
 
 plainVideoHtml =
   RawInline
     (Format "html")
-    "<video id=\"video\" class=\"decker myclass\" data-src=\"test/decks/pacman-perfect-game.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"/test/decks/include/06-metal.png\" preload=\"none\" loop=\"loop\" data-autoplay=\"1\"></video>"
+    "<video id=\"video\" class=\"decker myclass\" data-src=\"pacman-perfect-game.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"include/06-metal.png\" preload=\"none\" loop=\"loop\" data-autoplay=\"1\"></video>"
 
 plainVideoCaptionedHtml =
   RawInline
     (Format "html")
-    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"test/decks/pacman-perfect-game.mp4#t=23,42\" poster=\"/test/decks/include/06-metal.png\" preload=\"none\" loop=\"loop\" data-autoplay=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"pacman-perfect-game.mp4#t=23,42\" poster=\"include/06-metal.png\" preload=\"none\" loop=\"loop\" data-autoplay=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 blockAin = [Para [], Para [Image nullAttr [] ("", "")], Para []]
 

@@ -1,5 +1,4 @@
 ---
-history: true
 jupyter:
   kernelspec:
     display_name: Haskell
