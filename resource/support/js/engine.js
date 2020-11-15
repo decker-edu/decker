@@ -256,6 +256,10 @@ function buildInterface() {
           li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
         }
       }
+      else {
+        // slide not found. should not happen. user probably used wrong (duplicate) deckID.
+        console.warn("Could not find slide " + slideID);
+      }
     }
   };
 

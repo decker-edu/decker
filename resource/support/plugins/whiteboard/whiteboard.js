@@ -830,7 +830,7 @@ let RevealWhiteboard = (function(){
             reader.readAsText(filename);
         }
         else {
-            console.log("Your browser does not support the File API");
+            console.error("Your browser does not support the File API");
         }
     }
 
@@ -954,21 +954,20 @@ let RevealWhiteboard = (function(){
         if (window.saveAnnotation) {
             if (window.saveAnnotation(annotationData(), annotationURL()))
             {
-                console.log("whiteboard: save success");
+                console.log("whiteboard annotations saved to local file");
                 needToSave(false);
                 return;
             }
         }
 
-        console.log("whiteboard: save annotations to decker");
         let xhr = new XMLHttpRequest();
         xhr.open('put', annotationURL(), true);
         xhr.onloadend = function() {
             if (xhr.status == 200) {
-                console.log("whiteboard: save success");
+                console.log("whiteboard annotations saved to deck directory");
                 needToSave(false);
             } else {
-                console.log("whiteboard: could not save to decker, download instead");
+                console.warn("whiteboard annotation could not be save to decker, trying to download the file instead.");
                 downloadAnnotations();
             }
         };
@@ -987,9 +986,8 @@ let RevealWhiteboard = (function(){
         try {
             a.download = annotationFilename();
             a.href = window.URL.createObjectURL( annotationBlob() );
-
         } catch( error ) {
-            console.error("whiteboard download error: " + error);
+            console.error("whiteboard annotations could not be downloaded: " + error);
         }
         a.click();
         document.body.removeChild(a);
@@ -1326,7 +1324,7 @@ let RevealWhiteboard = (function(){
     }
     else
     {
-        console.err("whiteboard requires PointerEvents");
+        console.error("whiteboard requires support for PointerEvents");
     }
 
 
