@@ -242,17 +242,19 @@ function buildInterface() {
       // get slide info
       const slideID = comment.slide;
       const slide = document.getElementById(slideID);
-      const indices = Reveal.getIndices(slide);
+      if (slide) {
+        const indices = Reveal.getIndices(slide);
 
-      // build query string, get menu item
-      let query = 'ul.slide-menu-items > li.slide-menu-item';
-      if (indices.h) query += '[data-slide-h=\"' + indices.h + '\"]';
-      if (indices.v) query += '[data-slide-v=\"' + indices.v + '\"]';
-      let li = document.querySelector(query);
+        // build query string, get menu item
+        let query = 'ul.slide-menu-items > li.slide-menu-item';
+        if (indices.h) query += '[data-slide-h=\"' + indices.h + '\"]';
+        if (indices.v) query += '[data-slide-v=\"' + indices.v + '\"]';
+        let li = document.querySelector(query);
 
-      // update question counter
-      if (li) {
-        li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
+        // update question counter
+        if (li) {
+          li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
+        }
       }
     }
   };
