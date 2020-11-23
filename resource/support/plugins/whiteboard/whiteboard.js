@@ -202,6 +202,9 @@ let RevealWhiteboard = (function(){
 
             if (Reveal.getConfig().center || slide.classList.contains('center'))
             {
+                // Reveal implements centering by adjusting css:top. Remove this.
+                slide.style.top = '';
+
                 // div for centering with flex layout
                 let vcenter = document.createElement("div");
                 vcenter.classList.add("v-center");

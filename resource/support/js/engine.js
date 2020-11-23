@@ -348,7 +348,7 @@ function buildInterface() {
           text.value = comment.markdown;
           text.commentId = comment.id;
           text.answered = comment.answered;
-         text.focus();
+          text.focus();
         });
         box.appendChild(mod);
         box.appendChild(del);
@@ -402,7 +402,7 @@ function buildInterface() {
         .getLogin({
           login: username.value,
           password: password.value,
-          deck: engine.deckId 
+          deck: engine.deckId
         })
         .then(token => {
           engine.token.admin = token.admin;
