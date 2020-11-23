@@ -441,7 +441,7 @@ Points: 5
 
 # Free Text 2 - Plain
 
-Type the answer and push Enter to correct the question. Use the backspace or delete key to clear the question. Click the solution button to show the possible solutions. Click the Reset button to hide the solutions. 
+Type the answer and push Enter to correct the question.  
 
 ## {.qft .plain}
 
