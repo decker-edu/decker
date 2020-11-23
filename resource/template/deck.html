@@ -289,7 +289,6 @@ $body$
 
   <script src="$decker-support-dir$/vendor/reveal/js/reveal.js"></script>
   <script src="$decker-support-dir$/vendor/js/jquery.min.js"></script>
-  <script src="$decker-support-dir$/js/quiz.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
   <script src="$decker-support-dir$/js/sage.js"></script>
   
@@ -634,6 +633,7 @@ $endif$
               { src: String.raw`$decker-support-dir$/plugins/zoom/zoom.js` },
               { src: String.raw`$decker-support-dir$/plugins/print/print.js` },
               { src: String.raw`$decker-support-dir$/plugins/search/search.js`, async: true },
+              { src: String.raw`$decker-support-dir$/plugins/quiz-wue/quiz-wue.js` },
 $if(highlightjs)$
               { src: String.raw`$decker-support-dir$/plugins/highlight/highlight.js` },
 $endif$

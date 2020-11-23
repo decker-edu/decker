@@ -520,13 +520,26 @@ their answer.
     - [ ] C
     - [X] D
 
+### Quiz Styling
+
+The default style of quizzes includes decorative and interactive features. To switch to a plain style, specify in YAML metadata, or use the `.plain` tag in the question header. 
+
+```.yaml
+quiz: 
+  style: plain
+```
+
+```
+# Question 1
+
+## {.qmc .plain}
+```
+
 ### Quiz Meta
 
-Add a `YAML` code block to a question to provide meta information on the
-specific question.
+Add a `YAML` code block to a question to provide meta information on the specific question.
 
-This is work in progress. Currently apart from `lang: de` or `lang: en`
-it does not do anything. (21. Jul 2020)
+This is work in progress. Currently apart from `lang: de` or `lang: en` and quiz style, it does not do anything. (21. Jul 2020)
 
     ``` {.yaml}
     lang: de
@@ -534,6 +547,8 @@ it does not do anything. (21. Jul 2020)
     category: FP
     lectureId: fp1
     topic: Functional Programming Introduction
+    quiz:
+      style: plain
     ```
 
 ## ThebeLab 🚧 {#thebelab}

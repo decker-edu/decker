@@ -1119,6 +1119,19 @@ div.q-panel {
     margin:      0.5em;
     padding:     10px;
     border:      2px solid var(--emphColor);
+    outline:     none;
+}
+
+.reveal .qft input.show-right,
+.reveal [class*="quiz-"] input.show-right {
+  background-color: #aaffaa;
+  border:           3px solid green;
+}
+
+.reveal .qft input.show-wrong,
+.reveal [class*="quiz-"] input.show-wrong {
+  background-color: #ffaaaa;
+  border:           3px solid red;
 }
 
 .reveal .qic .solutionList,
@@ -1128,7 +1141,6 @@ div.q-panel {
 .reveal [class*="quiz-"] .solutionList {
   list-style-type: none;
   display: none;
-  background-color: grey;
   color: #ffffff;
   margin: 5px;
   padding: 5px;
@@ -1139,6 +1151,11 @@ div.q-panel {
   font-size: 1rem;
 }
 
+.reveal .qic .solutionList.solved,
+.reveal .qft .solutionList.solved,
+.reveal [class*="quiz-"] .solutionList.solved {
+  display: initial;
+}
 .reveal .qic .solutionList li,
 .reveal .qft .solutionList li,
 .reveal .qmc .solutionList li,
@@ -1146,8 +1163,17 @@ div.q-panel {
 .reveal [class*="quiz-"] .solutionList li {
     display: none;
     margin-left: 5px;
+    list-style-type: none;
 }
 
+.reveal .qic .solutionList li.solved,
+.reveal .qft .solutionList li.solved,
+.reveal [class*="quiz-"] .solutionList li.solved {
+  display: block;
+  background-color: grey;
+  padding: 0.5em;
+  border-radius: 8px;
+}
 .reveal .qic .solutionList .correct:before,
 .reveal .qft .solutionList .correct:before,
 .reveal .qmc .solutionList .correct:before,
@@ -1173,6 +1199,29 @@ div.q-panel {
     margin-left: 1.3em;
 }
 
+.reveal .qic .solutionDiv,
+.reveal .qft .solutionDiv,
+.reveal [class*="quiz-"] .solutionDiv {
+  padding: 0.5em;
+  border-radius: 6px;
+  display: block;
+  visibility: hidden;
+  list-style-type: none;
+}
+
+.reveal .qic .solutionDiv.hidden,
+.reveal .qft .solutionDiv.hidden,
+.reveal [class*="quiz-"] .solutionDiv.hidden {
+  display: none;
+}
+
+.reveal .qic .solutionDiv.solved,
+.reveal .qft .solutionDiv.solved,
+.reveal [class*="quiz-"] .solutionDiv.solved {
+  visibility: visible;
+  width: 91%; 
+}
+
 .reveal .qic select,
 .reveal [class*="quiz-i"] select {
     font:        inherit;
@@ -1181,6 +1230,19 @@ div.q-panel {
     padding:     5px;
     border:      2px solid var(--emphColor);
     background:  white;
+    outline:     none;
+}
+
+.reveal .qic select.show-right,
+.reveal [class*="quiz-"] select.show-right {
+  background-color: #aaffaa;
+  border:           3px solid green;
+}
+
+.reveal .qic select.show-wrong,
+.reveal [class*="quiz-"] select.show-wrong {
+  background-color: #ffaaaa;
+  border:           3px solid red;
 }
 
 .reveal .qic select :disabled,
@@ -1197,9 +1259,20 @@ div.q-panel {
 
 .reveal .qic .tooltip-div,
 .reveal [class*="quiz-i"] .tooltip-div {
-  font-size: 0.6em;
+  font-size:          0.6em;
+  margin:             0.5em auto 0 auto;
+  padding:            0.5em;
+  visibility:         hidden;
+}
+
+.reveal .qic .tooltip-div.solved,
+.reveal [class*="quiz-i"] .tooltip-div.solved {
+  visibility: visible;  
+}
+
+.reveal .qic .tooltip-div.solved .tooltip,
+.reveal [class*="quiz-i"] .tooltip-div.solved .tooltip {
   background-color: #f4f4f7;
-  margin-top: 0.5em;
 }
 
 .reveal .quiz-mi,
@@ -1342,6 +1415,26 @@ div.q-panel {
   background: inherit;
 }
 
+.reveal .quiz-mi .bucket .matchItem.show-right,
+.reveal .qmi .bucket .matchItem.show-right,
+.reveal .quiz-match-items .bucket .matchItem.show-right,
+.reveal .quiz-mi .matchItems .matchItem.show-right,
+.reveal .qmi .matchItems .matchItem.show-right,
+.reveal .quiz-match-items .matchItems .matchItem.show-right {
+  background-color: #aaffaa;
+  border:           3px solid green;
+}
+
+.reveal .quiz-mi .bucket .matchItem.show-wrong,
+.reveal .qmi .bucket .matchItem.show-wrong,
+.reveal .quiz-match-items .bucket .matchItem.show-wrong,
+.reveal .quiz-mi .matchItems .matchItem.show-wrong,
+.reveal .qmi .matchItems .matchItem.show-wrong,
+.reveal .quiz-match-items .matchItems .matchItem.show-wrong {
+  background-color: #ffaaaa;
+  border:           3px solid red;
+}
+
 .reveal .quiz-multiple-choice ul,
 .reveal .quiz-mc ul,
 .reveal .qmc ul {
@@ -1367,6 +1460,20 @@ div.q-panel {
   padding: 20px;
   font-weight: normal;
   color: black;
+}
+
+.reveal .quiz-multiple-choice li.show-right,
+.reveal .quiz-mc li.show-right,
+.reveal .qmc li.show-right {
+  background-color: #aaffaa;
+  border:           3px solid green;
+}
+
+.reveal .quiz-multiple-choice li.show-wrong,
+.reveal .quiz-mc li.show-wrong,
+.reveal .qmc li.show-wrong {
+  background-color: #ffaaaa;
+  border:           3px solid red;
 }
 
 .reveal .quiz-multiple-choice li:before,
@@ -1398,3 +1505,8 @@ div.q-panel {
   font-size: 1rem;
 }
 
+.reveal .quiz-multiple-choice [class*="show-"]:hover .tooltip,
+.reveal .quiz-mc [class*="show-"]:hover .tooltip,
+.reveal .qmc [class*="show-"]:hover .tooltip {
+  visibility: visible;
+}
