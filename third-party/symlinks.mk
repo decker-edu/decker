@@ -45,7 +45,7 @@ lazyload:
 
 water.css:
 	@mkdir -p $(support)/css
-	(cd water.css && yarn install)
+	(cd water.css && yarn install --network-timeout 1000000)
 	@cp $(third)/water.css/dist/*.min.css $(support)/css
 	chmod a-x $(support)/css/*
 
