@@ -63,19 +63,26 @@ function quizFT() {
         // Add click listeners to solution, reset buttons
         const plain = question.classList.contains('plain') ? true : false;
         const solutionButton = question.querySelector('.solutionButton');
-        const resetButton = question.querySelector('.resetButton');
         solutionButton.addEventListener('click', showSolution);
-        resetButton.addEventListener('click', resetQuestion);    
-        question.querySelector('.resetButton').classList.add(plain ? 'disabled' : 'hidden'); 
+
+        const resetButton = question.querySelector('.resetButton');
+        if (resetButton) {
+            resetButton.addEventListener('click', resetQuestion);
+            resetButton.classList.add(plain ? 'disabled' : 'hidden');
+        }
     
         const optList = solutions.getElementsByTagName('li');
         const solutionDiv = question.querySelector('.solutionDiv');
 
-        // Populate solutionDiv to reserve space - hide if fancy style
-        for (let c of optList) {
-            if (c.classList.contains('correct')) { solutionDiv.appendChild(c.cloneNode(true)); }
+        if (solutionDiv) {
+            // Populate solutionDiv to reserve space - hide if fancy style
+            for (let c of optList) {
+                if (c.classList.contains('correct')) { solutionDiv.appendChild(c.cloneNode(true)); }
+            }
+            if (!plain) { solutionDiv.classList.add('hidden'); }
         }
-        if (!plain) { solutionDiv.classList.add('hidden'); }
+
+        
 
         // Handle click of solution button
         function showSolution() {
@@ -130,18 +137,23 @@ function quizIC() {
 
                 sel.classList.remove("show-right","show-wrong");
                 sel.classList.add(checked.correct ? "show-right" : "show-wrong");
-
-                const answers = solutionList.getElementsByTagName('li');
-                const tip = answers.item(sel.selectedIndex - 1).querySelector('.tooltip');
-                const cln = tip.cloneNode(true);
-                tipDiv.appendChild(cln);
             })
 
             // Show tooltip box on mouseover
             sel.addEventListener("mouseover", () => {
                 if (sel.classList.contains('solved')) { 
-                    if (tipDiv.firstElementChild.innerHTML !== "") { tipDiv.classList.add('solved'); } } });
-            sel.addEventListener("mouseleave", () => { tipDiv.classList.remove('solved') });
+                    const answers = solutionList.getElementsByTagName('li');
+                    const tip = answers.item(sel.selectedIndex - 1).querySelector('.tooltip');
+                    if (tip.innerHTML !== "") {
+                        const cln = tip.cloneNode(true);
+                        tipDiv.appendChild(cln);
+                    }
+                    tipDiv.classList.add('solved');
+            }});
+            sel.addEventListener("mouseleave", () => { 
+                tipDiv.classList.remove('solved');
+                tipDiv.innerHTML = "";
+            });
         }
     }
 }
@@ -428,4 +440,4 @@ function drop(event) {
     event.target.appendChild(element);
 }
 
-Reveal.registerPlugin( 'quiz', RevealQuiz );
+Reveal.registerPlugin( 'quiz-wue', RevealQuiz );

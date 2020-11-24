@@ -87,6 +87,21 @@ topic: Functional Programming Introduction
 ```
 ````
 
+# Quiz Styling
+
+The default style of Decker quizzes includes drag and drop interactions and decorative coloring. To switch to a plain style, specify the following in the YAML code block, or use the `.plain` tag.
+
+```{.yaml}
+quiz:
+  style: plain
+````
+
+or on a per-question basis:
+
+```{.markdown}
+## {.qmc .plain}
+```
+
 # Matching Questions
 
 These questions generate quizzes where a user can drag and drop items to sort them into "buckets".
@@ -135,6 +150,25 @@ BucketB
 Empty Bucket
 : !
 
+# Matching Questions Example - Plain
+
+## Matching Question {.qmi .plain}
+
+Question text
+
+BucketA
+: A1
+: A2
+
+BucketB
+: B1
+
+!
+: Distractor
+
+Empty Bucket
+: !
+
 # Multiple Choice Questions
 
 Classic multiple choice questions
@@ -153,6 +187,28 @@ Which of these letters is the second in the alphabet?
 # Multiple Choice Questions Example {.sub}
 
 ## Multiple Choice Question {.qmc}
+
+Question text
+
+- [ ] A
+  - nope
+- [X] B
+  - yes
+
+# Multiple Choice Questions Example - Plain {.sub}
+
+## Multiple Choice Question {.qmc .plain}
+
+Question text
+
+- [ ] A
+  - nope
+- [X] B
+  - yes
+
+# Multiple Choice Questions Example - Plain Inline {.sub}
+
+## Multiple Choice Question {.qmc .plain .inline}
 
 Question text
 
@@ -198,6 +254,20 @@ is the first letter in the ABC. The second one is
   - yep
 - [ ] C
 
+# InsertChoices Questions Example Plain {.sub}
+
+## Insert Choices Question {.qic .plain}
+
+- [X] A
+  - of course
+- [ ] B 
+  - uhm ...
+
+is the first letter in the ABC. The second one is
+
+- [X] B
+  - yep
+- [ ] C
 
 # FreeText questions
 
@@ -206,7 +276,7 @@ This will create a simple input field/text box where the user can write their an
 If there are wrong answers that are to be expected you can add those by not checking the task box. They will then show as wrong when clicking "Show Solution".
 
 ```
-## FreeText Question TL {.qft}
+## FreeText Question {.qft}
 
 What's the first letter in the alphabet?
 
@@ -225,9 +295,9 @@ What's the fourth letter?
 
 ```
 
-# FreeText Question Example without h2 title {.sub}
+# FreeText Question Example {.sub}
 
-## {.qft}
+## FreeText Question {.qft}
 
 What's the first letter in the alphabet?
 
@@ -244,8 +314,22 @@ What's the fourth letter?
   - info
 - [X] D
 
-```yaml
-lang: en
-```
+# FreeText Question Example - Plain {.sub}
 
+## FreeText Question {.qft .plain}
+
+What's the first letter in the alphabet?
+
+- [X] A
+  - yep
+- [ ] B
+  - nope
+
+## {.qft .plain}
+
+What's the fourth letter?
+
+- [ ] C
+  - info
+- [X] D
 
