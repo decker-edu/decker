@@ -1,15 +1,15 @@
-export {contactEngine};
+export { contactEngine };
 
 // TODO Make into a proper Reveal 4 plugin
 
-// Start with a 0.5 s retry interval. Back off exponentally.
+// Start with a 0.5 s retry interval. Back off exponentially.
 var timeout = 500;
 
 let engine = {
   api: undefined,
   deckId: undefined, // The unique deck identifier.
   token: undefined
-}
+};
 
 // Contacts the engine API at base.
 function contactEngine(base, deckId) {
@@ -29,7 +29,7 @@ function contactEngine(base, deckId) {
     });
 }
 
-// Strips the document URI from everything that can not be part of the deck id. 
+// Strips the document URI from everything that can not be part of the deck id.
 function deckUrl() {
   let url = new URL(window.location);
   url.hash = "";
@@ -55,20 +55,11 @@ function prepareEngine() {
           buildInterface();
         });
       }
-
-      // Build the menu, once Reval and the menu are ready.
-      if (Reveal.isReady() && Reveal.hasPlugin('menu') && Reveal.getPlugin('menu').isInit()) {
-        buildMenu();
-      } else {
-        Reveal.addEventListener("menu-ready", _ => {
-          buildMenu();
-        });
-      }
     })
     .catch(e => {
       // Nothing goes without a token
       console.log("API function getToken() failed: " + e);
-      throw (e);
+      throw e;
     });
 }
 
@@ -227,18 +218,60 @@ function buildInterface() {
   let updateComments = () => {
     let slideId = Reveal.getCurrentSlide().id;
     engine.api
-      .getComments(
-        engine.deckId,
-        slideId,
-        engine.token.admin || user.value
-      )
+      .getComments(engine.deckId, slideId, engine.token.admin || user.value)
       .then(renderList)
       .catch(console.log);
   };
 
   let renderSubmit = () => {
-    updateComments();
+    updateCommentsAndMenu();
     text.value = "";
+    text.commentId = null;
+    text.answered = null;
+  };
+
+  // given the list of questions, update question counter of menu items
+  let updateMenuItems = (list) => {
+    document.querySelectorAll('ul.slide-menu-items > li.slide-menu-item').forEach( (li) => {
+      li.removeAttribute('data-questions');
+    });
+
+    for (let comment of list) {
+      // get slide info
+      const slideID = comment.slide;
+      const slide = document.getElementById(slideID);
+      if (slide) {
+        const indices = Reveal.getIndices(slide);
+
+        // build query string, get menu item
+        let query = 'ul.slide-menu-items > li.slide-menu-item';
+        if (indices.h) query += '[data-slide-h=\"' + indices.h + '\"]';
+        if (indices.v) query += '[data-slide-v=\"' + indices.v + '\"]';
+        let li = document.querySelector(query);
+
+        // update question counter
+        if (li) {
+          li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
+        }
+      }
+      else {
+        // slide not found. should not happen. user probably used wrong (duplicate) deckID.
+        console.warn("Could not find slide " + slideID);
+      }
+    }
+  };
+
+  // query list of questions, then update menu items
+  let updateMenu = () => {
+    engine.api
+      .getComments(engine.deckId)
+      .then(updateMenuItems)
+      .catch(console.log);
+  };
+
+  let updateCommentsAndMenu = () => {
+    updateComments();
+    updateMenu();
   };
 
   let canDelete = comment => {
@@ -306,16 +339,15 @@ function buildInterface() {
         del.addEventListener("click", _ => {
           engine.api
             .deleteComment(comment.id, engine.token.admin || user.value)
-            .then(updateComments);
+            .then(updateCommentsAndMenu);
         });
         // Edit button
         let mod = document.createElement("button");
         mod.appendChild(edit.cloneNode(true));
         mod.addEventListener("click", _ => {
-          engine.api
-            .deleteComment(comment.id, engine.token.admin || user.value)
-            .then(updateComments);
           text.value = comment.markdown;
+          text.commentId = comment.id;
+          text.answered = comment.answered;
           text.focus();
         });
         box.appendChild(mod);
@@ -371,7 +403,7 @@ function buildInterface() {
         .getLogin({
           login: username.value,
           password: password.value,
-          deck: engine.deckId 
+          deck: engine.deckId
         })
         .then(token => {
           engine.token.admin = token.admin;
@@ -387,7 +419,7 @@ function buildInterface() {
     }
   });
 
-  if (!(engine.token.authorized)) {
+  if (!engine.token.authorized) {
     user.addEventListener("keydown", e => {
       if (e.key === "Enter") {
         updateComments();
@@ -418,7 +450,14 @@ function buildInterface() {
     if (e.key === "Enter" && e.shiftKey) {
       let slideId = Reveal.getCurrentSlide().id;
       engine.api
-        .submitComment(engine.deckId, slideId, user.value, text.value)
+        .submitComment(
+          engine.deckId,
+          slideId,
+          user.value,
+          text.value,
+          text.commentId,
+          text.answered
+        )
         .then(renderSubmit)
         .catch(console.log);
       e.stopPropagation();
@@ -427,40 +466,8 @@ function buildInterface() {
     }
   });
 
-  Reveal.addEventListener("slidechanged", _ => {
-    updateComments();
-  });
+  Reveal.addEventListener("slidechanged", updateCommentsAndMenu);
 
   initUser();
-  updateComments();
-}
-
-function buildMenu() {
-  let updateMenu = list => {
-    for (let comment of list) {
-
-      // get slide info
-      const slideID = comment.slide;
-      const slide = document.getElementById(slideID);
-      const indices = Reveal.getIndices(slide);
-
-      // build query string, get menu item
-      let query = 'ul.slide-menu-items > li.slide-menu-item';
-      if (indices.h) query += '[data-slide-h=\"' + indices.h + '\"]';
-      if (indices.v) query += '[data-slide-v=\"' + indices.v + '\"]';
-      let li = document.querySelector(query);
-
-      // update question counter
-      if (li) {
-        li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
-      }
-    }
-
-    table.appendChild(fragment);
-  };
-
-  engine.api
-    .getComments(engine.deckId)
-    .then(updateMenu)
-    .catch(console.log);
+  updateCommentsAndMenu();
 }

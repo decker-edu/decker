@@ -417,7 +417,7 @@ var RevealQuiz = (function(){
                 break;
 
             default:
-                console.log("should not happen");
+                console.error("this should not happen");
                 hideChart();
                 hideVotes();
                 ballotState = "not_init";
