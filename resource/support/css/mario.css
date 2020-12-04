@@ -337,6 +337,8 @@ body {
     width: auto;
     margin: 10px;
     text-align: center;
+    overflow-y: auto;
+    max-height: 500px;
 }
 
 /* inline code */
@@ -363,9 +365,29 @@ body {
     box-sizing: border-box;
 }
 
+/* MacOS only shows scrollbars when they are used, which is not a 
+   good idea for code blocks. The following settings show the scrollbar.
+   Only works on WebKit browswers (Chrome, Safari), not on Firefox. */
 .reveal pre code.small {
     font-size: 0.4em;
 }
+.reveal pre::-webkit-scrollbar {
+  width:9px;
+}
+.reveal pre::-webkit-scrollbar-track {
+  -webkit-border-radius:5px;
+  border-radius:5px;
+  background:rgba(0,0,0,0.1);
+}
+.reveal pre::-webkit-scrollbar-thumb {
+  -webkit-border-radius:5px;
+  border-radius:5px;
+  background:rgba(0,0,0,0.2);
+}
+.reveal pre::-webkit-scrollbar-thumb:hover {
+  background:rgba(0,0,0,0.4);
+}
+
 
 
 
