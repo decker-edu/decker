@@ -531,6 +531,12 @@ body {
   text-align: center;
 }
 
+/* set encapsulating span to inline-block,
+   otherwise SVGs cannot be scaled */
+span.decker.svg.embed {
+  display: inline-block;
+}
+
 
 /*********************************************
  * NAVIGATION CONTROLS
