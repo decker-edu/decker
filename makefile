@@ -21,7 +21,7 @@ less:
 
 resource-zip:
 	rm -f resource/decker-resources.zip
-	(cd resource; zip -qr decker-resources.zip example support template tutorial)
+	(cd resource; zip -qr decker-resources.zip example support template)
 
 install: clean-build
 	mkdir -p $(local-bin-path)

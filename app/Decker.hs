@@ -50,7 +50,6 @@ main = do
     then run
     else case head args of
            "example" -> writeExampleProject startDir
-           "tutorial" -> writeTutorialProject startDir
            "clean" -> runClean
            _ -> run
 
@@ -125,6 +124,14 @@ run = do
               --
     want ["decks"]
               --
+
+    phony "tutorial" $ do
+      putNormal "# To find information on how to use decker please check the documentation in the wiki: https://go.uniwue.de/decker-wiki"
+      putNormal "# To create a new project please use the command \"decker example\""
+    --
+    phony "help" $
+      putNormal "# To find information on how to use decker please check the documentation in the wiki: https://go.uniwue.de/decker-wiki"
+      --
     phony "version" $ do
       putNormal $
         "decker version " ++
