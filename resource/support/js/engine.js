@@ -174,7 +174,7 @@ function buildInterface() {
   document.body.appendChild(open);
   document.body.appendChild(panel);
 
-  let initUser = () => {
+  function initUser() {
     let localToken = window.localStorage.getItem("token");
     if (engine.token && engine.token.authorized) {
       // Some higher power has authorized this user. Lock token in.
@@ -199,7 +199,7 @@ function buildInterface() {
     }
   };
 
-  let updateComments = () => {
+  function updateComments() {
     let slideId = Reveal.getCurrentSlide().id;
     engine.api
       .getComments(engine.deckId, slideId, engine.token.admin || user.value)
@@ -207,7 +207,7 @@ function buildInterface() {
       .catch(console.log);
   };
 
-  let renderSubmit = () => {
+  function renderSubmit() {
     updateCommentsAndMenu();
     text.value = "";
     text.commentId = null;
@@ -215,7 +215,7 @@ function buildInterface() {
   };
 
   // given the list of questions, update question counter of menu items
-  let updateMenuItems = (list) => {
+  function updateMenuItems(list) {
     document.querySelectorAll('ul.slide-menu-items > li.slide-menu-item').forEach( (li) => {
       li.removeAttribute('data-questions');
       li.removeAttribute('data-answered');
@@ -254,23 +254,31 @@ function buildInterface() {
   };
 
   // query list of questions, then update menu items
-  let updateMenu = () => {
+  function updateMenu() {
     engine.api
       .getComments(engine.deckId)
       .then(updateMenuItems)
       .catch(console.log);
   };
 
-  let updateCommentsAndMenu = () => {
+  function updateCommentsAndMenu() {
     updateComments();
     updateMenu();
   };
 
-  let canDelete = comment => {
-    return engine.token.admin !== null || comment.author === user.value;
+  function isAdmin() {
+    return engine.token.admin !== null;
   };
 
-  let renderList = list => {
+  function isAuthor(comment) {
+    return comment.author === user.value;
+  }
+
+  function canDelete(comment) {
+    return isAdmin() || isAuthor(comment);
+  };
+
+  function renderList(list) {
 
     // have all questions been answered?
     let allAnswered = true;
@@ -335,7 +343,7 @@ function buildInterface() {
         vote.title = "Up-vote question";
       }
       vote.classList.add("vote");
-      if (comment.author !== user.value) {
+      if (!isAuthor(comment)) {
         vote.classList.add("canvote");
         if (comment.didvote) {
           vote.classList.add("didvote");
@@ -384,19 +392,25 @@ function buildInterface() {
       if (isAnswered) {
         answeredButton.className = "far fa-check-circle answered";
         answeredButton.title = canAnswer ? "Mark as not answered" : "Question has been answered";
-        answeredButton.addEventListener('click', _ => {
-          engine.api
-            .deleteAnswer(comment.answers[0].id, engine.token.admin || user.value)
-            .then(updateCommentsAndMenu);
-        });
+        if (isAdmin()) {
+          answeredButton.addEventListener('click', _ => {
+            console.log("hallo mario")
+            engine.api
+              .deleteAnswer(comment.answers[0].id, engine.token.admin || user.value)
+              .then(updateCommentsAndMenu);
+          });
+        }
       } else {
         answeredButton.className = "far fa-circle notanswered";
         answeredButton.title = canAnswer ? "Mark as answered" : "Question has not been answered";
-        answeredButton.addEventListener('click', _ => {
-          engine.api
-            .postAnswer(comment.id, engine.token.admin || user.value)
-            .then(updateCommentsAndMenu);
-        });
+        if (isAdmin()) {
+          answeredButton.addEventListener('click', _ => {
+            console.log("hallo mario")
+            engine.api
+              .postAnswer(comment.id, engine.token.admin || user.value)
+              .then(updateCommentsAndMenu);
+          });
+        }
       }
       answeredButton.disabled = !canAnswer;
       box.appendChild(answeredButton);
