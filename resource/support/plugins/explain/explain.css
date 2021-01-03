@@ -44,6 +44,12 @@
 #dvo-controls:hover {
   border:         1px solid var(--whiteboard-active-color);
 }
+#dvo-controls:hover * {
+  opacity: 1;
+}
+#dvo-controls:hover * {
+  color: var(--whiteboard-active-color);
+}
 
 
 #dvo-rate {

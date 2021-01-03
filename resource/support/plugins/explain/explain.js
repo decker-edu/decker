@@ -50,11 +50,14 @@ let ExplainPlugin = (function(){
       stop();
     };
 
+    let time = video.currentTime;
     let slide = Reveal.getState().indexh;
-    if (times[slide])
-      video.currentTime = times[slide];
-    else
-      video.currentTime = 0;
+    if (currentSlide(time) != slide) {
+      if (times[slide])
+        video.currentTime = times[slide];
+      else
+        video.currentTime = 0;
+    }
 
     video.addEventListener("ended", ended);
     video.play();
