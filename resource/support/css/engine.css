@@ -3,7 +3,7 @@ div.q-panel {
   --border-radius: 0.2em;
 }
 
-/* The opne button with the question mark */
+/* The one button with the question mark */
 div.open-button.checked {
   visibility: hidden;
 }
@@ -38,8 +38,6 @@ div.open-badge {
   position: absolute;
   top: 0;
   right: 0;
-
-  background-color: red;
   color: white;
   /* Scale the batch here, if desired */
   font-size: 40%;
@@ -54,6 +52,12 @@ div.badge {
   white-space: nowrap;
   border-radius: 0.4em;
   padding: 0.2em 0.4em;
+  background-color: red;
+  color: white;
+}
+
+div.badge.answered {
+  background-color: green;
 }
 
 div.q-panel.open {
@@ -117,8 +121,6 @@ div.q-panel div.q-header div.counter {
   flex: 0 1;
   margin-right: 1em;
   font-size: 0.9em;
-  background-color: red;
-  color: white;
 }
 
 div.q-panel div.q-header .hidden {
@@ -235,6 +237,14 @@ div.q-panel button {
 
 div.q-panel button:hover {
   color: darkred;
+}
+
+div.q-panel button.answered {
+  color: green;
+}
+
+div.q-panel button.notanswered {
+  color: red;
 }
 
 div.q-panel button.cantvote {
@@ -446,4 +456,7 @@ li.slide-menu-item[data-questions]::after {
   white-space: nowrap;
   border-radius: 0.4em;
   padding: 0.2em 0.4em;
+}
+li.slide-menu-item[data-questions][data-answered=true]::after {
+  background-color: green;
 }

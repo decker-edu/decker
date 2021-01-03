@@ -981,6 +981,7 @@ div.open-button.i {
 }
 
 div.open-button:hover,
+div.q-panel button:hover,
 div.q-panel div.q-header button:hover,
 div.q-panel div.q-footer div.q-login:not(.admin):hover {
     opacity: 1.0;
