@@ -84,22 +84,6 @@ function buildInterface() {
   let username = document.createElement("input");
   let password = document.createElement("input");
 
-  let trash = document.createElement("i");
-  trash.classList.add("fas", "fa-trash-alt");
-  trash.setAttribute("title", "Delete question");
-
-  let edit = document.createElement("i");
-  edit.classList.add("fas", "fa-edit");
-  edit.setAttribute("title", "Edit question");
-
-  let thumb = document.createElement("i");
-  thumb.classList.add("far", "fa-thumbs-up");
-  thumb.setAttribute("title", "Up-vote question");
-
-  let thumbS = document.createElement("i");
-  thumbS.classList.add("fas", "fa-thumbs-up");
-  thumbS.setAttribute("title", "Down-vote question");
-
   let cross = document.createElement("i");
   cross.classList.add("fas", "fa-times-circle");
   cross.setAttribute("title", "Close panel");
@@ -160,7 +144,7 @@ function buildInterface() {
   text.setAttribute("wrap", "hard");
   text.setAttribute(
     "placeholder",
-    "Type question, ⇧⏎ (Shift - Return) to enter"
+    "Type question, ⇧⏎ (Shift-Return) to enter"
   );
   // prevent propagating keypress up to Reveal, since otherwise '?'
   // triggers the help dialog.
@@ -234,6 +218,7 @@ function buildInterface() {
   let updateMenuItems = (list) => {
     document.querySelectorAll('ul.slide-menu-items > li.slide-menu-item').forEach( (li) => {
       li.removeAttribute('data-questions');
+      li.removeAttribute('data-answered');
     });
 
     for (let comment of list) {
@@ -251,7 +236,14 @@ function buildInterface() {
 
         // update question counter
         if (li) {
-          li.setAttribute('data-questions', li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) + 1 : 1);
+          let questions = li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) : 0;
+          let answered  = li.hasAttribute('data-answered') ? (li.getAttribute('data-answered')==='true') : true;
+
+          questions = questions + 1;
+          answered  = answered && (comment.answers.length > 0);
+
+          li.setAttribute('data-questions', questions);
+          li.setAttribute('data-answered',  answered);
         }
       }
       else {
@@ -279,33 +271,68 @@ function buildInterface() {
   };
 
   let renderList = list => {
+
+    // have all questions been answered?
+    let allAnswered = true;
+    for (let comment of list) {
+      const isAnswered = (comment.answers && comment.answers.length > 0);
+      if (!isAnswered) {
+        allAnswered = false;
+        break;
+      }
+    }
+
+    // counter badge
     counter.textContent = list.length;
     counter.setAttribute("data-count", list.length);
     badge.textContent = list.length;
     badge.setAttribute("data-count", list.length);
+    if (allAnswered) {
+      counter.classList.add("answered");
+      badge.classList.add("answered");
+    }
+    else {
+      counter.classList.remove("answered");
+      badge.classList.remove("answered");
+    }
 
+    // clear question container
     while (container.firstChild) {
       container.removeChild(container.lastChild);
     }
+
+    // re-fill question container
     for (let comment of list) {
+
+      // create question item
+      let item = document.createElement("div");
+      item.classList.add("item");
+
+      // question content
       let content = document.createElement("div");
       content.classList.add("content");
       content.innerHTML = comment.html;
-
-      let item = document.createElement("div");
-      item.classList.add("item");
       item.appendChild(content);
 
+      // question controls
       let box = document.createElement("div");
       box.classList.add("controls");
       content.insertBefore(box, content.firstChild);
 
+      // Number of upvotes
+      let votes = document.createElement("span");
+      votes.textContent = comment.votes > 0 ? comment.votes : "";
+      votes.classList.add("votes");
+      box.appendChild(votes);
+
       // Upvote button
       let vote = document.createElement("button");
       if (comment.didvote) {
-        vote.appendChild(thumbS.cloneNode(true));
+        vote.className = "fas fa-thumbs-up";
+        vote.title = "Down-vote question";
       } else {
-        vote.appendChild(thumb.cloneNode(true));
+        vote.className = "far fa-thumbs-up";
+        vote.title = "Up-vote question";
       }
       vote.classList.add("vote");
       if (comment.author !== user.value) {
@@ -323,27 +350,13 @@ function buildInterface() {
       } else {
         vote.classList.add("cantvote");
       }
-      // Number of upvotes
-      let votes = document.createElement("span");
-
-      votes.textContent = comment.votes > 0 ? comment.votes : "";
-      votes.classList.add("votes");
-
-      box.appendChild(votes);
       box.appendChild(vote);
 
       if (canDelete(comment)) {
-        // Delete button
-        let del = document.createElement("button");
-        del.appendChild(trash.cloneNode(true));
-        del.addEventListener("click", _ => {
-          engine.api
-            .deleteComment(comment.id, engine.token.admin || user.value)
-            .then(updateCommentsAndMenu);
-        });
         // Edit button
         let mod = document.createElement("button");
-        mod.appendChild(edit.cloneNode(true));
+        mod.className = "fas fa-edit";
+        mod.title = "Edit question";
         mod.addEventListener("click", _ => {
           text.value = comment.markdown;
           text.commentId = comment.id;
@@ -351,10 +364,47 @@ function buildInterface() {
           text.focus();
         });
         box.appendChild(mod);
+
+        // Delete button
+        let del = document.createElement("button");
+        del.className = "fas fa-trash-alt";
+        del.title = "Delete question";
+        del.addEventListener("click", _ => {
+          engine.api
+            .deleteComment(comment.id, engine.token.admin || user.value)
+            .then(updateCommentsAndMenu);
+        });
         box.appendChild(del);
       }
+
+      // Answered button
+      let answeredButton = document.createElement("button");
+      const isAnswered = (comment.answers && comment.answers.length > 0);
+      const canAnswer = canDelete(comment);
+      if (isAnswered) {
+        answeredButton.className = "far fa-check-circle answered";
+        answeredButton.title = canAnswer ? "Mark as not answered" : "Question has been answered";
+        answeredButton.addEventListener('click', _ => {
+          engine.api
+            .deleteAnswer(comment.answers[0].id, engine.token.admin || user.value)
+            .then(updateCommentsAndMenu);
+        });
+      } else {
+        answeredButton.className = "far fa-circle notanswered";
+        answeredButton.title = canAnswer ? "Mark as answered" : "Question has not been answered";
+        answeredButton.addEventListener('click', _ => {
+          engine.api
+            .postAnswer(comment.id, engine.token.admin || user.value)
+            .then(updateCommentsAndMenu);
+        });
+      }
+      answeredButton.disabled = !canAnswer;
+      box.appendChild(answeredButton);
+
+      // add question to container
       container.appendChild(item);
     }
+
     container.scrollTop = 0;
   };
 

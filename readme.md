@@ -173,11 +173,6 @@ a HTML document, or a PDF document, depending on the file name.
     source code for a slide deck that explains most of the available features
     for creating slide decks.
 
--   `decker tutorial`
-
-    Like `example` but copies extended example/tutorial slide decks to the
-    current directory.
-
 -   `decker clean`
 
     Recursively removes all generated files from the current directory (i.e. the

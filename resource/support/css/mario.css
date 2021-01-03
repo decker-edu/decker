@@ -328,6 +328,8 @@ body {
     width: auto;
     margin: 10px;
     text-align: center;
+    overflow-y: auto;
+    max-height: 500px;
 }
 
 /* inline code */
@@ -354,9 +356,29 @@ body {
     box-sizing: border-box;
 }
 
+/* MacOS only shows scrollbars when they are used, which is not a 
+   good idea for code blocks. The following settings show the scrollbar.
+   Only works on WebKit browswers (Chrome, Safari), not on Firefox. */
 .reveal pre code.small {
     font-size: 0.4em;
 }
+.reveal pre::-webkit-scrollbar {
+  width:9px;
+}
+.reveal pre::-webkit-scrollbar-track {
+  -webkit-border-radius:5px;
+  border-radius:5px;
+  background:rgba(0,0,0,0.1);
+}
+.reveal pre::-webkit-scrollbar-thumb {
+  -webkit-border-radius:5px;
+  border-radius:5px;
+  background:rgba(0,0,0,0.2);
+}
+.reveal pre::-webkit-scrollbar-thumb:hover {
+  background:rgba(0,0,0,0.4);
+}
+
 
 
 
@@ -499,6 +521,12 @@ body {
   font-style: italic;
   font-size: 0.6em;
   text-align: center;
+}
+
+/* set encapsulating span to inline-block,
+   otherwise SVGs cannot be scaled */
+span.decker.svg.embed {
+  display: inline-block;
 }
 
 
@@ -920,6 +948,45 @@ body {
 
 .reveal .slide-menu-button a {
     color: inherit;
+}
+
+
+/*********************************************
+ * MARIO: style Henrik's question panel
+ *********************************************/
+
+div.open-button {
+    position:   fixed;
+    left:       auto;
+    right:      calc(var(--whiteboard-icon-size) * 0.25);
+    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:     auto;
+    margin:     calc(var(--whiteboard-icon-size) * 0.5);
+    padding:    0.2em;
+    z-index:    40;
+    background: none;
+    font-size:  var(--whiteboard-icon-size);
+    color:      var(--whiteboard-inactive-color);
+}
+
+div.open-button.i {
+  opacity: 0.5;
+}
+
+div.open-button:hover,
+div.q-panel button:hover,
+div.q-panel div.q-header button:hover,
+div.q-panel div.q-footer div.q-login:not(.admin):hover {
+    opacity: 1.0;
+    color: var(--whiteboard-active-color);
+}
+
+div.open-badge {
+    font-size: 0.5em;
+}
+
+div.q-panel {
+  background-color: rgba(100, 100, 100, 0.2);
 }
 
 

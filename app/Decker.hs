@@ -46,7 +46,6 @@ main = do
     then run
     else case head args of
       "example" -> writeExampleProject startDir
-      "tutorial" -> writeTutorialProject startDir
       "clean" -> runClean
       _ -> run
 
@@ -121,7 +120,6 @@ run = do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches
     --
     want ["decks"]
-    --
     phony "version" $ do
       putNormal $
         "decker version "
