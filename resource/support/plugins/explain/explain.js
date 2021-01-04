@@ -79,6 +79,19 @@ let ExplainPlugin = (function(){
   }
 
 
+  function printTimeStamps() {
+    for (let i = 0; i < times.length; i++) {
+      let t = times[i];
+      let h = Math.floor(t / 60 / 60);
+      let m = Math.floor(t / 60) - (h * 60);
+      let s = t % 60;
+      let formatted = h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
+      console.log("slide " + (i+1) + ": time " + formatted + " = " + t + "s");
+    } 
+    console.log(times);
+  }
+
+
 	return {
 		init: function() { 
       // need video and times
@@ -144,11 +157,7 @@ let ExplainPlugin = (function(){
           }
           else if (evt.key == 't') {
             times.push(Math.floor(video.currentTime));
-            console.log(times);
-          }
-          else if (evt.key == 'T') {
-            times = [ 0 ];
-            console.log(times);
+            printTimeStamps();
           }
         });
         video.addEventListener('error', (evt) => {
