@@ -4,9 +4,23 @@
 let ExplainPlugin = (function(){
 
   // get config
-  const config = Reveal.getConfig().explain;
-  const vurl   = config ? config.video : undefined;
-  let times    = config ? JSON.parse(config.times) : [0];
+  let config = Reveal.getConfig().explain;
+  let vurl, times;
+  if (config) {
+    if (config.video) {
+      vurl = config.video;
+      if (vurl.endsWith("/")) {
+        let filename = location.pathname;
+        filename = filename.substring(0, filename.lastIndexOf("."));
+        filename = filename + ".mp4";
+        vurl += filename;
+      }
+    }
+    times = config.times ? JSON.parse(config.times) : [0];
+  }
+  // console.log(vurl);
+  // console.log(times);
+
 
   // GUI elements
   let playButton, stopButton, nextButton, prevButton;
@@ -69,8 +83,6 @@ let ExplainPlugin = (function(){
 		init: function() { 
       // need video and times
       if (vurl && times) {
-        // console.log(vurl);
-        // console.log(times);
 
         playButton = document.createElement("button");
         playButton.id = "dvo-play";
@@ -138,7 +150,10 @@ let ExplainPlugin = (function(){
             times = [ 0 ];
             console.log(times);
           }
-
+        });
+        video.addEventListener('error', (evt) => {
+          console.error("ExplainPlugin: Could not open video \""+vurl+"\"");
+          playButton.style.visibility = 'hidden';
         });
 
         panel.appendChild(controls);
