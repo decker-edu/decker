@@ -10,7 +10,8 @@ let ExplainPlugin = (function(){
     if (config.video) {
       vurl = config.video;
       if (vurl.endsWith("/")) {
-        let filename = location.pathname;
+        const pathname = window.location.pathname;
+        let filename = pathname.substring(pathname.lastIndexOf('/') + 1);
         filename = filename.substring(0, filename.lastIndexOf("."));
         filename = filename + ".mp4";
         vurl += filename;
