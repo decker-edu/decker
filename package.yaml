@@ -99,6 +99,7 @@ dependencies:
   - wreq
   - yaml
   - zip
+  - io-streams
 
 ghc-options:
   - -Wunused-top-binds

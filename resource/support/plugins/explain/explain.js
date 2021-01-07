@@ -1,21 +1,7 @@
 "use strict";
 
 
-let ExplainPlugin = (function(){
-
-  // get config
-  let config = Reveal.getConfig().explain;
-  let vurl, times;
-  if (config) {
-    if (config.video) {
-      vurl = config.video;
-      if (vurl.endsWith("/")) {
-        vurl += videoFilename();
-      }
-    }
-    times = config.times ? JSON.parse(config.times) : [0];
-  }
-
+let ExplainPlugin = (function () {
 
   // GUI elements
   let recordButton, playButton, stopButton, nextButton, prevButton;
@@ -23,13 +9,27 @@ let ExplainPlugin = (function(){
 
   // recording stuff
   let blobs;
-  let blob;
   let rec;
   let stream;
   let voiceStream;
   let desktopStream;
   let recording = false;
 
+  // playback stuff
+  let explainVideoUrl, explainTimes;
+
+  function deckUrlBase() {
+    let path = location.pathname;
+    return path.substring(0, path.lastIndexOf("-"));
+  }
+
+  function deckVideoUrl() {
+    return deckUrlBase() + "-recording.mp4";
+  }
+
+  function deckTimesUrl() {
+    return deckUrlBase() + "-times.json";
+  }
 
   function videoFilenameBase() {
     let filename = location.pathname;
@@ -44,21 +44,21 @@ let ExplainPlugin = (function(){
   function currentSlide() {
     let time = video.currentTime;
     let slide = 0;
-    while (slide < times.length && time > times[slide])
+    while (slide < explainTimes.length && time > explainTimes[slide])
       slide += 1;
-    return slide-1;
+    return slide - 1;
   }
 
 
   function next() {
     let slide = currentSlide() + 1;
-    if (times[slide]) video.currentTime = times[slide];
+    if (explainTimes[slide]) video.currentTime = explainTimes[slide];
   }
 
 
   function prev() {
     let slide = currentSlide() - 1;
-    if (times[slide]) video.currentTime = times[slide];
+    if (explainTimes[slide]) video.currentTime = explainTimes[slide];
   }
 
 
@@ -81,8 +81,8 @@ let ExplainPlugin = (function(){
     let time = video.currentTime;
     let slide = Reveal.getState().indexh;
     if (currentSlide(time) != slide) {
-      if (times[slide])
-        video.currentTime = times[slide];
+      if (explainTimes[slide])
+        video.currentTime = explainTimes[slide];
       else
         video.currentTime = 0;
     }
@@ -104,22 +104,52 @@ let ExplainPlugin = (function(){
     }
   }
 
+  class Timing {
+    constructor() {
+      this.times = {}
+    }
+
+    start(index, slide) {
+      this.startTime = Date.now();
+      this.record(index, slide);
+    }
+
+    record(index, slide) {
+      let time = String((Date.now() - this.startTime) / 1000);
+      if (!slide.firstShown) {
+        console.log("[] " + time + " " + index + ", " + slide.id);
+        slide.firstShown = time;
+        this.times[time] = {
+          slideIndex: index,
+          slideId: slide.id
+        };
+      } else {
+        console.log("[] ignored " + index + ", " + slide.id);
+      }
+    }
+
+    finish() {
+      console.log(this.times);
+      return new Blob([JSON.stringify(this.times, null, 4)], {type: "application/json"});
+    }
+  }
+
 
   async function setupRecording() {
 
     // get display stream
     console.log('get display stream');
-    desktopStream = await navigator.mediaDevices.getDisplayMedia({ 
+    desktopStream = await navigator.mediaDevices.getDisplayMedia({
       video: {
-          frameRate: 30,
-          width: 1280,
-          height: 720,
-          cursor: 'always',
-          resizeMode: 'crop-and-scale'
-      }, 
+        frameRate: 30,
+        width: 1280,
+        height: 720,
+        cursor: 'always',
+        resizeMode: 'crop-and-scale'
+      },
       audio: true
     });
-   
+
     // get microphone stream
     console.log('get voice stream');
     voiceStream = await navigator.mediaDevices.getUserMedia({
@@ -129,35 +159,58 @@ let ExplainPlugin = (function(){
         noiseSuppression: true
       }
     });
-  
+
     // merge tracks into recording stream
     const tracks = [
-      ...desktopStream.getVideoTracks(), 
+      ...desktopStream.getVideoTracks(),
       ...mergeAudioStreams(desktopStream, voiceStream)
     ];
     stream = new MediaStream(tracks);
 
     // clear blobs array
     blobs = [];
-  
+
     // setup recorder
     rec = new MediaRecorder(stream, {mimeType: 'video/webm; codecs=h264"'});
+
     rec.ondataavailable = (e) => blobs.push(e.data);
-    rec.onstop = async () => {
-      blob = new Blob(blobs, {type: 'video/webm'});
-      let url = window.URL.createObjectURL(blob);
-      let download = document.createElement('a');
-      document.body.appendChild(download);
-      download.href = url;
-      download.download = videoFilenameBase() + '.webm';
-      download.click();
-      document.body.removeChild(download);
+
+    rec.onstart = () => {
+      console.log("[] recorder started")
+      rec.timing = new Timing();
+      rec.timing.start(0, Reveal.getSlides()[0]);
+      Reveal.slide(0);
+      Reveal.addEventListener('slidechanged',
+        e => rec.timing.record(e.indexh, e.currentSlide));
+    };
+
+    rec.onstop = () => {
+      console.log("[] recorder stoped")
+      let vname = videoFilenameBase() + '-recording.webm';
+      let vblob = new Blob(blobs, {type: 'video/webm'});
+      download(vblob, vname);
+
+      let tname = videoFilenameBase() + '-times.json';
+      let tblob = rec.timing.finish();
+      download(tblob, tname);
+
+      rec.timing = null;
     };
 
     // show record button
     recordButton.style.display = 'block';
   }
 
+  function download(blob, name) {
+    let url = URL.createObjectURL(blob);
+    let anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = name;
+
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  }
 
   function startRecording() {
     recordButton.title = "Stop video recording";
@@ -192,7 +245,7 @@ let ExplainPlugin = (function(){
       hasDesktop = true;
       console.log("recording desktop audio");
     }
-    
+
     if (voiceStream && voiceStream.getAudioTracks().length > 0) {
       const source2 = context.createMediaStreamSource(voiceStream);
       const voiceGain = context.createGain();
@@ -201,31 +254,51 @@ let ExplainPlugin = (function(){
       hasVoice = true;
       console.log("recording mic audio");
     }
-     
+
     return (hasDesktop || hasVoice) ? destination.stream.getAudioTracks() : [];
   };
 
 
 
   function printTimeStamps() {
-    for (let i = 0; i < times.length; i++) {
-      let t = times[i];
+    for (let i = 0; i < explainTimes.length; i++) {
+      let t = explainTimes[i];
       let h = Math.floor(t / 60 / 60);
       let m = Math.floor(t / 60) - (h * 60);
       let s = t % 60;
       let formatted = h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
-      console.log("slide " + (i+1) + ": time " + formatted + " = " + t + "s");
-    } 
-    console.log(times);
+      console.log("slide " + (i + 1) + ": time " + formatted + " = " + t + "s");
+    }
+    console.log(explainTimes);
   }
 
+  async function resourceExists(url) {
+    return fetch(url, {method: "HEAD"})
+      .then(r => {
+        // console.log("[] r.ok: " + r.ok + ", " + url);
+        return r.ok;
+      })
+      .catch(_ => {
+        //  console.log("[] does not exist: " + url);
+        return false;
+      });
+  }
+
+  async function fetchResourceJSON(url) {
+    return fetch(url)
+      .then(r => r.json())
+      .catch(_ => {
+        console.log("[] cannot fetch: " + url);
+        return null;
+      });
+  }
 
   // setup key binding
-  Reveal.addKeyBinding( { keyCode: 82, key: 'R', description: 'Setup Recording' }, setupRecording );
+  Reveal.addKeyBinding({keyCode: 82, key: 'R', description: 'Setup Recording'}, setupRecording);
 
 
-	return {
-		init: function() { 
+  return {
+    init: async function () {
 
       recordButton = document.createElement("button");
       recordButton.id = "dvo-record";
@@ -296,20 +369,41 @@ let ExplainPlugin = (function(){
           stopVideo();
         }
         else if (evt.key == 't') {
-          times.push(Math.floor(video.currentTime));
+          explainTimes.push(Math.floor(video.currentTime));
           printTimeStamps();
         }
       });
-      video.addEventListener('error', (evt) => {
-        console.error("ExplainPlugin: Could not open video \"" + vurl + "\"");
+
+      // get config
+      let config = Reveal.getConfig().explain;
+      if (config) {
+        if (config.video) {
+          explainVideoUrl = config.video;
+          if (explainVideoUrl.endsWith("/")) {
+            explainVideoUrl += videoFilename();
+          }
+        }
+        explainTimes = config.times ? JSON.parse(config.times) : [0];
+        console.log("[] explanation source configured");
+      } else if (await resourceExists(deckVideoUrl()) && await resourceExists(deckTimesUrl())) {
+        explainVideoUrl = deckVideoUrl();
+        let deckTimes = await fetchResourceJSON(deckTimesUrl());
+        explainTimes = Object.keys(deckTimes);
+        console.log("[] explanation source implicit");
+      } else {
+        console.log("[] no explanation source");
+      }
+
+      video.addEventListener('error', _ => {
+        console.error("ExplainPlugin: Could not open video \"" + explainVideoUrl + "\"");
         playButton.style.visibility = 'hidden';
       });
       panel.appendChild(video);
 
 
       // if we have a video, use it
-      if (vurl && times) {
-        video.setAttribute("src", vurl);
+      if (explainVideoUrl && explainTimes) {
+        video.setAttribute("src", explainVideoUrl);
         recordButton.style.display = 'none';
       }
       // otherwise let's record one
@@ -321,4 +415,4 @@ let ExplainPlugin = (function(){
 
 })();
 
-Reveal.registerPlugin( 'explain', ExplainPlugin );
+Reveal.registerPlugin('explain', ExplainPlugin);
