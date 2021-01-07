@@ -3,27 +3,21 @@
 
 module Decker where
 
--- TODO Is this still used?
---import Text.Decker.Server.Dachdecker
 import Control.Concurrent
 import Control.Lens ((^.))
 import Control.Monad.Extra
-
 import Data.IORef ()
 import Data.List
 import Data.String ()
 import qualified Data.Text as Text
 import Data.Version
-
 import Development.Shake
-import System.FilePath.Posix
 import GHC.IO.Encoding
 import NeatInterpolation
-
 import qualified System.Directory as Dir
 import System.Environment.Blank
+import System.FilePath.Posix
 import System.IO
-
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
@@ -49,9 +43,9 @@ main = do
   if null args
     then run
     else case head args of
-           "example" -> writeExampleProject startDir
-           "clean" -> runClean
-           _ -> run
+      "example" -> writeExampleProject startDir
+      "clean" -> runClean
+      _ -> run
 
 type ParamCache a = FilePath -> Action a
 
@@ -65,9 +59,10 @@ prepCaches = do
   getTargets <- ($ deckerTargetsFile) <$> newCache readTargetsFile
   getTemplate <-
     newCache
-      (\path -> do
-         meta <- getGlobalMeta
-         readTemplate meta path)
+      ( \path -> do
+          meta <- getGlobalMeta
+          readTemplate meta path
+      )
   deckerTargetsFile %> \targetFile -> do
     alwaysRerun
     meta <- getGlobalMeta
@@ -118,12 +113,12 @@ run = do
           # Linux: 'chrome' has to be on $$PATH.
           # 
         |]
-       --
+  --
   runDecker $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches
-              --
+    --
     want ["decks"]
-              --
+    --
 
     phony "tutorial" $ do
       putNormal "# To find information on how to use decker please check the documentation in the wiki: https://go.uniwue.de/decker-wiki"
@@ -131,72 +126,74 @@ run = do
     --
     phony "help" $
       putNormal "# To find information on how to use decker please check the documentation in the wiki: https://go.uniwue.de/decker-wiki"
-      --
+    --
     phony "version" $ do
       putNormal $
-        "decker version " ++
-        deckerVersion ++
-        " (branch: " ++
-        deckerGitBranch ++
-        ", commit: " ++
-        deckerGitCommitId ++
-        ", tag: " ++
-        deckerGitVersionTag ++ ", build date: " ++ deckerBuildDate ++ ")"
+        "decker version "
+          ++ deckerVersion
+          ++ " (branch: "
+          ++ deckerGitBranch
+          ++ ", commit: "
+          ++ deckerGitCommitId
+          ++ ", tag: "
+          ++ deckerGitVersionTag
+          ++ ", build date: "
+          ++ deckerBuildDate
+          ++ ")"
       putNormal $ "pandoc version " ++ Text.unpack pandocVersion
       putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
-              --
+    --
     phony "decks" $ do
       need ["support"]
       getTargets >>= needSel decks
-              --
+    --
     phony "html" $ do
       need ["support"]
       getTargets >>= needSels [decks, pages, handouts]
-              --
+    --
     phony "pdf" $ do
       putNormal pdfMsg
       need ["support"]
       getTargets >>= needSel decksPdf
-              --
+    --
     phony "pdf-decks" $ do
       putNormal pdfMsg
       need ["support"]
       getTargets >>= needSel decksPdf
-              --
+    --
     phony "watch" $ do
       watchChangesAndRepeat
       need ["html"]
-              --
+    --
     phony "open" $ do
       need ["html"]
       openBrowser indexFile
-              --
+    --
     phony "server" $ do
       need ["watch", "support"]
       runHttpServer serverPort Nothing
-              --
+    --
     phony "presentation" $ do
       need ["support"]
       runHttpServer serverPort Nothing
       liftIO waitForYes
-              --
+    --
     phony "fast" $ do
       watchChangesAndRepeat
       need ["support"]
       runHttpServer serverPort Nothing
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
-              --
+    --
     priority 3 $ do
       publicDir <//> "*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
-        let annotDst = replaceSuffix "-deck.html" "-annot.json" out
-        annotSrc <- calcSource' annotDst
-        exists <- liftIO $ Dir.doesFileExist annotSrc
-        when exists $ need [annotDst]
+        needIfExists "-deck.html" "-annot.json" out
+        needIfExists "-deck.html" "-times.json" out
+        needIfExists "-deck.html" "-recording.mp4" out
         meta <- getGlobalMeta
         markdownToHtmlDeck meta getTemplate src out
-                     --
+      --
       publicDir <//> "*-deck.pdf" %> \out -> do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         let url = serverUrl </> makeRelative publicDir src
@@ -207,32 +204,26 @@ run = do
         case result of
           Right _ -> putNormal $ "# chrome finished (for " <> out <> ")"
           Left msg -> error msg
-                     --
+      --
       publicDir <//> "*-handout.html" %> \out -> do
         src <- calcSource "-handout.html" "-deck.md" out
         meta <- getGlobalMeta
         markdownToHtmlHandout meta getTemplate src out
-                     --
+      --
       publicDir <//> "*-handout.pdf" %> \out -> do
         src <- calcSource "-handout.pdf" "-deck.md" out
         meta <- getGlobalMeta
         markdownToPdfHandout meta getTemplate src out
-                     --
+      --
       publicDir <//> "*-page.html" %> \out -> do
         src <- calcSource "-page.html" "-page.md" out
         meta <- getGlobalMeta
         markdownToHtmlPage meta getTemplate src out
-                     --
+      --
       publicDir <//> "*-page.pdf" %> \out -> do
         src <- calcSource "-page.pdf" "-page.md" out
         meta <- getGlobalMeta
         markdownToPdfPage meta getTemplate src out
-                     --
-      publicDir <//> "*-annot.json" %> \out -> do
-        src <- calcSource' out
-        putNormal $ "# copy (for " <> out <> ")"
-        copyFile' src out
-                     --
       indexFile %> \out -> do
         exists <- liftIO $ Dir.doesFileExist indexSource
         let src =
@@ -242,22 +233,22 @@ run = do
         need [src]
         meta <- getGlobalMeta
         markdownToHtmlPage meta getTemplate src out
-                     --
+      --
       generatedIndexSource %> \out -> do
         targets <- getTargets
         meta <- getGlobalMeta
         writeIndexLists meta targets out (takeDirectory indexFile)
-                     --
+      --
       "**/*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
         dot ["-o" ++ out, src]
-                     --
+      --
       "**/*.gnuplot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
         gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src]
-                     --
+      --
       "**/*.tex.svg" %> \out -> do
         let src = dropExtension out
         let pdf = src -<.> ".pdf"
@@ -269,18 +260,15 @@ run = do
     --
     -- Catch all. Just copy project/* to public/*. This nicely handles ALL
     -- resources. Just `need` them where you need them.
-    priority 2 $ publicDir <//> "//" %> \out -> do
-      let src = makeRelative publicDir out
-      copyFile' src out
-              --
+    priority 2 $
+      publicDir <//> "//" %> \out -> do
+        let src = makeRelative publicDir out
+        putNormal $ "# copy (for " <> out <> ")"
+        copyFile' src out
+    --
     phony "static-files" $ do
       targets <- getTargets
       need (targets ^. static)
-              --
-    phony "annotations" $ do
-      targets <- getTargets
-      need (targets ^. annotations)
-    --
     phony "info" $ do
       project <- liftIO $ Dir.canonicalizePath projectDir
       putNormal $ "\nproject directory: " ++ project
@@ -294,14 +282,14 @@ run = do
       putNormal (groom targets)
       putNormal "\ntop level meta data:\n"
       putNormal (groom meta)
-              --
+    --
     phony "support" $ do
-      need [indexFile, "static-files", "annotations"]
+      need [indexFile, "static-files"]
       meta <- getGlobalMeta
       writeSupportFilesToPublic meta
-              --
+    --
     phony "check" checkExternalPrograms
-              --
+    --
     phony "publish" $ do
       need ["support"]
       meta <- getGlobalMeta
@@ -315,8 +303,13 @@ run = do
           let dst = intercalate ":" [host, path]
           ssh [host, "mkdir -p", path]
           rsync [src, dst]
-    -- TODO Is this still needed?
-    --phony "sync" $ uploadQuizzes (_sources <$> targetsA)
+
+needIfExists :: String -> String -> String -> Action ()
+needIfExists suffix also out = do
+  let annotDst = replaceSuffix suffix also out
+  annotSrc <- calcSource' annotDst
+  exists <- liftIO $ Dir.doesFileExist annotSrc
+  when exists $ need [annotDst]
 
 publishWithRsync :: String -> String -> Meta -> Action ()
 publishWithRsync source destination meta = do
