@@ -34,9 +34,10 @@ let ExplainPlugin = (function () {
   function videoFilenameBase() {
     const pathname = window.location.pathname;
     let filename = pathname.substring(pathname.lastIndexOf('/') + 1);
-    filename = filename.substring(0, filename.lastIndexOf("."));
+    filename = filename.substring(0, filename.lastIndexOf("-"));
     return filename;
   }
+
   function videoFilename() {
     return videoFilenameBase() + '.mp4';
   }
@@ -185,15 +186,19 @@ let ExplainPlugin = (function () {
         e => rec.timing.record(e.indexh, e.currentSlide));
     };
 
-    rec.onstop = () => {
-      console.log("[] recorder stoped")
+    rec.onstop = async () => {
+      console.log("[] recorder stopped")
       let vname = videoFilenameBase() + '-recording.webm';
       let vblob = new Blob(blobs, {type: 'video/webm'});
-      download(vblob, vname);
+
+      if (!(await uploadBlob(deckUrlBase() + "-recording.webm", vblob)))
+        download(vblob, vname);
 
       let tname = videoFilenameBase() + '-times.json';
       let tblob = rec.timing.finish();
-      download(tblob, tname);
+
+      if (!(await uploadBlob(deckTimesUrl(), tblob)))
+        download(tblob, tname);
 
       rec.timing = null;
     };
@@ -276,22 +281,35 @@ let ExplainPlugin = (function () {
   async function resourceExists(url) {
     return fetch(url, {method: "HEAD"})
       .then(r => {
-        // console.log("[] r.ok: " + r.ok + ", " + url);
         return r.ok;
       })
       .catch(_ => {
-        //  console.log("[] does not exist: " + url);
         return false;
       });
   }
 
   async function fetchResourceJSON(url) {
     return fetch(url)
-      .then(r => r.json())
+      .then(r => {
+        console.log("[] cannot fetch: " + url + ", " + r.statusText);
+        return r.json();
+      })
       .catch(_ => {
-        console.log("[] cannot fetch: " + url);
+        console.log("[] cannot fetch: " + url + ", " + e);
         return null;
       });
+  }
+
+  async function uploadBlob(url, blob) {
+    return fetch(url, {method: "PUT", body: blob})
+      .then(r => {
+        console.log("[] cannot upload " + blob.size + " bytes to: " + url + ", " + r.statusText);
+        return r.ok;
+      })
+      .catch(e => {
+        console.log("[] cannot upload " + blob.size + " bytes to: " + url + ", " + e);
+        return false;
+      })
   }
 
   // setup key binding

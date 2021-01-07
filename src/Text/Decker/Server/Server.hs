@@ -22,10 +22,12 @@ import Network.WebSockets
 import Network.WebSockets.Snap
 import Snap.Core
 import Snap.Http.Server
-import Snap.Internal.Core (rspBody, ResponseBody (Stream))
+import Snap.Internal.Core (ResponseBody (Stream), rspBody)
 import Snap.Util.FileServe
 import System.Directory
 import System.FilePath.Posix
+import System.IO.Streams (connect)
+import System.IO.Streams.File (withFileAsOutput)
 import System.Random
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
@@ -92,12 +94,9 @@ runHttpServer state port = do
   let routes =
         route
           [ ("/reload", runWebSocketsSnap $ reloader state),
-            -- , ("/dachdecker", method POST $ serveDachdecker)
-            ( "/reload.html",
-              serveFile $ "test" </> "reload.html"
-            ),
+            ("/reload.html", serveFile $ "test" </> "reload.html"),
             (fromString supportPath, serveDirectoryNoCaching state supportRoot),
-            ("/", method PUT $ saveAnnotation),
+            ("/", method PUT $ uploadResource ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"]),
             ("/", method GET $ serveDirectoryNoCaching state publicDir),
             ("/", method HEAD $ headDirectory publicDir)
           ]
@@ -156,9 +155,15 @@ saveAnnotation = do
         then do
           liftIO $ BSL.writeFile destination body
           writeText $ Text.pack ("annotation stored at: " ++ destination)
-        else
-          modifyResponse $
-            setResponseStatus 500 "Destination directory does not exist"
+        else modifyResponse $ setResponseStatus 500 "Destination directory does not exist"
+    else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
+
+uploadResource :: MonadSnap m => [String] -> m ()
+uploadResource suffixes = do
+  destination <- toString <$> getsRequest rqPathInfo
+  exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
+  if exists && any (`isSuffixOf` destination) suffixes
+    then runRequestBody (withFileAsOutput destination . connect)
     else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
 
 headDirectory :: MonadSnap m => FilePath -> m ()
@@ -176,27 +181,6 @@ serveDirectoryNoCaching state directory = do
   modifyResponse $ addHeader "Expires" "0"
   path <- getsRequest rqPathInfo
   liftIO $ addPage state (toString path)
-
--- TODO is this still used?
-{-
- -serveDachdecker :: Snap ()
- -serveDachdecker = do
- -  dachdeckerUrl <- liftIO getDachdeckerUrl
- -  username <- getPostParam "user"
- -  password <- getPostParam "password"
- -  maybeToken <-
- -    if isJust username && isJust password
- -      then liftIO $
- -           login (toString $ fromJust username) (toString $ fromJust password)
- -      else do
- -        liftIO $ putStrLn "Missing either username or password"
- -        return Nothing
- -  case maybeToken of
- -    Just token ->
- -        ("{\"token\": \"" ++
- -         token ++ "\",\"server\": \"" ++ dachdeckerUrl ++ "\"}")
- -    Nothing -> liftIO $ putStrLn "Error logging into the Dachdecker server"
- -}
 
 -- | Starts a server in a new thread and returns the thread id.
 startHttpServer :: Int -> IO Server
