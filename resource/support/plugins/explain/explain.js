@@ -32,8 +32,9 @@ let ExplainPlugin = (function () {
   }
 
   function videoFilenameBase() {
-    let filename = location.pathname;
-    filename = filename.substring(1, filename.lastIndexOf("."));
+    const pathname = window.location.pathname;
+    let filename = pathname.substring(pathname.lastIndexOf('/') + 1);
+    filename = filename.substring(0, filename.lastIndexOf("."));
     return filename;
   }
   function videoFilename() {
