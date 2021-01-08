@@ -131,7 +131,6 @@ let ExplainPlugin = (function () {
     }
 
     finish() {
-      console.log(this.times);
       return new Blob([JSON.stringify(this.times, null, 4)], {type: "application/json"});
     }
   }
@@ -169,40 +168,6 @@ let ExplainPlugin = (function () {
     ];
     stream = new MediaStream(tracks);
 
-    // clear blobs array
-    blobs = [];
-
-    // setup recorder
-    rec = new MediaRecorder(stream, {mimeType: 'video/webm; codecs=h264"'});
-
-    rec.ondataavailable = (e) => blobs.push(e.data);
-
-    rec.onstart = () => {
-      console.log("[] recorder started")
-      rec.timing = new Timing();
-      rec.timing.start(0, Reveal.getSlides()[0]);
-      Reveal.slide(0);
-      Reveal.addEventListener('slidechanged',
-        e => rec.timing.record(e.indexh, e.currentSlide));
-    };
-
-    rec.onstop = async () => {
-      console.log("[] recorder stopped")
-      let vname = videoFilenameBase() + '-recording.webm';
-      let vblob = new Blob(blobs, {type: 'video/webm'});
-
-      if (!(await uploadBlob(deckUrlBase() + "-recording.webm", vblob)))
-        download(vblob, vname);
-
-      let tname = videoFilenameBase() + '-times.json';
-      let tblob = rec.timing.finish();
-
-      if (!(await uploadBlob(deckTimesUrl(), tblob)))
-        download(tblob, tname);
-
-      rec.timing = null;
-    };
-
     // show record button
     recordButton.style.display = 'block';
   }
@@ -223,6 +188,40 @@ let ExplainPlugin = (function () {
     recordButton.classList.remove("fa-circle");
     recordButton.classList.add("fa-stop");
 
+    // clear blobs array
+    blobs = [];
+
+    // setup recorder
+    rec = new MediaRecorder(stream, {mimeType: 'video/webm; codecs=h264"'});
+
+    rec.ondataavailable = (e) => blobs.push(e.data);
+
+    rec.onstart = () => {
+      console.log("[] recorder started")
+      rec.timing = new Timing();
+      rec.timing.start(0, Reveal.getSlides()[0]);
+      Reveal.slide(0);
+      Reveal.addEventListener('slidechanged',
+        e => rec.timing.record(e.indexh, e.currentSlide));
+    };
+
+    rec.onstop = async () => {
+      console.log("[] recorder stopped")
+      let vblob = new Blob(blobs, {type: 'video/webm'});
+      let tblob = rec.timing.finish();
+
+      if (
+        !await guardedUploadBlob(deckTimesUrl(), tblob) ||
+        !await uploadBlob(deckUrlBase() + "-recording.webm", vblob)
+      ) {
+        download(vblob, videoFilenameBase() + '-recording.webm');
+        download(tblob, videoFilenameBase() + '-times.json');
+      }
+
+      stream = null;
+      rec = null;
+    };
+
     rec.start();
   }
 
@@ -234,7 +233,6 @@ let ExplainPlugin = (function () {
 
     rec.stop();
     stream.getTracks().forEach(s => s.stop())
-    stream = null;
   }
 
 
@@ -291,10 +289,9 @@ let ExplainPlugin = (function () {
   async function fetchResourceJSON(url) {
     return fetch(url)
       .then(r => {
-        console.log("[] cannot fetch: " + url + ", " + r.statusText);
         return r.json();
       })
-      .catch(_ => {
+      .catch(e => {
         console.log("[] cannot fetch: " + url + ", " + e);
         return null;
       });
@@ -303,13 +300,19 @@ let ExplainPlugin = (function () {
   async function uploadBlob(url, blob) {
     return fetch(url, {method: "PUT", body: blob})
       .then(r => {
-        console.log("[] cannot upload " + blob.size + " bytes to: " + url + ", " + r.statusText);
         return r.ok;
       })
       .catch(e => {
         console.log("[] cannot upload " + blob.size + " bytes to: " + url + ", " + e);
         return false;
       })
+  }
+
+  async function guardedUploadBlob(url, blob) {
+    if (await resourceExists(url) && !confirm("Really overwrite existing recording?"))
+      return false;
+    else
+      return uploadBlob(url, blob);
   }
 
   // setup key binding

@@ -185,12 +185,15 @@ run = do
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
     --
-    priority 3 $ do
+    priority 4 $ do
       publicDir <//> "*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
         needIfExists "-deck.html" "-annot.json" out
         needIfExists "-deck.html" "-times.json" out
-        needIfExists "-deck.html" "-recording.mp4" out
+        -- needIfExists "-deck.html" "-recording.mp4" out
+        let recordingWebm = replaceSuffix "-deck.md" "-recording.webm" src
+        let recordingMp4 = replaceSuffix "-deck.html" "-recording.mp4" out
+        whenM (doesFileExist recordingWebm) $ need [recordingMp4]
         meta <- getGlobalMeta
         markdownToHtmlDeck meta getTemplate src out
       --
@@ -224,6 +227,12 @@ run = do
         src <- calcSource "-page.pdf" "-page.md" out
         meta <- getGlobalMeta
         markdownToPdfPage meta getTemplate src out
+      --
+      publicDir <//> "*.mp4" %> \out -> do
+        let src = makeRelative publicDir out
+        putNormal $ "# copy (for " <> out <> ")"
+        copyFile' src out
+      --
       indexFile %> \out -> do
         exists <- liftIO $ Dir.doesFileExist indexSource
         let src =
@@ -239,6 +248,7 @@ run = do
         meta <- getGlobalMeta
         writeIndexLists meta targets out (takeDirectory indexFile)
       --
+    priority 3 $ do
       "**/*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
@@ -248,6 +258,11 @@ run = do
         let src = dropExtension out
         need [src]
         gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src]
+      --
+      "**/*.mp4" %> \out -> do
+        let src = addExtension (dropExtension out) ".webm"
+        need [src]
+        command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
       --
       "**/*.tex.svg" %> \out -> do
         let src = dropExtension out
@@ -308,6 +323,7 @@ needIfExists :: String -> String -> String -> Action ()
 needIfExists suffix also out = do
   let annotDst = replaceSuffix suffix also out
   annotSrc <- calcSource' annotDst
+  doesFileExist annotSrc
   exists <- liftIO $ Dir.doesFileExist annotSrc
   when exists $ need [annotDst]
 
