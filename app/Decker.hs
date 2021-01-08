@@ -228,7 +228,7 @@ run = do
         meta <- getGlobalMeta
         markdownToPdfPage meta getTemplate src out
       --
-      publicDir <//> "*.mp4" %> \out -> do
+      publicDir <//> "*-recording.mp4" %> \out -> do
         let src = makeRelative publicDir out
         putNormal $ "# copy (for " <> out <> ")"
         copyFile' src out
@@ -247,7 +247,7 @@ run = do
         targets <- getTargets
         meta <- getGlobalMeta
         writeIndexLists meta targets out (takeDirectory indexFile)
-      --
+    --
     priority 3 $ do
       "**/*.dot.svg" %> \out -> do
         let src = dropExtension out
@@ -259,10 +259,10 @@ run = do
         need [src]
         gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src]
       --
-      "**/*.mp4" %> \out -> do
-        let src = addExtension (dropExtension out) ".webm"
-        need [src]
-        command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
+      "**/*-recording.mp4" %> \out -> do
+        let src = replaceSuffix "-recording.mp4" "-recording.webm" out
+        whenM (doesFileExist src) $
+          command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
       --
       "**/*.tex.svg" %> \out -> do
         let src = dropExtension out
@@ -284,6 +284,7 @@ run = do
     phony "static-files" $ do
       targets <- getTargets
       need (targets ^. static)
+    --
     phony "info" $ do
       project <- liftIO $ Dir.canonicalizePath projectDir
       putNormal $ "\nproject directory: " ++ project
