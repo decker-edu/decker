@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Text.Decker.Server.Server
   ( startHttpServer,
@@ -15,9 +16,11 @@ import Control.Monad.State
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import Data.ByteString.UTF8
+import Data.FileEmbed
 import Data.List
 import qualified Data.Set as Set
 import qualified Data.Text as Text
+import GHC.IO.Exception
 import Network.WebSockets
 import Network.WebSockets.Snap
 import Snap.Core
@@ -39,9 +42,16 @@ serverConfig port = do
   let errorLog = transientDir </> "server-error.log"
   createDirectoryIfMissing True transientDir
   return
-    ( setPort port $
-        setAccessLog (ConfigFileLog accessLog) $
-          setErrorLog (ConfigFileLog errorLog) defaultConfig ::
+    ( setVerbose True $
+        setBind "localhost" $
+          setPort port $
+            --setSSLBind "localhost" $
+            --setSSLPort (port + 13) $
+            --setSSLCert (transientDir </> "decker-ssl.crt") $
+            --setSSLKey (transientDir </> "decker-ssl.key") $
+            --setSSLChainCert False $
+            setAccessLog (ConfigFileLog accessLog) $
+              setErrorLog (ConfigFileLog errorLog) defaultConfig ::
         Config Snap a
     )
 
@@ -82,9 +92,19 @@ reloadAll state = withMVar state (mapM_ reload . fst)
     reload :: Client -> IO ()
     reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
 
+sslCert = $(embedFile "decker-ssl.crt")
+
+sslKey = $(embedFile "decker-ssl.key")
+
+installSSLCert :: IO ()
+installSSLCert = do
+  BS.writeFile (transientDir </> "decker-ssl.crt") sslCert
+  BS.writeFile (transientDir </> "decker-ssl.key") sslKey
+
 -- Runs the server. Never returns.
 runHttpServer :: MVar ServerState -> Int -> IO ()
 runHttpServer state port = do
+  installSSLCert
   devRun <- isDevelopmentRun
   let supportRoot =
         if devRun
@@ -100,21 +120,16 @@ runHttpServer state port = do
             ("/", method GET $ serveDirectoryNoCaching state publicDir),
             ("/", method HEAD $ headDirectory publicDir)
           ]
-  let tryRun port 0 = fail "decker server: All ports already in use"
-      tryRun port tries =
-        catchAll
-          (simpleHttpServe (setPort port config) routes)
-          ( \_ -> do
-              putStrLn
-                ( "decker server: Port "
-                    ++ show port
-                    ++ "already in use, trying port "
-                    ++ show (port + 1)
-                )
-              tryRun (port + 1) (tries - 1)
-          )
   startUpdater state
-  tryRun port 10
+  catch
+    (simpleHttpServe config routes)
+    ( \(SomeException e) -> do
+        putStrLn $ "HTTP server not started on port " <> show port
+        putStrLn $ "  " <> show e
+    )
+
+exitWith :: t0 -> IO ()
+exitWith = error "not implemented"
 
 tenSeconds = 10 * 10 ^ 6
 
