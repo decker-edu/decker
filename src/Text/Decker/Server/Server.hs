@@ -92,9 +92,9 @@ reloadAll state = withMVar state (mapM_ reload . fst)
     reload :: Client -> IO ()
     reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
 
-sslCert = $(embedFile "decker-ssl.crt")
+sslCert = $(embedFile "tls/decker-ssl.crt")
 
-sslKey = $(embedFile "decker-ssl.key")
+sslKey = $(embedFile "tls/decker-ssl.key")
 
 installSSLCert :: IO ()
 installSSLCert = do
