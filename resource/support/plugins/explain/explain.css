@@ -27,6 +27,16 @@
 }
 
 
+#dvo-record {
+  position: fixed;
+  right:    calc(var(--whiteboard-icon-size) * 1.75 * 2);
+  top:      calc(var(--whiteboard-icon-size) * 0.25);
+  z-index:  40;
+  color:    red;
+  opacity:  1.0;
+  border:   1px solid transparent;
+}
+
 #dvo-controls {
   position:       fixed;
   top:            calc(var(--whiteboard-icon-size) * 0.25);
