@@ -8,6 +8,7 @@ module Text.Decker.Internal.External
     gnuplot,
     pdflatex,
     pdf2svg,
+    ffmpeg,
     checkExternalPrograms,
   )
 where
@@ -20,6 +21,7 @@ import Relude
 import System.Console.ANSI
 import System.Exit
 import System.Process
+import Text.Decker.Internal.Exception
 
 data ExternalProgram = ExternalProgram
   { -- options :: [CmdOption],
@@ -106,6 +108,9 @@ pdflatex = makeProgram "pdflatex"
 
 pdf2svg :: Program
 pdf2svg = makeProgram "pdf2svg"
+
+ffmpeg :: Program
+ffmpeg = makeProgram "ffmpeg"
 
 helpText :: String -> String
 helpText name = name ++ " reported a problem:"
