@@ -6,7 +6,7 @@ module Text.Decker.Filter.Layout
 
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
-import Text.Pandoc
+import Text.Pandoc hiding (Row)
 import Text.Pandoc.Definition ()
 
 import Control.Lens

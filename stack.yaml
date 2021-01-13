@@ -1,10 +1,29 @@
-flags:
-  pandoc-citeproc:
-    embed_data_files: true
-  regex-posix:
-      _regex-posix-clib: true
+# flags:
+#  pandoc-citeproc:
+#    embed_data_files: true
+#  regex-posix:
+#    _regex-posix-clib: true
 packages:
   - "."
 extra-deps:
-   - regex-posix-clib-2.7
-resolver: lts-15.10
+  - pandoc-types-1.22
+  - rfc5051-0.2
+  - haddock-library-1.9.0
+  - skylighting-0.10.2
+  - skylighting-core-0.10.2
+  - hslua-1.1.2
+  - jira-wiki-markup-1.3.2
+  - HsYAML-aeson-0.2.0.0
+  - commonmark-0.1.1.3
+  - commonmark-extensions-0.2.0.4
+  - commonmark-pandoc-0.2.0.1
+  - doctemplates-0.9
+  - citeproc-0.3.0.3
+  - texmath-0.12.1
+  - pandoc-2.11.3.1
+  - lens-4.19.2
+resolver: lts-16.23
+# resolver: lts-15.10
+compiler: ghc-8.10.3
+ghc-options:
+   "$locals": -fhide-source-paths -Wno-missing-home-modules

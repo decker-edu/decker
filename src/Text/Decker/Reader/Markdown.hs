@@ -6,6 +6,7 @@ module Text.Decker.Reader.Markdown
   ( readAndFilterMarkdownFile
   , readDeckerMeta
   , readMetaData
+  , processCites
   ) where
 
 import Control.Exception
@@ -22,7 +23,6 @@ import Relude
 
 import System.Directory as Dir
 
-import Text.CSL.Pandoc
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Filter
@@ -38,6 +38,7 @@ import Text.Decker.Internal.URI
 import Text.Decker.Resource.Template
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
+import Text.Pandoc.Citeproc
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -45,11 +46,17 @@ import Text.Pandoc.Walk
 readAndFilterMarkdownFile :: Disposition -> Meta -> FilePath -> Action Pandoc
 readAndFilterMarkdownFile disp globalMeta path = do
   let docBase = (takeDirectory path)
-  readMarkdownFile globalMeta path >>= mergeDocumentMeta globalMeta >>=
-    (liftIO . processCites') >>=
+  readMarkdownFile globalMeta path >>= 
+    mergeDocumentMeta globalMeta >>=
+    processCites >>=
     calcRelativeResourePathes docBase >>=
     deckerMediaFilter docBase >>=
     processPandoc deckerPipeline docBase disp Copy
+
+processCites pandoc@(Pandoc meta _) = liftIO $ do
+ if isJust $ (lookupMeta "csl" meta :: Maybe String)
+    then handleError $ runPure $ processCitations pandoc
+    else return pandoc
 
 -- | Reads a Markdown file from the local file system. Local resource paths are
 -- converted to absolute paths. Additional meta data is read and merged into
@@ -59,7 +66,8 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   putVerbose $ "# --> readMarkdownFile: " <> path
   let base = takeDirectory path
-  parseMarkdownFile path >>= writeBack globalMeta path >>=
+  parseMarkdownFile path >>= 
+    writeBack globalMeta path >>=
     expandMeta globalMeta base >>=
     adjustResourcePaths globalMeta base >>=
     checkVersion >>=
