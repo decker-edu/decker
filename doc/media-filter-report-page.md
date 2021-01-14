@@ -1,10 +1,9 @@
 
 ---
-title: 'Decker Media Filter - Test Report'
+title: Decker Media Filter - Test Report
 ---
 
-Introduction
-============
+# Introduction
 
 This report is generated during testing and shows the HTML output for a representative selection of image tags. It is used for debugging and is the authoritative reference for CSS authors.
 
@@ -12,8 +11,7 @@ This report is generated during testing and shows the HTML output for a represen
 
 ------------------------------------------------------------------------
 
-Plain image
------------
+## Plain image
 
 An image that is used inline in a paragraph of text.
 
@@ -50,8 +48,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-SVG image
----------
+## SVG image
 
 An SVG image that is embedded into the HTML document.
 
@@ -70,8 +67,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Embedded PDF
-------------
+## Embedded PDF
 
 A PDF document that is embedded through an object tag.
 
@@ -89,8 +85,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with caption
-------------------------
+## Plain image with caption
 
 An image with a caption. The image is surrounded by a figure element.
 
@@ -115,8 +110,7 @@ This is not a caption, but the next paragraph.
 
 ------------------------------------------------------------------------
 
-Plain image with caption
-------------------------
+## Plain image with caption
 
 An image with a caption. The image is surrounded by a figure element.
 
@@ -140,8 +134,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with caption
-------------------------
+## Plain image with caption
 
 An image with a caption containg a citation.
 
@@ -161,11 +154,9 @@ translates to
         Caption
          
         <span class="citation" data-cites="tramberend2003">
-            (see
+            [see
              
-            Tramberend
-             
-            2003)
+            @tramberend2003]
         </span>
         .
     </figcaption>
@@ -174,8 +165,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with URL query
---------------------------
+## Plain image with URL query
 
 Query string and fragment identifier in URLs are preserved.
 
@@ -196,8 +186,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with size attributes.
----------------------------------
+## Plain image with size attributes.
 
  Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
 
@@ -218,8 +207,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with size attributes.
----------------------------------
+## Plain image with size attributes.
 
  Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
 
@@ -240,8 +228,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with size attributes.
----------------------------------
+## Plain image with size attributes.
 
  Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
 
@@ -262,8 +249,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with custom attributes.
------------------------------------
+## Plain image with custom attributes.
 
 Image attributes are handled in complex ways.
 
@@ -284,8 +270,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain audio
------------
+## Plain audio
 
 Images that are audio clips are converted to an audio tag.
 
@@ -308,8 +293,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain video
------------
+## Plain video
 
 Images that are videos are converted to a video tag.
 
@@ -332,8 +316,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain video with Media Fragments URI
-------------------------------------
+## Plain video with Media Fragments URI
 
 A local video with start time.
 
@@ -356,8 +339,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain video with specific attributes
-------------------------------------
+## Plain video with specific attributes
 
 Video tag specific classes are translated to specific attributes.
 
@@ -380,8 +362,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Three images in a row
----------------------
+## Three images in a row
 
 Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout.
 
@@ -413,8 +394,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Four images in a row with caption
----------------------------------
+## Four images in a row with caption
 
 Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout.
 
@@ -447,8 +427,7 @@ Caption: Caption
 
 ------------------------------------------------------------------------
 
-Iframe with caption
--------------------
+## Iframe with caption
 
 A simple iframe with a caption. The URL can be a top level domain because the \`iframe\` class is specified.
 
@@ -471,8 +450,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Iframe with custom attributes and query string
-----------------------------------------------
+## Iframe with custom attributes and query string
 
 A simple iframe with custom attributes and a query string that are both transfered correctly.
 
@@ -495,8 +473,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Mario\'s model viewer
----------------------
+## Mario\'s model viewer
 
 A simple iframe with a special url.
 
@@ -519,8 +496,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Youtube video stream
---------------------
+## Youtube video stream
 
 An image with source URL scheme \`youtube:\` results in an embedded video player.
 
@@ -542,8 +518,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Vimeo it baby
--------------
+## Vimeo it baby
 
 An image with source URL scheme \`vimeo:\` results in an embedded video player.
 
@@ -568,8 +543,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Twitch it baby
---------------
+## Twitch it baby
 
 An image with source URL scheme \`twitch:\` results in an embedded video player.
 
@@ -594,8 +568,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Background image
-----------------
+## Background image
 
 The last image in a level 1 header is promoted to the slide background.
 
@@ -606,13 +579,12 @@ The last image in a level 1 header is promoted to the slide background.
 translates to
 
 ``` {.html}
-<h1 data-background-size="cover" data-background-image="/test/decks/include/06-metal.png" id="background-image" data-background-size="cover" data-background-image="/test/decks/include/06-metal.png">Background Image  </h1>
+<h1 data-background-size="cover" data-background-image="/test/decks/include/06-metal.png" id="background-image">Background Image  </h1>
 ```
 
 ------------------------------------------------------------------------
 
-Background video
-----------------
+## Background video
 
 The last image in a level 1 header is promoted to the slide background.
 
@@ -623,7 +595,7 @@ The last image in a level 1 header is promoted to the slide background.
 translates to
 
 ``` {.html}
-<h1 data-background-video-loop="1" data-background-video-muted="1" data-background-video="test/decks/pacman-perfect-game.mp4" id="background-image" data-background-video-loop="1" data-background-video-muted="1" data-background-video="test/decks/pacman-perfect-game.mp4">Background Image  </h1>
+<h1 data-background-video-loop="1" data-background-video-muted="1" data-background-video="test/decks/pacman-perfect-game.mp4" id="background-image">Background Image  </h1>
 ```
 
 </div>

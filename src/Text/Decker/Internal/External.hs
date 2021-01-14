@@ -21,7 +21,6 @@ import Relude
 import System.Console.ANSI
 import System.Exit
 import System.Process
-import Text.Decker.Internal.Exception
 
 data ExternalProgram = ExternalProgram
   { -- options :: [CmdOption],

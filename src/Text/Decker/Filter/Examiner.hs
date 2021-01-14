@@ -140,13 +140,13 @@ renderQuestion meta base qst =
           ( "",
             ["difficulty"],
             [ ( "title",
-                lookupInDictionary ("exam." <> (show $ qstDifficulty qst)) meta
+                lookupInDictionary ("exam." <> show (qstDifficulty qst)) meta
               )
             ]
           )
           []
       ]
-        <> (rawHtml' $ H.h2 $ toHtml $ qstTitle qst)
+        <> rawHtml' (H.h2 $ toHtml $ qstTitle qst)
         <> [Div ("", ["question"], []) $ parseToBlocks base (qstQuestion qst)]
         <> renderAnswer (qstAnswer qst)
         <> [ rawHtml' $
@@ -154,7 +154,7 @@ renderQuestion meta base qst =
                  H.button ! A.class_ "solve" $ toHtml $ lookupInDictionary "exam.solve-button" meta
                  H.button ! A.class_ "again" $ toHtml $ lookupInDictionary "exam.again-button" meta
                  H.div ! A.class_ "score" $ do
-                   H.span $ toHtml $ (lookupInDictionary "exam.points" meta)
+                   H.span $ toHtml (lookupInDictionary "exam.points" meta)
                    H.span ! A.class_ "display" $ ""
            ]
     )

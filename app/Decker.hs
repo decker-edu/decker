@@ -261,8 +261,9 @@ run = do
       --
       "**/*-recording.mp4" %> \out -> do
         let src = replaceSuffix "-recording.mp4" "-recording.webm" out
-        whenM (doesFileExist src) $
-          command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
+        need [src]
+        -- whenM (doesFileExist src) $
+        command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
       --
       "**/*.tex.svg" %> \out -> do
         let src = dropExtension out
@@ -285,6 +286,10 @@ run = do
       targets <- getTargets
       need (targets ^. static)
     --
+    phony "uploads" $ do
+      targets <- getTargets
+      need (targets ^. uploads)
+    --
     phony "info" $ do
       project <- liftIO $ Dir.canonicalizePath projectDir
       putNormal $ "\nproject directory: " ++ project
@@ -300,7 +305,7 @@ run = do
       putNormal (groom meta)
     --
     phony "support" $ do
-      need [indexFile, "static-files"]
+      need [indexFile, "static-files", "uploads"]
       meta <- getGlobalMeta
       writeSupportFilesToPublic meta
     --

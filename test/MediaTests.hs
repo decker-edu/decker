@@ -10,6 +10,7 @@ module MediaTests
 import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Meta
+import Text.Decker.Reader.Markdown
 
 import Data.Maybe
 import qualified Data.Text.IO as Text
@@ -18,7 +19,6 @@ import Relude
 import Test.Hspec as Hspec
 import Text.Blaze.Html (toHtml)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
-import Text.CSL.Pandoc
 import Text.Pandoc
 import Text.Pandoc.Highlighting
 import Text.Pandoc.Walk
@@ -26,7 +26,7 @@ import Text.Pandoc.Walk
 filterMeta = do
   return $
     setMetaValue "bibliography" ("test/decks/bibliography.bib" :: Text) $
-    setMetaValue "csl" ("resource/example/chicago-author-date.csl" :: Text) $
+    setMetaValue "csl" ("test/decks/acm-sig-proceedings.csl" :: Text) $
     setMetaValue "suppress-bibliography" True $
     setMetaValue "decker.base-dir" ("" :: Text) $ nullMeta
 
@@ -159,9 +159,10 @@ compileSnippet markdown = do
   fMeta <- filterMeta
   (Pandoc _ blocks) <-
     handleError (runPure (readMarkdown readerOptions markdown))
-  cited <-
-    processCites'
-      (Pandoc (setMetaValue "decker.filter.pretty" True fMeta) blocks)
+  let cited = Pandoc (setMetaValue "decker.filter.pretty" True fMeta) blocks 
+  -- cited <-
+  --   processCites
+  --    (Pandoc (setMetaValue "decker.filter.pretty" True fMeta) blocks)
   filtered <- mediaFilter writerOptions cited
   handleError $
     runPure $ writeHtml5String writerOptions $ walk dropPara filtered
