@@ -6,6 +6,7 @@ module Text.Decker.Reader.Markdown
   ( readAndFilterMarkdownFile,
     readDeckerMeta,
     readMetaData,
+    processCites,
   )
 where
 
@@ -18,7 +19,6 @@ import Development.Shake hiding (Resource)
 import Relude
 import System.Directory as Dir
 import System.FilePath.Posix
-import Text.CSL.Pandoc
 import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Examiner
 import Text.Decker.Filter.Filter
@@ -36,18 +36,30 @@ import Text.Decker.Internal.URI
 import Text.Decker.Resource.Template
 import Text.Pandoc hiding (lookupMeta)
 
+-- TODO find the CSL file somewhere
+-- import Text.Pandoc.Walk
+-- import Text.Pandoc.Citeproc
+-- import Text.Decker.Filter.Attrib
+
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
 -- the project root directory. Throws an exception if something goes wrong
 readAndFilterMarkdownFile :: Disposition -> Meta -> FilePath -> Action Pandoc
 readAndFilterMarkdownFile disp globalMeta path = do
   let docBase = (takeDirectory path)
-  readMarkdownFile globalMeta path >>= mergeDocumentMeta globalMeta
-    >>= (liftIO . processCites')
+  readMarkdownFile globalMeta path
+    >>= mergeDocumentMeta globalMeta
+    >>= processCites
     >>= calcRelativeResourePathes docBase
     >>= runNewFilter disp examinerFilter docBase
     >>= deckerMediaFilter disp docBase
     >>= processPandoc deckerPipeline docBase disp Copy
+
+-- TODO find the CSL file somewhere
+processCites pandoc@(Pandoc meta _) = liftIO $ do
+  if isJust $ (lookupMeta "csl" meta :: Maybe String)
+    then return pandoc -- handleError $ runPure $ processCitations pandoc
+    else return pandoc
 
 -- | Reads a Markdown file from the local file system. Local resource paths are
 -- converted to absolute paths. Additional meta data is read and merged into
@@ -57,7 +69,8 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   putVerbose $ "# --> readMarkdownFile: " <> path
   let base = takeDirectory path
-  parseMarkdownFile path >>= writeBack globalMeta path
+  parseMarkdownFile path
+    >>= writeBack globalMeta path
     >>= expandMeta globalMeta base
     >>= adjustResourcePathsA globalMeta base
     >>= checkVersion

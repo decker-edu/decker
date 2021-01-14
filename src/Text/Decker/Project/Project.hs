@@ -18,6 +18,7 @@ module Text.Decker.Project.Project
 
     -- * Types
     static,
+    uploads,
     sources,
     decks,
     decksPdf,
@@ -25,8 +26,6 @@ module Text.Decker.Project.Project
     pagesPdf,
     handouts,
     handoutsPdf,
-    annotations,
-    -- , getDachdeckerUrl
     Targets (..),
     Resource (..),
     fromMetaValue,
@@ -67,7 +66,7 @@ data Targets = Targets
     _pagesPdf :: [FilePath],
     _handouts :: [FilePath],
     _handoutsPdf :: [FilePath],
-    _annotations :: [FilePath]
+    _uploads :: [FilePath]
   }
   deriving (Show)
 
@@ -174,11 +173,11 @@ handoutHTMLSuffix = "-handout.html"
 
 handoutPDFSuffix = "-handout.pdf"
 
-annotationSuffix = "-annot.json"
+uploadSuffixes = ["-annot.json", "-times.json", "-recording.mp4"]
 
 indexSuffix = "-deck-index.yaml"
 
-sourceSuffixes = [deckSuffix, pageSuffix, annotationSuffix, indexSuffix]
+sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix] <> uploadSuffixes
 
 alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode"]
 
@@ -204,7 +203,7 @@ scanTargets :: Meta -> IO Targets
 scanTargets meta = do
   srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
   staticSrc <-
-    concat <$> mapM (fastGlobFiles [] []) (map normalise $ staticDirs meta)
+    concat <$> mapM (fastGlobFiles [] [] . normalise) (staticDirs meta)
   return
     Targets
       { _sources = sort $ concatMap snd srcs,
@@ -215,11 +214,21 @@ scanTargets meta = do
         _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs,
         _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs,
         _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs,
-        _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs
+        _uploads = sort $ calcUploads uploadSuffixes srcs
       }
   where
+    calcUploads :: [String] -> [(String, [FilePath])] -> [FilePath]
+    calcUploads suffixes sources =
+      concatMap
+        ( \suffix ->
+            maybe [] (map (publicDir </>)) (List.lookup suffix sources)
+        )
+        suffixes
     calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]
     calcTargets srcSuffix targetSuffix sources =
-      map
-        (replaceSuffix srcSuffix targetSuffix . combine publicDir)
-        (fromMaybe [] $ List.lookup srcSuffix sources)
+      maybe
+        []
+        ( map
+            (replaceSuffix srcSuffix targetSuffix . combine publicDir)
+        )
+        (List.lookup srcSuffix sources)

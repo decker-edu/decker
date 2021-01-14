@@ -74,7 +74,6 @@ dependencies:
   - neat-interpolation
   - network-uri
   - pandoc
-  - pandoc-citeproc
   - pandoc-types
   - process
   - pureMD5
@@ -99,6 +98,8 @@ dependencies:
   - wreq
   - yaml
   - zip
+  - io-streams
+  - file-embed
 
 ghc-options:
   - -Wunused-top-binds

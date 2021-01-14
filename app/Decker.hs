@@ -3,8 +3,6 @@
 
 module Decker where
 
--- TODO Is this still used?
---import Text.Decker.Server.Dachdecker
 import Control.Concurrent
 import Control.Lens ((^.))
 import Control.Monad.Extra
@@ -46,7 +44,6 @@ main = do
     then run
     else case head args of
       "example" -> writeExampleProject startDir
-      "tutorial" -> writeTutorialProject startDir
       "clean" -> runClean
       _ -> run
 
@@ -122,6 +119,14 @@ run = do
     --
     want ["decks"]
     --
+
+    phony "tutorial" $ do
+      putNormal "# To find information on how to use decker please check the documentation in the wiki: https://go.uniwue.de/decker-wiki"
+      putNormal "# To create a new project please use the command \"decker example\""
+    --
+    phony "help" $
+      putNormal "# To find information on how to use decker please check the documentation in the wiki: https://go.uniwue.de/decker-wiki"
+    --
     phony "version" $ do
       putNormal $
         "decker version "
@@ -180,13 +185,15 @@ run = do
       pages <- currentlyServedPages
       need $ map (publicDir </>) pages
     --
-    priority 3 $ do
+    priority 4 $ do
       publicDir <//> "*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
-        let annotDst = replaceSuffix "-deck.html" "-annot.json" out
-        annotSrc <- calcSource' annotDst
-        exists <- liftIO $ Dir.doesFileExist annotSrc
-        when exists $ need [annotDst]
+        needIfExists "-deck.html" "-annot.json" out
+        needIfExists "-deck.html" "-times.json" out
+        -- needIfExists "-deck.html" "-recording.mp4" out
+        let recordingWebm = replaceSuffix "-deck.md" "-recording.webm" src
+        let recordingMp4 = replaceSuffix "-deck.html" "-recording.mp4" out
+        whenM (doesFileExist recordingWebm) $ need [recordingMp4]
         meta <- getGlobalMeta
         markdownToHtmlDeck meta getTemplate src out
       --
@@ -221,8 +228,8 @@ run = do
         meta <- getGlobalMeta
         markdownToPdfPage meta getTemplate src out
       --
-      publicDir <//> "*-annot.json" %> \out -> do
-        src <- calcSource' out
+      publicDir <//> "*-recording.mp4" %> \out -> do
+        let src = makeRelative publicDir out
         putNormal $ "# copy (for " <> out <> ")"
         copyFile' src out
       --
@@ -240,7 +247,8 @@ run = do
         targets <- getTargets
         meta <- getGlobalMeta
         writeIndexLists meta targets out (takeDirectory indexFile)
-      --
+    --
+    priority 3 $ do
       "**/*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
@@ -250,6 +258,12 @@ run = do
         let src = dropExtension out
         need [src]
         gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src]
+      --
+      "**/*-recording.mp4" %> \out -> do
+        let src = replaceSuffix "-recording.mp4" "-recording.webm" out
+        need [src]
+        -- whenM (doesFileExist src) $
+        command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
       --
       "**/*.tex.svg" %> \out -> do
         let src = dropExtension out
@@ -265,21 +279,16 @@ run = do
     priority 2 $
       publicDir <//> "//" %> \out -> do
         let src = makeRelative publicDir out
+        putNormal $ "# copy (for " <> out <> ")"
         copyFile' src out
-    --
-    phony "unused" $ do
-      need ["html"]
-      meta <- getGlobalMeta
-      list <- liftIO $ unusedResources meta
-      liftIO $ mapM_ putStrLn list
     --
     phony "static-files" $ do
       targets <- getTargets
       need (targets ^. static)
     --
-    phony "annotations" $ do
+    phony "uploads" $ do
       targets <- getTargets
-      need (targets ^. annotations)
+      need (targets ^. uploads)
     --
     phony "info" $ do
       project <- liftIO $ Dir.canonicalizePath projectDir
@@ -296,7 +305,7 @@ run = do
       putNormal (groom meta)
     --
     phony "support" $ do
-      need [indexFile, "static-files", "annotations"]
+      need [indexFile, "static-files", "uploads"]
       meta <- getGlobalMeta
       writeSupportFilesToPublic meta
     --
@@ -316,8 +325,13 @@ run = do
           ssh [host, "mkdir -p", path]
           rsync [src, dst]
 
--- TODO Is this still needed?
---phony "sync" $ uploadQuizzes (_sources <$> targetsA)
+needIfExists :: String -> String -> String -> Action ()
+needIfExists suffix also out = do
+  let annotDst = replaceSuffix suffix also out
+  annotSrc <- calcSource' annotDst
+  doesFileExist annotSrc
+  exists <- liftIO $ Dir.doesFileExist annotSrc
+  when exists $ need [annotDst]
 
 publishWithRsync :: String -> String -> Meta -> Action ()
 publishWithRsync source destination meta = do

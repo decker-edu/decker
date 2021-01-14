@@ -8,6 +8,7 @@ module Text.Decker.Internal.External
     gnuplot,
     pdflatex,
     pdf2svg,
+    ffmpeg,
     checkExternalPrograms,
   )
 where
@@ -106,6 +107,9 @@ pdflatex = makeProgram "pdflatex"
 
 pdf2svg :: Program
 pdf2svg = makeProgram "pdf2svg"
+
+ffmpeg :: Program
+ffmpeg = makeProgram "ffmpeg"
 
 helpText :: String -> String
 helpText name = name ++ " reported a problem:"

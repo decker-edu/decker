@@ -7,6 +7,8 @@ showNotes: True
 subtitle: Generate handouts from slide source
 title: Handout Test
 title-prefix: Decker
+quiz:
+  style: plain
 ---
 # Notes
 
@@ -149,49 +151,58 @@ title-prefix: Decker
 
 # Matching Questions
 
-{match} A
+## {.qmi}
+
+A
 : drag to A
 
-{match} Haskell 
+Haskell 
 : ![](include/06-metal.png)
 
-{match} B
+B
 : drag to B
 
-{match} decker
+decker
 : [decker](http://go.uniwue.de/decker)
 
-{match} C
+C
 : $\Leftarrow$ C
 
 # Freetext Questions {layout="columns"}
 
-## {.left} 
-* {?} $2*2=~?$ 
-* {!} 4
+## {.left .qft} 
 
-##  {.question}
+$2*2=~?$ 
 
-* {?} The Answer to the Ultimate Question of Life, the Universe, and Everything is ...?
-* {!} 42
+- 4
+    - Die perfekte Lösung 
 
-## {.right}
 
-* {?} Is this a question? 
-* {!} yes
+##  {.qft}
 
-##
+The Answer to the Ultimate Question of Life, the Universe, and Everything is ...?
 
-* {?} Name the capital of Germany
-* {!} Berlin 
+- 42
+
+## {.right .qft}
+
+Is this a question? 
+
+- yes
+
+## {.qft}
+
+Name the capital of Germany
+
+- Berlin 
 
 # Multiple Choice Questions
 
-## Question: Which file format does decker use? {.question}
+## Question: Which file format does decker use? {.qmc}
 
-* { } .docx
-* { } .csv
-* { } .xml
-* {X} .md
+- [ ] .docx
+- [ ] .csv
+- [ ] .xml
+- [X] .md
 
 

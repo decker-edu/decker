@@ -50,7 +50,7 @@ var RevealPrint = (function(){
 
         if (slideHeight > configHeight)
         {
-            console.error("slide " + slideNumber() + " is " + (slideHeight-configHeight) + "px too high");
+            console.warn("slide " + slideNumber() + " is " + (slideHeight-configHeight) + "px too high");
             slide.style.border = "1px dashed red";
         }
         else
