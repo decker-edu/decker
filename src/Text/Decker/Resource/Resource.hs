@@ -6,7 +6,6 @@
 -- 
 module Text.Decker.Resource.Resource
   ( writeExampleProject
-  , writeTutorialProject
   , urlToFilePathIfLocal
   ) where
 
@@ -23,13 +22,6 @@ writeExampleProject dir = do
   warnVersion
   putStrLn $ "# Extracting example project to " ++ dir ++ "."
   extractResourceEntries "example" dir
-
--- | Write the tutorial project to the current folder
-writeTutorialProject :: FilePath -> IO ()
-writeTutorialProject dir = do
-  warnVersion
-  putStrLn $ "# Extracting tutorial project to " ++ dir ++ "."
-  extractResourceEntries "tutorial" dir
 
 urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
 urlToFilePathIfLocal base uri =

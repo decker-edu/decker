@@ -1,43 +1,40 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Project.Project
-  ( scanTargetsToFile
-  , setProjectDirectory
-  -- , dachdeckerFromMeta
-  , scanTargets
-  , isDevelopmentRun
-  , excludeDirs
-  , staticDirs
-  -- * Types
-  , static
-  , sources
-  , decks
-  , decksPdf
-  , pages
-  , pagesPdf
-  , handouts
-  , handoutsPdf
-  , annotations
-  -- , getDachdeckerUrl
-  , Targets(..)
-  , Resource(..)
-  , fromMetaValue
-  , toMetaValue
-  , readTargetsFile
-  ) where
+  ( scanTargetsToFile,
+    setProjectDirectory,
+    -- , dachdeckerFromMeta
+    scanTargets,
+    isDevelopmentRun,
+    excludeDirs,
+    staticDirs,
 
-import Text.Decker.Internal.Common
+    -- * Types
+    static,
+    uploads,
+    sources,
+    decks,
+    decksPdf,
+    pages,
+    pagesPdf,
+    handouts,
+    handoutsPdf,
+    -- , getDachdeckerUrl
+    Targets (..),
+    Resource (..),
+    fromMetaValue,
+    toMetaValue,
+    readTargetsFile,
+  )
+where
 
 -- import Text.Decker.Internal.Flags
-import Text.Decker.Internal.Helper
-import Text.Decker.Internal.Meta
-import Text.Decker.Project.Glob
 
 import Control.Lens hiding ((.=))
 import Data.Aeson
@@ -52,26 +49,34 @@ import Relude
 import qualified System.Directory as Directory
 import qualified System.FilePath as FP
 import System.FilePath.Posix
+import Text.Decker.Internal.Common
+import Text.Decker.Internal.Helper
+import Text.Decker.Internal.Meta
+import Text.Decker.Project.Glob
 import Text.Pandoc.Builder hiding (lookupMeta)
 
 data Targets = Targets
-  { _sources :: [FilePath]
-  , _static :: [FilePath]
-  , _decks :: [FilePath]
-  , _decksPdf :: [FilePath]
-  , _pages :: [FilePath]
-  , _pagesPdf :: [FilePath]
-  , _handouts :: [FilePath]
-  , _handoutsPdf :: [FilePath]
-  , _annotations :: [FilePath]
-  } deriving (Show)
+  { _sources :: [FilePath],
+    _static :: [FilePath],
+    _decks :: [FilePath],
+    _decksPdf :: [FilePath],
+    _pages :: [FilePath],
+    _pagesPdf :: [FilePath],
+    _handouts :: [FilePath],
+    _handoutsPdf :: [FilePath],
+    _uploads :: [FilePath]
+  }
+  deriving (Show)
 
 makeLenses ''Targets
 
-$(deriveJSON
-    defaultOptions
-      {fieldLabelModifier = drop 1, constructorTagModifier = map toLower}
-    ''Targets)
+$( deriveJSON
+     defaultOptions
+       { fieldLabelModifier = drop 1,
+         constructorTagModifier = map toLower
+       }
+     ''Targets
+ )
 
 readTargetsFile :: FilePath -> Action Targets
 readTargetsFile targetFile = do
@@ -79,10 +84,14 @@ readTargetsFile targetFile = do
   liftIO (Yaml.decodeFileThrow targetFile)
 
 data Resource = Resource
-  { sourceFile :: FilePath -- ^ Absolute Path to source file
-  , publicFile :: FilePath -- ^ Absolute path to file in public folder
-  , publicUrl :: FilePath -- ^ Relative URL to served file from base
-  } deriving (Eq, Show, Generic)
+  { -- | Absolute Path to source file
+    sourceFile :: FilePath,
+    -- | Absolute path to file in public folder
+    publicFile :: FilePath,
+    -- | Relative URL to served file from base
+    publicUrl :: FilePath
+  }
+  deriving (Eq, Show, Generic)
 
 instance ToJSON Resource where
   toJSON (Resource source target url) =
@@ -99,9 +108,9 @@ instance {-# OVERLAPS #-} ToMetaValue a => ToMetaValue [(Text, a)] where
 instance ToMetaValue Resource where
   toMetaValue (Resource source target url) =
     toMetaValue
-      [ ("source" :: Text, source)
-      , ("target" :: Text, target)
-      , ("url" :: Text, url)
+      [ ("source" :: Text, source),
+        ("target" :: Text, target),
+        ("url" :: Text, url)
       ]
 
 instance {-# OVERLAPS #-} FromMetaValue a => FromMetaValue [(Text, a)] where
@@ -119,7 +128,7 @@ instance FromMetaValue Resource where
     return $ Resource source target url
   fromMetaValue _ = Nothing
 
--- | Find the project directory. 
+-- | Find the project directory.
 -- 1. First upwards directory containing `decker.yaml`
 -- 2. First upwards directory containing `.git`
 -- 3. The current working directory
@@ -132,10 +141,12 @@ findProjectRoot = do
     search dir start = do
       hasYaml <- Directory.doesFileExist (dir </> globalMetaFileName)
       hasGit <- Directory.doesDirectoryExist (dir </> ".git")
-      if | hasYaml || hasGit -> return dir
-         | FP.isDrive dir -> return start
-         | otherwise -> search (FP.takeDirectory dir) start
-      -- return dir
+      if
+          | hasYaml || hasGit -> return dir
+          | FP.isDrive dir -> return start
+          | otherwise -> search (FP.takeDirectory dir) start
+
+-- return dir
 
 -- Move CWD to the project directory.
 setProjectDirectory :: IO ()
@@ -160,18 +171,18 @@ handoutHTMLSuffix = "-handout.html"
 
 handoutPDFSuffix = "-handout.pdf"
 
-annotationSuffix = "-annot.json"
+uploadSuffixes = ["-annot.json", "-times.json", "-recording.mp4"]
 
 indexSuffix = "-deck-index.yaml"
 
-sourceSuffixes = [deckSuffix, pageSuffix, annotationSuffix, indexSuffix]
+sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix] <> uploadSuffixes
 
 alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode"]
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
   map normalise $
-  alwaysExclude <> lookupMetaOrElse [] "exclude-directories" meta
+    alwaysExclude <> lookupMetaOrElse [] "exclude-directories" meta
 
 staticDirs = lookupMetaOrElse [] "static-resource-dirs"
 
@@ -184,22 +195,32 @@ scanTargets :: Meta -> IO Targets
 scanTargets meta = do
   srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
   staticSrc <-
-    concat <$> mapM (fastGlobFiles [] []) (map normalise $ staticDirs meta)
+    concat <$> mapM (fastGlobFiles [] [] . normalise) (staticDirs meta)
   return
     Targets
-      { _sources = sort $ concatMap snd srcs
-      , _static = sort $ map (publicDir </>) staticSrc
-      , _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs
-      , _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs
-      , _pages = sort $ calcTargets pageSuffix pageHTMLSuffix srcs
-      , _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs
-      , _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs
-      , _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs
-      , _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs
+      { _sources = sort $ concatMap snd srcs,
+        _static = sort $ map (publicDir </>) staticSrc,
+        _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs,
+        _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs,
+        _pages = sort $ calcTargets pageSuffix pageHTMLSuffix srcs,
+        _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs,
+        _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs,
+        _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs,
+        _uploads = sort $ calcUploads uploadSuffixes srcs
       }
   where
+    calcUploads :: [String] -> [(String, [FilePath])] -> [FilePath]
+    calcUploads suffixes sources =
+      concatMap
+        ( \suffix ->
+            maybe [] (map (publicDir </>)) (List.lookup suffix sources)
+        )
+        suffixes
     calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]
     calcTargets srcSuffix targetSuffix sources =
-      map
-        (replaceSuffix srcSuffix targetSuffix . combine publicDir)
-        (fromMaybe [] $ List.lookup srcSuffix sources)
+      maybe
+        []
+        ( map
+            (replaceSuffix srcSuffix targetSuffix . combine publicDir)
+        )
+        (List.lookup srcSuffix sources)

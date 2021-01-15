@@ -292,19 +292,21 @@ $border-radius: 6px;
             margin-top: 0.5em;
             padding: 0.5em;
             font-size: var(--font-size-small);
-            display: none;
-            border-radius: $border-radius;
+            border-radius: 6px;
+            visibility: hidden;
+            display: block;
+            min-height: 1.3em;
             &.solved {
-                display: block;
-                background-color: $solution;
+                visibility: visible;
+                .tooltip {
+                    background-color: $solution;
+                    padding-left: 0.5em;
+                }
             }
         }
         &.plain {
             .tooltip-div {
-                display: block;
-                visibility: hidden;
                 &.solved {
-                    visibility: visible;
                     width: 91%; 
                 }
             }
@@ -574,6 +576,49 @@ $border-radius: 6px;
     }
 }
 
+@media not all and (min-resolution:.001dpcm) { 
+    /* Safari adjustments */
+    @supports (-webkit-appearance:none) {
+        .qmi,
+        .quiz-mi,
+        .quiz-match-items {
+            &.plain {
+                .options {
+                    right: 0.5vw;
+                }
+            }
+        }
+    }
+    /* Edge adjustments */
+    @supports (-ms-ime-align: auto) {
+        .qmi,
+        .quiz-mi,
+        .quiz-match-items {
+            &.plain {
+                .options {
+                    right: 0.5vw;
+                }
+                .matchQuestion {
+                    margin: 1em 0;
+                }
+                .matchQuestion:first-of-type {
+                    margin-top: 0;
+                }
+            }
+        }
+    }
+}
+
+/* Microsoft Edge Browser 12-18 (All versions before Chromium) */
+_:-ms-lang(x), 
+.qmi,
+.quiz-mi,
+.quiz-match-items {
+    &.plain .options {
+        right: 0.5vw;
+    }
+}
+
 // Adjust for printed quizzes
 @media print {
     .reveal .slides {
@@ -585,11 +630,11 @@ $border-radius: 6px;
             .qmc,
             .qmi,
             [class*="quiz-"] {
+                button, 
+                .solutionDiv {
+                    display: none;
+                }
                 &.plain {
-                    button, 
-                    .solutionDiv {
-                        display: none;
-                    }
                     input, 
                     select {
                         color: #fff;
@@ -617,13 +662,23 @@ $border-radius: 6px;
 
             .qmi,
             [class*="quiz-"] {
+                max-height: initial;
                 &.plain {
                     width: 100%;
+                    .matchItems {
+                        align-items: stretch !important;
+                    }
                     .matchQuestion {
                         font-size: var(--font-size-small) !important;
-                        .optList p {
-                            color: #f1f1f1;
-                            font-size: var(--font-size-small) !important;
+                        .optList {
+                            color: #fff !important;
+                            background-color: #fff; 
+                            max-height: 1em;
+                            p,
+                            p::before,
+                            p::after {
+                                color: #fff !important; 
+                            }
                         }
                     }
                     .matchItems {

@@ -1,37 +1,37 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Text.Decker.Server.Server
-  ( startHttpServer
-  , stopHttpServer
-  , reloadClients
-  , Server
-  ) where
+  ( startHttpServer,
+    stopHttpServer,
+    reloadClients,
+    Server,
+  )
+where
 
--- TODO is this still used?
--- import Text.Decker.Server.Dachdecker (login)
 import Control.Concurrent
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
-
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import Data.ByteString.UTF8
+import Data.FileEmbed
 import Data.List
 import qualified Data.Set as Set
 import qualified Data.Text as Text
-
+import GHC.IO.Exception
 import Network.WebSockets
 import Network.WebSockets.Snap
-
 import Snap.Core
 import Snap.Http.Server
+import Snap.Internal.Core (ResponseBody (Stream), rspBody)
 import Snap.Util.FileServe
-
 import System.Directory
 import System.FilePath.Posix
+import System.IO.Streams (connect)
+import System.IO.Streams.File (withFileAsOutput)
 import System.Random
-
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 
@@ -42,9 +42,18 @@ serverConfig port = do
   let errorLog = transientDir </> "server-error.log"
   createDirectoryIfMissing True transientDir
   return
-    (setPort port $
-     setAccessLog (ConfigFileLog accessLog) $
-     setErrorLog (ConfigFileLog errorLog) defaultConfig :: Config Snap a)
+    ( setVerbose True $
+        setBind "localhost" $
+          setPort port $
+            --setSSLBind "localhost" $
+            --setSSLPort (port + 13) $
+            --setSSLCert (transientDir </> "decker-ssl.crt") $
+            --setSSLKey (transientDir </> "decker-ssl.key") $
+            --setSSLChainCert False $
+            setAccessLog (ConfigFileLog accessLog) $
+              setErrorLog (ConfigFileLog errorLog) defaultConfig ::
+        Config Snap a
+    )
 
 -- | Clients are identified by integer ids
 type Client = (Int, Connection)
@@ -71,10 +80,11 @@ addPage state page = modifyMVar_ state add
   where
     add (clients, pages) =
       return
-        ( clients
-        , if ".html" `isSuffixOf` page
+        ( clients,
+          if ".html" `isSuffixOf` page
             then Set.insert page pages
-            else pages)
+            else pages
+        )
 
 reloadAll :: MVar ServerState -> IO ()
 reloadAll state = withMVar state (mapM_ reload . fst)
@@ -82,9 +92,19 @@ reloadAll state = withMVar state (mapM_ reload . fst)
     reload :: Client -> IO ()
     reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
 
+sslCert = $(embedFile "tls/decker-ssl.crt")
+
+sslKey = $(embedFile "tls/decker-ssl.key")
+
+installSSLCert :: IO ()
+installSSLCert = do
+  BS.writeFile (transientDir </> "decker-ssl.crt") sslCert
+  BS.writeFile (transientDir </> "decker-ssl.key") sslKey
+
 -- Runs the server. Never returns.
 runHttpServer :: MVar ServerState -> Int -> IO ()
 runHttpServer state port = do
+  installSSLCert
   devRun <- isDevelopmentRun
   let supportRoot =
         if devRun
@@ -93,29 +113,27 @@ runHttpServer state port = do
   config <- serverConfig port
   let routes =
         route
-          [ ("/reload", runWebSocketsSnap $ reloader state)
-                 -- , ("/dachdecker", method POST $ serveDachdecker)
-          , ( "/reload.html"
-            , serveFile $ "test" </> "reload.html")
-          , (fromString supportPath, serveDirectoryNoCaching state supportRoot)
-          , ("/", method PUT $ saveAnnotation)
-          , ("/", method GET $ serveDirectoryNoCaching state publicDir)
+          [ ("/reload", runWebSocketsSnap $ reloader state),
+            ("/reload.html", serveFile $ "test" </> "reload.html"),
+            (fromString supportPath, serveDirectoryNoCaching state supportRoot),
+            ("/", method PUT $ uploadResource ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"]),
+            ("/", method GET $ serveDirectoryNoCaching state publicDir),
+            ("/", method HEAD $ headDirectory publicDir)
           ]
-  let tryRun port 0 = fail "decker server: All ports already in use"
-      tryRun port tries =
-        catchAll
-          (simpleHttpServe (setPort port config) routes)
-          (\_ -> do
-             putStrLn
-               ("decker server: Port " ++
-                show port ++ "already in use, trying port " ++ show (port + 1))
-             tryRun (port + 1) (tries - 1))
   startUpdater state
-  tryRun port 10
+  catch
+    (simpleHttpServe config routes)
+    ( \(SomeException e) -> do
+        putStrLn $ "HTTP server not started on port " <> show port
+        putStrLn $ "  " <> show e
+    )
+
+exitWith :: t0 -> IO ()
+exitWith = error "not implemented"
 
 tenSeconds = 10 * 10 ^ 6
 
--- | Sends a ping message to all connected browsers.
+-- |  Sends a ping message to all connected browsers.
 pingAll :: MVar ServerState -> IO ()
 pingAll state = withMVar state (mapM_ reload . fst)
   where
@@ -136,13 +154,14 @@ startUpdater state = do
 
 -- | Save the request body in the project directory under the request path. But
 -- only if the request path ends on "-annot.json" and the local directory
--- already exists. 
+-- already exists.
 saveAnnotation :: MonadSnap m => m ()
 saveAnnotation = do
   path <- getsRequest rqPathInfo
   liftIO $ putStrLn $ "saving: " <> toString path
-  if BS.isSuffixOf "-annot.json" path ||
-     BS.isSuffixOf "-annot.png" path || BS.isSuffixOf "-annot.pkdrawing" path
+  if BS.isSuffixOf "-annot.json" path
+    || BS.isSuffixOf "-annot.png" path
+    || BS.isSuffixOf "-annot.pkdrawing" path
     then do
       let destination = toString path
       body <- readRequestBody 10000000
@@ -151,9 +170,23 @@ saveAnnotation = do
         then do
           liftIO $ BSL.writeFile destination body
           writeText $ Text.pack ("annotation stored at: " ++ destination)
-        else modifyResponse $
-             setResponseStatus 500 "Destination directory does not exist"
+        else modifyResponse $ setResponseStatus 500 "Destination directory does not exist"
     else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
+
+uploadResource :: MonadSnap m => [String] -> m ()
+uploadResource suffixes = do
+  destination <- toString <$> getsRequest rqPathInfo
+  exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
+  if exists && any (`isSuffixOf` destination) suffixes
+    then runRequestBody (withFileAsOutput destination . connect)
+    else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
+
+headDirectory :: MonadSnap m => FilePath -> m ()
+headDirectory directory = do
+  serveDirectoryWith config directory
+  where
+    config = defaultDirectoryConfig {preServeHook = \_ -> modifyResponse nukeBody}
+    nukeBody res = res {rspBody = Stream return}
 
 serveDirectoryNoCaching :: MonadSnap m => MVar ServerState -> FilePath -> m ()
 serveDirectoryNoCaching state directory = do
@@ -164,28 +197,6 @@ serveDirectoryNoCaching state directory = do
   path <- getsRequest rqPathInfo
   liftIO $ addPage state (toString path)
 
--- TODO is this still used?
-{-
- -serveDachdecker :: Snap ()
- -serveDachdecker = do
- -  dachdeckerUrl <- liftIO getDachdeckerUrl
- -  username <- getPostParam "user"
- -  password <- getPostParam "password"
- -  maybeToken <-
- -    if isJust username && isJust password
- -      then liftIO $
- -           login (toString $ fromJust username) (toString $ fromJust password)
- -      else do
- -        liftIO $ putStrLn "Missing either username or password"
- -        return Nothing
- -  case maybeToken of
- -    Just token ->
- -      writeText $
- -      Text.pack
- -        ("{\"token\": \"" ++
- -         token ++ "\",\"server\": \"" ++ dachdeckerUrl ++ "\"}")
- -    Nothing -> liftIO $ putStrLn "Error logging into the Dachdecker server"
- -}
 -- | Starts a server in a new thread and returns the thread id.
 startHttpServer :: Int -> IO Server
 startHttpServer port = do
