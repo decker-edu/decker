@@ -62,7 +62,7 @@ mediaBlockListFilter blocks =
   where
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
-    filterPairs ((Para [image@Image {}]), Para (Str "Caption:" : caption)) = do
+    filterPairs (Para [image@Image {}], Para (Str "Caption:" : caption)) =
       Just . single . forceBlock <$> transformImage image caption
     -- An code block followed by an explicit caption paragraph.
     filterPairs (code@CodeBlock {}, Para (Str "Caption:" : caption)) =
@@ -91,10 +91,10 @@ mediaInlineListFilter inlines =
 -- | Match a single Block element
 mediaBlockFilter :: Block -> Filter Block
 -- A solitary image in a paragraph with a possible caption.
-mediaBlockFilter (Para [image@(Image _ caption _)]) = do
+mediaBlockFilter (Para [image@(Image _ caption _)]) =
   forceBlock <$> transformImage image caption
 -- A solitary code block in a paragraph with a possible caption.
-mediaBlockFilter (code@CodeBlock {}) = transformCodeBlock code []
+mediaBlockFilter code@CodeBlock {} = transformCodeBlock code []
 -- Any number of consecutive images in a masonry row.
 mediaBlockFilter (LineBlock lines)
   | oneImagePerLine lines = transformImages (concat lines) []
@@ -104,7 +104,7 @@ mediaBlockFilter block = return block
 -- | Matches a single Inline element
 mediaInlineFilter :: Inline -> Filter Inline
 -- An inline image with a possible caption.
-mediaInlineFilter image@(Image _ caption _) = do
+mediaInlineFilter image@(Image _ caption _) =
   transformImage image caption
 -- Default filter
 mediaInlineFilter inline = return inline

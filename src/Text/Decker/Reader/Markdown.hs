@@ -7,6 +7,9 @@ module Text.Decker.Reader.Markdown
     readDeckerMeta,
     readMetaData,
     processCites,
+    deckerMediaFilter,
+    expandMeta,
+    mergeDocumentMeta,
   )
 where
 
@@ -19,8 +22,8 @@ import Development.Shake hiding (Resource)
 import Relude
 import System.Directory as Dir
 import System.FilePath.Posix
+import Text.Decker.Exam.Filter
 import Text.Decker.Filter.Decker
-import Text.Decker.Filter.Examiner
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
@@ -72,7 +75,7 @@ readMarkdownFile globalMeta path = do
   parseMarkdownFile path
     >>= writeBack globalMeta path
     >>= expandMeta globalMeta base
-    >>= adjustResourcePathsA globalMeta base
+    >>= adjustResourcePathsA base
     >>= checkVersion
     >>= includeMarkdownFiles globalMeta base
 

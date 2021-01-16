@@ -36,9 +36,11 @@ writeIndexLists meta targets out baseUrl = do
   let decks = zip (_decks targets) (_decksPdf targets)
   let handouts = zip (_handouts targets) (_handoutsPdf targets)
   let pages = zip (_pages targets) (_pagesPdf targets)
+  let questions = zip (_questions targets) (_questions targets) 
   decksLinks <- makeGroupedLinks decks
   handoutsLinks <- makeGroupedLinks handouts
   pagesLinks <- makeGroupedLinks pages
+  questLinks <- makeGroupedLinks questions
   cwd <- liftIO Dir.getCurrentDirectory
   liftIO $
     writeFile out $
@@ -53,6 +55,8 @@ writeIndexLists meta targets out baseUrl = do
       , unlines handoutsLinks
       , "# Supporting Documents"
       , unlines pagesLinks
+      , "# Questions"
+      , unlines questLinks
       ]
   where
     makeLink (html, pdf) = do

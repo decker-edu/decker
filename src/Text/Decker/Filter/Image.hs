@@ -68,7 +68,7 @@ transformImages images caption = do
           H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
           H.figcaption captionHtml
 
-language cls = find (`elem` ["dot", "gnuplot", "tex"]) cls
+language = find (`elem` ["dot", "gnuplot", "tex"])
 
 -- TODO this is incomplete
 --   - captions are just swallowed but never rendered.
@@ -78,7 +78,7 @@ transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
   handle (blockError code) $
     case language classes of
       Just ext
-        | "render" `elem` classes -> do
+        | "render" `elem` classes ->
           runAttr attr (transform ext) >>= renderHtml
       _ -> return code
   where
@@ -122,6 +122,19 @@ mkIframeTag url (id, cs, kvs) =
     ! H.dataAttribute "src" (H.preEscapedToValue url)
     !* kvs
     $ ""
+
+mkImageTagF :: Text -> Attr -> Filter Html
+mkImageTagF url (id, cs, kvs) = do
+  useDataSrc <- fromMaybe True <$> lookupMetaF "decker.use-data-src"
+  let srcAttr =
+        if useDataSrc
+          then H.dataAttribute "src" (H.preEscapedToValue url)
+          else A.src (H.preEscapedToValue url)
+  return $
+    H.img !? (not (Text.null id), A.id (H.toValue id))
+      ! A.class_ (H.toValue ("decker" : cs))
+      ! srcAttr
+      !* kvs
 
 mkImageTag :: Text -> Attr -> Html
 mkImageTag url (id, cs, kvs) =
@@ -178,11 +191,11 @@ imageHtml uri caption = do
   case caption of
     [] -> do
       injectBorder >> takeSize >> takeUsual >> injectAttribute ("alt", fileName)
-      mkImageTag rendered <$> extractAttr
+      extractAttr >>= lift . mkImageTagF rendered
     caption -> do
       captionHtml <- lift $ inlinesToHtml caption
       imgAttr <- takeSizeIf (not . isPercent) >> extractAttr
-      let imageTag = mkImageTag rendered imgAttr
+      imageTag <- lift $ mkImageTagF rendered imgAttr
       injectBorder >> takeSizeIf isPercent >> takeUsual
         >> injectAttribute ("alt", fileName)
       mkFigureTag imageTag captionHtml <$> extractAttr

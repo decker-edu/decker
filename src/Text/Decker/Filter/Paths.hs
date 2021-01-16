@@ -57,8 +57,8 @@ adjustResourcePaths base = walk adjustInline . walk adjustBlock
           local = map adjustAttrib paths
        in local <> other
 
-adjustResourcePathsA :: Meta -> FilePath -> Pandoc -> Action Pandoc
-adjustResourcePathsA meta base pandoc =
+adjustResourcePathsA :: FilePath -> Pandoc -> Action Pandoc
+adjustResourcePathsA base pandoc =
   walkM adjustInline pandoc >>= walkM adjustBlock
   where
     adjustInline :: Inline -> Action Inline

@@ -26,6 +26,7 @@ module Text.Decker.Project.Project
     pagesPdf,
     handouts,
     handoutsPdf,
+    questions,
     Targets (..),
     Resource (..),
     fromMetaValue,
@@ -66,7 +67,8 @@ data Targets = Targets
     _pagesPdf :: [FilePath],
     _handouts :: [FilePath],
     _handoutsPdf :: [FilePath],
-    _uploads :: [FilePath]
+    _uploads :: [FilePath],
+    _questions :: [FilePath]
   }
   deriving (Show)
 
@@ -177,9 +179,13 @@ uploadSuffixes = ["-annot.json", "-times.json", "-recording.mp4"]
 
 indexSuffix = "-deck-index.yaml"
 
-sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix] <> uploadSuffixes
+sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix, questSuffix] <> uploadSuffixes
 
 alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode"]
+
+questSuffix = "-quest.yaml"
+
+questHTMLSuffix = "-quest.html"
 
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
@@ -214,7 +220,8 @@ scanTargets meta = do
         _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs,
         _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs,
         _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs,
-        _uploads = sort $ calcUploads uploadSuffixes srcs
+        _uploads = sort $ calcUploads uploadSuffixes srcs,
+        _questions = sort $ calcTargets questSuffix questHTMLSuffix srcs
       }
   where
     calcUploads :: [String] -> [(String, [FilePath])] -> [FilePath]

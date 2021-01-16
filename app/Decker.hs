@@ -18,6 +18,7 @@ import qualified System.Directory as Dir
 import System.Environment.Blank
 import System.FilePath.Posix
 import System.IO
+import Text.Decker.Exam.Render
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
@@ -147,9 +148,13 @@ run = do
       need ["support"]
       getTargets >>= needSel decks
     --
-    phony "html" $ do
+    phony "questions" $ do
       need ["support"]
-      getTargets >>= needSels [decks, pages, handouts]
+      getTargets >>= needSel questions
+    --
+    phony "html" $ do
+      need ["support", "catalogs"]
+      getTargets >>= needSels [decks, pages, handouts, questions]
     --
     phony "pdf" $ do
       putNormal pdfMsg
@@ -232,6 +237,20 @@ run = do
         let src = makeRelative publicDir out
         putNormal $ "# copy (for " <> out <> ")"
         copyFile' src out
+      --
+      publicDir <//> "*-quest.html" %> \out -> do
+        src <- calcSource "-quest.html" "-quest.yaml" out
+        meta <- getGlobalMeta
+        renderQuestion meta src out
+      --
+      publicDir <//> "quest-catalog.html" %> \out -> do
+        meta <- getGlobalMeta
+        targets <- getTargets
+        sources <- mapM (calcSource "-quest.html" "-quest.yaml") (targets ^. questions)
+        need sources
+        renderCatalog meta sources out
+      phony "catalogs" $ do
+        need ["public/quest-catalog.html"]
       --
       indexFile %> \out -> do
         exists <- liftIO $ Dir.doesFileExist indexSource

@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Filter.Examiner
+module Text.Decker.Exam.Filter
   ( Question (..),
     Answer (..),
     Choice (..),
@@ -16,16 +16,13 @@ module Text.Decker.Filter.Examiner
 where
 
 import Control.Exception
-import Data.Aeson.TH
-import Data.Aeson.Types
 import qualified Data.Text as Text
-import Data.Typeable
 import qualified Data.Yaml as Y
-import GHC.Generics hiding (Meta)
 import Relude
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import Text.Decker.Exam.Question
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Paths
@@ -34,92 +31,6 @@ import Text.Decker.Internal.Meta
 import Text.Pandoc
 import Text.Pandoc.Walk
 import qualified Text.URI as URI
-
-data Question = Question
-  { qstTopicId :: Text,
-    qstLectureId :: Text,
-    qstTitle :: Text,
-    qstPoints :: Int,
-    qstQuestion :: Text,
-    qstAnswer :: Answer,
-    qstDifficulty :: Difficulty,
-    qstComment :: Text,
-    qstCurrentNumber :: Int,
-    qstFilePath :: String
-  }
-  deriving (Eq, Show, Typeable, Generic)
-
-data Choice = Choice
-  { choiceTheAnswer :: Text,
-    choiceCorrect :: Bool
-  }
-  deriving (Eq, Show, Typeable)
-
-data OneAnswer = OneAnswer
-  { oneDetail :: Text,
-    oneCorrect :: Text
-  }
-  deriving (Eq, Show, Typeable)
-
-data Answer
-  = MultipleChoice {answChoices :: [Choice]}
-  | FillText
-      { answFillText :: Text,
-        answCorrectWords :: [Text]
-      }
-  | FreeForm
-      { answHeightInMm :: Int,
-        answCorrectAnswer :: Text
-      }
-  | MultipleAnswers
-      { answWidthInMm :: Int,
-        answAnswers :: [OneAnswer]
-      }
-  deriving (Eq, Show, Typeable)
-
-data Difficulty
-  = Easy
-  | Medium
-  | Hard
-  deriving (Eq, Show, Typeable)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop 6} ''Choice)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop 3} ''OneAnswer)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop 4} ''Answer)
-
-questionOptions = defaultOptions {fieldLabelModifier = drop 3}
-
-instance ToJSON Question where
-  toJSON = genericToJSON questionOptions
-  toEncoding = genericToEncoding questionOptions
-
-instance FromJSON Question where
-  parseJSON (Object q) =
-    Question <$> q .: "TopicId" <*> q .: "LectureId" <*> q .: "Title"
-      <*> q .: "Points"
-      <*> q .: "Question"
-      <*> q .: "Answer"
-      <*> q .: "Difficulty"
-      <*> q .: "Comment"
-      <*> q .:? "CurrentNumber" .!= 0
-      <*> q .:? "FilePath" .!= "."
-  parseJSON invalid = typeMismatch "Question" invalid
-
-$(deriveJSON defaultOptions ''Difficulty)
-
-{--
-readQuestion :: FilePath -> IO Question
-readQuestion file = do
-  result <- liftIO $ Y.decodeFileEither file
-  case result of
-    Right question -> return question
-    Left exception ->
-      throw $
-        YamlException $
-          "Error parsing question: " ++ file ++ ", " ++ show exception
---}
 
 -- | Renders a question to Pandoc AST.
 --
@@ -130,25 +41,25 @@ renderQuestion meta base qst =
   Div
     ( "",
       ["exa-quest"],
-      [ ("data-points", show $ qstPoints qst),
-        ("data-difficulty", show $ qstDifficulty qst),
-        ("data-topic-id", show $ qstTopicId qst),
-        ("data-lecture-id", show $ qstLectureId qst)
+      [ ("data-points", show $ _qstPoints qst),
+        ("data-difficulty", show $ _qstDifficulty qst),
+        ("data-topic-id", show $ _qstTopicId qst),
+        ("data-lecture-id", show $ _qstLectureId qst)
       ]
     )
     ( [ Div
           ( "",
             ["difficulty"],
             [ ( "title",
-                lookupInDictionary ("exam." <> show (qstDifficulty qst)) meta
+                lookupInDictionary ("exam." <> show (_qstDifficulty qst)) meta
               )
             ]
           )
           []
       ]
-        <> rawHtml' (H.h2 $ toHtml $ qstTitle qst)
-        <> [Div ("", ["question"], []) $ parseToBlocks base (qstQuestion qst)]
-        <> renderAnswer (qstAnswer qst)
+        <> rawHtml' (H.h2 $ toHtml $ _qstTitle qst)
+        <> [Div ("", ["question"], []) $ parseToBlocks base (_qstQuestion qst)]
+        <> renderAnswer (_qstAnswer qst)
         <> [ rawHtml' $
                H.div $ do
                  H.button ! A.class_ "solve" $ toHtml $ lookupInDictionary "exam.solve-button" meta
@@ -164,7 +75,7 @@ renderQuestion meta base qst =
     renderChoice c =
       [ Div ("", ["choice", correct c], []) $
           Div ("", ["check-box"], []) [] :
-          [Div ("", ["content"], []) $ parseToBlocks base (choiceTheAnswer c)]
+          [Div ("", ["content"], []) $ parseToBlocks base (_choiceTheAnswer c)]
       ]
     renderAnswer (MultipleChoice choices) =
       [Div ("", ["answer", "exa-mc"], []) $ concatMap renderChoice choices]
@@ -197,7 +108,7 @@ renderQuestion meta base qst =
        in rawHtml' $
             H.table ! A.class_ "answer exa-ma" $
               H.tbody $
-                toHtml $ map mkDetail $ filter (not . Text.null . oneDetail) answers
+                toHtml $ map mkDetail $ filter (not . Text.null . _oneDetail) answers
 
 {--
 toQuiz :: Question -> IO Quiz.Quiz
@@ -234,12 +145,6 @@ toQuiz q = do
           question
           [Quiz.Choice True [] choice]
 --}
-parseToBlocks :: FilePath -> Text -> [Block]
-parseToBlocks base text =
-  case adjustResourcePaths base <$> runPure (readMarkdown pandocReaderOpts text) of
-    Left err -> throw $ InternalException $ show err
-    Right (Pandoc _ blocks) -> blocks
-
 {--
 parseToBlock :: FilePath -> Text -> Block
 parseToBlock base text = do
@@ -258,6 +163,12 @@ toInlines (Para inlines) = inlines
 toInlines block =
   throw $ InternalException $ "cannot convert block to inlines: " <> show block
 --}
+
+parseToBlocks :: FilePath -> Text -> [Block]
+parseToBlocks base text =
+  case adjustResourcePaths base <$> runPure (readMarkdown pandocReaderOpts text) of
+    Left err -> throw $ InternalException $ show err
+    Right (Pandoc _ blocks) -> blocks
 
 examinerFilter :: Pandoc -> Filter Pandoc
 examinerFilter pandoc@(Pandoc meta _) = walkM expandQuestion pandoc
