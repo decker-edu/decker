@@ -810,22 +810,22 @@ span.decker.svg.embed {
  *********************************************/
 
 /* hide checkbox */
-.reveal .task-list li>input[type="checkbox"] {
+.reveal ul.task-list li>input[type="checkbox"] {
     display: none;
 }
 /* hide item bullets */
-.reveal .task-list li {
+.reveal ul.task-list>li {
     list-style-type: none;
     margin-left: 0.5em;
 }
-.reveal .task-list li::before {
+.reveal ul.task-list>li::before {
     margin-right: 0.25em;
 }
 /* default: check boxes */
-.reveal .task-list li.task-yes::before {
+.reveal ul.task-list>li.task-yes::before {
     content: "\2612";
 }
-.reveal .task-list li.task-no::before {
+.reveal ul.task-list>li.task-no::before {
     content: "\2610";
 }
 /* class "check-cross" */
