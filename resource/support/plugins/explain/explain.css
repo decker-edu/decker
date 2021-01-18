@@ -106,3 +106,4 @@
   object-fit: contain;
 }
 
+.video-js .vjs-current-time { display: block; }

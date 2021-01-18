@@ -44,7 +44,7 @@ let ExplainPlugin = (function () {
 
 
   function currentSlide() {
-    let time = video.currentTime;
+    let time = video.currentTime();
     let slide = 0;
     while (slide < explainTimes.length && time > explainTimes[slide])
       slide += 1;
@@ -54,13 +54,13 @@ let ExplainPlugin = (function () {
 
   function next() {
     let slide = currentSlide() + 1;
-    if (explainTimes[slide]) video.currentTime = explainTimes[slide];
+    if (explainTimes[slide]) video.currentTime(explainTimes[slide]);
   }
 
 
   function prev() {
     let slide = currentSlide() - 1;
-    if (explainTimes[slide]) video.currentTime = explainTimes[slide];
+    if (explainTimes[slide]) video.currentTime(explainTimes[slide]);
   }
 
 
@@ -76,20 +76,20 @@ let ExplainPlugin = (function () {
     panel.setAttribute("data-visible", 1);
 
     let ended = () => {
-      video.removeEventListener("ended", ended);
+      // video.off("ended", ended);
       stop();
     };
 
-    let time = video.currentTime;
+    let time = video.currentTime();
     let slide = Reveal.getState().indexh;
     if (currentSlide(time) != slide) {
       if (explainTimes[slide])
-        video.currentTime = explainTimes[slide];
+        video.currentTime(explainTimes[slide]);
       else
-        video.currentTime = 0;
+        video.currentTime(0);
     }
 
-    video.addEventListener("ended", ended);
+    video.on("ended", ended);
     video.play();
     video.focus();
   }
@@ -322,6 +322,26 @@ let ExplainPlugin = (function () {
   return {
     init: async function () {
 
+      // get config
+      let config = Reveal.getConfig().explain;
+      if (config) {
+        if (config.video) {
+          explainVideoUrl = config.video;
+          if (explainVideoUrl.endsWith("/")) {
+            explainVideoUrl += videoFilename();
+          }
+        }
+        explainTimes = config.times ? JSON.parse(config.times) : [0];
+        console.log("[] explanation source configured");
+      } else if (await resourceExists(deckVideoUrl()) && await resourceExists(deckTimesUrl())) {
+        explainVideoUrl = deckVideoUrl();
+        let deckTimes = await fetchResourceJSON(deckTimesUrl());
+        explainTimes = Object.keys(deckTimes);
+        console.log("[] explanation source implicit");
+      } else {
+        console.log("[] no explanation source");
+      }
+
       recordButton = document.createElement("button");
       recordButton.id = "dvo-record";
       recordButton.classList.add("dvo-button", "fas", "fa-circle");
@@ -340,18 +360,6 @@ let ExplainPlugin = (function () {
       panel = document.createElement("div");
       panel.id = "dvo-panel";
       document.body.appendChild(panel);
-
-      playbackRate = document.createElement("input");
-      playbackRate.id = "dvo-rate";
-      playbackRate.title = "Adjust playback rate";
-      playbackRate.type = "number";
-      playbackRate.min = 0.25;
-      playbackRate.max = 2.0;
-      playbackRate.step = 0.25;
-      playbackRate.value = 1.0;
-      playbackRate.addEventListener("input", (evt) => {
-        video.playbackRate = evt.target.value;
-      });
 
       prevButton = document.createElement("button");
       prevButton.id = "dvo-prev";
@@ -373,60 +381,82 @@ let ExplainPlugin = (function () {
 
       let controls = document.createElement('div');
       controls.id = 'dvo-controls';
-      controls.appendChild(playbackRate);
       controls.appendChild(prevButton);
-      controls.appendChild(nextButton);
       controls.appendChild(stopButton);
+      controls.appendChild(nextButton);
       panel.appendChild(controls);
 
-      video = document.createElement("video");
-      video.setAttribute("id", "dvo-video");
-      video.setAttribute("controls", "1");
-      video.setAttribute("controlsList", "nofullscreen nodownload");
-      video.setAttribute("preload", "1");
-      video.addEventListener('keydown', evt => {
-        evt.stopPropagation();
-        // ESC
-        if (evt.keyCode == 27) {
-          stopVideo();
-        }
-        else if (evt.key == 't') {
-          explainTimes.push(Math.floor(video.currentTime));
-          printTimeStamps();
+      let v = document.createElement("video");
+      v.id = 'dvo-video';
+      v.classList.add('video-js');
+      panel.appendChild(v);
+
+      // setup video-js
+      video = videojs('dvo-video', {
+        controls: true,
+        autoplay: false,
+        preload: 'metadata',
+        playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+        controlBar: {
+          playToggle: true,
+          volumePanel: true,
+          currentTimeDisplay: true,
+          timeDivider: false,
+          durationDisplay: false,
+          remainingTimeDisplay: true,
+          playbackRateMenuButton: true,
+          fullscreenToggle: false,
+          pictureInPictureToggle: false
+        },
+        userActions: {
+          hotkeys: function(event) {
+            event.stopPropagation();
+
+            // `this` is the player in this context
+
+            switch (event.code)
+            {
+              // space: play/pause
+              case 'Space':
+                if (this.paused())
+                  this.play();
+                else
+                  this.pause();
+                break;
+
+              // left/right: skip slides
+              case 'ArrowLeft':
+                prev();
+                break;
+              case 'ArrowRight':
+                next();
+                break;
+
+              // esc: stop and hide video
+              case 'Escape':
+                stop();
+                break;
+
+              // t: record time stamp, print to console
+              case 'KeyT':
+                explainTimes.push(Math.floor(video.currentTime()));
+                printTimeStamps();
+                break;
+            }
+          }
         }
       });
 
-      // get config
-      let config = Reveal.getConfig().explain;
-      if (config) {
-        if (config.video) {
-          explainVideoUrl = config.video;
-          if (explainVideoUrl.endsWith("/")) {
-            explainVideoUrl += videoFilename();
-          }
-        }
-        explainTimes = config.times ? JSON.parse(config.times) : [0];
-        console.log("[] explanation source configured");
-      } else if (await resourceExists(deckVideoUrl()) && await resourceExists(deckTimesUrl())) {
-        explainVideoUrl = deckVideoUrl();
-        let deckTimes = await fetchResourceJSON(deckTimesUrl());
-        explainTimes = Object.keys(deckTimes);
-        console.log("[] explanation source implicit");
-      } else {
-        console.log("[] no explanation source");
-      }
-
-      video.addEventListener('error', _ => {
+      video.on('error', _ => {
         console.error("ExplainPlugin: Could not open video \"" + explainVideoUrl + "\"");
         playButton.style.visibility = 'hidden';
       });
-      panel.appendChild(video);
 
 
       // if we have a video, use it
       if (explainVideoUrl && explainTimes) {
-        video.setAttribute("src", explainVideoUrl);
         recordButton.style.display = 'none';
+        video.src({type: 'video/mp4', src: explainVideoUrl});
       }
       // otherwise let's record one
       else {
