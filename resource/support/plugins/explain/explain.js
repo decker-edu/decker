@@ -4,8 +4,7 @@
 let ExplainPlugin = (function () {
 
   // GUI elements
-  let recordButton, playButton, stopButton, nextButton, prevButton;
-  let panel, video, playbackRate;
+  let recordButton, playButton, player, video, panel;
 
   // recording stuff
   let blobs;
@@ -44,7 +43,7 @@ let ExplainPlugin = (function () {
 
 
   function currentSlide() {
-    let time = video.currentTime();
+    let time = player.currentTime();
     let slide = 0;
     while (slide < explainTimes.length && time > explainTimes[slide])
       slide += 1;
@@ -54,19 +53,19 @@ let ExplainPlugin = (function () {
 
   function next() {
     let slide = currentSlide() + 1;
-    if (explainTimes[slide]) video.currentTime(explainTimes[slide]);
+    if (explainTimes[slide]) player.currentTime(explainTimes[slide]);
   }
 
 
   function prev() {
     let slide = currentSlide() - 1;
-    if (explainTimes[slide]) video.currentTime(explainTimes[slide]);
+    if (explainTimes[slide]) player.currentTime(explainTimes[slide]);
   }
 
 
   function stop() {
     panel.removeAttribute("data-visible");
-    video.pause();
+    player.pause();
     let slide = currentSlide();
     Reveal.slide(slide);
   }
@@ -76,22 +75,22 @@ let ExplainPlugin = (function () {
     panel.setAttribute("data-visible", 1);
 
     let ended = () => {
-      // video.off("ended", ended);
+      player.off("ended", ended);
       stop();
     };
 
-    let time = video.currentTime();
+    let time = player.currentTime();
     let slide = Reveal.getState().indexh;
     if (currentSlide(time) != slide) {
       if (explainTimes[slide])
-        video.currentTime(explainTimes[slide]);
+        player.currentTime(explainTimes[slide]);
       else
-        video.currentTime(0);
+        player.currentTime(0);
     }
 
-    video.on("ended", ended);
-    video.play();
-    video.focus();
+    player.on("ended", ended);
+    player.play();
+    player.focus();
   }
 
 
@@ -361,38 +360,13 @@ let ExplainPlugin = (function () {
       panel.id = "dvo-panel";
       document.body.appendChild(panel);
 
-      // prevButton = document.createElement("button");
-      // prevButton.id = "dvo-prev";
-      // prevButton.classList.add("dvo-button", "fas", "fa-step-backward");
-      // prevButton.addEventListener("click", prev);
-      // prevButton.title = "Jump to previous slide";
-
-      // nextButton = document.createElement("button");
-      // nextButton.id = "dvo-next";
-      // nextButton.classList.add("dvo-button", "fas", "fa-step-forward");
-      // nextButton.addEventListener("click", next);
-      // nextButton.title = "Jump to next slide";
-
-      // stopButton = document.createElement("button");
-      // stopButton.id = "dvo-stop";
-      // stopButton.classList.add("dvo-button", "fas", "fa-stop");
-      // stopButton.addEventListener("click", stop);
-      // stopButton.title = "Stop video";
-
-      // let controls = document.createElement('div');
-      // controls.id = 'dvo-controls';
-      // controls.appendChild(prevButton);
-      // controls.appendChild(nextButton);
-      // controls.appendChild(stopButton);
-      // panel.appendChild(controls);
-
-      let v = document.createElement("video");
-      v.id = 'dvo-video';
-      v.classList.add('video-js');
-      panel.appendChild(v);
+      let video = document.createElement("video");
+      video.id = 'dvo-video';
+      video.classList.add('video-js');
+      panel.appendChild(video);
 
       // setup video-js
-      video = videojs('dvo-video', {
+      player = videojs('dvo-video', {
         width: "100%",
         height: "100%",
         controls: true,
@@ -413,8 +387,6 @@ let ExplainPlugin = (function () {
         userActions: {
           hotkeys: function(event) {
             event.stopPropagation();
-
-            // `this` is the player in this context
 
             switch (event.code)
             {
@@ -441,7 +413,7 @@ let ExplainPlugin = (function () {
 
               // t: record time stamp, print to console
               case 'KeyT':
-                explainTimes.push(Math.floor(video.currentTime()));
+                explainTimes.push(Math.floor(player.currentTime()));
                 printTimeStamps();
                 break;
             }
@@ -449,33 +421,59 @@ let ExplainPlugin = (function () {
         }
       });
 
-      video.on('error', _ => {
+      player.on('error', _ => {
         console.error("ExplainPlugin: Could not open video \"" + explainVideoUrl + "\"");
         playButton.style.visibility = 'hidden';
       });
 
 
-      // add custom buttons to videojs control bar
-      let stopButton = video.controlBar.addChild("button", {}, 0);
-      stopButton.addClass("vjs-icon-cancel");
-      stopButton.el().onclick = stop;
-      stopButton.el().title = "Stop video, back to slide";
+      // get videojs button class
+      let Button = videojs.getComponent('Button');
 
-      let prevButton = video.controlBar.addChild("button", {}, 1);
-      prevButton.addClass("vjs-icon-previous-item");
-      prevButton.el().onclick = prev;
-      prevButton.el().title = "Skip to previous slide";
+      // register and add close button
+      let closeButton = videojs.extend(Button, {
+        constructor: function() {
+          Button.apply(this, arguments);
+          this.addClass('vjs-icon-cancel');
+          this.controlText('Close video');
+        },
+        handleClick: function() { stop(); }
+      });
+      videojs.registerComponent('closeButton', closeButton);
+      player.getChild('controlBar').addChild('closeButton', {}, 0);
 
-      let nextButton = video.controlBar.addChild("button", {}, 3);
-      nextButton.addClass("vjs-icon-next-item");
-      nextButton.el().onclick = next;
-      nextButton.el().title = "Skip to next slide";
+
+      // register and add prev button
+      let prevButton = videojs.extend(Button, {
+        constructor: function() {
+          Button.apply(this, arguments);
+          this.addClass('vjs-icon-previous-item');
+          this.controlText('Jump to previous slide');
+        },
+        handleClick: function() { prev(); }
+      });
+      videojs.registerComponent('prevButton', prevButton);
+      player.getChild('controlBar').addChild('prevButton', {}, 1);
+
+
+      // register and add next button
+      let nextButton = videojs.extend(Button, {
+        constructor: function() {
+          Button.apply(this, arguments);
+          this.addClass('vjs-icon-next-item');
+          this.controlText('Jump to next slide');
+        },
+        handleClick: function() { next(); }
+      });
+      videojs.registerComponent('nextButton', nextButton);
+      player.getChild('controlBar').addChild('nextButton', {}, 3);
+
 
 
       // if we have a video, use it
       if (explainVideoUrl && explainTimes) {
         recordButton.style.display = 'none';
-        video.src({type: 'video/mp4', src: explainVideoUrl});
+        player.src({type: 'video/mp4', src: explainVideoUrl});
       }
       // otherwise let's record one
       else {
