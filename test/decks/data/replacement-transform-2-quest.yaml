@@ -1,0 +1,32 @@
+Points: 5
+LectureId: transformation-2
+TopicId: replacement-transform
+Answer:
+  tag: MultipleChoice
+  Choices:
+    - TheAnswer: $R_x(\pi/2)T_y(z)R_x(-\pi/2)$
+      Correct: true
+    - TheAnswer: $R_x(-\pi/2)T_y(z)R_x(\pi/2)$
+      Correct: false
+    - TheAnswer: $R_z(\pi/2)T_y(z)R_z(-\pi/2)$
+      Correct: false
+    - TheAnswer: $R_z(-\pi/2)T_x(z)R_z(\pi/2)$
+      Correct: false
+Title: Ersatztransformation
+Difficulty: Hard
+Comment: ""
+Question: |
+
+  Die Hardware eines fiktiven Prozessors stellt folgende diskrete Operationen
+  für die Transformation von 3D Vektoren zur Verfügung.
+
+  | Translation | Rotation | Skalierung |
+  |-|-|-|
+  | $T_x(x)$ | $R_x(\alpha)$ | $S_x(x)$ |
+  | $T_y(y)$ | $R_y(\alpha)$ | $S_y(y)$ |
+  | $T_z(z)$ | $R_z(\alpha)$ | $S_z(z)$ |
+
+  Nehmen Sie an, dass die Hardwareeinheit für die Operation $T_z(z)$ ausfällt.
+  Wie lässt sich diese Transformation durch eine Kombination aus den
+  verbleibenden Operationen ersetzen? Wie lautet also
+  $T_z^{\mathrm{Ersatz}}(z)$?

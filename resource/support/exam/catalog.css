@@ -17,10 +17,28 @@ div.closed {
   display:none;
 }
 
+div.topic {
+  margin-left: var(--h1-height);
+}
+
+div.question {
+  margin-left: var(--h2-height);
+}
+
 button {
   background-color: LightGray;
   border: none;
 }
+
+/*
+button::after {
+  content: "C";
+}
+
+div.closed button::after {
+content: "O";
+}
+*/
 
 h1 {
   height: var(--h1-height);

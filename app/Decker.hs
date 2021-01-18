@@ -248,6 +248,7 @@ run = do
         targets <- getTargets
         sources <- mapM (calcSource "-quest.html" "-quest.yaml") (targets ^. questions)
         need sources
+        liftIO $ print  sources
         renderCatalog meta sources out
       phony "catalogs" $ do
         need ["public/quest-catalog.html"]

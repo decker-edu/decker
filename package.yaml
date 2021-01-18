@@ -53,6 +53,7 @@ dependencies:
   - doctemplates
   - exceptions
   - extra
+  - file-embed
   - filepath
   - formatting
   - fsnotify
@@ -62,6 +63,7 @@ dependencies:
   - http-client
   - http-conduit
   - http-types
+  - io-streams
   - lens
   - lens-action
   - lens-aeson
@@ -96,10 +98,10 @@ dependencies:
   - websockets
   - websockets-snap
   - wreq
+  - xml-conduit
+  - xml-types
   - yaml
   - zip
-  - io-streams
-  - file-embed
 
 ghc-options:
   - -Wunused-top-binds

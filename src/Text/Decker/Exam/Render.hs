@@ -10,12 +10,14 @@
 module Text.Decker.Exam.Render
   ( renderQuestion,
     renderCatalog,
+    renderQuestionToHtml,
   )
 where
 
 import Control.Exception
 import Control.Lens hiding (Choice)
 import qualified Data.HashMap.Strict as HashMap
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Text.IO as Text
 import Development.Shake hiding (Resource)
 import Relude
@@ -60,7 +62,7 @@ compileAnswerToHtml meta base ft@FillText {} = do
 renderSnippetToHtml :: Meta -> FilePath -> Text -> Action Text
 renderSnippetToHtml meta base markdown = do
   pandoc <- liftIO $ handleError $ runPure $ readMarkdown pandocReaderOpts markdown
-  let options = pandocWriterOpts { writerHTMLMathMethod = MathJax "Handled in the render"}
+  let options = pandocWriterOpts {writerHTMLMathMethod = MathJax "Handled in the render"}
   filtered <-
     mergeDocumentMeta (setMetaValue "decker.use-data-src" False meta) pandoc
       >>= adjustResourcePathsA base
@@ -102,20 +104,23 @@ hn 5 = H.h5
 hn 6 = H.h6
 hn n = throw $ InternalException $ "Haha, good one: H" <> show n
 
-renderQuestionToHtml :: Int -> Question -> Html
-renderQuestionToHtml h quest = do
-  H.div ! A.class_ "question" $ do
-    hn h $ do
-      H.button "▶" -- ▼
-      preEscapedText $ quest ^. qstTitle
-    H.div ! A.class_ "closed" $ do
-      H.p $ preEscapedText $ quest ^. qstQuestion
-      H.p $ renderAnswerToHtml $ quest ^. qstAnswer
+renderQuestionToHtml :: Int -> Text -> Question -> Html
+renderQuestionToHtml h id quest = do
+  H.div
+    ! A.class_ "question"
+    ! A.id (toValue id)
+    $ do
+      hn h $ do
+        H.button "▶" -- ▼
+        preEscapedText $ quest ^. qstTitle
+      H.div ! A.class_ "closed" $ do
+        H.p $ preEscapedText $ quest ^. qstQuestion
+        H.p $ renderAnswerToHtml $ quest ^. qstAnswer
 
 renderQuestionDocument :: Meta -> FilePath -> Question -> Action Text
 renderQuestionDocument meta base quest = do
   htmlQuest <- compileQuestionToHtml meta base quest
-  let html = renderQuestionToHtml 2 htmlQuest
+  let html = renderQuestionToHtml 2 "" htmlQuest
   return $
     toText $
       renderHtml $
@@ -123,6 +128,8 @@ renderQuestionDocument meta base quest = do
           H.head $ do
             H.meta ! A.charset "utf-8"
             H.style "img {width:100%;}"
+            H.script ! A.src "support/vendor/mathjax/tex-svg.js" $ ""
+            H.script ! A.src "support/js/reload.js" $ ""
             H.title (preEscapedText $ quest ^. qstTitle)
           H.body html
 
@@ -137,11 +144,15 @@ renderQuestionCatalog base questions = do
             H.title "Question Catalog"
             H.script ! A.type_ "module" ! A.src "/support/exam/catalog.js" $ ""
             H.script ! A.src "support/vendor/mathjax/tex-svg.js" $ ""
+            H.script ! A.src "support/js/reload.js" $ ""
             H.link ! A.rel "stylesheet" ! A.href "/support/exam/catalog.css"
-          H.body rendered
+          H.body $ do
+            H.header $
+              H.h1 ("Question Catalog (" <> show (length questions) <> ")")
+            rendered
   where
     grouped :: HashMap Text (HashMap Text (NonEmpty Question))
-    grouped = HashMap.map (groupBy _qstTopicId) $ groupBy _qstLectureId questions
+    grouped = HashMap.map (groupBy _qstTopicId) (groupBy _qstLectureId questions)
     rendered :: Html
     rendered = toHtml $ HashMap.elems $ HashMap.mapWithKey lecture grouped
     lecture lid topics = do
@@ -151,19 +162,22 @@ renderQuestionCatalog base questions = do
         $ do
           H.h1 $ do
             H.button "▶" -- ▼
-            toHtml lid
+            toHtml (lid <> " (" <> show (HashMap.size topics) <> ")")
           H.div ! A.class_ "closed" $
-            toHtml $ HashMap.elems $ HashMap.mapWithKey topic topics
-    topic tip quests = do
+            toHtml $ HashMap.elems $ HashMap.mapWithKey (topic lid) topics
+    topic lid tid quests = do
       H.div
         ! A.class_ "topic"
-        ! A.id (toValue tip)
+        ! A.id (toValue (tid <> "-" <> lid))
         $ do
           H.h2 $ do
             H.button "▶" -- ▼
-            toHtml tip
+            toHtml (tid <> " (" <> show (NonEmpty.length quests) <> ")")
           H.div ! A.class_ "closed" $
-            toHtml $ fmap (renderQuestionToHtml 3) quests
+            toHtml $ fmap (quest 3 lid tid) $ zip [0 ..] $ toList quests
+    quest hn lid tid (i, q) =
+      let id = lid <> "-" <> tid <> "-" <> show i
+       in renderQuestionToHtml 3 id q
 
 instance ToMarkup a => ToMarkup (NonEmpty a) where
   toMarkup = toHtml . map toMarkup . toList
