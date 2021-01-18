@@ -106,4 +106,12 @@
   object-fit: contain;
 }
 
-.video-js .vjs-current-time { display: block; }
+.video-js .vjs-current-time { 
+  display: block !important; 
+}
+
+.video-js .vjs-icon-cancel,
+.video-js .vjs-icon-previous-item,
+.video-js .vjs-icon-next-item {
+  font-size: 18px;
+}

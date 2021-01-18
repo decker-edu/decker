@@ -361,30 +361,30 @@ let ExplainPlugin = (function () {
       panel.id = "dvo-panel";
       document.body.appendChild(panel);
 
-      prevButton = document.createElement("button");
-      prevButton.id = "dvo-prev";
-      prevButton.classList.add("dvo-button", "fas", "fa-step-backward");
-      prevButton.addEventListener("click", prev);
-      prevButton.title = "Jump to previous slide";
+      // prevButton = document.createElement("button");
+      // prevButton.id = "dvo-prev";
+      // prevButton.classList.add("dvo-button", "fas", "fa-step-backward");
+      // prevButton.addEventListener("click", prev);
+      // prevButton.title = "Jump to previous slide";
 
-      nextButton = document.createElement("button");
-      nextButton.id = "dvo-next";
-      nextButton.classList.add("dvo-button", "fas", "fa-step-forward");
-      nextButton.addEventListener("click", next);
-      nextButton.title = "Jump to next slide";
+      // nextButton = document.createElement("button");
+      // nextButton.id = "dvo-next";
+      // nextButton.classList.add("dvo-button", "fas", "fa-step-forward");
+      // nextButton.addEventListener("click", next);
+      // nextButton.title = "Jump to next slide";
 
-      stopButton = document.createElement("button");
-      stopButton.id = "dvo-stop";
-      stopButton.classList.add("dvo-button", "fas", "fa-stop");
-      stopButton.addEventListener("click", stop);
-      stopButton.title = "Stop video";
+      // stopButton = document.createElement("button");
+      // stopButton.id = "dvo-stop";
+      // stopButton.classList.add("dvo-button", "fas", "fa-stop");
+      // stopButton.addEventListener("click", stop);
+      // stopButton.title = "Stop video";
 
-      let controls = document.createElement('div');
-      controls.id = 'dvo-controls';
-      controls.appendChild(prevButton);
-      controls.appendChild(stopButton);
-      controls.appendChild(nextButton);
-      panel.appendChild(controls);
+      // let controls = document.createElement('div');
+      // controls.id = 'dvo-controls';
+      // controls.appendChild(prevButton);
+      // controls.appendChild(nextButton);
+      // controls.appendChild(stopButton);
+      // panel.appendChild(controls);
 
       let v = document.createElement("video");
       v.id = 'dvo-video';
@@ -393,6 +393,8 @@ let ExplainPlugin = (function () {
 
       // setup video-js
       video = videojs('dvo-video', {
+        width: "100%",
+        height: "100%",
         controls: true,
         autoplay: false,
         preload: 'metadata',
@@ -451,6 +453,23 @@ let ExplainPlugin = (function () {
         console.error("ExplainPlugin: Could not open video \"" + explainVideoUrl + "\"");
         playButton.style.visibility = 'hidden';
       });
+
+
+      // add custom buttons to videojs control bar
+      let stopButton = video.controlBar.addChild("button", {}, 0);
+      stopButton.addClass("vjs-icon-cancel");
+      stopButton.el().onclick = stop;
+      stopButton.el().title = "Stop video, back to slide";
+
+      let prevButton = video.controlBar.addChild("button", {}, 1);
+      prevButton.addClass("vjs-icon-previous-item");
+      prevButton.el().onclick = prev;
+      prevButton.el().title = "Skip to previous slide";
+
+      let nextButton = video.controlBar.addChild("button", {}, 3);
+      nextButton.addClass("vjs-icon-next-item");
+      nextButton.el().onclick = next;
+      nextButton.el().title = "Skip to next slide";
 
 
       // if we have a video, use it
