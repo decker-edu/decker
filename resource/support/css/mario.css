@@ -1044,6 +1044,7 @@ div.q-panel {
     padding:       0.5em;
     font-weight:   normal;
     color:         black;
+  }p
 }
 
 /* add A, B, C, D... */
@@ -1055,7 +1056,11 @@ div.q-panel {
 }
 
 /* remove task list checkbox */
-.reveal .quiz ul li input[type="checkbox"] {
+.reveal .quiz .task-list li>input[type="checkbox"] {
+    display: none;
+}
+/* don't show ::before (added by "normal" task lists) */
+.reveal .quiz .task-list li::before {
     display: none;
 }
 
