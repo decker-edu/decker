@@ -269,6 +269,7 @@ takeAutoplay = do
     dropClass "autoplay"
     dropAttribute "autoplay"
     injectAttribute ("data-autoplay", "1")
+    injectAttribute ("allow", "autoplay")
 
 takeUsual = do
   takeId

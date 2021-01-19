@@ -68,7 +68,7 @@ div.nofigure {
 }
 
 // Responsive iframes have no intrinsic size. Assume 100%.
-div.decker.nofigure {
+div.decker.nofigure, figure.decker {
   width: 100%;
 }
 

@@ -6,37 +6,78 @@ title: Streaming Video Test
 
 ![](youtube:TbppXMGrsvw)
 
-# Youtube (no caption but width)
-
-![](youtube:TbppXMGrsvw){width="50%"}
-
-# Youtube (with caption, no width)
+# Youtube (caption)
 
 ![Airbus A320 - Approach and Landing in Munich](youtube:TbppXMGrsvw)
 
-# Youtube (with caption and width)
+# Youtube (start time)
 
-![Airbus A320 - Approach and Landing in Munich](youtube:TbppXMGrsvw){width=20%}
+![](youtube:TbppXMGrsvw){start="750"}
 
-# Youtube (with caption and width, autoplay and loop)
+# Youtube (autoplay & start time)
 
-![Airbus A320 - Approach and Landing in Munich](youtube:TbppXMGrsvw){.autoplay .loop}
+![](youtube:TbppXMGrsvw){.autoplay start="750"}
+
+# Youtube (loop and start time)
+
+![](youtube:xxZvQPeNBh0){start="28" .loop}
+
+# Youtube (autoplay, loop & start time) 
+
+![](youtube:TbppXMGrsvw){.autoplay .loop start="750"}
+
+# Native Youtube Tag
+
+<iframe 
+    src="https://www.youtube.com/embed/TbppXMGrsvw?loop=1&start=750"
+    height="340"
+    width="620" 
+    allow="autoplay" 
+    data-autoplay="1">
+</iframe>
 
 
-# Vimeo
 
-![](vimeo:273057877){width="640" height="360"}
+# Vimeo (plain)
+
+![](vimeo:498010744)
+
+# Vimeo (caption)
+
+![What if the Goats Die](vimeo:498010744)
 
 # Vimeo (autoplay)
 
-![](vimeo:273057877){width="640" height="360" .autoplay}
+![](vimeo:498010744){.autoplay}
+
+# Vimeo (autoplay, loop, muted)
+
+![](vimeo:498010744){.autoplay .muted .loop}
 
 
-<!-- # Twitch
 
-![](twitch:788648096){width="640" height="360"}
 
-# Twitch (autoplay)
 
-![](twitch:788648096){width="640" height="360" .autoplay} -->
+# Twitch (plain)
 
+![](twitch:851645824)
+
+# Twitch (caption)
+
+![Caption](twitch:856544643)
+
+# Twitch (start=14m)
+
+![](twitch:856544643){start="14m"}
+
+# Twitch (autoplay & start=30)
+
+![](twitch:858748829){.autoplay start="30"} 
+
+# Twitch (muted & start=30)
+
+![](twitch:868581850){.muted start="30"} 
+
+# Twitch (autoplay, muted & start=30)
+
+![](twitch:868581850){.autoplay .muted start="30"} 

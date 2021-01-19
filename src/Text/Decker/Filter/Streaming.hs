@@ -22,6 +22,7 @@ import Text.Pandoc
 import Text.Printf
 import Text.URI (URI)
 import qualified Text.URI as URI
+import qualified Data.List as List
 
 justToList :: [Maybe a] -> [a]
 justToList = reverse . justToList'
@@ -74,9 +75,8 @@ youtubeFlags =
   , "showinfo"
   ]
 
-twitchParams = ["autoplay", "mute", "time"]
-
-twitchFlags = ["autoplay", "mute"]
+-- https://dev.twitch.tv/docs/embed/video-and-clips/
+twitchDefaults = [("parent", "localhost"),("allowfullscreen","true")]
 
 -- https://vimeo.zendesk.com/hc/en-us/articles/360001494447-Using-Player-Parameters
 vimeoDefaults =
@@ -204,12 +204,25 @@ mkVimeoUri streamId = do
   uri <- URI.mkURI $ "https://player.vimeo.com/video/" <> streamId
   setQuery [] (merge [params, map (, "1") flags, vimeoDefaults]) uri
 
+-- Twitch supports autoplay, muted and time (time is translated from start)
+-- Twitch needs autoplay="false" in URI or the video will autoplay
 mkTwitchUri :: Text -> Attrib URI
 mkTwitchUri streamId = do
-  params <- cutAttribs twitchParams
-  flags <- cutClasses twitchFlags
   uri <- URI.mkURI "https://player.twitch.tv/"
-  setQuery [] (merge [("video", streamId) : params, map (, "1") flags]) uri
+  (_, (_, flags, params)) <- get   
+  setQuery [] ([("video", streamId)] ++ twitchDefaults ++ hasAutoplay flags ++ hasStart params) uri
+  where  
+    hasAutoplay (f:fx) = 
+      case f of 
+        "autoplay" -> map (, "true") fx
+        "muted" -> ("muted", "true") : hasAutoplay fx
+        _ -> hasAutoplay fx
+    hasAutoplay [] = [("autoplay", "false")]
+    hasStart ((p,y):ps) =
+      case p of 
+        "start" -> [("time", y)]
+        _ -> hasStart ps
+    hasStart [] = []  
 
 calcAspect :: Text -> Text
 calcAspect ratio =
@@ -227,18 +240,14 @@ mkAttrTag tag (id, cs, kvs) =
   (not (null cs), A.class_ (H.toValue ("decker" : cs))) !*
   kvs
 
-mkMediaTag :: Html -> URI -> Bool -> Attr -> Html
-mkMediaTag tag uri dataSrc attr =
-  let srcAttr =
-        if dataSrc
-          then H.dataAttribute "src"
-          else A.src
-   in mkAttrTag tag attr ! srcAttr (H.preEscapedToValue $ URI.render uri)
+mkMediaTag :: Html -> URI -> Attr -> Html
+mkMediaTag tag uri attr =
+   mkAttrTag tag attr ! H.dataAttribute "src" (H.preEscapedToValue $ URI.render uri)
 
 mkStreamTag :: URI -> Attr -> Attr -> Html
 mkStreamTag uri wrapperAttr iframeAttr =
   let inner =
-        mkMediaTag (H.iframe "Iframe showing video here.") uri True iframeAttr
+        mkMediaTag (H.iframe "") uri iframeAttr
    in mkAttrTag (H.div inner) wrapperAttr
 
 mkDivTag :: Html -> Attr -> Html
