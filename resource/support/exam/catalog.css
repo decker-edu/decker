@@ -4,17 +4,16 @@
   --h3-height: 20px;
 }
 
-
 img {
   width: 100%;
 }
 
 div {
-  display:block;
+  display: block;
 }
 
 div.closed {
-  display:none;
+  display: none;
 }
 
 div.topic {
@@ -30,15 +29,31 @@ button {
   border: none;
 }
 
-/*
-button::after {
-  content: "C";
+button:after {
+  content: "▶";
 }
 
-div.closed button::after {
-content: "O";
+/*
+div:not(.closed) button:after {
+  content: "▼";
 }
 */
+
+a:any-link {
+  text-decoration: none;
+}
+
+h1 a:any-link:after {
+  content: "✎";
+}
+
+h2 a:any-link:after {
+  content: "✎";
+}
+
+h3 a:any-link:after {
+  content: "✎";
+}
 
 h1 {
   height: var(--h1-height);

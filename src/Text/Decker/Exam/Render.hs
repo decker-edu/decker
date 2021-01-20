@@ -17,6 +17,7 @@ where
 import Control.Exception
 import Control.Lens hiding (Choice)
 import qualified Data.HashMap.Strict as HashMap
+import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Text.IO as Text
 import Development.Shake hiding (Resource)
@@ -111,8 +112,12 @@ renderQuestionToHtml h id quest = do
     ! A.id (toValue id)
     $ do
       hn h $ do
-        H.button "▶" -- ▼
+        H.button "" -- ▼
         preEscapedText $ quest ^. qstTitle
+        H.a
+          ! A.class_ "vscode"
+          ! A.href (toValue ("vscode://file" <> toString (quest ^. qstFilePath)))
+          $ ""
       H.div ! A.class_ "closed" $ do
         H.p $ preEscapedText $ quest ^. qstQuestion
         H.p $ renderAnswerToHtml $ quest ^. qstAnswer
@@ -153,28 +158,43 @@ renderQuestionCatalog base questions = do
   where
     grouped :: HashMap Text (HashMap Text (NonEmpty Question))
     grouped = HashMap.map (groupBy _qstTopicId) (groupBy _qstLectureId questions)
+    sorted :: [(Text, [(Text, [Question])])]
+    sorted =
+      List.sortOn fst $
+        map
+          ( \(k, v) ->
+              ( k,
+                List.sortOn fst $
+                  map
+                    ( \(k, v) ->
+                        (k, List.sortOn _qstTitle $ NonEmpty.toList v)
+                    )
+                    $ HashMap.toList v
+              )
+          )
+          $ HashMap.toList grouped
     rendered :: Html
-    rendered = toHtml $ HashMap.elems $ HashMap.mapWithKey lecture grouped
-    lecture lid topics = do
+    rendered = toHtml $ map lecture sorted
+    lecture (lid, topics) = do
       H.div
         ! A.class_ "lecture"
         ! A.id (toValue lid)
         $ do
           H.h1 $ do
-            H.button "▶" -- ▼
-            toHtml (lid <> " (" <> show (HashMap.size topics) <> ")")
+            H.button "" -- ▼
+            toHtml (lid <> " (" <> show (length topics) <> ")")
           H.div ! A.class_ "closed" $
-            toHtml $ HashMap.elems $ HashMap.mapWithKey (topic lid) topics
-    topic lid tid quests = do
+            toHtml $ map (topic lid) topics
+    topic lid (tid, quests) = do
       H.div
         ! A.class_ "topic"
         ! A.id (toValue (tid <> "-" <> lid))
         $ do
           H.h2 $ do
             H.button "▶" -- ▼
-            toHtml (tid <> " (" <> show (NonEmpty.length quests) <> ")")
+            toHtml (tid <> " (" <> show (length quests) <> ")")
           H.div ! A.class_ "closed" $
-            toHtml $ fmap (quest 3 lid tid) $ zip [0 ..] $ toList quests
+            toHtml $ map (quest 3 lid tid) $ zip [0 ..] quests
     quest hn lid tid (i, q) =
       let id = lid <> "-" <> tid <> "-" <> show i
        in renderQuestionToHtml 3 id q

@@ -16,6 +16,7 @@ import qualified Data.Yaml as Y
 import GHC.Generics hiding (Meta)
 import Relude
 import Text.Decker.Internal.Meta
+import System.Directory
 
 data Choice = Choice
   { _choiceTheAnswer :: Text,
@@ -101,9 +102,10 @@ $(deriveJSON defaultOptions ''Difficulty)
 
 readQuestion :: FilePath -> IO Question
 readQuestion file = do
+  abs <- makeAbsolute file
   result <- liftIO $ Y.decodeFileEither file
   case result of
-    Right question -> return question
+    Right question -> return (set qstFilePath abs question)
     Left exception ->
       throw $
         YamlException $
