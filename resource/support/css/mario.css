@@ -1044,11 +1044,10 @@ div.q-panel {
     padding:       0.5em;
     font-weight:   normal;
     color:         black;
-  }p
 }
 
 /* add A, B, C, D... */
-.reveal .quiz .task-list li:before {
+.reveal .quiz ul.task-list>li::before {
     content: counter(answer, upper-latin) ": ";
     counter-increment: answer;
     margin-right: 0.5em;
@@ -1056,23 +1055,19 @@ div.q-panel {
 }
 
 /* remove task list checkbox */
-.reveal .quiz .task-list li>input[type="checkbox"] {
-    display: none;
-}
-/* don't show ::before (added by "normal" task lists) */
-.reveal .quiz .task-list li::before {
+.reveal .quiz ul.task-list li>input[type="checkbox"] {
     display: none;
 }
 
 /* 2nd level ul contains tool tip */
-.reveal .quiz ul li ul {
+.reveal .quiz ul.task-list li ul {
     display: inline-block;
     margin:  0;
     padding: 0;
 }
 
 /* don't need this for 2nd level */
-.reveal .quiz ul li ul li:before {
+.reveal .quiz ul.task-list li ul li::before {
     display: none;
 }
 
