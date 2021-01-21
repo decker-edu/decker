@@ -664,10 +664,17 @@ span.decker.svg.embed {
  * MARIO: image sequence, shown one after the other
  *********************************************/
 
-.fragment.sequence:not(.current-fragment) {
-    display: none;
+@media not print {
+  .reveal section .fragment.sequence:not(.current-fragment) {
+      display: none;
+  }
 }
-
+/* when in print mode, show only first image */
+@media print {
+  .reveal section .fragment.sequence:not(:first-of-type) {
+      display: none;
+  }
+}
 
 /*********************************************
  * MARIO: COMMENT BUBBLES
