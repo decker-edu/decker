@@ -79,7 +79,7 @@ Difficulty: Easy
 
 # Multiple Choice 3 - Fancy
 
-## What is the result of the following term? {.qmc}
+## What is the result of the following term? {.qmc .x-small}
 
 \begin{equation*}
 \begin{bmatrix}
@@ -130,7 +130,7 @@ Difficulty: Easy
 
 Choices are displayed in a row. 
 
-## What is the result of the following term? {.qmc .plain .inline}
+## What is the result of the following term? {.qmc .plain .inline .small }
 
 \begin{equation*}
 \begin{bmatrix}
@@ -311,15 +311,9 @@ topic: yeah
 
 # Matching 5 - Plain
 
-## Question text {.qmi .plain}
+## {.qmi .plain}
 
-Das unmarkierte Quadrat unten links im Bild ist mit einer Textur (blauer
-Pfeil, oranger Pfeil) versehen. Die Texturkoordinaten wurden für dieses
-Quadrat *nicht* transformiert. 
-
-Die Quadrate 1 bis 5 zeigen dieselbe Textur, allerdings mit transformierten
-Texturkoordinaten. Geben Sie jeweils die verwendete, unter Umständen
-zusammengesetzte, Transformation für diese 5 Quadrate an.
+Geben Sie jeweils die verwendete, unter Umständen zusammengesetzte, Transformation für diese 5 Quadrate an.
 
 Bild 1
 : Rz(180)

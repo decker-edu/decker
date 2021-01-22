@@ -156,7 +156,7 @@ div.nofigure > iframe.decker {
   max-height: 100%;
 }
 
-div.decker.nofigure, figure.decker {
+div.decker.nofigure {
   width: 100%;
 }
 

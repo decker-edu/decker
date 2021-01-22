@@ -1512,7 +1512,7 @@ _.plain:-ms-lang(x) .options,
   max-height: 100%;
 }
 
-.reveal div.decker.nofigure, .reveal figure.decker {
+.reveal div.decker.nofigure {
   width: 100%;
 }
 

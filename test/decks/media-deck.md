@@ -13,7 +13,7 @@ title: 'Image, Audio and Video Handling'
 
 # Local Video Autoplay
 
-![Caption](movie.mp4){.autoplay}
+![Caption](movie.mp4){.autoplay .controls}
 
 # Local Video 50%
 
@@ -80,5 +80,5 @@ second one is a :cinema:.
 
 # Ganz Schlimm Emdedded
 
-![Directly embedded SVG](graph.dot.svg){.embed}
+![Directly embedded SVG](graph.dot){.embed}
 
