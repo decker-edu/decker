@@ -1,10 +1,11 @@
 ---
 bibliography: bibliography.bib
-csl: '/test/decks/acm-sig-proceedings.csl'
+csl: /test/decks/acm-sig-proceedings.csl
 title: Citation
 ---
 
 # Citation
+
 
 Not quite recently published [@tramberend2003]. The bibliography is
 appended at the end of the deck. CSL file *[:meta](csl)* was used.
