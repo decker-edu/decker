@@ -8,6 +8,6 @@ packages:
 extra-deps:
    - regex-posix-clib-2.7
    - lens-4.19.2
-   - shake-0.19.4
+   - shake-0.19.1 # 0.19.2 seems to introduce the regression
 resolver: lts-15.10
 compiler: ghc-8.10.3
