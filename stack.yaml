@@ -9,5 +9,5 @@ extra-deps:
    - regex-posix-clib-2.7
    - lens-4.19.2
    - shake-0.19.1 # 0.19.2 seems to introduce the regression
-resolver: lts-15.10
+resolver: lts-16.31
 compiler: ghc-8.10.3
