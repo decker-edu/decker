@@ -1,18 +1,15 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Local where
 
 import Control.Monad.Catch
-
 import Data.Digest.Pure.MD5
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
-
 import Relude
-
 import Text.Blaze.Html
 import qualified Text.Blaze.Html.Renderer.Pretty as Pretty
 import qualified Text.Blaze.Html.Renderer.Text as Text
@@ -84,17 +81,18 @@ classifyMedia :: URI -> Attr -> MediaT
 classifyMedia uri (_, classes, _) =
   let ext = uriPathExtension uri
       scheme = uriScheme uri
-   in if | ext `maybeElem` svgExt && "embed" `elem` classes -> EmbedSvgT
-         | ext `maybeElem` renderExt && "render" `elem` classes -> RenderT
-         | ext `maybeElem` imageExt || "image" `elem` classes -> ImageT
-         | ext `maybeElem` videoExt || "video" `elem` classes -> VideoT
-         | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
-         | ext `maybeElem` iframeExt || "iframe" `elem` classes -> IframeT
-         | ext `maybeElem` pdfExt || "pdf" `elem` classes -> PdfT
-         | ext `maybeElem` mviewExt || "mview" `elem` classes -> MviewT
-         | ext `maybeElem` codeExt || "code" `elem` classes -> CodeT
-         | scheme `maybeElem` streamScheme -> StreamT
-         | otherwise -> ImageT
+   in if
+          | ext `maybeElem` svgExt && "embed" `elem` classes -> EmbedSvgT
+          | ext `maybeElem` renderExt && "render" `elem` classes -> RenderT
+          | ext `maybeElem` imageExt || "image" `elem` classes -> ImageT
+          | ext `maybeElem` videoExt || "video" `elem` classes -> VideoT
+          | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
+          | ext `maybeElem` iframeExt || "iframe" `elem` classes -> IframeT
+          | ext `maybeElem` pdfExt || "pdf" `elem` classes -> PdfT
+          | ext `maybeElem` mviewExt || "mview" `elem` classes -> MviewT
+          | ext `maybeElem` codeExt || "code" `elem` classes -> CodeT
+          | scheme `maybeElem` streamScheme -> StreamT
+          | otherwise -> ImageT
 
 maybeElem :: Eq a => Maybe a -> [a] -> Bool
 maybeElem (Just x) xs = x `elem` xs
@@ -105,38 +103,38 @@ renderHtml html = do
   pretty <- lookupMetaOrElse False "decker.filter.pretty" <$> gets meta
   return $
     rawHtml $
-    toText $
-    if pretty
-      then toText $ Pretty.renderHtml html
-      else fromLazy $ Text.renderHtml html
+      toText $
+        if pretty
+          then toText $ Pretty.renderHtml html
+          else fromLazy $ Text.renderHtml html
 
 booleanAttribs =
-  [ "allowfullscreen"
-  , "async"
-  , "autofocus"
-  , "autoplay"
-  , "checked"
-  , "controls"
-  , "default"
-  , "defer"
-  , "disabled"
-  , "formnovalidate"
-  , "hidden"
-  , "inert"
-  , "ismap"
-  , "itemscope"
-  , "loop"
-  , "multiple"
-  , "muted"
-  , "novalidate"
-  , "open"
-  , "readonly"
-  , "required"
-  , "reversed"
-  , "scoped"
-  , "seamless"
-  , "selected"
-  , "typemustmatch"
+  [ "allowfullscreen",
+    "async",
+    "autofocus",
+    "autoplay",
+    "checked",
+    "controls",
+    "default",
+    "defer",
+    "disabled",
+    "formnovalidate",
+    "hidden",
+    "inert",
+    "ismap",
+    "itemscope",
+    "loop",
+    "multiple",
+    "muted",
+    "novalidate",
+    "open",
+    "readonly",
+    "required",
+    "reversed",
+    "scoped",
+    "seamless",
+    "selected",
+    "typemustmatch"
   ]
 
 (!*) :: Attributable h => h -> [(Text, Text)] -> h
@@ -150,18 +148,20 @@ booleanAttribs =
 
 mkFigureTag :: Html -> Html -> Attr -> Html
 mkFigureTag content caption (id, cs, kvs) =
-  H.figure !? (not (Text.null id), A.id (H.toValue id)) !
-  A.class_ (H.toValue ("decker" : cs)) !*
-  kvs $ do
-    content
-    H.figcaption ! A.class_ "decker" $ caption
+  H.figure !? (not (Text.null id), A.id (H.toValue id))
+    ! A.class_ (H.toValue ("decker" : cs))
+    !* kvs
+    $ do
+      content
+      H.figcaption ! A.class_ "decker" $ caption
 
 -- | Renders a list of inlines to Text.
 inlinesToMarkdown :: [Inline] -> Filter Text
 inlinesToMarkdown [] = return ""
 inlinesToMarkdown inlines = do
   FilterState options meta <- get
-  case runPure (writeMarkdown options (Pandoc nullMeta [Plain inlines])) of
+  result <- liftIO $ runIO (writeMarkdown options (Pandoc nullMeta [Plain inlines]))
+  case result of
     Right html -> return html
     Left err -> bug $ PandocException $ "BUG: " <> show err
 
@@ -175,24 +175,20 @@ blocksToHtml :: [Block] -> Filter Html
 blocksToHtml [] = return $ toHtml ("" :: Text)
 blocksToHtml blocks = do
   FilterState options meta <- get
-  case runPure (writeHtml5 options (Pandoc meta blocks)) of
-    Right html -> return html
-    Left err -> bug $ PandocException $ "BUG: " <> show err
+  liftIO $ runIOorExplode (writeHtml5 options (Pandoc meta blocks))
 
 -- | Renders a list of blocks to Markdown.
 blocksToMarkdown :: [Block] -> Filter Text
 blocksToMarkdown [] = return ""
 blocksToMarkdown blocks = do
   FilterState options meta <- get
-  case runPure (writeMarkdown options (Pandoc meta blocks)) of
-    Right html -> return html
-    Left err -> bug $ PandocException $ "BUG: " <> show err
+  liftIO $ runIOorExplode (writeMarkdown options (Pandoc meta blocks))
 
 writerHtmlOptions =
   def
-    { writerTemplate = Nothing
-    , writerHTMLMathMethod = MathJax "Handled by reveal.js in the template"
-    , writerExtensions =
+    { writerTemplate = Nothing,
+      writerHTMLMathMethod = MathJax "Handled by reveal.js in the template",
+      writerExtensions =
         (enableExtension Ext_auto_identifiers . enableExtension Ext_emoji)
           pandocExtensions
     }
@@ -204,10 +200,10 @@ inlinesToHtml' [] = toHtml ("" :: Text)
 inlinesToHtml' inlines = blocksToHtml' [Plain inlines]
 
 -- | Renders a list of blocks to HTML. IO version that has no access
--- to the real meta data and the real writer options.
+-- to the real meta data and the real writer options, nor the file system.
 blocksToHtml' :: [Block] -> Html
 blocksToHtml' [] = toHtml ("" :: Text)
-blocksToHtml' blocks =
+blocksToHtml' blocks = do
   case runPure (writeHtml5 writerHtmlOptions (Pandoc nullMeta blocks)) of
     Right html -> html
     Left err -> bug $ PandocException $ "BUG: " <> show err
@@ -275,7 +271,7 @@ modifyMeta f = modify (\s -> s {meta = f (meta s)})
 checkAbsoluteUri :: MonadThrow m => URI -> m ()
 checkAbsoluteUri uri =
   unless (URI.isPathAbsolute uri) $
-  throwM $ InternalException $ "relative path detected in URI: " <> show uri
+    throwM $ InternalException $ "relative path detected in URI: " <> show uri
 
 needFile :: FilePath -> Filter ()
 needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
