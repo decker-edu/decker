@@ -14,7 +14,6 @@ import Data.Version
 import Development.Shake
 import GHC.IO.Encoding
 import NeatInterpolation
-import System.Directory
 import qualified System.Directory as Dir
 import System.Environment.Blank
 import System.FilePath.Posix

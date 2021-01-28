@@ -10,7 +10,6 @@ module Text.Decker.Reader.Markdown
   )
 where
 
-import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import qualified Data.List as List
@@ -28,7 +27,6 @@ import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
