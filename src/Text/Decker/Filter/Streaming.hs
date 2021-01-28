@@ -22,7 +22,6 @@ import Text.Pandoc
 import Text.Printf
 import Text.URI (URI)
 import qualified Text.URI as URI
-import qualified Data.List as List
 
 justToList :: [Maybe a] -> [a]
 justToList = reverse . justToList'
@@ -96,13 +95,13 @@ vimeoParams =
   , "color"
   , "controls"
   , "dnt"
-  , "fun"
   , "loop"
   , "muted"
   , "playsinline"
   , "portrait"
   , "quality"
   , "speed"
+  , "start"
   , "textrack"
   , "title"
   , "transparent"
@@ -158,12 +157,10 @@ streamHtml' uri caption = do
   let streamTag = mkStreamTag streamUri wrapperAttr iframeAttr
   case caption of
     [] -> do
-      divAttr <-
-        injectClass "nofigure" >> injectBorder >> takeSize >> takeUsual >>
-        extractAttr
+      divAttr <- updateStreaming >> injectClass "nofigure" >> injectBorder >> takeSize >> takeUsual >> extractAttr
       return $ mkDivTag streamTag divAttr
     caption -> do
-      figAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
+      figAttr <- updateStreaming >> injectBorder >> takeSize >> takeUsual >> extractAttr
       captionHtml <- lift $ inlinesToHtml caption
       return $ mkFigureTag streamTag captionHtml figAttr
 
@@ -197,32 +194,42 @@ mkYoutubeUri streamId = do
         then ("playlist", streamId) : params
         else params
 
+-- Vimeo supports #t=20 for time (time is translated from start)
 mkVimeoUri :: Text -> Attrib URI
 mkVimeoUri streamId = do
-  params <- cutAttribs vimeoParams
-  flags <- cutClasses vimeoFlags
-  uri <- URI.mkURI $ "https://player.vimeo.com/video/" <> streamId
-  setQuery [] (merge [params, map (, "1") flags, vimeoDefaults]) uri
+  (_, (_, flags, params)) <- get  
+  params <- cutAttribs vimeoParams  
+  flags <- cutClasses vimeoFlags        
+  let start = Text.pack $ getStart params
+  let params' = cleanParams params
+  uri <- URI.mkURI $ "https://player.vimeo.com/video/" <> streamId <> start
+  setQuery [] (merge [params', map (, "1") flags, vimeoDefaults]) uri
+  where
+    getStart ((x,y):xs) =
+      case x of 
+        "start" -> "#t=" ++ Text.unpack y
+        _ -> getStart xs
+    getStart [] = ""
+    cleanParams (p@(x,y):ps) =
+      case x of 
+        "start" -> ps
+        _ -> p : cleanParams ps
+    cleanParams [] = []
 
 -- Twitch supports autoplay, muted and time (time is translated from start)
 -- Twitch needs autoplay="false" in URI or the video will autoplay
 mkTwitchUri :: Text -> Attrib URI
 mkTwitchUri streamId = do
   uri <- URI.mkURI "https://player.twitch.tv/"
-  (_, (_, flags, params)) <- get   
-  setQuery [] ([("video", streamId)] ++ twitchDefaults ++ hasAutoplay flags ++ hasStart params) uri
-  where  
-    hasAutoplay (f:fx) = 
-      case f of 
-        "autoplay" -> map (, "true") fx
-        "muted" -> ("muted", "true") : hasAutoplay fx
-        _ -> hasAutoplay fx
-    hasAutoplay [] = [("autoplay", "false")]
-    hasStart ((p,y):ps) =
-      case p of 
+  (_, (_, flags, params)) <- get  
+  let updatedFlags = ([("autoplay", "false") | "autoplay" `notElem` flags]) ++ ([("muted", "true") | "muted" `elem` flags])
+  setQuery [] ([("video", streamId)] ++ twitchDefaults ++ updatedFlags ++ getStart params) uri
+  where
+    getStart ((x,y):xs) =
+      case x of 
         "start" -> [("time", y)]
-        _ -> hasStart ps
-    hasStart [] = []  
+        _ -> getStart xs
+    getStart [] = []      
 
 calcAspect :: Text -> Text
 calcAspect ratio =

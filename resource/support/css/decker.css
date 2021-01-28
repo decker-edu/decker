@@ -1516,11 +1516,15 @@ _.plain:-ms-lang(x) .options,
   width: 100%;
 }
 
+.reveal figure.streaming {
+  width: 100%;
+  margin: 0;
+}
+
 .reveal figure.decker figcaption.decker {
   margin: 0px 0px 0px 0px;
   line-height: 1.2;
   font-style: italic;
-  font-size: 0.8em;
   text-align: center;
 }
 
