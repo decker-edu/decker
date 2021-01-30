@@ -41,7 +41,7 @@ serverConfig port = do
   createDirectoryIfMissing True transientDir
   return
     ( setVerbose True $
-        setBind "localhost" $
+        -- setBind "localhost" $
           setPort port $
             --setSSLBind "localhost" $
             --setSSLPort (port + 13) $
