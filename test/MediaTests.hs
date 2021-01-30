@@ -109,12 +109,12 @@ plainVideo =
 plainVideoHtml =
   RawInline
     (Format "html")
-    "<video id=\"video\" class=\"decker myclass\" data-src=\"pacman-perfect-game.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"include/06-metal.png\" preload=\"none\" loop=\"loop\" data-autoplay=\"1\"></video>"
+    "<video id=\"video\" class=\"decker myclass\" data-src=\"pacman-perfect-game.mp4#t=23,42\" data-annoying=\"100\" style=\"width:30%;border:1px;\" poster=\"include/06-metal.png\" preload=\"none\" loop=\"loop\" allow=\"autoplay\" data-autoplay=\"1\"></video>"
 
 plainVideoCaptionedHtml =
   RawInline
     (Format "html")
-    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"pacman-perfect-game.mp4#t=23,42\" poster=\"include/06-metal.png\" preload=\"none\" loop=\"loop\" data-autoplay=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
+    "<figure id=\"video\" class=\"decker myclass\" data-annoying=\"100\" style=\"width:30%;border:1px;\"><video class=\"decker\" data-src=\"pacman-perfect-game.mp4#t=23,42\" poster=\"include/06-metal.png\" preload=\"none\" loop=\"loop\" allow=\"autoplay\" data-autoplay=\"1\"></video><figcaption class=\"decker\">A <strong>logo.</strong></figcaption></figure>"
 
 blockAin = [Para [], Para [Image nullAttr [] ("", "")], Para []]
 
@@ -265,40 +265,34 @@ testSnippets =
         | ![](/test/decks/include/06-metal.png)
 
         Caption: Caption
-      |]
-    ),
-    ( "Iframe with caption",
-      "A simple iframe with a caption. The URL can be a top level domain because the `iframe` class is specified.",
-      "![Caption.](https://www.heise.de/){.iframe}"
-    ),
-    ( "Iframe with custom attributes and query string",
-      "A simple iframe with custom attributes and a query string that are both transfered correctly.",
-      "![Caption.](https://www.heise.de/index.html#some-frag?token=83fd3d4){height=\"400px\" model=\"some-stupid-ass-model.off\" lasersword=\"off\"}"
-    ),
-    ( "Mario's model viewer",
-      "A simple iframe with a special url.",
-      "![Caption.](http://3d.de/model.off){.mario height=\"400px\" phasers=\"stun\"}"
-    ),
-    ( "Youtube video stream",
-      "An image with source URL scheme `youtube:` results in an embedded video player.",
-      "![](youtube:1234567890){#video1 .autoplay .controls width=\"75%\"}"
-    ),
-    ( "Vimeo it baby",
-      "An image with source URL scheme `vimeo:` results in an embedded video player.",
-      "![Caption.](vimeo://1234567890){#video2 .some-class autoplay=\"autoplay\" aspect=\"4:3\" width=\"75%\" some-attribute=\"yeah\"}"
-    ),
-    ( "Twitch it baby",
-      "An image with source URL scheme `twitch:` results in an embedded video player.",
-      "![Caption.](twitch:1234567890){.autoplay .controls aspect=\"5:3\" width=\"75%\"}"
-    ),
-    ( "Background image",
-      "The last image in a level 1 header is promoted to the slide background.",
-      "# Background Image ![](/test/decks/include/06-metal.png){size=\"cover\"}"
-    ),
-    ( "Background video",
-      "The last image in a level 1 header is promoted to the slide background.",
-      "# Background Image ![](test/decks/pacman-perfect-game.mp4){.loop .muted color=\"black\"}"
-    )
+      |])
+  , ( "Iframe with caption"
+    , "A simple iframe with a caption. The URL can be a top level domain because the `iframe` class is specified."
+    , "![Caption.](https://www.heise.de/){.iframe}")
+  , ( "Iframe with custom attributes and query string"
+    , "A simple iframe with custom attributes and a query string that are both transfered correctly."
+    , "![Caption.](https://www.heise.de/index.html#some-frag?token=83fd3d4){height=\"400px\" model=\"some-stupid-ass-model.off\" lasersword=\"off\"}")
+  , ( "Mario's model viewer"
+    , "A simple iframe with a special url."
+    , "![Caption.](http://3d.de/model.off){.mario height=\"400px\" phasers=\"stun\"}")
+  , ( "Youtube video stream"
+    , "An image with source URL scheme `youtube:` results in an embedded video player."
+    , "![](youtube:1234567890){#video1 .autoplay .controls width=\"75%\"}")
+  , ( "Youtube video stream"
+    , "With reveal.js style autoplay and looping."
+    , "![](youtube:1234567890){#video2 .autoplay .loop}")
+  , ( "Vimeo it baby"
+    , "An image with source URL scheme `vimeo:` results in an embedded video player."
+    , "![Caption.](vimeo://1234567890){#video2 .some-class autoplay=\"autoplay\" aspect=\"4:3\" width=\"75%\" some-attribute=\"yeah\"}")
+  , ( "Twitch it baby"
+    , "An image with source URL scheme `twitch:` results in an embedded video player."
+    , "![Caption.](twitch:1234567890){.autoplay .controls aspect=\"5:3\" width=\"75%\"}")
+  , ( "Background image"
+    , "The last image in a level 1 header is promoted to the slide background."
+    , "# Background Image ![](/test/decks/include/06-metal.png){size=\"cover\"}")
+  , ( "Background video"
+    , "The last image in a level 1 header is promoted to the slide background."
+    , "# Background Image ![](test/decks/pacman-perfect-game.mp4){.loop .muted color=\"black\"}")
   ]
 
 runSnippets :: [(Text, Text, Text)] -> IO [(Text, Text, Text, Text)]

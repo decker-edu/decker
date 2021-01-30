@@ -387,22 +387,22 @@ Include videos in presentations:
 
 ``` {.markdown}
 Video with controls:
-![](movies/jmu-hci-intro.mp4){controls=1}
+![](movies/jmu-hci-intro.mp4){.controls}
 
 Video with autoplay:
-![](movies/jmu-hci-intro.mp4){data-autoplay=true}
+![](movies/jmu-hci-intro.mp4){.autoplay}
 
 Start video at timestamp:
-![](movies/jmu-hci-intro.mp4){data-autoplay=true start="10"}
+![](movies/jmu-hci-intro.mp4){.autoplay start="10"}
 ```
 
 ##  {.split}
 
-Video with controls: ![](movies/jmu-hci-intro.mp4){controls="1"}
+Video with controls: ![](movies/jmu-hci-intro.mp4){.controls}
 
 ## 
 
-Video with autoplay: ![](movies/jmu-hci-intro.mp4){data-autoplay="true"}
+Video with autoplay & loop: ![](movies/jmu-hci-intro.mp4){.autoplay .loop}
 
 # External Videos {#ext-vid}
 
@@ -412,10 +412,10 @@ Include YouTube and Vimeo videos or Twitch channels in presentations:
 ![](service:video-id){css-formatting}
 ```
 
-*Note 1:* Replace `service` with `youtube`, `vimeo` or `twitch` and add
+- Replace `service` with `youtube`, `vimeo` or `twitch` and add
 video id or twitch channel name (replaces `video-id`).
 
-*Note 2:* The video ID is usually found in the URL.
+- The video ID is usually found in the URL.
 
 **YouTube example URL:**
 https://www.youtube.com/watch?v=`<u>`{=html}qEcmwHRG2Mo`</u>`{=html}\
@@ -434,12 +434,12 @@ https://www.youtube.com/watch?v=`<u>`{=html}qEcmwHRG2Mo`</u>`{=html}\
 Fullscreen videos are identified in the slide header:
 
 ``` {.markdown}
-# ![](movies/jmu-hci-intro.mp4){controls=1}
+# ![](movies/jmu-hci-intro.mp4){.controls}
 ```
 
 *Note:* Do not include a slide title.
 
-# ![](movies/jmu-hci-intro.mp4) {#example-movies_3 data-menu-title="Fullscreen Videos Example" controls="1"}
+# ![](movies/jmu-hci-intro.mp4) {#example-movies_3 data-menu-title="Fullscreen Videos Example" .controls}
 
 # Audio
 
@@ -449,28 +449,26 @@ Include audio clips in presentations:
 ![title](audio-file-location){css-formatting}
 ```
 
-# Audio example {#example-audio}
+# Audio example {#example-audio .columns}
 
-## 
+## {.top}
 
 ``` {.markdown .xxx-small}
-Audio with controls:
-![](audio/wildbach.mp3){controls=1}
-
-Audio with controls and autoplay:
-![](audio/wildbach.mp3){controls=1 data-autoplay=true}
+Example 1: audio with controls
+![Wildbach](audio/wildbach.mp3){.controls}
+```
+``` {.markdown .xxx-small}
+Example 2: audio with controls, autoplay and muted
+![Wildbach](audio/wildbach.mp3){.controls .autoplay .muted}
 ```
 
-## 
+##  {.left .example}
 
-##  {.split .example}
+Example 1: ![Wildbach](audio/wildbach.mp3){.controls}
 
-Audio with controls: ![Wildbach](audio/wildbach.mp3){controls="1"}
+##  {.right .example}
 
-##  {.example}
-
-Audio with controls and autoplay:
-![Wildbach](audio/wildbach.mp3){controls="1" data-autoplay="true"}
+Example 2: ![Wildbach](audio/wildbach.mp3){.controls .autoplay .muted}
 
 # Tables
 
@@ -626,7 +624,7 @@ alert (s);
 # Embed External Websites {#externalWebite}
 
 -   Paste the following iframe on a blank slide\
--   Change "https://www.uni-wuerzburg.de/" to your website
+-   Change "https://www.uni-wuerzburg.de/" to your website 
 
 ## 
 
@@ -661,6 +659,16 @@ alert (s);
 # ![](webgl_geometry_minecraft_ao.html)
 -->
 ```
+
+# PDF Documents in Header
+
+``` {.markdown}
+# ![](http://pandoc.org/MANUAL.pdf)
+```
+
+# ![](http://pandoc.org/MANUAL.pdf)
+
+
 # Chalkboard
 
 Dynamically make notes on presentations:

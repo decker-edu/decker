@@ -194,8 +194,7 @@ dropAttribute key = modify transform
 dropCore :: Attrib ()
 dropCore = modify transform
   where
-    transform (attr', (id, cs, kvs)) =
-      (attr', (id, cs, filter ((`notElem` coreAttribs) . fst) kvs))
+    transform (attr', (id, cs, kvs)) = (attr', (id, cs, filter ((`notElem` coreAttribs) . fst) kvs))
 
 passI18n :: Attrib ()
 passI18n = modify transform
@@ -219,6 +218,11 @@ takeAllClasses = modify transform
 injectBorder = do
   border <- lookupMetaOrElse False "decker.filter.border" <$> lift (gets meta)
   when border $ injectStyle ("border", "2px solid magenta")
+
+updateStreaming :: Attrib ()
+updateStreaming = do
+  dropAttribute "start" 
+  injectClass "streaming"
 
 takeVideoClasses :: Attrib ()
 takeVideoClasses = takeClasses identity ["controls", "loop", "muted"]
@@ -269,6 +273,7 @@ takeAutoplay = do
     dropClass "autoplay"
     dropAttribute "autoplay"
     injectAttribute ("data-autoplay", "1")
+    injectAttribute ("allow", "autoplay")
 
 takeUsual = do
   takeId

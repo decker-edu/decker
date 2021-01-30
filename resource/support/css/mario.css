@@ -513,6 +513,12 @@ body {
   display: inline-block;
 }
 
+.reveal figure.streaming,
+.reveal div.nofigure.streaming {
+  width: 80%;
+  margin: 0 auto;
+}
+
 .reveal figure>img,
 .reveal figure>video,
 .reveal figure>iframe {

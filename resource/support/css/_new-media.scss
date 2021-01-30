@@ -3,7 +3,7 @@
  *further fine-tuning
  */
 
-div.decker.image.error {
+ div.decker.image.error {
   font-size: 20pt;
   background-color: #fee;
   border: 0.1em solid darkred;
@@ -67,11 +67,20 @@ div.nofigure {
   }
 }
 
+// Responsive iframes have no intrinsic size. Assume 100%.
+div.decker.nofigure {
+  width: 100%;
+}
+
+figure.streaming {
+  width: 100%;
+  margin: 0;
+}
+
 figure.decker figcaption.decker {
   margin: 0px 0px 0px 0px;
   line-height: 1.2;
   font-style: italic;
-  font-size: 0.8em;
   text-align: center;
 }
 

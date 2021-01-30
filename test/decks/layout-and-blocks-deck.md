@@ -80,7 +80,7 @@ Text would be good in between otherwise list and enumeration are on one line!
 
 1. Followed by some enumeration and then an image
 
-![Big image (1920x1080) as figure.](autodesk-3ds-ui-1920x15.jpg)
+![Long, short image (1920x15) as figure.](autodesk-3ds-ui-1920x15.jpg)
 
 Or some more text 
 
@@ -114,7 +114,7 @@ Text would be good in between otherwise list and enumeration are on one line!
 
 1. Followed by some enumeration and then an image
 
-![Big image (1920x1080) as figure.](autodesk-3ds-ui-1920x15.jpg)
+![Long, short image (1920x15) as figure.](autodesk-3ds-ui-1920x15.jpg)
 
 Or some more text 
 
@@ -148,7 +148,7 @@ Text would be good in between otherwise list and enumeration are on one line!
 
 1. Followed by some enumeration and then an image
 
-![Big image (1920x1080) as figure.](autodesk-3ds-ui-1920x15.jpg)
+![Long,short image (1920x15) as figure.](autodesk-3ds-ui-1920x15.jpg)
 
 Or some more text 
 
@@ -168,7 +168,7 @@ Text would be good in between otherwise list and enumeration are on one line!
 
 1. Followed by some enumeration and then an image
 
-![Big image (1920x1080) as figure.](autodesk-3ds-ui-1920x15.jpg)
+![Long, short image (1920x15) as figure.](autodesk-3ds-ui-1920x15.jpg)
 
 Or some more text 
 
