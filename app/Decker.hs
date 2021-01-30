@@ -193,7 +193,8 @@ run = do
         -- needIfExists "-deck.html" "-recording.mp4" out
         let recordingWebm = replaceSuffix "-deck.md" "-recording.webm" src
         let recordingMp4 = replaceSuffix "-deck.html" "-recording.mp4" out
-        whenM (liftIO $ Dir.doesFileExist recordingWebm) $ need [recordingMp4]
+        let recordingTimes = replaceSuffix "-deck.html" "-times.json" out
+        whenM (liftIO $ Dir.doesFileExist recordingWebm) $ need [recordingMp4, recordingTimes]
         meta <- getGlobalMeta
         markdownToHtmlDeck meta getTemplate src out
       --
