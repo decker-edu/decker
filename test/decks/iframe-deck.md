@@ -13,15 +13,13 @@ title: Iframes
 
 ------------------------------------------------------------------------
 
-# Iframe showing <https://www.uni-wuerzburg.de/startseite>
+# Iframe showing <https://hci.uni-wuerzburg.de/>
 
-![This is the most ugly homepage
-ever.](https://www.uni-wuerzburg.de/startseite.html?some-option=some-value){.iframe
-width="100%" height="400px" model="some-model.off"}
+![](https://hci.uni-wuerzburg.de/){.iframe width="100%" height="500px"}
 
 ------------------------------------------------------------------------
 
-# ![](https://www.uni-wuerzburg.de/startseite.html)
+# ![](https://hci.uni-wuerzburg.de/){.iframe}
 
 ------------------------------------------------------------------------
 

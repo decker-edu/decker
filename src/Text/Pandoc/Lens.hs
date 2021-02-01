@@ -20,7 +20,6 @@ module Text.Pandoc.Lens
       -- | Prisms are provided for the constructors of 'Block'
       -- as well as a 'Plated' instance.
     , Block
-    , blockInlines
     , _Plain
     , _Para
     , _CodeBlock
@@ -30,7 +29,6 @@ module Text.Pandoc.Lens
     , _DefinitionList
     , _Header
     , _HorizontalRule
-    , _Table
     , _Div
     , _Null
       -- * Inlines
@@ -165,13 +163,6 @@ _HorizontalRule = prism' (const HorizontalRule) f
     f HorizontalRule     = Just ()
     f _                  = Nothing
 
--- | A prism on a 'Table' 'Block'
-_Table :: Prism' Block ([Inline], [Alignment], [Double], [TableCell], [[TableCell]])
-_Table = prism' (\(a, b, c, d, e) -> Table a b c d e) f
-  where
-    f (Table a b c d e) = Just (a, b, c, d, e)
-    f _                 = Nothing
-
 -- | A prism on a 'Div' 'Block'
 _Div :: Prism' Block [Block]
 _Div = prism' (Div nullAttr) f
@@ -185,30 +176,6 @@ _Null = prism' (const Null) f
   where
     f Null = Just ()
     f _    = Nothing
-
-instance Plated Block where
-    plate f blk =
-      case blk of
-        BlockQuote blks        -> BlockQuote <$> traverse f blks
-        OrderedList attrs blks -> OrderedList attrs <$> traverseOf (each . each) f blks
-        BulletList blks        -> BulletList <$> traverseOf (each . each) f blks
-        DefinitionList blks    -> DefinitionList <$> traverseOf (each . _2 . each . each) f blks
-        Table a b c hdrs rows  -> Table a b c <$> traverseOf (each . each) f hdrs
-                                              <*> traverseOf (each . each . each) f rows
-        Div attrs blks         -> Div attrs <$> traverseOf each f blks
-        _                      -> pure blk
-
--- | Traverse over the 'Inline' children of a 'Block'
-blockInlines :: Traversal' Block Inline
-blockInlines f blk =
-    case blk of
-      Plain inls         -> Plain <$> traverse f inls
-      Para inls          -> Para <$> traverse f inls
-      DefinitionList xs  -> DefinitionList <$> traverseOf (each . _1 . each) f xs
-      Header n attr inls -> Header n attr <$> traverse f inls
-      Table capt a b c d -> Table <$> traverse f capt
-                                  <*> pure a <*> pure b <*> pure c <*> pure d
-      _                  -> pure blk
 
 -- | A prism on a 'Str' 'Inline'
 _Str :: Prism' Inline Text.Text

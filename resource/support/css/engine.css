@@ -15,18 +15,28 @@ div.open-button:not(.checked) {
 
 div.open-button {
   position: fixed;
-  top: 1vh;
-  right: 1vh;
-  z-index: 1000;
-
-  color: gray;
-  background-color: rgba(0, 0, 0, 0);
-  padding: 0;
-  margin: 0;
+    left:       auto;
+    right:      calc(var(--whiteboard-icon-size) * 0.25);
+    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:     auto;
+    margin:     calc(var(--whiteboard-icon-size) * 0.5);
+    padding:    0.2em;
+    z-index:    40;
+    background: none;
+    font-size:  var(--whiteboard-icon-size);
+    color:      var(--whiteboard-inactive-color);
 
   transition-property: visibility;
 
-  font-size: 3vh;
+}
+
+div.open-button.i {
+  opacity: 0.5;
+}
+
+div.open-button:hover {
+    opacity: 1.0;
+    color: var(--whiteboard-active-color);
 }
 
 /* Badge for the open button*/
@@ -460,3 +470,6 @@ li.slide-menu-item[data-questions]::after {
 li.slide-menu-item[data-questions][data-answered=true]::after {
   background-color: green;
 }
+
+
+

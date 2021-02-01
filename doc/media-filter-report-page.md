@@ -1,10 +1,9 @@
 
 ---
-title: 'Decker Media Filter - Test Report'
+title: Decker Media Filter - Test Report
 ---
 
-Introduction
-============
+# Introduction
 
 This report is generated during testing and shows the HTML output for a representative selection of image tags. It is used for debugging and is the authoritative reference for CSS authors.
 
@@ -12,8 +11,7 @@ This report is generated during testing and shows the HTML output for a represen
 
 ------------------------------------------------------------------------
 
-Plain image
------------
+## Plain image
 
 An image that is used inline in a paragraph of text.
 
@@ -50,8 +48,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-SVG image
----------
+## SVG image
 
 An SVG image that is embedded into the HTML document.
 
@@ -62,16 +59,31 @@ An SVG image that is embedded into the HTML document.
 translates to
 
 ``` {.html}
-<span class="decker svg embed" style="background-color:magenta;">
-    <svg>This space intentionally left blank</svg>
+<div class="decker image error">
+    <h2 class="title">
+        <i class="fa fa-exclamation-triangle">
+            
+        </i>
+         Decker error
+    </h2>
+    <p class="message">
+        test/decks/empty.svg: openFile: does not exist (No such file or directory)
+    </p>
+    <p>
+        encountered while processing
+    </p>
+    <pre class="markup">
+        <code class="markup">
+            ![](/test/decks/empty.svg){.embed css:background-color=&quot;magenta&quot;}
 
-</span>
+        </code>
+    </pre>
+</div>
 ```
 
 ------------------------------------------------------------------------
 
-Embedded PDF
-------------
+## Embedded PDF
 
 A PDF document that is embedded through an object tag.
 
@@ -89,8 +101,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with caption
-------------------------
+## Plain image with caption
 
 An image with a caption. The image is surrounded by a figure element.
 
@@ -115,8 +126,7 @@ This is not a caption, but the next paragraph.
 
 ------------------------------------------------------------------------
 
-Plain image with caption
-------------------------
+## Plain image with caption
 
 An image with a caption. The image is surrounded by a figure element.
 
@@ -140,8 +150,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with caption
-------------------------
+## Plain image with caption
 
 An image with a caption containg a citation.
 
@@ -161,11 +170,9 @@ translates to
         Caption
          
         <span class="citation" data-cites="tramberend2003">
-            (see
+            [see
              
-            Tramberend
-             
-            2003)
+            @tramberend2003]
         </span>
         .
     </figcaption>
@@ -174,8 +181,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with URL query
---------------------------
+## Plain image with URL query
 
 Query string and fragment identifier in URLs are preserved.
 
@@ -196,8 +202,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with size attributes.
----------------------------------
+## Plain image with size attributes.
 
  Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
 
@@ -218,8 +223,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with size attributes.
----------------------------------
+## Plain image with size attributes.
 
  Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
 
@@ -240,8 +244,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with size attributes.
----------------------------------
+## Plain image with size attributes.
 
  Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
 
@@ -262,8 +265,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain image with custom attributes.
------------------------------------
+## Plain image with custom attributes.
 
 Image attributes are handled in complex ways.
 
@@ -284,8 +286,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain audio
------------
+## Plain audio
 
 Images that are audio clips are converted to an audio tag.
 
@@ -297,7 +298,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <audio class="decker" data-src="test/decks/audio.mp3" controls="controls" data-autoplay="1">
+    <audio class="decker" data-src="test/decks/audio.mp3" controls="controls" allow="autoplay" data-autoplay="1">
         
     </audio>
     <figcaption class="decker">
@@ -308,8 +309,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain video
------------
+## Plain video
 
 Images that are videos are converted to a video tag.
 
@@ -332,8 +332,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain video with Media Fragments URI
-------------------------------------
+## Plain video with Media Fragments URI
 
 A local video with start time.
 
@@ -356,8 +355,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Plain video with specific attributes
-------------------------------------
+## Plain video with specific attributes
 
 Video tag specific classes are translated to specific attributes.
 
@@ -369,7 +367,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4#t=5,30" poster="/test/decks/include/06-metal.png" preload="none" controls="controls" data-autoplay="1">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4#t=5,30" poster="/test/decks/include/06-metal.png" preload="none" controls="controls" allow="autoplay" data-autoplay="1">
         
     </video>
     <figcaption class="decker">
@@ -380,8 +378,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Three images in a row
----------------------
+## Three images in a row
 
 Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout.
 
@@ -398,7 +395,7 @@ translates to
     <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png">
 
     <figure class="decker">
-    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" allow="autoplay" data-autoplay="1">
         
     </video>
     <figcaption class="decker">
@@ -413,8 +410,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Four images in a row with caption
----------------------------------
+## Four images in a row with caption
 
 Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout.
 
@@ -433,7 +429,7 @@ translates to
 <div class="decker image-row">
     <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png">
 
-    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" allow="autoplay" data-autoplay="1">
     
 </video>
 
@@ -447,8 +443,7 @@ Caption: Caption
 
 ------------------------------------------------------------------------
 
-Iframe with caption
--------------------
+## Iframe with caption
 
 A simple iframe with a caption. The URL can be a top level domain because the \`iframe\` class is specified.
 
@@ -471,8 +466,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Iframe with custom attributes and query string
-----------------------------------------------
+## Iframe with custom attributes and query string
 
 A simple iframe with custom attributes and a query string that are both transfered correctly.
 
@@ -495,8 +489,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Mario\'s model viewer
----------------------
+## Mario\'s model viewer
 
 A simple iframe with a special url.
 
@@ -519,8 +512,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Youtube video stream
---------------------
+## Youtube video stream
 
 An image with source URL scheme \`youtube:\` results in an embedded video player.
 
@@ -531,10 +523,10 @@ An image with source URL scheme \`youtube:\` results in an embedded video player
 translates to
 
 ``` {.html}
-<div id="video1" class="decker nofigure" style="width:75%;">
+<div id="video1" class="decker nofigure streaming" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
-        <iframe allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://www.youtube.com/embed/1234567890?autoplay=1&cc_load_policy=0&controls=1&iv_load_policy=3&modestbranding=&rel=0&showinfo=0">
-            Iframe showing video here.
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?cc_load_policy=0&controls=1&iv_load_policy=3&modestbranding=1&rel=0&showinfo=0">
+            
         </iframe>
     </div>
 </div>
@@ -542,8 +534,30 @@ translates to
 
 ------------------------------------------------------------------------
 
-Vimeo it baby
--------------
+Youtube video stream
+--------------------
+
+With reveal.js style autoplay and looping.
+
+``` {.markdown}
+![](youtube:1234567890){#video2 .autoplay .loop}
+```
+
+translates to
+
+``` {.html}
+<div id="video2" class="decker nofigure streaming">
+    <div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?cc_load_policy=0&controls=2&iv_load_policy=3&loop=1&modestbranding=1&playlist=1234567890&rel=0&showinfo=0">
+            
+        </iframe>
+    </div>
+</div>
+```
+
+------------------------------------------------------------------------
+
+## Vimeo it baby
 
 An image with source URL scheme \`vimeo:\` results in an embedded video player.
 
@@ -554,10 +568,10 @@ An image with source URL scheme \`vimeo:\` results in an embedded video player.
 translates to
 
 ``` {.html}
-<figure id="video2" class="decker some-class" data-some-attribute="yeah" style="width:75%;">
+<figure id="video2" class="decker some-class streaming" data-some-attribute="yeah" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:75.00%;height:0;">
-        <iframe allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://player.vimeo.com/video/?autoplay=autoplay&byline=0&controls=1&dnt=1&fun=0&title=0&transparent=false">
-            Iframe showing video here.
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.vimeo.com/video/?byline=0&controls=1&dnt=1&fun=0&title=0&transparent=false">
+            
         </iframe>
     </div>
     <figcaption class="decker">
@@ -568,8 +582,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Twitch it baby
---------------
+## Twitch it baby
 
 An image with source URL scheme \`twitch:\` results in an embedded video player.
 
@@ -580,10 +593,10 @@ An image with source URL scheme \`twitch:\` results in an embedded video player.
 translates to
 
 ``` {.html}
-<figure class="decker controls" style="width:75%;">
+<figure class="decker controls streaming" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:60.00%;height:0;">
-        <iframe allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://player.twitch.tv/?autoplay=1&video=1234567890">
-            Iframe showing video here.
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.twitch.tv/?video=1234567890&parent=localhost&allowfullscreen=true">
+            
         </iframe>
     </div>
     <figcaption class="decker">
@@ -594,8 +607,7 @@ translates to
 
 ------------------------------------------------------------------------
 
-Background image
-----------------
+## Background image
 
 The last image in a level 1 header is promoted to the slide background.
 
@@ -606,13 +618,12 @@ The last image in a level 1 header is promoted to the slide background.
 translates to
 
 ``` {.html}
-<h1 data-background-size="cover" data-background-image="/test/decks/include/06-metal.png" id="background-image" data-background-size="cover" data-background-image="/test/decks/include/06-metal.png">Background Image  </h1>
+<h1 data-background-size="cover" data-background-image="/test/decks/include/06-metal.png" id="background-image">Background Image  </h1>
 ```
 
 ------------------------------------------------------------------------
 
-Background video
-----------------
+## Background video
 
 The last image in a level 1 header is promoted to the slide background.
 
@@ -623,7 +634,7 @@ The last image in a level 1 header is promoted to the slide background.
 translates to
 
 ``` {.html}
-<h1 data-background-video-loop="1" data-background-video-muted="1" data-background-video="test/decks/pacman-perfect-game.mp4" id="background-image" data-background-video-loop="1" data-background-video-muted="1" data-background-video="test/decks/pacman-perfect-game.mp4">Background Image  </h1>
+<h1 data-background-video-loop="1" data-background-video-muted="1" data-background-video="test/decks/pacman-perfect-game.mp4" id="background-image">Background Image  </h1>
 ```
 
 </div>

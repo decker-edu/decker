@@ -156,11 +156,19 @@ div.nofigure > iframe.decker {
   max-height: 100%;
 }
 
+div.decker.nofigure {
+  width: 100%;
+}
+
+figure.streaming {
+  width: 100%;
+  margin: 0;
+}
+
 figure.decker figcaption.decker {
   margin: 0px 0px 0px 0px;
   line-height: 1.2;
   font-style: italic;
-  font-size: 0.8em;
   text-align: center;
 }
 

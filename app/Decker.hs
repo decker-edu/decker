@@ -116,7 +116,6 @@ run = do
   --
   runDecker $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches
-    --
     want ["decks"]
     --
 
@@ -188,12 +187,14 @@ run = do
     priority 4 $ do
       publicDir <//> "*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
+        need[src]
         needIfExists "-deck.html" "-annot.json" out
         needIfExists "-deck.html" "-times.json" out
         -- needIfExists "-deck.html" "-recording.mp4" out
         let recordingWebm = replaceSuffix "-deck.md" "-recording.webm" src
         let recordingMp4 = replaceSuffix "-deck.html" "-recording.mp4" out
-        whenM (doesFileExist recordingWebm) $ need [recordingMp4]
+        let recordingTimes = replaceSuffix "-deck.html" "-times.json" out
+        whenM (liftIO $ Dir.doesFileExist recordingWebm) $ need [recordingMp4, recordingTimes]
         meta <- getGlobalMeta
         markdownToHtmlDeck meta getTemplate src out
       --
@@ -261,8 +262,8 @@ run = do
       --
       "**/*-recording.mp4" %> \out -> do
         let src = replaceSuffix "-recording.mp4" "-recording.webm" out
-        whenM (doesFileExist src) $
-          command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
+        need [src]
+        command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
       --
       "**/*.tex.svg" %> \out -> do
         let src = dropExtension out
@@ -285,6 +286,10 @@ run = do
       targets <- getTargets
       need (targets ^. static)
     --
+    phony "uploads" $ do
+      targets <- getTargets
+      need (targets ^. uploads)
+    --
     phony "info" $ do
       project <- liftIO $ Dir.canonicalizePath projectDir
       putNormal $ "\nproject directory: " ++ project
@@ -300,7 +305,7 @@ run = do
       putNormal (groom meta)
     --
     phony "support" $ do
-      need [indexFile, "static-files"]
+      need [indexFile, "static-files", "uploads"]
       meta <- getGlobalMeta
       writeSupportFilesToPublic meta
     --
@@ -324,7 +329,6 @@ needIfExists :: String -> String -> String -> Action ()
 needIfExists suffix also out = do
   let annotDst = replaceSuffix suffix also out
   annotSrc <- calcSource' annotDst
-  doesFileExist annotSrc
   exists <- liftIO $ Dir.doesFileExist annotSrc
   when exists $ need [annotDst]
 

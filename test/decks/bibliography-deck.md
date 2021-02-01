@@ -1,6 +1,6 @@
 ---
 bibliography: bibliography.bib
-csl: '/test/decks/acm-sig-proceedings.csl'
+csl: acm-sig-proceedings.csl
 title: Citation
 ---
 
