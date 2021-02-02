@@ -11,64 +11,64 @@
 -- The original repo does not seem to be maintained very actively and will not compile
 -- with lts-13.3.
 module Text.Pandoc.Lens
-      -- * Documents
-  ( Pandoc
-  , body
-  , meta
-  -- * Blocks
-  -- | Prisms are provided for the constructors of 'Block'
-  -- as well as a 'Plated' instance.
-  , Block
-  , _Plain
-  , _Para
-  , _CodeBlock
-  , _BlockQuote
-  , _OrderedList
-  , _BulletList
-  , _DefinitionList
-  , _Header
-  , _HorizontalRule
-  , _Div
-  , _Null
-  -- * Inlines
-  -- | Prisms are provided for the constructors of 'Inline'
-  -- as well as a 'Plated' instance.
-  , Inline
-  , _Str
-  , _Emph
-  , _Strong
-  , _Strikeout
-  , _Superscript
-  , _Subscript
-  , _SmallCaps
-  , _Quoted
-  , _Cite
-  , _Code
-  , _Space
-  , _LineBreak
-  , _Math
-  , _RawInline
-  , _Link
-  , _Image
-  , _Note
-  , _Span
-  , inlinePrePlate
-  -- * Metadata
-  -- | Prisms are provided for the constructors of 'MetaValue'
-  -- as well as a 'Plated' instance.
-  , MetaValue
-  , _MetaMap
-  , _MetaList
-  , _MetaBool
-  , _MetaString
-  , _MetaInlines
-  , _MetaBlocks
-  -- * Attributes
-  , HasAttr(..)
-  , attrIdentifier
-  , attrClasses
-  , attrs
-  ) where
+    ( -- * Documents
+      Pandoc
+    , body
+    , meta
+      -- * Blocks
+      -- | Prisms are provided for the constructors of 'Block'
+      -- as well as a 'Plated' instance.
+    , Block
+    , _Plain
+    , _Para
+    , _CodeBlock
+    , _BlockQuote
+    , _OrderedList
+    , _BulletList
+    , _DefinitionList
+    , _Header
+    , _HorizontalRule
+    , _Div
+    , _Null
+      -- * Inlines
+      -- | Prisms are provided for the constructors of 'Inline'
+      -- as well as a 'Plated' instance.
+    , Inline
+    , _Str
+    , _Emph
+    , _Strong
+    , _Strikeout
+    , _Superscript
+    , _Subscript
+    , _SmallCaps
+    , _Quoted
+    , _Cite
+    , _Code
+    , _Space
+    , _LineBreak
+    , _Math
+    , _RawInline
+    , _Link
+    , _Image
+    , _Note
+    , _Span
+    , inlinePrePlate
+      -- * Metadata
+      -- | Prisms are provided for the constructors of 'MetaValue'
+      -- as well as a 'Plated' instance.
+    , MetaValue
+    , _MetaMap
+    , _MetaList
+    , _MetaBool
+    , _MetaString
+    , _MetaInlines
+    , _MetaBlocks
+      -- * Attributes
+    , HasAttr(..)
+    , attrIdentifier
+    , attrClasses
+    , attrs
+    ) where
 
 import Control.Lens
 import Data.Map (Map)

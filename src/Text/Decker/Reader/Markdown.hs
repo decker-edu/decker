@@ -13,10 +13,10 @@ module Text.Decker.Reader.Markdown
   )
 where
 
-import Control.Exception
 import Control.Monad
 import Control.Monad.Loops
 import qualified Data.List as List
+import Data.Maybe
 import qualified Data.Text.IO as Text
 import Development.Shake hiding (Resource)
 import Relude
@@ -32,36 +32,34 @@ import Text.Decker.Filter.Paths
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
 import Text.Decker.Resource.Template
 import Text.Pandoc hiding (lookupMeta)
-
--- TODO find the CSL file somewhere
--- import Text.Pandoc.Walk
--- import Text.Pandoc.Citeproc
--- import Text.Decker.Filter.Attrib
+import Text.Pandoc.Citeproc
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
 -- the project root directory. Throws an exception if something goes wrong
 readAndFilterMarkdownFile :: Disposition -> Meta -> FilePath -> Action Pandoc
 readAndFilterMarkdownFile disp globalMeta path = do
-  let docBase = (takeDirectory path)
+  let docBase = takeDirectory path
   readMarkdownFile globalMeta path
     >>= mergeDocumentMeta globalMeta
     >>= processCites
-    >>= calcRelativeResourePathes docBase
+    >>= calcRelativeResourcePaths docBase
     >>= runNewFilter disp examinerFilter docBase
     >>= deckerMediaFilter disp docBase
     >>= processPandoc deckerPipeline docBase disp Copy
 
--- TODO find the CSL file somewhere
-processCites pandoc@(Pandoc meta _) = liftIO $ do
-  if isJust $ (lookupMeta "csl" meta :: Maybe String)
-    then return pandoc -- handleError $ runPure $ processCitations pandoc
+processCites :: MonadIO m => Pandoc -> m Pandoc
+processCites pandoc@(Pandoc meta blocks) = liftIO $ do
+  let csl = lookupMeta "csl" meta :: Maybe FilePath
+      bib = lookupMeta "bibliography" meta :: Maybe FilePath
+  -- Only do citations if we have both, csl and bibliography
+  if all isJust [csl, bib]
+    then runIOorExplode $ processCitations pandoc
     else return pandoc
 
 -- | Reads a Markdown file from the local file system. Local resource paths are
@@ -83,9 +81,7 @@ readMarkdownFile globalMeta path = do
 parseMarkdownFile :: FilePath -> Action Pandoc
 parseMarkdownFile path = do
   markdown <- liftIO $ Text.readFile path
-  case runPure (readMarkdown pandocReaderOpts markdown) of
-    Right pandoc -> return pandoc
-    Left errMsg -> liftIO $ throwIO $ PandocException (show errMsg)
+  liftIO $ runIOorExplode (readMarkdown pandocReaderOpts markdown)
 
 -- | Writes a Pandoc document to a file in Markdown format. Throws an exception
 -- if something goes wrong
@@ -121,7 +117,7 @@ adjustMetaPaths globalMeta base meta = do
 -- plugin, presumeably) and at compile-time (by some template). Lists of these
 -- variables can be specified in the meta data.
 needMetaTargets :: FilePath -> Meta -> Action Meta
-needMetaTargets base meta = do
+needMetaTargets base meta =
   adjustMetaVariables (adjustR base) (runtimePathVariables meta) meta
     >>= adjustMetaVariables (adjustC base) (compiletimePathVariables meta)
   where
@@ -131,7 +127,7 @@ needMetaTargets base meta = do
       need [publicDir </> stringPath]
       let relativePath = makeRelativeTo base stringPath
       -- putNormal $ "<== " <> relativePath
-      return $ toText $ relativePath
+      return $ toText relativePath
     adjustC base path = do
       let pathString = toString path
       isDir <- liftIO $ Dir.doesDirectoryExist pathString
@@ -151,7 +147,7 @@ mergeDocumentMeta globalMeta (Pandoc docMeta content) = do
   return (Pandoc combinedMeta content)
 
 checkVersion :: Pandoc -> Action Pandoc
-checkVersion pandoc = return pandoc
+checkVersion = return
 
 -- | Traverses the pandoc AST and transitively embeds included Markdown files.
 includeMarkdownFiles :: Meta -> FilePath -> Pandoc -> Action Pandoc
@@ -185,8 +181,8 @@ runtimePathVariables meta =
 
 -- | Calculates paths relative to docBase for all runtime paths contained in
 -- the meta data. Also calls need on those files.
-calcRelativeResourePathes :: FilePath -> Pandoc -> Action Pandoc
-calcRelativeResourePathes base (Pandoc meta content) = do
+calcRelativeResourcePaths :: FilePath -> Pandoc -> Action Pandoc
+calcRelativeResourcePaths base (Pandoc meta content) = do
   calculated <- needMetaTargets base meta
   return (Pandoc calculated content)
 
@@ -207,7 +203,7 @@ readMetaData globalMeta path = do
   need [path]
   putVerbose $ "# --> readMetaData: " <> path
   let base = takeDirectory path
-  meta <- (liftIO $ readMetaDataFile path)
+  meta <- liftIO $ readMetaDataFile path
   adjustMetaPaths globalMeta base meta >>= readAdditionalMeta globalMeta base
 
 readDeckerMeta :: FilePath -> Action Meta

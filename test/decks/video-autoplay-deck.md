@@ -14,20 +14,19 @@ title: Video Autoplay
 
 # Autoplay off
 
-![](pacman-perfect-game.mp4){controls="1" width="50%"}
+![](pacman-perfect-game.mp4){.controls width="50%"}
 
 # Autoplay on
 
-![](pacman-perfect-game.mp4){controls="1" data-autoplay="1" width="50%"}
+![](pacman-perfect-game.mp4){.controls .autoplay width="50%"}
 
 # Autoplay off with start time as fragment
 
-![](pacman-perfect-game.mp4){controls="1" width="50%" start="200"}
+![](pacman-perfect-game.mp4){.controls width="50%" start="200"}
 
 # Autoplay on with start time as fragment
 
-![](pacman-perfect-game.mp4){controls="1" width="50%" data-autoplay="1"
-start="200"}
+![](pacman-perfect-game.mp4){.controls width="50%" .autoplay start="200"}
 
 # Native video tag
 

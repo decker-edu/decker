@@ -59,10 +59,26 @@ An SVG image that is embedded into the HTML document.
 translates to
 
 ``` {.html}
-<span class="decker svg embed" style="background-color:magenta;">
-    <svg>This space intentionally left blank</svg>
+<div class="decker image error">
+    <h2 class="title">
+        <i class="fa fa-exclamation-triangle">
+            
+        </i>
+         Decker error
+    </h2>
+    <p class="message">
+        test/decks/empty.svg: openFile: does not exist (No such file or directory)
+    </p>
+    <p>
+        encountered while processing
+    </p>
+    <pre class="markup">
+        <code class="markup">
+            ![](/test/decks/empty.svg){.embed css:background-color=&quot;magenta&quot;}
 
-</span>
+        </code>
+    </pre>
+</div>
 ```
 
 ------------------------------------------------------------------------
@@ -282,7 +298,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <audio class="decker" data-src="test/decks/audio.mp3" controls="controls" data-autoplay="1">
+    <audio class="decker" data-src="test/decks/audio.mp3" controls="controls" allow="autoplay" data-autoplay="1">
         
     </audio>
     <figcaption class="decker">
@@ -351,7 +367,7 @@ translates to
 
 ``` {.html}
 <figure class="decker">
-    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4#t=5,30" poster="/test/decks/include/06-metal.png" preload="none" controls="controls" data-autoplay="1">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4#t=5,30" poster="/test/decks/include/06-metal.png" preload="none" controls="controls" allow="autoplay" data-autoplay="1">
         
     </video>
     <figcaption class="decker">
@@ -379,7 +395,7 @@ translates to
     <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png">
 
     <figure class="decker">
-    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" allow="autoplay" data-autoplay="1">
         
     </video>
     <figcaption class="decker">
@@ -413,7 +429,7 @@ translates to
 <div class="decker image-row">
     <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png">
 
-    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" data-autoplay="1">
+    <video class="decker" data-src="test/decks/pacman-perfect-game.mp4" allow="autoplay" data-autoplay="1">
     
 </video>
 
@@ -507,10 +523,33 @@ An image with source URL scheme \`youtube:\` results in an embedded video player
 translates to
 
 ``` {.html}
-<div id="video1" class="decker nofigure" style="width:75%;">
+<div id="video1" class="decker nofigure streaming" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
-        <iframe allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://www.youtube.com/embed/1234567890?autoplay=1&cc_load_policy=0&controls=1&iv_load_policy=3&modestbranding=&rel=0&showinfo=0">
-            Iframe showing video here.
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?cc_load_policy=0&controls=1&iv_load_policy=3&modestbranding=1&rel=0&showinfo=0">
+            
+        </iframe>
+    </div>
+</div>
+```
+
+------------------------------------------------------------------------
+
+Youtube video stream
+--------------------
+
+With reveal.js style autoplay and looping.
+
+``` {.markdown}
+![](youtube:1234567890){#video2 .autoplay .loop}
+```
+
+translates to
+
+``` {.html}
+<div id="video2" class="decker nofigure streaming">
+    <div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?cc_load_policy=0&controls=2&iv_load_policy=3&loop=1&modestbranding=1&playlist=1234567890&rel=0&showinfo=0">
+            
         </iframe>
     </div>
 </div>
@@ -529,10 +568,10 @@ An image with source URL scheme \`vimeo:\` results in an embedded video player.
 translates to
 
 ``` {.html}
-<figure id="video2" class="decker some-class" data-some-attribute="yeah" style="width:75%;">
+<figure id="video2" class="decker some-class streaming" data-some-attribute="yeah" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:75.00%;height:0;">
-        <iframe allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://player.vimeo.com/video/?autoplay=autoplay&byline=0&controls=1&dnt=1&fun=0&title=0&transparent=false">
-            Iframe showing video here.
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.vimeo.com/video/?byline=0&controls=1&dnt=1&fun=0&title=0&transparent=false">
+            
         </iframe>
     </div>
     <figcaption class="decker">
@@ -554,10 +593,10 @@ An image with source URL scheme \`twitch:\` results in an embedded video player.
 translates to
 
 ``` {.html}
-<figure class="decker controls" style="width:75%;">
+<figure class="decker controls streaming" style="width:75%;">
     <div style="position:relative;padding-top:25px;padding-bottom:60.00%;height:0;">
-        <iframe allow="fullscreen" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://player.twitch.tv/?autoplay=1&video=1234567890">
-            Iframe showing video here.
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.twitch.tv/?video=1234567890&parent=localhost&allowfullscreen=true">
+            
         </iframe>
     </div>
     <figcaption class="decker">

@@ -41,7 +41,7 @@ serverConfig port = do
   createDirectoryIfMissing True transientDir
   return
     ( setVerbose True $
-        setBind "localhost" $
+        -- setBind "localhost" $
           setPort port $
             --setSSLBind "localhost" $
             --setSSLPort (port + 13) $
@@ -147,6 +147,9 @@ startUpdater state = do
       pingAll state
   return ()
 
+-- | Save the request body in the project directory under the request path. But
+-- only if the request path ends on one of the suffixes and the local directory
+-- already exists.
 uploadResource :: MonadSnap m => [String] -> m ()
 uploadResource suffixes = do
   destination <- toString <$> getsRequest rqPathInfo
