@@ -58,7 +58,7 @@ writeIndexLists meta targets out baseUrl = do
       ]
   where
     makeLink (html, pdf) = do
-      pdfExists <- doesFileExist pdf
+      pdfExists <- liftIO $ Dir.doesFileExist pdf
       if pdfExists
         then return $
              printf

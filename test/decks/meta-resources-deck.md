@@ -3,7 +3,7 @@ color:
   black: '\#000'
   magenta: '\#f0f'
   white: '\#fff'
-csl: 'acm-sig-proceedings.csl'
+csl: '/test/decks/acm-sig-proceedings.csl'
 deep:
   down:
     bool: true

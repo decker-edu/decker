@@ -14,13 +14,11 @@ import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Lazy as BSL
 import Data.ByteString.UTF8
 import Data.FileEmbed
 import Data.List
 import qualified Data.Set as Set
 import qualified Data.Text as Text
-import GHC.IO.Exception
 import Network.WebSockets
 import Network.WebSockets.Snap
 import Snap.Core
@@ -43,7 +41,7 @@ serverConfig port = do
   createDirectoryIfMissing True transientDir
   return
     ( setVerbose True $
-        setBind "localhost" $
+        -- setBind "localhost" $
           setPort port $
             --setSSLBind "localhost" $
             --setSSLPort (port + 13) $
@@ -128,9 +126,6 @@ runHttpServer state port = do
         putStrLn $ "  " <> show e
     )
 
-exitWith :: t0 -> IO ()
-exitWith = error "not implemented"
-
 tenSeconds = 10 * 10 ^ 6
 
 -- |  Sends a ping message to all connected browsers.
@@ -153,26 +148,8 @@ startUpdater state = do
   return ()
 
 -- | Save the request body in the project directory under the request path. But
--- only if the request path ends on "-annot.json" and the local directory
+-- only if the request path ends on one of the suffixes and the local directory
 -- already exists.
-saveAnnotation :: MonadSnap m => m ()
-saveAnnotation = do
-  path <- getsRequest rqPathInfo
-  liftIO $ putStrLn $ "saving: " <> toString path
-  if BS.isSuffixOf "-annot.json" path
-    || BS.isSuffixOf "-annot.png" path
-    || BS.isSuffixOf "-annot.pkdrawing" path
-    then do
-      let destination = toString path
-      body <- readRequestBody 10000000
-      exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
-      if exists
-        then do
-          liftIO $ BSL.writeFile destination body
-          writeText $ Text.pack ("annotation stored at: " ++ destination)
-        else modifyResponse $ setResponseStatus 500 "Destination directory does not exist"
-    else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
-
 uploadResource :: MonadSnap m => [String] -> m ()
 uploadResource suffixes = do
   destination <- toString <$> getsRequest rqPathInfo
