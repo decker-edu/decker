@@ -2,20 +2,14 @@
   margin:     calc(var(--whiteboard-icon-size) * 0.5);
   padding:    0.2em;
   font-size:  var(--whiteboard-icon-size);
-  color:      var(--whiteboard-inactive-color);
   border:      none;
   outline:     none;
   background:  none;
-  opacity:     0.5;
 }
 .dvo-button:focus,
 .dvo-button::-moz-focus-inner {
     outline: none;
     border: 0;
-}
-.dvo-button:hover {
-  opacity: 1.0;
-  color: var(--whiteboard-active-color);
 }
 
 
@@ -24,23 +18,124 @@
   right:    calc(var(--whiteboard-icon-size) * 1.75);
   top:      calc(var(--whiteboard-icon-size) * 0.25);
   z-index:  40;
+  color:    var(--whiteboard-inactive-color);
+  opacity:   0.5;
+}
+#dvo-play:hover {
+  opacity: 1.0;
+  color: var(--whiteboard-active-color);
 }
 
 
-#dvo-record {
+#record-panel {
   position: fixed;
-  right:    calc(var(--whiteboard-icon-size) * 1.75 * 2);
-  top:      calc(var(--whiteboard-icon-size) * 0.25);
+  left:     50%;
+  transform: translate(-50%,0);
+  top:   0px;
   z-index:  40;
+  text-align: center;
+  padding: 5px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border: 1px solid var(--whiteboard-inactive-color);
+  background: var(--whiteboard-background-color);
+
+  display: flex;
+  flex-flow: column-reverse nowrap;
+  justify-content: center;
+}
+
+.controls-row {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: center;
+  margin: 5px 0px;
+}
+
+#audio-meter {
+  position: relative;  
+  height:   15px;
+  width:    200px;
+}
+
+.indicator {
+  margin: 0;
+  margin-right: 10px;
+  padding: 0px;
+  font-size: 15px;
+  width: 20px;
+  height: 15px;
+  text-align: center;
+  border:      none;
+  outline:     none;
+  background:  none;
+  font-family: "Font Awesome 5 Free"; 
+}
+.indicator::before {
+  display: inline-block;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+
+#record-indicator {
+  color: red;
+}
+#record-indicator::before {
+  content: '\f111';
+  font-weight: 400; 
+}
+#record-indicator[data-state='paused']::before {
+  content: '\f04c';
+  font-weight: 900; 
+}
+#record-indicator[data-state='recording']::before {
+  content: '\f111';
+  font-weight: 900; 
+}
+
+#voice-indicator,
+#desktop-indicator {
+  color: var(--whiteboard-inactive-color);
+}
+#voice-indicator[title],
+#desktop-indicator[title] {
+  color: red;
+}
+
+#voice-indicator::before {
+  content: '\f130';
+  font-weight: 900; 
+}
+#desktop-indicator::before {
+  content: '\f26c';
+  font-weight: 900; 
+}
+
+#record-controls {
+  display: none;
+}
+#record-panel:hover #record-controls {
+  display: block;
+}
+
+#record-start,
+#record-stop,
+record-pause {
   color:    red;
   opacity:  1.0;
-  border:   1px solid transparent;
 }
 
-
-#dvo-panel[data-visible] {
-  display: flex;
+#voice-gain-slider,
+#desktop-gain-slider {
+  display: block;
+  width: 200px;
+  height: 20px;
 }
+
 
 #dvo-panel {
   position: fixed;
@@ -55,6 +150,10 @@
   flex-flow: column nowrap;
   justify-content:center;
 }
+#dvo-panel[data-visible] {
+  display: flex;
+}
+
 
 #dvo-video {
   width: 100%;
