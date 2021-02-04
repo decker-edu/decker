@@ -308,7 +308,6 @@ let ExplainPlugin = (function () {
   // adapted from https://paul.kinlan.me/screen-recorderrecording-microphone-and-the-desktop-audio-at-the-same-time/
   const mergeAudioStreams = (desktopStream, voiceStream) => {
     const context = new AudioContext();
-    const destination = context.createMediaStreamDestination();
     let hasDesktop = false;
     let hasVoice = false;
 
@@ -316,25 +315,29 @@ let ExplainPlugin = (function () {
     let audioMeter = createAudioMeter(context, volumeMeter);
 
     if (desktopStream && desktopStream.getAudioTracks().length > 0) {
-      const source1 = context.createMediaStreamSource(desktopStream);
-      desktopGain = context.createGain();
-      desktopGain.gain.value = 0.7;
-      source1.connect(desktopGain).connect(audioMeter);
-      desktopGain.connect(audioMeter);
       hasDesktop = true;
-      console.log("recording desktop audio");
+      // connect gain to slider
+      desktopGain = context.createGain();
+      desktopGain.gain.value = desktopGainSlider.value;
+      desktopGainSlider.gain = desktopGain;
+      // connect source->gain->meter
+      const source1 = context.createMediaStreamSource(desktopStream);
+      source1.connect(desktopGain).connect(audioMeter);
     }
 
     if (voiceStream && voiceStream.getAudioTracks().length > 0) {
-      const source2 = context.createMediaStreamSource(voiceStream);
-      voiceGain = context.createGain();
-      voiceGain.gain.value = 1.0;
-      source2.connect(voiceGain).connect(audioMeter);
-      voiceGain.connect(audioMeter);
       hasVoice = true;
-      console.log("recording mic audio");
+      // connect gain to slider
+      voiceGain = context.createGain();
+      voiceGain.gain.value = voiceGainSlider.value;
+      voiceGainSlider.gain = voiceGain;
+      // connect source->gain->meter
+      const source2 = context.createMediaStreamSource(voiceStream);
+      source2.connect(voiceGain).connect(audioMeter);
     }
 
+    // connect source(s)->gain(s)->meter->destination
+    const destination = context.createMediaStreamDestination();
     audioMeter.connect(destination);
     audioMeter.draw();
 
@@ -520,8 +523,7 @@ let ExplainPlugin = (function () {
 
     let recordButton = createElement({
       type: "button", 
-      id: "record-start", 
-      classes: "dvo-button fas fa-play-circle", 
+      classes: "dvo-button record-button fas fa-play-circle", 
       title: "Start recording",
       parent: row
     });
@@ -529,8 +531,7 @@ let ExplainPlugin = (function () {
 
     let pauseButton = createElement({
       type: "button", 
-      id: "record-stop", 
-      classes: "dvo-button fas fa-pause-circle",
+      classes: "dvo-button record-button fas fa-pause-circle",
       title: "Pause/resume recording",
       parent: row
     });
@@ -538,8 +539,7 @@ let ExplainPlugin = (function () {
 
     let stopButton = createElement({
       type: "button", 
-      id: "record-stop", 
-      classes: "dvo-button fas fa-stop-circle",
+      classes: "dvo-button record-button fas fa-stop-circle",
       title: "Stop recording",
       parent: row
     });
@@ -551,31 +551,19 @@ let ExplainPlugin = (function () {
       classes: "controls-row",
       parent: controls
     });
-
     voiceIndicator = createElement({
       type: "i", 
-      id: "voice-indicator", 
-      classes: "indicator", 
+      classes: "indicator fas fa-microphone", 
       parent: row
     });
-
     voiceGainSlider = createElement({
       type: "input",
-      id: "voice-gain-slider", 
+      id: "voice-gain-slider",
+      classes: "gain-slider",
       title: "Microphone Audio Gain",
       parent: row
     });
-    voiceGainSlider.type = "range";
-    voiceGainSlider.min = 0;
-    voiceGainSlider.max = 2;
-    voiceGainSlider.value = 1;
-    voiceGainSlider.step = 0.1;
-    voiceGainSlider.oninput = () => { 
-      if (voiceGain) {
-        voiceGain.gain.value = voiceGainSlider.value;
-        console.log(voiceGain.gain.value);
-      }
-    };
+    setupGainSlider(voiceGain, voiceGainSlider);
 
 
     row = createElement({
@@ -583,37 +571,48 @@ let ExplainPlugin = (function () {
       classes: "controls-row",
       parent: controls
     });
-
     desktopIndicator = createElement({
       type: "i", 
-      id: "desktop-indicator", 
-      classes: "indicator", 
+      classes: "indicator fas fa-tv", 
       parent: row
     });
-
     desktopGainSlider = createElement({
       type: "input", 
       id: "desktop-gain-slider",
+      classes: "gain-slider",
       title: "Desktop Audio Gain",
       parent: row
     });
-    desktopGainSlider.type = "range";
-    desktopGainSlider.min = 0;
-    desktopGainSlider.max = 2;
-    desktopGainSlider.value = 1;
-    desktopGainSlider.step = 0.1;
-    desktopGainSlider.oninput = () => { 
-      if (desktopGain) {
-        desktopGain.gain.value = desktopGainSlider.value;
-        console.log(desktopGain.gain.value);
-      }
+    setupGainSlider(desktopGain, desktopGainSlider);
+  }
+
+
+  function setupGainSlider(gain, slider) {
+    slider.type = "range";
+    slider.min = 0;
+    slider.max = 2;
+    slider.step = 0.1;
+    slider.storage = "decker-" + slider.id;
+    slider.value = localStorage.getItem(slider.storage) ? localStorage.getItem(slider.storage) : 1.0;
+
+    slider.output = createElement({
+      type: "output",
+      parent: slider.parentElement
+    });
+
+    slider.oninput = function() { 
+      if (this.gain) this.gain.gain.value = this.value;
+      this.output.innerHTML = this.value;
+      localStorage.setItem(this.storage, this.value);
     };
+    slider.oninput(); // call once to set output
   }
 
 
   function updateRecordIndicator() {
     recordIndicator.dataset.state = recorder ? recorder.state : '';
   }
+
 
   function printTimeStamps() {
     for (let i = 0; i < explainTimes.length; i++) {

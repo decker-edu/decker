@@ -28,9 +28,9 @@
 
 
 #record-panel {
+  --offset: calc(-100% + 35px);
   position: fixed;
   left:     50%;
-  transform: translate(-50%,0);
   top:   0px;
   z-index:  40;
   text-align: center;
@@ -38,11 +38,20 @@
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   border: 1px solid var(--whiteboard-inactive-color);
+  border-top: none;
   background: var(--whiteboard-background-color);
 
   display: flex;
   flex-flow: column-reverse nowrap;
   justify-content: center;
+
+  transform: translate(-50%, var(--offset));
+  opacity: 0.5;
+  transition: transform 0.3s ease-in-out 0.5s;
+}
+#record-panel:hover {
+  transform: translate(-50%, 0);
+  opacity: 1.0;
 }
 
 .controls-row {
@@ -56,7 +65,8 @@
 #audio-meter {
   position: relative;  
   height:   15px;
-  width:    200px;
+  min-width: 200px;
+  flex-grow: 1;
 }
 
 .indicator {
@@ -71,6 +81,10 @@
   outline:     none;
   background:  none;
   font-family: "Font Awesome 5 Free"; 
+  color: var(--whiteboard-inactive-color);
+}
+.indicator[title] {
+  color: red;
 }
 .indicator::before {
   display: inline-block;
@@ -81,9 +95,6 @@
 }
 
 
-#record-indicator {
-  color: red;
-}
 #record-indicator::before {
   content: '\f111';
   font-weight: 400; 
@@ -91,49 +102,41 @@
 #record-indicator[data-state='paused']::before {
   content: '\f04c';
   font-weight: 900; 
+  color: red;
 }
 #record-indicator[data-state='recording']::before {
   content: '\f111';
   font-weight: 900; 
-}
-
-#voice-indicator,
-#desktop-indicator {
-  color: var(--whiteboard-inactive-color);
-}
-#voice-indicator[title],
-#desktop-indicator[title] {
   color: red;
 }
 
-#voice-indicator::before {
-  content: '\f130';
-  font-weight: 900; 
-}
-#desktop-indicator::before {
-  content: '\f26c';
-  font-weight: 900; 
-}
 
-#record-controls {
+
+/* #record-controls {
   display: none;
 }
 #record-panel:hover #record-controls {
   display: block;
-}
+} */
 
-#record-start,
-#record-stop,
-record-pause {
+
+.record-button {
   color:    red;
   opacity:  1.0;
 }
 
-#voice-gain-slider,
-#desktop-gain-slider {
+.gain-slider {
   display: block;
-  width: 200px;
+  min-width: 200px;
   height: 20px;
+  flex-grow: 1;
+}
+
+.controls-row output {
+  font-size: 15px;
+  height: 15px;
+  width: 20px;
+  text-align: right;
 }
 
 
