@@ -7,12 +7,13 @@ let ExplainPlugin = (function () {
   let playPanel, playButton, player;
   let recordPanel, recordIndicator, voiceIndicator, desktopIndicator;
   let voiceGainSlider, desktopGainSlider;
+  let cameraVideo;
 
   // recording stuff
   let blobs;
   let recorder;
   let stream;
-  let voiceStream, desktopStream;
+  let voiceStream, desktopStream, cameraStream;
   let voiceGain, desktopGain;
   let volumeMeter;
 
@@ -196,6 +197,19 @@ let ExplainPlugin = (function () {
 
     // show recording panel
     recordPanel.style.visibility = "visible";
+
+
+    // get camera stream
+    console.log('get camera stream');
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: 1280,
+        height: 720,
+        frameRate: { max: 30 }
+      },
+      audio: false
+    });
+    cameraVideo.srcObject = cameraStream;
   }
 
 
@@ -614,6 +628,48 @@ let ExplainPlugin = (function () {
   }
 
 
+  function createCameraGUI() {
+    cameraVideo = createElement({
+      type: "video",
+      id: "camera-video",
+      parent: document.body
+    });
+    cameraVideo.muted = true;  // dont' want audio in this stream
+    cameraVideo.style.display = 'none';
+    cameraVideo.onclick = function() {
+      if (cameraVideo.hasAttribute("data-fullscreen")) {
+        cameraVideo.removeAttribute("data-fullscreen");
+      }
+      else {
+        cameraVideo.setAttribute("data-fullscreen", true);
+      }
+    };
+  }
+
+  function toggleCamera() {
+    // sorry, ugly...
+    if (cameraVideo.style.display == 'none') {
+      cameraVideo.style.display = 'block';
+      cameraVideo.play();
+    }
+    else {
+      cameraVideo.style.display = 'none';
+      cameraVideo.pause();
+    }
+  }
+
+  let voiceGainBak = 1.0;
+  function toggleMicrophone() {
+    if (voiceGainSlider.value == 0){
+      voiceGainSlider.value = voiceGainBak;
+    }
+    else {
+      voiceGainBak = voiceGainSlider.value;
+      voiceGainSlider.value = 0;
+    }
+    voiceGainSlider.oninput();
+  }
+
   function printTimeStamps() {
     for (let i = 0; i < explainTimes.length; i++) {
       let t = explainTimes[i];
@@ -666,7 +722,10 @@ let ExplainPlugin = (function () {
   }
 
   // setup key binding
+  Reveal.addKeyBinding({keyCode: 65, key: 'A', description: 'Toggle Microphone'}, toggleMicrophone);
   Reveal.addKeyBinding({keyCode: 82, key: 'R', description: 'Setup Recording'}, setupRecording);
+  Reveal.addKeyBinding({keyCode: 86, key: 'V', description: 'Toggle Camera'}, toggleCamera);
+
 
 
   return {
@@ -694,6 +753,7 @@ let ExplainPlugin = (function () {
 
       createRecordingGUI();
       createPlayerGUI();
+      createCameraGUI();
 
 
       // if we have a video, use it

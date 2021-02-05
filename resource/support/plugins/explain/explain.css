@@ -34,12 +34,10 @@
   top:   0px;
   z-index:  40;
   text-align: center;
-  padding: 5px;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border: 1px solid var(--whiteboard-inactive-color);
+  padding: 5px 10px;
+  background-color: none;
+  border: 1px solid transparent;
   border-top: none;
-  background: var(--whiteboard-background-color);
 
   display: flex;
   flex-flow: column-reverse nowrap;
@@ -47,11 +45,16 @@
 
   transform: translate(-50%, var(--offset));
   opacity: 0.5;
-  transition: transform 0.3s ease-in-out 0.5s;
+  transition: transform 0.3s ease-in-out 0.5s, opacity 0.3s linear 0.5s, background-color 0.3s linear 0.5s;
 }
 #record-panel:hover {
   transform: translate(-50%, 0);
   opacity: 1.0;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border: 1px solid var(--whiteboard-inactive-color);
+  border-top: none;
+  background-color: var(--whiteboard-background-color);
 }
 
 .controls-row {
@@ -111,18 +114,10 @@
 }
 
 
-
-/* #record-controls {
-  display: none;
-}
-#record-panel:hover #record-controls {
-  display: block;
-} */
-
-
 .record-button {
   color:    red;
   opacity:  1.0;
+  font-size: 3vmin;
 }
 
 .gain-slider {
@@ -175,4 +170,28 @@
 .video-js .vjs-icon-previous-item,
 .video-js .vjs-icon-next-item {
   font-size: 18px;
+}
+
+#camera-video {
+  position: fixed;
+  left: auto;
+  top: auto;
+  right:    0;
+  bottom:   0;
+  z-index:  40;
+  width: 33%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 20px 0 0 0;
+  border-left: 5px solid #2a9ddf;
+  border-top: 5px solid #2a9ddf;
+}
+#camera-video[data-fullscreen] {
+  left: 0;
+  top:  0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  border: none;
 }
