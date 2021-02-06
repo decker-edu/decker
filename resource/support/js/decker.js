@@ -231,7 +231,7 @@ function continueWhereYouLeftOff() {
     if (hash == '') {
       const slideIndex = JSON.parse(localStorage.getItem(pathname));
       // ...and previous slide index is stored
-      if (slideIndex) {
+      if (slideIndex && slideIndex.h != 0) {
         // ...ask to jump to that slide
         const msg = "Continue on slide " + slideIndex.h + ", where you left off last time?";
         if (confirm(msg)) {
