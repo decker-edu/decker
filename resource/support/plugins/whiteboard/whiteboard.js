@@ -1332,10 +1332,13 @@ let RevealWhiteboard = (function(){
 
 
     // Intercept page leave when data is not saved
-    window.onbeforeunload = function(e)
-    {
-        if (unsavedAnnotations) return "blabla";
-    }
+    window.addEventListener( "beforeunload", function(evt) {
+        if (unsavedAnnotations) {
+            evt.preventDefault();
+            evt.returnValue = 'You have unsaved annotations';
+            return evt.returnValue;
+        }
+    });
 
 
     // when drawing, stop ANY context menu from being opened

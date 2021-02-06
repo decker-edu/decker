@@ -1,3 +1,10 @@
+"use strict";
+
+// store href *before* reveal modifies it (adds hash of title slide)
+const pathname = location.pathname;
+const hash     = location.hash;
+
+
 if (typeof Reveal === 'undefined') {
   console.error("decker.js has to be loaded after reveal.js");
 }
@@ -21,6 +28,7 @@ function deckerStart() {
   if (Reveal.getConfig().verticalSlides) {
     setupVerticalSlides();
   }
+  continueWhereYouLeftOff();
 }
 
 
@@ -208,4 +216,36 @@ function isElectron() {
   }
 
   return false;
+}
+
+
+function continueWhereYouLeftOff() {
+
+  // if *-deck.html was opened *without* any hash, i.e., on the title slide,
+  // and if user has visited this slide decks before,
+  // then ask user whether to jump to slide where he/she left off
+
+  if (localStorage) {
+
+    // if user opens HTML with hash...
+    if (hash == '') {
+      const slideIndex = JSON.parse(localStorage.getItem(pathname));
+      // ...and previous slide index is stored
+      if (slideIndex) {
+        // ...ask to jump to that slide
+        const msg = "Continue on slide " + slideIndex.h + ", where you left off last time?";
+        if (confirm(msg)) {
+          Reveal.slide(slideIndex.h, slideIndex.v);
+        }
+      }
+    }
+
+    // add hook to store current slide's index
+    window.addEventListener( "beforeunload", () => {
+      const slideIndex = Reveal.getIndices();
+      if (slideIndex) {
+        localStorage.setItem(pathname, JSON.stringify(slideIndex));
+      }
+    });
+  }
 }
