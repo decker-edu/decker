@@ -28,7 +28,7 @@ function deckerStart() {
   if (Reveal.getConfig().verticalSlides) {
     setupVerticalSlides();
   }
-  continueWhereYouLeftOff();
+  setTimeout(continueWhereYouLeftOff, 1000);
 }
 
 
