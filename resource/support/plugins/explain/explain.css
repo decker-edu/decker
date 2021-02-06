@@ -1,7 +1,7 @@
 .dvo-button {
-  margin:     calc(var(--whiteboard-icon-size) * 0.5);
-  padding:    0.2em;
-  font-size:  var(--whiteboard-icon-size);
+  font-size:   var(--whiteboard-icon-size);
+  margin:      0.3em;
+  padding:     0.4em;
   border:      none;
   outline:     none;
   background:  none;
@@ -20,12 +20,39 @@
   z-index:  40;
   color:    var(--whiteboard-inactive-color);
   opacity:   0.5;
+
+  /* padding: 10px; */
+  border-radius: 999px;
+  animation: pulse-button 1s 5;
 }
 #dvo-play:hover {
   opacity: 1.0;
   color: var(--whiteboard-active-color);
 }
 
+/* make play button pulse a few times */
+@keyframes pulse-button {
+	0% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+    color: var(--whiteboard-inactive-color);
+    opacity: 0.5;
+	}
+
+	80% {
+		transform: scale(1.1);
+		box-shadow: 0 0 0 5px #2a9ddf55;
+    color: var(--whiteboard-active-color);
+    opacity: 1.0;
+	}
+
+	100% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    color: var(--whiteboard-inactive-color);
+    opacity: 0.5;
+	}
+}
 
 #record-panel {
   --offset: calc(-100% + 35px);
