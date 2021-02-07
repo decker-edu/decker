@@ -20,6 +20,9 @@ let ExplainPlugin = (function () {
   // playback stuff
   let explainVideoUrl, explainTimes;
 
+  // is the user generating a PDF?
+  const printMode = ( /print-pdf/gi ).test( window.location.search );
+
 
   // GUI helper (uses named parameters)
   function createElement({type, id, classes, title, parent}) {
@@ -730,6 +733,10 @@ let ExplainPlugin = (function () {
 
   return {
     init: async function () {
+
+      // don't do anything when exporting to PDF
+      if (printMode) return;
+
 
       // get config
       let config = Reveal.getConfig().explain;
