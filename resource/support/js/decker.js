@@ -60,7 +60,6 @@ function fixBibtexLinks() {
     // skip external links
     if (url.origin != window.location.origin) continue;
 
-    console.log("hash: " + url.hash);
     if (url.hash && url.hash.startsWith("#/ref-")) {
       // find linked element
       let e = document.getElementById(url.hash.substring(2));
@@ -71,7 +70,6 @@ function fixBibtexLinks() {
           // change hash to ID of section
           url.hash = "#" + s.id;
           a.href = url.href;
-          console.log("change to " + url.hash);
         }
       }
     }
