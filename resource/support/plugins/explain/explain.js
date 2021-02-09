@@ -165,15 +165,32 @@ let ExplainPlugin = (function () {
   class Timing {
     constructor() {
       this.times = {};
+      this.pauseDuration = 0;
     }
 
+    // Establishes starting time of the recording and records the first slide.
     start(index, slide) {
       this.startTime = Date.now();
       this.record(index, slide);
     }
 
+    // Accumulates amount of time pausing.
+    pause() {
+      this.pauseStart = Date.now();
+      this.pauseSlideIndex = Reveal.getState().indexh;
+    }
+
+    // Resume passing time. Restore presentation to slide at which pause was
+    // initiated.
+    resume() {
+      this.pauseDuration += Date.now() - this.pauseStart;
+      Reval.slide(this.pauseSlideIndex);
+    }
+
     record(index, slide) {
-      let time = String((Date.now() - this.startTime) / 1000);
+      let time = String(
+        (Date.now() - this.startTime - this.pauseDuration) / 1000
+      );
       if (!slide.firstShown) {
         console.log("[] " + time + " " + index + ", " + slide.id);
         slide.firstShown = time;
@@ -310,8 +327,15 @@ let ExplainPlugin = (function () {
       updateRecordIndicator();
     };
 
-    recorder.onpause = updateRecordIndicator;
-    recorder.onresume = updateRecordIndicator;
+    recorder.onpause = () => {
+      recorder.timing.pause();
+      updateRecordIndicator();
+    };
+
+    recorder.onresume = () => {
+      recorder.timing.resume();
+      updateRecordIndicator();
+    };
 
     recorder.start();
     return true;
