@@ -16,7 +16,7 @@ let ExplainPlugin = (function () {
   let volumeMeter;
 
   // playback stuff
-  let explainVideoUrl, explainTimes;
+  let explainVideoUrl, explainTimesUrl, explainTimes;
 
   let uiState;
 
@@ -101,19 +101,24 @@ let ExplainPlugin = (function () {
     return e;
   }
 
+  // Derives path and basename for explain data files from the document
+  // location.
   function deckUrlBase() {
     let path = location.pathname;
     return path.substring(0, path.lastIndexOf("-"));
   }
 
+  // Derives the explain video url from the document location.
   function deckVideoUrl() {
     return deckUrlBase() + "-recording.mp4";
   }
 
+  // Derives the explain times url from the document location.
   function deckTimesUrl() {
     return deckUrlBase() + "-times.json";
   }
 
+  // Derives the basenam for explain data downloads from the document location.
   function videoFilenameBase() {
     const pathname = window.location.pathname;
     let filename = pathname.substring(pathname.lastIndexOf("/") + 1);
@@ -121,40 +126,59 @@ let ExplainPlugin = (function () {
     return filename;
   }
 
-  function videoFilename() {
-    return videoFilenameBase() + ".mp4";
+  // Navigates Reveal to the indexed slide in the explainTimes array.
+  function goToSlide(index) {
+    if (explainTimes[index]) {
+      let slideId = explainTimes[index].slideId;
+      var indices = Reveal.getIndices(document.getElementById(slideId));
+      Reveal.slide(indices.h, indices.v);
+    }
   }
 
-  function currentSlide() {
+  // Jumps the video tp the in-time timestamp stored at index.
+  function jumpToTime(index) {
+    if (explainTimes[index]) {
+      player.currentTime(explainTimes[index].timeIn);
+    }
+  }
+
+  // Looks up the index of the current Reveal slide in the explainTimes array.
+  function currentRevealSlideIndex() {
+    let slideId = Reveal.getCurrentSlide().id;
+    return explainTimes.findIndex((i) => i.slideId === slideId);
+  }
+
+  // Looks up the index of the current slide in the video.
+  function currentVideoSlideIndex() {
     let time = player.currentTime();
-    let slide = 0;
-    while (slide < explainTimes.length && time > explainTimes[slide])
-      slide += 1;
-    return slide - 1;
+    return explainTimes.findIndex((i) => i.timeIn <= time && time <= i.timeOut);
   }
 
+  // Jumps the video to the in-time of the next slide.
   function next() {
-    let slide = currentSlide() + 1;
-    if (explainTimes[slide]) player.currentTime(explainTimes[slide]);
+    jumpToTime(currentVideoSlideIndex() + 1);
   }
 
+  // Jumps the video to the in-time of the previous slide.
   function prev() {
-    let slide = currentSlide() - 1;
-    if (explainTimes[slide]) player.currentTime(explainTimes[slide]);
+    jumpToTime(currentVideoSlideIndex() - 1);
   }
 
+  // Stops the video and navigates Reveal to the current slide.
   function stop() {
     player.pause();
-    let slide = currentSlide();
-    Reveal.slide(slide);
+    goToSlide(currentVideoSlideIndex());
     return true;
   }
 
+  // Starts the video at the current Reveal slide.
   function play() {
-    let slide = Reveal.getState().indexh;
-    if (currentSlide() != slide) {
-      if (explainTimes[slide]) player.currentTime(explainTimes[slide]);
-      else player.currentTime(0);
+    let revealIndex = currentRevealSlideIndex();
+    let videoIndex = Math.max(0, currentVideoSlideIndex());
+    // Only jump the video if not on the correct slide. Otherwise just continue
+    // playing.
+    if (videoIndex != revealIndex) {
+      jumpToTime(revealIndex);
     }
 
     player.play();
@@ -162,49 +186,62 @@ let ExplainPlugin = (function () {
     return true;
   }
 
+  // Manages recording tim stamps of Reval slide changes. For each slide shown
+  // the time interval is stored. Slides can appear many times in a video.
+  // Navigation can be random.
   class Timing {
     constructor() {
-      this.times = {};
+      this.timeIntervals = [];
       this.pauseDuration = 0;
     }
 
     // Establishes starting time of the recording and records the first slide.
-    start(index, slide) {
+    start() {
       this.startTime = Date.now();
-      this.record(index, slide);
+      this.previousSlide = null;
+      this.record();
     }
 
     // Accumulates amount of time pausing.
     pause() {
       this.pauseStart = Date.now();
-      this.pauseSlideIndex = Reveal.getState().indexh;
+      this.pauseSlideId = Reveal.getCurrentSlide().id;
     }
 
-    // Resume passing time. Restore presentation to slide at which pause was
+    // Resumes passing time. Restore presentation to slide at which pause was
     // initiated.
     resume() {
       this.pauseDuration += Date.now() - this.pauseStart;
-      Reval.slide(this.pauseSlideIndex);
+      Reval.slide(this.pauseSlideId);
     }
 
-    record(index, slide) {
-      let time = String(
-        (Date.now() - this.startTime - this.pauseDuration) / 1000
-      );
-      if (!slide.firstShown) {
-        console.log("[] " + time + " " + index + ", " + slide.id);
-        slide.firstShown = time;
-        this.times[time] = {
-          slideIndex: index,
-          slideId: slide.id,
-        };
-      } else {
-        console.log("[] ignored " + index + ", " + slide.id);
-      }
+    // Calculates the video stamp stamp for right now.
+    timeStamp() {
+      return String((Date.now() - this.startTime - this.pauseDuration) / 1000);
     }
 
+    // Records a time stamp.
+    record() {
+      let time = this.timeStamp();
+
+      if (this.previousSlide) this.previousSlide.timeOut = time;
+
+      let slideId = Reveal.getCurrentSlide().id;
+      this.previousSlide = {
+        slideId: slideId,
+        timeIn: time,
+      };
+
+      this.timeIntervals.push(this.previousSlide);
+    }
+
+    // Finishes time stamp recording ans returns a Blob containing the data
+    // encoded in JSON.
     finish() {
-      return new Blob([JSON.stringify(this.times, null, 4)], {
+      if (this.previousSlide) this.previousSlide.timeOut = this.timeStamp();
+      let json = JSON.stringify(this.timeIntervals, null, 4);
+      console.log(json);
+      return new Blob([json], {
         type: "application/json",
       });
     }
@@ -298,12 +335,10 @@ let ExplainPlugin = (function () {
 
     recorder.onstart = () => {
       console.log("[] recorder started");
-      recorder.timing = new Timing();
-      recorder.timing.start(0, Reveal.getSlides()[0]);
       Reveal.slide(0);
-      Reveal.addEventListener("slidechanged", (e) =>
-        recorder.timing.record(e.indexh, e.currentSlide)
-      );
+      recorder.timing = new Timing();
+      recorder.timing.start();
+      Reveal.addEventListener("slidechanged", (_) => recorder.timing.record());
 
       updateRecordIndicator();
     };
@@ -487,12 +522,6 @@ let ExplainPlugin = (function () {
             // esc: stop and hide video
             case "Escape":
               uiState.transition("stop");
-              break;
-
-            // t: record time stamp, print to console
-            case "KeyT":
-              explainTimes.push(Math.floor(player.currentTime()));
-              printTimeStamps();
               break;
           }
         },
@@ -806,33 +835,21 @@ let ExplainPlugin = (function () {
 
   async function setupPlayer() {
     let config = Reveal.getConfig().explain;
+    explainVideoUrl = config ? config.video : deckVideoUrl();
+    explainTimesUrl = config ? config.times : deckTimesUrl();
 
-    if (config) {
-      if (config.video) {
-        explainVideoUrl = config.video;
-        if (explainVideoUrl.endsWith("/")) {
-          explainVideoUrl += videoFilename();
-        }
+    try {
+      let videoExists = await resourceExists(explainVideoUrl);
+      let timesExists = await resourceExists(explainTimesUrl);
+
+      if (videoExists && timesExists) {
+        explainTimes = await fetchResourceJSON(explainTimesUrl);
+        player.src({ type: "video/mp4", src: explainVideoUrl });
+        return true;
+      } else {
+        return false;
       }
-      explainTimes = config.times ? JSON.parse(config.times) : [0];
-      console.log("[] explanation source configured");
-    } else if (
-      (await resourceExists(deckVideoUrl())) &&
-      (await resourceExists(deckTimesUrl()))
-    ) {
-      explainVideoUrl = deckVideoUrl();
-      let deckTimes = await fetchResourceJSON(deckTimesUrl());
-      explainTimes = Object.keys(deckTimes);
-      console.log("[] explanation source implicit");
-    } else {
-      console.log("[] no explanation source");
-    }
-
-    if (explainVideoUrl && explainTimes) {
-      // if we have a video and timing, use it.
-      player.src({ type: "video/mp4", src: explainVideoUrl });
-      return true;
-    } else {
+    } catch (_) {
       return false;
     }
   }
