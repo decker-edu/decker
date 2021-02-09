@@ -1,82 +1,93 @@
-.dvo-button {
-  font-size:   var(--whiteboard-icon-size);
-  margin:      0.3em;
-  padding:     0.4em;
-  border:      none;
-  outline:     none;
-  background:  none;
+button {
+  font-size: var(--whiteboard-icon-size);
+  margin: 0.3em;
+  padding: 0.4em;
+  border: none;
+  outline: none;
+  background: none;
 }
-.dvo-button:focus,
-.dvo-button::-moz-focus-inner {
-    outline: none;
-    border: 0;
+button:focus,
+button::-moz-focus-inner {
+  outline: none;
+  border: 0;
 }
 
+button[data-uistate="PLAYER_READY"]#dvo-play {
+  display: inline;
+}
 
-#dvo-play {
+button#dvo-play {
+  display: none;
   position: fixed;
-  right:    calc(var(--whiteboard-icon-size) * 1.75);
-  top:      calc(var(--whiteboard-icon-size) * 0.25);
-  z-index:  40;
-  color:    var(--whiteboard-inactive-color);
-  opacity:   0.5;
+  right: calc(var(--whiteboard-icon-size) * 1.75);
+  top: calc(var(--whiteboard-icon-size) * 0.25);
+  z-index: 40;
+  color: var(--whiteboard-inactive-color);
 
   /* padding: 10px; */
   border-radius: 999px;
   animation: pulse-button 1s 5;
 }
-#dvo-play:hover {
-  opacity: 1.0;
+
+button#dvo-play:hover {
   color: var(--whiteboard-active-color);
 }
 
 /* make play button pulse a few times */
 @keyframes pulse-button {
-	0% {
-		transform: scale(1);
-		box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
     color: var(--whiteboard-inactive-color);
     opacity: 0.5;
-	}
+  }
 
-	80% {
-		transform: scale(1.1);
-		box-shadow: 0 0 0 5px #2a9ddf55;
+  80% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 5px #2a9ddf55;
     color: var(--whiteboard-active-color);
-    opacity: 1.0;
-	}
+    opacity: 1;
+  }
 
-	100% {
-		transform: scale(1);
-		box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
     color: var(--whiteboard-inactive-color);
     opacity: 0.5;
-	}
+  }
 }
 
-#record-panel {
+div[data-uistate="RECORDER_READY"]#record-panel,
+div[data-uistate="RECORDER_PAUSED"]#record-panel,
+div[data-uistate="RECORDING"]#record-panel {
+  display: flex;
+}
+
+div#record-panel {
   --offset: calc(-100% + 35px);
   position: fixed;
-  left:     50%;
-  top:   0px;
-  z-index:  40;
+  left: 50%;
+  top: 0px;
+  z-index: 40;
   text-align: center;
   padding: 5px 10px;
   background-color: none;
   border: 1px solid transparent;
   border-top: none;
 
-  display: flex;
+  display: none;
   flex-flow: column-reverse nowrap;
   justify-content: center;
 
   transform: translate(-50%, var(--offset));
   opacity: 0.5;
-  transition: transform 0.3s ease-in-out 0.5s, opacity 0.3s linear 0.5s, background-color 0.3s linear 0.5s;
+  transition: transform 0.3s ease-in-out 0.5s, opacity 0.3s linear 0.5s,
+    background-color 0.3s linear 0.5s;
 }
-#record-panel:hover {
+
+div#record-panel:hover {
   transform: translate(-50%, 0);
-  opacity: 1.0;
+  opacity: 1;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   border: 1px solid var(--whiteboard-inactive-color);
@@ -93,8 +104,8 @@
 }
 
 #audio-meter {
-  position: relative;  
-  height:   15px;
+  position: relative;
+  height: 15px;
   min-width: 200px;
   flex-grow: 1;
 }
@@ -107,10 +118,10 @@
   width: 20px;
   height: 15px;
   text-align: center;
-  border:      none;
-  outline:     none;
-  background:  none;
-  font-family: "Font Awesome 5 Free"; 
+  border: none;
+  outline: none;
+  background: none;
+  font-family: "Font Awesome 5 Free";
   color: var(--whiteboard-inactive-color);
 }
 .indicator[title] {
@@ -124,27 +135,55 @@
   -webkit-font-smoothing: antialiased;
 }
 
-
 #record-indicator::before {
-  content: '\f111';
-  font-weight: 400; 
+  content: "\f111";
+  font-weight: 400;
 }
-#record-indicator[data-state='paused']::before {
-  content: '\f04c';
-  font-weight: 900; 
+
+div[data-uistate="RECORDER_READY"] #record-indicator::before {
+  content: "\f04c";
+  font-weight: 900;
   color: red;
 }
-#record-indicator[data-state='recording']::before {
-  content: '\f111';
-  font-weight: 900; 
+div[data-uistate="RECORDING"] #record-indicator::before {
+  content: "\f111";
+  font-weight: 900;
   color: red;
 }
 
+div[data-uistate="RECORDER_READY"] button.record-button {
+  color: red;
+  cursor: pointer;
+}
 
-.record-button {
-  color:    red;
-  opacity:  1.0;
-  font-size: 3vmin;
+button.record-button {
+  color: gray;
+  opacity: 1;
+  font-size: 20px;
+}
+
+div[data-uistate="RECORDING"] button.pause-button,
+div[data-uistate="RECORDER_PAUSED"] button.pause-button {
+  color: red;
+  cursor: pointer;
+}
+
+button.pause-button {
+  color: gray;
+  opacity: 1;
+  font-size: 20px;
+}
+
+div[data-uistate="RECORDING"] button.stop-button,
+div[data-uistate="RECORDER_PAUSED"] button.stop-button {
+  color: red;
+  cursor: pointer;
+}
+
+button.stop-button {
+  color: gray;
+  opacity: 1;
+  font-size: 20px;
 }
 
 .gain-slider {
@@ -161,7 +200,6 @@
   text-align: right;
 }
 
-
 #dvo-panel {
   position: fixed;
   top: 0;
@@ -173,12 +211,12 @@
 
   display: none;
   flex-flow: column nowrap;
-  justify-content:center;
-}
-#dvo-panel[data-visible] {
-  display: flex;
+  justify-content: center;
 }
 
+#dvo-panel[data-uistate="PLAYING"] {
+  display: flex;
+}
 
 #dvo-video {
   width: 100%;
@@ -189,8 +227,8 @@
   object-fit: contain;
 }
 
-.video-js .vjs-current-time { 
-  display: block !important; 
+.video-js .vjs-current-time {
+  display: block !important;
 }
 
 .video-js .vjs-icon-cancel,
@@ -200,22 +238,32 @@
 }
 
 #camera-video {
+  display: none;
+}
+
+#camera-video[data-uistate="RECORDER_READY"].visible,
+#camera-video[data-uistate="RECORDER_PAUSED"].visible,
+#camera-video[data-uistate="RECORDING"].visible {
+  display: block;
   position: fixed;
   left: auto;
   top: auto;
-  right:    0;
-  bottom:   0;
-  z-index:  40;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
   width: 33%;
   height: auto;
   object-fit: contain;
-  border-radius: 20px 0 0 0;
+  border-radius: 0px 0 0 0;
   border-left: 5px solid #2a9ddf;
   border-top: 5px solid #2a9ddf;
 }
-#camera-video[data-fullscreen] {
+
+#camera-video[data-uistate="RECORDER_READY"].fullscreen,
+#camera-video[data-uistate="RECORDER_PAUSED"].fullscreen,
+#camera-video[data-uistate="RECORDING"].fullscreen {
   left: 0;
-  top:  0;
+  top: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
