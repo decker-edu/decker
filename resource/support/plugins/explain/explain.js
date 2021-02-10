@@ -4,6 +4,7 @@ let ExplainPlugin = (function () {
   // GUI elements
   let playPanel, playButton, player;
   let recordPanel, recordIndicator, voiceIndicator, desktopIndicator;
+  let recordButton, pauseButton, stopButton;
   let voiceGainSlider, desktopGainSlider;
   let cameraVideo;
 
@@ -135,6 +136,11 @@ let ExplainPlugin = (function () {
     }
   }
 
+  function goToSlideId(slideId) {
+    var indices = Reveal.getIndices(document.getElementById(slideId));
+    Reveal.slide(indices.h, indices.v);
+  }
+
   // Jumps the video tp the in-time timestamp stored at index.
   function jumpToTime(index) {
     if (explainTimes[index]) {
@@ -212,7 +218,7 @@ let ExplainPlugin = (function () {
     // initiated.
     resume() {
       this.pauseDuration += Date.now() - this.pauseStart;
-      Reval.slide(this.pauseSlideId);
+      goToSlideId(this.pauseSlideId);
     }
 
     // Calculates the video stamp stamp for right now.
@@ -308,6 +314,11 @@ let ExplainPlugin = (function () {
       audio: false,
     });
     cameraVideo.srcObject = cameraStream;
+
+    recordButton.disabled = undefined;
+    pauseButton.disabled = true;
+    stopButton.disabled = true;
+
     return true;
   }
 
@@ -373,22 +384,34 @@ let ExplainPlugin = (function () {
     };
 
     recorder.start();
+    recordButton.disabled = true;
+    pauseButton.disabled = undefined;
+    stopButton.disabled = undefined;
     return true;
   }
 
   function pauseRecording() {
     recorder.pause();
+    recordButton.disabled = true;
+    pauseButton.disabled = undefined;
+    stopButton.disabled = true;
     return true;
   }
 
   function resumeRecording() {
     recorder.resume();
+    recordButton.disabled = true;
+    pauseButton.disabled = undefined;
+    stopButton.disabled = undefined;
     return true;
   }
 
   function stopRecording() {
     recorder.stop();
     stream.getTracks().forEach((s) => s.stop());
+    recordButton.disabled = undefined;
+    pauseButton.disabled = true;
+    stopButton.disabled = true;
     return true;
   }
 
@@ -461,14 +484,14 @@ let ExplainPlugin = (function () {
   function createPlayerGUI() {
     playPanel = createElement({
       type: "div",
-      id: "dvo-panel",
+      id: "explain-panel",
       parent: document.body,
     });
 
     playButton = createElement({
       type: "button",
-      id: "dvo-play",
-      classes: "fas fa-play",
+      id: "explain-play",
+      classes: "explain fas fa-play",
       title: "Play video recording",
       parent: document.body,
       onclick: transition("play"),
@@ -476,13 +499,13 @@ let ExplainPlugin = (function () {
 
     let video = createElement({
       type: "video",
-      id: "dvo-video",
+      id: "explain-video",
       classes: "video-js",
       parent: playPanel,
     });
 
     // setup video-js
-    player = videojs("dvo-video", {
+    player = videojs("explain-video", {
       width: "100%",
       height: "100%",
       controls: true,
@@ -625,25 +648,25 @@ let ExplainPlugin = (function () {
       parent: controls,
     });
 
-    let recordButton = createElement({
+    recordButton = createElement({
       type: "button",
-      classes: "record-button fas fa-play-circle",
+      classes: "explain record-button fas fa-play-circle",
       title: "Start recording",
       parent: row,
       onclick: transition("record"),
     });
 
-    let pauseButton = createElement({
+    pauseButton = createElement({
       type: "button",
-      classes: "pause-button fas fa-pause-circle",
+      classes: "explain pause-button fas fa-pause-circle",
       title: "Pause/resume recording",
       parent: row,
       onclick: transition("pause"),
     });
 
-    let stopButton = createElement({
+    stopButton = createElement({
       type: "button",
-      classes: "stop-button fas fa-stop-circle",
+      classes: "explain stop-button fas fa-stop-circle",
       title: "Stop recording",
       parent: row,
       onclick: transition("stop"),

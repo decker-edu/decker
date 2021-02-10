@@ -1,4 +1,4 @@
-button {
+button.explain {
   font-size: var(--whiteboard-icon-size);
   margin: 0.3em;
   padding: 0.4em;
@@ -6,17 +6,18 @@ button {
   outline: none;
   background: none;
 }
-button:focus,
-button::-moz-focus-inner {
+
+button.explain:focus,
+button.explain::-moz-focus-inner {
   outline: none;
   border: 0;
 }
 
-button[data-uistate="PLAYER_READY"]#dvo-play {
+button[data-uistate="PLAYER_READY"].explain#explain-play {
   display: inline;
 }
 
-button#dvo-play {
+button.explain#explain-play {
   display: none;
   position: fixed;
   right: calc(var(--whiteboard-icon-size) * 1.75);
@@ -29,7 +30,7 @@ button#dvo-play {
   animation: pulse-button 1s 5;
 }
 
-button#dvo-play:hover {
+button.explain#explain-play:hover {
   color: var(--whiteboard-active-color);
 }
 
@@ -124,9 +125,11 @@ div#record-panel:hover {
   font-family: "Font Awesome 5 Free";
   color: var(--whiteboard-inactive-color);
 }
+
 .indicator[title] {
   color: red;
 }
+
 .indicator::before {
   display: inline-block;
   font-style: normal;
@@ -135,53 +138,42 @@ div#record-panel:hover {
   -webkit-font-smoothing: antialiased;
 }
 
-#record-indicator::before {
+record-indicator::before {
   content: "\f111";
   font-weight: 400;
 }
 
-div[data-uistate="RECORDER_READY"] #record-indicator::before {
+#record-indicator[data-state="paused"]::before {
   content: "\f04c";
   font-weight: 900;
   color: red;
 }
-div[data-uistate="RECORDING"] #record-indicator::before {
+
+#record-indicator[data-state="recording"]::before {
   content: "\f111";
   font-weight: 900;
   color: red;
 }
 
-div[data-uistate="RECORDER_READY"] button.record-button {
-  color: red;
-  cursor: pointer;
+button.explain[disabled] {
+  color: gray;
+  opacity: 0.5;
 }
 
 button.record-button {
-  color: gray;
+  color: red;
   opacity: 1;
   font-size: 20px;
-}
-
-div[data-uistate="RECORDING"] button.pause-button,
-div[data-uistate="RECORDER_PAUSED"] button.pause-button {
-  color: red;
-  cursor: pointer;
 }
 
 button.pause-button {
-  color: gray;
+  color: red;
   opacity: 1;
   font-size: 20px;
 }
 
-div[data-uistate="RECORDING"] button.stop-button,
-div[data-uistate="RECORDER_PAUSED"] button.stop-button {
-  color: red;
-  cursor: pointer;
-}
-
 button.stop-button {
-  color: gray;
+  color: red;
   opacity: 1;
   font-size: 20px;
 }
@@ -200,7 +192,7 @@ button.stop-button {
   text-align: right;
 }
 
-#dvo-panel {
+#explain-panel {
   position: fixed;
   top: 0;
   bottom: 0;
@@ -214,11 +206,11 @@ button.stop-button {
   justify-content: center;
 }
 
-#dvo-panel[data-uistate="PLAYING"] {
+#explain-panel[data-uistate="PLAYING"] {
   display: flex;
 }
 
-#dvo-video {
+#explain-video {
   width: 100%;
   height: 100%;
   background-color: white;
@@ -248,15 +240,14 @@ button.stop-button {
   position: fixed;
   left: auto;
   top: auto;
-  right: 0;
-  bottom: 0;
+  right: 12px;
+  bottom: 12px;
   z-index: 40;
   width: 33%;
   height: auto;
   object-fit: contain;
-  border-radius: 0px 0 0 0;
-  border-left: 5px solid #2a9ddf;
-  border-top: 5px solid #2a9ddf;
+  border-radius: 10px;
+  border: 4px solid #2a9ddf;
 }
 
 #camera-video[data-uistate="RECORDER_READY"].fullscreen,
