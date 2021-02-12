@@ -188,7 +188,14 @@ let ExplainPlugin = (function () {
     }
 
     player.play();
-    player.focus();
+
+    // we have to focus the player, otherwise keyboard events are sent to the slide
+    // we have to delay this a bit, since first the playButton gets the focus due
+    // to the mouse click.
+    setTimeout(() => {
+      player.focus();
+    }, 100);
+
     return true;
   }
 
@@ -254,13 +261,21 @@ let ExplainPlugin = (function () {
   }
 
   async function setupRecorder() {
+    const config = Reveal.getConfig().explain;
+    const recWidth =
+      config && config.recWidth ? config.recWidth : Reveal.getConfig().width;
+    const recHeight =
+      config && config.recHeight ? config.recHeight : Reveal.getConfig().height;
+    const camWidth = config && config.camWidth ? config.camWidth : 1280;
+    const camHeight = config && config.camHeight ? config.camHeight : 720;
+
     // get display stream
-    console.log("get display stream");
+    console.log("get display stream (" + recWidth + "x" + recHeight + ")");
     desktopStream = await navigator.mediaDevices.getDisplayMedia({
       video: {
         frameRate: 30,
-        width: 1280,
-        height: 720,
+        width: recWidth,
+        height: recHeight,
         cursor: "always",
         resizeMode: "crop-and-scale",
       },
@@ -303,12 +318,20 @@ let ExplainPlugin = (function () {
     ];
     stream = new MediaStream(tracks);
 
+    // inform user when tracks get lost
+    stream.getTracks().forEach((track) => {
+      track.onended = () => {
+        alert("VideoRecording: Track " + track.label + " has ended.");
+        uiState.transition("cancel");
+      };
+    });
+
     // get camera stream
-    console.log("get camera stream");
+    console.log("get camera stream (" + camWidth + "x" + camHeight + ")");
     cameraStream = await navigator.mediaDevices.getUserMedia({
       video: {
-        width: 1280,
-        height: 720,
+        width: camWidth,
+        height: camHeight,
         frameRate: { max: 30 },
       },
       audio: false,
@@ -383,10 +406,16 @@ let ExplainPlugin = (function () {
       updateRecordIndicator();
     };
 
+    recorder.onerror = (evt) => {
+      alert("VideoRecording Error: " + evt.name);
+      uiState.transition("cancel");
+    };
+
     recorder.start();
     recordButton.disabled = true;
     pauseButton.disabled = undefined;
     stopButton.disabled = undefined;
+
     return true;
   }
 
@@ -612,6 +641,7 @@ let ExplainPlugin = (function () {
     });
 
     let row;
+
     row = createElement({
       type: "div",
       classes: "controls-row",
@@ -623,6 +653,12 @@ let ExplainPlugin = (function () {
       id: "record-indicator",
       classes: "indicator",
       parent: row,
+    });
+
+    row = createElement({
+      type: "div",
+      classes: "controls-row",
+      parent: recordPanel,
     });
 
     volumeMeter = createElement({
@@ -843,10 +879,10 @@ let ExplainPlugin = (function () {
   }
 
   // setup key binding
-  Reveal.addKeyBinding(
-    { keyCode: 65, key: "A", description: "Toggle Microphone" },
-    toggleMicrophone
-  );
+  // Reveal.addKeyBinding(
+  //   { keyCode: 65, key: "A", description: "Toggle Microphone" },
+  //   toggleMicrophone
+  // );
   Reveal.addKeyBinding(
     { keyCode: 82, key: "R", description: "Setup Recording" },
     transition("setupRecorder")
@@ -858,8 +894,8 @@ let ExplainPlugin = (function () {
 
   async function setupPlayer() {
     let config = Reveal.getConfig().explain;
-    explainVideoUrl = config ? config.video : deckVideoUrl();
-    explainTimesUrl = config ? config.times : deckTimesUrl();
+    explainVideoUrl = config && config.video ? config.video : deckVideoUrl();
+    explainTimesUrl = config && config.times ? config.times : deckTimesUrl();
 
     try {
       let videoExists = await resourceExists(explainVideoUrl);
@@ -917,6 +953,7 @@ let ExplainPlugin = (function () {
         RECORDING: {
           name: "RECORDING",
           transition: {
+            cancel: { action: stopRecording, next: "INIT" },
             stop: { action: stopRecording, next: "INIT" },
             pause: { action: pauseRecording, next: "RECORDER_PAUSED" },
           },
@@ -924,6 +961,7 @@ let ExplainPlugin = (function () {
         RECORDER_PAUSED: {
           name: "RECORDER_PAUSED",
           transition: {
+            cancel: { action: stopRecording, next: "INIT" },
             stop: { action: stopRecording, next: "INIT" },
             pause: { action: resumeRecording, next: "RECORDING" },
           },

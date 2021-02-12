@@ -13,7 +13,8 @@ button.explain::-moz-focus-inner {
   border: 0;
 }
 
-button[data-uistate="PLAYER_READY"].explain#explain-play {
+button[data-uistate="PLAYER_READY"].explain#explain-play,
+button[data-uistate="PLAYING"].explain#explain-play {
   display: inline;
 }
 
@@ -138,9 +139,10 @@ div#record-panel:hover {
   -webkit-font-smoothing: antialiased;
 }
 
-record-indicator::before {
+#record-indicator::before {
   content: "\f111";
   font-weight: 400;
+  color: red;
 }
 
 #record-indicator[data-state="paused"]::before {

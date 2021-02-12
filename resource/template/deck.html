@@ -626,10 +626,15 @@ $if(quizServer)$
 $endif$
 
 
-$if(explain.video)$
+$if(explain)$
           explain: { 
-                video: "$explain.video$",
-                times: "$explain.times$"
+                $if(explain.video)$ video: "$explain.video$", $endif$
+                $if(explain.times)$ times: "$explain.times$", $endif$
+                $if(explain.recWidth)$  recWidth:  "$explain.recWidth$",  $endif$
+                $if(explain.recHeight)$ recHeight: "$explain.recHeight$", $endif$
+                $if(explain.camWidth)$  camWidth:  "$explain.camWidth$",  $endif$
+                $if(explain.camHeight)$ camHeight: "$explain.camHeight$", $endif$
+                dummy: "dummy"
           },
 $endif$
 
