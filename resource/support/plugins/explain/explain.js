@@ -891,7 +891,7 @@ let ExplainPlugin = (function () {
     if (evt.keyCode != 82) return;
     
     // do not react to alt/ctrl/cmd modifier
-    if (evt.altKey || evt.ctrlKey || metaKey) return;
+    if (evt.altKey || evt.ctrlKey || evt.metaKey) return;
 
     switch (uiState.name()) {
       case "INIT":
