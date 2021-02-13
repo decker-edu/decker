@@ -46,6 +46,10 @@ let ExplainPlugin = (function () {
       return names.reduce((a, name) => a || this.is(name), false);
     }
 
+    name() {
+      return this.state.name;
+    }
+
     // Performs a named transition. In case anything goes wrong, the state
     // remains unchanged and an error message is logged.
     async transition(name) {
@@ -778,30 +782,19 @@ let ExplainPlugin = (function () {
     recordIndicator.dataset.state = recorder ? recorder.state : "";
   }
 
-  function toggleClass(e, c) {
-    if (e.classList.contains(c)) {
-      e.classList.remove(c);
-      return false;
-    } else {
-      e.classList.add(c);
-      return true;
-    }
-  }
-
   function createCameraGUI() {
     cameraVideo = createElement({
       type: "video",
       id: "camera-video",
       parent: document.body,
-      onclick: (e) => toggleClass(e.target, "fullscreen"),
+      onclick: (e) => e.target.classList.toggle("fullscreen"),
     });
     cameraVideo.muted = true; // dont' want audio in this stream
   }
 
   function toggleCamera() {
     if (uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")) {
-      console.log(uiState.state.name);
-      if (toggleClass(cameraVideo, "visible")) {
+      if (cameraVideo.classList.toggle("visible")) {
         cameraVideo.play();
       } else {
         cameraVideo.pause();
@@ -878,19 +871,38 @@ let ExplainPlugin = (function () {
     }
   }
 
-  // setup key binding
-  // Reveal.addKeyBinding(
-  //   { keyCode: 65, key: "A", description: "Toggle Microphone" },
-  //   toggleMicrophone
-  // );
+  // Reveal ignores key events when modifiers are pressed. We therefore use a "normal" keydown callback.
+  // We still add a dummy callback to Reveal, to prevent other plugins
+  // to use "our" keys and to add our keys to the help menu.
+  function dummyCallback() {}
   Reveal.addKeyBinding(
-    { keyCode: 82, key: "R", description: "Setup Recording" },
-    transition("setupRecorder")
+    { keyCode: 82, key: "R", description: "Toggle Recording" },
+    dummyCallback
   );
   Reveal.addKeyBinding(
     { keyCode: 86, key: "V", description: "Toggle Camera" },
     toggleCamera
   );
+  document.addEventListener("keydown", toggleRecording);
+
+  // key event to toggle recording states
+  function toggleRecording(evt) {
+    // only react on key r/R
+    if (evt.keyCode != 82) return;
+    switch (uiState.name()) {
+      case "INIT":
+      case "PLAYER_READY":
+        uiState.transition("setupRecorder");
+        break;
+      case "RECORDER_READY":
+        uiState.transition("record");
+        break;
+      case "RECORDING":
+      case "RECORDER_PAUSED":
+        uiState.transition(evt.shiftKey ? "stop" : "pause");
+        break;
+    }
+  }
 
   async function setupPlayer() {
     let config = Reveal.getConfig().explain;
