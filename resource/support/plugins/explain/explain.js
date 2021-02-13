@@ -889,6 +889,10 @@ let ExplainPlugin = (function () {
   function toggleRecording(evt) {
     // only react on key r/R
     if (evt.keyCode != 82) return;
+    
+    // do not react to alt/ctrl/cmd modifier
+    if (evt.altKey || evt.ctrlKey || metaKey) return;
+
     switch (uiState.name()) {
       case "INIT":
       case "PLAYER_READY":
