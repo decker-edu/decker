@@ -1488,29 +1488,29 @@ let RevealWhiteboard = (function(){
      ******************************************************************/
 
     Reveal.addKeyBinding( { keyCode: 46, key: 'Delete', 
-        description: 'Clear Slide' }, 
+        description: 'Whiteboard: Clear Slide' }, 
         clearSlide );
 
     Reveal.addKeyBinding( { keyCode: 87, key: 'W', 
-        description: 'Toggle Whiteboard' }, 
+        description: 'Whiteboard: Toggle on/off' }, 
         toggleWhiteboard );
 
     for (let i = 0; i < 7; i++) {
       Reveal.addKeyBinding( { keyCode: 49+i, key: String.fromCharCode(49+i), 
-        description: 'Toggle Whiteboard' }, 
+        description: ('Whiteboard: Color ' + penColors[i]) }, 
         () => { selectPenColor(penColors[i]); } );
     }
 
     Reveal.addKeyBinding( { keyCode: 56, key: '8', 
-      description: 'Toggle Whiteboard' }, 
+      description: 'Whiteboard: Pen radius 2' }, 
       () => { selectPenRadius(2); } );
 
     Reveal.addKeyBinding( { keyCode: 57, key: '9', 
-      description: 'Toggle Whiteboard' }, 
+      description: 'Whiteboard: Pen radius 4' }, 
       () => { selectPenRadius(4); } );
 
     Reveal.addKeyBinding( { keyCode: 48, key: '0', 
-      description: 'Toggle Whiteboard' }, 
+      description: 'Whiteboard: Pen radius 6' }, 
       () => { selectPenRadius(6); } );
 
 	return {
