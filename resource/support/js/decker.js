@@ -4,6 +4,9 @@
 const deckPathname = location.pathname;
 const deckHash = location.hash;
 
+// is the user generating a PDF?
+const printMode = ( /print-pdf/gi ).test( window.location.search );
+
 if (typeof Reveal === "undefined") {
   console.error("decker.js has to be loaded after reveal.js");
 } else {
@@ -26,7 +29,9 @@ function deckerStart() {
   if (Reveal.getConfig().verticalSlides) {
     setupVerticalSlides();
   }
-  setTimeout(continueWhereYouLeftOff, 1000);
+  if (!printMode) {
+    setTimeout(continueWhereYouLeftOff, 500);
+  }
 }
 
 function prepareTaskLists() {
