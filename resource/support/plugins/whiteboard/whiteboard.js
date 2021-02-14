@@ -761,8 +761,8 @@ let RevealWhiteboard = (function(){
         return new Promise( function(resolve) {
 
             // electron? try to load annotation from local file
-            if (window.loadAnnotation) {
-                window.loadAnnotation(annotationURL()).then( (storage) => {
+            if (window.electronApp) {
+                window.electronApp.loadAnnotation(annotationURL()).then( (storage) => {
                     if (storage) {
                         parseAnnotations(storage);
                         resolve();
@@ -954,8 +954,8 @@ let RevealWhiteboard = (function(){
     function saveAnnotations()
     {
         // electron app?
-        if (window.saveAnnotation) {
-            if (window.saveAnnotation(annotationData(), annotationURL()))
+        if (window.electronApp) {
+            if (window.electronApp.saveAnnotation(annotationData(), annotationURL()))
             {
                 console.log("whiteboard annotations saved to local file");
                 needToSave(false);
