@@ -187,14 +187,14 @@ run = do
     priority 4 $ do
       publicDir <//> "*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
-        need[src]
+        need [src]
         needIfExists "-deck.html" "-annot.json" out
         needIfExists "-deck.html" "-times.json" out
         -- needIfExists "-deck.html" "-recording.mp4" out
         let recordingWebm = replaceSuffix "-deck.md" "-recording.webm" src
         let recordingMp4 = replaceSuffix "-deck.html" "-recording.mp4" out
         let recordingTimes = replaceSuffix "-deck.html" "-times.json" out
-        whenM (liftIO $ Dir.doesFileExist recordingWebm) $ need [recordingMp4, recordingTimes]
+        whenM (doesFileExist recordingWebm) $ need [recordingMp4, recordingTimes]
         meta <- getGlobalMeta
         markdownToHtmlDeck meta getTemplate src out
       --
