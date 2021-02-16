@@ -874,16 +874,15 @@ let ExplainPlugin = (function () {
   // Reveal ignores key events when modifiers are pressed. We therefore use a "normal" keydown callback.
   // We still add a dummy callback to Reveal, to prevent other plugins
   // to use "our" keys and to add our keys to the help menu.
-  function dummyCallback() {}
   Reveal.addKeyBinding(
     { keyCode: 82, key: "R", description: "Toggle Recording" },
-    dummyCallback
+    toggleRecording
   );
   Reveal.addKeyBinding(
     { keyCode: 86, key: "V", description: "Toggle Camera" },
     toggleCamera
   );
-  document.addEventListener("keydown", toggleRecording);
+
 
   // key event to toggle recording states
   function toggleRecording(evt) {
@@ -903,7 +902,7 @@ let ExplainPlugin = (function () {
         break;
       case "RECORDING":
       case "RECORDER_PAUSED":
-        uiState.transition(evt.shiftKey ? "stop" : "pause");
+        uiState.transition("pause");
         break;
     }
   }
