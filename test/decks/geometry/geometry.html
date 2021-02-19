@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Geometry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" media="screen" href="geometry.css" />
+    <script src="d3.v6.min.js"></script>
+  </head>
+
+  <body>
+    <div id="drawing"></div>
+
+    <script type="module">
+      import {
+        point,
+        label,
+        line,
+        vector,
+        circle,
+        bezier,
+        group,
+        surface,
+        text,
+        swtch,
+        unfold,
+        intersect,
+        mirror,
+        project,
+        sum,
+        nthP,
+        nthN,
+        renderSvg,
+      } from "./geometry.js";
+
+      let upperLeft = point(60, 60, "drag");
+      let center = point(150, 150, "drag");
+
+      let intersection = intersect(
+        line(upperLeft, point(240, 60, "drag"), {
+          end: "arrow",
+        }),
+        circle(center, 60)
+      );
+
+      // let surfaceNormal = vector(150, 440, 0, -120);
+      let surfaceAnchor = point(150, 440, "drag");
+      let surfaceNormalTip = point(150, 320, "invisible");
+      let surfaceNormal = vector(surfaceAnchor, 0, -120, {
+        end: "vec-arrow",
+      });
+      let wi = point(60, 360, "drag");
+      let mwi = label(mirror(surfaceAnchor, wi), "-ωᵢ", "ne");
+      let projection = line(
+        surfaceAnchor,
+        label(project(surfaceNormal.p1, surfaceNormal.p2, wi), "b"),
+        { end: "arrow" }
+      );
+      let proj1 = sum(mwi, projection, { end: "arrow" });
+      let proj2 = sum(proj1.p2, projection, { end: "arrow" });
+
+      renderSvg(
+        600,
+        600,
+        group(
+          line(upperLeft, point(60, 240)),
+          nthP(intersection, 1),
+          nthN(intersection, 1),
+          line(center, nthP(intersection, 0)),
+          bezier(
+            point(360, 60),
+            point(540, 60, "drag"),
+            point(540, 240, "drag"),
+            point(360, 240)
+          ),
+          swtch(intersection, 0, text(255, 160, "Bang!")),
+          group(
+            surface(surfaceAnchor, 200),
+            surfaceNormal,
+            line(surfaceAnchor, wi, { end: "arrow" }),
+            label(
+              unfold(
+                60,
+                320,
+                projection,
+                line(surfaceAnchor, mwi, { end: "arrow" }),
+                proj1,
+                proj2,
+                line(surfaceAnchor, label(proj2.p2, "ωᵣ", "ne"), {
+                  end: "arrow",
+                })
+              ),
+              "Click me!"
+            ),
+            label(wi, "ωᵢ", "ne")
+          )
+        )
+      );
+    </script>
+  </body>
+</html>

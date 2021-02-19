@@ -1,8 +1,5 @@
 export { hello };
 
 function hello(div, color) {
-  div.setAttribute(
-    "style",
-    `width:200px; height:100px; background-color: ${color};`
-  );
+  div.innerHTML = `<svg viewBox="0 0 200 100" style="background-color:${color};width:100%;"></svg>`;
 }

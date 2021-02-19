@@ -24,13 +24,15 @@ import *  as mod from "/test/static/es6.js";
 mod.hello(anchor, "red");
 </script>
 
-# One more
+# Decker inline
 
-::: {#sh62fss45d}
-:::
-
-<script type="module">
-let anchor = document.getElementById("sh62fss45d");
+``` {.javascript .run}
 import *  as mod from "/test/static/es6.js";
-mod.hello(anchor, "blue");
-</script>
+mod.hello(anchor, "orange");
+```
+
+Caption: Fuck YEAH!
+
+# Decker include
+
+![Fuck YEAH!](/test/static/es6-blue.js){.run width="100%"}

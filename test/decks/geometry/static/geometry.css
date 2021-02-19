@@ -1,0 +1,110 @@
+#drawing {
+  margin: 0;
+  padding: 0;
+}
+
+svg.geometry {
+  border: solid 1px black;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+marker[id="arrow"] {
+  fill: black;
+}
+
+marker[id="vec-arrow"] {
+  fill: darkblue;
+}
+
+circle.handle {
+  stroke: none;
+  stroke-dasharray: "5,5";
+  stroke-width: 2px;
+  fill: white;
+  fill-opacity: 0;
+}
+
+circle.handle:hover {
+  stroke: gray;
+  /* cursor: grab; */
+}
+
+circle.handle:active {
+  stroke: gray;
+  stroke-width: 4px;
+  /* cursor: grab; */
+}
+
+circle.point {
+  stroke: black;
+  stroke-width: 6px;
+  fill: lightgray;
+}
+
+circle.point.computed {
+  stroke: darkred;
+}
+
+circle.point.drag {
+  stroke: darkgreen;
+}
+
+line[id].line {
+  stroke: black;
+  stroke-width: 6px;
+}
+
+line[id].vector {
+  stroke: darkblue;
+  stroke-width: 6px;
+}
+
+path[id].bezier {
+  stroke: darkred;
+  stroke-width: 9px;
+  fill: none;
+}
+
+path[id].play {
+  fill: lightgray;
+  stroke: white;
+  stroke-width: 2;
+}
+
+path[id].play:hover {
+  fill: gray;
+}
+
+path[id].play:active {
+  fill: lightsalmon;
+}
+
+circle[id].circle {
+  stroke: black;
+  stroke-width: 6px;
+  fill: none;
+}
+
+text[id].text {
+  font-family: sans-serif;
+  font-size: 40px;
+  font-weight: bold;
+}
+
+text[id].label {
+  font-family: sans-serif;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+g[id].surface line {
+  stroke: black;
+  stroke-width: 6px;
+}
+
+g[id].surface rect {
+  fill: lightgray;
+}

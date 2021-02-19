@@ -1,4 +1,5 @@
 project-name: Decker
+controls: 0
 exclude-directories:
   - app
   - bin
@@ -13,3 +14,4 @@ exclude-directories:
   - third-party
 static-resource-dirs:
   - test/static
+  - test/decks/geometry/static
