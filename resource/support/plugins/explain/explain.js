@@ -786,10 +786,66 @@ let ExplainPlugin = (function () {
     cameraVideo = createElement({
       type: "video",
       id: "camera-video",
-      parent: document.body,
-      onclick: (e) => e.target.classList.toggle("fullscreen"),
+      parent: document.body
     });
-    cameraVideo.muted = true; // dont' want audio in this stream
+    cameraVideo.muted = true; // don't want audio in this stream
+
+    // initialize translation and scaling
+    cameraVideo.dragging = false;
+    cameraVideo.dx = 0.0;
+    cameraVideo.dy = 0.0;
+    cameraVideo.scale = 1.0;
+    cameraVideo.transform = '';
+
+    // start dragging
+    cameraVideo.onmousedown = (e) => {
+      if (!cameraVideo.classList.contains("fullscreen")) {
+        e.preventDefault();
+        cameraVideo.dragging = true;
+        cameraVideo.style.cursor = 'move';
+        cameraVideo.lastX = e.screenX;
+        cameraVideo.lastY = e.screenY;
+
+        // translate on mouse move
+        cameraVideo.onmousemove = (e) => {
+          if (cameraVideo.dragging) {
+            const x = e.screenX;
+            const y = e.screenY;
+            cameraVideo.dx += x - cameraVideo.lastX;
+            cameraVideo.dy += y - cameraVideo.lastY;
+            cameraVideo.lastX = x;
+            cameraVideo.lastY = y;
+            cameraVideo.style.transform = `translate(${cameraVideo.dx}px, ${cameraVideo.dy}px) scale(${cameraVideo.scale})`;
+          }
+        }
+      }
+    }
+    
+    // stop dragging
+    cameraVideo.onmouseup = cameraVideo.onmouseleave = (e) => {
+      cameraVideo.style.cursor = '';
+      cameraVideo.dragging = false;
+      cameraVideo.onmousemove = null;
+    }
+   
+    // use mouse wheel to scale video
+    cameraVideo.onmousewheel = (e) => {
+      if (!cameraVideo.classList.contains("fullscreen")) {
+        cameraVideo.scale += e.deltaY * -0.01;
+        cameraVideo.style.transform = `translate(${cameraVideo.dx}px, ${cameraVideo.dy}px) scale(${cameraVideo.scale})`;
+      }
+    }
+
+    // use double click on video to toggle fullscreen
+    cameraVideo.ondblclick = (e) => {
+      if (e.target.classList.toggle("fullscreen")) {
+        cameraVideo.transform = cameraVideo.style.transform;
+        cameraVideo.style.transform = '';
+      }
+      else {
+        cameraVideo.style.transform = cameraVideo.transform;
+      }
+    }
   }
 
   function toggleCamera() {
