@@ -35,7 +35,6 @@ let ExplainPlugin = (function () {
       this.signal = signal;
       this.uiStates = states;
       this.state = this.uiStates.INIT;
-      console.log(this.uiStates);
     }
 
     is(name) {
@@ -265,88 +264,94 @@ let ExplainPlugin = (function () {
   }
 
   async function setupRecorder() {
-    const config = Reveal.getConfig().explain;
-    const recWidth =
-      config && config.recWidth ? config.recWidth : Reveal.getConfig().width;
-    const recHeight =
-      config && config.recHeight ? config.recHeight : Reveal.getConfig().height;
-    const camWidth = config && config.camWidth ? config.camWidth : 1280;
-    const camHeight = config && config.camHeight ? config.camHeight : 720;
+    try {
+      const config = Reveal.getConfig().explain;
+      const recWidth =
+        config && config.recWidth ? config.recWidth : Reveal.getConfig().width;
+      const recHeight =
+        config && config.recHeight
+          ? config.recHeight
+          : Reveal.getConfig().height;
+      const camWidth = config && config.camWidth ? config.camWidth : 1280;
+      const camHeight = config && config.camHeight ? config.camHeight : 720;
 
-    // get display stream
-    console.log("get display stream (" + recWidth + "x" + recHeight + ")");
-    desktopStream = await navigator.mediaDevices.getDisplayMedia({
-      video: {
-        frameRate: 30,
-        width: recWidth,
-        height: recHeight,
-        cursor: "always",
-        resizeMode: "crop-and-scale",
-      },
-      audio: true,
-    });
+      // get display stream
+      console.log("get display stream (" + recWidth + "x" + recHeight + ")");
+      desktopStream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          frameRate: 30,
+          width: recWidth,
+          height: recHeight,
+          cursor: "always",
+          resizeMode: "crop-and-scale",
+        },
+        audio: true,
+      });
 
-    if (!desktopStream) return false;
+      if (!desktopStream) return false;
 
-    if (desktopStream.getAudioTracks().length > 0) {
-      let label = desktopStream.getAudioTracks()[0].label;
-      desktopIndicator.title = label;
-      desktopGainSlider.disabled = false;
-    } else {
-      desktopIndicator.removeAttribute("title");
-      desktopGainSlider.disabled = true;
+      if (desktopStream.getAudioTracks().length > 0) {
+        let label = desktopStream.getAudioTracks()[0].label;
+        desktopIndicator.title = label;
+        desktopGainSlider.disabled = false;
+      } else {
+        desktopIndicator.removeAttribute("title");
+        desktopGainSlider.disabled = true;
+      }
+
+      // get microphone stream
+      console.log("get voice stream");
+      voiceStream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: true,
+        },
+      });
+      if (voiceStream.getAudioTracks().length > 0) {
+        let label = voiceStream.getAudioTracks()[0].label;
+        voiceIndicator.title = label;
+        voiceGainSlider.disabled = false;
+      } else {
+        voiceIndicator.removeAttribute("title");
+        voiceGainSlider.disabled = true;
+      }
+
+      // merge tracks into recording stream
+      const tracks = [
+        ...desktopStream.getVideoTracks(),
+        ...mergeAudioStreams(desktopStream, voiceStream),
+      ];
+      stream = new MediaStream(tracks);
+
+      // inform user when tracks get lost
+      stream.getTracks().forEach((track) => {
+        track.onended = () => {
+          alert("VideoRecording: Track " + track.label + " has ended.");
+          uiState.transition("cancel");
+        };
+      });
+
+      // get camera stream
+      console.log("get camera stream (" + camWidth + "x" + camHeight + ")");
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: camWidth,
+          height: camHeight,
+          frameRate: { max: 30 },
+        },
+        audio: false,
+      });
+      cameraVideo.srcObject = cameraStream;
+
+      recordButton.disabled = undefined;
+      pauseButton.disabled = true;
+      stopButton.disabled = true;
+
+      return true;
+    } catch (e) {
+      alert("Recording setup failed.\n\nRecording only works on Chrome. Also, the deck must be accessed via a URL that starts with either of \n\n\- http://localhost\n- https://");
     }
-
-    // get microphone stream
-    console.log("get voice stream");
-    voiceStream = await navigator.mediaDevices.getUserMedia({
-      video: false,
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: true,
-      },
-    });
-    if (voiceStream.getAudioTracks().length > 0) {
-      let label = voiceStream.getAudioTracks()[0].label;
-      voiceIndicator.title = label;
-      voiceGainSlider.disabled = false;
-    } else {
-      voiceIndicator.removeAttribute("title");
-      voiceGainSlider.disabled = true;
-    }
-
-    // merge tracks into recording stream
-    const tracks = [
-      ...desktopStream.getVideoTracks(),
-      ...mergeAudioStreams(desktopStream, voiceStream),
-    ];
-    stream = new MediaStream(tracks);
-
-    // inform user when tracks get lost
-    stream.getTracks().forEach((track) => {
-      track.onended = () => {
-        alert("VideoRecording: Track " + track.label + " has ended.");
-        uiState.transition("cancel");
-      };
-    });
-
-    // get camera stream
-    console.log("get camera stream (" + camWidth + "x" + camHeight + ")");
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        width: camWidth,
-        height: camHeight,
-        frameRate: { max: 30 },
-      },
-      audio: false,
-    });
-    cameraVideo.srcObject = cameraStream;
-
-    recordButton.disabled = undefined;
-    pauseButton.disabled = true;
-    stopButton.disabled = true;
-
-    return true;
   }
 
   function download(blob, name) {
@@ -786,7 +791,7 @@ let ExplainPlugin = (function () {
     cameraVideo = createElement({
       type: "video",
       id: "camera-video",
-      parent: document.body
+      parent: document.body,
     });
     cameraVideo.muted = true; // don't want audio in this stream
 
@@ -795,14 +800,14 @@ let ExplainPlugin = (function () {
     cameraVideo.dx = 0.0;
     cameraVideo.dy = 0.0;
     cameraVideo.scale = 1.0;
-    cameraVideo.transform = '';
+    cameraVideo.transform = "";
 
     // start dragging
     cameraVideo.onmousedown = (e) => {
       if (!cameraVideo.classList.contains("fullscreen")) {
         e.preventDefault();
         cameraVideo.dragging = true;
-        cameraVideo.style.cursor = 'move';
+        cameraVideo.style.cursor = "move";
         cameraVideo.lastX = e.screenX;
         cameraVideo.lastY = e.screenY;
 
@@ -817,35 +822,34 @@ let ExplainPlugin = (function () {
             cameraVideo.lastY = y;
             cameraVideo.style.transform = `translate(${cameraVideo.dx}px, ${cameraVideo.dy}px) scale(${cameraVideo.scale})`;
           }
-        }
+        };
       }
-    }
-    
+    };
+
     // stop dragging
     cameraVideo.onmouseup = cameraVideo.onmouseleave = (e) => {
-      cameraVideo.style.cursor = '';
+      cameraVideo.style.cursor = "";
       cameraVideo.dragging = false;
       cameraVideo.onmousemove = null;
-    }
-   
+    };
+
     // use mouse wheel to scale video
     cameraVideo.onmousewheel = (e) => {
       if (!cameraVideo.classList.contains("fullscreen")) {
         cameraVideo.scale += e.deltaY * -0.01;
         cameraVideo.style.transform = `translate(${cameraVideo.dx}px, ${cameraVideo.dy}px) scale(${cameraVideo.scale})`;
       }
-    }
+    };
 
     // use double click on video to toggle fullscreen
     cameraVideo.ondblclick = (e) => {
       if (e.target.classList.toggle("fullscreen")) {
         cameraVideo.transform = cameraVideo.style.transform;
-        cameraVideo.style.transform = '';
-      }
-      else {
+        cameraVideo.style.transform = "";
+      } else {
         cameraVideo.style.transform = cameraVideo.transform;
       }
-    }
+    };
   }
 
   function toggleCamera() {
@@ -935,16 +939,49 @@ let ExplainPlugin = (function () {
     toggleRecording
   );
   Reveal.addKeyBinding(
+    { keyCode: 90, key: "Z", description: "Stop Recording (Triple Click)" },
+    maybeStopRecording
+  );
+  Reveal.addKeyBinding(
     { keyCode: 86, key: "V", description: "Toggle Camera" },
     toggleCamera
   );
 
+  let zPushCount = 0.0;
+  let lastZPush = null;
+
+  // key event to stop recording if pushed 3 times in quick succession
+  function maybeStopRecording(evt) {
+    // only react on key z/Z
+    if (evt.keyCode != 90) return;
+
+    // do not react to alt/ctrl/cmd modifier
+    if (evt.altKey || evt.ctrlKey || evt.metaKey) return;
+
+    let now = Date.now();
+    if (lastZPush && now - lastZPush < 500) {
+      lastZPush = now;
+      zPushCount++;
+    } else {
+      lastZPush = now;
+      zPushCount = 1;
+    }
+
+    if (zPushCount == 3) {
+      switch (uiState.name()) {
+        case "RECORDING":
+        case "RECORDER_PAUSED":
+          uiState.transition("stop");
+          break;
+      }
+    }
+  }
 
   // key event to toggle recording states
   function toggleRecording(evt) {
     // only react on key r/R
     if (evt.keyCode != 82) return;
-    
+
     // do not react to alt/ctrl/cmd modifier
     if (evt.altKey || evt.ctrlKey || evt.metaKey) return;
 
