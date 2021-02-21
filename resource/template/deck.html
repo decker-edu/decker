@@ -186,6 +186,9 @@ $for(style)$
   $style$
   </style>
 $endfor$
+$for(template.include-js)$
+<script src="$template.include-js$"></script>
+$endfor$
 </head>
 <body data-deckid="$deck-id$">
 $for(include-before)$
@@ -308,10 +311,6 @@ $if(decker-engine.base-url)$
     contactEngine("$decker-engine.base-url$", "$decker-engine.deck-id$")
   </script>
 $endif$
-
-$for(template.include-js)$
-<script src="$template.include-js$"></script>
-$endfor$
 
   <script>
       // Full list of configuration options available at:
