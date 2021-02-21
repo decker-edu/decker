@@ -811,13 +811,14 @@ function clip(max, v) {
 
 // Only add the SVG definitions block to our first SVG element. Otherwise chaos
 // ensues.
-var defsAdded = false;
+var svgDefsElement = false;
 
 function addDefs(svg) {
-  if (defsAdded) return;
-  defsAdded = true;
-
+  if (svgDefsElement) return;
+  
   let defs = svg.append("defs");
+  
+  svgDefsElement = defs.node();
 
   const mw = defaults.arrow.w;
   const mh = defaults.arrow.h;
