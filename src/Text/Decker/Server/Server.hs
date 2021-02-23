@@ -34,20 +34,15 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 
 -- Logging and port configuration for the server.
-serverConfig :: Int -> IO (Config Snap a)
-serverConfig port = do
+serverConfig :: Int -> String -> IO (Config Snap a)
+serverConfig port bind = do
   let accessLog = transientDir </> "server-access.log"
   let errorLog = transientDir </> "server-error.log"
   createDirectoryIfMissing True transientDir
   return
     ( setVerbose True $
-        -- setBind "localhost" $
+        setBind (fromString bind) $
           setPort port $
-            --setSSLBind "localhost" $
-            --setSSLPort (port + 13) $
-            --setSSLCert (transientDir </> "decker-ssl.crt") $
-            --setSSLKey (transientDir </> "decker-ssl.key") $
-            --setSSLChainCert False $
             setAccessLog (ConfigFileLog accessLog) $
               setErrorLog (ConfigFileLog errorLog) defaultConfig ::
         Config Snap a
@@ -100,15 +95,15 @@ installSSLCert = do
   BS.writeFile (transientDir </> "decker-ssl.key") sslKey
 
 -- Runs the server. Never returns.
-runHttpServer :: MVar ServerState -> Int -> IO ()
-runHttpServer state port = do
+runHttpServer :: MVar ServerState -> Int -> String -> IO ()
+runHttpServer state port bind = do
   installSSLCert
   devRun <- isDevelopmentRun
   let supportRoot =
         if devRun
           then devSupportDir
           else supportDir
-  config <- serverConfig port
+  config <- serverConfig port bind
   let routes =
         route
           [ ("/reload", runWebSocketsSnap $ reloader state),
@@ -175,10 +170,10 @@ serveDirectoryNoCaching state directory = do
   liftIO $ addPage state (toString path)
 
 -- | Starts a server in a new thread and returns the thread id.
-startHttpServer :: Int -> IO Server
-startHttpServer port = do
+startHttpServer :: Int -> String -> IO Server
+startHttpServer port bind = do
   state <- initState
-  threadId <- forkIO $ runHttpServer state port
+  threadId <- forkIO $ runHttpServer state port bind
   return (threadId, state)
 
 -- | Sends a reload messsage to all attached clients

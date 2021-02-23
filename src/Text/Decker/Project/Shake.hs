@@ -1,38 +1,34 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Text.Decker.Project.Shake
-  ( runDecker
-  , calcSource
-  , calcSource'
-  , currentlyServedPages
-  , relativeSupportDir
-  , isDevRun
-  , openBrowser
-  , publicResource
-  , publicResourceA
-  , putCurrentDocument
-  , runHttpServer
-  , startHttpServer
-  , stopHttpServer
-  , watchChangesAndRepeat
-  , withShakeLock
-  , writeSupportFilesToPublic
-  ) where
-
-import Text.Decker.Internal.Common
-import Text.Decker.Internal.Helper
-import Text.Decker.Internal.Meta
-import Text.Decker.Project.Project
-import Text.Decker.Resource.Template
-import Text.Decker.Server.Server
+  ( runDecker,
+    calcSource,
+    calcSource',
+    currentlyServedPages,
+    relativeSupportDir,
+    isDevRun,
+    openBrowser,
+    publicResource,
+    publicResourceA,
+    putCurrentDocument,
+    runHttpServer,
+    startHttpServer,
+    stopHttpServer,
+    watchChangesAndRepeat,
+    withShakeLock,
+    writeSupportFilesToPublic,
+  )
+where
 
 import Control.Concurrent
 import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
+import Data.Aeson
 import Data.Char
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
@@ -41,6 +37,7 @@ import Data.List
 import Data.List.Extra
 import Data.Maybe
 import qualified Data.Set as Set
+-- import qualified Data.Text as Text
 import Data.Typeable
 import Development.Shake hiding (doesDirectoryExist, putError)
 import System.Console.GetOpt
@@ -49,23 +46,33 @@ import qualified System.FSNotify as Notify
 import System.FilePath.Posix
 import System.Info
 import System.Process
+import Text.Decker.Internal.Common
+import Text.Decker.Internal.Helper
+import Text.Decker.Internal.Meta
+import Text.Decker.Project.Project
+import Text.Decker.Resource.Resource
+import Text.Decker.Resource.Template
+import Text.Decker.Server.Server
 import Text.Pandoc hiding (lookupMeta)
+import Text.Read
 
 instance Show (IORef a) where
   show _ = "IORef"
 
 data MutableActionState = MutableActionState
-  { _devRun :: Bool
-  , _server :: IORef (Maybe Server)
-  , _watch :: IORef Bool
-  , _publicResource :: Development.Shake.Resource
-  } deriving (Show)
+  { _devRun :: Bool,
+    _server :: IORef (Maybe Server),
+    _watch :: IORef Bool,
+    _publicResource :: Development.Shake.Resource
+  }
+  deriving (Show)
 
 makeLenses ''MutableActionState
 
 data ActionContext = ActionContext
   { _state :: MutableActionState
-  } deriving (Typeable, Show)
+  }
+  deriving (Typeable, Show)
 
 makeLenses ''ActionContext
 
@@ -83,9 +90,16 @@ runDecker rules = do
   cleanup state
 
 data Flags
-  = MetaValueFlag String
-                  String
+  = MetaValueFlag
+      String
+      String
   | FormatFlag
+  | CleanFlag
+  | CleanerFlag
+  | WatchFlag
+  | ServerFlag
+  | PortFlag Int
+  | BindFlag String
   deriving (Eq, Show)
 
 deckerFlags :: [OptDescr (Either String Flags)]
@@ -94,13 +108,34 @@ deckerFlags =
       ['m']
       ["meta"]
       (ReqArg parseMetaValueArg "META")
-      "Set a meta value like this: 'name=value'. Overrides values from decker.yaml."
-  , Option
-      ['f']
-      ["format"]
-      (NoArg $ Right FormatFlag)
-      "Format Markdown on stdin to stdout"
+      "Set a meta value like this: 'name=value'. Overrides values from decker.yaml.",
+    Option
+      ['w']
+      ["watch"]
+      (NoArg $ Right WatchFlag)
+      "Watch changes to source files and rebuild current target if necessary",
+    Option
+      ['s']
+      ["server"]
+      (NoArg $ Right ServerFlag)
+      "Serve the public dir via HTTP (implies --watch)",
+    Option
+      ['p']
+      ["port"]
+      (ReqArg parsePortArg "PORT")
+      "The HTTP server listens on the given port.",
+    Option
+      ['b']
+      ["bind"]
+      (ReqArg (Right . BindFlag) "BIND")
+      "Bind the HTTP server to given address."
   ]
+
+parsePortArg :: String -> Either String Flags
+parsePortArg arg =
+  case readMaybe arg of
+    Just port | port > 2 ^ 10 && port <= 2 ^ 16 -> Right $ PortFlag port
+    _ -> Left "Cannot parse argument. Must be an integer from (2^10, 2^16]."
 
 parseMetaValueArg :: String -> Either String Flags
 parseMetaValueArg arg =
@@ -112,22 +147,67 @@ parseMetaValueArg arg =
 isMetaName :: String -> Bool
 isMetaName str = all check $ splitOn "." str
   where
-    check s = length s > 1 && isAlpha (head s) && all isAlphaNum (tail s)
+    check s = length s > 1 && isAlpha (head s) && all (\c -> isAlphaNum c || isSymbol c || isPunctuation c) (tail s)
 
--- TODO: Handle the meta flag
-handleArguments :: Rules () -> [Flags] -> [String] -> IO (Maybe (Rules ()))
-handleArguments rules flags targets =
-  return $ Just $
+handleArguments :: MutableActionState -> Rules () -> [Flags] -> [String] -> IO (Maybe (Rules ()))
+handleArguments state rules flags targets = do
+  extractMeta flags
+  if
+      | "clean" `elem` targets -> do
+        runClean False
+        return Nothing
+      | "cleaner" `elem` targets -> do
+        runClean True
+        return Nothing
+      | "example" `elem` targets -> do
+        writeExampleProject
+        return Nothing
+      | otherwise -> do
+        let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort flags
+        let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind flags
+        when (WatchFlag `elem` flags) $ do
+          watchChangesAndRepeatIO state
+        when (ServerFlag `elem` flags) $ do
+          watchChangesAndRepeatIO state
+          runHttpServerIO state port bind
+        buildRules targets rules
+
+-- | Saves the meta flags to a well known file. Will be later read and cached by
+-- shake.
+extractMeta :: [Flags] -> IO ()
+extractMeta flags = do
+  let metaFlags = HashMap.fromList $ map (\(MetaValueFlag k v) -> (k, v)) $ filter aMetaValue flags
+  -- let metaFlags =
+  --       foldl' (\meta (MetaValueFlag k v) -> setMetaValue (Text.pack k) v meta) nullMeta $
+  --         filter aMetaValue flags
+  encodeFile metaArgsFile metaFlags
+
+buildRules :: [FilePath] -> Rules () -> IO (Maybe (Rules ()))
+buildRules targets rules =
   if null targets
-    then rules
-    else want targets >> withoutActions rules
+    then return $ Just rules
+    else return $
+      Just $ do
+        want (filter (`notElem` ["clean", "cleaner", "example"]) targets)
+        withoutActions rules
+
+aPort :: Flags -> Bool
+aPort (PortFlag _) = True
+aPort _ = False
+
+aBind :: Flags -> Bool
+aBind (BindFlag _) = True
+aBind _ = False
+
+aMetaValue (MetaValueFlag _ _) = True
+aMetaValue _ = False
 
 runShakeOnce :: MutableActionState -> Rules () -> IO Bool
 runShakeOnce state rules = do
   context <- initContext state
   options <- deckerShakeOptions context
   catchAll
-    (shakeArgsWith options deckerFlags (handleArguments rules))
+    (shakeArgsWith options deckerFlags (handleArguments state rules))
     (putError "ERROR:\n")
   server <- readIORef (state ^. server)
   forM_ server reloadClients
@@ -149,7 +229,12 @@ cleanup state = do
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do
-  ref <- _watch . _state <$> actionContext
+  state <- _state <$> actionContext
+  liftIO $ watchChangesAndRepeatIO state
+
+watchChangesAndRepeatIO :: MutableActionState -> IO ()
+watchChangesAndRepeatIO state = do
+  let ref = _watch state
   liftIO $ writeIORef ref True
 
 putError :: String -> SomeException -> IO ()
@@ -163,16 +248,16 @@ deckerShakeOptions ctx = do
   cores <- getNumCapabilities
   return $
     shakeOptions
-      { shakeFiles = transientDir
-      , shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty
-      , shakeThreads = cores
-      -- , shakeStaunch = True
-      , shakeColor = True
-      , shakeChange = ChangeModtime
-      -- , shakeChange = ChangeModtimeAndDigest
-      , shakeLint = Just LintBasic 
-      -- , shakeLint = Just LintFSATrace
-      , shakeReport = [".decker/shake-report.html"]
+      { shakeFiles = transientDir,
+        shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
+        shakeThreads = cores,
+        -- , shakeStaunch = True
+        shakeColor = True,
+        shakeChange = ChangeModtime,
+        -- , shakeChange = ChangeModtimeAndDigest
+        shakeLint = Just LintBasic,
+        -- , shakeLint = Just LintFSATrace
+        shakeReport = [".decker/shake-report.html"]
       }
 
 actionContextKey :: TypeRep
@@ -185,10 +270,11 @@ actionContext =
 waitForChange :: FilePath -> [FilePath] -> IO ()
 waitForChange inDir exclude =
   Notify.withManager
-    (\manager -> do
-       done <- newEmptyMVar
-       Notify.watchTree manager inDir filter (\e -> putMVar done ())
-       takeMVar done)
+    ( \manager -> do
+        done <- newEmptyMVar
+        Notify.watchTree manager inDir filter (\e -> putMVar done ())
+        takeMVar done
+    )
   where
     filter event = not $ any (`isPrefixOf` Notify.eventPath event) exclude
 
@@ -214,16 +300,18 @@ writeSupportFilesToPublic meta = do
 extractSupport :: TemplateSource -> Action ()
 extractSupport templateSource = do
   context <- actionContext
-  liftIO $ handleAll (\_ -> return ()) $ do
-    copySupportFiles templateSource Copy supportDir
-    writeFile (supportDir </> ".origin") (show templateSource)
+  liftIO $
+    handleAll (\_ -> return ()) $ do
+      copySupportFiles templateSource Copy supportDir
+      writeFile (supportDir </> ".origin") (show templateSource)
 
 correctSupportInstalled :: TemplateSource -> Action Bool
 correctSupportInstalled templateSource = do
   context <- actionContext
-  liftIO $ handleAll (\_ -> return False) $ do
-    installed <- read <$> readFile (supportDir </> ".origin")
-    return (installed == templateSource)
+  liftIO $
+    handleAll (\_ -> return False) $ do
+      installed <- read <$> readFile (supportDir </> ".origin")
+      return (installed == templateSource)
 
 removeSupport :: Action ()
 removeSupport = do
@@ -237,18 +325,29 @@ withShakeLock perform = do
   r <- _publicResource . _state <$> actionContext
   withResource r 1 perform
 
--- | Runs the built-in server on the given directory, if it is not already
--- running.
 runHttpServer :: Int -> Maybe String -> Action ()
 runHttpServer port url = do
-  ref <- _server . _state <$> actionContext
+  state <- _state <$> actionContext
+  let ref = _server state
   server <- liftIO $ readIORef ref
   case server of
     Just _ -> return ()
     Nothing -> do
-      httpServer <- liftIO $ startHttpServer port
+      httpServer <- liftIO $ startHttpServer port "localhost"
       liftIO $ writeIORef ref $ Just httpServer
       forM_ url openBrowser
+
+-- |  Runs the built-in server on the given directory, if it is not already
+--  running.
+runHttpServerIO :: MutableActionState -> Int -> String -> IO ()
+runHttpServerIO state port bind = do
+  let ref = _server state
+  server <- readIORef ref
+  case server of
+    Just _ -> return ()
+    Nothing -> do
+      httpServer <- startHttpServer port bind
+      writeIORef ref $ Just httpServer
 
 -- | Returns a list of all pages currently served, if any.
 currentlyServedPages :: Action [FilePath]
@@ -263,11 +362,12 @@ currentlyServedPages = do
 
 openBrowser :: String -> Action ()
 openBrowser url =
-  if | any (`isInfixOf` os) ["linux", "bsd"] ->
-       liftIO $ callProcess "xdg-open" [url]
-     | "darwin" `isInfixOf` os -> liftIO $ callProcess "open" [url]
-     | otherwise ->
-       putNormal $ "Unable to open browser on this platform for url: " ++ url
+  if
+      | any (`isInfixOf` os) ["linux", "bsd"] ->
+        liftIO $ callProcess "xdg-open" [url]
+      | "darwin" `isInfixOf` os -> liftIO $ callProcess "open" [url]
+      | otherwise ->
+        putNormal $ "Unable to open browser on this platform for url: " ++ url
 
 calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target = do
@@ -283,3 +383,17 @@ calcSource' target = do
 
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = putNormal $ "# pandoc (for " ++ out ++ ")"
+
+-- | Functionality for "decker clean" command Removes public and .decker
+-- directory. Located outside of Shake due to unlinking differences and
+-- parallel processes on Windows which prevented files (.shake.lock) from being
+-- deleted on Windows.
+runClean :: Bool -> IO ()
+runClean totally = do
+  warnVersion
+  putStrLn $ "# Removing " ++ publicDir
+  tryRemoveDirectory publicDir
+  when totally $
+    do
+      putStrLn $ "# Removing " ++ transientDir
+      tryRemoveDirectory transientDir

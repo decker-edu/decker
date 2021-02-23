@@ -250,9 +250,10 @@ readMetaData globalMeta path = do
 readDeckerMeta :: FilePath -> Action Meta
 readDeckerMeta file = do
   meta <- readMetaData nullMeta file
+  argsMeta <- readMetaData nullMeta metaArgsFile
   templateSource <- liftIO $ calcTemplateSource meta
   defaultMeta <- readTemplateMeta templateSource
-  return $ mergePandocMeta' meta defaultMeta
+  return $ foldl' mergePandocMeta' nullMeta [defaultMeta, argsMeta, meta]
 
 -- | Runs a new style decker filter. That means
 --
