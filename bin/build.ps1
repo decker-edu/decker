@@ -41,7 +41,7 @@ Remove-Item "$deckerdir\public" -Recurse -Force -ErrorAction Continue
 
 Write-Host "Starting build of standalone binary" -ForegroundColor Green
 & git submodule update --init
-& ..\third-party\vendor.ps1
+& .\third-party\vendor.ps1
 
 # Return to the decker root directory
 Set-Location (Split-Path $PSScriptRoot -Parent)
