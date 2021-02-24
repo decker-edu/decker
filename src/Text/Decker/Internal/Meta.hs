@@ -105,7 +105,7 @@ getMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
     lookup' (_:_) _ = Nothing
     lookup' [] mv = Just mv
 
--- | Sets a meta value at the compund key in the meta data. If any intermediate
+-- | Sets a meta value at the compound key in the meta data. If any intermediate
 -- containers do not exist, they are created. 
 setMetaValue :: ToMetaValue a => Text -> a -> Meta -> Meta
 setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
