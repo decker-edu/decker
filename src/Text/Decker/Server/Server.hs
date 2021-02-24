@@ -144,13 +144,16 @@ startUpdater state = do
 
 -- | Save the request body in the project directory under the request path. But
 -- only if the request path ends on one of the suffixes and the local directory
--- already exists.
+-- already exists. Do this atomically.
 uploadResource :: MonadSnap m => [String] -> m ()
 uploadResource suffixes = do
   destination <- toString <$> getsRequest rqPathInfo
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && any (`isSuffixOf` destination) suffixes
-    then runRequestBody (withFileAsOutput destination . connect)
+    then do
+      let tmp = transientDir </> takeFileName destination
+      runRequestBody (withFileAsOutput tmp . connect)
+      liftIO $ renameFile tmp destination
     else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
 
 headDirectory :: MonadSnap m => FilePath -> m ()
