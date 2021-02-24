@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Project.Shake
   ( runDecker,
@@ -23,24 +24,24 @@ module Text.Decker.Project.Shake
   )
 where
 
-import Control.Concurrent
+import Control.Concurrent (getNumCapabilities)
 import Control.Exception
-import Control.Lens
+import Control.Lens (makeLenses, (^.))
 import Control.Monad
 import Control.Monad.Catch
 import Data.Aeson
 import Data.Char
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
-import Data.IORef
-import Data.List
-import Data.List.Extra
+-- import Data.List
+import qualified Data.List.Extra as List
 import Data.Maybe
 import qualified Data.Set as Set
 -- import qualified Data.Text as Text
 import Data.Typeable
 import Development.Shake hiding (doesDirectoryExist, putError)
-import System.Console.GetOpt
+import Relude hiding (state)
+import qualified System.Console.GetOpt as GetOpt
 import System.Directory as Dir
 import qualified System.FSNotify as Notify
 import System.FilePath.Posix
@@ -56,23 +57,19 @@ import Text.Decker.Server.Server
 import Text.Pandoc hiding (lookupMeta)
 import Text.Read
 
-instance Show (IORef a) where
-  show _ = "IORef"
-
 data MutableActionState = MutableActionState
   { _devRun :: Bool,
     _server :: IORef (Maybe Server),
     _watch :: IORef Bool,
     _publicResource :: Development.Shake.Resource
   }
-  deriving (Show)
 
 makeLenses ''MutableActionState
 
 data ActionContext = ActionContext
   { _state :: MutableActionState
   }
-  deriving (Typeable, Show)
+  deriving (Typeable)
 
 makeLenses ''ActionContext
 
@@ -102,32 +99,32 @@ data Flags
   | BindFlag String
   deriving (Eq, Show)
 
-deckerFlags :: [OptDescr (Either String Flags)]
+deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =
-  [ Option
+  [ GetOpt.Option
       ['m']
       ["meta"]
-      (ReqArg parseMetaValueArg "META")
+      (GetOpt.ReqArg parseMetaValueArg "META")
       "Set a meta value like this: 'name=value'. Overrides values from decker.yaml.",
-    Option
+    GetOpt.Option
       ['w']
       ["watch"]
-      (NoArg $ Right WatchFlag)
+      (GetOpt.NoArg $ Right WatchFlag)
       "Watch changes to source files and rebuild current target if necessary",
-    Option
+    GetOpt.Option
       ['s']
       ["server"]
-      (NoArg $ Right ServerFlag)
+      (GetOpt.NoArg $ Right ServerFlag)
       "Serve the public dir via HTTP (implies --watch)",
-    Option
+    GetOpt.Option
       ['p']
       ["port"]
-      (ReqArg parsePortArg "PORT")
+      (GetOpt.ReqArg parsePortArg "PORT")
       "The HTTP server listens on the given port.",
-    Option
+    GetOpt.Option
       ['b']
       ["bind"]
-      (ReqArg (Right . BindFlag) "BIND")
+      (GetOpt.ReqArg (Right . BindFlag) "BIND")
       "Bind the HTTP server to given address."
   ]
 
@@ -139,15 +136,15 @@ parsePortArg arg =
 
 parseMetaValueArg :: String -> Either String Flags
 parseMetaValueArg arg =
-  case splitOn "=" arg of
+  case List.splitOn "=" arg of
     [meta, value]
       | isMetaName meta -> Right $ MetaValueFlag meta value
     _ -> Left "Cannot parse argument. Must be 'name=value'."
 
 isMetaName :: String -> Bool
-isMetaName str = all check $ splitOn "." str
+isMetaName str = all check $ List.splitOn "." str
   where
-    check s = length s > 1 && isAlpha (head s) && all (\c -> isAlphaNum c || isSymbol c || isPunctuation c) (tail s)
+    check s = length s > 1 && isAlpha (List.head s) && all (\c -> isAlphaNum c || isSymbol c || isPunctuation c) (List.tail s)
 
 handleArguments :: MutableActionState -> Rules () -> [Flags] -> [String] -> IO (Maybe (Rules ()))
 handleArguments state rules flags targets = do
@@ -180,7 +177,8 @@ extractMeta flags = do
   -- let metaFlags =
   --       foldl' (\meta (MetaValueFlag k v) -> setMetaValue (Text.pack k) v meta) nullMeta $
   --         filter aMetaValue flags
-  encodeFile metaArgsFile metaFlags
+  let json = decodeUtf8 $ encode metaFlags
+  writeFileChanged metaArgsFile json
 
 buildRules :: [FilePath] -> Rules () -> IO (Maybe (Rules ()))
 buildRules targets rules =
@@ -237,10 +235,11 @@ watchChangesAndRepeatIO state = do
   let ref = _watch state
   liftIO $ writeIORef ref True
 
-putError :: String -> SomeException -> IO ()
+putError :: Text -> SomeException -> IO ()
 putError prefix (SomeException e) =
-  putStrLn $ prefix ++ (unlines $ lastN 2 $ lines $ show e)
+  print $ prefix <> unlines (lastN 2 $ lines $ show e)
 
+lastN :: Int -> [a] -> [a]
 lastN n = reverse . take n . reverse
 
 deckerShakeOptions :: ActionContext -> IO ShakeOptions
@@ -363,9 +362,9 @@ currentlyServedPages = do
 openBrowser :: String -> Action ()
 openBrowser url =
   if
-      | any (`isInfixOf` os) ["linux", "bsd"] ->
+      | any (`List.isInfixOf` os) ["linux", "bsd"] ->
         liftIO $ callProcess "xdg-open" [url]
-      | "darwin" `isInfixOf` os -> liftIO $ callProcess "open" [url]
+      | "darwin" `List.isInfixOf` os -> liftIO $ callProcess "open" [url]
       | otherwise ->
         putNormal $ "Unable to open browser on this platform for url: " ++ url
 
