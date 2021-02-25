@@ -21,6 +21,8 @@ void main() {
 ``` {.javascript .run}
 import * as swb from "./static/shader-web-background.min.js";
 
+console.log(swb);
+
 let canvas = document.createElement("canvas");
 canvas.setAttribute("width", "600");
 canvas.setAttribute("height", "400");
@@ -29,11 +31,11 @@ anchor.appendChild(canvas);
 swb.shaderWebBackground.shade({
     canvas: canvas,
     shaders: {
-    image: {
-        uniforms: {
-        iTime: (gl, loc) => gl.uniform1f(loc, performance.now() / 1000)
+        image: {
+            uniforms: {
+                iTime: (gl, loc) => gl.uniform1f(loc, performance.now() / 1000)
+            }
         }
-    }
     }
 });
 ```
