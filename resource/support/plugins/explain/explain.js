@@ -258,7 +258,6 @@ let ExplainPlugin = (function () {
     finish() {
       if (this.previousSlide) this.previousSlide.timeOut = this.timeStamp();
       let json = JSON.stringify(this.timeIntervals, null, 4);
-      console.log(json);
       return new Blob([json], {
         type: "application/json",
       });
@@ -442,12 +441,14 @@ let ExplainPlugin = (function () {
 
     recorder.ondataavailable = (e) => blobs.push(e.data);
 
+    let recordSlideChange = () => recorder.timing.record();
+
     recorder.onstart = () => {
       console.log("[] recorder started");
       Reveal.slide(0);
       recorder.timing = new Timing();
       recorder.timing.start();
-      Reveal.addEventListener("slidechanged", (_) => recorder.timing.record());
+      Reveal.addEventListener("slidechanged", recordSlideChange);
 
       updateRecordIndicator();
     };
@@ -465,6 +466,7 @@ let ExplainPlugin = (function () {
         download(tblob, videoFilenameBase() + "-times.json");
       }
 
+      Reveal.removeEventListener("slidechanged", recordSlideChange);
       recorder = null;
       stream = null;
 
@@ -1011,23 +1013,6 @@ let ExplainPlugin = (function () {
       voiceGainSlider.value = 0;
     }
     voiceGainSlider.oninput();
-  }
-
-  function printTimeStamps() {
-    for (let i = 0; i < explainTimes.length; i++) {
-      let t = explainTimes[i];
-      let h = Math.floor(t / 60 / 60);
-      let m = Math.floor(t / 60) - h * 60;
-      let s = t % 60;
-      let formatted =
-        h.toString().padStart(2, "0") +
-        ":" +
-        m.toString().padStart(2, "0") +
-        ":" +
-        s.toString().padStart(2, "0");
-      console.log("slide " + (i + 1) + ": time " + formatted + " = " + t + "s");
-    }
-    console.log(explainTimes);
   }
 
   async function resourceExists(url) {
