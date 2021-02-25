@@ -194,6 +194,11 @@ button.stop-button {
   text-align: right;
 }
 
+.controls-row select {
+  min-width: 200px;
+  flex-grow: 1;
+}
+
 #explain-panel {
   position: fixed;
   top: 0;
