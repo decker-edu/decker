@@ -15,6 +15,8 @@ let ExplainPlugin = (function () {
   let voiceStream, desktopStream, cameraStream;
   let voiceGain, desktopGain;
   let volumeMeter;
+  let micSelect, camSelect;
+  let micIndicator, camIndicator;
 
   // playback stuff
   let explainVideoUrl, explainTimesUrl, explainTimes;
@@ -263,86 +265,148 @@ let ExplainPlugin = (function () {
     }
   }
 
+  async function captureScreen() {
+    const config = Reveal.getConfig().explain;
+    const recWidth =
+      config && config.recWidth ? config.recWidth : Reveal.getConfig().width;
+    const recHeight =
+      config && config.recHeight ? config.recHeight : Reveal.getConfig().height;
+
+    // get display stream
+    console.log("get display stream (" + recWidth + "x" + recHeight + ")");
+    desktopStream = await navigator.mediaDevices.getDisplayMedia({
+      video: {
+        frameRate: 30,
+        width: recWidth,
+        height: recHeight,
+        cursor: "always",
+        resizeMode: "crop-and-scale",
+      },
+      audio: true,
+    });
+
+    if (desktopStream.getAudioTracks().length > 0) {
+      let label = desktopStream.getAudioTracks()[0].label;
+      desktopIndicator.title = label;
+      desktopGainSlider.disabled = false;
+    } else {
+      desktopIndicator.removeAttribute("title");
+      desktopGainSlider.disabled = true;
+    }
+
+    // if merged stream exists already (i.e., we are updating a stream),
+    // then merge with existing streams
+    if (stream) mergeStreams();
+  }
+
+  async function captureMicrophone() {
+    console.log("get voice stream");
+    console.log("mic id: " + micSelect.value);
+
+    voiceStream = await navigator.mediaDevices.getUserMedia({
+      video: false,
+      audio: {
+        deviceId: micSelect.value ? { exact: micSelect.value } : undefined,
+        echoCancellation: false,
+        noiseSuppression: true,
+      },
+    });
+
+    if (voiceStream.getAudioTracks().length > 0) {
+      const selectedMicrophone = voiceStream.getAudioTracks()[0].label;
+      voiceIndicator.title = selectedMicrophone;
+      micIndicator.title = selectedMicrophone;
+      voiceGainSlider.disabled = false;
+      // update mic selector
+      micSelect.selectedIndex = -1;
+      for (let i = 0; i < micSelect.options.length; i++) {
+        if (micSelect.options[i].text == selectedMicrophone) {
+          micSelect.selectedIndex = i;
+          break;
+        }
+      }
+    } else {
+      voiceIndicator.removeAttribute("title");
+      micIndicator.removeAttribute("title");
+      voiceGainSlider.disabled = true;
+      micSelect.value = null;
+    }
+
+    // if merged stream exists already (i.e., we are updating a stream),
+    // then merge with existing streams
+    if (stream) mergeStreams();
+  }
+
+  async function captureCamera() {
+    const config = Reveal.getConfig().explain;
+    const camWidth = config && config.camWidth ? config.camWidth : 1280;
+    const camHeight = config && config.camHeight ? config.camHeight : 720;
+
+    console.log("get camera stream (" + camWidth + "x" + camHeight + ")");
+    console.log("cam id: " + camSelect.value);
+
+    // get camera stream
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        deviceId: camSelect.value ? { exact: camSelect.value } : undefined,
+        width: camWidth,
+        height: camHeight,
+        frameRate: { max: 30 },
+      },
+      audio: false,
+    });
+
+    if (cameraStream.getVideoTracks().length > 0) {
+      const selectedCamera = cameraStream.getVideoTracks()[0].label;
+      camIndicator.title = selectedCamera;
+      // update camSelect
+      camSelect.selectedIndex = -1;
+      for (let i = 0; i < camSelect.options.length; i++) {
+        if (camSelect.options[i].text == selectedCamera) {
+          camSelect.selectedIndex = i;
+          break;
+        }
+      }
+      // connect camera to video element
+      if (cameraVideo.classList.contains("visible")) {
+        cameraVideo.pause();
+        cameraVideo.srcObject = cameraStream;
+        cameraVideo.play();
+      } else {
+        cameraVideo.srcObject = cameraStream;
+      }
+    } else {
+      camIndicator.removeAttribute("title");
+    }
+
+    // if merged stream exists already (i.e., we are updating a stream),
+    // then merge with existing streams
+    if (stream) mergeStreams();
+  }
+
+  function mergeStreams() {
+    const tracks = [
+      ...desktopStream.getVideoTracks(),
+      ...mergeAudioStreams(desktopStream, voiceStream),
+    ];
+    stream = new MediaStream(tracks);
+
+    // inform user when tracks get lost
+    stream.getTracks().forEach((track) => {
+      track.onended = () => {
+        alert("VideoRecording: Track " + track.label + " has ended.");
+        uiState.transition("cancel");
+      };
+    });
+  }
+
   async function setupRecorder() {
     try {
-      const config = Reveal.getConfig().explain;
-      const recWidth =
-        config && config.recWidth ? config.recWidth : Reveal.getConfig().width;
-      const recHeight =
-        config && config.recHeight
-          ? config.recHeight
-          : Reveal.getConfig().height;
-      const camWidth = config && config.camWidth ? config.camWidth : 1280;
-      const camHeight = config && config.camHeight ? config.camHeight : 720;
-
-      // get display stream
-      console.log("get display stream (" + recWidth + "x" + recHeight + ")");
-      desktopStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          frameRate: 30,
-          width: recWidth,
-          height: recHeight,
-          cursor: "always",
-          resizeMode: "crop-and-scale",
-        },
-        audio: true,
-      });
-
-      if (!desktopStream) return false;
-
-      if (desktopStream.getAudioTracks().length > 0) {
-        let label = desktopStream.getAudioTracks()[0].label;
-        desktopIndicator.title = label;
-        desktopGainSlider.disabled = false;
-      } else {
-        desktopIndicator.removeAttribute("title");
-        desktopGainSlider.disabled = true;
-      }
-
-      // get microphone stream
-      console.log("get voice stream");
-      voiceStream = await navigator.mediaDevices.getUserMedia({
-        video: false,
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: true,
-        },
-      });
-      if (voiceStream.getAudioTracks().length > 0) {
-        let label = voiceStream.getAudioTracks()[0].label;
-        voiceIndicator.title = label;
-        voiceGainSlider.disabled = false;
-      } else {
-        voiceIndicator.removeAttribute("title");
-        voiceGainSlider.disabled = true;
-      }
-
-      // merge tracks into recording stream
-      const tracks = [
-        ...desktopStream.getVideoTracks(),
-        ...mergeAudioStreams(desktopStream, voiceStream),
-      ];
-      stream = new MediaStream(tracks);
-
-      // inform user when tracks get lost
-      stream.getTracks().forEach((track) => {
-        track.onended = () => {
-          alert("VideoRecording: Track " + track.label + " has ended.");
-          uiState.transition("cancel");
-        };
-      });
-
-      // get camera stream
-      console.log("get camera stream (" + camWidth + "x" + camHeight + ")");
-      cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: camWidth,
-          height: camHeight,
-          frameRate: { max: 30 },
-        },
-        audio: false,
-      });
-      cameraVideo.srcObject = cameraStream;
+      stream = null;
+      await captureScreen();
+      await captureMicrophone();
+      await captureCamera();
+      mergeStreams();
 
       recordButton.disabled = undefined;
       pauseButton.disabled = true;
@@ -350,7 +414,9 @@ let ExplainPlugin = (function () {
 
       return true;
     } catch (e) {
-      alert("Recording setup failed.\n\nRecording only works on Chrome. Also, the deck must be accessed via a URL that starts with either of \n\n\- http://localhost\n- https://");
+      alert(
+        "Recording setup failed.\n\nRecording only works on Chrome. Also, the deck must be accessed via a URL that starts with either of \n\n- http://localhost\n- https://"
+      );
     }
   }
 
@@ -424,7 +490,8 @@ let ExplainPlugin = (function () {
     recordButton.disabled = true;
     pauseButton.disabled = undefined;
     stopButton.disabled = undefined;
-
+    micSelect.disabled = true;
+    camSelect.disabled = true;
     return true;
   }
 
@@ -432,7 +499,7 @@ let ExplainPlugin = (function () {
     recorder.pause();
     recordButton.disabled = true;
     pauseButton.disabled = undefined;
-    stopButton.disabled = true;
+    stopButton.disabled = undefined;
     return true;
   }
 
@@ -450,6 +517,8 @@ let ExplainPlugin = (function () {
     recordButton.disabled = undefined;
     pauseButton.disabled = true;
     stopButton.disabled = true;
+    micSelect.disabled = undefined;
+    camSelect.disabled = undefined;
     return true;
   }
 
@@ -642,7 +711,7 @@ let ExplainPlugin = (function () {
     player.getChild("controlBar").addChild("nextButton", {}, 3);
   }
 
-  function createRecordingGUI() {
+  async function createRecordingGUI() {
     recordPanel = createElement({
       type: "div",
       id: "record-panel",
@@ -681,16 +750,127 @@ let ExplainPlugin = (function () {
     volumeMeter.high = -9;
     volumeMeter.max = 0;
 
-    let controls = createElement({
+    row = createElement({
       type: "div",
-      id: "record-controls",
+      classes: "controls-row",
       parent: recordPanel,
     });
+
+    voiceIndicator = createElement({
+      type: "i",
+      classes: "indicator fas fa-microphone",
+      parent: row,
+    });
+
+    voiceGainSlider = createElement({
+      type: "input",
+      id: "voice-gain-slider",
+      classes: "gain-slider",
+      title: "Microphone Audio Gain",
+      parent: row,
+    });
+    setupGainSlider(voiceGain, voiceGainSlider);
 
     row = createElement({
       type: "div",
       classes: "controls-row",
-      parent: controls,
+      parent: recordPanel,
+    });
+
+    desktopIndicator = createElement({
+      type: "i",
+      classes: "indicator fas fa-tv",
+      parent: row,
+    });
+
+    desktopGainSlider = createElement({
+      type: "input",
+      id: "desktop-gain-slider",
+      classes: "gain-slider",
+      title: "Desktop Audio Gain",
+      parent: row,
+    });
+    setupGainSlider(desktopGain, desktopGainSlider);
+
+    // mic selector
+    row = createElement({
+      type: "div",
+      classes: "controls-row",
+      parent: recordPanel,
+    });
+
+    micIndicator = createElement({
+      type: "i",
+      classes: "indicator fas fa-microphone",
+      title: "Select microphone",
+      parent: row,
+    });
+
+    micSelect = createElement({
+      type: "select",
+      id: "mic-select",
+      classes: "input-select",
+      title: "Select microphone",
+      parent: row,
+    });
+    micSelect.onchange = captureMicrophone;
+
+    // camera selector
+    row = createElement({
+      type: "div",
+      classes: "controls-row",
+      parent: recordPanel,
+    });
+
+    camIndicator = createElement({
+      type: "i",
+      classes: "indicator fas fa-camera",
+      title: "Select camera",
+      parent: row,
+    });
+
+    camSelect = createElement({
+      type: "select",
+      id: "cam-select",
+      classes: "input-select",
+      title: "Select camera",
+      parent: row,
+    });
+    camSelect.onchange = captureCamera;
+
+    // collect list of cameras and microphones
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      devices.forEach((device) => {
+        switch (device.kind) {
+          case "audioinput": {
+            const option = document.createElement("option");
+            option.value = device.deviceId;
+            option.text = device.label || `microphone ${micSelect.length + 1}`;
+            micSelect.appendChild(option);
+            break;
+          }
+          case "videoinput": {
+            const option = document.createElement("option");
+            option.value = device.deviceId;
+            option.text = device.label || `camera ${camSelect.length + 1}`;
+            camSelect.appendChild(option);
+            break;
+          }
+        }
+      });
+
+      // unselect camera & microphone
+      micSelect.value = undefined;
+      camSelect.value = undefined;
+    } catch (e) {
+      console.log("cannot list microphones and cameras:" + e);
+    }
+
+    row = createElement({
+      type: "div",
+      classes: "controls-row",
+      parent: recordPanel,
     });
 
     recordButton = createElement({
@@ -716,48 +896,6 @@ let ExplainPlugin = (function () {
       parent: row,
       onclick: transition("stop"),
     });
-
-    row = createElement({
-      type: "div",
-      classes: "controls-row",
-      parent: controls,
-    });
-
-    voiceIndicator = createElement({
-      type: "i",
-      classes: "indicator fas fa-microphone",
-      parent: row,
-    });
-
-    voiceGainSlider = createElement({
-      type: "input",
-      id: "voice-gain-slider",
-      classes: "gain-slider",
-      title: "Microphone Audio Gain",
-      parent: row,
-    });
-    setupGainSlider(voiceGain, voiceGainSlider);
-
-    row = createElement({
-      type: "div",
-      classes: "controls-row",
-      parent: controls,
-    });
-
-    desktopIndicator = createElement({
-      type: "i",
-      classes: "indicator fas fa-tv",
-      parent: row,
-    });
-
-    desktopGainSlider = createElement({
-      type: "input",
-      id: "desktop-gain-slider",
-      classes: "gain-slider",
-      title: "Desktop Audio Gain",
-      parent: row,
-    });
-    setupGainSlider(desktopGain, desktopGainSlider);
   }
 
   function setupGainSlider(gain, slider) {

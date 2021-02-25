@@ -128,7 +128,7 @@ div#record-panel:hover {
 }
 
 .indicator[title] {
-  color: red;
+  color: var(--whiteboard-active-color);
 }
 
 .indicator::before {
