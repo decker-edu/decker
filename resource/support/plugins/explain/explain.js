@@ -1144,6 +1144,15 @@ let ExplainPlugin = (function () {
     }
   }
 
+  // Intercept page leave when we are recording
+  window.addEventListener("beforeunload", (evt) => {
+    if (uiState.in("RECORDER_PAUSED", "RECORDING")) {
+      evt.preventDefault();
+      evt.returnValue = "We are recording!";
+      return evt.returnValue;
+    }
+  });
+
   return {
     init: async function () {
       // don't do anything when exporting to PDF
