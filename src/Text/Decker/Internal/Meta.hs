@@ -52,7 +52,8 @@ import Text.Pandoc.Shared hiding (toString, toText)
 -- | Name of the one global meta data file
 globalMetaFileName = "decker.yaml"
 
--- | Fine-grained recursive merge of two meta values. Left-biased. 
+-- | Fine-grained recursive merge of two meta values. Left-biased. Duplicates
+-- are removed from lists.
 mergePandocMeta' :: Meta -> Meta -> Meta
 mergePandocMeta' (Meta left) (Meta right) =
   case merge (MetaMap left) (MetaMap right) of
