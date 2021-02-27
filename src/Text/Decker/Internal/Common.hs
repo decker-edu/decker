@@ -5,6 +5,7 @@ module Text.Decker.Internal.Common where
 
 import Control.Monad.State
 import Development.Shake (Action)
+import System.FilePath ((</>))
 import Text.Pandoc
 
 type Decker = StateT DeckerState Action
@@ -13,10 +14,11 @@ doIO :: IO a -> Decker a
 doIO = lift . liftIO
 
 data DeckerState = DeckerState
-  { basePath :: String
-  , disposition :: Disposition
-  , provisioning :: Provisioning
-  } deriving (Eq, Show)
+  { basePath :: String,
+    disposition :: Disposition,
+    provisioning :: Provisioning
+  }
+  deriving (Eq, Show)
 
 data Layout
   = Deck
@@ -33,9 +35,10 @@ data OutputFormat
   deriving (Ord, Eq, Show)
 
 data Disposition = Disposition
-  { layout :: Layout
-  , format :: OutputFormat
-  } deriving (Ord, Eq, Show)
+  { layout :: Layout,
+    format :: OutputFormat
+  }
+  deriving (Ord, Eq, Show)
 
 data MediaType
   = ImageMedia
@@ -47,10 +50,14 @@ data MediaType
   | StreamMedia
 
 data Provisioning
-  = Copy -- ^ Copy to public and relative URL
-  | SymLink -- ^ Symbolic link to public and relative URL
-  | Absolute -- ^ Absolute local URL
-  | Relative -- ^ Relative local URL
+  = -- | Copy to public and relative URL
+    Copy
+  | -- | Symbolic link to public and relative URL
+    SymLink
+  | -- | Absolute local URL
+    Absolute
+  | -- | Relative local URL
+    Relative
   deriving (Eq, Show, Read)
 
 pandocWriterOpts :: WriterOptions
@@ -58,8 +65,19 @@ pandocWriterOpts =
   def {writerExtensions = (enableExtension Ext_emoji) pandocExtensions}
 
 projectDir = "."
+
 publicDir = "public"
+
 supportDir = "public/support"
+
 devSupportDir = "resource/support"
+
 supportPath = "/support"
+
 transientDir = ".decker"
+
+deckerMetaFile = "decker.yaml"
+
+targetsFile = transientDir </> "targets.yaml"
+
+metaArgsFile = transientDir </> "meta-args.yaml"

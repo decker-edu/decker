@@ -3,22 +3,23 @@
 -- This module is an interface that provides transparent access to the resources
 -- Depending on specification in "decker.yaml" the source of the resource folder is chosen
 -- Everything that is copying or linking Resource folders needs to be moved here
--- 
 module Text.Decker.Resource.Resource
-  ( writeExampleProject
-  , urlToFilePathIfLocal
-  ) where
-
-import Text.Decker.Internal.Helper (warnVersion)
-import Text.Decker.Resource.Zip
+  ( writeExampleProject,
+    urlToFilePathIfLocal,
+  )
+where
 
 import Development.Shake hiding (Resource)
 import qualified Network.URI as URI
+import System.Directory
 import System.FilePath.Posix
+import Text.Decker.Internal.Helper (warnVersion)
+import Text.Decker.Resource.Zip
 
 -- | Write the example project to the current folder
-writeExampleProject :: FilePath -> IO ()
-writeExampleProject dir = do
+writeExampleProject :: IO ()
+writeExampleProject = do
+  dir <- getCurrentDirectory
   warnVersion
   putStrLn $ "# Extracting example project to " ++ dir ++ "."
   extractResourceEntries "example" dir
