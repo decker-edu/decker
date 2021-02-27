@@ -17,6 +17,7 @@ export {
   nthP,
   nthN,
   renderSvg,
+  IsectLineCircle,
 };
 
 import "/test/decks/geometry/static/d3.v6.min.js";
@@ -40,12 +41,25 @@ let nextId = 0;
 
 class Shape {
   constructor(z = 1) {
+    this.complete = true;
     this.id = nextId++;
     this.zIndex = z;
   }
 
   evaluate() {
-    return { complete: true, flat: [this] };
+    return { complete: this.complete, flat: this.complete ? [this] : [] };
+  }
+
+  evaluate2() {
+    return this.complete;
+  }
+
+  all(dependencies) {
+    return dependencies.reduce((a, v) => a && v.evaluate2(), true);
+  }
+
+  flat() {
+    return this.complete ? [this] : [];
   }
 
   allComplete(dependencies) {
@@ -168,6 +182,16 @@ class Line extends Shape {
     return this.allComplete([this.p1, this.p2]);
   }
 
+  evaluate2() {
+    this.complete = Shape.all([this.p1, this.p2]);
+    return this.complete;
+  }
+
+  flat() {
+    let parts = [...this.p1.flat(), ...this.p2.flat()];
+    return this.complete ? [...parts, this] : parts;
+  }
+
   update(element) {
     d3.select(element)
       .attr("x1", this.p1.x)
@@ -233,6 +257,14 @@ class Surface extends Shape {
 
     return surface.node();
   }
+
+  evaluate2() {
+    return (this.complete = p.evaluate2());
+  }
+
+  flat() {
+    return this.complete ? [this, ...this.p.flat()] : this.p.flat();
+  }
 }
 
 function surface(...args) {
@@ -271,6 +303,19 @@ class Vector extends Shape {
       this._p.y = this.p.y + this.ny;
     }
     return result;
+  }
+
+  evaluate2() {
+    this.complete = this.p.evaluate2();
+    if (this._p) {
+      this._p.x = this.p.x + this.nx;
+      this._p.y = this.p.y + this.ny;
+    }
+    return this.complete;
+  }
+
+  flat() {
+    return this.complete ? [this, ...this.p.flat()] : this.p.flat();
   }
 
   addP2(line) {
@@ -323,6 +368,14 @@ class Circle extends Shape {
     };
   }
 
+  evaluate2() {
+    return (this.complete = this.c.evaluate2());
+  }
+
+  flat() {
+    return [...this.c.flat(), this.complete ? [this] : []];
+  }
+
   update(element) {
     d3.select(element)
       .attr("cx", this.c.x)
@@ -361,6 +414,15 @@ class Bezier extends Shape {
     return this.allComplete([this.p1, this.p2, this.p3, this.p4]);
   }
 
+  evaluate2() {
+    return (this.complete = Shape.all(p1, p2, p3, p4));
+  }
+
+  flat() {
+    let parts = [p1, p2, p3, p4].reduce((a, s) => [...a, ...s.flat()]);
+    return [...parts, this.complete ? [this] : []];
+  }
+
   update(element) {
     d3.select(element).attr(
       "d",
@@ -390,17 +452,17 @@ function flip(f) {
 }
 
 class Switch extends Shape {
-  constructor(operation, i, ...shapes) {
+  constructor(cond, i, ...shapes) {
     super();
-    this.operation = operation;
+    this.cond = cond;
     this.i = i;
     this.shapes = shapes;
   }
 
   evaluate() {
-    let e = this.operation.evaluate();
+    let e = this.cond.evaluate();
     if (e.complete) {
-      let results = this.operation.calculate();
+      let results = this.cond.calculate();
       if (results[this.i]) {
         let complete = true;
         let shapes = [];
@@ -419,6 +481,16 @@ class Switch extends Shape {
       complete: false,
       flat: e.flat,
     };
+  }
+
+  evaluate2() {
+    shapes.map((s) => s.evaluate2());
+    return (this.complete = this.cond.evaluate2());
+  }
+
+  flat() {
+    let parts = shapes.reduce((a, s) => [...a, ...s.flat()]);
+    return this.complete ? parts : [];
   }
 }
 
@@ -445,6 +517,16 @@ class Unfold extends Point {
   evaluate() {
     // return {complete: true, flat: [this]};
     return this.allComplete([...this.shapes.slice(0, this.upto)]);
+  }
+
+  evaluate2() {
+    return (this.complete = Shape.all(this.shapes.slice(0, this.upto)));
+  }
+
+  flat() {
+    return this.complete
+      ? this.shapes.slice(0, this.upto).reduce((a, s) => [...a, s.flat()])
+      : [];
   }
 
   update(element) {
@@ -494,7 +576,6 @@ class Label extends Point {
     this.text = text;
     this.offs = offs;
     this.zIndex = 1000;
-    console.log(this);
   }
 
   evaluate() {
@@ -502,6 +583,14 @@ class Label extends Point {
     this.x = this.p.x;
     this.y = this.p.y;
     return result;
+  }
+
+  evaluate2() {
+    return (this.complete = this.p.evaluate2());
+  }
+
+  flat() {
+    return [...this.p.flat(), this.complete ? [this] : []];
   }
 
   update(element) {
@@ -544,6 +633,15 @@ class Group extends Shape {
       complete: complete,
       flat: shapes,
     };
+  }
+
+  evaluate2() {
+    shapes.map((s) => s.evaluate2());
+    return true;
+  }
+
+  flat() {
+    return shapes.reduce((a, s) => [...a, ...s.flat()]);
   }
 }
 
@@ -626,10 +724,121 @@ class Intersection {
       flat: [...ea.flat, ...eb.flat],
     };
   }
+
+  evaluate2() {
+    return (this.complete = Shape.all(a, b));
+  }
+
+  flat() {
+    return [...this.a.flat(), ...this.b.flat()];
+  }
 }
 
 function intersect(...args) {
   return new Intersection(...args);
+}
+
+class Calculated {
+  constructor(...dependencies) {
+    this.dependencies = dependencies;
+    for (let shape of this.dependencies) {
+      shape.complete = false;
+    }
+  }
+
+  calculate(complete) {
+    if (complete) {
+      // Set all possible results to incomplete
+    }
+    // Set all actual results to complete
+  }
+
+  evaluate() {
+    let complete = true;
+    let shapes = [];
+    for (let shape of this.dependencies) {
+      let e = shape.evaluate();
+      complete &&= e.complete;
+      shapes = [...shapes, ...e.flat];
+    }
+    this.calculate(complete);
+    return {
+      complete: complete,
+      flat: [...shapes],
+    };
+  }
+
+  evaluate2() {
+    this.complete = Shape.all(this.dependencies);
+    this.calculate(this.complete);
+    return this.complete;
+  }
+
+  flat() {
+    // Really only return the dependencies. The result are flattened from the
+    // outside.
+    return this.dependencies.reduce((a, s) => [...a, s.flat()]);
+  }
+}
+
+class IsectLineCircle extends Calculated {
+  constructor(line, circ) {
+    super(line, circ);
+    this.line = line;
+    this.circ = circ;
+    this.p1 = point(0, 0, "computed");
+    this.n1 = vector(point(0, 0, "invisible"), 0, 0);
+    this.p2 = point(0, 0, "computed");
+    this.n2 = vector(point(0, 0, "invisible"), 0, 0);
+  }
+
+  calculate(complete) {
+    let x = this.line.p1.x - this.circ.c.x;
+    let y = this.line.p1.y - this.circ.c.y;
+    let dx = this.line.p1.x - this.line.p2.x;
+    let dy = this.line.p1.y - this.line.p2.y;
+    let a = dx * dx + dy * dy;
+    let b = 2 * (x * dx + y * dy);
+    let c = x * x + y * y - this.circ.r * this.circ.r;
+    let d = b * b - 4 * a * c;
+
+    this.p1.complete = false;
+    this.n1.complete = false;
+    this.p2.complete = false;
+    this.n2.complete = false;
+
+    if (complete && d >= 0) {
+      let sqrt = Math.sqrt(d);
+      let t1 = (-b - sqrt) / (2 * a);
+      let t2 = (-b + sqrt) / (2 * a);
+
+      if (0 <= t1 && t1 <= 1) {
+        let p1x = this.line.p1.x + t1 * dx;
+        let p1y = this.line.p1.y + t1 * dy;
+        let n1x = ((p1x - this.circ.c.x) / this.circ.r) * defaults.unit;
+        let n1y = ((p1y - this.circ.c.y) / this.circ.r) * defaults.unit;
+        this.p1.complete = true;
+        this.p1.move(p1x, p1y);
+        this.n1.complete = true;
+        this.n1.p.move(p1x, p1y);
+        this.n1.nx = n1x;
+        this.n1.ny = n1y;
+      }
+
+      if (0 <= t2 && t2 <= 1) {
+        let p2x = this.line.p1.x + t2 * dx;
+        let p2y = this.line.p1.y + t2 * dy;
+        let n2x = ((p2x - this.circ.c.x) / this.circ.r) * defaults.unit;
+        let n2y = ((p2y - this.circ.c.y) / this.circ.r) * defaults.unit;
+        this.p2.complete = true;
+        this.p2.move(p2x, p2y);
+        this.n2.complete = true;
+        this.n2.p.move(p2x, p2y);
+        this.n2.nx = n2x;
+        this.n2.ny = n2y;
+      }
+    }
+  }
 }
 
 class NthP extends Point {
@@ -658,6 +867,25 @@ class NthP extends Point {
       complete: false,
       flat: [...e.flat],
     };
+  }
+
+  evaluate2() {
+    this.complete = this.operator.evaluate2();
+    if (this.complete) {
+      let results = this.operator.calculate();
+
+      if (results[this.i]) {
+        let point = results[this.i].point;
+        this.x = point.x;
+        this.y = point.y;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  flat() {
+    return super.flat();
   }
 }
 
@@ -696,27 +924,27 @@ class NthN extends Vector {
     };
   }
 
-  evaluate_old() {
-    let result = this.operator.calculate();
+  evaluate2() {
+    this.complete = this.operator.evaluate2();
+    if (this.complete) {
+      let results = this.operator.calculate();
 
-    let e = this.operator.evaluate();
-    if (result[this.i] && e.complete) {
-      let p = result[this.i].point;
-      let n = result[this.i].normal;
-      this.px = p.x;
-      this.py = p.y;
-      this.nx = n.x;
-      this.ny = n.y;
-      return {
-        complete: e.complete,
-        flat: [...e.flat, this],
-      };
-    } else {
-      return {
-        complete: e.complete,
-        flat: [...e.flat],
-      };
+      if (results[this.i]) {
+        let p = results[this.i].point;
+        let n = results[this.i].normal;
+        this.p.complete = true;
+        this.p.x = p.x;
+        this.p.y = p.y;
+        this.nx = n.x;
+        this.ny = n.y;
+        return true;
+      }
     }
+    return false;
+  }
+
+  flat() {
+    return super.flat();
   }
 }
 
@@ -737,6 +965,21 @@ class Mirror extends Point {
     this.y = 2 * this.center.y - this.point.y;
     return result;
   }
+
+  evaluate2() {
+    this.complete = Shape.all([this.center, this.point]);
+    this.x = 2 * this.center.x - this.point.x;
+    this.y = 2 * this.center.y - this.point.y;
+    return this.complete;
+  }
+
+  flat() {
+    return [
+      ...this.point.flat(),
+      ...this.center.flat(),
+      ...(this.complete ? [this] : []),
+    ];
+  }
 }
 
 function mirror(...args) {
@@ -754,6 +997,17 @@ class Sum extends Line {
     this.p2.x = this.p1.x + this.line.dx;
     this.p2.y = this.p1.y + this.line.dy;
     return result;
+  }
+
+  evaluate2() {
+    this.complete = super.evaluate2();
+    this.p2.x = this.p1.x + this.line.dx;
+    this.p2.y = this.p1.y + this.line.dy;
+    return this.complete;
+  }
+
+  flat() {
+    return super.flat();
   }
 }
 
@@ -782,6 +1036,25 @@ class Project extends Point {
     this.x = this.base.x + pd * tdxn;
     this.y = this.base.y + pd * tdyn;
     return result;
+  }
+
+  evaluate2() {
+    this.complete = Shape.all([this.base, this.tip, this.point]);
+    let tdx = this.tip.x - this.base.x;
+    let tdy = this.tip.y - this.base.y;
+    let tdl = Math.sqrt(tdx * tdx + tdy * tdy);
+    let pdx = this.point.x - this.base.x;
+    let pdy = this.point.y - this.base.y;
+    let tdxn = tdx / tdl;
+    let tdyn = tdy / tdl;
+    let pd = pdx * tdxn + pdy * tdyn;
+    this.x = this.base.x + pd * tdxn;
+    this.y = this.base.y + pd * tdyn;
+    return this.complete;
+  }
+
+  flat() {
+    return super.flat();
   }
 }
 
@@ -815,9 +1088,9 @@ var svgDefsElement = false;
 
 function addDefs(svg) {
   if (svgDefsElement) return;
-  
+
   let defs = svg.append("defs");
-  
+
   svgDefsElement = defs.node();
 
   const mw = defaults.arrow.w;
