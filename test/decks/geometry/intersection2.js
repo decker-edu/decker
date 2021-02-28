@@ -8,10 +8,10 @@ let intersection = new g.IsectLineCircle(
 
 let root = g.group(
   intersection.p2,
-  // intersection.result[1].normal,
+  intersection.n2,
   intersection.p1,
   intersection,
-  // g.line(center, intersection.result[0].point)
+  g.line(center, intersection.p1)
   // g.swtch2(intersection.result[0].point, g.text(250, 400, "Bang!"))
 );
 

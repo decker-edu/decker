@@ -47,33 +47,15 @@ class Shape {
   }
 
   evaluate() {
-    return { complete: this.complete, flat: this.complete ? [this] : [] };
-  }
-
-  evaluate2() {
     return this.complete;
   }
 
-  all(dependencies) {
-    return dependencies.reduce((a, v) => a && v.evaluate2(), true);
+  static all(...dependencies) {
+    return dependencies.reduce((a, s) => a && s.evaluate(), true);
   }
 
   flat() {
     return this.complete ? [this] : [];
-  }
-
-  allComplete(dependencies) {
-    let complete = true;
-    let shapes = [];
-    for (let shape of dependencies) {
-      let e = shape.evaluate();
-      complete &&= e.complete;
-      shapes = [...shapes, ...e.flat];
-    }
-    return {
-      complete: complete,
-      flat: complete ? [this, ...shapes] : shapes,
-    };
   }
 }
 
@@ -179,17 +161,16 @@ class Line extends Shape {
   }
 
   evaluate() {
-    return this.allComplete([this.p1, this.p2]);
-  }
-
-  evaluate2() {
-    this.complete = Shape.all([this.p1, this.p2]);
+    this.complete = Shape.all(this.p1, this.p2);
     return this.complete;
   }
 
   flat() {
-    let parts = [...this.p1.flat(), ...this.p2.flat()];
-    return this.complete ? [...parts, this] : parts;
+    return [
+      ...this.p1.flat(),
+      ...this.p2.flat(),
+      ...(this.complete ? [this] : []),
+    ];
   }
 
   update(element) {
@@ -258,12 +239,12 @@ class Surface extends Shape {
     return surface.node();
   }
 
-  evaluate2() {
-    return (this.complete = p.evaluate2());
+  evaluate() {
+    return (this.complete = this.p.evaluate());
   }
 
   flat() {
-    return this.complete ? [this, ...this.p.flat()] : this.p.flat();
+    return [...this.p.flat(), ...(this.complete ? [this] : [])];
   }
 }
 
@@ -297,16 +278,7 @@ class Vector extends Shape {
   }
 
   evaluate() {
-    let result = this.allComplete([this.p]);
-    if (this._p) {
-      this._p.x = this.p.x + this.nx;
-      this._p.y = this.p.y + this.ny;
-    }
-    return result;
-  }
-
-  evaluate2() {
-    this.complete = this.p.evaluate2();
+    this.complete = this.p.evaluate();
     if (this._p) {
       this._p.x = this.p.x + this.nx;
       this._p.y = this.p.y + this.ny;
@@ -315,16 +287,21 @@ class Vector extends Shape {
   }
 
   flat() {
-    return this.complete ? [this, ...this.p.flat()] : this.p.flat();
+    return [...this.p.flat(), ...(this.complete ? [this] : [])];
   }
 
   addP2(line) {
     if (this.opts.end) {
-      let l = Math.sqrt(this.nx * this.nx + this.ny * this.ny);
-      let nx = (this.nx / l) * (l - defaults.arrow.w);
-      let ny = (this.ny / l) * (l - defaults.arrow.w);
-      line.attr("marker-end", "url(#vec-arrow)");
-      line.attr("x2", this.p.x + nx).attr("y2", this.p.y + ny);
+      let dscr = this.nx * this.nx + this.ny * this.ny;
+      if (dscr > 0) {
+        let l = Math.sqrt(dscr);
+        let nx = (this.nx / l) * (l - defaults.arrow.w);
+        let ny = (this.ny / l) * (l - defaults.arrow.w);
+        line.attr("marker-end", "url(#vec-arrow)");
+        line.attr("x2", this.p.x + nx).attr("y2", this.p.y + ny);
+      } else {
+        line.attr("x2", this.p.x).attr("y2", this.p.y);
+      }
     } else {
       line.attr("x2", this.p.x + this.nx).attr("y2", this.p.y + this.ny);
     }
@@ -361,19 +338,11 @@ class Circle extends Shape {
   }
 
   evaluate() {
-    let ec = this.c.evaluate();
-    return {
-      complete: ec.complete,
-      flat: ec.complete ? [this, ...ec.flat] : ec.flat,
-    };
-  }
-
-  evaluate2() {
-    return (this.complete = this.c.evaluate2());
+    return (this.complete = this.c.evaluate());
   }
 
   flat() {
-    return [...this.c.flat(), this.complete ? [this] : []];
+    return [...this.c.flat(), ...(this.complete ? [this] : [])];
   }
 
   update(element) {
@@ -411,16 +380,17 @@ class Bezier extends Shape {
   }
 
   evaluate() {
-    return this.allComplete([this.p1, this.p2, this.p3, this.p4]);
-  }
-
-  evaluate2() {
-    return (this.complete = Shape.all(p1, p2, p3, p4));
+    return (this.complete = Shape.all(this.p1, this.p2, this.p3, this.p4));
   }
 
   flat() {
-    let parts = [p1, p2, p3, p4].reduce((a, s) => [...a, ...s.flat()]);
-    return [...parts, this.complete ? [this] : []];
+    return [
+      ...this.p1.flat(),
+      ...this.p2.flat(),
+      ...this.p3.flat(),
+      ...this.p4.flat(),
+      ...(this.complete ? [this] : []),
+    ];
   }
 
   update(element) {
@@ -452,44 +422,20 @@ function flip(f) {
 }
 
 class Switch extends Shape {
-  constructor(cond, i, ...shapes) {
+  constructor(cond, ...shapes) {
     super();
     this.cond = cond;
-    this.i = i;
     this.shapes = shapes;
   }
 
   evaluate() {
-    let e = this.cond.evaluate();
-    if (e.complete) {
-      let results = this.cond.calculate();
-      if (results[this.i]) {
-        let complete = true;
-        let shapes = [];
-        for (let shape of this.shapes) {
-          let depend = shape.evaluate();
-          complete &&= depend.complete;
-          shapes = [...shapes, ...depend.flat];
-        }
-        return {
-          complete: complete,
-          flat: [...shapes, ...e.flat],
-        };
-      }
-    }
-    return {
-      complete: false,
-      flat: e.flat,
-    };
-  }
-
-  evaluate2() {
-    shapes.map((s) => s.evaluate2());
-    return (this.complete = this.cond.evaluate2());
+    this.shapes.map((s) => s.evaluate());
+    let c = this.cond.evaluate();
+    return (this.complete = c);
   }
 
   flat() {
-    let parts = shapes.reduce((a, s) => [...a, ...s.flat()]);
+    let parts = this.shapes.reduce((a, s) => [...a, ...s.flat()], []);
     return this.complete ? parts : [];
   }
 }
@@ -515,18 +461,15 @@ class Unfold extends Point {
   }
 
   evaluate() {
-    // return {complete: true, flat: [this]};
-    return this.allComplete([...this.shapes.slice(0, this.upto)]);
-  }
-
-  evaluate2() {
-    return (this.complete = Shape.all(this.shapes.slice(0, this.upto)));
+    Shape.all(...this.shapes.slice(0, this.upto));
+    return true;
   }
 
   flat() {
-    return this.complete
-      ? this.shapes.slice(0, this.upto).reduce((a, s) => [...a, s.flat()])
-      : [];
+    let show = this.shapes
+      .slice(0, this.upto)
+      .reduce((a, s) => [...a, ...s.flat()], []);
+    return [this, ...show];
   }
 
   update(element) {
@@ -579,18 +522,14 @@ class Label extends Point {
   }
 
   evaluate() {
-    let result = this.allComplete([this.p]);
+    this.complete = this.p.evaluate();
     this.x = this.p.x;
     this.y = this.p.y;
-    return result;
-  }
-
-  evaluate2() {
-    return (this.complete = this.p.evaluate2());
+    return this.complete;
   }
 
   flat() {
-    return [...this.p.flat(), this.complete ? [this] : []];
+    return [...this.p.flat(), ...(this.complete ? [this] : [])];
   }
 
   update(element) {
@@ -622,26 +561,12 @@ class Group extends Shape {
   }
 
   evaluate() {
-    let complete = true;
-    let shapes = [];
-    for (let shape of this.shapes) {
-      let depend = shape.evaluate();
-      complete &&= depend.complete;
-      shapes = [...shapes, ...depend.flat];
-    }
-    return {
-      complete: complete,
-      flat: shapes,
-    };
-  }
-
-  evaluate2() {
-    shapes.map((s) => s.evaluate2());
+    this.shapes.map((s) => s.evaluate());
     return true;
   }
 
   flat() {
-    return shapes.reduce((a, s) => [...a, ...s.flat()]);
+    return this.shapes.reduce((a, s) => [...a, ...s.flat()], []);
   }
 }
 
@@ -717,16 +642,7 @@ class Intersection {
   }
 
   evaluate() {
-    let ea = this.a.evaluate();
-    let eb = this.b.evaluate();
-    return {
-      complete: ea.complete && eb.complete,
-      flat: [...ea.flat, ...eb.flat],
-    };
-  }
-
-  evaluate2() {
-    return (this.complete = Shape.all(a, b));
+    return (this.complete = Shape.all(this.a, this.b));
   }
 
   flat() {
@@ -754,22 +670,7 @@ class Calculated {
   }
 
   evaluate() {
-    let complete = true;
-    let shapes = [];
-    for (let shape of this.dependencies) {
-      let e = shape.evaluate();
-      complete &&= e.complete;
-      shapes = [...shapes, ...e.flat];
-    }
-    this.calculate(complete);
-    return {
-      complete: complete,
-      flat: [...shapes],
-    };
-  }
-
-  evaluate2() {
-    this.complete = Shape.all(this.dependencies);
+    this.complete = Shape.all(...this.dependencies);
     this.calculate(this.complete);
     return this.complete;
   }
@@ -777,7 +678,7 @@ class Calculated {
   flat() {
     // Really only return the dependencies. The result are flattened from the
     // outside.
-    return this.dependencies.reduce((a, s) => [...a, s.flat()]);
+    return this.dependencies.reduce((a, s) => [...a, ...s.flat()], []);
   }
 }
 
@@ -812,31 +713,31 @@ class IsectLineCircle extends Calculated {
       let t1 = (-b - sqrt) / (2 * a);
       let t2 = (-b + sqrt) / (2 * a);
 
-      if (0 <= t1 && t1 <= 1) {
-        let p1x = this.line.p1.x + t1 * dx;
-        let p1y = this.line.p1.y + t1 * dy;
-        let n1x = ((p1x - this.circ.c.x) / this.circ.r) * defaults.unit;
-        let n1y = ((p1y - this.circ.c.y) / this.circ.r) * defaults.unit;
-        this.p1.complete = true;
-        this.p1.move(p1x, p1y);
-        this.n1.complete = true;
-        this.n1.p.move(p1x, p1y);
-        this.n1.nx = n1x;
-        this.n1.ny = n1y;
-      }
+      // if (0 <= Math.abs(t1) && Math.abs(t1) <= 1) {
+      let p1x = this.line.p1.x + t1 * dx;
+      let p1y = this.line.p1.y + t1 * dy;
+      let n1x = ((p1x - this.circ.c.x) / this.circ.r) * defaults.unit;
+      let n1y = ((p1y - this.circ.c.y) / this.circ.r) * defaults.unit;
+      this.p1.complete = true;
+      this.p1.move(p1x, p1y);
+      this.n1.complete = true;
+      this.n1.p.move(p1x, p1y);
+      this.n1.nx = n1x;
+      this.n1.ny = n1y;
+      // }
 
-      if (0 <= t2 && t2 <= 1) {
-        let p2x = this.line.p1.x + t2 * dx;
-        let p2y = this.line.p1.y + t2 * dy;
-        let n2x = ((p2x - this.circ.c.x) / this.circ.r) * defaults.unit;
-        let n2y = ((p2y - this.circ.c.y) / this.circ.r) * defaults.unit;
-        this.p2.complete = true;
-        this.p2.move(p2x, p2y);
-        this.n2.complete = true;
-        this.n2.p.move(p2x, p2y);
-        this.n2.nx = n2x;
-        this.n2.ny = n2y;
-      }
+      // if (0 <= Math.abs(t2) && Math.abs(t2) <= 1) {
+      let p2x = this.line.p1.x + t2 * dx;
+      let p2y = this.line.p1.y + t2 * dy;
+      let n2x = ((p2x - this.circ.c.x) / this.circ.r) * defaults.unit;
+      let n2y = ((p2y - this.circ.c.y) / this.circ.r) * defaults.unit;
+      this.p2.complete = true;
+      this.p2.move(p2x, p2y);
+      this.n2.complete = true;
+      this.n2.p.move(p2x, p2y);
+      this.n2.nx = n2x;
+      this.n2.ny = n2y;
+      // }
     }
   }
 }
@@ -849,28 +750,7 @@ class NthP extends Point {
   }
 
   evaluate() {
-    let e = this.operator.evaluate();
-    if (e.complete) {
-      let results = this.operator.calculate();
-
-      if (results[this.i]) {
-        let point = results[this.i].point;
-        this.x = point.x;
-        this.y = point.y;
-        return {
-          complete: true,
-          flat: [...e.flat, this],
-        };
-      }
-    }
-    return {
-      complete: false,
-      flat: [...e.flat],
-    };
-  }
-
-  evaluate2() {
-    this.complete = this.operator.evaluate2();
+    this.complete = this.operator.evaluate();
     if (this.complete) {
       let results = this.operator.calculate();
 
@@ -901,31 +781,7 @@ class NthN extends Vector {
   }
 
   evaluate() {
-    let e = this.operator.evaluate();
-    if (e.complete) {
-      let results = this.operator.calculate();
-
-      if (results[this.i]) {
-        let p = results[this.i].point;
-        let n = results[this.i].normal;
-        this.p.x = p.x;
-        this.p.y = p.y;
-        this.nx = n.x;
-        this.ny = n.y;
-        return {
-          complete: true,
-          flat: [...e.flat, this],
-        };
-      }
-    }
-    return {
-      complete: false,
-      flat: [...e.flat],
-    };
-  }
-
-  evaluate2() {
-    this.complete = this.operator.evaluate2();
+    this.complete = this.operator.evaluate();
     if (this.complete) {
       let results = this.operator.calculate();
 
@@ -960,14 +816,7 @@ class Mirror extends Point {
   }
 
   evaluate() {
-    let result = this.allComplete([this.center, this.point]);
-    this.x = 2 * this.center.x - this.point.x;
-    this.y = 2 * this.center.y - this.point.y;
-    return result;
-  }
-
-  evaluate2() {
-    this.complete = Shape.all([this.center, this.point]);
+    this.complete = Shape.all(this.center, this.point);
     this.x = 2 * this.center.x - this.point.x;
     this.y = 2 * this.center.y - this.point.y;
     return this.complete;
@@ -993,14 +842,7 @@ class Sum extends Line {
   }
 
   evaluate() {
-    let result = super.evaluate();
-    this.p2.x = this.p1.x + this.line.dx;
-    this.p2.y = this.p1.y + this.line.dy;
-    return result;
-  }
-
-  evaluate2() {
-    this.complete = super.evaluate2();
+    this.complete = super.evaluate();
     this.p2.x = this.p1.x + this.line.dx;
     this.p2.y = this.p1.y + this.line.dy;
     return this.complete;
@@ -1022,24 +864,8 @@ class Project extends Point {
     this.tip = tip;
     this.point = point;
   }
-
   evaluate() {
-    let result = this.allComplete([this.base, this.tip, this.point]);
-    let tdx = this.tip.x - this.base.x;
-    let tdy = this.tip.y - this.base.y;
-    let tdl = Math.sqrt(tdx * tdx + tdy * tdy);
-    let pdx = this.point.x - this.base.x;
-    let pdy = this.point.y - this.base.y;
-    let tdxn = tdx / tdl;
-    let tdyn = tdy / tdl;
-    let pd = pdx * tdxn + pdy * tdyn;
-    this.x = this.base.x + pd * tdxn;
-    this.y = this.base.y + pd * tdyn;
-    return result;
-  }
-
-  evaluate2() {
-    this.complete = Shape.all([this.base, this.tip, this.point]);
+    this.complete = Shape.all(this.base, this.tip, this.point);
     let tdx = this.tip.x - this.base.x;
     let tdy = this.tip.y - this.base.y;
     let tdl = Math.sqrt(tdx * tdx + tdy * tdy);
@@ -1054,7 +880,12 @@ class Project extends Point {
   }
 
   flat() {
-    return super.flat();
+    return [
+      ...this.base.flat(),
+      ...this.tip.flat(),
+      ...this.point.flat(),
+      ...(this.complete ? [this] : []),
+    ];
   }
 }
 
@@ -1074,7 +905,8 @@ function unique(array) {
 }
 
 function flatten(root) {
-  let shapes = unique(root.evaluate().flat).sort((a, b) => a.zIndex - b.zIndex);
+  root.evaluate();
+  let shapes = unique(root.flat()).sort((a, b) => a.zIndex - b.zIndex);
   return shapes;
 }
 
