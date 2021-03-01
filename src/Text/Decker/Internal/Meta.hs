@@ -52,7 +52,8 @@ import Text.Pandoc.Shared hiding (toString, toText)
 -- | Name of the one global meta data file
 globalMetaFileName = "decker.yaml"
 
--- | Fine-grained recursive merge of two meta values. Left-biased. 
+-- | Fine-grained recursive merge of two meta values. Left-biased. Duplicates
+-- are removed from lists.
 mergePandocMeta' :: Meta -> Meta -> Meta
 mergePandocMeta' (Meta left) (Meta right) =
   case merge (MetaMap left) (MetaMap right) of
@@ -105,7 +106,7 @@ getMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
     lookup' (_:_) _ = Nothing
     lookup' [] mv = Just mv
 
--- | Sets a meta value at the compund key in the meta data. If any intermediate
+-- | Sets a meta value at the compound key in the meta data. If any intermediate
 -- containers do not exist, they are created. 
 setMetaValue :: ToMetaValue a => Text -> a -> Meta -> Meta
 setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
