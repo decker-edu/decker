@@ -14,8 +14,6 @@ export {
   sum,
   surface,
   intersect,
-  nthP,
-  nthN,
   renderSvg,
   IsectLineCircle,
 };
@@ -740,72 +738,6 @@ class IsectLineCircle extends Calculated {
       // }
     }
   }
-}
-
-class NthP extends Point {
-  constructor(operator, i) {
-    super(null, null, "computed");
-    this.operator = operator;
-    this.i = i;
-  }
-
-  evaluate() {
-    this.complete = this.operator.evaluate();
-    if (this.complete) {
-      let results = this.operator.calculate();
-
-      if (results[this.i]) {
-        let point = results[this.i].point;
-        this.x = point.x;
-        this.y = point.y;
-        return true;
-      }
-    }
-    return false;
-  }
-
-  flat() {
-    return super.flat();
-  }
-}
-
-function nthP(...args) {
-  return new NthP(...args);
-}
-
-class NthN extends Vector {
-  constructor(operator, i) {
-    super(point(0, 0, "invisible"), 0, 0);
-    this.operator = operator;
-    this.i = i;
-  }
-
-  evaluate() {
-    this.complete = this.operator.evaluate();
-    if (this.complete) {
-      let results = this.operator.calculate();
-
-      if (results[this.i]) {
-        let p = results[this.i].point;
-        let n = results[this.i].normal;
-        this.p.complete = true;
-        this.p.x = p.x;
-        this.p.y = p.y;
-        this.nx = n.x;
-        this.ny = n.y;
-        return true;
-      }
-    }
-    return false;
-  }
-
-  flat() {
-    return super.flat();
-  }
-}
-
-function nthN(...args) {
-  return new NthN(...args);
 }
 
 class Mirror extends Point {
