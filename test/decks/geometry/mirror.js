@@ -1,4 +1,4 @@
-import * as g from "/test/decks/geometry/static/geometry.js";
+import * as g from "./static/geometry.js";
 
 let surfaceAnchor = g.point(300, 230);
 let surfaceNormal = g.vector(surfaceAnchor, 0, -200, {

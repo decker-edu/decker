@@ -19,7 +19,7 @@ export {
   IsectLineCircle,
 };
 
-import "/test/decks/geometry/static/d3.v6.min.js";
+import "./d3.v6.min.js";
 
 const defaults = {
   point: { r: 9, opts: ["static"] }, // one of ["static", "drag", "computed"]
@@ -37,6 +37,8 @@ const defaults = {
 };
 
 let nextId = 0;
+
+let slides = document.querySelector(".reveal .slides");
 
 class Shape {
   constructor(z = 1) {
@@ -1060,17 +1062,20 @@ function renderSvg(element, width, height, root) {
 
   let clientToBoxX, clientToBoxY;
   let svgElement = svg.node();
+  let slideZoom = slides.style.zoom || 1;
 
   let drag = d3
     .drag()
     .on("start", function (event) {
+      slideZoom = slides.style.zoom || 1;
+      console.log(slideZoom);
       clientToBoxX = svgElement.viewBox.baseVal.width / svgElement.clientWidth;
       clientToBoxY =
         svgElement.viewBox.baseVal.height / svgElement.clientHeight;
     })
     .on("drag", function (event) {
-      let clientX = event.sourceEvent.offsetX;
-      let clientY = event.sourceEvent.offsetY;
+      let clientX = event.sourceEvent.offsetX / slideZoom;
+      let clientY = event.sourceEvent.offsetY / slideZoom;
       let x = clip(svgElement.clientWidth, clientX) * clientToBoxX;
       let y = clip(svgElement.clientHeight, clientY) * clientToBoxY;
       event.subject.move(x, y);

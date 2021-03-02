@@ -1,6 +1,6 @@
 ---
 template:
-  css: static/geometry.css
+  css: ./static/geometry.css
 title: ES6 Modules in Code Blocks
 ---
 
@@ -41,7 +41,7 @@ console.log("Hello", anchor);
 
 ```` {.markdown}
 ``` {.javascript .run}
-import * as g from "/test/decks/geometry/static/geometry.js";
+import * as g from "./static/geometry.js";
 let segment = g.bezier(
     g.point(60, 60),
     g.point(540, 60, "drag"),
@@ -59,7 +59,7 @@ g.renderSvg(anchor, 600, 400, segment);
 ##  {.left}
 
 ``` {.javascript .run}
-import * as g from "/test/decks/geometry/static/geometry.js";
+import * as g from "./static/geometry.js";
 
 let segment = g.bezier(
     g.point(60, 60),
@@ -101,12 +101,12 @@ width="100%"}
 # Labels
 
 ``` {.javascript .run}
-import * as g from "/test/decks/geometry/static/geometry.js";
+import * as g from "./static/geometry.js";
 
-let p = g.point(100,350);
-let q = g.point(300,350);
-let r = g.point(600,350);
-let s = g.point(900,350);
+let p = g.point(100,350, "drag");
+let q = g.point(300,350, "drag");
+let r = g.point(600,350, "drag");
+let s = g.point(900,350, "drag");
 
 g.renderSvg(anchor, 1200, 500, g.group(
     

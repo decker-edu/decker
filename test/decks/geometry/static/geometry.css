@@ -29,7 +29,7 @@ circle.handle {
 
 circle.handle:hover {
   stroke: gray;
-  /* cursor: grab; */
+  cursor: grab;
 }
 
 circle.handle:active {
