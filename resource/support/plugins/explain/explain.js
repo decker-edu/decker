@@ -458,14 +458,32 @@ let ExplainPlugin = (function () {
       let vblob = new Blob(blobs, { type: "video/webm" });
       let tblob = recorder.timing.finish();
 
-      if (
-        !(await guardedUploadBlob(deckTimesUrl(), tblob)) ||
-        !(await uploadBlob(deckUrlBase() + "-recording.webm", vblob))
-      ) {
+      try {
+        if (
+          !(await guardedUploadBlob(deckTimesUrl(), tblob)) ||
+          !(await uploadBlob(deckUrlBase() + "-recording.webm", vblob))
+        ) {
+          console.log(`[] uploaded ${tblob.size} bytes to ${deckTimesUrl()}`);
+          console.log(
+            `[] uploaded ${vblob.size} bytes to ${
+              deckUrlBase() + "-recording.webm"
+            }`
+          );
+        }
+      } catch (e) {
+        console.err(
+          `[] FAILED to upload ${tblob.size} bytes to ${deckTimesUrl()}`
+        );
+        console.err(
+          `[] FAILED to upload ${vblob.size} bytes to ${
+            deckUrlBase() + "-recording.webm"
+          }`
+        );
+      } finally {
         download(vblob, videoFilenameBase() + "-recording.webm");
         download(tblob, videoFilenameBase() + "-times.json");
       }
-
+      
       Reveal.removeEventListener("slidechanged", recordSlideChange);
       recorder = null;
       stream = null;
