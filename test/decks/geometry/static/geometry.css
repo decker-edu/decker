@@ -88,15 +88,15 @@ circle[id].circle {
   fill: none;
 }
 
-text[id].text {
+text.text {
   font-family: sans-serif;
   font-size: 40px;
   font-weight: bold;
 }
 
-text[id].label {
+text.label {
   font-family: sans-serif;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: bold;
 }
 

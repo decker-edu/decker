@@ -481,4 +481,4 @@ renderJavascriptHtml code = do
   let anchor = "let anchor = document.getElementById(\"" <> id <> "\");\n"
   return $ do
     H.div ! A.id (toValue id) ! A.class_ "geometry" $ ""
-    H.script ! A.class_ "geometry" ! A.type_ "module" $ toHtml (anchor <> code)
+    H.script ! A.class_ "geometry" ! A.type_ "geometry" $ toHtml (anchor <> code)

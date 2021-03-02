@@ -1,6 +1,7 @@
 export {
   point,
   label,
+  mlabel,
   line,
   vector,
   circle,
@@ -510,13 +511,17 @@ const offsets = {
 };
 
 class Label extends Point {
-  constructor(p, text, offs = "ne") {
+  constructor(p, text, dir = "ne") {
     super();
     this.id = nextId++;
     this.p = p;
     this.text = text;
-    this.offs = offs;
+    this.dir = dir;
     this.zIndex = 1000;
+    this.svgW = 1.5 * this.text.length;
+    this.svgH = 1.5;
+    this.f = 15;
+    this.o = 20;
   }
 
   evaluate() {
@@ -530,26 +535,154 @@ class Label extends Point {
     return [...this.p.flat(), ...(this.complete ? [this] : [])];
   }
 
+  offset() {
+    switch (this.dir) {
+      case "n":
+        return {
+          x: -(this.svgW / 2) * this.f,
+          y: -this.o,
+        };
+      case "ne":
+        return { x: this.o * 0.81, y: -this.o * 0.81 };
+      case "e":
+        return { x: this.o, y: +(this.svgH / 2) * this.f };
+      case "se":
+        return { x: this.o * 0.81, y: (this.o + this.svgH * this.f) * 0.81 };
+      case "s":
+        return { x: -(this.svgW / 2) * this.f, y: this.o + this.svgH * this.f };
+      case "sw":
+        return {
+          x: (-this.o - this.svgW * this.f) * 0.81,
+          y: (this.o + this.svgH * this.f) * 0.81,
+        };
+      case "w":
+        return {
+          x: -this.o - this.svgW * this.f,
+          y: +(this.svgH / 2) * this.f,
+        };
+      case "nw":
+        return {
+          x: (-this.o - this.svgW * this.f) * 0.81,
+          y: -this.o * 0.81,
+        };
+      default:
+        return { x: this.o, y: -this.o - this.svgH * this.f };
+    }
+  }
+
   update(element) {
-    d3.select(element)
-      .attr("x", this.p.x + offsets[this.offs].x * 12)
-      .attr("y", this.p.y + offsets[this.offs].y * 12);
+    let o = this.offset();
+    d3.select(element).attr(
+      "transform",
+      `translate(${this.p.x + o.x},${this.p.y + o.y})`
+    );
   }
 
   svg(w, h) {
-    let symbol = d3
-      .create("svg:text")
+    let o = this.offset();
+    let g = d3
+      .create("svg:g")
+      .attr("class", "label")
+      .attr("id", this.id)
+      .attr("transform", `translate(${this.p.x + o.x},${this.p.y + o.y})`);
+    g.append("svg:text")
       .attr("id", this.id)
       .attr("class", "label")
-      .attr("x", this.p.x + offsets[this.offs].x * 12)
-      .attr("y", this.p.y + offsets[this.offs].y * 12)
+      .attr("x", 0)
+      .attr("y", 0)
       .text(this.text);
-    return symbol.node();
+    return g.node();
   }
 }
 
 function label(...args) {
   return new Label(...args);
+}
+
+class MathLabel extends Point {
+  constructor(p, text, dir = "ne") {
+    super();
+    this.id = nextId++;
+    this.p = p;
+    this.text = text;
+    this.dir = dir;
+    this.zIndex = 1000;
+    try {
+      this.label = MathJax.tex2svg(text).querySelector("svg");
+      this.svgW = this.label.width.baseVal.valueInSpecifiedUnits;
+      this.svgH = this.label.height.baseVal.valueInSpecifiedUnits;
+      this.f = 15;
+      this.o = 20;
+    } catch (e) {
+      console.log("MathLabel: " + this.text + "" + e);
+    }
+  }
+
+  evaluate() {
+    this.complete = this.p.evaluate();
+    this.x = this.p.x;
+    this.y = this.p.y;
+    return this.complete;
+  }
+
+  flat() {
+    return [...this.p.flat(), ...(this.complete ? [this] : [])];
+  }
+
+  offset() {
+    switch (this.dir) {
+      case "n":
+        return {
+          x: -(this.svgW / 2) * this.f,
+          y: -this.o - this.svgH * this.f,
+        };
+      case "ne":
+        return { x: this.o * 0.81, y: (-this.o - this.svgH * this.f) * 0.81 };
+      case "e":
+        return { x: this.o, y: -(this.svgH / 2) * this.f };
+      case "se":
+        return { x: this.o * 0.81, y: this.o * 0.81 };
+      case "s":
+        return { x: -(this.svgW / 2) * this.f, y: this.o };
+      case "sw":
+        return { x: (-this.o - this.svgW * this.f) * 0.81, y: this.o * 0.81 };
+      case "w":
+        return {
+          x: -this.o - this.svgW * this.f,
+          y: -(this.svgH / 2) * this.f,
+        };
+      case "nw":
+        return {
+          x: (-this.o - this.svgW * this.f) * 0.81,
+          y: -this.o - this.svgH * this.f * 0.81,
+        };
+      default:
+        return { x: this.o, y: -this.o - this.svgH * this.f };
+    }
+  }
+
+  update(element) {
+    let o = this.offset();
+    d3.select(element).attr(
+      "transform",
+      `translate(${this.p.x + o.x},${this.p.y + o.y})`
+    );
+  }
+
+  svg(w, h) {
+    let o = this.offset();
+    let g = d3
+      .create("svg:g")
+      .attr("class", "label")
+      .attr("id", this.id)
+      .attr("transform", `translate(${this.p.x + o.x},${this.p.y + o.y})`);
+    g.append(() => this.label);
+    return g.node();
+  }
+}
+
+function mlabel(...args) {
+  return new MathLabel(...args);
 }
 
 class Group extends Shape {
