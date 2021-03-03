@@ -1237,6 +1237,9 @@ let ExplainPlugin = (function () {
       });
       // Try to connect to an existing video.
       uiState.transition("setupPlayer");
+      addReloadInhibitor(() =>
+        !uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")
+      );
     },
   };
 })();
