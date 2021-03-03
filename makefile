@@ -76,4 +76,9 @@ clean:
 	rm -rf dist public
 	rm -rf resource/support/vendor
 
+clean-recordings:
+	rm -f test/decks/*-recording.*
+	rm -f test/decks/*-times.json
+	rm -f test/decks/*-annot.json
+
 .PHONY: build clean test install dist docs resource-zip css
