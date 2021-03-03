@@ -453,21 +453,31 @@ let ExplainPlugin = (function () {
       updateRecordIndicator();
     };
 
+    function upload(...files) {
+      console.log("[] about to upload: ", files);
+      let formData = new FormData();
+      for (let file of files) {
+        formData.append(file.filename, file.data);
+      }
+      return fetch("/upload", { method: "POST", body: formData })
+        .then((r) => r.ok)
+        .catch((e) => {
+          console.log("[] cannot upload form data to: " + "/upload" + ", " + e);
+          return false;
+        });
+    }
+
     recorder.onstop = async () => {
       console.log("[] recorder stopped");
       let vblob = new Blob(blobs, { type: "video/webm" });
       let tblob = recorder.timing.finish();
 
       try {
-        if (
-          !(await guardedUploadBlob(deckTimesUrl(), tblob)) ||
-          !(await uploadBlob(deckUrlBase() + "-recording.webm", vblob))
-        ) {
-          console.log(`[] uploaded ${tblob.size} bytes to ${deckTimesUrl()}`);
-          console.log(
-            `[] uploaded ${vblob.size} bytes to ${
-              deckUrlBase() + "-recording.webm"
-            }`
+        let exists = await resourceExists(deckTimesUrl());
+        if (!exists || confirm("Really overwrite existing recording?")) {
+          await upload(
+            { data: vblob, filename: deckUrlBase() + "-recording.webm" },
+            { data: tblob, filename: deckTimesUrl() }
           );
         }
       } catch (e) {
@@ -483,7 +493,7 @@ let ExplainPlugin = (function () {
         download(vblob, videoFilenameBase() + "-recording.webm");
         download(tblob, videoFilenameBase() + "-times.json");
       }
-      
+
       Reveal.removeEventListener("slidechanged", recordSlideChange);
       recorder = null;
       stream = null;

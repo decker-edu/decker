@@ -25,12 +25,14 @@ import Snap.Core
 import Snap.Http.Server
 import Snap.Internal.Core (ResponseBody (Stream), rspBody)
 import Snap.Util.FileServe
+import Snap.Util.FileUploads
 import System.Directory
 import System.FilePath.Posix
 import System.IO.Streams (connect)
 import System.IO.Streams.File (withFileAsOutput)
 import System.Random
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 
 -- Logging and port configuration for the server.
@@ -111,7 +113,8 @@ runHttpServer state port bind = do
             (fromString supportPath, serveDirectoryNoCaching state supportRoot),
             ("/", method PUT $ uploadResource ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"]),
             ("/", method GET $ serveDirectoryNoCaching state publicDir),
-            ("/", method HEAD $ headDirectory publicDir)
+            ("/", method HEAD $ headDirectory publicDir),
+            ("/upload", method POST $ uploadFiles ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"])
           ]
   startUpdater state
   catch
@@ -155,6 +158,33 @@ uploadResource suffixes = do
       runRequestBody (withFileAsOutput tmp . connect)
       liftIO $ renameFile tmp destination
     else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
+
+fileUploadPolicy = setMaximumFileSize (10 ^ 9) defaultFileUploadPolicy
+
+-- | Expects a multi-part file upload.
+uploadFiles :: MonadSnap m => [String] -> m ()
+uploadFiles suffixes = do
+  withTemporaryStore transientDir "upload-" $ \store -> do
+    (inputs, files) <-
+      handleFormUploads defaultUploadPolicy fileUploadPolicy (const store)
+    liftIO $
+      forM_ files $
+        \(FormFile path tmp) ->
+          catch
+            ( do
+                let destination = dropDrive $ toString path
+                exists <- doesDirectoryExist (takeDirectory destination)
+                if exists && any (`isSuffixOf` destination) suffixes
+                  then do
+                    renameFile tmp destination
+                    putStrLn $ "# upload received: " <> destination
+                  else throwM $ InternalException "Illegal upload path suffix"
+            )
+            ( \e@(SomeException se) -> do
+                putStrLn $ "# upload FAILED: " <> show se
+                throwM e
+            )
+  return ()
 
 headDirectory :: MonadSnap m => FilePath -> m ()
 headDirectory directory = do
