@@ -46,6 +46,13 @@ m3' =
          , MetaList [MetaString "img.png", MetaString "some/where/img.png"])
        ])
 
+m3'' =
+  Meta
+    (M.fromList
+       [ ( "list"
+         , MetaList [MetaString "img.jpg", MetaString "some/where/img.png"])
+       ])
+
 m4 =
   Meta
     (M.fromList [("level1", MetaMap (M.fromList [("one", MetaString "brot")]))])
@@ -117,6 +124,8 @@ metaTests = do
   describe "setMetaValue" $ do
     it "sets the value in a nested map" $
       setMetaValue "level1.one" (MetaString "1") m2 `shouldBe` m2'
+    -- it "sets the value in a nested map with arrays" $
+    --   setMetaValue "list[0]" (MetaString "img.jpg") m3' `shouldBe` m3''
     it "sets the value in a nested map" $
       addMetaValue "list" (MetaString "img.png") m3 `shouldBe` m3'
   describe "adjustMetaValue" $ do

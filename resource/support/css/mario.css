@@ -662,10 +662,17 @@ span.decker.svg.embed {
  * MARIO: image sequence, shown one after the other
  *********************************************/
 
-.fragment.sequence:not(.current-fragment) {
-    display: none;
+@media not print {
+  .reveal section .fragment.sequence:not(.current-fragment) {
+      display: none;
+  }
 }
-
+/* when in print mode, show only first image */
+@media print {
+  .reveal section .fragment.sequence:not(:first-of-type) {
+      display: none;
+  }
+}
 
 /*********************************************
  * MARIO: COMMENT BUBBLES
@@ -808,22 +815,22 @@ span.decker.svg.embed {
  *********************************************/
 
 /* hide checkbox */
-.reveal .task-list li>input[type="checkbox"] {
+.reveal ul.task-list li>input[type="checkbox"] {
     display: none;
 }
 /* hide item bullets */
-.reveal .task-list li {
+.reveal ul.task-list>li {
     list-style-type: none;
     margin-left: 0.5em;
 }
-.reveal .task-list li::before {
+.reveal ul.task-list>li::before {
     margin-right: 0.25em;
 }
 /* default: check boxes */
-.reveal .task-list li.task-yes::before {
+.reveal ul.task-list>li.task-yes::before {
     content: "\2612";
 }
-.reveal .task-list li.task-no::before {
+.reveal ul.task-list>li.task-no::before {
     content: "\2610";
 }
 /* class "check-cross" */
@@ -1046,7 +1053,7 @@ div.q-panel {
 }
 
 /* add A, B, C, D... */
-.reveal .quiz .task-list li:before {
+.reveal .quiz ul.task-list>li::before {
     content: counter(answer, upper-latin) ": ";
     counter-increment: answer;
     margin-right: 0.5em;
@@ -1054,19 +1061,19 @@ div.q-panel {
 }
 
 /* remove task list checkbox */
-.reveal .quiz ul li input[type="checkbox"] {
+.reveal .quiz ul.task-list li>input[type="checkbox"] {
     display: none;
 }
 
 /* 2nd level ul contains tool tip */
-.reveal .quiz ul li ul {
+.reveal .quiz ul.task-list li ul {
     display: inline-block;
     margin:  0;
     padding: 0;
 }
 
 /* don't need this for 2nd level */
-.reveal .quiz ul li ul li:before {
+.reveal .quiz ul.task-list li ul li::before {
     display: none;
 }
 

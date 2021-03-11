@@ -15,19 +15,18 @@ div.open-button:not(.checked) {
 
 div.open-button {
   position: fixed;
-    left:       auto;
-    right:      calc(var(--whiteboard-icon-size) * 0.25);
-    top:        calc(var(--whiteboard-icon-size) * 0.25);
-    bottom:     auto;
-    margin:     calc(var(--whiteboard-icon-size) * 0.5);
-    padding:    0.2em;
-    z-index:    40;
-    background: none;
-    font-size:  var(--whiteboard-icon-size);
-    color:      var(--whiteboard-inactive-color);
+  left: auto;
+  right: calc(var(--whiteboard-icon-size) * 0.25);
+  top: calc(var(--whiteboard-icon-size) * 0.25);
+  bottom: auto;
+  margin: calc(var(--whiteboard-icon-size) * 0.5);
+  padding: 0.2em;
+  z-index: 40;
+  background: none;
+  font-size: var(--whiteboard-icon-size);
+  color: var(--whiteboard-inactive-color);
 
   transition-property: visibility;
-
 }
 
 div.open-button.i {
@@ -35,8 +34,8 @@ div.open-button.i {
 }
 
 div.open-button:hover {
-    opacity: 1.0;
-    color: var(--whiteboard-active-color);
+  opacity: 1;
+  color: var(--whiteboard-active-color);
 }
 
 /* Badge for the open button*/
@@ -229,6 +228,25 @@ div.q-panel div.q-list div.item div.content {
   overflow: hidden;
 }
 
+div.q-panel div.q-list div.item.answer {
+  display: block;
+  background-color: rgba(230, 230, 230, 0.9);
+  margin-left: 4ex;
+  font-size: 80%;
+}
+
+div.item.answer > div.link {
+  float: right;
+}
+
+div.item.answer > div.description {
+}
+
+div.q-panel div.answer div.controls {
+  float: right;
+  margin-left: 0.5em;
+}
+
 div.q-panel div.content div.controls {
   float: right;
   margin-left: 0.5em;
@@ -287,6 +305,11 @@ div.q-panel div.q-input textarea {
   outline: none;
 
   font-size: 0.8em;
+}
+
+div.q-panel div.q-input textarea[answer] {
+  background-color: #efe;
+  border: solid 1px #cfc;
 }
 
 div.q-panel div.q-footer {
@@ -448,7 +471,6 @@ section#questions-overview table tr td:first-child {
 }
 
 li.slide-menu-item[data-questions]::after {
-
   content: attr(data-questions);
   margin-left: 1em;
   font-size: 0.9em;
@@ -467,9 +489,6 @@ li.slide-menu-item[data-questions]::after {
   border-radius: 0.4em;
   padding: 0.2em 0.4em;
 }
-li.slide-menu-item[data-questions][data-answered=true]::after {
+li.slide-menu-item[data-questions][data-answered="true"]::after {
   background-color: green;
 }
-
-
-

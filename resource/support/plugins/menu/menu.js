@@ -535,15 +535,16 @@ var RevealMenu = window.RevealMenu || (function(){
 
                     // MARIO: trigger PDF export
                     addToolbarButton('Export to PDF', 'Print', 'fa-print', 'fas', function(){
-						let url = location.protocol + '//' + location.host + location.pathname + '?print-pdf';
 
                         // electron app
-                        if (window.printPDF) {
-                            window.printPDF(url);
+                        if (window.electronApp) {
+							let url = location.protocol + '//' + location.host + location.pathname;
+                            window.electronApp.printPDF(url);
                         }
                         // normal browser mode
                         else {
                             if (confirm("Leave/reload presentation to export PDF?")) {
+								let url = location.protocol + '//' + location.host + location.pathname + '?print-pdf';
 								window.open(url, "_self");
 							}
                         }

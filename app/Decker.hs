@@ -15,7 +15,6 @@ import Development.Shake
 import GHC.IO.Encoding
 import NeatInterpolation
 import qualified System.Directory as Dir
-import System.Environment.Blank
 import System.FilePath.Posix
 import System.IO
 import Text.Decker.Exam.Render
@@ -27,7 +26,6 @@ import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
 import Text.Decker.Reader.Markdown
-import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Pdf
@@ -38,15 +36,8 @@ import Text.Pandoc hiding (lookupMeta)
 main :: IO ()
 main = do
   setLocaleEncoding utf8
-  startDir <- Dir.getCurrentDirectory
   setProjectDirectory
-  args <- getArgs
-  if null args
-    then run
-    else case head args of
-      "example" -> writeExampleProject startDir
-      "clean" -> runClean
-      _ -> run
+  run
 
 type ParamCache a = FilePath -> Action a
 
@@ -54,17 +45,15 @@ type Cache a = Action a
 
 prepCaches :: Rules (Cache Meta, Cache Targets, ParamCache (Template Text.Text))
 prepCaches = do
-  let deckerMetaFile = "decker.yaml"
-  let deckerTargetsFile = transientDir </> "targets.yaml"
   getGlobalMeta <- ($ deckerMetaFile) <$> newCache readDeckerMeta
-  getTargets <- ($ deckerTargetsFile) <$> newCache readTargetsFile
+  getTargets <- ($ targetsFile) <$> newCache readTargetsFile
   getTemplate <-
     newCache
       ( \path -> do
           meta <- getGlobalMeta
           readTemplate meta path
       )
-  deckerTargetsFile %> \targetFile -> do
+  targetsFile %> \targetFile -> do
     alwaysRerun
     meta <- getGlobalMeta
     scanTargetsToFile meta targetFile
@@ -73,18 +62,6 @@ prepCaches = do
 needSel sel = needSels [sel]
 
 needSels sels targets = need (concatMap (targets ^.) sels)
-
--- | Functionality for "decker clean" command Removes public and .decker
--- directory. Located outside of Shake due to unlinking differences and
--- parallel processes on Windows which prevented files (.shake.lock) from being
--- deleted on Windows.
-runClean :: IO ()
-runClean = do
-  warnVersion
-  putStrLn $ "# Removing " ++ publicDir
-  tryRemoveDirectory publicDir
-  putStrLn $ "# Removing " ++ transientDir
-  tryRemoveDirectory transientDir
 
 run :: IO ()
 run = do
@@ -118,88 +95,85 @@ run = do
   runDecker $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches
     want ["decks"]
+    addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
     --
-
-    phony "tutorial" $ do
-      putNormal "# To find information on how to use decker please check the documentation in the wiki: https://go.uniwue.de/decker-wiki"
-      putNormal "# To create a new project please use the command \"decker example\""
+    withTargetDocs "Print version information." $
+      phony "version" $ do
+        putNormal $
+          "decker version "
+            ++ deckerVersion
+            ++ " (branch: "
+            ++ deckerGitBranch
+            ++ ", commit: "
+            ++ deckerGitCommitId
+            ++ ", tag: "
+            ++ deckerGitVersionTag
+            ++ ", build date: "
+            ++ deckerBuildDate
+            ++ ")"
+        putNormal $ "pandoc version " ++ Text.unpack pandocVersion
+        putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
-    phony "help" $
-      putNormal "# To find information on how to use decker please check the documentation in the wiki: https://go.uniwue.de/decker-wiki"
+    withTargetDocs "Build HTML versions of all question (*-quest.md)." $
+      phony "questions" $ do
+        need ["support"]
+        getTargets >>= needSel questions
     --
-    phony "version" $ do
-      putNormal $
-        "decker version "
-          ++ deckerVersion
-          ++ " (branch: "
-          ++ deckerGitBranch
-          ++ ", commit: "
-          ++ deckerGitCommitId
-          ++ ", tag: "
-          ++ deckerGitVersionTag
-          ++ ", build date: "
-          ++ deckerBuildDate
-          ++ ")"
-      putNormal $ "pandoc version " ++ Text.unpack pandocVersion
-      putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
+    withTargetDocs "Build HTML versions of all decks (*-deck.md)." $
+      phony "decks" $ do
+        meta <- getGlobalMeta
+        need ["support"]
+        getTargets >>= needSel decks
     --
-    phony "decks" $ do
-      need ["support"]
-      getTargets >>= needSel decks
+    withTargetDocs "Build HTML versions of all decks, pages and handouts (*-deck.md, *-page.md)." $
+      phony "html" $ do
+        need ["support"]
+        getTargets >>= needSels [decks, pages, handouts]
     --
-    phony "questions" $ do
-      need ["support"]
-      getTargets >>= needSel questions
+    withTargetDocs "Build PDF versions of all decks (*-deck.md)." $
+      phony "pdf" $ do
+        putNormal pdfMsg
+        need ["support"]
+        getTargets >>= needSel decksPdf
     --
-    phony "html" $ do
-      need ["support", "catalogs"]
-      getTargets >>= needSels [decks, pages, handouts, questions]
+    withTargetDocs "DEPRECATED. Use '--watch'." $
+      phony "watch" $ do
+        putNormal "Target 'watch' is DEPRECATED. Please use option '--watch'."
+        watchChangesAndRepeat
+        need ["html"]
     --
-    phony "pdf" $ do
-      putNormal pdfMsg
-      need ["support"]
-      getTargets >>= needSel decksPdf
+    withTargetDocs "DEPRECATED." $
+      phony "open" $ do
+        putNormal "Target 'open' is DEPRECATED. Please open the browser yourself."
+        need ["html"]
+        openBrowser indexFile
     --
-    phony "pdf-decks" $ do
-      putNormal pdfMsg
-      need ["support"]
-      getTargets >>= needSel decksPdf
+    withTargetDocs "DEPRECATED. Use '--server'." $
+      phony "server" $ do
+        putNormal "Target 'server' is DEPRECATED. Please use option '--server'."
+        need ["watch", "support"]
+        runHttpServer serverPort Nothing
     --
-    phony "watch" $ do
-      watchChangesAndRepeat
-      need ["html"]
+    withTargetDocs "DEPRECATED. Use '--server'." $
+      phony "presentation" $ do
+        putNormal "Target 'presentation' is DEPRECATED. Please use option '--server'."
+        need ["support"]
+        runHttpServer serverPort Nothing
+        liftIO waitForYes
     --
-    phony "open" $ do
-      need ["html"]
-      openBrowser indexFile
-    --
-    phony "server" $ do
-      need ["watch", "support"]
-      runHttpServer serverPort Nothing
-    --
-    phony "presentation" $ do
-      need ["support"]
-      runHttpServer serverPort Nothing
-      liftIO waitForYes
-    --
-    phony "fast" $ do
-      watchChangesAndRepeat
-      need ["support"]
-      runHttpServer serverPort Nothing
-      pages <- currentlyServedPages
-      need $ map (publicDir </>) pages
+    withTargetDocs "DEPRECATED. Use '--server'." $
+      phony "fast" $ do
+        putNormal "Target 'fast' is DEPRECATED. Please use option '--server'."
+        watchChangesAndRepeat
+        need ["support"]
+        runHttpServer serverPort Nothing
+        pages <- currentlyServedPages
+        need $ map (publicDir </>) pages
     --
     priority 4 $ do
       publicDir <//> "*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
-        need[src]
-        needIfExists "-deck.html" "-annot.json" out
-        needIfExists "-deck.html" "-times.json" out
-        -- needIfExists "-deck.html" "-recording.mp4" out
-        let recordingWebm = replaceSuffix "-deck.md" "-recording.webm" src
-        let recordingMp4 = replaceSuffix "-deck.html" "-recording.mp4" out
-        let recordingTimes = replaceSuffix "-deck.html" "-times.json" out
-        whenM (liftIO $ Dir.doesFileExist recordingWebm) $ need [recordingMp4, recordingTimes]
+        need [src]
         meta <- getGlobalMeta
         markdownToHtmlDeck meta getTemplate src out
       --
@@ -249,7 +223,7 @@ run = do
         targets <- getTargets
         sources <- mapM (calcSource "-quest.html" "-quest.yaml") (targets ^. questions)
         need sources
-        liftIO $ print  sources
+        liftIO $ print sources
         renderCatalog meta sources out
       phony "catalogs" $ do
         need ["public/quest-catalog.html"]
@@ -302,48 +276,54 @@ run = do
         putNormal $ "# copy (for " <> out <> ")"
         copyFile' src out
     --
-    phony "static-files" $ do
-      targets <- getTargets
-      need (targets ^. static)
+    withTargetDocs "Copy static file to public dir." $
+      phony "static-files" $ do
+        targets <- getTargets
+        need (targets ^. static)
     --
-    phony "uploads" $ do
-      targets <- getTargets
-      need (targets ^. uploads)
+    withTargetDocs "Provide information about project parameters, sources and targets" $
+      phony "info" $ do
+        project <- liftIO $ Dir.canonicalizePath projectDir
+        putNormal $ "\nproject directory: " ++ project
+        putNormal $ "public directory: " ++ publicDir
+        putNormal $ "support directory: " ++ supportDir
+        meta <- getGlobalMeta
+        targets <- getTargets
+        templateSource <- liftIO $ calcTemplateSource meta
+        putNormal $ "template source: " <> show templateSource
+        putNormal "\ntargets:\n"
+        putNormal (groom targets)
+        putNormal "\ntop level meta data:\n"
+        putNormal (groom meta)
     --
-    phony "info" $ do
-      project <- liftIO $ Dir.canonicalizePath projectDir
-      putNormal $ "\nproject directory: " ++ project
-      putNormal $ "public directory: " ++ publicDir
-      putNormal $ "support directory: " ++ supportDir
-      meta <- getGlobalMeta
-      targets <- getTargets
-      templateSource <- liftIO $ calcTemplateSource meta
-      putNormal $ "template source: " <> show templateSource
-      putNormal "\ntargets:\n"
-      putNormal (groom targets)
-      putNormal "\ntop level meta data:\n"
-      putNormal (groom meta)
+    withTargetDocs "Copy runtime support files to public dir." $
+      phony "support" $ do
+        need [indexFile, "static-files", "uploads"]
+        meta <- getGlobalMeta
+        writeSupportFilesToPublic meta
     --
-    phony "support" $ do
-      need [indexFile, "static-files", "uploads"]
-      meta <- getGlobalMeta
-      writeSupportFilesToPublic meta
+    withTargetDocs "Copy uploaded files to public dir." $
+      phony "uploads" $ do
+        targets <- getTargets
+        need $ targets ^. annotations <> targets ^. times <> targets ^. recordings
     --
-    phony "check" checkExternalPrograms
+    withTargetDocs "Check availability of external programs." $
+      phony "check" checkExternalPrograms
     --
-    phony "publish" $ do
-      need ["support"]
-      meta <- getGlobalMeta
-      getTargets >>= needSels [decks, handouts, pages]
-      let src = publicDir ++ "/"
-      case lookupMeta "publish.rsync.destination" meta of
-        Just destination -> publishWithRsync src destination meta
-        _ -> do
-          let host = lookupMetaOrFail "rsync-destination.host" meta
-          let path = lookupMetaOrFail "rsync-destination.path" meta
-          let dst = intercalate ":" [host, path]
-          ssh [host, "mkdir -p", path]
-          rsync [src, dst]
+    withTargetDocs "Publish the public dir to the configured destination using rsync." $
+      phony "publish" $ do
+        need ["support"]
+        meta <- getGlobalMeta
+        getTargets >>= needSels [decks, handouts, pages]
+        let src = publicDir ++ "/"
+        case lookupMeta "publish.rsync.destination" meta of
+          Just destination -> publishWithRsync src destination meta
+          _ -> do
+            let host = lookupMetaOrFail "rsync-destination.host" meta
+            let path = lookupMetaOrFail "rsync-destination.path" meta
+            let dst = intercalate ":" [host, path]
+            ssh [host, "mkdir -p", path]
+            rsync [src, dst]
 
 needIfExists :: String -> String -> String -> Action ()
 needIfExists suffix also out = do

@@ -18,7 +18,6 @@ module Text.Decker.Project.Project
 
     -- * Types
     static,
-    uploads,
     sources,
     decks,
     decksPdf,
@@ -27,6 +26,9 @@ module Text.Decker.Project.Project
     handouts,
     handoutsPdf,
     questions,
+    annotations,
+    recordings,
+    times,
     Targets (..),
     Resource (..),
     fromMetaValue,
@@ -41,11 +43,11 @@ import Control.Lens hiding ((.=))
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Char
-import qualified Data.String as String
-import qualified Data.Set as Set
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
 import Data.Maybe
+import qualified Data.Set as Set
+import qualified Data.String as String
 import qualified Data.Yaml as Yaml
 import Development.Shake hiding (Resource)
 import Relude
@@ -67,8 +69,10 @@ data Targets = Targets
     _pagesPdf :: [FilePath],
     _handouts :: [FilePath],
     _handoutsPdf :: [FilePath],
-    _uploads :: [FilePath],
-    _questions :: [FilePath]
+    _questions :: [FilePath],
+    _annotations :: [FilePath],
+    _times :: [FilePath],
+    _recordings :: [FilePath]
   }
   deriving (Show)
 
@@ -175,11 +179,18 @@ handoutHTMLSuffix = "-handout.html"
 
 handoutPDFSuffix = "-handout.pdf"
 
-uploadSuffixes = ["-annot.json", "-times.json", "-recording.mp4"]
+annotationSuffix = "-annot.json"
+
+timesSuffix = "-times.json"
+
+recordingSuffix = "-recording.webm"
+
+recordingTargetSuffix = "-recording.mp4"
 
 indexSuffix = "-deck-index.yaml"
 
-sourceSuffixes = [deckSuffix, pageSuffix, indexSuffix, questSuffix] <> uploadSuffixes
+sourceSuffixes =
+  [deckSuffix, pageSuffix, indexSuffix, questSuffix, recordingSuffix, timesSuffix, annotationSuffix]
 
 alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode"]
 
@@ -220,17 +231,12 @@ scanTargets meta = do
         _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs,
         _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs,
         _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs,
-        _uploads = sort $ calcUploads uploadSuffixes srcs,
-        _questions = sort $ calcTargets questSuffix questHTMLSuffix srcs
+        _questions = sort $ calcTargets questSuffix questHTMLSuffix srcs,
+        _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs,
+        _times = sort $ calcTargets timesSuffix timesSuffix srcs,
+        _recordings = sort $ calcTargets recordingSuffix recordingTargetSuffix srcs
       }
   where
-    calcUploads :: [String] -> [(String, [FilePath])] -> [FilePath]
-    calcUploads suffixes sources =
-      concatMap
-        ( \suffix ->
-            maybe [] (map (publicDir </>)) (List.lookup suffix sources)
-        )
-        suffixes
     calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]
     calcTargets srcSuffix targetSuffix sources =
       maybe

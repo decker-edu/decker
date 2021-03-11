@@ -25,29 +25,26 @@ import Snap.Core
 import Snap.Http.Server
 import Snap.Internal.Core (ResponseBody (Stream), rspBody)
 import Snap.Util.FileServe
+import Snap.Util.FileUploads
 import System.Directory
 import System.FilePath.Posix
 import System.IO.Streams (connect)
 import System.IO.Streams.File (withFileAsOutput)
 import System.Random
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 
 -- Logging and port configuration for the server.
-serverConfig :: Int -> IO (Config Snap a)
-serverConfig port = do
+serverConfig :: Int -> String -> IO (Config Snap a)
+serverConfig port bind = do
   let accessLog = transientDir </> "server-access.log"
   let errorLog = transientDir </> "server-error.log"
   createDirectoryIfMissing True transientDir
   return
     ( setVerbose True $
-        -- setBind "localhost" $
+        setBind (fromString bind) $
           setPort port $
-            --setSSLBind "localhost" $
-            --setSSLPort (port + 13) $
-            --setSSLCert (transientDir </> "decker-ssl.crt") $
-            --setSSLKey (transientDir </> "decker-ssl.key") $
-            --setSSLChainCert False $
             setAccessLog (ConfigFileLog accessLog) $
               setErrorLog (ConfigFileLog errorLog) defaultConfig ::
         Config Snap a
@@ -100,15 +97,15 @@ installSSLCert = do
   BS.writeFile (transientDir </> "decker-ssl.key") sslKey
 
 -- Runs the server. Never returns.
-runHttpServer :: MVar ServerState -> Int -> IO ()
-runHttpServer state port = do
+runHttpServer :: MVar ServerState -> Int -> String -> IO ()
+runHttpServer state port bind = do
   installSSLCert
   devRun <- isDevelopmentRun
   let supportRoot =
         if devRun
           then devSupportDir
           else supportDir
-  config <- serverConfig port
+  config <- serverConfig port bind
   let routes =
         route
           [ ("/reload", runWebSocketsSnap $ reloader state),
@@ -116,7 +113,8 @@ runHttpServer state port = do
             (fromString supportPath, serveDirectoryNoCaching state supportRoot),
             ("/", method PUT $ uploadResource ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"]),
             ("/", method GET $ serveDirectoryNoCaching state publicDir),
-            ("/", method HEAD $ headDirectory publicDir)
+            ("/", method HEAD $ headDirectory publicDir),
+            ("/upload", method POST $ uploadFiles ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"])
           ]
   startUpdater state
   catch
@@ -149,14 +147,44 @@ startUpdater state = do
 
 -- | Save the request body in the project directory under the request path. But
 -- only if the request path ends on one of the suffixes and the local directory
--- already exists.
+-- already exists. Do this atomically.
 uploadResource :: MonadSnap m => [String] -> m ()
 uploadResource suffixes = do
   destination <- toString <$> getsRequest rqPathInfo
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && any (`isSuffixOf` destination) suffixes
-    then runRequestBody (withFileAsOutput destination . connect)
+    then do
+      let tmp = transientDir </> takeFileName destination
+      runRequestBody (withFileAsOutput tmp . connect)
+      liftIO $ renameFile tmp destination
     else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
+
+fileUploadPolicy = setMaximumFileSize (10 ^ 9) defaultFileUploadPolicy
+
+-- | Expects a multi-part file upload.
+uploadFiles :: MonadSnap m => [String] -> m ()
+uploadFiles suffixes = do
+  withTemporaryStore transientDir "upload-" $ \store -> do
+    (inputs, files) <-
+      handleFormUploads defaultUploadPolicy fileUploadPolicy (const store)
+    liftIO $
+      forM_ files $
+        \(FormFile path tmp) ->
+          catch
+            ( do
+                let destination = dropDrive $ toString path
+                exists <- doesDirectoryExist (takeDirectory destination)
+                if exists && any (`isSuffixOf` destination) suffixes
+                  then do
+                    renameFile tmp destination
+                    putStrLn $ "# upload received: " <> destination
+                  else throwM $ InternalException "Illegal upload path suffix"
+            )
+            ( \e@(SomeException se) -> do
+                putStrLn $ "# upload FAILED: " <> show se
+                throwM e
+            )
+  return ()
 
 headDirectory :: MonadSnap m => FilePath -> m ()
 headDirectory directory = do
@@ -173,10 +201,10 @@ serveDirectoryNoCaching state directory = do
   liftIO $ addPage state (toString path)
 
 -- | Starts a server in a new thread and returns the thread id.
-startHttpServer :: Int -> IO Server
-startHttpServer port = do
+startHttpServer :: Int -> String -> IO Server
+startHttpServer port bind = do
   state <- initState
-  threadId <- forkIO $ runHttpServer state port
+  threadId <- forkIO $ runHttpServer state port bind
   return (threadId, state)
 
 -- | Sends a reload messsage to all attached clients

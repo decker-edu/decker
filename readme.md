@@ -80,6 +80,22 @@ brew install rsync graphviz gnuplot pdf2svg yarn coreutils
 
 For the rest follow instructions on their respective webites.
 
+To confirm that you have installed all of the required external tools, run the following command in a terminal window:
+
+`decker check`
+
+### Installation of external tools on Linux
+
+Use [Ubuntu’s Advanced Packaging Tool (APT)](https://ubuntu.com/server/docs/package-management) to install external tools. 
+
+``` {.sh}
+apt-get update && apt-get install -y gnuplot graphviz libbz2-dev pdf2svg rsync ssh      
+```
+
+To confirm that you have installed all of the required external tools, run the following command in a terminal window:
+
+`decker check`
+
 ## Usage
 
 *decker* behaves very much like a build tool. It works recursively on the

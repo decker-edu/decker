@@ -75,6 +75,11 @@ var RevealChart = window.RevealChart || (function(){
             chartOptions.title = { display: true, text: canvas.getAttribute("data-title") };
         }
 		
+		// MARIO: set width & height -> maintainAspectRatio=false
+		if (canvas.parentElement.style.width && canvas.parentElement.style.height) {
+			chartOptions.maintainAspectRatio=false;
+		}
+
 		var lines = CSV.split('\n').filter(function(v){return v!==''});
 		// if labels are not defined, get them from first line
 		if ( chartData.labels === null && lines.length > 0 ) {
@@ -112,7 +117,6 @@ var RevealChart = window.RevealChart || (function(){
 		}		
 
 		canvas.chart = new Chart(ctx, { type: canvas.getAttribute("data-chart"), data: chartData, options: chartOptions }); 
-
 	}
 
 	var initializeCharts = function(){
@@ -125,6 +129,12 @@ var RevealChart = window.RevealChart || (function(){
 		var charts = document.querySelectorAll(selectors);
 		for (var i = 0; i < charts.length; i++ ){
             var chart = charts[i];
+
+            // MARIO: create enclosing parent (for setting size)
+            var container = document.createElement('div');
+			container.classList.add("chart-container");
+			container.style.position = "relative";
+			container.style.margin = "auto";
 
             // create canvas element
             var canvas = document.createElement('canvas');
@@ -139,10 +149,18 @@ var RevealChart = window.RevealChart || (function(){
             }
             canvas.setAttribute("data-chart", type);
 
-            // title
+            // MARIO: title
             if (chart.hasAttribute("title")) {
                 canvas.setAttribute("data-title", chart.getAttribute("title"));
             }
+
+            // MARIO: width and height
+			if (chart.hasAttribute("width")) {
+				container.style.width = chart.getAttribute("width");
+			}
+			if (chart.hasAttribute("height")) {
+				container.style.height = chart.getAttribute("height");
+			}
 
             // copy chart definition to canvas
             var content = chart.firstChild.innerText; // don't use innerHTML, it's escaped
@@ -150,7 +168,8 @@ var RevealChart = window.RevealChart || (function(){
 
             // replace pre element by canvas element
             var parent = chart.parentElement;
-            parent.insertBefore(canvas, chart);
+            parent.insertBefore(container, chart);
+			container.appendChild(canvas);
             parent.removeChild(chart);
         }
 

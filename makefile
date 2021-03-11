@@ -66,7 +66,7 @@ watch:
 	stack test -j1 --file-watch
 
 server:
-	stack run -- decker server
+	stack run -- decker --server --port 8888 --bind localhost decks
 
 css:
 	cd resource/support/css && make css
@@ -75,5 +75,10 @@ clean:
 	stack clean
 	rm -rf dist public
 	rm -rf resource/support/vendor
+
+clean-recordings:
+	rm -f test/decks/*-recording.*
+	rm -f test/decks/*-times.json
+	rm -f test/decks/*-annot.json
 
 .PHONY: build clean test install dist docs resource-zip css
