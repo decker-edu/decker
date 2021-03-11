@@ -15,7 +15,8 @@ let engine = {
 function contactEngine(base, deckId) {
   engine.deckId = deckId || deckUrl();
 
-  // Try to import the API utility module.
+  // Try to import the API utility module. We need to do this dynamically
+  // because the URL is constructed from configuration data.
   import(base + "/decker-util.js")
     .then((util) => {
       console.log("Decker engine contacted at: ", base);
@@ -24,8 +25,8 @@ function contactEngine(base, deckId) {
     })
     .catch((e) => {
       console.log("Can't contact decker engine:" + e);
-      console.log("Retrying ..." + e);
-      setTimeout(() => contactEngine(base, deckId), (timeout *= 2));
+      // console.log("Retrying ..." + e);
+      // setTimeout(() => contactEngine(base, deckId), (timeout *= 2));
     });
 }
 
@@ -281,7 +282,7 @@ function buildInterface() {
   }
 
   function canDelete(comment) {
-    return isAdmin() || isAuthor(comment);
+    return isAdmin() || isAuthor(comment) && comment.answers.length == 0;
   }
 
   function renderList(list) {
@@ -605,7 +606,8 @@ function buildInterface() {
             slideId,
             user.value,
             text.value,
-            text.commentId
+            text.commentId,
+            window.location.toString()
           )
           .then(renderSubmit)
           .catch(console.log);
