@@ -1,33 +1,38 @@
 module Text.Decker.Writer.Pdf
-  ( launchChrome
-  , markdownToPdfHandout
-  , markdownToPdfPage
-  ) where
+  ( launchChrome,
+    markdownToPdfHandout,
+    markdownToPdfPage,
+  )
+where
 
+import Control.Exception
+import qualified Data.ByteString.Lazy as LB
+import Development.Shake
+import System.Decker.OS
+import System.Directory
+import System.Exit
+import System.FilePath
+import System.Process
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Project.Shake
 import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Template
-
-import Control.Exception
-import qualified Data.ByteString.Lazy as LB
-import Development.Shake
-import System.Decker.OS
-import System.Exit
-import System.Process
 import Text.Pandoc hiding (getTemplate)
 import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
 
+chromeUserDataDir = transientDir </> "chrome"
+
 chromeOptions :: FilePath -> FilePath -> [String]
 chromeOptions src out =
-  [ "--headless"
-  , "--virtual-time-budget=5000"
-  , "--disable-gpu"
-  , pdfOption out
-  , modifySrc src
+  [ "--headless",
+    "--virtual-time-budget=5000",
+    "--disable-gpu",
+    "--user-data-dir=" <> chromeUserDataDir,
+    pdfOption out,
+    modifySrc src
   ]
   where
     modifySrc path = path ++ "?print-pdf#/"
@@ -41,6 +46,7 @@ launchChrome src out = do
     Left msg -> return $ Left msg
     Right cmd -> do
       -- putStrLn (cmd <> " " <> unwords options)
+      createDirectoryIfMissing True chromeUserDataDir
       (exitCode, stdOut, stdErr) <-
         readProcessWithExitCode cmd options ""
       return $
@@ -58,9 +64,9 @@ markdownToPdfPage meta getTemplate markdownFile out = do
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
-          { writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerCiteMethod = Citeproc
+          { writerTemplate = Just template,
+            writerHighlightStyle = Just pygments,
+            writerCiteMethod = Citeproc
           }
   pandocMakePdf options out pandoc
 
@@ -68,15 +74,15 @@ pandocMakePdf :: WriterOptions -> FilePath -> Pandoc -> Action ()
 pandocMakePdf options out pandoc =
   liftIO $ do
     result <-
-      runIOQuietly (makePDF "xelatex" [] writeLaTeX options pandoc) >>=
-      handleError
+      runIOQuietly (makePDF "xelatex" [] writeLaTeX options pandoc)
+        >>= handleError
     case result of
       Left errMsg -> throw $ PandocException (show errMsg)
       Right pdf -> liftIO $ LB.writeFile out pdf
 
 -- | Write a markdown file to a PDF file using the handout template.
 markdownToPdfHandout ::
-     Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+  Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
 markdownToPdfHandout meta getTemplate markdownFile out = do
   putCurrentDocument out
   let disp = Disposition Handout Latex
@@ -84,8 +90,8 @@ markdownToPdfHandout meta getTemplate markdownFile out = do
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
-          { writerTemplate = Just template
-          , writerHighlightStyle = Just pygments
-          , writerCiteMethod = Citeproc
+          { writerTemplate = Just template,
+            writerHighlightStyle = Just pygments,
+            writerCiteMethod = Citeproc
           }
   pandocMakePdf options out pandoc

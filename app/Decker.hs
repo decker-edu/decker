@@ -75,8 +75,7 @@ run = do
         Text.unpack
           [text|
           # 
-          # To use 'decker pdf' or 'decker pdf-decks', Google Chrome has to be
-          # installed.
+          # To use 'decker pdf' Google Chrome has to be installed.
           # 
           # Windows: Currently 'decker pdf' does not work on Windows.
           #   Please add 'print: true' or 'menu: true' to your slide deck and use
