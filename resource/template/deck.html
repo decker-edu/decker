@@ -624,7 +624,6 @@ $if(quizServer)$
           quiz: { server: "$quizServer$" },
 $endif$
 
-
 $if(explain)$
           explain: { 
                 $if(explain.video)$ video: "$explain.video$", $endif$
@@ -654,6 +653,10 @@ $endif$
 $if(highlightjs)$
               { src: String.raw`$decker-support-dir$/plugins/highlight/highlight.js` },
 $endif$
+$if(poll)$   
+              { src: String.raw`$decker-support-dir$/plugins/quiz/qrcode.min.js` },           
+              { src: String.raw`$decker-support-dir$/plugins/poll/poll.js` },
+$endif$ 
 $if(mario)$              
               { src: String.raw`$decker-support-dir$/plugins/quiz/quiz.js` },
 $endif$    

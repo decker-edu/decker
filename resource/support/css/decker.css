@@ -2061,3 +2061,88 @@ dd {
   opacity: 1.0;
   color: var(--whiteboard-active-color);
 }
+
+/*********************************************
+ * Audience Response Polls
+ *********************************************/
+.reveal #poll-overlay {
+  height: 100%;
+  width: 100%;
+  display: none;
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  background-color: #fff;
+  overflow-x: hidden;
+  transition: 0.5s;
+  text-align: center;
+  padding: 1em;
+}
+
+.reveal #poll-overlay.active {
+  display: block;
+}
+
+.reveal #poll-overlay a {
+  text-decoration: none;
+  color: #000;
+}
+
+.reveal #poll-overlay img {
+  margin: 1em auto;
+}
+
+.reveal .poll .countdown {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 2em;
+  font-family: monospace;
+  border-radius: 10px;
+  padding: 0 0.3em;
+  border: 0.1em solid #080;
+  color: #fff;
+  background-color: #080;
+}
+
+.reveal .poll .countdown.timed.active {
+  display: block;
+  background-color: #2a99df;
+  border: 0.1em solid #2a99df;
+}
+
+.reveal .poll .countdown.timed.active.hurry {
+  background-color: #f00;
+  border-color: #f00;
+}
+
+.reveal .poll .active {
+  display: block;
+}
+
+.reveal .poll .blink {
+  animation: blinks 1s step-end infinite;
+  -webkit-animation: blinks 1s step-end infinite;
+}
+
+.reveal .poll ul.choices {
+  list-style-type: upper-alpha;
+}
+
+.reveal .poll i.fa-qrcode {
+  margin-right: 1em;
+}
+
+@keyframes blinks {
+  70% {
+    visibility: hidden;
+  }
+}
+
+@-webkit-keyframes blinks {
+  70% {
+    visibility: hidden;
+  }
+}
