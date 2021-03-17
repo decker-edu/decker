@@ -637,6 +637,19 @@ $if(quizServer)$
           quiz: { server: "$quizServer$" },
 $endif$
 
+$if(explain)$
+          explain: { 
+                $if(explain.video)$ video: "$explain.video$", $endif$
+                $if(explain.times)$ times: "$explain.times$", $endif$
+                $if(explain.recWidth)$  recWidth:  "$explain.recWidth$",  $endif$
+                $if(explain.recHeight)$ recHeight: "$explain.recHeight$", $endif$
+                $if(explain.camWidth)$  camWidth:  "$explain.camWidth$",  $endif$
+                $if(explain.camHeight)$ camHeight: "$explain.camHeight$", $endif$
+                dummy: "dummy"
+          },
+$endif$
+
+
           // plugins
           dependencies: [
               { src: String.raw`$decker-support-dir$/plugins/charts/Chart.js`},
@@ -655,6 +668,10 @@ $endif$
 $if(highlightjs)$
               { src: String.raw`$decker-support-dir$/plugins/highlight/highlight.js` },
 $endif$
+$if(poll)$   
+              { src: String.raw`$decker-support-dir$/plugins/quiz/qrcode.min.js` },           
+              { src: String.raw`$decker-support-dir$/plugins/poll/poll.js` },
+$endif$ 
 $if(mario)$              
               { src: String.raw`$decker-support-dir$/plugins/quiz/quiz.js` },
 $endif$    
