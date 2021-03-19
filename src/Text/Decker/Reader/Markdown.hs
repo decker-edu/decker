@@ -24,6 +24,7 @@ import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
+import Text.Decker.Filter.Poll
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Internal.Common
@@ -292,6 +293,7 @@ deckerPipeline =
       includeCode,
       -- , provisionResources
       processSlides,
+      handlePolls,
       handleQuizzes
     ] -- , processCitesWithDefault
 

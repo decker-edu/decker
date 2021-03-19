@@ -17,7 +17,7 @@ var Poll = (() => {
     }
 })();
 
-const server = "192.168.2.219:3003";
+const server = "polls.hci.informatik.uni-wuerzburg.de:80";
 var socket = null; var pollID = null; var poll = null; var timer = null;
 var pollState = "not-init";
 var canvas, qrdiv;

@@ -7,7 +7,6 @@ import Data.Aeson.TH
 import Data.ByteString.Lazy (toStrict)
 import qualified Data.Text as T
 import Data.Text.Encoding as E
-import qualified Data.Map.Strict as S
 import Data.Yaml as Y
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
