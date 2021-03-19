@@ -12,6 +12,7 @@ poll: true
 - Add `{.poll}` to slide header
 - Optionally add chart specifications in YAML block on slide
 
+
 # Audience Response Polls
 
 ## Interaction
@@ -21,7 +22,6 @@ poll: true
 - Press `a` to start the poll
 - Press `a` again to close the poll
 - Timed polls will automatically close
-
 
 
 # Example Audience Response Poll {.poll}
@@ -36,6 +36,7 @@ In which wavelength spectrum of do semiconductor nodes reach litography?
 - [ ] UV
 - [ ] Infrasound
 - [ ] 2 nm
+
 
 
 # Boolean Representation {.poll}
