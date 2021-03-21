@@ -29,9 +29,10 @@ function deckerStart() {
   if (Reveal.getConfig().verticalSlides) {
     setupVerticalSlides();
   }
-  if (!printMode) {
-    setTimeout(continueWhereYouLeftOff, 500);
-  }
+  // Henrik disabled this, because it is just too annoying.
+  // if (!printMode) {
+  //   setTimeout(continueWhereYouLeftOff, 500);
+  // }
   renderSvgMath();
 }
 
