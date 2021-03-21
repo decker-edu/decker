@@ -1,0 +1,138 @@
+:root {
+  --stroke-width: 4px;
+  --stroke-width-handle: calc(var(--stroke-width) / 2);
+}
+
+#drawing {
+  margin: 0;
+  padding: 0;
+}
+
+svg.geometry {
+  border: solid 1px black;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+marker[id="arrow"] {
+  fill: black; /* SVG 2: context-fill*/
+}
+
+marker[id="vec-arrow"] {
+  fill: darkblue; /* SVG 2: context-fill*/
+}
+
+circle.handle {
+  stroke: none;
+  stroke-dasharray: "5,5";
+  stroke-width: var(--stroke-width-handle);
+  fill: white;
+  fill-opacity: 0;
+}
+
+circle.handle:hover {
+  stroke: gray;
+  cursor: grab;
+}
+
+circle.handle:active {
+  stroke: gray;
+  stroke-width: var(--stroke-width);
+  /* cursor: grab; */
+}
+
+circle.point {
+  stroke: black;
+  stroke-width: var(--stroke-width);
+  fill: lightgray;
+}
+
+circle.point.computed {
+  stroke: darkred;
+}
+
+circle.point.drag {
+  stroke: darkgreen;
+}
+
+circle.point.red {
+  stroke: red;
+}
+
+circle.point.strong {
+  stroke-width: calc(var(--stroke-width) * 1.5);
+}
+
+line.line {
+  stroke: black;
+  stroke-width: var(--stroke-width);
+}
+
+line.line.infinite {
+  stroke: black;
+  stroke-width: calc(var(--stroke-width) / 2);
+  stroke-linecap: round;
+  stroke-dasharray: calc(var(--stroke-width) * 2);
+}
+
+line.vector {
+  stroke: darkblue;
+  stroke-width: var(--stroke-width);
+}
+
+line.line.computed {
+  stroke-width: calc(var(--stroke-width) * 1.5);
+}
+
+line.vector.computed {
+  stroke-width: calc(var(--stroke-width) * 1.5);
+}
+
+path[id].bezier {
+  stroke: darkred;
+  stroke-width: calc(var(--stroke-width) * 1.5);
+  fill: none;
+}
+
+path[id].play {
+  fill: lightgray;
+  stroke: darkgreen;
+  stroke-width: var(--stroke-width);
+}
+
+path[id].play:hover {
+  fill: gray;
+}
+
+path[id].play:active {
+  fill: lightsalmon;
+}
+
+circle[id].circle {
+  stroke: black;
+  stroke-width: var(--stroke-width);
+  fill: none;
+}
+
+text.text {
+  font-family: sans-serif;
+  font-size: 40px;
+  font-weight: bold;
+}
+
+text.label {
+  font-family: sans-serif;
+  font-size: 30px;
+  font-weight: normal;
+}
+
+g[id].surface line {
+  stroke: black;
+  stroke-width: var(--stroke-width);
+}
+
+g[id].surface rect {
+  fill: lightgray;
+}

@@ -605,7 +605,7 @@ function buildInterface() {
           .submitComment(
             engine.deckId,
             slideId,
-            user.value,
+            engine.token.admin || user.value,
             text.value,
             text.commentId,
             window.location.toString()

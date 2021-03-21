@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -11,10 +12,10 @@ module Text.Decker.Filter.Decker where
 
 import Relude
 import Text.Decker.Filter.Header
+import Text.Decker.Filter.Image
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
-import Text.Decker.Filter.Image
-import Text.Decker.Filter.Util
+import Text.Decker.Filter.Util (forceBlock, oneImagePerLine)
 import Text.Decker.Internal.Common
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
@@ -115,7 +116,7 @@ mediaInlineFilter inline = return inline
 -- and meta data via `gets` and `puts`.
 runFilter ::
   Walkable a Pandoc =>
-    Disposition ->
+  Disposition ->
   WriterOptions ->
   (a -> Filter a) ->
   Pandoc ->
@@ -135,4 +136,3 @@ runFilter' dispo options meta filter x =
 extIn :: Maybe Text -> [Text] -> Bool
 extIn (Just ext) list = ext `elem` list
 extIn Nothing _ = False
-

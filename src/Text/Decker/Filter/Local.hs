@@ -10,6 +10,7 @@ import Data.Digest.Pure.MD5
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import Relude
+import System.Random
 import Text.Blaze.Html
 import qualified Text.Blaze.Html.Renderer.Pretty as Pretty
 import qualified Text.Blaze.Html.Renderer.Text as Text
@@ -62,6 +63,8 @@ yamlExt = ["yaml", "yml"]
 
 renderExt = ["dot", "gnuplot", "tex"]
 
+javascriptExt = ["js"]
+
 mviewExt = ["off", "obj", "stl", "ply", "pmp"]
 
 streamScheme = ["youtube", "vimeo", "twitch", "veer", "veer-photo"]
@@ -76,6 +79,7 @@ data MediaT
   | EmbedSvgT
   | MviewT
   | RenderT
+  | JavascriptT
   | StreamT
   | ExamQuestT
   deriving (Show, Eq, Ord)
@@ -84,18 +88,20 @@ classifyMedia :: URI -> Attr -> MediaT
 classifyMedia uri (_, classes, _) =
   let ext = uriPathExtension uri
       scheme = uriScheme uri
-   in if | ext `maybeElem` svgExt && "embed" `elem` classes -> EmbedSvgT
-         | ext `maybeElem` renderExt && "render" `elem` classes -> RenderT
-         | ext `maybeElem` imageExt || "image" `elem` classes -> ImageT
-         | ext `maybeElem` videoExt || "video" `elem` classes -> VideoT
-         | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
-         | ext `maybeElem` iframeExt || "iframe" `elem` classes -> IframeT
-         | ext `maybeElem` pdfExt || "pdf" `elem` classes -> PdfT
-         | ext `maybeElem` mviewExt || "mview" `elem` classes -> MviewT
-         | ext `maybeElem` codeExt || "code" `elem` classes -> CodeT
-         | ext `maybeElem` yamlExt && "question" `elem` classes -> ExamQuestT
-         | scheme `maybeElem` streamScheme -> StreamT
-         | otherwise -> ImageT
+   in if
+          | ext `maybeElem` svgExt && "embed" `elem` classes -> EmbedSvgT
+          | ext `maybeElem` renderExt && "render" `elem` classes -> RenderT
+          | ext `maybeElem` javascriptExt && "run" `elem` classes -> JavascriptT
+          | ext `maybeElem` imageExt || "image" `elem` classes -> ImageT
+          | ext `maybeElem` videoExt || "video" `elem` classes -> VideoT
+          | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
+          | ext `maybeElem` iframeExt || "iframe" `elem` classes -> IframeT
+          | ext `maybeElem` pdfExt || "pdf" `elem` classes -> PdfT
+          | ext `maybeElem` mviewExt || "mview" `elem` classes -> MviewT
+          | ext `maybeElem` codeExt || "code" `elem` classes -> CodeT
+          | ext `maybeElem` yamlExt && "question" `elem` classes -> ExamQuestT
+          | scheme `maybeElem` streamScheme -> StreamT
+          | otherwise -> ImageT
 
 maybeElem :: Eq a => Maybe a -> [a] -> Bool
 maybeElem (Just x) xs = x `elem` xs
@@ -296,6 +302,9 @@ hash9String text = take 9 $ show $ md5 $ encodeUtf8 text
 
 hash9 :: Text -> Text
 hash9 text = Text.pack $ take 9 $ show $ md5 $ encodeUtf8 text
+
+randomId :: IO Text
+randomId = Text.pack . take 9 . show . md5 . show <$> (randomIO :: IO Int)
 
 single :: a -> [a]
 single x = [x]

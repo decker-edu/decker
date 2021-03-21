@@ -186,6 +186,9 @@ $for(style)$
   $style$
   </style>
 $endfor$
+$for(template.include-js)$
+<script src="$template.include-js$"></script>
+$endfor$
 </head>
 <body data-deckid="$deck-id$">
 $for(include-before)$
@@ -315,8 +318,8 @@ $endif$
     prepareExaminer();
   </script>
 
-$for(template.include-js)$
-<script src="$template.include-js$"></script>
+$for(template.include-js)$ 
+  <script src="$template.include-js$"></script>
 $endfor$
 
   <script>

@@ -8,9 +8,9 @@ import Data.Maybe
 import Data.Monoid
 import Relude
 import Text.Decker.Filter.Attrib
+import Text.Decker.Filter.Image
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
-import Text.Decker.Filter.Image
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Pandoc

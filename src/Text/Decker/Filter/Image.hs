@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -27,6 +28,35 @@ import Text.Printf
 import Text.URI (URI)
 import qualified Text.URI as URI
 
+-- |  Generates an HTML error message for Image inlines from the image
+--  source and the actual exception. The Image element is rendered back
+--  to Markdown format and included in the error message.
+inlineError :: Inline -> SomeException -> Filter Inline
+inlineError img@Image {} (SomeException e) = do
+  imgMarkup <- inlinesToMarkdown [img]
+  renderHtml $
+    H.div ! A.class_ "decker image error" $ do
+      H.h2 ! A.class_ "title" $ do
+        H.i ! A.class_ "fa fa-exclamation-triangle" $ ""
+        H.text " Decker error"
+      H.p ! A.class_ "message" $ toHtml (displayException e)
+      H.p $ H.text "encountered while processing"
+      H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
+inlineError _ _ = bug $ InternalException "inlineError: non image argument "
+
+blockError :: Block -> SomeException -> Filter Block
+blockError code@CodeBlock {} (SomeException e) = do
+  codeMarkup <- blocksToMarkdown [code]
+  renderHtml $
+    H.div ! A.class_ "decker image error" $ do
+      H.h2 ! A.class_ "title" $ do
+        H.i ! A.class_ "fa fa-exclamation-triangle" $ ""
+        H.text " Decker error"
+      H.p ! A.class_ "message" $ toHtml (displayException e)
+      H.p $ H.text "encountered while processing"
+      H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml codeMarkup
+blockError _ _ = bug $ InternalException "blockError: non code argument "
+
 imageTransformers :: Map MediaT (URI -> [Inline] -> Attrib Html)
 imageTransformers =
   Map.fromList
@@ -38,8 +68,8 @@ imageTransformers =
       (VideoT, videoHtml),
       (StreamT, streamHtml'),
       (AudioT, audioHtml),
-      (RenderT, renderCodeHtml)
-      -- , (ExamQuestT, examQuestHtml)
+      (RenderT, renderCodeHtml),
+      (JavascriptT, javascriptHtml)
     ]
 
 transformImage :: Inline -> [Inline] -> Filter Inline
@@ -68,7 +98,7 @@ transformImages images caption = do
           H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
           H.figcaption captionHtml
 
-language = find (`elem` ["dot", "gnuplot", "tex"])
+language cls = find (`elem` ["dot", "gnuplot", "tex"]) cls
 
 -- TODO this is incomplete
 --   - captions are just swallowed but never rendered.
@@ -76,18 +106,24 @@ language = find (`elem` ["dot", "gnuplot", "tex"])
 transformCodeBlock :: Block -> [Inline] -> Filter Block
 transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
   handle (blockError code) $
-    case language classes of
-      Just ext
-        | "render" `elem` classes ->
-          runAttr attr (transform ext) >>= renderHtml
-      _ -> return code
+    if
+        | all (`elem` classes) ["dot", "render"] ->
+          runAttr attr (transform "dot") >>= renderHtml
+        | all (`elem` classes) ["gnuplot", "render"] ->
+          runAttr attr (transform "gnuplot") >>= renderHtml
+        | all (`elem` classes) ["tex", "render"] ->
+          runAttr attr (transform "tex") >>= renderHtml
+        | all (`elem` classes) ["javascript", "run"] ->
+          runAttr attr (renderJavascriptHtml text) >>= renderHtml
+        | otherwise -> return code
   where
     transform :: Text -> Attrib Html
     transform ext = do
       dropClass ext
       let crc = printf "%08x" (calc_crc32 $ toString text)
       let path =
-            transientDir </> "code" </> intercalate "-" ["code", crc]
+            transientDir </> "code"
+              </> intercalate "-" ["code", crc]
               <.> toString ext
       exists <- liftIO $ doesFileExist path
       unless exists $
@@ -229,6 +265,18 @@ svgHtml uri caption = do
       injectBorder >> takeSizeIf isPercent >> takeUsual
       mkFigureTag svgTag captionHtml <$> extractAttr
 
+javascriptHtml :: URI -> [Inline] -> Attrib Html
+javascriptHtml uri caption = do
+  uri <- lift $ transformUri uri ""
+  javascript <- lift $ readLocalUri uri
+  case caption of
+    [] -> renderJavascriptHtml javascript
+    caption -> do
+      captionHtml <- lift $ inlinesToHtml caption
+      javascriptTag <- renderJavascriptHtml javascript
+      injectBorder >> takeSizeIf isPercent >> takeUsual
+      mkFigureTag javascriptTag captionHtml <$> extractAttr
+
 mviewHtml :: URI -> [Inline] -> Attrib Html
 mviewHtml uri caption = do
   uri <- lift $ transformUri uri ""
@@ -312,49 +360,10 @@ renderCodeHtml uri caption = do
       injectBorder >> takeSizeIf isPercent >> takeUsual
       mkFigureTag imageTag captionHtml <$> extractAttr
 
--- |  Generates an HTML error message for Image inlines from the image
---  source and the actual exception. The Image element is rendered back
---  to Markdown format and included in the error message.
-inlineError :: Inline -> SomeException -> Filter Inline
-inlineError img@Image {} (SomeException e) = do
-  imgMarkup <- inlinesToMarkdown [img]
-  renderHtml $
-    H.div ! A.class_ "decker image error" $ do
-      H.h2 ! A.class_ "title" $ do
-        H.i ! A.class_ "fa fa-exclamation-triangle" $ ""
-        H.text " Decker error"
-      H.p ! A.class_ "message" $ toHtml (displayException e)
-      H.p $ H.text "encountered while processing"
-      H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
-inlineError _ _ = bug $ InternalException "inlineError: non image argument "
-
-blockError :: Block -> SomeException -> Filter Block
-blockError code@CodeBlock {} (SomeException e) = do
-  codeMarkup <- blocksToMarkdown [code]
-  renderHtml $
-    H.div ! A.class_ "decker image error" $ do
-      H.h2 ! A.class_ "title" $ do
-        H.i ! A.class_ "fa fa-exclamation-triangle" $ ""
-        H.text " Decker error"
-      H.p ! A.class_ "message" $ toHtml (displayException e)
-      H.p $ H.text "encountered while processing"
-      H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml codeMarkup
-blockError _ _ = bug $ InternalException "blockError: non code argument "
-
-{--
-examQuestHtml :: URI -> [Inline] -> Attrib Html
-examQuestHtml uri caption = do
-  uri <- lift $ transformUri uri ""
-  source <- lift $ readLocalUri uri
-  let result = Y.decodeEither' (encodeUtf8 source)
-  case result of
-    Left err -> throwM $ InternalException $ show err
-    Right question -> do
-      quiz <- liftIO $ toQuiz question
-      liftIO $ putStrLn $ groom quiz
-      let block = renderQuizzes quiz
-      opts <- lift $ gets options
-      case runPure (writeHtml5 opts (Pandoc nullMeta [block])) of
-        Left err -> throwM $ InternalException $ show err
-        Right html -> return html
---}
+renderJavascriptHtml :: Text -> Attrib Html
+renderJavascriptHtml code = do
+  id <- liftIO randomId
+  let anchor = "let anchor = document.getElementById(\"" <> id <> "\");\n"
+  return $ do
+    H.div ! A.id (toValue id) ! A.class_ "geometry" $ ""
+    H.script ! A.class_ "geometry" ! A.type_ "geometry" $ toHtml (anchor <> code)
