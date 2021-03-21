@@ -98,8 +98,8 @@ path[id].bezier {
 
 path[id].play {
   fill: lightgray;
-  stroke: white;
-  stroke-width: var(--stroke-width-handle);
+  stroke: darkgreen;
+  stroke-width: var(--stroke-width);
 }
 
 path[id].play:hover {
@@ -125,7 +125,7 @@ text.text {
 text.label {
   font-family: sans-serif;
   font-size: 30px;
-  font-weight: bold;
+  font-weight: normal;
 }
 
 g[id].surface line {
