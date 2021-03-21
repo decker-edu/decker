@@ -12,7 +12,6 @@ let root = g.group(
   intersection.p2,
   intersection.n2,
   intersection.p1,
-  intersection,
   g.line(center, intersection.p1),
   g.swtch(
     intersection.p1,

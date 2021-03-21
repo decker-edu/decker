@@ -1,3 +1,8 @@
+:root {
+  --stroke-width: 4px;
+  --stroke-width-handle: calc(var(--stroke-width) / 2);
+}
+
 #drawing {
   margin: 0;
   padding: 0;
@@ -12,17 +17,17 @@ svg.geometry {
 }
 
 marker[id="arrow"] {
-  fill: black;
+  fill: black; /* SVG 2: context-fill*/
 }
 
 marker[id="vec-arrow"] {
-  fill: darkblue;
+  fill: darkblue; /* SVG 2: context-fill*/
 }
 
 circle.handle {
   stroke: none;
   stroke-dasharray: "5,5";
-  stroke-width: 2px;
+  stroke-width: var(--stroke-width-handle);
   fill: white;
   fill-opacity: 0;
 }
@@ -34,13 +39,13 @@ circle.handle:hover {
 
 circle.handle:active {
   stroke: gray;
-  stroke-width: 4px;
+  stroke-width: var(--stroke-width);
   /* cursor: grab; */
 }
 
 circle.point {
   stroke: black;
-  stroke-width: 6px;
+  stroke-width: var(--stroke-width);
   fill: lightgray;
 }
 
@@ -52,26 +57,49 @@ circle.point.drag {
   stroke: darkgreen;
 }
 
-line[id].line {
-  stroke: black;
-  stroke-width: 6px;
+circle.point.red {
+  stroke: red;
 }
 
-line[id].vector {
+circle.point.strong {
+  stroke-width: calc(var(--stroke-width) * 1.5);
+}
+
+line.line {
+  stroke: black;
+  stroke-width: var(--stroke-width);
+}
+
+line.line.infinite {
+  stroke: black;
+  stroke-width: calc(var(--stroke-width) / 2);
+  stroke-linecap: round;
+  stroke-dasharray: calc(var(--stroke-width) * 2);
+}
+
+line.vector {
   stroke: darkblue;
-  stroke-width: 6px;
+  stroke-width: var(--stroke-width);
+}
+
+line.line.computed {
+  stroke-width: calc(var(--stroke-width) * 1.5);
+}
+
+line.vector.computed {
+  stroke-width: calc(var(--stroke-width) * 1.5);
 }
 
 path[id].bezier {
   stroke: darkred;
-  stroke-width: 9px;
+  stroke-width: calc(var(--stroke-width) * 1.5);
   fill: none;
 }
 
 path[id].play {
   fill: lightgray;
   stroke: white;
-  stroke-width: 2;
+  stroke-width: var(--stroke-width-handle);
 }
 
 path[id].play:hover {
@@ -84,7 +112,7 @@ path[id].play:active {
 
 circle[id].circle {
   stroke: black;
-  stroke-width: 6px;
+  stroke-width: var(--stroke-width);
   fill: none;
 }
 
@@ -102,7 +130,7 @@ text.label {
 
 g[id].surface line {
   stroke: black;
-  stroke-width: 6px;
+  stroke-width: var(--stroke-width);
 }
 
 g[id].surface rect {

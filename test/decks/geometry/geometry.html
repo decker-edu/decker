@@ -37,27 +37,23 @@
       let center = point(150, 150, "drag");
 
       let intersection = intersect(
-        line(upperLeft, point(240, 60, "drag"), {
-          end: "arrow",
-        }),
+        line(upperLeft, point(240, 60, "drag"), "arrow"),
         circle(center, 60)
       );
 
       // let surfaceNormal = vector(150, 440, 0, -120);
       let surfaceAnchor = point(150, 440, "drag");
       let surfaceNormalTip = point(150, 320, "invisible");
-      let surfaceNormal = vector(surfaceAnchor, 0, -120, {
-        end: "vec-arrow",
-      });
+      let surfaceNormal = vector(surfaceAnchor, 0, -120);
       let wi = point(60, 360, "drag");
       let mwi = label(mirror(surfaceAnchor, wi), "-ωᵢ", "ne");
       let projection = line(
         surfaceAnchor,
         label(project(surfaceNormal.p1, surfaceNormal.p2, wi), "b"),
-        { end: "arrow" }
+        "arrow"
       );
-      let proj1 = sum(mwi, projection, { end: "arrow" });
-      let proj2 = sum(proj1.p2, projection, { end: "arrow" });
+      let proj1 = sum(mwi, projection, "arrow");
+      let proj2 = sum(proj1.p2, projection, "arrow");
 
       renderSvg(
         600,
@@ -77,13 +73,13 @@
           group(
             surface(surfaceAnchor, 200),
             surfaceNormal,
-            line(surfaceAnchor, wi, { end: "arrow" }),
+            line(surfaceAnchor, wi, "arrow"),
             label(
               unfold(
                 60,
                 320,
                 projection,
-                line(surfaceAnchor, mwi, { end: "arrow" }),
+                line(surfaceAnchor, mwi, "arrow"),
                 proj1,
                 proj2,
                 line(surfaceAnchor, label(proj2.p2, "ωᵣ", "ne"), {

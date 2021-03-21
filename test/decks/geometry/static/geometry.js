@@ -20,20 +20,27 @@ export {
 };
 
 import "./d3.v6.min.js";
+import { Clipper } from "./clip.js";
 
 const defaults = {
-  point: { r: 9, opts: ["static"] }, // one of ["static", "drag", "computed"]
+  point: { r: 8, opts: [] }, // one of [, "drag", "computed"]
   line: {
-    kind: "segment",
-    start: null,
-    end: null,
+    opts: [],
   },
   vector: {
-    end: "arrow",
+    opts: ["arrow"],
   },
-  circle: {},
+  circle: {
+    opts: [],
+  },
+  surface: {
+    opts: [],
+  },
+  project: {
+    opts: ["line"],
+  },
   unit: 60,
-  arrow: { w: 5, h: 5 },
+  arrow: { w: 5, h: 4 },
 };
 
 let nextId = 0;
@@ -45,9 +52,12 @@ class Shape {
     this.complete = true;
     this.id = nextId++;
     this.zIndex = z;
+    this.parent = null;
   }
 
   evaluate() {
+    // Make sure to evaluate a possible parent.
+    if (this.parent) this.parent.evaluate();
     return this.complete;
   }
 
@@ -55,8 +65,12 @@ class Shape {
     return dependencies.reduce((a, s) => a && s.evaluate(), true);
   }
 
+  // Include the parents flat rep here, because it might not be in the tree
+  // already, for example a computing node where only the results are part of
+  // the tree.
   flat() {
-    return this.complete ? [this] : [];
+    let pflat = this.parent ? this.parent.flat() : [];
+    return this.complete ? [this, ...pflat] : pflat;
   }
 }
 
@@ -81,6 +95,7 @@ class Point extends Shape {
   }
 
   svg() {
+    let classes = this.opts.concat("point").join(" ");
     let g = d3
       .create("svg:g")
       .attr("id", this.id)
@@ -89,19 +104,20 @@ class Point extends Shape {
 
     if (this.opts.includes("drag")) {
       g.attr("class", "handle");
-      g.append(() => v.node()).attr("class", "point drag");
+      g.append(() => v.node()).attr("class", classes);
       g.append("svg:circle")
         .attr("class", "handle")
         .attr("r", this.r * 2);
     } else if (this.opts.includes("computed")) {
-      g.append(() => v.node()).attr("class", "point computed");
+      g.append(() => v.node()).attr("class", classes);
     } else if (this.opts.includes("hidden")) {
       g.attr("class", "handle");
       g.append("svg:circle")
         .attr("class", "handle")
         .attr("r", this.r * 2);
-    } else if (this.opts.includes("static")) {
-      g.append(() => v.node()).attr("class", "point view");
+    } else if (this.opts.includes("invisible")) {
+    } else {
+      g.append(() => v.node()).attr("class", classes);
     }
     return g.node();
   }
@@ -112,12 +128,12 @@ function point(...args) {
 }
 
 class Text extends Shape {
-  constructor(x, y, text, opts = {}) {
+  constructor(x, y, text, ...opts) {
     super();
     this.x = x;
     this.y = y;
     this.text = text;
-    this.opts = { ...defaults.point, ...opts };
+    this.opts = opts.length == 0 ? defaults.text.opts : opts;
   }
 
   update(element) {
@@ -141,11 +157,11 @@ function text(...args) {
 }
 
 class Line extends Shape {
-  constructor(p1, p2, opts = {}) {
+  constructor(p1, p2, ...opts) {
     super();
     this.p1 = p1;
     this.p2 = p2;
-    this.opts = { ...defaults.line, ...opts };
+    this.opts = opts.length == 0 ? defaults.line.opts : opts;
     this.zIndex = 10;
   }
 
@@ -175,27 +191,42 @@ class Line extends Shape {
   }
 
   update(element) {
-    d3.select(element)
-      .attr("x1", this.p1.x)
-      .attr("y1", this.p1.y)
-      .attr("x2", this.p2.x)
-      .attr("y2", this.p2.y);
+    if (this.c) {
+      let [n, xp1, xp2] = this.c.clipLine(this.p1, this.p2);
+      d3.select(element)
+        .attr("x1", xp1.x)
+        .attr("y1", xp1.y)
+        .attr("x2", xp2.x)
+        .attr("y2", xp2.y);
+    } else {
+      d3.select(element)
+        .attr("x1", this.p1.x)
+        .attr("y1", this.p1.y)
+        .attr("x2", this.p2.x)
+        .attr("y2", this.p2.y);
+    }
   }
 
   svg(w, h) {
-    let line = d3
-      .create("svg:line")
-      .attr("id", this.id)
-      .attr("class", "line")
-      .attr("x1", this.p1.x)
-      .attr("y1", this.p1.y)
-      .attr("x2", this.p2.x)
-      .attr("y2", this.p2.y);
-
-    if (this.opts.kind === "infinite") {
-    }
-    if (this.opts.end) {
-      line.attr("marker-end", `url(#${this.opts.end})`);
+    let classes = this.opts.concat("line").join(" ");
+    let line = d3.create("svg:line").attr("id", this.id).attr("class", classes);
+    if (this.opts.includes("infinite")) {
+      this.c = new Clipper({ x: 0, y: 0 }, { x: w, y: h });
+      let [n, xp1, xp2] = this.c.clipLine(this.p1, this.p2);
+      line
+        .attr("x1", xp1.x)
+        .attr("y1", xp1.y)
+        .attr("x2", xp2.x)
+        .attr("y2", xp2.y);
+    } else {
+      line
+        .attr("x1", this.p1.x)
+        .attr("y1", this.p1.y)
+        .attr("x2", this.p2.x)
+        .attr("y2", this.p2.y);
+      if (this.opts.includes("arrow")) {
+        line.attr("marker-end", `url(#arrow)`);
+      }
     }
     return line.node();
   }
@@ -206,11 +237,11 @@ function line(...args) {
 }
 
 class Surface extends Shape {
-  constructor(p, w, opts = {}) {
+  constructor(p, w, ...opts) {
     super();
     this.p = p;
     this.w = w;
-    this.opts = { ...defaults.line, ...opts };
+    this.opts = opts.length == 0 ? defaults.surface.opts : opts;
     this.zIndex = 1;
   }
 
@@ -254,13 +285,13 @@ function surface(...args) {
 }
 
 class Vector extends Shape {
-  constructor(p, nx, ny, opts = {}) {
+  constructor(p, nx, ny, ...opts) {
     super();
     this.p = p;
     this._p = null;
     this.nx = nx;
     this.ny = ny;
-    this.opts = { ...defaults.vector, ...opts };
+    this.opts = opts.length == 0 ? defaults.vector.opts : opts;
     this.zIndex = 10;
   }
 
@@ -292,7 +323,7 @@ class Vector extends Shape {
   }
 
   addP2(line) {
-    if (this.opts.end) {
+    if (this.opts.includes("arrow")) {
       let dscr = this.nx * this.nx + this.ny * this.ny;
       if (dscr > 0) {
         let l = Math.sqrt(dscr);
@@ -314,10 +345,11 @@ class Vector extends Shape {
   }
 
   svg(w, h) {
+    let classes = this.opts.concat("vector").join(" ");
     let line = d3
       .create("svg:line")
       .attr("id", this.id)
-      .attr("class", "vector")
+      .attr("class", classes)
       .attr("x1", this.p.x)
       .attr("y1", this.p.y);
     this.addP2(line);
@@ -331,11 +363,11 @@ function vector(...args) {
 }
 
 class Circle extends Shape {
-  constructor(c, r, opts = {}) {
+  constructor(c, r, ...opts) {
     super();
     this.c = c;
     this.r = r;
-    this.opts = { ...defaults.point, ...opts };
+    this.opts = opts.length == 0 ? defaults.circle.opts : opts;
   }
 
   evaluate() {
@@ -370,13 +402,13 @@ function circle(...args) {
 }
 
 class Bezier extends Shape {
-  constructor(p1, p2, p3, p4, opts = {}) {
+  constructor(p1, p2, p3, p4, ...opts) {
     super();
     this.p1 = p1;
     this.p2 = p2;
     this.p3 = p3;
     this.p4 = p4;
-    this.opts = { ...opts };
+    this.opts = opts.length == 0 ? defaults.point.opts : opts;
     this.zIndex = 10;
   }
 
@@ -613,11 +645,12 @@ class MathLabel extends Point {
       this.label = MathJax.tex2svg(text).querySelector("svg");
       this.svgW = this.label.width.baseVal.valueInSpecifiedUnits;
       this.svgH = this.label.height.baseVal.valueInSpecifiedUnits;
-      this.f = 15;
-      this.o = 20;
     } catch (e) {
+      this.label = d3.create("text").text(this.text).node();
       console.log("MathLabel: " + this.text + "" + e);
     }
+    this.f = 15;
+    this.o = 20;
   }
 
   evaluate() {
@@ -678,7 +711,7 @@ class MathLabel extends Point {
       .attr("class", "label")
       .attr("id", this.id)
       .attr("transform", `translate(${this.p.x + o.x},${this.p.y + o.y})`);
-    g.append(() => this.label);
+    if (this.label) g.append(() => this.label);
     return g.node();
   }
 }
@@ -705,61 +738,6 @@ class Group extends Shape {
 
 function group(...args) {
   return new Group(...args);
-}
-
-const intersectors = [
-  { a: Line, b: Circle, f: isectLineCircle },
-  { a: Circle, b: Line, f: flip(isectLineCircle) },
-];
-
-function intersector(oa, ob) {
-  let is = intersectors.find(
-    ({ a, b, _ }) => oa instanceof a && ob instanceof b
-  );
-  if (is) {
-    return is.f;
-  } else {
-    throw (
-      "no intersector for " + a.constructor.name + " and " + b.constructor.name
-    );
-  }
-}
-
-function isectLineCircle(line, circ) {
-  let x = line.p1.x - circ.c.x;
-  let y = line.p1.y - circ.c.y;
-  let dx = line.p1.x - line.p2.x;
-  let dy = line.p1.y - line.p2.y;
-  let a = dx * dx + dy * dy;
-  let b = 2 * (x * dx + y * dy);
-  let c = x * x + y * y - circ.r * circ.r;
-  let d = b * b - 4 * a * c;
-  if (d < 0) {
-    return [];
-  } else if (d == 0) {
-    let t = -b / (2 * a);
-    let px = line.p1.x + t * dx;
-    let py = line.p1.y + t * dy;
-    let nx = ((px - circ.c.x) / circ.r) * defaults.unit;
-    let ny = ((py - circ.c.y) / circ.r) * defaults.unit;
-    return [{ point: { x: px, y: py }, normal: { x: nx, y: ny } }];
-  } else {
-    let sqrt = Math.sqrt(d);
-    let t1 = (-b - sqrt) / (2 * a);
-    let t2 = (-b + sqrt) / (2 * a);
-    let p1x = line.p1.x + t1 * dx;
-    let p1y = line.p1.y + t1 * dy;
-    let p2x = line.p1.x + t2 * dx;
-    let p2y = line.p1.y + t2 * dy;
-    let n1x = ((p1x - circ.c.x) / circ.r) * defaults.unit;
-    let n1y = ((p1y - circ.c.y) / circ.r) * defaults.unit;
-    let n2x = ((p2x - circ.c.x) / circ.r) * defaults.unit;
-    let n2y = ((p2y - circ.c.y) / circ.r) * defaults.unit;
-    return [
-      { point: { x: p1x, y: p1y }, normal: { x: n1x, y: n1y } },
-      { point: { x: p2x, y: p2y }, normal: { x: n2x, y: n2y } },
-    ];
-  }
 }
 
 class Intersection {
@@ -821,9 +799,13 @@ class IsectLineCircle extends Calculated {
     this.line = line;
     this.circ = circ;
     this.p1 = point(0, 0, "computed");
-    this.n1 = vector(point(0, 0, "invisible"), 0, 0);
+    this.p1.parent = this;
+    this.n1 = vector(point(0, 0, "invisible"), 0, 0, "computed", "arrow");
+    this.n1.parent = this;
     this.p2 = point(0, 0, "computed");
-    this.n2 = vector(point(0, 0, "invisible"), 0, 0);
+    this.p2.parent = this;
+    this.n2 = vector(point(0, 0, "invisible"), 0, 0, "computed", "arrow");
+    this.n2.parent = this;
   }
 
   calculate(complete) {
@@ -903,8 +885,8 @@ function mirror(...args) {
 }
 
 class Sum extends Line {
-  constructor(base, line, opts = {}) {
-    super(base, point(0, 0, "computed"), opts);
+  constructor(base, line, ...opts) {
+    super(base, point(0, 0, "computed"), ...opts);
     this.line = line;
   }
 
@@ -925,12 +907,14 @@ function sum(...args) {
 }
 
 class Project extends Point {
-  constructor(base, tip, point) {
+  constructor(base, tip, point, ...opts) {
     super(0, 0, "computed");
     this.base = base;
     this.tip = tip;
     this.point = point;
+    this.opts = opts.length == 0 ? defaults.point.opts : opts;
   }
+
   evaluate() {
     this.complete = Shape.all(this.base, this.tip, this.point);
     let tdx = this.tip.x - this.base.x;
@@ -1005,8 +989,9 @@ function addDefs(svg) {
     .attr("id", "arrow")
     .attr("refX", mw)
     .attr("refY", mh / 2)
-    .attr("markerWidth", mw + 1)
-    .attr("markerHeight", mh + 1)
+    .attr("markerWidth", mw)
+    .attr("markerHeight", mh)
+    .attr("markerUnits", "strokeWidth")
     .attr("orient", "auto")
     .append("path")
     .attr("d", d3.line()(arrowPoints));
@@ -1015,8 +1000,9 @@ function addDefs(svg) {
     .attr("id", "vec-arrow")
     .attr("refX", mw / 2)
     .attr("refY", mh / 2)
-    .attr("markerWidth", mw + 1)
-    .attr("markerHeight", mh + 1)
+    .attr("markerWidth", mw)
+    .attr("markerHeight", mh)
+    .attr("markerUnits", "strokeWidth")
     .attr("orient", "auto")
     .append("path")
     .attr("d", d3.line()(arrowPoints));
@@ -1062,13 +1048,12 @@ function renderSvg(element, width, height, root) {
 
   let clientToBoxX, clientToBoxY;
   let svgElement = svg.node();
-  let slideZoom = slides.style.zoom || 1;
+  let slideZoom = slides.style.zoom || 1;
 
   let drag = d3
     .drag()
     .on("start", function (event) {
-      slideZoom = slides.style.zoom || 1;
-      console.log(slideZoom);
+      slideZoom = slides.style.zoom || 1;
       clientToBoxX = svgElement.viewBox.baseVal.width / svgElement.clientWidth;
       clientToBoxY =
         svgElement.viewBox.baseVal.height / svgElement.clientHeight;

@@ -93,7 +93,7 @@ g.renderSvg(anchor, 600, 400, segment);
 
 ##  {.right .fragment}
 
-![$\mathbf{\overrightarrow{d}}_r=-\mathbf{\overrightarrow{d}}_i+2(\mathbf{\overrightarrow{d}}_i\cdot{\mathbf{\overrightarrow{n}}})\mathbf{\overrightarrow{n}}$](./unfold.js){.run
+![$\mathbf{d}_r=-\mathbf{d}_i+2(\mathbf{d}_i\cdot{\mathbf{n}})\mathbf{n}$](./unfold.js){.run
 width="100%"}
 
 ------------------------------------------------------------------------
@@ -163,5 +163,18 @@ g.renderSvg(anchor, 1200, 500, g.group(
     g.label(s, "FFFF", "sw"),    
     g.label(s, "GGGG", "w" ),    
     g.label(s, "HHHH", "nw"),    
+));
+```
+
+# Infinite Line
+
+``` {.javascript .run}
+import * as g from "./static/geometry.js";
+
+let p = g.point(100,150, "drag");
+let q = g.point(400,150, "drag");
+
+g.renderSvg(anchor, 500, 300, g.group(
+    g.line(p, q, "infinite")
 ));
 ```
