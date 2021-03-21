@@ -8,24 +8,25 @@ var timeout = 500;
 let engine = {
   api: undefined,
   deckId: undefined, // The unique deck identifier.
-  token: undefined
+  token: undefined,
 };
 
 // Contacts the engine API at base.
 function contactEngine(base, deckId) {
   engine.deckId = deckId || deckUrl();
 
-  // Try to import the API utility module.
+  // Try to import the API utility module. We need to do this dynamically
+  // because the URL is constructed from configuration data.
   import(base + "/decker-util.js")
-    .then(util => {
+    .then((util) => {
       console.log("Decker engine contacted at: ", base);
       engine.api = util.buildApi(base);
       prepareEngine();
     })
-    .catch(e => {
+    .catch((e) => {
       console.log("Can't contact decker engine:" + e);
-      console.log("Retrying ..." + e);
-      setTimeout(() => contactEngine(base, deckId), (timeout *= 2));
+      // console.log("Retrying ..." + e);
+      // setTimeout(() => contactEngine(base, deckId), (timeout *= 2));
     });
 }
 
@@ -43,7 +44,7 @@ function deckUrl() {
 function prepareEngine() {
   engine.api
     .getToken()
-    .then(token => {
+    .then((token) => {
       // Globally set the server token.
       engine.token = token;
 
@@ -51,12 +52,12 @@ function prepareEngine() {
       if (Reveal.isReady()) {
         buildInterface();
       } else {
-        Reveal.addEventListener("ready", _ => {
+        Reveal.addEventListener("ready", (_) => {
           buildInterface();
         });
       }
     })
-    .catch(e => {
+    .catch((e) => {
       // Nothing goes without a token
       console.log("API function getToken() failed: " + e);
       throw e;
@@ -142,13 +143,12 @@ function buildInterface() {
   input.classList.add("q-input");
   input.appendChild(text);
   text.setAttribute("wrap", "hard");
-  text.setAttribute(
-    "placeholder",
-    "Type question, ⇧⏎ (Shift-Return) to enter"
-  );
+  text.placeholder =
+    "Type question, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.";
+
   // prevent propagating keypress up to Reveal, since otherwise '?'
   // triggers the help dialog.
-  text.addEventListener("keypress", e => {
+  text.addEventListener("keypress", (e) => {
     e.stopPropagation();
   });
 
@@ -197,7 +197,7 @@ function buildInterface() {
       check.classList.remove("checked");
       user.type = "text";
     }
-  };
+  }
 
   function updateComments() {
     let slideId = Reveal.getCurrentSlide().id;
@@ -205,21 +205,25 @@ function buildInterface() {
       .getComments(engine.deckId, slideId, engine.token.admin || user.value)
       .then(renderList)
       .catch(console.log);
-  };
+  }
 
   function renderSubmit() {
     updateCommentsAndMenu();
     text.value = "";
     text.commentId = null;
-    text.answered = null;
-  };
+    text.removeAttribute("answer");
+    text.placeholder =
+      "Type question, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.";
+  }
 
   // given the list of questions, update question counter of menu items
   function updateMenuItems(list) {
-    document.querySelectorAll('ul.slide-menu-items > li.slide-menu-item').forEach( (li) => {
-      li.removeAttribute('data-questions');
-      li.removeAttribute('data-answered');
-    });
+    document
+      .querySelectorAll("ul.slide-menu-items > li.slide-menu-item")
+      .forEach((li) => {
+        li.removeAttribute("data-questions");
+        li.removeAttribute("data-answered");
+      });
 
     for (let comment of list) {
       // get slide info
@@ -229,29 +233,32 @@ function buildInterface() {
         const indices = Reveal.getIndices(slide);
 
         // build query string, get menu item
-        let query = 'ul.slide-menu-items > li.slide-menu-item';
-        if (indices.h) query += '[data-slide-h=\"' + indices.h + '\"]';
-        if (indices.v) query += '[data-slide-v=\"' + indices.v + '\"]';
+        let query = "ul.slide-menu-items > li.slide-menu-item";
+        if (indices.h) query += '[data-slide-h="' + indices.h + '"]';
+        if (indices.v) query += '[data-slide-v="' + indices.v + '"]';
         let li = document.querySelector(query);
 
         // update question counter
         if (li) {
-          let questions = li.hasAttribute('data-questions') ? parseInt(li.getAttribute('data-questions')) : 0;
-          let answered  = li.hasAttribute('data-answered') ? (li.getAttribute('data-answered')==='true') : true;
+          let questions = li.hasAttribute("data-questions")
+            ? parseInt(li.getAttribute("data-questions"))
+            : 0;
+          let answered = li.hasAttribute("data-answered")
+            ? li.getAttribute("data-answered") === "true"
+            : true;
 
           questions = questions + 1;
-          answered  = answered && (comment.answers.length > 0);
+          answered = answered && comment.answers.length > 0;
 
-          li.setAttribute('data-questions', questions);
-          li.setAttribute('data-answered',  answered);
+          li.setAttribute("data-questions", questions);
+          li.setAttribute("data-answered", answered);
         }
-      }
-      else {
+      } else {
         // slide not found. should not happen. user probably used wrong (duplicate) deckID.
         console.warn("Could not find slide " + slideID);
       }
     }
-  };
+  }
 
   // query list of questions, then update menu items
   function updateMenu() {
@@ -259,31 +266,30 @@ function buildInterface() {
       .getComments(engine.deckId)
       .then(updateMenuItems)
       .catch(console.log);
-  };
+  }
 
   function updateCommentsAndMenu() {
     updateComments();
     updateMenu();
-  };
+  }
 
   function isAdmin() {
     return engine.token.admin !== null;
-  };
+  }
 
   function isAuthor(comment) {
     return comment.author === user.value;
   }
 
   function canDelete(comment) {
-    return isAdmin() || isAuthor(comment);
-  };
+    return isAdmin() || isAuthor(comment) && comment.answers.length == 0;
+  }
 
   function renderList(list) {
-
     // have all questions been answered?
     let allAnswered = true;
     for (let comment of list) {
-      const isAnswered = (comment.answers && comment.answers.length > 0);
+      const isAnswered = comment.answers && comment.answers.length > 0;
       if (!isAnswered) {
         allAnswered = false;
         break;
@@ -298,8 +304,7 @@ function buildInterface() {
     if (allAnswered) {
       counter.classList.add("answered");
       badge.classList.add("answered");
-    }
-    else {
+    } else {
       counter.classList.remove("answered");
       badge.classList.remove("answered");
     }
@@ -311,7 +316,6 @@ function buildInterface() {
 
     // re-fill question container
     for (let comment of list) {
-
       // create question item
       let item = document.createElement("div");
       item.classList.add("item");
@@ -348,10 +352,10 @@ function buildInterface() {
         if (comment.didvote) {
           vote.classList.add("didvote");
         }
-        vote.addEventListener("click", _ => {
+        vote.addEventListener("click", (_) => {
           let vote = {
             comment: comment.id,
-            voter: user.value
+            voter: user.value,
           };
           engine.api.voteComment(vote).then(updateComments);
         });
@@ -365,10 +369,12 @@ function buildInterface() {
         let mod = document.createElement("button");
         mod.className = "fas fa-edit";
         mod.title = "Edit question";
-        mod.addEventListener("click", _ => {
+        mod.addEventListener("click", (_) => {
           text.value = comment.markdown;
           text.commentId = comment.id;
-          text.answered = comment.answered;
+          text.removeAttribute("answer");
+          text.placeholder =
+            "Type question, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.";
           text.focus();
         });
         box.appendChild(mod);
@@ -377,7 +383,7 @@ function buildInterface() {
         let del = document.createElement("button");
         del.className = "fas fa-trash-alt";
         del.title = "Delete question";
-        del.addEventListener("click", _ => {
+        del.addEventListener("click", (_) => {
           engine.api
             .deleteComment(comment.id, engine.token.admin || user.value)
             .then(updateCommentsAndMenu);
@@ -385,29 +391,51 @@ function buildInterface() {
         box.appendChild(del);
       }
 
+      if (isAdmin()) {
+        let add = document.createElement("button");
+        add.className = "far fa-plus-square";
+        add.title = "Add answer";
+        add.addEventListener("click", (_) => {
+          text.value = "";
+          text.commentId = comment.id;
+          text.setAttribute("answer", "true");
+          text.placeholder =
+            "Type answer, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.";
+          text.focus();
+        });
+
+        box.appendChild(add);
+      }
+
       // Answered button
       let answeredButton = document.createElement("button");
-      const isAnswered = (comment.answers && comment.answers.length > 0);
+      const isAnswered = comment.answers && comment.answers.length > 0;
       const canAnswer = canDelete(comment);
       if (isAnswered) {
         answeredButton.className = "far fa-check-circle answered";
-        answeredButton.title = canAnswer ? "Mark as not answered" : "Question has been answered";
+        answeredButton.title = canAnswer
+          ? "Mark as not answered"
+          : "Question has been answered";
         if (isAdmin()) {
-          answeredButton.addEventListener('click', _ => {
-            console.log("hallo mario")
-            engine.api
-              .deleteAnswer(comment.answers[0].id, engine.token.admin || user.value)
-              .then(updateCommentsAndMenu);
+          answeredButton.addEventListener("click", (_) => {
+            let chain = Promise.resolve();
+            for (let answer of comment.answers) {
+              chain = chain.then(() =>
+                engine.api.deleteAnswer(answer.id, engine.token.admin)
+              );
+            }
+            chain.then(updateCommentsAndMenu);
           });
         }
       } else {
         answeredButton.className = "far fa-circle notanswered";
-        answeredButton.title = canAnswer ? "Mark as answered" : "Question has not been answered";
+        answeredButton.title = canAnswer
+          ? "Mark as answered"
+          : "Question has not been answered";
         if (isAdmin()) {
-          answeredButton.addEventListener('click', _ => {
-            console.log("hallo mario")
+          answeredButton.addEventListener("click", (_) => {
             engine.api
-              .postAnswer(comment.id, engine.token.admin || user.value)
+              .postAnswer(comment.id, engine.token.admin)
               .then(updateCommentsAndMenu);
           });
         }
@@ -417,24 +445,78 @@ function buildInterface() {
 
       // add question to container
       container.appendChild(item);
+      MathJax.typeset([item]);
+
+      // add answers after the question
+      for (let answer of comment.answers) {
+        if (!answer.link && !answer.html) break;
+        let answerBlock = document.createElement("div");
+        answerBlock.classList.add("item", "answer");
+
+        if (isAdmin()) {
+          // answer controls
+          let abox = document.createElement("div");
+          abox.classList.add("controls");
+          answerBlock.insertBefore(abox, answerBlock.firstChild);
+
+          // Delete button
+          let del = document.createElement("button");
+          del.className = "fas fa-trash-alt";
+          del.title = "Delete answer";
+          del.addEventListener("click", (_) => {
+            engine.api
+              .deleteAnswer(answer.id, engine.token.admin)
+              .then(updateCommentsAndMenu);
+          });
+          abox.appendChild(del);
+        }
+        if (answer.link) {
+          try {
+            let url = new URL(answer.link);
+            answerBlock.insertAdjacentHTML(
+              "beforeend",
+              `<div class="link">
+                <a href="${url}" target="_blank">
+                  <i class="fas fa-external-link-alt"></i>
+                </a>
+               </div>`
+            );
+          } catch (_) {}
+        }
+        if (answer.html) {
+          answerBlock.insertAdjacentHTML(
+            "beforeend",
+            `<div class="description">${answer.html}</div>`
+          );
+        }
+        container.appendChild(answerBlock);
+        MathJax.typeset([answerBlock]);
+      }
     }
 
     container.scrollTop = 0;
-  };
 
-  close.addEventListener("click", _ => {
+    if (localStorage.getItem("question-panel") == "open") {
+      open.classList.add("checked");
+      panel.classList.add("open");
+    }
+  }
+
+  close.addEventListener("click", (_) => {
     open.classList.remove("checked");
     panel.classList.remove("open");
+    localStorage.removeItem("question-panel");
   });
 
-  open.addEventListener("click", _ => {
+  open.addEventListener("click", (_) => {
     open.classList.add("checked");
     panel.classList.add("open");
     updateComments();
     document.activeElement.blur();
+    localStorage.setItem("question-panel", "open");
   });
 
-  login.addEventListener("click", _ => {
+  login.addEventListener("click", (_) => {
     if (login.classList.contains("admin")) {
       engine.token.admin = null;
       username.value = "";
@@ -451,7 +533,7 @@ function buildInterface() {
     }
   });
 
-  password.addEventListener("keydown", e => {
+  password.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
 
     if (login.classList.contains("admin")) {
@@ -466,9 +548,9 @@ function buildInterface() {
         .getLogin({
           login: username.value,
           password: password.value,
-          deck: engine.deckId
+          deck: engine.deckId,
         })
-        .then(token => {
+        .then((token) => {
           engine.token.admin = token.admin;
           login.classList.add("admin");
           username.value = "";
@@ -476,14 +558,14 @@ function buildInterface() {
           credentials.classList.remove("visible");
           updateComments();
         })
-        .catch(_ => {
+        .catch((_) => {
           password.value = "";
         });
     }
   });
 
   if (!engine.token.authorized) {
-    user.addEventListener("keydown", e => {
+    user.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         updateComments();
         e.stopPropagation();
@@ -491,7 +573,7 @@ function buildInterface() {
       }
     });
 
-    check.addEventListener("click", _ => {
+    check.addEventListener("click", (_) => {
       if (check.classList.contains("checked")) {
         check.classList.remove("checked");
         window.localStorage.removeItem("token");
@@ -509,20 +591,27 @@ function buildInterface() {
     });
   }
 
-  text.addEventListener("keydown", e => {
+  text.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && e.shiftKey) {
       let slideId = Reveal.getCurrentSlide().id;
-      engine.api
-        .submitComment(
-          engine.deckId,
-          slideId,
-          user.value,
-          text.value,
-          text.commentId,
-          text.answered
-        )
-        .then(renderSubmit)
-        .catch(console.log);
+      if (text.hasAttribute("answer")) {
+        engine.api
+          .postAnswer(text.commentId, engine.token.admin, text.value, null)
+          .then(renderSubmit)
+          .catch(console.log);
+      } else {
+        engine.api
+          .submitComment(
+            engine.deckId,
+            slideId,
+            engine.token.admin || user.value,
+            text.value,
+            text.commentId,
+            window.location.toString()
+          )
+          .then(renderSubmit)
+          .catch(console.log);
+      }
       e.stopPropagation();
       e.preventDefault();
       document.activeElement.blur();

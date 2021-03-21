@@ -15,6 +15,8 @@ let ExplainPlugin = (function () {
   let voiceStream, desktopStream, cameraStream;
   let voiceGain, desktopGain;
   let volumeMeter;
+  let micSelect, camSelect;
+  let micIndicator, camIndicator;
 
   // playback stuff
   let explainVideoUrl, explainTimesUrl, explainTimes;
@@ -35,7 +37,6 @@ let ExplainPlugin = (function () {
       this.signal = signal;
       this.uiStates = states;
       this.state = this.uiStates.INIT;
-      console.log(this.uiStates);
     }
 
     is(name) {
@@ -257,21 +258,18 @@ let ExplainPlugin = (function () {
     finish() {
       if (this.previousSlide) this.previousSlide.timeOut = this.timeStamp();
       let json = JSON.stringify(this.timeIntervals, null, 4);
-      console.log(json);
       return new Blob([json], {
         type: "application/json",
       });
     }
   }
 
-  async function setupRecorder() {
+  async function captureScreen() {
     const config = Reveal.getConfig().explain;
     const recWidth =
       config && config.recWidth ? config.recWidth : Reveal.getConfig().width;
     const recHeight =
       config && config.recHeight ? config.recHeight : Reveal.getConfig().height;
-    const camWidth = config && config.camWidth ? config.camWidth : 1280;
-    const camHeight = config && config.camHeight ? config.camHeight : 720;
 
     // get display stream
     console.log("get display stream (" + recWidth + "x" + recHeight + ")");
@@ -286,8 +284,6 @@ let ExplainPlugin = (function () {
       audio: true,
     });
 
-    if (!desktopStream) return false;
-
     if (desktopStream.getAudioTracks().length > 0) {
       let label = desktopStream.getAudioTracks()[0].label;
       desktopIndicator.title = label;
@@ -297,25 +293,97 @@ let ExplainPlugin = (function () {
       desktopGainSlider.disabled = true;
     }
 
-    // get microphone stream
+    // if merged stream exists already (i.e., we are updating a stream),
+    // then merge with existing streams
+    if (stream) mergeStreams();
+  }
+
+  async function captureMicrophone() {
     console.log("get voice stream");
+    console.log("mic id: " + micSelect.value);
+
     voiceStream = await navigator.mediaDevices.getUserMedia({
       video: false,
       audio: {
+        deviceId: micSelect.value ? { exact: micSelect.value } : undefined,
         echoCancellation: false,
         noiseSuppression: true,
       },
     });
+
     if (voiceStream.getAudioTracks().length > 0) {
-      let label = voiceStream.getAudioTracks()[0].label;
-      voiceIndicator.title = label;
+      const selectedMicrophone = voiceStream.getAudioTracks()[0].label;
+      voiceIndicator.title = selectedMicrophone;
+      micIndicator.title = selectedMicrophone;
       voiceGainSlider.disabled = false;
+      // update mic selector
+      micSelect.selectedIndex = -1;
+      for (let i = 0; i < micSelect.options.length; i++) {
+        if (micSelect.options[i].text == selectedMicrophone) {
+          micSelect.selectedIndex = i;
+          break;
+        }
+      }
     } else {
       voiceIndicator.removeAttribute("title");
+      micIndicator.removeAttribute("title");
       voiceGainSlider.disabled = true;
+      micSelect.value = null;
     }
 
-    // merge tracks into recording stream
+    // if merged stream exists already (i.e., we are updating a stream),
+    // then merge with existing streams
+    if (stream) mergeStreams();
+  }
+
+  async function captureCamera() {
+    const config = Reveal.getConfig().explain;
+    const camWidth = config && config.camWidth ? config.camWidth : 1280;
+    const camHeight = config && config.camHeight ? config.camHeight : 720;
+
+    console.log("get camera stream (" + camWidth + "x" + camHeight + ")");
+    console.log("cam id: " + camSelect.value);
+
+    // get camera stream
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        deviceId: camSelect.value ? { exact: camSelect.value } : undefined,
+        width: camWidth,
+        height: camHeight,
+        frameRate: { max: 30 },
+      },
+      audio: false,
+    });
+
+    if (cameraStream.getVideoTracks().length > 0) {
+      const selectedCamera = cameraStream.getVideoTracks()[0].label;
+      camIndicator.title = selectedCamera;
+      // update camSelect
+      camSelect.selectedIndex = -1;
+      for (let i = 0; i < camSelect.options.length; i++) {
+        if (camSelect.options[i].text == selectedCamera) {
+          camSelect.selectedIndex = i;
+          break;
+        }
+      }
+      // connect camera to video element
+      if (cameraVideo.classList.contains("visible")) {
+        cameraVideo.pause();
+        cameraVideo.srcObject = cameraStream;
+        cameraVideo.play();
+      } else {
+        cameraVideo.srcObject = cameraStream;
+      }
+    } else {
+      camIndicator.removeAttribute("title");
+    }
+
+    // if merged stream exists already (i.e., we are updating a stream),
+    // then merge with existing streams
+    if (stream) mergeStreams();
+  }
+
+  function mergeStreams() {
     const tracks = [
       ...desktopStream.getVideoTracks(),
       ...mergeAudioStreams(desktopStream, voiceStream),
@@ -329,24 +397,26 @@ let ExplainPlugin = (function () {
         uiState.transition("cancel");
       };
     });
+  }
 
-    // get camera stream
-    console.log("get camera stream (" + camWidth + "x" + camHeight + ")");
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        width: camWidth,
-        height: camHeight,
-        frameRate: { max: 30 },
-      },
-      audio: false,
-    });
-    cameraVideo.srcObject = cameraStream;
+  async function setupRecorder() {
+    try {
+      stream = null;
+      await captureScreen();
+      await captureMicrophone();
+      await captureCamera();
+      mergeStreams();
 
-    recordButton.disabled = undefined;
-    pauseButton.disabled = true;
-    stopButton.disabled = true;
+      recordButton.disabled = undefined;
+      pauseButton.disabled = true;
+      stopButton.disabled = true;
 
-    return true;
+      return true;
+    } catch (e) {
+      alert(
+        "Recording setup failed.\n\nRecording only works on Chrome. Also, the deck must be accessed via a URL that starts with either of \n\n- http://localhost\n- https://"
+      );
+    }
   }
 
   function download(blob, name) {
@@ -371,29 +441,60 @@ let ExplainPlugin = (function () {
 
     recorder.ondataavailable = (e) => blobs.push(e.data);
 
+    let recordSlideChange = () => recorder.timing.record();
+
     recorder.onstart = () => {
       console.log("[] recorder started");
       Reveal.slide(0);
       recorder.timing = new Timing();
       recorder.timing.start();
-      Reveal.addEventListener("slidechanged", (_) => recorder.timing.record());
+      Reveal.addEventListener("slidechanged", recordSlideChange);
 
       updateRecordIndicator();
     };
+
+    function upload(...files) {
+      console.log("[] about to upload: ", files);
+      let formData = new FormData();
+      for (let file of files) {
+        formData.append(file.filename, file.data);
+      }
+      return fetch("/upload", { method: "POST", body: formData })
+        .then((r) => r.ok)
+        .catch((e) => {
+          console.log("[] cannot upload form data to: " + "/upload" + ", " + e);
+          return false;
+        });
+    }
 
     recorder.onstop = async () => {
       console.log("[] recorder stopped");
       let vblob = new Blob(blobs, { type: "video/webm" });
       let tblob = recorder.timing.finish();
 
-      if (
-        !(await guardedUploadBlob(deckTimesUrl(), tblob)) ||
-        !(await uploadBlob(deckUrlBase() + "-recording.webm", vblob))
-      ) {
+      try {
+        let exists = await resourceExists(deckTimesUrl());
+        if (!exists || confirm("Really overwrite existing recording?")) {
+          await upload(
+            { data: vblob, filename: deckUrlBase() + "-recording.webm" },
+            { data: tblob, filename: deckTimesUrl() }
+          );
+        }
+      } catch (e) {
+        console.err(
+          `[] FAILED to upload ${tblob.size} bytes to ${deckTimesUrl()}`
+        );
+        console.err(
+          `[] FAILED to upload ${vblob.size} bytes to ${
+            deckUrlBase() + "-recording.webm"
+          }`
+        );
+      } finally {
         download(vblob, videoFilenameBase() + "-recording.webm");
         download(tblob, videoFilenameBase() + "-times.json");
       }
 
+      Reveal.removeEventListener("slidechanged", recordSlideChange);
       recorder = null;
       stream = null;
 
@@ -419,7 +520,8 @@ let ExplainPlugin = (function () {
     recordButton.disabled = true;
     pauseButton.disabled = undefined;
     stopButton.disabled = undefined;
-
+    micSelect.disabled = true;
+    camSelect.disabled = true;
     return true;
   }
 
@@ -427,7 +529,7 @@ let ExplainPlugin = (function () {
     recorder.pause();
     recordButton.disabled = true;
     pauseButton.disabled = undefined;
-    stopButton.disabled = true;
+    stopButton.disabled = undefined;
     return true;
   }
 
@@ -445,6 +547,8 @@ let ExplainPlugin = (function () {
     recordButton.disabled = undefined;
     pauseButton.disabled = true;
     stopButton.disabled = true;
+    micSelect.disabled = undefined;
+    camSelect.disabled = undefined;
     return true;
   }
 
@@ -637,7 +741,7 @@ let ExplainPlugin = (function () {
     player.getChild("controlBar").addChild("nextButton", {}, 3);
   }
 
-  function createRecordingGUI() {
+  async function createRecordingGUI() {
     recordPanel = createElement({
       type: "div",
       id: "record-panel",
@@ -676,16 +780,127 @@ let ExplainPlugin = (function () {
     volumeMeter.high = -9;
     volumeMeter.max = 0;
 
-    let controls = createElement({
+    row = createElement({
       type: "div",
-      id: "record-controls",
+      classes: "controls-row",
       parent: recordPanel,
     });
+
+    voiceIndicator = createElement({
+      type: "i",
+      classes: "indicator fas fa-microphone",
+      parent: row,
+    });
+
+    voiceGainSlider = createElement({
+      type: "input",
+      id: "voice-gain-slider",
+      classes: "gain-slider",
+      title: "Microphone Audio Gain",
+      parent: row,
+    });
+    setupGainSlider(voiceGain, voiceGainSlider);
 
     row = createElement({
       type: "div",
       classes: "controls-row",
-      parent: controls,
+      parent: recordPanel,
+    });
+
+    desktopIndicator = createElement({
+      type: "i",
+      classes: "indicator fas fa-tv",
+      parent: row,
+    });
+
+    desktopGainSlider = createElement({
+      type: "input",
+      id: "desktop-gain-slider",
+      classes: "gain-slider",
+      title: "Desktop Audio Gain",
+      parent: row,
+    });
+    setupGainSlider(desktopGain, desktopGainSlider);
+
+    // mic selector
+    row = createElement({
+      type: "div",
+      classes: "controls-row",
+      parent: recordPanel,
+    });
+
+    micIndicator = createElement({
+      type: "i",
+      classes: "indicator fas fa-microphone",
+      title: "Select microphone",
+      parent: row,
+    });
+
+    micSelect = createElement({
+      type: "select",
+      id: "mic-select",
+      classes: "input-select",
+      title: "Select microphone",
+      parent: row,
+    });
+    micSelect.onchange = captureMicrophone;
+
+    // camera selector
+    row = createElement({
+      type: "div",
+      classes: "controls-row",
+      parent: recordPanel,
+    });
+
+    camIndicator = createElement({
+      type: "i",
+      classes: "indicator fas fa-camera",
+      title: "Select camera",
+      parent: row,
+    });
+
+    camSelect = createElement({
+      type: "select",
+      id: "cam-select",
+      classes: "input-select",
+      title: "Select camera",
+      parent: row,
+    });
+    camSelect.onchange = captureCamera;
+
+    // collect list of cameras and microphones
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      devices.forEach((device) => {
+        switch (device.kind) {
+          case "audioinput": {
+            const option = document.createElement("option");
+            option.value = device.deviceId;
+            option.text = device.label || `microphone ${micSelect.length + 1}`;
+            micSelect.appendChild(option);
+            break;
+          }
+          case "videoinput": {
+            const option = document.createElement("option");
+            option.value = device.deviceId;
+            option.text = device.label || `camera ${camSelect.length + 1}`;
+            camSelect.appendChild(option);
+            break;
+          }
+        }
+      });
+
+      // unselect camera & microphone
+      micSelect.value = undefined;
+      camSelect.value = undefined;
+    } catch (e) {
+      console.log("cannot list microphones and cameras:" + e);
+    }
+
+    row = createElement({
+      type: "div",
+      classes: "controls-row",
+      parent: recordPanel,
     });
 
     recordButton = createElement({
@@ -711,48 +926,6 @@ let ExplainPlugin = (function () {
       parent: row,
       onclick: transition("stop"),
     });
-
-    row = createElement({
-      type: "div",
-      classes: "controls-row",
-      parent: controls,
-    });
-
-    voiceIndicator = createElement({
-      type: "i",
-      classes: "indicator fas fa-microphone",
-      parent: row,
-    });
-
-    voiceGainSlider = createElement({
-      type: "input",
-      id: "voice-gain-slider",
-      classes: "gain-slider",
-      title: "Microphone Audio Gain",
-      parent: row,
-    });
-    setupGainSlider(voiceGain, voiceGainSlider);
-
-    row = createElement({
-      type: "div",
-      classes: "controls-row",
-      parent: controls,
-    });
-
-    desktopIndicator = createElement({
-      type: "i",
-      classes: "indicator fas fa-tv",
-      parent: row,
-    });
-
-    desktopGainSlider = createElement({
-      type: "input",
-      id: "desktop-gain-slider",
-      classes: "gain-slider",
-      title: "Desktop Audio Gain",
-      parent: row,
-    });
-    setupGainSlider(desktopGain, desktopGainSlider);
   }
 
   function setupGainSlider(gain, slider) {
@@ -787,9 +960,64 @@ let ExplainPlugin = (function () {
       type: "video",
       id: "camera-video",
       parent: document.body,
-      onclick: (e) => e.target.classList.toggle("fullscreen"),
     });
-    cameraVideo.muted = true; // dont' want audio in this stream
+    cameraVideo.muted = true; // don't want audio in this stream
+
+    // initialize translation and scaling
+    cameraVideo.dragging = false;
+    cameraVideo.dx = 0.0;
+    cameraVideo.dy = 0.0;
+    cameraVideo.scale = 1.0;
+    cameraVideo.transform = "";
+
+    // start dragging
+    cameraVideo.onmousedown = (e) => {
+      if (!cameraVideo.classList.contains("fullscreen")) {
+        e.preventDefault();
+        cameraVideo.dragging = true;
+        cameraVideo.style.cursor = "move";
+        cameraVideo.lastX = e.screenX;
+        cameraVideo.lastY = e.screenY;
+
+        // translate on mouse move
+        cameraVideo.onmousemove = (e) => {
+          if (cameraVideo.dragging) {
+            const x = e.screenX;
+            const y = e.screenY;
+            cameraVideo.dx += x - cameraVideo.lastX;
+            cameraVideo.dy += y - cameraVideo.lastY;
+            cameraVideo.lastX = x;
+            cameraVideo.lastY = y;
+            cameraVideo.style.transform = `translate(${cameraVideo.dx}px, ${cameraVideo.dy}px) scale(${cameraVideo.scale})`;
+          }
+        };
+      }
+    };
+
+    // stop dragging
+    cameraVideo.onmouseup = cameraVideo.onmouseleave = (e) => {
+      cameraVideo.style.cursor = "";
+      cameraVideo.dragging = false;
+      cameraVideo.onmousemove = null;
+    };
+
+    // use mouse wheel to scale video
+    cameraVideo.onmousewheel = (e) => {
+      if (!cameraVideo.classList.contains("fullscreen")) {
+        cameraVideo.scale += e.deltaY * -0.01;
+        cameraVideo.style.transform = `translate(${cameraVideo.dx}px, ${cameraVideo.dy}px) scale(${cameraVideo.scale})`;
+      }
+    };
+
+    // use double click on video to toggle fullscreen
+    cameraVideo.ondblclick = (e) => {
+      if (e.target.classList.toggle("fullscreen")) {
+        cameraVideo.transform = cameraVideo.style.transform;
+        cameraVideo.style.transform = "";
+      } else {
+        cameraVideo.style.transform = cameraVideo.transform;
+      }
+    };
   }
 
   function toggleCamera() {
@@ -813,23 +1041,6 @@ let ExplainPlugin = (function () {
       voiceGainSlider.value = 0;
     }
     voiceGainSlider.oninput();
-  }
-
-  function printTimeStamps() {
-    for (let i = 0; i < explainTimes.length; i++) {
-      let t = explainTimes[i];
-      let h = Math.floor(t / 60 / 60);
-      let m = Math.floor(t / 60) - h * 60;
-      let s = t % 60;
-      let formatted =
-        h.toString().padStart(2, "0") +
-        ":" +
-        m.toString().padStart(2, "0") +
-        ":" +
-        s.toString().padStart(2, "0");
-      console.log("slide " + (i + 1) + ": time " + formatted + " = " + t + "s");
-    }
-    console.log(explainTimes);
   }
 
   async function resourceExists(url) {
@@ -879,16 +1090,49 @@ let ExplainPlugin = (function () {
     toggleRecording
   );
   Reveal.addKeyBinding(
+    { keyCode: 90, key: "Z", description: "Stop Recording (Triple Click)" },
+    maybeStopRecording
+  );
+  Reveal.addKeyBinding(
     { keyCode: 86, key: "V", description: "Toggle Camera" },
     toggleCamera
   );
 
+  let zPushCount = 0.0;
+  let lastZPush = null;
+
+  // key event to stop recording if pushed 3 times in quick succession
+  function maybeStopRecording(evt) {
+    // only react on key z/Z
+    if (evt.keyCode != 90) return;
+
+    // do not react to alt/ctrl/cmd modifier
+    if (evt.altKey || evt.ctrlKey || evt.metaKey) return;
+
+    let now = Date.now();
+    if (lastZPush && now - lastZPush < 500) {
+      lastZPush = now;
+      zPushCount++;
+    } else {
+      lastZPush = now;
+      zPushCount = 1;
+    }
+
+    if (zPushCount == 3) {
+      switch (uiState.name()) {
+        case "RECORDING":
+        case "RECORDER_PAUSED":
+          uiState.transition("stop");
+          break;
+      }
+    }
+  }
 
   // key event to toggle recording states
   function toggleRecording(evt) {
     // only react on key r/R
     if (evt.keyCode != 82) return;
-    
+
     // do not react to alt/ctrl/cmd modifier
     if (evt.altKey || evt.ctrlKey || evt.metaKey) return;
 
@@ -927,6 +1171,15 @@ let ExplainPlugin = (function () {
       return false;
     }
   }
+
+  // Intercept page leave when we are recording
+  window.addEventListener("beforeunload", (evt) => {
+    if (uiState.in("RECORDER_PAUSED", "RECORDING")) {
+      evt.preventDefault();
+      evt.returnValue = "We are recording!";
+      return evt.returnValue;
+    }
+  });
 
   return {
     init: async function () {
@@ -984,6 +1237,9 @@ let ExplainPlugin = (function () {
       });
       // Try to connect to an existing video.
       uiState.transition("setupPlayer");
+      addReloadInhibitor(() =>
+        !uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")
+      );
     },
   };
 })();

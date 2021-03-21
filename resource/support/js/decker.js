@@ -308,3 +308,42 @@ function renderSvgMath() {
     script.parentNode.removeChild(script);
   }
 }
+
+// List of predicates that all must return true for a requested reload to
+// actually be performed.
+let reloadInhibitors = [];
+
+// Adds a reload inhibitor.
+function addReloadInhibitor(predicate) {
+  reloadInhibitors.push(predicate);
+}
+
+// Removes a reload inhibitor.
+function removeReloadInhibitor(predicate) {
+  reloadInhibitors.splice(
+    reloadInhibitors.find((p) => p === predicate),
+    1
+  );
+}
+
+// Opens a web socket connection and listens to reload requests from the server.
+// If all of the registered inhibitors return true, the reload is performed.
+function openReloadSocket() {
+  if (location.hostname == "localhost" || location.hostname == "0.0.0.0") {
+    var socket = new WebSocket("ws://" + location.host + "/reload");
+    socket.onmessage = function (event) {
+      if (event.data.startsWith("reload!")) {
+        console.log("Reload requested.");
+        let reload = reloadInhibitors.reduce((a, p) => a && p(), true);
+        if (reload) {
+          console.log("Reload authorized.");
+          window.location.reload();
+        } else {
+          console.log("Reload inhibited.");
+        }
+      }
+    };
+  }
+}
+
+window.addEventListener("load", openReloadSocket);

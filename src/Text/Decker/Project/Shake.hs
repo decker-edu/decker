@@ -51,6 +51,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
+import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Decker.Server.Server
@@ -296,21 +297,23 @@ writeSupportFilesToPublic meta = do
       removeSupport
       extractSupport templateSource
 
+supportId templateSource = show (templateSource, deckerGitCommitId)
+
 extractSupport :: TemplateSource -> Action ()
 extractSupport templateSource = do
   context <- actionContext
   liftIO $
     handleAll (\_ -> return ()) $ do
       copySupportFiles templateSource Copy supportDir
-      writeFile (supportDir </> ".origin") (show templateSource)
+      writeFile (supportDir </> ".origin") $ supportId templateSource
 
 correctSupportInstalled :: TemplateSource -> Action Bool
 correctSupportInstalled templateSource = do
   context <- actionContext
   liftIO $
     handleAll (\_ -> return False) $ do
-      installed <- read <$> readFile (supportDir </> ".origin")
-      return (installed == templateSource)
+      installed <- readFile (supportDir </> ".origin")
+      return (installed == supportId templateSource)
 
 removeSupport :: Action ()
 removeSupport = do

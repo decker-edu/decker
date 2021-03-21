@@ -188,7 +188,15 @@ let RevealMath = window.RevealMath || (function(){
                     tags: 'ams',
                     packages: {
                         '[+]': ['ams']
-                    }
+                    },
+                    inlineMath: [              // start/end delimiter pairs for in-line math
+                      ['$', '$'],
+                      ['\\(', '\\)']
+                    ],
+                    displayMath: [             // start/end delimiter pairs for display math
+                      ['$$', '$$'],
+                      ['\\[', '\\]']
+                    ]
                 },
                 options: {
                     enableMenu: false,

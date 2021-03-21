@@ -60,3 +60,7 @@ New-Item "$support\fontawesome\css" -Force -ItemType "directory"
 Foreach ($i in ( "css\all.css", "webfonts")) {
   Copy-Item -Recurse "$third\Font-Awesome\js-packages\@fortawesome\fontawesome-free\$i" "$support\fontawesome\$i" -Force
 }
+
+# Copy video.js
+New-Item -Path "$support\videojs" -Force -ItemType "directory"
+Copy-Item "$third\video.js\*" "$support\video.js" -Force

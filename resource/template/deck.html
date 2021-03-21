@@ -308,7 +308,7 @@ $body$
 $if(decker-engine.base-url)$
   <script type="module" crossorigin>
     import {contactEngine} from "./$decker-support-dir$/js/engine.js";
-    contactEngine("$decker-engine.base-url$", "$decker-engine.deck-id$")
+    contactEngine("$decker-engine.base-url$", "$decker-engine.deck-id$");
   </script>
 $endif$
 
@@ -666,18 +666,6 @@ $endif$
               { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes/notes.js`, async: true }
           ]
       });
-  </script>
-
-
-  <!-- Reload on change machinery -->
-  <script>
-  if (location.hostname == "localhost" || location.hostname == "0.0.0.0") {
-    var socket = new WebSocket("ws://" + location.host + "/reload");
-    socket.onmessage = function (event) {
-      if (event.data.startsWith("reload!")) 
-        window.location.reload(true);
-    };
-  };
   </script>
 
   $for(include-after)$
