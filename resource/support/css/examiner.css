@@ -1,7 +1,7 @@
-input,
-button,
-textarea,
-select {
+div.exa-quest input,
+div.exa-quest button,
+div.exa-quest textarea,
+div.exa-quest select {
   color: black;
   background-color: #efefef;
 
@@ -17,10 +17,10 @@ select {
   outline: none;
 }
 
-input,
-select,
-button,
-textarea {
+div.exa-quest input,
+div.exa-quest select,
+div.exa-quest button,
+div.exa-quest textarea {
   -webkit-appearance: none;
 }
 

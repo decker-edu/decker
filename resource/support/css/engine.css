@@ -165,7 +165,7 @@ div.q-panel div.q-header button.q-check {
   background-color: rgba(0, 0, 0, 0);
 
   border: none;
-  border-radius: var(--border-radius);
+  /* border-radius: var(--border-radius); */
   outline: none;
 }
 
@@ -192,7 +192,7 @@ div.q-panel div.q-header button.q-close {
   background-color: rgba(0, 0, 0, 0);
 
   border: none;
-  border-radius: var(--border-radius);
+  /* border-radius: var(--border-radius); */
   outline: none;
 }
 

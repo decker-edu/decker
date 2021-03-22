@@ -17,4 +17,3 @@ exclude-directories:
   - users-guide
 static-resource-dirs:
   - test/static
-  - test/decks/geometry/static

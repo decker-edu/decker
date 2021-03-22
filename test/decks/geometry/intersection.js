@@ -1,4 +1,4 @@
-import * as g from "./static/geometry.js";
+import * as g from "/support/js/geometry.js";
 
 let center = g.point(300, 300, "drag");
 let intersection = new g.IsectLineCircle(
