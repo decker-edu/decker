@@ -23,6 +23,12 @@ data PollMeta = PollMeta
     , timed :: Bool
     , seconds :: String
     , blink :: Bool
+    , yzero :: Bool
+    , xzero :: Bool
+    , ystep :: String
+    , xstep :: String
+    , ypos :: String
+    , xpos :: String
     } deriving Show
 
 -- Look in YAML for poll:true to see if deck has poll
@@ -58,14 +64,20 @@ buildPoll s = [s]
 
 buildPollMeta :: Maybe Meta -> PollMeta
 buildPollMeta meta = case meta of 
-    Just m -> PollMeta lab col tim sec bl
+    Just m -> PollMeta lab col tim sec bl yzero xzero ystep xstep ypos xpos
         where
             lab = lookupMetaOrElse "Number of Votes" "label" m
             col = lookupMetaOrElse "#008cff" "color" m
             tim = lookupMetaOrElse False "timed" m
             sec = lookupMetaOrElse "11" "seconds" m 
             bl = lookupMetaOrElse False "blink" m
-    _ -> PollMeta "Number of Votes" "#008cff" False "60" False
+            yzero = lookupMetaOrElse True "yAxis.beginZero" m
+            xzero = lookupMetaOrElse True "xAxis.beginZero" m
+            ystep = lookupMetaOrElse "1" "yAxis.stepSize" m
+            xstep = lookupMetaOrElse "1" "xAxis.stepSize" m
+            ypos = lookupMetaOrElse "left" "yAxis.position" m
+            xpos = lookupMetaOrElse "bottom" "xAxis.position" m
+    _ -> PollMeta "Number of Votes" "#008cff" False "60" False True True "1" "1" "left" "bottom"
 
 -- Define default pollMeta if some or no yaml values are found
 getYaml :: [Block] -> Maybe Meta
@@ -114,22 +126,35 @@ buildAnswers block =
                     Space -> " "
                     a -> ""
 
-data ChartObj = ChartObj
+data Chart = Chart
     { chartdata :: DataObj
     , chartoptions :: OptionsObj
     }
 data DataObj = DataObj
     { labels :: [String]
-    , datasets :: [DatasetObj]
+    , datasets :: [Dataset]
     }
-data DatasetObj = DatasetObj
+data Dataset = Dataset
     { dslabel :: String
     , dsbackgroundColor :: String
     , dsdata :: [Integer]
     } 
-newtype OptionsObj = OptionsObj 
-    {optresponsive :: String}  
-
+data OptionsObj = OptionsObj
+    { optresponsive :: String 
+    , optscales :: Scales
+    }  
+data Scales = Scales
+    { yAxes :: [Axes]
+    , xAxes :: [Axes]
+    }
+data Axes = Axes
+    { ticks :: Ticks
+    , position :: String
+    }
+data Ticks = Ticks
+    { beginAtZero :: Bool
+    , stepSize :: String
+    }
 -- Build canvas tag with chart comment to render results of poll
 renderCanvas :: [String] -> PollMeta -> Block 
 renderCanvas answers pm = 
@@ -139,11 +164,17 @@ renderCanvas answers pm =
         unsafeByteStringComment $ 
         toStrict $ Data.Aeson.encode chartObj
     where
-        datasetObj = DatasetObj (label pm) (color pm) (map (const 0) answers)
-        chartObj = ChartObj (DataObj answers [datasetObj]) (OptionsObj "true")
+        dataset = Dataset (label pm) (color pm) (map (const 0) answers)
+        yAxes = Axes (Ticks (yzero pm) (ystep pm)) (ypos pm)
+        xAxes = Axes (Ticks (xzero pm) (xstep pm)) (xpos pm)
+        scales = Scales [yAxes] [xAxes]
+        chartObj = Chart (DataObj answers [dataset]) (OptionsObj "true" scales)
 
 deriveJSON defaultOptions ''PollMeta
-deriveJSON defaultOptions { fieldLabelModifier = drop 5 } ''ChartObj
+deriveJSON defaultOptions { fieldLabelModifier = drop 5 } ''Chart
 deriveJSON defaultOptions ''DataObj
-deriveJSON defaultOptions { fieldLabelModifier = drop 2 } ''DatasetObj
+deriveJSON defaultOptions { fieldLabelModifier = drop 2 } ''Dataset
 deriveJSON defaultOptions { fieldLabelModifier = drop 3 } ''OptionsObj
+deriveJSON defaultOptions ''Scales
+deriveJSON defaultOptions ''Axes
+deriveJSON defaultOptions ''Ticks

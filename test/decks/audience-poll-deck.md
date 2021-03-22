@@ -55,6 +55,11 @@ Which boolean function is displayed here?
 ```yaml
 label: "Votes"
 color: "#080"
+yAxis:
+  stepSize: 2 
+  position: "right"
+xAxis:
+  position: "top"
 timed: True
 seconds: 15
 blink: True
