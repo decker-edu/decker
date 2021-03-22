@@ -19,8 +19,8 @@ export {
   IsectLineCircle,
 };
 
-import "./d3.v6.min.js";
-import { Clipper } from "./clip.js";
+import "/support/vendor/d3.v6.min.js";
+import { Clipper } from "/support/js/clip.js";
 
 const defaults = {
   point: { r: 8, opts: [] }, // one of [, "drag", "computed"]

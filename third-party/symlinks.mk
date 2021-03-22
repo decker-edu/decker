@@ -17,7 +17,10 @@ dup = cp -r
 endif
 
 
-all: jquery mathjax reveal.js water.css lazyload fontawesome thebelab videojs
+all: jquery mathjax reveal.js water.css lazyload fontawesome thebelab videojs d3
+
+d3:
+	@cp d3.v6.min.js $(support)
 
 videojs:
 	@mkdir -p $(support)/videojs

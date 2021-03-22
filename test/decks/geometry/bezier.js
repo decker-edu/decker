@@ -1,4 +1,4 @@
-import * as g from "./static/geometry.js";
+import * as g from "/support/js/geometry.js";
 
 let p1 = g.point(60, 60, "drag");
 let p2 = g.point(540, 60);
