@@ -15,8 +15,6 @@ module Text.Decker.Project.Project
     isDevelopmentRun,
     excludeDirs,
     staticDirs,
-
-    -- * Types
     static,
     sources,
     decks,
@@ -29,6 +27,7 @@ module Text.Decker.Project.Project
     annotations,
     recordings,
     times,
+    css,
     Targets (..),
     Resource (..),
     fromMetaValue,
@@ -64,7 +63,6 @@ import Text.Decker.Internal.Meta
   )
 import Text.Decker.Project.Glob
 import Text.Pandoc.Builder hiding (lookupMeta)
-import Text.RawString.QQ
 import Text.Regex.TDFA
 
 data Targets = Targets
@@ -194,19 +192,6 @@ timesSuffix = "-times.json"
 recordingSuffix = "-recording.webm"
 
 recordingTargetSuffix = "-recording.mp4"
-
-indexSuffix = "-deck-index.yaml"
-
-sourceSuffixes =
-  [ deckSuffix,
-    pageSuffix,
-    indexSuffix,
-    questSuffix,
-    recordingSuffix,
-    timesSuffix,
-    annotationSuffix,
-    ".scss"
-  ]
 
 sourceRegexes :: [String] =
   [ "-deck.md\\'",

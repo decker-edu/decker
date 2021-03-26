@@ -80,7 +80,6 @@ dependencies:
   - process
   - pureMD5
   - random
-  - raw-strings-qq
   - regex-tdfa
   - relude
   - scientific
