@@ -49,6 +49,7 @@ import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.String as String
 import qualified Data.Yaml as Yaml
+import qualified Data.Yaml.Pretty as Yaml
 import Development.Shake hiding (Resource)
 import Relude
 import qualified System.Directory as Directory
@@ -57,8 +58,14 @@ import System.FilePath.Posix
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+  ( FromMetaValue (..),
+    globalMetaFileName,
+    lookupMetaOrElse,
+  )
 import Text.Decker.Project.Glob
 import Text.Pandoc.Builder hiding (lookupMeta)
+import Text.RawString.QQ
+import Text.Regex.TDFA
 
 data Targets = Targets
   { _sources :: [FilePath],
@@ -72,7 +79,8 @@ data Targets = Targets
     _questions :: [FilePath],
     _annotations :: [FilePath],
     _times :: [FilePath],
-    _recordings :: [FilePath]
+    _recordings :: [FilePath],
+    _css :: [FilePath]
   }
   deriving (Show)
 
@@ -190,7 +198,26 @@ recordingTargetSuffix = "-recording.mp4"
 indexSuffix = "-deck-index.yaml"
 
 sourceSuffixes =
-  [deckSuffix, pageSuffix, indexSuffix, questSuffix, recordingSuffix, timesSuffix, annotationSuffix]
+  [ deckSuffix,
+    pageSuffix,
+    indexSuffix,
+    questSuffix,
+    recordingSuffix,
+    timesSuffix,
+    annotationSuffix,
+    ".scss"
+  ]
+
+sourceRegexes :: [String] =
+  [ "-deck.md\\'",
+    "-page.md\\'",
+    "-deck-index.yaml\\'",
+    "-quest.yaml\\'",
+    "-recording.webm\\'",
+    "-times.json\\'",
+    "-annot.json\\'",
+    "\\`(^_).*\\.scss\\'"
+  ]
 
 alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode"]
 
@@ -214,16 +241,20 @@ unusedResources meta = do
 scanTargetsToFile :: Meta -> FilePath -> Action ()
 scanTargetsToFile meta file = do
   targets <- liftIO $ scanTargets meta
-  writeFileChanged file $ decodeUtf8 $ encode targets
+  writeFileChanged file $ decodeUtf8 $ Yaml.encodePretty Yaml.defConfig targets
+
+anySource :: FilePath -> Bool
+anySource file = any (file =~) sourceRegexes
 
 scanTargets :: Meta -> IO Targets
 scanTargets meta = do
-  srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
+  -- srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
+  srcs <- fastGlobFiles' (excludeDirs meta) anySource projectDir
   staticSrc <-
     concat <$> mapM (fastGlobFiles [] [] . normalise) (staticDirs meta)
   return
     Targets
-      { _sources = sort $ concatMap snd srcs,
+      { _sources = sort srcs,
         _static = sort $ map (publicDir </>) staticSrc,
         _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs,
         _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs,
@@ -234,14 +265,15 @@ scanTargets meta = do
         _questions = sort $ calcTargets questSuffix questHTMLSuffix srcs,
         _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs,
         _times = sort $ calcTargets timesSuffix timesSuffix srcs,
-        _recordings = sort $ calcTargets recordingSuffix recordingTargetSuffix srcs
+        _recordings = sort $ calcTargets recordingSuffix recordingTargetSuffix srcs,
+        _css = sort $ calcTargets ".scss" ".css" srcs
       }
   where
-    calcTargets :: String -> String -> [(String, [FilePath])] -> [FilePath]
+    calcTarget :: String -> String -> FilePath -> FilePath
+    calcTarget srcSuffix targetSuffix source =
+      publicDir
+        </> replaceSuffix srcSuffix targetSuffix source
+    calcTargets :: String -> String -> [FilePath] -> [FilePath]
     calcTargets srcSuffix targetSuffix sources =
-      maybe
-        []
-        ( map
-            (replaceSuffix srcSuffix targetSuffix . combine publicDir)
-        )
-        (List.lookup srcSuffix sources)
+      map (calcTarget srcSuffix targetSuffix) $
+        filter (srcSuffix `List.isSuffixOf`) sources

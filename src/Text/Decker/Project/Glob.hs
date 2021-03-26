@@ -1,13 +1,15 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Text.Decker.Project.Glob
-  ( fastGlobFiles
-  , fastGlobDirs
-  , globFiles
-  , subDirs
-  ) where
+  ( fastGlobFiles,
+    fastGlobFiles',
+    fastGlobDirs,
+    globFiles,
+    subDirs,
+  )
+where
 
 import Control.Monad
 import Data.List
@@ -18,8 +20,8 @@ import System.FilePath.Posix
 -- directories that will be culled from the traversal. Hidden directories are
 -- ignored. 'suffixes' is the list of file suffixes that are included in the
 -- glob.
-fastGlobFiles :: [String] -> [String] -> FilePath -> IO [FilePath]
-fastGlobFiles exclude suffixes root = sort . map normalise <$> glob root
+fastGlobFiles' :: [String] -> (String -> Bool) -> FilePath -> IO [FilePath]
+fastGlobFiles' exclude predicate root = sort . map normalise <$> glob root
   where
     absExclude = map (normalise . (root </>)) exclude
     absListDirectory dir =
@@ -28,12 +30,13 @@ fastGlobFiles exclude suffixes root = sort . map normalise <$> glob root
     glob root = do
       dirExists <- doesDirectoryExist root
       fileExists <- doesFileExist root
-      if | dirExists -> globDir root
-         | fileExists -> globFile root
-         | otherwise -> return []
+      if
+          | dirExists -> globDir root
+          | fileExists -> globFile root
+          | otherwise -> return []
     globFile :: String -> IO [String]
     globFile file =
-      if null suffixes || any (`isSuffixOf` file) suffixes
+      if predicate file
         then return [file]
         else return []
     globDir :: FilePath -> IO [String]
@@ -41,6 +44,11 @@ fastGlobFiles exclude suffixes root = sort . map normalise <$> glob root
       if dir `elem` absExclude
         then return []
         else concat <$> (absListDirectory dir >>= mapM glob)
+
+fastGlobFiles :: [String] -> [String] -> FilePath -> IO [FilePath]
+fastGlobFiles exclude suffixes = fastGlobFiles' exclude predicate
+  where
+    predicate file = null suffixes || any (`isSuffixOf` file) suffixes
 
 -- | Glob for directories efficiently. 'exclude' contains a list of directories
 -- (relative to 'root') that will be culled from the traversal.
@@ -66,7 +74,7 @@ globFiles exclude suffixes root = do
       []
       suffixes
 
--- | Get a list of all sub dirs.
+-- |  Get a list of all sub dirs.
 subDirs :: FilePath -> IO [FilePath]
 subDirs dir = do
   all <- listDirectory dir

@@ -212,6 +212,13 @@ run = do
         putNormal $ "# copy (for " <> out <> ")"
         copyFile' src out
       --
+      publicDir <//> "*.css" %> \out -> do
+        let src = makeRelative publicDir out
+        putNormal $ "# copy (for " <> out <> ")"
+        copyFile' src out
+        whenM (liftIO $ Dir.doesFileExist (src <.> "map")) $
+          copyFile' (src <.> "map") (out <.> "map")
+      --
       publicDir <//> "*-quest.html" %> \out -> do
         src <- calcSource "-quest.html" "-quest.yaml" out
         meta <- getGlobalMeta
@@ -243,6 +250,12 @@ run = do
         writeIndexLists meta targets out (takeDirectory indexFile)
     --
     priority 3 $ do
+      "**/*.css" %> \out -> do
+        let src = out -<.> "scss"
+        whenM (liftIO $ Dir.doesFileExist src) $ do
+          need [src]
+          command [] "sass" [src, out]
+      --
       "**/*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
