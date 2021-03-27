@@ -111,7 +111,7 @@ $if(highlightjs)$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
 $endif$
 $if(decker-engine.base-url)$
-  <link rel="stylesheet" href="$decker-support-dir$/css/engine.css">
+  <link rel="stylesheet" href="$decker-support-dir$/engine/engine.css">
 $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
@@ -306,7 +306,7 @@ $body$
 
 $if(decker-engine.base-url)$
   <script type="module" crossorigin>
-    import {contactEngine} from "./$decker-support-dir$/js/engine.js";
+    import {contactEngine} from "./$decker-support-dir$/engine/engine.js";
     contactEngine("$decker-engine.base-url$", "$decker-engine.deck-id$");
   </script>
 $endif$
