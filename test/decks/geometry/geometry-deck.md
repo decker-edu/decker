@@ -40,7 +40,7 @@ console.log("Hello", anchor);
 
 ```` {.markdown}
 ``` {.javascript .run}
-import * as g from "/support/js/geometry.js";
+import * as g from "/support/geometry/geometry.js";
 let segment = g.bezier(
     g.point(60, 60),
     g.point(540, 60, "drag"),
@@ -58,7 +58,7 @@ g.renderSvg(anchor, 600, 400, segment);
 ##  {.left}
 
 ``` {.javascript .run}
-import * as g from "/support/js/geometry.js";
+import * as g from "/support/geometry/geometry.js";
 
 let segment = g.bezier(
     g.point(60, 60),
@@ -100,7 +100,7 @@ width="100%"}
 # Labels
 
 ``` {.javascript .run}
-import * as g from "/support/js/geometry.js";
+import * as g from "/support/geometry/geometry.js";
 
 let p = g.point(100,350, "drag");
 let q = g.point(300,350, "drag");
@@ -168,7 +168,7 @@ g.renderSvg(anchor, 1200, 500, g.group(
 # Infinite Line
 
 ``` {.javascript .run}
-import * as g from "/support/js/geometry.js";
+import * as g from "/support/geometry/geometry.js";
 
 let p = g.point(100,150, "drag");
 let q = g.point(400,150, "drag");

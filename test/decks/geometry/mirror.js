@@ -1,4 +1,4 @@
-import * as g from "/support/js/geometry.js";
+import * as g from "/support/geometry/geometry.js";
 
 let surfaceAnchor = g.point(300, 230);
 let surfaceNormal = g.vector(surfaceAnchor, 0, -200);
