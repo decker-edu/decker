@@ -169,6 +169,10 @@ div.q-panel div.q-header button.q-check {
   outline: none;
 }
 
+div.q-panel div.q-header button.q-check:hover {
+  color: var(--whiteboard-active-color);
+}
+
 div.q-panel div.q-header button.q-check.checked i.lock {
   display: inline;
 }
@@ -194,6 +198,10 @@ div.q-panel div.q-header button.q-close {
   border: none;
   border-radius: var(--border-radius);
   outline: none;
+}
+
+div.q-panel div.q-header button.q-close:hover {
+  color: var(--whiteboard-active-color);
 }
 
 div.q-panel div.q-list {
@@ -264,7 +272,7 @@ div.q-panel button {
 }
 
 div.q-panel button:hover {
-  color: darkred;
+  color: var(--whiteboard-active-color);
 }
 
 div.q-panel button.answered {
@@ -371,7 +379,7 @@ div.q-panel div.q-footer div.q-login.admin {
 
 div.q-panel div.q-footer div.q-login:hover {
   opacity: 1;
-  color: gray;
+  color: var(--whiteboard-active-color);
 }
 
 div.q-panel div.content {
