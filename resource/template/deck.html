@@ -118,14 +118,14 @@ $endif$
 $if(template.base-css)$
   <link rel="stylesheet" href="$template.base-css$">
 $else$
-$if(mario)$
-  <link rel="stylesheet" href="$decker-support-dir$/css/mario.css">
-$else$
-  <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
-$if(stretch-media)$
-  <link rel="stylesheet" href="$decker-support-dir$/css/stretch-media.css">
-$endif$
-$endif$
+  $if(mario)$
+    <link rel="stylesheet" href="$decker-support-dir$/css/mario.css">
+  $else$
+    <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
+    $if(stretch-media)$
+      <link rel="stylesheet" href="$decker-support-dir$/css/stretch-media.css">
+    $endif$
+  $endif$
 $endif$
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>

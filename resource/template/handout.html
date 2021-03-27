@@ -72,11 +72,11 @@ $if(template.base-css)$
     <link rel="stylesheet" href="$template.base-css$">
 $else$
     <link rel="stylesheet" href="$decker-support-dir$/css/handout.css">
+    $if(stretch-media)$
+        <link rel="stylesheet" href="$decker-support-dir$/css/stretch-media.css">
+    $endif$
 $endif$
 
-$if(stretch-media)$
-    <link rel="stylesheet" href="$decker-support-dir$/css/stretch-media.css">
-$endif$
 
     <link rel="stylesheet" href="$decker-support-dir$/examiner/examiner.css">
 
