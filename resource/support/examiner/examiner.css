@@ -43,15 +43,15 @@ div.exa-quest div.difficulty {
 }
 
 div.exa-quest[data-difficulty="Easy"] div.difficulty {
-  content: url("../assets/dumbell-easy.svg");
+  content: url("../examiner/dumbell-easy.svg");
 }
 
 div.exa-quest[data-difficulty="Medium"] div.difficulty {
-  content: url("../assets/dumbell-medium.svg");
+  content: url("../examiner/dumbell-medium.svg");
 }
 
 div.exa-quest[data-difficulty="Hard"] div.difficulty {
-  content: url("../assets/dumbell-hard.svg");
+  content: url("../examiner/dumbell-hard.svg");
 }
 
 div.exa-quest button:hover {
