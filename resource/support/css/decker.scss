@@ -472,29 +472,28 @@ dd {
  * Audience Response Polls
  *********************************************/
  .reveal {
-  #poll-overlay {
-    height: 100%;
-    width: 100%;
-    display: none;
-    position: absolute;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    background-color: #fff;
-    overflow-x: hidden;
-    transition: 0.5s;
-    text-align: center;
-    padding: 1em;
-    &.active {
-      display: block;
-    }
-    a {
-      text-decoration: none;
-      color: #000;
-    }
-    img {
-      margin: 1em auto;
-    }
+    #poll-overlay {
+      height: 100%;
+      width: 100%;
+      display: none;
+      position: absolute;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      background-color: #fff;
+      overflow-x: hidden;
+      transition: 0.5s;
+      text-align: center;
+      padding: 1em;
+
+      &.active { display: block; }
+
+      a {
+        text-decoration: none;
+        color: #000;
+      }
+
+      img {  margin: 1em auto; }
   }
   .poll {
     .countdown {
@@ -519,19 +518,13 @@ dd {
         }
       }
     }
-    .active {
-      display: block;
-    }
+    .active { display: block; }
     .blink {
       animation: blinks 1s step-end infinite;
       -webkit-animation: blinks 1s step-end infinite;
     }
-    ul.choices {
-      list-style-type: upper-alpha;
-    }
-    i.fa-qrcode {
-      margin-right: 1em;
-    }
+    ul.choices { list-style-type: upper-alpha; }
+    i.fa-qrcode { margin-right: 1em; }
   }
  }
   @keyframes blinks {

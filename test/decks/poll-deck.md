@@ -1,14 +1,24 @@
 ---
 title: Audience Response Poll
-poll: true
+poll: 
+  email: ""
+  server: "polls.hci.informatik.uni-wuerzburg.de:80"
 ---
 
 # Audience Response Polls
 
 ## Build Polls
 
-- Currently support multiple choice questions
-- Add `poll:true` to YAML
+- Currently supports multiple choice questions
+- Add to YAML header: `poll: true`
+- To receive email results: 
+
+```.yaml
+poll:
+  email: <your-email-address>
+- Optionally add to YAML header: `poll.ema
+```
+
 - Add `{.poll}` to slide header
 - Optionally add chart specifications in YAML block on slide
 
@@ -39,18 +49,16 @@ In which wavelength spectrum of do semiconductor nodes reach litography?
 
 
 
-# Boolean Representation {.poll}
+# Image {.poll}
 
 ## Question  {.qmc}
 
-Which boolean function is displayed here?
+Name is the name of the image below?
 
-- [ ] AND
-- [ ] NAND
-- [ ] XOR
-- [x] OR
-- [ ] FALSE
-- [ ] TRUE
+- [ ] Bugs Bunny
+- [ ] Hase
+- [x] Stanford Bunny
+- [ ] Leporidae
 
 ```yaml
 label: "Votes"
@@ -67,7 +75,7 @@ blink: True
 
 ## 
 
-![](include/schaltung-or-01.svg)
+![](example-stanford-bunny-200x160.jpg)
 
 
 
