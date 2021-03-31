@@ -17,11 +17,11 @@ var Poll = (() => {
     }
 })();
 
-const server = "polls.hci.informatik.uni-wuerzburg.de";
+const server = Reveal.getConfig().pollServer || "https://polls.hci.informatik.uni-wuerzburg.de";
 var socket = null; var pollID = null; var poll = null; var timer = null;
 var pollState = "not-init";
 var canvas, qrdiv;
-var answers = [];
+var choices = []; 
 
 // Open a websocket to server and build QR code for poll
 function openPoll() {
@@ -34,11 +34,13 @@ function openPoll() {
           timer.classList.contains('timed') ? 
             clockTime(timer)[0] + ":" + clockTime(timer)[1] : 
             "VOTE NOW";
-      })
+      });
     };
+
     socket.onmessage = event => { 
       let message = JSON.parse(event.data);
       // console.log("message from server ", message);
+
       if (message.key !== undefined && pollID == null) { 
         pollID = message.key;
         buildCode();
@@ -50,7 +52,7 @@ function openPoll() {
             pollState = "idle";
             break;
           case "Active":
-            updateChart(message.choices, canvas);
+            updateVotes(message.choices, canvas);
             break;
           case "Finished":
             canvas.classList.add("finished");
@@ -59,9 +61,15 @@ function openPoll() {
         }
       }
     }  
+
     socket.onerror = error => {
       console.log("Websocket connection error: ", error);
-    }   
+    }  
+
+    window.addEventListener('beforeunload', function() {
+      socket.send(JSON.stringify({ "tag": "Close", "addr": Reveal.getConfig().pollEmail || "" }));
+      return "Email results?"
+    })
 }
 
 // Parse poll duration (seconds) to clock time
@@ -81,10 +89,12 @@ function buildCode() {
     const pollAddr = "http://" + server + "/poll.html#" + pollID; 
     qrdiv = document.createElement('div');
     qrdiv.id = "poll-overlay";
+    
     const link = document.createElement('a');
     link.setAttribute('href', pollAddr);    
     link.innerText = pollAddr;
     qrdiv.appendChild(link);
+
     const size = parseInt(qrdiv.style.width, 10) || 600;
     new QRCode(qrdiv, {
       text:         pollAddr,
@@ -99,40 +109,49 @@ function buildCode() {
 
 // 'a' to start / stop poll - also stopped when timer ends
 function switchPollState() {
+  // hide QR code
+  let overlay = document.querySelector('#poll-overlay');
+  if (overlay.classList.contains('active')) overlay.classList.remove('active');
+  
   switch (pollState) {
     case "not_init":
       console.error('Cannot start poll before socket is connected.')
     break;
     case "idle":
-      startPoll();
-      pollState = "started";
+      let sl = Reveal.getCurrentSlide();
+      if (sl.classList.contains('poll')) {
+        poll = sl;
+        startPoll();
+        pollState = "started";
+      } else { 
+          alert('Please navigate to question before starting poll.'); 
+      }
       break;
     case "started":
-      stopPoll();
-      pollState = "idle";
+      if (!timer.classList.contains('timed')) {
+        stopPoll();
+        pollState = "idle";
+      }
       break;
     default:
-      console.error("Error with poll response.");
+      console.error("Error with poll.");
       break;
   }
 }
 
-// Push answers to poll clients
+// Push question and choices to server
 function startPoll() {
-  let sl = Reveal.getCurrentSlide();
-  if (sl.classList.contains('poll')) {
-    poll = sl;
-    timer = poll.querySelector('.countdown');
-    canvas = sl.nextElementSibling.querySelector('canvas');
-    
-    poll.querySelectorAll('ul.choices li').forEach(choice => {
-      answers.push(choice.innerText);
-    });
+  timer = poll.querySelector('.countdown');
+  canvas = poll.nextElementSibling.querySelector('canvas');
+  startTimer();
 
-    startTimer();
-    socket.send(JSON.stringify( {"tag": "Start", "choices": answers} ));
-  } 
-  else { alert('Error establishing poll questions.') }
+  poll.querySelectorAll('ul.choices li').forEach(choice => {
+    choices.push(choice.innerText);
+  });
+  
+  socket.send(JSON.stringify( 
+    { "tag": "Start"
+    , "choices": choices} ));
 }
 
 function startTimer() {
@@ -161,27 +180,34 @@ function startTimer() {
   timer.classList.add('active');
 }
 
-// clear answers from clients
+// Update chart and list of votes by response
+function updateVotes(choices, canvas) {
+  let votes = []; let labels = [];
+  for (const key in choices) {
+    labels.push(key); 
+    votes.push(choices[key]); 
+  }
+  canvas.chart.data.labels = labels;
+  canvas.chart.data.datasets[0].data = votes;  
+  canvas.chart.update();
+}
+
+// Send Stop to server and clear poll values
 function stopPoll() {
   timer.classList.remove('active');
   timer.classList.remove('hurry');
   if (socket == null) return;
+  
   poll.querySelectorAll('ul.choices li').forEach(choice => {
       choice.classList.remove('started');
   });
   document.querySelector('#poll-overlay').classList.remove('active');
-  socket.send(JSON.stringify( {"tag": "Stop", "choices": answers} ));
-  poll = null; timer = null; answers = [];
-} 
 
-function updateChart(choices, canvas) {
-  let values = [];
-  let labels = canvas.chart.data.labels;
-  for (let l of labels) { 
-    values.push(choices[l]) 
-  }
-  canvas.chart.data.datasets[0].data = values;  
-  canvas.chart.update();
-}
+  socket.send(JSON.stringify( 
+    { "tag": "Stop"
+    , "question": poll.querySelector('h1').textContent} )); 
+
+    poll = null; timer = null; choices = [];
+} 
 
 Reveal.registerPlugin( 'Poll', Poll );

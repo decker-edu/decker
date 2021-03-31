@@ -637,6 +637,13 @@ $if(quizServer)$
           quiz: { server: "$quizServer$" },
 $endif$
 
+$if(poll.email)$
+        pollEmail: "$poll.email$",
+$endif$
+$if(poll.server)$
+        pollServer: "$poll.server$",
+$endif$
+
 $if(explain)$
           explain: { 
                 $if(explain.video)$ video: "$explain.video$", $endif$

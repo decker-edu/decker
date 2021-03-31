@@ -3,17 +3,18 @@
 
 module Text.Decker.Filter.Poll (handlePolls) where
 import Data.Aeson 
-import Data.Aeson.TH
+import Data.Aeson.TH (deriveJSON)
 import Data.ByteString.Lazy (toStrict)
 import qualified Data.Text as T
-import Data.Text.Encoding as E
-import Data.Yaml as Y
+import Data.Text.Encoding as E (encodeUtf8)
+import Data.Yaml as Y (decodeEither')
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Text.Decker.Filter.Local
-import Text.Decker.Internal.Common
-import Text.Decker.Filter.Slide 
+import Text.Decker.Filter.Local (RawHtml(rawHtml'))
+import Text.Decker.Internal.Common (Decker)
+import Text.Decker.Filter.Slide
+    ( fromSlides, toSlides, Slide(Slide) ) 
 import Text.Decker.Internal.Meta as M 
 import Text.Pandoc.Definition
 
@@ -35,16 +36,16 @@ data PollMeta = PollMeta
 handlePolls :: Pandoc -> Decker Pandoc
 handlePolls pandoc@(Pandoc meta blocks) = 
     case (M.lookupMeta "poll" meta :: Maybe MetaValue) of
-        Just poll -> return $ Pandoc meta (fromSlides $ parseSlides $ toSlides blocks)
+        Just poll -> return $ Pandoc meta $ fromSlides $ parseSlides $ toSlides blocks
         _ -> return pandoc
 
 -- Look through deck for poll response polls (.poll in H1)
 parseSlides :: [Slide] -> [Slide]
 parseSlides (sl@(Slide (Just (Header _ (_, tgs, _) _))_):slides) = 
     if "poll" `elem` tgs 
-        then buildPoll sl ++ parseSlides slides
-    else sl : parseSlides slides
-parseSlides (s:sl) = parseSlides sl
+        then buildPoll sl ++ parseSlides slides 
+    else sl : parseSlides slides 
+parseSlides (s:sl) = parseSlides sl 
 parseSlides [] = []
 
 -- Build and attach results slide
@@ -58,7 +59,7 @@ buildPoll (Slide (Just (Header l (i, t, k) title)) body) =
         timer = Div ("", ["countdown", ti, bl], [("data-seconds", T.pack $ seconds pm)]) []
         icon = RawInline (Format "html") "<i class=\"fas fa-qrcode\"></i>"
         results = Slide (Just resultsHead) [chart]
-        resultsHead = Header 1 ("", ["sub"], []) [Str $ T.pack "Poll Results"]
+        resultsHead = Header 1 ("", ["sub"], []) [Str $ T.pack "Poll Results"] 
         chart = renderCanvas (findQuestions body) pm
 buildPoll s = [s]
 
@@ -155,6 +156,7 @@ data Ticks = Ticks
     { beginAtZero :: Bool
     , stepSize :: String
     }
+
 -- Build canvas tag with chart comment to render results of poll
 renderCanvas :: [String] -> PollMeta -> Block 
 renderCanvas answers pm = 
