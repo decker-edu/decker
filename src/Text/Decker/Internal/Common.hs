@@ -15,8 +15,7 @@ doIO = lift . liftIO
 
 data DeckerState = DeckerState
   { basePath :: String,
-    disposition :: Disposition,
-    provisioning :: Provisioning
+    disposition :: Disposition
   }
   deriving (Eq, Show)
 
@@ -48,17 +47,6 @@ data MediaType
   | MeshMedia
   | SvgMedia
   | StreamMedia
-
-data Provisioning
-  = -- | Copy to public and relative URL
-    Copy
-  | -- | Symbolic link to public and relative URL
-    SymLink
-  | -- | Absolute local URL
-    Absolute
-  | -- | Relative local URL
-    Relative
-  deriving (Eq, Show, Read)
 
 pandocWriterOpts :: WriterOptions
 pandocWriterOpts =

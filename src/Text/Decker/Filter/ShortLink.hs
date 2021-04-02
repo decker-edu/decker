@@ -1,12 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.ShortLink
-  ( evaluateShortLinks
-  , fillTemplate
-  , evalUrl
-  ) where
+  ( evaluateShortLinks,
+    fillTemplate,
+    evalUrl,
+  )
+where
 
 import Data.List
 import Data.List.Split
@@ -14,19 +15,22 @@ import Network.URI
 import Relude
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.URI (makeProjectPath)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
 
 evaluateShortLinks :: Pandoc -> Decker Pandoc
-evaluateShortLinks pandoc@(Pandoc meta _) =
-  return $ walk (evalLinks meta) pandoc
-
-evalLinks :: Meta -> Inline -> Inline
-evalLinks meta (Link attr alt (url, title)) =
-  Link attr alt (evalUrl meta url, title)
-evalLinks meta (Image attr alt (url, title)) =
-  Image attr alt (evalUrl meta url, title)
-evalLinks meta inline = inline
+evaluateShortLinks pandoc@(Pandoc meta _) = do
+  base <- gets basePath
+  return $ walk (evalLinks meta base) pandoc
+  where
+    evalLinks :: Meta -> String -> Inline -> Inline
+    evalLinks meta base (Link attr alt (url, title)) =
+      Link attr alt (evalUrl meta url, title)
+    evalLinks meta base (Image attr alt (url, title)) =
+      let u = toText $ makeProjectPath base (toString url)
+       in Image attr alt (evalUrl meta u, title)
+    evalLinks meta base inline = inline
 
 evalUrl :: Meta -> Text -> Text
 evalUrl meta url =
