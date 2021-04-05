@@ -130,6 +130,12 @@ $endif$
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
+  <script>
+    /* Store JSON encoded Pandoc meta data in a global variable for easy
+    reference from any script. */
+    window.Decker = {meta: $decker-meta$};
+  </script>
+
   <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
@@ -332,9 +338,7 @@ $endfor$
         pdfMaxPagesPerSlide: 10,
         pdfSeparateFragments: false,
         // Display controls in the bottom right corner
-$if(controls)$
-        controls: $controls$,
-$endif$
+        controls: Decker.meta.controls,
         // Display a presentation progress bar
 $if(progress)$
         progress: $progress$,

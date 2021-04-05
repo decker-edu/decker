@@ -1,5 +1,6 @@
 ---
 title: Background Images
+controls: false
 ---
 
 # Background Images
