@@ -79,15 +79,15 @@ parseTemplateUri uri =
          | scheme == Nothing -> LocalDir $ toString base
          | otherwise -> Unsupported (URI.render uri)
 
-copySupportFiles :: TemplateSource -> FilePath -> IO ()
-copySupportFiles DeckerExecutable  destination = do
+copySupportFiles :: TemplateSource -> Provisioning -> FilePath -> IO ()
+copySupportFiles DeckerExecutable _ destination = do
   deckerExecutable <- getExecutablePath
   extractSubEntries "support" deckerExecutable (takeDirectory destination)
-copySupportFiles (LocalZip zipPath)  destination =
+copySupportFiles (LocalZip zipPath) _ destination =
   extractSubEntries "support" zipPath (takeDirectory destination)
-copySupportFiles (LocalDir baseDir)  destination =
+copySupportFiles (LocalDir baseDir) _ destination =
   copyDir (baseDir </> "support") destination
-copySupportFiles (Unsupported uri)  destination =
+copySupportFiles (Unsupported uri) provisioning destination =
   bug $ ResourceException $ "Unsupported template source: " <> toString uri
 
 defaultMetaPath = "template/default.yaml"

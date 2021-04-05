@@ -303,7 +303,7 @@ extractSupport templateSource = do
   context <- actionContext
   liftIO $
     handleAll (\_ -> return ()) $ do
-      copySupportFiles templateSource supportDir
+      copySupportFiles templateSource Copy supportDir
       writeFile (supportDir </> ".origin") $ supportId templateSource
 
 correctSupportInstalled :: TemplateSource -> Action Bool

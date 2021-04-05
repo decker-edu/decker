@@ -48,11 +48,10 @@ readAndFilterMarkdownFile disp globalMeta path = do
   readMarkdownFile globalMeta path
     >>= mergeDocumentMeta globalMeta
     >>= processCites
-    >>= processPandoc evaluateShortLinks docBase disp
     >>= calcRelativeResourcePaths docBase
     >>= runNewFilter disp examinerFilter docBase
     >>= deckerMediaFilter disp docBase
-    >>= processPandoc deckerPipeline docBase disp
+    >>= processPandoc deckerPipeline docBase disp Copy
 
 processCites :: MonadIO m => Pandoc -> m Pandoc
 processCites pandoc@(Pandoc meta blocks) = liftIO $ do
@@ -255,7 +254,8 @@ deckerMediaFilter dispo docBase = runDeckerFilter (mediaFilter dispo options) do
 -- |  The old style decker filter pipeline.
 deckerPipeline =
   concatM
-    [ expandDeckerMacros,
+    [ evaluateShortLinks,
+      expandDeckerMacros,
       -- , renderCodeBlocks
       includeCode,
       -- , provisionResources

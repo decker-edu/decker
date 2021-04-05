@@ -32,10 +32,11 @@ processPandoc ::
   (Pandoc -> Decker Pandoc) ->
   FilePath ->
   Disposition ->
+  Provisioning ->
   Pandoc ->
   Action Pandoc
-processPandoc transform base disp  pandoc =
-  evalStateT (transform pandoc) (DeckerState base disp)
+processPandoc transform base disp prov pandoc =
+  evalStateT (transform pandoc) (DeckerState base disp prov)
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
 splitJoinColumns :: Slide -> Decker Slide
