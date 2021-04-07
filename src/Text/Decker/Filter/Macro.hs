@@ -7,7 +7,7 @@ module Text.Decker.Filter.Macro
 where
 
 import Control.Monad.State
-import Data.List (find, intercalate, intersperse)
+import Data.List (find, intersperse)
 import qualified Data.Map as Map (Map, fromList, lookup)
 import Data.Maybe
 import qualified Data.Text as Text
