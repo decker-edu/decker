@@ -49,7 +49,8 @@ programs =
           "--perms",
           "--chmod=a+r,go-w",
           "--no-owner",
-          "--copy-links"
+          "--copy-links",
+          "--delete"
         ]
         ["--version"]
         (helpText "`rsync` (https://rsync.samba.org)")
