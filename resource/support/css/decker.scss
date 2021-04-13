@@ -541,14 +541,12 @@ dd {
         &.hurry {
           background-color: #f00;
           border-color: #f00;
+          animation: blinks 1s step-end infinite;
+          -webkit-animation: blinks 1s step-end infinite;
         }
       }
     }
     .active { display: block; }
-    .blink {
-      animation: blinks 1s step-end infinite;
-      -webkit-animation: blinks 1s step-end infinite;
-    }
     ul.choices { list-style-type: upper-alpha; }
     i.fa-qrcode { margin-right: 1em; }
   }

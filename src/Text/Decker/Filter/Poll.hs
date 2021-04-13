@@ -23,7 +23,6 @@ data PollMeta = PollMeta
     , color :: String
     , timed :: Bool
     , seconds :: String
-    , blink :: Bool
     , yzero :: Bool
     , xzero :: Bool
     , ystep :: String
@@ -55,8 +54,7 @@ buildPoll (Slide (Just (Header l (i, t, k) title)) body) =
     where
         pm = buildPollMeta $ getYaml body
         ti = if timed pm then T.pack "timed" else ""
-        bl = if blink pm then T.pack "blink" else ""
-        timer = Div ("", ["countdown", ti, bl], [("data-seconds", T.pack $ seconds pm)]) []
+        timer = Div ("", ["countdown", ti], [("data-seconds", T.pack $ seconds pm)]) []
         icon = RawInline (Format "html") "<i class=\"fas fa-qrcode\"></i>"
         results = Slide (Just resultsHead) [chart]
         resultsHead = Header 1 ("", ["sub"], []) [Str $ T.pack "Poll Results"] 
@@ -65,20 +63,19 @@ buildPoll s = [s]
 
 buildPollMeta :: Maybe Meta -> PollMeta
 buildPollMeta meta = case meta of 
-    Just m -> PollMeta lab col tim sec bl yzero xzero ystep xstep ypos xpos
+    Just m -> PollMeta lab col tim sec yzero xzero ystep xstep ypos xpos
         where
             lab = lookupMetaOrElse "Number of Votes" "label" m
             col = lookupMetaOrElse "#008cff" "color" m
             tim = lookupMetaOrElse False "timed" m
             sec = lookupMetaOrElse "11" "seconds" m 
-            bl = lookupMetaOrElse False "blink" m
             yzero = lookupMetaOrElse True "yAxis.beginZero" m
             xzero = lookupMetaOrElse True "xAxis.beginZero" m
             ystep = lookupMetaOrElse "1" "yAxis.stepSize" m
             xstep = lookupMetaOrElse "1" "xAxis.stepSize" m
             ypos = lookupMetaOrElse "left" "yAxis.position" m
             xpos = lookupMetaOrElse "bottom" "xAxis.position" m
-    _ -> PollMeta "Number of Votes" "#008cff" False "60" False True True "1" "1" "left" "bottom"
+    _ -> PollMeta "Number of Votes" "#008cff" False "60" True True "1" "1" "left" "bottom"
 
 -- Define default pollMeta if some or no yaml values are found
 getYaml :: [Block] -> Maybe Meta
