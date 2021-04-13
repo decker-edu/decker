@@ -1,6 +1,6 @@
 ---
 author: Henrik Tramberend
-controls: 0
+controls: false
 decker-engine:
   base-url: 'https://tramberend.beuth-hochschule.de/de-api'
 help: 0
