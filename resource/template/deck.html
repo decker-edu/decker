@@ -15,7 +15,7 @@ $if(keywords)$
 $endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
 $if(template.favicon)$
-  <link rel="shortcut icon" href="$template.favicon$">
+  <link rel="icon" type="image/png" href="$template.favicon$">
 $endif$
 $if(mario)$
     $if(title)$
@@ -130,6 +130,12 @@ $endif$
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
+  <script>
+    /* Store JSON encoded Pandoc meta data in a global variable for easy
+    reference from any script. */
+    window.Decker = {meta: $decker-meta$};
+  </script>
+
   <!-- Printing and PDF exports -->
   <script>
     var link = document.createElement( 'link' );
@@ -332,9 +338,7 @@ $endfor$
         pdfMaxPagesPerSlide: 10,
         pdfSeparateFragments: false,
         // Display controls in the bottom right corner
-$if(controls)$
-        controls: $controls$,
-$endif$
+        controls: Decker.meta.controls,
         // Display a presentation progress bar
 $if(progress)$
         progress: $progress$,
@@ -597,7 +601,6 @@ $else$
 $endif$
         },
 
-
           // setup charts
           chart: {
               defaults: {
@@ -630,25 +633,10 @@ $if(thebelab.enable)$
           thebelab: $thebelab.enable$,
 $endif$
 
-
 $if(quizServer)$
           // Mario's multiple-choice quiz
           quiz: { server: "$quizServer$" },
 $endif$
-
-
-$if(explain)$
-          explain: { 
-                $if(explain.video)$ video: "$explain.video$", $endif$
-                $if(explain.times)$ times: "$explain.times$", $endif$
-                $if(explain.recWidth)$  recWidth:  "$explain.recWidth$",  $endif$
-                $if(explain.recHeight)$ recHeight: "$explain.recHeight$", $endif$
-                $if(explain.camWidth)$  camWidth:  "$explain.camWidth$",  $endif$
-                $if(explain.camHeight)$ camHeight: "$explain.camHeight$", $endif$
-                dummy: "dummy"
-          },
-$endif$
-
 
           // plugins
           dependencies: [
