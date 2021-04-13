@@ -81,6 +81,8 @@ div#record-panel {
   flex-flow: column-reverse nowrap;
   justify-content: center;
 
+  font-family: sans-serif;
+
   transform: translate(-50%, var(--offset));
   opacity: 0.5;
   transition: transform 0.3s ease-in-out 0.5s, opacity 0.3s linear 0.5s,
@@ -187,6 +189,11 @@ button.stop-button {
 .controls-row select {
   min-width: 200px;
   flex-grow: 1;
+}
+
+span.capture-size {
+  font-size: 80%;
+  padding-right: 2em;
 }
 
 #explain-panel {

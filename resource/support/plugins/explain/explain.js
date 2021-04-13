@@ -17,6 +17,7 @@ let ExplainPlugin = (function () {
   let volumeMeter;
   let micSelect, camSelect;
   let micIndicator, camIndicator;
+  let screenCaptureSize, cameraCaptureSize;
 
   // playback stuff
   let explainVideoUrl, explainTimesUrl, explainTimes;
@@ -265,11 +266,10 @@ let ExplainPlugin = (function () {
   }
 
   async function captureScreen() {
-    const config = Reveal.getConfig().explain;
-    const recWidth =
-      config && config.recWidth ? config.recWidth : Reveal.getConfig().width;
-    const recHeight =
-      config && config.recHeight ? config.recHeight : Reveal.getConfig().height;
+    // const config = Reveal.getConfig().explain;
+    const config = Decker.meta.explain;
+    const recWidth = config && config.recWidth ? config.recWidth : undefined;
+    const recHeight = config && config.recHeight ? config.recHeight : undefined;
 
     // get display stream
     console.log("get display stream (" + recWidth + "x" + recHeight + ")");
@@ -283,6 +283,10 @@ let ExplainPlugin = (function () {
       },
       audio: true,
     });
+
+    let video = desktopStream.getVideoTracks()[0].getSettings();
+    console.log("display stream size: ", video.width, video.height);
+    screenCaptureSize.textContent = `${video.width}x${video.height}`;
 
     if (desktopStream.getAudioTracks().length > 0) {
       let label = desktopStream.getAudioTracks()[0].label;
@@ -337,9 +341,10 @@ let ExplainPlugin = (function () {
   }
 
   async function captureCamera() {
-    const config = Reveal.getConfig().explain;
-    const camWidth = config && config.camWidth ? config.camWidth : 1280;
-    const camHeight = config && config.camHeight ? config.camHeight : 720;
+    // const config = Reveal.getConfig().explain;
+    const config = Decker.meta.explain;
+    const camWidth = config && config.camWidth ? config.camWidth : undefined;
+    const camHeight = config && config.camHeight ? config.camHeight : undefined;
 
     console.log("get camera stream (" + camWidth + "x" + camHeight + ")");
     console.log("cam id: " + camSelect.value);
@@ -374,6 +379,9 @@ let ExplainPlugin = (function () {
       } else {
         cameraVideo.srcObject = cameraStream;
       }
+      let camera = cameraStream.getVideoTracks()[0].getSettings();
+      console.log("camera stream size: ", camera.width, camera.height);
+      cameraCaptureSize.textContent = `${camera.width}x${camera.height}`;
     } else {
       camIndicator.removeAttribute("title");
     }
@@ -868,6 +876,38 @@ let ExplainPlugin = (function () {
     });
     camSelect.onchange = captureCamera;
 
+    row = createElement({
+      type: "div",
+      classes: "controls-row",
+      parent: recordPanel,
+    });
+
+    createElement({
+      type: "i",
+      classes: "indicator fas fa-camera",
+      title: "Camera capture size",
+      parent: row,
+    });
+
+    cameraCaptureSize = createElement({
+      type: "span",
+      classes: "capture-size",
+      parent: row,
+    });
+
+    createElement({
+      type: "i",
+      classes: "indicator fas fa-tv",
+      title: "Screen capture size",
+      parent: row,
+    });
+
+    screenCaptureSize = createElement({
+      type: "span",
+      classes: "capture-size",
+      parent: row,
+    });
+
     // collect list of cameras and microphones
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -1152,7 +1192,8 @@ let ExplainPlugin = (function () {
   }
 
   async function setupPlayer() {
-    let config = Reveal.getConfig().explain;
+    // const config = Reveal.getConfig().explain;
+    const config = Decker.meta.explain;
     explainVideoUrl = config && config.video ? config.video : deckVideoUrl();
     explainTimesUrl = config && config.times ? config.times : deckTimesUrl();
 
@@ -1237,8 +1278,8 @@ let ExplainPlugin = (function () {
       });
       // Try to connect to an existing video.
       uiState.transition("setupPlayer");
-      addReloadInhibitor(() =>
-        !uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")
+      addReloadInhibitor(
+        () => !uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")
       );
     },
   };

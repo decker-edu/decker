@@ -1,11 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Text.Decker.Filter.Macro
-  ( expandDeckerMacros
-  , embedWebVideosHtml
-  ) where
 
-import Text.Decker.Internal.Common
-import Text.Decker.Internal.Meta
+module Text.Decker.Filter.Macro
+  ( expandDeckerMacros,
+    embedWebVideosHtml,
+  )
+where
 
 import Control.Monad.State
 import Data.List (find, intersperse)
@@ -15,10 +14,12 @@ import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.Text
-import Text.Blaze.Html5 as H ((!), div, figure, iframe, iframe, p, toValue)
+import Text.Blaze.Html5 as H (div, figure, iframe, p, toValue, (!))
 import Text.Blaze.Html5.Attributes as A (class_, height, src, style, width)
+import Text.Decker.Internal.Common
+import Text.Decker.Internal.Meta
 import Text.Pandoc hiding (lookupMeta)
-import Text.Pandoc.Shared  hiding (lookupMeta)
+import Text.Pandoc.Shared hiding (lookupMeta)
 import Text.Pandoc.Walk
 import Text.Printf
 import Text.Read
@@ -53,12 +54,14 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
           printf
             "https://www.youtube.com/embed/%s?iv_load_policy=3&disablekb=1&rel=0&modestbranding=1&autohide=1&start=%s"
             vid
-            start :: String
+            start ::
+            String
         "vimeo" ->
           printf
             "https://player.vimeo.com/video/%s?quality=autop&muted=0#t=%s"
             vid
-            start :: String
+            start ::
+            String
         "twitch" ->
           printf "https://player.twitch.tv/?channel=%s&autoplay=1&muted=1" vid :: String
         "veer" ->
@@ -66,7 +69,8 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
         "veer-photo" ->
           printf
             "https://h5.veer.tv/photo-player?pid=%s&amp;utm_medium=embed"
-            vid :: String
+            vid ::
+            String
         _ -> error $ "Unknown streaming service: " <> toString vid
     vidWidthStr = macroArg 0 args "560"
     vidHeightStr = macroArg 1 args "315"
@@ -75,23 +79,24 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
     wrapperStyle =
       printf
         "position:relative;padding-top:25px;padding-bottom:%f%%;height:0;"
-        (vidHeight / vidWidth * 100.0) :: String
+        (vidHeight / vidWidth * 100.0) ::
+        String
     iframeStyle =
       "position:absolute;top:0;left:0;width:100%;height:100%;" :: String
     figureStyle (_, _, kv) =
       foldl (\s (k, v) -> s ++ printf "%s:%s;" k v :: String) "" kv
     figureClass (_, cls, _) = Text.unwords cls
     html =
-      H.figure ! class_ (toValueT (figureClass attr)) !
-      style (toValue (figureStyle attr)) $
-      H.div ! style (toValue wrapperStyle) $
-      iframe ! style (toValue iframeStyle) ! width (toValue vidWidthStr) !
-      height (toValue vidHeightStr) !
-      src (toValue url) !
-      customAttribute "frameborder" "0" !
-      auto !
-      customAttribute "allowfullscreen" "" $
-      H.p ""
+      H.figure ! class_ (toValueT (figureClass attr))
+        ! style (toValue (figureStyle attr))
+        $ H.div ! style (toValue wrapperStyle) $
+          iframe ! style (toValue iframeStyle) ! width (toValue vidWidthStr)
+            ! height (toValue vidHeightStr)
+            ! src (toValue url)
+            ! customAttribute "frameborder" "0"
+            ! auto
+            ! customAttribute "allowfullscreen" ""
+            $ H.p ""
     auto =
       if (autoplay == "1" || autoplay == "true")
         then (customAttribute "data-autoplay" "")
@@ -100,13 +105,23 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
 toValueT = toValue . Text.unpack
 
 fontAwesome :: Text.Text -> MacroAction
-fontAwesome which _ _ (iconName, _) _ = do
+fontAwesome which _ (_, cls, kvs) (iconName, _) _ = do
+  let classes = Text.intercalate " " (which : cls)
+  let style = fromMaybe "" $ lookup "style" kvs
   disp <- gets disposition
   case disp of
     Disposition _ Html ->
       return $
-      RawInline (Format "html") $
-      Text.concat ["<i class=\"", which, " fa-", iconName, "\"></i>"]
+        RawInline (Format "html") $
+          Text.concat
+            [ "<i class=\"",
+              classes,
+              " fa-",
+              iconName,
+              "\" style=\"",
+              style,
+              "\"></i>"
+            ]
     Disposition _ _ -> return $ Str $ "[" <> iconName <> "]"
 
 horizontalSpace :: MacroAction
@@ -115,9 +130,9 @@ horizontalSpace _ _ (space, _) _ = do
   case disp of
     Disposition _ Html ->
       return $
-      RawInline (Format "html") $
-      Text.pack $
-      printf "<span style=\"display:inline-block; width:%s;\"></span>" space
+        RawInline (Format "html") $
+          Text.pack $
+            printf "<span style=\"display:inline-block; width:%s;\"></span>" space
     Disposition _ _ -> return $ Str $ "[" <> space <> "]"
 
 verticalSpace :: MacroAction
@@ -126,9 +141,9 @@ verticalSpace _ _ (space, _) _ = do
   case disp of
     Disposition _ Html ->
       return $
-      RawInline (Format "html") $
-      Text.pack $
-      printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
+        RawInline (Format "html") $
+          Text.pack $
+            printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
     Disposition _ _ -> return $ Str $ "[" <> space <> "]"
 
 metaMacro :: MacroAction
@@ -150,13 +165,13 @@ type MacroMap = Map.Map Text.Text MacroAction
 macroMap :: MacroMap
 macroMap =
   Map.fromList
-    [ ("meta", metaMacro)
-    , ("fa", fontAwesome "fas")
-    , ("fas", fontAwesome "fas")
-    , ("far", fontAwesome "far")
-    , ("fab", fontAwesome "fab")
-    , ("hspace", horizontalSpace)
-    , ("vspace", verticalSpace)
+    [ ("meta", metaMacro),
+      ("fa", fontAwesome "fas"),
+      ("fas", fontAwesome "fas"),
+      ("far", fontAwesome "far"),
+      ("fab", fontAwesome "fab"),
+      ("hspace", horizontalSpace),
+      ("vspace", verticalSpace)
     ]
 
 readDefault :: Read a => a -> Text.Text -> a
@@ -176,20 +191,20 @@ parseMacro invocation = Text.words <$> Text.stripPrefix ":" invocation
 expandInlineMacros :: Meta -> Inline -> Decker Inline
 expandInlineMacros meta inline@(Link attr text target) =
   case parseMacro $ stringify text of
-    Just (name:args) ->
+    Just (name : args) ->
       case Map.lookup name macroMap of
         Just macro -> macro args attr target meta
         Nothing -> return inline
     _ -> return inline
-expandInlineMacros meta inline@(Image attr _ (url, tit))
+expandInlineMacros meta inline@(Image attr _ (url, tit)) =
   -- For the case of web videos
- =
   case findEmbeddingType inline of
     Just str ->
       case Map.lookup str macroMap of
         Just macro -> macro [] attr (code, tit) meta
-        -- TODO: Find a way to do this without needing Data.Text and the whole pack/unpack effort
-          where code = Text.replace (str <> "://") "" url
+          where
+            -- TODO: Find a way to do this without needing Data.Text and the whole pack/unpack effort
+            code = Text.replace (str <> "://") "" url
         Nothing -> return inline
     Nothing -> return inline
 expandInlineMacros _ inline = return inline

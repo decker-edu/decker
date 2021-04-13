@@ -1,21 +1,14 @@
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 
 module Text.Decker.Writer.Html
-  ( writeIndexLists
-  , markdownToHtmlDeck
-  , markdownToHtmlHandout
-  , markdownToHtmlPage
-  ) where
-
-import Text.Decker.Filter.Filter
-import Text.Decker.Internal.Common
-import Text.Decker.Internal.Meta
-import Text.Decker.Project.Project
-import Text.Decker.Project.Shake
-import Text.Decker.Reader.Markdown
-import Text.Decker.Resource.Template
+  ( writeIndexLists,
+    markdownToHtmlDeck,
+    markdownToHtmlHandout,
+    markdownToHtmlPage,
+  )
+where
 
 import Control.Monad.State
 import qualified Data.Map as M
@@ -25,6 +18,13 @@ import qualified Data.Text.IO as T
 import Development.Shake
 import qualified System.Directory as Dir
 import System.FilePath.Posix
+import Text.Decker.Filter.Filter
+import Text.Decker.Internal.Common
+import Text.Decker.Internal.Meta
+import Text.Decker.Project.Project
+import Text.Decker.Project.Shake
+import Text.Decker.Reader.Markdown
+import Text.Decker.Resource.Template
 import Text.DocTemplates
 import Text.Pandoc hiding (getTemplate, lookupMeta)
 import Text.Pandoc.Highlighting
@@ -36,7 +36,7 @@ writeIndexLists meta targets out baseUrl = do
   let decks = zip (_decks targets) (_decksPdf targets)
   let handouts = zip (_handouts targets) (_handoutsPdf targets)
   let pages = zip (_pages targets) (_pagesPdf targets)
-  let questions = zip (_questions targets) (_questions targets) 
+  let questions = zip (_questions targets) (_questions targets)
   decksLinks <- makeGroupedLinks decks
   handoutsLinks <- makeGroupedLinks handouts
   pagesLinks <- makeGroupedLinks pages
@@ -44,35 +44,37 @@ writeIndexLists meta targets out baseUrl = do
   cwd <- liftIO Dir.getCurrentDirectory
   liftIO $
     writeFile out $
-    unlines
-      [ "---"
-      , "title: Generated Index"
-      , "subtitle: " ++ cwd
-      , "---"
-      , "# Slide decks"
-      , unlines decksLinks
-      , "# Handouts"
-      , unlines handoutsLinks
-      , "# Supporting Documents"
-      , unlines pagesLinks
-      , "# Questions"
-      , unlines questLinks
-      ]
+      unlines
+        [ "---",
+          "title: Generated Index",
+          "subtitle: " ++ cwd,
+          "---",
+          "# Slide decks",
+          unlines decksLinks,
+          "# Handouts",
+          unlines handoutsLinks,
+          "# Supporting Documents",
+          unlines pagesLinks,
+          "# Questions",
+          unlines questLinks
+        ]
   where
     makeLink (html, pdf) = do
       pdfExists <- liftIO $ Dir.doesFileExist pdf
       if pdfExists
-        then return $
-             printf
-               "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
-               (takeFileName html)
-               (makeRelative baseUrl html)
-               (makeRelative baseUrl pdf)
-        else return $
-             printf
-               "-    [%s <i class='fab fa-html5'></i>](%s)"
-               (takeFileName html)
-               (makeRelative baseUrl html)
+        then
+          return $
+            printf
+              "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
+              (takeFileName html)
+              (makeRelative baseUrl html)
+              (makeRelative baseUrl pdf)
+        else
+          return $
+            printf
+              "-    [%s <i class='fab fa-html5'></i>](%s)"
+              (takeFileName html)
+              (makeRelative baseUrl html)
     makeGroupedLinks :: [(FilePath, FilePath)] -> Action [String]
     makeGroupedLinks files =
       let grouped = MM.fromList (zip (map (takeDirectory . fst) files) files)
@@ -85,8 +87,8 @@ writeIndexLists meta targets out baseUrl = do
 writeNativeWhileDebugging :: FilePath -> String -> Pandoc -> Action ()
 writeNativeWhileDebugging out mod doc =
   liftIO $
-  runIO (writeNative pandocWriterOpts doc) >>= handleError >>=
-  T.writeFile (out -<.> mod <.> ".hs")
+    runIO (writeNative pandocWriterOpts doc) >>= handleError
+      >>= T.writeFile (out -<.> mod <.> ".hs")
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
@@ -104,20 +106,21 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
   -- dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
-          { writerSlideLevel = Just 1
-          , writerSectionDivs = False
-          , writerTemplate = Just template
-          , writerHighlightStyle = highlightStyle
-          , writerHTMLMathMethod =
-              MathJax (lookupMetaOrElse "" "mathjax-url" meta)
-          , writerVariables =
+          { writerSlideLevel = Just 1,
+            writerSectionDivs = False,
+            writerTemplate = Just template,
+            writerHighlightStyle = highlightStyle,
+            writerHTMLMathMethod =
+              MathJax (lookupMetaOrElse "" "mathjax-url" meta),
+            writerVariables =
               Context $
-              M.fromList
-                [ ( "decker-support-dir"
-                  , SimpleVal $ Text 0 $ T.pack relSupportDir)
-                -- , ("dachdecker-url", SimpleVal $ Text 0 $ T.pack dachdeckerUrl')
-                ]
-          , writerCiteMethod = Citeproc
+                M.fromList
+                  [ ( "decker-support-dir",
+                      SimpleVal $ Text 0 $ T.pack relSupportDir
+                    )
+                    -- , ("dachdecker-url", SimpleVal $ Text 0 $ T.pack dachdeckerUrl')
+                  ],
+            writerCiteMethod = Citeproc
           }
   writePandocFile "revealjs" options out pandoc
   when (lookupMetaOrElse False "write-notebook" meta) $
@@ -127,7 +130,7 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
 writePandocFile :: T.Text -> WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocFile fmt options out pandoc =
   liftIO $
-  runIO (writeRevealJs options pandoc) >>= handleError >>= T.writeFile out
+    runIO (writeRevealJs options (embedMetaMeta pandoc)) >>= handleError >>= T.writeFile out
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
@@ -140,51 +143,53 @@ markdownToHtmlPage meta getTemplate markdownFile out = do
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
-          { writerTemplate = Just template
-          , writerSectionDivs = False
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax (lookupMetaOrElse "" "mathjax-url" meta)
-          , writerVariables =
+          { writerTemplate = Just template,
+            writerSectionDivs = False,
+            writerHighlightStyle = Just pygments,
+            writerHTMLMathMethod =
+              MathJax (lookupMetaOrElse "" "mathjax-url" meta),
+            writerVariables =
               Context $
-              M.fromList
-                [ ( "decker-support-dir"
-                  , SimpleVal $ Text 0 $ T.pack relSupportDir)
-                ]
-          , writerCiteMethod = Citeproc
-          , writerTableOfContents = lookupMetaOrElse False "show-toc" docMeta
-          , writerTOCDepth = lookupMetaOrElse 1 "toc-depth" docMeta
+                M.fromList
+                  [ ( "decker-support-dir",
+                      SimpleVal $ Text 0 $ T.pack relSupportDir
+                    )
+                  ],
+            writerCiteMethod = Citeproc,
+            writerTableOfContents = lookupMetaOrElse False "show-toc" docMeta,
+            writerTOCDepth = lookupMetaOrElse 1 "toc-depth" docMeta
           }
   writePandocFile "html5" options out pandoc
 
 -- | Write a markdown file to a HTML file using the handout template.
 markdownToHtmlHandout ::
-     Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+  Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
 markdownToHtmlHandout meta getTemplate markdownFile out = do
   putCurrentDocument out
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let disp = Disposition Handout Html
   pandoc@(Pandoc docMeta _) <-
     wrapSlidesinDivs <$> readAndFilterMarkdownFile disp meta markdownFile
-  -- pandoc@(Pandoc docMeta _) <- 
-    -- wrapSlidesinDivs <$> readAndProcessMarkdown meta markdownFile disp
+  -- pandoc@(Pandoc docMeta _) <-
+  -- wrapSlidesinDivs <$> readAndProcessMarkdown meta markdownFile disp
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
-          { writerTemplate = Just template
-          , writerSectionDivs = False
-          , writerHighlightStyle = Just pygments
-          , writerHTMLMathMethod =
-              MathJax (lookupMetaOrElse "" "mathjax-url" meta)
-          , writerVariables =
+          { writerTemplate = Just template,
+            writerSectionDivs = False,
+            writerHighlightStyle = Just pygments,
+            writerHTMLMathMethod =
+              MathJax (lookupMetaOrElse "" "mathjax-url" meta),
+            writerVariables =
               Context $
-              M.fromList
-                [ ( "decker-support-dir"
-                  , SimpleVal $ Text 0 $ T.pack relSupportDir)
-                ]
-          , writerCiteMethod = Citeproc
-          , writerTableOfContents = lookupMetaOrElse False "show-toc" docMeta
-          , writerTOCDepth = lookupMetaOrElse 1 "toc-depth" docMeta
+                M.fromList
+                  [ ( "decker-support-dir",
+                      SimpleVal $ Text 0 $ T.pack relSupportDir
+                    )
+                  ],
+            writerCiteMethod = Citeproc,
+            writerTableOfContents = lookupMetaOrElse False "show-toc" docMeta,
+            writerTOCDepth = lookupMetaOrElse 1 "toc-depth" docMeta
           }
   writePandocFile "html5" options out pandoc
 
@@ -195,18 +200,19 @@ markdownToNotebook meta markdownFile out = do
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let disp = Disposition Notebook Html
   --pandoc@(Pandoc docMeta _) <-
-    --filterNotebookSlides <$> readAndProcessMarkdown meta markdownFile disp
+  --filterNotebookSlides <$> readAndProcessMarkdown meta markdownFile disp
   pandoc@(Pandoc docMeta _) <-
     filterNotebookSlides <$> readAndFilterMarkdownFile disp meta markdownFile
   let options =
         pandocWriterOpts
-          { writerTemplate = Nothing
-          , writerHighlightStyle = Just pygments
-          , writerVariables =
+          { writerTemplate = Nothing,
+            writerHighlightStyle = Just pygments,
+            writerVariables =
               Context $
-              M.fromList
-                [ ( "decker-support-dir"
-                  , SimpleVal $ Text 0 $ T.pack relSupportDir)
-                ]
+                M.fromList
+                  [ ( "decker-support-dir",
+                      SimpleVal $ Text 0 $ T.pack relSupportDir
+                    )
+                  ]
           }
   writePandocFile "ipynb" options out pandoc
