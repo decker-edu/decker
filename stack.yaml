@@ -21,10 +21,9 @@ extra-deps:
   - pandoc-types-1.22
   - regex-posix-clib-2.7
   - rfc5051-0.2
-  - shake-0.19.1
   - skylighting-0.10.2
   - skylighting-core-0.10.2
   - texmath-0.12.1
-resolver: lts-17.0
+resolver: lts-17.2
 ghc-options:
   "$locals": -fhide-source-paths -Wno-missing-home-modules
