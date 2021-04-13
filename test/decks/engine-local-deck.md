@@ -1,6 +1,6 @@
 ---
 author: Henrik Tramberend
-controls: 0
+controls: false
 decker-engine:
   base-url: 'http://localhost:8081'
 help: 0

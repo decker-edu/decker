@@ -11,7 +11,7 @@ template:
 date: '23.4.2020'
 center: 1
 progress: 1
-controls: 1
+controls: true
 touch: True
 transition: fade 
 decker-version: 0.4.0
