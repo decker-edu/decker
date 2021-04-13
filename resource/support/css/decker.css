@@ -2116,15 +2116,12 @@ dd {
 .reveal .poll .countdown.timed.active.hurry {
   background-color: #f00;
   border-color: #f00;
+  animation: blinks 1s step-end infinite;
+  -webkit-animation: blinks 1s step-end infinite;
 }
 
 .reveal .poll .active {
   display: block;
-}
-
-.reveal .poll .blink {
-  animation: blinks 1s step-end infinite;
-  -webkit-animation: blinks 1s step-end infinite;
 }
 
 .reveal .poll ul.choices {

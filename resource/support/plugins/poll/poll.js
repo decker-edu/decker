@@ -11,13 +11,18 @@ var Poll = (() => {
                   document.querySelector('#poll-overlay').classList.toggle('active');
                 } );
                 openPoll();
+                window.onbeforeunload = function() {
+                  socket.send(JSON.stringify({ "tag": "Close", "addr": Reveal.getConfig().pollEmail || "" }));
+                  socket.close();
+                  return "Email results?";
+                };
                 resolve();
             });
         }
     }
 })();
 
-const server = Reveal.getConfig().pollServer || "http://polls.hci.informatik.uni-wuerzburg.de:80";
+const server = Reveal.getConfig().pollServer || "http://polls.hci.informatik.uni-wuerzburg.de";
 var socket = null; var pollID = null; var poll = null; var timer = null;
 var pollState = "not-init";
 var canvas, qrdiv;
@@ -26,7 +31,7 @@ var choices = [];
 // Open a websocket to server and build QR code for poll
 function openPoll() {
     if (socket != null) return;
-    socket = new WebSocket("ws://" + server + "/poll");
+    socket = new WebSocket("ws://" + server + "/poll", 41080);
   
     socket.onopen = () => { 
       document.querySelectorAll('.countdown').forEach(timer => {
@@ -65,11 +70,6 @@ function openPoll() {
     socket.onerror = error => {
       console.log("Websocket connection error: ", error);
     }  
-
-    window.addEventListener('beforeunload', function() {
-      socket.send(JSON.stringify({ "tag": "Close", "addr": Reveal.getConfig().pollEmail || "" }));
-      return "Email results?"
-    })
 }
 
 // Parse poll duration (seconds) to clock time
