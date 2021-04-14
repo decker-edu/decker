@@ -63,4 +63,4 @@ Foreach ($i in ( "css\all.css", "webfonts")) {
 
 # Copy video.js
 New-Item -Path "$support\videojs" -Force -ItemType "directory"
-Copy-Item "$third\video.js\*" "$support\video.js" -Force
+Copy-Item -Recurse "$third\video.js\*" "$support\videojs" -Force
