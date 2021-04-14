@@ -189,7 +189,9 @@ annotationSuffix = "-annot.json"
 
 timesSuffix = "-times.json"
 
-recordingSuffix = "-recording.webm"
+recordingSuffix1 = "-recording.webm"
+
+recordingSuffix2 = "-recording.mp4"
 
 recordingTargetSuffix = "-recording.mp4"
 
@@ -199,6 +201,7 @@ sourceRegexes :: [String] =
     "-deck-index.yaml\\'",
     "-quest.yaml\\'",
     "-recording.webm\\'",
+    "-recording.mp4\\'",
     "-times.json\\'",
     "-annot.json\\'",
     "\\`(^_).*\\.scss\\'"
@@ -250,7 +253,10 @@ scanTargets meta = do
         _questions = sort $ calcTargets questSuffix questHTMLSuffix srcs,
         _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs,
         _times = sort $ calcTargets timesSuffix timesSuffix srcs,
-        _recordings = sort $ calcTargets recordingSuffix recordingTargetSuffix srcs,
+        _recordings =
+          List.nub $ sort $
+            calcTargets recordingSuffix1 recordingTargetSuffix srcs
+              <> calcTargets recordingSuffix2 recordingTargetSuffix srcs,
         _css = sort $ calcTargets ".scss" ".css" srcs
       }
   where
