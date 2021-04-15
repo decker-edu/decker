@@ -291,7 +291,7 @@ body {
 
 .reveal blockquote p:first-child,
 .reveal blockquote p:last-child {
-  display: block; 
+  display: inline-block; 
 }
 
 .reveal q {
@@ -823,16 +823,15 @@ span.decker.svg.embed {
   color:       black;
   background:  #ffffff00;
 }
-.reveal .slide-number a {
-  color:       black;
-}
 .reveal .controls-arrow {
   color: var(--whiteboard-inactive-color);
 }
 .reveal .controls-arrow:hover {
   color: var(--whiteboard-active-color);
 }
-
+.reveal .slide-number a {
+  color:       black;
+}
 
 /*********************************************
  * MARIO: Task lists
