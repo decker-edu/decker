@@ -1,8 +1,7 @@
 ---
 title: Audience Response Poll
 poll: 
-  email: ""
-  server: "polls.hci.informatik.uni-wuerzburg.de:80"
+  email: samantha.monty@uni-wuerzburg.de
 ---
 
 # Audience Response Polls
@@ -11,14 +10,6 @@ poll:
 
 - Currently supports multiple choice questions
 - Add to YAML header: `poll: true`
-- To receive email results: 
-
-```.yaml
-poll:
-  email: <your-email-address>
-- Optionally add to YAML header: `poll.ema
-```
-
 - Add `{.poll}` to slide header
 - Optionally add chart specifications in YAML block on slide
 
@@ -27,33 +18,35 @@ poll:
 
 ## Interaction
 
-- Press `c` to display the QR code
-- Press `c` again to hide the QR code
-- Press `a` to start the poll
-- Press `a` again to close the poll
+- Press `c` to toggle the QR code
+- Press `a` to toggle the poll state opened/closed
 - Timed polls will automatically close
 
+# Which of the following countries is the place of origin of the Border Collie? {.poll}
 
-# Example Audience Response Poll {.poll}
+## {.qmc .plain}
 
-## Question  {.qmc .plain}
-
-In which wavelength spectrum of do semiconductor nodes reach litography?
-
-- [x] X-Ray
-- [ ] Long radio waves
-- [ ] Microwave
-- [ ] UV
-- [ ] Infrasound
-- [ ] 2 nm
+- [x] Anglo-Scottish Border
+- [ ] America/Canada Border
+- [ ] Canada
+- [ ] Russia
+- [ ] Australia
 
 
+# Which of these Border Collies was owned by Queen Victoria? {.poll}
+
+## {.qmc .plain}
+
+- [ ] Dutch
+- [ ] Chaser
+- [x] Sharp
+- [ ] Rusty
 
 # Image {.poll}
 
-## Question  {.qmc}
+## Question {.qmc}
 
-Name is the name of the image below?
+Which is the name of the image you see below?
 
 - [ ] Bugs Bunny
 - [ ] Hase
@@ -70,14 +63,11 @@ xAxis:
   position: "top"
 timed: True
 seconds: 15
-blink: True
 ``` 
 
-## 
+## {.center}
 
 ![](example-stanford-bunny-200x160.jpg)
-
-
 
 # No Poll Present
 

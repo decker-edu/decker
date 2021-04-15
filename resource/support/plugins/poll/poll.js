@@ -12,9 +12,9 @@ var Poll = (() => {
                 } );
                 openPoll();
                 window.onbeforeunload = function() {
-                  socket.send(JSON.stringify({ "tag": "Close", "addr": Reveal.getConfig().pollEmail || "" }));
+                  // socket.send(JSON.stringify({ "tag": "Close", "addr": Reveal.getConfig().pollEmail || "" }));
                   socket.close();
-                  return "Email results?";
+                  // return "Email results?";
                 };
                 resolve();
             });
@@ -22,7 +22,7 @@ var Poll = (() => {
     }
 })();
 
-const server = Reveal.getConfig().pollServer || "http://polls.hci.informatik.uni-wuerzburg.de";
+const server = Reveal.getConfig().pollServer || "polls.hci.informatik.uni-wuerzburg.de";
 var socket = null; var pollID = null; var poll = null; var timer = null;
 var pollState = "not-init";
 var canvas, qrdiv;
@@ -31,7 +31,7 @@ var choices = [];
 // Open a websocket to server and build QR code for poll
 function openPoll() {
     if (socket != null) return;
-    socket = new WebSocket("ws://" + server + "/poll", 41080);
+    socket = new WebSocket("wss://" + server + "/poll");
   
     socket.onopen = () => { 
       document.querySelectorAll('.countdown').forEach(timer => {
@@ -86,7 +86,7 @@ function clockTime(timer) {
 
 // Given Poll ID from server, build QR Code  
 function buildCode() {
-    const pollAddr = "http://" + server + "/poll.html#" + pollID; 
+    const pollAddr = "https://" + server + "/poll.html#" + pollID; 
     qrdiv = document.createElement('div');
     qrdiv.id = "poll-overlay";
     
