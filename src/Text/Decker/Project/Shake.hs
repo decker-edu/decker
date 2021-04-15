@@ -252,11 +252,11 @@ deckerShakeOptions ctx = do
         shakeThreads = cores,
         -- , shakeStaunch = True
         shakeColor = True,
-        shakeChange = ChangeModtime,
+        shakeChange = ChangeModtime
         -- , shakeChange = ChangeModtimeAndDigest
-        shakeLint = Just LintBasic,
+        -- shakeLint = Just LintBasic,
         -- , shakeLint = Just LintFSATrace
-        shakeReport = [".decker/shake-report.html"]
+        -- shakeReport = [".decker/shake-report.html"]
       }
 
 actionContextKey :: TypeRep

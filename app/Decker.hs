@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -10,6 +11,7 @@ import Data.IORef ()
 import Data.List
 import Data.String ()
 import qualified Data.Text as Text
+import Data.Time (diffUTCTime)
 import Data.Version
 import Development.Shake
 import GHC.IO.Encoding
@@ -268,8 +270,19 @@ run = do
       --
       "**/*-recording.mp4" %> \out -> do
         let src = replaceSuffix "-recording.mp4" "-recording.webm" out
-        need [src]
-        command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
+        let runFfmpeg =
+              command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
+        webmExists <- liftIO $ Dir.doesFileExist src
+        when (webmExists) $ do
+          need [src]
+          mp4Exists <- liftIO $ Dir.doesFileExist out
+          if not mp4Exists
+            then runFfmpeg
+            else do
+              let modTime = liftIO . Dir.getModificationTime
+              mp4Mod <- modTime out
+              webmMod <- modTime src
+              when (diffUTCTime webmMod mp4Mod > 0.0) runFfmpeg
       --
       "**/*.tex.svg" %> \out -> do
         let src = dropExtension out
