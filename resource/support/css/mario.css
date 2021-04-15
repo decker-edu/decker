@@ -291,7 +291,7 @@ body {
 
 .reveal blockquote p:first-child,
 .reveal blockquote p:last-child {
-  display: inline-block; 
+  display: block; 
 }
 
 .reveal q {
