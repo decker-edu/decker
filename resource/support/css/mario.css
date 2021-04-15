@@ -291,7 +291,7 @@ body {
 
 .reveal blockquote p:first-child,
 .reveal blockquote p:last-child {
-  display: inline-block; 
+  display: block; 
 }
 
 .reveal q {
@@ -805,16 +805,32 @@ span.decker.svg.embed {
     opacity: 0.1;
 }
 
-/* MARIO: determine menu positioning and sizes relative to vmin */
+/* MARIO: slide number and control arrows */
+.reveal .controls {
+  font-size: 1.2vmin;
+  bottom:    0;
+  right:     1.2vmin;
+}
 .reveal .slide-number {
-    position:    fixed;
-    font-size:   2vmin;
-    padding:     1vmin;
-    right:       0.5vmin;
-    bottom:      0.5vmin;
-    font-family: "Lato", sans-serif;
-    color:       black;
-    background:  #ffffff00;
+  position:    fixed;
+  padding:     7px;
+  font-size:   2vmin;
+  width:       3vmin;
+  bottom:      2vmin;
+  right:       4.6vmin;
+  text-align:  center;
+  font-family: "Lato", sans-serif;
+  color:       black;
+  background:  #ffffff00;
+}
+.reveal .slide-number a {
+  color:       black;
+}
+.reveal .controls-arrow {
+  color: var(--whiteboard-inactive-color);
+}
+.reveal .controls-arrow:hover {
+  color: var(--whiteboard-active-color);
 }
 
 
