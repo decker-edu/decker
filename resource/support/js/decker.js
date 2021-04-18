@@ -33,7 +33,6 @@ function deckerStart() {
   // if (!printMode) {
   //   setTimeout(continueWhereYouLeftOff, 500);
   // }
-  renderSvgMath();
 }
 
 function prepareTaskLists() {
@@ -291,22 +290,6 @@ function continueWhereYouLeftOff() {
         localStorage.setItem(deckPathname, JSON.stringify(slideIndex));
       }
     });
-  }
-}
-
-// TODO: Make geometry.js into a proper module and arrange it to be loaded after
-// TODO: MathJax.
-function renderSvgMath() {
-  // Create a copy of the script with type 'geometry' that has type 'module' and
-  // will be executed immediately. Defers script execution until after MathJax
-  // has been initialized. Deletes the original 'geometry' script.
-  let scripts = document.querySelectorAll("script[type=geometry]");
-  for (let script of scripts) {
-    let js = document.createElement("script");
-    js.setAttribute("type", "module");
-    js.innerText = script.innerText;
-    script.insertAdjacentElement("beforebegin", js);
-    script.parentNode.removeChild(script);
   }
 }
 

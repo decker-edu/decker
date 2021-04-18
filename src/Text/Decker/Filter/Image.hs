@@ -365,5 +365,5 @@ renderJavascriptHtml code = do
   id <- liftIO randomId
   let anchor = "let anchor = document.getElementById(\"" <> id <> "\");\n"
   return $ do
-    H.div ! A.id (toValue id) ! A.class_ "geometry" $ ""
-    H.script ! A.class_ "geometry" ! A.type_ "geometry" $ toHtml (anchor <> code)
+    H.div ! A.id (toValue id) ! A.class_ "es6 module anchor" $ ""
+    H.script ! A.type_ "module" ! A.defer "" $ toHtml (anchor <> code)
