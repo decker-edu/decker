@@ -98,7 +98,7 @@ transformImages images caption = do
           H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
           H.figcaption captionHtml
 
-language cls = find (`elem` ["dot", "gnuplot", "tex"]) cls
+language cls = find (`elem` ["plantuml", "dot", "gnuplot", "tex"]) cls
 
 -- TODO this is incomplete
 --   - captions are just swallowed but never rendered.
@@ -107,6 +107,8 @@ transformCodeBlock :: Block -> [Inline] -> Filter Block
 transformCodeBlock code@(CodeBlock attr@(_, classes, _) text) caption =
   handle (blockError code) $
     if
+        | all (`elem` classes) ["plantuml", "render"] ->
+          runAttr attr (transform "plantuml") >>= renderHtml
         | all (`elem` classes) ["dot", "render"] ->
           runAttr attr (transform "dot") >>= renderHtml
         | all (`elem` classes) ["gnuplot", "render"] ->

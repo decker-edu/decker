@@ -5,6 +5,7 @@ module Text.Decker.Internal.External
   ( ssh,
     rsync,
     dot,
+    plantuml,
     gnuplot,
     pdflatex,
     pdf2svg,
@@ -63,6 +64,14 @@ programs =
         ["-V"]
         (helpText "Graphviz (http://www.graphviz.org)")
     ),
+    ( "plantuml",
+      ExternalProgram
+        -- []
+        "plantuml"
+        ["-tsvg"]
+        ["--version"]
+        (helpText "Plantuml (https://plantuml.com)")
+    ),
     ( "gnuplot",
       ExternalProgram
         -- []
@@ -99,6 +108,9 @@ rsync = makeProgram "rsync"
 
 dot :: Program
 dot = makeProgram "dot"
+
+plantuml :: Program
+plantuml = makeProgram "plantuml"
 
 gnuplot :: Program
 gnuplot = makeProgram "gnuplot"

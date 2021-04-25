@@ -12,13 +12,39 @@ Code blocks can be rendered as SVG images
 -   Gnuplot
 -   Tikz
 
-------
+------------------------------------------------------------------------
+
+# Embedded PlantUML Code (SVG) {.columns}
+
+## PlantUML {.left}
+
+```` {.markdown}
+``` {.plantuml .render}
+@startuml
+skinparam shadowing false
+skinparam monochrome true
+Alice -> Bob: test
+@enduml
+```
+````
+
+## SVG {.right}
+
+``` {.plantuml .render width="100%"}
+@startuml
+skinparam shadowing false
+skinparam monochrome true
+Alice -> Bob: test
+@enduml
+```
+
+------------------------------------------------------------------------
 
 # Embedded Graphviz Code (SVG) {layout="columns"}
 
 ## Highlighted {.left}
 
-```` {.dot}
+```` {.markdown}
 ``` {.dot .render width="80%"}
 digraph {
   node [style = filled]
@@ -48,7 +74,7 @@ digraph {
 }
 ```
 
-------
+------------------------------------------------------------------------
 
 # Embedded Gnuplot (SVG) {layout="columns"}
 
@@ -82,7 +108,21 @@ DEBUG_TERM_VTIC = 118
 splot 1 / (x*x + y*y + 0.5)
 ```
 
-------
+------------------------------------------------------------------------
+
+# PlantUML Files as Images {layout="columns"}
+
+## Image Tag {.left}
+
+``` {.markdown}
+![](alice-bob.plantuml){.render}
+```
+
+## Rendered and included {.right}
+
+![](alice-bob.plantuml){.plantuml .render}
+
+------------------------------------------------------------------------
 
 # Dot Files as Images {layout="columns"}
 
@@ -96,7 +136,7 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](graph.dot){.dot .render}
 
-------
+------------------------------------------------------------------------
 
 # Tikz Files as Images {layout="columns"}
 
@@ -110,7 +150,7 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](tikz.tex){.tex .render}
 
-------
+------------------------------------------------------------------------
 
 # Tikz Embedded
 
@@ -173,4 +213,3 @@ splot 1 / (x*x + y*y + 0.5)
 \end{tikzpicture}
 \end{document}
 ```
-

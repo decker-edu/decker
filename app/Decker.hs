@@ -258,14 +258,23 @@ run = do
           need [src]
           command [] "sass" [src, out]
       --
+      "**/*.plantuml.svg" %> \out -> do
+        let src = dropExtension out
+        need [src]
+        putNormal $ "# plantuml (for " <> out <> ")"
+        plantuml [src]
+        liftIO $ Dir.renameFile (src -<.> "svg") out
+      --
       "**/*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
+        putNormal $ "# dot (for " <> out <> ")"
         dot ["-o" ++ out, src]
       --
       "**/*.gnuplot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
+        putNormal $ "# gnuplot (for " <> out <> ")"
         gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src]
       --
       "**/*-recording.mp4" %> \out -> do
