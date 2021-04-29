@@ -59,10 +59,26 @@ An SVG image that is embedded into the HTML document.
 translates to
 
 ``` {.html}
-<span class="decker svg embed" style="background-color:magenta;">
-    <svg>This space intentionally left blank</svg>
+<div class="decker image error">
+    <h2 class="title">
+        <i class="fa fa-exclamation-triangle">
+            
+        </i>
+         Decker error
+    </h2>
+    <p class="message">
+        test/decks/empty.svg: openFile: does not exist (No such file or directory)
+    </p>
+    <p>
+        encountered while processing
+    </p>
+    <pre class="markup">
+        <code class="markup">
+            ![](/test/decks/empty.svg){.embed css:background-color=&quot;magenta&quot;}
 
-</span>
+        </code>
+    </pre>
+</div>
 ```
 
 ------------------------------------------------------------------------

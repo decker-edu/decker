@@ -382,56 +382,56 @@ div.q-panel div.q-footer div.q-login:hover {
   color: var(--whiteboard-active-color);
 }
 
-div.q-panel div.content {
+div.q-panel div.item {
   font-size: 1em;
 }
 
-div.q-panel div.content em {
+div.q-panel div.item em {
   font-style: italic;
 }
 
-div.q-panel div.content strong {
+div.q-panel div.item strong {
   font-weight: bold;
 }
 
-div.q-panel div.content a {
+div.q-panel div.item a {
   color: darkblue;
 }
 
-div.q-panel div.content p,
+div.q-panel div.item p,
 div.q-panel ul,
 div.q-panel ol {
   padding-bottom: 0.3em;
 }
 
-div.q-panel div.content p:last-child,
-div.q-panel div.content ul:last-child,
-div.q-panel div.content ol:last-child {
+div.q-panel div.item p:last-child,
+div.q-panel div.item ul:last-child,
+div.q-panel div.item ol:last-child {
   padding-bottom: 0;
 }
 
-div.q-panel div.content ol {
+div.q-panel div.item ol {
   list-style-type: lower-alpha;
   list-style-position: inside;
 }
 
-div.q-panel div.content ul {
+div.q-panel div.item ul {
   list-style-type: disc;
   list-style-position: inside;
 }
 
-div.q-panel div.content code {
+div.q-panel div.item code {
   font-family: Consolas, Monaco, monospace;
   font-size: 0.9em;
 }
 
-div.q-panel div.content pre {
+div.q-panel div.item pre {
   padding: 0.2em;
   background-color: #eee;
   white-space: pre-wrap;
 }
 
-div.q-panel div.content h1 {
+div.q-panel div.item h1 {
   font-size: 1.2em;
   font-weight: bold;
   padding-bottom: 0.2em;
@@ -439,7 +439,7 @@ div.q-panel div.content h1 {
   color: #333;
 }
 
-div.q-panel div.content h2 {
+div.q-panel div.item h2 {
   font-size: 1.1em;
   font-weight: bold;
   padding-bottom: 0.2em;
@@ -447,7 +447,7 @@ div.q-panel div.content h2 {
   color: #333;
 }
 
-div.q-panel div.content img {
+div.q-panel div.item img {
   width: 100%;
   image-rendering: pixelated;
 }
