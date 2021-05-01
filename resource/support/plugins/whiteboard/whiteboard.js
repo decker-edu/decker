@@ -51,6 +51,9 @@ let RevealWhiteboard = (function () {
   let penCursor;
   let currentCursor;
 
+  // whether or not to show laser pointer
+  let showLaser = false;
+
   // canvas for dynamic cursor generation
   let cursorCanvas = document.createElement("canvas");
   cursorCanvas.id = "CursorCanvas";
@@ -150,6 +153,14 @@ let RevealWhiteboard = (function () {
     autosave,
     "toggle auto-saving annotations"
   );
+  let buttonLaser = createButton(
+    "whiteboard fas fa-magic checkbox",
+    () => {
+      toggleLaser();
+    },
+    showLaser,
+    "toggle laser pointer"
+  );
   let buttonGrid = createButton(
     "whiteboard fas fa-border-all checkbox",
     toggleGrid,
@@ -183,14 +194,6 @@ let RevealWhiteboard = (function () {
     },
     false,
     "eraser"
-  );
-  let buttonLaser = createButton(
-    "whiteboard fas fa-magic radiobutton",
-    () => {
-      selectTool(ToolType.LASER);
-    },
-    false,
-    "laser pointer"
   );
 
   // generate color picker container
@@ -353,11 +356,15 @@ let RevealWhiteboard = (function () {
     let ctx = cursorCanvas.getContext("2d");
 
     // setup color gradient
-    let col1 = "rgba(255, 0, 0, 1.0)";
-    let col2 = "rgba(255, 0, 0, 0.0)";
+    let col1 = "rgba(255, 100, 100, 1.0)";
+    let col2 = "rgba(255, 0, 0, 0.9)";
+    let col3 = "rgba(255, 0, 0, 0.7)";
+    let col4 = "rgba(255, 0, 0, 0.0)";
     let grdLaser = ctx.createRadialGradient(10, 10, 1, 10, 10, 10);
-    grdLaser.addColorStop(0, col1);
-    grdLaser.addColorStop(1, col2);
+    grdLaser.addColorStop(0.0, col1);
+    grdLaser.addColorStop(0.3, col2);
+    grdLaser.addColorStop(0.6, col3);
+    grdLaser.addColorStop(1.0, col4);
 
     // render laser cursor
     ctx.clearRect(0, 0, 20, 20);
@@ -368,30 +375,29 @@ let RevealWhiteboard = (function () {
 
   function createPenCursor() {
     let ctx = cursorCanvas.getContext("2d");
-    cursorCanvas.width = 20;
-    cursorCanvas.height = 20;
 
-    // convert penColor to rgb
-    let elem = document.body.appendChild(document.createElement("fictum"));
-    elem.style.color = penColor;
-    let color = getComputedStyle(elem).color;
-    let rgb = color
-      .substring(color.indexOf("(") + 1, color.lastIndexOf(")"))
-      .split(/,\s*/);
-    document.body.removeChild(elem);
+    // adjust canvas size and cursor radius using Reveal scale
+    const slideScale = Reveal.getScale();
+    const radius = Math.max(2, 0.5 * penWidth * slideScale);
+    const width = radius * 2;
+    cursorCanvas.width = width+1;
+    cursorCanvas.height = width+1;
 
-    // setup color gradient with pen color
-    let col1 = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",1.0)";
-    let col2 = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",0.0)";
-    let grdPen = ctx.createRadialGradient(10, 10, 1, 10, 10, 3);
-    grdPen.addColorStop(0, col1);
-    grdPen.addColorStop(1, col2);
+    ctx.clearRect(0, 0, width, width);
+    ctx.fillStyle = ctx.strokeStyle = penColor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
+    ctx.fill();
 
-    // render pen cursor
-    ctx.clearRect(0, 0, 20, 20);
-    ctx.fillStyle = grdPen;
-    ctx.fillRect(0, 0, 20, 20);
-    penCursor = "url(" + cursorCanvas.toDataURL() + ") 10 10, auto";
+    penCursor =
+      "url(" +
+      cursorCanvas.toDataURL() +
+      ") " +
+      radius +
+      " " +
+      radius +
+      ", auto";
   }
 
   function createEraserCursor() {
@@ -447,6 +453,14 @@ let RevealWhiteboard = (function () {
     hideCursorTimeout = setTimeout(hideCursor, 1000);
   }
 
+  // switch to laser after 1.1 sec
+  let selectLaserTimeout;
+  function triggerSelectLaser() {
+    clearTimeout(selectLaserTimeout);
+    selectLaserTimeout = setTimeout( () => {selectCursor(laserCursor)}, 1100);
+  }
+
+
   /*****************************************************************
    * Internal GUI functions (not called by user)
    ******************************************************************/
@@ -501,7 +515,16 @@ let RevealWhiteboard = (function () {
     penWidth = radius;
     penWidthSlider.value = radius;
     penWidthSlider.style.setProperty("--size", radius + 1 + "px");
+    createPenCursor();
     selectCursor(penCursor);
+  }
+
+  function toggleLaser() {
+    if (whiteboardActive) {
+      showLaser = !showLaser;
+      buttonLaser.dataset.active = showLaser;
+      showCursor( showLaser ? laserCursor : penCursor );
+    }
   }
 
   function toggleWhiteboard(state) {
@@ -624,6 +647,7 @@ let RevealWhiteboard = (function () {
    * User wants to clear current slide (mapped to key Delete)
    */
   function clearSlide() {
+    if (!whiteboardActive) return;
     if (confirm("Delete notes and board on this slide?")) {
       let strokes = svg.querySelectorAll("svg>path");
       if (strokes) {
@@ -1134,31 +1158,31 @@ let RevealWhiteboard = (function () {
     // only pen and mouse events
     if (evt.pointerType != "pen" && evt.pointerType != "mouse") return;
 
+    // mouse button 2: toggle laser
+    if (evt.buttons == 2) {
+      toggleLaser();
+      return;
+    }
+
     // remove timer for cursor hiding
     clearTimeout(hideCursorTimeout);
 
-    // laser mode or right mouse button
-    if (tool == ToolType.LASER || (tool == ToolType.PEN && evt.buttons == 2)) {
-      showCursor(laserCursor);
-    }
-
     // eraser mode or middle mouse button
-    else if (
+    if (
       tool == ToolType.ERASER ||
       (tool == ToolType.PEN && evt.buttons >= 4)
     ) {
       showCursor(eraserCursor);
       eraseStroke(evt);
+      return killEvent(evt);
     }
 
     // pencil mode
-    else if (tool == ToolType.PEN) {
+    if (tool == ToolType.PEN) {
       hideCursor();
       startStroke(evt);
+      return killEvent(evt);
     }
-
-    // don't propagate event any further
-    return killEvent(evt);
   }
 
   function pointermove(evt) {
@@ -1178,27 +1202,20 @@ let RevealWhiteboard = (function () {
       return;
     }
 
-    // laser mode or right mouse button
-    if (tool == ToolType.LASER || (tool == ToolType.PEN && evt.buttons == 2)) {
-      //showCursor(laserCursor);
-      //triggerHideCursor();
-    }
-
     // eraser mode or middle mouse button
-    else if (
+    if (
       tool == ToolType.ERASER ||
       (tool == ToolType.PEN && evt.buttons >= 4)
     ) {
       eraseStroke(evt);
+      return killEvent(evt);
     }
 
     // pencil mode
     else if (tool == ToolType.PEN) {
       continueStroke(evt);
+      return killEvent(evt);
     }
-
-    // don't propagate event any further
-    return killEvent(evt);
   }
 
   function pointerup(evt) {
@@ -1211,14 +1228,21 @@ let RevealWhiteboard = (function () {
     // only pen and mouse events
     if (evt.pointerType != "pen" && evt.pointerType != "mouse") return;
 
+    // mouse button 2: toggle laser (nothing to do here)
+    if (evt.buttons == 2) {console.log("HALLO"); return;}
+
     // finish pen stroke
     if (tool == ToolType.PEN) {
       stopStroke(evt);
-      selectCursor(penCursor); // might be laser/eraser due to buttons pressed
+      selectCursor(penCursor); // might be eraser due to buttons pressed
     }
 
     // re-activate cursor hiding
     triggerHideCursor();
+
+    // if laser pointer active, switch back to it after a short time.
+    // don't switch back immediately, to not show laser in between strokes
+    if (showLaser) triggerSelectLaser();
 
     // don't propagate event any further
     return killEvent(evt);
@@ -1393,6 +1417,11 @@ let RevealWhiteboard = (function () {
   Reveal.addKeyBinding(
     { keyCode: 87, key: "W", description: "Whiteboard: Toggle on/off" },
     toggleWhiteboard
+  );
+
+  Reveal.addKeyBinding(
+    { keyCode: 76, key: "L", description: "Whiteboard: Toggle laser point" },
+    toggleLaser
   );
 
   for (let i = 0; i < 7; i++) {
