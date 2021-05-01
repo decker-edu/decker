@@ -637,7 +637,12 @@ $if(quizServer)$
           // Mario's multiple-choice quiz
           quiz: { server: "$quizServer$" },
 $endif$
-
+       
+$if(jingles)$
+          // Mario's video jingles
+          jingles: Decker.meta.jingles,
+$endif$
+        
           // plugins
           dependencies: [
               { src: String.raw`$decker-support-dir$/plugins/charts/Chart.js`},
@@ -658,6 +663,7 @@ $if(highlightjs)$
 $endif$
 $if(mario)$              
               { src: String.raw`$decker-support-dir$/plugins/quiz/quiz.js` },
+              { src: String.raw`$decker-support-dir$/plugins/jingles/jingles.js`, async: true },
 $endif$    
 $if(menu)$
               { src: String.raw`$decker-support-dir$/plugins/menu/menu.js`, async: true },
