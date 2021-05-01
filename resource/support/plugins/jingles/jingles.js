@@ -10,7 +10,7 @@ let RevealJingle = (function () {
   function createJingle(filename, style, volume) {
     console.log("  add jingle " + filename + " with volume " + (volume?volume:"1.0"));
 
-    const defaultStyle = "display:block; position:absolute; left:0; right:0; top:0; bottom:0; margin:auto; object-fit:contain; pointer-events:none;"
+    const defaultStyle = "display:none; position:absolute; left:0; right:0; top:0; bottom:0; margin:auto; object-fit:contain; pointer-events:none;"
 
     let vid = document.createElement("video");
     vid.style = style ? defaultStyle+style : defaultStyle;
