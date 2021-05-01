@@ -1148,6 +1148,9 @@ let RevealWhiteboard = (function () {
    * pointer and mouse callbacks
    ******************************************************************/
 
+  // need this to remember button state for pointerup event
+  let buttonsPressed=null;
+
   function pointerdown(evt) {
     // only when whiteboard is active
     if (!whiteboardActive) return;
@@ -1157,6 +1160,9 @@ let RevealWhiteboard = (function () {
 
     // only pen and mouse events
     if (evt.pointerType != "pen" && evt.pointerType != "mouse") return;
+
+    // remember button state
+    buttonsPressed = evt.buttons;
 
     // mouse button 2: toggle laser
     if (evt.buttons == 2) {
@@ -1229,7 +1235,9 @@ let RevealWhiteboard = (function () {
     if (evt.pointerType != "pen" && evt.pointerType != "mouse") return;
 
     // mouse button 2: toggle laser (nothing to do here)
-    if (evt.buttons == 2) {console.log("HALLO"); return;}
+    if (buttonsPressed == 2) {
+      return killEvent(evt);
+    }
 
     // finish pen stroke
     if (tool == ToolType.PEN) {
