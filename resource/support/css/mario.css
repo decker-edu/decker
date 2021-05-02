@@ -671,13 +671,15 @@ span.decker.svg.embed {
  *********************************************/
 
 @media not print {
+  .reveal section .sequence.fragment:not(.current-fragment),
   .reveal section .fragment.sequence:not(.current-fragment) {
       display: none;
   }
 }
 /* when in print mode, show only first image */
 @media print {
-  .reveal section .fragment.sequence:not(:first-of-type) {
+  .reveal section .sequence.fragment:not(:last-of-type), 
+  .reveal section .fragment.sequence:not(:last-of-type) {
       display: none;
   }
 }
