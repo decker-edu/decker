@@ -278,7 +278,7 @@ function continueWhereYouLeftOff() {
 
   if (localStorage) {
     // if user opens HTML with hash...
-    // if (deckHash == "") 
+    if (deckHash == "") 
     {
       const slideIndex = JSON.parse(localStorage.getItem(deckPathname));
       // ...and previous slide index is stored
