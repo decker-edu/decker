@@ -29,10 +29,9 @@ function deckerStart() {
   if (Reveal.getConfig().verticalSlides) {
     setupVerticalSlides();
   }
-  // Henrik disabled this, because it is just too annoying.
-  // if (!printMode) {
-  //   setTimeout(continueWhereYouLeftOff, 500);
-  // }
+  if (!printMode) {
+    setTimeout(continueWhereYouLeftOff, 1000);
+  }
 }
 
 function prepareTaskLists() {
@@ -261,6 +260,17 @@ function isElectron() {
   return false;
 }
 
+function createElement({ type, id, classes, css, text, parent, onclick=null }) {
+  let e = document.createElement(type);
+  if (id) e.id = id;
+  if (classes) e.className = classes;
+  if (css) e.style = css;
+  if (text) e.innerHTML=text;
+  if (parent) parent.appendChild(e);
+  if (onclick) e.addEventListener("click", onclick);
+  return e;
+}
+
 function continueWhereYouLeftOff() {
   // if *-deck.html was opened *without* any hash, i.e., on the title slide,
   // and if user has visited this slide decks before,
@@ -268,18 +278,55 @@ function continueWhereYouLeftOff() {
 
   if (localStorage) {
     // if user opens HTML with hash...
-    if (deckHash == "") {
+    // if (deckHash == "") 
+    {
       const slideIndex = JSON.parse(localStorage.getItem(deckPathname));
       // ...and previous slide index is stored
-      if (slideIndex && slideIndex.h != 0) {
+      // if (slideIndex && slideIndex.h != 0) 
+      {
         // ...ask to jump to that slide
-        const msg =
-          "Continue on slide " +
-          slideIndex.h +
-          ", where you left off last time?";
-        if (confirm(msg)) {
-          Reveal.slide(slideIndex.h, slideIndex.v);
-        }
+
+        // German or non-German?
+        const lang = document.documentElement.lang; 
+        const german = (lang == "de");
+
+
+        let reveal = document.querySelector(".reveal");
+
+        let dialog = createElement({
+          type: "div",
+          id: "continue-dialog",
+          css: "display:flex; justify-content:space-evenly; align-items:center; gap:1em; position:fixed; left:50%; bottom:1em; transform:translate(-50%,0px); padding:1em; border:2px solid #2a9ddf; border-radius: 0.5em; font-size: 1rem;",
+          parent: reveal,
+          text: german
+            ? "Bei Folie " + slideIndex.h + " weitermachen?"
+            : "Continue on slide " + slideIndex.h + "?"
+        });
+
+        let hideDialog = () => {
+          dialog.style.display = "none";
+        };
+
+        let yes = createElement({
+          type: "button",
+          id: "continue-yes",
+          parent: dialog,
+          css: "font:inherit;",
+          text: german ? "Ja" : "Yes",
+          onclick: () => { Reveal.slide(slideIndex.h, slideIndex.v); hideDialog(); }
+        });
+
+        let no = createElement({
+          type: "button",
+          id: "continue-no",
+          parent: dialog,
+          css: "font:inherit;",
+          text: german ? "Nein" : "No",
+          onclick: hideDialog
+        });
+    
+        // setTimeout(hideDialog, 5000);
+        Reveal.addEventListener("slidechanged", hideDialog);
       }
     }
 
