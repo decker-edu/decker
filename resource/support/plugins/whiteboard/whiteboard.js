@@ -196,37 +196,34 @@ let RevealWhiteboard = (function () {
     "eraser"
   );
 
+
   // generate color picker container
   let colorPicker = document.createElement("div");
   colorPicker.id = "whiteboardColorPicker";
   reveal.appendChild(colorPicker);
+  // color buttons
   penColors.forEach((color) => {
     let b = document.createElement("button");
-    b.className = "whiteboard fas fa-pen";
+    b.className = "whiteboard fas fa-circle";
     b.onclick = () => {
       selectPenColor(color);
     };
     b.style.color = color;
     colorPicker.appendChild(b);
   });
+  // pen radius buttons
+  for (let r=2; r<15; r+=2) {
+    const slideScale = Reveal.getScale();
+    const radius = r*slideScale + "px";
+    let b = document.createElement("button");
+    b.className = "whiteboard fas fa-circle";
+    b.style.fontSize = radius;
+    b.onclick = () => {
+      selectPenRadius(r);
+    };
+    colorPicker.appendChild(b);
+  };
 
-  // generate penWidth slider
-  let penWidthSlider = document.createElement("input");
-  penWidthSlider.id = "whiteboardSlider";
-  penWidthSlider.type = "range";
-  penWidthSlider.min = 1;
-  penWidthSlider.max = 10;
-  penWidthSlider.value = 2;
-  colorPicker.appendChild(penWidthSlider);
-  penWidthSlider.onchange = () => {
-    selectPenRadius(parseInt(penWidthSlider.value));
-  };
-  penWidthSlider.oninput = () => {
-    penWidthSlider.style.setProperty(
-      "--size",
-      parseInt(penWidthSlider.value) + 2 + "px"
-    );
-  };
 
   /* Set slides to full height, such that they contain the full-height whiteboard.
    * For centered slides, also enforce full height, and wrap the slide content
@@ -503,7 +500,7 @@ let RevealWhiteboard = (function () {
 
   function selectPenColor(col) {
     hideColorPicker();
-    penWidthSlider.style.setProperty("--color", col);
+    // penWidthSlider.style.setProperty("--color", col);
     penColor = col;
     buttonPen.style.color = penColor;
     createPenCursor();
@@ -513,8 +510,6 @@ let RevealWhiteboard = (function () {
   function selectPenRadius(radius) {
     hideColorPicker();
     penWidth = radius;
-    penWidthSlider.value = radius;
-    penWidthSlider.style.setProperty("--size", radius + 1 + "px");
     createPenCursor();
     selectCursor(penCursor);
   }

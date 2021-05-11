@@ -188,21 +188,28 @@
   position: absolute;
   top: auto;
   right: auto;
-  padding: 0;
+  padding: 5px;
   margin: 0;
   z-index: 40;
   border: 1px solid #eeeeee;
   border-radius: calc(var(--whiteboard-icon-size) * 0.5);
   background: var(--whiteboard-background-color);
-  left: calc(var(--whiteboard-icon-size) * 2.5);
-  bottom: calc(var(--whiteboard-icon-size) * 11.5);
+  left: calc(var(--whiteboard-icon-size) * 3);
+  bottom: calc(var(--whiteboard-icon-size) * 14);
   display: block;
   visibility: hidden;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
 }
 
 #whiteboardColorPicker button.whiteboard {
   margin: 0;
   padding: 0;
+  width: calc(var(--whiteboard-icon-size) * 1.5);
+  height: calc(var(--whiteboard-icon-size) * 1.5);
+  text-align: center;
+  vertical-align: middle;
+  color: black;
 }
 
 /* slides for choosing pen width */
