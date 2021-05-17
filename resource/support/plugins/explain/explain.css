@@ -233,13 +233,13 @@ span.capture-size {
   font-size: 18px;
 }
 
-#camera-video {
+.camera-panel {
   display: none;
 }
 
-#camera-video[data-uistate="RECORDER_READY"].visible,
-#camera-video[data-uistate="RECORDER_PAUSED"].visible,
-#camera-video[data-uistate="RECORDING"].visible {
+.camera-panel[data-uistate="RECORDER_READY"].visible,
+.camera-panel[data-uistate="RECORDER_PAUSED"].visible,
+.camera-panel[data-uistate="RECORDING"].visible {
   display: block;
   position: fixed;
   left: auto;
@@ -252,14 +252,13 @@ span.capture-size {
   object-fit: contain;
   border-radius: 10px;
   border: 4px solid #2a9ddf;
-  resize: both;
   overflow: auto;
   transform-origin: center;
 }
 
-#camera-video[data-uistate="RECORDER_READY"].fullscreen,
-#camera-video[data-uistate="RECORDER_PAUSED"].fullscreen,
-#camera-video[data-uistate="RECORDING"].fullscreen {
+.camera-panel[data-uistate="RECORDER_READY"].fullscreen,
+.camera-panel[data-uistate="RECORDER_PAUSED"].fullscreen,
+.camera-panel[data-uistate="RECORDING"].fullscreen {
   left: 0;
   top: 0;
   width: 100%;

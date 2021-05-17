@@ -1,12 +1,16 @@
 "use strict";
 
 let ExplainPlugin = (function () {
+
+  // configuration parameters
+  const config = Decker.meta.explain;
+
   // GUI elements
   let playPanel, playButton, player;
   let recordPanel, recordIndicator, voiceIndicator, desktopIndicator;
   let recordButton, pauseButton, stopButton;
   let voiceGainSlider, desktopGainSlider;
-  let cameraVideo;
+  let cameraPanel, cameraVideo, cameraCanvas;
 
   // recording stuff
   let blobs;
@@ -18,6 +22,13 @@ let ExplainPlugin = (function () {
   let micSelect, camSelect;
   let micIndicator, camIndicator;
   let screenCaptureSize, cameraCaptureSize;
+
+  // greenscreen
+  let useGreenScreen = config.useGreenScreen || false;
+  let gsBackground = config.greenScreenBackground || undefined;
+  let gsKey = {r:0, g:255, b:0};
+  let gsSimilarity = 0.4;
+  let gsSmoothness = 0.08;
 
   // playback stuff
   let explainVideoUrl, explainTimesUrl, explainTimes;
@@ -266,8 +277,6 @@ let ExplainPlugin = (function () {
   }
 
   async function captureScreen() {
-    // const config = Reveal.getConfig().explain;
-    const config = Decker.meta.explain;
     const recWidth = config && config.recWidth ? config.recWidth : undefined;
     const recHeight = config && config.recHeight ? config.recHeight : undefined;
 
@@ -372,12 +381,12 @@ let ExplainPlugin = (function () {
         }
       }
       // connect camera to video element
-      if (cameraVideo.classList.contains("visible")) {
+      if (cameraPanel.classList.contains("visible")) {
         cameraVideo.pause();
         cameraVideo.srcObject = cameraStream;
         cameraVideo.play();
       } else {
-        cameraVideo.srcObject = cameraStream;
+        // cameraVideo.srcObject = cameraStream;
       }
       let camera = cameraStream.getVideoTracks()[0].getSettings();
       console.log("camera stream size: ", camera.width, camera.height);
@@ -999,76 +1008,203 @@ let ExplainPlugin = (function () {
     cameraVideo = createElement({
       type: "video",
       id: "camera-video",
+      classes: "camera-panel",
       parent: document.body,
     });
     cameraVideo.muted = true; // don't want audio in this stream
 
+    // camera panel is set to either cameraVideo or cameraCanvas
+    cameraPanel = cameraVideo;
+
+    if (useGreenScreen) {
+      setupGreenScreen();
+    }
+
     // initialize translation and scaling
-    cameraVideo.dragging = false;
-    cameraVideo.dx = 0.0;
-    cameraVideo.dy = 0.0;
-    cameraVideo.scale = 1.0;
-    cameraVideo.transform = "";
+    cameraPanel.dragging = false;
+    cameraPanel.dx = 0.0;
+    cameraPanel.dy = 0.0;
+    cameraPanel.scale = 1.0;
+    cameraPanel.transform = "";
 
     // start dragging
-    cameraVideo.onmousedown = (e) => {
-      if (!cameraVideo.classList.contains("fullscreen")) {
+    cameraPanel.onmousedown = (e) => {
+      if (!cameraPanel.classList.contains("fullscreen")) {
         e.preventDefault();
-        cameraVideo.dragging = true;
-        cameraVideo.style.cursor = "move";
-        cameraVideo.lastX = e.screenX;
-        cameraVideo.lastY = e.screenY;
+        cameraPanel.dragging = true;
+        cameraPanel.style.cursor = "move";
+        cameraPanel.lastX = e.screenX;
+        cameraPanel.lastY = e.screenY;
 
         // translate on mouse move
-        cameraVideo.onmousemove = (e) => {
-          if (cameraVideo.dragging) {
+        cameraPanel.onmousemove = (e) => {
+          if (cameraPanel.dragging) {
             const x = e.screenX;
             const y = e.screenY;
-            cameraVideo.dx += x - cameraVideo.lastX;
-            cameraVideo.dy += y - cameraVideo.lastY;
-            cameraVideo.lastX = x;
-            cameraVideo.lastY = y;
-            cameraVideo.style.transform = `translate(${cameraVideo.dx}px, ${cameraVideo.dy}px) scale(${cameraVideo.scale})`;
+            cameraPanel.dx += x - cameraPanel.lastX;
+            cameraPanel.dy += y - cameraPanel.lastY;
+            cameraPanel.lastX = x;
+            cameraPanel.lastY = y;
+            cameraPanel.style.transform = `translate(${cameraPanel.dx}px, ${cameraPanel.dy}px) scale(${cameraPanel.scale})`;
           }
         };
       }
     };
 
     // stop dragging
-    cameraVideo.onmouseup = cameraVideo.onmouseleave = (e) => {
-      cameraVideo.style.cursor = "";
-      cameraVideo.dragging = false;
-      cameraVideo.onmousemove = null;
+    cameraPanel.onmouseup = cameraPanel.onmouseleave = (e) => {
+      cameraPanel.style.cursor = "";
+      cameraPanel.dragging = false;
+      cameraPanel.onmousemove = null;
     };
 
     // use mouse wheel to scale video
-    cameraVideo.onmousewheel = (e) => {
-      if (!cameraVideo.classList.contains("fullscreen")) {
-        cameraVideo.scale += e.deltaY * -0.01;
-        cameraVideo.style.transform = `translate(${cameraVideo.dx}px, ${cameraVideo.dy}px) scale(${cameraVideo.scale})`;
+    cameraPanel.onmousewheel = (e) => {
+      if (!cameraPanel.classList.contains("fullscreen")) {
+        cameraPanel.scale += e.deltaY * -0.01;
+        cameraPanel.scale = Math.max(0.1, Math.min(10.0, cameraPanel.scale));
+        cameraPanel.style.transform = `translate(${cameraPanel.dx}px, ${cameraPanel.dy}px) scale(${cameraPanel.scale})`;
       }
     };
 
     // use double click on video to toggle fullscreen
-    cameraVideo.ondblclick = (e) => {
-      if (e.target.classList.toggle("fullscreen")) {
-        cameraVideo.transform = cameraVideo.style.transform;
-        cameraVideo.style.transform = "";
+    cameraPanel.ondblclick = (e) => {
+      if (cameraPanel.classList.toggle("fullscreen")) {
+        cameraPanel.transform = cameraPanel.style.transform;
+        cameraPanel.style.transform = "";
       } else {
-        cameraVideo.style.transform = cameraVideo.transform;
+        cameraPanel.style.transform = cameraPanel.transform;
       }
     };
   }
 
+  // adapted from https://jameshfisher.com/2020/08/11/production-ready-green-screen-in-the-browser/
+  function setupGreenScreen() {
+    // hide video element
+    cameraVideo.style.display = 'none';
+
+    // create canvas
+    cameraPanel = cameraCanvas = createElement({
+      type: "canvas",
+      id: "camera-canvas",
+      classes: "camera-panel",
+      parent: document.body,
+    });
+
+    if (gsBackground) {
+      cameraCanvas.style.backgroundImage = `url('${gsBackground}')`;
+      cameraCanvas.style.backgroundSize = "cover";
+    }
+
+    const gl = cameraCanvas.getContext("webgl", { premultipliedAlpha: false });
+
+    const vsource = String.raw`attribute vec2 c; 
+    void main(void) { 
+      gl_Position=vec4(c, 0.0, 1.0); 
+    }`;
+
+    const fsource = String.raw`precision mediump float;
+    uniform sampler2D tex;
+    uniform float texWidth;
+    uniform float texHeight;
+    uniform vec3  keyColor;
+    uniform float similarity;
+    uniform float smoothness;
+
+    // From https://github.com/obsproject/obs-studio/blob/master/plugins/obs-filters/data/chroma_key_filter_v2.effect
+    vec2 rgb2uv(vec3 rgb) {
+      return vec2(
+        0.501961 - 0.100644*rgb.r - 0.338572*rgb.g + 0.439216*rgb.b,
+        0.501961 + 0.439216*rgb.r - 0.398942*rgb.g - 0.040274*rgb.b
+      );
+    }
+
+    vec4 ProcessChromaKey(vec2 texCoord) {
+      vec4 rgba = texture2D(tex, texCoord);
+      float chromaDist = distance(rgb2uv(rgba.rgb), rgb2uv(keyColor));
+      float baseMask = chromaDist - similarity;
+      float fullMask = pow(clamp(baseMask / smoothness, 0., 1.), 1.5);
+      rgba.a = fullMask;
+      return rgba;
+    }
+
+    void main(void) {
+      vec2 texCoord = vec2(gl_FragCoord.x/texWidth, 1.0 - (gl_FragCoord.y/texHeight));
+      gl_FragColor = ProcessChromaKey(texCoord);
+    }`;
+
+    const vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, vsource);
+    gl.compileShader(vs);
+
+    const fs = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fs, fsource);
+    gl.compileShader(fs);
+
+    const prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+
+    const vb = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vb);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, 1, -1, -1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+
+    const coordLoc = gl.getAttribLocation(prog, 'c');
+    gl.vertexAttribPointer(coordLoc, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(coordLoc);
+
+    gl.activeTexture(gl.TEXTURE0);
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    const texLoc = gl.getUniformLocation(prog, "tex");
+    const texWidthLoc = gl.getUniformLocation(prog, "texWidth");
+    const texHeightLoc = gl.getUniformLocation(prog, "texHeight");
+    const keyColorLoc = gl.getUniformLocation(prog, "keyColor");
+    const similarityLoc = gl.getUniformLocation(prog, "similarity");
+    const smoothnessLoc = gl.getUniformLocation(prog, "smoothness");
+
+    function processFrame(now, metadata) {
+      if (cameraCanvas.width != metadata.width) {
+        cameraCanvas.width = metadata.width;
+        cameraCanvas.height = metadata.height;
+      }
+      gl.viewport(0, 0, metadata.width, metadata.height);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, cameraVideo);
+
+      gl.uniform1i(texLoc, 0);
+      gl.uniform1f(texWidthLoc, metadata.width);
+      gl.uniform1f(texHeightLoc, metadata.height);
+      gl.uniform3f(keyColorLoc, gsKey.r/255.0, gsKey.g/255.0,gsKey.b/255.0);
+      gl.uniform1f(similarityLoc, gsSimilarity);
+      gl.uniform1f(smoothnessLoc, gsSmoothness);
+
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+      cameraVideo.requestVideoFrameCallback(processFrame);
+      // console.log('.');
+    }
+
+    cameraVideo.requestVideoFrameCallback(processFrame);
+  }
+
   function toggleCamera() {
     if (uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")) {
-      if (cameraVideo.classList.toggle("visible")) {
+      if (cameraPanel.classList.toggle("visible")) {
+        if (cameraVideo.srcObject !== cameraStream) {
+          cameraVideo.srcObject = cameraStream;
+        }
         cameraVideo.play();
       } else {
         cameraVideo.pause();
       }
     } else {
-      cameraVideo.classList.remove("visible");
+      cameraPanel.classList.remove("visible");
     }
   }
 
@@ -1231,7 +1367,7 @@ let ExplainPlugin = (function () {
       createPlayerGUI();
       createCameraGUI();
 
-      uiState = new UIState([playPanel, recordPanel, playButton, cameraVideo], {
+      uiState = new UIState([playPanel, recordPanel, playButton, cameraPanel], {
         INIT: {
           name: "INIT",
           transition: {
