@@ -419,10 +419,23 @@ let ExplainPlugin = (function () {
   async function setupRecorder() {
     try {
       stream = null;
+
+      // capture video/audio stream of desktop signal
       await captureScreen();
+
+      // capture audio stream of microphone
       await captureMicrophone();
-      await captureCamera();
+
+      // merge desktop and microphone streams into one stream to be recorded
       mergeStreams();
+
+      // setup shaders for greenscreen (has to be done before captureCamera())
+      if (useGreenScreen) {
+        setupGreenScreen();
+      }
+
+      // capture video stream of webcam
+      await captureCamera();
 
       recordButton.disabled = undefined;
       pauseButton.disabled = true;
@@ -1013,11 +1026,24 @@ let ExplainPlugin = (function () {
     });
     cameraVideo.muted = true; // don't want audio in this stream
 
-    // camera panel is set to either cameraVideo or cameraCanvas
-    cameraPanel = cameraVideo;
+    cameraCanvas = createElement({
+      type: "canvas",
+      id: "camera-canvas",
+      classes: "camera-panel",
+      parent: document.body,
+    });
+    if (gsBackground) {
+      cameraCanvas.style.backgroundImage = `url('${gsBackground}')`;
+      cameraCanvas.style.backgroundSize = "cover";
+    }
 
+    // camera panel is set to either cameraVideo or cameraCanvas
     if (useGreenScreen) {
-      setupGreenScreen();
+      cameraVideo.style.display = "none";
+      cameraPanel = cameraCanvas;
+    }
+    else {
+      cameraPanel = cameraVideo;
     }
 
     // initialize translation and scaling
@@ -1080,22 +1106,6 @@ let ExplainPlugin = (function () {
 
   // adapted from https://jameshfisher.com/2020/08/11/production-ready-green-screen-in-the-browser/
   function setupGreenScreen() {
-    // hide video element
-    cameraVideo.style.display = 'none';
-
-    // create canvas
-    cameraPanel = cameraCanvas = createElement({
-      type: "canvas",
-      id: "camera-canvas",
-      classes: "camera-panel",
-      parent: document.body,
-    });
-
-    if (gsBackground) {
-      cameraCanvas.style.backgroundImage = `url('${gsBackground}')`;
-      cameraCanvas.style.backgroundSize = "cover";
-    }
-
     const gl = cameraCanvas.getContext("webgl", { premultipliedAlpha: false });
 
     const vsource = String.raw`attribute vec2 c; 
