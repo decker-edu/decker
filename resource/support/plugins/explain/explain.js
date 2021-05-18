@@ -26,9 +26,14 @@ let ExplainPlugin = (function () {
   // greenscreen
   let useGreenScreen = config.useGreenScreen || false;
   let gsBackground = config.greenScreenBackground || undefined;
-  let gsKey = {r:0, g:255, b:0};
-  let gsSimilarity = 0.4;
-  let gsSmoothness = 0.08;
+  let gsKey = config.greenScreenKey || {r:0, g:255, b:0};
+  let gsSimilarity = config.greenScreenSimilarity || 0.4;
+  let gsSmoothness = config.greenScreenSmoothness || 0.08;
+  // console.log(gsKey.r);
+  // console.log(gsKey.g);
+  // console.log(gsKey.b);
+  // console.log(gsSimilarity);
+  // console.log(gsSmoothness);
 
   // playback stuff
   let explainVideoUrl, explainTimesUrl, explainTimes;
