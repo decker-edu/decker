@@ -267,3 +267,9 @@ span.capture-size {
   border-radius: 0;
   border: none;
 }
+
+/* when using greenscren, but no background image, remove border */
+#camera-canvas[data-has-background=false] {
+  border: none;
+  border-radius: 0px;
+}

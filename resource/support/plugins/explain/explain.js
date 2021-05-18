@@ -1035,6 +1035,10 @@ let ExplainPlugin = (function () {
     if (gsBackground) {
       cameraCanvas.style.backgroundImage = `url('${gsBackground}')`;
       cameraCanvas.style.backgroundSize = "cover";
+      cameraCanvas.setAttribute("data-has-background", true);
+    }
+    else {
+      cameraCanvas.setAttribute("data-has-background", false);
     }
 
     // camera panel is set to either cameraVideo or cameraCanvas
