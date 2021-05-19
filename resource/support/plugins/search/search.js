@@ -175,6 +175,8 @@ function Hilitor(id, tag)
 			searchElement.style.top  = "calc(var(--whiteboard-icon-size) * 0.25)";
 			searchElement.style.left = "calc(var(--whiteboard-icon-size) * 2.25)";
 			searchElement.style.padding = "calc(var(--whiteboard-icon-size) * 0.5)";
+			searchElement.style.borderRadius = "0.25em";
+			searchElement.style.background = "white";
 			searchElement.style.fontSize = "var(--whiteboard-icon-size)";
 			searchElement.style.color = "var(--whiteboard-active-color)";
 			searchElement.style.zIndex = 10;
