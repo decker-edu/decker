@@ -29,11 +29,13 @@ let ExplainPlugin = (function () {
   let gsKey = config.greenScreenKey || {r:0, g:255, b:0};
   let gsSimilarity = config.greenScreenSimilarity || 0.4;
   let gsSmoothness = config.greenScreenSmoothness || 0.08;
-  // console.log(gsKey.r);
-  // console.log(gsKey.g);
-  // console.log(gsKey.b);
-  // console.log(gsSimilarity);
-  // console.log(gsSmoothness);
+  let gsSpill = config.greenScreenSpill || 0.1;
+  console.log(gsKey.r);
+  console.log(gsKey.g);
+  console.log(gsKey.b);
+  console.log(gsSimilarity);
+  console.log(gsSmoothness);
+  console.log(gsSpill);
 
   // playback stuff
   let explainVideoUrl, explainTimesUrl, explainTimes;
@@ -1129,6 +1131,7 @@ let ExplainPlugin = (function () {
     uniform vec3  keyColor;
     uniform float similarity;
     uniform float smoothness;
+    uniform float spill;
 
     // From https://github.com/obsproject/obs-studio/blob/master/plugins/obs-filters/data/chroma_key_filter_v2.effect
     vec2 rgb2uv(vec3 rgb) {
@@ -1144,6 +1147,9 @@ let ExplainPlugin = (function () {
       float baseMask = chromaDist - similarity;
       float fullMask = pow(clamp(baseMask / smoothness, 0., 1.), 1.5);
       rgba.a = fullMask;
+      float spillVal = pow(clamp(baseMask / spill, 0., 1.), 1.5);
+      float desat = clamp(rgba.r * 0.2126 + rgba.g * 0.7152 + rgba.b * 0.0722, 0., 1.);
+      rgba.rgb = mix(vec3(desat, desat, desat), rgba.rgb, spillVal);
       return rgba;
     }
 
@@ -1188,6 +1194,7 @@ let ExplainPlugin = (function () {
     const keyColorLoc = gl.getUniformLocation(prog, "keyColor");
     const similarityLoc = gl.getUniformLocation(prog, "similarity");
     const smoothnessLoc = gl.getUniformLocation(prog, "smoothness");
+    const spillLoc = gl.getUniformLocation(prog, "spill");
 
     function processFrame(now, metadata) {
       if (cameraCanvas.width != metadata.width) {
@@ -1203,6 +1210,7 @@ let ExplainPlugin = (function () {
       gl.uniform3f(keyColorLoc, gsKey.r/255.0, gsKey.g/255.0,gsKey.b/255.0);
       gl.uniform1f(similarityLoc, gsSimilarity);
       gl.uniform1f(smoothnessLoc, gsSmoothness);
+      gl.uniform1f(spillLoc, gsSpill);
 
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
       cameraVideo.requestVideoFrameCallback(processFrame);
