@@ -30,12 +30,6 @@ let ExplainPlugin = (function () {
   let gsSimilarity = config.greenScreenSimilarity || 0.4;
   let gsSmoothness = config.greenScreenSmoothness || 0.08;
   let gsSpill = config.greenScreenSpill || 0.1;
-  console.log(gsKey.r);
-  console.log(gsKey.g);
-  console.log(gsKey.b);
-  console.log(gsSimilarity);
-  console.log(gsSmoothness);
-  console.log(gsSpill);
 
   // playback stuff
   let explainVideoUrl, explainTimesUrl, explainTimes;
@@ -331,12 +325,13 @@ let ExplainPlugin = (function () {
       },
     });
 
+    // if mic capture succeeded...
     if (voiceStream.getAudioTracks().length > 0) {
+      // ...update GUI
       const selectedMicrophone = voiceStream.getAudioTracks()[0].label;
       voiceIndicator.title = selectedMicrophone;
       micIndicator.title = selectedMicrophone;
       voiceGainSlider.disabled = false;
-      // update mic selector
       micSelect.selectedIndex = -1;
       for (let i = 0; i < micSelect.options.length; i++) {
         if (micSelect.options[i].text == selectedMicrophone) {
@@ -344,7 +339,11 @@ let ExplainPlugin = (function () {
           break;
         }
       }
-    } else {
+      // ...remember selected mic
+      localStorage.setItem("decker-microphone", micSelect.value);
+    } 
+    // if mic capture failed...
+    else {
       voiceIndicator.removeAttribute("title");
       micIndicator.removeAttribute("title");
       voiceGainSlider.disabled = true;
@@ -357,8 +356,6 @@ let ExplainPlugin = (function () {
   }
 
   async function captureCamera() {
-    // const config = Reveal.getConfig().explain;
-    const config = Decker.meta.explain;
     const camWidth = config && config.camWidth ? config.camWidth : undefined;
     const camHeight = config && config.camHeight ? config.camHeight : undefined;
 
@@ -376,10 +373,13 @@ let ExplainPlugin = (function () {
       audio: false,
     });
 
+    // if camera capture succeeded...
     if (cameraStream.getVideoTracks().length > 0) {
+      // ...update GUI
       const selectedCamera = cameraStream.getVideoTracks()[0].label;
+      const cameraSettings = cameraStream.getVideoTracks()[0].getSettings();
+      cameraCaptureSize.textContent = `${cameraSettings.width}x${cameraSettings.height}`;
       camIndicator.title = selectedCamera;
-      // update camSelect
       camSelect.selectedIndex = -1;
       for (let i = 0; i < camSelect.options.length; i++) {
         if (camSelect.options[i].text == selectedCamera) {
@@ -387,7 +387,10 @@ let ExplainPlugin = (function () {
           break;
         }
       }
-      // connect camera to video element
+      // ...remember selected camera
+      localStorage.setItem("decker-camera", camSelect.value);
+
+      // ...connect camera to video element
       if (cameraPanel.classList.contains("visible")) {
         cameraVideo.pause();
         cameraVideo.srcObject = cameraStream;
@@ -395,10 +398,9 @@ let ExplainPlugin = (function () {
       } else {
         // cameraVideo.srcObject = cameraStream;
       }
-      let camera = cameraStream.getVideoTracks()[0].getSettings();
-      console.log("camera stream size: ", camera.width, camera.height);
-      cameraCaptureSize.textContent = `${camera.width}x${camera.height}`;
-    } else {
+    } 
+    // if camera capture failed...
+    else {
       camIndicator.removeAttribute("title");
     }
 
@@ -959,9 +961,9 @@ let ExplainPlugin = (function () {
         }
       });
 
-      // unselect camera & microphone
-      micSelect.value = undefined;
-      camSelect.value = undefined;
+      // select previously chosen camera & microphone
+      micSelect.value = localStorage.getItem("decker-microphone") || undefined;
+      camSelect.value = localStorage.getItem("decker-camera") || undefined;
     } catch (e) {
       console.log("cannot list microphones and cameras:" + e);
     }
