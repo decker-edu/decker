@@ -340,7 +340,10 @@ let ExplainPlugin = (function () {
         }
       }
       // ...remember selected mic
-      localStorage.setItem("decker-microphone", micSelect.value);
+      if (micSelect.selectedIndex != -1) {
+        // store label, since ID changes after reboot
+        localStorage.setItem("decker-microphone", selectedMicrophone);
+      }
     } 
     // if mic capture failed...
     else {
@@ -388,7 +391,10 @@ let ExplainPlugin = (function () {
         }
       }
       // ...remember selected camera
-      localStorage.setItem("decker-camera", camSelect.value);
+      if (camSelect.selectedIndex != -1) {
+        // store label, since ID changes after reboot
+        localStorage.setItem("decker-camera", selectedCamera);
+      }
 
       // ...connect camera to video element
       if (cameraPanel.classList.contains("visible")) {
@@ -948,22 +954,41 @@ let ExplainPlugin = (function () {
             const option = document.createElement("option");
             option.value = device.deviceId;
             option.text = device.label || `microphone ${micSelect.length + 1}`;
-            micSelect.appendChild(option);
+            micSelect.add(option);
             break;
           }
           case "videoinput": {
             const option = document.createElement("option");
             option.value = device.deviceId;
             option.text = device.label || `camera ${camSelect.length + 1}`;
-            camSelect.appendChild(option);
+            camSelect.add(option);
             break;
           }
         }
       });
 
-      // select previously chosen camera & microphone
-      micSelect.value = localStorage.getItem("decker-microphone") || undefined;
-      camSelect.value = localStorage.getItem("decker-camera") || undefined;
+      // select previously chosen camera 
+      camSelect.selectedIndex = -1;
+      const selectedCamera = localStorage.getItem("decker-camera");
+      if (selectedCamera) {
+        for (let i = 0; i < camSelect.options.length; i++) {
+          if (camSelect.options[i].text == selectedCamera) {
+            camSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      // select previously chosen microphone
+      micSelect.selectedIndex = -1;
+      const selectedMicrophone = localStorage.getItem("decker-microphone");
+      if (selectedMicrophone) {
+        for (let i = 0; i < micSelect.options.length; i++) {
+          if (micSelect.options[i].text == selectedMicrophone) {
+            micSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
     } catch (e) {
       console.log("cannot list microphones and cameras:" + e);
     }
