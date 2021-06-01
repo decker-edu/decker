@@ -92,6 +92,12 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.reveal svg.whiteboard > path.laser {
+  stroke-width: 4px !important;
+  stroke: red !important;
+  filter: drop-shadow(0 0 3px red) !important;
+  transition: opacity 0.5s linear 1s;
+}
 
 /* whiteboard button */
 .reveal button.whiteboard {
@@ -210,47 +216,6 @@
   text-align: center;
   vertical-align: middle;
   color: black;
-}
-
-/* slides for choosing pen width */
-#whiteboardSlider {
-  --size: 1px;
-  --color: black;
-  display: block;
-  text-align: center;
-  -webkit-appearance: none;
-  appearance: none;
-  width: calc(var(--whiteboard-icon-size) * 13);
-  height: 2px;
-  padding: 0px;
-  margin: calc(var(--whiteboard-icon-size) * 0.5);
-  background: lightgrey;
-  border: 0;
-  outline: none;
-}
-
-/* shape of slider knob in Chrome */
-#whiteboardSlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: var(--size);
-  height: var(--size);
-  background: var(--color);
-  border-radius: 100%;
-  cursor: pointer;
-  outline: none;
-  border: 0;
-}
-
-/* shape of slider knob in Firefox */
-#whiteboardSlider::-moz-range-thumb {
-  width: var(--size);
-  height: var(--size);
-  background: var(--color);
-  border-radius: 100%;
-  cursor: pointer;
-  outline: none;
-  border: 0;
 }
 
 /* MacOS only shows scrollbars when they are used.
