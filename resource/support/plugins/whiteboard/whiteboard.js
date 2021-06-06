@@ -68,6 +68,7 @@ let RevealWhiteboard = (function () {
   const TOGGLE_LASER=4;
   const MOVE=5;
   let tool = PEN;
+  let triggerToggleLaser = false;
 
   // variable used to block leaving HTML page
   let unsavedAnnotations = false;
@@ -362,7 +363,7 @@ let RevealWhiteboard = (function () {
     let col2 = "rgba(255, 0, 0, 0.9)";
     let col3 = "rgba(255, 0, 0, 0.7)";
     let col4 = "rgba(255, 0, 0, 0.0)";
-    let grdLaser = ctx.createRadialGradient(10, 10, 1, 10, 10, 5);
+    let grdLaser = ctx.createRadialGradient(10, 10, 1, 10, 10, 10);
     grdLaser.addColorStop(0.0, col1);
     grdLaser.addColorStop(0.3, col2);
     grdLaser.addColorStop(0.6, col3);
@@ -1052,11 +1053,10 @@ let RevealWhiteboard = (function () {
    * compute mouse position, setup new stroke
    */
   function startStroke(evt) {
-    // when stroke is active, stop it first
-    if (stroke) {
-      console.error("should not happen");
-      stopStroke();
-    }
+    // console.log("start stroke");
+
+    // don't start stroke if one is still active
+    if (stroke) return;
 
     // mouse position
     const mouseX = evt.offsetX / slideZoom;
@@ -1093,6 +1093,13 @@ let RevealWhiteboard = (function () {
   function continueStroke(evt) {
     // we need an active stroke
     if (!stroke) return;
+
+    // laser stroke?
+    if (isLaserStroke) {
+      if (!stroke.classList.contains("laser")) {
+        stroke.classList.add("laser");
+      }
+    }
 
     // collect coalesced events
     let events = [evt];
@@ -1177,6 +1184,8 @@ let RevealWhiteboard = (function () {
         if (evt.buttons >= 4) return ERASER;
         // laser selected && pen on wacom (button 1) -> laser
         if (tool == LASER && evt.buttons == 1) return LASER;
+        // pen selected && pen on wacom (button 1) && button 2 -> laser
+        if (tool == PEN && evt.buttons == 3) return LASER;
         // pen selected && pen on wacom (button 1) -> pen
         if (tool == PEN && evt.buttons == 1) return PEN;
         break;
@@ -1199,14 +1208,14 @@ let RevealWhiteboard = (function () {
   }
 
   function pointerdown(evt) {
-    // console.log("pointermove");
+    // console.log("pointerdown");
 
     // only when whiteboard is active
     if (!whiteboardActive) return;
 
     switch (pointerMode(evt)) {
       case TOGGLE_LASER:
-        toggleLaser();
+        triggerToggleLaser = true;
         return killEvent(evt);
 
       case ERASER:
@@ -1247,13 +1256,27 @@ let RevealWhiteboard = (function () {
         return killEvent(evt);
 
       case LASER:
+        triggerToggleLaser = false;
         isLaserStroke = true;
-        continueStroke(evt);
+        // user pressed pen button (pointerdown, but only mouse 2),
+        // then pen touches wacom (no additional pointerdown)
+        if (!stroke) startStroke(evt); 
+        // normal stroke continuation
+        else continueStroke(evt);
         return killEvent(evt);
 
       case PEN:
+        triggerToggleLaser = false;
         continueStroke(evt);
         return killEvent(evt);
+
+      default:
+        // user stopped laser stroke by lifting pen
+        // while keeping pen button down
+        if (stroke && isLaserStroke) {
+          pointerup(evt);
+          return;
+        }
     }
   }
 
@@ -1267,6 +1290,12 @@ let RevealWhiteboard = (function () {
     // only pen and mouse events
     if (evt.pointerType != "pen" && evt.pointerType != "mouse") return;
 
+    // just button 2 down-and-up -> toggle laser
+    if (!stroke && triggerToggleLaser) {
+      triggerToggleLaser = false;
+      toggleLaser();
+    }
+
     // finish pen stroke
     if (stroke) stopStroke(evt);
 
@@ -1275,9 +1304,11 @@ let RevealWhiteboard = (function () {
       case PEN:
         selectCursor(penCursor);
         break;
+
       case LASER:
         selectCursor(laserCursor);
         break;
+
       case ERASER:
         selectCursor(eraserCursor);
         break;

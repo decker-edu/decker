@@ -93,10 +93,10 @@
   stroke-linejoin: round;
 }
 .reveal svg.whiteboard > path.laser {
-  stroke-width: 4px;
-  stroke: red;
-  filter: drop-shadow(0 0 3px red);
-  transition: opacity 0.5s linear 1s;
+  stroke-width: 3px !important;
+  stroke: red !important;
+  filter: drop-shadow(0 0 3px red) !important;
+  transition: opacity 0.5s linear 2s;
 }
 
 /* whiteboard button */
