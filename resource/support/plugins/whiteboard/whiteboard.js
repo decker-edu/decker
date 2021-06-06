@@ -353,6 +353,8 @@ let RevealWhiteboard = (function () {
    ******************************************************************/
 
   function createLaserCursor() {
+    cursorCanvas.width = 20;
+    cursorCanvas.height = 20;
     let ctx = cursorCanvas.getContext("2d");
 
     // setup color gradient
@@ -360,7 +362,7 @@ let RevealWhiteboard = (function () {
     let col2 = "rgba(255, 0, 0, 0.9)";
     let col3 = "rgba(255, 0, 0, 0.7)";
     let col4 = "rgba(255, 0, 0, 0.0)";
-    let grdLaser = ctx.createRadialGradient(10, 10, 1, 10, 10, 10);
+    let grdLaser = ctx.createRadialGradient(10, 10, 1, 10, 10, 5);
     grdLaser.addColorStop(0.0, col1);
     grdLaser.addColorStop(0.3, col2);
     grdLaser.addColorStop(0.6, col3);
@@ -402,8 +404,6 @@ let RevealWhiteboard = (function () {
 
   function createEraserCursor() {
     let ctx = cursorCanvas.getContext("2d");
-    cursorCanvas.width = 20;
-    cursorCanvas.height = 20;
 
     // (adjust canvas size and eraser radius using Reveal scale)
     const slideScale = Reveal.getScale();
@@ -658,6 +658,13 @@ let RevealWhiteboard = (function () {
 
       setWhiteboardHeight(pageHeight);
     }
+  }
+
+  /*
+   * Remove all laser strokes (called before saving annotations)
+   */
+  function clearLaserStrokes() {
+    document.querySelectorAll("svg.whiteboard>path.laser").forEach((stroke) => { stroke.remove(); });
   }
 
   /*
@@ -919,6 +926,9 @@ let RevealWhiteboard = (function () {
    * save annotations to decker server
    */
   function saveAnnotations() {
+    // clear remaining laser strokes
+    clearLaserStrokes();
+
     // electron app?
     if (window.electronApp) {
       if (
@@ -989,7 +999,10 @@ let RevealWhiteboard = (function () {
   // convert points to quadratic Bezier spline
   function renderStroke(points, stroke) {
     const n = points.length;
-    if (n < 2) return;
+    if (n < 2) {
+      alert("fuck");
+      return;
+    }
 
     let path = "";
     let c;
@@ -1012,11 +1025,13 @@ let RevealWhiteboard = (function () {
 
   // is point close enough to stroke to be counted as intersection?
   function isPointInStroke(path, point) {
+    if (!path.hasAttribute("d")) return;
+
     const length = path.getTotalLength();
     const precision = 10;
     let p;
     let d;
-
+    
     for (let s = 0; s <= length; s += precision) {
       p = path.getPointAtLength(s);
       d = distance(point, [p.x, p.y]);
@@ -1037,6 +1052,12 @@ let RevealWhiteboard = (function () {
    * compute mouse position, setup new stroke
    */
   function startStroke(evt) {
+    // when stroke is active, stop it first
+    if (stroke) {
+      console.error("should not happen");
+      stopStroke();
+    }
+
     // mouse position
     const mouseX = evt.offsetX / slideZoom;
     const mouseY = evt.offsetY / slideZoom;
@@ -1073,10 +1094,6 @@ let RevealWhiteboard = (function () {
     // we need an active stroke
     if (!stroke) return;
 
-    if (isLaserStroke) {
-      stroke.classList.add("laser");
-    }
-
     // collect coalesced events
     let events = [evt];
     if (evt.getCoalescedEvents) events = evt.getCoalescedEvents() || events;
@@ -1105,17 +1122,12 @@ let RevealWhiteboard = (function () {
    * stop current stroke:
    */
   function stopStroke(evt) {
-    if (stroke) {
-      // mouse position
-      const mouseX = evt.offsetX / slideZoom;
-      const mouseY = evt.offsetY / slideZoom;
-      const newPoint = [mouseX, mouseY];
+    // we need an active stroke
+    if (!stroke) return;
 
-      // add final point to stroke
-      points.push(newPoint);
-      renderStroke(points, stroke);
-
-      if (isLaserStroke) hideLaserStroke(stroke);
+    // add timer to laser stroke
+    if (isLaserStroke) {
+      stroke.style.opacity = "0";
     }
 
     // reset stroke
@@ -1123,18 +1135,6 @@ let RevealWhiteboard = (function () {
 
     // new stroke -> we have to save
     needToSave(true);
-  }
-
-  /*
-   * make laser stroke transparent and remove it from SVG after 2s
-   */
-  function hideLaserStroke(s) {
-    // make stroke transparent (fades out due to css transition)
-    s.style.opacity = "0";
-    // wait 2sec, then remove stroke from SVG
-    setTimeout(() => {
-      s.remove();
-    }, 2000);
   }
 
   /*
@@ -1199,6 +1199,8 @@ let RevealWhiteboard = (function () {
   }
 
   function pointerdown(evt) {
+    // console.log("pointermove");
+
     // only when whiteboard is active
     if (!whiteboardActive) return;
 
@@ -1229,6 +1231,8 @@ let RevealWhiteboard = (function () {
   }
 
   function pointermove(evt) {
+    // console.log("pointermove");
+
     // only when whiteboard is active
     if (!whiteboardActive) return;
 
@@ -1254,6 +1258,8 @@ let RevealWhiteboard = (function () {
   }
 
   function pointerup(evt) {
+    // console.log("pointerup");
+
     // only when whiteboard is active
     if (!whiteboardActive) return;
     // event has to happen for SVG
@@ -1295,7 +1301,8 @@ let RevealWhiteboard = (function () {
   if (window.PointerEvent) {
     slides.addEventListener("pointerdown", pointerdown, true);
     slides.addEventListener("pointermove", pointermove);
-    slides.addEventListener("pointerup", pointerup);
+    slides.addEventListener("pointerup",   pointerup);
+    slides.addEventListener("pointerout",  pointerup);
   } else {
     console.error("whiteboard requires support for PointerEvents");
   }
@@ -1373,6 +1380,9 @@ let RevealWhiteboard = (function () {
       slides.querySelectorAll("svg.whiteboard").forEach((svg) => {
         svg.style.display = "none";
       });
+  
+      // clear laser strokes from SVGs
+      clearLaserStrokes();
 
       // setup and show current slide's SVG (adjust slide height before!)
       setupSVG();
