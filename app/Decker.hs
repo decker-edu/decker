@@ -344,7 +344,7 @@ run = do
     withTargetDocs "Copy uploaded files to public dir." $
       phony "uploads" $ do
         targets <- getTargets
-        need $ targets ^. annotations <> targets ^. times <> targets ^. recordings
+        need $ targets ^. annotations <> targets ^. times <> targets ^. recordings <> targets ^. captions
     --
     withTargetDocs "Check availability of external programs." $
       phony "check" checkExternalPrograms

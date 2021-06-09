@@ -27,6 +27,7 @@ module Text.Decker.Project.Project
     annotations,
     recordings,
     times,
+    captions,
     css,
     Targets (..),
     Resource (..),
