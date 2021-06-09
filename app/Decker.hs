@@ -214,6 +214,11 @@ run = do
         putNormal $ "# copy (for " <> out <> ")"
         copyFile' src out
       --
+      publicDir <//> "*-recording.vtt" %> \out -> do
+        let src = makeRelative publicDir out
+        putNormal $ "# copy (for " <> out <> ")"
+        copyFile' src out
+      --
       publicDir <//> "*.css" %> \out -> do
         let src = makeRelative publicDir out
         putNormal $ "# copy (for " <> out <> ")"

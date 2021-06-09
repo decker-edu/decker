@@ -1382,7 +1382,6 @@ let ExplainPlugin = (function () {
   }
 
   async function setupPlayer() {
-    // const config = Reveal.getConfig().explain;
     const config = Decker.meta.explain;
     explainVideoUrl = config && config.video ? config.video : deckVideoUrl();
     explainTimesUrl = config && config.times ? config.times : deckTimesUrl();
@@ -1394,6 +1393,18 @@ let ExplainPlugin = (function () {
       if (videoExists && timesExists) {
         explainTimes = await fetchResourceJSON(explainTimesUrl);
         player.src({ type: "video/mp4", src: explainVideoUrl });
+
+        let captionsUrl = explainVideoUrl.replace(".mp4", ".vtt");
+        let captionsExist = await resourceExists(captionsUrl);
+        if (captionsExist) {
+          let captionsOptions = {
+            kind: "captions",
+            srclang: document.documentElement.lang,
+            src: captionsUrl,
+          };
+          player.addRemoteTextTrack(captionsOptions);
+        }
+
         return true;
       } else {
         return false;
