@@ -710,8 +710,9 @@ let ExplainPlugin = (function () {
           event.stopPropagation();
 
           switch (event.code) {
-            // space: play/pause
+            // space or k: play/pause
             case "Space":
+            case "KeyK":
               if (this.paused()) this.play();
               else this.pause();
               break;
@@ -722,6 +723,37 @@ let ExplainPlugin = (function () {
               break;
             case "ArrowRight":
               next();
+              break;
+
+            // up/down: increase/decrease volume by 5%
+            case "ArrowUp":
+              this.volume(Math.min(1.0, this.volume()+0.05));
+              break;
+            case "ArrowDown":
+              this.volume(Math.max(0.0, this.volume()-0.05));
+              break;
+
+            // c: toggle captions
+            case "KeyC":
+              let tracks = player.textTracks();
+              for (let i = 0; i < tracks.length; i++) {
+                if (tracks[i].kind === 'captions') {
+                    tracks[i].mode = (tracks[i].mode === 'showing') ? 'disabled' : 'showing';
+                }
+              }
+              break;
+
+            // j/l: jump backward/forward by 10sec
+            case "KeyJ":
+              player.currentTime(player.currentTime()-10);
+              break;
+            case "KeyL":
+              player.currentTime(player.currentTime()+10);
+              break;
+
+            // m: mute/unmute
+            case "KeyM":
+              this.muted(!this.muted());
               break;
 
             // esc: stop and hide video
@@ -1402,7 +1434,7 @@ let ExplainPlugin = (function () {
             srclang: document.documentElement.lang,
             src: captionsUrl,
           };
-          player.addRemoteTextTrack(captionsOptions);
+          player.addRemoteTextTrack(captionsOptions, false);
         }
 
         return true;
