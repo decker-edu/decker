@@ -773,12 +773,19 @@ let ExplainPlugin = (function () {
     player.on("touchstart", (evt) => {
       const now = Date.now();
       if (lastTap && now - lastTap < 300) {
+        // we have a double tap
         const tapX = evt.touches[0].clientX;
         const playerWidth = player.el().clientWidth;
         if (tapX > 0.66 * playerWidth) {
+          // right border: skip forward
           player.currentTime(player.currentTime() + 10);
         } else if (tapX < 0.33 * playerWidth) {
+          // left border: skip backward
           player.currentTime(player.currentTime() - 10);
+        } else {
+          // center: play/pause
+          if (player.paused()) player.play();
+          else player.pause();
         }
       }
       lastTap = now;
