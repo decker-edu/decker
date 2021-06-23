@@ -97,6 +97,22 @@ renderQuestion meta base qst =
               ]
           ]
       ]
+    renderAnswer (Numerical answer) =
+      [ Div
+          ("", ["answer", "exa-nu"], [])
+          [ rawHtml' $
+              H.textarea ! A.class_ "answer"
+                ! A.placeholder (toValue $ lookupInDictionary "exam.placeholder" meta)
+                ! A.rows "1"
+                $ "",
+            Div
+              ("", ["solution"], [])
+              [ rawHtml' $
+                  H.h3 (toHtml $ lookupInDictionary "exam.solution" meta),
+                Div ("", ["correct"], []) $ parseToBlocks base (show answer)
+              ]
+          ]
+      ]
     -- For now, use OS drop-downs. Later maybe use
     -- https://github.com/vorotina/vanilla-select.
     renderAnswer (MultipleAnswers width answers) =

@@ -15,8 +15,8 @@ import Data.Typeable
 import qualified Data.Yaml as Y
 import GHC.Generics hiding (Meta)
 import Relude
-import Text.Decker.Internal.Meta
 import System.Directory
+import Text.Decker.Internal.Meta
 
 data Choice = Choice
   { _choiceTheAnswer :: Text,
@@ -43,6 +43,9 @@ data Answer
   | FreeForm
       { _answHeightInMm :: Int,
         _answCorrectAnswer :: Text
+      }
+  | Numerical
+      { _answCorrectNumber :: Float
       }
   | MultipleAnswers
       { _answWidthInMm :: Int,
