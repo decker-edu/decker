@@ -1555,6 +1555,12 @@ let ExplainPlugin = (function () {
         () => !uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")
       );
     },
+
+    playVideo: play,
+    stopVideo: stop,
+    isVideoPlaying: () => {
+      return uiState.is("PLAYING");
+    },
   };
 })();
 

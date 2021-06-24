@@ -260,12 +260,20 @@ function isElectron() {
   return false;
 }
 
-function createElement({ type, id, classes, css, text, parent, onclick=null }) {
+function createElement({
+  type,
+  id,
+  classes,
+  css,
+  text,
+  parent,
+  onclick = null,
+}) {
   let e = document.createElement(type);
   if (id) e.id = id;
   if (classes) e.className = classes;
   if (css) e.style = css;
-  if (text) e.innerHTML=text;
+  if (text) e.innerHTML = text;
   if (parent) parent.appendChild(e);
   if (onclick) e.addEventListener("click", onclick);
   return e;
@@ -277,23 +285,19 @@ function continueWhereYouLeftOff() {
   // then ask user whether to jump to slide where he/she left off
 
   if (localStorage) {
-
     // if we are on the first slide
     const slideIndex = Reveal.getIndices();
-    if (slideIndex && slideIndex.h==0 && slideIndex.v==0) {
-
+    if (slideIndex && slideIndex.h == 0 && slideIndex.v == 0) {
       // ...and previous slide index is stored (and not title slide)
       const storedIndex = JSON.parse(localStorage.getItem(deckPathname));
-      if (storedIndex && storedIndex.h!=0) 
-      {
+      if (storedIndex && storedIndex.h != 0) {
         // ...ask to jump to that slide
 
-        const slideNumber = storedIndex.h+1;
+        const slideNumber = storedIndex.h + 1;
 
         // German or non-German?
-        const lang = document.documentElement.lang; 
-        const german = (lang == "de");
-
+        const lang = document.documentElement.lang;
+        const german = lang == "de";
 
         let reveal = document.querySelector(".reveal");
 
@@ -304,7 +308,7 @@ function continueWhereYouLeftOff() {
           parent: reveal,
           text: german
             ? "Bei Folie " + slideNumber + " weitermachen?"
-            : "Continue on slide " + slideNumber + "?"
+            : "Continue on slide " + slideNumber + "?",
         });
 
         let hideDialog = () => {
@@ -317,7 +321,10 @@ function continueWhereYouLeftOff() {
           parent: dialog,
           css: "font:inherit;",
           text: german ? "Ja" : "Yes",
-          onclick: () => { Reveal.slide(storedIndex.h, storedIndex.v); hideDialog(); }
+          onclick: () => {
+            Reveal.slide(storedIndex.h, storedIndex.v);
+            hideDialog();
+          },
         });
 
         let no = createElement({
@@ -326,9 +333,9 @@ function continueWhereYouLeftOff() {
           parent: dialog,
           css: "font:inherit;",
           text: german ? "Nein" : "No",
-          onclick: hideDialog
+          onclick: hideDialog,
         });
-    
+
         // hide dialog after 5sec or on slide change
         setTimeout(hideDialog, 5000);
         Reveal.addEventListener("slidechanged", hideDialog);
@@ -337,6 +344,14 @@ function continueWhereYouLeftOff() {
 
     // add hook to store current slide's index
     window.addEventListener("beforeunload", () => {
+      // if explain video is playing, stop it to switch to current slide
+      if (Reveal.hasPlugin("explain")) {
+        const explainPlugin = Reveal.getPlugin("explain");
+        if (explainPlugin.isVideoPlaying()) {
+          explainPlugin.stopVideo();
+        }
+      }
+      // store current slide index in localStorage
       const slideIndex = Reveal.getIndices();
       if (slideIndex && slideIndex.h != 0) {
         localStorage.setItem(deckPathname, JSON.stringify(slideIndex));
