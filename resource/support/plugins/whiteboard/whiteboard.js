@@ -1213,11 +1213,12 @@ let RevealWhiteboard = (function () {
 
     switch (pointerMode(evt)) {
       case ERASER:
-        clearTimeout(hideCursorTimeout);
-        if (evt.pointerType == "mouse") {
-          showCursor(eraserCursor);
-        } else {
+        if (evt.pointerType == "pen") {
+          clearTimeout(hideCursorTimeout);
           hideCursor();
+        } else {
+          clearTimeout(hideCursorTimeout);
+          showCursor(eraserCursor);
         }
         eraseStroke(evt);
         return killEvent(evt);
@@ -1245,7 +1246,10 @@ let RevealWhiteboard = (function () {
 
     switch (pointerMode(evt)) {
       case MOVE:
-        if (evt.pointerType == "mouse") {
+        if (evt.pointerType == "pen") {
+          clearTimeout(hideCursorTimeout);
+          hideCursor();
+        } else {
           showCursor();
           triggerHideCursor();
         }
