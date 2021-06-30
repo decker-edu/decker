@@ -157,7 +157,6 @@ let RevealMath =
           svg: {
             scale: 0.9, // global scaling factor for all expressions
             minScale: 0.5, // smallest scaling factor to use
-            matchFontHeight: false, // true to match ex-height of surrounding font
             mtextInheritFont: true, // true to make mtext elements use surrounding font
             merrorInheritFont: true, // true to make merror text use surrounding font
             mathmlSpacing: false, // true for MathML spacing rules, false for TeX rules
