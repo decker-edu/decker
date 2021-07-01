@@ -217,7 +217,20 @@ body {
 .reveal ul {
   display: inline-block;
   text-align: left;
-  margin-bottom: 1em;
+  margin-bottom: 0.7em;
+}
+
+/* remove bottom margin of last list element on a slide
+   list element might be encapsulated in a div, e.g.
+   for .incremental or .colXY.
+   also remove bottom margin of last element on slide,
+   no matter what type it is. */
+.reveal .slides section > *:last-child,
+.reveal .slides section > ul:last-child,
+.reveal .slides section > ol:last-child,
+.reveal .slides section > div > ol:last-child,
+.reveal .slides section > div > ul:last-child {
+  margin-bottom: 0;
 }
 
 .reveal ol li,
