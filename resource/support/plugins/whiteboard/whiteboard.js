@@ -326,13 +326,15 @@ let RevealWhiteboard = (function () {
     slides.insertBefore(svg, slides.firstChild);
 
     const h = Math.floor(Math.min(pageWidth, pageHeight) / 25);
+    const rectWidth = pageWidth - 2;
+    const rectHeight = pageHeight - 1;
 
     svg.innerHTML = `<defs>
                  <pattern id="smallPattern" width="${h}" height="${h}" patternUnits="userSpaceOnUse">
                      <path d="M ${h} 0 L 0 0 0 ${h}" fill="none" stroke="#EEEEEE" stroke-width="2"/>
                  </pattern>
                  <pattern id="gridPattern" width="${pageWidth}" height="${pageHeight}" patternUnits="userSpaceOnUse">
-                     <rect width="${pageWidth}" height="${pageHeight}" fill="url(#smallPattern)" stroke="lightgrey" stroke-width="3"/>
+                     <rect width="${rectWidth}" height="${rectHeight}" fill="url(#smallPattern)" stroke="lightgrey" stroke-width="3"/>
                  </pattern>
              </defs>`;
   }
