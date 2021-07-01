@@ -4,36 +4,26 @@ var Poll = (() => {
     return {
         init: () => { 
             return new Promise(resolve => {   
-                Reveal.removeKeyBinding( 65 );
-                Reveal.removeKeyBinding( 67 );
-                Reveal.addKeyBinding( { keyCode: 65, key: "A", description: "poll Response Poll" }, switchPollState );
-                Reveal.addKeyBinding( { keyCode: 67, key: "C", description: "Toggle Poll Link" }, () => {
-                  document.querySelector('#poll-overlay').classList.toggle('active');
-                } );
                 openPoll();
-                window.onbeforeunload = function() {
-                  // socket.send(JSON.stringify({ "tag": "Close", "addr": Reveal.getConfig().pollEmail || "" }));
-                  socket.close();
-                  // return "Email results?";
-                };
                 resolve();
             });
         }
     }
 })();
 
-const server = Reveal.getConfig().pollServer || "https://polls.hci.informatik.uni-wuerzburg.de";
+const server = Reveal.getConfig().pollServer || "polls.hci.informatik.uni-wuerzburg.de";
 var socket = null; var pollID = null; var poll = null; var timer = null;
 var pollState = "not-init";
 var canvas, qrdiv;
-var choices = []; 
+var choices = [];
 
 // Open a websocket to server and build QR code for poll
 function openPoll() {
     if (socket != null) return;
-    socket = new WebSocket("wss://" + server + "/poll");
+    socket = new WebSocket("ws://" + server + "/poll");
   
     socket.onopen = () => { 
+      console.log("Opened socket to polls.");
       document.querySelectorAll('.countdown').forEach(timer => {
         timer.innerHTML = 
           timer.classList.contains('timed') ? 
@@ -44,11 +34,16 @@ function openPoll() {
 
     socket.onmessage = event => { 
       let message = JSON.parse(event.data);
-      // console.log("message from server ", message);
+      console.log("message from server ", message);
 
-      if (message.key !== undefined && pollID == null) { 
-        pollID = message.key;
-        buildCode();
+      if (message.tag) { 
+        Reveal.removeKeyBinding( 65 );
+        Reveal.removeKeyBinding( 67 );
+        Reveal.addKeyBinding( { keyCode: 65, key: "A", description: "poll Response Poll" }, switchPollState );
+        Reveal.addKeyBinding( { keyCode: 67, key: "C", description: "Toggle Poll Link" }, () => {
+          document.querySelector('#poll-overlay').classList.toggle('active');
+        } );
+        buildCode(message.tag);
       }
   
       if (message.state !== undefined) {
@@ -85,8 +80,8 @@ function clockTime(timer) {
 }
 
 // Given Poll ID from server, build QR Code  
-function buildCode() {
-    const pollAddr = "https://" + server + "/poll.html#" + pollID; 
+function buildCode(pollID) {
+    const pollAddr = "https://" + server + "/poll.html/#" + pollID; 
     qrdiv = document.createElement('div');
     qrdiv.id = "poll-overlay";
     
@@ -202,9 +197,10 @@ function stopPoll() {
       choice.classList.remove('started');
   });
   document.querySelector('#poll-overlay').classList.remove('active');
-
+  
   socket.send(JSON.stringify( 
     { "tag": "Stop"
+    , "date": new Date()
     , "question": poll.querySelector('h1').textContent} )); 
 
     poll = null; timer = null; choices = [];

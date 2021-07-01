@@ -1,7 +1,6 @@
 ---
 title: Audience Response Poll
-poll: 
-  email: samantha.monty@uni-wuerzburg.de
+poll: true
 ---
 
 # Audience Response Polls
