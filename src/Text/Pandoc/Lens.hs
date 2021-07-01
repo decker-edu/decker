@@ -6,69 +6,77 @@
 --
 -- Note that both 'Inline', 'Block', and 'MetaValue' have 'Plated' instances
 -- which are useful for traversing the AST.
--- 
+--
 -- This file was taken out of https://github.com/bgamari/pandoc-lens.git at d7959c9.
 -- The original repo does not seem to be maintained very actively and will not compile
 -- with lts-13.3.
 module Text.Pandoc.Lens
-    ( -- * Documents
-      Pandoc
-    , body
-    , meta
-      -- * Blocks
-      -- | Prisms are provided for the constructors of 'Block'
-      -- as well as a 'Plated' instance.
-    , Block
-    , _Plain
-    , _Para
-    , _CodeBlock
-    , _BlockQuote
-    , _OrderedList
-    , _BulletList
-    , _DefinitionList
-    , _Header
-    , _HorizontalRule
-    , _Div
-    , _Null
-      -- * Inlines
-      -- | Prisms are provided for the constructors of 'Inline'
-      -- as well as a 'Plated' instance.
-    , Inline
-    , _Str
-    , _Emph
-    , _Strong
-    , _Strikeout
-    , _Superscript
-    , _Subscript
-    , _SmallCaps
-    , _Quoted
-    , _Cite
-    , _Code
-    , _Space
-    , _LineBreak
-    , _Math
-    , _RawInline
-    , _Link
-    , _Image
-    , _Note
-    , _Span
-    , inlinePrePlate
-      -- * Metadata
-      -- | Prisms are provided for the constructors of 'MetaValue'
-      -- as well as a 'Plated' instance.
-    , MetaValue
-    , _MetaMap
-    , _MetaList
-    , _MetaBool
-    , _MetaString
-    , _MetaInlines
-    , _MetaBlocks
-      -- * Attributes
-    , HasAttr(..)
-    , attrIdentifier
-    , attrClasses
-    , attrs
-    ) where
+  ( -- * Documents
+    Pandoc,
+    body,
+    meta,
+
+    -- * Blocks
+
+    -- | Prisms are provided for the constructors of 'Block'
+    -- as well as a 'Plated' instance.
+    Block,
+    _Plain,
+    _Para,
+    _CodeBlock,
+    _BlockQuote,
+    _OrderedList,
+    _BulletList,
+    _DefinitionList,
+    _Header,
+    _HorizontalRule,
+    _Div,
+    _Null,
+
+    -- * Inlines
+
+    -- | Prisms are provided for the constructors of 'Inline'
+    -- as well as a 'Plated' instance.
+    Inline,
+    _Str,
+    _Emph,
+    _Strong,
+    _Strikeout,
+    _Superscript,
+    _Subscript,
+    _SmallCaps,
+    _Quoted,
+    _Cite,
+    _Code,
+    _Space,
+    _LineBreak,
+    _Math,
+    _RawInline,
+    _Link,
+    _Image,
+    _Note,
+    _Span,
+    inlinePrePlate,
+
+    -- * Metadata
+
+    -- | Prisms are provided for the constructors of 'MetaValue'
+    -- as well as a 'Plated' instance.
+    MetaValue,
+    _MetaMap,
+    _MetaList,
+    _MetaBool,
+    _MetaString,
+    _MetaInlines,
+    _MetaBlocks,
+
+    -- * Attributes
+    HasAttr (..),
+    attrIdentifier,
+    attrClasses,
+    attrs,
+  )
+where
 
 import Control.Lens
 import Data.Map (Map)
@@ -160,8 +168,8 @@ _Header = prism' (\(a, b) -> Header a nullAttr b) f
 _HorizontalRule :: Prism' Block ()
 _HorizontalRule = prism' (const HorizontalRule) f
   where
-    f HorizontalRule     = Just ()
-    f _                  = Nothing
+    f HorizontalRule = Just ()
+    f _ = Nothing
 
 -- | A prism on a 'Div' 'Block'
 _Div :: Prism' Block [Block]
@@ -371,9 +379,8 @@ instance Plated MetaValue where
       _ -> pure inl
 
 -- | An object that has attributes
-class HasAttr a
-    -- | A traversal over the attributes of an object
-  where
+class HasAttr a where
+  -- | A traversal over the attributes of an object
   attributes :: Traversal' a Attr
 
 instance HasAttr Block where

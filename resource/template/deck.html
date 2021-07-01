@@ -636,7 +636,7 @@ $if(quizServer)$
           // Mario's multiple-choice quiz
           quiz: { server: "$quizServer$" },
 $endif$
-
+       
 $if(poll.email)$
         pollEmail: "$poll.email$",
 $endif$
@@ -644,19 +644,11 @@ $if(poll.server)$
         pollServer: "$poll.server$",
 $endif$
 
-$if(explain)$
-          explain: { 
-                $if(explain.video)$ video: "$explain.video$", $endif$
-                $if(explain.times)$ times: "$explain.times$", $endif$
-                $if(explain.recWidth)$  recWidth:  "$explain.recWidth$",  $endif$
-                $if(explain.recHeight)$ recHeight: "$explain.recHeight$", $endif$
-                $if(explain.camWidth)$  camWidth:  "$explain.camWidth$",  $endif$
-                $if(explain.camHeight)$ camHeight: "$explain.camHeight$", $endif$
-                dummy: "dummy"
-          },
+$if(jingles)$
+          // Mario's video jingles
+          jingles: Decker.meta.jingles,
 $endif$
-
-
+        
           // plugins
           dependencies: [
               { src: String.raw`$decker-support-dir$/plugins/charts/Chart.js`},
@@ -681,6 +673,7 @@ $if(poll)$
 $endif$ 
 $if(mario)$              
               { src: String.raw`$decker-support-dir$/plugins/quiz/quiz.js` },
+              { src: String.raw`$decker-support-dir$/plugins/jingles/jingles.js`, async: true },
 $endif$    
 $if(menu)$
               { src: String.raw`$decker-support-dir$/plugins/menu/menu.js`, async: true },

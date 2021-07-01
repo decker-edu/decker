@@ -76,6 +76,8 @@ projectDir = "."
 
 publicDir = "public"
 
+privateDir = "private"
+
 supportDir = "public/support"
 
 devSupportDir = "resource/support"

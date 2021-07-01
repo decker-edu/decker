@@ -170,12 +170,19 @@ function Hilitor(id, tag)
 			searchElement.id = "searchinputdiv";
 			searchElement.classList.add( 'searchdiv' );
 			searchElement.style.position = 'absolute';
-			searchElement.style.top = '10px';
-			searchElement.style.right = '10px';
+
+			// MARIO: adjust position, size, color
+			searchElement.style.top  = "calc(var(--whiteboard-icon-size) * 0.25)";
+			searchElement.style.left = "calc(var(--whiteboard-icon-size) * 2.25)";
+			searchElement.style.padding = "calc(var(--whiteboard-icon-size) * 0.5)";
+			searchElement.style.borderRadius = "0.25em";
+			searchElement.style.background = "white";
+			searchElement.style.fontSize = "var(--whiteboard-icon-size)";
+			searchElement.style.color = "var(--whiteboard-active-color)";
 			searchElement.style.zIndex = 10;
 
             // MARIO: adjust border color and search icon (requires font-awesome)
-			searchElement.innerHTML = '<span><input type="search" id="searchinput" class="searchinput" style="vertical-align: top; border: 2px solid #2a9ddf;"/><i class="fas fa-search searchicon" id="searchbutton" style="vertical-align: top; margin-top: -1px; color: #2a9ddf; font-size: 16px; padding: 4px"></i></span>';
+			searchElement.innerHTML = '<span style="display:flex; align-items:center;"><i class="fas fa-search searchicon" id="searchbutton" style="padding-right: 10px;"></i><input type="search" id="searchinput" class="searchinput" style="border: 3px solid var(--whiteboard-active-color); border-radius:4px;"/></span>';
 
 			dom.wrapper.appendChild( searchElement );
 	}
@@ -205,13 +212,20 @@ function Hilitor(id, tag)
 	}, false );
 
 	document.addEventListener( 'keydown', function( event ) {
-		if( event.key == "F" && (event.ctrlKey || event.metaKey) ) { //Control+Shift+f
+		// MARIO: use standard search shortcut
+		// if( event.key == "F" && (event.ctrlKey || event.metaKey) ) { //Control+Shift+f
+		if( event.key == "f" && (event.ctrlKey || event.metaKey) ) { //Control+Shift+f
 			event.preventDefault();
 			toggleSearch();
 		}
 	}, false );
-	if( window.Reveal ) Reveal.registerKeyboardShortcut( 'CTRL + Shift + F', 'Search' );
+
+	// MARIO: use standard search shortcut
+	if( window.Reveal ) Reveal.registerKeyboardShortcut( 'CTRL/CMD + F', 'Search' );
+	// if( window.Reveal ) Reveal.registerKeyboardShortcut( 'CTRL + Shift + F', 'Search' );
+
 	closeSearch();
-    // MARIO: also export toggle
+
+    // MARIO: also export toggle (will be used in menu plugin)
 	return { open: openSearch, toggle: toggleSearch };
 })();
