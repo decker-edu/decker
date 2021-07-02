@@ -12,15 +12,15 @@ var Poll = (() => {
 })();
 
 const server = Reveal.getConfig().pollServer || "polls.hci.informatik.uni-wuerzburg.de";
-var socket = null; var pollID = null; var poll = null; var timer = null;
+var socket = null; var poll = null; var timer = null;
 var pollState = "not-init";
-var canvas, qrdiv;
-var choices = [];
+var admin = false;
+var canvas, qrdiv, token, email, error;
 
 // Open a websocket to server and build QR code for poll
 function openPoll() {
     if (socket != null) return;
-    socket = new WebSocket("ws://" + server + "/poll");
+    socket = new WebSocket("wss://" + server + "/poll");
   
     socket.onopen = () => { 
       console.log("Opened socket to polls.");
@@ -57,6 +57,14 @@ function openPoll() {
           case "Finished":
             canvas.classList.add("finished");
             socket.send(JSON.stringify( {"tag": "Reset"} ));
+            break;
+          case "NotFound":
+            error.innerText = "User account not found.";
+            break;
+          case "LoggedIn":
+            admin = true;
+            document.querySelector('#login-div').classList.remove('active');
+            document.querySelector('.fa-qrcode').classList.add('admin');
             break;
         }
       }
@@ -136,6 +144,7 @@ function switchPollState() {
 
 // Push question and choices to server
 function startPoll() {
+  var choices = [];
   timer = poll.querySelector('.countdown');
   canvas = poll.nextElementSibling.querySelector('canvas');
   startTimer();
@@ -144,9 +153,7 @@ function startPoll() {
     choices.push(choice.innerText);
   });
   
-  socket.send(JSON.stringify( 
-    { "tag": "Start"
-    , "choices": choices} ));
+  socket.send(JSON.stringify({ "tag": "Start", "choices": choices}));
 }
 
 function startTimer() {
@@ -197,13 +204,11 @@ function stopPoll() {
       choice.classList.remove('started');
   });
   document.querySelector('#poll-overlay').classList.remove('active');
+  let date = new Date();
+  let curDate = date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
   
-  socket.send(JSON.stringify( 
-    { "tag": "Stop"
-    , "date": new Date()
-    , "question": poll.querySelector('h1').textContent} )); 
-
-    poll = null; timer = null; choices = [];
+  socket.send(JSON.stringify({ "tag": "Stop", "date": curDate, "question": poll.querySelector('h1').textContent} )); 
+  poll = null; timer = null; choices = [];
 } 
 
 Reveal.registerPlugin( 'Poll', Poll );
