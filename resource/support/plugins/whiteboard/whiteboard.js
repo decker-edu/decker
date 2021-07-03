@@ -1549,9 +1549,6 @@ let RevealWhiteboard = (function () {
       selectPenColor(penColors[0]);
       selectPenRadius(2);
 
-      // hide buttons in print mode
-      if (printMode) buttons.style.display = "none";
-
       // load annotations
       return new Promise((resolve) => loadAnnotationsFromURL().then(resolve));
     },

@@ -161,6 +161,10 @@
   border: 1px solid #eeeeee;
   background: var(--whiteboard-background-color);
 }
+body.print-pdf #whiteboardButtons {
+  display: none;
+}
+
 
 /* toggle whiteboard buttons with .whiteboardActive on container */
 #whiteboardButtons > button {

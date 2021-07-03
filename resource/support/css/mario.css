@@ -1039,9 +1039,13 @@ div.q-panel {
   background-color: rgba(100, 100, 100, 0.2);
 }
 
+body.print-pdf div.open-button {
+  display: none;
+}
+
 
 /*********************************************
- * MARIO: bibliogrphy
+ * MARIO: bibliography
  *********************************************/
 
 .reveal .references {
