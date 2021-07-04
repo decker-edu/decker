@@ -21,6 +21,7 @@ decker.cabal
 dist/
 node_modules
 public/
+private/
 resource/support/vendor/**
 stack.yaml.lock
 test/decks/*.svg

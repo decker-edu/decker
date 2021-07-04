@@ -1,8 +1,4 @@
-{-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Exam.Xml
@@ -10,58 +6,28 @@ module Text.Decker.Exam.Xml
   )
 where
 
-import Relude
-import Text.Decker.Internal.URI
-import Text.Decker.Internal.Exception
-import Text.Decker.Exam.Question
-import Text.Decker.Exam.Render hiding (renderQuestion)
 import Control.Exception
-import Control.Monad
-import Control.Monad.Loops
+import Control.Lens hiding (Choice)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base64 as B64
-import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.UTF8 as UTF8
-import qualified Data.HashMap.Strict as Map
-import Data.Hashable
-import Data.IORef
-import Data.List
-import Data.List.Extra
 import qualified Data.Map as M
-import Data.Maybe
-import qualified Data.Set as Set
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as E
-import qualified Data.Text.IO as T
-import Data.Typeable
-import Data.XML.Types (Content (..))
-import qualified Data.Yaml as Y
-import Data.Yaml.Pretty as Y
-import Debug.Trace
 import Development.Shake
 import Development.Shake.FilePath
-import Network.URI
-import System.Directory
-import System.Exit
-import System.FilePath
-import System.FilePath.Glob as Glob
-import System.Process
-import System.Random
-import qualified Text.Mustache as M
-import qualified Text.Mustache.Types as MT
+import Relude
+import Text.Decker.Exam.Question
+import Text.Decker.Internal.Exception
+import Text.Decker.Internal.URI
 import Text.Pandoc
-import Text.Pandoc.Highlighting
-import Text.Pandoc.PDF
 import Text.Pandoc.Walk
-import Text.Printf
 import qualified Text.XML as XML
 
 -- Renders a catalog of all questions sorted by LectureId and TopicId.
 renderXmlCatalog ::
-  FilePath -> [Question] -> FilePath -> Action ()
-renderXmlCatalog projectDir questions out = do
-  rendered <- mapM (renderQuestion . insertTitle) questions
+  [Question] -> FilePath -> Action ()
+renderXmlCatalog questions out = do
+  rendered <- mapM (renderMarkdownFields . insertTitle) questions
   let sorted = sortQuestions rendered
       nodes = concatMap renderXML sorted
       quiz = XML.Element "quiz" M.empty nodes
@@ -152,7 +118,6 @@ renderXmlCatalog projectDir questions out = do
               ++ renderAnswer (_qstAnswer question)
           )
       where
-        answer = renderAnswer (_qstAnswer question)
         renderAnswer (MultipleChoice choices) =
           map (renderChoice $ correctAnswers choices) choices
         renderAnswer (FillText fillText correctWords) =
@@ -163,6 +128,13 @@ renderXmlCatalog projectDir questions out = do
                 [XML.NodeElement $ XML.Element "text" M.empty []]
           ]
         renderAnswer (FreeForm heightInMm correctAnswer) =
+          [ XML.NodeElement $
+              XML.Element
+                "answer"
+                (M.fromList [("fraction", "0")])
+                [XML.NodeElement $ XML.Element "text" M.empty []]
+          ]
+        renderAnswer (Numerical correctAnswer) =
           [ XML.NodeElement $
               XML.Element
                 "answer"
@@ -226,8 +198,8 @@ xmlAnswerType q =
     MultipleChoice choices -> "multichoice"
     FillText fillText correctWords -> "essay"
     FreeForm heightInMm correctAnswer -> "essay"
+    Numerical correctAnswer -> "numerical"
     MultipleAnswers widthInMm answers -> "matching"
-
 
 -- | Inserts the title into the question text.
 insertTitle :: Question -> Question
@@ -237,14 +209,27 @@ insertTitle q =
 sortQuestions :: [Question] -> [Question]
 sortQuestions =
   sortBy
-    (\a b ->
-       case compare (_qstLectureId a) (_qstLectureId b) of
-         EQ -> compare (_qstTopicId a) (_qstTopicId b)
-         c -> c)
+    ( \a b ->
+        case compare (_qstLectureId a) (_qstLectureId b) of
+          EQ -> compare (_qstTopicId a) (_qstTopicId b)
+          c -> c
+    )
 
-renderQuestion :: Question -> Action Question
-renderQuestion question =
-  mapM (renderHtml (takeDirectory $ _qstFilePath question)) question
+renderMarkdownFields :: Question -> Action Question
+renderMarkdownFields question = do
+  traverseOf qstTitle render question
+    >>= traverseOf qstQuestion render
+    >>= traverseOf qstAnswer renderAnswer
+  where
+    render = renderHtml (takeDirectory $ _qstFilePath question)
+    renderAnswer answer@MultipleChoice {} =
+      traverseOf (answChoices . each . choiceTheAnswer) render answer
+    renderAnswer answer@FillText {} = traverseOf answFillText render answer
+    renderAnswer answer@FreeForm {} = return answer
+    renderAnswer answer@Numerical {} = return answer
+    renderAnswer answer@MultipleAnswers {} =
+      traverseOf (answAnswers . each . oneDetail) render answer
+        >>= traverseOf (answAnswers . each . oneCorrect) render
 
 embedImages :: FilePath -> Inline -> Action Inline
 embedImages base (Image (id, cls, kv) inlines (url, title)) = do
@@ -277,14 +262,13 @@ renderHtml base markdown =
     readerOptions = def {readerExtensions = pandocExtensions}
     writerOptions =
       def
-        { writerHTMLMathMethod = MathJax ""
-        , writerExtensions = pandocExtensions
-        , writerHighlightStyle = Nothing
+        { writerHTMLMathMethod = MathJax "",
+          writerExtensions = pandocExtensions,
+          writerHighlightStyle = Nothing
         }
     parseMarkdown = runPure . readMarkdown readerOptions
     renderHtml5 = runPure . writeHtml5String writerOptions
 
-useCDATA :: Content -> Bool
-useCDATA (ContentText txt) = False -- length (T.lines txt) > 1
-useCDATA _ = False
-
+-- useCDATA :: Content -> Bool
+-- useCDATA (ContentText txt) = False -- length (T.lines txt) > 1
+-- useCDATA _ = False

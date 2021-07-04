@@ -19,7 +19,9 @@ import NeatInterpolation
 import qualified System.Directory as Dir
 import System.FilePath.Posix
 import System.IO
+import Text.Decker.Exam.Question
 import Text.Decker.Exam.Render
+import Text.Decker.Exam.Xml
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
@@ -231,15 +233,22 @@ run = do
         meta <- getGlobalMeta
         renderQuestion meta src out
       --
-      publicDir <//> "quest-catalog.html" %> \out -> do
+      privateDir <//> "quest-catalog.html" %> \out -> do
         meta <- getGlobalMeta
         targets <- getTargets
         sources <- mapM (calcSource "-quest.html" "-quest.yaml") (targets ^. questions)
         need sources
-        liftIO $ print sources
         renderCatalog meta sources out
+      --
+      privateDir <//> "quest-catalog.xml" %> \out -> do
+        targets <- getTargets
+        sources <- mapM (calcSource "-quest.html" "-quest.yaml") (targets ^. questions)
+        need sources
+        questions <- liftIO $ mapM readQuestion sources
+        renderXmlCatalog questions out
+
       phony "catalogs" $ do
-        need ["public/quest-catalog.html"]
+        need ["private/quest-catalog.html", "private/quest-catalog.xml"]
       --
       indexFile %> \out -> do
         exists <- liftIO $ Dir.doesFileExist indexSource
