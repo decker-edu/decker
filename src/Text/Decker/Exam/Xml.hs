@@ -97,7 +97,10 @@ renderXmlCatalog questions out = do
               XML.NodeElement $
                 XML.Element "answernumbering" M.empty [XML.NodeContent "none"],
               XML.NodeElement $
-                XML.Element "shuffleanswers" M.empty [XML.NodeContent "1"],
+                XML.Element
+                  "shuffleanswers"
+                  M.empty
+                  [XML.NodeContent (if _qstShuffleAnswers question then "1" else "0")],
               XML.NodeElement $
                 XML.Element
                   "defaultgrade"
@@ -131,15 +134,15 @@ renderXmlCatalog questions out = do
           [ XML.NodeElement $
               XML.Element
                 "answer"
-                (M.fromList [("fraction", "0")])
-                [XML.NodeElement $ XML.Element "text" M.empty []]
+                (M.fromList [("fraction", "100")])
+                [XML.NodeElement $ XML.Element "text" M.empty [XML.NodeContent correctAnswer]]
           ]
         renderAnswer (Numerical correctAnswer) =
           [ XML.NodeElement $
               XML.Element
                 "answer"
-                (M.fromList [("fraction", "0")])
-                [XML.NodeElement $ XML.Element "text" M.empty []]
+                (M.fromList [("fraction", "100")])
+                [XML.NodeElement $ XML.Element "text" M.empty [XML.NodeContent (show correctAnswer)]]
           ]
         renderAnswer (MultipleAnswers widthInMm answers) =
           map renderSubQuestion answers
@@ -204,7 +207,12 @@ xmlAnswerType q =
 -- | Inserts the title into the question text.
 insertTitle :: Question -> Question
 insertTitle q =
-  q {_qstQuestion = T.concat ["# ", _qstTitle q, "\n\n", _qstQuestion q]}
+  let style =
+        "<style>"
+          <> " div.formulation.clearfix { background-color: #f9f9f9; color: #000; border: solid 1px #ccc; }"
+          <> " div.formulation.clearfix h1 { font-size: 1.5rem; font-weight: bold; }"
+          <> "</style>\n\n"
+   in q {_qstQuestion = T.concat [style, "# ", _qstTitle q, "\n\n", _qstQuestion q]}
 
 sortQuestions :: [Question] -> [Question]
 sortQuestions =
@@ -246,6 +254,10 @@ embedCode :: Block -> Block
 embedCode (CodeBlock attr code) = CodeBlock attr code
 embedCode block = block
 
+killSinglePara :: Pandoc -> Pandoc
+killSinglePara (Pandoc meta [Para inlines]) = Pandoc meta [Plain inlines]
+killSinglePara pandoc = pandoc
+
 readFileBase64 :: FilePath -> IO String
 readFileBase64 path = UTF8.toString . B64.encode <$> BS.readFile path
 
@@ -253,7 +265,7 @@ renderHtml :: FilePath -> T.Text -> Action T.Text
 renderHtml base markdown =
   case parseMarkdown markdown of
     Right pandoc -> do
-      embedded <- walkM (embedImages base) (walk embedCode pandoc)
+      embedded <- killSinglePara <$> walkM (embedImages base) (walk embedCode pandoc)
       case renderHtml5 embedded of
         Right html5 -> return html5
         Left errMsg -> throw $ PandocException (show errMsg)

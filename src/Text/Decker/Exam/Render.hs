@@ -10,8 +10,6 @@
 module Text.Decker.Exam.Render
   ( renderQuestion,
     renderCatalog,
-    renderQuestionToHtml,
-    compileQuestionToHtml,
   )
 where
 
@@ -37,6 +35,7 @@ import Text.Decker.Reader.Markdown
 -- import Text.Groom
 import Text.Pandoc
 import Text.Pandoc.Walk
+import Text.Pretty.Simple
 
 compileQuestionToHtml :: Meta -> FilePath -> Question -> Action Question
 compileQuestionToHtml meta base quest = do
@@ -88,8 +87,9 @@ renderAnswerToHtml answer@MultipleAnswers {} =
         H.td (preEscapedText $ one ^. oneDetail)
         H.td (preEscapedText $ one ^. oneCorrect)
 renderAnswerToHtml answer@FreeForm {} = do
-  let height = show (_answHeightInMm answer) :: Text
-  H.p ! H.dataAttribute "height" (toValue height) $ preEscapedText $ answer ^. answCorrectAnswer
+  H.text $ answer ^. answCorrectAnswer
+renderAnswerToHtml answer@Numerical {} = do
+  H.text $ answer ^. answCorrectAnswer
 renderAnswerToHtml answer@FillText {} =
   H.p "Not yet implemented"
 

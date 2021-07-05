@@ -30,6 +30,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Pandoc
 import Text.Pandoc.Walk
+import Text.Pretty.Simple
 import qualified Text.URI as URI
 
 -- | Renders a question to Pandoc AST.
@@ -57,7 +58,7 @@ renderQuestion meta base qst =
           )
           []
       ]
-        <> rawHtml' (H.h2 $ toHtml $ _qstTitle qst)
+        <> rawHtml' (H.h2 $ toHtml $ parseToBlocks base (_qstTitle qst))
         <> [Div ("", ["question"], []) $ parseToBlocks base (_qstQuestion qst)]
         <> renderAnswer (_qstAnswer qst)
         <> [ rawHtml' $
@@ -119,8 +120,8 @@ renderQuestion meta base qst =
       let select = H.select $ H.optgroup $ toHtml $ map mkOption answers
           mkOption (OneAnswer _ correct) = H.option $ toHtml correct
           mkDetail (OneAnswer detail correct) =
-            H.tr ! A.class_ "detail" ! dataAttribute "correct" (toValue correct) $
-              toHtml [H.td ! A.class_ "result" $ "", H.td $ toHtml detail, H.td select]
+            H.tr ! A.class_ "detail" ! dataAttribute "correct" (toValue $ correct) $
+              toHtml [H.td ! A.class_ "result" $ "", H.td $ toHtml $ parseToBlocks base detail, H.td select]
        in rawHtml' $
             H.table ! A.class_ "answer exa-ma" $
               H.tbody $
@@ -198,5 +199,7 @@ examinerFilter pandoc@(Pandoc meta _) = walkM expandQuestion pandoc
         let result = Y.decodeEither' $ encodeUtf8 source
         case result of
           Left err -> throw $ InternalException $ show err
-          Right question -> return $ renderQuestion meta base question
+          Right question -> do
+            let q = renderQuestion meta base question
+            return q
     expandQuestion block = return block
