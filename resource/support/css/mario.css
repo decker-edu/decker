@@ -175,6 +175,13 @@ body {
 .reveal h1 {
   text-shadow: none; }
 
+/* do not show empty headers */
+.reveal h1:empty,
+.reveal h2:empty {
+  display: none;
+}
+
+
 /*********************************************
  * OTHER
  *********************************************/
