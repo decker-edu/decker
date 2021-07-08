@@ -15,8 +15,8 @@ import Data.Typeable
 import qualified Data.Yaml as Y
 import GHC.Generics hiding (Meta)
 import Relude
-import Text.Decker.Internal.Meta
 import System.Directory
+import Text.Decker.Internal.Meta
 
 data Choice = Choice
   { _choiceTheAnswer :: Text,
@@ -44,6 +44,9 @@ data Answer
       { _answHeightInMm :: Int,
         _answCorrectAnswer :: Text
       }
+  | Numerical
+      { _answCorrectNumber :: Int
+      }
   | MultipleAnswers
       { _answWidthInMm :: Int,
         _answAnswers :: [OneAnswer]
@@ -67,6 +70,7 @@ data Question = Question
     _qstAnswer :: Answer,
     _qstDifficulty :: Difficulty,
     _qstComment :: Text,
+    _qstShuffleAnswers :: Bool,
     _qstCurrentNumber :: Int,
     _qstFilePath :: String
   }
@@ -94,6 +98,7 @@ instance FromJSON Question where
       <*> q .: "Answer"
       <*> q .: "Difficulty"
       <*> q .: "Comment"
+      <*> q .:? "ShuffleAnswers" .!= True
       <*> q .:? "CurrentNumber" .!= 0
       <*> q .:? "FilePath" .!= "."
   parseJSON invalid = typeMismatch "Question" invalid

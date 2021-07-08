@@ -10,7 +10,6 @@
 module Text.Decker.Exam.Render
   ( renderQuestion,
     renderCatalog,
-    renderQuestionToHtml,
   )
 where
 
@@ -36,28 +35,25 @@ import Text.Decker.Reader.Markdown
 -- import Text.Groom
 import Text.Pandoc
 import Text.Pandoc.Walk
+import Text.Pretty.Simple
 
 compileQuestionToHtml :: Meta -> FilePath -> Question -> Action Question
 compileQuestionToHtml meta base quest = do
-  let render = renderSnippetToHtml meta base
   traverseOf qstTitle render
     =<< traverseOf qstQuestion render
     =<< traverseOf qstAnswer (compileAnswerToHtml meta base) quest
-
-compileAnswerToHtml :: Meta -> FilePath -> Answer -> Action Answer
-compileAnswerToHtml meta base mc@MultipleChoice {} = do
-  let render = renderSnippetToHtml meta base
-  traverseOf (answChoices . traverse . choiceTheAnswer) render mc
-compileAnswerToHtml meta base ma@MultipleAnswers {} = do
-  let render = renderSnippetToHtml meta base
-  traverseOf (answAnswers . traverse . oneDetail) render
-    =<< traverseOf (answAnswers . traverse . oneDetail) render ma
-compileAnswerToHtml meta base ff@FreeForm {} = do
-  let render = renderSnippetToHtml meta base
-  traverseOf answCorrectAnswer render ff
-compileAnswerToHtml meta base ft@FillText {} = do
-  let render = renderSnippetToHtml meta base
-  traverseOf (answCorrectWords . traverse) render ft
+  where
+    render = renderSnippetToHtml meta base
+    compileAnswerToHtml :: Meta -> FilePath -> Answer -> Action Answer
+    compileAnswerToHtml meta base mc@MultipleChoice {} = do
+      traverseOf (answChoices . traverse . choiceTheAnswer) render mc
+    compileAnswerToHtml meta base ma@MultipleAnswers {} = do
+      traverseOf (answAnswers . traverse . oneDetail) render
+        =<< traverseOf (answAnswers . traverse . oneCorrect) render ma
+    compileAnswerToHtml meta base ff@FreeForm {} = return ff
+    compileAnswerToHtml meta base nu@Numerical {} = return nu
+    compileAnswerToHtml meta base ft@FillText {} = do
+      traverseOf (answCorrectWords . traverse) render ft
 
 -- | Renders a Markdown snippet to HTML applying the full Decker media filter.
 renderSnippetToHtml :: Meta -> FilePath -> Text -> Action Text
@@ -91,8 +87,9 @@ renderAnswerToHtml answer@MultipleAnswers {} =
         H.td (preEscapedText $ one ^. oneDetail)
         H.td (preEscapedText $ one ^. oneCorrect)
 renderAnswerToHtml answer@FreeForm {} = do
-  let height = show (_answHeightInMm answer) :: Text
-  H.p ! H.dataAttribute "height" (toValue height) $ preEscapedText $ answer ^. answCorrectAnswer
+  H.text $ answer ^. answCorrectAnswer
+renderAnswerToHtml answer@Numerical {} = do
+  H.text $ answer ^. answCorrectAnswer
 renderAnswerToHtml answer@FillText {} =
   H.p "Not yet implemented"
 

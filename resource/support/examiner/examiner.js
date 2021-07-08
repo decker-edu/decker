@@ -39,6 +39,12 @@ function gradeFF(exam) {
   score.textContent += "0 / 0";
 }
 
+function gradeNU(exam) {
+  let nuAnswer = exam.querySelector("div.solution div.correct");
+  let score = exam.querySelector("div.score span.display");
+  score.textContent += "0 / 0";
+}
+
 function gradeMA(exam) {
   let maAnswer = exam.querySelector("table.exa-ma");
   if (maAnswer !== null) {
@@ -134,6 +140,22 @@ function prepareExaminer() {
         let textarea = ffAnswer.querySelector("textarea");
         solve.addEventListener("click", _ => {
           gradeFF(exam);
+          setAttribute(exam, "solved", true);
+          textarea.setAttribute("readonly", true);
+        });
+        again.addEventListener("click", _ => {
+          removeAttribute(exam, "solved");
+          textarea.removeAttribute("readonly");
+          textarea.value = "";
+        });
+      }
+
+      // Free form answer
+      let nuAnswer = exam.querySelector("div.exa-nu");
+      if (nuAnswer !== null) {
+        let textarea = nuAnswer.querySelector("textarea");
+        solve.addEventListener("click", _ => {
+          gradeNU(exam);
           setAttribute(exam, "solved", true);
           textarea.setAttribute("readonly", true);
         });

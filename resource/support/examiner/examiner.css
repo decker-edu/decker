@@ -26,8 +26,25 @@ div.exa-quest textarea {
 
 .reveal div.exa-quest {
   overflow-y: scroll;
-  overflow-x: scroll;
+  overflow-x: auto;
   max-height: 600px;
+}
+
+.reveal div.exa-quest::-webkit-scrollbar {
+  width: 9px;
+}
+.reveal div.exa-quest::-webkit-scrollbar-track {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.1);
+}
+.reveal div.exa-quest::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.reveal div.exa-quest::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .handout div.exa-quest {
@@ -215,6 +232,34 @@ div.exa-ff div.solution {
 }
 
 div.exa-quest[data-solved] div.exa-ff div.solution {
+  display: block;
+}
+
+div.exa-nu {
+  margin: 0em;
+  padding-left: 0em;
+  padding-top: 0.3em;
+  padding-bottom: 0em;
+}
+
+div.exa-nu h3 {
+  margin: 0em;
+  padding-left: 0em;
+  padding-top: 0.3em;
+  font-weight: bold;
+}
+
+div.exa-nu textarea {
+  width: 100%;
+  resize: none;
+  font-family: "Source Code Pro", monospace;
+}
+
+div.exa-nu div.solution {
+  display: none;
+}
+
+div.exa-quest[data-solved] div.exa-nu div.solution {
   display: block;
 }
 
