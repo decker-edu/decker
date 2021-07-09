@@ -36,7 +36,7 @@ processPandoc ::
   Pandoc ->
   Action Pandoc
 processPandoc transform base disp prov pandoc =
-  evalStateT (transform pandoc) (DeckerState base disp prov)
+  evalStateT (transform pandoc) (DeckerState base disp prov 0)
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
 splitJoinColumns :: Slide -> Decker Slide
@@ -103,19 +103,23 @@ wrapBoxes slide@(Slide header body) = do
 -- | Map over all active slides in a deck.
 mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
 mapSlides action (Pandoc meta blocks) = do
-  slides <- selectActiveContent (toSlides blocks)
-  Pandoc meta . fromSlides <$> mapM action slides
+  slides <-
+    selectActiveContent (toSlides blocks)
+      >>= mapM action
+      >>= fromSlidesD
+  return $ Pandoc meta slides
 
 filterNotebookSlides :: Pandoc -> Pandoc
 filterNotebookSlides (Pandoc meta blocks) =
-  let inNotebook = fromSlides $ filter notebook (toSlides blocks)
+  let notebook slide = "notebook" `elem` view (attributes . attrClasses) slide
+      inNotebook = fromSlides $ filter notebook (toSlides blocks)
       stripped = walk strip inNotebook
-      strip (Header level _ inlines) = Header level nullAttr inlines
-      strip (CodeBlock (_, classes, _) code)
-        | "code" `notElem` classes = CodeBlock nullAttr code
-      strip block = block
-      notebook slide = "notebook" `elem` (view (attributes . attrClasses) slide)
    in Pandoc meta (deDiv stripped)
+  where
+    strip (Header level _ inlines) = Header level nullAttr inlines
+    strip (CodeBlock (_, classes, _) code)
+      | "code" `notElem` classes = CodeBlock nullAttr code
+    strip block = block
 
 wrapSlidesinDivs :: Pandoc -> Pandoc
 wrapSlidesinDivs (Pandoc meta blocks) =
