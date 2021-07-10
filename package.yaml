@@ -36,8 +36,6 @@ category: Tool
 description: Please see the README at <https://gitlab2.informatik.uni-wuerzburg.de/decker/decker#readme>
 
 dependencies:
-  - Glob
-  - HTTP
   - aeson
   - ansi-terminal
   - array
@@ -57,9 +55,11 @@ dependencies:
   - filepath
   - formatting
   - fsnotify
+  - Glob
   - groom
   - hashable
   - hspec
+  - HTTP
   - http-client
   - http-conduit
   - http-types

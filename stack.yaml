@@ -7,24 +7,9 @@ flags:
 packages:
   - "."
 extra-deps:
-  - citeproc-0.3.0.5
-  - commonmark-0.1.1.3
-  - commonmark-extensions-0.2.0.4
-  - commonmark-pandoc-0.2.0.1
-  - doctemplates-0.9
-  - haddock-library-1.9.0
-  - hslua-1.3.0
-  - HsYAML-aeson-0.2.0.0
-  - jira-wiki-markup-1.3.2
-  - lens-4.19.2
-  - pandoc-2.11.4
-  - pandoc-types-1.22
-  - regex-posix-clib-2.7
-  - rfc5051-0.2
-  - skylighting-0.10.2
-  - skylighting-core-0.10.2
-  - texmath-0.12.1
-  - shake-0.19.1
-resolver: lts-17.2
+  - regex-posix-clib-2.7@sha256:998fca06da3d719818f0691ef0b8b9b7375afeea228cb08bd9e2db53f96b0cd7,1232
+  # - shake-0.19.1
+resolver: lts-18.1
 ghc-options:
   "$locals": -fhide-source-paths -Wno-missing-home-modules
+  '$everything': -haddock

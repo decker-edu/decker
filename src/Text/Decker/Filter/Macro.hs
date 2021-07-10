@@ -71,7 +71,7 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
             "https://h5.veer.tv/photo-player?pid=%s&amp;utm_medium=embed"
             vid ::
             String
-        _ -> error $ "Unknown streaming service: " <> toString vid
+        _ -> error $ "Unknown streaming service: " <> Text.unpack vid
     vidWidthStr = macroArg 0 args "560"
     vidHeightStr = macroArg 1 args "315"
     vidWidth = readDefault 560.0 vidWidthStr :: Float
