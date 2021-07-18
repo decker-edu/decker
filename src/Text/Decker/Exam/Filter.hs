@@ -30,7 +30,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Pandoc
 import Text.Pandoc.Walk
-import Text.Pretty.Simple
+-- import Text.Pretty.Simple
 import qualified Text.URI as URI
 
 -- | Renders a question to Pandoc AST.

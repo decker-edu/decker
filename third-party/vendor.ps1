@@ -12,10 +12,6 @@ $support = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPa
 
 Write-Host "Building third party dependencies" -ForegroundColor Green
 
-# Build jquery
-Set-Location "$third\jquery"
-& npm run build
-
 # Build thebelab
 Set-Location "$third\thebelab"
 & npm install

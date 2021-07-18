@@ -23,7 +23,6 @@ function deckerStart() {
   fixAutoplayWithStart();
   fixBibtexLinks();
   currentDate();
-  addSourceCodeLabels();
   prepareTaskLists();
   prepareFullscreenIframes();
   if (Reveal.getConfig().verticalSlides) {
@@ -128,15 +127,6 @@ function setupVerticalSlides() {
   }
   Reveal.sync();
   Reveal.setState(Reveal.getState());
-}
-
-function addSourceCodeLabels() {
-  $("div.sourceCode[label]").each(function () {
-    $("<div/>")
-      .addClass("language-label")
-      .text($(this).attr("label"))
-      .prependTo($(this).children("pre"));
-  });
 }
 
 function prepareCodeHighlighting() {
