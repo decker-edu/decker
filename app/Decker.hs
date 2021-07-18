@@ -5,6 +5,7 @@
 module Decker where
 
 import Control.Concurrent
+import Control.Exception (SomeException (SomeException), catch)
 import Control.Lens ((^.))
 import Control.Monad.Extra
 import Data.IORef ()
@@ -276,20 +277,20 @@ run = do
         let src = dropExtension out
         need [src]
         putNormal $ "# plantuml (for " <> out <> ")"
-        plantuml [src]
+        plantuml [src] (Just out)
         liftIO $ Dir.renameFile (src -<.> "svg") out
       --
       "**/*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
         putNormal $ "# dot (for " <> out <> ")"
-        dot ["-o" ++ out, src]
+        dot ["-o" ++ out, src] (Just out)
       --
       "**/*.gnuplot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
         putNormal $ "# gnuplot (for " <> out <> ")"
-        gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src]
+        gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src] (Just out)
       --
       "**/*-recording.mp4" %> \out -> do
         let src = replaceSuffix "-recording.mp4" "-recording.webm" out
@@ -312,9 +313,9 @@ run = do
         let pdf = src -<.> ".pdf"
         let dir = takeDirectory src
         need [src]
-        pdflatex ["-output-directory", dir, src]
-        pdf2svg [pdf, out]
-        liftIO $ Dir.removeFile pdf
+        pdflatex ["-output-directory", dir, src] Nothing
+        pdf2svg [pdf, out] (Just out)
+        liftIO (Dir.removeFile pdf `catch` (\(SomeException _) -> return ()))
     --
     -- Catch all. Just copy project/* to public/*. This nicely handles ALL
     -- resources. Just `need` them where you need them.
@@ -355,9 +356,6 @@ run = do
         targets <- getTargets
         need $ targets ^. annotations <> targets ^. times <> targets ^. recordings <> targets ^. captions
     --
-    withTargetDocs "Check availability of external programs." $
-      phony "check" checkExternalPrograms
-    --
     withTargetDocs "Publish the public dir to the configured destination using rsync." $
       phony "publish" $ do
         need ["support"]
@@ -370,8 +368,8 @@ run = do
             let host = lookupMetaOrFail "rsync-destination.host" meta
             let path = lookupMetaOrFail "rsync-destination.path" meta
             let dst = intercalate ":" [host, path]
-            ssh [host, "mkdir -p", path]
-            rsync [src, dst]
+            ssh [host, "mkdir -p", path] Nothing
+            rsync [src, dst] Nothing
 
 needIfExists :: String -> String -> String -> Action ()
 needIfExists suffix also out = do
@@ -383,7 +381,7 @@ needIfExists suffix also out = do
 publishWithRsync :: String -> String -> Meta -> Action ()
 publishWithRsync source destination meta = do
   let options = lookupMetaOrElse [] "publish.rsync.options" meta :: [String]
-  rsync $ options <> [source, destination]
+  rsync (options <> [source, destination]) Nothing
 
 waitForYes :: IO ()
 waitForYes = do

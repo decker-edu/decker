@@ -162,8 +162,6 @@ findProjectRoot = do
           | FP.isDrive dir -> return start
           | otherwise -> search (FP.takeDirectory dir) start
 
--- return dir
-
 -- Move CWD to the project directory.
 setProjectDirectory :: IO ()
 setProjectDirectory = do

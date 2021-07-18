@@ -88,6 +88,7 @@ dependencies:
   - snap-core
   - snap-server
   - split
+  - blaze-svg
   - tagsoup
   - template-haskell
   - text

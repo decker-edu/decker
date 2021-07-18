@@ -94,3 +94,5 @@ deckerMetaFile = "decker.yaml"
 targetsFile = transientDir </> "targets.yaml"
 
 metaArgsFile = transientDir </> "meta-args.yaml"
+
+externalStatusFile = transientDir </> "external-programs.json"
