@@ -1385,7 +1385,7 @@ let ExplainPlugin = (function () {
   }
 
   // Reveal ignores key events when modifiers are pressed. We therefore use a "normal" keydown callback.
-  // We still add a dummy callback to Reveal, to prevent other plugins
+  // We still add a dummy callback prevent other plugins
   // to use "our" keys and to add our keys to the help menu.
   Reveal.addKeyBinding(
     { keyCode: 82, key: "R", description: "Toggle Recording" },
@@ -1457,10 +1457,23 @@ let ExplainPlugin = (function () {
     const config = Decker.meta.explain;
     explainVideoUrl = config && config.video ? config.video : deckVideoUrl();
     explainTimesUrl = config && config.times ? config.times : deckTimesUrl();
+    let videoExists = false,
+      timesExists = false;
 
     try {
-      let videoExists = await resourceExists(explainVideoUrl);
-      let timesExists = await resourceExists(explainTimesUrl);
+      // if in electron app and user specified base url for videos:
+      // if times exist locally, we assume the video exists on remote server
+      if (window.electronApp && config && config.electronVideoUrl) {
+        explainVideoUrl =
+          config.electronVideoUrl + videoFilenameBase() + "-recording.mp4";
+        videoExists = true;
+        timesExists = await resourceExists(explainTimesUrl);
+      }
+      // in browser: check if video and times exist
+      else {
+        videoExists = await resourceExists(explainVideoUrl);
+        timesExists = await resourceExists(explainTimesUrl);
+      }
 
       if (videoExists && timesExists) {
         explainTimes = await fetchResourceJSON(explainTimesUrl);
