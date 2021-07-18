@@ -16,12 +16,11 @@ write-back:
 write-notebook: true
 ---
 
-
 # Write deck to notebook {#write-deck-to-notebook .columns}
 
 ## Decker metadata {#decker-metadata .left}
 
-``` {.yaml}
+``` yaml
 write-notebook: True
 ```
 
@@ -29,7 +28,7 @@ write-notebook: True
 
 ## Jupyter metadata
 
-``` {.yaml}
+``` yaml
 jupyter:
   nbformat: 4
   nbformat_minor: 2
