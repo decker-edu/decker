@@ -12,4 +12,4 @@ extra-deps:
 resolver: lts-18.1
 ghc-options:
   "$locals": -fhide-source-paths -Wno-missing-home-modules
-  '$everything': -haddock
+  "$everything": -haddock
