@@ -21,7 +21,7 @@ if (typeof Reveal === "undefined") {
 // has been initialized
 function deckerStart() {
   fixAutoplayWithStart();
-  fixBibtexLinks();
+  fixLinks();
   currentDate();
   addSourceCodeLabels();
   prepareTaskLists();
@@ -55,16 +55,14 @@ function fixAutoplayWithStart() {
   }
 }
 
-function fixBibtexLinks() {
+function fixLinks() {
   for (let a of document.querySelectorAll("a")) {
+    let url = new URL(a.href);
+
     // skip links in SVGs (e.g. MathJax)
     if (a.href.baseVal) continue;
 
-    let url = new URL(a.href);
-
-    // skip external links
-    if (url.origin != window.location.origin) continue;
-
+    // fix bibtex links
     if (url.hash && url.hash.startsWith("#/ref-")) {
       // find linked element
       let e = document.getElementById(url.hash.substring(2));
@@ -77,6 +75,12 @@ function fixBibtexLinks() {
           a.href = url.href;
         }
       }
+      continue;
+    }
+
+    // open all other links in new window/tab
+    if (!a.target) {
+      a.target = "_blank";
     }
   }
 }
