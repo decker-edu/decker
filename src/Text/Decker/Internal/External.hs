@@ -185,11 +185,12 @@ checkProgram name =
 
 checkExternalPrograms :: IO [(String, Bool)]
 checkExternalPrograms = do
-  putStrLn "# external programs:"
   exists <- liftIO $ Dir.doesFileExist externalStatusFile
   if exists
-    then fromJust <$> liftIO (decodeFileStrict externalStatusFile)
+    then do
+      fromJust <$> liftIO (decodeFileStrict externalStatusFile)
     else do
+      putStrLn "# external programs:"
       status <- zip (map fst programs) <$> mapM check programs
       liftIO $ encodeFile externalStatusFile status
       return status
