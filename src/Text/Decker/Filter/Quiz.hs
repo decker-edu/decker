@@ -93,25 +93,27 @@ handleQuizzes :: Pandoc -> Decker Pandoc
 handleQuizzes pandoc@(Pandoc meta blocks) = return $ walk parseQuizboxes pandoc
     where
         parseQuizboxes :: Block -> Block
-        parseQuizboxes d@(Div (id_, tgs, kvs) blocks)
-            | any (`elem` tgs) ["qmi", "quiz-mi", "quiz-match-items"] =
+        parseQuizboxes d@(Div (id_, cls, kvs) blocks)
+            | any (`elem` cls) ["qmi", "quiz-mi", "quiz-match-items"] =
                 renderQuizzes
                     meta
-                    (parseAndSetQuiz (setTags defaultMatch tgs) blocks)
-            | any (`elem` tgs) ["qmc", "quiz-mc", "quiz-multiple-choice"] =
-                renderQuizzes meta (parseAndSetQuiz (setTags defaultMC tgs) blocks)
-            | any (`elem` tgs) ["qic", "quiz-ic", "quiz-insert-choices"] =
-                renderQuizzes meta (parseAndSetQuiz (setTags defaultIC tgs) blocks)
-            | any (`elem` tgs) ["qft", "quiz-ft", "quiz-free-text"] =
-                renderQuizzes meta (parseAndSetQuiz (setTags defaultFree tgs) blocks)
+                    (parseAndSetQuiz (setTags defaultMatch cls) blocks)
+            | any (`elem` cls) ["qmc", "quiz-mc", "quiz-multiple-choice"] =
+                renderQuizzes meta (parseAndSetQuiz (setTags defaultMC cls) blocks)
+            | any (`elem` cls) ["qic", "quiz-ic", "quiz-insert-choices"] =
+                renderQuizzes meta (parseAndSetQuiz (setTags defaultIC cls) blocks)
+            | any (`elem` cls) ["qft", "quiz-ft", "quiz-free-text"] =
+                renderQuizzes meta (parseAndSetQuiz (setTags defaultFree cls) blocks)
             | otherwise = d
         parseQuizboxes bl = bl
-        -- Give the tag-/classlist of the surrounding div box to the quiz
+        -- Give the classlist of the surrounding div box to the quiz
+        -- Style is set later
         setTags :: Quiz -> [T.Text] -> Quiz
-        setTags q ts =
-            if elem "columns" ts
-                then set tags ts q
-                else set tags (ts ++ ["columns", "box"]) q
+        setTags q cls = do
+            let cls' = filter (\st -> st /= "fancy" && st /= "plain") cls
+            if "columns" `elem` cls'
+                then set tags cls' q
+                else set tags (cls' ++ ["columns", "box"]) q
         -- The default "new" quizzes
         defaultMeta = QuizMeta "" "" 0 "" (lookupMetaOrElse "en" "lang" meta) (lookupMetaOrElse "fancy" "quiz.style" meta) (lookupMetaOrElse "" "quiz.solution" meta)
         defaultMatch = MatchItems [] [] defaultMeta [] []
@@ -156,8 +158,10 @@ combineICQuestions q = q
 
 -- | This monolithic function parses a Pandoc Block and uses lenses to set the field in the given quiz item
 parseAndSetQuizFields :: Quiz -> Block -> Quiz
--- Set the title
-parseAndSetQuizFields q (Header 2 (id_, cls, kvs) text) = set title text q
+-- Set the title and quiz style if specified per question
+parseAndSetQuizFields q (Header 2 (id_, cls, kvs) text) 
+    | "fancy" `elem` cls = set quizMeta (set style "fancy" (q ^. quizMeta)) $ set title text q
+    | "plain" `elem` cls = set quizMeta (set style "plain" (q ^. quizMeta)) $ set title text q
 -- Set the meta information
 parseAndSetQuizFields q (CodeBlock (id_, cls, kvs) code) =
     if "yaml" `elem` cls then setQuizMeta q (decodeYaml code) else q

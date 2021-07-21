@@ -35,7 +35,7 @@ import Text.Decker.Reader.Markdown
 -- import Text.Groom
 import Text.Pandoc
 import Text.Pandoc.Walk
-import Text.Pretty.Simple
+-- import Text.Pretty.Simple
 
 compileQuestionToHtml :: Meta -> FilePath -> Question -> Action Question
 compileQuestionToHtml meta base quest = do

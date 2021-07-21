@@ -16,7 +16,8 @@ doIO = lift . liftIO
 data DeckerState = DeckerState
   { basePath :: String,
     disposition :: Disposition,
-    provisioning :: Provisioning
+    provisioning :: Provisioning,
+    emptyCount :: Int
   }
   deriving (Eq, Show)
 
@@ -93,3 +94,5 @@ deckerMetaFile = "decker.yaml"
 targetsFile = transientDir </> "targets.yaml"
 
 metaArgsFile = transientDir </> "meta-args.yaml"
+
+externalStatusFile = transientDir </> "external-programs.json"

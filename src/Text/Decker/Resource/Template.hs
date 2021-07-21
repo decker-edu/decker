@@ -133,7 +133,7 @@ readTemplateMeta (LocalZip zipPath) = do
     toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
 readTemplateMeta (LocalDir baseDir) = do
   let defaultMeta = baseDir </> defaultMetaPath
-  putVerbose $ "# loading meta data from: " <> defaultMetaPath
+  putVerbose $ "# loading meta data from: " <> defaultMeta
   need [defaultMeta]
   liftIO $ readMetaDataFile defaultMeta
 readTemplateMeta (Unsupported uri) = return nullMeta

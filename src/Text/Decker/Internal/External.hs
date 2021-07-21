@@ -15,13 +15,21 @@ module Text.Decker.Internal.External
 where
 
 import Control.Exception
+import Data.Aeson
+import qualified Data.ByteString.Lazy as B
+import Data.List (lookup)
 import qualified Data.List as List
 import Data.Maybe
 import Development.Shake
 import Relude
 import System.Console.ANSI
+import qualified System.Directory as Dir
 import System.Exit
 import System.Process
+import Text.Blaze.Renderer.Utf8 (renderMarkup)
+import Text.Blaze.Svg11 (docType)
+import Text.Decker.Internal.Common
+import Text.Decker.Project.ActionContext
 
 data ExternalProgram = ExternalProgram
   { -- options :: [CmdOption],
@@ -50,8 +58,7 @@ programs =
           "--perms",
           "--chmod=a+r,go-w",
           "--no-owner",
-          "--copy-links",
-          "--delete"
+          "--copy-links"
         ]
         ["--version"]
         (helpText "`rsync` (https://rsync.samba.org)")
@@ -98,7 +105,7 @@ programs =
     )
   ]
 
-type Program = [String] -> Action ()
+type Program = [String] -> Maybe FilePath -> Action ()
 
 ssh :: Program
 ssh = makeProgram "ssh"
@@ -145,16 +152,26 @@ makeProgram' name =
              "\n" ++ help external ++ "\n\n" ++ err ++ "\n\n" ++ out)
 --}
 
-makeProgram :: String -> [String] -> Action ()
+makeProgram :: String -> [String] -> Maybe FilePath -> Action ()
 makeProgram name =
   let external = fromJust $ List.lookup name programs
-   in ( \arguments -> do
-          let command =
-                intercalate " " $ [path external] <> args external <> arguments
-          liftIO $ callCommand command
+   in ( \arguments dst -> do
+          status <- _externalStatus . _state <$> actionContext
+          if fromMaybe False (lookup name status)
+            then do
+              let command = intercalate " " $ [path external] <> args external <> arguments
+              liftIO $ callCommand command
+            else do
+              case dst of
+                Just out -> do
+                  putError $ "External program '" <> name <> "' is not available. Rendering error to '" <> out <> "'."
+                  let bytes = renderMarkup docType
+                  liftIO $ B.writeFile out bytes
+                Nothing ->
+                  putError $ "External program '" <> name <> "' is not available."
       )
 
-checkProgram :: String -> Action Bool
+checkProgram :: String -> IO Bool
 checkProgram name =
   liftIO $
     handle (\(SomeException _) -> return False) $ do
@@ -166,14 +183,23 @@ checkProgram name =
           | status == 127 -> return False
         _ -> return True
 
-checkExternalPrograms :: Action ()
-checkExternalPrograms = putNormal "# external programs:" >> mapM_ check programs
+checkExternalPrograms :: IO [(String, Bool)]
+checkExternalPrograms = do
+  exists <- liftIO $ Dir.doesFileExist externalStatusFile
+  if exists
+    then do
+      fromJust <$> liftIO (decodeFileStrict externalStatusFile)
+    else do
+      putStrLn "# external programs:"
+      status <- zip (map fst programs) <$> mapM check programs
+      liftIO $ encodeFile externalStatusFile status
+      return status
   where
     check (name, external) = do
       result <- checkProgram name
       if result
-        then
-          putNormal $
+        then do
+          putStrLn $
             "  "
               ++ setSGRCode [SetColor Foreground Vivid Blue]
               ++ name
@@ -182,8 +208,9 @@ checkExternalPrograms = putNormal "# external programs:" >> mapM_ check programs
               ++ setSGRCode [SetColor Foreground Vivid Green]
               ++ "found"
               ++ setSGRCode [Reset]
-        else
-          putNormal $
+          return True
+        else do
+          putStrLn $
             "  "
               ++ setSGRCode [SetColor Foreground Vivid Blue]
               ++ name
@@ -195,3 +222,4 @@ checkExternalPrograms = putNormal "# external programs:" >> mapM_ check programs
               ++ " ("
               ++ help external
               ++ ")"
+          return False

@@ -26,19 +26,20 @@ where
 
 import Control.Concurrent (getNumCapabilities)
 import Control.Exception
-import Control.Lens (makeLenses, (^.))
+-- import Data.List
+
+-- import qualified Data.Text as Text
+
+import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Data.Aeson
 import Data.Char
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
--- import Data.List
 import qualified Data.List.Extra as List
 import Data.Maybe
 import qualified Data.Set as Set
--- import qualified Data.Text as Text
-import Data.Typeable
 import Development.Shake hiding (doesDirectoryExist, putError)
 import Relude hiding (state)
 import qualified System.Console.GetOpt as GetOpt
@@ -48,8 +49,10 @@ import System.FilePath.Posix
 import System.Info
 import System.Process
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
@@ -57,28 +60,13 @@ import Text.Decker.Resource.Template
 import Text.Decker.Server.Server
 import Text.Pandoc hiding (lookupMeta)
 
-data MutableActionState = MutableActionState
-  { _devRun :: Bool,
-    _server :: IORef (Maybe Server),
-    _watch :: IORef Bool,
-    _publicResource :: Development.Shake.Resource
-  }
-
-makeLenses ''MutableActionState
-
-data ActionContext = ActionContext
-  { _state :: MutableActionState
-  }
-  deriving (Typeable)
-
-makeLenses ''ActionContext
-
 initMutableActionState = do
   devRun <- isDevelopmentRun
+  external <- checkExternalPrograms
   server <- newIORef Nothing
   watch <- newIORef False
   public <- newResourceIO "public" 1
-  return $ MutableActionState devRun server watch public
+  return $ MutableActionState devRun external server watch public
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -258,13 +246,6 @@ deckerShakeOptions ctx = do
         -- , shakeLint = Just LintFSATrace
         -- shakeReport = [".decker/shake-report.html"]
       }
-
-actionContextKey :: TypeRep
-actionContextKey = typeOf (undefined :: ActionContext)
-
-actionContext :: Action ActionContext
-actionContext =
-  fromMaybe (error "Error getting action context") <$> getShakeExtra
 
 waitForChange :: FilePath -> [FilePath] -> IO ()
 waitForChange inDir exclude =

@@ -298,7 +298,6 @@ $body$
   </div>
 
   <script src="$decker-support-dir$/vendor/reveal/js/reveal.js"></script>
-  <script src="$decker-support-dir$/vendor/js/jquery.min.js"></script>
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
   <script src="$decker-support-dir$/js/sage.js"></script>
@@ -381,7 +380,7 @@ $if(rtl)$
 $endif$
 $if(navigationMode)$
         // See https://github.com/hakimel/reveal.js/#navigation-mode
-        navigationMode: $navigationMode$,
+        navigationMode: '$navigationMode$',
 $endif$
 	// Randomizes the order of slides each time the presentation loads
 $if(shuffle)$

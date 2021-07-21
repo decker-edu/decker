@@ -17,14 +17,18 @@ module Text.Decker.Filter.Slide
     header,
     isBoxDelim,
     toSlides,
+    fromSlidesD,
   )
 where
 
 import Control.Lens
+import Control.Monad.State (gets, modify)
 import Data.List
 import Data.List.Split
 import Data.Maybe
+import Data.Text (Text)
 import qualified Data.Text as Text
+import Text.Decker.Internal.Common (Decker, DeckerState (emptyCount))
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
@@ -90,7 +94,29 @@ fromSlides = concatMap prependHeader
           ++ demoteHeaders (header : body)
           ++ [RawBlock "html" "</aside>"]
     prependHeader (Slide (Just header) body) = HorizontalRule : header : body
-    prependHeader (Slide Nothing body) = HorizontalRule : Header 1 nullAttr [] : body
+    prependHeader (Slide Nothing body) = HorizontalRule : body
+
+fromSlidesD :: [Slide] -> Decker [Block]
+fromSlidesD slides = do
+  concat <$> mapM prependHeader slides
+  where
+    prependHeader (Slide (Just header) body)
+      | hasClass "notes" header =
+        return $
+          [RawBlock "html" "<aside class=\"notes\">"]
+            ++ demoteHeaders (header : body)
+            ++ [RawBlock "html" "</aside>"]
+    prependHeader (Slide (Just header) body) = return $ HorizontalRule : header : body
+    prependHeader (Slide Nothing body) = do
+      rid <- emptyId
+      return $ HorizontalRule : Header 1 (rid, [], []) [] : body
+
+emptyId :: Decker Text
+emptyId = do
+  modify incrEmptyCount
+  Text.pack . ("empty-" <>) . show <$> gets emptyCount
+  where
+    incrEmptyCount s = s {emptyCount = emptyCount s + 1}
 
 -- |  Converts slides to lists of blocks that are wrapped in divs. Used to
 --  control page breaks in handout generation.

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Search</title>
+    <script type="module">
+        function setup(index) {
+            var search = document.getElementById("search");
+            var results = document.getElementById("results");
+            var keys = Object.keys(index.index).map(k => k.toString());
+            var fuzzy = FuzzySet(keys);
+            search.addEventListener("keyup", (e) => {
+                var matches = fuzzy.get(search.value, [], 0.5);
+                while (results.lastElementChild)
+                    results.removeChild(results.lastElementChild);
+                for (var match of matches) {
+                    var word = match[1];
+                    var exact = search.value == word;
+                    var onSlides = index.index[word];
+                    for (var slide of onSlides) {
+                        var url = slide.slide;
+                        var count = slide.count;
+                        var info = index.slides[url];
+                        var item = document.createElement("li");
+                        item.innerHTML = `${exact ? `<b>${word}</b>` : word} - &#x1F4D2; <a target="_blank" href="/${info.deckUrl}">${info.deckTitle}</a> - &#x1F4C3; <a target="_blank" href="/${url}">${info.slideTitle}</a> (${count})`;
+                        results.appendChild(item);
+                    }
+                }
+            });
+        }
+
+        import FuzzySet from "./fuzzyset.js";
+        fetch("/index.json")
+            .then(res => res.json())
+            .then(index => {
+                setup(index);
+            })
+            .catch(err => console.log("cannot load: index.json", err));
+    </script>
+</head>
+
+<body>
+    <p>&#x1F9E0; <input id="search" placeholder="Looking for something?" type="text"></p>
+    <p>
+    <ol id="results"></ol>
+    </p>
+</body>

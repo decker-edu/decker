@@ -10,7 +10,7 @@ This is just a simple run-of-the-mill document. Use it for exercises and
 everything else. This document also has access to the meta data in surrounding
 YAML files.
 
-The date is {{date}}.
+The date is [:meta](date).
 
 All structured data entries are:
 

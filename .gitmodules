@@ -1,9 +1,6 @@
 [submodule "third-party/reveal.js"]
 	path = third-party/reveal.js
 	url = https://github.com/hakimel/reveal.js.git
-[submodule "third-party/jquery"]
-	path = third-party/jquery
-	url = https://github.com/jquery/jquery.git
 [submodule "third-party/MathJax"]
 	path = third-party/MathJax
 	url = https://github.com/mathjax/MathJax.git

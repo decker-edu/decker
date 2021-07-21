@@ -9,12 +9,12 @@ decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
 
 build: css
-	stack build
+	stack build -j8
 
 clean-build: clean css
 	git submodule update --init
 	make -f symlinks.mk -C third-party all
-	stack build
+	stack build -j8
 
 less:
 	stack build 2>&1 | less 
