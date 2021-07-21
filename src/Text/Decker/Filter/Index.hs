@@ -36,10 +36,11 @@ buildDeckIndex :: Meta -> FilePath -> Action (DeckInfo, [((Text, Text), [(Text, 
 buildDeckIndex globalMeta path = do
   pandoc@(Pandoc meta blocks) <- readMarkdownFile globalMeta path
   let deckTitle = lookupMeta "title" meta
+  let deckSubtitle = lookupMeta "subtitle" meta
   let deckId = lookupMeta "deckId" meta
   let deckUrl = toText (path -<.> "html")
   let deckIndex = map (first fromJust) $ filter (isJust . fst) $ mapSlides indexSlide pandoc
-  return (DeckInfo {deckUrl, deckId, deckTitle}, deckIndex)
+  return (DeckInfo {deckUrl, deckId, deckTitle, deckSubtitle}, deckIndex)
 
 -- TODO make this more elaborate
 stringi :: Inline -> Text
@@ -71,7 +72,8 @@ extractId _ = Nothing
 data DeckInfo = DeckInfo
   { deckUrl :: Text,
     deckId :: Maybe Text,
-    deckTitle :: Maybe Text
+    deckTitle :: Maybe Text,
+    deckSubtitle :: Maybe Text
   }
   deriving (Generic, Show)
 
@@ -83,7 +85,8 @@ data SlideInfo = SlideInfo
     slideTitle :: Text,
     deckUrl :: Text,
     deckId :: Maybe Text,
-    deckTitle :: Maybe Text
+    deckTitle :: Maybe Text,
+    deckSubtitle :: Maybe Text
   }
   deriving (Generic, Show)
 
@@ -116,7 +119,7 @@ instance ToJSON Index
 invertIndex :: [(DeckInfo, [((Text, Text), [(Text, Int)])])] -> Index
 invertIndex =
   foldl'
-    ( \index (DeckInfo deckUrl deckId deckTitle, slides) ->
+    ( \index (DeckInfo deckUrl deckId deckTitle deckSubtitle, slides) ->
         foldl'
           ( \index ((slideId, slideTitle), words) ->
               let slideUrl = deckUrl <#> slideId
@@ -132,7 +135,8 @@ invertIndex =
                                   slideTitle,
                                   deckUrl,
                                   deckId,
-                                  deckTitle
+                                  deckTitle,
+                                  deckSubtitle
                                 }
                               slideMap
                           )
