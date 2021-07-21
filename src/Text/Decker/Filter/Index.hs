@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
@@ -16,6 +17,7 @@ import GHC.Generics hiding (Meta)
 import Relude
 import System.FilePath
 import Text.Decker.Filter.Slide
+import Text.Decker.Internal.Meta
 import Text.Decker.Reader.Markdown
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Shared
@@ -25,14 +27,19 @@ import Text.Pandoc.Walk
 
 buildIndex :: FilePath -> Meta -> [FilePath] -> Action ()
 buildIndex indexFile globalMeta decks = do
-  asts <- mapM (readMarkdownFile globalMeta) decks
-  let index = zip (map (toText . (-<.> "html")) decks) (map buildDeckIndex asts)
+  index <- mapM (buildDeckIndex globalMeta) decks
   let inverted = invertIndex index
   liftIO $ encodeFile indexFile inverted
 
-buildDeckIndex :: Pandoc -> [((Text, Text), [(Text, Int)])]
+buildDeckIndex :: Meta -> FilePath -> Action (DeckInfo, [((Text, Text), [(Text, Int)])])
 -- Take out the empty ones for now
-buildDeckIndex = map (first fromJust) . filter (isJust . fst) . mapSlides indexSlide
+buildDeckIndex globalMeta path = do
+  pandoc@(Pandoc meta blocks) <- readMarkdownFile globalMeta path
+  let deckTitle = lookupMeta "title" meta
+  let deckId = lookupMeta "deckId" meta
+  let deckUrl = toText (path -<.> "html")
+  let deckIndex = map (first fromJust) $ filter (isJust . fst) $ mapSlides indexSlide pandoc
+  return (DeckInfo {deckUrl, deckId, deckTitle}, deckIndex)
 
 -- TODO make this more elaborate
 stringi :: Inline -> Text
@@ -61,11 +68,21 @@ extractId :: Slide -> Maybe (Text, Text)
 extractId (Slide (Just (Header _ (id, _, _) text)) _) = Just (id, stringify text)
 extractId _ = Nothing
 
+data DeckInfo = DeckInfo
+  { deckUrl :: Text,
+    deckId :: Maybe Text,
+    deckTitle :: Maybe Text
+  }
+  deriving (Generic, Show)
+
+instance ToJSON DeckInfo
+
 data SlideInfo = SlideInfo
   { slideUrl :: SlideUrl,
     slideId :: Text,
     slideTitle :: Text,
     deckUrl :: Text,
+    deckId :: Maybe Text,
     deckTitle :: Maybe Text
   }
   deriving (Generic, Show)
@@ -96,10 +113,10 @@ data Index = Index
 
 instance ToJSON Index
 
-invertIndex :: [(Text, [((Text, Text), [(Text, Int)])])] -> Index
+invertIndex :: [(DeckInfo, [((Text, Text), [(Text, Int)])])] -> Index
 invertIndex =
   foldl'
-    ( \index (deckUrl, slides) ->
+    ( \index (DeckInfo deckUrl deckId deckTitle, slides) ->
         foldl'
           ( \index ((slideId, slideTitle), words) ->
               let slideUrl = deckUrl <#> slideId
@@ -114,7 +131,8 @@ invertIndex =
                                   slideId,
                                   slideTitle,
                                   deckUrl,
-                                  deckTitle = Nothing
+                                  deckId,
+                                  deckTitle
                                 }
                               slideMap
                           )
