@@ -21,10 +21,6 @@ Write-Host ("Copy third party dependencies to " + $support) -ForegroundColor Gre
 New-Item -Path "$support" -Force -ItemType "directory"
 Set-Location $third
 
-# Copy jquery
-New-Item -Path "$support\js" -Force -ItemType "directory"
-Copy-Item "$third\jquery\dist\jquery.min.js" "$support\js\jquery.min.js" -Force
-
 # Copy thebelab
 New-Item -Path "$support\thebelab" -Force -ItemType "directory"
 Copy-Item $third\thebelab\lib\*.js "$support\thebelab" -Force
