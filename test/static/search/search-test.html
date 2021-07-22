@@ -21,9 +21,10 @@
                     for (var slide of onSlides) {
                         var url = slide.slide;
                         var count = slide.count;
-                        var info = index.slides[url];
+                        var sInfo = index.slides[url];
+                        var dInfo = index.decks[sInfo.deckUrl];
                         var item = document.createElement("li");
-                        item.innerHTML = `${exact ? `<b>${word}</b>` : word} - &#x1F4D2; <a target="_blank" href="/${info.deckUrl}">${info.deckTitle}</a> - &#x1F4C3; <a target="_blank" href="/${url}">${info.slideTitle}</a> (${count})`;
+                        item.innerHTML = `${exact ? `<b>${word}</b>` : word} - &#x1F4D2; <a target="_blank" href="/${dInfo.deckUrl}">${dInfo.deckTitle}</a> - &#x1F4C3; <a target="_blank" href="/${url}">${sInfo.slideTitle}</a> (${count})`;
                         results.appendChild(item);
                     }
                 }
