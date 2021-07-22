@@ -2,7 +2,7 @@
 
 :root {
   --blue: #2a9ddf;
-  --light-blue: #30B3FF;
+  --lightblue: #30B3FF;
 }
 
 /* repeat light mode settings from light.css to override 
@@ -56,12 +56,20 @@ header > h1 {
     font-size: 65px;
 }
 
+h1 {
+    margin-top: 3rem;
+}
+
+hr {
+    margin-top: 2rem;
+}
+
 a {
     color: var(--blue);
 }
 
 a:hover {
-    color: var(--light-blue);
+    color: var(--lightblue);
 }
 
 details {
@@ -73,7 +81,12 @@ details {
 }
 
 details summary {
-    outline:none;
+    outline: none;
+    padding: 4px;
+}
+
+details summary:hover {
+    background-color: #2a9ddf58;
 }
 
 details summary[icon]::marker {
@@ -86,7 +99,6 @@ details summary[icon]::marker {
     font-weight: 900;
     color: var(--blue);
     content: attr(icon);
-    margin: 20px;
 }
 
 details summary::after {

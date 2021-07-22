@@ -51,8 +51,17 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
       const found = exact ? `<b>${word}</b>` : `<i>${word}</i>`;
       let onSlides = index.index[word];
 
-      // sort slide by search count
-      onSlides.sort((a, b) => b.count - a.count);
+      // first: sort based on deck URL
+      onSlides.sort((slide1, slide2) => {
+        const deck1 = index.slides[slide1.slide].deckUrl;
+        const deck2 = index.slides[slide2.slide].deckUrl;
+        if (deck1 < deck2) return -1;
+        if (deck1 > deck2) return 1;
+        return 0;
+      });
+
+      // second: (stable) sort based on search count
+      onSlides.sort((slide1, slide2) => slide2.count - slide1.count);
 
       for (let slide of onSlides) {
         const url = slide.slide;
