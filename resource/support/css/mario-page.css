@@ -7,7 +7,7 @@
 
 /* repeat light mode settings from light.css to override 
    dark mode settings, which don't look nice */
-   :root {
+:root {
     --background-body: #ffffff;
     --background: #efefef;
     --background-alt: #f7f7f7;
@@ -53,7 +53,7 @@ header > h1, header > h2 {
 }
 
 header > h1 {
-    font-size: 45px;
+    font-size: 65px;
 }
 
 a {
@@ -62,4 +62,39 @@ a {
 
 a:hover {
     color: var(--light-blue);
+}
+
+details {
+    outline: none; 
+    border: 1px solid black; 
+    border-radius: 4px; 
+    padding: 10px; 
+    margin-bottom:10px;
+}
+
+details summary {
+    outline:none;
+}
+
+details summary[icon]::marker {
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    color: var(--blue);
+    content: attr(icon);
+    margin: 20px;
+}
+
+details summary::after {
+    font-style: italic;
+    content: '(click)...'
+}
+
+details input {
+    box-sizing: border-box;
+    width: 100%;
 }
