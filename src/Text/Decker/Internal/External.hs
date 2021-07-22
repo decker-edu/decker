@@ -21,6 +21,7 @@ import Data.List (lookup)
 import qualified Data.List as List
 import Data.Maybe
 import Development.Shake
+import Development.Shake.FilePath (takeDirectory)
 import Relude
 import System.Console.ANSI
 import qualified System.Directory as Dir
@@ -173,26 +174,26 @@ makeProgram name =
 
 checkProgram :: String -> IO Bool
 checkProgram name =
-  liftIO $
-    handle (\(SomeException _) -> return False) $ do
-      let external = fromJust $ List.lookup name programs
-      (code, _, _) <-
-        readProcessWithExitCode (path external) (testArgs external) ""
-      case code of
-        ExitFailure status
-          | status == 127 -> return False
-        _ -> return True
+  handle (\(SomeException _) -> return False) $ do
+    let external = fromJust $ List.lookup name programs
+    (code, _, _) <-
+      readProcessWithExitCode (path external) (testArgs external) ""
+    case code of
+      ExitFailure status
+        | status == 127 -> return False
+      _ -> return True
 
 checkExternalPrograms :: IO [(String, Bool)]
 checkExternalPrograms = do
-  exists <- liftIO $ Dir.doesFileExist externalStatusFile
+  exists <- Dir.doesFileExist externalStatusFile
   if exists
     then do
-      fromJust <$> liftIO (decodeFileStrict externalStatusFile)
+      fromJust <$> decodeFileStrict externalStatusFile
     else do
       putStrLn "# external programs:"
       status <- zip (map fst programs) <$> mapM check programs
-      liftIO $ encodeFile externalStatusFile status
+      Dir.createDirectoryIfMissing True (takeDirectory externalStatusFile)
+      encodeFile externalStatusFile status
       return status
   where
     check (name, external) = do

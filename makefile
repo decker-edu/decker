@@ -66,7 +66,7 @@ watch:
 	stack test -j1 --file-watch
 
 server:
-	stack run -- decker --server --port 8888 --bind localhost decks
+	stack run -- decker --server --port 8888 --bind localhost html
 
 css:
 	cd resource/support/css && make -B css

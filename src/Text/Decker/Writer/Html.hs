@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
 
@@ -13,6 +14,7 @@ where
 import Control.Monad.State
 import qualified Data.Map as M
 import qualified Data.MultiMap as MM
+import Data.String.Interpolate (i)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Development.Shake
@@ -43,21 +45,26 @@ writeIndexLists meta targets out baseUrl = do
   questLinks <- makeGroupedLinks questions
   cwd <- liftIO Dir.getCurrentDirectory
   liftIO $
-    writeFile out $
-      unlines
-        [ "---",
-          "title: Generated Index",
-          "subtitle: " ++ cwd,
-          "---",
-          "# Slide decks",
-          unlines decksLinks,
-          "# Handouts",
-          unlines handoutsLinks,
-          "# Supporting Documents",
-          unlines pagesLinks,
-          "# Questions",
-          unlines questLinks
-        ]
+    writeFile
+      out
+      [i|
+---
+title: Generated Index
+subtitle: #{cwd}
+---
+```{.javascript .run}
+import setupSearch from "/test/static/search/search.js";
+setupSearch(anchor, 0.6);
+```
+\# Slide decks
+#{unlines decksLinks}
+\# Handouts
+#{unlines handoutsLinks}
+\# Supporting Documents
+#{unlines pagesLinks}
+\# Questions
+#{unlines questLinks}
+        |]
   where
     makeLink (html, pdf) = do
       pdfExists <- liftIO $ Dir.doesFileExist pdf

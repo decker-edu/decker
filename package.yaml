@@ -44,6 +44,7 @@ dependencies:
   - base64-bytestring
   - blaze-html
   - blaze-markup
+  - blaze-svg
   - bytestring
   - containers
   - data-default
@@ -88,7 +89,7 @@ dependencies:
   - snap-core
   - snap-server
   - split
-  - blaze-svg
+  - string-interpolate
   - tagsoup
   - template-haskell
   - text
@@ -141,23 +142,22 @@ tests:
     source-dirs: test
     dependencies:
       - decker
-
 #default-extensions:
-  #- DeriveDataTypeable
-  #- DeriveGeneric
-  #- EmptyCase
-  #- FlexibleContexts
-  #- FlexibleInstances
-  #- GeneralizedNewtypeDeriving
-  #- InstanceSigs
-  #- LambdaCase
-  #- MultiParamTypeClasses
-  #- MultiWayIf
-  #- NamedFieldPuns
-  #- NoMonomorphismRestriction
-  #- OverloadedStrings
-  #- QuasiQuotes
-  #- RecordWildCards
-  #- ScopedTypeVariables
-  #- TemplateHaskell
-  #- TupleSections
+#- DeriveDataTypeable
+#- DeriveGeneric
+#- EmptyCase
+#- FlexibleContexts
+#- FlexibleInstances
+#- GeneralizedNewtypeDeriving
+#- InstanceSigs
+#- LambdaCase
+#- MultiParamTypeClasses
+#- MultiWayIf
+#- NamedFieldPuns
+#- NoMonomorphismRestriction
+#- OverloadedStrings
+#- QuasiQuotes
+#- RecordWildCards
+#- ScopedTypeVariables
+#- TemplateHaskell
+#- TupleSections
