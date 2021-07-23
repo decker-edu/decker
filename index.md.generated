@@ -1,0 +1,142 @@
+
+---
+title: Generated Index
+subtitle: /Users/henriktramberend/workspace/decker/decker
+---
+``` {.javascript .run}
+import("./" + Decker.meta.supportPath + "/js/search.js")
+    .then(module => console.log(module.default(anchor, 0.6)));
+```
+# Slide decks
+
+## public/resource/example:
+-    [example-deck.html <i class='fab fa-html5'></i>](resource/example/example-deck.html)
+
+## public/test/decks:
+-    [background-image-deck.html <i class='fab fa-html5'></i>](test/decks/background-image-deck.html)
+-    [background-video-deck.html <i class='fab fa-html5'></i>](test/decks/background-video-deck.html)
+-    [bibliography-deck.html <i class='fab fa-html5'></i>](test/decks/bibliography-deck.html)
+-    [chalkboard-deck.html <i class='fab fa-html5'></i>](test/decks/chalkboard-deck.html)
+-    [chart-deck.html <i class='fab fa-html5'></i>](test/decks/chart-deck.html)
+-    [column-deck.html <i class='fab fa-html5'></i>](test/decks/column-deck.html)
+-    [css-deck.html <i class='fab fa-html5'></i>](test/decks/css-deck.html)
+-    [dachdecker-deck.html <i class='fab fa-html5'></i>](test/decks/dachdecker-deck.html)
+-    [engine-auth-deck.html <i class='fab fa-html5'></i>](test/decks/engine-auth-deck.html)
+-    [engine-deck.html <i class='fab fa-html5'></i>](test/decks/engine-deck.html)
+-    [engine-local-deck.html <i class='fab fa-html5'></i>](test/decks/engine-local-deck.html)
+-    [error-deck.html <i class='fab fa-html5'></i>](test/decks/error-deck.html)
+-    [es6-deck.html <i class='fab fa-html5'></i>](test/decks/es6-deck.html)
+-    [examiner-deck.html <i class='fab fa-html5'></i>](test/decks/examiner-deck.html)
+-    [explain-deck.html <i class='fab fa-html5'></i>](test/decks/explain-deck.html)
+-    [figure-deck.html <i class='fab fa-html5'></i>](test/decks/figure-deck.html)
+-    [grid-deck.html <i class='fab fa-html5'></i>](test/decks/grid-deck.html)
+-    [handout-deck.html <i class='fab fa-html5'></i>](test/decks/handout-deck.html)
+-    [highlightjs-deck.html <i class='fab fa-html5'></i>](test/decks/highlightjs-deck.html)
+-    [iframe-deck.html <i class='fab fa-html5'></i>](test/decks/iframe-deck.html)
+-    [include-code-deck.html <i class='fab fa-html5'></i>](test/decks/include-code-deck.html)
+-    [include-deck.html <i class='fab fa-html5'></i>](test/decks/include-deck.html)
+-    [layout-and-blocks-deck.html <i class='fab fa-html5'></i>](test/decks/layout-and-blocks-deck.html)
+-    [macro-deck.html <i class='fab fa-html5'></i>](test/decks/macro-deck.html)
+-    [math-deck.html <i class='fab fa-html5'></i>](test/decks/math-deck.html)
+-    [media-deck.html <i class='fab fa-html5'></i>](test/decks/media-deck.html)
+-    [menu-deck.html <i class='fab fa-html5'></i>](test/decks/menu-deck.html)
+-    [meta-resources-deck.html <i class='fab fa-html5'></i>](test/decks/meta-resources-deck.html)
+-    [mview-deck.html <i class='fab fa-html5'></i>](test/decks/mview-deck.html)
+-    [notebook-deck.html <i class='fab fa-html5'></i>](test/decks/notebook-deck.html)
+-    [quiz-deck.html <i class='fab fa-html5'></i>](test/decks/quiz-deck.html)
+-    [rendered-code-deck.html <i class='fab fa-html5'></i>](test/decks/rendered-code-deck.html)
+-    [search-deck.html <i class='fab fa-html5'></i>](test/decks/search-deck.html)
+-    [sections-deck.html <i class='fab fa-html5'></i>](test/decks/sections-deck.html)
+-    [short-links-deck.html <i class='fab fa-html5'></i>](test/decks/short-links-deck.html)
+-    [slide-separation-deck.html <i class='fab fa-html5'></i>](test/decks/slide-separation-deck.html)
+-    [streaming-video-deck.html <i class='fab fa-html5'></i>](test/decks/streaming-video-deck.html)
+-    [thebe-lab-binder-deck.html <i class='fab fa-html5'></i>](test/decks/thebe-lab-binder-deck.html)
+-    [thebe-lab-local-deck.html <i class='fab fa-html5'></i>](test/decks/thebe-lab-local-deck.html)
+-    [title-header-deck.html <i class='fab fa-html5'></i>](test/decks/title-header-deck.html)
+-    [vertical-deck.html <i class='fab fa-html5'></i>](test/decks/vertical-deck.html)
+-    [video-autoplay-deck.html <i class='fab fa-html5'></i>](test/decks/video-autoplay-deck.html)
+
+## public/test/decks/geometry:
+-    [geometry-deck.html <i class='fab fa-html5'></i>](test/decks/geometry/geometry-deck.html)
+
+# Handouts
+
+## public/resource/example:
+-    [example-handout.html <i class='fab fa-html5'></i>](resource/example/example-handout.html)
+
+## public/test/decks:
+-    [background-image-handout.html <i class='fab fa-html5'></i>](test/decks/background-image-handout.html)
+-    [background-video-handout.html <i class='fab fa-html5'></i>](test/decks/background-video-handout.html)
+-    [bibliography-handout.html <i class='fab fa-html5'></i>](test/decks/bibliography-handout.html)
+-    [chalkboard-handout.html <i class='fab fa-html5'></i>](test/decks/chalkboard-handout.html)
+-    [chart-handout.html <i class='fab fa-html5'></i>](test/decks/chart-handout.html)
+-    [column-handout.html <i class='fab fa-html5'></i>](test/decks/column-handout.html)
+-    [css-handout.html <i class='fab fa-html5'></i>](test/decks/css-handout.html)
+-    [dachdecker-handout.html <i class='fab fa-html5'></i>](test/decks/dachdecker-handout.html)
+-    [engine-auth-handout.html <i class='fab fa-html5'></i>](test/decks/engine-auth-handout.html)
+-    [engine-handout.html <i class='fab fa-html5'></i>](test/decks/engine-handout.html)
+-    [engine-local-handout.html <i class='fab fa-html5'></i>](test/decks/engine-local-handout.html)
+-    [error-handout.html <i class='fab fa-html5'></i>](test/decks/error-handout.html)
+-    [es6-handout.html <i class='fab fa-html5'></i>](test/decks/es6-handout.html)
+-    [examiner-handout.html <i class='fab fa-html5'></i>](test/decks/examiner-handout.html)
+-    [explain-handout.html <i class='fab fa-html5'></i>](test/decks/explain-handout.html)
+-    [figure-handout.html <i class='fab fa-html5'></i>](test/decks/figure-handout.html)
+-    [grid-handout.html <i class='fab fa-html5'></i>](test/decks/grid-handout.html)
+-    [handout-handout.html <i class='fab fa-html5'></i>](test/decks/handout-handout.html)
+-    [highlightjs-handout.html <i class='fab fa-html5'></i>](test/decks/highlightjs-handout.html)
+-    [iframe-handout.html <i class='fab fa-html5'></i>](test/decks/iframe-handout.html)
+-    [include-code-handout.html <i class='fab fa-html5'></i>](test/decks/include-code-handout.html)
+-    [include-handout.html <i class='fab fa-html5'></i>](test/decks/include-handout.html)
+-    [layout-and-blocks-handout.html <i class='fab fa-html5'></i>](test/decks/layout-and-blocks-handout.html)
+-    [macro-handout.html <i class='fab fa-html5'></i>](test/decks/macro-handout.html)
+-    [math-handout.html <i class='fab fa-html5'></i>](test/decks/math-handout.html)
+-    [media-handout.html <i class='fab fa-html5'></i>](test/decks/media-handout.html)
+-    [menu-handout.html <i class='fab fa-html5'></i>](test/decks/menu-handout.html)
+-    [meta-resources-handout.html <i class='fab fa-html5'></i>](test/decks/meta-resources-handout.html)
+-    [mview-handout.html <i class='fab fa-html5'></i>](test/decks/mview-handout.html)
+-    [notebook-handout.html <i class='fab fa-html5'></i>](test/decks/notebook-handout.html)
+-    [quiz-handout.html <i class='fab fa-html5'></i>](test/decks/quiz-handout.html)
+-    [rendered-code-handout.html <i class='fab fa-html5'></i>](test/decks/rendered-code-handout.html)
+-    [search-handout.html <i class='fab fa-html5'></i>](test/decks/search-handout.html)
+-    [sections-handout.html <i class='fab fa-html5'></i>](test/decks/sections-handout.html)
+-    [short-links-handout.html <i class='fab fa-html5'></i>](test/decks/short-links-handout.html)
+-    [slide-separation-handout.html <i class='fab fa-html5'></i>](test/decks/slide-separation-handout.html)
+-    [streaming-video-handout.html <i class='fab fa-html5'></i>](test/decks/streaming-video-handout.html)
+-    [thebe-lab-binder-handout.html <i class='fab fa-html5'></i>](test/decks/thebe-lab-binder-handout.html)
+-    [thebe-lab-local-handout.html <i class='fab fa-html5'></i>](test/decks/thebe-lab-local-handout.html)
+-    [title-header-handout.html <i class='fab fa-html5'></i>](test/decks/title-header-handout.html)
+-    [vertical-handout.html <i class='fab fa-html5'></i>](test/decks/vertical-handout.html)
+-    [video-autoplay-handout.html <i class='fab fa-html5'></i>](test/decks/video-autoplay-handout.html)
+
+## public/test/decks/geometry:
+-    [geometry-handout.html <i class='fab fa-html5'></i>](test/decks/geometry/geometry-handout.html)
+
+# Supporting Documents
+
+## public/doc:
+-    [gui-architecture-page.html <i class='fab fa-html5'></i>](doc/gui-architecture-page.html)
+-    [haskell-resources-page.html <i class='fab fa-html5'></i>](doc/haskell-resources-page.html)
+-    [media-filter-report-page.html <i class='fab fa-html5'></i>](doc/media-filter-report-page.html)
+-    [packaging-page.html <i class='fab fa-html5'></i>](doc/packaging-page.html)
+-    [quiz-page.html <i class='fab fa-html5'></i>](doc/quiz-page.html)
+-    [release-policy-page.html <i class='fab fa-html5'></i>](doc/release-policy-page.html)
+-    [resource-handling-page.html <i class='fab fa-html5'></i>](doc/resource-handling-page.html)
+-    [smart-image-urls-page.html <i class='fab fa-html5'></i>](doc/smart-image-urls-page.html)
+
+## public/resource/example:
+-    [example-page.html <i class='fab fa-html5'></i>](resource/example/example-page.html)
+
+## public/test/decks:
+-    [search-page.html <i class='fab fa-html5'></i>](test/decks/search-page.html)
+
+# Questions
+
+## public/test/decks/data:
+-    [composite-pattern-2-quest.html <i class='fab fa-html5'></i>](test/decks/data/composite-pattern-2-quest.html)
+-    [homogenous-coordinates-quest.html <i class='fab fa-html5'></i>](test/decks/data/homogenous-coordinates-quest.html)
+-    [replacement-transform-1-quest.html <i class='fab fa-html5'></i>](test/decks/data/replacement-transform-1-quest.html)
+-    [replacement-transform-2-quest.html <i class='fab fa-html5'></i>](test/decks/data/replacement-transform-2-quest.html)
+-    [replacement-transform-3-quest.html <i class='fab fa-html5'></i>](test/decks/data/replacement-transform-3-quest.html)
+-    [texture-transformation-quest.html <i class='fab fa-html5'></i>](test/decks/data/texture-transformation-quest.html)
+
+        

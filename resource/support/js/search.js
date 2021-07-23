@@ -8,7 +8,7 @@ function setupSearch(
   showDeckTitles = true,
   showDeckSubtitles = false
 ) {
-  var indexPath = Decker.meta.projectPath + "index.json";
+  var indexPath = Decker.meta.projectPath + "/index.json";
     fetch(indexPath)
       .then((res) => res.json())
       .then((index) => {
