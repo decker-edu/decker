@@ -39,9 +39,6 @@ Foreach ($i in ("js", "css", "plugin\notes", "plugin\highlight")) {
   Copy-Item -r "$third\reveal.js\$i" "$support\reveal\$i" -Force
 }
 
-# Copy lazyload
-Copy-Item "$third\vanilla-lazyload\dist\lazyload.min.js" "$support\js\lazyload.min.js"
-
 # Copy water.css
 New-Item "$support\css" -Force -ItemType "directory"
 Copy-Item "$third\water.css\dist\light.min.css" "$support\css\light.min.css"

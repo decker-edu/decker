@@ -17,7 +17,7 @@ dup = cp -r
 endif
 
 
-all: mathjax reveal.js water.css lazyload fontawesome thebelab videojs d3
+all: mathjax reveal.js water.css fontawesome thebelab videojs d3
 
 d3:
 	@cp d3.v6.min.js $(support)
@@ -42,10 +42,6 @@ reveal.js:
 		$(dup) $(third)/reveal.js/$$i $(support)/reveal/$$i; \
 	done
 
-lazyload:
-	@mkdir -p $(support)/js
-	@cp $(third)/vanilla-lazyload/dist/lazyload.min.js $(support)/js
-
 water.css:
 	@mkdir -p $(support)/css
 	@cp $(third)/water.css/dist/*.min.css $(support)/css
@@ -60,4 +56,4 @@ fontawesome:
 thebelab/lib/index.js:
 	(cd thebelab && npm install && npm run build)
 
-.PHONY: clean prepare fontawesome reveal.js water.css lazyload mathjax thebelab videojs
+.PHONY: clean prepare fontawesome reveal.js water.css mathjax thebelab videojs

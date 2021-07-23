@@ -13,6 +13,3 @@
 [submodule "third-party/water.css"]
 	path = third-party/water.css
 	url = https://github.com/kognise/water.css.git
-[submodule "third-party/vanilla-lazyload"]
-	path = third-party/vanilla-lazyload
-	url = https://github.com/verlok/vanilla-lazyload.git
