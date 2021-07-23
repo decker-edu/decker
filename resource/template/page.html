@@ -1,181 +1,180 @@
 <!DOCTYPE html>
 <html$if(lang)$ lang="$lang$" $endif$$if(dir)$ dir="$dir$" $endif$>
 
-    <head>
-        <meta charset="utf-8">
-        <meta name="generator" content="pandoc">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"> $for(author-meta)$
-        <meta name="author" content="$author-meta$"> $endfor$ $if(date-meta)$
-        <meta name="dcterms.date" content="$date-meta$"> $endif$ $if(keywords)$
-        <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$"> $endif$
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        $if(template.favicon)$
-        <link rel="shortcut icon" href="$template.favicon$">
-        $endif$
-        <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
-        <style type="text/css">
-            code {
-                white-space: pre;
-            }
-        </style>
-        $if(quotes)$
-        <style type="text/css">
-            q {
-                quotes: "“""”""‘""’";
-            }
-        </style>
-        $endif$
-        $if(highlighting-css)$
-        <style type="text/css">
-            $highlighting-css$
-        </style>
-        $endif$
+  <head>
+    <meta charset="utf-8">
+    <meta name="generator" content="pandoc">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"> $for(author-meta)$
+    <meta name="author" content="$author-meta$"> $endfor$ $if(date-meta)$
+    <meta name="dcterms.date" content="$date-meta$"> $endif$ $if(keywords)$
+    <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$"> $endif$
+    <meta name="apple-mobile-web-app-capable" content="yes">
+$if(template.favicon)$
+    <link rel="shortcut icon" href="$template.favicon$">
+$endif$
+    <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+    <style type="text/css">
+      code {
+        white-space: pre;
+      }
+    </style>
+    $if(quotes)$
+    <style type="text/css">
+      q {
+        quotes: "“""”""‘""’";
+      }
+    </style>
+    $endif$
+    $if(highlighting-css)$
+    <style type="text/css">
+      $highlighting-css$
+    </style>
+    $endif$
 
-        <script>
-            /* Store JSON encoded Pandoc meta data in a global variable for easy
-            reference from any script. */
-            window.Decker = { meta: $decker - meta$ };
-        </script>
+    <script>
+      /* Store JSON encoded Pandoc meta data in a global variable for easy
+      reference from any script. */
+      window.Decker = {meta: $decker-meta$};
+    </script>
 
-        $if(template.base-css)$
-        <link rel="stylesheet" href="$template.base-css$">
-        $else$
-        <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
-        $if(mario)$
-        <link rel="stylesheet" href="$decker-support-dir$/css/mario-page.css">
-        $endif$
-        $endif$
+$if(template.base-css)$
+    <link rel="stylesheet" href="$template.base-css$">
+$else$
+    <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
+    $if(mario)$
+      <link rel="stylesheet" href="$decker-support-dir$/css/mario-page.css">
+    $endif$
+$endif$
 
-        <!-- MathJax config -->
-        <script>
-            window.MathJax = {
-                loader: {
-                    load: ['[tex]/ams']
+    <!-- MathJax config -->
+    <script>
+        window.MathJax = {
+            loader: {
+                load: ['[tex]/ams']
+            },
+            svg: {
+                minScale: .5,                  // smallest scaling factor to use
+                mtextInheritFont: false,       // true to make mtext elements use surrounding font
+                merrorInheritFont: true,       // true to make merror text use surrounding font
+                mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+                skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+                exFactor: .5,                  // default size of ex in em units
+                displayAlign: 'center',        // default for indentalign when set to 'auto'
+                displayIndent: '0',            // default for indentshift when set to 'auto'
+                fontCache: 'none',             // or 'global' or 'none'
+                localID: null,                 // ID to use for local font cache (for single equation processing)
+                internalSpeechTitles: true,    // insert <title> tags with speech content
+                titleID: 0                     // initial id number to use for aria-labeledby titles
+            },
+            tex: {
+                tags: 'ams',
+                packages: {
+                    '[+]': ['ams']
                 },
-                svg: {
-                    minScale: .5,                  // smallest scaling factor to use
-                    mtextInheritFont: false,       // true to make mtext elements use surrounding font
-                    merrorInheritFont: true,       // true to make merror text use surrounding font
-                    mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
-                    skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
-                    exFactor: .5,                  // default size of ex in em units
-                    displayAlign: 'center',        // default for indentalign when set to 'auto'
-                    displayIndent: '0',            // default for indentshift when set to 'auto'
-                    fontCache: 'none',             // or 'global' or 'none'
-                    localID: null,                 // ID to use for local font cache (for single equation processing)
-                    internalSpeechTitles: true,    // insert <title> tags with speech content
-                    titleID: 0                     // initial id number to use for aria-labeledby titles
-                },
-                tex: {
-                    tags: 'ams',
-                    packages: {
-                        '[+]': ['ams']
-                    },
-                    macros: {
-                        R: "{\\mathrm{{I}\\kern-.15em{R}}}",
-                        laplace: "{\\Delta}",
-                        grad: "{\\nabla}",
-                        T: "^{\\mathsf{T}}",
+                macros: {
+                    R: "{\\mathrm{{I}\\kern-.15em{R}}}",
+                    laplace: "{\\Delta}",
+                    grad: "{\\nabla}",
+                    T: "^{\\mathsf{T}}",
 
-                        norm: ['\\left\\Vert #1 \\right\\Vert', 1],
-                        iprod: ['\\left\\langle #1 \\right\\rangle', 1],
-                        vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
-                        mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
-                        set: ['\\mathcal{#1}', 1],
-                        func: ['\\mathrm{#1}', 1],
-                        trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
-                        matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
-                        vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
-                        of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
-                        diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
-                        pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
+                    norm: ['\\left\\Vert #1 \\right\\Vert', 1],
+                    iprod: ['\\left\\langle #1 \\right\\rangle', 1],
+                    vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
+                    mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
+                    set: ['\\mathcal{#1}', 1],
+                    func: ['\\mathrm{#1}', 1],
+                    trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
+                    matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
+                    vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
+                    of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
+                    diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
+                    pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
 
-                        vc: ['\\mathbf{#1}', 1],
-                        abs: ['\\lvert#1\\rvert', 1],
-                        norm: ['\\lVert#1\\rVert', 1],
-                        det: ['\\lvert#1\\rvert', 1],
-                        qt: ['\\hat{\\vc {#1}}', 1],
-                        mt: ['\\boldsymbol{#1}', 1],
-                        pt: ['\\boldsymbol{#1}', 1],
-                        textcolor: ['\\color{#1}', 1]
-                    }
-                },
-                options: {
-                    // disable menu
-                    renderActions: {
-                        addMenu: [0, '', '']
-                    },
+                    vc: ['\\mathbf{#1}', 1],
+                    abs: ['\\lvert#1\\rvert', 1],
+                    norm: ['\\lVert#1\\rVert', 1],
+                    det: ['\\lvert#1\\rvert', 1],
+                    qt: ['\\hat{\\vc {#1}}', 1],
+                    mt: ['\\boldsymbol{#1}', 1],
+                    pt: ['\\boldsymbol{#1}', 1],
+                    textcolor: ['\\color{#1}', 1]
                 }
-            };
-        </script>
-        <script type="text/javascript" id="MathJax-script" async src="$decker-support-dir$/vendor/mathjax/tex-svg.js">
-        </script>
+            },
+            options: {
+                // disable menu
+                renderActions: {
+                    addMenu: [0, '', '']
+                },
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="$decker-support-dir$/vendor/mathjax/tex-svg.js">
+    </script>
 
-        <script>
-            var socket = new WebSocket("ws://" + location.host + "/reload");
-            socket.onmessage = function (event) {
-                if (event.data.startsWith("reload!"))
-                    window.location.reload(true);
-            };
-        </script>
+    <script>
+      var socket = new WebSocket("ws://" + location.host + "/reload");
+      socket.onmessage = function (event) {
+        if (event.data.startsWith("reload!")) 
+          window.location.reload(true);
+      };
+    </script>
 
-        $for(header-includes)$
-        $header-includes$
-        $endfor$
-        $for(template.css)$
-        <link rel="stylesheet" href="$template.css$">
-        $endfor$
-    </head>
+    $for(header-includes)$
+    $header-includes$
+    $endfor$
+    $for(template.css)$
+    <link rel="stylesheet" href="$template.css$">
+    $endfor$
+  </head>
 
-    <body class="document page" onload="initPage();">
-        $for(include-before)$
-        $include-before$
-        $endfor$
+  <body class="document page" onload="initPage();">
+    $for(include-before)$
+    $include-before$
+    $endfor$
 
-        <header>
-            $if(template.index-page.banner)$
-            <div class="index-page-banner">
-                <img src=$template.index-page.banner$>
-            </div>
-            $endif$
-            $if(title)$
-            <h1>$title$</h1>
-            $if(subtitle)$
-            <h2>$subtitle$</h2>
-            $endif$
-            $endif$
-        </header>
+    <header>
+    $if(template.index-page.banner)$
+    <div class="index-page-banner">
+       <img src=$template.index-page.banner$>
+    </div>
+    $endif$
+    $if(title)$
+      <h1>$title$</h1>
+      $if(subtitle)$
+      <h2>$subtitle$</h2>
+      $endif$
+    $endif$
+    </header>
 
-        $if(toc)$
-        $if(toc-title)$
-        <h1 id="$idprefix$TOC-title class=" toc-title">$toc-title$</h1>
-        $endif$
-        <nav id="$idprefix$TOC">
-            $table-of-contents$
-        </nav>
-        $endif$
+    $if(toc)$
+    $if(toc-title)$
+    <h1 id="$idprefix$TOC-title class="toc-title">$toc-title$</h1>
+    $endif$
+    <nav id="$idprefix$TOC">
+        $table-of-contents$
+    </nav>
+    $endif$
 
 <!-- body must not be indented or code blocks render badly -->
 <!-- The following line must be left aligned! -->
 $body$
 <!-- The previous line must be left aligned! -->
 
-        <script src="$decker-support-dir$/js/page.js"></script>
+    <script src="$decker-support-dir$/js/page.js"></script>
 
-        $for(include-after)$
-        $include-after$
-        $endfor$
-        $if(author)$
-        <hr>
-        <address>
-            $if(date)$
-            <p id="date">$date$</p>
-            $endif$
-            <p class="author">
-                $copyright$ $author$$if(affiliation)$, $affiliation$ $endif$
-            </p>
-        </address>
-        $endif$
-    </body>
-
-    </html>
+    $for(include-after)$
+    $include-after$
+    $endfor$
+    $if(author)$
+    <hr>
+    <address>
+      $if(date)$
+      <p id="date">$date$</p>
+      $endif$
+      <p class="author">
+        $copyright$ $author$$if(affiliation)$, $affiliation$ $endif$
+      </p>
+    </address>
+    $endif$
+  </body>
+  </html>
