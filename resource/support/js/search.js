@@ -8,13 +8,13 @@ function setupSearch(
   showDeckTitles = true,
   showDeckSubtitles = false
 ) {
-  var indexPath = Decker.meta.projectPath + "index.json";
-    fetch(indexPath)
-      .then((res) => res.json())
-      .then((index) => {
-        setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
-      })
-      .catch((err) => console.log("cannot load: index.json", err));
+  let indexPath = Decker.meta.projectPath + "/index.json";
+  fetch(indexPath)
+    .then((res) => res.json())
+    .then((index) => {
+      setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
+    })
+    .catch((err) => console.log("cannot load: index.json", err));
 }
 
 function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
