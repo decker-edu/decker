@@ -88,4 +88,17 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
       }
     }
   });
+
+  // if search elements are inside a <details> element, add some
+  // convenience functionality
+  const details = search.closest("details");
+  if (details) {
+    details.addEventListener("toggle", (evt) => {
+      if (details.open) search.focus();
+    });
+
+    search.addEventListener("keyup", (e) => {
+      if (e.key == "Escape") details.open = false;
+    });
+  }
 }
