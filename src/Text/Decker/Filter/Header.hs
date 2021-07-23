@@ -81,7 +81,7 @@ lastImage :: [Inline] -> (Inline, [Inline])
 lastImage inlines =
   (fromJust $ listToMaybe $ reverse $ query image inlines, zapImages inlines)
   where
-    image i@(Image {}) = [i]
+    image i@Image {} = [i]
     image _ = []
 
 -- | Replaces all images with spaces.

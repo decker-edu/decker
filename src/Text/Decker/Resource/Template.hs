@@ -74,9 +74,8 @@ parseTemplateUri uri =
       scheme = uriScheme uri
       base = uriPath uri
    in if | scheme == Just "exe" && base == "" -> DeckerExecutable
-         | scheme == Nothing && (Text.toLower <$> ext) == Just "zip" ->
-           LocalZip $ toString base
-         | scheme == Nothing -> LocalDir $ toString base
+         | isNothing scheme && (Text.toLower <$> ext) == Just "zip" -> LocalZip $ toString base
+         | isNothing scheme -> LocalDir $ toString base
          | otherwise -> Unsupported (URI.render uri)
 
 copySupportFiles :: TemplateSource -> Provisioning -> FilePath -> IO ()

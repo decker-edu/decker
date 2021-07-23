@@ -31,6 +31,12 @@ $endif$
     </style>
     $endif$
 
+    <script>
+      /* Store JSON encoded Pandoc meta data in a global variable for easy
+      reference from any script. */
+      window.Decker = {meta: $decker-meta$};
+    </script>
+
 $if(template.base-css)$
     <link rel="stylesheet" href="$template.base-css$">
 $else$

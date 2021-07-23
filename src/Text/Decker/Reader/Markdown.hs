@@ -39,6 +39,7 @@ import Text.Decker.Internal.URI
 import Text.Decker.Resource.Template
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc
+import Text.Pandoc.Shared
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -77,6 +78,16 @@ readMarkdownFile globalMeta path = do
     >>= adjustResourcePathsA base
     >>= checkVersion
     >>= includeMarkdownFiles globalMeta base
+    >>= addPathInfo base
+
+addPathInfo :: FilePath -> Pandoc -> Action Pandoc
+addPathInfo documentPath (Pandoc meta blocks) = do
+  let pathToProject = makeRelativeTo documentPath "."
+  let pathToSupport = makeRelativeTo documentPath "support"
+  let meta' =
+        addMetaField "projectPath" pathToProject $
+          addMetaField "supportPath" pathToSupport meta
+  return (Pandoc meta' blocks)
 
 -- | Parses a Markdown file and throws an exception if something goes wrong.
 parseMarkdownFile :: FilePath -> Action Pandoc
