@@ -131,7 +131,8 @@ tryRemoveDirectory path = do
   when exists $ removeDirectoryRecursive path
 
 -- | Express the second path argument as relative to the first. 
--- Both arguments are expected to be absolute pathes. 
+-- TODO Ensure this always works with dirs
+-- TODO Ensure resulting dirs end on /
 makeRelativeTo :: FilePath -> FilePath -> FilePath
 makeRelativeTo dir file =
   let (d, f) = removeCommonPrefix (normalise dir, normalise file)

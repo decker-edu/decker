@@ -6,8 +6,8 @@ title: Citation
 
 # Citation
 
-Not quite recently published [@tramberend2003]. The bibliography is
-appended at the end of the deck. CSL file *[:meta](csl)* was used.
+Not quite recently published [@tramberend2003]. The bibliography is appended at
+the end of the deck. CSL file *[:meta](csl)* was used.
 
 # Citation in a caption
 

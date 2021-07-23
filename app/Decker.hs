@@ -99,7 +99,7 @@ run = do
   --
   runDecker $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches
-    want ["decks"]
+    want ["html"]
     addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
     --
     withTargetDocs "Print version information." $

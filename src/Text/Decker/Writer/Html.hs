@@ -52,9 +52,9 @@ writeIndexLists meta targets out baseUrl = do
 title: Generated Index
 subtitle: #{cwd}
 ---
-```{.javascript .run}
-import setupSearch from "/test/static/search/search.js";
-setupSearch(anchor, 0.6);
+``` {.javascript .run}
+import(Decker.meta.supportPath + "/js/search.js")
+    .then(module => console.log(module.default(anchor, 0.6)));
 ```
 \# Slide decks
 #{unlines decksLinks}
@@ -103,14 +103,12 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
   putCurrentDocument out
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
-  -- pandoc@(Pandoc meta _) <- readAndProcessMarkdown meta markdownFile disp
   pandoc@(Pandoc meta _) <- readAndFilterMarkdownFile disp meta markdownFile
   let highlightStyle =
         case lookupMeta "highlightjs" meta of
           Nothing -> Just pygments
           Just (_ :: T.Text) -> Nothing
   template <- getTemplate (templateFile disp)
-  -- dachdeckerUrl' <- liftIO getDachdeckerUrl
   let options =
         pandocWriterOpts
           { writerSlideLevel = Just 1,
@@ -137,7 +135,9 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
 writePandocFile :: T.Text -> WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocFile fmt options out pandoc =
   liftIO $
-    runIO (writeRevealJs options (embedMetaMeta pandoc)) >>= handleError >>= T.writeFile out
+    runIO (writeRevealJs options (embedMetaMeta pandoc))
+      >>= handleError
+      >>= T.writeFile out
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlPage :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
