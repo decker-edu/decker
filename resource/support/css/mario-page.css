@@ -53,7 +53,7 @@ header > h1, header > h2 {
 }
 
 header > h1 {
-    font-size: 65px;
+    font-size: 50px;
 }
 
 h1 {
@@ -104,6 +104,9 @@ details summary[icon]::marker {
 details summary::after {
     font-style: italic;
     content: '(click)...'
+}
+:lang(de) details summary::after {
+    content: '(klicken)...'
 }
 
 details input {

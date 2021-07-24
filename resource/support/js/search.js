@@ -18,17 +18,18 @@ function setupSearch(
 }
 
 function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
-  anchor.innerHTML = `
-        <p>
-            <input class="search" placeholder="Looking for something?" type="text">
-        </p>
-        <p>
-            <table class="search">
-                <thead><tr><th>Word</th><th>Deck</th><th>Slide</th><th>Hits</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </p>
-    `;
+  anchor.innerHTML =
+    document.documentElement.lang === "de"
+      ? `<p><input class="search" placeholder="Suchbegriff eingeben" type="text"></p>
+         <p><table class="search">
+         <thead><tr><th>Wort</th><th>Foliensatz</th><th>Folie</th><th>Treffer</th></tr></thead>
+         <tbody></tbody>
+         </table></p>`
+      : `<p><input class="search" placeholder="Looking for something?" type="text"></p>
+         <p><table class="search">
+         <thead><tr><th>Word</th><th>Deck</th><th>Slide</th><th>Hits</th></tr></thead>
+         <tbody></tbody>
+         </table></p>`;
 
   const search = anchor.querySelector("input.search");
   const table = anchor.querySelector("table.search");
@@ -36,7 +37,7 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
   const keys = Object.keys(index.index).map((k) => k.toString());
   const fuzzy = FuzzySet(keys);
 
-  search.addEventListener("keyup", (e) => {
+  search.addEventListener("input", (e) => {
     // delete all rows in table body
     while (results.firstChild) {
       results.removeChild(results.firstChild);
@@ -86,6 +87,15 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
         <td>${count}</td>`;
 
         results.appendChild(item);
+      }
+    }
+  });
+
+  search.addEventListener("keyup", (e) => {
+    if (e.key == "Escape") {
+      search.value = "";
+      while (results.firstChild) {
+        results.removeChild(results.firstChild);
       }
     }
   });
