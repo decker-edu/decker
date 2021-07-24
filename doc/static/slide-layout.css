@@ -121,6 +121,26 @@ div.content {
   margin: 0 auto;
 }
 
+div.box#b4 {
+  position: absolute;
+  z-index: 1000;
+  left: -12em;
+  top: 10em;
+  border: 0.3em dashed red;
+  background-color: #eee;
+  box-shadow: 0 3px 10px rgb(0 0 0 / 0.4);
+  animation: spin 10s infinite linear;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 div.columns div.layout {
   display: flex;
 }
