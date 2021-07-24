@@ -16,3 +16,4 @@ exclude-directories:
   - users-guide
 static-resource-dirs:
   - test/static
+  - doc/static

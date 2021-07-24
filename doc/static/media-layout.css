@@ -1,0 +1,222 @@
+:root {
+  /* default values for per-element variables */
+  --width: 100%;
+  --justify: center;
+
+  /* default values for per-document variables */
+  --verbose-border-size: 4px;
+  --media-banner-justify: center;
+  --banner-padding: 0px;
+  --banner-margin: 0px;
+  --banner-border: var(--verbose-border-size);
+  --banner-inset: calc((var(--banner-border) + var(--banner-padding)) * 2);
+  --jacket-padding: 10px;
+  --jacket-margin: 10px;
+  --jacket-border: var(--verbose-border-size);
+  --jacket-inset: calc(
+    (var(--jacket-margin) + var(--jacket-border) + var(--jacket-padding)) * 2
+  );
+  --caption-padding: 0px;
+  --caption-margin: 0px;
+  --caption-border: var(--verbose-border-size);
+}
+
+i.red {
+  color: red;
+}
+
+i.green {
+  color: green;
+}
+
+div.content {
+  background-color: #e7e7e7;
+  width: 72%;
+  margin: 0 auto;
+}
+
+/* 
+ all variables can also be set using the style attribute like this 
+
+   style="--width:72%;"
+*/
+.width-50pc {
+  --width: 50%;
+}
+
+.width-33pc {
+  --width: 33%;
+}
+
+.width-25pc {
+  --width: 25%;
+}
+
+.width-20pc {
+  --width: 20%;
+}
+
+.height-50pc {
+  --height: 50%;
+}
+
+.width-33pc {
+  --height: 33%;
+}
+
+.height-25pc {
+  --height: 25%;
+}
+
+.height-20pc {
+  --height: 20%;
+}
+
+.left {
+  justify-content: flex-start;
+}
+
+.center {
+  justify-content: center;
+}
+
+.right {
+  justify-content: flex-end;
+}
+
+div.media.paragraph {
+  background-color: #fef;
+  display: flex;
+  margin: 0;
+  margin-top: 1ex;
+  margin-bottom: 1ex;
+  padding: 0;
+}
+
+div.media.paragraph div.jacket {
+  background-color: #eff;
+  flex: 0 0 content;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+div.media.paragraph div.jacket img {
+  width: calc(100% - 1px);
+  height: auto;
+  border: 1px solid black;
+  padding: 0;
+  margin: 0;
+}
+
+div.media.paragraph div.jacket div.caption {
+  padding: 0.1em;
+  margin: 0;
+  font-size: 72%;
+}
+
+div.media.paragraph div.jacket pre {
+  overflow-x: scroll;
+  margin: 0;
+  padding: 0.5em;
+  background-color: #ffa;
+  min-width: 0;
+  height: var(--height);
+}
+
+.wrap-video {
+  position: relative;
+  padding-bottom: calc(var(--aspect-ratio, 0.5625) * 100%);
+  height: 0;
+}
+.wrap-video iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+div.media.line.baseline {
+  vertical-align: baseline;
+}
+
+div.media.line.top {
+  vertical-align: text-top;
+}
+
+div.media.line.bottom {
+  vertical-align: text-bottom;
+}
+
+div.media.line {
+  background-color: #fef;
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  vertical-align: baseline;
+}
+
+div.media.line div.jacket {
+  background-color: #eff;
+  margin: 0;
+  padding: 0;
+}
+
+div.media.line div.jacket img {
+  height: 7em;
+  border: 1px solid black;
+  padding: 0;
+  margin: 0;
+}
+
+div.media.line div.jacket div.caption {
+  padding: 0.1em;
+  margin: 0;
+  font-size: 72%;
+}
+
+div.media.lineblock div.container.left {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+div.media.lineblock div.container.center {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+div.media.lineblock div.container.right {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+div.media.lineblock {
+  background-color: #fef;
+  margin: 0;
+  padding: 0;
+}
+
+div.media.lineblock div.container {
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+div.media.lineblock div.jacket {
+  flex: 0 0 content;
+  background-color: #eff;
+  margin: 0;
+  padding: 0;
+}
+
+div.media.lineblock div.jacket img {
+  padding: 0;
+  margin: 0;
+}
+
+div.media.lineblock div.jacket div.caption {
+  padding: 0.1em;
+  margin: 0;
+  font-size: 72%;
+}

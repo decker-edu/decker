@@ -1,0 +1,163 @@
+:root {
+  --bar-width: 0.5em;
+  --bar-inset: -1em;
+  --struct-padding: 1.3em;
+  --struct-border-width: 1px;
+}
+
+body {
+  font-family: sans-serif;
+}
+
+section.slide {
+  position: relative;
+  padding: var(--struct-padding);
+  background-color: #fee;
+  border: var(--struct-border-width) solid red;
+}
+
+section.slide::before {
+  content: "SECTION #" attr(id) " " attr(class);
+  position: absolute;
+  top: 0.1em;
+  right: 0.2em;
+  font-size: 80%;
+}
+
+div.alignment {
+  position: relative;
+  background-color: #eee;
+  border: var(--struct-border-width) solid black;
+  padding: var(--struct-padding);
+  margin: 0 auto;
+}
+
+div.alignment::before {
+  content: "DIV #" attr(id) " " attr(class);
+  position: absolute;
+  top: 0.1em;
+  right: 0.2em;
+  font-size: 80%;
+}
+
+div.decker {
+  position: relative;
+  background-color: #eef;
+  border: var(--struct-border-width) solid blue;
+  padding: var(--struct-padding);
+  margin: 0 auto;
+}
+
+div.decker::before {
+  content: "DIV #" attr(id) " " attr(class);
+  position: absolute;
+  top: 0.1em;
+  right: 0.2em;
+  font-size: 80%;
+}
+
+div.layout {
+  position: relative;
+  background-color: #efe;
+  border: var(--struct-border-width) solid green;
+  padding: var(--struct-padding);
+  margin: 0 auto;
+}
+
+div.layout::before {
+  content: "DIV #" attr(id) " " attr(class);
+  position: absolute;
+  top: 0.1em;
+  right: 0.2em;
+  font-size: 80%;
+}
+
+div.area {
+  position: relative;
+  background-color: #fee;
+  border: var(--struct-border-width) solid red;
+  padding: var(--struct-padding);
+  margin: 0 auto;
+}
+
+div.area::before {
+  content: "DIV #" attr(id) " " attr(class);
+  position: absolute;
+  top: 0.1em;
+  right: 0.2em;
+  font-size: 80%;
+}
+
+div.box {
+  position: relative;
+  background-color: #eef;
+  border: var(--struct-border-width) solid blue;
+  padding: var(--struct-padding);
+  margin: 0 auto;
+}
+
+div.box::before {
+  content: "DIV #" attr(id) " " attr(class);
+  position: absolute;
+  top: 0.1em;
+  right: 0.2em;
+  font-size: 80%;
+}
+
+div.box#b2 {
+  position: relative;
+  left: var(--bar-inset);
+  border-left: var(--bar-width) solid blue;
+  padding-left: calc(
+    -1 * var(--bar-inset) - var(--bar-width) + var(--struct-border-width) + var(--struct-padding)
+  );
+  margin-right: var(--bar-inset);
+}
+
+div.content {
+  background-color: #eee;
+  border: var(--struct-border-width) solid black;
+  padding: var(--struct-padding);
+  margin: 0 auto;
+}
+
+div.columns div.layout {
+  display: flex;
+}
+
+div.columns div.layout div.area#a1 {
+  flex-grow: 1;
+}
+
+div.columns div.layout div.area#a2 {
+  flex-grow: 2;
+}
+
+div.floating div.layout div.area#a1 {
+  float: left;
+  width: calc(60% - 2 * 1.3em - 2 * var(--struct-border-width));
+}
+
+div.floating div.layout div.area#a2 {
+  display: inline-block;
+  width: calc(40% - 2 * 1.3em - 2 * var(--struct-border-width));
+}
+
+div.grid div.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  place-items: stretch;
+}
+
+div.grid div.layout div.area#a1 {
+  grid-column: 1;
+  grid-row: 2;
+  width: calc(100% - 2 * 1.3em - 2 * var(--struct-border-width));
+}
+
+div.grid div.layout div.area#a2 {
+  grid-column: 2;
+  grid-row: 1;
+  width: calc(100% - 2 * 1.3em - 2 * var(--struct-border-width));
+}

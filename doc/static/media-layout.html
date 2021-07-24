@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Image Layout</title>
+    <link rel="stylesheet" href="media-layout.css" />
+  </head>
+
+  <body>
+    <div class="content">
+      <h1>Decker Image Layout</h1>
+
+      <h2>Proposed structure</h2>
+
+      Parameters in <i class="red"><code>red</code></i
+      >. Media elements (img, svg, wrapped canvas, wrapped iframe) in
+      <i class="green"><code>green</code></i
+      >.
+
+      <pre><code>&lt;div class="media paragraph <i class="red">center</i>">
+  &lt;div class="jacket image" <i class="red">style="width: 70%"</i>>
+    <i class="green">&lt;img src="./06-metal.png" /></i>
+    &lt;div class="caption">Caption.&lt;/div>
+  &lt;/div>
+&lt;/div>
+
+&lt;div class="media line <i class="red">top</i>">
+  &lt;div class="jacket image">
+    <i class="green">&lt;img src="./06-metal.png" <i class="red">style="height: 4em"</i> /></i>
+    &lt;div class="caption">Caption.&lt;/div>
+  &lt;/div>
+&lt;/div>
+
+&lt;div class="media lineblock <i class="red">center</i>">
+  &lt;div class="container" <i class="red">style="width: 70%"</i>>
+    &lt;div class="jacket image">
+      <i class="green">&lt;img src="./06-metal.png" /></i>
+    &lt;/div>
+    &lt;div class="jacket image">
+      <i class="green">&lt;img src="./06-metal-r.png" /></i>
+      &lt;div class="caption">Image Caption&lt;/div>
+    &lt;/div>
+    &lt;div class="jacket image">
+      <i class="green">&lt;img src="./06-metal-xs.png" /></i>
+    &lt;/div>
+  &lt;/div>
+&lt;/div></code></pre>
+
+      <h1>Tests</h1>
+
+      <h2>Paragraph Mode</h2>
+
+      <hr />
+
+      <p>
+        In paragraph mode an image is the only element in a paragraph. The
+        default width is 100% of the surrounding element.
+      </p>
+
+      <p>(No idea, where the small margin below the image comes from.)</p>
+
+      <p><code>![](){}</code></p>
+
+      <div class="media paragraph">
+        <div class="jacket image">
+          <img src="./06-metal.png" />
+        </div>
+      </div>
+
+      <hr />
+
+      <p>The width can be reduced in percentages of the surrounding element.</p>
+
+      <p><code>![](){width="70%"}</code></p>
+
+      <div class="media paragraph">
+        <div class="jacket image" style="width: 70%">
+          <img src="./06-metal.png" />
+          <div class="caption">Caption.</div>
+        </div>
+      </div>
+
+      <hr />
+
+      <p>
+        Reduced width images can be centered, right, or left (default) aligned.
+      </p>
+
+      <p><code>![Caption](){width="70%" .right}</code></p>
+
+      <div class="media paragraph right">
+        <div class="jacket image" style="width: 70%">
+          <img src="./06-metal.png" />
+          <div class="caption">
+            Captions can of course be entire paragraphs that can contain any
+            HTML within reasonable limits.
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <p>
+        All embedded things behave exactly like plain images. For example code
+        blocks. They have a `max-height` attribute with a sensible default
+        value.
+      </p>
+
+      <p><code>``` {}</code></p>
+
+      <div class="media paragraph">
+        <div class="jacket code caption">
+          <pre><code>filter2 :: [Block] -> Filter [Block]
+filter2 = pairwise filter
+    where
+    filter (Para [Image {}], Para []) =
+        return $ Just [RawBlock (Format "html5") ""]
+    filter (x, y) = return Nothing</code></pre>
+          <div class="caption">Code Caption</div>
+        </div>
+      </div>
+
+      <hr />
+
+      <p>Reduced width code block, centered.</p>
+
+      <p><code>``` {width="70%" .center}</code></p>
+
+      <div class="media paragraph center">
+        <div class="jacket code" style="width: 70%">
+          <pre><code>filter2 :: [Block] -> Filter [Block]
+filter2 = pairwise filter
+    where
+    filter (Para [Image {}], Para []) =
+        return $ Just [RawBlock (Format "html5") ""]
+    filter (x, y) = return Nothing</code></pre>
+          <div class="caption">Code Caption</div>
+        </div>
+      </div>
+
+      <hr />
+
+      <p>
+        Iframes and embedded videos need a `aspect-rato` attribute. Default
+        could be 16:9 or 4:3 or anything. See
+        <a src="https://css-tricks.com/fluid-width-video/">here</a> for
+        dynamically resizable video embedding.
+      </p>
+
+      <p><code>![Caption](youtube:fR6DA54tIGc){aspect="16/7"}</code></p>
+
+      <div class="media paragraph">
+        <div class="jacket image caption">
+          <div class="wrap-video" style="--aspect-ratio: 7/16">
+            <!-- Copy & Pasted from YouTube -->
+            <iframe
+              width="560"
+              height="315"
+              src="https://www.youtube-nocookie.com/embed/fR6DA54tIGc"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <div class="caption">Caption</div>
+        </div>
+      </div>
+
+      <hr />
+
+      <p>
+        <code>![Caption](youtube:fR6DA54tIGc){aspect="16/7" width="72%"}</code>
+      </p>
+
+      <div class="media paragraph center">
+        <div class="jacket image caption" style="width: 70%">
+          <div class="wrap-video" style="--aspect-ratio: 7/16">
+            <!-- Copy & Pasted from YouTube -->
+            <iframe
+              width="560"
+              height="315"
+              src="https://www.youtube-nocookie.com/embed/fR6DA54tIGc"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <div class="caption">Caption</div>
+        </div>
+      </div>
+
+      <hr />
+
+      <p>
+        Alternatively, the height can be specified. This might make more sense
+        for plain iframes.
+      </p>
+
+      <p>
+        <code
+          >![Caption](http://tramberend.de){height="200px" width="72%"}</code
+        >
+      </p>
+
+      <div class="media paragraph center">
+        <div class="jacket image caption" style="width: 70%">
+          <iframe
+            width="100%"
+            height="200px"
+            src="http://tramberend.de/"
+            frameborder="0"
+            allowfullscreen
+          ></iframe>
+          <div class="caption">Caption</div>
+        </div>
+      </div>
+
+      <hr />
+
+      <h2>Line Mode</h2>
+
+      <p>In line mode the image is surrounded by other elements.</p>
+
+      <p>
+        The height of the image is set to a global default value in some
+        absolute unit. Percentages do not work here.
+      </p>
+
+      <p><code>![](){} Text ![](){} Text</code></p>
+
+      <div class="media line">
+        <div class="jacket image">
+          <img src="./06-metal.png" />
+        </div>
+      </div>
+      Text
+      <div class="media line">
+        <div class="jacket image caption">
+          <img src="./06-metal.png" />
+          <div class="caption">Image Caption</div>
+        </div>
+      </div>
+      Text
+
+      <hr />
+
+      <p>Height and vertical alignment can be set.</p>
+
+      <p>
+        <code>![](){height="4em" .top} Text ![](){height="4em" .top} Text</code>
+      </p>
+
+      <div class="media line top">
+        <div class="jacket image">
+          <img src="./06-metal.png" style="height: 4em" />
+        </div>
+      </div>
+      Text
+      <div class="media line top">
+        <div class="jacket image caption">
+          <img src="./06-metal.png" style="height: 4em" />
+          <div class="caption">Image Caption</div>
+        </div>
+      </div>
+      Text
+
+      <hr />
+
+      <p>
+        Block elements like CodeBlock (and images resulting from them) can not
+        be set in line mode.
+      </p>
+
+      <hr />
+
+      <h2>Line Blocks</h2>
+
+      <p>
+        LineBlocks result in multiple images inside a media element which are
+        displayed in one line all with the same height filling the entire width
+        of the parent element.
+      </p>
+
+      <pre><code>| ![](){}
+| ![](){}
+| ![](){}</code></pre>
+
+      <div class="media lineblock">
+        <div class="container">
+          <div class="jacket image">
+            <img src="./06-metal.png" />
+          </div>
+          <div class="jacket image">
+            <img src="./06-metal-r.png" />
+            <div class="caption">Image Caption</div>
+          </div>
+          <div class="jacket image">
+            <img src="./06-metal-xs.png" />
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <script>
+        // TODO This only works if border, margin and padding for all involved elements are all 0.
+        let adjust = (ev) => {
+          let blocks = document.querySelectorAll(
+            "div.media.lineblock div.container"
+          );
+          for (let block of blocks) {
+            let rowAspect = 0;
+            let images = block.querySelectorAll("img");
+            for (let img of images)
+              rowAspect += img.naturalWidth / img.naturalHeight;
+            let height = block.offsetWidth / rowAspect;
+            for (let img of images) {
+              let imgAspect = img.naturalWidth / img.naturalHeight;
+              img.style.width = `${imgAspect * height}px`;
+              img.style.height = `${height}px`;
+            }
+          }
+        };
+        window.onload = adjust;
+        window.onresize = adjust;
+      </script>
+    </div>
+  </body>
+</html>

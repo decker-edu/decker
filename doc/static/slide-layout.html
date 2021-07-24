@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <title>Slide Layout</title>
+        <link rel="stylesheet" href="slide-layout.css" />
+    </head>
+
+    <body>
+        <div class="content">
+            <h1>Decker Slide Layout</h1>
+
+            <h2>General structure</h2>
+
+            <h3>HTML</h3>
+
+            <pre><code>
+&lt;section class="slide level1 present">
+    &lt;div class="decker">
+    &lt;div class="alignment">
+        &lt;h1>Licht&lt;/h1>
+        &lt;div class="layout">
+        &lt;div class="area">
+            &lt;div class="box">
+            &lt;h2>Strahlung und so&lt;/h2>
+            &lt;p>Something or other&lt;/p>
+            &lt;/div>
+        &lt;/div>
+        &lt;div class="area">
+            &lt;div class="box">
+            &lt;p>No header here&lt;/p>
+            &lt;p>Something or other&lt;/p>
+            &lt;/div>
+            &lt;div class="box">
+            &lt;h2>Sichtbares Licht&lt;/h2>
+            &lt;p>Something or other&lt;/p>
+            &lt;/div>
+        &lt;/div>
+        &lt;/div>
+    &lt;/div>
+    &lt;/div>
+&lt;/section>
+      </code></pre>
+
+            <h3>Exploded</h3>
+
+            <p>The CSS for this only adds padding the divs to help visualize the
+                structure.</p>
+
+            <div class="structure">
+                <section id="a-slide" id="a-slide" class="slide level1 present">
+                    <div class="decker">
+                        <div class="alignment">
+                            <h1>Licht</h1>
+                            <div class="layout">
+                                <div class="area">
+                                    <div class="box">
+                                        <h2>Strahlung und so</h2>
+                                        <p>Something or other</p>
+                                    </div>
+                                </div>
+                                <div class="area">
+                                    <div class="box">
+                                        <p>No header here</p>
+                                        <p>Something or other</p>
+                                    </div>
+                                    <div class="box">
+                                        <h2>Sichtbares Licht</h2>
+                                        <p>Something or other</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <h2>Layouts</h2>
+
+            <p>Different CSS only layout strategies are possible on this
+                structure.</p>
+
+            <h3>Row based columns</h3>
+
+            <p>This is the current Flexbox based layout one gets with the
+                <code>layout="columns"</code> attribute.
+            </p>
+
+            <pre><code>div.columns div.layout {
+  display: flex;
+}
+
+div.columns div.layout div.area#i1 {
+  flex-grow: 1;
+}
+
+div.columns div.layout div.area#i2 {
+  flex-grow: 2;
+}</code></pre>
+
+            <div class="columns">
+                <section id="a-slide" class="slide level1 present">
+                    <div class="decker">
+                        <div class="alignment">
+                            <h1>Licht</h1>
+                            <div id="l1" class="layout">
+                                <div id="a1"" class=" area">
+                                    <div id="b1" class="box">
+                                        <h2>Strahlung und so</h2>
+                                        <p>Something or other</p>
+                                    </div>
+                                </div>
+                                <div id="a2" class="area">
+                                    <div id="b2" class="box">
+                                        <p>No header here</p>
+                                        <p><img src="06-metal.png" width="100%" /></p>
+                                        <p>Something or other</p>
+                                    </div>
+                                    <div id="b3" class="box">
+                                        <h2>Sichtbares Licht</h2>
+                                        <p>Something or other</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </section>
+            </div>
+            <h3>Floating columns</h3>
+
+            <p> This is the floating layout that Mario uses via <code>MarioCols.hs</code>.</p>
+
+            <pre><code>div.floating div.layout div.area#i1 {
+  float: left;
+  width: calc(60% - 2 * 1.3em - 2 * var(--struct-border-width));
+}
+
+div.floating div.layout div.area#i2 {
+  display: inline-block;
+  width: calc(40% - 2 * 1.3em - 2 * var(--struct-border-width));
+}</code></pre>
+
+            <div class="floating">
+                <section id="a-slide" class="slide level1 present">
+                    <div class="decker">
+                        <div class="alignment">
+                            <h1>Licht</h1>
+                            <div id="l1" class="layout">
+                                <div id="a1" class="area">
+                                    <div id="b1" class="box">
+                                        <h2>Strahlung und so</h2>
+                                        <p>Something or other</p>
+                                    </div>
+                                </div>
+                                <div id="a2" class="area">
+                                    <div id="b2" class="box">
+                                        <p>No header here</p>
+                                        <p><img src="06-metal.png" width="100%" /></p>
+                                        <p>Something or other</p>
+                                    </div>
+                                    <div id="b3" class="box">
+                                        <h2>Sichtbares Licht</h2>
+                                        <p>Something or other</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </section>
+            </div>
+            <h3>Future World</h3>
+            <p>This example uses Grid layout.</p>
+
+            <pre><code>div.grid div.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  place-items: stretch;
+}
+
+div.grid div.layout div.area#i1 {
+  grid-column: 1;
+  grid-row: 2;
+  width: calc(100% - 2 * 1.3em - 2 * var(--struct-border-width));
+}
+
+div.grid div.layout div.area#i2 {
+  grid-column: 2;
+  grid-row: 1;
+  width: calc(100% - 2 * 1.3em - 2 * var(--struct-border-width));
+}</code></pre>
+
+            <div class="grid">
+                <section id="a-slide" class="slide level1 present">
+                    <div class="decker">
+                        <div class="alignment">
+                            <h1>Licht</h1>
+                            <div id="l1" class="layout">
+                                <div id="a1" class="area">
+                                    <div id="b1" class="box">
+                                        <h2>Strahlung und so</h2>
+                                        Something or other
+                                    </div>
+                                </div>
+                                <div id="a2" class="area">
+                                    <div id="b2" class="box">
+                                        <p>No header here</p>
+                                        <p><img src="06-metal.png" width="100%" /></p>
+                                        <p>Something or other</p>
+                                    </div>
+                                    <div id="b3" class="box">
+                                        <h2>Sichtbares Licht</h2>
+                                        Something or other
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </section>
+            </div>
+            <h3>Box bars</h3>
+
+            <p>The blue bar on left of box <code>b2</code> is implemented with
+            a negative left inset and a corresponding negative margin on the
+            right. There may be better ways to do this, as the calculation of
+            the padding is quite fiddly.</p>
+            
+            <pre><code>div.box#b2 {
+  position: relative;
+  left: var(--bar-inset);
+  border-left: var(--bar-width) solid blue;
+  padding-left: calc(
+    -1 * var(--bar-inset) - var(--bar-width) + var(--struct-border-width) + var(--struct-padding)
+  );
+  margin-right: var(--bar-inset);
+}</code></pre>
+        </div>
+    </body>
+
+</html>
