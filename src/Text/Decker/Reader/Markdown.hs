@@ -18,6 +18,7 @@ import Control.Monad
 import Control.Monad.Loops
 import qualified Data.List as List
 import Data.Maybe
+import Data.Text (pack)
 import qualified Data.Text.IO as Text
 import Development.Shake hiding (Resource)
 import Relude
@@ -60,12 +61,17 @@ readAndFilterMarkdownFile disp globalMeta path = do
 
 processCites :: MonadIO m => Pandoc -> m Pandoc
 processCites pandoc@(Pandoc meta blocks) = liftIO $ do
-  let csl = lookupMeta "csl" meta :: Maybe FilePath
-      bib = lookupMeta "bibliography" meta :: Maybe FilePath
-  -- Only do citations if we have both, csl and bibliography
-  if all isJust [csl, bib]
-    then runIOorExplode $ processCitations pandoc
+  if isJust (lookupMeta "bibliography" meta :: Maybe FilePath)
+    then 
+      case getCSL meta of
+        Right _ -> runIOorExplode $ processCitations pandoc
+        Left msg -> error (pack msg) 
     else return pandoc
+  where 
+    getCSL meta = 
+      if isJust (lookupMeta "csl" meta :: Maybe FilePath) 
+        then Right "Found"
+        else Left "Error: Please indicate a csl template in yaml."
 
 -- | Reads a Markdown file from the local file system. Local resource paths are
 -- converted to absolute paths. Additional meta data is read and merged into
