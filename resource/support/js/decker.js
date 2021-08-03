@@ -56,10 +56,10 @@ function fixAutoplayWithStart() {
 
 function fixLinks() {
   for (let a of document.querySelectorAll("a")) {
-    let url = new URL(a.href);
-
     // skip links in SVGs (e.g. MathJax)
     if (a.href.baseVal) continue;
+
+    const url = new URL(a.href);
 
     // fix bibtex links
     if (url.hash && url.hash.startsWith("#/ref-")) {
