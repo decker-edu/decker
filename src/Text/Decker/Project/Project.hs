@@ -27,6 +27,7 @@ module Text.Decker.Project.Project
     annotations,
     recordings,
     times,
+    captions,
     css,
     Targets (..),
     Resource (..),
@@ -77,6 +78,7 @@ data Targets = Targets
     _questions :: [FilePath],
     _annotations :: [FilePath],
     _times :: [FilePath],
+    _captions :: [FilePath],
     _recordings :: [FilePath],
     _css :: [FilePath]
   }
@@ -195,6 +197,8 @@ recordingSuffix2 = "-recording.mp4"
 
 recordingTargetSuffix = "-recording.mp4"
 
+captionsSuffix = "-recording.vtt"
+
 sourceRegexes :: [String] =
   [ "-deck.md\\'",
     "-page.md\\'",
@@ -202,6 +206,7 @@ sourceRegexes :: [String] =
     "-quest.yaml\\'",
     "-recording.webm\\'",
     "-recording.mp4\\'",
+    "-recording.vtt\\'",
     "-times.json\\'",
     "-annot.json\\'",
     "\\`(^_).*\\.scss\\'"
@@ -253,6 +258,7 @@ scanTargets meta = do
         _questions = sort $ calcTargets questSuffix questHTMLSuffix srcs,
         _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs,
         _times = sort $ calcTargets timesSuffix timesSuffix srcs,
+        _captions = sort $ calcTargets captionsSuffix captionsSuffix srcs,
         _recordings =
           List.nub $ sort $
             calcTargets recordingSuffix1 recordingTargetSuffix srcs

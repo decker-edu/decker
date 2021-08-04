@@ -216,6 +216,11 @@ run = do
         putNormal $ "# copy (for " <> out <> ")"
         copyFile' src out
       --
+      publicDir <//> "*-recording.vtt" %> \out -> do
+        let src = makeRelative publicDir out
+        putNormal $ "# copy (for " <> out <> ")"
+        copyFile' src out
+      --
       publicDir <//> "*.css" %> \out -> do
         let src = makeRelative publicDir out
         putNormal $ "# copy (for " <> out <> ")"
@@ -348,7 +353,7 @@ run = do
     withTargetDocs "Copy uploaded files to public dir." $
       phony "uploads" $ do
         targets <- getTargets
-        need $ targets ^. annotations <> targets ^. times <> targets ^. recordings
+        need $ targets ^. annotations <> targets ^. times <> targets ^. recordings <> targets ^. captions
     --
     withTargetDocs "Check availability of external programs." $
       phony "check" checkExternalPrograms

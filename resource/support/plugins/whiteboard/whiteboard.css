@@ -93,10 +93,10 @@
   stroke-linejoin: round;
 }
 .reveal svg.whiteboard > path.laser {
-  stroke-width: 4px !important;
+  stroke-width: 3px !important;
   stroke: red !important;
   filter: drop-shadow(0 0 3px red) !important;
-  transition: opacity 0.5s linear 1s;
+  transition: opacity 0.5s linear 2s;
 }
 
 /* whiteboard button */
@@ -161,6 +161,10 @@
   border: 1px solid #eeeeee;
   background: var(--whiteboard-background-color);
 }
+body.print-pdf #whiteboardButtons {
+  display: none;
+}
+
 
 /* toggle whiteboard buttons with .whiteboardActive on container */
 #whiteboardButtons > button {

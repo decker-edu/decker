@@ -30,6 +30,7 @@ chromeOptions src out =
   [ "--headless",
     "--virtual-time-budget=5000",
     "--disable-gpu",
+    "--print-to-pdf-no-header",
     "--user-data-dir=" <> chromeUserDataDir,
     pdfOption out,
     modifySrc src

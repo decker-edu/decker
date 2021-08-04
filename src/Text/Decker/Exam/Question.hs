@@ -45,7 +45,7 @@ data Answer
         _answCorrectAnswer :: Text
       }
   | Numerical
-      { _answCorrectNumber :: Float
+      { _answCorrectNumber :: Int
       }
   | MultipleAnswers
       { _answWidthInMm :: Int,
@@ -70,6 +70,7 @@ data Question = Question
     _qstAnswer :: Answer,
     _qstDifficulty :: Difficulty,
     _qstComment :: Text,
+    _qstShuffleAnswers :: Bool,
     _qstCurrentNumber :: Int,
     _qstFilePath :: String
   }
@@ -97,6 +98,7 @@ instance FromJSON Question where
       <*> q .: "Answer"
       <*> q .: "Difficulty"
       <*> q .: "Comment"
+      <*> q .:? "ShuffleAnswers" .!= True
       <*> q .:? "CurrentNumber" .!= 0
       <*> q .:? "FilePath" .!= "."
   parseJSON invalid = typeMismatch "Question" invalid

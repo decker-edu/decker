@@ -28,9 +28,10 @@ title: Slide Separation Tests
 
 ------------------------------------------------------------------------
 
-This is slide 4, it has no header.
+This is slide 4, it has no header. But an empty header ist generated
+anyways.
 
 ------------------------------------------------------------------------
 
-This is slide 5, it also has no header.
-
+This is slide 5, it also has no header. But an empty header ist
+generated anyways.

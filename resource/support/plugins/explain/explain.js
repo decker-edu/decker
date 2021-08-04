@@ -1,9 +1,8 @@
 "use strict";
 
 let ExplainPlugin = (function () {
-
   // configuration parameters
-  const config = Decker.meta.explain || {};
+  const config = Decker.meta.explain || {};
 
   // GUI elements
   let playPanel, playButton, player;
@@ -26,7 +25,7 @@ let ExplainPlugin = (function () {
   // greenscreen
   let useGreenScreen = config.useGreenScreen || false;
   let gsBackground = config.greenScreenBackground || undefined;
-  let gsKey = config.greenScreenKey || {r:0, g:255, b:0};
+  let gsKey = config.greenScreenKey || { r: 0, g: 255, b: 0 };
   let gsSimilarity = config.greenScreenSimilarity || 0.4;
   let gsSmoothness = config.greenScreenSmoothness || 0.08;
   let gsSpill = config.greenScreenSpill || 0.1;
@@ -344,7 +343,7 @@ let ExplainPlugin = (function () {
         // store label, since ID changes after reboot
         localStorage.setItem("decker-microphone", selectedMicrophone);
       }
-    } 
+    }
     // if mic capture failed...
     else {
       voiceIndicator.removeAttribute("title");
@@ -404,7 +403,7 @@ let ExplainPlugin = (function () {
       } else {
         // cameraVideo.srcObject = cameraStream;
       }
-    } 
+    }
     // if camera capture failed...
     else {
       camIndicator.removeAttribute("title");
@@ -706,12 +705,16 @@ let ExplainPlugin = (function () {
         pictureInPictureToggle: false,
       },
       userActions: {
+        // disable going to fullscreen by double click
+        doubleClick: false,
+        // our keyboard shortcuts
         hotkeys: function (event) {
           event.stopPropagation();
 
           switch (event.code) {
-            // space: play/pause
+            // space or k: play/pause
             case "Space":
+            case "KeyK":
               if (this.paused()) this.play();
               else this.pause();
               break;
@@ -724,6 +727,38 @@ let ExplainPlugin = (function () {
               next();
               break;
 
+            // up/down: increase/decrease volume by 5%
+            case "ArrowUp":
+              this.volume(Math.min(1.0, this.volume() + 0.05));
+              break;
+            case "ArrowDown":
+              this.volume(Math.max(0.0, this.volume() - 0.05));
+              break;
+
+            // c: toggle captions
+            case "KeyC":
+              let tracks = player.textTracks();
+              for (let i = 0; i < tracks.length; i++) {
+                if (tracks[i].kind === "captions") {
+                  tracks[i].mode =
+                    tracks[i].mode === "showing" ? "disabled" : "showing";
+                }
+              }
+              break;
+
+            // j/l: jump backward/forward by 10sec
+            case "KeyJ":
+              player.currentTime(player.currentTime() - 10);
+              break;
+            case "KeyL":
+              player.currentTime(player.currentTime() + 10);
+              break;
+
+            // m: mute/unmute
+            case "KeyM":
+              this.muted(!this.muted());
+              break;
+
             // esc: stop and hide video
             case "Escape":
               uiState.transition("stop");
@@ -731,6 +766,29 @@ let ExplainPlugin = (function () {
           }
         },
       },
+    });
+
+    // use double tap on left/right part of player to jump backward/forward by 10sec
+    let lastTap = null;
+    player.on("touchstart", (evt) => {
+      const now = Date.now();
+      if (lastTap && now - lastTap < 300) {
+        // we have a double tap
+        const tapX = evt.touches[0].clientX;
+        const playerWidth = player.el().clientWidth;
+        if (tapX > 0.66 * playerWidth) {
+          // right border: skip forward
+          player.currentTime(player.currentTime() + 10);
+        } else if (tapX < 0.33 * playerWidth) {
+          // left border: skip backward
+          player.currentTime(player.currentTime() - 10);
+        } else {
+          // center: play/pause
+          if (player.paused()) player.play();
+          else player.pause();
+        }
+      }
+      lastTap = now;
     });
 
     player.on("ended", transition("stop"));
@@ -967,7 +1025,7 @@ let ExplainPlugin = (function () {
         }
       });
 
-      // select previously chosen camera 
+      // select previously chosen camera
       camSelect.selectedIndex = -1;
       const selectedCamera = localStorage.getItem("decker-camera");
       if (selectedCamera) {
@@ -1070,8 +1128,7 @@ let ExplainPlugin = (function () {
       cameraCanvas.style.backgroundImage = `url('${gsBackground}')`;
       cameraCanvas.style.backgroundSize = "cover";
       cameraCanvas.setAttribute("data-has-background", true);
-    }
-    else {
+    } else {
       cameraCanvas.setAttribute("data-has-background", false);
     }
 
@@ -1079,8 +1136,7 @@ let ExplainPlugin = (function () {
     if (useGreenScreen) {
       cameraVideo.style.display = "none";
       cameraPanel = cameraCanvas;
-    }
-    else {
+    } else {
       cameraPanel = cameraVideo;
     }
 
@@ -1201,9 +1257,13 @@ let ExplainPlugin = (function () {
 
     const vb = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vb);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, 1, -1, -1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, 1, -1, -1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    );
 
-    const coordLoc = gl.getAttribLocation(prog, 'c');
+    const coordLoc = gl.getAttribLocation(prog, "c");
     gl.vertexAttribPointer(coordLoc, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(coordLoc);
 
@@ -1229,12 +1289,24 @@ let ExplainPlugin = (function () {
         cameraCanvas.height = metadata.height;
       }
       gl.viewport(0, 0, metadata.width, metadata.height);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, cameraVideo);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGB,
+        gl.RGB,
+        gl.UNSIGNED_BYTE,
+        cameraVideo
+      );
 
       gl.uniform1i(texLoc, 0);
       gl.uniform1f(texWidthLoc, metadata.width);
       gl.uniform1f(texHeightLoc, metadata.height);
-      gl.uniform3f(keyColorLoc, gsKey.r/255.0, gsKey.g/255.0,gsKey.b/255.0);
+      gl.uniform3f(
+        keyColorLoc,
+        gsKey.r / 255.0,
+        gsKey.g / 255.0,
+        gsKey.b / 255.0
+      );
       gl.uniform1f(similarityLoc, gsSimilarity);
       gl.uniform1f(smoothnessLoc, gsSmoothness);
       gl.uniform1f(spillLoc, gsSpill);
@@ -1382,7 +1454,6 @@ let ExplainPlugin = (function () {
   }
 
   async function setupPlayer() {
-    // const config = Reveal.getConfig().explain;
     const config = Decker.meta.explain;
     explainVideoUrl = config && config.video ? config.video : deckVideoUrl();
     explainTimesUrl = config && config.times ? config.times : deckTimesUrl();
@@ -1394,6 +1465,18 @@ let ExplainPlugin = (function () {
       if (videoExists && timesExists) {
         explainTimes = await fetchResourceJSON(explainTimesUrl);
         player.src({ type: "video/mp4", src: explainVideoUrl });
+
+        let captionsUrl = explainVideoUrl.replace(".mp4", ".vtt");
+        let captionsExist = await resourceExists(captionsUrl);
+        if (captionsExist) {
+          let captionsOptions = {
+            kind: "captions",
+            srclang: document.documentElement.lang,
+            src: captionsUrl,
+          };
+          player.addRemoteTextTrack(captionsOptions, false);
+        }
+
         return true;
       } else {
         return false;
@@ -1471,6 +1554,12 @@ let ExplainPlugin = (function () {
       addReloadInhibitor(
         () => !uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")
       );
+    },
+
+    playVideo: play,
+    stopVideo: stop,
+    isVideoPlaying: () => {
+      return uiState.is("PLAYING");
     },
   };
 })();

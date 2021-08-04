@@ -1,45 +1,51 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Text.Decker.Filter.Slide
-  ( Slide(..)
-  , _Slide
-  , attribValue
-  , blocks
-  , dropByClass
-  , keepByClass
-  , firstClass
-  , fromSlides
-  , fromSlidesWrapped
-  , classes
-  , hasAnyClass
-  , hasClass
-  , header
-  , isBoxDelim
-  , toSlides
-  ) where
+{-# LANGUAGE OverloadedStrings #-}
 
-import Text.Pandoc.Lens
+module Text.Decker.Filter.Slide
+  ( Slide (..),
+    _Slide,
+    attribValue,
+    blocks,
+    dropByClass,
+    keepByClass,
+    firstClass,
+    fromSlides,
+    fromSlidesWrapped,
+    classes,
+    hasAnyClass,
+    hasClass,
+    header,
+    isBoxDelim,
+    toSlides,
+    fromSlidesD,
+  )
+where
 
 import Control.Lens
+import Control.Monad.State (gets, modify)
 import Data.List
 import Data.List.Split
 import Data.Maybe
+import Data.Text (Text)
+import qualified Data.Text as Text
+import Text.Decker.Internal.Common (Decker, DeckerState (emptyCount))
 import Text.Pandoc
 import Text.Pandoc.Definition ()
-import qualified Data.Text as Text
+import Text.Pandoc.Lens
 
 -- A slide has maybe a header followed by zero or more blocks.
 data Slide = Slide
-  { _header :: Maybe Block
-  , _body :: [Block]
-  } deriving (Eq, Show)
+  { _header :: Maybe Block,
+    _body :: [Block]
+  }
+  deriving (Eq, Show)
 
 -- | A lens for header access on a slide. See
 -- https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/a-little-lens-starter-tutorial
 header :: Lens' Slide (Maybe Block)
 header = lens (\(Slide h _) -> h) (\(Slide _ b) h -> Slide h b)
 
--- | A lens for blocks access on a slide. 
+-- | A lens for blocks access on a slide.
 blocks :: Lens' Slide [Block]
 blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> Slide h b)
 
@@ -47,15 +53,15 @@ blocks = lens (\(Slide _ b) -> b) (\(Slide h _) b -> Slide h b)
 _Slide :: Prism' Slide (Maybe Block, [Block])
 _Slide = prism' (uncurry Slide) (\(Slide h b) -> Just (h, b))
 
--- | Attributes of a slide are those of the header 
+-- | Attributes of a slide are those of the header
 instance HasAttr Slide where
   attributes f (Slide (Just (Header n a s)) b) =
     fmap (\a' -> Slide (Just (Header n a' s)) b) (f a)
   attributes _ x = pure x
 
--- | Attributes of a list of blocks are those of the first block. 
+-- | Attributes of a list of blocks are those of the first block.
 instance HasAttr [Block] where
-  attributes f (b:bs) =
+  attributes f (b : bs) =
     fmap (\a' -> set attributes a' b : bs) (f (view attributes b))
   attributes _ x = pure x
 
@@ -66,32 +72,54 @@ toSlides blocks = map extractHeader $ filter (not . null) slideBlocks
   where
     slideBlocks =
       split (keepDelimsL $ whenElt isSlideSeparator) $ killEmpties blocks
-  -- Deconstruct a list of blocks into a Slide
-    extractHeader (header@(Header 1 _ _):bs) = Slide (Just header) bs
-    extractHeader (HorizontalRule:bs) = extractHeader bs
+    -- Deconstruct a list of blocks into a Slide
+    extractHeader (header@(Header 1 _ _) : bs) = Slide (Just header) bs
+    extractHeader (HorizontalRule : bs) = extractHeader bs
     extractHeader blocks = Slide Nothing blocks
-  -- Remove redundant slide markers
-    killEmpties (HorizontalRule:header@Header {}:blocks) =
+    -- Remove redundant slide markers
+    killEmpties (HorizontalRule : header@Header {} : blocks) =
       header : killEmpties blocks
-    killEmpties (b:bs) = b : killEmpties bs
+    killEmpties (b : bs) = b : killEmpties bs
     killEmpties [] = []
 
 -- Render slides as a list of Blocks. Always separate slides with a horizontal
 -- rule. Slides with the `notes` classes are wrapped in ASIDE and are used as
--- spreaker notes by RevalJs.
+-- speaker notes by Reval. Slides with no header get an empty header prepended.
 fromSlides :: [Slide] -> [Block]
 fromSlides = concatMap prependHeader
   where
     prependHeader (Slide (Just header) body)
       | hasClass "notes" header =
-        [RawBlock "html" "<aside class=\"notes\">"] ++
-        demoteHeaders (header : body) ++
-        [RawBlock "html" "</aside>"]
+        [RawBlock "html" "<aside class=\"notes\">"]
+          ++ demoteHeaders (header : body)
+          ++ [RawBlock "html" "</aside>"]
     prependHeader (Slide (Just header) body) = HorizontalRule : header : body
     prependHeader (Slide Nothing body) = HorizontalRule : body
 
--- | Converts slides to lists of blocks that are wrapped in divs. Used to
--- control page breaks in handout generation.
+fromSlidesD :: [Slide] -> Decker [Block]
+fromSlidesD slides = do
+  concat <$> mapM prependHeader slides
+  where
+    prependHeader (Slide (Just header) body)
+      | hasClass "notes" header =
+        return $
+          [RawBlock "html" "<aside class=\"notes\">"]
+            ++ demoteHeaders (header : body)
+            ++ [RawBlock "html" "</aside>"]
+    prependHeader (Slide (Just header) body) = return $ HorizontalRule : header : body
+    prependHeader (Slide Nothing body) = do
+      rid <- emptyId
+      return $ HorizontalRule : Header 1 (rid, [], []) [] : body
+
+emptyId :: Decker Text
+emptyId = do
+  modify incrEmptyCount
+  Text.pack . ("empty-" <>) . show <$> gets emptyCount
+  where
+    incrEmptyCount s = s {emptyCount = emptyCount s + 1}
+
+-- |  Converts slides to lists of blocks that are wrapped in divs. Used to
+--  control page breaks in handout generation.
 fromSlidesWrapped :: [Slide] -> [Block]
 fromSlidesWrapped = concatMap wrapBlocks
   where
