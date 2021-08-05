@@ -22,6 +22,6 @@ dist/
 node_modules
 public/
 private/
-resource/support/vendor/**
+resource/support/decker/vendor/**
 stack.yaml.lock
 test/decks/*.svg

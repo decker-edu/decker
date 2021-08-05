@@ -1,0 +1,57 @@
+.reveal .thebelab-cell {
+  display: block;
+  position: relative;
+}
+
+.reveal .thebelab-cell button {
+  display: block;
+  position: absolute;
+  right: 0.2em;
+  font-size: 30%;
+  background-color: rgba(0, 0, 0, 0);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.reveal .thebelab-cell button.thebelab-run-button {
+  top: 2.3em;
+}
+
+.reveal .thebelab-cell button.thebelab-restart-button {
+  top: 0.3em;
+}
+
+.reveal .thebelab-cell {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.reveal .thebelab-cell pre {
+  font-size: 20px;
+  font-weight: 500;
+  font-family: "Source Code Pro";
+}
+
+.reveal .jp-OutputArea pre {
+  margin-left: 0em;
+  margin-bottom: 0.2em;
+}
+
+/* Make the editor content scrollable. Setting .CodeMirror-scroll is essential
+here. */
+.reveal .CodeMirror {
+  max-height: 350px;
+  overflow: auto;
+}
+
+.reveal .CodeMirror-scroll {
+  max-height: 350px;
+  overflow: auto;
+}
+
+.reveal .jp-OutputArea {
+  /* max-height: 70px; This does not make sense to Mario */
+  overflow: auto;
+}
+
+.reveal pre {
+  box-shadow: none;
+}

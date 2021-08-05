@@ -1,0 +1,296 @@
+$border-marker-default-color: red;
+
+////////////////////////////////////////////////
+// The next one implements the new layout syntax
+// for elements not below a h2 element "block"
+// with potential margin marker. Note that the
+// margin marker also means that we can never
+// fill-up the whole canvas with the
+// margin configuration unless we also reduce
+// margin marker width an padding to 0
+////////////////////////////////////////////////
+
+// This is the outside of our div box.
+// This one artificially adds the spacing as margin and padding
+// which later is added by the enclosing div box which uses
+// border width and padding-left as spacer
+// NOTE: This should urgently be removed in favor of a cleaner
+// box model which also add an arbitrary box for a single no
+// column slide.
+p,
+ul,
+ol,
+dl,
+blockquote,
+table,
+h1,
+h2,
+h3 {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
+}
+
+// Special handling again of plain page without enclosing
+// div element for border decoration. This actually is a
+// crude work-around to mimic the missing div we want
+// around all elements to use for border deco
+section {
+  > figure:first-of-type {
+    margin-left: var(--border-decoration-width);
+    padding-left: var(--border-decoration-padding);
+  }
+  > figure:last-of-type {
+    margin-right: var(--border-decoration-width);
+    padding-right: var(--border-decoration-padding);
+  }
+}
+
+div.exa-quest {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
+}
+
+//////////////////////////////////////////////
+// Now the horizontal position if lists. Beware, they work differently since
+// left borders are the text with list-style-position: outside. However I did
+// experiment a lot wit a version using outside since it was the only mode for
+// which Safari and Chrome used the same spacing between bullet and text. Chrome
+// adds a nasty gap iin inside mode which can not easily be corrected.
+//
+// NOTE: See below, went back to old style
+//
+//////////////////////////////////////////////
+//ul,
+//ol
+// {
+//   list-style-position: inside; // outside means we have to increase margin
+//                                 // if we don't and go inside then the spacing
+//                                 // between item icon and text looks bad between browsers
+//   //margin-left: calc(var(--border-decoration-padding) + var(--border-decoration-width));
+//   //padding-left: calc(var(--border-decoration-width) + var(--border-decoration-padding));
+//
+//   // all deeper levels get a fixed margin/padding since
+//   // they don't have to respect the colored box border model
+//   // and they should not be affected by the decoration model
+//   ol  {
+//      margin-left: 0px;
+//      padding-left: 0px;
+//   }
+//   ul {
+//      margin-left:  0.3em; // this counteracts the left spacing necessary to
+//                           // counteract the chrome problem below
+//   }
+//   ol, ul {
+//     margin-bottom: 0;
+//   }
+//}
+
+// This one unifies the nasty spacing problem in chrome, e.g., it adds
+// an unwanted additional gap between the bullet and the text
+// However, this method does not vertically align multi-line text properly
+// at the left margin. Seems one of the HTML/CSS things where there is no
+// silver bullet.
+//ul {
+//   >li {
+//      list-style-type: none;
+//      position:relative;
+//      left: .5em;
+//    }
+//   >li:before  {
+//         content:"\2022";    /* escaped unicode character */
+//         font-size:1.5em;    /* the default unicode bullet size is very small */
+//         line-height:0;      /* kills huge line height on resized bullet */
+//         position:relative;  /* position bullet relative to list item */
+//         top:0.1em;           /* vertical align bullet position relative to list item */
+//         left:-.3em;         /* position the bullet L- R relative to list item */
+//   }
+//}
+
+/////////////////////////////////////////
+// Now just and only the list styles
+/////////////////////////////////////////
+//ol {
+//    list-style-type: decimal;
+//    ol {
+//        list-style-type: lower-alpha;
+//        ol {
+//            list-style-type: decimal;
+//        }
+//    }
+//}
+
+// From Marios version, needs more space but what the heck, looks nice enough
+// Fiddled to long with the desired horrrizontal alignment above, could
+// finally achieve it but to a price, lines too long looked nasty hence
+// back to the good old one...
+ol,
+dl,
+ul {
+  display: inline-block;
+  text-align: left;
+  margin-bottom: 0;
+}
+
+ol li,
+dl li,
+ul li {
+  margin-bottom: 0;
+  margin-left: 40px;
+}
+
+ol {
+  list-style-type: decimal;
+}
+
+ul {
+  list-style-type: disc;
+}
+
+ul ul,
+ol ul {
+  list-style-type: circle;
+}
+
+ol ol {
+  list-style-type: lower-roman;
+}
+
+ul ul,
+ul ol,
+ol ol,
+ol ul {
+  display: block;
+  margin-top: 0.3em;
+}
+
+/////////////////////////////////////////
+// The boxes and their border decoration
+/////////////////////////////////////////
+div.box.columns {
+  // First set the box to extend full width but set own margin and padding
+  // to reflect the "decoration margin"
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: calc(
+    var(--border-decoration-padding) + var(--border-decoration-width)
+  );
+  p,
+  ul,
+  ol,
+  dl,
+  figure,
+  blockquote,
+  table,
+  h1,
+  h2,
+  h3 {
+    margin-left: 0; // var(--border-decoration-width);
+    padding-left: 0; // var(--border-decoration-padding);
+    margin-right: 0; // var(--border-decoration-width);
+    padding-right: 0; //var(--border-decoration-padding);
+  }
+
+  h2 {
+    margin-top: 0;
+    &:last-child,
+    &:empty {
+      margin-bottom: 0;
+    }
+  }
+  /* Now comes the part for the decorated boxes */
+  &.question,
+  &.answer,
+  &.observation,
+  &.example,
+  &.def,
+  &.definition,
+  &.note,
+  &.ale,
+  &.alert,
+  &.equ,
+  &.equation,
+  &.theorem {
+    /* First define the enclosing box and its properties.
+        This is the current semantic: The box uses border and padding for
+        the "margin" left and right where the left "margin" is used for decoraton
+        and spacing to the encloded elements which then span the whole width without
+        any margin or padding. */
+    margin-left: 0; // swap margin for real border
+    border-left: var(--border-decoration-width) var(--border-decoration-style)
+      $border-marker-default-color;
+    padding-left: var(--border-decoration-padding);
+    margin-right: calc(
+      var(--border-decoration-padding) + var(--border-decoration-width)
+    );
+  }
+
+  /* Now comes the specification of the indivdual
+    color used for the border as decoration */
+  &.question {
+    border-color: rgb(255, 1, 1);
+  }
+
+  &.answer {
+    border-color: rgb(77, 77, 77);
+  }
+
+  &.observation {
+    border-color: rgb(0, 0, 255);
+  }
+
+  &.example {
+    border-color: rgb(0, 0, 255);
+  }
+
+  &.def,
+  &.definition {
+    border-color: rgb(77, 77, 77);
+  }
+
+  &.note {
+    border-color: rgb(255, 147, 0);
+  }
+
+  &.ale,
+  &.alert {
+    border-color: rgb(250, 1, 1);
+  }
+
+  &.equ,
+  &.equation {
+    border-color: rgb(77, 77, 77);
+  }
+
+  &.theorem {
+    border-color: rgb(77, 77, 77);
+  }
+}
+
+// Special case: source code inside highlighted box
+div.box {
+  &.question,
+  &.answer,
+  &.observation,
+  &.example,
+  &.def,
+  &.definition,
+  &.note,
+  &.ale,
+  &.alert,
+  &.equ,
+  &.equation,
+  &.theorem {
+    div.sourceCode {
+      margin: 0;
+      background: rgba(255, 255, 255, 0.4);
+      padding: space(0 0.2);
+      pre {
+        margin: 0;
+      }
+    }
+  }
+}

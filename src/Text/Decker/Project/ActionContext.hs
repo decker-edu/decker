@@ -11,28 +11,24 @@ import Data.Maybe
 import Data.Typeable
 import Development.Shake hiding (doesDirectoryExist, putError)
 import Relude hiding (state)
-import Text.Decker.Server.Server
+import Text.Decker.Server.Types
 import Control.Lens
+import Text.Pandoc
 
-data MutableActionState = MutableActionState
+data ActionContext = ActionContext
   { _devRun :: Bool,
     _externalStatus :: [(String, Bool)],
     _server :: IORef (Maybe Server),
     _watch :: IORef Bool,
-    _publicResource :: Development.Shake.Resource
-  }
-
-makeLenses ''MutableActionState
-
-data ActionContext = ActionContext
-  { _state :: MutableActionState
+    _publicResource :: Development.Shake.Resource,
+    _globalMeta :: IORef Meta
   }
   deriving (Typeable)
 
 makeLenses ''ActionContext
 
 actionContextKey :: TypeRep
-actionContextKey = typeOf (undefined :: ActionContext)
+actionContextKey = typeRep (Proxy :: Proxy ActionContext)
 
 actionContext :: Action ActionContext
 actionContext =

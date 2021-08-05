@@ -1,0 +1,301 @@
+div.exa-quest input,
+div.exa-quest button,
+div.exa-quest textarea,
+div.exa-quest select {
+  color: black;
+  background-color: #efefef;
+
+  font-family: inherit;
+  font-size: inherit;
+
+  margin-right: 6px;
+  margin-bottom: 6px;
+  padding: 10px;
+
+  border: none;
+  border-radius: 6px;
+  outline: none;
+}
+
+div.exa-quest input,
+div.exa-quest select,
+div.exa-quest button,
+div.exa-quest textarea {
+  -webkit-appearance: none;
+}
+
+.reveal div.exa-quest {
+  overflow-y: scroll;
+  overflow-x: auto;
+  max-height: 600px;
+}
+
+.reveal div.exa-quest::-webkit-scrollbar {
+  width: 9px;
+}
+.reveal div.exa-quest::-webkit-scrollbar-track {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.1);
+}
+.reveal div.exa-quest::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.reveal div.exa-quest::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.handout div.exa-quest {
+  padding: 1em;
+  border: solid 1px lightgray;
+}
+
+div.exa-quest div.difficulty {
+  float: right;
+  width: 2em;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+div.exa-quest[data-difficulty="Easy"] div.difficulty {
+  content: url("../examiner/dumbell-easy.svg");
+}
+
+div.exa-quest[data-difficulty="Medium"] div.difficulty {
+  content: url("../examiner/dumbell-medium.svg");
+}
+
+div.exa-quest[data-difficulty="Hard"] div.difficulty {
+  content: url("../examiner/dumbell-hard.svg");
+}
+
+div.exa-quest button:hover {
+  background-color: #ddd;
+}
+
+div.exa-quest button:active {
+  background-color: darkgray;
+}
+
+div.exa-quest button.solve {
+  display: inline;
+}
+
+div.exa-quest button.again {
+  display: none;
+}
+
+div.exa-quest[data-solved] button.solve {
+  display: none;
+}
+
+div.exa-quest[data-solved] button.again {
+  display: inline;
+}
+
+div.exa-quest div.score {
+  display: none;
+}
+
+div.exa-quest div.score span:first-child::after {
+  content: ": ";
+}
+
+div.exa-quest[data-solved] div.score {
+  display: inline;
+}
+
+div.exa-quest p,
+div.exa-quest h2 {
+  margin: 0em;
+  padding: 0;
+  padding-bottom: 0.3em;
+}
+
+div.exa-quest div.exa-mc {
+  margin: 0em;
+  padding-left: 0.5em;
+  padding-top: 0.3em;
+  padding-bottom: 1em;
+}
+
+div.exa-mc div.choice {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: center;
+}
+
+div.exa-mc div.choice p {
+  margin: 0;
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
+  padding-left: 0.7em;
+  padding-right: 0;
+}
+
+div.exa-mc div.choice div.check-box {
+  flex-basis: auto;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+div.exa-mc i.correct {
+  color: darkgreen;
+  width: 1.3em;
+  text-align: center;
+  visibility: hidden;
+}
+
+div.exa-mc i.wrong {
+  color: darkred;
+  width: 1.3em;
+  text-align: center;
+  visibility: hidden;
+}
+
+div.exa-mc div.choice div.check-box span:hover {
+  background-color: lightgrey;
+}
+
+div.exa-quest[data-solved] div.exa-mc div.choice div.check-box span:hover {
+  background-color: transparent;
+}
+
+div.exa-mc div.choice div.check-box span:active {
+  background-color: grey;
+}
+
+div.exa-mc i.checked {
+  display: none;
+}
+
+div.exa-mc i.unchecked {
+  display: inline;
+}
+
+div.exa-quest[data-solved] div.exa-mc div.choice div.check-box:active {
+  background-color: transparent;
+}
+
+/* Box has been checked */
+div.exa-mc div.choice div.check-box[data-checked] i.checked {
+  display: inline;
+}
+div.exa-mc div.choice div.check-box[data-checked] i.unchecked {
+  display: none;
+}
+
+/* Correct answer has been checked */
+div.exa-quest[data-solved]
+  div.exa-mc
+  div.choice.correct
+  div.check-box[data-checked]
+  i.correct {
+  visibility: visible;
+}
+
+/* Wrong answer has been checked */
+div.exa-quest[data-solved]
+  div.exa-mc
+  div.choice.wrong
+  div.check-box[data-checked]
+  i.wrong {
+  visibility: visible;
+}
+
+div.exa-ff {
+  margin: 0em;
+  padding-left: 0em;
+  padding-top: 0.3em;
+  padding-bottom: 0em;
+}
+
+div.exa-ff h3 {
+  margin: 0em;
+  padding-left: 0em;
+  padding-top: 0.3em;
+  font-weight: bold;
+}
+
+div.exa-ff textarea {
+  width: 100%;
+  resize: none;
+  font-family: "Source Code Pro", monospace;
+}
+
+div.exa-ff div.solution {
+  display: none;
+}
+
+div.exa-quest[data-solved] div.exa-ff div.solution {
+  display: block;
+}
+
+div.exa-nu {
+  margin: 0em;
+  padding-left: 0em;
+  padding-top: 0.3em;
+  padding-bottom: 0em;
+}
+
+div.exa-nu h3 {
+  margin: 0em;
+  padding-left: 0em;
+  padding-top: 0.3em;
+  font-weight: bold;
+}
+
+div.exa-nu textarea {
+  width: 100%;
+  resize: none;
+  font-family: "Source Code Pro", monospace;
+}
+
+div.exa-nu div.solution {
+  display: none;
+}
+
+div.exa-quest[data-solved] div.exa-nu div.solution {
+  display: block;
+}
+
+table.exa-ma i.correct {
+  color: darkgreen;
+  width: 1.3em;
+  text-align: center;
+  display: none;
+}
+
+table.exa-ma i.wrong {
+  color: darkred;
+  width: 1.3em;
+  text-align: center;
+  display: none;
+}
+
+table.exa-ma td.result {
+  width: 1em;
+  text-align: center;
+}
+
+table.exa-ma {
+  margin: 0em;
+  padding-left: 0em;
+  padding-top: 0.3em;
+}
+
+table.exa-ma tr.detail td {
+  border: none;
+}
+
+table.exa-ma tr.detail[data-right] i.correct {
+  display: inline;
+}
+
+table.exa-ma tr.detail[data-wrong] i.wrong {
+  display: inline;
+}

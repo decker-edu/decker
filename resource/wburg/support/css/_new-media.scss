@@ -1,0 +1,111 @@
+/*
+ *Required CSS for the new media filters. Adopted to Mario's semantic with
+ *further fine-tuning
+ */
+
+ div.decker.image.error {
+  font-size: 20pt;
+  background-color: #fee;
+  border: 0.1em solid darkred;
+  padding: 1em;
+  .message {
+    font-style: italic;
+    margin-left: 20px;
+  }
+  pre.markup {
+    width: 100%;
+    margin-left: 20px;
+    code.markup {
+      font-family: "Source Code Pro", monospace;
+      font-size: 18pt;
+      line-height: 1.4;
+      color: black;
+    }
+  }
+}
+
+img.decker,
+video.decker {
+  // The next line also applies the parents text-align spec
+  // to this element
+  display: inline-block;
+  /* remove the following two lines to get sizing of 
+       * rendered code block sizing working */
+  /*width: auto;*/
+  /*height: auto;*/
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+  margin: auto;
+  border: 0px;
+  box-shadow: none;
+}
+
+iframe.decker {
+  border: 1px solid lightgray;
+  outline: none;
+  overflow: hidden;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+}
+
+figure.decker,
+div.nofigure {
+  // The next line also applies the parents text-align spec
+  // to this element
+  display: inline-block;
+  > img.decker,
+  > video.decker,
+  > iframe.decker {
+    margin: auto;
+    border: 0px;
+    box-shadow: none;
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+// Responsive iframes have no intrinsic size. Assume 100%.
+div.decker.nofigure {
+  width: 100%;
+}
+
+figure.streaming {
+  width: 100%;
+  margin: 0;
+}
+
+figure.decker figcaption.decker {
+  margin: 0px 0px 0px 0px;
+  line-height: 1.2;
+  font-style: italic;
+  text-align: center;
+}
+
+object.decker {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+figure.decker > object.decker {
+  width: 100%;
+}
+
+div.image-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+}
+
+div.image-row div {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+div.image-row img {
+  display: block;
+}

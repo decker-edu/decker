@@ -69,7 +69,8 @@ server:
 	stack run -- decker --server --port 8888 --bind localhost html
 
 css:
-	cd resource/support/css && make -B css
+	cd resource/decker/support/css && make -B css
+	cd resource/wburg/support/css && make -B css
 
 clean:
 	stack clean

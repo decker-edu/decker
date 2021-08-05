@@ -30,7 +30,7 @@ module Text.Decker.Project.Project
     captions,
     css,
     Targets (..),
-    Resource (..),
+    --Resource (..),
     fromMetaValue,
     toMetaValue,
     readTargetsFile,

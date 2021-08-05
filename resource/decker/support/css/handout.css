@@ -1,0 +1,15 @@
+/* Here be CSS */
+
+body {
+  font-family: sans-serif;
+  font-size: 16px;
+}
+
+code {
+  font-family: monospace;
+  font-size: 100%;
+}
+
+pre > code {
+  font-size: 90%;
+}

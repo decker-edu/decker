@@ -1,0 +1,91 @@
+/*********************************************
+ * TITLE SLIDE, now supporting Marc's and 
+ * Mario's versions
+ *********************************************/
+
+.white-on-blue {
+  color: #ffffff;
+  background-color: #003366;
+}
+
+.reveal {
+   .title-page {
+      .banner img {
+         margin:      0px 0px 10px 0px;
+         width: 100%;
+         object-fit:  contain;
+      }
+      .title {
+         margin:  0px;
+         width: 100%;
+         display: block;
+         padding:     0px;
+         font-size:   var(--font-size-x-large);
+         text-align:  center;
+       }
+      .subtitle {
+         width: 100%;
+         margin:      0px;
+         padding:     0px;
+         font-weight: normal;
+         font-size:   var(--font-size-normal);
+         text-align:  center;
+       }
+      .teaser-img {
+         margin: 20px auto;
+         height: 10%;
+         width:  auto;
+         display: block;
+         img {
+            margin: 0px;
+            // Center horizontally
+            display: block;
+            margin: auto;
+            // Make the image as max 250px high retaining aspect ratio
+            object-fit:  contain;
+            max-height: 250px;
+            width: auto;
+         }
+      }
+      .date {
+        text-align: center;
+      }
+      .author {
+         margin:      0px;
+         font-weight: normal;
+         font-style:  normal;
+         font-size:   var(--font-size-normal);
+         text-align:  center;
+       }
+      .affiliation-logo img {
+         margin:      0px 0 0 0;
+         height:      70px;
+         width:       auto;
+         object-fit:  contain;
+         display: block;
+         margin-left: auto;
+         margin-right: auto;
+      }
+      .affiliation {
+         margin:      0px 0 0 0;
+         font-weight: normal;
+         font-style:  normal;
+         font-size:   var(--font-size-normal);
+         text-align:  center;
+       }
+       .valign-block {
+         text-align: center;
+       }
+       .valign-block:before {
+         content: '';
+         display: inline-block;
+         height: 100%; 
+         vertical-align: middle;
+        }
+       .valigned {
+         display: inline-block;
+         vertical-align: middle;
+        }
+   }
+}
+

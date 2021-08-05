@@ -1,0 +1,35 @@
+
+// This is the old helper function no disfunct
+// due to change to css variables aka custom properties
+// @function space-old($sizes: ()) {
+//     $multiplied: ();
+
+//     @each $size in $sizes {
+//         $multiplied: append($multiplied, $size * $base-spacer);
+//     }
+
+//     @return $multiplied;
+// }
+
+// This is the ne helper function which now 
+// works with css variables aka custom properties
+@function space($sizes: ()) {
+    $multiplied: ();
+
+    @each $size in $sizes {
+        $multiplied: append($multiplied, calc(var(--spacing-vertical-base) * #{$size}));
+    }
+
+    @return $multiplied;
+}
+
+@mixin prefix($property, $parameters...) {
+
+    @each $prefix in -webkit-,
+    -moz-,
+    -ms-,
+    -o-,
+    "" {
+        #{$prefix}#{$property}: $parameters;
+    }
+}

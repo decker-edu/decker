@@ -1,0 +1,103 @@
+.reveal div.image-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+}
+
+.reveal div.image-row div {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+}
+
+.reveal div.image-row img {
+    display: block;
+}
+
+.reveal div.videoWrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    /* 16:9 */
+    padding-top: 0;
+    height: 0;
+
+    iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.reveal img {
+    max-width: 100%;
+    //margin: 0 auto;
+    display: block;
+    border: none;
+    box-shadow: none;
+    border-radius: 0.25em;
+
+    &.float-left {
+        float: left;
+    }
+
+    &.float-right {
+        float: right;
+    }
+}
+
+.reveal figure {
+    //margin: 0 0 0 0;
+    text-align: center;
+
+    figcaption {
+        font-size: 0.8em;
+        font-style: italic;
+    }
+}
+
+.reveal video {
+    width: 100%;
+    //margin: 0;
+    display: block;
+}
+
+.reveal .img-center img {
+    //margin: 0 auto;
+    display: block;
+}
+
+.reveal .img-nocenter img {
+    //margin: 0 0;
+    display: inline;
+}
+
+.reveal div.fs-container { 
+    //margin:   auto;
+    border:   0px;
+    padding:  0px;
+    position: relative;
+}
+
+.reveal button.fs-button { 
+    z-index:          100;
+    display:          inline-block;
+    position:         absolute;
+    top:              0px;
+    right:            0px;
+    cursor:           pointer;
+    padding:          2px;
+    border:           none;
+    background-color: rgba(255,255,255,0.5);
+    opacity:          0.2;
+    font-size:        20px;
+    outline:          none;
+}
+
+.reveal button.fs-button:hover { 
+    opacity:          1.0;
+    background-color: rgba(255,255,255,0.8);
+}
+

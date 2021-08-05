@@ -1,0 +1,244 @@
+/* colors for active/inactive buttons 
+ * active color is also used for additional page indicator */
+:root {
+  --whiteboard-icon-size: 2vmin;
+  --whiteboard-active-color: #2a9ddf;
+  --whiteboard-inactive-color: lightgrey;
+  --whiteboard-background-color: rgb(250, 250, 250);
+}
+
+/* vertically center slides (override Reveal's mechanism) */
+.reveal .slides section .v-center {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.reveal .slides section .v-wrapper {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* adjust Reveal slide container when we need a scrollbar */
+.reveal .slides.needScrollbar {
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+
+  /* enable scrolling */
+  pointer-events: auto;
+
+  /* enable touch navigation */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: auto;
+}
+
+/* the animation for indicating additional pages on the bottom */
+@keyframes pulseBorder {
+  from {
+    border-bottom: 5px dotted #ffffff00;
+  }
+  to {
+    border-bottom: 5px dotted var(--whiteboard-active-color);
+  }
+}
+
+/* activate pulsing border indiciator */
+.reveal .slides.pulseBorder {
+  animation-name: pulseBorder;
+  animation-iteration-count: 6;
+  animation-timing-function: ease;
+  animation-direction: alternate;
+  animation-duration: 0.5s;
+  border-bottom: 5px dotted #ffffff00;
+}
+
+/* have to show overflow when in Reveal's overview mode */
+.reveal.overview .slides {
+  overflow: visible;
+}
+
+/* animate scroll down */
+.reveal .slides.animateScroll {
+  scroll-behavior: smooth;
+}
+
+/* style for SVG whiteboard pages */
+.reveal svg.whiteboard {
+  border: none;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 39;
+}
+
+/* children of SVG (strokes, grid) should not get pointer events */
+.reveal svg.whiteboard * {
+  pointer-events: none;
+}
+
+/* default style for strokes (up to color and width) */
+.reveal svg.whiteboard > path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.reveal svg.whiteboard > path.laser {
+  stroke-width: 3px !important;
+  stroke: red !important;
+  filter: drop-shadow(0 0 3px red) !important;
+  transition: opacity 0.5s linear 2s;
+}
+
+/* whiteboard button */
+.reveal button.whiteboard {
+  display: inline-block;
+  position: relative;
+  font-size: var(--whiteboard-icon-size);
+  width: calc(var(--whiteboard-icon-size) * 2);
+  height: calc(var(--whiteboard-icon-size) * 2);
+  padding: calc(var(--whiteboard-icon-size) * 0.1);
+  margin: calc(var(--whiteboard-icon-size) * 0.2);
+  outline: none;
+  background: none;
+  font-family: "Font Awesome 5 Free";
+  border: 2px solid transparent;
+  color: var(--whiteboard-inactive-color);
+}
+.reveal button.whiteboard.checkbox {
+  border-radius: 15%;
+}
+.reveal button.whiteboard.radiobutton {
+  border-radius: 100%;
+}
+.reveal button.whiteboard[data-active="true"] {
+  color: var(--whiteboard-active-color);
+}
+.reveal button.whiteboard[data-active="true"] {
+  color: var(--whiteboard-active-color);
+}
+.reveal button.whiteboard.checkbox[data-active="false"],
+.reveal button.whiteboard.radiobutton[data-active="false"] {
+  border: 1px solid var(--whiteboard-inactive-color);
+}
+.reveal button.whiteboard.checkbox[data-active="true"],
+.reveal button.whiteboard.radiobutton[data-active="true"] {
+  border: 2px solid var(--whiteboard-active-color);
+}
+/* hide outline around focused/clicked buttons */
+.reveal button.whiteboard:focus,
+.reveal button.whiteboard::-moz-focus-inner {
+  outline: none;
+  border: 0;
+}
+
+/* container for whiteboard tools */
+#whiteboardButtons {
+  position: absolute;
+  top: auto;
+  right: auto;
+  padding: 0;
+  margin: 0;
+  z-index: 40;
+  border-radius: calc(var(--whiteboard-icon-size) * 0.5);
+  border: 1px solid transparent;
+  background: none;
+  left: calc(var(--whiteboard-icon-size) * 0.25);
+  bottom: calc(var(--whiteboard-icon-size) * 0.25);
+  display: flex;
+  flex-direction: column-reverse;
+}
+#whiteboardButtons.whiteboardActive {
+  border: 1px solid #eeeeee;
+  background: var(--whiteboard-background-color);
+}
+body.print-pdf #whiteboardButtons {
+  display: none;
+}
+
+
+/* toggle whiteboard buttons with .whiteboardActive on container */
+#whiteboardButtons > button {
+  display: none;
+}
+#whiteboardButtons.whiteboardActive > button {
+  display: inline-block;
+}
+
+/* toggle main whiteboard button with .whiteboardActive on container */
+#whiteboardButtons > #whiteboardButton {
+  display: inline-block;
+  opacity: 0.5;
+}
+#whiteboardButtons > #whiteboardButton[data-active="false"] {
+  border: 2px solid transparent;
+}
+#whiteboardButtons > #whiteboardButton:hover {
+  display: inline-block;
+  color: var(--whiteboard-active-color) !important;
+  opacity: 1;
+}
+#whiteboardButtons.whiteboardActive > #whiteboardButton {
+  display: inline-block;
+  color: var(--whiteboard-active-color);
+  opacity: 1;
+}
+
+/* container for color picker */
+#whiteboardColorPicker {
+  position: absolute;
+  top: auto;
+  right: auto;
+  padding: 5px;
+  margin: 0;
+  z-index: 40;
+  border: 1px solid #eeeeee;
+  border-radius: calc(var(--whiteboard-icon-size) * 0.5);
+  background: var(--whiteboard-background-color);
+  left: calc(var(--whiteboard-icon-size) * 3);
+  bottom: calc(var(--whiteboard-icon-size) * 14);
+  display: block;
+  visibility: hidden;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+#whiteboardColorPicker button.whiteboard {
+  margin: 0;
+  padding: 0;
+  width: calc(var(--whiteboard-icon-size) * 1.5);
+  height: calc(var(--whiteboard-icon-size) * 1.5);
+  text-align: center;
+  vertical-align: middle;
+  color: black;
+}
+
+/* MacOS only shows scrollbars when they are used.
+   This prevents dragging them with the Wacom pen (w/o using the mouse).
+   The following setting show the scrollbar when the whiteboard is active.
+   Only works on WebKit browswers (Chrome, Safari), not on Firefox. */
+.reveal .slides.whiteboardActive::-webkit-scrollbar {
+  width: 9px;
+}
+.reveal .slides.whiteboardActive::-webkit-scrollbar-track {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.1);
+}
+.reveal .slides.whiteboardActive::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.reveal .slides.whiteboardActive::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}

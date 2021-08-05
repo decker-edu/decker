@@ -1,0 +1,69 @@
+/////////////////////////////////////////////
+// Within section divs
+/////////////////////////////////////////////
+div {
+  /////////////////////////////////////////////
+  // Column settings
+  /////////////////////////////////////////////
+  &.column {
+    display: inline-block;
+    vertical-align: top;
+    width: 50%;
+  }
+
+  // For `{.split}`-Syntax
+  // this is not adopted to mimic the variable gap width yet
+  &.css-columns {
+    column-count: 2;
+    column-gap: var(--margin-columns);
+    column-rule-style: none;
+  }
+
+  &.box {
+    break-inside: avoid-column;
+  }
+
+  // For `{layout="columns"}`-Syntax
+  &.multi-column-row {
+    display: flex;
+    flex-flow: row nowrap;
+    margin-bottom: var(--margin-bottom-columns);
+
+    div {
+      &.column {
+        $margin-size: var(--margin-columns);
+        position: relative;
+        flex: 1 1 0;
+        margin-left: var(--margin-columns);
+        margin-right: var(--margin-columns);
+
+        &:first-child {
+          margin-left: 0;
+          margin-right: var(--margin-columns);
+        }
+
+        &:last-child {
+          margin-left: var(--margin-columns);
+          margin-right: 0;
+        }
+
+        .mid {
+          position: absolute;
+          top: 50%;
+          transform: translate(0, -50%);
+        }
+
+        @for $i from 1 through 9 {
+          &[data-grow="#{$i}"] {
+            flex-grow: $i;
+          }
+        }
+      }
+    }
+  }
+
+  &.single-column-row {
+    //no space if multi row nested below
+    margin-bottom: var(--margin-bottom-columns);
+  }
+}

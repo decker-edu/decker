@@ -32,6 +32,7 @@ import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
 import Text.Decker.Reader.Markdown
+import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Pdf
@@ -57,7 +58,9 @@ prepCaches = do
     newCache
       ( \path -> do
           meta <- getGlobalMeta
-          readTemplate meta path
+          (template, needed) <- liftIO $ readTemplate meta path
+          need needed
+          return template
       )
   targetsFile %> \targetFile -> do
     alwaysRerun
@@ -286,7 +289,7 @@ run = do
         let src = dropExtension out
         need [src]
         putNormal $ "# plantuml (for " <> out <> ")"
-        plantuml [src] (Just out)
+        plantuml [src] (Just $ src -<.> "svg")
         liftIO $ Dir.renameFile (src -<.> "svg") out
       --
       "**/*.dot.svg" %> \out -> do
@@ -347,18 +350,19 @@ run = do
         putNormal $ "support directory: " ++ supportDir
         meta <- getGlobalMeta
         targets <- getTargets
-        templateSource <- liftIO $ calcTemplateSource meta
-        putNormal $ "template source: " <> show templateSource
+        resources <- liftIO $ deckerResources meta
+        putNormal $ "template source: " <> show resources
         putNormal "\ntargets:\n"
         putNormal (groom targets)
         putNormal "\ntop level meta data:\n"
         putNormal (groom meta)
     --
+    -- TODO use or throw away
     withTargetDocs "Copy runtime support files to public dir." $
       phony "support" $ do
         need [indexFile, "static-files", "uploads"]
         meta <- getGlobalMeta
-        writeSupportFilesToPublic meta
+        liftIO $ writeSupportFilesToPublic meta
     --
     withTargetDocs "Copy uploaded files to public dir." $
       phony "uploads" $ do

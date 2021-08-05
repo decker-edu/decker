@@ -1,0 +1,117 @@
+/////////////////////////////
+// Default Font Size and its
+// relative specs
+////////////////////////////
+
+.medium,
+.font-medium,
+.font-size-medium,
+.normal,
+.font-normal,
+.font-size-normal {
+  font-size: var(--font-size-medium);
+}
+
+.xx-small,
+.font-xx-small,
+.font-size-xx-small {
+  font-size: var(--font-size-xx-small);
+}
+
+.x-small,
+.font-x-small,
+.font-size-x-small {
+  font-size: var(--font-size-x-small);
+}
+
+.small,
+.font-small,
+.font-size-small {
+  font-size: var(--font-size-small);
+}
+
+.large,
+.font-large,
+.font-size-large {
+  font-size: var(--font-size-large);
+}
+
+.x-large,
+.font-x-large,
+.font-size-x-large {
+  font-size: var(--font-size-x-large);
+}
+
+.xx-large,
+.font-xx-large,
+.font-size-xx-large {
+  font-size: var(--font-size-xx-large);
+}
+
+/////////////////////////////
+// Defaults for Fonts
+////////////////////////////
+
+// Headers
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: rgba(0, 0, 0, 0.87);
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  word-wrap: break-word;
+  font-weight: normal;
+  text-shadow: none;
+}
+
+h1 {
+  font-size: var(--font-size-xx-large);
+}
+
+h2 {
+  font-weight: 500;
+  font-size: var(--font-size-large);
+}
+
+h3 {
+  font-size: var(--font-size-medium);
+}
+
+h4 {
+  font-size: var(--font-size-medium);
+}
+
+section {
+  &.white,
+  &.inverse,
+  &.has-dark-background {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: #eee;
+    }
+
+    color: #fff;
+  }
+}
+
+// Elements
+p {
+  line-height: 1.3;
+}
+
+strong,
+b {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}

@@ -1,0 +1,19 @@
+/*
+ *  Restore the old and correct way to handle media sizing: resolution
+ *  independent. Included via meta data option stretch-media:.
+ */
+figure.decker {
+  width: 100%;
+}
+div.nofigure.decker {
+  width: 100%;
+}
+figure.decker > img.decker {
+  width: 100%;
+}
+figure.decker > video.decker {
+  width: 100%;
+}
+figure.decker > object.decker {
+  width: 100%;
+}

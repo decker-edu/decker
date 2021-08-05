@@ -12,15 +12,12 @@ module Text.Decker.Project.Shake
     relativeSupportDir,
     isDevRun,
     openBrowser,
-    publicResource,
-    publicResourceA,
     putCurrentDocument,
     runHttpServer,
     startHttpServer,
     stopHttpServer,
     watchChangesAndRepeat,
     withShakeLock,
-    writeSupportFilesToPublic,
   )
 where
 
@@ -54,25 +51,15 @@ import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
-import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
-import Text.Decker.Resource.Template
 import Text.Decker.Server.Server
-import Text.Pandoc hiding (lookupMeta)
-
-initMutableActionState = do
-  devRun <- isDevelopmentRun
-  external <- checkExternalPrograms
-  server <- newIORef Nothing
-  watch <- newIORef False
-  public <- newResourceIO "public" 1
-  return $ MutableActionState devRun external server watch public
+import Text.Pandoc
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
-  state <- initMutableActionState
-  catchAll (repeatIfTrue $ runShakeOnce state rules) (putError "Terminated: ")
-  cleanup state
+  context <- initContext
+  catchAll (repeatIfTrue $ runShakeOnce context rules) (putError "Terminated: ")
+  cleanup context
 
 data Flags
   = MetaValueFlag
@@ -134,8 +121,8 @@ isMetaName str = all check $ List.splitOn "." str
   where
     check s = length s > 1 && isAlpha (List.head s) && all (\c -> isAlphaNum c || isSymbol c || isPunctuation c) (List.tail s)
 
-handleArguments :: MutableActionState -> Rules () -> [Flags] -> [String] -> IO (Maybe (Rules ()))
-handleArguments state rules flags targets = do
+handleArguments :: ActionContext -> Rules () -> [Flags] -> [String] -> IO (Maybe (Rules ()))
+handleArguments context rules flags targets = do
   extractMeta flags
   if
       | "clean" `elem` targets -> do
@@ -151,10 +138,10 @@ handleArguments state rules flags targets = do
         let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort flags
         let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind flags
         when (WatchFlag `elem` flags) $ do
-          watchChangesAndRepeatIO state
+          watchChangesAndRepeatIO context
         when (ServerFlag `elem` flags) $ do
-          watchChangesAndRepeatIO state
-          runHttpServerIO state port bind
+          watchChangesAndRepeatIO context
+          runHttpServerIO context port bind
         buildRules targets rules
 
 -- | Saves the meta flags to a well known file. Will be later read and cached by
@@ -188,39 +175,46 @@ aBind _ = False
 aMetaValue (MetaValueFlag _ _) = True
 aMetaValue _ = False
 
-runShakeOnce :: MutableActionState -> Rules () -> IO Bool
-runShakeOnce state rules = do
-  context <- initContext state
+runShakeOnce :: ActionContext -> Rules () -> IO Bool
+runShakeOnce context rules = do
+  -- reread the meta data on every run and update the action context
+  meta <- readMetaDataFile globalMetaFileName
+  meta' <- atomicModifyIORef' (context ^. globalMeta) $ const (meta, meta)
   options <- deckerShakeOptions context
   catchAll
-    (shakeArgsWith options deckerFlags (handleArguments state rules))
+    (shakeArgsWith options deckerFlags (handleArguments context rules))
     (putError "ERROR:\n")
-  server <- readIORef (state ^. server)
+  server <- readIORef (context ^. server)
   forM_ server reloadClients
-  keepWatching <- readIORef (state ^. watch)
+  keepWatching <- readIORef (context ^. watch)
   when keepWatching $ do
-    meta <- readMetaDataFile globalMetaFileName
-    exclude <- mapM canonicalizePath (excludeDirs meta)
+    exclude <- mapM canonicalizePath $ excludeDirs meta'
     waitForChange projectDir exclude
   return keepWatching
 
-initContext :: MutableActionState -> IO ActionContext
-initContext state = do
+initContext :: IO ActionContext
+initContext = do
   createDirectoryIfMissing True transientDir
-  return $ ActionContext state
+  devRun <- isDevelopmentRun
+  external <- checkExternalPrograms
+  server <- newIORef Nothing
+  watch <- newIORef False
+  public <- newResourceIO "public" 1
+  ref <- newIORef nullMeta
+  return $ ActionContext devRun external server watch public ref
 
-cleanup state = do
-  srvr <- readIORef $ state ^. server
+cleanup context = do
+  srvr <- readIORef $ context ^. server
   forM_ srvr stopHttpServer
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do
-  state <- _state <$> actionContext
-  liftIO $ watchChangesAndRepeatIO state
+  context <- actionContext
+  liftIO $ watchChangesAndRepeatIO context
 
-watchChangesAndRepeatIO :: MutableActionState -> IO ()
-watchChangesAndRepeatIO state = do
-  let ref = _watch state
+watchChangesAndRepeatIO :: ActionContext -> IO ()
+watchChangesAndRepeatIO context = do
+  let ref = context ^. watch
   liftIO $ writeIORef ref True
 
 putError :: Text -> SomeException -> IO ()
@@ -261,80 +255,46 @@ waitForChange inDir exclude =
 isDevRun :: Action Bool
 isDevRun = do
   context <- actionContext
-  return (context ^. state . devRun)
+  return (context ^. devRun)
 
 relativeSupportDir :: FilePath -> FilePath
 relativeSupportDir from = makeRelativeTo from supportDir
 
-writeSupportFilesToPublic :: Meta -> Action ()
-writeSupportFilesToPublic meta = do
-  templateSource <- liftIO $ calcTemplateSource meta
-  correct <- correctSupportInstalled templateSource
-  if correct
-    then putNormal "# support files up to date"
-    else do
-      putNormal $ "# copy support files from: " <> show templateSource
-      removeSupport
-      extractSupport templateSource
-
-supportId templateSource = show (templateSource, deckerGitCommitId)
-
-extractSupport :: TemplateSource -> Action ()
-extractSupport templateSource = do
-  context <- actionContext
-  liftIO $
-    handleAll (\_ -> return ()) $ do
-      copySupportFiles templateSource Copy supportDir
-      writeFile (supportDir </> ".origin") $ supportId templateSource
-
-correctSupportInstalled :: TemplateSource -> Action Bool
-correctSupportInstalled templateSource = do
-  context <- actionContext
-  liftIO $
-    handleAll (\_ -> return False) $ do
-      installed <- readFile (supportDir </> ".origin")
-      return (installed == supportId templateSource)
-
-removeSupport :: Action ()
-removeSupport = do
-  context <- actionContext
-  liftIO $ handleAll (\_ -> return ()) $ removeDirectoryRecursive supportDir
-
-publicResourceA = _publicResource . _state <$> actionContext
-
 withShakeLock :: Action a -> Action a
 withShakeLock perform = do
-  r <- _publicResource . _state <$> actionContext
-  withResource r 1 perform
+  context <- actionContext
+  let resource = context ^. publicResource
+  withResource resource 1 perform
 
 runHttpServer :: Int -> Maybe String -> Action ()
 runHttpServer port url = do
-  state <- _state <$> actionContext
-  let ref = _server state
+  context <- actionContext
+  let ref = context ^. server
   server <- liftIO $ readIORef ref
   case server of
     Just _ -> return ()
     Nothing -> do
-      httpServer <- liftIO $ startHttpServer port "localhost"
+      httpServer <- liftIO $ startHttpServer context port "localhost"
       liftIO $ writeIORef ref $ Just httpServer
       forM_ url openBrowser
 
 -- |  Runs the built-in server on the given directory, if it is not already
 --  running.
-runHttpServerIO :: MutableActionState -> Int -> String -> IO ()
-runHttpServerIO state port bind = do
-  let ref = _server state
+runHttpServerIO :: ActionContext -> Int -> String -> IO ()
+runHttpServerIO context port bind = do
+  let ref = context ^. server
   server <- readIORef ref
   case server of
     Just _ -> return ()
     Nothing -> do
-      httpServer <- startHttpServer port bind
+      httpServer <- startHttpServer context port bind
       writeIORef ref $ Just httpServer
 
 -- | Returns a list of all pages currently served, if any.
 currentlyServedPages :: Action [FilePath]
 currentlyServedPages = do
-  ref <- _server . _state <$> actionContext
+  context <- actionContext
+  let ref = context ^. server
   server <- liftIO $ readIORef ref
   case server of
     Just (_, state) -> do

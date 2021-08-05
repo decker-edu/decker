@@ -142,16 +142,12 @@ processSlides pandoc = mapSlides (concatM actions) pandoc
   where
     actions :: [Slide -> Decker Slide]
     actions =
-      case pandocMeta lookupMeta pandoc "mario" of
-        Just True ->
-          [ marioCols,
-            wrapBoxes,
-            selectActiveSlideContent,
-            splitJoinColumns,
-            layoutSlide
-          ]
-        _ ->
-          [wrapBoxes, selectActiveSlideContent, splitJoinColumns, layoutSlide]
+      [ marioCols,
+        wrapBoxes,
+        selectActiveSlideContent,
+        splitJoinColumns,
+        layoutSlide
+      ]
 
 selectActiveContent :: HasAttr a => [a] -> Decker [a]
 selectActiveContent fragments = do

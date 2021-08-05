@@ -5,11 +5,11 @@ module Text.Decker.Server.Server
   ( startHttpServer,
     stopHttpServer,
     reloadClients,
-    Server,
   )
 where
 
 import Control.Concurrent
+import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
@@ -17,6 +17,7 @@ import qualified Data.ByteString as BS
 import Data.ByteString.UTF8
 import Data.FileEmbed
 import Data.List
+import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Network.WebSockets
@@ -33,7 +34,10 @@ import System.IO.Streams.File (withFileAsOutput)
 import System.Random
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
-import Text.Decker.Internal.Helper
+import Text.Decker.Project.ActionContext
+import Text.Decker.Resource.Resource
+import Text.Decker.Server.Types
+import GHC.IORef (readIORef)
 
 -- Logging and port configuration for the server.
 serverConfig :: Int -> String -> IO (Config Snap a)
@@ -49,13 +53,6 @@ serverConfig port bind = do
               setErrorLog (ConfigFileLog errorLog) defaultConfig ::
         Config Snap a
     )
-
--- | Clients are identified by integer ids
-type Client = (Int, Connection)
-
-type ServerState = ([Client], Set.Set FilePath)
-
-type Server = (ThreadId, MVar ServerState)
 
 initState :: IO (MVar ServerState)
 initState = newMVar ([], Set.fromList ["index.html"])
@@ -97,20 +94,15 @@ installSSLCert = do
   BS.writeFile (transientDir </> "decker-ssl.key") sslKey
 
 -- Runs the server. Never returns.
-runHttpServer :: MVar ServerState -> Int -> String -> IO ()
-runHttpServer state port bind = do
+runHttpServer :: ActionContext -> MVar ServerState -> Int -> String -> IO ()
+runHttpServer context state port bind = do
   installSSLCert
-  devRun <- isDevelopmentRun
-  let supportRoot =
-        if devRun
-          then devSupportDir
-          else supportDir
   config <- serverConfig port bind
   let routes =
         route
           [ ("/reload", runWebSocketsSnap $ reloader state),
             ("/reload.html", serveFile $ "test" </> "reload.html"),
-            (fromString supportPath, serveDirectoryNoCaching state supportRoot),
+            (fromString supportPath, serveSupport context state),
             ("/", method PUT $ uploadResource ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"]),
             ("/", method GET $ serveDirectoryNoCaching state publicDir),
             ("/", method HEAD $ headDirectory publicDir),
@@ -200,11 +192,36 @@ serveDirectoryNoCaching state directory = do
   path <- getsRequest rqPathInfo
   liftIO $ addPage state (toString path)
 
+serveSupport :: (MonadSnap m) => ActionContext -> MVar ServerState -> m ()
+serveSupport context state =
+  if context ^. devRun
+    then do
+      path <- getSafePath
+      meta <- liftIO $ readIORef (context ^. globalMeta)
+      sources <- liftIO $ deckerResources meta
+      serveResource sources ("support" </> path)
+      modifyResponse $ addHeader "Cache-Control" "no-store"
+    else do
+      serveDirectoryNoCaching state supportDir
+
+firstJustM :: [IO (Maybe a)] -> IO (Maybe a)
+firstJustM = foldM (\b a -> do if isNothing b then a else return b) Nothing
+
+serveResource :: (MonadSnap m) => Resources -> FilePath -> m ()
+serveResource (Resources decker pack) path = do
+  resource <- liftIO $ firstJustM [readResource path pack, readResource path decker]
+  case resource of
+    Nothing -> modifyResponse $ setResponseStatus 404 "Resource not found"
+    Just content -> do
+      modifyResponse $ setHeader "Cache-Control" "no-store"
+      modifyResponse $ setContentType (fileType defaultMimeTypes (takeFileName path))
+      writeBS content
+
 -- | Starts a server in a new thread and returns the thread id.
-startHttpServer :: Int -> String -> IO Server
-startHttpServer port bind = do
+startHttpServer :: ActionContext -> Int -> String -> IO Server
+startHttpServer context port bind = do
   state <- initState
-  threadId <- forkIO $ runHttpServer state port bind
+  threadId <- forkIO $ runHttpServer context state port bind
   return (threadId, state)
 
 -- | Sends a reload messsage to all attached clients

@@ -15,6 +15,7 @@ module Text.Decker.Internal.External
 where
 
 import Control.Exception
+import Control.Lens
 import Data.Aeson
 import qualified Data.ByteString.Lazy as B
 import Data.List (lookup)
@@ -157,7 +158,8 @@ makeProgram :: String -> [String] -> Maybe FilePath -> Action ()
 makeProgram name =
   let external = fromJust $ List.lookup name programs
    in ( \arguments dst -> do
-          status <- _externalStatus . _state <$> actionContext
+          context <- actionContext
+          let status = context ^. externalStatus
           if fromMaybe False (lookup name status)
             then do
               let command = intercalate " " $ [path external] <> args external <> arguments

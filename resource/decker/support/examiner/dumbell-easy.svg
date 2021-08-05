@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="302.75 334.75 45.5 30.5" width="45.5" height="30.5">
+  <defs/>
+  <metadata> Produced by OmniGraffle 7.17.2\n2020-08-04 07:24:07 +0000</metadata>
+  <g id="Canvas_1" stroke="none" stroke-opacity="1" stroke-dasharray="none" fill-opacity="1" fill="none">
+    <title>Canvas 1</title>
+    <g id="Canvas_1_Layer_1">
+      <title>Layer 1</title>
+      <g id="Graphic_66">
+        <rect x="304" y="347" width="43" height="6" fill="#ccc"/>
+        <rect x="304" y="347" width="43" height="6" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+      </g>
+      <g id="Graphic_67">
+        <path d="M 317 336 L 318 336 C 319.10457 336 320 336.89543 320 338 L 320 362 C 320 363.10457 319.10457 364 318 364 L 317 364 C 315.89543 364 315 363.10457 315 362 L 315 338 C 315 336.89543 315.89543 336 317 336 Z" fill="#666"/>
+        <path d="M 317 336 L 318 336 C 319.10457 336 320 336.89543 320 338 L 320 362 C 320 363.10457 319.10457 364 318 364 L 317 364 C 315.89543 364 315 363.10457 315 362 L 315 338 C 315 336.89543 315.89543 336 317 336 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+      </g>
+      <g id="Graphic_68">
+        <path d="M 333 336 L 334 336 C 335.10457 336 336 336.89543 336 338 L 336 362 C 336 363.10457 335.10457 364 334 364 L 333 364 C 331.89543 364 331 363.10457 331 362 L 331 338 C 331 336.89543 331.89543 336 333 336 Z" fill="#666"/>
+        <path d="M 333 336 L 334 336 C 335.10457 336 336 336.89543 336 338 L 336 362 C 336 363.10457 335.10457 364 334 364 L 333 364 C 331.89543 364 331 363.10457 331 362 L 331 338 C 331 336.89543 331.89543 336 333 336 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5"/>
+      </g>
+    </g>
+  </g>
+</svg>

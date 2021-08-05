@@ -81,7 +81,7 @@ privateDir = "private"
 
 supportDir = "public/support"
 
-devSupportDir = "resource/support"
+devSupportDir = "resource/decker/support"
 
 supportPath = "/support"
 

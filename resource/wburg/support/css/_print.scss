@@ -1,0 +1,100 @@
+/////////////////////////////////////////////
+// Print modifications
+/////////////////////////////////////////////
+@media print {
+    $base-font-size: 30px;
+    $medium-font-size: 1 * $base-font-size;
+    $xx-small-font-size: 0.4 * $base-font-size;
+    $x-small-font-size: 0.6 * $base-font-size;
+    $small-font-size: 0.8 * $base-font-size;
+    $large-font-size: 1.2 * $base-font-size;
+    $x-large-font-size: 1.4 * $base-font-size;
+    $xx-large-font-size: 1.6 * $base-font-size;
+
+    .backgrounds {
+        background-color: #fff;
+    }
+
+    html {
+        overflow: visible !important;
+    }
+
+    body {
+        overflow: visible !important;
+    }
+
+    .reveal {
+        position: static !important;
+    }
+
+    .reveal .slides {
+        transform: none !important;
+
+        font-family: "Roboto", sans-serif !important;
+        font-size: $medium-font-size !important;
+    }
+
+    .reveal {
+
+        p,
+        td,
+        li,
+        div {
+            font-family: inherit !important;
+            font-size: inherit !important;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: inherit !important;
+            font-size: inherit !important;
+            color: rgba(0, 0, 0, 0.87);
+            letter-spacing: normal;
+            text-transform: none;
+            text-shadow: none;
+            word-wrap: break-word;
+            font-weight: normal;
+        }
+
+        h1 {
+            font-size: $xx-large-font-size !important;
+            margin: space(0 0 0.5 0);
+        }
+
+        h2 {
+            font-weight: 500;
+            font-size: $large-font-size !important;
+            margin-bottom: space(0.1);
+            color: rgb(100, 100, 100) !important;
+        }
+
+        a {
+
+            &:link,
+            &:visited {
+                font-weight: normal;
+            }
+        }
+
+        div.sourceCode {
+            pre {
+                code {
+                    white-space: pre-wrap;
+
+                    a.sourceLine {
+                        text-indent: space(-1);
+                        padding-left: space(1);
+                    }
+                }
+            }
+        }
+
+        a:link:after {
+            content: " ("attr(href) ") ";
+        }
+    }
+}

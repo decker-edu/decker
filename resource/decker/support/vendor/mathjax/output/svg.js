@@ -1,0 +1,1 @@
+/Users/henriktramberend/workspace/decker/decker/third-party/MathJax/es5/output/svg.js

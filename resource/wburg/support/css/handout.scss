@@ -1,0 +1,207 @@
+@charset "UTF-8";
+@import url("../vendor/css/light.min.css");
+@import url("../vendor/fontawesome/css/all.css");
+
+@import "fonts";
+@import "columns";
+@import "new-media";
+@import "boxes";
+@import "quizzes";
+@import "code";
+
+ul,
+ol,
+p {
+  margin: 0;
+  padding: 0;
+}
+
+div.box {
+  margin-top: 1em;
+}
+
+hr {
+  margin: 1em 0;
+}
+
+header > h1 {
+  font-size: 2em;
+}
+
+body > h1:first-of-type {
+  font-size: 1.75em;
+}
+
+h1 {
+  font-size: 1.5em;
+}
+
+h2 {
+  font-size: 1.25em;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: 1em;
+}
+
+header h1 {
+  margin-bottom: 0;
+}
+
+header h2 {
+  margin-top: 0;
+  color: var(--muted);
+}
+
+header nav {
+  margin-bottom: 0.5rem;
+}
+
+header {
+  background: var(--background-alt);
+  border-bottom: 1px solid var(--border);
+  padding: 2rem 1.5rem;
+
+  /* This sets the right and left margins to cancel out the body's margins. It's width is still the same, but the background stretches across the page's width. */
+
+  margin: -2rem calc(0px - (50vw - 50%)) 2rem;
+
+  /* Shorthand for:
+	margin-top: -2rem;
+	margin-bottom: 2rem;
+	margin-left: calc(0px - (50vw - 50%));
+	margin-right: calc(0px - (50vw - 50%)); */
+
+  padding-left: calc(50vw - 50%);
+  padding-right: calc(50vw - 50%);
+}
+
+header h1,
+header h2,
+header h3 {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+header > *:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+header > *:last-child {
+  margin-bottom: 0;
+}
+
+table {
+    table-layout: auto;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  -webkit-print-color-adjust: exact;
+}
+
+.slide .slide-wrapper {
+  clear: both;
+  display: inline-block;
+  width: 100%;
+  .qic,
+  .qft,
+  .qmc,
+  .qmi,
+  [class*="quiz-"] {
+    div.tooltip,
+    button.solutionButton,
+    button.resetButton {
+      display: none;
+    }
+    ul.choices,
+    ul.solutionList {
+      list-style-type: none;
+      li::before {
+        content: "○ "
+      }
+    }
+  }
+
+  .qmc,
+  .quiz-mc,
+  .quiz-multiple-choice {
+    &.inline li {
+      padding: 0.1em 0.7em 0.1em 0;
+      display: inline;
+    }
+  }
+
+  .qft,
+  [class*="quiz-f"] {
+    ul.solutionList {
+      display: none;
+    }
+    input::placeholder {
+      color: #161f27;
+    }
+  }
+
+  .qic,
+  [class*="quiz-i"] {
+    select {
+      display: none;
+    }
+  }
+
+  .qmi,
+  .quiz-mi,
+  .quiz-match-items { 
+    .matchDiv {
+      display: flex;
+      flex-direction: row-reverse;    
+      justify-content: flex-end;
+    }
+    .matchItems {
+      float: right;
+    }
+    &.plain {
+      .matchDiv {
+        flex-direction: row;
+        justify-content: initial;
+      }
+      .matchItems,
+      .matchQuestion {
+        display: flex;
+      }
+      .matchDiv, 
+      .matchQuestion {
+        justify-content: space-between;
+      }
+      .matchQuestion {
+        margin-bottom: 0.5em;
+      }
+      .matchItems {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        margin-right: 5em;
+        max-width: 65%;
+      }
+      .optList,
+      .options {
+        display: none;
+      }
+      .matchItem, 
+      .bucket {
+        padding-bottom: 0.5em;
+      }
+      .matchItem {
+        img {
+          max-width: 50%;
+        }
+      }
+    }
+  }
+}

@@ -3,7 +3,7 @@
 
 SHELL := $(shell which bash)
 
-support := ../resource/support/vendor
+support := ../resource/decker/support/vendor
 third := $(shell realpath .)
 
 ifeq ($(OS),Windows_NT)

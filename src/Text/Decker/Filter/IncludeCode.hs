@@ -1,17 +1,17 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
-module Text.Decker.Filter.IncludeCode
-  ( InclusionMode(..)
-  , InclusionSpec(..)
-  , parseInclusionUrl
-  , includeCode
-  ) where
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
-import Text.Decker.Internal.Common
+module Text.Decker.Filter.IncludeCode
+  ( InclusionMode (..),
+    InclusionSpec (..),
+    parseInclusionUrl,
+    includeCode,
+  )
+where
 
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -23,19 +23,20 @@ import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import Development.Shake
-import Network.URI
+import Network.URI as URI
+import System.FilePath (dropDrive, hasDrive, (</>))
+import Text.Decker.Internal.Common
 import Text.Pandoc.JSON
 import Text.Pandoc.Walk
 import Text.Read (readMaybe)
 
-import Text.Decker.Resource.Resource
-
 type LineNumber = Int
 
 data Range = Range
-  { rangeStart :: LineNumber
-  , rangeEnd :: LineNumber
-  } deriving (Show, Eq)
+  { rangeStart :: LineNumber,
+    rangeEnd :: LineNumber
+  }
+  deriving (Show, Eq)
 
 mkRange :: LineNumber -> LineNumber -> Maybe Range
 mkRange s e
@@ -50,10 +51,11 @@ data InclusionMode
   deriving (Show, Eq)
 
 data InclusionSpec = InclusionSpec
-  { include :: FilePath
-  , mode :: InclusionMode
-  , dedent :: Maybe Int
-  } deriving (Show, Eq)
+  { include :: FilePath,
+    mode :: InclusionMode,
+    dedent :: Maybe Int
+  }
+  deriving (Show, Eq)
 
 data MissingRangePart
   = Start
@@ -61,38 +63,42 @@ data MissingRangePart
   deriving (Show, Eq)
 
 data InclusionError
-  = InvalidRange LineNumber
-                 LineNumber
+  = InvalidRange
+      LineNumber
+      LineNumber
   | IncompleteRange MissingRangePart
   | ConflictingModes [InclusionMode]
   deriving (Show, Eq)
 
 newtype InclusionState = InclusionState
   { startLineNumber :: Maybe LineNumber
-  } deriving (Show)
+  }
+  deriving (Show)
 
 newtype Inclusion a = Inclusion
   { runInclusion :: ReaderT InclusionSpec (StateT InclusionState (ExceptT InclusionError IO)) a
-  } deriving ( Functor
-             , Applicative
-             , Monad
-             , MonadIO
-             , MonadReader InclusionSpec
-             , MonadError InclusionError
-             , MonadState InclusionState
-             )
+  }
+  deriving
+    ( Functor,
+      Applicative,
+      Monad,
+      MonadIO,
+      MonadReader InclusionSpec,
+      MonadError InclusionError,
+      MonadState InclusionState
+    )
 
 runInclusion' ::
-     InclusionSpec
-  -> Inclusion a
-  -> IO (Either InclusionError (a, InclusionState))
+  InclusionSpec ->
+  Inclusion a ->
+  IO (Either InclusionError (a, InclusionState))
 runInclusion' spec action =
   runExceptT (runStateT (runReaderT (runInclusion action) spec) initialState)
   where
     initialState = InclusionState {startLineNumber = Nothing}
 
 parseInclusion ::
-     HashMap String String -> Either InclusionError (Maybe InclusionSpec)
+  HashMap String String -> Either InclusionError (Maybe InclusionSpec)
 parseInclusion attrs =
   case HM.lookup "include" attrs of
     Just include -> do
@@ -153,15 +159,17 @@ isUnnamedSnippetTag tag line = tag `Text.isSuffixOf` Text.strip line
 -- start snippet include-start-end
 isSnippetStart :: Text -> Text -> Bool
 isSnippetStart name line =
-  isSnippetTag "start snippet" name line ||
-  isSnippetTag "8<|" name line || isSnippetTag "8<" name line
+  isSnippetTag "start snippet" name line
+    || isSnippetTag "8<|" name line
+    || isSnippetTag "8<" name line
 
 -- end snippet include-start-end
 isSnippetEnd :: Text -> Bool -> Text -> Bool
 isSnippetEnd name emptyEnd line =
-  isSnippetTag "end snippet" name line ||
-  isSnippetTag ">8" name line ||
-  isUnnamedSnippetTag ">8" line || (emptyEnd && Text.null (Text.strip line))
+  isSnippetTag "end snippet" name line
+    || isSnippetTag ">8" name line
+    || isUnnamedSnippetTag ">8" line
+    || (emptyEnd && Text.null (Text.strip line))
 
 includeByMode :: Lines -> Inclusion Lines
 includeByMode ls =
@@ -176,7 +184,8 @@ includeByMode ls =
     RangeMode range -> do
       setStartLineNumber (rangeStart range)
       return (take (rangeEnd range - startIndex) (drop startIndex ls))
-      where startIndex = pred (rangeStart range)
+      where
+        startIndex = pred (rangeStart range)
     EntireFileMode -> return ls
     _ -> return ls
 
@@ -193,7 +202,7 @@ dedentLinesMax ls = do
     dedentLine max line = fromMaybe line $ Text.stripPrefix max line
 
 modifyAttributes ::
-     InclusionState -> [String] -> [(String, String)] -> [(String, String)]
+  InclusionState -> [String] -> [(String, String)] -> [(String, String)]
 modifyAttributes InclusionState {startLineNumber} classes =
   (++) extraAttrs . filter nonFilterAttribute
   where
@@ -243,12 +252,15 @@ includeCodeA' cb@(CodeBlock (id', classes, attrs) _) =
             Left err -> return (Left err)
             Right (contents, state) ->
               return
-                (Right
-                   (CodeBlock
-                      ( id'
-                      , classes
-                      , map textTup $ modifyAttributes state classes' attrs')
-                      contents))
+                ( Right
+                    ( CodeBlock
+                        ( id',
+                          classes,
+                          map textTup $ modifyAttributes state classes' attrs'
+                        )
+                        contents
+                    )
+                )
         Right Nothing -> return (Right cb)
         Left err -> return (Left err)
 includeCodeA' pi@(Para [Image (id', classes, attrs) _ (url, _)]) =
@@ -264,12 +276,15 @@ includeCodeA' pi@(Para [Image (id', classes, attrs) _ (url, _)]) =
             Left err -> return (Left err)
             Right (contents, state) ->
               return
-                (Right
-                   (CodeBlock
-                      ( id'
-                      , classes
-                      , map textTup $ modifyAttributes state classes' attrs')
-                      contents))
+                ( Right
+                    ( CodeBlock
+                        ( id',
+                          classes,
+                          map textTup $ modifyAttributes state classes' attrs'
+                        )
+                        contents
+                    )
+                )
         Right Nothing -> return (Right pi)
         Left err -> return (Left err)
 includeCodeA' x = return (Right x)
@@ -288,4 +303,17 @@ includeCode :: Pandoc -> Decker Pandoc
 includeCode (Pandoc meta blocks) = do
   included <- lift $ walkM (includeCodeA Nothing) blocks
   return $ Pandoc meta included
+
 -- end snippet includeCode
+
+urlToFilePathIfLocal :: FilePath -> FilePath -> Action FilePath
+urlToFilePathIfLocal base uri =
+  case URI.parseRelativeReference uri of
+    Nothing -> return uri
+    Just relativeUri -> do
+      let filePath = URI.uriPath relativeUri
+      let path =
+            if hasDrive filePath
+              then dropDrive filePath
+              else base </> filePath
+      return $ show $ relativeUri {URI.uriPath = path}

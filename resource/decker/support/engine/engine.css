@@ -1,0 +1,502 @@
+/* Variables just for the panel */
+div.q-panel {
+  --border-radius: 0.2em;
+}
+
+/* The one button with the question mark */
+div.open-button.checked {
+  visibility: hidden;
+}
+
+div.open-button:not(.checked) {
+  visibility: visible;
+  transition-delay: 0.4s;
+}
+
+div.open-button {
+  position: fixed;
+  left: auto;
+  right: calc(var(--whiteboard-icon-size) * 0.25);
+  top: calc(var(--whiteboard-icon-size) * 0.25);
+  bottom: auto;
+  margin: calc(var(--whiteboard-icon-size) * 0.5);
+  padding: 0.2em;
+  z-index: 40;
+  background: none;
+  font-size: var(--whiteboard-icon-size);
+  color: var(--whiteboard-inactive-color);
+
+  transition-property: visibility;
+}
+
+div.open-button.i {
+  opacity: 0.5;
+}
+
+div.open-button:hover {
+  opacity: 1;
+  color: var(--whiteboard-active-color);
+}
+
+/* Badge for the open button*/
+div.open-badge[data-count="0"] {
+  visibility: hidden;
+}
+
+div.open-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: white;
+  /* Scale the batch here, if desired */
+  font-size: 40%;
+}
+
+div.badge {
+  font-family: sans-serif;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+  vertical-align: baseline;
+  white-space: nowrap;
+  border-radius: 0.4em;
+  padding: 0.2em 0.4em;
+  background-color: red;
+  color: white;
+}
+
+div.badge.answered {
+  background-color: green;
+}
+
+div.q-panel.open {
+  transform: translateX(0);
+}
+
+div.q-panel:not(.open) {
+  transform: translateX(100%);
+}
+
+div.q-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 60%;
+  right: 0;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0);
+
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: stretch;
+
+  font-family: "Roboto", Helvetica, sans-serif;
+  font-size: 2.5vh;
+  font-weight: normal;
+  color: rgba(0, 0, 0, 1);
+
+  padding: 0;
+  transition: 0.3s ease-in-out;
+
+  border: none;
+  border-radius: var(--border-radius);
+}
+
+div.q-panel.authorized div.q-footer {
+  display: none;
+}
+
+div.q-panel div.q-header {
+  flex: 0 1 content;
+
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.3em;
+}
+
+div.q-panel div.q-header div.q-title {
+  flex: 0 1;
+  margin-right: 1em;
+}
+
+div.q-panel div.q-header div.counter[data-count="0"] {
+  visibility: hidden;
+}
+
+div.q-panel div.q-header div.counter {
+  flex: 0 1;
+  margin-right: 1em;
+  font-size: 0.9em;
+}
+
+div.q-panel div.q-header .hidden {
+  visibility: hidden;
+}
+
+div.q-panel div.q-header input {
+  font-family: "Roboto", Helvetica, sans-serif;
+  font-size: 0.8em;
+}
+
+div.q-panel div.q-header input[type="text"],
+div.q-panel div.q-header input[type="password"] {
+  flex: 1 1;
+  min-width: 2em;
+  max-width: 100em;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: var(--border-radius);
+  outline: none;
+  padding: 0.3em;
+  margin: 0;
+}
+
+div.q-panel div.q-header button {
+  padding-left: 0.4em;
+}
+
+div.q-panel div.q-header button.q-check {
+  flex: 0 1;
+
+  color: gray;
+  background-color: rgba(0, 0, 0, 0);
+
+  border: none;
+  border-radius: var(--border-radius);
+  outline: none;
+}
+
+div.q-panel div.q-header button.q-check:hover {
+  color: var(--whiteboard-active-color);
+}
+
+div.q-panel div.q-header button.q-check.checked i.lock {
+  display: inline;
+}
+
+div.q-panel div.q-header button.q-check.checked i.unlock {
+  display: none;
+}
+
+div.q-panel div.q-header button.q-check:not(.checked) i.lock {
+  display: none;
+}
+
+div.q-panel div.q-header button.q-check:not(.checked) i.unlock {
+  display: inline;
+}
+
+div.q-panel div.q-header button.q-close {
+  flex: 0 1;
+
+  color: gray;
+  background-color: rgba(0, 0, 0, 0);
+
+  border: none;
+  border-radius: var(--border-radius);
+  outline: none;
+}
+
+div.q-panel div.q-header button.q-close:hover {
+  color: var(--whiteboard-active-color);
+}
+
+div.q-panel div.q-list {
+  flex: 1 1;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.3em;
+  font-size: 0.8em;
+  overflow-y: scroll;
+}
+
+div.q-panel div.q-list div.item {
+  background-color: rgba(255, 255, 255, 0.9);
+  font-family: "Roboto", Helvetica, sans-serif;
+  line-height: 125%;
+  border: none;
+  border-radius: var(--border-radius);
+  outline: none;
+  margin-bottom: 0.5em;
+  padding: 0.3em;
+
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+}
+
+div.q-panel div.q-list div.item div.content {
+  flex: 1 1;
+  margin: 0;
+  padding: 0;
+  padding-right: 0.1em;
+  background-color: rgb(0, 0, 0, 0);
+  overflow: hidden;
+}
+
+div.q-panel div.q-list div.item.answer {
+  display: block;
+  background-color: rgba(230, 230, 230, 0.9);
+  margin-left: 4ex;
+  font-size: 80%;
+}
+
+div.item.answer > div.link {
+  float: right;
+}
+
+div.item.answer > div.description {
+}
+
+div.q-panel div.answer div.controls {
+  float: right;
+  margin-left: 0.5em;
+}
+
+div.q-panel div.content div.controls {
+  float: right;
+  margin-left: 0.5em;
+}
+
+div.q-panel button {
+  color: gray;
+  background-color: rgba(0, 0, 0, 0);
+  border: none;
+  margin: 0;
+  padding: 0;
+  margin-left: 0.2em;
+
+  font-size: 1em;
+}
+
+div.q-panel button:hover {
+  color: var(--whiteboard-active-color);
+}
+
+div.q-panel button.answered {
+  color: green;
+}
+
+div.q-panel button.notanswered {
+  color: red;
+}
+
+div.q-panel button.cantvote {
+  color: lightgray;
+}
+
+div.q-panel button.cantvote:hover {
+  color: lightgray;
+}
+
+div.q-panel div.q-list div.item button {
+  flex: 0 1 content;
+}
+
+div.q-panel div.q-input {
+  flex: 0 1;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.3em;
+}
+
+div.q-panel div.q-input textarea {
+  resize: none;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 0.3em;
+  height: 6em;
+  width: calc(100% - 0.6em);
+
+  border: none;
+  border-radius: var(--border-radius);
+  outline: none;
+
+  font-size: 0.8em;
+}
+
+div.q-panel div.q-input textarea[answer] {
+  background-color: #efe;
+  border: solid 1px #cfc;
+}
+
+div.q-panel div.q-footer {
+  flex: 0 1 content;
+
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.3em;
+}
+
+div.q-panel div.q-footer div.credentials {
+  display: flex;
+  flex: 1 0;
+}
+
+div.q-panel div.q-footer div.credentials.visible {
+  visibility: visible;
+}
+
+div.q-panel div.q-footer div.credentials:not(.visible) {
+  visibility: hidden;
+}
+
+div.q-panel div.q-footer div.credentials input {
+  flex: 1 0;
+  color: grey;
+  margin: 0;
+  margin-left: 0.5em;
+  padding: 0.3em;
+  width: 40%;
+
+  border: none;
+  border-radius: var(--border-radius);
+  outline: none;
+
+  font-size: 0.8em;
+}
+
+div.q-panel div.q-footer div.q-login {
+  flex: 0 1;
+
+  color: gray;
+  background-color: rgba(0, 0, 0, 0);
+  font-size: 1em;
+}
+
+div.q-panel div.q-footer div.q-login:not(.admin) {
+  opacity: 1;
+  color: lightgray;
+}
+
+div.q-panel div.q-footer div.q-login.admin {
+  opacity: 1;
+  color: red;
+}
+
+div.q-panel div.q-footer div.q-login:hover {
+  opacity: 1;
+  color: var(--whiteboard-active-color);
+}
+
+div.q-panel div.item {
+  font-size: 1em;
+}
+
+div.q-panel div.item em {
+  font-style: italic;
+}
+
+div.q-panel div.item strong {
+  font-weight: bold;
+}
+
+div.q-panel div.item a {
+  color: darkblue;
+}
+
+div.q-panel div.item p,
+div.q-panel ul,
+div.q-panel ol {
+  padding-bottom: 0.3em;
+}
+
+div.q-panel div.item p:last-child,
+div.q-panel div.item ul:last-child,
+div.q-panel div.item ol:last-child {
+  padding-bottom: 0;
+}
+
+div.q-panel div.item ol {
+  list-style-type: lower-alpha;
+  list-style-position: inside;
+}
+
+div.q-panel div.item ul {
+  list-style-type: disc;
+  list-style-position: inside;
+}
+
+div.q-panel div.item code {
+  font-family: Consolas, Monaco, monospace;
+  font-size: 0.9em;
+}
+
+div.q-panel div.item pre {
+  padding: 0.2em;
+  background-color: #eee;
+  white-space: pre-wrap;
+}
+
+div.q-panel div.item h1 {
+  font-size: 1.2em;
+  font-weight: bold;
+  padding-bottom: 0.2em;
+  padding-top: 0.2em;
+  color: #333;
+}
+
+div.q-panel div.item h2 {
+  font-size: 1.1em;
+  font-weight: bold;
+  padding-bottom: 0.2em;
+  padding-top: 0.2em;
+  color: #333;
+}
+
+div.q-panel div.item img {
+  width: 100%;
+  image-rendering: pixelated;
+}
+
+section#questions-overview div.scroll-y {
+  height: 500px;
+  overflow-y: scroll;
+}
+
+section#questions-overview table {
+  font-size: 70%;
+}
+
+section#questions-overview table h1 {
+  font-weight: bold;
+  font-size: 120%;
+}
+
+section#questions-overview table h2 {
+  font-weight: bold;
+  font-size: 110%;
+}
+
+section#questions-overview table tr td:first-child {
+  max-width: 6em;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+li.slide-menu-item[data-questions]::after {
+  content: attr(data-questions);
+  margin-left: 1em;
+  font-size: 0.9em;
+
+  /* from class counter */
+  background-color: red;
+  color: white;
+
+  /* from class badge */
+  font-family: sans-serif;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+  vertical-align: baseline;
+  white-space: nowrap;
+  border-radius: 0.4em;
+  padding: 0.2em 0.4em;
+}
+li.slide-menu-item[data-questions][data-answered="true"]::after {
+  background-color: green;
+}

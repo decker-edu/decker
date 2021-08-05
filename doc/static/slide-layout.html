@@ -131,13 +131,16 @@ div.columns div.layout div.area#i2 {
     <p> This is the floating layout that Mario uses via <code>MarioCols.hs</code>.</p>
 
     <pre><code>div.floating div.layout div.area#i1 {
+  float: left;div.floating div.layout div.area#a1 {
   float: left;
-  width: calc(60% - 2 * 1.3em - 2 * var(--struct-border-width));
+  /* width: calc(60% - 2 * var(--struct-padding) - 2 * var(--struct-border-width)); */
+  width: 60%;
 }
 
-div.floating div.layout div.area#i2 {
+div.floating div.layout div.area#a2 {
   display: inline-block;
-  width: calc(40% - 2 * 1.3em - 2 * var(--struct-border-width));
+  /* width: calc(40% - 2 * var(--struct-padding) - 2 * var(--struct-border-width)); */
+  width: 40%;
 }</code></pre>
 
     <div class="floating">
@@ -177,16 +180,18 @@ div.floating div.layout div.area#i2 {
   place-items: stretch;
 }
 
-div.grid div.layout div.area#i1 {
+div.grid div.layout div.area#a1 {
   grid-column: 1;
   grid-row: 2;
-  width: calc(100% - 2 * 1.3em - 2 * var(--struct-border-width));
+  /* width: calc(100% - 2 * var(--struct-padding) - 2 * var(--struct-border-width)); */
+  width: 100%;
 }
 
-div.grid div.layout div.area#i2 {
+div.grid div.layout div.area#a2 {
   grid-column: 2;
   grid-row: 1;
-  width: calc(100% - 2 * 1.3em - 2 * var(--struct-border-width));
+  /* width: calc(100% - 2 * var(--struct-padding) - 2 * var(--struct-border-width)); */
+  width: 100%;
 }</code></pre>
 
     <div class="grid">
@@ -232,11 +237,33 @@ div.grid div.layout div.area#i2 {
   left: var(--bar-inset);
   border-left: var(--bar-width) solid blue;
   padding-left: calc(
-    -1 * var(--bar-inset) - var(--bar-width) + var(--struct-border-width) + var(--struct-padding)
+    var(--struct-border-width) + var(--struct-padding) - var(--bar-inset) - var(--bar-width)
   );
   margin-right: var(--bar-inset);
 }</code></pre>
+
+    <h3>Learned a new CSS trick today</h3>
+
+    <pre><code>* {
+  box-sizing: border-box;
+}</code></pre>
+
+    <p>Changes this:</p>
+
+    <pre><code>div.floating div.layout div.area#i2 {
+  display: inline-block;
+  width: calc(40% - 2 * var(--struct-padding) - 2 * var(--struct-border-width));
+}</code></pre>
+
+    <p>Into this:</p>
+
+    <pre><code>div.floating div.layout div.area#i2 {
+  display: inline-block;
+  width: 40%;
+}</code></pre>
+
   </div>
+
 </body>
 
 </html>

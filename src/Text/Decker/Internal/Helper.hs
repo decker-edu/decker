@@ -2,11 +2,6 @@
 
 module Text.Decker.Internal.Helper where
 
-import Text.Decker.Internal.Exception
-import Text.Decker.Project.Version
-import Text.Pandoc
-import Text.Printf
-
 import Control.Monad.Catch
 import Control.Monad.State
 import qualified Data.List as List
@@ -14,10 +9,14 @@ import qualified Data.List.Extra as List
 import qualified Data.Set as Set
 import Relude
 import System.CPUTime
-import qualified System.Directory as Dir
 import System.Directory
+import qualified System.Directory as Dir
 import System.Environment
 import System.FilePath.Posix
+import Text.Decker.Internal.Exception
+import Text.Decker.Project.Version
+import Text.Pandoc
+import Text.Printf
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -56,6 +55,10 @@ time name action = do
   printf "%s: %0.5f sec\n" name (diff :: Double)
   return result
 
+-- | Remove a file, but don't worry if it fails
+removeFile_ :: FilePath -> IO ()
+removeFile_ x = removeFile x `catch` \(SomeException e) -> return ()
+
 -- | Copy a directory and its contents recursively
 copyDir :: FilePath -> FilePath -> IO ()
 copyDir src dst = do
@@ -73,7 +76,12 @@ copyDir src dst = do
         isDirectory <- Dir.doesDirectoryExist srcPath
         if isDirectory
           then copyDir srcPath dstPath
-          else copyFileIfNewer srcPath dstPath
+          else do
+            -- symlink safety first!
+            removeFile_ dstPath
+            Dir.copyFile srcPath dstPath
+
+-- else copyFileIfNewer srcPath dstPath
 
 -- | Copies the src to dst if src is newer or dst does not exist. Creates
 -- missing directories while doing so.
@@ -88,12 +96,13 @@ fileIsNewer a b = do
   aexists <- Dir.doesFileExist a
   bexists <- Dir.doesFileExist b
   if bexists
-    then if aexists
-           then do
-             at <- Dir.getModificationTime a
-             bt <- Dir.getModificationTime b
-             return (at > bt)
-           else return False
+    then
+      if aexists
+        then do
+          at <- Dir.getModificationTime a
+          bt <- Dir.getModificationTime b
+          return (at > bt)
+        else return False
     else return aexists
 
 handleLeft :: ToText a => Either a b -> b
@@ -130,7 +139,7 @@ tryRemoveDirectory path = do
   exists <- System.Directory.doesDirectoryExist path
   when exists $ removeDirectoryRecursive path
 
--- | Express the second path argument as relative to the first. 
+-- | Express the second path argument as relative to the first.
 -- TODO Ensure this always works with dirs
 -- TODO Ensure resulting dirs end on /
 makeRelativeTo :: FilePath -> FilePath -> FilePath
@@ -146,7 +155,7 @@ removeCommonPrefix =
   mapTuple joinPath . removeCommonPrefix_ . mapTuple splitDirectories
   where
     removeCommonPrefix_ :: ([FilePath], [FilePath]) -> ([FilePath], [FilePath])
-    removeCommonPrefix_ (al@(a:as), bl@(b:bs))
+    removeCommonPrefix_ (al@(a : as), bl@(b : bs))
       | a == b = removeCommonPrefix_ (as, bs)
       | otherwise = (al, bl)
     removeCommonPrefix_ pathes = pathes
@@ -155,7 +164,7 @@ isPrefix :: FilePath -> FilePath -> Bool
 isPrefix prefix whole = isPrefix_ (splitPath prefix) (splitPath whole)
   where
     isPrefix_ :: Eq a => [a] -> [a] -> Bool
-    isPrefix_ (a:as) (b:bs)
+    isPrefix_ (a : as) (b : bs)
       | a == b = isPrefix_ as bs
       | otherwise = False
     isPrefix_ [] _ = True
