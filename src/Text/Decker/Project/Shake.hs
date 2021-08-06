@@ -11,13 +11,10 @@ module Text.Decker.Project.Shake
     currentlyServedPages,
     relativeSupportDir,
     isDevRun,
-    openBrowser,
     putCurrentDocument,
-    runHttpServer,
-    startHttpServer,
-    stopHttpServer,
     watchChangesAndRepeat,
     withShakeLock,
+    runHttpServerIO
   )
 where
 
@@ -70,6 +67,7 @@ data Flags
   | CleanerFlag
   | WatchFlag
   | ServerFlag
+  | OpenFlag
   | PortFlag Int
   | BindFlag String
   deriving (Eq, Show)
@@ -91,6 +89,11 @@ deckerFlags =
       ["server"]
       (GetOpt.NoArg $ Right ServerFlag)
       "Serve the public dir via HTTP (implies --watch)",
+    GetOpt.Option
+      ['o']
+      ["open"]
+      (GetOpt.NoArg $ Right OpenFlag)
+      "Open the webbrowser.",
     GetOpt.Option
       ['p']
       ["port"]
@@ -142,6 +145,8 @@ handleArguments context rules flags targets = do
         when (ServerFlag `elem` flags) $ do
           watchChangesAndRepeatIO context
           runHttpServerIO context port bind
+        when (OpenFlag `elem` flags) $ do
+          openBrowser $ "http://localhost:" <> show port <> "/index.html"
         buildRules targets rules
 
 -- | Saves the meta flags to a well known file. Will be later read and cached by
@@ -266,18 +271,6 @@ withShakeLock perform = do
   let resource = context ^. publicResource
   withResource resource 1 perform
 
-runHttpServer :: Int -> Maybe String -> Action ()
-runHttpServer port url = do
-  context <- actionContext
-  let ref = context ^. server
-  server <- liftIO $ readIORef ref
-  case server of
-    Just _ -> return ()
-    Nothing -> do
-      httpServer <- liftIO $ startHttpServer context port "localhost"
-      liftIO $ writeIORef ref $ Just httpServer
-      forM_ url openBrowser
-
 -- |  Runs the built-in server on the given directory, if it is not already
 --  running.
 runHttpServerIO :: ActionContext -> Int -> String -> IO ()
@@ -302,14 +295,14 @@ currentlyServedPages = do
       return $ Set.toList pages
     Nothing -> return []
 
-openBrowser :: String -> Action ()
+openBrowser :: String -> IO ()
 openBrowser url =
   if
       | any (`List.isInfixOf` os) ["linux", "bsd"] ->
         liftIO $ callProcess "xdg-open" [url]
       | "darwin" `List.isInfixOf` os -> liftIO $ callProcess "open" [url]
       | otherwise ->
-        putNormal $ "Unable to open browser on this platform for url: " ++ url
+        putStrLn $ "Unable to open browser on this platform for url: " ++ url
 
 calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target = do

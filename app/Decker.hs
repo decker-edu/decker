@@ -28,6 +28,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
@@ -152,37 +153,10 @@ run = do
         allDecks <- mapM (calcSource "-deck.html" "-deck.md") (targets ^. decks)
         buildIndex (publicDir </> "index.json") meta allDecks
     --
-    withTargetDocs "DEPRECATED. Use '--watch'." $
-      phony "watch" $ do
-        putNormal "Target 'watch' is DEPRECATED. Please use option '--watch'."
-        watchChangesAndRepeat
-        need ["html"]
-    --
-    withTargetDocs "DEPRECATED." $
-      phony "open" $ do
-        putNormal "Target 'open' is DEPRECATED. Please open the browser yourself."
-        need ["html"]
-        openBrowser indexFile
-    --
-    withTargetDocs "DEPRECATED. Use '--server'." $
-      phony "server" $ do
-        putNormal "Target 'server' is DEPRECATED. Please use option '--server'."
-        need ["watch", "support"]
-        runHttpServer serverPort Nothing
-    --
-    withTargetDocs "DEPRECATED. Use '--server'." $
-      phony "presentation" $ do
-        putNormal "Target 'presentation' is DEPRECATED. Please use option '--server'."
-        need ["support"]
-        runHttpServer serverPort Nothing
-        liftIO waitForYes
-    --
-    withTargetDocs "DEPRECATED. Use '--server'." $
-      phony "fast" $ do
-        putNormal "Target 'fast' is DEPRECATED. Please use option '--server'."
+    withTargetDocs "If a tree falls in a forest and no one is there to hear, does it make a sound?" $
+      phony "observed" $ do
         watchChangesAndRepeat
         need ["support"]
-        runHttpServer serverPort Nothing
         pages <- currentlyServedPages
         need $ map (publicDir </>) pages
     --
@@ -197,7 +171,8 @@ run = do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         let url = serverUrl </> makeRelative publicDir src
         need [src]
-        runHttpServer serverPort Nothing
+        context <- actionContext
+        liftIO $ runHttpServerIO context serverPort "localhost"
         putNormal $ "# chrome started ... (for " <> out <> ")"
         result <- liftIO $ launchChrome url out
         case result of
