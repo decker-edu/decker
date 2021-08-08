@@ -22,7 +22,7 @@ dist/
 node_modules
 public/
 private/
-resource/support/decker/vendor/**
+resource/decker/support/vendor/
 stack.yaml.lock
 test/decks/*.svg
 index.md.generated

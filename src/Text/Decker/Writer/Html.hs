@@ -53,7 +53,7 @@ title: Generated Index
 subtitle: #{cwd}
 ---
 ``` {.javascript .run}
-import("./" + Decker.meta.supportPath + "/js/search.js")
+import("./" + Decker.meta.supportPath + "/fuzzySearch/search.js")
     .then(module => console.log(module.default(anchor, 0.6)));
 ```
 \# Slide decks

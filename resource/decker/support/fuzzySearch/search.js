@@ -2,18 +2,21 @@ export default setupSearch;
 
 import FuzzySet from "./fuzzyset.js";
 
-console.log(">> SEARCH");
-
 function setupSearch(
   anchor,
   minScore = 0.5,
   showDeckTitles = true,
   showDeckSubtitles = false
 ) {
-  var indexPath = Decker.meta.projectPath + "/index.json";
+  let indexPath = Decker.meta.projectPath;
+  if (!indexPath.endsWith("/")) indexPath += "/";
+  indexPath += "index.json";
+  console.log("read search index from " + indexPath);
+
   fetch(indexPath)
     .then((res) => res.json())
     .then((index) => {
+      console.log(index);
       setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
     })
     .catch((err) => console.log("cannot load: index.json", err));
@@ -22,16 +25,21 @@ function setupSearch(
 function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
   anchor.innerHTML =
     document.documentElement.lang === "de"
-      ? `<p><input class="search" placeholder="Suchbegriff eingeben" type="text"></p>
-         <p><table class="search">
+      ? `<details>
+         <summary icon=""> In den Folien suchen </summary>
+         <p><input class="search" placeholder="Suchbegriff eingeben" type="text"></p>
+         <table class="search">
          <thead><tr><th>Wort</th><th>Foliensatz</th><th>Folie</th><th>Treffer</th></tr></thead>
          <tbody></tbody>
-         </table></p>`
-      : `<p><input class="search" placeholder="Looking for something?" type="text"></p>
-         <p><table class="search">
+         </table>
+         </details>`
+      : `<details><summary icon=""> Search in the slides </summary>
+         <p><input class="search" placeholder="Looking for something?" type="text"></p>
+         <table class="search">
          <thead><tr><th>Word</th><th>Deck</th><th>Slide</th><th>Hits</th></tr></thead>
          <tbody></tbody>
-         </table></p>`;
+         </table>
+         </details>`;
 
   const search = anchor.querySelector("input.search");
   const table = anchor.querySelector("table.search");

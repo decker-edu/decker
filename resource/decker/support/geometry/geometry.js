@@ -20,7 +20,7 @@ export {
 };
 
 import "/support/vendor/d3.v6.min.js";
-import { Clipper } from "/support/js/clip.js";
+import { Clipper } from "/support/geometry/clip.js";
 
 const defaults = {
   point: { r: 8, opts: [] }, // one of [, "drag", "computed"]
