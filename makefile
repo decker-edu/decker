@@ -75,7 +75,7 @@ css:
 clean:
 	stack clean
 	rm -rf dist public
-	rm -rf resource/support/vendor
+	rm -rf resource/decker/support/vendor
 
 clean-recordings:
 	rm -f test/decks/*-recording.*
