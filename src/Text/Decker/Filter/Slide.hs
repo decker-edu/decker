@@ -18,6 +18,7 @@ module Text.Decker.Filter.Slide
     isBoxDelim,
     toSlides,
     fromSlidesD,
+    fromSlidesD',
   )
 where
 

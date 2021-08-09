@@ -102,12 +102,20 @@ wrapBoxes slide@(Slide header body) = do
 
 -- | Map over all active slides in a deck.
 mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
-mapSlides action (Pandoc meta blocks) = do
-  slides <-
-    selectActiveContent (toSlides blocks)
-      >>= mapM action
-      >>= fromSlidesD
-  return $ Pandoc meta slides
+mapSlides action (Pandoc meta blocks) =
+  if lookupMetaOrElse False "experiment.slide-layout" meta
+    then do
+      slides <-
+        selectActiveContent (toSlides blocks)
+          >>= mapM action
+          >>= fromSlidesD
+      return $ Pandoc meta slides
+    else do
+      slides <-
+        selectActiveContent (toSlides blocks)
+          >>= mapM action
+          >>= fromSlidesD'
+      return $ Pandoc meta slides
 
 filterNotebookSlides :: Pandoc -> Pandoc
 filterNotebookSlides (Pandoc meta blocks) =

@@ -17,9 +17,7 @@ import Codec.Archive.Zip
 import Control.Monad
 import Control.Monad.IO.Class
 import qualified Data.ByteString as BS
-import qualified Data.List as List
 import qualified Data.Map.Strict as Map
-import Data.Maybe
 import Relude
 import qualified System.Directory as Dir
 import System.Environment

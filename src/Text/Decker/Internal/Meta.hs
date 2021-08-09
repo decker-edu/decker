@@ -44,7 +44,6 @@ import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
-import Data.Yaml.Include (decodeFileEither)
 import Relude
 import Text.Decker.Internal.Exception
 import Text.Pandoc hiding (lookupMeta)
