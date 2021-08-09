@@ -79,7 +79,7 @@ run = do
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = "index.md"
-  let generatedIndexSource = projectDir </> "index.md.generated"
+  let generatedIndexSource = transientDir </> "index.md.generated"
   let indexFile = publicDir </> "index.html"
   let pdfMsg =
         Text.unpack

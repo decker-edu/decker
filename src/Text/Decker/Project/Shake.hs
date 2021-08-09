@@ -129,9 +129,6 @@ handleArguments context rules flags targets = do
   extractMeta flags
   if
       | "clean" `elem` targets -> do
-        runClean False
-        return Nothing
-      | "cleaner" `elem` targets -> do
         runClean True
         return Nothing
       | "example" `elem` targets -> do
