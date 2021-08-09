@@ -25,6 +25,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
+import Text.Decker.Writer.Layout
 import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Template
 import Text.DocTemplates
@@ -97,9 +98,15 @@ writeNativeWhileDebugging out mod doc =
     runIO (writeNative pandocWriterOpts doc) >>= handleError
       >>= T.writeFile (out -<.> mod <.> ".hs")
 
--- | Write a markdown file to a HTML file using the page template.
 markdownToHtmlDeck :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
 markdownToHtmlDeck meta getTemplate markdownFile out = do
+  if lookupMetaOrElse False "experiment.slide-layout" meta
+    then markdownToHtmlLayoutDeck meta getTemplate markdownFile out
+    else markdownToHtmlDeck' meta getTemplate markdownFile out
+
+-- | Write a markdown file to a HTML file using the page template.
+markdownToHtmlDeck' :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+markdownToHtmlDeck' meta getTemplate markdownFile out = do
   putCurrentDocument out
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
@@ -123,7 +130,6 @@ markdownToHtmlDeck meta getTemplate markdownFile out = do
                   [ ( "decker-support-dir",
                       SimpleVal $ Text 0 $ T.pack relSupportDir
                     )
-                    -- , ("dachdecker-url", SimpleVal $ Text 0 $ T.pack dachdeckerUrl')
                   ],
             writerCiteMethod = Citeproc
           }

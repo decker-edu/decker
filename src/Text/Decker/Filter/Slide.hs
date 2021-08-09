@@ -96,8 +96,8 @@ fromSlides = concatMap prependHeader
     prependHeader (Slide (Just header) body) = HorizontalRule : header : body
     prependHeader (Slide Nothing body) = HorizontalRule : body
 
-fromSlidesD :: [Slide] -> Decker [Block]
-fromSlidesD slides = do
+fromSlidesD' :: [Slide] -> Decker [Block]
+fromSlidesD' slides = do
   concat <$> mapM prependHeader slides
   where
     prependHeader (Slide (Just header) body)
@@ -110,6 +110,27 @@ fromSlidesD slides = do
     prependHeader (Slide Nothing body) = do
       rid <- emptyId
       return $ HorizontalRule : Header 1 (rid, [], []) [] : body
+
+fromSlidesD :: [Slide] -> Decker [Block]
+fromSlidesD slides = do
+  concat <$> mapM prependHeader slides
+  where
+    prependHeader (Slide (Just (Header n attr inlines)) body) =
+      return $ wrap attr (Header n ("", [], []) inlines : body)
+    prependHeader (Slide _ body) = do
+      rid <- emptyId
+      return $ Header 1 (rid, [], []) [] : body
+    wrap (id, cls, kvs) blocks =
+      [ Div
+          (id, cls, ("data-tag", "section") : kvs)
+          [ Div
+              ("", ["decker"], [])
+              [ Div
+                  ("", ["alignment"], [])
+                  blocks
+              ]
+          ]
+      ]
 
 emptyId :: Decker Text
 emptyId = do
