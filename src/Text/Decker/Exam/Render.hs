@@ -131,7 +131,7 @@ renderQuestionDocument meta base quest = do
             H.meta ! A.charset "utf-8"
             H.style "img {width:100%;}"
             H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
-            H.script ! A.src "/support/js/reload.js" $ ""
+            H.script ! A.src "/support/examiner/reload.js" $ ""
             H.title (preEscapedText $ quest ^. qstTitle)
           H.body html
 
@@ -146,7 +146,7 @@ renderQuestionCatalog base questions = do
             H.title "Question Catalog"
             H.script ! A.type_ "module" ! A.src "/support/examiner/catalog.js" $ ""
             H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
-            H.script ! A.src "/support/js/reload.js" $ ""
+            H.script ! A.src "/support/examiner/reload.js" $ ""
             H.link ! A.rel "stylesheet" ! A.href "/support/examiner/catalog.css"
           H.body $ do
             H.header $
