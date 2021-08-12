@@ -83,7 +83,8 @@ readTemplateMeta meta = do
   (Resources decker pack) <- liftIO $ deckerResources meta
   deckerMeta <- readTemplateMeta' decker
   packMeta <- readTemplateMeta' pack
-  return $ mergePandocMeta' packMeta deckerMeta
+  return packMeta
+  -- return $ mergePandocMeta' packMeta deckerMeta
 
 readTemplateMeta' :: Source -> Action Meta
 readTemplateMeta' (DeckerExecutable baseDir) = do

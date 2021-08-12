@@ -2,7 +2,8 @@
 
 let ExplainPlugin = (function () {
   // configuration parameters
-  const config = Decker.meta.explain || {};
+  // const config = Decker.meta.explain || {};
+  const config = Reveal.getConfig().explain || {};
 
   // GUI elements
   let playPanel, playButton, player;
