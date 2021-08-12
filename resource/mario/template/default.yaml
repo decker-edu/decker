@@ -12,8 +12,8 @@ reveal:
   history: false
   keyboard: true
   overview: false
-  pdfMaxPagesPerSlide: 10,
-  pdfSeparateFragments: false,
+  pdfMaxPagesPerSlide: 10
+  pdfSeparateFragments: false
   progress: false
   slideNumber: true
   touch: true
@@ -26,27 +26,20 @@ reveal:
       global:
         defaultFontFamily: "Lato"
         defaultFontColor: "black"
-        defaultFontSize: "20"
-        title: { fontFamily: "Lato", fontSize: "30" }
-        tooltips: { mode: "point", intersect: true }
-        legend: { position: "bottom" }
-        plugins: { colorschemes: { scheme: "tableau.Classic10" } }
-    bar: { borderWidth: "1" }
-    line: { borderWidth: "2", tension: "0" }
-    radar: { borderWidth: "2" }
-  MARIOchart:
-    defaults:
-      global:
-        defaultFontFamily: "Lato"
-        defaultFontColor: "black"
         defaultFontSize: 20
-        title: { fontFamily: "Lato", fontSize: 30 }
-        tooltips: { mode: "point", intersect: true }
-        legend: { position: "bottom" }
-        plugins: { colorschemes: { scheme: "tableau.Classic10" } }
-    bar: { borderWidth: "1" }
-    line: { borderWidth: "2", tension: "0" }
-    radar: { borderWidth: "2" }
+        title:
+          fontFamily: "Lato"
+          fontSize: 30
+        tooltips:
+          mode: "point"
+          intersect: true
+        legend:
+          position: "bottom"
+        plugins:
+          colorschemes: { scheme: "tableau.Classic10" } 
+    bar: { borderWidth: 1 }
+    line: { borderWidth: 2, tension: 0 }
+    radar: { borderWidth: 2 }
   menu:
     side: "left"
     width: "wide"
