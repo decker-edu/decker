@@ -10,6 +10,11 @@
  **
  ******************************************************************/
 
+import { Chart, registerables } from "./chart.esm.js";
+Chart.register(...registerables);
+import "./plugin-csszoom.js";
+import "./plugin-colorschemes.js";
+
 // reference to Reveal deck
 let Reveal;
 
@@ -35,10 +40,14 @@ function parseJSON(str) {
  * Recursively merge properties of two objects
  */
 function mergeRecursive(obj1, obj2) {
-  for (let p in obj2) {
+  for (var p in obj2) {
     try {
       // Property in destination object set; update its value.
-      if (obj1[p].constructor == Object && obj2[p].constructor == Object) {
+      if (
+        obj1[p] !== null &&
+        typeof obj1[p] === "object" &&
+        typeof obj2[p] === "object"
+      ) {
         obj1[p] = mergeRecursive(obj1[p], obj2[p]);
       } else {
         obj1[p] = obj2[p];
@@ -74,11 +83,16 @@ function createChart(canvas, CSV, comments) {
 
   // MARIO: set title
   if (canvas.hasAttribute("data-title")) {
-    chartOptions.title = {
-      display: true,
-      text: canvas.getAttribute("data-title"),
+    chartOptions.plugins = {
+      title: {
+        display: true,
+        text: canvas.getAttribute("data-title"),
+      },
     };
   }
+
+  // MARIO: set pixel ratio
+  chartOptions.devicePixelRatio = pixelRatio;
 
   // MARIO: set width & height -> maintainAspectRatio=false
   if (canvas.parentElement.style.width && canvas.parentElement.style.height) {
@@ -257,9 +271,10 @@ function recreateChart(canvas) {
   config.options.devicePixelRatio = pixelRatio;
 
   canvas.chart.destroy();
-  setTimeout(function () {
-    canvas.chart = new Chart(canvas, config);
-  }, 500); // wait for slide transition
+  // setTimeout(function () {
+  //   canvas.chart = new Chart(canvas, config);
+  // }, 500); // wait for slide transition
+  canvas.chart = new Chart(canvas, config);
 }
 
 // MARIO: when Reveal's scale is >1, i.e., when it is enlarging the slides
@@ -272,7 +287,7 @@ function adjustPixelRatio() {
 
   // set default pixel ratio. this one is used for *initially* creating
   // charts, *not* for recreateChart.
-  Chart.defaults.global.devicePixelRatio = pixelRatio;
+  Chart.defaults.devicePixelRatio = pixelRatio;
 }
 
 const Plugin = {
@@ -292,7 +307,7 @@ const Plugin = {
     Reveal.addEventListener("ready", function () {
       // MARIO: when in print mode, set animation duration to zero
       // otherwise we might get half-ready charts in exported PDF
-      if (printMode) Chart.defaults.global.animation = false;
+      if (printMode) Chart.defaults.animation = false;
 
       adjustPixelRatio();
       initializeCharts();
@@ -301,9 +316,8 @@ const Plugin = {
         let canvases =
           Reveal.getCurrentSlide().querySelectorAll("canvas[data-chart]");
         for (let i = 0; i < canvases.length; i++) {
-          if (canvases[i].chart && canvases[i].chart.config.options.animation) {
+          if (canvases[i].chart && canvases[i].chart.options.animation)
             recreateChart(canvases[i]);
-          }
         }
       });
 
