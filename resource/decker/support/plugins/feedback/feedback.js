@@ -1,9 +1,8 @@
-export { contactEngine };
-
-// TODO Make into a proper Reveal 4 plugin
+// reference to Reveal deck
+let Reveal;
 
 // Start with a 0.5 s retry interval. Back off exponentially.
-var timeout = 500;
+let timeout = 500;
 
 let engine = {
   api: undefined,
@@ -282,7 +281,7 @@ function buildInterface() {
   }
 
   function canDelete(comment) {
-    return isAdmin() || isAuthor(comment) && comment.answers.length == 0;
+    return isAdmin() || (isAuthor(comment) && comment.answers.length == 0);
   }
 
   function renderList(list) {
@@ -624,3 +623,17 @@ function buildInterface() {
   initUser();
   updateCommentsAndMenu();
 }
+
+const Plugin = {
+  id: "feedback",
+  init: (deck) => {
+    Reveal = deck;
+    const config = Reveal.getConfig().feedback;
+    const url = config?.server || config?.["base-url"];
+    const id = config?.deckID || config?.["deck-id"];
+    console.log("feedback", url, id);
+    if (url) contactEngine(url, id);
+  },
+};
+
+export default Plugin;

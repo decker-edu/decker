@@ -1,4 +1,3 @@
-# Mario's settings for reval.js
 reveal:
   backgroundTransition: "none"
   center: false
@@ -21,69 +20,72 @@ reveal:
   transition: "none"
   width: 1280
   height: 720
-  chart:
-    defaults:
-      global:
-        defaultFontFamily: "Lato"
-        defaultFontColor: "black"
-        defaultFontSize: 20
-        title:
-          fontFamily: "Lato"
-          fontSize: 30
-        tooltips:
-          mode: "point"
-          intersect: true
-        legend:
-          position: "bottom"
-        plugins:
-          colorschemes: { scheme: "tableau.Classic10" } 
-    bar: { borderWidth: 1 }
-    line: { borderWidth: 2, tension: 0 }
-    radar: { borderWidth: 2 }
-  menu:
-    side: "left"
-    width: "wide"
-    numbers: true
-    titleSelector: "h1"
-    useTextContentForMissingTitles: false
-    hideMissingTitles: false
-    markers: false
-    custom: false
-    themes: false
-    transitions: false
-    openButton: true
-    openSlideNumber: false
-    keyboard: true
-    sticky: false
-    autoOpen: true
-    delayInit: false
-    openOnInit: false
-    loadIcons: false
-  math:
-    macros:
-      R: '{{\mathrm{{I}\kern-.15em{R}}}}'
-      laplace: '{\Delta}'
-      grad: '{\nabla}'
-      T: '^{\mathsf{T}}'
-      abs: ['\left\lvert #1 \right\rvert', 1]
-      det: ['\left\lvert #1 \right\rvert', 1]
-      norm: ['\left\Vert #1 \right\Vert', 1]
-      iprod: ['\left\langle #1 \right\rangle', 1]
-      vec: ['{\mathbf{\boldsymbol{#1}}}', 1]
-      mat: ['{\mathbf{\boldsymbol{#1}}}', 1]
-      set: ['\mathcal{#1}', 1]
-      func: ['\mathrm{#1}', 1]
-      trans: ['{#1}\mkern-1mu^{\mathsf{T}}', 1]
-      matrix: ['\begin{bmatrix} #1 \end{bmatrix}', 1]
-      vector: ['\begin{pmatrix} #1 \end{pmatrix}', 1]
-      of: ['\left( #1 \right\)', 1]
-      diff: ['\frac{\mathrm{d}{#1}}{\mathrm{d}{#2}}', 2]
-      pdiff: ['\frac{\partial {#1}}{\partial {#2}}', 2]
-      vc: ['{\mathbf{\boldsymbol{#1}}}', 1]
-      qt: ['\hat{\vc {#1}}', 1]
-      mt: ['{\mathbf{\boldsymbol{#1}}}', 1]
-      pt: ['\boldsymbol{#1}', 1]
-      textcolor: ['\color{#1}', 1]
+
+chart:
+  defaults:
+    global:
+      defaultFontFamily: "Lato"
+      defaultFontColor: "black"
+      defaultFontSize: 20
+      title:
+        fontFamily: "Lato"
+        fontSize: 30
+      tooltips:
+        mode: "point"
+        intersect: true
+      legend:
+        position: "bottom"
+      plugins:
+        colorschemes: { scheme: "tableau.Classic10" } 
+  bar: { borderWidth: 1 }
+  line: { borderWidth: 2, tension: 0 }
+  radar: { borderWidth: 2 }
+
+menu:
+  side: "left"
+  width: "wide"
+  numbers: true
+  titleSelector: "h1"
+  useTextContentForMissingTitles: false
+  hideMissingTitles: false
+  markers: false
+  custom: false
+  themes: false
+  transitions: false
+  openButton: true
+  openSlideNumber: false
+  keyboard: true
+  sticky: false
+  autoOpen: true
+  delayInit: false
+  openOnInit: false
+  loadIcons: false
+
+math:
+  macros:
+    R: '{{\mathrm{{I}\kern-.15em{R}}}}'
+    laplace: '{\Delta}'
+    grad: '{\nabla}'
+    T: '^{\mathsf{T}}'
+    abs: ['\left\lvert #1 \right\rvert', 1]
+    det: ['\left\lvert #1 \right\rvert', 1]
+    norm: ['\left\Vert #1 \right\Vert', 1]
+    iprod: ['\left\langle #1 \right\rangle', 1]
+    vec: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    mat: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    set: ['\mathcal{#1}', 1]
+    func: ['\mathrm{#1}', 1]
+    trans: ['{#1}\mkern-1mu^{\mathsf{T}}', 1]
+    matrix: ['\begin{bmatrix} #1 \end{bmatrix}', 1]
+    vector: ['\begin{pmatrix} #1 \end{pmatrix}', 1]
+    of: ['\left( #1 \right\)', 1]
+    diff: ['\frac{\mathrm{d}{#1}}{\mathrm{d}{#2}}', 2]
+    pdiff: ['\frac{\partial {#1}}{\partial {#2}}', 2]
+    vc: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    qt: ['\hat{\vc {#1}}', 1]
+    mt: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    pt: ['\boldsymbol{#1}', 1]
+    textcolor: ['\color{#1}', 1]
 
 # other settings
 highlightjs: xcode

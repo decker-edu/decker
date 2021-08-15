@@ -1,12 +1,12 @@
-"use strict";
+// reference to Reveal object
+let Reveal;
 
 /*
- * Convert HTML code containing SAGE cells into a data-URL 
+ * Convert HTML code containing SAGE cells into a data-URL
  * containing the whole SAGE page (HTML, CSS, JS)
  */
-function build_sage_url(html)
-{
-    const source = String.raw`<!DOCTYPE html>
+function build_sage_url(html) {
+  const source = String.raw`<!DOCTYPE html>
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -67,69 +67,77 @@ function build_sage_url(html)
 ${html}
 </body>
 </html>
-`
-    const blob = new Blob([source], { type: 'text/html' });
-    return URL.createObjectURL(blob);
+`;
+  const blob = new Blob([source], { type: "text/html" });
+  return URL.createObjectURL(blob);
 }
-
 
 /*
  * Change <pre><code> blocks intro <div><script> blocks, as expected
  * by SAGE. Has to be done before highlight.js processes the code!
  * Then move SAGE cells to an iframe using data-URLs.
  */
-function prepareSAGE()
-{
-    for (let sageCell of document.querySelectorAll('div.sageCell')) 
-    {
-        // don't know why this is necessary, but otherwise
-        // MathJax rendering in SAGE cells does not work properly.
-        for (let e of sageCell.querySelectorAll('.math')) 
-        {
-            e.classList.remove("math");
-        }
-
-        // replace <pre> by <div>.compute
-        // replace <code> by <script>
-        for (let code of sageCell.querySelectorAll('pre>code')) 
-        {
-            var pre = code.parentElement;
-
-            var script = document.createElement("script");
-            script.innerHTML = code.innerText; // don't use code.innerHTML, it's escaped
-            script.type = "text/x-sage";
-
-            var div = document.createElement("div");
-            div.classList = pre.classList;
-            div.classList.add("compute");
-            div.appendChild(script);
-
-            pre.replaceWith(div);
-        }
-
-        // construct data-url for whole SAGE page
-        var url = build_sage_url(sageCell.innerHTML);
-
-        // construct iframe with data-url as data-src, such that
-        // it be lazy-loaded by Reveal
-        var iframe = document.createElement("iframe");
-        iframe.classList.add("decker");
-        if (sageCell.classList.contains("stretch")) {
-            iframe.classList.add("stretch");
-            sageCell.classList.remove("stretch");
-        }
-        else { 
-            iframe.style.width  = sageCell.getAttribute('width')  || sageCell.style.width  || "100%";
-            iframe.style.height = sageCell.getAttribute('height') || sageCell.style.height || "500px";
-        }
-        if (sageCell.classList.contains("print")) {
-            iframe.classList.add("print");
-        }
-        iframe.sandbox = 'allow-scripts allow-same-origin';
-        iframe.setAttribute("data-src", url);
-    
-        // don't need original sageCell anymore
-        sageCell.replaceWith(iframe);
+function prepareSAGE() {
+  for (let sageCell of document.querySelectorAll("div.sageCell")) {
+    // don't know why this is necessary, but otherwise
+    // MathJax rendering in SAGE cells does not work properly.
+    for (let e of sageCell.querySelectorAll(".math")) {
+      e.classList.remove("math");
     }
+
+    // replace <pre> by <div>.compute
+    // replace <code> by <script>
+    for (let code of sageCell.querySelectorAll("pre>code")) {
+      var pre = code.parentElement;
+
+      var script = document.createElement("script");
+      script.innerHTML = code.innerText; // don't use code.innerHTML, it's escaped
+      script.type = "text/x-sage";
+
+      var div = document.createElement("div");
+      div.classList = pre.classList;
+      div.classList.add("compute");
+      div.appendChild(script);
+
+      pre.replaceWith(div);
+    }
+
+    // construct data-url for whole SAGE page
+    var url = build_sage_url(sageCell.innerHTML);
+
+    // construct iframe with data-url as data-src, such that
+    // it be lazy-loaded by Reveal
+    var iframe = document.createElement("iframe");
+    iframe.classList.add("decker");
+    if (sageCell.classList.contains("stretch")) {
+      iframe.classList.add("stretch");
+      sageCell.classList.remove("stretch");
+    } else {
+      iframe.style.width =
+        sageCell.getAttribute("width") || sageCell.style.width || "100%";
+      iframe.style.height =
+        sageCell.getAttribute("height") || sageCell.style.height || "500px";
+    }
+    if (sageCell.classList.contains("print")) {
+      iframe.classList.add("print");
+    }
+    iframe.sandbox = "allow-scripts allow-same-origin";
+    iframe.setAttribute("data-src", url);
+
+    // don't need original sageCell anymore
+    sageCell.replaceWith(iframe);
+  }
 }
 
+const Plugin = {
+  id: "sage",
+  init: (deck) => {
+    Reveal = deck;
+    return new Promise(function (resolve) {
+      prepareSAGE();
+      resolve();
+    });
+  },
+};
+
+export default Plugin;
