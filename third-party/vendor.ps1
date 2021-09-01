@@ -42,6 +42,10 @@ Copy-Item -r "$third\reveal.js\plugin" "$support\reveal\" -Force
 New-Item "$support\css" -Force -ItemType "directory"
 Copy-Item "$third\water.css\dist\light.min.css" "$support\css\light.min.css"
 
+# Copy styles for highlight.js
+New-Item "$support\css" -Force -ItemType "directory"
+Copy-Item "$third\highlight.js\*.css" "$support\css\"
+
 # Copy fontawesome
 New-Item "$support\fontawesome\css" -Force -ItemType "directory"
 # New-Item "$support\fontawesome\webfonts" -Force -ItemType "directory"
