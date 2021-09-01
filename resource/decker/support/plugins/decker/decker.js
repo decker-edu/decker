@@ -8,9 +8,8 @@ const deckHash = location.hash;
 // is the user generating a PDF?
 const printMode = /print-pdf/gi.test(window.location.search);
 
-// Fix some decker-specific things after Reveal
-// has been initialized
-function deckerStart() {
+// Fix some decker-specific things when slides are loaded
+function onStart() {
   fixAutoplayWithStart();
   fixLinks();
   currentDate();
@@ -20,6 +19,10 @@ function deckerStart() {
   if (Reveal.getConfig().verticalSlides) {
     setupVerticalSlides();
   }
+}
+
+// Fix some decker-specific things when Reveal is initilized
+function onReady() {
   if (!printMode) {
     setTimeout(continueWhereYouLeftOff, 500);
   }
@@ -320,7 +323,8 @@ const Plugin = {
   init: (deck) => {
     Reveal = deck;
     return new Promise(function (resolve) {
-      Reveal.addEventListener("ready", deckerStart);
+      onStart();
+      Reveal.addEventListener("ready", onReady);
       resolve();
     });
   },
