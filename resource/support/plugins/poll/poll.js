@@ -15,7 +15,8 @@ const server = Reveal.getConfig().pollServer || "polls.hci.informatik.uni-wuerzb
 var socket = null; var poll = null; var timer = null;
 var pollState = "not-init";
 var admin = false;
-var canvas, qrdiv, token, email, error;
+var canvas, qrdiv, token, email, lgn, pwd, error, loggedIn;
+var pollNum = 0;
 
 // Open a websocket to server and build QR code for poll
 function openPoll() {
@@ -23,7 +24,6 @@ function openPoll() {
     socket = new WebSocket("wss://" + server + "/poll");
   
     socket.onopen = () => { 
-      console.log("Opened socket to polls.");
       document.querySelectorAll('.countdown').forEach(timer => {
         timer.innerHTML = 
           timer.classList.contains('timed') ? 
@@ -62,9 +62,12 @@ function openPoll() {
             error.innerText = "User account not found.";
             break;
           case "LoggedIn":
+            loggedIn = true;
             admin = true;
-            document.querySelector('#login-div').classList.remove('active');
-            document.querySelector('.fa-qrcode').classList.add('admin');
+            [lgn,pwd].forEach(el => { el.value = "" });
+            document.querySelector('#login-div').classList.remove('active'); 
+            document.querySelectorAll('.fa-qrcode').forEach(el => el.classList.add('admin'));
+            document.querySelector('.fa-sign-in-alt').classList.add('hidden');
             break;
         }
       }
@@ -87,7 +90,7 @@ function clockTime(timer) {
   return [min,sec,duration];
 }
 
-// Given Poll ID from server, build QR Code  
+// Given Poll ID from server, build QR Code & login div
 function buildCode(pollID) {
     const pollAddr = "https://" + server + "/poll.html/#" + pollID; 
     qrdiv = document.createElement('div');
@@ -97,6 +100,52 @@ function buildCode(pollID) {
     link.setAttribute('href', pollAddr);    
     link.innerText = pollAddr;
     qrdiv.appendChild(link);
+
+    const lgnDiv = document.createElement('div');
+    lgnDiv.id = 'login-div';
+
+    lgn = document.createElement('input');
+    lgn.type = "text";
+    lgn.placeholder = "Email Address";
+    
+    pwd = document.createElement('input');
+    lgn.type = "text";
+    pwd.placeholder = "Password";
+    pwd.type = "password";
+
+    const btn = document.createElement('button');
+    btn.type = "button";
+    btn.innerText = "Submit";
+    btn.addEventListener('click', () => {
+      email = lgn.value;
+      socket.send(JSON.stringify( { "tag": "Login", "name": lgn.value, "pwd": pwd.value }  ));
+      error.innerText = "";
+    });
+
+    const cancel = document.createElement('button');
+    cancel.type = "button";
+    cancel.innerText = "Cancel";
+    cancel.addEventListener('click', () => {
+      document.querySelector('#login-div').classList.remove('active'); 
+      [lgn,pwd].forEach(el => { el.value = "" });
+    });
+  
+    const btnDiv = document.createElement('div');
+    [btn,cancel].forEach(el => btnDiv.appendChild(el));
+
+    error = document.createElement('div');
+    error.id = 'errorDiv';
+    error.innerText = "";
+
+    [lgn,pwd,btnDiv,error].forEach(el => { lgnDiv.appendChild(el); });
+
+    const i = document.createElement('i');
+    i.classList.add("fas", "fa-sign-in-alt", "gears");
+    [i,lgnDiv].forEach(el => { qrdiv.appendChild(el) });
+
+    i.addEventListener('click', () => {
+      lgnDiv.classList.add('active');
+    })
 
     const size = parseInt(qrdiv.style.width, 10) || 600;
     new QRCode(qrdiv, {
@@ -112,7 +161,6 @@ function buildCode(pollID) {
 
 // 'a' to start / stop poll - also stopped when timer ends
 function switchPollState() {
-  // hide QR code
   let overlay = document.querySelector('#poll-overlay');
   if (overlay.classList.contains('active')) overlay.classList.remove('active');
   
@@ -142,8 +190,9 @@ function switchPollState() {
   }
 }
 
-// Push question and choices to server
+// Push choices to server with Start tag
 function startPoll() {
+  pollNum++;
   var choices = [];
   timer = poll.querySelector('.countdown');
   canvas = poll.nextElementSibling.querySelector('canvas');
@@ -152,8 +201,7 @@ function startPoll() {
   poll.querySelectorAll('ul.choices li').forEach(choice => {
     choices.push(choice.innerText);
   });
-  
-  socket.send(JSON.stringify({ "tag": "Start", "choices": choices}));
+  socket.send(JSON.stringify({"tag": "Start", "choices": choices}));  
 }
 
 function startTimer() {
@@ -204,10 +252,12 @@ function stopPoll() {
       choice.classList.remove('started');
   });
   document.querySelector('#poll-overlay').classList.remove('active');
+  let question = poll.querySelector('h1').textContent;
   let date = new Date();
   let curDate = date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
-  
-  socket.send(JSON.stringify({ "tag": "Stop", "date": curDate, "question": poll.querySelector('h1').textContent} )); 
+  let correct = poll.querySelector('.correct').innerText;
+
+  socket.send(JSON.stringify({ "tag": "Stop", "num": String(pollNum), "date": curDate, "question": question, "correct": correct, "email": admin ? email : "" }));
   poll = null; timer = null; choices = [];
 } 
 
