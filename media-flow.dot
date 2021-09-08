@@ -1,0 +1,36 @@
+digraph {
+  node [style = filled]
+  { 
+    rank = same
+    Image
+    CodeBlock
+  }
+  {
+    rank = same
+    loadCode [shape=rect;label="load"]
+    loadSvg [shape=rect;label="load"]
+    compileQuest [shape=rect;label="compile"]
+  }
+  { 
+    rank = same
+    img [label="<img>"]
+    video [label="<video>"]
+    svg [label="<svg>"]
+    iframe [label="<iframe>"]
+    div [label="<div>"]
+    code [label="<pre><code>"]
+  }
+
+  Image -> img
+  Image -> video
+  Image -> loadSvg -> svg
+  Image -> iframe
+  Image -> loadCode -> code
+  Image -> compileQuest -> div
+
+  CodeBlock -> img
+  CodeBlock -> svg
+  CodeBlock -> code
+  CodeBlock -> compileQuest
+}
+

@@ -92,7 +92,7 @@ div.area::before {
   font-size: 80%;
 }
 
-div.box {
+div.block {
   position: relative;
   background-color: #eef;
   border: var(--struct-border-width) solid blue;
@@ -100,7 +100,7 @@ div.box {
   margin: 0 auto;
 }
 
-div.box::before {
+div.block::before {
   content: "DIV #" attr(id) " " attr(class);
   position: absolute;
   top: 0.1em;
@@ -108,7 +108,7 @@ div.box::before {
   font-size: 80%;
 }
 
-div.box#b2 {
+div.block#b2 {
   position: relative;
   left: var(--bar-inset);
   border-left: var(--bar-width) solid blue;
@@ -126,7 +126,7 @@ div.content {
   margin: 0 auto;
 }
 
-div.box#b4 {
+div.block#b4 {
   position: absolute;
   z-index: 1000;
   left: -12em;

@@ -1,6 +1,8 @@
 # Full list of configuration options available at: https://revealjs.com/config/
 highlightjs: atom-one-light
 reveal:
+  width: 1280
+  height: 720
   backgroundTransition: "none"
   center: true
   controls: true
@@ -14,7 +16,6 @@ reveal:
   keyboard: true
   overview: true
   progress: true
-  test123: "test123"
   touch: true
   vertical-slides: true
   transition: "none"

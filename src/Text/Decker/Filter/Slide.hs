@@ -19,6 +19,7 @@ module Text.Decker.Filter.Slide
     toSlides,
     fromSlidesD,
     fromSlidesD',
+    tag
   )
 where
 
@@ -29,6 +30,7 @@ import Data.List.Split
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as Text
+import Relude.Function (identity)
 import Text.Decker.Internal.Common (Decker, DeckerState (emptyCount))
 import Text.Pandoc
 import Text.Pandoc.Definition ()
@@ -112,26 +114,36 @@ fromSlidesD' slides = do
       rid <- emptyId
       return $ HorizontalRule : Header 1 (rid, [], []) [] : body
 
+-- Render slides as a list of Blocks. Always separate slides with a horizontal
+-- rule. Slides with the `notes` classes are wrapped in ASIDE and are used as
+-- speaker notes by Reval. Slides with no header get an empty header prepended.
 fromSlidesD :: [Slide] -> Decker [Block]
 fromSlidesD slides = do
   concat <$> mapM prependHeader slides
   where
+    prependHeader (Slide (Just header@(Header n attr inlines)) body)
+      | hasClass "notes" header =
+        return [tag "aside" $ Div nullAttr $ demoteHeaders (header : body)]
     prependHeader (Slide (Just (Header n attr inlines)) body) =
       return $ wrap attr (Header n ("", [], []) inlines : body)
     prependHeader (Slide _ body) = do
       rid <- emptyId
       return $ Header 1 (rid, [], []) [] : body
     wrap (id, cls, kvs) blocks =
-      [ Div
-          (id, cls, ("data-tag", "section") : kvs)
-          [ Div
-              ("", ["decker"], [])
-              [ Div
-                  ("", ["alignment"], [])
-                  blocks
-              ]
-          ]
+      [ tag "section" $
+          Div
+            (id, cls ++ ["slide", "level1"], kvs)
+            [ Div
+                ("", ["decker"], [])
+                [ Div
+                    ("", ["alignment"], [])
+                    blocks
+                ]
+            ]
       ]
+
+tag :: HasAttr a => Text -> a -> a
+tag name = over (attributes . attrs) (("data-tag", name) :)
 
 emptyId :: Decker Text
 emptyId = do

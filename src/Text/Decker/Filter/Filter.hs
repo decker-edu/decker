@@ -19,7 +19,9 @@ import Data.List.Split
 import qualified Data.Text as Text
 import Development.Shake (Action)
 import Text.Decker.Filter.Layout
+import Text.Decker.Filter.Layout2
 import Text.Decker.Filter.MarioCols
+import Text.Decker.Filter.MarioCols2
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
@@ -95,7 +97,7 @@ wrapBoxes slide@(Slide header body) = do
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
     wrap ((Header 2 (id_, cls, kvs) text) : blocks) =
       [ Div
-          ("", ["box", "columns"] ++ cls, kvs)
+          ("", ["box", "block", "columns"] ++ cls, kvs)
           (Header 2 (id_, deFragment cls, kvs) text : blocks)
       ]
     wrap box = box
@@ -146,16 +148,25 @@ deDiv = foldr flatten []
 
 -- | Slide specific processing.
 processSlides :: Pandoc -> Decker Pandoc
-processSlides pandoc = mapSlides (concatM actions) pandoc
+processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
   where
     actions :: [Slide -> Decker Slide]
     actions =
-      [ marioCols,
-        wrapBoxes,
-        selectActiveSlideContent,
-        splitJoinColumns,
-        layoutSlide
-      ]
+      if lookupMetaOrElse False "experiment.slide-layout" meta
+        then
+          [ marioCols,
+            wrapBoxes,
+            selectActiveSlideContent,
+            splitJoinColumns,
+            layoutSlide2
+          ]
+        else
+          [ marioCols,
+            wrapBoxes,
+            selectActiveSlideContent,
+            splitJoinColumns,
+            layoutSlide
+          ]
 
 selectActiveContent :: HasAttr a => [a] -> Decker [a]
 selectActiveContent fragments = do

@@ -1,8 +1,24 @@
 /* Here be CSS */
 
+:root {
+  --list-indent: 1.5em;
+  --block-border-width: 0.05em;
+  --block-outset: 0.2em;
+}
+
+/* Reset Reval CSS to sane values */
+
+.reveal .slides {
+  text-align: left;
+  border: 1px dotted #555;
+}
+
+/* Text */
+
 body {
   font-family: sans-serif;
-  font-size: 30px;
+  font-size: 38px;
+  box-sizing: border-box;
 }
 
 code {
@@ -10,6 +26,175 @@ code {
   font-size: 100%;
 }
 
+pre {
+  overflow: scroll;
+  max-height: 500px;
+}
+
 pre > code {
   font-size: 90%;
+}
+
+h1 {
+  font-size: 1.8em;
+  font-weight: bold;
+
+  margin-top: 0;
+  margin-bottom: 0.3em;
+
+  /* background-color: #efe; */
+}
+
+h2 {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 0.3em;
+
+  /* background-color: #efe; */
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 0.3em;
+}
+
+li {
+  margin-top: 0;
+  margin-bottom: 0.2em;
+}
+
+ul {
+  margin-top: 0;
+  margin-bottom: 0.3em;
+  margin-left: var(--list-indent);
+  list-style: outside disc;
+}
+
+ol {
+  margin-top: 0;
+  margin-bottom: 0.3em;
+  margin-left: var(--list-indent);
+  list-style: outside disc;
+}
+
+/* Layout */
+
+/* Old-style row layout (.columns, .grid) */
+
+div.layout.row {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+div.layout.row > div.area {
+  flex: 1 1 0;
+}
+
+div.layout.row > div.area[grow="2"] {
+  flex: 2 2 0;
+}
+
+div.layout.row > div.area[grow="3"] {
+  flex: 3 3 0;
+}
+
+div.layout.row > div.area[grow="4"] {
+  flex: 4 4 0;
+}
+
+div.layout.row > div.area[grow="5"] {
+  flex: 5 5 0;
+}
+
+/* Column spacing in a row */
+
+div.layout.row > div.area:first-child {
+  margin-right: 0.5em;
+}
+
+div.layout.row > div.area:last-child {
+  margin-left: 0.5em;
+}
+
+div.layout.row > div.area:only-child {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Blocks */
+
+div.block {
+  position: relative;
+}
+
+div.block.primary,
+div.block.secondary,
+div.block.success,
+div.block.danger,
+div.block.warning,
+div.block.info {
+  left: calc(-1 * var(--block-outset));
+  top: calc(-1 * var(--block-outset));
+  border: var(--block-border-width) solid;
+  padding: calc(var(--block-outset) - var(--block-border-width));
+  margin-right: calc(-2 * var(--block-outset));
+  margin-bottom: calc(-2 * var(--block-outset));
+}
+
+div.block.primary {
+  background-color: #ddf;
+  border-color: #bbf;
+}
+div.block.secondary {
+  background-color: #eee;
+  border-color: #bbb;
+}
+div.block.success {
+  background-color: #dfd;
+  border-color: #bfb;
+}
+div.block.danger {
+  background-color: #fdd;
+  border-color: #fbb;
+}
+div.block.warning {
+  background-color: #fed;
+  border-color: #fdb;
+}
+div.block.info {
+  background-color: #dff;
+  border-color: #bff;
+}
+
+/* Figures */
+
+div.media {
+  display: flex;
+  background-color: #eee;
+  justify-content: center;
+}
+
+div.media.align-left {
+  justify-content: flex-start;
+}
+
+div.media.align-right {
+  justify-content: flex-end;
+}
+
+figure.jacket {
+  background-color: #ddf;
+}
+
+img {
+  width: 100%;
+}
+
+figcaption {
+  font-size: 80%;
+  font-style: italic;
+  text-align: center;
+
+  background-color: #dfd;
 }

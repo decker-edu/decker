@@ -24,6 +24,7 @@ import Relude
 import System.Directory as Dir
 import System.FilePath.Posix
 import Text.Decker.Exam.Filter
+import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
@@ -251,7 +252,10 @@ runNewFilter dispo filter docBase pandoc@(Pandoc docMeta blocks) = do
 
 -- |  Runs the new decker media filter.
 deckerMediaFilter :: Disposition -> String -> Pandoc -> Action Pandoc
-deckerMediaFilter dispo docBase = runDeckerFilter (mediaFilter dispo options) docBase
+deckerMediaFilter dispo docBase pandoc@(Pandoc meta _) = 
+  if lookupMetaOrElse False "experiment.slide-layout" meta
+    then runDeckerFilter (mediaFilter2 dispo options) docBase pandoc
+    else runDeckerFilter (mediaFilter dispo options) docBase pandoc
   where
     options =
       def

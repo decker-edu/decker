@@ -8,11 +8,11 @@
 -- All decker specific meta data is embedded into the document meta data under
 -- the `decker` key. Information gathered during the filter run is appended
 -- under the `decker` key in the meta data of the resulting document.
-module Text.Decker.Filter.Decker (runFilter, mediaFilter) where
+module Text.Decker.Filter.Decker2 (runFilter2, mediaFilter2) where
 
 import Relude
 import Text.Decker.Filter.Header
-import Text.Decker.Filter.Image
+import Text.Decker.Filter.Image2
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Util (forceBlock, oneImagePerLine)
@@ -44,13 +44,13 @@ tripletwise _ xs = return xs
 
 -- | Runs the document through the four increaingly detailed filter stages. The
 -- matching granularity ranges from list of blocks to single inline elements.
-mediaFilter :: Disposition -> WriterOptions -> Pandoc -> IO Pandoc
-mediaFilter dispo options pandoc =
-  runFilter dispo options transformHeader1 pandoc
-    >>= runFilter dispo options mediaBlockListFilter
-    >>= runFilter dispo options mediaInlineListFilter
-    >>= runFilter dispo options mediaBlockFilter
-    >>= runFilter dispo options mediaInlineFilter
+mediaFilter2 :: Disposition -> WriterOptions -> Pandoc -> IO Pandoc
+mediaFilter2 dispo options pandoc =
+  runFilter2 dispo options transformHeader1 pandoc
+    >>= runFilter2 dispo options mediaBlockListFilter
+    >>= runFilter2 dispo options mediaInlineListFilter
+    >>= runFilter2 dispo options mediaBlockFilter
+    >>= runFilter2 dispo options mediaInlineFilter
 
 -- | Filters lists of Blocks that can match in pairs or triplets.
 --
@@ -64,14 +64,14 @@ mediaBlockListFilter blocks =
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
     filterPairs (Para [image@Image {}], Para (Str "Caption:" : caption)) =
-      Just . single . forceBlock <$> transformImage image caption
+      Just . single  <$> transformImage image caption
     -- An code block followed by an explicit caption paragraph.
     filterPairs (code@CodeBlock {}, Para (Str "Caption:" : caption)) =
       Just . single <$> transformCodeBlock code caption
     -- Any number of consecutive images in a masonry row.
     filterPairs (LineBlock lines, Para (Str "Caption:" : caption))
       | oneImagePerLine lines =
-        Just . single <$> transformImages (concat lines) caption
+        Just . (:[]) <$> transformImages (concat lines) caption
     -- Default filter
     filterPairs (x, y) = return Nothing
     filterTriplets :: (Block, Block, Block) -> Filter (Maybe [Block])
@@ -93,7 +93,7 @@ mediaInlineListFilter inlines =
 mediaBlockFilter :: Block -> Filter Block
 -- A solitary image in a paragraph with a possible caption.
 mediaBlockFilter (Para [image@(Image _ caption _)]) =
-  forceBlock <$> transformImage image caption
+  transformImage image caption
 -- A solitary code block in a paragraph with a possible caption.
 mediaBlockFilter code@CodeBlock {} = transformCodeBlock code []
 -- Any number of consecutive images in a masonry row.
@@ -105,8 +105,8 @@ mediaBlockFilter block = return block
 -- | Matches a single Inline element
 mediaInlineFilter :: Inline -> Filter Inline
 -- An inline image with a possible caption.
-mediaInlineFilter image@(Image _ caption _) =
-  transformImage image caption
+mediaInlineFilter image@(Image _ caption _) = return image
+  -- transformImage image caption
 -- Default filter
 mediaInlineFilter inline = return inline
 
@@ -114,14 +114,14 @@ mediaInlineFilter inline = return inline
 -- fragments to HTML or back to Markdown. The meta data may be transformed by
 -- the filter. The filter runs in the Filter monad and has access to options
 -- and meta data via `gets` and `puts`.
-runFilter ::
+runFilter2 ::
   Walkable a Pandoc =>
   Disposition ->
   WriterOptions ->
   (a -> Filter a) ->
   Pandoc ->
   IO Pandoc
-runFilter dispo options filter pandoc@(Pandoc meta _) = do
+runFilter2 dispo options filter pandoc@(Pandoc meta _) = do
   (Pandoc _ blocks, FilterState _ meta dispo) <-
     runStateT (walkM filter pandoc) (FilterState options meta dispo)
   return $ Pandoc meta blocks

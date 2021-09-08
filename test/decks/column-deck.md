@@ -1,105 +1,31 @@
 ---
 author: Henrik
 center: true
-date: '2019-10-20'
 subtitle: On decker slides
 title: Column Layout
 ---
 
-# Slide Columns
-
-## Mechanisms
-
--   Box classes (`.split` and `.join`)
--   Slide masters (`layout` slide attribute)
-
-------------------------------------------------------------------------
-
-# Box Classes
-
-------------------------------------------------------------------------
-
-# Box Classes
-
-## Intro
-
--   No columns here, just a very long line spanning the entire slide
-
-## Syntax {.split}
-
--   Box headers (`##`) are marked with CSS classes
-    -   `split` starts 2 columns
-    -   `join` forces 1 column
-
-## Semantics
-
--   CSS3 column attributes are used for breaking
--   Breaks occur on box borders
-
-## Outro {.join}
-
--   No columns here, just a very long line spanning the entire slide
-
-------------------------------------------------------------------------
-
-# Box Classes
-
--   No columns here
--   But possibly very long lines, longer than any column is wide
-
-## Syntax {.split}
-
--   Box headers (H2) are marked with CSS classes
-    -   `split` starts 2 columns
-    -   `join` forces 1 column
-
-## Image
-
-![](include/06-metal.png)
-
-------------------------------------------------------------------------
-
-# Boxed Box Classes
-
-## Image {.split .def}
-
-![](include/06-metal.png)
-
-## Image {.ale}
-
-![](include/06-metal.png)
-
-## Image {.note}
-
-![](include/06-metal.png)
-
-## Image {.observation}
-
-![](include/06-metal.png)
-
-------------------------------------------------------------------------
-
 # Slide Masters
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
 ## Fixed Layouts {.top}
 
--   Just like Powerpoint and Keynote
+-   Just like Powerpoint and Keynote (This is the full-width top row)
 
-## Syntax {.left}
+## Syntax {.left grow="2"}
 
 -   Class and key-value attributes
 -   Assign content to layout area
 -   On elements *Header 2*, *Image*, *Code Block*, *DIV*
 
-## Example {.right grow="1"}
+## Example {.right}
 
 ![](include/06-metal.png)
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Slide Masters
 
@@ -113,13 +39,15 @@ Some text
 
 ## Right column {.right}
 
-Some text
+-   Some text
+
+1.  Some more
 
 ## Footer {.bottom}
 
 Some final text
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -137,11 +65,11 @@ Some final text
 
 -   In this extra wide column that reaches the left image border
 
-##  {.right}
+## Another image with a very long title {.right}
 
 ![](include/06-metal.png)
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -161,7 +89,7 @@ Some final text
 
 ![](include/06-metal.png)
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -169,11 +97,11 @@ Some final text
 
 -   Even in *three* columns
 
-## Example {.left .answer}
+## Example {.left .danger}
 
 ![](include/06-metal.png)
 
-## Example {.center .def}
+## Example {.center .primary}
 
 ![](include/06-metal.png)
 
@@ -183,19 +111,21 @@ Some more Text after the picture.
 
 And some more still after the box.
 
-## Example {.right .note}
+## Example {.right .note .secondary}
 
-![](include/06-metal.png)
+![Captions are really nice!](include/06-metal.png)
 
-------------------------------------------------------------------------
+More tex after the figure
+
+--------------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
-## Example {.left .answer}
+## Example {.left .danger}
 
 ![](include/06-metal.png)
 
-## Example {.answer}
+## Example
 
 ![](include/06-metal.png)
 
@@ -203,19 +133,19 @@ And some more still after the box.
 
 ![](include/06-metal.png)
 
-## Example {.answer}
+## Example {.warning}
 
 ![](include/06-metal.png)
 
-## Example {.right .note}
+## Example {.right .success}
 
 ![](include/06-metal.png)
 
-## Example {.answer}
+## Example
 
 ![](include/06-metal.png)
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 # Slide Masters {.columns}
 
@@ -277,7 +207,7 @@ Some more Text
 
 ## 1 1
 
-::: {.col}
+::: col
 ## Left column
 
 This is the left column
@@ -285,7 +215,7 @@ This is the left column
 ![](include/06-metal.png)
 :::
 
-::: {.col}
+::: col
 ## Right column
 
 This is the right column

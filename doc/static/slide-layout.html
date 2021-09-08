@@ -22,17 +22,17 @@
         &lt;h1>Licht&lt;/h1>
         &lt;div class="layout">
         &lt;div class="area">
-            &lt;div class="box">
+            &lt;div class="block">
             &lt;h2>Strahlung und so&lt;/h2>
             &lt;p>Something or other&lt;/p>
             &lt;/div>
         &lt;/div>
         &lt;div class="area">
-            &lt;div class="box">
+            &lt;div class="block">
             &lt;p>No header here&lt;/p>
             &lt;p>Something or other&lt;/p>
             &lt;/div>
-            &lt;div class="box">
+            &lt;div class="block">
             &lt;h2>Sichtbares Licht&lt;/h2>
             &lt;p>Something or other&lt;/p>
             &lt;/div>
@@ -55,17 +55,17 @@
             <h1>Licht</h1>
             <div class="layout">
               <div class="area">
-                <div class="box">
+                <div class="block">
                   <h2>Strahlung und so</h2>
                   <p>Something or other</p>
                 </div>
               </div>
               <div class="area">
-                <div class="box">
+                <div class="block">
                   <p>No header here</p>
                   <p>Something or other</p>
                 </div>
-                <div class="box">
+                <div class="block">
                   <h2>Sichtbares Licht</h2>
                   <p>Something or other</p>
                 </div>
@@ -106,18 +106,18 @@ div.columns div.layout div.area#i2 {
             <h1>Licht</h1>
             <div id="l1" class="layout">
               <div id="a1"" class=" area">
-                <div id="b1" class="box">
+                <div id="b1" class="block">
                   <h2>Strahlung und so</h2>
                   <p>Something or other</p>
                 </div>
               </div>
               <div id="a2" class="area">
-                <div id="b2" class="box">
+                <div id="b2" class="block">
                   <p>No header here</p>
                   <p><img src="06-metal.png" width="100%" /></p>
                   <p>Something or other</p>
                 </div>
-                <div id="b3" class="box">
+                <div id="b3" class="block">
                   <h2>Sichtbares Licht</h2>
                   <p>Something or other</p>
                 </div>
@@ -150,18 +150,18 @@ div.floating div.layout div.area#a2 {
             <h1>Licht</h1>
             <div id="l1" class="layout">
               <div id="a1" class="area">
-                <div id="b1" class="box">
+                <div id="b1" class="block">
                   <h2>Strahlung und so</h2>
                   <p>Something or other</p>
                 </div>
               </div>
               <div id="a2" class="area">
-                <div id="b2" class="box">
+                <div id="b2" class="block">
                   <p>No header here</p>
                   <p><img src="06-metal.png" width="100%" /></p>
                   <p>Something or other</p>
                 </div>
-                <div id="b3" class="box">
+                <div id="b3" class="block">
                   <h2>Sichtbares Licht</h2>
                   <p>Something or other</p>
                 </div>
@@ -201,18 +201,18 @@ div.grid div.layout div.area#a2 {
             <h1>Licht</h1>
             <div id="l1" class="layout">
               <div id="a1" class="area">
-                <div id="b1" class="box">
+                <div id="b1" class="block">
                   <h2>Strahlung und so</h2>
                   Something or other
                 </div>
               </div>
               <div id="a2" class="area">
-                <div id="b2" class="box">
+                <div id="b2" class="block">
                   <p>No header here</p>
                   <p><img src="06-metal.png" width="100%" /></p>
                   <p>Something or other</p>
                 </div>
-                <div id="b3" class="box">
+                <div id="b3" class="block">
                   <h2>Sichtbares Licht</h2>
                   Something or other
                 </div>
@@ -232,7 +232,7 @@ div.grid div.layout div.area#a2 {
       right. There may be better ways to do this, as the calculation of
       the padding is quite fiddly.</p>
 
-    <pre><code>div.box#b2 {
+    <pre><code>div.block#b2 {
   position: relative;
   left: var(--bar-inset);
   border-left: var(--bar-width) solid blue;

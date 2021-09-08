@@ -1,15 +1,27 @@
 ---
-stretch-media: true
-title: 'Image, Audio and Video Handling'
+title: Media Handling
 ---
 
 # Local Image
 
-![Caption](include/06-metal.png)
+![Alt Caption $e=mc^2$](include/06-metal.png)
+
+# Local Image
+
+![](include/06-metal.png)
+
+Caption: Caption, Caption
 
 # Local Image 50%
 
 ![](include/06-metal.png){width="50%"}
+
+Caption: Caption, Caption
+
+# Streaming Video
+
+![The prototypical cowboy.](youtube:fR6DA54tIGc){.align-right aspect="16/7"
+width="72%"}
 
 # Local Video Autoplay
 
@@ -21,7 +33,8 @@ title: 'Image, Audio and Video Handling'
 
 # Local Video with Poster
 
-![With caption and poster.](movie.mp4){.controls width="100%" poster="assets/title-logo-hci.png"}
+![With caption and poster.](movie.mp4){.controls width="100%"
+poster="assets/title-logo-hci.png"}
 
 # Local Video 200px x 200px
 
@@ -71,13 +84,12 @@ Caption: Three in a row. With a caption below all three.
 | ![:cinema: :cinema: :smile:](movie.mp4){.controls .loop}
 | ![This has it's own caption.](include/06-metal.png)
 
-Caption: Three somethings in a row. With a caption below all three. The
-second one is a :cinema:.
+Caption: Three somethings in a row. With a caption below all three. The second
+one is a :cinema:.
 
 # PDF
 
-![This is a PDF document.](include/06-metal.pdf){width="900px"
-height="520px"}
+![This is a PDF document.](include/06-metal.pdf){width="900px" height="520px"}
 
 # Ganz Schlimm Emdedded
 
