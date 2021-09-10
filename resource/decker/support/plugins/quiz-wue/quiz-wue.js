@@ -231,6 +231,7 @@ function shuffleMatchItems(question) {
     return array;
   };
 
+  // BUG This fails, if there is no matchItems element
   const matchItems = question.querySelector(".matchItems");
   const elementsArray = Array.prototype.slice.call(
     matchItems.getElementsByClassName("matchItem")

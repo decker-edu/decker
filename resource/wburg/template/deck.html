@@ -21,13 +21,29 @@ $endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reset.css">
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/css/reveal.css">
+
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reset.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reveal.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
-$if(thebelab.enable)$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/thebelab/thebelab.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
+  <link rel="stylesheet" href="$decker-support-dir$/examiner/examiner.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
+$if(highlightjs)$
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
 $endif$
+$if(template.base-css)$
+  <link rel="stylesheet" href="$template.base-css$">
+$else$
+  <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
+$endif$
+
+
+$for(template.css)$
+  <link rel="stylesheet" href="$template.css$"/>
+$endfor$
+
   <style>
         /* This is the global style block for decker's layout css variables (aka css custom properties) 
         for all kinds of parameterization. Variables are set via an according YAML variable 
@@ -69,10 +85,12 @@ $endif$
                 --margin-bottom-table: calc(var(--margin-bottom-elements-base) * 1);
                 --margin-bottom-columns: calc(var(--margin-bottom-elements-base) * 0);       
                 --margin-bottom-references: calc(var(--margin-bottom-elements-base) * 0.3);
+
                 /* The next custom properties for the look of the decoration */
                 --border-decoration-width: $border-decoration-width$;
                 --border-decoration-padding: $border-decoration-padding$;
                 --border-decoration-style: $border-decoration-style$;  
+
                 /* whiteboard buttons */
                 --whiteboard-icon-size: $whiteboard-icon-size$;
                 --whiteboard-active-color: $whiteboard-active-color$;
@@ -81,186 +99,80 @@ $endif$
         } 
   </style>
    
-  <style>
-      code{white-space: pre-wrap;}
-      span.smallcaps{font-variant: small-caps;}
-      span.underline{text-decoration: underline;}
-      div.column{display: inline-block; vertical-align: top; width: 50%;}
-$if(quotes)$
-      q { quotes: auto; }
-      blockquote { quotes: auto; }
-$endif$
-  </style>
 $if(highlighting-css)$
   <style>
-$highlighting-css$
+  $highlighting-css$
   </style>
 $endif$
-$if(highlightjs)$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/highlight/$highlightjs$.css">
-$endif$
-$if(decker-engine.base-url)$
-  <link rel="stylesheet" href="$decker-support-dir$/engine/engine.css">
-$endif$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
-$if(template.base-css)$
-  <link rel="stylesheet" href="$template.base-css$">
-$else$
-  <link rel="stylesheet" href="$decker-support-dir$/css/decker.css">
-$endif$
-$for(template.css)$
-  <link rel="stylesheet" href="$template.css$"/>
-$endfor$
-  <script>
-    /* Store JSON encoded Pandoc meta data in a global variable for easy
-    reference from any script. */
-    window.Decker = {meta: $decker-meta$};
-  </script>
 
-  <!-- Printing and PDF exports -->
-  <script>
-    var link = document.createElement( 'link' );
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = window.location.search.match( /print-pdf/gi ) ? String.raw`$decker-support-dir$/vendor/reveal/css/print/pdf.css` : String.raw`$decker-support-dir$/vendor/reveal/css/print/paper.css`;
-    document.getElementsByTagName( 'head' )[0].appendChild( link );
-  </script>
-  <!--[if lt IE 9]>
-  <script src="$revealjs-url$/lib/js/html5shiv.js"></script>
-  <![endif]-->
-$if(math)$
-  $math$
-$endif$
-$if(thebelab.enable)$
-  <script type="text/x-thebe-config">
-  {
-      bootstrap: false,
-      requestKernel: false,
-      predefinedOutput: false,
-$if(thebelab.local)$
-      kernelOptions: {
-          name: "$thebelab.language$",
-          serverSettings: {
-              baseUrl: "$thebelab.baseUrl$",
-              token: "$thebelab.token$"
-          }
-      },
-$else$
-      binderOptions: {
-          repo: "$thebelab.repo$",
-          ref: "$thebelab.ref$",
-          binderUrl: "$thebelab.binderUrl$",
-          repoProvider: "$thebelab.repoProvider$",
-      },
-      kernelOptions: {
-          name: "$thebelab.language$",
-          kernelName: "$thebelab.language$"
-      },
-$endif$
-      selector: "[data-executable]",
-      mathjaxUrl: false,
-      codeMirrorConfig: {
-          mode: "$thebelab.language$"
-      }
-  }
-  </script>
-   <script src="https://unpkg.com/thebelab@latest/lib/index.js"></script> 
-$endif$
-$for(header-includes)$
-  $header-includes$
-$endfor$
-$for(style)$
-  <style>
-  $style$
-  </style>
-$endfor$
-
+<script>
+  /* Store JSON encoded Pandoc meta data in a global variable. */
+  window.Decker = {meta: $decker-meta$};
+</script>
 </head>
-<body data-deckid="$deck-id$">
-$for(include-before)$
-$include-before$
-$endfor$
+
+<body>
   <div class="reveal">
     <div class="slides">
 
 $if(title)$
-      $if(template.title-page.banner)$
-         <section id="$idprefix$title-slide" class="title-page"> 
-             <div class="title-page banner">
-                <img src=$template.title-page.banner$>
-             </div>
-            <!-- data-background-size="100%"
-            data-background-position="0px 0px"
-            data-background-image=$template.title-page.banner$> old version as background -->
-      $else$
-         <section id="$idprefix$title-slide" class="title-page">
-      $endif$
-        <div class="valign-block">
-            <div class="valigned">
-                <div class="title"> $title$</div>
-                $if(subtitle)$
-                   <div class="subtitle"> $subtitle$ </div>
-                $endif$
-                $if(template.title-page.teaser-img)$
-                   <div class="teaser-img">
-                      <img src=$template.title-page.teaser-img$>
-                   </div>
-                $else$
-                   <div style="height:100px"> </div>      
-                $endif$
-                $if(date)$
-                   <div class="date"> $date$ </div>
-                $endif$
-                $if(author)$
-                   <div class="author"> $author$ </div>
-                $endif$
-                $if(template.title-page.affiliation-logo)$
-                   <div class="affiliation-logo">
-                      <img src=$template.title-page.affiliation-logo$>
-                   </div>
-                $endif$
-                $if(affiliation)$
-                   <div class="affiliation"> $affiliation$ </div>
-                $endif$ 
-            </div>
+      <section id="$idprefix$title-slide" class="title-page">
+        $if(template.title-page.banner)$
+        <div class="title-page banner">
+          <img src=$template.title-page.banner$>
         </div>
-         </section>      
+        $endif$
+        <div class="valign-block">
+          <div class="valigned">
+            <div class="title"> $title$</div>
+
+            $if(subtitle)$
+              <div class="subtitle"> $subtitle$ </div>
+            $endif$
+
+            $if(template.title-page.teaser-img)$
+              <div class="teaser-img">
+                <img src=$template.title-page.teaser-img$>
+              </div>
+            $else$
+              <div style="height:100px"> </div>      
+            $endif$
+
+            $if(date)$
+              <div class="date"> $date$ </div>
+            $endif$
+
+            $if(author)$
+              <div class="author"> $author$ </div>
+            $endif$
+
+            $if(template.title-page.affiliation-logo)$
+              <div class="affiliation-logo">
+                <img src=$template.title-page.affiliation-logo$>
+              </div>
+            $endif$
+
+            $if(affiliation)$
+              <div class="affiliation"> $affiliation$ </div>
+            $endif$ 
+          </div>
+        </div>
+      </section>      
 $endif$
 
 $if(toc)$
-    <section id="$idprefix$TOC">
-    $table-of-contents$
-    </section>
+      <section id="$idprefix$TOC">
+      $table-of-contents$
+      </section>
 $endif$
 
 $body$
+
     </div>
   </div>
 
-  <script src="$decker-support-dir$/vendor/reveal/js/reveal.js"></script>
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
-  <script src="$decker-support-dir$/js/sage.js"></script>
-  
-  <script>
-      // this has to be done before reveal highlight plugin is initialized
-      prepareCodeHighlighting();
-      prepareSAGE();
-  </script>
-
-$if(decker-engine.base-url)$
-  <script type="module" crossorigin>
-    import {contactEngine} from "./$decker-support-dir$/engine/engine.js";
-    contactEngine("$decker-engine.base-url$", "$decker-engine.deck-id$");
-  </script>
-$endif$
-
-  <link rel="stylesheet" href="$decker-support-dir$/examiner/examiner.css">
-  <script type="module">
-    import {prepareExaminer} from "./$decker-support-dir$/examiner/examiner.js";
-    prepareExaminer();
-  </script>
 
 $for(template.include-js)$ 
   <script src="$template.include-js$"></script>
@@ -270,323 +182,69 @@ $for(template.include-module)$
   <script type="module" src="$template.include-module$"></script>
 $endfor$
 
-  <script>
-      // Full list of configuration options available at:
-      // https://github.com/hakimel/reveal.js#configuration
-      Reveal.initialize({
-        pdfMaxPagesPerSlide: 10,
-        pdfSeparateFragments: false,
-        // Display controls in the bottom right corner
-        controls: Decker.meta.controls,
-        // Display a presentation progress bar
-$if(progress)$
-        progress: $progress$,
-$endif$
-        // Display the page number of the current slide
-$if(slideNumber)$
-        slideNumber: '$slideNumber$',
-$endif$
-        // Add the current slide number to the URL hash so that reloading the
-        // page/copying the URL will return you to the same slide
-$if(hash)$
-        hash: $hash$,
-$endif$
-        // Push each slide change to the browser history
-$if(history)$
-        history: $history$,
-$endif$
-        // Enable keyboard shortcuts for navigation
-$if(keyboard)$
-        keyboard: $keyboard$,
-$endif$
-        // Enable the slide overview mode
-$if(overview)$
-        overview: $overview$,
-$endif$
-        // Vertical centering of slides
-$if(center)$
-        center: $center$,
-$endif$
-        // Enables touch navigation on devices with touch input
-$if(touch)$
-        touch: $touch$,
-$endif$
-        // Loop the presentation
-$if(loop)$
-        loop: $loop$,
-$endif$
-        // Change the presentation direction to be RTL
-$if(rtl)$
-        rtl: $rtl$,
-$endif$
-$if(navigationMode)$
-        // See https://github.com/hakimel/reveal.js/#navigation-mode
-        navigationMode: '$navigationMode$',
-$endif$
-	// Randomizes the order of slides each time the presentation loads
-$if(shuffle)$
-        shuffle: $shuffle$,
-$endif$
-        // Turns fragments on and off globally
-$if(fragments)$
-        fragments: $fragments$,
-$endif$
-$if(fragmentInURL)$
-        fragmentInURL: $fragmentInURL$,
-$endif$
-        // Flags if the presentation is running in an embedded mode,
-        // i.e. contained within a limited portion of the screen
-$if(embedded)$
-        embedded: $embedded$,
-$endif$
-        // Flags if we should show a help overlay when the questionmark
-        // key is pressed
-$if(help)$
-        help: $help$,
-$endif$
-        // Flags if speaker notes should be visible to all viewers
-$if(showNotes)$
-        showNotes: $showNotes$,
-$endif$
-        // Number of milliseconds between automatically proceeding to the
-        // next slide, disabled when set to 0, this value can be overwritten
-        // by using a data-autoslide attribute on your slides
-$if(autoSlide)$
-        autoSlide: $autoSlide$,
-$endif$
-        // Stop auto-sliding after user input
-$if(autoSlideStoppable)$
-        autoSlideStoppable: $autoSlideStoppable$,
-$endif$
-$if(defaultTiming)$
-          // Specify the average time in seconds that you think you will spend
-          // presenting each slide. This is used to show a pacing timer in the
-          // speaker view
-          defaultTiming: $defaultTiming$,
-$endif$
-$if(totalTime)$
-          // Specify the total time in seconds that is available to
-          // present.  If this is set to a nonzero value, the pacing
-          // timer will work out the time available for each slide,
-          // instead of using the defaultTiming value
-          totalTime: $totalTime$,
-$endif$
-$if(mouseWheel)$
-        // Enable slide navigation via mouse wheel
-        mouseWheel: $mouseWheel$,
-$endif$
-          // Hide cursor if inactive
-$if(hideInactiveCursor)$
-          hideInactiveCursor: $hideInactiveCursor$,
-$endif$
-$if(hideCursorTime)$
-          // Time before the cursor is hidden (in ms)
-          hideCursorTime: $hideCursorTime$,
-$endif$
-$if(hideAddressBar)$
-        // Hides the address bar on mobile devices
-        hideAddressBar: $hideAddressBar$,
-$endif$
-$if(previewLinks)$
-        // Opens links in an iframe preview overlay
-        previewLinks: $previewLinks$,
-$endif$
-$if(transition)$
-        // Transition style
-        transition: '$transition$', // none/fade/slide/convex/concave/zoom
-$endif$
-$if(transitionSpeed)$
-        // Transition speed
-        transitionSpeed: '$transitionSpeed$', // default/fast/slow
-$endif$
-$if(backgroundTransition)$
-        // Transition style for full page slide backgrounds
-        backgroundTransition: '$backgroundTransition$', // none/fade/slide/convex/concave/zoom
-$endif$
-$if(viewDistance)$
-        // Number of slides away from the current that are visible
-        viewDistance: $viewDistance$,
-$endif$
-$if(parallaxBackgroundImage)$
-        // Parallax background image
-        parallaxBackgroundImage: '$parallaxBackgroundImage$', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
-$else$
-$if(background-image)$
-       // Parallax background image
-       parallaxBackgroundImage: '$background-image$', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
-$endif$
-$endif$
-$if(parallaxBackgroundSize)$
-        // Parallax background size
-        parallaxBackgroundSize: '$parallaxBackgroundSize$', // CSS syntax, e.g. "2100px 900px"
-$endif$
-$if(parallaxBackgroundHorizontal)$
-        // Amount to move parallax background (horizontal and vertical) on slide change
-        // Number, e.g. 100
-        parallaxBackgroundHorizontal: $parallaxBackgroundHorizontal$,
-$endif$
-$if(parallaxBackgroundVertical)$
-        parallaxBackgroundVertical: $parallaxBackgroundVertical$,
-$endif$
-$if(width)$
-        // The "normal" size of the presentation, aspect ratio will be preserved
-        // when the presentation is scaled to fit different resolutions. Can be
-        // specified using percentage units.
-        width: $width$,
-$endif$
-$if(height)$
-        height: $height$,
-$endif$
-$if(margin)$
-        // Factor of the display size that should remain empty around the content
-        margin: $margin$,
-$endif$
-$if(minScale)$
-        // Bounds for smallest/largest possible scale to apply to content
-        minScale: $minScale$,
-$endif$
-$if(maxScale)$
-        maxScale: $maxScale$,
-$endif$
-        // whether to mark y-overflowing slides by a red border
-$if(checkOverflow)$
-        checkOverflow: $checkOverflow$,
-$else$
-        checkOverflow: false,
-$endif$
-
-
-        // whether to use vertical slides (in decker.js)
- $if(vertical-slides)$
-        verticalSlides: $vertical-slides$,
-$else$
-        verticalSlides: false,
-$endif$
-
-
-        // setup reveal-menu
-$if(menu)$
-        menu: {
-          side: 'left',
-          width: 'wide',
-          numbers: false,
-          titleSelector: 'h1',
-          useTextContentForMissingTitles: false,
-          hideMissingTitles: false,
-          markers: true,
-          custom: false,  
-          themes: false,
-          transitions: false,
-          openButton: true,
-          openSlideNumber: true,
-          keyboard: true,
-          sticky: false,
-          autoOpen: true,
-          delayInit: false,
-          openOnInit: false,
-          loadIcons: false
-	    },
-$endif$
-
-        // mathjax
-        math: {
-          mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`,
-$if(mathMacros)$
-          macros: $mathMacros$
-$else$
-          macros: {
-              R:         "{{\\mathrm{{I}\\kern-.15em{R}}}}",
-              laplace:   "{\\Delta}",
-              grad:      "{\\nabla}",
-              T:         "^{\\mathsf{T}}",
-              abs:       ['\\left\\lvert #1 \\right\\rvert', 1],
-              det:       ['\\left\\lvert #1 \\right\\rvert', 1],
-              norm:      ['\\left\\Vert #1 \\right\\Vert', 1],
-              iprod:     ['\\left\\langle #1 \\right\\rangle', 1],
-              vec:       ['{\\mathbf{\\boldsymbol{#1}}}', 1],
-              mat:       ['{\\mathbf{\\boldsymbol{#1}}}', 1],
-              set:       ['\\mathcal{#1}', 1],
-              func:      ['\\mathrm{#1}', 1],
-              trans:     ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
-              matrix:    ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
-              vector:    ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
-              of:        ['\\left( #1 \\right\)', 1],
-              diff:      ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
-              pdiff:     ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
-              vc:        ['{\\mathbf{\\boldsymbol{#1}}}', 1],
-              qt:        ['\\hat{\\vc {#1}}', 1],
-              mt:        ['{\\mathbf{\\boldsymbol{#1}}}', 1],
-              pt:        ['\\boldsymbol{#1}', 1],
-              textcolor: ['\\color{#1}', 1]
-          }
-$endif$
-        },
-
-          // setup charts
-          chart: {
-              defaults: {
-                  global: {
-                      tooltips: {
-                          mode: 'point',
-                          intersect: true,
-                      },
-                      legend: { position: "bottom" },
-                      plugins: { colorschemes: { scheme: "tableau.Classic10" } }
-                  },
-              },
-              bar:   { borderWidth: "1" },
-              line:  { borderWidth: "2", tension: "0" },
-              radar: { borderWidth: "2" }
-          },
-
-
-$if(thebelab.enable)$
-          // Henrik's ThebeLab plugin
-          thebelab: $thebelab.enable$,
-$endif$
-
-$if(quizServer)$
-          // Mario's multiple-choice quiz
-          quiz: { server: "$quizServer$" },
-$endif$
-       
-$if(jingles)$
-          // Mario's video jingles
-          jingles: Decker.meta.jingles,
-$endif$
-        
-          // plugins
-          dependencies: [
-              { src: String.raw`$decker-support-dir$/plugins/charts/Chart.js`},
-              { src: String.raw`$decker-support-dir$/plugins/charts/plugin-errorbars.js`},
-              { src: String.raw`$decker-support-dir$/plugins/charts/plugin-colorschemes.js`},
-              { src: String.raw`$decker-support-dir$/plugins/charts/plugin-csszoom.js`},
-              { src: String.raw`$decker-support-dir$/plugins/charts/csv2chart.js`},
-              { src: String.raw`$decker-support-dir$/plugins/math/math.js` },
-              { src: String.raw`$decker-support-dir$/plugins/whiteboard/whiteboard.js`},
-$if(zoom)$
-              { src: String.raw`$decker-support-dir$/plugins/zoom/zoom.js` },
-$endif$
-              { src: String.raw`$decker-support-dir$/plugins/print/print.js` },
-              { src: String.raw`$decker-support-dir$/plugins/search/search.js`, async: true },
-              { src: String.raw`$decker-support-dir$/plugins/quiz-wue/quiz-wue.js` },
-$if(highlightjs)$
-              { src: String.raw`$decker-support-dir$/plugins/highlight/highlight.js` },
-$endif$
-$if(menu)$
-              { src: String.raw`$decker-support-dir$/plugins/menu/menu.js`, async: true },
-$endif$
-$if(thebelab.enable)$
-              { src: String.raw`$decker-support-dir$/plugins/thebelab/thebelab.js`, async: true },
-$endif$
-              { src: String.raw`$decker-support-dir$/plugins/explain/explain.js` },
-              { src: String.raw`$decker-support-dir$/vendor/reveal/plugin/notes/notes.js`, async: true }
-          ]
-      });
+  <link rel="stylesheet" href="$decker-support-dir$/examiner/examiner.css">
+  <script type="module">
+    import {prepareExaminer} from "./$decker-support-dir$/examiner/examiner.js";
+    prepareExaminer();
   </script>
 
-  $for(include-after)$
-  $include-after$
-  $endfor$
+  <script type="module">
+    // import Reveal and all plugins
+    import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
+    import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
+    import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
+    import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
+    // import sagePlugin from './$decker-support-dir$/plugins/sage/sage.js';
+    import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
+    import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
+    import printPlugin from './$decker-support-dir$/plugins/print/print.js';
+    // import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
+    // import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
+    import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
+    import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
+    import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
+    import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
+    import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
+    import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
+    import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
+
+    let revealConfig = { 
+      // reveal configuration (see https://revealjs.com/config/)
+      ...Decker.meta.reveal,
+
+      // plugin configuration
+      math: { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math },
+      chart: Decker.meta.chart,
+      menu: Decker.meta.menu,
+      explain: Decker.meta.explain,
+      feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
+      jingles: Decker.meta.jingles,
+
+      // list of plugins
+      plugins: [
+         deckerPlugin,
+         mathPlugin,
+         chartsPlugin,
+         whiteboardPlugin,
+         // sagePlugin,
+         searchPlugin,
+         printPlugin,
+         // jinglesPlugin,
+         // quizPlugin,
+         quizWuePlugin, 
+         explainPlugin,
+         // menuPlugin,
+         feedbackPlugin,
+$if(highlightjs)$
+         highlightPlugin,
+$endif$
+         notesPlugin
+      ]
+    };
+
+    console.log(revealConfig)
+    Reveal.initialize(revealConfig);
+  </script>
+
   </body>
 </html>
