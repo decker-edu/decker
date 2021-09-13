@@ -7,7 +7,11 @@
 
 module Text.Decker.Writer.Layout (markdownToHtmlLayoutDeck) where
 
+import qualified Data.List as List
 import qualified Data.Map as Map
+-- import Text.Pretty.Simple
+
+import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import Development.Shake
 import Relude
@@ -26,7 +30,6 @@ import Text.DocTemplates
   )
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Highlighting
--- import Text.Pretty.Simple
 import qualified Prelude
 
 markdownToHtmlLayoutDeck :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
@@ -76,10 +79,10 @@ writePandocFile options out pandoc@(Pandoc meta blocks) =
 
 -- | Transforms a HTML structure such that divs with a attribute
 -- data-tag=section are transformed into section elements with the data-tag
--- attribute removed.
+-- attribute removed. Also, the class "processed" is removed from all elements.
 transformHtml :: Map Text Text -> MarkupM a -> MarkupM a
 transformHtml attribs m@(Parent tag open end html)
-  | getText tag == "div" && Map.member "data-tag" attribs =
+  | getText tag `elem` ["div", "span"] && Map.member "data-tag" attribs =
     let name = toString $ attribs Map.! "data-tag"
      in Parent
           (fromString name)
@@ -96,6 +99,13 @@ transformHtml attribs m@(CustomParent string html) =
 -- dissard the collected attributes and recurse twice
 transformHtml attribs m@(Append html1 html2) =
   Append (transformHtml nullA html1) (transformHtml nullA html2)
+-- drop 'processed' from class attribute
+transformHtml attribs m@(AddAttribute raw key value html)
+  | toText raw == "class" =
+    let cls = Text.unlines $ filter (/= "processed") $ Text.lines $ toText value
+     in if Text.null cls
+          then transformHtml attribs html
+          else AddAttribute raw key value (transformHtml (Map.insert (toText raw) cls attribs) html)
 -- add the attribute to the map for later retrieval
 transformHtml attribs m@(AddAttribute raw key value html) =
   AddAttribute raw key value (transformHtml (Map.insert (toText raw) (toText value) attribs) html)
@@ -103,6 +113,13 @@ transformHtml attribs m@(AddAttribute raw key value html) =
 transformHtml attribs m@(AddCustomAttribute key value html)
   | toText key == "data-tag" =
     transformHtml (Map.insert (toText key) (toText value) attribs) html
+-- drop 'processed' from class attribute
+transformHtml attribs m@(AddCustomAttribute key value html)
+  | toText key == "class" =
+    let cls = Text.unlines $ filter (/= "processed") $ Text.lines $ toText value
+     in if Text.null cls
+          then transformHtml attribs html
+          else AddCustomAttribute key value (transformHtml (Map.insert (toText key) cls attribs) html)
 -- add the custom attribute to the map for later retrieval
 transformHtml attribs m@(AddCustomAttribute key value html) =
   AddCustomAttribute key value (transformHtml (Map.insert (toText key) (toText value) attribs) html)

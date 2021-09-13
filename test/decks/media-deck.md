@@ -6,91 +6,31 @@ title: Media Handling
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
-# Local Image
+# Local Image with caption block
 
-![](include/06-metal.png)
+![DISCARDED](include/06-metal.png)
 
-Caption: Caption, Caption
+Caption: Block Caption $e=mc^2$
 
-# Local Image 50%
+# Local Image width=50%
 
-![](include/06-metal.png){width="50%"}
+![Overwriting Block Caption $e=mc^2$](include/06-metal.png){width="50%"}
 
-Caption: Caption, Caption
+# Local Image height=200px
 
-# Streaming Video
+![Overwriting Block Caption $e=mc^2$](include/06-metal.png){.align-right
+height="200px"}
 
-![The prototypical cowboy.](youtube:fR6DA54tIGc){.align-right aspect="16/7"
-width="72%"}
+# Local Image width=80% height=200px
 
-# Local Video Autoplay
+![Overwriting Block Caption $e=mc^2$](include/06-metal.png){.align-center
+width="80%" height="200px"}
 
-![Caption](movie.mp4){.autoplay .controls}
+# Iframe
 
-# Local Video 50%
+![Homepage of the man](https://tramberend.beuth-hochschule.de/){.iframe}
 
-![](movie.mp4){.controls .autoplay width="50%"}
+# YouTube Video Stream
 
-# Local Video with Poster
+![Avatar](youtube:7XX6IEuLP3A){width=80%}
 
-![With caption and poster.](movie.mp4){.controls width="100%"
-poster="assets/title-logo-hci.png"}
-
-# Local Video 200px x 200px
-
-![](movie.mp4){.controls .autoplay width="200px" height="200px"}
-
-# Local audio
-
-![](audio.mp3){.controls .autoplay width="100px" height="100px"}
-
-# Local Video And Audio
-
-![](movie.mp4){.controls .autoplay}
-
-![](audio.mp3){.autoplay}
-
-# Local Video 1
-
-![](movie.mp4){.controls .autoplay}
-
-# Local Video 2
-
-![](movie.mp4){.controls .autoplay}
-
-# Local Video 3
-
-![](movie.mp4){.controls .autoplay}
-
-# Local Video 4
-
-![](movie.mp4){.controls start="0.2" stop="0.5"}
-
-# Local Video 5
-
-![](movie.mp4){.controls .autoplay .loop}
-
-# 3 Images in a Row
-
-| ![Someone please fix my flexbox CSS](include/06-metal.png)
-| ![](include/06-metal-v.png)
-| ![This has it's own caption.](include/06-metal.png)
-
-Caption: Three in a row. With a caption below all three.
-
-# 3 Somethings in a Row
-
-| ![Someone please fix my flexbox CSS](include/06-metal.png)
-| ![:cinema: :cinema: :smile:](movie.mp4){.controls .loop}
-| ![This has it's own caption.](include/06-metal.png)
-
-Caption: Three somethings in a row. With a caption below all three. The second
-one is a :cinema:.
-
-# PDF
-
-![This is a PDF document.](include/06-metal.pdf){width="900px" height="520px"}
-
-# Ganz Schlimm Emdedded
-
-![Directly embedded SVG](graph.dot.svg){.embed}

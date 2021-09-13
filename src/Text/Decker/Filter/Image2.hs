@@ -223,8 +223,6 @@ audioHtml uri caption = do
       figureAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
       return $ mkFigureTag audioTag captionHtml figureAttr
 
-isPercent = Text.isSuffixOf "%"
-
 imageBlock :: URI -> [Inline] -> Attrib Block
 imageBlock uri caption = do
   uri <- lift $ transformUri uri ""

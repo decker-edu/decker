@@ -76,6 +76,7 @@ transformImage :: Inline -> [Inline] -> Filter Inline
 transformImage image@(Image attr@(_, classes, _) _ (url, _)) caption =
   handle (inlineError image) $ do
     uri <- URI.mkURI url
+    liftIO $ putStrLn $ show uri
     let mediaType = classifyMedia uri attr
     case Map.lookup mediaType imageTransformers of
       Just transform -> runAttr attr (transform uri caption) >>= renderHtml
@@ -218,8 +219,6 @@ audioHtml uri caption = do
       let audioTag = mkAudioTag audioUri audioAttr
       figureAttr <- injectBorder >> takeSize >> takeUsual >> extractAttr
       return $ mkFigureTag audioTag captionHtml figureAttr
-
-isPercent = Text.isSuffixOf "%"
 
 imageHtml :: URI -> [Inline] -> Attrib Html
 imageHtml uri caption = do

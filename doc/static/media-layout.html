@@ -16,34 +16,37 @@
     Parameters in <i class="red"><code>red</code></i>. Media elements (img, svg, wrapped canvas, wrapped iframe) in
     <i class="green"><code>green</code></i>.
 
-    <pre><code>&lt;div class="media paragraph <i class="red">center</i>">
-  &lt;div class="jacket image" <i class="red">style="width: 70%"</i>>
+    <pre><code>&lt;p class="media <i class="red">center</i>">
+  &lt;figure class="image" <i class="red">style="width: 70%"</i>>
     <i class="green">&lt;img src="./06-metal.png" /></i>
-    &lt;div class="caption">Caption.&lt;/div>
-  &lt;/div>
-&lt;/div>
+    &lt;figcaption>Caption.&lt;/figcaption>
+  &lt;/figure>
+&lt;/p>
 
-&lt;div class="media line <i class="red">top</i>">
-  &lt;div class="jacket image">
+&lt;span class="media <i class="red">top</i>">
+  &lt;figure class="image">
     <i class="green">&lt;img src="./06-metal.png" <i class="red">style="height: 4em"</i> /></i>
-    &lt;div class="caption">Caption.&lt;/div>
-  &lt;/div>
-&lt;/div>
+    &lt;figcaption>Caption.&lt;/figcaption>
+  &lt;/figure>
+&lt;/span>
 
-&lt;div class="media lineblock <i class="red">center</i>">
-  &lt;div class="container" <i class="red">style="width: 70%"</i>>
-    &lt;div class="jacket image">
-      <i class="green">&lt;img src="./06-metal.png" /></i>
+&lt;p class="media masonry <i class="red">center</i>">
+  &lt;figure class="row" <i class="red">style="width: 70%"</i>>
+    &lt;div class="container">
+      &lt;figure class="image">
+        <i class="green">&lt;img src="./06-metal.png" /></i>
+      &lt;/figure>
+      &lt;figure class="image">
+        <i class="green">&lt;img src="./06-metal-r.png" /></i>
+        &lt;figcaption>Image Caption&lt;/figcaption>
+      &lt;/figure>
+      &lt;figure class="image">
+        <i class="green">&lt;img src="./06-metal-xs.png" /></i>
+      &lt;/figure>
     &lt;/div>
-    &lt;div class="jacket image">
-      <i class="green">&lt;img src="./06-metal-r.png" /></i>
-      &lt;div class="caption">Image Caption&lt;/div>
-    &lt;/div>
-    &lt;div class="jacket image">
-      <i class="green">&lt;img src="./06-metal-xs.png" /></i>
-    &lt;/div>
-  &lt;/div>
-&lt;/div></code></pre>
+    &lt;figcaption>Three Images&lt;/figcaption>
+  &lt;/figure>
+&lt;/p></code></pre>
 
     <h1>Tests</h1>
 
@@ -186,12 +189,12 @@ filter2 = pairwise filter
     </p>
 
     <p>
-      <code>![Caption](http://tramberend.de){height="200px" width="72%"}</code>
+      <code>![Caption](https://tramberend.beuth-hochschule.de/){height="200px" width="72%"}</code>
     </p>
 
     <div class="media paragraph center">
       <div class="jacket image caption" style="width: 70%">
-        <iframe width="100%" height="200px" src="http://tramberend.de/" frameborder="0" allowfullscreen></iframe>
+        <iframe width="100%" height="200px" src="https://tramberend.beuth-hochschule.de/" frameborder="0" allowfullscreen></iframe>
         <div class="caption">Caption</div>
       </div>
     </div>
