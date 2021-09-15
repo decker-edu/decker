@@ -93,7 +93,7 @@ fromPandocMeta' :: MetaValue -> A.Value
 fromPandocMeta' (MetaMap map) = A.Object (H.fromList $ Map.toList $ Map.map fromPandocMeta' map)
 fromPandocMeta' (MetaList list) = A.Array (Vec.fromList $ List.map fromPandocMeta' list)
 fromPandocMeta' (MetaBool value) = A.Bool value
-fromPandocMeta' (MetaString value) = 
+fromPandocMeta' (MetaString value) =
   case readMaybe (toString value) of
     Just number -> A.Number number
     Nothing -> A.String value

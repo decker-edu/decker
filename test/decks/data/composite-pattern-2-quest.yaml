@@ -6,7 +6,7 @@ Answer:
   CorrectAnswer: |
     ```java
     int max() {
-        int m = Int.NEGATIVE\_INFINITY;
+        int m = Int.MIN_VALUE;
         for (Number n : numbers)
             m = Math.max(m, n.max());
         return m; 

@@ -34,14 +34,17 @@ Foreach ($i in ("tex-svg.js", "input\tex", "input\tex.js". "output\svg", "output
 }
 
 # Copy reveal.js
-New-Item "$support\reveal\plugin" -Force -ItemType "directory"
-Foreach ($i in ("js", "css", "plugin\notes", "plugin\highlight")) {  
-  Copy-Item -r "$third\reveal.js\$i" "$support\reveal\$i" -Force
-}
+New-Item "$support\reveal\" -Force -ItemType "directory"
+Copy-Item -r "$third\reveal.js\dist" "$support\reveal\" -Force
+Copy-Item -r "$third\reveal.js\plugin" "$support\reveal\" -Force
 
 # Copy water.css
 New-Item "$support\css" -Force -ItemType "directory"
 Copy-Item "$third\water.css\dist\light.min.css" "$support\css\light.min.css"
+
+# Copy styles for highlight.js
+New-Item "$support\css" -Force -ItemType "directory"
+Copy-Item "$third\highlight.js\*.css" "$support\css\"
 
 # Copy fontawesome
 New-Item "$support\fontawesome\css" -Force -ItemType "directory"

@@ -1,231 +1,260 @@
-/*
+/*!
  * Handles finding a text string anywhere in the slides and showing the next occurrence to the user
  * by navigatating to that slide and highlighting it.
  *
- * By Jon Snyder <snyder.jon@gmail.com>, February 2013
+ * @author Jon Snyder <snyder.jon@gmail.com>, February 2013
  */
 
-var RevealSearch = (function() {
+const Plugin = () => {
+  // The reveal.js instance this plugin is attached to
+  let deck;
 
-	var matchedSlides;
-	var currentMatchedIndex;
-	var searchboxDirty;
-	var myHilitor;
+  let searchElement;
+  let searchInput;
 
-// Original JavaScript code by Chirp Internet: www.chirp.com.au
-// Please acknowledge use of this code by including this header.
-// 2/2013 jon: modified regex to display any match, not restricted to word boundaries.
+  let matchedSlides;
+  let currentMatchedIndex;
+  let searchboxDirty;
+  let hilitor;
 
-function Hilitor(id, tag)
-{
+  function render() {
+    searchElement = document.createElement("div");
+    searchElement.classList.add("searchbox");
+    searchElement.style.position = "absolute";
 
-	var targetNode = document.getElementById(id) || document.body;
-	var hiliteTag = tag || "EM";
-	var skipTags = new RegExp("^(?:" + hiliteTag + "|SCRIPT|FORM)$");
-	var colors = ["#ff6", "#a0ffff", "#9f9", "#f99", "#f6f"];
-	var wordColor = [];
-	var colorIdx = 0;
-	var matchRegex = "";
-	var matchingSlides = [];
+    // MARIO: adjust position, size, color
+    searchElement.style.top = "calc(var(--whiteboard-icon-size) * 0.25)";
+    searchElement.style.left = "calc(var(--whiteboard-icon-size) * 2.25)";
+    searchElement.style.padding = "calc(var(--whiteboard-icon-size) * 0.5)";
+    searchElement.style.borderRadius = "0.25em";
+    searchElement.style.background = "white";
+    searchElement.style.fontSize = "var(--whiteboard-icon-size)";
+    searchElement.style.color = "var(--whiteboard-active-color)";
+    searchElement.style.zIndex = 10;
 
-	this.setRegex = function(input)
-	{
-		input = input.replace(/^[^\w]+|[^\w]+$/g, "").replace(/[^\w'-]+/g, "|");
-		matchRegex = new RegExp("(" + input + ")","i");
-	}
+    // MARIO: adjust border color and search icon (requires font-awesome)
+    searchElement.innerHTML =
+      '<span style="display:flex; align-items:center;"><i class="fas fa-search searchicon" id="searchbutton" style="padding-right: 10px;"></i><input type="search" id="searchinput" class="searchinput" placeholder="Search..."></span>';
 
-	this.getRegex = function()
-	{
-		return matchRegex.toString().replace(/^\/\\b\(|\)\\b\/i$/g, "").replace(/\|/g, " ");
-	}
+    // MARIO: override some styling
+    searchInput = searchElement.querySelector(".searchinput");
+    searchInput.style.width = "240px";
+    searchInput.style.fontSize = "14px";
+    searchInput.style.padding = "4px 6px";
+    searchInput.style.color = "#000";
+    searchInput.style.background = "#fff";
+    searchInput.style.borderRadius = "2px";
+    // searchInput.style.border = "0";
+    searchInput.style.border = "2px solid var(--whiteboard-active-color)";
+    searchInput.style.outline = "0";
+    // searchInput.style.boxShadow = "0 2px 18px rgba(0, 0, 0, 0.2)";
+    searchInput.style["-webkit-appearance"] = "none";
 
-	// recursively apply word highlighting
-	this.hiliteWords = function(node)
-	{
-		if(node == undefined || !node) return;
-		if(!matchRegex) return;
-		if(skipTags.test(node.nodeName)) return;
+    deck.getRevealElement().appendChild(searchElement);
 
-		if(node.hasChildNodes()) {
-			for(var i=0; i < node.childNodes.length; i++)
-				this.hiliteWords(node.childNodes[i]);
-		}
-		if(node.nodeType == 3) { // NODE_TEXT
-			if((nv = node.nodeValue) && (regs = matchRegex.exec(nv))) {
-				//find the slide's section element and save it in our list of matching slides
-				var secnode = node;
-				while (secnode != null && secnode.nodeName != 'SECTION') {
-					secnode = secnode.parentNode;
-				}
+    searchInput.addEventListener(
+      "keyup",
+      function (event) {
+        switch (event.keyCode) {
+          case 13:
+            event.preventDefault();
+            doSearch();
+            searchboxDirty = false;
+            break;
 
-				var slideIndex = Reveal.getIndices(secnode);
-				var slidelen = matchingSlides.length;
-				var alreadyAdded = false;
-				for (var i=0; i < slidelen; i++) {
-					if ( (matchingSlides[i].h === slideIndex.h) && (matchingSlides[i].v === slideIndex.v) ) {
-						alreadyAdded = true;
-					}
-				}
-				if (! alreadyAdded) {
-					matchingSlides.push(slideIndex);
-				}
+          // MARIO: close search field on key Escape
+          case 27:
+            closeSearch();
+            break;
 
-				if(!wordColor[regs[0].toLowerCase()]) {
-					wordColor[regs[0].toLowerCase()] = colors[colorIdx++ % colors.length];
-				}
+          default:
+            searchboxDirty = true;
+        }
+      },
+      false
+    );
 
-				var match = document.createElement(hiliteTag);
-				match.appendChild(document.createTextNode(regs[0]));
-				match.style.backgroundColor = wordColor[regs[0].toLowerCase()];
-				match.style.fontStyle = "inherit";
-				match.style.color = "#000";
+    closeSearch();
+  }
 
-				var after = node.splitText(regs.index);
-				after.nodeValue = after.nodeValue.substring(regs[0].length);
-				node.parentNode.insertBefore(match, after);
-			}
-		}
-	};
+  function openSearch() {
+    if (!searchElement) render();
 
-	// remove highlighting
-	this.remove = function()
-	{
-		var arr = document.getElementsByTagName(hiliteTag);
-		while(arr.length && (el = arr[0])) {
-			el.parentNode.replaceChild(el.firstChild, el);
-		}
-	};
+    searchElement.style.display = "inline";
+    searchInput.focus();
+    searchInput.select();
+  }
 
-	// start highlighting at target node
-	this.apply = function(input)
-	{
-		if(input == undefined || !input) return;
-		this.remove();
-		this.setRegex(input);
-		this.hiliteWords(targetNode);
-		return matchingSlides;
-	};
+  function closeSearch() {
+    if (!searchElement) render();
 
-}
+    searchElement.style.display = "none";
+    if (hilitor) hilitor.remove();
+  }
 
-	function openSearch() {
-		//ensure the search term input dialog is visible and has focus:
-		var inputboxdiv = document.getElementById("searchinputdiv");
-		var inputbox = document.getElementById("searchinput");
-		inputboxdiv.style.display = "inline";
-		inputbox.focus();
-		inputbox.select();
-	}
+  function toggleSearch() {
+    if (!searchElement) render();
 
-	function closeSearch() {
-		var inputboxdiv = document.getElementById("searchinputdiv");
-		inputboxdiv.style.display = "none";
-		if(myHilitor) myHilitor.remove();
-	}
+    if (searchElement.style.display !== "inline") {
+      openSearch();
+    } else {
+      closeSearch();
+    }
+  }
 
-	function toggleSearch() {
-		var inputboxdiv = document.getElementById("searchinputdiv");
-		if (inputboxdiv.style.display !== "inline") {
-			openSearch();
-		}
-		else {
-			closeSearch();
-		}
-	}
+  function doSearch() {
+    //if there's been a change in the search term, perform a new search:
+    if (searchboxDirty) {
+      var searchstring = searchInput.value;
 
-	function doSearch() {
-		//if there's been a change in the search term, perform a new search:
-		if (searchboxDirty) {
-			var searchstring = document.getElementById("searchinput").value;
+      if (searchstring === "") {
+        if (hilitor) hilitor.remove();
+        matchedSlides = null;
+      } else {
+        //find the keyword amongst the slides
+        hilitor = new Hilitor("slidecontent");
+        matchedSlides = hilitor.apply(searchstring);
+        currentMatchedIndex = 0;
+      }
+    }
 
-			if (searchstring === '') {
-				if(myHilitor) myHilitor.remove();
-				matchedSlides = null;
-			}
-			else {
-				//find the keyword amongst the slides
-				myHilitor = new Hilitor("slidecontent");
-				matchedSlides = myHilitor.apply(searchstring);
-				currentMatchedIndex = 0;
-			}
-		}
+    if (matchedSlides) {
+      //navigate to the next slide that has the keyword, wrapping to the first if necessary
+      if (matchedSlides.length && matchedSlides.length <= currentMatchedIndex) {
+        currentMatchedIndex = 0;
+      }
+      if (matchedSlides.length > currentMatchedIndex) {
+        deck.slide(
+          matchedSlides[currentMatchedIndex].h,
+          matchedSlides[currentMatchedIndex].v
+        );
+        currentMatchedIndex++;
+      }
+    }
+  }
 
-		if (matchedSlides) {
-			//navigate to the next slide that has the keyword, wrapping to the first if necessary
-			if (matchedSlides.length && (matchedSlides.length <= currentMatchedIndex)) {
-				currentMatchedIndex = 0;
-			}
-			if (matchedSlides.length > currentMatchedIndex) {
-				Reveal.slide(matchedSlides[currentMatchedIndex].h, matchedSlides[currentMatchedIndex].v);
-				currentMatchedIndex++;
-			}
-		}
-	}
+  // Original JavaScript code by Chirp Internet: www.chirp.com.au
+  // Please acknowledge use of this code by including this header.
+  // 2/2013 jon: modified regex to display any match, not restricted to word boundaries.
+  function Hilitor(id, tag) {
+    var targetNode = document.getElementById(id) || document.body;
+    var hiliteTag = tag || "EM";
+    var skipTags = new RegExp("^(?:" + hiliteTag + "|SCRIPT|FORM)$");
+    var colors = ["#ff6", "#a0ffff", "#9f9", "#f99", "#f6f"];
+    var wordColor = [];
+    var colorIdx = 0;
+    var matchRegex = "";
+    var matchingSlides = [];
 
-	var dom = {};
-	dom.wrapper = document.querySelector( '.reveal' );
+    this.setRegex = function (input) {
+      input = input.replace(/^[^\w]+|[^\w]+$/g, "").replace(/[^\w'-]+/g, "|");
+      matchRegex = new RegExp("(" + input + ")", "i");
+    };
 
-	if( !dom.wrapper.querySelector( '.searchbox' ) ) {
-			var searchElement = document.createElement( 'div' );
-			searchElement.id = "searchinputdiv";
-			searchElement.classList.add( 'searchdiv' );
-			searchElement.style.position = 'absolute';
+    this.getRegex = function () {
+      return matchRegex
+        .toString()
+        .replace(/^\/\\b\(|\)\\b\/i$/g, "")
+        .replace(/\|/g, " ");
+    };
 
-			// MARIO: adjust position, size, color
-			searchElement.style.top  = "calc(var(--whiteboard-icon-size) * 0.25)";
-			searchElement.style.left = "calc(var(--whiteboard-icon-size) * 2.25)";
-			searchElement.style.padding = "calc(var(--whiteboard-icon-size) * 0.5)";
-			searchElement.style.borderRadius = "0.25em";
-			searchElement.style.background = "white";
-			searchElement.style.fontSize = "var(--whiteboard-icon-size)";
-			searchElement.style.color = "var(--whiteboard-active-color)";
-			searchElement.style.zIndex = 10;
+    // recursively apply word highlighting
+    this.hiliteWords = function (node) {
+      if (node == undefined || !node) return;
+      if (!matchRegex) return;
+      if (skipTags.test(node.nodeName)) return;
 
-            // MARIO: adjust border color and search icon (requires font-awesome)
-			searchElement.innerHTML = '<span style="display:flex; align-items:center;"><i class="fas fa-search searchicon" id="searchbutton" style="padding-right: 10px;"></i><input type="search" id="searchinput" class="searchinput" style="border: 3px solid var(--whiteboard-active-color); border-radius:4px;"/></span>';
+      if (node.hasChildNodes()) {
+        for (var i = 0; i < node.childNodes.length; i++)
+          this.hiliteWords(node.childNodes[i]);
+      }
+      if (node.nodeType == 3) {
+        // NODE_TEXT
+        var nv, regs;
+        if ((nv = node.nodeValue) && (regs = matchRegex.exec(nv))) {
+          //find the slide's section element and save it in our list of matching slides
+          var secnode = node;
+          while (secnode != null && secnode.nodeName != "SECTION") {
+            secnode = secnode.parentNode;
+          }
 
-			dom.wrapper.appendChild( searchElement );
-	}
+          var slideIndex = deck.getIndices(secnode);
+          var slidelen = matchingSlides.length;
+          var alreadyAdded = false;
+          for (var i = 0; i < slidelen; i++) {
+            if (
+              matchingSlides[i].h === slideIndex.h &&
+              matchingSlides[i].v === slideIndex.v
+            ) {
+              alreadyAdded = true;
+            }
+          }
+          if (!alreadyAdded) {
+            matchingSlides.push(slideIndex);
+          }
 
-	document.getElementById( 'searchbutton' ).addEventListener( 'click', function(event) {
-		doSearch();
-	}, false );
+          if (!wordColor[regs[0].toLowerCase()]) {
+            wordColor[regs[0].toLowerCase()] =
+              colors[colorIdx++ % colors.length];
+          }
 
+          var match = document.createElement(hiliteTag);
+          match.appendChild(document.createTextNode(regs[0]));
+          match.style.backgroundColor = wordColor[regs[0].toLowerCase()];
+          match.style.fontStyle = "inherit";
+          match.style.color = "#000";
 
-	document.getElementById( 'searchinput' ).addEventListener( 'keyup', function( event ) {
-		switch (event.keyCode) {
+          var after = node.splitText(regs.index);
+          after.nodeValue = after.nodeValue.substring(regs[0].length);
+          node.parentNode.insertBefore(match, after);
+        }
+      }
+    };
 
-			case 13:
-				event.preventDefault();
-				doSearch();
-				searchboxDirty = false;
-				break;
+    // remove highlighting
+    this.remove = function () {
+      var arr = document.getElementsByTagName(hiliteTag);
+      var el;
+      while (arr.length && (el = arr[0])) {
+        el.parentNode.replaceChild(el.firstChild, el);
+      }
+    };
 
-            // MARIO: close search field on key Escape
-            case 27:
-                closeSearch();
-                break;
+    // start highlighting at target node
+    this.apply = function (input) {
+      if (input == undefined || !input) return;
+      this.remove();
+      this.setRegex(input);
+      this.hiliteWords(targetNode);
+      return matchingSlides;
+    };
+  }
 
-			default:
-				searchboxDirty = true;
-		}
-	}, false );
+  return {
+    id: "search",
 
-	document.addEventListener( 'keydown', function( event ) {
-		// MARIO: use standard search shortcut
-		// if( event.key == "F" && (event.ctrlKey || event.metaKey) ) { //Control+Shift+f
-		if( event.key == "f" && (event.ctrlKey || event.metaKey) ) { //Control+Shift+f
-			event.preventDefault();
-			toggleSearch();
-		}
-	}, false );
+    init: (reveal) => {
+      deck = reveal;
 
-	// MARIO: use standard search shortcut
-	if( window.Reveal ) Reveal.registerKeyboardShortcut( 'CTRL/CMD + F', 'Search' );
-	// if( window.Reveal ) Reveal.registerKeyboardShortcut( 'CTRL + Shift + F', 'Search' );
+      // MARIO: CTRL/CMD + F (instead of CTRL+SHIFT+F)
+      deck.registerKeyboardShortcut("CTRL + F", "Search");
+      document.addEventListener(
+        "keydown",
+        function (event) {
+          if (event.key == "f" && (event.ctrlKey || event.metaKey)) {
+            event.preventDefault();
+            toggleSearch();
+          }
+        },
+        false
+      );
+    },
 
-	closeSearch();
+    open: openSearch,
 
-    // MARIO: also export toggle (will be used in menu plugin)
-	return { open: openSearch, toggle: toggleSearch };
-})();
+    // MARIO: also export toggleSearch to trigger it from menu
+    toggle: toggleSearch,
+  };
+};
+
+export default Plugin;

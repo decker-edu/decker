@@ -1,34 +1,87 @@
-# Sane defaults for reval.js
-backgroundTransition: "none"
-center: true
-controls: true
-fragmentInURL: true
-fragments: true
-hash: true
-help: true
-hideCursorTime: 2000
-hideInactiveCursor: true
-history: false
-keyboard: true
-menu: true
-overview: true
-progress: true
-test123: "test123"
-title: "|title|"
-touch: true
-vertical-slides: true
-transition: "none"
-zoom: true
+reveal:
+  backgroundTransition: "none"
+  center: false
+  controls: true
+  fragmentInURL: true
+  fragments: true
+  hash: true
+  help: true
+  hideCursorTime: 2000
+  hideInactiveCursor: true
+  history: false
+  keyboard: true
+  overview: false
+  pdfMaxPagesPerSlide: 10
+  pdfSeparateFragments: false
+  progress: false
+  slideNumber: true
+  touch: true
+  vertical-slides: true
+  transition: "none"
+  width: 1280
+  height: 720
 
-# These are some sane defaults we need
-align-global: left
-border-decoration-padding: 10px
-border-decoration-style: solid
-border-decoration-width: 20px
-font-size-base: 28px
-margin-columns: 0em
-margin: 0.05
-spacing-vertical-base: 0.5em
+chart:
+  defaults:
+    font: {family: "Lato", size: 20 }
+    color: "black"
+    animation: false
+    plugins:
+      colorschemes:
+        scheme: "tableau.Classic10"
+      title:
+        font: { weight: "normal", size: 30 }
+      legend:
+        position: "bottom"
+
+menu:
+  side: "left"
+  width: "wide"
+  numbers: true
+  titleSelector: "h1"
+  useTextContentForMissingTitles: false
+  hideMissingTitles: false
+  markers: false
+  custom: false
+  themes: false
+  transitions: false
+  openButton: true
+  openSlideNumber: false
+  keyboard: true
+  sticky: false
+  autoOpen: true
+  delayInit: false
+  openOnInit: false
+  loadIcons: false
+
+math:
+  macros:
+    R: '{{\mathrm{{I}\kern-.15em{R}}}}'
+    laplace: '{\Delta}'
+    grad: '{\nabla}'
+    T: '^{\mathsf{T}}'
+    abs: ['\left\lvert #1 \right\rvert', 1]
+    det: ['\left\lvert #1 \right\rvert', 1]
+    norm: ['\left\Vert #1 \right\Vert', 1]
+    iprod: ['\left\langle #1 \right\rangle', 1]
+    vec: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    mat: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    set: ['\mathcal{#1}', 1]
+    func: ['\mathrm{#1}', 1]
+    trans: ['{#1}\mkern-1mu^{\mathsf{T}}', 1]
+    matrix: ['\begin{bmatrix} #1 \end{bmatrix}', 1]
+    vector: ['\begin{pmatrix} #1 \end{pmatrix}', 1]
+    of: ['\left( #1 \right\)', 1]
+    diff: ['\frac{\mathrm{d}{#1}}{\mathrm{d}{#2}}', 2]
+    pdiff: ['\frac{\partial {#1}}{\partial {#2}}', 2]
+    vc: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    qt: ['\hat{\vc {#1}}', 1]
+    mt: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    pt: ['\boldsymbol{#1}', 1]
+    textcolor: ['\color{#1}', 1]
+
+# other settings
+highlightjs: xcode
 
 # default settings for whiteboard buttons
 whiteboard-active-color: rgb(42,157,223)
