@@ -125,6 +125,11 @@ injectClass cls = modify transform
   where
     transform ((id', cs', kvs'), attr) = ((id', cls : cs', kvs'), attr)
 
+injectId :: Text -> Attrib ()
+injectId id = modify transform
+  where
+    transform ((id', cs', kvs'), attr) = ((id, cs', kvs'), attr)
+
 injectClasses :: [Text] -> Attrib ()
 injectClasses cs = modify transform
   where
@@ -225,6 +230,7 @@ takeAllClasses = modify transform
     transform state@((id', cs', kvs'), (id, cs, kvs)) =
       ((id', cs <> cs', kvs'), (id, [], kvs))
 
+injectBorder :: Attrib ()
 injectBorder = do
   border <- lookupMetaOrElse False "decker.filter.border" <$> lift (gets meta)
   when border $ injectStyle ("border", "2px solid magenta")
@@ -291,6 +297,7 @@ takeAutoplay = do
     injectAttribute ("data-autoplay", "1")
     injectAttribute ("allow", "autoplay")
 
+takeUsual :: Attrib ()
 takeUsual = do
   takeId
   takeAllClasses
@@ -312,3 +319,21 @@ adjustAttribPaths keys kvs = do
 
 isPercent :: Text -> Bool
 isPercent = Text.isSuffixOf "%"
+
+ifAttrib :: Text -> (Text -> Attrib ()) -> Attrib ()
+ifAttrib key action =
+  cutAttrib key >>= mapM_ action
+
+mediaFragment :: Attrib Text
+mediaFragment = do
+  (result, (id, cs, kvs)) <- get
+  let start = fromMaybe "" $ List.lookup "start" kvs
+      stop = fromMaybe "" $ List.lookup "stop" kvs
+  put (result, (id, cs, rmKey "start" $ rmKey "stop" kvs))
+  return $
+    if Text.null start && Text.null stop
+      then ""
+      else "t=" <> start <> "," <> stop
+
+addClass :: Text -> Attr -> Attr
+addClass c (id, cs, kvs) = (id, List.nub (c : cs), kvs)

@@ -62,22 +62,21 @@ mediaFilter2 dispo options pandoc =
 -- processed class attribute are ignored.
 mediaBlockListFilter :: [Block] -> Filter [Block]
 mediaBlockListFilter blocks = do
-  pPrint blocks
   tripletwise filterTriplets blocks >>= pairwise filterPairs
   where
     filterPairs :: (Block, Block) -> Filter (Maybe [Block])
     -- An image followed by an explicit caption paragraph.
     filterPairs (Para [Image attr alt (url, title)], Para (Str "Caption:" : caption))
       | unprocessed attr =
-        Just . single <$> compileImageToBlock attr alt url title caption
+        Just . single <$> compileImage attr alt url title caption
     -- An code block followed by an explicit caption paragraph.
     filterPairs (CodeBlock attr code, Para (Str "Caption:" : caption))
       | unprocessed attr =
-        Just . single <$> compileCodeBlockToBlock attr code caption
+        Just . single <$> compileCodeBlock attr code caption
     -- Any number of consecutive images in a masonry row.
     filterPairs (LineBlock lines, Para (Str "Caption:" : caption))
       | oneImagePerLine lines =
-        Just . single <$> compileLineBlockToBlock (map (unpackImage . List.head) lines) caption
+        Just . single <$> compileLineBlock (map (unpackImage . List.head) lines) caption
     -- Default filter
     filterPairs (x, y) = return Nothing
     filterTriplets :: (Block, Block, Block) -> Filter (Maybe [Block])
@@ -104,15 +103,15 @@ mediaBlockFilter :: Block -> Filter Block
 -- A solitary image in a paragraph with a possible caption.
 mediaBlockFilter (Para [Image attr alt (url, title)])
   | unprocessed attr =
-    compileImageToBlock attr [] url title alt
+    compileImage attr [] url title alt
 -- A solitary code block in a paragraph with a possible caption.
 mediaBlockFilter (CodeBlock attr code)
   | unprocessed attr =
-    compileCodeBlockToBlock attr code []
+    compileCodeBlock attr code []
 -- Any number of consecutive images in a masonry row.
 mediaBlockFilter (LineBlock lines)
   | oneImagePerLine lines =
-    compileLineBlockToBlock (map (unpackImage . List.head) lines) []
+    compileLineBlock (map (unpackImage . List.head) lines) []
 -- Default filter
 mediaBlockFilter block = return block
 
@@ -121,7 +120,7 @@ mediaInlineFilter :: Inline -> Filter Inline
 -- An inline image with a possible caption.
 mediaInlineFilter (Image attr alt (url, title))
   | unprocessed attr =
-    compileImageToInline attr [] url title alt
+    compileImage attr [] url title alt
 -- transformImage image caption
 -- Default filter
 mediaInlineFilter inline = return inline

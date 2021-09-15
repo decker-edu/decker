@@ -361,17 +361,6 @@ iframeHtml uri caption = do
       let iframeTag = mkIframeTag (URI.render uri) iframeAttr
       return $ mkFigureTag iframeTag captionHtml figureAttr
 
-mediaFragment :: Attrib Text
-mediaFragment = do
-  (result, (id, cs, kvs)) <- get
-  let start = fromMaybe "" $ List.lookup "start" kvs
-      stop = fromMaybe "" $ List.lookup "stop" kvs
-  put (result, (id, cs, rmKey "start" $ rmKey "stop" kvs))
-  return $
-    if Text.null start && Text.null stop
-      then ""
-      else "t=" <> start <> "," <> stop
-
 videoHtml :: URI -> [Inline] -> Attrib Html
 videoHtml uri caption = do
   uri <- lift $ transformUri uri ""
