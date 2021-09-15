@@ -15,7 +15,7 @@ var RevealQuiz = (() => {
 })();
 
 function quizMC() {
-    for (let question of document.querySelectorAll(".qmc,.quiz-mc,.quiz-multiple-choice")) {
+    for (let question of document.querySelectorAll("div.qmc,div.quiz-mc,div.quiz-multiple-choice")) {
         for (let answer of question.getElementsByTagName("li")) {
             // remove tooltip if empty to avoid grey dot
             const tip = answer.querySelector('.tooltip');
@@ -32,7 +32,7 @@ function quizMC() {
 }
 
 function quizFT() {
-    for (let question of document.querySelectorAll(".qft,.quiz-ft,.quiz-free-text")) {
+    for (let question of document.querySelectorAll("div.qft,div.quiz-ft,div.quiz-free-text")) {
         const solutions = question.querySelector(".solutionList");
         const input = question.querySelector("input");
 
@@ -118,7 +118,7 @@ function quizFT() {
 }
 
 function quizIC() {
-    const icQuestions = document.querySelectorAll(".qic,.quiz-ic,.quiz-insert-optList");
+    const icQuestions = document.querySelectorAll("div.qic,div.quiz-ic,div.quiz-insert-optList");
 
     for (let question of icQuestions) {
         const selects = question.getElementsByTagName("select");
@@ -159,10 +159,10 @@ function quizIC() {
 }
 
 function quizMI() {
-    const miQuestions = document.querySelectorAll(".qmi,.quiz-mi,.quiz-match-items");
+    const miQuestions = document.querySelectorAll("div.qmi,div.quiz-mi,div.quiz-match-items");
     for (let question of miQuestions) {
         shuffleMatchItems(question);
-        question.classList.contains('plain') ? buildPlainMatch(question) : buildDragDrop(question);    
+        question.classList.contains('plain') ? buildPlainMatch(question) : buildDragDrop(question);   
     }
 }
 
