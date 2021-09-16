@@ -2100,6 +2100,7 @@ dd {
 .reveal #poll-overlay a {
   text-decoration: none;
   color: #000;
+  font-size: 3vw;
 }
 
 .reveal #poll-overlay i {
@@ -2112,6 +2113,7 @@ dd {
 
 .reveal #poll-overlay img {
   margin: 1em auto;
+  height: 70%;
 }
 
 .reveal #login-div {
@@ -2182,6 +2184,14 @@ dd {
   list-style-type: upper-alpha;
 }
 
+.reveal .poll ul.choices li::before {
+  content: counter(answer, upper-latin) ": ";
+  counter-increment: answer;
+  margin-right: 0.5em;
+  font-weight: 700;
+  font-family: "Roboto", Helvetica, sans-serif;
+}
+
 .reveal .poll i.fa-qrcode {
   color: #004188;
   margin-right: 1em;
@@ -2193,6 +2203,26 @@ dd {
 
 .reveal .poll i.fa-sign-in-alt.hidden {
   visibility: hidden;
+}
+
+.reveal .poll .poll_results {
+  display: none;
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 41;
+  width: 33%;
+  height: 25%;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid #2a9ddf;
+  overflow: auto;
+  transform-origin: center;
+  padding: 0.2em;
+}
+
+.reveal .poll .poll_results.active {
+  display: block;
 }
 
 @keyframes blinks {
