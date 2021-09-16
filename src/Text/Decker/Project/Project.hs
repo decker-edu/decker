@@ -219,9 +219,9 @@ questHTMLSuffix = "-quest.html"
 excludeDirs :: Meta -> [String]
 excludeDirs meta =
   map normalise $
-    alwaysExclude <> lookupMetaOrElse [] "exclude-directories" meta
+    alwaysExclude <> lookupMetaOrElse [] "exclude-directories*" meta
 
-staticDirs = lookupMetaOrElse [] "static-resource-dirs"
+staticDirs = lookupMetaOrElse [] "static-resource-dirs*"
 
 unusedResources :: Meta -> IO [FilePath]
 unusedResources meta = do

@@ -4,13 +4,11 @@ title: Media Handling
 
 # Markdown Source
 
-``` {include="/test/decks/media-deck.md"}
-```
+![Included code from image tag](/test/decks/media-deck.md){.code}
 
 # CSS
 
-``` {include="/resource/decker/support/css/deck.css"}
-```
+![](/resource/decker/support/css/deck.css){.code}
 
 # Local Image
 
@@ -43,7 +41,7 @@ height="200px"}
 
 # HTML for the last one
 
-``` {.html width="90%" .align-center}
+``` {.html .align-center width="90%"}
 <section id="local-image-height200px" class="slide level1">
 <div class="decker">
 <div class="section level1 alignment">
@@ -77,7 +75,7 @@ width="80%" height="200px"}
 Some text ![](pacman-perfect-game.mp4){.controls .autoplay width="200px"} some
 more.
 
-![One](include/06-metal.png) ![Two](include/06-metal.png){height="100px"}
+![One](include/06-metal.png){height="60px"}![Two](include/06-metal.png){height="120px"}![Three](include/06-metal.png){height="240px"}
 
 # HTML for the last one
 
@@ -154,7 +152,7 @@ height="1em"}
 # Execute Javascript CodeBlock
 
 ``` {.javascript .run .align-left width="72%"}
-import *  as mod from "../static/es6.js";
+import * as mod from "../static/es6.js";
 mod.hello(anchor, "orange");
 ```
 

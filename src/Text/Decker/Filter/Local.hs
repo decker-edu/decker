@@ -89,19 +89,20 @@ classifyMedia uri (_, classes, _) =
   let ext = uriPathExtension uri
       scheme = uriScheme uri
    in if
-          | ext `maybeElem` svgExt && "embed" `elem` classes -> EmbedSvgT
+          | "code" `elem` classes -> CodeT
           | ext `maybeElem` renderExt && "render" `elem` classes -> RenderT
           | ext `maybeElem` javascriptExt && "run" `elem` classes -> JavascriptT
+          | ext `maybeElem` svgExt && "embed" `elem` classes -> EmbedSvgT
+          | ext `maybeElem` yamlExt && "question" `elem` classes -> ExamQuestT
           | ext `maybeElem` imageExt || "image" `elem` classes -> ImageT
           | ext `maybeElem` videoExt || "video" `elem` classes -> VideoT
-          | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
           | ext `maybeElem` iframeExt || "iframe" `elem` classes -> IframeT
           | ext `maybeElem` pdfExt || "pdf" `elem` classes -> PdfT
           | ext `maybeElem` mviewExt || "mview" `elem` classes -> MviewT
-          | ext `maybeElem` codeExt || "code" `elem` classes -> CodeT
-          | ext `maybeElem` yamlExt && "question" `elem` classes -> ExamQuestT
           | scheme `maybeElem` streamScheme -> StreamT
           | otherwise -> ImageT
+
+-- | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
 
 maybeElem :: Eq a => Maybe a -> [a] -> Bool
 maybeElem (Just x) xs = x `elem` xs

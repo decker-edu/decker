@@ -11,7 +11,7 @@ meta-data:
 - 'chart-meta.yaml'
 - level1.yaml
 something: '/test/decks/include/06-metal.png'
-static-resource-dirs:
+static-resource-dirs*:
 - assets
 template:
   css: dummy.css
@@ -48,13 +48,13 @@ Resource references in meta data values
 
 ## Static data directories
 
--   `static-resource-dirs`: [:meta](static-resource-dirs)
+-   `static-resource-dirs*`: [:meta](static-resource-dirs*)
 
 # File lists
 
 ## Excluded directories
 
--   `exclude-directories`: [:meta](exclude-directories)
+-   `exclude-directories*`: [:meta](exclude-directories*)
 
 ------------------------------------------------------------------------
 

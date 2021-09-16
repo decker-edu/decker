@@ -1,4 +1,4 @@
-export {prepareExaminer};
+export {};
 
 function gradeMC(exam) {
   let mcAnswer = exam.querySelector("div.exa-mc");
@@ -264,3 +264,5 @@ function shuffle(array) {
   }
   return array;
 }
+
+prepareExaminer();

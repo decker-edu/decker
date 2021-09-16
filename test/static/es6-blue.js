@@ -1,6 +1,10 @@
 // import * as mod from "./es6.js";
 
-let anchor = document.getElementById(new URL(import.meta.url).hash.slice(1));
+function anchor() {
+  let anchor = document.getElementById(new URL(import.meta.url).hash.slice(1));
+  if (!anchor) console.log("Cannot find anchor for Javascript execution.");
+  return anchor;
+}
 
 function rainbow(numOfSteps, step) {
   // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
@@ -50,10 +54,14 @@ function rainbow(numOfSteps, step) {
   return c;
 }
 
+let element = anchor();
+
 function step(n) {
-  let color = rainbow(8, n);
-  anchor.innerHTML = `<svg viewBox="0 0 200 100" style="background-color:${color};width:100%;"></svg>`;
-  setTimeout(step, 500, (n + 1) % 8);
+  let color = rainbow(32, n);
+  element.innerHTML = `<svg viewBox="0 0 200 100" style="background-color:${color};width:100%;"></svg>`;
+  setTimeout(step, 100, (n + 1) % 32);
 }
 
-step(0);
+if (element) {
+  step(0);
+}

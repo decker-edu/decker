@@ -243,6 +243,7 @@ figure > iframe {
 }
 
 /* Default width. */
+figure > pre,
 figure > img,
 figure > video {
   width: 100%;

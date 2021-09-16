@@ -29,7 +29,7 @@ provisioning: Copy
 reference-location: 'block'
 align-global: left
 # template-source: resource/
-static-resource-dirs: 
+static-resource-dirs*: 
   - assets
 slideNumber: true
 whiteboard-active-color: blue

@@ -30,7 +30,6 @@ import Data.List.Split
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as Text
-import Relude.Function (identity)
 import Text.Decker.Internal.Common (Decker, DeckerState (emptyCount))
 import Text.Pandoc
 import Text.Pandoc.Definition ()

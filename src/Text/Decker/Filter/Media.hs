@@ -47,19 +47,27 @@ compileImage attr alt url title caption = do
 -- | Compiles the contents of a CodeBlock into a Decker specific structure.
 compileCodeBlock :: Attr -> Text -> [Inline] -> Filter Block
 compileCodeBlock attr@(_, classes, _) code caption =
-  if
-      | all (`elem` classes) ["plantuml", "render"] ->
-        runAttr attr (transform "plantuml")
-      | all (`elem` classes) ["dot", "render"] ->
-        runAttr attr (transform "dot")
-      | all (`elem` classes) ["gnuplot", "render"] ->
-        runAttr attr (transform "gnuplot")
-      | all (`elem` classes) ["tex", "render"] ->
-        runAttr attr (transform "tex")
-      | all (`elem` classes) ["javascript", "run"] ->
-        runAttr attr (javascriptCodeBlock code caption)
-      | otherwise ->
-        runAttr attr (codeBlock code caption)
+  runAttr attr $ do
+    media <-
+      if
+          | all (`elem` classes) ["plantuml", "render"] ->
+            (transform "plantuml")
+          | all (`elem` classes) ["dot", "render"] ->
+            (transform "dot")
+          | all (`elem` classes) ["gnuplot", "render"] ->
+            (transform "gnuplot")
+          | all (`elem` classes) ["tex", "render"] ->
+            (transform "tex")
+          | all (`elem` classes) ["javascript", "run"] ->
+            (javascriptCodeBlock code caption)
+          | otherwise ->
+            (codeBlock code caption)
+    attribs <- do
+      injectBorder
+      injectClasses ["media"]
+      takeUsual
+      extractAttr
+    return $ mkContainer attribs [media]
   where
     transform :: Text -> Attrib Block
     transform ext = do
@@ -75,13 +83,7 @@ compileCodeBlock attr@(_, classes, _) code caption =
           createDirectoryIfMissing True (takeDirectory path)
           Text.writeFile path code
       uri <- lift $ URI.mkURI (toText path)
-      media <- renderCodeBlock uri caption
-      attribs <- do
-        injectBorder
-        injectClasses ["media"]
-        takeUsual
-        extractAttr
-      return $ mkContainer attribs [media]
+      renderCodeBlock uri caption
 
 transformCodeBlock block _ = return block
 
@@ -103,6 +105,7 @@ imageCompilers =
       (VideoT, videoBlock),
       (StreamT, streamBlock),
       -- (AudioT, audioHtml),
+      (CodeT, includeCodeBlock),
       (RenderT, renderCodeBlock),
       (JavascriptT, javascriptBlock)
     ]
@@ -127,6 +130,12 @@ imageBlock uri caption = do
       containOne $
         Image imgAttr [Str fileName] (turl, "")
 
+includeCodeBlock :: Container c => URI -> [Inline] -> Attrib c
+includeCodeBlock uri caption = do
+  uri <- lift $ transformUri uri ""
+  code <- lift $ readLocalUri uri
+  onlyBlock <$> codeBlock code caption
+
 -- |  Compiles the image data to a plain image.
 codeBlock :: Text -> [Inline] -> Attrib Block
 codeBlock code caption = do
@@ -136,19 +145,12 @@ codeBlock code caption = do
     injectStyles innerSizes
     extractAttr
   figureAttr <- do
-    injectClasses ["image"]
+    injectClasses ["code"]
     injectStyles outerSizes
     extractAttr
-  attribs <- do
-    injectBorder
-    injectClasses ["media"]
-    takeUsual
-    extractAttr
   return $
-    mkContainer attribs $
-      [ wrapFigure figureAttr caption $
-          CodeBlock codeAttr code
-      ]
+    wrapFigure figureAttr caption $
+      CodeBlock codeAttr code
 
 -- |  Compiles the image data to an iframe.
 iframeBlock :: Container c => URI -> [Inline] -> Attrib c
@@ -341,16 +343,9 @@ javascriptCodeBlock code caption = do
     injectClasses ["javascript"]
     injectStyles outerSizes
     extractAttr
-  attribs <- do
-    injectBorder
-    injectClasses ["media"]
-    takeUsual
-    extractAttr
   return $
-    mkContainer attribs $
-      [ wrapFigure figureAttr caption $
-          renderJavascript id imgAttr code
-      ]
+    wrapFigure figureAttr caption $
+      renderJavascript id imgAttr code
 
 renderJavascript :: Container c => Text -> Attr -> Text -> c
 renderJavascript id attr code =
@@ -397,6 +392,7 @@ wrapFigure attr caption inline =
 -- in, which can be either Block or Inline as defied by Pandoc. This ensures
 -- that legal HTML is generated in all circumstances.
 class Container a where
+  onlyBlock :: Block -> a
   mkContainer :: Attr -> [a] -> a
   mkFigure :: Attr -> [a] -> a
   mkFigCaption :: [a] -> a
@@ -409,6 +405,7 @@ class Container a where
   containOne :: Inline -> a
 
 instance Container Inline where
+  onlyBlock _ = error "Block element not allowed in this context."
   mkContainer = Span
   mkFigure a cs = Span (addClass "figure" a) cs
   mkFigCaption cs = Span (addClass "figcaption" nullAttr) cs
@@ -421,6 +418,7 @@ instance Container Inline where
   containOne = identity
 
 instance Container Block where
+  onlyBlock = id
   mkContainer = Div
   mkFigure a cs = tag "figure" $ Div a cs
   mkFigCaption cs = tag "figcaption" $ Div nullAttr cs

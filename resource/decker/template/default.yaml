@@ -73,6 +73,3 @@ reveal:
     bar: { borderWidth: "1" }
     line: { borderWidth: "2", tension: "0" }
     radar: { borderWidth: "2" }
-  # quiz:
-  #   server: ""
-  # jingles: {}

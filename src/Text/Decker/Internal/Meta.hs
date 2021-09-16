@@ -55,8 +55,8 @@ globalMetaFileName = "decker.yaml"
 
 -- | Fine-grained recursive merge of two meta values. Left-biased. Duplicates
 -- are removed from lists.
-mergePandocMeta' :: Meta -> Meta -> Meta
-mergePandocMeta' (Meta left) (Meta right) =
+mergePandocMeta'' :: Meta -> Meta -> Meta
+mergePandocMeta'' (Meta left) (Meta right) =
   case merge (MetaMap left) (MetaMap right) of
     MetaMap m -> Meta m
     _ -> throw $ InternalException "This cannot happen."
@@ -67,6 +67,21 @@ mergePandocMeta' (Meta left) (Meta right) =
     merge (MetaList listL) (MetaList listR) =
       MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
     merge left right = left
+
+-- | Fine-grained recursive merge of two meta values. Left-biased. Duplicates
+-- are removed from lists.
+mergePandocMeta' :: Meta -> Meta -> Meta
+mergePandocMeta' (Meta left) (Meta right) =
+  case merge "" (MetaMap left) (MetaMap right) of
+    MetaMap m -> Meta m
+    _ -> throw $ InternalException "This cannot happen."
+  where
+    merge :: Text -> MetaValue -> MetaValue -> MetaValue
+    merge _ (MetaMap mapL) (MetaMap mapR) =
+      MetaMap $ Map.unionWithKey merge mapL mapR
+    merge key (MetaList listL) (MetaList listR) | "*" `Text.isSuffixOf` key =
+      MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
+    merge key left right = left
 
 -- | Converts YAML meta data to pandoc meta data.
 toPandocMeta :: Y.Value -> Meta

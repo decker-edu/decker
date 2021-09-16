@@ -185,7 +185,7 @@ pathVariables meta =
 compiletimePathVariables :: Meta -> [Text]
 compiletimePathVariables meta =
   List.nub $
-    ["csl", "bibliography", "meta-data", "static-resource-dirs"]
+    ["csl", "bibliography", "meta-data", "static-resource-dirs*"]
       <> lookupMetaOrElse [] "compiletime-path-variables" meta
 
 runtimePathVariables :: Meta -> [Text]

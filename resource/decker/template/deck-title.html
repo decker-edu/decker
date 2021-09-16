@@ -1,27 +1,40 @@
-$if(title)$
-<section id="$idprefix$title-slide"$for(title-slide-attributes/pairs)$ $it.key$="$it.value$"$endfor$>
-  <h1 class="title">$title$</h1>
-$if(subtitle)$
-  <p class="subtitle">$subtitle$</p>
-$endif$
-$for(author)$
-  <p class="author">$author$</p>
-$endfor$
-$for(institute)$
-  <p class="institute">$institute$</p>
-$endfor$
-$if(date)$
-  <p class="date">$date$</p>
-$endif$
+<section id="$idprefix$title-slide" class="title-page">
+    <h1 style="display:none">Title</h1>
+    <div>
+      <div class="title"> $title$ </div>
+    $if(subtitle)$
+      <div class="subtitle"> $subtitle$ </div>
+    $endif$
+    </div>
+
+    $if(template.teaser)$
+    <img class="teaser" src=$template.teaser$>
+    $endif$
+    
+    $if(authors)$
+    <div class="authors">
+    $for(authors)$
+      $if(it.name)$
+          <div class="author">
+              $it.name$ 
+              $if(it.affiliation)$
+                  <div class="affiliation"> $it.affiliation$ </div>
+              $endif$
+          </div>
+      $endif$
+    $endfor$
+    </div>
+    $endif$
+
+    $if(author)$
+    <div class="author"> $author$ </div>
+    $endif$
+
+    $if(affiliation)$
+    <div class="affiliation"> $affiliation$ </div>
+    $endif$
+
+    $if(date)$
+    <div class="date"> $date$ </div>
+    $endif$
 </section>
-$endif$
-$if(toc)$
-<section id="$idprefix$TOC">
-<nav role="doc-toc"> 
-$if(toc-title)$
-<h2 id="$idprefix$toc-title">$toc-title$</h2>
-$endif$
-$table-of-contents$
-</nav>
-</section>
-$endif$
