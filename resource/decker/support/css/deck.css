@@ -4,13 +4,20 @@
 :root {
   --list-indent: 1.5em;
   --block-border-width: 0.05em;
-  --block-outset: 0.2em;
+  --block-outset: 0.3em;
+
+  --c0: #ffffff;
+  --c1: #e7e7e7;
+  --c2: #eeeeee;
+  --c3: #d7d7d7;
+  --c4: #dddddd;
+  --c5: #c7c7c7;
+  --c6: #cccccc;
 }
 
-/* Reset Reval CSS to sane values */
+/* Reset Reveal CSS to sane values */
 .reveal .slides {
   text-align: left;
-  border: 1px dotted #555;
 }
 
 /* Text */
@@ -18,6 +25,17 @@ body {
   font-family: sans-serif;
   font-size: 38px;
   box-sizing: border-box;
+
+  background-color: var(--c0);
+}
+
+section {
+  background-color: var(--c1);
+}
+
+div.alignment {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 
 code {
@@ -30,6 +48,17 @@ pre {
   max-height: 500px;
 }
 
+span.pre {
+  display: block;
+  font-family: monospace;
+  overflow: scroll;
+  max-height: 500px;
+  white-space: pre;
+  unicode-bidi: embed;
+  background-color: var(--c0);
+}
+
+span.pre > code,
 pre > code {
   font-size: 80%;
 }
@@ -41,16 +70,17 @@ h1 {
   margin-top: 0;
   margin-bottom: 0.3em;
 
-  /* background-color: #efe; */
+  background-color: var(--c6);
 }
 
 h2 {
-  font-size: 1.1em;
+  font-size: 1.2em;
   font-weight: bold;
+
   margin-top: 0;
   margin-bottom: 0.3em;
 
-  /* background-color: #efe; */
+  background-color: var(--c6);
 }
 
 p {
@@ -84,10 +114,14 @@ ol {
 div.layout.row {
   display: flex;
   flex-flow: row nowrap;
+
+  background-color: var(--c4);
 }
 
 div.layout.row > div.area {
   flex: 1 1 0;
+
+  background-color: var(--c5);
 }
 
 div.layout.row > div.area[grow="2"] {
@@ -174,8 +208,9 @@ div.block.info {
 
 div.media {
   display: flex;
-  background-color: #eee;
   justify-content: center;
+
+  background-color: #eee;
 }
 
 div.media.align-left {
@@ -190,8 +225,6 @@ div.media.align-right {
 span.figure,
 figure {
   width: 100%;
-
-  background-color: #ddf;
 }
 
 /* Figcaptions can not be used in inline context, using spans instead. */
@@ -201,7 +234,7 @@ figcaption {
   font-style: italic;
   text-align: center;
 
-  background-color: #dfd;
+  background-color: var(--c4);
 }
 
 /* Inline media blocks are rendered as spans. */
@@ -225,17 +258,20 @@ iframe,
 video,
 object,
 canvas,
-svg {
+svg,
+pre {
   vertical-align: bottom;
 }
 
 /* Default size for elements without intrinsic aspect ratio. */
+span.figure > span.pre,
 span.figure > object,
 span.figure > iframe {
   width: 200px;
   height: 100px;
 }
 
+figure > pre,
 figure > object,
 figure > iframe {
   width: 100%;
@@ -243,7 +279,6 @@ figure > iframe {
 }
 
 /* Default width. */
-figure > pre,
 figure > img,
 figure > video {
   width: 100%;

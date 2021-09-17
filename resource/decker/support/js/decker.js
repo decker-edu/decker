@@ -1,5 +1,17 @@
 "use strict";
 
+if (Decker) {
+  Decker.anchor = (meta) => {
+    let anchor = document.getElementById(
+      new URL(meta.url).hash.slice(1)
+    );
+    if (!anchor) console.log("Cannot find anchor for Javascript execution.");
+    return anchor;
+  };
+} else {
+  console.log("window.Decker needs to be already defined.");
+}
+
 function isElectron() {
   // Renderer process
   if (

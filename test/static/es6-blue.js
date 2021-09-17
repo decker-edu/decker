@@ -1,11 +1,3 @@
-// import * as mod from "./es6.js";
-
-function anchor() {
-  let anchor = document.getElementById(new URL(import.meta.url).hash.slice(1));
-  if (!anchor) console.log("Cannot find anchor for Javascript execution.");
-  return anchor;
-}
-
 function rainbow(numOfSteps, step) {
   // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
   // Adam Cole, 2011-Sept-14
@@ -54,7 +46,7 @@ function rainbow(numOfSteps, step) {
   return c;
 }
 
-let element = anchor();
+let element = Decker.anchor(import.meta);
 
 function step(n) {
   let color = rainbow(32, n);

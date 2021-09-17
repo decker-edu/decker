@@ -26,6 +26,8 @@ import Text.Pandoc
 import Text.Printf
 import Text.URI (URI)
 import qualified Text.URI as URI
+import Data.ByteString.Lazy.Builder (toLazyByteString)
+import HTMLEntities.Text (text)
 
 -- | Compiles the contents of an Image into a Decker specific structure. This is
 -- context aware and produces either a Block or an Inline element.
@@ -134,10 +136,10 @@ includeCodeBlock :: Container c => URI -> [Inline] -> Attrib c
 includeCodeBlock uri caption = do
   uri <- lift $ transformUri uri ""
   code <- lift $ readLocalUri uri
-  onlyBlock <$> codeBlock code caption
+  codeBlock code caption
 
 -- |  Compiles the image data to a plain image.
-codeBlock :: Text -> [Inline] -> Attrib Block
+codeBlock :: Container c => Text -> [Inline] -> Attrib c
 codeBlock code caption = do
   (innerSizes, outerSizes) <- calcImageSizes
   codeAttr <- do
@@ -150,7 +152,7 @@ codeBlock code caption = do
     extractAttr
   return $
     wrapFigure figureAttr caption $
-      CodeBlock codeAttr code
+      mkPre codeAttr code
 
 -- |  Compiles the image data to an iframe.
 iframeBlock :: Container c => URI -> [Inline] -> Attrib c
@@ -392,6 +394,7 @@ wrapFigure attr caption inline =
 -- in, which can be either Block or Inline as defied by Pandoc. This ensures
 -- that legal HTML is generated in all circumstances.
 class Container a where
+  toBlock :: a -> Block
   onlyBlock :: Block -> a
   mkContainer :: Attr -> [a] -> a
   mkFigure :: Attr -> [a] -> a
@@ -399,12 +402,14 @@ class Container a where
   mkIframe :: Attr -> a
   mkVideo :: Attr -> a
   mkObject :: Attr -> a
+  mkPre :: Attr -> Text -> a
   mkRaw :: Attr -> Text -> a
   mkRaw' :: Text -> a
   containSome :: [Inline] -> a
   containOne :: Inline -> a
 
 instance Container Inline where
+  toBlock c = Plain [c]
   onlyBlock _ = error "Block element not allowed in this context."
   mkContainer = Span
   mkFigure a cs = Span (addClass "figure" a) cs
@@ -412,12 +417,14 @@ instance Container Inline where
   mkIframe a = tag "iframe" $ Span a []
   mkVideo a = tag "video" $ Span a []
   mkObject a = tag "object" $ Span a []
+  mkPre a t = Span (addClass "pre" a) [tag "code" $ Span nullAttr [RawInline "html" (text t)]]
   mkRaw a t = Span a [RawInline "html" t]
   mkRaw' t = RawInline "html" t
   containSome = Span nullAttr
   containOne = identity
 
 instance Container Block where
+  toBlock = id
   onlyBlock = id
   mkContainer = Div
   mkFigure a cs = tag "figure" $ Div a cs
@@ -425,6 +432,7 @@ instance Container Block where
   mkIframe a = tag "iframe" $ Div a []
   mkVideo a = tag "video" $ Div a []
   mkObject a = tag "object" $ Div a []
+  mkPre a t = CodeBlock a t
   mkRaw a t = Div a [RawBlock "html" t]
   mkRaw' t = RawBlock "html" t
   containSome = Plain

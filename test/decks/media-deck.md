@@ -1,5 +1,6 @@
 ---
-title: Media Handling
+title: New Style Media Handling
+subtitle: Clean. Consistent. Robust.
 ---
 
 # Markdown Source
@@ -11,6 +12,16 @@ title: Media Handling
 ![](/resource/decker/support/css/deck.css){.code}
 
 # Local Image
+
+![Alt Caption $e=mc^2$](include/06-metal.png)
+
+# Local Images in 2 columns {.columns}
+
+## Left {.left}
+
+![Alt Caption $e=mc^2$](include/06-metal.png)
+
+## Left {.right}
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
@@ -30,11 +41,15 @@ title: Media Handling
 
 Caption: Block Caption $e=mc^2$
 
-# Local Image width=50%
+# Local Image 
+
+## `{width=50%}`
 
 ![Overwriting Block Caption $e=mc^2$](include/06-metal.png){width="50%"}
 
-# Local Image height=200px
+# Local Image 
+
+## `{height=200px}`
 
 ![Overwriting Block Caption $e=mc^2$](include/06-metal.png){.align-right
 height="200px"}
@@ -65,15 +80,17 @@ Overwriting Block Caption <span class="math inline">\(e=mc^2\)</span>
 
 Caption: Code blocks can have captions too.
 
-# Local Image width=80% height=200px
+# Local Image 
+
+## `{width=80% height=200px}`
 
 ![Overwriting Block Caption $e=mc^2$](include/06-metal.png){.align-center
 width="80%" height="200px"}
 
 # Local Inline Media
 
-Some text ![](pacman-perfect-game.mp4){.controls .autoplay width="200px"} some
-more.
+Some text ![](pacman-perfect-game.mp4){.controls .autoplay height="100px"} some
+more ![](../static/es6.js){.code} code.
 
 ![One](include/06-metal.png){height="60px"}![Two](include/06-metal.png){height="120px"}![Three](include/06-metal.png){height="240px"}
 
@@ -151,7 +168,7 @@ height="1em"}
 
 # Execute Javascript CodeBlock
 
-``` {.javascript .run .align-left width="72%"}
+``` {.javascript .run width="72%"}
 import * as mod from "../static/es6.js";
 mod.hello(anchor, "orange");
 ```
