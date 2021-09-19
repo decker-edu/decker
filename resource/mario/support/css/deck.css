@@ -12,9 +12,13 @@
   --blue: #2a9ddf;
   --light-blue: #30B3FF;
   --emphColor: var(--blue);
-  --whiteboard-active-color: var(--blue);
 }
 
+:root {
+  --icon-active-color: #2a9ddf;
+  --icon-inactive-color: lightgrey;
+  --icon-size: 2vmin;
+}
 
 /*********************************************
  * GLOBAL STYLES
@@ -846,10 +850,10 @@ span.decker.svg.embed {
   background:  #ffffff00;
 }
 .reveal .controls-arrow {
-  color: var(--whiteboard-inactive-color);
+  color: var(--icon-inactive-color);
 }
 .reveal .controls-arrow:hover {
-  color: var(--whiteboard-active-color);
+  color: var(--icon-active-color);
 }
 .reveal .slide-number a {
   color:       black;
@@ -967,13 +971,13 @@ span.decker.svg.embed {
     border:           none;
     border-radius:    4px;
     opacity:          0.5;
-    color:            var(--whiteboard-inactive-color);
+    color:            var(--icon-inactive-color);
     background-color: rgba(255,255,255,0.5);
 }
 
 .reveal button.fs-button:hover { 
     opacity:          1.0;
-    color:            var(--whiteboard-active-color);
+    color:            var(--icon-active-color);
     background-color: rgba(255,255,255,0.8);
 }
 
@@ -985,22 +989,22 @@ span.decker.svg.embed {
 
 .reveal .slide-menu-button {
     position:   fixed;
-    left:       calc(var(--whiteboard-icon-size) * 0.25);
-    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    left:       calc(var(--icon-size) * 0.25);
+    top:        calc(var(--icon-size) * 0.25);
     bottom:     auto;
     right:      auto;
-    padding:    calc(var(--whiteboard-icon-size) * 0.5);
+    padding:    calc(var(--icon-size) * 0.5);
     margin:     auto;
     z-index:    40;
     background: none;
-    font-size:  var(--whiteboard-icon-size);
+    font-size:  var(--icon-size);
     opacity:    0.5;
-    color:      var(--whiteboard-inactive-color);
+    color:      var(--icon-inactive-color);
 }
 
 .reveal .slide-menu-button:hover {
     opacity: 1.0;
-    color: var(--whiteboard-active-color);
+    color: var(--icon-active-color);
 }
 
 .reveal .slide-menu-button a {
@@ -1015,15 +1019,15 @@ span.decker.svg.embed {
 div.open-button {
     position:   fixed;
     left:       auto;
-    right:      calc(var(--whiteboard-icon-size) * 0.25);
-    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    right:      calc(var(--icon-size) * 0.25);
+    top:        calc(var(--icon-size) * 0.25);
     bottom:     auto;
-    margin:     calc(var(--whiteboard-icon-size) * 0.5);
+    margin:     calc(var(--icon-size) * 0.5);
     padding:    0.2em;
     z-index:    40;
     background: none;
-    font-size:  var(--whiteboard-icon-size);
-    color:      var(--whiteboard-inactive-color);
+    font-size:  var(--icon-size);
+    color:      var(--icon-inactive-color);
 }
 
 div.open-button.i {
@@ -1035,7 +1039,7 @@ div.q-panel button:hover,
 div.q-panel div.q-header button:hover,
 div.q-panel div.q-footer div.q-login:not(.admin):hover {
     opacity: 1.0;
-    color: var(--whiteboard-active-color);
+    color: var(--icon-active-color);
 }
 
 div.open-badge {

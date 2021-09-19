@@ -1,9 +1,6 @@
 /* colors for active/inactive buttons 
  * active color is also used for additional page indicator */
 :root {
-  --whiteboard-icon-size: 2vmin;
-  --whiteboard-active-color: #2a9ddf;
-  --whiteboard-inactive-color: lightgrey;
   --whiteboard-background-color: rgb(250, 250, 250);
 }
 
@@ -47,7 +44,7 @@
     border-bottom: 5px dotted #ffffff00;
   }
   to {
-    border-bottom: 5px dotted var(--whiteboard-active-color);
+    border-bottom: 5px dotted var(--icon-active-color);
   }
 }
 
@@ -103,16 +100,16 @@
 .reveal button.whiteboard {
   display: inline-block;
   position: relative;
-  font-size: var(--whiteboard-icon-size);
-  width: calc(var(--whiteboard-icon-size) * 2);
-  height: calc(var(--whiteboard-icon-size) * 2);
-  padding: calc(var(--whiteboard-icon-size) * 0.1);
-  margin: calc(var(--whiteboard-icon-size) * 0.2);
+  font-size: var(--icon-size);
+  width: calc(var(--icon-size) * 2);
+  height: calc(var(--icon-size) * 2);
+  padding: calc(var(--icon-size) * 0.1);
+  margin: calc(var(--icon-size) * 0.2);
   outline: none;
   background: none;
   font-family: "Font Awesome 5 Free";
   border: 2px solid transparent;
-  color: var(--whiteboard-inactive-color);
+  color: var(--icon-inactive-color);
 }
 .reveal button.whiteboard.checkbox {
   border-radius: 15%;
@@ -121,18 +118,18 @@
   border-radius: 100%;
 }
 .reveal button.whiteboard[data-active="true"] {
-  color: var(--whiteboard-active-color);
+  color: var(--icon-active-color);
 }
 .reveal button.whiteboard[data-active="true"] {
-  color: var(--whiteboard-active-color);
+  color: var(--icon-active-color);
 }
 .reveal button.whiteboard.checkbox[data-active="false"],
 .reveal button.whiteboard.radiobutton[data-active="false"] {
-  border: 1px solid var(--whiteboard-inactive-color);
+  border: 1px solid var(--icon-inactive-color);
 }
 .reveal button.whiteboard.checkbox[data-active="true"],
 .reveal button.whiteboard.radiobutton[data-active="true"] {
-  border: 2px solid var(--whiteboard-active-color);
+  border: 2px solid var(--icon-active-color);
 }
 /* hide outline around focused/clicked buttons */
 .reveal button.whiteboard:focus,
@@ -149,11 +146,11 @@
   padding: 0;
   margin: 0;
   z-index: 40;
-  border-radius: calc(var(--whiteboard-icon-size) * 0.5);
+  border-radius: calc(var(--icon-size) * 0.5);
   border: 1px solid transparent;
   background: none;
-  left: calc(var(--whiteboard-icon-size) * 0.25);
-  bottom: calc(var(--whiteboard-icon-size) * 0.25);
+  left: calc(var(--icon-size) * 0.25);
+  bottom: calc(var(--icon-size) * 0.25);
   display: flex;
   flex-direction: column-reverse;
 }
@@ -184,12 +181,12 @@ body.print-pdf #whiteboardButtons {
 }
 #whiteboardButtons > #whiteboardButton:hover {
   display: inline-block;
-  color: var(--whiteboard-active-color) !important;
+  color: var(--icon-active-color) !important;
   opacity: 1;
 }
 #whiteboardButtons.whiteboardActive > #whiteboardButton {
   display: inline-block;
-  color: var(--whiteboard-active-color);
+  color: var(--icon-active-color);
   opacity: 1;
 }
 
@@ -202,10 +199,10 @@ body.print-pdf #whiteboardButtons {
   margin: 0;
   z-index: 40;
   border: 1px solid #eeeeee;
-  border-radius: calc(var(--whiteboard-icon-size) * 0.5);
+  border-radius: calc(var(--icon-size) * 0.5);
   background: var(--whiteboard-background-color);
-  left: calc(var(--whiteboard-icon-size) * 3);
-  bottom: calc(var(--whiteboard-icon-size) * 14);
+  left: calc(var(--icon-size) * 3);
+  bottom: calc(var(--icon-size) * 14);
   display: block;
   visibility: hidden;
   display: grid;
@@ -215,8 +212,8 @@ body.print-pdf #whiteboardButtons {
 #whiteboardColorPicker button.whiteboard {
   margin: 0;
   padding: 0;
-  width: calc(var(--whiteboard-icon-size) * 1.5);
-  height: calc(var(--whiteboard-icon-size) * 1.5);
+  width: calc(var(--icon-size) * 1.5);
+  height: calc(var(--icon-size) * 1.5);
   text-align: center;
   vertical-align: middle;
   color: black;

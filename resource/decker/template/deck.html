@@ -52,6 +52,8 @@ $endfor$
     /* Store JSON encoded Pandoc meta data in a global variable. */
     window.Decker = {meta: $decker-meta$};
   </script>
+  <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
+  <script src="$decker-support-dir$/js/decker.js"></script>
 </head>
 
 <body>
@@ -73,8 +75,6 @@ $body$
     </div>
   </div>
 
-  <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
-  <script src="$decker-support-dir$/js/decker.js"></script>
 
   <script type="module">
     // This was once deprecated. 

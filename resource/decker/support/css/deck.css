@@ -1,5 +1,21 @@
 /* Here be CSS */
 
+@import url("../vendor/fontawesome/css/all.css");
+
+/* nice colors */
+:root {
+  --primary-color: #2a9ddf;
+  --secondary-color: orange;
+  --hover-color: #30B3FF;
+}
+
+/* icon settings */
+:root {
+  --icon-active-color: var(--primary-color);
+  --icon-inactive-color: lightgrey;
+  --icon-size: 2vmin;
+}
+
 /* These are just for internal calculations */
 :root {
   --list-indent: 1.5em;
@@ -271,7 +287,6 @@ span.figure > iframe {
   height: 100px;
 }
 
-figure > pre,
 figure > object,
 figure > iframe {
   width: 100%;
@@ -303,4 +318,66 @@ figure > video {
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+/* menu icon in top left corner */
+.reveal .slide-menu-button {
+    position:   fixed;
+    left:       calc(var(--whiteboard-icon-size) * 0.25);
+    top:        calc(var(--whiteboard-icon-size) * 0.25);
+    bottom:     auto;
+    right:      auto;
+    padding:    calc(var(--whiteboard-icon-size) * 0.5);
+    margin:     auto;
+    z-index:    40;
+    background: none;
+    font-size:  var(--whiteboard-icon-size);
+    opacity:    0.5;
+    color:      var(--whiteboard-inactive-color);
+}
+.reveal .slide-menu-button:hover {
+    opacity: 1.0;
+    color: var(--whiteboard-active-color);
+}
+.reveal .slide-menu-button a {
+    color: inherit;
+}
+
+/* slide number and control arrows */
+.reveal .controls {
+  font-size: 1.2vmin;
+  bottom:    0;
+  right:     1.2vmin;
+}
+.reveal .slide-number {
+  position:    fixed;
+  padding:     7px;
+  font-size:   2vmin;
+  width:       3vmin;
+  bottom:      2vmin;
+  right:       4.6vmin;
+  text-align:  center;
+  color:       black;
+  background:  #ffffff00;
+}
+.reveal .controls-arrow {
+  color: var(--icon-inactive-color);
+}
+.reveal .controls-arrow:hover {
+  color: var(--icon-active-color);
+}
+.reveal .slide-number a,
+.reveal .slide-number a:hover {
+  color:       black;
+}
+
+/* links */
+.reveal a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+.reveal a:hover {
+  color: var(--hover-color);
+  text-shadow: none;
+  border: none; 
 }
