@@ -1,6 +1,9 @@
 ---
 date: September 17th 2021
 title: Decker Dev Day
+reveal:
+  slideNumber: true
+  vertical: true
 ---
 
 # Agenda
@@ -11,7 +14,7 @@ title: Decker Dev Day
 
 # Branch `develop`
 
-# Branch `develop`
+# Branch `develop` {.sub}
 
 ## What is happening there? {.fragment}
 
@@ -19,7 +22,7 @@ title: Decker Dev Day
 2.  Resource Packs
 3.  HTML + CSS structure cleanup
 
-# Upgrades
+# Upgrades {.sub}
 
 ## Pandoc 2.14.2 {.fragment}
 
@@ -32,7 +35,7 @@ title: Decker Dev Day
 -   Plugins are now ES6 modules
 -   So are our own plugins
 
-# Cleaner templates
+# Cleaner templates {.sub}
 
 ## Decker meta data
 

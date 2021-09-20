@@ -93,7 +93,7 @@ slideAreas names blocks =
       split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
 
 layoutSlide2 :: Slide -> Decker Slide
-layoutSlide2 slide@(Slide (Just header) body) = do
+layoutSlide2 slide@(Slide (Just header) body dir) = do
   disp <- gets disposition
   case disp of
     Disposition _ Html ->
@@ -101,7 +101,7 @@ layoutSlide2 slide@(Slide (Just header) body) = do
         Just layout ->
           let names = layoutAreas layout
               areas = slideAreas names body
-           in return $ Slide (Just header) $ renderLayout areas layout
+           in return $ Slide (Just header) (renderLayout areas layout) dir
         Nothing ->
           return $
             Slide
@@ -113,5 +113,6 @@ layoutSlide2 slide@(Slide (Just header) body) = do
                       body
                   ]
               ]
+              dir
     Disposition _ _ -> return slide
 layoutSlide2 slide = return slide

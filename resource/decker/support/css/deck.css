@@ -6,7 +6,7 @@
 :root {
   --primary-color: #2a9ddf;
   --secondary-color: orange;
-  --hover-color: #30B3FF;
+  --hover-color: #30b3ff;
 }
 
 /* icon settings */
@@ -322,44 +322,52 @@ figure > video {
 
 /* menu icon in top left corner */
 .reveal .slide-menu-button {
-    position:   fixed;
-    left:       calc(var(--whiteboard-icon-size) * 0.25);
-    top:        calc(var(--whiteboard-icon-size) * 0.25);
-    bottom:     auto;
-    right:      auto;
-    padding:    calc(var(--whiteboard-icon-size) * 0.5);
-    margin:     auto;
-    z-index:    40;
-    background: none;
-    font-size:  var(--whiteboard-icon-size);
-    opacity:    0.5;
-    color:      var(--whiteboard-inactive-color);
+  position: fixed;
+  left: calc(var(--whiteboard-icon-size) * 0.25);
+  top: calc(var(--whiteboard-icon-size) * 0.25);
+  bottom: auto;
+  right: auto;
+  padding: calc(var(--whiteboard-icon-size) * 0.5);
+  margin: auto;
+  z-index: 40;
+  background: none;
+  font-size: var(--whiteboard-icon-size);
+  opacity: 0.5;
+  color: var(--whiteboard-inactive-color);
 }
 .reveal .slide-menu-button:hover {
-    opacity: 1.0;
-    color: var(--whiteboard-active-color);
+  opacity: 1;
+  color: var(--whiteboard-active-color);
 }
 .reveal .slide-menu-button a {
-    color: inherit;
+  color: inherit;
 }
 
 /* slide number and control arrows */
+
+/* Try hard to center the slide number in the controls. This is hopeless with
+viewport relative sizing and/or vertical slides. It should probably not be the
+default.*/
+:root {
+  --controls-gap: 1vmin;
+  --controls-size: 1vmin;
+}
 .reveal .controls {
-  font-size: 1.2vmin;
-  bottom:    0;
-  right:     1.2vmin;
+  font-size: var(--controls-size);
+  bottom: var(--controls-gap);
+  right: var(--controls-gap);
 }
 .reveal .slide-number {
-  position:    fixed;
-  padding:     7px;
-  font-size:   2vmin;
-  width:       3vmin;
-  bottom:      2vmin;
-  right:       4.6vmin;
-  text-align:  center;
-  color:       black;
-  background:  #ffffff00;
+  font-size: calc(2 * var(--controls-size));
+  width: calc(9 * var(--controls-size));
+  height: calc(9 * var(--controls-size));
+  line-height: calc(9 * var(--controls-size));
+  right: calc(var(--controls-size));
+  bottom: calc(var(--controls-size));
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0);
 }
+
 .reveal .controls-arrow {
   color: var(--icon-inactive-color);
 }
@@ -368,7 +376,7 @@ figure > video {
 }
 .reveal .slide-number a,
 .reveal .slide-number a:hover {
-  color:       black;
+  color: black;
 }
 
 /* links */
@@ -379,5 +387,5 @@ figure > video {
 .reveal a:hover {
   color: var(--hover-color);
   text-shadow: none;
-  border: none; 
+  border: none;
 }

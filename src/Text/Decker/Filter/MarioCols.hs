@@ -82,4 +82,4 @@ isInt :: Text.Text -> Bool
 isInt str = isJust (readMaybe $ Text.unpack str :: Maybe Int)
 
 marioCols :: Slide -> Decker Slide
-marioCols (Slide header blocks) = return (Slide header (cols blocks))
+marioCols (Slide header blocks dir) = return (Slide header (cols blocks) dir)

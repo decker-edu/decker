@@ -42,10 +42,10 @@ processPandoc transform base disp prov pandoc =
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
 splitJoinColumns :: Slide -> Decker Slide
-splitJoinColumns slide@(Slide header body) = do
+splitJoinColumns slide@(Slide header body dir) = do
   disp <- gets disposition
   case disp of
-    Disposition Deck Html -> return $ Slide header $ concatMap wrapRow rowBlocks
+    Disposition Deck Html -> return $ Slide header (concatMap wrapRow rowBlocks) dir
       where
         rowBlocks =
           split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
@@ -53,7 +53,7 @@ splitJoinColumns slide@(Slide header body) = do
           | hasClass "split" first = [Div ("", ["css-columns"], []) row]
         wrapRow row = row
     Disposition Handout Html ->
-      return $ Slide header $ concatMap wrapRow rowBlocks
+      return $ Slide header (concatMap wrapRow rowBlocks) dir
       where
         rowBlocks =
           split (keepDelimsL $ whenElt (hasAnyClass ["split", "join"])) body
@@ -88,10 +88,10 @@ deFragment = filter (`notElem` fragmentRelated)
 -- Since Pandoc 2.9 the class "column" needs to be added to boxes to prevent
 -- sectioning by the Pandoc writer (see `Text.Pandoc.Shared.makeSections`).
 wrapBoxes :: Slide -> Decker Slide
-wrapBoxes slide@(Slide header body) = do
+wrapBoxes slide@(Slide header body dir) = do
   disp <- gets disposition
   case disp of
-    Disposition _ Html -> return $ Slide header $ concatMap wrap boxes
+    Disposition _ Html -> return $ Slide header (concatMap wrap boxes) dir
     Disposition _ _ -> return slide
   where
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
@@ -136,8 +136,9 @@ wrapSlidesinDivs (Pandoc meta blocks) =
   Pandoc meta $ fromSlidesWrapped $ toSlides blocks
 
 selectActiveSlideContent :: Slide -> Decker Slide
-selectActiveSlideContent (Slide header body) =
-  Slide header <$> selectActiveContent body
+selectActiveSlideContent (Slide header body dir) = do
+  body <- selectActiveContent body
+  return $ Slide header body dir
 
 -- Splice all the Divs back into the stream of Blocks
 deDiv :: [Block] -> [Block]

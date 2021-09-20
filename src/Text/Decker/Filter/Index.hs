@@ -73,7 +73,7 @@ frequency xs = Map.toList (Map.fromListWith (+) [(x, 1) | x <- xs])
 
 -- Extracts all words from a slide.
 indexSlide :: Slide -> (Maybe (Text, Text), [(Text, Int)])
-indexSlide slide@(Slide header body) =
+indexSlide slide@(Slide header body dir) =
   let words =
         maybe [] (query extractInlineWords) header
           <> query extractInlineWords body
@@ -88,7 +88,7 @@ mapSlides f (Pandoc meta blocks) =
 
 -- Extracts id and title from slide header if it has one.
 extractIdTitle :: Slide -> Maybe (Text, Text)
-extractIdTitle (Slide (Just (Header _ (id, _, _) text)) _) =
+extractIdTitle (Slide (Just (Header _ (id, _, _) text)) _ _) =
   Just (id, stringify text)
 extractIdTitle _ = Nothing
 
