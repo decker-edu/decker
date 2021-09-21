@@ -4,13 +4,14 @@ title: Decker Dev Day
 reveal:
   slideNumber: true
   vertical: true
+highlightjs: atom-one-light
 ---
 
 # Agenda
 
 1.  Branch `develop`
 2.  Winter 2021
-3.  Development model
+3.  Development model $\infty$
 
 # Branch `develop`
 
@@ -265,7 +266,7 @@ inline ![Some balls.](static/06-metal.png){height="120px"}
 
 ## Javascript {.left}
 
-![](../test/static/es6-blue.js){.javascript height="300px"}
+![](../test/static/es6-blue.js){.javascript .code}
 
 ## Result {.right}
 

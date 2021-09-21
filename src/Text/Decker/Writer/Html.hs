@@ -25,7 +25,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
-import Text.Decker.Writer.Layout
+import qualified Text.Decker.Writer.Layout as Layout
 import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Template
 import Text.DocTemplates
@@ -101,7 +101,7 @@ writeNativeWhileDebugging out mod doc =
 markdownToHtmlDeck :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
 markdownToHtmlDeck meta getTemplate markdownFile out = do
   if lookupMetaOrElse False "experiment.slide-layout" meta
-    then markdownToHtmlLayoutDeck meta getTemplate markdownFile out
+    then Layout.markdownToHtmlLayoutDeck meta getTemplate markdownFile out
     else markdownToHtmlDeck' meta getTemplate markdownFile out
 
 -- | Write a markdown file to a HTML file using the page template.
@@ -152,7 +152,6 @@ markdownToHtmlPage meta getTemplate markdownFile out = do
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let disp = Disposition Page Html
   pandoc@(Pandoc docMeta _) <- readAndFilterMarkdownFile disp meta markdownFile
-  -- pandoc@(Pandoc docMeta _) <- readAndProcessMarkdown meta markdownFile disp
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
@@ -172,7 +171,7 @@ markdownToHtmlPage meta getTemplate markdownFile out = do
             writerTableOfContents = lookupMetaOrElse False "show-toc" docMeta,
             writerTOCDepth = lookupMetaOrElse 1 "toc-depth" docMeta
           }
-  writePandocFile "html5" options out pandoc
+  Layout.writePandocFile options out pandoc
 
 -- | Write a markdown file to a HTML file using the handout template.
 markdownToHtmlHandout ::
@@ -183,8 +182,6 @@ markdownToHtmlHandout meta getTemplate markdownFile out = do
   let disp = Disposition Handout Html
   pandoc@(Pandoc docMeta _) <-
     wrapSlidesinDivs <$> readAndFilterMarkdownFile disp meta markdownFile
-  -- pandoc@(Pandoc docMeta _) <-
-  -- wrapSlidesinDivs <$> readAndProcessMarkdown meta markdownFile disp
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
@@ -204,7 +201,7 @@ markdownToHtmlHandout meta getTemplate markdownFile out = do
             writerTableOfContents = lookupMetaOrElse False "show-toc" docMeta,
             writerTOCDepth = lookupMetaOrElse 1 "toc-depth" docMeta
           }
-  writePandocFile "html5" options out pandoc
+  Layout.writePandocFile options out pandoc
 
 -- | Write a markdown file to a HTML file using the page template.
 markdownToNotebook :: Meta -> FilePath -> FilePath -> Action ()
@@ -212,8 +209,6 @@ markdownToNotebook meta markdownFile out = do
   putCurrentDocument out
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let disp = Disposition Notebook Html
-  --pandoc@(Pandoc docMeta _) <-
-  --filterNotebookSlides <$> readAndProcessMarkdown meta markdownFile disp
   pandoc@(Pandoc docMeta _) <-
     filterNotebookSlides <$> readAndFilterMarkdownFile disp meta markdownFile
   let options =

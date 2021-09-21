@@ -5,9 +5,8 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Writer.Layout (markdownToHtmlLayoutDeck) where
+module Text.Decker.Writer.Layout (markdownToHtmlLayoutDeck, writePandocFile) where
 
-import qualified Data.List as List
 import qualified Data.Map as Map
 -- import Text.Pretty.Simple
 
@@ -46,10 +45,8 @@ markdownToHtmlLayoutDeck meta getTemplate markdownFile out = do
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
-          { writerSlideLevel = Just 1,
-            writerSectionDivs = True,
-            writerTemplate = Just template,
-            writerHighlightStyle = Nothing,
+          { writerTemplate = Just template,
+            writerHighlightStyle = highlightStyle,
             writerHTMLMathMethod =
               MathJax (lookupMetaOrElse "" "mathjax-url" meta),
             writerVariables =

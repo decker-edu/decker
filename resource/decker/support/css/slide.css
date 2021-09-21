@@ -1,0 +1,238 @@
+/* Here be CSS */
+
+/* This is structurally important CSS that should not contain too many specifics
+regarding colors, fonts, sizes and lengths. It is included from deck.css,
+page.css and handout.css. */
+
+/* These are just for internal calculations */
+:root {
+  --list-indent: 1.5em;
+  --block-border-width: 0.05em;
+  --block-outset: 0.3em;
+
+  /* Colors just for debugging. Do not use in production CSS. */
+  --c0: #ffffff;
+  --c1: #e7e7e7;
+  --c2: #eeeeee;
+  --c3: #d7d7d7;
+  --c4: #dddddd;
+  --c5: #c7c7c7;
+  --c6: #cccccc;
+}
+
+/* Reset Reveal CSS to sane values */
+.reveal .slides {
+  text-align: left;
+}
+
+/* Text */
+body {
+  box-sizing: border-box;
+
+  background-color: var(--c0);
+}
+
+section {
+  background-color: var(--c1);
+}
+
+div.alignment {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+pre {
+  overflow: scroll;
+  max-height: 500px;
+}
+
+/* Make this behave like a normal pre element. */
+span.pre {
+  display: block;
+  overflow: scroll;
+  max-height: 500px;
+  white-space: pre;
+  unicode-bidi: embed;
+
+  background-color: var(--c0);
+}
+
+h1 {
+  background-color: var(--c6);
+}
+
+h2 {
+  background-color: var(--c6);
+}
+
+/* Layout */
+
+/* Old-style row layout (.columns, .grid) */
+
+div.layout.row {
+  display: flex;
+  flex-flow: row nowrap;
+
+  background-color: var(--c4);
+}
+
+div.layout.row > div.area {
+  flex: 1 1 0;
+
+  background-color: var(--c5);
+}
+
+div.layout.row > div.area[grow="2"] {
+  flex: 2 2 0;
+}
+
+div.layout.row > div.area[grow="3"] {
+  flex: 3 3 0;
+}
+
+div.layout.row > div.area[grow="4"] {
+  flex: 4 4 0;
+}
+
+div.layout.row > div.area[grow="5"] {
+  flex: 5 5 0;
+}
+
+/* Column spacing in a row */
+
+div.layout.row > div.area:first-child {
+  margin-right: 0.5em;
+}
+
+div.layout.row > div.area:last-child {
+  margin-left: 0.5em;
+}
+
+div.layout.row > div.area:only-child {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Blocks */
+
+/* Blocks are positioned relative such that borders can be pushed out for
+highlighting.  */
+div.block {
+  position: relative;
+}
+
+/* Some vaguely semantic highlighting options. */
+div.block.primary,
+div.block.secondary,
+div.block.success,
+div.block.danger,
+div.block.warning,
+div.block.info {
+  left: calc(-1 * var(--block-outset));
+  top: calc(-1 * var(--block-outset));
+  border: var(--block-border-width) solid;
+  padding: calc(var(--block-outset) - var(--block-border-width));
+  margin-right: calc(-2 * var(--block-outset));
+  margin-bottom: calc(-2 * var(--block-outset));
+}
+
+/* Figures */
+
+div.media {
+  display: flex;
+  justify-content: center;
+
+  background-color: #eee;
+}
+
+div.media.align-left {
+  justify-content: flex-start;
+}
+
+div.media.align-right {
+  justify-content: flex-end;
+}
+
+/* Figures can not be used in inline context, using spans instead. */
+span.figure,
+figure {
+  width: 100%;
+}
+
+/* Figcaptions can not be used in inline context, using spans instead. */
+span.figcaption,
+figcaption {
+  font-size: 80%;
+  font-style: italic;
+  text-align: center;
+
+  background-color: var(--c4);
+}
+
+/* Inline media blocks are rendered as spans. */
+span.media {
+  display: inline-block;
+}
+
+/* Figure spans behave like a block. */
+span.figure {
+  display: block;
+}
+
+/* Figcaption spans behave like a block. */
+span.figcaption {
+  display: block;
+}
+
+/* Get rid of the annoying bottom gap. */
+img,
+iframe,
+video,
+object,
+canvas,
+svg,
+pre {
+  vertical-align: bottom;
+}
+
+/* Default size for elements without intrinsic aspect ratio. */
+span.figure > span.pre,
+span.figure > object,
+span.figure > iframe {
+  width: 200px;
+  height: 100px;
+}
+
+figure > object,
+figure > iframe {
+  width: 100%;
+  height: 400px;
+}
+
+/* Default width. */
+figure > pre,
+figure > img,
+figure > video {
+  width: 100%;
+}
+
+/* Default width for embedded SVG. */
+.svg.embedded svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Makes iframes react fluidly to width changes. */
+.fluid-iframe {
+  position: relative;
+  padding-bottom: calc(var(--aspect-ratio, 0.5625) * 100%);
+  height: 0;
+}
+
+.fluid-iframe iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

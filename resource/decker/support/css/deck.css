@@ -1,6 +1,11 @@
 /* Here be CSS */
 
+/* The main CSS for decks. This includes slide.css which contains CSS that is
+important for slide and embedded media structure. Margins, colors, fonts and
+stuff should be defined here. */
+
 @import url("../vendor/fontawesome/css/all.css");
+@import url("./slide.css");
 
 /* nice colors */
 :root {
@@ -16,42 +21,13 @@
   --icon-size: 2vmin;
 }
 
-/* These are just for internal calculations */
-:root {
-  --list-indent: 1.5em;
-  --block-border-width: 0.05em;
-  --block-outset: 0.3em;
-
-  --c0: #ffffff;
-  --c1: #e7e7e7;
-  --c2: #eeeeee;
-  --c3: #d7d7d7;
-  --c4: #dddddd;
-  --c5: #c7c7c7;
-  --c6: #cccccc;
-}
-
-/* Reset Reveal CSS to sane values */
-.reveal .slides {
-  text-align: left;
-}
-
 /* Text */
 body {
   font-family: sans-serif;
   font-size: 38px;
-  box-sizing: border-box;
-
-  background-color: var(--c0);
 }
 
 section {
-  background-color: var(--c1);
-}
-
-div.alignment {
-  padding-left: 0.5em;
-  padding-right: 0.5em;
 }
 
 code {
@@ -64,19 +40,10 @@ pre {
   max-height: 500px;
 }
 
-span.pre {
-  display: block;
-  font-family: monospace;
-  overflow: scroll;
-  max-height: 500px;
-  white-space: pre;
-  unicode-bidi: embed;
-  background-color: var(--c0);
-}
-
 span.pre > code,
 pre > code {
   font-size: 80%;
+  font-family: monospace;
 }
 
 h1 {
@@ -85,8 +52,6 @@ h1 {
 
   margin-top: 0;
   margin-bottom: 0.3em;
-
-  background-color: var(--c6);
 }
 
 h2 {
@@ -95,8 +60,6 @@ h2 {
 
   margin-top: 0;
   margin-bottom: 0.3em;
-
-  background-color: var(--c6);
 }
 
 p {
@@ -125,75 +88,6 @@ ol {
 
 /* Layout */
 
-/* Old-style row layout (.columns, .grid) */
-
-div.layout.row {
-  display: flex;
-  flex-flow: row nowrap;
-
-  background-color: var(--c4);
-}
-
-div.layout.row > div.area {
-  flex: 1 1 0;
-
-  background-color: var(--c5);
-}
-
-div.layout.row > div.area[grow="2"] {
-  flex: 2 2 0;
-}
-
-div.layout.row > div.area[grow="3"] {
-  flex: 3 3 0;
-}
-
-div.layout.row > div.area[grow="4"] {
-  flex: 4 4 0;
-}
-
-div.layout.row > div.area[grow="5"] {
-  flex: 5 5 0;
-}
-
-/* Column spacing in a row */
-
-div.layout.row > div.area:first-child {
-  margin-right: 0.5em;
-}
-
-div.layout.row > div.area:last-child {
-  margin-left: 0.5em;
-}
-
-div.layout.row > div.area:only-child {
-  margin-left: 0;
-  margin-right: 0;
-}
-
-/* Blocks */
-
-/* Blocks are positioned relative such that borders can be pushed out for
-highlighting.  */
-div.block {
-  position: relative;
-}
-
-/* Some vaguely semantic highlighting options. */
-div.block.primary,
-div.block.secondary,
-div.block.success,
-div.block.danger,
-div.block.warning,
-div.block.info {
-  left: calc(-1 * var(--block-outset));
-  top: calc(-1 * var(--block-outset));
-  border: var(--block-border-width) solid;
-  padding: calc(var(--block-outset) - var(--block-border-width));
-  margin-right: calc(-2 * var(--block-outset));
-  margin-bottom: calc(-2 * var(--block-outset));
-}
-
 /* Highlight colors */
 div.block.primary {
   background-color: #ddf;
@@ -218,106 +112,6 @@ div.block.warning {
 div.block.info {
   background-color: #dff;
   border-color: #bff;
-}
-
-/* Figures */
-
-div.media {
-  display: flex;
-  justify-content: center;
-
-  background-color: #eee;
-}
-
-div.media.align-left {
-  justify-content: flex-start;
-}
-
-div.media.align-right {
-  justify-content: flex-end;
-}
-
-/* Figures can not be used in inline context, using spans instead. */
-span.figure,
-figure {
-  width: 100%;
-}
-
-/* Figcaptions can not be used in inline context, using spans instead. */
-span.figcaption,
-figcaption {
-  font-size: 80%;
-  font-style: italic;
-  text-align: center;
-
-  background-color: var(--c4);
-}
-
-/* Inline media blocks are rendered as spans. */
-span.media {
-  display: inline-block;
-}
-
-/* Figure spans behave like a block. */
-span.figure {
-  display: block;
-}
-
-/* Figcaption spans behave like a block. */
-span.figcaption {
-  display: block;
-}
-
-/* Get rid of the annoying bottom gap. */
-img,
-iframe,
-video,
-object,
-canvas,
-svg,
-pre {
-  vertical-align: bottom;
-}
-
-/* Default size for elements without intrinsic aspect ratio. */
-span.figure > span.pre,
-span.figure > object,
-span.figure > iframe {
-  width: 200px;
-  height: 100px;
-}
-
-figure > object,
-figure > iframe {
-  width: 100%;
-  height: 400px;
-}
-
-/* Default width. */
-figure > img,
-figure > video {
-  width: 100%;
-}
-
-/* Default width for embedded SVG. */
-.svg.embedded svg {
-  width: 100%;
-  height: auto;
-}
-
-/* Makes iframes react fluidly to width changes. */
-.fluid-iframe {
-  position: relative;
-  padding-bottom: calc(var(--aspect-ratio, 0.5625) * 100%);
-  height: 0;
-}
-
-.fluid-iframe iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
 }
 
 /* menu icon in top left corner */
@@ -345,7 +139,7 @@ figure > video {
 
 /* slide number and control arrows */
 
-/* Try hard to center the slide number in the controls. This is hopeless with
+/* Trying hard to center the slide number in the controls. This is hopeless with
 viewport relative sizing and/or vertical slides. It should probably not be the
 default.*/
 :root {
@@ -362,8 +156,8 @@ default.*/
   width: calc(9 * var(--controls-size));
   height: calc(9 * var(--controls-size));
   line-height: calc(9 * var(--controls-size));
-  right: calc(var(--controls-size));
-  bottom: calc(var(--controls-size));
+  right: var(--controls-gap);
+  bottom: var(--controls-gap);
   text-align: center;
   background-color: rgba(0, 0, 0, 0);
 }
