@@ -6,12 +6,9 @@ title: Citation
 
 # Citation {.someclass}
 
-Not quite recently published [@tramberend2003]. The bibliography is appended at
-the end of the deck. CSL file *[:meta](csl)* was used.
-
-## This is just a
-
-Test
+-   Not quite recently published [@tramberend2003].
+-   The bibliography is appended at the end of the deck.
+-   CSL file *[:meta](csl)* was used.
 
 # Citation in a caption
 

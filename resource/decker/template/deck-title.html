@@ -1,37 +1,41 @@
 <section id="$idprefix$title-slide" class="title-page">
-    <h1 class="title"> $title$ </h1>
-    $if(subtitle)$
-    <h2 class="subtitle"> $subtitle$ </h2>
-    $endif$
-
-    $if(template.teaser)$
-    <img class="teaser" src=$template.teaser$>
-    $endif$
-    
-    $if(authors)$
-    <div class="authors">
-    $for(authors)$
-      $if(it.name)$
-          <div class="author">
-              $it.name$ 
-              $if(it.affiliation)$
-                  <div class="affiliation"> $it.affiliation$ </div>
-              $endif$
-          </div>
+  <div class="decker">
+    <div class="alignment">
+      <h1 class="title"> $title$ </h1>
+      $if(subtitle)$
+      <h2 class="subtitle"> $subtitle$ </h2>
       $endif$
-    $endfor$
+
+      $if(template.teaser)$
+      <img class="teaser" src=$template.teaser$>
+      $endif$
+      
+      $if(authors)$
+      <div class="authors">
+      $for(authors)$
+        $if(it.name)$
+            <div class="author">
+                $it.name$ 
+                $if(it.affiliation)$
+                    <div class="affiliation"> $it.affiliation$ </div>
+                $endif$
+            </div>
+        $endif$
+      $endfor$
+      </div>
+      $endif$
+
+      $if(author)$
+      <div class="author"> $author$ </div>
+      $endif$
+
+      $if(affiliation)$
+      <div class="affiliation"> $affiliation$ </div>
+      $endif$
+
+      $if(date)$
+      <div class="date"> $date$ </div>
+      $endif$
     </div>
-    $endif$
-
-    $if(author)$
-    <div class="author"> $author$ </div>
-    $endif$
-
-    $if(affiliation)$
-    <div class="affiliation"> $affiliation$ </div>
-    $endif$
-
-    $if(date)$
-    <div class="date"> $date$ </div>
-    $endif$
+  </div>
 </section>
