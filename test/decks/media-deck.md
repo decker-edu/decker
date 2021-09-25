@@ -1,15 +1,16 @@
 ---
-title: New Style Media Handling
+highlight-style: pygments
 subtitle: Clean. Consistent. Robust.
+title: New Style Media Handling
 ---
 
 # Markdown Source
 
-![Included code from image tag](/test/decks/media-deck.md){.code}
+![Included code from image tag](/test/decks/media-deck.md){.code .markdown}
 
 # CSS
 
-![](/resource/decker/support/css/deck.css){.code}
+![](/resource/decker/support/css/deck.css){.code .css}
 
 # Local Image
 
@@ -21,19 +22,96 @@ subtitle: Clean. Consistent. Robust.
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
-## Left {.right}
+## Right {.right}
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
 # Local Images in 2 columns {.columns}
 
-## Left {.left .danger}
+## Left {.left .danger grow="2"}
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
-## Left {.right .primary}
+## Left {.right .primary grow="2"}
+
+``` javascript
+function rainbow(numOfSteps, step) {
+  // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
+  // Adam Cole, 2011-Sept-14
+  var r, g, b;
+  var h = step / numOfSteps;
+```
+
+# More Images in 2 columns {.columns}
+
+## Left {.left}
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
+
+## Also left
+
+![Alt Caption $e=mc^2$](include/06-metal.png)
+
+## Right {.right grow="2"}
+
+![Alt Caption $e=mc^2$](include/06-metal.png)
+
+## And some text
+
+-   Block distance fits.
+
+# Blocks {.columns}
+
+## One {.left}
+
+-   One slightly longer line.
+-   Should align with neighbors.
+
+## Should align. {.warning}
+
+One slightly longer line.
+
+Should `align with`{.javascript} neighbors.
+
+## Three
+
+1.  Three
+2.  Four
+
+## One slightly longer line. {.right .primary}
+
+One slightly longer line.
+
+Should align with.
+
+## Should align. {.secondary}
+
+-   One slightly longer line.
+
+-   Should align with neighbors.
+
+## Three {.success .fragment popup="center-up"}
+
+1.  Three 🍔🍔🍔
+2.  Four 🍺🍺🍺🍺
+
+## Source code is always nice {.danger .fragment popup="center-down" width="50%"}
+
+``` css
+div.block[popup="center"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.5);
+}
+```
+
+## How is my driving? {.secondary .fragment popup="center" align="center"}
+
+Too flashy?
+
+Call the style police at 
+
+**015773846827**
 
 # Local Image with caption block
 
@@ -41,15 +119,15 @@ subtitle: Clean. Consistent. Robust.
 
 Caption: Block Caption $e=mc^2$
 
-# Local Image 
+# Local Image
 
 ## `{width=50%}`
 
 ![Overwriting Block Caption $e=mc^2$](include/06-metal.png){width="50%"}
 
-# Local Image 
+# Local Image
 
-## `{height=200px}`
+## `{height=200px .align-right}`
 
 ![Overwriting Block Caption $e=mc^2$](include/06-metal.png){.align-right
 height="200px"}
@@ -80,7 +158,7 @@ Overwriting Block Caption <span class="math inline">\(e=mc^2\)</span>
 
 Caption: Code blocks can have captions too.
 
-# Local Image 
+# Local Image
 
 ## `{width=80% height=200px}`
 

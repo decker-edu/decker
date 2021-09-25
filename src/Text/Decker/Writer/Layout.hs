@@ -7,9 +7,8 @@
 
 module Text.Decker.Writer.Layout (markdownToHtmlLayoutDeck, writePandocFile) where
 
+import Data.List (lookup)
 import qualified Data.Map as Map
--- import Text.Pretty.Simple
-
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import Development.Shake
@@ -29,7 +28,21 @@ import Text.DocTemplates
   )
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Highlighting
+import Text.Pandoc.UTF8 (fromTextLazy)
+import Text.Pandoc.Writers.Shared (lookupMetaString)
+import Text.Pretty.Simple hiding (Style)
 import qualified Prelude
+
+-- | Calculates the highlight style that will be passed as a writer option.
+highlightStyle :: Meta -> Maybe Style
+highlightStyle meta =
+  let pandocStyle = lookupMeta "highlight-style" meta :: Maybe Text
+      hljsStyle = lookupMeta "highlightjs" meta :: Maybe Text
+   in case hljsStyle of
+        Just _ -> Nothing
+        Nothing -> case pandocStyle of
+          Just ps -> lookup ps highlightingStyles
+          Nothing -> lookup "monochrome" highlightingStyles
 
 markdownToHtmlLayoutDeck :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
 markdownToHtmlLayoutDeck meta getTemplate markdownFile out = do
@@ -38,15 +51,12 @@ markdownToHtmlLayoutDeck meta getTemplate markdownFile out = do
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndFilterMarkdownFile disp meta markdownFile
-  let highlightStyle =
-        case lookupMeta "highlightjs" meta of
-          Nothing -> Just pygments
-          Just (_ :: Text) -> Nothing
   template <- getTemplate (templateFile disp)
   let options =
         pandocWriterOpts
           { writerTemplate = Just template,
-            writerHighlightStyle = highlightStyle,
+            writerSectionDivs = False,
+            writerHighlightStyle = highlightStyle meta,
             writerHTMLMathMethod =
               MathJax (lookupMetaOrElse "" "mathjax-url" meta),
             writerVariables =
@@ -64,13 +74,24 @@ markdownToHtmlLayoutDeck meta getTemplate markdownFile out = do
 -- of plain HTML 4. which is then adjusted for reveal compatible section tags.
 -- Finally, the fragment is inserted into a Reveal.js slide deck template.
 writePandocFile :: WriterOptions -> FilePath -> Pandoc -> Action ()
-writePandocFile options out pandoc@(Pandoc meta blocks) =
+writePandocFile options out pandoc@(Pandoc meta blocks) = do
   liftIO $ do
     html <-
       runIO (writeHtml4 options {writerTemplate = Nothing} pandoc)
         >>= handleError
-    let raw = RawBlock "html" $ fromLazy $ renderHtml $ transformHtml nullA html
-    runIO (writeHtml5String options (embedMetaMeta (Pandoc meta [raw])))
+    let string = renderHtml $ transformHtml nullA html
+    let raw =
+          [ RawBlock "html" $ fromLazy string,
+            Plain
+              [ Code
+                  ( "",
+                    ["force-highlight-styles", "markdown"],
+                    [("style", "display:none;")]
+                  )
+                  ""
+              ]
+          ]
+    runIO (writeHtml5String options (embedMetaMeta (Pandoc meta raw)))
       >>= handleError
       >>= Text.writeFile out
 

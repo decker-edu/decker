@@ -152,10 +152,12 @@ div.columns div.layout {
 
 div.columns div.layout div.area#a1 {
   flex-grow: 1;
+  min-width: 0;
 }
 
 div.columns div.layout div.area#a2 {
   flex-grow: 2;
+  min-width: 0;
 }
 
 div.floating div.layout div.area#a1 {

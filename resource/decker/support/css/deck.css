@@ -7,25 +7,44 @@ stuff should be defined here. */
 @import url("../vendor/fontawesome/css/all.css");
 @import url("./slide.css");
 
-/* nice colors */
+/* Nice colors */
 :root {
   --primary-color: #2a9ddf;
   --secondary-color: orange;
   --hover-color: #30b3ff;
 }
 
-/* icon settings */
+/* Icon settings */
 :root {
   --icon-active-color: var(--primary-color);
   --icon-inactive-color: lightgrey;
   --icon-size: 2vmin;
 }
 
+/* Margins and spacing */
+
+/* 
+  Try this for block elements that stack vertically:
+
+    - Only ever add a bottom margin
+    - The bottom margin is always the same
+    - Do not add a bottom margin to the last child
+*/
+:root {
+  --vertical-margin: 0.1em;
+  --block-border-size: 0.1em;
+}
+
 /* Text */
 body {
   font-family: sans-serif;
   font-size: 38px;
+  line-height: 38px;
   color: black;
+}
+
+.reveal-viewport {
+  line-height: 1.2;
 }
 
 .inverse {
@@ -36,8 +55,9 @@ section {
 }
 
 code {
-  font-size: 100%;
+  font-size: 110%;
   font-family: monospace;
+  background-color: rgba(0, 0, 0, 0);
 }
 
 strong {
@@ -49,8 +69,13 @@ em {
 }
 
 pre {
-  overflow: scroll;
+  line-height: 1;
   max-height: 500px;
+}
+
+span.pre,
+pre.sourceCode {
+  background-color: rgba(0, 0, 0, 0.04);
 }
 
 span.pre > code,
@@ -64,7 +89,7 @@ h1 {
   font-weight: bold;
 
   margin-top: 0;
-  margin-bottom: 0.3em;
+  margin-bottom: var(--vertical-margin);
 }
 
 h2 {
@@ -72,79 +97,130 @@ h2 {
   font-weight: bold;
 
   margin-top: 0;
-  margin-bottom: 0.3em;
+  margin-bottom: var(--vertical-margin);
 }
 
 p {
   margin-top: 0;
-  margin-bottom: 0.3em;
+  margin-bottom: var(--vertical-margin);
 }
 
 li {
   margin-top: 0;
-  margin-bottom: 0.2em;
+  margin-bottom: var(--vertical-margin);
 }
 
 ul {
   margin-top: 0;
-  margin-bottom: 0.3em;
   margin-left: var(--list-indent);
   list-style: outside disc;
+  margin-bottom: var(--vertical-margin);
 }
 
 ol {
   margin-top: 0;
-  margin-bottom: 0.3em;
+  margin-bottom: var(--vertical-margin);
   margin-left: var(--list-indent);
   list-style: outside disc;
 }
 
+/* No bottom margin for last elements in a stack. */
+:last-child {
+  margin-bottom: 0;
+}
+
+div.media {
+  margin-bottom: var(--vertical-margin);
+}
+
+/* Add a top margin to nested lists. */
+li > ul,
+li > ol {
+  margin-top: var(--vertical-margin);
+}
+
+/* Move a little closer to the image. */
+figcaption {
+  padding-top: calc(0.5 * var(--vertical-margin));
+}
+
+div.block {
+  display: flow-root; /* Prevents margin collapse. Allows negative margin here. */
+  margin-bottom: calc(0 * var(--vertical-margin));
+}
+
+div.block:last-child {
+  margin-bottom: 0;
+}
+
 /* Layout */
 
-/* Highlight colors */
+div.block {
+  border: var(--block-border-size) solid rgba(0, 0, 0, 0);
+}
+
+/* Highlight colors and borders */
 div.block.primary {
   background-color: #ddf;
-  border-color: #bbf;
+  border: var(--block-border-size) solid #bbf;
 }
 div.block.secondary {
   background-color: #eee;
-  border-color: #bbb;
+  border: var(--block-border-size) solid #bbb;
 }
 div.block.success {
   background-color: #dfd;
-  border-color: #bfb;
+  border: var(--block-border-size) solid #bfb;
 }
 div.block.danger {
   background-color: #fdd;
-  border-color: #fbb;
+  border: var(--block-border-size) solid #fbb;
 }
 div.block.warning {
   background-color: #fed;
-  border-color: #fdb;
+  border: var(--block-border-size) solid #fdb;
 }
 div.block.info {
   background-color: #dff;
-  border-color: #bff;
+  border: var(--block-border-size) solid #bff;
 }
 
-/* menu icon in top left corner */
+.debug div.block {
+  border: var(--border);
+}
+
+div.block[align="center"] {
+  text-align: center;
+}
+
+/* This works only with Pandocs built-in syntax highlighting. */
+div.block.primary pre.sourceCode,
+div.block.secondary pre.sourceCode,
+div.block.success pre.sourceCode,
+div.block.danger pre.sourceCode,
+div.block.warning pre.sourceCode,
+div.block.info pre.sourceCode {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Menu icon in top left corner */
 .reveal .slide-menu-button {
   position: fixed;
-  left: calc(var(--whiteboard-icon-size) * 0.25);
-  top: calc(var(--whiteboard-icon-size) * 0.25);
+  left: var(--controls-gap);
+  top: var(--controls-gap);
   bottom: auto;
   right: auto;
-  padding: calc(var(--whiteboard-icon-size) * 0.5);
+  padding: calc(var(--icon-size) * 0.5);
   margin: auto;
   z-index: 40;
   background: none;
-  font-size: var(--whiteboard-icon-size);
+  font-size: var(--icon-size);
   opacity: 0.5;
-  color: var(--whiteboard-inactive-color);
+  color: var(--icon-inactive-color);
 }
 .reveal .slide-menu-button:hover {
   opacity: 1;
-  color: var(--whiteboard-active-color);
+  color: var(--icon-active-color);
 }
 .reveal .slide-menu-button a {
   color: inherit;
@@ -155,15 +231,36 @@ div.block.info {
 /* Trying hard to center the slide number in the controls. This is hopeless with
 viewport relative sizing and/or vertical slides. It should probably not be the
 default.*/
+
 :root {
   --controls-gap: 1vmin;
   --controls-size: 1vmin;
 }
+
 .reveal .controls {
   font-size: var(--controls-size);
   bottom: var(--controls-gap);
   right: var(--controls-gap);
 }
+
+/* Giving up. Centering this at the bottom. */
+.reveal .slide-number {
+  font-size: calc(2 * var(--controls-size));
+  left: var(--controls-gap);
+  right: var(--controls-gap);
+  bottom: var(--controls-gap);
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0);
+  opacity: 0.5;
+  color: var(--icon-inactive-color);
+}
+
+.reveal .slide-number:hover {
+  opacity: 1;
+  color: var(--icon-active-color);
+}
+
+/* Trying to robustly center this to the controls is hopeless.
 .reveal .slide-number {
   font-size: calc(2 * var(--controls-size));
   width: calc(9 * var(--controls-size));
@@ -173,7 +270,7 @@ default.*/
   bottom: var(--controls-gap);
   text-align: center;
   background-color: rgba(0, 0, 0, 0);
-}
+} */
 
 .reveal .controls-arrow {
   color: var(--icon-inactive-color);

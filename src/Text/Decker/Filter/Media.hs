@@ -3,13 +3,23 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
+-- TODO Background movies do not work
+-- TODO .grid layout has no CSS yet (column-deck)
+-- TODO .inverse needs to change the background color
+-- TODO engine decks chrash
+-- TODO CSS for decks containing examiner questions
+-- TODO Organisation of CSS for deck, page and handout
+
 module Text.Decker.Filter.Media where
 
 import Control.Monad.Catch
+import Data.ByteString.Lazy.Builder (toLazyByteString)
 import qualified Data.Map.Strict as Map
 import Data.Maybe
+    ( Maybe(..), fromJust, fromMaybe, isJust, isNothing )
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
+import HTMLEntities.Text (text)
 import Relude
 import System.Directory
 import System.FilePath.Posix
@@ -23,11 +33,10 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.URI
 import Text.Pandoc
+import Text.Pretty.Simple
 import Text.Printf
 import Text.URI (URI)
 import qualified Text.URI as URI
-import Data.ByteString.Lazy.Builder (toLazyByteString)
-import HTMLEntities.Text (text)
 
 -- | Compiles the contents of an Image into a Decker specific structure. This is
 -- context aware and produces either a Block or an Inline element.
@@ -87,12 +96,11 @@ compileCodeBlock attr@(_, classes, _) code caption =
       uri <- lift $ URI.mkURI (toText path)
       renderCodeBlock uri caption
 
-transformCodeBlock block _ = return block
-
 -- | Compiles the contents of a LineBlock into a Decker specific structure.
 compileLineBlock :: [(Attr, [Inline], Text, Text)] -> [Inline] -> Filter Block
 compileLineBlock images caption = return $ Div dragons []
 
+dragons :: (Text, [Text], [a])
 dragons = ("", ["here be dragons"], [])
 
 -- | One compiler for each image media type.
@@ -143,6 +151,7 @@ codeBlock :: Container c => Text -> [Inline] -> Attrib c
 codeBlock code caption = do
   (innerSizes, outerSizes) <- calcImageSizes
   codeAttr <- do
+    takeAllClasses
     injectClasses ["processed"]
     injectStyles innerSizes
     extractAttr
@@ -417,7 +426,12 @@ instance Container Inline where
   mkIframe a = tag "iframe" $ Span a []
   mkVideo a = tag "video" $ Span a []
   mkObject a = tag "object" $ Span a []
-  mkPre a t = Span (addClass "pre" a) [tag "code" $ Span nullAttr [RawInline "html" (text t)]]
+  mkPre a t =
+    Span
+      (addClass "pre" a)
+      [ tag "code" $
+          Span a [RawInline "html" (text t)]
+      ]
   mkRaw a t = Span a [RawInline "html" t]
   mkRaw' t = RawInline "html" t
   containSome = Span nullAttr

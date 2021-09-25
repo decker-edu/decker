@@ -7,10 +7,10 @@ reveal:
   fragmentInURL: true
   fragments: true
   hash: true
+  history: false
   help: true
   hideCursorTime: 2000
   hideInactiveCursor: true
-  history: false
   keyboard: true
   overview: false
   progress: true
@@ -77,8 +77,6 @@ math:
     mt: ['{\mathbf{\boldsymbol{#1}}}', 1]
     pt: ['\boldsymbol{#1}', 1]
     textcolor: ['\color{#1}', 1]
-
-highlightjs: atom-one-light
 
 # default settings for whiteboard buttons
 whiteboard-active-color: rgb(42,157,223)

@@ -5,35 +5,35 @@ title: CSS Styling
 
 # Box colors {layout="columns"}
 
-## Question {.left .question}
+## Question {.left .primary}
 
 Questions?
 
-## Observation {.observation}
+## Observation {.secondary}
 
 That.
 
-## Definition {.definition}
+## Definition {.success}
 
 Definitely!
 
-## Alert {.alert}
+## Alert {.danger}
 
 Run!
 
-## Answer {.right .answer}
+## Answer {.right .warning}
 
 What?
 
-## Example {.example}
+## Example {.info}
 
 Like this.
 
-## Note {.note}
+## Note {.primary}
 
 Invisible.
 
-## Equation {.equation}
+## Equation {.secondary}
 
 $e=mc^2$
 
@@ -46,7 +46,7 @@ $e=mc^2$
 -   Background is black
 -   Font color is almost white
 
-## Alert Box {.fragment .alert}
+## Alert Box {.fragment .danger}
 
 Even colored boxes look ok.
 

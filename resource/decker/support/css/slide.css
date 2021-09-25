@@ -7,17 +7,9 @@ page.css and handout.css. */
 /* These are just for internal calculations */
 :root {
   --list-indent: 1.5em;
-  --block-border-width: 0.05em;
-  --block-outset: 0.3em;
-
-  /* Colors just for debugging. Do not use in production CSS. */
-  --c0: #ffffff;
-  --c1: #e7e7e7;
-  --c2: #eeeeee;
-  --c3: #d7d7d7;
-  --c4: #dddddd;
-  --c5: #c7c7c7;
-  --c6: #cccccc;
+  --block-border-width: 0.2em;
+  --block-outset: 0.5rem;
+  --background-color: none;
 }
 
 /* Reset Reveal CSS to sane values */
@@ -29,31 +21,51 @@ page.css and handout.css. */
 body {
   box-sizing: border-box;
 
-  background-color: var(--c0);
+  background-color: var(--background-color);
 }
 
 section {
-  background-color: var(--c1);
+  /* Colors just for debugging. Do not use in production CSS. */
+  --c0: var(--background-color);
+  --c1: var(--background-color);
+  --c2: var(--background-color);
+  --c3: var(--background-color);
+  --c4: var(--background-color);
+  --c5: var(--background-color);
+  --c6: var(--background-color);
+  --border: var(--block-border-width) solid rgba(0, 0, 0, 0);
 }
 
 div.alignment {
-  padding-left: 0.5em;
-  padding-right: 0.5em;
+  /* Allow slide relative positioning of non-immediate children. */
+  display: relative;
+}
+
+section.debug {
+  /* Colors just for debugging. Do not use in production CSS. */
+  --c0: #ffffff;
+  --c1: #e7e7e7;
+  --c2: #eeeeee;
+  --c3: #d7d7d7;
+  --c4: #dddddd;
+  --c5: #c7c7c7;
+  --c6: #cccccc;
+  --border: var(--block-border-width) solid var(--c6);
+
+  background-color: var(--c1);
 }
 
 pre {
-  overflow: scroll;
   max-height: 500px;
 }
 
 /* Make this behave like a normal pre element. */
 span.pre {
   display: block;
-  overflow: scroll;
   max-height: 500px;
   white-space: pre;
   unicode-bidi: embed;
-
+  overflow: scroll;
   background-color: var(--c0);
 }
 
@@ -65,75 +77,90 @@ h2 {
   background-color: var(--c6);
 }
 
+h1:empty,
+h2:empty {
+  display: none;
+}
+
 /* Layout */
 
 /* Old-style row layout (.columns, .grid) */
 
-div.layout.row {
+div.layout.row.columns {
   display: flex;
   flex-flow: row nowrap;
+  justify-content: space-between;
 
   background-color: var(--c4);
 }
 
-div.layout.row > div.area {
-  flex: 1 1 0;
-
+div.layout.row.columns > div.area {
+  flex: 1;
+  min-width: 0;
   background-color: var(--c5);
 }
 
-div.layout.row > div.area[grow="2"] {
-  flex: 2 2 0;
+div.layout.row.columns > div.area[grow="2"] {
+  flex: 2;
 }
 
-div.layout.row > div.area[grow="3"] {
-  flex: 3 3 0;
+div.layout.row.columns > div.area[grow="3"] {
+  flex: 3;
 }
 
-div.layout.row > div.area[grow="4"] {
-  flex: 4 4 0;
+div.layout.row.columns > div.area[grow="4"] {
+  flex: 4;
 }
 
-div.layout.row > div.area[grow="5"] {
-  flex: 5 5 0;
+div.layout.row.columns > div.area[grow="5"] {
+  flex: 5;
 }
 
 /* Column spacing in a row */
 
-div.layout.row > div.area:first-child {
-  margin-right: 0.5em;
+div.layout.row.columns > div.area {
+  margin-left: 1rem;
+  margin-right: 1rem;
 }
 
-div.layout.row > div.area:last-child {
-  margin-left: 0.5em;
-}
-
-div.layout.row > div.area:only-child {
+div.layout.row.columns > div.area:first-child {
   margin-left: 0;
+}
+
+div.layout.row.columns > div.area:last-child {
   margin-right: 0;
 }
 
 /* Blocks */
 
-/* Blocks are positioned relative such that borders can be pushed out for
-highlighting.  */
 div.block {
-  position: relative;
+  padding: var(--block-outset);
 }
 
-/* Some vaguely semantic highlighting options. */
-div.block.primary,
-div.block.secondary,
-div.block.success,
-div.block.danger,
-div.block.warning,
-div.block.info {
-  left: calc(-1 * var(--block-outset));
-  top: calc(-1 * var(--block-outset));
-  border: var(--block-border-width) solid;
-  padding: calc(var(--block-outset) - var(--block-border-width));
-  margin-right: calc(-2 * var(--block-outset));
-  margin-bottom: calc(-2 * var(--block-outset));
+div.block[popup] {
+  /* Positioned relative the div.alignment element. */
+  position: absolute;
+  box-shadow: 0 0 20px 10px rgba(0,0,0,0.3);
+}
+
+div.block[popup="center"] {
+  /* Percentages in here are relative to the enclosing `position: relative`
+  element. */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.5);
+}
+
+div.block[popup="center-up"] {
+  transform: translate(-50%, -50%) rotate(-23deg) scale(1.5);
+}
+
+div.block[popup="center-down"] {
+  transform: translate(-50%, -50%) rotate(23deg) scale(1.5);
+}
+
+h1 {
+  padding: 0 var(--block-outset);
 }
 
 /* Figures */
@@ -142,7 +169,7 @@ div.media {
   display: flex;
   justify-content: center;
 
-  background-color: #eee;
+  background-color: var(--c3);
 }
 
 div.media.align-left {
@@ -212,8 +239,10 @@ figure > iframe {
 /* Default width. */
 figure > pre,
 figure > img,
-figure > video {
+figure > video,
+figure > div.sourceCode {
   width: 100%;
+  margin: 0;
 }
 
 /* Default width for embedded SVG. */

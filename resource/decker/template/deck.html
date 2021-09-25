@@ -32,7 +32,14 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/examiner/examiner.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
+$if(highlightjs)$
   <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
+$endif$
+$if(highlighting-css)$
+  <style>
+$highlighting-css$
+  </style>
+$endif$
   <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
@@ -70,6 +77,7 @@ $if(toc)$
     </section>
 $endif$
 
+<!-- Keep left aligned -->
 $body$
 
     </div>
@@ -96,7 +104,9 @@ $body$
     import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
     import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
     import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
+$if(highlightjs)$
     import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
+$endif$
     import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
 
     let revealConfig = { 
@@ -123,7 +133,9 @@ $body$
          explainPlugin,
          menuPlugin,
          feedbackPlugin,
+$if(highlightjs)$
          highlightPlugin,
+$endif$
          notesPlugin
       ]
     };
