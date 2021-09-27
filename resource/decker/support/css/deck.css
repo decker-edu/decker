@@ -39,6 +39,10 @@ body {
   line-height: 1.2;
 }
 
+h1.title {
+  padding: 0;
+}
+
 /* TODO Not yet working. I forgot how the slide background color was set here through
 reveal. */
 .inverse {
