@@ -176,6 +176,7 @@ div.block:is(.primary, .secondary, .success, .danger, .warning, .info)
 }
 
 /* No background in a code block */
+div.sourceCode code.sourceCode,
 div.block div.sourceCode code.sourceCode {
   background-color: rgba(0, 0, 0, 0);
   margin: 0;
