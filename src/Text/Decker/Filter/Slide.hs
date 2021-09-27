@@ -16,6 +16,8 @@ module Text.Decker.Filter.Slide
     hasAnyClass,
     hasClass,
     header,
+    body,
+    dir,
     isBoxDelim,
     toSlides,
     fromSlidesD,
@@ -26,9 +28,8 @@ module Text.Decker.Filter.Slide
 where
 
 import Control.Lens
-import Control.Lens hiding (Choice)
 import Control.Monad
-import Control.Monad.State (gets, modify, MonadIO (liftIO))
+import Control.Monad.State (gets, modify)
 import Data.List
 import Data.List.Split
 import Data.Maybe
@@ -37,8 +38,7 @@ import qualified Data.Text as Text
 import Text.Decker.Internal.Common (Decker, DeckerState (emptyCount))
 import Text.Pandoc
 import Text.Pandoc.Definition ()
-import Text.Pandoc.Lens
-import Text.Pretty.Simple
+import Text.Pandoc.Lens hiding (body)
 
 data Direction = Horizontal | Vertical deriving (Show, Eq)
 

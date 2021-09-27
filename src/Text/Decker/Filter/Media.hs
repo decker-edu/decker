@@ -13,10 +13,8 @@
 module Text.Decker.Filter.Media where
 
 import Control.Monad.Catch
-import Data.ByteString.Lazy.Builder (toLazyByteString)
 import qualified Data.Map.Strict as Map
-import Data.Maybe
-    ( Maybe(..), fromJust, fromMaybe, isJust, isNothing )
+import Data.Maybe (fromJust)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import HTMLEntities.Text (text)
@@ -33,7 +31,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.URI
 import Text.Pandoc
-import Text.Pretty.Simple
 import Text.Printf
 import Text.URI (URI)
 import qualified Text.URI as URI

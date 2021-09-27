@@ -20,7 +20,6 @@ import Text.Decker.Filter.Util (oneImagePerLine)
 import Text.Decker.Internal.Common
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
-import Text.Pretty.Simple
 
 -- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
@@ -143,14 +142,3 @@ runFilter2 dispo options filter pandoc@(Pandoc meta _) = do
   (Pandoc _ blocks, FilterState _ meta dispo) <-
     runStateT (walkM filter pandoc) (FilterState options meta dispo)
   return $ Pandoc meta blocks
-
--- Runs a filter on any Walkable structure. Does not carry transformed meta
--- data over if chained. Mainly for writing tests.
-runFilter' ::
-  Walkable a b => Disposition -> WriterOptions -> Meta -> (a -> Filter a) -> b -> IO b
-runFilter' dispo options meta filter x =
-  evalStateT (walkM filter x) (FilterState options meta dispo)
-
-extIn :: Maybe Text -> [Text] -> Bool
-extIn (Just ext) list = ext `elem` list
-extIn Nothing _ = False

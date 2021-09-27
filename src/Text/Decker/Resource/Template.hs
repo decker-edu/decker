@@ -30,7 +30,6 @@ import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Zip
 import Text.DocTemplates
 import Text.Pandoc hiding (getTemplate, lookupMeta)
-import Text.Pretty.Simple
 
 type TemplateCache = FilePath -> Action (Template Text)
 

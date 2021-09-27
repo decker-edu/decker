@@ -6,7 +6,6 @@
 module Text.Decker.Filter.Image where
 
 import Control.Monad.Catch
-import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text

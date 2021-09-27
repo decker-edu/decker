@@ -11,7 +11,6 @@ module Text.Decker.Filter.Image2
 where
 
 import Control.Monad.Catch
-import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
@@ -38,19 +37,18 @@ import qualified Text.URI as URI
 -- |  Generates an HTML error message for Image inlines from the image
 --  source and the actual exception. The Image element is rendered back
 --  to Markdown format and included in the error message.
-inlineError :: Inline -> SomeException -> Filter Inline
-inlineError img@Image {} (SomeException e) = do
-  imgMarkup <- inlinesToMarkdown [img]
-  renderHtml $
-    H.div ! A.class_ "decker image error" $ do
-      H.h2 ! A.class_ "title" $ do
-        H.i ! A.class_ "fa fa-exclamation-triangle" $ ""
-        H.text " Decker error"
-      H.p ! A.class_ "message" $ toHtml (displayException e)
-      H.p $ H.text "encountered while processing"
-      H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
-inlineError _ _ = bug $ InternalException "inlineError: non image argument "
-
+-- inlineError :: Inline -> SomeException -> Filter Inline
+-- inlineError img@Image {} (SomeException e) = do
+--   imgMarkup <- inlinesToMarkdown [img]
+--   renderHtml $
+--     H.div ! A.class_ "decker image error" $ do
+--       H.h2 ! A.class_ "title" $ do
+--         H.i ! A.class_ "fa fa-exclamation-triangle" $ ""
+--         H.text " Decker error"
+--       H.p ! A.class_ "message" $ toHtml (displayException e)
+--       H.p $ H.text "encountered while processing"
+--       H.pre ! A.class_ "markup" $ H.code ! A.class_ "markup" $ toHtml imgMarkup
+-- inlineError _ _ = bug $ InternalException "inlineError: non image argument "
 blockError :: Block -> SomeException -> Filter Block
 blockError code@CodeBlock {} (SomeException e) = do
   codeMarkup <- blocksToMarkdown [code]
@@ -105,7 +103,7 @@ transformImages images caption = do
           H.div ! A.class_ "decker image-row" $ toHtml $ map toHtml imageRow
           H.figcaption captionHtml
 
-language cls = find (`elem` ["plantuml", "dot", "gnuplot", "tex"]) cls
+-- language cls = find (`elem` ["plantuml", "dot", "gnuplot", "tex"]) cls
 
 -- TODO this is incomplete
 --   - captions are just swallowed but never rendered.

@@ -22,7 +22,6 @@ import Development.Shake (Action)
 import Text.Decker.Filter.Layout
 import Text.Decker.Filter.Layout2
 import Text.Decker.Filter.MarioCols
-import Text.Decker.Filter.MarioCols2
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta

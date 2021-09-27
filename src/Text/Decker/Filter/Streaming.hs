@@ -12,7 +12,6 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.Local
-import Text.Decker.Filter.Macro
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.URI
 import Text.Pandoc

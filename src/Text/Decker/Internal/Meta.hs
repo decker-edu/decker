@@ -54,22 +54,7 @@ import Text.Pandoc.Shared hiding (toString, toText)
 globalMetaFileName = "decker.yaml"
 
 -- | Fine-grained recursive merge of two meta values. Left-biased. Duplicates
--- are removed from lists.
-mergePandocMeta'' :: Meta -> Meta -> Meta
-mergePandocMeta'' (Meta left) (Meta right) =
-  case merge (MetaMap left) (MetaMap right) of
-    MetaMap m -> Meta m
-    _ -> throw $ InternalException "This cannot happen."
-  where
-    merge :: MetaValue -> MetaValue -> MetaValue
-    merge (MetaMap mapL) (MetaMap mapR) =
-      MetaMap $ Map.unionWith merge mapL mapR
-    merge (MetaList listL) (MetaList listR) =
-      MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
-    merge left right = left
-
--- | Fine-grained recursive merge of two meta values. Left-biased. Duplicates
--- are removed from lists.
+-- are removed from lists if their name ends on *.
 mergePandocMeta' :: Meta -> Meta -> Meta
 mergePandocMeta' (Meta left) (Meta right) =
   case merge "" (MetaMap left) (MetaMap right) of

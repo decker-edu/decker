@@ -28,9 +28,6 @@ import Text.DocTemplates
   )
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Highlighting
-import Text.Pandoc.UTF8 (fromTextLazy)
-import Text.Pandoc.Writers.Shared (lookupMetaString)
-import Text.Pretty.Simple hiding (Style)
 import qualified Prelude
 
 -- | Calculates the highlight style that will be passed as a writer option.
