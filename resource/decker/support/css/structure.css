@@ -42,8 +42,7 @@ span.pre code {
 }
 
 /* Empty headers should not get in the way. */
-h1:empty,
-h2:empty {
+:is(h1, h2):empty {
   display: none;
 }
 
@@ -166,25 +165,19 @@ pre {
 }
 
 /* Default sizes for inline media elements without intrinsic aspect ratio. */
-span.figure > span.pre,
-span.figure > object,
-span.figure > iframe {
+span.figure > :is(span.pre, object, iframe) {
   width: 200px;
   height: 100px;
 }
 
 /* Default sizes for block media elements without intrinsic aspect ratio. */
-figure > object,
-figure > iframe {
+figure > :is(object, iframe) {
   width: 100%;
   height: 400px;
 }
 
 /* Default width. Always try to fill the frame. */
-figure > pre,
-figure > img,
-figure > video,
-figure > div.sourceCode {
+figure > :is(pre, img, video, div.sourceCode) {
   width: 100%;
   margin: 0;
 }

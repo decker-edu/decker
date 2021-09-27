@@ -24,7 +24,7 @@ title: New Style Media Handling
 
 ## Right {.right}
 
-``` javascript
+``` {.javascript}
 function rainbow(numOfSteps, step) {
   // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
   // Adam Cole, 2011-Sept-14
@@ -42,7 +42,7 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 ## Right {.right .primary grow="2"}
 
-``` javascript
+``` {.javascript}
 function rainbow(numOfSteps, step) {
   // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
   // Adam Cole, 2011-Sept-14

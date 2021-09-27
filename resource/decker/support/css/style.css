@@ -74,8 +74,7 @@ div.media {
 }
 
 /* Add a top margin to nested lists. */
-li > ul,
-li > ol {
+li > :is(ul, ol) {
   margin-top: var(--vertical-margin);
 }
 
@@ -171,17 +170,12 @@ code.sourceCode {
 }
 
 /* Inline code in a highlighted block. */
-div.block.primary code.sourceCode,
-div.block.secondary code.sourceCode,
-div.block.success code.sourceCode,
-div.block.danger code.sourceCode,
-div.block.warning code.sourceCode,
-div.block.info code.sourceCode {
-  background-color: rgba(255, 255, 255, 0.6);
+div.block:is(.primary, .secondary, .success, .danger, .warning, .info)
+  code.sourceCode {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 /* No background in a code block */
-div.sourceCode code.sourceCode,
 div.block div.sourceCode code.sourceCode {
   background-color: rgba(0, 0, 0, 0);
   margin: 0;
@@ -194,12 +188,8 @@ div.sourceCode {
 }
 
 /* In a highlighted block. */
-div.block.primary div.sourceCode,
-div.block.secondary div.sourceCode,
-div.block.success div.sourceCode,
-div.block.danger div.sourceCode,
-div.block.warning div.sourceCode,
-div.block.info div.sourceCode {
+div.block:is(.primary, .secondary, .success, .danger, .warning, .info)
+  div.sourceCode {
   background-color: rgba(255, 255, 255, 0.5);
 }
 
@@ -209,4 +199,3 @@ figure > div.sourceCode {
   padding: 0 var(--block-outset);
   margin: 0 calc(-1 * var(--block-outset));
 }
-
