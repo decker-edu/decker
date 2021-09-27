@@ -24,7 +24,15 @@ title: New Style Media Handling
 
 ## Right {.right}
 
-![Alt Caption $e=mc^2$](include/06-metal.png)
+``` javascript
+function rainbow(numOfSteps, step) {
+  // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
+  // Adam Cole, 2011-Sept-14
+  var r, g, b;
+  var h = step / numOfSteps;
+```
+
+More `function CODE(here) {return true;}`{.javascript} here
 
 # Local Images in 2 columns {.columns}
 
@@ -32,7 +40,7 @@ title: New Style Media Handling
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
-## Left {.right .primary grow="2"}
+## Right {.right .primary grow="2"}
 
 ``` javascript
 function rainbow(numOfSteps, step) {
@@ -41,6 +49,8 @@ function rainbow(numOfSteps, step) {
   var r, g, b;
   var h = step / numOfSteps;
 ```
+
+More `function CODE(here) {return true;}`{.javascript} here
 
 # More Images in 2 columns {.columns}
 
@@ -97,19 +107,18 @@ Should align with.
 
 ## Source code is always nice {.danger .fragment popup="center-down" width="50%"}
 
-``` css
-div.block[popup="center"] {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(1.5);
-}
+``` markdown
+## Three {popup="center-up" .fragment .success}
+
+1.  Three 🍔🍔🍔
+2.  Four 🍺🍺🍺🍺
 ```
 
 ## How is my driving? {.secondary .fragment popup="center" align="center"}
 
 Too flashy?
 
-Call the style police at 
+Call the style police at
 
 **015773846827**
 

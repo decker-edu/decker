@@ -1,7 +1,8 @@
 /* Here be CSS */
 
 @import url("../vendor/fontawesome/css/all.css");
-@import url("./slide.css");
+@import url("./structure.css");
+@import url("./style.css");
 
 body {
   font-family: sans-serif;

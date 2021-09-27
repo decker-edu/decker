@@ -1,21 +1,14 @@
-/* Here be CSS */
+/* The main CSS for decks. This includes structure.css which contains CSS that
+is important for slide and embedded media structure.
 
-/* The main CSS for decks. This includes slide.css which contains CSS that is
-important for slide and embedded media structure. Margins, colors, fonts and
-stuff should be defined here. */
+Margins, colors, fonts and stuff should be defined here. */
 
 @import url("../vendor/fontawesome/css/all.css");
-@import url("./slide.css");
+@import url("./structure.css");
+@import url("./style.css");
 
-/* Nice colors */
 :root {
-  --primary-color: #2a9ddf;
-  --secondary-color: orange;
-  --hover-color: #30b3ff;
-}
-
-/* Icon settings */
-:root {
+  /* Icon settings */
   --icon-active-color: var(--primary-color);
   --icon-inactive-color: lightgrey;
   --icon-size: 2vmin;
@@ -32,175 +25,31 @@ stuff should be defined here. */
 */
 :root {
   --vertical-margin: 0.1em;
-  --block-border-size: 0.1em;
 }
 
 /* Text */
 body {
   font-family: sans-serif;
   font-size: 38px;
-  line-height: 38px;
   color: black;
 }
 
+/* Override whatever reveal setz here. */
 .reveal-viewport {
   line-height: 1.2;
 }
 
+/* TODO Not yet working. I forgot how the slide background color was set here through
+reveal. */
 .inverse {
   color: #eee;
 }
 
-section {
-}
-
-code {
-  font-size: 110%;
-  font-family: monospace;
-  background-color: rgba(0, 0, 0, 0);
-}
-
-strong {
-  font-weight: bold;
-}
-
-em {
-  font-style: italic;
-}
-
-pre {
-  line-height: 1;
-  max-height: 500px;
-}
-
-span.pre,
-pre.sourceCode {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
+/* Code blocks. */
 span.pre > code,
 pre > code {
   font-size: 80%;
   font-family: monospace;
-}
-
-h1 {
-  font-size: 1.8em;
-  font-weight: bold;
-
-  margin-top: 0;
-  margin-bottom: var(--vertical-margin);
-}
-
-h2 {
-  font-size: 1.2em;
-  font-weight: bold;
-
-  margin-top: 0;
-  margin-bottom: var(--vertical-margin);
-}
-
-p {
-  margin-top: 0;
-  margin-bottom: var(--vertical-margin);
-}
-
-li {
-  margin-top: 0;
-  margin-bottom: var(--vertical-margin);
-}
-
-ul {
-  margin-top: 0;
-  margin-left: var(--list-indent);
-  list-style: outside disc;
-  margin-bottom: var(--vertical-margin);
-}
-
-ol {
-  margin-top: 0;
-  margin-bottom: var(--vertical-margin);
-  margin-left: var(--list-indent);
-  list-style: outside disc;
-}
-
-/* No bottom margin for last elements in a stack. */
-:last-child {
-  margin-bottom: 0;
-}
-
-div.media {
-  margin-bottom: var(--vertical-margin);
-}
-
-/* Add a top margin to nested lists. */
-li > ul,
-li > ol {
-  margin-top: var(--vertical-margin);
-}
-
-/* Move a little closer to the image. */
-figcaption {
-  padding-top: calc(0.5 * var(--vertical-margin));
-}
-
-div.block {
-  display: flow-root; /* Prevents margin collapse. Allows negative margin here. */
-  margin-bottom: calc(0 * var(--vertical-margin));
-}
-
-div.block:last-child {
-  margin-bottom: 0;
-}
-
-/* Layout */
-
-div.block {
-  border: var(--block-border-size) solid rgba(0, 0, 0, 0);
-}
-
-/* Highlight colors and borders */
-div.block.primary {
-  background-color: #ddf;
-  border: var(--block-border-size) solid #bbf;
-}
-div.block.secondary {
-  background-color: #eee;
-  border: var(--block-border-size) solid #bbb;
-}
-div.block.success {
-  background-color: #dfd;
-  border: var(--block-border-size) solid #bfb;
-}
-div.block.danger {
-  background-color: #fdd;
-  border: var(--block-border-size) solid #fbb;
-}
-div.block.warning {
-  background-color: #fed;
-  border: var(--block-border-size) solid #fdb;
-}
-div.block.info {
-  background-color: #dff;
-  border: var(--block-border-size) solid #bff;
-}
-
-.debug div.block {
-  border: var(--border);
-}
-
-div.block[align="center"] {
-  text-align: center;
-}
-
-/* This works only with Pandocs built-in syntax highlighting. */
-div.block.primary pre.sourceCode,
-div.block.secondary pre.sourceCode,
-div.block.success pre.sourceCode,
-div.block.danger pre.sourceCode,
-div.block.warning pre.sourceCode,
-div.block.info pre.sourceCode {
-  background-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Menu icon in top left corner */
@@ -241,6 +90,38 @@ default.*/
   font-size: var(--controls-size);
   bottom: var(--controls-gap);
   right: var(--controls-gap);
+}
+
+/* Blocks can popup somewhere on the slide. */
+div.block[popup] {
+  /* Positioned relative the div.alignment element. */
+  position: absolute;
+  box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* A centered block. This is very clever. */
+div.block[popup="center"] {
+  /* Percentages here are relative to the enclosing `position: relative`
+  element. */
+  top: 50%;
+  left: 50%;
+  /* Percentages here are relative to the transformed element. */
+  transform: translate(-50%, -50%) scale(1.5);
+  transform-origin: center;
+}
+
+/* A centered box that is also tilted up. */
+div.block[popup="center-up"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-23deg) scale(1.5);
+}
+
+/* A centered box that is also tilted down. */
+div.block[popup="center-down"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(23deg) scale(1.5);
 }
 
 /* Giving up. Centering this at the bottom. */

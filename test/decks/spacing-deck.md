@@ -2,6 +2,8 @@
 reveal:
   center: false
 title: Spacing and margins
+highlightjs: false
+highlight-style: pygments
 ---
 
 #  {.columns}
@@ -22,7 +24,7 @@ Just some lines of text.
 
 A short one-line paragraph.
 
-A longer paragraph that contains a lot more words than the short one-line
+A longer paragraph that `contains a *lot more* words`{.markdown} than the short one-line
 paragraph.
 
 A short one-line paragraph.
@@ -112,4 +114,4 @@ paragraph.
 
 ## Two tagged blocks in a row is tricky
 
-![$e=mc^2$](include/06-metal.png){width="80%"}
+![$e=mc^2$](include/06-metal.png){width="40%"}

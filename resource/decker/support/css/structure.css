@@ -1,5 +1,3 @@
-/* Here be CSS */
-
 /* This is structurally important CSS that should not contain too many specifics
 regarding colors, fonts, sizes and lengths. It is included from deck.css,
 page.css and handout.css. */
@@ -7,9 +5,8 @@ page.css and handout.css. */
 /* These are just for internal calculations */
 :root {
   --list-indent: 1.5em;
-  --block-border-width: 0.2em;
+  --block-border-width: 0.1em;
   --block-outset: 0.5rem;
-  --background-color: none;
 }
 
 /* Reset Reveal CSS to sane values */
@@ -17,66 +14,34 @@ page.css and handout.css. */
   text-align: left;
 }
 
-/* Text */
+/* Box sizing is much nicer for calculations. */
 body {
   box-sizing: border-box;
-
-  background-color: var(--background-color);
 }
 
-section {
-  /* Colors just for debugging. Do not use in production CSS. */
-  --c0: var(--background-color);
-  --c1: var(--background-color);
-  --c2: var(--background-color);
-  --c3: var(--background-color);
-  --c4: var(--background-color);
-  --c5: var(--background-color);
-  --c6: var(--background-color);
-  --border: var(--block-border-width) solid rgba(0, 0, 0, 0);
-}
-
+/* Allows slide relative positioning of non-immediate children. */
 div.alignment {
-  /* Allow slide relative positioning of non-immediate children. */
   display: relative;
 }
 
-section.debug {
-  /* Colors just for debugging. Do not use in production CSS. */
-  --c0: #ffffff;
-  --c1: #e7e7e7;
-  --c2: #eeeeee;
-  --c3: #d7d7d7;
-  --c4: #dddddd;
-  --c5: #c7c7c7;
-  --c6: #cccccc;
-  --border: var(--block-border-width) solid var(--c6);
-
-  background-color: var(--c1);
-}
-
+/* This value depends on the height of the slide that Reveal sets. */
 pre {
   max-height: 500px;
 }
 
-/* Make this behave like a normal pre element. */
+/* Make this behave like a normal pre element. Used for inline code display. */
 span.pre {
   display: block;
   max-height: 500px;
   white-space: pre;
   unicode-bidi: embed;
   overflow: scroll;
-  background-color: var(--c0);
+}
+span.pre code {
+  white-space: pre;
 }
 
-h1 {
-  background-color: var(--c6);
-}
-
-h2 {
-  background-color: var(--c6);
-}
-
+/* Empty headers should not get in the way. */
 h1:empty,
 h2:empty {
   display: none;
@@ -84,22 +49,19 @@ h2:empty {
 
 /* Layout */
 
-/* Old-style row layout (.columns, .grid) */
-
+/* Old-style row layout (.columns), also MarioCols. */
 div.layout.row.columns {
   display: flex;
   flex-flow: row nowrap;
-  justify-content: space-between;
-
-  background-color: var(--c4);
 }
 
 div.layout.row.columns > div.area {
   flex: 1;
+  /* Really important to make pre elements work in flex items. */
   min-width: 0;
-  background-color: var(--c5);
 }
 
+/* Old syntax to control column width. */
 div.layout.row.columns > div.area[grow="2"] {
   flex: 2;
 }
@@ -116,8 +78,11 @@ div.layout.row.columns > div.area[grow="5"] {
   flex: 5;
 }
 
-/* Column spacing in a row */
+div.layout.row.columns > div.area[grow="6"] {
+  flex: 6;
+}
 
+/* Column spacing in a row */
 div.layout.row.columns > div.area {
   margin-left: 1rem;
   margin-right: 1rem;
@@ -131,47 +96,25 @@ div.layout.row.columns > div.area:last-child {
   margin-right: 0;
 }
 
-/* Blocks */
-
+/* Blocks have some padding and a border to allow for highlighting without
+disturbing the layout. */
 div.block {
   padding: var(--block-outset);
+  border: var(--block-border-width) solid rgba(0, 0, 0, 0);
 }
 
-div.block[popup] {
-  /* Positioned relative the div.alignment element. */
-  position: absolute;
-  box-shadow: 0 0 20px 10px rgba(0,0,0,0.3);
-}
-
-div.block[popup="center"] {
-  /* Percentages in here are relative to the enclosing `position: relative`
-  element. */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(1.5);
-}
-
-div.block[popup="center-up"] {
-  transform: translate(-50%, -50%) rotate(-23deg) scale(1.5);
-}
-
-div.block[popup="center-down"] {
-  transform: translate(-50%, -50%) rotate(23deg) scale(1.5);
-}
-
+/* Align headers with blocks. */
 h1 {
   padding: 0 var(--block-outset);
 }
 
-/* Figures */
-
+/* Media elements */
 div.media {
   display: flex;
   justify-content: center;
-
-  background-color: var(--c3);
 }
 
+/* TODO Check the old class vocabulary for alignment. */
 div.media.align-left {
   justify-content: flex-start;
 }
@@ -196,7 +139,7 @@ figcaption {
   background-color: var(--c4);
 }
 
-/* Inline media blocks are rendered as spans. */
+/* Inline media blocks are rendered as spans, but use a block context inside. */
 span.media {
   display: inline-block;
 }
@@ -222,7 +165,7 @@ pre {
   vertical-align: bottom;
 }
 
-/* Default size for elements without intrinsic aspect ratio. */
+/* Default sizes for inline media elements without intrinsic aspect ratio. */
 span.figure > span.pre,
 span.figure > object,
 span.figure > iframe {
@@ -230,13 +173,14 @@ span.figure > iframe {
   height: 100px;
 }
 
+/* Default sizes for block media elements without intrinsic aspect ratio. */
 figure > object,
 figure > iframe {
   width: 100%;
   height: 400px;
 }
 
-/* Default width. */
+/* Default width. Always try to fill the frame. */
 figure > pre,
 figure > img,
 figure > video,
@@ -251,7 +195,8 @@ figure > div.sourceCode {
   height: auto;
 }
 
-/* Makes iframes react fluidly to width changes. */
+/* Makes iframes react fluidly to width changes. The aspect ratio can be set
+through the aspect attribute. */
 .fluid-iframe {
   position: relative;
   padding-bottom: calc(var(--aspect-ratio, 0.5625) * 100%);
