@@ -89,6 +89,33 @@ div.block {
   margin-bottom: calc(0 * var(--vertical-margin));
 }
 
+/* Tables */
+table {
+  font-size: 0.9em;
+  margin-bottom: var(--vertical-margin);
+  border-collapse: collapse;
+  width: 100%;
+  overflow-x: auto;
+  display: block;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+  margin-bottom: var(--vertical-margin);
+}
+tbody {
+  margin-top: 0.5em;
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+}
+th {
+  border-top: 1px solid black;
+  padding: 0.2em 0.5em 0.2em 0.5em;
+  font-weight: bolder;
+}
+td {
+  padding: 0.2em 0.5em 0.2em 0.5em;
+}
+
 /* Stretch the block header margin to the block border so that highlighting
 works. */
 div.block h2 {
