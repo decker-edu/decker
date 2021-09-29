@@ -180,6 +180,12 @@ div.block.info h2 {
 div.block[align="center"] {
   text-align: center;
 }
+div.block[align="left"] {
+  text-align: left;
+}
+div.block[align="right"] {
+  text-align: right;
+}
 
 /* Pandoc wraps .sourceCode around the pre > code element. Highlightjs does not.*/
 

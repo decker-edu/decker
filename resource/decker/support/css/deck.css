@@ -130,11 +130,15 @@ div.block[popup="center-down"] {
 
 /* Giving up. Centering this at the bottom. */
 .reveal .slide-number {
-  font-size: calc(2 * var(--controls-size));
-  left: var(--controls-gap);
-  right: var(--controls-gap);
-  bottom: var(--controls-gap);
+  font-size: 0.6rem;
+  margin: 0;
   text-align: center;
+
+  left: 50%;
+  bottom: var(--controls-gap);
+  transform: translate(-50%, 0);
+  width: 10em;
+
   background-color: rgba(0, 0, 0, 0);
   opacity: 0.5;
   color: var(--icon-inactive-color);
@@ -169,11 +173,12 @@ div.block[popup="center-down"] {
 }
 
 /* links */
-.reveal a {
+a {
   color: var(--primary-color);
   text-decoration: none;
 }
-.reveal a:hover {
+
+a:hover {
   color: var(--hover-color);
   text-shadow: none;
   border: none;
