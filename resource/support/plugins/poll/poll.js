@@ -6,7 +6,7 @@ var Poll = (() => {
     var socket = null; var poll = null; var timer = null;
     var pollState = "not-init";
     var admin = false;
-    var results, canvas, qrdiv, email, lgn, pwd, error;
+    var results, canvas, qrdiv, email, lgn, pwd, loggedIn, error;
     var pollNum = 0;
 
     // Open a websocket to server and build QR code for poll
@@ -84,7 +84,7 @@ var Poll = (() => {
     
     // Given Poll ID from server, build QR Code & login div
     function buildCode(pollID) {
-        const pollAddr = "https://" + server + "/" + pollID; 
+        const pollAddr = "https://" + server + "/poll.html/" + pollID; 
         qrdiv = document.createElement('div');
         qrdiv.id = "poll-overlay";
         
@@ -251,11 +251,10 @@ var Poll = (() => {
       });
       document.querySelector('#poll-overlay').classList.remove('active');
       let question = poll.querySelector('h1').textContent;
-      let date = new Date();
-      let curDate = date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+      let date = new Date().toUTCString();
       let correct = poll.querySelector('.correct').innerText;
 
-      socket.send(JSON.stringify({ "tag": "Stop", "num": String(pollNum), "date": curDate, "question": question, "correct": correct, "email": admin ? email : "" }));
+      socket.send(JSON.stringify({ "tag": "Stop", "num": String(pollNum), "date": date, "question": question, "correct": correct, "email": admin ? email : "" }));
       poll = null; timer = null; 
     } 
 
@@ -296,72 +295,11 @@ var Poll = (() => {
         init: () => { 
             return new Promise(resolve => {   
                 openPoll();
+                document.onclose = () => { socket.close(); }
                 resolve();
             });
         }
     }
 })();
-
-
-
-
-
-
-  // // initialize translation and scaling
-  // results.dragging = false;
-  // results.dx = 0.0;
-  // results.dy = 0.0;
-  // results.scale = 1.0;
-  // results.transform = "";
-
-  // // start dragging
-  // canvas.onmousedown = e => {
-  //   if (!canvas.classList.contains("fullscreen")) {
-  //     e.preventDefault();
-  //     canvas.dragging = true;
-  //     canvas.style.cursor = "move";
-  //     canvas.lastX = e.screenX;
-  //     canvas.lastY = e.screenY;
-
-  //     // translate on mouse move
-  //     canvas.onmousemove = e => {
-  //       if (canvas.dragging) {
-  //         const x = e.screenX;
-  //         const y = e.screenY;
-  //         canvas.dx += x - canvas.lastX;
-  //         canvas.dy += y - canvas.lastY;
-  //         canvas.lastX = x;
-  //         canvas.lastY = y;
-  //         canvas.style.transform = `translate(${canvas.dx}px, ${canvas.dy}px) scale(${canvas.scale})`;
-  //       }
-  //     };
-  //   }
-  // };
-
-  // // stop dragging
-  // canvas.onmouseup = canvas.onmouseleave = e => {
-  //   canvas.style.cursor = "";
-  //   canvas.dragging = false;
-  //   canvas.onmousemove = null;
-  // };
-
-  // // use mouse wheel to scale video
-  // canvas.onmousewheel = e => {
-  //   if (!canvas.classList.contains("fullscreen")) {
-  //     canvas.scale += e.deltaY * -0.01;
-  //     canvas.scale = Math.max(0.1, Math.min(10.0, canvas.scale));
-  //     canvas.style.transform = `translate(${canvas.dx}px, ${canvas.dy}px) scale(${canvas.scale})`;
-  //   }
-  // };
-
-  // // use double click on video to toggle fullscreen
-  // canvas.ondblclick = () => {
-  //   if (canvas.classList.toggle("fullscreen")) {
-  //     canvas.transform = canvas.style.transform;
-  //     canvas.style.transform = "";
-  //   } else {
-  //     canvas.style.transform = canvas.transform;
-  //   }
-  // };
 
 Reveal.registerPlugin( 'Poll', Poll );
