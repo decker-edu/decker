@@ -63,16 +63,16 @@ readTemplate meta file = do
       return (compiled, needed)
     readTemplateText (DeckerExecutable base) = do
       deckerExecutable <- getExecutablePath
-      putStrLn $ "# reading: " <> file <> " from: " <> (deckerExecutable <> ":" <> base)
+      -- putStrLn $ "# reading: " <> file <> " from: " <> (deckerExecutable <> ":" <> base)
       text <- decodeUtf8 <$> extractEntry (base </> file) deckerExecutable
       return (text, [])
     readTemplateText (LocalZip path) = do
-      putStrLn $ "# reading: " <> file <> " from: " <> path
+      -- putStrLn $ "# reading: " <> file <> " from: " <> path
       text <- decodeUtf8 <$> extractEntry file path
       return (text, [path])
     readTemplateText (LocalDir base) = do
       let path = base </> file
-      putStrLn $ "# reading: " <> file <> " from: " <> path
+      -- putStrLn $ "# reading: " <> file <> " from: " <> path
       text <- Text.readFile path
       return (text, [path])
     readTemplateText None =

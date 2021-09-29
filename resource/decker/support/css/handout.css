@@ -22,3 +22,7 @@ pre > code {
 figure {
   margin: 0;
 }
+
+p {
+  word-wrap: normal;
+}
