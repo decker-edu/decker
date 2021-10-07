@@ -280,6 +280,11 @@ let ExplainPlugin = (function () {
     const recWidth = config && config.recWidth ? config.recWidth : undefined;
     const recHeight = config && config.recHeight ? config.recHeight : undefined;
 
+    // stop stream first
+    if (desktopStream) {
+      desktopStream.getTracks().forEach((s) => s.stop());
+    }
+
     // get display stream
     console.log("get display stream (" + recWidth + "x" + recHeight + ")");
     desktopStream = await navigator.mediaDevices.getDisplayMedia({
@@ -312,38 +317,65 @@ let ExplainPlugin = (function () {
   }
 
   async function captureMicrophone() {
-    console.log("get voice stream");
-    console.log("mic id: " + micSelect.value);
+    // which mic to capture:
+    const id =
+      micSelect.value || localStorage.getItem("decker-microphone") || undefined;
+    console.log("try to catpure mic with ID " + id);
 
-    voiceStream = await navigator.mediaDevices.getUserMedia({
-      video: false,
-      audio: {
-        deviceId: micSelect.value ? { exact: micSelect.value } : undefined,
-        echoCancellation: false,
-        noiseSuppression: true,
-      },
-    });
+    // stop stream first
+    if (voiceStream) {
+      voiceStream.getTracks().forEach((s) => s.stop());
+    }
+
+    // try to get stream
+    try {
+      voiceStream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: {
+          deviceId: id ? id : undefined,
+          echoCancellation: false,
+          noiseSuppression: true,
+        },
+      });
+    } catch (e) {
+      console.log("getUserMedia failed: ", e);
+    }
 
     // if mic capture succeeded...
     if (voiceStream.getAudioTracks().length > 0) {
-      // ...update GUI
-      const selectedMicrophone = voiceStream.getAudioTracks()[0].label;
-      voiceIndicator.title = selectedMicrophone;
-      micIndicator.title = selectedMicrophone;
+      // if not done before: collect mic devices for selector GUI
+      if (micSelect.childElementCount == 0) {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          devices.forEach((device) => {
+            if (device.kind == "audioinput") {
+              const option = document.createElement("option");
+              option.value = device.deviceId;
+              option.text =
+                device.label || `microphone ${micSelect.length + 1}`;
+              micSelect.add(option);
+            }
+          });
+        } catch (e) {
+          console.log("cannot list microphones:" + e);
+        }
+      }
+
+      // which mic did we get?
+      const micLabel = voiceStream.getAudioTracks()[0].label;
+      voiceIndicator.title = micIndicator.title = micLabel;
       voiceGainSlider.disabled = false;
       micSelect.selectedIndex = -1;
       for (let i = 0; i < micSelect.options.length; i++) {
-        if (micSelect.options[i].text == selectedMicrophone) {
+        if (micSelect.options[i].text == micLabel) {
           micSelect.selectedIndex = i;
+          localStorage.setItem("decker-microphone", micSelect.options[i].value);
           break;
         }
       }
-      // ...remember selected mic
-      if (micSelect.selectedIndex != -1) {
-        // store label, since ID changes after reboot
-        localStorage.setItem("decker-microphone", selectedMicrophone);
-      }
+      console.log("got mic " + micLabel);
     }
+
     // if mic capture failed...
     else {
       voiceIndicator.removeAttribute("title");
@@ -361,41 +393,73 @@ let ExplainPlugin = (function () {
     const camWidth = config && config.camWidth ? config.camWidth : undefined;
     const camHeight = config && config.camHeight ? config.camHeight : undefined;
 
-    console.log("get camera stream (" + camWidth + "x" + camHeight + ")");
-    console.log("cam id: " + camSelect.value);
+    // which mic to capture:
+    const id =
+      camSelect.value || localStorage.getItem("decker-camera") || undefined;
+    console.log(
+      "try to catpure camera with ID " +
+        id +
+        " and resolution " +
+        camWidth +
+        "x" +
+        camHeight
+    );
 
-    // get camera stream
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        deviceId: camSelect.value ? { exact: camSelect.value } : undefined,
-        width: camWidth,
-        height: camHeight,
-        frameRate: { max: 30 },
-      },
-      audio: false,
-    });
+    // stop stream first
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((s) => s.stop());
+    }
+
+    // try to get camera stream
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          deviceId: id ? id : undefined,
+          width: camWidth,
+          height: camHeight,
+          frameRate: { max: 30 },
+        },
+        audio: false,
+      });
+    } catch (e) {
+      console.log("getUserMedia failed: ", e);
+    }
 
     // if camera capture succeeded...
     if (cameraStream.getVideoTracks().length > 0) {
-      // ...update GUI
-      const selectedCamera = cameraStream.getVideoTracks()[0].label;
-      const cameraSettings = cameraStream.getVideoTracks()[0].getSettings();
-      cameraCaptureSize.textContent = `${cameraSettings.width}x${cameraSettings.height}`;
-      camIndicator.title = selectedCamera;
+      // if not done before: collect camera devices for selector GUI
+      if (camSelect.childElementCount == 0) {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          devices.forEach((device) => {
+            if (device.kind == "videoinput") {
+              const option = document.createElement("option");
+              option.value = device.deviceId;
+              option.text = device.label || `camera ${micSelect.length + 1}`;
+              camSelect.add(option);
+            }
+          });
+        } catch (e) {
+          console.log("cannot list cameras:" + e);
+        }
+      }
+
+      // which camera did we get?
+      const camLabel = cameraStream.getVideoTracks()[0].label;
+      const camSettings = cameraStream.getVideoTracks()[0].getSettings();
+      cameraCaptureSize.textContent = `${camSettings.width}x${camSettings.height}`;
+      camIndicator.title = camLabel;
       camSelect.selectedIndex = -1;
       for (let i = 0; i < camSelect.options.length; i++) {
-        if (camSelect.options[i].text == selectedCamera) {
+        if (camSelect.options[i].text == camLabel) {
           camSelect.selectedIndex = i;
+          localStorage.setItem("decker-camera", camSelect.options[i].value);
           break;
         }
       }
-      // ...remember selected camera
-      if (camSelect.selectedIndex != -1) {
-        // store label, since ID changes after reboot
-        localStorage.setItem("decker-camera", selectedCamera);
-      }
+      console.log("got camera " + camLabel);
 
-      // ...connect camera to video element
+      // connect camera to video element
       if (cameraPanel.classList.contains("visible")) {
         cameraVideo.pause();
         cameraVideo.srcObject = cameraStream;
@@ -404,6 +468,7 @@ let ExplainPlugin = (function () {
         // cameraVideo.srcObject = cameraStream;
       }
     }
+
     // if camera capture failed...
     else {
       camIndicator.removeAttribute("title");
@@ -1003,54 +1068,6 @@ let ExplainPlugin = (function () {
       parent: row,
     });
 
-    // collect list of cameras and microphones
-    try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      devices.forEach((device) => {
-        switch (device.kind) {
-          case "audioinput": {
-            const option = document.createElement("option");
-            option.value = device.deviceId;
-            option.text = device.label || `microphone ${micSelect.length + 1}`;
-            micSelect.add(option);
-            break;
-          }
-          case "videoinput": {
-            const option = document.createElement("option");
-            option.value = device.deviceId;
-            option.text = device.label || `camera ${camSelect.length + 1}`;
-            camSelect.add(option);
-            break;
-          }
-        }
-      });
-
-      // select previously chosen camera
-      camSelect.selectedIndex = -1;
-      const selectedCamera = localStorage.getItem("decker-camera");
-      if (selectedCamera) {
-        for (let i = 0; i < camSelect.options.length; i++) {
-          if (camSelect.options[i].text == selectedCamera) {
-            camSelect.selectedIndex = i;
-            break;
-          }
-        }
-      }
-      // select previously chosen microphone
-      micSelect.selectedIndex = -1;
-      const selectedMicrophone = localStorage.getItem("decker-microphone");
-      if (selectedMicrophone) {
-        for (let i = 0; i < micSelect.options.length; i++) {
-          if (micSelect.options[i].text == selectedMicrophone) {
-            micSelect.selectedIndex = i;
-            break;
-          }
-        }
-      }
-    } catch (e) {
-      console.log("cannot list microphones and cameras:" + e);
-    }
-
     row = createElement({
       type: "div",
       classes: "controls-row",
@@ -1385,7 +1402,7 @@ let ExplainPlugin = (function () {
   }
 
   // Reveal ignores key events when modifiers are pressed. We therefore use a "normal" keydown callback.
-  // We still add a dummy callback to Reveal, to prevent other plugins
+  // We still add a dummy callback prevent other plugins
   // to use "our" keys and to add our keys to the help menu.
   Reveal.addKeyBinding(
     { keyCode: 82, key: "R", description: "Toggle Recording" },
@@ -1457,10 +1474,23 @@ let ExplainPlugin = (function () {
     const config = Decker.meta.explain;
     explainVideoUrl = config && config.video ? config.video : deckVideoUrl();
     explainTimesUrl = config && config.times ? config.times : deckTimesUrl();
+    let videoExists = false,
+      timesExists = false;
 
     try {
-      let videoExists = await resourceExists(explainVideoUrl);
-      let timesExists = await resourceExists(explainTimesUrl);
+      // if in electron app and user specified base url for videos:
+      // if times exist locally, we assume the video exists on remote server
+      if (window.electronApp && config && config.electronVideoUrl) {
+        explainVideoUrl =
+          config.electronVideoUrl + videoFilenameBase() + "-recording.mp4";
+        videoExists = true;
+        timesExists = await resourceExists(explainTimesUrl);
+      }
+      // in browser: check if video and times exist
+      else {
+        videoExists = await resourceExists(explainVideoUrl);
+        timesExists = await resourceExists(explainTimesUrl);
+      }
 
       if (videoExists && timesExists) {
         explainTimes = await fetchResourceJSON(explainTimesUrl);
