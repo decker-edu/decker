@@ -2,12 +2,12 @@
 
 :root {
   --blue: #2a9ddf;
-  --light-blue: #30B3FF;
+  --lightblue: #30B3FF;
 }
 
 /* repeat light mode settings from light.css to override 
    dark mode settings, which don't look nice */
-   :root {
+:root {
     --background-body: #ffffff;
     --background: #efefef;
     --background-alt: #f7f7f7;
@@ -53,7 +53,15 @@ header > h1, header > h2 {
 }
 
 header > h1 {
-    font-size: 45px;
+    font-size: 50px;
+}
+
+h1 {
+    margin-top: 3rem;
+}
+
+hr {
+    margin-top: 2rem;
 }
 
 a {
@@ -61,5 +69,47 @@ a {
 }
 
 a:hover {
-    color: var(--light-blue);
+    color: var(--lightblue);
+}
+
+details {
+    outline: none; 
+    border: 1px solid black; 
+    border-radius: 4px; 
+    padding: 10px; 
+    margin-bottom:10px;
+}
+
+details summary {
+    outline: none;
+    padding: 4px;
+}
+
+details summary:hover {
+    background-color: #2a9ddf58;
+}
+
+details summary[icon]::marker {
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    color: var(--blue);
+    content: attr(icon);
+}
+
+details summary::after {
+    font-style: italic;
+    content: '(click)...'
+}
+:lang(de) details summary::after {
+    content: '(klicken)...'
+}
+
+details input {
+    box-sizing: border-box;
+    width: 100%;
 }
