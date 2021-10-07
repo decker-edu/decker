@@ -22,6 +22,7 @@ import System.IO
 import Text.Decker.Exam.Question
 import Text.Decker.Exam.Render
 import Text.Decker.Exam.Xml
+import Text.Decker.Filter.Index
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
@@ -138,6 +139,14 @@ run = do
         putNormal pdfMsg
         need ["support"]
         getTargets >>= needSel decksPdf
+    --
+    withTargetDocs "Compile global search index." $
+      phony "index" $ do
+        putNormal "# compiling search index ..."
+        meta <- getGlobalMeta
+        targets <- getTargets
+        allDecks <- mapM (calcSource "-deck.html" "-deck.md") (targets ^. decks)
+        buildIndex (publicDir </> "index.json") meta allDecks
     --
     withTargetDocs "DEPRECATED. Use '--watch'." $
       phony "watch" $ do
@@ -256,7 +265,7 @@ run = do
               if exists
                 then indexSource
                 else generatedIndexSource
-        need [src]
+        need [src, "index"]
         meta <- getGlobalMeta
         markdownToHtmlPage meta getTemplate src out
       --

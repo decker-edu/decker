@@ -4,6 +4,7 @@
 
 module Text.Decker.Reader.Markdown
   ( readAndFilterMarkdownFile,
+    readMarkdownFile,
     readDeckerMeta,
     readMetaData,
     processCites,
