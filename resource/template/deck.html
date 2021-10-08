@@ -637,6 +637,10 @@ $if(quizServer)$
           quiz: { server: "$quizServer$" },
 $endif$
        
+$if(poll.server)$
+        pollServer: "$poll.server$",
+$endif$
+
 $if(jingles)$
           // Mario's video jingles
           jingles: Decker.meta.jingles,
@@ -660,6 +664,10 @@ $endif$
 $if(highlightjs)$
               { src: String.raw`$decker-support-dir$/plugins/highlight/highlight.js` },
 $endif$
+$if(poll)$   
+              { src: String.raw`$decker-support-dir$/plugins/quiz/qrcode.min.js` },            
+              { src: String.raw`$decker-support-dir$/plugins/poll/poll.js` }, 
+$endif$ 
 $if(mario)$              
               { src: String.raw`$decker-support-dir$/plugins/quiz/quiz.js` },
               { src: String.raw`$decker-support-dir$/plugins/jingles/jingles.js`, async: true },
