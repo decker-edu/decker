@@ -11,13 +11,13 @@ function setupSearch(
   // let indexPath = Decker.meta.projectPath;
   // if (!indexPath.endsWith("/")) indexPath += "/";
   // indexPath += "index.json";
-  const indexPath = "../../index.json";
+  const indexPath = "./index.json";
   console.log("read search index from " + indexPath);
 
   fetch(indexPath)
     .then((res) => res.json())
     .then((index) => {
-      console.log(index);
+      // console.log(index);
       setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
     })
     .catch((err) => console.log("cannot load: index.json", err));
