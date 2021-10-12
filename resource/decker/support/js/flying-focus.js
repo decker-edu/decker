@@ -8,13 +8,7 @@ var movingId = 0;
 var prevFocused = null;
 var keyDownTime = 0;
 
-var win = window;
-var doc = document;
-var docElem = doc.documentElement;
-var body = doc.body;
-
-
-docElem.addEventListener('keydown', function(event) {
+document.documentElement.addEventListener('keydown', function(event) {
 	var code = event.which;
 	// Show animation only upon Tab or Arrow keys press.
 	if (code === 9 || (code > 36 && code < 41)) {
@@ -23,7 +17,7 @@ docElem.addEventListener('keydown', function(event) {
 }, false);
 
 
-docElem.addEventListener('focus', function(event) {
+document.documentElement.addEventListener('focus', function(event) {
 	var target = event.target;
 	if (target.id === 'flying-focus') {
 		return;
@@ -53,16 +47,16 @@ docElem.addEventListener('focus', function(event) {
 }, true);
 
 
-docElem.addEventListener('blur', function() {
+document.documentElement.addEventListener('blur', function() {
 	onEnd();
 }, true);
 
 
 function initialize() {
-	ringElem = doc.createElement('flying-focus'); // use uniq element name to decrease the chances of a conflict with website styles
+	ringElem = document.createElement('flying-focus'); // use uniq element name to decrease the chances of a conflict with website styles
 	ringElem.id = 'flying-focus';
 	ringElem.style.transitionDuration = ringElem.style.WebkitTransitionDuration = DURATION / 1000 + 's';
-	body.appendChild(ringElem);
+	document.body.appendChild(ringElem);
 }
 
 
@@ -85,10 +79,10 @@ function isJustPressed() {
 
 function offsetOf(elem) {
 	var rect = elem.getBoundingClientRect();
-	var clientLeft = docElem.clientLeft || body.clientLeft;
-	var clientTop  = docElem.clientTop  || body.clientTop;
-	var scrollLeft = win.pageXOffset || docElem.scrollLeft || body.scrollLeft;
-	var scrollTop  = win.pageYOffset || docElem.scrollTop  || body.scrollTop;
+	var clientLeft = document.documentElement.clientLeft || document.body.clientLeft;
+	var clientTop  = document.documentElement.clientTop  || document.body.clientTop;
+	var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
+	var scrollTop  = window.pageYOffset || document.documentElement.scrollTop  || document.body.scrollTop;
 	var left = rect.left + scrollLeft - clientLeft;
 	var top =  rect.top  + scrollTop  - clientTop;
 	return {
@@ -98,7 +92,7 @@ function offsetOf(elem) {
 }
 
 
-	var style = doc.createElement('style');
+	var style = document.createElement('style');
 	style.textContent = "#flying-focus {\
 	position: absolute;\
 	margin: 0;\
@@ -131,5 +125,5 @@ function offsetOf(elem) {
 	}\
 }\
 ";
-	body.appendChild(style);
+	document.body.appendChild(style);
 })();
