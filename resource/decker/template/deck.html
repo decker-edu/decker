@@ -26,6 +26,7 @@ $endif$
   
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reveal.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/decker/plugins.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
@@ -93,6 +94,7 @@ $body$
     // import Reveal and all plugins
     import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
     import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
+    import deckerPluginManager from './$decker-support-dir$/plugins/decker/plugin-manager.js'
     import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
     import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
     // import sagePlugin from './$decker-support-dir$/plugins/sage/sage.js';
@@ -126,6 +128,7 @@ $endif$
       // list of plugins
       plugins: [
          deckerPlugin,
+         deckerPluginManager,
          mathPlugin,
          chartsPlugin,
          whiteboardPlugin,
