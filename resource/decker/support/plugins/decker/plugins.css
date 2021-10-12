@@ -1,0 +1,55 @@
+div.decker-anchor {
+    z-index: 8;
+}
+
+div.top-left-anchor {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    top: 8px;
+    left: 8px;
+}
+
+div.top-right-anchor {
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+    top: 8px;
+    right: 8px;
+}
+
+div.bottom-left-anchor {
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+    bottom: 8px;
+    left: 8px;
+}
+
+div.bottom-right-anchor {
+    position: fixed;
+    bottom: 48px;
+    right: 8px;
+}
+
+button.decker-button {
+    color: #4d4d4d;
+    border: none;
+    font-size: 24px;
+    background: none;
+    padding: 8px;
+}
+
+@media screen and (max-width: 756px) {
+    button.decker-button {
+        font-size: 48px;
+    }
+}
+
+button.decker-button :hover {
+    color: #639A00;
+}
+
+button.decker-button :active {
+    color: #91b84c;
+}
