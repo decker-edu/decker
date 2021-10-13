@@ -154,46 +154,54 @@ function createButton(classes, callback, active = false, tooltip) {
   b.onclick = callback;
   b.dataset.active = active;
   if (tooltip) b.title = tooltip;
+  if (tooltip) b.setAttribute("aria-label", tooltip);
   buttons.appendChild(b);
   return b;
 }
 
 // setup all GUI elements
 function createGUI() {
-  buttons = document.createElement("div");
+  buttons = document.createElement("nav");
   buttons.id = "whiteboardButtons";
-  reveal.appendChild(buttons);
+//  reveal.appendChild(buttons);
 
   buttonWhiteboard = createButton(
-    "whiteboard fas fa-edit checkbox",
+    "whiteboard decker-button fas fa-edit checkbox",
     toggleWhiteboard,
     false,
-    "toggle whiteboard"
+    "Whiteboard Menu"
   );
   buttonWhiteboard.id = "whiteboardButton";
+
+  if(Reveal.hasPlugin("decker-plugins")) {
+    let manager = Reveal.getPlugin("decker-plugins");
+    manager.registerPlugin({decker_button: buttons, decker_anchor: "BOTTOM_LEFT"});
+  }
 
   buttonSave = createButton(
     "whiteboard fas fa-save checkbox",
     toggleAutoSave,
     autosave,
-    "toggle auto-saving annotations"
+    "Toggle Auto-Save"
   );
+  buttonSave.setAttribute("role", "switch");
 
   buttonGrid = createButton(
     "whiteboard fas fa-border-all checkbox",
     toggleGrid,
     false,
-    "toggle background grid"
+    "Toggle Grid"
   );
+  buttonGrid.setAttribute("role", "switch");
 
   buttonAdd = createButton(
     "whiteboard fas fa-plus",
     addWhiteboardPage,
     true,
-    "add whiteboard page"
+    "Add Whiteboard Page"
   );
 
-  buttonUndo = createButton("whiteboard fas fa-undo", undo, false, "undo");
+  buttonUndo = createButton("whiteboard fas fa-undo", undo, false, "Undo");
 
   buttonPen = createButton(
     "whiteboard fas fa-pen radiobutton",
@@ -206,8 +214,9 @@ function createGUI() {
       }
     },
     false,
-    "pen / properties"
+    "Change Pen"
   );
+  buttonPen.setAttribute("role", "switch");
 
   buttonEraser = createButton(
     "whiteboard fas fa-eraser radiobutton",
@@ -215,8 +224,9 @@ function createGUI() {
       selectTool(ERASER);
     },
     false,
-    "eraser"
+    "Pick Eraser"
   );
+  buttonEraser.setAttribute("role", "switch");
 
   buttonLaser = createButton(
     "whiteboard fas fa-magic radiobutton",
@@ -224,8 +234,9 @@ function createGUI() {
       selectTool(LASER);
     },
     false,
-    "laser pointer/stroke"
+    "Pick Laserpointer"
   );
+  buttonLaser.setAttribute("role", "switch");
 
   // generate color picker container
   colorPicker = document.createElement("div");
@@ -239,6 +250,8 @@ function createGUI() {
     b.onclick = () => {
       selectPenColor(color);
     };
+    b.tooltip = color;
+    b.setAttribute("aria-label", color);
     b.style.color = color;
     colorPicker.appendChild(b);
   });
@@ -253,6 +266,8 @@ function createGUI() {
     b.onclick = () => {
       selectPenRadius(r);
     };
+    b.tooltip = radius;
+    b.setAttribute("aria-label", radius);
     colorPicker.appendChild(b);
   }
 }
@@ -270,34 +285,32 @@ function setupSlides() {
     if (Reveal.getConfig().center || slide.classList.contains("center")) {
       // Reveal implements centering by adjusting css:top. Remove this.
       slide.style.top = "";
-      // Make sure centered slides have class center.
-      slide.classList.add("center");
 
-      // // div for centering with flex layout
-      // let vcenter = document.createElement("div");
-      // vcenter.classList.add("v-center");
+      // div for centering with flex layout
+      let vcenter = document.createElement("div");
+      vcenter.classList.add("v-center");
 
-      // // div for wrapping slide content
-      // var wrapper = document.createElement("div");
-      // wrapper.classList.add("v-wrapper");
+      // div for wrapping slide content
+      var wrapper = document.createElement("div");
+      wrapper.classList.add("v-wrapper");
 
-      // // move children from slide to wrapping div
-      // for (let i = 0; i < slide.children.length; ) {
-      //   let e = slide.children[i];
-      //   // skip whiteboard and footer
-      //   if (
-      //     e.classList.contains("whiteboard") ||
-      //     e.classList.contains("footer")
-      //   ) {
-      //     ++i;
-      //   } else {
-      //     wrapper.appendChild(e);
-      //   }
-      // }
+      // move children from slide to wrapping div
+      for (let i = 0; i < slide.children.length; ) {
+        let e = slide.children[i];
+        // skip whiteboard and footer
+        if (
+          e.classList.contains("whiteboard") ||
+          e.classList.contains("footer")
+        ) {
+          ++i;
+        } else {
+          wrapper.appendChild(e);
+        }
+      }
 
-      // // add divs to slide
-      // slide.appendChild(vcenter);
-      // vcenter.appendChild(wrapper);
+      // add divs to slide
+      slide.appendChild(vcenter);
+      vcenter.appendChild(wrapper);
     }
   });
 }
@@ -486,21 +499,27 @@ function selectTool(newTool) {
     buttonEraser.dataset.active =
     buttonPen.dataset.active =
       false;
+  buttonLaser.setAttribute("aria-checked", "false");
+  buttonEraser.setAttribute("aria-checked", "false");
+  buttonPen.setAttribute("aria-checked", "false");
 
   switch (tool) {
     case PEN:
       buttonPen.dataset.active = true;
+      buttonPen.setAttribute("aria-checked", "true");
       buttonPen.style.color = penColor;
       selectCursor(penCursor);
       break;
 
     case ERASER:
       buttonEraser.dataset.active = true;
+      buttonEraser.setAttribute("aria-checked", "true");
       selectCursor(eraserCursor);
       break;
 
     case LASER:
       buttonLaser.dataset.active = true;
+      buttonLaser.setAttribute("aria-checked", "true");
       selectCursor(laserCursor);
       break;
   }
@@ -547,6 +566,7 @@ function toggleWhiteboard(state) {
     // hide buttons
     buttons.classList.remove("whiteboardActive");
     buttonWhiteboard.dataset.active = false;
+    buttonWhiteboard.setAttribute("aria-checked", "false")
     hideColorPicker();
 
     // reset SVG
@@ -567,6 +587,7 @@ function toggleWhiteboard(state) {
     // show buttons
     buttons.classList.add("whiteboardActive");
     buttonWhiteboard.dataset.active = true;
+    buttonWhiteboard.setAttribute("aria-checked", "true")
 
     // activate SVG
     if (svg) {
@@ -705,6 +726,7 @@ function toggleGrid() {
   if (rect) {
     rect.remove();
     buttonGrid.dataset.active = false;
+    buttonGrid.setAttribute("aria-checked", false);
   }
 
   // otherwise, add it
@@ -725,6 +747,7 @@ function toggleGrid() {
     rect.style.pointerEvents = "none";
 
     buttonGrid.dataset.active = true;
+    buttonGrid.setAttribute("aria-checked", "true");
   }
 
   needToSave(true);
@@ -736,6 +759,7 @@ function toggleGrid() {
 function toggleAutoSave() {
   autosave = !autosave;
   buttonSave.dataset.active = autosave;
+  buttonSave.setAttribute("aria-checked", autosave);
   console.log("autosave: " + autosave);
 }
 
