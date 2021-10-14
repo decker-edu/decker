@@ -2,17 +2,20 @@
 
 var Poll = (() => {
   const server = "polls.hci.informatik.uni-wuerzburg.de";
-  var socket = null;
-  var poll = null;
-  var timer = null;
+  var socket = null; var poll = null; var timer = null;
   var pollState = "not-init";
   var admin = false;
-  var results, canvas, qrdiv, email, lgn, pwd, loggedIn, error;
+  var results, canvas, email, lgn, pwd, loggedIn, error;
   var pollNum = 0;
+  var labels = [];
+  const alphabet = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
+  const qrdiv = document.createElement("div");
+  qrdiv.id = "poll-overlay";
+  qrdiv.classList.add("loading");
+  document.querySelector(".reveal").appendChild(qrdiv);
 
   // Open a websocket to server and build QR code for poll
   function openPoll() {
-    if (socket != null) return;
     socket = new WebSocket("wss://" + server + "/poll");
 
     socket.onopen = () => {
@@ -29,7 +32,6 @@ var Poll = (() => {
 
       if (message.tag) {
         Reveal.removeKeyBinding(65);
-        Reveal.removeKeyBinding(67);
         Reveal.addKeyBinding(
           {
             keyCode: 65,
@@ -37,16 +39,6 @@ var Poll = (() => {
             description: "Toggle Audience Response Poll",
           },
           switchPollState
-        );
-        Reveal.addKeyBinding(
-          {
-            keyCode: 67,
-            key: "C",
-            description: "Toggle Audience Response Code",
-          },
-          () => {
-            document.querySelector("#poll-overlay").classList.toggle("active");
-          }
         );
         Reveal.addKeyBinding(
           {
@@ -110,13 +102,10 @@ var Poll = (() => {
   // Given Poll ID from server, build QR Code & login div
   function buildCode(pollID) {
     const pollAddr = "https://" + server + "/poll.html/" + pollID;
-    qrdiv = document.createElement("div");
-    qrdiv.id = "poll-overlay";
 
     const link = document.createElement("a");
     link.setAttribute("href", pollAddr);
     link.innerText = pollAddr;
-    qrdiv.appendChild(link);
 
     const lgnDiv = document.createElement("div");
     lgnDiv.id = "login-div";
@@ -164,7 +153,7 @@ var Poll = (() => {
 
     const i = document.createElement("i");
     i.classList.add("fas", "fa-sign-in-alt", "gears");
-    [i, lgnDiv].forEach((el) => {
+    [link, i, lgnDiv].forEach((el) => {
       qrdiv.appendChild(el);
     });
 
@@ -181,7 +170,6 @@ var Poll = (() => {
       colorLight: "#ffffff",
       correctLevel: QRCode.CorrectLevel.H,
     });
-    document.querySelector(".reveal").appendChild(qrdiv);
   }
 
   // 'a' to start / stop poll - also stopped when timer ends
@@ -195,11 +183,7 @@ var Poll = (() => {
         console.error("Cannot start poll before socket is connected.");
         break;
       case "idle":
-        let sl = Reveal.getCurrentSlide();
-        if (sl.classList.contains("poll")) {
-          poll = sl;
-          canvas = sl.querySelector("canvas");
-          results = sl.querySelector(".poll_results");
+        if (poll !== null) {
           startPoll();
           pollState = "started";
         } else {
@@ -218,8 +202,30 @@ var Poll = (() => {
     }
   }
 
+  // On slide transition update vars and add letters to choices
+  function updateSlide() {
+    labels = [];
+    let sl = Reveal.getCurrentSlide();
+    if (sl.classList.contains("poll")) {
+      poll = sl;
+      canvas = sl.querySelector("canvas");
+      results = sl.querySelector(".poll_results");
+      Array.from(sl.querySelectorAll('.choice_ltr')).sort().forEach(
+        (c,i) => { c.innerText = alphabet[i] + "."; });
+    }
+  }
+
+  // Re-write chart labels to letters and add to quiz choices
+  function writeLabels() {
+    let ch = JSON.parse(canvas.innerHTML.replace('<!-- ','').replace(' -->',''));
+    labels = alphabet.slice(0,Object.keys(ch.data.labels).length);
+    canvas.chart.data.labels = labels;
+    canvas.chart.update();
+  }
+
   // 't' to show poll results
   function showResults() {
+    if (labels && labels.length === 0) { writeLabels(); } 
     results = Reveal.getCurrentSlide().querySelector(".poll_results");
     results.classList.toggle("active");
     handleResults();
@@ -233,7 +239,7 @@ var Poll = (() => {
     startTimer();
 
     poll.querySelectorAll("ul.choices li").forEach((choice) => {
-      choices.push(choice.innerText);
+      choices.push(choice.lastChild.textContent);
     });
     socket.send(JSON.stringify({ tag: "Start", choices: choices }));
   }
@@ -266,15 +272,14 @@ var Poll = (() => {
 
   // Update chart and list of votes by response
   function updateVotes(choices, canvas) {
-    let labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"].slice(
-      0,
-      Object.keys(choices).length
-    );
     let votes = [];
-    Object.values(choices).forEach((val) => {
+    let sorted = Object.keys(choices).sort().reduce((result,key) => {
+      result[key] = choices[key];
+      return result;
+    }, {});
+    Object.values(sorted).forEach((val) => {
       votes.push(val);
     });
-    canvas.chart.data.labels = labels;
     canvas.chart.data.datasets[0].data = votes;
     canvas.chart.update();
   }
@@ -346,7 +351,19 @@ var Poll = (() => {
   return {
     init: () => {
       return new Promise((resolve) => {
-        openPoll();
+        Reveal.addEventListener("slidechanged", e => { updateSlide(); });
+        Reveal.removeKeyBinding(67);
+        Reveal.addKeyBinding(
+          {
+            keyCode: 67,
+            key: "C",
+            description: "Toggle Audience Response Code",
+          },
+          () => {
+            qrdiv.classList.toggle("active");
+            if (socket == null) openPoll();
+          }
+        );
         document.onclose = () => {
           socket.close();
         };

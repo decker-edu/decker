@@ -511,7 +511,13 @@ dd {
       transition: 0.5s;
       text-align: center;
       padding: 1em;
-
+      &.loading {  
+        background: url("../plugins/poll/loading.gif") no-repeat center center;
+        background-color: #fff;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
       &.active { display: block; }
 
       a {
@@ -586,12 +592,10 @@ dd {
       .active { display: block; }
       ul.choices { 
         list-style-type: upper-alpha; 
-        li::before {
-          content:counter(answer, upper-latin) ": ";
-          counter-increment: answer;
-          margin-right: 0.5em;
+        li span {
           font-weight: 700;
-          font-family: "Roboto", Helvetica, sans-serif;
+          display: inline-block;
+          margin-right: 1.25vw;
         }
       }
       i.fa-qrcode { 
@@ -604,11 +608,11 @@ dd {
       .poll_results { 
         display: none; 
         position: absolute;
-        right: 12px;
-        bottom: 12px;
+        right: -10.5vw;
+        bottom: 11vh;     
         z-index: 41;
-        width: 33%;
-        height: 25%;
+        width: 60%;
+        height: 40%;
         object-fit: contain;
         border-radius: 10px;
         border: 1px solid #2a9ddf;
@@ -624,4 +628,18 @@ dd {
   }
   @-webkit-keyframes blinks {
     70% { visibility: hidden; }
+  }
+
+
+
+/*********************************************
+ * Audience Response Polls - Large Screens
+ *********************************************/
+  @media screen and (min-width: 1680px) {
+    .reveal .poll {
+      .poll_results {
+        right: -8.5vw;
+        bottom: 6vh;
+      }
+    }
   }

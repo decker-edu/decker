@@ -21,6 +21,8 @@ poll: true
 - Click the arrow icon to login to save poll results.
 - Press `a` to toggle the poll state opened/closed
 - Timed polls will automatically close
+- Press `t` to toggle poll results. 
+- Drag results box to new location if needed.
 
 ## Dashboard
 
@@ -53,6 +55,9 @@ poll: true
 color: "#080"
 timed: True
 seconds: 15
+font-color: "red"
+font-size: 22
+font-style: 'italic'
 ``` 
 
 # No Poll Present

@@ -25,9 +25,46 @@ import Text.Pandoc.Definition
 data PollMeta = PollMeta
   { color :: String,
     timed :: Bool,
-    seconds :: String
-  }
-  deriving (Show)
+    seconds :: String,
+    options :: OptionsObj
+  } deriving (Show)
+
+data Chart = Chart
+  { chartdata :: DataObj,
+    chartoptions :: OptionsObj
+  } deriving (Show)
+
+data DataObj = DataObj
+  { labels :: [String],
+    datasets :: [Dataset]
+  } deriving (Show)
+
+data Dataset = Dataset
+  { dsbackgroundColor :: String,
+    dsdata :: [Integer]
+  } deriving (Show)
+
+data OptionsObj = OptionsObj
+  { optscales :: Scales,
+    optlegend :: Legend
+  } deriving (Show)
+
+data Scales = Scales
+  { yAxes :: [Axes],
+    xAxes :: [Axes]
+  } deriving (Show)
+
+data Ticks = Ticks 
+  { tickbeginAtZero :: Bool,
+    tickstepSize :: Int, 
+    tickfontColor :: String,
+    tickfontSize :: Int,
+    tickfontStyle :: String
+  } deriving (Show)
+
+newtype Axes = Axes { ticks :: Ticks } deriving (Show)
+newtype Legend = Legend Disp deriving (Show)
+newtype Disp = Disp { display :: Bool } deriving (Show)
 
 -- Look in YAML for poll:true to see if deck has poll
 handlePolls :: Pandoc -> Decker Pandoc
@@ -59,12 +96,22 @@ buildPoll s = s
 
 buildPollMeta :: Maybe Meta -> PollMeta
 buildPollMeta meta = case meta of
-  Just m -> PollMeta col tim sec
+  Just m -> PollMeta col tim sec optObj
     where
       col = lookupMetaOrElse "#008cff" "color" m
       tim = lookupMetaOrElse False "timed" m
       sec = lookupMetaOrElse "11" "seconds" m
-  _ -> PollMeta "#008cff" False "60"
+      color = lookupMetaOrElse "#000" "font-color" m
+      size = lookupMetaOrElse 18 "font-size" m
+      style = lookupMetaOrElse "bold" "font-style" m
+      ticks = Ticks True 1 color size style
+      sc = Scales [Axes ticks] [Axes ticks]
+      optObj = OptionsObj sc (Legend $ Disp False)
+  _ -> PollMeta "#008cff" False "60" optObj
+    where
+      ticks = Ticks True 1 "#000" 18 "bold"
+      sc = Scales [Axes ticks] [Axes ticks]
+      optObj = OptionsObj sc (Legend $ Disp False)
 
 -- Define default pollMeta if some or no yaml values are found
 getYaml :: [Block] -> Maybe Meta
@@ -113,42 +160,6 @@ buildAnswers block =
         Space -> " "
         a -> ""
 
-data Chart = Chart
-  { chartdata :: DataObj,
-    chartoptions :: OptionsObj
-  }
-
-data DataObj = DataObj
-  { labels :: [String],
-    datasets :: [Dataset]
-  }
-
-data Dataset = Dataset
-  { dsbackgroundColor :: String,
-    dsdata :: [Integer]
-  }
-
-data OptionsObj = OptionsObj
-  { optresponsive :: Bool,
-    optmaintainAspectRatio :: Bool,
-    optscales :: Scales,
-    optlegend :: Disp
-  }
-
-data Scales = Scales
-  { yAxes :: [Axes],
-    xAxes :: [Axes]
-  }
-
-data Axes = Axes
-  { gridLines :: Disp,
-    ticks :: Ticks
-  }
-
-newtype Disp = Disp {display :: Bool}
-
-newtype Ticks = Ticks {stepSize :: Int}
-
 -- Build canvas tag with chart comment to render results of polls
 renderCanvas :: [String] -> PollMeta -> Block
 renderCanvas answers pm =
@@ -161,9 +172,7 @@ renderCanvas answers pm =
   where
     dataset = Dataset (color pm) (map (const 0) answers)
     da = DataObj answers [dataset]
-    sc = Scales [Axes (Disp True) (Ticks 1)] [Axes (Disp False) (Ticks 1)]
-    op = OptionsObj True True sc (Disp False)
-    chartObj = Chart da op
+    chartObj = Chart da (options pm)
 
 deriveJSON defaultOptions ''PollMeta
 deriveJSON defaultOptions {fieldLabelModifier = drop 5} ''Chart
@@ -171,6 +180,7 @@ deriveJSON defaultOptions ''DataObj
 deriveJSON defaultOptions {fieldLabelModifier = drop 2} ''Dataset
 deriveJSON defaultOptions {fieldLabelModifier = drop 3} ''OptionsObj
 deriveJSON defaultOptions ''Scales
+deriveJSON defaultOptions {fieldLabelModifier = drop 3} ''Legend
 deriveJSON defaultOptions ''Axes
 deriveJSON defaultOptions ''Disp
-deriveJSON defaultOptions ''Ticks
+deriveJSON defaultOptions {fieldLabelModifier = drop 4} ''Ticks
