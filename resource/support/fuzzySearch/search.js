@@ -28,7 +28,7 @@ function setupSearch(
 function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles, decksBaseDir) {
   anchor.innerHTML =
     document.documentElement.lang === "de"
-      ? `<details>
+      ? `<details class="fuzzy-search">
          <summary icon=""> In den Folien suchen </summary>
          <p><input class="search" placeholder="Suchbegriff eingeben" type="text"></p>
          <table class="search">
@@ -36,7 +36,8 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles, decks
          <tbody></tbody>
          </table>
          </details>`
-      : `<details><summary icon=""> Search in the slides </summary>
+      : `<details class="fuzzy-search">
+         <summary icon=""> Search in the slides </summary>
          <p><input class="search" placeholder="Looking for something?" type="text"></p>
          <table class="search">
          <thead><tr><th>Word</th><th>Deck</th><th>Slide</th><th>Hits</th></tr></thead>
