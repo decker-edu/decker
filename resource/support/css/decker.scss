@@ -619,6 +619,7 @@ dd {
         overflow: auto;
         transform-origin: center;
         padding: 0.2em;
+        background-color: #fff;
         &.active { display: block; }
       }
     }

@@ -5,7 +5,7 @@ var Poll = (() => {
   var socket = null; var poll = null; var timer = null;
   var pollState = "not-init";
   var admin = false;
-  var results, canvas, email, lgn, pwd, loggedIn, error;
+  var canvas, email, error, lgn, loggedIn, pollTimer, pwd, results;
   var pollNum = 0;
   var labels = [];
   const alphabet = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
@@ -225,7 +225,8 @@ var Poll = (() => {
 
   // 't' to show poll results
   function showResults() {
-    if (labels && labels.length === 0) { writeLabels(); } 
+    if (labels && labels.length === 0) { 
+      writeLabels(); } 
     results = Reveal.getCurrentSlide().querySelector(".poll_results");
     results.classList.toggle("active");
     handleResults();
@@ -239,7 +240,7 @@ var Poll = (() => {
     startTimer();
 
     poll.querySelectorAll("ul.choices li").forEach((choice) => {
-      choices.push(choice.lastChild.textContent);
+      choices.push(choice.firstChild.innerText);
     });
     socket.send(JSON.stringify({ tag: "Start", choices: choices }));
   }
@@ -248,13 +249,13 @@ var Poll = (() => {
     if (timer.classList.contains("timed")) {
       var duration = Math.floor(timer.getAttribute("data-seconds")) - 1;
 
-      var pollTimer = setInterval(() => {
+      pollTimer = setInterval(() => {
         if (duration > 0) {
           var min = Math.floor(duration / 60);
           var sec = Math.floor(duration % 60);
           min = min < 10 ? "0" + min : min;
           sec = sec < 10 ? "0" + sec : sec;
-          timer.innerHTML = `${min}:${sec}`;
+          if (timer == null) { return } else { timer.innerHTML = `${min}:${sec}` };
           if (duration < 6) {
             timer.classList.add("hurry");
           }
@@ -286,8 +287,10 @@ var Poll = (() => {
 
   // Send Stop to server and clear poll values
   function stopPoll() {
-    timer.classList.remove("active");
-    timer.classList.remove("hurry");
+    if (timer !== null && !timer.classList.contains("timed")) {
+      timer.classList.remove("active");
+      timer.classList.remove("hurry");
+    }
     if (socket == null) return;
 
     poll.querySelectorAll("ul.choices li").forEach((choice) => {
@@ -308,8 +311,6 @@ var Poll = (() => {
         email: admin ? email : "",
       })
     );
-    poll = null;
-    timer = null;
   }
 
   // Allow dragging of results
@@ -351,7 +352,17 @@ var Poll = (() => {
   return {
     init: () => {
       return new Promise((resolve) => {
-        Reveal.addEventListener("slidechanged", e => { updateSlide(); });
+        Reveal.addEventListener("slidechanged", e => { 
+          if (pollState == "started") {
+            if (timer.classList.contains("timed")) { 
+              clearInterval(pollTimer); 
+            }
+            stopPoll();
+            pollState = "idle";
+          }
+          poll = null;
+          timer = null;
+          updateSlide(); });
         Reveal.removeKeyBinding(67);
         Reveal.addKeyBinding(
           {

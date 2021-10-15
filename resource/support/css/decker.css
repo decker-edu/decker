@@ -776,7 +776,7 @@
 .reveal .qft.plain button,
 .reveal .qmc.plain button,
 .reveal .qmi.plain button,
-.reveal [class*="quiz-"].plain button {
+.reveal .plain[class*="quiz-"] button {
   border: none;
   margin: 0;
   padding: 5px 10px;
@@ -788,7 +788,7 @@
 .reveal .qft.plain button:hover,
 .reveal .qmc.plain button:hover,
 .reveal .qmi.plain button:hover,
-.reveal [class*="quiz-"].plain button:hover {
+.reveal .plain[class*="quiz-"] button:hover {
   background-color: #808080;
   color: #fff;
 }
@@ -797,7 +797,7 @@
 .reveal .qft.plain input,
 .reveal .qmc.plain input,
 .reveal .qmi.plain input,
-.reveal [class*="quiz-"].plain input {
+.reveal .plain[class*="quiz-"] input {
   display: block;
   padding: 5px 10px;
   width: 90%;
@@ -812,7 +812,7 @@
 .reveal .qft.plain input.show-right,
 .reveal .qmc.plain input.show-right,
 .reveal .qmi.plain input.show-right,
-.reveal [class*="quiz-"].plain input.show-right {
+.reveal .plain[class*="quiz-"] input.show-right {
   background-color: #aaffaa;
 }
 
@@ -820,7 +820,7 @@
 .reveal .qft.plain input.show-wrong,
 .reveal .qmc.plain input.show-wrong,
 .reveal .qmi.plain input.show-wrong,
-.reveal [class*="quiz-"].plain input.show-wrong {
+.reveal .plain[class*="quiz-"] input.show-wrong {
   background-color: #ffaaaa;
 }
 
@@ -828,7 +828,7 @@
 .reveal .qft.plain li.show-right::before,
 .reveal .qmc.plain li.show-right::before,
 .reveal .qmi.plain li.show-right::before,
-.reveal [class*="quiz-"].plain li.show-right::before {
+.reveal .plain[class*="quiz-"] li.show-right::before {
   content: "\f058";
   font-family: "Font Awesome 5 Free";
   font-weight: 400;
@@ -840,7 +840,7 @@
 .reveal .qft.plain li.show-wrong::before,
 .reveal .qmc.plain li.show-wrong::before,
 .reveal .qmi.plain li.show-wrong::before,
-.reveal [class*="quiz-"].plain li.show-wrong::before {
+.reveal .plain[class*="quiz-"] li.show-wrong::before {
   content: "\f057";
   font-family: "Font Awesome 5 Free";
   font-weight: 400;
@@ -1041,24 +1041,24 @@
 }
 
 .reveal .qft.plain .solutionList,
-.reveal [class*="quiz-f"].plain .solutionList {
+.reveal .plain[class*="quiz-f"] .solutionList {
   width: 88%;
   margin: 0 0 var(--margin-bottom-ul) 0;
 }
 
 .reveal .qft.plain .solutionList li,
-.reveal [class*="quiz-f"].plain .solutionList li {
+.reveal .plain[class*="quiz-f"] .solutionList li {
   margin: 0;
   border-radius: 6px;
 }
 
 .reveal .qft.plain .solutionList li .tooltip,
-.reveal [class*="quiz-f"].plain .solutionList li .tooltip {
+.reveal .plain[class*="quiz-f"] .solutionList li .tooltip {
   padding: 0 0 0.2em 1em;
 }
 
 .reveal .qft.plain .solutionButton,
-.reveal [class*="quiz-f"].plain .solutionButton {
+.reveal .plain[class*="quiz-f"] .solutionButton {
   margin-right: 0.5em;
 }
 
@@ -1096,12 +1096,12 @@
 }
 
 .reveal .qic.plain .tooltip-div.solved,
-.reveal [class*="quiz-i"].plain .tooltip-div.solved {
+.reveal .plain[class*="quiz-i"] .tooltip-div.solved {
   width: 91%;
 }
 
 .reveal .qic.plain select,
-.reveal [class*="quiz-i"].plain select {
+.reveal .plain[class*="quiz-i"] select {
   outline: none;
 }
 
@@ -1545,7 +1545,7 @@
 }
 
 /* Microsoft Edge Browser 12-18 (All versions before Chromium) */
-_:-ms-lang(x).plain .options,
+_.plain:-ms-lang(x) .options,
 .qmi.plain .options,
 .quiz-mi.plain .options,
 .quiz-match-items.plain .options {
@@ -1579,8 +1579,8 @@ _:-ms-lang(x).plain .options,
 .reveal .slides section .qmc.plain select,
 .reveal .slides section .qmi.plain input,
 .reveal .slides section .qmi.plain select,
-.reveal .slides section [class*="quiz-"].plain input,
-.reveal .slides section [class*="quiz-"].plain select {
+.reveal .slides section .plain[class*="quiz-"] input,
+.reveal .slides section .plain[class*="quiz-"] select {
     color: #fff;
     background-color: #fff;
     border: none;
@@ -1591,7 +1591,7 @@ _:-ms-lang(x).plain .options,
 .reveal .slides section .qft.plain input,
 .reveal .slides section .qmc.plain input,
 .reveal .slides section .qmi.plain input,
-.reveal .slides section [class*="quiz-"].plain input {
+.reveal .slides section .plain[class*="quiz-"] input {
     margin-bottom: 0.5em;
     min-width: 35%;
   }
@@ -1599,7 +1599,7 @@ _:-ms-lang(x).plain .options,
 .reveal .slides section .qft.plain input::placeholder,
 .reveal .slides section .qmc.plain input::placeholder,
 .reveal .slides section .qmi.plain input::placeholder,
-.reveal .slides section [class*="quiz-"].plain input::placeholder {
+.reveal .slides section .plain[class*="quiz-"] input::placeholder {
     color: #fff;
   }
   .reveal .slides section .qic select,
@@ -1611,19 +1611,19 @@ _:-ms-lang(x).plain .options,
     max-height: initial;
   }
   .reveal .slides section .qmi.plain,
-.reveal .slides section [class*="quiz-"].plain {
+.reveal .slides section .plain[class*="quiz-"] {
     width: 100%;
   }
   .reveal .slides section .qmi.plain .matchItems,
-.reveal .slides section [class*="quiz-"].plain .matchItems {
+.reveal .slides section .plain[class*="quiz-"] .matchItems {
     align-items: stretch !important;
   }
   .reveal .slides section .qmi.plain .matchQuestion,
-.reveal .slides section [class*="quiz-"].plain .matchQuestion {
+.reveal .slides section .plain[class*="quiz-"] .matchQuestion {
     font-size: var(--font-size-small) !important;
   }
   .reveal .slides section .qmi.plain .matchQuestion .optList,
-.reveal .slides section [class*="quiz-"].plain .matchQuestion .optList {
+.reveal .slides section .plain[class*="quiz-"] .matchQuestion .optList {
     color: #fff !important;
     background-color: #fff;
     max-height: 1em;
@@ -1631,17 +1631,17 @@ _:-ms-lang(x).plain .options,
   .reveal .slides section .qmi.plain .matchQuestion .optList p,
 .reveal .slides section .qmi.plain .matchQuestion .optList p::before,
 .reveal .slides section .qmi.plain .matchQuestion .optList p::after,
-.reveal .slides section [class*="quiz-"].plain .matchQuestion .optList p,
-.reveal .slides section [class*="quiz-"].plain .matchQuestion .optList p::before,
-.reveal .slides section [class*="quiz-"].plain .matchQuestion .optList p::after {
+.reveal .slides section .plain[class*="quiz-"] .matchQuestion .optList p,
+.reveal .slides section .plain[class*="quiz-"] .matchQuestion .optList p::before,
+.reveal .slides section .plain[class*="quiz-"] .matchQuestion .optList p::after {
     color: #fff !important;
   }
   .reveal .slides section .qmi.plain .matchItems,
-.reveal .slides section [class*="quiz-"].plain .matchItems {
+.reveal .slides section .plain[class*="quiz-"] .matchItems {
     margin-bottom: 0;
   }
   .reveal .slides section .qmi.plain .buckets .matchItem,
-.reveal .slides section [class*="quiz-"].plain .buckets .matchItem {
+.reveal .slides section .plain[class*="quiz-"] .buckets .matchItem {
     font-size: var(--font-size-small) !important;
   }
 }
