@@ -142,6 +142,7 @@ run = do
     --
     withTargetDocs "Compile global search index." $
       phony "search-index" $ do
+        need ["support"]
         putNormal "# compiling search index ..."
         meta <- getGlobalMeta
         targets <- getTargets

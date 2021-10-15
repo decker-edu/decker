@@ -6,24 +6,26 @@ function setupSearch(
   anchor,
   minScore = 0.5,
   showDeckTitles = true,
-  showDeckSubtitles = false
+  showDeckSubtitles = false,
+  decksBaseDir = "."
 ) {
-  // let indexPath = Decker.meta.projectPath;
-  // if (!indexPath.endsWith("/")) indexPath += "/";
-  // indexPath += "index.json";
-  const indexPath = "./index.json";
-  console.log("read search index from " + indexPath);
+  // Calculate the URL to the index data relative to the base directory of this
+  // module. This relies on the structure of the decker `public` dir, which
+  // should always be the same.
+  let metaUrl = import.meta.url;
+  let baseDir = metaUrl.substring(0, metaUrl.lastIndexOf("/") + 1);
+  let indexPath = baseDir + "../../index.json";
+  console.log("Loading search index from: " + indexPath) ;
 
   fetch(indexPath)
     .then((res) => res.json())
     .then((index) => {
-      // console.log(index);
-      setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
+      setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles, decksBaseDir);
     })
-    .catch((err) => console.log("cannot load: index.json", err));
+    .catch((err) => console.log("cannot load: " + indexPath, err));
 }
 
-function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
+function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles, decksBaseDir) {
   anchor.innerHTML =
     document.documentElement.lang === "de"
       ? `<details>
@@ -93,8 +95,8 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
 
         let item = document.createElement("tr");
         item.innerHTML = `<td>${found}</td> 
-        <td><a target="_blank" href="./${dInfo.deckUrl}">${deck}</a></td>
-        <td><a target="_blank" href="./${url}">${sInfo.slideTitle}</a></td>
+        <td><a target="_blank" href="${decksBaseDir}/${dInfo.deckUrl}">${deck}</a></td>
+        <td><a target="_blank" href="${decksBaseDir}/${url}">${sInfo.slideTitle}</a></td>
         <td>${count}</td>`;
 
         results.appendChild(item);

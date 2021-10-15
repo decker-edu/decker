@@ -8,6 +8,7 @@
 module Text.Decker.Filter.Index (buildIndex) where
 
 import Data.Aeson
+import qualified Data.ByteString.Lazy as ByteString
 import Data.Char
 import qualified Data.Map as Map
 import Data.Maybe
@@ -31,6 +32,10 @@ buildIndex indexFile globalMeta decks = do
   index <- mapM (buildDeckIndex globalMeta) decks
   let inverted = invertIndex index
   liftIO $ encodeFile indexFile inverted
+
+-- Not yet supported by browsers
+-- let es6Module = "export default " <> encode inverted
+-- liftIO $ ByteString.writeFile indexFile es6Module
 
 -- Collects word frequencies for each slide grouped by deck.
 buildDeckIndex :: Meta -> FilePath -> Action (DeckInfo, [((Text, Text), [(Text, Int)])])
