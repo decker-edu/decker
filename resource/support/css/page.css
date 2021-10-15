@@ -272,3 +272,7 @@ header > *:last-child {
 body {
   -webkit-print-color-adjust: exact;
 }
+
+div.anchor details {
+  margin-bottom: 1em;
+}
