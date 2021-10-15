@@ -141,7 +141,7 @@ run = do
         getTargets >>= needSel decksPdf
     --
     withTargetDocs "Compile global search index." $
-      phony "index" $ do
+      phony "search-index" $ do
         putNormal "# compiling search index ..."
         meta <- getGlobalMeta
         targets <- getTargets
@@ -265,7 +265,7 @@ run = do
               if exists
                 then indexSource
                 else generatedIndexSource
-        need [src, "index"]
+        need [src]
         meta <- getGlobalMeta
         markdownToHtmlPage meta getTemplate src out
       --
