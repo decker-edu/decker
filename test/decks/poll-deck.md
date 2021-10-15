@@ -1,6 +1,7 @@
 ---
 title: Audience Response Poll
 poll: true
+zoom: false
 ---
 
 # Audience Response Polls
