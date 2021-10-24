@@ -80,7 +80,10 @@ details {
     margin-bottom:10px;
 }
 
+div.anchor summary,
 details summary {
+    font-weight: normal;
+    font-style: normal;
     outline: none;
     padding: 4px;
 }
