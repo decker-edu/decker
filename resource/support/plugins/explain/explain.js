@@ -21,6 +21,7 @@ let ExplainPlugin = (function () {
   let micSelect, camSelect;
   let micIndicator, camIndicator;
   let screenCaptureSize, cameraCaptureSize;
+  let recordingTime, recordingTimer;
 
   // greenscreen
   let useGreenScreen = config.useGreenScreen || false;
@@ -558,9 +559,16 @@ let ExplainPlugin = (function () {
       recorder.timing = new Timing();
       recorder.timing.start();
       Reveal.addEventListener("slidechanged", recordSlideChange);
-
       updateRecordIndicator();
+      recordingTimer = setInterval(updateRecordingTimer, 1000);
     };
+
+    function updateRecordingTimer() {
+      let seconds = recorder.timing.timeStamp();
+      let time = new Date(null);
+      time.setSeconds(seconds);
+      recordingTime.innerText = time.toISOString().substr(11, 8);
+    }
 
     function upload(...files) {
       console.log("[] about to upload: ", files);
@@ -604,6 +612,7 @@ let ExplainPlugin = (function () {
       }
 
       Reveal.removeEventListener("slidechanged", recordSlideChange);
+      clearInterval(recordingTimer);
       recorder = null;
       stream = null;
 
@@ -612,11 +621,13 @@ let ExplainPlugin = (function () {
 
     recorder.onpause = () => {
       recorder.timing.pause();
+      clearInterval(recordingTimer);
       updateRecordIndicator();
     };
 
     recorder.onresume = () => {
       recorder.timing.resume();
+      recordingTimer = setInterval(updateRecordingTimer, 1000);
       updateRecordIndicator();
     };
 
@@ -1074,6 +1085,26 @@ let ExplainPlugin = (function () {
       parent: recordPanel,
     });
 
+    createElement({
+      type: "i",
+      classes: "indicator fas fa-stopwatch",
+      title: "Recording time",
+      parent: row,
+    });
+
+    recordingTime = createElement({
+      type: "span",
+      classes: "capture-size",
+      title: "Recording timer",
+      parent: row,
+    });
+
+    row = createElement({
+      type: "div",
+      classes: "controls-row",
+      parent: recordPanel,
+    });
+
     recordButton = createElement({
       type: "button",
       classes: "explain record-button fas fa-play-circle",
@@ -1163,6 +1194,7 @@ let ExplainPlugin = (function () {
     cameraPanel.dy = 0.0;
     cameraPanel.scale = 1.0;
     cameraPanel.transform = "";
+    cameraPanel.style.cursor = "inherit";
 
     // start dragging
     cameraPanel.onmousedown = (e) => {
@@ -1190,7 +1222,7 @@ let ExplainPlugin = (function () {
 
     // stop dragging
     cameraPanel.onmouseup = cameraPanel.onmouseleave = (e) => {
-      cameraPanel.style.cursor = "";
+      cameraPanel.style.cursor = "inherit";
       cameraPanel.dragging = false;
       cameraPanel.onmousemove = null;
     };
