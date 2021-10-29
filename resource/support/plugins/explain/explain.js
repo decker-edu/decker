@@ -768,7 +768,7 @@ let ExplainPlugin = (function () {
       controls: true,
       autoplay: false,
       preload: "metadata",
-      playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+      playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2.0],
       controlBar: {
         playToggle: true,
         volumePanel: true,
@@ -786,6 +786,7 @@ let ExplainPlugin = (function () {
         // our keyboard shortcuts
         hotkeys: function (event) {
           event.stopPropagation();
+          event.preventDefault();
 
           switch (event.code) {
             // space or k: play/pause
