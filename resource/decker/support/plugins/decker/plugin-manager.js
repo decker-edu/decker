@@ -28,20 +28,6 @@ class DeckerPlugins {
         this.id = "decker-plugins";
     }
 
-    init(reveal) {
-        this.reveal = reveal;
-        this.top_left_anchor = this.prepareAnchor("top-left-anchor");
-        this.top_right_anchor = this.prepareAnchor("top-right-anchor");
-        this.bottom_left_anchor = this.prepareAnchor("bottom-left-anchor");
-        this.bottom_right_anchor = this.prepareAnchor("bottom-right-anchor");
-
-        let reveal_element = document.querySelector(".reveal");
-        reveal_element.appendChild(this.top_left_anchor);
-        reveal_element.appendChild(this.top_right_anchor);
-        reveal_element.appendChild(this.bottom_left_anchor);
-        reveal_element.appendChild(this.bottom_right_anchor);
-    }
-
     prepareAnchor(classname) {
         let template = document.createElement("template");
         template.innerHTML = String.raw
@@ -72,6 +58,20 @@ class DeckerPlugins {
 
     addBottomLeftButton(button) {
         this.bottom_left_anchor.appendChild(button);
+    }
+
+    init(reveal) {
+        this.reveal = reveal;
+        this.top_left_anchor = this.prepareAnchor("top-left-anchor");
+        this.top_right_anchor = this.prepareAnchor("top-right-anchor");
+        this.bottom_left_anchor = this.prepareAnchor("bottom-left-anchor");
+        this.bottom_right_anchor = this.prepareAnchor("bottom-right-anchor");
+
+        let reveal_element = document.querySelector(".reveal");
+        reveal_element.appendChild(this.top_left_anchor);
+        reveal_element.appendChild(this.top_right_anchor);
+        reveal_element.appendChild(this.bottom_left_anchor);
+        reveal_element.appendChild(this.bottom_right_anchor);
     }
 }
 
