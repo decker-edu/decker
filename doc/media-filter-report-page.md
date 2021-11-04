@@ -15,13 +15,13 @@ This report is generated during testing and shows the HTML output for a represen
 
 An image that is used inline in a paragraph of text.
 
-``` {.markdown}
+``` markdown
 ![$e=mc^2$](/test/decks/include/06-metal.png)
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker" alt="06-metal.png">
     <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
@@ -52,13 +52,13 @@ translates to
 
 An SVG image that is embedded into the HTML document.
 
-``` {.markdown}
+``` markdown
 ![](/test/decks/empty.svg){.embed css:background-color="magenta"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <div class="decker image error">
     <h2 class="title">
         <i class="fa fa-exclamation-triangle">
@@ -87,13 +87,13 @@ translates to
 
 A PDF document that is embedded through an object tag.
 
-``` {.markdown}
+``` markdown
 ![](https://adobe.com/some.pdf)
 ```
 
 translates to
 
-``` {.html}
+``` html
 <object class="decker" type="application/pdf" data="https://adobe.com/some.pdf">
     
 </object>
@@ -105,7 +105,7 @@ translates to
 
 An image with a caption. The image is surrounded by a figure element.
 
-``` {.markdown}
+``` markdown
 ![Caption.](/test/decks/include/06-metal.png)
 
 This is not a caption, but the next paragraph.
@@ -113,7 +113,7 @@ This is not a caption, but the next paragraph.
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker" alt="06-metal.png">
     <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
@@ -130,7 +130,7 @@ This is not a caption, but the next paragraph.
 
 An image with a caption. The image is surrounded by a figure element.
 
-``` {.markdown}
+``` markdown
 ![](/test/decks/include/06-metal.png)
 
 Caption: Caption.
@@ -138,7 +138,7 @@ Caption: Caption.
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker" alt="06-metal.png">
     <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
@@ -154,7 +154,7 @@ translates to
 
 An image with a caption containg a citation.
 
-``` {.markdown}
+``` markdown
 ![](/test/decks/include/06-metal.png)
 
 Caption: Caption [see @tramberend2003].
@@ -162,7 +162,7 @@ Caption: Caption [see @tramberend2003].
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker" alt="06-metal.png">
     <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
@@ -185,13 +185,13 @@ translates to
 
 Query string and fragment identifier in URLs are preserved.
 
-``` {.markdown}
+``` markdown
 ![Caption.](https://some.where/image.png&key=value)
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker" alt="image.png&amp;key=value">
     <img class="decker" data-src="https://some.where/image.png&key=value">
     <figcaption class="decker">
@@ -206,13 +206,13 @@ translates to
 
  Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
 
-``` {.markdown}
+``` markdown
 ![Caption.](/test/decks/include/06-metal.png){width="40%"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker" alt="06-metal.png" style="width:40%;">
     <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
@@ -227,13 +227,13 @@ translates to
 
  Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
 
-``` {.markdown}
+``` markdown
 ![Caption.](/test/decks/include/06-metal.png){height="200px"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker" alt="06-metal.png">
     <img class="decker" data-src="/test/decks/include/06-metal.png" style="height:200px;">
     <figcaption class="decker">
@@ -248,13 +248,13 @@ translates to
 
  Percentage values for \`width\` and \`height\` are transfered to the figure element, other values go to the image element.
 
-``` {.markdown}
+``` markdown
 ![Caption.](/test/decks/include/06-metal.png){height="200px" width="40%"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker" alt="06-metal.png" style="width:40%;">
     <img class="decker" data-src="/test/decks/include/06-metal.png" style="height:200px;">
     <figcaption class="decker">
@@ -269,13 +269,13 @@ translates to
 
 Image attributes are handled in complex ways.
 
-``` {.markdown}
+``` markdown
 ![Caption.](/test/decks/include/06-metal.png){#myid .myclass width="40%" css:border="1px" css:background-color="magenta" myattribute="value"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure id="myid" class="decker myclass" alt="06-metal.png" data-myattribute="value" style="width:40%;border:1px;background-color:magenta;">
     <img class="decker" data-src="/test/decks/include/06-metal.png">
     <figcaption class="decker">
@@ -290,17 +290,15 @@ translates to
 
 Images that are audio clips are converted to an audio tag.
 
-``` {.markdown}
+``` markdown
 ![Caption.](test/decks/audio.mp3){.autoplay .controls}
 ```
 
 translates to
 
-``` {.html}
-<figure class="decker">
-    <audio class="decker" data-src="test/decks/audio.mp3" controls="controls" allow="autoplay" data-autoplay="1">
-        
-    </audio>
+``` html
+<figure class="decker autoplay controls" alt="audio.mp3">
+    <img class="decker" data-src="test/decks/audio.mp3">
     <figcaption class="decker">
         Caption.
     </figcaption>
@@ -313,13 +311,13 @@ translates to
 
 Images that are videos are converted to a video tag.
 
-``` {.markdown}
+``` markdown
 ![Caption.](test/decks/pacman-perfect-game.mp4){width="42%"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker" style="width:42%;">
     <video class="decker" data-src="test/decks/pacman-perfect-game.mp4">
         
@@ -336,13 +334,13 @@ translates to
 
 A local video with start time.
 
-``` {.markdown}
+``` markdown
 ![Caption.](test/decks/pacman-perfect-game.mp4){start="5" stop="30" preload="none"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker">
     <video class="decker" data-src="test/decks/pacman-perfect-game.mp4#t=5,30" preload="none">
         
@@ -359,13 +357,13 @@ translates to
 
 Video tag specific classes are translated to specific attributes.
 
-``` {.markdown}
+``` markdown
 ![Caption.](test/decks/pacman-perfect-game.mp4){.controls .autoplay start="5" stop="30" poster="/test/decks/include/06-metal.png" preload="none"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker">
     <video class="decker" data-src="test/decks/pacman-perfect-game.mp4#t=5,30" poster="/test/decks/include/06-metal.png" preload="none" controls="controls" allow="autoplay" data-autoplay="1">
         
@@ -382,7 +380,7 @@ translates to
 
 Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout.
 
-``` {.markdown}
+``` markdown
 | ![](/test/decks/include/06-metal.png)
 | ![Caption.](test/decks/pacman-perfect-game.mp4){.autoplay}
 | ![](/test/decks/include/06-metal.png){css:border="1px solid black"}
@@ -390,7 +388,7 @@ Line blocks filled with only image tags are translated to a row of images. Suppo
 
 translates to
 
-``` {.html}
+``` html
 <div class="decker image-row">
     <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png">
 
@@ -414,7 +412,7 @@ translates to
 
 Line blocks filled with only image tags are translated to a row of images. Supposed to be used with a flexbox masonry CSS layout.
 
-``` {.markdown}
+``` markdown
 | ![](/test/decks/include/06-metal.png)
 | ![](test/decks/pacman-perfect-game.mp4){.autoplay}
 | ![](/test/decks/include/06-metal.png){css:border="1px solid black"}
@@ -425,7 +423,7 @@ Caption: Caption
 
 translates to
 
-``` {.html}
+``` html
 <div class="decker image-row">
     <img class="decker" data-src="/test/decks/include/06-metal.png" alt="06-metal.png">
 
@@ -447,15 +445,15 @@ Caption: Caption
 
 A simple iframe with a caption. The URL can be a top level domain because the \`iframe\` class is specified.
 
-``` {.markdown}
+``` markdown
 ![Caption.](https://www.heise.de/){.iframe}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker iframe">
-    <iframe class="decker" allow="fullscreen" data-src="https://www.heise.de/">
+    <iframe class="decker" allow="fullscreen" data-src="https://www.heise.de">
         
     </iframe>
     <figcaption class="decker">
@@ -470,13 +468,13 @@ translates to
 
 A simple iframe with custom attributes and a query string that are both transfered correctly.
 
-``` {.markdown}
+``` markdown
 ![Caption.](https://www.heise.de/index.html#some-frag?token=83fd3d4){height="400px" model="some-stupid-ass-model.off" lasersword="off"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker">
     <iframe class="decker" allow="fullscreen" data-src="https://www.heise.de/index.html#some-frag?token=83fd3d4" data-model="some-stupid-ass-model.off" data-lasersword="off" style="height:400px;">
         
@@ -493,13 +491,13 @@ translates to
 
 A simple iframe with a special url.
 
-``` {.markdown}
+``` markdown
 ![Caption.](http://3d.de/model.off){.mario height="400px" phasers="stun"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker mario">
     <iframe class="decker" allow="fullscreen" data-src="support/mview/mview.html" data-model="http://3d.de/model.off" data-phasers="stun" style="height:400px;">
         
@@ -516,16 +514,16 @@ translates to
 
 An image with source URL scheme \`youtube:\` results in an embedded video player.
 
-``` {.markdown}
+``` markdown
 ![](youtube:1234567890){#video1 .autoplay .controls width="75%"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <div id="video1" class="decker nofigure streaming" style="width:75%;">
-    <div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
-        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?cc_load_policy=0&controls=1&iv_load_policy=3&modestbranding=1&rel=0&showinfo=0">
+    <div class="decker video" style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube-nocookie.com/embed/1234567890?cc_load_policy=0&controls=1&iv_load_policy=3&modestbranding=1&rel=0&showinfo=0">
             
         </iframe>
     </div>
@@ -538,16 +536,16 @@ translates to
 
 With reveal.js style autoplay and looping.
 
-``` {.markdown}
+``` markdown
 ![](youtube:1234567890){#video2 .autoplay .loop}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <div id="video2" class="decker nofigure streaming">
-    <div style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
-        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube.com/embed/1234567890?cc_load_policy=0&controls=2&iv_load_policy=3&loop=1&modestbranding=1&playlist=1234567890&rel=0&showinfo=0">
+    <div class="decker video" style="position:relative;padding-top:25px;padding-bottom:56.25%;height:0;">
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://www.youtube-nocookie.com/embed/1234567890?cc_load_policy=0&controls=2&iv_load_policy=3&loop=1&modestbranding=1&playlist=1234567890&rel=0&showinfo=0">
             
         </iframe>
     </div>
@@ -560,15 +558,15 @@ translates to
 
 An image with source URL scheme \`vimeo:\` results in an embedded video player.
 
-``` {.markdown}
+``` markdown
 ![Caption.](vimeo://1234567890){#video2 .some-class autoplay="autoplay" aspect="4:3" width="75%" some-attribute="yeah"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure id="video2" class="decker some-class streaming" data-some-attribute="yeah" style="width:75%;">
-    <div style="position:relative;padding-top:25px;padding-bottom:75.00%;height:0;">
+    <div class="decker video" style="position:relative;padding-top:25px;padding-bottom:75.00%;height:0;">
         <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.vimeo.com/video/?byline=0&controls=1&dnt=1&fun=0&title=0&transparent=false">
             
         </iframe>
@@ -585,16 +583,16 @@ translates to
 
 An image with source URL scheme \`twitch:\` results in an embedded video player.
 
-``` {.markdown}
+``` markdown
 ![Caption.](twitch:1234567890){.autoplay .controls aspect="5:3" width="75%"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <figure class="decker controls streaming" style="width:75%;">
-    <div style="position:relative;padding-top:25px;padding-bottom:60.00%;height:0;">
-        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.twitch.tv/?video=1234567890&parent=localhost&allowfullscreen=true">
+    <div class="decker video" style="position:relative;padding-top:25px;padding-bottom:60.00%;height:0;">
+        <iframe allow="autoplay" data-autoplay="1" style="position:absolute;top:0;left:0;width:100%;height:100%;" data-src="https://player.twitch.tv?video=1234567890&parent=localhost&allowfullscreen=true">
             
         </iframe>
     </div>
@@ -610,13 +608,13 @@ translates to
 
 The last image in a level 1 header is promoted to the slide background.
 
-``` {.markdown}
+``` markdown
 # Background Image ![](/test/decks/include/06-metal.png){size="cover"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <h1 data-background-size="cover" data-background-image="/test/decks/include/06-metal.png" id="background-image">Background Image  </h1>
 ```
 
@@ -626,13 +624,13 @@ translates to
 
 The last image in a level 1 header is promoted to the slide background.
 
-``` {.markdown}
+``` markdown
 # Background Image ![](test/decks/pacman-perfect-game.mp4){.loop .muted color="black"}
 ```
 
 translates to
 
-``` {.html}
+``` html
 <h1 data-background-video-loop="1" data-background-video-muted="1" data-background-video="test/decks/pacman-perfect-game.mp4" id="background-image">Background Image  </h1>
 ```
 

@@ -272,3 +272,13 @@ header > *:last-child {
 body {
   -webkit-print-color-adjust: exact;
 }
+
+div.anchor details {
+  margin-bottom: 1em;
+}
+
+div.anchor summary {
+  font-size: 1.2;
+  font-weight: bold;
+  font-style: italic;
+}

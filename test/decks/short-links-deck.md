@@ -1,6 +1,6 @@
 ---
 short-links:
-  beuth: 'https://www.beuth-hochschule.de/@@'
+  beuth: 'https://www.bht-berlin.de/@@'
   bind:
     notebook: local
   notebook:
@@ -27,7 +27,7 @@ title: Short Links
 
 ``` {.yaml}
 short-links:
-  beuth: 'https://www.beuth-hochschule.de/@@'
+  beuth: 'https://www.bht-berlin.de/@@'
   notebook:
     binder: 'https://mybinder.org/v2/gh/monofon/plc-java/master?filepath=@@@'
     local: 'http://localhost:8192/@@?token=plc'
@@ -48,7 +48,7 @@ short-links:
 ## Should result in
 
 ``` {.markdown}
-1.  [](https://www.beuth-hochschule.de/people/detail/964)
+1.  [](https://www.bht-berlin.de/people/detail/964)
 2.  [](http://localhost:8192/some/path.thing?token=plc)
 3.  [](https://mybinder.org/v2/gh/monofon/plc-java/master?filepath=some%2Fpath.thing)
 ```
