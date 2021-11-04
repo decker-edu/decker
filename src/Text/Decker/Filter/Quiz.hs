@@ -282,12 +282,12 @@ choiceList t choices =
         handleChoices :: Choice -> Html
         handleChoices (Choice correct text comment) =
             if correct
-                then H.li ! A.class_ "correct" $
-                    do
+                then H.li ! A.class_ "correct" $ do
+                        H.span ! A.class_ "choice_ltr" $ ""
                         toHtml text
                         H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
-                else H.li ! A.class_ "wrong" $
-                    do
+                else H.li ! A.class_ "wrong" $ do
+                        H.span ! A.class_ "choice_ltr" $ ""
                         toHtml text
                         H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
 

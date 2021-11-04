@@ -26,3 +26,5 @@ resource/decker/support/vendor/
 stack.yaml.lock
 test/decks/*.svg
 index.md.generated
+resource/wburg/support/css/decker.css
+resource/wburg/support/css/page.css

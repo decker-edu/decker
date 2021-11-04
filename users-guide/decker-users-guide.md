@@ -345,7 +345,7 @@ server in the meta data by setting the variable
 
 ``` {.yaml}
 decker-engine:
-  base-url: 'https://tramberend.beuth-hochschule.de/decker'
+  base-url: 'https://tramberend.bht-berlin.de/decker'
 ```
 
 ### Endpoints with authorization
@@ -362,7 +362,7 @@ The `de-api` endpoint works that way:
 
 ``` {.yaml}
 decker-engine:
-  base-url: 'https://tramberend.beuth-hochschule.de/de-api'
+  base-url: 'https://tramberend.bht-berlin.de/de-api'
 ```
 
 ### Public endpoints
@@ -377,7 +377,7 @@ The `decker` endpoint works that way:
 
 ``` {.yaml}
 decker-engine:
-  base-url: 'https://tramberend.beuth-hochschule.de/decker'
+  base-url: 'https://tramberend.bht-berlin.de/decker'
 ```
 
 ### Admistrators
@@ -396,7 +396,7 @@ meta data.
 
 ``` {.yaml}
 decker-engine:
-  deck-id: 'https://tramberend.beuth-hochschule.de/public/decker/test/decks/engine-deck.html'
+  deck-id: 'https://tramberend.bht-berlin.de/public/decker/test/decks/engine-deck.html'
 ```
 
 If `decker-engine.deck-id` is specified, it overrides the actual deck
