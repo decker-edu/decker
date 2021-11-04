@@ -67,3 +67,17 @@ button.decker-button :active {
 .slide-in-left[inert] {
     transform: translate(-100%);
 }
+
+.slide-in-right {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 33%;
+
+    transition: transform 0.5s;
+}
+
+.slide-in-right[inert] {
+    transform: translate(100%);
+}

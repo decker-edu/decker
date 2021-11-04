@@ -18,6 +18,7 @@ reveal:
   vertical-slides: true
   slideNumber: true
   transition: "none"
+  viewDistance: 1
 
 chart:
   defaults:
