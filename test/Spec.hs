@@ -16,7 +16,7 @@ import Test.Hspec
 
 main = do
   setLocaleEncoding utf8
-  deckTemplate <- B.readFile "resource/template/deck.html"
+  deckTemplate <- B.readFile "resource/decker/template/deck.html"
        --
   hspec $ do
     shortLinkTests

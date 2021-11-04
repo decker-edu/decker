@@ -1,8 +1,8 @@
 ---
 author: Henrik Tramberend
 decker-engine:
-  base-url: 'https://tramberend.beuth-hochschule.de/decker'
-  deck-id: 'https://tramberend.beuth-hochschule.de/public/decker/test/decks/engine-deck.html'
+  base-url: 'https://tramberend.bht-berlin.de/decker'
+  deck-id: 'https://tramberend.bht-berlin.de/public/decker/test/decks/engine-deck.html'
 help: 0
 menu: 0
 controls: false
