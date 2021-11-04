@@ -8,7 +8,7 @@
 -- All decker specific meta data is embedded into the document meta data under
 -- the `decker` key. Information gathered during the filter run is appended
 -- under the `decker` key in the meta data of the resulting document.
-module Text.Decker.Filter.Decker (runFilter, mediaFilter) where
+module Text.Decker.Filter.Decker (runFilter, mediaFilter, pairwise) where
 
 import Relude
 import Text.Decker.Filter.Header
