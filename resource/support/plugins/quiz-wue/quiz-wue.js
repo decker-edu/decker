@@ -187,7 +187,7 @@ function checkAnswer(solutionList, answer) {
     for (let s of solutions) {
         const is_right = s.classList.contains("correct");
         // Get only the solution text and not the tooltip div
-        const solution = s.innerHTML.replace(/(<div)(.|[\r\n])*(<\/div>)/, "").toLowerCase().trim();
+        const solution = s.innerHTML.replace(/(<div)(.|[\r\n])*(<\/div>)/, "").replace(/(<span)(.|[\r\n])*(<\/span>)/, "").toLowerCase().trim();
         if (answer == solution) {
             s.classList.add("solved");
             return {correct: (is_right ? true : false), predef: true};
