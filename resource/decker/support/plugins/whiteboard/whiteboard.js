@@ -175,7 +175,7 @@ function createGUI() {
 
   if(Reveal.hasPlugin("decker-plugins")) {
     let manager = Reveal.getPlugin("decker-plugins");
-    manager.registerPlugin({decker_button: buttons, decker_anchor: "BOTTOM_LEFT"});
+    manager.placeButton(buttons, "BOTTOM_LEFT");
   }
 
   buttonSave = createButton(
