@@ -46,6 +46,7 @@ import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
 import Relude
 import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Common
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Builder hiding (fromList, lookupMeta, toList)
 import Text.Pandoc.Shared hiding (toString, toText)
@@ -81,11 +82,20 @@ toPandocMeta' (Y.Object m) =
   MetaMap $ Map.fromList $ map (second toPandocMeta') $ H.toList m
 toPandocMeta' (Y.Array vector) =
   MetaList $ map toPandocMeta' $ Vec.toList vector
-toPandocMeta' (Y.String text) = MetaString text
+-- Playing around with #317
+-- toPandocMeta' (Y.String text) = MetaString text
+toPandocMeta' (Y.String text) = compileText text
 toPandocMeta' (Y.Number scientific) = MetaString $ Text.pack $ show scientific
 toPandocMeta' (Y.Bool bool) = MetaBool bool
 toPandocMeta' Y.Null = MetaList []
 
+compileText :: Text -> MetaValue
+compileText text =
+  case runPure $ readMarkdown pandocReaderOpts text of
+    Right pandoc@(Pandoc _ [Para inlines]) -> MetaInlines inlines
+    Right pandoc@(Pandoc _ blocks) -> MetaBlocks blocks
+    Left _ -> MetaString text
+    
 fromPandocMeta :: Meta -> A.Value
 fromPandocMeta (Meta map) = fromPandocMeta' (MetaMap map)
 
