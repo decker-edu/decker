@@ -11,6 +11,7 @@ module Text.Decker.Internal.External
     pdf2svg,
     ffmpeg,
     checkExternalPrograms,
+    forceCheckExternalPrograms,
   )
 where
 
@@ -185,23 +186,22 @@ checkProgram name =
         | status == 127 -> return False
       _ -> return True
 
-checkExternalPrograms :: IO [(String, Bool)]
-checkExternalPrograms = do
+forceCheckExternalPrograms :: IO ()
+forceCheckExternalPrograms = do
   exists <- Dir.doesFileExist externalStatusFile
-  if exists
-    then do
-      fromJust <$> decodeFileStrict externalStatusFile
-    else do
-      putStrLn "# external programs:"
-      status <- zip (map fst programs) <$> mapM check programs
-      Dir.createDirectoryIfMissing True (takeDirectory externalStatusFile)
-      encodeFile externalStatusFile status
-      return status
+  when exists $ Dir.removeFile externalStatusFile
+  checkExternalPrograms
+    >>= printExternalPrograms
+
+printExternalPrograms :: [(String, Bool)] -> IO ()
+printExternalPrograms status = do
+  putStrLn "# external programs:"
+  mapM_ print programs
   where
-    check (name, external) = do
-      result <- checkProgram name
-      if result
-        then do
+    print (name, info) = do
+      let found = isJust $ lookup name status
+      if found
+        then
           putStrLn $
             "  "
               ++ setSGRCode [SetColor Foreground Vivid Blue]
@@ -211,8 +211,7 @@ checkExternalPrograms = do
               ++ setSGRCode [SetColor Foreground Vivid Green]
               ++ "found"
               ++ setSGRCode [Reset]
-          return True
-        else do
+        else
           putStrLn $
             "  "
               ++ setSGRCode [SetColor Foreground Vivid Blue]
@@ -223,6 +222,17 @@ checkExternalPrograms = do
               ++ "missing"
               ++ setSGRCode [Reset]
               ++ " ("
-              ++ help external
+              ++ help info
               ++ ")"
-          return False
+
+checkExternalPrograms :: IO [(String, Bool)]
+checkExternalPrograms = do
+  exists <- Dir.doesFileExist externalStatusFile
+  if exists
+    then do
+      fromJust <$> decodeFileStrict externalStatusFile
+    else do
+      status <- zip (map fst programs) <$> mapM (checkProgram . fst) programs
+      Dir.createDirectoryIfMissing True (takeDirectory externalStatusFile)
+      encodeFile externalStatusFile status
+      return status

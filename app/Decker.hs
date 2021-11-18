@@ -332,6 +332,8 @@ run = do
         putNormal "\ntop level meta data:\n"
         putNormal (groom meta)
     --
+    withTargetDocs "Check the existence of usefull external programs" $
+      phony "check" $ liftIO forceCheckExternalPrograms
     -- TODO use or throw away
     withTargetDocs "Copy runtime support files to public dir." $
       phony "support" $ do
