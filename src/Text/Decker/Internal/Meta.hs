@@ -92,6 +92,7 @@ toPandocMeta' Y.Null = MetaList []
 compileText :: Text -> MetaValue
 compileText text =
   case runPure $ readMarkdown pandocReaderOpts text of
+    Right pandoc@(Pandoc _ [Plain inlines]) -> MetaInlines inlines
     Right pandoc@(Pandoc _ [Para inlines]) -> MetaInlines inlines
     Right pandoc@(Pandoc _ blocks) -> MetaBlocks blocks
     Left _ -> MetaString text
