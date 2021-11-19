@@ -17,6 +17,7 @@ module Text.Decker.Project.Project
     staticDirs,
     static,
     sources,
+    resources,
     decks,
     decksPdf,
     pages,
@@ -30,7 +31,6 @@ module Text.Decker.Project.Project
     captions,
     css,
     Targets (..),
-    --Resource (..),
     fromMetaValue,
     toMetaValue,
     readTargetsFile,
@@ -45,7 +45,6 @@ import Data.Aeson.TH
 import Data.Char
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
-import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.String as String
 import qualified Data.Yaml as Yaml
@@ -63,11 +62,13 @@ import Text.Decker.Internal.Meta
     lookupMetaOrElse,
   )
 import Text.Decker.Project.Glob
+import Text.Decker.Resource.Resource
 import Text.Pandoc.Builder hiding (lookupMeta)
 import Text.Regex.TDFA
 
 data Targets = Targets
   { _sources :: [FilePath],
+    _resources :: Map FilePath Source,
     _static :: [FilePath],
     _decks :: [FilePath],
     _decksPdf :: [FilePath],
@@ -99,50 +100,50 @@ readTargetsFile targetFile = do
   need [targetFile]
   liftIO (Yaml.decodeFileThrow targetFile)
 
-data Resource = Resource
-  { -- | Absolute Path to source file
-    sourceFile :: FilePath,
-    -- | Absolute path to file in public folder
-    publicFile :: FilePath,
-    -- | Relative URL to served file from base
-    publicUrl :: FilePath
-  }
-  deriving (Eq, Show, Generic)
+-- data Resource = Resource
+--   { -- | Absolute Path to source file
+--     sourceFile :: FilePath,
+--     -- | Absolute path to file in public folder
+--     publicFile :: FilePath,
+--     -- | Relative URL to served file from base
+--     publicUrl :: FilePath
+--   }
+--   deriving (Eq, Show, Generic)
 
-instance ToJSON Resource where
-  toJSON (Resource source target url) =
-    object ["source" .= source, "target" .= target, "url" .= url]
+-- instance ToJSON Resource where
+--   toJSON (Resource source target url) =
+--     object ["source" .= source, "target" .= target, "url" .= url]
 
-instance FromJSON Resource where
-  parseJSON =
-    withObject "Resource" $ \v ->
-      Resource <$> v .: "source" <*> v .: "target" <*> v .: "url"
+-- instance FromJSON Resource where
+--   parseJSON =
+--     withObject "Resource" $ \v ->
+--       Resource <$> v .: "source" <*> v .: "target" <*> v .: "url"
 
-instance {-# OVERLAPS #-} ToMetaValue a => ToMetaValue [(Text, a)] where
-  toMetaValue = MetaMap . Map.fromList . map (second toMetaValue)
+-- instance {-# OVERLAPS #-} ToMetaValue a => ToMetaValue [(Text, a)] where
+--   toMetaValue = MetaMap . Map.fromList . map (second toMetaValue)
 
-instance ToMetaValue Resource where
-  toMetaValue (Resource source target url) =
-    toMetaValue
-      [ ("source" :: Text, source),
-        ("target" :: Text, target),
-        ("url" :: Text, url)
-      ]
+-- instance ToMetaValue Resource where
+--   toMetaValue (Resource source target url) =
+--     toMetaValue
+--       [ ("source" :: Text, source),
+--         ("target" :: Text, target),
+--         ("url" :: Text, url)
+--       ]
 
-instance {-# OVERLAPS #-} FromMetaValue a => FromMetaValue [(Text, a)] where
-  fromMetaValue (MetaMap object) =
-    let kes :: Map Text (Maybe a) =
-          Map.filter isJust $ Map.map fromMetaValue object
-     in Just $ zip (Map.keys kes) (map fromJust (Map.elems kes))
-  fromMetaValue _ = Nothing
+-- instance {-# OVERLAPS #-} FromMetaValue a => FromMetaValue [(Text, a)] where
+--   fromMetaValue (MetaMap object) =
+--     let kes :: Map Text (Maybe a) =
+--           Map.filter isJust $ Map.map fromMetaValue object
+--      in Just $ zip (Map.keys kes) (map fromJust (Map.elems kes))
+--   fromMetaValue _ = Nothing
 
-instance FromMetaValue Resource where
-  fromMetaValue (MetaMap object) = do
-    source <- Map.lookup "source" object >>= fromMetaValue
-    target <- Map.lookup "target" object >>= fromMetaValue
-    url <- Map.lookup "url" object >>= fromMetaValue
-    return $ Resource source target url
-  fromMetaValue _ = Nothing
+-- instance FromMetaValue Resource where
+--   fromMetaValue (MetaMap object) = do
+--     source <- Map.lookup "source" object >>= fromMetaValue
+--     target <- Map.lookup "target" object >>= fromMetaValue
+--     url <- Map.lookup "url" object >>= fromMetaValue
+--     return $ Resource source target url
+--   fromMetaValue _ = Nothing
 
 -- | Find the project directory.
 -- 1. First upwards directory containing `decker.yaml`
@@ -241,11 +242,13 @@ scanTargets :: Meta -> IO Targets
 scanTargets meta = do
   -- srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
   srcs <- fastGlobFiles' (excludeDirs meta) anySource projectDir
+  supportFiles <- Map.mapKeys ((publicDir </> "support") </>) <$> publicSupportFiles meta
   staticSrc <-
     concat <$> mapM (fastGlobFiles [] [] . normalise) (staticDirs meta)
   return
     Targets
       { _sources = sort srcs,
+        _resources = supportFiles,
         _static = sort $ map (publicDir </>) staticSrc,
         _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs,
         _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs,
@@ -258,9 +261,10 @@ scanTargets meta = do
         _times = sort $ calcTargets timesSuffix timesSuffix srcs,
         _captions = sort $ calcTargets captionsSuffix captionsSuffix srcs,
         _recordings =
-          List.nub $ sort $
-            calcTargets recordingSuffix1 recordingTargetSuffix srcs
-              <> calcTargets recordingSuffix2 recordingTargetSuffix srcs,
+          List.nub $
+            sort $
+              calcTargets recordingSuffix1 recordingTargetSuffix srcs
+                <> calcTargets recordingSuffix2 recordingTargetSuffix srcs,
         _css = sort $ calcTargets ".scss" ".css" srcs
       }
   where

@@ -88,21 +88,21 @@ readTemplateMeta meta = do
 readTemplateMeta' :: Source -> Action Meta
 readTemplateMeta' (DeckerExecutable baseDir) = do
   executable <- liftIO getExecutablePath
-  putNormal $ "# extracting meta data from: " <> executable
+  putInfo $ "# extracting meta data from: " <> executable
   liftIO $
     toPandocMeta <$> (extractEntry (baseDir </> defaultMetaPath) executable >>= decodeThrow)
 readTemplateMeta' (LocalZip zipPath) = do
-  putNormal $ "# extracting meta data from: " <> zipPath
+  putInfo $ "# extracting meta data from: " <> zipPath
   need [zipPath]
   liftIO $
     toPandocMeta <$> (extractEntry defaultMetaPath zipPath >>= decodeThrow)
 readTemplateMeta' (LocalDir baseDir) = do
   let defaultMeta = baseDir </> defaultMetaPath
-  putNormal $ "# loading meta data from: " <> defaultMeta
+  putInfo $ "# loading meta data from: " <> defaultMeta
   need [defaultMeta]
   liftIO $ readMetaDataFile defaultMeta
 readTemplateMeta' None = do
-  putNormal "# no pack, no meta data"
+  putInfo "# no pack, no meta data"
   return nullMeta
 
 type SourceM = ReaderT Source IO

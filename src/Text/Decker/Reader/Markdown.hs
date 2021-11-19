@@ -73,7 +73,7 @@ processCites pandoc@(Pandoc meta blocks) = liftIO $ do
 -- exception if something goes wrong
 readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
-  putVerbose $ "# --> readMarkdownFile: " <> path
+  -- putVerbose $ "# --> readMarkdownFile: " <> path
   let base = takeDirectory path
   pandoc <- parseMarkdownFile path
     >>= writeBack globalMeta path
@@ -82,7 +82,7 @@ readMarkdownFile globalMeta path = do
     >>= checkVersion
     >>= includeMarkdownFiles globalMeta base
     >>= addPathInfo base
-  putVerbose $ toString $ pShow pandoc
+  -- putVerbose $ toString $ pShow pandoc
   return pandoc
 
 addPathInfo :: FilePath -> Pandoc -> Action Pandoc
@@ -127,7 +127,6 @@ adjustMetaPaths globalMeta base meta = do
   where
     adjust base path = do
       let apath = makeProjectPath base (toString path)
-      -- putNormal $ "==> " <> apath
       return $ toText apath
 
 -- | Adjusts meta data values that reference files needed at run-time (by some
@@ -140,10 +139,8 @@ needMetaTargets base meta =
   where
     adjustR base path = do
       let stringPath = toString path
-      -- putNormal $ "==> " <> stringPath
       need [publicDir </> stringPath]
       let relativePath = makeRelativeTo base stringPath
-      -- putNormal $ "<== " <> relativePath
       return $ toText relativePath
     adjustC base path = do
       let pathString = toString path
@@ -176,7 +173,7 @@ includeMarkdownFiles globalMeta docBase (Pandoc docMeta content) =
     include :: [[Block]] -> Block -> Action [[Block]]
     include document (Para [Link _ [Str ":include"] (url, _)]) = do
       let path = makeProjectPath docBase (toString url)
-      putVerbose $ "# --> include: " <> toString url <> " (" <> path <> ")"
+      -- putVerbose $ "# --> include: " <> toString url <> " (" <> path <> ")"
       need [path]
       Pandoc _ includedBlocks <- readMarkdownFile globalMeta path
       return $ includedBlocks : document
@@ -208,7 +205,7 @@ calcRelativeResourcePaths base (Pandoc meta content) = do
 readAdditionalMeta :: Meta -> FilePath -> Meta -> Action Meta
 readAdditionalMeta globalMeta base meta = do
   let metaFiles = lookupMetaOrElse [] "meta-data" meta :: [String]
-  putVerbose $ "# --> readAdditionalMeta: " <> show metaFiles
+  -- putVerbose $ "# --> readAdditionalMeta: " <> show metaFiles
   moreMeta <- traverse (readMetaData globalMeta) metaFiles
   return $ foldr mergePandocMeta' meta (reverse moreMeta)
 
@@ -218,7 +215,7 @@ readAdditionalMeta globalMeta base meta = do
 readMetaData :: Meta -> FilePath -> Action Meta
 readMetaData globalMeta path = do
   need [path]
-  putVerbose $ "# --> readMetaData: " <> path
+  -- putVerbose $ "# --> readMetaData: " <> path
   let base = takeDirectory path
   meta <- liftIO $ readMetaDataFile path
   adjustMetaPaths globalMeta base meta >>= readAdditionalMeta globalMeta base
@@ -319,3 +316,4 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   when (markdown /= fileContent) $
     withTempFile
       (\tmp -> liftIO $ Text.writeFile tmp markdown >> renameFile tmp filepath)
+

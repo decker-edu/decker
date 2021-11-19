@@ -14,7 +14,7 @@ module Text.Decker.Project.Shake
     putCurrentDocument,
     watchChangesAndRepeat,
     withShakeLock,
-    runHttpServerIO
+    runHttpServerIO,
   )
 where
 
@@ -51,6 +51,7 @@ import Text.Decker.Project.Project
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
 import Text.Pandoc
+import Text.Pretty.Simple
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -128,6 +129,11 @@ handleArguments :: ActionContext -> Rules () -> [Flags] -> [String] -> IO (Maybe
 handleArguments context rules flags targets = do
   extractMeta flags
   if
+      | "test" `elem` targets -> do
+        meta <- readMetaDataFile globalMetaFileName
+        publicSupportFiles meta >>= pPrint
+        deckerResources meta >>= pPrint
+        return Nothing
       | "clean" `elem` targets -> do
         runClean True
         return Nothing
@@ -314,7 +320,7 @@ calcSource' target = do
   return $ makeRelative publicDir target
 
 putCurrentDocument :: FilePath -> Action ()
-putCurrentDocument out = putNormal $ "# pandoc (for " ++ out ++ ")"
+putCurrentDocument out = putInfo $ "# pandoc (for " ++ out ++ ")"
 
 -- | Functionality for "decker clean" command Removes public and .decker
 -- directory. Located outside of Shake due to unlinking differences and
