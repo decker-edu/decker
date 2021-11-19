@@ -168,10 +168,10 @@ run = do
         targets <- getTargets
         let path = fromJust $ stripPrefix (publicDir <> "/") out
         let source = (targets ^. resources) Map.! out
+        putVerbose $ "# extract (" <> out <> " from " <> show source <> " : "<> path<>")"
         needResource source path
         content <- fromJust <$> liftIO (readResource path source)
         liftIO $ BS.writeFile out content
-        putVerbose $ "# extract (" <> out <> " from " <> show source <> ")"
     priority 4 $ do
       publicDir <//> "*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
@@ -270,7 +270,8 @@ run = do
         let src = out -<.> "scss"
         whenM (liftIO $ Dir.doesFileExist src) $ do
           need [src]
-          command [] "sass" [src, out]
+          putInfo $ "# sassc (for " <> out <> ")"
+          command [] "sassc" [src, out]
       --
       "**/*.plantuml.svg" %> \out -> do
         let src = dropExtension out
