@@ -114,7 +114,7 @@ readResource :: FilePath -> Source -> IO (Maybe ByteString)
 readResource path (DeckerExecutable epath) = do
   deckerExecutable <- getExecutablePath
   -- putStrLn $ "# read: " <> path <> " from: " <> (deckerExecutable <> ":" <> epath)
-  tryRead $ Just <$> extractEntry (epath <> path) deckerExecutable
+  tryRead $ Just <$> extractEntry (epath </> path) deckerExecutable
 readResource path (LocalZip zipPath) = do
   -- putStrLn $ "# read: " <> path <> " from: " <> zipPath
   tryRead $ Just <$> extractEntry path zipPath
