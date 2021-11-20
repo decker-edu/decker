@@ -240,13 +240,13 @@ deckerShakeOptions ctx = do
       { shakeFiles = transientDir,
         shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
         shakeThreads = cores,
-        -- , shakeStaunch = True
         shakeColor = True,
-        shakeChange = ChangeModtime
-        -- , shakeChange = ChangeModtimeAndDigest
+        -- shakeStaunch = True
         -- shakeLint = Just LintBasic,
-        -- , shakeLint = Just LintFSATrace
-        -- shakeReport = [".decker/shake-report.html"]
+        -- shakeLint = Just LintFSATrace,
+        -- shakeReport = [".decker/shake-report.html"],
+        -- shakeChange = ChangeModtime,
+        shakeChange = ChangeModtimeAndDigest
       }
 
 waitForChange :: FilePath -> [FilePath] -> IO ()
