@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -16,17 +17,18 @@ where
 
 import Control.Monad
 import Control.Monad.Loops
+import qualified Data.ByteString as BS
 import qualified Data.List as List
 import Data.Maybe
 import Data.Text (pack)
 import qualified Data.Text.IO as Text
 import Development.Shake hiding (Resource)
 import Relude
-import System.Directory as Dir
+import qualified System.Directory as Dir
 import System.FilePath.Posix
 import Text.Decker.Exam.Filter
-import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Decker
+import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
@@ -36,9 +38,12 @@ import Text.Decker.Filter.Poll
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Common (transientDir)
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.Meta (setMetaValue)
 import Text.Decker.Internal.URI
+import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc
@@ -59,19 +64,29 @@ readAndFilterMarkdownFile disp globalMeta path = do
     >>= deckerMediaFilter disp docBase
     >>= processPandoc deckerPipeline docBase disp Copy
 
+-- |  TODO: Provide default CSL data from the resources if csl: is not set. This
+--  is not really trivial.
 processCites :: MonadIO m => Pandoc -> m Pandoc
 processCites pandoc@(Pandoc meta blocks) = liftIO $ do
-  if isJust (lookupMeta "bibliography" meta :: Maybe FilePath)
-    then 
-      case getCSL meta of
-        Right _ -> runIOorExplode $ processCitations pandoc
-        Left msg -> error (pack msg) 
-    else return pandoc
-  where 
-    getCSL meta = 
-      if isJust (lookupMeta "csl" meta :: Maybe FilePath) 
-        then Right "Found"
-        else Left "Error: Please indicate a csl template in yaml."
+  if
+      | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
+        runIOorExplode $ processCitations pandoc
+      | isMetaSet "bibliography" meta -> do
+        defaultCSL <- installDefaultCSL
+        let cslMeta = setMetaValue "csl" defaultCSL meta
+        runIOorExplode $ processCitations (Pandoc cslMeta blocks)
+      | otherwise -> return pandoc
+
+-- | TODO: This seems to fail sometimes with j > 1. Some race condition. Maybe
+-- call need and write a rule for the extraction.
+installDefaultCSL :: IO FilePath
+installDefaultCSL = do
+  let path = transientDir </> "default.csl"
+  exists <- Dir.doesFileExist path
+  unless exists $ do
+    csl <- readResource "default.csl" (DeckerExecutable "decker")
+    BS.writeFile path (fromJust csl)
+  return path
 
 -- | Reads a Markdown file from the local file system. Local resource paths are
 -- converted to absolute paths. Additional meta data is read and merged into
@@ -81,13 +96,14 @@ readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
   -- putVerbose $ "# --> readMarkdownFile: " <> path
   let base = takeDirectory path
-  pandoc <- parseMarkdownFile path
-    >>= writeBack globalMeta path
-    >>= expandMeta globalMeta base
-    >>= adjustResourcePathsA base
-    >>= checkVersion
-    >>= includeMarkdownFiles globalMeta base
-    >>= addPathInfo base
+  pandoc <-
+    parseMarkdownFile path
+      >>= writeBack globalMeta path
+      >>= expandMeta globalMeta base
+      >>= adjustResourcePathsA base
+      >>= checkVersion
+      >>= includeMarkdownFiles globalMeta base
+      >>= addPathInfo base
   -- putVerbose $ toString $ pShow pandoc
   return pandoc
 
@@ -259,7 +275,7 @@ runNewFilter dispo filter docBase pandoc@(Pandoc docMeta blocks) = do
 
 -- |  Runs the new decker media filter.
 deckerMediaFilter :: Disposition -> String -> Pandoc -> Action Pandoc
-deckerMediaFilter dispo docBase pandoc@(Pandoc meta _) = 
+deckerMediaFilter dispo docBase pandoc@(Pandoc meta _) =
   if lookupMetaOrElse False "experiment.slide-layout" meta
     then runDeckerFilter (mediaFilter2 dispo options) docBase pandoc
     else runDeckerFilter (mediaFilter dispo options) docBase pandoc
@@ -321,5 +337,4 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   fileContent <- liftIO $ Text.readFile filepath
   when (markdown /= fileContent) $
     withTempFile
-      (\tmp -> liftIO $ Text.writeFile tmp markdown >> renameFile tmp filepath)
-
+      (\tmp -> liftIO $ Text.writeFile tmp markdown >> Dir.renameFile tmp filepath)
