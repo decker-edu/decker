@@ -362,7 +362,14 @@ body {
     margin: 10px;
     text-align: center;
     overflow-y: auto;
-    max-height: 500px;
+}
+
+/* set max height to avoid overflow */
+.reveal pre {
+    max-height: 550px;
+}
+.reveal figure pre {
+  max-height: 500px;
 }
 
 /* inline code */
