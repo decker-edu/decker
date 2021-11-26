@@ -362,14 +362,7 @@ body {
     margin: 10px;
     text-align: center;
     overflow-y: auto;
-}
-
-/* set max height to avoid overflow */
-.reveal pre {
-    max-height: 550px;
-}
-.reveal figure pre {
-  max-height: 500px;
+    max-height: 500px;
 }
 
 /* inline code */
@@ -1111,6 +1104,11 @@ body.print-pdf div.open-button {
     color:         black;
 }
 
+/* if element get the keyboard focus */
+.reveal .quiz ul li:focus {
+   box-shadow: 0px 0px 15px var(--emphColor);
+}
+
 /* add A, B, C, D... */
 .reveal .quiz ul.task-list>li::before {
     content: counter(answer, upper-latin) ": ";
@@ -1156,13 +1154,13 @@ body.print-pdf div.open-button {
 }
 
 /* once clicked, wrong answers are red */
-.reveal .quiz ul li.show-wrong {
+.reveal .quiz ul li.wrong.show-answer {
     background-color: #ffaaaa;
     border:           3px solid red;
 }
 
 /* once clicked, correct answers are green */
-.reveal .quiz ul li.show-right {
+.reveal .quiz ul li.right.show-answer {
     background-color: #aaffaa;
     border:           3px solid green;
 }
