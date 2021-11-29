@@ -8,7 +8,7 @@
 
 $third = Split-Path -parent $PSCommandPath
 $decker = Split-Path $third -parent
-$support = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("$decker\resource\support\vendor")
+$support = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("$decker\resource\decker\support\vendor")
 
 Write-Host "Building third party dependencies" -ForegroundColor Green
 
