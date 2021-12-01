@@ -3,12 +3,12 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
--- TODO Background movies do not work
--- TODO .grid layout has no CSS yet (column-deck)
--- TODO .inverse needs to change the background color
--- TODO engine decks chrash
--- TODO CSS for decks containing examiner questions
--- TODO Organisation of CSS for deck, page and handout
+-- TODO:  Background movies do not work (unclear tags compile correctly)
+-- TODO: .grid layout has no CSS yet (column-deck)
+-- TODO: .inverse needs to change the background color
+-- TODO: engine decks chrash
+-- TODO: CSS for decks containing examiner questions
+-- TODO: Organisation of CSS for deck, page and handout
 
 module Text.Decker.Filter.Media where
 
@@ -111,7 +111,7 @@ imageCompilers =
       (ImageT, imageBlock),
       (VideoT, videoBlock),
       (StreamT, streamBlock),
-      -- (AudioT, audioHtml),
+      -- TODO: (AudioT, audioHtml),
       (CodeT, includeCodeBlock),
       (RenderT, renderCodeBlock),
       (JavascriptT, javascriptBlock)
