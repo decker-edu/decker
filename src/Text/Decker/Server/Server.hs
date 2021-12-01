@@ -4,6 +4,7 @@
 module Text.Decker.Server.Server
   ( startHttpServer,
     stopHttpServer,
+    startServerForeground,
     reloadClients,
   )
 where
@@ -20,6 +21,7 @@ import Data.List
 import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as Text
+import GHC.IORef (readIORef)
 import Network.WebSockets
 import Network.WebSockets.Snap
 import Snap.Core
@@ -37,7 +39,6 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Types
-import GHC.IORef (readIORef)
 
 -- Logging and port configuration for the server.
 serverConfig :: Int -> String -> IO (Config Snap a)
@@ -216,6 +217,12 @@ serveResource (Resources decker pack) path = do
       modifyResponse $ setHeader "Cache-Control" "no-store"
       modifyResponse $ setContentType (fileType defaultMimeTypes (takeFileName path))
       writeBS content
+
+-- | Starts the decker server. Never returns.
+startServerForeground :: ActionContext -> Int -> String -> IO ()
+startServerForeground context port bind = do
+  state <- initState
+  runHttpServer context state port bind
 
 -- | Starts a server in a new thread and returns the thread id.
 startHttpServer :: ActionContext -> Int -> String -> IO Server

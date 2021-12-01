@@ -17,6 +17,7 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Project.Version
 import Text.Pandoc
 import Text.Printf
+import System.Environment (getProgName)
 
 runIOQuietly :: PandocIO a -> IO (Either PandocError a)
 runIOQuietly act = runIO (setVerbosity ERROR >> act)
@@ -118,9 +119,10 @@ handleLeftM (Left e) = throwM $ InternalException $ toString e
 -- project using `stack run decker`.
 isDevelopmentRun :: IO Bool
 isDevelopmentRun = do
+  progName <- getProgName
   cwd <- Dir.getCurrentDirectory
   exePath <- getExecutablePath
-  return $ cwd `isPrefixOf` exePath
+  return $ progName == "<interactive>" || cwd `isPrefixOf` exePath
 
 warnVersion :: IO ()
 warnVersion = do

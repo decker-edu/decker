@@ -77,7 +77,10 @@ needSel sel = needSels [sel]
 needSels sels targets = need (concatMap (targets ^.) sels)
 
 run :: IO ()
-run = do
+run = runWithFlags []
+
+runWithFlags :: [Flags] -> IO ()
+runWithFlags flags = do
   warnVersion
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ show serverPort
@@ -104,9 +107,14 @@ run = do
           # 
         |]
   --
-  runDecker $ do
+  runDecker flags $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches
     want ["html"]
+    addHelpSuffix "Commands:"
+    addHelpSuffix "  - clean - Remove all generated files."
+    addHelpSuffix "  - example - Create an example project."
+    addHelpSuffix "  - serve - Start just the server."
+    addHelpSuffix ""
     addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
     --
     withTargetDocs "Print version information." $
@@ -168,7 +176,7 @@ run = do
         targets <- getTargets
         let path = fromJust $ stripPrefix (publicDir <> "/") out
         let source = (targets ^. resources) Map.! out
-        putVerbose $ "# extract (" <> out <> " from " <> show source <> " : "<> path<>")"
+        putVerbose $ "# extract (" <> out <> " from " <> show source <> " : " <> path <> ")"
         needResource source path
         content <- fromJust <$> liftIO (readResource path source)
         liftIO $ BS.writeFile out content
