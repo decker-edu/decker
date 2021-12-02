@@ -18,6 +18,7 @@ module Text.Decker.Resource.Resource
     readResource,
     publicSupportFiles,
     needResource,
+    fileList,
     Source (..),
     Resources (..),
   )
@@ -145,7 +146,7 @@ needResource None _ = pure ()
 fileList :: Source -> FilePath -> IO [FilePath]
 fileList (DeckerExecutable path) at = subEntries (path </> at) <$> (getExecutablePath >>= listEntries)
 fileList (LocalZip path) at = subEntries at <$> listEntries path
-fileList (LocalDir path) at = subEntries (path </> at) <$> fastGlobFiles [] [] (path </> at)
+fileList (LocalDir path) at = fastGlobFiles [] [] (path </> at)
 fileList None _ = return []
 
 subEntries :: FilePath -> [FilePath] -> [FilePath]
