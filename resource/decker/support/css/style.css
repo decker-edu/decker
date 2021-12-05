@@ -5,10 +5,20 @@
   --primary-color: #2a9ddf;
   --secondary-color: orange;
   --hover-color: #30b3ff;
+  --code-background-color: rgb(240, 240, 240);
 }
 
+/* Inline code */
 code {
+  line-height: 1.0;
   font-size: 110%;
+  font-family: monospace;
+}
+
+/* Code blocks. */
+span.pre > code,
+pre > code {
+  font-size: 100%;
   font-family: monospace;
 }
 
@@ -187,49 +197,16 @@ div.block[align="right"] {
   text-align: right;
 }
 
-/* Pandoc wraps .sourceCode around the pre > code element. Highlightjs does not.*/
+/* Source Code */
 
-/* Transparent background for inline code. Just darken the real background a
-bit. */
-code.sourceCode {
-  background-color: rgba(0, 0, 0, 0.05);
-  /* Stretch the background. */
-  margin-bottom: -0.05em;
-  margin-left: -0.2em;
-  margin-right: -0.2em;
-  padding-bottom: 0.05em;
-  padding-left: 0.2em;
-  padding-right: 0.2em;
+/* Pandoc wraps div.sourceCode around the pre > code element. Highlightjs does
+not.*/
+
+pre,
+span.pre {
+  background-color: var(--code-background-color);
 }
 
-/* Inline code in a highlighted block. */
-div.block:is(.primary, .secondary, .success, .danger, .warning, .info)
-  code.sourceCode {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-/* No background in a code block */
-div.sourceCode code.sourceCode,
-div.block div.sourceCode code.sourceCode {
-  background-color: rgba(0, 0, 0, 0);
-  margin: 0;
-  padding: 0;
-}
-
-/* Transparent background for code blocks. */
-div.sourceCode {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* In a highlighted block. */
-div.block:is(.primary, .secondary, .success, .danger, .warning, .info)
-  div.sourceCode {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-/* TODO Unfinished. Can not decide what is right: having the code aligned or the
-block containing it. */
-figure > div.sourceCode {
+div.sourceCode > pre {
   padding: 0 var(--block-outset);
-  margin: 0 calc(-1 * var(--block-outset));
 }

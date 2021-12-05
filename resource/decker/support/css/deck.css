@@ -49,13 +49,6 @@ reveal. */
   color: #eee;
 }
 
-/* Code blocks. */
-span.pre > code,
-pre > code {
-  font-size: 80%;
-  font-family: monospace;
-}
-
 /* Menu icon in top left corner */
 .reveal .slide-menu-button {
   position: fixed;

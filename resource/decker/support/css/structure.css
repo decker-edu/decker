@@ -29,6 +29,16 @@ pre {
   max-height: 500px;
 }
 
+/* Override Pandoc's setting.  */
+.sourceCode {
+  overflow: hidden;
+}
+
+pre,
+pre.sourceCode {
+  overflow: scroll;
+}
+
 /* Make this behave like a normal pre element. Used for inline code display. */
 span.pre {
   display: block;
@@ -114,11 +124,11 @@ div.media {
 }
 
 /* TODO Check the old class vocabulary for alignment. */
-div.media.align-left {
+div.media[align="left"] {
   justify-content: flex-start;
 }
 
-div.media.align-right {
+div.media[align="right"] {
   justify-content: flex-end;
 }
 

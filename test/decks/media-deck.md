@@ -1,16 +1,17 @@
 ---
 highlight-style: pygments
+# highlightjs: xcode
 subtitle: Clean. Consistent. Robust.
 title: New Style Media Handling
 ---
 
 # Markdown Source
 
-![Included code from image tag](/test/decks/media-deck.md){.code .markdown}
+![Included code from image tag](/test/decks/media-deck.md){.code}
 
 # CSS
 
-![](/resource/decker/support/css/deck.css){.code .css}
+![What](/resource/decker/support/css/deck.css){.code .css}
 
 # Local Image
 
@@ -24,7 +25,7 @@ title: New Style Media Handling
 
 ## Right {.right}
 
-``` {.javascript}
+``` javascript
 function rainbow(numOfSteps, step) {
   // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
   // Adam Cole, 2011-Sept-14
@@ -42,7 +43,7 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 ## Right {.right .primary grow="2"}
 
-``` {.javascript}
+``` javascript
 function rainbow(numOfSteps, step) {
   // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
   // Adam Cole, 2011-Sept-14
@@ -54,11 +55,11 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 # More Images in 2 columns {.columns}
 
-## Left {.left}
+## Left {.left align="center"}
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
-## Also left
+## Also left {align="right"}
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
@@ -136,21 +137,21 @@ Caption: Block Caption $e=mc^2$
 
 # Local Image
 
-## `{height=200px .align-right}`
+## `{height=200px align=right}`
 
-![Overwriting Block Caption $e=mc^2$](include/06-metal.png){.align-right
+![Overwriting Block Caption $e=mc^2$](include/06-metal.png){align="right"
 height="200px"}
 
 # HTML for the last one
 
-``` {.html .align-center width="90%"}
+``` {.html align="center" width="90%"}
 <section id="local-image-height200px" class="slide level1">
 <div class="decker">
 <div class="section level1 alignment">
 <h1>Local Image height=200px</h1>
 <div class="layout">
 <div class="area">
-<div class="align-right media">
+<div class="media" align="right">
 <figure class="image" style="height:auto;width:auto;">
 <img src="include/06-metal.png" style="height:200px;width:auto;" alt="06-metal.png" />
 <figcaption>
@@ -171,7 +172,7 @@ Caption: Code blocks can have captions too.
 
 ## `{width=80% height=200px}`
 
-![Overwriting Block Caption $e=mc^2$](include/06-metal.png){.align-center
+![Overwriting Block Caption $e=mc^2$](include/06-metal.png){align="center"
 width="80%" height="200px"}
 
 # Local Inline Media
@@ -222,13 +223,13 @@ width="80%"}
 
 # Rendered Code
 
-![](graph.dot){.dot .render .align-right width="50%"}
+![](graph.dot){.dot .render align="right" width="50%"}
 
 Caption: Graphviz is cool.
 
 # Rendered CodeBlock
 
-``` {.dot .render .align-right width="50%"}
+``` {.dot .render align="right" width="50%"}
 digraph {
   node [style = filled]
   A [fillcolor = yellowgreen]
