@@ -157,7 +157,7 @@ runWithFlags flags = do
         getTargets >>= needSel decksPdf
     --
     withTargetDocs "Compile global search index." $
-      phony "index" $ do
+      phony "search-index" $ do
         putInfo "# compiling search index ..."
         meta <- getGlobalMeta
         targets <- getTargets

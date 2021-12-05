@@ -71,6 +71,23 @@ publish:
 Decker uses [Shake](https://shakebuild.com) as it's underlying build and
 dependency tracking system.
 
+## `> decker search-index`
+
+Builds an inverted index over all Markdown source files and stores it in JSON in
+`public/index.json`. The index can be used to implement incremental live-search
+over all slides inside a Decker project.
+
+This may well be a little time consuming, so it ist best called only right
+before `decker publish`.
+
+## `> decker pdf`
+
+Compiles PDF documents for all HTML decks. It starts a headless Chrome browser
+and uses it's printing capabilities to do that.
+
+This may well be a little time consuming, so it ist best called only right
+before `decker publish`.
+
 ## `> decker unused`{.sh} (Currently not working)
 
 Prints a list of unused files in the project.
