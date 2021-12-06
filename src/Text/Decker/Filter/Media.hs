@@ -4,8 +4,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 -- TODO:  Background movies do not work (unclear tags compile correctly)
--- TODO: .grid layout has no CSS yet (column-deck)
--- TODO: .inverse needs to change the background color
 -- TODO: Menu plugincrashes
 -- TODO: CSS for decks containing examiner questions
 -- TODO: Organisation of CSS for deck, page and handout

@@ -129,7 +129,7 @@ Call the style police at
 
 Caption: Block Caption $e=mc^2$
 
-# Local Image
+# Local Image {.black}
 
 ## `{width=50%}`
 
