@@ -6,7 +6,7 @@
 -- TODO:  Background movies do not work (unclear tags compile correctly)
 -- TODO: .grid layout has no CSS yet (column-deck)
 -- TODO: .inverse needs to change the background color
--- TODO: engine decks chrash
+-- TODO: Menu plugincrashes
 -- TODO: CSS for decks containing examiner questions
 -- TODO: Organisation of CSS for deck, page and handout
 
@@ -170,9 +170,15 @@ iframeBlock uri caption = do
   iframeAttr <- do
     injectAttribute ("data-src", turl)
     injectAttribute ("allow", "fullscreen")
+    takeData
     injectStyles innerSizes
     extractAttr
   figureAttr <- do
+    takeId
+    takeAllClasses
+    takeCss
+    dropCore
+    passI18n 
     injectClasses ["iframe"]
     injectStyles outerSizes
     extractAttr
