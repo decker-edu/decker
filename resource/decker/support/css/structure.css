@@ -59,49 +59,49 @@ span.pre code {
 /* Layout */
 
 /* Old-style row layout (.columns), also MarioCols. */
-div.layout.row.columns {
+div.layout.row:is(.columns, .grid) {
   display: flex;
   flex-flow: row nowrap;
 }
 
-div.layout.row.columns > div.area {
+div.layout.row:is(.columns, .grid) > div.area {
   flex: 1;
   /* Really important to make pre elements work in flex items. */
   min-width: 0;
 }
 
 /* Old syntax to control column width. */
-div.layout.row.columns > div.area[grow="2"] {
+div.layout.row:is(.columns, .grid) > div.area[grow="2"] {
   flex: 2;
 }
 
-div.layout.row.columns > div.area[grow="3"] {
+div.layout.row:is(.columns, .grid) > div.area[grow="3"] {
   flex: 3;
 }
 
-div.layout.row.columns > div.area[grow="4"] {
+div.layout.row:is(.columns, .grid) > div.area[grow="4"] {
   flex: 4;
 }
 
-div.layout.row.columns > div.area[grow="5"] {
+div.layout.row:is(.columns, .grid) > div.area[grow="5"] {
   flex: 5;
 }
 
-div.layout.row.columns > div.area[grow="6"] {
+div.layout.row:is(.columns, .grid) > div.area[grow="6"] {
   flex: 6;
 }
 
 /* Column spacing in a row */
-div.layout.row.columns > div.area {
+div.layout.row:is(.columns, .grid) > div.area {
   margin-left: 1rem;
   margin-right: 1rem;
 }
 
-div.layout.row.columns > div.area:first-child {
+div.layout.row:is(.columns, .grid) > div.area:first-child {
   margin-left: 0;
 }
 
-div.layout.row.columns > div.area:last-child {
+div.layout.row:is(.columns, .grid) > div.area:last-child {
   margin-right: 0;
 }
 
