@@ -604,7 +604,7 @@ function adjustWhiteboardHeight() {
   // height of current board (w/o grid)
   let bbox = svg.getBBox();
   let scribbleHeight = bbox.y + bbox.height;
-  console.log("scribble height " + scribbleHeight);
+  // console.log("scribble height " + scribbleHeight);
 
   // show grid again
   if (rect) rect.style.display = display;
@@ -797,7 +797,7 @@ function loadAnnotationsFromURL() {
     // determine scribble filename
     let filename = annotationURL();
 
-    console.log("whiteboard load " + filename);
+    // console.log("whiteboard load " + filename);
     let xhr = new XMLHttpRequest();
 
     xhr.onloadend = function () {
@@ -808,9 +808,11 @@ function loadAnnotationsFromURL() {
         } catch (err) {
           console.error("Cannot parse " + filename + ": " + err);
         }
-      } else {
-        console.warn("Failed to get file " + filename);
       }
+      // Don't dwell on it. 'Failed to load resource' is always shown anyways.
+      // } else {
+      //   console.warn("Failed to get file " + filename);
+      // }
 
       resolve();
     };
@@ -1560,7 +1562,7 @@ const Plugin = {
   id: "whiteboard",
 
   init: (deck) => {
-    console.log("initialize whiteboard");
+    // console.log("initialize whiteboard");
 
     // store reference to Reveal deck
     Reveal = deck;

@@ -64,21 +64,21 @@ class UIState {
   // Performs a named transition. In case anything goes wrong, the state
   // remains unchanged and an error message is logged.
   async transition(name) {
-    console.log(`[] state: ${this.state.name}, transition: ${name}`);
+    // console.log(`[] state: ${this.state.name}, transition: ${name}`);
     let transition = this.state.transition[name];
     if (!transition) {
-      console.log("[] no transition named: " + name);
+      console.warn("[] no transition named: " + name);
       return;
     }
 
     // A transition action may cancel a transition by returning false.
     try {
       if (transition.action && !(await transition.action())) {
-        console.log("[] transition aborted by action: " + name);
+        // console.log("[] transition aborted by action: " + name);
         return;
       }
     } catch (e) {
-      console.log("[] transition aborted by exception in action: " + e);
+      // console.log("[] transition aborted by exception in action: " + e);
       return;
     }
 
@@ -86,7 +86,7 @@ class UIState {
     try {
       this.state.exit && this.state.exit();
     } catch (e) {
-      console.log("[] transition aborted by exception in exit: " + e);
+      // console.log("[] transition aborted by exception in exit: " + e);
       return;
     }
 
@@ -97,9 +97,9 @@ class UIState {
         element.setAttribute("data-uistate", this.state.name);
       }
     } else {
-      console.log("[] no state named: " + transition.next);
+      console.warn("[] no state named: " + transition.next);
     }
-    console.log(`[] current state: ${this.state.name}`);
+    // console.log(`[] current state: ${this.state.name}`);
   }
 }
 
