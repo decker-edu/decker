@@ -210,3 +210,9 @@ span.pre {
 div.sourceCode > pre {
   padding: 0 var(--block-outset);
 }
+
+/* Inverse colors */
+section.slide:is(.inverse, .black) {
+  background-color: black;
+  color: white;
+}
