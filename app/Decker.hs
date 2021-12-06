@@ -39,6 +39,7 @@ import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Decker.Writer.Html
+import Text.Decker.Writer.Layout
 import Text.Decker.Writer.Pdf
 import Text.Groom
 import qualified Text.Mustache as M ()
@@ -185,7 +186,7 @@ runWithFlags flags = do
         src <- calcSource "-deck.html" "-deck.md" out
         need [src]
         meta <- getGlobalMeta
-        markdownToHtmlDeck meta getTemplate src out
+        markdownToHtml htmlDeck meta getTemplate src out
       --
       publicDir <//> "*-deck.pdf" %> \out -> do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
@@ -202,22 +203,12 @@ runWithFlags flags = do
       publicDir <//> "*-handout.html" %> \out -> do
         src <- calcSource "-handout.html" "-deck.md" out
         meta <- getGlobalMeta
-        markdownToHtmlHandout meta getTemplate src out
-      --
-      publicDir <//> "*-handout.pdf" %> \out -> do
-        src <- calcSource "-handout.pdf" "-deck.md" out
-        meta <- getGlobalMeta
-        markdownToPdfHandout meta getTemplate src out
+        markdownToHtml htmlHandout meta getTemplate src out
       --
       publicDir <//> "*-page.html" %> \out -> do
         src <- calcSource "-page.html" "-page.md" out
         meta <- getGlobalMeta
-        markdownToHtmlPage meta getTemplate src out
-      --
-      publicDir <//> "*-page.pdf" %> \out -> do
-        src <- calcSource "-page.pdf" "-page.md" out
-        meta <- getGlobalMeta
-        markdownToPdfPage meta getTemplate src out
+        markdownToHtml htmlPage meta getTemplate src out
       --
       publicDir <//> "*-recording.mp4" %> \out -> do
         let src = makeRelative publicDir out

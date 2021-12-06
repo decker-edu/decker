@@ -37,7 +37,6 @@ import Development.Shake hiding (doesDirectoryExist, putError)
 import Relude hiding (state)
 import qualified System.Console.GetOpt as GetOpt
 import System.Directory as Dir
-import System.Environment (getProgName)
 import qualified System.FSNotify as Notify
 import System.FilePath.Posix
 import System.Info

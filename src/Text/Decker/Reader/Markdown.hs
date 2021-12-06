@@ -20,7 +20,6 @@ import Control.Monad.Loops
 import qualified Data.ByteString as BS
 import qualified Data.List as List
 import Data.Maybe
-import Data.Text (pack)
 import qualified Data.Text.IO as Text
 import Development.Shake hiding (Resource)
 import Relude
@@ -38,17 +37,14 @@ import Text.Decker.Filter.Poll
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.ShortLink
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Common (transientDir)
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
-import Text.Decker.Internal.Meta (setMetaValue)
 import Text.Decker.Internal.URI
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc
 import Text.Pandoc.Shared
-import Text.Pretty.Simple
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -62,7 +58,7 @@ readAndFilterMarkdownFile disp globalMeta path = do
     >>= calcRelativeResourcePaths docBase
     >>= runNewFilter disp examinerFilter docBase
     >>= deckerMediaFilter disp docBase
-    >>= processPandoc deckerPipeline docBase disp Copy
+    >>= processPandoc (deckerPipeline disp) docBase disp Copy
 
 -- |  TODO: Provide default CSL data from the resources if csl: is not set. This
 --  is not really trivial.
@@ -77,8 +73,8 @@ processCites pandoc@(Pandoc meta blocks) = liftIO $ do
         runIOorExplode $ processCitations (Pandoc cslMeta blocks)
       | otherwise -> return pandoc
 
--- | TODO: This seems to fail sometimes with j > 1. Some race condition. Maybe
--- call need and write a rule for the extraction.
+-- |  TODO: This seems to fail sometimes with j > 1. Some race condition. Maybe
+--  call need and write a rule for the extraction.
 installDefaultCSL :: IO FilePath
 installDefaultCSL = do
   let path = transientDir </> "default.csl"
@@ -291,17 +287,29 @@ deckerMediaFilter dispo docBase pandoc@(Pandoc meta _) =
         }
 
 -- |  The old style decker filter pipeline.
-deckerPipeline =
+deckerPipeline (Disposition Deck Html) =
   concatM
     [ evaluateShortLinks,
       expandDeckerMacros,
-      -- , renderCodeBlocks
       includeCode,
-      -- , provisionResources
       processSlides,
       handlePolls,
       handleQuizzes
-    ] -- , processCitesWithDefault
+    ]
+deckerPipeline (Disposition Page Html) =
+  concatM
+    [ evaluateShortLinks,
+      expandDeckerMacros,
+      includeCode
+    ]
+deckerPipeline (Disposition Handout Html) =
+  concatM
+    [ evaluateShortLinks,
+      expandDeckerMacros,
+      includeCode,
+      processSlides
+    ]
+deckerPipeline disp = error $ "Disposition not supported: " <> show disp
 
 -- | Writes a pandoc document atomically to a markdown file.
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()

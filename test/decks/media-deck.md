@@ -265,3 +265,16 @@ mod.hello(anchor, "orange");
 
 -   Animation ![](../static/es6-blue.js){.javascript .run width="200px"} is
     followed by text
+
+# An Mview Iframe
+
+## Markdown
+
+```markdown
+![The Utah teapot](teapot.off)
+```
+
+## Renders as
+
+![The Utah teapot](teapot.off)
+
