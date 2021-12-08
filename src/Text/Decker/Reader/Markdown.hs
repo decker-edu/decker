@@ -26,7 +26,6 @@ import Relude
 import qualified System.Directory as Dir
 import System.FilePath.Posix
 import Text.Decker.Exam.Filter
-import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
@@ -145,6 +144,7 @@ adjustMetaPaths globalMeta base meta = do
   where
     adjust base path = do
       let apath = makeProjectPath base (toString path)
+      -- putStrLn $ "adjustMetaPaths: base: " <> base <> ", path: " <> toString path <> ", adjusted: " <> apath
       return $ toText apath
 
 -- | Adjusts meta data values that reference files needed at run-time (by some
@@ -159,6 +159,7 @@ needMetaTargets base meta =
       let stringPath = toString path
       need [publicDir </> stringPath]
       let relativePath = makeRelativeTo base stringPath
+      -- putStrLn $ "needMetaTargets: base: " <> base <> ", path: " <> toString path <> ", adjusted: " <> relativePath
       return $ toText relativePath
     adjustC base path = do
       let pathString = toString path
@@ -265,26 +266,14 @@ runNewFilter :: Disposition -> (Pandoc -> Filter Pandoc) -> FilePath -> Pandoc -
 runNewFilter dispo filter docBase pandoc@(Pandoc docMeta blocks) = do
   let deckerMeta = setMetaValue "decker.base-dir" docBase docMeta
   (Pandoc resultMeta resultBlocks) <-
-    liftIO $ runFilter dispo pandocWriterOpts filter (Pandoc deckerMeta blocks)
+    liftIO $ runFilter2 dispo filter (Pandoc deckerMeta blocks)
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
   return (Pandoc docMeta resultBlocks)
 
 -- |  Runs the new decker media filter.
 deckerMediaFilter :: Disposition -> String -> Pandoc -> Action Pandoc
 deckerMediaFilter dispo docBase pandoc@(Pandoc meta _) =
-  if lookupMetaOrElse False "experiment.slide-layout" meta
-    then runDeckerFilter (mediaFilter2 dispo options) docBase pandoc
-    else runDeckerFilter (mediaFilter dispo options) docBase pandoc
-  where
-    options =
-      def
-        { writerTemplate = Nothing,
-          writerHTMLMathMethod = MathJax "Handled by reveal.js in the template",
-          writerExtensions =
-            (enableExtension Ext_auto_identifiers . enableExtension Ext_emoji)
-              pandocExtensions,
-          writerCiteMethod = Citeproc
-        }
+  runDeckerFilter (mediaFilter2 dispo) docBase pandoc
 
 -- |  The old style decker filter pipeline.
 deckerPipeline (Disposition Deck Html) =

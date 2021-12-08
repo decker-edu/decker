@@ -3,9 +3,10 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
--- TODO:  Background movies do not work (unclear tags compile correctly)
--- TODO: Menu plugincrashes
+-- TODO: Background movies do not work (unclear tags compile correctly)
+-- TODO: Menu plugin just crashes
 -- TODO: CSS for decks containing examiner questions
+-- TODO: CSS for decks containing examiner wburg questions
 -- TODO: Organisation of CSS for deck, page and handout
 
 module Text.Decker.Filter.Media where

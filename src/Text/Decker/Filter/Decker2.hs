@@ -8,7 +8,7 @@
 -- All decker specific meta data is embedded into the document meta data under
 -- the `decker` key. Information gathered during the filter run is appended
 -- under the `decker` key in the meta data of the resulting document.
-module Text.Decker.Filter.Decker2 (runFilter2, mediaFilter2) where
+module Text.Decker.Filter.Decker2 (mediaFilter2, runFilter2) where
 
 import qualified Data.List as List
 import Relude
@@ -45,13 +45,13 @@ tripletwise _ xs = return xs
 
 -- | Runs the document through the four increasingly detailed filter stages. The
 -- matching granularity ranges from list of blocks to single inline elements.
-mediaFilter2 :: Disposition -> WriterOptions -> Pandoc -> IO Pandoc
-mediaFilter2 dispo options pandoc =
-  runFilter2 dispo options transformHeader1 pandoc
-    >>= runFilter2 dispo options mediaBlockListFilter
-    >>= runFilter2 dispo options mediaInlineListFilter
-    >>= runFilter2 dispo options mediaBlockFilter
-    >>= runFilter2 dispo options mediaInlineFilter
+mediaFilter2 :: Disposition -> Pandoc -> IO Pandoc
+mediaFilter2 dispo pandoc =
+  runFilter2 dispo transformHeader1 pandoc
+    >>= runFilter2 dispo mediaBlockListFilter
+    >>= runFilter2 dispo mediaInlineListFilter
+    >>= runFilter2 dispo mediaBlockFilter
+    >>= runFilter2 dispo mediaInlineFilter
 
 -- | Filters lists of Blocks that can match in pairs or triplets.
 --
@@ -134,11 +134,10 @@ unprocessed (_, cls, _) = "processed" `notElem` cls
 runFilter2 ::
   Walkable a Pandoc =>
   Disposition ->
-  WriterOptions ->
   (a -> Filter a) ->
   Pandoc ->
   IO Pandoc
-runFilter2 dispo options filter pandoc@(Pandoc meta _) = do
-  (Pandoc _ blocks, FilterState _ meta dispo) <-
-    runStateT (walkM filter pandoc) (FilterState options meta dispo)
+runFilter2 dispo filter pandoc@(Pandoc meta _) = do
+  (Pandoc _ blocks, FilterState meta dispo) <-
+    runStateT (walkM filter pandoc) (FilterState meta dispo)
   return $ Pandoc meta blocks
