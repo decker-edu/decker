@@ -24,6 +24,9 @@ $endif$
 $if(description-meta)$
   <meta name="description" content="$description-meta$" />
 $endif$
+$if(template.favicon)$
+    <link rel="shortcut icon" href="$template.favicon$">
+$endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
   <!-- Default Pandoc CSS for HTML documents -->
   <style>

@@ -19,6 +19,9 @@ reveal:
   slideNumber: true
   transition: "none"
 
+template:
+  favicon: support/icons/favicon.ico
+
 chart:
   defaults:
     font: { size: 20 }
