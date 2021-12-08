@@ -1345,7 +1345,7 @@ function toggleMicrophone() {
 
 async function resourceExists(url) {
   return fetch(url, { method: "HEAD" })
-    .then((r) => r.ok)
+    .then((r) => r.status == 200)
     .catch((_) => {
       return false;
     });

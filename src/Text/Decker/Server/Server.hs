@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -26,7 +27,6 @@ import Network.WebSockets
 import Network.WebSockets.Snap
 import Snap.Core
 import Snap.Http.Server
-import Snap.Internal.Core (ResponseBody (Stream), rspBody)
 import Snap.Util.FileServe
 import Snap.Util.FileUploads
 import System.Directory
@@ -181,17 +181,34 @@ uploadFiles suffixes = do
 
 headDirectory :: MonadSnap m => FilePath -> m ()
 headDirectory directory = do
-  serveDirectoryWith config directory
-  where
-    config = defaultDirectoryConfig {preServeHook = \_ -> modifyResponse nukeBody}
-    nukeBody res = res {rspBody = Stream return}
+  path <- getSafePath
+  exists <- liftIO $ doesFileExist (directory </> path)
+  if
+      | not exists && path `endsOn` ["-annot.json", "-times.json", "-recording.mp4", "-recording.vtt"] ->
+        finishWith $ setResponseCode 204 emptyResponse
+      | not exists -> finishWith $ setResponseCode 404 emptyResponse
+      | otherwise -> finishWith $ setResponseCode 200 emptyResponse
 
+-- serveDirectoryWith config directory
+-- where
+--   config = defaultDirectoryConfig {preServeHook = \_ -> modifyResponse nukeBody}
+--   nukeBody res = res {rspBody = Stream return}
+
+-- | Serves all files in the directory. If it is one of the optional annotation
+-- and recording stuff that does ot exist (yet), return a "204 No Content"
+-- instead of a 404 so that the browser does not need to flag the 404.
 serveDirectoryNoCaching :: MonadSnap m => MVar ServerState -> FilePath -> m ()
 serveDirectoryNoCaching state directory = do
-  serveDirectory directory
-  modifyResponse $ addHeader "Cache-Control" "no-store"
-  path <- getsRequest rqPathInfo
-  liftIO $ addPage state (toString path)
+  path <- getSafePath
+  exists <- liftIO $ doesFileExist (directory </> path)
+  if not exists && path `endsOn` ["-annot.json", "-times.json", "-recording.mp4", "-recording.vtt"]
+    then finishWith $ setResponseCode 204 emptyResponse
+    else do
+      serveDirectory directory
+      modifyResponse $ addHeader "Cache-Control" "no-store"
+      liftIO $ addPage state path
+
+endsOn string = any (`isSuffixOf` string)
 
 serveSupport :: (MonadSnap m) => ActionContext -> MVar ServerState -> m ()
 serveSupport context state =

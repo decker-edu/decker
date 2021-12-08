@@ -865,7 +865,7 @@ function parseAnnotations(storage) {
         }
       }
     });
-    console.log("whiteboard loaded");
+    // console.log("whiteboard loaded");
   }
 
   // fix inconsistency for centered slides
