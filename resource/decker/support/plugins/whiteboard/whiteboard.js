@@ -146,6 +146,17 @@ let buttonPen;
 let buttonEraser;
 let buttonLaser;
 let colorPicker;
+let hoverTimer;
+
+function hidePanel() {
+  buttons.classList.remove("visible");
+  hideColorPicker();
+}
+
+function showPanel() {
+  buttons.classList.add("visible");
+  clearInterval(hoverTimer);
+}
 
 // function to generate a button
 function createButton(classes, callback, active = false, tooltip) {
@@ -160,9 +171,18 @@ function createButton(classes, callback, active = false, tooltip) {
 
 // setup all GUI elements
 function createGUI() {
+  // generate container for whiteboard buttons
   buttons = document.createElement("div");
   buttons.id = "whiteboardButtons";
   reveal.appendChild(buttons);
+
+  // handle hover visibility of panel
+  buttons.onmouseenter = (evt) => {
+    clearInterval(hoverTimer);
+  };
+  buttons.onmouseleave = (evt) => {
+    hoverTimer = setInterval(hidePanel, 1000);
+  };
 
   buttonWhiteboard = createButton(
     "whiteboard fas fa-edit checkbox",
@@ -178,49 +198,54 @@ function createGUI() {
     autosave,
     "toggle auto-saving annotations"
   );
-
   buttonGrid = createButton(
     "whiteboard fas fa-border-all checkbox",
     toggleGrid,
     false,
     "toggle background grid"
   );
-
   buttonAdd = createButton(
     "whiteboard fas fa-plus",
     addWhiteboardPage,
     true,
     "add whiteboard page"
   );
-
   buttonUndo = createButton("whiteboard fas fa-undo", undo, false, "undo");
-
   buttonPen = createButton(
     "whiteboard fas fa-pen radiobutton",
     () => {
+      if (!buttons.classList.contains("visible")) {
+        showPanel();
+        return;
+      }
       if (tool != PEN) {
         selectTool(PEN);
       } else {
-        if (colorPicker.style.visibility == "visible") hideColorPicker();
-        else showColorPicker();
+        colorPicker.classList.toggle("active");
       }
     },
     false,
     "pen / properties"
   );
-
   buttonEraser = createButton(
     "whiteboard fas fa-eraser radiobutton",
     () => {
+      if (!buttons.classList.contains("visible")) {
+        buttons.classList.add("visible");
+        return;
+      }
       selectTool(ERASER);
     },
     false,
     "eraser"
   );
-
   buttonLaser = createButton(
     "whiteboard fas fa-magic radiobutton",
     () => {
+      if (!buttons.classList.contains("visible")) {
+        buttons.classList.add("visible");
+        return;
+      }
       selectTool(LASER);
     },
     false,
@@ -230,7 +255,7 @@ function createGUI() {
   // generate color picker container
   colorPicker = document.createElement("div");
   colorPicker.id = "whiteboardColorPicker";
-  reveal.appendChild(colorPicker);
+  buttons.appendChild(colorPicker);
 
   // color buttons
   penColors.forEach((color) => {
@@ -242,7 +267,6 @@ function createGUI() {
     b.style.color = color;
     colorPicker.appendChild(b);
   });
-
   // pen radius buttons
   for (let r = 2; r < 15; r += 2) {
     const slideScale = Reveal.getScale();
@@ -504,6 +528,8 @@ function selectTool(newTool) {
       selectCursor(laserCursor);
       break;
   }
+
+  hideColorPicker();
 }
 
 /*
@@ -515,11 +541,11 @@ function toggleLaser() {
 }
 
 function showColorPicker() {
-  colorPicker.style.visibility = "visible";
+  colorPicker.classList.add("active");
 }
 
 function hideColorPicker() {
-  colorPicker.style.visibility = "hidden";
+  colorPicker.classList.remove("active");
 }
 
 function selectPenColor(col) {
@@ -542,10 +568,10 @@ function toggleWhiteboard(state) {
 
   if (!whiteboardActive) {
     // hide scrollbar
-    slides.classList.remove("whiteboardActive");
+    slides.classList.remove("active");
 
     // hide buttons
-    buttons.classList.remove("whiteboardActive");
+    buttons.classList.remove("active");
     buttonWhiteboard.dataset.active = false;
     hideColorPicker();
 
@@ -562,10 +588,10 @@ function toggleWhiteboard(state) {
     if (userShouldBeWarned && !userHasBeenWarned) warnUser();
 
     // show scrollbar
-    slides.classList.add("whiteboardActive");
+    slides.classList.add("active");
 
     // show buttons
-    buttons.classList.add("whiteboardActive");
+    buttons.classList.add("active");
     buttonWhiteboard.dataset.active = true;
 
     // activate SVG
