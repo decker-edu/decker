@@ -1,5 +1,6 @@
 ---
 highlight-style: pygments
+highlightjs: xcode
 subtitle: Clean. Consistent. Robust.
 title: New Style Media Handling
 ---
@@ -28,7 +29,7 @@ Caption: General structure of all slides
 
 # Media Structure
 
-``` html
+``` {.html line-numbers="1-4,6,7"}
 <div class="media">
   <figure class="image">
     <img src="include/06-metal.png" alt="06-metal.png" />
@@ -380,17 +381,15 @@ block = tag "figcaption" $ Div nullAttr [Plain caption]
 
 Caption: More like JSX in the 20s
 
----
+--------------------------------------------------------------------------------
 
 # AST structure synthesis
 
 ## Conversion status
 
-- [:far](check-square) Embedded local media (Image, Video, PDF, ...)
-- [:far](check-square) Code blocks (highlighted, rendered, executed)
-- [:far](check-square) Iframes (generic URLs, Mview models)
-- [:far](check-square) Streaming videos (Youtube, Vimeo, Twitch, ...)
-- [:far](square) Quizzes
-- [:far](square) Polls
-
-
+-   [:far](check-square) Embedded local media (Image, Video, PDF, ...)
+-   [:far](check-square) Code blocks (highlighted, rendered, executed)
+-   [:far](check-square) Iframes (generic URLs, Mview models)
+-   [:far](check-square) Streaming videos (Youtube, Vimeo, Twitch, ...)
+-   [:far](square) Quizzes
+-   [:far](square) Polls
