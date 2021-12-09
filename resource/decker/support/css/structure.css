@@ -5,7 +5,7 @@ page.css and handout.css. */
 /* These are just for internal calculations */
 :root {
   --list-indent: 1.5em;
-  --block-border-width: 0.1em;
+  --block-border-width: 0.2em;
   --block-outset: 0.5rem;
 }
 
@@ -124,11 +124,11 @@ div.media {
 }
 
 /* TODO Check the old class vocabulary for alignment. */
-div.media[align="left"] {
+div.media[data-align="left"] {
   justify-content: flex-start;
 }
 
-div.media[align="right"] {
+div.media[data-align="right"] {
   justify-content: flex-end;
 }
 

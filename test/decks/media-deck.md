@@ -1,23 +1,73 @@
 ---
 highlight-style: pygments
-# highlightjs: xcode
 subtitle: Clean. Consistent. Robust.
 title: New Style Media Handling
 ---
 
-# Markdown Source
+# Slide Structure
 
-![Included code from image tag](/test/decks/media-deck.md){.code}
+``` html
+<section class="slide level1 present">
+  <div class="decker">
+    <div class="alignment">
+      <h1>Licht</h1>
+      <div class="layout">
+        <div class="area">
+          <div class="block">
+            <h2>Some Header</h2>
+            <p>Something or other</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+```
 
-# CSS
+Caption: General structure of all slides
 
-![What](/resource/decker/support/css/deck.css){.code .css}
+# Media Structure
+
+``` html
+<div class="media">
+  <figure class="image">
+    <img src="include/06-metal.png" alt="06-metal.png" />
+    <figcaption>
+      Alt Caption <span class="math inline">\(e=mc^2\)</span>
+    </figcaption>
+  </figure>
+</div>
+```
+
+Caption: General structure of all media embeddings
+
+# Development Path {.columns}
+
+## Branch `develop-layout` {.left}
+
+-   Contains new slide and media renderer
+-   Is up to date with branch `develop`
+
+## Branch `develop`
+
+-   Reveal 4 and Pandoc 2.14
+-   Default resource pack `decker`
+-   Resource packs `wburg` and `mario`
+
+## The plan {.right .fragment}
+
+1.  Cherry-pick fixes and features from `master` to `develop`
+2.  On `develop-layout`
+    -   Port `wburg` CSS
+    -   Port `mario` CSS
+3.  Merge `develop-master` to `develop`
+4.  Merge `develop` to `master`
 
 # Local Image
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
-# Local Images in 2 columns {.columns}
+# Local Media in 2 columns {.columns}
 
 ## Left {.left}
 
@@ -33,15 +83,19 @@ function rainbow(numOfSteps, step) {
   var h = step / numOfSteps;
 ```
 
+Caption: Captioned code.
+
 More `function CODE(here) {return true;}`{.javascript} here
 
-# Local Images in 2 columns {.columns}
+--------------------------------------------------------------------------------
 
-## Left {.left .danger grow="2"}
+# Local Media in 2 columns {.columns}
+
+## Left {.left .danger}
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
-## Right {.right .primary grow="2"}
+## Right {.right .secondary}
 
 ``` javascript
 function rainbow(numOfSteps, step) {
@@ -50,6 +104,30 @@ function rainbow(numOfSteps, step) {
   var r, g, b;
   var h = step / numOfSteps;
 ```
+
+Caption: Captioned code.
+
+More `function CODE(here) {return true;}`{.javascript} here
+
+--------------------------------------------------------------------------------
+
+# Local Media in 2 columns {.columns}
+
+## Left {.left .definition}
+
+![Alt Caption $e=mc^2$](include/06-metal.png)
+
+## Right {.right .conclusion}
+
+``` javascript
+function rainbow(numOfSteps, step) {
+  // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
+  // Adam Cole, 2011-Sept-14
+  var r, g, b;
+  var h = step / numOfSteps;
+```
+
+Caption: Captioned code.
 
 More `function CODE(here) {return true;}`{.javascript} here
 
@@ -63,11 +141,11 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
-## Right {.right grow="2"}
+## Right {.right align="center" grow="2"}
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
-## And some text
+## And some more text {align="left"}
 
 -   Block distance fits.
 
@@ -78,16 +156,13 @@ More `function CODE(here) {return true;}`{.javascript} here
 -   One slightly longer line.
 -   Should align with neighbors.
 
-## Should align. {.warning}
+## Should align [:fas](arrow-right) {.warning align="right"}
 
 One slightly longer line.
 
 Should `align with`{.javascript} neighbors.
 
-## Three
-
-1.  Three
-2.  Four
+All right! [:fas](arrow-right)
 
 ## One slightly longer line. {.right .primary}
 
@@ -95,11 +170,13 @@ One slightly longer line.
 
 Should align with.
 
-## Should align. {.secondary}
+## [:fas](arrow-left) Should align {.secondary}
 
 -   One slightly longer line.
 
 -   Should align with neighbors.
+
+[:fas](arrow-left) All right!
 
 ## Three {.success .fragment popup="center-up"}
 
@@ -270,11 +347,50 @@ mod.hello(anchor, "orange");
 
 ## Markdown
 
-```markdown
+``` markdown
 ![The Utah teapot](teapot.off)
 ```
 
 ## Renders as
 
 ![The Utah teapot](teapot.off)
+
+--------------------------------------------------------------------------------
+
+# Behind the Iron Curtain
+
+# AST structure synthesis
+
+## Branch master `master`
+
+``` {.haskell .small}
+caption = [Str "Caption", Space, Strong [Str "text"]]
+html = toHtml caption
+block = RawHtml ("<figcaption>" <> html <> "</figcaption>")
+```
+
+Caption: Just like PHP in the 90s
+
+## Branch `develop-layout` {.fragment}
+
+``` {.haskell .small}
+caption = [Str "Caption", Space, Strong [Str "text"]]
+block = tag "figcaption" $ Div nullAttr [Plain caption]
+```
+
+Caption: More like JSX in the 20s
+
+---
+
+# AST structure synthesis
+
+## Conversion status
+
+- [:far](check-square) Embedded local media (Image, Video, PDF, ...)
+- [:far](check-square) Code blocks (highlighted, rendered, executed)
+- [:far](check-square) Iframes (generic URLs, Mview models)
+- [:far](check-square) Streaming videos (Youtube, Vimeo, Twitch, ...)
+- [:far](square) Quizzes
+- [:far](square) Polls
+
 

@@ -10,7 +10,7 @@
 
 /* Inline code */
 code {
-  line-height: 1.0;
+  line-height: 1;
   font-size: 110%;
   font-family: monospace;
 }
@@ -20,6 +20,11 @@ span.pre > code,
 pre > code {
   font-size: 100%;
   font-family: monospace;
+}
+
+span.pre.small > code,
+pre.small > code {
+  font-size: 90%;
 }
 
 strong {
@@ -93,12 +98,6 @@ figcaption {
   padding-top: calc(0.5 * var(--vertical-margin));
 }
 
-/* TODO Two highlighted blocks currently touch. Play with spacing here. */
-div.block {
-  display: flow-root; /* Prevents margin collapse. Allows negative margin here. */
-  margin-bottom: calc(0 * var(--vertical-margin));
-}
-
 /* Tables */
 table {
   font-size: 0.9em;
@@ -124,6 +123,12 @@ th {
 }
 td {
   padding: 0.2em 0.5em 0.2em 0.5em;
+}
+
+/* TODO Two highlighted blocks currently touch. Play with spacing here. */
+div.block {
+  display: flow-root; /* Prevents margin collapse. Allows negative margin here. */
+  margin-bottom: calc(0 * var(--vertical-margin));
 }
 
 /* Stretch the block header margin to the block border so that highlighting
@@ -195,6 +200,18 @@ div.block[align="left"] {
 }
 div.block[align="right"] {
   text-align: right;
+}
+
+div.block.definition {
+  border: none;
+  border-right: calc(var(--block-border-width)) solid rgb(0,0,0,0);
+  border-left: calc(var(--block-border-width)) solid #0aa;
+}
+
+div.block.conclusion {
+  border: none;
+  border-right: calc(var(--block-border-width)) solid rgb(0,0,0,0);
+  border-left: calc(var(--block-border-width)) solid #a0a;
 }
 
 /* Source Code */
