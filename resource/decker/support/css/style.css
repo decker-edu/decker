@@ -103,9 +103,7 @@ table {
   font-size: 0.9em;
   margin-bottom: var(--vertical-margin);
   border-collapse: collapse;
-  width: 100%;
   overflow-x: auto;
-  display: block;
   font-variant-numeric: lining-nums tabular-nums;
 }
 table caption {
