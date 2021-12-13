@@ -43,7 +43,7 @@ highlightStyle meta =
 
 markdownToHtmlLayoutDeck :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
 markdownToHtmlLayoutDeck meta getTemplate markdownFile out = do
-  putNormal "EXPERIMENTAL LAYOUT WRITER"
+  putInfo "EXPERIMENTAL LAYOUT WRITER"
   putCurrentDocument out
   let relSupportDir = relativeSupportDir (takeDirectory out)
   let disp = Disposition Deck Html

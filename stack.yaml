@@ -9,7 +9,9 @@ packages:
 extra-deps:
   - regex-posix-clib-2.7@sha256:998fca06da3d719818f0691ef0b8b9b7375afeea228cb08bd9e2db53f96b0cd7,1232
   # - shake-0.19.1
-resolver: lts-18.2
+  - mintty-0.1.2 #current mintty-version does not build on Win32
+
+resolver: lts-18.17
 ghc-options:
   "$locals": -fhide-source-paths -Wno-missing-home-modules
   "$everything": -haddock

@@ -37,6 +37,7 @@ unclean-install: build
 
 install-link: build
 	mkdir -p $(local-bin-path)
+	rm "$(local-bin-path)/$(base-name)-dev"
 	ln -s $(executable) "$(local-bin-path)/$(base-name)-dev"
 
 version:

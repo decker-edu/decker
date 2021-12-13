@@ -34,8 +34,8 @@ if (-Not $skiptemplates) {
 <# Cleanup of old files #> 
 Write-Host "Cleaning before new build" -ForegroundColor Green
 & stack clean
-Remove-Item "$deckerdir\resource\support\vendor" -Recurse -Force -ErrorAction Continue
-Remove-Item "$deckerdir\public" -Recurse -Force -ErrorAction Continue 
+Remove-Item "$deckerdir\resource\decker\support\vendor" -Recurse -Force -ErrorAction Continue
+Remove-Item "$deckerdir\public" -Recurse -Force -ErrorAction Ignore 
 
 
 

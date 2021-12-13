@@ -8,8 +8,11 @@ import Control.Concurrent
 import Control.Exception (SomeException (SomeException), catch)
 import Control.Lens ((^.))
 import Control.Monad.Extra
+import qualified Data.ByteString as BS
 import Data.IORef ()
 import Data.List
+import qualified Data.Map.Strict as Map
+import Data.Maybe
 import Data.String ()
 import qualified Data.Text as Text
 import Data.Time (diffUTCTime)
@@ -108,7 +111,7 @@ run = do
     --
     withTargetDocs "Print version information." $
       phony "version" $ do
-        putNormal $
+        putWarn $
           "decker version "
             ++ deckerVersion
             ++ " (branch: "
@@ -120,8 +123,8 @@ run = do
             ++ ", build date: "
             ++ deckerBuildDate
             ++ ")"
-        putNormal $ "pandoc version " ++ Text.unpack pandocVersion
-        putNormal $ "pandoc-types version " ++ showVersion pandocTypesVersion
+        putWarn $ "pandoc version " ++ Text.unpack pandocVersion
+        putWarn $ "pandoc-types version " ++ showVersion pandocTypesVersion
     --
     withTargetDocs "Build HTML versions of all question (*-quest.md)." $
       phony "questions" $ do
@@ -141,13 +144,13 @@ run = do
     --
     withTargetDocs "Build PDF versions of all decks (*-deck.md)." $
       phony "pdf" $ do
-        putNormal pdfMsg
+        putInfo pdfMsg
         need ["support"]
         getTargets >>= needSel decksPdf
     --
     withTargetDocs "Compile global search index." $
       phony "index" $ do
-        putNormal "# compiling search index ..."
+        putInfo "# compiling search index ..."
         meta <- getGlobalMeta
         targets <- getTargets
         allDecks <- mapM (calcSource "-deck.html" "-deck.md") (targets ^. decks)
@@ -160,6 +163,15 @@ run = do
         pages <- currentlyServedPages
         need $ map (publicDir </>) pages
     --
+    priority 5 $ do
+      (publicDir </> "support") <//> "*" %> \out -> do
+        targets <- getTargets
+        let path = fromJust $ stripPrefix (publicDir <> "/") out
+        let source = (targets ^. resources) Map.! out
+        putVerbose $ "# extract (" <> out <> " from " <> show source <> " : "<> path<>")"
+        needResource source path
+        content <- fromJust <$> liftIO (readResource path source)
+        liftIO $ BS.writeFile out content
     priority 4 $ do
       publicDir <//> "*-deck.html" %> \out -> do
         src <- calcSource "-deck.html" "-deck.md" out
@@ -173,10 +185,10 @@ run = do
         need [src]
         context <- actionContext
         liftIO $ runHttpServerIO context serverPort "localhost"
-        putNormal $ "# chrome started ... (for " <> out <> ")"
+        putInfo $ "# chrome started ... (for " <> out <> ")"
         result <- liftIO $ launchChrome url out
         case result of
-          Right _ -> putNormal $ "# chrome finished (for " <> out <> ")"
+          Right _ -> putInfo $ "# chrome finished (for " <> out <> ")"
           Left msg -> error msg
       --
       publicDir <//> "*-handout.html" %> \out -> do
@@ -201,17 +213,17 @@ run = do
       --
       publicDir <//> "*-recording.mp4" %> \out -> do
         let src = makeRelative publicDir out
-        putNormal $ "# copy (for " <> out <> ")"
+        putVerbose $ "# copy (for " <> out <> ")"
         copyFile' src out
       --
       publicDir <//> "*-recording.vtt" %> \out -> do
         let src = makeRelative publicDir out
-        putNormal $ "# copy (for " <> out <> ")"
+        putVerbose $ "# copy (for " <> out <> ")"
         copyFile' src out
       --
       publicDir <//> "*.css" %> \out -> do
         let src = makeRelative publicDir out
-        putNormal $ "# copy (for " <> out <> ")"
+        putVerbose $ "# copy (for " <> out <> ")"
         copyFile' src out
         whenM (liftIO $ Dir.doesFileExist (src <.> "map")) $
           copyFile' (src <.> "map") (out <.> "map")
@@ -244,7 +256,7 @@ run = do
               if exists
                 then indexSource
                 else generatedIndexSource
-        need [src, "index"]
+        need [src]
         meta <- getGlobalMeta
         markdownToHtmlPage meta getTemplate src out
       --
@@ -258,25 +270,26 @@ run = do
         let src = out -<.> "scss"
         whenM (liftIO $ Dir.doesFileExist src) $ do
           need [src]
-          command [] "sass" [src, out]
+          putInfo $ "# sassc (for " <> out <> ")"
+          command [] "sassc" [src, out]
       --
       "**/*.plantuml.svg" %> \out -> do
         let src = dropExtension out
         need [src]
-        putNormal $ "# plantuml (for " <> out <> ")"
+        putInfo $ "# plantuml (for " <> out <> ")"
         plantuml [src] (Just $ src -<.> "svg")
         liftIO $ Dir.renameFile (src -<.> "svg") out
       --
       "**/*.dot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
-        putNormal $ "# dot (for " <> out <> ")"
+        putInfo $ "# dot (for " <> out <> ")"
         dot ["-o" ++ out, src] (Just out)
       --
       "**/*.gnuplot.svg" %> \out -> do
         let src = dropExtension out
         need [src]
-        putNormal $ "# gnuplot (for " <> out <> ")"
+        putInfo $ "# gnuplot (for " <> out <> ")"
         gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src] (Just out)
       --
       "**/*-recording.mp4" %> \out -> do
@@ -309,7 +322,7 @@ run = do
     priority 2 $
       publicDir <//> "//" %> \out -> do
         let src = makeRelative publicDir out
-        putNormal $ "# copy (for " <> out <> ")"
+        putVerbose $ "# copy (for " <> out <> ")"
         copyFile' src out
     --
     withTargetDocs "Copy static file to public dir." $
@@ -320,25 +333,27 @@ run = do
     withTargetDocs "Provide information about project parameters, sources and targets" $
       phony "info" $ do
         project <- liftIO $ Dir.canonicalizePath projectDir
-        putNormal $ "\nproject directory: " ++ project
-        putNormal $ "public directory: " ++ publicDir
-        putNormal $ "support directory: " ++ supportDir
+        putWarn $ "\nproject directory: " ++ project
+        putWarn $ "public directory: " ++ publicDir
+        putWarn $ "support directory: " ++ supportDir
         meta <- getGlobalMeta
         targets <- getTargets
         resources <- liftIO $ deckerResources meta
-        putNormal $ "template source: " <> show resources
-        putNormal "\ntargets:\n"
-        putNormal (groom targets)
-        putNormal "\ntop level meta data:\n"
-        putNormal (groom meta)
+        putWarn $ "template source: " <> show resources
+        putWarn "\ntargets:\n"
+        putWarn (groom targets)
+        putWarn "\ntop level meta data:\n"
+        putWarn (groom meta)
     --
+    withTargetDocs "Check the existence of usefull external programs" $
+      phony "check" $ liftIO forceCheckExternalPrograms
     -- TODO use or throw away
     withTargetDocs "Copy runtime support files to public dir." $
       phony "support" $ do
+        targets <- getTargets
         need [indexFile, "static-files", "uploads"]
-        meta <- getGlobalMeta
-        liftIO $ writeSupportFilesToPublic meta
-    --
+        -- Resources and their locations are now recorded in targets
+        need $ Map.keys (targets ^. resources)
     withTargetDocs "Copy uploaded files to public dir." $
       phony "uploads" $ do
         targets <- getTargets

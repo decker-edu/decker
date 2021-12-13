@@ -202,7 +202,7 @@ instance ToMarkup a => ToMarkup (NonEmpty a) where
 renderQuestion :: Meta -> FilePath -> FilePath -> Action ()
 renderQuestion meta src out =
   do
-    putNormal $ "# render (for " <> out <> ")"
+    putInfo $ "# render (for " <> out <> ")"
     liftIO (readQuestion src)
       >>= renderQuestionDocument meta (takeDirectory src)
       >>= (liftIO . Text.writeFile out)
@@ -211,7 +211,7 @@ renderCatalog :: Meta -> [FilePath] -> FilePath -> Action ()
 renderCatalog meta files out =
   do
     let base = takeDirectory out
-    putNormal $ "# catalog (for " <> out <> ")"
+    putInfo $ "# catalog (for " <> out <> ")"
     questions <- liftIO $ mapM readQuestion files
     mapM (compileQuestionToHtml meta base) questions
       >>= renderQuestionCatalog base
