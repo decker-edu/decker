@@ -25,9 +25,9 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
-import qualified Text.Decker.Writer.Layout as Layout
 import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Template
+import qualified Text.Decker.Writer.Layout as Layout
 import Text.DocTemplates
 import Text.Pandoc hiding (getTemplate, lookupMeta)
 import Text.Pandoc.Highlighting
@@ -101,7 +101,7 @@ writeNativeWhileDebugging out mod doc =
 markdownToHtmlDeck :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
 markdownToHtmlDeck meta getTemplate markdownFile out = do
   if lookupMetaOrElse False "experiment.slide-layout" meta
-    then Layout.markdownToHtmlLayoutDeck meta getTemplate markdownFile out
+    then Layout.markdownToHtml (Disposition Deck Html) meta getTemplate markdownFile out
     else markdownToHtmlDeck' meta getTemplate markdownFile out
 
 -- | Write a markdown file to a HTML file using the page template.

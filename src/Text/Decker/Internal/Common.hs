@@ -41,6 +41,12 @@ data Disposition = Disposition
   }
   deriving (Ord, Eq, Show)
 
+htmlDeck = Disposition {layout = Deck, format = Html}
+
+htmlPage = Disposition {layout = Page, format = Html}
+
+htmlHandout = Disposition {layout = Handout, format = Html}
+
 data MediaType
   = ImageMedia
   | AudioMedia

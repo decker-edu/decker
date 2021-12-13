@@ -5,7 +5,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Writer.Layout (markdownToHtmlLayoutDeck, writePandocFile) where
+module Text.Decker.Writer.Layout (markdownToHtml, writePandocFile) where
 
 import Data.List (lookup)
 import qualified Data.Map as Map
@@ -41,12 +41,10 @@ highlightStyle meta =
           Just ps -> lookup ps highlightingStyles
           Nothing -> lookup "monochrome" highlightingStyles
 
-markdownToHtmlLayoutDeck :: Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
-markdownToHtmlLayoutDeck meta getTemplate markdownFile out = do
-  putNormal "EXPERIMENTAL LAYOUT WRITER"
+markdownToHtml :: Disposition -> Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
+markdownToHtml disp meta getTemplate markdownFile out = do
   putCurrentDocument out
   let relSupportDir = relativeSupportDir (takeDirectory out)
-  let disp = Disposition Deck Html
   pandoc@(Pandoc meta _) <- readAndFilterMarkdownFile disp meta markdownFile
   template <- getTemplate (templateFile disp)
   let options =

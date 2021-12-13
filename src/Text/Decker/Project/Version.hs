@@ -70,13 +70,13 @@ versionCheck meta =
     case version of
       Just version -> check version
       _ ->
-        putNormal $
+        putWarn $
         "  - Document version unspecified. This is decker version " ++
         deckerVersion ++ "."
   where
     check version =
       when (List.trim version /= List.trim deckerVersion) $
-      putNormal $
+      putWarn $
       "  - Document version " ++
       version ++
       ". This is decker version " ++ deckerVersion ++ ". Expect problems."

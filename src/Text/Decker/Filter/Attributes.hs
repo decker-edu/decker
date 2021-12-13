@@ -163,3 +163,5 @@ dropAttr want = do
 
 type Attrib = StateT AttribState Filter
 
+-- Some tests
+

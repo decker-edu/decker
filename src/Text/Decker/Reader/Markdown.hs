@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -16,16 +17,16 @@ where
 
 import Control.Monad
 import Control.Monad.Loops
+import qualified Data.ByteString as BS
 import qualified Data.List as List
 import Data.Maybe
 import qualified Data.Text.IO as Text
 import Development.Shake hiding (Resource)
 import Relude
-import System.Directory as Dir
+import qualified System.Directory as Dir
 import System.FilePath.Posix
 import Text.Decker.Exam.Filter
 import Text.Decker.Filter.Decker2
-import Text.Decker.Filter.Decker
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
@@ -38,11 +39,11 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
+import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc
 import Text.Pandoc.Shared
-import Text.Pretty.Simple
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -56,16 +57,31 @@ readAndFilterMarkdownFile disp globalMeta path = do
     >>= calcRelativeResourcePaths docBase
     >>= runNewFilter disp examinerFilter docBase
     >>= deckerMediaFilter disp docBase
-    >>= processPandoc deckerPipeline docBase disp Copy
+    >>= processPandoc (deckerPipeline disp) docBase disp Copy
 
+-- |  TODO: Provide default CSL data from the resources if csl: is not set. This
+--  is not really trivial.
 processCites :: MonadIO m => Pandoc -> m Pandoc
 processCites pandoc@(Pandoc meta blocks) = liftIO $ do
-  let csl = lookupMeta "csl" meta :: Maybe FilePath
-      bib = lookupMeta "bibliography" meta :: Maybe FilePath
-  -- Only do citations if we have both, csl and bibliography
-  if all isJust [csl, bib]
-    then runIOorExplode $ processCitations pandoc
-    else return pandoc
+  if
+      | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
+        runIOorExplode $ processCitations pandoc
+      | isMetaSet "bibliography" meta -> do
+        defaultCSL <- installDefaultCSL
+        let cslMeta = setMetaValue "csl" defaultCSL meta
+        runIOorExplode $ processCitations (Pandoc cslMeta blocks)
+      | otherwise -> return pandoc
+
+-- |  TODO: This seems to fail sometimes with j > 1. Some race condition. Maybe
+--  call need and write a rule for the extraction.
+installDefaultCSL :: IO FilePath
+installDefaultCSL = do
+  let path = transientDir </> "default.csl"
+  exists <- Dir.doesFileExist path
+  unless exists $ do
+    csl <- readResource "default.csl" (DeckerExecutable "decker")
+    BS.writeFile path (fromJust csl)
+  return path
 
 -- | Reads a Markdown file from the local file system. Local resource paths are
 -- converted to absolute paths. Additional meta data is read and merged into
@@ -73,16 +89,17 @@ processCites pandoc@(Pandoc meta blocks) = liftIO $ do
 -- exception if something goes wrong
 readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
-  putVerbose $ "# --> readMarkdownFile: " <> path
+  -- putVerbose $ "# --> readMarkdownFile: " <> path
   let base = takeDirectory path
-  pandoc <- parseMarkdownFile path
-    >>= writeBack globalMeta path
-    >>= expandMeta globalMeta base
-    >>= adjustResourcePathsA base
-    >>= checkVersion
-    >>= includeMarkdownFiles globalMeta base
-    >>= addPathInfo base
-  putVerbose $ toString $ pShow pandoc
+  pandoc <-
+    parseMarkdownFile path
+      >>= writeBack globalMeta path
+      >>= expandMeta globalMeta base
+      >>= adjustResourcePathsA base
+      >>= checkVersion
+      >>= includeMarkdownFiles globalMeta base
+      >>= addPathInfo base
+  -- putVerbose $ toString $ pShow pandoc
   return pandoc
 
 addPathInfo :: FilePath -> Pandoc -> Action Pandoc
@@ -127,7 +144,7 @@ adjustMetaPaths globalMeta base meta = do
   where
     adjust base path = do
       let apath = makeProjectPath base (toString path)
-      -- putNormal $ "==> " <> apath
+      -- putStrLn $ "adjustMetaPaths: base: " <> base <> ", path: " <> toString path <> ", adjusted: " <> apath
       return $ toText apath
 
 -- | Adjusts meta data values that reference files needed at run-time (by some
@@ -140,10 +157,9 @@ needMetaTargets base meta =
   where
     adjustR base path = do
       let stringPath = toString path
-      -- putNormal $ "==> " <> stringPath
       need [publicDir </> stringPath]
       let relativePath = makeRelativeTo base stringPath
-      -- putNormal $ "<== " <> relativePath
+      -- putStrLn $ "needMetaTargets: base: " <> base <> ", path: " <> toString path <> ", adjusted: " <> relativePath
       return $ toText relativePath
     adjustC base path = do
       let pathString = toString path
@@ -176,7 +192,7 @@ includeMarkdownFiles globalMeta docBase (Pandoc docMeta content) =
     include :: [[Block]] -> Block -> Action [[Block]]
     include document (Para [Link _ [Str ":include"] (url, _)]) = do
       let path = makeProjectPath docBase (toString url)
-      putVerbose $ "# --> include: " <> toString url <> " (" <> path <> ")"
+      -- putVerbose $ "# --> include: " <> toString url <> " (" <> path <> ")"
       need [path]
       Pandoc _ includedBlocks <- readMarkdownFile globalMeta path
       return $ includedBlocks : document
@@ -208,7 +224,7 @@ calcRelativeResourcePaths base (Pandoc meta content) = do
 readAdditionalMeta :: Meta -> FilePath -> Meta -> Action Meta
 readAdditionalMeta globalMeta base meta = do
   let metaFiles = lookupMetaOrElse [] "meta-data" meta :: [String]
-  putVerbose $ "# --> readAdditionalMeta: " <> show metaFiles
+  -- putVerbose $ "# --> readAdditionalMeta: " <> show metaFiles
   moreMeta <- traverse (readMetaData globalMeta) metaFiles
   return $ foldr mergePandocMeta' meta (reverse moreMeta)
 
@@ -218,7 +234,7 @@ readAdditionalMeta globalMeta base meta = do
 readMetaData :: Meta -> FilePath -> Action Meta
 readMetaData globalMeta path = do
   need [path]
-  putVerbose $ "# --> readMetaData: " <> path
+  -- putVerbose $ "# --> readMetaData: " <> path
   let base = takeDirectory path
   meta <- liftIO $ readMetaDataFile path
   adjustMetaPaths globalMeta base meta >>= readAdditionalMeta globalMeta base
@@ -250,39 +266,39 @@ runNewFilter :: Disposition -> (Pandoc -> Filter Pandoc) -> FilePath -> Pandoc -
 runNewFilter dispo filter docBase pandoc@(Pandoc docMeta blocks) = do
   let deckerMeta = setMetaValue "decker.base-dir" docBase docMeta
   (Pandoc resultMeta resultBlocks) <-
-    liftIO $ runFilter dispo pandocWriterOpts filter (Pandoc deckerMeta blocks)
+    liftIO $ runFilter2 dispo filter (Pandoc deckerMeta blocks)
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
   return (Pandoc docMeta resultBlocks)
 
 -- |  Runs the new decker media filter.
 deckerMediaFilter :: Disposition -> String -> Pandoc -> Action Pandoc
-deckerMediaFilter dispo docBase pandoc@(Pandoc meta _) = 
-  if lookupMetaOrElse False "experiment.slide-layout" meta
-    then runDeckerFilter (mediaFilter2 dispo options) docBase pandoc
-    else runDeckerFilter (mediaFilter dispo options) docBase pandoc
-  where
-    options =
-      def
-        { writerTemplate = Nothing,
-          writerHTMLMathMethod = MathJax "Handled by reveal.js in the template",
-          writerExtensions =
-            (enableExtension Ext_auto_identifiers . enableExtension Ext_emoji)
-              pandocExtensions,
-          writerCiteMethod = Citeproc
-        }
+deckerMediaFilter dispo docBase pandoc@(Pandoc meta _) =
+  runDeckerFilter (mediaFilter2 dispo) docBase pandoc
 
 -- |  The old style decker filter pipeline.
-deckerPipeline =
+deckerPipeline (Disposition Deck Html) =
   concatM
     [ evaluateShortLinks,
       expandDeckerMacros,
-      -- , renderCodeBlocks
       includeCode,
-      -- , provisionResources
       processSlides,
       handlePolls,
       handleQuizzes
-    ] -- , processCitesWithDefault
+    ]
+deckerPipeline (Disposition Page Html) =
+  concatM
+    [ evaluateShortLinks,
+      expandDeckerMacros,
+      includeCode
+    ]
+deckerPipeline (Disposition Handout Html) =
+  concatM
+    [ evaluateShortLinks,
+      expandDeckerMacros,
+      includeCode,
+      processSlides
+    ]
+deckerPipeline disp = error $ "Disposition not supported: " <> show disp
 
 -- | Writes a pandoc document atomically to a markdown file.
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
@@ -318,4 +334,4 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
   fileContent <- liftIO $ Text.readFile filepath
   when (markdown /= fileContent) $
     withTempFile
-      (\tmp -> liftIO $ Text.writeFile tmp markdown >> renameFile tmp filepath)
+      (\tmp -> liftIO $ Text.writeFile tmp markdown >> Dir.renameFile tmp filepath)

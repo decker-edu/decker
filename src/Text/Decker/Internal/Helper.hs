@@ -118,9 +118,10 @@ handleLeftM (Left e) = throwM $ InternalException $ toString e
 -- project using `stack run decker`.
 isDevelopmentRun :: IO Bool
 isDevelopmentRun = do
+  progName <- getProgName
   cwd <- Dir.getCurrentDirectory
   exePath <- getExecutablePath
-  return $ cwd `isPrefixOf` exePath
+  return $ progName == "<interactive>" || cwd `isPrefixOf` exePath
 
 warnVersion :: IO ()
 warnVersion = do

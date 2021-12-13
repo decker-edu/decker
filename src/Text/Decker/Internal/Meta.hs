@@ -18,6 +18,7 @@ module Text.Decker.Internal.Meta
     adjustMetaStringsBelowM,
     toPandocMeta,
     toPandocMeta',
+    isMetaSet,
     lookupMeta,
     lookupMetaOrElse,
     lookupMetaOrFail,
@@ -45,6 +46,7 @@ import qualified Data.Text as Text
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
 import Relude
+import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Builder hiding (fromList, lookupMeta, toList)
@@ -64,8 +66,9 @@ mergePandocMeta' (Meta left) (Meta right) =
     merge :: Text -> MetaValue -> MetaValue -> MetaValue
     merge _ (MetaMap mapL) (MetaMap mapR) =
       MetaMap $ Map.unionWithKey merge mapL mapR
-    merge key (MetaList listL) (MetaList listR) | "*" `Text.isSuffixOf` key =
-      MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
+    merge key (MetaList listL) (MetaList listR)
+      | "*" `Text.isSuffixOf` key =
+        MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
     merge key left right = left
 
 -- | Converts YAML meta data to pandoc meta data.
@@ -81,10 +84,20 @@ toPandocMeta' (Y.Object m) =
   MetaMap $ Map.fromList $ map (second toPandocMeta') $ H.toList m
 toPandocMeta' (Y.Array vector) =
   MetaList $ map toPandocMeta' $ Vec.toList vector
-toPandocMeta' (Y.String text) = MetaString text
+-- Playing around with #317
+-- toPandocMeta' (Y.String text) = MetaString text
+toPandocMeta' (Y.String text) = compileText text
 toPandocMeta' (Y.Number scientific) = MetaString $ Text.pack $ show scientific
 toPandocMeta' (Y.Bool bool) = MetaBool bool
 toPandocMeta' Y.Null = MetaList []
+
+compileText :: Text -> MetaValue
+compileText text =
+  case runPure $ readMarkdown pandocReaderOpts text of
+    Right pandoc@(Pandoc _ [Plain inlines]) -> MetaInlines inlines
+    Right pandoc@(Pandoc _ [Para inlines]) -> MetaInlines inlines
+    Right pandoc@(Pandoc _ blocks) -> MetaBlocks blocks
+    Left _ -> MetaString text
 
 fromPandocMeta :: Meta -> A.Value
 fromPandocMeta (Meta map) = fromPandocMeta' (MetaMap map)
@@ -120,6 +133,10 @@ getMetaValue key meta = lookup' (splitKey key) (MetaMap (unMeta meta))
       (readMaybe . Text.unpack) key >>= (!!) list >>= lookup' path
     lookup' (_ : _) _ = Nothing
     lookup' [] mv = Just mv
+
+-- | Checks if meta key is set to a value.
+isMetaSet :: Text -> Meta -> Bool
+isMetaSet key meta = isJust $ getMetaValue key meta
 
 -- | Sets a meta value at the compound key in the meta data. If any intermediate
 -- containers do not exist, they are created.

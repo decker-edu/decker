@@ -20,6 +20,9 @@ reveal:
   transition: "none"
   viewDistance: 1
 
+template:
+  favicon: support/icons/favicon.ico
+
 chart:
   defaults:
     font: { size: 20 }
@@ -55,29 +58,29 @@ menu:
 
 math:
   macros:
-    R: '{{\mathrm{{I}\kern-.15em{R}}}}'
-    laplace: '{\Delta}'
-    grad: '{\nabla}'
-    T: '^{\mathsf{T}}'
-    abs: ['\left\lvert #1 \right\rvert', 1]
-    det: ['\left\lvert #1 \right\rvert', 1]
-    norm: ['\left\Vert #1 \right\Vert', 1]
-    iprod: ['\left\langle #1 \right\rangle', 1]
-    vec: ['{\mathbf{\boldsymbol{#1}}}', 1]
-    mat: ['{\mathbf{\boldsymbol{#1}}}', 1]
-    set: ['\mathcal{#1}', 1]
-    func: ['\mathrm{#1}', 1]
-    trans: ['{#1}\mkern-1mu^{\mathsf{T}}', 1]
-    matrix: ['\begin{bmatrix} #1 \end{bmatrix}', 1]
-    vector: ['\begin{pmatrix} #1 \end{pmatrix}', 1]
-    of: ['\left( #1 \right\)', 1]
-    diff: ['\frac{\mathrm{d}{#1}}{\mathrm{d}{#2}}', 2]
-    pdiff: ['\frac{\partial {#1}}{\partial {#2}}', 2]
-    vc: ['{\mathbf{\boldsymbol{#1}}}', 1]
-    qt: ['\hat{\vc {#1}}', 1]
-    mt: ['{\mathbf{\boldsymbol{#1}}}', 1]
-    pt: ['\boldsymbol{#1}', 1]
-    textcolor: ['\color{#1}', 1]
+    R: '{{\\mathrm{{I}\\kern-.15em{R}}}}'
+    laplace: '{\\Delta}'
+    grad: '{\\nabla}'
+    T: '^{\\mathsf{T}}'
+    abs: ['\\left\\lvert #1 \\right\\rvert', 1]
+    det: ['\\left\\lvert #1 \\right\\rvert', 1]
+    norm: ['\\left\\Vert #1 \\right\\Vert', 1]
+    iprod: ['\\left\\langle #1 \\right\\rangle', 1]
+    vec: ['{\\mathbf{\\boldsymbol{#1}}}', 1]
+    mat: ['{\\mathbf{\\boldsymbol{#1}}}', 1]
+    set: ['\\mathcal{#1}', 1]
+    func: ['\\mathrm{#1}', 1]
+    trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1]
+    matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1]
+    vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1]
+    of: ['\\left( #1 \\right\\)', 1]
+    diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2]
+    pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2]
+    vc: ['{\\mathbf{\\boldsymbol{#1}}}', 1]
+    qt: ['\\hat{\\vc {#1}}', 1]
+    mt: ['{\\mathbf{\\boldsymbol{#1}}}', 1]
+    pt: ['\\boldsymbol{#1}', 1]
+    textcolor: ['\\color{#1}', 1]
 
 # default settings for whiteboard buttons
 whiteboard-active-color: rgb(42,157,223)

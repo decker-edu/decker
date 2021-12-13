@@ -10,11 +10,10 @@ module Text.Decker.Project.Shake
     calcSource',
     currentlyServedPages,
     relativeSupportDir,
-    isDevRun,
     putCurrentDocument,
     watchChangesAndRepeat,
     withShakeLock,
-    runHttpServerIO
+    runHttpServerIO,
   )
 where
 
@@ -51,26 +50,13 @@ import Text.Decker.Project.Project
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
 import Text.Pandoc
+import Text.Pretty.Simple
 
-runDecker :: Rules () -> IO ()
-runDecker rules = do
-  context <- initContext
+runDecker :: [Flags] -> Rules () -> IO ()
+runDecker extra rules = do
+  context <- initContext extra
   catchAll (repeatIfTrue $ runShakeOnce context rules) (putError "Terminated: ")
   cleanup context
-
-data Flags
-  = MetaValueFlag
-      String
-      String
-  | FormatFlag
-  | CleanFlag
-  | CleanerFlag
-  | WatchFlag
-  | ServerFlag
-  | OpenFlag
-  | PortFlag Int
-  | BindFlag String
-  deriving (Eq, Show)
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =
@@ -126,8 +112,19 @@ isMetaName str = all check $ List.splitOn "." str
 
 handleArguments :: ActionContext -> Rules () -> [Flags] -> [String] -> IO (Maybe (Rules ()))
 handleArguments context rules flags targets = do
-  extractMeta flags
+  let allFlags = flags <> context ^. extra
+  extractMeta allFlags
+  let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort allFlags
+  let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind allFlags
   if
+      | "serve" `elem` targets -> do
+        startServerForeground context port bind
+        return Nothing
+      | "test" `elem` targets -> do
+        meta <- readMetaDataFile globalMetaFileName
+        publicSupportFiles meta >>= pPrint
+        deckerResources meta >>= pPrint
+        return Nothing
       | "clean" `elem` targets -> do
         runClean True
         return Nothing
@@ -135,14 +132,12 @@ handleArguments context rules flags targets = do
         writeExampleProject
         return Nothing
       | otherwise -> do
-        let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort flags
-        let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind flags
-        when (WatchFlag `elem` flags) $ do
+        when (WatchFlag `elem` allFlags) $ do
           watchChangesAndRepeatIO context
-        when (ServerFlag `elem` flags) $ do
+        when (ServerFlag `elem` allFlags) $ do
           watchChangesAndRepeatIO context
           runHttpServerIO context port bind
-        when (OpenFlag `elem` flags) $ do
+        when (OpenFlag `elem` allFlags) $ do
           openBrowser $ "http://localhost:" <> show port <> "/index.html"
         buildRules targets rules
 
@@ -189,13 +184,14 @@ runShakeOnce context rules = do
   server <- readIORef (context ^. server)
   forM_ server reloadClients
   keepWatching <- readIORef (context ^. watch)
-  when keepWatching $ do
-    exclude <- mapM canonicalizePath $ excludeDirs meta'
-    waitForChange projectDir exclude
+  when keepWatching $
+    do
+      exclude <- mapM canonicalizePath $ excludeDirs meta'
+      waitForChange projectDir exclude
   return keepWatching
 
-initContext :: IO ActionContext
-initContext = do
+initContext :: [Flags] -> IO ActionContext
+initContext extra = do
   createDirectoryIfMissing True transientDir
   devRun <- isDevelopmentRun
   external <- checkExternalPrograms
@@ -203,7 +199,7 @@ initContext = do
   watch <- newIORef False
   public <- newResourceIO "public" 1
   ref <- newIORef nullMeta
-  return $ ActionContext devRun external server watch public ref
+  return $ ActionContext extra devRun external server watch public ref
 
 cleanup context = do
   srvr <- readIORef $ context ^. server
@@ -234,13 +230,13 @@ deckerShakeOptions ctx = do
       { shakeFiles = transientDir,
         shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
         shakeThreads = cores,
-        -- , shakeStaunch = True
         shakeColor = True,
-        shakeChange = ChangeModtime
-        -- , shakeChange = ChangeModtimeAndDigest
+        -- shakeStaunch = True
         -- shakeLint = Just LintBasic,
-        -- , shakeLint = Just LintFSATrace
-        -- shakeReport = [".decker/shake-report.html"]
+        -- shakeLint = Just LintFSATrace,
+        -- shakeReport = [".decker/shake-report.html"],
+        -- shakeChange = ChangeModtime,
+        shakeChange = ChangeModtimeAndDigest
       }
 
 waitForChange :: FilePath -> [FilePath] -> IO ()
@@ -253,11 +249,6 @@ waitForChange inDir exclude =
     )
   where
     filter event = not $ any (`isPrefixOf` Notify.eventPath event) exclude
-
-isDevRun :: Action Bool
-isDevRun = do
-  context <- actionContext
-  return (context ^. devRun)
 
 relativeSupportDir :: FilePath -> FilePath
 relativeSupportDir from = makeRelativeTo from supportDir
@@ -314,7 +305,7 @@ calcSource' target = do
   return $ makeRelative publicDir target
 
 putCurrentDocument :: FilePath -> Action ()
-putCurrentDocument out = putNormal $ "# pandoc (for " ++ out ++ ")"
+putCurrentDocument out = putInfo $ "# pandoc (for " ++ out ++ ")"
 
 -- | Functionality for "decker clean" command Removes public and .decker
 -- directory. Located outside of Shake due to unlinking differences and

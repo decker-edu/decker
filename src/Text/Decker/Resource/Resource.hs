@@ -1,4 +1,6 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -12,9 +14,11 @@
 -- Everything that is copying or linking Resource folders needs to be moved here
 module Text.Decker.Resource.Resource
   ( writeExampleProject,
-    writeSupportFilesToPublic,
     deckerResources,
     readResource,
+    publicSupportFiles,
+    needResource,
+    fileList,
     Source (..),
     Resources (..),
   )
@@ -24,6 +28,7 @@ import Control.Monad.Catch
 import Data.Aeson
 import qualified Data.ByteString as BS
 import Data.Char
+import qualified Data.HashSet as Set
 import Development.Shake hiding (Resource)
 import GHC.Generics hiding (Meta)
 import Network.URI
@@ -31,10 +36,9 @@ import Relude
 import System.Directory
 import System.Environment
 import System.FilePath.Posix
-import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
-import Text.Decker.Project.Version
+import Text.Decker.Project.Glob
 import Text.Decker.Resource.Zip
 import Text.Pandoc hiding (lookupMeta)
 
@@ -48,6 +52,22 @@ data Source
 
 instance FromJSON Source
 
+instance ToJSON Source
+
+data Resource = Resource
+  { source :: Source,
+    path :: FilePath
+  }
+  deriving (Ord, Eq, Show, Read, Generic)
+
+instance FromJSON Resource
+
+instance ToJSON Resource
+
+-- |  Resources consist of two parts:
+--
+--  1. Default resources distributed with decker
+--  2. Resources from an optional resource pack
 data Resources = Resources
   { decker :: Source,
     pack :: Source
@@ -56,18 +76,28 @@ data Resources = Resources
 
 instance FromJSON Resources
 
+-- | Determine resource locations for the current run.
 deckerResources :: Meta -> IO Resources
 deckerResources meta = do
   dr <- deckerResource
   pr <- packResource meta
   return (Resources dr pr)
 
+-- |  Default decker resources are read from different locations based on the
+--  type of program invocation. If started inside the decker development
+--  repository with `stack run -- decker`, resources are read from the local
+--  directory `resource/decker`. During normal operation resources are read from
+--  the executable.
+deckerResource :: IO Source
 deckerResource = do
   devRun <- isDevelopmentRun
   if devRun
     then return $ LocalDir "resource/decker"
     else return $ DeckerExecutable "decker"
 
+-- |  If the resource pack is located inside the executable during a development
+--  run, use the local resource dir.
+packResource :: Meta -> IO Source
 packResource meta = do
   devRun <- isDevelopmentRun
   let source =
@@ -85,7 +115,7 @@ readResource :: FilePath -> Source -> IO (Maybe ByteString)
 readResource path (DeckerExecutable epath) = do
   deckerExecutable <- getExecutablePath
   -- putStrLn $ "# read: " <> path <> " from: " <> (deckerExecutable <> ":" <> epath)
-  tryRead $ Just <$> extractEntry (epath <> path) deckerExecutable
+  tryRead $ Just <$> extractEntry (epath </> path) deckerExecutable
 readResource path (LocalZip zipPath) = do
   -- putStrLn $ "# read: " <> path <> " from: " <> zipPath
   tryRead $ Just <$> extractEntry path zipPath
@@ -94,62 +124,25 @@ readResource path (LocalDir baseDir) = do
   tryRead $ Just <$> BS.readFile (baseDir </> path)
 readResource path None = return Nothing
 
+-- |  Don't let exceptions escape here.
 tryRead :: IO (Maybe ByteString) -> IO (Maybe ByteString)
 tryRead = handle $ \(SomeException e) -> do
   -- putStrLn $ "# cannot read: " <> show e
   return Nothing
 
-copySupportFiles :: Source -> FilePath -> IO ()
-copySupportFiles (DeckerExecutable path) destination = do
-  deckerExecutable <- getExecutablePath
-  putStrLn $ "# copy from: " <> (deckerExecutable <> ":" <> (path </> "support")) <> " to: " <> destination
-  extractSubEntries (path </> "support") deckerExecutable destination
-copySupportFiles (LocalZip zipPath) destination = do
-  putStrLn $ "# copy from: " <> (zipPath </> "support") <> " to: " <> destination
-  extractSubEntries "support" zipPath (takeDirectory destination)
-copySupportFiles (LocalDir baseDir) destination = do
-  putStrLn $ "# copy from: " <> (baseDir </> "support") <> " to: " <> destination
-  copyDir (baseDir </> "support") destination
-copySupportFiles None destination = return ()
+-- |  Call need for a specific resource. If it is inside a container call need
+-- on the container.
+needResource :: Source -> FilePath -> Action ()
+needResource (DeckerExecutable _) _ = do
+  deckerExecutable <- liftIO getExecutablePath
+  need [deckerExecutable]
+needResource (LocalZip zipPath) _ = do
+  need [zipPath]
+needResource (LocalDir baseDir) path = do
+  need [baseDir </> path]
+needResource None _ = pure ()
 
-copyAllSupportFiles :: Resources -> FilePath -> IO ()
-copyAllSupportFiles (Resources decker pack) destination = do
-  putStrLn $ "# creating: " <> destination
-  createDirectoryIfMissing True destination
-  copySupportFiles decker destination
-  copySupportFiles pack destination
-
-writeSupportFilesToPublic :: Meta -> IO ()
-writeSupportFilesToPublic meta = do
-  resources <- liftIO $ deckerResources meta
-  putStrLn $ "# resources: " <> show resources
-  correct <- correctSupportInstalled resources
-  if correct
-    then putStrLn "# support files up to date"
-    else do
-      putStrLn $ "# copy support files from: " <> show resources
-      removeSupport
-      extractSupport resources
-
-supportId resources = show (resources, deckerGitCommitId)
-
-extractSupport :: Resources -> IO ()
-extractSupport resources = do
-  -- handleAll (\_ -> return ()) $ do
-  copyAllSupportFiles resources supportDir
-  writeFile (supportDir </> ".origin") $ supportId resources
-
-correctSupportInstalled :: Resources -> IO Bool
-correctSupportInstalled templateSource = do
-  handleAll (\_ -> return False) $ do
-    installed <- readFile (supportDir </> ".origin")
-    return (installed == supportId templateSource)
-
-removeSupport :: IO ()
-removeSupport = do
-  handleAll (\_ -> return ()) $ removeDirectoryRecursive supportDir
-
-{--
+-- | Extracts a list of all resource pathes from the given source.
 fileList :: Source -> FilePath -> IO [FilePath]
 fileList (DeckerExecutable path) at = subEntries (path </> at) <$> (getExecutablePath >>= listEntries)
 fileList (LocalZip path) at = subEntries at <$> listEntries path
@@ -158,39 +151,30 @@ fileList None _ = return []
 
 subEntries :: FilePath -> [FilePath] -> [FilePath]
 subEntries dir pathes =
-  let dirS = splitDirectories dir
-   in map joinPath $ map (drop (length dirS)) $ filter (isPrefixOf dirS) $ map splitDirectories pathes
+  let dirS = splitDirectories (normalise dir)
+   in map (joinPath . drop (length dirS)) $ filter (isPrefixOf dirS) $ map splitDirectories pathes
 
-copyFile :: Source -> FilePath -> FilePath -> IO ()
-copyFile (DeckerExecutable path) list destination = return ()
-copyFile (LocalZip path) list destination = return ()
-copyFile (LocalDir path) list destination = return ()
-copyFile None list destination = return ()
-
-needFiles :: Source -> [FilePath] -> FilePath -> Action ()
-needFiles (DeckerExecutable path) list destination = return ()
-needFiles (LocalZip path) list destination = return ()
-needFiles (LocalDir path) list destination = return ()
-needFiles None list destination = return ()
-
-publicSupportFiles :: Meta -> IO [FilePath]
+-- | Calculates a map of all support file pathes to their source location. Make
+-- sure pack resources override default decker resources.
+publicSupportFiles :: Meta -> IO (Map FilePath Source)
 publicSupportFiles meta = do
   decker <- deckerResource
   pack <- packResource meta
   case (decker, pack) of
     (decker, pack) -> do
-      deckerFiles <- fromList <$> fileList decker "support"
+      allDeckerFiles <- fromList <$> fileList decker "support"
       packFiles <- fromList <$> fileList pack "support"
-      -- print deckerFiles
-      -- print packFiles
-      return $ toList $ Set.union deckerFiles packFiles
+      let deckerFiles = Set.difference allDeckerFiles packFiles
+      return $
+        fromList $
+          zip (toList deckerFiles) (repeat decker)
+            <> zip (toList packFiles) (repeat pack)
 
---}
-
+-- |  Parses a URI into a Source.
 parseSourceURI :: URI -> Maybe Source
 parseSourceURI uri =
   let scheme = uriScheme uri
-      path = uriPath uri
+      path = normalise $ uriPath uri
       ext = map toLower $ takeExtension path
    in if
           | scheme == "exe:" -> Just $ DeckerExecutable path
@@ -198,7 +182,7 @@ parseSourceURI uri =
           | null scheme -> Just $ LocalDir path
           | otherwise -> Just None
 
--- | Write the example project to the current folder
+-- | Writes the example project to the current folder
 writeExampleProject :: IO ()
 writeExampleProject = do
   dir <- getCurrentDirectory
