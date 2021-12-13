@@ -153,7 +153,7 @@ const Plugin = {
       },
       startup: {
         ready: () => {
-          console.log("mathjax loaded");
+          // console.log("mathjax loaded");
           //MathJax.startup.defaultReady();
         },
       },
@@ -220,7 +220,7 @@ const Plugin = {
         // the typesetting process could affect slide height
         window.MathJax.startup.defaultReady();
         MathJax.startup.promise.then(() => {
-          console.log("mathjax typeset done");
+          // console.log("mathjax typeset done");
           Reveal.layout();
           fixLinks();
           setupMathIncremental();

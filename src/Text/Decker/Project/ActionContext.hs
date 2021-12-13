@@ -6,17 +6,32 @@
 
 module Text.Decker.Project.ActionContext where
 
+import Control.Lens
 import Data.Dynamic
 import Data.Maybe
 import Data.Typeable
 import Development.Shake hiding (doesDirectoryExist, putError)
 import Relude hiding (state)
 import Text.Decker.Server.Types
-import Control.Lens
 import Text.Pandoc
 
+data Flags
+  = MetaValueFlag
+      String
+      String
+  | FormatFlag
+  | CleanFlag
+  | CleanerFlag
+  | WatchFlag
+  | ServerFlag
+  | OpenFlag
+  | PortFlag Int
+  | BindFlag String
+  deriving (Eq, Show)
+
 data ActionContext = ActionContext
-  { _devRun :: Bool,
+  { _extra :: [Flags],
+    _devRun :: Bool,
     _externalStatus :: [(String, Bool)],
     _server :: IORef (Maybe Server),
     _watch :: IORef Bool,

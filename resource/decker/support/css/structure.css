@@ -5,7 +5,7 @@ page.css and handout.css. */
 /* These are just for internal calculations */
 :root {
   --list-indent: 1.5em;
-  --block-border-width: 0.1em;
+  --block-border-width: 0.2em;
   --block-outset: 0.5rem;
 }
 
@@ -29,6 +29,16 @@ pre {
   max-height: 500px;
 }
 
+/* Override Pandoc's setting.  */
+.sourceCode {
+  overflow: hidden;
+}
+
+pre,
+pre.sourceCode {
+  overflow: scroll;
+}
+
 /* Make this behave like a normal pre element. Used for inline code display. */
 span.pre {
   display: block;
@@ -49,49 +59,49 @@ span.pre code {
 /* Layout */
 
 /* Old-style row layout (.columns), also MarioCols. */
-div.layout.row.columns {
+div.layout.row:is(.columns, .grid) {
   display: flex;
   flex-flow: row nowrap;
 }
 
-div.layout.row.columns > div.area {
+div.layout.row:is(.columns, .grid) > div.area {
   flex: 1;
   /* Really important to make pre elements work in flex items. */
   min-width: 0;
 }
 
 /* Old syntax to control column width. */
-div.layout.row.columns > div.area[grow="2"] {
+div.layout.row:is(.columns, .grid) > div.area[grow="2"] {
   flex: 2;
 }
 
-div.layout.row.columns > div.area[grow="3"] {
+div.layout.row:is(.columns, .grid) > div.area[grow="3"] {
   flex: 3;
 }
 
-div.layout.row.columns > div.area[grow="4"] {
+div.layout.row:is(.columns, .grid) > div.area[grow="4"] {
   flex: 4;
 }
 
-div.layout.row.columns > div.area[grow="5"] {
+div.layout.row:is(.columns, .grid) > div.area[grow="5"] {
   flex: 5;
 }
 
-div.layout.row.columns > div.area[grow="6"] {
+div.layout.row:is(.columns, .grid) > div.area[grow="6"] {
   flex: 6;
 }
 
 /* Column spacing in a row */
-div.layout.row.columns > div.area {
+div.layout.row:is(.columns, .grid) > div.area {
   margin-left: 1rem;
   margin-right: 1rem;
 }
 
-div.layout.row.columns > div.area:first-child {
+div.layout.row:is(.columns, .grid) > div.area:first-child {
   margin-left: 0;
 }
 
-div.layout.row.columns > div.area:last-child {
+div.layout.row:is(.columns, .grid) > div.area:last-child {
   margin-right: 0;
 }
 
@@ -114,11 +124,11 @@ div.media {
 }
 
 /* TODO Check the old class vocabulary for alignment. */
-div.media.align-left {
+div.media[data-align="left"] {
   justify-content: flex-start;
 }
 
-div.media.align-right {
+div.media[data-align="right"] {
   justify-content: flex-end;
 }
 

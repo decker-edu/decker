@@ -103,7 +103,6 @@ classifyMedia uri (_, classes, _) =
           | otherwise -> ImageT
 
 -- | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
-
 maybeElem :: Eq a => Maybe a -> [a] -> Bool
 maybeElem (Just x) xs = x `elem` xs
 maybeElem Nothing _ = False
@@ -169,8 +168,8 @@ mkFigureTag content caption (id, cs, kvs) =
 inlinesToMarkdown :: [Inline] -> Filter Text
 inlinesToMarkdown [] = return ""
 inlinesToMarkdown inlines = do
-  FilterState options meta _ <- get
-  liftIO $ runIOorExplode (writeMarkdown options (Pandoc nullMeta [Plain inlines]))
+  FilterState meta _ <- get
+  liftIO $ runIOorExplode (writeMarkdown writerHtmlOptions (Pandoc nullMeta [Plain inlines]))
 
 -- | Renders a list of inlines to HTML.
 inlinesToHtml :: [Inline] -> Filter Html
@@ -181,15 +180,15 @@ inlinesToHtml inlines = blocksToHtml [Plain inlines]
 blocksToHtml :: [Block] -> Filter Html
 blocksToHtml [] = return $ toHtml ("" :: Text)
 blocksToHtml blocks = do
-  FilterState options meta _ <- get
-  liftIO $ runIOorExplode (writeHtml5 options (Pandoc meta blocks))
+  FilterState meta _ <- get
+  liftIO $ runIOorExplode (writeHtml5 writerHtmlOptions (Pandoc meta blocks))
 
 -- | Renders a list of blocks to Markdown.
 blocksToMarkdown :: [Block] -> Filter Text
 blocksToMarkdown [] = return ""
 blocksToMarkdown blocks = do
-  FilterState options meta _ <- get
-  liftIO $ runIOorExplode (writeMarkdown options (Pandoc meta blocks))
+  FilterState meta _ <- get
+  liftIO $ runIOorExplode (writeMarkdown writerHtmlOptions (Pandoc meta blocks))
 
 writerHtmlOptions =
   def

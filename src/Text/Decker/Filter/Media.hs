@@ -3,12 +3,13 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
--- TODO Background movies do not work
--- TODO .grid layout has no CSS yet (column-deck)
--- TODO .inverse needs to change the background color
--- TODO engine decks chrash
--- TODO CSS for decks containing examiner questions
--- TODO Organisation of CSS for deck, page and handout
+-- TODO: Background movies do not work (unclear tags compile correctly)
+-- TODO: Menu plugin just crashes
+-- TODO: CSS for decks containing examiner questions
+-- TODO: CSS for decks containing examiner wburg questions
+-- TODO: Organisation of CSS for deck, page and handout
+
+-- TODO: Code attribute line-number must land on <pre>
 
 module Text.Decker.Filter.Media where
 
@@ -22,6 +23,7 @@ import Relude
 import System.Directory
 import System.FilePath.Posix
 import Text.Decker.Filter.Attrib
+import Text.Decker.Filter.Attributes (takeAttr)
 import Text.Decker.Filter.CRC32
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
@@ -111,7 +113,7 @@ imageCompilers =
       (ImageT, imageBlock),
       (VideoT, videoBlock),
       (StreamT, streamBlock),
-      -- (AudioT, audioHtml),
+      -- TODO: (AudioT, audioHtml),
       (CodeT, includeCodeBlock),
       (RenderT, renderCodeBlock),
       (JavascriptT, javascriptBlock)
@@ -151,10 +153,12 @@ codeBlock code caption = do
     takeAllClasses
     injectClasses ["processed"]
     injectStyles innerSizes
+    takeData
     extractAttr
   figureAttr <- do
     injectClasses ["code"]
     injectStyles outerSizes
+    takeUsual
     extractAttr
   return $
     wrapFigure figureAttr caption $
@@ -170,9 +174,11 @@ iframeBlock uri caption = do
   iframeAttr <- do
     injectAttribute ("data-src", turl)
     injectAttribute ("allow", "fullscreen")
+    takeData
     injectStyles innerSizes
     extractAttr
   figureAttr <- do
+    takeUsual
     injectClasses ["iframe"]
     injectStyles outerSizes
     extractAttr
@@ -190,10 +196,12 @@ objectBlock otype uri caption = do
     injectAttribute ("data", turl)
     injectAttribute ("type", otype)
     injectStyles innerSizes
+    takeData
     extractAttr
   figureAttr <- do
     injectClasses ["object"]
     injectStyles outerSizes
+    takeUsual
     extractAttr
   return $
     wrapFigure figureAttr caption $
@@ -207,10 +215,12 @@ svgBlock uri caption = do
   (innerSizes, outerSizes) <- calcImageSizes
   svgAttr <- do
     injectStyles innerSizes
+    takeData
     extractAttr
   figureAttr <- do
     injectClasses ["svg embedded"]
     injectStyles outerSizes
+    takeUsual
     extractAttr
   return $
     wrapFigure figureAttr caption $ mkRaw svgAttr svg
@@ -248,6 +258,7 @@ streamBlock uri caption = do
     ifAttrib "width" $
       \width -> injectStyle ("width", width)
     injectClasses ["stream"]
+    takeUsual
     extractAttr
 
   return $
@@ -294,6 +305,7 @@ videoBlock uri caption = do
   figureAttr <- do
     injectClasses ["video"]
     injectStyles outerSizes
+    takeUsual
     extractAttr
   return $ wrapFigure figureAttr caption $ mkVideo videoAttr
 
@@ -311,6 +323,7 @@ renderCodeBlock uri caption = do
   figureAttr <- do
     injectClasses ["image rendered"]
     injectStyles outerSizes
+    takeUsual
     extractAttr
   return $
     wrapFigure figureAttr caption $
@@ -329,10 +342,12 @@ javascriptBlock uri caption = do
     injectStyles innerSizes
     injectId id
     injectClasses ["es6", "module", "anchor"]
+    takeData
     extractAttr
   figureAttr <- do
     injectClasses ["javascript"]
     injectStyles outerSizes
+    takeUsual
     extractAttr
   return $
     wrapFigure figureAttr caption $
@@ -346,10 +361,12 @@ javascriptCodeBlock code caption = do
     injectStyles innerSizes
     injectId id
     injectClasses ["es6", "module", "anchor"]
+    takeData
     extractAttr
   figureAttr <- do
     injectClasses ["javascript"]
     injectStyles outerSizes
+    takeUsual
     extractAttr
   return $
     wrapFigure figureAttr caption $

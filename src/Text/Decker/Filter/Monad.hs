@@ -10,8 +10,7 @@ import Text.Pandoc hiding (lookupMeta)
 -- |  WriterOptions and the document meta data are available to all
 --  filters.
 data FilterState = FilterState
-  { options :: WriterOptions,
-    meta :: Meta,
+  { meta :: Meta,
     dispo :: Disposition
   }
 

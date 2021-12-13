@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -12,33 +13,38 @@ import Control.Monad.State
 import Data.List
 import Data.List.Split
 import Data.Maybe
-import qualified Data.Text as Text
 import Relude
 import Text.Decker.Filter.Slide
-import Text.Decker.Internal.Common
+import Text.Decker.Internal.Common hiding (Layout)
 import Text.Pandoc hiding (Row)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
+import Text.Regex.TDFA
 
 -- | Slide layouts are rows of one ore more columns.
-data RowLayout = RowLayout
-  { name :: Text.Text,
-    rows :: [Row]
-  }
+data Layout
+  = RowLayout
+      { name :: Text,
+        rows :: [Row]
+      }
+  | GridLayout
+      { name :: Text,
+        areas :: [Text]
+      }
   deriving (Eq, Show)
 
 -- | A row consists of one or more columns.
 data Row
-  = SingleColumn Text.Text
-  | MultiColumn [Text.Text]
+  = SingleColumn Text
+  | MultiColumn [Text]
   deriving (Eq, Show)
 
 type Area = [Block]
 
-type AreaMap = [(Text.Text, Area)]
+type AreaMap = [(Text, Area)]
 
-rowLayouts :: [RowLayout]
-rowLayouts =
+layouts :: [Layout]
+layouts =
   [ RowLayout
       "columns"
       [ SingleColumn "top",
@@ -53,20 +59,20 @@ rowLayouts =
       ]
   ]
 
-rowAreas :: Row -> [Text.Text]
+rowAreas :: Row -> [Text]
 rowAreas (SingleColumn area) = [area]
 rowAreas (MultiColumn areas) = areas
 
-layoutAreas :: RowLayout -> [Text.Text]
+layoutAreas :: Layout -> [Text]
 layoutAreas l = concatMap rowAreas $ rows l
 
-hasRowLayout :: Block -> Maybe RowLayout
+hasRowLayout :: Block -> Maybe Layout
 hasRowLayout block = do
   let long = attribValue "layout" block >>= findLayout
   let short = map findLayout (classes block)
   listToMaybe $ catMaybes $ long : short
   where
-    findLayout l = find ((==) l . name) rowLayouts
+    findLayout l = find ((l =~) . name) layouts
 
 renderRow :: Text -> AreaMap -> Row -> Maybe Block
 renderRow lname areaMap (SingleColumn area) =
@@ -83,10 +89,10 @@ renderColumn :: (Text, Int, [Block]) -> Block
 renderColumn (name, i, blocks) =
   Div ("", ["area", name], blocks ^. attributes . attrs) blocks
 
-renderLayout :: AreaMap -> RowLayout -> [Block]
+renderLayout :: AreaMap -> Layout -> [Block]
 renderLayout areaMap l = mapMaybe (renderRow (name l) areaMap) (rows l)
 
-slideAreas :: [Text.Text] -> [Block] -> AreaMap
+slideAreas :: [Text] -> [Block] -> AreaMap
 slideAreas names blocks =
   mapMaybe (\area -> firstClass names (Data.List.head area) >>= Just . (,area)) $
     filter (not . null) $

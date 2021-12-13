@@ -5,11 +5,26 @@
   --primary-color: #2a9ddf;
   --secondary-color: orange;
   --hover-color: #30b3ff;
+  --code-background-color: rgb(240, 240, 240);
 }
 
+/* Inline code */
 code {
+  line-height: 1;
   font-size: 110%;
   font-family: monospace;
+}
+
+/* Code blocks. */
+span.pre > code,
+pre > code {
+  font-size: 100%;
+  font-family: monospace;
+}
+
+span.pre.small > code,
+pre.small > code {
+  font-size: 90%;
 }
 
 strong {
@@ -83,20 +98,12 @@ figcaption {
   padding-top: calc(0.5 * var(--vertical-margin));
 }
 
-/* TODO Two highlighted blocks currently touch. Play with spacing here. */
-div.block {
-  display: flow-root; /* Prevents margin collapse. Allows negative margin here. */
-  margin-bottom: calc(0 * var(--vertical-margin));
-}
-
 /* Tables */
 table {
   font-size: 0.9em;
   margin-bottom: var(--vertical-margin);
   border-collapse: collapse;
-  width: 100%;
   overflow-x: auto;
-  display: block;
   font-variant-numeric: lining-nums tabular-nums;
 }
 table caption {
@@ -114,6 +121,12 @@ th {
 }
 td {
   padding: 0.2em 0.5em 0.2em 0.5em;
+}
+
+/* TODO Two highlighted blocks currently touch. Play with spacing here. */
+div.block {
+  display: flow-root; /* Prevents margin collapse. Allows negative margin here. */
+  margin-bottom: calc(0 * var(--vertical-margin));
 }
 
 /* Stretch the block header margin to the block border so that highlighting
@@ -187,49 +200,34 @@ div.block[align="right"] {
   text-align: right;
 }
 
-/* Pandoc wraps .sourceCode around the pre > code element. Highlightjs does not.*/
-
-/* Transparent background for inline code. Just darken the real background a
-bit. */
-code.sourceCode {
-  background-color: rgba(0, 0, 0, 0.05);
-  /* Stretch the background. */
-  margin-bottom: -0.05em;
-  margin-left: -0.2em;
-  margin-right: -0.2em;
-  padding-bottom: 0.05em;
-  padding-left: 0.2em;
-  padding-right: 0.2em;
+div.block.definition {
+  border: none;
+  border-right: calc(var(--block-border-width)) solid rgb(0,0,0,0);
+  border-left: calc(var(--block-border-width)) solid #0aa;
 }
 
-/* Inline code in a highlighted block. */
-div.block:is(.primary, .secondary, .success, .danger, .warning, .info)
-  code.sourceCode {
-  background-color: rgba(255, 255, 255, 0.5);
+div.block.conclusion {
+  border: none;
+  border-right: calc(var(--block-border-width)) solid rgb(0,0,0,0);
+  border-left: calc(var(--block-border-width)) solid #a0a;
 }
 
-/* No background in a code block */
-div.sourceCode code.sourceCode,
-div.block div.sourceCode code.sourceCode {
-  background-color: rgba(0, 0, 0, 0);
-  margin: 0;
-  padding: 0;
+/* Source Code */
+
+/* Pandoc wraps div.sourceCode around the pre > code element. Highlightjs does
+not.*/
+
+pre,
+span.pre {
+  background-color: var(--code-background-color);
 }
 
-/* Transparent background for code blocks. */
-div.sourceCode {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* In a highlighted block. */
-div.block:is(.primary, .secondary, .success, .danger, .warning, .info)
-  div.sourceCode {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-
-/* TODO Unfinished. Can not decide what is right: having the code aligned or the
-block containing it. */
-figure > div.sourceCode {
+div.sourceCode > pre {
   padding: 0 var(--block-outset);
-  margin: 0 calc(-1 * var(--block-outset));
+}
+
+/* Inverse colors */
+section.slide:is(.inverse, .black) {
+  background-color: black;
+  color: white;
 }

@@ -39,6 +39,7 @@ import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Decker.Writer.Html
+import Text.Decker.Writer.Layout
 import Text.Decker.Writer.Pdf
 import Text.Groom
 import qualified Text.Mustache as M ()
@@ -77,7 +78,10 @@ needSel sel = needSels [sel]
 needSels sels targets = need (concatMap (targets ^.) sels)
 
 run :: IO ()
-run = do
+run = runWithFlags []
+
+runWithFlags :: [Flags] -> IO ()
+runWithFlags flags = do
   warnVersion
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ show serverPort
@@ -104,9 +108,14 @@ run = do
           # 
         |]
   --
-  runDecker $ do
+  runDecker flags $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches
     want ["html"]
+    addHelpSuffix "Commands:"
+    addHelpSuffix "  - clean - Remove all generated files."
+    addHelpSuffix "  - example - Create an example project."
+    addHelpSuffix "  - serve - Start just the server."
+    addHelpSuffix ""
     addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
     --
     withTargetDocs "Print version information." $
@@ -149,7 +158,7 @@ run = do
         getTargets >>= needSel decksPdf
     --
     withTargetDocs "Compile global search index." $
-      phony "index" $ do
+      phony "search-index" $ do
         putInfo "# compiling search index ..."
         meta <- getGlobalMeta
         targets <- getTargets
@@ -168,7 +177,7 @@ run = do
         targets <- getTargets
         let path = fromJust $ stripPrefix (publicDir <> "/") out
         let source = (targets ^. resources) Map.! out
-        putVerbose $ "# extract (" <> out <> " from " <> show source <> " : "<> path<>")"
+        putVerbose $ "# extract (" <> out <> " from " <> show source <> " : " <> path <> ")"
         needResource source path
         content <- fromJust <$> liftIO (readResource path source)
         liftIO $ BS.writeFile out content
@@ -177,7 +186,7 @@ run = do
         src <- calcSource "-deck.html" "-deck.md" out
         need [src]
         meta <- getGlobalMeta
-        markdownToHtmlDeck meta getTemplate src out
+        markdownToHtml htmlDeck meta getTemplate src out
       --
       publicDir <//> "*-deck.pdf" %> \out -> do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
@@ -194,22 +203,12 @@ run = do
       publicDir <//> "*-handout.html" %> \out -> do
         src <- calcSource "-handout.html" "-deck.md" out
         meta <- getGlobalMeta
-        markdownToHtmlHandout meta getTemplate src out
-      --
-      publicDir <//> "*-handout.pdf" %> \out -> do
-        src <- calcSource "-handout.pdf" "-deck.md" out
-        meta <- getGlobalMeta
-        markdownToPdfHandout meta getTemplate src out
+        markdownToHtml htmlHandout meta getTemplate src out
       --
       publicDir <//> "*-page.html" %> \out -> do
         src <- calcSource "-page.html" "-page.md" out
         meta <- getGlobalMeta
-        markdownToHtmlPage meta getTemplate src out
-      --
-      publicDir <//> "*-page.pdf" %> \out -> do
-        src <- calcSource "-page.pdf" "-page.md" out
-        meta <- getGlobalMeta
-        markdownToPdfPage meta getTemplate src out
+        markdownToHtml htmlPage meta getTemplate src out
       --
       publicDir <//> "*-recording.mp4" %> \out -> do
         let src = makeRelative publicDir out

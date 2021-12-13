@@ -631,7 +631,7 @@ const Plugin = {
     const config = Reveal.getConfig().feedback;
     const url = config?.server || config?.["base-url"];
     const id = config?.deckID || config?.["deck-id"];
-    console.log("feedback", url, id);
+    // console.log("feedback", url, id);
     if (url) contactEngine(url, id);
   },
 };

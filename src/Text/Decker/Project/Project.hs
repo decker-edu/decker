@@ -12,7 +12,6 @@ module Text.Decker.Project.Project
     -- , dachdeckerFromMeta
     unusedResources,
     scanTargets,
-    isDevelopmentRun,
     excludeDirs,
     staticDirs,
     static,
