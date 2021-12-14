@@ -970,7 +970,7 @@ span.decker.svg.embed {
     padding:          2px;
     border:           none;
     border-radius:    4px;
-    opacity:          0.5;
+    opacity:          0.0;
     color:            var(--icon-inactive-color);
     background-color: rgba(255,255,255,0.5);
 }
@@ -979,7 +979,7 @@ span.decker.svg.embed {
   opacity:  0.5;
 }
 
-.reveal button.fs-button:hover { 
+.reveal div.fs-container>button.fs-button:hover { 
     opacity:          1.0;
     color:            var(--icon-active-color);
     background-color: rgba(255,255,255,0.8);
