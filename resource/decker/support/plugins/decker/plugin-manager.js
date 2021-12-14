@@ -72,10 +72,14 @@
         this.bottom_right_anchor = this.prepareAnchor("bottom-right-anchor");
 
         let reveal_element = document.querySelector(".reveal");
-        reveal_element.appendChild(this.top_left_anchor);
-        reveal_element.appendChild(this.top_right_anchor);
-        reveal_element.appendChild(this.bottom_left_anchor);
-        reveal_element.appendChild(this.bottom_right_anchor);
+        let target = reveal_element;
+        if(reveal_element.parent) {
+            target = reveal_element.parent;
+        }
+        target.prepend(this.top_left_anchor);
+        target.appendChild(this.top_right_anchor);
+        target.appendChild(this.bottom_left_anchor);
+        target.appendChild(this.bottom_right_anchor);
     }
 }
 
