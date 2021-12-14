@@ -975,6 +975,10 @@ span.decker.svg.embed {
     background-color: rgba(255,255,255,0.5);
 }
 
+.reveal div.fs-container:hover>button.fs-button { 
+  opacity:  0.5;
+}
+
 .reveal button.fs-button:hover { 
     opacity:          1.0;
     color:            var(--icon-active-color);
