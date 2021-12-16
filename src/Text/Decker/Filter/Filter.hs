@@ -19,7 +19,7 @@ import qualified Data.List as List
 import Data.List.Split
 import qualified Data.Text as Text
 import Development.Shake (Action)
-import Text.Decker.Filter.Layout2 (layoutSlide2)
+import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
@@ -149,7 +149,7 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
         wrapBoxes,
         selectActiveSlideContent,
         splitJoinColumns,
-        layoutSlide2
+        layoutSlide
       ]
 
 selectActiveContent :: HasAttr a => [a] -> Decker [a]

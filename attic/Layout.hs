@@ -1,7 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Layout
   ( layoutSlide,
@@ -13,38 +11,33 @@ import Control.Monad.State
 import Data.List
 import Data.List.Split
 import Data.Maybe
-import Relude
+import qualified Data.Text as Text
 import Text.Decker.Filter.Slide
-import Text.Decker.Internal.Common hiding (Layout)
+import Text.Decker.Internal.Common
 import Text.Pandoc hiding (Row)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
-import Text.Regex.TDFA
+import Text.Read hiding (lift)
 
 -- | Slide layouts are rows of one ore more columns.
-data Layout
-  = RowLayout
-      { name :: Text,
-        rows :: [Row]
-      }
-  | GridLayout
-      { name :: Text,
-        areas :: [Text]
-      }
+data RowLayout = RowLayout
+  { name :: Text.Text,
+    rows :: [Row]
+  }
   deriving (Eq, Show)
 
 -- | A row consists of one or more columns.
 data Row
-  = SingleColumn Text
-  | MultiColumn [Text]
+  = SingleColumn Text.Text
+  | MultiColumn [Text.Text]
   deriving (Eq, Show)
 
 type Area = [Block]
 
-type AreaMap = [(Text, Area)]
+type AreaMap = [(Text.Text, Area)]
 
-layouts :: [Layout]
-layouts =
+rowLayouts :: [RowLayout]
+rowLayouts =
   [ RowLayout
       "columns"
       [ SingleColumn "top",
@@ -59,42 +52,59 @@ layouts =
       ]
   ]
 
-rowAreas :: Row -> [Text]
+rowAreas :: Row -> [Text.Text]
 rowAreas (SingleColumn area) = [area]
 rowAreas (MultiColumn areas) = areas
 
-layoutAreas :: Layout -> [Text]
+layoutAreas :: RowLayout -> [Text.Text]
 layoutAreas l = concatMap rowAreas $ rows l
 
-hasRowLayout :: Block -> Maybe Layout
+hasRowLayout :: Block -> Maybe RowLayout
 hasRowLayout block = do
   let long = attribValue "layout" block >>= findLayout
   let short = map findLayout (classes block)
   listToMaybe $ catMaybes $ long : short
   where
-    findLayout l = find ((l =~) . name) layouts
+    findLayout l = find ((==) l . name) rowLayouts
 
-renderRow :: Text -> AreaMap -> Row -> Maybe Block
-renderRow lname areaMap (SingleColumn area) =
-  lookup area areaMap
-    >>= Just . Div ("", ["layout", "row", lname], []) . (: []) . renderColumn . ("",1,)
-renderRow lname areaMap (MultiColumn areas) =
+renderRow :: AreaMap -> Row -> Maybe Block
+renderRow areaMap (SingleColumn area) =
+  lookup area areaMap >>= Just . Div ("", ["single-column-row"], [])
+renderRow areaMap (MultiColumn areas) =
   Just $
-    Div ("", ["layout", "row", lname], []) $
-      mapMaybe renderArea (zip [1 ..] areas)
+    Div
+      ( "",
+        [ "multi-column-row",
+          "multi-column-row-" <> Text.pack (show (length areas))
+        ],
+        []
+      )
+      $ mapMaybe renderArea (zip [1 ..] areas)
   where
-    renderArea (i, area) = lookup area areaMap >>= Just . renderColumn . (area,i,)
+    renderArea (i, area) = lookup area areaMap >>= Just . renderColumn . (i,)
 
-renderColumn :: (Text, Int, [Block]) -> Block
-renderColumn (name, i, blocks) =
-  Div ("", ["area", name], blocks ^. attributes . attrs) blocks
+renderColumn :: (Int, [Block]) -> Block
+renderColumn (i, blocks) =
+  let grow =
+        fromMaybe (1 :: Int) $
+          lookup "grow" (blocks ^. attributes . attrs)
+            >>= (readMaybe . Text.unpack)
+   in Div
+        ( "",
+          [ "grow-" <> Text.pack (show grow),
+            "column",
+            "column-" <> Text.pack (show i)
+          ],
+          blocks ^. attributes . attrs
+        )
+        blocks
 
-renderLayout :: AreaMap -> Layout -> [Block]
-renderLayout areaMap l = mapMaybe (renderRow (name l) areaMap) (rows l)
+renderLayout :: AreaMap -> RowLayout -> [Block]
+renderLayout areaMap l = mapMaybe (renderRow areaMap) (rows l)
 
-slideAreas :: [Text] -> [Block] -> AreaMap
+slideAreas :: [Text.Text] -> [Block] -> AreaMap
 slideAreas names blocks =
-  mapMaybe (\area -> firstClass names (Data.List.head area) >>= Just . (,area)) $
+  mapMaybe (\area -> firstClass names (head area) >>= Just . (,area)) $
     filter (not . null) $
       split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
 
@@ -108,17 +118,6 @@ layoutSlide slide@(Slide (Just header) body dir) = do
           let names = layoutAreas layout
               areas = slideAreas names body
            in return $ Slide (Just header) (renderLayout areas layout) dir
-        Nothing ->
-          return $
-            Slide
-              (Just header)
-              [ Div
-                  ("", ["layout"], [])
-                  [ Div
-                      ("", ["area"], [])
-                      body
-                  ]
-              ]
-              dir
+        Nothing -> return slide
     Disposition _ _ -> return slide
 layoutSlide slide = return slide
