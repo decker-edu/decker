@@ -1,15 +1,11 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 -- TODO: Background movies do not work (unclear tags compile correctly)
--- TODO: Menu plugin just crashes
 -- TODO: CSS for decks containing examiner questions
 -- TODO: CSS for decks containing examiner wburg questions
 -- TODO: Organisation of CSS for deck, page and handout
-
--- TODO: Code attribute line-number must land on <pre>
 
 module Text.Decker.Filter.Media where
 
@@ -23,7 +19,6 @@ import Relude
 import System.Directory
 import System.FilePath.Posix
 import Text.Decker.Filter.Attrib
-import Text.Decker.Filter.Attributes (takeAttr)
 import Text.Decker.Filter.CRC32
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
