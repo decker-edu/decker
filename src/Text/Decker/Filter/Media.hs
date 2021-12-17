@@ -18,6 +18,7 @@ import HTMLEntities.Text (text)
 import Relude
 import System.Directory
 import System.FilePath.Posix
+import System.IO.Temp
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.CRC32
 import Text.Decker.Filter.Local
@@ -77,16 +78,24 @@ compileCodeBlock attr@(_, classes, _) code caption =
     transform :: Text -> Attrib Block
     transform ext = do
       dropClass ext
+      -- disp <- show <$> lift (gets dispo)
       let crc = printf "%08x" (calc_crc32 $ toString code)
       let path =
             transientDir </> "code"
               </> intercalate "-" ["code", crc]
               <.> toString ext
-      exists <- liftIO $ doesFileExist path
-      unless exists $
-        liftIO $ do
-          createDirectoryIfMissing True (takeDirectory path)
-          Text.writeFile path code
+      -- Avoid a possible race condition when the same code block content is
+      -- used twice and written only when the file does not yet exist: Just do
+      -- not prematurely optimise by testing for existence first and atomically
+      -- write the file.
+      liftIO $ do
+        createDirectoryIfMissing True (takeDirectory path)
+        withSystemTempDirectory
+          "decker-dir"
+          ( \dir -> do
+              Text.writeFile (dir <> takeFileName path) code
+              renameFile (dir <> takeFileName path) path
+          )
       uri <- lift $ URI.mkURI (toText path)
       renderCodeBlock uri caption
 
