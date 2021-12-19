@@ -53,7 +53,7 @@ let RevealJingle = (function () {
 
   function setupKeyBindings() {
     window.addEventListener("keydown", function (evt) {
-      if (evt.shiftKey) {
+      if (evt.shiftKey && evt.ctrlKey && evt.altKey) {
         switch (evt.code) {
           case "Digit1":
             playJingle(0);
