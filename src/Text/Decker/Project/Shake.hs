@@ -29,7 +29,9 @@ import Control.Exception
 import Control.Lens (makeLenses, (^.))
 import Control.Monad
 import Control.Monad.Catch
-import Data.Aeson
+import Data.Aeson hiding (Error)
+import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.UTF8 as UTF8
 import Data.Char
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
@@ -43,6 +45,7 @@ import Development.Shake hiding (doesDirectoryExist, putError)
 import Relude hiding (state)
 import qualified System.Console.GetOpt as GetOpt
 import System.Directory as Dir
+import System.Environment
 import qualified System.FSNotify as Notify
 import System.FilePath.Posix
 import System.Info
@@ -55,7 +58,8 @@ import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Decker.Server.Server
-import Text.Pandoc hiding (lookupMeta)
+import Text.Pandoc hiding (Verbosity,lookupMeta)
+import Text.Pretty.Simple
 
 data MutableActionState = MutableActionState
   { _devRun :: Bool,
@@ -95,6 +99,8 @@ data Flags
   | CleanerFlag
   | WatchFlag
   | ServerFlag
+  | ErrorFlag
+  | OpenFlag
   | PortFlag Int
   | BindFlag String
   deriving (Eq, Show)
@@ -116,6 +122,16 @@ deckerFlags =
       ["server"]
       (GetOpt.NoArg $ Right ServerFlag)
       "Serve the public dir via HTTP (implies --watch)",
+    GetOpt.Option
+      ['e']
+      ["stderr"]
+      (GetOpt.NoArg $ Right ErrorFlag)
+      "Output errors to stderr",
+    GetOpt.Option
+      ['o']
+      ["open"]
+      (GetOpt.NoArg $ Right OpenFlag)
+      "Open the webbrowser.",
     GetOpt.Option
       ['p']
       ["port"]
@@ -206,7 +222,7 @@ runShakeOnce state rules = do
   options <- deckerShakeOptions context
   catchAll
     (shakeArgsWith options deckerFlags (handleArguments state rules))
-    (putError "ERROR:\n")
+    (const $ return ())
   server <- readIORef (state ^. server)
   forM_ server reloadClients
   keepWatching <- readIORef (state ^. watch)
@@ -237,26 +253,44 @@ watchChangesAndRepeatIO state = do
 
 putError :: Text -> SomeException -> IO ()
 putError prefix (SomeException e) =
-  print $ prefix <> unlines (lastN 2 $ lines $ show e)
+  print $ prefix <> show e -- unlines (lastN 2 $ lines $ show e)
 
 lastN :: Int -> [a] -> [a]
 lastN n = reverse . take n . reverse
 
+stderrMode = do
+  args <- getArgs
+  return $ "-e" `elem` args || "--stderr" `elem` args
+
+-- | Outputs errors to stderr if the `-e` flag is provided. Otherwise everything
+-- goes to stdout.
+outputMessage :: Verbosity -> String -> IO ()
+outputMessage verbosity text = do
+  mode <- stderrMode
+  if mode
+    then do
+      let stream = if verbosity == Error then stderr else stdout
+      BS.hPutStrLn stream $ UTF8.fromString text
+    else do
+      BS.putStrLn $ UTF8.fromString text
+
 deckerShakeOptions :: ActionContext -> IO ShakeOptions
 deckerShakeOptions ctx = do
   cores <- getNumCapabilities
+  mode <- stderrMode
   return $
     shakeOptions
       { shakeFiles = transientDir,
         shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
         shakeThreads = cores,
-        -- , shakeStaunch = True
-        shakeColor = True,
-        shakeChange = ChangeModtime
-        -- , shakeChange = ChangeModtimeAndDigest
+        shakeColor = not mode,
+        shakeOutput = outputMessage,
+        shakeChange = ChangeModtimeAndDigest,
+        shakeStaunch = mode
         -- shakeLint = Just LintBasic,
-        -- , shakeLint = Just LintFSATrace
-        -- shakeReport = [".decker/shake-report.html"]
+        -- shakeLint = Just LintFSATrace,
+        -- shakeReport = [".decker/shake-report.html"],
+        -- shakeChange = ChangeModtime,
       }
 
 actionContextKey :: TypeRep
