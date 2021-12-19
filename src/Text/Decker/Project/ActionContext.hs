@@ -24,6 +24,7 @@ data Flags
   | CleanerFlag
   | WatchFlag
   | ServerFlag
+  | ErrorFlag
   | OpenFlag
   | PortFlag Int
   | BindFlag String
