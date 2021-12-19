@@ -236,29 +236,24 @@ stderrMode = do
 
 -- | Outputs errors to stderr if the `-e` flag is provided. Otherwise everything
 -- goes to stdout.
-outputMessage :: Verbosity -> String -> IO ()
-outputMessage verbosity text = do
-  mode <- stderrMode
-  if mode
-    then do
-      let stream = if verbosity == Error then stderr else stdout
-      BS.hPutStrLn stream $ UTF8.fromString text
-    else do
-      BS.putStrLn $ UTF8.fromString text
+outputMessage :: Bool -> Verbosity -> String -> IO ()
+outputMessage mode verbosity text = do
+  let stream = if mode && verbosity == Error then stderr else stdout
+  BS.hPutStrLn stream $ UTF8.fromString text
 
 deckerShakeOptions :: ActionContext -> IO ShakeOptions
 deckerShakeOptions ctx = do
   cores <- getNumCapabilities
-  mode <- stderrMode
+  toStderr <- stderrMode
   return $
     shakeOptions
       { shakeFiles = transientDir,
         shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
         shakeThreads = cores,
-        shakeColor = not mode,
-        shakeOutput = outputMessage,
+        shakeColor = not toStderr,
+        shakeOutput = outputMessage toStderr,
         shakeChange = ChangeModtimeAndDigest,
-        shakeStaunch = mode
+        shakeStaunch = toStderr
         -- shakeLint = Just LintBasic,
         -- shakeLint = Just LintFSATrace,
         -- shakeReport = [".decker/shake-report.html"],
