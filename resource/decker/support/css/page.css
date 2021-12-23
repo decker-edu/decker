@@ -3,6 +3,7 @@
 @import url("../vendor/fontawesome/css/all.css");
 @import url("./structure.css");
 @import url("./style.css");
+@import url("./media.css");
 
 body {
   font-family: sans-serif;
