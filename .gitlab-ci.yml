@@ -135,14 +135,14 @@ deploy:mac:
   tags:
     - docker
   script:
-    - if [ $CI_COMMIT_REF_NAME == "master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
+    - if [ $CI_COMMIT_REF_NAME == "v0.11" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker store/decker/decker-mac${SUFFIX}
   needs:
     - job: build:mac
       artifacts: true
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "v0.11"'
       when: always
     - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
       when: always
@@ -159,14 +159,14 @@ deploy:linux:
   tags:
     - docker
   script:
-    - if [ $CI_COMMIT_REF_NAME == "master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
+    - if [ $CI_COMMIT_REF_NAME == "v0.11" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker store/decker/decker-linux${SUFFIX}
   needs:
     - job: build:linux
       artifacts: true
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "v0.11"'
       when: always
     - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
       when: always
@@ -187,7 +187,7 @@ deploy:docker:
     - job: build:linux
       artifacts: true
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "v0.11"'
       when: always
     - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
       when: always
@@ -203,7 +203,7 @@ deploy:win:
   tags:
     - docker
   script:
-    - if [ $CI_COMMIT_REF_NAME == "master" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
+    - if [ $CI_COMMIT_REF_NAME == "v0.11" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker.exe store/decker/decker-win${SUFFIX}.exe
     - mc cp ./version.txt store/decker/version-win${SUFFIX}.txt
@@ -211,7 +211,7 @@ deploy:win:
     - job: build:win
       artifacts: true
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "v0.11"'
       when: always
     - if: '$CI_COMMIT_REF_NAME =~ /^v\d\.\d\.\d-patching$/'
       when: always
