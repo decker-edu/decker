@@ -21,7 +21,6 @@ module Text.Decker.Filter.Slide
     isBoxDelim,
     toSlides,
     fromSlidesD,
-    fromSlidesD',
     tag,
     Direction (..),
   )
@@ -111,25 +110,6 @@ fromSlides = concatMap prependHeader
           ++ [RawBlock "html" "</aside>"]
     prependHeader (Slide (Just header) body _) = HorizontalRule : header : body
     prependHeader (Slide Nothing body _) = HorizontalRule : body
-
--- Render slides as a list of Blocks. Always separate slides with a horizontal
--- rule. Slides with the `notes` classes are wrapped in ASIDE and are used as
--- speaker notes by Reval. Slides with no header get an empty header
--- prepended.
-fromSlidesD' :: [Slide] -> Decker [Block]
-fromSlidesD' slides = do
-  concat <$> mapM prependHeader slides
-  where
-    prependHeader (Slide (Just header) body _)
-      | hasClass "notes" header =
-        return $ [tag "aside" $ Div ("", ["notes"], []) $ demoteHeaders (header : body)]
-    -- [RawBlock "html" "<aside class=\"notes\">"]
-    --   ++ demoteHeaders (header : body)
-    --   ++ [RawBlock "html" "</aside>"]
-    prependHeader (Slide (Just header) body _) = return $ HorizontalRule : header : body
-    prependHeader (Slide Nothing body _) = do
-      rid <- emptyId
-      return $ HorizontalRule : Header 1 (rid, [], []) [] : body
 
 -- Render slides as a list of Blocks. Always separate slides with a horizontal
 -- rule. Slides with the `notes` classes are wrapped in ASIDE and are used as

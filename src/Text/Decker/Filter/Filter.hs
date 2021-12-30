@@ -19,11 +19,10 @@ import qualified Data.List as List
 import Data.List.Split
 import qualified Data.Text as Text
 import Development.Shake (Action)
-import Text.Decker.Filter.Layout2 ( layoutSlide2 )
+import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Meta
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
@@ -105,20 +104,12 @@ wrapBoxes slide@(Slide header body dir) = do
 
 -- | Map over all active slides in a deck.
 mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
-mapSlides action (Pandoc meta blocks) =
-  if lookupMetaOrElse False "experiment.slide-layout" meta
-    then do
-      slides <-
-        selectActiveContent (toSlides blocks)
-          >>= mapM action
-          >>= fromSlidesD
-      return $ Pandoc meta slides
-    else do
-      slides <-
-        selectActiveContent (toSlides blocks)
-          >>= mapM action
-          >>= fromSlidesD'
-      return $ Pandoc meta slides
+mapSlides action (Pandoc meta blocks) = do
+  slides <-
+    selectActiveContent (toSlides blocks)
+      >>= mapM action
+      >>= fromSlidesD
+  return $ Pandoc meta slides
 
 filterNotebookSlides :: Pandoc -> Pandoc
 filterNotebookSlides (Pandoc meta blocks) =
@@ -158,7 +149,7 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
         wrapBoxes,
         selectActiveSlideContent,
         splitJoinColumns,
-        layoutSlide2
+        layoutSlide
       ]
 
 selectActiveContent :: HasAttr a => [a] -> Decker [a]

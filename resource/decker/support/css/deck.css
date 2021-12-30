@@ -4,14 +4,21 @@ is important for slide and embedded media structure.
 Margins, colors, fonts and stuff should be defined here. */
 
 @import url("../vendor/fontawesome/css/all.css");
+
 @import url("./structure.css");
 @import url("./style.css");
+@import url("./media.css");
 
 :root {
   /* Icon settings */
   --icon-active-color: var(--primary-color);
   --icon-inactive-color: lightgrey;
   --icon-size: 2vmin;
+}
+
+/* Box sizing is much nicer for calculations. */
+body {
+  box-sizing: border-box;
 }
 
 /* Margins and spacing */
