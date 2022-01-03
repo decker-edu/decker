@@ -13,3 +13,9 @@
 [submodule "third-party/water.css"]
 	path = third-party/water.css
 	url = https://github.com/kognise/water.css.git
+[submodule "third-party/flying-focus.js"]
+	path = third-party/flying-focus.js
+	url = https://github.com/NV/flying-focus.git
+[submodule "third-party/inert.js"]
+	path = third-party/inert.js
+	url = https://github.com/WICG/inert.git
