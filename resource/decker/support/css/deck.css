@@ -12,6 +12,7 @@ Margins, colors, fonts and stuff should be defined here. */
 :root {
   /* Icon settings */
   --icon-active-color: var(--primary-color);
+  --icon-hover-color: var(--hover-color);
   --icon-inactive-color: lightgrey;
   --icon-size: 2vmin;
 }
