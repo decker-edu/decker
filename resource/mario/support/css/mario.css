@@ -981,12 +981,16 @@ figure {
     padding:          2px;
     border:           none;
     border-radius:    4px;
-    opacity:          0.5;
+    opacity:          0.0;
     color:            var(--icon-inactive-color);
     background-color: rgba(255,255,255,0.5);
 }
 
-.reveal button.fs-button:hover { 
+.reveal div.fs-container:hover>button.fs-button { 
+  opacity:  0.5;
+}
+
+.reveal div.fs-container>button.fs-button:hover { 
     opacity:          1.0;
     color:            var(--icon-active-color);
     background-color: rgba(255,255,255,0.8);
@@ -1115,6 +1119,11 @@ body.print-pdf div.open-button {
     color:         black;
 }
 
+/* if element get the keyboard focus */
+.reveal .quiz ul li:focus {
+   box-shadow: 0px 0px 15px var(--emphColor);
+}
+
 /* add A, B, C, D... */
 .reveal .quiz ul.task-list>li::before {
     content: counter(answer, upper-latin) ": ";
@@ -1156,24 +1165,44 @@ body.print-pdf div.open-button {
     border:           none;
     position:         absolute;
     z-index:          1;
-    font-size:        1.5rem;
+    font-size:        1.0rem;
 }
 
 /* once clicked, wrong answers are red */
-.reveal .quiz ul li.show-wrong {
-    background-color: #ffaaaa;
-    border:           3px solid red;
+.reveal .quiz ul li.wrong {
+  --quiz-background-color: #ffaaaa;
+  --quiz-border-color: red;
+  --quiz-icon: "\f00d";
 }
 
 /* once clicked, correct answers are green */
-.reveal .quiz ul li.show-right {
-    background-color: #aaffaa;
-    border:           3px solid green;
+.reveal .quiz ul li.right {
+  --quiz-background-color: #aaffaa;
+  --quiz-border-color:green;
+  --quiz-icon: "\f00c";
+}
+
+.reveal .quiz ul li.show-answer {
+  background-color: var(--quiz-background-color);
+  border-color: var(--quiz-border-color);
+}
+.reveal .quiz ul li.show-answer::after {
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  font-weight: 900;
+  font-family: "Font Awesome 5 Free";
+  content:    var(--quiz-icon);
+  position:   absolute;
+  font-size:  15px;
+  right:      0.2em;
+  bottom:     -0.1em;
+  padding:    0.1em;
+  color:      var(--quiz-border-color);
 }
 
 /* tool tips are shown on hover */
-.reveal .show-right:hover ul li, 
-.reveal .show-wrong:hover ul li {
+.reveal .show-answer:hover ul li {
     visibility: visible;
 }
 

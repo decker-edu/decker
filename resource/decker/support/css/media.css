@@ -1,0 +1,96 @@
+/* Media elements */
+div.media {
+  display: flex;
+  justify-content: center;
+}
+
+/* TODO Check the old class vocabulary for alignment. */
+div.media[data-align="left"] {
+  justify-content: flex-start;
+}
+
+div.media[data-align="right"] {
+  justify-content: flex-end;
+}
+
+/* Figures can not be used in inline context, using spans instead. */
+span.figure,
+figure {
+  width: 100%;
+}
+
+/* Figcaptions can not be used in inline context, using spans instead. */
+span.figcaption,
+figcaption {
+  font-size: 80%;
+  font-style: italic;
+  text-align: center;
+
+  background-color: var(--c4);
+}
+
+/* Inline media blocks are rendered as spans, but use a block context inside. */
+span.media {
+  display: inline-block;
+}
+
+/* Figure spans behave like a block. */
+span.figure {
+  display: block;
+}
+
+/* Figcaption spans behave like a block. */
+span.figcaption {
+  display: block;
+}
+
+/* Get rid of the annoying bottom gap. */
+img,
+iframe,
+video,
+object,
+canvas,
+svg,
+pre {
+  vertical-align: bottom;
+}
+
+/* Default sizes for inline media elements without intrinsic aspect ratio. */
+span.figure > :is(span.pre, object, iframe) {
+  width: 200px;
+  height: 100px;
+}
+
+/* Default sizes for block media elements without intrinsic aspect ratio. */
+figure > :is(object, iframe) {
+  width: 100%;
+  height: 400px;
+}
+
+/* Default width. Always try to fill the frame. */
+figure > :is(pre, img, video, div.sourceCode) {
+  width: 100%;
+  margin: 0;
+}
+
+/* Default width for embedded SVG. */
+.svg.embedded svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Makes iframes react fluidly to width changes. The aspect ratio can be set
+through the aspect attribute. */
+.fluid-iframe {
+  position: relative;
+  padding-bottom: calc(var(--aspect-ratio, 0.5625) * 100%);
+  height: 0;
+}
+
+.fluid-iframe iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

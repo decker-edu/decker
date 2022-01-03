@@ -1,4 +1,5 @@
 project-name: Decker
+# Stared (*) arrays are merged elementwise, un-stared arrays are replaced.
 exclude-directories*:
   - app
   - attic
@@ -14,11 +15,11 @@ exclude-directories*:
   - test/minimal
   - third-party
   - users-guide
+# Stared (*) arrays are merged elementwise, un-stared arrays are replaced.
 static-resource-dirs*:
   - test/static
   - doc/static
-experiment:
-  slide-layout: true
+
 # Valid resource packs that come with decker
 # resource-pack: exe:wburg
 # resource-pack: exe:mario

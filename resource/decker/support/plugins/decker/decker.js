@@ -98,7 +98,7 @@ function prepareTaskLists() {
 // presentation setting).
 // we wrap the div in any case to make the css simpler.
 function prepareFullscreenIframes() {
-  for (let iframe of document.querySelectorAll("iframe.decker")) {
+  for (let iframe of document.querySelectorAll("figure.iframe>iframe")) {
     // wrap div around iframe
     var parent = iframe.parentElement;
     var div = document.createElement("div");

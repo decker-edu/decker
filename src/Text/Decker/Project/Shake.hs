@@ -26,7 +26,9 @@ import Control.Exception
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
-import Data.Aeson
+import Data.Aeson hiding (Error)
+import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.UTF8 as UTF8
 import Data.Char
 import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
@@ -37,6 +39,7 @@ import Development.Shake hiding (doesDirectoryExist, putError)
 import Relude hiding (state)
 import qualified System.Console.GetOpt as GetOpt
 import System.Directory as Dir
+import System.Environment
 import qualified System.FSNotify as Notify
 import System.FilePath.Posix
 import System.Info
@@ -49,7 +52,7 @@ import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
-import Text.Pandoc
+import Text.Pandoc hiding (Verbosity)
 import Text.Pretty.Simple
 
 runDecker :: [Flags] -> Rules () -> IO ()
@@ -75,6 +78,11 @@ deckerFlags =
       ["server"]
       (GetOpt.NoArg $ Right ServerFlag)
       "Serve the public dir via HTTP (implies --watch)",
+    GetOpt.Option
+      ['e']
+      ["stderr"]
+      (GetOpt.NoArg $ Right ErrorFlag)
+      "Output errors to stderr",
     GetOpt.Option
       ['o']
       ["open"]
@@ -180,7 +188,7 @@ runShakeOnce context rules = do
   options <- deckerShakeOptions context
   catchAll
     (shakeArgsWith options deckerFlags (handleArguments context rules))
-    (putError "ERROR:\n")
+    (const $ return ())
   server <- readIORef (context ^. server)
   forM_ server reloadClients
   keepWatching <- readIORef (context ^. watch)
@@ -217,26 +225,39 @@ watchChangesAndRepeatIO context = do
 
 putError :: Text -> SomeException -> IO ()
 putError prefix (SomeException e) =
-  print $ prefix <> unlines (lastN 2 $ lines $ show e)
+  print $ prefix <> show e -- unlines (lastN 2 $ lines $ show e)
 
 lastN :: Int -> [a] -> [a]
 lastN n = reverse . take n . reverse
 
+stderrMode = do
+  args <- getArgs
+  return $ "-e" `elem` args || "--stderr" `elem` args
+
+-- | Outputs errors to stderr if the `-e` flag is provided. Otherwise everything
+-- goes to stdout.
+outputMessage :: Bool -> Verbosity -> String -> IO ()
+outputMessage mode verbosity text = do
+  let stream = if mode && verbosity == Error then stderr else stdout
+  BS.hPutStrLn stream $ UTF8.fromString text
+
 deckerShakeOptions :: ActionContext -> IO ShakeOptions
 deckerShakeOptions ctx = do
   cores <- getNumCapabilities
+  toStderr <- stderrMode
   return $
     shakeOptions
       { shakeFiles = transientDir,
         shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
         shakeThreads = cores,
-        shakeColor = True,
-        -- shakeStaunch = True
+        shakeColor = not toStderr,
+        shakeOutput = outputMessage toStderr,
+        shakeChange = ChangeModtimeAndDigest,
+        shakeStaunch = toStderr
         -- shakeLint = Just LintBasic,
         -- shakeLint = Just LintFSATrace,
         -- shakeReport = [".decker/shake-report.html"],
         -- shakeChange = ChangeModtime,
-        shakeChange = ChangeModtimeAndDigest
       }
 
 waitForChange :: FilePath -> [FilePath] -> IO ()
