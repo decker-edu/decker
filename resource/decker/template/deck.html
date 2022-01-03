@@ -63,7 +63,6 @@ $endfor$
     /* Store JSON encoded Pandoc meta data in a global variable. */
     window.Decker = {meta: $decker-meta$};
   </script>
-  <script src="$decker-support-dir$/js/inert.min.js"></script>
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
 </head>
@@ -153,5 +152,6 @@ $endif$
   </script>
 
 </body>
-<script src="$decker-support-dir$/js/flying-focus.js"></script>
+<script src="$decker-support-dir$/vendor/inert/inert.min.js"></script>
+<script src="$decker-support-dir$/vendor/flying-focus/flying-focus.js"></script>
 </html>
