@@ -1,0 +1,26 @@
+:focus {
+	outline: none !important;
+}
+:focus::-moz-focus-inner {
+	border: none !important;
+}
+
+#flying-focus {
+	position: absolute;
+	margin: 0;
+	background: transparent;
+	transition-property: left, top, width, height, padding, border-radius;
+	transition-timing-function: ease-in-out;
+	transition-duration: 250ms;
+	visibility: hidden;
+	pointer-events: none;
+	border-radius: 2px;
+	border: 3px solid var(--emphColor);
+	box-shadow: 0px 0px 10px var(--emphColor);
+	box-sizing: border-box;
+}
+
+#flying-focus.flying-focus_visible {
+	visibility: visible;
+	z-index: 9999;
+}
