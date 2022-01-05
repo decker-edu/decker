@@ -38,10 +38,6 @@ inert: inert.js/dist/inert.min.js
 	@cp $(third)/inert.js/dist/inert.min.js $(support)/inert/
 	@cp $(third)/inert.js/dist/inert.min.js.map $(support)/inert/
 
-flyingfocus:
-	@mkdir -p $(support)/flying-focus
-	@cp $(third)/flying-focus.js/standalone/flying-focus.js $(support)/flying-focus/
-	
 inert.js/dist/inert.min.js:
 	(cd inert.js && npm install && npm run build)
 

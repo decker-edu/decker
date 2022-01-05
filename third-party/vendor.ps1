@@ -50,7 +50,3 @@ Copy-Item -Recurse "$third\video.js\*" "$support\videojs" -Force
 New-Item -Path "$support\inert" -Force -ItemType "directory"
 Copy-Item "$third\inert.js\dist\inert.min.js" "$support\inert\"
 Copy-Item "$third\inert.js\dist\inert.min.js.map" "$support\inert\"
-
-#Copy flying-focus.js -- checking out the repository with git submodule update --init --recursive should have been enough
-New-Item -Path "$support\flying-focus" -Force -ItemType "directory"
-Copy-Item "$third\flying-focus.js\standalone\flying-focus.js" "$support\flying-focus\"
