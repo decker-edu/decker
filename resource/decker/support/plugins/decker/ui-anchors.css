@@ -1,3 +1,5 @@
+@import url("../../css/deck.css");
+
 div.decker-anchor {
     z-index: 8;
 }
@@ -28,30 +30,30 @@ div.bottom-left-anchor {
 
 div.bottom-right-anchor {
     position: fixed;
-    bottom: 48px;
+    bottom: calc(2ex + 8px); /* Above the Navigation, needs tweaking */
     right: 8px;
 }
 
 button.decker-button {
-    color: #4d4d4d;
+    font-size: var(--icon-size);
+    color: var(--icon-inactive-color);
     border: none;
-    font-size: 24px;
     background: none;
-    padding: 8px;
+    padding: 0.5em;
 }
 
 @media screen and (max-width: 756px) {
     button.decker-button {
-        font-size: 48px;
+        font-size: calc(var(--icon-size) * 2);
     }
 }
 
 button.decker-button :hover {
-    color: #639A00;
+    color: var(--icon-hover-color);
 }
 
 button.decker-button :active {
-    color: #91b84c;
+    color: var(--icon-active-color);
 }
 
 .slide-in-left {
