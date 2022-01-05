@@ -1119,11 +1119,6 @@ body.print-pdf div.open-button {
     color:         black;
 }
 
-/* if element get the keyboard focus */
-.reveal .quiz ul li:focus {
-   box-shadow: 0px 0px 15px var(--emphColor);
-}
-
 /* add A, B, C, D... */
 .reveal .quiz ul.task-list>li::before {
     content: counter(answer, upper-latin) ": ";
