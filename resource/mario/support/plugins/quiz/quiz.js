@@ -151,27 +151,11 @@ function slideChanged() {
     numAnswers = 0;
 
     // is this a quiz slide? -> find answers (new version)
-    let answers = Reveal.getCurrentSlide().querySelectorAll(
-      '.reveal .quiz ul>li>input[type="checkbox"]'
-    );
-    if (answers.length) {
-      numAnswers = answers.length;
-
-      // hide answers' right/wrong classification
-      for (let i = 0; i < answers.length; i++) {
-        let li = answers[i].parentElement;
-        li.classList.remove("show-right");
-        li.classList.remove("show-wrong");
-        li.addEventListener(
-          "click",
-          function () {
-            let correct = this.querySelector("input:checked");
-            this.classList.add(correct ? "show-right" : "show-wrong");
-          },
-          false
-        );
-      }
-    }
+    Reveal.getCurrentSlide()
+      .querySelectorAll('.reveal .quiz ul>li>input[type="checkbox"]')
+      .forEach((input) => {
+        input.parentElement.classList.remove("show-answer");
+      });
   }
 }
 
@@ -402,6 +386,29 @@ const Plugin = {
     // add event listener
     Reveal.addEventListener("slidechanged", slideChanged);
     Reveal.addEventListener("resize", resize);
+
+    // prepare quizzes
+    document
+      .querySelectorAll('.reveal .quiz ul>li>input[type="checkbox"]')
+      .forEach((input) => {
+        let li = input.parentElement;
+
+        li.setAttribute("role", "button");
+        li.setAttribute("tabindex", 0);
+        li.classList.add(input.checked ? "right" : "wrong");
+
+        li.onclick = function (e) {
+          this.classList.add("show-answer");
+        };
+
+        li.onkeydown = function (e) {
+          if (e.code == "Space" || e.code == "Enter") {
+            this.classList.add("show-answer");
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        };
+      });
   },
 };
 
