@@ -3,7 +3,7 @@ SHELL := $(shell which bash)
 support := ../resource/decker/support/vendor
 third := $(shell realpath .)
 
-all: mathjax reveal.js highlight.js fontawesome videojs d3 inert flyingfocus
+all: mathjax reveal.js highlight.js fontawesome videojs d3 inert
 
 d3:
 	@cp d3.v6.min.js $(support)
