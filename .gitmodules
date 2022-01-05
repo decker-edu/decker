@@ -7,9 +7,6 @@
 [submodule "third-party/Font-Awesome"]
 	path = third-party/Font-Awesome
 	url = https://github.com/FortAwesome/Font-Awesome.git
-[submodule "third-party/flying-focus.js"]
-	path = third-party/flying-focus.js
-	url = https://github.com/NV/flying-focus.git
 [submodule "third-party/inert.js"]
 	path = third-party/inert.js
 	url = https://github.com/WICG/inert.git
