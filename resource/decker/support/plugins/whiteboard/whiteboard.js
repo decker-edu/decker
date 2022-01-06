@@ -172,14 +172,8 @@ function createButton(classes, callback, active = false, tooltip) {
 
 // setup all GUI elements
 function createGUI() {
-<<<<<<< HEAD
-  buttons = document.createElement("nav");
-=======
-  // generate container for whiteboard buttons
   buttons = document.createElement("div");
->>>>>>> origin/develop
   buttons.id = "whiteboardButtons";
-//  reveal.appendChild(buttons);
 
   // handle hover visibility of panel
   buttons.onmouseenter = (evt) => {
@@ -197,9 +191,9 @@ function createGUI() {
   );
   buttonWhiteboard.id = "whiteboardButton";
 
-  if(Reveal.hasPlugin("decker-plugins")) {
-    let manager = Reveal.getPlugin("decker-plugins");
-    manager.placeButton(buttons, "BOTTOM_LEFT");
+  if(Reveal.hasPlugin("ui-anchors")) {
+    let anchors = Reveal.getPlugin("ui-anchors");
+    anchors.placeButton(buttons, "BOTTOM_LEFT");
   }
 
   buttonSave = createButton(
@@ -208,35 +202,25 @@ function createGUI() {
     autosave,
     "Toggle Auto-Save"
   );
-<<<<<<< HEAD
   buttonSave.setAttribute("role", "switch");
 
-=======
->>>>>>> origin/develop
   buttonGrid = createButton(
     "whiteboard fas fa-border-all checkbox",
     toggleGrid,
     false,
     "Toggle Grid"
   );
-<<<<<<< HEAD
   buttonGrid.setAttribute("role", "switch");
 
-=======
->>>>>>> origin/develop
   buttonAdd = createButton(
     "whiteboard fas fa-plus",
     addWhiteboardPage,
     true,
     "Add Whiteboard Page"
   );
-<<<<<<< HEAD
 
   buttonUndo = createButton("whiteboard fas fa-undo", undo, false, "Undo");
 
-=======
-  buttonUndo = createButton("whiteboard fas fa-undo", undo, false, "undo");
->>>>>>> origin/develop
   buttonPen = createButton(
     "whiteboard fas fa-pen radiobutton",
     () => {
@@ -253,11 +237,8 @@ function createGUI() {
     false,
     "Change Pen"
   );
-<<<<<<< HEAD
   buttonPen.setAttribute("role", "switch");
 
-=======
->>>>>>> origin/develop
   buttonEraser = createButton(
     "whiteboard fas fa-eraser radiobutton",
     () => {
@@ -270,11 +251,8 @@ function createGUI() {
     false,
     "Pick Eraser"
   );
-<<<<<<< HEAD
   buttonEraser.setAttribute("role", "switch");
 
-=======
->>>>>>> origin/develop
   buttonLaser = createButton(
     "whiteboard fas fa-magic radiobutton",
     () => {

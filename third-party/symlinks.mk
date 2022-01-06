@@ -1,23 +1,9 @@
-# Copy things that need to built first (JQuery, Chart.js). The rest is symlinked
-# directly into the corresponding repository.
-
 SHELL := $(shell which bash)
 
 support := ../resource/decker/support/vendor
 third := $(shell realpath .)
 
-ifeq ($(OS),Windows_NT)
-dup = cp -r 
-else
-dup = ln -sF
-endif
-
-ifeq ($(copy), true)
-dup = cp -r
-endif
-
-
-all: mathjax reveal.js water.css highlight.js fontawesome thebelab videojs d3
+all: mathjax reveal.js highlight.js fontawesome videojs d3 inert
 
 d3:
 	@cp d3.v6.min.js $(support)
@@ -26,25 +12,16 @@ videojs:
 	@mkdir -p $(support)/videojs
 	@cp video.js/* $(support)/videojs
 
-thebelab: thebelab/lib/index.js
-	@mkdir -p $(support)/thebelab
-	@cp thebelab/lib/*.js $(support)/thebelab
-
 mathjax:
 	@mkdir -p $(support)/mathjax/{input,output}
 	@for i in tex-svg.js input/tex input/tex.js output/svg output/svg.js; do \
-		$(dup) $(third)/MathJax/es5/$$i $(support)/mathjax/$$i; \
+		cp -r $(third)/MathJax/es5/$$i $(support)/mathjax/$$i; \
 	done
 
 reveal.js:
 	@mkdir -p $(support)/reveal
-	@$(dup) $(third)/reveal.js/dist $(support)/reveal/
-	@$(dup) $(third)/reveal.js/plugin $(support)/reveal/
-
-water.css:
-	@mkdir -p $(support)/css
-	@cp $(third)/water.css/dist/*.min.css $(support)/css
-	@chmod a-x $(support)/css/*
+	@cp -r $(third)/reveal.js/dist $(support)/reveal/
+	@cp -r $(third)/reveal.js/plugin $(support)/reveal/
 
 highlight.js:
 	@mkdir -p $(support)/css
@@ -53,10 +30,15 @@ highlight.js:
 fontawesome:
 	@mkdir -p $(support)/fontawesome $(support)/fontawesome/css
 	@for i in css/all.css webfonts; do \
-		$(dup) $(third)/Font-Awesome/js-packages/@fortawesome/fontawesome-free/$$i $(support)/fontawesome/$$i; \
+		cp -r $(third)/Font-Awesome/js-packages/@fortawesome/fontawesome-free/$$i $(support)/fontawesome/$$i; \
 	done
 
-thebelab/lib/index.js:
-	@(cd thebelab && npm install && npm run build)
+inert: inert.js/dist/inert.min.js
+	@mkdir -p $(support)/inert
+	@cp $(third)/inert.js/dist/inert.min.js $(support)/inert/
+	@cp $(third)/inert.js/dist/inert.min.js.map $(support)/inert/
 
-.PHONY: clean prepare fontawesome reveal.js water.css highlight.js mathjax thebelab videojs
+inert.js/dist/inert.min.js:
+	(cd inert.js && npm install && npm run build)
+
+.PHONY: clean prepare fontawesome reveal.js highlight.js mathjax videojs

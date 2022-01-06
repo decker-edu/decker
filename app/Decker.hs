@@ -257,7 +257,7 @@ runWithFlags flags = do
                 else generatedIndexSource
         need [src]
         meta <- getGlobalMeta
-        markdownToHtmlPage meta getTemplate src out
+        markdownToHtml htmlPage meta getTemplate src out
       --
       generatedIndexSource %> \out -> do
         targets <- getTargets

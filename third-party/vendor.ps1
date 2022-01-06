@@ -10,21 +10,14 @@ $third = Split-Path -parent $PSCommandPath
 $decker = Split-Path $third -parent
 $support = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("$decker\resource\decker\support\vendor")
 
-Write-Host "Building third party dependencies" -ForegroundColor Green
-
-# Build thebelab
-Set-Location "$third\thebelab"
-& npm install
-& npm run build
-
 Write-Host ("Copy third party dependencies to " + $support) -ForegroundColor Green
 New-Item -Path "$support" -Force -ItemType "directory"
 Set-Location $third
 
-# Copy thebelab
-New-Item -Path "$support\thebelab" -Force -ItemType "directory"
-Copy-Item $third\thebelab\lib\*.js "$support\thebelab" -Force
-# Copy-Item $third\thebelab\lib\*.map "$support\thebelab" -Force
+# Build inert.js
+Set-Location "$third\inert.js"
+& npm install
+& npm run build
 
 # Copy mathjax
 New-Item -Path "$support\mathjax\input" -Force -ItemType "directory"
@@ -37,10 +30,6 @@ Foreach ($i in ("tex-svg.js", "input\tex", "input\tex.js". "output\svg", "output
 New-Item "$support\reveal\" -Force -ItemType "directory"
 Copy-Item -r "$third\reveal.js\dist" "$support\reveal\" -Force
 Copy-Item -r "$third\reveal.js\plugin" "$support\reveal\" -Force
-
-# Copy water.css
-New-Item "$support\css" -Force -ItemType "directory"
-Copy-Item "$third\water.css\dist\light.min.css" "$support\css\light.min.css"
 
 # Copy styles for highlight.js
 New-Item "$support\css" -Force -ItemType "directory"
@@ -56,3 +45,8 @@ Foreach ($i in ( "css\all.css", "webfonts")) {
 # Copy video.js
 New-Item -Path "$support\videojs" -Force -ItemType "directory"
 Copy-Item -Recurse "$third\video.js\*" "$support\videojs" -Force
+
+#Copy inert.js
+New-Item -Path "$support\inert" -Force -ItemType "directory"
+Copy-Item "$third\inert.js\dist\inert.min.js" "$support\inert\"
+Copy-Item "$third\inert.js\dist\inert.min.js.map" "$support\inert\"

@@ -1,0 +1,85 @@
+@import url("../../css/deck.css");
+
+div.decker-anchor {
+    z-index: 8;
+}
+
+div.top-left-anchor {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    top: 8px;
+    left: 8px;
+}
+
+div.top-right-anchor {
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+    top: 8px;
+    right: 8px;
+}
+
+div.bottom-left-anchor {
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+    bottom: 8px;
+    left: 8px;
+}
+
+div.bottom-right-anchor {
+    position: fixed;
+    bottom: calc(2ex + 8px); /* Above the Navigation, needs tweaking */
+    right: 8px;
+}
+
+button.decker-button {
+    font-size: var(--icon-size);
+    color: var(--icon-inactive-color);
+    border: none;
+    background: none;
+    padding: 0.5em;
+}
+
+@media screen and (max-width: 756px) {
+    button.decker-button {
+        font-size: calc(var(--icon-size) * 2);
+    }
+}
+
+button.decker-button :hover {
+    color: var(--icon-hover-color);
+}
+
+button.decker-button :active {
+    color: var(--icon-active-color);
+}
+
+.slide-in-left {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 33%;
+
+    transition: transform 0.5s;
+}
+
+.slide-in-left[inert] {
+    transform: translate(-100%);
+}
+
+.slide-in-right {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 33%;
+
+    transition: transform 0.5s;
+}
+
+.slide-in-right[inert] {
+    transform: translate(100%);
+}
