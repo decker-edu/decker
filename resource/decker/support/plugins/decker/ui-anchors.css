@@ -2,57 +2,54 @@
 
 div.decker-anchor {
     z-index: 8;
+    position: fixed;
+    display: flex;
 }
 
 div.top-left-anchor {
-    position: fixed;
-    display: flex;
     flex-direction: column;
     top: 8px;
     left: 8px;
 }
 
 div.top-right-anchor {
-    position: fixed;
-    display: flex;
     flex-direction: row;
     top: 8px;
     right: 8px;
 }
 
 div.bottom-left-anchor {
-    position: fixed;
-    display: flex;
     flex-direction: row;
     bottom: 8px;
     left: 8px;
 }
 
 div.bottom-right-anchor {
-    position: fixed;
+    flex-direction: column;
     bottom: calc(2ex + 8px); /* Above the Navigation, needs tweaking */
     right: 8px;
 }
 
-button.decker-button {
+.decker-anchor button {
     font-size: var(--icon-size);
     color: var(--icon-inactive-color);
     border: none;
+    border-radius: 0.1em;
     background: none;
-    padding: 0.5em;
+    padding: 0.25em;
 }
 
 @media screen and (max-width: 756px) {
-    button.decker-button {
+    .decker-anchor button {
         font-size: calc(var(--icon-size) * 2);
     }
 }
 
-button.decker-button :hover {
+.decker-anchor button:hover {
     color: var(--icon-hover-color);
 }
 
-button.decker-button :active {
+.decker-anchor button:active {
     color: var(--icon-active-color);
 }
 
