@@ -6,6 +6,8 @@
   --secondary-color: orange;
   --hover-color: #30b3ff;
   --code-background-color: rgb(240, 240, 240);
+  /* From mario.css, this needs to be set everywhere so the flying focus has its color */
+  --emphColor: var(--primary-color);
 }
 
 /* Inline code */
