@@ -111,14 +111,7 @@ $body$
 
   <script>window.Decker = {meta: $decker-meta$};</script>
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
-  <script src="$decker-support-dir$/flyingFocus/flying-focus.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
-
-<!-- DEPRECATED
-  <script type="module">
-    import {prepareExaminer} from "./$decker-support-dir$/examiner/examiner.js";
-    prepareExaminer();
-  </script> -->
 
   <script type="module">
     // import Reveal and all plugins
@@ -174,8 +167,10 @@ $body$
       ]
     };
 
-    console.log(revealConfig)
     Reveal.initialize(revealConfig);
+
+    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
+    setupFlyingFocus();
   </script>
 
 </body>

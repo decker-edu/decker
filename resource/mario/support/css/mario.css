@@ -12,9 +12,6 @@
   --blue: #2a9ddf;
   --light-blue: #30B3FF;
   --emphColor: var(--blue);
-}
-
-:root {
   --icon-active-color: #2a9ddf;
   --icon-inactive-color: lightgrey;
   --icon-size: 2vmin;
