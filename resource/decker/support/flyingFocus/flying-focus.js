@@ -15,7 +15,8 @@ function handleKeyboard(event) {
     code === "ArrowLeft" ||
     code === "ArrayRight" ||
     code === "ArrowDown" ||
-    code === "ArrowUp"
+    code === "ArrowUp" ||
+    code === "Enter"
   ) {
     keyDownTime = Date.now();
   }
@@ -90,10 +91,10 @@ function rectOf(elem) {
   const height = zoom * rect.height;
 
   return {
-    left: `${left}px`,
-    top: `${top}px`,
-    width: `${width}px`,
-    height: `${height}px`,
+    left: `${left - 1}px`,
+    top: `${top - 1}px`,
+    width: `${width + 1}px`,
+    height: `${height + 1}px`,
   };
 }
 
