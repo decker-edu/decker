@@ -65,7 +65,6 @@ $endfor$
     window.Decker = {meta: $decker-meta$};
   </script>
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
-  <script src="$decker-support-dir$/flyingFocus/flying-focus.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
 </head>
 
@@ -100,12 +99,9 @@ $body$
     import uiAnchorsPlugin from './$decker-support-dir$/plugins/decker/ui-anchors.js'
     import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
     import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
-    // import sagePlugin from './$decker-support-dir$/plugins/sage/sage.js';
     import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
     import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
     import printPlugin from './$decker-support-dir$/plugins/print/print.js';
-    // import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
-    // import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
     import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
     import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
     import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
@@ -139,8 +135,7 @@ $endif$
          printPlugin,
          quizWuePlugin,
          explainPlugin,
-// TODO Find why this crashes
-//       menuPlugin,
+         menuPlugin,
          feedbackPlugin,
 $if(highlightjs)$
          highlightPlugin,
@@ -149,10 +144,14 @@ $endif$
       ]
     };
 
-    // console.log(revealConfig)
     Reveal.initialize(revealConfig);
+
+    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
+    setupFlyingFocus();
   </script>
 
 </body>
-<script src="$decker-support-dir$/vendor/inert/inert.min.js"></script>
+<script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
+<!-- script src="$decker-support-dir$/js/inert.min.js"></script -->
+<!-- Use the other implementation if things break under Firefox -->
 </html>

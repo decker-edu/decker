@@ -43,6 +43,7 @@ $else$
     <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
     <link rel="stylesheet" href="$decker-support-dir$/css/mario-page.css">
 $endif$
+    <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
 
     <!-- MathJax config -->
     <script>
@@ -159,6 +160,10 @@ $body$
 <!-- The previous line must be left aligned! -->
 
     <script src="$decker-support-dir$/js/page.js"></script>
+    <script type="module">
+      import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
+      setupFlyingFocus();
+    </script>
 
     $for(include-after)$
     $include-after$

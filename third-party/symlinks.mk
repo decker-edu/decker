@@ -3,7 +3,7 @@ SHELL := $(shell which bash)
 support := ../resource/decker/support/vendor
 third := $(shell realpath .)
 
-all: mathjax reveal.js highlight.js fontawesome videojs d3 inert
+all: mathjax reveal.js highlight.js fontawesome videojs d3
 
 d3:
 	@cp d3.v6.min.js $(support)
@@ -32,13 +32,5 @@ fontawesome:
 	@for i in css/all.css webfonts; do \
 		cp -r $(third)/Font-Awesome/js-packages/@fortawesome/fontawesome-free/$$i $(support)/fontawesome/$$i; \
 	done
-
-inert: inert.js/dist/inert.min.js
-	@mkdir -p $(support)/inert
-	@cp $(third)/inert.js/dist/inert.min.js $(support)/inert/
-	@cp $(third)/inert.js/dist/inert.min.js.map $(support)/inert/
-
-inert.js/dist/inert.min.js:
-	(cd inert.js && npm install && npm run build)
 
 .PHONY: clean prepare fontawesome reveal.js highlight.js mathjax videojs
