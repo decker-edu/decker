@@ -14,11 +14,6 @@ Write-Host ("Copy third party dependencies to " + $support) -ForegroundColor Gre
 New-Item -Path "$support" -Force -ItemType "directory"
 Set-Location $third
 
-# Build inert.js
-Set-Location "$third\inert.js"
-& npm install
-& npm run build
-
 # Copy mathjax
 New-Item -Path "$support\mathjax\input" -Force -ItemType "directory"
 New-Item -Path "$support\mathjax\output" -Force -ItemType "directory"
@@ -45,8 +40,3 @@ Foreach ($i in ( "css\all.css", "webfonts")) {
 # Copy video.js
 New-Item -Path "$support\videojs" -Force -ItemType "directory"
 Copy-Item -Recurse "$third\video.js\*" "$support\videojs" -Force
-
-#Copy inert.js
-New-Item -Path "$support\inert" -Force -ItemType "directory"
-Copy-Item "$third\inert.js\dist\inert.min.js" "$support\inert\"
-Copy-Item "$third\inert.js\dist\inert.min.js.map" "$support\inert\"
