@@ -16,6 +16,7 @@ function onStart() {
   prepareTaskLists();
   prepareFullscreenIframes();
   prepareCodeHighlighting();
+  prepareFlyingFocusClearing();
 }
 
 // Fix some decker-specific things when Reveal is initilized
@@ -278,6 +279,13 @@ function continueWhereYouLeftOff() {
       }
     });
   }
+}
+
+function prepareFlyingFocusClearing() {
+  Reveal.on("slidechanged", event => {
+    import {hideFlyingFocus} from "../../flyingFocus/flying-focus";
+    hideFlyingFocus();
+  })
 }
 
 const Plugin = {
