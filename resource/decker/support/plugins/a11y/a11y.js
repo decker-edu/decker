@@ -12,9 +12,7 @@ let Reveal;
  function fixTabsByInert() {
   let slides = document.querySelectorAll("section");
   slides.forEach((slide) => {
-    if(slide.hasAttribute("hidden")) {
       slide.inert = true;
-    }
   })
   Reveal.on('slidechanged', event => {
     if(event.previousSlide) { // First shown slide causes error if we do not check for this
