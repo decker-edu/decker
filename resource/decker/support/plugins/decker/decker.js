@@ -303,12 +303,6 @@ function continueWhereYouLeftOff() {
   } );
 }
 
-function prepareFlyingFocusClearing() {
-  Reveal.on("slidechanged", event => {
-    hideFlyingFocus();
-  })
-}
-
 const Plugin = {
   id: "decker",
   init: (deck) => {

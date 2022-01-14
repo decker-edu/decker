@@ -111,6 +111,7 @@ $if(highlightjs)$
     import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
 $endif$
     import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
+    import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
 
     let revealConfig = { 
       // reveal configuration (see https://revealjs.com/config/)
@@ -140,7 +141,8 @@ $endif$
 $if(highlightjs)$
          highlightPlugin,
 $endif$
-         notesPlugin
+         notesPlugin,
+         a11yPlugin
       ]
     };
 
