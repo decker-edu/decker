@@ -17,7 +17,9 @@ let Reveal;
     }
   })
   Reveal.on('slidechanged', event => {
-    event.previousSlide.inert = true;
+    if(event.previousSlide) { // First shown slide causes error if we do not check for this
+      event.previousSlide.inert = true;
+    }
     event.currentSlide.inert = false;
   } );
 }
