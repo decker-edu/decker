@@ -1,5 +1,3 @@
-import { hideFlyingFocus } from "../../flyingFocus/flying-focus.js";
-
 // reference to Reveal object
 let Reveal;
 
@@ -18,7 +16,6 @@ function onStart() {
   prepareTaskLists();
   prepareFullscreenIframes();
   prepareCodeHighlighting();
-  prepareFlyingFocusClearing();
 }
 
 // Fix some decker-specific things when Reveal is initilized
