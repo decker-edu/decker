@@ -1,4 +1,7 @@
-import { hideFlyingFocus } from "../../flyingFocus/flying-focus.js";
+import {
+  setupFlyingFocus,
+  hideFlyingFocus,
+} from "../../flyingFocus/flying-focus.js";
 
 let Reveal;
 
@@ -9,24 +12,26 @@ let Reveal;
  * This might cause performance issues on more complex DOM trees but they have yet to be observed.
  * As such this function is - for now - just "here" for future reference.
  */
- function fixTabsByInert() {
+function fixTabsByInert() {
   let slides = document.querySelectorAll("section");
   slides.forEach((slide) => {
-      slide.inert = true;
-  })
-  Reveal.on('slidechanged', event => {
-    if(event.previousSlide) { // First shown slide causes error if we do not check for this
+    slide.inert = true;
+  });
+  Reveal.on("slidechanged", (event) => {
+    if (event.previousSlide) {
+      // First shown slide causes error if we do not check for this
       event.previousSlide.inert = true;
     }
     event.currentSlide.inert = false;
-  } );
+  });
 }
 
-/* SUGGESTION Add Flying Focus here instead of deck.html ? */
+/* setup flying focus and its callbacks */
 function addFlyingFocusCallbacks() {
-  Reveal.on("slidechanged", event => {
+  setupFlyingFocus();
+  Reveal.on("slidechanged", (event) => {
     hideFlyingFocus();
-  })
+  });
 }
 
 const Plugin = {
@@ -35,7 +40,7 @@ const Plugin = {
     Reveal = reveal;
     fixTabsByInert();
     addFlyingFocusCallbacks();
-  }
+  },
 };
 
 export default Plugin;
