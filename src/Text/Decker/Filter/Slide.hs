@@ -127,14 +127,13 @@ fromSlidesD slides = do
       return ([], blocks <> h)
     -- Some verticals, next is horizontal. Wrap the vertical list in an extra
     -- section.
-    resolveSubs (subs, blocks) slide@(Slide header body Horizontal) = do
+    resolveSubs (verticals, blocks) slide@(Slide header body Horizontal)
+      | length verticals > 1 = do
+        h <- wrapSection slide
+        return (h, blocks <> [tag "section" (Div ("", ["vertical"], []) verticals)])
+    resolveSubs (verticals, blocks) slide@(Slide header body Horizontal) = do
       h <- wrapSection slide
-      return
-        ( [],
-          blocks
-            <> [tag "section" (Div ("", ["vertical"], []) subs)]
-            <> h
-        )
+      return (h, blocks <> verticals)
     -- Add slide to the verticals
     resolveSubs (subs, blocks) slide@(Slide header body Vertical) = do
       h <- wrapSection slide
