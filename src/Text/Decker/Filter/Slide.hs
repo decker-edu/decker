@@ -118,8 +118,8 @@ fromSlides = concatMap prependHeader
 fromSlidesD :: [Slide] -> Decker [Block]
 fromSlidesD slides = do
   -- mapM_ (\s -> when (view dir s == Vertical) (pPrint s)) slides
-  (subs, blocks) <- foldM resolveSubs ([], []) slides
-  return (blocks <> subs)
+  (verticals, blocks) <- foldM resolveSubs ([], []) slides
+  return (blocks <> wrapVerticals verticals)
   where
     -- No verticals so far, next is horizontal.
     resolveSubs ([], blocks) slide@(Slide header body Horizontal) = do
@@ -130,14 +130,14 @@ fromSlidesD slides = do
     resolveSubs (verticals, blocks) slide@(Slide header body Horizontal)
       | length verticals > 1 = do
         h <- wrapSection slide
-        return (h, blocks <> [tag "section" (Div ("", ["vertical"], []) verticals)])
+        return (h, blocks <> wrapVerticals verticals)
     resolveSubs (verticals, blocks) slide@(Slide header body Horizontal) = do
       h <- wrapSection slide
       return (h, blocks <> verticals)
     -- Add slide to the verticals
-    resolveSubs (subs, blocks) slide@(Slide header body Vertical) = do
+    resolveSubs (verticals, blocks) slide@(Slide header body Vertical) = do
       h <- wrapSection slide
-      return (subs <> h, blocks)
+      return (verticals <> h, blocks)
     -- Wraps a single slide in a header. Handles notes and stuff
     wrapSection (Slide (Just header@(Header n attr inlines)) body _)
       | hasClass "notes" header =
@@ -147,6 +147,9 @@ fromSlidesD slides = do
     wrapSection (Slide _ body _) = do
       rid <- emptyId
       return $ Header 1 (rid, [], []) [] : body
+    wrapVerticals [] = []
+    wrapVerticals verticals =
+      [tag "section" (Div ("", ["vertical"], []) verticals)]
     wrap (id, cls, kvs) blocks =
       [ tag "section" $
           Div
