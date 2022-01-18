@@ -91,6 +91,19 @@ wrapBoxes slide@(Slide header body dir) = do
   where
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
     wrap [] = []
+    wrap ((Header 2 (id_, cls, kvs) text) : blocks)
+      | "details" `elem` cls =
+        [ tag "details" $
+            Div
+              ("", ["box", "block"] ++ cls, mangle kvs)
+              ( [ tag "summary" $
+                    Div
+                      nullAttr
+                      [Plain text]
+                ]
+                  <> blocks
+              )
+        ]
     wrap ((Header 2 (id_, cls, kvs) text) : blocks) =
       [ Div
           ("", ["box", "block"] ++ cls, mangle kvs)
