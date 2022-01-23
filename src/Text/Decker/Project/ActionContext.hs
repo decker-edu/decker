@@ -6,6 +6,8 @@
 
 module Text.Decker.Project.ActionContext where
 
+import Control.Concurrent.MVar
+import Control.Concurrent.STM
 import Control.Lens
 import Data.Dynamic
 import Data.Maybe
@@ -25,6 +27,7 @@ data Flags
   | WatchFlag
   | ServerFlag
   | ErrorFlag
+  | ThreadFlag
   | OpenFlag
   | PortFlag Int
   | BindFlag String
@@ -34,10 +37,11 @@ data ActionContext = ActionContext
   { _extra :: [Flags],
     _devRun :: Bool,
     _externalStatus :: [(String, Bool)],
-    _server :: IORef (Maybe Server),
+    _server :: MVar ServerState,
     _watch :: IORef Bool,
+    _actionChan :: TChan ActionMsg,
     _publicResource :: Development.Shake.Resource,
-    _globalMeta :: IORef Meta
+    _globalMeta :: Meta
   }
   deriving (Typeable)
 

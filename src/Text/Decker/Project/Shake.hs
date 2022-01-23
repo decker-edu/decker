@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Text.Decker.Project.Shake
   ( runDecker,
@@ -13,19 +14,16 @@ module Text.Decker.Project.Shake
     putCurrentDocument,
     watchChangesAndRepeat,
     withShakeLock,
-    runHttpServerIO,
+    -- runHttpServerIO,
   )
 where
 
-import Control.Concurrent (getNumCapabilities)
+import Control.Concurrent (ThreadId, forkIO, killThread)
+import Control.Concurrent.STM (TChan, newTChan, readTChan, tryReadTChan, writeTChan)
 import Control.Exception
--- import Data.List
-
--- import qualified Data.Text as Text
-
 import Control.Lens
 import Control.Monad
-import Control.Monad.Catch
+import Control.Monad.Catch hiding (try)
 import Data.Aeson hiding (Error)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.UTF8 as UTF8
@@ -34,8 +32,9 @@ import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.List.Extra as List
 import Data.Maybe
-import qualified Data.Set as Set
 import Development.Shake hiding (doesDirectoryExist, putError)
+import GHC.IO.Exception (ExitCode (ExitFailure))
+import NeatInterpolation
 import Relude hiding (state)
 import qualified System.Console.GetOpt as GetOpt
 import System.Directory as Dir
@@ -43,7 +42,7 @@ import System.Environment
 import qualified System.FSNotify as Notify
 import System.FilePath.Posix
 import System.Info
-import System.Process
+import System.Process hiding (runCommand)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
@@ -53,13 +52,125 @@ import Text.Decker.Project.Project
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
 import Text.Pandoc hiding (Verbosity)
-import Text.Pretty.Simple
 
-runDecker :: [Flags] -> Rules () -> IO ()
-runDecker extra rules = do
-  context <- initContext extra
-  catchAll (repeatIfTrue $ runShakeOnce context rules) (putError "Terminated: ")
-  cleanup context
+runDecker :: Rules () -> IO ()
+runDecker theRules = do
+  args <- getArgs
+  let (results, targets, errors) = GetOpt.getOpt GetOpt.Permute deckerFlags args
+  let flags = rights results
+  let rules =
+        if null targets
+          then theRules
+          else want targets >> withoutActions theRules
+  meta <- readMetaDataFile globalMetaFileName
+  context <- initContext flags meta
+  if not (null errors)
+    then do
+      mapM_ putStrLn errors
+      exitWith (ExitFailure 1)
+    else do
+      let commands = ["clean", "example", "serve", "pdf"]
+      case targets of
+        [command] | command `elem` commands -> do
+          context <- initContext flags meta
+          runCommand context command rules
+        _ -> runTargets context targets rules
+
+runTargets :: ActionContext -> [FilePath] -> Rules () -> IO ()
+runTargets context targets rules = do
+  let flags = context ^. extra
+  extractMetaIntoFile (context ^. extra)
+  channel <- atomically newTChan
+
+  when (OpenFlag `elem` flags) $ do
+    let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort flags
+    openBrowser $ "http://localhost:" <> show port <> "/index.html"
+  -- Always run at least once
+  runShake context rules
+  if
+      | ServerFlag `elem` flags -> do
+        forkServer channel context
+        Notify.withManager $ \manager -> do
+          startWatcher manager channel context
+          runShakeForever channel context rules
+      | WatchFlag `elem` flags -> do
+        Notify.withManager $ \manager -> do
+          startWatcher manager channel context
+          runShakeForever channel context rules
+      | otherwise -> return ()
+
+data DoOrDie = RunShake | ServerExit String deriving (Show)
+
+-- |  Removes all pending messages from the channel and discards them.
+flushTChan' :: TChan a -> STM ()
+flushTChan' channel = do
+  result <- tryReadTChan channel
+  case result of
+    Just _ -> flushTChan' channel
+    Nothing -> return ()
+
+-- |  Removes all pending messages from the channel and discards them.
+flushTChan :: TChan a -> IO ()
+flushTChan channel = atomically $ flushTChan' channel
+
+runShake :: ActionContext -> Rules () -> IO ()
+runShake context rules = do
+  options <- deckerShakeOptions context
+  shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
+
+runShakeForever :: TChan DoOrDie -> ActionContext -> Rules () -> IO b
+runShakeForever channel context rules = do
+  forever $ do
+    dod <- atomically $ readTChan channel
+    case dod of
+      RunShake -> do
+        catchAll
+          (runShake context rules)
+          (\(SomeException _) -> return ())
+        flushTChan channel
+        reloadClients (context ^. server)
+      ServerExit port -> do
+        putStrLn $ "# Server: " <> show port
+        exitWith (ExitFailure 7)
+
+startWatcher :: Notify.WatchManager -> TChan DoOrDie -> ActionContext -> IO ()
+startWatcher manager channel context = do
+  inDir <- makeAbsolute projectDir
+  options <- deckerShakeOptions context
+  exclude <- mapM canonicalizePath $ excludeDirs (context ^. globalMeta)
+  void $
+    Notify.watchTree manager inDir (filter exclude) $ \event ->
+      atomically $ writeTChan channel RunShake
+  where
+    filter exclude event = not $ any (`isPrefixOf` Notify.eventPath event) exclude
+
+startServer :: ActionContext -> IO ()
+startServer = runHttpServer
+
+forkServer :: TChan DoOrDie -> ActionContext -> IO ThreadId
+forkServer channel context = do
+  forkIO $ do
+    catchAll
+      (startServer context)
+      ( \(SomeException e) -> do
+          atomically $ writeTChan channel (ServerExit $ show e)
+      )
+
+runCommand :: (Eq a, IsString a) => ActionContext -> a -> Rules () -> IO b
+runCommand context command rules = do
+  case command of
+    "clean" -> runClean True
+    "example" -> writeExampleProject
+    "serve" -> startServer context
+    "pdf" -> do
+      putStrLn (toString pdfMsg)
+      channel <- atomically newTChan
+      id <- forkServer channel context
+      let rules' = want ["pdf"] >> withoutActions rules
+      runShake context rules'
+      killThread id
+    _ -> error "Unknown command. Should not happen."
+  exitSuccess
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =
@@ -72,17 +183,22 @@ deckerFlags =
       ['w']
       ["watch"]
       (GetOpt.NoArg $ Right WatchFlag)
-      "Watch changes to source files and rebuild current target if necessary",
+      "Watch changes to source files and rebuild current target if necessary.",
     GetOpt.Option
-      ['s']
+      ['S']
       ["server"]
       (GetOpt.NoArg $ Right ServerFlag)
-      "Serve the public dir via HTTP (implies --watch)",
+      "Serve the public dir via HTTP (implies --watch).",
     GetOpt.Option
       ['e']
       ["stderr"]
       (GetOpt.NoArg $ Right ErrorFlag)
-      "Output errors to stderr",
+      "Output errors to stderr.",
+    GetOpt.Option
+      ['t']
+      ["single-thread"]
+      (GetOpt.NoArg $ Right ThreadFlag)
+      "Run single threaded.",
     GetOpt.Option
       ['o']
       ["open"]
@@ -118,100 +234,27 @@ isMetaName str = all check $ List.splitOn "." str
   where
     check s = length s > 1 && isAlpha (List.head s) && all (\c -> isAlphaNum c || isSymbol c || isPunctuation c) (List.tail s)
 
-handleArguments :: ActionContext -> Rules () -> [Flags] -> [String] -> IO (Maybe (Rules ()))
-handleArguments context rules flags targets = do
-  let allFlags = flags <> context ^. extra
-  extractMeta allFlags
-  let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort allFlags
-  let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind allFlags
-  if
-      | "serve" `elem` targets -> do
-        startServerForeground context port bind
-        return Nothing
-      | "test" `elem` targets -> do
-        meta <- readMetaDataFile globalMetaFileName
-        publicSupportFiles meta >>= pPrint
-        deckerResources meta >>= pPrint
-        return Nothing
-      | "clean" `elem` targets -> do
-        runClean True
-        return Nothing
-      | "example" `elem` targets -> do
-        writeExampleProject
-        return Nothing
-      | otherwise -> do
-        when (WatchFlag `elem` allFlags) $ do
-          watchChangesAndRepeatIO context
-        when (ServerFlag `elem` allFlags) $ do
-          watchChangesAndRepeatIO context
-          runHttpServerIO context port bind
-        when (OpenFlag `elem` allFlags) $ do
-          openBrowser $ "http://localhost:" <> show port <> "/index.html"
-        buildRules targets rules
-
 -- | Saves the meta flags to a well known file. Will be later read and cached by
 -- shake.
-extractMeta :: [Flags] -> IO ()
-extractMeta flags = do
+extractMetaIntoFile :: [Flags] -> IO ()
+extractMetaIntoFile flags = do
   let metaFlags = HashMap.fromList $ map (\(MetaValueFlag k v) -> (k, v)) $ filter aMetaValue flags
-  -- let metaFlags =
-  --       foldl' (\meta (MetaValueFlag k v) -> setMetaValue (Text.pack k) v meta) nullMeta $
-  --         filter aMetaValue flags
   let json = decodeUtf8 $ encode metaFlags
   writeFileChanged metaArgsFile json
-
-buildRules :: [FilePath] -> Rules () -> IO (Maybe (Rules ()))
-buildRules targets rules =
-  if null targets
-    then return $ Just rules
-    else return $
-      Just $ do
-        want (filter (`notElem` ["clean", "cleaner", "example"]) targets)
-        withoutActions rules
-
-aPort :: Flags -> Bool
-aPort (PortFlag _) = True
-aPort _ = False
-
-aBind :: Flags -> Bool
-aBind (BindFlag _) = True
-aBind _ = False
 
 aMetaValue (MetaValueFlag _ _) = True
 aMetaValue _ = False
 
-runShakeOnce :: ActionContext -> Rules () -> IO Bool
-runShakeOnce context rules = do
-  -- reread the meta data on every run and update the action context
-  meta <- readMetaDataFile globalMetaFileName
-  meta' <- atomicModifyIORef' (context ^. globalMeta) $ const (meta, meta)
-  options <- deckerShakeOptions context
-  catchAll
-    (shakeArgsWith options deckerFlags (handleArguments context rules))
-    (const $ return ())
-  server <- readIORef (context ^. server)
-  forM_ server reloadClients
-  keepWatching <- readIORef (context ^. watch)
-  when keepWatching $
-    do
-      exclude <- mapM canonicalizePath $ excludeDirs meta'
-      waitForChange projectDir exclude
-  return keepWatching
-
-initContext :: [Flags] -> IO ActionContext
-initContext extra = do
+initContext :: [Flags] -> Meta -> IO ActionContext
+initContext extra meta = do
   createDirectoryIfMissing True transientDir
   devRun <- isDevelopmentRun
   external <- checkExternalPrograms
-  server <- newIORef Nothing
+  server <- newMVar ([], fromList [])
   watch <- newIORef False
   public <- newResourceIO "public" 1
-  ref <- newIORef nullMeta
-  return $ ActionContext extra devRun external server watch public ref
-
-cleanup context = do
-  srvr <- readIORef $ context ^. server
-  forM_ srvr stopHttpServer
+  chan <- atomically newTChan
+  return $ ActionContext extra devRun external server watch chan public meta
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do
@@ -223,17 +266,6 @@ watchChangesAndRepeatIO context = do
   let ref = context ^. watch
   liftIO $ writeIORef ref True
 
-putError :: Text -> SomeException -> IO ()
-putError prefix (SomeException e) =
-  print $ prefix <> show e -- unlines (lastN 2 $ lines $ show e)
-
-lastN :: Int -> [a] -> [a]
-lastN n = reverse . take n . reverse
-
-stderrMode = do
-  args <- getArgs
-  return $ "-e" `elem` args || "--stderr" `elem` args
-
 -- | Outputs errors to stderr if the `-e` flag is provided. Otherwise everything
 -- goes to stdout.
 outputMessage :: Bool -> Verbosity -> String -> IO ()
@@ -243,33 +275,21 @@ outputMessage mode verbosity text = do
 
 deckerShakeOptions :: ActionContext -> IO ShakeOptions
 deckerShakeOptions ctx = do
-  cores <- getNumCapabilities
-  toStderr <- stderrMode
+  let single = ThreadFlag `elem` (ctx ^. extra)
+  let toStderr = ErrorFlag `elem` (ctx ^. extra)
   return $
     shakeOptions
       { shakeFiles = transientDir,
         shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
-        shakeThreads = cores,
+        shakeThreads = if single then 1 else 0,
         shakeColor = not toStderr,
+        shakeStaunch = toStderr,
         shakeOutput = outputMessage toStderr,
-        shakeChange = ChangeModtimeAndDigest,
-        shakeStaunch = toStderr
+        shakeChange = ChangeModtimeAndDigest
         -- shakeLint = Just LintBasic,
-        -- shakeLint = Just LintFSATrace,
         -- shakeReport = [".decker/shake-report.html"],
         -- shakeChange = ChangeModtime,
       }
-
-waitForChange :: FilePath -> [FilePath] -> IO ()
-waitForChange inDir exclude =
-  Notify.withManager
-    ( \manager -> do
-        done <- newEmptyMVar
-        Notify.watchTree manager inDir filter (\e -> putMVar done ())
-        takeMVar done
-    )
-  where
-    filter event = not $ any (`isPrefixOf` Notify.eventPath event) exclude
 
 relativeSupportDir :: FilePath -> FilePath
 relativeSupportDir from = makeRelativeTo from supportDir
@@ -280,29 +300,12 @@ withShakeLock perform = do
   let resource = context ^. publicResource
   withResource resource 1 perform
 
--- |  Runs the built-in server on the given directory, if it is not already
---  running.
-runHttpServerIO :: ActionContext -> Int -> String -> IO ()
-runHttpServerIO context port bind = do
-  let ref = context ^. server
-  server <- readIORef ref
-  case server of
-    Just _ -> return ()
-    Nothing -> do
-      httpServer <- startHttpServer context port bind
-      writeIORef ref $ Just httpServer
-
 -- | Returns a list of all pages currently served, if any.
 currentlyServedPages :: Action [FilePath]
 currentlyServedPages = do
   context <- actionContext
-  let ref = context ^. server
-  server <- liftIO $ readIORef ref
-  case server of
-    Just (_, state) -> do
-      (_, pages) <- liftIO $ readMVar state
-      return $ Set.toList pages
-    Nothing -> return []
+  (_, pages) <- liftIO $ readMVar (context ^. server)
+  return $ toList pages
 
 openBrowser :: String -> IO ()
 openBrowser url =
@@ -341,3 +344,22 @@ runClean totally = do
     do
       putStrLn $ "# Removing " ++ transientDir
       tryRemoveDirectory transientDir
+
+pdfMsg =
+  [text|
+    # 
+    # To use 'decker pdf' Google Chrome has to be installed.
+    # 
+    # Windows: Currently 'decker pdf' does not work on Windows.
+    #   Please add 'print: true' or 'menu: true' to your slide deck and use
+    #   the print button on the title slide.
+    #
+    # MacOS: Follow the Google Chrome installer instructions.
+    #   'Google Chrome.app' has to be located in either of these locations
+    #
+    #   - '/Applications/Google Chrome.app' 
+    #   - '/Users/<username>/Applications/Google Chrome.app'
+    #
+    # Linux: 'chrome' has to be on $$PATH.
+    # 
+  |]
