@@ -260,11 +260,12 @@ function createGUI() {
   // color buttons
   penColors.forEach((color) => {
     let b = document.createElement("button");
-    b.className = "whiteboard fas fa-circle";
+    b.className = `whiteboard fas fa-circle pen-${color}`;
     b.onclick = () => {
       selectPenColor(color);
     };
-    b.style.color = color;
+    // b.style.color = color;
+    b.setAttribute("pen-color", color);
     colorPicker.appendChild(b);
   });
   // pen radius buttons
@@ -440,7 +441,12 @@ function createPenCursor() {
   cursorCanvas.height = width + 1;
 
   ctx.clearRect(0, 0, width, width);
-  ctx.fillStyle = ctx.strokeStyle = penColor;
+  // TODO: Color selection for the pen cursor does not work with arbitrary hex
+  // values. "red" works, "#ff0000" does, but "#fffd00" does not. Seems cursors
+  // do not have 8 bit color.
+  // let color = penColors.findIndex(e => e == penColor)
+  // ctx.fillStyle = ctx.strokeStyle = Decker.meta.palette.colors[color];
+  ctx.fillStyle = ctx.strokeStyle = "darkgray";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
@@ -514,7 +520,8 @@ function selectTool(newTool) {
   switch (tool) {
     case PEN:
       buttonPen.dataset.active = true;
-      buttonPen.style.color = penColor;
+      // buttonPen.style.color = penColor;
+      buttonPen.setAttribute("pen-color", penColor);
       selectCursor(penCursor);
       break;
 
@@ -551,7 +558,8 @@ function hideColorPicker() {
 function selectPenColor(col) {
   hideColorPicker();
   penColor = col;
-  buttonPen.style.color = penColor;
+  // buttonPen.style.color = penColor;
+  buttonPen.setAttribute("pen-color", penColor);
   createPenCursor();
   selectCursor(penCursor);
 }
@@ -1114,7 +1122,8 @@ function startStroke(evt) {
     stroke.classList.add("laser");
   } else {
     pushUndoHistory("paint stroke");
-    stroke.style.stroke = penColor;
+    stroke.classList.add(`pen-${penColor}`);
+    // stroke.style.stroke = penColor;
     stroke.style.strokeWidth = penWidth + "px";
   }
 

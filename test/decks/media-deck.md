@@ -1,6 +1,5 @@
 ---
 highlight-style: pygments
-highlightjs: xcode
 subtitle: Clean. Consistent. Robust.
 title: New Style Media Handling
 ---

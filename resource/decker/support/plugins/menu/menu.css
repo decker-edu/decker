@@ -306,10 +306,14 @@
  */
 .reveal .slide-menu-button {
   position: fixed;
-  left: 30px;
-  bottom: 30px;
+  font-size: var(--icon-size);
+  width: calc(var(--icon-size) * 2);
+  height: calc(var(--icon-size) * 2);
+  left: calc(var(--icon-size) * 0.1);
+  top: calc(var(--icon-size) * 0.1);
+  padding: calc(var(--icon-size) * 0.1);
+  margin: calc(var(--icon-size) * 0.2);
   z-index: 30;
-  font-size: 24px;
 }
 
 /*
