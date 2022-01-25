@@ -32,6 +32,21 @@ $endif$
   <style>
     $styles.html()$
   </style>
+  <!-- Default values for CSS variables can live here. They can be overridden by
+  meta data values. -->
+  <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
+  <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
+  into a style sheet. Default values can come from `variables.css`. -->
+  <style class="css-declarations">
+    :root {
+    $for(css-color-declarations)$
+      $css-color-declarations$
+    $endfor$
+    $for(css-declarations)$
+      $css-declarations$
+    $endfor$
+    }
+  </style>
   <link rel="stylesheet" href="$decker-support-dir$/css/handout.css">
 $for(css)$
   <link rel="stylesheet" href="$css$" />

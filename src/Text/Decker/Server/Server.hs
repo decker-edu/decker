@@ -3,10 +3,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Text.Decker.Server.Server
-  ( startHttpServer,
-    stopHttpServer,
-    startServerForeground,
+  ( -- startHttpServer,
+    -- stopHttpServer,
+    -- startServerForeground,
     reloadClients,
+    runHttpServer,
+    aPort,
+    aBind
   )
 where
 
@@ -22,7 +25,6 @@ import Data.List
 import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as Text
-import GHC.IORef (readIORef)
 import Network.WebSockets
 import Network.WebSockets.Snap
 import Snap.Core
@@ -55,8 +57,8 @@ serverConfig port bind = do
         Config Snap a
     )
 
-initState :: IO (MVar ServerState)
-initState = newMVar ([], Set.fromList ["index.html"])
+-- initState :: IO (MVar ServerState)
+-- initState = newMVar ([], Set.fromList ["index.html"])
 
 addClient :: MVar ServerState -> Client -> IO ()
 addClient state client = modifyMVar_ state add
@@ -79,8 +81,8 @@ addPage state page = modifyMVar_ state add
             else pages
         )
 
-reloadAll :: MVar ServerState -> IO ()
-reloadAll state = withMVar state (mapM_ reload . fst)
+reloadClients :: MVar ServerState -> IO ()
+reloadClients server = withMVar server (mapM_ reload . fst)
   where
     reload :: Client -> IO ()
     reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
@@ -94,11 +96,21 @@ installSSLCert = do
   BS.writeFile (transientDir </> "decker-ssl.crt") sslCert
   BS.writeFile (transientDir </> "decker-ssl.key") sslKey
 
+aPort :: Flags -> Bool
+aPort (PortFlag _) = True
+aPort _ = False
+
+aBind :: Flags -> Bool
+aBind (BindFlag _) = True
+aBind _ = False
+
 -- Runs the server. Never returns.
-runHttpServer :: ActionContext -> MVar ServerState -> Int -> String -> IO ()
-runHttpServer context state port bind = do
+runHttpServer :: ActionContext -> IO ()
+runHttpServer context = do
+  let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
+  let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
   installSSLCert
-  config <- serverConfig port bind
+  let state = context ^. server
   let routes =
         route
           [ ("/reload", runWebSocketsSnap $ reloader state),
@@ -110,12 +122,8 @@ runHttpServer context state port bind = do
             ("/upload", method POST $ uploadFiles ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"])
           ]
   startUpdater state
-  catch
-    (simpleHttpServe config routes)
-    ( \(SomeException e) -> do
-        putStrLn $ "HTTP server not started on port " <> show port
-        putStrLn $ "  " <> show e
-    )
+  config <- serverConfig port bind
+  simpleHttpServe config routes
 
 tenSeconds = 10 * 10 ^ 6
 
@@ -215,7 +223,7 @@ serveSupport context state =
   if context ^. devRun
     then do
       path <- getSafePath
-      meta <- liftIO $ readIORef (context ^. globalMeta)
+      let meta = context ^. globalMeta
       sources <- liftIO $ deckerResources meta
       serveResource sources ("support" </> path)
       modifyResponse $ addHeader "Cache-Control" "no-store"
@@ -235,26 +243,29 @@ serveResource (Resources decker pack) path = do
       modifyResponse $ setContentType (fileType defaultMimeTypes (takeFileName path))
       writeBS content
 
--- | Starts the decker server. Never returns.
-startServerForeground :: ActionContext -> Int -> String -> IO ()
-startServerForeground context port bind = do
-  state <- initState
-  runHttpServer context state port bind
+-- -- | Starts the decker server. Never returns.
+-- startServerForeground :: ActionContext -> Int -> String -> IO ()
+-- startServerForeground context port bind = do
+--   state <- initState
+--   runHttpServer context state port bind
 
--- | Starts a server in a new thread and returns the thread id.
-startHttpServer :: ActionContext -> Int -> String -> IO Server
-startHttpServer context port bind = do
-  state <- initState
-  threadId <- forkIO $ runHttpServer context state port bind
-  return (threadId, state)
+-- -- | Starts a server in a new thread and returns the thread id.
+-- startHttpServer :: ActionContext -> Int -> String -> IO Server
+-- startHttpServer context port bind = do
+--   state <- initState
+--   channel <- atomically newTChan
+--   threadId <- forkIO $ do
+--     catchAll
+--       (runHttpServer context state port bind)
+--       ( \(SomeException e) -> do
+--           putStrLn $ "HTTP could not be started on port " <> show port
+--           atomically $ writeTChan (context ^. actionChan) (PortInUse port)
+--       )
+--   return $ Server threadId state
 
--- | Sends a reload messsage to all attached clients
-reloadClients :: Server -> IO ()
-reloadClients = reloadAll . snd
-
--- | Kills the server.
-stopHttpServer :: Server -> IO ()
-stopHttpServer = killThread . fst
+-- -- | Kills the server.
+-- stopHttpServer :: Server -> IO ()
+-- stopHttpServer = killThread . _threadId
 
 -- Accepts a request and adds the connection to the client list. Then reads the
 -- connection forever. Removes the client from the list on disconnect.

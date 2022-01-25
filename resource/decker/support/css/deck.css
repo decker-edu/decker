@@ -9,14 +9,6 @@ Margins, colors, fonts and stuff should be defined here. */
 @import url("./style.css");
 @import url("./media.css");
 
-:root {
-  /* Icon settings */
-  --icon-active-color: var(--primary-color);
-  --icon-hover-color: var(--hover-color);
-  --icon-inactive-color: lightgrey;
-  --icon-size: 2vmin;
-}
-
 /* Box sizing is much nicer for calculations. */
 body {
   box-sizing: border-box;
@@ -24,37 +16,23 @@ body {
 
 /* Margins and spacing */
 
-/* 
-  Try this for block elements that stack vertically:
-
-    - Only ever add a bottom margin
-    - The bottom margin is always the same
-    - Do not add a bottom margin to the last child
-*/
-:root {
-  --vertical-margin: 0.1em;
-}
-
 /* Text */
 body {
   font-family: sans-serif;
   font-size: 38px;
-  color: black;
+  color: var(--foreground-color);
+  background-color: var(--background-color);
 }
 
-/* Override whatever reveal setz here. */
+/* Override whatever reveal sets here. */
 .reveal-viewport {
   line-height: 1.2;
+  color: var(--foreground-color);
+  background-color: var(--background-color);
 }
 
 h1.title {
   padding: 0;
-}
-
-/* TODO Not yet working. I forgot how the slide background color was set here through
-reveal. */
-.inverse {
-  color: #eee;
 }
 
 /* Menu icon in top left corner */
@@ -131,14 +109,13 @@ div.block[popup="center-down"] {
 
 /* Giving up. Centering this at the bottom. */
 .reveal .slide-number {
-  font-size: 0.6rem;
-  margin: 0;
+  font-size: 1rem;
+  margin: 0.1rem;
   text-align: center;
 
   left: 50%;
   bottom: var(--controls-gap);
   transform: translate(-50%, 0);
-  width: 10em;
 
   background-color: rgba(0, 0, 0, 0);
   opacity: 0.5;
@@ -170,17 +147,5 @@ div.block[popup="center-down"] {
 }
 .reveal .slide-number a,
 .reveal .slide-number a:hover {
-  color: black;
-}
-
-/* links */
-a {
-  color: var(--primary-color);
   text-decoration: none;
-}
-
-a:hover {
-  color: var(--hover-color);
-  text-shadow: none;
-  border: none;
 }

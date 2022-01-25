@@ -1,10 +1,10 @@
 /* colors for active/inactive buttons 
  * active color is also used for additional page indicator */
 :root {
-  --whiteboard-icon-size: 2vmin;
-  --whiteboard-active-color: #2a9ddf;
-  --whiteboard-inactive-color: lightgrey;
-  --whiteboard-background-color: rgb(250, 250, 250);
+  --whiteboard-icon-size: var(--icon-size);
+  --whiteboard-active-color: var(--icon-active-color);
+  --whiteboard-inactive-color: var(--icon-inactive-color);
+  --whiteboard-background-color: var(--background-color);
 }
 
 /* vertically center slides (override Reveal's mechanism) */
@@ -44,7 +44,7 @@
 /* the animation for indicating additional pages on the bottom */
 @keyframes pulseBorder {
   from {
-    border-bottom: 5px dotted #ffffff00;
+    border-bottom: 5px dotted var(--background-color);
   }
   to {
     border-bottom: 5px dotted var(--whiteboard-active-color);
@@ -58,7 +58,7 @@
   animation-timing-function: ease;
   animation-direction: alternate;
   animation-duration: 0.5s;
-  border-bottom: 5px dotted #ffffff00;
+  border-bottom: 5px dotted var(--background-color);
 }
 
 /* have to show overflow when in Reveal's overview mode */
@@ -123,9 +123,6 @@
 .reveal button.whiteboard[data-active="true"] {
   color: var(--whiteboard-active-color);
 }
-.reveal button.whiteboard[data-active="true"] {
-  color: var(--whiteboard-active-color);
-}
 .reveal button.whiteboard.checkbox[data-active="false"],
 .reveal button.whiteboard.radiobutton[data-active="false"] {
   border: 1px solid var(--whiteboard-inactive-color);
@@ -151,7 +148,7 @@
   z-index: 40;
   border-radius: calc(var(--whiteboard-icon-size) * 0.5);
   border: 1px solid transparent;
-  background: white;
+  background: var(--base01);
   left: calc(var(--whiteboard-icon-size) * 0.25);
   bottom: calc(var(--whiteboard-icon-size) * 0.25);
   display: flex;
@@ -161,7 +158,6 @@
 body.print-pdf #whiteboardButtons {
   display: none;
 }
-
 
 /* buttons are not shown... */
 #whiteboardButtons > button {
@@ -184,9 +180,9 @@ body.print-pdf #whiteboardButtons {
   padding: 5px;
   margin: 0;
   z-index: 40;
-  border: 1px solid #eeeeee;
+  border: 1px solid var(--base05);
   border-radius: calc(var(--whiteboard-icon-size) * 0.5);
-  background: var(--whiteboard-background-color);
+  background: var(--base01);
   left: calc(var(--whiteboard-icon-size) * 2.5);
   bottom: calc(var(--whiteboard-icon-size) * 4);
   visibility: hidden;
@@ -204,7 +200,7 @@ body.print-pdf #whiteboardButtons {
   height: calc(var(--whiteboard-icon-size) * 1.5);
   text-align: center;
   vertical-align: middle;
-  color: black;
+  color: var(--base06);
 }
 
 /* MacOS only shows scrollbars when they are used.
@@ -226,4 +222,90 @@ body.print-pdf #whiteboardButtons {
 }
 .reveal .slides.active::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.4);
+}
+
+/* Pen colors */
+
+path.pen-blue {
+  stroke: var(--base08);
+}
+
+path.pen-red {
+  stroke: var(--base09);
+}
+
+path.pen-green {
+  stroke: var(--base0A);
+}
+
+path.pen-cyan {
+  stroke: var(--base0B);
+}
+
+path.pen-magenta {
+  stroke: var(--base0C);
+}
+
+path.pen-yellow {
+  stroke: var(--base0D);
+}
+
+path.pen-black {
+  stroke: var(--base0E);
+}
+
+#whiteboardColorPicker button.whiteboard.pen-blue {
+  color: var(--base08);
+}
+
+#whiteboardColorPicker button.whiteboard.pen-red {
+  color: var(--base09);
+}
+
+#whiteboardColorPicker button.whiteboard.pen-green {
+  color: var(--base0A);
+}
+
+#whiteboardColorPicker button.whiteboard.pen-cyan {
+  color: var(--base0B);
+}
+
+#whiteboardColorPicker button.whiteboard.pen-magenta {
+  color: var(--base0C);
+}
+
+#whiteboardColorPicker button.whiteboard.pen-yellow {
+  color: var(--base0D);
+}
+
+#whiteboardColorPicker button.whiteboard.pen-black {
+  color: var(--base0E);
+}
+
+.reveal button.whiteboard[data-active="true"][pen-color="blue"] {
+  color: var(--base08);
+}
+
+.reveal button.whiteboard[data-active="true"][pen-color="red"] {
+  color: var(--base09);
+}
+
+.reveal button.whiteboard[data-active="true"][pen-color="green"] {
+  color: var(--base0A);
+}
+
+.reveal button.whiteboard[data-active="true"][pen-color="cyan"] {
+  color: var(--base0B);
+}
+
+.reveal button.whiteboard[data-active="true"][pen-color="magenta"] {
+  color: var(--base0C);
+}
+
+.reveal button.whiteboard[data-active="true"][pen-color="yellow"] {
+  color: var(--base0D);
+}
+
+.reveal button.whiteboard[data-active="true"][pen-color="black"] {
+  color: var(--base0E);
 }

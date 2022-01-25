@@ -41,6 +41,7 @@ import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
+import Text.Decker.Writer.CSS (computeCssColorVariables, computeCssVariables)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc
 import Text.Pandoc.Shared
@@ -53,11 +54,16 @@ readAndFilterMarkdownFile disp globalMeta path = do
   let docBase = takeDirectory path
   readMarkdownFile globalMeta path
     >>= mergeDocumentMeta globalMeta
+    >>= processMeta
     >>= processCites
     >>= calcRelativeResourcePaths docBase
     >>= runNewFilter disp examinerFilter docBase
     >>= deckerMediaFilter disp docBase
     >>= processPandoc (deckerPipeline disp) docBase disp Copy
+
+processMeta (Pandoc meta blocks) = do
+  let processed = computeCssColorVariables $ computeCssVariables meta
+  return (Pandoc processed blocks)
 
 -- |  TODO: Provide default CSL data from the resources if csl: is not set. This
 --  is not really trivial.

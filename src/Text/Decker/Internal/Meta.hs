@@ -245,6 +245,9 @@ instance FromMetaValue Bool where
 instance FromMetaValue Int where
   fromMetaValue value = (fromMetaValue value :: Maybe String) >>= readMaybe
 
+instance FromMetaValue Float where
+  fromMetaValue value = (fromMetaValue value :: Maybe String) >>= readMaybe
+
 instance FromMetaValue Text where
   fromMetaValue (MetaString string) = Just string
   fromMetaValue (MetaInlines inlines) = Just $ stringify inlines
