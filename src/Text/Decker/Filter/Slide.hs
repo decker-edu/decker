@@ -148,6 +148,7 @@ fromSlidesD slides = do
       rid <- emptyId
       return $ Header 1 (rid, [], []) [] : body
     wrapVerticals [] = []
+    wrapVerticals [one] = [one]
     wrapVerticals verticals =
       [tag "section" (Div ("", ["vertical"], []) verticals)]
     wrap (id, cls, kvs) blocks =
