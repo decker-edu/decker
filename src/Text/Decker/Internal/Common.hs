@@ -70,14 +70,20 @@ data Provisioning
 pandocWriterOpts :: WriterOptions
 pandocWriterOpts =
   def
-    { writerExtensions = (enableExtension Ext_emoji) pandocExtensions,
+    { writerExtensions =
+        disableExtension Ext_smart $
+          enableExtension Ext_emoji pandocExtensions,
       writerSectionDivs = False
     }
 
 -- | Standard Pandoc + Emoji support
 pandocReaderOpts :: ReaderOptions
 pandocReaderOpts =
-  def {readerExtensions = (enableExtension Ext_emoji) pandocExtensions}
+  def
+    { readerExtensions =
+        disableExtension Ext_smart $
+          enableExtension Ext_emoji pandocExtensions
+    }
 
 projectDir = "."
 

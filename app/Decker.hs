@@ -31,7 +31,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
-import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Project.Version
@@ -39,8 +38,8 @@ import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Decker.Writer.Html
-import Text.Decker.Writer.Layout
 import Text.Decker.Writer.Pdf
+import Text.Decker.Writer.Layout
 import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc hiding (lookupMeta)
@@ -78,43 +77,22 @@ needSel sel = needSels [sel]
 needSels sels targets = need (concatMap (targets ^.) sels)
 
 run :: IO ()
-run = runWithFlags []
-
-runWithFlags :: [Flags] -> IO ()
-runWithFlags flags = do
+run = do
   warnVersion
   let serverPort = 8888
   let serverUrl = "http://localhost:" ++ show serverPort
   let indexSource = "index.md"
   let generatedIndexSource = transientDir </> "index.md.generated"
   let indexFile = publicDir </> "index.html"
-  let pdfMsg =
-        Text.unpack
-          [text|
-          # 
-          # To use 'decker pdf' Google Chrome has to be installed.
-          # 
-          # Windows: Currently 'decker pdf' does not work on Windows.
-          #   Please add 'print: true' or 'menu: true' to your slide deck and use
-          #   the print button on the title slide.
-          #
-          # MacOS: Follow the Google Chrome installer instructions.
-          #   'Google Chrome.app' has to be located in either of these locations
-          #
-          #   - '/Applications/Google Chrome.app' 
-          #   - '/Users/<username>/Applications/Google Chrome.app'
-          #
-          # Linux: 'chrome' has to be on $$PATH.
-          # 
-        |]
   --
-  runDecker flags $ do
+  runDecker $ do
     (getGlobalMeta, getTargets, getTemplate) <- prepCaches
     want ["html"]
     addHelpSuffix "Commands:"
     addHelpSuffix "  - clean - Remove all generated files."
     addHelpSuffix "  - example - Create an example project."
     addHelpSuffix "  - serve - Start just the server."
+    addHelpSuffix "  - pdf - Build PDF versions of all decks (*-deck.md)."
     addHelpSuffix ""
     addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
     --
@@ -150,12 +128,10 @@ runWithFlags flags = do
       phony "html" $ do
         need ["support"]
         getTargets >>= needSels [decks, pages, handouts]
-    --
-    withTargetDocs "Build PDF versions of all decks (*-deck.md)." $
-      phony "pdf" $ do
-        putInfo pdfMsg
-        need ["support"]
-        getTargets >>= needSel decksPdf
+    --    
+    phony "pdf" $ do
+      need ["support"]
+      getTargets >>= needSel decksPdf
     --
     withTargetDocs "Compile global search index." $
       phony "search-index" $ do
@@ -187,19 +163,17 @@ runWithFlags flags = do
         need [src]
         meta <- getGlobalMeta
         markdownToHtml htmlDeck meta getTemplate src out
-      --
+      
       publicDir <//> "*-deck.pdf" %> \out -> do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         let url = serverUrl </> makeRelative publicDir src
         need [src]
-        context <- actionContext
-        liftIO $ runHttpServerIO context serverPort "localhost"
         putInfo $ "# chrome started ... (for " <> out <> ")"
         result <- liftIO $ launchChrome url out
         case result of
           Right _ -> putInfo $ "# chrome finished (for " <> out <> ")"
           Left msg -> error msg
-      --
+      
       publicDir <//> "*-handout.html" %> \out -> do
         src <- calcSource "-handout.html" "-deck.md" out
         meta <- getGlobalMeta

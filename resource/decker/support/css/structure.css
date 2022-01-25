@@ -2,13 +2,6 @@
 regarding colors, fonts, sizes and lengths. It is included from deck.css,
 page.css and handout.css. */
 
-/* These are just for internal calculations */
-:root {
-  --list-indent: 1.5em;
-  --block-border-width: 0.2em;
-  --block-outset: 0.5rem;
-}
-
 /* Reset Reveal CSS to sane values */
 .reveal .slides {
   text-align: left;

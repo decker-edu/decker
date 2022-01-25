@@ -20,7 +20,7 @@ reveal:
   transition: "none"
   width: 1280
   height: 720
-  viewDistance: 1
+  viewDistance: 2
 
 chart:
   defaults:

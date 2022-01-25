@@ -1,13 +1,7 @@
 /* Style CSS for slides that is also used in pages and handouts. */
 
 :root {
-  /* Nice colors */
-  --primary-color: #2a9ddf;
-  --secondary-color: orange;
-  --hover-color: #30b3ff;
-  --code-background-color: rgb(240, 240, 240);
-  /* From mario.css, this needs to be set everywhere so the flying focus has its color */
-  --emphColor: var(--primary-color);
+  --block-border-radius: 0.2em;
 }
 
 /* Inline code */
@@ -44,17 +38,23 @@ pre {
 h1 {
   font-size: 1.8em;
   font-weight: bold;
+  color: var(--base06);
 
   margin-top: 0;
   margin-bottom: var(--vertical-margin);
 }
 
-h2 {
+h2, summary {
   font-size: 1.2em;
   font-weight: bold;
+  color: var(--base06);
 
   margin-top: 0;
   margin-bottom: var(--vertical-margin);
+}
+
+summary {
+  cursor: pointer;
 }
 
 p {
@@ -100,6 +100,18 @@ figcaption {
   padding-top: calc(0.5 * var(--vertical-margin));
 }
 
+/* Links */
+a,
+a:visited,
+a:active {
+  color: var(--base0D);
+  text-decoration: underline;
+}
+a:hover {
+  color: var(--base09);
+  text-decoration: none;
+}
+
 /* Tables */
 table {
   font-size: 0.9em;
@@ -128,7 +140,8 @@ td {
 /* TODO Two highlighted blocks currently touch. Play with spacing here. */
 div.block {
   display: flow-root; /* Prevents margin collapse. Allows negative margin here. */
-  margin-bottom: calc(0 * var(--vertical-margin));
+  margin-bottom: calc(1 * var(--vertical-margin));
+  border-radius: var(--block-border-radius);
 }
 
 /* Stretch the block header margin to the block border so that highlighting
@@ -138,60 +151,91 @@ div.block h2 {
   margin-top: calc(-1 * var(--block-outset));
   margin-left: calc(-1 * var(--block-outset));
   margin-right: calc(-1 * var(--block-outset));
+  border-top-left-radius: var(--block-border-radius);
+  border-top-right-radius: var(--block-border-radius);
+}
+
+:not(:is(code, pre) span) {
+  border-radius: calc(var(--block-border-radius) / 1);
+  padding-left: 0.15em;
+  padding-right: 0.15em;
 }
 
 /* Highlight colors and borders. We need three colors for each highlight state:
 text, background and border. */
 div.block.primary {
-  background-color: #ddf;
-  border: var(--block-border-width) solid #bbf;
+  background-color: var(--base0D-bbg);
+  border: var(--block-border-width) solid var(--base0D);
 }
 div.block.primary h2 {
-  background-color: #bbf;
+  color: var(--base01);
+  background-color: var(--base0D);
+}
+span.primary {
+  color: var(--base0D);
 }
 
 div.block.secondary {
-  background-color: #eee;
-  border: var(--block-border-width) solid #bbb;
+  background-color: var(--base02);
+  border: var(--block-border-width) solid var(--base03);
 }
 div.block.secondary h2 {
-  background-color: #bbb;
+  color: var(--base01);
+  background-color: var(--base03);
+}
+span.secondary {
+  color: var(--base03);
 }
 
 div.block.success {
-  background-color: #dfd;
-  border: var(--block-border-width) solid #9f9;
+  background-color: var(--base0B-bbg);
+  border: var(--block-border-width) solid var(--base0B);
 }
 div.block.success h2 {
-  background-color: #9f9;
+  color: var(--base01);
+  background-color: var(--base0B);
+}
+span.success {
+  color: var(--base0B);
 }
 
 div.block.danger {
-  background-color: #fdd;
-  border: var(--block-border-width) solid rgb(159, 13, 0);
+  background-color: var(--base08-bbg);
+  border: var(--block-border-width) solid var(--base08);
 }
 div.block.danger h2 {
-  color: white;
-  background-color: rgb(159, 13, 0);
+  color: var(--base01);
+  background-color: var(--base08);
+}
+span.danger {
+  color: var(--base08);
 }
 
 div.block.warning {
-  background-color: #fed;
-  border: var(--block-border-width) solid #fdb;
+  background-color: var(--base09-bbg);
+  border: var(--block-border-width) solid var(--base09);
 }
 div.block.warning h2 {
-  background-color: #fdb;
+  color: var(--base01);
+  background-color: var(--base09);
+}
+span.warning {
+  color: var(--base09);
 }
 
 div.block.info {
-  background-color: #dff;
-  border: var(--block-border-width) solid #bff;
+  background-color: var(--base0E-bbg);
+  border: var(--block-border-width) solid var(--base0E);
 }
 div.block.info h2 {
-  background-color: #bff;
+  color: var(--base01);
+  background-color: var(--base0E);
+}
+span.info {
+  color: var(--base0E);
 }
 
-/* A block with centered text can look good at times. */
+/* A slide with centered text can look good at times. */
 div.block[align="center"] {
   text-align: center;
 }
@@ -202,16 +246,20 @@ div.block[align="right"] {
   text-align: right;
 }
 
-div.block.definition {
-  border: none;
-  border-right: calc(var(--block-border-width)) solid rgb(0,0,0,0);
-  border-left: calc(var(--block-border-width)) solid #0aa;
+/* A block with centered text can look good at times. */
+section[align="center"] {
+  text-align: center;
+}
+section[align="left"] {
+  text-align: left;
+}
+section[align="right"] {
+  text-align: right;
 }
 
-div.block.conclusion {
-  border: none;
-  border-right: calc(var(--block-border-width)) solid rgb(0,0,0,0);
-  border-left: calc(var(--block-border-width)) solid #a0a;
+[align="center"] table {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Source Code */
@@ -222,6 +270,7 @@ not.*/
 pre,
 span.pre {
   background-color: var(--code-background-color);
+  border-radius: var(--block-border-radius);
 }
 
 div.sourceCode > pre {
@@ -230,6 +279,6 @@ div.sourceCode > pre {
 
 /* Inverse colors */
 section.slide:is(.inverse, .black) {
-  background-color: black;
-  color: white;
+  background-color: var(--foreground-color);
+  color: var(--background-color);
 }

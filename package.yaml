@@ -43,6 +43,7 @@ dependencies:
   - blaze-svg
   - bytestring
   - containers
+  - colour
   - data-default
   - deepseq
   - directory
@@ -50,6 +51,7 @@ dependencies:
   - exceptions
   - extra
   - file-embed
+  - filelock
   - filepath
   - formatting
   - fsnotify
@@ -87,6 +89,7 @@ dependencies:
   - snap-core
   - snap-server
   - split
+  - stm
   - string-interpolate
   - system-filepath
   - tagsoup

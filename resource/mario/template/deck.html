@@ -133,6 +133,7 @@ $body$
     import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
     import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
     import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
+    import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
 
     let revealConfig = { 
       // reveal configuration (see https://revealjs.com/config/)
@@ -163,14 +164,12 @@ $body$
          menuPlugin,
          feedbackPlugin,
          highlightPlugin,
-         notesPlugin
+         notesPlugin,
+         a11yPlugin
       ]
     };
 
     Reveal.initialize(revealConfig);
-
-    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
-    setupFlyingFocus();
   </script>
 
 </body>

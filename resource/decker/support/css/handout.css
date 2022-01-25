@@ -9,6 +9,8 @@ body {
   font-family: sans-serif;
   font-size: 16px;
   max-width: 52em;
+  color: var(--foreground-color);
+  background-color: var(--background-color);
 }
 
 code {
