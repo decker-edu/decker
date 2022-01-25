@@ -1,7 +1,7 @@
 ---
 highlighting: pygments
-title: Color Palettes  
 menu: false
+title: Color Palettes
 ---
 
 # Color Palette {.columns}
@@ -72,7 +72,6 @@ palette:
 
 # Blocks {.columns}
 
-
 ## Primary {.primary .left}
 
 -   Some text or other
@@ -118,13 +117,15 @@ $e=mc^2$
 -   This is **more successful**
 -   This is [**critically successful**]{.success}
 
-## Math {.right .warning}
+## Math {.right .warning align="right"}
 
-Math always is both
+Math blocks are always right!
 
-$$
-{e=mc^2}
-$$
+$$ {e=mc^2} $$
+
+## Surely, you are joking {.secondary .fragment align="center"}
+
+[**Mr. Feynman**]{.info}
 
 --------------------------------------------------------------------------------
 
@@ -166,3 +167,7 @@ css-variables:
   --list-indent: 1.5em;
   ...
 ```
+
+---
+
+![](data/replacement-transform-1-quest.yaml){.question}

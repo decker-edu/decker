@@ -12,17 +12,10 @@ Margins, colors, fonts and stuff should be defined here. */
 /* Box sizing is much nicer for calculations. */
 body {
   box-sizing: border-box;
+  font-size: 38px;
 }
 
 /* Margins and spacing */
-
-/* Text */
-body {
-  font-family: sans-serif;
-  font-size: 38px;
-  color: var(--foreground-color);
-  background-color: var(--background-color);
-}
 
 /* Override whatever reveal sets here. */
 .reveal-viewport {
@@ -80,6 +73,7 @@ div.block[popup] {
   /* Positioned relative the div.alignment element. */
   position: absolute;
   box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+  z-index: 3000;
 }
 
 /* A centered block. This is very clever. */
@@ -89,7 +83,7 @@ div.block[popup="center"] {
   top: 50%;
   left: 50%;
   /* Percentages here are relative to the transformed element. */
-  transform: translate(-50%, -50%) scale(1.5);
+  transform: translate(-50%, -50%) scale(1);
   transform-origin: center;
 }
 
@@ -97,14 +91,14 @@ div.block[popup="center"] {
 div.block[popup="center-up"] {
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(-23deg) scale(1.5);
+  transform: translate(-50%, -50%) rotate(-23deg) scale(1);
 }
 
 /* A centered box that is also tilted down. */
 div.block[popup="center-down"] {
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(23deg) scale(1.5);
+  transform: translate(-50%, -50%) rotate(23deg) scale(1);
 }
 
 /* Giving up. Centering this at the bottom. */

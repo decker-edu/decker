@@ -8,7 +8,7 @@
       - The bottom margin is always the same
       - Do not add a bottom margin to the last child
   */
-  --vertical-margin: 0.1em;
+  --vertical-margin: 0.2em;
 
   /* These are just for internal calculations */
   --list-indent: 1.5em;
