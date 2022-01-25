@@ -28,6 +28,8 @@ $if(template.favicon)$
   <link rel="shortcut icon" href="$template.favicon$">
 $endif$
 
+  <link rel="stylesheet" href="$decker-support-dir$/fonts/Recursive/fonts.css">
+
   <!-- Default values for CSS variables can live here. They can be overridden by
   meta data values. -->
   <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
@@ -78,7 +80,6 @@ $endfor$
   </script>
 
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
-  <script src="$decker-support-dir$/vendor/chroma.min.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
 </head>
 
@@ -116,7 +117,7 @@ $body$
     import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
     import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
     import printPlugin from './$decker-support-dir$/plugins/print/print.js';
-    // import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
+    import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
     // import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
     import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
     import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
@@ -148,9 +149,9 @@ $endif$
          whiteboardPlugin,
          searchPlugin,
          printPlugin,
+         jinglesPlugin,
          quizWuePlugin,
          explainPlugin,
-// TODO Find why this crashes
          menuPlugin,
          feedbackPlugin,
 $if(highlightjs)$
