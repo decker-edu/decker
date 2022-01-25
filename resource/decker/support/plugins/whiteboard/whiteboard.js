@@ -284,14 +284,10 @@ function createGUI() {
     b.onclick = () => {
       selectPenColor(color);
     };
-<<<<<<< HEAD
     b.tooltip = color;
     b.setAttribute("aria-label", color);
-    b.style.color = color;
-=======
     // b.style.color = color;
     b.setAttribute("pen-color", color);
->>>>>>> a11y-manager
     colorPicker.appendChild(b);
   });
   // pen radius buttons
@@ -552,13 +548,9 @@ function selectTool(newTool) {
   switch (tool) {
     case PEN:
       buttonPen.dataset.active = true;
-<<<<<<< HEAD
       buttonPen.setAttribute("aria-checked", "true");
-      buttonPen.style.color = penColor;
-=======
       // buttonPen.style.color = penColor;
       buttonPen.setAttribute("pen-color", penColor);
->>>>>>> a11y-manager
       selectCursor(penCursor);
       break;
 
