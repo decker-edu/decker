@@ -1,0 +1,30 @@
+
+:root {
+  /* Icon settings */
+  --icon-size: 1rem;
+
+  /* Try this for block elements that stack vertically:
+
+      - Only ever add a bottom margin
+      - The bottom margin is always the same
+      - Do not add a bottom margin to the last child
+  */
+  --vertical-margin: 0.2em;
+
+  /* These are just for internal calculations */
+  --list-indent: 1.5em;
+  --block-border-width: 0em;
+  --block-outset: 0.5rem;
+
+  /* Semantic color defaults from the palette. There is no need to use the
+     current palette. Colors can be set arbitrarily. */
+  --background-color: var(--shade0);
+  --foreground-color: var(--shade7);
+  --header-color: var(--shade6);
+  --primary-color: var(--accent5);
+  --secondary-color: var(--accent1);
+  --icon-active-color: var(--accent5);
+  --icon-inactive-color: var(--shade3);
+  --hover-color: var(--accent5-bg);
+  --code-background-color: var(--shade1);
+}
