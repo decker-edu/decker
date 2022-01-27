@@ -1,5 +1,6 @@
 ---
-title: Code Hightlighing with Highlight.js
+title: Code Hightlighing 
+subtitle: With Highlight.js
 highlightjs: atom-one-light
 ---
 
@@ -70,4 +71,43 @@ color,vcomb(s->kl,U,black))));}main(){printf("%d %d\n",32,32);while(yx<32*32)
 U.x=yx%32-32/2,U.z=32/2-yx++/32,U.y=32/2/tan(25/114.5915590261),U=vcomb(255.,
 trace(3,black,vunit(U)),black),printf("%.0f %.0f %.0f\n",U);}/*minray!*/
 ```
+
+# Basic Ray Tracer
+
+## Highlight some lines (Reveal style)
+
+``` {.cpp line-numbers="1,3,5-6"}
+// the main ray tracing loop
+for (unsigned int y=0; y < camera.height; ++y)
+{
+    for (unsigned int x=0; x < camera.width; ++x)
+    {
+        // generate primary ray for pixel (x,y)
+        Ray ray = camera.primary_ray(x,y);
+
+        // trace ray and write color to image
+        image(x,y) = trace(ray, 0);
+    }
+}
+```
+
+# Basic Ray Tracer
+
+## Highlight some lines (incremental)
+
+``` {.cpp line-numbers="1|3|5-6"}
+// the main ray tracing loop
+for (unsigned int y=0; y < camera.height; ++y)
+{
+    for (unsigned int x=0; x < camera.width; ++x)
+    {
+        // generate primary ray for pixel (x,y)
+        Ray ray = camera.primary_ray(x,y);
+
+        // trace ray and write color to image
+        image(x,y) = trace(ray, 0);
+    }
+}
+```
+
 

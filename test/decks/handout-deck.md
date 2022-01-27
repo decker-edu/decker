@@ -2,7 +2,6 @@
 author: Henrik Tramberend
 copyright: Copyright 2019
 date: '2019-10-19'
-menu: True
 showNotes: True
 subtitle: Generate handouts from slide source
 title: Handout Test
@@ -10,6 +9,7 @@ title-prefix: Decker
 quiz:
   style: plain
 ---
+
 # Notes
 
 ## Currently
@@ -75,22 +75,13 @@ quiz:
 
 ![](include/06-metal.png)
 
-# Content tagged `notes` {.notes}
-
-## Speaker Notes
-
--   The content of this slide is included as speaker notes
--   It is not included in handouts
--   It is not visible in decks right away
-
-![](include/06-metal.png)
-
 # Content tagged `notes`
 
 ## This slide contains speaker notes
 
 -   The second paragraph contains speaker notes
 -   Speaker Notes are not visible in decks and handouts
+
 
 ## Speaker Notes {.notes}
 
@@ -148,61 +139,4 @@ quiz:
 | This |   is| just |    a| table |
 | This |   is| just |    a| table |
 | This |   is| just |    a| table |
-
-# Matching Questions
-
-## {.qmi}
-
-A
-: drag to A
-
-Haskell 
-: ![](include/06-metal.png)
-
-B
-: drag to B
-
-decker
-: [decker](http://go.uniwue.de/decker)
-
-C
-: $\Leftarrow$ C
-
-# Freetext Questions {layout="columns"}
-
-## {.left .qft} 
-
-$2*2=~?$ 
-
-- 4
-    - Die perfekte Lösung 
-
-
-##  {.qft}
-
-The Answer to the Ultimate Question of Life, the Universe, and Everything is ...?
-
-- 42
-
-## {.right .qft}
-
-Is this a question? 
-
-- yes
-
-## {.qft}
-
-Name the capital of Germany
-
-- Berlin 
-
-# Multiple Choice Questions
-
-## Question: Which file format does decker use? {.qmc}
-
-- [ ] .docx
-- [ ] .csv
-- [ ] .xml
-- [X] .md
-
 

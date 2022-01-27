@@ -17,13 +17,13 @@
 
   /* Semantic color defaults from the palette. There is no need to use the
      current palette. Colors can be set arbitrarily. */
-  --background-color: var(--base00);
-  --foreground-color: var(--base07);
-  --header-color: var(--base06);
-  --primary-color: var(--base0D);
-  --secondary-color: var(--base09);
-  --icon-active-color: var(--base0D);
-  --icon-inactive-color: var(--base03);
-  --hover-color: var(--base0D-bg);
-  --code-background-color: var(--base01);
+  --background-color: var(--shade0);
+  --foreground-color: var(--shade7);
+  --header-color: var(--shade6);
+  --primary-color: var(--accent5);
+  --secondary-color: var(--accent1);
+  --icon-active-color: var(--accent5);
+  --icon-inactive-color: var(--shade3);
+  --hover-color: var(--accent5-bg);
+  --code-background-color: var(--shade1);
 }

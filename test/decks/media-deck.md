@@ -164,13 +164,13 @@ Should `align with`{.javascript} neighbors.
 
 All right! [:fas](arrow-right)
 
-## One slightly longer line. {.right .primary}
+## One slightly longer line. {.right .accent0}
 
 One slightly longer line.
 
 Should align with.
 
-## [:fas](arrow-left) Should align {.secondary}
+## [:fas](arrow-left) Should align {.accent1}
 
 -   One slightly longer line.
 
@@ -178,21 +178,21 @@ Should align with.
 
 [:fas](arrow-left) All right!
 
-## Three {.success .fragment popup="center-up"}
+## Three {.accent3 .fragment popup="center-up"}
 
 1.  Three 🍔🍔🍔
 2.  Four 🍺🍺🍺🍺
 
-## Source code is always nice {.danger .fragment popup="center-down" width="50%"}
+## Source code is always nice {.accent0 .fragment popup="center-down" width="50%"}
 
 ``` markdown
-## Three {popup="center-up" .fragment .success}
+## Three {popup="center-up" .fragment .accent3}
 
 1.  Three 🍔🍔🍔
 2.  Four 🍺🍺🍺🍺
 ```
 
-## How is my driving? {.secondary .fragment popup="center" align="center"}
+## How is my driving? {.accent4 .fragment popup="center" align="center"}
 
 Too flashy?
 
