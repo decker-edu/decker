@@ -12,30 +12,30 @@ import Data.Colour
 import Data.Colour.SRGB
 import qualified Data.Map.Strict as Map
 import Data.Maybe
+import qualified Data.Text as Text
 import Relude
 import Text.Decker.Internal.Meta
 import Text.Pandoc (Meta)
 import Text.Printf
 
--- Solarized light (https://ethanschoonover.com/solarized/)
 defaultPalette :: [String]
 defaultPalette =
-  [ "#fdf6e3",
-    "#eee8d5",
-    "#93a1a1",
-    "#839496",
-    "#657b83",
-    "#586e75",
-    "#073642",
-    "#002b36",
-    "#dc322f",
-    "#cb4b16",
-    "#b58900",
-    "#859900",
-    "#2aa198",
-    "#268bd2",
-    "#6c71c4",
-    "#d33682"
+  [ "ffffff",
+    "dddddd",
+    "bbbbbb",
+    "999999",
+    "777777",
+    "555555",
+    "333333",
+    "000000",
+    "e6261f",
+    "eb7532",
+    "f7d038",
+    "a3e048",
+    "49da9a",
+    "34bbe6",
+    "4355db",
+    "d23be7"
   ]
 
 -- | Tries to read the 16 value color palette from the meta data and computes
@@ -62,34 +62,42 @@ computeCssColorVariables meta =
       colors = map sRGB24read palette
       bg = fromJust $ colors !!? 0
       fg = fromJust $ colors !!? 7
-      set colors i color = Map.insert (printfT "base%0.2x" i) (toHex color) colors
-      derive colors i color =
-        Map.union colors $
-          Map.fromList
-            [ (printfT "base%0.2X-bbg" i, toHex (blend (2 * contrast) bg color)),
-              (printfT "base%0.2X-bg" i, toHex (blend contrast bg color)),
-              (printfT "base%0.2X" i, toHex color),
-              (printfT "base%0.2X-fg" i, toHex (blend contrast fg color)),
-              (printfT "base%0.2X-ffg" i, toHex (blend (2 * contrast) fg color))
-            ]
-      base :: Map Text Text = foldi set Map.empty (0 :: Int) $ colors
-      shades :: Map Text Text =
-        -- Derivations of fore- and background colors are taken from the adjacent
-        -- base shades.
-        Map.union
-          ( Map.fromList
-              [ ("base00-fg", "var(--base01)"),
-                ("base00-ffg", "var(--base02)"),
-                ("base07-bg", "var(--base06)"),
-                ("base07-bbg", "var(--base05)")
-              ]
-          )
-          (foldi set Map.empty (0 :: Int) $ take 8 colors)
-      accents :: Map Text Text = foldi derive Map.empty (8 :: Int) $ drop 8 colors
+      name i post =
+        let pre = if i < 7 then "shade" else "accent"
+            base = (pre <> show (i `mod` 8))
+         in if Text.null post then base else base <> "-" <> post
+      deriveShades colors i color =
+        let c = toHex color
+         in Map.union colors $
+              Map.fromList
+                [ (printfT "base%0.2X" i, c),
+                  (name i "", c)
+                ]
+      deriveAccents colors i color =
+        let cBbg = toHex (blend (2 * contrast) bg color)
+            cBg = toHex (blend contrast bg color)
+            c = toHex color
+            cFg = toHex (blend contrast fg color)
+            cFfg = toHex (blend (2 * contrast) fg color)
+         in Map.union colors $
+              Map.fromList
+                [ (printfT "base%0.2X-bbg" i, cBbg),
+                  (printfT "base%0.2X-bg" i, cBg),
+                  (printfT "base%0.2X" i, c),
+                  (printfT "base%0.2X-fg" i, cFg),
+                  (printfT "base%0.2X-ffg" i, cFfg),
+                  (name i "bbg", cBbg),
+                  (name i "bg", cBg),
+                  (name i "", c),
+                  (name i "fg", cFg),
+                  (name i "ffg", cFfg)
+                ]
+      shades :: Map Text Text = (foldi deriveShades Map.empty (0 :: Int) $ take 8 colors)
+      accents :: Map Text Text = foldi deriveAccents Map.empty (8 :: Int) $ drop 8 colors
       existing :: Map Text Text = lookupMetaOrElse Map.empty "css-colors" meta
       -- Map.union ist left-biased. Does not overwrite colors that have been set
       -- by other means.
-      cssColors = foldl' Map.union Map.empty [existing, base, shades, accents]
+      cssColors = foldl' Map.union Map.empty [existing, shades, accents]
       cssColorDeclarations = toDeclarations cssColors
    in setMetaValue "css-color-declarations" cssColorDeclarations $ setMetaValue "css-colors" cssColors meta
 
