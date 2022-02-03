@@ -6,7 +6,6 @@ import Text.Decker.Internal.URI
 import WatchTests
 import ShortLinkTests
 import IncludeTests
-import MediaTests
 import MetaTests
 
 import System.FilePath.Posix
@@ -21,7 +20,6 @@ main = do
   hspec $ do
     shortLinkTests
     includeTests
-    mediaTests
     metaTests
     watchTests
     describe "makeRelativeTo" $

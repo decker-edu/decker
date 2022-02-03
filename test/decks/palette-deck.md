@@ -1,7 +1,8 @@
 ---
-highlighting: pygments
-title: Color Palettes  
+# highlighting: pygments
+# highlightjs: solarized-dark
 menu: false
+title: Color Palettes
 ---
 
 # Color Palette {.columns}
@@ -50,8 +51,6 @@ palette:
 | [base0E]{style="background-color:var(--base0E-ffg);"} | [base0E]{style="background-color:var(--base0E-fg);"} | [base0E]{style="background-color:var(--base0E);"} | [base0E]{style="background-color:var(--base0E-bg);"} | [base0E]{style="background-color:var(--base0E-bbg);"} |
 | [base0F]{style="background-color:var(--base0F-ffg);"} | [base0F]{style="background-color:var(--base0F-fg);"} | [base0F]{style="background-color:var(--base0F);"} | [base0F]{style="background-color:var(--base0F-bg);"} | [base0F]{style="background-color:var(--base0F-bbg);"} |
 
-: [gruvbox](https://github.com/morhetz/gruvbox) color scheme
-
 --------------------------------------------------------------------------------
 
 # Semantic Colors
@@ -72,34 +71,33 @@ palette:
 
 # Blocks {.columns}
 
-
-## Primary {.primary .left}
-
--   Some text or other
--   $e=mc^2$
-
-## Secondary {.secondary}
+## Primary {.accent0 .left}
 
 -   Some text or other
 -   $e=mc^2$
 
-## Success {.success}
+## Secondary {.accent1}
 
 -   Some text or other
 -   $e=mc^2$
 
-## Danger {.danger .right}
+## Success {.accent2}
 
 -   Some text or other
 -   $e=mc^2$
 
-## Warning {.warning align="center"}
+## Danger {.accent3 .right}
+
+-   Some text or other
+-   $e=mc^2$
+
+## Warning {.accent4 align="center"}
 
 Some text or other
 
 $e=mc^2$
 
-## Info {.info}
+## Info {.accent5 .incremental}
 
 -   Some text or other
 -   $e=mc^2$
@@ -111,20 +109,23 @@ $e=mc^2$
 ## Links {.left}
 
 -   This is a [**link**](https://www.heise.de)
--   This is *important*
+-   This is *importantg*
 -   This is **more important**
--   This is [**critically important**]{.warning}
+-   This is [**critically important**]{.accent1}
 -   This is *successful*
 -   This is **more successful**
--   This is [**critically successful**]{.success}
+-   This is [**critically successful**]{.accent3}
+-   `Show me some code`, baby
 
-## Math {.right .warning}
+## Math {.right .accent5 align="right"}
 
-Math always is both
+Math blocks are always right!
 
-$$
-{e=mc^2}
-$$
+$$ {e=mc^2} $$
+
+## Surely, you are joking {.accent6 .fragment align="center"}
+
+[**Mr. Feynman**]{.accent7}
 
 --------------------------------------------------------------------------------
 
@@ -151,7 +152,7 @@ css-variables:
 
 ## From `decker.yaml` or `default.yaml`
 
-``` yaml
+``` {.yaml .data-line-numbers}
 css-variables:
   base00: white
   base08: red
@@ -166,3 +167,7 @@ css-variables:
   --list-indent: 1.5em;
   ...
 ```
+
+--------------------------------------------------------------------------------
+
+![](data/replacement-transform-1-quest.yaml){.question}

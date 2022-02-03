@@ -6,7 +6,6 @@
 @import url("./media.css");
 
 body {
-  font-family: sans-serif;
   font-size: 16px;
   max-width: 52em;
   color: var(--foreground-color);
@@ -14,7 +13,6 @@ body {
 }
 
 code {
-  font-family: monospace;
   font-size: 100%;
 }
 

@@ -1,21 +1,25 @@
 /* Style CSS for slides that is also used in pages and handouts. */
-
 :root {
   --block-border-radius: 0.2em;
 }
 
+/* Text */
+body {
+  font-family: sans-serif;
+  color: var(--foreground-color);
+  background-color: var(--background-color);
+}
+
 /* Inline code */
 code {
-  line-height: 1;
-  font-size: 110%;
   font-family: monospace;
 }
 
 /* Code blocks. */
 span.pre > code,
 pre > code {
-  font-size: 100%;
-  font-family: monospace;
+  font-size: 90%;
+  line-height: 1.2;
 }
 
 span.pre.small > code,
@@ -28,7 +32,7 @@ strong {
 }
 
 em {
-  font-style: italic;
+  font-style: oblique;
 }
 
 pre {
@@ -38,16 +42,15 @@ pre {
 h1 {
   font-size: 1.8em;
   font-weight: bold;
-  color: var(--base06);
 
   margin-top: 0;
   margin-bottom: var(--vertical-margin);
 }
 
-h2, summary {
+h2,
+summary {
   font-size: 1.2em;
   font-weight: bold;
-  color: var(--base06);
 
   margin-top: 0;
   margin-bottom: var(--vertical-margin);
@@ -104,11 +107,11 @@ figcaption {
 a,
 a:visited,
 a:active {
-  color: var(--base0D);
-  text-decoration: underline;
+  color: var(--accent5-fg);
+  text-decoration: none;
 }
 a:hover {
-  color: var(--base09);
+  color: var(--accent5);
   text-decoration: none;
 }
 
@@ -137,7 +140,6 @@ td {
   padding: 0.2em 0.5em 0.2em 0.5em;
 }
 
-/* TODO Two highlighted blocks currently touch. Play with spacing here. */
 div.block {
   display: flow-root; /* Prevents margin collapse. Allows negative margin here. */
   margin-bottom: calc(1 * var(--vertical-margin));
@@ -153,86 +155,42 @@ div.block h2 {
   margin-right: calc(-1 * var(--block-outset));
   border-top-left-radius: var(--block-border-radius);
   border-top-right-radius: var(--block-border-radius);
-}
-
-:not(:is(code, pre) span) {
-  border-radius: calc(var(--block-border-radius) / 1);
-  padding-left: 0.15em;
-  padding-right: 0.15em;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 /* Highlight colors and borders. We need three colors for each highlight state:
 text, background and border. */
-div.block.primary {
-  background-color: var(--base0D-bbg);
-  border: var(--block-border-width) solid var(--base0D);
-}
-div.block.primary h2 {
-  color: var(--base01);
-  background-color: var(--base0D);
-}
-span.primary {
-  color: var(--base0D);
+div.block.accent0 {
+  background-color: var(--accent0-bbg);
 }
 
-div.block.secondary {
-  background-color: var(--base02);
-  border: var(--block-border-width) solid var(--base03);
-}
-div.block.secondary h2 {
-  color: var(--base01);
-  background-color: var(--base03);
-}
-span.secondary {
-  color: var(--base03);
+div.block.accent1 {
+  background-color: var(--accent1-bbg);
 }
 
-div.block.success {
-  background-color: var(--base0B-bbg);
-  border: var(--block-border-width) solid var(--base0B);
-}
-div.block.success h2 {
-  color: var(--base01);
-  background-color: var(--base0B);
-}
-span.success {
-  color: var(--base0B);
+div.block.accent2 {
+  background-color: var(--accent2-bbg);
 }
 
-div.block.danger {
-  background-color: var(--base08-bbg);
-  border: var(--block-border-width) solid var(--base08);
-}
-div.block.danger h2 {
-  color: var(--base01);
-  background-color: var(--base08);
-}
-span.danger {
-  color: var(--base08);
+div.block.accent3 {
+  background-color: var(--accent3-bbg);
 }
 
-div.block.warning {
-  background-color: var(--base09-bbg);
-  border: var(--block-border-width) solid var(--base09);
-}
-div.block.warning h2 {
-  color: var(--base01);
-  background-color: var(--base09);
-}
-span.warning {
-  color: var(--base09);
+div.block.accent4 {
+  background-color: var(--accent4-bbg);
 }
 
-div.block.info {
-  background-color: var(--base0E-bbg);
-  border: var(--block-border-width) solid var(--base0E);
+div.block.accent5 {
+  background-color: var(--accent5-bbg);
 }
-div.block.info h2 {
-  color: var(--base01);
-  background-color: var(--base0E);
+
+div.block.accent6 {
+  background-color: var(--accent6-bbg);
 }
-span.info {
-  color: var(--base0E);
+
+div.block.accent7 {
+  background-color: var(--accent7-bbg);
 }
 
 /* A slide with centered text can look good at times. */
@@ -282,3 +240,21 @@ section.slide:is(.inverse, .black) {
   background-color: var(--foreground-color);
   color: var(--background-color);
 }
+
+/* Scroll bars */
+/* .reveal ::-webkit-scrollbar {
+  width: 9px;
+}
+.reveal ::-webkit-scrollbar-track {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.1);
+}
+.reveal ::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.reveal ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+} */

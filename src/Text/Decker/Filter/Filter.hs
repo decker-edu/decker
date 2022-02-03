@@ -104,6 +104,13 @@ wrapBoxes slide@(Slide header body dir) = do
                   <> blocks
               )
         ]
+    wrap ((Header 2 (id_, cls, kvs) text) : blocks)
+      | "notes" `elem` cls =
+        [ tag "aside" $
+            Div
+              ("", ["notes"], [])
+              (Header 2 (id_, deFragment cls, kvs) text : blocks)
+        ]
     wrap ((Header 2 (id_, cls, kvs) text) : blocks) =
       [ Div
           ("", ["box", "block"] ++ cls, mangle kvs)

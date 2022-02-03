@@ -15,8 +15,8 @@ import Relude
 import Test.Hspec as Hspec
 import Text.Blaze.Html (toHtml)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
-import Text.Decker.Filter.Decker
-import Text.Decker.Filter.Image
+import Text.Decker.Filter.Decker2
+import Text.Decker.Filter.Media
 import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta

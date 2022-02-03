@@ -19,7 +19,6 @@ import Data.Time (diffUTCTime)
 import Data.Version
 import Development.Shake
 import GHC.IO.Encoding
-import NeatInterpolation
 import qualified System.Directory as Dir
 import System.FilePath.Posix
 import System.IO

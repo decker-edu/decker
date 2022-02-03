@@ -92,7 +92,9 @@ writePandocFile options out pandoc@(Pandoc meta blocks) = do
 
 -- | Transforms a HTML structure such that divs with a attribute
 -- data-tag=section are transformed into section elements with the data-tag
--- attribute removed. Also, the class "processed" is removed from all elements.
+-- attribute removed. 
+--
+--- Also, the class "processed" is removed from all elements.
 transformHtml :: Map Text Text -> MarkupM a -> MarkupM a
 transformHtml attribs m@(Parent tag open end html)
   | getText tag `elem` ["div", "span"] && Map.member "data-tag" attribs =

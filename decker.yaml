@@ -23,3 +23,4 @@ static-resource-dirs*:
 # Valid resource packs that come with decker
 # resource-pack: exe:wburg
 # resource-pack: exe:mario
+# resource-pack: exe:mono
