@@ -5,7 +5,6 @@ date: '2018-10-28'
 subtitle: Test some Decker macros
 title: Macro Test
 title-prefix: Decker
-menu: True
 showNotes: True
 ---
 

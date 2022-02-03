@@ -297,32 +297,6 @@ function setupSlides() {
       slide.style.top = "";
       // Make sure centered slides have class center.
       slide.classList.add("center");
-
-      // // div for centering with flex layout
-      // let vcenter = document.createElement("div");
-      // vcenter.classList.add("v-center");
-
-      // // div for wrapping slide content
-      // var wrapper = document.createElement("div");
-      // wrapper.classList.add("v-wrapper");
-
-      // // move children from slide to wrapping div
-      // for (let i = 0; i < slide.children.length; ) {
-      //   let e = slide.children[i];
-      //   // skip whiteboard and footer
-      //   if (
-      //     e.classList.contains("whiteboard") ||
-      //     e.classList.contains("footer")
-      //   ) {
-      //     ++i;
-      //   } else {
-      //     wrapper.appendChild(e);
-      //   }
-      // }
-
-      // // add divs to slide
-      // slide.appendChild(vcenter);
-      // vcenter.appendChild(wrapper);
     }
   });
 }

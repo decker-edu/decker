@@ -5,7 +5,8 @@
 @import url("./style.css");
 @import url("./media.css");
 
-body {
+body.page {
+  box-sizing: border-box;
   font-size: 16px;
   max-width: 52em;
   color: var(--foreground-color);

@@ -1,40 +1,41 @@
 <section id="$idprefix$title-slide" class="title-page">
-  <div class="decker">
-    <div class="alignment">
-      <h1 class="title"> $title$ </h1>
+  $if(template.title-page.banner)$
+  <div class="title-page banner">
+    <img src=$template.title-page.banner$>
+  </div>
+  $endif$
+  <div class="valign-block">
+    <div class="valigned">
+      <div class="title"> $title$</div>
+
       $if(subtitle)$
-      <h2 class="subtitle"> $subtitle$ </h2>
+      <div class="subtitle"> $subtitle$ </div>
       $endif$
 
-      $if(template.teaser)$
-      <img class="teaser" src=$template.teaser$>
-      $endif$
-      
-      $if(authors)$
-      <div class="authors">
-      $for(authors)$
-        $if(it.name)$
-            <div class="author">
-                $it.name$ 
-                $if(it.affiliation)$
-                    <div class="affiliation"> $it.affiliation$ </div>
-                $endif$
-            </div>
-        $endif$
-      $endfor$
+      $if(template.title-page.teaser-img)$
+      <div class="teaser-img">
+        <img src=$template.title-page.teaser-img$>
       </div>
+      $else$
+      <div style="height:100px"> </div>
+      $endif$
+
+      $if(date)$
+      <div class="date"> $date$ </div>
       $endif$
 
       $if(author)$
       <div class="author"> $author$ </div>
       $endif$
 
-      $if(affiliation)$
-      <div class="affiliation"> $affiliation$ </div>
+      $if(template.title-page.affiliation-logo)$
+      <div class="affiliation-logo">
+        <img src=$template.title-page.affiliation-logo$>
+      </div>
       $endif$
 
-      $if(date)$
-      <div class="date"> $date$ </div>
+      $if(affiliation)$
+      <div class="affiliation"> $affiliation$ </div>
       $endif$
     </div>
   </div>

@@ -168,7 +168,7 @@ mkYoutubeUri :: Text -> Attrib URI
 mkYoutubeUri streamId = do
   flags <- cutClasses youtubeFlags
   params <- enableLoop flags <$> cutAttribs youtubeParams
-  uri <- URI.mkURI $ "https://www.youtube-nocookie.com/embed/" <> streamId
+  uri <- URI.mkURI $ "https://www.youtube.com/embed/" <> streamId
   setQuery [] (merge [params, map (,"1") flags, youtubeDefaults]) uri
   where
     enableLoop flags params =

@@ -1,0 +1,431 @@
+@import url("../fonts/roboto.css");
+@import url("../fonts/source-code-pro.css");
+
+/* Derived CSS variables. 'Parameters' that need to be set in the
+meta data:
+
+  --font-size-base
+  --spacing-vertical-base
+
+ */
+
+:root {
+  --font-size-medium: calc(var(--font-size-base) * 1);
+  --font-size-normal: calc(var(--font-size-base) * 1);
+  --font-size-xx-small: calc(var(--font-size-base) * 0.4);
+  --font-size-x-small: calc(var(--font-size-base) * 0.6);
+  --font-size-small: calc(var(--font-size-base) * 0.8);
+  --font-size-large: calc(var(--font-size-base) * 1.2);
+  --font-size-x-large: calc(var(--font-size-base) * 1.4);
+  --font-size-xx-large: calc(var(--font-size-base) * 1.6);
+
+  /* This one defines the basic vertical spacing between elements */
+  --margin-bottom-elements-base: var(--spacing-vertical-base);
+  --margin-bottom-h1: calc(var(--margin-bottom-elements-base) * 1);
+  --margin-bottom-h2: calc(var(--margin-bottom-elements-base) * 0);
+  --margin-bottom-h2-block: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-h3: calc(var(--margin-bottom-elements-base) * 0);
+  --margin-bottom-h3-block: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-p: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-ol: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-ul: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-dl: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-figure: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-img: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-blockquote: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-table: calc(var(--margin-bottom-elements-base) * 1);
+  --margin-bottom-columns: calc(var(--margin-bottom-elements-base) * 0);
+  --margin-bottom-references: calc(var(--margin-bottom-elements-base) * 0.3);
+}
+
+body.deck {
+  font-family: Roboto;
+  font-size: var(--font-size-medium);
+}
+
+/* From _fonts.scss */
+
+.medium,
+.font-medium,
+.font-size-medium,
+.normal,
+.font-normal,
+.font-size-normal {
+  font-size: var(--font-size-medium);
+}
+
+.xx-small,
+.font-xx-small,
+.font-size-xx-small {
+  font-size: var(--font-size-xx-small);
+}
+
+.x-small,
+.font-x-small,
+.font-size-x-small {
+  font-size: var(--font-size-x-small);
+}
+
+.small,
+.font-small,
+.font-size-small {
+  font-size: var(--font-size-small);
+}
+
+.large,
+.font-large,
+.font-size-large {
+  font-size: var(--font-size-large);
+}
+
+.x-large,
+.font-x-large,
+.font-size-x-large {
+  font-size: var(--font-size-x-large);
+}
+
+.xx-large,
+.font-xx-large,
+.font-size-xx-large {
+  font-size: var(--font-size-xx-large);
+}
+
+.reveal :is(h1, h2, h3, h4, h5, h6) {
+  color: rgba(0, 0, 0, 0.87);
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  word-wrap: break-word;
+  font-weight: normal;
+  text-shadow: none;
+}
+
+.reveal h1 {
+  font-size: var(--font-size-xx-large);
+}
+
+.reveal h2 {
+  font-weight: 500;
+  font-size: var(--font-size-large);
+}
+
+.reveal h3 {
+  font-size: var(--font-size-medium);
+}
+
+.reveal h4 {
+  font-size: var(--font-size-medium);
+}
+
+.reveal
+  section:is(.white, .inverse, .has-dark-background)
+  :is(h1, h2, h3, h4, h5, h6) {
+  color: #eee;
+}
+
+.reveal section:is(.white, .inverse, .has-dark-background) {
+  color: #fff;
+}
+
+p {
+  line-height: 1.3;
+}
+
+strong,
+b {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
+/* From _titlepage.scss */
+
+/* Title page */
+.title-page .banner img {
+  margin: 0px 0px 10px 0px;
+  width: 100%;
+  object-fit: contain;
+}
+
+.title-page .title {
+  margin: 0px;
+  width: 100%;
+  display: block;
+  padding: 0px;
+  font-size: var(--font-size-x-large);
+  text-align: center;
+}
+
+.title-page .subtitle {
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+  font-weight: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.title-page .teaser-img {
+  margin: 20px auto;
+  height: 10%;
+  width: auto;
+  display: block;
+}
+
+.title-page .teaser-img img {
+  margin: 0px;
+  /* Center horizontally */
+  display: block;
+  margin: auto;
+  /* Make the image as max 250px high retaining aspect ratio */
+  object-fit: contain;
+  max-height: 250px;
+  width: auto;
+}
+
+.title-page .date {
+  text-align: center;
+}
+
+.title-page .author {
+  margin: 0px;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.title-page .affiliation-logo img {
+  margin: 0px 0 0 0;
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.title-page .affiliation {
+  margin: 0px 0 0 0;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.title-page .valign-block {
+  text-align: center;
+}
+
+.title-page .valign-block:before {
+  content: "";
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.title-page .valigned {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* From _boxes.scss */
+
+ol,
+dl,
+ul {
+  display: inline-block;
+  text-align: left;
+  margin-bottom: 0;
+}
+
+ol li,
+dl li,
+ul li {
+  margin-bottom: 0;
+  /* This comes out of the blue and fucks up indenting here. */
+  /* margin-left: 40px; */
+}
+
+ol {
+  list-style-type: decimal;
+}
+
+ul {
+  list-style-type: disc;
+}
+
+ul ul,
+ol ul {
+  list-style-type: circle;
+}
+
+ol ol {
+  list-style-type: lower-roman;
+}
+
+ul ul,
+ul ol,
+ol ol,
+ol ul {
+  display: block;
+  margin-top: 0.3em;
+}
+
+/* Use the lft block border for these vertical highlighting bars. */
+div.block {
+  border-width: 0 0 0 var(--border-decoration-width);
+  border-radius: 0;
+}
+
+/* Align headers with blocks. */
+section h1 {
+  padding-left: calc(var(--border-decoration-width) + var(--block-outset));
+}
+
+/* These are mapped to the available shades and accent colors in the palette. */
+div.block.question {
+  border-color: var(--accent0);
+}
+
+div.block.answer {
+  border-color: var(--accent1);
+}
+
+div.block.observation {
+  border-color: var(--accent2);
+}
+
+div.block.example {
+  border-color: var(--accent3);
+}
+
+div.block.def,
+div.block.definition {
+  border-color: var(--accent4);
+}
+
+div.block.note {
+  border-color: var(--accent5);
+}
+
+div.block.ale,
+div.block.alert {
+  border-color: var(--accent6);
+}
+
+div.block.equ,
+div.block.equation {
+  border-color: var(--accent7);
+}
+
+div.block.theorem {
+  border-color: var(--shade3);
+}
+
+/* Special case: source code inside highlighted box */
+div.block:is(question, answer, observation, example, def, definition, note, ale, alert, equ, equation, theorem)
+  div.sourceCode {
+  margin: 0;
+  background: rgba(255, 255, 255, 0.4);
+  padding: space(0 0.2);
+}
+
+/* From _code.scss */
+
+code {
+  font-family: "Source Code Pro", monospace;
+  font-size: 106%;
+  font-weight: 500;
+  text-transform: none;
+}
+
+pre {
+  display: block;
+  position: relative;
+  width: 90%;
+  margin: 20px auto;
+  text-align: left;
+  font-size: 0.55em;
+  font-family: monospace;
+  line-height: 1.2em;
+  word-wrap: break-word;
+}
+
+pre code {
+  display: block;
+  padding: 5px;
+  overflow: auto;
+  max-height: 400px;
+  word-wrap: normal;
+}
+
+div.sourceCode {
+  margin-bottom: 0.5em;
+  padding: space(0.4 0.7);
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 0.25em;
+  overflow: auto;
+}
+
+div.sourceCode pre {
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  line-height: 1.5em;
+  word-wrap: break-word;
+  box-shadow: none;
+  font-size: 90%;
+  font-weight: 500;
+  margin: 0;
+}
+
+div.sourceCode div.language-label {
+  font-family: "Roboto", sans-serif;
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  background-color: #eee;
+  padding: 0em 0.4em;
+  border-radius: 0.2em;
+}
+
+div.sourceCode code {
+  display: block;
+  overflow: auto;
+  max-height: 500px;
+  word-wrap: normal;
+  border: none;
+  font-family: "Source Code Pro", monospace;
+  white-space: pre;
+  position: relative;
+  color: black;
+}
+
+/* Skip _new-media.scss */
+
+/* Skip _columns.scss */
+
+/* Skip _quizzes.scss for now */
+
+/* Wburg uses .align-* classes, so rename from align=*. */
+
+/* Stuff with centered text can look good at times. */
+.reveal .slides .align-center {
+  text-align: center;
+}
+.reveal .slides .align-left {
+  text-align: left;
+}
+.reveal .slides .align-right {
+  text-align: right;
+}
+
+.align-center table {
+  margin-left: auto;
+  margin-right: auto;
+}

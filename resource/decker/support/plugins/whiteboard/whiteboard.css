@@ -7,8 +7,8 @@
   --whiteboard-background-color: var(--background-color);
 }
 
-/* vertically center slides (override Reveal's mechanism) */
-.reveal .slides section .v-center {
+/* Vertically center slides (override Reveal's mechanism, see whiteboard.js) */
+.reveal .slides section.center .decker {
   width: 100%;
   height: 100%;
   display: flex;
@@ -18,7 +18,8 @@
   padding: 0;
   border: 0;
 }
-.reveal .slides section .v-wrapper {
+
+.reveal .slides section.center .alignment {
   width: 100%;
   height: auto;
   display: block;

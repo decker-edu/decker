@@ -10,7 +10,7 @@ Margins, colors, fonts and stuff should be defined here. */
 @import url("./media.css");
 
 /* Box sizing is much nicer for calculations. */
-body {
+body.deck {
   box-sizing: border-box;
   font-size: 38px;
 }
@@ -43,10 +43,12 @@ h1.title {
   opacity: 0.5;
   color: var(--icon-inactive-color);
 }
+
 .reveal .slide-menu-button:hover {
   opacity: 1;
   color: var(--icon-active-color);
 }
+
 .reveal .slide-menu-button a {
   color: inherit;
 }

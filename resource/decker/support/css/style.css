@@ -1,7 +1,4 @@
 /* Style CSS for slides that is also used in pages and handouts. */
-:root {
-  --block-border-radius: 0.2em;
-}
 
 /* Text */
 body {
@@ -84,11 +81,6 @@ ol {
   list-style: outside disc;
 }
 
-/* No bottom margin for last elements in a stack. */
-:last-child {
-  margin-bottom: 0;
-}
-
 div.media {
   margin-bottom: var(--vertical-margin);
 }
@@ -140,23 +132,36 @@ td {
   padding: 0.2em 0.5em 0.2em 0.5em;
 }
 
+/* Blocks have some padding and a border to allow for highlighting without
+disturbing the layout. */
 div.block {
   display: flow-root; /* Prevents margin collapse. Allows negative margin here. */
-  margin-bottom: calc(1 * var(--vertical-margin));
   border-radius: var(--block-border-radius);
+  border: var(--block-border-width) solid rgba(0, 0, 0, 0);
+  padding: var(--block-outset);
+  margin-bottom: calc(1 * var(--vertical-margin));
+}
+
+/* No bottom margin for last elements in a stack. */
+:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Align headers with blocks. */
+section h1 {
+  padding: 0 calc(var(--block-border-width) + var(--block-outset));
 }
 
 /* Stretch the block header margin to the block border so that highlighting
 works. */
 div.block h2 {
   padding: var(--block-outset);
+
   margin-top: calc(-1 * var(--block-outset));
   margin-left: calc(-1 * var(--block-outset));
   margin-right: calc(-1 * var(--block-outset));
-  border-top-left-radius: var(--block-border-radius);
-  border-top-right-radius: var(--block-border-radius);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+
+  border-radius: var(--block-border-radius) var(--block-border-radius) 0 0;
 }
 
 /* Highlight colors and borders. We need three colors for each highlight state:
@@ -193,7 +198,7 @@ div.block.accent7 {
   background-color: var(--accent7-bbg);
 }
 
-/* A slide with centered text can look good at times. */
+/* A block with centered text can look good at times. */
 div.block[align="center"] {
   text-align: center;
 }
@@ -204,7 +209,7 @@ div.block[align="right"] {
   text-align: right;
 }
 
-/* A block with centered text can look good at times. */
+/* A slide with centered text can look good at times. */
 section[align="center"] {
   text-align: center;
 }
