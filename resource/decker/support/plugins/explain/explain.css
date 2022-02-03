@@ -1,5 +1,5 @@
 button.explain {
-  font-size: var(--whiteboard-icon-size);
+  font-size: var(--icon-size);
   margin: 0.3em;
   padding: 0.4em;
   border: none;
@@ -21,10 +21,10 @@ button[data-uistate="PLAYING"].explain#explain-play {
 button.explain#explain-play {
   display: none;
   position: fixed;
-  right: calc(var(--whiteboard-icon-size) * 1.75);
-  top: calc(var(--whiteboard-icon-size) * 0.25);
+  right: calc(var(--icon-size) * 1.75);
+  top: calc(var(--icon-size) * 0.25);
   z-index: 40;
-  color: var(--whiteboard-inactive-color);
+  color: var(--inactive-color);
 
   /* padding: 10px; */
   border-radius: 999px;
@@ -32,7 +32,7 @@ button.explain#explain-play {
 }
 
 button.explain#explain-play:hover {
-  color: var(--whiteboard-active-color);
+  color: var(--active-color);
 }
 
 /* make play button pulse a few times */
@@ -40,21 +40,21 @@ button.explain#explain-play:hover {
   0% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
-    color: var(--whiteboard-inactive-color);
+    color: var(--inactive-color);
     opacity: 0.5;
   }
 
   80% {
     transform: scale(1.1);
     box-shadow: 0 0 0 5px #2a9ddf55;
-    color: var(--whiteboard-active-color);
+    color: var(--active-color);
     opacity: 1;
   }
 
   100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-    color: var(--whiteboard-inactive-color);
+    color: var(--inactive-color);
     opacity: 0.5;
   }
 }
@@ -94,9 +94,9 @@ div#record-panel:hover {
   opacity: 1;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
-  border: 1px solid var(--whiteboard-inactive-color);
+  border: 1px solid var(--inactive-color);
   border-top: none;
-  background-color: var(--whiteboard-background-color);
+  background-color: var(--background-color);
 }
 
 .controls-row {
@@ -126,11 +126,11 @@ div#record-panel:hover {
   outline: none;
   background: none;
   font-family: "Font Awesome 5 Free";
-  color: var(--whiteboard-inactive-color);
+  color: var(--inactive-color);
 }
 
 .indicator[title] {
-  color: var(--whiteboard-active-color);
+  color: var(--active-color);
 }
 
 .indicator::before {
@@ -189,6 +189,13 @@ button.stop-button {
 .controls-row select {
   min-width: 200px;
   flex-grow: 1;
+  background-color: var(--base01);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font-size: 1rem;
+  height: 1.2rem;
+  margin: 0.2rem;
 }
 
 span.capture-size {
@@ -268,8 +275,8 @@ span.capture-size {
   border: none;
 }
 
-/* when using greenscren, but no background image, remove border */
-#camera-canvas[data-has-background=false] {
+/* when using greenscreen, but no background image, remove border */
+#camera-canvas[data-has-background="false"] {
   border: none;
   border-radius: 0px;
 }

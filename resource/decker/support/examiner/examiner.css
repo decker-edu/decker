@@ -1,50 +1,35 @@
+div.exa-quest {
+  background-color: var(--base01);
+  color: var(--base07);
+  font-size: 90%;
+}
+
 div.exa-quest input,
 div.exa-quest button,
 div.exa-quest textarea,
 div.exa-quest select {
-  color: black;
-  background-color: #efefef;
+  background-color: var(--base01);
 
   font-family: inherit;
-  font-size: inherit;
+  font-size: 1em;
 
-  margin-right: 6px;
-  margin-bottom: 6px;
-  padding: 10px;
+  margin-right: 0.5em;
+  margin-bottom: 0.5em;
+  padding: 0.5em;
 
   border: none;
   border-radius: 6px;
   outline: none;
-}
 
-div.exa-quest input,
-div.exa-quest select,
-div.exa-quest button,
-div.exa-quest textarea {
   -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .reveal div.exa-quest {
   overflow-y: scroll;
   overflow-x: auto;
   max-height: 600px;
-}
-
-.reveal div.exa-quest::-webkit-scrollbar {
-  width: 9px;
-}
-.reveal div.exa-quest::-webkit-scrollbar-track {
-  -webkit-border-radius: 5px;
-  border-radius: 5px;
-  background: rgba(0, 0, 0, 0.1);
-}
-.reveal div.exa-quest::-webkit-scrollbar-thumb {
-  -webkit-border-radius: 5px;
-  border-radius: 5px;
-  background: rgba(0, 0, 0, 0.2);
-}
-.reveal div.exa-quest::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.4);
 }
 
 .handout div.exa-quest {
@@ -71,12 +56,16 @@ div.exa-quest[data-difficulty="Hard"] div.difficulty {
   content: url("../examiner/dumbell-hard.svg");
 }
 
+div.exa-quest button {
+  background-color: var(--base02);
+}
+
 div.exa-quest button:hover {
-  background-color: #ddd;
+  background-color: var(--base03);
 }
 
 div.exa-quest button:active {
-  background-color: darkgray;
+  background-color: var(--base09-bg);
 }
 
 div.exa-quest button.solve {
@@ -158,23 +147,30 @@ div.exa-mc i.wrong {
 }
 
 div.exa-mc div.choice div.check-box span:hover {
-  background-color: lightgrey;
+  background-color: var(--base03);
+}
+
+div.exa-mc div.choice div.check-box span:active {
+  background-color: var(--base09-bg);
 }
 
 div.exa-quest[data-solved] div.exa-mc div.choice div.check-box span:hover {
   background-color: transparent;
 }
 
-div.exa-mc div.choice div.check-box span:active {
-  background-color: grey;
-}
 
 div.exa-mc i.checked {
   display: none;
+  width: 1em;
+  height: 1em;
+  padding: 0 0.1em;
 }
 
 div.exa-mc i.unchecked {
   display: inline;
+  width: 1em;
+  height: 1em;
+  padding: 0 0.1em;
 }
 
 div.exa-quest[data-solved] div.exa-mc div.choice div.check-box:active {

@@ -58,6 +58,7 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/examiner/examiner.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
   <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
+
 $if(highlightjs)$
   <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
 $endif$
@@ -80,7 +81,6 @@ $endfor$
   </script>
 
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
-  <script src="$decker-support-dir$/vendor/chroma.min.js"></script>
   <script src="$decker-support-dir$/js/decker.js"></script>
 </head>
 
@@ -118,6 +118,8 @@ $body$
     import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
     import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
     import printPlugin from './$decker-support-dir$/plugins/print/print.js';
+    import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
+    // import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
     import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
     import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
     import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
@@ -150,6 +152,7 @@ $endif$
          whiteboardPlugin,
          searchPlugin,
          printPlugin,
+         jinglesPlugin,
          quizWuePlugin,
          explainPlugin,
          menuPlugin,

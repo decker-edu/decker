@@ -112,9 +112,9 @@ fromSlides = concatMap prependHeader
     prependHeader (Slide Nothing body _) = HorizontalRule : body
 
 -- Render slides as a list of Blocks. Always separate slides with a horizontal
--- rule. Slides with the `notes` classes are wrapped in ASIDE and are used as
--- speaker notes by Reval. Slide with a `sub` class are vertical slides and are
--- wrapped in an extra section. Slides with no header get an empty header prepended.
+-- rule. Slide with a `sub` class are vertical slides and are
+-- wrapped in an extra section. Slides with no header get an empty header
+-- prepended.
 fromSlidesD :: [Slide] -> Decker [Block]
 fromSlidesD slides = do
   -- mapM_ (\s -> when (view dir s == Vertical) (pPrint s)) slides
@@ -138,16 +138,14 @@ fromSlidesD slides = do
     resolveSubs (verticals, blocks) slide@(Slide header body Vertical) = do
       h <- wrapSection slide
       return (verticals <> h, blocks)
-    -- Wraps a single slide in a header. Handles notes and stuff
-    wrapSection (Slide (Just header@(Header n attr inlines)) body _)
-      | hasClass "notes" header =
-        return [tag "aside" $ Div nullAttr $ demoteHeaders (header : body)]
+    -- Wraps a single slide in a header.
     wrapSection (Slide (Just (Header n attr inlines)) body _) =
       return $ wrap attr (Header n ("", [], []) inlines : body)
     wrapSection (Slide _ body _) = do
       rid <- emptyId
       return $ Header 1 (rid, [], []) [] : body
     wrapVerticals [] = []
+    wrapVerticals [one] = [one]
     wrapVerticals verticals =
       [tag "section" (Div ("", ["vertical"], []) verticals)]
     wrap (id, cls, kvs) blocks =
