@@ -295,7 +295,8 @@ deckerPipeline (Disposition Page Html) =
   concatM
     [ evaluateShortLinks,
       expandDeckerMacros,
-      includeCode
+      includeCode,
+      transformDetails
     ]
 deckerPipeline (Disposition Handout Html) =
   concatM

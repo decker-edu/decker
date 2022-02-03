@@ -122,6 +122,34 @@ wrapBoxes slide@(Slide header body dir) = do
         Just w -> ("style", "width:" <> w <> ";") : List.filter ((/=) "width" . fst) kvs
         Nothing -> kvs
 
+transformBlocks :: ([Block] -> [Block]) -> Pandoc -> Decker Pandoc
+transformBlocks change pandoc@(Pandoc meta blocks) = do
+    disp <- gets disposition
+    case disp of
+      Disposition _ Html -> return $ Pandoc meta (concatMap change parts)
+      Disposition _ _ -> return pandoc
+    where
+      parts = split (keepDelimsL $ whenElt isHighLevelHeaderBlock) blocks
+      isHighLevelHeaderBlock :: Block -> Bool
+      isHighLevelHeaderBlock (Header a _ _) = a >= 2
+      isHighLevelHeaderBlock _ = False;
+
+transformDetails :: Pandoc -> Decker Pandoc 
+transformDetails = transformBlocks detail
+  where
+    detail [] = []
+    detail ((Header 2 (id_, cls, kvs) text) : rest)
+      | "details" `elem` cls =
+        [ tag "details" $
+          Div (id_, cls, kvs) ( [ tag "summary" $
+              Div
+                nullAttr [Plain text]
+              ]
+              <> rest
+            )
+        ]
+    detail stuff = stuff
+
 -- | Map over all active slides in a deck.
 mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
 mapSlides action (Pandoc meta blocks) = do
