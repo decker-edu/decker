@@ -29,4 +29,11 @@
 
   --highlight-color: var(--accent5-bg);
   --flying-focus-color: var(--highlight-color);
+
+  --whiteboard-icon-size: var(--icon-size);
+  --whiteboard-hover-color: var(--icon-hover-color);
+  --whiteboard-active-color: var(--icon-active-color);
+  --whiteboard-inactive-color: var(--icon-inactive-color);
+  --whiteboard-background-color: var(--menu-background-color);
+  --whiteboard-border-color: var(--shade2);
 }

@@ -1,12 +1,3 @@
-/* colors for active/inactive buttons 
- * active color is also used for additional page indicator */
-:root {
-  --whiteboard-icon-size: var(--icon-size);
-  --whiteboard-active-color: var(--icon-active-color);
-  --whiteboard-inactive-color: var(--icon-inactive-color);
-  --whiteboard-background-color: var(--background-color);
-}
-
 /* vertically center slides (override Reveal's mechanism) */
 .reveal .slides section .v-center {
   width: 100%;
@@ -94,8 +85,8 @@
 }
 .reveal svg.whiteboard > path.laser {
   stroke-width: 3px !important;
-  stroke: red !important;
-  filter: drop-shadow(0 0 3px red) !important;
+  stroke: var(--base08) !important;
+  filter: drop-shadow(0 0 3px var(--base08)) !important;
   transition: opacity 0.5s linear 2s;
 }
 
@@ -103,12 +94,11 @@
 button.whiteboard {
   display: inline-block;
   position: relative;
-  font-size: var(--icon-size);
-  width: calc(var(--icon-size) * 1.5);
-  height: calc(var(--icon-size) * 1.5);
-  padding: calc(var(--icon-size) * 0.1);
-  margin-top: calc(var(--icon-size) * 0.1);
-  margin-bottom: calc(var(--icon-size) * 0.1);
+  font-size: calc(var(--icon-size) * 2);
+
+  padding: calc(var(--icon-size) * 0.2);
+  margin-top: calc(var(--icon-size) * 0.2);
+  margin-bottom: calc(var(--icon-size) * 0.2);
   background: none;
   font-family: "Font Awesome 5 Free";
   border: 2px solid transparent;
@@ -124,6 +114,7 @@ button.whiteboard.radiobutton {
 button.whiteboard[data-active="true"] {
   color: var(--whiteboard-active-color);
 }
+
 button.whiteboard.checkbox[data-active="false"],
 button.whiteboard.radiobutton[data-active="false"] {
   border: 1px solid var(--whiteboard-inactive-color);
@@ -140,16 +131,19 @@ button.whiteboard::-moz-focus-inner {
 
 /* container for whiteboard tools */
 #whiteboardButtons {
-  padding: 0;
+  padding: 2px;
   margin: 0;
   z-index: 256;
   border-radius: 8px;
   border: 1px solid transparent;
-  background: var(--base01);
-  left: calc(var(--whiteboard-icon-size) * 0.25);
-  bottom: calc(var(--whiteboard-icon-size) * 0.25);
+  background: transparent;
   display: flex;
   flex-direction: column;
+}
+
+#whiteboardButtons.active {
+  background: var(--base01);
+  border: 1px solid var(--whiteboard-border-color);
 }
 
 body.print-pdf #whiteboardButtons {
@@ -160,7 +154,9 @@ body.print-pdf #whiteboardButtons {
 /* buttons are not shown... */
 #whiteboardButtons > button {
   display: none;
+  cursor: pointer;
 }
+
 #whiteboardButtons.active.visible > button {
   display: inline-block;
 }
@@ -171,8 +167,13 @@ body.print-pdf #whiteboardButtons {
 
 #whiteboardButtons.active.visible > #whiteboardButton {
   display: inline-block;
+  border: 2px solid var(--whiteboard-active-color);
   color: var(--whiteboard-active-color);
   opacity: 1;
+}
+
+#whiteboardButtons.active.visible > #whiteboardButton:hover {
+  color: var(--whiteboard-hover-color);
 }
 
 #whiteboardButtons.active.visible > .whiteboard:hover {
@@ -194,8 +195,8 @@ body.print-pdf #whiteboardButtons {
   border: 1px solid var(--base05);
   border-radius: calc(var(--whiteboard-icon-size) * 0.5);
   background: var(--base01);
-  left: calc(var(--whiteboard-icon-size) * 2.5);
-  bottom: calc(var(--whiteboard-icon-size) * 4);
+  left: calc(var(--whiteboard-icon-size) * 2.5 + 12px);
+  bottom: calc(var(--whiteboard-icon-size) * 4 + 8px);
   visibility: hidden;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -208,8 +209,8 @@ body.print-pdf #whiteboardButtons {
 #whiteboardColorPicker button.whiteboard {
   margin: 0;
   padding: 0;
-  width: calc(var(--whiteboard-icon-size) * 1.5);
-  height: calc(var(--whiteboard-icon-size) * 1.5);
+  width: calc(var(--whiteboard-icon-size) * 3);
+  height: calc(var(--whiteboard-icon-size) * 3);
   text-align: center;
   vertical-align: middle;
   color: var(--base06);
