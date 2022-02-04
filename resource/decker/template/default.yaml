@@ -17,6 +17,7 @@ reveal:
   touch: true
   vertical-slides: true
   slideNumber: true
+  viewDistance: 2
   transition: "slide"
 
 template:

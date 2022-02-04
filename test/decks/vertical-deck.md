@@ -7,7 +7,7 @@ vertical-slides: true
 
 1
 
-# Slide below first slide {.sub}
+# Slide below {.sub}
 
 2
 
@@ -17,11 +17,11 @@ vertical-slides: true
 
 # infinite layers {.sub}
 
-BOTTOM
+4
 
-# To the side (back to top-level)
+# To the side
 
-TOP
+test
 
 # Below again {.sub}
 
@@ -29,8 +29,6 @@ TOP
 
 # Last one {.sub}
 
-BOTTOM
+6
 
 # last one really
-
-TOP

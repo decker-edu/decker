@@ -26,4 +26,7 @@
   --icon-inactive-color: var(--shade3);
   --hover-color: var(--accent5-bg);
   --code-background-color: var(--shade1);
+
+  --highlight-color: var(--accent5-bg);
+  --flying-focus-color: var(--highlight-color);
 }
