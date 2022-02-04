@@ -94,7 +94,9 @@ compileCodeBlock attr@(_, classes, _) code caption =
           "decker-dir"
           ( \dir -> do
               Text.writeFile (dir <> takeFileName path) code
-              renameFile (dir <> takeFileName path) path
+              copyFile (dir <> takeFileName path) path
+              removeFile (dir <> takeFileName path)
+
           )
       uri <- lift $ URI.mkURI (toText path)
       renderCodeBlock uri caption
