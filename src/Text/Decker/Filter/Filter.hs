@@ -8,6 +8,7 @@ module Text.Decker.Filter.Filter
     escapeToFilePath,
     filterNotebookSlides,
     wrapSlidesinDivs,
+    transformDetails
   )
 where
 
