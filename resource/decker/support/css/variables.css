@@ -40,4 +40,17 @@
 
   --menu-header-background-color: var(--shade2);
   --menu-header-text-color: var(--shade7);
+
+  --feedback-element-border-radius: 0.2em;
+  
+  --feedback-input-background-color: var(--shade0);
+
+  --feedback-header-background-color: var(--shade2);
+  --feedback-header-text-color: var(--shade7);
+
+  --feedback-list-background-color: rgba(0,0,0,0);
+  --feedback-list-text-color: var(--shade7);
+
+  --feedback-footer-background-color: var(--shade2);
+  --feedback-footer-text-color: var(--shade7);
 }

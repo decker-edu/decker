@@ -124,7 +124,7 @@ fromSlidesD slides = do
     -- No verticals so far, next is horizontal.
     resolveSubs ([], blocks) slide@(Slide header body Horizontal) = do
       h <- wrapSection slide
-      return ([], blocks <> h)
+      return (h, blocks)
     -- Some verticals, next is horizontal. Wrap the vertical list in an extra
     -- section.
     resolveSubs (verticals, blocks) slide@(Slide header body Horizontal)
