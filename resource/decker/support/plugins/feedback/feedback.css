@@ -478,6 +478,29 @@ section#questions-overview table tr td:first-child {
   white-space: nowrap;
 }
 
+li.slide-list-item[data-questions]::after {
+  content: attr(data-questions);
+  margin-left: 1em;
+  font-size: 0.9em;
+
+  /* from class counter */
+  background-color: red;
+  color: white;
+
+  /* from class badge */
+  font-family: sans-serif;
+  font-weight: bold;
+  line-height: 1;
+  text-align: center;
+  vertical-align: baseline;
+  white-space: nowrap;
+  border-radius: 0.4em;
+  padding: 0.2em 0.4em;
+}
+li.slide-list-item[data-questions][data-answered="true"]::after {
+  background-color: green;
+}
+
 li.slide-menu-item[data-questions]::after {
   content: attr(data-questions);
   margin-left: 1em;

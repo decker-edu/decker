@@ -22,11 +22,22 @@
   --header-color: var(--shade6);
   --primary-color: var(--accent5);
   --secondary-color: var(--accent1);
-  --icon-active-color: var(--accent5);
-  --icon-inactive-color: var(--shade3);
+
   --hover-color: var(--accent5-bg);
   --code-background-color: var(--shade1);
 
+  --icon-active-color: var(--accent5);
+  --icon-inactive-color: var(--shade3);
+  --icon-hover-color: var(--hover-color);
+  --icon-background-color: rgba(0,0,0,0);
+  --icon-border-radius: 0.2em;
+
   --highlight-color: var(--accent5-bg);
   --flying-focus-color: var(--highlight-color);
+
+  --menu-background-color: var(--shade1);
+  --menu-border-color: var(--shade2);
+
+  --menu-header-background-color: var(--shade2);
+  --menu-header-text-color: var(--shade7);
 }

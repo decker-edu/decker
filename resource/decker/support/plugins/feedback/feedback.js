@@ -217,9 +217,7 @@ function buildInterface() {
 
   // given the list of questions, update question counter of menu items
   function updateMenuItems(list) {
-    document
-      .querySelectorAll("ul.slide-menu-items > li.slide-menu-item")
-      .forEach((li) => {
+    document.querySelectorAll("ul.slide-list > li.slide-list-item").forEach((li) => {
         li.removeAttribute("data-questions");
         li.removeAttribute("data-answered");
       });
@@ -232,7 +230,7 @@ function buildInterface() {
         const indices = Reveal.getIndices(slide);
 
         // build query string, get menu item
-        let query = "ul.slide-menu-items > li.slide-menu-item";
+        let query = ".slide-list-item";
         if (indices.h) query += '[data-slide-h="' + indices.h + '"]';
         if (indices.v) query += '[data-slide-v="' + indices.v + '"]';
         let li = document.querySelector(query);
