@@ -1,1312 +1,482 @@
-/*
- * Reveal.js menu plugin
- * MIT licensed
- * (c) Greg Denehy 2020
+/**
+ * A rewrite of the Slide Menu, inspired by the Reveal.js Slide Menu Plugin
+ * made by Greg Denehy but leaving out a lot of configuration options and adding
+ * accessibility features like using the inate polyfill, focus management and 
+ * proper aria-labels.
+ * 
+ * @author Sebastian Hauer 
  */
 
-const Plugin = () => {
-  const ieVersion = (function () {
-    let browser = /(msie) ([\w.]+)/.exec(
-      window.navigator.userAgent.toLowerCase()
-    );
-    if (browser && browser[1] === "msie") {
-      return parseFloat(browser[2]);
+ class SlideMenu {
+  id;
+  reveal;
+  config;
+  open_button;
+  position;
+  menu;
+  slide_list;
+
+  constructor(position) {
+    this.id = "decker-menu";
+    this.reveal = undefined;
+    this.config = undefined;
+    this.open_button = undefined;
+    this.menu = {
+      container: undefined,
+      search_button: undefined,
+      pdf_button: undefined,
+      fragments_button: undefined,
+      close_button: undefined,
+      slide_list: undefined,
     }
-    return null;
-  })();
+    this.glass = undefined;
+    this.position = position;
+  }
 
-  var deck;
-  var config;
-  var options;
-  var initialised = false;
+  get inert() {
+    return this.menu.container.inert;
+  }
 
-  function scriptPath() {
-    // obtain plugin path from the script element
-    var path;
+  set inert(value) {
+    this.menu.container.inert = !!value; //force cast to boolean
+  }
 
-    const script = document.querySelector('script[src$="menu.js"]');
-    if (script) {
-      var sel = document.querySelector('script[src$="menu.js"]');
-      if (sel) {
-        path = sel.src.slice(0, -7);
+  /**
+   * Exposes the list items for other plugins.
+   * @param {*} h 
+   * @param {*} v 
+   * @returns 
+   */
+  getListItem(h, v) {
+    let childNodes = this.menu.slide_list.childNodes;
+    for(let i = 0; i < childNodes.length; i++) {
+      if(childNodes[i].getAttribute("data-slide-h") == h) {
+        if(v) {
+          if(childNodes[i].getAttribute("data-slide-v") == v) {
+            return childNodes[i];
+          }
+        } else {
+          return childNodes[i];
+        }
       }
+    }
+    return undefined;
+  }
+
+  /**
+   * Exposes the slide list for other plugins.
+   * @returns 
+   */
+  getSlideList() {
+    return this.menu.slide_list.childNodes;
+  }
+
+  /**
+   * Toggles the inert attribute of the menu on or off.
+   * @param {*} event 
+   */
+  toggleMenu(event) {
+    if(this.inert) {
+      this.openMenu(event);
     } else {
-      path = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1);
-    }
-
-    return path;
-  }
-
-  function initOptions(config) {
-    options = config.menu || {};
-    options.path = options.path || scriptPath() || "plugin/menu/";
-    if (!options.path.endsWith("/")) {
-      options.path += "/";
-    }
-
-    // Set defaults
-    if (options.side === undefined) options.side = "left";
-
-    if (options.numbers === undefined) options.numbers = false;
-
-    if (typeof options.titleSelector !== "string")
-      options.titleSelector = "h1, h2, h3, h4, h5";
-
-    if (options.hideMissingTitles === undefined)
-      options.hideMissingTitles = false;
-
-    if (options.useTextContentForMissingTitles === undefined)
-      options.useTextContentForMissingTitles = false;
-
-    if (options.markers === undefined) options.markers = true;
-
-    if (typeof options.themesPath !== "string")
-      options.themesPath = "dist/theme/";
-    if (!options.themesPath.endsWith("/")) options.themesPath += "/";
-
-    if (!select("link#theme")) options.themes = false;
-    if (options.themes === true) {
-      options.themes = [
-        { name: "Black", theme: options.themesPath + "black.css" },
-        { name: "White", theme: options.themesPath + "white.css" },
-        { name: "League", theme: options.themesPath + "league.css" },
-        { name: "Sky", theme: options.themesPath + "sky.css" },
-        { name: "Beige", theme: options.themesPath + "beige.css" },
-        { name: "Simple", theme: options.themesPath + "simple.css" },
-        { name: "Serif", theme: options.themesPath + "serif.css" },
-        { name: "Blood", theme: options.themesPath + "blood.css" },
-        { name: "Night", theme: options.themesPath + "night.css" },
-        { name: "Moon", theme: options.themesPath + "moon.css" },
-        { name: "Solarized", theme: options.themesPath + "solarized.css" },
-      ];
-    } else if (!Array.isArray(options.themes)) {
-      options.themes = false;
-    }
-
-    if (options.transitions === undefined) options.transitions = false;
-    if (options.transitions === true) {
-      options.transitions = [
-        "None",
-        "Fade",
-        "Slide",
-        "Convex",
-        "Concave",
-        "Zoom",
-      ];
-    } else if (
-      options.transitions !== false &&
-      (!Array.isArray(options.transitions) ||
-        !options.transitions.every(function (e) {
-          return typeof e === "string";
-        }))
-    ) {
-      console.error(
-        "reveal.js-menu error: transitions config value must be 'true' or an array of strings, eg ['None', 'Fade', 'Slide')"
-      );
-      options.transitions = false;
-    }
-    if (ieVersion && ieVersion <= 9) {
-      // transitions aren't support in IE9 anyway, so no point in showing them
-      options.transitions = false;
-    }
-
-    if (typeof options.openButton === "undefined") options.openButton = true;
-
-    if (typeof options.openSlideNumber === "undefined")
-      options.openSlideNumber = false;
-
-    if (typeof options.keyboard === "undefined") options.keyboard = true;
-
-    if (typeof options.sticky === "undefined") options.sticky = false;
-
-    if (typeof options.autoOpen === "undefined") options.autoOpen = true;
-
-    if (typeof options.delayInit === "undefined") options.delayInit = false;
-
-    if (typeof options.openOnInit === "undefined") options.openOnInit = false;
-  }
-
-  var mouseSelectionEnabled = true;
-  function disableMouseSelection() {
-    mouseSelectionEnabled = false;
-  }
-
-  function reenableMouseSelection() {
-    // wait until the mouse has moved before re-enabling mouse selection
-    // to avoid selections on scroll
-    select("nav.slide-menu").addEventListener("mousemove", function fn(e) {
-      select("nav.slide-menu").removeEventListener("mousemove", fn);
-      //XXX this should select the item under the mouse
-      mouseSelectionEnabled = true;
-    });
-  }
-
-  //
-  // Keyboard handling
-  //
-  function getOffset(el) {
-    var _x = 0;
-    var _y = 0;
-    while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
-      _x += el.offsetLeft - el.scrollLeft;
-      _y += el.offsetTop - el.scrollTop;
-      el = el.offsetParent;
-    }
-    return { top: _y, left: _x };
-  }
-
-  function visibleOffset(el) {
-    var offsetFromTop = getOffset(el).top - el.offsetParent.offsetTop;
-    if (offsetFromTop < 0) return -offsetFromTop;
-    var offsetFromBottom =
-      el.offsetParent.offsetHeight -
-      (el.offsetTop - el.offsetParent.scrollTop + el.offsetHeight);
-    if (offsetFromBottom < 0) return offsetFromBottom;
-    return 0;
-  }
-
-  function keepVisible(el) {
-    var offset = visibleOffset(el);
-    if (offset) {
-      disableMouseSelection();
-      el.scrollIntoView(offset > 0);
-      reenableMouseSelection();
+      this.closeMenu(event);
     }
   }
 
-  function scrollItemToTop(el) {
-    disableMouseSelection();
-    el.offsetParent.scrollTop = el.offsetTop;
-    reenableMouseSelection();
-  }
-
-  function scrollItemToBottom(el) {
-    disableMouseSelection();
-    el.offsetParent.scrollTop =
-      el.offsetTop - el.offsetParent.offsetHeight + el.offsetHeight;
-    reenableMouseSelection();
-  }
-
-  function selectItem(el) {
-    el.classList.add("selected");
-    keepVisible(el);
-    if (options.sticky && options.autoOpen) openItem(el);
-  }
-
-  function onDocumentKeyDown(event) {
-    // opening menu is handled by registering key binding with Reveal below
-    if (isOpen()) {
-      event.stopImmediatePropagation();
-      switch (event.keyCode) {
-        // case 77:
-        // 	closeMenu();
-        // 	break;
-        // h, left - change panel
-        case 72:
-        case 37:
-          prevPanel();
-          break;
-        // l, right - change panel
-        case 76:
-        case 39:
-          nextPanel();
-          break;
-        // k, up
-        case 75:
-        case 38:
-          var currItem =
-            select(".active-menu-panel .slide-menu-items li.selected") ||
-            select(".active-menu-panel .slide-menu-items li.active");
-          if (currItem) {
-            selectAll(".active-menu-panel .slide-menu-items li").forEach(
-              function (item) {
-                item.classList.remove("selected");
-              }
-            );
-            var nextItem =
-              select(
-                '.active-menu-panel .slide-menu-items li[data-item="' +
-                  (parseInt(currItem.getAttribute("data-item")) - 1) +
-                  '"]'
-              ) || currItem;
-            selectItem(nextItem);
-          } else {
-            var item = select(
-              ".active-menu-panel .slide-menu-items li.slide-menu-item"
-            );
-            if (item) selectItem(item);
-          }
-          break;
-        // j, down
-        case 74:
-        case 40:
-          var currItem =
-            select(".active-menu-panel .slide-menu-items li.selected") ||
-            select(".active-menu-panel .slide-menu-items li.active");
-          if (currItem) {
-            selectAll(".active-menu-panel .slide-menu-items li").forEach(
-              function (item) {
-                item.classList.remove("selected");
-              }
-            );
-            var nextItem =
-              select(
-                '.active-menu-panel .slide-menu-items li[data-item="' +
-                  (parseInt(currItem.getAttribute("data-item")) + 1) +
-                  '"]'
-              ) || currItem;
-            selectItem(nextItem);
-          } else {
-            var item = select(
-              ".active-menu-panel .slide-menu-items li.slide-menu-item"
-            );
-            if (item) selectItem(item);
-          }
-          break;
-        // pageup, u
-        case 33:
-        case 85:
-          var itemsAbove = selectAll(
-            ".active-menu-panel .slide-menu-items li"
-          ).filter(function (item) {
-            return visibleOffset(item) > 0;
-          });
-          var visibleItems = selectAll(
-            ".active-menu-panel .slide-menu-items li"
-          ).filter(function (item) {
-            return visibleOffset(item) == 0;
-          });
-
-          var firstVisible =
-            itemsAbove.length > 0 &&
-            Math.abs(visibleOffset(itemsAbove[itemsAbove.length - 1])) <
-              itemsAbove[itemsAbove.length - 1].clientHeight
-              ? itemsAbove[itemsAbove.length - 1]
-              : visibleItems[0];
-          if (firstVisible) {
-            if (
-              firstVisible.classList.contains("selected") &&
-              itemsAbove.length > 0
-            ) {
-              // at top of viewport already, page scroll (if not at start)
-              // ...move selected item to bottom, and change selection to last fully visible item at top
-              scrollItemToBottom(firstVisible);
-              visibleItems = selectAll(
-                ".active-menu-panel .slide-menu-items li"
-              ).filter(function (item) {
-                return visibleOffset(item) == 0;
-              });
-              if (visibleItems[0] == firstVisible) {
-                // prev item is still beyond the viewport (for custom panels)
-                firstVisible = itemsAbove[itemsAbove.length - 1];
-              } else {
-                firstVisible = visibleItems[0];
-              }
-            }
-            selectAll(".active-menu-panel .slide-menu-items li").forEach(
-              function (item) {
-                item.classList.remove("selected");
-              }
-            );
-            selectItem(firstVisible);
-            // ensure selected item is positioned at the top of the viewport
-            scrollItemToTop(firstVisible);
-          }
-          break;
-        // pagedown, d
-        case 34:
-        case 68:
-          var visibleItems = selectAll(
-            ".active-menu-panel .slide-menu-items li"
-          ).filter(function (item) {
-            return visibleOffset(item) == 0;
-          });
-          var itemsBelow = selectAll(
-            ".active-menu-panel .slide-menu-items li"
-          ).filter(function (item) {
-            return visibleOffset(item) < 0;
-          });
-
-          var lastVisible =
-            itemsBelow.length > 0 &&
-            Math.abs(visibleOffset(itemsBelow[0])) < itemsBelow[0].clientHeight
-              ? itemsBelow[0]
-              : visibleItems[visibleItems.length - 1];
-          if (lastVisible) {
-            if (
-              lastVisible.classList.contains("selected") &&
-              itemsBelow.length > 0
-            ) {
-              // at bottom of viewport already, page scroll (if not at end)
-              // ...move selected item to top, and change selection to last fully visible item at bottom
-              scrollItemToTop(lastVisible);
-              visibleItems = selectAll(
-                ".active-menu-panel .slide-menu-items li"
-              ).filter(function (item) {
-                return visibleOffset(item) == 0;
-              });
-              if (visibleItems[visibleItems.length - 1] == lastVisible) {
-                // next item is still beyond the viewport (for custom panels)
-                lastVisible = itemsBelow[0];
-              } else {
-                lastVisible = visibleItems[visibleItems.length - 1];
-              }
-            }
-            selectAll(".active-menu-panel .slide-menu-items li").forEach(
-              function (item) {
-                item.classList.remove("selected");
-              }
-            );
-            selectItem(lastVisible);
-            // ensure selected item is positioned at the bottom of the viewport
-            scrollItemToBottom(lastVisible);
-          }
-          break;
-        // home
-        case 36:
-          selectAll(".active-menu-panel .slide-menu-items li").forEach(
-            function (item) {
-              item.classList.remove("selected");
-            }
-          );
-          var item = select(
-            ".active-menu-panel .slide-menu-items li:first-of-type"
-          );
-          if (item) {
-            item.classList.add("selected");
-            keepVisible(item);
-          }
-          break;
-        // end
-        case 35:
-          selectAll(".active-menu-panel .slide-menu-items li").forEach(
-            function (item) {
-              item.classList.remove("selected");
-            }
-          );
-          var item = select(
-            ".active-menu-panel .slide-menu-items:last-of-type li:last-of-type"
-          );
-          if (item) {
-            item.classList.add("selected");
-            keepVisible(item);
-          }
-          break;
-        // space, return
-        case 32:
-        case 13:
-          var currItem = select(
-            ".active-menu-panel .slide-menu-items li.selected"
-          );
-          if (currItem) {
-            openItem(currItem, true);
-          }
-          break;
-        // esc
-        case 27:
-          closeMenu(null, true);
-          break;
+  /**
+   * Opens the menu by removing inert.
+   * @param {*} event 
+   */
+  openMenu(event) {
+    if(this.inert) {
+      this.inert = false;
+      this.reveal.getRevealElement().inert = true;
+      this.disableKeybinds();
+      this.glass.classList.add("show");
+      if(event && event.detail === 0) {
+        this.menu.search_button.focus();
       }
     }
   }
 
-  //
-  // Utilty functions
-  //
-
-  function openMenu(event) {
-    if (event) event.preventDefault();
-    if (!isOpen()) {
-      select("body").classList.add("slide-menu-active");
-      select(".reveal").classList.add(
-        "has-" + options.effect + "-" + options.side
-      );
-      select(".slide-menu").classList.add("active");
-      select(".slide-menu-overlay").classList.add("active");
-
-      // identify active theme
-      if (options.themes) {
-        selectAll('div[data-panel="Themes"] li').forEach(function (i) {
-          i.classList.remove("active");
-        });
-        selectAll(
-          'li[data-theme="' + select("link#theme").getAttribute("href") + '"]'
-        ).forEach(function (i) {
-          i.classList.add("active");
-        });
+  /**
+   * Closes the menu by adding inert.
+   * @param {*} event 
+   */
+  closeMenu(event) {
+    if(!this.inert) {
+      this.inert = true;
+      this.reveal.getRevealElement().inert = false;
+      this.enableKeybinds();
+      this.glass.classList.remove("show");
+      if(event && event.detail === 0) {
+        this.open_button.focus();
       }
-
-      // identify active transition
-      if (options.transitions) {
-        selectAll('div[data-panel="Transitions"] li').forEach(function (i) {
-          i.classList.remove("active");
-        });
-        selectAll('li[data-transition="' + config.transition + '"]').forEach(
-          function (i) {
-            i.classList.add("active");
-          }
-        );
-      }
-
-      // set item selections to match active items
-      var items = selectAll(".slide-menu-panel li.active");
-      items.forEach(function (i) {
-        i.classList.add("selected");
-        keepVisible(i);
-      });
     }
   }
 
-  function closeMenu(event, force) {
-    if (event) event.preventDefault();
-    if (!options.sticky || force) {
-      select("body").classList.remove("slide-menu-active");
-      select(".reveal").classList.remove(
-        "has-" + options.effect + "-" + options.side
-      );
-      select(".slide-menu").classList.remove("active");
-      select(".slide-menu-overlay").classList.remove("active");
-      selectAll(".slide-menu-panel li.selected").forEach(function (i) {
-        i.classList.remove("selected");
-      });
-    }
+  /**
+   * Toggles the searchbar of the searchbar plugin.
+   */
+  toggleSearchbar() {
+    if (this.reveal.hasPlugin("search")) this.reveal.getPlugin("search").toggle();
   }
 
-  function toggleMenu(event) {
-    if (isOpen()) {
-      closeMenu(event, true);
+  /**
+   * Reopens the tab with ?print-pdf to allow PDF printing.
+   */
+  printPDF() {
+    if (window.electronApp) {
+      let url = location.protocol + "//" + location.host + location.pathname;
+      window.electronApp.printPDF(url);
     } else {
-      openMenu(event);
-    }
-  }
-
-  function isOpen() {
-    return select("body").classList.contains("slide-menu-active");
-  }
-
-  function openPanel(event, ref) {
-    openMenu(event);
-    var panel = ref;
-    if (typeof ref !== "string") {
-      panel = event.currentTarget.getAttribute("data-panel");
-    }
-    select(".slide-menu-toolbar > li.active-toolbar-button").classList.remove(
-      "active-toolbar-button"
-    );
-    select('li[data-panel="' + panel + '"]').classList.add(
-      "active-toolbar-button"
-    );
-    select(".slide-menu-panel.active-menu-panel").classList.remove(
-      "active-menu-panel"
-    );
-    select('div[data-panel="' + panel + '"]').classList.add(
-      "active-menu-panel"
-    );
-  }
-
-  function nextPanel() {
-    var next =
-      (parseInt(select(".active-toolbar-button").getAttribute("data-button")) +
-        1) %
-      buttons;
-    openPanel(
-      null,
-      select('.toolbar-panel-button[data-button="' + next + '"]').getAttribute(
-        "data-panel"
-      )
-    );
-  }
-
-  function prevPanel() {
-    var next =
-      parseInt(select(".active-toolbar-button").getAttribute("data-button")) -
-      1;
-    if (next < 0) {
-      next = buttons - 1;
-    }
-    openPanel(
-      null,
-      select('.toolbar-panel-button[data-button="' + next + '"]').getAttribute(
-        "data-panel"
-      )
-    );
-  }
-
-  function openItem(item, force) {
-    var h = parseInt(item.getAttribute("data-slide-h"));
-    var v = parseInt(item.getAttribute("data-slide-v"));
-    var theme = item.getAttribute("data-theme");
-    var highlightTheme = item.getAttribute("data-highlight-theme");
-    var transition = item.getAttribute("data-transition");
-
-    if (!isNaN(h) && !isNaN(v)) {
-      deck.slide(h, v);
-    }
-
-    if (theme) {
-      changeStylesheet("theme", theme);
-    }
-
-    if (highlightTheme) {
-      changeStylesheet("highlight-theme", highlightTheme);
-    }
-
-    if (transition) {
-      deck.configure({ transition: transition });
-    }
-
-    var link = select("a", item);
-    if (link) {
-      if (
-        force ||
-        !options.sticky ||
-        (options.autoOpen && link.href.startsWith("#")) ||
-        link.href.startsWith(
-          window.location.origin + window.location.pathname + "#"
-        )
-      ) {
-        link.click();
+      if (confirm("Leave/reload presentation to export PDF?")) { //MAYBE Localization
+        let url = location.protocol + "//" + location.host + location.pathname + "?print-pdf";
+        window.open(url, "_self");
       }
     }
-
-    closeMenu();
   }
 
-  function clicked(event) {
-    if (event.target.nodeName !== "A") {
+  disableKeybinds() {
+    this.reveal.configure({keyboard: false});
+  }
+
+  enableKeybinds() {
+    this.reveal.configure({keyboard: true});
+  }
+
+  /**
+   * Enables or disables the fragmentation of slides.
+   */
+  toggleFragments() {
+    let animations = this.reveal.getConfig().fragments;
+    this.reveal.configure({ fragments: !animations });
+    if(!animations) {
+      this.menu.fragments_button.classList.add("checked");
+      this.menu.fragments_button.querySelector("i").classList.remove("fa-circle");
+      this.menu.fragments_button.querySelector("i").classList.add("fa-check-circle");
+      this.menu.fragments_button.setAttribute("aria-checked", "true");
+    } else {
+      this.menu.fragments_button.classList.remove("checked");
+      this.menu.fragments_button.querySelector("i").classList.remove("fa-check-circle");
+      this.menu.fragments_button.querySelector("i").classList.add("fa-circle");
+      this.menu.fragments_button.setAttribute("aria-checked", "false");
+    }
+  }
+
+  /**
+   * If there is a status field to announce changes to the GUI then use that to announce
+   * changes.
+   * TODO: Test if this is actually necessary.
+   * @param {*} text 
+   */
+  announceStatus(text) {
+    if(this.reveal.hasPlugin("a11y-status")) {
+      let status = this.reveal.getPlugin("a11y-status");
+      status.announce(text);
+    } else {
+      console.log("No a11y-status plugin found.");
+    }
+  }
+
+  /**
+   * Stops the default functionality of moving up or down the scrollbar of the slide wrapper div. 
+   * @param {*} event The Keyboard Event
+   */
+  ignoreTraversalKeys(event) {
+    if(!this.inert && (event.code == "Escape" || event.code == "ArrowUp" || event.code == "ArrowDown")) {
       event.preventDefault();
     }
-    openItem(event.currentTarget);
   }
 
-  function highlightCurrentSlide() {
-    var state = deck.getState();
-    selectAll("li.slide-menu-item, li.slide-menu-item-vertical").forEach(
-      function (item) {
-        item.classList.remove("past");
-        item.classList.remove("active");
-        item.classList.remove("future");
-
-        var h = parseInt(item.getAttribute("data-slide-h"));
-        var v = parseInt(item.getAttribute("data-slide-v"));
-        if (h < state.indexh || (h === state.indexh && v < state.indexv)) {
-          item.classList.add("past");
-        } else if (h === state.indexh && v === state.indexv) {
-          item.classList.add("active");
-        } else {
-          item.classList.add("future");
-        }
-      }
-    );
-  }
-
-  function matchRevealStyle() {
-    var revealStyle = window.getComputedStyle(select(".reveal"));
-    var element = select(".slide-menu");
-    element.style.fontFamily = revealStyle.fontFamily;
-    //XXX could adjust the complete menu style to match the theme, ie colors, etc
-  }
-
-  var buttons = 0;
-  function initMenu() {
-    if (!initialised) {
-      var parent = select(".reveal").parentElement;
-      var top = create("div", { class: "slide-menu-wrapper" });
-      parent.appendChild(top);
-      var panels = create("nav", {
-        class: "slide-menu slide-menu--" + options.side,
-      });
-      if (typeof options.width === "string") {
-        if (
-          ["normal", "wide", "third", "half", "full"].indexOf(options.width) !=
-          -1
-        ) {
-          panels.classList.add("slide-menu--" + options.width);
-        } else {
-          panels.classList.add("slide-menu--custom");
-          panels.style.width = options.width;
-        }
-      }
-      top.appendChild(panels);
-      matchRevealStyle();
-      var overlay = create("div", { class: "slide-menu-overlay" });
-      top.appendChild(overlay);
-      overlay.onclick = function () {
-        closeMenu(null, true);
-      };
-
-      var toolbar = create("ol", { class: "slide-menu-toolbar" });
-      select(".slide-menu").appendChild(toolbar);
-
-      function addToolbarButton(title, ref, icon, style, fn, active) {
-        var attrs = {
-          "data-button": "" + buttons++,
-          class:
-            "toolbar-panel-button" + (active ? " active-toolbar-button" : ""),
-        };
-        if (ref) {
-          attrs["data-panel"] = ref;
-        }
-        var button = create("li", attrs);
-
-        if (icon.startsWith("fa-")) {
-          button.appendChild(create("i", { class: style + " " + icon }));
-        } else {
-          button.innerHTML = icon + "</i>";
-        }
-        button.appendChild(create("br"), select("i", button));
-        button.appendChild(
-          create("span", { class: "slide-menu-toolbar-label" }, title),
-          select("i", button)
-        );
-        button.onclick = fn;
-        toolbar.appendChild(button);
-        return button;
-      }
-
-      // MARIO: we only have one panel, so we don't need this
-      // addToolbarButton("Slides", "Slides", "fa-images", "fas", openPanel, true);
-
-      // MARIO: toggle search dialog of RevealSearch plugin
-      addToolbarButton(
-        "Toggle Search Dialog",
-        "Search",
-        "fa-search",
-        "fas",
-        function () {
-          closeMenu();
-          if (deck.hasPlugin("search")) deck.getPlugin("search").toggle();
-        }
-      );
-
-      // MARIO: disable fragment animations
-      let animButton = addToolbarButton(
-        "Toggle Animations",
-        "Animations",
-        deck.getConfig().fragments ? "fa-check-circle" : "fa-circle",
-        "far",
-        function () {
-          let animState = deck.getConfig().fragments;
-          let icon = animButton.firstChild;
-          deck.configure({ fragments: !animState });
-          icon.classList.remove("fa-circle-check", "fa-circle");
-          icon.classList.add(animState ? "fa-circle" : "fa-circle-check");
-        }
-      );
-
-      // MARIO: trigger PDF export
-      addToolbarButton(
-        "Export to PDF",
-        "Print",
-        "fa-print",
-        "fas",
-        function () {
-          // electron app
-          if (window.electronApp) {
-            let url =
-              location.protocol + "//" + location.host + location.pathname;
-            window.electronApp.printPDF(url);
-          }
-          // normal browser mode
-          else {
-            if (confirm("Leave/reload presentation to export PDF?")) {
-              let url =
-                location.protocol +
-                "//" +
-                location.host +
-                location.pathname +
-                "?print-pdf";
-              window.open(url, "_self");
-            }
-          }
-          closeMenu();
-        }
-      );
-
-      if (options.custom) {
-        options.custom.forEach(function (element, index, array) {
-          addToolbarButton(
-            element.title,
-            "Custom" + index,
-            element.icon,
-            null,
-            openPanel
-          );
-        });
-      }
-
-      if (options.themes) {
-        addToolbarButton("Themes", "Themes", "fa-adjust", "fas", openPanel);
-      }
-      if (options.transitions) {
-        addToolbarButton(
-          "Transitions",
-          "Transitions",
-          "fa-sticky-note",
-          "fas",
-          openPanel
-        );
-      }
-      var button = create("li", {
-        id: "close",
-        class: "toolbar-panel-button",
-      });
-      button.appendChild(create("i", { class: "fas fa-times" }));
-      button.appendChild(create("br"));
-      button.appendChild(
-        create("span", { class: "slide-menu-toolbar-label" }, "Close")
-      );
-      button.onclick = function () {
-        closeMenu(null, true);
-      };
-      toolbar.appendChild(button);
-
-      //
-      // Slide links
-      //
-      function generateItem(type, section, i, h, v) {
-        var link = "/#/" + h;
-        if (typeof v === "number" && !isNaN(v)) link += "/" + v;
-
-        function text(selector, parent) {
-          if (selector === "") return null;
-          var el = parent ? select(selector, section) : select(selector);
-          if (el) return el.textContent;
-          return null;
-        }
-        var title =
-          section.getAttribute("data-menu-title") ||
-          text(".menu-title", section) ||
-          text(options.titleSelector, section);
-
-        if (!title && options.useTextContentForMissingTitles) {
-          // attempt to figure out a title based on the text in the slide
-          title = section.textContent.trim();
-          if (title) {
-            title =
-              title
-                .split("\n")
-                .map(function (t) {
-                  return t.trim();
-                })
-                .join(" ")
-                .trim()
-                .replace(/^(.{16}[^\s]*).*/, "$1") // limit to 16 chars plus any consecutive non-whitespace chars (to avoid breaking words)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;") + "...";
-          }
-        }
-
-        if (!title) {
-          if (options.hideMissingTitles) return "";
-          type += " no-title";
-          title = "Slide " + (i + 1);
-        }
-
-        var item = create("li", {
-          class: type,
-          "data-item": i,
-          "data-slide-h": h,
-          "data-slide-v": v === undefined ? 0 : v,
-        });
-
-        if (options.markers) {
-          item.appendChild(
-            create("i", { class: "fas fa-check-circle fa-fw past" })
-          );
-          item.appendChild(
-            create("i", {
-              class: "fas fa-arrow-alt-circle-right fa-fw active",
-            })
-          );
-          item.appendChild(
-            create("i", { class: "far fa-circle fa-fw future" })
-          );
-        }
-
-        if (options.numbers) {
-          // Number formatting taken from reveal.js
-          var value = [];
-          var format = "h.v";
-
-          // Check if a custom number format is available
-          if (typeof options.numbers === "string") {
-            format = options.numbers;
-          } else if (typeof config.slideNumber === "string") {
-            // Take user defined number format for slides
-            format = config.slideNumber;
-          }
-
-          switch (format) {
-            case "c":
-              value.push(i + 1);
+  /**
+   * Changes the way the up, down and escape keys work when a link inside the slide-list is focused.
+   * @param {*} event The Keyboard Event
+   */
+  traverseList(event) {
+    if(!this.inert) {
+      switch(event.code) {
+          case "Escape":
+//              event.stopImmediatePropagation();
+              this.closeMenu();
               break;
-            case "c/t":
-              value.push(i + 1, "/", deck.getTotalSlides());
-              break;
-            case "h/v":
-              value.push(h + 1);
-              if (typeof v === "number" && !isNaN(v)) value.push("/", v + 1);
-              break;
-            default:
-              value.push(h + 1);
-              if (typeof v === "number" && !isNaN(v)) value.push(".", v + 1);
-          }
-
-          item.appendChild(
-            create(
-              "span",
-              { class: "slide-menu-item-number" },
-              value.join("") + ". "
-            )
-          );
-        }
-
-        item.appendChild(
-          create("span", { class: "slide-menu-item-title" }, title)
-        );
-
-        return item;
-      }
-
-      function createSlideMenu() {
-        if (
-          !document.querySelector(
-            "section[data-markdown]:not([data-markdown-parsed])"
-          )
-        ) {
-          var panel = create("div", {
-            "data-panel": "Slides",
-            class: "slide-menu-panel active-menu-panel",
-          });
-          panel.appendChild(create("ul", { class: "slide-menu-items" }));
-          panels.appendChild(panel);
-          var items = select(
-            '.slide-menu-panel[data-panel="Slides"] > .slide-menu-items'
-          );
-          var slideCount = 0;
-          selectAll(".slides > section").forEach(function (section, h) {
-            var subsections = selectAll("section", section);
-            if (subsections.length > 0) {
-              subsections.forEach(function (subsection, v) {
-                var type =
-                  v === 0 ? "slide-menu-item" : "slide-menu-item-vertical";
-                var item = generateItem(type, subsection, slideCount, h, v);
-                if (item) {
-                  items.appendChild(item);
-                }
-                slideCount++;
-              });
-            } else {
-              var item = generateItem(
-                "slide-menu-item",
-                section,
-                slideCount,
-                h
-              );
-              if (item) {
-                items.appendChild(item);
+          case "ArrowUp":
+              if(document.activeElement && document.activeElement.classList.contains("tile")) {
+                event.preventDefault();
+//                event.stopImmediatePropagation();
+                this.menu.slide_list.lastElementChild.firstElementChild.focus();
               }
-              slideCount++;
-            }
-          });
-          selectAll(".slide-menu-item, .slide-menu-item-vertical").forEach(
-            function (i) {
-              i.onclick = clicked;
-            }
-          );
-          highlightCurrentSlide();
-        } else {
-          // wait for markdown to be loaded and parsed
-          setTimeout(createSlideMenu, 100);
-        }
-      }
-
-      createSlideMenu();
-      deck.addEventListener("slidechanged", highlightCurrentSlide);
-
-      //
-      // Custom menu panels
-      //
-      if (options.custom) {
-        function xhrSuccess() {
-          if (this.status >= 200 && this.status < 300) {
-            this.panel.innerHTML = this.responseText;
-            enableCustomLinks(this.panel);
-          } else {
-            showErrorMsg(this);
+              if(document.activeElement && document.activeElement.classList.contains("slide-link")) {
+//                  event.stopImmediatePropagation();
+                  let parent = document.activeElement.parentElement;
+                  let target = undefined;
+                  if(parent.previousElementSibling) { //target the a inside the previous list item
+                      target = parent.previousElementSibling.firstElementChild;  
+                  } else { // wrap around
+                      target = parent.parentElement.lastElementChild.firstElementChild;
+                  }
+                  setTimeout(() => target.focus());
+              }
+              break;
+        case "ArrowDown":
+          if(document.activeElement && document.activeElement.classList.contains("tile")) {
+            event.preventDefault();
+//            event.stopImmediatePropagation();
+            this.menu.slide_list.firstElementChild.firstElementChild.focus();
           }
-        }
-        function xhrError() {
-          showErrorMsg(this);
-        }
-        function loadCustomPanelContent(panel, sURL) {
-          var oReq = new XMLHttpRequest();
-          oReq.panel = panel;
-          oReq.arguments = Array.prototype.slice.call(arguments, 2);
-          oReq.onload = xhrSuccess;
-          oReq.onerror = xhrError;
-          oReq.open("get", sURL, true);
-          oReq.send(null);
-        }
-        function enableCustomLinks(panel) {
-          selectAll("ul.slide-menu-items li.slide-menu-item", panel).forEach(
-            function (item, i) {
-              item.setAttribute("data-item", i + 1);
-              item.onclick = clicked;
-              item.addEventListener("mouseenter", handleMouseHighlight);
-            }
-          );
-        }
-
-        function showErrorMsg(response) {
-          var msg =
-            "<p>ERROR: The attempt to fetch " +
-            response.responseURL +
-            " failed with HTTP status " +
-            response.status +
-            " (" +
-            response.statusText +
-            ").</p>" +
-            "<p>Remember that you need to serve the presentation HTML from a HTTP server.</p>";
-          response.panel.innerHTML = msg;
-        }
-
-        options.custom.forEach(function (element, index, array) {
-          var panel = create("div", {
-            "data-panel": "Custom" + index,
-            class: "slide-menu-panel slide-menu-custom-panel",
-          });
-          if (element.content) {
-            panel.innerHTML = element.content;
-            enableCustomLinks(panel);
-          } else if (element.src) {
-            loadCustomPanelContent(panel, element.src);
+          if(document.activeElement && document.activeElement.classList.contains("slide-link")) {
+//              event.stopImmediatePropagation();
+              let parent = document.activeElement.parentElement;
+              let target = undefined;
+              if(parent.nextElementSibling) { //target the a inside the previous list item
+                  target = parent.nextElementSibling.firstElementChild;  
+              } else { // wrap around
+                  target = parent.parentElement.firstElementChild.firstElementChild;
+              }
+              setTimeout(() => target.focus());
           }
-          panels.appendChild(panel);
-        });
+          break;
+        default:
       }
-
-      //
-      // Themes
-      //
-      if (options.themes) {
-        var panel = create("div", {
-          class: "slide-menu-panel",
-          "data-panel": "Themes",
-        });
-        panels.appendChild(panel);
-        var menu = create("ul", { class: "slide-menu-items" });
-        panel.appendChild(menu);
-        options.themes.forEach(function (t, i) {
-          var attrs = {
-            class: "slide-menu-item",
-            "data-item": "" + (i + 1),
-          };
-          if (t.theme) {
-            attrs["data-theme"] = t.theme;
-          }
-          if (t.highlightTheme) {
-            attrs["data-highlight-theme"] = t.highlightTheme;
-          }
-          var item = create("li", attrs, t.name);
-          menu.appendChild(item);
-          item.onclick = clicked;
-        });
-      }
-
-      //
-      // Transitions
-      //
-      if (options.transitions) {
-        var panel = create("div", {
-          class: "slide-menu-panel",
-          "data-panel": "Transitions",
-        });
-        panels.appendChild(panel);
-        var menu = create("ul", { class: "slide-menu-items" });
-        panel.appendChild(menu);
-        options.transitions.forEach(function (name, i) {
-          var item = create(
-            "li",
-            {
-              class: "slide-menu-item",
-              "data-transition": name.toLowerCase(),
-              "data-item": "" + (i + 1),
-            },
-            name
-          );
-          menu.appendChild(item);
-          item.onclick = clicked;
-        });
-      }
-
-      //
-      // Open menu options
-      //
-      if (options.openButton) {
-        // add menu button
-        var div = create("div", { class: "slide-menu-button" });
-        var link = create("a", { href: "#" });
-        link.appendChild(create("i", { class: "fas fa-bars" }));
-        div.appendChild(link);
-        select(".reveal").appendChild(div);
-        div.onclick = openMenu;
-      }
-
-      if (options.openSlideNumber) {
-        var slideNumber = select("div.slide-number");
-        slideNumber.onclick = openMenu;
-      }
-
-      //
-      // Handle mouse overs
-      //
-      selectAll(".slide-menu-panel .slide-menu-items li").forEach(function (
-        item
-      ) {
-        item.addEventListener("mouseenter", handleMouseHighlight);
-      });
-
-      function handleMouseHighlight(event) {
-        if (mouseSelectionEnabled) {
-          selectAll(".active-menu-panel .slide-menu-items li.selected").forEach(
-            function (i) {
-              i.classList.remove("selected");
-            }
-          );
-          event.currentTarget.classList.add("selected");
-        }
-      }
-    }
-
-    if (options.keyboard) {
-      //XXX add keyboard option for custom key codes, etc.
-
-      document.addEventListener("keydown", onDocumentKeyDown, false);
-
-      // handle key presses within speaker notes
-      window.addEventListener("message", function (event) {
-        var data;
-        try {
-          data = JSON.parse(event.data);
-        } catch (e) {}
-        if (data && data.method === "triggerKey") {
-          onDocumentKeyDown({
-            keyCode: data.args[0],
-            stopImmediatePropagation: function () {},
-          });
-        }
-      });
-
-      // Prevent reveal from processing keyboard events when the menu is open
-      if (
-        config.keyboardCondition &&
-        typeof config.keyboardCondition === "function"
-      ) {
-        // combine user defined keyboard condition with the menu's own condition
-        var userCondition = config.keyboardCondition;
-        config.keyboardCondition = function (event) {
-          return userCondition(event) && (!isOpen() || event.keyCode == 77);
-        };
-      } else {
-        config.keyboardCondition = function (event) {
-          return !isOpen() || event.keyCode == 77;
-        };
-      }
-
-      deck.addKeyBinding(
-        { keyCode: 77, key: "M", description: "Toggle menu" },
-        toggleMenu
-      );
-    }
-
-    if (options.openOnInit) {
-      openMenu();
-    }
-
-    initialised = true;
-  }
-
-  /**
-   * Extend object a with the properties of object b.
-   * If there's a conflict, object b takes precedence.
-   */
-  function extend(a, b) {
-    for (var i in b) {
-      a[i] = b[i];
     }
   }
 
   /**
-   * Dispatches an event of the specified type from the
-   * reveal DOM element.
+   * Instantiates the ui button that opens the menu.
    */
-  function dispatchEvent(type, args) {
-    var event = document.createEvent("HTMLEvents", 1, 2);
-    event.initEvent(type, true, true);
-    extend(event, args);
-    document.querySelector(".reveal").dispatchEvent(event);
+  initializeButton(localization) {
+    let template = document.createElement("template");
+    template.innerHTML = String.raw
+    `<button id="decker-menu-button" title="${localization.open_button_label}" aria-label="${localization.open_button_label}">
+      <i class="fas fa-bars"></i>
+    </button>`;
 
-    // If we're in an iframe, post each reveal.js event to the
-    // parent window. Used by the notes plugin
-    if (config.postMessageEvents && window.parent !== window.self) {
-      window.parent.postMessage(
-        JSON.stringify({
-          namespace: "reveal",
-          eventName: type,
-          state: deck.getState(),
-        }),
-        "*"
-      );
-    }
+    let button = template.content.firstElementChild;
+    button.addEventListener("click", (event) => this.toggleMenu(event));
+    this.open_button = button;
   }
 
-  function select(selector, el) {
-    if (!el) {
-      el = document;
-    }
-    return el.querySelector(selector);
-  }
-
-  function selectAll(selector, el) {
-    if (!el) {
-      el = document;
-    }
-    return Array.prototype.slice.call(el.querySelectorAll(selector));
-  }
-
-  function create(tagName, attrs, content) {
-    var el = document.createElement(tagName);
-    if (attrs) {
-      Object.getOwnPropertyNames(attrs).forEach(function (n) {
-        el.setAttribute(n, attrs[n]);
-      });
-    }
-    if (content) el.innerHTML = content;
-    return el;
-  }
-
-  function changeStylesheet(id, href) {
-    // take note of the previous theme and remove it, then create a new stylesheet reference and insert it
-    // this is required to force a load event so we can change the menu style to match the new style
-    var stylesheet = select("link#" + id);
-    var parent = stylesheet.parentElement;
-    var sibling = stylesheet.nextElementSibling;
-    stylesheet.remove();
-
-    var newStylesheet = stylesheet.cloneNode();
-    newStylesheet.setAttribute("href", href);
-    newStylesheet.onload = function () {
-      matchRevealStyle();
-    };
-    parent.insertBefore(newStylesheet, sibling);
-  }
-
-  // modified from math plugin
-  function loadResource(url, type, callback) {
-    var head = document.querySelector("head");
-    var resource;
-
-    if (type === "script") {
-      resource = document.createElement("script");
-      resource.type = "text/javascript";
-      resource.src = url;
-    } else if (type === "stylesheet") {
-      resource = document.createElement("link");
-      resource.rel = "stylesheet";
-      resource.href = url;
-    }
-
-    // Wrapper for callback to make sure it only fires once
-    var finish = function () {
-      if (typeof callback === "function") {
-        callback.call();
-        callback = null;
+  /**
+   * Instantiates the menu.
+   */
+  initializeSlideList() {
+    let template = document.createElement("template");
+    template.innerHTML = String.raw
+    `<div class="slide-list-wrapper" tabindex="-1">
+      <ul class="slide-list" tabindex="-1"></ul>
+    </div>`
+    let wrapper = template.content.firstElementChild;
+    let list = wrapper.firstElementChild;
+    let slides = document.querySelectorAll(".slides > section");
+    slides.forEach((slide, h) => {
+      let subslides = slide.querySelectorAll("section");
+      if(subslides.length > 0) {
+        subslides.forEach((subslide, v) => {
+          let subitem = this.createListItem(subslide, h, v);
+          list.appendChild(subitem);
+        });
+        return;
       }
-    };
+      var item = this.createListItem(slide, h, undefined);
+      list.appendChild(item);
+    });
+    wrapper.addEventListener("keydown", (event) => this.ignoreTraversalKeys(event));
+    this.menu.container.appendChild(wrapper);
+    this.menu.slide_list = list;
+  }
 
-    resource.onload = finish;
+  /**
+   * Creates a single list item for the slide list.
+   * @param {*} slide 
+   * @param {*} h 
+   * @param {*} v 
+   * @returns 
+   */
+  createListItem(slide, h, v) {
+    let template = document.createElement("template");
+    let title = this.getTitle(slide, "h1, h2, h3, h4, h5");
+    title = `${h+1}.${v !== undefined ? v+1 : ""} ${title}`;
+    template.innerHTML = String.raw
+    `<li class="slide-list-item" data-slide-h="${h}" ${v !== undefined ? "data-slide-v=\""+v+"\"" : ""}>
+      <a class="slide-link" href="#/${h}/${v !== undefined ? "/"+v : ""}" target="_self">${title}</a>
+    </li>`
+    let item = template.content.firstElementChild;
+    let link = item.firstElementChild;
+    link.addEventListener("click", (event) => this.toggleMenu(event));
+    return item;
+  }
 
-    // IE
-    resource.onreadystatechange = function () {
-      if (this.readyState === "loaded") {
-        finish();
+  /**
+   * Tries to retrieve the title of a slide by various means.
+   * @param {*} section 
+   * @param {*} selector 
+   * @returns 
+   */
+  getTitle(section, selector) {
+    let title = this.getTitleFromAttributesOrChildren(section, selector);
+    if(!title) {
+      title = this.getTitleFromSectionContent(section);
+    }
+    if(!title) {
+      title = "Kein Titel"; //MAYBE: Query from localization options (far future feature?)
+    }
+    return title;
+  }
+
+  /**
+   * Taken from Greg Denehy's Menu Plugin. Tries to find a title by going through
+   * data-menu-title attribute of the given section, finding any element with the
+   * class .menu-title or checking if there is an element with the custom selector
+   * in the slide. If there is none, returns undefined.
+   * @param {*} section 
+   * @param {*} selector 
+   * @returns The title of a slide or undefined.
+   */
+  getTitleFromAttributesOrChildren(section, selector) {
+    let title = section.getAttribute("data-menu-title");
+    if(!title) {
+      let element = section.querySelector(".menu-title");
+      if(element) {
+        title = element.textContent;
       }
+    }
+    if(!title && selector) {
+      let element = section.querySelector(selector);
+      if(element) {
+        title = element.textContent;
+      }
+    }
+    return title;
+  }
+
+  /**
+   * Taken from Greg Denehy's Menu Plugin.
+   * Searches the content of a slide for any text and uses that as a title.
+   * @param {*} section 
+   * @returns 
+   */
+  getTitleFromSectionContent(section) {
+    let title = section.textContent.trim();
+    if (title) {
+      title =
+        title
+          .split("\n")
+          .map(function (t) {
+            return t.trim();
+          })
+          .join(" ")
+          .trim()
+          .replace(/^(.{16}[^\s]*).*/, "$1") // limit to 16 chars plus any consecutive non-whitespace chars (to avoid breaking words)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;") + "...";
+    }
+    return title;
+  }
+
+  /**
+   * Instantiates the whole menu and adds it to the DOM.
+   */
+  initializeMenu(localization) {
+    let template = document.createElement("template");
+    let animations = this.reveal.getConfig().fragments;
+    let toggle_icon = animations ? "fa-check-circle" : "fa-circle";
+    template.innerHTML = String.raw
+    `<div class="decker-menu slide-in-left" id="decker-menu" inert>
+      <div class="menu-header">
+        <button id="decker-menu-close-button" class="close" title="${localization.close_label}" aria-label="${localization.close_label}">
+          <i class="fas fa-times-circle"></i>
+        </button>
+        <div id="decker-menu-title">
+          <span>${localization.title}</span>
+        </div>
+      </div>
+      <div class="tile-grid">
+        <button class="tile" id="decker-menu-search-button" title="${localization.search_button_label}" aria-label="${localization.search_button_label}">
+          <i class="fas fa-search"></i>
+          <p>${localization.search_button_label}</p>
+        </button>
+        <button class="tile" id="decker-menu-print-button" title="${localization.print_pdf_label}" aria-label="${localization.print_pdf_label}">
+          <i class="fas fa-print"></i>
+          <p>${localization.print_pdf_label}</p>
+        </button>
+        <button class="switch tile" id="decker-menu-animation-button" role="switch" aria-checked="${animations}" title="${localization.toggle_fragments_label}" aria-label="${localization.toggle_fragments_label}">
+          <i class="far ${toggle_icon}"></i>
+          <p>${localization.toggle_fragments_label}</p>
+        </button>
+      </div>
+     </div>`
+    let container = template.content.firstElementChild;
+    this.menu.container = container;
+
+    /* Getting references */
+    this.menu.search_button = container.querySelector("#decker-menu-search-button");
+    this.menu.pdf_button = container.querySelector("#decker-menu-print-button");
+    this.menu.fragments_button = container.querySelector("#decker-menu-animation-button");
+    this.menu.close_button = container.querySelector("#decker-menu-close-button");
+
+    /* Attach callbacks */
+    this.menu.search_button.addEventListener("click", (event) => this.toggleSearchbar());
+    this.menu.search_button.addEventListener("click", (event) => this.closeMenu(event));
+    this.menu.pdf_button.addEventListener("click", (event) => this.printPDF());
+    this.menu.pdf_button.addEventListener("click", (event) => this.closeMenu(event));
+    this.menu.fragments_button.addEventListener("click", (event) => this.toggleFragments());
+    this.menu.close_button.addEventListener("click", (event) => this.closeMenu(event));
+
+    this.initializeSlideList();
+    this.menu.container.addEventListener("keydown", (event) => this.traverseList(event));
+
+    /* Temporary Solution */
+    this.glass = document.createElement("div");
+    this.glass.className = "glass";
+    this.glass.addEventListener("click", (event) => this.closeMenu(event));
+    document.body.appendChild(this.glass);
+  }
+
+  init(reveal) {
+    this.reveal = reveal;
+    this.config = reveal.getConfig();
+
+    let localization = {
+      open_button_label: "Open Navigation Menu",
+      search_button_label: "Toggle Searchbar",
+      print_pdf_label: "Print PDF",
+      toggle_fragments_label: "Show Slide Fragments",
+      close_label: "Close Navigation Menu",
+      no_title: "No Title",
+      title: "Navigation"
     };
 
-    // Normal browsers
-    head.appendChild(resource);
+    let lang = navigator.language;
+
+    if(lang === "de") {
+      localization = {
+        open_button_label: "Navigationsmenu öffnen",
+        search_button_label: "Suchleiste umschalten",
+        print_pdf_label: "Als PDF drucken",
+        toggle_fragments_label: "Folienfragmente anzeigen",
+        close_label: "Navigationsmenu schließen",
+        no_title: "Kein Titel",
+        title: "Navigation"
+      }
+    }
+
+    this.initializeButton(localization);
+    this.initializeMenu(localization);
+
+    document.body.appendChild(this.menu.container);
+
+    if(!this.reveal.hasPlugin('ui-anchors')) {
+      console.log("no decker ui anchor plugin loaded");
+      return;
+    }
+    let anchors = this.reveal.getPlugin("ui-anchors");
+    anchors.placeButton(this.open_button, this.position);
   }
-
-  function loadPlugin() {
-    // does not support IE8 or below
-    var supported = !ieVersion || ieVersion >= 9;
-
-    // do not load the menu in the upcoming slide panel in the speaker notes
-    if (
-      deck.isSpeakerNotes() &&
-      window.location.search.endsWith("controls=false")
-    ) {
-      supported = false;
-    }
-
-    if (supported) {
-      if (!options.delayInit) initMenu();
-      dispatchEvent("menu-ready");
-    }
-  }
-
-  return {
-    id: "menu",
-    init: (reveal) => {
-      deck = reveal;
-      config = deck.getConfig();
-      initOptions(config);
-      // MARIO: we load CSS in HTML, so we can override it
-      // MARIO: we load fontawesome in HTML
-      loadPlugin();
-      // loadResource(options.path + 'menu.css', 'stylesheet', function () {
-      //   if (options.loadIcons === undefined || options.loadIcons) {
-      //     loadResource(
-      //       options.path + 'font-awesome/css/all.css',
-      //       'stylesheet',
-      //       loadPlugin
-      //     );
-      //   } else {
-      //     loadPlugin();
-      //   }
-      // });
-    },
-
-    toggle: toggleMenu,
-    openMenu: openMenu,
-    closeMenu: closeMenu,
-    openPanel: openPanel,
-    isOpen: isOpen,
-    initialiseMenu: initMenu,
-    isMenuInitialised: function () {
-      return initialised;
-    },
-  };
-};
-
-// polyfill
-if (!String.prototype.startsWith) {
-  String.prototype.startsWith = function (searchString, position) {
-    return this.substr(position || 0, searchString.length) === searchString;
-  };
-}
-if (!String.prototype.endsWith) {
-  String.prototype.endsWith = function (search, this_len) {
-    if (this_len === undefined || this_len > this.length) {
-      this_len = this.length;
-    }
-    return this.substring(this_len - search.length, this_len) === search;
-  };
 }
 
-export default Plugin;
+let instance = new SlideMenu("TOP_LEFT");
+
+export default instance;

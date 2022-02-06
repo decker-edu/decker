@@ -1,8 +1,12 @@
 @import url("../fonts/lato.css");
 
 :root {
-  --blue: #2a9ddf;
-  --lightblue: #30B3FF;
+    --blue: #2a9ddf;
+    --light-blue: #30B3FF;
+    --emphColor: var(--blue);
+    --icon-active-color: #2a9ddf;
+    --icon-inactive-color: lightgrey;
+    --icon-size: 2vmin;
 }
 
 /* repeat light mode settings from light.css to override 
