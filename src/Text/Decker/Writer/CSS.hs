@@ -63,7 +63,7 @@ computeCssColorVariables meta =
       bg = fromJust $ colors !!? 0
       fg = fromJust $ colors !!? 7
       name i post =
-        let pre = if i < 7 then "shade" else "accent"
+        let pre = if i < 8 then "shade" else "accent"
             base = (pre <> show (i `mod` 8))
          in if Text.null post then base else base <> "-" <> post
       deriveShades colors i color =

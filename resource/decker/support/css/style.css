@@ -198,6 +198,85 @@ div.block.accent7 {
   background-color: var(--accent7-bbg);
 }
 
+span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  margin-left: -0.2em;
+  margin-right: -0.2em;
+}
+
+span.accent0 {
+  color: var(--accent0);
+}
+
+span.accent0.bg {
+  color: var(--shade6);
+  background-color: var(--accent0);
+}
+
+span.accent1 {
+  color: var(--accent1);
+}
+
+span.accent1.bg {
+  color: var(--shade6);
+  background-color: var(--accent1);
+}
+
+span.accent2 {
+  color: var(--accent2);
+}
+
+span.accent2.bg {
+  color: var(--shade6);
+  background-color: var(--accent2);
+}
+
+span.accent3 {
+  color: var(--accent3);
+}
+
+span.accent3.bg {
+  color: var(--shade6);
+  background-color: var(--accent3);
+}
+
+span.accent4 {
+  color: var(--accent4);
+}
+
+span.accent4.bg {
+  color: var(--shade6);
+  background-color: var(--accent4);
+}
+
+span.accent5 {
+  color: var(--accent5);
+}
+
+span.accent5.bg {
+  color: var(--shade6);
+  background-color: var(--accent5);
+}
+
+span.accent6 {
+  color: var(--accent6);
+}
+
+span.accent6.bg {
+  color: var(--shade6);
+  background-color: var(--accent6);
+}
+
+span.accent7 {
+  color: var(--accent7);
+}
+
+span.accent7.bg {
+  color: var(--shade6);
+  background-color: var(--accent7);
+}
+
 /* A block with centered text can look good at times. */
 div.block[align="center"] {
   text-align: center;

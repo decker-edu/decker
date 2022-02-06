@@ -1,24 +1,25 @@
 reveal:
-  width: 1280
-  height: 720
   backgroundTransition: "none"
   center: true
   controls: true
   fragmentInURL: true
   fragments: true
   hash: true
-  history: false
+  height: 720
   help: true
   hideCursorTime: 2000
   hideInactiveCursor: true
+  history: false
   keyboard: true
+  margin: 0.05
   overview: true
   progress: true
-  touch: true
-  vertical-slides: true
   slideNumber: true
-  viewDistance: 2
+  touch: true
   transition: "slide"
+  vertical-slides: true
+  viewDistance: 2
+  width: 1280
 
 template:
   favicon: support/icons/favicon.ico
