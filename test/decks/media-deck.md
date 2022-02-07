@@ -241,7 +241,7 @@ Call the style police at
 
 Caption: Block Caption $e=mc^2$
 
-# Local Image {.black}
+# Local Image {.inverse}
 
 ## `{width=50%}`
 

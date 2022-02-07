@@ -320,7 +320,7 @@ div.sourceCode > pre {
 }
 
 /* Inverse colors */
-section.slide:is(.inverse, .black) {
+.reveal-viewport section.slide:is(.inverse, .has-dark-background) {
   background-color: var(--foreground-color);
   color: var(--background-color);
 }

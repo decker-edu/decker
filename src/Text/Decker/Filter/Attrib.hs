@@ -5,6 +5,7 @@
 module Text.Decker.Filter.Attrib where
 
 import Data.Bifunctor
+import Data.List (nub)
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
@@ -230,6 +231,12 @@ takeAllClasses = modify transform
     transform state@((id', cs', kvs'), (id, cs, kvs)) =
       ((id', cs <> cs', kvs'), (id, [], kvs))
 
+takeAllAttributes :: Attrib ()
+takeAllAttributes = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      ((id', nub (cs <> cs'), nub (kvs' <> kvs)), (id, [], kvs))
+
 injectBorder :: Attrib ()
 injectBorder = do
   border <- lookupMetaOrElse False "decker.filter.border" <$> lift (gets meta)
@@ -263,6 +270,13 @@ cutAttribs keys = do
   let (vkvs, rkvs) = List.partition ((`elem` keys) . fst) kvs
   put (attr', (id, cs, rkvs))
   return vkvs
+
+cutClass :: Text -> Attrib [Text]
+cutClass cls = do
+  (attr', (id, cs, kvs)) <- get
+  let (vcs, rcs) = List.partition (== cls) cs
+  put (attr', (id, rcs, kvs))
+  return vcs
 
 cutClasses :: [Text] -> Attrib [Text]
 cutClasses classes = do
@@ -317,12 +331,28 @@ adjustAttribPaths keys kvs = do
     adjustAttrib (k, v) = do
       (k,) <$> (URI.render <$> transformUrl v "")
 
+-- Adjusts the values of all path values that are listed in keys.
+adjustAttribPaths' :: [Text] -> Attrib ()
+adjustAttribPaths' keys = do
+  paths <- cutAttribs keys
+  local <- lift $ mapM adjustAttrib paths
+  mapM_ injectAttribute local
+  where
+    adjustAttrib :: (Text, Text) -> Filter (Text, Text)
+    adjustAttrib (k, v) = do
+      (k,) <$> (URI.render <$> transformUrl v "")
+
 isPercent :: Text -> Bool
 isPercent = Text.isSuffixOf "%"
 
 ifAttrib :: Text -> (Text -> Attrib ()) -> Attrib ()
 ifAttrib key action =
   cutAttrib key >>= mapM_ action
+
+ifClass :: [Text] -> Attrib () -> Attrib ()
+ifClass keys action = do
+  (_, cls, _) <- src
+  when (any (`elem` cls) keys) action
 
 mediaFragment :: Attrib Text
 mediaFragment = do
