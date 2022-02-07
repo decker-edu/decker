@@ -50,6 +50,22 @@ compileImage attr alt url title caption = do
       extractAttr
     return $ mkContainer attribs [media]
 
+-- | Compiles the contents of a LineBlock into a Decker specific structure.
+compileLineBlock :: Container c => [(Attr, [Inline], Text, Text)] -> [Inline] -> Filter c
+compileLineBlock images caption = do
+  figures <- mapM compile images
+  let row = mkContainer ("", ["lineblock"], []) figures
+  let figure = wrapFigure' ("", ["lineblock"], []) caption [row]
+  return $ mkContainer ("", ["lineblock", "media"], []) [figure]
+  where
+    compile (attr, alt, url, title) = do
+      runAttr nullAttr $ do
+        uri <- URI.mkURI url
+        let mediaType = classifyMedia uri attr
+        case Map.lookup mediaType imageCompilers of
+          Just transform -> transform uri alt
+          Nothing -> error $ "No transformer for media type " <> show mediaType
+
 -- | Compiles the contents of a CodeBlock into a Decker specific structure.
 compileCodeBlock :: Attr -> Text -> [Inline] -> Filter Block
 compileCodeBlock attr@(_, classes, _) code caption =
@@ -96,14 +112,9 @@ compileCodeBlock attr@(_, classes, _) code caption =
               Text.writeFile (dir <> takeFileName path) code
               copyFile (dir <> takeFileName path) path
               removeFile (dir <> takeFileName path)
-
           )
       uri <- lift $ URI.mkURI (toText path)
       renderCodeBlock uri caption
-
--- | Compiles the contents of a LineBlock into a Decker specific structure.
-compileLineBlock :: [(Attr, [Inline], Text, Text)] -> [Inline] -> Filter Block
-compileLineBlock images caption = return $ Div dragons []
 
 dragons :: (Text, [Text], [a])
 dragons = ("", ["here be dragons"], [])
@@ -413,6 +424,17 @@ wrapFigure attr caption inline =
   mkFigure
     attr
     ( [inline]
+        <> [ mkFigCaption
+               [containSome caption]
+             | not (null caption)
+           ]
+    )
+
+wrapFigure' :: Container a => Attr -> [Inline] -> [a] -> a
+wrapFigure' attr caption inline =
+  mkFigure
+    attr
+    ( inline
         <> [ mkFigCaption
                [containSome caption]
              | not (null caption)

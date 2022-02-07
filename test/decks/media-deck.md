@@ -184,6 +184,19 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 -   Block distance fits.
 
+# 2 images in a row
+
+| ![Alt Caption $e=mc^2$](include/06-metal.png)
+| ![](include/06-metal.png)
+
+# 3 images in a row
+
+| ![Alt Caption $e=mc^2$](include/06-metal.png)
+| ![Alt Caption $e=mc^2$](include/06-metal.png)
+| ![](include/06-metal.png)
+
+Caption: Caption all the things
+
 # Blocks {.columns}
 
 ## One {.left}

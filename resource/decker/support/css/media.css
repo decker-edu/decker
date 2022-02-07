@@ -94,3 +94,10 @@ through the aspect attribute. */
   width: 100%;
   height: 100%;
 }
+
+/* Line blocks */
+div.lineblock {
+  display: flex;
+  gap: 0.5em;
+  justify-content: center;
+}
