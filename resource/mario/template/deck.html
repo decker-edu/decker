@@ -23,7 +23,24 @@ $endif$
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
-  
+ 
+  <!-- Default values for CSS variables can live here. They can be overridden by
+  meta data values. -->
+  <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
+
+  <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
+  into a style sheet. Default values can come from `variables.css`. -->
+  <style class="css-declarations">
+    :root {
+    $for(css-color-declarations)$
+      $css-color-declarations$
+    $endfor$
+    $for(css-declarations)$
+      $css-declarations$
+    $endfor$
+    }
+  </style>
+
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reveal.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/decker/ui-anchors.css">
@@ -40,16 +57,6 @@ $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
 
-  <style>
-    :root {
-      /* whiteboard buttons */
-      --whiteboard-icon-size: $whiteboard-icon-size$;
-      --whiteboard-active-color: $whiteboard-active-color$;
-      --whiteboard-inactive-color: $whiteboard-inactive-color$;
-      --whiteboard-background-color: $whiteboard-background-color$;      
-    } 
-  </style>
-  
 </head>
 
 <body>
