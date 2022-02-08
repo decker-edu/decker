@@ -112,7 +112,7 @@ $body$
     // import Reveal and all plugins 
     import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
     import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
-    import uiAnchorsPlugin from './$decker-support-dir$/plugins/decker/ui-anchors.js'
+    import uiAnchorsPlugin from './$decker-support-dir$/plugins/decker/ui-anchors.js';
     import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
     import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
     import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
@@ -166,6 +166,7 @@ $endif$
     };
 
     Reveal.initialize(revealConfig);
+    window.Reveal = Reveal;
   </script>
 
 </body>

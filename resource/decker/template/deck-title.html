@@ -1,41 +1,21 @@
-<section id="$idprefix$title-slide" class="title-page">
+$if(title)$
+<section id="$idprefix$title-slide" $for(title-slide-attributes/pairs)$ $it.key$="$it.value$" $endfor$>
   <div class="decker">
     <div class="alignment">
-      <h1 class="title"> $title$ </h1>
+      <h1 class="title">$title$</h1>
       $if(subtitle)$
-      <h2 class="subtitle"> $subtitle$ </h2>
+      <h2 class="subtitle">$subtitle$</h2>
       $endif$
-
-      $if(template.teaser)$
-      <img class="teaser" src=$template.teaser$>
-      $endif$
-      
-      $if(authors)$
-      <div class="authors">
-      $for(authors)$
-        $if(it.name)$
-            <div class="author">
-                $it.name$ 
-                $if(it.affiliation)$
-                    <div class="affiliation"> $it.affiliation$ </div>
-                $endif$
-            </div>
-        $endif$
+      $for(author)$
+      <p class="author">$author$</p>
       $endfor$
-      </div>
-      $endif$
-
-      $if(author)$
-      <div class="author"> $author$ </div>
-      $endif$
-
-      $if(affiliation)$
-      <div class="affiliation"> $affiliation$ </div>
-      $endif$
-
+      $for(institute)$
+      <p class="institute">$institute$</p>
+      $endfor$
       $if(date)$
-      <div class="date"> $date$ </div>
+      <p class="date">$date$</p>
       $endif$
     </div>
   </div>
 </section>
+$endif$

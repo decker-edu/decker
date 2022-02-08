@@ -1,24 +1,25 @@
 reveal:
-  width: 1280
-  height: 720
   backgroundTransition: "none"
   center: true
   controls: true
   fragmentInURL: true
   fragments: true
   hash: true
-  history: false
+  height: 720
   help: true
   hideCursorTime: 2000
   hideInactiveCursor: true
+  history: false
   keyboard: true
-  overview: false
+  margin: 0.05
+  overview: true
   progress: true
-  touch: true
-  vertical-slides: true
   slideNumber: true
-  viewDistance: 2
+  touch: true
   transition: "slide"
+  vertical-slides: true
+  viewDistance: 2
+  width: 1280
 
 template:
   favicon: support/icons/favicon.ico
@@ -81,12 +82,6 @@ math:
     mt: ['{\\mathbf{\\boldsymbol{#1}}}', 1]
     pt: ['\\boldsymbol{#1}', 1]
     textcolor: ['\\color{#1}', 1]
-
-# default settings for whiteboard buttons
-whiteboard-active-color: rgb(42,157,223)
-whiteboard-background-color: rgb(250,250,250)
-whiteboard-icon-size: 2vmin
-whiteboard-inactive-color: lightgrey
 
 # Language dictionary. Currently for quiz elements
 dictionary:

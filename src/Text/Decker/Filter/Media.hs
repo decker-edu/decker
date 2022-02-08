@@ -10,6 +10,7 @@
 module Text.Decker.Filter.Media where
 
 import Control.Monad.Catch
+import Data.List (lookup)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (fromJust)
 import qualified Data.Text as Text
@@ -49,6 +50,41 @@ compileImage attr alt url title caption = do
       takeUsual
       extractAttr
     return $ mkContainer attribs [media]
+
+-- | Compiles the contents of a LineBlock into a Decker specific structure.
+compileLineBlock :: Container c => [(Attr, [Inline], Text, Text)] -> [Inline] -> Filter c
+compileLineBlock images caption = do
+  aspects <- mapMaybeM determineAspectRatio images
+  let columns =
+        if length aspects == length images
+          then map printFr $ map (\a -> sum aspects / a) aspects
+          else map (const "1fr") images
+  figures <- mapM compile images
+  let row =
+        mkContainer
+          ( "",
+            ["lineblock"],
+            [ ( "style",
+                "grid-template-columns: " <> Text.intercalate " " columns <> ";"
+              )
+            ]
+          )
+          figures
+  let figure = wrapFigure' ("", ["lineblock"], []) caption [row]
+  return $ mkContainer ("", ["lineblock", "media"], []) [figure]
+  where
+    printFr a = toText (printf "%.4ffr" a :: String)
+    compile (attr, alt, url, title) = do
+      uri <- URI.mkURI url
+      let mediaType = classifyMedia uri attr
+      runAttr attr $ do
+        case Map.lookup mediaType imageCompilers of
+          Just transform -> transform uri alt
+          Nothing -> error $ "No transformer for media type " <> show mediaType
+
+determineAspectRatio :: (Attr, [Inline], Text, Text) -> Filter (Maybe Float)
+determineAspectRatio ((_, _, attribs), alt, url, title) = do
+  return $ lookup "aspect" attribs >>= Just . calcAspect'
 
 -- | Compiles the contents of a CodeBlock into a Decker specific structure.
 compileCodeBlock :: Attr -> Text -> [Inline] -> Filter Block
@@ -94,14 +130,11 @@ compileCodeBlock attr@(_, classes, _) code caption =
           "decker-dir"
           ( \dir -> do
               Text.writeFile (dir <> takeFileName path) code
-              renameFile (dir <> takeFileName path) path
+              copyFile (dir <> takeFileName path) path
+              removeFile (dir <> takeFileName path)
           )
       uri <- lift $ URI.mkURI (toText path)
       renderCodeBlock uri caption
-
--- | Compiles the contents of a LineBlock into a Decker specific structure.
-compileLineBlock :: [(Attr, [Inline], Text, Text)] -> [Inline] -> Filter Block
-compileLineBlock images caption = return $ Div dragons []
 
 dragons :: (Text, [Text], [a])
 dragons = ("", ["here be dragons"], [])
@@ -117,7 +150,7 @@ imageCompilers =
       (ImageT, imageBlock),
       (VideoT, videoBlock),
       (StreamT, streamBlock),
-      -- TODO: (AudioT, audioHtml),
+      (AudioT, audioBlock),
       (CodeT, includeCodeBlock),
       (RenderT, renderCodeBlock),
       (JavascriptT, javascriptBlock)
@@ -182,6 +215,7 @@ iframeBlock uri caption = do
     injectStyles innerSizes
     extractAttr
   figureAttr <- do
+    passAttribs identity ["aspect"]
     takeUsual
     injectClasses ["iframe"]
     injectStyles outerSizes
@@ -287,6 +321,26 @@ mviewBlock uri caption = do
   pushAttribute ("model", model)
   mviewUri <- URI.mkURI "public:support/mview/mview.html"
   iframeBlock mviewUri caption
+
+audioBlock :: Container c => URI -> [Inline] -> Attrib c
+audioBlock uri caption = do
+  uri <- lift $ transformUri uri ""
+  mediaFrag <- mediaFragment
+  let audioUri =
+        if Text.null mediaFrag
+          then URI.render uri
+          else URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag}
+  audioAttr <- do
+    takeClasses identity ["controls", "loop", "muted"]
+    passAttribs identity ["controls", "loop", "muted", "preload"]
+    injectAttribute ("src", audioUri)
+    takeAutoplay
+    extractAttr
+  figureAttr <- do
+    injectClasses ["audio"]
+    takeUsual
+    extractAttr
+  return $ wrapFigure figureAttr caption $ mkAudio audioAttr
 
 -- |  Compiles the image data to a local video.
 videoBlock :: Container c => URI -> [Inline] -> Attrib c
@@ -417,6 +471,17 @@ wrapFigure attr caption inline =
            ]
     )
 
+wrapFigure' :: Container a => Attr -> [Inline] -> [a] -> a
+wrapFigure' attr caption inline =
+  mkFigure
+    attr
+    ( inline
+        <> [ mkFigCaption
+               [containSome caption]
+             | not (null caption)
+           ]
+    )
+
 -- | These functions construct the right container for the context they are used
 -- in, which can be either Block or Inline as defied by Pandoc. This ensures
 -- that legal HTML is generated in all circumstances.
@@ -428,6 +493,7 @@ class Container a where
   mkFigCaption :: [a] -> a
   mkIframe :: Attr -> a
   mkVideo :: Attr -> a
+  mkAudio :: Attr -> a
   mkObject :: Attr -> a
   mkPre :: Attr -> Text -> a
   mkRaw :: Attr -> Text -> a
@@ -443,6 +509,7 @@ instance Container Inline where
   mkFigCaption cs = Span (addClass "figcaption" nullAttr) cs
   mkIframe a = tag "iframe" $ Span a []
   mkVideo a = tag "video" $ Span a []
+  mkAudio a = tag "audio" $ Span a []
   mkObject a = tag "object" $ Span a []
   mkPre a t =
     Span
@@ -463,6 +530,7 @@ instance Container Block where
   mkFigCaption cs = tag "figcaption" $ Div nullAttr cs
   mkIframe a = tag "iframe" $ Div a []
   mkVideo a = tag "video" $ Div a []
+  mkAudio a = tag "audio" $ Div a []
   mkObject a = tag "object" $ Div a []
   mkPre a t = CodeBlock a t
   mkRaw a t = Div a [RawBlock "html" t]

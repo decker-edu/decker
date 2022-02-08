@@ -11,14 +11,14 @@ title: Color Palettes
 
 | Shades                                              | Accents                                             |
 |-----------------------------------------------------|-----------------------------------------------------|
-| [`base00`]{style="background-color:var(--base00);"} | [`base08`]{style="background-color:var(--base08);"} |
-| [`base01`]{style="background-color:var(--base01);"} | [`base09`]{style="background-color:var(--base09);"} |
-| [`base02`]{style="background-color:var(--base02);"} | [`base0A`]{style="background-color:var(--base0A);"} |
-| [`base03`]{style="background-color:var(--base03);"} | [`base0B`]{style="background-color:var(--base0B);"} |
-| [`base04`]{style="background-color:var(--base04);"} | [`base0C`]{style="background-color:var(--base0C);"} |
-| [`base05`]{style="background-color:var(--base05);"} | [`base0D`]{style="background-color:var(--base0D);"} |
-| [`base06`]{style="background-color:var(--base06);"} | [`base0E`]{style="background-color:var(--base0E);"} |
-| [`base07`]{style="background-color:var(--base07);"} | [`base0F`]{style="background-color:var(--base0F);"} |
+| [`shade0`]{style="background-color:var(--shade0);"} | [`accent0`]{style="background-color:var(--accent0);"} |
+| [`shade1`]{style="background-color:var(--shade1);"} | [`accent1`]{style="background-color:var(--accent1);"} |
+| [`shade2`]{style="background-color:var(--shade2);"} | [`accent2`]{style="background-color:var(--accent2);"} |
+| [`shade3`]{style="background-color:var(--shade3);"} | [`accent3`]{style="background-color:var(--accent3);"} |
+| [`shade4`]{style="background-color:var(--shade4);"} | [`accent4`]{style="background-color:var(--accent4);"} |
+| [`shade5`]{style="background-color:var(--shade5);"} | [`accent5`]{style="background-color:var(--accent5);"} |
+| [`shade6`]{style="background-color:var(--shade6);"} | [`accent6`]{style="background-color:var(--accent6);"} |
+| [`shade7`]{style="background-color:var(--shade7);"} | [`accent7`]{style="background-color:var(--accent7);"} |
 
 ## Specification {.right grow="2"}
 

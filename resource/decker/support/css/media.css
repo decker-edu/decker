@@ -94,3 +94,13 @@ through the aspect attribute. */
   width: 100%;
   height: 100%;
 }
+
+/* Line blocks */
+figure.lineblock > div.lineblock {
+  width: 100%;
+  display: grid;
+  grid-template-rows: auto;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5em;
+  justify-items: center;
+}

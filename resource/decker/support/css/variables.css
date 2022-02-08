@@ -1,7 +1,10 @@
 :root {
-  /* Icon settings */
-  --icon-size: 1rem;
-
+  /* These are for internal calculations */
+  --list-indent: 1.5em;
+  --block-border-width: 0.2rem;
+  --block-border-radius: 0.2em;
+  --block-outset: 0.5rem;
+ 
   /* Try this for block elements that stack vertically:
 
       - Only ever add a bottom margin
@@ -10,10 +13,8 @@
   */
   --vertical-margin: 0.2em;
 
-  /* These are just for internal calculations */
-  --list-indent: 1.5em;
-  --block-border-width: 0em;
-  --block-outset: 0.5rem;
+  /* Icon settings */
+  --icon-size: 1rem;
 
   /* Semantic color defaults from the palette. There is no need to use the
      current palette. Colors can be set arbitrarily. */
@@ -22,13 +23,18 @@
   --header-color: var(--shade6);
   --primary-color: var(--accent5);
   --secondary-color: var(--accent1);
-  --icon-active-color: var(--accent5);
-  --icon-inactive-color: var(--shade3);
+
   --hover-color: var(--accent5-bg);
   --code-background-color: var(--shade1);
 
   --highlight-color: var(--accent5-bg);
   --flying-focus-color: var(--highlight-color);
+
+  --icon-active-color: var(--accent5);
+  --icon-inactive-color: var(--shade3);
+  --icon-hover-color: var(--hover-color);
+  --icon-background-color: rgba(0,0,0,0);
+  --icon-border-radius: 0.2em;
 
   --whiteboard-icon-size: var(--icon-size);
   --whiteboard-hover-color: var(--icon-hover-color);
@@ -36,4 +42,26 @@
   --whiteboard-inactive-color: var(--icon-inactive-color);
   --whiteboard-background-color: var(--menu-background-color);
   --whiteboard-border-color: var(--shade2);
+
+  --highlight-color: var(--accent5-bg);
+  --flying-focus-color: var(--highlight-color);
+
+  --menu-background-color: var(--shade1);
+  --menu-border-color: var(--shade2);
+
+  --menu-header-background-color: var(--shade2);
+  --menu-header-text-color: var(--shade7);
+
+  --feedback-element-border-radius: 0.2em;
+  
+  --feedback-input-background-color: var(--shade0);
+
+  --feedback-header-background-color: var(--shade2);
+  --feedback-header-text-color: var(--shade7);
+
+  --feedback-list-background-color: rgba(0,0,0,0);
+  --feedback-list-text-color: var(--shade7);
+
+  --feedback-footer-background-color: var(--shade2);
+  --feedback-footer-text-color: var(--shade7);
 }

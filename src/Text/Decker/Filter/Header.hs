@@ -8,8 +8,8 @@ import Data.Maybe
 import Data.Monoid
 import Relude
 import Text.Decker.Filter.Attrib
-import Text.Decker.Filter.Media
 import Text.Decker.Filter.Local
+import Text.Decker.Filter.Media
 import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
@@ -62,10 +62,21 @@ transformHeader1 h1@(Header 1 headAttr inlines)
         return $ Div nullAttr [Header 1 attr rest, imageBlock]
     buildMediaHeader _ _ =
       bug $ InternalException "transformHeader: no last image in header"
-transformHeader1 h1@(Header 1 (id, cls, kvs) inlines) = do
-  local <- adjustAttribPaths bgAttribs kvs
-  return (Header 1 (id, cls, local) inlines)
+-- Header does not contain any images.
+transformHeader1 h1@(Header 1 headAttr inlines) = do
+  runAttr headAttr $ do
+    ifClass ["inverse", "has-dark-background"] $ do
+      injectAttribute ("data-background-color", "var(--foreground-color)")
+    passAttribs ("data-background-" <>) ["color"]
+    passAttribs ("data-" <>) ["background-color"]
+    adjustAttribPaths' bgAttribs
+    takeAllClasses
+    takeAllAttributes
+    attr <- extractAttr
+    return (Header 1 attr inlines)
+-- Header is not level 1.
 transformHeader1 h@Header {} = return h
+-- Block is not a header.
 transformHeader1 block = return block
 
 -- | Returns true, if the list contains an image.

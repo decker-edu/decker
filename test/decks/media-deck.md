@@ -1,8 +1,43 @@
 ---
+author: "[Arthur Author]{.accent3 .bg}"
+date: 06.02.2022
 highlight-style: pygments
+institute: Institute
 subtitle: Clean. Consistent. Robust.
 title: New Style Media Handling
 ---
+
+# Some Settings {.columns}
+
+## Reveal {.left}
+
+| Name     | Value                  |
+|----------|------------------------|
+| `width`  | [:meta](reveal.width)  |
+| `height` | [:meta](reveal.height) |
+| `margin` | [:meta](reveal.margin) |
+| `center` | [:meta](reveal.center) |
+
+## Decker
+
+| Name            | Value                  |
+|-----------------|------------------------|
+| `resource-pack` | [:meta](resource-pack) |
+
+## Colors {.right}
+
+| Shades                                                            | Accents                                                             |
+|-------------------------------------------------------------------|---------------------------------------------------------------------|
+| [`shade0`]{style="background-color:var(--shade0);padding:0 1em;"} | [`accent0`]{style="background-color:var(--accent0);padding:0 1em;"} |
+| [`shade1`]{style="background-color:var(--shade1);padding:0 1em;"} | [`accent1`]{style="background-color:var(--accent1);padding:0 1em;"} |
+| [`shade2`]{style="background-color:var(--shade2);padding:0 1em;"} | [`accent2`]{style="background-color:var(--accent2);padding:0 1em;"} |
+| [`shade3`]{style="background-color:var(--shade3);padding:0 1em;"} | [`accent3`]{style="background-color:var(--accent3);padding:0 1em;"} |
+| [`shade4`]{style="background-color:var(--shade4);padding:0 1em;"} | [`accent4`]{style="background-color:var(--accent4);padding:0 1em;"} |
+| [`shade5`]{style="background-color:var(--shade5);padding:0 1em;"} | [`accent5`]{style="background-color:var(--accent5);padding:0 1em;"} |
+| [`shade6`]{style="background-color:var(--shade6);padding:0 1em;"} | [`accent6`]{style="background-color:var(--accent6);padding:0 1em;"} |
+| [`shade7`]{style="background-color:var(--shade7);padding:0 1em;"} | [`accent7`]{style="background-color:var(--accent7);padding:0 1em;"} |
+
+--------------------------------------------------------------------------------
 
 # Slide Structure
 
@@ -149,6 +184,23 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 -   Block distance fits.
 
+# 2 images in a row
+
+| ![Alt Caption $e=mc^2$](include/06-metal.png){aspect="480:198"}
+| ![](pacman-perfect-game.mp4){.controls .autoplay aspect="480:360"}
+
+# 3 somethings in a row
+
+| ![Alt Caption $e=mc^2$](include/06-metal.png){aspect="480:198"}
+| ![Alt Caption $e=mc^2$](pacman-perfect-game.mp4){.controls .autoplay aspect="480:360"}
+| ![Almost](teapot.off){aspect="957:547"}
+
+Caption: Caption all the things
+
+## Fucking Notes {.notes}
+
+- they do
+
 # Blocks {.columns}
 
 ## One {.left}
@@ -206,7 +258,7 @@ Call the style police at
 
 Caption: Block Caption $e=mc^2$
 
-# Local Image {.black}
+# Local Image {.inverse}
 
 ## `{width=50%}`
 
@@ -297,6 +349,10 @@ width="80%"}
 # Embeded SVG
 
 ![Why is it called dumbell?](dumbell-hard.svg){.embed width="400px"}
+
+# Embeded SVG
+
+![With fragments.](assets/slab-test-0.svg){.embed width="400px"}
 
 # Rendered Code
 

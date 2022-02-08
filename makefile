@@ -8,10 +8,10 @@ local-bin-path := $(HOME)/.local/bin
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
 
-build: css
+build: 
 	stack build -j8
 
-clean-build: clean css
+clean-build: clean 
 	git submodule update --init
 	make -f symlinks.mk -C third-party all
 	stack build -j8
@@ -68,10 +68,6 @@ watch:
 
 server:
 	stack run -- decker --server --port 8888 --bind localhost html
-
-css:
-	cd resource/decker/support/css && make -B css
-	cd resource/wburg/support/css && make -B css
 
 clean:
 	stack clean

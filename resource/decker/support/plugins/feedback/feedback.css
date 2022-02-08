@@ -1,58 +1,43 @@
-/* Variables just for the panel */
-div.q-panel {
-  --border-radius: 0.2em;
-}
+/* Menu */
 
-/* The one button with the question mark */
-div.open-button.checked {
-  visibility: hidden;
-}
-
-div.open-button:not(.checked) {
-  visibility: visible;
-  transition-delay: 0.4s;
-}
-
-div.open-button {
+.feedback-menu {
   position: fixed;
-  left: auto;
-  right: calc(var(--whiteboard-icon-size) * 0.25);
-  top: calc(var(--whiteboard-icon-size) * 0.25);
-  bottom: auto;
-  margin: calc(var(--whiteboard-icon-size) * 0.5);
-  padding: 0.2em;
-  z-index: 40;
-  background: none;
-  font-size: var(--whiteboard-icon-size);
-  color: var(--whiteboard-inactive-color);
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 33%;
+  display: flex;
+  flex-direction: column;
 
-  transition-property: visibility;
+  transition: transform 0.5s;
+  z-index: 256;
+  
+  background: var(--menu-background-color);
+  border-left: 2px solid var(--menu-border-color);
 }
 
-div.open-button.i {
-  opacity: 0.5;
+.feedback-menu[inert] {
+  transform: translateX(200%);
 }
 
-div.open-button:hover {
-  opacity: 1;
-  color: var(--whiteboard-active-color);
-}
+/* Badges */
 
-/* Badge for the open button*/
-div.open-badge[data-count="0"] {
-  visibility: hidden;
-}
-
-div.open-badge {
+.feedback-badge {
   position: absolute;
   top: 0;
   right: 0;
-  color: white;
-  /* Scale the batch here, if desired */
+  color: var(--base00);
+}
+
+.feedback-badge[data-count="0"] {
+  visibility: hidden;
+}
+
+.open-button .feedback-badge {
   font-size: 40%;
 }
 
-div.badge {
+.feedback-badge, .counter {
   font-family: sans-serif;
   font-weight: bold;
   line-height: 1;
@@ -61,174 +46,136 @@ div.badge {
   white-space: nowrap;
   border-radius: 0.4em;
   padding: 0.2em 0.4em;
-  background-color: red;
+  background-color: var(--base08);
   color: white;
 }
 
-div.badge.answered {
-  background-color: green;
+.feedback-badge.answered, .counter.answered {
+  background-color: var(--base0B);
 }
 
-div.q-panel.open {
-  transform: translateX(0);
-}
+/* Menu Parts */
 
-div.q-panel:not(.open) {
-  transform: translateX(100%);
-}
-
-div.q-panel {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 60%;
-  right: 0;
-  z-index: 100;
-  background-color: rgba(0, 0, 0, 0);
-
-  display: flex;
-  flex-flow: column nowrap;
-  align-items: stretch;
-
-  font-family: "Roboto", Helvetica, sans-serif;
-  font-size: 2.5vh;
-  font-weight: normal;
-  color: rgba(0, 0, 0, 1);
-
-  padding: 0;
-  transition: 0.3s ease-in-out;
-
-  border: none;
-  border-radius: var(--border-radius);
-}
-
-div.q-panel.authorized div.q-footer {
+div.feedback-menu.authorized div.feedback-footer {
   display: none;
 }
 
-div.q-panel div.q-header {
+div.feedback-header {
   flex: 0 1 content;
 
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
+  justify-content: space-between;
 
-  background-color: rgba(0, 0, 0, 0.1);
   padding: 0.3em;
+  background: var(--menu-header-background-color);
+  color: var(--foreground-color);
 }
 
-div.q-panel div.q-header div.q-title {
+div.feedback-title {
   flex: 0 1;
   margin-right: 1em;
 }
 
-div.q-panel div.q-header div.counter[data-count="0"] {
+div.counter[data-count="0"] {
   visibility: hidden;
 }
 
-div.q-panel div.q-header div.counter {
+div.counter {
   flex: 0 1;
   margin-right: 1em;
   font-size: 0.9em;
 }
 
-div.q-panel div.q-header .hidden {
+.hidden {
   visibility: hidden;
 }
 
-div.q-panel div.q-header input {
+div.feedback-menu div.feedback-header input {
   font-family: "Roboto", Helvetica, sans-serif;
   font-size: 0.8em;
 }
 
-div.q-panel div.q-header input[type="text"],
-div.q-panel div.q-header input[type="password"] {
+div.feedback-header input[type="text"],
+div.feedback-header input[type="password"] {
   flex: 1 1;
   min-width: 2em;
   max-width: 100em;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--feedback-input-background-color);
   border: none;
-  border-radius: var(--border-radius);
-  outline: none;
+  border-radius: var(--feedback-element-border-radius);
   padding: 0.3em;
   margin: 0;
 }
 
-div.q-panel div.q-header button {
-  padding-left: 0.4em;
-}
-
-div.q-panel div.q-header button.q-check {
+div.feedback-header-buttons {
   flex: 0 1;
+  display: flex;
+  flex-flow: row nowrap;
+}
 
-  color: gray;
-  background-color: rgba(0, 0, 0, 0);
+div.feedback-header-buttons button {
+  color: var(--menu-background-color);
+}
 
+div.feedback-footer button {
+  color: var(--menu-background-color);
+}
+
+div.feedback-header-buttons button,
+div.feedback-footer button {
+  font-size: 1em;
+  margin-left: 0.4em;
+
+  flex: 0 1;
+  display: flex;
+  flex-direction: column;
+}
+
+div.feedback-menu button {
+  cursor: pointer;
   border: none;
-  border-radius: var(--border-radius);
-  outline: none;
+  background-color: var(--icon-background-color);
 }
 
-div.q-panel div.q-header button.q-check:hover {
-  color: var(--whiteboard-active-color);
+div.feedback-menu button:hover {
+  color: var(--icon-hover-color);
 }
 
-div.q-panel div.q-header button.q-check.checked i.lock {
-  display: inline;
+div.feedback-menu button:active {
+  color: var(--icon-active-color);
 }
 
-div.q-panel div.q-header button.q-check.checked i.unlock {
+div.feedback-header button > span {
+  font-size: 0.5em;
   display: none;
 }
 
-div.q-panel div.q-header button.q-check:not(.checked) i.lock {
-  display: none;
-}
-
-div.q-panel div.q-header button.q-check:not(.checked) i.unlock {
-  display: inline;
-}
-
-div.q-panel div.q-header button.q-close {
-  flex: 0 1;
-
-  color: gray;
-  background-color: rgba(0, 0, 0, 0);
-
-  border: none;
-  border-radius: var(--border-radius);
-  outline: none;
-}
-
-div.q-panel div.q-header button.q-close:hover {
-  color: var(--whiteboard-active-color);
-}
-
-div.q-panel div.q-list {
+div.feedback-menu div.feedback-list {
   flex: 1 1;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--list-background);
   padding: 0.3em;
   font-size: 0.8em;
   overflow-y: scroll;
 }
 
-div.q-panel div.q-list div.item {
-  background-color: rgba(255, 255, 255, 0.9);
+div.feedback-menu div.feedback-list div.feedback-item {
+  background-color: var(--base00);
   font-family: "Roboto", Helvetica, sans-serif;
   line-height: 125%;
   border: none;
-  border-radius: var(--border-radius);
-  outline: none;
+  border-radius: var(--feedback-element-border-radius);
   margin-bottom: 0.5em;
   padding: 0.3em;
 
   display: flex;
   flex-flow: row nowrap;
-  align-items: center;
+/*  align-items: center; */
+  justify-content: space-between;
 }
 
-div.q-panel div.q-list div.item div.content {
-  flex: 1 1;
+div.feedback-content {
   margin: 0;
   padding: 0;
   padding-right: 0.1em;
@@ -236,202 +183,193 @@ div.q-panel div.q-list div.item div.content {
   overflow: hidden;
 }
 
-div.q-panel div.q-list div.item.answer {
+div.feedback-item.answer {
   display: block;
   background-color: rgba(230, 230, 230, 0.9);
   margin-left: 4ex;
   font-size: 80%;
 }
 
-div.item.answer > div.link {
+div.feedback-item.answer > div.link {
   float: right;
 }
 
-div.item.answer > div.description {
-}
-
-div.q-panel div.answer div.controls {
-  float: right;
+div.feedback-menu div.feedback-controls {
   margin-left: 0.5em;
 }
 
-div.q-panel div.content div.controls {
-  float: right;
-  margin-left: 0.5em;
+div.feedback-controls-wrapper {
+  position: relative;
+  top: 50%;
+  transform: translate(0, -50%);
 }
 
-div.q-panel button {
-  color: gray;
-  background-color: rgba(0, 0, 0, 0);
+div.feedback-list button {
+  color: var(--icon-inactive-color);
   border: none;
   margin: 0;
   padding: 0;
-  margin-left: 0.2em;
 
   font-size: 1em;
 }
 
-div.q-panel button:hover {
-  color: var(--whiteboard-active-color);
+div.feedback-menu button.answered {
+  color: var(--base0B);
 }
 
-div.q-panel button.answered {
-  color: green;
+div.feedback-menu button.notanswered {
+  color: var(--base08);
 }
 
-div.q-panel button.notanswered {
-  color: red;
+div.feedback-menu button.cantvote {
+  cursor: default;
+  color: var(--base02);
 }
 
-div.q-panel button.cantvote {
-  color: lightgray;
+div.feedback-menu button.cantvote:hover {
+  color: var(--base02);
 }
 
-div.q-panel button.cantvote:hover {
-  color: lightgray;
-}
-
-div.q-panel div.q-list div.item button {
+div.feedback-item button {
   flex: 0 1 content;
 }
 
-div.q-panel div.q-input {
+div.feedback-menu div.feedback-question-input {
   flex: 0 1;
-  background-color: rgba(0, 0, 0, 0.2);
   padding: 0.3em;
+
+  background: var(--feedback-list-background-color);
 }
 
-div.q-panel div.q-input textarea {
+div.feedback-question-input textarea {
   resize: none;
-  background-color: rgba(255, 255, 255, 0.9);
   padding: 0.3em;
   height: 6em;
   width: calc(100% - 0.6em);
 
-  border: none;
-  border-radius: var(--border-radius);
-  outline: none;
+  background-color: var(--feedback-input-background-color);
 
+  border: none;
+  border-radius: var(--feedback-element-border-radius);
   font-size: 0.8em;
 }
 
-div.q-panel div.q-input textarea[answer] {
-  background-color: #efe;
-  border: solid 1px #cfc;
+div.feedback-question-input textarea[answer] {
+  background-color: var(--base0B-bbg);
+  border: solid 1px var(--base0C-bbg);
 }
 
-div.q-panel div.q-footer {
+div.feedback-menu div.feedback-footer {
   flex: 0 1 content;
 
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
 
-  background-color: rgba(0, 0, 0, 0.1);
   padding: 0.3em;
+  color: var(--feedback-footer-text-color);
+  background: var(--feedback-footer-background-color);
 }
 
-div.q-panel div.q-footer div.credentials {
+div.feedback-credentials {
   display: flex;
   flex: 1 0;
 }
 
-div.q-panel div.q-footer div.credentials.visible {
+div.feedback-credentials.visible {
   visibility: visible;
 }
 
-div.q-panel div.q-footer div.credentials:not(.visible) {
+div.feedback-credentials:not(.visible) {
   visibility: hidden;
 }
 
-div.q-panel div.q-footer div.credentials input {
+div.feedback-credentials input {
   flex: 1 0;
-  color: grey;
+  color: var(--foreground-color);
   margin: 0;
   margin-left: 0.5em;
   padding: 0.3em;
   width: 40%;
 
+  background-color: var(--feedback-input-background-color);
+
   border: none;
-  border-radius: var(--border-radius);
-  outline: none;
+  border-radius: var(--feedback-element-border-radius);
 
   font-size: 0.8em;
 }
 
-div.q-panel div.q-footer div.q-login {
+div.feedback-login {
   flex: 0 1;
 
-  color: gray;
+  color: var(--feedback-footer-text-color);
   background-color: rgba(0, 0, 0, 0);
   font-size: 1em;
 }
 
-div.q-panel div.q-footer div.q-login:not(.admin) {
+div.feedback-login:not(.admin) {
   opacity: 1;
-  color: lightgray;
+  color: var(--feedback-footer-text-color);
 }
 
-div.q-panel div.q-footer div.q-login.admin {
+div.feedback-login.admin {
   opacity: 1;
-  color: red;
+  color: var(--base08);
 }
 
-div.q-panel div.q-footer div.q-login:hover {
-  opacity: 1;
-  color: var(--whiteboard-active-color);
-}
-
-div.q-panel div.item {
-  font-size: 1em;
-}
-
-div.q-panel div.item em {
-  font-style: italic;
-}
-
-div.q-panel div.item strong {
-  font-weight: bold;
-}
-
-div.q-panel div.item a {
-  color: darkblue;
-}
-
-div.q-panel div.item p,
-div.q-panel ul,
-div.q-panel ol {
+div.feedback-menu div.feedback-item p,
+div.feedback-menu ul,
+div.feedback-menu ol {
   padding-bottom: 0.3em;
 }
 
-div.q-panel div.item p:last-child,
-div.q-panel div.item ul:last-child,
-div.q-panel div.item ol:last-child {
+div.feedback-menu div.feedback-item p:last-child,
+div.feedback-menu div.feedback-item ul:last-child,
+div.feedback-menu div.feedback-item ol:last-child {
   padding-bottom: 0;
 }
 
-div.q-panel div.item ol {
+/* Markdown Styling of questions and answers */
+
+div.feedback-menu div.feedback-item {
+  font-size: 1em;
+}
+
+div.feedback-menu div.feedback-item em {
+  font-style: italic;
+}
+
+div.feedback-menu div.feedback-item strong {
+  font-weight: bold;
+}
+
+div.feedback-menu div.feedback-item a {
+  color: var(--base0D-fg);
+}
+
+div.feedback-menu div.feedback-item ol {
   list-style-type: lower-alpha;
   list-style-position: inside;
 }
 
-div.q-panel div.item ul {
+div.feedback-menu div.feedback-item ul {
   list-style-type: disc;
   list-style-position: inside;
 }
 
-div.q-panel div.item code {
+div.feedback-menu div.feedback-item code {
   font-family: Consolas, Monaco, monospace;
   font-size: 0.9em;
 }
 
-div.q-panel div.item pre {
+div.feedback-menu div.feedback-item pre {
   padding: 0.2em;
-  background-color: #eee;
+  background-color: var(--code-background-color);
   white-space: pre-wrap;
 }
 
-div.q-panel div.item h1 {
+div.feedback-menu div.feedback-item h1 {
   font-size: 1.2em;
   font-weight: bold;
   padding-bottom: 0.2em;
@@ -439,7 +377,7 @@ div.q-panel div.item h1 {
   color: #333;
 }
 
-div.q-panel div.item h2 {
+div.feedback-menu div.feedback-item h2 {
   font-size: 1.1em;
   font-weight: bold;
   padding-bottom: 0.2em;
@@ -447,45 +385,21 @@ div.q-panel div.item h2 {
   color: #333;
 }
 
-div.q-panel div.item img {
+div.feedback-menu div.feedback-item img {
   width: 100%;
   image-rendering: pixelated;
 }
 
-section#questions-overview div.scroll-y {
-  height: 500px;
-  overflow-y: scroll;
-}
+/* Slide Menu Badges */
 
-section#questions-overview table {
-  font-size: 70%;
-}
-
-section#questions-overview table h1 {
-  font-weight: bold;
-  font-size: 120%;
-}
-
-section#questions-overview table h2 {
-  font-weight: bold;
-  font-size: 110%;
-}
-
-section#questions-overview table tr td:first-child {
-  max-width: 6em;
-  overflow-x: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-li.slide-menu-item[data-questions]::after {
+li.slide-list-item[data-questions]::after {
   content: attr(data-questions);
   margin-left: 1em;
   font-size: 0.9em;
 
   /* from class counter */
-  background-color: red;
-  color: white;
+  background-color: var(--base08);
+  color: var(--menu-background-color);
 
   /* from class badge */
   font-family: sans-serif;
@@ -497,6 +411,7 @@ li.slide-menu-item[data-questions]::after {
   border-radius: 0.4em;
   padding: 0.2em 0.4em;
 }
-li.slide-menu-item[data-questions][data-answered="true"]::after {
-  background-color: green;
+
+li.slide-list-item[data-questions][data-answered="true"]::after {
+  background-color: var(--base0B);
 }

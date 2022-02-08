@@ -93,15 +93,3 @@ div.layout.row:is(.columns, .grid) > div.area:last-child {
   margin-right: 0;
 }
 
-/* Blocks have some padding and a border to allow for highlighting without
-disturbing the layout. */
-div.block {
-  padding: var(--block-outset);
-  border: var(--block-border-width) solid rgba(0, 0, 0, 0);
-}
-
-/* Align headers with blocks. */
-section h1 {
-  padding: 0 var(--block-outset);
-}
-
