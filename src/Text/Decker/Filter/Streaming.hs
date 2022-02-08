@@ -215,15 +215,18 @@ mkTwitchUri streamId = do
         _ -> getStart xs
     getStart [] = []
 
-calcAspect :: Text -> Text
-calcAspect ratio =
-  fromMaybe "56.25%" $
+calcAspect' :: Text -> Float
+calcAspect' ratio =
+  fromMaybe 0.5625 $
     case Text.splitOn ":" ratio of
       [w, h] -> do
         wf <- readMaybe $ toString w :: Maybe Float
         hf <- readMaybe $ toString h :: Maybe Float
-        return $ Text.pack (printf "%.2f%%" (hf / wf * 100.0))
+        return (hf / wf)
       _ -> Nothing
+
+calcAspect :: Text -> Text
+calcAspect ratio = Text.pack (printf "%.2f%%" (calcAspect' ratio * 100.0))
 
 mkAttrTag :: Html -> Attr -> Html
 mkAttrTag tag (id, cs, kvs) =

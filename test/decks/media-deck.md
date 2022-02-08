@@ -186,16 +186,20 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 # 2 images in a row
 
-| ![Alt Caption $e=mc^2$](include/06-metal.png)
-| ![](include/06-metal.png)
+| ![Alt Caption $e=mc^2$](include/06-metal.png){aspect="480:198"}
+| ![](pacman-perfect-game.mp4){.controls .autoplay aspect="480:360"}
 
-# 3 images in a row
+# 3 somethings in a row
 
-| ![Alt Caption $e=mc^2$](include/06-metal.png)
-| ![Alt Caption $e=mc^2$](include/06-metal.png)
-| ![](include/06-metal.png)
+| ![Alt Caption $e=mc^2$](include/06-metal.png){aspect="480:198"}
+| ![Alt Caption $e=mc^2$](pacman-perfect-game.mp4){.controls .autoplay aspect="480:360"}
+| ![Almost](teapot.off){aspect="957:547"}
 
 Caption: Caption all the things
+
+## Fucking Notes {.notes}
+
+- they do
 
 # Blocks {.columns}
 
@@ -345,6 +349,10 @@ width="80%"}
 # Embeded SVG
 
 ![Why is it called dumbell?](dumbell-hard.svg){.embed width="400px"}
+
+# Embeded SVG
+
+![With fragments.](assets/slab-test-0.svg){.embed width="400px"}
 
 # Rendered Code
 

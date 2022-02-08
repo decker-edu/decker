@@ -96,8 +96,11 @@ through the aspect attribute. */
 }
 
 /* Line blocks */
-div.lineblock {
-  display: flex;
+figure.lineblock > div.lineblock {
+  width: 100%;
+  display: grid;
+  grid-template-rows: auto;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5em;
-  justify-content: center;
+  justify-items: center;
 }
