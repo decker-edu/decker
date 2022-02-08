@@ -415,12 +415,13 @@ function createPenCursor() {
   cursorCanvas.height = width + 1;
 
   ctx.clearRect(0, 0, width, width);
-  // TODO: Color selection for the pen cursor does not work with arbitrary hex
-  // values. "red" works, "#ff0000" does, but "#fffd00" does not. Seems cursors
-  // do not have 8 bit color.
-  // let color = penColors.findIndex(e => e == penColor)
-  // ctx.fillStyle = ctx.strokeStyle = Decker.meta.palette.colors[color];
-  ctx.fillStyle = ctx.strokeStyle = "darkgray";
+  let color = penColors.findIndex(e => e == penColor);
+  let style = Decker.meta.palette.colors[color + 8];
+  if(style) {
+    ctx.fillStyle = ctx.strokeStyle = style;
+  } else {
+    ctx.fillStyle = ctx.strokeStyle = "darkgray";
+  }
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
