@@ -99,7 +99,12 @@ computeCssColorVariables meta =
       -- by other means.
       cssColors = foldl' Map.union Map.empty [existing, shades, accents]
       cssColorDeclarations = toDeclarations cssColors
-   in setMetaValue "css-color-declarations" cssColorDeclarations $ setMetaValue "css-colors" cssColors meta
+   in -- Set the CSS variable declarations and make sure we have a palette, even
+      -- if it is just the default colors.
+      setMetaValue "css-color-declarations" cssColorDeclarations $
+        setMetaValue "css-colors" cssColors $
+          setMetaValue "palette.colors" palette $
+            setMetaValue "palette.contrast" (show contrast :: Text) meta
 
 computeCssVariables :: Meta -> Meta
 computeCssVariables meta =
