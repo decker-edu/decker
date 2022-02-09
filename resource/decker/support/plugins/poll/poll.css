@@ -1,0 +1,170 @@
+
+/*********************************************
+* Audience Response Polls
+*********************************************/
+
+#poll-overlay {
+    height: 100%;
+    width: 100%;
+    display: none;
+    z-index: 1;
+    overflow-x: hidden;
+    transition: 0.5s;
+    text-align: center;
+    padding: 1em;
+  }
+  
+  #poll-overlay.loading {
+    background: url("../../plugins/poll/loading.gif") no-repeat center center;
+    background-color: #fff;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  
+  #poll-overlay a {
+    color: #000;
+    font-size: 3vw;
+  }
+  
+  #poll-overlay i {
+    position: absolute;
+    right: 4em;
+    color: #eaeaea;
+    font-size: 0.7em;
+  }
+  
+  #poll-overlay img {
+    margin: 1em auto;
+    height: 70%;
+  }
+  
+  #login-div {
+    display: none;
+    flex-direction: column;
+    width: 8em;
+    position: absolute;
+    right: 2em;
+    background-color: #fff;
+    height: 100%;
+    padding-top: 0.5em;
+  }
+  
+  #login-div.active {
+    display: flex;
+  }
+  
+  #login-div button {
+    width: max-content;
+    margin: 1em;
+  }
+  
+  #login-div input {
+    margin: 0.5em 1em;
+    line-height: 2em;
+    padding: 0 0.5em;
+    color: #808080;
+  }
+  
+  #errorDiv {
+    color: #f00;
+    font-size: 0.5em;
+    margin-top: 2em;
+  }
+  
+  .poll .countdown {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    font-size: 2em;
+    font-family: monospace;
+    border-radius: 10px;
+    padding: 0 0.3em;
+    border: 0.1em solid #080;
+    color: #fff;
+    background-color: #080;
+  }
+  
+  .poll .countdown.timed.active {
+    display: block;
+    background-color: #2a99df;
+    border: 0.1em solid #2a99df;
+  }
+  
+  .poll .countdown.timed.active.hurry {
+    background-color: #f00;
+    border-color: #f00;
+    animation: blinks 1s step-end infinite;
+    -webkit-animation: blinks 1s step-end infinite;
+  }
+  
+  .poll div.sourceCode .yaml { display: none; }
+  
+  .poll ul.choices {
+    list-style-type: upper-alpha;
+  }
+  
+  .poll ul.choices li span {
+    font-weight: 700;
+    display: inline-block;
+    margin-right: 1.25vw;
+  }
+  
+  .poll i.fa-qrcode {
+    color: #004188;
+    margin-right: 1em;
+  }
+  
+  .poll i.fa-qrcode.admin {
+    color: #000;
+  }
+  
+  .poll i.fa-sign-in-alt.hidden {
+    visibility: hidden;
+  }
+  
+  .poll_results {
+    display: none;
+    position: absolute;
+    right: -10.5vw;
+    bottom: 11vh;
+    z-index: 41;
+    width: 50%;
+    height: 55%;
+    object-fit: contain;
+    border-radius: 10px;
+    border: 1px solid #2a9ddf;
+    overflow: auto;
+    transform-origin: center;
+    padding: 0.2em;
+    background-color: #fff;
+  }
+  
+  #poll-overlay.active,
+  .poll .active,
+  .poll_results.active {
+    display: block;
+  }
+  
+  @keyframes blinks {
+    70% {
+      visibility: hidden;
+    }
+  }
+  
+  @-webkit-keyframes blinks {
+    70% {
+      visibility: hidden;
+    } 
+  }
+  
+  /*********************************************
+   * Audience Response Polls - Large Screens
+   *********************************************/
+  @media screen and (min-width: 1680px) {
+    .poll .poll_results {
+      right: -8.5vw;
+      bottom: 6vh;
+    }
+  }

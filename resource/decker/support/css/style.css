@@ -81,6 +81,10 @@ ol {
   list-style: outside disc;
 }
 
+ul li li {
+  list-style-type: circle;
+}
+
 div.media {
   margin-bottom: var(--vertical-margin);
 }
@@ -198,6 +202,27 @@ div.block.accent7 {
   background-color: var(--accent7-bbg);
 }
 
+div.block:is(.question, .answer, .observation, .example, .def, .definition, .note, .ale, .alert, .equ, .equation, .theorem) {
+  border: none;
+  border-right: calc(var(--block-border-width)) solid rgb(0,0,0,0);
+}
+
+div:is(.ale, .alert, .question).block {
+  border-left: calc(var(--block-border-width)) solid #f00;
+}
+
+div.block:is(.answer, .def, .definition, .equ, .equation, .theorem) {
+  border-left: calc(var(--block-border-width)) solid #4d4d4d;
+}
+
+div.block:is(.example, .observation) {
+  border-left: calc(var(--block-border-width)) solid #00f; 
+}
+
+div.block.note {
+  border-left: calc(var(--block-border-width)) solid #ff9300; 
+}
+
 span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
   padding-left: 0.2em;
   padding-right: 0.2em;
@@ -304,6 +329,12 @@ section[align="right"] {
   margin-right: auto;
 }
 
+.reveal div.css-columns {
+  column-count: 2;
+  column-gap: var(--margin-columns);
+  column-rule-style: none;
+}
+
 /* Source Code */
 
 /* Pandoc wraps div.sourceCode around the pre > code element. Highlightjs does
@@ -320,7 +351,7 @@ div.sourceCode > pre {
 }
 
 /* Inverse colors */
-.reveal-viewport section.slide:is(.inverse, .has-dark-background) {
+section.slide:is(.inverse, .has-dark-background) {
   background-color: var(--foreground-color);
   color: var(--background-color);
 }
@@ -342,3 +373,31 @@ div.sourceCode > pre {
 .reveal ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.4);
 } */
+
+.reveal sup {
+  vertical-align: super;
+  font-size: smaller;
+}
+
+.reveal sub {
+  vertical-align: sub;
+  font-size: smaller;
+}
+
+
+.reveal blockquote {
+  display: block;
+  position: relative;
+  width: 70%;
+  margin-bottom: var(--margin-bottom-third);
+  margin-left: var(--border-decoration-width);
+  margin-right: var(--border-decoration-width);
+  padding: calc(var(--spacing-vertical-base) * 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  font-style: italic;
+}
+
+.reveal blockquote p:first-child, .reveal blockquote p:last-child {
+  display: inline-block;
+}
