@@ -193,7 +193,7 @@ function createGUI() {
   );
   buttonWhiteboard.id = "whiteboardButton";
 
-  if(Reveal.hasPlugin("ui-anchors")) {
+  if (Reveal.hasPlugin("ui-anchors")) {
     let anchors = Reveal.getPlugin("ui-anchors");
     anchors.placeButton(buttons, "BOTTOM_LEFT");
   }
@@ -442,10 +442,10 @@ function createPenCursor() {
   cursorCanvas.height = width + 1;
 
   ctx.clearRect(0, 0, width, width);
-  let color = penColors.findIndex(e => e == penColor);
+  let color = penColors.findIndex((e) => e == penColor);
   let style = Decker.meta.palette.colors[color + 8];
-  if(style) {
-    ctx.fillStyle = ctx.strokeStyle = style;
+  if (style) {
+    ctx.fillStyle = ctx.strokeStyle = `#${style}`;
   } else {
     ctx.fillStyle = ctx.strokeStyle = "darkgray";
   }
@@ -589,7 +589,7 @@ function toggleWhiteboard(state) {
     // hide buttons
     buttons.classList.remove("active");
     buttonWhiteboard.dataset.active = false;
-    buttonWhiteboard.setAttribute("aria-checked", "false")
+    buttonWhiteboard.setAttribute("aria-checked", "false");
     hideColorPicker();
 
     // reset SVG
@@ -601,7 +601,6 @@ function toggleWhiteboard(state) {
     // reset cursor
     clearTimeout(hideCursorTimeout);
     slides.style.cursor = "";
-    
   } else {
     if (userShouldBeWarned && !userHasBeenWarned) warnUser();
     showPanel();
@@ -612,7 +611,7 @@ function toggleWhiteboard(state) {
     // show buttons
     buttons.classList.add("active");
     buttonWhiteboard.dataset.active = true;
-    buttonWhiteboard.setAttribute("aria-checked", "true")
+    buttonWhiteboard.setAttribute("aria-checked", "true");
 
     // activate SVG
     if (svg) {
