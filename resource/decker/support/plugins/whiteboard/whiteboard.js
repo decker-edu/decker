@@ -87,13 +87,14 @@ function readConfig() {
   config = Reveal.getConfig().whiteboard || {};
 
   penColors = config.colors || [
-    "blue",
-    "red",
-    "green",
-    "cyan",
-    "magenta",
-    "yellow",
-    "black",
+    "var(--whiteboard-pen0)",
+    "var(--whiteboard-pen1)",
+    "var(--whiteboard-pen2)",
+    "var(--whiteboard-pen3)",
+    "var(--whiteboard-pen4)",
+    "var(--whiteboard-pen5)",
+    "var(--whiteboard-pen6)",
+    "var(--whiteboard-pen7)",
   ];
 
   // reveal setting wrt slide dimension
@@ -280,26 +281,22 @@ function createGUI() {
   // color buttons
   penColors.forEach((color) => {
     let b = document.createElement("button");
-    b.className = `whiteboard fas fa-circle pen-${color}`;
+    b.className = "whiteboard fas fa-circle";
     b.onclick = () => {
       selectPenColor(color);
     };
     b.tooltip = color;
     b.setAttribute("aria-label", color);
-    // b.style.color = color;
-    b.setAttribute("pen-color", color);
+    b.style.color = color;
     colorPicker.appendChild(b);
   });
   // pen radius buttons
-  for (let r = 2; r < 15; r += 2) {
+  for (let r = 2; r < 17; r += 2) {
     const slideScale = Reveal.getScale();
     const radius = r * slideScale + "px";
     let b = document.createElement("button");
-    let s = document.createElement("span");
-    s.style.fontSize = radius;
-    s.className = "fas fa-circle";
-    b.className = "whiteboard";
-    b.appendChild(s);
+    b.className = "whiteboard fas fa-circle";
+    b.style.fontSize = radius;
     b.onclick = () => {
       selectPenRadius(r);
     };
@@ -441,14 +438,12 @@ function createPenCursor() {
   cursorCanvas.width = width + 1;
   cursorCanvas.height = width + 1;
 
+  // we cannot use penColor, since this might be contain a CSS variable
+  // instead we have to evalute it
+  let color = getComputedStyle(buttonPen).color;
+
   ctx.clearRect(0, 0, width, width);
-  let color = penColors.findIndex((e) => e == penColor);
-  let style = Decker.meta.palette.colors[color + 8];
-  if (style) {
-    ctx.fillStyle = ctx.strokeStyle = `#${style}`;
-  } else {
-    ctx.fillStyle = ctx.strokeStyle = "darkgray";
-  }
+  ctx.fillStyle = ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.arc(radius, radius, radius, 0, 2 * Math.PI);
@@ -526,8 +521,7 @@ function selectTool(newTool) {
     case PEN:
       buttonPen.dataset.active = true;
       buttonPen.setAttribute("aria-checked", "true");
-      // buttonPen.style.color = penColor;
-      buttonPen.setAttribute("pen-color", penColor);
+      buttonPen.style.color = penColor;
       selectCursor(penCursor);
       break;
 
@@ -566,8 +560,7 @@ function hideColorPicker() {
 function selectPenColor(col) {
   hideColorPicker();
   penColor = col;
-  // buttonPen.style.color = penColor;
-  buttonPen.setAttribute("pen-color", penColor);
+  buttonPen.style.color = penColor;
   createPenCursor();
   selectCursor(penCursor);
 }
@@ -1136,8 +1129,7 @@ function startStroke(evt) {
     stroke.classList.add("laser");
   } else {
     pushUndoHistory("paint stroke");
-    stroke.classList.add(`pen-${penColor}`);
-    // stroke.style.stroke = penColor;
+    stroke.style.stroke = penColor;
     stroke.style.strokeWidth = penWidth + "px";
   }
 
@@ -1573,7 +1565,7 @@ function setupKeyBindings() {
       {
         keyCode: 49 + i,
         key: String.fromCharCode(49 + i),
-        description: "Whiteboard: Color " + penColors[i],
+        description: `Whiteboard: Color ${i}`,
       },
       () => {
         selectPenColor(penColors[i]);
