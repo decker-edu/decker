@@ -56,7 +56,10 @@ import Text.Pandoc hiding (Verbosity)
 runDecker :: Rules () -> IO ()
 runDecker theRules = do
   args <- getArgs
-  let (results, targets, errors) = GetOpt.getOpt GetOpt.Permute deckerFlags args
+  -- Parse the extra options first so that we can use them in the commands
+  -- without running shake. Errors are ignored and will be reported by shake
+  -- later.
+  let (results, targets, _) = GetOpt.getOpt GetOpt.Permute deckerFlags args
   let flags = rights results
   let rules =
         if null targets
@@ -64,17 +67,11 @@ runDecker theRules = do
           else want targets >> withoutActions theRules
   meta <- readMetaDataFile globalMetaFileName
   context <- initContext flags meta
-  if not (null errors)
-    then do
-      mapM_ putStrLn errors
-      exitWith (ExitFailure 1)
-    else do
-      let commands = ["clean", "example", "serve", "pdf"]
-      case targets of
-        [command] | command `elem` commands -> do
-          context <- initContext flags meta
-          runCommand context command rules
-        _ -> runTargets context targets rules
+  let commands = ["clean", "example", "serve", "pdf"]
+  case targets of
+    [command] | command `elem` commands -> do
+      runCommand context command rules
+    _ -> runTargets context targets rules
 
 runTargets :: ActionContext -> [FilePath] -> Rules () -> IO ()
 runTargets context targets rules = do
