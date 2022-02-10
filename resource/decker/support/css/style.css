@@ -343,7 +343,6 @@ not.*/
 pre,
 span.pre {
   background-color: var(--code-background-color);
-  border-radius: var(--block-border-radius);
 }
 
 div.sourceCode > pre {

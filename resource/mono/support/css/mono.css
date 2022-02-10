@@ -190,3 +190,14 @@ span.accent7.fg {
   background-color: var(--shade0);
   color: var(--accent7);
 }
+
+/* More styling */
+
+section :is(img, svg, pre, span.pre, video, iframe, object) {
+  border-radius: var(--block-border-radius);
+  border: solid var(--shade2) 0.01em;
+}
+
+section.inverse :is(img, svg, pre, span.pre, video, iframe, object) {
+  border: solid var(--shade5) 0.01em;
+}
