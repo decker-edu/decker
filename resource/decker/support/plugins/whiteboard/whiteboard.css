@@ -39,7 +39,7 @@
     border-bottom: 5px dotted var(--background-color);
   }
   to {
-    border-bottom: 5px dotted var(--whiteboard-active-color);
+    border-bottom: 5px dotted var(--icon-active-color);
   }
 }
 
@@ -103,7 +103,7 @@ button.whiteboard {
   background: none;
   font-family: "Font Awesome 5 Free";
   border: 2px solid transparent;
-  color: var(--whiteboard-inactive-color);
+  color: var(--icon-inactive-color);
 }
 
 button.whiteboard.checkbox {
@@ -113,16 +113,16 @@ button.whiteboard.radiobutton {
   border-radius: 100%;
 }
 button.whiteboard[data-active="true"] {
-  color: var(--whiteboard-active-color);
+  color: var(--icon-active-color);
 }
 
 button.whiteboard.checkbox[data-active="false"],
 button.whiteboard.radiobutton[data-active="false"] {
-  border: 2px solid var(--whiteboard-inactive-color);
+  border: 2px solid var(--icon-inactive-color);
 }
 button.whiteboard.checkbox[data-active="true"],
 button.whiteboard.radiobutton[data-active="true"] {
-  border: 2px solid var(--whiteboard-active-color);
+  border: 2px solid var(--icon-active-color);
 }
 /* hide border around focused/clicked buttons */
 button.whiteboard:focus,
@@ -168,17 +168,17 @@ body.print-pdf #whiteboardButtons {
 
 #whiteboardButtons.active.visible > #whiteboardButton {
   display: inline-block;
-  border: 2px solid var(--whiteboard-active-color);
-  color: var(--whiteboard-active-color);
+  border: 2px solid var(--icon-active-color);
+  color: var(--icon-active-color);
   opacity: 1;
 }
 
 #whiteboardButtons.active.visible > #whiteboardButton:hover {
-  color: var(--whiteboard-hover-color);
+  color: var(--icon-hover-color);
 }
 
 #whiteboardButtons.active.visible > .whiteboard:hover {
-  color: var(--whiteboard-hover-color);
+  color: var(--icon-hover-color);
 }
 
 #whiteboardButtons.active > button.radiobutton[data-active="true"] {
@@ -194,10 +194,10 @@ body.print-pdf #whiteboardButtons {
   margin: 0;
   z-index: 40;
   border: 1px solid var(--whiteboard-border-color);
-  border-radius: calc(var(--whiteboard-icon-size) * 0.5);
+  border-radius: calc(var(--icon-size) * 0.5);
   background: var(--whiteboard-background-color);
-  left: calc(var(--whiteboard-icon-size) * 2.5 + 12px);
-  bottom: calc(var(--whiteboard-icon-size) * 4 + 8px);
+  left: calc(var(--icon-size) * 2.5 + 12px);
+  bottom: calc(var(--icon-size) * 4 + 8px);
   visibility: hidden;
   display: grid;
   grid-template-columns: repeat(8, 1fr);

@@ -1,4 +1,3 @@
-
 :root {
   /* Icon settings */
   --icon-size: 1rem;
@@ -27,4 +26,32 @@
   --icon-inactive-color: var(--shade3);
   --hover-color: var(--accent5-bg);
   --code-background-color: var(--shade1);
+
+  --whiteboard-background-color: var(--shade1);
+  --whiteboard-border-color: var(--shade2);
+  --whiteboard-pen0: var(--base08);
+  --whiteboard-pen1: var(--base09);
+  --whiteboard-pen2: var(--base0A);
+  --whiteboard-pen3: var(--base0B);
+  --whiteboard-pen4: var(--base0C);
+  --whiteboard-pen5: var(--base0D);
+  --whiteboard-pen6: var(--base0E);
+  --whiteboard-pen7: var(--base0F);
+
+  --highlight-color: var(--accent5-bg);
+  --flying-focus-color: var(--highlight-color);
+
+  --menu-background-color: var(--shade1);
+  --menu-border-color: var(--shade2);
+  --menu-header-background-color: var(--shade2);
+  --menu-header-text-color: var(--shade7);
+
+  --feedback-element-border-radius: 0.2em;
+  --feedback-input-background-color: var(--shade0);
+  --feedback-header-background-color: var(--shade2);
+  --feedback-header-text-color: var(--shade7);
+  --feedback-list-background-color: rgba(0, 0, 0, 0);
+  --feedback-list-text-color: var(--shade7);
+  --feedback-footer-background-color: var(--shade2);
+  --feedback-footer-text-color: var(--shade7);
 }

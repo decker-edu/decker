@@ -4,7 +4,7 @@
   --block-border-width: 0.2rem;
   --block-border-radius: 0em;
   --block-outset: 0.5rem;
- 
+
   /* Try this for block elements that stack vertically:
 
       - Only ever add a bottom margin
@@ -33,14 +33,10 @@
   --icon-active-color: var(--accent5);
   --icon-inactive-color: var(--shade3);
   --icon-hover-color: var(--hover-color);
-  --icon-background-color: rgba(0,0,0,0);
+  --icon-background-color: rgba(0, 0, 0, 0);
   --icon-border-radius: 0.2em;
 
-  --whiteboard-icon-size: var(--icon-size);
-  --whiteboard-hover-color: var(--icon-hover-color);
-  --whiteboard-active-color: var(--icon-active-color);
-  --whiteboard-inactive-color: var(--icon-inactive-color);
-  --whiteboard-background-color: #EEE;
+  --whiteboard-background-color: #eee;
   --whiteboard-border-color: var(--shade2);
   --whiteboard-pen0: var(--base08);
   --whiteboard-pen1: var(--base09);
@@ -63,7 +59,7 @@
   --feedback-input-background-color: var(--shade0);
   --feedback-header-background-color: var(--shade2);
   --feedback-header-text-color: var(--shade7);
-  --feedback-list-background-color: rgba(0,0,0,0);
+  --feedback-list-background-color: rgba(0, 0, 0, 0);
   --feedback-list-text-color: var(--shade7);
   --feedback-footer-background-color: var(--shade2);
   --feedback-footer-text-color: var(--shade7);
