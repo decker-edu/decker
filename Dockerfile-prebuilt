@@ -14,7 +14,6 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -y install tzdata
 
 RUN apt-get install -y \
-    ffmpeg \
     graphviz \
     gnuplot \
     rsync \

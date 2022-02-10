@@ -47,7 +47,6 @@ build:mac:
   stage: build
   script:
     - brew upgrade node
-    - brew install ffmpeg
     - git rev-parse --short HEAD
     - make clean-build
     - cp $(stack path | grep "local-install-root" | awk '{printf "%s/bin/decker",$2}') decker

@@ -91,9 +91,9 @@ determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
     ImageT -> do
       size <- liftIO $ imageSize path
       return $ aspect <$> size
-    VideoT -> do
-      size <- liftIO $ videoSize path
-      return $ aspect <$> size
+    -- VideoT -> do
+    --   size <- liftIO $ videoSize path
+    --   return $ aspect <$> size
     _ -> do
       return $
         asum [lookup "w:h" attribs, lookup "aspect-ratio" attribs] >>= readRatio

@@ -50,7 +50,6 @@ dependencies:
   - doctemplates
   - exceptions
   - extra
-  - ffmpeg-light
   - file-embed
   - filelock
   - filepath

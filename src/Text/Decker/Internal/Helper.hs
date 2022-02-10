@@ -2,7 +2,7 @@
 
 module Text.Decker.Internal.Helper where
 
-import Codec.FFmpeg
+-- import Codec.FFmpeg
 import Codec.Picture
 import Control.Applicative
 import Control.Monad.Catch
@@ -198,17 +198,17 @@ imageSize path = do
     Right image -> do
       return $ Just $ imageSize' image
 
-videoSize :: FilePath -> IO (Maybe (Int, Int))
-videoSize path = do
-  initFFmpeg
-  (getFrame, cleanup) <- imageReader (File path)
-  frame <- fmap ImageRGB8 <$> getFrame
-  case frame of
-    Just frame -> do
-      let w = dynamicMap imageWidth frame
-      let h = dynamicMap imageHeight frame
-      cleanup
-      return $ Just (w, h)
-    Nothing -> do
-      cleanup
-      return Nothing
+-- videoSize :: FilePath -> IO (Maybe (Int, Int))
+-- videoSize path = do
+--   initFFmpeg
+--   (getFrame, cleanup) <- imageReader (File path)
+--   frame <- fmap ImageRGB8 <$> getFrame
+--   case frame of
+--     Just frame -> do
+--       let w = dynamicMap imageWidth frame
+--       let h = dynamicMap imageHeight frame
+--       cleanup
+--       return $ Just (w, h)
+--     Nothing -> do
+--       cleanup
+--       return Nothing
