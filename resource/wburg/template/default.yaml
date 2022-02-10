@@ -1,0 +1,155 @@
+# Würzburg Default Meta Data
+css-variables:
+  # active-color: rgb(42,157,223)
+  align-global: left
+  # background-color: rgb(250,250,250)
+  border-decoration-padding: 10px
+  border-decoration-style: solid
+  border-decoration-width: 20px
+  font-size-base: 28
+  font-size-x-large: calc(28 * 1.4)
+  # icon-active-color: var(--primary-color);
+  # icon-inactive-color: lightgrey;
+  # icon-size: 2vmin
+  # inactive-color: lightgrey
+  margin: 0.05
+  margin-columns: calc(0em * 100%)
+  spacing-vertical-base: 0.5em
+  # Renaming to decker variables
+  block-border-width: 0.2em
+  block-outset: var(--border-decoration-padding)
+  # vertical-margin: 0.1em
+
+chart:
+  defaults:
+    font: { size: 20 }
+    color: "black"
+    animation: false
+    plugins:
+      colorschemes:
+        scheme: "tableau.Classic10"
+      title:
+        font: { weight: "normal", size: 30 }
+      legend:
+        position: "bottom"
+
+dictionary:
+  de:
+    exam:
+      Easy: Leicht
+      Hard: Schwer
+      Medium: Mittelschwer
+      again-button: Nochmal
+      placeholder: Antwort eingeben
+      points: Punkte
+      solution: Lösung
+      solve-button: Lösen
+      reset-button: Zurücksetzen
+    quiz:
+      solution: Lösung
+      reset-button: Zurücksetzen
+      input-placeholder: Eingeben und 'Enter'
+      qmi-drag-hint: Objekte per Drag&Drop ziehen...
+      qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
+      solve-button: Lösung
+  en:
+    exam:
+      Easy: Easy
+      Hard: Hard
+      Medium: Medium
+      again-button: Again
+      placeholder: Type in answer
+      points: Points
+      solution: Solution
+      solve-button: Solve
+      reset-button: Reset
+    quiz:
+      solution: Show Solution
+      reset-button: Reset
+      input-placeholder: Type and press 'Enter'
+      qmi-drag-hint: Drag items from here...
+      qmi-drop-hint: ...and put them here into the correct category.
+      solution-button: Show Solution
+
+explain:
+  recWidth: 1920
+  recHeight: 1080
+  camWidth: 1280
+  camHeight: 720
+
+highlightjs: zenburn
+
+math:
+  macros:
+    R: '{{\\mathrm{{I}\\kern-.15em{R}}}}'
+    laplace: '{\\Delta}'
+    grad: '{\\nabla}'
+    T: '^{\\mathsf{T}}'
+    abs: ['\\left\\lvert #1 \\right\\rvert', 1]
+    det: ['\\left\\lvert #1 \\right\\rvert', 1]
+    norm: ['\\left\\Vert #1 \\right\\Vert', 1]
+    iprod: ['\\left\\langle #1 \\right\\rangle', 1]
+    vec: ['{\\mathbf{\\boldsymbol{#1}}}', 1]
+    mat: ['{\\mathbf{\\boldsymbol{#1}}}', 1]
+    set: ['\\mathcal{#1}', 1]
+    func: ['\\mathrm{#1}', 1]
+    trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1]
+    matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1]
+    vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1]
+    of: ['\\left( #1 \\right\\)', 1]
+    diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2]
+    pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2]
+    vc: ['{\\mathbf{\\boldsymbol{#1}}}', 1]
+    qt: ['\\hat{\\vc {#1}}', 1]
+    mt: ['{\\mathbf{\\boldsymbol{#1}}}', 1]
+    pt: ['\\boldsymbol{#1}', 1]
+    textcolor: ['\\color{#1}', 1]
+
+menu:
+  side: "left"
+  width: "wide"
+  numbers: true
+  titleSelector: "h1"
+  useTextContentForMissingTitles: false
+  hideMissingTitles: false
+  markers: false
+  custom: false
+  themes: false
+  transitions: false
+  openButton: true
+  openSlideNumber: false
+  keyboard: true
+  sticky: false
+  autoOpen: true
+  delayInit: false
+  openOnInit: false
+  loadIcons: false
+
+reveal:
+  width: 1280
+  height: 720
+  backgroundTransition: "none"
+  center: true
+  controls: true
+  fragments: true
+  fragmentInURL: true
+  hash: true
+  help: true
+  hideCursorTime: 2000
+  hideInactiveCursor: true
+  history: false
+  keyboard: true
+  menu: true
+  overview: true
+  progress: true
+  slideNumber: true
+  title: "|title|"
+  touch: true
+  transition: "none"
+  vertical-slides: true
+  zoom: true
+
+# Use CSS augmentation without changes to the default template
+template:
+  base-css: support/css/wburg.css
+  # favicon: support/icons/favicon.ico

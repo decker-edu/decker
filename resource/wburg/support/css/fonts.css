@@ -1,0 +1,44 @@
+:is(.medium,.font-medium,.font-size-medium,.normal,.font-normal,.font-size-normal) {
+  font-size: var(--font-size-medium);
+}
+   
+:is(.xx-small,.font-xx-small,.font-size-xx-small) {
+  font-size: var(--font-size-xx-small);
+}
+
+:is(.x-small,.font-x-small,.font-size-x-small) {
+  font-size: var(--font-size-x-small);
+}
+
+:is(.small,.font-small,.font-size-small) {
+  font-size: var(--font-size-small);
+}
+  
+:is(.large,.font-large,.font-size-large) {
+  font-size: var(--font-size-large);
+}
+
+:is(.x-large,.font-x-large,.font-size-x-large) {
+  font-size: var(--font-size-x-large);
+}
+
+:is(.xx-large,.font-xx-large,.font-size-xx-large) {
+  font-size: var(--font-size-xx-large);
+}
+
+body.deck {
+  /* font-family: Roboto; */
+  font-size: var(--font-size-medium);
+}
+
+/*******************
+ * HEADERS
+*******************/
+
+.reveal :is(h1, h2, h3, h4, h5, h6) {
+  text-shadow: none;
+}
+
+.reveal h2 {
+  font-weight: 700;
+}

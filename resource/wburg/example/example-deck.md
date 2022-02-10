@@ -1,10 +1,18 @@
 ---
+title: Decker Slide Tool Reference Guide
+subtitle: Examples and Explanations
+abstract: This slideset is used to test changes
+affiliation: Chair for Human-Computer Interaction
+author: Marc Erich Latoschik
+date: 10.2.2022
+template:
+  title-page:
+    banner: img/title-banner-jmu.jpg
+    affiliation-logo: img/title-logo-hci.png
+    teaser-img: img/title-teaser-icg.png
 bibliography: example.bib
 chalkboard: 'example-deck.json'
-controls: true
 csl: 'chicago-author-date.csl'
-menu: true
-title: Decker Slide Tool Reference Guide
 ---
 
 # Navigation
@@ -44,8 +52,6 @@ Heading 1 (h1) headers create new slides.
 ### Heading 3 (h3)
 #### Heading 4 (h4)
 ```
-
-## 
 
 ## Heading 2 (h2)
 
@@ -116,6 +122,28 @@ First/top column spans across the following columns.
 
 Third/bottom column spans across the columns above.
 
+# Vertical Slides
+
+Place a new slide below the current slide using the `sub` tag.
+
+```{markdown}
+# Main Slide
+
+This is the text of the main slide.
+
+# Vertical Slide {.sub}
+
+This is the text of the slide below.
+```
+ 
+# Main Slide
+
+This is the text of the main slide.
+
+# Vertical Slide {.sub}
+
+This is the text of the slide below.
+
 # Text Emphasis {#textEmphasis}
 
 Format text by surrounding it in appropriate symbols:
@@ -151,13 +179,11 @@ H~2~O is a liquid.\
 -   Add `.inverse` tag to slide header (h1)
 -   Add `background-color="black"` to slide header (h1)
 
-## Definition Box {.fragment .definition}
-
-Even colored boxes look ok.
+## Even colored boxes look ok. {.fragment .alert}
 
 # Highlight Blocks {#blocks}
 
-##  {.split style="font-size:small"}
+##  {.split}
 
 ``` {.markdown}
 ## Alert Block {.alert}
@@ -165,7 +191,7 @@ Even colored boxes look ok.
 -  Alert Text
 ```
 
-##  {style="font-size:small"}
+##  
 
 ``` {.markdown}
 ## Question Block {.question}
@@ -173,7 +199,7 @@ Even colored boxes look ok.
 -  Question text
 ```
 
-##  {style="font-size:small"}
+## 
 
 ``` {.markdown}
 ## Answer Block {.answer}
@@ -181,7 +207,7 @@ Even colored boxes look ok.
 -  Answer text
 ```
 
-##  {style="font-size:small"}
+##  
 
 ``` {.markdown}
 ## Definition Block {.definition}
@@ -189,7 +215,7 @@ Even colored boxes look ok.
 -  Definition text
 ```
 
-##  {style="font-size:small"}
+##  
 
 ``` {.markdown}
 ## Observation Block {.observation}
@@ -197,7 +223,7 @@ Even colored boxes look ok.
 -  Observation text
 ```
 
-##  {style="font-size:small"}
+##  
 
 ``` {.markdown}
 ## Example Block {.example}
@@ -205,7 +231,7 @@ Even colored boxes look ok.
 -  Example text
 ```
 
-##  {style="font-size:small"}
+##  
 
 ``` {.markdown}
 ## Equation Block {.equation}
@@ -213,7 +239,7 @@ Even colored boxes look ok.
 -  Equation text
 ```
 
-##  {style="font-size:small"}
+##  
 
 ``` {.markdown}
 ## Note Block {.note}
@@ -266,7 +292,7 @@ Even colored boxes look ok.
 4.  flour
 ```
 
-##  {.example}
+##  
 
 1.  bread
 2.  milk
@@ -282,7 +308,7 @@ Even colored boxes look ok.
 -  Wash dishes
 ```
 
-##  {.example}
+## 
 
 -   Take out trash
 -   Vaccuum
@@ -294,7 +320,7 @@ Even colored boxes look ok.
 Use the (@) symbol to automatically number items in a list.\
 Numbered examples do not need to be in a single list.
 
-##  {style="font-size:small;"}
+##  {style="font-size:xx-large;"}
 
 ``` {.markdown}
 (@)  Salman Rushdie, *The Ground beneath Her Feet* (New York: Henry Holt, 1999), 25.  
@@ -342,13 +368,11 @@ Enter the text to be displayed followed by the URL or slide ID.
 
 # Links example {#example-links}
 
-##  {style="font-size:small;"}
+``` {.markdown}
+Visit [http://pandoc.org](http://pandoc.org) for additional information.
 
-    Visit [http://pandoc.org](http://pandoc.org) for additional information.
-
-    Read more about building [lists](#lists) in Decker.
-
-## 
+Read more about building [lists](#lists) in Decker.
+```
 
 ##  {.example}
 
@@ -368,12 +392,12 @@ Include images in presentations:
 ## 
 
 ``` {.markdown}
-![Haskell](img/haskell.png){width="30%"}
+![JMU Würzburg HCI](img/title-logo-hci.png){width="30%"}
 ```
 
 ## 
 
-![Haskell](img/haskell.png){width="30%"}
+![JMU Würzburg HCI](img/title-logo-hci.png){width="30%"}
 
 # Videos {#video}
 
@@ -398,11 +422,11 @@ Start video at timestamp:
 
 ##  {.split}
 
-Video with controls: ![](movies/jmu-hci-intro.mp4){.controls}
+Video with controls: ![](movies/jmu-hci-intro.mp4){.controls width="80%"}
 
 ## 
 
-Video with autoplay & loop: ![](movies/jmu-hci-intro.mp4){.autoplay .loop}
+Video with autoplay & loop: ![](movies/jmu-hci-intro.mp4){.autoplay .loop width="80%"}
 
 # External Videos {#ext-vid}
 
@@ -485,7 +509,7 @@ header row.
 
 # Tables example {#example-tables}
 
-##  {style="font-size:small;"}
+##  
 
 ``` {.markdown}
 Table: Assignment List
@@ -518,7 +542,7 @@ To treat text as verbatim, either:
 
 # Verbatim Code Block example {#example-code}
 
-##  {style="font-size:small;"}
+## Example Markdown:
 
 ``` {.markdown}
 ~~~java
@@ -528,7 +552,7 @@ if (a > 3) {
 ~~~
 ```
 
-## 
+## Code: 
 
 ``` {.java}
 if (a > 3) {
@@ -589,6 +613,8 @@ $$ \lim_{x \to \infty} \exp(-x) = 0 $$
 
 Apply Java syntax highlighting with the `.Java` tag.
 
+## Example Markdown:
+
 ``` {.markdown}
 ~~~java
 String s = "Java highlighting syntax";
@@ -596,7 +622,7 @@ System.out.println (s);
 ~~~
 ```
 
-## 
+## Code: 
 
 ``` {.java}
 String s = "Java highlighting syntax";
@@ -607,6 +633,8 @@ System.out.println (s);
 
 Apply Javascript syntax highlighting with the `.Javascript` tag.
 
+## Example Markdown:
+
 ``` {.markdown}
 ~~~javascript
 var s = "JavaScript syntax highlighting";
@@ -614,7 +642,7 @@ alert (s);
 ~~~
 ```
 
-## 
+## Code:
 
 ``` {.javascript}
 var s = "JavaScript syntax highlighting";
@@ -635,7 +663,7 @@ alert (s);
 #  {#example-externalWebsite data-menu-title="External Website Example"}
 
 ```{=html}
-<iframe class="stretch" src="https://www.uni-wuerzburg.de/">
+<iframe src="https://www.uni-wuerzburg.de/">
 ```
 ```{=html}
 </iframe>
@@ -669,24 +697,19 @@ alert (s);
 # ![](http://pandoc.org/MANUAL.pdf)
 
 
-# Chalkboard
+# Whiteboard
 
 Dynamically make notes on presentations:
 
--   Make notes on slides: click
-    `<i class="fas fa-pen">`{=html}`</i>`{=html} or type 'd'
--   Use an eraser: click `<i class="fas fa-eraser">`{=html}`</i>`{=html}
-    or type 'e'
--   Show the chalkboard: click
-    `<i class="fas fa-edit">`{=html}`</i>`{=html} or type 'w'
--   Draw on chalkboard: click
-    `<i class="fas fa-edit">`{=html}`</i>`{=html} and then
-    `<i class="fas fa-pen">`{=html}`</i>`{=html} or type 'w' and then
-    'd'
--   Clear the chalkboard: press the 'Del' key
--   Download notes: type 'n'
--   Extend the chalkboard: open the chalkboard with drawing turned on
-    ('d' and 'w') and press ENTER
+-   Show the whiteboard menu: type `w` 
+-   Change pen color: type a number `1` - `7`
+-   Change pen size: type a number `8` - `0`
+-   Clear the whiteboard: press the `Del` key
+-   Toggle the laser pointer: type `l`
+-   Use the eraser: click `<i class="fas fa-eraser">`{=html}`</i>`{=html}
+-   Download notes: click `<i class="fas fa-save">`{=html}`</i>`{=html}
+-   Extend the whiteboard: click `<i class="fas fa-plus">`{=html}`</i>`{=html}
+-   Display gridlines: click `<i class="fas fa-border-all">`{=html}`</i>`{=html}
 
 # Speaker Notes {#speakerNotes}
 
@@ -723,8 +746,6 @@ presentation. They only appear in the handout and in the speaker view
 Add citations to your slide deck. Be sure to include a `csl` and a `bib`
 file in your [YAML header](#yaml).
 
-##  {style="font-size:small;"}
-
 ``` {.markdown}
 ## Space Tentacles
 
@@ -736,37 +757,5 @@ According to @zimmerer2018space it is a nice idea.
 
 Have you heard about Space Tentacles [@zimmerer2018space]. According to
 @zimmerer2018space it is a nice idea.
-
-# Header Options {#yaml}
-
-Add optional settings in the top of each markdown file.
-
-##  {style="font-size:small;"}
-
-``` {.yaml}
-center: 0 - Align slide content to the top
-center: 1 - Align slide content vertically (default)
-
-controls: 0 - Display navigational arrows (default)
-controls: 1 - Hide navigational arrows
-
-transition: fade
-Options include: none, fade, slide, convex, concave, zoom
-
-css: example.css - Enter the name of a custom css file
-
-slideNumber: true - Display slide numbers
-slideNumber: false - Hide slide numbers (default)
-
-menu: true - Display the slide menu icon
-menu: false - Hide the slide menu icon (default)
-
-history: true - Add visited slides to browser history
-history: false - Hide visited slides from browser history
-
-csl: chicago-author-date.csl - citation style
-bibliography: example.bib
-chalkboard: example-deck.json - pre-defined chalkboard
-```
 
 # References
