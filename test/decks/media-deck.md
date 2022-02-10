@@ -186,20 +186,23 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 # 2 images in a row
 
-| ![Alt Caption $e=mc^2$](include/06-metal.png){aspect="480:198"}
-| ![](pacman-perfect-game.mp4){.controls .autoplay aspect="480:360"}
+| ![Alt Caption $e=mc^2$](include/06-metal.png)
+| ![Tilt!](include/06-metal-v.png)
+
+Caption: Aspect ratio of images is determined at compile time, or can be
+specified.
 
 # 3 somethings in a row
 
-| ![Alt Caption $e=mc^2$](include/06-metal.png){aspect="480:198"}
-| ![Alt Caption $e=mc^2$](pacman-perfect-game.mp4){.controls .autoplay aspect="480:360"}
-| ![Almost](teapot.off){aspect="957:547"}
+| ![Alt Caption $e=mc^2$](include/06-metal.png)
+| ![Alt Caption $e=mc^2$](pacman-perfect-game.mp4){.controls .autoplay}
+| ![Even this!](teapot.off){w:h="1/1"}
 
 Caption: Caption all the things
 
 ## Fucking Notes {.notes}
 
-- they do
+-   they do
 
 # Blocks {.columns}
 
@@ -306,8 +309,8 @@ width="80%" height="200px"}
 
 # Local Inline Media
 
-Some text ![](pacman-perfect-game.mp4){.controls .autoplay height="100px"} some
-more ![](../static/es6.js){.code} code.
+Some text ![](pacman-perfect-game.mp4){.controls .autoplay height="3em"} some
+more ![](../static/es6.js){.code height="3em" width="10em"} code.
 
 ![One](include/06-metal.png){height="60px"}![Two](include/06-metal.png){height="120px"}![Three](include/06-metal.png){height="240px"}
 
@@ -336,7 +339,7 @@ width="80%"}
 
 # YouTube Video Stream
 
-![Avatar.](youtube:7XX6IEuLP3A){width="80%" height="200px" aspect="16:9"}
+![Avatar.](youtube:7XX6IEuLP3A){width="80%"}
 
 # Local Video
 
@@ -344,7 +347,7 @@ width="80%"}
 
 # PDF Object
 
-![](columns.pdf){.pdf height="500px" width="80%"}
+![](columns.pdf){.pdf w:h="2/1"}
 
 # Embeded SVG
 
@@ -385,31 +388,32 @@ height="1em"}
 
 # Execute Javascript
 
-![Fuck YEAH!](../static/es6-blue.js){.run width="72%"}
+![Fuck YEAH!](../static/es6-blue.js){.run}
 
 # Execute Javascript CodeBlock
 
-``` {.javascript .run width="72%"}
+``` {.javascript .run}
 import * as mod from "../static/es6.js";
 mod.hello(anchor, "orange");
 ```
 
+Caption: What?
+
 # Execute Javascript Inline
 
--   Animation ![](../static/es6-blue.js){.javascript .run width="200px"} is
-    followed by text
+-   Animation ![](../static/es6-blue.js){.javascript .run} is followed by text
 
-# An Mview Iframe
+# An Mview Iframe {.columns}
 
-## Markdown
+## Markdown {.left}
 
 ``` markdown
 ![The Utah teapot](teapot.off)
 ```
 
-## Renders as
+## Renders as {.right}
 
-![The Utah teapot](teapot.off)
+![The Utah teapot](teapot.off){}
 
 --------------------------------------------------------------------------------
 
@@ -417,7 +421,7 @@ mod.hello(anchor, "orange");
 
 # AST structure synthesis
 
-## Branch master `master`
+## Branch `master`
 
 ``` {.haskell .small}
 caption = [Str "Caption", Space, Strong [Str "text"]]

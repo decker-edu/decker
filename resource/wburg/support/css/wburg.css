@@ -1,0 +1,830 @@
+/* Wuerzburg Specific CSS */
+
+/* @import url("../fonts/roboto.css"); */
+@import url("../fonts/source-code-pro.css");
+@import url("./fonts.css");
+
+
+:root {
+  --align-global: left;
+  /* --font-size-base: $font-size-base$; */
+  --font-size-medium: 28px;
+  --font-size-xx-small: 11.2px;
+  --font-size-x-small: 16.8px;
+  --font-size-small: 22.4px;
+  --font-size-large: 33.6px;
+  --font-size-x-large: 39.2px;
+  --font-size-xx-large: 44.8px;
+  --margin-bottom-elements-base: 0.5em;
+  --margin-bottom-second: 0;
+  --margin-bottom-third: 0.4em;    
+  --margin-bottom-references: 0.15em;
+
+  --border-decoration-width: 20px;
+  --border-decoration-padding: 10px;
+  --border-decoration-style: solid;  
+  /* --whiteboard-icon-size: $whiteboard-icon-size$; */
+  /* --whiteboard-active-color: $whiteboard-active-color$; */
+  /* --whiteboard-inactive-color: $whiteboard-inactive-color$; */
+  /* --whiteboard-background-color: $whiteboard-background-color$; */
+}
+
+.reveal section > figure:first-of-type {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+}
+
+.reveal section > figure:last-of-type {
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
+}
+
+.reveal div.exa-quest {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
+}
+
+/*******************
+ * LINKS
+ *******************/
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--hover-color);
+  text-shadow: none;
+  border: none;
+}
+
+/*******************
+ * SLIDE NUMBER
+ *******************/
+
+.reveal .slide-number {
+  font-size: 0.6rem;
+  margin: 0;
+  width: 10em;
+}
+
+.reveal .slide-number a,
+.reveal .slide-number a:hover {
+  color: black;
+}
+
+/*******************
+ * TITLE SLIDE
+ *******************/
+
+section#title-slide .banner img {
+  margin: 0px 0px 10px 0px;
+  width: 100%;
+  object-fit: contain;
+}
+ 
+section#title-slide :is(.title, .valign-block) {
+  text-align: center; 
+}
+
+section#title-slide :is(.subtitle, .author, .affiliation) {
+  font-weight: normal;
+} 
+
+section#title-slide .teaser-img {
+  margin: 20px auto;
+  height: 10%;
+  width: auto;
+  display: block; 
+}
+
+section#title-slide .teaser-img img {
+  display: block;
+  margin: auto;
+  object-fit: contain;
+  max-height: 250px;
+  width: auto; 
+}
+
+section#title-slide .affiliation-logo img {
+  margin: 0px 0 0 0;
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto; 
+}
+
+section#title-slide .valign-block:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+section#title-slide .valigned {
+  display: inline-block;
+  vertical-align: middle;
+} 
+
+/*******************
+ * AUDIO CONTROLS
+ *******************/
+
+p span.controls.media {
+  display: block;
+  position: inherit;
+}
+p span.controls.media span.figure {
+  width: min-content;
+}
+
+p span.controls.media span.figcaption {
+  font-size: initial;
+}
+
+/*******************
+ * STANDARD ELEMENTS
+ *******************/
+/* 
+
+/* p,
+ul,
+ol,
+dl,
+table,
+h1,
+h2,
+h3, 
+h4 {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: var(--border-decoration-width);
+  padding-right: var(--border-decoration-padding);
+} 
+
+.reveal p {
+  line-height: 1.3;
+}
+
+.reveal b {
+  font-weight: bold;
+}
+
+
+.reveal ol,
+.reveal dl,
+.reveal ul {
+  display: inline-block;
+  text-align: left;
+}
+
+.reveal ol li,
+.reveal dl li,
+.reveal ul li {
+  margin-bottom: 0;
+  margin-left: 40px;
+}
+
+.reveal ul ul,
+.reveal ol ul {
+  list-style-type: circle;
+}
+
+.reveal ol ol {
+  list-style-type: lower-roman;
+}
+
+.reveal ul ul,
+.reveal ul ol,
+.reveal ol ol,
+.reveal ol ul {
+  display: block;
+  margin-top: 0.3em;
+}
+ */
+
+/*******************
+ * CODE BLOCKS
+ *******************/
+/* 
+.reveal div.decker.image.error pre.markup code.markup {
+  font-family: "Source Code Pro", monospace;
+  font-size: 18pt;
+  line-height: 1.4;
+  color: black;
+} 
+
+.reveal div.box.question div.sourceCode, 
+.reveal div.box.answer div.sourceCode, 
+.reveal div.box.observation div.sourceCode, 
+.reveal div.box.example div.sourceCode, 
+.reveal div.box.def div.sourceCode, 
+.reveal div.box.definition div.sourceCode, 
+.reveal div.box.note div.sourceCode, 
+.reveal div.box.ale div.sourceCode, 
+.reveal div.box.alert div.sourceCode, 
+.reveal div.box.equ div.sourceCode, 
+.reveal div.box.equation div.sourceCode, 
+.reveal div.box.theorem div.sourceCode {
+  margin: 0;
+  background: rgba(255, 255, 255, 0.4);
+  padding: calc(var(--spacing-vertical-base) * 0) calc(var(--spacing-vertical-base) * 0.2);
+}
+
+.reveal div.box.question div.sourceCode pre, .reveal div.box.answer div.sourceCode pre, 
+.reveal div.box.observation div.sourceCode pre, .reveal div.box.example div.sourceCode pre, 
+.reveal div.box.def div.sourceCode pre, .reveal div.box.definition div.sourceCode pre, 
+.reveal div.box.note div.sourceCode pre, .reveal div.box.ale div.sourceCode pre, 
+.reveal div.box.alert div.sourceCode pre, .reveal div.box.equ div.sourceCode pre, 
+.reveal div.box.equation div.sourceCode pre, .reveal div.box.theorem div.sourceCode pre {
+  margin: 0;
+}
+
+.reveal pre {
+  display: block;
+  position: relative;
+  width: 90%;
+  margin: 20px auto;
+  text-align: left;
+  font-size: 0.55em;
+  font-family: monospace;
+  word-wrap: break-word;
+}
+
+.reveal pre code {
+  display: block;
+  padding: 5px;
+  overflow: auto;
+  max-height: 400px;
+  word-wrap: normal;
+}
+
+.reveal div.sourceCode {
+  margin-bottom: 0.5em;
+  padding: calc(var(--spacing-vertical-base) * 0.4) calc(var(--spacing-vertical-base) * 0.7);
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 0.25em;
+  overflow: auto;
+}
+
+.reveal div.sourceCode pre {
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  line-height: 1.5em;
+  word-wrap: break-word;
+  box-shadow: none;
+  font-size: 90%;
+  font-weight: 500;
+  margin: 0;
+}
+
+.reveal div.sourceCode pre div.language-label {
+  font-family: sans-serif;
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  background-color: #eee;
+  padding: 0em 0.4em;
+  border-radius: 0.2em;
+}
+
+.reveal div.sourceCode pre code {
+  display: block;
+  overflow: auto;
+  max-height: 500px;
+  word-wrap: normal;
+  border: none;
+  white-space: pre;
+  position: relative;
+  color: black;
+} */
+/* 
+.reveal div.decker.image.error {
+  font-size: 20pt;
+  background-color: #fee;
+  border: 0.1em solid darkred;
+  padding: 1em;
+}
+
+.reveal div.decker.image.error .message {
+  font-style: italic;
+  margin-left: 20px;
+}
+
+.reveal div.decker.image.error pre.markup {
+  width: 100%;
+  margin-left: 20px;
+}
+
+
+
+.reveal img.decker,
+.reveal video.decker {
+  display: inline-block;
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+  margin: auto;
+  border: 0px;
+  box-shadow: none;
+}
+
+.reveal iframe.decker {
+  border: 1px solid lightgray;
+  outline: none;
+  overflow: hidden;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+}
+
+.reveal figure.decker,
+.reveal div.nofigure {
+  display: inline-block;
+}
+
+.reveal figure.decker > img.decker,
+.reveal figure.decker > video.decker,
+.reveal figure.decker > iframe.decker,
+.reveal div.nofigure > img.decker,
+.reveal div.nofigure > video.decker,
+.reveal div.nofigure > iframe.decker {
+  margin: auto;
+  border: 0px;
+  box-shadow: none;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.reveal div.decker.nofigure {
+  width: 100%;
+}
+
+.reveal figure.streaming {
+  width: 100%;
+  margin: 0;
+}
+
+.reveal figure.decker figcaption.decker {
+  margin: 0px 0px 0px 0px;
+  line-height: 1.2;
+  font-style: italic;
+  text-align: center;
+}
+
+.reveal object.decker {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.reveal figure.decker > object.decker {
+  width: 100%;
+}
+
+.reveal div.image-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+}
+
+.reveal div.image-row div {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.reveal div.image-row img {
+  display: block;
+}
+
+
+
+.reveal div.box {
+  break-inside: avoid-column;
+}
+
+.reveal div.multi-column-row {
+  display: flex;
+  flex-flow: row nowrap;
+  margin-bottom: var(--margin-bottom-second);
+}
+
+
+.reveal {
+  font-size: var(--font-size-medium);
+} 
+
+::selection,
+::-moz-selection {
+  color: #fff;
+  background: #98bdef;
+  text-shadow: none;
+}
+
+.reveal .slides section,
+.reveal .slides section > section {
+  line-height: 1.3;
+  font-weight: inherit;
+  text-align: var(--align-global);
+}
+
+.reveal section[data-align="center"] > h1,
+.reveal div[data-align="center"] {
+  text-align: center;
+}
+
+.reveal section[data-align="right"] > h1,
+.reveal div[data-align="right"] {
+  text-align: right;
+}
+
+.reveal .smallcaps {
+  font-variant: small-caps;
+}
+
+.reveal .line-block {
+  white-space: pre-line;
+}
+
+.reveal .references {
+  height: 17.5em;
+  overflow-y: scroll;
+}
+
+.reveal .references div {
+  margin-bottom: var(--margin-bottom-references);
+}
+
+.reveal q {
+  font-style: italic;
+}
+
+dt {
+  font-weight: bold;
+}
+
+dd {
+  margin-left: calc(var(--spacing-vertical-base) * 1);
+}
+
+.reveal table {
+  display: inline-block;
+  margin-bottom: var(--margin-bottom-elements-base);
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.reveal table th {
+  font-weight: bold;
+}
+
+.reveal table th,
+.reveal table td {
+  text-align: left;
+  padding: calc(var(--spacing-vertical-base) * 0.2) calc(var(--spacing-vertical-base) * 0.5);
+  border-bottom: 1px solid;
+}
+
+.reveal table th[align="center"],
+.reveal table td[align="center"] {
+  text-align: center;
+}
+
+.reveal table th[align="right"],
+.reveal table td[align="right"] {
+  text-align: right;
+}
+
+.reveal table tbody tr:last-child th,
+.reveal table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.reveal table .slide-number {
+  color: #009;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+
+
+.reveal small {
+  display: inline-block;
+  font-size: 0.6em;
+  line-height: 1.2em;
+  vertical-align: top;
+}
+
+.reveal small * {
+  vertical-align: top;
+}   */
+
+/*********************************************
+ * LINKS
+ *********************************************/
+/* 
+.reveal a:hover {
+  text-shadow: none;
+  border: none;
+}
+
+.reveal a:hover img {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  box-shadow: none;
+}
+
+.reveal .roll span:after {
+  color: #fff;
+  background: #1a53a1;
+}  */
+
+/*********************************************
+ * NAVIGATION CONTROLS
+ *********************************************/
+/*  
+.reveal .controls button {
+  opacity: 0;
+}
+
+.reveal .controls .enabled:active {
+  margin-top: 0;
+}
+
+.reveal .controls :focus {
+  outline: none;
+}
+
+.reveal .controls .slide-number {
+  color: #009;
+  background-color: rgba(255, 255, 255, 0);
+}   */
+
+/************************
+ * PROGRESS BAR
+ ************************/
+/*  
+.reveal .progress {
+  background: rgba(0, 0, 0, 0.2);
+  color: #2a76dd;
+}
+
+.reveal .progress span {
+  background: #777;
+  -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -ms-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -o-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+}
+
+.reveal .speaker-notes h1,
+.reveal .speaker-notes h2,
+.reveal .speaker-notes h3,
+.reveal .speaker-notes h4,
+.reveal .speaker-notes h5,
+.reveal .speaker-notes h6 {
+  color: #fff;
+  font-weight: bold;
+  margin-bottom: calc(var(--spacing-vertical-base) * 0.2);
+}
+
+.reveal .speaker-notes h1 {
+  text-decoration: underline;
+  margin-bottom: calc(var(--spacing-vertical-base) * 0.4);
+}
+
+.reveal .slide-number {
+  font-size: 0.4em;
+  background: transparent;
+  color: gray;
+  position: fixed;
+  right: 50%;
+  bottom: 2vmin;
+}
+
+.reveal .resume-button {
+  visibility: hidden;
+}
+
+.reveal ::selection {
+  color: white;
+  background: rgba(0, 0, 0, 0.85);
+  text-shadow: none;
+}  */
+
+
+/* 
+.reveal div.box.columns {
+  margin-left: var(--border-decoration-width);
+  padding-left: var(--border-decoration-padding);
+  margin-right: calc( var(--border-decoration-padding) + var(--border-decoration-width));
+} 
+
+.reveal div.box.columns p,
+.reveal div.box.columns ul,
+.reveal div.box.columns ol,
+.reveal div.box.columns dl,
+.reveal div.box.columns figure,
+.reveal div.box.columns blockquote,
+.reveal div.box.columns table,
+.reveal div.box.columns h1,
+.reveal div.box.columns h2,
+.reveal div.box.columns h3,
+.reveal div.box.columns h4 {
+  margin-left: 0;
+  padding-left: 0;
+  margin-right: 0;
+  padding-right: 0;
+}
+
+.reveal div.box.columns h2 {
+  margin-top: 0;
+}
+
+.reveal div.box.columns h2:empty {
+  margin-bottom: 0;
+}
+
+.reveal div.column {
+  display: inline-block;
+  vertical-align: top;
+  width: 50%;
+}
+
+.reveal div.multi-column-row div.column {
+  position: relative;
+  flex: 1 1 0;
+  margin-left: var(--margin-columns);
+  margin-right: var(--margin-columns);
+}
+
+.reveal div.multi-column-row div.column:first-child {
+  margin-left: 0;
+  margin-right: var(--margin-columns);
+}
+
+.reveal div.multi-column-row div.column:last-child {
+  margin-left: var(--margin-columns);
+  margin-right: 0;
+}
+
+.reveal div.multi-column-row div.column .mid {
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
+}
+
+.reveal div.multi-column-row div.column[data-grow="1"] {
+  flex-grow: 1;
+}
+
+.reveal div.multi-column-row div.column[data-grow="2"] {
+  flex-grow: 2;
+}
+
+.reveal div.multi-column-row div.column[data-grow="3"] {
+  flex-grow: 3;
+}
+
+.reveal div.multi-column-row div.column[data-grow="4"] {
+  flex-grow: 4;
+}
+
+.reveal div.multi-column-row div.column[data-grow="5"] {
+  flex-grow: 5;
+}
+
+.reveal div.multi-column-row div.column[data-grow="6"] {
+  flex-grow: 6;
+}
+
+.reveal div.multi-column-row div.column[data-grow="7"] {
+  flex-grow: 7;
+}
+
+.reveal div.multi-column-row div.column[data-grow="8"] {
+  flex-grow: 8;
+}
+
+.reveal div.multi-column-row div.column[data-grow="9"] {
+  flex-grow: 9;
+}
+
+.reveal div.single-column-row {
+  margin-bottom: var(--margin-bottom-second);
+} */
+
+/*********************************************
+ * Alignment, beware of semantics as borrowed
+ * from CSS 
+ *********************************************/
+/*  
+.reveal .float-left {
+  float: left;
+}
+
+.reveal .float-right {
+  float: right;
+}
+
+.reveal .vertical-align-top,
+.reveal .align-top {
+  vertical-align: top;
+}
+
+.reveal .vertical-align-middle,
+.reveal .align-middle {
+  vertical-align: middle;
+}
+
+.reveal .vertical-align-bottom,
+.reveal .align-bottom {
+  vertical-align: bottom;
+}
+
+.reveal .align-left,
+.reveal section.align-left {
+  text-align: left;
+}
+
+.reveal .align-center,
+.reveal section.align-center {
+  text-align: center;
+}
+
+.reveal .align-right,
+.reveal section.align-right {
+  text-align: right;
+}
+
+.reveal h1 {
+  margin-bottom: var(--margin-bottom-elements-base);
+}
+
+.reveal h2 {
+  margin-bottom: var(--margin-bottom-second);
+}
+
+.reveal div.box.columns {
+  margin-bottom: var(--margin-bottom-third);
+}
+
+.reveal h3,
+.reveal h4 {
+  margin-bottom: var(--margin-bottom-second);
+}
+
+.reveal p {
+  margin-bottom: var(--margin-bottom-third);
+}
+
+.reveal ol {
+  margin-bottom: var(--margin-bottom-third);
+}
+
+.reveal ul {
+  margin-bottom: var(--margin-bottom-third);
+}
+
+.reveal dl {
+  margin-bottom: var(--margin-bottom-third);
+}
+
+.reveal figure {
+  margin-bottom: var(--margin-bottom-third);
+}
+
+.reveal img {
+  margin-bottom: var(--margin-bottom-third);
+}
+
+.reveal table {
+  margin-bottom: var(--margin-bottom-elements-base);
+}
+
+.reveal .columns {
+  margin-bottom: var(--margin-bottom-second);
+}
+
+.reveal p:empty {
+  display: none;
+}  */
+/* 
+@media print {
+  .reveal .slides {
+    transform: none !important;
+  }
+  .reveal .slides section {
+    break-after: always !important;
+  }
+}  */

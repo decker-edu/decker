@@ -10,21 +10,19 @@ module Text.Decker.Filter.Quiz
   )
 where
 
-import Control.Exception
-import Control.Lens hiding (Choice)
+import Control.Exception ( throw )
+import Control.Lens ( view, (^.), set, makeLenses )
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
-import Data.Text.Encoding as E
-import Data.Yaml
-import Text.Blaze.Html
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
-import Text.Decker.Filter.Local
-import Text.Decker.Internal.Common
+import Data.Text.Encoding as E ( encodeUtf8 )
+import Data.Yaml ( decodeEither' )
+import Text.Decker.Internal.Common ( Decker )
 import Text.Decker.Internal.Meta
+import Text.Decker.Filter.Slide (tag)
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared
-import Text.Pandoc.Walk
+import Text.Pandoc.Shared ( stringify )
+import Text.Pandoc.Walk ( Walkable(walk) )
+import Text.DocTemplates (Doc(Block))
 
 -- Pair: consisting of a bucket where items should be dropped; The items which belong to the bucket
 -- Distractor: Just a list of items without accompanying bucket
@@ -34,8 +32,11 @@ data Match
   deriving (Show)
 
 -- | A Choice consists of a Boolean (correct), the answer text and a tooltip comment
-data Choice = Choice {correct :: Bool, text :: [Inline], comment :: [Block]}
-  deriving (Show)
+data Choice = Choice 
+  { correct :: Bool
+  , text :: [Inline]
+  , comment :: [Block]
+  } deriving (Show)
 
 -- | Set different (optional) meta options for quizzes in a yaml code block
 data QuizMeta = QuizMeta
@@ -176,7 +177,7 @@ parseAndSetQuizFields q (CodeBlock (id_, cls, kvs) code) =
 -- Set quiz pairs/Match Items
 -- Zip with index
 parseAndSetQuizFields quiz@MatchItems {} (DefinitionList items) =
-  set pairs (map parseDL (zip [1 ..] items)) quiz
+  set pairs (zipWith (curry parseDL) [1 .. ] items) quiz
   where
     parseDL :: (Int, ([Inline], [[Block]])) -> Match
     parseDL (i, (Str "!" : _, bs)) = Distractor bs
@@ -207,15 +208,12 @@ parseAndSetQuizFields quiz@(MultipleChoice ti tgs qm q ch) b =
   set question (q ++ [b]) quiz
 
 -- | Parse a Pandoc Bullet/Task list item to a Choice
--- Pandoc replaces [X] internally with unicode checkboxes before quiz parsing
--- This is why we pattern match for "☒" and "☐" here
 parseQuizTLItem :: Quiz -> [Block] -> Choice
-parseQuizTLItem _ (Plain (Str "☒" : Space : is) : bs) = Choice True is bs
-parseQuizTLItem _ (Plain (Str "☐" : Space : is) : bs) = Choice False is bs
+parseQuizTLItem _ (Plain (Str "\9746" : Space : is) : bs) = Choice True is bs
+parseQuizTLItem _ (Plain (Str "\9744" : Space : is) : bs) = Choice False is bs
 parseQuizTLItem FreeText {} (Plain is : bs) = Choice True is bs
--- parseQuizTLItem InsertChoices {} (Plain is:bs) = Choice True is bs
-parseQuizTLItem _ is =
-  Choice False [Str "Error: NoTasklistItem"] [Plain []]
+-- parseQuizTLItem MultipleChoice {} a = Choice True [Str "Testing MC"] a
+parseQuizTLItem _ is = Choice False [Str "Error: NoTasklistItem"] [Plain []]
 
 -- | Set the quizMeta field of a Quiz using lenses
 -- available meta options are hardcoded here
@@ -241,163 +239,115 @@ setQuizMeta q meta = set quizMeta (setMetaForEach meta (q ^. quizMeta)) q
         _ -> throw $ InternalException $ "Unknown meta data key: " <> show t
 
 -- | A simple Html button
-solutionButton :: Meta -> Block
-solutionButton meta =
-  rawHtml' $ do H.button ! A.class_ "solutionButton" $ H.toHtml buttonText
-  where
-    buttonText :: T.Text
-    buttonText = lookupInDictionary "quiz.solution" meta
-
-resetButton :: Meta -> Block
-resetButton meta =
-  rawHtml' $ do H.button ! A.class_ "resetButton" $ H.toHtml buttonText
-  where
-    buttonText :: T.Text
-    buttonText = lookupInDictionary "quiz.reset-button" meta
+quizButton :: T.Text -> T.Text -> Meta -> Inline 
+quizButton cls dict meta = 
+  tag "button" $ Span ("", [cls, "quiz-button"], []) [Str $ lookupInDictionary dict meta]
 
 renderMultipleChoice :: Meta -> Quiz -> Block
 renderMultipleChoice meta quiz@(MultipleChoice title tgs qm q ch) =
   Div ("", cls, []) $ header ++ q ++ [choiceBlock]
+  -- Div ("", cls, []) $ header ++ q ++ [Plain [choiceBlock]]
   where
     cls = tgs ++ [view style qm] ++ [view solution qm]
-    -- ++ [solutionButton]
     header =
       case title of
         [] -> []
         _ -> [Header 2 ("", [], []) title]
-    choiceBlock = rawHtml' $ choiceList "choices" ch
+    choiceBlock = choiceList "choices" ch
 renderMultipleChoice meta q =
   Div ("", [], []) [Para [Str "ERROR NO MULTIPLE CHOICE QUIZ"]]
 
--- | Transform a list of Choices to an HTML <ul>
--- This is used directly in multiple choice questions and as "solutionList" in IC and FT questions
-choiceList :: AttributeValue -> [Choice] -> Html
-choiceList t choices =
-  H.ul ! A.class_ t $
-    foldr ((>>) . handleChoices) (H.span $ H.toHtml ("" :: T.Text)) choices
+-- | Build <ul> list of choices
+choiceList :: T.Text -> [Choice] -> Block
+choiceList t choices = tag "ul" $ Div ("", [t], []) $ map handleChoices choices
   where
+    handleChoices :: Choice -> Block
+    handleChoices (Choice c text comment) = 
+      tag "li" $ 
+      Div ("", [cls c], []) $ 
+      Div ("", ["choice_ltr"], []) [Plain text] : [Div ("", ["quiz-tooltip"], []) (reduceTooltip comment)]
+    cls cor = if cor then "correct" else "wrong"
     reduceTooltip :: [Block] -> [Block]
-    reduceTooltip [BulletList blocks] -- = concat blocks
-      =
-      concatMap (\x -> x ++ [Plain [LineBreak]]) blocks
+    reduceTooltip [BulletList blocks] = concatMap (\x -> x ++ [Plain [LineBreak]]) blocks
     reduceTooltip bs = bs
-    handleChoices :: Choice -> Html
-    handleChoices (Choice correct text comment) =
-      if correct
-        then H.li ! A.class_ "correct" $ do
-          H.span ! A.class_ "choice_ltr" $ ""
-          toHtml text
-          H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
-        else H.li ! A.class_ "wrong" $ do
-          H.span ! A.class_ "choice_ltr" $ ""
-          toHtml text
-          H.div ! A.class_ "tooltip" $ toHtml (reduceTooltip comment)
+
 
 renderInsertChoices :: Meta -> Quiz -> Block
 renderInsertChoices meta quiz@(InsertChoices title tgs qm q) =
-  Div ("", cls, []) $ header ++ questionBlocks q ++ tooltipDiv
+  Div ("", cls, []) $ header ++ buildQuestions q ++ tooltipDiv
   where
     cls = tgs ++ [view style qm] ++ [view solution qm]
-    -- ++ [solutionButton]
     header =
       case title of
         [] -> []
         _ -> [Header 2 ("", [], []) title]
-    tooltipDiv = [Div ("", [T.pack "tooltip-div"], []) []]
-    questionBlocks :: [([Block], [Choice])] -> [Block]
-    questionBlocks = map (rawHtml' . handleTuple)
-    handleTuple :: ([Block], [Choice]) -> Html
-    handleTuple ([], chs) = select chs
-    handleTuple (bs, []) = toHtml (map reduceBlock bs)
-    handleTuple (bs, chs) = toHtml (map reduceBlock bs) >> select chs
+    buildQuestions :: [([Block], [Choice])] -> [Block]
+    buildQuestions = concatMap questionBlocks
+    questionBlocks :: ([Block], [Choice]) -> [Block]
+    questionBlocks ([], chs) = Plain [select chs] : [choiceList "quiz-hidden" chs]
+    questionBlocks (bs, []) = map reduceBlock bs
+    questionBlocks (bs, chs) = map reduceBlock bs ++ Plain [select chs] : [choiceList "quiz-hidden" chs]
     reduceBlock :: Block -> Block
     reduceBlock (Para is) = Plain ([Str " "] ++ is ++ [Str " "])
     reduceBlock p = p
-    select :: [Choice] -> Html
+    select :: [Choice] -> Inline
     select choices =
-      ( H.select $
-          (H.option ! A.class_ "wrong" $ H.toHtml ("..." :: T.Text))
-            >> (foldr ((>>) . options) H.br choices)
-      )
-        >> choiceList "solutionList" choices
-    options :: Choice -> Html
+      tag "select" $ Span ("", [], []) (defaultOpt : map options choices)
+    defaultOpt = tag "option" $ Span ("", ["wrong"], []) [Str "..."]
+    options :: Choice -> Inline
     options (Choice correct text comment) =
-      if correct
-        then H.option ! A.class_ "correct" ! value $ toHtml $ stringify text
-        else H.option ! A.class_ "wrong" ! value $ toHtml $ stringify text
+      tag "option" $ Span ("", [ocls], [("value",stringify text)]) text
       where
-        value = A.value $ textValue $ stringify text
+        ocls = if correct then "correct" else "wrong"
+    tooltipDiv = [Div ("", [T.pack "tooltip-div"], []) []]
 renderInsertChoices meta q =
   Div ("", [], []) [Para [Str "ERROR NO INSERT CHOICES QUIZ"]]
 
 --
 renderMatching :: Meta -> Quiz -> Block
 renderMatching meta quiz@(MatchItems title tgs qm qs matches) =
-  Div ("", cls, []) $ header ++ qs ++ [itemsDiv, bucketsDiv, sButton]
+  Div ("", cls, []) $ header ++ qs ++ [itemsDiv, bucketsDiv, Plain [sButton]]
   where
     cls = tgs ++ [view style qm] ++ [view solution qm]
-    newMeta = setMetaValue "lang" (view lang qm) meta
-    sButton = solutionButton newMeta
     header =
       case title of
         [] -> []
         _ -> [Header 2 ("", [], []) title]
-    (buckets, items) = unzip $ map pairs matches
-    dropHint = ("data-hint", lookupInDictionary "quiz.qmi-drop-hint" newMeta)
-    dragHint = ("data-hint", lookupInDictionary "quiz.qmi-drag-hint" newMeta)
     itemsDiv = Div ("", ["matchItems"], [dragHint]) (concat items)
-    bucketsDiv = Div ("", ["buckets"], [dropHint]) buckets
-    item :: T.Text -> [Block] -> Block
-    item index =
-      Div
-        ( "",
-          ["matchItem"],
-          [("draggable", "true"), ("bucketId", index)]
-        )
-    distractor :: [Block] -> Block
-    distractor =
-      Div ("", ["matchItem", "distractor"], [("draggable", "true")])
+    dragHint = ("data-hint", lookupInDictionary "quiz.qmi-drag-hint" newMeta)
+    newMeta = setMetaValue "lang" (view lang qm) meta
+    (buckets, items) = unzip $ map pairs matches
     pairs :: Match -> (Block, [Block])
-    pairs (Distractor bs) = (Text.Pandoc.Definition.Null, map distractor bs)
+    pairs (Distractor bs) = (Null, map distractor bs)
     pairs (Pair i is bs) =
       case bs of
-        [[Plain []]] ->
-          ( Div
-              ( "",
-                ["bucket", "distractor"],
-                [("bucketId", T.pack $ show i)]
-              )
-              [Plain is],
-            []
-          )
-        _ ->
-          ( Div
-              ("", ["bucket"], [("bucketId", T.pack $ show i)])
-              [Plain is],
-            map (item (T.pack $ show i)) bs
-          )
+        [[Plain []]] -> (Div ("",["bucket", "distractor"],[("data-bucketId", T.pack $ show i)]) [Plain is], [])
+        _ -> (Div ("",["bucket"],[("data-bucketId", T.pack $ show i)]) [Plain is], map (item (T.pack $ show i)) bs)
+    distractor :: [Block] -> Block
+    distractor = Div ("",["matchItem", "distractor"],[("draggable", "true")])
+    item :: T.Text -> [Block] -> Block
+    item index = Div ("",["matchItem"],[("draggable", "true"), ("data-bucketId", index)])
+    bucketsDiv = Div ("", ["buckets"], [dropHint]) buckets
+    dropHint = ("data-hint", lookupInDictionary "quiz.qmi-drop-hint" newMeta)
+    sButton = quizButton "solutionButton" "quiz.solution" newMeta
 renderMatching meta q =
   Div ("", [], []) [Para [Str "ERROR NO MATCHING QUIZ"]]
 
 renderFreeText :: Meta -> Quiz -> Block
 renderFreeText meta quiz@(FreeText title tgs qm q ch) =
-  Div ("", cls, []) $ header ++ q ++ [inputRaw] ++ [sButton] ++ [rButton] ++ [sol]
+  Div ("", cls, []) $ header ++ q ++ [input] ++ [Plain (sButton : [rButton] )]
   where
     cls = tgs ++ [view style qm] ++ [view solution qm]
-    newMeta = setMetaValue "lang" (view lang qm) meta
-    sButton = solutionButton newMeta
-    rButton = resetButton newMeta
     header =
       case title of
         [] -> []
         _ -> [Header 2 ("", [], []) title]
+    input = tag "input" $ Div ("", ["quiz-ftinput"], [("placeholder", placeholderText)]) [choiceList "qft-solutions" ch]
     placeholderText :: T.Text
     placeholderText = lookupInDictionary "quiz.input-placeholder" newMeta
-    inputRaw =
-      rawHtml'
-        ( (H.input ! A.placeholder (H.textValue placeholderText))
-            >> choiceList "solutionList" ch
-        )
-    sol = rawHtml' $ H.ul ! A.class_ "solutionDiv" $ ""
+    sButton = quizButton "solutionButton" "quiz.solution" newMeta 
+    rButton = quizButton "resetButton" "quiz.reset-button" newMeta
+    newMeta = setMetaValue "lang" (view lang qm) meta
+    -- sol = tag "ul" $ Span ("", ["solutionDiv"], []) [Str ""]
 renderFreeText meta q =
   Div ("", [], []) [Para [Str "ERROR NO FREETEXT QUIZ"]]

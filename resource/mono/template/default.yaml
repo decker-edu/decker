@@ -23,3 +23,6 @@ palette:
     - "#6c71c4"
     - "#d33682"
   contrast: 0.3
+
+css-variables:
+  block-border-radius: 0.2em;

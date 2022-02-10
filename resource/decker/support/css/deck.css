@@ -17,7 +17,7 @@ body.deck {
 
 /* Title slide (simple) */
 
-section#title-slide{
+section#title-slide {
   text-align: center;
   font-weight: bold;
 }

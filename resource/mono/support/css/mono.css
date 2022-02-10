@@ -24,8 +24,13 @@ pre > code {
 }
 
 /* Headers */
-h1, h2 {
+h1,
+h2 {
   color: var(--shade6);
+}
+
+section.inverse :is(h1, h2) {
+  color: var(--shade1);
 }
 
 /* Links */
@@ -184,4 +189,15 @@ span.accent7 {
 span.accent7.fg {
   background-color: var(--shade0);
   color: var(--accent7);
+}
+
+/* More styling */
+
+section :is(img, svg, pre, span.pre, video, iframe, object) {
+  border-radius: var(--block-border-radius);
+  border: solid var(--shade2) 0.01em;
+}
+
+section.inverse :is(img, svg, pre, span.pre, video, iframe, object) {
+  border: solid var(--shade5) 0.01em;
 }

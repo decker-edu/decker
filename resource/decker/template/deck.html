@@ -58,6 +58,8 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/examiner/examiner.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
   <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/poll/poll.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
 
 $if(highlightjs)$
   <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
@@ -120,6 +122,7 @@ $body$
     import printPlugin from './$decker-support-dir$/plugins/print/print.js';
     import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
     // import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
+    import pollPlugin from './$decker-support-dir$/plugins/poll/poll.js';
     import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
     import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
     import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
@@ -161,7 +164,8 @@ $if(highlightjs)$
          highlightPlugin,
 $endif$
          notesPlugin,
-         a11yPlugin
+         a11yPlugin,
+         pollPlugin
       ]
     };
 

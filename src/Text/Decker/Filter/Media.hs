@@ -5,7 +5,6 @@
 -- TODO: Background movies do not work (unclear tags compile correctly)
 -- TODO: CSS for decks containing examiner questions
 -- TODO: CSS for decks containing examiner wburg questions
--- TODO: Organisation of CSS for deck, page and handout
 
 module Text.Decker.Filter.Media where
 
@@ -28,6 +27,7 @@ import Text.Decker.Filter.Slide
 import Text.Decker.Filter.Streaming
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Helper
 import Text.Decker.Internal.URI
 import Text.Pandoc
 import Text.Printf
@@ -57,7 +57,7 @@ compileLineBlock images caption = do
   aspects <- mapMaybeM determineAspectRatio images
   let columns =
         if length aspects == length images
-          then map printFr $ map (\a -> sum aspects / a) aspects
+          then map printFr $ map (\a -> sum aspects * a) aspects
           else map (const "1fr") images
   figures <- mapM compile images
   let row =
@@ -83,8 +83,33 @@ compileLineBlock images caption = do
           Nothing -> error $ "No transformer for media type " <> show mediaType
 
 determineAspectRatio :: (Attr, [Inline], Text, Text) -> Filter (Maybe Float)
-determineAspectRatio ((_, _, attribs), alt, url, title) = do
-  return $ lookup "aspect" attribs >>= Just . calcAspect'
+determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
+  uri <- URI.mkURI url
+  let path = (toString $ uriPath uri)
+  let mediaType = classifyMedia uri attr
+  case mediaType of
+    ImageT -> do
+      size <- liftIO $ imageSize path
+      return $ aspect <$> size
+    VideoT -> do
+      size <- liftIO $ videoSize path
+      return $ aspect <$> size
+    _ -> do
+      return $
+        asum [lookup "w:h" attribs, lookup "aspect-ratio" attribs] >>= readRatio
+  where
+    aspect (w, h) = fromIntegral w / fromIntegral h
+    readRatio :: Text -> Maybe Float
+    readRatio ratio =
+      case readMaybe (toString ratio) of
+        Just ratio -> ratio
+        Nothing ->
+          case Text.splitOn "/" ratio of
+            [w, h] -> do
+              wf <- readMaybe $ toString w :: Maybe Float
+              hf <- readMaybe $ toString h :: Maybe Float
+              return (wf / hf)
+            _ -> Nothing
 
 -- | Compiles the contents of a CodeBlock into a Decker specific structure.
 compileCodeBlock :: Attr -> Text -> [Inline] -> Filter Block
@@ -130,8 +155,14 @@ compileCodeBlock attr@(_, classes, _) code caption =
           "decker-dir"
           ( \dir -> do
               Text.writeFile (dir <> takeFileName path) code
-              copyFile (dir <> takeFileName path) path
-              removeFile (dir <> takeFileName path)
+              -- This lets the possible race condition only bite users that have
+              -- their tmp dir on a different partition.
+              catchAll
+                (renameFile (dir <> takeFileName path) path)
+                ( const $ do
+                    copyFile (dir <> takeFileName path) path
+                    removeFile (dir <> takeFileName path)
+                )
           )
       uri <- lift $ URI.mkURI (toText path)
       renderCodeBlock uri caption
@@ -155,6 +186,20 @@ imageCompilers =
       (RenderT, renderCodeBlock),
       (JavascriptT, javascriptBlock)
     ]
+
+-- ┌───────────────────────┐
+-- │<div>                  │
+-- │   ┌───────────────┐   │
+-- │   │ <figure>      │   │
+-- │   │  ┌─────────┐  │   │
+-- │   │  │<image>  │  │   │
+-- │   │  │         │  │   │
+-- │   │  │         │  │   │
+-- │   │  └─────────┘  │   │
+-- │   │               │   │
+-- │   └───────────────┘   │
+-- │                       │
+-- └───────────────────────┘
 
 -- |  Compiles the image data to a plain image.
 imageBlock :: Container c => URI -> [Inline] -> Attrib c
@@ -188,7 +233,6 @@ codeBlock code caption = do
   (innerSizes, outerSizes) <- calcImageSizes
   codeAttr <- do
     takeAllClasses
-    injectClasses ["processed"]
     injectStyles innerSizes
     takeData
     extractAttr
@@ -215,7 +259,6 @@ iframeBlock uri caption = do
     injectStyles innerSizes
     extractAttr
   figureAttr <- do
-    passAttribs identity ["aspect"]
     takeUsual
     injectClasses ["iframe"]
     injectStyles outerSizes
@@ -280,38 +323,21 @@ streamBlock uri caption = do
           ResourceException $
             "Unsupported stream service: " <> toString (fromMaybe "<none>" scheme)
 
+  (innerSizes, outerSizes) <- calcIframeSizes
   iframeAttr <- do
     takeAutoplay
     injectAttribute ("src", URI.render streamUri)
+    injectAttribute ("allow", "fullscreen")
+    injectStyles innerSizes
     extractAttr
-
-  fluidAttr <- do
-    ifAttrib "aspect" $
-      \aspect -> injectStyle ("--aspect-ratio", calcAspect aspect)
-    injectClass "fluid-iframe"
-    extractAttr
-
   figureAttr <- do
-    cutAttrib "height"
-    ifAttrib "width" $
-      \width -> injectStyle ("width", width)
     injectClasses ["stream"]
     takeUsual
+    injectStyles outerSizes
     extractAttr
-
   return $
     wrapFigure figureAttr caption $
-      mkContainer fluidAttr [mkIframe iframeAttr]
-  where
-    calcAspect :: Text -> Text
-    calcAspect ratio =
-      fromMaybe "0.5625" $
-        case Text.splitOn ":" ratio of
-          [w, h] -> do
-            wf <- readMaybe $ toString w :: Maybe Float
-            hf <- readMaybe $ toString h :: Maybe Float
-            return $ Text.pack (printf "%.4f" (hf / wf))
-          _ -> Nothing
+      mkIframe iframeAttr
 
 -- |  Compiles the image data to an iframe containing marios mview tool.
 mviewBlock :: Container c => URI -> [Inline] -> Attrib c
@@ -395,7 +421,7 @@ javascriptBlock uri caption = do
   fragment <- URI.mkFragment id
   uri <- lift $ transformUri uri ""
   let furi = uri {URI.uriFragment = Just fragment}
-  (innerSizes, outerSizes) <- calcIframeSizes
+  (innerSizes, outerSizes) <- calcImageSizes
   imgAttr <- do
     injectStyles innerSizes
     injectId id
@@ -408,12 +434,12 @@ javascriptBlock uri caption = do
     takeUsual
     extractAttr
   return $
-    wrapFigure figureAttr caption $
+    wrapFigure' figureAttr caption $
       renderJavascript' imgAttr furi
 
 javascriptCodeBlock :: Text -> [Inline] -> Attrib Block
 javascriptCodeBlock code caption = do
-  (innerSizes, outerSizes) <- calcIframeSizes
+  (innerSizes, outerSizes) <- calcImageSizes
   id <- liftIO randomId
   imgAttr <- do
     injectStyles innerSizes
@@ -427,24 +453,20 @@ javascriptCodeBlock code caption = do
     takeUsual
     extractAttr
   return $
-    wrapFigure figureAttr caption $
+    wrapFigure' figureAttr caption $
       renderJavascript id imgAttr code
 
-renderJavascript :: Container c => Text -> Attr -> Text -> c
+renderJavascript :: Container c => Text -> Attr -> Text -> [c]
 renderJavascript id attr code =
   let anchor = "let anchor = document.getElementById(\"" <> id <> "\");\n"
-   in mkContainer
-        ("", ["es6", "module"], [])
-        [ mkContainer attr [],
+   in [ mkContainer attr [],
           mkContainer
             ("", [], [("data-tag", "script"), ("type", "module"), ("defer", "")])
             [mkRaw' (anchor <> code)]
         ]
 
-renderJavascript' :: Container c => Attr -> URI -> c
+renderJavascript' :: Container c => Attr -> URI -> [c]
 renderJavascript' attr uri =
-  mkContainer
-    ("", ["es6", "module"], [])
     [ mkContainer attr [],
       mkContainer
         ( "",
@@ -515,7 +537,7 @@ instance Container Inline where
     Span
       (addClass "pre" a)
       [ tag "code" $
-          Span a [RawInline "html" (text t)]
+          Span (addClass "processed" nullAttr) [RawInline "html" (text t)]
       ]
   mkRaw a t = Span a [RawInline "html" t]
   mkRaw' t = RawInline "html" t
@@ -573,26 +595,46 @@ calcImageSizes = do
         -- Nothing is specified, use CSS defaults.
         return ([], [])
 
--- | See calcImageSizes. Iframes have no aspect ratio and therefore behave a
+-- | See calcImageSizes. Iframes have no intrinsic aspect ratio and therefore behave a
 -- little differently.
 calcIframeSizes :: Attrib ([(Text, Text)], [(Text, Text)])
 calcIframeSizes = do
   width <- cutAttrib "width"
   height <- cutAttrib "height"
-  if
-      | isJust width && isJust height ->
-        return
-          ( [("height", fromJust height), ("width", "100%")],
-            [("height", "auto"), ("width", fromJust width)]
-          )
-      | isJust width && isNothing height ->
-        return
-          ( [("width", "100%")],
-            [("height", "auto"), ("width", fromJust width)]
-          )
-      | isNothing width && isJust height ->
-        return
-          ( [("height", fromJust height), ("width", "100%")],
-            [("height", "auto"), ("width", "100%")]
-          )
-      | otherwise -> return ([], [])
+  a1 <- cutAttrib "aspect-ratio"
+  a2 <- cutAttrib "w:h"
+  let aspect = asum [a2, a1]
+  return $
+    case (aspect, width, height) of
+      (Nothing, Nothing, Nothing) ->
+        ( [("width", "100%"), ("height", "auto"), ("aspect-ratio", "16/9")], -- iframe
+          [("width", "100%"), ("height", "auto")] -- figure
+        )
+      (Nothing, Nothing, Just height) ->
+        ( [("width", "auto"), ("height", height), ("aspect-ratio", "16/9")],
+          [("width", "auto"), ("height", "auto")]
+        )
+      (Nothing, Just width, Nothing) ->
+        ( [("width", "100%"), ("height", "auto"), ("aspect-ratio", "16/9")],
+          [("width", width), ("height", "auto")]
+        )
+      (Nothing, Just width, Just height) ->
+        ( [("width", "100%"), ("height", height)],
+          [("width", width), ("height", "auto")]
+        )
+      (Just aspect, Just width, Nothing) ->
+        ( [("width", width), ("height", "auto"), ("aspect-ratio", aspect)],
+          [("width", "auto"), ("height", "auto")]
+        )
+      (Just _, Just width, Just height) ->
+        ( [("width", "100%"), ("height", height)],
+          [("width", width), ("height", "auto")]
+        )
+      (Just aspect, Nothing, Nothing) ->
+        ( [("width", "100%"), ("height", "auto"), ("aspect-ratio", aspect)], -- iframe
+          [("width", "100%"), ("height", "auto")] -- figure
+        )
+      (Just aspect, Nothing, Just height) ->
+        ( [("width", "auto"), ("height", height), ("aspect-ratio", aspect)],
+          [("width", "auto"), ("height", "auto")]
+        )

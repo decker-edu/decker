@@ -4,18 +4,10 @@
 
 module Text.Decker.Filter.Streaming where
 
-import Control.Monad.Catch
 import qualified Data.Text as Text
 import Relude
-import Text.Blaze.Html
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
 import Text.Decker.Filter.Attrib
-import Text.Decker.Filter.Local
-import Text.Decker.Internal.Exception
-import Text.Decker.Internal.URI
-import Text.Pandoc
-import Text.Printf
+import Text.Decker.Internal.URI (setQuery)
 import Text.URI (URI)
 import qualified Text.URI as URI
 
@@ -120,50 +112,6 @@ vimeoFlags =
     "transparent"
   ]
 
-streamHtml' :: URI -> [Inline] -> Attrib Html
-streamHtml' uri caption = do
-  let scheme = uriScheme uri
-  let streamId = uriPath uri
-  streamUri <-
-    case scheme of
-      Just "youtube" -> mkYoutubeUri streamId
-      Just "vimeo" -> mkVimeoUri streamId
-      Just "twitch" -> mkTwitchUri streamId
-      _ ->
-        throwM $
-          ResourceException $
-            "Unsupported stream service: " <> toString (fromMaybe "<none>" scheme)
-  iframeAttr <- takeIframeAttr >> takeAutoplay >> extractAttr
-  wrapperAttr <- takeWrapperAttr >> extractAttr
-  let streamTag = mkStreamTag streamUri wrapperAttr iframeAttr
-  case caption of
-    [] -> do
-      divAttr <- updateStreaming >> injectClass "nofigure" >> injectBorder >> takeSize >> takeUsual >> extractAttr
-      return $ mkDivTag streamTag divAttr
-    caption -> do
-      figAttr <- updateStreaming >> injectBorder >> takeSize >> takeUsual >> extractAttr
-      captionHtml <- lift $ inlinesToHtml caption
-      return $ mkFigureTag streamTag captionHtml figAttr
-
-takeWrapperAttr :: Attrib ()
-takeWrapperAttr = do
-  aspect <- calcAspect . fromMaybe "" <$> cutAttrib "aspect"
-  injectStyle ("position", "relative")
-  injectStyle ("padding-top", "25px")
-  injectStyle ("padding-bottom", aspect)
-  injectStyle ("height", "0")
-  injectClass "video"
-
-takeIframeAttr :: Attrib ()
-takeIframeAttr = do
-  injectStyle ("position", "absolute")
-  injectStyle ("top", "0")
-  injectStyle ("left", "0")
-  injectStyle ("width", "100%")
-  injectStyle ("height", "100%")
-  injectAttribute ("allow", "fullscreen")
-  takeAutoplay
-
 mkYoutubeUri :: Text -> Attrib URI
 mkYoutubeUri streamId = do
   flags <- cutClasses youtubeFlags
@@ -214,39 +162,3 @@ mkTwitchUri streamId = do
         "start" -> [("time", y)]
         _ -> getStart xs
     getStart [] = []
-
-calcAspect' :: Text -> Float
-calcAspect' ratio =
-  fromMaybe 0.5625 $
-    case Text.splitOn ":" ratio of
-      [w, h] -> do
-        wf <- readMaybe $ toString w :: Maybe Float
-        hf <- readMaybe $ toString h :: Maybe Float
-        return (hf / wf)
-      _ -> Nothing
-
-calcAspect :: Text -> Text
-calcAspect ratio = Text.pack (printf "%.2f%%" (calcAspect' ratio * 100.0))
-
-mkAttrTag :: Html -> Attr -> Html
-mkAttrTag tag (id, cs, kvs) =
-  tag !? (not (Text.null id), A.id (H.toValue id))
-    !? (not (null cs), A.class_ (H.toValue ("decker" : cs)))
-    !* kvs
-
-mkMediaTag :: Html -> URI -> Attr -> Html
-mkMediaTag tag uri attr =
-  mkAttrTag tag attr ! H.dataAttribute "src" (H.preEscapedToValue $ URI.render uri)
-
-mkStreamTag :: URI -> Attr -> Attr -> Html
-mkStreamTag uri wrapperAttr iframeAttr =
-  let inner =
-        mkMediaTag (H.iframe "") uri iframeAttr
-   in mkAttrTag (H.div inner) wrapperAttr
-
-mkDivTag :: Html -> Attr -> Html
-mkDivTag content (id, cs, kvs) =
-  H.div !? (not (Text.null id), A.id (H.toValue id))
-    ! A.class_ (H.toValue ("decker" : cs))
-    !* kvs
-    $ content

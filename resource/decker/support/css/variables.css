@@ -2,7 +2,7 @@
   /* These are for internal calculations */
   --list-indent: 1.5em;
   --block-border-width: 0.2rem;
-  --block-border-radius: 0.2em;
+  --block-border-radius: 0em;
   --block-outset: 0.5rem;
  
   /* Try this for block elements that stack vertically:

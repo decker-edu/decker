@@ -32,6 +32,7 @@ figcaption {
 /* Inline media blocks are rendered as spans, but use a block context inside. */
 span.media {
   display: inline-block;
+  vertical-align: bottom;
 }
 
 /* Figure spans behave like a block. */
@@ -79,22 +80,6 @@ figure > :is(pre, img, video, div.sourceCode) {
   height: auto;
 }
 
-/* Makes iframes react fluidly to width changes. The aspect ratio can be set
-through the aspect attribute. */
-.fluid-iframe {
-  position: relative;
-  padding-bottom: calc(var(--aspect-ratio, 0.5625) * 100%);
-  height: 0;
-}
-
-.fluid-iframe iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
 /* Line blocks */
 figure.lineblock > div.lineblock {
   width: 100%;
@@ -103,4 +88,63 @@ figure.lineblock > div.lineblock {
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5em;
   justify-items: center;
+}
+
+/* Fullscreen iframes */
+
+div.fs-container {
+  margin: auto;
+  border: 0px;
+  padding: 0px;
+  position: relative;
+}
+
+div.fs-container:fullscreen {
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: white;
+  padding: 20px;
+}
+
+/* needed for mobile Safari */
+*:-webkit-full-screen {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+div.fs-container > iframe {
+  box-sizing: border-box;
+}
+
+div.fs-container:fullscreen > iframe {
+  border: none;
+}
+
+button.fs-button {
+  z-index: 100;
+  display: inline-block;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  cursor: pointer;
+  outline: none;
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  opacity: 0;
+  color: var(--icon-inactive-color);
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+div.fs-container:hover > button.fs-button {
+  opacity: 0.5;
+}
+
+div.fs-container > button.fs-button:hover {
+  opacity: 1;
+  color: var(--icon-active-color);
+  background-color: rgba(255, 255, 255, 0.8);
 }
