@@ -2,6 +2,9 @@
 
 module Text.Decker.Internal.Helper where
 
+import Codec.FFmpeg
+import Codec.Picture
+import Control.Applicative
 import Control.Monad.Catch
 import Control.Monad.State
 import qualified Data.List as List
@@ -178,3 +181,34 @@ putThrough :: (MonadIO m, Show a) => String -> a -> m a
 putThrough info value = do
   liftIO $ putStrLn $ "  " <> info <> ": " <> show value
   return value
+
+imageSize' :: DynamicImage -> (Int, Int)
+imageSize' image =
+  let w = dynamicMap imageWidth image
+      h = dynamicMap imageHeight image
+   in (w, h)
+
+imageSize :: FilePath -> IO (Maybe (Int, Int))
+imageSize path = do
+  result <- readImage path
+  case result of
+    Left error -> do
+      putStrLn $ "Cannot size of: " <> path
+      return Nothing
+    Right image -> do
+      return $ Just $ imageSize' image
+
+videoSize :: FilePath -> IO (Maybe (Int, Int))
+videoSize path = do
+  initFFmpeg
+  (getFrame, cleanup) <- imageReader (File path)
+  frame <- fmap ImageRGB8 <$> getFrame
+  case frame of
+    Just frame -> do
+      let w = dynamicMap imageWidth frame
+      let h = dynamicMap imageHeight frame
+      cleanup
+      return $ Just (w, h)
+    Nothing -> do
+      cleanup
+      return Nothing

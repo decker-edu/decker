@@ -24,8 +24,13 @@ pre > code {
 }
 
 /* Headers */
-h1, h2 {
+h1,
+h2 {
   color: var(--shade6);
+}
+
+section.inverse :is(h1, h2) {
+  color: var(--shade1);
 }
 
 /* Links */

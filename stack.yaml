@@ -7,6 +7,7 @@ flags:
 packages:
   - "."
 extra-deps:
+  - ffmpeg-light-0.14.0@sha256:4b8d45af99024fee650e46bb0219db18e626182e4e18cb7221d5716bda51620b,5299
   - regex-posix-clib-2.7@sha256:998fca06da3d719818f0691ef0b8b9b7375afeea228cb08bd9e2db53f96b0cd7,1232
   # - shake-0.19.1
   - mintty-0.1.2 #current mintty-version does not build on Win32
