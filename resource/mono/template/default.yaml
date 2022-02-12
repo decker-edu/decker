@@ -24,5 +24,29 @@ palette:
     - "#d33682"
   contrast: 0.3
 
+reveal:
+  reveal:
+  backgroundTransition: "slide"
+  center: true
+  controls: true
+  fragmentInURL: true
+  fragments: true
+  hash: true
+  height: 1080
+  help: true
+  hideCursorTime: 2000
+  hideInactiveCursor: true
+  history: false
+  keyboard: true
+  margin: 0.05
+  overview: true
+  progress: true
+  slideNumber: true
+  touch: true
+  transition: "slide"
+  vertical-slides: true
+  viewDistance: 2
+  width: 1920
+
 css-variables:
   block-border-radius: 0.2em;
