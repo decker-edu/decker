@@ -51,6 +51,8 @@ compileImage attr alt url title caption = do
       extractAttr
     return $ mkContainer attribs [media]
 
+defaultAspectRatio = "16/9"
+
 -- | Compiles the contents of a LineBlock into a Decker specific structure.
 compileLineBlock :: Container c => [(Attr, [Inline], Text, Text)] -> [Inline] -> Filter c
 compileLineBlock images caption = do
@@ -91,12 +93,17 @@ determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
     ImageT -> do
       size <- liftIO $ imageSize path
       return $ aspect <$> size
-    -- VideoT -> do
-    --   size <- liftIO $ videoSize path
-    --   return $ aspect <$> size
+    VideoT -> do
+      size <- liftIO $ videoSize path
+      return $ aspect <$> size
     _ -> do
       return $
-        asum [lookup "w:h" attribs, lookup "aspect-ratio" attribs] >>= readRatio
+        asum
+          [ lookup "w:h" attribs,
+            lookup "aspect-ratio" attribs,
+            Just defaultAspectRatio
+          ]
+          >>= readRatio
   where
     aspect (w, h) = fromIntegral w / fromIntegral h
     readRatio :: Text -> Maybe Float
@@ -460,25 +467,25 @@ renderJavascript :: Container c => Text -> Attr -> Text -> [c]
 renderJavascript id attr code =
   let anchor = "let anchor = document.getElementById(\"" <> id <> "\");\n"
    in [ mkContainer attr [],
-          mkContainer
-            ("", [], [("data-tag", "script"), ("type", "module"), ("defer", "")])
-            [mkRaw' (anchor <> code)]
-        ]
+        mkContainer
+          ("", [], [("data-tag", "script"), ("type", "module"), ("defer", "")])
+          [mkRaw' (anchor <> code)]
+      ]
 
 renderJavascript' :: Container c => Attr -> URI -> [c]
 renderJavascript' attr uri =
-    [ mkContainer attr [],
-      mkContainer
-        ( "",
-          [],
-          [ ("data-tag", "script"),
-            ("src", URI.render uri),
-            ("type", "module"),
-            ("async", "")
-          ]
-        )
-        []
-    ]
+  [ mkContainer attr [],
+    mkContainer
+      ( "",
+        [],
+        [ ("data-tag", "script"),
+          ("src", URI.render uri),
+          ("type", "module"),
+          ("async", "")
+        ]
+      )
+      []
+  ]
 
 -- |  Wraps any container in a figure. Adds a caption element if the caption is
 --  not empty.
@@ -607,15 +614,15 @@ calcIframeSizes = do
   return $
     case (aspect, width, height) of
       (Nothing, Nothing, Nothing) ->
-        ( [("width", "100%"), ("height", "auto"), ("aspect-ratio", "16/9")], -- iframe
+        ( [("width", "100%"), ("height", "auto"), ("aspect-ratio", defaultAspectRatio)], -- iframe
           [("width", "100%"), ("height", "auto")] -- figure
         )
       (Nothing, Nothing, Just height) ->
-        ( [("width", "auto"), ("height", height), ("aspect-ratio", "16/9")],
+        ( [("width", "auto"), ("height", height), ("aspect-ratio", defaultAspectRatio)],
           [("width", "auto"), ("height", "auto")]
         )
       (Nothing, Just width, Nothing) ->
-        ( [("width", "100%"), ("height", "auto"), ("aspect-ratio", "16/9")],
+        ( [("width", "100%"), ("height", "auto"), ("aspect-ratio", defaultAspectRatio)],
           [("width", width), ("height", "auto")]
         )
       (Nothing, Just width, Just height) ->

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Internal.Helper where
@@ -5,17 +6,26 @@ module Text.Decker.Internal.Helper where
 -- import Codec.FFmpeg
 import Codec.Picture
 import Control.Applicative
+import Control.Lens
 import Control.Monad.Catch
 import Control.Monad.State
+import Data.Aeson
+import Data.Aeson.Lens
+import Data.ByteString.Builder (toLazyByteString)
 import qualified Data.List as List
 import qualified Data.List.Extra as List
+import qualified Data.Map as Map
+import Data.Scientific
 import qualified Data.Set as Set
+import Data.Yaml.Builder (toByteString)
 import Relude
 import System.CPUTime
 import System.Directory
 import qualified System.Directory as Dir
 import System.Environment
+import System.Exit
 import System.FilePath.Posix
+import System.Process
 import Text.Decker.Internal.Exception
 import Text.Decker.Project.Version
 import Text.Pandoc
@@ -197,6 +207,18 @@ imageSize path = do
       return Nothing
     Right image -> do
       return $ Just $ imageSize' image
+
+videoSize :: FilePath -> IO (Maybe (Int, Int))
+videoSize path = do
+  (code, meta, error) <- readProcessWithExitCode "ffprobe" ["-v", "quiet", "-print_format", "json", "-show_streams", "-select_streams", "v:0", path] ""
+  case code of
+    ExitSuccess -> do
+      let width = meta ^? key "streams" . nth 0 . key "width" . _Number
+      let height = meta ^? key "streams" . nth 0 . key "height" . _Number
+      case (width, height) of
+        (Just w, Just h) -> return $ Just (truncate $ toRealFloat w, truncate $ toRealFloat h)
+        _ -> return Nothing
+    _ -> return Nothing
 
 -- videoSize :: FilePath -> IO (Maybe (Int, Int))
 -- videoSize path = do
