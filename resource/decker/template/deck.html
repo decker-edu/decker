@@ -108,9 +108,6 @@ $body$
 
 
   <script type="module">
-    // This was once deprecated. 
-    import "./$decker-support-dir$/examiner/examiner.js";
-
     // import Reveal and all plugins 
     import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
     import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
@@ -133,6 +130,7 @@ $if(highlightjs)$
 $endif$
     import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
     import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
+    import examinerPlugin from "./$decker-support-dir$/examiner/examiner.js";
 
     let revealConfig = { 
       // reveal configuration (see https://revealjs.com/config/)
@@ -149,6 +147,7 @@ $endif$
       // list of plugins
       plugins: [
          deckerPlugin,
+         examinerPlugin,
          uiAnchorsPlugin,
          mathPlugin,
          chartsPlugin,
@@ -165,7 +164,7 @@ $if(highlightjs)$
 $endif$
          notesPlugin,
          a11yPlugin,
-         pollPlugin
+         /* pollPlugin, */
       ]
     };
 

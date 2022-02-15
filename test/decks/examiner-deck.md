@@ -33,11 +33,11 @@ where
 
 ------------------------------------------------------------------------
 
-![](./data/homogenous-coordinates-quest.yaml){.question}
+![](./data/homogenous-coordinates-quest.yaml){.question .poll}
 
 ------------------------------------------------------------------------
 
-![](./data/replacement-transform-1-quest.yaml){.question}
+![](./data/replacement-transform-1-quest.yaml){.question .poll}
 
 ------------------------------------------------------------------------
 

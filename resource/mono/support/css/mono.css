@@ -194,11 +194,11 @@ span.accent7.fg {
 
 /* More styling */
 
-section :is(img, svg, pre, span.pre, video, iframe, object) {
+section .figure :is(img, svg, pre, span.pre, video, iframe, object) {
   border-radius: var(--block-border-radius);
   border: solid var(--shade2) 0.01em;
 }
 
-section.inverse :is(img, svg, pre, span.pre, video, iframe, object) {
+section.inverse .figure :is(img, svg, pre, span.pre, video, iframe, object) {
   border: solid var(--shade5) 0.01em;
 }

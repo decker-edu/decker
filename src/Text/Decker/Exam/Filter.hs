@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -16,6 +17,10 @@ module Text.Decker.Exam.Filter
 where
 
 import Control.Exception
+-- import Text.Pretty.Simple
+
+import Data.List (nub)
+import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Data.Yaml as Y
 import Relude
@@ -26,27 +31,30 @@ import Text.Decker.Exam.Question
 import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Paths
+import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Pandoc
 import Text.Pandoc.Walk
--- import Text.Pretty.Simple
 import qualified Text.URI as URI
 
+renderButton cls text =
+  tag "button" $ Div ("", [cls], []) [Plain [Str text]]
+
 -- | Renders a question to Pandoc AST.
---
--- The question is enclosed in a DIV that has class `columns` to prevent the
--- HTML writer from sectioning at top-level divs.
-renderQuestion :: Meta -> FilePath -> Question -> Block
-renderQuestion meta base qst =
+renderQuestion :: Attr -> Meta -> FilePath -> Question -> Block
+renderQuestion attr meta base qst =
   Div
-    ( "",
-      ["exa-quest"],
-      [ ("data-points", show $ _qstPoints qst),
-        ("data-difficulty", show $ _qstDifficulty qst),
-        ("data-topic-id", show $ _qstTopicId qst),
-        ("data-lecture-id", show $ _qstLectureId qst)
-      ]
+    ( mergeAttr
+        ( "",
+          ["exa-quest"],
+          [ ("data-points", show $ _qstPoints qst),
+            ("data-difficulty", show $ _qstDifficulty qst),
+            ("data-topic-id", show $ _qstTopicId qst),
+            ("data-lecture-id", show $ _qstLectureId qst)
+          ]
+        )
+        attr
     )
     ( [ Div
           ( "",
@@ -58,28 +66,60 @@ renderQuestion meta base qst =
           )
           []
       ]
-        <> rawHtml' (H.h2 $ toHtml $ parseToBlocks base (_qstTitle qst))
+        <> [tag "h2" $ Div nullAttr $ parseToBlocks base (_qstTitle qst)]
         <> [Div ("", ["question"], []) $ parseToBlocks base (_qstQuestion qst)]
         <> renderAnswer (_qstAnswer qst)
-        <> [ rawHtml' $
-               H.div $ do
-                 H.button ! A.class_ "solve" $ toHtml $ lookupInDictionary "exam.solve-button" meta
-                 H.button ! A.class_ "again" $ toHtml $ lookupInDictionary "exam.again-button" meta
-                 H.div ! A.class_ "score" $ do
-                   H.span $ toHtml (lookupInDictionary "exam.points" meta)
-                   H.span ! A.class_ "display" $ ""
+        <> [renderButton "solve" (lookupInDictionary "exam.solve-button" meta)]
+        <> [renderButton "again" (lookupInDictionary "exam.again-button" meta)]
+        <> [renderButton "qrcode" (lookupInDictionary "exam.qrcode-button" meta)]
+        <> [renderButton "poll" (lookupInDictionary "exam.poll-button" meta)]
+        <> [renderButton "stop" (lookupInDictionary "exam.stop-button" meta)]
+        <> [ Div
+               ("", ["score"], [])
+               [ Plain
+                   [ Span nullAttr [Str $ lookupInDictionary "exam.points" meta],
+                     Span ("", ["display"], []) []
+                   ]
+               ]
            ]
+           -- <> [ rawHtml' $
+           --        H.div $ do
+           --          H.button ! A.class_ "solve" $ toHtml $ lookupInDictionary "exam.solve-button" meta
+           --          H.button ! A.class_ "again" $ toHtml $ lookupInDictionary "exam.again-button" meta
+           --          H.div ! A.class_ "score" $ do
+           --            H.span $ toHtml (lookupInDictionary "exam.points" meta)
+           --            H.span ! A.class_ "display" $ ""
+           --    ]
     )
   where
     correct (Choice _ True) = "correct"
     correct (Choice _ False) = "wrong"
-    renderChoice c =
+    renderChoice c l =
       [ Div ("", ["choice", correct c], []) $
-          Div ("", ["check-box"], []) [] :
-          [Div ("", ["content"], []) $ parseToBlocks base (_choiceTheAnswer c)]
+          [ Div ("", ["check-box"], []) [],
+            Div ("", ["label"], []) [Plain [Str $ toText [l]]],
+            Div ("", ["content"], []) $ parseToBlocks base (_choiceTheAnswer c),
+            renderPollChoice c l
+          ]
       ]
+    renderPollChoice choice label =
+      Div
+        ("", ["vote"], [("label", toText [label])])
+        [ Div ("", ["label"], []) [Plain [Str $ toText [label]]],
+          Div ("", ["votes"], []) [Plain [Str "0"]]
+        ]
     renderAnswer (MultipleChoice choices) =
-      [Div ("", ["answer", "exa-mc"], []) $ concatMap renderChoice choices]
+      [ Div
+          ( "",
+            ["answer", "exa-mc"],
+            [ ( "data-choices",
+                "[" <> Text.intercalate "," (zipWith (\c l -> toText ['"', l, '"']) choices ['A' ..]) <> "]"
+              ),
+              ("data-votes", show $ length $ filter (_choiceCorrect) choices)
+            ]
+          )
+          (concat $ zipWith renderChoice choices ['A' ..])
+      ]
     renderAnswer (FillText text correct) =
       throw $ InternalException "FillText questions not yet implemented"
     renderAnswer (FreeForm height answer) =
@@ -126,6 +166,14 @@ renderQuestion meta base qst =
             H.table ! A.class_ "answer exa-ma" $
               H.tbody $
                 toHtml $ map mkDetail $ filter (not . Text.null . _oneDetail) answers
+
+-- | Left-biased merge of attribute blocks.
+mergeAttr :: Attr -> Attr -> Attr
+mergeAttr (aid, acls, akv) (bid, bcls, bkv) =
+  ( if Text.null aid then bid else aid,
+    nub (acls <> bcls),
+    Map.toList $ Map.union (Map.fromList akv) (Map.fromList bkv)
+  )
 
 {--
 toQuiz :: Question -> IO Quiz.Quiz
@@ -192,7 +240,7 @@ examinerFilter pandoc@(Pandoc meta _) = walkM expandQuestion pandoc
   where
     base = lookupMetaOrFail "decker.base-dir" meta
     expandQuestion :: Block -> Filter Block
-    expandQuestion (Para [Image (id, cls, kvs) _ (url, _)])
+    expandQuestion (Para [Image attr@(id, cls, kvs) _ (url, _)])
       | "question" `elem` cls = do
         uri <- URI.mkURI url
         source <- transformUri uri "" >>= readLocalUri
@@ -200,6 +248,6 @@ examinerFilter pandoc@(Pandoc meta _) = walkM expandQuestion pandoc
         case result of
           Left err -> throw $ InternalException $ show err
           Right question -> do
-            let q = renderQuestion meta base question
+            let q = renderQuestion attr meta base question
             return q
     expandQuestion block = return block

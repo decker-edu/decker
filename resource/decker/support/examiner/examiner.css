@@ -1,6 +1,6 @@
 div.exa-quest {
-  background-color: var(--base01);
-  color: var(--base07);
+  background-color: var(--background-color);
+  color: var(--foreground-color);
   font-size: 90%;
 }
 
@@ -29,7 +29,6 @@ div.exa-quest select {
 .reveal div.exa-quest {
   overflow-y: scroll;
   overflow-x: auto;
-  max-height: 600px;
 }
 
 .handout div.exa-quest {
@@ -42,6 +41,10 @@ div.exa-quest div.difficulty {
   width: 2em;
   background-size: contain;
   background-repeat: no-repeat;
+}
+
+div.exa-quest div.difficulty {
+  display: none;
 }
 
 div.exa-quest[data-difficulty="Easy"] div.difficulty {
@@ -57,15 +60,15 @@ div.exa-quest[data-difficulty="Hard"] div.difficulty {
 }
 
 div.exa-quest button {
-  background-color: var(--base02);
+  background-color: var(--shade1);
 }
 
 div.exa-quest button:hover {
-  background-color: var(--base03);
+  background-color: var(--accent3-bg);
 }
 
 div.exa-quest button:active {
-  background-color: var(--base09-bg);
+  background-color: var(--accent3);
 }
 
 div.exa-quest button.solve {
@@ -118,6 +121,24 @@ div.exa-mc div.choice {
   align-content: center;
 }
 
+div.exa-mc div.choice div.check-box {
+  flex-grow: 0;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+div.exa-mc div.choice > div.label {
+  font-weight: bold;
+  vertical-align: middle;
+  font-size: 120%;
+  padding-left: 0.5em;
+}
+
+div.exa-mc div.choice div.content {
+  flex-grow: 1;
+  display: inline;
+}
+
 div.exa-mc div.choice p {
   margin: 0;
   padding-top: 0.1em;
@@ -126,10 +147,119 @@ div.exa-mc div.choice p {
   padding-right: 0;
 }
 
-div.exa-mc div.choice div.check-box {
-  flex-basis: auto;
+div.exa-quest:not(.poll) div.choice :is(div.vote, div.label) {
+  display: none;
+}
+
+div.vote.polling {
+}
+
+div.vote {
+  display: block;
+  flex-grow: 0;
+  width: 15em;
+  min-width: 20em;
+  position: relative;
+  background-color: var(--shade1);
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
   white-space: nowrap;
+  font-weight: bold;
+}
+
+div.vote > div.label {
+  /* display: inline; */
   vertical-align: middle;
+  display: none;
+}
+
+div.vote div.votes {
+  float: right;
+  color: var(--shade1);
+  text-align: right;
+  width: 0%;
+  min-width: 1ex;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  border-radius: var(--block-border-radius);
+}
+
+div.vote[label="A"] div.votes {
+  background-color: var(--accent0);
+}
+
+div.vote[label="B"] div.votes {
+  background-color: var(--accent1);
+}
+
+div.vote[label="C"] div.votes {
+  background-color: var(--accent2);
+}
+
+div.vote[label="D"] div.votes {
+  background-color: var(--accent3);
+}
+
+div.vote[label="E"] div.votes {
+  background-color: var(--accent4);
+}
+
+div.vote[label="F"] div.votes {
+  background-color: var(--accent5);
+}
+
+div.vote[label="G"] div.votes {
+  background-color: var(--accent6);
+}
+
+div.vote[label="H"] div.votes {
+  background-color: var(--accent7);
+}
+
+div.qrcode.container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  display: none;
+  z-index: 4000;
+}
+
+div.question.poll button:is(.qrcode, .poll, .stop) {
+  float: right;
+}
+
+div.qrcode.container button {
+  position: absolute;
+  right: 1em;
+  top: 1em;
+}
+
+div.qrcode.container.show {
+  display: flex;
+}
+
+div.qrcode.container {
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+div.qrcode.container canvas {
+  height: 66vh;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  background-color: white;
+  padding: 0.5em;
+  border: 0.01em solid black;
+  border-radius: var(--block-border-radius);
+}
+
+div.qrcode.container a {
+  font-size: 2rem;
+  font-weight: bold;
 }
 
 div.exa-mc i.correct {
@@ -157,7 +287,6 @@ div.exa-mc div.choice div.check-box span:active {
 div.exa-quest[data-solved] div.exa-mc div.choice div.check-box span:hover {
   background-color: transparent;
 }
-
 
 div.exa-mc i.checked {
   display: none;
