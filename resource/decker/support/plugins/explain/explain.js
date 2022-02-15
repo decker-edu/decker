@@ -690,7 +690,7 @@ function createPlayerGUI() {
     controls: true,
     autoplay: false,
     preload: "metadata",
-    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
+    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
     controlBar: {
       playToggle: true,
       volumePanel: true,
