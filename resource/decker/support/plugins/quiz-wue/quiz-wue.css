@@ -72,6 +72,10 @@ ul.choices {
     display: inline-block;  
 }
 
+ul.choices li:last-child {
+    margin-bottom: 20px !important;
+}
+
 ul.choices li {
     display: flex;
     position: relative;
@@ -87,7 +91,7 @@ ul.choices li {
 }
 
 ul.choices li::before {
-    content: counter(answer, upper-latin) ": ";
+    content: counter(answer, upper-latin) ":\00a0";
     counter-increment: answer;
     margin-right: 0.5em;
     font-weight: bold;
@@ -220,7 +224,7 @@ ul.choices [class*="show-"]:hover .quiz-tooltip {
 }
 
 .qft-solutions .wrong .choice_ltr::before {
-    content: "✗ ";
+    content: "✗\00a0";
     font-weight: bold;
 }
 
@@ -319,7 +323,7 @@ ul.choices [class*="show-"]:hover .quiz-tooltip {
 
 .matchItems::after {
     position: absolute;
-    content: " ";
+    content: "\00a0";
     width: 0;
     height: 0;
     top: 101%;
@@ -373,7 +377,7 @@ ul.choices [class*="show-"]:hover .quiz-tooltip {
 }
 
 .plain .matchItem::before {
-    content: counter(item, upper-latin) ": ";
+    content: counter(item, upper-latin) ":\00a0";
     counter-increment: item;
     margin-right: 0.5em;
     font-weight: bold;
@@ -438,7 +442,7 @@ ul.choices [class*="show-"]:hover .quiz-tooltip {
 .quiz-optList p::after,
 .quiz-options p::before,
 .quiz-options p::after {
-    content: "✓ ";
+    content: "✓\00a0";
     font-weight: bolder;
     opacity: 0%;
 }
