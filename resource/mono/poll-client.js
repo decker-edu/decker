@@ -37,6 +37,10 @@ window.addEventListener("load", () => {
         anchor.classList.remove("polling");
         break;
       case "Begin":
+        while (buttons.firstChild) {
+          buttons.removeChild(buttons.firstChild);
+        }
+        anchor.classList.remove("polling");
         for (let name of message.choices) {
           instruct.innerHTML =
             message.votes == 1
