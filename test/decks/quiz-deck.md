@@ -48,7 +48,7 @@ All choices get an optional comment to be potentially shown with the result.
 - [ ] c
     - So auch nicht
 
-# Multiple Choice 2 - Plain
+# Multiple Choice 2 - Plain {.sub}
 
 ## {.quiz-mc .plain}
 
@@ -65,52 +65,7 @@ Choices appear in a column. Click the circle to the left of the choice to select
     - So auch nicht
 
 
-# Multiple Choice 3 - Fancy
-
-## What is the result of the following term? {.qmc}
-
-\begin{equation*}
-\small
-\begin{bmatrix}
-1&0&0&1\\
-0&1&0&1\\
-0&0&1&0\\
-0&0&0&1
-\end{bmatrix}
-\begin{bmatrix}
-0&-1&0&0\\
-1&0&0&0\\
-0&0&1&0\\
-0&0&0&1
-\end{bmatrix}
-\end{equation*}
-
-- [ ] $\small
-\begin{bmatrix}
-0&1&0&1\\
--1&0&0&1\\
-0&0&1&0\\
-0&0&0&1
-\end{bmatrix}$
-   - The rotational part (upper left $3\times3$) would not be altered.
-- [X] $\small
-\begin{bmatrix}
-0&-1&0&1\\
-1&0&0&1\\
-0&0&1&0\\
-0&0&0&1
-\end{bmatrix}$
-   - Yes, that is correct.
-- [ ] $\small
-\begin{bmatrix}
-0&-1&0&0\\
-1&0&0&1\\
-0&0&1&0\\
-0&0&0&1
-\end{bmatrix}$
-   - The translational part (right column) would not be altered.
-
-# Multiple Choice 4 - Plain, Inline
+# Multiple Choice 3 - Plain, Inline 
 
 Choices are displayed in a row. 
 
@@ -158,6 +113,51 @@ Choices are displayed in a row.
    - The translational part (right column) would not be altered.
 
 
+# Multiple Choice 4 - Fancy {.sub}
+
+## What is the result of the following term? {.qmc}
+
+\begin{equation*}
+\small
+\begin{bmatrix}
+1&0&0&1\\
+0&1&0&1\\
+0&0&1&0\\
+0&0&0&1
+\end{bmatrix}
+\begin{bmatrix}
+0&-1&0&0\\
+1&0&0&0\\
+0&0&1&0\\
+0&0&0&1
+\end{bmatrix}
+\end{equation*}
+
+- [ ] $\small
+\begin{bmatrix}
+0&1&0&1\\
+-1&0&0&1\\
+0&0&1&0\\
+0&0&0&1
+\end{bmatrix}$
+   - The rotational part (upper left $3\times3$) would not be altered.
+- [X] $\small
+\begin{bmatrix}
+0&-1&0&1\\
+1&0&0&1\\
+0&0&1&0\\
+0&0&0&1
+\end{bmatrix}$
+   - Yes, that is correct.
+- [ ] $\small
+\begin{bmatrix}
+0&-1&0&0\\
+1&0&0&1\\
+0&0&1&0\\
+0&0&0&1
+\end{bmatrix}$
+   - The translational part (right column) would not be altered.
+
 # Matching 1 - Fancy
 
 ## {.qmi}
@@ -178,13 +178,13 @@ Springs
 : $-k \, \left( \norm{\vec{x}_0 - \vec{x}_1} - L \right) \, \frac{ \vec{x}_0 - \vec{x}_1 }{\norm{\vec{x}_0 - \vec{x}_1}}$
 
 
-# Matching 2 - Plain
+# Matching 2 - Plain 
 
 Plain matchinq questions display a question/term, followed by a select box and a list of possible answers. Click the select box and then click answers as desired. Check marks will appear. Click outside of the select box to close. Select additional or deselect selected responses as desired. After clicking the solution button, answers will turn green or red to display correctness. Change answers as desired and click solve again.
 
 A grey box surrounds the matching questions and responses to ensure that all are shown. The solution button is below this.
 
-# Matching 2 - Plain
+# Matching 2 - Plain {.sub}
 
 ## {.qmi .plain}
 
@@ -206,9 +206,11 @@ Springs
 : $-k \, \left( \norm{\vec{x}_0 - \vec{x}_1} - L \right) \, \frac{ \vec{x}_0 - \vec{x}_1 }{\norm{\vec{x}_0 - \vec{x}_1}}$
 
 
-# Matching 3 - Fancy
+# Matching 3 - Plain
 
-## {.quiz-mi} 
+## {.quiz-mi .plain} 
+
+Drag the elements to create correct pairings
 
 A
 : drag to A
@@ -236,11 +238,9 @@ Empty
 : Distractor B
 
 
-# Matching 4 - Plain
+# Matching 4 - Fancy {.sub}
 
-## {.quiz-mi .plain} 
-
-Drag the elements to create correct pairings
+## {.quiz-mi} 
 
 A
 : drag to A
@@ -310,7 +310,7 @@ Bild 6
 
 Like multiple-choice, however, the choices are shown as drop-down lists embedded inside the text. Hence, beware of the whitespaces below. 
 
-# Insert 1 - Fancy
+# Insert 1 - Fancy {.sub}
 
 ## {.quiz-ic} 
 
@@ -337,7 +337,7 @@ and builds upon the tool
 
 .
 
-# Insert 2 - Plain
+# Insert 2 - Plain {.sub}
 
 Questions are corrected immediately, displaying red or green based on correctness. Retry is allowed. Hover over the select box to display the tooltip below the question.
  
@@ -369,7 +369,7 @@ and builds upon the tool
 
 These questions now include multiple versions of correct answers with additional optional comments (as before). Hence the Syntax is slightly different in its compact representation. 
 
-# Free Text 1 - Fancy
+# Free Text 1 - Fancy {.sub}
 
 ## {.quiz-ft} 
 
@@ -386,7 +386,7 @@ Das Ergebnis von $2*2=~?$ ist?
     - RTL? 
 
 
-# Free Text 2 - Plain
+# Free Text 2 - Plain {.sub}
 
 Type the answer and push Enter to correct the question.  
 

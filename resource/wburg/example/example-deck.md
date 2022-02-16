@@ -656,28 +656,26 @@ alert (s);
 
 ## 
 
-``` {.html}
-<iframe class = "stretch" src = "https://www.uni-wuerzburg.de/"></iframe>
+``` {.markdown}
+![](https://www.uni-wuerzburg.de/){.iframe}
 ```
 
 #  {#example-externalWebsite data-menu-title="External Website Example"}
 
-```{=html}
-<iframe src="https://www.uni-wuerzburg.de/">
-```
-```{=html}
-</iframe>
-```
-# Embed PDF documents {#embedPDF style="font-size:small;"}
+![](https://www.uni-wuerzburg.de/){.iframe}
+
+# Embed PDF documents {#embedPDF }
 
 ``` {.markdown}
-![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
+![](http://pandoc.org/MANUAL.pdf)
 ```
+# Embed PDF documents {#embedPDF}
 
-![](http://pandoc.org/MANUAL.pdf){width="100%" height="500px"}
+![](http://pandoc.org/MANUAL.pdf)
 
 ```{=html}
 <!-- The given path (../../resource/support/...) won't work; therefore I excluded this part for now
+
 # Embed JavaScript {#embedJavascript}
 
 ![](webgl_geometry_minecraft_ao.html){.iframe width="100%" height="500px"}

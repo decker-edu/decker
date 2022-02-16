@@ -20,7 +20,6 @@ $else$
   <title>$title$</title>
 $endif$
 $endif$
-  <!-- <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>  -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -50,15 +49,18 @@ $endif$
   meta data values. -->
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reveal.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/decker/ui-anchors.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/decker/ui-anchors.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
+  <link rel="stylesheet" href="$decker-support-dir$/examiner/examiner.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
+  <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/poll/poll.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
-  <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
+
 $if(highlightjs)$
   <link rel="stylesheet" href='$decker-support-dir$/vendor/css/$highlightjs$.css'>
 $endif$
@@ -70,7 +72,7 @@ $endif$
 -->
 $if(highlighting-css)$
   <style>
-  $highlighting-css$
+$highlighting-css$
   </style>
 $endif$
 
@@ -78,12 +80,13 @@ $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
 
-<script>
-  /* Store JSON encoded Pandoc meta data in a global variable. */
-  window.Decker = {meta: $decker-meta$};
-</script>
+  <script>
+    /* Store JSON encoded Pandoc meta data in a global variable. */
+    window.Decker = {meta: $decker-meta$};
+  </script>
 
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
+  <script src="$decker-support-dir$/js/decker.js"></script>
 </head>
 
 <body class="deck">
@@ -136,9 +139,9 @@ $if(title)$
 $endif$
 
 $if(toc)$
-      <section id="$idprefix$TOC">
-      $table-of-contents$
-      </section>
+    <section id="$idprefix$TOC">
+    $table-of-contents$
+    </section>
 $endif$
 
 <!-- Keep left aligned -->
@@ -153,26 +156,31 @@ $endfor$
 
 
   <script type="module">
-    // import Reveal and all plugins
+    // This was once deprecated. 
+    import "./$decker-support-dir$/examiner/examiner.js";
+
+    // import Reveal and all plugins 
     import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
-    import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
     import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
     import uiAnchorsPlugin from './$decker-support-dir$/plugins/decker/ui-anchors.js';
-    import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';  
-  $if(highlightjs)$
-    import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
-  $endif$
     import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
-    import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
-    import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
-  $if(poll)$
-    import pollPlugin from './$decker-support-dir$/plugins/poll/poll.js';
-  $endif$
-    import printPlugin from './$decker-support-dir$/plugins/print/print.js';
-    import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
-    import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
     import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
+    import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
     import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
+    import printPlugin from './$decker-support-dir$/plugins/print/print.js';
+    import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
+    // import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
+    import pollPlugin from './$decker-support-dir$/plugins/poll/poll.js';
+    import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
+    import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
+    import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
+    import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
+    import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
+$if(highlightjs)$
+    import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
+$endif$
+    import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
+    import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
 
     let revealConfig = { 
       // reveal configuration (see https://revealjs.com/config/)
@@ -191,21 +199,22 @@ $endfor$
          a11yPlugin,
          deckerPlugin,
          uiAnchorsPlugin,
-         feedbackPlugin,
-      $if(highlightjs)$
-         highlightPlugin,
-      $endif$
          mathPlugin,
-         menuPlugin,
-         notesPlugin,
-      $if(poll)$
-         pollPlugin,
-      $endif$
-         printPlugin,
-         quizWuePlugin, 
-         searchPlugin,
+         chartsPlugin,
          whiteboardPlugin,
-         zoomPlugin
+         searchPlugin,
+         printPlugin,
+         jinglesPlugin,
+         quizWuePlugin,
+         explainPlugin,
+         menuPlugin,
+         feedbackPlugin,
+$if(highlightjs)$
+         highlightPlugin,
+$endif$
+         notesPlugin,
+         a11yPlugin,
+         pollPlugin
       ]
     };
 
@@ -213,7 +222,7 @@ $endfor$
     window.Reveal = Reveal;
   </script>
 
-  </body>
+</body>
 <script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
 <!-- script src="$decker-support-dir$/js/inert.min.js"></script -->
 <!-- Use the other implementation if things break under Firefox -->
