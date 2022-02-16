@@ -4,7 +4,7 @@ import bwipjs from "https://cdnjs.cloudflare.com/ajax/libs/bwip-js/3.0.4/bwip-js
 
 var session = null;
 
-function pollSession(url, onready = null, onclose = null) {
+function pollSession(serverUrl, clientUrl, onready = null, onclose = null) {
   session = {
     id: null,
     clientUrl: null,
@@ -15,7 +15,7 @@ function pollSession(url, onready = null, onclose = null) {
   };
 
   return new Promise((resolve, error) => {
-    session.socket = new WebSocket(Decker.meta["poll-server"]);
+    session.socket = new WebSocket(serverUrl);
 
     session.socket.addEventListener("open", (e) => {
       console.log("Poll:", "server connected.");
@@ -36,7 +36,6 @@ function pollSession(url, onready = null, onclose = null) {
       if (message.error) {
         console.log("Poll:", "Server error:", message.error);
       } else if (message.key != null) {
-        let clientUrl = new URL(Decker.meta.supportPath + "/poll.html", location.href);
         session.id = message.key;
         session.clientUrl = `${clientUrl}#${session.id}`;
 
@@ -48,7 +47,7 @@ function pollSession(url, onready = null, onclose = null) {
           fillQRCode: (canvas) => {
             bwipjs.toCanvas(canvas, {
               bcid: "qrcode", // Barcode type
-              text: url, // Text to encode
+              text: session.clientUrl, // Text to encode
               scale: 20, // Somehow gives 1000^2 pixels
               includetext: false, // Show human-readable text
               textxalign: "center", // Always good to set this

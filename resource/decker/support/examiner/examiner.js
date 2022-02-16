@@ -221,13 +221,19 @@ function prepareExaminer() {
 
 async function preparePolls(reveal) {
   // Only when reveal is ready we can find the elements we need.
-  let session = await pollSession(Decker.meta["poll-server"], () => {
-    console.log("Poll:", "server ready");
-  });
+  let session = await pollSession(
+    Decker.meta["poll-server"],
+    new URL(
+      Decker.meta.projectPath + "resource/mono/poll-page.html",
+      location.href
+    ),
+    () => {
+      console.log("Poll: server ready");
+    }
+  );
 
   let { id, url } = session.sessionId();
 
-  console.log("Poll:", "setting up ...", url);
   let revealSlide = document.querySelector("div.reveal.slide");
   let qrcodeContainer = document.createElement("div");
 
@@ -321,7 +327,7 @@ function showVotes(voteMap, show) {
 
 function displayVotes(votes, voteMap) {
   const min = 0;
-  const max = 100;
+  const max = 95;
   const maxVotes = Math.max(
     1,
     Object.values(votes).reduce((t, v) => Math.max(t, v), 0)
