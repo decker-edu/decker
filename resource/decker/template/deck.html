@@ -35,13 +35,24 @@ $endif$
   <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
   into a style sheet. Default values can come from `variables.css`. -->
   <style class="css-declarations">
+    @media (prefers-color-scheme: light) {
+      :root {
+        $for(css-light-color-declarations)$
+          $css-light-color-declarations$
+        $endfor$
+      }
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        $for(css-dark-color-declarations)$
+          $css-dark-color-declarations$
+        $endfor$
+      }
+    }
     :root {
-    $for(css-color-declarations)$
-      $css-color-declarations$
-    $endfor$
-    $for(css-declarations)$
-      $css-declarations$
-    $endfor$
+      $for(css-declarations)$
+        $css-declarations$
+      $endfor$
     }
   </style>
 

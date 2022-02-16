@@ -77,7 +77,7 @@ explain:
   camWidth: 1280
   camHeight: 720
 
-highlightjs: zenburn
+highlightjs: atom-one-light
 
 math:
   macros:
