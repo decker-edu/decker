@@ -18,31 +18,53 @@ import Text.Decker.Internal.Meta
 import Text.Pandoc (Meta)
 import Text.Printf
 
-defaultPalette :: [String]
-defaultPalette =
-  [ "ffffff",
-    "dddddd",
-    "bbbbbb",
-    "999999",
-    "777777",
-    "555555",
-    "333333",
-    "000000",
-    "e6261f",
-    "eb7532",
-    "f7d038",
-    "a3e048",
-    "49da9a",
-    "34bbe6",
-    "4355db",
-    "d23be7"
+-- Theme: Tomorrow (http://chriskempson.com/projects/base16/)
+defaultLight :: [String]
+defaultLight =
+  [ "#ffffff",
+    "#e0e0e0",
+    "#d6d6d6",
+    "#8e908c",
+    "#969896",
+    "#4d4d4c",
+    "#282a2e",
+    "#1d1f21",
+    "#c82829",
+    "#f5871f",
+    "#eab700",
+    "#718c00",
+    "#3e999f",
+    "#4271ae",
+    "#8959a8",
+    "#a3685a"
+  ]
+
+-- Theme: Tomorrow Night (http://chriskempson.com/projects/base16/)
+defaultDark :: [String]
+defaultDark =
+  [ "#1d1f21",
+    "#282a2e",
+    "#373b41",
+    "#969896",
+    "#b4b7b4",
+    "#c5c8c6",
+    "#e0e0e0",
+    "#ffffff",
+    "#cc6666",
+    "#de935f",
+    "#f0c674",
+    "#b5bd68",
+    "#8abeb7",
+    "#81a2be",
+    "#b294bb",
+    "#a3685a"
   ]
 
 -- | Tries to read the 16 value color palette from the meta data and computes
 -- derived CSS variable names and values. Uses the philosophy and actual
 -- palletes from https://github.com/chriskempson/base16.
 --
--- Colors are read and written as hexadecimal strings with aleading `#`. The
+-- Colors are read and written as hexadecimal strings with a leading `#`. The
 -- resulting map of variable names and color values is added back to the meta
 -- data. If there is no palette in meta, default values are used.
 --
@@ -57,9 +79,31 @@ defaultPalette =
 -- dark."
 computeCssColorVariables :: Meta -> Meta
 computeCssColorVariables meta =
-  let palette = lookupMetaOrElse defaultPalette "palette.colors" meta
-      contrast :: Float = lookupMetaOrElse 0.25 "palette.contrast" meta
-      colors = map sRGB24read palette
+  let (paletteLight, paletteDark) =
+        case ( lookupMeta "palette.colors.light" meta,
+               lookupMeta "palette.colors.dark" meta
+             ) of
+          (Just light, Just dark) -> (light, dark)
+          (Just light, Nothing) -> (light, light)
+          _ -> (defaultLight, defaultDark)
+      contrast = lookupMetaOrElse 0.25 "palette.contrast" meta :: Float
+      existingLight :: Map Text Text = lookupMetaOrElse Map.empty "css-light-colors" meta
+      existingDark :: Map Text Text = lookupMetaOrElse Map.empty "css-dark-colors" meta
+      (cssLightColors, cssLightColorDeclarations) = deriveColors paletteLight contrast existingLight
+      (cssDarkColors, cssDarkColorDeclarations) = deriveColors paletteDark contrast existingDark
+   in -- Set the CSS variable declarations and make sure we have a palette, even
+      -- if it is just the default colors.
+      setMetaValue "css-light-color-declarations" cssLightColorDeclarations $
+        setMetaValue "css-light-colors" cssLightColors $
+          setMetaValue "palette.colors.light" paletteLight $
+            setMetaValue "css-dark-color-declarations" cssDarkColorDeclarations $
+              setMetaValue "css-dark-colors" cssDarkColors $
+                setMetaValue "palette.colors.dark" paletteDark $
+                  setMetaValue "palette.contrast" (show contrast :: Text) meta
+
+deriveColors :: [String] -> Float -> Map Text Text -> (Map Text Text, [Text])
+deriveColors palette contrast existing =
+  let colors = map sRGB24read palette
       bg = fromJust $ colors !!? 0
       fg = fromJust $ colors !!? 7
       name i post =
@@ -94,17 +138,11 @@ computeCssColorVariables meta =
                 ]
       shades :: Map Text Text = (foldi deriveShades Map.empty (0 :: Int) $ take 8 colors)
       accents :: Map Text Text = foldi deriveAccents Map.empty (8 :: Int) $ drop 8 colors
-      existing :: Map Text Text = lookupMetaOrElse Map.empty "css-colors" meta
       -- Map.union ist left-biased. Does not overwrite colors that have been set
       -- by other means.
       cssColors = foldl' Map.union Map.empty [existing, shades, accents]
       cssColorDeclarations = toDeclarations cssColors
-   in -- Set the CSS variable declarations and make sure we have a palette, even
-      -- if it is just the default colors.
-      setMetaValue "css-color-declarations" cssColorDeclarations $
-        setMetaValue "css-colors" cssColors $
-          setMetaValue "palette.colors" palette $
-            setMetaValue "palette.contrast" (show contrast :: Text) meta
+   in (cssColors, cssColorDeclarations)
 
 computeCssVariables :: Meta -> Meta
 computeCssVariables meta =
