@@ -66,8 +66,8 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
-  <link rel="stylesheet" href="$decker-support-dir$/examiner/examiner.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/examiner/examiner.css">
   <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/poll/poll.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
@@ -133,6 +133,7 @@ $body$
     import pollPlugin from './$decker-support-dir$/plugins/poll/poll.js';
     import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
     import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
+    import examinerPlugin from "./$decker-support-dir$/plugins/examiner/examiner.js";
     import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
     import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
     import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
@@ -141,7 +142,6 @@ $if(highlightjs)$
 $endif$
     import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
     import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
-    import examinerPlugin from "./$decker-support-dir$/examiner/examiner.js";
 
     let revealConfig = { 
       // reveal configuration (see https://revealjs.com/config/)
@@ -158,7 +158,6 @@ $endif$
       // list of plugins
       plugins: [
          deckerPlugin,
-         examinerPlugin,
          uiAnchorsPlugin,
          mathPlugin,
          chartsPlugin,
@@ -168,6 +167,7 @@ $endif$
          jinglesPlugin,
          quizWuePlugin,
          explainPlugin,
+         examinerPlugin,
          menuPlugin,
          feedbackPlugin,
 $if(highlightjs)$
