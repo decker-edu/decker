@@ -11,15 +11,15 @@ var session = null;
 // uses clientUrl as the polling client. If clientUrl is null the client
 // provided by the server is used. onready is called when the session is
 // established, onclose when the server terminates the session.
-function pollSession(
+function pollSession({
   serverUrl,
-  clientUrl = null,
+  clientBaseUrl,
+  clientCss = "",
   onready = null,
-  onclose = null
-) {
+  onclose = null,
+} = {}) {
   session = {
     id: null,
-    clientUrl: null,
     socket: null,
     ui: null,
     onReady: onready,
@@ -31,6 +31,8 @@ function pollSession(
 
     session.socket.addEventListener("open", (e) => {
       console.log("Poll:", "server connected.");
+      if (clientCss)
+        session.socket.send(JSON.stringify({ tag: "ClientCss", clientCss: clientCss }));
     });
 
     session.socket.addEventListener("error", (e) => {
@@ -49,7 +51,9 @@ function pollSession(
         console.log("Poll:", "Server error:", message.error);
       } else if (message.key != null) {
         session.id = message.key;
-        session.clientUrl = `${clientUrl}#${session.id}`;
+        session.clientUrl = clientBaseUrl
+          ? `${clientBaseUrl}#${session.id}`
+          : `${client(serverUrl)}#${session.id}`;
 
         resolve({
           // Returns the 4 digit session id and the client url for this session.
@@ -80,10 +84,14 @@ function pollSession(
           // votes for each choice in the active poll. Example: {25, ["A": 12,
           // "B": 9]}. onFinished(participants, votes) is called with the final
           // results when the poll has stopped.
-          poll: (choices, votes, callbacks) => {
+          poll: (choices, votes, callbacks = { choices: [], votes: 1 }) => {
             session.ui = callbacks;
             session.socket.send(
-              JSON.stringify({ tag: "Start", choices: choices, votes: votes })
+              JSON.stringify({
+                tag: "Start",
+                choices: choices,
+                votes: votes,
+              })
             );
           },
 
@@ -115,4 +123,12 @@ function pollSession(
       }
     });
   });
+}
+
+function client(str) {
+  let url = new URL(str);
+  if (url.protocol == "ws:") url.protocol = "http";
+  else url.protocol = "https";
+  url.path += "/client";
+  return url;
 }

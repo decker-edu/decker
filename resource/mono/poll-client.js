@@ -54,7 +54,7 @@ window.addEventListener("load", () => {
             for (let button of buttons.children)
               button.classList.remove("choice");
             button.classList.add("choice");
-            socket.send(JSON.stringify({ choice: [name] }));
+            socket.send(JSON.stringify({ vote: [name] }));
           });
           buttons.appendChild(button);
         }
@@ -65,6 +65,9 @@ window.addEventListener("load", () => {
         for (let button of buttons.children) {
           button.setAttribute("disabled", true);
         }
+        break;
+      case "Css":
+        console.log("Poll: CSS: ", message.css)
         break;
     }
   });

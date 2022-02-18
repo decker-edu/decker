@@ -221,16 +221,14 @@ function prepareExaminer() {
 
 async function preparePolls(reveal) {
   // Only when reveal is ready we can find the elements we need.
-  let session = await pollSession(
-    Decker.meta["poll-server"],
-    new URL(
+  let session = await pollSession({
+    serverUrl: Decker.meta["poll-server"],
+    clientBaseUrl: new URL(
       Decker.meta.projectPath + "resource/mono/poll-page.html",
       location.href
     ),
-    () => {
-      console.log("Poll: server ready");
-    }
-  );
+    clientCss: "YEAH",
+  });
 
   let { id, url } = session.sessionId();
 
