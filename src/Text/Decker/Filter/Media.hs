@@ -35,7 +35,8 @@ import Text.URI (URI)
 import qualified Text.URI as URI
 
 -- | Compiles the contents of an Image into a Decker specific structure. This is
--- context aware and produces either a Block or an Inline element.
+-- context aware and produces either a Block or an Inline element. The caption
+-- might either come from the alt attribute or the separate Caption: line.
 compileImage :: Container c => Attr -> [Inline] -> Text -> Text -> [Inline] -> Filter c
 compileImage attr alt url title caption = do
   uri <- URI.mkURI url
@@ -218,6 +219,7 @@ imageBlock uri caption = do
   imgAttr <- do
     injectClasses ["processed"]
     injectStyles innerSizes
+    inventTitleAndAria caption
     extractAttr
   figureAttr <- do
     injectClasses ["image"]
@@ -284,6 +286,7 @@ objectBlock otype uri caption = do
     injectAttribute ("data", turl)
     injectAttribute ("type", otype)
     injectStyles innerSizes
+    inventTitleAndAria caption
     takeData
     extractAttr
   figureAttr <- do
@@ -303,6 +306,7 @@ svgBlock uri caption = do
   (innerSizes, outerSizes) <- calcImageSizes
   svgAttr <- do
     injectStyles innerSizes
+    inventTitleAndAria caption
     takeData
     extractAttr
   figureAttr <- do
@@ -368,6 +372,7 @@ audioBlock uri caption = do
     passAttribs identity ["controls", "loop", "muted", "preload"]
     injectAttribute ("src", audioUri)
     takeAutoplay
+    inventTitleAndAria caption
     extractAttr
   figureAttr <- do
     injectClasses ["audio"]
@@ -392,6 +397,7 @@ videoBlock uri caption = do
     takeAutoplay
     takeVideoClasses
     passVideoAttribs
+    inventTitleAndAria caption
     extractAttr
   figureAttr <- do
     injectClasses ["video"]
@@ -410,6 +416,7 @@ renderCodeBlock uri caption = do
   imgAttr <- do
     injectClasses ["processed"]
     injectStyles innerSizes
+    inventTitleAndAria caption
     extractAttr
   figureAttr <- do
     injectClasses ["image rendered"]
