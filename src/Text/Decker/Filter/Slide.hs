@@ -114,7 +114,8 @@ fromSlides = concatMap prependHeader
 -- Render slides as a list of Blocks. Always separate slides with a horizontal
 -- rule. Slide with a `sub` class are vertical slides and are
 -- wrapped in an extra section. Slides with no header get an empty header
--- prepended.
+-- prepended. Slides with the `notes` classes are wrapped in ASIDE and are used as
+-- speaker notes by Reval. Slides with no header get an empty header prepended.
 fromSlidesD :: [Slide] -> Decker [Block]
 fromSlidesD slides = do
   -- mapM_ (\s -> when (view dir s == Vertical) (pPrint s)) slides
@@ -139,6 +140,9 @@ fromSlidesD slides = do
       h <- wrapSection slide
       return (verticals <> h, blocks)
     -- Wraps a single slide in a header.
+    wrapSection (Slide (Just (Header n (id, cls, kvs) inlines)) body _)
+      | "notes" `elem` cls =
+        return [tag "aside" $ Div (id, cls, kvs) (demoteHeaders body)]
     wrapSection (Slide (Just (Header n attr inlines)) body _) =
       return $ wrap attr (Header n ("", [], []) inlines : body)
     wrapSection (Slide _ body _) = do

@@ -90,6 +90,12 @@ quiz:
 
 ![](include/06-metal.png)
 
+# Slide tagged `notes` {.notes}
+
+## This slide is not shown anywhere
+
+- It shows up as speaker notes to the last slide
+
 # Backgrounds 1 ![In a slide, this is a background image.](include/06-metal.png)
 
 ## Background Images in Handouts
