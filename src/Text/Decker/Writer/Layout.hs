@@ -29,6 +29,8 @@ import Text.DocTemplates
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Highlighting
 import qualified Prelude
+import Text.Pretty.Simple (pPrint)
+import Text.Groom
 
 -- | Calculates the highlight style that will be passed as a writer option.
 highlightStyle :: Meta -> Maybe Style

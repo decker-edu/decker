@@ -19,16 +19,11 @@ title: Citation and Footnotes
 
 ![](assets/title-logo-hci.png){width="30%"}
 
-
-[^1]: There are sources with significantly different numbers, e.g., 90
-    mio. for rods and 4,8 mio for cones.
-
 # Human Sense of Vision: Photoreceptors {.mid layout="columns"}
 
 ##  {.left}
 
 ![](include/06-metal.png)
-
 
 ## Rods {.right}
 
@@ -38,6 +33,9 @@ title: Citation and Footnotes
 -   Important for mesopic vision\
     (i.e., to see even dim light)
 
+[^1]: There are sources with significantly different numbers, e.g., 90 mio. for
+    rods and 4,8 mio for cones.
+
 # Citation {.someclass}
 
 -   Not quite recently published [@tramberend2003].
@@ -46,6 +44,7 @@ title: Citation and Footnotes
 
 # Citation in a caption
 
-![Not quite recently published [@tramberend2003]](include/06-metal.png) 
+![Not quite recently published [@tramberend2003]](include/06-metal.png)
 
 # Bibliography
+
