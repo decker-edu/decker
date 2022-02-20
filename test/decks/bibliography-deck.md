@@ -29,12 +29,13 @@ title: Citation and Footnotes
 
 -   Number: $\approx$ 120 mil[^1]
 -   Location: predominantly at the rim of the retina
--   Very photosensitive
--   Important for mesopic vision\
-    (i.e., to see even dim light)
+-   Very[^2] photosensitive
+-   Important for mesopic vision (i.e., to see even dim light)
 
 [^1]: There are sources with significantly different numbers, e.g., 90 mio. for
     rods and 4,8 mio for cones.
+
+[^2]: Sneaky footnote.
 
 # Citation {.someclass}
 
@@ -47,4 +48,3 @@ title: Citation and Footnotes
 ![Not quite recently published [@tramberend2003]](include/06-metal.png)
 
 # Bibliography
-

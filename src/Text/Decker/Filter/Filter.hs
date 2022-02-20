@@ -22,6 +22,7 @@ import qualified Data.Text as Text
 import Development.Shake (Action)
 import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
+import Text.Decker.Filter.Notes
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Pandoc hiding (lookupMeta)
@@ -159,6 +160,7 @@ mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
 mapSlides action (Pandoc meta blocks) = do
   slides <-
     selectActiveContent (toSlides blocks)
+      >>= processNotesSlides
       >>= mapM action
       >>= fromSlidesD
   return $ Pandoc meta slides
@@ -198,11 +200,11 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
     actions :: [Slide -> Decker Slide]
     actions =
       [ marioCols,
+        processNotes,
         wrapBoxes,
         selectActiveSlideContent,
         splitJoinColumns,
         layoutSlide
-        -- renderFootnotes
       ]
 
 selectActiveContent :: HasAttr a => [a] -> Decker [a]

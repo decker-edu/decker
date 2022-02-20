@@ -22,6 +22,7 @@ module Text.Decker.Filter.Slide
     toSlides,
     fromSlidesD,
     tag,
+    demoteHeaders,
     Direction (..),
   )
 where
@@ -34,11 +35,11 @@ import Data.List.Split
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as Text
-import Text.Decker.Filter.Footnotes (renderFootnotes)
 import Text.Decker.Internal.Common (Decker, DeckerState (emptyCount))
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens hiding (body)
+import Text.Decker.Filter.Footnotes (renderFootnotes)
 
 data Direction = Horizontal | Vertical deriving (Show, Eq)
 
@@ -141,9 +142,6 @@ fromSlidesD slides = do
       h <- wrapSection slide
       return (verticals <> h, blocks)
     -- Wraps a single slide in a header.
-    wrapSection (Slide (Just (Header n (id, cls, kvs) inlines)) body _)
-      | "notes" `elem` cls =
-        return [tag "aside" $ Div (id, cls, kvs) (demoteHeaders body)]
     wrapSection (Slide (Just (Header n attr inlines)) body _) =
       return $ wrap attr (Header n ("", [], []) inlines : body)
     wrapSection (Slide _ body _) = do

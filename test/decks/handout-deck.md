@@ -1,13 +1,13 @@
 ---
 author: Henrik Tramberend
 copyright: Copyright 2019
-date: '2019-10-19'
-showNotes: True
+date: 2019-10-19
+quiz:
+  style: plain
+showNotes: true
 subtitle: Generate handouts from slide source
 title: Handout Test
 title-prefix: Decker
-quiz:
-  style: plain
 ---
 
 # Notes
@@ -25,7 +25,7 @@ quiz:
 -   Content marked `.deck` is only shown in slide decks
 -   Untagged content is shown in decks and handouts
 
----
+--------------------------------------------------------------------------------
 
 # Untagged content {layout="columns"}
 
@@ -37,7 +37,7 @@ quiz:
 
 ![](include/06-metal.png)
 
----
+--------------------------------------------------------------------------------
 
 # Content tagged `handout` {.handout layout="columns"}
 
@@ -49,7 +49,7 @@ quiz:
 
 ![](include/06-metal.png)
 
----
+--------------------------------------------------------------------------------
 
 # Content tagged `deck` {.deck layout="columns"}
 
@@ -82,19 +82,40 @@ quiz:
 -   The second paragraph contains speaker notes
 -   Speaker Notes are not visible in decks and handouts
 
-
-## Speaker Notes {.notes}
+## Speaker Notes from a block {.notes}
 
 -   This content is included as speaker notes
 -   It is not included in handouts
 
 ![](include/06-metal.png)
 
-# Slide tagged `notes` {.notes}
+# Slide tagged `notes`
+
+## This slide has some speaker notes
+
+-   The following slide contains the speaker notes
+-   Slides with speaker Notes are not visible in decks and handouts
+
+# Speaker notes from an entire slide {.notes}
 
 ## This slide is not shown anywhere
 
-- It shows up as speaker notes to the last slide
+-   It shows up as speaker notes to the slide before it
+
+# Div and Span tagged `notes`
+
+## Div
+
+The follwing Div is not visible here
+
+::: notes
+This is a speaker note from a Div
+:::
+
+## Span
+
+The follwing Span is not visible here: [This is a speaker note from a
+Span]{.notes}
 
 # Backgrounds 1 ![In a slide, this is a background image.](include/06-metal.png)
 
@@ -124,7 +145,7 @@ quiz:
 
 ## Do we really need them readable
 
-- This can get [ugly](https://en.wikipedia.org/wiki/Unattractiveness) fast
+-   This can get [ugly](https://en.wikipedia.org/wiki/Unattractiveness) fast
 
 # Just a table {.columns}
 
@@ -139,10 +160,9 @@ quiz:
 
 ## Twice {.right}
 
-| This |   is| just |    a| table |
+| This |  is | just |   a | table |
 |------|----:|:-----|----:|:------|
-| This |   is| just |    a| table |
-| This |   is| just |    a| table |
-| This |   is| just |    a| table |
-| This |   is| just |    a| table |
-
+| This |  is | just |   a | table |
+| This |  is | just |   a | table |
+| This |  is | just |   a | table |
+| This |  is | just |   a | table |
