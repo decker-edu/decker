@@ -20,7 +20,6 @@ import qualified Data.List as List
 import Data.List.Split
 import qualified Data.Text as Text
 import Development.Shake (Action)
-import Text.Decker.Filter.Footnotes
 import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Slide

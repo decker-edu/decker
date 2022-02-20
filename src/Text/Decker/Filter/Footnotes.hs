@@ -1,6 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Footnotes
@@ -8,31 +5,19 @@ module Text.Decker.Filter.Footnotes
   )
 where
 
-import Data.Maybe
 import Relude
-import Text.Decker.Filter.Slide
-import Text.Decker.Internal.Common
 import Text.Pandoc
+import Text.Pandoc.Walk
 
-renderFootnotes :: Slide -> Decker Slide
-renderFootnotes slide@(Slide (Just header) body dir) = do
-  let (strippedHeader, headerNotes) = collect [header]
-  let (strippedBody, bodyNotes) = collect body
-  return
-    ( Slide
-        (listToMaybe strippedHeader)
-        (strippedBody <> render (headerNotes <> bodyNotes))
-        dir
-    )
-renderFootnotes slide@(Slide Nothing body dir) = do
-  let (strippedBody, bodyNotes) = collect body
-  return (Slide Nothing (strippedBody <> render bodyNotes) dir)
-
-collect :: [Block] -> ([Block], [Inline])
-collect blocks = ([], [])
-
-render :: [Inline] -> [Block]
-render = map render'
+-- |  Collects footnotes on a slide and append them to the end of the slide.
+renderFootnotes :: [Block] -> [Block]
+renderFootnotes blocks =
+  let (Div _ noted, (_, notes)) = runState (walkM scan (Div nullAttr blocks)) (0, [])
+      footnotes = Div ("", ["footnotes"], []) [OrderedList (1, Decimal, OneParen) notes]
+   in noted <> [footnotes]
   where
-    render' (Note blocks) = Div ("", ["footnote"], []) blocks
-    render' _ = error "Nothing but `Note` allowed here."
+    scan note@(Note blocks) = do
+      (n, notes) <- get
+      put (n + 1, notes <> [blocks])
+      return $ Span ("", ["footnoteref"], []) [Str (show (n + 1))]
+    scan inline = return inline

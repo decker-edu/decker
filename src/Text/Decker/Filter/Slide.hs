@@ -34,6 +34,7 @@ import Data.List.Split
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as Text
+import Text.Decker.Filter.Footnotes (renderFootnotes)
 import Text.Decker.Internal.Common (Decker, DeckerState (emptyCount))
 import Text.Pandoc
 import Text.Pandoc.Definition ()
@@ -147,7 +148,7 @@ fromSlidesD slides = do
       return $ wrap attr (Header n ("", [], []) inlines : body)
     wrapSection (Slide _ body _) = do
       rid <- emptyId
-      return $ Header 1 (rid, [], []) [] : body
+      return $ wrap (rid, [], []) body
     wrapVerticals [] = []
     wrapVerticals [one] = [one]
     wrapVerticals verticals =
@@ -160,7 +161,7 @@ fromSlidesD slides = do
                 ("", ["decker"], [])
                 [ Div
                     ("", ["alignment"], [])
-                    blocks
+                    (renderFootnotes blocks)
                 ]
             ]
       ]
