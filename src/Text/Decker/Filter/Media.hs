@@ -43,7 +43,7 @@ compileImage attr alt url title caption = do
   let mediaType = classifyMedia uri attr
   runAttr attr $ do
     media <- case Map.lookup mediaType imageCompilers of
-      Just transform -> transform uri caption
+      Just transform -> transform uri title caption
       Nothing -> error $ "No transformer for media type " <> show mediaType
     attribs <- do
       injectBorder
@@ -60,7 +60,7 @@ compileLineBlock images caption = do
   aspects <- mapMaybeM determineAspectRatio images
   let columns =
         if length aspects == length images
-          then map printFr $ map (\a -> sum aspects * a) aspects
+          then map (printFr . (\a -> sum aspects * a)) aspects
           else map (const "1fr") images
   figures <- mapM compile images
   let row =
@@ -82,7 +82,7 @@ compileLineBlock images caption = do
       let mediaType = classifyMedia uri attr
       runAttr attr $ do
         case Map.lookup mediaType imageCompilers of
-          Just transform -> transform uri alt
+          Just transform -> transform uri title alt
           Nothing -> error $ "No transformer for media type " <> show mediaType
 
 determineAspectRatio :: (Attr, [Inline], Text, Text) -> Filter (Maybe Float)
@@ -173,13 +173,13 @@ compileCodeBlock attr@(_, classes, _) code caption =
                 )
           )
       uri <- lift $ URI.mkURI (toText path)
-      renderCodeBlock uri caption
+      renderCodeBlock uri "" caption
 
 dragons :: (Text, [Text], [a])
 dragons = ("", ["here be dragons"], [])
 
 -- | One compiler for each image media type.
-imageCompilers :: Container c => Map MediaT (URI -> [Inline] -> Attrib c)
+imageCompilers :: Container c => Map MediaT (URI -> Text -> [Inline] -> Attrib c)
 imageCompilers =
   Map.fromList
     [ (EmbedSvgT, svgBlock),
@@ -210,8 +210,8 @@ imageCompilers =
 -- └───────────────────────┘
 
 -- |  Compiles the image data to a plain image.
-imageBlock :: Container c => URI -> [Inline] -> Attrib c
-imageBlock uri caption = do
+imageBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+imageBlock uri title caption = do
   turi <- lift $ transformUri uri ""
   let turl = URI.render turi
   let fileName = toText $ takeFileName $ toString turl
@@ -219,7 +219,7 @@ imageBlock uri caption = do
   imgAttr <- do
     injectClasses ["processed"]
     injectStyles innerSizes
-    inventTitleAndAria caption
+    inventTitleAndAria title caption
     extractAttr
   figureAttr <- do
     injectClasses ["image"]
@@ -230,8 +230,8 @@ imageBlock uri caption = do
       containOne $
         Image imgAttr [Str fileName] (turl, "")
 
-includeCodeBlock :: Container c => URI -> [Inline] -> Attrib c
-includeCodeBlock uri caption = do
+includeCodeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+includeCodeBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   code <- lift $ readLocalUri uri
   codeBlock code caption
@@ -255,8 +255,8 @@ codeBlock code caption = do
       mkPre codeAttr code
 
 -- |  Compiles the image data to an iframe.
-iframeBlock :: Container c => URI -> [Inline] -> Attrib c
-iframeBlock uri caption = do
+iframeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+iframeBlock uri title caption = do
   turi <- lift $ transformUri uri ""
   let turl = URI.render turi
   xformRersourceAttribs ["image"]
@@ -277,8 +277,8 @@ iframeBlock uri caption = do
       mkIframe iframeAttr
 
 -- |  Compiles the image data to an object showing a document of the given type.
-objectBlock :: Container c => Text -> URI -> [Inline] -> Attrib c
-objectBlock otype uri caption = do
+objectBlock :: Container c => Text -> URI -> Text -> [Inline] -> Attrib c
+objectBlock otype uri title caption = do
   turi <- lift $ transformUri uri ""
   let turl = URI.render turi
   (innerSizes, outerSizes) <- calcIframeSizes
@@ -286,7 +286,7 @@ objectBlock otype uri caption = do
     injectAttribute ("data", turl)
     injectAttribute ("type", otype)
     injectStyles innerSizes
-    inventTitleAndAria caption
+    inventTitleAndAria title caption
     takeData
     extractAttr
   figureAttr <- do
@@ -299,14 +299,14 @@ objectBlock otype uri caption = do
       mkObject objectAttr
 
 -- |  Compiles the image data to an directly embedded SVG element.
-svgBlock :: Container c => URI -> [Inline] -> Attrib c
-svgBlock uri caption = do
+svgBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+svgBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   svg <- lift $ readLocalUri uri
   (innerSizes, outerSizes) <- calcImageSizes
   svgAttr <- do
     injectStyles innerSizes
-    inventTitleAndAria caption
+    inventTitleAndAria title caption
     takeData
     extractAttr
   figureAttr <- do
@@ -320,8 +320,8 @@ svgBlock uri caption = do
 -- |  Compiles the image data to a remote streaming video. If the aspect ratio of
 --  the stream is known, it is a good idea to set the `aspect` attribute to
 --  reflect that.
-streamBlock :: Container c => URI -> [Inline] -> Attrib c
-streamBlock uri caption = do
+streamBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+streamBlock uri title caption = do
   let scheme = uriScheme uri
   let streamId = uriPath uri
   streamUri <-
@@ -351,16 +351,16 @@ streamBlock uri caption = do
       mkIframe iframeAttr
 
 -- |  Compiles the image data to an iframe containing marios mview tool.
-mviewBlock :: Container c => URI -> [Inline] -> Attrib c
-mviewBlock uri caption = do
+mviewBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+mviewBlock uri title caption = do
   turi <- lift $ transformUri uri ""
   let model = URI.render turi
   pushAttribute ("model", model)
   mviewUri <- URI.mkURI "public:support/mview/mview.html"
-  iframeBlock mviewUri caption
+  iframeBlock mviewUri title caption
 
-audioBlock :: Container c => URI -> [Inline] -> Attrib c
-audioBlock uri caption = do
+audioBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+audioBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   mediaFrag <- mediaFragment
   let audioUri =
@@ -372,7 +372,7 @@ audioBlock uri caption = do
     passAttribs identity ["controls", "loop", "muted", "preload"]
     injectAttribute ("src", audioUri)
     takeAutoplay
-    inventTitleAndAria caption
+    inventTitleAndAria title caption
     extractAttr
   figureAttr <- do
     injectClasses ["audio"]
@@ -381,8 +381,8 @@ audioBlock uri caption = do
   return $ wrapFigure figureAttr caption $ mkAudio audioAttr
 
 -- |  Compiles the image data to a local video.
-videoBlock :: Container c => URI -> [Inline] -> Attrib c
-videoBlock uri caption = do
+videoBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+videoBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   mediaFrag <- mediaFragment
   let videoUri =
@@ -397,7 +397,7 @@ videoBlock uri caption = do
     takeAutoplay
     takeVideoClasses
     passVideoAttribs
-    inventTitleAndAria caption
+    inventTitleAndAria title caption
     extractAttr
   figureAttr <- do
     injectClasses ["video"]
@@ -407,8 +407,8 @@ videoBlock uri caption = do
   return $ wrapFigure figureAttr caption $ mkVideo videoAttr
 
 -- |  Compiles the image data to a plain image.
-renderCodeBlock :: Container c => URI -> [Inline] -> Attrib c
-renderCodeBlock uri caption = do
+renderCodeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+renderCodeBlock uri title caption = do
   turi <- lift $ transformUri uri "svg"
   let turl = URI.render turi
   let fileName = toText $ takeFileName $ toString turl
@@ -416,7 +416,7 @@ renderCodeBlock uri caption = do
   imgAttr <- do
     injectClasses ["processed"]
     injectStyles innerSizes
-    inventTitleAndAria caption
+    inventTitleAndAria title caption
     extractAttr
   figureAttr <- do
     injectClasses ["image rendered"]
@@ -429,8 +429,8 @@ renderCodeBlock uri caption = do
         Image imgAttr [Str fileName] (turl, "")
 
 -- |  Compiles the image data to a plain image.
-javascriptBlock :: Container c => URI -> [Inline] -> Attrib c
-javascriptBlock uri caption = do
+javascriptBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+javascriptBlock uri title caption = do
   id <- liftIO randomId
   fragment <- URI.mkFragment id
   uri <- lift $ transformUri uri ""

@@ -195,7 +195,7 @@ takeCss = modify transform
     isCss key = Text.isPrefixOf "css:" key && Text.length key > 4
 
 coreAttribs :: [Text]
-coreAttribs = ["id", "class", "title", "style"]
+coreAttribs = ["id", "class", "style"]
 
 dropClass :: Text -> Attrib ()
 dropClass key = modify transform
@@ -380,10 +380,10 @@ addClass c (id, cs, kvs) = (id, List.nub (c : cs), kvs)
 --- | `[](url){arial-label="aria"}`            |         |          | `aria`        |
 --- | `[](url)`                                |         |          |               |
 ---
-inventTitleAndAria :: [Inline] -> Attrib ()
-inventTitleAndAria caption = do
+inventTitleAndAria :: Text -> [Inline] -> Attrib ()
+inventTitleAndAria title caption = do
+  let title_ = if Text.null title then Nothing else Just title
   let alt_ = if null caption then Nothing else Just $ stringify caption
-  title_ <- cutAttrib "title"
   aria_ <- cutAttrib "aria-label"
   case (alt_, title_, aria_) of
     (Just alt, Just title, Just aria) -> inj ("title", title) >> inj ("aria-label", aria)
@@ -392,7 +392,7 @@ inventTitleAndAria caption = do
     (Just alt, Nothing, Nothing) -> inj ("title", alt) >> inj ("aria-label", alt)
     (Nothing, Just title, Just aria) -> inj ("title", title) >> inj ("aria-label", aria)
     (Nothing, Just title, Nothing) -> inj ("title", title) >> inj ("aria-label", title)
-    (Nothing, Nothing, Just aria) -> inj ("aria", aria)
+    (Nothing, Nothing, Just aria) -> inj ("aria-label", aria)
     (Nothing, Nothing, Nothing) -> return ()
   where
     inj = injectAttribute
