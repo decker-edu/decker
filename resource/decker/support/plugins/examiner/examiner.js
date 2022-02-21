@@ -441,7 +441,7 @@ function showVotes(voteMap, show) {
 
 function displayVotes(votes, voteMap) {
   const min = 0;
-  const max = 95;
+  const max = 100;
   const maxVotes = Math.max(
     1,
     Object.values(votes).reduce((t, v) => Math.max(t, v), 0)

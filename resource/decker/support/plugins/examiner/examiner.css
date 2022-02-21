@@ -171,11 +171,12 @@ div.vote > div.label {
 }
 
 div.vote div.votes {
+  box-sizing: border-box;
   float: right;
   color: var(--shade1);
   text-align: right;
   width: 0%;
-  min-width: 1ex;
+  min-width: 1em;
   padding-left: 0.2em;
   padding-right: 0.2em;
   border-radius: var(--block-border-radius);
