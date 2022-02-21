@@ -73,7 +73,8 @@ pandocWriterOpts =
     { writerExtensions =
         disableExtension Ext_smart $
           enableExtension Ext_emoji pandocExtensions,
-      writerSectionDivs = False
+      writerSectionDivs = False,
+      writerReferenceLocation = EndOfBlock 
     }
 
 -- | Standard Pandoc + Emoji support

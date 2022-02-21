@@ -54,7 +54,7 @@ transformHeader1 h1@(Header 1 headAttr inlines)
             attr <- extractAttr
             return $ Header 1 attr rest
           _ -> return h1
-    buildMediaHeader (Disposition Handout Html) (Image imgAttr alt (url, title), rest) = do
+    buildMediaHeader (Disposition _ Html) (Image imgAttr alt (url, title), rest) = do
       uri <- URI.mkURI url
       runAttrOn headAttr imgAttr $ do
         attr <- extractAttr
@@ -72,6 +72,7 @@ transformHeader1 h1@(Header 1 headAttr inlines) = do
     adjustAttribPaths' bgAttribs
     takeAllClasses
     takeAllAttributes
+    takeId
     attr <- extractAttr
     return (Header 1 attr inlines)
 -- Header is not level 1.

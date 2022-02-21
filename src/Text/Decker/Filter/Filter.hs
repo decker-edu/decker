@@ -8,7 +8,7 @@ module Text.Decker.Filter.Filter
     escapeToFilePath,
     filterNotebookSlides,
     wrapSlidesinDivs,
-    transformDetails
+    transformDetails,
   )
 where
 
@@ -22,6 +22,7 @@ import qualified Data.Text as Text
 import Development.Shake (Action)
 import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
+import Text.Decker.Filter.Notes
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Pandoc hiding (lookupMeta)
@@ -125,29 +126,32 @@ wrapBoxes slide@(Slide header body dir) = do
 
 transformBlocks :: ([Block] -> [Block]) -> Pandoc -> Decker Pandoc
 transformBlocks change pandoc@(Pandoc meta blocks) = do
-    disp <- gets disposition
-    case disp of
-      Disposition _ Html -> return $ Pandoc meta (concatMap change parts)
-      Disposition _ _ -> return pandoc
-    where
-      parts = split (keepDelimsL $ whenElt isHighLevelHeaderBlock) blocks
-      isHighLevelHeaderBlock :: Block -> Bool
-      isHighLevelHeaderBlock (Header a _ _) = a >= 2
-      isHighLevelHeaderBlock _ = False;
+  disp <- gets disposition
+  case disp of
+    Disposition _ Html -> return $ Pandoc meta (concatMap change parts)
+    Disposition _ _ -> return pandoc
+  where
+    parts = split (keepDelimsL $ whenElt isHighLevelHeaderBlock) blocks
+    isHighLevelHeaderBlock :: Block -> Bool
+    isHighLevelHeaderBlock (Header a _ _) = a >= 2
+    isHighLevelHeaderBlock _ = False
 
-transformDetails :: Pandoc -> Decker Pandoc 
+transformDetails :: Pandoc -> Decker Pandoc
 transformDetails = transformBlocks detail
   where
     detail [] = []
     detail ((Header 2 (id_, cls, kvs) text) : rest)
       | "details" `elem` cls =
         [ tag "details" $
-          Div (id_, cls, kvs) ( [ tag "summary" $
-              Div
-                nullAttr [Plain text]
-              ]
-              <> rest
-            )
+            Div
+              (id_, cls, kvs)
+              ( [ tag "summary" $
+                    Div
+                      nullAttr
+                      [Plain text]
+                ]
+                  <> rest
+              )
         ]
     detail stuff = stuff
 
@@ -156,6 +160,7 @@ mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
 mapSlides action (Pandoc meta blocks) = do
   slides <-
     selectActiveContent (toSlides blocks)
+      >>= processNotesSlides
       >>= mapM action
       >>= fromSlidesD
   return $ Pandoc meta slides
@@ -195,6 +200,7 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
     actions :: [Slide -> Decker Slide]
     actions =
       [ marioCols,
+        processNotes,
         wrapBoxes,
         selectActiveSlideContent,
         splitJoinColumns,
