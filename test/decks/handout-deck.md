@@ -82,12 +82,40 @@ title-prefix: Decker
 -   The second paragraph contains speaker notes
 -   Speaker Notes are not visible in decks and handouts
 
-## Speaker Notes {.notes}
+## Speaker Notes from a block {.notes}
 
 -   This content is included as speaker notes
 -   It is not included in handouts
 
 ![](include/06-metal.png)
+
+# Slide tagged `notes`
+
+## This slide has some speaker notes
+
+-   The following slide contains the speaker notes
+-   Slides with speaker Notes are not visible in decks and handouts
+
+# Speaker notes from an entire slide {.notes}
+
+## This slide is not shown anywhere
+
+-   It shows up as speaker notes to the slide before it
+
+# Div and Span tagged `notes`
+
+## Div
+
+The follwing Div is not visible here
+
+::: notes
+This is a speaker note from a Div
+:::
+
+## Span
+
+The follwing Span is not visible here: [This is a speaker note from a
+Span]{.notes}
 
 # Backgrounds 1 ![In a slide, this is a background image.](include/06-metal.png)
 

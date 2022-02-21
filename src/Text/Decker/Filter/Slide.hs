@@ -22,6 +22,7 @@ module Text.Decker.Filter.Slide
     toSlides,
     fromSlidesD,
     tag,
+    demoteHeaders,
     Direction (..),
   )
 where
@@ -38,6 +39,7 @@ import Text.Decker.Internal.Common (Decker, DeckerState (emptyCount))
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens hiding (body)
+import Text.Decker.Filter.Footnotes (renderFootnotes)
 
 data Direction = Horizontal | Vertical deriving (Show, Eq)
 
@@ -114,7 +116,8 @@ fromSlides = concatMap prependHeader
 -- Render slides as a list of Blocks. Always separate slides with a horizontal
 -- rule. Slide with a `sub` class are vertical slides and are
 -- wrapped in an extra section. Slides with no header get an empty header
--- prepended.
+-- prepended. Slides with the `notes` classes are wrapped in ASIDE and are used as
+-- speaker notes by Reval. Slides with no header get an empty header prepended.
 fromSlidesD :: [Slide] -> Decker [Block]
 fromSlidesD slides = do
   -- mapM_ (\s -> when (view dir s == Vertical) (pPrint s)) slides
@@ -143,7 +146,7 @@ fromSlidesD slides = do
       return $ wrap attr (Header n ("", [], []) inlines : body)
     wrapSection (Slide _ body _) = do
       rid <- emptyId
-      return $ Header 1 (rid, [], []) [] : body
+      return $ wrap (rid, [], []) body
     wrapVerticals [] = []
     wrapVerticals [one] = [one]
     wrapVerticals verticals =
@@ -156,7 +159,7 @@ fromSlidesD slides = do
                 ("", ["decker"], [])
                 [ Div
                     ("", ["alignment"], [])
-                    blocks
+                    (renderFootnotes blocks)
                 ]
             ]
       ]

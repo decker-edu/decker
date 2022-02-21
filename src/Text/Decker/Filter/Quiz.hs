@@ -22,7 +22,6 @@ import Text.Decker.Filter.Slide (tag)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared ( stringify )
 import Text.Pandoc.Walk ( Walkable(walk) )
-import Text.DocTemplates (Doc(Block))
 
 -- Pair: consisting of a bucket where items should be dropped; The items which belong to the bucket
 -- Distractor: Just a list of items without accompanying bucket

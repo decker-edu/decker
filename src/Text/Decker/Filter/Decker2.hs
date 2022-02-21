@@ -102,7 +102,7 @@ mediaBlockFilter :: Block -> Filter Block
 -- A solitary image in a paragraph with a possible caption.
 mediaBlockFilter (Para [Image attr alt (url, title)])
   | unprocessed attr =
-    compileImage attr [] url title alt
+    compileImage attr alt url title alt
 -- A solitary code block in a paragraph with a possible caption.
 mediaBlockFilter (CodeBlock attr code)
   | unprocessed attr =

@@ -95,18 +95,14 @@ installDefaultCSL = do
 -- exception if something goes wrong
 readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
-  -- putVerbose $ "# --> readMarkdownFile: " <> path
   let base = takeDirectory path
-  pandoc <-
-    parseMarkdownFile path
-      >>= writeBack globalMeta path
-      >>= expandMeta globalMeta base
-      >>= adjustResourcePathsA base
-      >>= checkVersion
-      >>= includeMarkdownFiles globalMeta base
-      >>= addPathInfo base
-  -- putVerbose $ toString $ pShow pandoc
-  return pandoc
+  parseMarkdownFile path
+    >>= writeBack globalMeta path
+    >>= expandMeta globalMeta base
+    >>= adjustResourcePathsA base
+    >>= checkVersion
+    >>= includeMarkdownFiles globalMeta base
+    >>= addPathInfo base
 
 addPathInfo :: FilePath -> Pandoc -> Action Pandoc
 addPathInfo documentPath (Pandoc meta blocks) = do

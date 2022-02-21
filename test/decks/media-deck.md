@@ -452,3 +452,18 @@ Caption: More like JSX in the 20s
 -   [:far](check-square) Streaming videos (Youtube, Vimeo, Twitch, ...)
 -   [:far](square) Quizzes
 -   [:far](square) Polls
+
+--------------------------------------------------------------------------------
+
+# Aria label
+
+| ![`aria-label=` alt text](include/06-metal.png)
+| ![`aria-label=` title attribute](include/06-metal.png "The Titel")
+| ![`aria-label=` The real
+  deal.](include/06-metal.png "The Titel"){aria-label="The real deal."}
+
+| ![`aria-label=` alt text](pacman-perfect-game.mp4){.autoplay .controls}
+| ![`aria-label=` title
+  attribute](pacman-perfect-game.mp4 "The Titel"){.autoplay .controls}
+| ![`aria-label=` The real deal.](pacman-perfect-game.mp4 "The Titel"){.autoplay
+  .controls aria-label="The real deal."}
