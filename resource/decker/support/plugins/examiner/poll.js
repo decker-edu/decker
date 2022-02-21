@@ -14,9 +14,9 @@ var session = null;
 function pollSession({
   serverUrl,
   clientBaseUrl,
-  clientCss = "",
   onready = null,
   onclose = null,
+  clientCss = null,
 } = {}) {
   session = {
     id: null,
@@ -32,7 +32,9 @@ function pollSession({
     session.socket.addEventListener("open", (e) => {
       console.log("Poll:", "server connected.");
       if (clientCss)
-        session.socket.send(JSON.stringify({ tag: "ClientCss", clientCss: clientCss }));
+        session.socket.send(
+          JSON.stringify({ tag: "ClientCss", clientCss: clientCss })
+        );
     });
 
     session.socket.addEventListener("error", (e) => {
@@ -99,6 +101,11 @@ function pollSession({
           stop: () => {
             session.socket.send(JSON.stringify({ tag: "Stop" }));
           },
+
+          // Resets the session.
+          reset: () => {
+            session.socket.send(JSON.stringify({ tag: "Reset" }));
+          },
         });
       } else {
         switch (message.quiz.state) {
@@ -129,6 +136,7 @@ function client(str) {
   let url = new URL(str);
   if (url.protocol == "ws:") url.protocol = "http";
   else url.protocol = "https";
-  url.path += "/client";
+  console.log(url)
+  url.pathname = url.pathname.replace(/quiz$/, "client");
   return url;
 }

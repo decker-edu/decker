@@ -221,13 +221,128 @@ function prepareExaminer() {
 
 async function preparePolls(reveal) {
   // Only when reveal is ready we can find the elements we need.
+  let color = Decker.meta['css-light-colors'];
   let session = await pollSession({
     serverUrl: Decker.meta["poll-server"],
-    clientBaseUrl: new URL(
-      Decker.meta.projectPath + "resource/mono/poll-page.html",
-      location.href
-    ),
-    clientCss: "YEAH",
+    // clientBaseUrl: new URL(
+    //   Decker.meta.projectPath + "resource/mono/poll-page.html",
+    //   location.href
+    // ),
+    clientCss: `
+    html {
+      color: ${color.shade7};
+      background-color: ${color.shade0};
+    }
+    button {
+      color: ${color.shade7} !important;
+      border: 0 !important;
+    }
+    button#A {
+      background-color: ${color["accent0-bbg"]};
+    }
+    button#B {
+      background-color: ${color["accent1-bbg"]};
+    }
+    button#C {
+      background-color: ${color["accent2-bbg"]};
+    }
+    button#D {
+      background-color: ${color["accent3-bbg"]};
+    }
+    button#E {
+      background-color: ${color["accent4-bbg"]};
+    }
+    button#F {
+      background-color: ${color["accent5-bbg"]};
+    }
+    button#G {
+      background-color: ${color["accent6-bbg"]};
+    }
+    button#H {
+      background-color: ${color["accent7-bbg"]};
+    }
+    button.checked {
+      color: ${color["shade1"]} !important;
+    }
+    button#A.checked {
+      background-color: ${color["accent0"]};
+    }
+    button#B.checked {
+      background-color: ${color["accent1"]};
+    }
+    button#C.checked {
+      background-color: ${color["accent2"]};
+    }
+    button#D.checked {
+      background-color: ${color["accent3"]};
+    }
+    button#E.checked {
+      background-color: ${color["accent4"]};
+    }
+    button#F.checked {
+      background-color: ${color["accent5"]};
+    }
+    button#G.checked {
+      background-color: ${color["accent6"]};
+    }
+    button#H.checked {
+      background-color: ${color["accent7"]};
+    }
+    button[disabled]:not(.checked) {
+      color: ${color["shade4"]} !important;
+      background-color: ${color["shade1"]} !important;
+    }
+    button#A[disabled].checked {
+      background-color: ${color["accent0-bg"]};
+    }
+    button#B[disabled].checked {
+      background-color: ${color["accent1-bg"]};
+    }
+    button#C[disabled].checked {
+      background-color: ${color["accent2-bg"]};
+    }
+    button#D[disabled].checked {
+      background-color: ${color["accent3-bg"]};
+    }
+    button#E[disabled].checked {
+      background-color: ${color["accent4-bg"]};
+    }
+    button#F[disabled].checked {
+      background-color: ${color["accent5-bg"]};
+    }
+    button#G[disabled].checked {
+      background-color: ${color["accent6-bg"]};
+    }
+    button#H[disabled].checked {
+      background-color: ${color["accent7-bg"]};
+    }
+    @media (hover) {
+      button#A:not([disabled]):hover {
+        background-color: ${color["accent0-bg"]};
+      }
+      button#B:not([disabled]):hover {
+        background-color: ${color["accent1-bg"]};
+      }
+      button#C:not([disabled]):hover {
+        background-color: ${color["accent2-bg"]};
+      }
+      button#D:not([disabled]):hover {
+        background-color: ${color["accent3-bg"]};
+      }
+      button#E:not([disabled]):hover {
+        background-color: ${color["accent4-bg"]};
+      }
+      button#F:not([disabled]):hover {
+        background-color: ${color["accent5-bg"]};
+      }
+      button#G:not([disabled]):hover {
+        background-color: ${color["accent6-bg"]};
+      }
+      button#H:not([disabled]):hover {
+        background-color: ${color["accent7-bg"]};
+      }
+    }
+    `,
   });
 
   let { id, url } = session.sessionId();
@@ -280,6 +395,7 @@ async function preparePolls(reveal) {
     let abort = () => {
       console.log("Poll: aborted.");
       session.stop();
+      session.reset();
     };
 
     // Wire the Poll button that starts the poll.

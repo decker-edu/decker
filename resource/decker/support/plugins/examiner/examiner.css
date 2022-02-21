@@ -151,9 +151,6 @@ div.exa-quest:not(.poll) div.choice :is(div.vote, div.label) {
   display: none;
 }
 
-div.vote.polling {
-}
-
 div.vote {
   display: block;
   flex-grow: 0;
@@ -182,6 +179,7 @@ div.vote div.votes {
   padding-left: 0.2em;
   padding-right: 0.2em;
   border-radius: var(--block-border-radius);
+  transition: width 0.5s;
 }
 
 div.vote[label="A"] div.votes {
