@@ -420,7 +420,6 @@ ul.choices [class*="show-"]:hover .quiz-tooltip {
 
 .quiz-optList,
 .quiz-options {
-    min-width: 9vw;
     margin-left: 1em;
     border: var(--border);
     padding: 0 0.1em;
@@ -431,6 +430,7 @@ ul.choices [class*="show-"]:hover .quiz-tooltip {
 .quiz-optList {
     float: right;
     z-index: 1;
+    min-width: 9vw;
 }
 
 .quiz-optList p {
@@ -466,8 +466,9 @@ ul.choices [class*="show-"]:hover .quiz-tooltip {
 .quiz-options {
     display: none;
     position: absolute;
-    right: 0.5em;
+    right: 0.65em;
     z-index: 99;
+    min-width: 9.1vw;
 }
 
 .quiz-options.shown {

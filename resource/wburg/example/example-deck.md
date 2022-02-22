@@ -127,22 +127,25 @@ Third/bottom column spans across the columns above.
 Place a new slide below the current slide using the `sub` tag.
 
 ```{markdown}
-# Main Slide
+# Famous Würzburg Residents
 
-This is the text of the main slide.
+**Dirk Nowitzki** is a former professional basketball player for the NBA. 
+He is considered by many to be the greatest European player of all time. 
 
-# Vertical Slide {.sub}
+# Famous Würzburg Residents {.sub}
 
-This is the text of the slide below.
+**Werner Heisenberg** was one of the key pioneers of quantum mechanics. 
+Heisenberg was awarded the 1932 Nobel Prize in Physics 
+"for the creation of quantum mechanics".
 ```
  
-# Main Slide
+# Famous Würzburg Residents
 
-This is the text of the main slide.
+**Dirk Nowitzki** is a former professional basketball player for the NBA. He is considered by many to be the greatest European player of all time. 
 
-# Vertical Slide {.sub}
+# Famous Würzburg Residents {.sub}
 
-This is the text of the slide below.
+**Werner Heisenberg** was one of the key pioneers of quantum mechanics. Heisenberg was awarded the 1932 Nobel Prize in Physics "for the creation of quantum mechanics".
 
 # Text Emphasis {#textEmphasis}
 
@@ -280,6 +283,85 @@ H~2~O is a liquid.\
 ## Note Block {.note}
 
 -   Note text
+
+# Accent Blocks {#accent-blocks}
+
+##  {.split}
+
+``` {.markdown}
+## Primary {.accent0}
+
+-   Some text or other
+-   $e=mc^2$
+```
+
+```{.markdown}
+## Secondary {.accent1}
+
+-   Some text or other
+-   $e=mc^2$
+```
+
+```{.markdown}
+## Success {.accent2}
+
+-   Some text or other
+-   $e=mc^2$
+```
+##
+
+``` {.markdown}
+## Danger {.accent3}
+
+-   Some text or other
+-   $e=mc^2$
+```
+
+```{.markdown}
+## Warning {.accent4}
+
+-   Some text or other
+-   $e=mc^2$
+```
+
+``` {.markdown}
+## Info {.accent5}
+
+-   Some text or other
+-   $e=mc^2$
+```
+
+# Accent Blocks example {#example-accent-blocks .columns}
+
+## Primary {.accent0 .left}
+
+-   Some text or other
+-   $e=mc^2$
+
+## Secondary {.accent1}
+
+-   Some text or other
+-   $e=mc^2$
+
+## Success {.accent2}
+
+-   Some text or other
+-   $e=mc^2$
+
+## Danger {.accent3 .right}
+
+-   Some text or other
+-   $e=mc^2$
+
+## Warning {.accent4 }
+
+-   Some text or other
+-   $e=mc^2$
+
+## Info {.accent5}
+
+-   Some text or other
+-   $e=mc^2$
 
 # Lists
 
@@ -479,20 +561,21 @@ Include audio clips in presentations:
 
 ``` {.markdown .xxx-small}
 Example 1: audio with controls
-![Wildbach](audio/wildbach.mp3){.controls}
+![Guitar](audio/audio.mp3){.controls}
 ```
 ``` {.markdown .xxx-small}
 Example 2: audio with controls, autoplay and muted
-![Wildbach](audio/wildbach.mp3){.controls .autoplay .muted}
+![Guitar](audio/audio.mp3){.controls .autoplay .muted}
 ```
 
 ##  {.left .example}
 
-Example 1: ![Wildbach](audio/wildbach.mp3){.controls}
+Example 1: ![Guitar](audio/audio.mp3){.controls}
+
 
 ##  {.right .example}
 
-Example 2: ![Wildbach](audio/wildbach.mp3){.controls .autoplay .muted}
+Example 2: ![Guitar](audio/audio.mp3){.controls .autoplay .muted}
 
 # Tables
 

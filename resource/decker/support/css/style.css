@@ -351,7 +351,7 @@ div.sourceCode > pre {
 
 /* Inverse colors */
 section.slide:is(.inverse, .has-dark-background) {
-  background-color: var(--foreground-color);
+  background-color: #000;
   color: var(--background-color);
 }
 
@@ -373,9 +373,14 @@ section.slide:is(.inverse, .has-dark-background) {
   background: rgba(0, 0, 0, 0.4);
 } */
 
-.reveal sup {
+.reveal sup,
+.reveal .footnoteref {
   vertical-align: super;
   font-size: smaller;
+}
+
+.reveal .footnoteref { 
+  font-weight: 900;
 }
 
 .reveal sub {

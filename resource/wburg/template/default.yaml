@@ -1,24 +1,16 @@
 # Würzburg Default Meta Data
 css-variables:
-  # active-color: rgb(42,157,223)
   align-global: left
-  # background-color: rgb(250,250,250)
   border-decoration-padding: 10px
   border-decoration-style: solid
   border-decoration-width: 20px
   font-size-base: 28
   font-size-x-large: calc(28 * 1.4)
-  # icon-active-color: var(--primary-color);
-  # icon-inactive-color: lightgrey;
-  # icon-size: 2vmin
-  # inactive-color: lightgrey
   margin: 0.05
   margin-columns: calc(0em * 100%)
   spacing-vertical-base: 0.5em
-  # Renaming to decker variables
   block-border-width: 0.2em
   block-outset: var(--border-decoration-padding)
-  # vertical-margin: 0.1em
 
 chart:
   defaults:
@@ -77,7 +69,12 @@ explain:
   camWidth: 1280
   camHeight: 720
 
-highlightjs: atom-one-light
+# These options control the coloring in code blocks.
+# Select a highlightjs theme, or select false and choose a style.
+# highlightjs: atom-one-dark|atom-one-light|solarized-dark|solarized-light|xcode|zenburn|false
+# highlight-style: breezedark|espresso|haddock|kate|monochrome|pygments|tango|zenburn
+highlightjs: false
+highlight-style: tango
 
 math:
   macros:
@@ -149,7 +146,5 @@ reveal:
   vertical-slides: true
   zoom: true
 
-# Use CSS augmentation without changes to the default template
 template:
   base-css: support/css/wburg.css
-  # favicon: support/icons/favicon.ico
