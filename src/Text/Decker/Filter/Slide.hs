@@ -35,11 +35,11 @@ import Data.List.Split
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as Text
+import Text.Decker.Filter.Footnotes (renderFootnotes)
 import Text.Decker.Internal.Common (Decker, DeckerState (emptyCount))
 import Text.Pandoc
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens hiding (body)
-import Text.Decker.Filter.Footnotes (renderFootnotes)
 
 data Direction = Horizontal | Vertical deriving (Show, Eq)
 
@@ -116,38 +116,51 @@ fromSlides = concatMap prependHeader
 -- Render slides as a list of Blocks. Always separate slides with a horizontal
 -- rule. Slide with a `sub` class are vertical slides and are
 -- wrapped in an extra section. Slides with no header get an empty header
--- prepended. Slides with the `notes` classes are wrapped in ASIDE and are used as
--- speaker notes by Reval. Slides with no header get an empty header prepended.
+-- prepended.
 fromSlidesD :: [Slide] -> Decker [Block]
 fromSlidesD slides = do
-  -- mapM_ (\s -> when (view dir s == Vertical) (pPrint s)) slides
-  (verticals, blocks) <- foldM resolveSubs ([], []) slides
+  -- Fold over a list of slides and wrap vertical slides in an extra section.
+  -- `verticals` is the current list of vertical slides, `blocks` is the
+  -- resulting list of slide blocks.
+  (verticals, blocks) <-
+    foldM
+      resolveSubs
+      ( [], -- verticals
+        [] --- blocks
+      )
+      slides
+  -- Do not forget to append the remaining verticals.
   return (blocks <> wrapVerticals verticals)
   where
-    -- No verticals so far, next is horizontal.
+    -- No verticals so far, slide is horizontal. Might begin a vertical list,
+    -- don't add to blocks yet.
     resolveSubs ([], blocks) slide@(Slide header body Horizontal) = do
-      h <- wrapSection slide
-      return (h, blocks)
+      horizontal <- wrapSection slide
+      return (horizontal, blocks)
     -- Some verticals, next is horizontal. Wrap the vertical list in an extra
-    -- section.
+    -- section and append to blocks. slide might begin a new vertical list.
     resolveSubs (verticals, blocks) slide@(Slide header body Horizontal)
       | length verticals > 1 = do
-        h <- wrapSection slide
-        return (h, blocks <> wrapVerticals verticals)
+        horizontal <- wrapSection slide
+        return (horizontal, blocks <> wrapVerticals verticals)
+    -- Exactly on vertical slide. Consume and replace with slide.
     resolveSubs (verticals, blocks) slide@(Slide header body Horizontal) = do
-      h <- wrapSection slide
-      return (h, blocks <> verticals)
-    -- Add slide to the verticals
+      horizontal <- wrapSection slide
+      return (horizontal, blocks <> verticals)
+    -- Add slide to the verticals (even if it's empty).
     resolveSubs (verticals, blocks) slide@(Slide header body Vertical) = do
-      h <- wrapSection slide
-      return (verticals <> h, blocks)
-    -- Wraps a single slide in a header.
+      vertical <- wrapSection slide
+      return (verticals <> vertical, blocks)
+    -- Wraps a single slide with a header.
     wrapSection (Slide (Just (Header n attr inlines)) body _) =
       return $ wrap attr (Header n ("", [], []) inlines : body)
+    -- Wraps a single slide w/o a header. Invents a random slide id.F
     wrapSection (Slide _ body _) = do
       rid <- emptyId
       return $ wrap (rid, [], []) body
+    -- Empty, no wrapping needed.
     wrapVerticals [] = []
+    -- Just one slide, no wrapping needed.
     wrapVerticals [one] = [one]
     wrapVerticals verticals =
       [tag "section" (Div ("", ["vertical"], []) verticals)]

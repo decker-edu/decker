@@ -72,9 +72,10 @@ pandocWriterOpts =
   def
     { writerExtensions =
         disableExtension Ext_smart $
-          enableExtension Ext_emoji pandocExtensions,
+          disableExtension Ext_implicit_figures $
+            enableExtension Ext_emoji pandocExtensions,
       writerSectionDivs = False,
-      writerReferenceLocation = EndOfBlock 
+      writerReferenceLocation = EndOfBlock
     }
 
 -- | Standard Pandoc + Emoji support
@@ -83,7 +84,8 @@ pandocReaderOpts =
   def
     { readerExtensions =
         disableExtension Ext_smart $
-          enableExtension Ext_emoji pandocExtensions
+          disableExtension Ext_implicit_figures $
+            enableExtension Ext_emoji pandocExtensions
     }
 
 projectDir = "."

@@ -264,22 +264,6 @@ run = do
         putInfo $ "# gnuplot (for " <> out <> ")"
         gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src] (Just out)
       --
-      "**/*-recording.mp4" %> \out -> do
-        let src = replaceSuffix "-recording.mp4" "-recording.webm" out
-        let runFfmpeg =
-              command [] "ffmpeg" ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", out]
-        webmExists <- liftIO $ Dir.doesFileExist src
-        when (webmExists) $ do
-          need [src]
-          mp4Exists <- liftIO $ Dir.doesFileExist out
-          if not mp4Exists
-            then runFfmpeg
-            else do
-              let modTime = liftIO . Dir.getModificationTime
-              mp4Mod <- modTime out
-              webmMod <- modTime src
-              when (diffUTCTime webmMod mp4Mod > 0.0) runFfmpeg
-      --
       "**/*.tex.svg" %> \out -> do
         let src = dropExtension out
         let pdf = src -<.> ".pdf"

@@ -21,8 +21,9 @@ import Text.Pandoc.Walk
 -- | Transforms slides marked `notes` to proper <aside> elements and appends
 -- them to the previous slide.
 processNotesSlides :: [Slide] -> Decker [Slide]
-processNotesSlides slides =
-  return $ snd $ foldl' putNotesAside (Nothing, []) slides
+processNotesSlides slides = do
+  let (anchor, processed) = foldl' putNotesAside (Nothing, []) slides
+  return $ processed <> maybeToList anchor
   where
     putNotesAside (Just real, slides) slide
       | hasClass "notes" slide =
@@ -43,14 +44,10 @@ processNotesSlides slides =
 
 processNotes :: Slide -> Decker Slide
 processNotes (Slide header body dir) = do
-  let (Div _ processed) = walk putNotesAsideDiv $ walk putNotesAsideSpan (Div nullAttr body)
+  let (Div _ processed) = walk putNotesAsideDiv (Div nullAttr body)
   return (Slide header processed dir)
   where
     putNotesAsideDiv (Div attr@(_, cls, _) body)
       | "notes" `elem` cls =
         tag "aside" $ Div attr (demoteHeaders body)
     putNotesAsideDiv div = div
-    putNotesAsideSpan span@(Span attr@(_, cls, _) _)
-      | "notes" `elem` cls =
-        tag "aside" span
-    putNotesAsideSpan span = span

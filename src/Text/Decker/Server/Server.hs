@@ -9,7 +9,7 @@ module Text.Decker.Server.Server
     reloadClients,
     runHttpServer,
     aPort,
-    aBind
+    aBind,
   )
 where
 
@@ -41,6 +41,7 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Types
+import Text.Decker.Server.Video
 
 -- Logging and port configuration for the server.
 serverConfig :: Int -> String -> IO (Config Snap a)
@@ -116,10 +117,12 @@ runHttpServer context = do
           [ ("/reload", runWebSocketsSnap $ reloader state),
             ("/reload.html", serveFile $ "test" </> "reload.html"),
             (fromString supportPath, serveSupport context state),
-            ("/", method PUT $ uploadResource ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"]),
+            -- ("/", method PUT $ uploadResource ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"]),
             ("/", method GET $ serveDirectoryNoCaching state publicDir),
             ("/", method HEAD $ headDirectory publicDir),
-            ("/upload", method POST $ uploadFiles ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"])
+            ("/upload", method POST $ uploadFiles ["-annot.json", "-times.json", "-recording.webm"]),
+            ("/replace", method POST $ uploadVideo False),
+            ("/append", method POST $ uploadVideo True)
           ]
   startUpdater state
   config <- serverConfig port bind
@@ -160,8 +163,6 @@ uploadResource suffixes = do
       liftIO $ renameFile tmp destination
     else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
 
-fileUploadPolicy = setMaximumFileSize (10 ^ 9) defaultFileUploadPolicy
-
 -- | Expects a multi-part file upload.
 uploadFiles :: MonadSnap m => [String] -> m ()
 uploadFiles suffixes = do
@@ -178,6 +179,11 @@ uploadFiles suffixes = do
                 if exists && any (`isSuffixOf` destination) suffixes
                   then do
                     renameFile tmp destination
+                    -- Not handled by the build system anymore.
+                    --
+                    -- TODO remove once explain.js uses endpoints /replace and
+                    -- /append
+                    when (takeExtension destination == ".webm") $ convertVideoMp4 destination
                     putStrLn $ "# upload received: " <> destination
                   else throwM $ InternalException "Illegal upload path suffix"
             )

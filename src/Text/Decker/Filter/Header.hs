@@ -58,7 +58,7 @@ transformHeader1 h1@(Header 1 headAttr inlines)
       uri <- URI.mkURI url
       runAttrOn headAttr imgAttr $ do
         attr <- extractAttr
-        imageBlock <- imageBlock uri alt
+        imageBlock <- imageBlock uri title alt
         return $ Div nullAttr [Header 1 attr rest, imageBlock]
     buildMediaHeader _ _ =
       bug $ InternalException "transformHeader: no last image in header"

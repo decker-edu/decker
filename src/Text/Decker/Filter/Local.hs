@@ -99,10 +99,10 @@ classifyMedia uri (_, classes, _) =
           | ext `maybeElem` iframeExt || "iframe" `elem` classes -> IframeT
           | ext `maybeElem` pdfExt || "pdf" `elem` classes -> PdfT
           | ext `maybeElem` mviewExt || "mview" `elem` classes -> MviewT
+          | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
           | scheme `maybeElem` streamScheme -> StreamT
           | otherwise -> ImageT
 
--- | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
 maybeElem :: Eq a => Maybe a -> [a] -> Bool
 maybeElem (Just x) xs = x `elem` xs
 maybeElem Nothing _ = False
