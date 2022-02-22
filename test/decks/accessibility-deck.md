@@ -47,7 +47,3 @@ title: Accessibility Features
 # Everything {.sub}
 
 ![Caption](include/06-metal.png "Title"){aria-label="Label"}
-
-# Error
-
-If you can see this, Issue #344 has been resolved
