@@ -52,24 +52,33 @@ uploadVideo append = do
   return ()
 
 convertVideoMp4 :: FilePath -> IO ()
-convertVideoMp4 webm =
-  runFfmpeg webm (replaceExtension webm ".mp4")
+convertVideoMp4 webm = do
+  let dst = replaceExtension webm ".mp4"
+  putStrLn $ "# ffmpeg (" <> webm <> " -> " <> dst <> ")"
+  runFfmpeg webm dst
   where
-    runFfmpeg src dst =
+    runFfmpeg src dst = do
+      let tmp = transientDir </> takeFileName dst
       callProcess
         "ffmpeg"
-        ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", dst]
+        ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", tmp]
+      renameFile tmp dst
 
 concatVideoMp4 :: FilePath -> IO ()
 concatVideoMp4 webm = do
   let [dir, file, ext] = map ($ webm) [takeDirectory, takeFileName . dropExtension, takeExtension]
   existing <- globDir1 (compile $ file <> "*" <> ext) dir
-  runFfmpeg (sort existing) (replaceExtension webm ".mp4")
+  let dst = replaceExtension webm ".mp4"
+  let sorted = sort existing
+  putStrLn $ "# ffmpeg (" <> intercalate ", " sorted <> " -> " <> dst <> ")"
+  runFfmpeg sorted dst
   where
-    runFfmpeg srcs dst =
+    runFfmpeg srcs dst = do
+      let tmp = transientDir </> takeFileName dst
       callProcess
         "ffmpeg"
-        ["-nostdin", "-v", "fatal", "-y", "-i", "concat:" <> intercalate "|" srcs, "-vcodec", "copy", "-acodec", "aac", dst]
+        ["-nostdin", "-v", "fatal", "-y", "-i", "concat:" <> intercalate "|" srcs, "-vcodec", "copy", "-acodec", "aac", tmp]
+      renameFile tmp dst
 
 replaceUpload tmp destination = renameFile tmp destination >> return destination
 
