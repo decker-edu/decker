@@ -56,17 +56,7 @@ renderQuestion attr meta base qst =
         )
         attr
     )
-    ( [ Div
-          ( "",
-            ["difficulty"],
-            [ ( "title",
-                lookupInDictionary ("exam." <> show (_qstDifficulty qst)) meta
-              )
-            ]
-          )
-          []
-      ]
-        <> [tag "h2" $ Div nullAttr $ parseToBlocks base (_qstTitle qst)]
+    ( [tag "h2" $ Div nullAttr $ parseToBlocks base (_qstTitle qst)]
         <> [Div ("", ["question"], []) $ parseToBlocks base (_qstQuestion qst)]
         <> renderAnswer (_qstAnswer qst)
         <> [renderButton "solve" (lookupInDictionary "exam.solve-button" meta)]
@@ -82,14 +72,6 @@ renderQuestion attr meta base qst =
                    ]
                ]
            ]
-           -- <> [ rawHtml' $
-           --        H.div $ do
-           --          H.button ! A.class_ "solve" $ toHtml $ lookupInDictionary "exam.solve-button" meta
-           --          H.button ! A.class_ "again" $ toHtml $ lookupInDictionary "exam.again-button" meta
-           --          H.div ! A.class_ "score" $ do
-           --            H.span $ toHtml (lookupInDictionary "exam.points" meta)
-           --            H.span ! A.class_ "display" $ ""
-           --    ]
     )
   where
     correct (Choice _ True) = "correct"
@@ -210,25 +192,6 @@ toQuiz q = do
           question
           [Quiz.Choice True [] choice]
 --}
-{--
-parseToBlock :: FilePath -> Text -> Block
-parseToBlock base text = do
-  case parseToBlocks base text of
-    [block] -> block
-    _ ->
-      throw $
-        InternalException $
-          "cannot parse Markdown to a single block: " <> toString text
-
-parseToInlines :: FilePath -> Text -> [Inline]
-parseToInlines base text = toInlines $ parseToBlock base text
-
-toInlines :: Block -> [Inline]
-toInlines (Para inlines) = inlines
-toInlines block =
-  throw $ InternalException $ "cannot convert block to inlines: " <> show block
---}
-
 parseToBlocks :: FilePath -> Text -> [Block]
 parseToBlocks base text =
   case adjustResourcePaths base <$> runPure (readMarkdown pandocReaderOpts text) of
