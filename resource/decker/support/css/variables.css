@@ -16,11 +16,33 @@
   /* Icon settings */
   --icon-size: 1.5rem;
 
+  /* Rainbow Accents */
+
+  --redish: var(--accent0);
+  --orangeish: var(--accent1);
+  --yellowish: var(--accent2);
+  --greenish: var(--accent3);
+  --tealish: var(--accent4);
+  --blueish: var(--accent5);
+  --violetish: var(--accent6);
+  --brownish: var(--accent7);
+
+  /* Semantic Colors */
+
+  --color-error: var(--redish);
+  --color-alert: var(--orangeish);
+  --color-warn: var(--yellowish);
+  --color-success: var(--greenish);
+  --color-info: var(--tealish);
+
   /* Semantic color defaults from the palette. There is no need to use the
      current palette. Colors can be set arbitrarily. */
   --background-color: var(--shade0);
   --foreground-color: var(--shade7);
+
+  
   --header-color: var(--shade6);
+  
   --primary-color: var(--accent5);
   --secondary-color: var(--accent1);
 
@@ -50,9 +72,9 @@
   --highlight-color: var(--accent5-bg);
   --flying-focus-color: var(--highlight-color);
 
-  --menu-background-color: var(--shade1);
-  --menu-border-color: var(--shade2);
-  --menu-header-background-color: var(--shade2);
+  --menu-background-color: var(--shade0);
+  --menu-border-color: var(--shade7);
+  --menu-header-background-color: var(--blueish);
   --menu-header-text-color: var(--shade7);
 
   --feedback-element-border-radius: 0.2em;
@@ -63,4 +85,5 @@
   --feedback-list-text-color: var(--shade7);
   --feedback-footer-background-color: var(--shade2);
   --feedback-footer-text-color: var(--shade7);
+
 }
