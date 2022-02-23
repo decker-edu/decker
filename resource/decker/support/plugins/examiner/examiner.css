@@ -36,29 +36,6 @@ div.exa-quest select {
   border: solid 1px lightgray;
 }
 
-div.exa-quest div.difficulty {
-  float: right;
-  width: 2em;
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
-div.exa-quest div.difficulty {
-  display: none;
-}
-
-div.exa-quest[data-difficulty="Easy"] div.difficulty {
-  content: url("../examiner/dumbell-easy.svg");
-}
-
-div.exa-quest[data-difficulty="Medium"] div.difficulty {
-  content: url("../examiner/dumbell-medium.svg");
-}
-
-div.exa-quest[data-difficulty="Hard"] div.difficulty {
-  content: url("../examiner/dumbell-hard.svg");
-}
-
 div.exa-quest button {
   background-color: var(--shade1);
 }

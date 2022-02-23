@@ -224,15 +224,14 @@ async function preparePolls(reveal) {
   let color = Decker.meta['css-light-colors'];
   let session = await pollSession({
     serverUrl: Decker.meta["poll-server"],
-    // clientBaseUrl: new URL(
-    //   Decker.meta.projectPath + "resource/mono/poll-page.html",
-    //   location.href
-    // ),
     clientCss: `
     html {
       color: ${color.shade7};
       background-color: ${color.shade0};
     }
+    h1#pollid {display: none}
+    p#nvotes {display: none}
+    body.polling p#status {display: none}
     button {
       color: ${color.shade7} !important;
       border: 0 !important;
@@ -340,6 +339,30 @@ async function preparePolls(reveal) {
       }
       button#H:not([disabled]):hover {
         background-color: ${color["accent7-bg"]};
+      }
+      button#A:not([disabled]).checked:hover {
+        background-color: ${color["accent0-fg"]};
+      }
+      button#B:not([disabled]).checked:hover {
+        background-color: ${color["accent1-fg"]};
+      }
+      button#C:not([disabled]).checked:hover {
+        background-color: ${color["accent2-fg"]};
+      }
+      button#D:not([disabled]).checked:hover {
+        background-color: ${color["accent3-fg"]};
+      }
+      button#E:not([disabled]).checked:hover {
+        background-color: ${color["accent4-fg"]};
+      }
+      button#F:not([disabled]).checked:hover {
+        background-color: ${color["accent5-fg"]};
+      }
+      button#G:not([disabled]).checked:hover {
+        background-color: ${color["accent6-fg"]};
+      }
+      button#H:not([disabled]).checked:hover {
+        background-color: ${color["accent7-fg"]};
       }
     }
     `,
