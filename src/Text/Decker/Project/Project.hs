@@ -191,8 +191,6 @@ timesSuffix = "-times.json"
 
 recordingSuffix1 = "-recording.webm"
 
-recordingSuffix2 = "-recording.mp4"
-
 recordingTargetSuffix = "-recording.mp4"
 
 captionsSuffix = "-recording.vtt"
@@ -259,11 +257,7 @@ scanTargets meta = do
         _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs,
         _times = sort $ calcTargets timesSuffix timesSuffix srcs,
         _captions = sort $ calcTargets captionsSuffix captionsSuffix srcs,
-        _recordings =
-          List.nub $
-            sort $
-              calcTargets recordingSuffix1 recordingTargetSuffix srcs
-                <> calcTargets recordingSuffix2 recordingTargetSuffix srcs,
+        _recordings = List.nub $ sort $ calcTargets recordingSuffix1 recordingTargetSuffix srcs,
         _css = sort $ calcTargets ".scss" ".css" srcs
       }
   where
