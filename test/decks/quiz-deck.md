@@ -3,6 +3,7 @@ title: New Quiz Syntax Test deck
 lang: de
 ---
 
+
 # Overview
   
 ## Add quiz type to level 2 header: 
@@ -48,7 +49,7 @@ All choices get an optional comment to be potentially shown with the result.
 - [ ] c
     - So auch nicht
 
-# Multiple Choice 2 - Plain {.sub}
+# Multiple Choice 2 - Plain 
 
 ## {.quiz-mc .plain}
 
@@ -184,7 +185,7 @@ Plain matchinq questions display a question/term, followed by a select box and a
 
 A grey box surrounds the matching questions and responses to ensure that all are shown. The solution button is below this.
 
-# Matching 2 - Plain {.sub}
+# Matching 2 - Plain 
 
 ## {.qmi .plain}
 
@@ -206,7 +207,7 @@ Springs
 : $-k \, \left( \norm{\vec{x}_0 - \vec{x}_1} - L \right) \, \frac{ \vec{x}_0 - \vec{x}_1 }{\norm{\vec{x}_0 - \vec{x}_1}}$
 
 
-# Matching 3 - Plain
+# Matching 3 - Plain {.sub}
 
 ## {.quiz-mi .plain} 
 
@@ -238,7 +239,7 @@ Empty
 : Distractor B
 
 
-# Matching 4 - Fancy {.sub}
+# Matching 4 - Fancy 
 
 ## {.quiz-mi} 
 
@@ -310,7 +311,7 @@ Bild 6
 
 Like multiple-choice, however, the choices are shown as drop-down lists embedded inside the text. Hence, beware of the whitespaces below. 
 
-# Insert 1 - Fancy {.sub}
+# Insert 1 - Fancy 
 
 ## {.quiz-ic} 
 
@@ -369,7 +370,7 @@ and builds upon the tool
 
 These questions now include multiple versions of correct answers with additional optional comments (as before). Hence the Syntax is slightly different in its compact representation. 
 
-# Free Text 1 - Fancy {.sub}
+# Free Text 1 - Fancy 
 
 ## {.quiz-ft} 
 
@@ -386,7 +387,7 @@ Das Ergebnis von $2*2=~?$ ist?
     - RTL? 
 
 
-# Free Text 2 - Plain {.sub}
+# Free Text 2 - Plain 
 
 Type the answer and push Enter to correct the question.  
 
@@ -410,7 +411,7 @@ What's the fourth letter?
 - [X] D
     - The letter "D" has retained the fourth place in the alphabet from the earliest point at which it appears in history. It corresponds to Semitic daleth and Greek delta (Δ). The form is thought to derive from an early pictograph, possibly Egyptian, indicating the folding door of a tent.
 
-# Free text alternative
+# Free text alternative {.sub}
 
 This alternate forms allows you to define free-text questions as lists without brackets. All answers are correct.
 

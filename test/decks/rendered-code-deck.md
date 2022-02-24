@@ -30,7 +30,7 @@ Alice -> Bob: test
 
 ## SVG {.right}
 
-``` {.plantuml .render width="100%"}
+``` {.plantuml .render width="60%"}
 @startuml
 skinparam shadowing false
 skinparam monochrome true
@@ -120,7 +120,7 @@ splot 1 / (x*x + y*y + 0.5)
 
 ## Rendered and included {.right}
 
-![](alice-bob.plantuml){.plantuml .render}
+![](alice-bob.plantuml){.plantuml .render width="60%"}
 
 ------------------------------------------------------------------------
 

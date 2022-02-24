@@ -2,22 +2,23 @@
 let Reveal;
 
 function quizMC() {
-  for (let question of document.querySelectorAll(
-    "div.qmc,div.quiz-mc,div.quiz-multiple-choice"
-  )) {
+  for (let question of document.querySelectorAll("div.qmc,div.quiz-mc,div.quiz-multiple-choice")) {
     for (let answer of question.getElementsByTagName("li")) {
       // remove tooltip if empty to avoid grey dot
       const tip = answer.querySelector(".quiz-tooltip");
+
       if (tip !== null) {
         if (tip.childElementCount === 0) {
           tip.remove();
         }
       }
-      
-      answer.addEventListener("click", function () {
-        const correct = this.classList.contains("correct");
+      answer.addEventListener('mousedown', function() {
+        var correct = false;
+        if (this.classList.contains("correct")) {
+          correct = this;
+        };
         // toggle answer on click
-        this.classList.forEach((c) => {
+        this.classList.forEach(c => {
           c.match(/show-/g)
             ? this.classList.remove(c)
             : this.classList.add(correct ? "show-right" : "show-wrong");
@@ -34,7 +35,9 @@ function quizFT() {
 
     // Listen for enter, delete, backspace in input field
     var buffer = [];
-    input.addEventListener("keydown", e => {
+  
+
+    input.addEventListener("keyup", e => {
       buffer.push(e.key.toLowerCase());
       if (buffer[buffer.length - 1] === buffer[buffer.length - 2]) { return; }
       if (e.code === "Enter") { checkInput(); }
@@ -58,11 +61,11 @@ function quizFT() {
     // Add click listeners to solution, reset buttons
     const plain = question.classList.contains("plain") ? true : false;
     const solutionButton = question.querySelector(".solutionButton");
-    solutionButton.addEventListener("click", showSolution);
+    solutionButton.addEventListener("mousedown", showSolution);
 
     const resetButton = question.querySelector(".resetButton");
     if (resetButton) {
-      resetButton.addEventListener("click", resetQuestion);
+      resetButton.addEventListener("mousedown", resetQuestion);
       resetButton.classList.add(plain ? "quiz-disabled" : "quiz-hidden");
     }
 
@@ -110,7 +113,7 @@ function quizIC() {
       const solutionList = sel.nextElementSibling;
 
       // Listen for selections - color appropriately
-      sel.addEventListener("change", () => {
+      sel.addEventListener('change', function() {
         tipDiv.innerHTML = "";
         sel.classList.add("solved");
         const ind = sel.selectedIndex;
@@ -255,7 +258,7 @@ function buildDragDrop(question) {
  * @param {Element} question
  */
 function matchingAnswerButton(question, button) {
-  button.addEventListener("click", () => {
+  button.addEventListener("mousedown", () => {
     const buckets = question.getElementsByClassName("bucket");
     const remainingItems = question.querySelector(".matchItems").children;
     const bucketsDiv = question.querySelector(".buckets");
@@ -322,20 +325,20 @@ function buildPlainMatch(question) {
     blank.innerText = "...";
     blank.classList.add("selected", "blank", "option");
     blank.setAttribute("data-bucketid", lab.getAttribute("data-bucketid"));
-    blank.addEventListener("click", function () {
+    blank.addEventListener("mousedown", function () {
       showList(this.parentElement.nextElementSibling);
     });
 
     const optList = document.createElement("div");
     optList.classList.add("quiz-optList");
-    optList.addEventListener("click", function () {
+    optList.addEventListener("mousedown", function () {
       showList(this.nextElementSibling);
     });
     optList.appendChild(blank);
 
     const chClone = choices.cloneNode(true); // exclude first blank option
     for (let i = 1; i < chClone.children.length; i++) {
-      chClone.children[i].addEventListener("click", makeSelection);
+      chClone.children[i].addEventListener("mousedown", makeSelection);
     }
 
     buckets.removeChild(allBuckets[i]);
@@ -349,7 +352,7 @@ function buildPlainMatch(question) {
       sh.classList.remove("shown");
     }
     opt.classList.add("shown");
-    document.addEventListener("click", hideList);
+    document.addEventListener("mousedown", hideList);
   }
   function makeSelection() {
     this.classList.remove("correct", "incorrect", "correct-notSelected"); // allow multiple attempts to solve
@@ -359,7 +362,7 @@ function buildPlainMatch(question) {
     if (this.classList.contains("selected")) {
       let cl = this.cloneNode(true);
       ol.appendChild(cl);
-      cl.addEventListener("click", function () {
+      cl.addEventListener("mousedown", function () {
         showList(this.parentElement.nextElementSibling);
       });
     } else {
@@ -378,10 +381,10 @@ function buildPlainMatch(question) {
       !event.target.classList.contains("shown")
     ) {
       question.getElementsByClassName("shown")[0].classList.remove("shown");
-      document.removeEventListener("click", hideList);
+      document.removeEventListener("mousedown", hideList);
     }
   }
-  solutionButton.addEventListener("click", () => {
+  solutionButton.addEventListener("mousedown", () => {
     const matches = matchItems.querySelectorAll(".matchQuestion");
     for (let mq of matches) {
       let list = mq.querySelector(".quiz-optList");
@@ -399,7 +402,7 @@ function buildPlainMatch(question) {
 
       let opts = list.nextElementSibling;
       for (let o of opts.children) {
-        // o.removeEventListener('click', makeSelection);
+        // o.removeEventListener('mousedown', makeSelection);
         if (o.getAttribute("data-bucketid") === correct) {
           allCorrect.push(o.textContent);
           o.classList.add(

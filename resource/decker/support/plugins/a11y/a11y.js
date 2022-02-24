@@ -19,8 +19,19 @@ function fixTabsByInert() {
   });
   Reveal.on("slidechanged", (event) => {
     if (event.previousSlide) {
-      // First shown slide causes error if we do not check for this
+      // First shown slide has no previous slide and causes an error if we do not check for this
+      let parent = event.previousSlide.parentElement;
+      if (parent.classList.contains("stack")) {
+        // Check if we were part of a slide stack and make the stack inert when we leave it.
+        parent.inert = true;
+      }
       event.previousSlide.inert = true;
+    }
+    let parent = event.currentSlide.parentElement;
+    if (parent.classList.contains("stack")) {
+      // Check if we are part of a slide stack and remove inert from the stack so this is not inert as part
+      // of its subtree.
+      parent.inert = false;
     }
     event.currentSlide.inert = false;
   });
