@@ -40,7 +40,6 @@
   --background-color: var(--shade0);
   --foreground-color: var(--shade7);
 
-  
   --header-color: var(--shade6);
   
   --primary-color: var(--accent5);
@@ -79,8 +78,8 @@
 
   --feedback-element-border-radius: 0.2em;
   --feedback-input-background-color: var(--shade0);
-  --feedback-header-background-color: var(--shade2);
-  --feedback-header-text-color: var(--shade7);
+  --feedback-header-background-color: var(--menu-header-background-color);
+  --feedback-header-text-color: var(--foreground-color);
   --feedback-list-background-color: rgba(0, 0, 0, 0);
   --feedback-list-text-color: var(--shade7);
   --feedback-footer-background-color: var(--shade2);
