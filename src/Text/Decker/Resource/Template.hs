@@ -55,12 +55,18 @@ defaultMetaPath = "template/default.yaml"
 readTemplate :: Meta -> FilePath -> IO (Template Text, [FilePath])
 readTemplate meta file = do
   (Resources decker pack) <- deckerResources meta
-  catch (readTemplate' pack) (\(SomeException _) -> readTemplate' decker)
+  catch
+    (readTemplate' pack)
+    (\(SomeException e) -> do readTemplate' decker)
   where
     readTemplate' source = do
       (text, needed) <- readTemplateText source
-      compiled <- handleLeft <$> runReaderT (compileTemplate "" text) source
-      return (compiled, needed)
+      compiled <- runReaderT (compileTemplate "" text) source
+      case compiled of
+        Right compiled -> return (compiled, needed)
+        Left msg -> do
+          putStrLn $ "# read template failed: " <> file <> ", source: " <> show source <> ", error: " <> msg
+          error (toText msg)
     readTemplateText (DeckerExecutable base) = do
       deckerExecutable <- getExecutablePath
       -- putStrLn $ "# reading: " <> file <> " from: " <> (deckerExecutable <> ":" <> base)

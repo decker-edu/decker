@@ -5,6 +5,11 @@
 @import url("./style.css");
 @import url("./media.css");
 
+html {
+  color: var(--foreground-color);
+  background-color: var(--background-color);
+}
+
 body.page {
   box-sizing: border-box;
   font-size: 16px;

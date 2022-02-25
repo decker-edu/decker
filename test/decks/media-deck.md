@@ -195,7 +195,7 @@ specified.
 # 3 somethings in a row
 
 | ![Alt Caption $e=mc^2$](include/06-metal.png)
-| ![Alt Caption $e=mc^2$](pacman-perfect-game.mp4){.controls .autoplay}
+| ![Alt Caption $e=mc^2$](pacman-perfect-game.mp4){.controls}
 | ![Even this!](teapot.off){w:h="1/1"}
 
 Caption: Caption all the things
@@ -304,7 +304,7 @@ Caption: Code blocks can have captions too.
 
 ## `{width=80% height=200px}`
 
-![Overwriting Block Caption $e=mc^2$](include/06-metal.png){align="center"
+![Overwriting Block Caption $e=mc^2$](include/06-metal.png "lallalal"){align="center"
 width="80%" height="200px"}
 
 # Local Inline Media

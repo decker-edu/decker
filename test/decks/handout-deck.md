@@ -124,7 +124,7 @@ Span]{.notes}
 -   Converted to inline images
 -   Just after the header
 
-# Backgrounds 2 ![In a slide, this is a background video.](pacman-perfect-game.mp4){controls="1"}
+# Backgrounds 2 ![In a slide, this is a background video.](pacman-perfect-game.mp4){.inverse controls="1"}
 
 ## Background Videos in Handouts
 

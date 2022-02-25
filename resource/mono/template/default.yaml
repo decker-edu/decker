@@ -1,5 +1,8 @@
 # Default meta data
 
+poll-server: wss://tramberend.bht-berlin.de/quizzer/quiz
+# poll-server: ws://localhost:3003/quiz
+
 # Use CSS augmentation without changes to the default template
 template:
   css: support/css/mono.css

@@ -178,12 +178,13 @@ uploadFiles suffixes = do
                 exists <- doesDirectoryExist (takeDirectory destination)
                 if exists && any (`isSuffixOf` destination) suffixes
                   then do
-                    renameFile tmp destination
                     -- Not handled by the build system anymore.
                     --
                     -- TODO remove once explain.js uses endpoints /replace and
                     -- /append
-                    when (takeExtension destination == ".webm") $ convertVideoMp4 destination
+                    if takeExtension destination == ".webm"
+                      then replaceVideoUpload tmp destination
+                      else renameFile tmp destination
                     putStrLn $ "# upload received: " <> destination
                   else throwM $ InternalException "Illegal upload path suffix"
             )

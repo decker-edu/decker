@@ -39,7 +39,7 @@ $e=mc^2$
 
 ------------------------------------------------------------------------
 
-# Inverse Colors for Big Dark Images {.inverse background-color="black"}
+# Inverse Colors for Big Dark Images {.inverse}
 
 ## Color scheme
 
