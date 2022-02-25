@@ -175,7 +175,7 @@ _This is italic text_
 H~2~O is a liquid.\
 2^3^ equals 8.
 
-# Inverse Colors {#inverse .inverse background-color="black"}
+# Inverse Colors {#inverse .inverse}
 
 ## Color Scheme for Dark Images
 
@@ -747,7 +747,7 @@ alert (s);
 
 ![](https://www.uni-wuerzburg.de/){.iframe}
 
-# Embed PDF documents {#embedPDF }
+# Embed PDF documents {}
 
 ``` {.markdown}
 ![](http://pandoc.org/MANUAL.pdf)
