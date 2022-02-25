@@ -1,13 +1,11 @@
 /* Wuerzburg Specific CSS */
 
-/* @import url("../fonts/roboto.css"); */
 @import url("../fonts/source-code-pro.css");
 @import url("./fonts.css");
 
 
 :root {
   --align-global: left;
-  /* --font-size-base: $font-size-base$; */
   --font-size-medium: 28px;
   --font-size-xx-small: 11.2px;
   --font-size-x-small: 16.8px;
@@ -23,10 +21,6 @@
   --border-decoration-width: 20px;
   --border-decoration-padding: 10px;
   --border-decoration-style: solid;  
-  /* --whiteboard-icon-size: $whiteboard-icon-size$; */
-  /* --whiteboard-active-color: $whiteboard-active-color$; */
-  /* --whiteboard-inactive-color: $whiteboard-inactive-color$; */
-  /* --whiteboard-background-color: $whiteboard-background-color$; */
 }
 
 .reveal section > figure:first-of-type {
@@ -80,28 +74,28 @@ a:hover {
  * TITLE SLIDE
  *******************/
 
-section#title-slide .banner img {
+.title-page .banner img {
   margin: 0px 0px 10px 0px;
   width: 100%;
   object-fit: contain;
 }
  
-section#title-slide :is(.title, .valign-block) {
+.title-page :is(.title, .valign-block) {
   text-align: center; 
 }
 
-section#title-slide :is(.subtitle, .author, .affiliation) {
+.title-page :is(.subtitle, .author, .affiliation) {
   font-weight: normal;
 } 
 
-section#title-slide .teaser-img {
+.title-page .teaser-img {
   margin: 20px auto;
   height: 10%;
   width: auto;
   display: block; 
 }
 
-section#title-slide .teaser-img img {
+.title-page .teaser-img img {
   display: block;
   margin: auto;
   object-fit: contain;
@@ -109,7 +103,7 @@ section#title-slide .teaser-img img {
   width: auto; 
 }
 
-section#title-slide .affiliation-logo img {
+.title-page .affiliation-logo img {
   margin: 0px 0 0 0;
   height: 70px;
   width: auto;
@@ -119,14 +113,14 @@ section#title-slide .affiliation-logo img {
   margin-right: auto; 
 }
 
-section#title-slide .valign-block:before {
+.title-page .valign-block:before {
   content: '';
   display: inline-block;
   height: 100%;
   vertical-align: middle;
 }
 
-section#title-slide .valigned {
+.title-page .valigned {
   display: inline-block;
   vertical-align: middle;
 } 
