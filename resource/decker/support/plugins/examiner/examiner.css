@@ -28,7 +28,6 @@ div.exa-quest button:active {
   background-color: var(--accent3);
 }
 
-
 div.exa-quest :is(input, button, textarea, select)[disabled] {
   color: var(--shade2);
 }
