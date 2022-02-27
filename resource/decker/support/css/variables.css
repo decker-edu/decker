@@ -50,10 +50,16 @@
   --highlight-color: var(--accent5-bg);
   --flying-focus-color: var(--highlight-color);
 
-  --menu-background-color: var(--shade1);
+  /* --menu-background-color: var(--shade1);
+  --menu-text-color: var(--shade7);
   --menu-border-color: var(--shade2);
   --menu-header-background-color: var(--shade2);
-  --menu-header-text-color: var(--shade7);
+  --menu-header-text-color: var(--shade7); */
+  --menu-text-color: var(--shade2);
+  --menu-background-color: var(--shade5);
+  --menu-header-text-color: var(--shade2);
+  --menu-header-background-color: var(--shade6);
+  --menu-border-color: var(--shade6);
 
   --feedback-element-border-radius: 0.2em;
   --feedback-input-background-color: var(--shade0);

@@ -1,142 +1,113 @@
 .decker-menu {
-    display: flex;
-    flex-direction: column;
-    z-index: 256;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.2rem;
 
-    background: var(--menu-background-color);
-    border-right: 2px solid var(--menu-border-color);
+  background: var(--menu-background-color);
+  color: var(--menu-text-color);
+  border-right: 2px solid var(--menu-border-color);
 }
 
 .menu-header {
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: space-between;
 
-    padding: 0.3em;
-    background: var(--menu-header-background-color);
-    color: var(--foreground-color);
+  padding: 0.3em;
+  color: var(--menu-header-text-color);
+  background: var(--menu-header-background-color);
+  border-bottom: 2px solid var(--menu-border-color);
 }
 
 .menu-header button {
-    font-size: 38px; /* This is not calculated correctly right now, probably because the menu is not part of the reveal element in order for inert to work */
-    border: none;
-    background: var(--icon-background-color);
-    color: var(--menu-background-color);
-    cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--menu-header-text-color);
 }
 
 .menu-header button:hover {
-    color: var(--icon-hover-color);
+  color: var(--icon-hover-color);
 }
 
 .menu-header button:active {
-    color: var(--icon-active-color);
+  color: var(--icon-active-color);
 }
 
-div.tile-grid {
-    display: flex;
-    height: 3em;
-}
-
-button.tile {
-    cursor: pointer;
-    display: block;
-    flex-grow: 1;
-    border: none;
-    border-radius: var(--icon-border-radius);
-
-    background: var(--icon-background-color);
-    font-size: 1.5em;
-    padding: 0;
-    margin: 0;
-    border-radius: 0;
-}
-
-button.tile > p {
-    font-size: 0.25em;
-    font-weight: bold;
-}
-
-@media screen and (max-width: 960px) {
-    button.tile > p {
-        display: none;
-    }
-}
-
-button.tile:hover , button.tile:focus {
-    color: var(--menu-background-color);
-    background: var(--icon-hover-color);
+button.tile:hover,
+button.tile:focus {
+  color: var(--menu-background-color);
+  background: var(--icon-hover-color);
 }
 
 button.tile:active {
-    color: var(--menu-background-color);
-    background: var(--icon-active-color);
+  color: var(--menu-background-color);
+  background: var(--icon-active-color);
 }
 
 ul.slide-list {
-    font-size: 0.8em;
-    list-style: none;
-
-    width: 100%;
-    padding: 0px 0px 4px 0px;
-    margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .slide-list-wrapper {
-    overflow: auto;
-    height: calc(100% - 72px); /*72px is what is usually calculated */
+  overflow: auto;
+  height: calc(100% - 72px); /*72px is what is usually calculated */
 }
 
 ul.slide-list > li {
-    padding: 4px 0px 4px 0px;
-    margin: 0;
-    width: auto;
-    border-bottom: 1px solid var(--primary-color);
-    display: flex;
-}
-
-ul.slide-list > li[data-slide-v] {
-    margin-left: 2em;
-}
-
-ul.slide-list >li[data-slide-v="0"] {
-    margin-left: 0;
+  padding: 0;
+  margin: 0;
+  border-bottom: 1px solid var(--menu-border-color);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
 }
 
 ul.slide-list > li > a {
-    display: flex;
-    width: calc(100% - 4px);
-    color: black;
-    font-family: Arial, Helvetica, sans-serif;
-    text-decoration: none;
+  display: flex;
+  color: var(--menu-text-color);
+  text-decoration: none;
+  width: 100%;
+  padding: 0.5em 1.5em 0.5em 1em;
+}
+
+ul.slide-list > li[data-slide-v] > a {
+  padding-left: 2em;
+}
+
+ul.slide-list > li[data-slide-v="0"] > a {
+  padding-left: 1em;
 }
 
 ul.slide-list > li:hover {
-    background: var(--hover-color);
+  background: var(--hover-color);
 }
 
 ul.slide-list > li:hover > a {
-    color: var(--menu-background-color);
+  color: var(--menu-text-color);
 }
 
 ul.slide-list > li::marker {
-    content: none;
+  content: none;
 }
 
-.glass {
-    display: none;
-    z-index: 128;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0,0,0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+#glass {
+  display: none;
+  z-index: 105;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
-.glass.show {
-    display: block;
+#glass.show {
+  display: block;
 }

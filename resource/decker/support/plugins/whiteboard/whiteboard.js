@@ -162,7 +162,7 @@ function showPanel() {
 // function to generate a button
 function createButton(classes, callback, active = false, tooltip) {
   let b = document.createElement("button");
-  b.className = classes;
+  b.className = "fa-button whiteboard " + classes;
   b.onclick = callback;
   b.dataset.active = active;
   if (tooltip) b.title = tooltip;
@@ -184,23 +184,8 @@ function createGUI() {
     hoverTimer = setInterval(hidePanel, 1000);
   };
 
-  /* As this is no longer the default button the only thing this button now does is exiting
-   * the whiteboard mode. */
-  buttonWhiteboard = createButton(
-    "whiteboard fas fa-edit",
-    toggleWhiteboard,
-    false,
-    "Toggle Whiteboard Mode"
-  );
-  buttonWhiteboard.id = "whiteboardButton";
-
-  if (Reveal.hasPlugin("ui-anchors")) {
-    let anchors = Reveal.getPlugin("ui-anchors");
-    anchors.placeButton(buttons, "BOTTOM_LEFT");
-  }
-
   buttonSave = createButton(
-    "whiteboard fas fa-save checkbox",
+    "fas fa-save checkbox",
     toggleAutoSave,
     autosave,
     "Toggle Auto-Save"
@@ -208,7 +193,7 @@ function createGUI() {
   buttonSave.setAttribute("role", "switch");
 
   buttonGrid = createButton(
-    "whiteboard fas fa-border-all checkbox",
+    "fas fa-border-all checkbox",
     toggleGrid,
     false,
     "Toggle Grid"
@@ -216,16 +201,16 @@ function createGUI() {
   buttonGrid.setAttribute("role", "switch");
 
   buttonAdd = createButton(
-    "whiteboard fas fa-plus",
+    "fas fa-plus",
     addWhiteboardPage,
     true,
     "Add Whiteboard Page"
   );
 
-  buttonUndo = createButton("whiteboard fas fa-undo", undo, false, "Undo");
+  buttonUndo = createButton("fas fa-undo", undo, false, "Undo");
 
   buttonPen = createButton(
-    "whiteboard fas fa-pen radiobutton",
+    "fas fa-pen radiobutton",
     () => {
       if (!buttons.classList.contains("visible")) {
         showPanel();
@@ -242,9 +227,10 @@ function createGUI() {
     "Select or change Pen"
   );
   buttonPen.setAttribute("role", "switch");
+  buttonPen.style.position = "relative";
 
   buttonEraser = createButton(
-    "whiteboard fas fa-eraser radiobutton",
+    "fas fa-eraser radiobutton",
     () => {
       if (!buttons.classList.contains("visible")) {
         showPanel();
@@ -259,7 +245,7 @@ function createGUI() {
   buttonEraser.setAttribute("role", "switch");
 
   buttonLaser = createButton(
-    "whiteboard fas fa-magic radiobutton",
+    "fas fa-magic radiobutton",
     () => {
       if (!buttons.classList.contains("visible")) {
         showPanel();
@@ -273,17 +259,31 @@ function createGUI() {
   );
   buttonLaser.setAttribute("role", "switch");
 
+  buttonWhiteboard = createButton(
+    "fas fa-edit checkbox",
+    toggleWhiteboard,
+    false,
+    "Toggle Whiteboard Mode"
+  );
+  buttonWhiteboard.id = "whiteboardButton";
+
+  if (Reveal.hasPlugin("ui-anchors")) {
+    let anchors = Reveal.getPlugin("ui-anchors");
+    anchors.placeButton(buttons, "BOTTOM_LEFT");
+  }
+
   // generate color picker container
   colorPicker = document.createElement("div");
   colorPicker.id = "whiteboardColorPicker";
-  buttons.appendChild(colorPicker);
+  buttonPen.appendChild(colorPicker);
 
   // color buttons
   penColors.forEach((color) => {
     let b = document.createElement("button");
-    b.className = "whiteboard fas fa-circle";
-    b.onclick = () => {
+    b.className = "fa-button whiteboard fas fa-circle";
+    b.onclick = (evt) => {
       selectPenColor(color);
+      evt.stopImmediatePropagation();
     };
     b.tooltip = color;
     b.setAttribute("aria-label", color);
@@ -295,10 +295,11 @@ function createGUI() {
     const slideScale = Reveal.getScale();
     const radius = r * slideScale + "px";
     let b = document.createElement("button");
-    b.className = "whiteboard fas fa-circle";
+    b.className = "fa-button whiteboard fas fa-circle";
     b.style.fontSize = radius;
-    b.onclick = () => {
+    b.onclick = (evt) => {
       selectPenRadius(r);
+      evt.stopImmediatePropagation();
     };
     b.tooltip = radius;
     b.setAttribute("aria-label", radius);
@@ -558,18 +559,18 @@ function hideColorPicker() {
 }
 
 function selectPenColor(col) {
-  hideColorPicker();
   penColor = col;
   buttonPen.style.color = penColor;
   createPenCursor();
   selectCursor(penCursor);
+  hideColorPicker();
 }
 
 function selectPenRadius(radius) {
-  hideColorPicker();
   penWidth = radius;
   createPenCursor();
   selectCursor(penCursor);
+  hideColorPicker();
 }
 
 function toggleWhiteboard(state) {
