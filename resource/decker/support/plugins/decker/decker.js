@@ -1,28 +1,35 @@
-// reference to Reveal object
-let Reveal;
-
 // store href *before* reveal modifies it (adds hash of title slide)
 const deckPathname = location.pathname;
-const deckHash = location.hash;
 
 // is the user generating a PDF?
 const printMode = /print-pdf/gi.test(window.location.search);
 
 // Fix some decker-specific things when slides are loaded
-function onStart() {
+function onStart(deck) {
   fixAutoplayWithStart();
   fixLinks();
   currentDate();
   prepareTaskLists();
   prepareFullscreenIframes();
   prepareCodeHighlighting();
-}
-
-// Fix some decker-specific things when Reveal is initilized
-function onReady() {
-  if (!printMode) {
-    setTimeout(continueWhereYouLeftOff, 500);
-  }
+  deck.addEventListener("ready", () => {
+    if (!printMode) {
+      setTimeout(() => continueWhereYouLeftOff(deck), 500);
+    }
+    prepareFlashPanel(deck);
+    preparePresenterMode(deck);
+    Decker.addPresenterModeListener((on) => {
+      if (on) {
+        Decker.flash.message(
+          `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`
+        );
+      } else {
+        Decker.flash.message(
+          `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
+        );
+      }
+    });
+  });
 }
 
 function fixAutoplayWithStart() {
@@ -199,14 +206,14 @@ function createElement({
   return e;
 }
 
-function continueWhereYouLeftOff() {
+function continueWhereYouLeftOff(deck) {
   // if *-deck.html was opened on the title slide,
   // and if user has visited this slide decks before,
   // then ask user whether to jump to slide where he/she left off
 
   if (localStorage) {
     // if we are on the first slide
-    const slideIndex = Reveal.getIndices();
+    const slideIndex = deck.getIndices();
     if (slideIndex && slideIndex.h == 0 && slideIndex.v == 0) {
       // ...and previous slide index is stored (and not title slide)
       const storedIndex = JSON.parse(localStorage.getItem(deckPathname));
@@ -242,7 +249,7 @@ function continueWhereYouLeftOff() {
           css: "font:inherit;",
           text: german ? "Ja" : "Yes",
           onclick: () => {
-            Reveal.slide(storedIndex.h, storedIndex.v);
+            deck.slide(storedIndex.h, storedIndex.v);
             hideDialog();
           },
         });
@@ -258,21 +265,21 @@ function continueWhereYouLeftOff() {
 
         // hide dialog after 5sec or on slide change
         setTimeout(hideDialog, 5000);
-        Reveal.addEventListener("slidechanged", hideDialog);
+        deck.addEventListener("slidechanged", hideDialog);
       }
     }
 
     // add hook to store current slide's index
     window.addEventListener("beforeunload", () => {
       // if explain video is playing, stop it to switch to current slide
-      if (Reveal.hasPlugin("explain")) {
-        const explainPlugin = Reveal.getPlugin("explain");
+      if (deck.hasPlugin("explain")) {
+        const explainPlugin = deck.getPlugin("explain");
         if (explainPlugin.isVideoPlaying()) {
           explainPlugin.stopVideo();
         }
       }
       // store current slide index in localStorage
-      const slideIndex = Reveal.getIndices();
+      const slideIndex = deck.getIndices();
       if (slideIndex && slideIndex.h != 0) {
         localStorage.setItem(deckPathname, JSON.stringify(slideIndex));
       }
@@ -280,16 +287,124 @@ function continueWhereYouLeftOff() {
   }
 }
 
+function prepareFlashPanel(deck) {
+  let pending = [];
+  let interval = null;
+
+  // This is why this needs to run after Reveal is ready.
+  let revealSlide = document.querySelector("div.reveal.slide");
+  if (!revealSlide)
+    throw "Reveal slide element is missing. This is seriously wrong.";
+
+  let panelHtml = `
+  <div class="decker-flash-panel">
+    <div class="content"> </div>
+  </div>
+  `;
+  revealSlide.insertAdjacentHTML("beforeend", panelHtml);
+
+  let panel = revealSlide.querySelector("div.decker-flash-panel");
+  let content = revealSlide.querySelector("div.decker-flash-panel div.content");
+
+  let update = (msg) => {
+    if (msg) {
+      // One more message.
+      if (interval) {
+        pending.push(msg);
+      } else {
+        interval = setInterval(update, 1000);
+        content.innerHTML = msg;
+        panel.classList.add("flashing");
+      }
+    } else {
+      // Called by interval timer. No new message.
+      if (pending.length != 0) {
+        content.innerHTML = pending.shift();
+      } else {
+        clearInterval(interval);
+        interval = null;
+        content.innerHTML = "";
+        panel.classList.remove("flashing");
+      }
+    }
+  };
+
+  Decker.flash = {
+    message: update,
+  };
+}
+
+// Setup the presenter mode toggle key binding and notification machinery.
+function preparePresenterMode(deck) {
+  let presenterMode = false;
+  let listeners = [];
+
+  if (!Decker)
+    throw "Global Decker object is missing. This is seriously wrong.";
+
+  // This is why this needs to run after Reveal is ready.
+  let revealSlide = document.querySelector("div.reveal.slide");
+  if (!revealSlide)
+    throw "Reveal slide element is missing. This is seriously wrong.";
+
+  Decker.addPresenterModeListener = (callback) => {
+    listeners.push(callback);
+  };
+
+  Decker.removePresenterModeListener = (callback) => {
+    listeners.filter((cb) => cb !== callback);
+  };
+
+  Decker.isPresenterMode = (callback) => {
+    return presenterMode;
+  };
+
+  Decker.tripleClick = (callback) => {
+    let pushCount = 0;
+    let lastPush = null;
+
+    return () => {
+      let now = Date.now();
+      if (lastPush && now - lastPush < 500) {
+        pushCount++;
+      } else {
+        pushCount = 1;
+      }
+      lastPush = now;
+
+      if (pushCount == 3) {
+        pushCount = 0;
+        callback();
+      }
+    };
+  };
+
+  deck.addKeyBinding(
+    {
+      keyCode: 80,
+      key: "P",
+      description: "Toggle Decker Presenter Mode (Triple Click)",
+    },
+
+    Decker.tripleClick(() => {
+      presenterMode = !presenterMode;
+
+      if (presenterMode) {
+        revealSlide.classList.add("presenter-mode");
+      } else {
+        revealSlide.classList.remove("presenter-mode");
+      }
+
+      for (let callback of listeners) {
+        callback(presenterMode);
+      }
+    })
+  );
+}
+
 const Plugin = {
   id: "decker",
-  init: (deck) => {
-    Reveal = deck;
-    return new Promise(function (resolve) {
-      onStart();
-      Reveal.addEventListener("ready", onReady);
-      resolve();
-    });
-  },
+  init: onStart,
 };
 
 export default Plugin;

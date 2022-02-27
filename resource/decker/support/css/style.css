@@ -147,13 +147,21 @@ div.block {
 }
 
 /* No bottom margin for last elements in a stack. */
-:last-child {
+:is(h1, p, div, ul, ol, table):last-child {
   margin-bottom: 0 !important;
 }
 
 /* Align headers with blocks. */
 section h1 {
   padding: 0 calc(var(--block-border-width) + var(--block-outset));
+}
+
+span.math.display {
+  display: block;
+  margin: 0.25em;
+  padding: 0.25em;
+  background-color: var(--shade1);
+  border-radius: var(--block-border-radius);
 }
 
 /* Stretch the block header margin to the block border so that highlighting
@@ -204,7 +212,7 @@ div.block.accent7 {
 
 div.block:is(.question, .answer, .observation, .example, .def, .definition, .note, .ale, .alert, .equ, .equation, .theorem) {
   border: none;
-  border-right: calc(var(--block-border-width)) solid rgb(0,0,0,0);
+  border-right: calc(var(--block-border-width)) solid rgb(0, 0, 0, 0);
 }
 
 div:is(.ale, .alert, .question).block {
@@ -216,11 +224,11 @@ div.block:is(.answer, .def, .definition, .equ, .equation, .theorem) {
 }
 
 div.block:is(.example, .observation) {
-  border-left: calc(var(--block-border-width)) solid #00f; 
+  border-left: calc(var(--block-border-width)) solid #00f;
 }
 
 div.block.note {
-  border-left: calc(var(--block-border-width)) solid #ff9300; 
+  border-left: calc(var(--block-border-width)) solid #ff9300;
 }
 
 span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
@@ -379,7 +387,7 @@ section.slide:is(.inverse, .has-dark-background) {
   font-size: smaller;
 }
 
-.reveal .footnoteref { 
+.reveal .footnoteref {
   font-weight: 900;
 }
 
@@ -387,7 +395,6 @@ section.slide:is(.inverse, .has-dark-background) {
   vertical-align: sub;
   font-size: smaller;
 }
-
 
 .reveal blockquote {
   display: block;
@@ -402,6 +409,7 @@ section.slide:is(.inverse, .has-dark-background) {
   font-style: italic;
 }
 
-.reveal blockquote p:first-child, .reveal blockquote p:last-child {
+.reveal blockquote p:first-child,
+.reveal blockquote p:last-child {
   display: inline-block;
 }

@@ -170,3 +170,32 @@ div.block[popup="center-down"] {
 .reveal .slide-number a:hover {
   text-decoration: none;
 }
+
+div.decker-flash-panel {
+  z-index: 1000;
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+}
+
+div.decker-flash-panel:not(.flashing) {
+  display: none;
+}
+
+div.decker-flash-panel div.content {
+  font-size: 2rem;
+  background-color: var(--shade1);
+  color: var(--shade6);
+  border: solid 0.1em var(--accent2);
+  border-radius: var(--block-border-radius);
+  padding: 0.25em 0.5em;
+}

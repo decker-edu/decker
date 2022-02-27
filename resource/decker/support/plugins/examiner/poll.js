@@ -3,7 +3,7 @@ export { pollSession };
 
 // This might be overkill, but it is the only generator in a proper ES6 module i
 // could find.
-import bwipjs from "https://cdnjs.cloudflare.com/ajax/libs/bwip-js/3.0.4/bwip-js.mjs";
+import bwipjs from "./bwip.js";
 
 var session = null;
 
@@ -30,7 +30,6 @@ function pollSession({
     session.socket = new WebSocket(serverUrl);
 
     session.socket.addEventListener("open", (e) => {
-      console.log("Poll:", "server connected.");
       if (clientCss)
         session.socket.send(
           JSON.stringify({ tag: "ClientCss", clientCss: clientCss })
@@ -38,19 +37,18 @@ function pollSession({
     });
 
     session.socket.addEventListener("error", (e) => {
-      error("Poll:", "ERROR: ", "Cannot connect to:", url);
+      console.error("Poll:", "Cannot connect to:", url);
     });
 
     session.socket.addEventListener("close", (e) => {
-      console.log("Poll:", "ERROR: ", "Server went away.");
+      console.error("Poll:", "Server went away.");
       if (session.onClose) session.onClose();
     });
 
     session.socket.addEventListener("message", (e) => {
       let message = JSON.parse(e.data);
-      console.log("Poll:", "Received message:", message);
       if (message.error) {
-        console.log("Poll:", "Server error:", message.error);
+        console.error("Poll:", "Server error:", message.error);
       } else if (message.key != null) {
         session.id = message.key;
         session.clientUrl = clientBaseUrl
@@ -60,7 +58,10 @@ function pollSession({
         resolve({
           // Returns the 4 digit session id and the client url for this session.
           sessionId: () => {
-            return { id: session.id, url: session.clientUrl };
+            return {
+              id: session.id,
+              url: session.clientUrl,
+            };
           },
 
           // Constructs a qr code from the client url in the provided canvas element.
@@ -106,26 +107,28 @@ function pollSession({
           reset: () => {
             session.socket.send(JSON.stringify({ tag: "Reset" }));
           },
+          close: () => {
+            session.socket.send(JSON.stringify({ tag: "Reset" }));
+            session.socket.close();
+            session.socket = null;
+          },
         });
       } else {
         switch (message.quiz.state) {
           case "Ready":
-            console.log("Poll: Ready");
             if (session.onReady) session.onReady();
             break;
 
           case "Active":
-            console.log("Poll: Active");
             session.ui.onActive(message.participants, message.quiz.choices);
             break;
 
           case "Finished":
-            console.log("Poll: Finished");
             session.ui.onFinished(message.participants, message.quiz.choices);
             session.ui = null;
             break;
           default:
-            console.log("Received unknown message: ", message);
+            console.error("Received unknown message: ", message);
         }
       }
     });
@@ -136,7 +139,6 @@ function client(str) {
   let url = new URL(str);
   if (url.protocol == "ws:") url.protocol = "http";
   else url.protocol = "https";
-  console.log(url)
   url.pathname = url.pathname.replace(/quiz$/, "client");
   return url;
 }

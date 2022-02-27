@@ -90,13 +90,13 @@ $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
 
-  <script>
+  <script type="module">
     /* Store JSON encoded Pandoc meta data in a global variable. */
-    window.Decker = {meta: $decker-meta$};
+    import initializeDecker from "./$decker-support-dir$/js/decker.js";
+    initializeDecker($decker-meta$);
   </script>
 
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
-  <script src="$decker-support-dir$/js/decker.js"></script>
 </head>
 
 <body class="deck">
