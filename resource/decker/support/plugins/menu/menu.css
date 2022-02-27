@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   font-size: 1.2rem;
-
   background: var(--menu-background-color);
   color: var(--menu-text-color);
   border-right: 2px solid var(--menu-border-color);
@@ -103,9 +102,8 @@ ul.slide-list > li::marker {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 #glass.show {

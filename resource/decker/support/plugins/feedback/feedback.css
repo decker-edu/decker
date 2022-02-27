@@ -6,8 +6,8 @@
 
   background: var(--menu-background-color);
   color: var(--menu-text-color);
+  width: max(33%, 20em);
   border-left: 2px solid var(--menu-border-color);
-  width: 33%;
 }
 
 /* Badges */
@@ -366,10 +366,9 @@ div.feedback-menu div.feedback-item img {
 }
 
 /* Slide Menu Badges */
-
 li.slide-list-item[data-questions]::after {
   content: attr(data-questions);
-  margin-left: 1em;
+  margin: 0 0.5em 0 1em;
   font-size: 0.9em;
   height: 1em;
 
@@ -387,7 +386,6 @@ li.slide-list-item[data-questions]::after {
   border-radius: 0.4em;
   padding: 0.2em 0.4em;
 }
-
 li.slide-list-item[data-questions][data-answered="true"]::after {
   background-color: var(--base0B);
 }
