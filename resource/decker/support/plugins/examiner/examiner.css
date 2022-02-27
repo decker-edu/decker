@@ -4,10 +4,7 @@ div.exa-quest {
   font-size: 90%;
 }
 
-div.exa-quest input,
-div.exa-quest button,
-div.exa-quest textarea,
-div.exa-quest select {
+div.exa-quest :is(input, button, textarea, select) {
   background-color: var(--shade1);
   color: var(--shade6);
 
@@ -27,6 +24,19 @@ div.exa-quest select {
   appearance: none;
 }
 
+div.exa-quest button:active {
+  background-color: var(--accent3);
+}
+
+
+div.exa-quest :is(input, button, textarea, select)[disabled] {
+  color: var(--shade2);
+}
+
+div.exa-quest button:not([disabled]):hover {
+  background-color: var(--accent3-bg);
+}
+
 .reveal div.exa-quest {
   overflow-y: scroll;
   overflow-x: auto;
@@ -35,18 +45,6 @@ div.exa-quest select {
 .handout div.exa-quest {
   padding: 1em;
   border: solid 1px lightgray;
-}
-
-div.exa-quest button {
-  background-color: var(--shade1);
-}
-
-div.exa-quest button:hover {
-  background-color: var(--accent3-bg);
-}
-
-div.exa-quest button:active {
-  background-color: var(--accent3);
 }
 
 div.exa-quest button.solve {
