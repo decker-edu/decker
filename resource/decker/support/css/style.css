@@ -413,3 +413,23 @@ section.slide:is(.inverse, .has-dark-background) {
 .reveal blockquote p:last-child {
   display: inline-block;
 }
+
+/* buttons with font-awesome icons */
+button.fa-button {
+  display: inline-block;
+  position: relative;
+  font-size: calc(var(--icon-size) * 1);
+  width: calc(var(--icon-size) * 2);
+  height: calc(var(--icon-size) * 2);
+  padding: calc(var(--icon-size) * 0.15);
+  margin: calc(var(--icon-size) * 0.15);
+  background: none;
+  font-family: "Font Awesome 5 Free";
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+button.fa-button:focus,
+button.fa-button::-moz-focus-inner {
+  outline: none;
+  border: none;
+}
