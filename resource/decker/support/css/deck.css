@@ -53,48 +53,6 @@ section#title-slide p:is(.date) {
   background-color: var(--background-color);
 }
 
-/* Menu icon in top left corner */
-.reveal .slide-menu-button {
-  position: fixed;
-  left: var(--controls-gap);
-  top: var(--controls-gap);
-  bottom: auto;
-  right: auto;
-  padding: calc(var(--icon-size) * 0.5);
-  margin: auto;
-  z-index: 40;
-  background: none;
-  font-size: var(--icon-size);
-  opacity: 0.5;
-  color: var(--icon-inactive-color);
-}
-
-.reveal .slide-menu-button:hover {
-  opacity: 1;
-  color: var(--icon-active-color);
-}
-
-.reveal .slide-menu-button a {
-  color: inherit;
-}
-
-/* slide number and control arrows */
-
-/* Trying hard to center the slide number in the controls. This is hopeless with
-viewport relative sizing and/or vertical slides. It should probably not be the
-default.*/
-
-:root {
-  --controls-gap: 1vmin;
-  --controls-size: 1vmin;
-}
-
-.reveal .controls {
-  font-size: var(--controls-size);
-  bottom: var(--controls-gap);
-  right: var(--controls-gap);
-}
-
 /* Blocks can popup somewhere on the slide. */
 div.block[popup] {
   /* Positioned relative the div.alignment element. */
@@ -128,43 +86,53 @@ div.block[popup="center-down"] {
   transform: translate(-50%, -50%) rotate(23deg) scale(1);
 }
 
-/* Giving up. Centering this at the bottom. */
-.reveal .slide-number {
-  font-size: 1rem;
-  margin: 0.1rem;
-  text-align: center;
-
-  left: 50%;
-  bottom: var(--controls-gap);
-  transform: translate(-50%, 0);
-
-  background-color: rgba(0, 0, 0, 0);
-  opacity: 0.5;
-  color: var(--icon-inactive-color);
+/* control arrows */
+.reveal .controls {
+  font-size: calc(var(--icon-size) * 0.4);
+  bottom: calc(var(--icon-size) * 0.2);
+  right: calc(var(--icon-size) * 0.4);
 }
-
-.reveal .slide-number:hover {
-  opacity: 1;
-  color: var(--icon-active-color);
+.reveal:not(.has-vertical-slides) .controls .navigate-left {
+  right: 6.4em; /* keep this the same as for has-vertical-slides */
 }
-
-/* Trying to robustly center this to the controls is hopeless.
-.reveal .slide-number {
-  font-size: calc(2 * var(--controls-size));
-  width: calc(9 * var(--controls-size));
-  height: calc(9 * var(--controls-size));
-  line-height: calc(9 * var(--controls-size));
-  right: var(--controls-gap);
-  bottom: var(--controls-gap);
-  text-align: center;
-  background-color: rgba(0, 0, 0, 0);
-} */
-
+.reveal:not(.has-vertical-slides) .controls .navigate-right {
+  right: 0; /* keep this the same as for has-vertical-slides */
+}
 .reveal .controls-arrow {
   color: var(--icon-inactive-color);
 }
 .reveal .controls-arrow:hover {
-  color: var(--icon-active-color);
+  color: var(--icon-hover-color);
+}
+
+/* slide number centered withing control arrows */
+.reveal .slide-number {
+  font-size: calc(var(--icon-size) * 0.8);
+  pointer-events: none;
+  position: fixed;
+  padding: 0px;
+  top: auto;
+  left: auto;
+  bottom: 1.75em;
+  right: -0em;
+  width: 3em;
+  text-align: center;
+  font-family: sans-serif;
+  color: var(--base07);
+  background: none;
+  transform: translate(-50%, -50%);
+}
+.reveal:not(.has-vertical-slides) .slide-number {
+  bottom: 0.8em;
+}
+.reveal .slide-number > a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.reveal .slide-number-delimiter {
+  margin: 0px 1px;
+  padding: 0;
 }
 .reveal .slide-number a,
 .reveal .slide-number a:hover {
