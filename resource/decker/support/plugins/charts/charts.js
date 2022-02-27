@@ -147,6 +147,12 @@ function createChart(canvas, CSV, comments) {
     }
   }
 
+  // horizontal bar charts?
+  if (canvas.getAttribute("data-chart") == "horizontalBar") {
+    canvas.setAttribute("data-chart", "bar");
+    chartOptions.indexAxis = "y";
+  }
+
   canvas.chart = new Chart(ctx, {
     type: canvas.getAttribute("data-chart"),
     data: chartData,
@@ -165,7 +171,8 @@ let initializeCharts = function () {
     "pie",
     "polarArea",
   ];
-  let classes = types.map((s) => (s + "-chart").toLowerCase());
+  // let classes = types.map((s) => (s + "-chart").toLowerCase());
+  let classes = types.map((s) => s + "-chart");
   let selectors = classes.map((s) => "pre." + s).join();
 
   let charts = document.querySelectorAll(selectors);
@@ -303,6 +310,15 @@ const Plugin = {
     if (config) {
       mergeRecursive(Chart.defaults, config);
     }
+
+    // MARIO: set color depending on dark/light mode
+    const colors =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? window.Decker.meta.palette.colors.dark
+        : window.Decker.meta.palette.colors.light;
+    Chart.defaults.color = colors[7];
+    Chart.defaults.borderColor = colors[2];
 
     Reveal.addEventListener("ready", function () {
       // MARIO: when in print mode, set animation duration to zero
