@@ -7,7 +7,7 @@
  * @author Sebastian Hauer
  */
 
-class SlideMenu {
+ class SlideMenu {
   id;
   reveal;
   config;
@@ -32,6 +32,7 @@ class SlideMenu {
     this.settings = {
       container: undefined,
       fragments_toggle: undefined,
+      color_toggle: undefined,
     };
     this.glass = undefined;
     this.position = position;
@@ -517,13 +518,31 @@ class SlideMenu {
     document.body.appendChild(this.glass);
   }
 
+  toggleColorMode(dark) {
+    if(dark) {
+      localStorage.setItem("color-scheme", "dark");
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+    } else {
+      localStorage.setItem("color-scheme", "light");
+      document.documentElement.classList.add("light");
+      document.documentElement.classList.remove("dark");
+    }
+  }
+
   getColorModePreference() {
     let match = window.matchMedia("(prefers-color-scheme: dark)");
     let system = match.matches ? "dark" : "light";
     let storage = localStorage.getItem("color-scheme");
     let choice = storage ? storage : system;
-    console.log("choice", choice);
     return choice;
+  }
+
+  initializeColorModePreference() {
+    let storage = localStorage.getItem("color-scheme");
+    if(storage) {
+      this.toggleColorMode(storage === "dark");
+    }
   }
 
   initializeSettingsMenu() {
@@ -558,6 +577,17 @@ class SlideMenu {
           this.localization.toggle_color_label
         }</label>
       </div>
+      <div class="settings-toggle-wrapper">
+        <label for="setting-toggle-annotations" class="settings-toggle" aria-label="${
+          this.localization.toggle_annotations_label
+        }">
+          <input id="setting-toggle-annotations" class="settings-toggle-checkbox" type="checkbox" checked />
+          <span class="slider round"></span>
+        </label>
+        <label for="setting-toggle-annotations">${
+          this.localization.toggle_annotations_label
+        }</label>
+      </div>
     </div>
 </div>`;
     this.settings.container = template.content.firstElementChild;
@@ -568,6 +598,13 @@ class SlideMenu {
     this.settings.fragments_toggle.addEventListener("change", (event) =>
       this.toggleFragments()
     );
+    this.settings.color_toggle = this.settings.container.querySelector(
+      "#setting-toggle-color"
+    );
+    this.settings.color_toggle.addEventListener("change", (event) => {
+      console.log(event);
+      this.toggleColorMode(this.settings.color_toggle.checked);
+    });
   }
 
   init(reveal) {
@@ -582,6 +619,7 @@ class SlideMenu {
       close_settings_label: "Close Settings",
       toggle_fragments_label: "Show Slide Fragments",
       toggle_color_label: "Use dark mode",
+      toggle_annotations_label: "Show handwritten notes",
       close_label: "Close Navigation Menu",
       no_title: "No Title",
       title: "Navigation",
@@ -598,7 +636,8 @@ class SlideMenu {
         open_settings_label: "Einstellungen öffnen",
         close_settings_label: "Einstellungen schließen",
         toggle_fragments_label: "Folienfragmente anzeigen",
-        toggle_color_label: "Dunkles Farbschema verwenden",
+        toggle_color_label: "'Dark Mode' verwenden",
+        toggle_annotations_label: "Notizen einblenden",
         close_label: "Navigationsmenu schließen",
         no_title: "Kein Titel",
         title: "Navigation",
@@ -609,6 +648,7 @@ class SlideMenu {
 
     this.initializeButton();
     this.initializeMenu();
+    this.initializeColorModePreference();
 
     document.body.appendChild(this.menu.container);
 
