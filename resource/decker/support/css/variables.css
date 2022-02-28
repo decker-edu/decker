@@ -41,7 +41,7 @@
   --foreground-color: var(--shade7);
 
   --header-color: var(--shade6);
-  
+
   --primary-color: var(--accent5);
   --secondary-color: var(--accent1);
 
@@ -52,6 +52,7 @@
   --flying-focus-color: var(--highlight-color);
 
   --icon-active-color: var(--accent5);
+  --icon-disabled-color: var(--shade2);
   --icon-inactive-color: var(--shade3);
   --icon-hover-color: var(--hover-color);
   --icon-background-color: rgba(0, 0, 0, 0);
@@ -76,13 +77,15 @@
   --menu-header-background-color: var(--blueish);
   --menu-header-text-color: var(--shade7);
 
+  --common-menu-header-height: 3rem;
+  --common-menu-header-padding: 0.5rem;
+
   --feedback-element-border-radius: 0.2em;
-  --feedback-input-background-color: var(--shade0);
+  --feedback-input-background-color: var(--shade1);
   --feedback-header-background-color: var(--menu-header-background-color);
   --feedback-header-text-color: var(--foreground-color);
   --feedback-list-background-color: rgba(0, 0, 0, 0);
   --feedback-list-text-color: var(--shade7);
   --feedback-footer-background-color: var(--shade2);
   --feedback-footer-text-color: var(--shade7);
-
 }

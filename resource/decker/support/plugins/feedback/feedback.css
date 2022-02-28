@@ -11,7 +11,7 @@
 
   transition: transform 0.5s;
   z-index: 256;
-  
+
   background: var(--menu-background-color);
   border-left: 2px solid var(--menu-border-color);
 }
@@ -26,7 +26,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  color: var(--base00);
+  color: var(--background-color);
 }
 
 .feedback-badge[data-count="0"] {
@@ -37,7 +37,8 @@
   font-size: 40%;
 }
 
-.feedback-badge, .counter {
+.feedback-badge,
+.counter {
   font-family: sans-serif;
   font-weight: bold;
   line-height: 1;
@@ -46,12 +47,20 @@
   white-space: nowrap;
   border-radius: 0.4em;
   padding: 0.2em 0.4em;
-  background-color: var(--base08);
-  color: white;
+  background-color: var(--color-error);
+  color: var(--background-color);
 }
 
-.feedback-badge.answered, .counter.answered {
-  background-color: var(--base0B);
+.feedback-badge.answered,
+.counter.answered {
+  background-color: var(--color-success);
+}
+
+@media (prefers-color-scheme: dark) {
+  .feedback-badge,
+  .counter {
+    color: var(--foreground-color);
+  }
 }
 
 /* Menu Parts */
@@ -68,7 +77,10 @@ div.feedback-header {
   align-items: center;
   justify-content: space-between;
 
-  padding: 0.3em;
+  min-height: var(--common-menu-header-height);
+  max-height: var(--common-menu-header-height);
+
+  padding: var(--common-menu-header-padding);
   background: var(--menu-header-background-color);
   color: var(--foreground-color);
 }
@@ -125,7 +137,7 @@ div.feedback-footer button {
 
 div.feedback-header-buttons button,
 div.feedback-footer button {
-  font-size: 1em;
+  font-size: var(--icon-size);
   margin-left: 0.4em;
 
   flex: 0 1;
@@ -171,7 +183,7 @@ div.feedback-menu div.feedback-list div.feedback-item {
 
   display: flex;
   flex-flow: row nowrap;
-/*  align-items: center; */
+  /*  align-items: center; */
   justify-content: space-between;
 }
 
@@ -210,24 +222,24 @@ div.feedback-list button {
   margin: 0;
   padding: 0;
 
-  font-size: 1em;
+  font-size: calc(var(--icon-size) * 0.75);
 }
 
 div.feedback-menu button.answered {
-  color: var(--base0B);
+  color: var(--color-success);
 }
 
 div.feedback-menu button.notanswered {
-  color: var(--base08);
+  color: var(--color-error);
 }
 
 div.feedback-menu button.cantvote {
   cursor: default;
-  color: var(--base02);
+  color: var(--icon-disabled-color);
 }
 
 div.feedback-menu button.cantvote:hover {
-  color: var(--base02);
+  color: var(--icon-disabled-color);
 }
 
 div.feedback-item button {
@@ -247,6 +259,7 @@ div.feedback-question-input textarea {
   height: 6em;
   width: calc(100% - 0.6em);
 
+  color: var(--foreground-color);
   background-color: var(--feedback-input-background-color);
 
   border: none;
@@ -254,9 +267,19 @@ div.feedback-question-input textarea {
   font-size: 0.8em;
 }
 
+@media (prefers-color-scheme: dark) {
+  div.feedback-question input textarea {
+    background-color: var(--shade1);
+  }
+}
+
 div.feedback-question-input textarea[answer] {
   background-color: var(--base0B-bbg);
   border: solid 1px var(--base0C-bbg);
+}
+
+div.feedback-question-input textarea::placeholder {
+  color: var(--shade6);
 }
 
 div.feedback-menu div.feedback-footer {

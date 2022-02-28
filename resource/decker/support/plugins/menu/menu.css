@@ -1,142 +1,228 @@
 .decker-menu {
-    display: flex;
-    flex-direction: column;
-    z-index: 256;
+  display: flex;
+  flex-direction: column;
+  z-index: 256;
 
-    background: var(--menu-background-color);
-    border-right: 2px solid var(--menu-border-color);
+  background: var(--menu-background-color);
+  border-right: 2px solid var(--menu-border-color);
 }
 
 .menu-header {
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 258;
+  min-height: var(--common-menu-header-height);
+  max-height: var(--common-menu-header-height);
 
-    padding: 0.3em;
-    background: var(--menu-header-background-color);
-    color: var(--foreground-color);
+  padding: var(--common-menu-header-padding);
+  background: var(--menu-header-background-color);
+  color: var(--foreground-color);
 }
 
 .menu-header button {
-    font-size: 38px; /* This is not calculated correctly right now, probably because the menu is not part of the reveal element in order for inert to work */
-    border: none;
-    background: var(--icon-background-color);
-    color: var(--menu-background-color);
-    cursor: pointer;
+  border: none;
+  background: var(--icon-background-color);
+  cursor: pointer;
+  font-size: var(--icon-size);
+  color: var(--foreground-color);
+}
+
+.menu-header button p {
+  display: none;
 }
 
 .menu-header button:hover {
-    color: var(--icon-hover-color);
+  color: var(--icon-hover-color);
 }
 
 .menu-header button:active {
-    color: var(--icon-active-color);
+  color: var(--icon-active-color);
 }
 
-div.tile-grid {
-    display: flex;
-    height: 3em;
+@keyframes turning {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
 }
 
-button.tile {
-    cursor: pointer;
-    display: block;
-    flex-grow: 1;
-    border: none;
-    border-radius: var(--icon-border-radius);
-
-    background: var(--icon-background-color);
-    font-size: 1.5em;
-    padding: 0;
-    margin: 0;
-    border-radius: 0;
+#decker-menu-settings-button:hover {
+  animation: 2s turning linear infinite;
 }
 
-button.tile > p {
-    font-size: 0.25em;
-    font-weight: bold;
+.menu-settings {
+  position: absolute;
+  top: calc(
+    var(--common-menu-header-height) + var(--common-menu-header-padding) * 2
+  );
+  left: 0;
+  width: 100%;
+  height: calc(
+    100% - var(--common-menu-header-height) + var(--common-menu-header-padding) *
+      2
+  );
+  z-index: 257;
+
+  background: var(--background-color);
+
+  transition: transform 0.5s;
 }
 
-@media screen and (max-width: 960px) {
-    button.tile > p {
-        display: none;
-    }
+.menu-settings[inert] {
+  transform: translateY(-100%);
 }
 
-button.tile:hover , button.tile:focus {
-    color: var(--menu-background-color);
-    background: var(--icon-hover-color);
+.settings-item {
+  position: relative;
 }
 
-button.tile:active {
-    color: var(--menu-background-color);
-    background: var(--icon-active-color);
+:root {
+  --slider-track-width: 2em;
+  --slider-track-height: 1em;
+  --slider-width: 0.8em;
+  --slider-margin: 0.1em;
+}
+
+.settings-toggle-wrapper {
+  position: relative;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.settings-toggle {
+  position: absolute;
+  display: inline-block;
+  width: var(--slider-track-width);
+  height: var(--slider-track-height);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.settings-toggle + label {
+  padding-left: calc(var(--slider-track-width) + 0.5em);
+  cursor: pointer;
+}
+
+.settings-toggle input {
+  position: absolute;
+  opacity: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--shade2);
+  transition: 0.5s;
+}
+
+.slider.round {
+  border-radius: 0.2rem;
+}
+
+.slider.round::before {
+  border-radius: 0.2rem;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  width: var(--slider-width);
+  left: var(--slider-margin);
+  top: var(--slider-margin);
+  bottom: var(--slider-margin);
+  background: var(--foreground-color);
+  transition: 0.5s;
+}
+
+input:checked + .slider {
+  background: var(--accent5);
+}
+
+input:checked + .slider:before {
+  transform: translateX(
+    calc(
+      var(--slider-track-width) - var(--slider-width) - 2 * var(--slider-margin)
+    )
+  );
 }
 
 ul.slide-list {
-    font-size: 0.8em;
-    list-style: none;
+  font-size: 0.8em;
+  list-style: none;
 
-    width: 100%;
-    padding: 0px 0px 4px 0px;
-    margin: 0;
+  width: 100%;
+  padding: 0 0 0.2rem 0;
+  margin: 0;
 }
 
 .slide-list-wrapper {
-    overflow: auto;
-    height: calc(100% - 72px); /*72px is what is usually calculated */
+  overflow: auto;
+  height: calc(
+    100% - var(--common-menu-header-height) - var(--common-menu-header-padding)
+  );
 }
 
 ul.slide-list > li {
-    padding: 4px 0px 4px 0px;
-    margin: 0;
-    width: auto;
-    border-bottom: 1px solid var(--primary-color);
-    display: flex;
+  padding: 4px 0px 4px 1rem;
+  margin: 0;
+  width: auto;
+  border-bottom: 1px solid var(--foreground-color);
+  display: flex;
 }
 
 ul.slide-list > li[data-slide-v] {
-    margin-left: 2em;
+  margin-left: 2em;
 }
 
-ul.slide-list >li[data-slide-v="0"] {
-    margin-left: 0;
+ul.slide-list > li[data-slide-v="0"] {
+  margin-left: 0;
 }
 
 ul.slide-list > li > a {
-    display: flex;
-    width: calc(100% - 4px);
-    color: black;
-    font-family: Arial, Helvetica, sans-serif;
-    text-decoration: none;
+  display: flex;
+  width: calc(100% - 4px);
+  color: var(--foreground-color);
+  font-family: Arial, Helvetica, sans-serif;
+  text-decoration: none;
 }
 
 ul.slide-list > li:hover {
-    background: var(--hover-color);
+  background: var(--hover-color);
 }
 
-ul.slide-list > li:hover > a {
-    color: var(--menu-background-color);
+ul.slide-list > li:active {
+  background: var(--active-color);
 }
 
 ul.slide-list > li::marker {
-    content: none;
+  content: none;
 }
 
 .glass {
-    display: none;
-    z-index: 128;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0,0,0, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+  display: none;
+  z-index: 128;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .glass.show {
-    display: block;
+  display: block;
 }
