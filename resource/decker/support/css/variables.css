@@ -72,10 +72,11 @@
   --highlight-color: var(--accent5-bg);
   --flying-focus-color: var(--highlight-color);
 
-  --menu-background-color: var(--shade0);
-  --menu-border-color: var(--shade7);
-  --menu-header-background-color: var(--blueish);
-  --menu-header-text-color: var(--shade7);
+  --menu-background-color: var(--shade1);
+  --menu-text-color: var(--shade6);
+  --menu-header-background-color: var(--shade3);
+  --menu-header-text-color: var(--shade6);
+  --menu-border-color: var(--shade3);
 
   --common-menu-header-height: 3rem;
   --common-menu-header-padding: 0.5rem;

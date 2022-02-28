@@ -1,23 +1,13 @@
 /* Menu */
-
 .feedback-menu {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: 33%;
   display: flex;
   flex-direction: column;
-
-  transition: transform 0.5s;
-  z-index: 256;
+  font-size: 1.2rem;
 
   background: var(--menu-background-color);
+  color: var(--menu-text-color);
+  width: max(33%, 20em);
   border-left: 2px solid var(--menu-border-color);
-}
-
-.feedback-menu[inert] {
-  transform: translateX(200%);
 }
 
 /* Badges */
@@ -34,7 +24,7 @@
 }
 
 .open-button .feedback-badge {
-  font-size: 40%;
+  font-size: 50%;
 }
 
 .feedback-badge,
@@ -53,14 +43,7 @@
 
 .feedback-badge.answered,
 .counter.answered {
-  background-color: var(--color-success);
-}
-
-@media (prefers-color-scheme: dark) {
-  .feedback-badge,
-  .counter {
-    color: var(--foreground-color);
-  }
+  background-color: var(--base0B);
 }
 
 /* Menu Parts */
@@ -82,7 +65,7 @@ div.feedback-header {
 
   padding: var(--common-menu-header-padding);
   background: var(--menu-header-background-color);
-  color: var(--foreground-color);
+  color: var(--menu-header-text-color);
 }
 
 div.feedback-title {
@@ -106,7 +89,7 @@ div.counter {
 
 div.feedback-menu div.feedback-header input {
   font-family: "Roboto", Helvetica, sans-serif;
-  font-size: 0.8em;
+  /* font-size: 0.8em; */
 }
 
 div.feedback-header input[type="text"],
@@ -121,28 +104,10 @@ div.feedback-header input[type="password"] {
   margin: 0;
 }
 
-div.feedback-header-buttons {
-  flex: 0 1;
-  display: flex;
-  flex-flow: row nowrap;
-}
-
-div.feedback-header-buttons button {
-  color: var(--menu-background-color);
-}
-
+div.feedback-header button,
 div.feedback-footer button {
-  color: var(--menu-background-color);
-}
-
-div.feedback-header-buttons button,
-div.feedback-footer button {
-  font-size: var(--icon-size);
-  margin-left: 0.4em;
-
   flex: 0 1;
-  display: flex;
-  flex-direction: column;
+  color: var(--menu-header-text-color);
 }
 
 div.feedback-menu button {
@@ -168,11 +133,12 @@ div.feedback-menu div.feedback-list {
   flex: 1 1;
   background-color: var(--list-background);
   padding: 0.3em;
-  font-size: 0.8em;
+  /* font-size: 0.8em; */
   overflow-y: scroll;
 }
 
 div.feedback-menu div.feedback-list div.feedback-item {
+  color: var(--base07);
   background-color: var(--base00);
   font-family: "Roboto", Helvetica, sans-serif;
   line-height: 125%;
@@ -414,15 +380,15 @@ div.feedback-menu div.feedback-item img {
 }
 
 /* Slide Menu Badges */
-
 li.slide-list-item[data-questions]::after {
   content: attr(data-questions);
-  margin-left: 1em;
+  margin: 0 0.5em 0 1em;
   font-size: 0.9em;
+  height: 1em;
 
   /* from class counter */
   background-color: var(--base08);
-  color: var(--menu-background-color);
+  color: white;
 
   /* from class badge */
   font-family: sans-serif;
@@ -434,7 +400,6 @@ li.slide-list-item[data-questions]::after {
   border-radius: 0.4em;
   padding: 0.2em 0.4em;
 }
-
 li.slide-list-item[data-questions][data-answered="true"]::after {
   background-color: var(--base0B);
 }

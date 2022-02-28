@@ -27,8 +27,6 @@ template:
 chart:
   defaults:
     font: { size: 20 }
-    color: "black"
-    animation: false
     plugins:
       colorschemes:
         scheme: "tableau.Classic10"

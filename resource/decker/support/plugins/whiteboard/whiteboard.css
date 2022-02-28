@@ -91,19 +91,11 @@
   transition: opacity 0.5s linear 2s;
 }
 
-/* whiteboard button */
 button.whiteboard {
-  display: inline-block;
-  position: relative;
-  font-size: calc(var(--icon-size) * 1);
-  width: calc(var(--icon-size) * 2);
-  height: calc(var(--icon-size) * 2);
-  padding: calc(var(--icon-size) * 0.2);
-  margin: calc(var(--icon-size) * 0.2);
-  background: none;
-  font-family: "Font Awesome 5 Free";
-  border: 2px solid transparent;
   color: var(--icon-inactive-color);
+}
+button.whiteboard[data-active="true"] {
+  color: var(--icon-active-color);
 }
 
 button.whiteboard.checkbox {
@@ -111,9 +103,6 @@ button.whiteboard.checkbox {
 }
 button.whiteboard.radiobutton {
   border-radius: 100%;
-}
-button.whiteboard[data-active="true"] {
-  color: var(--icon-active-color);
 }
 
 button.whiteboard.checkbox[data-active="false"],
@@ -123,11 +112,6 @@ button.whiteboard.radiobutton[data-active="false"] {
 button.whiteboard.checkbox[data-active="true"],
 button.whiteboard.radiobutton[data-active="true"] {
   border: 2px solid var(--icon-active-color);
-}
-/* hide border around focused/clicked buttons */
-button.whiteboard:focus,
-button.whiteboard::-moz-focus-inner {
-  border: none;
 }
 
 /* container for whiteboard tools */
@@ -163,6 +147,7 @@ body.print-pdf #whiteboardButtons {
 }
 
 #whiteboardButtons:not(.active) > #whiteboardButton {
+  border-color: transparent;
   display: inline-block;
 }
 
@@ -196,11 +181,11 @@ body.print-pdf #whiteboardButtons {
   border: 1px solid var(--whiteboard-border-color);
   border-radius: calc(var(--icon-size) * 0.5);
   background: var(--whiteboard-background-color);
-  left: calc(var(--icon-size) * 2.5 + 12px);
-  bottom: calc(var(--icon-size) * 4 + 8px);
-  visibility: hidden;
+  left: 2.5em;
+  bottom: -1.5em;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
+  visibility: hidden;
 }
 
 #whiteboardColorPicker.active {

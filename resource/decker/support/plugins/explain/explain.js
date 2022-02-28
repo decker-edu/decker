@@ -682,11 +682,15 @@ function createPlayerGUI() {
   playButton = createElement({
     type: "button",
     id: "explain-play",
-    classes: "explain fas fa-play",
+    classes: "explain fa-button fas fa-play",
     title: "Play video recording",
-    parent: document.body,
     onclick: transition("play"),
   });
+  if (Reveal.hasPlugin("ui-anchors")) {
+    Reveal.getPlugin("ui-anchors").placeButton(playButton, "TOP_RIGHT");
+  } else {
+    document.body.appendChild(playButton);
+  }
 
   let video = createElement({
     type: "video",

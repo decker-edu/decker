@@ -7,7 +7,7 @@
  * @author Sebastian Hauer
  */
 
- class SlideMenu {
+class SlideMenu {
   id;
   reveal;
   config;
@@ -512,10 +512,13 @@
     );
 
     /* Temporary Solution */
-    this.glass = document.createElement("div");
-    this.glass.className = "glass";
+    this.glass = document.querySelector("#glass");
+    if (!this.glass) {
+      this.glass = document.createElement("div");
+      this.glass.id = "glass";
+      document.body.appendChild(this.glass);
+    }
     this.glass.addEventListener("click", (event) => this.closeMenu(event));
-    document.body.appendChild(this.glass);
   }
 
   toggleColorMode(dark) {

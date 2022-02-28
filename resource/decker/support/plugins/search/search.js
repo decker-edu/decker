@@ -20,37 +20,35 @@ const Plugin = () => {
   function render() {
     searchElement = document.createElement("div");
     searchElement.classList.add("searchbox");
-    searchElement.style.position = "absolute";
 
     // MARIO: adjust position, size, color
-    searchElement.style.top = "calc(var(--whiteboard-icon-size) * 0.25)";
-    searchElement.style.left = "calc(var(--whiteboard-icon-size) * 2.25)";
-    searchElement.style.padding = "calc(var(--whiteboard-icon-size) * 0.5)";
+    searchElement.style.padding = "calc(var(--icon-size) * 0.5)";
     searchElement.style.borderRadius = "0.25em";
     searchElement.style.background = "white";
-    searchElement.style.fontSize = "var(--whiteboard-icon-size)";
-    searchElement.style.color = "var(--whiteboard-active-color)";
-    searchElement.style.zIndex = 10;
+    searchElement.style.fontSize = "var(--icon-size)";
+    searchElement.style.color = "var(--icon-active-color)";
 
     // MARIO: adjust border color and search icon (requires font-awesome)
     searchElement.innerHTML =
-      '<span style="display:flex; align-items:center;"><i class="fas fa-search searchicon" id="searchbutton" style="padding-right: 10px;"></i><input type="search" id="searchinput" class="searchinput" placeholder="Search..."></span>';
+      '<span style="display:flex; align-items:center;"><i class="fa-button fas fa-search" style="padding-right: 10px;"></i><input type="search" id="searchinput" placeholder="Search..."></span>';
 
     // MARIO: override some styling
-    searchInput = searchElement.querySelector(".searchinput");
-    searchInput.style.width = "240px";
-    searchInput.style.fontSize = "14px";
+    searchInput = searchElement.querySelector("#searchinput");
+    searchInput.style.fontSize = "1.2rem";
+    searchInput.style.width = "10em";
     searchInput.style.padding = "4px 6px";
     searchInput.style.color = "#000";
     searchInput.style.background = "#fff";
     searchInput.style.borderRadius = "2px";
-    // searchInput.style.border = "0";
-    searchInput.style.border = "2px solid var(--whiteboard-active-color)";
+    searchInput.style.border = "2px solid var(--icon-active-color)";
     searchInput.style.outline = "0";
-    // searchInput.style.boxShadow = "0 2px 18px rgba(0, 0, 0, 0.2)";
     searchInput.style["-webkit-appearance"] = "none";
 
-    deck.getRevealElement().appendChild(searchElement);
+    if (!deck.hasPlugin("ui-anchors")) {
+      console.error("no decker ui anchor plugin loaded");
+    } else {
+      deck.getPlugin("ui-anchors").placeButton(searchElement, "TOP_LEFT");
+    }
 
     searchInput.addEventListener(
       "keyup",

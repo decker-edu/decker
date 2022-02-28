@@ -1,9 +1,10 @@
 .decker-menu {
   display: flex;
   flex-direction: column;
+  font-size: 1.2rem;
   z-index: 256;
-
   background: var(--menu-background-color);
+  color: var(--menu-text-color);
   border-right: 2px solid var(--menu-border-color);
 }
 
@@ -13,24 +14,21 @@
   align-items: center;
   justify-content: space-between;
   z-index: 258;
+  
   min-height: var(--common-menu-header-height);
   max-height: var(--common-menu-header-height);
-
   padding: var(--common-menu-header-padding);
   background: var(--menu-header-background-color);
-  color: var(--foreground-color);
+  color: var(--menu-header-text-color);
+  background: var(--menu-header-background-color);
+
+  border-bottom: 2px solid var(--menu-border-color);
 }
 
 .menu-header button {
   border: none;
-  background: var(--icon-background-color);
-  cursor: pointer;
-  font-size: var(--icon-size);
-  color: var(--foreground-color);
-}
-
-.menu-header button p {
-  display: none;
+  background: none;
+  color: var(--menu-header-text-color);
 }
 
 .menu-header button:hover {
@@ -170,59 +168,63 @@ ul.slide-list {
 .slide-list-wrapper {
   overflow: auto;
   height: calc(
-    100% - var(--common-menu-header-height) - var(--common-menu-header-padding)
+    100% - var(--common-menu-header-height) - var(--common-menu-header-padding) * 2
   );
 }
 
 ul.slide-list > li {
-  padding: 4px 0px 4px 1rem;
+  padding: 0;
   margin: 0;
-  width: auto;
-  border-bottom: 1px solid var(--foreground-color);
+  border-bottom: 1px solid var(--menu-border-color);
   display: flex;
-}
-
-ul.slide-list > li[data-slide-v] {
-  margin-left: 2em;
-}
-
-ul.slide-list > li[data-slide-v="0"] {
-  margin-left: 0;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
 }
 
 ul.slide-list > li > a {
   display: flex;
-  width: calc(100% - 4px);
-  color: var(--foreground-color);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--menu-text-color);
   text-decoration: none;
+  width: 100%;
+  padding: 0.5em 1.5em 0.5em 1em;
+}
+
+ul.slide-list > li[data-slide-v] > a {
+  padding-left: 2em;
+}
+
+ul.slide-list > li[data-slide-v="0"] > a {
+  padding-left: 1em;
 }
 
 ul.slide-list > li:hover {
   background: var(--hover-color);
 }
 
-ul.slide-list > li:active {
-  background: var(--active-color);
+ul.slide-list > li:hover > a {
+  color: var(--menu-text-color);
 }
 
 ul.slide-list > li::marker {
   content: none;
 }
 
-.glass {
+#glass {
   display: none;
-  z-index: 128;
+  z-index: 105;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(var(--foreground-color), 0.5);
+  /* Let us keep this here until Firefox fixes their blur - and even then it is not enabled by default */
+  /* https://bugzilla.mozilla.org/show_bug.cgi?id=1749625 */
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
-.glass.show {
+#glass.show {
   display: block;
 }

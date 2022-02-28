@@ -1,82 +1,77 @@
 @import url("../../css/deck.css");
 
 div.decker-anchor {
-    z-index: 8;
-    position: fixed;
-    display: flex;
+  z-index: 100;
+  position: fixed;
+  display: flex;
 }
 
 div.top-left-anchor {
-    flex-direction: column;
-    top: 8px;
-    left: 8px;
+  flex-direction: row;
+  top: 0px;
+  left: 0px;
 }
 
 div.top-right-anchor {
-    flex-direction: row;
-    top: 8px;
-    right: 8px;
+  flex-direction: row;
+  top: 0px;
+  right: 0px;
 }
 
 div.bottom-left-anchor {
-    flex-direction: row;
-    bottom: 8px;
-    left: 8px;
+  flex-direction: row;
+  bottom: 0px;
+  left: 0px;
 }
 
 div.bottom-right-anchor {
-    flex-direction: column;
-    bottom: calc(2ex + 8px); /* Above the Navigation, needs tweaking */
-    right: 8px;
+  flex-direction: column;
+  bottom: calc(2ex + 0px); /* Above the Navigation, needs tweaking */
+  right: 0px;
 }
 
-.decker-anchor button {
-    font-size: var(--icon-size);
-    color: var(--icon-inactive-color);
-    border: none;
-    border-radius: 0.1em;
-    background: none;
-    padding: 0.25em;
+.decker-anchor > button {
+  color: var(--icon-inactive-color);
 }
 
-@media screen and (max-width: 756px) {
+/* @media screen and (max-width: 756px) {
     .decker-anchor button {
         font-size: calc(var(--icon-size) * 2);
     }
+} */
+
+.decker-anchor > button:hover {
+  color: var(--icon-hover-color);
 }
 
-.decker-anchor button:hover {
-    color: var(--icon-hover-color);
-}
-
-.decker-anchor button:active {
-    color: var(--icon-active-color);
+.decker-anchor > button:active {
+  color: var(--icon-active-color);
 }
 
 .slide-in-left {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 33%;
-
-    transition: transform 0.5s;
+  z-index: 110;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  max-width: 100%;
+  transition: transform 0.5s;
 }
 
 .slide-in-left[inert] {
-    transform: translate(-100%);
+  transform: translate(-100%);
 }
 
 .slide-in-right {
-    position: fixed;
-    top: 0;
-    right: 0;
-    height: 100%;
-    width: 33%;
-
-    transition: transform 0.5s;
+  z-index: 110;
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  max-width: 100%;
+  transition: transform 0.5s;
 }
 
 .slide-in-right[inert] {
-    transform: translate(100%);
+  transform: translate(100%);
 }
