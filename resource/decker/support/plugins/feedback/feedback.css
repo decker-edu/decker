@@ -102,6 +102,7 @@ div.feedback-header input[type="password"] {
   border-radius: var(--feedback-element-border-radius);
   padding: 0.3em;
   margin: 0;
+  color: var(--foreground-color);
 }
 
 div.feedback-header button,

@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: space-between;
   z-index: 258;
-  
+
   min-height: var(--common-menu-header-height);
   max-height: var(--common-menu-header-height);
   padding: var(--common-menu-header-padding);
@@ -65,7 +65,7 @@
   );
   z-index: 257;
 
-  background: var(--background-color);
+  background: var(--menu-background-color);
 
   transition: transform 0.5s;
 }
@@ -76,6 +76,7 @@
 
 .settings-item {
   position: relative;
+  padding: 0.5em 1.5em 0.5em 1em;
 }
 
 :root {
@@ -87,8 +88,6 @@
 
 .settings-toggle-wrapper {
   position: relative;
-  margin-left: 1rem;
-  margin-right: 1rem;
 }
 
 .settings-toggle {
@@ -168,7 +167,8 @@ ul.slide-list {
 .slide-list-wrapper {
   overflow: auto;
   height: calc(
-    100% - var(--common-menu-header-height) - var(--common-menu-header-padding) * 2
+    100% - var(--common-menu-header-height) - var(--common-menu-header-padding) *
+      2
   );
 }
 
@@ -218,7 +218,7 @@ ul.slide-list > li::marker {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(var(--foreground-color), 0.5);
+  background: rgba(0, 0, 0, 0.5);
   /* Let us keep this here until Firefox fixes their blur - and even then it is not enabled by default */
   /* https://bugzilla.mozilla.org/show_bug.cgi?id=1749625 */
   backdrop-filter: blur(6px);
@@ -227,4 +227,10 @@ ul.slide-list > li::marker {
 
 #glass.show {
   display: block;
+}
+
+fieldset {
+  padding: 0.5rem;
+  border: 1px inset var(--foreground-color);
+  border-radius: 0.5rem;
 }

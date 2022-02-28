@@ -82,7 +82,7 @@
   --common-menu-header-padding: 0.5rem;
 
   --feedback-element-border-radius: 0.2em;
-  --feedback-input-background-color: var(--shade1);
+  --feedback-input-background-color: var(--background-color);
   --feedback-header-background-color: var(--menu-header-background-color);
   --feedback-header-text-color: var(--foreground-color);
   --feedback-list-background-color: rgba(0, 0, 0, 0);
