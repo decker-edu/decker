@@ -4,6 +4,8 @@ div.decker-anchor {
   z-index: 100;
   position: fixed;
   display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
 }
 
 div.top-left-anchor {
@@ -22,6 +24,13 @@ div.bottom-left-anchor {
   flex-direction: row;
   bottom: 0px;
   left: 0px;
+}
+
+div.bottom-center-anchor {
+  flex-direction: row;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 div.bottom-right-anchor {
