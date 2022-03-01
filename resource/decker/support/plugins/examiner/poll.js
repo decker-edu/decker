@@ -120,11 +120,11 @@ function pollSession({
             break;
 
           case "Active":
-            session.ui.onActive(message.participants, message.quiz.choices);
+            session.ui.onActive(message.participants, message.quiz.choices, message.quiz.complete);
             break;
 
           case "Finished":
-            session.ui.onFinished(message.participants, message.quiz.choices);
+            session.ui.onFinished(message.participants, message.quiz.choices, message.quiz.complete);
             session.ui = null;
             break;
           default:
