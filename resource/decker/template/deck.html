@@ -190,7 +190,11 @@ $endif$
   </script>
 
 </body>
+
 <script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
 <!-- script src="$decker-support-dir$/js/inert.min.js"></script -->
 <!-- Use the other implementation if things break under Firefox -->
+$for(template.js)$
+  <script type="module" src="$template.js$"></script>
+$endfor$
 </html>
