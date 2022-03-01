@@ -92,7 +92,7 @@ export async function preparePolls(reveal) {
           displayVotes(votes, voteMap);
           showVotes(voteBlocks, true);
           const voted = Object.values(votes).reduce((t, v) => t + v, 0);
-          stopButton.textContent = `${voted} / ${participants}`;
+          stopButton.textContent = `${voted} / ${participants * nvotes}`;
           stopButton.removeAttribute("disabled");
           pollButton.setAttribute("disabled", false);
           reveal.on("slidechanged", abort);
@@ -101,7 +101,7 @@ export async function preparePolls(reveal) {
           displayVotes(votes, voteMap);
           showVotes(voteBlocks, false);
           const voted = Object.values(votes).reduce((t, v) => t + v, 0);
-          stopButton.textContent = `${voted} / ${participants}`;
+          stopButton.textContent = `${voted} / ${participants * nvotes}`;
           stopButton.setAttribute("disabled", false);
           pollButton.removeAttribute("disabled");
           reveal.off("slidechanged", abort);
