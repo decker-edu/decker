@@ -1619,7 +1619,7 @@ const Plugin = {
     });
     // Try to connect to an existing video.
     uiState.transition("setupPlayer");
-    addReloadInhibitor(
+    Decker.addReloadInhibitor(
       () => !uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")
     );
   },

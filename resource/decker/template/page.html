@@ -5,12 +5,11 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
-  <script>
-    /* Store JSON encoded Pandoc meta data in a global variable for easy
-    reference from any script. */
-    window.Decker = {meta: $decker-meta$};
+  <script type="module">
+    /* Store JSON encoded Pandoc meta data in a global variable. */
+    import initializeDecker from "./$decker-support-dir$/js/decker.js";
+    initializeDecker($decker-meta$);
   </script>
-  <script src="$decker-support-dir$/js/decker.js"></script>
 
 $for(author-meta)$
   <meta name="author" content="$author-meta$" />

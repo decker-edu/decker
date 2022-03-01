@@ -195,7 +195,7 @@ const Plugin = {
         setupMargin();
 
         // automatically press the print button when not in headless mode
-        if (!navigator.webdriver && !isElectron()) {
+        if (!navigator.webdriver && !Decker.isElectron()) {
           Reveal.addEventListener("pdf-ready", function () {
             setTimeout(window.print, 1000);
           });

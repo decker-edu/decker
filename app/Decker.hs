@@ -1,7 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-
 module Decker where
 
 import Control.Concurrent
@@ -15,7 +11,6 @@ import qualified Data.Map.Strict as Map
 import Data.Maybe
 import Data.String ()
 import qualified Data.Text as Text
-import Data.Time (diffUTCTime)
 import Data.Version
 import Development.Shake
 import GHC.IO.Encoding

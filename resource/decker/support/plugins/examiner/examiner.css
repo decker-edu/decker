@@ -4,11 +4,9 @@ div.exa-quest {
   font-size: 90%;
 }
 
-div.exa-quest input,
-div.exa-quest button,
-div.exa-quest textarea,
-div.exa-quest select {
-  background-color: var(--base01);
+div.exa-quest :is(input, button, textarea, select) {
+  background-color: var(--shade1);
+  color: var(--shade6);
 
   font-family: inherit;
   font-size: 1em;
@@ -26,6 +24,18 @@ div.exa-quest select {
   appearance: none;
 }
 
+div.exa-quest button:active {
+  background-color: var(--accent3);
+}
+
+div.exa-quest :is(input, button, textarea, select)[disabled] {
+  color: var(--shade2);
+}
+
+div.exa-quest button:not([disabled]):hover {
+  background-color: var(--accent3-bg);
+}
+
 .reveal div.exa-quest {
   overflow-y: scroll;
   overflow-x: auto;
@@ -34,18 +44,6 @@ div.exa-quest select {
 .handout div.exa-quest {
   padding: 1em;
   border: solid 1px lightgray;
-}
-
-div.exa-quest button {
-  background-color: var(--shade1);
-}
-
-div.exa-quest button:hover {
-  background-color: var(--accent3-bg);
-}
-
-div.exa-quest button:active {
-  background-color: var(--accent3);
 }
 
 div.exa-quest button.solve {
@@ -93,27 +91,58 @@ div.exa-quest div.exa-mc {
 div.exa-mc div.choice {
   display: flex;
   flex-flow: row nowrap;
-  justify-content: flex-start;
+  row-gap: 0.5em;
+  justify-content: left;
   align-items: center;
-  align-content: center;
+  margin-bottom: var(--vertical-margin);
 }
 
-div.exa-mc div.choice div.check-box {
-  flex-grow: 0;
+div.exa-mc div.choice > div.check-box {
+  flex: 0 0 content;
+
   white-space: nowrap;
   vertical-align: middle;
+  text-align: center;
 }
 
 div.exa-mc div.choice > div.label {
-  font-weight: bold;
+  flex: 0 0 1.5em;
+
+  white-space: nowrap;
   vertical-align: middle;
+
+  font-weight: bold;
   font-size: 120%;
-  padding-left: 0.5em;
+
+  text-align: center;
 }
 
-div.exa-mc div.choice div.content {
-  flex-grow: 1;
-  display: inline;
+div.exa-mc div.choice > div.content {
+  flex: 3 1 0%;
+}
+
+div.exa-mc div.choice > div.content p {
+  padding: 0;
+}
+
+div.exa-mc div.choice > div.vote {
+  flex: 1 1 0%;
+  min-width: 4em;
+
+  position: relative;
+  background-color: var(--shade1);
+  padding-top: 0.1em;
+  padding-bottom: 0.1em;
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+div.exa-mc div.choice > div.vote {
+  display: none;
+}
+
+.presenter-mode div.exa-mc div.choice > div.vote {
+  display: block;
 }
 
 div.exa-mc div.choice p {
@@ -126,19 +155,6 @@ div.exa-mc div.choice p {
 
 div.exa-quest:not(.poll) div.choice :is(div.vote, div.label) {
   display: none;
-}
-
-div.vote {
-  display: block;
-  flex-grow: 0;
-  width: 15em;
-  min-width: 20em;
-  position: relative;
-  background-color: var(--shade1);
-  padding-top: 0.1em;
-  padding-bottom: 0.1em;
-  white-space: nowrap;
-  font-weight: bold;
 }
 
 div.vote > div.label {
@@ -202,7 +218,12 @@ div.qrcode.container {
   z-index: 4000;
 }
 
-div.question.poll button:is(.qrcode, .poll, .stop) {
+div.question button:is(.qrcode, .poll, .stop) {
+  display: none;
+}
+
+.presenter-mode div.question.poll button:is(.qrcode, .poll, .stop) {
+  display: inline;
   float: right;
 }
 
