@@ -32,7 +32,8 @@ class SlideMenu {
     this.settings = {
       container: undefined,
       fragments_toggle: undefined,
-      color_toggle: undefined,
+      annotations_toggle: undefined,
+      color_choice: undefined,
     };
     this.glass = undefined;
     this.position = position;
@@ -513,6 +514,10 @@ class SlideMenu {
     this.glass.addEventListener("click", (event) => this.closeMenu(event));
   }
 
+  toggleAnnotations() {
+    document.documentElement.classList.toggle("hide-annotations");
+  }
+
   toggleColorMode(mode) {
     if (mode === "dark") {
       localStorage.setItem("color-mode", "dark");
@@ -624,6 +629,11 @@ class SlideMenu {
     this.settings.color_choice.addEventListener("change", (event) => {
       this.toggleColorMode(event.target.value);
     });
+    this.settings.annotations_toggle =
+      this.settings.container.querySelector("#setting-toggle-annotations");
+    this.settings.annotations_toggle.addEventListener("change", (event) =>
+      this.toggleAnnotations(event.target.checked)
+    );
   }
 
   init(reveal) {
