@@ -363,7 +363,7 @@ class SlideMenu {
     template.innerHTML = String.raw`<li class="slide-list-item" data-slide-h="${h}" ${
       v !== undefined ? 'data-slide-v="' + v + '"' : ""
     }>
-      <a class="slide-link" href="#/${h}/${
+      <a class="slide-link" href="#/${h}${
       v !== undefined ? "/" + v : ""
     }" target="_self">${title}</a>
     </li>`;
