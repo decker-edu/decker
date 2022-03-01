@@ -292,17 +292,17 @@ function prepareFlashPanel(deck) {
   let interval = null;
 
   // This is why this needs to run after Reveal is ready.
-  let revealSlide = document.querySelector("div.reveal.slide");
-  if (revealSlide) {
+  let revealElement = deck.getRevealElement();
+  if (revealElement) {
     let panelHtml = `
   <div class="decker-flash-panel">
     <div class="content"> </div>
   </div>
   `;
-    revealSlide.insertAdjacentHTML("beforeend", panelHtml);
+    revealElement.insertAdjacentHTML("beforeend", panelHtml);
 
-    let panel = revealSlide.querySelector("div.decker-flash-panel");
-    let content = revealSlide.querySelector(
+    let panel = revealElement.querySelector("div.decker-flash-panel");
+    let content = revealElement.querySelector(
       "div.decker-flash-panel div.content"
     );
 
@@ -351,8 +351,8 @@ function preparePresenterMode(deck) {
     throw "Global Decker object is missing. This is seriously wrong.";
 
   // This is why this needs to run after Reveal is ready.
-  let revealSlide = document.querySelector("div.reveal.slide");
-  if (!revealSlide)
+  let revealElement = deck.getRevealElement();
+  if (!revealElement)
     throw "Reveal slide element is missing. This is seriously wrong.";
 
   Decker.addPresenterModeListener = (callback) => {
@@ -398,9 +398,9 @@ function preparePresenterMode(deck) {
       presenterMode = !presenterMode;
 
       if (presenterMode) {
-        revealSlide.classList.add("presenter-mode");
+        revealElement.classList.add("presenter-mode");
       } else {
-        revealSlide.classList.remove("presenter-mode");
+        revealElement.classList.remove("presenter-mode");
       }
 
       for (let callback of listeners) {
