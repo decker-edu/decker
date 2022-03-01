@@ -175,6 +175,7 @@ function createButton(classes, callback, active = false, tooltip) {
 function createGUI() {
   buttons = document.createElement("div");
   buttons.id = "whiteboardButtons";
+  buttons.classList.add("presenter-only");
 
   // handle hover visibility of panel
   buttons.onmouseenter = (evt) => {

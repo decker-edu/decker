@@ -167,3 +167,7 @@ div.decker-flash-panel div.content {
   border-radius: var(--block-border-radius);
   padding: 0.25em 0.5em;
 }
+
+.reveal:not(.presenter-mode) .presenter-only {
+  display: none !important;
+}
