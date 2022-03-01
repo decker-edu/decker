@@ -156,13 +156,14 @@ section h1 {
   padding: 0 calc(var(--block-border-width) + var(--block-outset));
 }
 
-span.math.display {
+/* This is ugly */
+/* span.math.display {
   display: block;
   margin: 0.25em;
   padding: 0.25em;
   background-color: var(--shade1);
   border-radius: var(--block-border-radius);
-}
+} */
 
 /* Stretch the block header margin to the block border so that highlighting
 works. */
