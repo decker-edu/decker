@@ -45,11 +45,23 @@ $endif$
           $css-light-color-declarations$
         $endfor$
       }
+
+      :root.dark {
+        $for(css-dark-color-declarations)$
+          $css-dark-color-declarations$
+        $endfor$
+      }
     }
     @media (prefers-color-scheme: dark) {
       :root {
         $for(css-dark-color-declarations)$
           $css-dark-color-declarations$
+        $endfor$
+      }
+
+      :root.light {
+        $for(css-light-color-declarations)$
+          $css-light-color-declarations$
         $endfor$
       }
     }

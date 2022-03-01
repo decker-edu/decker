@@ -74,7 +74,7 @@
 
   --menu-background-color: var(--shade1);
   --menu-text-color: var(--shade6);
-  --menu-header-background-color: var(--shade3);
+  --menu-header-background-color: var(--primary-color);
   --menu-header-text-color: var(--shade6);
   --menu-border-color: var(--shade3);
 
