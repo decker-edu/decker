@@ -225,3 +225,7 @@ body.print-pdf #whiteboardButtons {
 .reveal .slides.active::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.4);
 }
+
+:root.hide-annotations svg.whiteboard {
+  display: none !important; /* Whiteboard SVGs get a manual "display: block;" added to them by the plugin. */
+}

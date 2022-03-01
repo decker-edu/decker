@@ -25,12 +25,19 @@ class SlideMenu {
       container: undefined,
       search_button: undefined,
       pdf_button: undefined,
-      fragments_button: undefined,
+      settings_button: undefined,
       close_button: undefined,
       slide_list: undefined,
     };
+    this.settings = {
+      container: undefined,
+      fragments_toggle: undefined,
+      annotations_toggle: undefined,
+      color_choice: undefined,
+    };
     this.glass = undefined;
     this.position = position;
+    this.localization = undefined;
   }
 
   get inert() {
@@ -105,6 +112,7 @@ class SlideMenu {
    */
   closeMenu(event) {
     if (!this.inert) {
+      this.closeSettings();
       this.inert = true;
       this.reveal.getRevealElement().inert = false;
       this.enableKeybinds();
@@ -113,6 +121,40 @@ class SlideMenu {
         this.open_button.focus();
       }
     }
+  }
+
+  toggleSettings() {
+    if (this.settings.container.inert) {
+      this.openSettings();
+    } else {
+      this.closeSettings();
+    }
+  }
+
+  openSettings() {
+    this.settings.container.inert = false;
+    this.menu.slide_list.inert = true;
+    this.menu.settings_button.setAttribute(
+      "title",
+      this.localization.close_settings_label
+    );
+    this.menu.settings_button.setAttribute(
+      "aria-label",
+      this.localization.close_settings_label
+    );
+  }
+
+  closeSettings() {
+    this.settings.container.inert = true;
+    this.menu.slide_list.inert = false;
+    this.menu.settings_button.setAttribute(
+      "title",
+      this.localization.open_settings_label
+    );
+    this.menu.settings_button.setAttribute(
+      "aria-label",
+      this.localization.open_settings_label
+    );
   }
 
   /**
@@ -131,8 +173,7 @@ class SlideMenu {
       let url = location.protocol + "//" + location.host + location.pathname;
       window.electronApp.printPDF(url);
     } else {
-      if (confirm("Leave/reload presentation to export PDF?")) {
-        //MAYBE Localization
+      if (confirm(this.localization.print_confirmation)) {
         let url =
           location.protocol +
           "//" +
@@ -159,15 +200,11 @@ class SlideMenu {
     let animations = this.reveal.getConfig().fragments;
     this.reveal.configure({ fragments: !animations });
     if (!animations) {
-      this.menu.fragments_button.classList.add("checked");
-      this.menu.fragments_button.classList.remove("fa-circle");
-      this.menu.fragments_button.classList.add("fa-check-circle");
-      this.menu.fragments_button.setAttribute("aria-checked", "true");
+      this.settings.fragments_toggle.checked = true;
+      this.settings.fragments_toggle.setAttribute("aria-checked", "true");
     } else {
-      this.menu.fragments_button.classList.remove("checked");
-      this.menu.fragments_button.classList.remove("fa-check-circle");
-      this.menu.fragments_button.classList.add("fa-circle");
-      this.menu.fragments_button.setAttribute("aria-checked", "false");
+      this.settings.fragments_toggle.checked = false;
+      this.settings.fragments_toggle.setAttribute("aria-checked", "false");
     }
   }
 
@@ -272,9 +309,9 @@ class SlideMenu {
   /**
    * Instantiates the ui button that opens the menu.
    */
-  initializeButton(localization) {
+  initializeButton() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<button id="decker-menu-button" class="fa-button fas fa-bars" title="${localization.open_button_label}" aria-label="${localization.open_button_label}">
+    template.innerHTML = String.raw`<button id="decker-menu-button" class="fa-button fas fa-bars" title="${this.localization.open_button_label}" aria-label="${this.localization.open_button_label}">
     </button>`;
 
     let button = template.content.firstElementChild;
@@ -348,7 +385,7 @@ class SlideMenu {
       title = this.getTitleFromSectionContent(section);
     }
     if (!title) {
-      title = "Kein Titel"; //MAYBE: Query from localization options (far future feature?)
+      title = this.localization.no_title;
     }
     return title;
   }
@@ -409,20 +446,23 @@ class SlideMenu {
   /**
    * Instantiates the whole menu and adds it to the DOM.
    */
-  initializeMenu(localization) {
+  initializeMenu() {
     let template = document.createElement("template");
-    let animations = this.reveal.getConfig().fragments;
-    let toggle_icon = animations ? "fa-check-circle" : "fa-circle";
     template.innerHTML = String.raw`<div class="decker-menu slide-in-left" id="decker-menu" inert>
       <div class="menu-header">
-        <button class="fa-button fas fa-search" id="decker-menu-search-button" title="${localization.search_button_label}" aria-label="${localization.search_button_label}">
-        </button>
-        <button class="fa-button fas fa-print" id="decker-menu-print-button" title="${localization.print_pdf_label}" aria-label="${localization.print_pdf_label}">
-        </button>
-        <button class="switch fa-button far ${toggle_icon}" id="decker-menu-animation-button" role="switch" aria-checked="${animations}" title="${localization.toggle_fragments_label}" aria-label="${localization.toggle_fragments_label}">
-        </button>
-        <button id="decker-menu-close-button" class="close fa-button fas fa-times-circle" title="${localization.close_label}" aria-label="${localization.close_label}">
-        </button>
+        <div class="menu-header-buttons">
+          <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}">
+          </button>
+          <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}">
+          </button>
+          <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}">
+          </button>
+          <button id="decker-menu-settings-button" class="fa-button fas fa-cog" title="${this.localization.open_settings_label}" aria-label="${this.localization.open_settings_label}">
+          </button>
+        </div>
+        <div id="decker-menu-title">
+          <span>${this.localization.title}</span>
+        </div>
       </div>
      </div>`;
     let container = template.content.firstElementChild;
@@ -433,8 +473,8 @@ class SlideMenu {
       "#decker-menu-search-button"
     );
     this.menu.pdf_button = container.querySelector("#decker-menu-print-button");
-    this.menu.fragments_button = container.querySelector(
-      "#decker-menu-animation-button"
+    this.menu.settings_button = container.querySelector(
+      "#decker-menu-settings-button"
     );
     this.menu.close_button = container.querySelector(
       "#decker-menu-close-button"
@@ -451,14 +491,15 @@ class SlideMenu {
     this.menu.pdf_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
-    this.menu.fragments_button.addEventListener("click", (event) =>
-      this.toggleFragments()
+    this.menu.settings_button.addEventListener("click", (event) =>
+      this.toggleSettings()
     );
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
 
     this.initializeSlideList();
+    this.initializeSettingsMenu();
     this.menu.container.addEventListener("keydown", (event) =>
       this.traverseList(event)
     );
@@ -473,36 +514,176 @@ class SlideMenu {
     this.glass.addEventListener("click", (event) => this.closeMenu(event));
   }
 
+  toggleAnnotations() {
+    document.documentElement.classList.toggle("hide-annotations");
+  }
+
+  toggleColorMode(mode) {
+    if (mode === "dark") {
+      localStorage.setItem("color-mode", "dark");
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+    }
+    if (mode === "light") {
+      localStorage.setItem("color-mode", "light");
+      document.documentElement.classList.add("light");
+      document.documentElement.classList.remove("dark");
+    }
+    if (mode === "system") {
+      localStorage.removeItem("color-mode");
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove("light");
+    }
+  }
+
+  getColorModePreference() {
+    let match = window.matchMedia("(prefers-color-scheme: dark)");
+    let system = match.matches ? "dark" : "light";
+    let storage = localStorage.getItem("color-mode");
+    let choice = storage ? storage : system;
+    return choice;
+  }
+
+  initializeColorModePreference() {
+    let storage = localStorage.getItem("color-mode");
+    if (storage) {
+      this.toggleColorMode(storage);
+    }
+  }
+
+  initializeSettingsMenu() {
+    let animations = this.reveal.getConfig().fragments;
+    let mode = this.getColorModePreference();
+    let template = document.createElement("template");
+    template.innerHTML = String.raw`<div class="menu-settings" inert>
+    <div class="settings-item">
+      <div class="settings-toggle-wrapper">
+        <label for="setting-toggle-fragments" class="settings-toggle" aria-label="${
+          this.localization.toggle_fragments_label
+        }">
+          <input id="setting-toggle-fragments" class="settings-toggle-checkbox" type="checkbox" ${
+            animations ? "checked" : ""
+          } />
+          <span class="slider round"></span>
+        </label>
+        <label for="setting-toggle-fragments">${
+          this.localization.toggle_fragments_label
+        }</label>
+      </div>
+    </div>
+    <div class="settings-item">
+      <div class="settings-toggle-wrapper">
+        <label for="setting-toggle-annotations" class="settings-toggle" aria-label="${
+          this.localization.toggle_annotations_label
+        }">
+          <input id="setting-toggle-annotations" class="settings-toggle-checkbox" type="checkbox" checked />
+          <span class="slider round"></span>
+        </label>
+        <label for="setting-toggle-annotations">${
+          this.localization.toggle_annotations_label
+        }</label>
+      </div>
+    </div>
+    <div class="settings-item">
+      <div class="settings-choice-wrapper">
+        <fieldset id="color-choice">
+          <legend>${this.localization.choose_color_label}</legend>
+          <div class="choice-pair">
+            <input id="system-color-radio" type="radio" name="color-mode" value="system" aria-label="${
+              this.localization.system_color_choice
+            }" ${mode === "system" ? "checked" : ""}>
+            <label for="system-color-radio">${
+              this.localization.system_color_choice
+            }</label>
+          </div>
+          <div class="choice-pair">
+            <input id="light-color-radio" type="radio" name="color-mode" value="light" aria-label="${
+              this.localization.light_color_choice
+            }" ${mode === "light" ? "checked" : ""}>
+            <label for="light-color-radio">${
+              this.localization.light_color_choice
+            }</label>
+          </div>
+          <div class="choice-pair">
+            <input id="dark-color-radio" type="radio" name="color-mode" value="dark" aria-label="${
+              this.localization.dark_color_choice
+            }" ${mode === "dark" ? "checked" : ""}>
+            <label for="dark-color-radio">${
+              this.localization.dark_color_choice
+            }</label>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+  </div>`;
+    this.settings.container = template.content.firstElementChild;
+    this.menu.container.appendChild(this.settings.container);
+    this.settings.fragments_toggle = this.settings.container.querySelector(
+      "#setting-toggle-fragments"
+    );
+    this.settings.fragments_toggle.addEventListener("change", (event) =>
+      this.toggleFragments()
+    );
+    this.settings.color_choice =
+      this.settings.container.querySelector("#color-choice");
+    this.settings.color_choice.addEventListener("change", (event) => {
+      this.toggleColorMode(event.target.value);
+    });
+    this.settings.annotations_toggle =
+      this.settings.container.querySelector("#setting-toggle-annotations");
+    this.settings.annotations_toggle.addEventListener("change", (event) =>
+      this.toggleAnnotations(event.target.checked)
+    );
+  }
+
   init(reveal) {
     this.reveal = reveal;
     this.config = reveal.getConfig();
 
-    let localization = {
+    this.localization = {
       open_button_label: "Open Navigation Menu",
       search_button_label: "Toggle Searchbar",
       print_pdf_label: "Print PDF",
+      open_settings_label: "Open Settings",
+      close_settings_label: "Close Settings",
       toggle_fragments_label: "Show Slide Fragments",
+      choose_color_label: "Choose color mode",
+      system_color_choice: "System Default",
+      light_color_choice: "Light Mode",
+      dark_color_choice: "Dark Mode",
+      toggle_annotations_label: "Show handwritten notes",
       close_label: "Close Navigation Menu",
       no_title: "No Title",
       title: "Navigation",
+      print_confirmation: "Leave/Reload presentation to export PDF?",
     };
 
     let lang = navigator.language;
 
     if (lang === "de") {
-      localization = {
+      this.localization = {
         open_button_label: "Navigationsmenu öffnen",
         search_button_label: "Suchleiste umschalten",
         print_pdf_label: "Als PDF drucken",
+        open_settings_label: "Einstellungen öffnen",
+        close_settings_label: "Einstellungen schließen",
         toggle_fragments_label: "Folienfragmente anzeigen",
+        choose_color_label: "Farbschema auswählen",
+        system_color_choice: "Systemeinstellung",
+        light_color_choice: "Helles Farbschema",
+        dark_color_choice: "Dunkles Farbschema",
+        toggle_annotations_label: "Notizen einblenden",
         close_label: "Navigationsmenu schließen",
         no_title: "Kein Titel",
         title: "Navigation",
+        print_confirmation:
+          "Die Seite neuladen / verlassen um sie als PDF zu exportieren?",
       };
     }
 
-    this.initializeButton(localization);
-    this.initializeMenu(localization);
+    this.initializeButton();
+    this.initializeMenu();
+    this.initializeColorModePreference();
 
     document.body.appendChild(this.menu.container);
 

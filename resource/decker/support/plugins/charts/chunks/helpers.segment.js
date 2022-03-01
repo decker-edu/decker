@@ -1,7 +1,7 @@
 /*!
- * Chart.js v3.5.0
+ * Chart.js v3.7.1
  * https://www.chartjs.org
- * (c) 2021 Chart.js Contributors
+ * (c) 2022 Chart.js Contributors
  * Released under the MIT License
  */
 function fontString(pixelSize, fontStyle, fontFamily) {
@@ -32,12 +32,12 @@ function throttled(fn, thisArg, updateFn) {
 }
 function debounce(fn, delay) {
   let timeout;
-  return function() {
+  return function(...args) {
     if (delay) {
       clearTimeout(timeout);
-      timeout = setTimeout(fn, delay);
+      timeout = setTimeout(fn, delay, args);
     } else {
-      fn();
+      fn.apply(this, args);
     }
     return delay;
   };
@@ -234,6 +234,9 @@ const setsEqual = (a, b) => {
   }
   return true;
 };
+function _isClickEvent(e) {
+  return e.type === 'mouseup' || e.type === 'click' || e.type === 'contextmenu';
+}
 
 const PI = Math.PI;
 const TAU = 2 * PI;
@@ -345,6 +348,9 @@ function _limitValue(value, min, max) {
 }
 function _int16Range(value) {
   return _limitValue(value, -32768, 32767);
+}
+function _isBetween(value, start, end, epsilon = 1e-6) {
+  return value >= Math.min(start, end) - epsilon && value <= Math.max(start, end) + epsilon;
 }
 
 const atEdge = (t) => t === 0 || t === 1;
@@ -1055,6 +1061,7 @@ class Defaults {
     this.scale = undefined;
     this.scales = {};
     this.showLine = true;
+    this.drawActiveElementsOnTop = true;
     this.describe(_descriptors);
   }
   set(scope, values) {
@@ -1280,8 +1287,8 @@ function drawPoint(ctx, options, x, y) {
 }
 function _isPointInArea(point, area, margin) {
   margin = margin || 0.5;
-  return point && area && point.x > area.left - margin && point.x < area.right + margin &&
-		point.y > area.top - margin && point.y < area.bottom + margin;
+  return !area || (point && point.x > area.left - margin && point.x < area.right + margin &&
+		point.y > area.top - margin && point.y < area.bottom + margin);
 }
 function clipArea(ctx, area) {
   ctx.save();
@@ -1479,12 +1486,17 @@ function resolve(inputs, context, index, info) {
     }
   }
 }
-function _addGrace(minmax, grace) {
+function _addGrace(minmax, grace, beginAtZero) {
   const {min, max} = minmax;
+  const change = toDimension(grace, (max - min) / 2);
+  const keepZero = (value, add) => beginAtZero && value === 0 ? 0 : value + add;
   return {
-    min: min - Math.abs(toDimension(grace, min)),
-    max: max + toDimension(grace, max)
+    min: keepZero(min, -Math.abs(change)),
+    max: keepZero(max, change)
   };
+}
+function createContext(parentContext, context) {
+  return Object.assign(Object.create(parentContext), context);
 }
 
 function _lookup(table, value, cmp) {
@@ -1618,8 +1630,7 @@ function _createResolver(scopes, prefixes = [''], rootScopes = scopes, fallback,
     },
     set(target, prop, value) {
       const storage = target._storage || (target._storage = getTarget());
-      storage[prop] = value;
-      delete target[prop];
+      target[prop] = storage[prop] = value;
       delete target._keys;
       return true;
     }
@@ -1678,16 +1689,14 @@ function _descriptors(proxy, defaults = {scriptable: true, indexable: true}) {
   };
 }
 const readKey = (prefix, name) => prefix ? prefix + _capitalize(name) : name;
-const needsSubResolver = (prop, value) => isObject(value) && prop !== 'adapters';
+const needsSubResolver = (prop, value) => isObject(value) && prop !== 'adapters' &&
+  (Object.getPrototypeOf(value) === null || value.constructor === Object);
 function _cached(target, prop, resolve) {
-  let value = target[prop];
-  if (defined(value)) {
-    return value;
+  if (Object.prototype.hasOwnProperty.call(target, prop)) {
+    return target[prop];
   }
-  value = resolve();
-  if (defined(value)) {
-    target[prop] = value;
-  }
+  const value = resolve();
+  target[prop] = value;
   return value;
 }
 function _resolveWithContext(target, prop, receiver) {
@@ -1712,7 +1721,7 @@ function _resolveScriptable(prop, value, target, receiver) {
   _stack.add(prop);
   value = value(_context, _subProxy || receiver);
   _stack.delete(prop);
-  if (isObject(value)) {
+  if (needsSubResolver(prop, value)) {
     value = createSubResolver(_proxy._scopes, _proxy, prop, value);
   }
   return value;
@@ -1737,12 +1746,12 @@ function resolveFallback(fallback, prop, value) {
 }
 const getScope = (key, parent) => key === true ? parent
   : typeof key === 'string' ? resolveObjectKey(parent, key) : undefined;
-function addScopes(set, parentScopes, key, parentFallback) {
+function addScopes(set, parentScopes, key, parentFallback, value) {
   for (const parent of parentScopes) {
     const scope = getScope(key, parent);
     if (scope) {
       set.add(scope);
-      const fallback = resolveFallback(scope._fallback, key, scope);
+      const fallback = resolveFallback(scope._fallback, key, value);
       if (defined(fallback) && fallback !== key && fallback !== parentFallback) {
         return fallback;
       }
@@ -1758,12 +1767,12 @@ function createSubResolver(parentScopes, resolver, prop, value) {
   const allScopes = [...parentScopes, ...rootScopes];
   const set = new Set();
   set.add(value);
-  let key = addScopesFromKey(set, allScopes, prop, fallback || prop);
+  let key = addScopesFromKey(set, allScopes, prop, fallback || prop, value);
   if (key === null) {
     return false;
   }
   if (defined(fallback) && fallback !== prop) {
-    key = addScopesFromKey(set, allScopes, fallback, key);
+    key = addScopesFromKey(set, allScopes, fallback, key, value);
     if (key === null) {
       return false;
     }
@@ -1771,9 +1780,9 @@ function createSubResolver(parentScopes, resolver, prop, value) {
   return _createResolver(Array.from(set), [''], rootScopes, fallback,
     () => subGetTarget(resolver, prop, value));
 }
-function addScopesFromKey(set, allScopes, key, fallback) {
+function addScopesFromKey(set, allScopes, key, fallback, item) {
   while (key) {
-    key = addScopes(set, allScopes, key, fallback);
+    key = addScopes(set, allScopes, key, fallback, item);
   }
   return key;
 }
@@ -2264,7 +2273,7 @@ function propertyFn(property) {
     };
   }
   return {
-    between: (n, s, e) => n >= Math.min(s, e) && n <= Math.max(e, s),
+    between: _isBetween,
     compare: (a, b) => a - b,
     normalize: x => x
   };
@@ -2424,36 +2433,54 @@ function splitByStyles(line, segments, points, segmentOptions) {
   return doSplitByStyles(line, segments, points, segmentOptions);
 }
 function doSplitByStyles(line, segments, points, segmentOptions) {
+  const chartContext = line._chart.getContext();
   const baseStyle = readStyle(line.options);
+  const {_datasetIndex: datasetIndex, options: {spanGaps}} = line;
   const count = points.length;
   const result = [];
+  let prevStyle = baseStyle;
   let start = segments[0].start;
   let i = start;
+  function addStyle(s, e, l, st) {
+    const dir = spanGaps ? -1 : 1;
+    if (s === e) {
+      return;
+    }
+    s += count;
+    while (points[s % count].skip) {
+      s -= dir;
+    }
+    while (points[e % count].skip) {
+      e += dir;
+    }
+    if (s % count !== e % count) {
+      result.push({start: s % count, end: e % count, loop: l, style: st});
+      prevStyle = st;
+      start = e % count;
+    }
+  }
   for (const segment of segments) {
-    let prevStyle = baseStyle;
+    start = spanGaps ? start : segment.start;
     let prev = points[start % count];
     let style;
     for (i = start + 1; i <= segment.end; i++) {
       const pt = points[i % count];
-      style = readStyle(segmentOptions.setContext({
+      style = readStyle(segmentOptions.setContext(createContext(chartContext, {
         type: 'segment',
         p0: prev,
         p1: pt,
         p0DataIndex: (i - 1) % count,
         p1DataIndex: i % count,
-        datasetIndex: line._datasetIndex
-      }));
+        datasetIndex
+      })));
       if (styleChanged(style, prevStyle)) {
-        result.push({start: start, end: i - 1, loop: segment.loop, style: prevStyle});
-        prevStyle = style;
-        start = i - 1;
+        addStyle(start, i - 1, segment.loop, prevStyle);
       }
       prev = pt;
       prevStyle = style;
     }
     if (start < i - 1) {
-      result.push({start, end: i - 1, loop: segment.loop, style});
-      start = i - 1;
+      addStyle(start, i - 1, segment.loop, prevStyle);
     }
   }
   return result;
@@ -2473,4 +2500,4 @@ function styleChanged(style, prevStyle) {
   return prevStyle && JSON.stringify(style) !== JSON.stringify(prevStyle);
 }
 
-export { overrides as $, toPadding as A, each as B, getMaximumSize as C, _getParentNode as D, readUsedSize as E, throttled as F, supportsEventListenerOptions as G, HALF_PI as H, _isDomSupported as I, log10 as J, _factorize as K, finiteOrDefault as L, callback as M, _addGrace as N, toDegrees as O, PI as P, _measureText as Q, _int16Range as R, _alignPixel as S, TAU as T, clipArea as U, renderText as V, unclipArea as W, toFont as X, _toLeftRightCenter as Y, _alignStartEnd as Z, _arrayUnique as _, resolve as a, merge as a0, _capitalize as a1, descriptors as a2, isFunction as a3, _attachContext as a4, _createResolver as a5, _descriptors as a6, mergeIf as a7, uid as a8, debounce as a9, _setMinAndMaxByKey as aA, niceNum as aB, almostWhole as aC, almostEquals as aD, _decimalPlaces as aE, _longestText as aF, _filterBetween as aG, _lookup as aH, getHoverColor as aI, clone$1 as aJ, _merger as aK, _mergerIf as aL, _deprecated as aM, toFontString as aN, splineCurve as aO, splineCurveMonotone as aP, getStyle as aQ, fontString as aR, toLineHeight as aS, PITAU as aT, INFINITY as aU, RAD_PER_DEG as aV, QUARTER_PI as aW, TWO_THIRDS_PI as aX, _angleDiff as aY, retinaScale as aa, clearCanvas as ab, setsEqual as ac, _elementsEqual as ad, getAngleFromPoint as ae, _readValueToProps as af, _updateBezierControlPoints as ag, _computeSegments as ah, _boundSegments as ai, _steppedInterpolation as aj, _bezierInterpolation as ak, _pointInLine as al, _steppedLineTo as am, _bezierCurveTo as an, drawPoint as ao, addRoundedRectPath as ap, toTRBL as aq, toTRBLCorners as ar, _boundSegment as as, _normalizeAngle as at, getRtlAdapter as au, overrideTextDirection as av, _textX as aw, restoreTextDirection as ax, noop as ay, distanceBetweenPoints as az, isArray as b, color as c, defaults as d, effects as e, resolveObjectKey as f, isNumberFinite as g, defined as h, isObject as i, isNullOrUndef as j, toPercentage as k, listenArrayEvents as l, toDimension as m, formatNumber as n, _angleBetween as o, isNumber as p, _limitValue as q, requestAnimFrame as r, sign as s, toRadians as t, unlistenArrayEvents as u, valueOrDefault as v, _lookupByKey as w, getRelativePosition as x, _isPointInArea as y, _rlookupByKey as z };
+export { _toLeftRightCenter as $, _rlookupByKey as A, getAngleFromPoint as B, toPadding as C, each as D, getMaximumSize as E, _getParentNode as F, readUsedSize as G, HALF_PI as H, throttled as I, supportsEventListenerOptions as J, _isDomSupported as K, log10 as L, _factorize as M, finiteOrDefault as N, callback as O, PI as P, _addGrace as Q, toDegrees as R, _measureText as S, TAU as T, _int16Range as U, _alignPixel as V, clipArea as W, renderText as X, unclipArea as Y, toFont as Z, _arrayUnique as _, resolve as a, _angleDiff as a$, _alignStartEnd as a0, overrides as a1, merge as a2, _capitalize as a3, descriptors as a4, isFunction as a5, _attachContext as a6, _createResolver as a7, _descriptors as a8, mergeIf as a9, restoreTextDirection as aA, noop as aB, distanceBetweenPoints as aC, _setMinAndMaxByKey as aD, niceNum as aE, almostWhole as aF, almostEquals as aG, _decimalPlaces as aH, _longestText as aI, _filterBetween as aJ, _lookup as aK, getHoverColor as aL, clone$1 as aM, _merger as aN, _mergerIf as aO, _deprecated as aP, toFontString as aQ, splineCurve as aR, splineCurveMonotone as aS, getStyle as aT, fontString as aU, toLineHeight as aV, PITAU as aW, INFINITY as aX, RAD_PER_DEG as aY, QUARTER_PI as aZ, TWO_THIRDS_PI as a_, uid as aa, debounce as ab, retinaScale as ac, clearCanvas as ad, setsEqual as ae, _elementsEqual as af, _isClickEvent as ag, _isBetween as ah, _readValueToProps as ai, _updateBezierControlPoints as aj, _computeSegments as ak, _boundSegments as al, _steppedInterpolation as am, _bezierInterpolation as an, _pointInLine as ao, _steppedLineTo as ap, _bezierCurveTo as aq, drawPoint as ar, addRoundedRectPath as as, toTRBL as at, toTRBLCorners as au, _boundSegment as av, _normalizeAngle as aw, getRtlAdapter as ax, overrideTextDirection as ay, _textX as az, isArray as b, color as c, defaults as d, effects as e, resolveObjectKey as f, isNumberFinite as g, createContext as h, isObject as i, defined as j, isNullOrUndef as k, listenArrayEvents as l, toPercentage as m, toDimension as n, formatNumber as o, _angleBetween as p, isNumber as q, requestAnimFrame as r, sign as s, toRadians as t, unlistenArrayEvents as u, valueOrDefault as v, _limitValue as w, _lookupByKey as x, getRelativePosition as y, _isPointInArea as z };

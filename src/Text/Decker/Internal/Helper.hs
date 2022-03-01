@@ -1,23 +1,17 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Internal.Helper where
 
 -- import Codec.FFmpeg
 import Codec.Picture
-import Control.Applicative
 import Control.Lens
 import Control.Monad.Catch
 import Control.Monad.State
-import Data.Aeson
 import Data.Aeson.Lens
-import Data.ByteString.Builder (toLazyByteString)
 import qualified Data.List as List
 import qualified Data.List.Extra as List
-import qualified Data.Map as Map
 import Data.Scientific
 import qualified Data.Set as Set
-import Data.Yaml.Builder (toByteString)
 import Relude
 import System.CPUTime
 import System.Directory
