@@ -293,45 +293,53 @@ function prepareFlashPanel(deck) {
 
   // This is why this needs to run after Reveal is ready.
   let revealSlide = document.querySelector("div.reveal.slide");
-  if (!revealSlide)
-    throw "Reveal slide element is missing. This is seriously wrong.";
-
-  let panelHtml = `
+  if (revealSlide) {
+    let panelHtml = `
   <div class="decker-flash-panel">
     <div class="content"> </div>
   </div>
   `;
-  revealSlide.insertAdjacentHTML("beforeend", panelHtml);
+    revealSlide.insertAdjacentHTML("beforeend", panelHtml);
 
-  let panel = revealSlide.querySelector("div.decker-flash-panel");
-  let content = revealSlide.querySelector("div.decker-flash-panel div.content");
+    let panel = revealSlide.querySelector("div.decker-flash-panel");
+    let content = revealSlide.querySelector(
+      "div.decker-flash-panel div.content"
+    );
 
-  let update = (msg) => {
-    if (msg) {
-      // One more message.
-      if (interval) {
-        pending.push(msg);
+    let update = (msg) => {
+      if (msg) {
+        // One more message.
+        if (interval) {
+          pending.push(msg);
+        } else {
+          interval = setInterval(update, 1000);
+          content.innerHTML = msg;
+          panel.classList.add("flashing");
+        }
       } else {
-        interval = setInterval(update, 1000);
-        content.innerHTML = msg;
-        panel.classList.add("flashing");
+        // Called by interval timer. No new message.
+        if (pending.length != 0) {
+          content.innerHTML = pending.shift();
+        } else {
+          clearInterval(interval);
+          interval = null;
+          content.innerHTML = "";
+          panel.classList.remove("flashing");
+        }
       }
-    } else {
-      // Called by interval timer. No new message.
-      if (pending.length != 0) {
-        content.innerHTML = pending.shift();
-      } else {
-        clearInterval(interval);
-        interval = null;
-        content.innerHTML = "";
-        panel.classList.remove("flashing");
-      }
-    }
-  };
+    };
 
-  Decker.flash = {
-    message: update,
-  };
+    Decker.flash = {
+      message: update,
+    };
+  } else {
+    console.error(
+      "Element is missing: div.reveal.slide (This is seriously wrong)"
+    );
+    Decker.flash = {
+      message: console.log,
+    };
+  }
 }
 
 // Setup the presenter mode toggle key binding and notification machinery.
@@ -404,7 +412,12 @@ function preparePresenterMode(deck) {
 
 const Plugin = {
   id: "decker",
-  init: onStart,
+  init: (deck) => {
+    return new Promise((resolve) => {
+      onStart(deck);
+      resolve();
+    });
+  },
 };
 
 export default Plugin;
