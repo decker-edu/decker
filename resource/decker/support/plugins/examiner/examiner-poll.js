@@ -22,7 +22,7 @@ export async function preparePolls(reveal) {
     `Connected to poll session <strong style="color:var(--accent6)">${id}</strong>`
   );
 
-  let revealSlide = document.querySelector("div.reveal.slide");
+  let revealElement = reveal.getRevealelement();
   let qrcodeContainer = document.createElement("div");
 
   qrcodeContainer.classList.add("qrcode", "container");
@@ -38,7 +38,9 @@ export async function preparePolls(reveal) {
   qrcodeContainer.addEventListener("click", () => {
     qrcodeContainer.classList.remove("show");
   });
-  revealSlide.appendChild(qrcodeContainer);
+
+  revealElement.setAttribute("poll-session", id);
+  revealElement.appendChild(qrcodeContainer);
 
   session.fillQRCode("poll-qrcode-canvas");
 
@@ -122,7 +124,9 @@ export async function preparePolls(reveal) {
   return {
     close: () => {
       session.reset();
-      revealSlide.removeChild(qrcodeContainer);
+      revealElement.removeChild(qrcodeContainer);
+      revealElement.removeAttribute("poll-session");
+
       for (let cb of callbackLog) {
         cb.button.removeEventListener(cb.event, cb.callback);
       }

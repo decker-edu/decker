@@ -141,7 +141,7 @@ div.exa-mc div.choice > div.vote {
   display: none;
 }
 
-.presenter-mode div.exa-mc div.choice > div.vote {
+div.reveal[poll-session] div.exa-mc div.choice > div.vote {
   display: block;
 }
 
@@ -222,7 +222,7 @@ div.question button:is(.qrcode, .poll, .stop) {
   display: none;
 }
 
-.presenter-mode div.question.poll button:is(.qrcode, .poll, .stop) {
+div.reveal[poll-session]  div.question.poll button:is(.qrcode, .poll, .stop) {
   display: inline;
   float: right;
 }
