@@ -29,7 +29,7 @@
 
 .feedback-badge,
 .counter {
-  font-family: sans-serif;
+  font-family: var(--ui-font-family);
   font-weight: bold;
   line-height: 1;
   text-align: center;
@@ -88,7 +88,7 @@ div.counter {
 }
 
 div.feedback-menu div.feedback-header input {
-  font-family: "Roboto", Helvetica, sans-serif;
+  font-family: var(--ui-font-family);
   /* font-size: 0.8em; */
 }
 
@@ -141,7 +141,7 @@ div.feedback-menu div.feedback-list {
 div.feedback-menu div.feedback-list div.feedback-item {
   color: var(--base07);
   background-color: var(--base00);
-  font-family: "Roboto", Helvetica, sans-serif;
+  font-family: var(--ui-font-family);
   line-height: 125%;
   border: none;
   border-radius: var(--feedback-element-border-radius);
@@ -349,7 +349,7 @@ div.feedback-menu div.feedback-item ul {
 }
 
 div.feedback-menu div.feedback-item code {
-  font-family: Consolas, Monaco, monospace;
+  font-family: var(--code-font-family);
   font-size: 0.9em;
 }
 
@@ -392,7 +392,7 @@ li.slide-list-item[data-questions]::after {
   color: white;
 
   /* from class badge */
-  font-family: sans-serif;
+  font-family: var(--ui-font-family);
   font-weight: bold;
   line-height: 1;
   text-align: center;

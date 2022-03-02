@@ -87,12 +87,13 @@ function pollSession({
           // votes for each choice in the active poll. Example: {25, ["A": 12,
           // "B": 9]}. onFinished(participants, votes) is called with the final
           // results when the poll has stopped.
-          poll: (choices, votes, callbacks = { choices: [], votes: 1 }) => {
+          poll: (choices, solution, votes, callbacks) => {
             session.ui = callbacks;
             session.socket.send(
               JSON.stringify({
                 tag: "Start",
                 choices: choices,
+                solution: solution,
                 votes: votes,
               })
             );

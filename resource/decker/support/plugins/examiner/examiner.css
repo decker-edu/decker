@@ -4,6 +4,12 @@ div.exa-quest {
   font-size: 90%;
 }
 
+div.exa-quest h2 p::before {
+  content: "";
+  padding-right: 0.5em;
+  font-family: "Font Awesome 5 Free";
+}
+
 div.exa-quest :is(input, button, textarea, select) {
   background-color: var(--shade1);
   color: var(--shade6);
@@ -153,7 +159,15 @@ div.exa-mc div.choice p {
   padding-right: 0;
 }
 
-div.exa-quest:not(.poll) div.choice :is(div.vote, div.label) {
+div.reveal:not([poll-session]) div.choice div.vote {
+  display: none;
+}
+
+div.reveal:not([poll-session]) div.exa-quest.poll div.choice > div.check-box {
+  display: none;
+}
+
+div.reveal:not([poll-session]) div.exa-quest.poll button:is(.solve, .again) {
   display: none;
 }
 
@@ -366,7 +380,7 @@ div.exa-ff h3 {
 div.exa-ff textarea {
   width: 100%;
   resize: none;
-  font-family: "Source Code Pro", monospace;
+  font-family: var(--code-font-family);
 }
 
 div.exa-ff div.solution {
@@ -394,7 +408,7 @@ div.exa-nu h3 {
 div.exa-nu textarea {
   width: 100%;
   resize: none;
-  font-family: "Source Code Pro", monospace;
+  font-family: var(--code-font-family);
 }
 
 div.exa-nu div.solution {

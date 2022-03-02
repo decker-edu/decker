@@ -27,7 +27,7 @@
 .reveal .thebelab-cell pre {
   font-size: 20px;
   font-weight: 500;
-  font-family: "Source Code Pro";
+  font-family: var(--code-font-family);
 }
 
 .reveal .jp-OutputArea pre {

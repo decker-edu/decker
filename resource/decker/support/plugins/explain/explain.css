@@ -52,7 +52,7 @@ div#record-panel {
   flex-flow: column-reverse nowrap;
   justify-content: center;
 
-  font-family: sans-serif;
+  font-family: var(--ui-font-family);
 
   transform: translate(-50%, var(--offset));
   opacity: 0.5;

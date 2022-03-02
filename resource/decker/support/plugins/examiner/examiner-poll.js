@@ -67,12 +67,16 @@ export async function preparePolls(reveal) {
     });
 
     // Collect the vote feedback structures.
-    let voteBlocks = answer.querySelectorAll("div.choice div.vote");
     let voteMap = {};
-    for (let vb of voteBlocks) {
-      let choice = vb.getAttribute("label");
-      let votesElement = vb.querySelector("div.votes");
-      voteMap[choice] = votesElement;
+    let solution = [];
+    let voteBlocks = answer.querySelectorAll("div.choice div.vote");
+    let choiceElements = answer.querySelectorAll("div.choice");
+    for (let choice of choiceElements) {
+      let vb = choice.querySelector("div.vote");
+      let label = vb.getAttribute("label");
+      let votesElement = vb.querySelector("div.vote div.votes");
+      voteMap[label] = votesElement;
+      if (choice.classList.contains("correct")) solution.push(label);
     }
     let choices = Object.keys(voteMap);
 
@@ -90,7 +94,7 @@ export async function preparePolls(reveal) {
     // Wire the Poll button that starts the poll.
     const poll = (e) => {
       let restoreStop = stopButton.textContent;
-      session.poll(choices, nvotes, {
+      session.poll(choices, solution, nvotes, {
         onActive: (participants, votes, complete) => {
           displayVotes(votes, voteMap);
           showVotes(voteBlocks, true);
@@ -166,6 +170,12 @@ function clientCssTemplate(color) {
     h1#pollid {display: none}
     p#nvotes {display: none}
     body.polling p#status {display: none}
+    body.connected.winner {
+      background-color: ${color.accent7};
+    }
+    body.winner p#status::before {
+      content: "YOU WON!";
+    }
     button {
       color: ${color.shade7} !important;
       border: 0 !important;
