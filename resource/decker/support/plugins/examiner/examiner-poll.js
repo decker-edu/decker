@@ -22,7 +22,7 @@ export async function preparePolls(reveal) {
     `Connected to poll session <strong style="color:var(--accent6)">${id}</strong>`
   );
 
-  let revealElement = reveal.getRevealelement();
+  let revealElement = reveal.getRevealElement();
   let qrcodeContainer = document.createElement("div");
 
   qrcodeContainer.classList.add("qrcode", "container");
