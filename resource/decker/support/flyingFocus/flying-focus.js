@@ -112,7 +112,7 @@ function borderOf(elem) {
 
 // setup event listeners
 export function setupFlyingFocus() {
-  document.addEventListener("keydown", handleKeyboard, false);
+  window.addEventListener("keydown", handleKeyboard, false);
   document.addEventListener("focus", showFlyingFocus, true);
   document.addEventListener("blur", hideFlyingFocus, true);
   document.addEventListener("focusout", hideFlyingFocus, true);
