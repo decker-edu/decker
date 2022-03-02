@@ -1,7 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Internal.Meta
@@ -12,6 +8,7 @@ module Text.Decker.Internal.Meta
     mergePandocMeta',
     pandocMeta,
     setMetaValue,
+    readMetaValue,
     adjustMetaValue,
     adjustMetaValueM,
     adjustMetaStringsBelow,
@@ -151,6 +148,9 @@ setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
     set _ _ =
       throw $
         InternalException $ "Cannot set meta value on non object at: " <> show key
+
+readMetaValue :: Text -> Text -> Meta -> Meta
+readMetaValue key value = setMetaValue key (maybe value show $ (readMaybe (toString value) :: Maybe Bool))
 
 -- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
 -- Apply the function to the value if the key exists.

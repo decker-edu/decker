@@ -1270,6 +1270,7 @@ body.print-pdf div.open-button {
 .reveal .quiz-mi .buckets,
 .reveal .quiz-mi .matchItems {
   border: 2px solid var(--shade3);
+  padding: 15px 10px;
 }
 
 .reveal .quiz-mi .buckets {
@@ -1309,7 +1310,7 @@ body.print-pdf div.open-button {
   bottom: -30px;
   border-left: 30px solid transparent;
   border-right: 30px solid transparent;
-  border-top: 30px solid var(--shade5);
+  border-top: 30px solid var(--shade3);
 }
 
 .reveal .quiz-mi .bucket {
@@ -1339,6 +1340,92 @@ body.print-pdf div.open-button {
 .reveal [class*="quiz"] .show-wrong {
   background-color: var(--red-background-color);
   border-color: var(--red-border-color);
+}
+
+/*********************************************
+ * quiz polling
+ *********************************************/
+
+.reveal:not(.poll) .poll-only {
+  display: none;
+}
+
+#poll-chart {
+  font-size: var(--icon-size);
+  position: absolute;
+  left: auto;
+  top: auto;
+  right: 0.5em;
+  bottom: 0.5em;
+  visibility: hidden;
+  z-index: 34;
+  width: 420px;
+  height: 320px;
+  margin: auto;
+  padding: 0.5em;
+  text-align: center;
+  border: 3px solid var(--emphColor);
+  border-radius: 0.5em;
+  background-color: var(--shade0);
+  transform-origin: bottom right;
+  box-shadow: 3px 5px 5px var(--shade3);
+}
+
+#poll-chart.canvas {
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 300px;
+}
+
+#poll-votes {
+  font-size: var(--icon-size);
+  color: var(--icon-inactive-color);
+  text-align: center;
+  display: none;
+}
+
+div.qrcode.container {
+  display: none;
+  z-index: 4000;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  background-color: var(--shade0);
+}
+
+div.qrcode.container button {
+  position: absolute;
+  right: 1em;
+  top: 1em;
+}
+
+div.qrcode.container.show {
+  display: flex;
+}
+
+div.qrcode.container {
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+div.qrcode.container canvas {
+  height: 66vh;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  background-color: white;
+  padding: 0.5em;
+  border: 0.01em solid black;
+  border-radius: var(--block-border-radius);
+}
+
+div.qrcode.container a {
+  font-size: 2rem;
+  font-weight: bold;
 }
 
 /*********************************************

@@ -22,7 +22,7 @@ export async function preparePolls(reveal) {
     `Connected to poll session <strong style="color:var(--accent6)">${id}</strong>`
   );
 
-  let revealSlide = document.querySelector("div.reveal.slide");
+  let revealElement = reveal.getRevealElement();
   let qrcodeContainer = document.createElement("div");
 
   qrcodeContainer.classList.add("qrcode", "container");
@@ -38,7 +38,9 @@ export async function preparePolls(reveal) {
   qrcodeContainer.addEventListener("click", () => {
     qrcodeContainer.classList.remove("show");
   });
-  revealSlide.appendChild(qrcodeContainer);
+
+  revealElement.setAttribute("poll-session", id);
+  revealElement.appendChild(qrcodeContainer);
 
   session.fillQRCode("poll-qrcode-canvas");
 
@@ -87,12 +89,13 @@ export async function preparePolls(reveal) {
 
     // Wire the Poll button that starts the poll.
     const poll = (e) => {
+      let restoreStop = stopButton.textContent;
       session.poll(choices, nvotes, {
         onActive: (participants, votes, complete) => {
           displayVotes(votes, voteMap);
           showVotes(voteBlocks, true);
           const voted = Object.values(votes).reduce((t, v) => t + v, 0);
-          stopButton.textContent = `${complete} / ${participants}`;
+          stopButton.textContent = ` ${complete}/${participants} `;
           stopButton.removeAttribute("disabled");
           pollButton.setAttribute("disabled", false);
           reveal.on("slidechanged", abort);
@@ -101,7 +104,7 @@ export async function preparePolls(reveal) {
           displayVotes(votes, voteMap);
           showVotes(voteBlocks, false);
           const voted = Object.values(votes).reduce((t, v) => t + v, 0);
-          stopButton.textContent = `${complete} / ${participants}`;
+          stopButton.textContent = restoreStop;
           stopButton.setAttribute("disabled", false);
           pollButton.removeAttribute("disabled");
           reveal.off("slidechanged", abort);
@@ -122,7 +125,9 @@ export async function preparePolls(reveal) {
   return {
     close: () => {
       session.reset();
-      revealSlide.removeChild(qrcodeContainer);
+      revealElement.removeChild(qrcodeContainer);
+      revealElement.removeAttribute("poll-session");
+
       for (let cb of callbackLog) {
         cb.button.removeEventListener(cb.event, cb.callback);
       }

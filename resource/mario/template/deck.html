@@ -140,9 +140,13 @@ $body$
     </div>
   </div>
 
-  <script>window.Decker = {meta: $decker-meta$};</script>
+  <script type="module">
+    /* Store JSON encoded Pandoc meta data in a global variable. */
+    import initializeDecker from "./$decker-support-dir$/js/decker.js";
+    initializeDecker($decker-meta$);
+  </script>
+
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
-  <script src="$decker-support-dir$/js/decker.js"></script>
 
   <script type="module">
     // import Reveal and all plugins

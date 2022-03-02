@@ -141,7 +141,7 @@ div.exa-mc div.choice > div.vote {
   display: none;
 }
 
-.presenter-mode div.exa-mc div.choice > div.vote {
+div.reveal[poll-session] div.exa-mc div.choice > div.vote {
   display: block;
 }
 
@@ -218,13 +218,33 @@ div.qrcode.container {
   z-index: 4000;
 }
 
-div.question button:is(.qrcode, .poll, .stop) {
-  display: none;
+div.question button {
+  font-weight: bold;
 }
 
-.presenter-mode div.question.poll button:is(.qrcode, .poll, .stop) {
+div.question button:is(.qrcode, .poll, .stop) {
+  display: none;
+  font-weight: bold;
+}
+
+div.reveal[poll-session] div.question.poll button:is(.qrcode, .poll, .stop) {
   display: inline;
   float: right;
+}
+
+div.question button.stop::before {
+  content: "";
+  font-family: "Font Awesome 5 Free";
+}
+
+div.question button.qrcode::before {
+  content: "";
+  font-family: "Font Awesome 5 Free";
+}
+
+div.question button.poll::before {
+  content: "";
+  font-family: "Font Awesome 5 Free";
 }
 
 div.qrcode.container button {
