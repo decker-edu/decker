@@ -1,9 +1,9 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 module Text.Decker.Project.Shake
   ( runDecker,
@@ -76,7 +76,7 @@ runDecker theRules = do
 runTargets :: ActionContext -> [FilePath] -> Rules () -> IO ()
 runTargets context targets rules = do
   let flags = context ^. extra
-  extractMetaIntoFile (context ^. extra)
+  extractMetaIntoFile flags
   channel <- atomically newTChan
 
   when (OpenFlag `elem` flags) $ do
@@ -231,6 +231,15 @@ isMetaName str = all check $ List.splitOn "." str
   where
     check s = length s > 1 && isAlpha (List.head s) && all (\c -> isAlphaNum c || isSymbol c || isPunctuation c) (List.tail s)
 
+addMetaFlags :: [Flags] -> Meta -> Meta
+addMetaFlags flags meta =
+  foldl'
+    ( \meta (MetaValueFlag key value) ->
+        readMetaValue (toText key) (toText value) meta
+    )
+    meta
+    (filter aMetaValue flags)
+
 -- | Saves the meta flags to a well known file. Will be later read and cached by
 -- shake.
 extractMetaIntoFile :: [Flags] -> IO ()
@@ -251,7 +260,7 @@ initContext extra meta = do
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
-  return $ ActionContext extra devRun external server watch chan public meta
+  return $ ActionContext extra devRun external server watch chan public (addMetaFlags extra meta)
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do
