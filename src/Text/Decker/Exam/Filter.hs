@@ -59,11 +59,11 @@ renderQuestion attr meta base qst =
     ( [tag "h2" $ Div nullAttr $ parseToBlocks base (_qstTitle qst)]
         <> [Div ("", ["question"], []) $ parseToBlocks base (_qstQuestion qst)]
         <> renderAnswer (_qstAnswer qst)
-        <> [renderButton "solve" (lookupInDictionary "exam.solve-button" meta)]
-        <> [renderButton "again" (lookupInDictionary "exam.again-button" meta)]
-        <> [renderButton "qrcode" (lookupInDictionary "exam.qrcode-button" meta)]
-        <> [renderButton "poll" (lookupInDictionary "exam.poll-button" meta)]
-        <> [renderButton "stop" (lookupInDictionary "exam.stop-button" meta)]
+        <> [renderButton "solve" (Text.strip $ lookupInDictionary "exam.solve-button" meta)]
+        <> [renderButton "again" (Text.strip $ lookupInDictionary "exam.again-button" meta)]
+        <> [renderButton "qrcode" (Text.strip $ lookupInDictionary "exam.qrcode-button" meta)]
+        <> [renderButton "poll" (Text.strip $ lookupInDictionary "exam.poll-button" meta)]
+        <> [renderButton "stop" (Text.strip $ lookupInDictionary "exam.stop-button" meta)]
         <> [ Div
                ("", ["score"], [])
                [ Plain
