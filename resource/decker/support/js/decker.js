@@ -84,4 +84,11 @@ function initializeDecker(meta) {
       };
     }
   });
+
+  // Incremental lists ".incremental ul" do not work anymore.
+  // Let's fix this for now in Javascript.
+  console.log("FIX ME: setup incremental lists");
+  document.querySelectorAll(".incremental li").forEach((li) => {
+    li.classList.add("fragment");
+  });
 }
