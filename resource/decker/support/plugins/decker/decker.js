@@ -231,7 +231,6 @@ function continueWhereYouLeftOff(deck) {
         let dialog = createElement({
           type: "div",
           id: "continue-dialog",
-          css: "display:flex; justify-content:space-evenly; align-items:center; gap:1em; position:fixed; left:50%; bottom:1em; transform:translate(-50%,0px); padding:1em; border:2px solid #2a9ddf; border-radius: 0.5em; font-size: 1rem; z-index:50;",
           parent: reveal,
           text: german
             ? "Bei Folie " + slideNumber + " weitermachen?"
