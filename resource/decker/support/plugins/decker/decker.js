@@ -334,7 +334,7 @@ function prepareFlashPanel(deck) {
     };
   } else {
     console.error(
-      "Element is missing: div.reveal.slide (This is seriously wrong)"
+      "Element is missing: getRevealElement (This is seriously wrong)"
     );
     Decker.flash = {
       message: console.log,
