@@ -74,7 +74,7 @@ writePandocFile options out pandoc@(Pandoc meta blocks) = do
     html <-
       runIO (writeHtml4 options {writerTemplate = Nothing} pandoc)
         >>= handleError
-    let string = renderHtml $ transformHtml nullA html
+    let string = renderHtml $ transformHtml (nullA, []) html
     let raw =
           [ RawBlock "html" $ fromLazy string,
             Plain
@@ -93,52 +93,78 @@ writePandocFile options out pandoc@(Pandoc meta blocks) = do
 -- | Transforms a HTML structure such that divs with a attribute
 -- data-tag=section are transformed into section elements with the data-tag
 -- attribute removed.
+incremental :: Bool -> [Text] -> [Text]
+incremental True flags = "incremental" : filter (/= "nonincremental") flags
+incremental False flags = "nonincremental" : filter (/= "incremental") flags
 
 --- Also, the class "processed" is removed from all elements.
-transformHtml :: Map Text Text -> MarkupM a -> MarkupM a
-transformHtml attribs m@(Parent tag open end html)
+transformHtml :: (Map Text Text, [Text]) -> MarkupM a -> MarkupM a
+transformHtml (attribs, flags) m@(Parent tag open end html)
   | getText tag `elem` ["div", "span"] && Map.member "data-tag" attribs =
     let name = toString $ attribs Map.! "data-tag"
+        flags' = incremental (hasClass "incremental" attribs) flags
      in Parent
           (fromString name)
           (fromString $ "<" <> name)
           (fromString $ "</" <> name <> ">")
-          (transformHtml nullA html)
--- dissard the collected attributes and recurse
-transformHtml attribs m@(Parent tag open end html) =
-  Parent tag open end (transformHtml nullA html)
--- dissard the collected attributes and recurse
-transformHtml attribs m@(CustomParent string html) =
-  CustomParent string (transformHtml nullA html)
+          (transformHtml (nullA, flags') html)
+-- tag all <li> below <div class="incremental"> as `fragment`
+transformHtml (attribs, flags) m@(Parent tag open end html)
+  | getText tag `elem` ["div"] && hasClass "incremental" attribs =
+    Parent tag open end (transformHtml (nullA, incremental True flags) html)
+transformHtml (attribs, flags) m@(Parent tag open end html)
+  | getText tag `elem` ["div"] && hasClass "nonincremental" attribs =
+    Parent tag open end (transformHtml (nullA, incremental False flags) html)
+transformHtml (attribs, flags) m@(Parent tag open end html)
+  | getText tag == "li" && "incremental" `elem` flags =
+    AddCustomAttribute "class" "fragment" $ Parent tag open end (transformHtml (nullA, flags) html)
+-- discard the collected attributes and recurse
+transformHtml (attribs, flags) m@(Parent tag open end html) =
+  Parent tag open end (transformHtml (nullA, flags) html)
+-- discard the collected attributes and recurse
+transformHtml (attribs, flags) m@(CustomParent string html) =
+  CustomParent string (transformHtml (nullA, flags) html)
 -- just pass through
--- dissard the collected attributes and recurse twice
-transformHtml attribs m@(Append html1 html2) =
-  Append (transformHtml nullA html1) (transformHtml nullA html2)
+-- discard the collected attributes and recurse twice
+transformHtml (attribs, flags) m@(Append html1 html2) =
+  Append (transformHtml (nullA, flags) html1) (transformHtml (nullA, flags) html2)
 -- drop 'processed' from class attribute
-transformHtml attribs m@(AddAttribute raw key value html)
+transformHtml (attribs, flags) m@(AddAttribute raw key value html)
   | toText raw == "class" =
-    let cls = Text.unlines $ filter (/= "processed") $ Text.lines $ toText value
+    let cls = Text.unwords $ filter (/= "processed") $ Text.words $ toText value
      in if Text.null cls
-          then transformHtml attribs html
-          else AddAttribute raw key value (transformHtml (Map.insert (toText raw) cls attribs) html)
+          then transformHtml (attribs, flags) html
+          else AddAttribute raw key value (transformHtml ((Map.insert (toText raw) cls attribs), flags) html)
 -- add the attribute to the map for later retrieval
-transformHtml attribs m@(AddAttribute raw key value html) =
-  AddAttribute raw key value (transformHtml (Map.insert (toText raw) (toText value) attribs) html)
+transformHtml (attribs, flags) m@(AddAttribute raw key value html) =
+  AddAttribute raw key value (transformHtml ((Map.insert (toText raw) (toText value) attribs), flags) html)
 -- drop the custom data-tag attribute after adding it to the map
-transformHtml attribs m@(AddCustomAttribute key value html)
+transformHtml (attribs, flags) m@(AddCustomAttribute key value html)
   | toText key == "data-tag" =
-    transformHtml (Map.insert (toText key) (toText value) attribs) html
+    transformHtml ((Map.insert (toText key) (toText value) attribs), flags) html
 -- drop 'processed' from class attribute
-transformHtml attribs m@(AddCustomAttribute key value html)
+transformHtml (attribs, flags) m@(AddCustomAttribute key value html)
   | toText key == "class" =
-    let cls = Text.unlines $ filter (/= "processed") $ Text.lines $ toText value
+    let cls = Text.unwords $ filter (/= "processed") $ Text.words $ toText value
      in if Text.null cls
-          then transformHtml attribs html
-          else AddCustomAttribute key value (transformHtml (Map.insert (toText key) cls attribs) html)
+          then transformHtml (attribs, flags) html
+          else AddCustomAttribute key value (transformHtml ((Map.insert (toText key) cls attribs), flags) html)
 -- add the custom attribute to the map for later retrieval
-transformHtml attribs m@(AddCustomAttribute key value html) =
-  AddCustomAttribute key value (transformHtml (Map.insert (toText key) (toText value) attribs) html)
-transformHtml attribs m = m
+transformHtml (attribs, flags) m@(AddCustomAttribute key value html) =
+  AddCustomAttribute key value (transformHtml ((Map.insert (toText key) (toText value) attribs), flags) html)
+transformHtml (attribs, flags) m = m
+
+hasClass :: Text -> Map Text Text -> Bool
+hasClass cls attrib =
+  case Map.lookup "class" attrib of
+    Nothing -> False
+    Just txt -> (cls `elem`) $ Text.words txt
+
+addClass :: Text -> Map Text Text -> Map Text Text
+addClass c = Map.alter add "class"
+  where
+    add Nothing = Just "fragment"
+    add (Just cls) = Just $ Text.unwords $ ("fragment" :) $ Text.words cls
 
 instance ToText StaticString where
   toText s = getText s

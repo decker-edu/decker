@@ -223,6 +223,7 @@ imageBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["image"]
+    cutClasses ["fragment"] >>= injectClasses
     injectStyles outerSizes
     extractAttr
   return $
@@ -247,6 +248,7 @@ codeBlock code caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["code"]
+    cutClasses ["fragment"] >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -270,6 +272,7 @@ iframeBlock uri title caption = do
   figureAttr <- do
     takeUsual
     injectClasses ["iframe"]
+    cutClasses ["fragment"] >>= injectClasses
     injectStyles outerSizes
     extractAttr
   return $
@@ -291,6 +294,7 @@ objectBlock otype uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["object"]
+    cutClasses ["fragment"] >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -311,6 +315,7 @@ svgBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["svg embedded"]
+    cutClasses ["fragment"] >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -343,6 +348,7 @@ streamBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["stream"]
+    cutClasses ["fragment"] >>= injectClasses
     takeUsual
     injectStyles outerSizes
     extractAttr
@@ -376,6 +382,7 @@ audioBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["audio"]
+    cutClasses ["fragment"] >>= injectClasses
     takeUsual
     extractAttr
   return $ wrapFigure figureAttr caption $ mkAudio audioAttr
@@ -401,6 +408,7 @@ videoBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["video"]
+    cutClasses ["fragment"] >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -420,6 +428,7 @@ renderCodeBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["image rendered"]
+    cutClasses ["fragment"] >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -444,6 +453,7 @@ javascriptBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["javascript"]
+    cutClasses ["fragment"] >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -463,6 +473,7 @@ javascriptCodeBlock code caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["javascript"]
+    cutClasses ["fragment"] >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr

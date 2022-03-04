@@ -15,6 +15,7 @@ module Text.Decker.Filter.Slide
     classes,
     hasAnyClass,
     hasClass,
+    setClass,
     header,
     body,
     dir,
@@ -207,6 +208,9 @@ demoteHeaders = traverse . _Header . _1 +~ 1
 classes :: HasAttr a => a -> [Text.Text]
 classes = view (attributes . attrClasses)
 
+setClasses :: HasAttr a => [Text.Text] -> a -> a
+setClasses = set (attributes . attrClasses)
+
 hasClass :: HasAttr a => Text.Text -> a -> Bool
 hasClass which = elem which . classes
 
@@ -230,3 +234,6 @@ keepByClass which =
 isBoxDelim :: Block -> Bool
 isBoxDelim (Header 2 _ _) = True
 isBoxDelim _ = False
+
+setClass :: HasAttr a => Text.Text -> a -> a
+setClass cls x = setClasses (cls : classes x) x

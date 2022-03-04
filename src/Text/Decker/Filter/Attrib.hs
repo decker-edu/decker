@@ -232,6 +232,13 @@ takeAllClasses = modify transform
     transform state@((id', cs', kvs'), (id, cs, kvs)) =
       ((id', cs <> cs', kvs'), (id, [], kvs))
 
+takeAttributes :: [Text] -> Attrib ()
+takeAttributes keys = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      let (match, rest) = List.partition ((`elem` keys) . fst) kvs
+       in ((id', cs', nub (kvs' <> match)), (id, cs, rest))
+
 takeAllAttributes :: Attrib ()
 takeAllAttributes = modify transform
   where

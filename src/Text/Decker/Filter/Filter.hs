@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Text.Decker.Filter.Filter
   ( OutputFormat (..),
     Disposition (..),
@@ -20,6 +18,7 @@ import qualified Data.List as List
 import Data.List.Split
 import qualified Data.Text as Text
 import Development.Shake (Action)
+import Text.Decker.Filter.Incremental
 import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Notes
@@ -202,6 +201,7 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
       [ marioCols,
         processNotes,
         wrapBoxes,
+        incrementalBlocks,
         selectActiveSlideContent,
         splitJoinColumns,
         layoutSlide
