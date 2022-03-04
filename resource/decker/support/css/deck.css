@@ -163,9 +163,25 @@ div.decker-flash-panel div.content {
   font-size: 2rem;
   background-color: var(--shade1);
   color: var(--shade6);
-  border: solid 0.1em var(--accent2);
+  border: solid 0.1em var(--primary-color);
   border-radius: var(--block-border-radius);
   padding: 0.25em 0.5em;
+}
+
+div#continue-dialog {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 1em;
+  position: fixed;
+  left: 50%;
+  bottom: 1em;
+  transform: translate(-50%, 0px);
+  padding: 1em;
+  border: 2px solid var(--primary-color);
+  border-radius: 0.5em;
+  font-size: 1rem;
+  z-index: 50;
 }
 
 .reveal:not(.presenter-mode) .presenter-only {

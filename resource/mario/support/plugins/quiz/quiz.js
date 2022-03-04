@@ -10,9 +10,10 @@ import "../charts/plugin-colorschemes.js";
 // reference to Reveal deck
 let Reveal;
 
-// how many answers on current slide?
+// poll info on current slide
 let numAnswers = 0;
-let singleChoice = true;
+let numCorrectAnswers;
+let solution;
 
 // polling
 let session;
@@ -25,12 +26,8 @@ let myChart;
 let votes_div, chart_div, chart;
 
 // get path of script -> used for loading audio files
-const path = scriptPath();
-function scriptPath() {
-  const url = new URL(import.meta.url);
-  const path = url.pathname;
-  return path.substring(0, path.lastIndexOf("/"));
-}
+const url = new URL(import.meta.url);
+const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
 
 // load WWM jingles
 let jingleQuestion = new Audio(path + "/wwm-question.mp3");
@@ -107,18 +104,24 @@ function slideChanged() {
     // reset state
     pollState = "not_init";
     numAnswers = 0;
-    let numCorrectAnswers = 0;
+    numCorrectAnswers = 0;
+    solution = [];
 
-    // is this a quiz slide? -> find answers (new version)
+    // is this a quiz slide? -> find answers
     const slide = Reveal.getCurrentSlide();
-    slide
-      .querySelectorAll('.reveal .quiz ul>li>input[type="checkbox"]')
-      .forEach((input) => {
-        input.parentElement.classList.remove("show-answer");
-        numAnswers++;
-        if (input.checked) ++numCorrectAnswers;
-      });
-    singleChoice = numCorrectAnswers == 1;
+    const inputElements = slide.querySelectorAll(
+      '.reveal .quiz ul>li>input[type="checkbox"]'
+    );
+    numAnswers = inputElements.length;
+    const choices = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    for (let i = 0; i < numAnswers; i++) {
+      const input = inputElements[i];
+      input.parentElement.classList.remove("show-answer");
+      if (input.checked) {
+        ++numCorrectAnswers;
+        solution.push(choices[i]);
+      }
+    }
 
     // set poll class in reveal element
     Reveal.getRevealElement().classList.toggle("poll", numAnswers > 0);
@@ -131,9 +134,8 @@ async function startPoll() {
 
   // get labels as subset of this array
   let choices = ["A", "B", "C", "D", "E", "F", "G", "H"].slice(0, numAnswers);
-  let nvotes = singleChoice ? 1 : numAnswers;
 
-  session.poll(choices, nvotes, {
+  session.poll(choices, solution, numCorrectAnswers, {
     onActive: (participants, votes, complete) => {
       console.log("Poll:", "active", participants, votes, complete);
       votes_div.textContent = `${complete} / ${participants}`;
@@ -303,14 +305,54 @@ async function preparePolling() {
       color: #333
       background-color: #ccc;
     }
-    h1#pollid {display: none}
-    p#nvotes {display: none}
-    body.polling p#status {display: none}
-    button {
+    h1#pollid {
+      display: none;
+    }
+    p#nvotes {
+      display: none;
+    }
+    body {
+      justify-content: center;
+      align-items: center;
+    }
+    body.polling p#status {
+      display: none;
     }
     button.checked {
       color: white;
       background-color: #2a9ddf !important;
+    }
+    #buttons { 
+      width: 100%;
+    }
+    body.winner #buttons { 
+      display: none 
+    }
+    body.winner p#status::before { 
+      content: "${
+        document.documentElement.lang === "de" ? "GEWONNEN!" : "YOU WON!"
+      }"; 
+    }
+    body.winner #status {
+      font-size: 14vmin;
+      color: gold;
+      font-weight: bold;
+      -webkit-text-stroke: 0.03em black;
+      text-shadow:
+        0.03em 0.03em 0 #000,
+        -0.01em -0.01em 0 #000,  
+        0.01em -1px 0 #000,
+        -0.01em 1px 0 #000,
+        0.01em 1px 0 #000;
+      animation: wiggle 1s infinite;
+    }
+    @keyframes wiggle {
+      0%,40%,100% {
+        transform: rotate(-10deg);
+      }
+      20% {
+        transform: rotate(10deg);
+      }
     }
     `,
   });
