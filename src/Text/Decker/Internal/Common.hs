@@ -83,9 +83,8 @@ pandocReaderOpts :: ReaderOptions
 pandocReaderOpts =
   def
     { readerExtensions =
-        disableExtension Ext_smart $
-          disableExtension Ext_implicit_figures $
-            enableExtension Ext_emoji pandocExtensions
+        disableExtension Ext_implicit_figures $
+          enableExtension Ext_emoji pandocExtensions
     }
 
 projectDir = "."
