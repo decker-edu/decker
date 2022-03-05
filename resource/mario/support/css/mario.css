@@ -12,7 +12,6 @@
   --light-blue: #30b3ff;
   --emphColor: var(--blue);
   --icon-active-color: var(--blue);
-  --icon-inactive-color: lightgrey;
 
   --green-background-color: var(--accent3-bbg);
   --green-border-color: var(--accent3);
@@ -112,7 +111,7 @@ body {
 }
 
 .reveal .boxed {
-  border: 1px solid black;
+  border: 1px solid var(--shade6);
   border-radius: 5px;
   padding: 10px;
   box-sizing: border-box;
@@ -505,8 +504,8 @@ body {
   margin: auto;
   border-collapse: collapse;
   border-spacing: 2px;
-  border-top: 2px solid black;
-  border-bottom: 2px solid black;
+  border-top: 2px solid var(--shade6);
+  border-bottom: 2px solid var(--shade6);
   text-align: center;
   margin-bottom: 1em;
   line-height: 1.5em;
@@ -1419,7 +1418,7 @@ div.qrcode.container canvas {
   aspect-ratio: 1 / 1;
   background-color: white;
   padding: 0.5em;
-  border: 0.01em solid black;
+  border: 0.01em solid var(--shade6);
   border-radius: var(--block-border-radius);
 }
 
@@ -1436,4 +1435,7 @@ div.qrcode.container a {
   .media figure > img {
     background-color: var(--shade7);
   }
+}
+html.dark .media figure > img {
+  background-color: var(--shade7);
 }

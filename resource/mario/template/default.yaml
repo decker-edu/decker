@@ -100,3 +100,40 @@ dictionary:
       qmi-drag-hint: Drag items from here...
       qmi-drop-hint: ...and put them here into the correct category.
       solution-button: Show Solution
+
+palette:
+  colors:
+    light:
+      - "#ffffff"
+      - "#dbdbdb"
+      - "#b7b7b7"
+      - "#939393"
+      - "#6f6f6f"
+      - "#4a4a4a"
+      - "#252525"
+      - "#000000"
+      - "#ff0000"
+      - "#ffa500"
+      - "#ffff00"
+      - "#83B818"
+      - "#00ffa5"
+      - "#2a9ddf"
+      - "#a500ff"
+      - "#ff00ff"
+    dark:
+      - "#000000"
+      - "#252525"
+      - "#4a4a4a"
+      - "#6f6f6f"
+      - "#939393"
+      - "#b7b7b7"
+      - "#dbdbdb"
+      - "#ffffff"
+      - "#ff0000"
+      - "#ffa500"
+      - "#ffff00"
+      - "#83B818"
+      - "#00ffa5"
+      - "#2a9ddf"
+      - "#a500ff"
+      - "#ff00ff"
