@@ -1,6 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Layout
@@ -99,26 +96,23 @@ slideAreas names blocks =
       split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
 
 layoutSlide :: Slide -> Decker Slide
+layoutSlide slide@(Slide (Just header) [] dir) = return slide
 layoutSlide slide@(Slide (Just header) body dir) = do
-  disp <- gets disposition
-  case disp of
-    Disposition _ Html ->
-      case hasRowLayout header of
-        Just layout ->
-          let names = layoutAreas layout
-              areas = slideAreas names body
-           in return $ Slide (Just header) (renderLayout areas layout) dir
-        Nothing ->
-          return $
-            Slide
-              (Just header)
+  case hasRowLayout header of
+    Just layout ->
+      let names = layoutAreas layout
+          areas = slideAreas names body
+       in return $ Slide (Just header) (renderLayout areas layout) dir
+    Nothing ->
+      return $
+        Slide
+          (Just header)
+          [ Div
+              ("", ["layout"], [])
               [ Div
-                  ("", ["layout"], [])
-                  [ Div
-                      ("", ["area"], [])
-                      body
-                  ]
+                  ("", ["area"], [])
+                  body
               ]
-              dir
-    Disposition _ _ -> return slide
+          ]
+          dir
 layoutSlide slide = return slide
