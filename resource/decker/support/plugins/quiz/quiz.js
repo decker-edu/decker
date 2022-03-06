@@ -14,6 +14,7 @@ let Reveal;
 let numAnswers = 0;
 let numCorrectAnswers;
 let solution;
+let singleChoice = true;
 
 // polling
 let session;
@@ -28,6 +29,7 @@ let votes_div, chart_div, chart;
 // get path of script -> used for loading audio files
 const url = new URL(import.meta.url);
 const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+const href = url.href.substring(0, url.href.lastIndexOf("/"));
 
 // load WWM jingles
 let jingleQuestion = new Audio(path + "/wwm-question.mp3");
@@ -122,6 +124,7 @@ function slideChanged() {
         solution.push(choices[i]);
       }
     }
+    singleChoice = numCorrectAnswers == 1;
 
     // set poll class in reveal element
     Reveal.getRevealElement().classList.toggle("poll", numAnswers > 0);
@@ -137,12 +140,12 @@ async function startPoll() {
 
   session.poll(choices, solution, numCorrectAnswers, {
     onActive: (participants, votes, complete) => {
-      console.log("Poll:", "active", participants, votes, complete);
+      // console.log("Poll:", "active", participants, votes, complete);
       votes_div.textContent = `${complete} / ${participants}`;
       Reveal.on("slidechanged", abortPoll);
     },
     onFinished: (participants, votes, complete) => {
-      console.log("Poll:", "finished", participants, votes, complete);
+      // console.log("Poll:", "finished", participants, votes, complete);
       finalVotes = votes;
       createChart();
       showChart();
@@ -194,12 +197,20 @@ function createChart() {
     myChart.destroy();
   }
 
+  // let labels = ["A", "B", "C", "D"];
+  // let result = [1, 2, 0, 8];
   let labels = [];
   let result = [];
   for (let [label, count] of votes) {
     labels.push(label);
     result.push(count);
   }
+  const sum = Math.max(
+    1,
+    result.reduce((a, b) => a + b, 0)
+  );
+  const data = result.map((c) => c / sum);
+  // console.log(labels, result, data);
 
   // (re)create chart
   let ctx = chart.getContext("2d");
@@ -209,7 +220,7 @@ function createChart() {
       labels: labels,
       datasets: [
         {
-          data: result,
+          data: data,
           backgroundColor: "#2a9ddf",
         },
       ],
@@ -221,13 +232,12 @@ function createChart() {
       plugins: {
         title: { display: false },
         legend: { display: false },
-        tooltip: { enabled: false },
       },
       scales: {
         y: {
           min: 0,
           max: 1,
-          stepSize: 0.1,
+          ticks: { format: { style: "percent" } },
         },
       },
     },

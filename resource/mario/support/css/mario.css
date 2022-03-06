@@ -8,11 +8,8 @@
 @import url("../vendor/fontawesome/css/all.css");
 
 :root {
-  --blue: #2a9ddf;
-  --light-blue: #30b3ff;
-  --emphColor: var(--blue);
-  --icon-active-color: var(--blue);
-  --icon-inactive-color: lightgrey;
+  --emphColor: var(--accent5);
+  --icon-active-color: var(--emphColor);
 
   --green-background-color: var(--accent3-bbg);
   --green-border-color: var(--accent3);
@@ -21,8 +18,8 @@
 }
 
 /*********************************************
- * GLOBAL STYLES
- *********************************************/
+   * GLOBAL STYLES
+   *********************************************/
 
 body {
   background: var(--shade0);
@@ -47,7 +44,7 @@ body {
 }
 
 /* do not require section to be immediate child of .slides, since
-* this will not be the case for PDF export! */
+  * this will not be the case for PDF export! */
 /*.reveal .slides > section, .reveal .slides > section > section {*/
 .reveal .slides section {
   line-height: 1.3;
@@ -57,8 +54,8 @@ body {
 }
 
 /*********************************************
- * MARIO: ALIGNMENT & COLUMNS
- *********************************************/
+   * MARIO: ALIGNMENT & COLUMNS
+   *********************************************/
 
 .reveal .top {
   vertical-align: top;
@@ -112,7 +109,7 @@ body {
 }
 
 .reveal .boxed {
-  border: 1px solid black;
+  border: 1px solid var(--shade6);
   border-radius: 5px;
   padding: 10px;
   box-sizing: border-box;
@@ -220,8 +217,8 @@ body {
 }
 
 /*********************************************
- * HEADERS
- *********************************************/
+   * HEADERS
+   *********************************************/
 .reveal h1,
 .reveal h2,
 .reveal h3,
@@ -265,15 +262,15 @@ body {
 }
 
 /*********************************************
- * OTHER
- *********************************************/
+   * OTHER
+   *********************************************/
 .reveal p {
   margin: 10px 0;
   line-height: 1.3;
 }
 
 /* MARIO: do not completely remove empty paragraphs with display:none.
- * Instead let them cause a line break, but not eat up more space */
+   * Instead let them cause a line break, but not eat up more space */
 .reveal p:empty {
   display: block;
   margin: 0;
@@ -312,10 +309,10 @@ body {
 }
 
 /* remove bottom margin of last list element on a slide
-   list element might be encapsulated in a div, e.g.
-   for .incremental or .colXY.
-   also remove bottom margin of last element on slide,
-   no matter what type it is. */
+     list element might be encapsulated in a div, e.g.
+     for .incremental or .colXY.
+     also remove bottom margin of last element on slide,
+     no matter what type it is. */
 .reveal .slides section > *:last-child,
 .reveal .slides section > ul:last-child,
 .reveal .slides section > ol:last-child,
@@ -405,8 +402,8 @@ body {
 }
 
 /*********************************************
- * CODE HIGHLGIHTING OF REVEAL
- *********************************************/
+   * CODE HIGHLGIHTING OF REVEAL
+   *********************************************/
 
 .reveal .hljs table,
 .reveal .hljs table tbody {
@@ -434,8 +431,8 @@ body {
 }
 
 /*********************************************
- * CODE HIGHLIGHTING OF MARIO
- *********************************************/
+   * CODE HIGHLIGHTING OF MARIO
+   *********************************************/
 
 /* box around block of code */
 .reveal pre {
@@ -473,8 +470,8 @@ body {
 }
 
 /* MacOS only shows scrollbars when they are used, which is not a 
-   good idea for code blocks. The following settings show the scrollbar.
-   Only works on WebKit browswers (Chrome, Safari), not on Firefox. */
+     good idea for code blocks. The following settings show the scrollbar.
+     Only works on WebKit browswers (Chrome, Safari), not on Firefox. */
 .reveal pre code.small {
   font-size: 0.4em;
 }
@@ -496,8 +493,8 @@ body {
 }
 
 /*********************************************
- * TABLES
- *********************************************/
+   * TABLES
+   *********************************************/
 
 .reveal table {
   display: table;
@@ -505,8 +502,8 @@ body {
   margin: auto;
   border-collapse: collapse;
   border-spacing: 2px;
-  border-top: 2px solid black;
-  border-bottom: 2px solid black;
+  border-top: 2px solid var(--shade6);
+  border-bottom: 2px solid var(--shade6);
   text-align: center;
   margin-bottom: 1em;
   line-height: 1.5em;
@@ -572,10 +569,10 @@ body {
 }
 
 /*********************************************
- * LINKS
- *********************************************/
+   * LINKS
+   *********************************************/
 .reveal a {
-  color: var(--blue);
+  color: var(--accent5);
   text-decoration: none;
   -webkit-transition: color 0.15s ease;
   -moz-transition: color 0.15s ease;
@@ -583,8 +580,9 @@ body {
 }
 
 .reveal a:hover {
-  color: var(--light-blue);
+  color: var(--hover-color);
   text-shadow: none;
+  text-decoration: underline;
   border: none;
 }
 
@@ -594,22 +592,8 @@ body {
 }
 
 /*********************************************
- * MEDIA: images, videos, iframes, figures
- *********************************************/
-
-/*
-.reveal img,
-.reveal video {
-  display: inline-block;
-  object-fit: contain;
-  max-width: 100%;
-  max-height: 100%;
-  vertical-align: middle;
-  margin: 0px;
-  border: 0px;
-  box-shadow: none;
-}
-*/
+   * MEDIA: images, videos, iframes, figures
+   *********************************************/
 
 .reveal iframe {
   border: 1px solid lightgray;
@@ -620,51 +604,19 @@ body {
   vertical-align: middle;
 }
 
-/*
-span.figure {
-  display: inline-block;
-}
-figure {
-  display: block;
-}
-
-.reveal figure.streaming,
-.reveal div.nofigure.streaming {
-  width: 80%;
-  margin: 0 auto;
-}
-
-.reveal figure>img,
-.reveal figure>video,
-.reveal figure>iframe {
-  display: block;
-  margin: auto;
-  border: 0px;
-  box-shadow: none;
-  max-width: 100%;
-  max-height: 100%;
-}
-*/
-
 .reveal figure figcaption,
 .reveal span.figcaption {
   /* display: block;
-  margin: 10px 0px 0px 0px; */
+    margin: 10px 0px 0px 0px; */
   line-height: 1.2;
   font-style: italic;
   font-size: 0.6em;
   /* text-align: center; */
 }
 
-/* set encapsulating span to inline-block,
-   otherwise SVGs cannot be scaled */
-/* span.decker.svg.embed {
-  display: inline-block;
-} */
-
 /*********************************************
- * PROGRESS BAR
- *********************************************/
+   * PROGRESS BAR
+   *********************************************/
 .reveal .progress {
   background: rgba(0, 0, 0, 0.2);
 }
@@ -677,8 +629,8 @@ figure {
 }
 
 /*********************************************
- * MARIO: TITLE SLIDE
- *********************************************/
+   * MARIO: TITLE SLIDE
+   *********************************************/
 
 .white-on-blue {
   color: #ffffff;
@@ -733,8 +685,8 @@ figure {
 }
 
 /*********************************************
- * MARIO: SECTIONS
- *********************************************/
+   * MARIO: SECTIONS
+   *********************************************/
 
 .reveal .section h1 {
   /* white on blue */
@@ -752,8 +704,8 @@ figure {
 }
 
 /*********************************************
- * MARIO: image sequence, shown one after the other
- *********************************************/
+   * MARIO: image sequence, shown one after the other
+   *********************************************/
 
 @media not print {
   .reveal section .sequence.fragment:not(.current-fragment),
@@ -770,8 +722,8 @@ figure {
 }
 
 /*********************************************
- * MARIO: COMMENT BUBBLES
- *********************************************/
+   * MARIO: COMMENT BUBBLES
+   *********************************************/
 
 .reveal .bubble {
   display: inline-block;
@@ -819,9 +771,9 @@ figure {
 }
 
 /*********************************************
- * MARIO: FOOTER COMMENTS
- * either use footer tag or class
- *********************************************/
+   * MARIO: FOOTER COMMENTS
+   * either use footer tag or class
+   *********************************************/
 
 .reveal footer,
 .reveal .footer {
@@ -845,24 +797,24 @@ figure {
 }
 
 /*********************************************
- * MARIO: GENERIC HIGHLIGHT
- *********************************************/
+   * MARIO: GENERIC HIGHLIGHT
+   *********************************************/
 
 .reveal .highlight {
   background-color: #fdfbaa;
 }
 
 /*********************************************
- * MARIO: margin: auto
- *********************************************/
+   * MARIO: margin: auto
+   *********************************************/
 
 .reveal .automargin {
   margin: 10px auto;
 }
 
 /*********************************************
- * MARIO: ADD SHADOWS (e.g. to images)
- *********************************************/
+   * MARIO: ADD SHADOWS (e.g. to images)
+   *********************************************/
 
 .reveal .shadow {
   box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.25);
@@ -891,8 +843,8 @@ figure {
 }
 
 /*********************************************
- * MARIO: Task lists
- *********************************************/
+   * MARIO: Task lists
+   *********************************************/
 
 /* hide checkbox */
 .reveal ul.task-list li > input[type="checkbox"] {
@@ -916,21 +868,21 @@ figure {
 /* class "check-cross" */
 .reveal .check-cross .task-list li.task-yes::before {
   font-weight: bold;
-  color: green;
+  color: var(--greenish);
   content: "✓";
 }
 .reveal .check-cross .task-list li.task-no::before {
   font-weight: bold;
-  color: red;
+  color: var(--redish);
   content: "✗";
 }
 /* class "plus-minus" */
 .reveal .plus-minus .task-list li.task-yes::before {
-  color: green;
+  color: var(--greenish);
   content: "\2295";
 }
 .reveal .plus-minus .task-list li.task-no::before {
-  color: red;
+  color: var(--redish);
   content: "\2296";
 }
 /* class "thumb" */
@@ -942,8 +894,8 @@ figure {
 }
 
 /*********************************************
- * MARIO: MathJax
- *********************************************/
+   * MARIO: MathJax
+   *********************************************/
 
 .reveal section mjx-container[display="true"] {
   margin: 0.7em 0em 1em 0em;
@@ -955,8 +907,8 @@ figure {
 }
 
 /*********************************************
- * MARIO: fullscreen for iframes
- *********************************************/
+   * MARIO: fullscreen for iframes
+   *********************************************/
 
 .reveal div.fs-container {
   margin: auto;
@@ -1016,8 +968,8 @@ figure {
 }
 
 /*********************************************
- * MARIO: menu icon in top left corner
- *********************************************/
+   * MARIO: menu icon in top left corner
+   *********************************************/
 
 .reveal .slide-menu-button {
   position: fixed;
@@ -1044,8 +996,8 @@ figure {
 }
 
 /*********************************************
- * MARIO: style Henrik's question panel
- *********************************************/
+   * MARIO: style Henrik's question panel
+   *********************************************/
 
 div.open-button {
   position: fixed;
@@ -1086,8 +1038,8 @@ body.print-pdf div.open-button {
 }
 
 /*********************************************
- * MARIO: bibliography
- *********************************************/
+   * MARIO: bibliography
+   *********************************************/
 
 .reveal .references {
   margin: auto;
@@ -1104,8 +1056,8 @@ body.print-pdf div.open-button {
 }
 
 /*********************************************
- * MARIO: Quizzes with task list syntax
- *********************************************/
+   * MARIO: Quizzes with task list syntax
+   *********************************************/
 
 /* quiz flex layout */
 .reveal .quiz ul {
@@ -1216,8 +1168,8 @@ body.print-pdf div.open-button {
 }
 
 /*********************************************
- * MARIO: override quiz-wue settings
- *********************************************/
+   * MARIO: override quiz-wue settings
+   *********************************************/
 
 .reveal [class*="quiz-"] button {
   font: inherit;
@@ -1343,8 +1295,8 @@ body.print-pdf div.open-button {
 }
 
 /*********************************************
- * quiz polling
- *********************************************/
+   * quiz polling
+   *********************************************/
 
 .reveal:not(.poll) .poll-only {
   display: none;
@@ -1419,7 +1371,7 @@ div.qrcode.container canvas {
   aspect-ratio: 1 / 1;
   background-color: white;
   padding: 0.5em;
-  border: 0.01em solid black;
+  border: 0.01em solid var(--shade6);
   border-radius: var(--block-border-radius);
 }
 
@@ -1429,11 +1381,14 @@ div.qrcode.container a {
 }
 
 /*********************************************
- * special rules for dark mode
- *********************************************/
+   * special rules for dark mode
+   *********************************************/
 
 @media (prefers-color-scheme: dark) {
   .media figure > img {
     background-color: var(--shade7);
   }
+}
+html.dark .media figure > img {
+  background-color: var(--shade7);
 }

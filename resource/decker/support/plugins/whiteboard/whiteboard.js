@@ -583,8 +583,7 @@ function toggleWhiteboard(state) {
 
     // hide buttons
     buttons.classList.remove("active");
-    buttonWhiteboard.dataset.active = false;
-    buttonWhiteboard.setAttribute("aria-checked", "false");
+    // buttonWhiteboard.dataset.active = false;
     hideColorPicker();
 
     // reset SVG
@@ -598,15 +597,13 @@ function toggleWhiteboard(state) {
     slides.style.cursor = "";
   } else {
     if (userShouldBeWarned && !userHasBeenWarned) warnUser();
-    showPanel();
 
     // show scrollbar
     slides.classList.add("active");
 
     // show buttons
     buttons.classList.add("active");
-    buttonWhiteboard.dataset.active = true;
-    buttonWhiteboard.setAttribute("aria-checked", "true");
+    // buttonWhiteboard.dataset.active = true;
 
     // activate SVG
     if (svg) {
