@@ -688,7 +688,8 @@ body {
    * MARIO: SECTIONS
    *********************************************/
 
-.reveal .section h1 {
+.reveal .section h1,
+.reveal section h1:only-child {
   /* white on blue */
   color: #ffffff;
   background-color: var(--emphColor);
@@ -1381,8 +1382,8 @@ div.qrcode.container a {
 }
 
 /*********************************************
-   * special rules for dark mode
-   *********************************************/
+* special rules for dark mode
+*********************************************/
 
 @media (prefers-color-scheme: dark) {
   .media figure > img {
