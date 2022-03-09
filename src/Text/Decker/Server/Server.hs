@@ -33,6 +33,7 @@ import Snap.Util.FileServe
 import Snap.Util.FileUploads
 import System.Directory
 import System.FilePath.Posix
+import System.IO.Streams (connect, withFileAsOutput)
 import System.Random
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
@@ -115,7 +116,7 @@ runHttpServer context = do
           [ ("/reload", runWebSocketsSnap $ reloader state),
             ("/reload.html", serveFile $ "test" </> "reload.html"),
             (fromString supportPath, serveSupport context state),
-            -- ("/", method PUT $ uploadResource ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"]),
+            ("/", method PUT $ uploadResource ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"]),
             ("/", method GET $ serveDirectoryNoCaching state publicDir),
             ("/", method HEAD $ headDirectory publicDir),
             ("/upload", method POST $ uploadFiles ["-annot.json", "-times.json", "-recording.webm"]),
@@ -191,6 +192,20 @@ uploadFiles suffixes = do
                 throwM e
             )
   return ()
+
+-- | Save the request body in the project directory under the request path. But
+-- only if the request path ends on one of the suffixes and the local directory
+-- already exists. Do this atomically.
+uploadResource :: MonadSnap m => [String] -> m ()
+uploadResource suffixes = do
+  destination <- toString <$> getsRequest rqPathInfo
+  exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
+  if exists && any (`isSuffixOf` destination) suffixes
+    then do
+      let tmp = transientDir </> takeFileName destination
+      runRequestBody (withFileAsOutput tmp . connect)
+      liftIO $ renameFile tmp destination
+    else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
 
 headDirectory :: MonadSnap m => FilePath -> m ()
 headDirectory directory = do
