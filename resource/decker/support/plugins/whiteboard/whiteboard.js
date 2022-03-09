@@ -638,13 +638,23 @@ function adjustWhiteboardHeight() {
     rect.style.display = "none";
   }
 
-  // height of current board (w/o grid)
-  let bbox = svg.getBBox();
-  let scribbleHeight = bbox.y + bbox.height;
+  // both SVG and slide (its parent) have to be visible
+  // for the following svg.getBBox() to work.
+  const slide = svg.parentElement;
+  const slideDisplay = slide.style.display;
+  const svgDisplay = svg.style.display;
+  svg.style.display = "block";
+  slide.style.display = "block";
+
+  // get height of current annotations (w/o grid).
+  const bbox = svg.getBBox();
+  const scribbleHeight = bbox.y + bbox.height;
   // console.log("scribble height " + scribbleHeight);
 
-  // show grid again
+  // restore previous visibility
   if (rect) rect.style.display = display;
+  svg.style.display = svgDisplay;
+  slide.style.display = slideDisplay;
 
   // rounding
   var height = pageHeight * Math.max(1, Math.ceil(scribbleHeight / pageHeight));
