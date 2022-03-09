@@ -34,6 +34,7 @@ chart:
         position: "bottom"
 
 math:
+  scale: 0.9
   macros:
     R: '{{\\mathrm{{I}\\kern-.15em{R}}}}'
     laplace: '{\\Delta}'

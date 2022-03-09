@@ -56,6 +56,7 @@ menu:
   loadIcons: false
 
 math:
+  scale: 1
   macros:
     R: '{{\\mathrm{{I}\\kern-.15em{R}}}}'
     laplace: '{\\Delta}'
