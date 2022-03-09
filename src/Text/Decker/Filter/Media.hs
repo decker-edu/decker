@@ -88,7 +88,7 @@ compileLineBlock images caption = do
 determineAspectRatio :: (Attr, [Inline], Text, Text) -> Filter (Maybe Float)
 determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
   uri <- URI.mkURI url
-  let path = (toString $ uriPath uri)
+  let path = uriFilePath uri
   let mediaType = classifyMedia uri attr
   case mediaType of
     ImageT -> do
@@ -214,7 +214,7 @@ imageBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 imageBlock uri title caption = do
   turi <- lift $ transformUri uri ""
   let turl = URI.render turi
-  let fileName = toText $ takeFileName $ toString turl
+  let fileName = toText $ uriFilePath turi
   (innerSizes, outerSizes) <- calcImageSizes
   imgAttr <- do
     injectClasses ["processed"]
@@ -498,8 +498,7 @@ renderJavascript' attr uri =
         [],
         [ ("data-tag", "script"),
           ("src", URI.render uri),
-          ("type", "module"),
-          ("async", "")
+          ("type", "module")
         ]
       )
       []

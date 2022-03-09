@@ -284,9 +284,8 @@ needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
 
 resolveFileUri :: URI -> Filter FilePath
 resolveFileUri uri = do
-  let urlPath = toString $ uriPath uri
   docBase <- lookupMetaOrFail "decker.base-dir" <$> gets meta
-  return $ makeProjectPath docBase urlPath
+  return $ makeProjectPath docBase $ uriFilePath uri
 
 setMeta :: Text -> Text -> Filter ()
 setMeta key value = modifyMeta (setMetaValue key (MetaString value))

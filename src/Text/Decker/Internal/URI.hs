@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Internal.URI where
@@ -21,14 +19,22 @@ uriPathExtension uri =
       listToMaybe $ reverse $ Text.splitOn "." $ URI.unRText $ last pieces
     _ -> Nothing
 
--- | Extracts the path component of a URI.
+-- | Extracts the path component of a URI. Be careful not to urlencode anything.
 uriPath :: URI -> Text
 uriPath uri =
-  URI.render
-    URI.emptyURI
-      { URI.uriPath = URI.uriPath uri,
-        URI.uriAuthority = Left (URI.isPathAbsolute uri)
-      }
+  let root = if URI.isPathAbsolute uri then "/" else ""
+   in case URI.uriPath uri of
+        (Just (False, pieces)) -> root <> path pieces
+        (Just (True, pieces)) -> root <> path pieces <> "/"
+        Nothing -> ""
+  where
+    path = Text.intercalate "/" . map URI.unRText . toList
+
+-- URI.render
+--   URI.emptyURI
+--     { URI.uriPath = URI.uriPath uri,
+--       URI.uriAuthority = Left (URI.isPathAbsolute uri)
+--     }
 
 -- | Adjusts a path to be relative to the current project root (which is also
 -- the current working directory of the process) directory. Two cases are
@@ -63,21 +69,19 @@ isAbsoluteUri uriString = do
 
 -- | Extracts the URI path component.
 uriFilePath :: URI -> FilePath
-uriFilePath uri = toString (uriPath uri)
+uriFilePath = toString . uriPath
 
 -- | Calculates the target file path of a local file URI. The target path is
 -- the source path relative to the public directory.
 targetFilePath :: URI -> FilePath
 targetFilePath uri =
-  let source = toString $ uriPath uri
-   in publicDir </> source
+  publicDir </> uriFilePath uri
 
 -- | Interprets the path component of `uri` as a local project relative path
 -- and converts it to a path relative to `base`.
 targetUri :: MonadThrow m => FilePath -> URI -> m URI
 targetUri base uri = do
-  let source = toString $ uriPath uri
-  let relative = toText $ makeRelativeTo base source
+  let relative = toText $ makeRelativeTo base $ uriFilePath uri
   setUriPath relative uri
 
 -- | Extracts the URI scheme fromm `uri`.

@@ -388,7 +388,7 @@ height="1em"}
 
 # Execute Javascript
 
-![Fuck YEAH!](../static/es6-blue.js){.run}
+![Fuck YEAH!](../static/es6-blue.js){.javascript .run}
 
 # Execute Javascript CodeBlock
 
