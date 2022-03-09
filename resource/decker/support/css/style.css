@@ -360,7 +360,6 @@ div.sourceCode > pre {
 
 /* Inverse colors */
 section.slide:is(.inverse, .has-dark-background) {
-  background-color: #000;
   color: var(--background-color);
 }
 
