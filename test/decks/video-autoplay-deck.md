@@ -20,19 +20,17 @@ title: Video Autoplay
 
 ![](pacman-perfect-game.mp4){.controls .autoplay width="50%"}
 
-# Autoplay off with start time as fragment
+# Autoplay off with start time as attribute
 
 ![](pacman-perfect-game.mp4){.controls width="50%" start="200"}
 
 # Autoplay on with start time as fragment
 
-![](pacman-perfect-game.mp4){.controls width="50%" .autoplay start="200"}
+![](pacman-perfect-game.mp4#t=200){.controls .autoplay width="50%"}
 
 # Native video tag
 
 ```{=html}
 <video style="width:50%;" src="pacman-perfect-game.mp4#t=200" controls data-autoplay>
-```
-```{=html}
 </video>
 ```

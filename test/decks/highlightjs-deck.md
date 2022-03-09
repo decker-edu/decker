@@ -1,36 +1,34 @@
 ---
-title: Code Hightlighing 
-subtitle: With Highlight.js
 highlightjs: atom-one-light
+subtitle: With Highlight.js
+title: Code Hightlighing
 ---
 
 # Code Highlighting
 
-- The Meta-Option `highlightjs` controls which code highlighting is used
-    - If not set, `pandoc` highlighting will be used.
-    - If `highlightjs: <style>` is specified, decker will disable `pandoc` code
-      highlighting and instead use `highlighjs`, with the CSS style
-      file `<style>.css`
-- The following styles are supported:
-    - `atom-one-dark` and `atom-one-light`
-    - `solarized-dark` and `solarized-light`
-    - `xcode`
-    - `zenburn`
-
+-   The Meta-Option `highlightjs` controls which code highlighting is used
+    -   If not set, `pandoc` highlighting will be used.
+    -   If `highlightjs: <style>` is specified, decker will disable `pandoc`
+        code highlighting and instead use `highlighjs`, with the CSS style file
+        `<style>.css`
+-   The following styles are supported:
+    -   `atom-one-dark` and `atom-one-light`
+    -   `solarized-dark` and `solarized-light`
+    -   `xcode`
+    -   `zenburn`
 
 # Haskell Code
 
-``` {.haskell}
+``` haskell
 includeCode :: Pandoc -> Decker Pandoc
 includeCode (Pandoc meta blocks) = do
   included <- doIO $ walkM (P.includeCode Nothing) blocks
   return $ Pandoc meta included
 ```
 
-
 # Basic Ray Tracer
 
-``` {.cpp}
+``` cpp
 // the main ray tracing loop
 for (unsigned int y=0; y < camera.height; ++y)
 {
@@ -45,10 +43,9 @@ for (unsigned int y=0; y < camera.height; ++y)
 }
 ```
 
-
 # Paul Heckbert's Ray Tracer
 
-``` {.c}
+``` c
 typedef struct{double x,y,z}vec;vec U,black,amb={.02,.02,.02};struct sphere{
 vec cen,color;double rad,kd,ks,kt,kl,ir}*s,*best,sph[]={0.,6.,.5,1.,1.,1.,.9,
 .05,.2,.85,0.,1.7,-1.,8.,-.5,1.,.5,.2,1.,.7,.3,0.,.05,1.2,1.,8.,-.5,.1,.8,.8,
@@ -109,5 +106,3 @@ for (unsigned int y=0; y < camera.height; ++y)
     }
 }
 ```
-
-
