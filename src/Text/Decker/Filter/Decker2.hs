@@ -47,7 +47,7 @@ tripletwise _ xs = return xs
 -- matching granularity ranges from list of blocks to single inline elements.
 mediaFilter2 :: Disposition -> Pandoc -> IO Pandoc
 mediaFilter2 dispo pandoc =
-  runFilter2 dispo transformHeader1 pandoc
+  runFilter2 dispo transformHeader pandoc
     >>= runFilter2 dispo mediaBlockListFilter
     >>= runFilter2 dispo mediaInlineListFilter
     >>= runFilter2 dispo mediaBlockFilter

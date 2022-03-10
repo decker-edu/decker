@@ -17,8 +17,11 @@ import Text.Pandoc
 import Text.Pandoc.Walk
 import qualified Text.URI as URI
 
-transformHeader1 :: Block -> Filter Block
-transformHeader1 h1@(Header 1 headAttr inlines)
+transformHeader :: [Block] -> Filter [Block]
+transformHeader = foldlM (\blocks block -> (blocks <>) <$> transformHeader' block) []
+
+transformHeader' :: Block -> Filter [Block]
+transformHeader' h1@(Header 1 headAttr inlines)
   | containsImage inlines = do
     disp <- gets dispo
     buildMediaHeader disp $ lastImage inlines
@@ -33,37 +36,37 @@ transformHeader1 h1@(Header 1 headAttr inlines)
               ("data-background-" <>)
               ["size", "position", "repeat", "opacity"]
             attr <- extractAttr
-            return $ Header 1 attr rest
+            return $ [Header 1 attr rest]
           VideoT -> do
             injectAttribute ("data-background-video", URI.render uri)
             takeClasses ("data-background-video-" <>) ["loop", "muted"]
             passAttribs ("data-background-" <>) ["size", "opacity"]
             passAttribs ("data-background-video-" <>) ["loop", "muted"]
             attr <- extractAttr
-            return $ Header 1 attr rest
+            return $ [Header 1 attr rest]
           IframeT -> do
             injectAttribute ("data-background-iframe", URI.render uri)
             takeClasses ("data-background-" <>) ["interactive"]
             passAttribs ("data-background-" <>) ["interactive"]
             attr <- extractAttr
-            return $ Header 1 attr rest
+            return $ [Header 1 attr rest]
           PdfT -> do
             injectAttribute ("data-background-iframe", URI.render uri)
             takeClasses ("data-background-" <>) ["interactive"]
             passAttribs ("data-background-" <>) ["interactive"]
             attr <- extractAttr
-            return $ Header 1 attr rest
-          _ -> return h1
+            return $ [Header 1 attr rest]
+          _ -> return [h1]
     buildMediaHeader (Disposition _ Html) (Image imgAttr alt (url, title), rest) = do
       uri <- URI.mkURI url
       runAttrOn headAttr imgAttr $ do
         attr <- extractAttr
         imageBlock <- imageBlock uri title alt
-        return $ Div nullAttr [Header 1 attr rest, imageBlock]
+        return $ [Header 1 attr rest, imageBlock]
     buildMediaHeader _ _ =
       bug $ InternalException "transformHeader: no last image in header"
 -- Header does not contain any images.
-transformHeader1 h1@(Header 1 headAttr inlines) = do
+transformHeader' h1@(Header 1 headAttr inlines) = do
   runAttr headAttr $ do
     ifClass ["inverse", "has-dark-background"] $ do
       injectAttribute ("data-background-color", "var(--foreground-color)")
@@ -74,11 +77,11 @@ transformHeader1 h1@(Header 1 headAttr inlines) = do
     takeAllAttributes
     takeId
     attr <- extractAttr
-    return (Header 1 attr inlines)
+    return [Header 1 attr inlines]
 -- Header is not level 1.
-transformHeader1 h@Header {} = return h
+transformHeader' h@Header {} = return [h]
 -- Block is not a header.
-transformHeader1 block = return block
+transformHeader' block = return [block]
 
 -- | Returns true, if the list contains an image.
 containsImage :: [Inline] -> Bool

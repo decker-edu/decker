@@ -5,12 +5,32 @@
 @import url("./style.css");
 @import url("./media.css");
 
+html {
+  font-size: 16px;
+}
+
 body.page {
   box-sizing: border-box;
-  font-size: 16px;
   max-width: 52em;
   color: var(--foreground-color);
   background-color: var(--background-color);
+}
+
+section.slide {
+  border-top: solid 0.05em var(--shade6);
+}
+
+h1 {
+  margin-top: 1em;
+  font-size: 1.5em;
+}
+
+h1:only-child {
+  padding-bottom: 1em;
+}
+
+h2 {
+  font-size: 1.2em;
 }
 
 code {
