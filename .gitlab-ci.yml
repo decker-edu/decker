@@ -62,22 +62,22 @@ build:mac:
   needs: []
 
 build:win:
- tags:
-   - win
- stage: build
- script:
-   - '&.\bin\build.ps1 standalone -preparepackage'
- artifacts:
-   paths:
-     - decker.exe
-     - version.txt
- cache:
-   key: build-win
-   paths:
-     - .stack-work
- when: always
- interruptible: true
- needs: []
+  tags:
+    - win
+  stage: build
+  script:
+    - '&.\bin\build.ps1 standalone -preparepackage'
+  artifacts:
+    paths:
+      - decker.exe
+      - version.txt
+  cache:
+    key: build-win
+    paths:
+      - .stack-work
+  when: always
+  interruptible: true
+  needs: []
 
 test:linux:
   stage: test
@@ -206,7 +206,7 @@ deploy:win:
     - if [ $CI_COMMIT_REF_NAME == "v0.11" ]; then SUFFIX="-nightly"; else SUFFIX="-release"; fi
     - mc config host add store http://store.hci.informatik.uni-wuerzburg.de:9002 $MINIO_ACCESS $MINIO_SECRET --api S3v4
     - mc cp ./decker.exe store/decker/decker-win${SUFFIX}.exe
-   - mc cp ./version.txt store/decker/version-win${SUFFIX}.txt
+    - mc cp ./version.txt store/decker/version-win${SUFFIX}.txt
   needs:
     - job: build:win
       artifacts: true
