@@ -17,16 +17,13 @@ body.page {
 }
 
 section.slide {
+  margin: 1em 0;
+  padding-top: 1em;
   border-top: solid 0.05em var(--shade6);
 }
 
 h1 {
-  margin-top: 1em;
   font-size: 1.5em;
-}
-
-h1:only-child {
-  padding-bottom: 1em;
 }
 
 h2 {
@@ -47,4 +44,13 @@ figure {
 
 p {
   word-wrap: normal;
+}
+
+ul,
+ol {
+  margin: 0;
+}
+
+div.footnotes {
+  font-size: 72%;
 }

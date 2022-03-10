@@ -381,13 +381,13 @@ section.slide:is(.inverse, .has-dark-background) {
   background: rgba(0, 0, 0, 0.4);
 } */
 
-.reveal sup,
-.reveal .footnoteref {
+sup,
+.footnoteref {
   vertical-align: super;
   font-size: smaller;
 }
 
-.reveal .footnoteref {
+.footnoteref {
   font-weight: 900;
 }
 
