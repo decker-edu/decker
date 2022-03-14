@@ -17,6 +17,10 @@ template:
   css: dummy.css
 title: Meta Resources
 whiteboard-background-color: '\#f0f'
+# Just testing
+test:
+  merge-list:
+    - three
 ---
 
 # Meta Resources
@@ -139,3 +143,17 @@ test: "default.yaml test value"
 ## Magenta
 
 -   [:meta](color.magenta)
+
+---
+
+# Meta data list merging
+
+## One line each from
+
+- `default.yaml`
+- `decker.yaml`
+- This header
+
+## Results in
+
+- `test.merge-list:` [:meta](test.merge-list)

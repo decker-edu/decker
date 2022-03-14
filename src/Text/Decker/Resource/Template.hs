@@ -24,7 +24,6 @@ import System.Environment
 import System.FilePath.Posix
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
-import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Zip
@@ -89,7 +88,7 @@ readTemplateMeta meta = do
   (Resources decker pack) <- liftIO $ deckerResources meta
   deckerMeta <- readTemplateMeta' decker
   packMeta <- readTemplateMeta' pack
-  return $ mergePandocMeta' packMeta deckerMeta
+  return $ mergePandocMeta packMeta deckerMeta
 
 readTemplateMeta' :: Source -> Action Meta
 readTemplateMeta' (DeckerExecutable baseDir) = do

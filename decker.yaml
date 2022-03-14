@@ -1,6 +1,5 @@
 project-name: Decker
-# Stared (*) arrays are merged elementwise, un-stared arrays are replaced.
-exclude-directories*:
+exclude-directories:
   - app
   - attic
   - bin
@@ -15,8 +14,7 @@ exclude-directories*:
   - test/minimal
   - third-party
   - users-guide
-# Stared (*) arrays are merged elementwise, un-stared arrays are replaced.
-static-resource-dirs*:
+static-resource-dirs:
   - test/static
   - doc/static
 

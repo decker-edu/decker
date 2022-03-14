@@ -5,7 +5,7 @@ module Text.Decker.Internal.Meta
     FromMetaValue (..),
     addMetaValue,
     globalMetaFileName,
-    mergePandocMeta',
+    mergePandocMeta,
     pandocMeta,
     setMetaValue,
     readMetaValue,
@@ -52,21 +52,30 @@ import Text.Pandoc.Shared hiding (toString, toText)
 -- | Name of the one global meta data file
 globalMetaFileName = "decker.yaml"
 
--- | Fine-grained recursive merge of two meta values. Left-biased. Duplicates
--- are removed from lists if their name ends on *.
-mergePandocMeta' :: Meta -> Meta -> Meta
-mergePandocMeta' (Meta left) (Meta right) =
-  case merge "" (MetaMap left) (MetaMap right) of
+-- TODO extract this value from global meta data.
+replaceLists :: [Text]
+replaceLists = ["math.macros"]
+
+shouldMerge :: [Text] -> Bool
+shouldMerge path = not $ any (`Text.isPrefixOf` Text.intercalate "." path) replaceLists
+
+-- | Fine-grained recursive merge of two meta values. Left-biased. Lists are
+-- merged by default, but replaced if the key path is in `replaceLists`.
+mergePandocMeta :: Meta -> Meta -> Meta
+mergePandocMeta (Meta left) (Meta right) =
+  case merge [] "" (MetaMap left) (MetaMap right) of
     MetaMap m -> Meta m
     _ -> throw $ InternalException "This cannot happen."
   where
-    merge :: Text -> MetaValue -> MetaValue -> MetaValue
-    merge _ (MetaMap mapL) (MetaMap mapR) =
-      MetaMap $ Map.unionWithKey merge mapL mapR
-    merge key (MetaList listL) (MetaList listR)
-      | "*" `Text.isSuffixOf` key =
+    merge :: [Text] -> Text -> MetaValue -> MetaValue -> MetaValue
+    merge path key (MetaMap mapL) (MetaMap mapR) =
+      MetaMap $ Map.unionWithKey (merge (concat path key)) mapL mapR
+    merge path key (MetaList listL) (MetaList listR)
+      | shouldMerge (concat path key) =
         MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
-    merge key left right = left
+    merge path key left right = left
+    concat path "" = path
+    concat path key = path <> [key]
 
 -- | Converts YAML meta data to pandoc meta data.
 toPandocMeta :: Y.Value -> Meta

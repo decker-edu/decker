@@ -111,6 +111,11 @@ a:hover {
   text-decoration: none;
 }
 
+/* Video element background may be visible when poster is used */
+video {
+  background-color: black;
+}
+
 /* Tables */
 table {
   font-size: 0.9em;
