@@ -163,7 +163,7 @@ runCommand context command rules = do
       putStrLn (toString pdfMsg)
       channel <- atomically newTChan
       id <- forkServer channel context
-      let rules' = want ["pdf"] >> withoutActions rules
+      let rules' = want ["build-pdf"] >> withoutActions rules
       runShake context rules'
       killThread id
     _ -> error "Unknown command. Should not happen."

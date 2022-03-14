@@ -32,8 +32,8 @@ import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Resource
 import Text.Decker.Resource.Template
 import Text.Decker.Writer.Html
-import Text.Decker.Writer.Pdf
 import Text.Decker.Writer.Layout
+import Text.Decker.Writer.Pdf
 import Text.Groom
 import qualified Text.Mustache as M ()
 import Text.Pandoc hiding (lookupMeta)
@@ -122,10 +122,11 @@ run = do
       phony "html" $ do
         need ["support"]
         getTargets >>= needSels [decks, pages, handouts]
-    --    
-    phony "pdf" $ do
-      need ["support"]
-      getTargets >>= needSel decksPdf
+    --
+    withTargetDocs "Build PDF versions of all decks, pages and handouts (do not use directly)." $
+      phony "build-pdf" $ do
+        need ["support"]
+        getTargets >>= needSel decksPdf
     --
     withTargetDocs "Compile global search index." $
       phony "search-index" $ do
@@ -157,7 +158,7 @@ run = do
         need [src]
         meta <- getGlobalMeta
         markdownToHtml htmlDeck meta getTemplate src out
-      
+
       publicDir <//> "*-deck.pdf" %> \out -> do
         let src = replaceSuffix "-deck.pdf" "-deck.html" out
         let url = serverUrl </> makeRelative publicDir src
@@ -167,7 +168,7 @@ run = do
         case result of
           Right _ -> putInfo $ "# chrome finished (for " <> out <> ")"
           Left msg -> error msg
-      
+
       publicDir <//> "*-handout.html" %> \out -> do
         src <- calcSource "-handout.html" "-deck.md" out
         meta <- getGlobalMeta

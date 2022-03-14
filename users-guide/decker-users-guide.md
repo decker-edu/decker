@@ -71,6 +71,20 @@ publish:
 Decker uses [Shake](https://shakebuild.com) as it's underlying build and
 dependency tracking system.
 
+## `> decker version`
+
+## `> decker decks`
+
+## `> decker html`
+
+## `> decker observed`
+
+## `> decker info`
+
+## `> decker check`
+
+## `> decker publish`
+
 ## `> decker search-index`
 
 Builds an inverted index over all Markdown source files and stores it in JSON in
@@ -80,6 +94,16 @@ over all slides inside a Decker project.
 This may well be a little time consuming, so it ist best called only right
 before `decker publish`.
 
+# Commands
+
+Commands do not engage the dependency checking and will not trigger rebuilds.
+
+## `> decker clean`
+
+## `> decker example`
+
+## `> decker serve`
+
 ## `> decker pdf`
 
 Compiles PDF documents for all HTML decks. It starts a headless Chrome browser
@@ -88,26 +112,33 @@ and uses it's printing capabilities to do that.
 This may well be a little time consuming, so it ist best called only right
 before `decker publish`.
 
-## `> decker unused`{.sh} (Currently not working)
-
-Prints a list of unused files in the project.
-
-First determines the set of *live* files in a project directory. All files that
-are tracked by the build system are considered to be in the live set. Then the
-set of all files that are located in potential source file locations is
-determined. Unused files that are present in the source set but have not been
-picked up by the build system are considered to be *unused*.
-
 # Options
+
+## `-h`, `--help`
+
+List all decker commands, targets and options.
+
+## `-m key=value`, `--meta="key=value"`
+
+Specifies meta data variables (see below).
+
+## `-S`, `--server`
+
+Serve the public dir via HTTP (implies --watch).
+
+## `-w`, `--watch`
+
+Watch changes to source files and rebuild current target if necessary.
 
 # Meta Data
 
 Meta data variables are specified in YAML format and can be defined in four
 different places. In order of increasing precedence these are:
 
+-   the `default.yaml` file that is read from the selected resource pack
 -   the mandatory `decker.yaml` file that is read from the project's root
     directory
--   the `-m key=value` option on the `decker` command line (NOT YET IMPLEMENTED)
+-   the `-m key=value` options on the `decker` command line
 -   additional meta data files specified in the meta data variable `meta-data`
 -   the meta data sections of the slide source Markdown file
 
@@ -190,7 +221,7 @@ aspects of the generated slide sets.
 :   the first CSS file that is loaded by the template (defaults to `''`)
 
 `template.css` 🚧
-:   alist of CSS files that is loaded after the default CSS files (defaults to
+:   a list of CSS files that is loaded after the default CSS files (defaults to
     `[]`)
 
 `template.title-header`
@@ -321,7 +352,7 @@ Embedded media will be rendered as a figure with caption if either
 
 ### Code blocks
 
-Source code snippets can be included from an external file by either rusing the
+Source code snippets can be included from an external file by either using the
 image tag with a the `code` class or by using a Pandoc code block.
 
 An example for a Javascript including image tag:
