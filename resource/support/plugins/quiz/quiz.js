@@ -168,6 +168,7 @@ const MarioQuiz = (function () {
         .querySelectorAll('.reveal .quiz ul>li>input[type="checkbox"]')
         .forEach((input) => {
           input.parentElement.classList.remove("show-answer");
+          numAnswers++;
         });
     }
   }
