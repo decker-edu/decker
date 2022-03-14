@@ -178,7 +178,7 @@ adjustMetaVariables action keys meta = foldM func meta keys
 -- preference.
 mergeDocumentMeta :: Meta -> Pandoc -> Action Pandoc
 mergeDocumentMeta globalMeta (Pandoc docMeta content) = do
-  let combinedMeta = mergePandocMeta' docMeta globalMeta
+  let combinedMeta = mergePandocMeta docMeta globalMeta
   return (Pandoc combinedMeta content)
 
 checkVersion :: Pandoc -> Action Pandoc
@@ -207,7 +207,7 @@ pathVariables meta =
 compiletimePathVariables :: Meta -> [Text]
 compiletimePathVariables meta =
   List.nub $
-    ["csl", "bibliography", "meta-data", "static-resource-dirs*"]
+    ["csl", "bibliography", "meta-data", "static-resource-dirs"]
       <> lookupMetaOrElse [] "compiletime-path-variables" meta
 
 runtimePathVariables :: Meta -> [Text]
@@ -228,7 +228,7 @@ readAdditionalMeta globalMeta base meta = do
   let metaFiles = lookupMetaOrElse [] "meta-data" meta :: [String]
   -- putVerbose $ "# --> readAdditionalMeta: " <> show metaFiles
   moreMeta <- traverse (readMetaData globalMeta) metaFiles
-  return $ foldr mergePandocMeta' meta (reverse moreMeta)
+  return $ foldr mergePandocMeta meta (reverse moreMeta)
 
 -- | Reads a meta data file. All values that are paths to local project files
 -- are made absolute. Files referenced in `meta-data` are recursively loaded
@@ -245,9 +245,9 @@ readDeckerMeta :: FilePath -> Action Meta
 readDeckerMeta file = do
   deckerMeta <- readMetaData nullMeta file
   argsMeta <- readMetaData nullMeta metaArgsFile
-  let baseMeta = mergePandocMeta' argsMeta deckerMeta
+  let baseMeta = mergePandocMeta argsMeta deckerMeta
   defaultMeta <- readTemplateMeta baseMeta
-  return $ mergePandocMeta' baseMeta defaultMeta
+  return $ mergePandocMeta baseMeta defaultMeta
 
 -- | Runs a new style decker filter. That means
 --
