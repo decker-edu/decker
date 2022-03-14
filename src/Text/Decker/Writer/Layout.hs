@@ -161,8 +161,8 @@ hasClass cls attrib =
     Nothing -> False
     Just txt -> (cls `elem`) $ Text.words txt
 
-addClass :: Text -> Map Text Text -> Map Text Text
-addClass c = Map.alter add "class"
+_addClass :: Text -> Map Text Text -> Map Text Text
+_addClass c = Map.alter add "class"
   where
     add Nothing = Just "fragment"
     add (Just cls) = Just $ Text.unwords $ ("fragment" :) $ Text.words cls
