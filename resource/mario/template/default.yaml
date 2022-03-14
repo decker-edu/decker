@@ -105,7 +105,7 @@ dictionary:
 palette:
   colors:
     light:
-      - "#f8f8f8"
+      - "#ffffff"
       - "#e8e8e8"
       - "#d8d8d8"
       - "#b8b8b8"
