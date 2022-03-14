@@ -21,6 +21,7 @@ import Control.Monad.State
 import qualified Data.ByteString as BS
 import Data.ByteString.UTF8
 import Data.FileEmbed
+import qualified Data.HashMap.Strict as Map
 import Data.List
 import Data.Maybe
 import qualified Data.Set as Set
@@ -253,6 +254,16 @@ serveSupport context state =
 firstJustM :: [IO (Maybe a)] -> IO (Maybe a)
 firstJustM = foldM (\b a -> do if isNothing b then a else return b) Nothing
 
+allMimeTypes :: MimeMap
+allMimeTypes =
+  Map.union
+    ( Map.fromList
+        [ (".wasm", "application/wasm"),
+          (".mjs", "text/javascript")
+        ]
+    )
+    defaultMimeTypes
+
 serveResource :: (MonadSnap m) => Resources -> FilePath -> m ()
 serveResource (Resources decker pack) path = do
   resource <- liftIO $ firstJustM [readResource path pack, readResource path decker]
@@ -260,7 +271,7 @@ serveResource (Resources decker pack) path = do
     Nothing -> modifyResponse $ setResponseStatus 404 "Resource not found"
     Just content -> do
       modifyResponse $ setHeader "Cache-Control" "no-store"
-      modifyResponse $ setContentType (fileType defaultMimeTypes (takeFileName path))
+      modifyResponse $ setContentType (fileType allMimeTypes (takeFileName path))
       writeBS content
 
 -- -- | Starts the decker server. Never returns.
