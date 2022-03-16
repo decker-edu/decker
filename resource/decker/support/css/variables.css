@@ -60,14 +60,6 @@
 
   --whiteboard-background-color: #eee;
   --whiteboard-border-color: var(--shade2);
-  --whiteboard-pen0: var(--base08);
-  --whiteboard-pen1: var(--base09);
-  --whiteboard-pen2: var(--base0A);
-  --whiteboard-pen3: var(--base0B);
-  --whiteboard-pen4: var(--base0C);
-  --whiteboard-pen5: var(--base0D);
-  --whiteboard-pen6: var(--base0E);
-  --whiteboard-pen7: var(--base0F);
 
   --highlight-color: var(--accent5-bg);
   --flying-focus-color: var(--highlight-color);

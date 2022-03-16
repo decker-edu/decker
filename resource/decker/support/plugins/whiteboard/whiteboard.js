@@ -87,14 +87,22 @@ function readConfig() {
   config = Reveal.getConfig().whiteboard || {};
 
   penColors = config.colors || [
-    "var(--whiteboard-pen0)",
-    "var(--whiteboard-pen1)",
-    "var(--whiteboard-pen2)",
-    "var(--whiteboard-pen3)",
-    "var(--whiteboard-pen4)",
-    "var(--whiteboard-pen5)",
-    "var(--whiteboard-pen6)",
-    "var(--whiteboard-pen7)",
+    "var(--base07)",
+    "var(--base06)",
+    "var(--base05)",
+    "var(--base04)",
+    "var(--base03)",
+    "var(--base02)",
+    "var(--base01)",
+    "var(--base00)",
+    "var(--base08)",
+    "var(--base09)",
+    "var(--base0A)",
+    "var(--base0B)",
+    "var(--base0C)",
+    "var(--base0D)",
+    "var(--base0E)",
+    "var(--base0F)",
   ];
 
   // reveal setting wrt slide dimension
@@ -575,6 +583,8 @@ function selectPenRadius(radius) {
 }
 
 function toggleWhiteboard(state) {
+  if (!Decker?.isPresenterMode?.()) return;
+
   whiteboardActive = typeof state === "boolean" ? state : !whiteboardActive;
 
   if (!whiteboardActive) {
