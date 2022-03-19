@@ -157,8 +157,8 @@ runCommand :: (Eq a, IsString a) => ActionContext -> a -> Rules () -> IO b
 runCommand context command rules = do
   case command of
     "clean" -> runClean True
-    "example" -> writeExampleProject
     "serve" -> startServer context
+    "example" -> writeExampleProject (context ^. globalMeta)
     "pdf" -> do
       putStrLn (toString pdfMsg)
       channel <- atomically newTChan

@@ -29,11 +29,13 @@ import Data.Aeson
 import qualified Data.ByteString as BS
 import Data.Char
 import qualified Data.HashSet as Set
+import qualified Data.Map as Map
+import Data.Maybe
 import Development.Shake hiding (Resource)
 import GHC.Generics hiding (Meta)
 import Network.URI
 import Relude
-import System.Directory
+import System.Directory (createDirectoryIfMissing)
 import System.Environment
 import System.FilePath.Posix
 import Text.Decker.Internal.Helper
@@ -157,13 +159,16 @@ subEntries dir pathes =
 -- | Calculates a map of all support file pathes to their source location. Make
 -- sure pack resources override default decker resources.
 publicSupportFiles :: Meta -> IO (Map FilePath Source)
-publicSupportFiles meta = do
+publicSupportFiles meta = resourceFiles meta "support"
+
+resourceFiles :: Meta -> FilePath -> IO (Map FilePath Source)
+resourceFiles meta below = do
   decker <- deckerResource
   pack <- packResource meta
   case (decker, pack) of
     (decker, pack) -> do
-      allDeckerFiles <- fromList <$> fileList decker "support"
-      packFiles <- fromList <$> fileList pack "support"
+      allDeckerFiles <- fromList <$> fileList decker below
+      packFiles <- fromList <$> fileList pack below
       let deckerFiles = Set.difference allDeckerFiles packFiles
       return $
         fromList $
@@ -183,9 +188,15 @@ parseSourceURI uri =
           | otherwise -> Just None
 
 -- | Writes the example project to the current folder
-writeExampleProject :: IO ()
-writeExampleProject = do
-  dir <- getCurrentDirectory
-  warnVersion
-  putStrLn $ "# Extracting example project to " ++ dir ++ "."
-  extractResourceEntries "example" dir
+writeExampleProject :: Meta -> IO ()
+writeExampleProject meta = do
+  putStrLn "# write example project"
+  files <- Map.toList <$> resourceFiles meta "example"
+  mapM_ extract files
+  where
+    extract (path, source) = do
+      let out = "example" </> path
+      content <- fromJust <$> liftIO (readResource out source)
+      createDirectoryIfMissing True (takeDirectory out)
+      liftIO $ BS.writeFile out content
+      putStrLn $ "#   - " <> out

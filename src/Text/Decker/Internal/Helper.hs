@@ -135,7 +135,7 @@ warnVersion = do
   devRun <- isDevelopmentRun
   when (isDevelopmentVersion && not devRun) $
     printf
-      "WARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s, build date: %s). Please be sure that you know what you're doing.\n"
+      "\nWARNING: You are running a development build of decker (version: %s, branch: %s, commit: %s, tag: %s, build date: %s). Please be sure that you know what you're doing.\n"
       deckerVersion
       deckerGitBranch
       deckerGitCommitId
