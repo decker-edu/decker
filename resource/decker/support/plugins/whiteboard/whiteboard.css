@@ -173,19 +173,20 @@ body.print-pdf #whiteboardButtons {
 /* container for color picker */
 #whiteboardColorPicker {
   position: absolute;
-  top: auto;
+  top: 50%;
   right: auto;
+  left: 2.5em;
+  bottom: auto;
   padding: 5px;
   margin: 0;
   z-index: 40;
   border: 1px solid var(--whiteboard-border-color);
   border-radius: calc(var(--icon-size) * 0.5);
   background: var(--whiteboard-background-color);
-  left: 2.5em;
-  bottom: -1.5em;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   visibility: hidden;
+  transform: translateY(-50%);
 }
 
 #whiteboardColorPicker.active {
