@@ -376,6 +376,9 @@ mediaFragment = do
 addClass :: Text -> Attr -> Attr
 addClass c (id, cs, kvs) = (id, List.nub (c : cs), kvs)
 
+addClasses :: [Text] -> Attr -> Attr
+addClasses cls (id, cs, kvs) = (id, List.nub (cls <> cs), kvs)
+
 --- |                                          | caption | `title=` | `aria-label=` |
 --- |------------------------------------------|---------|----------|---------------|
 --- | `[alt](url "title"){arial-label="aria"}` | `alt`   | `title`  | `aria`        |

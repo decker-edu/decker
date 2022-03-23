@@ -27,6 +27,7 @@ import qualified System.Directory as Dir
 import System.FilePath.Posix
 import Text.Decker.Exam.Filter
 import Text.Decker.Filter.Decker2
+import Text.Decker.Filter.Detail
 import Text.Decker.Filter.Filter
 import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
@@ -283,6 +284,7 @@ deckerPipeline (Disposition Deck Html) =
     [ evaluateShortLinks,
       expandDeckerMacros,
       includeCode,
+      processDetailDiv,
       processSlides,
       handlePolls,
       handleQuizzes
@@ -292,13 +294,15 @@ deckerPipeline (Disposition Page Html) =
     [ evaluateShortLinks,
       expandDeckerMacros,
       includeCode,
-      transformDetails
+      processDetailDiv,
+      processDetailHeader
     ]
 deckerPipeline (Disposition Handout Html) =
   concatM
     [ evaluateShortLinks,
       expandDeckerMacros,
       includeCode,
+      processDetailDiv,
       processSlides
     ]
 deckerPipeline disp = error $ "Disposition not supported: " <> show disp

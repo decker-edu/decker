@@ -6,7 +6,6 @@ module Text.Decker.Filter.Filter
     escapeToFilePath,
     filterNotebookSlides,
     wrapSlidesinDivs,
-    transformDetails,
   )
 where
 
@@ -18,6 +17,7 @@ import qualified Data.List as List
 import Data.List.Split
 import qualified Data.Text as Text
 import Development.Shake (Action)
+import Text.Decker.Filter.Detail
 import Text.Decker.Filter.Incremental
 import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
@@ -92,19 +92,8 @@ wrapBoxes slide@(Slide header body dir) = do
   where
     boxes = split (keepDelimsL $ whenElt isBoxDelim) body
     wrap [] = []
-    wrap ((Header 2 (id_, cls, kvs) text) : blocks)
-      | "details" `elem` cls =
-        [ tag "details" $
-            Div
-              ("", ["box", "block"] ++ cls, mangle kvs)
-              ( [ tag "summary" $
-                    Div
-                      nullAttr
-                      [Plain text]
-                ]
-                  <> blocks
-              )
-        ]
+    wrap ((Header 2 attr@(id, cls, kvs) text) : blocks)
+      | "details" `elem` cls = [makeDetail attr text blocks]
     wrap ((Header 2 (id_, cls, kvs) text) : blocks)
       | "notes" `elem` cls =
         [ tag "aside" $
@@ -122,37 +111,6 @@ wrapBoxes slide@(Slide header body dir) = do
       case List.lookup "width" kvs of
         Just w -> ("style", "width:" <> w <> ";") : List.filter ((/=) "width" . fst) kvs
         Nothing -> kvs
-
-transformBlocks :: ([Block] -> [Block]) -> Pandoc -> Decker Pandoc
-transformBlocks change pandoc@(Pandoc meta blocks) = do
-  disp <- gets disposition
-  case disp of
-    Disposition _ Html -> return $ Pandoc meta (concatMap change parts)
-    Disposition _ _ -> return pandoc
-  where
-    parts = split (keepDelimsL $ whenElt isHighLevelHeaderBlock) blocks
-    isHighLevelHeaderBlock :: Block -> Bool
-    isHighLevelHeaderBlock (Header a _ _) = a >= 2
-    isHighLevelHeaderBlock _ = False
-
-transformDetails :: Pandoc -> Decker Pandoc
-transformDetails = transformBlocks detail
-  where
-    detail [] = []
-    detail ((Header 2 (id_, cls, kvs) text) : rest)
-      | "details" `elem` cls =
-        [ tag "details" $
-            Div
-              (id_, cls, kvs)
-              ( [ tag "summary" $
-                    Div
-                      nullAttr
-                      [Plain text]
-                ]
-                  <> rest
-              )
-        ]
-    detail stuff = stuff
 
 -- | Map over all active slides in a deck.
 mapSlides :: (Slide -> Decker Slide) -> Pandoc -> Decker Pandoc
@@ -199,8 +157,8 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
     actions :: [Slide -> Decker Slide]
     actions =
       [ marioCols,
-        processNotes,
         wrapBoxes,
+        processNotes,
         incrementalBlocks,
         selectActiveSlideContent,
         splitJoinColumns,
