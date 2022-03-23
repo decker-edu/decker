@@ -99,3 +99,23 @@ Incremental ordered list
 
 | ![Alt Caption $e=mc^2$](include/06-metal.png){.fragment}
 | ![Tilt!](include/06-metal-v.png){.fragment}
+
+# The Power of . . .
+
+Firstly
+
+. . .
+
+Secondly
+
+. . .
+
+Thirdly
+
+. . .
+
+![Dang!](include/06-metal.png){height=80px}\ 
+
+. . .
+
+...

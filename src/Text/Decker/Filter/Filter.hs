@@ -27,6 +27,7 @@ import Text.Decker.Internal.Common
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
+import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 
 processPandoc ::
@@ -157,6 +158,8 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
     actions :: [Slide -> Decker Slide]
     actions =
       [ marioCols,
+        processNotes,
+        pauseDots,
         wrapBoxes,
         processNotes,
         incrementalBlocks,
@@ -164,6 +167,16 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
         splitJoinColumns,
         layoutSlide
       ]
+
+pauseDots :: Slide -> Decker Slide
+pauseDots (Slide header body dir) = do
+  let fragments = split (dropDelims $ whenElt ((== ". . .") . stringify)) body
+  let blocks = case fragments of
+        bls : blss ->
+          concat $
+            [Div nullAttr bls] : map ((: []) . Div ("", ["fragment"], [])) blss
+        blss -> concat blss
+  return (Slide header blocks dir)
 
 selectActiveContent :: HasAttr a => [a] -> Decker [a]
 selectActiveContent fragments = do
