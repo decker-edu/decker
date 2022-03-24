@@ -11,6 +11,52 @@ title: Details
 
 :::
 
+
+# Deep Div Block Detail
+
+::: {.details summary="Div detail summmary."}
+
+- Some more detail
+- Or other
+
+::: {.details summary="Div detail summmary."}
+
+- Some more detail
+- Or other
+
+::: {.details summary="Div detail summmary."}
+
+- Some more detail
+- Or other
+
+::: {.details summary="Div detail summmary."}
+
+- Some more detail
+- Or other
+
+::: {.details summary="Div detail summmary."}
+
+- Some more detail
+- Or other
+
+::: {.details summary="Div detail summmary."}
+
+- Some more detail
+- Or other
+
+:::
+
+:::
+
+:::
+
+:::
+
+:::
+
+:::
+
+
 # Header 2 Block Detail
 
 ## H2 summmary. {.details}
