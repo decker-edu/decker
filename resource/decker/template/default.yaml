@@ -126,3 +126,11 @@ dictionary:
       qmi-drag-hint: Drag items from here...
       qmi-drop-hint: ...and put them here into the correct category.
       solution-button: Show Solution
+
+test:
+  only-default: From default.yaml
+  default-decker: From default.yaml
+  default-decker-deck: From default.yaml
+  merge-list:
+    - This line is from default.yaml
+  some-value: This line is from default.yaml
