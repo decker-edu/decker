@@ -27,10 +27,6 @@ title: Column Layout
 
 --------------------------------------------------------------------------------
 
-# Slide Masters
-
-## Example slide with two columns and a footer
-
 # Two columns and a footer {.columns}
 
 ## Left column {.left}

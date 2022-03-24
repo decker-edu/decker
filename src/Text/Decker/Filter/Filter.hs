@@ -174,7 +174,7 @@ pauseDots (Slide header body dir) = do
   let blocks = case fragments of
         bls : blss ->
           concat $
-            [Div nullAttr bls] : map ((: []) . Div ("", ["fragment"], [])) blss
+            bls : map ((: []) . Div ("", ["fragment"], [])) blss
         blss -> concat blss
   return (Slide header blocks dir)
 
