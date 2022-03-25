@@ -176,15 +176,12 @@ deckerRules = do
       meta <- getGlobalMeta
       markdownToHtml htmlPage meta getTemplate src out
     --
-    withTargetDocs "Build HTML versions of all decks, pages and handouts (*-deck.md, *-page.md)." $
-      phony "html" $ do
-        need ["support"]
-        getTargets >>= needSels [decks, pages, handouts]
-    --
-    withTargetDocs "Build PDF versions of all decks, pages and handouts (do not use directly)." $
-      phony "build-pdf" $ do
-        need ["support"]
-        getTargets >>= needSel decksPdf
+    publicDir <//> "*.css" %> \out -> do
+      let src = makeRelative publicDir out
+      putNormal $ "# copy (for " <> out <> ")"
+      copyFile' src out
+      whenM (liftIO $ Dir.doesFileExist (src <.> "map")) $
+        copyFile' (src <.> "map") (out <.> "map")
     --
     publicDir <//> "*-quest.html" %> \out -> do
       src <- calcSource "-quest.html" "-quest.yaml" out
@@ -198,77 +195,12 @@ deckerRules = do
       need sources
       renderCatalog meta sources out
     --
-    priority 5 $ do
-      (publicDir </> "support") <//> "*" %> \out -> do
-        targets <- getTargets
-        let path = fromJust $ stripPrefix (publicDir <> "/") out
-        let source = (targets ^. resources) Map.! out
-        putVerbose $ "# extract (" <> out <> " from " <> show source <> " : " <> path <> ")"
-        needResource source path
-        content <- fromJust <$> liftIO (readResource path source)
-        liftIO $ BS.writeFile out content
-    priority 4 $ do
-      publicDir <//> "*-deck.html" %> \out -> do
-        src <- calcSource "-deck.html" "-deck.md" out
-        need [src]
-        meta <- getGlobalMeta
-        markdownToHtml htmlDeck meta getTemplate src out
-
-      publicDir <//> "*-deck.pdf" %> \out -> do
-        let src = replaceSuffix "-deck.pdf" "-deck.html" out
-        let url = serverUrl </> makeRelative publicDir src
-        need [src]
-        putInfo $ "# chrome started ... (for " <> out <> ")"
-        result <- liftIO $ launchChrome url out
-        case result of
-          Right _ -> putInfo $ "# chrome finished (for " <> out <> ")"
-          Left msg -> error msg
-
-      publicDir <//> "*-handout.html" %> \out -> do
-        src <- calcSource "-handout.html" "-deck.md" out
-        meta <- getGlobalMeta
-        markdownToHtml htmlHandout meta getTemplate src out
-      --
-      publicDir <//> "*-page.html" %> \out -> do
-        src <- calcSource "-page.html" "-page.md" out
-        meta <- getGlobalMeta
-        markdownToHtml htmlPage meta getTemplate src out
-      --
-      publicDir <//> "*-recording.mp4" %> \out -> do
-        let src = makeRelative publicDir out
-        putVerbose $ "# copy (for " <> out <> ")"
-        copyFile' src out
-      --
-      publicDir <//> "*-recording.vtt" %> \out -> do
-        let src = makeRelative publicDir out
-        putVerbose $ "# copy (for " <> out <> ")"
-        copyFile' src out
-      --
-      publicDir <//> "*.css" %> \out -> do
-        let src = makeRelative publicDir out
-        putVerbose $ "# copy (for " <> out <> ")"
-        copyFile' src out
-        whenM (liftIO $ Dir.doesFileExist (src <.> "map")) $
-          copyFile' (src <.> "map") (out <.> "map")
-      --
-      publicDir <//> "*-quest.html" %> \out -> do
-        src <- calcSource "-quest.html" "-quest.yaml" out
-        meta <- getGlobalMeta
-        renderQuestion meta src out
-      --
-      privateDir <//> "quest-catalog.html" %> \out -> do
-        meta <- getGlobalMeta
-        targets <- getTargets
-        sources <- mapM (calcSource "-quest.html" "-quest.yaml") (targets ^. questions)
-        need sources
-        renderCatalog meta sources out
-      --
-      privateDir <//> "quest-catalog.xml" %> \out -> do
-        targets <- getTargets
-        sources <- mapM (calcSource "-quest.html" "-quest.yaml") (targets ^. questions)
-        need sources
-        questions <- liftIO $ mapM readQuestion sources
-        renderXmlCatalog questions out
+    privateDir <//> "quest-catalog.xml" %> \out -> do
+      targets <- getTargets
+      sources <- mapM (calcSource "-quest.html" "-quest.yaml") (targets ^. questions)
+      need sources
+      questions <- liftIO $ mapM readQuestion sources
+      renderXmlCatalog questions out
 
     phony "catalogs" $ do
       need ["private/quest-catalog.html", "private/quest-catalog.xml"]
