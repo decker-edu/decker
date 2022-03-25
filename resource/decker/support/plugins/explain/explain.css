@@ -305,7 +305,7 @@ span.capture-size {
   height: auto;
   object-fit: contain;
   border-radius: 10px;
-  border: 4px solid var(--blueish);
+  border: 4px solid var(--primary-color);
   overflow: auto;
   transform-origin: center;
 }
