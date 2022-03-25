@@ -30,12 +30,6 @@ button.explain#explain-play {
   }
 }
 
-div[data-uistate="RECORDER_READY"]#record-panel,
-div[data-uistate="RECORDER_PAUSED"]#record-panel,
-div[data-uistate="RECORDING"]#record-panel {
-  display: flex;
-}
-
 div#record-panel {
   --offset: calc(-100% + 35px);
   position: fixed;
@@ -45,8 +39,10 @@ div#record-panel {
   text-align: center;
   padding: 5px 10px;
   background-color: none;
-  border: 1px solid transparent;
+  border: 1px solid var(--icon-inactive-color);
   border-top: none;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
 
   display: none;
   flex-flow: column-reverse nowrap;
@@ -55,19 +51,63 @@ div#record-panel {
   font-family: var(--ui-font-family);
 
   transform: translate(-50%, var(--offset));
-  opacity: 0.5;
-  transition: transform 0.3s ease-in-out 0.5s, opacity 0.3s linear 0.5s,
-    background-color 0.3s linear 0.5s;
+  opacity: 0.2;
+  transition: transform 0.4s ease-in-out 0.1s, opacity 0.25s linear 0s,
+    background-color 0.4s linear 0s;
+}
+
+div[data-uistate="RECORDER_READY"]#record-panel,
+div[data-uistate="RECORDER_PAUSED"]#record-panel,
+div[data-uistate="RECORDING"]#record-panel {
+  display: flex;
 }
 
 div#record-panel:hover {
+  opacity: 0.5;
+}
+
+div#record-panel.open {
   transform: translate(-50%, 0);
   opacity: 1;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border: 1px solid var(--inactive-color);
-  border-top: none;
   background-color: var(--background-color);
+}
+
+div#record-panel .toggle-button {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 4rem;
+  height: 2rem;
+  background: transparent;
+  border: none;
+  transform: translateX(-55%);
+  font-family: "Font Awesome 5 Free";
+  font-size: 2rem;
+  color: var(--foreground-color);
+  transition: opacity 1s linear 0, color 0.5s linear 0;
+}
+
+div#record-panel .toggle-button:hover {
+  color: var(--blueish);
+}
+
+div#record-panel[data-uistate="RECORDING"] .toggle-button {
+  opacity: 0;
+}
+
+div#record-panel[data-uistate="RECORDING"] .toggle-button:hover,
+div#record-panel[data-uistate="RECORDING"] .toggle-button:focus,
+div#record-panel[data-uistate="RECORDING"].open .toggle-button {
+  opacity: 1;
+}
+
+div#record-panel[data-uistate="RECORDING"] {
+  border: none;
+}
+
+div#record-panel[data-uistate="RECORDING"].open {
+  border: 1px solid var(--icon-inactive-color);
+  border-top: none;
 }
 
 .controls-row {
@@ -97,11 +137,12 @@ div#record-panel:hover {
   outline: none;
   background: none;
   font-family: "Font Awesome 5 Free";
-  color: var(--inactive-color);
+  font-weight: 400;
+  color: var(--icon-inactive-color);
 }
 
 .indicator[title] {
-  color: var(--active-color);
+  color: var(--icon-active-color);
 }
 
 .indicator::before {
@@ -115,32 +156,67 @@ div#record-panel:hover {
 #record-indicator::before {
   content: "\f111";
   font-weight: 400;
-  color: red;
+  color: var(--redish);
 }
 
 #record-indicator[data-state="paused"]::before {
   content: "\f04c";
   font-weight: 900;
-  color: red;
+  color: var(--redish);
 }
 
 #record-indicator[data-state="recording"]::before {
   content: "\f111";
   font-weight: 900;
-  color: red;
+  color: var(--redish);
 }
 
 button.explain[disabled] {
-  color: gray;
+  color: var(--shade4);
   opacity: 0.5;
 }
 
 button.record-button,
 button.pause-button,
 button.stop-button {
-  color: red;
+  color: var(--redish);
   opacity: 1;
   font-size: 25px;
+}
+
+button.mute-button.off {
+  color: var(--redish);
+}
+
+button.caption-button.captioning {
+  color: var(--redish);
+}
+
+:is(button.record-button, button.pause-button, button.stop-button, button.mute-button, button.caption-button):hover {
+  color: var(--light-red);
+}
+
+:is(button.record-button, button.pause-button, button.stop-button, button.mute-button, button.caption-button):active {
+  color: var(--dark-red);
+}
+
+#caption-indicator::before {
+  content: "\f20a";
+}
+
+#microphone-indicator::before {
+  content: "\f131";
+}
+
+#caption-indicator,
+#microphone-indicator {
+  opacity: 0;
+  color: var(--redish);
+}
+
+#caption-indicator[data-state="captioning"],
+#microphone-indicator[data-state="mute"] {
+  opacity: 1;
 }
 
 .gain-slider {
@@ -229,7 +305,7 @@ span.capture-size {
   height: auto;
   object-fit: contain;
   border-radius: 10px;
-  border: 4px solid #2a9ddf;
+  border: 4px solid var(--blueish);
   overflow: auto;
   transform-origin: center;
 }

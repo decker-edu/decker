@@ -18,7 +18,6 @@ import HTMLEntities.Text (text)
 import Relude
 import System.Directory
 import System.FilePath.Posix
-import System.IO.Temp
 import Text.Decker.Filter.Attrib
 import Text.Decker.Filter.CRC32
 import Text.Decker.Filter.Local
@@ -29,6 +28,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.URI
+import Text.Decker.Server.Video
 import Text.Pandoc
 import Text.Printf
 import Text.URI (URI)
@@ -159,19 +159,10 @@ compileCodeBlock attr@(_, classes, _) code caption =
       -- write the file.
       liftIO $ do
         createDirectoryIfMissing True (takeDirectory path)
-        withSystemTempDirectory
-          "decker-dir"
-          ( \dir -> do
-              Text.writeFile (dir <> takeFileName path) code
-              -- This lets the possible race condition only bite users that have
-              -- their tmp dir on a different partition.
-              catchAll
-                (renameFile (dir <> takeFileName path) path)
-                ( const $ do
-                    copyFile (dir <> takeFileName path) path
-                    removeFile (dir <> takeFileName path)
-                )
-          )
+        tmp <- uniqueTransientFileName path
+        Text.writeFile tmp code
+        renameFile tmp path
+        putStrLn $ "# write (" <> path <> ")"
       uri <- lift $ URI.mkURI (toText path)
       renderCodeBlock uri "" caption
 
@@ -244,6 +235,7 @@ codeBlock code caption = do
   codeAttr <- do
     takeAllClasses
     injectStyles innerSizes
+    takeAttributes ["style"]
     takeData
     extractAttr
   figureAttr <- do
@@ -266,6 +258,7 @@ iframeBlock uri title caption = do
   iframeAttr <- do
     injectAttribute ("data-src", turl)
     injectAttribute ("allow", "fullscreen")
+    takeAttributes ["style"]
     takeData
     injectStyles innerSizes
     extractAttr
@@ -290,6 +283,7 @@ objectBlock otype uri title caption = do
     injectAttribute ("type", otype)
     injectStyles innerSizes
     inventTitleAndAria title caption
+    takeAttributes ["style"]
     takeData
     extractAttr
   figureAttr <- do
@@ -311,6 +305,7 @@ svgBlock uri title caption = do
   svgAttr <- do
     injectStyles innerSizes
     inventTitleAndAria title caption
+    takeAttributes ["style"]
     takeData
     extractAttr
   figureAttr <- do
@@ -449,6 +444,7 @@ javascriptBlock uri title caption = do
     injectStyles innerSizes
     injectId id
     injectClasses ["es6", "module", "anchor"]
+    takeAttributes ["style"]
     takeData
     extractAttr
   figureAttr <- do
@@ -469,6 +465,7 @@ javascriptCodeBlock code caption = do
     injectStyles innerSizes
     injectId id
     injectClasses ["es6", "module", "anchor"]
+    takeAttributes ["style"]
     takeData
     extractAttr
   figureAttr <- do

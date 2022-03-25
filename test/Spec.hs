@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 import qualified Data.ByteString.Char8 as B
 import GHC.IO.Encoding
 import IncludeTests
@@ -57,6 +55,10 @@ main = do
         getSequenceNumber "img-recording-0.png" `shouldBe` Just 0
         getSequenceNumber "img-recording-0815.png" `shouldBe` Just 815
         getSequenceNumber "img.png" `shouldBe` Nothing
+    describe "setSequenceNumber" $ do
+      it "Sets the sequence number on a file name" $ do
+        setSequenceNumber 3 "img.png" `shouldBe` "img-3.png"
+        setSequenceNumber 4 "img-1.png" `shouldBe` "img-4.png"
     describe "getHighestSequenceNumber" $ do
       it "Extracts the highest sequence number from a list of file names" $ do
         getHighestSequenceNumber ["img-0.png", "img-3.png", "img-17.png"] `shouldBe` 17

@@ -123,23 +123,27 @@ class Feedback {
    * Opens the menu and updates its content. Also focuses the first button in the menu.
    */
   openMenu() {
-    this.menu.container.inert = false;
-    this.menu.token_lock.focus();
-    this.requestMenuContent();
-    this.reveal.getRevealElement().inert = true;
-    // localStorage.setItem("feedback-state", "open");
-    this.glass.classList.add("show");
+    if (this.menu.container.inert) {
+      this.menu.container.inert = false;
+      this.menu.token_lock.focus();
+      this.requestMenuContent();
+      this.reveal.getRevealElement().inert = true;
+      // localStorage.setItem("feedback-state", "open");
+      this.glass.classList.add("show");
+    }
   }
 
   /**
    * Closes the menu and focuses the button that opened it.
    */
   closeMenu() {
-    this.menu.container.inert = true;
-    this.open_button.focus();
-    this.reveal.getRevealElement().inert = false;
-    localStorage.removeItem("feedback-state");
-    this.glass.classList.remove("show");
+    if (!this.menu.container.inert) {
+      this.menu.container.inert = true;
+      this.open_button.focus();
+      this.reveal.getRevealElement().inert = false;
+      localStorage.removeItem("feedback-state");
+      this.glass.classList.remove("show");
+    }
   }
 
   /**

@@ -1,12 +1,7 @@
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Server.Server
-  ( -- startHttpServer,
-    -- stopHttpServer,
-    -- startServerForeground,
-    reloadClients,
+  ( reloadClients,
     runHttpServer,
     aPort,
     aBind,
@@ -19,7 +14,6 @@ import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
 import qualified Data.ByteString as BS
-import Data.ByteString.UTF8
 import Data.FileEmbed
 import qualified Data.HashMap.Strict as Map
 import Data.List
@@ -28,16 +22,15 @@ import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Network.WebSockets
 import Network.WebSockets.Snap
+import Relude
 import Snap.Core
 import Snap.Http.Server
 import Snap.Util.FileServe
-import Snap.Util.FileUploads
 import System.Directory
 import System.FilePath.Posix
 import System.IO.Streams (connect, withFileAsOutput)
 import System.Random
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Exception
 import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Types
@@ -105,6 +98,8 @@ aBind :: Flags -> Bool
 aBind (BindFlag _) = True
 aBind _ = False
 
+uploadable = ["-annot.json", "-times.json", "-transcript.json", "-recording.vtt"]
+
 -- Runs the server. Never returns.
 runHttpServer :: ActionContext -> IO ()
 runHttpServer context = do
@@ -112,17 +107,17 @@ runHttpServer context = do
   let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
   installSSLCert
   let state = context ^. server
+  registry <- newTMVarIO Set.empty
   let routes =
         route
           [ ("/reload", runWebSocketsSnap $ reloader state),
             ("/reload.html", serveFile $ "test" </> "reload.html"),
             (fromString supportPath, serveSupport context state),
-            ("/", method PUT $ uploadResource ["-annot.json", "-times.json", "-recording.mp4", "-recording.webm"]),
+            ("/", method PUT $ uploadResource uploadable),
             ("/", method GET $ serveDirectoryNoCaching state publicDir),
             ("/", method HEAD $ headDirectory publicDir),
-            ("/upload", method POST $ uploadFiles ["-annot.json", "-times.json", "-recording.webm"]),
-            ("/replace", method POST $ uploadVideo False),
-            ("/append", method POST $ uploadVideo True)
+            ("/replace", method PUT $ uploadRecording (context ^. actionChan) False),
+            ("/append", method PUT $ uploadRecording (context ^. actionChan) True)
           ]
   startUpdater state
   config <- serverConfig port bind
@@ -152,58 +147,13 @@ startUpdater state = do
 -- | Save the request body in the project directory under the request path. But
 -- only if the request path ends on one of the suffixes and the local directory
 -- already exists. Do this atomically.
--- uploadResource :: MonadSnap m => [String] -> m ()
--- uploadResource suffixes = do
---   destination <- toString <$> getsRequest rqPathInfo
---   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
---   if exists && any (`isSuffixOf` destination) suffixes
---     then do
---       let tmp = transientDir </> takeFileName destination
---       runRequestBody (withFileAsOutput tmp . connect)
---       liftIO $ renameFile tmp destination
---     else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
-
--- | Expects a multi-part file upload.
-uploadFiles :: MonadSnap m => [String] -> m ()
-uploadFiles suffixes = do
-  withTemporaryStore transientDir "upload-" $ \store -> do
-    (inputs, files) <-
-      handleFormUploads defaultUploadPolicy fileUploadPolicy (const store)
-    liftIO $
-      forM_ files $
-        \(FormFile path tmp) ->
-          catch
-            ( do
-                let destination = dropDrive $ toString path
-                exists <- doesDirectoryExist (takeDirectory destination)
-                if exists && any (`isSuffixOf` destination) suffixes
-                  then do
-                    -- Not handled by the build system anymore.
-                    --
-                    -- TODO remove once explain.js uses endpoints /replace and
-                    -- /append
-                    if takeExtension destination == ".webm"
-                      then replaceVideoUpload tmp destination
-                      else renameFile tmp destination
-                    putStrLn $ "# upload received: " <> destination
-                  else throwM $ InternalException "Illegal upload path suffix"
-            )
-            ( \e@(SomeException se) -> do
-                putStrLn $ "# upload FAILED: " <> show se
-                throwM e
-            )
-  return ()
-
--- | Save the request body in the project directory under the request path. But
--- only if the request path ends on one of the suffixes and the local directory
--- already exists. Do this atomically.
 uploadResource :: MonadSnap m => [String] -> m ()
 uploadResource suffixes = do
-  destination <- toString <$> getsRequest rqPathInfo
+  destination <- decodeUtf8 <$> getsRequest rqPathInfo
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && any (`isSuffixOf` destination) suffixes
     then do
-      let tmp = transientDir </> takeFileName destination
+      tmp <- liftIO $ uniqueTransientFileName destination
       runRequestBody (withFileAsOutput tmp . connect)
       liftIO $ renameFile tmp destination
     else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
@@ -212,11 +162,9 @@ headDirectory :: MonadSnap m => FilePath -> m ()
 headDirectory directory = do
   path <- getSafePath
   exists <- liftIO $ doesFileExist (directory </> path)
-  if
-      | not exists && path `endsOn` ["-annot.json", "-times.json", "-recording.mp4", "-recording.vtt"] ->
-        finishWith $ setResponseCode 204 emptyResponse
-      | not exists -> finishWith $ setResponseCode 404 emptyResponse
-      | otherwise -> finishWith $ setResponseCode 200 emptyResponse
+  if exists
+    then finishWith $ setResponseCode 200 emptyResponse
+    else finishWith $ setResponseCode 204 emptyResponse
 
 -- serveDirectoryWith config directory
 -- where
@@ -224,20 +172,14 @@ headDirectory directory = do
 --   nukeBody res = res {rspBody = Stream return}
 
 -- | Serves all files in the directory. If it is one of the optional annotation
--- and recording stuff that does ot exist (yet), return a "204 No Content"
+-- and recording stuff that does not exist (yet), return a "204 No Content"
 -- instead of a 404 so that the browser does not need to flag the 404.
 serveDirectoryNoCaching :: MonadSnap m => MVar ServerState -> FilePath -> m ()
 serveDirectoryNoCaching state directory = do
+  serveDirectory directory
+  modifyResponse $ addHeader "Cache-Control" "no-store"
   path <- getSafePath
-  exists <- liftIO $ doesFileExist (directory </> path)
-  if not exists && path `endsOn` ["-annot.json", "-times.json", "-recording.mp4", "-recording.vtt"]
-    then finishWith $ setResponseCode 204 emptyResponse
-    else do
-      serveDirectory directory
-      modifyResponse $ addHeader "Cache-Control" "no-store"
-      liftIO $ addPage state path
-
-endsOn string = any (`isSuffixOf` string)
+  liftIO $ addPage state path
 
 serveSupport :: (MonadSnap m) => ActionContext -> MVar ServerState -> m ()
 serveSupport context state =
@@ -273,30 +215,6 @@ serveResource (Resources decker pack) path = do
       modifyResponse $ setHeader "Cache-Control" "no-store"
       modifyResponse $ setContentType (fileType allMimeTypes (takeFileName path))
       writeBS content
-
--- -- | Starts the decker server. Never returns.
--- startServerForeground :: ActionContext -> Int -> String -> IO ()
--- startServerForeground context port bind = do
---   state <- initState
---   runHttpServer context state port bind
-
--- -- | Starts a server in a new thread and returns the thread id.
--- startHttpServer :: ActionContext -> Int -> String -> IO Server
--- startHttpServer context port bind = do
---   state <- initState
---   channel <- atomically newTChan
---   threadId <- forkIO $ do
---     catchAll
---       (runHttpServer context state port bind)
---       ( \(SomeException e) -> do
---           putStrLn $ "HTTP could not be started on port " <> show port
---           atomically $ writeTChan (context ^. actionChan) (PortInUse port)
---       )
---   return $ Server threadId state
-
--- -- | Kills the server.
--- stopHttpServer :: Server -> IO ()
--- stopHttpServer = killThread . _threadId
 
 -- Accepts a request and adds the connection to the client list. Then reads the
 -- connection forever. Removes the client from the list on disconnect.

@@ -74,8 +74,17 @@ clean:
 	rm -rf dist public
 	rm -rf resource/decker/support/vendor
 
+append-webm:
+	curl -T test/decks/movie.webm http://localhost:8888/append/test/decks/media-recording.webm
+	# ls -rtl test/decks/media-recording*
+
+replace-webm:
+	curl -T test/decks/movie.webm http://localhost:8888/replace/test/decks/media-recording.webm
+	curl -T test/decks/movie-1.webm http://localhost:8888/replace/test/decks/media-recording.webm
+	# ls -rtl test/decks/media-recording*
+
 clean-recordings:
-	rm -f test/decks/*-recording.*
+	rm -f test/decks/*-recording*
 	rm -f test/decks/*-times.json
 	rm -f test/decks/*-annot.json
 

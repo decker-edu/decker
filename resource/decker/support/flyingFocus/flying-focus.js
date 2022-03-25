@@ -7,7 +7,7 @@ let flyingFocus = null;
 let target = null;
 let keyDownTime = 0;
 
-function handleKeyboard(event) {
+export function handleKeyboard(event) {
   const code = event.code;
   // Show animation only upon Tab or Arrow keys press.
   if (
@@ -22,7 +22,7 @@ function handleKeyboard(event) {
   }
 }
 
-function showFlyingFocus(event) {
+export function showFlyingFocus(event) {
   // if focus was changed, but not due to keyboard navigation: hide it.
   if (!isJustPressed()) {
     hideFlyingFocus();

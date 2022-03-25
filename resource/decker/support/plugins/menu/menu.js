@@ -101,7 +101,7 @@ class SlideMenu {
       this.disableKeybinds();
       this.glass.classList.add("show");
       if (event && event.detail === 0) {
-        this.menu.search_button.focus();
+        setTimeout(() => this.menu.close_button.focus(), 500);
       }
     }
   }
@@ -629,8 +629,9 @@ class SlideMenu {
     this.settings.color_choice.addEventListener("change", (event) => {
       this.toggleColorMode(event.target.value);
     });
-    this.settings.annotations_toggle =
-      this.settings.container.querySelector("#setting-toggle-annotations");
+    this.settings.annotations_toggle = this.settings.container.querySelector(
+      "#setting-toggle-annotations"
+    );
     this.settings.annotations_toggle.addEventListener("change", (event) =>
       this.toggleAnnotations(event.target.checked)
     );

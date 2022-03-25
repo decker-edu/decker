@@ -6,6 +6,7 @@ module Text.Decker.Server.Types where
 import Control.Concurrent
 import Control.Lens
 import qualified Data.Set as Set
+import Data.Time
 import Network.WebSockets
 import Relude
 
@@ -14,10 +15,16 @@ type Client = (Int, Connection)
 
 type ServerState = ([Client], Set.Set FilePath)
 
+data VideoOperation
+  = Replace FilePath FilePath
+  | Append FilePath FilePath
+  deriving (Show)
+
 data ActionMsg
-  = PortInUse Int
-  | FileChanged FilePath
-  deriving (Show, Eq)
+  = ServerExit String
+  | FileChanged UTCTime FilePath
+  | UploadComplete VideoOperation
+  deriving (Show)
 
 data Server = Server
   { _threadId :: ThreadId,

@@ -148,7 +148,7 @@ pushAttribute (key, value) = modify transform
 
 -- |  Removes the attribute key from the source attribute map and adds it as a
 --  CSS style value to the target style attribute. Mainly used to translate
---  witdth an height attributes into CSS style setting.
+--  witdth and height attributes into CSS style setting.
 takeStyle :: Text -> Attrib Bool
 takeStyle = takeStyleIf (const True)
 
@@ -324,8 +324,9 @@ takeUsual = do
   takeId
   takeAllClasses
   takeCss
-  dropCore
   passI18n
+  takeAttributes ["style"]
+  dropCore
   takeData
 
 -- Adjusts the values of all path values that are listed in keys.

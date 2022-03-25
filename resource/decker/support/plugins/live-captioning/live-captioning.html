@@ -1,0 +1,122 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>reveal.js - Live Captioning</title>
+    <link rel="stylesheet" href="/support/vendor/fontawesome/css/all.css" />
+    <style>
+      html {
+        width: 100%;
+        height: 100%;
+        background: black;
+        color: white;
+        font-family: Tahoma, Verdana, Segoe, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        width: auto;
+        height: 100%;
+        font-size: 4rem;
+        margin: 0;
+        padding: 0;
+      }
+      .fullscreen {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        border: none;
+        background: transparent;
+        font-size: 2rem;
+        color: white;
+      }
+      .fullscreen:hover {
+        color: gray;
+      }
+      .fullscreen:active {
+        color: lightskyblue;
+      }
+      .indicator {
+        position: fixed;
+        font-size: 2rem;
+        top: 1rem;
+        left: 1rem;
+        border: none;
+        background: transparent;
+        color: red;
+      }
+      .indicator.inactive {
+        color: gray;
+      }
+      .current {
+        color: cyan;
+      }
+      .area {
+        width: calc(100% - 2rem);
+        height: calc(100% - 2rem);
+        overflow: auto;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="area"></div>
+    <button class="fullscreen"><i class="fas fa-expand"></i></button>
+    <i class="indicator inactive fas fa-circle"></i>
+  </body>
+  <script>
+    (function () {
+      let currentSpan = undefined;
+      let area = document.querySelector(".area");
+      let fullscreen = document.querySelector(".fullscreen");
+      let indicator = document.querySelector(".indicator");
+
+      window.addEventListener("message", function (event) {
+        console.log(event);
+        let data = JSON.parse(event.data);
+        if (data.type === "update") {
+          if (!currentSpan) createSpan();
+          currentSpan.textContent = data.text;
+          indicator.classList.remove("inactive");
+        } else if (data.type === "final") {
+          if (!currentSpan) createSpan();
+          currentSpan.textContent = data.text;
+          currentSpan.classList.remove("current");
+          currentSpan = undefined;
+          indicator.classList.remove("inactive");
+        } else if (data.type === "status") {
+          if (data.value === "start" || data.value === "active") {
+            indicator.classList.remove("inactive");
+          } else {
+            indicator.classList.add("inactive");
+          }
+        }
+        area.scrollTo(0, area.scrollHeight);
+      });
+
+      function createSpan() {
+        currentSpan = document.createElement("span");
+        currentSpan.classList.add("current");
+        area.appendChild(currentSpan);
+      }
+
+      fullscreen.addEventListener("click", () => {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          document.body.requestFullscreen();
+        }
+      });
+
+      document.body.addEventListener("fullscreenchange", (event) => {
+        if (document.fullscreenElement) {
+          fullscreen.firstElementChild.classList.remove("fa-expand");
+          fullscreen.firstElementChild.classList.add("fa-compress");
+        } else {
+          fullscreen.firstElementChild.classList.remove("fa-compress");
+          fullscreen.firstElementChild.classList.add("fa-expand");
+        }
+      });
+    })();
+  </script>
+</html>

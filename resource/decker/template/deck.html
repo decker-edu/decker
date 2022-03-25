@@ -70,6 +70,7 @@ $endif$
 
   <!-- Any CSS variables set in the CSS files below, cannot be overridden by
   meta data values. -->
+  <link rel="stylesheet" href="$decker-support-dir$/components/components.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reset.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reveal.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/decker/ui-anchors.css">
@@ -79,6 +80,7 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/examiner/examiner.css">
   <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
 $if(poll)$
@@ -157,6 +159,7 @@ $if(highlightjs)$
     import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
 $endif$
     import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
+    import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
     import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
 
     let revealConfig = { 
@@ -190,6 +193,7 @@ $if(highlightjs)$
          highlightPlugin,
 $endif$
          notesPlugin,
+         captionPlugin,
          a11yPlugin,
 $if(poll)$
          pollPlugin
@@ -204,6 +208,8 @@ $endif$
 </body>
 
 <script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
+<script src="$decker-support-dir$/components/awesome-button.js"></script>
+<script type="module" src="$decker-support-dir$/components/multi-option-dialog.js"></script>
 <!-- script src="$decker-support-dir$/js/inert.min.js"></script -->
 <!-- Use the other implementation if things break under Firefox -->
 $for(template.js)$

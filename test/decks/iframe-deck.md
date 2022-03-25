@@ -15,7 +15,7 @@ title: Iframes
 
 # Iframe showing <https://hci.uni-wuerzburg.de/>
 
-![](https://hci.uni-wuerzburg.de/){.iframe width="100%" height="500px"}
+![](https://hci.uni-wuerzburg.de/){.iframe width="100%" height="500px" style="border: 2px red solid;"}
 
 ------------------------------------------------------------------------
 

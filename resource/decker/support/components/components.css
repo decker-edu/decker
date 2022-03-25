@@ -1,0 +1,93 @@
+.multi-dialog-container {
+  position: fixed;
+  z-index: 1024;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  color: var(--foreground-color);
+  border: 2px outset var(--color-info);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  background: var(--shade1);
+  max-width: 50%;
+  margin: 0;
+}
+
+.multi-dialog-container.error {
+  border-color: var(--color-error);
+}
+
+.multi-dialog-container.warning {
+  border-color: var(--color-warn);
+}
+
+.multi-dialog-container.alert {
+  border-color: var(--color-alert);
+}
+
+.multi-dialog-container.information {
+  border-color: var(--color-info);
+}
+
+.multi-dialog-container::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.multi-dialog-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.multi-dialog-button {
+  padding: 0.5rem;
+  border: none;
+  color: var(--background-color);
+  font-size: 1.25rem;
+  border-radius: 0.25rem;
+  background: var(--accent5);
+}
+
+@media (prefers-color-scheme: dark) {
+  .multi-dialog-button {
+    color: var(--foreground-color);
+  }
+  .light .multi-dialog-button {
+    color: var(--background-color);
+  }
+}
+
+.multi-dialog-fieldset {
+  border: none;
+}
+
+.multi-dialog-button:hover {
+  background: var(--accent5-bg);
+}
+
+.multi-dialog-button:active {
+  background: var(--accent5-fg);
+}
+
+@keyframes ping {
+  0% {
+    background: var(--accent5-bbg);
+    outline-offset: 0.25rem;
+  }
+  10% {
+    outline-offset: 0.5rem;
+  }
+  30% {
+    outline-offset: 0.25rem;
+  }
+  100% {
+    background: var(--accent5);
+  }
+}
+
+.multi-dialog-button:focus {
+  outline: 2px solid var(--flying-focus-color) !important;
+  outline-offset: 0.25rem;
+  animation: ping 1s linear;
+}

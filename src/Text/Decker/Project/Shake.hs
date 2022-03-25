@@ -1,12 +1,8 @@
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Project.Shake
   ( runDecker,
+    runDeckerArgs,
     calcSource,
     calcSource',
     currentlyServedPages,
@@ -19,7 +15,7 @@ module Text.Decker.Project.Shake
 where
 
 import Control.Concurrent (ThreadId, forkIO, killThread)
-import Control.Concurrent.STM (TChan, newTChan, readTChan, tryReadTChan, writeTChan)
+import Control.Concurrent.STM (newTChan, readTChan, writeTChan)
 import Control.Exception
 import Control.Lens
 import Control.Monad
@@ -32,6 +28,7 @@ import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.List.Extra as List
 import Data.Maybe
+import Data.Time
 import Development.Shake hiding (doesDirectoryExist, putError)
 import GHC.IO.Exception (ExitCode (ExitFailure))
 import NeatInterpolation
@@ -44,6 +41,7 @@ import System.FilePath.Posix
 import System.Info
 import System.Process hiding (runCommand)
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Crunch
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -51,11 +49,17 @@ import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
+import Text.Decker.Server.Types
+import Text.Decker.Server.Video
 import Text.Pandoc hiding (Verbosity)
 
 runDecker :: Rules () -> IO ()
-runDecker theRules = do
+runDecker rules = do
   args <- getArgs
+  runDeckerArgs args rules
+
+runDeckerArgs :: [String] -> Rules () -> IO ()
+runDeckerArgs args theRules = do
   -- Parse the extra options first so that we can use them in the commands
   -- without running shake. Errors are ignored and will be reported by shake
   -- later.
@@ -67,10 +71,9 @@ runDecker theRules = do
           else want targets >> withoutActions theRules
   meta <- readMetaDataFile globalMetaFileName
   context <- initContext flags meta
-  let commands = ["clean", "example", "serve", "pdf"]
+  let commands = ["clean", "example", "serve", "crunch", "pdf"]
   case targets of
-    [command] | command `elem` commands -> do
-      runCommand context command rules
+    [command] | command `elem` commands -> runCommand context command rules
     _ -> runTargets context targets rules
 
 runTargets :: ActionContext -> [FilePath] -> Rules () -> IO ()
@@ -82,92 +85,106 @@ runTargets context targets rules = do
   when (OpenFlag `elem` flags) $ do
     let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort flags
     openBrowser $ "http://localhost:" <> show port <> "/index.html"
+
   -- Always run at least once
   runShake context rules
   if
       | ServerFlag `elem` flags -> do
-        forkServer channel context
-        Notify.withManager $ \manager -> do
-          startWatcher manager channel context
-          runShakeForever channel context rules
+        forkServer context
+        watchAndRunForever
       | WatchFlag `elem` flags -> do
-        Notify.withManager $ \manager -> do
-          startWatcher manager channel context
-          runShakeForever channel context rules
+        watchAndRunForever
       | otherwise -> return ()
-
-data DoOrDie = RunShake | ServerExit String deriving (Show)
-
--- |  Removes all pending messages from the channel and discards them.
-flushTChan' :: TChan a -> STM ()
-flushTChan' channel = do
-  result <- tryReadTChan channel
-  case result of
-    Just _ -> flushTChan' channel
-    Nothing -> return ()
-
--- |  Removes all pending messages from the channel and discards them.
-flushTChan :: TChan a -> IO ()
-flushTChan channel = atomically $ flushTChan' channel
+  where
+    watchAndRunForever = do
+      Notify.withManager $ \manager -> do
+        startWatcher manager context
+        runShakeForever Nothing context rules
 
 runShake :: ActionContext -> Rules () -> IO ()
 runShake context rules = do
   options <- deckerShakeOptions context
   shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
 
-runShakeForever :: TChan DoOrDie -> ActionContext -> Rules () -> IO b
-runShakeForever channel context rules = do
-  forever $ do
-    dod <- atomically $ readTChan channel
-    case dod of
-      RunShake -> do
-        catchAll
-          (runShake context rules)
-          (\(SomeException _) -> return ())
-        flushTChan channel
-        reloadClients (context ^. server)
-      ServerExit port -> do
-        putStrLn $ "# Server: " <> show port
-        exitWith (ExitFailure 7)
+runShakeForever :: Maybe ActionMsg -> ActionContext -> Rules () -> IO b
+runShakeForever last context rules = do
+  dod <- debouncedMessage last
+  case dod of
+    FileChanged time path -> do
+      catchAll
+        (runShake context rules)
+        (\(SomeException _) -> return ())
+      reloadClients (context ^. server)
+    UploadComplete operation -> do
+      applyVideoOperation operation
+      reloadClients (context ^. server)
+    ServerExit port -> do
+      putStrLn $ "# Server: " <> show port
+      exitWith (ExitFailure 7)
+  runShakeForever (Just dod) context rules
+  where
+    debouncedMessage (Just (FileChanged lastTime path)) = do
+      msg <- atomically $ readTChan (context ^. actionChan)
+      case msg of
+        FileChanged time info | diffUTCTime time lastTime < 0.5 -> debouncedMessage (Just msg)
+        _ -> return msg
+    debouncedMessage _ = atomically $ readTChan (context ^. actionChan)
 
-startWatcher :: Notify.WatchManager -> TChan DoOrDie -> ActionContext -> IO ()
-startWatcher manager channel context = do
+handleUploads :: ActionContext -> IO ()
+handleUploads context = do
+  forever $ do
+    dod <- atomically $ readTChan (context ^. actionChan)
+    case dod of
+      UploadComplete operation -> do
+        applyVideoOperation operation
+      _ -> return ()
+
+applyVideoOperation op@(Replace tmp destination) = do
+  replaceVideoUpload tmp destination
+applyVideoOperation op@(Append tmp destination) = do
+  appendVideoUpload tmp destination
+
+startWatcher :: Notify.WatchManager -> ActionContext -> IO ()
+startWatcher manager context = do
   inDir <- makeAbsolute projectDir
   options <- deckerShakeOptions context
   exclude <- mapM canonicalizePath $ excludeDirs (context ^. globalMeta)
   void $
     Notify.watchTree manager inDir (filter exclude) $ \event ->
-      atomically $ writeTChan channel RunShake
+      atomically $ writeTChan (context ^. actionChan) (FileChanged (Notify.eventTime event) (show event))
   where
     filter exclude event = not $ any (`isPrefixOf` Notify.eventPath event) exclude
 
-startServer :: ActionContext -> IO ()
-startServer = runHttpServer
-
-forkServer :: TChan DoOrDie -> ActionContext -> IO ThreadId
-forkServer channel context = do
+forkServer :: ActionContext -> IO ThreadId
+forkServer context = do
   forkIO $ do
     catchAll
-      (startServer context)
+      (runHttpServer context)
       ( \(SomeException e) -> do
-          atomically $ writeTChan channel (ServerExit $ show e)
+          atomically $ writeTChan (context ^. actionChan) (ServerExit $ show e)
       )
 
 runCommand :: (Eq a, IsString a) => ActionContext -> a -> Rules () -> IO b
 runCommand context command rules = do
   case command of
     "clean" -> runClean True
-    "serve" -> startServer context
     "example" -> writeExampleProject (context ^. globalMeta)
+    "serve" -> do
+      forkServer context
+      handleUploads context
+    "crunch" -> crunchRecordings context
     "pdf" -> do
       putStrLn (toString pdfMsg)
       channel <- atomically newTChan
-      id <- forkServer channel context
+      id <- forkServer context
       let rules' = want ["build-pdf"] >> withoutActions rules
       runShake context rules'
       killThread id
     _ -> error "Unknown command. Should not happen."
   exitSuccess
+
+crunchRecordings :: ActionContext -> IO ()
+crunchRecordings context = runShake context crunchRules
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =
@@ -291,10 +308,10 @@ deckerShakeOptions ctx = do
         shakeColor = not toStderr,
         shakeStaunch = toStderr,
         shakeOutput = outputMessage toStderr,
-        shakeChange = ChangeModtime
-        -- shakeChange = ChangeModtimeAndDigest
-        -- shakeLint = Just LintBasic,
-        -- shakeReport = [".decker/shake-report.html"],
+        -- shakeChange = ChangeModtime
+        -- shakeLint = Just LintFSATrace,
+        shakeReport = [".decker/shake-report.html"],
+        shakeChange = ChangeModtimeAndDigest
       }
 
 relativeSupportDir :: FilePath -> FilePath
@@ -324,8 +341,7 @@ openBrowser url =
 
 calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target = do
-  let src =
-        (replaceSuffix targetSuffix srcSuffix . makeRelative publicDir) target
+  let src = (replaceSuffix targetSuffix srcSuffix . makeRelative publicDir) target
   need [src]
   return src
 

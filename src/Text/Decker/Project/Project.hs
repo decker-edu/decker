@@ -24,11 +24,6 @@ module Text.Decker.Project.Project
     handouts,
     handoutsPdf,
     questions,
-    annotations,
-    recordings,
-    times,
-    captions,
-    css,
     Targets (..),
     fromMetaValue,
     toMetaValue,
@@ -75,12 +70,7 @@ data Targets = Targets
     _pagesPdf :: [FilePath],
     _handouts :: [FilePath],
     _handoutsPdf :: [FilePath],
-    _questions :: [FilePath],
-    _annotations :: [FilePath],
-    _times :: [FilePath],
-    _captions :: [FilePath],
-    _recordings :: [FilePath],
-    _css :: [FilePath]
+    _questions :: [FilePath]
   }
   deriving (Show)
 
@@ -185,26 +175,11 @@ handoutHTMLSuffix = "-handout.html"
 
 handoutPDFSuffix = "-handout.pdf"
 
-annotationSuffix = "-annot.json"
-
-timesSuffix = "-times.json"
-
-recordingSuffix1 = "-recording.webm"
-
-recordingTargetSuffix = "-recording.mp4"
-
-captionsSuffix = "-recording.vtt"
-
 sourceRegexes :: [String] =
   [ "-deck.md\\'",
     "-page.md\\'",
     "-deck-index.yaml\\'",
     "-quest.yaml\\'",
-    "-recording.webm\\'",
-    "-recording.mp4\\'",
-    "-recording.vtt\\'",
-    "-times.json\\'",
-    "-annot.json\\'",
     "\\`(^_).*\\.scss\\'"
   ]
 
@@ -253,12 +228,7 @@ scanTargets meta = do
         _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs,
         _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs,
         _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs,
-        _questions = sort $ calcTargets questSuffix questHTMLSuffix srcs,
-        _annotations = sort $ calcTargets annotationSuffix annotationSuffix srcs,
-        _times = sort $ calcTargets timesSuffix timesSuffix srcs,
-        _captions = sort $ calcTargets captionsSuffix captionsSuffix srcs,
-        _recordings = List.nub $ sort $ calcTargets recordingSuffix1 recordingTargetSuffix srcs,
-        _css = sort $ calcTargets ".scss" ".css" srcs
+        _questions = sort $ calcTargets questSuffix questHTMLSuffix srcs
       }
   where
     calcTarget :: String -> String -> FilePath -> FilePath
