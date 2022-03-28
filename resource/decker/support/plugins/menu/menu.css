@@ -60,7 +60,8 @@
   left: 0;
   width: 100%;
   height: calc(
-    100% - var(--common-menu-header-height) + var(--common-menu-header-padding) * 2
+    100% - var(--common-menu-header-height) + var(--common-menu-header-padding) *
+      2
   );
   z-index: 257;
 
@@ -179,6 +180,11 @@ ul.slide-list > li {
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
+}
+
+ul.slide-list > li.separator-slide {
+  background: var(--shade2);
+  font-weight: bold;
 }
 
 ul.slide-list > li > a {
