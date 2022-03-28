@@ -5,7 +5,7 @@
   left: 50%;
   transform: translateX(-50%) translateY(-50%);
   color: var(--foreground-color);
-  border: 2px outset var(--color-info);
+  border: 2px outset var(--foreground-color);
   border-radius: 0.25rem;
   padding: 0.5rem;
   background: var(--shade1);
@@ -29,6 +29,10 @@
   border-color: var(--color-info);
 }
 
+.multi-dialog-container.success {
+  border-color: var(--color-success);
+}
+
 .multi-dialog-container::backdrop {
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
@@ -38,6 +42,7 @@
   display: flex;
   flex-direction: row;
   justify-content: space-around;
+  margin-top: 1rem;
 }
 
 .multi-dialog-button {
@@ -60,6 +65,10 @@
 
 .multi-dialog-fieldset {
   border: none;
+}
+
+.multi-dialog-fieldset legend {
+  margin: auto;
 }
 
 .multi-dialog-button:hover {

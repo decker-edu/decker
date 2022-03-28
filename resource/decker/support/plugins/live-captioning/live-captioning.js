@@ -5,6 +5,7 @@
  *
  * @author Sebastian Lukas Hauer
  */
+import bwipjs from "../examiner/bwip.js";
 
 let localization;
 
@@ -77,12 +78,12 @@ class LiveCaptioning {
       { text: localization.accept, value: "ACCEPT" },
       { text: localization.abort, value: "ABORT" },
     ];
-    let choice = await window.showDialog(
+    let choice = await window.showChoice(
       localization.caption_warning,
       options,
       "warning"
     );
-    if (choice !== "ACCEPT") {
+    if (choice.submit !== "ACCEPT") {
       return false;
     } else {
       return true;
@@ -136,9 +137,18 @@ class LiveCaptioning {
         if (!this.connection.server) {
           this.connection.server = url;
         }
-        let noop = await window.showDialog(
-          `Read in to this presentation: ${this.connection.server}/${this.connection.session}`,
-          [{ text: "OK", value: "OK" }]
+        let qrcode = document.createElement("canvas");
+        bwipjs.toCanvas(qrcode, {
+          bcid: "qrcode",
+          text: `${this.connection.server}/${this.connection.session}`,
+          scale: 10,
+          includetext: false,
+          textxalign: "center",
+          eclevel: "L",
+        });
+        let noop = await window.showInformation(
+          localization.qrcode_message,
+          qrcode
         );
       }
     }
@@ -270,7 +280,7 @@ class LiveCaptioning {
   /**
    * Updates the content of the current span and creates it if none exists.
    * Also deletes the reference to it so a new one gets created in the next round.
-   * Sends data to the popup and informs the syncronization service about the finallization.
+   * Sends data to the popup and informs the syncronization service about the finalization.
    * @param {*} text
    * @returns Nothing
    */
@@ -327,6 +337,7 @@ class LiveCaptioning {
       stop_captioning: "Stop Live Captioning",
       accept: "Accept",
       abort: "Abort",
+      qrcode_message: "Live Captioning",
       caption_warning:
         "Using this feature will use your Browser's WebSpeech API to transcribe your voice. \
        To facilitate this, your voice will be sent to your Browser's manufacturer's Cloud Service \
@@ -339,6 +350,7 @@ class LiveCaptioning {
         stop_captioning: "Live-Untertitelung stoppen",
         accept: "Akzeptieren",
         abort: "Abbrechen",
+        qrcode_message: "Live-Untertitel",
         caption_warning:
           "Diese Funktion wird die eingebaute WebSpeech API Ihres Browsers benutzen, \
        um Ihre Stimme zu transkribieren. Die dabei aufgezeichneten Daten werden dazu an den Hersteller \
