@@ -123,8 +123,7 @@ decker [options] [target]
     > decker server
     ```
 
-    and make some changes to the Markdown files. `example-deck.md` contains the
-    source code for a slide deck that explains some of deckers features.
+    and make some changes to the Markdown files.
 
 `decker clean`
 
