@@ -4,9 +4,11 @@ title: How to use dialogs
 
 # Enable usage
 
-The deck template needs to contain. wue, mono and mario decks might not contain this line.
+The deck template needs to contain.
 
 `<script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>`
+
+wue, mono and mario decks might not contain this line.
 
 # showDialog
 
