@@ -311,7 +311,7 @@ deckerShakeOptions ctx = do
         shakeOutput = outputMessage toStderr,
         -- shakeChange = ChangeModtime
         -- shakeLint = Just LintFSATrace,
-        shakeReport = [".decker/shake-report.html"],
+        -- shakeReport = [".decker/shake-report.html"],
         shakeChange = ChangeModtimeAndDigest
       }
 
