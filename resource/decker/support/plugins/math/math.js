@@ -106,8 +106,8 @@ function setupMathIncremental() {
 function injectStyle() {
   const style = document.createElement("style");
   style.textContent = String.raw`
-            /* fit equation into container */
-            mjx-container > svg {
+            /* fit equation into container (disable for tables) */
+            mjx-container > svg:not(table mjx-container > svg) {
                 object-fit: contain;
                 max-width: 100%;
             }
