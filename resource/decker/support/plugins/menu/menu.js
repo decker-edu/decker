@@ -407,7 +407,9 @@ class SlideMenu {
    * @returns The title of a slide or undefined.
    */
   getTitleFromAttributesOrChildren(section, selector) {
-    let title = section.getAttribute("data-menu-title");
+    let title =
+      section.getAttribute("data-menu-title") ||
+      section.getAttribute("menu-title");
     if (!title) {
       let element = section.querySelector(".menu-title");
       if (element) {
