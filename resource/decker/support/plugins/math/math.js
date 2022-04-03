@@ -158,7 +158,7 @@ const Plugin = {
         },
       },
       svg: {
-        scale: Decker.meta.math.scale || 0.9, // global scaling factor for all expressions
+        scale: Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
         minScale: 0.5, // smallest scaling factor to use
         mtextInheritFont: true, // true to make mtext elements use surrounding font
         merrorInheritFont: true, // true to make merror text use surrounding font
