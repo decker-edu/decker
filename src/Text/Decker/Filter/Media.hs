@@ -415,7 +415,7 @@ videoBlock uri title caption = do
   xformRersourceAttribs ["poster"]
   (innerSizes, outerSizes) <- calcImageSizes
   videoAttr <- do
-    injectAttribute ("src", videoUri)
+    injectAttribute ("data-src", videoUri)
     injectStyles innerSizes
     takeAutoplay
     takeVideoClasses
