@@ -84,3 +84,9 @@ div.bottom-right-anchor {
 .slide-in-right[inert] {
   transform: translate(100%);
 }
+
+@media print {
+  div.decker-anchor {
+    display: none;
+  }
+}
