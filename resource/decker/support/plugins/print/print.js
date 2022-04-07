@@ -109,8 +109,10 @@ function setupVideos() {
     for (let video of slide.getElementsByTagName("video")) {
       // handle headless Chrome bug
       if (navigator.webdriver && numVideos >= maxVideos) {
-        video.setAttribute("preload", "none");
-        video.style.border = "1px dashed red";
+        /* do not load video */
+        video.src = "";
+        /* hide video, since we cannot determine its size anyway */
+        video.style.display = "none";
       }
 
       // play video to 0.5s to get a poster frame
@@ -197,7 +199,7 @@ const Plugin = {
         // automatically press the print button when not in headless mode
         if (!navigator.webdriver && !Decker.isElectron()) {
           Reveal.addEventListener("pdf-ready", function () {
-            setTimeout(window.print, 1000);
+            setTimeout(window.print, 2000);
           });
         }
       }
