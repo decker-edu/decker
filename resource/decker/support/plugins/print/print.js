@@ -111,6 +111,7 @@ function setupVideos() {
       if (navigator.webdriver && numVideos >= maxVideos) {
         /* do not load video */
         video.src = "";
+        video.removeAttribute("data-src");
         /* hide video, since we cannot determine its size anyway */
         video.style.display = "none";
       }
