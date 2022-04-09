@@ -106,8 +106,8 @@ function setupMathIncremental() {
 function injectStyle() {
   const style = document.createElement("style");
   style.textContent = String.raw`
-            /* fit equation into container */
-            mjx-container > svg {
+            /* fit equation into container (disable for tables) */
+            mjx-container > svg:not(table mjx-container > svg) {
                 object-fit: contain;
                 max-width: 100%;
             }
@@ -158,7 +158,7 @@ const Plugin = {
         },
       },
       svg: {
-        scale: Decker.meta.math.scale || 0.9, // global scaling factor for all expressions
+        scale: Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
         minScale: 0.5, // smallest scaling factor to use
         mtextInheritFont: true, // true to make mtext elements use surrounding font
         merrorInheritFont: true, // true to make merror text use surrounding font

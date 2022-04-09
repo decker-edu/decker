@@ -182,12 +182,10 @@ a HTML document, or a PDF document, depending on the file name.
 
     ``` {.bash}
     $ decker example
-    $ decker server
+    $ decker --server
     ```
 
-    and make some changes to the Markdown files. `example-deck.md` contains the
-    source code for a slide deck that explains most of the available features
-    for creating slide decks.
+    and make some changes to the Markdown files. 
 
 -   `decker clean`
 

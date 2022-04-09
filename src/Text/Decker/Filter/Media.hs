@@ -35,6 +35,27 @@ import Text.Printf
 import Text.URI (URI)
 import qualified Text.URI as URI
 
+fragmentRelated =
+  [ "fragment",
+    "fade-out",
+    "fade-up",
+    "fade-down",
+    "fade-left",
+    "fade-right",
+    "fade-in-then-out",
+    "fade-in-then-semi-out",
+    "grow",
+    "semi-fade-out",
+    "shrink",
+    "strike",
+    "highlight-red",
+    "highlight-green",
+    "highlight-blu",
+    "highlight-current-red",
+    "highlight-current-green",
+    "highlight-current-blu"
+  ]
+
 -- | Compiles the contents of an Image into a Decker specific structure. This is
 -- context aware and produces either a Block or an Inline element. The caption
 -- might either come from the alt attribute or the separate Caption: line.
@@ -223,7 +244,7 @@ imageBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["image"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     extractAttr
   return $
@@ -249,7 +270,7 @@ codeBlock code caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["code"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -274,7 +295,7 @@ iframeBlock uri title caption = do
   figureAttr <- do
     takeUsual
     injectClasses ["iframe"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     extractAttr
   return $
@@ -297,7 +318,7 @@ objectBlock otype uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["object"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -319,7 +340,7 @@ svgBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["svg embedded"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -352,7 +373,7 @@ streamBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["stream"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     takeUsual
     injectStyles outerSizes
     extractAttr
@@ -386,7 +407,7 @@ audioBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["audio"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     takeUsual
     extractAttr
   return $ wrapFigure figureAttr caption $ mkAudio audioAttr
@@ -403,7 +424,7 @@ videoBlock uri title caption = do
   xformRersourceAttribs ["poster"]
   (innerSizes, outerSizes) <- calcImageSizes
   videoAttr <- do
-    injectAttribute ("src", videoUri)
+    injectAttribute ("data-src", videoUri)
     injectStyles innerSizes
     takeAutoplay
     takeVideoClasses
@@ -412,7 +433,7 @@ videoBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["video"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -432,7 +453,7 @@ renderCodeBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["image rendered"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -458,7 +479,7 @@ javascriptBlock uri title caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["javascript"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr
@@ -479,7 +500,7 @@ javascriptCodeBlock code caption = do
     extractAttr
   figureAttr <- do
     injectClasses ["javascript"]
-    cutClasses ["fragment"] >>= injectClasses
+    cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     takeUsual
     extractAttr

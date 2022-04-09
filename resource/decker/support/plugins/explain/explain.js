@@ -491,12 +491,12 @@ async function toggleCaptioning() {
       { text: localization.accept, value: "ACCEPT" },
       { text: localization.abort, value: "ABORT" },
     ];
-    let choice = await window.showDialog(
+    let choice = await window.showChoice(
       localization.speech_warning,
       options,
       "warning"
     );
-    if (choice !== "ACCEPT") {
+    if (choice.submit !== "ACCEPT") {
       return;
     }
   }
@@ -796,15 +796,15 @@ async function startRecording() {
       { text: localization.replace, value: "REPLACE" },
       { text: localization.cancel, value: "CANCEL" },
     ];
-    let choice = await window.showDialog(
+    let choice = await window.showChoice(
       localization.replacement_warning,
       options,
       "warning"
     );
-    if (choice === "APPEND") {
+    if (choice.submit === "APPEND") {
       recordingType = "APPEND";
       recordingResumeTime = explainTimes[explainTimes.length - 1].timeOut;
-    } else if (choice === "REPLACE") {
+    } else if (choice.submit === "REPLACE") {
       recordingType = "REPLACE";
       recordingResumeTime = 0;
     } else {
