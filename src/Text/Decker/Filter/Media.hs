@@ -24,6 +24,7 @@ import Text.Decker.Filter.Local
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Slide
 import Text.Decker.Filter.Streaming
+import Text.Decker.Filter.Util
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
@@ -54,9 +55,17 @@ compileImage attr alt url title caption = do
 
 defaultAspectRatio = "16/9"
 
+compileLineBlock :: Container c => [[Inline]] -> [Inline] -> Filter c
+compileLineBlock lines caption = do
+  let images = map extract lines
+  compileLineBlock' images caption
+  where
+    extract [image@Image {}] = unpackImage image
+    extract _ = error "Inline is not an Image. oneImagePerLine seems to have failed."
+
 -- | Compiles the contents of a LineBlock into a Decker specific structure.
-compileLineBlock :: Container c => [(Attr, [Inline], Text, Text)] -> [Inline] -> Filter c
-compileLineBlock images caption = do
+compileLineBlock' :: Container c => [(Attr, [Inline], Text, Text)] -> [Inline] -> Filter c
+compileLineBlock' images caption = do
   aspects <- mapMaybeM determineAspectRatio images
   let columns =
         if length aspects == length images

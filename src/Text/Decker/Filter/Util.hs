@@ -1,9 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Util where
 
 import Data.List (partition)
 import qualified Data.Text as Text
+import Relude
 import Text.Pandoc.Definition
 
 -- | adds a given String to the list if not in there; Does nothing if the
@@ -144,7 +146,11 @@ forceBlock (RawInline format html) = RawBlock format html
 forceBlock inline = Plain [inline]
 
 oneImagePerLine :: [[Inline]] -> Bool
-oneImagePerLine inlines = all isImage $ concat inlines
+oneImagePerLine inlines = not (null inlines) && not (any null inlines) && all isImage (concat inlines)
+
+unpackImage :: Inline -> (Attr, [Inline], Text, Text)
+unpackImage (Image attr alt (url, title)) = (attr, alt, url, title)
+unpackImage _ = error "Inline is not an Image. oneImagePerLine seems to have failed."
 
 isImage Image {} = True
 isImage _ = False
