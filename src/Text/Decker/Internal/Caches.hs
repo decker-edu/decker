@@ -8,7 +8,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Project.Project
 import Text.Decker.Reader.Markdown
 import Text.Decker.Resource.Template
-import qualified Text.Mustache as M ()
 import Text.Pandoc hiding (lookupMeta)
 
 type ParamCache a = FilePath -> Action a

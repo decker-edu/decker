@@ -34,7 +34,6 @@ import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout
 import Text.Decker.Writer.Pdf
 import Text.Groom
-import qualified Text.Mustache as M ()
 import Text.Pandoc hiding (lookupMeta)
 
 main :: IO ()

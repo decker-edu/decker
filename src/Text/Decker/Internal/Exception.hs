@@ -1,14 +1,14 @@
 module Text.Decker.Internal.Exception
-  ( DeckerException(..)
-  ) where
+  ( DeckerException (..),
+  )
+where
 
 import Control.Exception
 import Data.Typeable
 
 -- | Tool specific exceptions
 data DeckerException
-  = MustacheException String
-  | InternalException String
+  = InternalException String
   | ResourceException String
   | GitException String
   | PandocException String
@@ -24,7 +24,6 @@ instance Exception DeckerException
 
 instance Show DeckerException where
   show (InternalException e) = e
-  show (MustacheException e) = e
   show (ResourceException e) = e
   show (GitException e) = e
   show (HttpException e) = e
