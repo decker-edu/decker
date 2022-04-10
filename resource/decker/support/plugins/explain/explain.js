@@ -56,7 +56,7 @@ let recordingType; //REPLACE or APPEND
 let recordingResumeTime;
 
 // playback stuff
-let explainVideoUrl, explainTimesUrl, explainTranscriptUrl, explainTimes;
+let explainVideoUrl, explainTimesUrl, explainTranscriptUrl, explainTimesPlay;
 
 let uiState;
 
@@ -106,7 +106,7 @@ class UIState {
         return;
       }
     } catch (e) {
-      // console.log("[] transition aborted by exception in action: " + e);
+      console.log("[] transition aborted by exception in action: " + e);
       return;
     }
 
@@ -114,7 +114,7 @@ class UIState {
     try {
       this.state.exit && this.state.exit();
     } catch (e) {
-      // console.log("[] transition aborted by exception in exit: " + e);
+      console.log("[] transition aborted by exception in exit: " + e);
       return;
     }
 
@@ -191,8 +191,8 @@ function videoFilenameBase() {
 
 // Navigates Reveal to the indexed slide in the explainTimes array.
 function goToSlide(index) {
-  if (explainTimes[index]) {
-    let slideId = explainTimes[index].slideId;
+  if (explainTimesPlay[index]) {
+    let slideId = explainTimesPlay[index].slideId;
     var indices = Reveal.getIndices(document.getElementById(slideId));
     Reveal.slide(indices.h, indices.v);
   }
@@ -205,21 +205,21 @@ function goToSlideId(slideId) {
 
 // Jumps the video tp the in-time timestamp stored at index.
 function jumpToTime(index) {
-  if (explainTimes[index]) {
-    player.currentTime(explainTimes[index].timeIn);
+  if (explainTimesPlay[index]) {
+    player.currentTime(explainTimesPlay[index].timeIn);
   }
 }
 
 // Looks up the index of the current Reveal slide in the explainTimes array.
 function currentRevealSlideIndex() {
   let slideId = Reveal.getCurrentSlide().id;
-  return explainTimes.findIndex((i) => i.slideId === slideId);
+  return explainTimesPlay.findIndex((i) => i.slideId === slideId);
 }
 
 // Looks up the index of the current slide in the video.
 function currentVideoSlideIndex() {
   let time = player.currentTime();
-  return explainTimes.findIndex((i) => i.timeIn <= time && time <= i.timeOut);
+  return explainTimesPlay.findIndex((i) => i.timeIn <= time && time <= i.timeOut);
 }
 
 // Jumps the video to the in-time of the next slide.
@@ -784,24 +784,29 @@ async function startRecording() {
   // clear blobs array
   blobs = [];
 
-  let videoExists = await resourceExists(explainVideoUrl);
   let timesExists = await resourceExists(explainTimesUrl);
+  let existingRecordings = await listRecordings(deckWEBMUrl());
+  let explainTimes;
+
+  // console.log("Existing recordings:", deckWEBMUrl(), existingRecordings);
 
   recordingType = "REPLACE";
   recordingResumeTime = 0;
 
-  if (videoExists && timesExists) {
+  if (existingRecordings.length > 0 && timesExists) {
     let options = [
       { text: localization.append, value: "APPEND" },
       { text: localization.replace, value: "REPLACE" },
       { text: localization.cancel, value: "CANCEL" },
     ];
     let choice = await window.showChoice(
-      localization.replacement_warning,
+      `${localization.replacement_warning}\n
+      ${existingRecordings.map((r) => `  - ${r}`).join("\n")}`,
       options,
       "warning"
     );
     if (choice.submit === "APPEND") {
+      explainTimes = await fetchResourceJSON(explainTimesUrl);
       recordingType = "APPEND";
       recordingResumeTime = explainTimes[explainTimes.length - 1].timeOut;
     } else if (choice.submit === "REPLACE") {
@@ -824,7 +829,6 @@ async function startRecording() {
 
   recorder.onstart = () => {
     console.log("[] recorder started");
-    //    Reveal.slide(0);
     captionToggleButton.disabled = true;
     recorder.timing = new Timing();
     if (recordingType === "APPEND") {
@@ -1976,6 +1980,15 @@ async function resourceExists(url) {
     });
 }
 
+async function listRecordings(path) {
+  return fetch(`/recordings${path}`, { method: "GET" })
+    .then((r) => r.json())
+    .catch((e) => {
+      console.log("[] cannot list recordings: " + url + ", " + e);
+      return null;
+    });
+}
+
 async function fetchResourceJSON(url) {
   return fetch(url)
     .then((r) => r.json())
@@ -2066,8 +2079,8 @@ async function setupPlayer() {
   explainTimesUrl = config && config.times ? config.times : deckTimesUrl();
   explainTranscriptUrl =
     config && config.transcript ? config.transcript : deckCaptioningUrl();
-  let videoExists = false,
-    timesExists = false;
+  let videoExists = false;
+  let timesExists = false;
 
   try {
     // if in electron app and user specified base url for videos:
@@ -2083,10 +2096,12 @@ async function setupPlayer() {
       videoExists = await resourceExists(explainVideoUrl);
       timesExists = await resourceExists(explainTimesUrl);
     }
-    console.log(explainVideoUrl, videoExists, explainTimesUrl, timesExists);
+    // console.log(explainVideoUrl, videoExists, explainTimesUrl, timesExists);
+    // console.log(explainTimesUrl, timesExists);
 
     if (videoExists && timesExists) {
-      explainTimes = await fetchResourceJSON(explainTimesUrl);
+      // if (timesExists) {
+      explainTimesPlay = await fetchResourceJSON(explainTimesUrl);
       player.src({ type: "video/mp4", src: explainVideoUrl });
 
       let captionsUrl = explainVideoUrl.replace(".mp4", ".vtt");
@@ -2099,10 +2114,10 @@ async function setupPlayer() {
         };
         player.addRemoteTextTrack(captionsOptions, false);
       }
-      console.log("PLAYER_READY");
+      // console.log("PLAYER_READY");
       return true;
     } else {
-      console.log("ERROR SETUP PLAYER");
+      console.log("[] play: no video available");
       return false;
     }
   } catch (_) {

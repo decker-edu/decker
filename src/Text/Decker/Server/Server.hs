@@ -116,8 +116,9 @@ runHttpServer context = do
             ("/", method PUT $ uploadResource uploadable),
             ("/", method GET $ serveDirectoryNoCaching state publicDir),
             ("/", method HEAD $ headDirectory publicDir),
-            ("/replace", method PUT $ uploadRecording (context ^. actionChan) False),
-            ("/append", method PUT $ uploadRecording (context ^. actionChan) True)
+            ("/recordings", method GET listRecordings ),
+            ("/replace", method PUT $ uploadRecording context False),
+            ("/append", method PUT $ uploadRecording context True)
           ]
   startUpdater state
   config <- serverConfig port bind
