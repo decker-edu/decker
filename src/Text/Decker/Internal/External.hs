@@ -164,6 +164,7 @@ makeProgram name =
           if fromMaybe False (lookup name status)
             then do
               let command = intercalate " " $ [path external] <> args external <> arguments
+              putNormal $ "# " ++ command
               liftIO $ callCommand command
             else do
               case dst of
