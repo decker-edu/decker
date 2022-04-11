@@ -5,6 +5,7 @@ import Control.Monad
 import Data.Aeson
 import Data.Aeson.Lens
 import Development.Shake
+import Development.Shake (doesFileExist)
 import Development.Shake.FilePath
 import Relude (ConvertUtf8 (encodeUtf8))
 import System.Directory
@@ -15,6 +16,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper (replaceSuffix)
 import Text.Decker.Project.Project
 import Text.Decker.Server.Video (concatVideoMp4, existingVideos, slow)
+import qualified GHC.IO.Device as System
 
 -- | Rules for transcoding videos. Mp4 videos are recreated with higher
 -- compression parameters if any of the recording fragments changed. Also, if
@@ -32,8 +34,10 @@ crunchRules = do
         let publicMp4 = replaceSuffix "-deck.html" "-recording.mp4" deck
         let mp4 = replaceSuffix "-deck.html" "-recording.mp4" source
         liftIO $ do
-          crunched <- wasCrunched mp4
-          unless crunched (removeFile mp4)
+          exists <- System.Directory.doesFileExist mp4
+          when exists $ do
+            crunched <- wasCrunched mp4
+            unless crunched (removeFile mp4)
         need [publicMp4]
   alternatives $ do
     publicDir <//> "*-recording.mp4" %> \out -> do
@@ -47,7 +51,7 @@ crunchRules = do
       liftIO $ concatVideoMp4 slow webms out
 
 -- | Reads the 'comment' meta data field from the video container. Return True
--- if the value is 'decker-crunched', False otherwise. 
+-- if the value is 'decker-crunched', False otherwise.
 wasCrunched :: FilePath -> IO Bool
 wasCrunched mp4 = do
   (code, stdout, stderr) <- readProcessWithExitCode "ffprobe" (["-print_format", "json", "-show_format"] <> [mp4]) ""

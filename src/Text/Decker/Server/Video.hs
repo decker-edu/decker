@@ -4,10 +4,12 @@
 module Text.Decker.Server.Video where
 
 import Control.Concurrent.STM (TChan, writeTChan)
+import Control.Lens ((^.))
 import Control.Monad.Catch
 import Control.Monad.State
 import qualified Data.List as List
 import Data.Maybe
+import Data.Aeson
 import qualified Data.Set as Set
 import Relude
 import Snap.Core
@@ -22,6 +24,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
   ( DeckerException (InternalException),
   )
+import Text.Decker.Project.ActionContext
 import Text.Decker.Server.Types
 import Text.Regex.TDFA
 
@@ -54,6 +57,13 @@ uploadVideo channel append = do
             )
   return ()
 
+listRecordings :: MonadSnap m =>  m ()
+listRecordings = do
+    webm <- decodeUtf8 <$> getsRequest rqPathInfo
+    webms <- liftIO $ existingVideos webm
+    modifyResponse $ setContentType "application/json"
+    writeBS $ fromLazy $ encode webms
+
 -- Unique transient tmp filename
 uniqueTransientFileName :: FilePath -> IO FilePath
 uniqueTransientFileName base = do
@@ -80,8 +90,9 @@ withUploadCheck registry path action = do
     reg <- takeTMVar registry
     putTMVar registry (Set.delete path reg)
 
-uploadRecording :: TChan ActionMsg -> Bool -> Snap ()
-uploadRecording channel append = do
+uploadRecording :: ActionContext -> Bool -> Snap ()
+uploadRecording context append = do
+  let channel = context ^. actionChan
   destination <- decodeUtf8 <$> getsRequest rqPathInfo
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && "-recording.webm" `List.isSuffixOf` destination
@@ -111,7 +122,7 @@ convertVideoMp4 webm mp4 = do
 -- Transcoding parameters
 fast = ["-preset", "fast", "-vcodec", "copy"]
 
-slow = ["-pix_fmt", "yuv420p", "-crf", "27", "-preset", "veryslow", "-tune", "stillimage", "-ac", "1", "-movflags", "+faststart", "-vcodec", "libx264", "-metadata", "comment=decker-crunched"]
+slow = ["-pix_fmt", "yuv420p", "-crf", "27", "-preset", "veryslow", "-tune", "stillimage", "-ac", "1", "-movflags", "+faststart", "-vcodec", "libx264", "-r", "30", "-metadata", "comment=decker-crunched"]
 
 -- | Append the uploaded video to the list of already uploaded videos under the
 --  same name and coverts the resulting concatenation to MP4. The same
@@ -145,33 +156,33 @@ existingVideos webm = do
 
 -- | Atomically moves the transcoded upload into place.  All existing parts of
 -- previous uploads are removed.
-replaceVideoUpload :: FilePath -> FilePath -> IO ()
-replaceVideoUpload upload webm = do
+replaceVideoUpload :: Bool -> FilePath -> FilePath -> IO ()
+replaceVideoUpload transcode upload webm = do
   webms <- existingVideos webm
   mapM_ removeFile webms
   let mp4 = replaceExtension webm ".mp4"
-  convertVideoMp4 upload mp4
+  when transcode $ convertVideoMp4 upload mp4
   renameFile upload webm
 
 -- | Appends the uploaded WEBM video to potentially already existing fragments.
-appendVideoUpload :: FilePath -> FilePath -> IO ()
-appendVideoUpload upload webm = do
+appendVideoUpload :: Bool -> FilePath -> FilePath -> IO ()
+appendVideoUpload transcode upload webm = do
   let mp4 = replaceExtension webm ".mp4"
   existing <- existingVideos webm
   case existing of
     [] -> do
-      replaceVideoUpload upload webm
+      replaceVideoUpload transcode upload webm
     [single] -> do
       let name0 = setSequenceNumber 0 webm
       let name1 = setSequenceNumber 1 webm
       renameFile single name0
       renameFile upload name1
-      concatVideoMp4 fast [name0, name1] mp4
+      when transcode $ concatVideoMp4 fast [name0, name1] mp4
     multiple -> do
       let number = getHighestSequenceNumber multiple
       let name = setSequenceNumber (number + 1) webm
       renameFile upload name
-      concatVideoMp4 fast (multiple <> [name]) mp4
+      when transcode $ concatVideoMp4 fast (multiple <> [name]) mp4
 
 -- | Sets the sequence number of a file. The number is appended to the base file
 -- name just before the extension.
