@@ -104,11 +104,13 @@ div.exa-mc div.choice {
 }
 
 div.exa-mc div.choice > div.check-box {
-  flex: 0 0 content;
+  flex: 0 0 1.5em;
 
   white-space: nowrap;
   vertical-align: middle;
   text-align: center;
+
+  padding-right: 0.5em;
 }
 
 div.exa-mc div.choice > div.label {
@@ -121,6 +123,7 @@ div.exa-mc div.choice > div.label {
   font-size: 120%;
 
   text-align: center;
+  padding-right: 0.5em;
 }
 
 div.exa-mc div.choice > div.content {

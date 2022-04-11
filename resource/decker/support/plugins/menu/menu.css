@@ -209,6 +209,7 @@ ul.slide-list > li:hover {
 
 ul.slide-list > li:hover > a {
   color: var(--menu-text-color);
+  margin: 0;
 }
 
 ul.slide-list > li::marker {

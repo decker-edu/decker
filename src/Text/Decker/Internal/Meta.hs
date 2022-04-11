@@ -54,7 +54,7 @@ globalMetaFileName = "decker.yaml"
 
 -- TODO extract this value from global meta data.
 replaceLists :: [Text]
-replaceLists = ["math.macros"]
+replaceLists = ["math.macros", "palette.colors"]
 
 shouldMerge :: [Text] -> Bool
 shouldMerge path = not $ any (`Text.isPrefixOf` Text.intercalate "." path) replaceLists
