@@ -31,6 +31,9 @@ let caption_template = document.createElement("template");
 caption_template.innerHTML = String.raw`<div class="caption-area">
     </div>`;
 
+/* A bit more robust than what is recommended:
+ * https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API#javascript
+ */
 let SpeechRecognitionImpl = undefined;
 let SpeechGrammarListImpl = undefined;
 let SpeechRecognitionEventImpl = undefined;
