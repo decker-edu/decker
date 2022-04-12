@@ -1,14 +1,17 @@
 // speech recog
 
-let SpeechRecognition = undefined;
-let SpeechGrammarList = undefined;
-let SpeechRecognitionEvent = undefined;
+let SpeechRecognitionImpl = undefined;
+let SpeechGrammarListImpl = undefined;
+let SpeechRecognitionEventImpl = undefined;
 
-if (window.chrome) {
-  SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-  SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-  SpeechRecognitionEvent =
-    SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+if (
+  !!window.SpeechRecognition ||
+  !(typeof webkitSpeechRecognition === "undefined")
+) {
+  SpeechRecognitionImpl = window.SpeechRecognition || webkitSpeechRecognition;
+  SpeechGrammarListImpl = window.SpeechGrammarList || webkitSpeechGrammarList;
+  SpeechRecognitionEventImpl =
+    window.SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
 }
 
 // reference to Reveal deck
@@ -524,9 +527,9 @@ function updateCaptionButton() {
  * Instantiates the speech recognition module and sets its parameters.
  */
 function setupSpeechRecognition() {
-  if (SpeechRecognition) {
-    let speechRecognition = new SpeechRecognition();
-    if (!webSpeech_transcript) webSpeech_transcript = [];
+  if (!webSpeech_transcript) webSpeech_transcript = [];
+  if (SpeechRecognitionImpl) {
+    let speechRecognition = new SpeechRecognitionImpl();
     speechRecognition.continuous = true;
     speechRecognition.interimResults = true;
     speechRecognition.onstart = onTranscriptionStart;
