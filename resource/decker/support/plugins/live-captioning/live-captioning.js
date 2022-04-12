@@ -31,15 +31,18 @@ let caption_template = document.createElement("template");
 caption_template.innerHTML = String.raw`<div class="caption-area">
     </div>`;
 
-var SpeechRecognition = undefined;
-var SpeechGrammarList = undefined;
-var SpeechRecognitionEvent = undefined;
+let SpeechRecognitionImpl = undefined;
+let SpeechGrammarListImpl = undefined;
+let SpeechRecognitionEventImpl = undefined;
 
-if (window.chrome) {
-  SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-  SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-  SpeechRecognitionEvent =
-    SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+if (
+  !!window.SpeechRecognition ||
+  !(typeof webkitSpeechRecognition === "undefined")
+) {
+  SpeechRecognitionImpl = window.SpeechRecognition || webkitSpeechRecognition;
+  SpeechGrammarListImpl = window.SpeechGrammarList || webkitSpeechGrammarList;
+  SpeechRecognitionEventImpl =
+    window.SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
 }
 
 /**
@@ -99,7 +102,7 @@ class LiveCaptioning {
     if (!permission) {
       return;
     }
-    this.speechRecog = new SpeechRecognition();
+    this.speechRecog = new SpeechRecognitionImpl();
     this.speechRecog.continuous = true;
     this.speechRecog.interimResults = true;
     this.speechRecog.onstart = () => this.handleStart();
@@ -327,7 +330,7 @@ class LiveCaptioning {
    * @param {*} reveal
    */
   init(reveal) {
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionImpl) {
       console.error("SpeechRecognition not available in this browser.");
       return;
     }
