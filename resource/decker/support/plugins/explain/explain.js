@@ -1,8 +1,8 @@
 // speech recog
 
-var SpeechRecognition = undefined;
-var SpeechGrammarList = undefined;
-var SpeechRecognitionEvent = undefined;
+let SpeechRecognition = undefined;
+let SpeechGrammarList = undefined;
+let SpeechRecognitionEvent = undefined;
 
 if (window.chrome) {
   SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
@@ -193,13 +193,13 @@ function videoFilenameBase() {
 function goToSlide(index) {
   if (explainTimes[index]) {
     let slideId = explainTimes[index].slideId;
-    var indices = Reveal.getIndices(document.getElementById(slideId));
+    let indices = Reveal.getIndices(document.getElementById(slideId));
     Reveal.slide(indices.h, indices.v);
   }
 }
 
 function goToSlideId(slideId) {
-  var indices = Reveal.getIndices(document.getElementById(slideId));
+  let indices = Reveal.getIndices(document.getElementById(slideId));
   Reveal.slide(indices.h, indices.v);
 }
 
@@ -543,7 +543,7 @@ function setupSpeechRecognition() {
  */
 function addToTranscript(text) {
   if (text) {
-    var curTime = recorder.timing.timeStamp();
+    let curTime = recorder.timing.timeStamp();
     webSpeech_transcript.push({
       startTime: webSpeech_transcriptionStartTime,
       endTime: curTime,
@@ -565,7 +565,7 @@ function onTranscriptionStart() {
  * @param {*} event
  */
 function onTranscriptResult(event) {
-  for (var i = event.resultIndex; i < event.results.length; i++) {
+  for (let i = event.resultIndex; i < event.results.length; i++) {
     if (event.results[i][0].confidence > 0.4) {
       if (event.results[i].isFinal) {
         addToTranscript(event.results[i][0].transcript);
@@ -674,11 +674,11 @@ function formatTimeString(timeString) {
 //Taken from https://github.com/MidCamp/live-captioning
 function formatTranscriptTimeStamped(transcript, format) {
   if (transcript) {
-    var output = "";
+    let output = "";
     if (format === "webVTT") {
       output += "WEBVTT\n\n";
     }
-    for (var i = 0; i < transcript.length; ++i) {
+    for (let i = 0; i < transcript.length; ++i) {
       output += i + 1 + "\n"; // This is not neccessary and might make editing the result more difficult.
       output +=
         formatTimeString(transcript[i].startTime) +
@@ -700,7 +700,7 @@ function formatTranscriptTimeStamped(transcript, format) {
  * @returns
  */
 function loadFromLocalStorage(key) {
-  var savedJSON;
+  let savedJSON;
 
   if (localStorage) {
     try {
@@ -910,8 +910,8 @@ async function startRecording() {
       webSpeech_transcript,
       "webVTT"
     );
-    var vttblob = new Blob([transcription], { type: "vtt" });
-    var transcriptBlob = transcribeToJSON();
+    let vttblob = new Blob([transcription], { type: "vtt" });
+    let transcriptBlob = transcribeToJSON();
 
     try {
       let exists = await resourceExists(explainTimesUrl);
@@ -1653,8 +1653,8 @@ async function createRecordingGUI() {
 
 function downloadTranscription() {
   let text = formatTranscriptTimeStamped(webSpeech_transcript, "webVTT");
-  var blob = new Blob([text], { type: "vtt" });
-  var a = document.createElement("a");
+  let blob = new Blob([text], { type: "vtt" });
+  let a = document.createElement("a");
   a.download = "transcription.vtt";
   a.href = URL.createObjectURL(blob);
   a.dataset.downloadurl = ["vtt", a.download, a.href].join(":");
