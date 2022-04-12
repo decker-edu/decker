@@ -10,7 +10,6 @@
 -- under the `decker` key in the meta data of the resulting document.
 module Text.Decker.Filter.Decker2 (mediaFilter2, runFilter2) where
 
-import qualified Data.List as List
 import Relude
 import Text.Decker.Filter.Header
 import Text.Decker.Filter.Local
@@ -73,18 +72,15 @@ mediaBlockListFilter blocks = do
       | unprocessed attr =
         Just . single <$> compileCodeBlock attr code caption
     -- Any number of consecutive images in a masonry row.
+    filterPairs (LineBlock [], Para (Str "Caption:" : caption)) = return Nothing
     filterPairs (LineBlock lines, Para (Str "Caption:" : caption))
       | oneImagePerLine lines =
-        Just . single <$> compileLineBlock (map (unpackImage . List.head) lines) caption
+        Just . single <$> compileLineBlock lines caption
     -- Default filter
     filterPairs (x, y) = return Nothing
     filterTriplets :: (Block, Block, Block) -> Filter (Maybe [Block])
     -- Default filter
     filterTriplets (x, y, z) = return Nothing
-
-unpackImage :: Inline -> (Attr, [Inline], Text, Text)
-unpackImage (Image attr alt (url, title)) = (attr, alt, url, title)
-unpackImage _ = error "Inline is not an Image. oneImagePerLine seems to have failed."
 
 -- | Filters lists of Inlines that can match in pairs or triplets
 mediaInlineListFilter :: [Inline] -> Filter [Inline]
@@ -110,7 +106,7 @@ mediaBlockFilter (CodeBlock attr code)
 -- Any number of consecutive images in a masonry row.
 mediaBlockFilter (LineBlock lines)
   | oneImagePerLine lines =
-    compileLineBlock (map (unpackImage . List.head) lines) []
+    compileLineBlock lines []
 -- Default filter
 mediaBlockFilter block = return block
 

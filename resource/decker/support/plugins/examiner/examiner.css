@@ -104,11 +104,13 @@ div.exa-mc div.choice {
 }
 
 div.exa-mc div.choice > div.check-box {
-  flex: 0 0 content;
+  flex: 0 0 1.5em;
 
   white-space: nowrap;
   vertical-align: middle;
   text-align: center;
+
+  padding-right: 0.5em;
 }
 
 div.exa-mc div.choice > div.label {
@@ -121,6 +123,7 @@ div.exa-mc div.choice > div.label {
   font-size: 120%;
 
   text-align: center;
+  padding-right: 0.5em;
 }
 
 div.exa-mc div.choice > div.content {
@@ -143,12 +146,36 @@ div.exa-mc div.choice > div.vote {
   font-weight: bold;
 }
 
-div.exa-mc div.choice > div.vote {
+/* Default visibility */
+div.exa-quest :is(div.vote, div.label) {
   display: none;
 }
 
-div.reveal[poll-session] div.exa-mc div.choice > div.vote {
-  display: block;
+div.exa-quest :is(div.check-box, button.solve) {
+  display: inline;
+}
+
+/* Marked poll, no poll session */
+div.exa-quest.poll :is(div.check-box, button:is(.solve, .again)) {
+  display: none;
+}
+
+div.exa-quest.poll :is(div.choice > div.label) {
+  display: inline;
+}
+
+/* Marked poll, poll session */
+div.reveal[data-poll-session]
+  div.exa-quest.poll
+  :is(div.vote, div.choice > div.label, div.check-box, button.solve) {
+  display: inline;
+}
+
+div.reveal[data-poll-session]
+  div.question.poll
+  button:is(.qrcode, .poll, .stop) {
+  display: inline;
+  float: right;
 }
 
 div.exa-mc div.choice p {
@@ -157,18 +184,6 @@ div.exa-mc div.choice p {
   padding-bottom: 0.1em;
   padding-left: 0.7em;
   padding-right: 0;
-}
-
-div.reveal:not([poll-session]) div.choice div.vote {
-  display: none;
-}
-
-div.reveal:not([poll-session]) div.exa-quest.poll div.choice > div.check-box {
-  display: none;
-}
-
-div.reveal:not([poll-session]) div.exa-quest.poll button:is(.solve, .again) {
-  display: none;
 }
 
 div.vote > div.label {
@@ -239,11 +254,6 @@ div.question button {
 div.question button:is(.qrcode, .poll, .stop) {
   display: none;
   font-weight: bold;
-}
-
-div.reveal[poll-session] div.question.poll button:is(.qrcode, .poll, .stop) {
-  display: inline;
-  float: right;
 }
 
 div.question button.stop::before {

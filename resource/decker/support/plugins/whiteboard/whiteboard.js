@@ -1579,6 +1579,7 @@ function setupKeyBindings() {
     toggleWhiteboard
   );
 
+  // Bind colors to 7 keys, first one is foreground color
   for (let i = 0; i < 7; i++) {
     Reveal.addKeyBinding(
       {
@@ -1587,7 +1588,7 @@ function setupKeyBindings() {
         description: `Whiteboard: Color ${i}`,
       },
       () => {
-        selectPenColor(penColors[i]);
+        selectPenColor(penColors[i === 0 ? 0 : i + 8]);
       }
     );
   }

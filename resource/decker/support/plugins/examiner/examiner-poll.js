@@ -39,7 +39,7 @@ export async function preparePolls(reveal) {
     qrcodeContainer.classList.remove("show");
   });
 
-  revealElement.setAttribute("poll-session", id);
+  revealElement.setAttribute("data-poll-session", id);
   revealElement.appendChild(qrcodeContainer);
 
   session.fillQRCode("poll-qrcode-canvas");
@@ -130,7 +130,7 @@ export async function preparePolls(reveal) {
     close: () => {
       session.reset();
       revealElement.removeChild(qrcodeContainer);
-      revealElement.removeAttribute("poll-session");
+      revealElement.removeAttribute("data-poll-session");
 
       for (let cb of callbackLog) {
         cb.button.removeEventListener(cb.event, cb.callback);
@@ -171,10 +171,34 @@ function clientCssTemplate(color) {
     p#nvotes {display: none}
     body.polling p#status {display: none}
     body.connected.winner {
-      background-color: ${color.accent7};
+      background-color: ${color.accent1};
     }
-    body.winner p#status::before {
-      content: "YOU WON!";
+    body.connected.winner #buttons { 
+      display: none 
+    }
+    body.connected.winner p#status::before {
+      content: "Gewonnen!";
+    }
+    body.connected.winner #status {
+      font-size: 14vmin;
+      color: gold;
+      font-weight: bold;
+      -webkit-text-stroke: 0.03em black;
+      text-shadow:
+        0.03em 0.03em 0 black,
+        -0.01em -0.01em 0 black,  
+        0.01em -1px 0 black,
+        -0.01em 1px 0 black,
+        0.01em 1px 0 black;
+      animation: wiggle 1s infinite;
+    }
+    @keyframes wiggle {
+      0%,40%,100% {
+        transform: rotate(-10deg);
+      }
+      20% {
+        transform: rotate(10deg);
+      }
     }
     button {
       color: ${color.shade7} !important;

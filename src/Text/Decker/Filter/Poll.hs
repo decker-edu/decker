@@ -7,62 +7,74 @@ import Data.Aeson
 import Data.Aeson.TH (deriveJSON)
 import Data.ByteString.Lazy.Internal as L
 import qualified Data.Text as T
-import Data.Text.Encoding as E 
+import Data.Text.Encoding as E
 import Data.Yaml as Y (decodeEither')
 import Text.Decker.Filter.Slide (tag)
 import Text.Decker.Internal.Common (Decker)
 import Text.Decker.Internal.Meta as M
-    ( toPandocMeta, lookupMetaOrElse, lookupMeta )
+  ( lookupMeta,
+    lookupMetaOrElse,
+    toPandocMeta,
+  )
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
-
 
 data PollMeta = PollMeta
   { color :: String,
     timed :: Bool,
     seconds :: String,
     options :: OptionsObj
-  } deriving (Show)
+  }
+  deriving (Show)
 
 data Chart = Chart
   { chartdata :: DataObj,
     chartoptions :: OptionsObj
-  } deriving (Show)
+  }
+  deriving (Show)
 
 data DataObj = DataObj
   { labels :: [String],
     datasets :: [Dataset]
-  } deriving (Show)
+  }
+  deriving (Show)
 
 data Dataset = Dataset
   { dsbackgroundColor :: String,
     dsdata :: [Integer]
-  } deriving (Show)
+  }
+  deriving (Show)
 
 data OptionsObj = OptionsObj
   { optscales :: Scales,
     optplugins :: Plugin
-  } deriving (Show)
+  }
+  deriving (Show)
 
 data Scales = Scales
   { yAxes :: Axes,
     xAxes :: Axes
-  } deriving (Show)
+  }
+  deriving (Show)
 
-data Ticks = Ticks 
+data Ticks = Ticks
   { tickbeginAtZero :: Bool,
-    tickstepSize :: Int, 
+    tickstepSize :: Int,
     tickfontColor :: String,
     tickfontSize :: Int,
     tickfontStyle :: String
-  } deriving (Show)
+  }
+  deriving (Show)
 
-newtype Axes = Axes { ticks :: Ticks } deriving (Show)
-newtype Plugin = Plugin { pluglegend :: Legend } deriving Show
+newtype Axes = Axes {ticks :: Ticks} deriving (Show)
+
+newtype Plugin = Plugin {pluglegend :: Legend} deriving (Show)
+
 newtype Legend = Legend Disp deriving (Show)
-newtype Disp = Disp { display :: Bool } deriving (Show)
 
--- Look in YAML for poll:true to see if deck has poll, 
+newtype Disp = Disp {display :: Bool} deriving (Show)
+
+-- Look in YAML for poll:true to see if deck has poll,
 -- then look in slides for 'poll' to parse poll slides and build results chart
 handlePolls :: Pandoc -> Decker Pandoc
 handlePolls pandoc@(Pandoc meta blocks) =
@@ -71,23 +83,24 @@ handlePolls pandoc@(Pandoc meta blocks) =
     _ -> return pandoc
   where
     parseBlocks :: Block -> Block
-    parseBlocks (Div a@(id_, cls, kvs) blocks) 
+    parseBlocks div@(Div _ []) = div
+    parseBlocks (Div a@(id_, cls, kvs) blocks)
       | "poll" `elem` cls = Div a (timer : parsed ++ [chart])
-        where
-          parsed = walk parsePolls blocks
-          pm = buildPollMeta $ getYaml blocks
-          ti = if timed pm then T.pack "timed" else ""
-          timer = Div ("", ["countdown", ti], [("data-seconds", T.pack $ seconds pm)]) []
-          chart = renderCanvas (findQuestions $ head blocks) pm
+      where
+        parsed = walk parsePolls blocks
+        pm = buildPollMeta $ getYaml blocks
+        ti = if timed pm then T.pack "timed" else ""
+        timer = Div ("", ["countdown", ti], [("data-seconds", T.pack $ seconds pm)]) []
+        chart = renderCanvas (findQuestions $ head blocks) pm
     parseBlocks bl = bl
     parsePolls :: Block -> Block
-    parsePolls (Header 1 a title) = 
+    parsePolls (Header 1 a title) =
       Header 1 a (RawInline (Format "html") "<i class=\"fas fa-qrcode\"></i>" : title)
     parsePolls b = b
 
 -- recursively search for questions to build answers for results chart
 findQuestions :: Block -> [String]
-findQuestions (Div (_,tgs,_) divs) 
+findQuestions (Div (_, tgs, _) divs)
   | any (`elem` tgs) ["qmc", "quiz-mc", "quiz-multiple-choice"] =
     concatMap parseQuestions divs
   | otherwise = concatMap findQuestions divs
@@ -95,9 +108,9 @@ findQuestions (Div (_,tgs,_) divs)
     parseQuestions :: Block -> [String]
     parseQuestions (BulletList ans) = map parseAnswers ans
     parseQuestions b = []
-    -- each answer block begins with icon and space 
+    -- each answer block begins with icon and space
     parseAnswers :: [Block] -> String
-    parseAnswers (Plain (_:_:ils) : bl) = 
+    parseAnswers (Plain (_ : _ : ils) : bl) =
       concatMap cleanAnswer ils ++ parseAnswers bl
     parseAnswers b = []
     cleanAnswer ans =
@@ -105,8 +118,7 @@ findQuestions (Div (_,tgs,_) divs)
         Str a -> T.unpack a
         Space -> " "
         a -> []
-findQuestions d = [] 
-
+findQuestions d = []
 
 buildPollMeta :: Maybe Meta -> PollMeta
 buildPollMeta meta = case meta of
@@ -148,7 +160,7 @@ buildMeta [] = Nothing
 renderCanvas :: [String] -> PollMeta -> Block
 renderCanvas answers pm = Div ("", ["poll_results"], []) [Plain [canvas]]
   where
-    canvas = tag "canvas" $ Span ("", ["stretch"], [("data-chart", "bar")]) [open,ch,end]
+    canvas = tag "canvas" $ Span ("", ["stretch"], [("data-chart", "bar")]) [open, ch, end]
     open = RawInline "html" $ T.pack "<!-- "
     ch = RawInline "html" $ T.pack chart
     end = RawInline "html" $ T.pack " -->"

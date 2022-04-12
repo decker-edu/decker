@@ -91,9 +91,12 @@ renderLayout areaMap l = mapMaybe (renderRow (name l) areaMap) (rows l)
 
 slideAreas :: [Text] -> [Block] -> AreaMap
 slideAreas names blocks =
-  mapMaybe (\area -> firstClass names (Data.List.head area) >>= Just . (,area)) $
+  mapMaybe extract $
     filter (not . null) $
       split (keepDelimsL $ whenElt (hasAnyClass names)) blocks
+  where
+    extract [] = Nothing
+    extract area = firstClass names (Data.List.head area) >>= Just . (,area)
 
 layoutSlide :: Slide -> Decker Slide
 layoutSlide slide@(Slide (Just header) [] dir) = return slide

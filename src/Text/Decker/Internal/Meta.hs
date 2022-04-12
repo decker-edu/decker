@@ -54,7 +54,7 @@ globalMetaFileName = "decker.yaml"
 
 -- TODO extract this value from global meta data.
 replaceLists :: [Text]
-replaceLists = ["math.macros"]
+replaceLists = ["math.macros", "palette.colors"]
 
 shouldMerge :: [Text] -> Bool
 shouldMerge path = not $ any (`Text.isPrefixOf` Text.intercalate "." path) replaceLists
@@ -91,8 +91,8 @@ toPandocMeta' (Y.Object m) =
 toPandocMeta' (Y.Array vector) =
   MetaList $ map toPandocMeta' $ Vec.toList vector
 -- Playing around with #317
--- toPandocMeta' (Y.String text) = MetaString text
-toPandocMeta' (Y.String text) = compileText text
+toPandocMeta' (Y.String text) = MetaString text
+-- toPandocMeta' (Y.String text) = compileText text
 toPandocMeta' (Y.Number scientific) = MetaString $ Text.pack $ show scientific
 toPandocMeta' (Y.Bool bool) = MetaBool bool
 toPandocMeta' Y.Null = MetaList []

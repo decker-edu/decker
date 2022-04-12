@@ -192,6 +192,10 @@ More `function CODE(here) {return true;}`{.javascript} here
 Caption: Aspect ratio of images is determined at compile time, or can be
 specified.
 
+## Empty line block
+
+|
+
 # 3 somethings in a row
 
 | ![Alt Caption $e=mc^2$](include/06-metal.png)

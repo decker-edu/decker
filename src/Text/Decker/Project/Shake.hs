@@ -116,7 +116,8 @@ runShakeForever last context rules = do
         (\(SomeException _) -> return ())
       reloadClients (context ^. server)
     UploadComplete operation -> do
-      applyVideoOperation operation
+      let transcode = PoserFlag `elem` (context ^. extra)
+      applyVideoOperation transcode operation
       reloadClients (context ^. server)
     ServerExit port -> do
       putStrLn $ "# Server: " <> show port
@@ -136,13 +137,14 @@ handleUploads context = do
     dod <- atomically $ readTChan (context ^. actionChan)
     case dod of
       UploadComplete operation -> do
-        applyVideoOperation operation
+        let transcode = PoserFlag `elem` (context ^. extra)
+        applyVideoOperation transcode operation
       _ -> return ()
 
-applyVideoOperation op@(Replace tmp destination) = do
-  replaceVideoUpload tmp destination
-applyVideoOperation op@(Append tmp destination) = do
-  appendVideoUpload tmp destination
+applyVideoOperation transcode op@(Replace tmp destination) = do
+  replaceVideoUpload transcode tmp destination
+applyVideoOperation transcode op@(Append tmp destination) = do
+  appendVideoUpload transcode tmp destination
 
 startWatcher :: Notify.WatchManager -> ActionContext -> IO ()
 startWatcher manager context = do
@@ -228,7 +230,12 @@ deckerFlags =
       ['b']
       ["bind"]
       (GetOpt.ReqArg (Right . BindFlag) "BIND")
-      "Bind the HTTP server to given address."
+      "Bind the HTTP server to given address.",
+    GetOpt.Option
+      ['P']
+      ["poser"]
+      (GetOpt.NoArg $ Right PoserFlag)
+      "Transcode recordings immediately to MP4."
   ]
 
 parsePortArg :: String -> Either String Flags

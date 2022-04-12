@@ -29,6 +29,7 @@ data Flags
   | ErrorFlag
   | ThreadFlag
   | OpenFlag
+  | PoserFlag
   | PortFlag Int
   | BindFlag String
   deriving (Eq, Show)
