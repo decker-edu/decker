@@ -1,16 +1,15 @@
 # Würzburg Default Meta Data
 css-variables:
   align-global: left
+  block-border-width: 0.2em
+  block-outset: var(--border-decoration-padding)
   border-decoration-padding: 10px
   border-decoration-style: solid
   border-decoration-width: 20px
   font-size-base: 28
-  font-size-x-large: calc(28 * 1.4)
   margin: 0.05
   margin-columns: calc(0em * 100%)
   spacing-vertical-base: 0.5em
-  block-border-width: 0.2em
-  block-outset: var(--border-decoration-padding)
 
 chart:
   defaults:
