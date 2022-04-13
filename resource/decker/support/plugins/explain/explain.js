@@ -1,15 +1,16 @@
 // speech recog
 
-var SpeechRecognition = undefined;
-var SpeechGrammarList = undefined;
-var SpeechRecognitionEvent = undefined;
+const SpeechRecognition = undefined;
+// var SpeechRecognition = undefined;
+// var SpeechGrammarList = undefined;
+// var SpeechRecognitionEvent = undefined;
 
-if (window.chrome) {
-  SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-  SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-  SpeechRecognitionEvent =
-    SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
-}
+// if (window.chrome) {
+//   SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+//   SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
+//   SpeechRecognitionEvent =
+//     SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+// }
 
 // reference to Reveal deck
 let Reveal;
@@ -36,10 +37,10 @@ let recordButton, pauseButton, stopButton;
 let muteMicButton, captionToggleButton;
 let voiceGainSlider, desktopGainSlider;
 let cameraPanel, cameraVideo, cameraCanvas;
-let transcriptionRow,
-  transcriptionArea,
-  transcriptionButton,
-  downloadTranscriptionButton;
+// let transcriptionRow,
+//   transcriptionArea,
+//   transcriptionButton,
+//   downloadTranscriptionButton;
 
 // recording stuff
 let blobs;
@@ -219,7 +220,9 @@ function currentRevealSlideIndex() {
 // Looks up the index of the current slide in the video.
 function currentVideoSlideIndex() {
   let time = player.currentTime();
-  return explainTimesPlay.findIndex((i) => i.timeIn <= time && time <= i.timeOut);
+  return explainTimesPlay.findIndex(
+    (i) => i.timeIn <= time && time <= i.timeOut
+  );
 }
 
 // Jumps the video to the in-time of the next slide.
@@ -742,8 +745,9 @@ async function setupRecorder() {
     // merge desktop and microphone streams into one stream to be recorded
     mergeStreams();
 
-    await fetchTranscriptionFromJSON();
-    setupSpeechRecognition();
+    // MARIO: REMOVE UNTIL DEBUGGED
+    // await fetchTranscriptionFromJSON();
+    // setupSpeechRecognition();
 
     // setup shaders for greenscreen (has to be done before captureCamera())
     if (useGreenScreen) {
