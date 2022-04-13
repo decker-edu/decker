@@ -77,7 +77,7 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css">
+  <!-- <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css"> -->
   <link rel="stylesheet" href="$decker-support-dir$/css/mario.css">
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
@@ -170,7 +170,7 @@ $body$
     import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
     import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
     import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
-    import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
+    // import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
     import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
 
     let revealConfig = { 
@@ -203,7 +203,7 @@ $body$
          feedbackPlugin,
          highlightPlugin,
          notesPlugin,
-         captionPlugin,
+        //  captionPlugin,
          a11yPlugin
       ]
     };
