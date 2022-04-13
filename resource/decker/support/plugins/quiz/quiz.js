@@ -152,10 +152,16 @@ async function startPoll() {
       Reveal.off("slidechanged", abortPoll);
     },
   });
+
+  // play jingle
+  jingleQuestion.currentTime = 0;
+  jingleQuestion.play();
 }
 
 function stopPoll() {
   session.stop();
+  jingleAnswer.currentTime = 0;
+  jingleAnswer.play();
 }
 
 function abortPoll() {
@@ -187,10 +193,6 @@ function hideChart() {
 function createChart() {
   let votes = Object.entries(finalVotes);
   votes.sort((a, b) => a[0].localeCompare(b[0]));
-
-  // play sound
-  jingleAnswer.currentTime = 0;
-  jingleAnswer.play();
 
   // destroy chart if it was created before (strictly required!)
   if (myChart) {
@@ -380,10 +382,6 @@ async function preparePolling() {
   });
   document.body.appendChild(qrcode);
   session.fillQRCode("poll-qrcode-canvas");
-
-  // play jingle
-  jingleQuestion.currentTime = 0;
-  jingleQuestion.play();
 }
 
 const Plugin = {

@@ -122,7 +122,7 @@ const Plugin = {
     document.body.style.MozTransition = "-moz-transform 0.8s ease";
     document.body.style.WebkitTransition = "-webkit-transform 0.8s ease";
 
-    reveal.getRevealElement().addEventListener("dblclick", function (event) {
+    reveal.getSlidesElement().addEventListener("dblclick", function (event) {
       event.preventDefault();
 
       // which element to zoom to
