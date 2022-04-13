@@ -71,9 +71,8 @@ pandocWriterOpts :: WriterOptions
 pandocWriterOpts =
   def
     { writerExtensions =
-        disableExtension Ext_smart $
-          disableExtension Ext_implicit_figures $
-            enableExtension Ext_emoji pandocExtensions,
+        disableExtension Ext_implicit_figures $
+          enableExtension Ext_emoji pandocExtensions,
       writerSectionDivs = False,
       writerReferenceLocation = EndOfBlock
     }
