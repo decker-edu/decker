@@ -17,6 +17,8 @@ button_template.innerHTML = String.raw`<button is="awesome-button" class="fa-but
 
 let SpeechRecognitionImpl = undefined;
 
+/* Check if feature is available
+ * Usage tutorial: https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API */
 if (
   !!window.SpeechRecognition ||
   !(typeof webkitSpeechRecognition === "undefined")
