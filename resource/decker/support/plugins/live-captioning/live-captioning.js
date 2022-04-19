@@ -31,15 +31,13 @@ let caption_template = document.createElement("template");
 caption_template.innerHTML = String.raw`<div class="caption-area">
     </div>`;
 
-var SpeechRecognition = undefined;
-var SpeechGrammarList = undefined;
-var SpeechRecognitionEvent = undefined;
+let SpeechRecognitionImpl = undefined;
 
-if (window.chrome) {
-  SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-  SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-  SpeechRecognitionEvent =
-    SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+if (
+  !!window.SpeechRecognition ||
+  !(typeof webkitSpeechRecognition === "undefined")
+) {
+  SpeechRecognitionImpl = window.SpeechRecognition || webkitSpeechRecognition;
 }
 
 /**
@@ -99,7 +97,7 @@ class LiveCaptioning {
     if (!permission) {
       return;
     }
-    this.speechRecog = new SpeechRecognition();
+    this.speechRecog = new SpeechRecognitionImpl();
     this.speechRecog.continuous = true;
     this.speechRecog.interimResults = true;
     this.speechRecog.onstart = () => this.handleStart();
@@ -327,7 +325,7 @@ class LiveCaptioning {
    * @param {*} reveal
    */
   init(reveal) {
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionImpl) {
       console.error("SpeechRecognition not available in this browser.");
       return;
     }
@@ -359,39 +357,6 @@ class LiveCaptioning {
     }
 
     this.reveal = reveal;
-
-    /* Leave this for later generations here, if the window-placement API ever gets made a fully supported
-      * feature in all browsers ...
-     if ("getScreens" in window) {
-       navigator.permissions
-         .query({ name: "window-placement" })
-         .then((state) => {
-           if (state === "granted" && window.screen.isExtended) {
-             window
-               .getScreens()
-               .then((data) => {
-                 this.primaryScreen = data.screens.filter(
-                   (screen) => screen.isPrimary
-                 )[0];
-                 this.secondaryScreen = data.screens.filter(
-                   (screen) => !screen.isPrimary
-                 )[0];
-                 this.fullscreenCaptioning = true;
-               })
-               .catch((error) => {
-                 console.log(error);
-               });
-           } else {
-             console.error(
-               "Did not get window-placement permission or there are no other screens."
-             );
-           }
-         })
-         .catch((error) => {
-           console.error(error);
-         });
-     }
-     */
 
     reveal.addEventListener("ready", () => {
       Decker.addPresenterModeListener((on) => {

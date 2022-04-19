@@ -533,8 +533,9 @@ function setupSpeechRecognition() {
     webSpeech_speechRecognition.onresult = onTranscriptResult;
     webSpeech_speechRecognition.onerror = onTranscriptError;
     webSpeech_speechRecognition.onend = onTranscriptEnd;
-    if(Decker.meta.speech_recognition_language) {
-      webSpeech_speechRecognition.lang = Decker.meta.speech_recognition_language;
+    if (Decker.meta.speech_recognition_language) {
+      webSpeech_speechRecognition.lang =
+        Decker.meta.speech_recognition_language;
     }
   }
 }
