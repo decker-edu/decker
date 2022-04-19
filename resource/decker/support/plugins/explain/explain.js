@@ -1,16 +1,13 @@
 // speech recog
 
-const SpeechRecognition = undefined;
-// var SpeechRecognition = undefined;
-// var SpeechGrammarList = undefined;
-// var SpeechRecognitionEvent = undefined;
+let SpeechRecognitionImpl = undefined;
 
-// if (window.chrome) {
-//   SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-//   SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-//   SpeechRecognitionEvent =
-//     SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
-// }
+if (
+  !!window.SpeechRecognition ||
+  !(typeof webkitSpeechRecognition === "undefined")
+) {
+  SpeechRecognitionImpl = window.SpeechRecognition || webkitSpeechRecognition;
+}
 
 // reference to Reveal deck
 let Reveal;
@@ -194,13 +191,13 @@ function videoFilenameBase() {
 function goToSlide(index) {
   if (explainTimesPlay[index]) {
     let slideId = explainTimesPlay[index].slideId;
-    var indices = Reveal.getIndices(document.getElementById(slideId));
+    let indices = Reveal.getIndices(document.getElementById(slideId));
     Reveal.slide(indices.h, indices.v);
   }
 }
 
 function goToSlideId(slideId) {
-  var indices = Reveal.getIndices(document.getElementById(slideId));
+  let indices = Reveal.getIndices(document.getElementById(slideId));
   Reveal.slide(indices.h, indices.v);
 }
 
@@ -488,7 +485,7 @@ let webSpeech_restartOnEnd = undefined;
 let webSpeech_stopRequest = false; /* Set to true if the user actually wants to stop */
 let webSpeech_transcriptionStartTime = undefined;
 
-async function toggleCaptioning() {
+async function toggleShouldCaption() {
   if (!webSpeech_shouldCaption) {
     let options = [
       { text: localization.accept, value: "ACCEPT" },
@@ -527,16 +524,18 @@ function updateCaptionButton() {
  * Instantiates the speech recognition module and sets its parameters.
  */
 function setupSpeechRecognition() {
-  if (SpeechRecognition) {
-    let speechRecognition = new SpeechRecognition();
-    if (!webSpeech_transcript) webSpeech_transcript = [];
-    speechRecognition.continuous = true;
-    speechRecognition.interimResults = true;
-    speechRecognition.onstart = onTranscriptionStart;
-    speechRecognition.onresult = onTranscriptResult;
-    speechRecognition.onerror = onTranscriptError;
-    speechRecognition.onend = onTranscriptEnd;
-    webSpeech_speechRecognition = speechRecognition;
+  if (!webSpeech_transcript) webSpeech_transcript = [];
+  if (SpeechRecognitionImpl) {
+    webSpeech_speechRecognition = new SpeechRecognitionImpl();
+    webSpeech_speechRecognition.continuous = true;
+    webSpeech_speechRecognition.interimResults = true;
+    webSpeech_speechRecognition.onstart = onTranscriptionStart;
+    webSpeech_speechRecognition.onresult = onTranscriptResult;
+    webSpeech_speechRecognition.onerror = onTranscriptError;
+    webSpeech_speechRecognition.onend = onTranscriptEnd;
+    if(Decker.meta.speech_recognition_language) {
+      webSpeech_speechRecognition.lang = Decker.meta.speech_recognition_language;
+    }
   }
 }
 
@@ -546,7 +545,7 @@ function setupSpeechRecognition() {
  */
 function addToTranscript(text) {
   if (text) {
-    var curTime = recorder.timing.timeStamp();
+    let curTime = recorder.timing.timeStamp();
     webSpeech_transcript.push({
       startTime: webSpeech_transcriptionStartTime,
       endTime: curTime,
@@ -568,7 +567,7 @@ function onTranscriptionStart() {
  * @param {*} event
  */
 function onTranscriptResult(event) {
-  for (var i = event.resultIndex; i < event.results.length; i++) {
+  for (let i = event.resultIndex; i < event.results.length; i++) {
     if (event.results[i][0].confidence > 0.4) {
       if (event.results[i].isFinal) {
         addToTranscript(event.results[i][0].transcript);
@@ -677,11 +676,11 @@ function formatTimeString(timeString) {
 //Taken from https://github.com/MidCamp/live-captioning
 function formatTranscriptTimeStamped(transcript, format) {
   if (transcript) {
-    var output = "";
+    let output = "";
     if (format === "webVTT") {
       output += "WEBVTT\n\n";
     }
-    for (var i = 0; i < transcript.length; ++i) {
+    for (let i = 0; i < transcript.length; ++i) {
       output += i + 1 + "\n"; // This is not neccessary and might make editing the result more difficult.
       output +=
         formatTimeString(transcript[i].startTime) +
@@ -703,7 +702,7 @@ function formatTranscriptTimeStamped(transcript, format) {
  * @returns
  */
 function loadFromLocalStorage(key) {
-  var savedJSON;
+  let savedJSON;
 
   if (localStorage) {
     try {
@@ -745,9 +744,8 @@ async function setupRecorder() {
     // merge desktop and microphone streams into one stream to be recorded
     mergeStreams();
 
-    // MARIO: REMOVE UNTIL DEBUGGED
-    // await fetchTranscriptionFromJSON();
-    // setupSpeechRecognition();
+    await fetchTranscriptionFromJSON();
+    setupSpeechRecognition();
 
     // setup shaders for greenscreen (has to be done before captureCamera())
     if (useGreenScreen) {
@@ -918,8 +916,8 @@ async function startRecording() {
       webSpeech_transcript,
       "webVTT"
     );
-    var vttblob = new Blob([transcription], { type: "vtt" });
-    var transcriptBlob = transcribeToJSON();
+    let vttblob = new Blob([transcription], { type: "vtt" });
+    let transcriptBlob = transcribeToJSON();
 
     try {
       let exists = await resourceExists(explainTimesUrl);
@@ -1587,7 +1585,7 @@ async function createRecordingGUI() {
     classes: "explain caption-button fas fa-closed-captioning",
     title: "Create Captions while recording",
     parent: toggleRow,
-    onclick: toggleCaptioning,
+    onclick: toggleShouldCaption,
   });
 
   row = createElement({
@@ -1657,22 +1655,6 @@ async function createRecordingGUI() {
   /* inert everything but the toggle button */
 
   setupGainSlider(voiceGain, voiceGainSlider);
-}
-
-function downloadTranscription() {
-  let text = formatTranscriptTimeStamped(webSpeech_transcript, "webVTT");
-  var blob = new Blob([text], { type: "vtt" });
-  var a = document.createElement("a");
-  a.download = "transcription.vtt";
-  a.href = URL.createObjectURL(blob);
-  a.dataset.downloadurl = ["vtt", a.download, a.href].join(":");
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(function () {
-    URL.revokeObjectURL(a.href);
-  }, 1500);
 }
 
 function setupGainSlider(gain, slider) {
