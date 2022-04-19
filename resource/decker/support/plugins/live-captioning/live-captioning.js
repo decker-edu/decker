@@ -9,27 +9,11 @@ import bwipjs from "../examiner/bwip.js";
 
 let localization;
 
-let menu_template = document.createElement("template");
-menu_template.innerHTML = String.raw`<div class="slide-in-left caption-options-menu" inert>
-      <button class="toggle-button">
-        <i class="fas fa-closed-captioning"></i>
-        <span>Activate Live-Captioning</span>
-      </button>
-      <button class="close-button">
-        <i class="fas fa-times"></i>
-        <span>Close</span>
-      </button>
-    </div>`;
-
 // Using the custom web component here is optional and can be replaced by something less
 // bleeding edge
 let button_template = document.createElement("template");
 button_template.innerHTML = String.raw`<button is="awesome-button" class="fa-button" icon="fa-closed-captioning" icon-style="fas" title="Activate Live Captioning" aria-label="Activate Live Captioning">
    </button>`;
-
-let caption_template = document.createElement("template");
-caption_template.innerHTML = String.raw`<div class="caption-area">
-    </div>`;
 
 let SpeechRecognitionImpl = undefined;
 
