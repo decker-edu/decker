@@ -1,7 +1,7 @@
 ---
 author: "[Arthur Author]{.accent3 .bg}"
 date: 06.02.2022
-highlight-style: pygments
+highlight-style: tango
 institute: Institute
 subtitle: Clean. Consistent. Robust.
 title: New Style Media Handling
@@ -126,11 +126,11 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 # Local Media in 2 columns {.columns}
 
-## Left {.left .danger}
+## Left {.left .question}
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
-## Right {.right .secondary}
+## Right {.right .answer}
 
 ``` javascript
 function rainbow(numOfSteps, step) {

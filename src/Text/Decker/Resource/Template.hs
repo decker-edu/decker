@@ -53,18 +53,21 @@ defaultMetaPath = "template/default.yaml"
 
 readTemplate :: Meta -> FilePath -> IO (Template Text, [FilePath])
 readTemplate meta file = do
-  (Resources decker pack) <- deckerResources meta
+  resources@(Resources decker pack) <- deckerResources meta
   catch
-    (readTemplate' pack)
-    (\(SomeException e) -> do readTemplate' decker)
+    (readTemplate' pack resources)
+    ( \(SomeException e) -> do
+        -- putStrLn $ "# read template from pack failed: " <> file <> ", pack: " <> show pack <> ", error: " <> show e
+        readTemplate' decker resources
+    )
   where
-    readTemplate' source = do
+    readTemplate' source resources = do
       (text, needed) <- readTemplateText source
-      compiled <- runReaderT (compileTemplate "" text) source
+      compiled <- runReaderT (compileTemplate "" text) resources
       case compiled of
         Right compiled -> return (compiled, needed)
         Left msg -> do
-          putStrLn $ "# read template failed: " <> file <> ", source: " <> show source <> ", error: " <> msg
+          -- putStrLn $ "# read template failed: " <> file <> ", source: " <> show source <> ", error: " <> msg
           error (toText msg)
     readTemplateText (DeckerExecutable base) = do
       deckerExecutable <- getExecutablePath
@@ -110,16 +113,33 @@ readTemplateMeta' None = do
   putInfo "# no pack, no meta data"
   return nullMeta
 
-type SourceM = ReaderT Source IO
+type SourceM = ReaderT Resources IO
 
 instance TemplateMonad SourceM where
   getPartial name = do
-    source <- ask
-    case source of
-      DeckerExecutable base -> do
-        deckerExecutable <- liftIO getExecutablePath
-        liftIO $ decodeUtf8 <$> extractEntry (base </> "template" </> name) deckerExecutable
-      LocalDir base ->
-        liftIO $ Text.readFile (base </> "template" </> name)
-      LocalZip zip -> liftIO $ decodeUtf8 <$> extractEntry ("template" </> name) zip
-      None -> return ""
+    (Resources decker pack) <- ask
+    partial <- getIt pack
+    case partial of
+      Just partial -> return partial
+      Nothing -> fromMaybe "" <$> getIt decker
+    where
+      getIt :: Source -> SourceM (Maybe Text)
+      getIt source =
+        liftIO $
+          catch
+            ( case source of
+                DeckerExecutable base -> do
+                  deckerExecutable <- getExecutablePath
+                  -- putStrLn $ "# reading partial from: " <> ("template" </> name) <> " " <> deckerExecutable
+                  Just . decodeUtf8 <$> extractEntry (base </> "template" </> name) deckerExecutable
+                LocalDir base -> do
+                  -- putStrLn $ "# reading partial from: " <> (base </> "template" </> name)
+                  Just <$> Text.readFile (base </> "template" </> name)
+                LocalZip zip -> do
+                  -- putStrLn $ "# reading partial from: " <> ("template" </> name) <> " " <> zip
+                  Just . decodeUtf8 <$> extractEntry ("template" </> name) zip
+                None -> return Nothing
+            )
+            (\(SomeException e) -> do
+              -- putStrLn $ "# reading failed: " <> show e
+              return Nothing)

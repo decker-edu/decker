@@ -1,0 +1,49 @@
+# Default meta data
+
+# Defaults for reveal.js
+reveal:
+  width: 1244
+  height: 700
+  backgroundTransition: "none"
+  center: false
+  controls: true
+  fragmentInURL: true
+  fragments: true
+  hash: true
+  help: true
+  hideCursorTime: 2000
+  hideInactiveCursor: true
+  history: false
+  keyboard: true
+  menu: true
+  overview: true
+  progress: true
+  title: "|title|"
+  touch: true
+  transition: "none"
+  vertical-slides: true
+  zoom: true
+
+# Defaults needed by wburg
+css-variables:
+  active-color: rgb(42,157,223)
+  align-global: left
+  background-color: rgb(250,250,250)
+  border-decoration-padding: 10px
+  border-decoration-style: solid
+  border-decoration-width: 20px
+  icon-size: 2vmin
+  inactive-color: lightgrey
+  margin-columns: calc(0em * 100%)
+  font-size-base: 28px
+  spacing-vertical-base: 0.5em
+
+  # Fill in some variables used in decker/support/css/*.css
+  block-border-width: var(--border-decoration-width)
+  block-outset: var(--border-decoration-padding)
+  vertical-margin: var(--spacing-vertical-base)
+
+# Use CSS augmentation without changes to the default template
+template:
+  css: support/css/wburg.css
+
