@@ -11,7 +11,7 @@ module Text.Decker.Filter.Media where
 import Control.Monad.Catch
 import Data.List (lookup)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (fromJust)
+import Data.Maybe (Maybe (Nothing), fromJust)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import HTMLEntities.Text (text)
@@ -120,7 +120,7 @@ determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
   uri <- URI.mkURI url
   let path = uriFilePath uri
   let mediaType = classifyMedia uri attr
-  case mediaType of
+  intrinsic <- case mediaType of
     ImageT -> do
       size <- liftIO $ imageSize path
       return $ aspect <$> size
@@ -128,13 +128,14 @@ determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
       size <- liftIO $ videoSize path
       return $ aspect <$> size
     _ -> do
-      return $
-        asum
-          [ lookup "w:h" attribs,
-            lookup "aspect-ratio" attribs,
-            Just defaultAspectRatio
-          ]
-          >>= readRatio
+      return Nothing
+  return $
+    asum
+      [ lookup "w:h" attribs >>= readRatio,
+        lookup "aspect-ratio" attribs >>= readRatio,
+        intrinsic,
+        readRatio defaultAspectRatio
+      ]
   where
     aspect (w, h) = fromIntegral w / fromIntegral h
     readRatio :: Text -> Maybe Float
