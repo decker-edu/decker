@@ -7,9 +7,9 @@ import Control.Concurrent.STM (TChan, writeTChan)
 import Control.Lens ((^.))
 import Control.Monad.Catch
 import Control.Monad.State
+import Data.Aeson
 import qualified Data.List as List
 import Data.Maybe
-import Data.Aeson
 import qualified Data.Set as Set
 import Relude
 import Snap.Core
@@ -57,12 +57,12 @@ uploadVideo channel append = do
             )
   return ()
 
-listRecordings :: MonadSnap m =>  m ()
+listRecordings :: MonadSnap m => m ()
 listRecordings = do
-    webm <- decodeUtf8 <$> getsRequest rqPathInfo
-    webms <- liftIO $ existingVideos webm
-    modifyResponse $ setContentType "application/json"
-    writeBS $ fromLazy $ encode webms
+  webm <- decodeUtf8 <$> getsRequest rqPathInfo
+  webms <- liftIO $ existingVideos webm
+  modifyResponse $ setContentType "application/json"
+  writeBS $ fromLazy $ encode webms
 
 -- Unique transient tmp filename
 uniqueTransientFileName :: FilePath -> IO FilePath
@@ -135,9 +135,17 @@ slow = ["-pix_fmt", "yuv420p", "-crf", "27", "-preset", "veryslow", "-tune", "st
 concatVideoMp4 :: [String] -> [FilePath] -> FilePath -> IO ()
 concatVideoMp4 ffmpegArgs webms mp4 = do
   let sorted = sort webms
-  listFile <- uniqueTransientFileName (mp4 <.> "list")
-  writeFile listFile (List.unlines $ map (\f -> "file '../" <> f <> "'") sorted)
+  listFile <- mkListFile sorted mp4
   putStrLn $ "# ffmpeg (" <> intercalate ", " sorted <> " -> " <> mp4 <> ")"
+  concatVideoMp4' ffmpegArgs listFile mp4
+
+mkListFile webms mp4 = do
+  let listFile = (mp4 <.> "list")
+  writeFile listFile (List.unlines $ map (\f -> "file '../" <> f <> "'") webms)
+  return listFile
+
+concatVideoMp4' :: [String] -> FilePath -> FilePath -> IO ()
+concatVideoMp4' ffmpegArgs listFile mp4 = do
   runFfmpeg listFile mp4
   where
     runFfmpeg listFile dst = do
