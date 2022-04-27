@@ -104,7 +104,7 @@ class UIState {
   async transition(name) {
     let transition = this.state.transition[name];
     if (!transition) {
-      console.warn("[] no transition named: " + name);
+      console.warn("[] no transition named: " + name);
       return;
     }
 
@@ -134,7 +134,7 @@ class UIState {
         element.setAttribute("data-uistate", this.state.name);
       }
     } else {
-      console.warn("[] no state named: " + transition.next);
+      console.warn("[] no state named: " + transition.next);
     }
     // console.log(`[] current state: ${this.state.name}`);
   }
