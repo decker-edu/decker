@@ -24,7 +24,47 @@ reveal:
   vertical-slides: true
   zoom: true
 
+palette:
+  colors:
+    light: # Solarized Light wburg adapted for accented colors
+      - "#fdf6e3"
+      - "#eee8d5"
+      - "#93a1a1"
+      - "#839496"
+      - "#657b83"
+      - "#586e75"
+      - "#073642"
+      - "#002b36"
+      - "#FF0101" # "#dc322f"
+      - "#cb4b16"
+      - "#b58900"
+      - "#859900"
+      - "#2aa198"
+      - "#268bd2"
+      - "#6c71c4"
+      - "#d33682"
+    dark: # Solarized Dark
+      - "#002b36"
+      - "#073642"
+      - "#586e75"
+      - "#657b83"
+      - "#839496"
+      - "#93a1a1"
+      - "#eee8d5"
+      - "#fdf6e3"
+      - "#dc322f"
+      - "#cb4b16"
+      - "#b58900"
+      - "#859900"
+      - "#2aa198"
+      - "#268bd2"
+      - "#6c71c4"
+      - "#d33682"
+  contrast: 0.3
+
 # Defaults needed by wburg
+# Will be included as text into css, 
+# hence calc and var works and will then be executed during load-time
 css-variables:
   active-color: rgb(42,157,223)
   align-global: left
@@ -34,10 +74,9 @@ css-variables:
   border-decoration-width: 20px
   icon-size: 2vmin
   inactive-color: lightgrey
-  margin-columns: calc(0em * 100%)
+  margin-columns: 1em
   font-size-base: 28px
   spacing-vertical-base: 0.5em
-
   # Fill in some variables used in decker/support/css/*.css
   block-border-width: var(--border-decoration-width)
   block-outset: var(--border-decoration-padding)
