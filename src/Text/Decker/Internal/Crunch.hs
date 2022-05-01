@@ -5,7 +5,7 @@ import Control.Monad
 import Data.Aeson
 import Data.Aeson.Lens
 import Development.Shake
-import Development.Shake (doesFileExist)
+-- import Development.Shake (doesFileExist)
 import Development.Shake.FilePath
 import Relude (ConvertUtf8 (encodeUtf8))
 import System.Directory
@@ -16,7 +16,6 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper (replaceSuffix)
 import Text.Decker.Project.Project
 import Text.Decker.Server.Video (concatVideoMp4, existingVideos, slow)
-import qualified GHC.IO.Device as System
 
 -- | Rules for transcoding videos. Mp4 videos are recreated with higher
 -- compression parameters if any of the recording fragments changed. Also, if
