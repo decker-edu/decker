@@ -212,7 +212,7 @@ deckerRules = do
               else generatedIndexSource
       need [src]
       meta <- getGlobalMeta
-      markdownToHtml htmlPage meta getTemplate src out
+      markdownToHtml htmlIndex meta getTemplate src out
     --
     generatedIndexSource %> \out -> do
       targets <- getTargets

@@ -186,9 +186,7 @@ selectActiveContent fragments = do
       Disposition Deck _ -> dropByClass ["comment", "handout"] fragments
       Disposition Handout _ ->
         dropByClass ["comment", "deck", "notes"] fragments
-      Disposition Page _ ->
-        dropByClass ["comment", "notes", "deck", "handout"] fragments
-      Disposition Notebook _ ->
+      _ ->
         dropByClass ["comment", "notes", "deck", "handout"] fragments
 
 escapeToFilePath :: String -> FilePath

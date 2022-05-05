@@ -11,7 +11,7 @@ module Text.Decker.Filter.Media where
 import Control.Monad.Catch
 import Data.List (lookup)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (fromJust)
+import Data.Maybe
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import HTMLEntities.Text (text)

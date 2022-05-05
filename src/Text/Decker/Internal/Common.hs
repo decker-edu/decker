@@ -25,6 +25,7 @@ data Layout
   = Deck
   | Page
   | Handout
+  | Index
   | Notebook
   deriving (Ord, Eq, Show)
 
@@ -44,6 +45,8 @@ data Disposition = Disposition
 htmlDeck = Disposition {layout = Deck, format = Html}
 
 htmlPage = Disposition {layout = Page, format = Html}
+
+htmlIndex = Disposition {layout = Index, format = Html}
 
 htmlHandout = Disposition {layout = Handout, format = Html}
 

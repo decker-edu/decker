@@ -1,0 +1,35 @@
+/* Here be CSS */
+
+@import url("../vendor/fontawesome/css/all.css");
+@import url("./structure.css");
+@import url("./style.css");
+@import url("./media.css");
+
+html {
+  color: var(--foreground-color);
+  background-color: var(--background-color);
+}
+
+body.index {
+  box-sizing: border-box;
+  font-size: 16px;
+  max-width: 52em;
+  color: var(--foreground-color);
+  background-color: var(--background-color);
+}
+
+code {
+  font-size: 100%;
+}
+
+pre > code {
+  font-size: 90%;
+}
+
+figure {
+  margin: 0;
+}
+
+p {
+  word-wrap: normal;
+}

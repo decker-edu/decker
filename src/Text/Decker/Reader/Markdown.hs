@@ -297,6 +297,14 @@ deckerPipeline (Disposition Page Html) =
       processDetailDiv,
       processDetailHeader
     ]
+deckerPipeline (Disposition Index Html) =
+  concatM
+    [ evaluateShortLinks,
+      expandDeckerMacros,
+      includeCode,
+      processDetailDiv,
+      processDetailHeader
+    ]
 deckerPipeline (Disposition Handout Html) =
   concatM
     [ evaluateShortLinks,
