@@ -12,7 +12,6 @@ import Development.Shake.FilePath
 import Relude
 import System.Exit
 import System.Process
-import System.Directory (doesFileExist, removeFile)
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper (replaceSuffix)
