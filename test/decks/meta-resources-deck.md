@@ -1,8 +1,8 @@
 ---
 color:
-  black: '\#000'
-  magenta: '\#f0f'
-  white: '\#fff'
+  black: '#000'
+  magenta: '#f0f'
+  white: '#fff'
 csl: "/test/decks/acm-sig-proceedings.csl"
 deep:
   down:
@@ -11,12 +11,12 @@ meta-data:
   - "chart-meta.yaml"
   - level1.yaml
 something: "/test/decks/include/06-metal.png"
-static-resource-dirs*:
+static-resource-dirs:
   - assets
 template:
   css: dummy.css
 title: Meta Resources
-whiteboard-background-color: '\#f0f'
+whiteboard-background-color: '#f0f'
 # Just testing
 test:
   merge-list:
@@ -24,6 +24,7 @@ test:
   some-value: This line is from this deck
   default-decker-deck: From this deck
 ---
+
 
 # Meta Resources
 
@@ -33,16 +34,16 @@ Resource references in meta data values
 - `template.css:` [:meta](template.css)
 - `csl:` [:meta](csl)
 - `deep.down.bool:` [:meta](deep.down.bool)
-- Slide background should be gray
+- Slide background should be [:meta](palette.colors.light.2)
 
 # Template default meta data
 
 ## From [:meta](template-source)
 
-- `history:` [:meta](history)
-- `hash:` [:meta](hash)
-- `fragments:` [:meta](fragments)
-- `controls:` [:meta](fragments)
+- `reval.history:` [:meta](reveal.history)
+- `reval.hash:` [:meta](reveal.hash)
+- `reval.fragments:` [:meta](reveal.fragments)
+- `reval.controls:` [:meta](reveal.fragments)
 - `test:` [:meta](test)
 
 ## Meta Data from `meta-data`

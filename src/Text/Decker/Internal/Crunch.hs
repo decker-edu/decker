@@ -1,9 +1,12 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Text.Decker.Internal.Crunch where
 
-import Control.Lens
+import Control.Lens ((^.), (^?))
 import Control.Monad
 import Data.Aeson
 import Data.Aeson.Lens
+import qualified Data.List as List
 import Development.Shake
 import Development.Shake.FilePath
 import Relude
@@ -14,7 +17,7 @@ import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper (replaceSuffix)
 import Text.Decker.Project.Project
-import Text.Decker.Server.Video (concatVideoMp4, existingVideos, slow)
+import Text.Decker.Server.Video
 
 -- | Rules for transcoding videos. Mp4 videos are recreated with higher
 -- compression parameters if any of the recording fragments changed. Also, if
@@ -24,18 +27,13 @@ crunchRules = do
   (getGlobalMeta, getTargets, getTemplate) <- prepCaches
   want ["mp4s"]
   phony "mp4s" $ do
+    alwaysRerun
     targets <- getTargets
     forM_ (targets ^. decks) $ \deck -> do
       let source = makeRelative publicDir deck
       webms <- liftIO $ existingVideos (replaceSuffix "-deck.html" "-recording.webm" source)
       unless (null webms) $ do
         let publicMp4 = replaceSuffix "-deck.html" "-recording.mp4" deck
-        let mp4 = replaceSuffix "-deck.html" "-recording.mp4" source
-        liftIO $ do
-          exists <- System.Directory.doesFileExist mp4
-          when exists $ do
-            crunched <- wasCrunched mp4
-            unless crunched (removeFile mp4)
         need [publicMp4]
   alternatives $ do
     publicDir <//> "*-recording.mp4" %> \out -> do
@@ -43,10 +41,17 @@ crunchRules = do
       putNormal $ "# copy recording (for " <> out <> ")"
       copyFile' src out
     "**/*-recording.mp4" %> \out -> do
-      let src = replaceSuffix ".mp4" ".webm" out
+      let list = (out <.> "list")
+      need [list]
+      liftIO $ putStrLn $ "# ffmpeg ( for " <> out <> ")"
+      liftIO $ concatVideoMp4' slow list out
+    "**/*-recording.mp4.list" %> \out -> do
+      alwaysRerun
+      let src = replaceSuffix ".mp4.list" ".webm" out
       webms <- liftIO $ existingVideos src
+      let sorted = sort webms
+      writeFileChanged out (List.unlines $ map (\f -> "file '" <> takeFileName f <> "'") sorted)
       need webms
-      liftIO $ concatVideoMp4 slow webms out
 
 -- | Reads the 'comment' meta data field from the video container. Return True
 -- if the value is 'decker-crunched', False otherwise.
