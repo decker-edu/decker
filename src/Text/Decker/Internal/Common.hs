@@ -1,9 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Text.Decker.Internal.Common where
 
-import Control.Monad.State
+import Relude
 import Development.Shake (Action)
 import System.FilePath
 import Text.Pandoc

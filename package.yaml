@@ -85,9 +85,8 @@ dependencies:
   - regex-tdfa
   - relude
   - scientific
+  - scotty
   - shake
-  - snap-core
-  - snap-server
   - split
   - stm
   - string-interpolate
@@ -102,7 +101,6 @@ dependencies:
   - utf8-string
   - vector
   - websockets
-  - websockets-snap
   - wreq
   - xml-conduit
   - xml-types

@@ -9,19 +9,11 @@ import qualified Data.Set as Set
 import Data.Time
 import Network.WebSockets
 import Relude
-import Web.Scotty.Trans
 
 -- | Clients are identified by integer ids
 type Client = (Int, Connection)
 
-type AppScottyM = ScottyT Text (ReaderT Server IO)
-type AppActionM = ActionT Text (ReaderT Server IO)
-
-data ServerState 
-  = ServerState {
-  clients :: [Client], 
-  observed :: Set.Set FilePath
-  }
+type ServerState = ([Client], Set.Set FilePath)
 
 data VideoOperation
   = Replace FilePath FilePath
@@ -36,7 +28,7 @@ data ActionMsg
 
 data Server = Server
   { _threadId :: ThreadId,
-    _serverState :: TVar ServerState
+    _serverState :: MVar ServerState
   }
   deriving (Eq)
 

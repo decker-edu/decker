@@ -61,6 +61,8 @@ data Difficulty
   | Hard
   deriving (Eq, Show, Typeable)
 
+$(deriveJSON defaultOptions ''Difficulty)
+
 data Question = Question
   { _qstTopicId :: Text,
     _qstLectureId :: Text,
@@ -102,8 +104,6 @@ instance FromJSON Question where
       <*> q .:? "CurrentNumber" .!= 0
       <*> q .:? "FilePath" .!= "."
   parseJSON invalid = typeMismatch "Question" invalid
-
-$(deriveJSON defaultOptions ''Difficulty)
 
 readQuestion :: FilePath -> IO Question
 readQuestion file = do

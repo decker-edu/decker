@@ -32,7 +32,9 @@ where
 
 import Control.Exception
 import qualified Data.Aeson as A
-import qualified Data.HashMap.Strict as H
+import qualified Data.Aeson.KeyMap as KeyMap
+import qualified Data.Aeson.Key as Key
+import qualified Data.HashMap.Strict as HashMap
 import qualified Data.List as List
 import Data.List.Safe ((!!))
 import qualified Data.Map.Lazy as Map
@@ -86,7 +88,7 @@ toPandocMeta _ = Meta M.empty
 
 toPandocMeta' :: Y.Value -> MetaValue
 toPandocMeta' (Y.Object m) =
-  MetaMap $ Map.fromList $ map (second toPandocMeta') $ H.toList m
+  MetaMap $ Map.fromList $ map (\(k, v) -> (Key.toText k, toPandocMeta' v)) $ KeyMap.toList m
 toPandocMeta' (Y.Array vector) =
   MetaList $ map toPandocMeta' $ Vec.toList vector
 -- Playing around with #317
@@ -108,7 +110,7 @@ fromPandocMeta :: Meta -> A.Value
 fromPandocMeta (Meta map) = fromPandocMeta' (MetaMap map)
 
 fromPandocMeta' :: MetaValue -> A.Value
-fromPandocMeta' (MetaMap map) = A.Object (H.fromList $ Map.toList $ Map.map fromPandocMeta' map)
+fromPandocMeta' (MetaMap map) = A.Object (KeyMap.fromList $ List.map (\(k, v) -> (Key.fromText k, v)) $ Map.toList $ Map.map fromPandocMeta' map)
 fromPandocMeta' (MetaList list) = A.Array (Vec.fromList $ List.map fromPandocMeta' list)
 fromPandocMeta' (MetaBool value) = A.Bool value
 fromPandocMeta' (MetaString value) =
