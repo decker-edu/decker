@@ -157,6 +157,10 @@ deckerRules = do
     --
     publicDir <//> "*-deck.pdf" %> \out -> do
       let src = replaceSuffix "-deck.pdf" "-deck.html" out
+      let annot = replaceSuffix "-deck.pdf" "-annot.json" $ makeRelative publicDir out
+      -- This is the right way to depend on an optional file. Just check for the
+      -- files existence with the Shake function `doesFileExist`.
+      exists <- doesFileExist annot
       let url = serverUrl </> makeRelative publicDir src
       need [src]
       putInfo $ "# chrome started ... (for " <> out <> ")"
@@ -212,7 +216,7 @@ deckerRules = do
               else generatedIndexSource
       need [src]
       meta <- getGlobalMeta
-      markdownToHtml htmlPage meta getTemplate src out
+      markdownToHtml htmlIndex meta getTemplate src out
     --
     generatedIndexSource %> \out -> do
       targets <- getTargets
