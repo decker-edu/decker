@@ -8,7 +8,14 @@ packages:
   - "."
 extra-deps: []
 
+# This is currently needed on M1 macOS. Keep the version number current!
+extra-include-dirs:
+  - /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/ffi
+
 resolver: lts-19.6
+
+# Maybe we still need this on Windows
 # ghc-options:
 #   "$locals": -fhide-source-paths -Wno-missing-home-modules
 #   "$everything": -haddock
+

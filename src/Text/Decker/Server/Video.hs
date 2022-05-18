@@ -7,13 +7,16 @@ import Control.Concurrent.STM (TChan, writeTChan)
 import Control.Lens ((^.))
 import Control.Monad.Catch
 import Control.Monad.State
-import Data.Aeson
+import Data.Aeson hiding (json)
+import qualified Data.ByteString as BS
 import qualified Data.List as List
 import Data.Maybe
 import qualified Data.Set as Set
+import qualified Data.Text as Text
+import Network.HTTP.Types
+import Network.Wai
+import Network.Wai.Parse
 import Relude
-import Snap.Core
-import Snap.Util.FileUploads
 import System.Directory
 import System.FilePath.Glob
 import System.FilePath.Posix
@@ -26,43 +29,14 @@ import Text.Decker.Internal.Exception
   )
 import Text.Decker.Project.ActionContext
 import Text.Decker.Server.Types
-import Text.Regex.TDFA
+import Text.Regex.TDFA hiding (empty)
+import Web.Scotty
 
--- | Expects a multi-part WEBM video file upload. The upload can contain multiple complete videos.
-uploadVideo :: MonadSnap m => TChan ActionMsg -> Bool -> m ()
-uploadVideo channel append = do
-  withTemporaryStore transientDir "upload-" $ \store -> do
-    (inputs, files) <-
-      handleFormUploads defaultUploadPolicy fileUploadPolicy (const store)
-    liftIO $
-      forM_ files $
-        \(FormFile path tmp) ->
-          catch
-            ( do
-                let destination = dropDrive $ decodeUtf8 path
-                putStrLn $ "# upload received: " <> tmp <> " for: " <> destination
-                if "-recording.webm" `List.isSuffixOf` destination
-                  then do
-                    exists <- doesDirectoryExist (takeDirectory destination)
-                    if exists
-                      then do
-                        let operation = if append then Append tmp destination else Replace tmp destination
-                        atomically $ writeTChan channel (UploadComplete operation)
-                      else throwM $ InternalException $ "Upload directory does not exist: " <> takeDirectory destination
-                  else throwM $ InternalException $ "Uploaded file is not a WEBM video: " <> destination
-            )
-            ( \e@(SomeException se) -> do
-                putStrLn $ "# upload FAILED: " <> show se
-                throwM e
-            )
-  return ()
-
-listRecordings :: MonadSnap m => m ()
+listRecordings :: AppActionM ()
 listRecordings = do
-  webm <- decodeUtf8 <$> getsRequest rqPathInfo
+  webm <- Text.intercalate "/" . map toLazy . pathInfo <$> request
   webms <- liftIO $ existingVideos webm
-  modifyResponse $ setContentType "application/json"
-  writeBS $ fromLazy $ encode webms
+  json webms
 
 -- Unique transient tmp filename
 uniqueTransientFileName :: FilePath -> IO FilePath
@@ -75,34 +49,24 @@ uniqueTransientFileName base = do
       <> id
       <.> takeExtension base
 
-withUploadCheck :: TMVar (Set FilePath) -> FilePath -> (Bool -> Snap ()) -> Snap ()
-withUploadCheck registry path action = do
-  reg <- atomically $ takeTMVar registry
-  putStrLn $ "withUploadCheck: " <> show reg
-  let uploading = Set.member path reg
-  atomically $ putTMVar registry (Set.insert path reg)
-  putStrLn $ "withUploadCheck: calling action"
-  if uploading
-    then action True
-    else action False
-  putStrLn $ "withUploadCheck: action done."
-  atomically $ do
-    reg <- takeTMVar registry
-    putTMVar registry (Set.delete path reg)
-
-uploadRecording :: ActionContext -> Bool -> Snap ()
+uploadRecording :: ActionContext -> Bool -> AppActionM ()
 uploadRecording context append = do
   let channel = context ^. actionChan
-  destination <- decodeUtf8 <$> getsRequest rqPathInfo
+  destination <- Text.intercalate "/" . map . toLazy . pathInfo <$> request
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && "-recording.webm" `List.isSuffixOf` destination
     then do
       tmp <- liftIO $ uniqueTransientFileName destination
-      runRequestBody (withFileAsOutput tmp . connect)
+      bodyReader >>= writeBody tmp
       let operation = if append then Append tmp destination else Replace tmp destination
       atomically $ writeTChan channel (UploadComplete operation)
-      modifyResponse $ setResponseCode 200
-    else modifyResponse $ setResponseStatus 500 "Illegal path or suffix"
+    else status status406
+  where
+    writeBody path reader = do
+      chunk <- reader
+      when (not (BS.empty chunk)) $ do
+        BS.appendFile path chunk
+        writeBody path reader
 
 -- | Converts a WEBM video file into an MP4 video file on the fast track. The
 -- video stream is assumed to be H264 and is  not transcoded. The audio is
@@ -216,7 +180,3 @@ getHighestSequenceNumber :: [FilePath] -> Int
 getHighestSequenceNumber files =
   let numbers = map getSequenceNumber files
    in foldl' max 0 (catMaybes numbers)
-
--- | Allows upload sizes up to one GB.
-fileUploadPolicy :: FileUploadPolicy
-fileUploadPolicy = setMaximumFileSize (10 ^ 9) defaultFileUploadPolicy

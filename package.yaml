@@ -100,6 +100,8 @@ dependencies:
   - unordered-containers
   - utf8-string
   - vector
+  - wai
+  - wai-extra
   - websockets
   - wreq
   - xml-conduit
@@ -161,5 +163,4 @@ default-extensions:
   - QuasiQuotes
   - RecordWildCards
   - ScopedTypeVariables
-  - TemplateHaskell
   - TupleSections
