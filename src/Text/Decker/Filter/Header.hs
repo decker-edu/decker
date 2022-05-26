@@ -99,9 +99,9 @@ lastImage inlines =
     image i@Image {} = [i]
     image _ = []
 
--- | Replaces all images with spaces.
+-- | Replaces all images with nothing.
 zapImages :: [Inline] -> [Inline]
 zapImages = walk zap
   where
-    zap Image {} = Space
+    zap Image {} = Str ""
     zap inline = inline
