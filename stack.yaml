@@ -12,7 +12,7 @@ extra-deps: []
 extra-include-dirs:
   - /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/ffi
 
-resolver: lts-19.6
+resolver: lts-19.11
 
 # Maybe we still need this on Windows
 # ghc-options:

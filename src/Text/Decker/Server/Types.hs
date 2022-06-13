@@ -14,13 +14,30 @@ import Web.Scotty.Trans
 -- | Clients are identified by integer ids
 type Client = (Int, Connection)
 
-type AppScottyM = ScottyT Text (ReaderT Server IO)
-type AppActionM = ActionT Text (ReaderT Server IO)
+type Error = Text
 
-data ServerState 
-  = ServerState {
-  clients :: [Client], 
-  observed :: Set.Set FilePath
+instance ScottyError Text where
+  stringError = toText
+  showError = toLazy
+
+type AppScottyM = ScottyT Text ServerM
+
+type AppActionM = ActionT Text ServerM
+
+newtype ServerM a = ServerM
+  { runServerM :: ReaderT Server IO a
+  }
+  deriving
+    ( Applicative,
+      Functor,
+      Monad,
+      MonadIO,
+      MonadReader Server
+    )
+
+data ServerState = ServerState
+  { clients :: [Client],
+    observed :: Set.Set FilePath
   }
 
 data VideoOperation

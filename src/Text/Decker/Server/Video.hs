@@ -34,9 +34,12 @@ import Web.Scotty
 
 listRecordings :: AppActionM ()
 listRecordings = do
-  webm <- Text.intercalate "/" . map toLazy . pathInfo <$> request
-  webms <- liftIO $ existingVideos webm
-  json webms
+  status forbidden403
+  -- r <- request
+  -- path <- pathInfo <$> request
+  -- webm <- Text.intercalate "/" path 
+  -- webms <- liftIO $ existingVideos webm
+  -- json webms
 
 -- Unique transient tmp filename
 uniqueTransientFileName :: FilePath -> IO FilePath
@@ -52,7 +55,7 @@ uniqueTransientFileName base = do
 uploadRecording :: ActionContext -> Bool -> AppActionM ()
 uploadRecording context append = do
   let channel = context ^. actionChan
-  destination <- Text.intercalate "/" . map . toLazy . pathInfo <$> request
+  destination <- Text.intercalate "/" . map toLazy . pathInfo <$> request
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && "-recording.webm" `List.isSuffixOf` destination
     then do
