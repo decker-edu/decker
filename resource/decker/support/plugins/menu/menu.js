@@ -23,6 +23,7 @@ class SlideMenu {
     this.open_button = undefined;
     this.menu = {
       container: undefined,
+      home_button: undefined,
       search_button: undefined,
       pdf_button: undefined,
       settings_button: undefined,
@@ -155,6 +156,14 @@ class SlideMenu {
       "aria-label",
       this.localization.open_settings_label
     );
+  }
+
+  /**
+   * Navigate to index page
+   */
+  goToIndex() {
+    if (confirm(this.localization.index_confirmation))
+      window.location = Decker.meta.projectPath + "/index.html";
   }
 
   /**
@@ -462,6 +471,8 @@ class SlideMenu {
         <div class="menu-header-buttons">
           <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}">
           </button>
+          <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}">
+          </button>
           <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}">
           </button>
           <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}">
@@ -478,6 +489,9 @@ class SlideMenu {
     this.menu.container = container;
 
     /* Getting references */
+    this.menu.home_button = container.querySelector(
+      "#decker-menu-index-button"
+    );
     this.menu.search_button = container.querySelector(
       "#decker-menu-search-button"
     );
@@ -490,6 +504,9 @@ class SlideMenu {
     );
 
     /* Attach callbacks */
+    this.menu.home_button.addEventListener("click", (event) =>
+      this.goToIndex()
+    );
     this.menu.search_button.addEventListener("click", (event) =>
       this.toggleSearchbar()
     );
@@ -652,6 +669,7 @@ class SlideMenu {
 
     this.localization = {
       open_button_label: "Open Navigation Menu",
+      home_button_label: "Go to Index Page",
       search_button_label: "Toggle Searchbar",
       print_pdf_label: "Print PDF",
       open_settings_label: "Open Settings",
@@ -666,6 +684,7 @@ class SlideMenu {
       no_title: "No Title",
       title: "Navigation",
       print_confirmation: "Leave/Reload presentation to export PDF?",
+      index_confirmation: "Go back to index page?",
     };
 
     let lang = navigator.language;
@@ -673,6 +692,7 @@ class SlideMenu {
     if (lang === "de") {
       this.localization = {
         open_button_label: "Navigationsmenu öffnen",
+        home_button_label: "Zur zur Materialübersicht",
         search_button_label: "Suchleiste umschalten",
         print_pdf_label: "Als PDF drucken",
         open_settings_label: "Einstellungen öffnen",
@@ -688,6 +708,7 @@ class SlideMenu {
         title: "Navigation",
         print_confirmation:
           "Die Seite neuladen / verlassen um sie als PDF zu exportieren?",
+        index_confirmation: "Zurück zur Index-Seite gehen?",
       };
     }
 
