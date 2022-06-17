@@ -722,6 +722,22 @@ body {
   }
 }
 
+/* if inline-block, image sequence shifts to the right */
+span.sequence {
+  display: flex;
+  justify-content: center;
+}
+
+/* try Reveals stack layout */
+.reveal .r-stack > p > * {
+  grid-area: 1/1;
+  margin: auto;
+}
+/* use Kevin Powels cool trick: https://www.youtube.com/watch?v=cs37yx73b1o */
+.reveal .r-stack > p {
+  display: contents;
+}
+
 /*********************************************
    * MARIO: COMMENT BUBBLES
    *********************************************/
