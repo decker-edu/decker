@@ -3,10 +3,12 @@
 
 module Text.Decker.Server.Types where
 
-import Control.Concurrent
+import Control.Concurrent.STM (TChan)
 import Control.Lens
 import qualified Data.Set as Set
+import qualified Data.Text as Text
 import Data.Time
+import Network.Wai (pathInfo)
 import Network.WebSockets
 import Relude
 import Web.Scotty.Trans
@@ -20,20 +22,9 @@ instance ScottyError Text where
   stringError = toText
   showError = toLazy
 
-type AppScottyM = ScottyT Text ServerM
+type AppScottyM a = ScottyT Text (ReaderT Server IO) a
 
-type AppActionM = ActionT Text ServerM
-
-newtype ServerM a = ServerM
-  { runServerM :: ReaderT Server IO a
-  }
-  deriving
-    ( Applicative,
-      Functor,
-      Monad,
-      MonadIO,
-      MonadReader Server
-    )
+type AppActionM a = ActionT Text (ReaderT Server IO) a
 
 data ServerState = ServerState
   { clients :: [Client],
@@ -52,9 +43,13 @@ data ActionMsg
   deriving (Show)
 
 data Server = Server
-  { _threadId :: ThreadId,
+  { _actionChan :: TChan ActionMsg,
     _serverState :: TVar ServerState
   }
   deriving (Eq)
 
 makeLenses ''Server
+
+requestPathText = Text.intercalate "/" . pathInfo <$> request
+
+requestPathString = toString . Text.intercalate "/" . pathInfo <$> request

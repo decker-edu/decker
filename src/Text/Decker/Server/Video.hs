@@ -1,45 +1,38 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Server.Video where
 
-import Control.Concurrent.STM (TChan, writeTChan)
+import Control.Concurrent.STM (writeTChan)
 import Control.Lens ((^.))
-import Control.Monad.Catch
 import Control.Monad.State
-import Data.Aeson hiding (json)
 import qualified Data.ByteString as BS
 import qualified Data.List as List
 import Data.Maybe
-import qualified Data.Set as Set
-import qualified Data.Text as Text
 import Network.HTTP.Types
-import Network.Wai
-import Network.Wai.Parse
 import Relude
 import System.Directory
 import System.FilePath.Glob
 import System.FilePath.Posix
-import System.IO.Streams (connect, withFileAsOutput)
 import System.Process
 import Text.Decker.Filter.Local (randomId)
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Exception
-  ( DeckerException (InternalException),
-  )
 import Text.Decker.Project.ActionContext
 import Text.Decker.Server.Types
 import Text.Regex.TDFA hiding (empty)
-import Web.Scotty
+import Web.Scotty.Trans
 
 listRecordings :: AppActionM ()
 listRecordings = do
-  status forbidden403
-  -- r <- request
-  -- path <- pathInfo <$> request
-  -- webm <- Text.intercalate "/" path 
-  -- webms <- liftIO $ existingVideos webm
-  -- json webms
+  webm <- requestPathString
+  webms <- liftIO $ existingVideos webm
+  json webms
+
+-- | Returns the list of video fragments under the same name. It include is True
+-- the actually uploaded file is included in the list.
+existingVideos :: FilePath -> IO [FilePath]
+existingVideos webm = do
+  let [dir, file, ext] = map ($ webm) [takeDirectory, takeFileName . dropExtension, takeExtension]
+  sort <$> globDir1 (compile $ file <> "*" <> ext) dir
 
 -- Unique transient tmp filename
 uniqueTransientFileName :: FilePath -> IO FilePath
@@ -55,21 +48,23 @@ uniqueTransientFileName base = do
 uploadRecording :: ActionContext -> Bool -> AppActionM ()
 uploadRecording context append = do
   let channel = context ^. actionChan
-  destination <- Text.intercalate "/" . map toLazy . pathInfo <$> request
+  destination <- requestPathString
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && "-recording.webm" `List.isSuffixOf` destination
     then do
       tmp <- liftIO $ uniqueTransientFileName destination
-      bodyReader >>= writeBody tmp
+      reader <- bodyReader
+      liftIO $ writeBody tmp reader
       let operation = if append then Append tmp destination else Replace tmp destination
       atomically $ writeTChan channel (UploadComplete operation)
     else status status406
-  where
-    writeBody path reader = do
-      chunk <- reader
-      when (not (BS.empty chunk)) $ do
-        BS.appendFile path chunk
-        writeBody path reader
+
+writeBody :: FilePath -> IO ByteString -> IO ()
+writeBody path reader = do
+  chunk <- reader
+  unless (BS.null chunk) $ do
+    BS.appendFile path chunk
+    writeBody path reader
 
 -- | Converts a WEBM video file into an MP4 video file on the fast track. The
 -- video stream is assumed to be H264 and is  not transcoded. The audio is
@@ -107,7 +102,7 @@ concatVideoMp4 ffmpegArgs webms mp4 = do
   concatVideoMp4' ffmpegArgs listFile mp4
 
 mkListFile webms mp4 = do
-  let listFile = (mp4 <.> "list")
+  let listFile = mp4 <.> "list"
   writeFile listFile (List.unlines $ map (\f -> "file '../" <> f <> "'") webms)
   return listFile
 
@@ -121,13 +116,6 @@ concatVideoMp4' ffmpegArgs listFile mp4 = do
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
       renameFile tmp dst
-
--- | Returns the list of video fragments under the same name. It include is True
--- the actually uploaded file is included in the list.
-existingVideos :: FilePath -> IO [FilePath]
-existingVideos webm = do
-  let [dir, file, ext] = map ($ webm) [takeDirectory, takeFileName . dropExtension, takeExtension]
-  sort <$> globDir1 (compile $ file <> "*" <> ext) dir
 
 -- | Atomically moves the transcoded upload into place.  All existing parts of
 -- previous uploads are removed.

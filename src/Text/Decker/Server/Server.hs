@@ -21,11 +21,7 @@ import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Network.WebSockets
-import Network.WebSockets.Snap
 import Relude
-import Snap.Core
-import Snap.Http.Server
-import Snap.Util.FileServe
 import System.Directory
 import System.FilePath.Posix
 import System.IO.Streams (connect, withFileAsOutput)
@@ -35,24 +31,7 @@ import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Types
 import Text.Decker.Server.Video
-
--- Logging and port configuration for the server.
-serverConfig :: Int -> String -> IO (Config Snap a)
-serverConfig port bind = do
-  let accessLog = transientDir </> "server-access.log"
-  let errorLog = transientDir </> "server-error.log"
-  createDirectoryIfMissing True transientDir
-  return
-    ( setVerbose True $
-        setBind (fromString bind) $
-          setPort port $
-            setAccessLog (ConfigFileLog accessLog) $
-              setErrorLog (ConfigFileLog errorLog) defaultConfig ::
-        Config Snap a
-    )
-
--- initState :: IO (MVar ServerState)
--- initState = newMVar ([], Set.fromList ["index.html"])
+import Web.Scotty.Trans
 
 addClient :: MVar ServerState -> Client -> IO ()
 addClient state client = modifyMVar_ state add
@@ -81,15 +60,6 @@ reloadClients server = withMVar server (mapM_ reload . fst)
     reload :: Client -> IO ()
     reload (_, conn) = sendTextData conn ("reload!" :: Text.Text)
 
-sslCert = $(embedFile "tls/decker-ssl.crt")
-
-sslKey = $(embedFile "tls/decker-ssl.key")
-
-installSSLCert :: IO ()
-installSSLCert = do
-  BS.writeFile (transientDir </> "decker-ssl.crt") sslCert
-  BS.writeFile (transientDir </> "decker-ssl.key") sslKey
-
 aPort :: Flags -> Bool
 aPort (PortFlag _) = True
 aPort _ = False
@@ -105,24 +75,28 @@ runHttpServer :: ActionContext -> IO ()
 runHttpServer context = do
   let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
   let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
-  installSSLCert
   let state = context ^. server
-  registry <- newTMVarIO Set.empty
-  let routes =
-        route
-          [ ("/reload", runWebSocketsSnap $ reloader state),
-            ("/reload.html", serveFile $ "test" </> "reload.html"),
-            (fromString supportPath, serveSupport context state),
-            ("/", method PUT $ uploadResource uploadable),
-            ("/", method GET $ serveDirectoryNoCaching state publicDir),
-            ("/", method HEAD $ headDirectory publicDir),
-            ("/recordings", method GET listRecordings ),
-            ("/replace", method PUT $ uploadRecording context False),
-            ("/append", method PUT $ uploadRecording context True)
-          ]
-  startUpdater state
-  config <- serverConfig port bind
-  simpleHttpServe config routes
+  let chan = context ^. actionChan
+  let server = Server state chan
+  scotty port $ do
+    head "/" $ headDirectory publicDir
+    put "/" $ uploadResource uploadable
+    middleware $ staticPolicy (noDots >-> addBase publicDir)
+
+--       route
+--         [ ("/reload", runWebSocketsSnap $ reloader state),
+--           ("/reload.html", serveFile $ "test" </> "reload.html"),
+--           (fromString supportPath, serveSupport context state),
+--           ("/", method PUT $ uploadResource uploadable),
+--           ("/", method GET $ serveDirectoryNoCaching state publicDir),
+--           ("/", method HEAD $ headDirectory publicDir),
+--           ("/recordings", method GET listRecordings),
+--           ("/replace", method PUT $ uploadRecording context False),
+--           ("/append", method PUT $ uploadRecording context True)
+--         ]
+-- startUpdater state
+-- config <- serverConfig port bind
+-- simpleHttpServe config routes
 
 tenSeconds = 10 * 10 ^ 6
 
@@ -148,9 +122,9 @@ startUpdater state = do
 -- | Save the request body in the project directory under the request path. But
 -- only if the request path ends on one of the suffixes and the local directory
 -- already exists. Do this atomically.
-uploadResource :: MonadSnap m => [String] -> m ()
+uploadResource :: [String] -> AppActionM ()
 uploadResource suffixes = do
-  destination <- decodeUtf8 <$> getsRequest rqPathInfo
+  destination <- requestPathString
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && any (`isSuffixOf` destination) suffixes
     then do
@@ -159,13 +133,13 @@ uploadResource suffixes = do
       liftIO $ renameFile tmp destination
     else modifyResponse $ setResponseStatus 500 "Illegal path suffix"
 
-headDirectory :: MonadSnap m => FilePath -> m ()
+headDirectory :: FilePath -> AppActionM ()
 headDirectory directory = do
-  path <- getSafePath
+  path <- requestPathString
   exists <- liftIO $ doesFileExist (directory </> path)
   if exists
-    then finishWith $ setResponseCode 200 emptyResponse
-    else finishWith $ setResponseCode 204 emptyResponse
+    then status status200
+    else status status204
 
 -- serveDirectoryWith config directory
 -- where
@@ -175,14 +149,14 @@ headDirectory directory = do
 -- | Serves all files in the directory. If it is one of the optional annotation
 -- and recording stuff that does not exist (yet), return a "204 No Content"
 -- instead of a 404 so that the browser does not need to flag the 404.
-serveDirectoryNoCaching :: MonadSnap m => MVar ServerState -> FilePath -> m ()
+serveDirectoryNoCaching :: MVar ServerState -> FilePath -> AppActionM ()
 serveDirectoryNoCaching state directory = do
   serveDirectory directory
   modifyResponse $ addHeader "Cache-Control" "no-store"
   path <- getSafePath
   liftIO $ addPage state path
 
-serveSupport :: (MonadSnap m) => ActionContext -> MVar ServerState -> m ()
+serveSupport :: ActionContext -> MVar ServerState -> AppActionM ()
 serveSupport context state =
   if context ^. devRun
     then do
@@ -197,17 +171,7 @@ serveSupport context state =
 firstJustM :: [IO (Maybe a)] -> IO (Maybe a)
 firstJustM = foldM (\b a -> do if isNothing b then a else return b) Nothing
 
-allMimeTypes :: MimeMap
-allMimeTypes =
-  Map.union
-    ( Map.fromList
-        [ (".wasm", "application/wasm"),
-          (".mjs", "text/javascript")
-        ]
-    )
-    defaultMimeTypes
-
-serveResource :: (MonadSnap m) => Resources -> FilePath -> m ()
+serveResource :: Resources -> FilePath -> AppActionM ()
 serveResource (Resources decker pack) path = do
   resource <- liftIO $ firstJustM [readResource path pack, readResource path decker]
   case resource of
