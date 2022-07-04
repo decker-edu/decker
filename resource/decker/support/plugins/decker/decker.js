@@ -90,10 +90,12 @@ function currentDate() {
 
 function prepareTaskLists() {
   for (let cb of document.querySelectorAll(
-    '.reveal ul.task-list>li>input[type="checkbox"]'
+    '.reveal ul>li>input[type="checkbox"][disabled]'
   )) {
-    var li = cb.parentElement;
+    const li = cb.parentElement;
     li.classList.add(cb.checked ? "task-yes" : "task-no");
+    const ul = li.parentElement;
+    ul.classList.add("task-list");
   }
 }
 
