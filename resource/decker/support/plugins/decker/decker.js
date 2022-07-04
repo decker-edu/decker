@@ -90,17 +90,21 @@ function currentDate() {
 
 function prepareTaskLists() {
   for (let cb of document.querySelectorAll(
-    '.reveal ul.task-list>li>input[type="checkbox"]'
+    '.reveal ul>li>input[type="checkbox"]:disabled'
   )) {
-    var li = cb.parentElement;
+    const li = cb.parentElement;
     li.classList.add(cb.checked ? "task-yes" : "task-no");
+
+    // since pandoc's HTML writer messes this up for incremental lists,
+    // let us add the class task-list to the ul element ourselves
+    li.parentElement.classList.add("task-list");
   }
 }
 
 // wrap iframe demos in a div that offers a fullscreen button.
 // only do this if the browser supports the Fullscreen API.
 // don't do this for Safari, since its webkit-prefixed version
-// does not work propertly: one cannot put an iframe to fullscreen
+// does not work properly: one cannot put an iframe to fullscreen
 // if the slides are in fullscreen already (which is the standard
 // presentation setting).
 // we wrap the div in any case to make the css simpler.
