@@ -90,10 +90,12 @@ function currentDate() {
 
 function prepareTaskLists() {
   for (let cb of document.querySelectorAll(
-    '.reveal ul.task-list>li>input[type="checkbox"]'
+    '.reveal ul>li>input[type="checkbox"][disabled]'
   )) {
-    var li = cb.parentElement;
+    const li = cb.parentElement;
     li.classList.add(cb.checked ? "task-yes" : "task-no");
+    const ul = li.parentElement;
+    ul.classList.add("task-list");
   }
 }
 
@@ -280,7 +282,18 @@ function continueWhereYouLeftOff(deck) {
       // store current slide index in localStorage
       const slideIndex = deck.getIndices();
       if (slideIndex && slideIndex.h != 0) {
+        // store current slide index (h- and v-index and fragment)
         localStorage.setItem(deckPathname, JSON.stringify(slideIndex));
+
+        // store percentage of slides visited
+        const idx = slideIndex.h + 1; // starts at 0
+        const nSlides = deck.getTotalSlides();
+        const percent = Math.round((100.0 * idx) / nSlides);
+        const key = deckPathname + "-percentage";
+        const percentBefore = localStorage.getItem(key);
+        if (percent > percentBefore) {
+          localStorage.setItem(key, percent);
+        }
       }
     });
   }
