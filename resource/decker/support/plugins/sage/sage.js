@@ -29,6 +29,9 @@ function build_sage_url(html) {
         padding:    10px;
         box-sizing: border-box;
     }
+    body > .media > figure {
+      margin: 0;
+    }
     .sagecell {
         font-size: 20px;
     }
