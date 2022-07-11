@@ -692,7 +692,7 @@ class SlideMenu {
     if (lang === "de") {
       this.localization = {
         open_button_label: "Navigationsmenu öffnen",
-        home_button_label: "Zur zur Materialübersicht",
+        home_button_label: "Zurück zur Materialübersicht",
         search_button_label: "Suchleiste umschalten",
         print_pdf_label: "Als PDF drucken",
         open_settings_label: "Einstellungen öffnen",
