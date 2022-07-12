@@ -3,7 +3,6 @@
 module Text.Decker.Server.Video where
 
 import Control.Concurrent.STM (writeTChan)
-import Control.Lens ((^.))
 import Control.Monad.State
 import qualified Data.ByteString as BS
 import qualified Data.List as List
@@ -16,16 +15,32 @@ import System.FilePath.Posix
 import System.Process
 import Text.Decker.Filter.Local (randomId)
 import Text.Decker.Internal.Common
-import Text.Decker.Project.ActionContext
 import Text.Decker.Server.Types
 import Text.Regex.TDFA hiding (empty)
 import Web.Scotty.Trans
 
+-- | Returns a JSON list of all existing WEBM video fragments for a recording
 listRecordings :: AppActionM ()
 listRecordings = do
   webm <- requestPathString
   webms <- liftIO $ existingVideos webm
   json webms
+
+-- | Accepts the upload of a recording fragment. Either appends to existing
+-- recordings or replaces them.
+uploadRecording :: Bool -> AppActionM ()
+uploadRecording append = do
+  chan <- reader channel
+  destination <- requestPathString
+  exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
+  if exists && "-recording.webm" `List.isSuffixOf` destination
+    then do
+      tmp <- liftIO $ uniqueTransientFileName destination
+      reader <- bodyReader
+      liftIO $ writeBody tmp reader
+      let operation = if append then Append tmp destination else Replace tmp destination
+      atomically $ writeTChan chan (UploadComplete operation)
+    else status status406
 
 -- | Returns the list of video fragments under the same name. It include is True
 -- the actually uploaded file is included in the list.
@@ -44,20 +59,6 @@ uniqueTransientFileName base = do
       <> "-"
       <> id
       <.> takeExtension base
-
-uploadRecording :: ActionContext -> Bool -> AppActionM ()
-uploadRecording context append = do
-  let channel = context ^. actionChan
-  destination <- requestPathString
-  exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
-  if exists && "-recording.webm" `List.isSuffixOf` destination
-    then do
-      tmp <- liftIO $ uniqueTransientFileName destination
-      reader <- bodyReader
-      liftIO $ writeBody tmp reader
-      let operation = if append then Append tmp destination else Replace tmp destination
-      atomically $ writeTChan channel (UploadComplete operation)
-    else status status406
 
 writeBody :: FilePath -> IO ByteString -> IO ()
 writeBody path reader = do

@@ -32,9 +32,8 @@ where
 
 import Control.Exception
 import qualified Data.Aeson as A
-import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.Aeson.Key as Key
-import qualified Data.HashMap.Strict as HashMap
+import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.List as List
 import Data.List.Safe ((!!))
 import qualified Data.Map.Lazy as Map
@@ -88,7 +87,7 @@ toPandocMeta _ = Meta M.empty
 
 toPandocMeta' :: Y.Value -> MetaValue
 toPandocMeta' (Y.Object m) =
-  MetaMap $ Map.fromList $ map (\(k, v) -> (Key.toText k, toPandocMeta' v)) $ KeyMap.toList m
+  MetaMap $ Map.fromList $ map (bimap Key.toText toPandocMeta') $ KeyMap.toList m
 toPandocMeta' (Y.Array vector) =
   MetaList $ map toPandocMeta' $ Vec.toList vector
 -- Playing around with #317
@@ -110,7 +109,7 @@ fromPandocMeta :: Meta -> A.Value
 fromPandocMeta (Meta map) = fromPandocMeta' (MetaMap map)
 
 fromPandocMeta' :: MetaValue -> A.Value
-fromPandocMeta' (MetaMap map) = A.Object (KeyMap.fromList $ List.map (\(k, v) -> (Key.fromText k, v)) $ Map.toList $ Map.map fromPandocMeta' map)
+fromPandocMeta' (MetaMap map) = A.Object (KeyMap.fromList $ List.map (first Key.fromText) $ Map.toList $ Map.map fromPandocMeta' map)
 fromPandocMeta' (MetaList list) = A.Array (Vec.fromList $ List.map fromPandocMeta' list)
 fromPandocMeta' (MetaBool value) = A.Bool value
 fromPandocMeta' (MetaString value) =
@@ -160,7 +159,7 @@ setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
         InternalException $ "Cannot set meta value on non object at: " <> show key
 
 readMetaValue :: Text -> Text -> Meta -> Meta
-readMetaValue key value = setMetaValue key (maybe value show $ (readMaybe (toString value) :: Maybe Bool))
+readMetaValue key value = setMetaValue key (maybe value show (readMaybe (toString value) :: Maybe Bool))
 
 -- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
 -- Apply the function to the value if the key exists.
@@ -347,7 +346,7 @@ mapMetaM f meta = do
 -- future.
 mapMetaValuesM ::
   (MonadFail m, Monad m) => (Text -> m Text) -> MetaValue -> m MetaValue
-mapMetaValuesM f value = map' value
+mapMetaValuesM f = map'
   where
     map' (MetaMap m) =
       MetaMap . Map.fromList
@@ -361,7 +360,7 @@ mapMetaValuesM f value = map' value
 -- Converts MetaInlines to MetaStrings. This may be a problem in some distant
 -- future.
 mapMetaValues :: (Text -> Text) -> MetaValue -> MetaValue
-mapMetaValues f value = map' value
+mapMetaValues f = map'
   where
     map' (MetaMap m) =
       MetaMap . Map.fromList $ map (\(k, v) -> (k,) $ map' v) (Map.toList m)

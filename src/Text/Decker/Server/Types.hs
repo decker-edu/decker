@@ -22,14 +22,12 @@ instance ScottyError Text where
   stringError = toText
   showError = toLazy
 
-type AppScottyM a = ScottyT Text (ReaderT Server IO) a
-
-type AppActionM a = ActionT Text (ReaderT Server IO) a
-
 data ServerState = ServerState
-  { clients :: [Client],
-    observed :: Set.Set FilePath
+  { _clients :: [Client],
+    _observed :: Set.Set FilePath
   }
+
+makeLenses ''ServerState
 
 data VideoOperation
   = Replace FilePath FilePath
@@ -43,12 +41,27 @@ data ActionMsg
   deriving (Show)
 
 data Server = Server
-  { _actionChan :: TChan ActionMsg,
-    _serverState :: TVar ServerState
+  { channel :: TChan ActionMsg,
+    serverState :: TVar ServerState
   }
   deriving (Eq)
 
-makeLenses ''Server
+type AppScottyM a = ScottyT Text (ReaderT Server IO) a
+
+newtype AppActionM a = AppActionM
+  { runAppActionM :: ReaderT Server IO a
+  }
+  deriving
+    ( Applicative,
+      Functor,
+      Monad,
+      MonadIO,
+      MonadReader Server
+    )
+
+runAction :: Server -> AppActionM Response -> IO Response
+runAction server action =
+  runReaderT (runAppActionM action) server
 
 requestPathText = Text.intercalate "/" . pathInfo <$> request
 

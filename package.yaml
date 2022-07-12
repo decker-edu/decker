@@ -70,6 +70,7 @@ dependencies:
   - lens-action
   - lens-aeson
   - listsafe
+  - mime-types
   - modern-uri
   - monad-loops
   - mtl
@@ -102,6 +103,7 @@ dependencies:
   - vector
   - wai
   - wai-extra
+  - warp
   - websockets
   - wreq
   - xml-conduit

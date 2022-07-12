@@ -8,11 +8,11 @@ packages:
   - "."
 extra-deps: []
 
-# This is currently needed on M1 macOS. Keep the version number current!
+# As of lts-19.13 this is still needed on M1 macOS.
 extra-include-dirs:
-  - /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/usr/include/ffi
+  - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi
 
-resolver: lts-19.11
+resolver: lts-19.13
 
 # Maybe we still need this on Windows
 # ghc-options:

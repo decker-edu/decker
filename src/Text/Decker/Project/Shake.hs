@@ -28,6 +28,7 @@ import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.List.Extra as List
 import Data.Maybe
+import qualified Data.Set as Set
 import Data.Time
 import Development.Shake hiding (doesDirectoryExist, putError)
 import GHC.IO.Exception (ExitCode (ExitFailure))
@@ -35,7 +36,6 @@ import NeatInterpolation
 import Relude hiding (state)
 import qualified System.Console.GetOpt as GetOpt
 import System.Directory as Dir
-import System.Environment
 import qualified System.FSNotify as Notify
 import System.FilePath.Posix
 import System.Info
@@ -281,7 +281,7 @@ initContext extra meta = do
   createDirectoryIfMissing True transientDir
   devRun <- isDevelopmentRun
   external <- checkExternalPrograms
-  server <- newMVar ([], fromList [])
+  server <- newTVarIO (ServerState [] Set.empty)
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
@@ -335,7 +335,7 @@ withShakeLock perform = do
 currentlyServedPages :: Action [FilePath]
 currentlyServedPages = do
   context <- actionContext
-  (_, pages) <- liftIO $ readMVar (context ^. server)
+  (ServerState _ pages) <- liftIO $ readTVarIO (context ^. server)
   return $ toList pages
 
 openBrowser :: String -> IO ()
