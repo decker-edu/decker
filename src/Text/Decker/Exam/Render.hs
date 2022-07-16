@@ -144,10 +144,10 @@ renderQuestionCatalog base questions = do
           H.head $ do
             H.meta ! A.charset "utf-8"
             H.title "Question Catalog"
-            H.script ! A.type_ "module" ! A.src "/support/examiner/catalog.js" $ ""
+            H.script ! A.type_ "module" ! A.src "/support/plugins/examiner/catalog.js" $ ""
             H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
-            H.script ! A.src "/support/examiner/reload.js" $ ""
-            H.link ! A.rel "stylesheet" ! A.href "/support/examiner/catalog.css"
+            H.script ! A.src "/support/plugins/examiner/reload.js" $ ""
+            H.link ! A.rel "stylesheet" ! A.href "/support/plugins/examiner/catalog.css"
           H.body $ do
             H.header $
               H.h1 ("Question Catalog (" <> show (length questions) <> ")")
