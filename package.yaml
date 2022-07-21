@@ -99,6 +99,7 @@ dependencies:
   - time
   - transformers
   - unordered-containers
+  - uri-encode
   - utf8-string
   - vector
   - websockets

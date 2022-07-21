@@ -1,5 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 -- TODO: Background movies do not work (unclear tags compile correctly)
@@ -11,7 +9,7 @@ module Text.Decker.Filter.Media where
 import Control.Monad.Catch
 import Data.List (lookup)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (Maybe (Nothing), fromJust)
+import Data.Maybe
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import HTMLEntities.Text (text)
@@ -235,7 +233,7 @@ imageCompilers =
 imageBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 imageBlock uri title caption = do
   turi <- lift $ transformUri uri ""
-  let turl = URI.render turi
+  let turl = renderUriDecode turi
   let fileName = toText $ uriFilePath turi
   (innerSizes, outerSizes) <- calcImageSizes
   imgAttr <- do
@@ -283,7 +281,7 @@ codeBlock code caption = do
 iframeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 iframeBlock uri title caption = do
   turi <- lift $ transformUri uri ""
-  let turl = URI.render turi
+  let turl = renderUriDecode turi
   xformRersourceAttribs ["image"]
   (innerSizes, outerSizes) <- calcIframeSizes
   iframeAttr <- do
@@ -307,7 +305,7 @@ iframeBlock uri title caption = do
 objectBlock :: Container c => Text -> URI -> Text -> [Inline] -> Attrib c
 objectBlock otype uri title caption = do
   turi <- lift $ transformUri uri ""
-  let turl = URI.render turi
+  let turl = renderUriDecode turi
   (innerSizes, outerSizes) <- calcIframeSizes
   objectAttr <- do
     injectAttribute ("data", turl)
@@ -368,7 +366,7 @@ streamBlock uri title caption = do
   (innerSizes, outerSizes) <- calcIframeSizes
   iframeAttr <- do
     takeAutoplay
-    injectAttribute ("src", URI.render streamUri)
+    injectAttribute ("src", renderUriDecode streamUri)
     injectAttribute ("allow", "fullscreen")
     injectStyles innerSizes
     extractAttr
@@ -386,7 +384,7 @@ streamBlock uri title caption = do
 mviewBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 mviewBlock uri title caption = do
   turi <- lift $ transformUri uri ""
-  let model = URI.render turi
+  let model = renderUriDecode turi
   pushAttribute ("model", model)
   mviewUri <- URI.mkURI "public:support/mview/mview.html"
   iframeBlock mviewUri title caption
@@ -397,8 +395,8 @@ audioBlock uri title caption = do
   mediaFrag <- mediaFragment
   let audioUri =
         if Text.null mediaFrag
-          then URI.render uri
-          else URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag}
+          then renderUriDecode uri
+          else renderUriDecode uri {URI.uriFragment = URI.mkFragment mediaFrag}
   audioAttr <- do
     takeClasses identity ["controls", "loop", "muted"]
     passAttribs identity ["controls", "loop", "muted", "preload"]
@@ -420,8 +418,8 @@ videoBlock uri title caption = do
   mediaFrag <- mediaFragment
   let videoUri =
         if Text.null mediaFrag
-          then URI.render uri
-          else URI.render uri {URI.uriFragment = URI.mkFragment mediaFrag}
+          then renderUriDecode uri
+          else renderUriDecode uri {URI.uriFragment = URI.mkFragment mediaFrag}
   xformRersourceAttribs ["poster"]
   (innerSizes, outerSizes) <- calcImageSizes
   videoAttr <- do
@@ -444,7 +442,7 @@ videoBlock uri title caption = do
 renderCodeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 renderCodeBlock uri title caption = do
   turi <- lift $ transformUri uri "svg"
-  let turl = URI.render turi
+  let turl = renderUriDecode turi
   let fileName = toText $ takeFileName $ toString turl
   (innerSizes, outerSizes) <- calcImageSizes
   imgAttr <- do
@@ -525,7 +523,7 @@ renderJavascript' attr uri =
       ( "",
         [],
         [ ("data-tag", "script"),
-          ("src", URI.render uri),
+          ("src", renderUriDecode uri),
           ("type", "module")
         ]
       )

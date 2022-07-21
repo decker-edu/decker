@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Header where
@@ -16,6 +14,7 @@ import Text.Decker.Internal.Exception
 import Text.Pandoc
 import Text.Pandoc.Walk
 import qualified Text.URI as URI
+import Text.Decker.Internal.URI
 
 transformHeader :: [Block] -> Filter [Block]
 transformHeader = foldlM (\blocks block -> (blocks <>) <$> transformHeader' block) []
@@ -31,38 +30,38 @@ transformHeader' h1@(Header 1 headAttr inlines)
       runAttrOn headAttr imgAttr $
         case classifyMedia uri imgAttr of
           ImageT -> do
-            injectAttribute ("data-background-image", URI.render uri)
+            injectAttribute ("data-background-image", renderUriDecode uri)
             passAttribs
               ("data-background-" <>)
               ["size", "position", "repeat", "opacity"]
             attr <- extractAttr
-            return $ [Header 1 attr rest]
+            return [Header 1 attr rest]
           VideoT -> do
-            injectAttribute ("data-background-video", URI.render uri)
+            injectAttribute ("data-background-video", renderUriDecode uri)
             takeClasses ("data-background-video-" <>) ["loop", "muted"]
             passAttribs ("data-background-" <>) ["size", "opacity"]
             passAttribs ("data-background-video-" <>) ["loop", "muted"]
             attr <- extractAttr
-            return $ [Header 1 attr rest]
+            return [Header 1 attr rest]
           IframeT -> do
-            injectAttribute ("data-background-iframe", URI.render uri)
+            injectAttribute ("data-background-iframe", renderUriDecode uri)
             takeClasses ("data-background-" <>) ["interactive"]
             passAttribs ("data-background-" <>) ["interactive"]
             attr <- extractAttr
-            return $ [Header 1 attr rest]
+            return [Header 1 attr rest]
           PdfT -> do
-            injectAttribute ("data-background-iframe", URI.render uri)
+            injectAttribute ("data-background-iframe", renderUriDecode uri)
             takeClasses ("data-background-" <>) ["interactive"]
             passAttribs ("data-background-" <>) ["interactive"]
             attr <- extractAttr
-            return $ [Header 1 attr rest]
+            return [Header 1 attr rest]
           _ -> return [h1]
     buildMediaHeader (Disposition _ Html) (Image imgAttr alt (url, title), rest) = do
       uri <- URI.mkURI url
       runAttrOn headAttr imgAttr $ do
         attr <- extractAttr
         imageBlock <- imageBlock uri title alt
-        return $ [Header 1 attr rest, imageBlock]
+        return [Header 1 attr rest, imageBlock]
     buildMediaHeader _ _ =
       bug $ InternalException "transformHeader: no last image in header"
 -- Header does not contain any images.

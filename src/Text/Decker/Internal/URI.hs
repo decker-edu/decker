@@ -10,6 +10,11 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.URI (URI)
 import qualified Text.URI as URI
+import Network.URI.Encode
+
+
+renderUriDecode :: URI -> Text
+renderUriDecode  = decodeText . URI.render 
 
 -- | Extracts the path extension from the URI path, if there is any.
 uriPathExtension :: URI -> Maybe Text
