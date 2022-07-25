@@ -74,6 +74,18 @@ newtype Legend = Legend Disp deriving (Show)
 
 newtype Disp = Disp {display :: Bool} deriving (Show)
 
+deriveJSON defaultOptions {fieldLabelModifier = drop 2} ''Dataset
+deriveJSON defaultOptions ''DataObj
+deriveJSON defaultOptions ''Disp
+deriveJSON defaultOptions {fieldLabelModifier = drop 3} ''Legend
+deriveJSON defaultOptions {fieldLabelModifier = drop 4} ''Plugin
+deriveJSON defaultOptions {fieldLabelModifier = drop 4} ''Ticks
+deriveJSON defaultOptions ''Axes
+deriveJSON defaultOptions ''Scales
+deriveJSON defaultOptions {fieldLabelModifier = drop 3} ''OptionsObj
+deriveJSON defaultOptions {fieldLabelModifier = drop 5} ''Chart
+deriveJSON defaultOptions ''PollMeta
+
 -- Look in YAML for poll:true to see if deck has poll,
 -- then look in slides for 'poll' to parse poll slides and build results chart
 handlePolls :: Pandoc -> Decker Pandoc
@@ -168,15 +180,3 @@ renderCanvas answers pm = Div ("", ["poll_results"], []) [Plain [canvas]]
     dataset = Dataset (color pm) (map (const 0) answers)
     dataO = DataObj answers [dataset]
     chartObj = Chart dataO (options pm)
-
-deriveJSON defaultOptions ''PollMeta
-deriveJSON defaultOptions {fieldLabelModifier = drop 5} ''Chart
-deriveJSON defaultOptions ''DataObj
-deriveJSON defaultOptions {fieldLabelModifier = drop 2} ''Dataset
-deriveJSON defaultOptions {fieldLabelModifier = drop 3} ''OptionsObj
-deriveJSON defaultOptions ''Scales
-deriveJSON defaultOptions {fieldLabelModifier = drop 3} ''Legend
-deriveJSON defaultOptions {fieldLabelModifier = drop 4} ''Plugin
-deriveJSON defaultOptions ''Axes
-deriveJSON defaultOptions ''Disp
-deriveJSON defaultOptions {fieldLabelModifier = drop 4} ''Ticks

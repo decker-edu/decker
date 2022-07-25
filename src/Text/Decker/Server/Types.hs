@@ -48,21 +48,10 @@ data Server = Server
 
 type AppScottyM a = ScottyT Text (ReaderT Server IO) a
 
-newtype AppActionM a = AppActionM
-  { runAppActionM :: ReaderT Server IO a
-  }
-  deriving
-    ( Applicative,
-      Functor,
-      Monad,
-      MonadIO,
-      MonadReader Server
-    )
+type AppActionM a = ActionT Text (ReaderT Server IO) a
 
-runAction :: Server -> AppActionM Response -> IO Response
-runAction server action =
-  runReaderT (runAppActionM action) server
-
+requestPathText :: AppActionM Text
 requestPathText = Text.intercalate "/" . pathInfo <$> request
 
+requestPathString :: AppActionM String
 requestPathString = toString . Text.intercalate "/" . pathInfo <$> request

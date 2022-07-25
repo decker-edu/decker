@@ -105,6 +105,8 @@ dependencies:
   - wai-extra
   - warp
   - websockets
+  - wai-websockets
+  - wai-middleware-static
   - wreq
   - xml-conduit
   - xml-types

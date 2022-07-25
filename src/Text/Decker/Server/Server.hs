@@ -27,6 +27,8 @@ import Network.HTTP.Types
 import Network.Mime
 import Network.Wai.Handler.Warp
 import Network.Wai.Handler.Warp.Internal
+import Network.Wai.Handler.WebSockets (websocketsOr)
+import Network.Wai.Middleware.Static
 import Network.WebSockets
 import Relude
 import System.Directory
@@ -40,16 +42,19 @@ import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Web.Scotty.Trans as Scotty
 
-addClient :: MVar ServerState -> Client -> IO ()
-addClient state client = modifyMVar_ state add
+addClient :: TVar ServerState -> Client -> IO ()
+addClient tvar client =
+  atomically $ modifyTVar tvar add
   where
-    add (ServerState clients pages) = return (ServerState (client : clients) pages)
+    add (ServerState clients pages) =
+      ServerState (client : clients) pages
 
-removeClient :: MVar ServerState -> Int -> IO ()
-removeClient state cid = modifyMVar_ state remove
+removeClient :: TVar ServerState -> Int -> IO ()
+removeClient tvar cid =
+  atomically $ modifyTVar tvar remove
   where
     remove (ServerState clients pages) =
-      return (ServerState [c | c <- clients, cid /= fst c] pages)
+      ServerState [c | c <- clients, cid /= fst c] pages
 
 addPage :: AppActionM ()
 addPage = do
@@ -91,24 +96,23 @@ runHttpServer context = do
   let state = context ^. server
   let chan = context ^. actionChan
   let server = Server chan state
-  let options = Scotty.Options 1 (setPort port $ setHost "localhost" defaultSettings)
-  scottyOptsT options identity $
-    runAction server $ do
-      options "/" $ headDirectory publicDir
+  let opts = Scotty.Options 1 (setPort port $ setHost (fromString bind) defaultSettings)
+  scottyOptsT opts (useState server) $ do
+    middleware $ websocketsOr defaultConnectionOptions $ reloader state
+    middleware $ staticPolicy (noDots >-> addBase publicDir) -- No caching.
+    Scotty.options "/" $ headDirectory publicDir
+    Scotty.get "/" $ serveDirectory publicDir
+    Scotty.put "/" $ uploadResource uploadable
+    Scotty.get (fromString supportPath) $ serveSupport context
+    Scotty.get "/recordings" listRecordings
+    Scotty.put "/replace" $ uploadRecording False
+    Scotty.put "/append" $ uploadRecording True
 
--- Scotty.put "/" $ uploadResource uploadable
--- middleware $ staticPolicy (noDots >-> addBase publicDir)
+useState state x = runReaderT x state
 
 --       route
 --         [ ("/reload", runWebSocketsSnap $ reloader state),
 --           ("/reload.html", serveFile $ "test" </> "reload.html"),
---           (fromString supportPath, serveSupport context state),
---           ("/", method PUT $ uploadResource uploadable),
---           ("/", method GET $ serveDirectoryNoCaching state publicDir),
---           ("/", method HEAD $ headDirectory publicDir),
---           ("/recordings", method GET listRecordings),
---           ("/replace", method PUT $ uploadRecording context False),
---           ("/append", method PUT $ uploadRecording context True)
 --         ]
 -- startUpdater state
 -- config <- serverConfig port bind
@@ -177,8 +181,8 @@ serveDirectory directory = do
   addPage
   file $ directory </> path
 
-serveSupport :: ActionContext -> MVar ServerState -> AppActionM ()
-serveSupport context state =
+serveSupport :: ActionContext -> AppActionM ()
+serveSupport context =
   if context ^. devRun
     then do
       path <- requestPathString
@@ -199,17 +203,15 @@ serveResource (Resources decker pack) path = do
     Nothing -> status (Status 404 "Resource not found")
     Just content -> do
       setHeader "Cache-Control" "no-store"
-      setHeader "Content-Type" $ mimeLookup path
-      raw $ fromLazy content
-
-mimeLookup = encodeUtf8 . defaultMimeLookup . toText
+      setHeader "Content-Type" $ decodeUtf8 $ defaultMimeLookup (toText path)
+      raw $ toLazy content
 
 -- Accepts a request and adds the connection to the client list. Then reads the
 -- connection forever. Removes the client from the list on disconnect.
-reloader :: MVar ServerState -> PendingConnection -> IO ()
+reloader :: TVar ServerState -> PendingConnection -> IO ()
 reloader state pending = do
   connection <- acceptRequest pending
   cid <- randomIO -- Use a random number as client id.
   flip finally (removeClient state cid) $ do
     addClient state (cid, connection)
-    forever (receiveData connection :: IO Text.Text)
+    forever (receiveData connection :: IO Text)
