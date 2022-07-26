@@ -81,7 +81,7 @@ ol {
   list-style: outside disc;
 }
 
-ul li li {
+ul li ul li {
   list-style-type: circle;
 }
 
