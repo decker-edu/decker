@@ -125,7 +125,7 @@ class UIState {
         element.setAttribute("data-uistate", this.state.name);
       }
     } else {
-      console.warn("[] no state named: " + transition.next);
+      console.warn("[] no state named: " + transition.next);
     }
     // console.log(`[] current state: ${this.state.name}`);
   }
