@@ -159,7 +159,7 @@ $if(highlightjs)$
     import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
 $endif$
     import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
-    /* import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js'; */
+    import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
     import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
 
     let revealConfig = { 
@@ -193,9 +193,9 @@ $if(highlightjs)$
          highlightPlugin,
 $endif$
          notesPlugin,
-/* $if(live-captions)$
+$if(live-captions)$
          captionPlugin,
-$endif$ */
+$endif$
          a11yPlugin,
 $if(poll)$
          pollPlugin

@@ -9,33 +9,16 @@ import bwipjs from "../examiner/bwip.js";
 
 let localization;
 
-let menu_template = document.createElement("template");
-menu_template.innerHTML = String.raw`<div class="slide-in-left caption-options-menu" inert>
-      <button class="toggle-button">
-        <i class="fas fa-closed-captioning"></i>
-        <span>Activate Live-Captioning</span>
-      </button>
-      <button class="close-button">
-        <i class="fas fa-times"></i>
-        <span>Close</span>
-      </button>
-    </div>`;
-
 // Using the custom web component here is optional and can be replaced by something less
 // bleeding edge
 let button_template = document.createElement("template");
 button_template.innerHTML = String.raw`<button is="awesome-button" class="fa-button" icon="fa-closed-captioning" icon-style="fas" title="Activate Live Captioning" aria-label="Activate Live Captioning">
    </button>`;
 
-let caption_template = document.createElement("template");
-caption_template.innerHTML = String.raw`<div class="caption-area">
-    </div>`;
-
-/* A bit more robust than what is recommended:
- * https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API#javascript
- */
 let SpeechRecognitionImpl = undefined;
 
+/* Check if feature is available
+ * Usage tutorial: https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API */
 if (
   !!window.SpeechRecognition ||
   !(typeof webkitSpeechRecognition === "undefined")
@@ -360,39 +343,6 @@ class LiveCaptioning {
     }
 
     this.reveal = reveal;
-
-    /* Leave this for later generations here, if the window-placement API ever gets made a fully supported
-      * feature in all browsers ...
-     if ("getScreens" in window) {
-       navigator.permissions
-         .query({ name: "window-placement" })
-         .then((state) => {
-           if (state === "granted" && window.screen.isExtended) {
-             window
-               .getScreens()
-               .then((data) => {
-                 this.primaryScreen = data.screens.filter(
-                   (screen) => screen.isPrimary
-                 )[0];
-                 this.secondaryScreen = data.screens.filter(
-                   (screen) => !screen.isPrimary
-                 )[0];
-                 this.fullscreenCaptioning = true;
-               })
-               .catch((error) => {
-                 console.log(error);
-               });
-           } else {
-             console.error(
-               "Did not get window-placement permission or there are no other screens."
-             );
-           }
-         })
-         .catch((error) => {
-           console.error(error);
-         });
-     }
-     */
 
     reveal.addEventListener("ready", () => {
       Decker.addPresenterModeListener((on) => {
