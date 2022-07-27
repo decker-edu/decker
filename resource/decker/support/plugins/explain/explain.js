@@ -200,8 +200,8 @@ function videoFilenameBase() {
 
 // Navigates Reveal to the indexed slide in the explainTimes array.
 function goToSlide(index) {
-  if (explainTimes[index]) {
-    let slideId = explainTimes[index].slideId;
+  if (explainTimesPlay[index]) {
+    let slideId = explainTimesPlay[index].slideId;
     let indices = Reveal.getIndices(document.getElementById(slideId));
     Reveal.slide(indices.h, indices.v);
   }
