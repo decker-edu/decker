@@ -960,8 +960,10 @@ async function startRecording() {
     } finally {
       download(vblob, videoFilenameBase() + "-recording.webm");
       download(tblob, videoFilenameBase() + "-times.json");
-      download(vttblob, videoFilenameBase() + "-recording.vtt");
-      download(transcriptBlob, videoFilenameBase() + "-transcript.json");
+      if (webSpeech_shouldCaption) {
+        download(vttblob, videoFilenameBase() + "-recording.vtt");
+        download(transcriptBlob, videoFilenameBase() + "-transcript.json");
+      }
     }
 
     Reveal.removeEventListener("slidechanged", recordSlideChange);
