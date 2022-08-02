@@ -4,34 +4,37 @@ module Text.Decker.Internal.Meta
   ( DeckerException (..),
     FromMetaValue (..),
     addMetaValue,
-    globalMetaFileName,
-    mergePandocMeta,
-    pandocMeta,
-    setMetaValue,
-    readMetaValue,
-    adjustMetaValue,
-    adjustMetaValueM,
+    addMetaKeyValue,
     adjustMetaStringsBelow,
     adjustMetaStringsBelowM,
-    toPandocMeta,
-    toPandocMeta',
+    adjustMetaValue,
+    adjustMetaValueM,
+    embedMetaMeta,
+    fromPandocMeta,
+    globalMetaFileName,
     isMetaSet,
+    lookupInDictionary,
     lookupMeta,
     lookupMetaOrElse,
     lookupMetaOrFail,
-    lookupInDictionary,
     mapMeta,
     mapMetaM,
     mapMetaValues,
     mapMetaValuesM,
     mapMetaWithKey,
+    mergePandocMeta,
+    pandocMeta,
     readMetaDataFile,
-    embedMetaMeta,
+    readMetaValue,
+    setMetaValue,
+    toPandocMeta',
+    toPandocMeta,
   )
 where
 
 import Control.Exception
 import qualified Data.Aeson as A
+import qualified Data.Aeson.Encode.Pretty as A
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.List as List
@@ -235,6 +238,25 @@ addMetaValue key value meta =
         InternalException $
           "Cannot add meta value to non list at: " <> toString key
 
+-- | Adds a meta value to the map found at the compund key in the meta data.
+-- If any intermediate containers do not exist, they are created.
+addMetaKeyValue :: Text -> Text -> MetaValue ->  Meta -> Meta
+addMetaKeyValue loc key value meta =
+  case add (splitKey loc) (MetaMap (unMeta meta)) of
+    MetaMap map -> Meta map
+    _ -> meta
+  where
+    add [] (MetaMap m) = MetaMap $ M.insert key value m
+    add [""] (MetaMap m) = MetaMap $ M.insert key value m
+    add (k : p) (MetaMap m) =
+      case M.lookup k m of
+        Just value -> MetaMap $ M.insert k (add p value) m
+        _ -> MetaMap $ M.insert k (add p $ MetaMap M.empty) m
+    add _ _ =
+      throw $
+        InternalException $
+          "Cannot add meta value to non list at: " <> toString loc
+
 pandocMeta :: (Text -> Meta -> Maybe a) -> Pandoc -> Text -> Maybe a
 pandocMeta f (Pandoc m _) = flip f m
 
@@ -398,4 +420,4 @@ readMetaDataFile file =
 embedMetaMeta :: Pandoc -> Pandoc
 embedMetaMeta (Pandoc meta blocks) = Pandoc metaMeta blocks
   where
-    metaMeta = addMetaField "decker-meta" (decodeUtf8 $ A.encode $ fromPandocMeta meta :: Text) meta
+    metaMeta = addMetaField "decker-meta" (decodeUtf8 $ A.encodePretty $ fromPandocMeta meta :: Text) meta

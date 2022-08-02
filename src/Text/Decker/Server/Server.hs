@@ -16,9 +16,6 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
-import qualified Data.ByteString as BS
-import Data.FileEmbed
-import qualified Data.HashMap.Strict as Map
 import Data.List (isSuffixOf)
 import Data.Maybe
 import qualified Data.Set as Set
@@ -26,14 +23,12 @@ import qualified Data.Text as Text
 import Network.HTTP.Types
 import Network.Mime
 import Network.Wai.Handler.Warp
-import Network.Wai.Handler.Warp.Internal
 import Network.Wai.Handler.WebSockets (websocketsOr)
 import Network.Wai.Middleware.Static
 import Network.WebSockets
 import Relude
 import System.Directory
 import System.FilePath.Posix
-import System.IO.Streams (connect, withFileAsOutput)
 import System.Random
 import Text.Decker.Internal.Common
 import Text.Decker.Project.ActionContext
@@ -97,16 +92,17 @@ runHttpServer context = do
   let chan = context ^. actionChan
   let server = Server chan state
   let opts = Scotty.Options 1 (setPort port $ setHost (fromString bind) defaultSettings)
+  startUpdater state
   scottyOptsT opts (useState server) $ do
-    middleware $ websocketsOr defaultConnectionOptions $ reloader state
-    middleware $ staticPolicy (noDots >-> addBase publicDir) -- No caching.
     Scotty.options "/" $ headDirectory publicDir
-    Scotty.get "/" $ serveDirectory publicDir
     Scotty.put "/" $ uploadResource uploadable
+    Scotty.get "/" $ redirect "index.html"
     Scotty.get (fromString supportPath) $ serveSupport context
     Scotty.get "/recordings" listRecordings
     Scotty.put "/replace" $ uploadRecording False
     Scotty.put "/append" $ uploadRecording True
+    middleware $ websocketsOr defaultConnectionOptions $ reloader state
+    middleware $ staticPolicy (noDots >-> addBase publicDir) -- No caching.
 
 useState state x = runReaderT x state
 

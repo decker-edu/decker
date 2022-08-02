@@ -33,6 +33,7 @@ description: Please see the README at <https://gitlab2.informatik.uni-wuerzburg.
 
 dependencies:
   - aeson
+  - aeson-pretty
   - ansi-terminal
   - array
   - base >= 4.7 && < 5

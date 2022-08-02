@@ -55,6 +55,9 @@ menu:
   openOnInit: false
   loadIcons: false
 
+lang: de
+title: <Undefined>
+
 math:
   scale: 1
   macros:
