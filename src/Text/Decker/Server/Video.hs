@@ -22,7 +22,7 @@ import Web.Scotty.Trans
 -- | Returns a JSON list of all existing WEBM video fragments for a recording
 listRecordings :: AppActionM ()
 listRecordings = do
-  webm <- requestPathString
+  webm <- param "1"
   webms <- liftIO $ existingVideos webm
   json webms
 
@@ -30,8 +30,8 @@ listRecordings = do
 -- recordings or replaces them.
 uploadRecording :: Bool -> AppActionM ()
 uploadRecording append = do
+  destination <- param "1"
   chan <- reader channel
-  destination <- requestPathString
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && "-recording.webm" `List.isSuffixOf` destination
     then do
@@ -40,7 +40,9 @@ uploadRecording append = do
       liftIO $ writeBody tmp reader
       let operation = if append then Append tmp destination else Replace tmp destination
       atomically $ writeTChan chan (UploadComplete operation)
-    else status status406
+    else do 
+      text "ERROR: directory does not exist or file (suffix) is not uploadable" 
+      status status406
 
 -- | Returns the list of video fragments under the same name. It include is True
 -- the actually uploaded file is included in the list.

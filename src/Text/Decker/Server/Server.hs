@@ -94,13 +94,13 @@ runHttpServer context = do
   let opts = Scotty.Options 1 (setPort port $ setHost (fromString bind) defaultSettings)
   startUpdater state
   scottyOptsT opts (useState server) $ do
-    Scotty.options "/" $ headDirectory publicDir
-    Scotty.put "/" $ uploadResource uploadable
     Scotty.get "/" $ redirect "index.html"
+    Scotty.options (regex "^/(.*)$") $ headDirectory publicDir
     Scotty.get (fromString supportPath) $ serveSupport context
-    Scotty.get "/recordings" listRecordings
-    Scotty.put "/replace" $ uploadRecording False
-    Scotty.put "/append" $ uploadRecording True
+    Scotty.get (regex "^/recordings/(.*)$") listRecordings
+    Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
+    Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
+    Scotty.put (regex "^/(.*)$") $ uploadResource uploadable
     middleware $ websocketsOr defaultConnectionOptions $ reloader state
     middleware $ staticPolicy (noDots >-> addBase publicDir) -- No caching.
 
@@ -142,7 +142,7 @@ startUpdater state = do
 -- already exists. Do this atomically.
 uploadResource :: [String] -> AppActionM ()
 uploadResource suffixes = do
-  destination <- requestPathString
+  destination <- param "1"
   exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
   if exists && any (`isSuffixOf` destination) suffixes
     then do
@@ -151,11 +151,13 @@ uploadResource suffixes = do
       liftIO $ do
         writeBody tmp reader
         renamePath tmp destination
-    else status status406
+    else do
+      text "ERROR: directory does not exist or file (suffix) is not uploadable" 
+      status status406
 
 headDirectory :: FilePath -> AppActionM ()
 headDirectory directory = do
-  path <- requestPathString
+  path <- param "1"
   exists <- liftIO $ doesFileExist (directory </> path)
   if exists
     then status status200
