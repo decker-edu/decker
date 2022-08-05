@@ -35,17 +35,12 @@ caption_template.innerHTML = String.raw`<div class="caption-area">
  * https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API#javascript
  */
 let SpeechRecognitionImpl = undefined;
-let SpeechGrammarListImpl = undefined;
-let SpeechRecognitionEventImpl = undefined;
 
 if (
   !!window.SpeechRecognition ||
   !(typeof webkitSpeechRecognition === "undefined")
 ) {
   SpeechRecognitionImpl = window.SpeechRecognition || webkitSpeechRecognition;
-  SpeechGrammarListImpl = window.SpeechGrammarList || webkitSpeechGrammarList;
-  SpeechRecognitionEventImpl =
-    window.SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
 }
 
 /**
