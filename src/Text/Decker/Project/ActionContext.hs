@@ -6,7 +6,6 @@
 
 module Text.Decker.Project.ActionContext where
 
-import Control.Concurrent.MVar
 import Control.Concurrent.STM
 import Control.Lens
 import Data.Dynamic

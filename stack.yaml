@@ -8,13 +8,13 @@ packages:
   - "."
 extra-deps: []
 
-# As of lts-19.13 this is still needed on M1 macOS.
+# TODO As of lts-19.13 this is still needed on M1 macOS. Should not hurt elsewhere.
 extra-include-dirs:
   - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi
 
-resolver: lts-19.17
+resolver: lts-19.18
 
-# Maybe we still need this on Windows
+# TODO Maybe we still need this on Windows. But maybe not.
 # ghc-options:
 #   "$locals": -fhide-source-paths -Wno-missing-home-modules
 #   "$everything": -haddock
