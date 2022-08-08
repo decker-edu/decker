@@ -247,7 +247,7 @@ embedImages base (Image (id, cls, kv) inlines (url, title)) = do
   let dataUrl = concat ["data:image/", drop 1 ext, ";base64,", imgData]
   let styled =
         ("style", "width:100%;max-width:40em;") : filter ((/=) "style" . fst) kv
-  return $ Image (id, cls, styled) inlines (toText dataUrl, title)
+  return $ Image (id, cls, kv) inlines (toText dataUrl, title)
 embedImages base inline = return inline
 
 embedCode :: Block -> Block

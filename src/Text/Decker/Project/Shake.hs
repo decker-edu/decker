@@ -177,7 +177,6 @@ runCommand context command rules = do
     "crunch" -> crunchRecordings context
     "pdf" -> do
       putStrLn (toString pdfMsg)
-      channel <- atomically newTChan
       id <- forkServer context
       -- let rules' = want ["build-pdf"] >> withoutActions rules
       -- runShake context rules'

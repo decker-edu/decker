@@ -137,7 +137,7 @@ div#record-panel[data-uistate="RECORDING"].open {
   outline: none;
   background: none;
   font-family: "Font Awesome 5 Free";
-  font-weight: 400;
+  font-weight: bold;
   color: var(--icon-inactive-color);
 }
 
