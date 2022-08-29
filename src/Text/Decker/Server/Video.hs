@@ -44,7 +44,7 @@ uploadRecording append = do
       text "ERROR: directory does not exist or file (suffix) is not uploadable" 
       status status406
 
--- | Returns the list of video fragments under the same name. It include is True
+-- | Returns the list of video fragments under the same name. If include is True
 -- the actually uploaded file is included in the list.
 existingVideos :: FilePath -> IO [FilePath]
 existingVideos webm = do

@@ -10,7 +10,6 @@ module Text.Decker.Project.Shake
     putCurrentDocument,
     watchChangesAndRepeat,
     withShakeLock,
-    -- runHttpServerIO,
   )
 where
 
@@ -106,6 +105,11 @@ runShake context rules = do
   options <- deckerShakeOptions context
   shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
 
+runShakeSlyly :: ActionContext -> Rules () -> IO ()
+runShakeSlyly context rules = do
+  options <- deckerShakeOptions context
+  shakeArgsWith (options {shakeFiles = ".decker-crunch"}) deckerFlags (\_ _ -> return $ Just rules)
+
 runShakeForever :: Maybe ActionMsg -> ActionContext -> Rules () -> IO b
 runShakeForever last context rules = do
   dod <- debouncedMessage last
@@ -186,7 +190,7 @@ runCommand context command rules = do
   exitSuccess
 
 crunchRecordings :: ActionContext -> IO ()
-crunchRecordings context = runShake context crunchRules
+crunchRecordings context = runShakeSlyly context crunchRules
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =
