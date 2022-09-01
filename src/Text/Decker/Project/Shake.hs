@@ -108,7 +108,7 @@ runShake context rules = do
 runShakeSlyly :: ActionContext -> Rules () -> IO ()
 runShakeSlyly context rules = do
   options <- deckerShakeOptions context
-  shakeArgsWith (options {shakeFiles = ".decker-crunch"}) deckerFlags (\_ _ -> return $ Just rules)
+  shakeArgsWith (options {shakeFiles = transientDir </> "crunch"}) deckerFlags (\_ _ -> return $ Just rules)
 
 runShakeForever :: Maybe ActionMsg -> ActionContext -> Rules () -> IO b
 runShakeForever last context rules = do
