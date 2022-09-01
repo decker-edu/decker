@@ -560,6 +560,32 @@ class SlideMenu {
     }
   }
 
+  clearCurrentSlideMark() {
+    let listItems = this.menu.slide_list.childNodes;
+    for (let item of listItems) {
+      item.classList.remove("current-slide");
+    }
+  }
+
+  setCurrentSlideMark() {
+    let slide = this.reveal.getCurrentSlide();
+    let indices = this.reveal.getIndices(slide);
+    let item = undefined;
+    if (indices.v) {
+      item = this.getListItem(indices.h, indices.v);
+    } else {
+      item = this.getListItem(indices.h);
+    }
+    if (item) {
+      item.classList.add("current-slide");
+    }
+  }
+
+  updateCurrentSlideMark() {
+    this.clearCurrentSlideMark();
+    this.setCurrentSlideMark();
+  }
+
   initializeSettingsMenu() {
     let animations = this.reveal.getConfig().fragments;
     let mode = this.getColorModePreference();
@@ -703,6 +729,9 @@ class SlideMenu {
     }
     let anchors = this.reveal.getPlugin("ui-anchors");
     anchors.placeButton(this.open_button, this.position);
+    reveal.addEventListener("slidechanged", () =>
+      this.updateCurrentSlideMark()
+    );
   }
 }
 
