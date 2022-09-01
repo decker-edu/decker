@@ -3,9 +3,10 @@ flags:
     _regex-posix-clib: true
   pandoc:
     embed_data_files: false
-    trypandoc: false
+
 packages:
   - "."
+
 extra-deps: []
 
 # TODO As of lts-19.13 this is still needed on M1 macOS. Should not hurt elsewhere.
