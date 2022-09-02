@@ -103,6 +103,10 @@ m6' =
                 ]))
        ])
 
+m7 = Meta (M.fromList [])
+
+m7' = Meta (M.fromList [("toast", MetaString "TOAST")])
+
 metaTests = do
   describe "getMetaBool" $ do
     it "looks up a top-level boolean meta value" $
@@ -149,6 +153,9 @@ metaTests = do
   describe "adjustMetaStringsBelowM" $ do
     it "does adjust all string-ish values below the key" $
       adjustMetaStringsBelowM upCaseTextM "level1" m6 `shouldReturn` m6'
+  describe "addMetaKeyValue" $ do
+    it "adds a key value pair to the named dictionary" $
+      addMetaKeyValue "" "toast" (MetaString "TOAST") m7 `shouldBe` m7'
 
 replace :: MetaValue -> MetaValue
 replace _ = (MetaString "Gone.")

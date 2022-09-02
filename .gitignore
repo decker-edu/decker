@@ -10,7 +10,7 @@
 *.synctex.gz
 *.zip
 .DS_Store
-.decker
+.decker*
 .shake/
 .stack-work-profile/
 .stack-work/

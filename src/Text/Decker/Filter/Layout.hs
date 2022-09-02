@@ -69,7 +69,7 @@ hasRowLayout block = do
   let short = map findLayout (classes block)
   listToMaybe $ catMaybes $ long : short
   where
-    findLayout l = find ((l =~) . name) layouts
+    findLayout l = find ((l ==) . name) layouts
 
 renderRow :: Text -> AreaMap -> Row -> Maybe Block
 renderRow lname areaMap (SingleColumn area) =

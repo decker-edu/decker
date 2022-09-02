@@ -55,6 +55,9 @@ menu:
   openOnInit: false
   loadIcons: false
 
+lang: de
+title: <Undefined>
+
 math:
   scale: 1
   macros:
@@ -73,7 +76,7 @@ math:
     trans: ['{#1}\mkern-1mu^{\mathsf{T}}', 1]
     matrix: ['\begin{bmatrix} #1 \end{bmatrix}', 1]
     vector: ['\begin{pmatrix} #1 \end{pmatrix}', 1]
-    of: ['\left( #1 \right\)', 1]
+    of: ['\left( #1 \right)', 1]
     diff: ['\frac{\mathrm{d}{#1}}{\mathrm{d}{#2}}', 2]
     pdiff: ['\frac{\partial {#1}}{\partial {#2}}', 2]
     vc: ['{\mathbf{\boldsymbol{#1}}}', 1]

@@ -10,7 +10,6 @@ module Text.Decker.Project.Shake
     putCurrentDocument,
     watchChangesAndRepeat,
     withShakeLock,
-    -- runHttpServerIO,
   )
 where
 
@@ -28,6 +27,7 @@ import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.List.Extra as List
 import Data.Maybe
+import qualified Data.Set as Set
 import Data.Time
 import Development.Shake hiding (doesDirectoryExist, putError)
 import GHC.IO.Exception (ExitCode (ExitFailure))
@@ -35,7 +35,6 @@ import NeatInterpolation
 import Relude hiding (state)
 import qualified System.Console.GetOpt as GetOpt
 import System.Directory as Dir
-import System.Environment
 import qualified System.FSNotify as Notify
 import System.FilePath.Posix
 import System.Info
@@ -105,6 +104,11 @@ runShake :: ActionContext -> Rules () -> IO ()
 runShake context rules = do
   options <- deckerShakeOptions context
   shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
+
+runShakeSlyly :: ActionContext -> Rules () -> IO ()
+runShakeSlyly context rules = do
+  options <- deckerShakeOptions context
+  shakeArgsWith (options {shakeFiles = transientDir </> "crunch"}) deckerFlags (\_ _ -> return $ Just rules)
 
 runShakeForever :: Maybe ActionMsg -> ActionContext -> Rules () -> IO b
 runShakeForever last context rules = do
@@ -177,7 +181,6 @@ runCommand context command rules = do
     "crunch" -> crunchRecordings context
     "pdf" -> do
       putStrLn (toString pdfMsg)
-      channel <- atomically newTChan
       id <- forkServer context
       -- let rules' = want ["build-pdf"] >> withoutActions rules
       -- runShake context rules'
@@ -187,7 +190,7 @@ runCommand context command rules = do
   exitSuccess
 
 crunchRecordings :: ActionContext -> IO ()
-crunchRecordings context = runShake context crunchRules
+crunchRecordings context = runShakeSlyly context crunchRules
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =
@@ -281,7 +284,7 @@ initContext extra meta = do
   createDirectoryIfMissing True transientDir
   devRun <- isDevelopmentRun
   external <- checkExternalPrograms
-  server <- newMVar ([], fromList [])
+  server <- newTVarIO (ServerState [] Set.empty)
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
@@ -335,7 +338,7 @@ withShakeLock perform = do
 currentlyServedPages :: Action [FilePath]
 currentlyServedPages = do
   context <- actionContext
-  (_, pages) <- liftIO $ readMVar (context ^. server)
+  (ServerState _ pages) <- liftIO $ readTVarIO (context ^. server)
   return $ toList pages
 
 openBrowser :: String -> IO ()

@@ -161,6 +161,7 @@ deckerRules = do
       -- This is the right way to depend on an optional file. Just check for the
       -- files existence with the Shake function `doesFileExist`.
       exists <- doesFileExist annot
+      when exists $ need [annot]
       let url = serverUrl </> makeRelative publicDir src
       need [src]
       putInfo $ "# chrome started ... (for " <> out <> ")"

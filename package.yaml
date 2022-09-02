@@ -33,6 +33,7 @@ description: Please see the README at <https://gitlab2.informatik.uni-wuerzburg.
 
 dependencies:
   - aeson
+  - aeson-pretty
   - ansi-terminal
   - array
   - base >= 4.7 && < 5
@@ -70,6 +71,7 @@ dependencies:
   - lens-action
   - lens-aeson
   - listsafe
+  - mime-types
   - modern-uri
   - monad-loops
   - mtl
@@ -85,9 +87,8 @@ dependencies:
   - regex-tdfa
   - relude
   - scientific
+  - scotty
   - shake
-  - snap-core
-  - snap-server
   - split
   - stm
   - string-interpolate
@@ -101,8 +102,12 @@ dependencies:
   - unordered-containers
   - utf8-string
   - vector
+  - wai
+  - wai-extra
+  - warp
   - websockets
-  - websockets-snap
+  - wai-websockets
+  - wai-middleware-static
   - wreq
   - xml-conduit
   - xml-types
@@ -163,5 +168,4 @@ default-extensions:
   - QuasiQuotes
   - RecordWildCards
   - ScopedTypeVariables
-  - TemplateHaskell
   - TupleSections

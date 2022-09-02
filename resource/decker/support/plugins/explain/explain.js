@@ -77,7 +77,7 @@ class UIState {
   async transition(name) {
     let transition = this.state.transition[name];
     if (!transition) {
-      console.warn("[] no transition named: " + name);
+      console.warn("[] no transition named: " + name);
       return;
     }
 

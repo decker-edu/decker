@@ -14,7 +14,7 @@ import System.Exit
 import System.Process
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Helper (replaceSuffix)
+import Text.Decker.Internal.Helper (replaceSuffix, dropSuffix)
 import Text.Decker.Project.Project
 import Text.Decker.Server.Video
 
@@ -26,31 +26,31 @@ crunchRules = do
   (getGlobalMeta, getTargets, getTemplate) <- prepCaches
   want ["mp4s"]
   phony "mp4s" $ do
-    alwaysRerun
     targets <- getTargets
+    -- Need MP4 videos for each deck that has at least one WEBM fragment recorded.
     forM_ (targets ^. decks) $ \deck -> do
       let source = makeRelative publicDir deck
-      webms <- liftIO $ existingVideos (replaceSuffix "-deck.html" "-recording.webm" source)
+      let pattern = dropSuffix "-deck.html" source <> "*.webm"
+      webms <- getDirectoryFiles "" [pattern]
       unless (null webms) $ do
-        let publicMp4 = replaceSuffix "-deck.html" "-recording.mp4" deck
-        need [publicMp4]
+        need [replaceSuffix "-deck.html" "-recording.mp4" deck]
   alternatives $ do
     publicDir <//> "*-recording.mp4" %> \out -> do
       let src = makeRelative publicDir out
+      need [src]
       putNormal $ "# copy recording (for " <> out <> ")"
-      copyFile' src out
+      copyFileChanged src out
     "**/*-recording.mp4" %> \out -> do
-      let list = (out <.> "list")
+      let list = out <.> "list"
       need [list]
-      liftIO $ putStrLn $ "# ffmpeg ( for " <> out <> ")"
+      putNormal $ "# ffmpeg (for " <> out <> ")"
       liftIO $ concatVideoMp4' slow list out
     "**/*-recording.mp4.list" %> \out -> do
       alwaysRerun
-      let src = replaceSuffix ".mp4.list" ".webm" out
-      webms <- liftIO $ existingVideos src
-      let sorted = sort webms
-      writeFileChanged out (List.unlines $ map (\f -> "file '" <> takeFileName f <> "'") sorted)
-      need webms
+      let pattern = dropSuffix ".mp4.list" out <> "*.webm"
+      webms <- getDirectoryFiles "" [pattern]
+      putNormal $ "# collect WEBMs (for " <> out <> ")"
+      writeFileChanged out (List.unlines $ map (\f -> "file '" <> takeFileName f <> "'") $ sort webms)
 
 -- | Reads the 'comment' meta data field from the video container. Return True
 -- if the value is 'decker-crunched', False otherwise.
