@@ -379,26 +379,6 @@ function preparePresenterMode(deck) {
     return presenterMode;
   };
 
-  Decker.tripleClick = (callback) => {
-    let pushCount = 0;
-    let lastPush = null;
-
-    return () => {
-      let now = Date.now();
-      if (lastPush && now - lastPush < 500) {
-        pushCount++;
-      } else {
-        pushCount = 1;
-      }
-      lastPush = now;
-
-      if (pushCount == 3) {
-        pushCount = 0;
-        callback();
-      }
-    };
-  };
-
   deck.addKeyBinding(
     {
       keyCode: 80,
