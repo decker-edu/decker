@@ -212,4 +212,5 @@ reloader state pending = do
   cid <- randomIO -- Use a random number as client id.
   flip finally (removeClient state cid) $ do
     addClient state (cid, connection)
-    forever (receiveData connection :: IO Text)
+    handleAll (\_ -> return ()) $
+      forever (receiveData connection :: IO Text)
