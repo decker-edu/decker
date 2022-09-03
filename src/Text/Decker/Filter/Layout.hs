@@ -16,7 +16,6 @@ import Text.Decker.Internal.Common hiding (Layout)
 import Text.Pandoc hiding (Row)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
-import Text.Regex.TDFA
 
 -- | Slide layouts are rows of one ore more columns.
 data Layout

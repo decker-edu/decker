@@ -44,8 +44,9 @@ runDynamicFilters :: FilterPosition -> FilePath -> Pandoc -> Action Pandoc
 runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
   let paths :: [Text] = lookupMetaOrElse [] (key position) meta
   let filters = map (mkFilter . makeProjectPath baseDir . toString) paths
-  putNormal $ show filters
-  liftIO $ runIOorExplode $ applyFilters env filters [] pandoc
+  if not $ null filters
+    then liftIO $ runIOorExplode $ applyFilters env filters [] pandoc
+    else return pandoc
   where 
     env = Environment pandocReaderOpts pandocWriterOpts
     key Before = "pandoc.filters.before"
@@ -54,6 +55,7 @@ runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
       if takeExtension path == ".lua" 
                       then LuaFilter path
                       else JSONFilter path 
+
 processPandoc ::
   (Pandoc -> Decker Pandoc) ->
   FilePath ->
