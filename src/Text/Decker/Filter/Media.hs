@@ -178,8 +178,10 @@ compileCodeBlock attr@(_, classes, _) code caption =
     transform :: Text -> Attrib Block
     transform ext = do
       dropClass ext
-      -- disp <- show <$> lift (gets dispo)
-      let crc = printf "%08x" (calc_crc32 $ toString code)
+      disp <- show <$> lift (gets dispo)
+      -- Add disposition to the CRC32 value to prevent collision between 
+      -- concurrent Deck and Handout references to the same code block.
+      let crc = printf "%08x" (calc_crc32 $ disp <> toString code)
       let path =
             transientDir </> "code"
               </> intercalate "-" ["code", crc]
@@ -187,7 +189,7 @@ compileCodeBlock attr@(_, classes, _) code caption =
       -- Avoid a possible race condition when the same code block content is
       -- used twice and written only when the file does not yet exist: Just do
       -- not prematurely optimise by testing for existence first and atomically
-      -- write the file.
+      -- write the file. This does not help on Windows.
       liftIO $ do
         createDirectoryIfMissing True (takeDirectory path)
         tmp <- uniqueTransientFileName path
