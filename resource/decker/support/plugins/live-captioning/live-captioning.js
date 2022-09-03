@@ -86,6 +86,9 @@ class LiveCaptioning {
     this.speechRecog = new SpeechRecognitionImpl();
     this.speechRecog.continuous = true;
     this.speechRecog.interimResults = true;
+    if (Decker.meta.speech_recognition_language) {
+      this.speechRecog.lang = Decker.meta.speech_recognition_language;
+    }
     this.speechRecog.onstart = () => this.handleStart();
     this.speechRecog.onresult = (event) => this.handleResult(event);
     this.speechRecog.onerror = (event) => this.handleError(event);
