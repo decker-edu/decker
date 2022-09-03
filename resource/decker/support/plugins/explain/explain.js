@@ -38,7 +38,7 @@ let recordingType; //REPLACE or APPEND
 let recordingResumeTime;
 
 // playback stuff
-let explainVideoUrl, explainTimesUrl, explainTimesPlay;
+let explainVideoUrl, explainTimesUrl, explainTranscriptUrl, explainTimesPlay;
 
 let uiState;
 
@@ -154,8 +154,8 @@ function deckTimesUrl() {
   return deckUrlBase() + "-times.json";
 }
 
-//Derives the ttv url from the document location.
-function deckCaptioningUrl() {
+//Derives the vtt url from the document location.
+function deckCaptionsUrl() {
   return deckUrlBase() + "-recording.vtt";
 }
 
@@ -1033,6 +1033,14 @@ async function createRecordingGUI() {
     parent: recordPanel,
   });
 
+  //Placeholder to align record indicator to the center
+  createElement({
+    type: "i",
+    id: "placeholder-indicator",
+    classes: "fas indicator",
+    parent: row,
+  });
+
   recordIndicator = createElement({
     type: "i",
     id: "record-indicator",
@@ -1303,9 +1311,6 @@ async function createRecordingGUI() {
     },
     Decker.tripleClick(toggleMicrophone)
   );
-
-  updateCaptionButton();
-  updateCaptionIndicatior();
 
   /* inert everything but the toggle button */
   let able = focusable(recordPanel);
@@ -1710,7 +1715,7 @@ async function setupPlayer() {
   explainVideoUrl = config && config.video ? config.video : deckVideoUrl();
   explainTimesUrl = config && config.times ? config.times : deckTimesUrl();
   explainTranscriptUrl =
-    config && config.transcript ? config.transcript : deckCaptioningUrl();
+    config && config.transcript ? config.transcript : deckCaptionsUrl();
   let videoExists = false;
   let timesExists = false;
 
@@ -1736,8 +1741,7 @@ async function setupPlayer() {
       explainTimesPlay = await fetchResourceJSON(explainTimesUrl);
       player.src({ type: "video/mp4", src: explainVideoUrl });
 
-      let captionsUrl = explainVideoUrl.replace(".mp4", ".vtt");
-      let captionsExist = await resourceExists(captionsUrl);
+      let captionsExist = await resourceExists(explainTranscriptUrl);
       if (captionsExist) {
         let captionsOptions = {
           kind: "captions",
