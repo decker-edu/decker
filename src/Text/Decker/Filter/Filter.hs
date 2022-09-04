@@ -45,7 +45,7 @@ runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
   let paths :: [Text] = lookupMetaOrElse [] (key position) meta
   let filters = map (mkFilter . makeProjectPath baseDir . toString) paths
   if not $ null filters
-    then liftIO $ runIOorExplode $ applyFilters env filters [] pandoc
+    then liftIO $ runIOorExplode $ applyFilters env filters ["html"] pandoc
     else return pandoc
   where 
     env = Environment pandocReaderOpts pandocWriterOpts
