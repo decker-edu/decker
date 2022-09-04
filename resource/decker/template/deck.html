@@ -80,7 +80,9 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
-  <!-- <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css"> -->
+  $if(live-captions)$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css">
+  $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/examiner/examiner.css">
   <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
 $if(poll)$
@@ -145,7 +147,7 @@ $body$
     import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
     import printPlugin from './$decker-support-dir$/plugins/print/print.js';
     import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
-    // import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
+    import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
 $if(poll)$
     import pollPlugin from './$decker-support-dir$/plugins/poll/poll.js';
 $endif$
@@ -159,7 +161,9 @@ $if(highlightjs)$
     import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
 $endif$
     import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
+$if(live-captions)$
     import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
+$endif$
     import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
 
     let revealConfig = { 
@@ -210,7 +214,9 @@ $endif$
 </body>
 
 <script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
+$if(live-captions)$
 <script src="$decker-support-dir$/components/awesome-button.js"></script>
+$endif$
 <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
 <!-- script src="$decker-support-dir$/js/inert.min.js"></script -->
 <!-- Use the other implementation if things break under Firefox -->

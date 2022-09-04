@@ -208,6 +208,10 @@ button.caption-button.captioning {
   content: "\f131";
 }
 
+#placeholder-indicator {
+  opacity: 0;
+}
+
 #caption-indicator,
 #microphone-indicator {
   opacity: 0;
