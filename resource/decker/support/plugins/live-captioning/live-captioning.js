@@ -26,6 +26,40 @@ if (
   SpeechRecognitionImpl = window.SpeechRecognition || webkitSpeechRecognition;
 }
 
+function getLanguageCode(string) {
+  // Two Letter String: Probably already a language code
+  if (string.length === 2) {
+    return string;
+  }
+  // 3 letter language code: deu or eng
+  if (string.length === 3) {
+    switch (string) {
+      case deu:
+        return "de-DE";
+      case eng:
+        return "en-GB";
+    }
+    return undefined;
+  }
+  //BCP 47 language tag
+  if (/^..-../i.test(string)) {
+    return string;
+  }
+  //Language names TODO This whole system needs to be improved
+  let code = undefined;
+  switch (lang) {
+    case "Deutsch":
+    case "German":
+      code = "de-DE";
+      break;
+    case "Englisch":
+    case "English":
+      code = "en-GB";
+      break;
+  }
+  return code;
+}
+
 /**
  * Plugin class to be registered so the activation-(decker-)button is at the right place.
  */
@@ -86,8 +120,15 @@ class LiveCaptioning {
     this.speechRecog = new SpeechRecognitionImpl();
     this.speechRecog.continuous = true;
     this.speechRecog.interimResults = true;
-    if (Decker.meta.speech_recognition_language) {
-      this.speechRecog.lang = Decker.meta.speech_recognition_language;
+    if (Decker.meta["speech-recognition-language"]) {
+      let code = getLanguageCode(Decker.meta["speech-recognition-language"]);
+      if (code) {
+        this.speechRecog.lang = code;
+      } else {
+        console.error(
+          "[LIVE CAPTIONING] 'speech-recognition-language' specified but unable to discern valid language code from it."
+        );
+      }
     }
     this.speechRecog.onstart = () => this.handleStart();
     this.speechRecog.onresult = (event) => this.handleResult(event);
@@ -101,7 +142,8 @@ class LiveCaptioning {
     );
     try {
       let response = await fetch(
-        "./support/plugins/live-captioning/live-captioning.html"
+        Decker.meta.projectPath +
+          "support/plugins/live-captioning/live-captioning.html"
       );
       let html = await response.text();
       this.popup.document.write(html);
@@ -113,31 +155,30 @@ class LiveCaptioning {
       console.log(error);
     }
 
-    let url = window.Decker.meta.caption_server;
+    let url = window.Decker.meta["caption-server"];
     if (url) {
-      const response = await fetch(url + "/api/new", {
+      fetch(url + "/api/session", {
         method: "POST",
-      });
-      let json = await response.json();
-      if (json.session && json.token) {
-        this.connection = json;
-        if (!this.connection.server) {
-          this.connection.server = url;
-        }
-        let qrcode = document.createElement("canvas");
-        bwipjs.toCanvas(qrcode, {
-          bcid: "qrcode",
-          text: `${this.connection.server}/${this.connection.session}`,
-          scale: 10,
-          includetext: false,
-          textxalign: "center",
-          eclevel: "L",
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          if (json.session && json.token) {
+            this.connection = json;
+            if (!this.connection.server) {
+              this.connection.server = url;
+            }
+            this.connection.cors =
+              window.location.origin !== new URL(this.connection.server).origin
+                ? "cors"
+                : "same-origin";
+          }
+        })
+        .then(() => {
+          this.showQRCode();
+        })
+        .catch((error) => {
+          console.error(error);
         });
-        let noop = await window.showInformation(
-          localization.qrcode_message,
-          qrcode
-        );
-      }
     }
 
     this.speechRecog.start();
@@ -146,6 +187,44 @@ class LiveCaptioning {
     this.record_button.classList.add("recording");
     this.record_button.title = localization.stop_captioning;
     this.record_button.setAttribute("aria-label", localization.stop_captioning);
+  }
+
+  async showQRCode() {
+    let qrcode = document.createElement("canvas");
+    bwipjs.toCanvas(qrcode, {
+      bcid: "qrcode",
+      text: `${this.connection.server}/session/${this.connection.session}`,
+      scale: 10,
+      includetext: false,
+      textxalign: "center",
+      eclevel: "L",
+    });
+    let noop = await window.showInformation(
+      localization.qrcode_message,
+      qrcode
+    );
+  }
+
+  async showAbort() {
+    let qrcode = document.createElement("canvas");
+    bwipjs.toCanvas(qrcode, {
+      bcid: "qrcode",
+      text: `${this.connection.server}/session/${this.connection.session}`,
+      scale: 10,
+      includetext: false,
+      textxalign: "center",
+      eclevel: "L",
+    });
+    let options = [
+      { text: localization.stop, value: true },
+      { text: localization.abort, value: false },
+    ];
+    return window.showDialog(
+      "Untertitelung beenden?",
+      qrcode,
+      options,
+      "warning"
+    );
   }
 
   /**
@@ -172,7 +251,11 @@ class LiveCaptioning {
     if (!this.captioning) {
       this.startCaptioning();
     } else {
-      this.stopCaptioning();
+      this.showAbort().then((shouldAbort) => {
+        if (shouldAbort && shouldAbort.submit) {
+          this.stopCaptioning();
+        }
+      });
     }
   }
 
@@ -240,8 +323,9 @@ class LiveCaptioning {
     if (this.connection) {
       try {
         fetch(
-          `${this.connection.server}/api/${this.connection.session}/update`,
+          `${this.connection.server}/api/session/${this.connection.session}/update`,
           {
+            mode: this.connection.cors,
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -276,8 +360,9 @@ class LiveCaptioning {
     if (this.connection) {
       try {
         fetch(
-          `${this.connection.server}/api/${this.connection.session}/final`,
+          `${this.connection.server}/api/session/${this.connection.session}/final`,
           {
+            mode: this.connection.cors,
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -323,6 +408,7 @@ class LiveCaptioning {
       start_captioning: "Start Live Captioning",
       stop_captioning: "Stop Live Captioning",
       accept: "Accept",
+      stop: "Stop Captioning",
       abort: "Abort",
       qrcode_message: "Live Captioning",
       caption_warning:
@@ -336,6 +422,7 @@ class LiveCaptioning {
         start_captioning: "Live-Untertitelung aktivieren",
         stop_captioning: "Live-Untertitelung stoppen",
         accept: "Akzeptieren",
+        stop: "Untertitelung beenden",
         abort: "Abbrechen",
         qrcode_message: "Live-Untertitel",
         caption_warning:
