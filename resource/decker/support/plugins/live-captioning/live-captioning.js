@@ -34,9 +34,9 @@ function getLanguageCode(string) {
   // 3 letter language code: deu or eng
   if (string.length === 3) {
     switch (string) {
-      case deu:
+      case "deu":
         return "de-DE";
-      case eng:
+      case "eng":
         return "en-GB";
     }
     return undefined;
