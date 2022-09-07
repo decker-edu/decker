@@ -183,7 +183,7 @@ class LiveCaptioning {
 
     this.speechRecog.start();
     this.captioning = true;
-    this.record_button.icon = "fa-circle";
+    //    this.record_button.icon = "fa-circle";
     this.record_button.classList.add("recording");
     this.record_button.title = localization.stop_captioning;
     this.record_button.setAttribute("aria-label", localization.stop_captioning);
@@ -216,8 +216,8 @@ class LiveCaptioning {
       eclevel: "L",
     });
     let options = [
-      { text: localization.stop, value: true },
-      { text: localization.abort, value: false },
+      { text: localization.stop, value: "true" },
+      { text: localization.abort, value: "false" },
     ];
     return window.showDialog(
       "Untertitelung beenden?",
@@ -238,7 +238,7 @@ class LiveCaptioning {
       this.popup.close();
       this.popup = undefined;
     }
-    this.record_button.icon = "fa-closed-captioning";
+    //    this.record_button.icon = "fa-closed-captioning";
     this.record_button.classList.remove("recording");
     this.record_button.title = localization.start_captioning;
     this.record_button.setAttribute(
@@ -251,8 +251,8 @@ class LiveCaptioning {
     if (!this.captioning) {
       this.startCaptioning();
     } else {
-      this.showAbort().then((shouldAbort) => {
-        if (shouldAbort && shouldAbort.submit) {
+      this.showAbort().then((data) => {
+        if (data && data.submit === "true") {
           this.stopCaptioning();
         }
       });
