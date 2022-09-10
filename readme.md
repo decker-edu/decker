@@ -29,23 +29,6 @@ session!
 
 `$Env:Path += ";${Env:ProgramFiles(x86)}\Decker\bin"`
 
-## Development
-
-### Haskell
-
-Use appropriate tooling. We use:
-
--   *Visual Studio Code* with the following plugins:
-    -   *Haskell Language Server*
-    -   *hindent-format*
-
-### Templates and CSS
-
-To interactively work on the template, CSS and Javascript files in
-`resource/template` and `resource/support` run Decker as
-`stack run -- decker -S`. This will automatically incorporate all changes and
-reload the documents in the browser.
-
 ## External tools
 
 Decker uses a few external tools that need to be installed on the system to use
@@ -206,6 +189,11 @@ Contributions are accepted via pull requests. Before working on a feature,
 please write up an issue and discuss it with the other developers. For each
 implemented feature, increment the version number in `package.yaml`. Breaking
 changes increment the second number. Fixes increment the third number.
+
+### Tooling
+
+Use appropriate tooling. We use [Visual Studio
+Code](https://code.visualstudio.com) with the *Haskell Language Server* plugin.
 
 ### Haskell source code formatting
 
