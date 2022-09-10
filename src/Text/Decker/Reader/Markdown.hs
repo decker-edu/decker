@@ -33,6 +33,7 @@ import Text.Decker.Filter.Paths
 import Text.Decker.Filter.Poll
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.ShortLink
+import Text.Decker.Filter.Template
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -282,6 +283,7 @@ deckerPipeline (Disposition Deck Html) =
   concatM
     [ evaluateShortLinks,
       expandDeckerMacros,
+      expandTemplateMacros,
       includeCode,
       processDetailDiv,
       processSlides,
@@ -292,6 +294,7 @@ deckerPipeline (Disposition Page Html) =
   concatM
     [ evaluateShortLinks,
       expandDeckerMacros,
+      expandTemplateMacros,
       includeCode,
       processDetailDiv,
       processDetailHeader
@@ -300,6 +303,7 @@ deckerPipeline (Disposition Index Html) =
   concatM
     [ evaluateShortLinks,
       expandDeckerMacros,
+      expandTemplateMacros,
       includeCode,
       processDetailDiv,
       processDetailHeader
@@ -308,6 +312,7 @@ deckerPipeline (Disposition Handout Html) =
   concatM
     [ evaluateShortLinks,
       expandDeckerMacros,
+      expandTemplateMacros,
       includeCode,
       processDetailDiv,
       processSlides

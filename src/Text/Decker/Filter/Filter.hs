@@ -9,34 +9,35 @@ module Text.Decker.Filter.Filter
     filterNotebookSlides,
     wrapSlidesinDivs,
     runDynamicFilters,
-    FilterPosition(..)
+    FilterPosition (..),
   )
 where
 
-import Relude
 import Control.Lens
 import Control.Monad.Loops as Loop
 import Data.Default ()
 import qualified Data.List as List
 import Data.List.Split
 import qualified Data.Text as Text
-import Development.Shake 
+import Development.Shake
+import Relude
+import System.FilePath
 import Text.Decker.Filter.Detail
+import Text.Decker.Filter.Div
 import Text.Decker.Filter.Incremental
 import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Notes
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.URI
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.URI
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Definition ()
+import Text.Pandoc.Filter
 import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
-import Text.Pandoc.Filter
-import System.FilePath
 
 data FilterPosition = Before | After deriving (Show, Eq)
 
@@ -47,14 +48,14 @@ runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
   if not $ null filters
     then liftIO $ runIOorExplode $ applyFilters env filters ["html"] pandoc
     else return pandoc
-  where 
+  where
     env = Environment pandocReaderOpts pandocWriterOpts
     key Before = "pandoc.filters.before"
     key After = "pandoc.filters.after"
-    mkFilter path = 
-      if takeExtension path == ".lua" 
-                      then LuaFilter path
-                      else JSONFilter path 
+    mkFilter path =
+      if takeExtension path == ".lua"
+        then LuaFilter path
+        else JSONFilter path
 
 processPandoc ::
   (Pandoc -> Decker Pandoc) ->
@@ -183,6 +184,7 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
     actions :: [Slide -> Decker Slide]
     actions =
       [ marioCols,
+        divBasedLayout,
         processNotes,
         pauseDots,
         wrapBoxes,
