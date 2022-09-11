@@ -2,6 +2,22 @@
 @import url("../fonts/lato.css");
 
 /**********************/
+/* Variables
+/**********************/
+
+html {
+  --details-background-color: rgba(0, 0, 0, 0.03);
+  --summary-background-color: rgba(0, 0, 0, 0.05);
+  --summary-hover-color: rgba(0, 0, 0, 0.4);
+}
+
+html.dark {
+  --details-background-color: rgba(255, 255, 255, 0.03);
+  --summary-background-color: rgba(255, 255, 255, 0.05);
+  --summary-hover-color: rgba(255, 255, 255, 0.4);
+}
+
+/**********************/
 /* HEADER
 /**********************/
 
@@ -21,16 +37,19 @@ header > h2 {
   color: white;
   line-height: 1.5;
   margin: auto;
+  border: none;
 }
 
 header > h1 {
   font-size: 3rem;
-  margin-bottom: 0;
+  margin: 0 auto;
+  padding: 0;
 }
 
 header > h2 {
   font-size: 2rem;
-  margin-top: 0;
+  margin: 0 auto;
+  padding: 0;
   font-family: monospace;
   font-weight: normal;
 }
@@ -44,12 +63,14 @@ header nav {
 /**********************/
 
 h1 {
-  font-size: 2rem;
-  margin-top: 3rem;
+  font-size: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid lightgrey;
 }
 
 h2 {
-  font-size: 1rem;
+  font-size: 1.25rem;
   margin-top: 1rem;
   font-family: monospace;
 }
@@ -121,10 +142,6 @@ footer p {
   }
 }
 
-.todo {
-  color: var(--redish);
-}
-
 a {
   color: var(--accent5-fg);
   text-decoration: none;
@@ -136,26 +153,59 @@ a:hover {
   border: none;
 }
 
-details summary {
-  outline: none;
-  padding: 4px;
-  width: 98.5%;
-  background: rgba(1, 1, 1, 0.05);
+/*********************************************
+ * Detail boxes
+ *********************************************/
+
+div.media > figure {
+  box-sizing: border-box;
+  margin: auto;
+  width: 100%;
+}
+
+details {
+  box-sizing: border-box;
+  margin-top: 20px;
+  padding: 1em;
+  padding-bottom: 0;
   border-radius: 10px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: normal;
+  background: var(--details-background-color);
+}
+details[open] {
+  padding-bottom: 1em;
+}
+
+details summary {
+  box-sizing: border-box;
+  width: auto;
+  margin-left: -1em;
+  margin-right: -1em;
+  margin-top: -1em;
+  padding: 4px;
   padding-left: 0.5rem;
+  border-radius: 8px;
+  background: var(--summary-background-color);
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+details[open] > summary {
+  margin-bottom: 1em;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 details summary:hover {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: var(--summary-hover-color);
+  color: var(--background-color);
 }
 
-p {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+details input {
+  box-sizing: border-box;
+  font-size: 1.25em;
+  width: 100%;
 }
 
 /*********************************************
@@ -224,6 +274,11 @@ td[align="right"] {
 
 td[align="left"] {
   text-align: left;
+}
+
+p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 progress {

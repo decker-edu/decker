@@ -235,12 +235,13 @@ div.grid-layout {
 }
 
 .reveal h1 {
+  font-size: 1.5em;
   text-align: left;
   margin: 0.5em 0 1em 0;
-  font-size: 1.5em;
 }
 .reveal section.center h1 {
   text-align: center;
+  margin: 0.5em 0 0.5em 0;
 }
 
 .reveal h2 {
