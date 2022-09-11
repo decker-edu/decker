@@ -101,6 +101,7 @@ del {
 
 /*********************************************
  * divs of fixed width
+ * (old style, keep for compatibility reasons)
  *********************************************/
 
 .reveal .w10 {
@@ -155,10 +156,11 @@ del {
 }
 
 /*********************************************
- * Columns of fixed width (OLD STYLE)
+ * Columns of fixed width
+ * (old style, keep for compatibility reasons)
  *********************************************/
 
-/* .reveal .col10 {
+.reveal .col10 {
   float: left;
   width: calc(0.1 * var(--inner-width));
 }
@@ -201,7 +203,7 @@ del {
 .reveal .col90 {
   float: left;
   width: calc(0.9 * var(--inner-width));
-} */
+}
 
 /*********************************************
  * new column syntax
@@ -462,7 +464,8 @@ ul li li {
 }
 
 /*********************************************
- * code highlighting
+ * code highlighting:
+ * line numbers of reveal.js
  *********************************************/
 
 .reveal .hljs table,
@@ -491,7 +494,8 @@ ul li li {
 }
 
 /*********************************************
- * CODE HIGHLIGHTING OF MARIO
+ * code highlighting:
+ * Mario's styling
  *********************************************/
 
 /* box around block of code */

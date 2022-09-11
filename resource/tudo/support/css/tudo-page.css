@@ -1,8 +1,6 @@
 @import url("../vendor/fontawesome/css/all.css");
 @import url("../fonts/lato.css");
 
-@import url("../vendor/fontawesome/css/all.css");
-
 button:hover {
   cursor: pointer;
 }
