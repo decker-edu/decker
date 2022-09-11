@@ -3,7 +3,7 @@
 module Text.Decker.Filter.Div (divBasedLayout) where
 
 import Data.List (partition)
-import Data.List.Extra (splitOn)
+import Data.List.Extra (notNull, splitOn)
 import qualified Data.Text as Text
 import Relude
 import Text.Decker.Filter.Slide
@@ -35,7 +35,9 @@ divBasedLayout (Slide header body dir) =
     processSize div@(Div (id, cls, attribs) body) =
       let (sizeAttribs, otherAttribs) = partition ((`elem` ["width", "height"]) . fst) attribs
           sizesCss = map (\(k, v) -> k <> ":" <> v) sizeAttribs
-       in Div (id, "sized" : cls, addToStyle sizesCss otherAttribs) body
+       in if notNull sizesCss
+            then Div (id, "sized" : cls, addToStyle sizesCss otherAttribs) body
+            else div
     processSize block = block
     -- Adds a singe CSS style in front of the style attribute. Collapses style
     -- attributes if there are more than just one and preserves already existing
