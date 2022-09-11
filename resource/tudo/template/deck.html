@@ -72,6 +72,9 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
   <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
+  $if(live-captions)$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css">
+  $endif$
   <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
   <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
   <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
@@ -179,6 +182,9 @@ $body$
     import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
     import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
     import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
+    $if(live-captions)$
+    import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
+    $endif$
     import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
 
     let revealConfig = { 
@@ -195,24 +201,27 @@ $body$
 
       // list of plugins
       plugins: [
-         deckerPlugin,
-         uiAnchorsPlugin,
-         sagePlugin,
-         mathPlugin,
-         chartsPlugin,
-         whiteboardPlugin,
-         searchPlugin,
-         zoomPlugin,
-         printPlugin,
-         jinglesPlugin,
-         quizPlugin,
-         quizWuePlugin,
-         explainPlugin,
-         menuPlugin,
-         feedbackPlugin,
-         highlightPlugin,
-         notesPlugin,
-         a11yPlugin,
+        deckerPlugin,
+        uiAnchorsPlugin,
+        sagePlugin,
+        mathPlugin,
+        chartsPlugin,
+        whiteboardPlugin,
+        searchPlugin,
+        zoomPlugin,
+        printPlugin,
+        jinglesPlugin,
+        quizPlugin,
+        quizWuePlugin,
+        explainPlugin,
+        menuPlugin,
+        feedbackPlugin,
+        highlightPlugin,
+        notesPlugin,
+        $if(live-captions)$
+        captionPlugin,
+        $endif$
+        a11yPlugin,
       ]
     };
 

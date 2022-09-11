@@ -12,8 +12,8 @@ let localization;
 // Using the custom web component here is optional and can be replaced by something less
 // bleeding edge
 let button_template = document.createElement("template");
-button_template.innerHTML = String.raw`<button is="awesome-button" class="fa-button" icon="fa-closed-captioning" icon-style="fas" title="Activate Live Captioning" aria-label="Activate Live Captioning">
-   </button>`;
+// button_template.innerHTML = String.raw`<button is="awesome-button" class="fa-button" icon="fa-closed-captioning" icon-style="fas" title="Activate Live Captioning" aria-label="Activate Live Captioning"></button>`;
+button_template.innerHTML = String.raw`<button class="fa-button fas fa-closed-captioning" title="Activate Live Captioning" aria-label="Activate Live Captioning"></button>`;
 
 let SpeechRecognitionImpl = undefined;
 
@@ -141,11 +141,10 @@ class LiveCaptioning {
       "width=1920,height=1080"
     );
     try {
-      let response = await fetch(
-        Decker.meta.projectPath +
-          "support/plugins/live-captioning/live-captioning.html"
-      );
-      let html = await response.text();
+      const url = new URL(import.meta.url);
+      const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+      const response = await fetch(path + "/live-captioning.html");
+      const html = await response.text();
       this.popup.document.write(html);
       this.popup.onbeforeunload = () => {
         this.popup = undefined;
