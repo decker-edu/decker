@@ -1,0 +1,1046 @@
+@import url("../vendor/fontawesome/css/all.css");
+@import url("../fonts/lato.css");
+
+@import url("../vendor/fontawesome/css/all.css");
+
+button:hover {
+  cursor: pointer;
+}
+
+div.column {
+  display: inline-block;
+  vertical-align: top;
+  width: 50%;
+}
+
+div.css-columns {
+  column-count: 2;
+  column-gap: var(--margin-columns);
+  column-rule-style: none;
+}
+
+div.box {
+  break-inside: avoid-column;
+}
+
+div.multi-column-row {
+  display: flex;
+  flex-flow: row nowrap;
+  margin-bottom: var(--margin-bottom-columns);
+}
+
+div.multi-column-row div.column {
+  position: relative;
+  flex: 1 1 0;
+  margin-left: var(--margin-columns);
+  margin-right: var(--margin-columns);
+}
+
+div.multi-column-row div.column:first-child {
+  margin-left: 0;
+  margin-right: var(--margin-columns);
+}
+
+div.multi-column-row div.column:last-child {
+  margin-left: var(--margin-columns);
+  margin-right: 0;
+}
+
+div.multi-column-row div.column .mid {
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
+}
+
+div.multi-column-row div.column[data-grow="1"] {
+  flex-grow: 1;
+}
+
+div.multi-column-row div.column[data-grow="2"] {
+  flex-grow: 2;
+}
+
+div.multi-column-row div.column[data-grow="3"] {
+  flex-grow: 3;
+}
+
+div.multi-column-row div.column[data-grow="4"] {
+  flex-grow: 4;
+}
+
+div.multi-column-row div.column[data-grow="5"] {
+  flex-grow: 5;
+}
+
+div.multi-column-row div.column[data-grow="6"] {
+  flex-grow: 6;
+}
+
+div.multi-column-row div.column[data-grow="7"] {
+  flex-grow: 7;
+}
+
+div.multi-column-row div.column[data-grow="8"] {
+  flex-grow: 8;
+}
+
+div.multi-column-row div.column[data-grow="9"] {
+  flex-grow: 9;
+}
+
+div.single-column-row {
+  margin-bottom: var(--margin-bottom-columns);
+}
+
+/*
+ *Required CSS for the new media filters. Adopted to Mario's semantic with
+ *further fine-tuning
+ */
+div.decker.image.error {
+  font-size: 20pt;
+  background-color: #fee;
+  border: 0.1em solid darkred;
+  padding: 1em;
+}
+
+div.decker.image.error .message {
+  font-style: italic;
+  margin-left: 20px;
+}
+
+div.decker.image.error pre.markup {
+  width: 100%;
+  margin-left: 20px;
+}
+
+div.decker.image.error pre.markup code.markup {
+  font-family: "Source Code Pro", monospace;
+  font-size: 18pt;
+  line-height: 1.4;
+  color: black;
+}
+
+img.decker,
+video.decker {
+  display: inline-block;
+  /* remove the following two lines to get sizing of 
+       * rendered code block sizing working */
+  /*width: auto;*/
+  /*height: auto;*/
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+  margin: auto;
+  border: 0px;
+  box-shadow: none;
+}
+
+iframe.decker {
+  border: 1px solid lightgray;
+  outline: none;
+  overflow: hidden;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+}
+
+figure.decker,
+div.nofigure {
+  display: inline-block;
+}
+
+figure.decker > img.decker,
+figure.decker > video.decker,
+figure.decker > iframe.decker,
+div.nofigure > img.decker,
+div.nofigure > video.decker,
+div.nofigure > iframe.decker {
+  margin: auto;
+  border: 0px;
+  box-shadow: none;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+div.decker.nofigure {
+  width: 100%;
+}
+
+figure.streaming {
+  width: 100%;
+  margin: 0;
+}
+
+figure.decker figcaption.decker {
+  margin: 0px 0px 0px 0px;
+  line-height: 1.2;
+  font-style: italic;
+  text-align: center;
+}
+
+object.decker {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+figure.decker > object.decker {
+  width: 100%;
+}
+
+div.image-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+}
+
+div.image-row div {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+div.image-row img {
+  display: block;
+}
+
+header > h1 {
+  font-size: 2em;
+}
+
+/* body > h1:first-of-type {
+  font-size: 1.75em;
+} */
+
+h1 {
+  font-size: 1.5em;
+}
+
+h2 {
+  font-size: 1.25em;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: 1em;
+}
+
+header h1 {
+  margin-bottom: 0;
+}
+
+header h2 {
+  margin-top: 0;
+  color: var(--muted);
+}
+
+header nav {
+  margin-bottom: 0.5rem;
+}
+
+header {
+  background: var(--background-alt);
+  border-bottom: 1px solid var(--border);
+  padding: 2rem 1.5rem;
+  /* This sets the right and left margins to cancel out the body's margins. It's width is still the same, but the background stretches across the page's width. */
+  margin: auto;
+}
+
+header h1,
+header h2,
+header h3 {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+header > *:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+header > *:last-child {
+  margin-bottom: 0;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  -webkit-print-color-adjust: exact;
+}
+
+div.anchor details {
+  margin-bottom: 1em;
+}
+
+div.anchor summary {
+  font-size: 1.2;
+  font-weight: bold;
+  font-style: italic;
+}
+
+button {
+  cursor: pointer;
+}
+
+/**********************/
+/* HEADER
+/**********************/
+
+header {
+  margin: 0 0 2rem 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  background: var(--primary-color);
+  padding: 2rem 0;
+  width: 100%;
+}
+
+header > h1,
+header > h2 {
+  color: white;
+  line-height: 1.5;
+  margin: auto;
+}
+
+header > h1 {
+  font-size: 3.5rem;
+  margin-bottom: 0;
+}
+
+header > h2 {
+  font-size: 2.5rem;
+  margin-top: 0;
+  font-style: italic;
+}
+
+header nav {
+  margin-bottom: 0.5rem;
+}
+
+/* old stuff */
+
+h1 {
+  margin-top: 3rem;
+}
+
+hr {
+  margin-top: 2rem;
+}
+
+details input {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/********************************/
+/*       Actual content         */
+/********************************/
+
+html {
+  width: 100%;
+  height: 100vh;
+  font-family: "Lato";
+  position: relative;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+
+  background: var(--background-color);
+  color: var(--foreground-color);
+
+  counter-reset: sctr;
+  text-align: justify;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  -webkit-print-color-adjust: exact; /* From old page.css */
+  line-height: 1.3; /* It is said 1.5 improves readability */
+}
+
+body.page {
+  max-width: 100%;
+}
+
+main {
+  flex-grow: 1;
+  padding-top: 1rem;
+  width: 50rem;
+  max-width: 50rem;
+  margin: auto;
+}
+
+footer {
+  inset: 0;
+  border-top: 1px solid var(--shade4);
+  font-style: italic;
+  font-size: 1rem;
+  margin: 2rem 0 0 0;
+}
+
+footer p {
+  padding: 0.5em;
+  margin: 0;
+  line-height: 2em;
+}
+
+@media only screen and (max-width: 600px) {
+  main {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 1rem;
+  }
+}
+
+.todo {
+  color: var(--redish);
+}
+
+/* Tolle Kästen */
+
+.colorexample {
+  background-color: chocolate;
+}
+
+:is(.definition, .example, .axiom, .theorem) {
+  width: 85%;
+  padding: 1.5em;
+  padding-right: 2.5em;
+  margin: 30px auto;
+  border: none;
+  border-left: 5px solid var(--foreground-color);
+  border-radius: 5px;
+}
+
+.example {
+  border-color: var(--shade3);
+  background: var(--shade1);
+}
+
+.definition {
+  border-color: var(--accent5);
+  background: var(--accent5-bbg);
+}
+
+.axiom {
+  border-color: var(--accent0);
+  background: var(--accent0-bbg);
+}
+
+.theorem {
+  border-color: var(--accent1);
+  background: var(--accent1-bbg);
+}
+
+.theorem.hidden {
+  display: none;
+}
+
+.theorem details,
+.example details {
+  background: rgba(0, 0, 0, 0);
+  border: 0px solid rgb(194, 190, 190);
+  padding: 0.5em;
+  font-size: medium;
+  margin-top: 30px;
+}
+
+a {
+  color: var(--accent5-fg);
+  text-decoration: none;
+}
+
+/* Comment in if wanted
+a:visited {
+  color: var(--accent6-fg);
+}
+*/
+
+a:hover {
+  text-shadow: none;
+  text-decoration: underline;
+  border: none;
+}
+
+.qed {
+  display: block;
+  text-align: right;
+}
+
+.qed2 {
+  float: right;
+}
+
+.theorem details summary:hover {
+  background: rgba(1, 1, 1, 0.1);
+}
+.example details summary:hover {
+  background: rgba(1, 1, 1, 0.1);
+}
+
+.theorem details summary::after {
+  content: none;
+}
+
+.example details summary::after {
+  content: none;
+}
+
+details summary {
+  outline: none;
+  padding: 4px;
+  width: 98.5%;
+  background: rgba(1, 1, 1, 0.05);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: normal;
+  padding-left: 0.5rem;
+}
+
+details summary:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+details summary[icon]::marker {
+  display: inline;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  color: var(--primary-color);
+  content: attr(icon);
+}
+details summary[icon]:hover::marker {
+  color: white;
+}
+
+.theorem summary,
+.example summary {
+  background: rgba(1, 1, 1, 0.05);
+  border-radius: 10px;
+  cursor: pointer;
+  width: calc(100% + 1em);
+  margin-left: -0.5em;
+}
+
+details.demo {
+  border: 1px solid var(--foreground-color);
+  border-radius: 0.25rem;
+  padding: 0.625rem;
+  margin-bottom: 0.625rem;
+}
+
+img {
+  padding: 1em;
+  margin: auto;
+  object-fit: contain;
+}
+
+@media (prefers-color-scheme: dark) {
+  img {
+    background: var(--shade5);
+    border-radius: 0.5rem;
+  }
+
+  .light img {
+    background: inherit;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .dark img {
+    background: var(--shade5);
+    border-radius: 0.5rem;
+  }
+}
+
+:is(.theorem, .example) mjx-tool > mjx-tip {
+  background-color: var(--background-color);
+  /*  border-radius: 0.5rem; */
+  padding: 0.7em;
+  font-size: 1em;
+  color: var(--foreground-color);
+}
+
+.chapter {
+  margin-top: 2em;
+  margin-bottom: 1em;
+  font-size: 2.5rem;
+
+  padding-bottom: 0.7em;
+  /* border-bottom: 3px solid black; */
+
+  padding-top: 1.5em;
+  border-top: 2px solid var(--shade3);
+}
+
+.section {
+  margin-top: 3em;
+  margin-bottom: 1.5em;
+  font-size: 1.5rem;
+}
+
+h3 {
+  margin-top: 2.5em;
+  margin-bottom: 1em;
+  font-size: 1.25rem;
+}
+
+p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.center {
+  display: block;
+  width: 100%;
+  margin: auto;
+}
+
+figure.image {
+  margin: auto;
+}
+
+iframe {
+  display: block;
+  margin: 0 auto;
+}
+
+.force-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+:is(.definition, .example, .axiom, .theorem) ol > li {
+  padding-left: 0.5em;
+}
+:is(.definition, .example, .axiom, .theorem) ol > li::marker {
+  font-weight: bold;
+}
+
+.lowerabcli ol {
+  list-style-type: lower-alpha !important;
+}
+
+.noneli ul {
+  list-style-type: none;
+}
+
+/*-----------------------Print-Options---------------------------------------*/
+
+@media print {
+  .chapter {
+    page-break-before: always;
+  } /* page-break-after works, as well */
+  .theorem,
+  .axiom,
+  .definition,
+  .example {
+    break-inside: avoid;
+  }
+  body {
+    background-color: white;
+  }
+  summary {
+    width: 90%;
+  }
+}
+
+/*********************************************
+ * TABLES
+ *********************************************/
+
+table {
+  display: table;
+  width: unset;
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 2px;
+  border-top: 2px solid var(--foreground-color);
+  border-bottom: 2px solid var(--foreground-color);
+  text-align: center;
+  margin-bottom: 1em;
+  line-height: 1.5em;
+  width: fit-content;
+}
+
+table caption {
+  margin: 10px 0px 0px 0px;
+  line-height: 1.2;
+  font-style: italic;
+  font-size: 0.8em;
+  text-align: center;
+  caption-side: bottom;
+}
+
+table th {
+  font-weight: bold;
+}
+
+table th {
+  border-bottom: 1px solid;
+}
+
+table th,
+table td {
+  text-align: left;
+  padding: 0.2em 1em 0.2em 1em;
+}
+
+table th[align="center"],
+table td[align="center"] {
+  text-align: center;
+}
+
+table th[align="right"],
+table td[align="right"] {
+  text-align: right;
+}
+
+table tbody tr:last-child th,
+table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+td[align="center"] {
+  text-align: center;
+}
+
+td[align="right"] {
+  text-align: right;
+}
+
+td[align="left"] {
+  text-align: left;
+}
+/*********************************************
+ * Milchglas für Ladebildschirm und Menu
+ *********************************************/
+
+.glass {
+  display: none;
+  z-index: 4;
+  background: rgba(0, 0, 0, 0.8);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.glass.show {
+  display: block;
+}
+
+/*********************************************
+ * Ladebildschirm
+ *********************************************/
+
+#waiting-screen {
+  display: none;
+  line-height: 1.5;
+  color: #ddd;
+  font-size: 2.5rem;
+}
+.waiting #waiting-screen {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+}
+
+#waiting-spinner {
+  font-size: 1.5em;
+  animation: turning 2s linear infinite;
+  transform-origin: center;
+}
+
+#waiting-quote {
+  max-width: 80%;
+}
+
+#waiting-quote-text {
+  color: inherit;
+  font-weight: bold;
+  margin: 0.5em;
+  text-align: left;
+}
+
+#waiting-quote-author {
+  color: inherit;
+  margin-top: 0.5em;
+  text-align: right;
+  font-style: italic;
+}
+
+/**********************************/
+/*         Old page.css           */
+/**********************************/
+
+div.column {
+  display: inline-block;
+  vertical-align: top;
+  width: 50%;
+}
+
+div.css-columns {
+  column-count: 2;
+  column-gap: var(--margin-columns);
+  column-rule-style: none;
+}
+
+div.box {
+  break-inside: avoid-column;
+}
+
+div.multi-column-row {
+  display: flex;
+  flex-flow: row nowrap;
+  margin-bottom: var(--margin-bottom-columns);
+}
+
+div.multi-column-row div.column {
+  position: relative;
+  flex: 1 1 0;
+  margin-left: var(--margin-columns);
+  margin-right: var(--margin-columns);
+}
+
+div.multi-column-row div.column:first-child {
+  margin-left: 0;
+  margin-right: var(--margin-columns);
+}
+
+div.multi-column-row div.column:last-child {
+  margin-left: var(--margin-columns);
+  margin-right: 0;
+}
+
+div.multi-column-row div.column .mid {
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
+}
+
+div.multi-column-row div.column[data-grow="1"] {
+  flex-grow: 1;
+}
+
+div.multi-column-row div.column[data-grow="2"] {
+  flex-grow: 2;
+}
+
+div.multi-column-row div.column[data-grow="3"] {
+  flex-grow: 3;
+}
+
+div.multi-column-row div.column[data-grow="4"] {
+  flex-grow: 4;
+}
+
+div.multi-column-row div.column[data-grow="5"] {
+  flex-grow: 5;
+}
+
+div.multi-column-row div.column[data-grow="6"] {
+  flex-grow: 6;
+}
+
+div.multi-column-row div.column[data-grow="7"] {
+  flex-grow: 7;
+}
+
+div.multi-column-row div.column[data-grow="8"] {
+  flex-grow: 8;
+}
+
+div.multi-column-row div.column[data-grow="9"] {
+  flex-grow: 9;
+}
+
+div.single-column-row {
+  margin-bottom: var(--margin-bottom-columns);
+}
+
+/*
+ *Required CSS for the new media filters. Adopted to Mario's semantic with
+ *further fine-tuning
+ */
+div.decker.image.error {
+  font-size: 20pt;
+  background-color: #fee;
+  border: 0.1em solid darkred;
+  padding: 1em;
+}
+
+div.decker.image.error .message {
+  font-style: italic;
+  margin-left: 20px;
+}
+
+div.decker.image.error pre.markup {
+  width: 100%;
+  margin-left: 20px;
+}
+
+div.decker.image.error pre.markup code.markup {
+  font-family: "Source Code Pro", monospace;
+  font-size: 18pt;
+  line-height: 1.4;
+  color: black;
+}
+
+img.decker,
+video.decker {
+  display: inline-block;
+  /* remove the following two lines to get sizing of 
+       * rendered code block sizing working */
+  /*width: auto;*/
+  /*height: auto;*/
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+  margin: auto;
+  border: 0px;
+  box-shadow: none;
+}
+
+iframe.decker {
+  border: 1px solid lightgray;
+  outline: none;
+  overflow: hidden;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+}
+
+figure.decker,
+div.nofigure {
+  display: inline-block;
+}
+
+figure.decker > img.decker,
+figure.decker > video.decker,
+figure.decker > iframe.decker,
+div.nofigure > img.decker,
+div.nofigure > video.decker,
+div.nofigure > iframe.decker {
+  margin: auto;
+  border: 0px;
+  box-shadow: none;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+div.decker.nofigure {
+  width: 100%;
+}
+
+figure.streaming {
+  width: 100%;
+  margin: 0;
+}
+
+figure.decker figcaption.decker {
+  margin: 0px 0px 0px 0px;
+  line-height: 1.2;
+  font-style: italic;
+  text-align: center;
+}
+
+object.decker {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+figure.decker > object.decker {
+  width: 100%;
+}
+
+div.image-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+}
+
+div.image-row div {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+div.image-row img {
+  display: block;
+}
+
+h1 {
+  font-size: 1.5em;
+}
+
+h2 {
+  font-size: 1.25em;
+}
+
+h4,
+h5,
+h6 {
+  font-size: 1em;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+details {
+  margin-bottom: 1em;
+}
+
+div.anchor summary {
+  text-align: left;
+  font-weight: normal;
+  font-style: normal;
+}
+
+/****** MARIO HACK(S) ******/
+
+/* fit equation into container */
+/* mjx-container > svg  */
+mjx-container > svg:not(table mjx-container > svg) {
+  object-fit: contain;
+  max-width: 100%;
+}
+
+figure {
+  margin: auto;
+  border: none;
+  object-fit: contain;
+}
+
+div.media > figure,
+div.media > figure iframe {
+  padding: 0;
+  border: 0;
+  text-align: center;
+}
+
+figure > img {
+  margin: auto;
+}
