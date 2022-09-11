@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html$if(lang)$ lang="$lang$"$endif$$if(dir)$ dir="$dir$"$endif$>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+$for(author-meta)$
+  <meta name="author" content="$author-meta$">
+$endfor$
+$if(date-meta)$
+  <meta name="dcterms.date" content="$date-meta$">
+$endif$
+$if(keywords)$
+  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
+$endif$
+$if(title)$
+$if(subtitle)$
+  <title>$title$: $subtitle$</title>
+$else$
+  <title>$title$</title>
+$endif$
+$endif$
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+ 
+  <!-- Default values for CSS variables can live here. They can be overridden by
+  meta data values. -->
+  <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
+
+  <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
+  into a style sheet. Default values can come from `variables.css`. -->
+  <style class="css-declarations">
+    @media (prefers-color-scheme: light) {
+      :root {
+        $for(css-light-color-declarations)$
+          $css-light-color-declarations$
+        $endfor$
+      }
+
+      :root.dark {
+        $for(css-dark-color-declarations)$
+          $css-dark-color-declarations$
+        $endfor$
+      }
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        $for(css-dark-color-declarations)$
+          $css-dark-color-declarations$
+        $endfor$
+      }
+
+      :root.light {
+        $for(css-light-color-declarations)$
+          $css-light-color-declarations$
+        $endfor$
+      }
+    }
+    :root {
+      $for(css-declarations)$
+        $css-declarations$
+      $endfor$
+    }
+  </style>
+
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reset.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reveal.css">
+  <link rel="stylesheet" href="$decker-support-dir$/components/components.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/decker/ui-anchors.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
+  <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/tudo-deck.css">
+  $for(template.deck.css)$
+  <link rel="stylesheet" href="$template.deck.css$">
+  $endfor$
+
+</head>
+
+<body $if(hide-quizzes)$class="hide-quizzes"$endif$>
+  <div class="reveal">
+    <div class="slides">
+
+$if(title)$
+      <section id="$idprefix$title-slide">
+
+         <div class="background-on-accent">
+         $if(title)$
+            <h1>$title$</h1>
+         $endif$
+         $if(subtitle)$
+            <h2>$subtitle$</h2>
+         $endif$
+         </div>
+
+         $if(template.teaser)$
+         <img class="teaser" src=$template.teaser$>
+         $endif$
+
+         $if(authors)$
+         <div class="authors">
+         $for(authors)$
+            $if(it.name)$
+                <div class="author">
+                    $it.name$ 
+                    $if(it.affiliation)$
+                        <div class="affiliation"> $it.affiliation$ </div>
+                    $endif$
+                </div>
+            $endif$
+         $endfor$
+         </div>
+         $endif$
+
+         $if(author)$
+         <div class="author"> $author$ </div>
+         $endif$
+
+         $if(affiliation)$
+         <div class="affiliation"> $affiliation$ </div>
+         $endif$
+
+         $if(date)$
+         <div class="date"> $date$ </div>
+         $endif$
+
+         <img class="logo affiliation-logo light-only" src="./$decker-support-dir$/assets/tu-logo-light.svg">
+         <img class="logo affiliation-logo dark-only" src="./$decker-support-dir$/assets/tu-logo-dark.svg">
+         $if(department-logo)$
+         <img class="logo department-logo" src="$department-logo$">
+         $endif$
+      </section>
+$endif$
+
+$if(toc)$
+    <section id="$idprefix$TOC">
+    $table-of-contents$
+    </section>
+$endif$
+
+$body$
+
+    </div>
+  </div>
+
+  <script type="module">
+    /* Store JSON encoded Pandoc meta data in a global variable. */
+    import initializeDecker from "./$decker-support-dir$/js/decker.js";
+    initializeDecker("$decker-meta-url$");
+  </script>
+
+  <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
+  <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
+
+  <script type="module">
+    // import Reveal and all plugins
+    import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
+    import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
+    import uiAnchorsPlugin from './$decker-support-dir$/plugins/decker/ui-anchors.js'
+    import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
+    import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
+    import sagePlugin from './$decker-support-dir$/plugins/sage/sage.js';
+    import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
+    import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
+    import printPlugin from './$decker-support-dir$/plugins/print/print.js';
+    import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
+    import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
+    import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
+    import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
+    import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
+    import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
+    import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
+    import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
+    import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
+    import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
+
+    let revealConfig = { 
+      // reveal configuration (see https://revealjs.com/config/)
+      ...Decker.meta.reveal,
+
+      // plugin configuration
+      math: { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math },
+      chart: Decker.meta.chart,
+      menu: Decker.meta.menu,
+      explain: Decker.meta.explain,
+      feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
+      jingles: Decker.meta.jingles,
+
+      // list of plugins
+      plugins: [
+         deckerPlugin,
+         uiAnchorsPlugin,
+         sagePlugin,
+         mathPlugin,
+         chartsPlugin,
+         whiteboardPlugin,
+         searchPlugin,
+         zoomPlugin,
+         printPlugin,
+         jinglesPlugin,
+         quizPlugin,
+         quizWuePlugin,
+         explainPlugin,
+         menuPlugin,
+         feedbackPlugin,
+         highlightPlugin,
+         notesPlugin,
+         a11yPlugin,
+      ]
+    };
+
+    Reveal.initialize(revealConfig);
+  </script>
+
+</body>
+<script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
+<!-- script src="$decker-support-dir$/js/inert.min.js"></script -->
+<!-- Use the other implementation if things break under Firefox -->
+</html>

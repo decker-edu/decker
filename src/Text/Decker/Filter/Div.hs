@@ -25,7 +25,7 @@ divBasedLayout (Slide header body dir) =
             (Just columnClass, cls) ->
               -- Extracts the numbers from the columns tag, default is 1
               let columRatios = map (fromMaybe 1 . readMaybe) $ drop 1 $ splitOn "-" $ toString columnClass
-                  gridClasses = ".grid-layout" : cls
+                  gridClasses = "grid-layout" : cls
                   -- Construct the CSS style
                   gridCss = Text.intercalate " " $ "grid-template-columns:" : map ((<> "fr") . show) columRatios
                in Div (id, gridClasses, addToStyle [gridCss] attribs) body
