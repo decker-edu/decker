@@ -29,6 +29,7 @@ import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Notes
 import Text.Decker.Filter.Slide
+import Text.Decker.Filter.Template (expandTemplateMacros)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
@@ -192,7 +193,8 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
         incrementalBlocks,
         selectActiveSlideContent,
         splitJoinColumns,
-        layoutSlide
+        layoutSlide,
+        expandTemplateMacros meta
       ]
 
 pauseDots :: Slide -> Decker Slide

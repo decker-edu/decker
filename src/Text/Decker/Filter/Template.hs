@@ -4,43 +4,108 @@ module Text.Decker.Filter.Template (expandTemplateMacros) where
 
 import qualified Data.Text as Text
 import Relude
+import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta (lookupMeta)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 
-expandTemplateMacros :: Pandoc -> Decker Pandoc
-expandTemplateMacros pandoc@(Pandoc meta _) =
-  return $ walk expandLink $ walk expandLinkBlock pandoc
+class Splice a b where
+  splice :: Text -> a -> b
+
+instance Splice Inline Inline where
+  splice macro = id
+
+instance Splice Text Inline where
+  splice macro = Str
+
+instance Splice Text [Inline] where
+  splice macro text = [Str text]
+
+instance Splice Text Block where
+  splice macro text = Plain [Str text]
+
+instance Splice [Inline] [Inline] where
+  splice macro = id
+
+instance Splice [Inline] Inline where
+  splice macro = Span nullAttr
+
+instance Splice Block Block where
+  splice macro = id
+
+instance Splice [Block] Block where
+  splice macro = Div nullAttr
+
+instance Splice Inline Block where
+  splice macro block = Plain [block]
+
+instance Splice [Inline] Block where
+  splice macro = Plain
+
+instance Splice Block Inline where
+  splice macro inline = error $ "template '" <> macro <> "': cannot splice Block into Inline context"
+
+instance Splice Block [Inline] where
+  splice macro inline = error $ "template '" <> macro <> "': cannot splice Block into [Inline] context"
+
+instance Splice [Block] Inline where
+  splice macro inline = error $ "template '" <> macro <> "': cannot splice [Block] into Inline context"
+
+instance Splice [Block] [Inline] where
+  splice macro inline = error $ "template '" <> macro <> "': cannot splice [Block] into [Inline] context"
+
+expandTemplateMacros :: Meta -> Slide -> Decker Slide
+expandTemplateMacros meta (Slide header body dir) =
+  -- Walks link blocks first
+  return $ Slide header (walk expandLink $ walk expandLinkBlock body) dir
   where
+    -- Expands macro links in block contexts
+    expandLinkBlock (Para [link@(Link attr text (url, title))]) =
+      fromMaybe (Para [link]) (expand attr text url title)
+    expandLinkBlock (Plain [link@(Link attr text (url, title))]) =
+      fromMaybe (Plain [link]) (expand attr text url title)
+    expandLinkBlock block = block
+
+    -- Expands macro links in inline contexts
     expandLink link@(Link attr text (url, title)) =
       fromMaybe link (expand attr text url title)
     expandLink inline = inline
-    expandLinkBlock (Para [link@(Link attr text (url, title))]) =
-      Para [fromMaybe link (expand attr text url title)]
-    expandLinkBlock (Plain [link@(Link attr text (url, title))]) =
-      Plain [fromMaybe link (expand attr text url title)]
-    expandLinkBlock block = block
+
+    -- Expand macro and splice back into required context
     expand attr text url title = do
       (name, args) <- parseInvocation text
-      template <- lookupMeta ("templates." <> name) meta
       let args' = zip (map show [1 .. (length args)]) args <> [("url", url), ("title", title)]
-      return $ substituteParams template args'
+      template <- lookupMeta ("templates." <> name) meta
+      Just $ case template of
+        MetaBlocks blocks -> splice name $ walk (substituteInline args') $ walk (substituteBlock args') blocks
+        MetaInlines inlines -> splice name $ walk (substituteInline args') inlines
+        MetaString str -> splice name $ substitute args' str
+        _ -> splice name $ Link attr text (url, title)
+
+    -- Parses a link text into a macro invocation, if possible
     parseInvocation inline =
       case second Text.words $ Text.splitAt 1 $ stringify inline of
         ("@", name : args) -> Just (name, args)
         _ -> Nothing
-    substituteParams (MetaInlines template) args =
-      Span nullAttr $ walk (substituteInline args) template
-    -- substituteParams (MetaBlocks template) args =
-    --   Span nullAttr $ (walk (substituteInline args)) template
-    substituteParams metaValue args = Str "Cannto parse template"
+
+    -- Substitutes macro arguments into text fragments in various Inline elements
     substituteInline args (Str text) = Str (substitute args text)
     substituteInline args (Link attr text (url, title)) =
       Link attr text (substitute args url, substitute args title)
+    substituteInline args (RawInline "html" html) =
+      RawInline "html" (substitute args html)
     substituteInline args inline = inline
+
+    -- Substitutes macro arguments into text fragments in RawBlock elements.
+    -- Substitution in CodeBlocks is probably not a good idea.
+    substituteBlock args (RawBlock "html" html) =
+      RawBlock "html" (substitute args html)
+    substituteBlock args block = block
+
     substitute args text = foldl' substituteOne text args
+
     substituteOne template (name, value) =
       Text.intercalate value $
         Text.splitOn (":(" <> name <> ")") template
