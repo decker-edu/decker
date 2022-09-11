@@ -1,22 +1,24 @@
 ---
 lork: true
 templates:
-  test: ":(1) :(2) :(3) [Link](:(url)) :(title)"
+  test: ":(1) :(2) :(3) [:(title)](:(url))"
   test2: |
-    :(1) :(2) :(3) [Link](:(url)) :(title)
+    <a href=":(url)">Pony</a>
+
+    <a href=":(url)">Unicorn</a>
 title: Template Macros
 ---
 
 # Template
 
-## Definition
+## Macro definition
 
 ``` yaml
 templates:
-  test: :(1) :(2) :(3) [Link](:(url)) :(title)
+  test: :(1) :(2) :(3) [:(title)](:(url))
 ```
 
-## Invocation
+## Macro invocation
 
 ``` markdown
 [@test arg1 arg2 arg3](the%20url "Title")
@@ -24,5 +26,6 @@ templates:
 
 ## Result
 
-[@test arg1 arg2 arg3](the%20url "Title") [@test2 arg1 arg2
-arg3](the%20url "Title")
+[@test arg1 arg2 arg3](the%20url "Title")
+
+[@test2 arg1 arg2 arg3](the%20url "Title")

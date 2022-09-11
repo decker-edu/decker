@@ -46,6 +46,7 @@ function fixAutoplayWithStart() {
 
 function fixLinks() {
   for (let a of document.querySelectorAll("a")) {
+    if (!a.href) continue;
     // skip links in SVGs (e.g. MathJax)
     if (a.href.baseVal) continue;
 
