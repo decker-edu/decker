@@ -1,3 +1,4 @@
+# First try
 name: Haskell Tests (Ubuntu)
 on:
   pull_request:
