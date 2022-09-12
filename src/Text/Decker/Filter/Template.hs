@@ -17,14 +17,14 @@ expandTemplateMacros (Pandoc meta blocks) =
   where
     -- Expands macro links in block contexts
     expandLinkBlock (Para [link@(Link attr text (url, title))]) =
-      fromMaybe (Para [link]) (traceShowId $ expand attr text url title)
+      fromMaybe (Para [link]) (expand attr text url title)
     expandLinkBlock (Plain [link@(Link attr text (url, title))]) =
-      fromMaybe (Plain [link]) (traceShowId $ expand attr text url title)
+      fromMaybe (Plain [link]) (expand attr text url title)
     expandLinkBlock block = block
 
     -- Expands macro links in inline contexts
     expandLink link@(Link attr text (url, title)) =
-      fromMaybe link (traceShowId $ expand attr text url title)
+      fromMaybe link (expand attr text url title)
     expandLink inline = inline
 
     -- Expand macro and splice back into required context
