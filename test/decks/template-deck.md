@@ -3,9 +3,7 @@ lork: true
 templates:
   test: ":(1) :(2) :(3) [:(title)](:(url))"
   test2: |
-    <a href=":(url)">Pony</a>
-
-    <a href=":(url)">Unicorn</a>
+    <a href=":(url)">Pony</a> <a href=":(url)">Unicorn</a>
 title: Template Macros
 ---
 
