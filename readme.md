@@ -9,14 +9,15 @@ A markdown based tool for slide deck creation.
 
 Pick a [published release](), download and unpack:
 
-``` {.sh}
+``` sh
 gunzip decker.gz
 chmod a+x decker
 ```
 
 ## Installation from source
 
-1.  Install [stack](https://docs.haskellstack.org/en/stable/README/) and [Node.js](https://www.npmjs.com/get-npm) (for `npm`) 
+1.  Install [stack](https://docs.haskellstack.org/en/stable/README/) and
+    [Node.js](https://www.npmjs.com/get-npm) (for `npm`)
 2.  Clone this repo.
 3.  `cd decker`
 4.  `git submodule update --init --recursive`
@@ -24,17 +25,21 @@ chmod a+x decker
 
 ## Installation from source on Windows
 
-Instead of a `makefile` we use a PowerShell script on Windows to install decker from source
+Instead of a `makefile` we use a PowerShell script on Windows to install decker
+from source
 
-1. `cd decker`
-2. `.\bin\build.ps1`
+1.  `cd decker`
+2.  `.\bin\build.ps1`
 
-If you want to copy `decker` to `C:\Program Files (x86)` you can call `.\bin\build.ps1 -local`. This needs a PowerShell session with administrator rights.
+If you want to copy `decker` to `C:\Program Files (x86)` you can call
+`.\bin\build.ps1 -local`. This needs a PowerShell session with administrator
+rights.
 
-To then call decker from anywhere on the PowerShell command line create a PowerShell profile file, add the following line, and restart your PowerShell session!
+To then call decker from anywhere on the PowerShell command line create a
+PowerShell profile file, add the following line, and restart your PowerShell
+session!
 
-```$Env:Path += ";${Env:ProgramFiles(x86)}\Decker\bin"```
-
+`$Env:Path += ";${Env:ProgramFiles(x86)}\Decker\bin"`
 
 ## Development
 
@@ -74,25 +79,29 @@ Decker uses a few external tools that need to be installed on the system:
 
 Use [Homebrew](https://brew.sh) to install most of them.
 
-``` {.sh}
+``` sh
 brew install rsync graphviz gnuplot pdf2svg yarn coreutils
 ```
 
 For the rest follow instructions on their respective webites.
 
-To confirm that you have installed all of the required external tools, run the following command in a terminal window:
+To confirm that you have installed all of the required external tools, run the
+following command in a terminal window:
 
 `decker check`
 
 ### Installation of external tools on Linux
 
-Use [Ubuntu’s Advanced Packaging Tool (APT)](https://ubuntu.com/server/docs/package-management) to install external tools. 
+Use [Ubuntu's Advanced Packaging Tool
+(APT)](https://ubuntu.com/server/docs/package-management) to install external
+tools.
 
-``` {.sh}
+``` sh
 apt-get update && apt-get install -y gnuplot graphviz libbz2-dev pdf2svg rsync ssh      
 ```
 
-To confirm that you have installed all of the required external tools, run the following command in a terminal window:
+To confirm that you have installed all of the required external tools, run the
+following command in a terminal window:
 
 `decker check`
 
@@ -180,12 +189,12 @@ a HTML document, or a PDF document, depending on the file name.
     Write a few example files to the current directory. To start exploring
     decker type
 
-    ``` {.bash}
+    ``` bash
     $ decker example
     $ decker --server
     ```
 
-    and make some changes to the Markdown files. 
+    and make some changes to the Markdown files.
 
 -   `decker clean`
 
@@ -220,3 +229,7 @@ Haskell soure code readability depends heavily on consistent formatting
 conventions. With decker, formatting is automated using the excellent
 [hindent]() tool. Formatting is checked for each commit that is uploaded to the
 GitLab repository.
+
+## License
+
+See [COPYING](./COPYING).

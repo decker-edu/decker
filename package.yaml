@@ -1,9 +1,9 @@
 name: decker
-version: 0.12.0
-license: OtherLicense
-author: "Henrik Tramberend"
+version: 0.13.0
+license: GPL-3.0-or-later
+author: "Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
 maintainer: "henrik.tramberend@bht-berlin.de"
-copyright: "2020 Henrik Tramberend"
+copyright: "2022 Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
 
 build-type: Custom
 
