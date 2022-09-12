@@ -17,27 +17,30 @@ expandTemplateMacros (Pandoc meta blocks) =
   where
     -- Expands macro links in block contexts
     expandLinkBlock (Para [link@(Link attr text (url, title))]) =
-      fromMaybe (Para [link]) (expand attr text url title)
+      fromMaybe (Para [link]) (traceShowId $ expand attr text url title)
     expandLinkBlock (Plain [link@(Link attr text (url, title))]) =
-      fromMaybe (Plain [link]) (expand attr text url title)
+      fromMaybe (Plain [link]) (traceShowId $ expand attr text url title)
     expandLinkBlock block = block
 
     -- Expands macro links in inline contexts
     expandLink link@(Link attr text (url, title)) =
-      fromMaybe link (expand attr text url title)
+      fromMaybe link (traceShowId $ expand attr text url title)
     expandLink inline = inline
 
     -- Expand macro and splice back into required context
     expand attr text url title = do
       (name, args) <- parseInvocation text
-      let args' = zip (map show [1 .. (length args)]) args <> [("url", url), ("title", title)]
+      let targetArgs = [("url", url), ("title", title)]
+      let posArgs = zip (map show [1 .. (length args)]) args
+      let allPosArgs = [("args", Text.unwords args)]
+      let arguments = allPosArgs <> posArgs <> targetArgs
       template <- lookupMeta ("templates." <> name) meta
       Just $ case template of
-        MetaInlines inlines -> splice name $ walk (substituteInline args') inlines
-        MetaBlocks [Plain blocks] -> splice name $ walk (substituteInline args') blocks
-        MetaBlocks [Para blocks] -> splice name $ walk (substituteInline args') blocks
-        MetaBlocks blocks -> splice name $ walk (substituteInline args') $ walk (substituteBlock args') blocks
-        MetaString str -> splice name $ substitute args' str
+        MetaInlines inlines -> splice name $ walk (substituteInline arguments) inlines
+        MetaBlocks [Plain blocks] -> splice name $ walk (substituteInline arguments) blocks
+        MetaBlocks [Para blocks] -> splice name $ walk (substituteInline arguments) blocks
+        MetaBlocks blocks -> splice name $ walk (substituteInline arguments) $ walk (substituteBlock arguments) blocks
+        MetaString str -> splice name $ substitute arguments str
         _ -> splice name $ Link attr text (url, title)
 
     -- Parses a link text into a macro invocation, if possible
@@ -79,7 +82,7 @@ instance Splice Text [Inline] where
   splice macro text = [Str text]
 
 instance Splice Text Block where
-  splice macro text = Plain [Str text]
+  splice macro text = Para [Str text]
 
 instance Splice [Inline] [Inline] where
   splice macro = id
@@ -94,10 +97,10 @@ instance Splice [Block] Block where
   splice macro = Div nullAttr
 
 instance Splice Inline Block where
-  splice macro block = Plain [block]
+  splice macro block = Para [block]
 
 instance Splice [Inline] Block where
-  splice macro = Plain
+  splice macro = Para
 
 instance Splice Block Inline where
   splice macro inline = error $ "template '" <> macro <> "': cannot splice Block into Inline context"
