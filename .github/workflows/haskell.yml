@@ -1,33 +1,17 @@
-# First try
-name: Haskell Tests (Ubuntu)
-on:
-  pull_request:
-  push:
-    branches:
-      - master
-      - develop
-
+on: [push]
+name: test
 jobs:
   build:
-    name: CI
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        ghc: ['9.0.2']
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    name: Haskell GHC ${{ matrix.ghc }} sample
     steps:
-      - name: Setup GHC
-        uses: actions/setup-haskell@v1.1
+      - uses: actions/checkout@v3
+      - name: Setup Haskell
+        uses: haskell/actions/setup@v2
         with:
-          ghc-version: "9.0.2"
-          enable-stack: true
-
-      - name: Clone project
-        uses: actions/checkout@v2
-
-      - name: Cache dependencies
-        uses: actions/cache@v1
-        with:
-          path: ~/.stack
-          key: ${{ runner.os }}-${{ hashFiles('stack.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-
-
-      - name: Build and run tests
-        run: "stack test --fast --no-terminal --system-ghc"
+          ghc-version: ${{ matrix.ghc }}
+      - run: stack test
