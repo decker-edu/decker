@@ -74,7 +74,8 @@ pandocReaderOpts =
   def
     { readerExtensions =
         disableExtension Ext_implicit_figures $
-          enableExtension Ext_emoji pandocExtensions
+          enableExtension Ext_emoji pandocExtensions,
+      readerColumns = 999
     }
 
 projectDir = "."

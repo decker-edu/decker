@@ -59,6 +59,18 @@ body.reveal-viewport {
   width: auto;
 }
 
+/* WITH centering, but centering disabled */
+.reveal .slides section.no-center.center > .decker,
+.reveal .slides section.no-center.center > .decker .alignment {
+  justify-content: normal;
+  height: 100%;
+}
+/* section.no-hcenter > .decker,
+section.no-hcenter > .decker .alignment {
+  align-items: flex-start;
+  width: 100%;
+} */
+
 div.block {
   box-sizing: border-box;
 }
@@ -101,6 +113,7 @@ del {
 
 /*********************************************
  * divs of fixed width
+ * (old style, keep for compatibility reasons)
  *********************************************/
 
 .reveal .w10 {
@@ -155,10 +168,11 @@ del {
 }
 
 /*********************************************
- * Columns of fixed width (OLD STYLE)
+ * Columns of fixed width
+ * (old style, keep for compatibility reasons)
  *********************************************/
 
-/* .reveal .col10 {
+.reveal .col10 {
   float: left;
   width: calc(0.1 * var(--inner-width));
 }
@@ -201,7 +215,7 @@ del {
 .reveal .col90 {
   float: left;
   width: calc(0.9 * var(--inner-width));
-} */
+}
 
 /*********************************************
  * new column syntax
@@ -233,12 +247,13 @@ div.grid-layout {
 }
 
 .reveal h1 {
+  font-size: 1.5em;
   text-align: left;
   margin: 0.5em 0 1em 0;
-  font-size: 1.5em;
 }
 .reveal section.center h1 {
   text-align: center;
+  margin: 0.5em 0 0.5em 0;
 }
 
 .reveal h2 {
@@ -328,18 +343,18 @@ div.grid-layout {
  * alignment
  *********************************************/
 
-.center,
-.center p {
+div.center,
+div.center > p {
   text-align: center;
 }
 
-.align-left,
-.align-left p {
+div.align-left,
+div.align-left > p {
   text-align: left;
 }
 
-.align-right,
-.align-right p {
+div.align-right,
+div.align-right > p {
   text-align: right;
 }
 
@@ -462,7 +477,8 @@ ul li li {
 }
 
 /*********************************************
- * code highlighting
+ * code highlighting:
+ * line numbers of reveal.js
  *********************************************/
 
 .reveal .hljs table,
@@ -491,7 +507,8 @@ ul li li {
 }
 
 /*********************************************
- * CODE HIGHLIGHTING OF MARIO
+ * code highlighting:
+ * Mario's styling
  *********************************************/
 
 /* box around block of code */

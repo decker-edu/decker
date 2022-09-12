@@ -32,7 +32,6 @@ explain:
 
 chart:
   defaults:
-    animation: false
     font: {family: "Lato", size: 20 }
     plugins:
       colorschemes:
@@ -41,6 +40,11 @@ chart:
         font: { weight: "normal", size: 30 }
       legend:
         position: "bottom"
+
+# live captions through WebSpeech API
+live-captions: true
+caption-server: https://decker.cs.tu-dortmund.de/captions
+speech-recognition-language: de-DE
 
 # other settings
 highlightjs: xcode
