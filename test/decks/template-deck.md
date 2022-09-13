@@ -1,11 +1,9 @@
 ---
 lork: true
 templates:
-  test: ":(1) :(2) :(3) [:(title)](:(url))"
+  test: ":(1) :(2) :(3) [:(title)](:(url)) :(args)"
   test2: |
-    <a href=":(url)">Pony</a>
-
-    <a href=":(url)">Unicorn</a>
+    <a href=":(url)">Pony</a> :(args) <a href=":(url)">Unicorn</a>
 title: Template Macros
 ---
 
@@ -26,6 +24,5 @@ templates:
 
 ## Result
 
-[@test arg1 arg2 arg3](the%20url "Title")
-
-[@test2 arg1 arg2 arg3](the%20url "Title")
+Hallo [@test arg1 arg2 arg3](the%20url "Title") 
+Was denn [@test2 There is no](the%20url "Title")

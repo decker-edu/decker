@@ -4,62 +4,16 @@ module Text.Decker.Filter.Template (expandTemplateMacros) where
 
 import qualified Data.Text as Text
 import Relude
-import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta (lookupMeta)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 
-class Splice a b where
-  splice :: Text -> a -> b
-
-instance Splice Inline Inline where
-  splice macro = id
-
-instance Splice Text Inline where
-  splice macro = Str
-
-instance Splice Text [Inline] where
-  splice macro text = [Str text]
-
-instance Splice Text Block where
-  splice macro text = Plain [Str text]
-
-instance Splice [Inline] [Inline] where
-  splice macro = id
-
-instance Splice [Inline] Inline where
-  splice macro = Span nullAttr
-
-instance Splice Block Block where
-  splice macro = id
-
-instance Splice [Block] Block where
-  splice macro = Div nullAttr
-
-instance Splice Inline Block where
-  splice macro block = Plain [block]
-
-instance Splice [Inline] Block where
-  splice macro = Plain
-
-instance Splice Block Inline where
-  splice macro inline = error $ "template '" <> macro <> "': cannot splice Block into Inline context"
-
-instance Splice Block [Inline] where
-  splice macro inline = error $ "template '" <> macro <> "': cannot splice Block into [Inline] context"
-
-instance Splice [Block] Inline where
-  splice macro inline = error $ "template '" <> macro <> "': cannot splice [Block] into Inline context"
-
-instance Splice [Block] [Inline] where
-  splice macro inline = error $ "template '" <> macro <> "': cannot splice [Block] into [Inline] context"
-
-expandTemplateMacros :: Meta -> Slide -> Decker Slide
-expandTemplateMacros meta (Slide header body dir) =
+expandTemplateMacros :: Pandoc -> Decker Pandoc
+expandTemplateMacros (Pandoc meta blocks) =
   -- Walks link blocks first
-  return $ Slide header (walk expandLink $ walk expandLinkBlock body) dir
+  return $ Pandoc meta (walk expandLink $ walk expandLinkBlock blocks)
   where
     -- Expands macro links in block contexts
     expandLinkBlock (Para [link@(Link attr text (url, title))]) =
@@ -76,12 +30,17 @@ expandTemplateMacros meta (Slide header body dir) =
     -- Expand macro and splice back into required context
     expand attr text url title = do
       (name, args) <- parseInvocation text
-      let args' = zip (map show [1 .. (length args)]) args <> [("url", url), ("title", title)]
+      let targetArgs = [("url", url), ("title", title)]
+      let posArgs = zip (map show [1 .. (length args)]) args
+      let allPosArgs = [("args", Text.unwords args)]
+      let arguments = allPosArgs <> posArgs <> targetArgs
       template <- lookupMeta ("templates." <> name) meta
       Just $ case template of
-        MetaBlocks blocks -> splice name $ walk (substituteInline args') $ walk (substituteBlock args') blocks
-        MetaInlines inlines -> splice name $ walk (substituteInline args') inlines
-        MetaString str -> splice name $ substitute args' str
+        MetaInlines inlines -> splice name $ walk (substituteInline arguments) inlines
+        MetaBlocks [Plain blocks] -> splice name $ walk (substituteInline arguments) blocks
+        MetaBlocks [Para blocks] -> splice name $ walk (substituteInline arguments) blocks
+        MetaBlocks blocks -> splice name $ walk (substituteInline arguments) $ walk (substituteBlock arguments) blocks
+        MetaString str -> splice name $ substitute arguments str
         _ -> splice name $ Link attr text (url, title)
 
     -- Parses a link text into a macro invocation, if possible
@@ -109,3 +68,48 @@ expandTemplateMacros meta (Slide header body dir) =
     substituteOne template (name, value) =
       Text.intercalate value $
         Text.splitOn (":(" <> name <> ")") template
+
+class Splice a b where
+  splice :: Text -> a -> b
+
+instance Splice Inline Inline where
+  splice macro = id
+
+instance Splice Text Inline where
+  splice macro = Str
+
+instance Splice Text [Inline] where
+  splice macro text = [Str text]
+
+instance Splice Text Block where
+  splice macro text = Para [Str text]
+
+instance Splice [Inline] [Inline] where
+  splice macro = id
+
+instance Splice [Inline] Inline where
+  splice macro = Span nullAttr
+
+instance Splice Block Block where
+  splice macro = id
+
+instance Splice [Block] Block where
+  splice macro = Div nullAttr
+
+instance Splice Inline Block where
+  splice macro block = Para [block]
+
+instance Splice [Inline] Block where
+  splice macro = Para
+
+instance Splice Block Inline where
+  splice macro inline = error $ "template '" <> macro <> "': cannot splice Block into Inline context"
+
+instance Splice Block [Inline] where
+  splice macro inline = error $ "template '" <> macro <> "': cannot splice Block into [Inline] context"
+
+instance Splice [Block] Inline where
+  splice macro inline = error $ "template '" <> macro <> "': cannot splice [Block] into Inline context"
+
+instance Splice [Block] [Inline] where
+  splice macro inline = error $ "template '" <> macro <> "': cannot splice [Block] into [Inline] context"
