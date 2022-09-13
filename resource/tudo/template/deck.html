@@ -136,8 +136,9 @@ $if(title)$
 
          <img class="logo affiliation-logo light-only" src="./$decker-support-dir$/assets/tu-logo-light.svg">
          <img class="logo affiliation-logo dark-only" src="./$decker-support-dir$/assets/tu-logo-dark.svg">
-         $if(department-logo)$
-         <img class="logo department-logo" src="$department-logo$">
+
+         $if(template.logo)$
+         <img class="logo department-logo" src="$template.logo$">
          $endif$
       </section>
 $endif$
