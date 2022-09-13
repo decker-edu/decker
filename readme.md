@@ -1,3 +1,5 @@
+[![Tests](https://github.com/decker-edu/decker/actions/workflows/haskell.yml/badge.svg?branch=master)](https://github.com/decker-edu/decker/actions/workflows/haskell.yml)
+
 # Decker
 
 A markdown based tool for slide deck creation.
