@@ -1,4 +1,8 @@
-on: [push]
+on:
+  push:
+    branches:
+      - master
+      - develop
 name: test
 jobs:
   build:
@@ -29,3 +33,7 @@ jobs:
           stack-setup-ghc: true
 
       - run: stack test
+
+  # release:
+  #   name: Automatic Releases
+  #   uses: marvinpinto/action-automatic-releases@v1.2.1
