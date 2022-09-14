@@ -275,6 +275,7 @@ div.grid-layout {
   background-color: var(--primary-color);
   text-align: center;
   padding: 50px;
+  margin: 0;
   width: var(--slide-width);
   font-weight: bold;
   font-style: normal;
