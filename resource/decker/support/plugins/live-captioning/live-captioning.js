@@ -148,7 +148,7 @@ class LiveCaptioning {
       this.popup.document.write(html);
       this.popup.onbeforeunload = () => {
         this.popup = undefined;
-        this.stopCaptioning();
+        // this.stopCaptioning(); // DO NOT STOP, other clients might be listening
       };
     } catch (error) {
       console.log(error);
@@ -408,7 +408,7 @@ class LiveCaptioning {
       stop_captioning: "Stop Live Captioning",
       accept: "Accept",
       stop: "Stop Captioning",
-      abort: "Abort",
+      abort: "Cancel",
       qrcode_message: "Live Captioning",
       caption_warning:
         "Using this feature will use your Browser's WebSpeech API to transcribe your voice. \

@@ -59,17 +59,26 @@ body.reveal-viewport {
   width: auto;
 }
 
-/* WITH centering, but centering disabled */
+/* WITH centering, but VERTICAL centering disabled */
 .reveal .slides section.no-center.center > .decker,
 .reveal .slides section.no-center.center > .decker .alignment {
   justify-content: normal;
+  align-items: flex-start;
+  width: 100%;
   height: 100%;
 }
-/* section.no-hcenter > .decker,
+/* WITH centering, but VERTICAL centering disabled */
+.reveal .slides section.no-vcenter.center > .decker,
+.reveal .slides section.no-vcenter.center > .decker .alignment {
+  justify-content: normal;
+  height: 100%;
+}
+/* WITH centering, but HORIZONTAL centering disabled */
+section.no-hcenter > .decker,
 section.no-hcenter > .decker .alignment {
   align-items: flex-start;
   width: 100%;
-} */
+}
 
 div.block {
   box-sizing: border-box;
@@ -253,7 +262,7 @@ div.grid-layout {
 }
 .reveal section.center h1 {
   text-align: center;
-  margin: 0.5em 0 0.5em 0;
+  margin: 0.5em 0 0.75em 0;
 }
 
 .reveal h2 {
@@ -275,6 +284,7 @@ div.grid-layout {
   background-color: var(--primary-color);
   text-align: center;
   padding: 50px;
+  margin: 0;
   width: var(--slide-width);
   font-weight: bold;
   font-style: normal;

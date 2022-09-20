@@ -352,9 +352,14 @@ class SlideMenu {
       let item = this.createListItem(slide, h, undefined);
       list.appendChild(item);
 
-      /* if there is only a single h1 element, this is a separator slide. mark it in the menu */
+      /* if there is only a single h1 element, 
+      or if the slide has class .section, 
+      then this is a separator slide. mark it in the menu */
       const h1 = slide.querySelector("h1");
-      if (h1 && h1.parentElement.children.length == 1) {
+      if (
+        slide.classList.contains("section") ||
+        (h1 && h1.parentElement.children.length == 1)
+      ) {
         item.classList.add("separator-slide");
       }
     });
