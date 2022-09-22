@@ -29,3 +29,6 @@ test:
   merge-list:
     - This line is from decker.yaml
   some-value: This line is from decker.yaml
+
+no-index:
+  - test-no-index

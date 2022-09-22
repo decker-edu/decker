@@ -28,25 +28,39 @@ import Text.Pandoc.Walk
 -- | Computes the inverted index over all decks and stores it in JSON format.
 buildIndex :: FilePath -> Meta -> [FilePath] -> Action ()
 buildIndex indexFile globalMeta decks = do
-  index <- mapM (buildDeckIndex globalMeta) decks
+  index <- catMaybes <$> mapM (buildDeckIndex globalMeta) decks
   let inverted = invertIndex index
   liftIO $ encodeFile indexFile inverted
 
+-- | Only index decks which are not marked `draft` and are not in the `no-index`
+-- list.
+shouldAddToIndex meta =
+  let deckId :: Text = lookupMetaOrElse "" "feedback.deck-id" meta
+      noIndex = lookupMetaOrElse [] "no-index" meta
+      isDraft = lookupMetaOrElse False "draft" meta
+   in (not isDraft) && (deckId `notElem` noIndex)
+
 -- Collects word frequencies for each slide grouped by deck.
-buildDeckIndex :: Meta -> FilePath -> Action (DeckInfo, [((Text, Text), [(Text, Int)])])
+buildDeckIndex :: Meta -> FilePath -> Action (Maybe (DeckInfo, [((Text, Text), [(Text, Int)])]))
 buildDeckIndex globalMeta path = do
   pandoc@(Pandoc meta blocks) <-
     readMarkdownFile globalMeta path >>= mergeDocumentMeta globalMeta
-  let deckTitle = lookupMeta "title" meta
-  let deckSubtitle = lookupMeta "subtitle" meta
-  let deckId = lookupMeta "deckId" meta
-  let deckUrl = toText (path -<.> "html")
-  -- Take out the empty ones for now
-  let deckIndex =
-        map (first fromJust) $
-          filter (isJust . fst) $
-            mapSlides indexSlide pandoc
-  return (DeckInfo {deckUrl, deckId, deckTitle, deckSubtitle}, deckIndex)
+  if shouldAddToIndex meta
+    then do
+      let deckTitle = lookupMeta "title" meta
+      let deckSubtitle = lookupMeta "subtitle" meta
+      let deckId = lookupMeta "deckId" meta
+      let deckUrl = toText (path -<.> "html")
+      -- Take out the empty ones for now
+      let deckIndex =
+            map (first fromJust) $
+              filter (isJust . fst) $
+                mapSlides indexSlide pandoc
+      putNormal $ "# indexing (" <> path <> ")"
+      return $ Just (DeckInfo {deckUrl, deckId, deckTitle, deckSubtitle}, deckIndex)
+    else do
+      putNormal $ "# skipping (" <> path <> ")"
+      return Nothing
 
 -- Extracts all searchable words from an inline
 extractInlineWords :: Inline -> [Text]
