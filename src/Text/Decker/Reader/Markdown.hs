@@ -282,8 +282,8 @@ deckerMediaFilter dispo docBase pandoc@(Pandoc meta _) =
 deckerPipeline (Disposition Deck Html) =
   concatM
     [ evaluateShortLinks,
-      expandDeckerMacros,
       expandTemplateMacros,
+      expandDeckerMacros,
       includeCode,
       processDetailDiv,
       processSlides,
@@ -293,8 +293,8 @@ deckerPipeline (Disposition Deck Html) =
 deckerPipeline (Disposition Page Html) =
   concatM
     [ evaluateShortLinks,
-      expandDeckerMacros,
       expandTemplateMacros,
+      expandDeckerMacros,
       includeCode,
       processDetailDiv,
       processDetailHeader
@@ -302,8 +302,8 @@ deckerPipeline (Disposition Page Html) =
 deckerPipeline (Disposition Index Html) =
   concatM
     [ evaluateShortLinks,
-      expandDeckerMacros,
       expandTemplateMacros,
+      expandDeckerMacros,
       includeCode,
       processDetailDiv,
       processDetailHeader
@@ -311,8 +311,8 @@ deckerPipeline (Disposition Index Html) =
 deckerPipeline (Disposition Handout Html) =
   concatM
     [ evaluateShortLinks,
-      expandDeckerMacros,
       expandTemplateMacros,
+      expandDeckerMacros,
       includeCode,
       processDetailDiv,
       processSlides
