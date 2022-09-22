@@ -1621,7 +1621,7 @@ async function listRecordings(path) {
   return fetch(`/recordings${path}`, { method: "GET" })
     .then((r) => r.json())
     .catch((e) => {
-      console.log("[] cannot list recordings: " + url + ", " + e);
+      console.log("[] cannot list recordings: " + path + ", " + e);
       return null;
     });
 }
