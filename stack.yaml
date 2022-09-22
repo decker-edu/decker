@@ -1,13 +1,16 @@
 flags:
-  regex-posix:
-    _regex-posix-clib: true
   pandoc:
     embed_data_files: true
+  regex-posix:
+    _regex-posix-clib: true
 
 packages:
   - "."
 
-extra-deps: []
+# Try to make the option above stick
+extra-deps:
+  - github: jgm/pandoc # Pandoc 2.17.1.1
+    commit: 64a21caa6c802eabaabecc181087dc7c42580946
 
 # TODO As of lts-19.13 this is still needed on M1 macOS. Should not hurt
 # elsewhere. Also on macOS 12.6 LLVM 14 needs to be installed with `brew install

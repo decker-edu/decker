@@ -5,7 +5,9 @@ highlight-style: pygments
 institute: Institute
 subtitle: Clean. Consistent. Robust.
 title: New Style Media Handling
+lang: de
 ---
+
 
 # Some Settings {.columns}
 
