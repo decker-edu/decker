@@ -4,6 +4,7 @@ module Text.Decker.Internal.URI where
 
 import Control.Monad.Catch
 import qualified Data.Text as Text
+import Network.HTTP.Types (urlDecode, urlEncode)
 import Relude
 import System.FilePath.Posix
 import Text.Decker.Internal.Common
@@ -59,7 +60,8 @@ makeProjectUriPath base uriString = do
   case uriScheme uri of
     Nothing | not (null (uriFilePath uri)) -> do
       let path = makeProjectPath base (uriFilePath uri)
-      URI.render <$> setUriPath (toText path) uri
+      uri <- URI.render <$> setUriFilePath (toText path) uri
+      return uri
     _ -> return uriString
 
 isAbsoluteUri :: MonadThrow m => Text -> m Bool
@@ -67,9 +69,11 @@ isAbsoluteUri uriString = do
   uri <- URI.mkURI uriString
   return $ not (uriScheme uri == Nothing && not (Text.null (uriPath uri)))
 
--- | Extracts the URI path component.
+-- | Extracts the URI path component and urldecodes it.
 uriFilePath :: URI -> FilePath
-uriFilePath = toString . uriPath
+uriFilePath = toString . uriDecode' . uriPath
+
+-- uriFilePath = toString . uriPath
 
 -- | Calculates the target file path of a local file URI. The target path is
 -- the source path relative to the public directory.
@@ -82,7 +86,7 @@ targetFilePath uri =
 targetUri :: MonadThrow m => FilePath -> URI -> m URI
 targetUri base uri = do
   let relative = toText $ makeRelativeTo base $ uriFilePath uri
-  setUriPath relative uri
+  setUriFilePath relative uri
 
 -- | Extracts the URI scheme fromm `uri`.
 uriScheme :: URI -> Maybe Text
@@ -92,11 +96,17 @@ uriScheme uri = URI.unRText <$> URI.uriScheme uri
 setUriScheme :: Text -> URI -> URI
 setUriScheme scheme uri = uri {URI.uriScheme = URI.mkScheme scheme}
 
+uriEncode' :: Text -> Text
+uriEncode' = decodeUtf8 . urlEncode False . encodeUtf8
+
+uriDecode' :: Text -> Text
+uriDecode' = decodeUtf8 . urlDecode False . encodeUtf8
+
 -- | Sets the URI path of `uri` to `path`. Handles absolute and relative pathes
--- correctly.
-setUriPath :: MonadThrow m => Text -> URI -> m URI
-setUriPath path uri = do
-  pathUri <- URI.mkURI path
+-- correctly. The path component gets URI-encoded.
+setUriFilePath :: MonadThrow m => Text -> URI -> m URI
+setUriFilePath path uri = do
+  pathUri <- URI.mkURI (uriEncode' path)
   return
     uri
       { URI.uriPath = URI.uriPath pathUri,
@@ -110,7 +120,7 @@ setUriPath path uri = do
 addPathExtension :: MonadThrow m => Text -> URI -> m URI
 addPathExtension ext uri =
   if not (Text.null ext)
-    then setUriPath (uriPath uri <> "." <> ext) uri
+    then setUriFilePath (uriPath uri <> "." <> ext) uri
     else return uri
 
 -- | Sets the query component of `uri` to the combination of `flags` and
