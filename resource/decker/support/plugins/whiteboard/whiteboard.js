@@ -1435,7 +1435,7 @@ function fragmentChanged() {
 // prevent iPad pen to trigger scrolling (by killing touchstart
 // whenever force is detected
 function preventPenScroll(evt) {
-  if (evt.targetTouches[0].force) {
+  if (whiteboardActive && evt.targetTouches[0].force) {
     return killEvent(evt);
   }
 }
