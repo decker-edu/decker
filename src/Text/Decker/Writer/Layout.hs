@@ -75,8 +75,7 @@ writePandocFile options out pandoc@(Pandoc meta blocks) = do
   liftIO $ BS.writeFile metaPath metaJson
   liftIO $ do
     html <-
-      runIO (writeHtml4 options {writerTemplate = Nothing} pandoc)
-        >>= handleError
+      runIO (setVerbosity ERROR >> writeHtml4 options {writerTemplate = Nothing} pandoc) >>= handleError
     let string = renderHtml $ transformHtml (nullA, []) html
     let raw =
           [ RawBlock "html" $ fromLazy string,
@@ -90,7 +89,7 @@ writePandocFile options out pandoc@(Pandoc meta blocks) = do
               ]
           ]
     -- runIO (writeHtml5String options (embedMetaMeta (Pandoc meta raw)))
-    runIO (writeHtml5String options (Pandoc meta' raw))
+    runIO (setVerbosity ERROR >> writeHtml5String options (Pandoc meta' raw))
       >>= handleError
       >>= Text.writeFile out
 
