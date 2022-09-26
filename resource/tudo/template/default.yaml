@@ -49,6 +49,12 @@ speech-recognition-language: de-DE
 # other settings
 highlightjs: xcode
 
+# progress bar on index page
+# progress:
+  # selector: "a[href$='-deck.html']"
+  # insert: after
+progress: true
+
 # Language dictionary. Currently for quiz elements
 dictionary:
   de:

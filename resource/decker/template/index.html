@@ -24,7 +24,7 @@ $if(description-meta)$
   <meta name="description" content="$description-meta$" />
 $endif$
 $if(template.favicon)$
-    <link rel="shortcut icon" href="$template.favicon$">
+  <link rel="shortcut icon" href="$template.favicon$">
 $endif$
   <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
   <!-- Default Pandoc CSS for HTML documents -->
@@ -81,7 +81,7 @@ $for(header-includes)$
   $header-includes$
 $endfor$
 </head>
-<body class="index">
+<body class="index"  onload="initIndexPage()">
 $for(include-before)$
 $include-before$
 $endfor$
@@ -111,6 +111,8 @@ $body$
 $for(include-after)$
 $include-after$
 $endfor$
+
+  <script src="$decker-support-dir$/js/index.js"></script>
 
   <script>
     var socket = new WebSocket("ws://" + location.host + "/reload");
