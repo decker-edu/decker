@@ -1622,7 +1622,7 @@ async function listRecordings(path) {
     .then((r) => r.json())
     .catch((e) => {
       console.log("[] cannot list recordings: " + path + ", " + e);
-      return null;
+      return [];
     });
 }
 
