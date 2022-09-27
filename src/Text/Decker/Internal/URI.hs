@@ -97,7 +97,8 @@ setUriScheme :: Text -> URI -> URI
 setUriScheme scheme uri = uri {URI.uriScheme = URI.mkScheme scheme}
 
 uriEncode' :: Text -> Text
-uriEncode' = decodeUtf8 . urlEncode False . encodeUtf8
+-- uriEncode' = decodeUtf8 . urlEncode False . encodeUtf8
+uriEncode' = Text.intercalate "/" . map (decodeUtf8 . urlEncode False . encodeUtf8) . Text.splitOn "/"
 
 uriDecode' :: Text -> Text
 uriDecode' = decodeUtf8 . urlDecode False . encodeUtf8

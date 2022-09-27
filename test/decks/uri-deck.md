@@ -7,18 +7,18 @@ title: Funny Filenames and Stuff
 ## Funny filename {.left}
 
 ``` markdown
-![](@f{u}nn y.png)
+![](./@f{u}nn y.png)
 ```
 
-![](@f{u}nn y.png)
+![](./@f{u}nn y.png)
 
 ## Also URl-encoded {.right}
 
 ``` markdown
-![](@f%7Bu%7Dnn%20y.png)
+![](./@f%7Bu%7Dnn%20y.png)
 ```
 
-![](@f%7Bu%7Dnn%20y.png)
+![](./@f%7Bu%7Dnn%20y.png)
 
 
 # Funny Local Filenames {.columns}
