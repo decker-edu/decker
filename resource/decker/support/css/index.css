@@ -33,3 +33,9 @@ figure {
 p {
   word-wrap: normal;
 }
+
+progress {
+  accent-color: initial;
+  margin: auto 0.5em;
+  width: 3em;
+}

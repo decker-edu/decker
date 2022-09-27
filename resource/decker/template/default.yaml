@@ -58,6 +58,12 @@ menu:
 lang: de
 title: <Undefined>
 
+# progress bar on index page
+# progress:
+  # selector: "a[href$='-deck.html']"
+  # insert: after
+progress: true
+
 math:
   scale: 1
   macros:
