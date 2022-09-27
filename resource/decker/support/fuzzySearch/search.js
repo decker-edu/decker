@@ -16,31 +16,31 @@ function setupSearch(
   fetch(indexPath)
     .then((res) => res.json())
     .then((index) => {
-      console.log(index);
       setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
     })
     .catch((err) => console.log("cannot load: index.json", err));
 }
 
 function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
-  anchor.innerHTML =
-    document.documentElement.lang === "de"
-      ? `<details>
-         <summary icon=""> In den Folien suchen </summary>
+  if (anchor.innerHTML.trim() === "") {
+    anchor.innerHTML =
+      document.documentElement.lang === "de"
+        ? `<details>
+         <summary> In den Folien suchen </summary>
          <p><input class="search" placeholder="Suchbegriff eingeben" type="text"></p>
          <table class="search">
          <thead><tr><th>Wort</th><th>Foliensatz</th><th>Folie</th><th>Treffer</th></tr></thead>
          <tbody></tbody>
          </table>
          </details>`
-      : `<details><summary icon=""> Search in the slides </summary>
+        : `<details><summary> Search in the slides </summary>
          <p><input class="search" placeholder="Looking for something?" type="text"></p>
          <table class="search">
          <thead><tr><th>Word</th><th>Deck</th><th>Slide</th><th>Hits</th></tr></thead>
          <tbody></tbody>
          </table>
          </details>`;
-
+  }
   const search = anchor.querySelector("input.search");
   const table = anchor.querySelector("table.search");
   const results = anchor.querySelector("table.search tbody");
@@ -55,6 +55,9 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
 
     // get matches from fuzzy set
     const matches = fuzzy.get(search.value, [], minScore);
+    anchor.setAttribute("data-results", matches.length);
+    if (matches.length) anchor.classList.add("results");
+    else anchor.classList.remove("results");
 
     // create one table row per slide per match
     for (let match of matches) {
