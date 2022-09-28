@@ -56,11 +56,12 @@ import Text.Pandoc.Shared hiding (toString, toText)
 globalMetaFileName = "decker.yaml"
 
 -- TODO extract this value from global meta data.
-replaceLists :: [Text]
-replaceLists = ["math.macros", "palette.colors"]
+replaceLists :: [[Text]]
+replaceLists = [["math", "macros"], ["palette", "colors"]]
 
 shouldMerge :: [Text] -> Bool
-shouldMerge path = not $ any (`Text.isPrefixOf` Text.intercalate "." path) replaceLists
+-- shouldMerge path = not $ any (`Text.isPrefixOf` Text.intercalate "." path) replaceLists
+shouldMerge path = not $ any (`List.isPrefixOf` path) replaceLists
 
 -- | Fine-grained recursive merge of two meta values. Left-biased. Lists are
 -- merged by default, but replaced if the key path is in `replaceLists`.
@@ -240,7 +241,7 @@ addMetaValue key value meta =
 
 -- | Adds a meta value to the map found at the compund key in the meta data.
 -- If any intermediate containers do not exist, they are created.
-addMetaKeyValue :: Text -> Text -> MetaValue ->  Meta -> Meta
+addMetaKeyValue :: Text -> Text -> MetaValue -> Meta -> Meta
 addMetaKeyValue loc key value meta =
   case add (splitKey loc) (MetaMap (unMeta meta)) of
     MetaMap map -> Meta map
