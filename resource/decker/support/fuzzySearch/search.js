@@ -14,11 +14,14 @@ function setupSearch(
   console.log("read search index from " + indexPath);
 
   fetch(indexPath)
-    .then((res) => res.json())
+    .then((res) => {
+      if (res.ok) return res.json();
+      else throw new Error("Cannot download index file.");
+    })
     .then((index) => {
       setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
     })
-    .catch((err) => console.log("cannot load: index.json", err));
+    .catch((err) => console.log(err));
 }
 
 function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
