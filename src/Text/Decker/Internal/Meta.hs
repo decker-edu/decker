@@ -76,7 +76,8 @@ mergePandocMeta (Meta left) (Meta right) =
       MetaMap $ Map.unionWithKey (merge (concat path key)) mapL mapR
     merge path key (MetaList listL) (MetaList listR)
       | shouldMerge (concat path key) =
-        MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
+        -- MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
+        MetaList $ List.nub $ listR <> listL
     merge path key left right = left
     concat path "" = path
     concat path key = path <> [key]
