@@ -338,6 +338,12 @@ div.grid-layout {
   line-height: 1.3;
   text-align: inherit;
 }
+.reveal p:first-child {
+  margin-top: 0;
+}
+.reveal p:last-child {
+  margin-bottom: 0;
+}
 
 /* do not completely remove empty paragraphs with display:none.
  * Instead let them cause a line break, but not eat up more space */
@@ -371,11 +377,6 @@ div.align-right > p {
 /*********************************************
  * lists
  *********************************************/
-
-/* fix ugly css foul in Henrik's style.css */
-ul li li {
-  list-style-type: unset;
-}
 
 .reveal ol,
 .reveal dl,
