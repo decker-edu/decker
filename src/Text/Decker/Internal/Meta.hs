@@ -42,7 +42,6 @@ import Data.List.Safe ((!!))
 import qualified Data.Map.Lazy as Map
 import qualified Data.Map.Strict as M
 import Data.Maybe
-import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
@@ -77,6 +76,7 @@ mergePandocMeta (Meta left) (Meta right) =
     merge path key (MetaList listL) (MetaList listR)
       | shouldMerge (concat path key) =
         -- MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
+        -- This should be stable and result in a more predictable order
         MetaList $ List.nub $ listR <> listL
     merge path key left right = left
     concat path "" = path
