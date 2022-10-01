@@ -1,6 +1,6 @@
 ---
 author: Henrik Tramberend
-decker-engine:
+feedback:
   base-url: 'https://tramberend.bht-berlin.de/decker'
   deck-id: 'https://tramberend.bht-berlin.de/public/decker/test/decks/engine-deck.html'
 help: 0

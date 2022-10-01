@@ -1,6 +1,6 @@
 ---
 author: Henrik Tramberend
-decker-engine:
+feedback:
   base-url: 'http://localhost:8081'
 title: Decker Engine Local Test
 ---

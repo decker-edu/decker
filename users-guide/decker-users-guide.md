@@ -416,7 +416,7 @@ To enable this feature a deck must specify the URL of a Decker Engine server in
 the meta data by setting the variable `decker-engine.base-url`. For example:
 
 ``` yaml
-decker-engine:
+feedback:
   base-url: 'https://tramberend.bht-berlin.de/decker'
 ```
 
@@ -433,7 +433,7 @@ necessary.
 The `de-api` endpoint works that way:
 
 ``` yaml
-decker-engine:
+feedback:
   base-url: 'https://tramberend.bht-berlin.de/de-api'
 ```
 
@@ -448,7 +448,7 @@ password.
 The `decker` endpoint works that way:
 
 ``` yaml
-decker-engine:
+feedback:
   base-url: 'https://tramberend.bht-berlin.de/decker'
 ```
 
@@ -466,7 +466,7 @@ is supposed to show the questions on the published version. For this situation
 the public URL of a deck can be set in the meta data.
 
 ``` yaml
-decker-engine:
+feedback:
   deck-id: 'https://tramberend.bht-berlin.de/public/decker/test/decks/engine-deck.html'
 ```
 
