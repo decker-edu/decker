@@ -113,7 +113,7 @@ deckerRules = do
   withTargetDocs "Build HTML versions of all decks, pages and handouts (*-deck.md, *-page.md)." $
     phony "html" $ do
       need ["support"]
-      getTargets >>= needSels [decks, pages, handouts]
+      getTargets >>= needSels [decks, pages]
   --
   phony "pdf" $ do
     need ["support"]
