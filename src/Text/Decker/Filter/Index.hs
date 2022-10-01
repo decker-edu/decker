@@ -38,7 +38,7 @@ shouldAddToIndex meta =
   let deckId :: Text = lookupMetaOrElse "" "feedback.deck-id" meta
       noIndex = lookupMetaOrElse [] "no-index" meta
       isDraft = lookupMetaOrElse False "draft" meta
-   in (not isDraft) && (deckId `notElem` noIndex)
+   in not isDraft && (deckId `notElem` noIndex)
 
 -- Collects word frequencies for each slide grouped by deck.
 buildDeckIndex :: Meta -> FilePath -> Action (Maybe (DeckInfo, [((Text, Text), [(Text, Int)])]))

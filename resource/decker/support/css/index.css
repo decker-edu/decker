@@ -39,3 +39,21 @@ progress {
   margin: auto 0.5em;
   width: 3em;
 }
+
+body.index table {
+  margin-left: auto;
+  margin-right: auto;
+  width: 90%;
+}
+
+body.index div.search table.search {
+  display: none;
+}
+
+body.index div.search table.search {
+  text-align: left;
+}
+
+body.index div.search.results table.search {
+  display: table;
+}
