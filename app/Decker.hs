@@ -20,7 +20,7 @@ import System.IO
 import Text.Decker.Exam.Question
 import Text.Decker.Exam.Render
 import Text.Decker.Exam.Xml
-import Text.Decker.Filter.Index
+import Text.Decker.Filter.Index (buildIndex, readIndex)
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
@@ -56,9 +56,13 @@ serverUrl = "http://localhost:" ++ show serverPort
 
 indexSource = "index.md"
 
-generatedIndexSource = transientDir </> "index.md.generated"
-
 indexFile = publicDir </> "index.html"
+
+generatedIndexSource = "index-generated.md"
+
+generatedIndexFile = publicDir </> "index-generated.html"
+
+globalSearchIndex = publicDir </> "index.json"
 
 run :: IO ()
 run = do
@@ -120,12 +124,7 @@ deckerRules = do
     getTargets >>= needSel decksPdf
   --
   withTargetDocs "Compile global search index." $
-    phony "search-index" $ do
-      putInfo "# compiling search index ..."
-      meta <- getGlobalMeta
-      targets <- getTargets
-      allDecks <- mapM (calcSource "-deck.html" "-deck.md") (targets ^. decks)
-      buildIndex (publicDir </> "index.json") meta allDecks
+    phony "search-index" $ need [globalSearchIndex]
   --
   withTargetDocs "If a tree falls in a forest and no one is there to hear, does it make a sound?" $
     phony "observed" $ do
@@ -145,6 +144,14 @@ deckerRules = do
       liftIO $ BS.writeFile out content
   --
   priority 4 $ do
+    --
+    globalSearchIndex %> \out -> do
+      putInfo "# compiling search index ..."
+      meta <- getGlobalMeta
+      targets <- getTargets
+      allDecks <- mapM (calcSource "-deck.html" "-deck.md") (targets ^. decks)
+      buildIndex globalSearchIndex meta allDecks
+    --
     publicDir <//> "*-deck.html" %> \out -> do
       src <- calcSource "-deck.html" "-deck.md" out
       meta <- getGlobalMeta
@@ -210,19 +217,28 @@ deckerRules = do
       need ["private/quest-catalog.html", "private/quest-catalog.xml"]
     --
     indexFile %> \out -> do
-      exists <- liftIO $ Dir.doesFileExist indexSource
-      let src =
-            if exists
-              then indexSource
-              else generatedIndexSource
-      need [src]
+      customIndex <- doesFileExist indexSource
       meta <- getGlobalMeta
-      markdownToHtml htmlIndex meta getTemplate src out
+      if customIndex
+        then do
+          need [indexSource, generatedIndexFile]
+          markdownToHtml htmlIndex meta getTemplate indexSource out
+        else do
+          need [generatedIndexFile]
+          copyFile' generatedIndexFile out
+    --
+    generatedIndexFile %> \out -> do
+      need [generatedIndexSource]
+      meta <- getGlobalMeta
+      markdownToHtml htmlIndex meta getTemplate generatedIndexSource out
     --
     generatedIndexSource %> \out -> do
       targets <- getTargets
       meta <- getGlobalMeta
-      writeIndexLists meta targets out (takeDirectory indexFile)
+      need [globalSearchIndex]
+      index <- readIndex globalSearchIndex
+      -- writeIndexLists meta targets out (takeDirectory indexFile)
+      generateIndex meta index out (takeDirectory out)
   --
   priority 3 $ do
     "**/*.css" %> \out -> do

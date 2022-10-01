@@ -5,6 +5,7 @@ reveal:
   slideNumber: true
   vertical: true
 highlightjs: atom-one-light
+draft: true
 ---
 
 # Agenda

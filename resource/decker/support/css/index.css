@@ -46,6 +46,11 @@ body.index table {
   width: 90%;
 }
 
+body.index div.search p {
+  margin: auto;
+  width: 33%;
+}
+
 body.index div.search table.search {
   display: none;
 }
@@ -56,4 +61,16 @@ body.index div.search table.search {
 
 body.index div.search.results table.search {
   display: table;
+}
+
+body.index div.decks thead {
+  display: none;
+}
+
+body.index div.decks a.title {
+  font-weight: bold;
+}
+
+body.index div.decks span.subtitle {
+  font-size: 72%;
 }

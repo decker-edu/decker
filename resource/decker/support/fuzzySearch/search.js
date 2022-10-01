@@ -6,7 +6,8 @@ function setupSearch(
   anchor,
   minScore = 0.5,
   showDeckTitles = true,
-  showDeckSubtitles = false
+  showDeckSubtitles = false,
+  showDrafts = false
 ) {
   let indexPath = Decker.meta.projectPath;
   if (!indexPath.endsWith("/")) indexPath += "/";
@@ -19,12 +20,26 @@ function setupSearch(
       else throw new Error("Cannot download index file.");
     })
     .then((index) => {
-      setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles);
+      setup(
+        index,
+        anchor,
+        minScore,
+        showDeckTitles,
+        showDeckSubtitles,
+        showDrafts
+      );
     })
     .catch((err) => console.log(err));
 }
 
-function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
+function setup(
+  index,
+  anchor,
+  minScore,
+  showDeckTitles,
+  showDeckSubtitles,
+  showDrafts
+) {
   if (anchor.innerHTML.trim() === "") {
     anchor.innerHTML =
       document.documentElement.lang === "de"
@@ -102,7 +117,7 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
         <td><a target="_blank" href="./${url}">${sInfo.slideTitle}</a></td>
         <td>${count}</td>`;
 
-        results.appendChild(item);
+        if (showDrafts || !dInfo.deckDraft) results.appendChild(item);
       }
     }
   });

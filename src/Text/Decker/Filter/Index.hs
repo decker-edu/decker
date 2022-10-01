@@ -5,11 +5,11 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Filter.Index (buildIndex) where
+module Text.Decker.Filter.Index (buildIndex, readIndex, Index (..), DeckInfo (..)) where
 
 import Data.Aeson
 import Data.Char
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Data.Maybe
 import qualified Data.Text as Text
 import Development.Shake hiding (Resource)
@@ -32,6 +32,11 @@ buildIndex indexFile globalMeta decks = do
   let inverted = invertIndex index
   liftIO $ encodeFile indexFile inverted
 
+readIndex :: FilePath -> Action Index
+readIndex indexFile = do
+  need [indexFile]
+  liftIO $ fromJust <$> decodeFileStrict indexFile
+
 -- | Only index decks which are not marked `draft` and are not in the `no-index`
 -- list.
 shouldAddToIndex meta =
@@ -45,22 +50,18 @@ buildDeckIndex :: Meta -> FilePath -> Action (Maybe (DeckInfo, [((Text, Text), [
 buildDeckIndex globalMeta path = do
   pandoc@(Pandoc meta blocks) <-
     readMarkdownFile globalMeta path >>= mergeDocumentMeta globalMeta
-  if shouldAddToIndex meta
-    then do
-      let deckTitle = lookupMeta "title" meta
-      let deckSubtitle = lookupMeta "subtitle" meta
-      let deckId = lookupMeta "deckId" meta
-      let deckUrl = toText (path -<.> "html")
-      -- Take out the empty ones for now
-      let deckIndex =
-            map (first fromJust) $
-              filter (isJust . fst) $
-                mapSlides indexSlide pandoc
-      putNormal $ "# indexing (" <> path <> ")"
-      return $ Just (DeckInfo {deckUrl, deckId, deckTitle, deckSubtitle}, deckIndex)
-    else do
-      putNormal $ "# skipping (" <> path <> ")"
-      return Nothing
+  let deckTitle = lookupMeta "title" meta
+  let deckSubtitle = lookupMeta "subtitle" meta
+  let deckId = lookupMeta "deckId" meta
+  let deckUrl = toText (path -<.> "html")
+  let deckDraft = lookupMetaOrElse False "draft" meta
+  -- Take out the empty ones for now
+  let deckIndex =
+        map (first fromJust) $
+          filter (isJust . fst) $
+            mapSlides indexSlide pandoc
+  putNormal $ "# indexing (" <> path <> ")"
+  return $ Just (DeckInfo {deckUrl, deckId, deckTitle, deckSubtitle, deckDraft}, deckIndex)
 
 -- Extracts all searchable words from an inline
 extractInlineWords :: Inline -> [Text]
@@ -120,7 +121,8 @@ data DeckInfo = DeckInfo
   { deckUrl :: DeckUrl,
     deckId :: Maybe Text,
     deckTitle :: Maybe Text,
-    deckSubtitle :: Maybe Text
+    deckSubtitle :: Maybe Text,
+    deckDraft :: Bool
   }
   deriving (Generic, Show)
 
@@ -153,12 +155,20 @@ instance ToJSON SlideInfo
 
 instance ToJSON Index
 
+instance FromJSON SlideRef
+
+instance FromJSON DeckInfo
+
+instance FromJSON SlideInfo
+
+instance FromJSON Index
+
 -- | Inverts the index. Deck and slide info is store in seperate maps and can
 -- be referenced by the respective URLs.
 invertIndex :: [(DeckInfo, [((Text, Text), [(Text, Int)])])] -> Index
 invertIndex =
   foldl'
-    ( \index (deckInfo@(DeckInfo deckUrl _ _ _), slides) ->
+    ( \index (deckInfo@(DeckInfo deckUrl _ _ _ _), slides) ->
         foldl'
           ( \index ((slideId, slideTitle), words) ->
               foldl'

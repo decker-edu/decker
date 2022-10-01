@@ -5,21 +5,82 @@
 
 module Text.Decker.Writer.Html
   ( writeIndexLists,
+    generateIndex,
     writeNativeWhileDebugging,
   )
 where
 
 import Control.Monad.State
+import Data.List (sortBy)
+import qualified Data.Map.Strict as Map
+import Data.Maybe
 import qualified Data.MultiMap as MM
 import Data.String.Interpolate (i)
 import qualified Data.Text.IO as T
 import Development.Shake
 import qualified System.Directory as Dir
 import System.FilePath.Posix
+import Text.Decker.Filter.Index (DeckInfo (deckId, deckSubtitle, deckUrl), Index (..))
+import Text.Decker.Filter.Index as Index
 import Text.Decker.Internal.Common
 import Text.Decker.Project.Project
 import Text.Pandoc hiding (getTemplate, lookupMeta)
 import Text.Printf
+
+generateIndex :: Meta -> Index -> FilePath -> FilePath -> Action ()
+generateIndex meta index out baseUrl = do
+  cwd <- liftIO Dir.getCurrentDirectory
+  liftIO $
+    writeFile
+      out
+      [i|
+---
+title: Generated Index
+subtitle: #{cwd}
+---
+
+``` {.javascript .run}
+import("./" + Decker.meta.supportPath + "/fuzzySearch/search.js")
+    .then((module) => {
+      anchor.classList.add("search");
+      anchor.innerHTML = `
+        <p>
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input class="search" placeholder="In Folien suchen" type="text">
+        </p>
+        <table class="search">
+        <thead><tr><th>Wort</th><th>Foliensatz</th><th>Folie</th><th>Treffer</th></tr></thead>
+        <tbody></tbody>
+        </table>
+      `;
+      module.default(anchor, 0.6);
+    });
+```
+
+::: decks
+
+| Title | DeckId | Draft |
+|-------|--------|-------|
+#{makeDeckTableRows index}
+
+:::
+      |]
+
+
+makeDeckTableRows index =
+  let decks = Map.elems $ Index.decks index
+      grouped = sortBy (\a b -> compare (Index.deckUrl a) (Index.deckUrl b)) decks
+   in unlines $ map makeDeckTableRow grouped
+
+makeDeckTableRow deck =
+  let title = fromMaybe "<untitled>" $ Index.deckTitle deck
+      url = Index.deckUrl deck
+      subtitle = fromMaybe "" $ Index.deckSubtitle deck
+      deckid = fromMaybe "" $ Index.deckId deck
+      draft = Index.deckDraft deck
+   in if draft
+        then [i|| [#{title}](#{url}){.title .draft} [#{subtitle}]{.subtitle .draft} | [#{deckid}]{.deck-id .draft} | [DRAFT]{.draft} ||]
+        else [i|| [#{title}](#{url}){.title} [#{subtitle}]{.subtitle} | [#{deckid}]{.deck-id} | []{.no-draft} ||]
 
 -- | Generates an index.md file with links to all generated files of interest.
 writeIndexLists :: Meta -> Targets -> FilePath -> FilePath -> Action ()
