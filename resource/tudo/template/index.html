@@ -65,13 +65,13 @@ $endif$
 
     <link rel="stylesheet" href="$decker-support-dir$/css/tudo-index.css">
     <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
-    $for(template.page.css)$
-    <link rel="stylesheet" href="$template.page.css$">
+    $for(template.index.css)$
+    <link rel="stylesheet" href="$template.index.css$">
     $endfor$
 
 
     <!-- setup MathJax ------------------------------------------------------>
-    <script defer>
+    <script type="module">
       window.MathJax = {
         loader: {
           load: ["[tex]/ams", "[tex]/action"],
