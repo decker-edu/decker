@@ -69,7 +69,7 @@ class Feedback {
     url.query = "";
     url.username = "";
     url.password = "";
-    return url.toString;
+    return url.toString();
   }
 
   /**
