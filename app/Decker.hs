@@ -75,6 +75,7 @@ deckerRules = do
   want ["html"]
   addHelpSuffix "Commands:"
   addHelpSuffix "  - clean - Remove all generated files."
+  addHelpSuffix "  - purge - Your sins will be forgiven."
   addHelpSuffix "  - example - Create an example project."
   addHelpSuffix "  - serve - Start just the server."
   addHelpSuffix "  - crunch - Compress all recordings to smaller size. Takes a while and will drain your battery."

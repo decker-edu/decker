@@ -70,7 +70,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- readMetaDataFile globalMetaFileName
   context <- initContext flags meta
-  let commands = ["clean", "example", "serve", "crunch", "pdf"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "pdf"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     _ -> runTargets context targets rules
@@ -173,7 +173,8 @@ forkServer context = do
 runCommand :: (Eq a, IsString a) => ActionContext -> a -> Rules () -> IO b
 runCommand context command rules = do
   case command of
-    "clean" -> runClean True
+    "clean" -> runClean False
+    "purge" -> runClean True
     "example" -> writeExampleProject (context ^. globalMeta)
     "serve" -> do
       forkServer context
@@ -364,7 +365,7 @@ calcSource' target = do
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = putInfo $ "# pandoc (for " ++ out ++ ")"
 
--- | Functionality for "decker clean" command Removes public and .decker
+-- | Functionality for "decker purge" command. Removes public and .decker
 -- directory. Located outside of Shake due to unlinking differences and
 -- parallel processes on Windows which prevented files (.shake.lock) from being
 -- deleted on Windows.
