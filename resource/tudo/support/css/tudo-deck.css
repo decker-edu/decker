@@ -1016,7 +1016,8 @@ section#title-slide img.department-logo {
 }
 
 /* possibility to hide quizzes */
-.hide-quizzes .reveal .quiz {
+.hide-quizzes .reveal .quiz,
+.hide-quizzes .reveal .quiz * {
   visibility: hidden;
 }
 
