@@ -546,9 +546,10 @@ async function startRecording() {
     closeRecordPanel();
   }
 
-  // setup recorder
+  // setup recorder (let the browser choose the codec)
   recorder = new MediaRecorder(stream, {
-    mimeType: "video/webm; codecs=h264",
+    // mimeType: "video/webm; codecs=h264",
+    mimeType: "video/webm",
   });
 
   recorder.ondataavailable = (e) => blobs.push(e.data);
