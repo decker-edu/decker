@@ -12,24 +12,49 @@ function onStart(deck) {
   prepareTaskLists();
   prepareFullscreenIframes();
   prepareCodeHighlighting();
+
   deck.addEventListener("ready", () => {
     if (!printMode) {
       setTimeout(() => continueWhereYouLeftOff(deck), 500);
     }
+
     prepareFlashPanel(deck);
     preparePresenterMode(deck);
-    Decker.addPresenterModeListener((on) => {
-      if (on) {
-        Decker.flash.message(
-          `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`
-        );
-      } else {
-        Decker.flash.message(
-          `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
-        );
-      }
-    });
+
+    Decker.addPresenterModeListener(onPresenterMode);
   });
+}
+
+let wakeLock = null;
+async function onPresenterMode(isActive) {
+  if (isActive) {
+    // show info message
+    Decker.flash.message(
+      `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`
+    );
+
+    // request wake lock: display cannot go to sleep
+    if ("wakeLock" in navigator) {
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+        console.log("inject coffee, display will not go to sleep");
+      } catch (err) {
+        console.error("could not inject coffee, display may go to sleep");
+      }
+    }
+  } else {
+    // show info message
+    Decker.flash.message(
+      `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
+    );
+
+    // release wake lock, display may go to sleep again
+    if (wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+      console.log("removed coffee from system, display may go to sleep again");
+    }
+  }
 }
 
 function fixAutoplayWithStart() {
