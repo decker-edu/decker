@@ -1032,14 +1032,6 @@ async function createRecordingGUI() {
     parent: recordPanel,
   });
 
-  //Placeholder to align record indicator to the center
-  createElement({
-    type: "i",
-    id: "placeholder-indicator",
-    classes: "fas indicator",
-    parent: row,
-  });
-
   recordIndicator = createElement({
     type: "i",
     id: "record-indicator",
