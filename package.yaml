@@ -44,6 +44,8 @@ dependencies:
   - blaze-svg
   - bytestring
   - containers
+  - conduit
+  - imagesize-conduit
   - colour
   - data-default
   - deepseq
