@@ -8,13 +8,16 @@
 
 module Text.Decker.Filter.Media where
 
+import Conduit (runConduit, runConduitRes, sourceFile, withSourceFile, (.|))
 import Control.Monad.Catch
+import Data.Conduit.ImageSize (Size (Size, height, width), sinkImageInfo, sinkImageSize)
 import Data.List (lookup)
 import qualified Data.Map.Strict as Map
 import Data.Maybe
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import HTMLEntities.Text (text)
+import Network.Wai.Handler.Warp (getFileInfo)
 import Relude
 import System.Directory
 import System.FilePath.Posix
@@ -115,6 +118,14 @@ compileLineBlock' images caption = do
           Just transform -> transform uri title alt
           Nothing -> error $ "No transformer for media type " <> show mediaType
 
+imageSize2 :: FilePath -> IO (Maybe (Int, Int))
+imageSize2 image =
+  handle (\(SomeException e) -> return Nothing) $ do
+    conv <$> withSourceFile image (\source -> runConduit $ source .| sinkImageSize)
+  where
+    conv (Just (Size w h)) = Just (w, h)
+    conv _ = Nothing
+
 determineAspectRatio :: (Attr, [Inline], Text, Text) -> Filter (Maybe Float)
 determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
   uri <- URI.mkURI url
@@ -122,7 +133,7 @@ determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
   let mediaType = classifyMedia uri attr
   intrinsic <- case mediaType of
     ImageT -> do
-      size <- liftIO $ imageSize path
+      size <- liftIO $ imageSize2 path
       return $ aspect <$> size
     VideoT -> do
       size <- liftIO $ videoSize path
@@ -255,7 +266,7 @@ imageBlock uri title caption = do
       containOne $
         Image imgAttr [Str fileName] (turl, "")
 
--- | Reads source code from a local file and wraps it in a pre tag.
+-- |  Reads source code from a local file and wraps it in a pre tag.
 includeCodeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 includeCodeBlock uri title caption = do
   uri <- lift $ transformUri uri ""
