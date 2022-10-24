@@ -17,7 +17,7 @@ type Cache a = Action a
 prepCaches :: Rules (Cache Meta, Cache Targets, ParamCache (Template Text.Text))
 prepCaches = do
   getGlobalMeta <- ($ deckerMetaFile) <$> newCache readDeckerMeta
-  getTargets <- ($ targetsFile) <$> newCache readTargetsFile
+  getDeps <- ($ targetsFile) <$> newCache readTargetsFile
   getTemplate <-
     newCache
       ( \path -> do
@@ -30,4 +30,4 @@ prepCaches = do
     alwaysRerun
     meta <- getGlobalMeta
     scanTargetsToFile meta targetFile
-  return (getGlobalMeta, getTargets, getTemplate)
+  return (getGlobalMeta, getDeps, getTemplate)

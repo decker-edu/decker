@@ -9,7 +9,10 @@ module Text.Decker.Writer.Html
   )
 where
 
+import Control.Lens ((^.))
 import Control.Monad.State
+import Data.List (sort)
+import qualified Data.Map.Strict as Map
 import qualified Data.MultiMap as MM
 import Data.String.Interpolate (i)
 import qualified Data.Text.IO as T
@@ -22,16 +25,17 @@ import Text.Pandoc hiding (getTemplate, lookupMeta)
 import Text.Printf
 
 -- | Generates an index.md file with links to all generated files of interest.
-writeIndexLists :: Meta -> Targets -> FilePath -> FilePath -> Action ()
-writeIndexLists meta targets out baseUrl = do
-  let decks = zip (_decks targets) (_decksPdf targets)
-  let handouts = zip (_handouts targets) (_handoutsPdf targets)
-  let pages = zip (_pages targets) (_pagesPdf targets)
-  let questions = zip (_questions targets) (_questions targets)
-  decksLinks <- makeGroupedLinks decks
-  handoutsLinks <- makeGroupedLinks handouts
-  pagesLinks <- makeGroupedLinks pages
-  questLinks <- makeGroupedLinks questions
+writeIndexLists :: Meta -> Targets -> FilePath -> Action ()
+writeIndexLists meta targets out = do
+  let get field = sort $ Map.keys $ (targets ^. field)
+  let decks' = zip (get decks) (get decksPdf)
+  let handouts' = zip (get handouts) (get handoutsPdf)
+  let pages' = zip (get pages) (get pagesPdf)
+  let questions' = zip (get questions) (get questions)
+  decksLinks <- makeGroupedLinks publicDir decks'
+  handoutsLinks <- makeGroupedLinks publicDir handouts'
+  pagesLinks <- makeGroupedLinks publicDir pages'
+  questLinks <- makeGroupedLinks privateDir questions'
   cwd <- liftIO Dir.getCurrentDirectory
   liftIO $
     writeFile
@@ -68,7 +72,7 @@ import("./" + Decker.meta.supportPath + "/fuzzySearch/search.js")
 #{unlines questLinks}
         |]
   where
-    makeLink (html, pdf) = do
+    makeLink baseDir (html, pdf) = do
       pdfExists <- liftIO $ Dir.doesFileExist pdf
       if pdfExists
         then
@@ -76,20 +80,20 @@ import("./" + Decker.meta.supportPath + "/fuzzySearch/search.js")
             printf
               "-    [%s <i class='fab fa-html5'></i>](%s) [<i class='fas fa-file-pdf'></i>](%s)"
               (takeFileName html)
-              (makeRelative baseUrl html)
-              (makeRelative baseUrl pdf)
+              (makeRelative baseDir html)
+              (makeRelative baseDir pdf)
         else
           return $
             printf
               "-    [%s <i class='fab fa-html5'></i>](%s)"
               (takeFileName html)
-              (makeRelative baseUrl html)
-    makeGroupedLinks :: [(FilePath, FilePath)] -> Action [String]
-    makeGroupedLinks files =
+              (makeRelative baseDir html)
+    makeGroupedLinks :: FilePath -> [(FilePath, FilePath)] -> Action [String]
+    makeGroupedLinks baseDir files =
       let grouped = MM.fromList (zip (map (takeDirectory . fst) files) files)
           renderGroup :: FilePath -> Action [String]
           renderGroup key =
-            (printf "\n## %s:" key :) <$> mapM makeLink (MM.lookup key grouped)
+            (printf "\n## %s:" key :) <$> mapM (makeLink baseDir) (MM.lookup key grouped)
        in concat <$> mapM renderGroup (MM.keys grouped)
 
 -- | Write Pandoc in native format right next to the output file

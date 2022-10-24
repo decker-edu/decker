@@ -372,8 +372,10 @@ putCurrentDocument out = putInfo $ "# pandoc (for " ++ out ++ ")"
 runClean :: Bool -> IO ()
 runClean totally = do
   warnVersion
-  putStrLn $ "# Removing " ++ publicDir
+  putStrLn $ "# Removing " <> publicDir 
   tryRemoveDirectory publicDir
+  putStrLn $ "# Removing " <> privateDir 
+  tryRemoveDirectory privateDir
   when totally $
     do
       putStrLn $ "# Removing " ++ transientDir

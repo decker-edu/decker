@@ -102,7 +102,8 @@ runHttpServer context = do
     Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
     Scotty.put (regex "^/(.*)$") $ uploadResource uploadable
     middleware $ websocketsOr defaultConnectionOptions $ reloader state
-    middleware $ staticPolicy (noDots >-> addBase publicDir) -- No caching.
+    middleware $ staticPolicy (noDots >-> addBase publicDir)
+    middleware $ staticPolicy (noDots >-> addBase privateDir)
 
 useState state x = runReaderT x state
 
@@ -152,7 +153,7 @@ uploadResource suffixes = do
         writeBody tmp reader
         renamePath tmp destination
     else do
-      text "ERROR: directory does not exist or file (suffix) is not uploadable" 
+      text "ERROR: directory does not exist or file (suffix) is not uploadable"
       status status406
 
 headDirectory :: FilePath -> AppActionM ()
