@@ -15,11 +15,9 @@ let playPanel, playButton, player;
 let recordPanel,
   recordToggle,
   recordIndicator,
-  microphoneIndicator,
   voiceIndicator,
   desktopIndicator;
 let recordButton, pauseButton, stopButton;
-let muteMicButton;
 let voiceGainSlider, desktopGainSlider;
 let cameraPanel, cameraVideo, cameraCanvas;
 
@@ -1034,24 +1032,9 @@ async function createRecordingGUI() {
     parent: recordPanel,
   });
 
-  //Placeholder to align record indicator to the center
-  createElement({
-    type: "i",
-    id: "placeholder-indicator",
-    classes: "fas indicator",
-    parent: row,
-  });
-
   recordIndicator = createElement({
     type: "i",
     id: "record-indicator",
-    classes: "fas indicator",
-    parent: row,
-  });
-
-  microphoneIndicator = createElement({
-    type: "i",
-    id: "microphone-indicator",
     classes: "fas indicator",
     parent: row,
   });
@@ -1240,20 +1223,6 @@ async function createRecordingGUI() {
     console.log("cannot list microphones and cameras:" + e);
   }
 
-  let toggleRow = createElement({
-    type: "div",
-    classes: "controls-row",
-    parent: recordPanel,
-  });
-
-  muteMicButton = createElement({
-    type: "button",
-    classes: "explain mute-button fas fa-microphone",
-    title: "Mute microphone (M)",
-    parent: toggleRow,
-    onclick: toggleMicrophone,
-  });
-
   row = createElement({
     type: "div",
     classes: "controls-row",
@@ -1304,15 +1273,6 @@ async function createRecordingGUI() {
     onclick: transition("stop"),
   });
 
-  Reveal.addKeyBinding(
-    {
-      keyCode: 77,
-      key: "M",
-      description: "Triple press to mute/unmute microphone",
-    },
-    Decker.tripleClick(toggleMicrophone)
-  );
-
   /* inert everything but the toggle button */
   let able = focusable(recordPanel);
   for (let element of able) {
@@ -1343,29 +1303,8 @@ function setupGainSlider(gain, slider) {
     if (this.gain) this.gain.gain.value = this.value;
     this.output.innerHTML = this.value;
     localStorage.setItem(this.storage, this.value);
-    if (this.value === "0") {
-      toggleMicButton(false);
-    } else {
-      toggleMicButton(true);
-    }
   };
   slider.oninput(); // call once to set output
-}
-
-function toggleMicButton(enabled) {
-  if (!muteMicButton) return; //Because this gets called once before it is initialized
-  if (!microphoneIndicator) return;
-  muteMicButton.classList.remove("off");
-  muteMicButton.classList.remove("fa-microphone");
-  muteMicButton.classList.remove("fa-microphone-slash");
-  microphoneIndicator.dataset.state = "";
-  if (!enabled) {
-    muteMicButton.classList.add("off");
-    muteMicButton.classList.add("fa-microphone-slash");
-    microphoneIndicator.dataset.state = "mute";
-  } else {
-    muteMicButton.classList.add("fa-microphone");
-  }
 }
 
 function updateRecordIndicator() {
@@ -1595,17 +1534,6 @@ function toggleCamera() {
   } else {
     cameraPanel.classList.remove("visible");
   }
-}
-
-let voiceGainBak = 1.0;
-function toggleMicrophone() {
-  if (voiceGainSlider.value == 0) {
-    voiceGainSlider.value = voiceGainBak;
-  } else {
-    voiceGainBak = voiceGainSlider.value;
-    voiceGainSlider.value = 0;
-  }
-  voiceGainSlider.oninput();
 }
 
 async function resourceExists(url) {
