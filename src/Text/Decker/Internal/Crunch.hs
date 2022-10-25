@@ -7,6 +7,7 @@ import Control.Monad
 import Data.Aeson
 import Data.Aeson.Lens
 import qualified Data.List as List
+import qualified Data.Map.Strict as Map
 import Development.Shake
 import Development.Shake.FilePath
 import Relude
@@ -14,7 +15,7 @@ import System.Exit
 import System.Process
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Helper (replaceSuffix, dropSuffix)
+import Text.Decker.Internal.Helper (dropSuffix, replaceSuffix)
 import Text.Decker.Project.Project
 import Text.Decker.Server.Video
 
@@ -23,12 +24,12 @@ import Text.Decker.Server.Video
 -- they have not yet been transcoded.
 crunchRules :: Rules ()
 crunchRules = do
-  (getGlobalMeta, getTargets, getTemplate) <- prepCaches
+  (getGlobalMeta, getDeps, getTemplate) <- prepCaches
   want ["mp4s"]
   phony "mp4s" $ do
-    targets <- getTargets
+    targets <- getDeps
     -- Need MP4 videos for each deck that has at least one WEBM fragment recorded.
-    forM_ (targets ^. decks) $ \deck -> do
+    forM_ (Map.keys $ targets ^. decks) $ \deck -> do
       let source = makeRelative publicDir deck
       let pattern = dropSuffix "-deck.html" source <> "*.webm"
       webms <- getDirectoryFiles "" [pattern]

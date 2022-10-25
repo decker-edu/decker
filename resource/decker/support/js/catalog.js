@@ -1,4 +1,4 @@
-export {}
+export {};
 
 let view = restore();
 
@@ -22,19 +22,21 @@ function restore() {
       view = JSON.parse(view);
       for (let id of view.open) {
         let element = document.getElementById(id);
-        let content = element.querySelector("div")
+        let content = element.querySelector("div");
         content.classList.remove("closed");
       }
       window.scrollTo({
         top: view.scrollY,
-        behavior: "auto"
+        behavior: "auto",
       });
       return view;
-    } catch (e) {console.log(e);}
+    } catch (e) {
+      console.log(e);
+    }
   }
   return {
     scrollY: 0,
-    open: []
+    open: [],
   };
 }
 
@@ -43,40 +45,41 @@ function store(_) {
 }
 
 function init() {
-  console.log("[] catalog initializing")
+  console.log("[] catalog initializing");
 
   window.addEventListener("unload", store);
 
   let lectures = document.querySelectorAll("div.lecture");
   for (let lecture of lectures) {
     let button = lecture.querySelector("h1 > button");
-    let content = lecture.querySelector("div")
-    button.addEventListener("click", _ => {
+    let content = lecture.querySelector("div");
+    button.addEventListener("click", (_) => {
       content.classList.toggle("closed");
+      lecture.classList.toggle("closed");
       record(lecture.id, !content.classList.contains("closed"));
     });
 
     let topics = lecture.querySelectorAll("div.topic");
     for (let topic of topics) {
       let button = topic.querySelector("h2 > button");
-      let content = topic.querySelector("div")
-      button.addEventListener("click", _ => {
+      let content = topic.querySelector("div");
+      button.addEventListener("click", (_) => {
         content.classList.toggle("closed");
+        topic.classList.toggle("closed");
         record(topic.id, !content.classList.contains("closed"));
       });
 
       let questions = topic.querySelectorAll("div.question");
       for (let question of questions) {
         let button = question.querySelector("h3 > button");
-        let content = question.querySelector("div")
-        button.addEventListener("click", _ => {
+        let content = question.querySelector("div");
+        button.addEventListener("click", (_) => {
           content.classList.toggle("closed");
           record(question.id, !content.classList.contains("closed"));
         });
       }
     }
   }
-
 }
 
 window.addEventListener("load", init);

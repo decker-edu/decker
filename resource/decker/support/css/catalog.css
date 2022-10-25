@@ -1,3 +1,27 @@
+div.panel {
+  display: flex;
+  align-items: stretch;
+}
+
+div.panel > div.lectures {
+  display: flex;
+  flex-grow:1;
+}
+
+div.panel > div.lectures {
+  display: flex;
+  flex-grow: 1;
+}
+
+div.panel > div.lectures {
+  display: flex;
+  flex-grow: 1;
+}
+
+div.panel > iframe {
+  flex-grow: 1;
+}
+
 :root {
   --h1-height: 28px;
   --h2-height: 24px;
@@ -33,11 +57,11 @@ button:after {
   content: "▶";
 }
 
-/*
+
 div:not(.closed) button:after {
   content: "▼";
 }
-*/
+
 
 a:any-link {
   text-decoration: none;

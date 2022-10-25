@@ -24,7 +24,9 @@ module Text.Decker.Project.Project
     handouts,
     handoutsPdf,
     questions,
+    Dependencies,
     Targets (..),
+    lookupSource,
     fromMetaValue,
     toMetaValue,
     readTargetsFile,
@@ -60,17 +62,20 @@ import Text.Decker.Resource.Resource
 import Text.Pandoc.Builder hiding (lookupMeta)
 import Text.Regex.TDFA
 
+-- | target and source path
+type Dependencies = Map FilePath FilePath
+
 data Targets = Targets
   { _sources :: [FilePath],
     _resources :: Map FilePath Source,
-    _static :: [FilePath],
-    _decks :: [FilePath],
-    _decksPdf :: [FilePath],
-    _pages :: [FilePath],
-    _pagesPdf :: [FilePath],
-    _handouts :: [FilePath],
-    _handoutsPdf :: [FilePath],
-    _questions :: [FilePath]
+    _static :: Dependencies,
+    _decks :: Dependencies,
+    _decksPdf :: Dependencies,
+    _pages :: Dependencies,
+    _pagesPdf :: Dependencies,
+    _handouts :: Dependencies,
+    _handoutsPdf :: Dependencies,
+    _questions :: Dependencies
   }
   deriving (Show)
 
@@ -210,32 +215,38 @@ scanTargetsToFile meta file = do
 anySource :: FilePath -> Bool
 anySource file = any (file =~) sourceRegexes
 
+lookupSource :: Getting Dependencies Targets Dependencies -> FilePath -> Targets -> FilePath
+lookupSource which path targets =
+  fromMaybe
+    (error $ "No source known for target: " <> toText path)
+    (Map.lookup path (targets ^. which))
+
 scanTargets :: Meta -> IO Targets
 scanTargets meta = do
   -- srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
   srcs <- fastGlobFiles' (excludeDirs meta) anySource projectDir
   supportFiles <- Map.mapKeys ((publicDir </> "support") </>) <$> publicSupportFiles meta
-  staticSrc <-
-    concat <$> mapM (fastGlobFiles [] [] . normalise) (staticDirs meta)
+  staticSrc <- concat <$> mapM (fastGlobFiles [] [] . normalise) (staticDirs meta)
   return
     Targets
       { _sources = sort srcs,
         _resources = supportFiles,
-        _static = sort $ map (publicDir </>) staticSrc,
-        _decks = sort $ calcTargets deckSuffix deckHTMLSuffix srcs,
-        _decksPdf = sort $ calcTargets deckSuffix deckPDFSuffix srcs,
-        _pages = sort $ calcTargets pageSuffix pageHTMLSuffix srcs,
-        _pagesPdf = sort $ calcTargets pageSuffix pagePDFSuffix srcs,
-        _handouts = sort $ calcTargets deckSuffix handoutHTMLSuffix srcs,
-        _handoutsPdf = sort $ calcTargets deckSuffix handoutPDFSuffix srcs,
-        _questions = sort $ calcTargets questSuffix questHTMLSuffix srcs
+        _static = Map.fromList $ map publicDep staticSrc,
+        _decks = calcTargets deckSuffix deckHTMLSuffix srcs,
+        _decksPdf = calcTargets deckSuffix deckPDFSuffix srcs,
+        _pages = calcTargets pageSuffix pageHTMLSuffix srcs,
+        _pagesPdf = calcTargets pageSuffix pagePDFSuffix srcs,
+        _handouts = calcTargets deckSuffix handoutHTMLSuffix srcs,
+        _handoutsPdf = calcTargets deckSuffix handoutPDFSuffix srcs,
+        _questions = calcPrivateTargets questSuffix questHTMLSuffix srcs
       }
   where
-    calcTarget :: String -> String -> FilePath -> FilePath
-    calcTarget srcSuffix targetSuffix source =
-      publicDir
-        </> replaceSuffix srcSuffix targetSuffix source
-    calcTargets :: String -> String -> [FilePath] -> [FilePath]
-    calcTargets srcSuffix targetSuffix sources =
-      map (calcTarget srcSuffix targetSuffix) $
-        filter (srcSuffix `List.isSuffixOf`) sources
+    publicDep src = (publicDir </> src, src)
+    calcTargets = calcTargets' publicDir
+    calcPrivateTargets = calcTargets' privateDir
+    calcTarget baseDir srcSuffix targetSuffix source =
+      baseDir </> replaceSuffix srcSuffix targetSuffix source
+    calcTargets' baseDir srcSuffix targetSuffix sources =
+      Map.fromList $
+        map (\s -> (calcTarget baseDir srcSuffix targetSuffix s, s)) $
+          filter (srcSuffix `List.isSuffixOf`) sources

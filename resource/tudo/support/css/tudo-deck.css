@@ -469,7 +469,7 @@ div.align-right > p {
   text-align: left;
   font-size: 0.9em;
   position: relative;
-  margin: 0.5em auto;
+  margin: 0 auto;
   padding: 0.5em;
   font-style: italic;
   border: 1px solid var(--shade1);
@@ -1189,7 +1189,7 @@ section#title-slide img.department-logo {
 .reveal .quiz-mi .buckets:before,
 .reveal .quiz-mi .matchItems:before {
   position: absolute;
-  top: -15px;
+  top: -20px;
   left: 10px;
   font-size: 15px;
   background-color: var(--shade0);

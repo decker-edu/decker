@@ -1,0 +1,9 @@
+@import url("../vendor/fontawesome/css/all.css");
+@import url("./structure.css");
+@import url("./style.css");
+@import url("./media.css");
+
+th {
+  white-space: nowrap;
+  text-align: right;
+}
