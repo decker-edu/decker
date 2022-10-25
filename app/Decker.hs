@@ -284,7 +284,7 @@ deckerRules = do
   withTargetDocs "Copy static file to public dir." $
     phony "static-files" $ do
       deps <- getDeps
-      need $ Map.elems (deps ^. static)
+      need $ Map.keys (deps ^. static)
   --
   withTargetDocs "Provide information about project parameters, sources and targets" $
     phony "info" $ do
