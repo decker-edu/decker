@@ -378,31 +378,15 @@ div.align-right > p {
  * lists
  *********************************************/
 
-.reveal ol,
-.reveal dl,
-.reveal ul {
+/* first level */
+.reveal :is(ul, ol, dl) {
   display: block;
   text-align: left;
   margin-top: 0;
   margin-bottom: 0.5em;
 }
 
-/* remove bottom margin of last list element on a slide
-   list element might be encapsulated in a div, e.g.
-   for .incremental or .colXY.
-   also remove bottom margin of last element on slide,
-   no matter what type it is. */
-.reveal .slides section > *:last-child,
-.reveal .slides section > ul:last-child,
-.reveal .slides section > ol:last-child,
-.reveal .slides section > div > ol:last-child,
-.reveal .slides section > div > ul:last-child {
-  margin-bottom: 0;
-}
-
-.reveal ol li,
-.reveal dl li,
-.reveal ul li {
+.reveal :is(ul, ol, dl) li {
   margin-bottom: 0.5em;
   margin-left: 1em;
   padding-left: 0.2em;
@@ -416,34 +400,42 @@ div.align-right > p {
   list-style-type: disc;
 }
 
-.reveal ul ul,
-.reveal ol ul {
-  list-style-type: circle;
-}
-
-.reveal ol ol {
-  list-style-type: lower-roman;
-}
-
-.reveal ul ul ul,
-.reveal ul ul ol,
-.reveal ul ol ul,
-.reveal ul ol ol,
-.reveal ol ul ul,
-.reveal ol ul ol,
-.reveal ol ol ul,
-.reveal ol ol ol {
-  font-size: 0.9em;
-}
-
-.reveal ul ul,
-.reveal ul ol,
-.reveal ol ol,
-.reveal ol ul {
+/* second level */
+.reveal :is(ul, ol) :is(ul, ol) {
   display: block;
   margin-top: 0.3em;
   font-size: 0.8em;
-  margin-left: 10px;
+  margin-left: 0.5em;
+}
+
+.reveal :is(ul, ol) li :is(ul, ol) li {
+  margin-bottom: 0.25em;
+}
+
+.reveal :is(ul, ol) ul {
+  list-style-type: circle;
+}
+
+.reveal :is(ul, ol) ol {
+  list-style-type: lower-roman;
+}
+
+/* third level */
+.reveal :is(ul, ol) :is(ul, ol) :is(ul, ol) {
+  font-size: 0.9em;
+}
+
+/* remove bottom margin of last list element on a slide
+   list element might be encapsulated in a div, e.g.
+   for .incremental or .colXY.
+   also remove bottom margin of last element on slide,
+   no matter what type it is. */
+.reveal .slides section > *:last-child,
+.reveal .slides section > ul:last-child,
+.reveal .slides section > ol:last-child,
+.reveal .slides section > div > ol:last-child,
+.reveal .slides section > div > ul:last-child {
+  margin-bottom: 0;
 }
 
 .reveal dt {
