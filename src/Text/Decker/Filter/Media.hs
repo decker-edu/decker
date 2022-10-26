@@ -383,7 +383,7 @@ streamBlock uri title caption = do
   (innerSizes, outerSizes) <- calcIframeSizes
   iframeAttr <- do
     takeAutoplay
-    injectAttribute ("src", URI.render streamUri)
+    injectAttribute ("data-src", URI.render streamUri)
     injectAttribute ("allow", "fullscreen")
     injectStyles innerSizes
     extractAttr
