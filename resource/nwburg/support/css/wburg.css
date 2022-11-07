@@ -328,23 +328,23 @@ div.block.theorem {
 }
 
 /* Special case: source code inside highlighted box */
-div.block:is(question, answer, observation, example, def, definition, note, ale, alert, equ, equation, theorem)
+/*div.block:is(question, answer, observation, example, def, definition, note, ale, alert, equ, equation, theorem)
   div.sourceCode {
   margin: 0;
   background: rgba(255, 255, 255, 0.4);
   padding: space(0 0.2);
 }
-
+*/
 /* From _code.scss */
 
-code {
+/*code {
   font-family: "Source Code Pro", monospace;
   font-size: 106%;
   font-weight: 500;
   text-transform: none;
-}
+}*/
 
-pre {
+/*pre {
   display: block;
   position: relative;
   width: 90%;
@@ -354,25 +354,25 @@ pre {
   font-family: monospace;
   line-height: 1.2em;
   word-wrap: break-word;
-}
+}*/
 
-pre code {
+/*pre code {
   display: block;
   padding: 5px;
   overflow: auto;
   max-height: 400px;
   word-wrap: normal;
 }
-
-div.sourceCode {
+*/
+/*div.sourceCode {
   margin-bottom: 0.5em;
   padding: space(0.4 0.7);
   background: rgba(0, 0, 0, 0.03);
   border-radius: 0.25em;
   overflow: auto;
-}
+}*/
 
-div.sourceCode pre {
+/*div.sourceCode pre {
   display: block;
   position: relative;
   width: 100%;
@@ -383,20 +383,20 @@ div.sourceCode pre {
   font-size: 90%;
   font-weight: 500;
   margin: 0;
-}
+}*/
 
-div.sourceCode div.language-label {
+/*div.sourceCode div.language-label {
   font-family: "Roboto", sans-serif;
   position: absolute;
   right: 0;
   top: 0;
-  color: var(--shade6) /* Marc was: #eee; */
-  background-color: var(--shade0) /* Marc was: #eee; */
+  color: var(--shade6) // Marc was: #eee; 
+  background-color: var(--shade0) // Marc was: #eee; 
   padding: 0em 0.4em;
   border-radius: 0.2em;
-}
+}*/
 
-div.sourceCode code {
+/*div.sourceCode code {
   display: block;
   overflow: auto;
   max-height: 500px;
@@ -407,7 +407,7 @@ div.sourceCode code {
   position: relative;
   color: var(--shade) /* Marc was: black; */
 }
-
+*/
 /* Skip _new-media.scss IGNORE COMPLETELY */
 
 /* Skip _columns.scss IGNORE COMPLETELY */
@@ -495,3 +495,356 @@ li {
       text-align: left;
       margin-bottom: 1em;
     }
+
+    /*********************************************
+   * MARIO: Quizzes with task list syntax
+   *********************************************/
+
+/* quiz flex layout */
+.reveal .quiz ul {
+   display: flex;
+   flex-direction: row;
+   flex-wrap: wrap;
+   justify-content: center;
+   align-items: center;
+   align-content: center;
+   text-align: center;
+   counter-reset: answer;
+   margin-top: 1em;
+ }
+ 
+ /* one quiz item */
+ .reveal .quiz ul li {
+   display: inline-block;
+   position: relative;
+   text-align: left;
+   margin: 0.5em;
+   border: 3px solid var(--emphColor);
+   border-radius: 0.5em;
+   padding: 0.5em;
+   font-weight: normal;
+   background-color: var(--shade1);
+ }
+ 
+ /* add A, B, C, D... */
+ .reveal .quiz ul.task-list > li::before {
+   content: counter(answer, upper-latin) ": ";
+   counter-increment: answer;
+   margin-right: 0.5em;
+   font-weight: bold;
+ }
+ 
+ /* remove task list checkbox */
+ .reveal .quiz ul.task-list li > input[type="checkbox"] {
+   display: none;
+ }
+ 
+ /* 2nd level ul contains tool tip */
+ .reveal .quiz ul.task-list li ul {
+   display: inline-block;
+   margin: 0;
+   padding: 0;
+ }
+ 
+ /* don't need this for 2nd level */
+ .reveal .quiz ul.task-list li ul li::before {
+   display: none;
+ }
+ 
+ /* tool tip */
+ .reveal .quiz ul li ul li {
+   display: block;
+   visibility: hidden;
+   max-width: 95%;
+   top: 100%;
+   left: 5px;
+   background-color: grey;
+   color: #ffffff;
+   text-align: center;
+   margin: 5px;
+   padding: 5px;
+   border-radius: 6px;
+   border: none;
+   position: absolute;
+   z-index: 1;
+   font-size: 1rem;
+ }
+ 
+ /* once clicked, wrong answers are red */
+ .reveal .quiz ul li.wrong {
+   --quiz-background-color: var(--red-background-color);
+   --quiz-border-color: var(--red-border-color);
+   --quiz-icon: "\f00d";
+ }
+ 
+ /* once clicked, correct answers are green */
+ .reveal .quiz ul li.right {
+   --quiz-background-color: var(--green-background-color);
+   --quiz-border-color: var(--green-border-color);
+   --quiz-icon: "\f00c";
+ }
+ 
+ .reveal .quiz ul li.show-answer {
+   background-color: var(--quiz-background-color);
+   border-color: var(--quiz-border-color);
+ }
+ .reveal .quiz ul li.show-answer::after {
+   font-style: normal;
+   font-variant: normal;
+   text-rendering: auto;
+   font-weight: 900;
+   font-family: "Font Awesome 5 Free";
+   content: var(--quiz-icon);
+   position: absolute;
+   font-size: 15px;
+   right: 0.2em;
+   bottom: -0.1em;
+   padding: 0.1em;
+   color: var(--quiz-border-color);
+ }
+ 
+ /* tool tips are shown on hover */
+ .reveal .show-answer:hover ul li {
+   visibility: visible;
+ }
+
+ 
+/*********************************************
+   * MARIO: override quiz-wue settings
+   *********************************************/
+
+   .reveal [class*="quiz-"] button {
+      font: inherit;
+      font-size: 0.9em;
+      margin: 0.5em;
+      padding: 0.5em;
+      color: var(--shade6);
+      background: var(--shade1);
+      border: 2px solid var(--icon-active-color);
+      border-radius: 0.5em;
+    }
+    
+    .reveal .quiz-ft button {
+      display: none;
+    }
+    
+    .reveal .quiz-ft input {
+      font: inherit;
+      font-size: 0.8em;
+      margin: 0.5em;
+      padding: 10px;
+      border: 2px solid var(--emphColor);
+      color: var(--shade6);
+      background-color: var(--shade1);
+      outline: none;
+    }
+    
+    .reveal .qft-solutions,
+    .reveal .qft-solutions.solved {
+      display: none;
+    }
+    
+    .reveal .quiz-ic select {
+      font: inherit;
+      font-size: 0.9em;
+      font-weight: normal;
+      padding: 5px;
+      border: 2px solid var(--emphColor);
+      color: var(--shade6);
+      background-color: var(--shade1);
+      outline: none;
+    }
+    
+    .reveal .quiz-ic option {
+      font: inherit;
+      font-size: inherit;
+      font-weight: normal;
+    }
+    
+    .reveal .quiz-mi .buckets,
+    .reveal .quiz-mi .matchItems {
+      border: 2px solid var(--shade3);
+      padding: 15px 10px;
+    }
+    
+    .reveal .quiz-mi .buckets {
+      margin-bottom: 20px;
+      margin-top: 60px;
+    }
+    
+    .reveal .quiz-mi .buckets:before,
+    .reveal .quiz-mi .matchItems:before {
+      position: absolute;
+      top: -15px;
+      left: 10px;
+      font-size: 15px;
+      background-color: var(--shade0);
+      padding: 5px;
+      color: var(--shade3);
+    }
+    
+    .reveal .quiz-mi .matchItems:before {
+      content: "Drag objects from here...";
+    }
+    
+    .reveal .quiz-mi .buckets:before {
+      content: "...and drop them here into the correct category";
+    }
+    
+    :lang(de) .reveal .quiz-mi .matchItems:before {
+      content: "Objekte per Drag & Drop nach unten ziehen...";
+    }
+    
+    :lang(de) .reveal .quiz-mi .buckets:before {
+      content: "...und hier in die richtige Kategorie einsortieren";
+    }
+    
+    .reveal .quiz-mi .matchItems:after {
+      position: absolute;
+      bottom: -30px;
+      border-left: 30px solid transparent;
+      border-right: 30px solid transparent;
+      border-top: 30px solid var(--shade3);
+    }
+    
+    .reveal .quiz-mi .bucket {
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid var(--shade3);
+    }
+    
+    .reveal .quiz-mi .matchItem {
+      display: block;
+      overflow: hidden;
+      border: 2px solid var(--icon-active-color);
+      border-radius: 10px;
+      padding: 10px;
+      cursor: grab;
+      margin: auto;
+      background-color: var(--shade1);
+    }
+    
+    .reveal [class*="quiz-"] .show-right {
+      background-color: var(--green-background-color);
+      border-color: var(--green-border-color);
+    }
+    
+    .reveal [class*="quiz"] .show-wrong {
+      background-color: var(--red-background-color);
+      border-color: var(--red-border-color);
+    }
+    
+    /*********************************************
+       * quiz polling
+       *********************************************/
+    
+    .reveal:not(.poll) .poll-only {
+      display: none;
+    }
+    
+    #poll-chart {
+      font-size: var(--icon-size);
+      position: absolute;
+      left: auto;
+      top: auto;
+      right: 0.5em;
+      bottom: 0.5em;
+      visibility: hidden;
+      z-index: 34;
+      width: 420px;
+      height: 320px;
+      margin: auto;
+      padding: 0.5em;
+      text-align: center;
+      border: 3px solid var(--emphColor);
+      border-radius: 0.5em;
+      background-color: var(--shade0);
+      transform-origin: bottom right;
+      box-shadow: 3px 5px 5px var(--shade3);
+    }
+    
+    #poll-chart.canvas {
+      top: 0;
+      left: 0;
+      width: 400px;
+      height: 300px;
+    }
+    
+    #poll-votes {
+      font-size: var(--icon-size);
+      color: var(--icon-inactive-color);
+      text-align: center;
+      display: none;
+    }
+    
+    div.qrcode.container {
+      display: none;
+      z-index: 4000;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: 0;
+      background-color: var(--shade0);
+    }
+    
+    div.qrcode.container button {
+      position: absolute;
+      right: 1em;
+      top: 1em;
+    }
+    
+    div.qrcode.container.show {
+      display: flex;
+    }
+    
+    div.qrcode.container {
+      flex-flow: column nowrap;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    
+    div.qrcode.container canvas {
+      height: 66vh;
+      min-height: 0;
+      aspect-ratio: 1 / 1;
+      background-color: white;
+      padding: 0.5em;
+      border: 0.01em solid var(--shade6);
+      border-radius: var(--block-border-radius);
+    }
+    
+    div.qrcode.container a {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+
+ /******* This one is a quick fix for the border/margin/padding problem 
+ which occures due to our special handling of the boxes for the annotations ******/
+
+    div.block[popup] {
+      margin: 0px;
+      border: 0px;
+      padding-left: 20px;
+      padding-right: 20px;
+      padding-bottom: 20px; 
+      padding-top: 10px;
+   }
+
+   /**** This is a layout to position elements at the bottom of the container ****/
+
+   div.flush-bottom {
+      position: absolute;
+      bottom: 0px;
+   }
+
+   div.flush-bottom-right {
+      position: absolute;
+      bottom: 0px;
+      text-align: right;
+   }
+ 

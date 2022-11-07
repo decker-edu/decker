@@ -27,7 +27,7 @@ reveal:
 palette:
   colors:
     light: # Solarized Light wburg adapted for accented colors
-      - "#fdf6e3"
+      - "#ffffff" # "#fdf6e3"
       - "#eee8d5"
       - "#93a1a1"
       - "#839496"
@@ -54,7 +54,7 @@ palette:
       - "#fdf6e3"
       - "#dc322f"
       - "#cb4b16"
-      - "#b58900"
+      - "#b58900" 
       - "#859900"
       - "#2aa198"
       - "#268bd2"
@@ -68,7 +68,7 @@ palette:
 css-variables:
   active-color: rgb(42,157,223)
   align-global: left
-  background-color: rgb(250,250,250)
+  # background-color: rgb(250,250,250)
   border-decoration-padding: 10px
   border-decoration-style: solid
   border-decoration-width: 20px
