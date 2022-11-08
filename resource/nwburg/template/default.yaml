@@ -24,42 +24,45 @@ reveal:
   vertical-slides: true
   zoom: true
 
+highlightjs: atom-one-light # We want nice code highlighting
+# atom-one-dark` and `atom-one-light`, `solarized-dark` and `solarized-light`, `xcode`, `zenburn`
+
 palette:
   colors:
-    light: # Solarized Light wburg adapted for accented colors
-      - "#ffffff" # "#fdf6e3"
-      - "#eee8d5"
-      - "#93a1a1"
-      - "#839496"
-      - "#657b83"
-      - "#586e75"
-      - "#073642"
-      - "#002b36"
-      - "#FF0101" # "#dc322f"
-      - "#cb4b16"
-      - "#b58900"
-      - "#859900"
-      - "#2aa198"
-      - "#268bd2"
-      - "#6c71c4"
-      - "#d33682"
-    dark: # Solarized Dark
-      - "#002b36"
-      - "#073642"
-      - "#586e75"
-      - "#657b83"
-      - "#839496"
-      - "#93a1a1"
-      - "#eee8d5"
-      - "#fdf6e3"
-      - "#dc322f"
-      - "#cb4b16"
-      - "#b58900" 
-      - "#859900"
-      - "#2aa198"
-      - "#268bd2"
-      - "#6c71c4"
-      - "#d33682"
+    light: 
+      - "#ffffff" 
+      - "#EDEDED"
+      - "#DADADA"
+      - "#C5C5C5"
+      - "#AEAEAE"
+      - "#919191"
+      - "#6A6A6A"
+      - "#000000"
+      - "#FF0101" # hci-red
+      - "#F29A37" # hci-orange
+      - "#FFD100" # yellow (bit darkish)
+      - "#FFFF00" # yellow (brighter)
+      - "#00F900" # green (brighter)
+      - "#009900" # darker green
+      - "#4040FF" # blue (brighter)
+      - "#184083" # jmu-blue (bit darkish)
+    dark: # was Solarized Dark, currently same as light
+      - "#000000"
+      - "#6A6A6A"
+      - "#919191"
+      - "#AEAEAE"
+      - "#C5C5C5"
+      - "#DADADA"
+      - "#EDEDED"
+      - "#ffffff" 
+      - "#FF0101" # hci-red
+      - "#F29A37" # hci-orange
+      - "#FFD100" # yellow (bit darkish)
+      - "#FFFF00" # yellow (brighter)
+      - "#00F900" # green (brighter)
+      - "#009900" # darker green
+      - "#4040FF" # blue (brighter)
+      - "#184083" # jmu-blue (bit darkish)
   contrast: 0.3
 
 # Defaults needed by wburg

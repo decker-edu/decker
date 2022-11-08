@@ -293,20 +293,20 @@ div.block.question {
 }
 
 div.block.answer {
-  border-color: var(--accent3);
+  border-color: var(--accent6);
 }
 
 div.block.observation {
-  border-color: var(--accent2);
+  border-color: var(--accent7);
 }
 
 div.block.example {
-  border-color: var(--accent2);
+  border-color: var(--accent5);
 }
 
 div.block.def,
 div.block.definition {
-  border-color: var(--accent3);
+  border-color: var(--shade6);
 }
 
 div.block.note {
@@ -320,11 +320,11 @@ div.block.alert {
 
 div.block.equ,
 div.block.equation {
-  border-color: var(--accent3);
+  border-color: var(--shade6);
 }
 
 div.block.theorem {
-  border-color: var(--shade3);
+  border-color: var(--shade6);
 }
 
 /* Special case: source code inside highlighted box */
@@ -414,7 +414,9 @@ div.block.theorem {
 
 /* Skip _quizzes.scss for now */
 
-/* Wburg uses .align-* classes, so rename from align=*. */
+/* Wburg uses .align-* classes, so rename from align=*. 
+   However, I used the default from Henrik for 4 lectures (PRIS, ML, HCI, ICG), hence
+   it seems as if we stick with that and could remove the class-style stuff. */
 
 /* Stuff with centered text can look good at times. */
 .reveal .slides .align-center {
@@ -835,7 +837,25 @@ li {
       padding-top: 10px;
    }
 
-   /**** This is a layout to position elements at the bottom of the container ****/
+   /* Here I overwrite the color setting of the highlights */
+
+   a, a:visited, a:active {
+      color: var(--accent7);
+  }
+  
+   a,
+   a:visited,
+   a:active {
+      color: var(--accent6);
+   }
+
+   a:hover {
+      color: var(--accent1);
+   }
+
+
+   /**** This is a layout to position elements at the bottom of the container, needs
+   more tuning later ****/
 
    div.flush-bottom {
       position: absolute;
@@ -847,4 +867,3 @@ li {
       bottom: 0px;
       text-align: right;
    }
- 
