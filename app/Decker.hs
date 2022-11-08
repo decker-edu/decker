@@ -15,6 +15,7 @@ import qualified Data.Text as Text
 import Data.Version
 import Development.Shake
 import GHC.IO.Encoding
+import System.Directory (removeFile)
 import qualified System.Directory as Dir
 import System.FilePath.Posix
 import System.IO
@@ -50,9 +51,19 @@ needTargets' sels targets = do
   let ts = concatMap (\s -> Map.keys (targets ^. s)) sels
   need ts
 
+needPublicIfExists :: FilePath -> Action ()
 needPublicIfExists source = do
   exists <- doesFileExist source
-  when exists $ need [publicDir </> source]
+  let target = publicDir </> source
+  if exists
+    then need [target]
+    else removeFileA target
+
+-- | Remove a file, but don't worry if it fails
+removeFileA :: FilePath -> Action ()
+removeFileA target = do
+  didIt <- liftIO $ (removeFile target >> return True) `catch` \(SomeException e) -> return False
+  when didIt $ putNormal $ "# rm (for " <> target <> ")"
 
 serverPort = 8888
 
