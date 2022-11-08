@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html$if(lang)$ lang="$lang$"$endif$$if(dir)$ dir="$dir$"$endif$>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+$for(author-meta)$
+  <meta name="author" content="$author-meta$">
+$endfor$
+$if(date-meta)$
+  <meta name="dcterms.date" content="$date-meta$">
+$endif$
+$if(keywords)$
+  <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
+$endif$
+$if(title)$
+$if(subtitle)$
+  <title>$title$: $subtitle$</title>
+$else$
+  <title>$title$</title>
+$endif$
+$endif$
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+$if(template.favicon)$
+  <link rel="shortcut icon" href="$template.favicon$">
+$endif$
+
+  <!-- Default values for CSS variables can live here. They can be overridden by
+  meta data values. -->
+  <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
+
+  <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
+  into a style sheet. Default values can come from `variables.css`. -->
+  <style class="css-declarations">
+    @media (prefers-color-scheme: light) {
+      :root {
+        $for(css-light-color-declarations)$
+          $css-light-color-declarations$
+        $endfor$
+      }
+
+      :root.dark {
+        $for(css-dark-color-declarations)$
+          $css-dark-color-declarations$
+        $endfor$
+      }
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        $for(css-dark-color-declarations)$
+          $css-dark-color-declarations$
+        $endfor$
+      }
+
+      :root.light {
+        $for(css-light-color-declarations)$
+          $css-light-color-declarations$
+        $endfor$
+      }
+    }
+    :root {
+      $for(css-declarations)$
+        $css-declarations$
+      $endfor$
+    }
+  </style>
+
+  <!-- Any CSS variables set in the CSS files below, cannot be overridden by
+  meta data values. -->
+  <link rel="stylesheet" href="$decker-support-dir$/components/components.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reset.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reveal.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/decker/ui-anchors.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
+  <!-- <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css"> -->
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/examiner/examiner.css">
+  <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
+$if(poll)$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/poll/poll.css">
+$endif$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
+
+$if(highlightjs)$
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
+$endif$
+
+<!-- Syntax highlighting CSS inserted by Pandoc's built-in syntax highlighting.
+-->
+$if(highlighting-css)$
+  <style>
+$highlighting-css$
+  </style>
+$endif$
+
+$for(template.css)$
+  <link rel="stylesheet" href="$template.css$"/>
+$endfor$
+
+  <script type="module">
+    /* Store JSON encoded Pandoc meta data in a global variable. */
+    import initializeDecker from "./$decker-support-dir$/js/decker.js";
+    initializeDecker($decker-meta$);
+  </script>
+
+  <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
+</head>
+
+<body class="deck">
+  <div class="reveal">
+    <div class="slides">
+
+$if(title)$
+$deck-title.html()$
+$endif$
+
+$if(toc)$
+    <section id="$idprefix$TOC">
+    $table-of-contents$
+    </section>
+$endif$
+
+<!-- Keep left aligned -->
+$body$
+
+    </div>
+  </div>
+
+
+  <script type="module">
+    // import Reveal and all plugins 
+    import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
+    import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
+    import uiAnchorsPlugin from './$decker-support-dir$/plugins/decker/ui-anchors.js';
+    import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
+    import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
+    import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
+    import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
+    import printPlugin from './$decker-support-dir$/plugins/print/print.js';
+    import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
+    import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
+$if(poll)$
+    import pollPlugin from './$decker-support-dir$/plugins/poll/poll.js';
+$endif$
+    import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
+    import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
+    import examinerPlugin from "./$decker-support-dir$/plugins/examiner/examiner.js";
+    import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
+    import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
+    import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
+$if(highlightjs)$
+    import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
+$endif$
+    import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
+    /* import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js'; */
+    import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
+
+    let revealConfig = { 
+      // reveal configuration (see https://revealjs.com/config/)
+      ...Decker.meta.reveal,
+
+      // plugin configuration
+      math: { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math },
+      chart: Decker.meta.chart,
+      menu: Decker.meta.menu,
+      explain: Decker.meta.explain,
+      feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
+      jingles: Decker.meta.jingles,
+
+      // list of plugins
+      plugins: [
+         deckerPlugin,
+         uiAnchorsPlugin,
+         mathPlugin,
+         chartsPlugin,
+         whiteboardPlugin,
+         searchPlugin,
+         printPlugin,
+         jinglesPlugin,
+         quizWuePlugin,
+         quizPlugin,
+         explainPlugin,
+         examinerPlugin,
+         menuPlugin,
+         feedbackPlugin,
+$if(highlightjs)$
+         highlightPlugin,
+$endif$
+         notesPlugin,
+/* $if(live-captions)$
+         captionPlugin,
+$endif$ */
+         a11yPlugin,
+$if(poll)$
+         pollPlugin
+$endif$
+      ]
+    };
+
+    Reveal.initialize(revealConfig);
+    window.Reveal = Reveal;
+  </script>
+
+</body>
+
+<script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
+<script src="$decker-support-dir$/components/awesome-button.js"></script>
+<script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
+<!-- script src="$decker-support-dir$/js/inert.min.js"></script -->
+<!-- Use the other implementation if things break under Firefox -->
+$for(template.js)$
+  <script type="module" src="$template.js$"></script>
+$endfor$
+</html>
