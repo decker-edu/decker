@@ -318,11 +318,11 @@ div.exa-mc i.wrong {
 }
 
 div.exa-mc div.choice div.check-box span:hover {
-  background-color: var(--base03);
+  background-color: var(--shade3);
 }
 
 div.exa-mc div.choice div.check-box span:active {
-  background-color: var(--base09-bg);
+  background-color: var(--accent1-bg);
 }
 
 div.exa-quest[data-solved] div.exa-mc div.choice div.check-box span:hover {

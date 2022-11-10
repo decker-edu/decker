@@ -107,10 +107,6 @@ deriveColors palette contrast existing =
       nShades = length palette `div` 2
       bg = fromJust $ colors !!? 0
       fg = fromJust $ colors !!? (nShades - 1)
-      name i post =
-        let pre = if i < nShades then "shade" else "accent"
-            base = (pre <> show (if i < nShades then i else i - nShades))
-         in if Text.null post then base else base <> "-" <> post
       deriveShades colors i color =
         let c = toHex color
          in Map.union colors $

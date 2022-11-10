@@ -198,7 +198,7 @@ body.print-pdf #whiteboardButtons {
   padding: 0;
   text-align: center;
   vertical-align: middle;
-  color: var(--base06);
+  color: var(--shade6);
 }
 
 #whiteboardColorPicker button.whiteboard:hover {
