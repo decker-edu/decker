@@ -104,18 +104,19 @@ computeCssColorVariables meta =
 deriveColors :: [String] -> Float -> Map Text Text -> (Map Text Text, [Text])
 deriveColors palette contrast existing =
   let colors = map sRGB24read palette
+      nShades = length palette `div` 2
       bg = fromJust $ colors !!? 0
-      fg = fromJust $ colors !!? 7
+      fg = fromJust $ colors !!? (nShades - 1)
       name i post =
-        let pre = if i < 8 then "shade" else "accent"
-            base = (pre <> show (i `mod` 8))
+        let pre = if i < nShades then "shade" else "accent"
+            base = (pre <> show (if i < nShades then i else i - nShades))
          in if Text.null post then base else base <> "-" <> post
       deriveShades colors i color =
         let c = toHex color
          in Map.union colors $
               Map.fromList
                 [ (printfT "base%0.2X" i, c),
-                  (name i "", c)
+                  (printfT "shade%d" i, c)
                 ]
       deriveAccents colors i color =
         let cBbg = toHex (blend (2 * contrast) bg color)
@@ -130,14 +131,14 @@ deriveColors palette contrast existing =
                   (printfT "base%0.2X" i, c),
                   (printfT "base%0.2X-fg" i, cFg),
                   (printfT "base%0.2X-ffg" i, cFfg),
-                  (name i "bbg", cBbg),
-                  (name i "bg", cBg),
-                  (name i "", c),
-                  (name i "fg", cFg),
-                  (name i "ffg", cFfg)
+                  (printfT "accent%d-bbg" i, cBbg),
+                  (printfT "accent%d-bg" i, cBg),
+                  (printfT "accent%d" i, c),
+                  (printfT "accent%d-fg" i, cFg),
+                  (printfT "accent%d-ffg" i, cFfg)
                 ]
-      shades :: Map Text Text = (foldi deriveShades Map.empty (0 :: Int) $ take 8 colors)
-      accents :: Map Text Text = foldi deriveAccents Map.empty (8 :: Int) $ drop 8 colors
+      shades :: Map Text Text = foldi deriveShades Map.empty (0 :: Int) $ take nShades colors
+      accents :: Map Text Text = foldi deriveAccents Map.empty (0 :: Int) $ drop nShades colors
       -- Map.union ist left-biased. Does not overwrite colors that have been set
       -- by other means.
       cssColors = foldl' Map.union Map.empty [existing, shades, accents]
