@@ -523,11 +523,20 @@ async function startRecording() {
       { text: localization.replace, value: "REPLACE" },
       { text: localization.cancel, value: "CANCEL" },
     ];
-    let choice = await window.showChoice(
-      `${localization.replacement_warning}
-      <ul>
-      ${existingRecordings.map((r) => `<li>${r}</li>`)}
-      </ul>`,
+    let messageElement = document.createElement("div");
+    let messageText = document.createElement("p");
+    messageText.innerText = localization.replacement_warning;
+    messageElement.appendChild(messageText);
+    let messageList = document.createElement("ul");
+    for (const recording of existingRecordings) {
+      let item = document.createElement("li");
+      item.innerText = recording;
+      messageList.appendChild(item);
+    }
+    messageElement.appendChild(messageList);
+    let choice = await window.showDialog(
+      localization.replacement_title,
+      messageElement,
       options,
       "warning"
     );
@@ -1800,6 +1809,7 @@ const Plugin = {
       append: "Append",
       replace: "Replace",
       cancel: "Cancel",
+      replacement_title: "Append or Replace?",
       replacement_warning:
         "There is already a recording for this presentation. \
       Do you want to append to the existing recording or replace it?",
@@ -1812,6 +1822,7 @@ const Plugin = {
         append: "Anhängen",
         replace: "Ersetzen",
         cancel: "Abbrechen",
+        replacement_title: "Anhängen oder Ersetzen?",
         replacement_warning:
           "Es existiert bereits eine Aufnahme. \
         Soll die Aufnahme an das bereits existierende Video angehangen werden oder es ersetzen?",
