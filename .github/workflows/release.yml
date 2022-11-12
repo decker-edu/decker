@@ -36,6 +36,7 @@ jobs:
         run: |
           stack test
           stack --local-bin-path=dist install
+          mv dist/decker "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}"
       
       - name: Release 
         uses: "marvinpinto/action-automatic-releases@latest"
@@ -44,4 +45,4 @@ jobs:
           automatic_release_tag: "latest"
           prerelease: true
           title: "Development Build"
-          files: dist/decker
+          files: "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}"
