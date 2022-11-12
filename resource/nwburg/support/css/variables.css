@@ -1,9 +1,13 @@
 :root {
   /* These are for internal calculations */
   --list-indent: 1.5em;
-  --block-border-width: 0.2rem;
+  --block-border-width: 1rem;
+  --block-border-padding: 0.5rem;
+  --block-border-style: solid;
   --block-border-radius: 0em;
   --block-outset: 0.5rem;
+
+  --font-family: Roboto;
 
   /* Try this for block elements that stack vertically:
 
@@ -60,7 +64,7 @@
 
   --header-color: var(--shade6);
 
-  --primary-color: var(--accent7);   /* JMU Anpassung */
+  --primary-color: var(--accent6-fg);   /* JMU Anpassung */
   --secondary-color: var(--accent1);
 
   --hover-color: var(--accent7-bg);
@@ -79,13 +83,10 @@
   --whiteboard-background-color: #eee;
   --whiteboard-border-color: var(--shade2);
 
-  --highlight-color: var(--accent7-bg);
-  --flying-focus-color: var(--highlight-color);
-
   --menu-background-color: var(--shade1);
   --menu-text-color: var(--shade7);
-  --menu-header-background-color: var(--shade6); /*--primary-color*/
-  --menu-header-text-color: var(--shade1); /* var(--shade1); JMU Anpassung, have to do  */
+  --menu-header-background-color: var(--accent7); 
+  --menu-header-text-color: #EDEDED; /* JMU Anpassung, have to do  */
   --menu-border-color: var(--shade3);
 
   --common-menu-header-height: 3rem;

@@ -38,14 +38,14 @@ palette:
       - "#919191"
       - "#6A6A6A"
       - "#000000"
-      - "#FF0101" # hci-red
+      - "#EA0004" # red (not the HCI icon red)
       - "#F29A37" # hci-orange
       - "#FFD100" # yellow (bit darkish)
-      - "#FFFF00" # yellow (brighter)
-      - "#00F900" # green (brighter)
+      - "#FFEC00" # yellow (brighter)
+      - "#00CE00" # green (brighter)
       - "#009900" # darker green
-      - "#4040FF" # blue (brighter)
-      - "#184083" # jmu-blue (bit darkish)
+      - "#0461C6" # blue (brighter)
+      - "#063d79" # jmu-blue (bit darkish)
     dark: # was Solarized Dark, currently same as light
       - "#000000"
       - "#6A6A6A"
@@ -55,14 +55,14 @@ palette:
       - "#DADADA"
       - "#EDEDED"
       - "#ffffff" 
-      - "#FF0101" # hci-red
+      - "#EA0004" # red (not the HCI icon red)
       - "#F29A37" # hci-orange
       - "#FFD100" # yellow (bit darkish)
-      - "#FFFF00" # yellow (brighter)
-      - "#00F900" # green (brighter)
+      - "#FFEC00" # yellow (brighter)
+      - "#00CE00" # green (brighter)
       - "#009900" # darker green
-      - "#4040FF" # blue (brighter)
-      - "#184083" # jmu-blue (bit darkish)
+      - "#0461C6" # blue (brighter)
+      - "#063d79" # jmu-blue (bit darkish)
   contrast: 0.3
 
 # Defaults needed by wburg
@@ -89,3 +89,5 @@ css-variables:
 template:
   css: support/css/wburg.css
 
+math:
+  scale: 0.9
