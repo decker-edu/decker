@@ -35,7 +35,7 @@ jobs:
       - name: Build & test Decker 
         run: |
           stack test
-          stack --local-bin-dir=dist install
+          stack --local-bin-path=dist install
       
       - name: Release 
         uses: "marvinpinto/action-automatic-releases@latest"
