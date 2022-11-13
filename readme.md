@@ -1,4 +1,5 @@
-[![Tests](https://github.com/decker-edu/decker/actions/workflows/haskell.yml/badge.svg?branch=master)](https://github.com/decker-edu/decker/actions/workflows/haskell.yml)
+[![Development
+Release](https://github.com/decker-edu/decker/actions/workflows/release.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/release.yml)
 
 # Decker
 
