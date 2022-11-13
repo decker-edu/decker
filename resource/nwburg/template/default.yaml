@@ -1,0 +1,93 @@
+# Default meta data
+
+# Defaults for reveal.js
+reveal:
+  width: 1244
+  height: 700
+  backgroundTransition: "none"
+  center: false
+  controls: true
+  fragmentInURL: true
+  fragments: true
+  hash: true
+  help: true
+  hideCursorTime: 2000
+  hideInactiveCursor: true
+  history: false
+  keyboard: true
+  menu: true
+  overview: true
+  progress: true
+  title: "|title|"
+  touch: true
+  transition: "none"
+  vertical-slides: true
+  zoom: true
+
+highlightjs: atom-one-light # We want nice code highlighting
+# atom-one-dark` and `atom-one-light`, `solarized-dark` and `solarized-light`, `xcode`, `zenburn`
+
+palette:
+  colors:
+    light: 
+      - "#ffffff" 
+      - "#EDEDED"
+      - "#DADADA"
+      - "#C5C5C5"
+      - "#AEAEAE"
+      - "#919191"
+      - "#6A6A6A"
+      - "#000000"
+      - "#EA0004" # red (not the HCI icon red)
+      - "#F29A37" # hci-orange
+      - "#FFD100" # yellow (bit darkish)
+      - "#FFEC00" # yellow (brighter)
+      - "#00CE00" # green (brighter)
+      - "#009900" # darker green
+      - "#0461C6" # blue (brighter)
+      - "#063d79" # jmu-blue (bit darkish)
+    dark: # was Solarized Dark, currently same as light
+      - "#000000"
+      - "#6A6A6A"
+      - "#919191"
+      - "#AEAEAE"
+      - "#C5C5C5"
+      - "#DADADA"
+      - "#EDEDED"
+      - "#ffffff" 
+      - "#EA0004" # red (not the HCI icon red)
+      - "#F29A37" # hci-orange
+      - "#FFD100" # yellow (bit darkish)
+      - "#FFEC00" # yellow (brighter)
+      - "#00CE00" # green (brighter)
+      - "#009900" # darker green
+      - "#0461C6" # blue (brighter)
+      - "#063d79" # jmu-blue (bit darkish)
+  contrast: 0.3
+
+# Defaults needed by wburg
+# Will be included as text into css, 
+# hence calc and var works and will then be executed during load-time
+css-variables:
+  active-color: rgb(42,157,223)
+  align-global: left
+  # background-color: rgb(250,250,250)
+  border-decoration-padding: 10px
+  border-decoration-style: solid
+  border-decoration-width: 20px
+  icon-size: 2vmin
+  inactive-color: lightgrey
+  margin-columns: 1em
+  font-size-base: 28px
+  spacing-vertical-base: 0.5em
+  # Fill in some variables used in decker/support/css/*.css
+  block-border-width: var(--border-decoration-width)
+  block-outset: var(--border-decoration-padding)
+  vertical-margin: var(--spacing-vertical-base)
+
+# Use CSS augmentation without changes to the default template
+template:
+  css: support/css/wburg.css
+
+math:
+  scale: 0.9
