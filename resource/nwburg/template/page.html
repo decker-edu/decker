@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html$if(lang)$ lang="$lang$" $endif$$if(dir)$ dir="$dir$" $endif$>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="generator" content="pandoc">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"> $for(author-meta)$
+    <meta name="author" content="$author-meta$"> $endfor$ $if(date-meta)$
+    <meta name="dcterms.date" content="$date-meta$"> $endif$ $if(keywords)$
+    <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$"> $endif$
+    <meta name="apple-mobile-web-app-capable" content="yes">
+$if(template.favicon)$
+    <link rel="shortcut icon" href="$template.favicon$">
+$endif$
+    <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+    <style type="text/css">
+      code {
+        white-space: pre;
+      }
+    </style>
+    $if(quotes)$
+    <style type="text/css">
+      q {
+        quotes: "“""”""‘""’";
+      }
+    </style>
+    $endif$
+    $if(highlighting-css)$
+    <style type="text/css">
+      $highlighting-css$
+    </style>
+    $endif$
+
+$if(template.base-css)$
+    <link rel="stylesheet" href="$template.base-css$">
+$else$
+    <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
+$endif$
+
+<!-- Transfer meta data values from keys `palette.colors` and `css-variables`
+  into a style sheet. Default values can come from `variables.css`. -->
+  <style class="css-declarations">
+   :root {
+     $for(css-light-colors/pairs)$
+       --light-$it.key$: $it.value$;
+     $endfor$
+     $for(css-dark-colors/pairs)$
+       --dark-$it.key$: $it.value$;
+     $endfor$
+   }
+   @media (prefers-color-scheme: light) {
+     :root {
+       $for(css-light-color-declarations)$
+         $css-light-color-declarations$
+       $endfor$
+     }
+
+     :root.dark {
+       $for(css-dark-color-declarations)$
+         $css-dark-color-declarations$
+       $endfor$
+     }
+   }
+   @media (prefers-color-scheme: dark) {
+     :root {
+       $for(css-dark-color-declarations)$
+         $css-dark-color-declarations$
+       $endfor$
+     }
+
+     :root.light {
+       $for(css-light-color-declarations)$
+         $css-light-color-declarations$
+       $endfor$
+     }
+   }
+   :root {
+     $for(css-declarations)$
+       $css-declarations$
+     $endfor$
+   }
+ </style>
+ 
+    <!-- MathJax config -->
+    <script>
+        window.MathJax = {
+            loader: {
+                load: ['[tex]/ams']
+            },
+            svg: {
+                minScale: .5,                  // smallest scaling factor to use
+                mtextInheritFont: true,        // true to make mtext elements use surrounding font
+                merrorInheritFont: true,       // true to make merror text use surrounding font
+                mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+                skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+                exFactor: .5,                  // default size of ex in em units
+                displayAlign: 'center',        // default for indentalign when set to 'auto'
+                displayIndent: '0',            // default for indentshift when set to 'auto'
+                fontCache: 'none',             // or 'global' or 'none'
+                localID: null,                 // ID to use for local font cache (for single equation processing)
+                internalSpeechTitles: true,    // insert <title> tags with speech content
+                titleID: 0                     // initial id number to use for aria-labeledby titles
+            },
+            tex: {
+                tags: 'ams',
+                packages: {
+                    '[+]': ['ams']
+                },
+                macros: {
+                    R: "{\\mathrm{{I}\\kern-.15em{R}}}",
+                    laplace: "{\\Delta}",
+                    grad: "{\\nabla}",
+                    T: "^{\\mathsf{T}}",
+
+                    norm: ['\\left\\Vert #1 \\right\\Vert', 1],
+                    iprod: ['\\left\\langle #1 \\right\\rangle', 1],
+                    vec: ['\\boldsymbol{\\mathbf{#1}}', 1],
+                    mat: ['\\boldsymbol{\\mathbf{#1}}', 1],
+                    set: ['\\mathcal{#1}', 1],
+                    func: ['\\mathrm{#1}', 1],
+                    trans: ['{#1}\\mkern-1mu^{\\mathsf{T}}', 1],
+                    matrix: ['\\begin{bmatrix} #1 \\end{bmatrix}', 1],
+                    vector: ['\\begin{pmatrix} #1 \\end{pmatrix}', 1],
+                    of: ['\\mkern{-2mu}\\left( #1 \\right\)', 1],
+                    diff: ['\\frac{\\mathrm{d}{#1}}{\\mathrm{d}{#2}}', 2],
+                    pdiff: ['\\frac{\\partial {#1}}{\\partial {#2}}', 2],
+
+                    vc: ['\\mathbf{#1}', 1],
+                    abs: ['\\lvert#1\\rvert', 1],
+                    norm: ['\\lVert#1\\rVert', 1],
+                    det: ['\\lvert#1\\rvert', 1],
+                    qt: ['\\hat{\\vc {#1}}', 1],
+                    mt: ['\\boldsymbol{#1}', 1],
+                    pt: ['\\boldsymbol{#1}', 1],
+                    textcolor: ['\\color{#1}', 1]
+                }
+            },
+            options: {
+                // disable menu
+                renderActions: {
+                    addMenu: [0, '', '']
+                },
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="$decker-support-dir$/vendor/mathjax/tex-svg.js">
+    </script>
+
+    <script>
+      var socket = new WebSocket("ws://" + location.host + "/reload");
+      socket.onmessage = function (event) {
+        if (event.data.startsWith("reload!")) 
+          window.location.reload(true);
+      };
+    </script>
+
+    $for(header-includes)$
+    $header-includes$
+    $endfor$
+    $for(template.css)$
+    <link rel="stylesheet" href="$template.css$">
+    $endfor$
+  </head>
+
+  <body class="document page" onload="initPage();">
+    $for(include-before)$
+    $include-before$
+    $endfor$
+
+    <header>
+    $if(template.index-page.banner)$
+    <div class="index-page-banner">
+       <img src=$template.index-page.banner$>
+    </div>
+    $endif$
+    $if(title)$
+      <h1>$title$</h1>
+      $if(subtitle)$
+      <h2>$subtitle$</h2>
+      $endif$
+    $endif$
+    </header>
+
+    $if(toc)$
+    $if(toc-title)$
+    <h1 id="$idprefix$TOC-title class="toc-title">$toc-title$</h1>
+    $endif$
+    <nav id="$idprefix$TOC">
+        $table-of-contents$
+    </nav>
+    $endif$
+
+<!-- body must not be indented or code blocks render badly -->
+<!-- The following line must be left aligned! -->
+$body$
+<!-- The previous line must be left aligned! -->
+
+    <script src="$decker-support-dir$/vendor/js/jquery.min.js" type="text/javascript"></script>
+    <script src="$decker-support-dir$/vendor/js/lazyload.min.js" type="text/javascript"></script>
+    <script src="$decker-support-dir$/js/page.js"></script>
+
+    $for(include-after)$
+    $include-after$
+    $endfor$
+    $if(author)$
+    <hr>
+    <address>
+      $if(date)$
+      <p id="date">$date$</p>
+      $endif$
+      <p class="author">
+        $copyright$ $author$$if(affiliation)$, $affiliation$ $endif$
+      </p>
+    </address>
+    $endif$
+    <script>
+      var lazyLoadInstance = new LazyLoad({
+        elements_selector: "img, video, iframe"
+      });
+    </script>
+  </body>
+  </html>

@@ -118,7 +118,7 @@ div.block[popup="center-down"] {
   width: 3em;
   text-align: center;
   font-family: sans-serif;
-  color: var(--base07);
+  color: var(--foreground-color);
   background: none;
   transform: translate(-50%, -50%);
 }

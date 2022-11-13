@@ -1,0 +1,714 @@
+@import url("../fonts/roboto.css");
+@import url("../fonts/source-code-pro.css");
+
+/* Derived CSS variables. 'Parameters' that need to be set either in
+default.yaml or in variables.css:
+
+  --font-size-base 
+  --spacing-vertical-base
+ 
+*/
+
+:root {
+   /* Calculate all font size variables depending on the base font size accessible 
+   via yaml config */
+  --font-size-medium: calc(var(--font-size-base) * 1);
+  --font-size-normal: calc(var(--font-size-base) * 1);
+  --font-size-xx-small: calc(var(--font-size-base) * 0.4);
+  --font-size-x-small: calc(var(--font-size-base) * 0.6);
+  --font-size-small: calc(var(--font-size-base) * 0.8);
+  --font-size-large: calc(var(--font-size-base) * 1.2);
+  --font-size-x-large: calc(var(--font-size-base) * 1.4);
+  --font-size-xx-large: calc(var(--font-size-base) * 1.6);
+
+  /* Similar to font size, this one defines the basic vertical spacing between elements
+  this one is NOT used at the moment since Henrik had a similar but reduced solution */
+  --margin-bottom-elements-base: var(--spacing-vertical-base);
+  --margin-bottom-h1: calc(var(--margin-bottom-elements-base) * 1);
+  --margin-bottom-h2: calc(var(--margin-bottom-elements-base) * 0);
+  --margin-bottom-h2-block: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-h3: calc(var(--margin-bottom-elements-base) * 0);
+  --margin-bottom-h3-block: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-p: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-ol: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-ul: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-dl: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-figure: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-img: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-blockquote: calc(var(--margin-bottom-elements-base) * 0.8);
+  --margin-bottom-table: calc(var(--margin-bottom-elements-base) * 1);
+  --margin-bottom-columns: calc(var(--margin-bottom-elements-base) * 0);
+  --margin-bottom-references: calc(var(--margin-bottom-elements-base) * 0.3);
+}
+
+
+/* General setting for the used font, size and color. 
+Requires the color variables to be set */
+body.deck {
+  font-family: var(--font-family);
+  font-size: var(--font-size-medium);
+  color: var(--foreground-color);
+  background-color: var(--background-color);
+}
+
+/* Backwards compatibility from _fonts.scss, we went a long way to define 
+how the font sizes should be specified. In general it would be better to have just 
+one wy to set these but we want old sources to still work. Maybe clean-up later */
+.medium,
+.font-medium,
+.font-size-medium,
+.normal,
+.font-normal,
+.font-size-normal {
+  font-size: var(--font-size-medium);
+}
+
+.xx-small,
+.font-xx-small,
+.font-size-xx-small {
+  font-size: var(--font-size-xx-small);
+}
+
+.x-small,
+.font-x-small,
+.font-size-x-small {
+  font-size: var(--font-size-x-small);
+}
+
+.small,
+.font-small,
+.font-size-small {
+  font-size: var(--font-size-small);
+}
+
+.large,
+.font-large,
+.font-size-large {
+  font-size: var(--font-size-large);
+}
+
+.x-large,
+.font-x-large,
+.font-size-x-large {
+  font-size: var(--font-size-x-large);
+}
+
+.xx-large,
+.font-xx-large,
+.font-size-xx-large {
+  font-size: var(--font-size-xx-large);
+}
+
+.reveal h1 {
+  font-weight: normal;
+  font-size: var(--font-size-xx-large);
+}
+
+.reveal h2 {
+  font-weight: 500;
+  font-size: var(--font-size-large);
+}
+
+.reveal h3 {
+  font-weight: 300;
+  font-size: var(--font-size-medium);
+}
+
+.reveal h4 {
+  font-weight: 100;
+  font-size: var(--font-size-medium);
+}
+
+.reveal
+  section:is(.white, .inverse, .has-dark-background)
+  :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--shade0)
+}
+
+.reveal section:is(.white, .inverse, .has-dark-background) {
+   color: var(--shade0) 
+}
+
+/* p, li {
+  line-height: 1.3;
+} */
+
+
+
+strong,
+b {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
+/* From _titlepage.scss */
+
+/* Title page */
+.title-page .banner img {
+  margin: 0px 0px 10px 0px;
+  width: 100%;
+  object-fit: contain;
+}
+
+.title-page .title {
+  margin: 0px;
+  width: 100%;
+  display: block;
+  padding: 0px;
+  font-size: var(--font-size-x-large);
+  text-align: center;
+}
+
+.title-page .subtitle {
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+  font-weight: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.title-page .teaser-img {
+  margin: 20px auto;
+  height: 10%;
+  width: auto;
+  display: block;
+}
+
+.title-page .teaser-img img {
+  margin: 0px;
+  /* Center horizontally */
+  display: block;
+  margin: auto;
+  /* Make the image as max 250px high retaining aspect ratio */
+  object-fit: contain;
+  max-height: 250px;
+  width: auto;
+}
+
+.title-page .date {
+  text-align: center;
+}
+
+.title-page .author {
+  margin: 0px;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.title-page .affiliation-logo img {
+  margin: 0px 0 0 0;
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.title-page .affiliation {
+  margin: 0px 0 0 0;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
+  text-align: center;
+}
+
+.title-page .valign-block {
+  text-align: center;
+}
+
+.title-page .valign-block:before {
+  content: "";
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.title-page .valigned {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* 
+ Gap zwischen den areas am besten durch verschieben des top level 
+ containers nach links um die Breite der seitlichen Auszeichnung
+*/
+div.alignment {
+   margin-right: calc(var(--block-border-width) + var(--block-border-padding));
+}
+
+/* Blocks have some padding and a border to allow for highlighting without
+disturbing the layout. This one is taken from styles.css from default and overwritten
+here */
+div.block {
+   border-width: 0 0 0 var(--block-border-width);
+   padding: 0 0 0 var(--block-border-padding);
+   /* padding-left: var(--block-border-padding); */
+   /* margin-bottom: calc(1 * var(--vertical-margin)); */
+ }
+
+ /* Stretch the block header margin to the block border so that highlighting
+works. */
+div.block h2 {
+   padding: 0;
+   margin: 0 0 calc(1 * var(--vertical-margin)) 0; 
+}
+
+/* The latter is already from styles.css for h1, p, div, ul, ol, table.
+   However, We also didn't want the empty H2 to have the margin as well as
+   the last list item (maybe the latter was just forgotten since ul and ol were 
+   mentioned.
+*/
+:is(h2, li):last-child {  
+   margin-bottom: 0 !important;
+}
+
+/* Align headers with blocks. */
+section h1 {
+  padding-left: calc(var(--block-border-width) + var(--block-border-padding));
+}
+
+/* These are mapped to the available shades and accent colors in the palette. */
+div.block.question {
+  border-color: var(--accent0);
+}
+
+div.block.answer {
+  border-color: var(--accent6);
+}
+
+div.block.observation {
+  border-color: var(--accent7);
+}
+
+div.block.example {
+  border-color: var(--accent5);
+}
+
+div.block.def,
+div.block.definition {
+  border-color: var(--shade6);
+}
+
+div.block.note {
+  border-color: var(--accent1);
+}
+
+div.block.ale,
+div.block.alert {
+  border-color: var(--accent0);
+}
+
+div.block.equ,
+div.block.equation {
+  border-color: var(--shade6);
+}
+
+div.block.theorem {
+  border-color: var(--shade6);
+}
+
+/* Wburg uses .align-* classes, so rename from align=*. 
+   However, I used the default from Henrik for 4 lectures (PRIS, ML, HCI, ICG), hence
+   it seems as if we stick with that and could remove the class-style stuff. */
+
+/* Stuff with centered text can look good at times. */
+.reveal .slides .align-center {
+  text-align: center;
+}
+.reveal .slides .align-left {
+  text-align: left;
+}
+.reveal .slides .align-right {
+  text-align: right;
+}
+
+.align-center table {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+
+ /*********************************************
+   * From mario.css: bibliography
+   *********************************************/
+
+   .reveal .references {
+      margin: auto;
+      max-height: 600px;
+      width: 90%;
+      overflow-y: auto;
+    }
+    
+    .reveal .references > div {
+      padding-left: 1em;
+      text-indent: -1em;
+      text-align: left;
+      margin-bottom: 1em;
+    }
+
+    /*********************************************
+   * MARIO: Quizzes with task list syntax
+   *********************************************/
+
+/* quiz flex layout */
+.reveal .quiz ul {
+   display: flex;
+   flex-direction: row;
+   flex-wrap: wrap;
+   justify-content: center;
+   align-items: center;
+   align-content: center;
+   text-align: center;
+   counter-reset: answer;
+   margin-top: 1em;
+ }
+ 
+ /* one quiz item */
+ .reveal .quiz ul li {
+   display: inline-block;
+   position: relative;
+   text-align: left;
+   margin: 0.5em;
+   border: 3px solid var(--emphColor);
+   border-radius: 0.5em;
+   padding: 0.5em;
+   font-weight: normal;
+   background-color: var(--shade1);
+ }
+ 
+ /* add A, B, C, D... */
+ .reveal .quiz ul.task-list > li::before {
+   content: counter(answer, upper-latin) ": ";
+   counter-increment: answer;
+   margin-right: 0.5em;
+   font-weight: bold;
+ }
+ 
+ /* remove task list checkbox */
+ .reveal .quiz ul.task-list li > input[type="checkbox"] {
+   display: none;
+ }
+ 
+ /* 2nd level ul contains tool tip */
+ .reveal .quiz ul.task-list li ul {
+   display: inline-block;
+   margin: 0;
+   padding: 0;
+ }
+ 
+ /* don't need this for 2nd level */
+ .reveal .quiz ul.task-list li ul li::before {
+   display: none;
+ }
+ 
+ /* tool tip */
+ .reveal .quiz ul li ul li {
+   display: block;
+   visibility: hidden;
+   max-width: 95%;
+   top: 100%;
+   left: 5px;
+   background-color: grey;
+   color: #ffffff;
+   text-align: center;
+   margin: 5px;
+   padding: 5px;
+   border-radius: 6px;
+   border: none;
+   position: absolute;
+   z-index: 1;
+   font-size: 1rem;
+ }
+ 
+ /* once clicked, wrong answers are red */
+ .reveal .quiz ul li.wrong {
+   --quiz-background-color: var(--red-background-color);
+   --quiz-border-color: var(--red-border-color);
+   --quiz-icon: "\f00d";
+ }
+ 
+ /* once clicked, correct answers are green */
+ .reveal .quiz ul li.right {
+   --quiz-background-color: var(--green-background-color);
+   --quiz-border-color: var(--green-border-color);
+   --quiz-icon: "\f00c";
+ }
+ 
+ .reveal .quiz ul li.show-answer {
+   background-color: var(--quiz-background-color);
+   border-color: var(--quiz-border-color);
+ }
+ .reveal .quiz ul li.show-answer::after {
+   font-style: normal;
+   font-variant: normal;
+   text-rendering: auto;
+   font-weight: 900;
+   font-family: "Font Awesome 5 Free";
+   content: var(--quiz-icon);
+   position: absolute;
+   font-size: 15px;
+   right: 0.2em;
+   bottom: -0.1em;
+   padding: 0.1em;
+   color: var(--quiz-border-color);
+ }
+ 
+ /* tool tips are shown on hover */
+ .reveal .show-answer:hover ul li {
+   visibility: visible;
+ }
+
+ 
+/*********************************************
+   * MARIO: override quiz-wue settings
+   *********************************************/
+
+   .reveal [class*="quiz-"] button {
+      font: inherit;
+      font-size: 0.9em;
+      margin: 0.5em;
+      padding: 0.5em;
+      color: var(--shade6);
+      background: var(--shade1);
+      border: 2px solid var(--icon-active-color);
+      border-radius: 0.5em;
+    }
+    
+    .reveal .quiz-ft button {
+      display: none;
+    }
+    
+    .reveal .quiz-ft input {
+      font: inherit;
+      font-size: 0.8em;
+      margin: 0.5em;
+      padding: 10px;
+      border: 2px solid var(--emphColor);
+      color: var(--shade6);
+      background-color: var(--shade1);
+      outline: none;
+    }
+    
+    .reveal .qft-solutions,
+    .reveal .qft-solutions.solved {
+      display: none;
+    }
+    
+    .reveal .quiz-ic select {
+      font: inherit;
+      font-size: 0.9em;
+      font-weight: normal;
+      padding: 5px;
+      border: 2px solid var(--emphColor);
+      color: var(--shade6);
+      background-color: var(--shade1);
+      outline: none;
+    }
+    
+    .reveal .quiz-ic option {
+      font: inherit;
+      font-size: inherit;
+      font-weight: normal;
+    }
+    
+    .reveal .quiz-mi .buckets,
+    .reveal .quiz-mi .matchItems {
+      border: 2px solid var(--shade3);
+      padding: 15px 10px;
+    }
+    
+    .reveal .quiz-mi .buckets {
+      margin-bottom: 20px;
+      margin-top: 60px;
+    }
+    
+    .reveal .quiz-mi .buckets:before,
+    .reveal .quiz-mi .matchItems:before {
+      position: absolute;
+      top: -15px;
+      left: 10px;
+      font-size: 15px;
+      background-color: var(--shade0);
+      padding: 5px;
+      color: var(--shade3);
+    }
+    
+    .reveal .quiz-mi .matchItems:before {
+      content: "Drag objects from here...";
+    }
+    
+    .reveal .quiz-mi .buckets:before {
+      content: "...and drop them here into the correct category";
+    }
+    
+    :lang(de) .reveal .quiz-mi .matchItems:before {
+      content: "Objekte per Drag & Drop nach unten ziehen...";
+    }
+    
+    :lang(de) .reveal .quiz-mi .buckets:before {
+      content: "...und hier in die richtige Kategorie einsortieren";
+    }
+    
+    .reveal .quiz-mi .matchItems:after {
+      position: absolute;
+      bottom: -30px;
+      border-left: 30px solid transparent;
+      border-right: 30px solid transparent;
+      border-top: 30px solid var(--shade3);
+    }
+    
+    .reveal .quiz-mi .bucket {
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid var(--shade3);
+    }
+    
+    .reveal .quiz-mi .matchItem {
+      display: block;
+      overflow: hidden;
+      border: 2px solid var(--icon-active-color);
+      border-radius: 10px;
+      padding: 10px;
+      cursor: grab;
+      margin: auto;
+      background-color: var(--shade1);
+    }
+    
+    .reveal [class*="quiz-"] .show-right {
+      background-color: var(--green-background-color);
+      border-color: var(--green-border-color);
+    }
+    
+    .reveal [class*="quiz"] .show-wrong {
+      background-color: var(--red-background-color);
+      border-color: var(--red-border-color);
+    }
+    
+    /*********************************************
+       * quiz polling
+       *********************************************/
+    
+    .reveal:not(.poll) .poll-only {
+      display: none;
+    }
+    
+    #poll-chart {
+      font-size: var(--icon-size);
+      position: absolute;
+      left: auto;
+      top: auto;
+      right: 0.5em;
+      bottom: 0.5em;
+      visibility: hidden;
+      z-index: 34;
+      width: 420px;
+      height: 320px;
+      margin: auto;
+      padding: 0.5em;
+      text-align: center;
+      border: 3px solid var(--emphColor);
+      border-radius: 0.5em;
+      background-color: var(--shade0);
+      transform-origin: bottom right;
+      box-shadow: 3px 5px 5px var(--shade3);
+    }
+    
+    #poll-chart.canvas {
+      top: 0;
+      left: 0;
+      width: 400px;
+      height: 300px;
+    }
+    
+    #poll-votes {
+      font-size: var(--icon-size);
+      color: var(--icon-inactive-color);
+      text-align: center;
+      display: none;
+    }
+    
+    div.qrcode.container {
+      display: none;
+      z-index: 4000;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: 0;
+      background-color: var(--shade0);
+    }
+    
+    div.qrcode.container button {
+      position: absolute;
+      right: 1em;
+      top: 1em;
+    }
+    
+    div.qrcode.container.show {
+      display: flex;
+    }
+    
+    div.qrcode.container {
+      flex-flow: column nowrap;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    
+    div.qrcode.container canvas {
+      height: 66vh;
+      min-height: 0;
+      aspect-ratio: 1 / 1;
+      background-color: white;
+      padding: 0.5em;
+      border: 0.01em solid var(--shade6);
+      border-radius: var(--block-border-radius);
+    }
+    
+    div.qrcode.container a {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+
+   /* Here I overwrite the color setting of the highlights */
+
+   a,
+   a:visited,
+   a:active {
+      color: var(--primary-color);
+   }
+
+   a:hover {
+      color: var(--secondary-color);
+   }
+
+
+   /**** This is a layout to position elements at the bottom of the container, needs
+   more tuning later ****/
+
+   div.flush-bottom {
+      position: absolute;
+      bottom: 0px;
+   }
+
+   div.flush-bottom-right {
+      position: absolute;
+      bottom: 0px;
+      text-align: right;
+   }
+
+   /* The footnotes are too big   */
+   .footnotes {
+      font-size: var(--font-size-small);
+   }

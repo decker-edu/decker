@@ -29,14 +29,14 @@
 
   --whiteboard-background-color: var(--shade1);
   --whiteboard-border-color: var(--shade2);
-  --whiteboard-pen0: var(--base08);
-  --whiteboard-pen1: var(--base09);
-  --whiteboard-pen2: var(--base0A);
-  --whiteboard-pen3: var(--base0B);
-  --whiteboard-pen4: var(--base0C);
-  --whiteboard-pen5: var(--base0D);
-  --whiteboard-pen6: var(--base0E);
-  --whiteboard-pen7: var(--base0F);
+  --whiteboard-pen0: var(---accent0);
+  --whiteboard-pen1: var(---accent1);
+  --whiteboard-pen2: var(---accent2);
+  --whiteboard-pen3: var(---accent3);
+  --whiteboard-pen4: var(---accent4);
+  --whiteboard-pen5: var(---accent5);
+  --whiteboard-pen6: var(---accent6);
+  --whiteboard-pen7: var(---accent7);
 
   --highlight-color: var(--accent5-bg);
   --flying-focus-color: var(--highlight-color);

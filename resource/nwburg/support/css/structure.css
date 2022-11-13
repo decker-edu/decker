@@ -82,8 +82,8 @@ div.layout.row:is(.columns, .grid) > div.area[grow="6"] {
 
 /* Column spacing in a row */
 div.layout.row:is(.columns, .grid) > div.area {
-  margin-left: 1rem;
-  margin-right: 1rem;
+  margin-left: 0rem;   /* Marc: should be set to 0 and only use margin-columns, was 1rem */
+  margin-right: 0rem;  /* Marc: should be set to 0 and only use margin-columns, was 1rem */
 }
 
 div.layout.row:is(.columns, .grid) > div.area:first-child {
@@ -93,4 +93,5 @@ div.layout.row:is(.columns, .grid) > div.area:first-child {
 div.layout.row:is(.columns, .grid) > div.area:last-child {
   margin-right: 0;
 }
+
 
