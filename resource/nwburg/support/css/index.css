@@ -50,6 +50,7 @@ progress {
 body.index table {
   margin-left: auto;
   margin-right: auto;
+  display: table; 
   width: 90%;
 }
 
