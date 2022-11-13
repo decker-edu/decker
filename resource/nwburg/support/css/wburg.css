@@ -294,10 +294,18 @@ div.block {
 works. */
 div.block h2 {
    padding: 0;
-   margin: 0;
- }
+   margin: 0;  /* 0 calc(1 * var(--vertical-margin)) 0; */
+   margin-bottom: calc(1 * var(--vertical-margin));
+}
 
- 
+/* The latter is already from styles.css for h1, p, div, ul, ol, table.
+   However, We also didn't want the empty H2 to have the margin as well as
+   the last list item (maybe the latter was just forgotten since ul and ol were 
+   mentioned.
+*/
+:is(h1, li):last-child {  
+   margin-bottom: 0 !important;
+}
 
 /* Align headers with blocks. */
 section h1 {
