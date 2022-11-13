@@ -110,26 +110,30 @@ one wy to set these but we want old sources to still work. Maybe clean-up later 
 }
 
 .reveal h3 {
+  font-weight: 300;
   font-size: var(--font-size-medium);
 }
 
 .reveal h4 {
+  font-weight: 100;
   font-size: var(--font-size-medium);
 }
 
 .reveal
   section:is(.white, .inverse, .has-dark-background)
   :is(h1, h2, h3, h4, h5, h6) {
-  color: var(--shade0) /* Marc was: #eee; */
+  color: var(--shade0)
 }
 
 .reveal section:is(.white, .inverse, .has-dark-background) {
-   color: var(--shade0) /* Marc was: #fff; */
+   color: var(--shade0) 
 }
 
-p {
+/* p, li {
   line-height: 1.3;
-}
+} */
+
+
 
 strong,
 b {
@@ -266,13 +270,7 @@ ol ol {
   list-style-type: lower-roman;
 }
 
-ul ul,
-ul ol,
-ol ol,
-ol ul {
-  /* display: block;
-  margin-top: 0.3em; */
-}
+
 
 /* 
  Gap zwischen den areas am besten durch verschieben des top level 
@@ -299,17 +297,7 @@ div.block h2 {
    margin: 0;
  }
 
- /******* This one is a quick fix for the border/margin/padding problem 
- which occures due to our special handling of the boxes for the annotations ******/
-
- /* div.block[popup] {
-   margin: 0px;
-   border: 0px;
-   padding-left: 20px;
-   padding-right: 20px;
-   padding-bottom: 20px; 
-   padding-top: 10px;
-} */
+ 
 
 /* Align headers with blocks. */
 section h1 {
@@ -356,93 +344,6 @@ div.block.theorem {
   border-color: var(--shade6);
 }
 
-/* Special case: source code inside highlighted box */
-/*div.block:is(question, answer, observation, example, def, definition, note, ale, alert, equ, equation, theorem)
-  div.sourceCode {
-  margin: 0;
-  background: rgba(255, 255, 255, 0.4);
-  padding: space(0 0.2);
-}
-*/
-/* From _code.scss */
-
-/*code {
-  font-family: "Source Code Pro", monospace;
-  font-size: 106%;
-  font-weight: 500;
-  text-transform: none;
-}*/
-
-/*pre {
-  display: block;
-  position: relative;
-  width: 90%;
-  margin: 20px auto;
-  text-align: left;
-  font-size: 0.55em;
-  font-family: monospace;
-  line-height: 1.2em;
-  word-wrap: break-word;
-}*/
-
-/*pre code {
-  display: block;
-  padding: 5px;
-  overflow: auto;
-  max-height: 400px;
-  word-wrap: normal;
-}
-*/
-/*div.sourceCode {
-  margin-bottom: 0.5em;
-  padding: space(0.4 0.7);
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 0.25em;
-  overflow: auto;
-}*/
-
-/*div.sourceCode pre {
-  display: block;
-  position: relative;
-  width: 100%;
-  text-align: left;
-  line-height: 1.5em;
-  word-wrap: break-word;
-  box-shadow: none;
-  font-size: 90%;
-  font-weight: 500;
-  margin: 0;
-}*/
-
-/*div.sourceCode div.language-label {
-  font-family: "Roboto", sans-serif;
-  position: absolute;
-  right: 0;
-  top: 0;
-  color: var(--shade6) // Marc was: #eee; 
-  background-color: var(--shade0) // Marc was: #eee; 
-  padding: 0em 0.4em;
-  border-radius: 0.2em;
-}*/
-
-/*div.sourceCode code {
-  display: block;
-  overflow: auto;
-  max-height: 500px;
-  word-wrap: normal;
-  border: none;
-  font-family: "Source Code Pro", monospace;
-  white-space: pre;
-  position: relative;
-  color: var(--shade) /* Marc was: black; */
-}
-*/
-/* Skip _new-media.scss IGNORE COMPLETELY */
-
-/* Skip _columns.scss IGNORE COMPLETELY */
-
-/* Skip _quizzes.scss for now */
-
 /* Wburg uses .align-* classes, so rename from align=*. 
    However, I used the default from Henrik for 4 lectures (PRIS, ML, HCI, ICG), hence
    it seems as if we stick with that and could remove the class-style stuff. */
@@ -467,29 +368,8 @@ div.block.theorem {
 
 
 
- /* This is an ugly workaround for the top level spacing which had been in the old
- layout by empty h1s which still had margin, never was detected. Same for old slide 
- which had top/bottom margins of 20px. Needs a new treatment to make sure, slides 
- with h1 have same vertical position and without h1 do not end up completely top 
- aligned, looks bad. */
+ 
 
-/* I disable this for now to see what is done in the template allready
-
- h1:empty {
-    margin-top: 42px;
-    display: block;
-    margin-bottom: var(--margin-bottom-h1);
- }
-
- h1 {
-   margin-top: 21px;
-   display: block;
-   margin-bottom: var(--margin-bottom-h1);
-} */
-
-li {
-   line-height: 1.3;
-}
 
 /*********************************************
    * From mario.css: bibliography
