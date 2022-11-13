@@ -69,21 +69,17 @@ palette:
 # Will be included as text into css, 
 # hence calc and var works and will then be executed during load-time
 css-variables:
-  active-color: rgb(42,157,223)
-  align-global: left
-  # background-color: rgb(250,250,250)
-  border-decoration-padding: 10px
-  border-decoration-style: solid
-  border-decoration-width: 20px
-  icon-size: 2vmin
-  inactive-color: lightgrey
-  margin-columns: 1em
+  font-family: "Roboto"
   font-size-base: 28px
-  spacing-vertical-base: 0.5em
+  # active-color: rgb(255,0,0) don't know where used
+  inactive-color: lightgrey
+  icon-size: 2vmin
+  margin-columns: 1em
   # Fill in some variables used in decker/support/css/*.css
-  block-border-width: var(--border-decoration-width)
-  block-outset: var(--border-decoration-padding)
-  vertical-margin: var(--spacing-vertical-base)
+  block-border-width: 1rem 
+  block-border-padding: 1rem
+  block-border-style: solid 
+  vertical-margin: 0.7rem 
 
 # Use CSS augmentation without changes to the default template
 template:

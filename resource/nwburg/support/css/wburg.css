@@ -235,43 +235,6 @@ em {
   vertical-align: middle;
 }
 
-/* From _boxes.scss */
-
-ol,
-dl,
-ul {
-  /* display: inline-block;
-  text-align: left; */
-  /* margin-bottom: 0; */
-}
-
-ol li,
-dl li,
-ul li {
-  /* margin-bottom: 0; */
-  /* This comes out of the blue and fucks up indenting here. */
-  /* margin-left: 40px; */
-}
-
-ol {
-  list-style-type: decimal;
-}
-
-ul {
-  list-style-type: disc;
-}
-
-ul ul,
-ol ul {
-  list-style-type: circle;
-}
-
-ol ol {
-  list-style-type: lower-roman;
-}
-
-
-
 /* 
  Gap zwischen den areas am besten durch verschieben des top level 
  containers nach links um die Breite der seitlichen Auszeichnung
@@ -294,8 +257,7 @@ div.block {
 works. */
 div.block h2 {
    padding: 0;
-   margin: 0;  /* 0 calc(1 * var(--vertical-margin)) 0; */
-   margin-bottom: calc(1 * var(--vertical-margin));
+   margin: 0 0 calc(1 * var(--vertical-margin)) 0; 
 }
 
 /* The latter is already from styles.css for h1, p, div, ul, ol, table.
@@ -303,7 +265,7 @@ div.block h2 {
    the last list item (maybe the latter was just forgotten since ul and ol were 
    mentioned.
 */
-:is(h1, li):last-child {  
+:is(h2, li):last-child {  
    margin-bottom: 0 !important;
 }
 
@@ -372,14 +334,9 @@ div.block.theorem {
   margin-right: auto;
 }
 
-/* Here come the overrides of the elements already defined in standard template */
 
 
-
- 
-
-
-/*********************************************
+ /*********************************************
    * From mario.css: bibliography
    *********************************************/
 
@@ -722,8 +679,6 @@ div.block.theorem {
       font-size: 2rem;
       font-weight: bold;
     }
-
-
 
 
    /* Here I overwrite the color setting of the highlights */
