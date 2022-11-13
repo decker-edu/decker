@@ -69,7 +69,7 @@ class Feedback {
     url.query = "";
     url.username = "";
     url.password = "";
-    return url.toString;
+    return url.toString();
   }
 
   /**
@@ -202,7 +202,9 @@ class Feedback {
     this.menu.token_lock.setAttribute("aria-checked", "false");
     this.menu.token_icon.classList.remove("fa-lock");
     this.menu.token_icon.classList.add("fa-unlock");
-    this.menu.lock_label.textContent = this.localization.interface.lock_token;
+    /* Remove this because currently we no longer use a text label on the lock button.
+     * this.menu.lock_label.textContent = this.localization.interface.lock_token;
+     */
     window.localStorage.removeItem("feedback-user-token");
   }
 

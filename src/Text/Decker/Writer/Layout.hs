@@ -1,12 +1,9 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Writer.Layout (markdownToHtml, writePandocFile) where
+module Text.Decker.Writer.Layout (markdownToHtml, writePandocFile, writeHtml45String) where
 
+import Data.Aeson.Encode.Pretty (encodePretty)
+import qualified Data.ByteString.Lazy as BS
 import Data.List (lookup)
 import qualified Data.Map as Map
 import qualified Data.Text as Text
@@ -16,6 +13,7 @@ import Relude
 import System.FilePath
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Blaze.Internal (ChoiceString (..), MarkupM (..), StaticString, getString, getText)
+import Text.Decker.Filter.Local (hash9String)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Shake
@@ -70,25 +68,48 @@ markdownToHtml disp meta getTemplate markdownFile out = do
 -- Finally, the fragment is inserted into a Reveal.js slide deck template.
 writePandocFile :: WriterOptions -> FilePath -> Pandoc -> Action ()
 writePandocFile options out pandoc@(Pandoc meta blocks) = do
-  liftIO $ do
-    html <-
-      runIO (writeHtml4 options {writerTemplate = Nothing} pandoc)
-        >>= handleError
-    let string = renderHtml $ transformHtml (nullA, []) html
-    let raw =
-          [ RawBlock "html" $ fromLazy string,
-            Plain
-              [ Code
-                  ( "",
-                    ["force-highlight-styles", "markdown"],
-                    [("style", "display:none;")]
-                  )
-                  ""
-              ]
-          ]
-    runIO (writeHtml5String options (embedMetaMeta (Pandoc meta raw)))
+  let metaFile = hash9String out <.> ".json"
+  let metaPath = takeDirectory out </> metaFile
+  let meta' = addMetaKeyValue "" "decker-meta-url" (MetaString $ toText metaFile) meta
+  let metaJson = encodePretty $ fromPandocMeta meta'
+  liftIO $ BS.writeFile metaPath metaJson
+  -- liftIO $ do
+  --   html <-
+  --     runIO (setVerbosity ERROR >> writeHtml4 options {writerTemplate = Nothing} pandoc) >>= handleError
+  --   let string = renderHtml $ transformHtml (nullA, []) html
+  --   let raw =
+  --         [ RawBlock "html" $ fromLazy string,
+  --           Plain
+  --             [ Code
+  --                 ( "",
+  --                   ["force-highlight-styles", "markdown"],
+  --                   [("style", "display:none;")]
+  --                 )
+  --                 ""
+  --             ]
+  --         ]
+  -- runIO (writeHtml5String options (embedMetaMeta (Pandoc meta raw)))
+  liftIO $
+    runIO (setVerbosity ERROR >> writeHtml45String options meta' pandoc)
       >>= handleError
       >>= Text.writeFile out
+
+writeHtml45String :: PandocMonad m => WriterOptions -> Meta -> Pandoc -> m Text
+writeHtml45String options meta pandoc = do
+  html <- writeHtml4 options {writerTemplate = Nothing} pandoc
+  let string = renderHtml $ transformHtml (nullA, []) html
+  let raw =
+        [ RawBlock "html" $ fromLazy string,
+          Plain
+            [ Code
+                ( "",
+                  ["force-highlight-styles", "markdown"],
+                  [("style", "display:none;")]
+                )
+                ""
+            ]
+        ]
+  writeHtml5String options (Pandoc meta raw)
 
 -- | Sets or resets the "incremental" flag.
 incremental :: Bool -> [Text] -> [Text]

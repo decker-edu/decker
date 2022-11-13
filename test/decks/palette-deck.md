@@ -33,23 +33,23 @@ palette:
 
 ## Derived colors
 
--   Mix accents against `base00` and `base07`
+-   Mix accents against `shade0` and `shade7`
 -   Interpolate in linear RGB (`contrast`)
 
 #  {align="center"}
 
 | `-ffg`                                                | `-fg`                                                | original                                          | `-bg`                                                | `-bbg`                                                |
 |-------------------------------------------------------|------------------------------------------------------|---------------------------------------------------|------------------------------------------------------|-------------------------------------------------------|
-| [base00]{style="background-color:var(--base00-ffg);"} | [base00]{style="background-color:var(--base00-fg);"} | [base00]{style="background-color:var(--base00);"} | []{style="background-color:var(--base00-bg);"}       | []{style="background-color:var(--base00-bbg);"}       |
-| []{style="background-color:var(--base07-ffg);"}       | []{style="background-color:var(--base07-fg);"}       | [base07]{style="background-color:var(--base07);"} | [base07]{style="background-color:var(--base07-bg);"} | [base07]{style="background-color:var(--base07-bbg);"} |
-| [base08]{style="background-color:var(--base08-ffg);"} | [base08]{style="background-color:var(--base08-fg);"} | [base08]{style="background-color:var(--base08);"} | [base08]{style="background-color:var(--base08-bg);"} | [base08]{style="background-color:var(--base08-bbg);"} |
-| [base09]{style="background-color:var(--base09-ffg);"} | [base09]{style="background-color:var(--base09-fg);"} | [base09]{style="background-color:var(--base09);"} | [base09]{style="background-color:var(--base09-bg);"} | [base09]{style="background-color:var(--base09-bbg);"} |
-| [base0A]{style="background-color:var(--base0A-ffg);"} | [base0A]{style="background-color:var(--base0A-fg);"} | [base0A]{style="background-color:var(--base0A);"} | [base0A]{style="background-color:var(--base0A-bg);"} | [base0A]{style="background-color:var(--base0A-bbg);"} |
-| [base0B]{style="background-color:var(--base0B-ffg);"} | [base0B]{style="background-color:var(--base0B-fg);"} | [base0B]{style="background-color:var(--base0B);"} | [base0B]{style="background-color:var(--base0B-bg);"} | [base0B]{style="background-color:var(--base0B-bbg);"} |
-| [base0C]{style="background-color:var(--base0C-ffg);"} | [base0C]{style="background-color:var(--base0C-fg);"} | [base0C]{style="background-color:var(--base0C);"} | [base0C]{style="background-color:var(--base0C-bg);"} | [base0C]{style="background-color:var(--base0C-bbg);"} |
-| [base0D]{style="background-color:var(--base0D-ffg);"} | [base0D]{style="background-color:var(--base0D-fg);"} | [base0D]{style="background-color:var(--base0D);"} | [base0D]{style="background-color:var(--base0D-bg);"} | [base0D]{style="background-color:var(--base0D-bbg);"} |
-| [base0E]{style="background-color:var(--base0E-ffg);"} | [base0E]{style="background-color:var(--base0E-fg);"} | [base0E]{style="background-color:var(--base0E);"} | [base0E]{style="background-color:var(--base0E-bg);"} | [base0E]{style="background-color:var(--base0E-bbg);"} |
-| [base0F]{style="background-color:var(--base0F-ffg);"} | [base0F]{style="background-color:var(--base0F-fg);"} | [base0F]{style="background-color:var(--base0F);"} | [base0F]{style="background-color:var(--base0F-bg);"} | [base0F]{style="background-color:var(--base0F-bbg);"} |
+| [shade0]{style="background-color:var(--shade0-ffg);"} | [shade0]{style="background-color:var(--shade0-fg);"} | [shade0]{style="background-color:var(--shade0);"} | []{style="background-color:var(--shade0-bg);"}       | []{style="background-color:var(--shade0-bbg);"}       |
+| []{style="background-color:var(--shade7-ffg);"}       | []{style="background-color:var(--shade7-fg);"}       | [shade7]{style="background-color:var(--shade7);"} | [shade7]{style="background-color:var(--shade7-bg);"} | [shade7]{style="background-color:var(--shade7-bbg);"} |
+| [accent0]{style="background-color:var(--accent0-ffg);"} | [accent0]{style="background-color:var(--accent0-fg);"} | [accent0]{style="background-color:var(--accent0);"} | [accent0]{style="background-color:var(--accent0-bg);"} | [accent0]{style="background-color:var(--accent0-bbg);"} |
+| [accent1]{style="background-color:var(--accent1-ffg);"} | [accent1]{style="background-color:var(--accent1-fg);"} | [accent1]{style="background-color:var(--accent1);"} | [accent1]{style="background-color:var(--accent1-bg);"} | [accent1]{style="background-color:var(--accent1-bbg);"} |
+| [accent2]{style="background-color:var(--accent2-ffg);"} | [accent2]{style="background-color:var(--accent2-fg);"} | [accent2]{style="background-color:var(--accent2);"} | [accent2]{style="background-color:var(--accent2-bg);"} | [accent2]{style="background-color:var(--accent2-bbg);"} |
+| [accent3]{style="background-color:var(--accent3-ffg);"} | [accent3]{style="background-color:var(--accent3-fg);"} | [accent3]{style="background-color:var(--accent3);"} | [accent3]{style="background-color:var(--accent3-bg);"} | [accent3]{style="background-color:var(--accent3-bbg);"} |
+| [accent4]{style="background-color:var(--accent4-ffg);"} | [accent4]{style="background-color:var(--accent4-fg);"} | [accent4]{style="background-color:var(--accent4);"} | [accent4]{style="background-color:var(--accent4-bg);"} | [accent4]{style="background-color:var(--accent4-bbg);"} |
+| [accent5]{style="background-color:var(--accent5-ffg);"} | [accent5]{style="background-color:var(--accent5-fg);"} | [accent5]{style="background-color:var(--accent5);"} | [accent5]{style="background-color:var(--accent5-bg);"} | [accent5]{style="background-color:var(--accent5-bbg);"} |
+| [accent6]{style="background-color:var(--accent6-ffg);"} | [accent6]{style="background-color:var(--accent6-fg);"} | [accent6]{style="background-color:var(--accent6);"} | [accent6]{style="background-color:var(--accent6-bg);"} | [accent6]{style="background-color:var(--accent6-bbg);"} |
+| [accent7]{style="background-color:var(--accent7-ffg);"} | [accent7]{style="background-color:var(--accent7-fg);"} | [accent7]{style="background-color:var(--accent7);"} | [accent7]{style="background-color:var(--accent7-bg);"} | [accent7]{style="background-color:var(--accent7-bbg);"} |
 
 --------------------------------------------------------------------------------
 
@@ -58,15 +58,15 @@ palette:
 ## Default mapping
 
 ``` css
-  --background-color: var(--base00);
-  --foreground-color: var(--base07);
-  --header-color: var(--base06);
-  --primary-color: var(--base0D);
-  --secondary-color: var(--base09);
-  --icon-active-color: var(--base0D);
-  --icon-inactive-color: var(--base03);
-  --hover-color: var(--base0D-bg);
-  --code-background-color: var(--base01);
+  --background-color: var(--shade0);
+  --foreground-color: var(--shade7);
+  --header-color: var(--shade6);
+  --primary-color: var(--accent5);
+  --secondary-color: var(--accent1);
+  --icon-active-color: var(--accent5);
+  --icon-inactive-color: var(--shade3);
+  --hover-color: var(--accent5-bg);
+  --code-background-color: var(--shade1);
 ```
 
 # Blocks {.columns}
@@ -135,16 +135,16 @@ $$ {e=mc^2} $$
 
 ``` yaml
 css-variables:
-  base00: white
-  base08: red
+  shade0: white
+  accent0: red
 ```
 
 ## Translates to
 
 ``` html
 <style>
-  --base00: white;
-  --base08: red;
+  --shade0: white;
+  --accent0: red;
 </style>
 ```
 
@@ -154,8 +154,8 @@ css-variables:
 
 ``` {.yaml .data-line-numbers}
 css-variables:
-  base00: white
-  base08: red
+  shade0: white
+  accent0: red
 ```
 
 ## From `css/variables.css`
@@ -167,7 +167,3 @@ css-variables:
   --list-indent: 1.5em;
   ...
 ```
-
---------------------------------------------------------------------------------
-
-![](data/replacement-transform-1-quest.yaml){.question}

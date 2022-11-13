@@ -9,37 +9,55 @@ import bwipjs from "../examiner/bwip.js";
 
 let localization;
 
-let menu_template = document.createElement("template");
-menu_template.innerHTML = String.raw`<div class="slide-in-left caption-options-menu" inert>
-      <button class="toggle-button">
-        <i class="fas fa-closed-captioning"></i>
-        <span>Activate Live-Captioning</span>
-      </button>
-      <button class="close-button">
-        <i class="fas fa-times"></i>
-        <span>Close</span>
-      </button>
-    </div>`;
-
 // Using the custom web component here is optional and can be replaced by something less
 // bleeding edge
 let button_template = document.createElement("template");
-button_template.innerHTML = String.raw`<button is="awesome-button" class="fa-button" icon="fa-closed-captioning" icon-style="fas" title="Activate Live Captioning" aria-label="Activate Live Captioning">
-   </button>`;
+// button_template.innerHTML = String.raw`<button is="awesome-button" class="fa-button" icon="fa-closed-captioning" icon-style="fas" title="Activate Live Captioning" aria-label="Activate Live Captioning"></button>`;
+button_template.innerHTML = String.raw`<button class="fa-button fas fa-closed-captioning" title="Activate Live Captioning" aria-label="Activate Live Captioning"></button>`;
 
-let caption_template = document.createElement("template");
-caption_template.innerHTML = String.raw`<div class="caption-area">
-    </div>`;
+let SpeechRecognitionImpl = undefined;
 
-var SpeechRecognition = undefined;
-var SpeechGrammarList = undefined;
-var SpeechRecognitionEvent = undefined;
+/* Check if feature is available
+ * Usage tutorial: https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API */
+if (
+  !!window.SpeechRecognition ||
+  !(typeof webkitSpeechRecognition === "undefined")
+) {
+  SpeechRecognitionImpl = window.SpeechRecognition || webkitSpeechRecognition;
+}
 
-if (window.chrome) {
-  SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-  SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-  SpeechRecognitionEvent =
-    SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+function getLanguageCode(string) {
+  // Two Letter String: Probably already a language code
+  if (string.length === 2) {
+    return string;
+  }
+  // 3 letter language code: deu or eng
+  if (string.length === 3) {
+    switch (string) {
+      case "deu":
+        return "de-DE";
+      case "eng":
+        return "en-GB";
+    }
+    return undefined;
+  }
+  //BCP 47 language tag
+  if (/^..-../i.test(string)) {
+    return string;
+  }
+  //Language names TODO This whole system needs to be improved
+  let code = undefined;
+  switch (lang) {
+    case "Deutsch":
+    case "German":
+      code = "de-DE";
+      break;
+    case "Englisch":
+    case "English":
+      code = "en-GB";
+      break;
+  }
+  return code;
 }
 
 /**
@@ -99,9 +117,19 @@ class LiveCaptioning {
     if (!permission) {
       return;
     }
-    this.speechRecog = new SpeechRecognition();
+    this.speechRecog = new SpeechRecognitionImpl();
     this.speechRecog.continuous = true;
     this.speechRecog.interimResults = true;
+    if (Decker.meta["speech-recognition-language"]) {
+      let code = getLanguageCode(Decker.meta["speech-recognition-language"]);
+      if (code) {
+        this.speechRecog.lang = code;
+      } else {
+        console.error(
+          "[LIVE CAPTIONING] 'speech-recognition-language' specified but unable to discern valid language code from it."
+        );
+      }
+    }
     this.speechRecog.onstart = () => this.handleStart();
     this.speechRecog.onresult = (event) => this.handleResult(event);
     this.speechRecog.onerror = (event) => this.handleError(event);
@@ -113,52 +141,89 @@ class LiveCaptioning {
       "width=1920,height=1080"
     );
     try {
-      let response = await fetch(
-        "./support/plugins/live-captioning/live-captioning.html"
-      );
-      let html = await response.text();
+      const url = new URL(import.meta.url);
+      const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+      const response = await fetch(path + "/live-captioning.html");
+      const html = await response.text();
       this.popup.document.write(html);
       this.popup.onbeforeunload = () => {
         this.popup = undefined;
-        this.stopCaptioning();
+        // this.stopCaptioning(); // DO NOT STOP, other clients might be listening
       };
     } catch (error) {
       console.log(error);
     }
 
-    let url = window.Decker.meta.caption_server;
+    let url = window.Decker.meta["caption-server"];
     if (url) {
-      const response = await fetch(url + "/api/new", {
+      fetch(url + "/api/session", {
         method: "POST",
-      });
-      let json = await response.json();
-      if (json.session && json.token) {
-        this.connection = json;
-        if (!this.connection.server) {
-          this.connection.server = url;
-        }
-        let qrcode = document.createElement("canvas");
-        bwipjs.toCanvas(qrcode, {
-          bcid: "qrcode",
-          text: `${this.connection.server}/${this.connection.session}`,
-          scale: 10,
-          includetext: false,
-          textxalign: "center",
-          eclevel: "L",
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          if (json.session && json.token) {
+            this.connection = json;
+            if (!this.connection.server) {
+              this.connection.server = url;
+            }
+            this.connection.cors =
+              window.location.origin !== new URL(this.connection.server).origin
+                ? "cors"
+                : "same-origin";
+          }
+        })
+        .then(() => {
+          this.showQRCode();
+        })
+        .catch((error) => {
+          console.error(error);
         });
-        let noop = await window.showInformation(
-          localization.qrcode_message,
-          qrcode
-        );
-      }
     }
 
     this.speechRecog.start();
     this.captioning = true;
-    this.record_button.icon = "fa-circle";
+    //    this.record_button.icon = "fa-circle";
     this.record_button.classList.add("recording");
     this.record_button.title = localization.stop_captioning;
     this.record_button.setAttribute("aria-label", localization.stop_captioning);
+  }
+
+  async showQRCode() {
+    let qrcode = document.createElement("canvas");
+    bwipjs.toCanvas(qrcode, {
+      bcid: "qrcode",
+      text: `${this.connection.server}/session/${this.connection.session}`,
+      scale: 10,
+      includetext: false,
+      textxalign: "center",
+      eclevel: "L",
+    });
+    let noop = await window.showInformation(
+      localization.qrcode_message,
+      qrcode
+    );
+  }
+
+  async showAbort() {
+    let qrcode = document.createElement("canvas");
+    bwipjs.toCanvas(qrcode, {
+      bcid: "qrcode",
+      text: `${this.connection.server}/session/${this.connection.session}`,
+      scale: 10,
+      includetext: false,
+      textxalign: "center",
+      eclevel: "L",
+    });
+    let options = [
+      { text: localization.stop, value: "true" },
+      { text: localization.abort, value: "false" },
+    ];
+    return window.showDialog(
+      "Untertitelung beenden?",
+      qrcode,
+      options,
+      "warning"
+    );
   }
 
   /**
@@ -172,7 +237,7 @@ class LiveCaptioning {
       this.popup.close();
       this.popup = undefined;
     }
-    this.record_button.icon = "fa-closed-captioning";
+    //    this.record_button.icon = "fa-closed-captioning";
     this.record_button.classList.remove("recording");
     this.record_button.title = localization.start_captioning;
     this.record_button.setAttribute(
@@ -185,7 +250,11 @@ class LiveCaptioning {
     if (!this.captioning) {
       this.startCaptioning();
     } else {
-      this.stopCaptioning();
+      this.showAbort().then((data) => {
+        if (data && data.submit === "true") {
+          this.stopCaptioning();
+        }
+      });
     }
   }
 
@@ -253,8 +322,9 @@ class LiveCaptioning {
     if (this.connection) {
       try {
         fetch(
-          `${this.connection.server}/api/${this.connection.session}/update`,
+          `${this.connection.server}/api/session/${this.connection.session}/update`,
           {
+            mode: this.connection.cors,
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -289,8 +359,9 @@ class LiveCaptioning {
     if (this.connection) {
       try {
         fetch(
-          `${this.connection.server}/api/${this.connection.session}/final`,
+          `${this.connection.server}/api/session/${this.connection.session}/final`,
           {
+            mode: this.connection.cors,
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -327,7 +398,7 @@ class LiveCaptioning {
    * @param {*} reveal
    */
   init(reveal) {
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionImpl) {
       console.error("SpeechRecognition not available in this browser.");
       return;
     }
@@ -336,7 +407,8 @@ class LiveCaptioning {
       start_captioning: "Start Live Captioning",
       stop_captioning: "Stop Live Captioning",
       accept: "Accept",
-      abort: "Abort",
+      stop: "Stop Captioning",
+      abort: "Cancel",
       qrcode_message: "Live Captioning",
       caption_warning:
         "Using this feature will use your Browser's WebSpeech API to transcribe your voice. \
@@ -349,6 +421,7 @@ class LiveCaptioning {
         start_captioning: "Live-Untertitelung aktivieren",
         stop_captioning: "Live-Untertitelung stoppen",
         accept: "Akzeptieren",
+        stop: "Untertitelung beenden",
         abort: "Abbrechen",
         qrcode_message: "Live-Untertitel",
         caption_warning:
@@ -359,39 +432,6 @@ class LiveCaptioning {
     }
 
     this.reveal = reveal;
-
-    /* Leave this for later generations here, if the window-placement API ever gets made a fully supported
-      * feature in all browsers ...
-     if ("getScreens" in window) {
-       navigator.permissions
-         .query({ name: "window-placement" })
-         .then((state) => {
-           if (state === "granted" && window.screen.isExtended) {
-             window
-               .getScreens()
-               .then((data) => {
-                 this.primaryScreen = data.screens.filter(
-                   (screen) => screen.isPrimary
-                 )[0];
-                 this.secondaryScreen = data.screens.filter(
-                   (screen) => !screen.isPrimary
-                 )[0];
-                 this.fullscreenCaptioning = true;
-               })
-               .catch((error) => {
-                 console.log(error);
-               });
-           } else {
-             console.error(
-               "Did not get window-placement permission or there are no other screens."
-             );
-           }
-         })
-         .catch((error) => {
-           console.error(error);
-         });
-     }
-     */
 
     reveal.addEventListener("ready", () => {
       Decker.addPresenterModeListener((on) => {

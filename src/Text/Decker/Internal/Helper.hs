@@ -197,13 +197,14 @@ imageSize path = do
   result <- readImage path
   case result of
     Left error -> do
-      putStrLn $ "Cannot size of: " <> path
+      putStrLn $ "WARNING: cannot determine size, assuming default aspect ratio: " <> path
       return Nothing
     Right image -> do
       return $ Just $ imageSize' image
 
 videoSize :: FilePath -> IO (Maybe (Int, Int))
-videoSize path = do
+videoSize path = 
+  handle handleError $ do
   (code, meta, error) <- readProcessWithExitCode "ffprobe" ["-v", "quiet", "-print_format", "json", "-show_streams", "-select_streams", "v:0", path] ""
   case code of
     ExitSuccess -> do
@@ -213,6 +214,10 @@ videoSize path = do
         (Just w, Just h) -> return $ Just (truncate $ toRealFloat w, truncate $ toRealFloat h)
         _ -> return Nothing
     _ -> return Nothing
+  where
+    handleError (_ :: SomeException) = do
+      putStrLn $ "WARNING: cannot run 'ffprobe', assuming default aspect ratio: " <> path
+      return Nothing
 
 -- videoSize :: FilePath -> IO (Maybe (Int, Int))
 -- videoSize path = do

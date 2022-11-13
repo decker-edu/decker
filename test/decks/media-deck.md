@@ -5,7 +5,9 @@ highlight-style: tango
 institute: Institute
 subtitle: Clean. Consistent. Robust.
 title: New Style Media Handling
+lang: de
 ---
+
 
 # Some Settings {.columns}
 
@@ -187,6 +189,8 @@ More `function CODE(here) {return true;}`{.javascript} here
 # 2 images in a row
 
 | ![Alt Caption $e=mc^2$](include/06-metal.png)
+| ![Tilt!](include/06-metal-v.png)
+| ![Alt Caption $e=mc^2$](dumbell-hard.svg){w:h="3/2.03"}
 | ![Tilt!](include/06-metal-v.png)
 
 Caption: Aspect ratio of images is determined at compile time, or can be

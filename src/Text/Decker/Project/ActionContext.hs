@@ -6,7 +6,6 @@
 
 module Text.Decker.Project.ActionContext where
 
-import Control.Concurrent.MVar
 import Control.Concurrent.STM
 import Control.Lens
 import Data.Dynamic
@@ -38,7 +37,7 @@ data ActionContext = ActionContext
   { _extra :: [Flags],
     _devRun :: Bool,
     _externalStatus :: [(String, Bool)],
-    _server :: MVar ServerState,
+    _server :: TVar ServerState,
     _watch :: IORef Bool,
     _actionChan :: TChan ActionMsg,
     _publicResource :: Development.Shake.Resource,

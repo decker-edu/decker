@@ -43,7 +43,7 @@
 
 .feedback-badge.answered,
 .counter.answered {
-  background-color: var(--base0B);
+  background-color: var(--accent3);
 }
 
 /* Menu Parts */
@@ -139,8 +139,8 @@ div.feedback-menu div.feedback-list {
 }
 
 div.feedback-menu div.feedback-list div.feedback-item {
-  color: var(--base07);
-  background-color: var(--base00);
+  color: var(--foreground-color);
+  background-color: var(--background-color);
   font-family: var(--ui-font-family);
   line-height: 125%;
   border: none;
@@ -241,8 +241,8 @@ div.feedback-question-input textarea {
 }
 
 div.feedback-question-input textarea[answer] {
-  background-color: var(--base0B-bbg);
-  border: solid 1px var(--base0C-bbg);
+  background-color: var(--accent3-bbg);
+  border: solid 1px var(--accent4-bbg);
 }
 
 div.feedback-question-input textarea::placeholder {
@@ -305,7 +305,7 @@ div.feedback-login:not(.admin) {
 
 div.feedback-login.admin {
   opacity: 1;
-  color: var(--base08);
+  color: var(--accent0);
 }
 
 div.feedback-menu div.feedback-item p,
@@ -335,7 +335,7 @@ div.feedback-menu div.feedback-item strong {
 }
 
 div.feedback-menu div.feedback-item a {
-  color: var(--base0D-fg);
+  color: var(--accent4-fg);
 }
 
 div.feedback-menu div.feedback-item ol {
@@ -388,7 +388,7 @@ li.slide-list-item[data-questions]::after {
   height: 1em;
 
   /* from class counter */
-  background-color: var(--base08);
+  background-color: var(--accent0);
   color: white;
 
   /* from class badge */
@@ -402,5 +402,5 @@ li.slide-list-item[data-questions]::after {
   padding: 0.2em 0.4em;
 }
 li.slide-list-item[data-questions][data-answered="true"]::after {
-  background-color: var(--base0B);
+  background-color: var(--accent3);
 }

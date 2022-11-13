@@ -1,17 +1,27 @@
 flags:
+  pandoc:
+    embed_data_files: true
   regex-posix:
     _regex-posix-clib: true
-  pandoc:
-    embed_data_files: false
-    trypandoc: false
+
 packages:
   - "."
-extra-deps:
-  # - regex-posix-clib-2.7@sha256:998fca06da3d719818f0691ef0b8b9b7375afeea228cb08bd9e2db53f96b0cd7,1232
-  # - shake-0.19.1
-  - mintty-0.1.2 #current mintty-version does not build on Win32
 
-resolver: lts-18.27
-ghc-options:
-  "$locals": -fhide-source-paths -Wno-missing-home-modules
-  "$everything": -haddock
+# Try to make the option above stick
+extra-deps:
+  - github: jgm/pandoc # Pandoc 2.17.1.1
+    commit: 64a21caa6c802eabaabecc181087dc7c42580946
+
+# TODO As of lts-19.13 this is still needed on M1 macOS. Should not hurt
+# elsewhere. Also on macOS 12.6 LLVM 14 needs to be installed with `brew install
+# llvm@14` (`opt` is needed by GHC).
+extra-include-dirs:
+  - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi
+
+resolver: lts-19.24
+
+# TODO Maybe we still need this on Windows. But maybe not.
+# ghc-options:
+#   "$locals": -fhide-source-paths -Wno-missing-home-modules
+#   "$everything": -haddock
+

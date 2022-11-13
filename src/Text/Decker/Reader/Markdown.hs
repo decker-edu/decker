@@ -1,6 +1,3 @@
-{-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Reader.Markdown
@@ -36,6 +33,7 @@ import Text.Decker.Filter.Paths
 import Text.Decker.Filter.Poll
 import Text.Decker.Filter.Quiz
 import Text.Decker.Filter.ShortLink
+import Text.Decker.Filter.Template (expandTemplateMacros)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -58,9 +56,11 @@ readAndFilterMarkdownFile disp globalMeta path = do
     >>= processMeta
     >>= processCites
     >>= calcRelativeResourcePaths docBase
+    >>= runDynamicFilters Before docBase
     >>= runNewFilter disp examinerFilter docBase
     >>= deckerMediaFilter disp docBase
-    >>= processPandoc (deckerPipeline disp) docBase disp Copy
+    >>= processPandoc (deckerPipeline disp) docBase disp
+    >>= runDynamicFilters After docBase
 
 processMeta (Pandoc meta blocks) = do
   let processed = computeCssColorVariables $ computeCssVariables meta
@@ -282,6 +282,7 @@ deckerMediaFilter dispo docBase pandoc@(Pandoc meta _) =
 deckerPipeline (Disposition Deck Html) =
   concatM
     [ evaluateShortLinks,
+      expandTemplateMacros,
       expandDeckerMacros,
       includeCode,
       processDetailDiv,
@@ -292,6 +293,16 @@ deckerPipeline (Disposition Deck Html) =
 deckerPipeline (Disposition Page Html) =
   concatM
     [ evaluateShortLinks,
+      expandTemplateMacros,
+      expandDeckerMacros,
+      includeCode,
+      processDetailDiv,
+      processDetailHeader
+    ]
+deckerPipeline (Disposition Index Html) =
+  concatM
+    [ evaluateShortLinks,
+      expandTemplateMacros,
       expandDeckerMacros,
       includeCode,
       processDetailDiv,
@@ -300,6 +311,7 @@ deckerPipeline (Disposition Page Html) =
 deckerPipeline (Disposition Handout Html) =
   concatM
     [ evaluateShortLinks,
+      expandTemplateMacros,
       expandDeckerMacros,
       includeCode,
       processDetailDiv,

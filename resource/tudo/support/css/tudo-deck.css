@@ -1,0 +1,1387 @@
+@import url("../vendor/fontawesome/css/all.css");
+@import url("../fonts/lato.css");
+
+/*********************************************
+ * GLOBAL STYLES
+ *********************************************/
+
+body {
+  background: var(--background-color);
+  font-family: "Lato", sans-serif;
+  color: var(--foreground-color);
+}
+
+body.reveal-viewport {
+  --inner-width: calc(
+    var(--slide-width) - 2 * var(--block-border-width) - 2 * var(--block-outset)
+  );
+}
+
+.reveal {
+  font-size: 32px;
+  font-weight: normal;
+}
+
+.reveal .slides > section {
+  width: var(--slide-width);
+  height: var(--slide-height);
+  line-height: 1.5;
+  text-align: left;
+  padding: 0;
+}
+
+/* don't easy-in for fragments */
+.reveal .slides section .fragment {
+  transition-duration: 0s;
+}
+
+/* WITHOUT centering */
+.reveal .slides section > .decker {
+  display: flex;
+  align-items: flex-start;
+  align-content: center;
+  justify-content: normal;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  width: 100%;
+  height: 100%;
+}
+.reveal .slides section > .decker > .alignment {
+  width: 100%;
+  max-height: 100%;
+  max-width: 100%;
+}
+
+/* WITH centering */
+.reveal .slides section.center > .decker {
+  align-items: center;
+  justify-content: center;
+}
+.reveal .slides section.center > .decker > .alignment {
+  width: auto;
+}
+
+/* WITH centering, but VERTICAL centering disabled */
+.reveal .slides section.no-center.center > .decker,
+.reveal .slides section.no-center.center > .decker .alignment {
+  justify-content: normal;
+  align-items: flex-start;
+  width: 100%;
+  height: 100%;
+}
+/* WITH centering, but VERTICAL centering disabled */
+.reveal .slides section.no-vcenter.center > .decker,
+.reveal .slides section.no-vcenter.center > .decker .alignment {
+  justify-content: normal;
+  height: 100%;
+}
+/* WITH centering, but HORIZONTAL centering disabled */
+section.no-hcenter > .decker,
+section.no-hcenter > .decker .alignment {
+  align-items: flex-start;
+  width: 100%;
+}
+
+div.block {
+  box-sizing: border-box;
+}
+
+/*********************************************
+ * font sizes and styles
+ *********************************************/
+
+.reveal .tiny {
+  font-size: 0.5em;
+}
+
+.reveal .small {
+  font-size: 0.7em;
+}
+
+.reveal .large {
+  font-size: 1.2em;
+}
+
+del {
+  color: var(--accent0);
+}
+
+/*********************************************
+ * frame box 
+ *********************************************/
+
+.reveal .boxed {
+  border: 1px solid var(--foreground-color);
+  border-radius: 5px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+.reveal .boxed ol,
+.reveal .boxed dl,
+.reveal .boxed ul {
+  margin-bottom: 0em;
+}
+
+/*********************************************
+ * divs of fixed width
+ * (old style, keep for compatibility reasons)
+ *********************************************/
+
+.reveal .w10 {
+  width: calc(0.1 * var(--inner-width));
+  margin-left: auto;
+  margin-right: auto;
+}
+.reveal .w20 {
+  width: calc(0.2 * var(--inner-width));
+  margin-left: auto;
+  margin-right: auto;
+}
+.reveal .w30 {
+  width: calc(0.3 * var(--inner-width));
+  margin-left: auto;
+  margin-right: auto;
+}
+.reveal .w40 {
+  width: calc(0.4 * var(--inner-width));
+  margin-left: auto;
+  margin-right: auto;
+}
+.reveal .w50 {
+  width: calc(0.5 * var(--inner-width));
+  margin-left: auto;
+  margin-right: auto;
+}
+.reveal .w60 {
+  width: calc(0.6 * var(--inner-width));
+  margin-left: auto;
+  margin-right: auto;
+}
+.reveal .w70 {
+  width: calc(0.7 * var(--inner-width));
+  margin-left: auto;
+  margin-right: auto;
+}
+.reveal .w80 {
+  width: calc(0.8 * var(--inner-width));
+  margin-left: auto;
+  margin-right: auto;
+}
+.reveal .w90 {
+  width: calc(0.9 * var(--inner-width));
+  margin-left: auto;
+  margin-right: auto;
+}
+.reveal .w100 {
+  width: var(--inner-width);
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/*********************************************
+ * Columns of fixed width
+ * (old style, keep for compatibility reasons)
+ *********************************************/
+
+.reveal .col10 {
+  float: left;
+  width: calc(0.1 * var(--inner-width));
+}
+.reveal .col20 {
+  float: left;
+  width: calc(0.2 * var(--inner-width));
+}
+.reveal .col25 {
+  float: left;
+  width: calc(0.25 * var(--inner-width));
+}
+.reveal .col30 {
+  float: left;
+  width: calc(0.3 * var(--inner-width));
+}
+.reveal .col33 {
+  float: left;
+  width: calc(0.33 * var(--inner-width));
+}
+.reveal .col40 {
+  float: left;
+  width: calc(0.4 * var(--inner-width));
+}
+.reveal .col50 {
+  float: left;
+  width: calc(0.5 * var(--inner-width));
+}
+.reveal .col60 {
+  float: left;
+  width: calc(0.6 * var(--inner-width));
+}
+.reveal .col70 {
+  float: left;
+  width: calc(0.7 * var(--inner-width));
+}
+.reveal .col80 {
+  float: left;
+  width: calc(0.8 * var(--inner-width));
+}
+.reveal .col90 {
+  float: left;
+  width: calc(0.9 * var(--inner-width));
+}
+
+/*********************************************
+ * new column syntax
+ *********************************************/
+
+div.grid-layout {
+  display: grid;
+  justify-content: start;
+  column-gap: 1em;
+  row-gap: 1em;
+}
+
+/*********************************************
+ * HEADERS
+ *********************************************/
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  font-weight: bold;
+  line-height: 1.2;
+  letter-spacing: normal;
+  text-shadow: none;
+  word-wrap: break-word;
+  box-sizing: border-box;
+}
+
+.reveal h1 {
+  font-size: 1.5em;
+  text-align: left;
+  margin: 0.5em 0 1em 0;
+}
+.reveal section.center h1 {
+  text-align: center;
+  margin: 0.5em 0 0.75em 0;
+}
+
+.reveal h2 {
+  text-align: left;
+  font-size: 1.1em;
+}
+
+/* do not show empty headers and hidden headers */
+.reveal h1:empty,
+.reveal h2:empty,
+.reveal .no-header h1 {
+  display: none;
+}
+
+/* section headers */
+.reveal section.section h1,
+.reveal section h1:only-child {
+  color: #f8f8f8;
+  background-color: var(--primary-color);
+  text-align: center;
+  padding: 50px;
+  margin: 0;
+  width: var(--slide-width);
+  font-weight: bold;
+  font-style: normal;
+  font-size: 1.5em;
+}
+
+/*********************************************
+ * colored boxes
+ *********************************************/
+
+/* .reveal div:is(.definition, .example, .axiom, .theorem) {
+  padding: 0.5em 1em;
+  margin: auto;
+  border: none;
+  border-left: 5px solid var(--foreground-color);
+  margin-left: -5px;
+  margin-bottom: 0.5em;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.reveal div.definition {
+  border-color: var(--accent5);
+  background-color: var(--accent5-bbg);
+}
+
+.reveal div.axiom {
+  border-color: var(--accent0);
+  background-color: var(--accent0-bbg);
+}
+
+.reveal div.theorem {
+  border-color: var(--accent1);
+  background-color: var(--accent1-bbg);
+}
+
+:is(.definition, .example, .axiom, .theorem) ol > li {
+  padding-left: 0.5em;
+}
+
+:is(.definition, .example, .axiom, .theorem) ol > li::marker {
+  font-weight: bold;
+} */
+
+/*********************************************
+ * paragraphs
+ *********************************************/
+
+.reveal p {
+  margin: 0 0 0.5em 0;
+  line-height: 1.3;
+  text-align: inherit;
+}
+.reveal p:first-child {
+  margin-top: 0;
+}
+.reveal p:last-child {
+  margin-bottom: 0;
+}
+
+/* do not completely remove empty paragraphs with display:none.
+ * Instead let them cause a line break, but not eat up more space */
+.reveal p:empty {
+  display: block;
+  margin: 0;
+  padding: 0;
+  height: 0;
+  width: auto;
+}
+
+/*********************************************
+ * alignment
+ *********************************************/
+
+div.center,
+div.center > p {
+  text-align: center;
+}
+
+div.align-left,
+div.align-left > p {
+  text-align: left;
+}
+
+div.align-right,
+div.align-right > p {
+  text-align: right;
+}
+
+/*********************************************
+ * lists
+ *********************************************/
+
+/* first level */
+.reveal :is(ul, ol, dl) {
+  display: block;
+  text-align: left;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+}
+
+.reveal :is(ul, ol, dl) li {
+  margin-bottom: 0.5em;
+  margin-left: 1em;
+  padding-left: 0.2em;
+}
+
+.reveal ol {
+  list-style-type: decimal;
+}
+
+.reveal ul {
+  list-style-type: disc;
+}
+
+/* second level */
+.reveal :is(ul, ol) :is(ul, ol) {
+  display: block;
+  margin-top: 0.3em;
+  font-size: 0.8em;
+  margin-left: 0.5em;
+}
+
+.reveal :is(ul, ol) li :is(ul, ol) li {
+  margin-bottom: 0.25em;
+}
+
+.reveal :is(ul, ol) ul {
+  list-style-type: circle;
+}
+
+.reveal :is(ul, ol) ol {
+  list-style-type: lower-roman;
+}
+
+/* third level */
+.reveal :is(ul, ol) :is(ul, ol) :is(ul, ol) {
+  font-size: 0.9em;
+}
+
+/* remove bottom margin of last list element on a slide
+   list element might be encapsulated in a div, e.g.
+   for .incremental or .colXY.
+   also remove bottom margin of last element on slide,
+   no matter what type it is. */
+.reveal .slides section > *:last-child,
+.reveal .slides section > ul:last-child,
+.reveal .slides section > ol:last-child,
+.reveal .slides section > div > ol:last-child,
+.reveal .slides section > div > ul:last-child {
+  margin-bottom: 0;
+}
+
+.reveal dt {
+  font-weight: bold;
+}
+
+.reveal dd {
+  margin-left: 40px;
+}
+
+/*********************************************
+ * block quotes
+ *********************************************/
+
+.reveal q,
+.reveal blockquote {
+  quotes: none;
+  font-style: italic;
+}
+
+.reveal blockquote {
+  display: block;
+  text-align: left;
+  font-size: 0.9em;
+  position: relative;
+  margin: 0 auto;
+  padding: 0.5em;
+  font-style: italic;
+  border: 1px solid var(--shade1);
+  box-shadow: 2px 2px 4px var(--shade1);
+  width: auto;
+}
+
+.reveal blockquote p:last-child {
+  display: block;
+  text-align: right;
+  width: 100%;
+}
+.reveal blockquote p:last-child::before {
+  content: "—";
+  margin-right: 0.2em;
+}
+
+/*********************************************
+ * code highlighting:
+ * line numbers of reveal.js
+ *********************************************/
+
+.reveal .hljs table,
+.reveal .hljs table tbody {
+  margin: 0px;
+  border: none;
+}
+
+.reveal .hljs-ln-code,
+.reveal .hljs-ln-numbers {
+  padding: 0;
+  border: 0;
+}
+
+.reveal .hljs-ln-numbers {
+  opacity: 0.6;
+  padding-right: 0.75em;
+  text-align: right;
+  vertical-align: top;
+}
+
+.reveal
+  .hljs[data-line-numbers]:not([data-line-numbers=""])
+  tr:not(.highlight-line) {
+  opacity: 0.3;
+}
+
+/*********************************************
+ * code highlighting:
+ * Mario's styling
+ *********************************************/
+
+/* box around block of code */
+.reveal pre {
+  display: block;
+  position: relative;
+  width: auto;
+  margin: 10px;
+  text-align: center;
+  max-height: 500px;
+  overflow: auto;
+}
+
+/* inline code */
+.reveal code {
+  display: inline;
+  padding: 0.2em;
+  text-align: left;
+  font-family: monospace;
+  word-wrap: normal;
+}
+
+/* block of code (has to override above inline code)*/
+.reveal pre code {
+  display: block;
+  text-align: left;
+  font-size: 0.5em;
+  font-family: monospace;
+  line-height: 1.45em;
+  padding: 16px;
+  overflow: auto;
+  max-height: 100%;
+  word-wrap: normal;
+  background-color: #f7f7f7;
+  box-sizing: border-box;
+}
+
+/* MacOS only shows scrollbars when they are used, which is not a 
+   good idea for code blocks. The following settings show the scrollbar.
+   Only works on WebKit browswers (Chrome, Safari), not on Firefox. */
+.reveal pre code.small {
+  font-size: 0.4em;
+}
+.reveal pre::-webkit-scrollbar {
+  width: 9px;
+}
+.reveal pre::-webkit-scrollbar-track {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.1);
+}
+.reveal pre::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.reveal pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/*********************************************
+ * TABLES
+ *********************************************/
+
+.reveal table {
+  display: table;
+  width: unset;
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 2px;
+  border-top: 2px solid var(--shade6);
+  border-bottom: 2px solid var(--shade6);
+  text-align: center;
+  margin-bottom: 1em;
+  line-height: 1.5em;
+}
+
+.reveal table caption {
+  margin: 10px 0px 0px 0px;
+  line-height: 1.2;
+  font-style: italic;
+  font-size: 0.8em;
+  text-align: center;
+  caption-side: bottom;
+}
+
+.reveal table th {
+  font-weight: bold;
+}
+
+.reveal table thead {
+  border-bottom: 1px solid var(--shade6);
+}
+
+.reveal table th,
+.reveal table td {
+  text-align: left;
+  padding: 0.2em 1em 0.2em 1em;
+}
+
+.reveal table th[align="center"],
+.reveal table td[align="center"] {
+  text-align: center;
+}
+
+.reveal table th[align="right"],
+.reveal table td[align="right"] {
+  text-align: right;
+}
+
+.reveal table tbody tr:last-child th,
+.reveal table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/*********************************************
+ * LINKS
+ *********************************************/
+
+.reveal a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.reveal a:hover {
+  text-shadow: none;
+  text-decoration: underline;
+  border: none;
+}
+
+/*********************************************
+ * MEDIA: images, videos, iframes, figures
+ *********************************************/
+
+.reveal iframe {
+  border: 1px solid var(--shade1);
+  outline: none;
+  overflow: hidden;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: middle;
+}
+
+.reveal figure figcaption,
+.reveal span.figcaption {
+  line-height: 1.2;
+  font-style: italic;
+  font-size: 0.6em;
+  padding: 0;
+  margin-top: 0.25em;
+  margin-bottom: 0.5em;
+}
+
+figure {
+  text-align: center;
+}
+
+video {
+  background: none;
+}
+
+figure.lineblock > div.lineblock {
+  align-items: baseline;
+}
+
+/*********************************************
+ * image sequence, shown one after the other
+ *********************************************/
+
+@media not print {
+  .reveal section .sequence .fragment:not(.current-fragment),
+  .reveal section .fragment .sequence:not(.current-fragment) {
+    display: none;
+  }
+}
+/* when in print mode, show only first image */
+@media print {
+  .reveal section .sequence .fragment:not(:last-of-type),
+  .reveal section .fragment .sequence:not(:last-of-type) {
+    display: none;
+  }
+}
+
+/* if inline-block, image sequence shifts to the right */
+span.sequence {
+  display: flex;
+  justify-content: center;
+}
+
+/* try Reveals stack layout */
+.reveal .r-stack > p > * {
+  grid-area: 1/1;
+  margin: auto;
+}
+/* use Kevin Powels cool trick: https://www.youtube.com/watch?v=cs37yx73b1o */
+.reveal .r-stack > p {
+  display: contents;
+}
+
+/*********************************************
+ * PROGRESS BAR
+ *********************************************/
+
+.reveal .progress {
+  background: var(--accent3-bbg);
+}
+
+.reveal .progress span {
+  background: var(--accent3);
+  -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+  transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
+}
+
+/*********************************************
+ * TITLE SLIDE
+ *********************************************/
+
+.background-on-accent {
+  background-color: var(--accent3);
+  padding: 20px;
+}
+
+section#title-slide h1 {
+  color: white;
+  font-weight: bold;
+  font-style: normal;
+  font-size: 1.5em;
+  text-align: center;
+  width: 100%;
+  margin: 20px !important;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+section#title-slide h2 {
+  color: white;
+  font-weight: normal;
+  font-style: italic;
+  font-size: 1.3em;
+  text-align: center;
+  margin: 20px;
+  line-height: 1.5;
+}
+
+section#title-slide img.teaser {
+  margin: 30px 0 0 0;
+  height: 250px;
+  width: auto;
+  object-fit: contain;
+}
+
+section#title-slide div.author {
+  margin: 30px 0 0 0;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1em;
+  text-align: center;
+}
+
+section#title-slide div.affiliation {
+  margin: 10px 0 0 0;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 0.8em;
+  text-align: center;
+}
+
+section#title-slide div.authors {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+}
+
+section#title-slide img.logo {
+  height: 10%;
+}
+
+section#title-slide img.affiliation-logo {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+section#title-slide img.department-logo {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+/*********************************************
+ * COMMENT BUBBLES
+ *********************************************/
+
+.reveal .bubble {
+  display: inline-block;
+  font-size: 0.7em;
+  color: white;
+  background-color: var(--primary-color);
+  padding: 10px;
+  margin: 0.1em auto 0.5em auto;
+  border-radius: 5px;
+}
+
+/*********************************************
+ * FOOTER COMMENTS
+ *********************************************/
+
+.reveal footer,
+.reveal .footer {
+  position: absolute;
+  display: block;
+  text-align: center;
+  margin: 0px;
+  padding: 0px;
+  font-size: 0.5em;
+  width: auto;
+  height: auto;
+  left: 100px;
+  right: 100px;
+  bottom: 0.5em;
+}
+
+.reveal footer p,
+.reveal .footer p {
+  margin: 0px;
+  padding: 0px;
+  text-align: center;
+}
+
+/*********************************************
+ * GENERIC HIGHLIGHT
+ *********************************************/
+
+.reveal .highlight {
+  background-color: var(--yellowish);
+}
+
+/*********************************************
+ * Task lists
+ *********************************************/
+
+/* hide checkbox */
+.reveal ul.task-list li > input[type="checkbox"] {
+  display: none;
+}
+/* hide item bullets */
+.reveal ul.task-list > li {
+  list-style-type: none;
+  margin-left: 0.5em;
+}
+.reveal ul.task-list > li::before {
+  margin-right: 0.25em;
+}
+/* default: check boxes */
+.reveal ul.task-list > li.task-yes::before {
+  content: "\2612";
+}
+.reveal ul.task-list > li.task-no::before {
+  content: "\2610";
+}
+/* class "check-cross" */
+.reveal .check-cross .task-list li.task-yes::before {
+  font-weight: bold;
+  color: var(--greenish);
+  content: "✓";
+}
+.reveal .check-cross .task-list li.task-no::before {
+  font-weight: bold;
+  color: var(--redish);
+  content: "✗";
+}
+/* class "plus-minus" */
+.reveal .plus-minus .task-list li.task-yes::before {
+  color: var(--greenish);
+  content: "\2295";
+}
+.reveal .plus-minus .task-list li.task-no::before {
+  color: var(--redish);
+  content: "\2296";
+}
+/* class "thumb" */
+.reveal .thumb .task-list li.task-yes::before {
+  content: "👍";
+}
+.reveal .thumb .task-list li.task-no::before {
+  content: "👎";
+}
+
+/*********************************************
+ * MathJax
+ *********************************************/
+
+.reveal section mjx-container[display="true"] {
+  margin-top: 0.5em;
+  margin-bottom: 0.8em;
+}
+
+.reveal section mjx-container > svg a {
+  color: var(--icon-hover-color);
+  fill: var(--icon-hover-color);
+}
+
+/*********************************************
+ * fullscreen for iframes
+ *********************************************/
+
+.reveal div.fs-container {
+  margin: auto;
+  border: 0px;
+  padding: 0px;
+  position: relative;
+}
+
+.reveal div.fs-container:fullscreen {
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: var(--background-color);
+  padding: 20px;
+}
+
+/* needed for mobile Safari */
+*:-webkit-full-screen {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.reveal div.fs-container > iframe {
+  box-sizing: border-box;
+}
+
+.reveal div.fs-container:fullscreen > iframe {
+  border: none;
+}
+
+.reveal button.fs-button {
+  z-index: 100;
+  display: inline-block;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  cursor: pointer;
+  outline: none;
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  opacity: 0;
+  color: var(--icon-inactive-color);
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.reveal div.fs-container:hover > button.fs-button {
+  opacity: 0.5;
+}
+
+.reveal div.fs-container > button.fs-button:hover {
+  opacity: 1;
+  color: var(--icon-active-color);
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/*********************************************
+ * bibliography
+ *********************************************/
+
+.reveal .references {
+  margin: auto;
+  max-height: 600px;
+  width: 90%;
+  overflow-y: auto;
+}
+
+.reveal .references > div {
+  padding-left: 1em;
+  text-indent: -1em;
+  text-align: left;
+  margin-bottom: 1em;
+}
+
+/*********************************************
+ * Quizzes with task list syntax
+ *********************************************/
+
+/* quiz flex layout */
+.reveal .quiz ul {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  text-align: center;
+  counter-reset: answer;
+  margin-top: 1em;
+}
+
+/* possibility to hide quizzes */
+.hide-quizzes .reveal .quiz,
+.hide-quizzes .reveal .quiz * {
+  visibility: hidden;
+}
+
+/* one quiz item */
+.reveal .quiz ul li {
+  display: inline-block;
+  position: relative;
+  text-align: left;
+  margin: 0.5em;
+  border: 3px solid var(--blueish);
+  border-radius: 0.5em;
+  padding: 0.5em;
+  font-weight: normal;
+  background-color: var(--shade1);
+  cursor: pointer;
+}
+
+/* add A, B, C, D... */
+.reveal .quiz ul.task-list > li::before {
+  content: counter(answer, upper-latin) ": ";
+  counter-increment: answer;
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
+/* remove task list checkbox */
+.reveal .quiz ul.task-list li > input[type="checkbox"] {
+  display: none;
+}
+
+/* 2nd level ul contains tool tip */
+.reveal .quiz ul.task-list li ul {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+
+/* don't need this for 2nd level */
+.reveal .quiz ul.task-list li ul li::before {
+  display: none;
+}
+
+/* tool tip */
+.reveal .quiz ul li ul li {
+  display: block;
+  visibility: hidden;
+  max-width: 95%;
+  top: 100%;
+  left: 5px;
+  background-color: grey;
+  color: #ffffff;
+  text-align: center;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: absolute;
+  z-index: 1;
+  font-size: 1rem;
+}
+
+/* once clicked, wrong answers are red */
+.reveal .quiz ul li.wrong {
+  --quiz-background-color: var(--red-background-color);
+  --quiz-border-color: var(--red-border-color);
+  --quiz-icon: "\f00d";
+}
+
+/* once clicked, correct answers are green */
+.reveal .quiz ul li.right {
+  --quiz-background-color: var(--green-background-color);
+  --quiz-border-color: var(--green-border-color);
+  --quiz-icon: "\f00c";
+}
+
+.reveal .quiz ul li.show-answer {
+  background-color: var(--quiz-background-color);
+  border-color: var(--quiz-border-color);
+}
+.reveal .quiz ul li.show-answer::after {
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  font-weight: 900;
+  font-family: "Font Awesome 5 Free";
+  content: var(--quiz-icon);
+  position: absolute;
+  font-size: 15px;
+  right: 0.2em;
+  bottom: -0.1em;
+  padding: 0.1em;
+  color: var(--quiz-border-color);
+}
+
+/* tool tips are shown on hover */
+.reveal .show-answer:hover ul li {
+  visibility: visible;
+}
+
+/*********************************************
+ * override quiz-wue settings
+ *********************************************/
+
+.reveal [class*="quiz-"] button {
+  font: inherit;
+  font-size: 0.9em;
+  margin: 0.5em;
+  padding: 0.5em;
+  color: var(--shade6);
+  background: var(--shade1);
+  border: 2px solid var(--icon-active-color);
+  border-radius: 0.5em;
+}
+
+.reveal .quiz-ft button {
+  display: none;
+}
+
+.reveal .quiz-ft input {
+  font: inherit;
+  font-size: 0.8em;
+  margin: 0.5em;
+  padding: 10px;
+  border: 2px solid var(--blueish);
+  color: var(--shade6);
+  background-color: var(--shade1);
+  outline: none;
+}
+
+.reveal .qft-solutions,
+.reveal .qft-solutions.solved {
+  display: none;
+}
+
+.reveal .quiz-ic select {
+  font: inherit;
+  font-size: 0.9em;
+  font-weight: normal;
+  padding: 5px;
+  border: 2px solid var(--blueish);
+  color: var(--shade6);
+  background-color: var(--shade1);
+  outline: none;
+}
+
+.reveal .quiz-ic option {
+  font: inherit;
+  font-size: inherit;
+  font-weight: normal;
+}
+
+.reveal .quiz-mi {
+  width: var(--slide-width);
+  text-align: center;
+}
+
+.reveal .quiz-mi .buckets,
+.reveal .quiz-mi .matchItems {
+  box-sizing: border-box;
+  border: 2px solid var(--shade3);
+  padding: 15px 10px;
+}
+
+.reveal .quiz-mi .buckets {
+  margin-bottom: 20px;
+  margin-top: 60px;
+}
+
+.reveal .quiz-mi .buckets:before,
+.reveal .quiz-mi .matchItems:before {
+  position: absolute;
+  top: -20px;
+  left: 10px;
+  font-size: 15px;
+  background-color: var(--shade0);
+  padding: 5px;
+  color: var(--shade3);
+}
+
+.reveal .quiz-mi .matchItems:before {
+  content: "Drag objects from here...";
+}
+
+.reveal .quiz-mi .buckets:before {
+  content: "...and drop them here into the correct category";
+}
+
+:lang(de) .reveal .quiz-mi .matchItems:before {
+  content: "Objekte per Drag & Drop nach unten ziehen...";
+}
+
+:lang(de) .reveal .quiz-mi .buckets:before {
+  content: "...und hier in die richtige Kategorie einsortieren";
+}
+
+.reveal .quiz-mi .matchItems:after {
+  position: absolute;
+  bottom: -30px;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-top: 30px solid var(--shade3);
+}
+
+.reveal .quiz-mi .bucket {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  margin: 0px 5px;
+  border: 1px solid var(--shade3);
+}
+
+.reveal .quiz-mi .matchItem {
+  display: block;
+  overflow: hidden;
+  border: 2px solid var(--blueish);
+  border-radius: 10px;
+  padding: 10px;
+  cursor: grab;
+  margin: auto;
+  background-color: var(--shade1);
+}
+
+.reveal [class*="quiz-"] .show-right {
+  background-color: var(--green-background-color);
+  border-color: var(--green-border-color);
+}
+
+.reveal [class*="quiz"] .show-wrong {
+  background-color: var(--red-background-color);
+  border-color: var(--red-border-color);
+}
+
+/*********************************************
+ * quiz polling
+ *********************************************/
+
+.reveal:not(.poll) .poll-only {
+  display: none;
+}
+
+#poll-chart {
+  font-size: var(--icon-size);
+  position: absolute;
+  left: auto;
+  top: auto;
+  right: 0.5em;
+  bottom: 0.5em;
+  visibility: hidden;
+  z-index: 34;
+  width: 420px;
+  height: 320px;
+  margin: auto;
+  padding: 0.5em;
+  text-align: center;
+  border: 3px solid var(--blueish);
+  border-radius: 0.5em;
+  background-color: var(--shade0);
+  transform-origin: bottom right;
+  box-shadow: 3px 5px 5px var(--shade3);
+}
+
+#poll-chart.canvas {
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 300px;
+}
+
+#poll-votes {
+  font-size: var(--icon-size);
+  color: var(--icon-inactive-color);
+  text-align: center;
+  display: none;
+}
+
+div.qrcode.container {
+  display: none;
+  z-index: 4000;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  background-color: var(--shade0);
+}
+
+div.qrcode.container button {
+  position: absolute;
+  right: 1em;
+  top: 1em;
+}
+
+div.qrcode.container.show {
+  display: flex;
+}
+
+div.qrcode.container {
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+div.qrcode.container canvas {
+  height: 66vh;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  background-color: white;
+  padding: 0.5em;
+  border: 0.01em solid black;
+  border-radius: var(--block-border-radius);
+}
+
+div.qrcode.container a {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+/*********************************************
+* various hacks
+*********************************************/
+
+.decker-anchor > button.fa-button {
+  border-radius: 999px;
+  transition: background-color 0.1s;
+  background-color: transparent;
+}
+.decker-anchor > button.fa-button:hover,
+.decker-anchor > button.fa-button:focus {
+  background-color: var(--background-color);
+}
+
+/*********************************************
+* special rules for dark mode
+*********************************************/
+
+.dark-only {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .media :is(figure, .figure) > img {
+    background-color: var(--shade7);
+  }
+  .dark-only {
+    display: initial;
+  }
+  .light-only {
+    display: none;
+  }
+}
+
+html.dark .media :is(figure, .figure) > img {
+  background-color: var(--shade7);
+}
+
+html.dark .light-only {
+  display: none;
+}
+html.dark .dark-only {
+  display: initial;
+}
+
+html.light .light-only {
+  display: initial;
+}
+html.light .dark-only {
+  display: none;
+}

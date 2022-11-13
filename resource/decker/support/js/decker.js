@@ -1,9 +1,17 @@
 export default initializeDecker;
 
-function initializeDecker(meta) {
+function initializeDecker(metaUrl) {
   // Provides the Decker meta data and some functions globally. Eventually, this
-  // module should be imported by every script that needs access. For now, this is
+  // module should be imported by every script that needs access. For now, this is a
   // global variable.
+
+  // We need to fetch this asynchronously because code following this function needs
+  // access to the global Decker variable.
+  let req = new XMLHttpRequest();
+  req.open("GET", metaUrl, false /* fetch synchronously */);
+  req.send();
+  let meta = JSON.parse(req.responseText);
+
   window.Decker = {
     // The Decker meta data as passed in from the template.
     meta: meta,
@@ -61,6 +69,25 @@ function initializeDecker(meta) {
         reloadInhibitors.find((p) => p === predicate),
         1
       );
+    },
+    tripleClick: (callback) => {
+      let pushCount = 0;
+      let lastPush = null;
+
+      return () => {
+        let now = Date.now();
+        if (lastPush && now - lastPush < 500) {
+          pushCount++;
+        } else {
+          pushCount = 1;
+        }
+        lastPush = now;
+
+        if (pushCount == 3) {
+          pushCount = 0;
+          callback();
+        }
+      };
     },
   };
 

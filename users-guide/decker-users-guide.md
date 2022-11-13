@@ -15,8 +15,9 @@ Kinder.
 
 Decker uses the universal markup converter
 [Pandoc](https://pandoc.org/MANUAL.html#pandocs-markdown) to translate slide
-content in Markdown format to interactive HTML slide decks. A working knowledge
-of the Pandoc dialect of Markdown is very helpful when working with Decker.
+content in Markdown format into interactive HTML slide decks. A working
+knowledge of the Pandoc dialect of Markdown is very helpful when working with
+Decker.
 
 -   [Pandoc User's Guide](https://pandoc.org/MANUAL.html#pandocs-markdown)
 
@@ -283,7 +284,7 @@ The current default dictionary looks like this:
           qmi-drag-hint: Drag items from here...
           qmi-drop-hint: ...and put them here into the correct category.
 
-This dictionary can be partially or completely defined new by the user.
+This dictionary can be partially or completely redefined by the user.
 
 # Decker's Markdown
 
@@ -403,19 +404,19 @@ highlighting:
 
 ## Whiteboard
 
-## Questions
+## Audience Feedback
 
-The audience of a deck can annotate slides with questions. The questions are
+The audience of a deck can annotate slides with feedback. The feedback is
 aggregated on a server and are visible by all audience members and the author.
 
-The slide author can later choose to address the questions by changeing or
+The slide author can later choose to address the feedback by changing or
 extending the information in the deck.
 
 To enable this feature a deck must specify the URL of a Decker Engine server in
 the meta data by setting the variable `decker-engine.base-url`. For example:
 
 ``` yaml
-decker-engine:
+feedback:
   base-url: 'https://tramberend.bht-berlin.de/decker'
 ```
 
@@ -432,7 +433,7 @@ necessary.
 The `de-api` endpoint works that way:
 
 ``` yaml
-decker-engine:
+feedback:
   base-url: 'https://tramberend.bht-berlin.de/de-api'
 ```
 
@@ -447,14 +448,14 @@ password.
 The `decker` endpoint works that way:
 
 ``` yaml
-decker-engine:
+feedback:
   base-url: 'https://tramberend.bht-berlin.de/decker'
 ```
 
 ### Admistrators
 
-Users that are authorized as administrators can edit and delete all questions in
-a set.
+Users that are authorized as administrators can answer, edit or delete all
+questions in a set.
 
 ### Deck Identification
 
@@ -465,7 +466,7 @@ is supposed to show the questions on the published version. For this situation
 the public URL of a deck can be set in the meta data.
 
 ``` yaml
-decker-engine:
+feedback:
   deck-id: 'https://tramberend.bht-berlin.de/public/decker/test/decks/engine-deck.html'
 ```
 

@@ -23,6 +23,7 @@ class SlideMenu {
     this.open_button = undefined;
     this.menu = {
       container: undefined,
+      home_button: undefined,
       search_button: undefined,
       pdf_button: undefined,
       settings_button: undefined,
@@ -155,6 +156,14 @@ class SlideMenu {
       "aria-label",
       this.localization.open_settings_label
     );
+  }
+
+  /**
+   * Navigate to index page
+   */
+  goToIndex() {
+    if (confirm(this.localization.index_confirmation))
+      window.location = Decker.meta.projectPath + "/index.html";
   }
 
   /**
@@ -343,9 +352,14 @@ class SlideMenu {
       let item = this.createListItem(slide, h, undefined);
       list.appendChild(item);
 
-      /* if there is only a single h1 element, this is a separator slide. mark it in the menu */
+      /* if there is only a single h1 element, 
+      or if the slide has class .section, 
+      then this is a separator slide. mark it in the menu */
       const h1 = slide.querySelector("h1");
-      if (h1 && h1.parentElement.children.length == 1) {
+      if (
+        slide.classList.contains("section") ||
+        (h1 && h1.parentElement.children.length == 1)
+      ) {
         item.classList.add("separator-slide");
       }
     });
@@ -462,6 +476,8 @@ class SlideMenu {
         <div class="menu-header-buttons">
           <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}">
           </button>
+          <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}">
+          </button>
           <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}">
           </button>
           <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}">
@@ -478,6 +494,9 @@ class SlideMenu {
     this.menu.container = container;
 
     /* Getting references */
+    this.menu.home_button = container.querySelector(
+      "#decker-menu-index-button"
+    );
     this.menu.search_button = container.querySelector(
       "#decker-menu-search-button"
     );
@@ -490,6 +509,9 @@ class SlideMenu {
     );
 
     /* Attach callbacks */
+    this.menu.home_button.addEventListener("click", (event) =>
+      this.goToIndex()
+    );
     this.menu.search_button.addEventListener("click", (event) =>
       this.toggleSearchbar()
     );
@@ -558,6 +580,32 @@ class SlideMenu {
     if (storage) {
       this.toggleColorMode(storage);
     }
+  }
+
+  clearCurrentSlideMark() {
+    let listItems = this.menu.slide_list.childNodes;
+    for (let item of listItems) {
+      item.classList.remove("current-slide");
+    }
+  }
+
+  setCurrentSlideMark() {
+    let slide = this.reveal.getCurrentSlide();
+    let indices = this.reveal.getIndices(slide);
+    let item = undefined;
+    if (indices.v) {
+      item = this.getListItem(indices.h, indices.v);
+    } else {
+      item = this.getListItem(indices.h);
+    }
+    if (item) {
+      item.classList.add("current-slide");
+    }
+  }
+
+  updateCurrentSlideMark() {
+    this.clearCurrentSlideMark();
+    this.setCurrentSlideMark();
   }
 
   initializeSettingsMenu() {
@@ -652,6 +700,7 @@ class SlideMenu {
 
     this.localization = {
       open_button_label: "Open Navigation Menu",
+      home_button_label: "Go to Index Page",
       search_button_label: "Toggle Searchbar",
       print_pdf_label: "Print PDF",
       open_settings_label: "Open Settings",
@@ -666,6 +715,7 @@ class SlideMenu {
       no_title: "No Title",
       title: "Navigation",
       print_confirmation: "Leave/Reload presentation to export PDF?",
+      index_confirmation: "Go back to index page?",
     };
 
     let lang = navigator.language;
@@ -673,6 +723,7 @@ class SlideMenu {
     if (lang === "de") {
       this.localization = {
         open_button_label: "Navigationsmenu öffnen",
+        home_button_label: "Zurück zur Materialübersicht",
         search_button_label: "Suchleiste umschalten",
         print_pdf_label: "Als PDF drucken",
         open_settings_label: "Einstellungen öffnen",
@@ -688,6 +739,7 @@ class SlideMenu {
         title: "Navigation",
         print_confirmation:
           "Die Seite neuladen / verlassen um sie als PDF zu exportieren?",
+        index_confirmation: "Zurück zur Index-Seite gehen?",
       };
     }
 
@@ -703,6 +755,9 @@ class SlideMenu {
     }
     let anchors = this.reveal.getPlugin("ui-anchors");
     anchors.placeButton(this.open_button, this.position);
+    reveal.addEventListener("slidechanged", () =>
+      this.updateCurrentSlideMark()
+    );
   }
 }
 

@@ -1,17 +1,3 @@
-// speech recog
-
-const SpeechRecognition = undefined;
-// var SpeechRecognition = undefined;
-// var SpeechGrammarList = undefined;
-// var SpeechRecognitionEvent = undefined;
-
-// if (window.chrome) {
-//   SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-//   SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList;
-//   SpeechRecognitionEvent =
-//     SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
-// }
-
 // reference to Reveal deck
 let Reveal;
 
@@ -29,18 +15,11 @@ let playPanel, playButton, player;
 let recordPanel,
   recordToggle,
   recordIndicator,
-  microphoneIndicator,
-  captionIndicator,
   voiceIndicator,
   desktopIndicator;
 let recordButton, pauseButton, stopButton;
-let muteMicButton, captionToggleButton;
 let voiceGainSlider, desktopGainSlider;
 let cameraPanel, cameraVideo, cameraCanvas;
-// let transcriptionRow,
-//   transcriptionArea,
-//   transcriptionButton,
-//   downloadTranscriptionButton;
 
 // recording stuff
 let blobs;
@@ -126,7 +105,7 @@ class UIState {
         element.setAttribute("data-uistate", this.state.name);
       }
     } else {
-      console.warn("[] no state named: " + transition.next);
+      console.warn("[] no state named: " + transition.next);
     }
     // console.log(`[] current state: ${this.state.name}`);
   }
@@ -173,16 +152,12 @@ function deckTimesUrl() {
   return deckUrlBase() + "-times.json";
 }
 
-//Derives the ttv url from the document location.
-function deckCaptioningUrl() {
+//Derives the vtt url from the document location.
+function deckCaptionsUrl() {
   return deckUrlBase() + "-recording.vtt";
 }
 
-function deckTranscriptUrl() {
-  return deckUrlBase() + "-transcript.json";
-}
-
-// Derives the basenam for explain data downloads from the document location.
+// Derives the basename for explain data downloads from the document location.
 function videoFilenameBase() {
   const pathname = window.location.pathname;
   let filename = pathname.substring(pathname.lastIndexOf("/") + 1);
@@ -194,13 +169,13 @@ function videoFilenameBase() {
 function goToSlide(index) {
   if (explainTimesPlay[index]) {
     let slideId = explainTimesPlay[index].slideId;
-    var indices = Reveal.getIndices(document.getElementById(slideId));
+    let indices = Reveal.getIndices(document.getElementById(slideId));
     Reveal.slide(indices.h, indices.v);
   }
 }
 
 function goToSlideId(slideId) {
-  var indices = Reveal.getIndices(document.getElementById(slideId));
+  let indices = Reveal.getIndices(document.getElementById(slideId));
   Reveal.slide(indices.h, indices.v);
 }
 
@@ -481,257 +456,6 @@ function mergeStreams() {
   });
 }
 
-let webSpeech_shouldCaption = false;
-let webSpeech_speechRecognition = undefined;
-let webSpeech_transcript = undefined;
-let webSpeech_restartOnEnd = undefined;
-let webSpeech_stopRequest = false; /* Set to true if the user actually wants to stop */
-let webSpeech_transcriptionStartTime = undefined;
-
-async function toggleCaptioning() {
-  if (!webSpeech_shouldCaption) {
-    let options = [
-      { text: localization.accept, value: "ACCEPT" },
-      { text: localization.abort, value: "ABORT" },
-    ];
-    let choice = await window.showChoice(
-      localization.speech_warning,
-      options,
-      "warning"
-    );
-    if (choice.submit !== "ACCEPT") {
-      return;
-    }
-  }
-  webSpeech_shouldCaption = !webSpeech_shouldCaption;
-  updateCaptionButton();
-  updateCaptionIndicatior();
-}
-
-function updateCaptionIndicatior() {
-  if (webSpeech_shouldCaption) {
-    captionIndicator.dataset.state = "captioning";
-  } else {
-    captionIndicator.dataset.state = "";
-  }
-}
-
-function updateCaptionButton() {
-  captionToggleButton.classList.remove("captioning");
-  if (webSpeech_shouldCaption) {
-    captionToggleButton.classList.add("captioning");
-  }
-}
-
-/**
- * Instantiates the speech recognition module and sets its parameters.
- */
-function setupSpeechRecognition() {
-  if (SpeechRecognition) {
-    let speechRecognition = new SpeechRecognition();
-    if (!webSpeech_transcript) webSpeech_transcript = [];
-    speechRecognition.continuous = true;
-    speechRecognition.interimResults = true;
-    speechRecognition.onstart = onTranscriptionStart;
-    speechRecognition.onresult = onTranscriptResult;
-    speechRecognition.onerror = onTranscriptError;
-    speechRecognition.onend = onTranscriptEnd;
-    webSpeech_speechRecognition = speechRecognition;
-  }
-}
-
-/**
- * Adds text to the transcript and resets the timings.
- * @param text
- */
-function addToTranscript(text) {
-  if (text) {
-    var curTime = recorder.timing.timeStamp();
-    webSpeech_transcript.push({
-      startTime: webSpeech_transcriptionStartTime,
-      endTime: curTime,
-      text: text,
-    });
-    webSpeech_transcriptionStartTime = curTime;
-  }
-}
-
-/**
- * SpeechRecognition callback.
- */
-function onTranscriptionStart() {
-  console.log("started a new transcription session");
-}
-
-/**
- * Checks if the result is final and adds it to the transcript.
- * @param {*} event
- */
-function onTranscriptResult(event) {
-  for (var i = event.resultIndex; i < event.results.length; i++) {
-    if (event.results[i][0].confidence > 0.4) {
-      if (event.results[i].isFinal) {
-        addToTranscript(event.results[i][0].transcript);
-      }
-    }
-  }
-}
-
-/**
- * Logs the error and forces a retry on the recognition. Is followed by an
- * onend event.
- * @param {*} event
- */
-function onTranscriptError(event) {
-  console.error(
-    "[SPEECH RECOGNITION]: ",
-    event.message ? event.message : event.error
-  );
-  if (
-    event.error == "no-speech" ||
-    event.error == "audio-capture" ||
-    event.error == "network" ||
-    event.error == "bad-grammar"
-  ) {
-    // Was part of thttps://github.com/MidCamp/live-captioning but doesn't matter for us.
-    // Leaving this here.
-  }
-}
-
-/**
- * If the transcription ended before we ended the recording we want to restart
- * the speech recognition.
- */
-function onTranscriptEnd() {
-  if (webSpeech_stopRequest) {
-    //If we WANT it to end while still recording.
-    webSpeech_stopRequest = false;
-    return;
-  }
-  if (webSpeech_restartOnEnd || uiState.is("RECORDING")) {
-    webSpeech_restartOnEnd = false;
-    webSpeech_speechRecognition.start();
-  }
-}
-
-/**
- * Writes the transcription to the transcription area.
- */
-/*
-function writeTranscription() {
-  transcriptionArea.value = formatTranscriptTimeStamped(
-    webSpeech_transcript,
-    "webVTT"
-  );
-}
-*/
-
-function transcribeToJSON() {
-  let json = JSON.stringify(webSpeech_transcript, null, 4);
-  return new Blob([json], {
-    type: "application/json",
-  });
-}
-
-async function fetchTranscriptionFromJSON() {
-  let exists = await resourceExists(deckTranscriptUrl());
-  if (exists) {
-    let obj = await fetchResourceJSON(deckTranscriptUrl());
-    if (obj === null) {
-      console.error(
-        "Failed to fetch transcription even though the resource exists."
-      );
-      return;
-    }
-    webSpeech_transcript = obj;
-  }
-}
-
-//Modified from https://github.com/MidCamp/live-captioning
-function formatTimeString(timeString) {
-  let time = parseFloat(timeString);
-
-  let seconds = Math.floor(time);
-  let milliseconds = Math.floor((time - seconds) * 1000);
-  let minutes = Math.floor(seconds / 60);
-  let hours = Math.floor(minutes / 60);
-  let days = Math.floor(hours / 24);
-  let millisecondsSeparator = ".";
-
-  hours = hours - days * 24;
-  minutes = minutes - days * 24 * 60 - hours * 60;
-  seconds = seconds - days * 24 * 60 * 60 - hours * 60 * 60 - minutes * 60;
-
-  return (
-    (hours < 10 ? "0" : "") +
-    hours +
-    (minutes < 10 ? ":0" : ":") +
-    minutes +
-    (seconds < 10 ? ":0" : ":") +
-    seconds +
-    millisecondsSeparator +
-    String(milliseconds).padStart(3, "0").substring(0, 3)
-  );
-}
-
-//Taken from https://github.com/MidCamp/live-captioning
-function formatTranscriptTimeStamped(transcript, format) {
-  if (transcript) {
-    var output = "";
-    if (format === "webVTT") {
-      output += "WEBVTT\n\n";
-    }
-    for (var i = 0; i < transcript.length; ++i) {
-      output += i + 1 + "\n"; // This is not neccessary and might make editing the result more difficult.
-      output +=
-        formatTimeString(transcript[i].startTime) +
-        " --> " +
-        formatTimeString(transcript[i].endTime) +
-        "\n";
-      output += transcript[i].text + "\n\n";
-    }
-    return output;
-  } else {
-    return "No transcript available";
-  }
-}
-
-/**
- * Load data from the localStorage.
- *
- * @param {*} key
- * @returns
- */
-function loadFromLocalStorage(key) {
-  var savedJSON;
-
-  if (localStorage) {
-    try {
-      savedJSON = JSON.parse(localStorage.getItem(key));
-    } catch (e) {}
-  }
-
-  if (typeof savedJSON !== "undefined") {
-    return savedJSON;
-  }
-}
-
-/**
- * Save the data to localStorage.
- *
- * @param key  - local storage key to save the data under
- * @param data - the data to save
- */
-function saveToLocalStorage(key, data) {
-  if (data && localStorage) {
-    if (typeof data === "object") {
-      localStorage.setItem(key, JSON.stringify(data));
-    } else {
-      localStorage.setItem(key, data);
-    }
-  }
-}
-
 async function setupRecorder() {
   try {
     stream = null;
@@ -744,10 +468,6 @@ async function setupRecorder() {
 
     // merge desktop and microphone streams into one stream to be recorded
     mergeStreams();
-
-    // MARIO: REMOVE UNTIL DEBUGGED
-    // await fetchTranscriptionFromJSON();
-    // setupSpeechRecognition();
 
     // setup shaders for greenscreen (has to be done before captureCamera())
     if (useGreenScreen) {
@@ -803,9 +523,20 @@ async function startRecording() {
       { text: localization.replace, value: "REPLACE" },
       { text: localization.cancel, value: "CANCEL" },
     ];
-    let choice = await window.showChoice(
-      `${localization.replacement_warning}\n
-      ${existingRecordings.map((r) => `  - ${r}`).join("\n")}`,
+    let messageElement = document.createElement("div");
+    let messageText = document.createElement("p");
+    messageText.innerText = localization.replacement_warning;
+    messageElement.appendChild(messageText);
+    let messageList = document.createElement("ul");
+    for (const recording of existingRecordings) {
+      let item = document.createElement("li");
+      item.innerText = recording;
+      messageList.appendChild(item);
+    }
+    messageElement.appendChild(messageList);
+    let choice = await window.showDialog(
+      localization.replacement_title,
+      messageElement,
       options,
       "warning"
     );
@@ -822,9 +553,10 @@ async function startRecording() {
     closeRecordPanel();
   }
 
-  // setup recorder
+  // setup recorder (let the browser choose the codec)
   recorder = new MediaRecorder(stream, {
-    mimeType: 'video/webm; codecs=h264"',
+    // mimeType: "video/webm; codecs=h264",
+    mimeType: "video/webm",
   });
 
   recorder.ondataavailable = (e) => blobs.push(e.data);
@@ -833,22 +565,12 @@ async function startRecording() {
 
   recorder.onstart = () => {
     console.log("[] recorder started");
-    captionToggleButton.disabled = true;
     recorder.timing = new Timing();
     if (recordingType === "APPEND") {
       recorder.timing.offset = parseFloat(recordingResumeTime) * 1000;
       recorder.timing.timeIntervals = explainTimes;
     }
     recorder.timing.start();
-    if (recordingType === "REPLACE") {
-      webSpeech_transcript = [];
-    }
-    if (webSpeech_shouldCaption) {
-      webSpeech_transcriptionStartTime = recorder.timing.timeStamp();
-    }
-    if (webSpeech_speechRecognition && webSpeech_shouldCaption) {
-      webSpeech_speechRecognition.start();
-    }
     Reveal.addEventListener("slidechanged", recordSlideChange);
 
     updateRecordIndicator();
@@ -906,38 +628,12 @@ async function startRecording() {
 
   recorder.onstop = async () => {
     console.log("[] recorder stopped");
-    captionToggleButton.disabled = false;
     let vblob = new Blob(blobs, { type: "video/webm" });
     let tblob = recorder.timing.finish();
-    if (webSpeech_shouldCaption && webSpeech_speechRecognition) {
-      webSpeech_stopRequest = true;
-      webSpeech_speechRecognition.stop();
-    }
-
-    let transcription = formatTranscriptTimeStamped(
-      webSpeech_transcript,
-      "webVTT"
-    );
-    var vttblob = new Blob([transcription], { type: "vtt" });
-    var transcriptBlob = transcribeToJSON();
-
     try {
       let exists = await resourceExists(explainTimesUrl);
       /* Upload slide timings */
       await uploadFile({ data: tblob, filename: explainTimesUrl });
-      /* Upload data generated by WebSpeech API
-       * Only replace if we generated stuff in the first place,
-       * else existing stuff generated externally might be overwritten */
-      if (webSpeech_shouldCaption) {
-        await uploadFile({
-          data: vttblob,
-          filename: deckCaptioningUrl(),
-        });
-        await uploadFile({
-          data: transcriptBlob,
-          filename: deckTranscriptUrl(),
-        });
-      }
       if (exists && recordingType === "APPEND") {
         await appendVideo({
           data: vblob,
@@ -959,8 +655,6 @@ async function startRecording() {
     } finally {
       download(vblob, videoFilenameBase() + "-recording.webm");
       download(tblob, videoFilenameBase() + "-times.json");
-      download(vttblob, videoFilenameBase() + "-recording.vtt");
-      download(transcriptBlob, videoFilenameBase() + "-transcript.json");
     }
 
     Reveal.removeEventListener("slidechanged", recordSlideChange);
@@ -975,19 +669,12 @@ async function startRecording() {
   recorder.onpause = () => {
     recorder.timing.pause();
     clearInterval(recordingTimer);
-    if (webSpeech_shouldCaption && webSpeech_speechRecognition) {
-      webSpeech_stopRequest = true;
-      webSpeech_speechRecognition.stop();
-    }
     updateRecordIndicator();
   };
 
   recorder.onresume = () => {
     recorder.timing.resume();
     recordingTimer = setInterval(updateRecordingTimer, 1000);
-    if (webSpeech_shouldCaption && webSpeech_speechRecognition) {
-      webSpeech_speechRecognition.start();
-    }
     updateRecordIndicator();
   };
 
@@ -1007,9 +694,6 @@ async function startRecording() {
 
 function pauseRecording() {
   recorder.pause();
-  if (webSpeech_shouldCaption && webSpeech_speechRecognition) {
-    webSpeech_speechRecognition.stop();
-  }
   recordButton.disabled = true;
   pauseButton.disabled = undefined;
   stopButton.disabled = undefined;
@@ -1018,9 +702,6 @@ function pauseRecording() {
 
 function resumeRecording() {
   recorder.resume();
-  if (webSpeech_shouldCaption && webSpeech_speechRecognition) {
-    webSpeech_speechRecognition.start();
-  }
   recordButton.disabled = true;
   pauseButton.disabled = undefined;
   stopButton.disabled = undefined;
@@ -1029,9 +710,6 @@ function resumeRecording() {
 
 function stopRecording() {
   recorder.stop();
-  if (webSpeech_shouldCaption && webSpeech_speechRecognition) {
-    webSpeech_speechRecognition.stop();
-  }
   stream.getTracks().forEach((s) => s.stop());
   recordButton.disabled = undefined;
   pauseButton.disabled = true;
@@ -1363,23 +1041,9 @@ async function createRecordingGUI() {
     parent: recordPanel,
   });
 
-  captionIndicator = createElement({
-    type: "i",
-    id: "caption-indicator",
-    classes: "fas indicator",
-    parent: row,
-  });
-
   recordIndicator = createElement({
     type: "i",
     id: "record-indicator",
-    classes: "fas indicator",
-    parent: row,
-  });
-
-  microphoneIndicator = createElement({
-    type: "i",
-    id: "microphone-indicator",
     classes: "fas indicator",
     parent: row,
   });
@@ -1568,28 +1232,6 @@ async function createRecordingGUI() {
     console.log("cannot list microphones and cameras:" + e);
   }
 
-  let toggleRow = createElement({
-    type: "div",
-    classes: "controls-row",
-    parent: recordPanel,
-  });
-
-  muteMicButton = createElement({
-    type: "button",
-    classes: "explain mute-button fas fa-microphone",
-    title: "Mute microphone (M)",
-    parent: toggleRow,
-    onclick: toggleMicrophone,
-  });
-
-  captionToggleButton = createElement({
-    type: "button",
-    classes: "explain caption-button fas fa-closed-captioning",
-    title: "Create Captions while recording",
-    parent: toggleRow,
-    onclick: toggleCaptioning,
-  });
-
   row = createElement({
     type: "div",
     classes: "controls-row",
@@ -1640,14 +1282,6 @@ async function createRecordingGUI() {
     onclick: transition("stop"),
   });
 
-  Reveal.addKeyBinding(
-    { keyCode: 77, key: "M", description: "Toggle/Mute Microphone" },
-    toggleMicrophone
-  );
-
-  updateCaptionButton();
-  updateCaptionIndicatior();
-
   /* inert everything but the toggle button */
   let able = focusable(recordPanel);
   for (let element of able) {
@@ -1657,22 +1291,6 @@ async function createRecordingGUI() {
   /* inert everything but the toggle button */
 
   setupGainSlider(voiceGain, voiceGainSlider);
-}
-
-function downloadTranscription() {
-  let text = formatTranscriptTimeStamped(webSpeech_transcript, "webVTT");
-  var blob = new Blob([text], { type: "vtt" });
-  var a = document.createElement("a");
-  a.download = "transcription.vtt";
-  a.href = URL.createObjectURL(blob);
-  a.dataset.downloadurl = ["vtt", a.download, a.href].join(":");
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(function () {
-    URL.revokeObjectURL(a.href);
-  }, 1500);
 }
 
 function setupGainSlider(gain, slider) {
@@ -1694,44 +1312,8 @@ function setupGainSlider(gain, slider) {
     if (this.gain) this.gain.gain.value = this.value;
     this.output.innerHTML = this.value;
     localStorage.setItem(this.storage, this.value);
-    if (this.value === "0") {
-      toggleMicButton(false);
-      if (
-        webSpeech_shouldCaption &&
-        webSpeech_speechRecognition &&
-        uiState.is("RECORDING")
-      ) {
-        webSpeech_stopRequest = true;
-        webSpeech_speechRecognition.stop();
-      }
-    } else {
-      toggleMicButton(true);
-      if (
-        webSpeech_shouldCaption &&
-        webSpeech_speechRecognition &&
-        uiState.is("RECORDING")
-      ) {
-        webSpeech_speechRecognition.start();
-      }
-    }
   };
   slider.oninput(); // call once to set output
-}
-
-function toggleMicButton(enabled) {
-  if (!muteMicButton) return; //Because this gets called once before it is initialized
-  if (!microphoneIndicator) return;
-  muteMicButton.classList.remove("off");
-  muteMicButton.classList.remove("fa-microphone");
-  muteMicButton.classList.remove("fa-microphone-slash");
-  microphoneIndicator.dataset.state = "";
-  if (!enabled) {
-    muteMicButton.classList.add("off");
-    muteMicButton.classList.add("fa-microphone-slash");
-    microphoneIndicator.dataset.state = "mute";
-  } else {
-    muteMicButton.classList.add("fa-microphone");
-  }
 }
 
 function updateRecordIndicator() {
@@ -1963,17 +1545,6 @@ function toggleCamera() {
   }
 }
 
-let voiceGainBak = 1.0;
-function toggleMicrophone() {
-  if (voiceGainSlider.value == 0) {
-    voiceGainSlider.value = voiceGainBak;
-  } else {
-    voiceGainBak = voiceGainSlider.value;
-    voiceGainSlider.value = 0;
-  }
-  voiceGainSlider.oninput();
-}
-
 async function resourceExists(url) {
   return fetch(url, { method: "HEAD" })
     .then((r) => {
@@ -1988,8 +1559,8 @@ async function listRecordings(path) {
   return fetch(`/recordings${path}`, { method: "GET" })
     .then((r) => r.json())
     .catch((e) => {
-      console.log("[] cannot list recordings: " + url + ", " + e);
-      return null;
+      console.log("[] cannot list recordings: " + path + ", " + e);
+      return [];
     });
 }
 
@@ -2082,7 +1653,7 @@ async function setupPlayer() {
   explainVideoUrl = config && config.video ? config.video : deckVideoUrl();
   explainTimesUrl = config && config.times ? config.times : deckTimesUrl();
   explainTranscriptUrl =
-    config && config.transcript ? config.transcript : deckCaptioningUrl();
+    config && config.transcript ? config.transcript : deckCaptionsUrl();
   let videoExists = false;
   let timesExists = false;
 
@@ -2108,8 +1679,7 @@ async function setupPlayer() {
       explainTimesPlay = await fetchResourceJSON(explainTimesUrl);
       player.src({ type: "video/mp4", src: explainVideoUrl });
 
-      let captionsUrl = explainVideoUrl.replace(".mp4", ".vtt");
-      let captionsExist = await resourceExists(captionsUrl);
+      let captionsExist = await resourceExists(explainTranscriptUrl);
       if (captionsExist) {
         let captionsOptions = {
           kind: "captions",
@@ -2239,13 +1809,10 @@ const Plugin = {
       append: "Append",
       replace: "Replace",
       cancel: "Cancel",
+      replacement_title: "Append or Replace?",
       replacement_warning:
         "There is already a recording for this presentation. \
       Do you want to append to the existing recording or replace it?",
-      speech_warning:
-        "Using this feature will use your Browser's WebSpeech API to transcribe your voice. \
-      To facilitate this, your voice will be sent to your Browser's manufacturer's Cloud Service \
-      (Google or Apple). Do you accept this?",
       accept: "Accept",
       abort: "Abort",
     };
@@ -2255,13 +1822,10 @@ const Plugin = {
         append: "Anhängen",
         replace: "Ersetzen",
         cancel: "Abbrechen",
+        replacement_title: "Anhängen oder Ersetzen?",
         replacement_warning:
           "Es existiert bereits eine Aufnahme. \
         Soll die Aufnahme an das bereits existierende Video angehangen werden oder es ersetzen?",
-        speech_warning:
-          "Diese Funktion wird die eingebaute WebSpeech API Ihres Browsers benutzen, \
-        um Ihre Stimme zu transkribieren. Die dabei aufgezeichneten Daten werden dazu an den Hersteller \
-        Ihres Browsers gesendet. Sind Sie damit einverstanden?",
         accept: "Akzeptieren",
         abort: "Abbrechen",
       };

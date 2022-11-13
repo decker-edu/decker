@@ -1,9 +1,9 @@
 name: decker
-version: 0.12.0
-license: OtherLicense
-author: "Henrik Tramberend"
+version: 0.13.0
+license: GPL-3.0-or-later
+author: "Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
 maintainer: "henrik.tramberend@bht-berlin.de"
-copyright: "2020 Henrik Tramberend"
+copyright: "2022 Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
 
 build-type: Custom
 
@@ -33,6 +33,7 @@ description: Please see the README at <https://gitlab2.informatik.uni-wuerzburg.
 
 dependencies:
   - aeson
+  - aeson-pretty
   - ansi-terminal
   - array
   - base >= 4.7 && < 5
@@ -43,6 +44,8 @@ dependencies:
   - blaze-svg
   - bytestring
   - containers
+  - conduit
+  - imagesize-conduit
   - colour
   - data-default
   - deepseq
@@ -70,6 +73,7 @@ dependencies:
   - lens-action
   - lens-aeson
   - listsafe
+  - mime-types
   - modern-uri
   - monad-loops
   - mtl
@@ -85,9 +89,8 @@ dependencies:
   - regex-tdfa
   - relude
   - scientific
+  - scotty
   - shake
-  - snap-core
-  - snap-server
   - split
   - stm
   - string-interpolate
@@ -101,8 +104,12 @@ dependencies:
   - unordered-containers
   - utf8-string
   - vector
+  - wai
+  - wai-extra
+  - warp
   - websockets
-  - websockets-snap
+  - wai-websockets
+  - wai-middleware-static
   - wreq
   - xml-conduit
   - xml-types
@@ -163,5 +170,4 @@ default-extensions:
   - QuasiQuotes
   - RecordWildCards
   - ScopedTypeVariables
-  - TemplateHaskell
   - TupleSections

@@ -20,9 +20,12 @@ import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Text.IO as Text
 import Development.Shake hiding (Resource)
+-- import Text.Groom
+
 import Relude
 import Relude.Extra.Group
 import System.FilePath.Posix
+import qualified Text.Blaze as A
 import Text.Blaze.Html
 import Text.Blaze.Html.Renderer.Pretty
 import qualified Text.Blaze.Html5 as H
@@ -32,9 +35,10 @@ import Text.Decker.Filter.Paths
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Decker.Reader.Markdown
--- import Text.Groom
 import Text.Pandoc
 import Text.Pandoc.Walk
+import Text.Decker.Writer.Layout
+
 -- import Text.Pretty.Simple
 
 compileQuestionToHtml :: Meta -> FilePath -> Question -> Action Question
@@ -50,7 +54,8 @@ compileQuestionToHtml meta base quest = do
     compileAnswerToHtml meta base ma@MultipleAnswers {} = do
       traverseOf (answAnswers . traverse . oneDetail) render
         =<< traverseOf (answAnswers . traverse . oneCorrect) render ma
-    compileAnswerToHtml meta base ff@FreeForm {} = return ff
+    compileAnswerToHtml meta base ff@FreeForm {} =
+      traverseOf answCorrectAnswer render ff
     compileAnswerToHtml meta base nu@Numerical {} = return nu
     compileAnswerToHtml meta base ft@FillText {} = do
       traverseOf (answCorrectWords . traverse) render ft
@@ -64,7 +69,7 @@ renderSnippetToHtml meta base markdown = do
     mergeDocumentMeta (setMetaValue "decker.use-data-src" False meta) pandoc
       >>= adjustResourcePathsA base
       >>= deckerMediaFilter (Disposition Page Html) base
-  liftIO $ handleError $ runPure $ writeHtml5String options $ walk dropPara filtered
+  liftIO $ handleError $ runPure $ writeHtml45String options meta $ walk dropPara filtered
 
 -- | Drops a leading Para block wrapper for a Plain wrapper.
 dropPara (Para inlines) = Plain inlines
@@ -84,10 +89,10 @@ renderAnswerToHtml answer@MultipleAnswers {} =
   where
     render one =
       H.tr $ do
-        H.td (preEscapedText $ one ^. oneDetail)
+        H.th (preEscapedText $ one ^. oneDetail)
         H.td (preEscapedText $ one ^. oneCorrect)
 renderAnswerToHtml answer@FreeForm {} = do
-  H.text $ answer ^. answCorrectAnswer
+  preEscapedText $ answer ^. answCorrectAnswer
 renderAnswerToHtml answer@Numerical {} = do
   H.text $ answer ^. answCorrectAnswer
 renderAnswerToHtml answer@FillText {} =
@@ -109,15 +114,31 @@ renderQuestionToHtml h id quest = do
     ! A.id (toValue id)
     $ do
       hn h $ do
-        H.button "" -- ▼
         preEscapedText $ quest ^. qstTitle
-        H.a
-          ! A.class_ "vscode"
-          ! A.href (toValue ("vscode://file" <> toString (quest ^. qstFilePath)))
-          $ ""
+        H.small $
+          H.a
+            ! A.class_ "vscode"
+            ! A.href (toValue ("vscode://file" <> toString (quest ^. qstFilePath)))
+            $ "(Edit)"
       H.div ! A.class_ "closed" $ do
         H.p $ preEscapedText $ quest ^. qstQuestion
+        hn (h + 1) "Answer"
         H.p $ renderAnswerToHtml $ quest ^. qstAnswer
+        H.table $ do
+          H.tr $ do
+            H.th "lecture id"
+            H.td $ toHtml (quest ^. qstLectureId)
+          H.tr $ do
+            H.th "topic id"
+            H.td $ toHtml (quest ^. qstTopicId)
+          H.tr $ do
+            H.th "path"
+            H.td $
+              H.code $
+                H.a
+                  ! A.class_ "vscode"
+                  ! A.href (toValue ("vscode://file" <> toString (quest ^. qstFilePath)))
+                  $ toHtml (quest ^. qstFilePath)
 
 renderQuestionDocument :: Meta -> FilePath -> Question -> Action Text
 renderQuestionDocument meta base quest = do
@@ -129,14 +150,14 @@ renderQuestionDocument meta base quest = do
         H.html $ do
           H.head $ do
             H.meta ! A.charset "utf-8"
-            H.style "img {width:100%;}"
             H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
-            H.script ! A.src "/support/examiner/reload.js" $ ""
+            H.script ! A.src "/support/js/quest.js" $ ""
+            H.link ! A.rel "stylesheet" ! A.href "/support/css/quest.css"
             H.title (preEscapedText $ quest ^. qstTitle)
           H.body html
 
-renderQuestionCatalog :: FilePath -> [Question] -> Action Text
-renderQuestionCatalog base questions = do
+renderQuestionBrowser :: FilePath -> [Question] -> Action Text
+renderQuestionBrowser base questions = do
   return $
     toText $
       renderHtml $
@@ -144,14 +165,59 @@ renderQuestionCatalog base questions = do
           H.head $ do
             H.meta ! A.charset "utf-8"
             H.title "Question Catalog"
-            H.script ! A.type_ "module" ! A.src "/support/examiner/catalog.js" $ ""
+            H.script ! A.type_ "module" ! A.src "/support/js/catalog.js" $ ""
             H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
-            H.script ! A.src "/support/examiner/reload.js" $ ""
-            H.link ! A.rel "stylesheet" ! A.href "/support/examiner/catalog.css"
+            H.script ! A.src "/support/js/reload.js" $ ""
+            H.link ! A.rel "stylesheet" ! A.href "/support/js/catalog.css"
           H.body $ do
-            H.header $
-              H.h1 ("Question Catalog (" <> show (length questions) <> ")")
-            rendered
+            H.header $ do
+              H.h1 ("Question Browser (" <> show (length questions) <> ")")
+              H.div ! A.class_ "panel" $ do
+                H.div ! A.class_ "lectures" $ lectureIds
+                H.div ! A.class_ "topics" $ topicIds
+                H.div ! A.class_ "questions" $ topicQuests
+                H.iframe ! A.class_ "questions" ! A.src "" $ ""
+  where
+    grouped = groupQuestions questions
+    lectureIds = toHtml $ map (lectureButton . fst) grouped
+    topicIds = toHtml $ map lectureTopics grouped
+    lectureButton lid =
+      H.button
+        ! A.type_ "radio"
+        ! A.name "lecture"
+        ! A.dataAttribute "lecture" (toValue lid)
+        $ toHtml lid
+    topicButton tid =
+      H.button
+        ! A.type_ "radio"
+        ! A.name "topic"
+        ! A.dataAttribute "topic" (toValue tid)
+        $ toHtml tid
+    questButton quest =
+      H.button
+        ! A.type_ "radio"
+        ! A.name "question"
+        ! A.dataAttribute "src" (toValue $ quest ^. qstTitle)
+        $ toHtml $ quest ^. qstTitle
+    topicQuests =
+      toHtml $
+        concatMap
+          ( \(lid, topics) ->
+              map (questTitles lid) topics
+          )
+          grouped
+    lectureTopics (lid, topics) =
+      H.div
+        ! A.dataAttribute "lecture" (toValue lid)
+        $ toHtml $ map (topicButton . fst) topics
+    questTitles lid (tid, quests) =
+      H.div
+        ! A.dataAttribute "lecture" (toValue lid)
+        ! A.dataAttribute "topic" (toValue tid)
+        $ toHtml $ map (questButton) quests
+
+groupQuestions :: [Question] -> [(Text, [(Text, [Question])])]
+groupQuestions questions = sorted
   where
     grouped :: HashMap Text (HashMap Text (NonEmpty Question))
     grouped = HashMap.map (groupBy _qstTopicId) (groupBy _qstLectureId questions)
@@ -170,15 +236,34 @@ renderQuestionCatalog base questions = do
               )
           )
           $ HashMap.toList grouped
+
+renderQuestionCatalog :: FilePath -> [Question] -> Action Text
+renderQuestionCatalog base questions = do
+  return $
+    toText $
+      renderHtml $
+        H.html $ do
+          H.head $ do
+            H.meta ! A.charset "utf-8"
+            H.title "Question Catalog"
+            H.script ! A.type_ "module" ! A.src "/support/plugins/examiner/catalog.js" $ ""
+            H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
+            H.script ! A.src "/support/js/reload.js" $ ""
+            H.link ! A.rel "stylesheet" ! A.href "/support/plugins/examiner/catalog.css"
+          H.body $ do
+            H.header $
+              H.h1 ("Question Catalog (" <> show (length questions) <> ")")
+            rendered
+  where
     rendered :: Html
-    rendered = toHtml $ map lecture sorted
+    rendered = toHtml $ map lecture (groupQuestions questions)
     lecture (lid, topics) = do
       H.div
         ! A.class_ "lecture"
         ! A.id (toValue lid)
         $ do
           H.h1 $ do
-            H.button "" -- ▼
+            H.button ""
             toHtml (lid <> " (" <> show (length topics) <> ")")
           H.div ! A.class_ "closed" $
             toHtml $ map (topic lid) topics
@@ -188,7 +273,7 @@ renderQuestionCatalog base questions = do
         ! A.id (toValue (tid <> "-" <> lid))
         $ do
           H.h2 $ do
-            H.button "▶" -- ▼
+            H.button ""
             toHtml (tid <> " (" <> show (length quests) <> ")")
           H.div ! A.class_ "closed" $
             toHtml $ map (quest 3 lid tid) $ zip [0 ..] quests
@@ -214,5 +299,6 @@ renderCatalog meta files out =
     putInfo $ "# catalog (for " <> out <> ")"
     questions <- liftIO $ mapM readQuestion files
     mapM (compileQuestionToHtml meta base) questions
-      >>= renderQuestionCatalog base
+      -- >>= renderQuestionCatalog base
+      >>= renderQuestionBrowser base
       >>= (liftIO . Text.writeFile out)

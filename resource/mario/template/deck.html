@@ -145,7 +145,7 @@ $body$
   <script type="module">
     /* Store JSON encoded Pandoc meta data in a global variable. */
     import initializeDecker from "./$decker-support-dir$/js/decker.js";
-    initializeDecker($decker-meta$);
+    initializeDecker("$decker-meta-url$");
   </script>
 
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
@@ -194,6 +194,7 @@ $body$
          whiteboardPlugin,
          sagePlugin,
          searchPlugin,
+         zoomPlugin,
          printPlugin,
          jinglesPlugin,
          quizPlugin,

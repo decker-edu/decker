@@ -1,0 +1,27 @@
+LectureId: 71-transform-ray
+TopicId: camera-offset
+Answer:
+  tag: MultipleChoice
+  Choices:
+  - Correct: true
+    TheAnswer: '$K = R_y(\pi/2)\cdot R_x(-\pi/6)\cdot T_z(d)\cdot R_z(\pi/2)$'
+  - Correct: false
+    TheAnswer: '$K = R_y(-\pi/2)\cdot T_z(d)\cdot R_x(\pi/6)\cdot R_z(\pi/2)$'
+  - Correct: false
+    TheAnswer: '$K = R_x(-\pi/2)\cdot T_z(d)\cdot R_z(\pi/6)\cdot R_y(-\pi/2)$'
+  - Correct: false
+    TheAnswer: '$K = R_x(-\pi/2)\cdot R_y(\pi/6)\cdot R_z(\pi/2)\cdot T_z(-d)$'
+Title: Kameratransformation
+Difficulty: Hard
+Comment: ""
+Points: 5
+Question: |
+    | ![Bild 1](07-moveable-camera-480x270-1000-elevated-zoom-1.png)
+    | ![Bild 2](07-moveable-camera-480x270-1000-zero.png)
+
+    Wie lautet die Kameratransformation $K$ für Bild 1 (links), wenn Bild 2
+    (rechts) derselben Szene mit einer untransformierten Kamera erzeugt wurde?
+    Nehmen Sie an, dass der Abstand der Kamera vom Mittelpunkt des Kugelkreises
+    in Bild 1 genau $d$ beträgt.
+
+

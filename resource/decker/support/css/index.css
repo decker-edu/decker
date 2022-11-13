@@ -1,0 +1,59 @@
+/* Here be CSS */
+
+@import url("../vendor/fontawesome/css/all.css");
+@import url("./structure.css");
+@import url("./style.css");
+@import url("./media.css");
+
+html {
+  color: var(--foreground-color);
+  background-color: var(--background-color);
+}
+
+body.index {
+  box-sizing: border-box;
+  font-size: 16px;
+  max-width: 52em;
+  color: var(--foreground-color);
+  background-color: var(--background-color);
+}
+
+code {
+  font-size: 100%;
+}
+
+pre > code {
+  font-size: 90%;
+}
+
+figure {
+  margin: 0;
+}
+
+p {
+  word-wrap: normal;
+}
+
+progress {
+  accent-color: initial;
+  margin: auto 0.5em;
+  width: 3em;
+}
+
+body.index table {
+  margin-left: auto;
+  margin-right: auto;
+  width: 90%;
+}
+
+body.index div.search table.search {
+  display: none;
+}
+
+body.index div.search table.search {
+  text-align: left;
+}
+
+body.index div.search.results table.search {
+  display: table;
+}

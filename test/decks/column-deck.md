@@ -5,7 +5,31 @@ subtitle: On decker slides
 title: Column Layout
 ---
 
-# Slide Masters
+# Grid Column Slides
+
+::: {.columns-2-1-1 style="some:other-css;"}
+::: cell
+Column 1
+
+Some Text
+:::
+
+::: cell
+Column 2
+
+Some Text
+:::
+
+::: cell
+Column 3
+
+Some Text
+:::
+:::
+
+::: {width="50%" height="30px" style="some-other:css;"}
+**Honey, I shrunk the divs!**
+:::
 
 --------------------------------------------------------------------------------
 
@@ -163,39 +187,39 @@ Some more Text
 
 # Slide Masters {.grid}
 
-##  {.top-left}
+## {.top-left}
 
 ![](include/06-metal.png)
 
-##  {.top}
+## {.top}
 
 ![](include/06-metal.png)
 
-##  {.top-right}
+## {.top-right}
 
 ![](include/06-metal.png)
 
-##  {.left}
+## {.left}
 
 ![](include/06-metal.png)
 
-##  {.center}
+## {.center}
 
 ![](include/06-metal.png)
 
-##  {.right}
+## {.right}
 
 ![](include/06-metal.png)
 
-##  {.bottom-left}
+## {.bottom-left}
 
 ![](include/06-metal.png)
 
-##  {.bottom}
+## {.bottom}
 
 ![](include/06-metal.png)
 
-##  {.bottom-right}
+## {.bottom-right}
 
 ![](include/06-metal.png)
 

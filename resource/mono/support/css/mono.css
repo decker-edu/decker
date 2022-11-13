@@ -61,7 +61,7 @@ div.block.accent0 {
   border: var(--block-border-width) solid var(--accent0);
 }
 div.block.accent0 h2 {
-  color: var(--shad01);
+  color: var(--shade1);
   background-color: var(--accent0);
 }
 span.accent0 {

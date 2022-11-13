@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html$if(lang)$ lang="$lang$" $endif$$if(dir)$ dir="$dir$" $endif$>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="generator" content="pandoc">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+    <script type="module">
+      /* Store JSON encoded Pandoc meta data in a global variable. */
+      import initializeDecker from "./$decker-support-dir$/js/decker.js";
+      initializeDecker("$decker-meta-url$");
+    </script>
+
+$for(author-meta)$
+    <meta name="author" content="$author-meta$">
+$endfor$
+$if(date-meta)$
+    <meta name="dcterms.date" content="$date-meta$">
+$endif$
+    <meta name="apple-mobile-web-app-capable" content="yes">
+$if(template.favicon)$
+    <link rel="shortcut icon" href="$template.favicon$">
+$endif$
+    <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+
+    
+    <!-- style sheets ------------------------------------------------------->
+
+    <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
+
+    <style class="css-declarations">
+      @media (prefers-color-scheme: light) {
+        :root {
+          $for(css-light-color-declarations)$
+            $css-light-color-declarations$
+          $endfor$
+        }
+
+        :root.dark {
+          $for(css-dark-color-declarations)$
+            $css-dark-color-declarations$
+          $endfor$
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          $for(css-dark-color-declarations)$
+            $css-dark-color-declarations$
+          $endfor$
+        }
+
+        :root.light {
+          $for(css-light-color-declarations)$
+            $css-light-color-declarations$
+          $endfor$
+        }
+      }
+      :root {
+        $for(css-declarations)$
+          $css-declarations$
+        $endfor$
+      }
+    </style>
+
+    <link rel="stylesheet" href="$decker-support-dir$/css/tudo-index.css">
+    <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
+    $for(template.index.css)$
+    <link rel="stylesheet" href="$template.index.css$">
+    $endfor$
+
+
+    <!-- setup MathJax ------------------------------------------------------>
+    <script type="module">
+      window.MathJax = {
+        loader: {
+          load: ["[tex]/ams", "[tex]/action"],
+        },
+        startup: {
+          ready: () => {
+            console.log("mathjax loaded");
+          },
+        },
+        svg: {
+          mtextInheritFont: true,
+          merrorInheritFont: true,
+        },
+        tex: {
+          tags: "ams",
+          packages: {
+            "[+]": ["ams", "action"],
+          },
+          macros: Decker.meta.math.macros,
+        },
+        options: {
+          enableMenu: false,
+        },
+      };
+      if (window.localStorage) {
+        window.localStorage.removeItem("MathJax-Menu-Settings");
+      }
+    </script>
+
+  </head>
+
+  <!-- main content ------------------------------------------------------->
+  <body class="document page" onload="initIndexPage()">
+    $for(include-before)$
+    $include-before$
+    $endfor$
+
+    <!-- page header -->
+    <header>
+    $if(template.index-page.banner)$
+    <div class="index-page-banner">
+       <img src=$template.index-page.banner$>
+    </div>
+    $endif$
+    $if(title)$
+      <h1>$title$</h1>
+      $if(subtitle)$
+      <h2>$subtitle$</h2>
+      $endif$
+    $endif$
+    </header>
+
+    <!-- table of contents -->
+    $if(toc)$
+    $if(toc-title)$
+    <h1 id="$idprefix$TOC-title class="toc-title">$toc-title$</h1>
+    $endif$
+    <nav id="$idprefix$TOC">
+        $table-of-contents$
+    </nav>
+    $endif$
+
+    <!-- main content -->
+    <main class="content">
+<!-- The following line must be left aligned! -->
+$body$
+<!-- The previous line must be left aligned! -->
+    </main>
+
+    <!-- footer with author information -->
+    $if(author)$
+    <footer>
+      $if(date)$
+      <p id="date">$date$</p>
+      $endif$
+      <p class="author">
+        © $author$$if(affiliation)$, $affiliation$ $endif$
+      </p>
+    </footer>
+    $endif$
+  </body>
+
+
+  <!-- javascript scripts ------------------------------------------------->
+
+  <script src="$decker-support-dir$/js/index.js"></script>
+
+  <script type="module">
+    import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';
+    setupFlyingFocus();
+  </script>
+
+  $for(template.page.js)$
+  <script src="$template.page.js$"></script>
+  $endfor$
+  $for(template.page.js-module)$
+  <script type="module" src="$template.page.js-module$"></script>
+  $endfor$
+
+  <script>
+    var socket = new WebSocket("ws://" + location.host + "/reload");
+    socket.onmessage = function (event) {
+      if (event.data.startsWith("reload!")) 
+        window.location.reload(true);
+    };
+  </script>
+
+  <script id="MathJax-script" src="$decker-support-dir$/vendor/mathjax/tex-svg.js"></script>
+
+  <script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
+
+</html>

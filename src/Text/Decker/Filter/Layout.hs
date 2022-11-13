@@ -16,7 +16,6 @@ import Text.Decker.Internal.Common hiding (Layout)
 import Text.Pandoc hiding (Row)
 import Text.Pandoc.Definition ()
 import Text.Pandoc.Lens
-import Text.Regex.TDFA
 
 -- | Slide layouts are rows of one ore more columns.
 data Layout
@@ -69,7 +68,7 @@ hasRowLayout block = do
   let short = map findLayout (classes block)
   listToMaybe $ catMaybes $ long : short
   where
-    findLayout l = find ((l =~) . name) layouts
+    findLayout l = find ((l ==) . name) layouts
 
 renderRow :: Text -> AreaMap -> Row -> Maybe Block
 renderRow lname areaMap (SingleColumn area) =

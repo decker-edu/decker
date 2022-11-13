@@ -8,13 +8,16 @@
 
 module Text.Decker.Filter.Media where
 
+import Conduit (runConduit, runConduitRes, sourceFile, withSourceFile, (.|))
 import Control.Monad.Catch
+import Data.Conduit.ImageSize (Size (Size, height, width), sinkImageInfo, sinkImageSize)
 import Data.List (lookup)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (fromJust)
+import Data.Maybe
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import HTMLEntities.Text (text)
+import Network.Wai.Handler.Warp (getFileInfo)
 import Relude
 import System.Directory
 import System.FilePath.Posix
@@ -115,26 +118,35 @@ compileLineBlock' images caption = do
           Just transform -> transform uri title alt
           Nothing -> error $ "No transformer for media type " <> show mediaType
 
+imageSize2 :: FilePath -> IO (Maybe (Int, Int))
+imageSize2 image =
+  handle (\(SomeException e) -> return Nothing) $ do
+    conv <$> withSourceFile image (\source -> runConduit $ source .| sinkImageSize)
+  where
+    conv (Just (Size w h)) = Just (w, h)
+    conv _ = Nothing
+
 determineAspectRatio :: (Attr, [Inline], Text, Text) -> Filter (Maybe Float)
 determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
   uri <- URI.mkURI url
   let path = uriFilePath uri
   let mediaType = classifyMedia uri attr
-  case mediaType of
+  intrinsic <- case mediaType of
     ImageT -> do
-      size <- liftIO $ imageSize path
+      size <- liftIO $ imageSize2 path
       return $ aspect <$> size
     VideoT -> do
       size <- liftIO $ videoSize path
       return $ aspect <$> size
     _ -> do
-      return $
-        asum
-          [ lookup "w:h" attribs,
-            lookup "aspect-ratio" attribs,
-            Just defaultAspectRatio
-          ]
-          >>= readRatio
+      return Nothing
+  return $
+    asum
+      [ lookup "w:h" attribs >>= readRatio,
+        lookup "aspect-ratio" attribs >>= readRatio,
+        intrinsic,
+        readRatio defaultAspectRatio
+      ]
   where
     aspect (w, h) = fromIntegral w / fromIntegral h
     readRatio :: Text -> Maybe Float
@@ -151,18 +163,18 @@ determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
 
 -- | Compiles the contents of a CodeBlock into a Decker specific structure.
 compileCodeBlock :: Attr -> Text -> [Inline] -> Filter Block
-compileCodeBlock attr@(_, classes, _) code caption =
+compileCodeBlock attr@(_, classes, _) code caption = do
   runAttr attr $ do
     media <-
       if
           | all (`elem` classes) ["plantuml", "render"] ->
-            (transform "plantuml")
+            (writeAndRenderCodeBlock "plantuml")
           | all (`elem` classes) ["dot", "render"] ->
-            (transform "dot")
+            (writeAndRenderCodeBlock "dot")
           | all (`elem` classes) ["gnuplot", "render"] ->
-            (transform "gnuplot")
+            (writeAndRenderCodeBlock "gnuplot")
           | all (`elem` classes) ["tex", "render"] ->
-            (transform "tex")
+            (writeAndRenderCodeBlock "tex")
           | all (`elem` classes) ["javascript", "run"] ->
             (javascriptCodeBlock code caption)
           | otherwise ->
@@ -174,11 +186,13 @@ compileCodeBlock attr@(_, classes, _) code caption =
       extractAttr
     return $ mkContainer attribs [media]
   where
-    transform :: Text -> Attrib Block
-    transform ext = do
+    writeAndRenderCodeBlock :: Text -> Attrib Block
+    writeAndRenderCodeBlock ext = do
       dropClass ext
-      -- disp <- show <$> lift (gets dispo)
-      let crc = printf "%08x" (calc_crc32 $ toString code)
+      disp <- show <$> lift (gets dispo)
+      -- Add disposition to the CRC32 value to prevent collision between
+      -- concurrent Deck and Handout references to the same code block.
+      let crc = printf "%08x" (calc_crc32 $ disp <> toString code)
       let path =
             transientDir </> "code"
               </> intercalate "-" ["code", crc]
@@ -186,7 +200,7 @@ compileCodeBlock attr@(_, classes, _) code caption =
       -- Avoid a possible race condition when the same code block content is
       -- used twice and written only when the file does not yet exist: Just do
       -- not prematurely optimise by testing for existence first and atomically
-      -- write the file.
+      -- write the file. This does not help on Windows.
       liftIO $ do
         createDirectoryIfMissing True (takeDirectory path)
         tmp <- uniqueTransientFileName path
@@ -252,18 +266,20 @@ imageBlock uri title caption = do
       containOne $
         Image imgAttr [Str fileName] (turl, "")
 
+-- |  Reads source code from a local file and wraps it in a pre tag.
 includeCodeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 includeCodeBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   code <- lift $ readLocalUri uri
   codeBlock code caption
 
--- |  Compiles the image data to a plain image.
+-- |  Converts the contents of a code block to a standard pre tag.
 codeBlock :: Container c => Text -> [Inline] -> Attrib c
 codeBlock code caption = do
   (innerSizes, outerSizes) <- calcImageSizes
   codeAttr <- do
     takeAllClasses
+    injectClasses ["processed"]
     injectStyles innerSizes
     takeAttributes ["style"]
     takeData
@@ -367,7 +383,7 @@ streamBlock uri title caption = do
   (innerSizes, outerSizes) <- calcIframeSizes
   iframeAttr <- do
     takeAutoplay
-    injectAttribute ("src", URI.render streamUri)
+    injectAttribute ("data-src", URI.render streamUri)
     injectAttribute ("allow", "fullscreen")
     injectStyles innerSizes
     extractAttr
@@ -439,7 +455,8 @@ videoBlock uri title caption = do
     extractAttr
   return $ wrapFigure figureAttr caption $ mkVideo videoAttr
 
--- |  Compiles the image data to a plain image.
+-- | Assumes an SVG image has been produced from some source and constructs an
+-- image around it.
 renderCodeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 renderCodeBlock uri title caption = do
   turi <- lift $ transformUri uri "svg"
@@ -462,7 +479,8 @@ renderCodeBlock uri title caption = do
       containOne $
         Image imgAttr [Str fileName] (turl, "")
 
--- |  Compiles the image data to a plain image.
+-- |  Transforms an image tag to script tag using the image url as src. Only
+-- supports ES6 modules.
 javascriptBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 javascriptBlock uri title caption = do
   id <- liftIO randomId
@@ -485,8 +503,24 @@ javascriptBlock uri title caption = do
     extractAttr
   return $
     wrapFigure' figureAttr caption $
-      renderJavascript' imgAttr furi
+      renderJavascript imgAttr furi
+  where
+    renderJavascript :: Container c => Attr -> URI -> [c]
+    renderJavascript attr uri =
+      [ mkContainer attr [],
+        mkContainer
+          ( "",
+            [],
+            [ ("data-tag", "script"),
+              ("src", URI.render uri),
+              ("type", "module")
+            ]
+          )
+          []
+      ]
 
+-- | Inserts the contents of the code block into a script tag. Only supports ES6
+-- modules.
 javascriptCodeBlock :: Text -> [Inline] -> Attrib Block
 javascriptCodeBlock code caption = do
   (innerSizes, outerSizes) <- calcImageSizes
@@ -507,29 +541,15 @@ javascriptCodeBlock code caption = do
   return $
     wrapFigure' figureAttr caption $
       renderJavascript id imgAttr code
-
-renderJavascript :: Container c => Text -> Attr -> Text -> [c]
-renderJavascript id attr code =
-  let anchor = "let anchor = document.getElementById(\"" <> id <> "\");\n"
-   in [ mkContainer attr [],
-        mkContainer
-          ("", [], [("data-tag", "script"), ("type", "module"), ("defer", "")])
-          [mkRaw' (anchor <> code)]
-      ]
-
-renderJavascript' :: Container c => Attr -> URI -> [c]
-renderJavascript' attr uri =
-  [ mkContainer attr [],
-    mkContainer
-      ( "",
-        [],
-        [ ("data-tag", "script"),
-          ("src", URI.render uri),
-          ("type", "module")
-        ]
-      )
-      []
-  ]
+  where
+    renderJavascript :: Container c => Text -> Attr -> Text -> [c]
+    renderJavascript id attr code =
+      let anchor = "let anchor = document.getElementById(\"" <> id <> "\");\n"
+       in [ mkContainer attr [],
+            mkContainer
+              ("", [], [("data-tag", "script"), ("type", "module"), ("defer", "")])
+              [mkRaw' (anchor <> code)]
+          ]
 
 -- |  Wraps any container in a figure. Adds a caption element if the caption is
 --  not empty.
@@ -605,7 +625,7 @@ instance Container Block where
   mkVideo a = tag "video" $ Div a []
   mkAudio a = tag "audio" $ Div a []
   mkObject a = tag "object" $ Div a []
-  mkPre a t = CodeBlock a t
+  mkPre a t = CodeBlock (addClass "processed" a) t
   mkRaw a t = Div a [RawBlock "html" t]
   mkRaw' t = RawBlock "html" t
   containSome = Plain

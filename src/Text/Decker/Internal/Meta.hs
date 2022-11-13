@@ -4,41 +4,44 @@ module Text.Decker.Internal.Meta
   ( DeckerException (..),
     FromMetaValue (..),
     addMetaValue,
-    globalMetaFileName,
-    mergePandocMeta,
-    pandocMeta,
-    setMetaValue,
-    readMetaValue,
-    adjustMetaValue,
-    adjustMetaValueM,
+    addMetaKeyValue,
     adjustMetaStringsBelow,
     adjustMetaStringsBelowM,
-    toPandocMeta,
-    toPandocMeta',
+    adjustMetaValue,
+    adjustMetaValueM,
+    embedMetaMeta,
+    fromPandocMeta,
+    globalMetaFileName,
     isMetaSet,
+    lookupInDictionary,
     lookupMeta,
     lookupMetaOrElse,
     lookupMetaOrFail,
-    lookupInDictionary,
     mapMeta,
     mapMetaM,
     mapMetaValues,
     mapMetaValuesM,
     mapMetaWithKey,
+    mergePandocMeta,
+    pandocMeta,
     readMetaDataFile,
-    embedMetaMeta,
+    readMetaValue,
+    setMetaValue,
+    toPandocMeta',
+    toPandocMeta,
   )
 where
 
 import Control.Exception
 import qualified Data.Aeson as A
-import qualified Data.HashMap.Strict as H
+import qualified Data.Aeson.Encode.Pretty as A
+import qualified Data.Aeson.Key as Key
+import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.List as List
 import Data.List.Safe ((!!))
 import qualified Data.Map.Lazy as Map
 import qualified Data.Map.Strict as M
 import Data.Maybe
-import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Data.Vector as Vec
 import qualified Data.Yaml as Y
@@ -52,11 +55,12 @@ import Text.Pandoc.Shared hiding (toString, toText)
 globalMetaFileName = "decker.yaml"
 
 -- TODO extract this value from global meta data.
-replaceLists :: [Text]
-replaceLists = ["math.macros", "palette.colors"]
+replaceLists :: [[Text]]
+replaceLists = [["math", "macros"], ["palette", "colors"]]
 
 shouldMerge :: [Text] -> Bool
-shouldMerge path = not $ any (`Text.isPrefixOf` Text.intercalate "." path) replaceLists
+-- shouldMerge path = not $ any (`Text.isPrefixOf` Text.intercalate "." path) replaceLists
+shouldMerge path = not $ any (`List.isPrefixOf` path) replaceLists
 
 -- | Fine-grained recursive merge of two meta values. Left-biased. Lists are
 -- merged by default, but replaced if the key path is in `replaceLists`.
@@ -71,7 +75,9 @@ mergePandocMeta (Meta left) (Meta right) =
       MetaMap $ Map.unionWithKey (merge (concat path key)) mapL mapR
     merge path key (MetaList listL) (MetaList listR)
       | shouldMerge (concat path key) =
-        MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
+        -- MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
+        -- This should be stable and result in a more predictable order
+        MetaList $ List.nub $ listR <> listL
     merge path key left right = left
     concat path "" = path
     concat path key = path <> [key]
@@ -86,7 +92,7 @@ toPandocMeta _ = Meta M.empty
 
 toPandocMeta' :: Y.Value -> MetaValue
 toPandocMeta' (Y.Object m) =
-  MetaMap $ Map.fromList $ map (second toPandocMeta') $ H.toList m
+  MetaMap $ Map.fromList $ map (bimap Key.toText toPandocMeta') $ KeyMap.toList m
 toPandocMeta' (Y.Array vector) =
   MetaList $ map toPandocMeta' $ Vec.toList vector
 -- Playing around with #317
@@ -108,7 +114,7 @@ fromPandocMeta :: Meta -> A.Value
 fromPandocMeta (Meta map) = fromPandocMeta' (MetaMap map)
 
 fromPandocMeta' :: MetaValue -> A.Value
-fromPandocMeta' (MetaMap map) = A.Object (H.fromList $ Map.toList $ Map.map fromPandocMeta' map)
+fromPandocMeta' (MetaMap map) = A.Object (KeyMap.fromList $ List.map (first Key.fromText) $ Map.toList $ Map.map fromPandocMeta' map)
 fromPandocMeta' (MetaList list) = A.Array (Vec.fromList $ List.map fromPandocMeta' list)
 fromPandocMeta' (MetaBool value) = A.Bool value
 fromPandocMeta' (MetaString value) =
@@ -158,7 +164,7 @@ setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
         InternalException $ "Cannot set meta value on non object at: " <> show key
 
 readMetaValue :: Text -> Text -> Meta -> Meta
-readMetaValue key value = setMetaValue key (maybe value show $ (readMaybe (toString value) :: Maybe Bool))
+readMetaValue key value = setMetaValue key (maybe value show (readMaybe (toString value) :: Maybe Bool))
 
 -- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
 -- Apply the function to the value if the key exists.
@@ -233,6 +239,25 @@ addMetaValue key value meta =
       throw $
         InternalException $
           "Cannot add meta value to non list at: " <> toString key
+
+-- | Adds a meta value to the map found at the compund key in the meta data.
+-- If any intermediate containers do not exist, they are created.
+addMetaKeyValue :: Text -> Text -> MetaValue -> Meta -> Meta
+addMetaKeyValue loc key value meta =
+  case add (splitKey loc) (MetaMap (unMeta meta)) of
+    MetaMap map -> Meta map
+    _ -> meta
+  where
+    add [] (MetaMap m) = MetaMap $ M.insert key value m
+    add [""] (MetaMap m) = MetaMap $ M.insert key value m
+    add (k : p) (MetaMap m) =
+      case M.lookup k m of
+        Just value -> MetaMap $ M.insert k (add p value) m
+        _ -> MetaMap $ M.insert k (add p $ MetaMap M.empty) m
+    add _ _ =
+      throw $
+        InternalException $
+          "Cannot add meta value to non list at: " <> toString loc
 
 pandocMeta :: (Text -> Meta -> Maybe a) -> Pandoc -> Text -> Maybe a
 pandocMeta f (Pandoc m _) = flip f m
@@ -345,7 +370,7 @@ mapMetaM f meta = do
 -- future.
 mapMetaValuesM ::
   (MonadFail m, Monad m) => (Text -> m Text) -> MetaValue -> m MetaValue
-mapMetaValuesM f value = map' value
+mapMetaValuesM f = map'
   where
     map' (MetaMap m) =
       MetaMap . Map.fromList
@@ -359,7 +384,7 @@ mapMetaValuesM f value = map' value
 -- Converts MetaInlines to MetaStrings. This may be a problem in some distant
 -- future.
 mapMetaValues :: (Text -> Text) -> MetaValue -> MetaValue
-mapMetaValues f value = map' value
+mapMetaValues f = map'
   where
     map' (MetaMap m) =
       MetaMap . Map.fromList $ map (\(k, v) -> (k,) $ map' v) (Map.toList m)
@@ -397,4 +422,4 @@ readMetaDataFile file =
 embedMetaMeta :: Pandoc -> Pandoc
 embedMetaMeta (Pandoc meta blocks) = Pandoc metaMeta blocks
   where
-    metaMeta = addMetaField "decker-meta" (decodeUtf8 $ A.encode $ fromPandocMeta meta :: Text) meta
+    metaMeta = addMetaField "decker-meta" (decodeUtf8 $ A.encodePretty $ fromPandocMeta meta :: Text) meta
