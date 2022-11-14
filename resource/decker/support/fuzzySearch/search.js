@@ -113,6 +113,7 @@ function setup(index, anchor, minScore, showDeckTitles, showDeckSubtitles) {
       while (results.firstChild) {
         results.removeChild(results.firstChild);
       }
+      anchor.classList.remove("results");
     }
   });
 
