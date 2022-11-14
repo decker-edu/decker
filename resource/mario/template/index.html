@@ -64,7 +64,9 @@ $endif$
     </style>
 
     <link rel="stylesheet" href="$decker-support-dir$/css/mario-index.css">
-
+    $for(template.css)$
+    <link rel="stylesheet" href="$template.css$"/>
+    $endfor$
 
     <!-- setup MathJax ------------------------------------------------------>
     <script type="module">
