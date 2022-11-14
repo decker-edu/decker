@@ -636,6 +636,12 @@ div.grid-layout {
   /* text-align: center; */
 }
 
+/* override Henrik's width=100% */
+.reveal figure > img,
+.reveal figure > video {
+  width: auto;
+}
+
 /*********************************************
    * PROGRESS BAR
    *********************************************/

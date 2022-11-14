@@ -69,25 +69,47 @@ palette:
 # Will be included as text into css, 
 # hence calc and var works and will then be executed during load-time
 css-variables:
-  active-color: rgb(42,157,223)
-  align-global: left
-  # background-color: rgb(250,250,250)
-  border-decoration-padding: 10px
-  border-decoration-style: solid
-  border-decoration-width: 20px
-  icon-size: 2vmin
-  inactive-color: lightgrey
-  margin-columns: 1em
+  font-family: "Roboto"
   font-size-base: 28px
-  spacing-vertical-base: 0.5em
+  # active-color: rgb(255,0,0) don't know where used
+  inactive-color: lightgrey
+  icon-size: 2vmin
+  margin-columns: 1em
   # Fill in some variables used in decker/support/css/*.css
-  block-border-width: var(--border-decoration-width)
-  block-outset: var(--border-decoration-padding)
-  vertical-margin: var(--spacing-vertical-base)
+  block-border-width: 1rem 
+  block-border-padding: 1rem
+  block-border-style: solid 
+  vertical-margin: 0.7rem 
 
 # Use CSS augmentation without changes to the default template
 template:
   css: support/css/wburg.css
 
+
+
 math:
   scale: 0.9
+  macros:
+    R: '{{\mathrm{{I}\kern-.15em{R}}}}'
+    laplace: '{\Delta}'
+    grad: '{\nabla}'
+    T: '^{\mathsf{T}}'
+    abs: ['\left\lvert #1 \right\rvert', 1]
+    det: ['\left\lvert #1 \right\rvert', 1]
+    norm: ['\left\Vert #1 \right\Vert', 1]
+    iprod: ['\left\langle #1 \right\rangle', 1]
+    vec: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    mat: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    set: ['\mathcal{#1}', 1]
+    func: ['\mathrm{#1}', 1]
+    trans: ['{#1}\mkern-1mu^{\mathsf{T}}', 1]
+    matrix: ['\begin{bmatrix} #1 \end{bmatrix}', 1]
+    vector: ['\begin{pmatrix} #1 \end{pmatrix}', 1]
+    of: ['\left( #1 \right\)', 1]
+    diff: ['\frac{\mathrm{d}{#1}}{\mathrm{d}{#2}}', 2]
+    pdiff: ['\frac{\partial {#1}}{\partial {#2}}', 2]
+    vc: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    qt: ['\hat{\vc {#1}}', 1]
+    mt: ['{\mathbf{\boldsymbol{#1}}}', 1]
+    pt: ['\boldsymbol{#1}', 1]
+    textcolor: ['\color{#1}', 1]

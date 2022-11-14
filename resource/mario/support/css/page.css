@@ -1,5 +1,6 @@
-@import url("../vendor/css/light.min.css");
+@import url("light.min.css");
 @import url("../vendor/fontawesome/css/all.css");
+
 div.column {
   display: inline-block;
   vertical-align: top;

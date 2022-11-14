@@ -41,7 +41,7 @@ demoExt = [".html", ".htm", ".php"]
 -- | File-extensions that should be treated as 3D model and will be shown with Mario's viewer
 -- in an iframe
 meshExt :: [String]
-meshExt = [".off", ".obj", ".stl", ".pmp", ".ply", ".xyz"]
+meshExt = [".off", ".obj", ".stl", ".pmp", ".ply", ".xyz", ".agi"]
 
 -- | main media-plugin.
 --

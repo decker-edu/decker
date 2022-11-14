@@ -65,7 +65,7 @@ renderExt = ["dot", "gnuplot", "tex", "plantuml"]
 
 javascriptExt = ["js"]
 
-mviewExt = ["off", "obj", "stl", "ply", "pmp"]
+mviewExt = ["off", "obj", "stl", "ply", "pmp", "xyz", "agi"]
 
 streamScheme = ["youtube", "vimeo", "twitch", "veer", "veer-photo"]
 

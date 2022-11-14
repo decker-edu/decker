@@ -63,13 +63,10 @@ $endif$
       }
     </style>
 
-    <link rel="stylesheet" href="$decker-support-dir$/css/index.css">
-    <link rel="stylesheet" href="$decker-support-dir$/css/tudo-index.css">
-    <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
-    $for(template.index.css)$
-    <link rel="stylesheet" href="$template.index.css$">
+    <link rel="stylesheet" href="$decker-support-dir$/css/mario-index.css">
+    $for(template.css)$
+    <link rel="stylesheet" href="$template.css$"/>
     $endfor$
-
 
     <!-- setup MathJax ------------------------------------------------------>
     <script type="module">
@@ -105,7 +102,7 @@ $endif$
   </head>
 
   <!-- main content ------------------------------------------------------->
-  <body class="index" onload="initIndexPage()">
+  <body class="document page" onload="initIndexPage()">
     $for(include-before)$
     $include-before$
     $endfor$
@@ -181,7 +178,5 @@ $body$
   </script>
 
   <script id="MathJax-script" src="$decker-support-dir$/vendor/mathjax/tex-svg.js"></script>
-
-  <script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
 
 </html>
