@@ -341,17 +341,22 @@ async function captureMicrophone() {
   console.log("get voice stream");
   console.log("mic id: " + micSelect.value);
 
-  voiceStream = await navigator.mediaDevices.getUserMedia({
-    video: false,
-    audio: {
-      deviceId: micSelect.value ? { exact: micSelect.value } : undefined,
-      echoCancellation: false,
-      noiseSuppression: true,
-    },
-  });
+  try {
+    voiceStream = await navigator.mediaDevices.getUserMedia({
+      video: false,
+      audio: {
+        deviceId: micSelect.value ? { exact: micSelect.value } : undefined,
+        echoCancellation: false,
+        noiseSuppression: true,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    voiceStream = undefined;
+  }
 
   // if mic capture succeeded...
-  if (voiceStream.getAudioTracks().length > 0) {
+  if (voiceStream && voiceStream.getAudioTracks().length > 0) {
     // ...update GUI
     const selectedMicrophone = voiceStream.getAudioTracks()[0].label;
     voiceIndicator.title = selectedMicrophone;
@@ -391,18 +396,23 @@ async function captureCamera() {
   console.log("cam id: " + camSelect.value);
 
   // get camera stream
-  cameraStream = await navigator.mediaDevices.getUserMedia({
-    video: {
-      deviceId: camSelect.value ? { exact: camSelect.value } : undefined,
-      width: camWidth,
-      height: camHeight,
-      frameRate: { max: 30 },
-    },
-    audio: false,
-  });
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        deviceId: camSelect.value ? { exact: camSelect.value } : undefined,
+        width: camWidth,
+        height: camHeight,
+        frameRate: { max: 30 },
+      },
+      audio: false,
+    });
+  } catch (error) {
+    console.error(error);
+    cameraStream = undefined;
+  }
 
   // if camera capture succeeded...
-  if (cameraStream.getVideoTracks().length > 0) {
+  if (cameraStream && cameraStream.getVideoTracks().length > 0) {
     // ...update GUI
     const selectedCamera = cameraStream.getVideoTracks()[0].label;
     const cameraSettings = cameraStream.getVideoTracks()[0].getSettings();
@@ -1532,6 +1542,10 @@ function setupGreenScreen() {
 
 function toggleCamera() {
   if (uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")) {
+    if (!cameraStream) {
+      window.showInformation(localization.no_camera_stream);
+      return;
+    }
     if (cameraPanel.classList.toggle("visible")) {
       if (cameraVideo.srcObject !== cameraStream) {
         cameraVideo.srcObject = cameraStream;
@@ -1809,6 +1823,7 @@ const Plugin = {
       append: "Append",
       replace: "Replace",
       cancel: "Cancel",
+      no_camera_stream: "No camera stream available.",
       replacement_title: "Append or Replace?",
       replacement_warning:
         "There is already a recording for this presentation. \
@@ -1822,6 +1837,7 @@ const Plugin = {
         append: "Anhängen",
         replace: "Ersetzen",
         cancel: "Abbrechen",
+        no_camera_stream: "Kein Kamerastream verfügbar.",
         replacement_title: "Anhängen oder Ersetzen?",
         replacement_warning:
           "Es existiert bereits eine Aufnahme. \
