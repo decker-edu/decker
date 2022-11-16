@@ -69,7 +69,7 @@ h1 {
 
 h2 {
   font-size: 1.25rem;
-  margin-top: 0.5em;
+  margin-top: 1em;
   font-family: monospace;
 }
 
@@ -93,7 +93,7 @@ html {
   position: relative;
 }
 
-body.index {
+body {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -103,7 +103,6 @@ body.index {
   margin: auto;
   width: 100%;
   height: 100%;
-  max-width: 100%;
   line-height: 1.3; /* It is said 1.5 improves readability */
 }
 
