@@ -148,13 +148,13 @@ em {
 
 /* Title page */
 .title-page .banner img {
-  margin: 0px 0px 10px 0px;
+  margin: 0px 0px 0px 0px;
   width: 100%;
   object-fit: contain;
 }
 
 .title-page .title {
-  margin: 0px;
+  margin: 20px 0px;
   width: 100%;
   display: block;
   padding: 0px;
@@ -172,29 +172,32 @@ em {
 }
 
 .title-page .teaser-img {
-  margin: 20px auto;
+  margin: var(--title-page-vertical-margin) auto;
   height: 10%;
   width: auto;
   display: block;
 }
 
 .title-page .teaser-img img {
-  margin: 0px;
-  /* Center horizontally */
-  display: block;
-  margin: auto;
-  /* Make the image as max 250px high retaining aspect ratio */
-  object-fit: contain;
-  max-height: 250px;
-  width: auto;
+   margin: var(--title-page-vertical-margin) auto;
+   /* Center horizontally */
+   display: block;
+   /* Make the image as max 250px high retaining aspect ratio */
+   object-fit: contain;
+   max-height: 250px;
+   width: auto;
 }
 
 .title-page .date {
+  margin: 0;
+  font-weight: normal;
+  font-style: normal;
+  font-size: var(--font-size-normal);
   text-align: center;
 }
 
 .title-page .author {
-  margin: 0px;
+  margin: 0;
   font-weight: normal;
   font-style: normal;
   font-size: var(--font-size-normal);
@@ -202,8 +205,8 @@ em {
 }
 
 .title-page .affiliation-logo img {
-  margin: 0px 0 0 0;
-  height: 70px;
+  margin: calc(0.1 * var(--title-page-vertical-margin)) 0;
+  height: var(--title-page-affiliation-logo-height);
   width: auto;
   object-fit: contain;
   display: block;
@@ -212,7 +215,7 @@ em {
 }
 
 .title-page .affiliation {
-  margin: 0px 0 0 0;
+  margin: 0;
   font-weight: normal;
   font-style: normal;
   font-size: var(--font-size-normal);
@@ -250,7 +253,10 @@ div.block {
    border-width: 0 0 0 var(--block-border-width);
    padding: 0 0 0 var(--block-border-padding);
    /* padding-left: var(--block-border-padding); */
-   /* margin-bottom: calc(1 * var(--vertical-margin)); */
+   /* The next one is needed since the margins below blocks is missing 
+   and it seems that the !important setting im styles.css in the 
+   decker template kind oif collapses this one */
+   margin-bottom: calc(1 * var(--vertical-margin)) !important; 
  }
 
  /* Stretch the block header margin to the block border so that highlighting
