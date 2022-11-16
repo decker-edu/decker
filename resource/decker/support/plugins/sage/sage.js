@@ -91,13 +91,13 @@ function prepareSAGE() {
     // replace <pre> by <div>.compute
     // replace <code> by <script>
     for (let code of sageCell.querySelectorAll("pre>code")) {
-      var pre = code.parentElement;
+      let pre = code.parentElement;
 
-      var script = document.createElement("script");
+      let script = document.createElement("script");
       script.innerHTML = code.innerText; // don't use code.innerHTML, it's escaped
       script.type = "text/x-sage";
 
-      var div = document.createElement("div");
+      let div = document.createElement("div");
       div.classList = pre.classList;
       div.classList.add("compute");
       div.appendChild(script);
@@ -106,29 +106,26 @@ function prepareSAGE() {
     }
 
     // construct data-url for whole SAGE page
-    var url = build_sage_url(sageCell.innerHTML);
+    let url = build_sage_url(sageCell.innerHTML);
 
     // construct iframe with data-url as data-src, such that
     // it be lazy-loaded by Reveal
-    var iframe = document.createElement("iframe");
-    iframe.classList.add("decker");
-    if (sageCell.classList.contains("stretch")) {
-      iframe.classList.add("stretch");
-      sageCell.classList.remove("stretch");
-    } else {
-      iframe.style.width =
-        sageCell.getAttribute("width") || sageCell.style.width || "100%";
-      iframe.style.height =
-        sageCell.getAttribute("height") || sageCell.style.height || "500px";
-    }
-    if (sageCell.classList.contains("print")) {
-      iframe.classList.add("print");
-    }
+    let iframe = document.createElement("iframe");
+    if (sageCell.classList.contains("print")) iframe.classList.add("print");
     iframe.sandbox = "allow-scripts allow-same-origin";
     iframe.setAttribute("data-src", url);
 
+    // construct enclosing figure element
+    let figure = document.createElement("figure");
+    figure.classList.add("iframe");
+    figure.style.width =
+      sageCell.getAttribute("width") || sageCell.style.width || "100%";
+    figure.style.height =
+      sageCell.getAttribute("height") || sageCell.style.height || "500px";
+    figure.appendChild(iframe);
+
     // don't need original sageCell anymore
-    sageCell.replaceWith(iframe);
+    sageCell.replaceWith(figure);
   }
 }
 
