@@ -79,7 +79,10 @@ css-variables:
   block-border-width: 1rem 
   block-border-padding: 1rem
   block-border-style: solid 
-  vertical-margin: 0.7rem 
+  vertical-margin: 0.7rem
+  title-page-affiliation-logo-height: 70px
+  title-page-vertical-margin: 1em
+  
 
 # Use CSS augmentation without changes to the default template
 template:
