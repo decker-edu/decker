@@ -466,9 +466,61 @@ function mergeStreams() {
   });
 }
 
+async function getDevices() {
+  // collect list of cameras and microphones
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    devices.forEach((device) => {
+      switch (device.kind) {
+        case "audioinput": {
+          const option = document.createElement("option");
+          option.value = device.deviceId;
+          option.text = device.label || `microphone ${micSelect.length + 1}`;
+          micSelect.add(option);
+          break;
+        }
+        case "videoinput": {
+          const option = document.createElement("option");
+          option.value = device.deviceId;
+          option.text = device.label || `camera ${camSelect.length + 1}`;
+          camSelect.add(option);
+          break;
+        }
+      }
+    });
+
+    // select previously chosen camera
+    camSelect.selectedIndex = -1;
+    const selectedCamera = localStorage.getItem("decker-camera");
+    if (selectedCamera) {
+      for (let i = 0; i < camSelect.options.length; i++) {
+        if (camSelect.options[i].text == selectedCamera) {
+          camSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    // select previously chosen microphone
+    micSelect.selectedIndex = -1;
+    const selectedMicrophone = localStorage.getItem("decker-microphone");
+    if (selectedMicrophone) {
+      for (let i = 0; i < micSelect.options.length; i++) {
+        if (micSelect.options[i].text == selectedMicrophone) {
+          micSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+  } catch (e) {
+    console.log("cannot list microphones and cameras:" + e);
+  }
+}
+
 async function setupRecorder() {
   try {
     stream = null;
+
+    await getDevices();
 
     // capture video/audio stream of desktop signal
     await captureScreen();
@@ -1193,54 +1245,6 @@ async function createRecordingGUI() {
     classes: "capture-size",
     parent: row,
   });
-
-  // collect list of cameras and microphones
-  try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    devices.forEach((device) => {
-      switch (device.kind) {
-        case "audioinput": {
-          const option = document.createElement("option");
-          option.value = device.deviceId;
-          option.text = device.label || `microphone ${micSelect.length + 1}`;
-          micSelect.add(option);
-          break;
-        }
-        case "videoinput": {
-          const option = document.createElement("option");
-          option.value = device.deviceId;
-          option.text = device.label || `camera ${camSelect.length + 1}`;
-          camSelect.add(option);
-          break;
-        }
-      }
-    });
-
-    // select previously chosen camera
-    camSelect.selectedIndex = -1;
-    const selectedCamera = localStorage.getItem("decker-camera");
-    if (selectedCamera) {
-      for (let i = 0; i < camSelect.options.length; i++) {
-        if (camSelect.options[i].text == selectedCamera) {
-          camSelect.selectedIndex = i;
-          break;
-        }
-      }
-    }
-    // select previously chosen microphone
-    micSelect.selectedIndex = -1;
-    const selectedMicrophone = localStorage.getItem("decker-microphone");
-    if (selectedMicrophone) {
-      for (let i = 0; i < micSelect.options.length; i++) {
-        if (micSelect.options[i].text == selectedMicrophone) {
-          micSelect.selectedIndex = i;
-          break;
-        }
-      }
-    }
-  } catch (e) {
-    console.log("cannot list microphones and cameras:" + e);
-  }
 
   row = createElement({
     type: "div",
