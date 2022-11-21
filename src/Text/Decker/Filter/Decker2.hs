@@ -71,6 +71,9 @@ mediaBlockListFilter blocks = do
     filterPairs (CodeBlock attr code, Para (Str "Caption:" : caption))
       | unprocessed attr =
         Just . single <$> compileCodeBlock attr code caption
+    -- An block quote followed by an explicit caption paragraph.
+    filterPairs (BlockQuote quote, Para (Str "Caption:" : caption)) =
+      Just . single <$> compileBlockQuote quote caption
     -- Any number of consecutive images in a masonry row.
     filterPairs (LineBlock [], Para (Str "Caption:" : caption)) = return Nothing
     filterPairs (LineBlock lines, Para (Str "Caption:" : caption))
@@ -103,6 +106,9 @@ mediaBlockFilter (Para [Image attr alt (url, title)])
 mediaBlockFilter (CodeBlock attr code)
   | unprocessed attr =
     compileCodeBlock attr code []
+-- A solitary blockquote with a possible caption.
+mediaBlockFilter (BlockQuote quote) =
+  compileBlockQuote quote []
 -- Any number of consecutive images in a masonry row.
 mediaBlockFilter (LineBlock lines)
   | oneImagePerLine lines =

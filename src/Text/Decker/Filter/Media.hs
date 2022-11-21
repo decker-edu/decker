@@ -210,6 +210,12 @@ compileCodeBlock attr@(_, classes, _) code caption = do
       uri <- lift $ URI.mkURI (toText path)
       renderCodeBlock uri "" caption
 
+compileBlockQuote :: [Block] -> [Inline] -> Filter Block
+compileBlockQuote quote caption =
+  return $
+    wrapFigure nullAttr caption $
+      mkQuote quote
+
 dragons :: (Text, [Text], [a])
 dragons = ("", ["here be dragons"], [])
 
@@ -588,6 +594,7 @@ class Container a where
   mkVideo :: Attr -> a
   mkAudio :: Attr -> a
   mkObject :: Attr -> a
+  mkQuote :: [Block] -> a
   mkPre :: Attr -> Text -> a
   mkRaw :: Attr -> Text -> a
   mkRaw' :: Text -> a
@@ -604,6 +611,7 @@ instance Container Inline where
   mkVideo a = tag "video" $ Span a []
   mkAudio a = tag "audio" $ Span a []
   mkObject a = tag "object" $ Span a []
+  mkQuote a = error "Inline element not allowed in this context."
   mkPre a t =
     Span
       (addClass "pre" a)
@@ -625,6 +633,7 @@ instance Container Block where
   mkVideo a = tag "video" $ Div a []
   mkAudio a = tag "audio" $ Div a []
   mkObject a = tag "object" $ Div a []
+  mkQuote blocks = BlockQuote blocks
   mkPre a t = CodeBlock (addClass "processed" a) t
   mkRaw a t = Div a [RawBlock "html" t]
   mkRaw' t = RawBlock "html" t
