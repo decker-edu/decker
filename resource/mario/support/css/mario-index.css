@@ -179,6 +179,7 @@ details summary {
   margin-left: -1em;
   margin-right: -1em;
   margin-top: -1em;
+  margin-bottom: 0em;
   padding: 4px;
   padding-left: 0.5rem;
   border-radius: 8px;
@@ -187,6 +188,7 @@ details summary {
   outline: none;
   cursor: pointer;
   font-weight: normal;
+  font-size: 1em;
 }
 
 details[open] > summary {

@@ -122,11 +122,11 @@ deriveColors palette contrast existing =
             cFfg = toHex (blend (2 * contrast) fg color)
          in Map.union colors $
               Map.fromList
-                [ (printfT "base%0.2X-bbg" i, cBbg),
-                  (printfT "base%0.2X-bg" i, cBg),
-                  (printfT "base%0.2X" i, c),
-                  (printfT "base%0.2X-fg" i, cFg),
-                  (printfT "base%0.2X-ffg" i, cFfg),
+                [ (printfT "base%0.2X-bbg" (i + nShades), cBbg),
+                  (printfT "base%0.2X-bg" (i + nShades), cBg),
+                  (printfT "base%0.2X" (i + nShades), c),
+                  (printfT "base%0.2X-fg" (i + nShades), cFg),
+                  (printfT "base%0.2X-ffg" (i + nShades), cFfg),
                   (printfT "accent%d-bbg" i, cBbg),
                   (printfT "accent%d-bg" i, cBg),
                   (printfT "accent%d" i, c),
