@@ -520,7 +520,10 @@ async function setupRecorder() {
   try {
     stream = null;
 
-    await getDevices();
+    // if we call this the first time, collect cameras and microphones
+    if (camSelect.childElementCount + micSelect.childElementCount == 0) {
+      await getDevices();
+    }
 
     // capture video/audio stream of desktop signal
     await captureScreen();
