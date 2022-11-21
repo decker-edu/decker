@@ -546,12 +546,16 @@ async function setupRecorder() {
     pauseButton.disabled = true;
     stopButton.disabled = true;
 
+    // open panel to select camera and mic
+    openRecordPanel();
+
     return true;
   } catch (e) {
     console.error(e);
     alert(
       `Recording setup failed.\n${e.message}\nRecording only works on Chrome. Also, the deck must be accessed via a URL that starts with either of \n\n- http://localhost\n- https://`
     );
+    return false;
   }
 }
 
@@ -1692,11 +1696,8 @@ async function setupPlayer() {
       videoExists = await resourceExists(explainVideoUrl);
       timesExists = await resourceExists(explainTimesUrl);
     }
-    // console.log(explainVideoUrl, videoExists, explainTimesUrl, timesExists);
-    // console.log(explainTimesUrl, timesExists);
 
     if (videoExists && timesExists) {
-      // if (timesExists) {
       explainTimesPlay = await fetchResourceJSON(explainTimesUrl);
       player.src({ type: "video/mp4", src: explainVideoUrl });
 
@@ -1709,7 +1710,6 @@ async function setupPlayer() {
         };
         player.addRemoteTextTrack(captionsOptions, false);
       }
-      // console.log("PLAYER_READY");
       return true;
     } else {
       console.log("[] play: no video available");
