@@ -59,7 +59,7 @@ readTemplate meta file = do
   catch
     (readTemplate' pack resources)
     ( \(SomeException e) -> do
-        -- putStrLn $ "# read template from pack failed: " <> file <> ", pack: " <> show pack <> ", error: " <> show e
+        putStrLn $ "# read template from pack failed: " <> file <> ", pack: " <> show pack <> ", error: " <> show e
         readTemplate' decker resources
     )
   where
