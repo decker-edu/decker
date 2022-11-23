@@ -185,7 +185,7 @@ $endif$
       explain: Decker.meta.explain,
       feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
       jingles: Decker.meta.jingles,
-
+      
       // list of plugins
       plugins: [
          deckerPlugin,
@@ -214,7 +214,7 @@ $if(poll)$
 $endif$
       ]
     };
-
+    
     Reveal.initialize(revealConfig);
     window.Reveal = Reveal;
   </script>
