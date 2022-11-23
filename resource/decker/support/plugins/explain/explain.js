@@ -785,6 +785,12 @@ function stopRecording() {
   stopButton.disabled = true;
   micSelect.disabled = undefined;
   camSelect.disabled = undefined;
+
+  // for dummy users: also save whiteboard annotations
+  if (Reveal.hasPlugin("whiteboard")) {
+    Reveal.getPlugin("whiteboard").saveAnnotations();
+  }
+
   return true;
 }
 
