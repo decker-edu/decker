@@ -47,12 +47,9 @@ caption-server: https://decker.cs.tu-dortmund.de/captions
 speech-recognition-language: de-DE
 
 # other settings
-highlightjs: xcode
+highlightjs: atom-one
 
 # progress bar on index page
-# progress:
-  # selector: "a[href$='-deck.html']"
-  # insert: after
 progress: true
 
 # Language dictionary. Currently for quiz elements
