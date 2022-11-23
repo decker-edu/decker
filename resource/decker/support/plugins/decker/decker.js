@@ -18,6 +18,7 @@ function onStart(deck) {
       setTimeout(() => continueWhereYouLeftOff(deck), 500);
     }
 
+    prepareFullscreenIframes();
     prepareFlashPanel(deck);
     preparePresenterMode(deck);
 
@@ -133,7 +134,11 @@ function prepareTaskLists() {
 // presentation setting).
 // we wrap the div in any case to make the css simpler.
 function prepareFullscreenIframes() {
-  for (let iframe of document.querySelectorAll("figure.iframe>iframe")) {
+  console.log("prepare iframes");
+
+  for (let iframe of document.querySelectorAll(
+    ":not(.fs-container)>figure.iframe>iframe"
+  )) {
     // wrap div around iframe
     var parent = iframe.parentElement;
     var div = document.createElement("div");
