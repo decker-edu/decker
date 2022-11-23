@@ -24,7 +24,8 @@ reveal:
   vertical-slides: true
   zoom: true
 
-highlightjs: atom-one-light # We want nice code highlighting
+
+highlightjs: atom-one-light  # We want nice code highlighting
 # atom-one-dark` and `atom-one-light`, `solarized-dark` and `solarized-light`, `xcode`, `zenburn`
 
 palette:

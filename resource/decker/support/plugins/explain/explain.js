@@ -341,17 +341,22 @@ async function captureMicrophone() {
   console.log("get voice stream");
   console.log("mic id: " + micSelect.value);
 
-  voiceStream = await navigator.mediaDevices.getUserMedia({
-    video: false,
-    audio: {
-      deviceId: micSelect.value ? { exact: micSelect.value } : undefined,
-      echoCancellation: false,
-      noiseSuppression: true,
-    },
-  });
+  try {
+    voiceStream = await navigator.mediaDevices.getUserMedia({
+      video: false,
+      audio: {
+        deviceId: micSelect.value ? { exact: micSelect.value } : undefined,
+        echoCancellation: false,
+        noiseSuppression: true,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    voiceStream = undefined;
+  }
 
   // if mic capture succeeded...
-  if (voiceStream.getAudioTracks().length > 0) {
+  if (voiceStream && voiceStream.getAudioTracks().length > 0) {
     // ...update GUI
     const selectedMicrophone = voiceStream.getAudioTracks()[0].label;
     voiceIndicator.title = selectedMicrophone;
@@ -391,18 +396,23 @@ async function captureCamera() {
   console.log("cam id: " + camSelect.value);
 
   // get camera stream
-  cameraStream = await navigator.mediaDevices.getUserMedia({
-    video: {
-      deviceId: camSelect.value ? { exact: camSelect.value } : undefined,
-      width: camWidth,
-      height: camHeight,
-      frameRate: { max: 30 },
-    },
-    audio: false,
-  });
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        deviceId: camSelect.value ? { exact: camSelect.value } : undefined,
+        width: camWidth,
+        height: camHeight,
+        frameRate: { max: 30 },
+      },
+      audio: false,
+    });
+  } catch (error) {
+    console.error(error);
+    cameraStream = undefined;
+  }
 
   // if camera capture succeeded...
-  if (cameraStream.getVideoTracks().length > 0) {
+  if (cameraStream && cameraStream.getVideoTracks().length > 0) {
     // ...update GUI
     const selectedCamera = cameraStream.getVideoTracks()[0].label;
     const cameraSettings = cameraStream.getVideoTracks()[0].getSettings();
@@ -456,9 +466,64 @@ function mergeStreams() {
   });
 }
 
+async function getDevices() {
+  // collect list of cameras and microphones
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    devices.forEach((device) => {
+      switch (device.kind) {
+        case "audioinput": {
+          const option = document.createElement("option");
+          option.value = device.deviceId;
+          option.text = device.label || `microphone ${micSelect.length + 1}`;
+          micSelect.add(option);
+          break;
+        }
+        case "videoinput": {
+          const option = document.createElement("option");
+          option.value = device.deviceId;
+          option.text = device.label || `camera ${camSelect.length + 1}`;
+          camSelect.add(option);
+          break;
+        }
+      }
+    });
+
+    // select previously chosen camera
+    camSelect.selectedIndex = -1;
+    const selectedCamera = localStorage.getItem("decker-camera");
+    if (selectedCamera) {
+      for (let i = 0; i < camSelect.options.length; i++) {
+        if (camSelect.options[i].text == selectedCamera) {
+          camSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    // select previously chosen microphone
+    micSelect.selectedIndex = -1;
+    const selectedMicrophone = localStorage.getItem("decker-microphone");
+    if (selectedMicrophone) {
+      for (let i = 0; i < micSelect.options.length; i++) {
+        if (micSelect.options[i].text == selectedMicrophone) {
+          micSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+  } catch (e) {
+    console.log("cannot list microphones and cameras:" + e);
+  }
+}
+
 async function setupRecorder() {
   try {
     stream = null;
+
+    // if we call this the first time, collect cameras and microphones
+    if (camSelect.childElementCount + micSelect.childElementCount == 0) {
+      await getDevices();
+    }
 
     // capture video/audio stream of desktop signal
     await captureScreen();
@@ -481,12 +546,16 @@ async function setupRecorder() {
     pauseButton.disabled = true;
     stopButton.disabled = true;
 
+    // open panel to select camera and mic
+    openRecordPanel();
+
     return true;
   } catch (e) {
     console.error(e);
     alert(
       `Recording setup failed.\n${e.message}\nRecording only works on Chrome. Also, the deck must be accessed via a URL that starts with either of \n\n- http://localhost\n- https://`
     );
+    return false;
   }
 }
 
@@ -1184,54 +1253,6 @@ async function createRecordingGUI() {
     parent: row,
   });
 
-  // collect list of cameras and microphones
-  try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    devices.forEach((device) => {
-      switch (device.kind) {
-        case "audioinput": {
-          const option = document.createElement("option");
-          option.value = device.deviceId;
-          option.text = device.label || `microphone ${micSelect.length + 1}`;
-          micSelect.add(option);
-          break;
-        }
-        case "videoinput": {
-          const option = document.createElement("option");
-          option.value = device.deviceId;
-          option.text = device.label || `camera ${camSelect.length + 1}`;
-          camSelect.add(option);
-          break;
-        }
-      }
-    });
-
-    // select previously chosen camera
-    camSelect.selectedIndex = -1;
-    const selectedCamera = localStorage.getItem("decker-camera");
-    if (selectedCamera) {
-      for (let i = 0; i < camSelect.options.length; i++) {
-        if (camSelect.options[i].text == selectedCamera) {
-          camSelect.selectedIndex = i;
-          break;
-        }
-      }
-    }
-    // select previously chosen microphone
-    micSelect.selectedIndex = -1;
-    const selectedMicrophone = localStorage.getItem("decker-microphone");
-    if (selectedMicrophone) {
-      for (let i = 0; i < micSelect.options.length; i++) {
-        if (micSelect.options[i].text == selectedMicrophone) {
-          micSelect.selectedIndex = i;
-          break;
-        }
-      }
-    }
-  } catch (e) {
-    console.log("cannot list microphones and cameras:" + e);
-  }
-
   row = createElement({
     type: "div",
     classes: "controls-row",
@@ -1532,6 +1553,10 @@ function setupGreenScreen() {
 
 function toggleCamera() {
   if (uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")) {
+    if (!cameraStream) {
+      window.showInformation(localization.no_camera_stream);
+      return;
+    }
     if (cameraPanel.classList.toggle("visible")) {
       if (cameraVideo.srcObject !== cameraStream) {
         cameraVideo.srcObject = cameraStream;
@@ -1671,11 +1696,8 @@ async function setupPlayer() {
       videoExists = await resourceExists(explainVideoUrl);
       timesExists = await resourceExists(explainTimesUrl);
     }
-    // console.log(explainVideoUrl, videoExists, explainTimesUrl, timesExists);
-    // console.log(explainTimesUrl, timesExists);
 
     if (videoExists && timesExists) {
-      // if (timesExists) {
       explainTimesPlay = await fetchResourceJSON(explainTimesUrl);
       player.src({ type: "video/mp4", src: explainVideoUrl });
 
@@ -1688,7 +1710,6 @@ async function setupPlayer() {
         };
         player.addRemoteTextTrack(captionsOptions, false);
       }
-      // console.log("PLAYER_READY");
       return true;
     } else {
       console.log("[] play: no video available");
@@ -1809,6 +1830,7 @@ const Plugin = {
       append: "Append",
       replace: "Replace",
       cancel: "Cancel",
+      no_camera_stream: "No camera stream available.",
       replacement_title: "Append or Replace?",
       replacement_warning:
         "There is already a recording for this presentation. \
@@ -1822,6 +1844,7 @@ const Plugin = {
         append: "Anhängen",
         replace: "Ersetzen",
         cancel: "Abbrechen",
+        no_camera_stream: "Kein Kamerastream verfügbar.",
         replacement_title: "Anhängen oder Ersetzen?",
         replacement_warning:
           "Es existiert bereits eine Aufnahme. \

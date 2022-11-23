@@ -165,3 +165,9 @@
   --dark-violet: var(--accent6-bg);
   --dark-brown: var(--accent1-bg);
 }
+
+ /* quizzes */
+ --green-background-color: var(--accent5-bbg);
+ --green-border-color: var(--accent5);
+ --red-background-color: var(--accent0-bbg);
+ --red-border-color: var(--accent0);
