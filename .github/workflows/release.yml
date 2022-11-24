@@ -20,37 +20,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.stack
-          key: ${{ runner.os }}-${{ hashFiles('stack.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-
+      # - name: Cache dependencies
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ~/.stack
+      #     key: ${{ runner.os }}-${{ hashFiles('stack.yaml') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-
 
-      - name: Setup Haskell
-        uses: haskell/actions/setup@v2
-        with:
-          ghc-version: "9.0.2"
-          enable-stack: true
-          stack-no-global: true
-          stack-version: "latest"
-          stack-setup-ghc: true
+      # - name: Setup Haskell
+      #   uses: haskell/actions/setup@v2
+      #   with:
+      #     ghc-version: "9.0.2"
+      #     enable-stack: true
+      #     stack-no-global: true
+      #     stack-version: "latest"
+      #     stack-setup-ghc: true
 
-      - name: Build & test
-        run: |
-          stack test
-          stack --local-bin-path=dist install
+      # - name: Build & test
+      #   run: |
+      #     stack test
+      #     stack --local-bin-path=dist install
 
-      - name: Rename executable
-        if: matrix.config.os != 'windows-latest'
-        run: |
-          mv dist/decker "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}"
+      # - name: Rename executable
+      #   if: matrix.config.os != 'windows-latest'
+      #   run: |
+      #     mv dist/decker "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}"
 
-      - name: Rename executable
-        if: matrix.config.os == 'windows-latest'
-        run: |
-          mv dist/decker.exe "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}.exe"
+      # - name: Rename executable
+      #   if: matrix.config.os == 'windows-latest'
+      #   run: |
+      #     mv dist/decker.exe "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}.exe"
 
       - name: Release
         uses: "softprops/action-gh-release@v1"
@@ -59,4 +59,4 @@ jobs:
         draft: false
         prerelease: false
         with:
-          files: "dist/*"
+          files: "readme.md"
