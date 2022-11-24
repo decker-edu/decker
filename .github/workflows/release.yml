@@ -41,12 +41,12 @@ jobs:
           stack --local-bin-path=dist install
 
       - name: Rename executable
-        if: ${{matrix.config.os != 'windows-latest'}}
+        if: ${{ matrix.os != 'windows-latest' }}
         run: |
           mv dist/decker "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}"
 
       - name: Rename executable
-        if: ${{matrix.config.os == 'windows-latest'}}
+        if: ${{ matrix.os == 'windows-latest' }}
         run: |
           mv dist/decker.exe "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}.exe"
 
