@@ -56,9 +56,12 @@ defaultMetaPath = "template/default.yaml"
 readTemplate :: Meta -> FilePath -> IO (Template Text, [FilePath])
 readTemplate meta file = do
   resources@(Resources decker pack) <- deckerResources meta
-  case pack of
-    None -> readTemplate' decker resources
-    _ -> readTemplate' pack resources
+  catch
+    (readTemplate' pack resources)
+    ( \(SomeException e) -> do
+        putStrLn $ "# read template from pack failed: " <> file <> ", pack: " <> show pack <> ", error: " <> show e
+        readTemplate' decker resources
+    )
   where
     readTemplate' source resources = do
       (text, needed) <- readTemplateText source
@@ -139,7 +142,6 @@ instance TemplateMonad SourceM where
                   Just . decodeUtf8 <$> extractEntry ("template" </> name) zip
                 None -> return Nothing
             )
-            ( \(SomeException e) -> do
-                -- putStrLn $ "# reading failed: " <> show e
-                return Nothing
-            )
+            (\(SomeException e) -> do
+              -- putStrLn $ "# reading failed: " <> show e
+              return Nothing)
