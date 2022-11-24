@@ -41,18 +41,19 @@ jobs:
           stack --local-bin-path=dist install
 
       - name: Rename executable
-        if: matrix.config.os != 'windows-latest'
+        if: ${{matrix.config.os != 'windows-latest'}}
         run: |
           mv dist/decker "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}"
 
       - name: Rename executable
-        if: matrix.config.os == 'windows-latest'
+        if: ${{matrix.config.os == 'windows-latest'}}
         run: |
           mv dist/decker.exe "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}.exe"
 
       - name: Release
         uses: "softprops/action-gh-release@v1"
         with:
+          name: 'Decker ${{ github.ref_name }}'
           tag_name: ${{ github.ref_name }}
           draft: false
           prerelease: true
