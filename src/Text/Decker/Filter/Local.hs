@@ -67,6 +67,8 @@ javascriptExt = ["js"]
 
 mviewExt = ["off", "obj", "stl", "ply", "pmp", "xyz", "agi"]
 
+geogebraExt = ["ggb"]
+
 streamScheme = ["youtube", "vimeo", "twitch", "veer", "veer-photo"]
 
 data MediaT
@@ -78,6 +80,7 @@ data MediaT
   | PdfT
   | EmbedSvgT
   | MviewT
+  | GeogebraT
   | RenderT
   | JavascriptT
   | StreamT
@@ -99,6 +102,7 @@ classifyMedia uri (_, classes, _) =
           | ext `maybeElem` iframeExt || "iframe" `elem` classes -> IframeT
           | ext `maybeElem` pdfExt || "pdf" `elem` classes -> PdfT
           | ext `maybeElem` mviewExt || "mview" `elem` classes -> MviewT
+          | ext `maybeElem` geogebraExt || "geogebra" `elem` classes -> GeogebraT
           | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
           | scheme `maybeElem` streamScheme -> StreamT
           | otherwise -> ImageT
