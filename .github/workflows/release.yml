@@ -3,7 +3,7 @@ on:
     branches:
       - master
     tags:
-      - "v[0-9.]+.*"
+      - "*"
 
 name: Build Release
 jobs:
