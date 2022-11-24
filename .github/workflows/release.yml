@@ -2,14 +2,19 @@ on:
   push:
     branches:
       - master
+    tags:
+      - "v[0-9.]+"
 
-name: Release
+name: Build Release
 jobs:
-  build:
+  build-all-platforms:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
     name: Decker Release (${{ matrix.os }})
     steps:
       - name: Checkout
@@ -32,17 +37,22 @@ jobs:
           stack-version: "latest"
           stack-setup-ghc: true
 
-      - name: Build & test Decker 
+      - name: Build & test
         run: |
           stack test
           stack --local-bin-path=dist install
+
+      - name: Rename executable
+        if: matrix.config.os != 'windows-latest'
+        run: |
           mv dist/decker "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}"
-      
-      - name: Release 
-        uses: "marvinpinto/action-automatic-releases@latest"
+
+      - name: Rename executable
+        if: matrix.config.os == 'windows-latest'
+        run: |
+          mv dist/decker.exe "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}.exe"
+
+      - name: Release
+        uses: "softprops/action-gh-release@v1"
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${{ matrix.os }}"
-          prerelease: true
-          title: "Development Build (${{ matrix.os }})"
-          files: "dist/decker-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}"
+          files: "dist/*"
