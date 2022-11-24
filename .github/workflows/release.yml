@@ -55,7 +55,7 @@ jobs:
       - name: Release
         uses: "softprops/action-gh-release@v1"
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: Decker ${{ github.ref_name }}
           draft: false
-          prerelease: false
+          prerelease: true
           files: "readme.md"
