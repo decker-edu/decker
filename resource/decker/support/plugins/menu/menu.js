@@ -352,9 +352,14 @@ class SlideMenu {
       let item = this.createListItem(slide, h, undefined);
       list.appendChild(item);
 
-      /* if there is only a single h1 element, this is a separator slide. mark it in the menu */
+      /* if there is only a single h1 element, 
+      or if the slide has class .section, 
+      then this is a separator slide. mark it in the menu */
       const h1 = slide.querySelector("h1");
-      if (h1 && h1.parentElement.children.length == 1) {
+      if (
+        slide.classList.contains("section") ||
+        (h1 && h1.parentElement.children.length == 1)
+      ) {
         item.classList.add("separator-slide");
       }
     });
@@ -577,6 +582,32 @@ class SlideMenu {
     }
   }
 
+  clearCurrentSlideMark() {
+    let listItems = this.menu.slide_list.childNodes;
+    for (let item of listItems) {
+      item.classList.remove("current-slide");
+    }
+  }
+
+  setCurrentSlideMark() {
+    let slide = this.reveal.getCurrentSlide();
+    let indices = this.reveal.getIndices(slide);
+    let item = undefined;
+    if (indices.v) {
+      item = this.getListItem(indices.h, indices.v);
+    } else {
+      item = this.getListItem(indices.h);
+    }
+    if (item) {
+      item.classList.add("current-slide");
+    }
+  }
+
+  updateCurrentSlideMark() {
+    this.clearCurrentSlideMark();
+    this.setCurrentSlideMark();
+  }
+
   initializeSettingsMenu() {
     let animations = this.reveal.getConfig().fragments;
     let mode = this.getColorModePreference();
@@ -724,6 +755,9 @@ class SlideMenu {
     }
     let anchors = this.reveal.getPlugin("ui-anchors");
     anchors.placeButton(this.open_button, this.position);
+    reveal.addEventListener("slidechanged", () =>
+      this.updateCurrentSlideMark()
+    );
   }
 }
 

@@ -3,6 +3,7 @@ module Decker where
 import Control.Concurrent
 import Control.Exception (SomeException (SomeException), catch)
 import Control.Lens ((^.))
+import qualified Control.Lens as Control.Lens.Getter
 import Control.Monad.Extra
 import qualified Data.ByteString as BS
 import Data.IORef ()
@@ -14,6 +15,7 @@ import qualified Data.Text as Text
 import Data.Version
 import Development.Shake
 import GHC.IO.Encoding
+import System.Directory (removeFile)
 import qualified System.Directory as Dir
 import System.FilePath.Posix
 import System.IO
@@ -42,13 +44,26 @@ main = do
   setProjectDirectory
   run
 
-needSel sel = needSels [sel]
+needTargets sel = needTargets' [sel]
 
-needSels sels targets = need (concatMap (targets ^.) sels)
+needTargets' :: [Control.Lens.Getter.Getting Dependencies Targets Dependencies] -> Targets -> Action ()
+needTargets' sels targets = do
+  let ts = concatMap (\s -> Map.keys (targets ^. s)) sels
+  need ts
 
+needPublicIfExists :: FilePath -> Action ()
 needPublicIfExists source = do
   exists <- doesFileExist source
-  when exists $ need [publicDir </> source]
+  let target = publicDir </> source
+  if exists
+    then need [target]
+    else removeFileA target
+
+-- | Remove a file, but don't worry if it fails
+removeFileA :: FilePath -> Action ()
+removeFileA target = do
+  didIt <- liftIO $ (removeFile target >> return True) `catch` \(SomeException e) -> return False
+  when didIt $ putNormal $ "# rm (for " <> target <> ")"
 
 serverPort = 8888
 
@@ -71,10 +86,11 @@ runArgs args = do
   runDeckerArgs args deckerRules
 
 deckerRules = do
-  (getGlobalMeta, getTargets, getTemplate) <- prepCaches
+  (getGlobalMeta, getDeps, getTemplate) <- prepCaches
   want ["html"]
   addHelpSuffix "Commands:"
   addHelpSuffix "  - clean - Remove all generated files."
+  addHelpSuffix "  - purge - Your sins will be forgiven."
   addHelpSuffix "  - example - Create an example project."
   addHelpSuffix "  - serve - Start just the server."
   addHelpSuffix "  - crunch - Compress all recordings to smaller size. Takes a while and will drain your battery."
@@ -102,30 +118,31 @@ deckerRules = do
   withTargetDocs "Build HTML versions of all question (*-quest.md)." $
     phony "questions" $ do
       need ["support"]
-      getTargets >>= needSel questions
+      getDeps >>= needTargets questions
   --
   withTargetDocs "Build HTML versions of all decks (*-deck.md)." $
     phony "decks" $ do
       meta <- getGlobalMeta
       need ["support"]
-      getTargets >>= needSel decks
+      getDeps >>= needTargets decks
   --
   withTargetDocs "Build HTML versions of all decks, pages and handouts (*-deck.md, *-page.md)." $
     phony "html" $ do
-      need ["support"]
-      getTargets >>= needSels [decks, pages, handouts]
+      need ["support", "questions"]
+      getDeps >>= needTargets' [decks, pages]
   --
   phony "pdf" $ do
     need ["support"]
-    getTargets >>= needSel decksPdf
+    getDeps >>= needTargets decksPdf
   --
   withTargetDocs "Compile global search index." $
     phony "search-index" $ do
       putInfo "# compiling search index ..."
       meta <- getGlobalMeta
-      targets <- getTargets
-      allDecks <- mapM (calcSource "-deck.html" "-deck.md") (targets ^. decks)
-      buildIndex (publicDir </> "index.json") meta allDecks
+      deps <- getDeps
+      let deckSrcs = Map.elems $ deps ^. decks
+      need deckSrcs
+      buildIndex (publicDir </> "index.json") meta deckSrcs
   --
   withTargetDocs "If a tree falls in a forest and no one is there to hear, does it make a sound?" $
     phony "observed" $ do
@@ -136,9 +153,9 @@ deckerRules = do
   --
   priority 5 $ do
     (publicDir </> "support") <//> "*" %> \out -> do
-      targets <- getTargets
+      deps <- getDeps
       let path = fromJust $ stripPrefix (publicDir <> "/") out
-      let source = (targets ^. resources) Map.! out
+      let source = (deps ^. resources) Map.! out
       putVerbose $ "# extract (" <> out <> " from " <> show source <> " : " <> path <> ")"
       needResource source path
       content <- fromJust <$> liftIO (readResource path source)
@@ -146,7 +163,8 @@ deckerRules = do
   --
   priority 4 $ do
     publicDir <//> "*-deck.html" %> \out -> do
-      src <- calcSource "-deck.html" "-deck.md" out
+      src <- lookupSource decks out <$> getDeps
+      need [src]
       meta <- getGlobalMeta
       markdownToHtml htmlDeck meta getTemplate src out
       needPublicIfExists $ replaceSuffix "-deck.md" "-recording.mp4" src
@@ -161,6 +179,7 @@ deckerRules = do
       -- This is the right way to depend on an optional file. Just check for the
       -- files existence with the Shake function `doesFileExist`.
       exists <- doesFileExist annot
+      when exists $ need [annot]
       let url = serverUrl </> makeRelative publicDir src
       need [src]
       putInfo $ "# chrome started ... (for " <> out <> ")"
@@ -170,12 +189,14 @@ deckerRules = do
         Left msg -> error msg
     --
     publicDir <//> "*-handout.html" %> \out -> do
-      src <- calcSource "-handout.html" "-deck.md" out
+      src <- lookupSource handouts out <$> getDeps
+      need [src]
       meta <- getGlobalMeta
       markdownToHtml htmlHandout meta getTemplate src out
     --
     publicDir <//> "*-page.html" %> \out -> do
-      src <- calcSource "-page.html" "-page.md" out
+      src <- lookupSource pages out <$> getDeps
+      need [src]
       meta <- getGlobalMeta
       markdownToHtml htmlPage meta getTemplate src out
     --
@@ -186,27 +207,31 @@ deckerRules = do
       whenM (liftIO $ Dir.doesFileExist (src <.> "map")) $
         copyFile' (src <.> "map") (out <.> "map")
     --
-    publicDir <//> "*-quest.html" %> \out -> do
-      src <- calcSource "-quest.html" "-quest.yaml" out
+    privateDir <//> "*-quest.html" %> \out -> do
+      src <- lookupSource questions out <$> getDeps
+      need [src]
       meta <- getGlobalMeta
       renderQuestion meta src out
     --
     privateDir <//> "quest-catalog.html" %> \out -> do
       meta <- getGlobalMeta
-      targets <- getTargets
-      sources <- mapM (calcSource "-quest.html" "-quest.yaml") (targets ^. questions)
+      deps <- getDeps
+      let sources = Map.elems (deps ^. questions)
       need sources
       renderCatalog meta sources out
     --
     privateDir <//> "quest-catalog.xml" %> \out -> do
-      targets <- getTargets
-      sources <- mapM (calcSource "-quest.html" "-quest.yaml") (targets ^. questions)
+      deps <- getDeps
+      let sources = Map.elems (deps ^. questions)
       need sources
       questions <- liftIO $ mapM readQuestion sources
       renderXmlCatalog questions out
-
-    phony "catalogs" $ do
-      need ["private/quest-catalog.html", "private/quest-catalog.xml"]
+    --
+    phony "catalog" $ do
+      need ["private/quest-catalog.html"]
+    --
+    phony "moodle-xml" $ do
+      need ["private/quest-catalog.xml"]
     --
     indexFile %> \out -> do
       exists <- liftIO $ Dir.doesFileExist indexSource
@@ -216,12 +241,12 @@ deckerRules = do
               else generatedIndexSource
       need [src]
       meta <- getGlobalMeta
-      markdownToHtml htmlPage meta getTemplate src out
+      markdownToHtml htmlIndex meta getTemplate src out
     --
     generatedIndexSource %> \out -> do
-      targets <- getTargets
+      deps <- getDeps
       meta <- getGlobalMeta
-      writeIndexLists meta targets out (takeDirectory indexFile)
+      writeIndexLists meta deps out
   --
   priority 3 $ do
     "**/*.css" %> \out -> do
@@ -269,8 +294,8 @@ deckerRules = do
   --
   withTargetDocs "Copy static file to public dir." $
     phony "static-files" $ do
-      targets <- getTargets
-      need (targets ^. static)
+      deps <- getDeps
+      need $ Map.keys (deps ^. static)
   --
   withTargetDocs "Provide information about project parameters, sources and targets" $
     phony "info" $ do
@@ -279,11 +304,11 @@ deckerRules = do
       putWarn $ "public directory: " ++ publicDir
       putWarn $ "support directory: " ++ supportDir
       meta <- getGlobalMeta
-      targets <- getTargets
+      deps <- getDeps
       resources <- liftIO $ deckerResources meta
       putWarn $ "template source: " <> show resources
-      putWarn "\ntargets:\n"
-      putWarn (groom targets)
+      putWarn "\ndependencies:\n"
+      putWarn (groom deps)
       putWarn "\ntop level meta data:\n"
       putWarn (groom meta)
   --
@@ -292,15 +317,15 @@ deckerRules = do
   -- TODO use or throw away
   withTargetDocs "Copy runtime support files to public dir." $
     phony "support" $ do
-      targets <- getTargets
+      deps <- getDeps
       need [indexFile, "static-files"]
-      -- Resources and their locations are now recorded in targets
-      need $ Map.keys (targets ^. resources)
+      -- Resources and their locations are now recorded in deps
+      need $ Map.keys (deps ^. resources)
   withTargetDocs "Publish the public dir to the configured destination using rsync." $
     phony "publish" $ do
       need ["support"]
       meta <- getGlobalMeta
-      getTargets >>= needSels [decks, handouts, pages]
+      getDeps >>= needTargets' [decks, handouts, pages]
       let src = publicDir ++ "/"
       case lookupMeta "publish.rsync.destination" meta of
         Just destination -> publishWithRsync src destination meta

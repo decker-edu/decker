@@ -1,0 +1,173 @@
+:root {
+  /* These are for internal calculations */
+  --list-indent: 1.5em;
+  --block-border-width: 1rem;
+  --block-border-padding: 0.5rem;
+  --block-border-style: solid;
+  --block-border-radius: 0em;
+  --block-outset: 0.5rem;
+
+  --font-family: Roboto;
+
+  /* Try this for block elements that stack vertically:
+
+      - Only ever add a bottom margin
+      - The bottom margin is always the same
+      - Do not add a bottom margin to the last child
+  */
+  --vertical-margin: 0.2em;
+
+  /* Icon settings */
+  --icon-size: 1.5rem;
+
+  /* Rainbow Accents */
+
+  --redish: var(--accent0);
+  --orangeish: var(--accent1);
+  --yellowish: var(--accent3);
+  --greenish: var(--accent4);
+  --tealish: var(--accent5);
+  --blueish: var(--accent7);
+  --violetish: var(--accent6);
+  --brownish: var(--accent1);
+
+  --light-red: var(--accent0-bg);
+  --light-orange: var(--accent1-bg);
+  --light-yellow: var(--accent3-bg);
+  --light-green: var(--accent4-bg);
+  --light-teal: var(--accent5-bg);
+  --light-blue: var(--accent7-bg);
+  --light-violet: var(--accent6-bg);
+  --light-brown: var(--accent1-bg);
+
+  --dark-red: var(--accent0-fg);
+  --dark-orange: var(--accent1-fg);
+  --dark-yellow: var(--accent3-fg);
+  --dark-green: var(--accent4-fg);
+  --dark-teal: var(--accent5-fg);
+  --dark-blue: var(--accent7-fg);
+  --dark-violet: var(--accent6-fg);
+  --dark-brown: var(--accent1-fg);
+
+  /* Semantic Colors */
+
+  --color-error: var(--redish);
+  --color-alert: var(--orangeish);
+  --color-warn: var(--yellowish);
+  --color-success: var(--greenish);
+  --color-info: var(--tealish);
+
+  /* Semantic color defaults from the palette. There is no need to use the
+     current palette. Colors can be set arbitrarily. */
+  --background-color: var(--shade0);
+  --foreground-color: var(--shade7);
+
+  --header-color: var(--shade6);
+
+  --primary-color: var(--accent6-fg);   /* JMU Anpassung */
+  --secondary-color: var(--accent1);
+
+  --hover-color: var(--accent7-bg);
+  --code-background-color: var(--shade1);
+
+  --highlight-color: var(--accent7-bg); /* JMU Anpassung */
+  --flying-focus-color: var(--highlight-color);
+
+  --icon-active-color: var(--accent7); /* JMU Anpassung */
+  --icon-disabled-color: var(--shade2);
+  --icon-inactive-color: var(--shade3);
+  --icon-hover-color: var(--hover-color);
+  --icon-background-color: rgba(0, 0, 0, 0);
+  --icon-border-radius: 0.2em;
+
+  --whiteboard-background-color: #eee;
+  --whiteboard-border-color: var(--shade2);
+
+  --menu-background-color: var(--shade1);
+  --menu-text-color: var(--shade7);
+  --menu-header-background-color: var(--accent7); 
+  --menu-header-text-color: #EDEDED; /* JMU Anpassung, have to do  */
+  --menu-border-color: var(--shade3);
+
+  --common-menu-header-height: 3rem;
+  --common-menu-header-padding: 0.5rem;
+
+  --feedback-element-border-radius: 0.2em;
+  --feedback-input-background-color: var(--background-color);
+  --feedback-header-background-color: var(--menu-header-background-color);
+  --feedback-header-text-color: var(--foreground-color);
+  --feedback-list-background-color: rgba(0, 0, 0, 0);
+  --feedback-list-text-color: var(--shade7);
+  --feedback-footer-background-color: var(--shade2);
+  --feedback-footer-text-color: var(--shade7);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --light-red: var(--accent0-fg);
+    --light-orange: var(--accent1-fg);
+    --light-yellow: var(--accent3-fg);
+    --light-green: var(--accent4-fg);
+    --light-teal: var(--accent5-fg);
+    --light-blue: var(--accent7-fg);
+    --light-violet: var(--accent6-fg);
+    --light-brown: var(--accent1-fg);
+
+    --dark-red: var(--accent0-bg);
+    --dark-orange: var(--accent1-bg);
+    --dark-yellow: var(--accent3-bg);
+    --dark-green: var(--accent4-bg);
+    --dark-teal: var(--accent5-bg);
+    --dark-blue: var(--accent7-bg);
+    --dark-violet: var(--accent6-bg);
+    --dark-brown: var(--accent1-bg);
+  }
+}
+
+
+
+.light {
+  --light-red: var(--accent0-bg);
+  --light-orange: var(--accent1-bg);
+  --light-yellow: var(--accent3-bg);
+  --light-green: var(--accent4-bg);
+  --light-teal: var(--accent5-bg);
+  --light-blue: var(--accent7-bg);
+  --light-violet: var(--accent6-bg);
+  --light-brown: var(--accent1-bg);
+
+  --dark-red: var(--accent0-fg);
+  --dark-orange: var(--accent1-fg);
+  --dark-yellow: var(--accent3-fg);
+  --dark-green: var(--accent4-fg);
+  --dark-teal: var(--accent5-fg);
+  --dark-blue: var(--accent7-fg);
+  --dark-violet: var(--accent6-fg);
+  --dark-brown: var(--accent1-fg);
+}
+
+.dark {
+  --light-red: var(--accent0-fg);
+  --light-orange: var(--accent1-fg);
+  --light-yellow: var(--accent3-fg);
+  --light-green: var(--accent4-fg);
+  --light-teal: var(--accent5-fg);
+  --light-blue: var(--accent7-fg);
+  --light-violet: var(--accent6-fg);
+  --light-brown: var(--accent1-fg);
+
+  --dark-red: var(--accent0-bg);
+  --dark-orange: var(--accent1-bg);
+  --dark-yellow: var(--accent3-bg);
+  --dark-green: var(--accent4-bg);
+  --dark-teal: var(--accent5-bg);
+  --dark-blue: var(--accent7-bg);
+  --dark-violet: var(--accent6-bg);
+  --dark-brown: var(--accent1-bg);
+}
+
+ /* quizzes */
+ --green-background-color: var(--accent5-bbg);
+ --green-border-color: var(--accent5);
+ --red-background-color: var(--accent0-bbg);
+ --red-border-color: var(--accent0);

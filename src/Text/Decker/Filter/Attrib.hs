@@ -5,7 +5,7 @@
 module Text.Decker.Filter.Attrib where
 
 import Data.Bifunctor
-import Data.List (nub)
+import Data.List (nub, partition)
 import qualified Data.List as List
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
@@ -219,6 +219,14 @@ passI18n = modify transform
     transform ((id', cs', kvs'), (id, cs, kvs)) =
       let (pass, rest) = List.partition ((`elem` ["dir", "xml:lang"]) . fst) kvs
        in ((id', cs', kvs' <> pass), (id, cs, rest))
+
+takeData' :: Attrib ()
+takeData' = modify transform
+  where
+    transform state@((id', cs', kvs'), (id, cs, kvs)) =
+      let (dta, ndta) = partition (Text.isPrefixOf "data-" . fst) kvs
+          adta = dta <> map (first ("data-" <>)) ndta
+       in ((id', cs', adta <> kvs'), (id, cs, []))
 
 takeData :: Attrib ()
 takeData = modify transform

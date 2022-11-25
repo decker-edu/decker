@@ -64,6 +64,7 @@ class CustomDialog extends HTMLDialogElement {
     this.form.fieldset.buttons = [];
     for (let option of options) {
       let button = document.createElement("button");
+      button.type = "button";
       button.title = option.text;
       button.className = "multi-dialog-button";
       button.innerText = option.text;

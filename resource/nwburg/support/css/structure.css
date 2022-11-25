@@ -1,0 +1,97 @@
+/* This is structurally important CSS that should not contain too many specifics
+regarding colors, fonts, sizes and lengths. It is included from deck.css,
+page.css and handout.css. */
+
+/* Reset Reveal CSS to sane values */
+.reveal .slides {
+  text-align: left;
+}
+
+/* Allows slide relative positioning of non-immediate children. */
+section div.alignment {
+  display: relative;
+}
+
+/* This value depends on the height of the slide that Reveal sets. */
+section pre {
+  max-height: 500px;
+}
+
+/* Override Pandoc's setting.  */
+.sourceCode {
+  overflow: hidden;
+}
+
+pre,
+pre.sourceCode {
+  overflow: scroll;
+}
+
+/* Make this behave like a normal pre element. Used for inline code display. */
+span.pre {
+  display: block;
+  max-height: 500px;
+  white-space: pre;
+  unicode-bidi: embed;
+  overflow: scroll;
+}
+span.pre code {
+  white-space: pre;
+}
+
+/* Empty headers should not get in the way. */
+:is(h1, h2):empty {
+  display: none;
+}
+
+/* Layout */
+
+/* Old-style row layout (.columns), also MarioCols. */
+div.layout.row:is(.columns, .grid) {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: var(--margin-columns);
+}
+
+div.layout.row:is(.columns, .grid) > div.area {
+  flex: 1;
+  /* Really important to make pre elements work in flex items. */
+  min-width: 0;
+}
+
+/* Old syntax to control column width. */
+div.layout.row:is(.columns, .grid) > div.area[grow="2"] {
+  flex: 2;
+}
+
+div.layout.row:is(.columns, .grid) > div.area[grow="3"] {
+  flex: 3;
+}
+
+div.layout.row:is(.columns, .grid) > div.area[grow="4"] {
+  flex: 4;
+}
+
+div.layout.row:is(.columns, .grid) > div.area[grow="5"] {
+  flex: 5;
+}
+
+div.layout.row:is(.columns, .grid) > div.area[grow="6"] {
+  flex: 6;
+}
+
+/* Column spacing in a row */
+div.layout.row:is(.columns, .grid) > div.area {
+  margin-left: 0rem;   /* Marc: should be set to 0 and only use margin-columns, was 1rem */
+  margin-right: 0rem;  /* Marc: should be set to 0 and only use margin-columns, was 1rem */
+}
+
+div.layout.row:is(.columns, .grid) > div.area:first-child {
+  margin-left: 0;
+}
+
+div.layout.row:is(.columns, .grid) > div.area:last-child {
+  margin-right: 0;
+}
+
+

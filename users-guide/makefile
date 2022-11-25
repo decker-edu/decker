@@ -5,7 +5,7 @@ guide-md := decker-users-guide.md
 all: $(guide-html) $(guide-pdf)
 
 $(guide-html): $(guide-md) makefile
-	pandoc -f markdown+emoji --standalone --self-contained --toc --toc-depth=2 -o $@ $<
+	pandoc -f markdown+emoji --standalone --embed-resources --toc --toc-depth=2 -o $@ $<
 
 $(guide-pdf): $(guide-md) makefile
 	pandoc --pdf-engine=xelatex -M mainfont=Georgia --standalone --toc --toc-depth=2 -o $@ $<
@@ -13,4 +13,3 @@ $(guide-pdf): $(guide-md) makefile
 watch: $(guide-html)
 	open -a safari $(guide-html)
 	ls $(guide-md) makefile | entr make $^ 
-

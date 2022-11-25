@@ -39,7 +39,9 @@ templateFiles =
       (Disposition Page Html, "template/page.html"),
       (Disposition Page Latex, "template/page.tex"),
       (Disposition Handout Html, "template/handout.html"),
-      (Disposition Handout Latex, "template/handout.tex")
+      (Disposition Handout Latex, "template/handout.tex"),
+      (Disposition Index Html, "template/index.html"),
+      (Disposition Index Latex, "template/index.tex")
     ]
 
 templateFile :: Disposition -> FilePath
@@ -51,21 +53,37 @@ templateFile disp =
 
 defaultMetaPath = "template/default.yaml"
 
+data TemplateError = NotFound FilePath | NotCompiled Text
+
 readTemplate :: Meta -> FilePath -> IO (Template Text, [FilePath])
 readTemplate meta file = do
-  (Resources decker pack) <- deckerResources meta
-  catch
-    (readTemplate' pack)
-    (\(SomeException e) -> do readTemplate' decker)
+  resources@(Resources decker pack) <- deckerResources meta
+  case pack of
+    None -> readDefaultTemplate resources
+    _ -> do
+      fromPack <- readTemplate' pack resources
+      case fromPack of
+        Right result -> return result
+        Left (NotFound file) -> readDefaultTemplate resources
+        Left (NotCompiled err) -> error $ "# compilation of pack template failed: " <> toText file <> ",  error: " <> err
   where
-    readTemplate' source = do
-      (text, needed) <- readTemplateText source
-      compiled <- runReaderT (compileTemplate "" text) source
-      case compiled of
-        Right compiled -> return (compiled, needed)
-        Left msg -> do
-          putStrLn $ "# read template failed: " <> file <> ", source: " <> show source <> ", error: " <> msg
-          error (toText msg)
+    readTemplate' :: Source -> Resources -> IO (Either TemplateError (Template Text, [FilePath]))
+    readTemplate' source resources = do
+      catch
+        ( do
+            (text, needed) <- readTemplateText source
+            compiled <- runReaderT (compileTemplate "" text) resources
+            case compiled of
+              Right compiled -> return $ Right (compiled, needed)
+              Left errmsg -> return $ Left $ NotCompiled (toText errmsg)
+        )
+        (\(SomeException e) -> return $ Left $ NotFound file)
+    readDefaultTemplate resources@(Resources decker _) = do
+      fromDecker <- readTemplate' decker resources
+      case fromDecker of
+        Right result -> return result
+        Left (NotFound file) -> error $ "# default template not found: " <> toText file
+        Left (NotCompiled err) -> error $ "# compilation of default template failed: " <> toText file <> ",  error: " <> err
     readTemplateText (DeckerExecutable base) = do
       deckerExecutable <- getExecutablePath
       -- putStrLn $ "# reading: " <> file <> " from: " <> (deckerExecutable <> ":" <> base)
@@ -110,16 +128,34 @@ readTemplateMeta' None = do
   putInfo "# no pack, no meta data"
   return nullMeta
 
-type SourceM = ReaderT Source IO
+type SourceM = ReaderT Resources IO
 
 instance TemplateMonad SourceM where
   getPartial name = do
-    source <- ask
-    case source of
-      DeckerExecutable base -> do
-        deckerExecutable <- liftIO getExecutablePath
-        liftIO $ decodeUtf8 <$> extractEntry (base </> "template" </> name) deckerExecutable
-      LocalDir base ->
-        liftIO $ Text.readFile (base </> "template" </> name)
-      LocalZip zip -> liftIO $ decodeUtf8 <$> extractEntry ("template" </> name) zip
-      None -> return ""
+    (Resources decker pack) <- ask
+    partial <- getIt pack
+    case partial of
+      Just partial -> return partial
+      Nothing -> fromMaybe "" <$> getIt decker
+    where
+      getIt :: Source -> SourceM (Maybe Text)
+      getIt source =
+        liftIO $
+          catch
+            ( case source of
+                DeckerExecutable base -> do
+                  deckerExecutable <- getExecutablePath
+                  -- putStrLn $ "# reading partial from: " <> ("template" </> name) <> " " <> deckerExecutable
+                  Just . decodeUtf8 <$> extractEntry (base </> "template" </> name) deckerExecutable
+                LocalDir base -> do
+                  -- putStrLn $ "# reading partial from: " <> (base </> "template" </> name)
+                  Just <$> Text.readFile (base </> "template" </> name)
+                LocalZip zip -> do
+                  -- putStrLn $ "# reading partial from: " <> ("template" </> name) <> " " <> zip
+                  Just . decodeUtf8 <$> extractEntry ("template" </> name) zip
+                None -> return Nothing
+            )
+            ( \(SomeException e) -> do
+                -- putStrLn $ "# reading failed: " <> show e
+                return Nothing
+            )

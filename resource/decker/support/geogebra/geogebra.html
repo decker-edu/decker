@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: auto;
+        padding: 0;
+        overflow: hidden;
+      }
+      #gbb-element {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="./deployggb.js"></script>
+    <div id="ggb-element"></div>
+    <script>
+      // default parameters
+      let params = {
+        id: "ggbApplet",
+        filename: undefined,
+        // width: 800,
+        // height: 600,
+        allowStyleBar: false,
+        allowUpscale: true,
+        appname: "classic",
+        borderColor: "#FFFFFF",
+        canary: false,
+        enableLabelDrags: false,
+        enableRightClick: false,
+        enableShiftDragZoom: true, // camera movement
+        errorDialogsActive: true,
+        fixApplet: false,
+        isPreloader: false,
+        language: "en",
+        playButton: false,
+        playButtonAutoDecide: false,
+        prerelease: false,
+        preventFocus: false,
+        screenshotGenerator: false,
+        showAlgebraInput: false,
+        showFullscreenButton: false,
+        showMenuBar: false,
+        showResetIcon: false,
+        showToolBar: false,
+        showToolBarHelp: false,
+        showZoomButtons: false,
+        useBrowserForJS: false,
+      };
+
+      params.appletOnLoad = () => {
+        let e = document.getElementById("ggb-element");
+        let s = window.getComputedStyle(e);
+        console.log("app-width = ", e.style.width);
+        console.log("app-height = ", e.style.height);
+      }
+
+      // we should be in an enclosing iframe
+      if (window.frameElement) {
+        const iframe = window.frameElement;
+
+        // collect parameters from iframe's data attributes
+        for(const property in params) {
+            if(iframe.hasAttribute(`data-${property}`)) {
+                params[property] = iframe.getAttribute(`data-${property}`);
+            }
+        }
+
+        // pass canvas width/height to app
+        if(iframe.hasAttribute('data-app-width')) {
+          params["width"] = iframe.getAttribute('data-app-width');
+        }
+        if(iframe.hasAttribute('data-app-height')) {
+          params["height"] = iframe.getAttribute('data-app-height');
+        }
+      }
+
+      if (params["filename"]) {
+        let applet = new GGBApplet(params, true);
+        applet.setHTML5Codebase("./HTML5/5.0/web3d/");
+        window.addEventListener("load", function () {
+          applet.inject("ggb-element");
+        });
+      } else {
+        let gbbelement = document.getElementById("ggb-element");
+        gbbelement.innerText = "No GeoGebra applet specified";
+      }
+    </script>
+  </body>
+</html>

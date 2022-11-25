@@ -12,24 +12,50 @@ function onStart(deck) {
   prepareTaskLists();
   prepareFullscreenIframes();
   prepareCodeHighlighting();
+
   deck.addEventListener("ready", () => {
     if (!printMode) {
       setTimeout(() => continueWhereYouLeftOff(deck), 500);
     }
+
+    prepareFullscreenIframes();
     prepareFlashPanel(deck);
     preparePresenterMode(deck);
-    Decker.addPresenterModeListener((on) => {
-      if (on) {
-        Decker.flash.message(
-          `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`
-        );
-      } else {
-        Decker.flash.message(
-          `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
-        );
-      }
-    });
+
+    Decker.addPresenterModeListener(onPresenterMode);
   });
+}
+
+let wakeLock = null;
+async function onPresenterMode(isActive) {
+  if (isActive) {
+    // show info message
+    Decker.flash.message(
+      `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`
+    );
+
+    // request wake lock: display cannot go to sleep
+    if ("wakeLock" in navigator) {
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+        console.log("inject coffee, display will not go to sleep");
+      } catch (err) {
+        console.error("could not inject coffee, display may go to sleep");
+      }
+    }
+  } else {
+    // show info message
+    Decker.flash.message(
+      `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
+    );
+
+    // release wake lock, display may go to sleep again
+    if (wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+      console.log("removed coffee from system, display may go to sleep again");
+    }
+  }
 }
 
 function fixAutoplayWithStart() {
@@ -46,6 +72,7 @@ function fixAutoplayWithStart() {
 
 function fixLinks() {
   for (let a of document.querySelectorAll("a")) {
+    if (!a.href) continue;
     // skip links in SVGs (e.g. MathJax)
     if (a.href.baseVal) continue;
 
@@ -102,12 +129,16 @@ function prepareTaskLists() {
 // wrap iframe demos in a div that offers a fullscreen button.
 // only do this if the browser supports the Fullscreen API.
 // don't do this for Safari, since its webkit-prefixed version
-// does not work propertly: one cannot put an iframe to fullscreen
+// does not work properly: one cannot put an iframe to fullscreen
 // if the slides are in fullscreen already (which is the standard
 // presentation setting).
 // we wrap the div in any case to make the css simpler.
 function prepareFullscreenIframes() {
-  for (let iframe of document.querySelectorAll("figure.iframe>iframe")) {
+  console.log("prepare iframes");
+
+  for (let iframe of document.querySelectorAll(
+    ":not(.fs-container)>figure.iframe>iframe"
+  )) {
     // wrap div around iframe
     var parent = iframe.parentElement;
     var div = document.createElement("div");
@@ -377,26 +408,6 @@ function preparePresenterMode(deck) {
 
   Decker.isPresenterMode = (callback) => {
     return presenterMode;
-  };
-
-  Decker.tripleClick = (callback) => {
-    let pushCount = 0;
-    let lastPush = null;
-
-    return () => {
-      let now = Date.now();
-      if (lastPush && now - lastPush < 500) {
-        pushCount++;
-      } else {
-        pushCount = 1;
-      }
-      lastPush = now;
-
-      if (pushCount == 3) {
-        pushCount = 0;
-        callback();
-      }
-    };
   };
 
   deck.addKeyBinding(

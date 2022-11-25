@@ -50,6 +50,7 @@ span.pre code {
 div.layout.row:is(.columns, .grid) {
   display: flex;
   flex-flow: row nowrap;
+  gap: var(--margin-columns);
 }
 
 div.layout.row:is(.columns, .grid) > div.area {

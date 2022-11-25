@@ -8,7 +8,7 @@
   <script type="module">
     /* Store JSON encoded Pandoc meta data in a global variable. */
     import initializeDecker from "./$decker-support-dir$/js/decker.js";
-    initializeDecker($decker-meta$);
+    initializeDecker("$decker-meta-url$");
   </script>
 
 $for(author-meta)$
@@ -39,38 +39,46 @@ $endif$
   <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
   into a style sheet. Default values can come from `variables.css`. -->
   <style class="css-declarations">
-    @media (prefers-color-scheme: light) {
-      :root {
-        $for(css-light-color-declarations)$
-          $css-light-color-declarations$
-        $endfor$
-      }
+   :root {
+     $for(css-light-colors/pairs)$
+       --light-$it.key$: $it.value$;
+     $endfor$
+     $for(css-dark-colors/pairs)$
+       --dark-$it.key$: $it.value$;
+     $endfor$
+   }
+   @media (prefers-color-scheme: light) {
+     :root {
+       $for(css-light-color-declarations)$
+         $css-light-color-declarations$
+       $endfor$
+     }
 
-      :root.dark {
-        $for(css-dark-color-declarations)$
-          $css-dark-color-declarations$
-        $endfor$
-      }
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        $for(css-dark-color-declarations)$
-          $css-dark-color-declarations$
-        $endfor$
-      }
+     :root.dark {
+       $for(css-dark-color-declarations)$
+         $css-dark-color-declarations$
+       $endfor$
+     }
+   }
+   @media (prefers-color-scheme: dark) {
+     :root {
+       $for(css-dark-color-declarations)$
+         $css-dark-color-declarations$
+       $endfor$
+     }
 
-      :root.light {
-        $for(css-light-color-declarations)$
-          $css-light-color-declarations$
-        $endfor$
-      }
-    }
-    :root {
-      $for(css-declarations)$
-        $css-declarations$
-      $endfor$
-    }
-  </style>
+     :root.light {
+       $for(css-light-color-declarations)$
+         $css-light-color-declarations$
+       $endfor$
+     }
+   }
+   :root {
+     $for(css-declarations)$
+       $css-declarations$
+     $endfor$
+   }
+ </style>
 
   <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
 $for(template.css)$

@@ -216,27 +216,6 @@ div.block.accent7 {
   background-color: var(--accent7-bbg);
 }
 
-div.block:is(.question, .answer, .observation, .example, .def, .definition, .note, .ale, .alert, .equ, .equation, .theorem) {
-  border: none;
-  border-right: calc(var(--block-border-width)) solid rgb(0, 0, 0, 0);
-}
-
-div:is(.ale, .alert, .question).block {
-  border-left: calc(var(--block-border-width)) solid #f00;
-}
-
-div.block:is(.answer, .def, .definition, .equ, .equation, .theorem) {
-  border-left: calc(var(--block-border-width)) solid #4d4d4d;
-}
-
-div.block:is(.example, .observation) {
-  border-left: calc(var(--block-border-width)) solid #00f;
-}
-
-div.block.note {
-  border-left: calc(var(--block-border-width)) solid #ff9300;
-}
-
 span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
   padding-left: 0.2em;
   padding-right: 0.2em;

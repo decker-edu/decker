@@ -1,68 +1,55 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Server.Video where
 
-import Control.Concurrent.STM (TChan, writeTChan)
-import Control.Lens ((^.))
-import Control.Monad.Catch
+import Control.Concurrent.STM (writeTChan)
 import Control.Monad.State
-import Data.Aeson
+import qualified Data.ByteString as BS
 import qualified Data.List as List
 import Data.Maybe
-import qualified Data.Set as Set
+import Network.HTTP.Types
 import Relude
-import Snap.Core
-import Snap.Util.FileUploads
 import System.Directory
 import System.FilePath.Glob
 import System.FilePath.Posix
-import System.IO.Streams (connect, withFileAsOutput)
 import System.Process
 import Text.Decker.Filter.Local (randomId)
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Exception
-  ( DeckerException (InternalException),
-  )
-import Text.Decker.Project.ActionContext
 import Text.Decker.Server.Types
-import Text.Regex.TDFA
+import Text.Regex.TDFA hiding (empty)
+import Web.Scotty.Trans
 
--- | Expects a multi-part WEBM video file upload. The upload can contain multiple complete videos.
-uploadVideo :: MonadSnap m => TChan ActionMsg -> Bool -> m ()
-uploadVideo channel append = do
-  withTemporaryStore transientDir "upload-" $ \store -> do
-    (inputs, files) <-
-      handleFormUploads defaultUploadPolicy fileUploadPolicy (const store)
-    liftIO $
-      forM_ files $
-        \(FormFile path tmp) ->
-          catch
-            ( do
-                let destination = dropDrive $ decodeUtf8 path
-                putStrLn $ "# upload received: " <> tmp <> " for: " <> destination
-                if "-recording.webm" `List.isSuffixOf` destination
-                  then do
-                    exists <- doesDirectoryExist (takeDirectory destination)
-                    if exists
-                      then do
-                        let operation = if append then Append tmp destination else Replace tmp destination
-                        atomically $ writeTChan channel (UploadComplete operation)
-                      else throwM $ InternalException $ "Upload directory does not exist: " <> takeDirectory destination
-                  else throwM $ InternalException $ "Uploaded file is not a WEBM video: " <> destination
-            )
-            ( \e@(SomeException se) -> do
-                putStrLn $ "# upload FAILED: " <> show se
-                throwM e
-            )
-  return ()
-
-listRecordings :: MonadSnap m => m ()
+-- | Returns a JSON list of all existing WEBM video fragments for a recording
+listRecordings :: AppActionM ()
 listRecordings = do
-  webm <- decodeUtf8 <$> getsRequest rqPathInfo
+  webm <- param "1"
   webms <- liftIO $ existingVideos webm
-  modifyResponse $ setContentType "application/json"
-  writeBS $ fromLazy $ encode webms
+  json webms
+
+-- | Accepts the upload of a recording fragment. Either appends to existing
+-- recordings or replaces them.
+uploadRecording :: Bool -> AppActionM ()
+uploadRecording append = do
+  destination <- param "1"
+  chan <- reader channel
+  exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
+  if exists && "-recording.webm" `List.isSuffixOf` destination
+    then do
+      tmp <- liftIO $ uniqueTransientFileName destination
+      reader <- bodyReader
+      liftIO $ writeBody tmp reader
+      let operation = if append then Append tmp destination else Replace tmp destination
+      atomically $ writeTChan chan (UploadComplete operation)
+    else do 
+      text "ERROR: directory does not exist or file (suffix) is not uploadable" 
+      status status406
+
+-- | Returns the list of video fragments under the same name. If include is True
+-- the actually uploaded file is included in the list.
+existingVideos :: FilePath -> IO [FilePath]
+existingVideos webm = do
+  let [dir, file, ext] = map ($ webm) [takeDirectory, takeFileName . dropExtension, takeExtension]
+  sort <$> globDir1 (compile $ file <> "*" <> ext) dir
 
 -- Unique transient tmp filename
 uniqueTransientFileName :: FilePath -> IO FilePath
@@ -75,34 +62,12 @@ uniqueTransientFileName base = do
       <> id
       <.> takeExtension base
 
-withUploadCheck :: TMVar (Set FilePath) -> FilePath -> (Bool -> Snap ()) -> Snap ()
-withUploadCheck registry path action = do
-  reg <- atomically $ takeTMVar registry
-  putStrLn $ "withUploadCheck: " <> show reg
-  let uploading = Set.member path reg
-  atomically $ putTMVar registry (Set.insert path reg)
-  putStrLn $ "withUploadCheck: calling action"
-  if uploading
-    then action True
-    else action False
-  putStrLn $ "withUploadCheck: action done."
-  atomically $ do
-    reg <- takeTMVar registry
-    putTMVar registry (Set.delete path reg)
-
-uploadRecording :: ActionContext -> Bool -> Snap ()
-uploadRecording context append = do
-  let channel = context ^. actionChan
-  destination <- decodeUtf8 <$> getsRequest rqPathInfo
-  exists <- liftIO $ doesDirectoryExist (takeDirectory destination)
-  if exists && "-recording.webm" `List.isSuffixOf` destination
-    then do
-      tmp <- liftIO $ uniqueTransientFileName destination
-      runRequestBody (withFileAsOutput tmp . connect)
-      let operation = if append then Append tmp destination else Replace tmp destination
-      atomically $ writeTChan channel (UploadComplete operation)
-      modifyResponse $ setResponseCode 200
-    else modifyResponse $ setResponseStatus 500 "Illegal path or suffix"
+writeBody :: FilePath -> IO ByteString -> IO ()
+writeBody path reader = do
+  chunk <- reader
+  unless (BS.null chunk) $ do
+    BS.appendFile path chunk
+    writeBody path reader
 
 -- | Converts a WEBM video file into an MP4 video file on the fast track. The
 -- video stream is assumed to be H264 and is  not transcoded. The audio is
@@ -140,7 +105,7 @@ concatVideoMp4 ffmpegArgs webms mp4 = do
   concatVideoMp4' ffmpegArgs listFile mp4
 
 mkListFile webms mp4 = do
-  let listFile = (mp4 <.> "list")
+  let listFile = mp4 <.> "list"
   writeFile listFile (List.unlines $ map (\f -> "file '../" <> f <> "'") webms)
   return listFile
 
@@ -154,13 +119,6 @@ concatVideoMp4' ffmpegArgs listFile mp4 = do
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
       renameFile tmp dst
-
--- | Returns the list of video fragments under the same name. It include is True
--- the actually uploaded file is included in the list.
-existingVideos :: FilePath -> IO [FilePath]
-existingVideos webm = do
-  let [dir, file, ext] = map ($ webm) [takeDirectory, takeFileName . dropExtension, takeExtension]
-  sort <$> globDir1 (compile $ file <> "*" <> ext) dir
 
 -- | Atomically moves the transcoded upload into place.  All existing parts of
 -- previous uploads are removed.
@@ -216,7 +174,3 @@ getHighestSequenceNumber :: [FilePath] -> Int
 getHighestSequenceNumber files =
   let numbers = map getSequenceNumber files
    in foldl' max 0 (catMaybes numbers)
-
--- | Allows upload sizes up to one GB.
-fileUploadPolicy :: FileUploadPolicy
-fileUploadPolicy = setMaximumFileSize (10 ^ 9) defaultFileUploadPolicy

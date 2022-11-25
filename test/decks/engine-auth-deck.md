@@ -1,7 +1,7 @@
 ---
 author: Henrik Tramberend
 controls: false
-decker-engine:
+feedback:
   base-url: 'https://tramberend.bht-berlin.de/de-api'
 help: 0
 menu: 0

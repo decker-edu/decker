@@ -10,7 +10,6 @@ module Text.Decker.Project.Shake
     putCurrentDocument,
     watchChangesAndRepeat,
     withShakeLock,
-    -- runHttpServerIO,
   )
 where
 
@@ -28,6 +27,7 @@ import Data.Dynamic
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.List.Extra as List
 import Data.Maybe
+import qualified Data.Set as Set
 import Data.Time
 import Development.Shake hiding (doesDirectoryExist, putError)
 import GHC.IO.Exception (ExitCode (ExitFailure))
@@ -35,7 +35,6 @@ import NeatInterpolation
 import Relude hiding (state)
 import qualified System.Console.GetOpt as GetOpt
 import System.Directory as Dir
-import System.Environment
 import qualified System.FSNotify as Notify
 import System.FilePath.Posix
 import System.Info
@@ -71,7 +70,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- readMetaDataFile globalMetaFileName
   context <- initContext flags meta
-  let commands = ["clean", "example", "serve", "crunch", "pdf"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "pdf"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     _ -> runTargets context targets rules
@@ -105,6 +104,11 @@ runShake :: ActionContext -> Rules () -> IO ()
 runShake context rules = do
   options <- deckerShakeOptions context
   shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
+
+runShakeSlyly :: ActionContext -> Rules () -> IO ()
+runShakeSlyly context rules = do
+  options <- deckerShakeOptions context
+  shakeArgsWith (options {shakeFiles = transientDir </> "crunch"}) deckerFlags (\_ _ -> return $ Just rules)
 
 runShakeForever :: Maybe ActionMsg -> ActionContext -> Rules () -> IO b
 runShakeForever last context rules = do
@@ -169,7 +173,8 @@ forkServer context = do
 runCommand :: (Eq a, IsString a) => ActionContext -> a -> Rules () -> IO b
 runCommand context command rules = do
   case command of
-    "clean" -> runClean True
+    "clean" -> runClean False
+    "purge" -> runClean True
     "example" -> writeExampleProject (context ^. globalMeta)
     "serve" -> do
       forkServer context
@@ -186,7 +191,7 @@ runCommand context command rules = do
   exitSuccess
 
 crunchRecordings :: ActionContext -> IO ()
-crunchRecordings context = runShake context crunchRules
+crunchRecordings context = runShakeSlyly context crunchRules
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =
@@ -280,7 +285,7 @@ initContext extra meta = do
   createDirectoryIfMissing True transientDir
   devRun <- isDevelopmentRun
   external <- checkExternalPrograms
-  server <- newMVar ([], fromList [])
+  server <- newTVarIO (ServerState [] Set.empty)
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
@@ -334,7 +339,7 @@ withShakeLock perform = do
 currentlyServedPages :: Action [FilePath]
 currentlyServedPages = do
   context <- actionContext
-  (_, pages) <- liftIO $ readMVar (context ^. server)
+  (ServerState _ pages) <- liftIO $ readTVarIO (context ^. server)
   return $ toList pages
 
 openBrowser :: String -> IO ()
@@ -360,15 +365,17 @@ calcSource' target = do
 putCurrentDocument :: FilePath -> Action ()
 putCurrentDocument out = putInfo $ "# pandoc (for " ++ out ++ ")"
 
--- | Functionality for "decker clean" command Removes public and .decker
+-- | Functionality for "decker purge" command. Removes public and .decker
 -- directory. Located outside of Shake due to unlinking differences and
 -- parallel processes on Windows which prevented files (.shake.lock) from being
 -- deleted on Windows.
 runClean :: Bool -> IO ()
 runClean totally = do
   warnVersion
-  putStrLn $ "# Removing " ++ publicDir
+  putStrLn $ "# Removing " <> publicDir 
   tryRemoveDirectory publicDir
+  putStrLn $ "# Removing " <> privateDir 
+  tryRemoveDirectory privateDir
   when totally $
     do
       putStrLn $ "# Removing " ++ transientDir

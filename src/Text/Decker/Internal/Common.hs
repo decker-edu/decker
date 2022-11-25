@@ -1,9 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Text.Decker.Internal.Common where
 
-import Control.Monad.State
+import Relude
 import Development.Shake (Action)
 import System.FilePath
 import Text.Pandoc
@@ -16,7 +16,6 @@ doIO = lift . liftIO
 data DeckerState = DeckerState
   { basePath :: String,
     disposition :: Disposition,
-    provisioning :: Provisioning,
     emptyCount :: Int
   }
   deriving (Eq, Show)
@@ -25,6 +24,7 @@ data Layout
   = Deck
   | Page
   | Handout
+  | Index
   | Notebook
   deriving (Ord, Eq, Show)
 
@@ -45,6 +45,8 @@ htmlDeck = Disposition {layout = Deck, format = Html}
 
 htmlPage = Disposition {layout = Page, format = Html}
 
+htmlIndex = Disposition {layout = Index, format = Html}
+
 htmlHandout = Disposition {layout = Handout, format = Html}
 
 data MediaType
@@ -55,17 +57,6 @@ data MediaType
   | MeshMedia
   | SvgMedia
   | StreamMedia
-
-data Provisioning
-  = -- | Copy to public and relative URL
-    Copy
-  | -- | Symbolic link to public and relative URL
-    SymLink
-  | -- | Absolute local URL
-    Absolute
-  | -- | Relative local URL
-    Relative
-  deriving (Eq, Show, Read)
 
 pandocWriterOpts :: WriterOptions
 pandocWriterOpts =
@@ -83,7 +74,8 @@ pandocReaderOpts =
   def
     { readerExtensions =
         disableExtension Ext_implicit_figures $
-          enableExtension Ext_emoji pandocExtensions
+          enableExtension Ext_emoji pandocExtensions,
+      readerColumns = 999
     }
 
 projectDir = "."

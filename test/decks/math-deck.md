@@ -2,6 +2,8 @@
 controls: true
 menu: true
 title: Custom LaTeX Macros
+meta-data:
+  - math-macros.yaml
 ---
 
 # Custom LaTeX Macros {layout=columns}
@@ -11,9 +13,7 @@ title: Custom LaTeX Macros
 $\vc{vc}$\
 $\abs{abs}$\
 $\norm{norm}$\
-$\det{det}$\
 $\mt{mt}$\
-$\of{of}$\
 $\qt{qt}$\
 $\pt{pt}$\
 $\textcolor{red}{red}$\

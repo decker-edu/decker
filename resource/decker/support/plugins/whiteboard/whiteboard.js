@@ -190,7 +190,7 @@ function createGUI() {
     clearInterval(hoverTimer);
   };
   buttons.onmouseleave = (evt) => {
-    hoverTimer = setInterval(hidePanel, 1000);
+    hoverTimer = setInterval(hidePanel, 3000);
   };
 
   buttonSave = createButton(
@@ -1011,15 +1011,16 @@ function saveAnnotations() {
   // clear remaining laser strokes
   clearLaserStrokes();
 
-  // electron app?
+  // electron app? then save to file and return
   if (window.electronApp) {
     if (window.electronApp.saveAnnotation(annotationData(), annotationURL())) {
       console.log("whiteboard annotations saved to local file");
       needToSave(false);
-      return;
     }
+    return;
   }
 
+  // save to decker server (and do not return)
   let xhr = new XMLHttpRequest();
   xhr.open("put", annotationURL(), true);
   xhr.onloadend = function () {
@@ -1030,29 +1031,23 @@ function saveAnnotations() {
       console.warn(
         "whiteboard annotation could not be save to decker, trying to download the file instead."
       );
-      downloadAnnotations();
     }
   };
   xhr.send(annotationBlob());
-}
 
-/*
- * download scribbles to user's Download directory
- */
-function downloadAnnotations() {
+  // also save to downloads folder (just to be save(r))
   let a = document.createElement("a");
   a.classList.add("whiteboard"); // otherwise a.click() is prevented/cancelled by global listener
   document.body.appendChild(a);
   try {
     a.download = annotationFilename();
     a.href = window.URL.createObjectURL(annotationBlob());
+    a.click();
+    needToSave(false);
   } catch (error) {
     console.error("whiteboard annotations could not be downloaded: " + error);
   }
-  a.click();
   document.body.removeChild(a);
-
-  needToSave(false);
 }
 
 /*****************************************************************
@@ -1435,7 +1430,7 @@ function fragmentChanged() {
 // prevent iPad pen to trigger scrolling (by killing touchstart
 // whenever force is detected
 function preventPenScroll(evt) {
-  if (evt.targetTouches[0].force) {
+  if (whiteboardActive && evt.targetTouches[0].force) {
     return killEvent(evt);
   }
 }
@@ -1651,6 +1646,8 @@ const Plugin = {
     // load annotations
     return new Promise((resolve) => loadAnnotationsFromURL().then(resolve));
   },
+
+  saveAnnotations: saveAnnotations,
 };
 
 export default Plugin;

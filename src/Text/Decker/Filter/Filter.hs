@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Text.Decker.Filter.Filter
   ( OutputFormat (..),
     Disposition (..),
@@ -6,39 +8,63 @@ module Text.Decker.Filter.Filter
     escapeToFilePath,
     filterNotebookSlides,
     wrapSlidesinDivs,
+    runDynamicFilters,
+    FilterPosition (..),
   )
 where
 
 import Control.Lens
 import Control.Monad.Loops as Loop
-import Control.Monad.State
 import Data.Default ()
 import qualified Data.List as List
 import Data.List.Split
 import qualified Data.Text as Text
-import Development.Shake (Action)
+import Development.Shake
+import Relude
+import System.FilePath
 import Text.Decker.Filter.Detail
+import Text.Decker.Filter.Div
 import Text.Decker.Filter.Incremental
 import Text.Decker.Filter.Layout (layoutSlide)
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Notes
 import Text.Decker.Filter.Slide
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Meta
+import Text.Decker.Internal.URI
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Definition ()
+import Text.Pandoc.Filter
 import Text.Pandoc.Lens
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+
+data FilterPosition = Before | After deriving (Show, Eq)
+
+runDynamicFilters :: FilterPosition -> FilePath -> Pandoc -> Action Pandoc
+runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
+  let paths :: [Text] = lookupMetaOrElse [] (key position) meta
+  let filters = map (mkFilter . makeProjectPath baseDir . toString) paths
+  if not $ null filters
+    then liftIO $ runIOorExplode $ applyFilters env filters ["html"] pandoc
+    else return pandoc
+  where
+    env = Environment pandocReaderOpts pandocWriterOpts
+    key Before = "pandoc.filters.before"
+    key After = "pandoc.filters.after"
+    mkFilter path =
+      if takeExtension path == ".lua"
+        then LuaFilter path
+        else JSONFilter path
 
 processPandoc ::
   (Pandoc -> Decker Pandoc) ->
   FilePath ->
   Disposition ->
-  Provisioning ->
   Pandoc ->
   Action Pandoc
-processPandoc transform base disp prov pandoc =
-  evalStateT (transform pandoc) (DeckerState base disp prov 0)
+processPandoc transform base disp pandoc =
+  evalStateT (transform pandoc) (DeckerState base disp 0)
 
 -- | Split join columns with CSS3. Must be performed after `wrapBoxes`.
 splitJoinColumns :: Slide -> Decker Slide
@@ -158,6 +184,7 @@ processSlides pandoc@(Pandoc meta _) = mapSlides (concatM actions) pandoc
     actions :: [Slide -> Decker Slide]
     actions =
       [ marioCols,
+        divBasedLayout,
         processNotes,
         pauseDots,
         wrapBoxes,
@@ -186,9 +213,7 @@ selectActiveContent fragments = do
       Disposition Deck _ -> dropByClass ["comment", "handout"] fragments
       Disposition Handout _ ->
         dropByClass ["comment", "deck", "notes"] fragments
-      Disposition Page _ ->
-        dropByClass ["comment", "notes", "deck", "handout"] fragments
-      Disposition Notebook _ ->
+      _ ->
         dropByClass ["comment", "notes", "deck", "handout"] fragments
 
 escapeToFilePath :: String -> FilePath

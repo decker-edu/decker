@@ -137,7 +137,7 @@ div#record-panel[data-uistate="RECORDING"].open {
   outline: none;
   background: none;
   font-family: "Font Awesome 5 Free";
-  font-weight: 400;
+  font-weight: bold;
   color: var(--icon-inactive-color);
 }
 
@@ -208,6 +208,10 @@ button.caption-button.captioning {
   content: "\f131";
 }
 
+#placeholder-indicator {
+  opacity: 0;
+}
+
 #caption-indicator,
 #microphone-indicator {
   opacity: 0;
@@ -236,7 +240,7 @@ button.caption-button.captioning {
 .controls-row select {
   min-width: 200px;
   flex-grow: 1;
-  background-color: var(--base01);
+  background-color: var(--shade1);
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;

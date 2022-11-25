@@ -15,6 +15,11 @@
   --green-border-color: var(--accent3);
   --red-background-color: var(--accent0-bbg);
   --red-border-color: var(--accent0);
+
+  --block-outset: 0;
+  --block-border-width: 0;
+  --list-indent: 0;
+  --vertical-margin: 0;
 }
 
 /*********************************************
@@ -51,6 +56,17 @@ body {
   font-weight: inherit;
   text-align: center;
   padding: 0;
+}
+
+/*********************************************
+ * new column syntax
+ *********************************************/
+
+div.grid-layout {
+  display: grid;
+  justify-content: start;
+  column-gap: 1em;
+  row-gap: 1em;
 }
 
 /*********************************************
@@ -267,6 +283,12 @@ body {
 .reveal p {
   margin: 10px 0;
   line-height: 1.3;
+}
+.reveal p:first-child {
+  margin-top: 0;
+}
+.reveal p:last-child {
+  margin-bottom: 0;
 }
 
 /* MARIO: do not completely remove empty paragraphs with display:none.
@@ -606,12 +628,18 @@ body {
 
 .reveal figure figcaption,
 .reveal span.figcaption {
-  /* display: block;
-    margin: 10px 0px 0px 0px; */
+  display: block;
+  margin: 10px 0px 0px 0px;
   line-height: 1.2;
   font-style: italic;
   font-size: 0.6em;
   /* text-align: center; */
+}
+
+/* override Henrik's width=100% */
+.reveal figure > img,
+.reveal figure > video {
+  width: auto;
 }
 
 /*********************************************
@@ -1408,4 +1436,21 @@ div.qrcode.container a {
 }
 html.dark .media figure > img {
   background-color: var(--shade7);
+}
+
+/*********************************************
+* block fixes
+*********************************************/
+
+div.block {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+div.block > *:first-child {
+  margin-top: 0;
+}
+div.block > *:last-child {
+  margin-bottom: 0;
 }

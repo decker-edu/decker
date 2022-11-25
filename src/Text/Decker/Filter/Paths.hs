@@ -1,32 +1,32 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Paths
-  ( adjustResourcePathsA
-  , adjustResourcePaths
-  ) where
-
-import Text.Decker.Filter.Attrib
-import Text.Decker.Internal.URI
+  ( adjustResourcePathsA,
+    adjustResourcePaths,
+  )
+where
 
 import Control.Monad
 import qualified Data.List as List
 import Development.Shake hiding (Resource)
 import Relude
+import Text.Decker.Filter.Attrib
+import Text.Decker.Internal.URI
 import Text.Pandoc
 import Text.Pandoc.Walk
 
--- | Traverses the pandoc AST and adjusts local resource paths. Paths are
--- considered in these places:
+-- |  Traverses the pandoc AST and adjusts local resource paths. Paths are
+--  considered in these places:
 --
--- 1. Url field on Image elements
--- 2. src and data-src attributes on Image and CodeBlock elements
--- 3. data-backgound-* attributes in Header 1 elements
+--  1. Url field on Image elements
+--  2. src and data-src attributes on Image and CodeBlock elements
+--  3. data-backgound-* attributes in Header 1 elements
 --
--- Adjusts the image url and all source attributes. Which source is used
--- and how is decided by the media plugin. Calling need is the
--- responsibility of the media plugin. 
+--  Adjusts the image url and all source attributes. Which source is used
+--  and how is decided by the media plugin. Calling need is the
+--  responsibility of the media plugin.
 adjustResourcePaths :: FilePath -> Pandoc -> Pandoc
 adjustResourcePaths base = walk adjustInline . walk adjustBlock
   where
@@ -58,7 +58,7 @@ adjustResourcePaths base = walk adjustInline . walk adjustBlock
        in local <> other
 
 adjustResourcePathsA :: FilePath -> Pandoc -> Action Pandoc
-adjustResourcePathsA base pandoc =
+adjustResourcePathsA base pandoc = do
   walkM adjustInline pandoc >>= walkM adjustBlock
   where
     adjustInline :: Inline -> Action Inline
@@ -80,7 +80,7 @@ adjustResourcePathsA base pandoc =
     adjustBlock block = return block
     -- Adjusts the value of one attribute.
     adjustAttrib :: (Text, Text) -> Action (Text, Text)
-    adjustAttrib (k, v) = (k, ) <$> (liftIO $ makeProjectUriPath base v)
+    adjustAttrib (k, v) = (k,) <$> (liftIO $ makeProjectUriPath base v)
     -- Adjusts the values of all key value attributes that are listed in keys.
     adjustAttribs :: [Text] -> [(Text, Text)] -> Action [(Text, Text)]
     adjustAttribs keys kvs = do

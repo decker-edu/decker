@@ -26,11 +26,28 @@ If you want to copy `decker` to `C:\Program Files (x86)` you can call
 `.\bin\build.ps1 -local`. This needs a PowerShell session with administrator
 rights.
 
-To then call Decker from anywhere on the PowerShell command line create a
+To then call decker from anywhere on the PowerShell command line create a
 PowerShell profile file, add the following line, and restart your PowerShell
 session!
 
 `$Env:Path += ";${Env:ProgramFiles(x86)}\Decker\bin"`
+
+## Development
+
+### Haskell
+
+Use appropriate tooling. I use:
+
+-   *Visual Studio Code* with the following plugins:
+    -   *Haskell Language Server*
+    -   *hindent-format*
+
+### Templates and CSS
+
+To interactively work on the template, CSS and Javascript files in
+`resource/template` and `resource/support` run Decker as
+`stack run decker server`. This will automatically incorporate all changes and
+reload the documents in the browser.
 
 ## External tools
 
@@ -204,3 +221,11 @@ Haskell soure code readability depends heavily on consistent formatting
 conventions. Formatting is automated using the excellent
 [ormolu](https://github.com/tweag/ormolu) formatter via the [Haskell Language
 Server](https://github.com/haskell/haskell-language-server).
+
+## License
+
+See [COPYING](./COPYING).
+
+## License
+
+See [COPYING](./COPYING).

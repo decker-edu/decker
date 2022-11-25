@@ -24,9 +24,14 @@ static-resource-dirs:
 # resource-pack: exe:mario
 # resource-pack: exe:mono
 
+progress: false
+
 test:
   default-decker: From decker.yaml
   default-decker-deck: From decker.yaml
   merge-list:
     - This line is from decker.yaml
   some-value: This line is from decker.yaml
+
+no-index:
+  - test-no-index

@@ -1,0 +1,130 @@
+reveal:
+  backgroundTransition: "none"
+  center: false
+  controls: true
+  fragmentInURL: true
+  fragments: true
+  hash: true
+  help: true
+  hideCursorTime: 2000
+  hideInactiveCursor: true
+  history: false
+  keyboard: true
+  overview: false
+  pdfMaxPagesPerSlide: 10
+  pdfSeparateFragments: false
+  progress: true
+  slideNumber: true
+  touch: true
+  vertical-slides: true
+  transition: "none"
+  width: 1280
+  height: 720
+  viewDistance: 2
+  checkOverflow: false
+
+explain:
+  recWidth: 1920
+  recHeight: 1080
+  camWidth: 1280
+  camHeight: 720
+  useGreenScreen: false
+
+chart:
+  defaults:
+    font: {family: "Lato", size: 20 }
+    plugins:
+      colorschemes:
+        scheme: "tableau.Classic10"
+      title:
+        font: { weight: "normal", size: 30 }
+      legend:
+        position: "bottom"
+
+# live captions through WebSpeech API
+live-captions: true
+caption-server: https://decker.cs.tu-dortmund.de/captions
+speech-recognition-language: de-DE
+
+# other settings
+highlightjs: decker
+
+# progress bar on index page
+progress: true
+
+# Language dictionary. Currently for quiz elements
+dictionary:
+  de:
+    exam:
+      Easy: Leicht
+      Hard: Schwer
+      Medium: Mittelschwer
+      again-button: Nochmal
+      placeholder: Antwort eingeben
+      points: Punkte
+      solution: Lösung
+      solve-button: Lösen
+      reset-button: Zurücksetzen
+    quiz:
+      solution: Lösung
+      reset-button: Zurücksetzen
+      input-placeholder: Eingeben und 'Enter'
+      qmi-drag-hint: Objekte per Drag&Drop ziehen...
+      qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
+      solve-button: Lösung
+  en:
+    exam:
+      Easy: Easy
+      Hard: Hard
+      Medium: Medium
+      again-button: Again
+      placeholder: Type in answer
+      points: Points
+      solution: Solution
+      solve-button: Solve
+      reset-button: Reset
+    quiz:
+      solution: Show Solution
+      reset-button: Reset
+      input-placeholder: Type and press 'Enter'
+      qmi-drag-hint: Drag items from here...
+      qmi-drop-hint: ...and put them here into the correct category.
+      solution-button: Show Solution
+
+palette:
+  contrast: 0.40
+  colors:
+    light:
+      - "#ffffff"
+      - "#e0e0e0"
+      - "#d6d6d6"
+      - "#8e908c"
+      - "#969896"
+      - "#4d4d4c"
+      - "#282a2e"
+      - "#1d1f21"
+      - "#c82829"
+      - "#f5871f"
+      - "#eab700"
+      - "#84B819"
+      - "#3e999f"
+      - "#2a9ddf"
+      - "#8959a8"
+      - "#a3685a"
+    dark:
+      - "#1d1f21"
+      - "#282a2e"
+      - "#373b41"
+      - "#969896"
+      - "#b4b7b4"
+      - "#c5c8c6"
+      - "#e0e0e0"
+      - "#ffffff"
+      - "#cc6666"
+      - "#de935f"
+      - "#f0c674"
+      - "#7da72a"
+      - "#8abeb7"
+      - "#81a2be"
+      - "#b294bb"
+      - "#a3685a"

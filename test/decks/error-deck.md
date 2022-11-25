@@ -1,5 +1,7 @@
 ---
 title: Inline Error Messages
+feedback:
+  deck-id: test-no-index
 ---
 
 # Two situations {.columns}
