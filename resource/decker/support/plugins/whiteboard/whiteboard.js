@@ -1646,6 +1646,8 @@ const Plugin = {
     // load annotations
     return new Promise((resolve) => loadAnnotationsFromURL().then(resolve));
   },
+
+  saveAnnotations: saveAnnotations,
 };
 
 export default Plugin;

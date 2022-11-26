@@ -31,6 +31,7 @@ import Text.Decker.Filter.Util
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Helper
+import Text.Decker.Internal.Meta (lookupMetaOrFail)
 import Text.Decker.Internal.URI
 import Text.Decker.Server.Video
 import Text.Pandoc
@@ -226,6 +227,7 @@ imageCompilers =
     [ (EmbedSvgT, svgBlock),
       (PdfT, objectBlock "application/pdf"),
       (MviewT, mviewBlock),
+      (GeogebraT, geogebraBlock),
       (IframeT, iframeBlock),
       (ImageT, imageBlock),
       (VideoT, videoBlock),
@@ -411,6 +413,20 @@ mviewBlock uri title caption = do
   pushAttribute ("model", model)
   mviewUri <- URI.mkURI "public:support/mview/mview.html"
   iframeBlock mviewUri title caption
+
+-- |  Compiles the image data to an iframe containing marios geogebra page.
+geogebraBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+geogebraBlock uri title caption = do
+  turi <- lift $ transformUri uri ""
+  meta' <- lift $ gets meta
+  -- Constructs the relative path from /support/geogebra/geogebra.html to .ggb file
+  let docRelative = toString $ URI.render turi
+  let docBase = lookupMetaOrFail "decker.base-dir" meta'
+  let projRelative = docBase </> docRelative
+  let scriptRelative = ".." </> ".." </> projRelative
+  pushAttribute ("filename", toText scriptRelative)
+  geogebraUri <- URI.mkURI "public:support/geogebra/geogebra.html"
+  iframeBlock geogebraUri title caption
 
 audioBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 audioBlock uri title caption = do

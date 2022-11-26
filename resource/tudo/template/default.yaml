@@ -47,7 +47,7 @@ caption-server: https://decker.cs.tu-dortmund.de/captions
 speech-recognition-language: de-DE
 
 # other settings
-highlightjs: atom-one
+highlightjs: decker
 
 # progress bar on index page
 progress: true

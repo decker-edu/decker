@@ -53,24 +53,37 @@ templateFile disp =
 
 defaultMetaPath = "template/default.yaml"
 
+data TemplateError = NotFound FilePath | NotCompiled Text
+
 readTemplate :: Meta -> FilePath -> IO (Template Text, [FilePath])
 readTemplate meta file = do
   resources@(Resources decker pack) <- deckerResources meta
-  catch
-    (readTemplate' pack resources)
-    ( \(SomeException e) -> do
-        putStrLn $ "# read template from pack failed: " <> file <> ", pack: " <> show pack <> ", error: " <> show e
-        readTemplate' decker resources
-    )
+  case pack of
+    None -> readDefaultTemplate resources
+    _ -> do
+      fromPack <- readTemplate' pack resources
+      case fromPack of
+        Right result -> return result
+        Left (NotFound file) -> readDefaultTemplate resources
+        Left (NotCompiled err) -> error $ "# compilation of pack template failed: " <> toText file <> ",  error: " <> err
   where
+    readTemplate' :: Source -> Resources -> IO (Either TemplateError (Template Text, [FilePath]))
     readTemplate' source resources = do
-      (text, needed) <- readTemplateText source
-      compiled <- runReaderT (compileTemplate "" text) resources
-      case compiled of
-        Right compiled -> return (compiled, needed)
-        Left msg -> do
-          -- putStrLn $ "# read template failed: " <> file <> ", source: " <> show source <> ", error: " <> msg
-          error (toText msg)
+      catch
+        ( do
+            (text, needed) <- readTemplateText source
+            compiled <- runReaderT (compileTemplate "" text) resources
+            case compiled of
+              Right compiled -> return $ Right (compiled, needed)
+              Left errmsg -> return $ Left $ NotCompiled (toText errmsg)
+        )
+        (\(SomeException e) -> return $ Left $ NotFound file)
+    readDefaultTemplate resources@(Resources decker _) = do
+      fromDecker <- readTemplate' decker resources
+      case fromDecker of
+        Right result -> return result
+        Left (NotFound file) -> error $ "# default template not found: " <> toText file
+        Left (NotCompiled err) -> error $ "# compilation of default template failed: " <> toText file <> ",  error: " <> err
     readTemplateText (DeckerExecutable base) = do
       deckerExecutable <- getExecutablePath
       -- putStrLn $ "# reading: " <> file <> " from: " <> (deckerExecutable <> ":" <> base)
@@ -142,6 +155,7 @@ instance TemplateMonad SourceM where
                   Just . decodeUtf8 <$> extractEntry ("template" </> name) zip
                 None -> return Nothing
             )
-            (\(SomeException e) -> do
-              -- putStrLn $ "# reading failed: " <> show e
-              return Nothing)
+            ( \(SomeException e) -> do
+                -- putStrLn $ "# reading failed: " <> show e
+                return Nothing
+            )
