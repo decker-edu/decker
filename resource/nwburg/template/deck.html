@@ -185,43 +185,7 @@ $endif$
       explain: Decker.meta.explain,
       feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
       jingles: Decker.meta.jingles,
-      highlight: { highlightOnLoad: false },
-      /* highlight: {
-         beforeHighlight: 
-         hljs => hljs.registerLanguage(
-            "asm6502acme",
-            (() => {
-               "use strict";
-               return (r) => ({
-                  name: "asm6502acme",
-                  case_insensitive: true,
-                  keywords: {
-                           keyword:
-                        "ADC AND ASL BCC BCS BEQ BIT BMI BNE BPL BRK BVC BVS CLC CLD CLI CLV CMP CPX CPY DEC DEX DEY EOR INC INX INY JMP JSR LDA LDX LDY LSR NOP ORA PHA PHP PLA PLP ROL ROR RTI RTS SBC SEC SED SEI STA STX STY TAX TAY TSX TXA TXS TYA",
-                     built_in: "x|0 y|0",
-                     symbol:
-                        "scr by byte txt pet to source binary initmem wo word hex h align fi fill skip convtab ct text tx raw scrxor zone sl if ifdef ifndef for set do while endoffile warn error serious macro pseudopc cpu to al as rl rs",
-                  },
-                  contains: [
-                     r.COMMENT(";", "$", { relevance: 0 }),
-                     {
-                     className: "number",
-                     begin:
-                        "(-?)(\\$[a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)",
-                     },
-                     r.QUOTE_STRING_MODE,
-                     {
-                     className: "string",
-                     begin: "'",
-                     end: "[^\\\\]'",
-                     illegal: "[^\\\\][^']",
-                     },
-                     { className: "symbol", begin: "^![A-Za-z0-9_.$]+:" },
-                  ],
-               });
-            })()
-         );
-      }, */
+      
       // list of plugins
       plugins: [
          deckerPlugin,
@@ -252,51 +216,9 @@ $endif$
       ]
     };
 
-    console.log(3);
-    Reveal.initialize(revealConfig).then(() => {
-    const hljs = highlightPlugin().hljs;
+   Reveal.initialize(revealConfig);
 
-    // Here you can call functions on hljs, e.g. registerLanguage and configure
-    hljs => hljs.registerLanguage(
-            "asm6502acme",
-            (() => {
-               "use strict";
-               return (r) => ({
-                  name: "asm6502acme",
-                  case_insensitive: true,
-                  keywords: {
-                           keyword:
-                        "ADC AND ASL BCC BCS BEQ BIT BMI BNE BPL BRK BVC BVS CLC CLD CLI CLV CMP CPX CPY DEC DEX DEY EOR INC INX INY JMP JSR LDA LDX LDY LSR NOP ORA PHA PHP PLA PLP ROL ROR RTI RTS SBC SEC SED SEI STA STX STY TAX TAY TSX TXA TXS TYA",
-                     built_in: "x|0 y|0",
-                     symbol:
-                        "scr by byte txt pet to source binary initmem wo word hex h align fi fill skip convtab ct text tx raw scrxor zone sl if ifdef ifndef for set do while endoffile warn error serious macro pseudopc cpu to al as rl rs",
-                  },
-                  contains: [
-                     r.COMMENT(";", "$", { relevance: 0 }),
-                     {
-                     className: "number",
-                     begin:
-                        "(-?)(\\$[a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)",
-                     },
-                     r.QUOTE_STRING_MODE,
-                     {
-                     className: "string",
-                     begin: "'",
-                     end: "[^\\\\]'",
-                     illegal: "[^\\\\][^']",
-                     },
-                     { className: "symbol", begin: "^![A-Za-z0-9_.$]+:" },
-                  ],
-               });
-            })()
-         );
-      // Run the plugin's highlighting code that was skipped on load
-      Array.from(Reveal.getRevealElement().querySelectorAll('pre code')).forEach((block) => {
-         highlightPlugin().highlightBlock(block);
-    });
-   });
-
-    window.Reveal = Reveal;
+   window.Reveal = Reveal;
   </script>
 
 </body>
@@ -311,6 +233,19 @@ $endif$
 $for(template.js)$
   <script type="module" src="$template.js$"></script>
 $endfor$
+
+/* Injection of own code for reveal's highlight.js is not as trivial as it seems. A good overview
+is found in this issue: https://github.com/hakimel/reveal.js/issues/2761
+We are using the reveal version just before where Hakim added the necessary callback to 
+allow easy addition of new languages. For some reason, the workaround by larskinn 
+does not work since pandoc seems to priduce a hickup, when the necessary code definitions
+are included here in the template. As a solution, the initialization of the respective code
+in Reveal.initialize(revealConfig); as a promise has to be outsourced to a non-parsed script
+which I still have to try. However, needs some more time. Unfortunatly this is not context free
+since it also needs to set highlight: { highlightOnLoad: false }, here and then to manually scan
+all code blocks and apply the plugin's highlighting code at the end which also did not work so
+far maybe due to timing issues (it is executed at the wrong time during the overall process. This
+comment here is just a reminder of where this was left of...*/
 /* <script src="$decker-support-dir$/js/highlightjs-6502acme.js"></script> */
 
 </html>
