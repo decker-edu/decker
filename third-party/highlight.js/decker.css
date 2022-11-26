@@ -5,8 +5,7 @@
   overflow-x: auto;
   padding: 0.5em;
   color: var(--foreground-color);
-  background: var(--background-color);
-  border: 1px solid var(--shade1);
+  background: var(--shade1);
 }
 
 .hljs-comment,

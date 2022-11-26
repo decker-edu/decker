@@ -742,7 +742,8 @@ section#title-slide h1 {
   font-style: normal;
   font-size: 1.5em;
   text-align: center;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   margin: 20px !important;
   box-sizing: border-box;
   line-height: 1.5;
