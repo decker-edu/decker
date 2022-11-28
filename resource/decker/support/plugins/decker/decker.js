@@ -134,8 +134,6 @@ function prepareTaskLists() {
 // presentation setting).
 // we wrap the div in any case to make the css simpler.
 function prepareFullscreenIframes() {
-  console.log("prepare iframes");
-
   for (let iframe of document.querySelectorAll(
     ":not(.fs-container)>figure.iframe>iframe"
   )) {
