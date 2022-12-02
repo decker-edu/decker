@@ -10,6 +10,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import Development.Shake
 import Relude
+import Skylighting (SyntaxMap, defaultSyntaxMap, loadSyntaxFromFile)
 import System.FilePath
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Blaze.Internal (ChoiceString (..), MarkupM (..), StaticString, getString, getText)
@@ -39,17 +40,40 @@ highlightStyle meta =
           Just ps -> lookup ps highlightingStyles
           Nothing -> lookup "monochrome" highlightingStyles
 
+-- | Calculates the syntax map for the writer option. Loads additoional syntax
+-- files from the meta-data list `extra-highlight-syntax`.
+getHighlightSyntax :: Meta -> Action SyntaxMap
+getHighlightSyntax meta = do
+  let additionalSyntax =
+        maybe [] Map.toList $ lookupMeta "extra-highlight-syntax" meta
+  extras <- Map.fromList . catMaybes <$> mapM loadSyntax additionalSyntax
+  return $ Map.union defaultSyntaxMap extras
+  where
+    loadSyntax (key :: Text, path :: FilePath) = do
+      result <- liftIO $ loadSyntaxFromFile path
+      case result of
+        Left err -> do
+          putError $
+            "# cannot load highlighting syntax for: "
+              <> toString key
+              <> " from file: "
+              <> path
+          return Nothing
+        Right syntax -> return $ Just (key, syntax)
+
 markdownToHtml :: Disposition -> Meta -> TemplateCache -> FilePath -> FilePath -> Action ()
 markdownToHtml disp meta getTemplate markdownFile out = do
   putCurrentDocument out
   let relSupportDir = relativeSupportDir (takeDirectory out)
   pandoc@(Pandoc meta _) <- readAndFilterMarkdownFile disp meta markdownFile
   template <- getTemplate (templateFile disp)
+  syntaxMap <- getHighlightSyntax meta
   let options =
         pandocWriterOpts
           { writerTemplate = Just template,
             writerSectionDivs = False,
             writerHighlightStyle = highlightStyle meta,
+            writerSyntaxMap = syntaxMap,
             writerHTMLMathMethod =
               MathJax (lookupMetaOrElse "" "mathjax-url" meta),
             writerVariables =

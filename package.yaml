@@ -91,6 +91,7 @@ dependencies:
   - scientific
   - scotty
   - shake
+  - skylighting
   - split
   - stm
   - string-interpolate
