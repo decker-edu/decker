@@ -30,14 +30,14 @@ $endif$
     <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
 
     <style class="css-declarations">
+      :root {
+        $for(css-light-color-declarations)$
+          $css-light-color-declarations$
+        $endfor$
+      }
       :root.dark {
         $for(css-dark-color-declarations)$
           $css-dark-color-declarations$
-        $endfor$
-      }
-      :root.light {
-        $for(css-light-color-declarations)$
-          $css-light-color-declarations$
         $endfor$
       }
       :root {

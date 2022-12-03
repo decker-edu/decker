@@ -34,14 +34,14 @@ $endif$
   <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
   into a style sheet. Default values can come from `variables.css`. -->
   <style class="css-declarations">
+    :root {
+      $for(css-light-color-declarations)$
+        $css-light-color-declarations$
+      $endfor$
+    }
     :root.dark {
       $for(css-dark-color-declarations)$
         $css-dark-color-declarations$
-      $endfor$
-    }
-    :root.light {
-      $for(css-light-color-declarations)$
-        $css-light-color-declarations$
       $endfor$
     }
     :root {
