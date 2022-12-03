@@ -547,24 +547,6 @@ img {
   object-fit: contain;
 }
 
-@media (prefers-color-scheme: dark) {
-  img {
-    background: var(--shade5);
-    border-radius: 0.5rem;
-  }
-
-  .light img {
-    background: inherit;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  .dark img {
-    background: var(--shade5);
-    border-radius: 0.5rem;
-  }
-}
-
 :is(.theorem, .example) mjx-tool > mjx-tip {
   background-color: var(--background-color);
   /*  border-radius: 0.5rem; */
@@ -1041,4 +1023,21 @@ div.media > figure iframe {
 
 figure > img {
   margin: auto;
+}
+
+/*********************************************
+* special rules for dark mode
+*********************************************/
+
+html.light .dark-only,
+html.dark .light-only {
+  display: none;
+}
+
+html.dark
+  .media
+  :is(figure, .figure)
+  :is(svg, img, div.chart-container, iframe) {
+  background-color: white;
+  filter: brightness(90%) contrast(90%);
 }

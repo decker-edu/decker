@@ -1352,36 +1352,15 @@ div.qrcode.container a {
 * special rules for dark mode
 *********************************************/
 
-.dark-only {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  .media :is(figure, .figure) > img {
-    background-color: var(--shade7);
-  }
-  .dark-only {
-    display: initial;
-  }
-  .light-only {
-    display: none;
-  }
-}
-
-html.dark .media :is(figure, .figure) > img {
-  background-color: var(--shade7);
-}
-
+html.light .dark-only,
 html.dark .light-only {
   display: none;
 }
-html.dark .dark-only {
-  display: initial;
-}
 
-html.light .light-only {
-  display: initial;
-}
-html.light .dark-only {
-  display: none;
+html.dark
+  .media
+  :is(figure, .figure)
+  :is(svg, img, div.chart-container, iframe) {
+  background-color: white;
+  filter: brightness(90%) contrast(90%);
 }

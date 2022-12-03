@@ -549,36 +549,48 @@ class SlideMenu {
     document.documentElement.classList.toggle("hide-annotations");
   }
 
-  toggleColorMode(mode) {
+  // returns "light", "dark", or "system"
+  getColorModePreference() {
+    const storage = localStorage.getItem("color-mode");
+    return storage ? storage : "system";
+  }
+
+  // store "light", "dark", or nothing (=system).
+  // also updates color mode on slides.
+  setColorModePreference(mode) {
     if (mode === "dark") {
       localStorage.setItem("color-mode", "dark");
+    } else if (mode === "light") {
+      localStorage.setItem("color-mode", "light");
+    } else if (mode === "system") {
+      localStorage.removeItem("color-mode");
+    }
+    this.updateColorMode();
+  }
+
+  initializeColorMode() {
+    this.updateColorMode();
+    if (window.matchMedia) {
+      const query = window.matchMedia("(prefers-color-scheme: dark)");
+      query.addEventListener("change", this.updateColorMode);
+    }
+  }
+
+  // gets color mode from preferences, sets class "light" or "dark" on slides
+  updateColorMode() {
+    const system =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    const storage = localStorage.getItem("color-mode");
+    const mode = storage ? storage : system;
+    if (mode === "dark") {
       document.documentElement.classList.add("dark");
       document.documentElement.classList.remove("light");
-    }
-    if (mode === "light") {
-      localStorage.setItem("color-mode", "light");
+    } else {
       document.documentElement.classList.add("light");
       document.documentElement.classList.remove("dark");
-    }
-    if (mode === "system") {
-      localStorage.removeItem("color-mode");
-      document.documentElement.classList.remove("dark");
-      document.documentElement.classList.remove("light");
-    }
-  }
-
-  getColorModePreference() {
-    let match = window.matchMedia("(prefers-color-scheme: dark)");
-    let system = match.matches ? "dark" : "light";
-    let storage = localStorage.getItem("color-mode");
-    let choice = storage ? storage : system;
-    return choice;
-  }
-
-  initializeColorModePreference() {
-    let storage = localStorage.getItem("color-mode");
-    if (storage) {
-      this.toggleColorMode(storage);
     }
   }
 
@@ -609,8 +621,8 @@ class SlideMenu {
   }
 
   initializeSettingsMenu() {
-    let animations = this.reveal.getConfig().fragments;
-    let mode = this.getColorModePreference();
+    const animations = this.reveal.getConfig().fragments;
+    const colorModePreference = this.getColorModePreference();
     let template = document.createElement("template");
     template.innerHTML = String.raw`<div class="menu-settings" inert>
     <div class="settings-item">
@@ -648,7 +660,7 @@ class SlideMenu {
           <div class="choice-pair">
             <input id="system-color-radio" type="radio" name="color-mode" value="system" aria-label="${
               this.localization.system_color_choice
-            }" ${mode === "system" ? "checked" : ""}>
+            }" ${colorModePreference === "system" ? "checked" : ""}>
             <label for="system-color-radio">${
               this.localization.system_color_choice
             }</label>
@@ -656,7 +668,7 @@ class SlideMenu {
           <div class="choice-pair">
             <input id="light-color-radio" type="radio" name="color-mode" value="light" aria-label="${
               this.localization.light_color_choice
-            }" ${mode === "light" ? "checked" : ""}>
+            }" ${colorModePreference === "light" ? "checked" : ""}>
             <label for="light-color-radio">${
               this.localization.light_color_choice
             }</label>
@@ -664,7 +676,7 @@ class SlideMenu {
           <div class="choice-pair">
             <input id="dark-color-radio" type="radio" name="color-mode" value="dark" aria-label="${
               this.localization.dark_color_choice
-            }" ${mode === "dark" ? "checked" : ""}>
+            }" ${colorModePreference === "dark" ? "checked" : ""}>
             <label for="dark-color-radio">${
               this.localization.dark_color_choice
             }</label>
@@ -684,7 +696,7 @@ class SlideMenu {
     this.settings.color_choice =
       this.settings.container.querySelector("#color-choice");
     this.settings.color_choice.addEventListener("change", (event) => {
-      this.toggleColorMode(event.target.value);
+      this.setColorModePreference(event.target.value);
     });
     this.settings.annotations_toggle = this.settings.container.querySelector(
       "#setting-toggle-annotations"
@@ -714,7 +726,7 @@ class SlideMenu {
       close_label: "Close Navigation Menu",
       no_title: "No Title",
       title: "Navigation",
-      print_confirmation: "Leave/Reload presentation to export PDF?",
+      print_confirmation: "Leave presentation to export it to PDF?",
       index_confirmation: "Go back to index page?",
     };
 
@@ -737,15 +749,14 @@ class SlideMenu {
         close_label: "Navigationsmenu schließen",
         no_title: "Kein Titel",
         title: "Navigation",
-        print_confirmation:
-          "Die Seite neuladen / verlassen um sie als PDF zu exportieren?",
+        print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
         index_confirmation: "Zurück zur Index-Seite gehen?",
       };
     }
 
     this.initializeButton();
     this.initializeMenu();
-    this.initializeColorModePreference();
+    this.initializeColorMode();
 
     document.body.appendChild(this.menu.container);
 
