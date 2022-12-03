@@ -7,6 +7,9 @@
  * @author Sebastian Hauer
  */
 
+// import functionality for light/dark mode
+import * as colorScheme from "../../js/color-scheme.js";
+
 class SlideMenu {
   id;
   reveal;
@@ -549,51 +552,6 @@ class SlideMenu {
     document.documentElement.classList.toggle("hide-annotations");
   }
 
-  // returns "light", "dark", or "system"
-  getColorModePreference() {
-    const storage = localStorage.getItem("color-mode");
-    return storage ? storage : "system";
-  }
-
-  // store "light", "dark", or nothing (=system).
-  // also updates color mode on slides.
-  setColorModePreference(mode) {
-    if (mode === "dark") {
-      localStorage.setItem("color-mode", "dark");
-    } else if (mode === "light") {
-      localStorage.setItem("color-mode", "light");
-    } else if (mode === "system") {
-      localStorage.removeItem("color-mode");
-    }
-    this.updateColorMode();
-  }
-
-  initializeColorMode() {
-    this.updateColorMode();
-    if (window.matchMedia) {
-      const query = window.matchMedia("(prefers-color-scheme: dark)");
-      query.addEventListener("change", this.updateColorMode);
-    }
-  }
-
-  // gets color mode from preferences, sets class "light" or "dark" on slides
-  updateColorMode() {
-    const system =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    const storage = localStorage.getItem("color-mode");
-    const mode = storage ? storage : system;
-    if (mode === "dark") {
-      document.documentElement.classList.add("dark");
-      document.documentElement.classList.remove("light");
-    } else {
-      document.documentElement.classList.add("light");
-      document.documentElement.classList.remove("dark");
-    }
-  }
-
   clearCurrentSlideMark() {
     let listItems = this.menu.slide_list.childNodes;
     for (let item of listItems) {
@@ -622,7 +580,7 @@ class SlideMenu {
 
   initializeSettingsMenu() {
     const animations = this.reveal.getConfig().fragments;
-    const colorModePreference = this.getColorModePreference();
+    const colorModePreference = colorScheme.getPreference();
     let template = document.createElement("template");
     template.innerHTML = String.raw`<div class="menu-settings" inert>
     <div class="settings-item">
@@ -696,7 +654,7 @@ class SlideMenu {
     this.settings.color_choice =
       this.settings.container.querySelector("#color-choice");
     this.settings.color_choice.addEventListener("change", (event) => {
-      this.setColorModePreference(event.target.value);
+      colorScheme.setPreference(event.target.value);
     });
     this.settings.annotations_toggle = this.settings.container.querySelector(
       "#setting-toggle-annotations"
@@ -756,7 +714,6 @@ class SlideMenu {
 
     this.initializeButton();
     this.initializeMenu();
-    this.initializeColorMode();
 
     document.body.appendChild(this.menu.container);
 
