@@ -11,6 +11,8 @@ packages:
 extra-deps:
   - github: jgm/pandoc # Pandoc 2.19.2
     commit: 53325aa2e37a976e5a20d8fc2a662070a04e90a9
+  - relude-1.1.0.0@sha256:fe82b67d4560b9eff8d7dd12c5e1f786b25d52d64f7302ad82a3bbec9a0bd55e,11747
+  - string-interpolate-0.3.1.2@sha256:4d0987f453c66040aa8e482fe28a7d3cdc9d8df01b698bc92f42a592cfb337db,4268 
   - skylighting-core-0.13
   - skylighting-0.13
   - skylighting-format-ansi-0.1
@@ -55,8 +57,13 @@ extra-deps:
 extra-include-dirs:
   - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi
 
-system-ghc: true
-resolver: lts-20.0
+# system-ghc: true
+resolver: nightly-2022-12-01
+compiler: ghc-9.4.2
+allow-newer: true
+# system-ghc: true
+# resolver: lts-20.0
+  
 # TODO Maybe we still need this on Windows. But maybe not.
 # ghc-options:
 #   "$locals": -fhide-source-paths -Wno-missing-home-modules
