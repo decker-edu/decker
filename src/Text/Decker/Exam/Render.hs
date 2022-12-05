@@ -237,50 +237,6 @@ groupQuestions questions = sorted
           )
           $ HashMap.toList grouped
 
-renderQuestionCatalog :: FilePath -> [Question] -> Action Text
-renderQuestionCatalog base questions = do
-  return $
-    toText $
-      renderHtml $
-        H.html $ do
-          H.head $ do
-            H.meta ! A.charset "utf-8"
-            H.title "Question Catalog"
-            H.script ! A.type_ "module" ! A.src "/support/plugins/examiner/catalog.js" $ ""
-            H.script ! A.src "/support/vendor/mathjax/tex-svg.js" $ ""
-            H.script ! A.src "/support/js/reload.js" $ ""
-            H.link ! A.rel "stylesheet" ! A.href "/support/plugins/examiner/catalog.css"
-          H.body $ do
-            H.header $
-              H.h1 ("Question Catalog (" <> show (length questions) <> ")")
-            rendered
-  where
-    rendered :: Html
-    rendered = toHtml $ map lecture (groupQuestions questions)
-    lecture (lid, topics) = do
-      H.div
-        ! A.class_ "lecture"
-        ! A.id (toValue lid)
-        $ do
-          H.h1 $ do
-            H.button ""
-            toHtml (lid <> " (" <> show (length topics) <> ")")
-          H.div ! A.class_ "closed" $
-            toHtml $ map (topic lid) topics
-    topic lid (tid, quests) = do
-      H.div
-        ! A.class_ "topic"
-        ! A.id (toValue (tid <> "-" <> lid))
-        $ do
-          H.h2 $ do
-            H.button ""
-            toHtml (tid <> " (" <> show (length quests) <> ")")
-          H.div ! A.class_ "closed" $
-            toHtml $ map (quest 3 lid tid) $ zip [0 ..] quests
-    quest hn lid tid (i, q) =
-      let id = lid <> "-" <> tid <> "-" <> show i
-       in renderQuestionToHtml 3 id q
-
 instance ToMarkup a => ToMarkup (NonEmpty a) where
   toMarkup = toHtml . map toMarkup . toList
 

@@ -1,0 +1,40 @@
+on:
+  push:
+    branch:
+      - "develop"
+
+name: Test Develop
+jobs:
+  build-all-platforms:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    name: Decker ${{ github.ref_name }} (${{ matrix.os }})
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.stack
+          key: ${{ runner.os }}-${{ hashFiles('stack.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - name: Setup Haskell
+        uses: haskell/actions/setup@v2
+        with:
+          ghc-version: "9.4.2"
+          enable-stack: true
+          stack-no-global: true
+          stack-version: "latest"
+          stack-setup-ghc: true
+
+      - name: Build & test
+        run: |
+          stack test

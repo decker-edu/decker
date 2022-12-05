@@ -1,5 +1,6 @@
-[![Development
-Release](https://github.com/decker-edu/decker/actions/workflows/release.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/release.yml)
+[![Tests](https://github.com/decker-edu/decker/actions/workflows/develop.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/develop.yml)
+[![Release](https://github.com/decker-edu/decker/actions/workflows/release.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/release.yml)
+[![Decker Page](https://github.com/decker-edu/decker/actions/workflows/jekyll-gh-pages.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/jekyll-gh-pages.yml)
 
 # Decker
 
