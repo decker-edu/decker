@@ -57,7 +57,6 @@ extra-deps:
 extra-include-dirs:
   - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi
 
-# system-ghc: true
 resolver: nightly-2022-12-01
 compiler: ghc-9.4.2
 allow-newer: true
