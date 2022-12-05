@@ -1,6 +1,6 @@
 on:
   push:
-    branch:
+    branches:
       - "develop"
 
 name: Test Develop
