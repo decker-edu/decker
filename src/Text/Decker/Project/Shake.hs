@@ -320,10 +320,10 @@ deckerShakeOptions ctx = do
         shakeColor = not toStderr,
         shakeStaunch = toStderr,
         shakeOutput = outputMessage toStderr,
-        -- shakeChange = ChangeModtime
+        shakeChange = ChangeModtime
         -- shakeLint = Just LintFSATrace,
         -- shakeReport = [".decker/shake-report.html"],
-        shakeChange = ChangeModtimeAndDigest
+        -- shakeChange = ChangeModtimeAndDigest
       }
 
 relativeSupportDir :: FilePath -> FilePath
