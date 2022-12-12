@@ -87,16 +87,16 @@ function pollSession({
           // votes for each choice in the active poll. Example: {25, ["A": 12,
           // "B": 9]}. onFinished(participants, votes) is called with the final
           // results when the poll has stopped.
-          poll: (choices, solution, votes, callbacks) => {
+          poll: (choices, solution, votes, callbacks, selection) => {
             session.ui = callbacks;
-            session.socket.send(
-              JSON.stringify({
-                tag: "Start",
-                choices: choices,
-                solution: solution,
-                votes: votes,
-              })
-            );
+            let options = {
+              tag: "Start",
+              choices: choices,
+              solution: solution,
+              votes: votes,
+            };
+            if (selection) options.winnerselection = selection;
+            session.socket.send(JSON.stringify(options));
           },
 
           // Terminates the active poll.
@@ -136,6 +136,7 @@ function pollSession({
             );
             session.ui = null;
             break;
+
           default:
             console.error("Received unknown message: ", message);
         }
