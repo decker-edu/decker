@@ -30,31 +30,15 @@ $endif$
     <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
 
     <style class="css-declarations">
-      @media (prefers-color-scheme: light) {
-        :root {
-          $for(css-light-color-declarations)$
-            $css-light-color-declarations$
-          $endfor$
-        }
-
-        :root.dark {
-          $for(css-dark-color-declarations)$
-            $css-dark-color-declarations$
-          $endfor$
-        }
+      :root {
+        $for(css-light-color-declarations)$
+          $css-light-color-declarations$
+        $endfor$
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          $for(css-dark-color-declarations)$
-            $css-dark-color-declarations$
-          $endfor$
-        }
-
-        :root.light {
-          $for(css-light-color-declarations)$
-            $css-light-color-declarations$
-          $endfor$
-        }
+      :root.dark {
+        $for(css-dark-color-declarations)$
+          $css-dark-color-declarations$
+        $endfor$
       }
       :root {
         $for(css-declarations)$
@@ -159,6 +143,7 @@ $body$
   <!-- javascript scripts ------------------------------------------------->
 
   <script src="$decker-support-dir$/js/index.js"></script>
+  <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
 
   <script type="module">
     import setupFlyingFocus from './$decker-support-dir$/flyingFocus/flying-focus.js';

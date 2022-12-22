@@ -8,16 +8,15 @@
 
 module Text.Decker.Filter.Media where
 
-import Conduit (runConduit, runConduitRes, sourceFile, withSourceFile, (.|))
+import Conduit (runConduit, withSourceFile, (.|))
 import Control.Monad.Catch
-import Data.Conduit.ImageSize (Size (Size, height, width), sinkImageInfo, sinkImageSize)
+import Data.Conduit.ImageSize (Size (Size), sinkImageSize)
 import Data.List (lookup)
 import qualified Data.Map.Strict as Map
 import Data.Maybe
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import HTMLEntities.Text (text)
-import Network.Wai.Handler.Warp (getFileInfo)
 import Relude
 import System.Directory
 import System.FilePath.Posix

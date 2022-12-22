@@ -311,14 +311,15 @@ const Plugin = {
       mergeRecursive(Chart.defaults, config);
     }
 
-    // MARIO: set color depending on dark/light mode
-    const colors =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? window.Decker.meta.palette.colors.dark
-        : window.Decker.meta.palette.colors.light;
-    Chart.defaults.color = colors[7];
-    Chart.defaults.borderColor = colors[2];
+    // MARIO: disabled this, since it's more robust to
+    // add a light background to charts in CSS
+    // const colors =
+    //   window.matchMedia &&
+    //   window.matchMedia("(prefers-color-scheme: dark)").matches
+    //     ? window.Decker.meta.palette.colors.dark
+    //     : window.Decker.meta.palette.colors.light;
+    // Chart.defaults.color = colors[7];
+    // Chart.defaults.borderColor = colors[2];
 
     Reveal.addEventListener("ready", function () {
       // MARIO: when in print mode, set animation duration to zero

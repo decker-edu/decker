@@ -12,7 +12,6 @@ import Data.Colour
 import Data.Colour.SRGB
 import qualified Data.Map.Strict as Map
 import Data.Maybe
-import qualified Data.Text as Text
 import Relude
 import Text.Decker.Internal.Meta
 import Text.Pandoc (Meta)

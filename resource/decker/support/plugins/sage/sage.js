@@ -115,7 +115,9 @@ function prepareSAGE() {
     iframe.sandbox = "allow-scripts allow-same-origin";
     iframe.setAttribute("data-src", url);
 
-    // construct enclosing figure element
+    // construct enclosing div.media and figure
+    let media = document.createElement("div");
+    media.classList.add("media");
     let figure = document.createElement("figure");
     figure.classList.add("iframe");
     figure.style.width =
@@ -123,9 +125,10 @@ function prepareSAGE() {
     figure.style.height =
       sageCell.getAttribute("height") || sageCell.style.height || "500px";
     figure.appendChild(iframe);
+    media.appendChild(figure);
 
     // don't need original sageCell anymore
-    sageCell.replaceWith(figure);
+    sageCell.replaceWith(media);
   }
 }
 

@@ -154,21 +154,10 @@ tests:
     dependencies:
       - decker
 
+language: GHC2021
+
 default-extensions:
-  - DeriveDataTypeable
-  - DeriveGeneric
-  - EmptyCase
-  - FlexibleContexts
-  - FlexibleInstances
-  - GeneralizedNewtypeDeriving
-  - InstanceSigs
-  - LambdaCase
-  - MultiParamTypeClasses
-  - MultiWayIf
-  - NamedFieldPuns
-  - NoMonomorphismRestriction
   - OverloadedStrings
   - QuasiQuotes
-  - RecordWildCards
-  - ScopedTypeVariables
-  - TupleSections
+  - MultiWayIf
+

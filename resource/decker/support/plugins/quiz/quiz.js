@@ -14,7 +14,6 @@ let Reveal;
 let numAnswers = 0;
 let numCorrectAnswers;
 let solution;
-let singleChoice = true;
 
 // polling
 let session;
@@ -25,6 +24,14 @@ let myChart;
 
 // GUI elements
 let votes_div, chart_div, chart;
+
+// config
+const serverUrl =
+  Decker?.meta?.polling?.server ||
+  "wss://decker.cs.tu-dortmund.de/quizzer/quiz";
+const winnerSelection = Decker?.meta?.polling?.selection || "FirstVoter";
+// console.log("Polling URL: ", serverUrl);
+// console.log("Polling Selection: ", winnerSelection);
 
 // get path of script -> used for loading audio files
 const url = new URL(import.meta.url);
@@ -89,6 +96,15 @@ function setupGUI() {
   });
   chart.width = "400";
   chart.height = "300";
+
+  qrcode = createElement({
+    type: "div",
+    classes: "qrcode container",
+    parent: document.body,
+  });
+  qrcode.addEventListener("click", () => {
+    qrcode.classList.remove("show");
+  });
 }
 
 // what to do on slide change
@@ -100,6 +116,7 @@ function slideChanged() {
     jingleAnswer.pause();
 
     // hide stuff
+    if (pollState === "open") abortPoll();
     hideVotes();
     hideChart();
 
@@ -124,7 +141,6 @@ function slideChanged() {
         solution.push(choices[i]);
       }
     }
-    singleChoice = numCorrectAnswers == 1;
 
     // set poll class in reveal element
     Reveal.getRevealElement().classList.toggle("poll", numAnswers > 0);
@@ -133,25 +149,27 @@ function slideChanged() {
 
 async function startPoll() {
   // initialize on first start
-  if (!session) await preparePolling();
+  if (!session) await startPollingSession();
 
   // get labels as subset of this array
   let choices = ["A", "B", "C", "D", "E", "F", "G", "H"].slice(0, numAnswers);
 
-  session.poll(choices, solution, numCorrectAnswers, {
-    onActive: (participants, votes, complete) => {
-      // console.log("Poll:", "active", participants, votes, complete);
-      votes_div.textContent = `${complete} / ${participants}`;
-      Reveal.on("slidechanged", abortPoll);
+  session.poll(
+    choices,
+    solution,
+    numCorrectAnswers,
+    {
+      onActive: (participants, votes, complete) => {
+        votes_div.textContent = `${complete} / ${participants}`;
+      },
+      onFinished: (participants, votes, complete) => {
+        finalVotes = votes;
+        createChart();
+        showChart();
+      },
     },
-    onFinished: (participants, votes, complete) => {
-      // console.log("Poll:", "finished", participants, votes, complete);
-      finalVotes = votes;
-      createChart();
-      showChart();
-      Reveal.off("slidechanged", abortPoll);
-    },
-  });
+    winnerSelection
+  );
 
   // play jingle
   jingleQuestion.currentTime = 0;
@@ -159,14 +177,13 @@ async function startPoll() {
 }
 
 function stopPoll() {
-  session.stop();
+  if (session) session.stop();
   jingleAnswer.currentTime = 0;
   jingleAnswer.play();
 }
 
 function abortPoll() {
-  session.stop();
-  session.reset();
+  if (session) session.reset();
 }
 
 function showVotes() {
@@ -178,7 +195,7 @@ function hideVotes() {
 }
 
 async function toggleQR() {
-  if (!session) await preparePolling();
+  if (!session) await startPollingSession();
   qrcode.classList.toggle("show");
 }
 
@@ -308,10 +325,10 @@ function prepareQuizzes() {
     });
 }
 
-async function preparePolling() {
+async function startPollingSession() {
   // connect to server
   session = await pollSession({
-    serverUrl: Decker.meta["poll-server"],
+    serverUrl: serverUrl,
     clientCss: `
     html {
       color: #333
@@ -367,20 +384,19 @@ async function preparePolling() {
       }
     }
     `,
+    onclose: () => {
+      // console.log("session closed");
+      session = undefined;
+      Reveal.off("slidechanged", abortPoll);
+    },
   });
-  let { id, url } = session.sessionId();
 
   // create QR code
-  qrcode = document.createElement("div");
-  qrcode.classList.add("qrcode", "container");
+  let { id, url } = session.sessionId();
   qrcode.innerHTML = String.raw`
     <canvas id="poll-qrcode-canvas"></canvas>
     <span><a href="${url}" target="_blank" title="${url}" id="poll-session-id">${id}</a> </span>
   `;
-  qrcode.addEventListener("click", () => {
-    qrcode.classList.remove("show");
-  });
-  document.body.appendChild(qrcode);
   session.fillQRCode("poll-qrcode-canvas");
 }
 

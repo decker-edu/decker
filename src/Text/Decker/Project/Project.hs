@@ -204,7 +204,7 @@ staticDirs = lookupMetaOrElse [] "static-resource-dirs"
 unusedResources :: Meta -> IO [FilePath]
 unusedResources meta = do
   srcs <- Set.fromList <$> fastGlobFiles (excludeDirs meta) [] projectDir
-  live <- Set.fromList <$> String.lines <$> readFile liveFile
+  live <- Set.fromList <$> String.lines . decodeUtf8 <$> readFileBS liveFile
   return $ Set.toList $ Set.difference srcs live
 
 scanTargetsToFile :: Meta -> FilePath -> Action ()

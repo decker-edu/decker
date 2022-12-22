@@ -96,7 +96,7 @@ palette:
   colors:
     light:
       - "#ffffff"
-      - "#e0e0e0"
+      - "#eeeeee"
       - "#d6d6d6"
       - "#8e908c"
       - "#969896"

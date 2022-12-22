@@ -7,6 +7,9 @@
  * @author Sebastian Hauer
  */
 
+// import functionality for light/dark mode
+import * as colorScheme from "../../js/color-scheme.js";
+
 class SlideMenu {
   id;
   reveal;
@@ -549,39 +552,6 @@ class SlideMenu {
     document.documentElement.classList.toggle("hide-annotations");
   }
 
-  toggleColorMode(mode) {
-    if (mode === "dark") {
-      localStorage.setItem("color-mode", "dark");
-      document.documentElement.classList.add("dark");
-      document.documentElement.classList.remove("light");
-    }
-    if (mode === "light") {
-      localStorage.setItem("color-mode", "light");
-      document.documentElement.classList.add("light");
-      document.documentElement.classList.remove("dark");
-    }
-    if (mode === "system") {
-      localStorage.removeItem("color-mode");
-      document.documentElement.classList.remove("dark");
-      document.documentElement.classList.remove("light");
-    }
-  }
-
-  getColorModePreference() {
-    let match = window.matchMedia("(prefers-color-scheme: dark)");
-    let system = match.matches ? "dark" : "light";
-    let storage = localStorage.getItem("color-mode");
-    let choice = storage ? storage : system;
-    return choice;
-  }
-
-  initializeColorModePreference() {
-    let storage = localStorage.getItem("color-mode");
-    if (storage) {
-      this.toggleColorMode(storage);
-    }
-  }
-
   clearCurrentSlideMark() {
     let listItems = this.menu.slide_list.childNodes;
     for (let item of listItems) {
@@ -609,8 +579,8 @@ class SlideMenu {
   }
 
   initializeSettingsMenu() {
-    let animations = this.reveal.getConfig().fragments;
-    let mode = this.getColorModePreference();
+    const animations = this.reveal.getConfig().fragments;
+    const colorModePreference = colorScheme.getPreference();
     let template = document.createElement("template");
     template.innerHTML = String.raw`<div class="menu-settings" inert>
     <div class="settings-item">
@@ -648,7 +618,7 @@ class SlideMenu {
           <div class="choice-pair">
             <input id="system-color-radio" type="radio" name="color-mode" value="system" aria-label="${
               this.localization.system_color_choice
-            }" ${mode === "system" ? "checked" : ""}>
+            }" ${colorModePreference === "system" ? "checked" : ""}>
             <label for="system-color-radio">${
               this.localization.system_color_choice
             }</label>
@@ -656,7 +626,7 @@ class SlideMenu {
           <div class="choice-pair">
             <input id="light-color-radio" type="radio" name="color-mode" value="light" aria-label="${
               this.localization.light_color_choice
-            }" ${mode === "light" ? "checked" : ""}>
+            }" ${colorModePreference === "light" ? "checked" : ""}>
             <label for="light-color-radio">${
               this.localization.light_color_choice
             }</label>
@@ -664,7 +634,7 @@ class SlideMenu {
           <div class="choice-pair">
             <input id="dark-color-radio" type="radio" name="color-mode" value="dark" aria-label="${
               this.localization.dark_color_choice
-            }" ${mode === "dark" ? "checked" : ""}>
+            }" ${colorModePreference === "dark" ? "checked" : ""}>
             <label for="dark-color-radio">${
               this.localization.dark_color_choice
             }</label>
@@ -684,7 +654,7 @@ class SlideMenu {
     this.settings.color_choice =
       this.settings.container.querySelector("#color-choice");
     this.settings.color_choice.addEventListener("change", (event) => {
-      this.toggleColorMode(event.target.value);
+      colorScheme.setPreference(event.target.value);
     });
     this.settings.annotations_toggle = this.settings.container.querySelector(
       "#setting-toggle-annotations"
@@ -714,7 +684,7 @@ class SlideMenu {
       close_label: "Close Navigation Menu",
       no_title: "No Title",
       title: "Navigation",
-      print_confirmation: "Leave/Reload presentation to export PDF?",
+      print_confirmation: "Leave presentation to export it to PDF?",
       index_confirmation: "Go back to index page?",
     };
 
@@ -737,15 +707,13 @@ class SlideMenu {
         close_label: "Navigationsmenu schließen",
         no_title: "Kein Titel",
         title: "Navigation",
-        print_confirmation:
-          "Die Seite neuladen / verlassen um sie als PDF zu exportieren?",
+        print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
         index_confirmation: "Zurück zur Index-Seite gehen?",
       };
     }
 
     this.initializeButton();
     this.initializeMenu();
-    this.initializeColorModePreference();
 
     document.body.appendChild(this.menu.container);
 
