@@ -234,7 +234,7 @@ $for(template.js)$
   <script type="module" src="$template.js$"></script>
 $endfor$
 
-/* Injection of own code for reveal's highlight.js is not as trivial as it seems. A good overview
+<!--  Injection of own code for reveal's highlight.js is not as trivial as it seems. A good overview
 is found in this issue: https://github.com/hakimel/reveal.js/issues/2761
 We are using the reveal version just before where Hakim added the necessary callback to 
 allow easy addition of new languages. For some reason, the workaround by larskinn 
@@ -245,7 +245,8 @@ which I still have to try. However, needs some more time. Unfortunatly this is n
 since it also needs to set highlight: { highlightOnLoad: false }, here and then to manually scan
 all code blocks and apply the plugin's highlighting code at the end which also did not work so
 far maybe due to timing issues (it is executed at the wrong time during the overall process. This
-comment here is just a reminder of where this was left of...*/
-/* <script src="$decker-support-dir$/js/highlightjs-6502acme.js"></script> */
+comment here is just a reminder of where this was left of... -->
+
+<!-- <script src="$decker-support-dir$/js/highlightjs-6502acme.js"></script> -->
 
 </html>
