@@ -216,7 +216,14 @@ $endif$
       ]
     };
 
-    console.log(3);
+    Reveal.initialize(revealConfig);
+
+    /* Highlight JS tries to highlight assembly code within the lecture. 
+    ATM if tries to interpret more than just the assembly code on the slides, 
+    replacing part of latex instructions and thus decker fails to compile. 
+    We do have to fix this before adding it back to the release
+     
+     console.log(3);
     Reveal.initialize(revealConfig).then(() => {
     const hljs = highlightPlugin().hljs;
 
@@ -258,7 +265,7 @@ $endif$
       Array.from(Reveal.getRevealElement().querySelectorAll('pre code')).forEach((block) => {
          highlightPlugin().highlightBlock(block);
     });
-   });
+   }); */
 
     window.Reveal = Reveal;
   </script>
