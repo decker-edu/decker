@@ -33,6 +33,14 @@ session!
 
 `$Env:Path += ";${Env:ProgramFiles(x86)}\Decker\bin"`
 
+### Note:
+
+Windows Antivirus Protection has a high impact on compilation time. Add the following directories as exclusions to safe about 20-40% compilation time.
+
+- Haskell stack build tool: usually under `C:\sr`
+- Haskell compiler: `%AppData%\Local\Programs\stack\x86_64-windows\ghc-x.x.x\bin`
+- this repository
+
 ## Development
 
 ### Haskell
