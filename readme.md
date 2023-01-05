@@ -33,6 +33,14 @@ session!
 
 `$Env:Path += ";${Env:ProgramFiles(x86)}\Decker\bin"`
 
+### Note:
+
+Windows Antivirus Protection has a high impact on compilation time. Add the following directories as exclusions to safe about 20-40% compilation time.
+
+- Haskell stack build tool: usually under `C:\sr`
+- Haskell compiler: `%AppData%\Local\Programs\stack\x86_64-windows\ghc-x.x.x\bin`
+- this repository
+
 ## Development
 
 ### Haskell
@@ -58,6 +66,8 @@ the full functionality:
 -   [*ssh*](https://www.openssh.com) for publishing slide decks and resources
 -   [*rsync*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/rsync)
     for publishing slide decks and resources
+    - Note: openssh Server do not work properly with rsync for Windows. Use cygwin and its terminal to perform decker publish.
+
 -   [*LaTeX* with pdflatex](https://www.latex-project.org) to generate LaTeX in
     PDF-files and embedded Tikz figures
 -   [*Graphviz*](http://graphviz.org) to generate graphs using `dot`
@@ -90,7 +100,7 @@ Use [Ubuntu's Advanced Packaging Tool
 tools.
 
 ``` sh
-apt-get update && apt-get install -y gnuplot graphviz libbz2-dev pdf2svg rsync ssh      
+apt-get update && apt-get install -y gnuplot graphviz libbz2-dev pdf2svg rsync ssh libtinfo-dev    
 ```
 
 To confirm that you have installed all of the required external tools, run the
@@ -201,7 +211,7 @@ document, depending on the file name.
     Publish the generated files to a remote location using `rsync` if the
     location is specified in the meta data. The keys `rsync-destination.host`
     and `rsync-destination.path` specify the publishing destination.
-
+   
 ## Contributions
 
 ### Pull requests

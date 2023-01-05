@@ -7,6 +7,7 @@ local-bin-path := $(HOME)/.local/bin
 
 decker-name := $(base-name)-$(version)-$(branch)-$(commit)
 
+.PHONY: build clean test install list dist docs resource-zip css
 
 build: 
 	stack build -j8
@@ -87,5 +88,5 @@ clean-recordings:
 	rm -f test/decks/*-recording*
 	rm -f test/decks/*-times.json
 	rm -f test/decks/*-annot.json
-
-.PHONY: build clean test install dist docs resource-zip css
+list:
+	@LC_ALL=C $(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n)# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
