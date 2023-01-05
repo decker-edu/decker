@@ -209,6 +209,8 @@ document, depending on the file name.
     Publish the generated files to a remote location using `rsync` if the
     location is specified in the meta data. The keys `rsync-destination.host`
     and `rsync-destination.path` specify the publishing destination.
+    
+    Note: openssh Server do not work properly with rsync for Windows. Use cygwin and its terminal to perform decker publish.
 
 ## Contributions
 
