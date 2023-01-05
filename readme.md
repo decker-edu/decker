@@ -66,6 +66,8 @@ the full functionality:
 -   [*ssh*](https://www.openssh.com) for publishing slide decks and resources
 -   [*rsync*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/rsync)
     for publishing slide decks and resources
+    - Note: openssh Server do not work properly with rsync for Windows. Use cygwin and its terminal to perform decker publish.
+
 -   [*LaTeX* with pdflatex](https://www.latex-project.org) to generate LaTeX in
     PDF-files and embedded Tikz figures
 -   [*Graphviz*](http://graphviz.org) to generate graphs using `dot`
@@ -209,9 +211,7 @@ document, depending on the file name.
     Publish the generated files to a remote location using `rsync` if the
     location is specified in the meta data. The keys `rsync-destination.host`
     and `rsync-destination.path` specify the publishing destination.
-    
-    Note: openssh Server do not work properly with rsync for Windows. Use cygwin and its terminal to perform decker publish.
-
+   
 ## Contributions
 
 ### Pull requests
