@@ -98,7 +98,7 @@ Use [Ubuntu's Advanced Packaging Tool
 tools.
 
 ``` sh
-apt-get update && apt-get install -y gnuplot graphviz libbz2-dev pdf2svg rsync ssh      
+apt-get update && apt-get install -y gnuplot graphviz libbz2-dev pdf2svg rsync ssh libtinfo-dev    
 ```
 
 To confirm that you have installed all of the required external tools, run the
