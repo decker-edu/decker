@@ -37,7 +37,7 @@ function pollSession({
     });
 
     session.socket.addEventListener("error", (e) => {
-      console.error("Poll:", "Cannot connect to:", url);
+      console.error("Poll:", "Cannot connect to ", serverUrl);
     });
 
     session.socket.addEventListener("close", (e) => {
