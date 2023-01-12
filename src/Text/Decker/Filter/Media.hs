@@ -545,7 +545,7 @@ javascriptBlock uri title caption = do
 javascriptCodeBlock :: Text -> [Inline] -> Attrib Block
 javascriptCodeBlock code caption = do
   (innerSizes, outerSizes) <- calcImageSizes
-  id <- liftIO randomId
+  id <- ("id" <>) <$> liftIO randomId
   imgAttr <- do
     injectStyles innerSizes
     injectId id
