@@ -25,7 +25,7 @@ reveal:
   zoom: true
 
 
-highlightjs: atom-one-light  # We want nice code highlighting
+# highlightjs: atom-one-light  # We want nice code highlighting
 # atom-one-dark` and `atom-one-light`, `solarized-dark` and `solarized-light`, `xcode`, `zenburn`
 
 palette:
@@ -88,8 +88,6 @@ css-variables:
 # Use CSS augmentation without changes to the default template
 template:
   css: support/css/wburg.css
-
-
 
 math:
   scale: 0.9
