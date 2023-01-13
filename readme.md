@@ -15,6 +15,16 @@ A markdown based tool for slide deck creation.
 4.  `git submodule update --init --recursive`
 5.  `make install`
 
+Note:
+
+Decker will be installed under `~/.local/bin` which is not recognized by your terminal (zsh)
+If decker is not found by your terminal, add the path to the corresponding config file. 
+For zsh (default for macos) do the following steps. Run from the terminal:
+
+1.  `touch ~/.zshrc`
+2.  `echo PATH=$HOME/.local/bin:$PATH > ~/.zshrc`
+3.  `source ~/.zshrc`
+
 ## Installation from source on Windows
 
 Instead of a `makefile` we use a PowerShell script on Windows to install decker
