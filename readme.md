@@ -17,7 +17,7 @@ A markdown based tool for slide deck creation.
 
 Note:
 
-Decker will be installed under `~/.local/bin` which is not recognized by your terminal (zsh)
+Decker will be installed under `~/.local/bin` which is default not recognized by your terminal.
 If decker is not found by your terminal, add the path to the corresponding config file. 
 For zsh (default for macos) do the following steps. Run from the terminal:
 
