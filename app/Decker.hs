@@ -3,20 +3,20 @@ module Decker where
 import Control.Concurrent
 import Control.Exception (SomeException (SomeException), catch)
 import Control.Lens ((^.))
-import qualified Control.Lens as Control.Lens.Getter
+import Control.Lens qualified as Control.Lens.Getter
 import Control.Monad.Extra
-import qualified Data.ByteString as BS
+import Data.ByteString qualified as BS
 import Data.IORef ()
 import Data.List
-import qualified Data.Map.Strict as Map
+import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.String ()
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Data.Version
 import Development.Shake
 import GHC.IO.Encoding
 import System.Directory (removeFile)
-import qualified System.Directory as Dir
+import System.Directory qualified as Dir
 import System.FilePath.Posix
 import System.IO
 import Text.Decker.Exam.Question
@@ -313,7 +313,8 @@ deckerRules = do
       putWarn (groom meta)
   --
   withTargetDocs "Check the existence of usefull external programs" $
-    phony "check" $ liftIO forceCheckExternalPrograms
+    phony "check" $
+      liftIO forceCheckExternalPrograms
   -- TODO use or throw away
   withTargetDocs "Copy runtime support files to public dir." $
     phony "support" $ do
