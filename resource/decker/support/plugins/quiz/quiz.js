@@ -27,11 +27,12 @@ let votes_div, chart_div, chart;
 
 // config
 const serverUrl =
-  Decker?.meta?.polling?.server ||
+  Decker.meta.polling?.server ||
+  Decker.meta["poll-server"] ||
   "wss://decker.cs.tu-dortmund.de/quizzer/quiz";
-const winnerSelection = Decker?.meta?.polling?.selection || "FirstVoter";
-// console.log("Polling URL: ", serverUrl);
-// console.log("Polling Selection: ", winnerSelection);
+const winnerSelection = Decker.meta.polling?.selection || "FirstVoter";
+console.log("Polling URL: ", serverUrl);
+console.log("Polling Selection: ", winnerSelection);
 
 // get path of script -> used for loading audio files
 const url = new URL(import.meta.url);
