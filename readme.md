@@ -1,4 +1,3 @@
-
 [![Tests](https://github.com/decker-edu/decker/actions/workflows/develop.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/develop.yml)
 [![Release](https://github.com/decker-edu/decker/actions/workflows/release.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/release.yml)
 [![Decker Page](https://github.com/decker-edu/decker/actions/workflows/jekyll-gh-pages.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/jekyll-gh-pages.yml)
@@ -6,15 +5,6 @@
 # Decker
 
 A markdown based tool for slide deck creation.
-
-## Installation
-
-Pick a [published release](), download and unpack:
-
-``` sh
-gunzip decker.gz
-chmod a+x decker
-```
 
 ## Installation from source
 
@@ -24,6 +14,16 @@ chmod a+x decker
 3.  `cd decker`
 4.  `git submodule update --init --recursive`
 5.  `make install`
+
+Note:
+
+Decker will be installed under `~/.local/bin` which is default not recognized by your terminal.
+If decker is not found by your terminal, add the path to the corresponding config file. 
+For zsh (default for macos) do the following steps. Run from the terminal:
+
+1.  `touch ~/.zshrc`
+2.  `echo PATH=$HOME/.local/bin:$PATH > ~/.zshrc`
+3.  `source ~/.zshrc`
 
 ## Installation from source on Windows
 
@@ -42,6 +42,14 @@ PowerShell profile file, add the following line, and restart your PowerShell
 session!
 
 `$Env:Path += ";${Env:ProgramFiles(x86)}\Decker\bin"`
+
+### Note:
+
+Windows Antivirus Protection has a high impact on compilation time. Add the following directories as exclusions to safe about 20-40% compilation time.
+
+- Haskell stack build tool: usually under `C:\sr`
+- Haskell compiler: `%AppData%\Local\Programs\stack\x86_64-windows\ghc-x.x.x\bin`
+- this repository
 
 ## Development
 
@@ -62,11 +70,14 @@ reload the documents in the browser.
 
 ## External tools
 
-Decker uses a few external tools that need to be installed on the system:
+Decker uses a few external tools that need to be installed on the system to use
+the full functionality:
 
 -   [*ssh*](https://www.openssh.com) for publishing slide decks and resources
 -   [*rsync*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/rsync)
     for publishing slide decks and resources
+    - Note: openssh Server do not work properly with rsync for Windows. Use cygwin and its terminal to perform decker publish.
+
 -   [*LaTeX* with pdflatex](https://www.latex-project.org) to generate LaTeX in
     PDF-files and embedded Tikz figures
 -   [*Graphviz*](http://graphviz.org) to generate graphs using `dot`
@@ -99,7 +110,7 @@ Use [Ubuntu's Advanced Packaging Tool
 tools.
 
 ``` sh
-apt-get update && apt-get install -y gnuplot graphviz libbz2-dev pdf2svg rsync ssh      
+apt-get update && apt-get install -y texlive-full plantuml gnuplot graphviz libbz2-dev pdf2svg rsync ssh libtinfo-dev libgmp3-dev zlib1g-dev
 ```
 
 To confirm that you have installed all of the required external tools, run the
@@ -109,10 +120,11 @@ following command in a terminal window:
 
 ## Usage
 
-*decker* behaves very much like a build tool. It works recursively on the
+*Decker* behaves very much like a build tool. It works recursively on the
 current directory and all subdirectories. Markdown files ending on `.md` in
-those directories are processed and converted to either a reveal.js slide show,
-a HTML document, or a PDF document, depending on the file name.
+those directories are processed and converted to either a
+[Reveal.js](https://revealjs.com) slide show, a HTML document, or a PDF
+document, depending on the file name.
 
 -   `*-deck.md`
 
@@ -130,11 +142,11 @@ a HTML document, or a PDF document, depending on the file name.
     Markdown files ending on `*-page.md` are translated into corresponding HTML
     or PDF documents.
 
-## *decker* targets
+## *Decker* targets
 
 -   `decker version`
 
-    Prints the current decker version and branch as well as the current pandoc
+    Prints the current Decker version and branch as well as the current pandoc
     version.
 
 -   `decker help`
@@ -174,13 +186,13 @@ a HTML document, or a PDF document, depending on the file name.
     `chrome` to `$PATH`.\
     **Linux:** `chrome` has to be on `$PATH`.
 
--   `decker watch`
+-   `decker --watch`
 
     Builds HTML versions of all documents and then watches for document changes.
     Each change to a watched document triggers a rebuild. Watching can be
     terminated with `^C`.
 
--   `decker server`
+-   `decker --server`
 
     Like `decker watch`. Additionally a local web server is started that serves
     the generated HTML files. The `*-deck.html` file is openend in the browser.
@@ -189,10 +201,11 @@ a HTML document, or a PDF document, depending on the file name.
 -   `decker example`
 
     Write a few example files to the current directory. To start exploring
-    decker type
+    Decker type
 
     ``` bash
     $ decker example
+    $ cd example
     $ decker --server
     ```
 
@@ -201,15 +214,14 @@ a HTML document, or a PDF document, depending on the file name.
 -   `decker clean`
 
     Recursively removes all generated files from the current directory (i.e. the
-    `public` folder). Also removes cached resources witch version number lower
-    than the current version.
+    `public` folder). Also removes cached resources.
 
 -   `decker publish`
 
     Publish the generated files to a remote location using `rsync` if the
     location is specified in the meta data. The keys `rsync-destination.host`
     and `rsync-destination.path` specify the publishing destination.
-
+   
 ## Contributions
 
 ### Pull requests
@@ -219,18 +231,21 @@ please write up an issue and discuss it with the other developers. For each
 implemented feature, increment the version number in `package.yaml`. Breaking
 changes increment the second number. Fixes increment the third number.
 
-### CI build checks
+### Tooling
 
-The decker repository has a GitLab CI runner configured, that builds and runs
-all tests for each commit on every branch. Look at the status display for recent
-run of the [CI pipelines](pipelines).
+Use appropriate tooling. We use [Visual Studio
+Code](https://code.visualstudio.com) with the *Haskell Language Server* plugin.
 
 ### Haskell source code formatting
 
 Haskell soure code readability depends heavily on consistent formatting
-conventions. With decker, formatting is automated using the excellent
-[hindent]() tool. Formatting is checked for each commit that is uploaded to the
-GitLab repository.
+conventions. Formatting is automated using the excellent
+[ormolu](https://github.com/tweag/ormolu) formatter via the [Haskell Language
+Server](https://github.com/haskell/haskell-language-server).
+
+## License
+
+See [COPYING](./COPYING).
 
 ## License
 

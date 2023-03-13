@@ -14,6 +14,7 @@ exclude-directories:
   - test/minimal
   - third-party
   - users-guide
+  - website
 static-resource-dirs:
   - test/static
   - doc/static

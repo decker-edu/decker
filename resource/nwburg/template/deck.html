@@ -186,6 +186,7 @@ $endif$
       feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
       jingles: Decker.meta.jingles,
       
+      highlight: { highlightOnLoad: false },
       // list of plugins
       plugins: [
          deckerPlugin,
@@ -217,6 +218,15 @@ $endif$
     };
 
    Reveal.initialize(revealConfig);
+    Reveal.initialize(revealConfig);
+
+    /* TODO: Highlight JS tries to highlight assembly code within the lecture. 
+    ATM if tries to interpret more than just the assembly code on the slides, 
+    and thus decker fails to compile. 
+    We do have to fix this before adding it back to a release. 
+    See commit 565e6b1 for original source. For some reason, comment the responsible
+    code section does not work. Neither client /server side html nor js comment. 
+    It is still interpreted. Therefore the code has been removed */
 
    window.Reveal = Reveal;
   </script>

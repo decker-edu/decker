@@ -342,7 +342,7 @@ more ![](../static/es6.js){.code height="3em" width="10em"} code.
 
 # Iframe
 
-![Homepage of the man.](https://tramberend.beuth-hochschule.de/){.iframe
+![Homepage of the man.](https://tramberend.bht-berlin.de/){.iframe
 width="80%"}
 
 # YouTube Video Stream

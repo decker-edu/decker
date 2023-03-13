@@ -96,7 +96,7 @@ pandoc:
     - upcase-h1.lua
 ```
 
-width `upcase-h1.lua` containing:
+with `upcase-h1.lua` containing:
 
 ``` lua
 local text = pandoc.text

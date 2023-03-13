@@ -120,16 +120,26 @@ deckerRules = do
       need ["support"]
       getDeps >>= needTargets questions
   --
+  withTargetDocs "Build HTML versions of all decks, pages and handouts (*-deck.md, *-page.md)." $
+    phony "html" $ do
+      need ["support", "questions"]
+      getDeps >>= needTargets' [decks, pages]
+  --
   withTargetDocs "Build HTML versions of all decks (*-deck.md)." $
     phony "decks" $ do
       meta <- getGlobalMeta
       need ["support"]
       getDeps >>= needTargets decks
   --
-  withTargetDocs "Build HTML versions of all decks, pages and handouts (*-deck.md, *-page.md)." $
-    phony "html" $ do
+  withTargetDocs "Build HTML versions of all handouts (*-handout.md)." $
+    phony "handouts" $ do
       need ["support", "questions"]
-      getDeps >>= needTargets' [decks, pages]
+      getDeps >>= needTargets' [handouts]
+  --
+  withTargetDocs "Build HTML versions of all pages (*-page.md)." $
+    phony "pages" $ do
+      need ["support", "questions"]
+      getDeps >>= needTargets' [pages]
   --
   phony "pdf" $ do
     need ["support"]
