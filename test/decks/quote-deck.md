@@ -21,6 +21,7 @@ Caption: Douglas Adams, The Hitchhiker's Guide to the Galaxy
 > ![](assets/picard-facepalm.jpeg){width="100%"}
 >
 > Indistinguishable from a captioned image, of course.
+> ([Download](assets/picard-facepalm.jpeg){download=""})
 
 Caption: Jean-Luc Picard, Star Trek: The Next Generation
 
