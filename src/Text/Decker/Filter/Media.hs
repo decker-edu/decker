@@ -7,13 +7,14 @@
 module Text.Decker.Filter.Media where
 
 import Conduit (runConduit, withSourceFile, (.|))
+import Control.Concurrent (withMVar)
 import Control.Monad.Catch
 import Data.Conduit.ImageSize (Size (Size), sinkImageSize)
 import Data.List (lookup)
-import qualified Data.Map.Strict as Map
+import Data.Map.Strict qualified as Map
 import Data.Maybe
-import qualified Data.Text as Text
-import qualified Data.Text.IO as Text
+import Data.Text qualified as Text
+import Data.Text.IO qualified as Text
 import HTMLEntities.Text (text)
 import Relude
 import System.Directory
@@ -34,7 +35,7 @@ import Text.Decker.Server.Video
 import Text.Pandoc
 import Text.Printf
 import Text.URI (URI)
-import qualified Text.URI as URI
+import Text.URI qualified as URI
 
 fragmentRelated =
   [ "fragment",
@@ -166,17 +167,17 @@ compileCodeBlock attr@(_, classes, _) code caption = do
     media <-
       if
           | all (`elem` classes) ["plantuml", "render"] ->
-            (writeAndRenderCodeBlock "plantuml")
+              (writeAndRenderCodeBlock "plantuml")
           | all (`elem` classes) ["dot", "render"] ->
-            (writeAndRenderCodeBlock "dot")
+              (writeAndRenderCodeBlock "dot")
           | all (`elem` classes) ["gnuplot", "render"] ->
-            (writeAndRenderCodeBlock "gnuplot")
+              (writeAndRenderCodeBlock "gnuplot")
           | all (`elem` classes) ["tex", "render"] ->
-            (writeAndRenderCodeBlock "tex")
+              (writeAndRenderCodeBlock "tex")
           | all (`elem` classes) ["javascript", "run"] ->
-            (javascriptCodeBlock code caption)
+              (javascriptCodeBlock code caption)
           | otherwise ->
-            (codeBlock code caption)
+              (codeBlock code caption)
     attribs <- do
       injectBorder
       injectClasses ["media"]
@@ -192,19 +193,24 @@ compileCodeBlock attr@(_, classes, _) code caption = do
       -- concurrent Deck and Handout references to the same code block.
       let crc = printf "%08x" (calc_crc32 $ disp <> toString code)
       let path =
-            transientDir </> "code"
+            transientDir
+              </> "code"
               </> intercalate "-" ["code", crc]
-              <.> toString ext
-      -- Avoid a possible race condition when the same code block content is
-      -- used twice and written only when the file does not yet exist: Just do
-      -- not prematurely optimise by testing for existence first and atomically
-      -- write the file. This does not help on Windows.
-      liftIO $ do
-        createDirectoryIfMissing True (takeDirectory path)
-        tmp <- uniqueTransientFileName path
-        Text.writeFile tmp code
-        renameFile tmp path
-        putStrLn $ "# write (" <> path <> ")"
+                <.> toString ext
+      -- Avoid a possible race condition
+      mutex <- lift $ gets codeMutex
+      liftIO $
+        withMVar
+          mutex
+          ( \_ -> do
+              exists <- doesFileExist path
+              unless exists $ do
+                createDirectoryIfMissing True (takeDirectory path)
+                tmp <- uniqueTransientFileName path
+                Text.writeFile tmp code
+                renameFile tmp path
+                putStrLn $ "# write (" <> path <> ")"
+          )
       uri <- lift $ URI.mkURI (toText path)
       renderCodeBlock uri "" caption
 
@@ -366,7 +372,8 @@ svgBlock uri title caption = do
     takeUsual
     extractAttr
   return $
-    wrapFigure figureAttr caption $ mkRaw svgAttr svg
+    wrapFigure figureAttr caption $
+      mkRaw svgAttr svg
 
 -- |  Compiles the image data to a remote streaming video. If the aspect ratio of
 --  the stream is known, it is a good idea to set the `aspect` attribute to
@@ -667,26 +674,26 @@ calcImageSizes = do
   height <- cutAttrib "height"
   if
       | isJust width && isJust height ->
-        -- Both sizes are specified. Aspect ratio be damned.
-        return
-          ( [("height", fromJust height), ("width", "100%")],
-            [("height", "auto"), ("width", fromJust width)]
-          )
+          -- Both sizes are specified. Aspect ratio be damned.
+          return
+            ( [("height", fromJust height), ("width", "100%")],
+              [("height", "auto"), ("width", fromJust width)]
+            )
       | isJust width && isNothing height ->
-        -- Only width is specified. Keep aspect ratio.
-        return
-          ( [("height", "auto"), ("width", "100%")],
-            [("height", "auto"), ("width", fromJust width)]
-          )
+          -- Only width is specified. Keep aspect ratio.
+          return
+            ( [("height", "auto"), ("width", "100%")],
+              [("height", "auto"), ("width", fromJust width)]
+            )
       | isNothing width && isJust height ->
-        -- Only height is specified. Keep aspect ratio.
-        return
-          ( [("height", fromJust height), ("width", "auto")],
-            [("height", "auto"), ("width", "auto")]
-          )
+          -- Only height is specified. Keep aspect ratio.
+          return
+            ( [("height", fromJust height), ("width", "auto")],
+              [("height", "auto"), ("width", "auto")]
+            )
       | otherwise ->
-        -- Nothing is specified, use CSS defaults.
-        return ([], [])
+          -- Nothing is specified, use CSS defaults.
+          return ([], [])
 
 -- | See calcImageSizes. Iframes have no intrinsic aspect ratio and therefore behave a
 -- little differently.

@@ -2,6 +2,7 @@
 
 module Text.Decker.Filter.Monad where
 
+import Control.Concurrent.MVar
 import Relude
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
@@ -11,7 +12,8 @@ import Text.Pandoc hiding (lookupMeta)
 --  filters.
 data FilterState = FilterState
   { meta :: Meta,
-    dispo :: Disposition
+    dispo :: Disposition,
+    codeMutex :: MVar Int
   }
 
 -- | All filters live in the Filter monad.

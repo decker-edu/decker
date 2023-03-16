@@ -7,22 +7,22 @@ module Text.Decker.Filter.Local where
 
 import Control.Monad.Catch
 import Data.Digest.Pure.MD5
-import qualified Data.Text as Text
-import qualified Data.Text.IO as Text
+import Data.Text qualified as Text
+import Data.Text.IO qualified as Text
 import Relude
 import System.Random
 import Text.Blaze.Html
-import qualified Text.Blaze.Html.Renderer.Pretty as Pretty
-import qualified Text.Blaze.Html.Renderer.Text as Text
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html.Renderer.Pretty qualified as Pretty
+import Text.Blaze.Html.Renderer.Text qualified as Text
+import Text.Blaze.Html5 qualified as H
+import Text.Blaze.Html5.Attributes qualified as A
 import Text.Blaze.Internal (Attributable)
 import Text.Decker.Filter.Monad
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.URI
 import Text.Pandoc hiding (lookupMeta)
 import Text.URI (URI)
-import qualified Text.URI as URI
+import Text.URI qualified as URI
 
 instance ToValue [Text] where
   toValue ts = toValue $ Text.intercalate " " ts
@@ -161,7 +161,8 @@ booleanAttribs =
 
 mkFigureTag :: Html -> Html -> Attr -> Html
 mkFigureTag content caption (id, cs, kvs) =
-  H.figure !? (not (Text.null id), A.id (H.toValue id))
+  H.figure
+    !? (not (Text.null id), A.id (H.toValue id))
     ! A.class_ (H.toValue ("decker" : cs))
     !* kvs
     $ do
@@ -172,7 +173,7 @@ mkFigureTag content caption (id, cs, kvs) =
 inlinesToMarkdown :: [Inline] -> Filter Text
 inlinesToMarkdown [] = return ""
 inlinesToMarkdown inlines = do
-  FilterState meta _ <- get
+  FilterState meta _ _ <- get
   liftIO $ runIOorExplode (writeMarkdown writerHtmlOptions (Pandoc nullMeta [Plain inlines]))
 
 -- | Renders a list of inlines to HTML.
@@ -184,14 +185,14 @@ inlinesToHtml inlines = blocksToHtml [Plain inlines]
 blocksToHtml :: [Block] -> Filter Html
 blocksToHtml [] = return $ toHtml ("" :: Text)
 blocksToHtml blocks = do
-  FilterState meta _ <- get
+  FilterState meta _ _ <- get
   liftIO $ runIOorExplode (writeHtml5 writerHtmlOptions (Pandoc meta blocks))
 
 -- | Renders a list of blocks to Markdown.
 blocksToMarkdown :: [Block] -> Filter Text
 blocksToMarkdown [] = return ""
 blocksToMarkdown blocks = do
-  FilterState meta _ <- get
+  FilterState meta _ _ <- get
   liftIO $ runIOorExplode (writeMarkdown writerHtmlOptions (Pandoc meta blocks))
 
 writerHtmlOptions =
@@ -281,7 +282,9 @@ modifyMeta f = modify (\s -> s {meta = f (meta s)})
 checkAbsoluteUri :: MonadThrow m => URI -> m ()
 checkAbsoluteUri uri =
   unless (URI.isPathAbsolute uri) $
-    throwM $ InternalException $ "relative path detected in URI: " <> show uri
+    throwM $
+      InternalException $
+        "relative path detected in URI: " <> show uri
 
 needFile :: FilePath -> Filter ()
 needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)

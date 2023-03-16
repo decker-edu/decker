@@ -66,11 +66,11 @@ mediaBlockListFilter blocks = do
     -- An image followed by an explicit caption paragraph.
     filterPairs (Para [Image attr alt (url, title)], Para (Str "Caption:" : caption))
       | unprocessed attr =
-        Just . single <$> compileImage attr alt url title caption
+          Just . single <$> compileImage attr alt url title caption
     -- An code block followed by an explicit caption paragraph.
     filterPairs (CodeBlock attr code, Para (Str "Caption:" : caption))
       | unprocessed attr =
-        Just . single <$> compileCodeBlock attr code caption
+          Just . single <$> compileCodeBlock attr code caption
     -- An block quote followed by an explicit caption paragraph.
     filterPairs (BlockQuote quote, Para (Str "Caption:" : caption)) =
       Just . single <$> compileBlockQuote quote caption
@@ -78,7 +78,7 @@ mediaBlockListFilter blocks = do
     filterPairs (LineBlock [], Para (Str "Caption:" : caption)) = return Nothing
     filterPairs (LineBlock lines, Para (Str "Caption:" : caption))
       | oneImagePerLine lines =
-        Just . single <$> compileLineBlock lines caption
+          Just . single <$> compileLineBlock lines caption
     -- Default filter
     filterPairs (x, y) = return Nothing
     filterTriplets :: (Block, Block, Block) -> Filter (Maybe [Block])
@@ -101,18 +101,18 @@ mediaBlockFilter :: Block -> Filter Block
 -- A solitary image in a paragraph with a possible caption.
 mediaBlockFilter (Para [Image attr alt (url, title)])
   | unprocessed attr =
-    compileImage attr alt url title alt
+      compileImage attr alt url title alt
 -- A solitary code block in a paragraph with a possible caption.
 mediaBlockFilter (CodeBlock attr code)
   | unprocessed attr =
-    compileCodeBlock attr code []
+      compileCodeBlock attr code []
 -- A solitary blockquote with a possible caption.
 mediaBlockFilter (BlockQuote quote) =
   compileBlockQuote quote []
 -- Any number of consecutive images in a masonry row.
 mediaBlockFilter (LineBlock lines)
   | oneImagePerLine lines =
-    compileLineBlock lines []
+      compileLineBlock lines []
 -- Default filter
 mediaBlockFilter block = return block
 
@@ -121,7 +121,7 @@ mediaInlineFilter :: Inline -> Filter Inline
 -- An inline image with a possible caption.
 mediaInlineFilter (Image attr alt (url, title))
   | unprocessed attr =
-    compileImage attr [] url title alt
+      compileImage attr [] url title alt
 -- transformImage image caption
 -- Default filter
 mediaInlineFilter inline = return inline
@@ -140,6 +140,7 @@ runFilter2 ::
   Pandoc ->
   IO Pandoc
 runFilter2 dispo filter pandoc@(Pandoc meta _) = do
-  (Pandoc _ blocks, FilterState meta dispo) <-
-    runStateT (walkM filter pandoc) (FilterState meta dispo)
+  mutex <- newMVar 0
+  (Pandoc _ blocks, FilterState meta _ _) <-
+    runStateT (walkM filter pandoc) (FilterState meta dispo mutex)
   return $ Pandoc meta blocks
