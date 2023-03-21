@@ -72,6 +72,12 @@ $endif$
   <link rel="stylesheet" href="$template.deck.css$">
   $endfor$
 
+  <script type="module">
+    /* Store JSON encoded Pandoc meta data in a global variable. */
+    import initializeDecker from "./$decker-support-dir$/js/decker.js";
+    initializeDecker("$decker-meta-url$");
+  </script>
+
 </head>
 
 <body $if(hide-quizzes)$class="hide-quizzes"$endif$>
@@ -140,12 +146,6 @@ $body$
 
     </div>
   </div>
-
-  <script type="module">
-    /* Store JSON encoded Pandoc meta data in a global variable. */
-    import initializeDecker from "./$decker-support-dir$/js/decker.js";
-    initializeDecker("$decker-meta-url$");
-  </script>
 
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
   <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
