@@ -91,6 +91,10 @@ dictionary:
       qmi-drop-hint: ...and put them here into the correct category.
       solution-button: Show Solution
 
+quiz:
+  ic:
+    placeholder: 'Antwort auswählen ...'
+
 palette:
   contrast: 0.40
   colors:

@@ -142,7 +142,10 @@ to:
     -   Show the whiteboard button.
     -   Start a quiz session with the quiz server, if configured.
 
--   Panndocs footnotes are now rendered at the end of the slide, wrapped in a
+-   Pandocs footnotes are now rendered at the end of the slide, wrapped in a
     DIV with class `footnotes`.
+
+-   `quiz-ic`'s selection boxes now have proper placeholders whose content can be
+    configured by the `quiz.ic.placeholder` config variable.
 
 -   Many, many bugs have been fixed all around.
