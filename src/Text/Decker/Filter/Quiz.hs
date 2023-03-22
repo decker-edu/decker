@@ -292,7 +292,7 @@ renderInsertChoices meta quiz@(InsertChoices title tgs qm q) =
     select :: [Choice] -> Inline
     select choices =
       tag "select" $ Span ("", [], []) (defaultOpt : map options choices)
-    defaultOpt = tag "option" $ Span ("", ["wrong"], []) [Str "..."]
+    defaultOpt = tag "option" $ Span ("", ["wrong"], [("hidden", ""), ("disabled", ""), ("selected", "")]) [Str $ lookupMetaOrElse "..." "quiz.ic.placeholder" meta]
     options :: Choice -> Inline
     options (Choice correct text comment) =
       tag "option" $ Span ("", [ocls], [("value",stringify text)]) text
