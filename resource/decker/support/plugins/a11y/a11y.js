@@ -49,12 +49,25 @@ function addFlyingFocusCallbacks() {
   });
 }
 
+function addCustomSpacebarHandler() {
+  const selects = document.getElementsByTagName("SELECT");
+  for (const select of selects) {
+    select.addEventListener("focus", (event) => {
+      Reveal.configure({ keyboard: false });
+    });
+    select.addEventListener("blur", (event) => {
+      Reveal.configure({ keyboard: true });
+    });
+  }
+}
+
 const Plugin = {
   id: "a11y",
   init: (reveal) => {
     Reveal = reveal;
     fixTabsByInert();
     addFlyingFocusCallbacks();
+    addCustomSpacebarHandler();
   },
 };
 
