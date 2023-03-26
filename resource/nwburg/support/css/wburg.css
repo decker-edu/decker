@@ -642,7 +642,7 @@ div.block.theorem {
  }
  
  .reveal [class*="quiz-"] .show-right {
-   background-color: var(--green-background-color); */
+   background-color: var(--green-background-color);
    border-color: var(--green-border-color);
  }
  
