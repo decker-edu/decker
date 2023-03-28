@@ -1,3 +1,6 @@
+logos:
+  - 'support/assets/tu-logo-light.svg'
+
 reveal:
   backgroundTransition: "none"
   center: false

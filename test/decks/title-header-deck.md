@@ -1,6 +1,10 @@
 ---
 affiliation: HCI Group Uni Würzburg
+affiliation-link: 'https://example.org'
 author: Decker Author
+author-link: 'https://example.org'
+copyright: ©
+copyright-link: 'https://example.org'
 style: '.reveal .title-teaser img {height: 200px;}'
 subtitle: Customisable title slide
 template:

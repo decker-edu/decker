@@ -788,20 +788,20 @@ section#title-slide div.authors {
   justify-content: space-around;
 }
 
-section#title-slide img.logo {
-  height: 10%;
-}
-
-section#title-slide img.affiliation-logo {
+section#title-slide div.logos {
   position: absolute;
+  display: flex;
+  flex-direction: row;
+
+  bottom: 0;
   left: 0;
-  bottom: 0;
+  width: 100%;
+  max-height: 10%;
+  justify-content: space-between;
 }
 
-section#title-slide img.department-logo {
-  position: absolute;
-  bottom: 0;
-  right: 0;
+section#title-slide div.logos img.logo {
+  /* Does not work */
 }
 
 /*********************************************
