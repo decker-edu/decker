@@ -7,7 +7,7 @@ institiute: Ministry of Silly Walks
 
 logos:
   - 'test/decks/assets/picard-facepalm.jpeg'
-  - 'test/decks/assets/picard-facepalm.jpeg'
+  - 'test/decks/assets/title-logo-hci.png'
 ---
 
 # Intentionally left blank

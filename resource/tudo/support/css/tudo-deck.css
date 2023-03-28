@@ -796,12 +796,17 @@ section#title-slide div.logos {
   bottom: 0;
   left: 0;
   width: 100%;
+  height: 10%;
   max-height: 10%;
   justify-content: space-between;
+  align-items: center;
 }
 
 section#title-slide div.logos img.logo {
-  /* Does not work */
+  width: auto;
+  height: 100%;
+  max-height: 100%;
+  border-radius: 0.5rem;
 }
 
 /*********************************************
@@ -1363,4 +1368,9 @@ html.dark
   :is(svg, img, div.chart-container, iframe) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
+}
+
+html.dark section#title-slide .logo {
+  background-color: var(--shade7);
+  border-radius: 0.5rem;
 }
