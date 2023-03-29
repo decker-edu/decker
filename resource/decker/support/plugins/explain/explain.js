@@ -700,17 +700,20 @@ async function startRecording() {
     console.log("[] recorder stopped");
     let vblob = new Blob(blobs, { type: "video/webm" });
     let tblob = recorder.timing.finish();
+
+    download(vblob, videoFilenameBase() + "-recording.webm");
+    download(tblob, videoFilenameBase() + "-times.json");
     try {
       let exists = await resourceExists(explainTimesUrl);
       /* Upload slide timings */
       await uploadFile({ data: tblob, filename: explainTimesUrl });
       if (exists && recordingType === "APPEND") {
-        await appendVideo({
+        appendVideo({
           data: vblob,
           filename: deckRecordingUrl(),
         });
       } else {
-        await replaceVideo({
+        replaceVideo({
           data: vblob,
           filename: deckRecordingUrl(),
         });
@@ -722,9 +725,6 @@ async function startRecording() {
       console.error(
         `[] FAILED to upload ${vblob.size} bytes to ${deckRecordingUrl()}`
       );
-    } finally {
-      download(vblob, videoFilenameBase() + "-recording.webm");
-      download(tblob, videoFilenameBase() + "-times.json");
     }
 
     Reveal.removeEventListener("slidechanged", recordSlideChange);
