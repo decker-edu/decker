@@ -594,8 +594,6 @@ function toggleWhiteboard(state) {
   whiteboardActive = typeof state === "boolean" ? state : !whiteboardActive;
 
   if (!whiteboardActive) {
-    // do only prevent activation of whiteboard mode - deactivation should always be possible
-    if (!Decker?.isPresenterMode?.()) return;
     // hide scrollbar
     slides.classList.remove("active");
 
@@ -614,6 +612,8 @@ function toggleWhiteboard(state) {
     clearTimeout(hideCursorTimeout);
     slides.style.cursor = "";
   } else {
+    // do only prevent activation of whiteboard mode - deactivation should always be possible
+    if (!Decker?.isPresenterMode?.()) return;
     if (userShouldBeWarned && !userHasBeenWarned) warnUser();
 
     // show scrollbar
