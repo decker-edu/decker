@@ -21,6 +21,7 @@ function onStart(deck) {
     prepareFullscreenIframes();
     prepareFlashPanel(deck);
     preparePresenterMode(deck);
+    inhibitReloadInPresenterMode();
 
     Decker.addPresenterModeListener(onPresenterMode);
   });
@@ -401,7 +402,7 @@ function preparePresenterMode(deck) {
   };
 
   Decker.removePresenterModeListener = (callback) => {
-    listeners.filter((cb) => cb !== callback);
+    listeners = listeners.filter((cb) => cb !== callback);
   };
 
   Decker.isPresenterMode = (callback) => {
@@ -429,6 +430,10 @@ function preparePresenterMode(deck) {
       }
     })
   );
+}
+
+function inhibitReloadInPresenterMode() {
+  Decker.addReloadInhibitor(() => !Decker.isPresenterMode());
 }
 
 const Plugin = {
