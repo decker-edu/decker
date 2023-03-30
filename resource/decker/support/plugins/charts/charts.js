@@ -153,6 +153,13 @@ function createChart(canvas, CSV, comments) {
     chartOptions.indexAxis = "y";
   }
 
+  // log-scale on y-axis? (note: log-log doesn't work, since entries are always equally spaced on x-axis)
+  if (canvas.hasAttribute("data-log")) {
+    chartOptions.scales = {
+      y: { type: "logarithmic" },
+    };
+  }
+
   canvas.chart = new Chart(ctx, {
     type: canvas.getAttribute("data-chart"),
     data: chartData,
@@ -177,7 +184,8 @@ let initializeCharts = function () {
 
   let charts = document.querySelectorAll(selectors);
   for (let i = 0; i < charts.length; i++) {
-    let chart = charts[i];
+    let pre = charts[i];
+    let fig = pre.parentElement;
 
     // MARIO: create enclosing parent (for setting size)
     let container = document.createElement("div");
@@ -191,7 +199,7 @@ let initializeCharts = function () {
     // determine chart type
     let type;
     for (let j = 0; j < classes.length; j++) {
-      if (chart.classList.contains(classes[j])) {
+      if (pre.classList.contains(classes[j])) {
         type = types[j];
         break;
       }
@@ -199,32 +207,38 @@ let initializeCharts = function () {
     canvas.setAttribute("data-chart", type);
 
     // MARIO: title
-    if (chart.hasAttribute("title")) {
-      canvas.setAttribute("data-title", chart.getAttribute("title"));
+    if (pre.hasAttribute("title")) {
+      canvas.setAttribute("data-title", pre.getAttribute("title"));
     }
 
-    // MARIO: width and height
-    if (chart.hasAttribute("width")) {
-      container.style.width = chart.getAttribute("width");
+    // MARIO: width is defined on enclosing figure element
+    if (fig.style.width && fig.style.width != "auto") {
+      container.style.width = fig.style.width;
     }
-    if (chart.hasAttribute("height")) {
-      container.style.height = chart.getAttribute("height");
+    // MARIO: height is defined on pre element
+    if (pre.style.height && pre.style.height != "auto") {
+      container.style.height = pre.style.height;
     }
 
     // MARIO: empty (no-fill) chart
-    if (chart.classList.contains("nofill")) {
+    if (pre.classList.contains("nofill")) {
       canvas.setAttribute("data-nofill", true);
     }
 
+    // MARIO: log scale?
+    if (pre.classList.contains("log")) {
+      canvas.setAttribute("data-log", true);
+    }
+
     // copy chart definition to canvas
-    let content = chart.firstChild.innerText; // don't use innerHTML, it's escaped
+    let content = pre.firstChild.innerText; // don't use innerHTML, it's escaped
     canvas.innerHTML = content;
 
     // replace pre element by canvas element
-    let parent = chart.parentElement;
-    parent.insertBefore(container, chart);
+    let parent = pre.parentElement;
+    parent.insertBefore(container, pre);
     container.appendChild(canvas);
-    parent.removeChild(chart);
+    parent.removeChild(pre);
   }
 
   // Get all canvases
