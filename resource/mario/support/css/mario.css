@@ -647,6 +647,7 @@ div.grid-layout {
    *********************************************/
 .reveal .progress {
   background: rgba(0, 0, 0, 0.2);
+  pointer-events: none; /* prevent navigation by clicking into progress bar */
 }
 
 .reveal .progress span {

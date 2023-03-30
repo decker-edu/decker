@@ -718,6 +718,7 @@ span.sequence {
 
 .reveal .progress {
   background: var(--accent3-bbg);
+  pointer-events: none; /* prevent navigation by clicking into progress bar */
 }
 
 .reveal .progress span {
