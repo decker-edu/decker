@@ -401,12 +401,15 @@ function preparePresenterMode(deck) {
   };
 
   Decker.removePresenterModeListener = (callback) => {
-    listeners.filter((cb) => cb !== callback);
+    listeners = listeners.filter((cb) => cb !== callback);
   };
 
-  Decker.isPresenterMode = (callback) => {
+  Decker.isPresenterMode = () => {
     return presenterMode;
   };
+
+  /* prevent reload when in presenter mode */
+  Decker.addReloadInhibitor(() => !Decker.isPresenterMode());
 
   deck.addKeyBinding(
     {

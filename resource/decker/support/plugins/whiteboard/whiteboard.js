@@ -148,6 +148,7 @@ function warnUser() {
 let buttons;
 let buttonWhiteboard;
 let buttonSave;
+let buttonDownload;
 let buttonGrid;
 let buttonAdd;
 let buttonUndo;
@@ -192,6 +193,13 @@ function createGUI() {
   buttons.onmouseleave = (evt) => {
     hoverTimer = setInterval(hidePanel, 3000);
   };
+
+  buttonDownload = createButton(
+    "fas fa-download",
+    saveAnnotations,
+    false,
+    "Manual Save"
+  );
 
   buttonSave = createButton(
     "fas fa-save checkbox",
@@ -583,8 +591,6 @@ function selectPenRadius(radius) {
 }
 
 function toggleWhiteboard(state) {
-  if (!Decker?.isPresenterMode?.()) return;
-
   whiteboardActive = typeof state === "boolean" ? state : !whiteboardActive;
 
   if (!whiteboardActive) {
@@ -606,6 +612,8 @@ function toggleWhiteboard(state) {
     clearTimeout(hideCursorTimeout);
     slides.style.cursor = "";
   } else {
+    // do only prevent activation of whiteboard mode - deactivation should always be possible
+    if (!Decker?.isPresenterMode?.()) return;
     if (userShouldBeWarned && !userHasBeenWarned) warnUser();
 
     // show scrollbar
@@ -1020,6 +1028,20 @@ function saveAnnotations() {
     return;
   }
 
+  // also save to downloads folder (just to be save(r))
+  let a = document.createElement("a");
+  a.classList.add("whiteboard"); // otherwise a.click() is prevented/cancelled by global listener
+  document.body.appendChild(a);
+  try {
+    a.download = annotationFilename();
+    a.href = window.URL.createObjectURL(annotationBlob());
+    a.click();
+    needToSave(false);
+  } catch (error) {
+    console.error("whiteboard annotations could not be downloaded: " + error);
+  }
+  document.body.removeChild(a);
+
   // save to decker server (and do not return)
   let xhr = new XMLHttpRequest();
   xhr.open("put", annotationURL(), true);
@@ -1034,20 +1056,6 @@ function saveAnnotations() {
     }
   };
   xhr.send(annotationBlob());
-
-  // also save to downloads folder (just to be save(r))
-  let a = document.createElement("a");
-  a.classList.add("whiteboard"); // otherwise a.click() is prevented/cancelled by global listener
-  document.body.appendChild(a);
-  try {
-    a.download = annotationFilename();
-    a.href = window.URL.createObjectURL(annotationBlob());
-    a.click();
-    needToSave(false);
-  } catch (error) {
-    console.error("whiteboard annotations could not be downloaded: " + error);
-  }
-  document.body.removeChild(a);
 }
 
 /*****************************************************************
