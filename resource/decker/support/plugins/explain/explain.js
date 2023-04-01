@@ -1004,48 +1004,41 @@ function createPlayerGUI() {
     uiState.transition("stop");
   });
 
-  // get videojs button class
-  let Button = videojs.getComponent("Button");
+  player.getChild("ControlBar").addChild(
+    "button",
+    {
+      controlText: "Close video",
+      className: "vjs-icon-cancel",
+      clickHandler: function () {
+        uiState.transition("stop");
+      },
+    },
+    0
+  );
 
-  // register and add close button
-  let closeButton = videojs.extend(Button, {
-    constructor: function () {
-      Button.apply(this, arguments);
-      this.addClass("vjs-icon-cancel");
-      this.controlText("Close video");
+  player.getChild("ControlBar").addChild(
+    "button",
+    {
+      controlText: "Jump to previous slide",
+      className: "vjs-icon-previous-item",
+      clickHandler: function () {
+        prev();
+      },
     },
-    handleClick: transition("stop"),
-  });
-  videojs.registerComponent("closeButton", closeButton);
-  player.getChild("controlBar").addChild("closeButton", {}, 0);
+    1
+  );
 
-  // register and add prev button
-  let prevButton = videojs.extend(Button, {
-    constructor: function () {
-      Button.apply(this, arguments);
-      this.addClass("vjs-icon-previous-item");
-      this.controlText("Jump to previous slide");
+  player.getChild("ControlBar").addChild(
+    "button",
+    {
+      controlText: "Jump to next slide",
+      className: "vjs-icon-next-item",
+      clickHandler: function () {
+        next();
+      },
     },
-    handleClick: function () {
-      prev();
-    },
-  });
-  videojs.registerComponent("prevButton", prevButton);
-  player.getChild("controlBar").addChild("prevButton", {}, 1);
-
-  // register and add next button
-  let nextButton = videojs.extend(Button, {
-    constructor: function () {
-      Button.apply(this, arguments);
-      this.addClass("vjs-icon-next-item");
-      this.controlText("Jump to next slide");
-    },
-    handleClick: function () {
-      next();
-    },
-  });
-  videojs.registerComponent("nextButton", nextButton);
-  player.getChild("controlBar").addChild("nextButton", {}, 3);
+    3
+  );
 }
 
 function toggleRecordPanel() {
