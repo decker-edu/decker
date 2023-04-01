@@ -21,7 +21,6 @@ function onStart(deck) {
     prepareFullscreenIframes();
     prepareFlashPanel(deck);
     preparePresenterMode(deck);
-    inhibitReloadInPresenterMode();
 
     Decker.addPresenterModeListener(onPresenterMode);
   });
@@ -405,9 +404,12 @@ function preparePresenterMode(deck) {
     listeners = listeners.filter((cb) => cb !== callback);
   };
 
-  Decker.isPresenterMode = (callback) => {
+  Decker.isPresenterMode = () => {
     return presenterMode;
   };
+
+  /* prevent reload when in presenter mode */
+  Decker.addReloadInhibitor(() => !Decker.isPresenterMode());
 
   deck.addKeyBinding(
     {
@@ -430,10 +432,6 @@ function preparePresenterMode(deck) {
       }
     })
   );
-}
-
-function inhibitReloadInPresenterMode() {
-  Decker.addReloadInhibitor(() => !Decker.isPresenterMode());
 }
 
 const Plugin = {
