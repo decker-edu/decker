@@ -1272,6 +1272,7 @@ section#title-slide img.department-logo {
 .reveal .quiz-mi .matchItem {
   display: block;
   overflow: hidden;
+  width: fit-content;
   border: 2px solid var(--blueish);
   border-radius: 10px;
   padding: 10px;
