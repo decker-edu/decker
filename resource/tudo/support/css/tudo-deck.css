@@ -678,8 +678,12 @@ figure.lineblock > div.lineblock {
   align-items: end;
 }
 
+figure > :is(pre, img, video, div.sourceCode) {
+  width: auto;
+}
+
 /*********************************************
- * image sequence, shown one after the other
+ * image sequence (old style)
  *********************************************/
 
 @media not print {
@@ -710,6 +714,42 @@ span.sequence {
 /* use Kevin Powels cool trick: https://www.youtube.com/watch?v=cs37yx73b1o */
 .reveal .r-stack > p {
   display: contents;
+}
+
+/*********************************************
+ * image sequence (new style)
+ *********************************************/
+
+/* adapt Reveal's r-stack to our needs */
+.reveal .stack {
+  display: grid;
+}
+
+/* pandoc might put a <p> element around the stack items */
+.reveal .stack > *,
+.reveal .stack > p > * {
+  grid-area: 1/1;
+  margin: auto;
+}
+
+/* use Kevin Powels cool trick: https://www.youtube.com/watch?v=cs37yx73b1o */
+.reveal .stack > p {
+  display: contents;
+}
+
+/* hide non-active stack items 
+  (use hidden instead of display:none to avoid layout shifts) */
+@media not print {
+  .reveal .slides section .stack .fragment:not(.current-fragment) {
+    visibility: hidden;
+  }
+}
+
+/* when in print mode, show only first image */
+@media print {
+  .reveal .slides section .stack .fragment:not(:last-of-type) {
+    display: none;
+  }
 }
 
 /*********************************************
@@ -867,7 +907,7 @@ section#title-slide img.department-logo {
   margin-left: 0.5em;
 }
 .reveal ul.task-list > li::before {
-  margin-right: 0.25em;
+  margin-right: 0.5em;
 }
 /* default: check boxes */
 .reveal ul.task-list > li.task-yes::before {
@@ -1178,6 +1218,7 @@ section#title-slide img.department-logo {
   box-sizing: border-box;
   border: 2px solid var(--shade3);
   padding: 15px 10px;
+  gap: 10px;
 }
 
 .reveal .quiz-mi .buckets {
@@ -1221,10 +1262,10 @@ section#title-slide img.department-logo {
 }
 
 .reveal .quiz-mi .bucket {
-  display: flex;
-  flex-direction: column;
+  display: block;
+  flex: 1 0;
+  margin: 0;
   padding: 10px;
-  margin: 0px 5px;
   border: 1px solid var(--shade3);
 }
 
