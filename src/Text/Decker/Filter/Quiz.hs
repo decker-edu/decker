@@ -280,6 +280,8 @@ renderInsertChoices meta quiz@(InsertChoices title tgs qm q) =
       case title of
         [] -> []
         _ -> [Header 2 ("", [], []) title]
+    newMeta = setMetaValue "lang" (view lang qm) meta
+    placeholder = lookupInDictionary "quiz.ic-placeholder" newMeta
     buildQuestions :: [([Block], [Choice])] -> [Block]
     buildQuestions = concatMap questionBlocks
     questionBlocks :: ([Block], [Choice]) -> [Block]
@@ -292,7 +294,8 @@ renderInsertChoices meta quiz@(InsertChoices title tgs qm q) =
     select :: [Choice] -> Inline
     select choices =
       tag "select" $ Span ("", [], []) (defaultOpt : map options choices)
-    defaultOpt = tag "option" $ Span ("", ["wrong"], []) [Str "..."]
+    defaultOpt = tag "option" $ Span ("", ["wrong"], [("hidden", ""), ("disabled", ""), ("selected", "")]) [Str placeholder]
+    
     options :: Choice -> Inline
     options (Choice correct text comment) =
       tag "option" $ Span ("", [ocls], [("value",stringify text)]) text

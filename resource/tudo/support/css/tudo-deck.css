@@ -1237,22 +1237,6 @@ section#title-slide img.department-logo {
   color: var(--shade3);
 }
 
-.reveal .quiz-mi .matchItems:before {
-  content: "Drag objects from here...";
-}
-
-.reveal .quiz-mi .buckets:before {
-  content: "...and drop them here into the correct category";
-}
-
-:lang(de) .reveal .quiz-mi .matchItems:before {
-  content: "Objekte per Drag & Drop nach unten ziehen...";
-}
-
-:lang(de) .reveal .quiz-mi .buckets:before {
-  content: "...und hier in die richtige Kategorie einsortieren";
-}
-
 .reveal .quiz-mi .matchItems:after {
   position: absolute;
   bottom: -30px;

@@ -84,12 +84,12 @@ dictionary:
       poll-button: Poll
       stop-button: Stopp
     quiz:
-      solution: Lösung
+      solution: Lösung zeigen
       reset-button: Zurücksetzen
       input-placeholder: Eingeben und 'Enter'
-      qmi-drag-hint: Objekte per Drag&Drop ziehen...
-      qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
-      solve-button: Lösung
+      qmi-drag-hint: Objekte per Drag&Drop ziehen…
+      qmi-drop-hint: …und hier in die richtige Kategorie einsortieren.
+      ic-placeholder: Option auswählen…
   en:
     exam:
       Easy: Easy
@@ -108,9 +108,9 @@ dictionary:
       solution: Show Solution
       reset-button: Reset
       input-placeholder: Type and press 'Enter'
-      qmi-drag-hint: Drag items from here...
-      qmi-drop-hint: ...and put them here into the correct category.
-      solution-button: Show Solution
+      qmi-drag-hint: Drag items from here…
+      qmi-drop-hint: …and put them here into the correct category.
+      ic-placeholder: Select option…
 
 test:
   only-default: From default.yaml
