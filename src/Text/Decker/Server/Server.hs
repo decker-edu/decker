@@ -92,12 +92,12 @@ runHttpServer context = do
   let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
   exists <- liftIO $ Dir.doesFileExist indexSource
   when exists $
-    putStrLn $ printf "Generated index at: http://%s:%d/index-generated.html\n" bind port 
+    putStrLn $ printf "Generated index at: http://%s:%d/index-generated.html" bind port 
   putStrLn $ printf "Index at: http://%s:%d/index.html\n" bind port 
   let state = context ^. server
   let chan = context ^. actionChan
   let server = Server chan state
-  let opts = Scotty.Options 1 (setPort port $ setHost (fromString bind) defaultSettings)
+  let opts = Scotty.Options 0 (setPort port $ setHost (fromString bind) defaultSettings)
   startUpdater state
   scottyOptsT opts (useState server) $ do
     Scotty.get "/" $ redirect "index.html"
