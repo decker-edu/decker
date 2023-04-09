@@ -69,9 +69,9 @@ serverPort = 8888
 
 serverUrl = "http://localhost:" ++ show serverPort
 
-indexSource = "index.md"
-
 generatedIndexSource = transientDir </> "index.md.generated"
+
+generatedIndex = publicDir </> "index-generated.html"
 
 indexFile = publicDir </> "index.html"
 
@@ -244,19 +244,25 @@ deckerRules = do
       need ["private/quest-catalog.xml"]
     --
     indexFile %> \out -> do
-      exists <- liftIO $ Dir.doesFileExist indexSource
-      let src =
-            if exists
-              then indexSource
-              else generatedIndexSource
-      need [src]
       meta <- getGlobalMeta
-      markdownToHtml htmlIndex meta getTemplate src out
+      exists <- liftIO $ Dir.doesFileExist indexSource
+      if exists
+        then do
+          need [indexSource, generatedIndex]
+          markdownToHtml htmlIndex meta getTemplate indexSource out
+        else do
+          need [generatedIndexSource]
+          markdownToHtml htmlIndex meta getTemplate generatedIndexSource out
     --
     generatedIndexSource %> \out -> do
       deps <- getDeps
       meta <- getGlobalMeta
       writeIndexLists meta deps out
+  --
+    generatedIndex %> \out -> do
+      need [generatedIndexSource]
+      meta <- getGlobalMeta
+      markdownToHtml htmlIndex meta getTemplate generatedIndexSource out
   --
   priority 3 $ do
     "**/*.css" %> \out -> do

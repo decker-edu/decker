@@ -36,6 +36,8 @@ import Text.Decker.Resource.Resource
 import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Web.Scotty.Trans as Scotty
+import Text.Printf
+import qualified System.Directory as Dir
 
 addClient :: TVar ServerState -> Client -> IO ()
 addClient tvar client =
@@ -88,6 +90,10 @@ runHttpServer :: ActionContext -> IO ()
 runHttpServer context = do
   let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
   let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
+  exists <- liftIO $ Dir.doesFileExist indexSource
+  when exists $
+    putStrLn $ printf "Generated index at: http://%s:%d/index-generated.html\n" bind port 
+  putStrLn $ printf "Index at: http://%s:%d/index.html\n" bind port 
   let state = context ^. server
   let chan = context ^. actionChan
   let server = Server chan state
