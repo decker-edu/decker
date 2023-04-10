@@ -52,8 +52,9 @@ div.feedback-menu.authorized div.feedback-footer {
   display: none;
 }
 
-div.feedback-menu.authorized :is(div.feedback-token-input, div.feedback-lock) {
-  visibility: none;
+div.feedback-menu.authorized input.feedback-token-input, 
+div.feedback-menu.authorized button.feedback-lock {
+  visibility: hidden;
 }
 
 
