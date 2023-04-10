@@ -52,6 +52,11 @@ div.feedback-menu.authorized div.feedback-footer {
   display: none;
 }
 
+div.feedback-menu.authorized :is(div.feedback-token-input, div.feedback-lock) {
+  visibility: none;
+}
+
+
 div.feedback-header {
   flex: 0 1 content;
 
@@ -125,7 +130,7 @@ div.feedback-menu button:active {
   color: var(--icon-active-color);
 }
 
-div.feedback-header button > span {
+div.feedback-header button>span {
   font-size: 0.5em;
   display: none;
 }
@@ -169,7 +174,7 @@ div.feedback-item.answer {
   font-size: 80%;
 }
 
-div.feedback-item.answer > div.link {
+div.feedback-item.answer>div.link {
   float: right;
 }
 
@@ -401,6 +406,7 @@ li.slide-list-item[data-questions]::after {
   border-radius: 0.4em;
   padding: 0.2em 0.4em;
 }
+
 li.slide-list-item[data-questions][data-answered="true"]::after {
   background-color: var(--accent3);
 }

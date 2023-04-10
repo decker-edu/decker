@@ -16,8 +16,8 @@ class RESTClient {
         }).then((response) => response.json());
     }
 
-    async getToken() {
-        return fetch(this.base + "/token", {
+    async getToken(deck) {
+        return fetch(`${this.base}/token?deckid=${deck}`, {
             method: "GET",
             mode: this.cors ? "cors" : "same-origin",
             credentials: this.cors ? "omit" : "include",
