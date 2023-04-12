@@ -273,16 +273,18 @@ The current default dictionary looks like this:
     dictionary:
       de: 
         quiz:
-          solution-button: Lösung
+          solution: Lösung zeigen
           input-placeholder: Eingeben und 'Enter'
-          qmi-drag-hint: Objekte per Drag&Drop ziehen...
-          qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
+          qmi-drag-hint: Objekte per Drag&Drop ziehen…
+          qmi-drop-hint: …und hier in die richtige Kategorie einsortieren.
+          ic-placeholder: Option auswählen…
       en:
         quiz:
-          solution-button: Show Solution
+          solution: Show Solution
           input-placeholder: Type and press 'Enter'
-          qmi-drag-hint: Drag items from here...
-          qmi-drop-hint: ...and put them here into the correct category.
+          qmi-drag-hint: Drag items from here…
+          qmi-drop-hint: …and put them here into the correct category.
+          ic-placeholder: Select option…
 
 This dictionary can be partially or completely redefined by the user.
 

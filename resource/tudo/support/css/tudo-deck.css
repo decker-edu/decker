@@ -678,8 +678,12 @@ figure.lineblock > div.lineblock {
   align-items: end;
 }
 
+figure > :is(pre, img, video, div.sourceCode) {
+  width: auto;
+}
+
 /*********************************************
- * image sequence, shown one after the other
+ * image sequence (old style)
  *********************************************/
 
 @media not print {
@@ -713,11 +717,48 @@ span.sequence {
 }
 
 /*********************************************
+ * image sequence (new style)
+ *********************************************/
+
+/* adapt Reveal's r-stack to our needs */
+.reveal .stack {
+  display: grid;
+}
+
+/* pandoc might put a <p> element around the stack items */
+.reveal .stack > *,
+.reveal .stack > p > * {
+  grid-area: 1/1;
+  margin: auto;
+}
+
+/* use Kevin Powels cool trick: https://www.youtube.com/watch?v=cs37yx73b1o */
+.reveal .stack > p {
+  display: contents;
+}
+
+/* hide non-active stack items 
+  (use hidden instead of display:none to avoid layout shifts) */
+@media not print {
+  .reveal .slides section .stack .fragment:not(.current-fragment) {
+    visibility: hidden;
+  }
+}
+
+/* when in print mode, show only first image */
+@media print {
+  .reveal .slides section .stack .fragment:not(:last-of-type) {
+    display: none;
+  }
+}
+
+/*********************************************
  * PROGRESS BAR
  *********************************************/
 
 .reveal .progress {
   background: var(--accent3-bbg);
+  pointer-events: none; /* prevent navigation by clicking into progress bar */
 }
 
 .reveal .progress span {
@@ -871,7 +912,7 @@ section#title-slide div.logos img.logo {
   margin-left: 0.5em;
 }
 .reveal ul.task-list > li::before {
-  margin-right: 0.25em;
+  margin-right: 0.5em;
 }
 /* default: check boxes */
 .reveal ul.task-list > li.task-yes::before {
@@ -1182,6 +1223,7 @@ section#title-slide div.logos img.logo {
   box-sizing: border-box;
   border: 2px solid var(--shade3);
   padding: 15px 10px;
+  gap: 10px;
 }
 
 .reveal .quiz-mi .buckets {
@@ -1200,22 +1242,6 @@ section#title-slide div.logos img.logo {
   color: var(--shade3);
 }
 
-.reveal .quiz-mi .matchItems:before {
-  content: "Drag objects from here...";
-}
-
-.reveal .quiz-mi .buckets:before {
-  content: "...and drop them here into the correct category";
-}
-
-:lang(de) .reveal .quiz-mi .matchItems:before {
-  content: "Objekte per Drag & Drop nach unten ziehen...";
-}
-
-:lang(de) .reveal .quiz-mi .buckets:before {
-  content: "...und hier in die richtige Kategorie einsortieren";
-}
-
 .reveal .quiz-mi .matchItems:after {
   position: absolute;
   bottom: -30px;
@@ -1225,16 +1251,17 @@ section#title-slide div.logos img.logo {
 }
 
 .reveal .quiz-mi .bucket {
-  display: flex;
-  flex-direction: column;
+  display: block;
+  flex: 1 0;
+  margin: 0;
   padding: 10px;
-  margin: 0px 5px;
   border: 1px solid var(--shade3);
 }
 
 .reveal .quiz-mi .matchItem {
   display: block;
   overflow: hidden;
+  width: fit-content;
   border: 2px solid var(--blueish);
   border-radius: 10px;
   padding: 10px;

@@ -90,7 +90,7 @@ class Feedback {
    */
   prepareEngine() {
     this.engine.api
-      .getToken()
+      .getToken(this.engine.deckId)
       .then((token) => {
         // Globally set the server token.
         this.engine.token = token;

@@ -63,45 +63,6 @@ math:
 # other settings
 highlightjs: xcode
 
-# Language dictionary. Currently for quiz elements
-dictionary:
-  de:
-    exam:
-      Easy: Leicht
-      Hard: Schwer
-      Medium: Mittelschwer
-      again-button: Nochmal
-      placeholder: Antwort eingeben
-      points: Punkte
-      solution: Lösung
-      solve-button: Lösen
-      reset-button: Zurücksetzen
-    quiz:
-      solution: Lösung
-      reset-button: Zurücksetzen
-      input-placeholder: Eingeben und 'Enter'
-      qmi-drag-hint: Objekte per Drag&Drop ziehen...
-      qmi-drop-hint: ...und hier in die richtige Kategorie einsortieren.
-      solve-button: Lösung
-  en:
-    exam:
-      Easy: Easy
-      Hard: Hard
-      Medium: Medium
-      again-button: Again
-      placeholder: Type in answer
-      points: Points
-      solution: Solution
-      solve-button: Solve
-      reset-button: Reset
-    quiz:
-      solution: Show Solution
-      reset-button: Reset
-      input-placeholder: Type and press 'Enter'
-      qmi-drag-hint: Drag items from here...
-      qmi-drop-hint: ...and put them here into the correct category.
-      solution-button: Show Solution
-
 palette:
   colors:
     light:
