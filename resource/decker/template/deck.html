@@ -113,6 +113,9 @@ $endif$
 $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
 $endfor$
+$for(template.deck.css)$
+  <link rel="stylesheet" href="$template.deck.css$"/>
+$endfor$
 
   <script type="module">
     /* Store JSON encoded Pandoc meta data in a global variable. */
@@ -129,12 +132,6 @@ $endfor$
 
 $if(title)$
 $deck-title.html()$
-$endif$
-
-$if(toc)$
-    <section id="$idprefix$TOC">
-    $table-of-contents$
-    </section>
 $endif$
 
 <!-- Keep left aligned -->
@@ -230,5 +227,8 @@ $endif$
 <!-- Use the other implementation if things break under Firefox -->
 $for(template.js)$
   <script type="module" src="$template.js$"></script>
+$endfor$
+$for(template.deck.js)$
+  <script type="module" src="$template.deck.js$"></script>
 $endfor$
 </html>

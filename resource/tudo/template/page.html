@@ -50,6 +50,9 @@ $endif$
     <link rel="stylesheet" href="$decker-support-dir$/css/page.css">
     <link rel="stylesheet" href="$decker-support-dir$/css/tudo-page.css">
     <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
+    $for(template.css)$
+    <link rel="stylesheet" href="$template.css$"/>
+    $endfor$
     $for(template.page.css)$
     <link rel="stylesheet" href="$template.page.css$">
     $endfor$
@@ -108,16 +111,6 @@ $endif$
       $endif$
     $endif$
     </header>
-
-    <!-- table of contents -->
-    $if(toc)$
-    $if(toc-title)$
-    <h1 id="$idprefix$TOC-title class="toc-title">$toc-title$</h1>
-    $endif$
-    <nav id="$idprefix$TOC">
-        $table-of-contents$
-    </nav>
-    $endif$
 
     <!-- main content -->
     <main class="content">

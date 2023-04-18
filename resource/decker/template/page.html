@@ -172,14 +172,6 @@ $if(date)$
 $endif$
 </header>
 $endif$
-$if(toc)$
-<nav id="$idprefix$TOC" role="doc-toc">
-$if(toc-title)$
-<h2 id="$idprefix$toc-title">$toc-title$</h2>
-$endif$
-$table-of-contents$
-</nav>
-$endif$
 $body$
 $for(include-after)$
 $include-after$
@@ -192,5 +184,11 @@ $endfor$
         window.location.reload(true);
     };
   </script>
+  $for(template.js)$
+  <script type="module" src="$template.js$"></script>
+  $endfor$
+  $for(template.page.js)$
+  <script type="module" src="$template.page.js$"></script>
+  $endfor$
 </body>
 </html>

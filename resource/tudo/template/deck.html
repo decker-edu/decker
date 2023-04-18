@@ -68,6 +68,9 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/tudo-deck.css">
+  $for(template.css)$
+  <link rel="stylesheet" href="$template.css$"/>
+  $endfor$
   $for(template.deck.css)$
   <link rel="stylesheet" href="$template.deck.css$">
   $endfor$
@@ -104,9 +107,15 @@ $if(title)$
         $for(authors)$
           $if(it.name)$
             <div class="author">
+              $if(it.name-link)$<a href="$it.name-link$">$endif$ 
               $it.name$ 
+              $if(it.name-link)$</a>$endif$
               $if(it.affiliation)$
-                <div class="affiliation"> $it.affiliation$ </div>
+                <div class="affiliation">
+                  $if(it.affiliation-link)$<a href="it.affiliation-link">$endif$
+                  $it.affiliation$
+                  $if(it.affiliation-link)$</a>$endif$
+                </div>
               $endif$
             </div>
           $endif$
@@ -149,6 +158,12 @@ $if(title)$
 
         $if(date)$
           <div class="date"> $date$ </div>
+        $endif$
+
+        $if(logo)$
+          <div class="logos">
+            <img class="logo" src="$projectPath$$logo$">
+          </div>
         $endif$
 
         $if(logos)$
