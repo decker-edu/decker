@@ -58,7 +58,8 @@ div#record-panel {
 
 div[data-uistate="RECORDER_READY"]#record-panel,
 div[data-uistate="RECORDER_PAUSED"]#record-panel,
-div[data-uistate="RECORDING"]#record-panel {
+div[data-uistate="RECORDING"]#record-panel,
+div[data-uistate="SAVING"]#record-panel {
   display: flex;
 }
 
@@ -171,6 +172,22 @@ div#record-panel[data-uistate="RECORDING"].open {
   color: var(--redish);
 }
 
+@keyframes turning-gear {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+#record-indicator[data-state="saving"]::before {
+  content: "\f013";
+  font-weight: 900;
+  color: var(--redish);
+  animation: 2s turning-gear linear infinite;
+}
+
 button.explain[disabled] {
   color: var(--shade4);
   opacity: 0.5;
@@ -192,11 +209,23 @@ button.caption-button.captioning {
   color: var(--redish);
 }
 
-:is(button.record-button, button.pause-button, button.stop-button, button.mute-button, button.caption-button):hover {
+:is(
+    button.record-button,
+    button.pause-button,
+    button.stop-button,
+    button.mute-button,
+    button.caption-button
+  ):hover {
   color: var(--light-red);
 }
 
-:is(button.record-button, button.pause-button, button.stop-button, button.mute-button, button.caption-button):active {
+:is(
+    button.record-button,
+    button.pause-button,
+    button.stop-button,
+    button.mute-button,
+    button.caption-button
+  ):active {
   color: var(--dark-red);
 }
 

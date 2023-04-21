@@ -569,6 +569,14 @@ function download(blob, name) {
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
+  /* TODO Maybe add config variable to enable these, but they get really annoying ... 
+  if (window.postNotification) {
+    window.postNotification(
+      localization.notification_title,
+      localization.notification_download_complete(name)
+    );
+  }
+  */
 }
 
 async function startRecording() {
@@ -654,12 +662,26 @@ async function startRecording() {
     recordingTime.innerText = time.toISOString().substr(11, 8);
   }
 
-  function uploadFile(file) {
+  async function uploadFile(file) {
     console.log("[] about to upload: ", file);
     return fetch(file.filename, { method: "PUT", body: file.data })
-      .then((r) => r.ok)
+      .then((r) => {
+        if (window.postNotification) {
+          window.postNotification(
+            localization.notification_title,
+            localization.notification_upload_success(file.filename)
+          );
+          return r.ok;
+        }
+      })
       .catch((e) => {
         console.error("[] cannot upload data to:", file.filename, "reason:", e);
+        if (window.postNotification) {
+          window.postNotification(
+            localization.notification_title,
+            localization.notification_upload_failed(file.filename)
+          );
+        }
         return false;
       });
   }
@@ -668,7 +690,15 @@ async function startRecording() {
     console.log("[] about to upload (replace): ", file);
     let path = `/replace${file.filename}`;
     return fetch(path, { method: "PUT", body: file.data })
-      .then((r) => r.ok)
+      .then((r) => {
+        if (window.postNotification) {
+          window.postNotification(
+            localization.notification_title,
+            localization.notification_upload_success(file.filename)
+          );
+          return r.ok;
+        }
+      })
       .catch((e) => {
         console.error(
           "[] cannot upload (replace) video to:",
@@ -676,6 +706,12 @@ async function startRecording() {
           "reason:",
           e
         );
+        if (window.postNotification) {
+          window.postNotification(
+            localization.notification_title,
+            localization.notification_upload_failed(file.filename)
+          );
+        }
         return false;
       });
   }
@@ -684,7 +720,15 @@ async function startRecording() {
     console.log("[] about to upload (append): ", file);
     let path = `/append${file.filename}`;
     return fetch(path, { method: "PUT", body: file.data })
-      .then((r) => r.ok)
+      .then((r) => {
+        if (window.postNotification) {
+          window.postNotification(
+            localization.notification_title,
+            localization.notification_upload_success(file.filename)
+          );
+          return r.ok;
+        }
+      })
       .catch((e) => {
         console.error(
           "[] cannot upload (append) video to:",
@@ -692,28 +736,43 @@ async function startRecording() {
           "reason:",
           e
         );
+        if (window.postNotification) {
+          window.postNotification(
+            localization.notification_title,
+            localization.notification_upload_failed(file.filename)
+          );
+        }
         return false;
       });
   }
 
   recorder.onstop = async () => {
     console.log("[] recorder stopped");
+
+    recordIndicator.dataset.state = "saving";
+
     let vblob = new Blob(blobs, { type: "video/webm" });
     let tblob = recorder.timing.finish();
+
+    let timesUpload;
+    let videoUpload;
 
     download(vblob, videoFilenameBase() + "-recording.webm");
     download(tblob, videoFilenameBase() + "-times.json");
     try {
       let exists = await resourceExists(explainTimesUrl);
       /* Upload slide timings */
-      await uploadFile({ data: tblob, filename: explainTimesUrl });
+      timesUpload = uploadFile({
+        data: tblob,
+        filename: explainTimesUrl,
+      });
       if (exists && recordingType === "APPEND") {
-        appendVideo({
+        videoUpload = appendVideo({
           data: vblob,
           filename: deckRecordingUrl(),
         });
       } else {
-        replaceVideo({
+        videoUpload = replaceVideo({
           data: vblob,
           filename: deckRecordingUrl(),
         });
@@ -733,6 +792,11 @@ async function startRecording() {
     recorder = null;
     stream = null;
 
+    closeRecordPanel();
+
+    await Promise.all([timesUpload, videoUpload]);
+
+    uiState.transition("complete");
     updateRecordIndicator();
   };
 
@@ -792,6 +856,11 @@ function stopRecording() {
     Reveal.getPlugin("whiteboard").saveAnnotations();
   }
 
+  return true;
+}
+
+function completeRecording() {
+  console.log("[] recording completed");
   return true;
 }
 
@@ -1805,7 +1874,7 @@ const Plugin = {
         name: "RECORDING",
         transition: {
           cancel: { action: stopRecording, next: "INIT" },
-          stop: { action: stopRecording, next: "INIT" },
+          stop: { action: stopRecording, next: "SAVING" },
           pause: { action: pauseRecording, next: "RECORDER_PAUSED" },
         },
       },
@@ -1813,8 +1882,14 @@ const Plugin = {
         name: "RECORDER_PAUSED",
         transition: {
           cancel: { action: stopRecording, next: "INIT" },
-          stop: { action: stopRecording, next: "INIT" },
+          stop: { action: stopRecording, next: "SAVING" },
           pause: { action: resumeRecording, next: "RECORDING" },
+        },
+      },
+      SAVING: {
+        name: "SAVING",
+        transition: {
+          complete: { action: completeRecording, next: "INIT" },
         },
       },
     });
@@ -1837,6 +1912,13 @@ const Plugin = {
       Do you want to append to the existing recording or replace it?",
       accept: "Accept",
       abort: "Abort",
+      notification_title: "Decker: Video Recording",
+      notification_upload_success: (filename) =>
+        `The file '${filename}' was successfully uploaded to your deck's directory.`,
+      notification_upload_failed: (filename) =>
+        `The file '${filename}' could not be uploaded. Please check your downloads for the backup and add them to your project manually.`,
+      notification_download_complete: (filename) =>
+        `Download of file '${filename}' as backup completed.`,
     };
 
     if (lang === "de") {
@@ -1851,6 +1933,13 @@ const Plugin = {
         Soll die Aufnahme an das bereits existierende Video angehangen werden oder es ersetzen?",
         accept: "Akzeptieren",
         abort: "Abbrechen",
+        notification_title: "Decker: Videoaufnahme",
+        notification_upload_success: (filename) =>
+          `Die Datei '${filename}' wurde erfolgreich zu Ihrem Foliensatzverzeichnis hinzugefügt.`,
+        notification_upload_failed: (filename) =>
+          `Die Datei '${filename}' konnte nicht entgegengenommen werden. Bitte suchen Sie in Ihrem Downloadverzeichnis nach einer Sicherungskopie und fügen Sie diese Ihrem Projekt manuell hinzu.`,
+        notification_download_complete: (filename) =>
+          `Download der Datei '${filename}' als Sicherung abgeschlossen.`,
       };
     }
   },

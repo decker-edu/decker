@@ -43,6 +43,7 @@ async function onPresenterMode(isActive) {
         console.error("could not inject coffee, display may go to sleep");
       }
     }
+    requestNotifications();
   } else {
     // show info message
     Decker.flash.message(
@@ -432,6 +433,28 @@ function preparePresenterMode(deck) {
       }
     })
   );
+}
+
+function requestNotifications() {
+  if (!("Notification" in window)) {
+    console.error("This browser does not support desktop notifications.");
+  } else {
+    if (Notification.permission === "granted") {
+      window.postNotification = postNotification;
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          window.postNotification = postNotification;
+        }
+      });
+    }
+  }
+}
+
+function postNotification(title, message) {
+  const notification = new Notification(title, {
+    body: message,
+  });
 }
 
 const Plugin = {
