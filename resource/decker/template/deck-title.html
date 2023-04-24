@@ -6,15 +6,67 @@ $if(title)$
       $if(subtitle)$
       <h2 class="subtitle">$subtitle$</h2>
       $endif$
-      $for(author)$
-      <p class="author">$author$</p>
-      $endfor$
-      $for(institute)$
-      <p class="institute">$institute$</p>
-      $endfor$
-      $if(date)$
-      <p class="date">$date$</p>
-      $endif$
+      $if(authors)$
+        <div class="authors">
+        $for(authors)$
+          $if(it.name)$
+            <div class="author">
+              $if(it.name-link)$<a href="$it.name-link$">$endif$ 
+              $it.name$ 
+              $if(it.name-link)$</a>$endif$
+              $if(it.affiliation)$
+                <div class="affiliation">
+                  $if(it.affiliation-link)$<a href="it.affiliation-link">$endif$
+                  $it.affiliation$
+                  $if(it.affiliation-link)$</a>$endif$
+                </div>
+              $endif$
+            </div>
+          $endif$
+        $endfor$
+        </div>
+        $endif$
+
+        $if(author)$
+          $if(author-link)$
+          <div class="author">
+            $if(copyright)$
+              $if(copyright-link)$
+                <span class="copyright"><a href="$copyright-link$">$copyright$</a></span>
+              $else$
+                <span class="copyright">$copyright$</span>
+              $endif$
+            $endif$
+            <a href="$author-link$">$author$</a></div>
+          $else$
+          <div class="author">
+            $if(copyright)$
+              $if(copyright-link)$
+                <span class="copyright"><a href="$copyright-link$">$copyright$</a></span>
+              $else$
+                <span class="copyright">$copyright$</span>
+              $endif$
+            $endif$
+            $author$
+          </div>
+          $endif$
+        $endif$
+
+        $if(affiliation)$
+          $if(affiliation-link)$
+          <div class="affiliation"><a href="$affiliation-link$"> $affiliation$ </a></div>
+          $else$
+          <div class="affiliation"> $affiliation$ </div>
+          $endif$
+        $endif$
+        
+        $for(institute)$
+        <p class="institute">$institute$</p>
+        $endfor$
+
+        $if(date)$
+          <div class="date"> $date$ </div>
+        $endif$
     </div>
   </div>
 </section>
