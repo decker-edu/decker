@@ -13,7 +13,7 @@ export async function preparePolls(reveal) {
   } catch (err) {
     Decker.flash.message("Connection to poll server failed.");
     return {
-      close: () => {},
+      close: () => { },
     };
   }
 
@@ -113,7 +113,7 @@ export async function preparePolls(reveal) {
           pollButton.removeAttribute("disabled");
           reveal.off("slidechanged", abort);
         },
-      });
+      }, "Random");
     };
     pollButton.addEventListener("click", poll);
     callbackLog.push({ button: pollButton, event: "click", callback: poll });
