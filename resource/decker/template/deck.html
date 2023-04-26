@@ -128,18 +128,27 @@ $endfor$
 
 <body class="deck">
   <div class="reveal">
+    $if(header)$
+    <header>
+      $header.file()$
+      $header.html$
+    </header>
+    $endif$
     <div class="slides">
-
-$if(title)$
-$deck-title.html()$
-$endif$
+    $if(title)$
+      $deck-title.html()$
+    $endif$
 
 <!-- Keep left aligned -->
 $body$
 
     </div>
   </div>
-
+  $if(footer)$
+  <footer>
+  $footer()$
+  </footer>
+  $endif$
 
   <script type="module">
     // import Reveal and all plugins 

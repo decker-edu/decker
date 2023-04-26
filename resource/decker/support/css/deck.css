@@ -187,3 +187,15 @@ div#continue-dialog {
 .reveal:not(.presenter-mode) .presenter-only {
   display: none !important;
 }
+
+.reveal > header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  padding-top: 3rem;
+  padding-left: 3rem;
+  padding-right: 3rem;
+  border-bottom: 2px solid var(--primary-color);
+}
