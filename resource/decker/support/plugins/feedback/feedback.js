@@ -466,42 +466,32 @@ class Feedback {
   </div>
   <div class="feedback-controls">
     <div class="feedback-controls-wrapper">
-      <span class="votes" title="${text.votes}" aria-label="${text.votes}">${
-      comment.votes > 0 ? comment.votes : ""
-    }</span>
-      <button class="${comment.didvote ? "fas" : "far"} fa-thumbs-up vote ${
-      !isAuthor ? "canvote" : "cantvote"
-    } ${comment.didvote ? "didvote" : ""}"
+      <span class="votes" title="${text.votes}" aria-label="${text.votes}">${comment.votes > 0 ? comment.votes : ""
+      }</span>
+      <button class="${comment.didvote ? "fas" : "far"} fa-thumbs-up vote ${!isAuthor ? "canvote" : "cantvote"
+      } ${comment.didvote ? "didvote" : ""}"
         title="${comment.didvote ? text.downvote : text.upvote}"
         aria-label="${comment.didvote ? text.downvote : text.upvote}">
       </button>
-      ${
-        isDeletable
-          ? `<button class="fas fa-edit feedback-edit-question-button" title="${text.edit}" aria-label="${text.edit}"></button>`
-          : ""
+      ${isDeletable
+        ? `<button class="fas fa-edit feedback-edit-question-button" title="${text.edit}" aria-label="${text.edit}"></button>`
+        : ""
       }
-      ${
-        isDeletable
-          ? `<button class="fas fa-trash-alt feedback-delete-question-button" title="${text.delete}" aria-label="${text.delete}"></button>`
-          : ""
+      ${isDeletable
+        ? `<button class="fas fa-trash-alt feedback-delete-question-button" title="${text.delete}" aria-label="${text.delete}"></button>`
+        : ""
       }
-      ${
-        isAdmin
-          ? `<button class="far fa-plus-square feedback-answer-question-button" title="${text.add}" aria-label="${text.add}">`
-          : ""
+      ${isAdmin
+        ? `<button class="far fa-plus-square feedback-answer-question-button" title="${text.add}" aria-label="${text.add}">`
+        : ""
       }
-      ${
-        isAnswered
-          ? `<button class="far fa-check-circle answered feedback-reset-answers-button" title="${
-              isDeletable ? text.reset : text.answered
-            }" aria-label="${isDeletable ? text.reset : text.answered}" ${
-              !isDeletable ? "disabled" : ""
-            }></button>`
-          : `<button class="far fa-circle notanswered feedback-mark-answered-button" title="${
-              isDeletable ? text.mark : text.notanswered
-            }" aria-label="${isDeletable ? text.mark : text.notanswered}" ${
-              !isDeletable ? "disabled" : ""
-            }></button>`
+      ${isAnswered
+        ? `<button class="far fa-check-circle answered feedback-reset-answers-button" title="${isDeletable ? text.reset : text.answered
+        }" aria-label="${isDeletable ? text.reset : text.answered}" ${!isDeletable ? "disabled" : ""
+        }></button>`
+        : `<button class="far fa-circle notanswered feedback-mark-answered-button" title="${isDeletable ? text.mark : text.notanswered
+        }" aria-label="${isDeletable ? text.mark : text.notanswered}" ${!isDeletable ? "disabled" : ""
+        }></button>`
       }
     </div>
   </div>
@@ -562,24 +552,24 @@ class Feedback {
     let isAdmin = this.engine.token.admin != null;
     let text = this.localization.answer_container;
     let url = answer.link ? new URL(answer.link) : undefined;
-    let html = answer.html ? answer.html : undefined;
+    let html = answer.html ? answer.html : "";
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="feedback-item answer">
-    <div class="feedback-content">
-    ${
-      isAdmin
-        ? `<div class="feedback-controls"><button class="fas fa-trash-alt feedback-delete-answer-button" \
-    title="${text.delete}" aria-label="${text.delete}"></div>`
-        : ""
-    }
-    ${
-      url
-        ? `<div class="link"><a href="${url}" target="_blank"><i class="fas fa-external-link-alt"></i></a></div>`
-        : ""
-    }
-    ${html ? `<div class="description">${html}</div>` : ""}
-</div>`;
-    let item = template.content.firstChild;
+    template.innerHTML = String.raw`
+      <div class="feedback-item answer">
+        <div class="feedback-content">
+          ${html}
+        </div>
+        <div class="feedback-controls">
+          ${isAdmin ? `
+            <button class="fas fa-trash-alt feedback-delete-answer-button" title="${text.delete}" aria-label="${text.delete}">
+            </button>`: ""}
+          ${url ? `
+            <a href="${url}" target="_blank">
+              <i class="fas fa-external-link-alt"></i>
+            </a>` : ""}
+        </div>
+      </div>`;
+    let item = template.content.cloneNode(true);
     if (isAdmin) {
       let deleteButton = item.querySelector(".feedback-delete-answer-button");
       deleteButton.addEventListener("click", () => this.deleteAnswer(answer));
@@ -628,7 +618,6 @@ class Feedback {
     if (this.engine && this.engine.token && this.engine.token.authorized) {
       this.menu.token_input.value = this.engine.token.authorized;
       this.menu.container.classList.add("authorized");
-      this.menu.login_panel.classList.add("admin");
       this.hideTokenInput();
     } else if (localToken) {
       this.menu.token_input.value = localToken;
