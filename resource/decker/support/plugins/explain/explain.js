@@ -1706,7 +1706,7 @@ async function setupPlayer() {
         let captionsOptions = {
           kind: "captions",
           srclang: document.documentElement.lang,
-          src: captionsUrl,
+          src: explainTranscriptUrl,
         };
         player.addRemoteTextTrack(captionsOptions, false);
       }
