@@ -13,6 +13,10 @@ template:
     affiliation-logo: 'assets/title-logo-hci.png'
     teaser-img: 'assets/title-teaser-icg.png'
 title: Title Header
+
+header:
+  file: 'title-header-header.html'
+  html: '<span><a href="#first-slide">Text</a></span><span><a href="#first-slide">Text</a></span>'
 ---
 
 # First Slide
