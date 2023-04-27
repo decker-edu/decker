@@ -32,16 +32,34 @@ section#title-slide :is(h2) {
   margin-bottom: 1em;
 }
 
-section#title-slide p:is(.author) {
+section#title-slide .author {
   color: var(--shade5);
 }
 
-section#title-slide p:is(.institute) {
+section#title-slide .affiliation {
   color: var(--shade5);
 }
 
-section#title-slide p:is(.date) {
+section#title-slide .affiliation img {
+  max-height: calc(var(--slide-height) * 0.1);
+}
+
+section#title-slide .date {
   color: var(--shade4);
+}
+
+section#title-slide .teaser {
+  max-height: calc(var(--slide-height) * 0.2);
+}
+
+section#title-slide div.authors {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+}
+
+section#title-slide div.authors img {
+  max-height: calc(var(--slide-height) * 0.1);
 }
 
 /* Margins and spacing */
@@ -186,6 +204,27 @@ div#continue-dialog {
 
 .reveal:not(.presenter-mode) .presenter-only {
   display: none !important;
+}
+
+section#title-slide div.logos {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 10%;
+  max-height: 10%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+section#title-slide div.logos img.logo {
+  width: auto;
+  height: 100%;
+  max-height: 100%;
+  border-radius: 0.5rem;
 }
 
 .reveal > header {

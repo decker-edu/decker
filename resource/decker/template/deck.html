@@ -128,12 +128,6 @@ $endfor$
 
 <body class="deck">
   <div class="reveal">
-    $if(header)$
-    <header>
-      $header.file()$
-      $header.html$
-    </header>
-    $endif$
     <div class="slides">
     $if(title)$
       $deck-title.html()$
@@ -144,12 +138,7 @@ $body$
 
     </div>
   </div>
-  $if(footer)$
-  <footer>
-  $footer()$
-  </footer>
-  $endif$
-
+  
   <script type="module">
     // import Reveal and all plugins 
     import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
