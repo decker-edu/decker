@@ -12,14 +12,14 @@ $if(title)$
         $for(authors)$
         $if(it.name)$
         <div class="author">
-          $if(it.name-url)$<a href="$it.name-url$">$endif$ $it.name$ $if(it.name-url)$</a>$endif$
+          $if(it.url)$<a href="$it.url$">$endif$ $it.name$ $if(it.url)$</a>$endif$
           $if(it.affiliation)$
           <div class="affiliation">
-            $if(it.affiliation-url)$<a href="$it.affiliation-url$">$endif$ $it.affiliation$ $if(it.affiliation-url)$</a>$endif$
+            $if(it.affiliation.url)$<a href="$it.affiliation.url$">$endif$ $if(it.affiliation.institution)$ $it.affiliation.institution$ $else$ $it.affiliation$ $endif$ $if(it.affiliation.url)$</a>$endif$
           </div>
           $endif$
-          $if(it.logo)$
-          <img src="$projectPath$$it.logo$">
+          $if(it.affiliation.logo)$
+          <img src="$projectPath$$it.affiliation.logo$">
           $endif$
         </div>
         $endif$

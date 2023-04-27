@@ -87,100 +87,108 @@ $endif$
   <div class="reveal">
     <div class="slides">
 
-$if(title)$
+      $if(title)$
       <section id="title-slide">
-        <div class="background-on-accent">
-        $if(title)$
-          <h1>$title$</h1>
-        $endif$
-        $if(subtitle)$
-          <h2>$subtitle$</h2>
-        $endif$
-        </div>
-
-        $if(teaser)$
-        <img class="teaser" src=$teaser$>
-        $endif$
-
-        $if(authors)$
-        <div class="authors">
-        $for(authors)$
-          $if(it.name)$
-            <div class="author">
-              $if(it.name-link)$<a href="$it.name-link$">$endif$ 
-              $it.name$ 
-              $if(it.name-link)$</a>$endif$
-              $if(it.affiliation)$
-                <div class="affiliation">
-                  $if(it.affiliation-link)$<a href="it.affiliation-link">$endif$
-                  $it.affiliation$
-                  $if(it.affiliation-link)$</a>$endif$
-                </div>
+        <div class="decker">
+          <div class="alignment">
+            <div class="background-on-accent">
+              <h1 class="title">$title$</h1>
+              $if(subtitle)$
+              <h2 class="subtitle">$subtitle$</h2>
               $endif$
             </div>
-          $endif$
-        $endfor$
-        </div>
-        $endif$
-
-        $if(author)$
-          $if(author-link)$
-          <div class="author">
-            $if(copyright)$
-              $if(copyright-link)$
-                <span class="copyright"><a href="$copyright-link$">$copyright$</a></span>
-              $else$
-                <span class="copyright">$copyright$</span>
+      
+            $if(authors)$
+            <div class="authors">
+              $for(authors)$
+              $if(it.name)$
+              <div class="author">
+                $if(it.url)$<a href="$it.url$">$endif$ $it.name$ $if(it.url)$</a>$endif$
+                $if(it.affiliation)$
+                <div class="affiliation">
+                  $if(it.affiliation.url)$<a href="$it.affiliation.url$">$endif$ $if(it.affiliation.institution)$ $it.affiliation.institution$ $else$ $it.affiliation$ $endif$ $if(it.affiliation.url)$</a>$endif$
+                </div>
+                $endif$
+                $if(it.affiliation.logo)$
+                <img src="$projectPath$$it.affiliation.logo$">
+                $endif$
+              </div>
               $endif$
+              $endfor$
+            </div>
             $endif$
-            <a href="$author-link$">$author$</a></div>
-          $else$
-          <div class="author">
-            $if(copyright)$
-              $if(copyright-link)$
-                <span class="copyright"><a href="$copyright-link$">$copyright$</a></span>
+            
+            $if(author)$
+            <div class="author">
+              $if(author.name)$
+                $if(copyright)$
+                <span class="copyright">
+                  $if(copyright.type)$
+                    $if(copyright.url)$<a href="$copyright.url$">$endif$ $copyright.type$ $if(copyright.url)$</a>$endif$
+                  $else$
+                    $if(copyright-url)$<a href="$copyright-url$">$endif$ $copyright$ $if(copyright-url)$</a>$endif$
+                  $endif$
+                </span>
+                $endif$
+                <span>
+                $if(author.url)$<a href="$author.url$">$endif$ $author.name$ $if(author.url)$</a>$endif$
+                </span>
               $else$
-                <span class="copyright">$copyright$</span>
+                $if(copyright)$
+                <span class="copyright">
+                  $if(copyright.type)$
+                    $if(copyright.url)$<a href="$copyright.url$">$endif$ $copyright.type$ $if(copyright.url)$</a>$endif$
+                  $else$
+                    $if(copyright-url)$<a href="$copyright-url$">$endif$ $copyright$ $if(copyright-url)$</a>$endif$
+                  $endif$
+                </span>
+                $endif$
+                <span>
+                $if(author-url)$<a href="$author-url$">$endif$ $author$ $if(author-url)$</a>$endif$
+                </span>
               $endif$
+            </div>
             $endif$
-            $author$
+      
+            $if(affiliation)$
+            <div class="affiliation">
+              $if(affiliation.institution)$
+                <p>$if(affiliation.url)$<a href="$affiliation.url$">$endif$ $affiliation.institution$ $if(affiliation.url)$</a>$endif$</p>
+                $if(affiliation.logo)$
+                <img src="$projectPath$$affiliation.logo$">
+                $endif$
+              $else$            
+                <p>$if(affiliation-url)$<a href="$affiliation-url$">$endif$ $affiliation$ $if(affiliation-url)$</a>$endif$</p>
+              $endif$
+            </div>
+            $endif$
+      
+            $if(date)$
+              <div class="date"> $date$ </div>
+            $endif$
+      
+            $if(teaser)$
+            <div class="teaser">
+              $if(teaser.url)$
+              <img class="teaser" src="$projectPath$$teaser.url$" $if(teaser.width)$width="$teaser.width$"$endif$ $if(teaser.height)$height="$teaser.height$"$endif$>
+              $else$
+              <img class="teaser" src="$projectPath$$teaser$">
+              $endif$
+            </div>
+            $endif$
+      
+            $if(logos)$
+            <div class="logos">
+              $for(logos)$
+              <img class="logo" src="$projectPath$$logos$">
+              $endfor$
+            </div>
+            $endif$
           </div>
-          $endif$
-        $endif$
-
-        $if(affiliation)$
-          $if(affiliation-link)$
-          <div class="affiliation"><a href="$affiliation-link$"> $affiliation$ </a></div>
-          $else$
-          <div class="affiliation"> $affiliation$ </div>
-          $endif$
-        $endif$
-
-        $if(date)$
-          <div class="date"> $date$ </div>
-        $endif$
-
-        $if(logo)$
-          <div class="logos">
-            <img class="logo" src="$projectPath$$logo$">
-          </div>
-        $endif$
-
-        $if(logos)$
-        <div class="logos">
-          $for(logos)$
-          <img class="logo" src="$projectPath$$logos$">
-          $endfor$
         </div>
-        $else$
-        <div class="logos">
-          <img class="logo affiliation-logo light-only" src="./$decker-support-dir$/assets/tu-logo-light.svg">
-          <img class="logo affiliation-logo dark-only" src="./$decker-support-dir$/assets/tu-logo-dark.svg">
-        </div>
-        $endif$
       </section>
-$endif$
-
+      $endif$
+      
 $body$
 
     </div>
