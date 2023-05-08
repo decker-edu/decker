@@ -2,18 +2,23 @@
 title: Resource Runtime Variable Test
 
 runtime-path-variables:
-    - 'resource-test-variable'
+    - 'local-test-variable'
 
-resource-test-variable: '/test/decks/resources/test.png'
+project-test-variable: '/test/decks/resources/test.png'
 local-test-variable: '/test/decks/resources/test.png'
+unused-test-variable: '/test/decks/resources/test.png'
 ---
 
 # Resource Location Test
 
-The meta-variable `resource-test-variable` with the value `/test/decks/resources/test.png` should be converted to a relative filepath.
+The meta-variable `project-test-variable` with the value `/test/decks/resources/test.png` should be converted to a relative filepath.
 
-- resource-test-variable: [:meta](resource-test-variable)
+- resource-test-variable: [:meta](project-test-variable)
 
-The meta-variable `local-test-variable` is not on the `runtime-path-variable` list and should not be converted:
+The meta-variable `local-test-variable` with the value `/test/decks/resources/test.png` should be converted to a relative filepath.
 
-- local-test-variable: [:meta](local-test-variable)
+- resource-test-variable: [:meta](local-test-variable)
+
+The meta-variable `unused-test-variable` is not on the `runtime-path-variable` list and should not be converted:
+
+- local-test-variable: [:meta](unused-test-variable)

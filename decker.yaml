@@ -24,6 +24,8 @@ static-resource-dirs:
 # resource-pack: exe:mario
 # resource-pack: exe:mono
 
+resource-pack: exe:decker
+
 progress: false
 
 test:
@@ -32,6 +34,9 @@ test:
   merge-list:
     - This line is from decker.yaml
   some-value: This line is from decker.yaml
+
+runtime-path-variable:
+  - project-test-variable
 
 no-index:
   - test-no-index
