@@ -20,22 +20,22 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Catch hiding (try)
 import Data.Aeson hiding (Error)
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.ByteString.UTF8 as UTF8
+import Data.ByteString.Char8 qualified as BS
+import Data.ByteString.UTF8 qualified as UTF8
 import Data.Char
 import Data.Dynamic
-import qualified Data.HashMap.Strict as HashMap
-import qualified Data.List.Extra as List
+import Data.HashMap.Strict qualified as HashMap
+import Data.List.Extra qualified as List
 import Data.Maybe
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 import Data.Time
 import Development.Shake hiding (doesDirectoryExist, putError)
 import GHC.IO.Exception (ExitCode (ExitFailure))
 import NeatInterpolation
 import Relude hiding (state)
-import qualified System.Console.GetOpt as GetOpt
+import System.Console.GetOpt qualified as GetOpt
 import System.Directory as Dir
-import qualified System.FSNotify as Notify
+import System.FSNotify qualified as Notify
 import System.FilePath.Posix
 import System.Info
 import System.Process hiding (runCommand)
@@ -46,6 +46,7 @@ import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
+import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Server
 import Text.Decker.Server.Types
@@ -70,7 +71,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- readMetaDataFile globalMetaFileName
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "pdf"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "pdf", "version", "check"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     _ -> runTargets context targets rules
@@ -89,10 +90,10 @@ runTargets context targets rules = do
   runShake context rules
   if
       | ServerFlag `elem` flags -> do
-        forkServer context
-        watchAndRunForever
+          forkServer context
+          watchAndRunForever
       | WatchFlag `elem` flags -> do
-        watchAndRunForever
+          watchAndRunForever
       | otherwise -> return ()
   where
     watchAndRunForever = do
@@ -180,6 +181,8 @@ runCommand context command rules = do
       forkServer context
       handleUploads context
     "crunch" -> crunchRecordings context
+    "version" -> putDeckerVersion
+    "check" -> forceCheckExternalPrograms
     "pdf" -> do
       putStrLn (toString pdfMsg)
       id <- forkServer context
@@ -346,10 +349,10 @@ openBrowser :: String -> IO ()
 openBrowser url =
   if
       | any (`List.isInfixOf` os) ["linux", "bsd"] ->
-        liftIO $ callProcess "xdg-open" [url]
+          liftIO $ callProcess "xdg-open" [url]
       | "darwin" `List.isInfixOf` os -> liftIO $ callProcess "open" [url]
       | otherwise ->
-        putStrLn $ "Unable to open browser on this platform for url: " ++ url
+          putStrLn $ "Unable to open browser on this platform for url: " ++ url
 
 calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target = do
@@ -372,9 +375,9 @@ putCurrentDocument out = putInfo $ "# pandoc (for " ++ out ++ ")"
 runClean :: Bool -> IO ()
 runClean totally = do
   warnVersion
-  putStrLn $ "# Removing " <> publicDir 
+  putStrLn $ "# Removing " <> publicDir
   tryRemoveDirectory publicDir
-  putStrLn $ "# Removing " <> privateDir 
+  putStrLn $ "# Removing " <> privateDir
   tryRemoveDirectory privateDir
   when totally $
     do
