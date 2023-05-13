@@ -95,25 +95,10 @@ deckerRules = do
   addHelpSuffix "  - serve - Start just the server."
   addHelpSuffix "  - crunch - Compress all recordings to smaller size. Takes a while and will drain your battery."
   addHelpSuffix "  - pdf - Build PDF versions of all decks (*-deck.md)."
+  addHelpSuffix "  - version - Print version information"
+  addHelpSuffix "  - check - Check the existence of usefull external programs"
   addHelpSuffix ""
   addHelpSuffix "For additional information see: https://go.uniwue.de/decker-wiki"
-  --
-  withTargetDocs "Print version information." $
-    phony "version" $ do
-      putWarn $
-        "decker version "
-          ++ deckerVersion
-          ++ " (branch: "
-          ++ deckerGitBranch
-          ++ ", commit: "
-          ++ deckerGitCommitId
-          ++ ", tag: "
-          ++ deckerGitVersionTag
-          ++ ", build date: "
-          ++ deckerBuildDate
-          ++ ")"
-      putWarn $ "pandoc version " ++ Text.unpack pandocVersion
-      putWarn $ "pandoc-types version " ++ showVersion pandocTypesVersion
   --
   withTargetDocs "Build HTML versions of all question (*-quest.md)." $
     phony "questions" $ do
@@ -258,7 +243,7 @@ deckerRules = do
       deps <- getDeps
       meta <- getGlobalMeta
       writeIndexLists meta deps out
-  --
+    --
     generatedIndex %> \out -> do
       need [generatedIndexSource]
       meta <- getGlobalMeta
@@ -331,7 +316,7 @@ deckerRules = do
   withTargetDocs "Check the existence of usefull external programs" $
     phony "check" $
       liftIO forceCheckExternalPrograms
-  -- TODO use or throw away
+  --
   withTargetDocs "Copy runtime support files to public dir." $
     phony "support" $ do
       deps <- getDeps

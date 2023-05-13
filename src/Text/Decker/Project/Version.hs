@@ -1,45 +1,67 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Text.Decker.Project.Version
-  ( deckerVersion
-  , deckerGitBranch
-  , deckerGitCommitId
-  , deckerGitVersionTag
-  , isDevelopmentVersion
-  , versionCheck
-  , deckerBuildDate
-  ) where
-
-import Text.Decker.Internal.Meta
+  ( putDeckerVersion,
+    deckerVersion,
+    deckerGitBranch,
+    deckerGitCommitId,
+    deckerGitVersionTag,
+    isDevelopmentVersion,
+    versionCheck,
+    deckerBuildDate,
+  )
+where
 
 import Control.Monad
 import Data.List.Extra as List
 import Data.Maybe
+import Data.Text qualified as Text
 import Data.Version (showVersion, versionBranch)
 import Development.Shake
 import Paths_decker (version)
 import Text.Decker.Internal.CompileTime
+import Text.Decker.Internal.Meta
 import Text.Pandoc hiding (lookupMeta)
 import Text.Read (readMaybe)
 import Text.Regex.TDFA
+
+-- | Print decker version
+putDeckerVersion :: IO ()
+putDeckerVersion = do
+  putStrLn $
+    "decker version "
+      ++ deckerVersion
+      ++ " (branch: "
+      ++ deckerGitBranch
+      ++ ", commit: "
+      ++ deckerGitCommitId
+      ++ ", tag: "
+      ++ deckerGitVersionTag
+      ++ ", build date: "
+      ++ deckerBuildDate
+      ++ ")"
+  putStrLn $ "pandoc version " ++ Text.unpack pandocVersion
+  putStrLn $ "pandoc-types version " ++ showVersion pandocTypesVersion
+
+--
 
 -- | The version from the cabal file
 deckerVersion :: String
 deckerVersion = showVersion version
 
--- | Determines the git branch at compile time 
+-- | Determines the git branch at compile time
 deckerGitBranch :: String
 deckerGitBranch = $(lookupGitBranch)
 
--- | Determines the git branch at compile time 
+-- | Determines the git branch at compile time
 deckerGitCommitId :: String
 deckerGitCommitId = $(lookupGitCommitId)
 
 deckerBuildDate :: String
 deckerBuildDate = $(lookupBuildDate)
 
--- | Determines the git tag at compile time 
+-- | Determines the git tag at compile time
 deckerGitVersionTag :: String
 deckerGitVersionTag = $(lookupGitTag)
 
@@ -51,7 +73,7 @@ deckerGitVersionTag' :: [String]
 deckerGitVersionTag' =
   case getAllTextSubmatches $ deckerGitVersionTag =~ tagRegex of
     [] -> []
-    m:ms -> ms
+    m : ms -> ms
 
 isVersionTagMatching :: Bool
 isVersionTagMatching =
@@ -71,12 +93,15 @@ versionCheck meta =
       Just version -> check version
       _ ->
         putWarn $
-        "  - Document version unspecified. This is decker version " ++
-        deckerVersion ++ "."
+          "  - Document version unspecified. This is decker version "
+            ++ deckerVersion
+            ++ "."
   where
     check version =
       when (List.trim version /= List.trim deckerVersion) $
-      putWarn $
-      "  - Document version " ++
-      version ++
-      ". This is decker version " ++ deckerVersion ++ ". Expect problems."
+        putWarn $
+          "  - Document version "
+            ++ version
+            ++ ". This is decker version "
+            ++ deckerVersion
+            ++ ". Expect problems."
