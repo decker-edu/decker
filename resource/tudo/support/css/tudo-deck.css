@@ -845,6 +845,22 @@ section#title-slide img.department-logo {
   right: 0;
 }
 
+section#title-slide .decker-link {
+  position: absolute;
+  left: 50%;
+  bottom: 0px;
+  transform: translateX(-50%);
+  color: var(--foreground-color);
+  text-align: center;
+  font-size: 0.3em;
+  font-weight: normal;
+  transition: font-size 0.2s ease 0.1s;
+  padding: 5px 5px 0px 5px;
+}
+section#title-slide .decker-link:hover {
+  font-size: 0.75em;
+}
+
 /*********************************************
  * COMMENT BUBBLES
  *********************************************/
@@ -891,6 +907,11 @@ section#title-slide img.department-logo {
 
 .reveal .highlight {
   background-color: var(--yellowish);
+}
+
+.reveal .outline {
+  outline: 0.2em solid var(--primary-color);
+  outline-offset: 0.17em;
 }
 
 /*********************************************
@@ -1024,9 +1045,11 @@ section#title-slide img.department-logo {
  *********************************************/
 
 .reveal .references {
-  margin: auto;
-  max-height: 600px;
   width: 90%;
+  max-height: 500px;
+  margin: auto;
+  padding: 0 1em;
+  font-size: 0.7em;
   overflow-y: auto;
 }
 
@@ -1034,7 +1057,7 @@ section#title-slide img.department-logo {
   padding-left: 1em;
   text-indent: -1em;
   text-align: left;
-  margin-bottom: 1em;
+  margin-bottom: 0.7em;
 }
 
 /*********************************************
