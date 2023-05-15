@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+html, body {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 12px;
+}
+
+html {
+    margin: 0;
+}
+
+body {
+    margin: auto;
+}
+
+header {
+    margin: auto;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+main {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 0.5rem 0.5rem 0.5rem 0.5rem;
+    border: 1px solid black;
+    border-radius: 0.5rem;
+    box-sizing: content-box;
+}
+
+main section {
+    flex-grow: 1;
+    text-align: center;
+    margin: 1px;
+}
+
+@media print {
+    header {
+        display: none;
+    }
+}
+
+.list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.hint {
+    border: 1px solid black;
+    border-radius: 0.5rem;
+    text-align: left;
+    background-color: rgba(0,0,0,0.1);
+    margin: 1px;
+}
+
+.hint h3 {
+    text-align: center;
+    margin: 0;
+    background-color: rgba(0,0,0,0.1);
+}
+
+code {
+    background-color: rgba(0,0,0,0.1);
+    padding: 1px;
+}
+
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>Decker Workflow</h1>
+        </header>
+        <main>
+            <section>
+                <h2>Vor der Präsentation</h2>
+                <div class="hint">
+                    <h3>Präsentationen schreiben und übersetzen</h3>
+                    <p>Schreiben Sie Ihre Präsentationen in Dateien mit der Endung <code>-deck.md</code>.</p>
+                    <p>Übersetzen Sie Ihre Präsentationen in HTML-Foliensätze mit <code>decker</code>.</p>
+                </div>
+                <div class="hint">
+                    <h3>Server starten</h3>
+                    <p>Starten Sie einen lokalen Webserver mit <code>decker --server</code> in Ihrem Projektverzeichnis.</p>
+                </div>
+                <div class="hint">
+                    <h3>Geräte anschließen</h3>
+                    <p>Schließen Sie Kamera, Mikrofon und andere Eingabegräte an Ihr Präsentationsgerät an.</p>
+                    <p>Überprüfen Sie bei schnurlosen Einheiten, ob Sie tatsächlich den Empfänger angeschlossen haben.</p>
+                </div>
+                <div class="hint">
+                    <h3>Präsentation aufrufen</h3>
+                    <p>Rufen Sie die lokale Präsentation im Browser unter der URL <code>http://localhost:8888</code> auf.</p>
+                </div>
+                <div class="hint">
+                    <h3>Präsentationsmodus starten</h3>
+                    <p>Drücken Sie dreimal in schneller Folge die <strong>P</strong>-Taste.</p>
+                </div>
+                <div class="hint">
+                    <h3>Aufnahme initialisieren</h3>
+                    <p>Drücken Sie die <strong>R</strong>-Taste.</p>
+                    <p>Wählen Sie freizugebendes Mikrofon, Kamera und den aufzunehmenden Bildschirm bzw. Fenster aus.</p>
+                    <p>Mikrofon- und Kamerafreigabe wird für gewöhnlich gespeichert.<br>Der Bildschirm muss jedes Mal erneut ausgewählt werden.</p>
+                </div>
+                <div class="hint">
+                    <h3>Aufnahmemenu kontrollieren</h3>
+                    <p>Stellen Sie sicher, dass die korrekten Geräte ausgewählt sind und vom Mikrofon eine Eingabe erkannt wird.</p>
+                    <p>Sollten keine Gerätenamen angezeigt werden laden Sie bitte die Seite neu und initialisieren die Aufnahme erneut.</p>
+                    <p>Dies geschieht für gewöhnlich nur bei der aller ersten Initialisierung, wenn Sie zuvor noch keine Freigabe genehmigt haben.</p>
+                </div>
+            </section>
+            <section>
+                <h2>Während der Präsentation</h2>
+                <div class="hint">
+                    <h3>Vollbildmodus</h3>
+                    <p>Drücken Sie die <strong>F</strong>-Taste zum starten.</p>
+                    <p>Drücken Sie die <strong>ESC</strong>-Taste zum beenden.</p>
+                </div>
+                <div class="hint">
+                    <h3>Whiteboard öffnen und schließen</h3>
+                    <p>Drücken Sie im Präsentationsmodus die <strong>W</strong>-Taste.</p>
+                </div>
+                <div class="hint">
+                    <h3>Zwischen Stift und Laserpointer umschalten</h3>
+                    <p>Drücken Sie bei angeschaltetem Whiteboard die <strong>L</strong>-Taste.</p>
+                </div>
+                <div class="hint">
+                    <h3>Stiftfarbe ändern</h3>
+                    <p>Drücken Sie bei angeschaltetem Whiteboard die Tasten <strong>1</strong> bis <strong>7</strong>.</p>
+                </div>
+                <div class="hint">
+                    <h3>Stiftgröße ändern</h3>
+                    <p>Drücken Sie bei angeschaltetem Whiteboard die Tasten <strong>8</strong>,<strong>9</strong> oder <strong>0</strong>.</p>
+                </div>
+                <div class="hint">
+                    <h3>Alle Annotationen auf aktueller Folie löschen</h3>
+                    <p>Drücken Sie bei angeschaltetem Whiteboard die <strong>Entf</strong>-Taste.</p>
+                </div>
+                <div class="hint">
+                    <h3>Aufnahme starten</h3>
+                    <p>Drücken Sie nach der Initialisierung erneut die <strong>R</strong>-Taste zum Starten der Aufnahme.</p>
+                </div>
+                <div class="hint">
+                    <h3>Aufnahme pausieren und forsetzen</h3>
+                    <p>Drücken Sie bei laufender Aufnahme erneut die <strong>R</strong>-Taste.</p>
+                </div>
+                <div class="hint">
+                    <h3>Aufnahme beenden</h3>
+                    <p>Drücken Sie bei laufender oder pausierter Aufnahme dreimal die <strong>Z</strong>-Taste.</p>
+                </div>
+            </section>
+            <section>
+                <h2>Nach der Präsentation</h2>
+                <div class="hint">
+                    <h3>Erzeugte Dateien</h3>
+                    <p>Ihre Folienannotationen werden in der Datei <code>-annot.json</code> gespeichert.</p>
+                    <p>Ihre Videoaufnahme wird in der Datei <code>-recording.webm</code> gespeichert.</p>
+                    <p>Die Folienübergangsinformationen werden in der Datei <code>-times.json</code> gespeichert.</p>
+                </div>
+                <div class="hint">
+                    <h3>Dateien auf Vollständigkeit überprüfen</h3>
+                    <p>Die Präsentation lädt alle generierten Dateien für gewöhnlich zum lokalen Webserver hoch.</p>
+                    <p>Sollte eine Datei fehlen überprüfen Sie bitte Ihren Download-Ordner.<br>Alle während der Präsentation generierten Dateien werden als Sicherungskopie auch heruntergeladen.</p>
+                </div>
+                <div class="hint">
+                    <h3>Aufnahme konvertieren</h3>
+                    <p>Bauen Sie das Projekt mit <code>decker</code>.</p>
+                    <p>Konvertieren Sie die Aufnahme in eine <code>.mp4</code>-Datei mit <code>decker crunch</code>.</p>
+                    <p>Diese Operation benötigt <code>ffmpeg</code> als Konvertierungswerkzeug</p>
+                </div>
+                <div class="hint">
+                    <h3>Suchindex erstellen</h3>
+                    <p>Erzeugen Sie den Suchindex Ihrer Präsentationssammlung mit <code>decker search-index</code>.</p>
+                </div>
+                <div class="hint">
+                    <h3>Inhalte veröffentlichen</h3>
+                    <p>Kopieren Sie den erzeugten <code>public</code>-Ordner auf Ihren Webserver.</p>
+                    <p>Haben Sie <code>ssh</code>-Zugriff auf Ihren Server können Sie <code>decker publish</code> konfigurieren.</p>
+                </div>
+            </section>
+        </main>
+    </body>
+</html>
