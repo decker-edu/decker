@@ -106,6 +106,12 @@ del {
   color: var(--accent0);
 }
 
+/* prevent emojis from being italic */
+.reveal span.emoji {
+  font-style: normal;
+  font-weight: normal;
+}
+
 /*********************************************
  * frame box 
  *********************************************/
