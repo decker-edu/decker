@@ -133,6 +133,10 @@ $if(title)$
          $if(template.logo)$
          <img class="logo department-logo" src="$template.logo$">
          $endif$
+
+         $if(showDeckerLink)$
+         <a class="decker-link" href="https://decker-edu.github.io/decker/">🚀 by Decker</a>
+         $endif$
       </section>
 $endif$
 
@@ -218,7 +222,4 @@ $body$
   </script>
 
 </body>
-<script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
-<!-- script src="$decker-support-dir$/js/inert.min.js"></script -->
-<!-- Use the other implementation if things break under Firefox -->
 </html>
