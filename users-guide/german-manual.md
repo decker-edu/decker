@@ -1077,3 +1077,255 @@ Ein Hintergrundbild würden Sie folgendermaßen einbetten:
 ```
 # Folientitel ![](/path/image.png){size=20% repeat="repeat" position="128px 128px"}
 ```
+
+### Ausklappbarer Bereich
+
+Sie können einen abgegrenzten Bereich in Ihrem Dokument ausklappbar machen, indem Sie ihn mit der CSS-Klasse `
+
+### Spaltenlayout
+
+Üblicherweise werden alle Textbausteine einer Folie untereinander angeordnet.
+
+Wenn Sie zwei Bausteine nebeneinander anordnen wollen müssen Sie einen abgegrenzten Bereich mit einer `columns-`-CSS-Klasse einfügen. Hinter dem `columns-`-Begriff können Sie die Größenverhältnisse der Spalten zueinander angeben:
+
+`columns-1-1` wäre ein Bereich mit zwei gleich großen Spalten.
+
+`columns-1-2` wäre ein Bereich mit zwei Spalten von denen die rechte doppelt so viel Platz einnimmt wie die linke.
+
+`columns-2-3-2` wäre ein Bereich mit drei Spalten, von denen die mittlere ein Drittel größer ist als die beiden äußeren.
+
+Sie können als Größenverhältnisse nur ganze Zahlen angeben.
+
+Innerhalb des abgegrenzten Bereiches mit `columns-`-Klasse können Sie nun weitere Textbausteine notieren, die im Folienlayout von links nach rechts nebeneinander anstatt untereinander angeordnet werden.
+
+Wenn Sie mehrere Textbausteine in einer gemeinsamen Spalte gruppieren möchten müssen Sie einen neuen, inneren Bereich deklarieren, in dem Sie die anderen Textbausteine notieren.
+
+Wenn Sie mehr Elemente einfügen als Spalten deklariert wurden werden die weiteren Elemente wieder beginnend bei der linkesten Spalte eingefügt.
+
+#### Beispiele
+
+Ein Spaltenlayout mit zwei nebeneinander angeordneten Paragraphen:
+
+````
+::: columns-1-1
+
+Dieser Paragraph wird in der linken Spalte einsortiert.
+
+Dieser Paragraph wird in der rechten Spalte einsortiert.
+
+:::
+````
+
+Mehrere Textbausteine, die gruppiert werden:
+
+````
+::: columns-1-1
+
+::: platzhalter
+
+Dieser Paragraph wird mit dem folgenden Paragraphen in der linken Spalte einsortiert.
+
+Dieser Paragraph steht ebenso in der linken Spalte, da sie durch den platzhalter Gruppiert werden.
+
+:::
+
+::: platzhalter
+
+Dieser Paragraph wird mit dem folgenden Paragraphen in der rechten Spalte einsortiert.
+
+Dieser Paragraph steht ebenso in der rechten Spalte, da sie durch den platzhalter Gruppiert werden.
+
+:::
+
+:::
+````
+
+Wenn Sie mehr Bausteine einfügen als Spalten vorhanden sind beginnt die Einsortieren wieder in der linkesten Spalte:
+
+````
+::: columns-1-1-1
+
+![Dieses Bild ist links](/pfad/bild1.png)
+
+![Dieses Bild ist in der Mitte](/pfad/bild2.png)
+
+![Dieses Bild ist rechts](/pfad/bild3.png)
+
+![Dieses Bild ist erneut links](/pfad/bild4.png)
+
+:::
+````
+
+# Präsentieren
+
+Foliensätze, die mit `decker` erzeugt werden, können in einem Webbrowser betrachtet werden. Zum Präsentieren dieser Folien wird kein separates Werkzeug benötigt.
+
+Die im Browser betrachteten Foliensätze bieten mehrere Funktionalitäten, die das Präsentieren und spätere Aufbereiten und zur Verfügung stellen von Inhalten vereinfachen. Zugriff auf diese Funktionalitäten erhalten Sie durch das Betätigen von Tastaturkürzeln innerhalb des Foliensatzes.
+
+## Präsentationsmodus
+
+Drücken Sie drei Mal die **P**-Taste auf Ihrer Tastatur, um in den Präsentationsmodus zu wechseln. Es wird eine kurze Meldung angezeigt, die den Zustand des Präsentationsmodus anzeigt: An oder Aus.
+
+Ist der Präsentationsmodus an werden zusätzliche Bedienelemente für Präsentationen angezeigt.
+
+Darunter befindet sich insbesondere das Whiteboardmenu in der unteren linken Ecke, mit der Sie den Whiteboardmodus an- und ausschalten können.
+
+Zudem werden auf Folien, in denen sich ein Antwort-Wahl Quiz befindet im unteren Bildschirmrand Bedienelemente angezeigt, mit denen Sie ihren Zuschauern die Möglichkeit geben können über einen QR-Code an einer Umfrage zum Quiz auf der Folie teilzunehmen.
+
+## Whiteboardmodus
+
+Im Präsentationsmodus können Sie in der unteren linken Ecke das Whiteboardmenu finden. Ein Klick auf den Knopf des Whiteboardmenus startet den Whiteboardmodus. Wenn Sie im Whiteboardmodus erneut auf den Whiteboardknopf klicken öffnet sich das Whiteboardmenu.
+
+Im Whiteboardmodus können Sie nicht mit den Folien interagieren und schreiben mithilfe Ihrer Maus oder eines anderen Eingabegerätes auf den Folien Annotationen.
+
+Sie können den Whiteboardmodus auch durch Drücken der **W**-Taste an- und ausschalten.
+
+### Whiteboardmenu
+
+Im Whiteboardmenu können Sie Änderungen am Verhalten des Whiteboardmodus vornehmen.
+
+Sie können die Stiftgröße und -farbe ändern, den Radiermodus an- und ausschalten, zwischen Stift und Laserpointer umschalten.
+
+Sie können der aktuellen Folie ein Notizblatt hinzufügen. Zudem können Sie ein Raster für das Notizblatt an- und ausschalten.
+
+![Whitboardmenufunktionen](./images/whiteboard-menu-annot.png)
+
+Im Whiteboardmodus können Sie die Tasten 1 - 7 dazu verwenden, um zwischen verschiedenen Stiftfarben umzuschalten.
+
+Die Tasten 8, 9 und 0 ändern die Stiftgröße.
+
+Mit der **L**-Taste können Sie zwischen Stift und Laserpointer umschalten. Zeichnungen, die Sie mit dem Laserpointer anfertigen verschwinden nach kurzer Zeit wieder.
+
+Mit der **W**-Taste können Sie den Whiteboardmodus wieder beenden.
+
+### Speichern der Annotationen
+
+Das Speichern der Annotationen geschieht auf zwei Wegen:
+
+Zum einen wird versucht die Annotationen an den im Hintergrund laufenden Webserver zu senden, wenn Sie die Folien lokal präsentieren. Dieser wird die Annotationen als `[Präsentationsname]-annot.json` an passender Stelle in Ihrem Projektverzeichnis ablegen. Die gespeicherten Annotationen werden beim Wiederaufrufen der Folien im Browser direkt in die Folien eingebettet.
+
+Zum anderen werden die Annotationen als Datei heruntergeladen. Der Download dieser Sicherungskopie geschieht vor dem Uploadversuch.
+
+Der Up- und Download der Annotationen geschieht automatisch, wenn Sie eine Videoaufnahme beenden oder die Webseite, in denen die Folien präsentiert werden, verlassen. Letzteres vertraut darauf, dass Ihr Browser der Webseite genug Zeit lässt diesen Prozess vor Verlassen der Webseite durchzuführen. Dies kann sich von Version zu Version des Browsers unterscheiden als vom verwendeten Betriebssystem abhängen. Zu diesem Zweck gibt es einen Knopf im Whiteboardmenu, der es Ihnen erlaubt den Up- und Download manuell auszulösen.
+
+Wenn Ihnen nur die Sicherungskopie vorliegt und der Upload der Daten nicht vollendet werden konnte können Sie die Sicherungskopie (`[Präsentationsname]-annot.json`) aus Ihrem Downloadverzeichnis in Ihr Projektverzeichnis an die selbe Stelle kopieren, an der die korrespondierende `[Präsentationsname]-deck.md`-Datei liegt. Achten Sie darauf, dass der Name der Sicherungskopie mit einer Zahl enden kann wenn mehrere Solcher in Ihrem Downloadverzeichnis abgelegt wurden. Sie müssen die Datei dann selbstverständlich noch passend umbenennen. Denken Sie daran die Datei mit dem aktuellsten Änderungsdatum zu verwenden.
+
+Wenn Sie die Präsentation nicht lokal, sondern von einem Webserver aus durchführen, der den Upload der Annotationen nicht entgegen nimmt, müssen Sie den oben beschriebenen manuellen Schritt durchführen, wenn Sie die Annotationen später in Ihr Projekt übernehmen möchten.
+
+## Videoaufnahme
+
+Die Folien bieten die Möglichkeit an eine Videoaufnahme Ihrer Präsentation direkt im Browser durchzuführen.
+
+### Aufnahme vorbereiten
+
+Mit einem Druck auf die **R**-Taste können Sie die Aufnahme vorbereiten. Zur Durchführung der Aufnahme benötigt die Webseite die Erlaubnis auf Mikrofon, Kamera und Bildschirm zugreifen zu dürfen.
+
+Für gewöhnlich wird die Erlaubnis für Mikrofon und Kamera in Ihrem Browser gespeichert, wodurch Sie dies nur ein Mal erlauben müssen.
+
+Die Frage, welchen Bildschrim, welches Fenster oder welchen Browsertab Sie aufnehmen möchten, wird ihnen jedoch jedes Mal gestellt.
+
+Nachdem Sie die Freigaben genehmigt haben erscheint in der oberen Mitte des Browserfensters das Aufnahmemenu.
+
+### Aufnahmemenu
+
+Sie können auf die Menulasche oder den kleinen schwarzen Pfeil klicken, um das Aufnahmemenu zu öffnen.
+
+Im Aufnahmemenu können Sie Einstellungen an der Aufnahme vornehmen, Informationen über die Aufnahmedauer, Mikrofon- und Desktoplautstärke einsehen sowie die Aufnahme selbst steuern:
+
+![Aufnahmemenu](./images/recording-menu-annot.png)
+
+Bevor Sie die Aufnahme starten, stellen Sie sicher, dass die richtigen Geräte ausgewählt sind.
+
+Bei der ersten Freigabe für Mikrofon und Kamera kann es vorkommen, dass die Gerätenamen nicht erkannt werden.
+Sollten keine Gerätenamen angezeigt werden, laden Sie bitte die Webseite einmal neu.
+
+Sie können am Geräuschpegel erkennen, ob sie die Aufnahmelautstärke Ihres Mikrofons dämpfen oder verstärken müssen. Nutzen Sie dazu die Lautstärkeregler.
+
+Der Aufnahmeindikator zeigt einen leeren Kreis an, wenn die Aufnahme bereit ist. Wenn die Aufnahme läuft wird ein ausgefüllter Kreis angezeigt. Ist die Aufnahme pausiert zeigt er zwei parallele *Pause*-Striche an.
+
+Neben dem kleinen Uhr-Symbol wird während der Aufnahme eine Digitaluhr angezeigt, die Ihnen die bisher verstrichene Aufnahmezeit angibt.
+
+### Aufnahme steuern
+
+Mithilfe der oberen drei Knöpfe im Aufnahmemenu können Sie die Aufnahme steuern:
+
+Ist die Aufnahme bereit, können Sie sie mit Klick auf das Startsymbol starten. Diese Funktion kann auch über die Tastatur mit einem erneuten Druck auf die **R**-Taste genutzt werden.
+
+Während der Aufnahme können Sie die Aufnahme pausieren. Dies ist über die Tastatur mit einem Druck auf die **R**-Taste bei laufender Aufnahme möglich.
+
+Möchten Sie die Aufnahme beenden, drücken Sie auf den Stopp-Knopf. Dies ist über die Tastatur mit dreimaligen schnellen Drücken der **Z**-Taste möglich.
+
+Das Ein- und Ausblenden Ihres Kamerabildes ist nur über die Tastatur mit der **V**-Taste möglich. Sie können in den Konfigurationseinstellungen Ihres Foliensatzes angeben, ob Sie die Aufnahme vor einem Greenscreen tätigen und Ihr Bild entsprechend maskiert werden soll. Näheres dazu im Kapitel zu Konfigurationseinstellungen.
+
+### Aufnahme speichern
+
+Ihre Aufnahme wird nur gespeichert, wenn sie sie ordentlich durch betätigen des Stopp-Knopfes oder durch dreimaliges Drücken der **Z**-Taste beenden.
+
+Wie auch bei den Whiteboardannotationen werden die generierten Daten sowohl an den lokal laufenden Webserver gesendet als auch in Ihrem Downloadverzeichnis gesichert.
+
+Der Sicherungsprozess kann auf schwächeren Systemen bei langer Aufnahme ein bisschen dauern. Warten Sie also darauf, dass alle Daten übertragen und abgespeichert werden.
+
+Sollten Sie bei laufender Aufnahme die Webseite verlassen wollen sollte Ihr Browser Sie über nicht gespeicherte Änderungen warnen und die Navigation erst bei nachträglicher Bestätigung durchführen. Verlassen Sie die Webseite während der Aufnahme wird sie abgebrochen und **nicht** gespeichert.
+
+Eine Aufnahme erzeugt zwei Dateien: Eine Datei mit dem Namen `[Präsentationsname]-times.json` und eine Datei mit dem Namen `[Präsentationsname]-recording.webm`. In der ersteren Datei werden die Informationen über die Folienübergänge hinterlegt, damit das Video später mit den Folien synchronisiert werden kann. Letztere Datei ist eine Rohversion Ihres Videos.
+
+### Aufnahme anhängen oder ersetzen
+
+Wenn Sie bereits eine Aufnahme zu Ihrer Präsentation vorliegen haben werden Sie beim Starten der Aufnahme gefragt, ob Sie die bereits existierende Aufnahme ersetzen oder an sie anhängen wollen. In letzterem Falle werden zusätzliche Daten an die `-times.json` angehangen während die `-recording.webm`-Videos von 1 an durchnummeriert werden.
+
+Wählen Sie die Option "Ersetzen" werden alle bisher vorliegenden Dateien beim Beenden der neuen Aufnahme **gelöscht** und mit der neuen Aufnahme ersetzt.
+
+### Aufname konvertieren
+
+Bevor es in die Folien eingebettet werden kann müssen Sie das Video mit `decker crunch` in eine `-recording.mp4`-Datei umwandeln.
+
+Sollten Sie Ihre Aufnahmen in mehreren Teilen getätigt haben fügt der Aufruf von `decker crunch` alle Aufnahmen zu einer einzelnen `-recording.mp4`-Datei zusammen.
+
+Der Aufruf von `decker crunch` verlangt, dass sie das Programm `ffmpeg` auf Ihrem Rechner installiert haben.
+
+## Quizumfragen
+
+Wenn Sie sich auf einer Folie mit Antwort-Wahl-Quiz befinden und im Präsentationsmodus sind werden Ihnen folgende Bedienelemente angezeigt:
+
+![Quizmenu](./images/quiz-menu.png)
+
+Mit einem Klick auf den linken Knopf können Sie einen QR-Code anzeigen lassen, den Ihre Zuschauer mit ihrem Mobilgerät einscannen können, um an einer Umfrage der Antwort-Wahl-Frage teilzunehmen.
+
+Mit einem Klick auf den rechten Knopf können Sie die Umfrage starten.
+
+Es wird Ihnen nach Start eine Statistik angezeigt, wie viele Teilnehmer Sie haben und wie viele Teilnehmer bereits eine Antwort abgegeben haben.
+
+Mit einem erneuten Klick auf den rechten Knopf können Sie die Umfrage beenden und eine Umfragestatistik einblenden lassen.
+
+Zur Nutzung dieser Umfragefunktion müssen Sie in Ihren Folien einen Quizserver konfiguriert haben, mit dem während der Umfrage kommuniziert werden soll. Näheres dazu erfahren Sie im Kapitel über Konfigurationseinstellungen.
+
+## Tastaturkürzelübersicht
+
+Im folgenden finden Sie eine Übersicht über alle Tastaturkürzel und ihre Funktion. Sie können diese Übersicht auf den Folien auch durch Drücken der **?**-Taste auf Ihrer Tastatur einblenden:
+
+| Taste  | Aktion |
+| :----  | ------ |
+| Strg + F | Textsuche öffnen |
+| N oder Leertaste | Nächste Folie |
+| ← , H | Nach Links navigieren (vorherige Folie / Fragment) |
+| → , L | Nach Rechts navigieren (nächste Folie / Fragment) |
+| ↑ , K | Nach Oben navigieren (vorherige Unterfolie / Fragment) |
+| ↓ , J | Nach Unten navigieren (nächste Unterfolie / Fragment) |
+| Pos1 , Umschalt + ← | Zur ersten Folie navigieren |
+| Ende, Umschalt + → | Zur letzten Folie navigieren |
+| B, . | Pause (Präsentation abdunkeln) |
+| F | Vollbildmodus aktivieren |
+| ESC, O | Folienübersicht anzeigen (wenn erlaubt) |
+| P,P,P | Präsentationsmodus anschalten |
+| W | Whiteboardmodus an- oder ausschalten (im Präsentationsmodus) |
+| Entf | Whiteboard Annotationen aus aktueller Folie löschen |
+| 0 - 7 | Stiftfarbe wechseln |
+| 8, 9 | Stiftgröße wechseln |
+| L | Laserpointer auswählen |
+| R | Aufnahme einrichten |
+| R nach Einrichtung | Aufnahme starten oder pausieren |
+| V | Kamerafenster ein- oder ausblenden |
+| Z,Z,Z | Aufnahme beenden und finalisieren |
+| S | Sprechernotizfenster einblenden |
+
+**Anmerkung**: Die **P**-Taste hat für gewöhnlich auch die Funktion zur vorherigen Folie zu navigieren. Diese Funktion wurde jedoch durch das Umschalten des Präsentationsmodus überschrieben, wird jedoch noch in der Übersicht auf den Folien angezeigt.
