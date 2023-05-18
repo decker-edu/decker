@@ -1086,7 +1086,7 @@ Ein `details`-Bereich besteht aus zwei Teilen: Der Zusammenfassung oder *Klappen
 
 Sie können den *Klappentext* des Bereiches definieren, indem Sie dem Bereich das Attribut `summary=Klappentex` zuweisen.
 
-Die Inhalte des Bereiches werden nicht angezeigt bis der Nutzer auf die Zusammenfas
+Die Inhalte des Bereiches werden nicht angezeigt bis der Nutzer auf den Klappentext klickt, um den Bereich auszuklappen.
 
 #### Beispiel
 
