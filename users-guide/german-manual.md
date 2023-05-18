@@ -1080,7 +1080,25 @@ Ein Hintergrundbild würden Sie folgendermaßen einbetten:
 
 ### Ausklappbarer Bereich
 
-Sie können einen abgegrenzten Bereich in Ihrem Dokument ausklappbar machen, indem Sie ihn mit der CSS-Klasse `
+Sie können einen abgegrenzten Bereich in Ihrem Dokument ausklappbar machen, indem Sie ihn mit der CSS-Klasse `details` versehen.
+
+Ein `details`-Bereich besteht aus zwei Teilen: Der Zusammenfassung oder *Klappentext* `summary` und dem auszuklappenden Inhalt.
+
+Sie können den *Klappentext* des Bereiches definieren, indem Sie dem Bereich das Attribut `summary=Klappentex` zuweisen.
+
+Die Inhalte des Bereiches werden nicht angezeigt bis der Nutzer auf die Zusammenfas
+
+#### Beispiel
+
+Ein ausklappbarer Bereich mit dem Klappentext "Beweis" können Sie folgendermaßen notieren:
+
+````
+::: {.details summary="Beweis"}
+
+Jeglicher Inhalt innerhalb dieses Bereiches wird erst durch Interaktion des Nutzers mit dem Klappentext angezeigt.
+
+:::
+````
 
 ### Spaltenlayout
 
