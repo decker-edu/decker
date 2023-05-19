@@ -210,9 +210,23 @@ Der Aufruf von `decker` mit dem Argument `check` als `decker check` weist das Pr
 
 # Markdown
 
+Quelltextdateien von Decker werden in der Auszeichnungssprache [Markdown](https://daringfireball.net/projects/markdown/) geschrieben.
+
+Markdowndateien mit der Endung `-deck.md` werden von Decker in Foliensätze mit der Endung `-deck.html` übersetzt während Markdowndateien mit der Endung `-page.md` in Webseiten mit der Endung `-page.html` übersetzt werden.
+
+Im Kopf der Markdowndateien können in einem speziellen Bereich, dem *Frontmatter*, markiert durch zwei Zeilen in denen drei Bindestriche (`---`) stehen, Konfigurationseinstellungen für diese Datei notiert werden. Eine Markdowndatei hat daher fast immer folgendes Grundaussehen:
+
+``` yaml
+---
+Konfigurationseinstellungen
+---
+
+Dokumenteninhalt
+```
+
 ## Grundlagen
 
-Markdown ist eine Auszeichnungssprache die dazu gedacht ist direkt in HTML-Dokumente überführt werden zu können. Ihr Ziel ist es dabei im besonderen den auf der übersetzten Webseite repräsentierten Text im Quelltext so ähnlich wie möglich wiederzuspiegeln.
+Markdown ist eine Auszeichnungssprache, die dazu gedacht ist direkt in HTML-Dokumente überführt werden zu können. Ihr Ziel ist es dabei im besonderen den auf der übersetzten Webseite repräsentierten Text im Quelltext so ähnlich wie möglich wiederzuspiegeln.
 
 Als solche besitzt Markdown keine wirklichen Möglichkeiten zum definieren von Layout oder Design des repräsentierten Textes. Dies ist Aufgabe der Webseite, in die der aus dem Markdown-Quelltext übersetzte HTML-Quellcode eingebettet wird.
 
@@ -222,11 +236,13 @@ In Markdown werden alle Textbausteine semantisch durch eine Leerzeile (zwei aufe
 
 ### Überschriften
 
-In Markdown werden Überschriften mithilfe von `#`-Rauten-Symbolen eingeleitet. Die Anzahl an `#`-Rauten-Symbolen bestimmt den Rang der Überschrift.
+In Markdown werden Überschriften mithilfe von `#`-Rauten-Symbolen eingeleitet. Die Anzahl an `#`-Rauten-Symbolen bestimmt die Ebene der Überschrift.
 
 Überschriften der Ebene 1 haben für `decker` eine besondere Bedeutung, denn sie leiten eine neue Folie in einem Foliensatz ein. Die verwendete Überschrift ist dann der Titel der entsprechenden Folie.
 
-Wenn Sie eine neue Folie ohne Titel einleiten wollen können Sie dies mit einer `#`-Raute ohne weiteren Text umsetzen.
+Wenn Sie eine neue Folie ohne Titel einleiten wollen, können Sie dies mit einer `#`-Raute ohne weiteren Text umsetzen.
+
+In Webseiten haben Überschriften der Ebene 1 keine besondere Bedeutung und werden nur als Überschriften für neue Abschnitte verwendet.
 
 #### Beispiele
 
@@ -274,21 +290,21 @@ Einen einzelnen Textparagraphen können Sie in Markdown durch notieren des Texti
 
 Wenn Sie zwei Zeilen im Quelltext folgendermaßen notieren werden Sie als zwei Teile ein und des selben Paragraphen verstanden. Zeilenumbrüche, die im Quelltext vorkommen werden im Resultat nicht übernommen:
 
-```
+``` markdown
 Diese Zeile gehört zu einem Paragraphen.
 Diese Zeile gehört zum selben Paragraphen. Das Resultat wird keinen Zeilenumbruch besitzen.
 ```
 
-Möchten Sie einen Zeilenumbruch innerhalb eines Paragraphen erzwingen müssen Sie die Zeile, nach der umgebrochen werden soll, mit zwei Leerzeichen beenden.
+Möchten Sie einen Zeilenumbruch innerhalb eines Paragraphen erzwingen müssen Sie die Zeile, nach der umgebrochen werden soll, mit zwei Leerzeichen beenden. (Markieren Sie den Text mit der Maus um die Leerzeichen am Ende der ersten Zeile zu sehen.)
 
-```
+``` markdown
 Diese Zeile ist Teil eines Paragraphen. Nach ihr wird umgebrochen.  
 Diese Zeile ist Teil des selben Paragraphen, vor ihr wurde jedoch umgebrochen.
 ```
 
 Möchten Sie zwei Paragraphen voneinander trennen müssen Sie diese im Quelltext mit einer Leerzeile voneinander trennen:
 
-```
+``` markdown
 Diese Zeile gehört zu einem Paragraphen.
 
 Diese Zeile gehört zu einem anderen Paragraphen.
@@ -345,13 +361,13 @@ Erst dieser Text ist wieder sein eigener Paragraph.
 
 ### Listen
 
-Eine ungeordnete Liste können Sie im Markdownquelltext notieren, indem Sie einen neuen Textbaustein mit einem Bindestrich (`-`) einleiten. Einen neuen Eintrag der Liste leiten Sie durch eine neue Zeile, die mit einem weiteren Bindestrich beginnt, ein. Wie auch zuvor wird eine Liste erst durch eine Leerzeile beendet. Auch Zeilenumbrüche und Textdekoration innerhalb der Listeneinträge folgt den selben Regeln für Fließtext wie bisherige Textbausteine.
+Eine ungeordnete Liste können Sie im Markdownquelltext notieren, indem Sie einen neuen Textbaustein mit einem Bindestrich (`-`) oder einer Zahl gefolgt von einem Punkt (z.B. `1.`) einleiten. Einen neuen Eintrag der Liste leiten Sie durch eine neue Zeile, die mit einem weiteren Bindestrich oder einer Zahl beginnt, ein. Wie auch zuvor wird eine Liste erst durch eine Leerzeile beendet. Auch Zeilenumbrüche und Textdekoration innerhalb der Listeneinträge folgen den selben Regeln für Fließtext wie bisherige Textbausteine.
 
-Möchten Sie eine Aufzählung bzw. geordnete Liste notieren so müssen Sie die Zeilen der Listeneinträge nicht mit einem Bindestrich, sondern mit der gewünschten Zahl der Aufzählung, gefolgt von einem Punkt (`.`) einleiten.
+Listen mit Bindestrichen werden als ungeordnete Listen umgesetzt während Listen mit Nummern als geordnete Listen umgesetzt werden.
 
 Sie können die einleitenden Symbole eines Listeneintrags einrücken, um die Lesbarkeit im Quelltext zu verbessern.
 
-Möchten Sie innerhalb eines Listeneintrags mehrere Paragraphen haben, so müssen Sie (mindestens) die erste Zeile des neuen Paragraphen um eine Ebene (ein Tab-Symbol oder vier Leerzeichen) einrücken.
+Möchten Sie innerhalb eines Listeneintrags mehrere Paragraphen haben, so müssen Sie (mindestens) die erste Zeile des neuen Paragraphen um eine Ebene (ein Tab-Symbol oder vier Leerzeichen) einrücken. Dasselbe gilt für alle anderen Textbausteine, die Sie dem Listeneintrag hinzufügen wollen.
 
 #### Beispiel
 
@@ -730,7 +746,7 @@ Wenn Sie eine Vektorgrafik in Ihr Dokument einbetten wollen können Sie dies ent
 ![Bildunterschrift](/pfad/bild.svg){ .embed }
 ```
 
-Der Vorteil einer direkt eingebetteten Vektorgrafik ist, dass die SVG-Elemente auch als Fragmente (siehe kommendes Kapitel) markiert werden können, um so sich schrittweise aufbauende, animierte Vektorgrafiken zu erzeugen.
+Der Vorteil einer direkt eingebetteten Vektorgrafik ist, dass die SVG-Elemente auch als Fragmente (siehe kommenden Abschnitt) markiert werden können, um so sich schrittweise aufbauende, animierte Vektorgrafiken zu erzeugen.
 
 #### Videos
 
@@ -796,9 +812,9 @@ In Foliensätzen möchten Sie unter Umständen die Folie während einer Präsent
 
 Sie können jedem beliebigen Folienelement, dem Sie CSS-Klassen und Attribute zuweisen können die CSS-Klasse `.fragment` zuweisen.
 
-Ein Fragment ist auf einer Folie solange nicht sichtbar, bis es durch Fortschreiten der Präsentation angezeigt wird. Die Reihenfolge, in der Fragmente aufgedeckt werden ist üblicherweise die Reihenfolge, inder sie im Quelltext notiert werden.
+Ein Fragment ist auf einer Folie solange nicht sichtbar, bis es durch Fortschreiten der Präsentation angezeigt wird. Die Reihenfolge, in der Fragmente aufgedeckt werden ist üblicherweise die Reihenfolge, in der sie im Quelltext notiert werden.
 
-Möchten Sie die Reihenfolge, in der Fragmente aufgedeckt werden ändern, müssen Sie den Fragmenten das Attribut `data-fragment-index=` zuweisen. Die Zahl dieses Attributs bestimmt die Position in der Aufdeckreihenfolge.
+Möchten Sie die Reihenfolge, in der Fragmente aufgedeckt werden ändern, müssen Sie den Fragmenten das Attribut `data-fragment-index=` zuweisen. Der Wert dieses Attributs bestimmt die Position in der Aufdeckreihenfolge.
 
 #### Beispiele
 
@@ -842,6 +858,30 @@ Wenn Sie die Liste in einen abgegrenzten Bereich notieren, der die Klasse `.incr
 :::
 
 ```
+
+### Matheformeln mit MathJax
+
+Die Javascript-Bibliothek MathJax erlaubt es Ihnen in Ihren Folien wie in LaTeX Quellcode setzen zu können.
+
+Sie können den Mathemodus mit einzelnen `$`-Dollar-Symbolen oder mit den Zeichenfolgen `\(` und `\)` im Fließtext an- und ausschalten und Matheformeln setzen lassen:
+
+```
+Sei $x \in \mathbb{R} \ setminus {0}$, so gilt ...
+
+Es gelte \(n \in \mathbb{Z}\) und \(m \in \mathbb{N}\) ...
+```
+
+Mit zwei `$$`-Dollar-Symbolen oder den Zeichenfolgen `\[` und `\]` können Sie wie in LaTeX den Display-Mathemodus anschalten, der Formeln in eigenen Zeilen zentriert setzt:
+
+```
+Betrachten wir folgende Formel:
+
+$$ f(x) = \frac{\cos(x)}{\sin(x + \pi)} $$
+
+...
+```
+
+Sie können in den Konfigurationseinstellungen von Ihnen häufig verwendete Matheformeln als Makro definieren, um sich so schreibarbeit zu sparen. Näheres dazu finden sie im Kapitel [Konfigurationsoptionen](#konfigurationsoptionen), Abschnitt [Einstellungen für MathJax](#einstellungen-für-mathjax).
 
 ### Statistiken mit chart.js
 
@@ -1507,7 +1547,11 @@ So wird für die entsprechende `-deck.md`-Datei die Liste `meineListe` die Werte
 
 Die Konfigurationsoption `resource-pack` kann nur in der `decker.yaml` im Wurzelverzeichnis Ihres Projektes eingestellt werden.
 
-Diese entscheidet welches Ressourcenoaktet ihr Projekt verwenden soll. Im Ressourcenpaket sind die Grundkonfigurationen der `default.yaml` deklariert.
+Diese entscheidet welches Ressourcenpaktet Ihr Projekt verwenden soll. Im Ressourcenpaket sind die Grundkonfigurationen der `default.yaml` deklariert, Vorlagen für das Layout und Aussehen der Folien sowie alle weiteren Dateien, die zur Gestaltung der Folien notwendig sind.
+
+``` yaml
+resource-pack: 'exe:decker'
+```
 
 Aktuell bietet `decker` folgende Pakete an:
 
@@ -1516,6 +1560,12 @@ Aktuell bietet `decker` folgende Pakete an:
 - `exe:mario`: Ein älteres Ressourcenpaket für die Verwendung der Folien an der Universität Bielefeld.
 - `exe:wburg`, `exe:nwburg`: Ein älteres und neues Ressourcenpaket für die Verwendung der Folien an der Universität Würzburg.
 - `exe:mono`: Ein Ressourcenpaket für die Verwendung der Folien an der Berliner Hochschule für Technik.
+
+Sie können ihr eigenes Ressourcenpaket in ihrem Projekt anlegen und definieren, indem Sie eine Ordnerstruktur als `resource-pack` referenzieren, die mindestens die Datei `./paketname/template/default.yaml` beinhaltet. Ihr Paket wird anschließend folgendermaßen in der Konfiguration erwähnt:
+
+``` yaml
+resource-pack: './paketname'
+```
 
 ## Dokumentinformationen und Titelseite
 
@@ -1530,7 +1580,7 @@ affiliation: 'Zurodnung / Institut / Organsiation'
 
 Wenn Sie mithilfe von `decker` eine Vorlesung organisieren lohnt es sich den Titel Ihrer Veranstaltung als `title` in der `decker.yaml` zu deklarieren. Die einzelnen Kapitel Ihrer Vorlesung können dann als Untertitel in den einzelnen Foliensätzen konfiguriert werden.
 
-Wenn Sie Ihrem Dokument einen Titel mit der `title`-Eigenschaft zuweisen wird automatisch eine Titelseite in Ihr Foliensatz eingefügt, der die oben beschriebenen Informationen enthält.
+Wenn Sie Ihrem Dokument einen Titel mit der `title`-Eigenschaft zuweisen wird automatisch eine Titelseite in Ihr Foliensatz eingefügt, die die oben beschriebenen Informationen enthält.
 
 Das genaue Aussehen der Titelseite und welche Informationen diese enthält hängt vom verwendeten Ressourcenpaket ab.
 
@@ -1542,11 +1592,32 @@ Das genaue Aussehen der Titelseite und welche Informationen diese enthält häng
 
 ### Optionen für die Titelseite des `tudo`-Paketes
 
+Im TU Dortmund Ressourcenpaket können Sie folgende Informationen konfigurieren:
+
+``` yaml
+title: string
+subtitle: string
+author: string
+affiliation: string
+
+authors:
+  - name: string
+    affiliation: string
+  - name: string
+    affiliation: string
+
+copyright: string
+
+logos:
+  - path
+  - path
+```
+
 ## Einstellungen für `Reveal.js`
 
 In der Kategorie `reveal` kann das Präsentationssystem von `Reveal.js` umkonfiguriert werden. Die Werte innerhalb dieser Eigenschaft entsprechen den Werten der [Konfiguration von Reveal.js](https://revealjs.com/config/).
 
-Konfigurationen, die mit `#` auskommentiert sind sind Werte die Sie für gewöhnlich nicht umkonfigurieren müssen:
+Konfigurationen, die mit `#` auskommentiert sind sind Werte, die Sie für gewöhnlich nicht umkonfigurieren sollten:
 
 ``` yaml
 reveal:
@@ -1564,7 +1635,7 @@ reveal:
   keyboard: true | false
 #  keyboardCondition: null | 'focused' | false
 #  disableLayout: true | false
-  overview: true |false
+  overview: true | false
   center: true | false
   touch: true | false
   loop: true | false
@@ -1612,15 +1683,37 @@ reveal:
 
 ## Einstellungen für MathJax
 
+Sie können für Matheformeln, die Sie häufig von MathJax setzen lassen, eigene Makros definieren. Dies wird umgesetzt, indem Sie der Kategorie `math.macros` zusätzliche Schlüssel hinzufügen, die die Namen der Makros repräsentieren:
+
+``` yaml
+math:
+  macros:
+    macroname: 'mathjax evaluation'
+```
+
+Zum Beispiel:
+
+``` yaml
+math:
+  macros:
+    R: '{\texttip{\mathbb{R}}{reelle Zahlen}}'
+    N: '{\texttip{\mathbb{N}}{natürliche Zahlen}}'
+    Z: '{\texttip{\mathbb{Z}}{ganze Zahlen}}'
+    Q: '{\texttip{\mathbb{Q}}{rationale Zahlen}}'
+    C: '{\texttip{\mathbb{C}}{komplexe Zahlen}}'
+```
+
+Nun können Sie im Mathemodus das Makro `\R, \N, \Z, \Q` oder `\C` verwenden.
+
 ## Einstellungen für das Feedback-System
 
 Damit Ihre Folien Fragen entgegennehmen können müssen Sie einen Backend-Server konfigurieren, der die Fragen verwaltet.
 
-Die URL des Backend Servers wird über die Konfigurationsoption `feedback.base-url` angegeben.
+Die URL des Backend-Servers wird über die Konfigurationsoption `feedback.base-url` angegeben.
 
 Damit Ihre Foliensätze mit Ihnen identifiziert werden können müssen Sie für jeden Foliensatz den Wert von `feedback.deck-id` konfigurieren.
 
-Im Backend wird registriert, welchem Nutzer welche `feedback.deck-id`-Prefixe zugeordnet werden. Dies ist für gewöhnlich der Nutzername, kann aber nach Absprache auch ein anderer Wert sein.
+Im Backend wird registriert, welchem Nutzer welche `feedback.deck-id`-Prefixe zugeordnet werden. Dies ist für gewöhnlich der Nutzername, kann aber auch ein anderer Wert sein. Informieren Sie sich bei Ihrem Backend-Dienst über Werte die Sie verwenden können.
 
 Ein Nutzerkonto, dessen `deck-id`-Prefix mit denen im Backend übereinstimmt kann sich im Administrationslogin des Feedbackmenus einloggen, um Fragen zu beantworten.
 
@@ -1640,6 +1733,17 @@ feedback:
 feedback:
   deck-id: 'nutzer-...'
 ---
+```
+
+## Einstellungen für Live-Umfragen
+
+Wenn Sie während Ihrer Präsentation Ihr Publikum befragen möchten dann müssen Sie einen Backend-Server für die Umfragen konfigurieren.
+
+Dieser Server wird über die Option `polling.server` konfiguriert. Die Kommunikation mit dem Server findet über Websockets statt, denken Sie also daran, dass die URL mit `ws://` oder `wss://` beginnt und nicht wie gewohnt mit `http://` oder `https://`.
+
+``` yaml
+polling:
+  server: wss://...
 ```
 
 ## Einstellungen für die Videoaufnahme
