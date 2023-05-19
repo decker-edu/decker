@@ -1174,6 +1174,77 @@ Wenn Sie mehr Bausteine einfügen als Spalten vorhanden sind beginnt die Einsort
 :::
 ````
 
+# Benutzeroberfläche
+
+Im Folgenden wird die Benutzeroberfläche der Foliensätze für Teilnehmer Ihrer Veranstaltung erklärt. Erklärungen erweiterter Funktionen im Präsentationsmodus der Folien finden Sie im Kapitel [Präsentieren](#präsentieren).
+
+## Folienansicht
+
+In der Folienansicht befinden sich neben dem Inhalt der Folien bis zu vier Bedienelemente auf dem Foliensatz:
+
+1. Das Navigationsmenu in der oberen linken Ecke.
+2. Ein Videoabspielknopf in der oberen rechten Ecke, insofern ein Präsentationsvideo vorliegt.
+3. Das Feedbackmenu in der oberen rechten Ecke, insofern ein Backend für Feedback konfiguriert wurde.
+4. Die Foliennavigation in der unteren rechten Ecke mit Seitennummer.
+
+![Folienansicht](./images/interface-annot.png)
+
+Die Menus der Benutzeroberfläche lassen sich immer über einen Knopf im Menu oder durch einen Klick auf die abgedunkelte Folienansicht schließen.
+
+## Navigationsmenu
+
+Im Navigationsmenu können Sie mit wenigen Klicks zu einer gewünschten Folie springen.
+
+Im Navigationsmenu können Sie zurück zur Indexseite der Präsentationssammlung navigieren.
+
+Der Lupenknopf erlaubt es Ihnen eine Begriffssuche in den Folien zu starten. Dies ist auch mit der Tastenkombination **STRG + F** möglich.
+
+Mit einem Klick auf den **Drucker**-Knopf wird die Webseite im Druckmodus neu geladen und ein Dialog zum Drucken des Foliensatzes geöffnet.
+
+Das Zahnrad öffnet das Einstellungsmenu.
+
+![Navigationsmenu](./images/nav-menu-annot.png)
+
+## Einstellungsmenu
+
+Im Einstellungsmenu können Sie folgende Einstellungen vornehmen:
+
+### Animationen anzeigen
+
+Hier können Sie einstellen, ob die Folien wie bei einer Präsentation schrittweise aufgebaut werden sollen oder jede Folie immer vollständig präsentiert werden soll.
+
+### Annotationen einblenden
+
+Hier können Sie einstellen, ob Sie die handschriftlichen Notizen und Annotationen der Präsentation sehen möchten oder nicht.
+
+### Farbschema auswählen
+
+Die Grundeinstellung des Farbschemas wird aus Ihren Browsereinstellungen übernommen. Sie können Ihr bevorzugtes Farbschema für die Foliensätze hier umstellen.
+
+![Einstellungsmenu](./images/settings-menu.png)
+
+## Feedbackmenu
+
+Im Feedbackmenu können Sie Fragen zu den Folien stellen.
+
+Die Fragen im Feedbackmenu sind einzelnen Folien des Foliensatzes zugeordnet. Wenn Sie Fragen zu einer bestimmten Folie haben, navigieren Sie zur entsprechenden Folie und öffnen das Feedbackmenu.
+
+Sie sehen im Navigationsmenu und im Feedbackmenu ein farbige Markierung die angibt wie viele Fragen zur entsprechenden Folie bereits gestellt wurden. Eine rote Markierung bedeutet, dass es noch offene Fragen gibt. Eine grüne Markierung bedeutet, dass alle Fragen beantwortet wurden.
+
+Im oberen Teil des Feedbackmenus sehen Sie ein Eingabefeld und zwei Knöpfe. Im Eingabefeld befindet sich ihr anonymisiertes Nutzertoken. Wenn Sie sich später als der selbe Nutzer identifizieren wollen können Sie das Nutzertoken mit einem Klick auf das Schloss entsperren und kopieren oder ändern. Der rechte Knopf schließt das Menu wieder.
+
+Im Zentrum des Feedbackmenus sehen Sie alle Fragen, die zur aktuellen Folie bisher gestellt wurden.
+
+Leicht eingerückt befinden sich unter den Fragen die Antworten zu diesen.
+
+Sie können Fragen, die Sie selbst als hilfreich bewerten mit einem Klick auf den "Daumen hoch"-Knopf befürworten. Der kleine Kreis neben dem Bewertungsknopf gibt Ausschluss darüber, ob die Frage bereits beantwortet wurde oder nicht. Die beantwortende Person kann eine Frage auch ohne Angabe einer Antwort als beantwortet markieren, z.B. wenn mündlich auf die Frage eingegangen wurde.
+
+Im unteren Bereich des Feedbackmenus finden Sie das Eingabefeld für Fragen. Die Fragen können mithilfe einfacher Markdownsyntax formatiert werden. Sie können die Fragen mit der Tastenkombination **Umschalt + Eingabe** absenden.
+
+Ganz unten im Feedbackmenu befindet sich ein Knopf zum Öffnen des Admin-Logins. Wenn Sie Besitzer des Foliensatzes sind können Sie sich hier einloggen, um Fragen zu beantworten.
+
+![Feedbackmenu](./images/feedback-menu-annot.png)
+
 # Präsentieren
 
 Foliensätze, die mit `decker` erzeugt werden, können in einem Webbrowser betrachtet werden. Zum Präsentieren dieser Folien wird kein separates Werkzeug benötigt.
@@ -1232,7 +1303,7 @@ Wenn Sie die Präsentation nicht lokal, sondern von einem Webserver aus durchfü
 
 ## Videoaufnahme
 
-Die Folien bieten die Möglichkeit an eine Videoaufnahme Ihrer Präsentation direkt im Browser durchzuführen.
+Die Folien bieten die Möglichkeit eine Videoaufnahme Ihrer Präsentation direkt im Browser durchzuführen.
 
 ### Aufnahme vorbereiten
 
@@ -1255,13 +1326,15 @@ Im Aufnahmemenu können Sie Einstellungen an der Aufnahme vornehmen, Information
 Bevor Sie die Aufnahme starten, stellen Sie sicher, dass die richtigen Geräte ausgewählt sind.
 
 Bei der ersten Freigabe für Mikrofon und Kamera kann es vorkommen, dass die Gerätenamen nicht erkannt werden.
-Sollten keine Gerätenamen angezeigt werden, laden Sie bitte die Webseite einmal neu.
+Sollten keine Gerätenamen angezeigt werden, laden Sie bitte die Webseite neu. Geräte, die nach Einrichtung der Aufnahme angeschlossen werden, werden nicht erkannt. Wenn Sie neue Geräte anschließen, laden Sie die Folien bitte neu und führen die Einrichtung erneut durch bevor Sie die Aufnahme starten.
 
 Sie können am Geräuschpegel erkennen, ob sie die Aufnahmelautstärke Ihres Mikrofons dämpfen oder verstärken müssen. Nutzen Sie dazu die Lautstärkeregler.
 
 Der Aufnahmeindikator zeigt einen leeren Kreis an, wenn die Aufnahme bereit ist. Wenn die Aufnahme läuft wird ein ausgefüllter Kreis angezeigt. Ist die Aufnahme pausiert zeigt er zwei parallele *Pause*-Striche an.
 
 Neben dem kleinen Uhr-Symbol wird während der Aufnahme eine Digitaluhr angezeigt, die Ihnen die bisher verstrichene Aufnahmezeit angibt.
+
+Zusätzlich wird Ihnen angezeigt wie groß Ihre Bildschirmfläche ist und welche Auflösung Ihre Kamera hat. Letztere kann über eine Konfigurationsoption Ihres Foliensatzes geändert werden.
 
 ### Aufnahme steuern
 
@@ -1347,3 +1420,332 @@ Im folgenden finden Sie eine Übersicht über alle Tastaturkürzel und ihre Funk
 | S | Sprechernotizfenster einblenden |
 
 **Anmerkung**: Die **P**-Taste hat für gewöhnlich auch die Funktion zur vorherigen Folie zu navigieren. Diese Funktion wurde jedoch durch das Umschalten des Präsentationsmodus überschrieben, wird jedoch noch in der Übersicht auf den Folien angezeigt.
+
+# Konfigurationsoptionen
+
+Ihr Projekt und Ihre Foliensätze können Sie mithilfe von Konfigurationsoptionen anpassen und individualisieren.
+
+Ihre Einstellungen geben Sie in der Datei namens `decker.yaml` in Ihrem Projektverzeichnis oder in den individuellen Foliensatzdateien im Kopf der Datei an. Insgesamt werden Konfigurationen aus (mindestens) drei Konfigurationsdateien gesammelt und bilden so die Konfiguration für die übersetzte Datei: Der Datei `default.yaml` aus dem gewählten Ressourcenpaket, Ihrer Datei `decker.yaml` in ihrem Projektverzeichnis, optional weiteren `decker.yaml`-Dateien in Unterverzeichnissen Ihres Projektes und der `-deck.md` oder `-page.md`-Datei, die übersetzt wird.
+
+Konfigurationsoptionen einer niedrigeren Hierarchieebene überschreiben bereits angegebene Konfigurationsoptionen aus höheren Ebenen. Ein Wert, der also in der `default.yaml` definiert ist kann von Ihnen in der `decker.yaml`-Datei redefiniert werden.
+
+## Konfigurationen: Grundlagen
+
+Zur Konfiguration nutzt `decker` die Konfigurationssprache `YAML`.
+
+Mithilfe von `YAML` werden üblicherweise Daten in sowohl maschinen- als auch menschenlesbarer Form serialisiert.
+
+In `YAML` werden Daten als eine Liste von Objekten beschrieben. Zum Zwecke der Konfiguration von `decker` repräsentieren die Objekte in `YAML` Konfigurationskategorien oder Eigenschaften.
+
+Objekte werden in YAML in der Form `Schlüssel: Wert` beschrieben: Einem `Schlüssel` wird ein `Wert` zugewiesen.
+
+Zum Beispiel können Sie den Titel Ihres Dokuments folgendermaßen definieren:
+
+`title: 'Meine Präsentation'`
+
+**Anmerkung**: In `YAML` können Werte sowohl ohne als auch mit einfachen oder doppelten Anführungsstrichen angegeben werden. Eine verpflichtende Form der Notation existiert nicht. Viele Nutzer empfehlen jedoch die Nutzung von einfachen Anführungsstrichen für alle textuellen Werte (Strings).
+
+## Konfigurationen: Kategorien
+
+Einem Schlüssel kann auch ein verschachteltes Objekt zugewiesen werden, um Kategorien zu repräsentieren. Verschachtelte Objekte werden durch ihre Einrückungsebene gegenüber dem höhergeordneten Element identifiziert.
+
+Zum Beispiel werden Konfigurationen für die Präsentationsbibliothek `Reveal.js` in der Kategorie `reveal` gruppiert:
+
+```
+reveal:
+  center: true
+  navigationMode: 'grid'
+```
+
+Wenn wir im Folgenden eine verschachtelte Konfigurationsoption referenzieren so beschreiben wir sie in der Form `kategorie.eigenschaft`. Die oben beschriebenen Eigenschaften würden wir also als `reveal.center` und `reveal.navigationMode` bezeichnen.
+
+## Konfigurationen: Listen
+
+Einer Eigenschaft kann auch eine Liste von Werten zugewiesen werden. Listen werden folgendermaßen notiert:
+
+```
+schlüssel:
+  - Wert
+  - Wert
+  - Wert
+  - ...
+```
+
+Wenn die Einträge einer Liste wiederrum Objekte sein sollen werden sie folgendermaßen notiert:
+
+```
+schlüssel:
+  - schlüsselA: Wert
+    schlüsselB: Wert
+  - schlüsselA: Wert
+    schlüsselB: Wert
+```
+
+Wichtig ist hier die korrekte Einrückung der Schlüssel der aufgelisteten Objekte.
+
+Listen werden über Konfigurationsdateien hinweg erweitert anstatt ersetzt.
+
+Zum Beispiel sei in der Datei `decker.yaml` folgende Liste konfiguriert:
+
+```
+meineListe:
+  - 'A'
+  - 'B'
+```
+
+Wenn Sie in einer `-deck.md`-Datei anschließend folgende Liste konfigurieren:
+
+```
+meineListe:
+  - 'C'
+  - 'D'
+```
+
+So wird für die entsprechende `-deck.md`-Datei die Liste `meineListe` die Werte `A, B, C` und `D` beinhalten.
+
+## Wahl des Ressourcenpakets
+
+Die Konfigurationsoption `resource-pack` kann nur in der `decker.yaml` im Wurzelverzeichnis Ihres Projektes eingestellt werden.
+
+Diese entscheidet welches Ressourcenoaktet ihr Projekt verwenden soll. Im Ressourcenpaket sind die Grundkonfigurationen der `default.yaml` deklariert.
+
+Aktuell bietet `decker` folgende Pakete an:
+
+- `exe:decker`: Das Standardpaket von dem alle anderen Ressourcenpakete abgeleitet werden und welches gewählt wird, wenn die Option `resource-pack` nicht angegeben wird.
+- `exe:tudo`: Dieses Ressourcenpaket stilisiert die Folien für die Verwendung an der TU Dortmund.
+- `exe:mario`: Ein älteres Ressourcenpaket für die Verwendung der Folien an der Universität Bielefeld.
+- `exe:wburg`, `exe:nwburg`: Ein älteres und neues Ressourcenpaket für die Verwendung der Folien an der Universität Würzburg.
+- `exe:mono`: Ein Ressourcenpaket für die Verwendung der Folien an der Berliner Hochschule für Technik.
+
+## Dokumentinformationen und Titelseite
+
+Informationen über Ihre Dokumente, insbesondere Titel, Untertitel, Autor*innen und Zuordnungen werden auf oberster Ebene definiert:
+
+```
+title: 'Präsentationstitel'
+subtitle: 'Optionaler Untertitel'
+author: 'Autor*in'
+affiliation: 'Zurodnung / Institut / Organsiation'
+```
+
+Wenn Sie mithilfe von `decker` eine Vorlesung organisieren lohnt es sich den Titel Ihrer Veranstaltung als `title` in der `decker.yaml` zu deklarieren. Die einzelnen Kapitel Ihrer Vorlesung können dann als Untertitel in den einzelnen Foliensätzen konfiguriert werden.
+
+Wenn Sie Ihrem Dokument einen Titel mit der `title`-Eigenschaft zuweisen wird automatisch eine Titelseite in Ihr Foliensatz eingefügt, der die oben beschriebenen Informationen enthält.
+
+Das genaue Aussehen der Titelseite und welche Informationen diese enthält hängt vom verwendeten Ressourcenpaket ab.
+
+### Optionen für die Titelseite des `decker`-Paketes
+
+### Optionen für die Titelseite des `mono`-Paketes
+
+### Optionen für die Titelseite des `nwburg`-Paketes
+
+### Optionen für die Titelseite des `tudo`-Paketes
+
+## Einstellungen für `Reveal.js`
+
+In der Kategorie `reveal` kann das Präsentationssystem von `Reveal.js` umkonfiguriert werden. Die Werte innerhalb dieser Eigenschaft entsprechen den Werten der [Konfiguration von Reveal.js](https://revealjs.com/config/).
+
+Konfigurationen, die mit `#` auskommentiert sind sind Werte die Sie für gewöhnlich nicht umkonfigurieren müssen:
+
+``` yaml
+reveal:
+  controls: true | false
+#  controlsTutorial: true | false
+  controlsLayout: 'edges' | 'bottom-right'
+  progress: true | false
+  slideNumber: false | 'h.v' | 'h/v' | 'c' | 'c/t'
+#  showSlideNumber: 'all' | 'print' | 'speaker'
+#  hashOneBasedIndex: true | false
+#  hash: true | false
+#  respondToHashChanges: true | false
+#  jumpToSlide: true | false
+  history: true | false
+  keyboard: true | false
+#  keyboardCondition: null | 'focused' | false
+#  disableLayout: true | false
+  overview: true |false
+  center: true | false
+  touch: true | false
+  loop: true | false
+#  rtl: true | false
+  navigationMode: 'default' | 'linear' | 'grid'
+#  shuffle: true | false
+  fragments: true | false
+  fragmentInURL: true | false
+#  embedded: true | false
+  help: true | false
+  pause: true | false
+  showNotes: true | false
+#  autoPlayMedia: null | true | false
+#  preloadIframes: null | true | false
+#  autoAnimate: true | false
+#  autoAnimateMatcher: null | string
+#  autoAnimateEasing: string
+#  autoAnimateDuration: number
+#  autoAnimateUnmatched: true | false
+#  autoAnimateStyles:
+#    - css-value-name
+#    - css-value-name
+#    - ...
+#  autoSlide: number | false
+#  autoSlideStoppable: true | false
+#  autoSlideMethod: null | string
+  defaultTiming: null | number
+#  mouseWheel: true | false
+  previewLinks: true | false
+#  postMessage: true | false
+#  postMessageEvents: true | false
+#  focusBodyOnPageVisibilityChange: true | false
+  transition: 'none' | 'slide' | 'fade' | 'convex' | 'concave' | 'zoom'
+  transitionSpeed: 'default' | 'fast' | 'slow'
+  backgroundTransition: 'none' | 'slide' | 'fade' | 'convex' | 'concave' | 'zoom'
+#  pdfMaxPagesPerSlide: number
+#  pdfSeparateFragments: true | false
+#  pdfPageHeightOffset: number
+#  viewDistance: number
+#  mobileViewDistance: number
+#  display: 'none' | 'block' | 'flex' | 'grid' | 'inline-block'
+  hideInactiveCursor: true | false
+  hideCursorTime: number
+```
+
+## Einstellungen für MathJax
+
+## Einstellungen für das Feedback-System
+
+Damit Ihre Folien Fragen entgegennehmen können müssen Sie einen Backend-Server konfigurieren, der die Fragen verwaltet.
+
+Die URL des Backend Servers wird über die Konfigurationsoption `feedback.base-url` angegeben.
+
+Damit Ihre Foliensätze mit Ihnen identifiziert werden können müssen Sie für jeden Foliensatz den Wert von `feedback.deck-id` konfigurieren.
+
+Im Backend wird registriert, welchem Nutzer welche `feedback.deck-id`-Prefixe zugeordnet werden. Dies ist für gewöhnlich der Nutzername, kann aber nach Absprache auch ein anderer Wert sein.
+
+Ein Nutzerkonto, dessen `deck-id`-Prefix mit denen im Backend übereinstimmt kann sich im Administrationslogin des Feedbackmenus einloggen, um Fragen zu beantworten.
+
+Ein Nutzerkonto mit dem Nutzernamen `muster` würde also Foliensätze mit `deck-id`s wie z.B. `muster-introduction-presentation` verwalten.
+
+### decker.yaml
+
+``` yaml
+feedback:
+  base-url: 'https://...'
+```
+
+### -deck.md
+
+``` yaml
+---
+feedback:
+  deck-id: 'nutzer-...'
+---
+```
+
+## Einstellungen für die Videoaufnahme
+
+Die Kategorie für die Videoaufnahme heißt `explain` und besitzt folgende Einstellungen:
+
+``` yaml
+explain:
+  camWidth: number
+  camHeight: number
+  recWidth: number
+  recHeight: number
+  useGreenScreen: true | false
+  greenScreenBackground: path
+  greenScreenKey:
+    b: number [0 - 255]
+    g: number [0 - 255]
+    r: number [0 - 255]
+  greenScreenSimilarity: number [0.0 - 1.0]
+  greenScreenSmoothness: number [0.0 - 1.0]
+```
+
+Mithilfe der Einstellungen `explain.camWidth` und `explain.camHeight` können Sie die Größe des Kamerabildes konfigurieren.
+
+Mithilfe der Einstellungen `explain.recWidth` und `explain.recHeight` können Sie die Größe der Bildschirmaufnahme konfigurieren. Dies bestimmt die letztlichen Dimensionen des Videos.
+
+Mit der Einstellung `explain.useGreenScreen` können Sie deklarieren, dass Sie die Videoaufnahme vor einem Greenscreen durchführen und entsprechend das Kamerabild maskieren wollen.
+
+Mit den Werten `explain.greenScreenKey`, `explain.greenScreenSimilarity` und `explain.greenScreenSmoothness` können Sie die zu maskierende Hintergrundfarbe und Lichtverhältnisse einstellen. Mit der Einstellung `explain.greenScreenBackground` können Sie ein Hintergrundbild für Ihre Kamera einsetzen.
+
+## Einstellungen für die Farbpalette
+
+Die Foliensätze verwenden für ein einheitliches und konfigurierbares Aussehen eine Farbpalette, die aus 16 Farben besteht: 8 Schattierungsfarben und 8 Akzentfarben.
+
+Die Farben der Farbpalette können in der Kategorie `palette` definiert werden.
+
+Die Akzentfarben werden zudem um einen einstellbaren Faktor `palette.contrast` in bis zu zwei Stufen in den Hintergrund oder Vordergrund verschoben, um sie heller oder dunkler zu gestalten.
+
+Die Hintergrundfarbe der Folien ist die erste, die Vordergrund- bzw. Textfarbe ist die achte Farbe der Farbpalette.
+
+Farben werden in der Konfiguration mithilfe von gültigen CSS-Werten angegeben. Am Besten verwenden Sie das Format `#rrggbb`, z.B. für Weiß: `#ffffff`.
+
+``` yaml
+palette:
+  contrast: number [0.0 - 1.0]
+  colors:
+    - shade0
+    - shade1
+    - shade2
+    - shade3
+    - shade4
+    - shade5
+    - shade6
+    - shade7
+    - accent0
+    - accent1
+    - accent2
+    - accent3
+    - accent4
+    - accent5
+    - accent6
+    - accent7
+```
+
+Das Design der Foliensätze geht grundsätzlich davon aus, dass die Akzentfarben im Regenbogen angeordnet sind und verwenden daher auch folgende Namen für CSS-Variablen, um die generelle Farbtendenz der Akzente 0 bis 7 zu beschreiben: `redish`, `orangeish`, `yellowish`, `greenish`, `tealish`, `blueish`, `violetish` und `brownish`. Semantische Farben, wie z.B. Rahmen für Warnmeldungen, referenzieren diese `-ish`-Farben und transitiv daher die Akzente. Fehlermeldungen werden z.B. in der `redish`-Farbe und daher mit `accent0` dargestellt.
+
+Diese Semantik kann jedoch durch überschreiben der CSS-Variablen in Ressourcenpaketen geändert werden.
+
+Sie können für den hellen und dunklen Farbmodus unterschiedliche Paletten deklarieren:
+
+``` yaml
+palette:
+  contrast: number [0.0 - 1.0]
+  colors:
+    light:
+      - shade0
+      - shade1
+      - shade2
+      - shade3
+      - shade4
+      - shade5
+      - shade6
+      - shade7
+      - accent0
+      - accent1
+      - accent2
+      - accent3
+      - accent4
+      - accent5
+      - accent6
+      - accent7
+    dark:
+      - shade0
+      - shade1
+      - shade2
+      - shade3
+      - shade4
+      - shade5
+      - shade6
+      - shade7
+      - accent0
+      - accent1
+      - accent2
+      - accent3
+      - accent4
+      - accent5
+      - accent6
+      - accent7
+```
