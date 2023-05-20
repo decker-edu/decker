@@ -22,27 +22,38 @@ function pollSession({
     id: null,
     socket: null,
     ui: null,
+    heartbeat: null,
     onReady: onready,
     onClose: onclose,
   };
 
   return new Promise((resolve, error) => {
     session.socket = new WebSocket(serverUrl);
+    session.heartbeat = null;
 
     session.socket.addEventListener("open", (e) => {
       if (clientCss)
         session.socket.send(
           JSON.stringify({ tag: "ClientCss", clientCss: clientCss })
         );
+      session.heartbeat = setInterval(() => { session.socket.send(JSON.stringify({ tag: "Beat" })) }, 10000);
     });
 
     session.socket.addEventListener("error", (e) => {
       console.error("Poll:", "Cannot connect to ", serverUrl);
+      if (session.heartbeat) {
+        clearInterval(session.heartbeat);
+        session.heartbeat = null;
+      }
     });
 
     session.socket.addEventListener("close", (e) => {
       console.error("Poll:", "Server went away.");
       if (session.onClose) session.onClose();
+      if (session.heartbeat) {
+        clearInterval(session.heartbeat);
+        session.heartbeat = null;
+      }
     });
 
     session.socket.addEventListener("message", (e) => {
@@ -121,19 +132,21 @@ function pollSession({
             break;
 
           case "Active":
-            session.ui.onActive(
-              message.participants,
-              message.quiz.choices,
-              message.quiz.complete
-            );
+            if (session.ui)
+              session.ui.onActive(
+                message.participants,
+                message.quiz.choices,
+                message.quiz.complete
+              );
             break;
 
           case "Finished":
-            session.ui.onFinished(
-              message.participants,
-              message.quiz.choices,
-              message.quiz.complete
-            );
+            if (session.ui)
+              session.ui.onFinished(
+                message.participants,
+                message.quiz.choices,
+                message.quiz.complete
+              );
             session.ui = null;
             break;
 
