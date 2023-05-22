@@ -28,25 +28,23 @@ Des weiteren können Sie selbst überprüfen, ob das Programm `decker` im angege
 
 Ist dem der Fall können Sie überprüfen, ob der Suchpfad korrekt angepasst wurde, indem Sie die Umgebungsvariablen des Systems begutachten:
 
-::: {.details summary="Anleitung mit Bildbeispielen"}
+#### Umgebungsvariablen unter Windows einsehen
 
 Suchen Sie im Startmenu von Windows nach dem Begriff "Umgebungsvariablen":
 
-![](../data/umgebungsvariablen-startmenueintrag.png)
+![](./images/umgebungsvariablen-startmenueintrag.png)
 
 Klicken Sie im Systemeigenschaften Dialog auf "Umgebungsvariablen":
 
-![](../data/umgebungsvariablen-systemmenu.png)
+![](./images/umgebungsvariablen-systemmenu.png)
 
 Selektieren Sie anschließend die Variable "Path" entweder für den Nutzer oder das System:
 
-![](../data/umgebungsvariablen-menu.png)
+![](./images/umgebungsvariablen-menu.png)
 
 Überprüfen Sie in der angezeigten Liste, ob der Installationspfad von Decker vorhanden ist:
 
-![](../data/umgebungsvariablen-eintrag.png)
-
-:::
+![](./images/umgebungsvariablen-eintrag.png)
 
 ### Installation per Hand
 
@@ -94,7 +92,17 @@ Dieses ist für den einzelnen Benutzer für gewöhnlich `~/.local/bin/` oder Sys
 
 ### Installation optionaler Abhängigkeiten
 
-Die optionalen Abhängigkeiten
+Die optionalen Abhängigkeiten von `decker` sind:
+
+- `ssh`
+- `rsync`
+- `ffmpeg`
+- `gnuplot`
+- `graphviz`
+- `plantuml`
+- `pdflatex` (z.B. aus dem Paket `texlive-full`)
+- `pdf2svg`
+- `google-chrome`
 
 ## MacOS
 
@@ -104,9 +112,9 @@ Dieses ist nicht signiert, daher müssen Sie bei Installation bestätigen, dass 
 
 # Anwendungsfunktionen
 
-`decker` ist eine Anwendung, welche Sie für gewöhnlich über die Kommandozeile ihres Systems bedienen sollten. Sie können dem Aufruf von `decker` unterschiedliche zusätzliche Argumente übergeben, um die auszuführende Funktion zu ändern. Im Folgenden werden diese Funktionen im Detail beschrieben.
+`decker` ist eine Anwendung, die Sie für gewöhnlich über die Kommandozeile ihres Systems bedienen sollten. Sie können dem Aufruf von `decker` unterschiedliche zusätzliche Argumente übergeben, um die auszuführende Funktion zu ändern. Im Folgenden werden diese Funktionen im Detail beschrieben.
 
-Sie können die relevantesten Funktionalitäten von `decker` auch über das Visual Studio Code Plugin `decker server` mithilfe eines Rechtsklicks auf ihr Projektverzeichnis in der Dateiübersicht von Visual Studio Code aufrufen.
+Sie können ausgewählte Funktionalitäten von `decker` auch über das Visual Studio Code Plugin `decker server` mithilfe eines Rechtsklicks auf ihr Projektverzeichnis in der Dateiübersicht von Visual Studio Code aufrufen. Entsprechend brauchen Sie zum Bedienen der wichtigsten Funktionen von `decker` keine Kenntnisse in der Steuerung von Programmen über die Kommandozeile.
 
 ## Verzeichnis als Projektverzeichnis markieren
 
@@ -196,7 +204,7 @@ Mithilfe der Programmoption `-w` bzw. `--watch` können Sie das programm `decker
 
 Der Aufruf von `decker` mit dem Argument `serve` als `decker serve` startet einen lokalen Webserver auf ihrem Rechner. Sie können mit der Option `-p` können Sie den Port, auf dem der Webserver horcht ändern. Der Standardport ist `8888`. Entsprechend erreichen Sie den Webserver mithilfe Ihres Browsers gewöhnlicherweise unter der Adresse [http://localhost:8888](http://localhost:8888).
 
-Wenn Sie `decker` mit der Option `-S` oder `--server` starten wird wie beim Aufruf von `serve` ein Webserver gestartet. Zusätzlich werden alle Quelltextdateien beobachtet und neu gebaut, wenn sie geändert werden wie beim Aufruf von `decker --watch`. Zusätzlich werden angezeigte Foliensätze und Webseiten in Ihrem Browser dazu angewiesen ihren Inhalt neu zu laden, wenn ihre Quelldateien neu übersetzt wurden. Dadurch können Sie Änderungen an Ihrem Quelltext sofort in Ihrem Browser begutachten und nachvollziehen. Entsprechend ist der Aufruf von `decker --server` dem Aufruf von `decker serve` im Allgemeinen zu bevorzugen.
+Wenn Sie `decker` mit der Option `-S` oder `--server` starten wird wie beim Aufruf von `serve` ein Webserver gestartet. Zusätzlich werden alle Quelltextdateien beobachtet und neu gebaut, wenn sie geändert werden, wie beim Aufruf von `decker --watch`. Zusätzlich werden angezeigte Foliensätze und Webseiten in Ihrem Browser dazu angewiesen ihren Inhalt neu zu laden, wenn ihre Quelldateien neu übersetzt wurden. Dadurch können Sie Änderungen an Ihrem Quelltext sofort in Ihrem Browser begutachten und nachvollziehen. Entsprechend ist der Aufruf von `decker --server` dem Aufruf von `decker serve` im Allgemeinen zu bevorzugen.
 
 ## Videodateien konvertieren
 
@@ -207,6 +215,10 @@ Rufen Sie `decker` mit dem Argument `crunch` als `decker crunch` auf wird das Pr
 ## Optionale Abhängigkeiten überprüfen
 
 Der Aufruf von `decker` mit dem Argument `check` als `decker check` weist das Programm dazu an zu überprüfen welche optionalen Abhängigkeiten installiert sind und in einer Liste aufzuzählen.
+
+## Versionsinformationen
+
+Der Aufruf von `decker` mit dem Argument `version` als `decker version` gibt Informationen über die verwendete Version von `decker` und internen Bibliotheken auf der Kommandozeile aus.
 
 # Markdown
 
@@ -243,6 +255,8 @@ In Markdown werden Überschriften mithilfe von `#`-Rauten-Symbolen eingeleitet. 
 Wenn Sie eine neue Folie ohne Titel einleiten wollen, können Sie dies mit einer `#`-Raute ohne weiteren Text umsetzen.
 
 In Webseiten haben Überschriften der Ebene 1 keine besondere Bedeutung und werden nur als Überschriften für neue Abschnitte verwendet.
+
+![Überschriftenbeispiel](./examples/svgs/header-deck-page-001.svg)
 
 #### Beispiele
 
@@ -310,6 +324,8 @@ Diese Zeile gehört zu einem Paragraphen.
 Diese Zeile gehört zu einem anderen Paragraphen.
 ```
 
+![Paragraphenbeispiel](./examples/svgs/text-deck-page-001.svg)
+
 ### Textdekoration
 
 In Markdown können Sie Fließtext mit Sonderzeichen umranden. Der Text zwischen den Sonderzeichen wird besonders dargestellt.
@@ -338,6 +354,8 @@ Diese ~~Tatsache~~ möchte ich deutlich als falsch markieren.
 Dies ist mein `Quelltextfragment`, welches ich im Fließtext verwenden möchte.
 ```
 
+![Textdekorationen](./examples/svgs/text-deck-page-002.svg)
+
 ### Blockzitate
 
 Sie können einen Paragraphen als Blockzitat kennzeichnen, indem Sie ihn mit einem `>`-Kleiner-Symbol einleiten. Sie können weitere Zeilen hinter dem Blockzitat mit weiteren `>` einrücken, müssen dies jedoch nicht tun solange Sie die Inhalte nicht mit Leerzeilen voneinander trennen. Erst wenn Sie das Zitat mit zwei Zeilenumbrüchen vom nächsten Textbaustein trennen wird es beendet. Im Fließtext des Blockzitats gelten die selben Regeln für Zeilenumbrüche und Textdekoration wie für Paragraphen.
@@ -358,6 +376,8 @@ Caption: Dies wird zur Zitatunterschrift des Blockzitats.
 
 Erst dieser Text ist wieder sein eigener Paragraph.
 ```
+
+![Blockzitatbeispiel](./examples/svgs/quote-deck-page-001.svg)
 
 ### Listen
 
@@ -385,6 +405,8 @@ Eine ungeordnete Liste im Markdownquelltext wird folgendermaßen notiert:
 Nur die erste Zeile muss eingerückt werden, um die Zugehörigkeit zu kennzeichnen.
 ```
 
+![Beispiel für eine ungeordnete Liste](./examples/svgs/list-deck-page-001.svg)
+
 Die selbe Liste kann als geordnete Aufzählung folgendermaßen notiert werden:
 
 ``` markdown
@@ -398,6 +420,8 @@ Die selbe Liste kann als geordnete Aufzählung folgendermaßen notiert werden:
     Dieser Paragraph ist Teil des vierten Eintrags.
 Nur die erste Zeile muss eingerückt werden, um die Zugehörigkeit zu kennzeichnen.
 ```
+
+![Beispiel für eine geordnete Liste](./examples/svgs/list-deck-page-002.svg)
 
 ### Codeblöcke
 
@@ -433,13 +457,17 @@ ohne dabei ausversehen die Quelltextumgebung zu schließen.
 Sie können eine breite Auswahl an Programmiersprachen für das Hervorheben von Syntaxelementen wählen:
 
 ```` markdown
-``` c 
-int main(int argc, char** argc) {
+``` c
+#include <stdio.h>
+
+int main(int argc, char** argv) {
   printf("Hello World.\n");
   return 0;
 }
 ```
 `````
+
+![Codeblockbeispiel](./examples/svgs/text-deck-page-003.svg)
 
 ### Links
 
@@ -509,6 +537,8 @@ Möchten Sie einen anderen Linktext für die Referenz benutzen, können Sie dies
 In unserem [Beispiel][Beispielwebseite] sehen Sie, wie man einen Referenzlink verwenden kann.
 ```
 
+![Linkbeispiele](./examples/svgs/text-deck-page-004.svg)
+
 ### Bilder
 
 Ein Bild wird in Markdown ähnlich wie ein Link notiert, beginnt jedoch mit einem Ausrufezeichen:
@@ -534,6 +564,10 @@ Ein Bild aus Ihrem Projektverzeichnis würden Sie folgendermaßen referenzieren:
 ```
 ![Fotografie des Labors](/bilder/laboratory.png)
 ```
+
+![Bildbeispiele](./examples/svgs/image-deck-page-001.svg)
+
+![Bildbeispiele](./examples/svgs/image-deck-page-002.svg)
 
 ## Erweiterte Syntax
 
@@ -1595,22 +1629,41 @@ Das genaue Aussehen der Titelseite und welche Informationen diese enthält häng
 Im TU Dortmund Ressourcenpaket können Sie folgende Informationen konfigurieren:
 
 ``` yaml
-title: string
-subtitle: string
-author: string
-affiliation: string
+title: string       # Titel des Foliensatzes
+subtitle: string    # Untertitel des Foliensatzes
+author: string      # Autor*in des Foliensatzes
+affiliation: string # Zurodnung / Organisation / Institut
 
-authors:
-  - name: string
-    affiliation: string
-  - name: string
-    affiliation: string
+authors:  # Mehrere Autor*innen (werden separat Angezeigt)
+  - name: string        # Name
+    affiliation: string # Zuordnung
+  - name: string        # Name
+    affiliation: string # Zuordnung
 
-copyright: string
+copyright: string       # (in Planung): Verwendungserlaubnis
 
-logos:
+logos:    # Logos / Banner von Instituten / Zuordnungen 
+  - path  # Pfad zur Bilddaten (.jpg, .png, .svg, etc.)
   - path
-  - path
+```
+
+In der Liste von Logos / Bannern ist das der TU Dortmund immer enthalten und wird als erstes Banner in der Liste immer in der unteren linken Ecke der Titelseite angezeigt.
+
+## Einstellungen für `decker publish`
+
+Das Verhalten von `decker publish` wird in der Kategorie `publish` konfiguriert. Aktuell wird nur das veröffentlichen via `rsync` unterstützt. Entsprechend wird `rsync` in der Unterkategorie `rsync` konfiguriert.
+
+Den zu synchronisierenden Zielordner können Sie mit der Option `publish.rsync.destination` spezifizieren.
+
+Die Programmoptionen, mit denen `rsync` immer aufgerufen wird sind `--recursive`, `--copy-links` und `--delete`. Sie können zusätzliche Programmoptionen mit der Konfigurationsliste `publish.resync.options` angeben. 
+``` yaml
+publish:
+  rsync:
+    destination: 'username@remote.server:/path/to/directory/'
+    options:
+      - '--option'
+      - '--option'
+      - '--option'
 ```
 
 ## Einstellungen für `Reveal.js`
@@ -1853,3 +1906,28 @@ palette:
       - accent6
       - accent7
 ```
+
+# Veröffentlichen von Foliensätzen
+
+Zum Veröffentlichen von Foliensätzen benötigen Sie einen Webdienst, der das von `decker` generierte `public`-Verzeichnis ausliefern kann. Extern erreichbare Dienste, wie z.B. den Feedback-Server oder den Quiz-Server können Sie auch selbst als Dienst anbieten. Solange der von Ihnen konfigurierte Feedback- oder Quiz-Dienst erreichbar ist muss der die Folien ausliefernde Webdienst diese Funktionalitäten jedoch nicht selbst anbieten und das ausliefern der Foliensatzdateien im `public`-Verzeichnis ist vollkommen ausreichend.
+
+## Veröffentlichen über eigenen Webserver
+
+Solange Sie Zugriff auf Ihren eigenen Webserver haben können Sie `decker publish` verwenden um über `rsync` das `public`-Verzeichnis auf ihren Webserver zu synchronisieren. Da `rsync` nur geänderte Dateien überträgt geht dies für gewöhnlich schnell und ist datensparsam.  
+Dieser Vorteil setzt natürlich voraus, dass Sie Ihre Unterlagen regelmäßig ändern und aktuallisieren, wie dies für gewöhnlich bei einer Vorlesung der Fall ist, in der Sie Ihren Teilnehmern jede Woche neue Unterlagen zur Verfügung stellen wollen.
+
+Wie Sie `decker publish` für `rsync` konfigurieren können sie in dem entsprechenden [Abschnitt](#einstellungen-für-decker-publish) nachlesen.
+
+## Veröffentlichen über Moodle
+
+Wenn Sie Zugriff auf ein Moodle haben können Sie in Ihrem Kurs das `public`-Verzeichnis hinzufügen.
+
+Archivieren Sie dazu das `public`-Verzeichnis in eine `.zip`-Datei und laden Sie diese als Datei-Kursmaterial hoch. Alle folgenden Einstellungen können Sie noch im Kursmaterial-Dialog durchführen, bevor Sie das Kursmaterial abspeichern.
+
+Wenn Sie die Detailansicht des hochgeladenen Archivs betrachten können Sie das Archiv im Moodle selbst entpacken.
+
+Nachdem Sie das Archiv entpackt haben können Sie den entpackten Ordner öffnen und die Detailansicht der `index.html`-Datei öffnen. Hier sollten Sie einen Knopf finden, mit der Sie diese Datei als *Hauptdatei* auswählen können.
+
+Im Anschluss können Sie noch auswählen, ob die Präsentation in seiner eigenen Seite eingebettet oder als Popup geöffnet werden soll.
+
+Sobald Sie mit den Einstellungen zufrieden sind können Sie das Kursmaterial speichern. Ihre Kursteilnehmer können die Präsentation dann über die Verknüpfung zum gerade erstellten Kursmaterial aufrufen.
