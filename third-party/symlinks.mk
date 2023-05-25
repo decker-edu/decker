@@ -14,7 +14,7 @@ videojs:
 
 mathjax:
 	@mkdir -p $(support)/mathjax/{input,output}
-	@for i in tex-svg.js input/tex input/tex.js output/svg output/svg.js ui; do \
+	@for i in tex-svg.js input/tex input/mml input/tex.js input/mml.js output/svg output/svg.js ui a11y sre; do \
 		cp -r $(third)/MathJax/es5/$$i $(support)/mathjax/$$i; \
 	done
 

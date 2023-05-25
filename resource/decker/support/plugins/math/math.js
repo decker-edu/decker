@@ -145,10 +145,21 @@ const Plugin = {
       window.localStorage.removeItem("MathJax-Menu-Settings");
     }
 
+    let locale = navigator.language;
+    if (locale != "de") {
+      locale = "en";
+    }
+
     // configure through global MathJax object
     window.MathJax = {
       loader: {
-        load: ["[tex]/ams"],
+        load: [
+          "[tex]/ams",
+          "a11y/semantic-enrich",
+          "a11y/complexity",
+          "a11y/explorer",
+          "a11y/assistive-mml",
+        ],
         typeset: false,
       },
       startup: {
@@ -189,16 +200,49 @@ const Plugin = {
         ],
       },
       options: {
-        enableMenu: false,
-        // disable assistive-mml, since it messes up speaker notes
+        enableMenu: true,
+        enableExplorer: true, // set to false to disable the explorer
+        enableEnrichment: true, // false to disable enrichment
+        sre: {
+          speech: "none", // or 'shallow', or 'deep'
+          domain: "mathspeak", // speech rules domain
+          style: "default", // speech rules style
+          locale: locale, // the language to use (en, fr, es, de, it)
+        },
+        enrichError: (doc, math, err) => doc.enrichError(doc, math, err), // function to call if enrichment fails
+        a11y: {
+          speech: true, // switch on speech output
+          braille: true, // switch on Braille output
+          subtitles: true, // show speech as a subtitle
+          viewBraille: false, // display Braille output as subtitles
+
+          backgroundColor: "Blue", // color for background of selected sub-expression
+          backgroundOpacity: 0.2, // opacity for background of selected sub-expression
+          foregroundColor: "Black", // color to use for text of selected sub-expression
+          foregroundOpacity: 1, // opacity for text of selected sub-expression
+
+          highlight: "None", // type of highlighting for collapsible sub-expressions
+          flame: false, // color collapsible sub-expressions
+          hover: false, // show collapsible sub-expression on mouse hovering
+
+          treeColoring: false, // tree color expression
+
+          magnification: "None", // type of magnification
+          magnify: "400%", // percentage of magnification of zoomed expressions
+          keyMagnifier: false, // switch on magnification via key exploration
+          mouseMagnifier: false, // switch on magnification via mouse hovering
+          align: "top", // placement of magnified expression
+
+          infoType: false, // show semantic type on mouse hovering
+          infoRole: false, // show semantic role on mouse hovering
+          infoPrefix: false, // show speech prefixes on mouse hovering
+        },
         menuOptions: {
           settings: {
-            assistiveMml: false,
+            assistiveMml: true,
           },
         },
-        renderActions: {
-          assistiveMml: [], // disable assistive mathml
-        },
+        renderActions: {},
       },
     };
 
