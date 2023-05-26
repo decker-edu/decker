@@ -28,25 +28,23 @@ Des weiteren können Sie selbst überprüfen, ob das Programm `decker` im angege
 
 Ist dem der Fall können Sie überprüfen, ob der Suchpfad korrekt angepasst wurde, indem Sie die Umgebungsvariablen des Systems begutachten:
 
-::: {.details summary="Anleitung mit Bildbeispielen"}
+#### Umgebungsvariablen unter Windows einsehen
 
 Suchen Sie im Startmenu von Windows nach dem Begriff "Umgebungsvariablen":
 
-![](../data/umgebungsvariablen-startmenueintrag.png)
+![](./images/umgebungsvariablen-startmenueintrag.png)
 
 Klicken Sie im Systemeigenschaften Dialog auf "Umgebungsvariablen":
 
-![](../data/umgebungsvariablen-systemmenu.png)
+![](./images/umgebungsvariablen-systemmenu.png)
 
 Selektieren Sie anschließend die Variable "Path" entweder für den Nutzer oder das System:
 
-![](../data/umgebungsvariablen-menu.png)
+![](./images/umgebungsvariablen-menu.png)
 
 Überprüfen Sie in der angezeigten Liste, ob der Installationspfad von Decker vorhanden ist:
 
-![](../data/umgebungsvariablen-eintrag.png)
-
-:::
+![](./images/umgebungsvariablen-eintrag.png)
 
 ### Installation per Hand
 
@@ -74,11 +72,7 @@ Zusätzlich zu `decker` müssen Sie zum Nutzen aller Funktionalitäten folgende 
 
 `decker`, `decker html`, `decker decks`, `decker pages` und `decker handouts` benötigen zum Übersetzen von LaTeX Quellcodefragmenten eine installierte LaTeX-Distribution, die das Programm `pdflatex` zur Verfügung stellt. Zusätzlich wird `pdf2svg` genutzt, um die generierten PDFs in SVGs umzuwandeln, die dann in die Präsentation eingebettet werden.
 
-Das selbe gilt für Quellcodefragmente für die Programme `gnuplot` und `plantuml`. Die entsprechenden Programme müssen ebenso separat installiert werden. `plantuml` wird für Windows jedoch nur als Java-Archiv ausgeliefert und kann daher nicht direkt ausgeführt werden. Sie benötigen zusätzlich eine Java-Installation und müssen ein Skript schreiben, welches als `plantuml` auf Ihrem Suchpfad liegt und die übergebenen Programmargumente an die Java-Ausführung von `plantuml.jar` weiterleitet:
-
-```
-... Batch-Skript für plantuml ...
-```
+Das selbe gilt für Quellcodefragmente für die Programme `gnuplot` und `plantuml`. Die entsprechenden Programme müssen ebenso separat installiert werden. `plantuml` wird unter Windows jedoch nicht als ausführbare Datei, sondern als nur als Java-Archiv ohne ausführendes Skript, ausgeliefert und kann deswegen nicht ausgeführt werden.
 
 ## Linux
 
@@ -94,7 +88,17 @@ Dieses ist für den einzelnen Benutzer für gewöhnlich `~/.local/bin/` oder Sys
 
 ### Installation optionaler Abhängigkeiten
 
-Die optionalen Abhängigkeiten
+Die optionalen Abhängigkeiten von `decker` sind:
+
+- `ssh`
+- `rsync`
+- `ffmpeg`
+- `gnuplot`
+- `graphviz`
+- `plantuml`
+- `pdflatex` (z.B. aus dem Paket `texlive-full`)
+- `pdf2svg`
+- `google-chrome`
 
 ## MacOS
 
@@ -104,13 +108,13 @@ Dieses ist nicht signiert, daher müssen Sie bei Installation bestätigen, dass 
 
 # Anwendungsfunktionen
 
-`decker` ist eine Anwendung, welche Sie für gewöhnlich über die Kommandozeile ihres Systems bedienen sollten. Sie können dem Aufruf von `decker` unterschiedliche zusätzliche Argumente übergeben, um die auszuführende Funktion zu ändern. Im Folgenden werden diese Funktionen im Detail beschrieben.
+`decker` ist eine Anwendung, die Sie für gewöhnlich über die Kommandozeile ihres Systems bedienen sollten. Sie können dem Aufruf von `decker` unterschiedliche zusätzliche Argumente übergeben, um die auszuführende Funktion zu ändern. Im Folgenden werden diese Funktionen im Detail beschrieben.
 
-Sie können die relevantesten Funktionalitäten von `decker` auch über das Visual Studio Code Plugin `decker server` mithilfe eines Rechtsklicks auf ihr Projektverzeichnis in der Dateiübersicht von Visual Studio Code aufrufen.
+Sie können ausgewählte Funktionalitäten von `decker` auch über das Visual Studio Code Plugin `decker server` mithilfe eines Rechtsklicks auf ihr Projektverzeichnis in der Dateiübersicht von Visual Studio Code aufrufen. Entsprechend brauchen Sie zum Bedienen der wichtigsten Funktionen von `decker` keine Kenntnisse in der Steuerung von Programmen über die Kommandozeile.
 
 ## Verzeichnis als Projektverzeichnis markieren
 
-Damit das Programm `decker` das aktuelle Arbeitsverzeichnis als ein Projektverzeichnis erkennt muss im aktuellen Arbeitsverzeichnis eine Datei mit dem Namem `decker.yaml` enthalten sein. Die Datei muss selbst keinen Inhalt besitzen. In ihr können Sie Konfigurationsoptionen für ihr gesamtes Projekt hinterlegen. Näheres dazu können Sie im Kapitel für Konfigurationsoptionen erfahren.
+Damit das Programm `decker` das aktuelle Arbeitsverzeichnis als ein Projektverzeichnis erkennt muss im aktuellen Arbeitsverzeichnis eine Datei mit dem Namem `decker.yaml` enthalten sein. Die Datei muss selbst keinen Inhalt besitzen. In ihr können Sie Konfigurationsoptionen für ihr gesamtes Projekt hinterlegen. Näheres dazu können Sie im Kapitel für [Konfigurationsoptionen](#konfigurationsoptionen) erfahren.
 
 ## Grundlagen
 
@@ -120,9 +124,9 @@ Markdownquelltextdateien, die auf `-deck.md` enden werden in Foliensätze mit de
 
 Für jedes Projekt wird zusätzlich mindestens eine Datei mit dem Namen `index.html` generiert. Den Inhalt dieser Datei können Sie durch anpassen einer Datei `index.md` im Wurzelverzeichnis ihres Projektes ändern. Näheres dazu im Kapitel zur Indexdatei.
 
-Zusätzlich können für `-deck.md`-Dateien auch Handouts mit der Dateiendung `-handout.html` erzeugt werden. Näheres dazu im Abschnitt `decker handouts`.
+Zusätzlich können für `-deck.md`-Dateien auch Handouts mit der Dateiendung `-handout.html` erzeugt werden. Näheres dazu im Abschnitt zu [`decker handouts`](#handouts-generieren).
 
-Für bereits übersetzte Foliensätze können mithilfe des Browsers Google Chrome PDF-Dateien der Foliensätze erzeugt werden. Diese werden in Dateien mit der Dateiendung `-deck.pdf` abgelegt. Näheres dazu im Abschnitt `decker pdf`.
+Für bereits übersetzte Foliensätze können mithilfe des Browsers Google Chrome PDF-Dateien der Foliensätze erzeugt werden. Diese werden in Dateien mit der Dateiendung `-deck.pdf` abgelegt. Näheres dazu im Abschnitt zu [`decker pdf`](#pdfs-generieren).
 
 ### Beispiel
 
@@ -196,7 +200,7 @@ Mithilfe der Programmoption `-w` bzw. `--watch` können Sie das programm `decker
 
 Der Aufruf von `decker` mit dem Argument `serve` als `decker serve` startet einen lokalen Webserver auf ihrem Rechner. Sie können mit der Option `-p` können Sie den Port, auf dem der Webserver horcht ändern. Der Standardport ist `8888`. Entsprechend erreichen Sie den Webserver mithilfe Ihres Browsers gewöhnlicherweise unter der Adresse [http://localhost:8888](http://localhost:8888).
 
-Wenn Sie `decker` mit der Option `-S` oder `--server` starten wird wie beim Aufruf von `serve` ein Webserver gestartet. Zusätzlich werden alle Quelltextdateien beobachtet und neu gebaut, wenn sie geändert werden wie beim Aufruf von `decker --watch`. Zusätzlich werden angezeigte Foliensätze und Webseiten in Ihrem Browser dazu angewiesen ihren Inhalt neu zu laden, wenn ihre Quelldateien neu übersetzt wurden. Dadurch können Sie Änderungen an Ihrem Quelltext sofort in Ihrem Browser begutachten und nachvollziehen. Entsprechend ist der Aufruf von `decker --server` dem Aufruf von `decker serve` im Allgemeinen zu bevorzugen.
+Wenn Sie `decker` mit der Option `-S` oder `--server` starten wird wie beim Aufruf von `serve` ein Webserver gestartet. Zusätzlich werden alle Quelltextdateien beobachtet und neu gebaut, wenn sie geändert werden, wie beim Aufruf von `decker --watch`. Zusätzlich werden angezeigte Foliensätze und Webseiten in Ihrem Browser dazu angewiesen ihren Inhalt neu zu laden, wenn ihre Quelldateien neu übersetzt wurden. Dadurch können Sie Änderungen an Ihrem Quelltext sofort in Ihrem Browser begutachten und nachvollziehen. Entsprechend ist der Aufruf von `decker --server` dem Aufruf von `decker serve` im Allgemeinen zu bevorzugen.
 
 ## Videodateien konvertieren
 
@@ -207,6 +211,10 @@ Rufen Sie `decker` mit dem Argument `crunch` als `decker crunch` auf wird das Pr
 ## Optionale Abhängigkeiten überprüfen
 
 Der Aufruf von `decker` mit dem Argument `check` als `decker check` weist das Programm dazu an zu überprüfen welche optionalen Abhängigkeiten installiert sind und in einer Liste aufzuzählen.
+
+## Versionsinformationen
+
+Der Aufruf von `decker` mit dem Argument `version` als `decker version` gibt Informationen über die verwendete Version von `decker` und internen Bibliotheken auf der Kommandozeile aus.
 
 # Markdown
 
@@ -226,7 +234,7 @@ Dokumenteninhalt
 
 ## Grundlagen
 
-Markdown ist eine Auszeichnungssprache, die dazu gedacht ist direkt in HTML-Dokumente überführt werden zu können. Ihr Ziel ist es dabei im besonderen den auf der übersetzten Webseite repräsentierten Text im Quelltext so ähnlich wie möglich wiederzuspiegeln.
+Markdown ist eine Auszeichnungssprache, die dazu gedacht ist direkt in HTML-Dokumente überführt zu werden. Ihr Ziel ist es dabei im besonderen den auf der übersetzten Webseite repräsentierten Text im Quelltext so ähnlich wie möglich wiederzuspiegeln.
 
 Als solche besitzt Markdown keine wirklichen Möglichkeiten zum definieren von Layout oder Design des repräsentierten Textes. Dies ist Aufgabe der Webseite, in die der aus dem Markdown-Quelltext übersetzte HTML-Quellcode eingebettet wird.
 
@@ -236,13 +244,23 @@ In Markdown werden alle Textbausteine semantisch durch eine Leerzeile (zwei aufe
 
 ### Überschriften
 
-In Markdown werden Überschriften mithilfe von `#`-Rauten-Symbolen eingeleitet. Die Anzahl an `#`-Rauten-Symbolen bestimmt die Ebene der Überschrift.
+In Markdown werden Überschriften mithilfe von `#`-Rauten-Symbolen eingeleitet. Die Anzahl an `#`-Rauten-Symbolen bestimmt die Ebene der Überschrift:
+
+``` markdown
+# Überschrift der Ebene 1
+```
 
 Überschriften der Ebene 1 haben für `decker` eine besondere Bedeutung, denn sie leiten eine neue Folie in einem Foliensatz ein. Die verwendete Überschrift ist dann der Titel der entsprechenden Folie.
 
-Wenn Sie eine neue Folie ohne Titel einleiten wollen, können Sie dies mit einer `#`-Raute ohne weiteren Text umsetzen.
+Wenn Sie eine neue Folie ohne Titel einleiten wollen, können Sie dies mit einer `#`-Raute ohne weiteren Text umsetzen:
 
-In Webseiten haben Überschriften der Ebene 1 keine besondere Bedeutung und werden nur als Überschriften für neue Abschnitte verwendet.
+```
+#
+
+Folieninhalt
+```
+
+In `-page.md`-Webseitendateien haben Überschriften der Ebene 1 keine besondere Bedeutung und werden nur als Überschriften für neue Abschnitte verwendet.
 
 #### Beispiele
 
@@ -282,9 +300,13 @@ Noch mehr Text
 Viel mehr Text
 ```
 
+![Überschriftenbeispiel](./examples/svgs/basic-markdown-deck-page-001.svg)
+
 ### Paragraph
 
 Einen einzelnen Textparagraphen können Sie in Markdown durch notieren des Textinhalts im Quelltext beschreiben. Wie alle Quelltextbausteine in Markdown werden zwei Paragraphen von einer Leerzeile voneinander getrennt.
+
+Möchten Sie innerhalb eines einzelnen Paragraphen einen Zeilenumbruch einfügen so müssen Sie die Zeile im Quelltext, nach der Sie umbrechen wollen, mit **zwei Leerzeichen** beenden.
 
 #### Beispiel
 
@@ -292,10 +314,10 @@ Wenn Sie zwei Zeilen im Quelltext folgendermaßen notieren werden Sie als zwei T
 
 ``` markdown
 Diese Zeile gehört zu einem Paragraphen.
-Diese Zeile gehört zum selben Paragraphen. Das Resultat wird keinen Zeilenumbruch besitzen.
+Diese Zeile gehört zum selben Paragraphen. Im Resultat werden beide Zeilen ungetrennt hintereinander stehen.
 ```
 
-Möchten Sie einen Zeilenumbruch innerhalb eines Paragraphen erzwingen müssen Sie die Zeile, nach der umgebrochen werden soll, mit zwei Leerzeichen beenden. (Markieren Sie den Text mit der Maus um die Leerzeichen am Ende der ersten Zeile zu sehen.)
+In folgendem Quelltextbeispiel wird nach der ersten Zeile ein Zeilenumbruch eingefügt. Markieren Sie den foglenden Quelltext mit der Maus um die Leerzeichen am Ende der ersten Zeile zu sehen.
 
 ``` markdown
 Diese Zeile ist Teil eines Paragraphen. Nach ihr wird umgebrochen.  
@@ -309,6 +331,17 @@ Diese Zeile gehört zu einem Paragraphen.
 
 Diese Zeile gehört zu einem anderen Paragraphen.
 ```
+
+Wenn Sie eine Folie mit viel Fließtext haben sähe eine Anordnung zum Beispiel folgendermaßen aus:
+
+```
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+```
+
+![Paragraphenbeispiel](./examples/svgs/basic-markdown-deck-page-002.svg)
 
 ### Textdekoration
 
@@ -331,12 +364,18 @@ Sie können keinen Text unterstreichen, da er auf Webseiten ansonsten mit Links 
 Im Quelltext würden Sie die Textdekorationen folgendermaßen verwenden:
 
 ``` markdown
-Dies ist ein Fließtext. Ich möchte *diesen Begriff* hervorheben.  
-Diesen **anderen Begriff** möchte ich durch Fettdruck hervorheben.  
-Andere Details möchte is mit ***beiden Methoden*** markieren.  
-Diese ~~Tatsache~~ möchte ich deutlich als falsch markieren.
-Dies ist mein `Quelltextfragment`, welches ich im Fließtext verwenden möchte.
+Folgender Text ist *kurisv*.
+
+Folgender Text ist **fett**.
+
+Folgender Text ist ***kursiv und fett***.
+
+Folgender Text ist ~~durchgestrichen~~.
+
+Folgender Text ist `Quelltext`.
 ```
+
+![Textdekorationen](./examples/svgs/basic-markdown-deck-page-003.svg)
 
 ### Blockzitate
 
@@ -358,6 +397,19 @@ Caption: Dies wird zur Zitatunterschrift des Blockzitats.
 
 Erst dieser Text ist wieder sein eigener Paragraph.
 ```
+
+Ein praktisches Beispiel in einer Folie wäre folgendes:
+
+```
+Einst sagte ein berühmter Naturwissenschaftler:
+
+> Insofern sich die Sätze der Mathematik auf die Wirklichkeit beziehen, sind sie nicht sicher, und insofern sie sicher sind, beziehen sie sich nicht auf die Wirklichkeit.
+Mathematische Theorien über die Wirklichkeit sind immer ungesichert - wenn sie gesichert sind, handelt es sich nicht um die Wirklichkeit.
+
+Caption: Albert Einstein
+```
+
+![Blockzitatbeispiel](./examples/svgs/basic-markdown-deck-page-004.svg)
 
 ### Listen
 
@@ -385,7 +437,19 @@ Eine ungeordnete Liste im Markdownquelltext wird folgendermaßen notiert:
 Nur die erste Zeile muss eingerückt werden, um die Zugehörigkeit zu kennzeichnen.
 ```
 
-Die selbe Liste kann als geordnete Aufzählung folgendermaßen notiert werden:
+Zum Beispiel können Sie eine ungeordnete Liste folgendermaßen verwenden:
+
+``` markdown
+- 10 Eier
+- 2l Milch
+- 1kg Weizenmehl
+- Eine großzügige Priese Salz
+- 10 EL Zucker
+```
+
+![Beispiel für eine ungeordnete Liste](./examples/svgs/basic-markdown-deck-page-005.svg)
+
+Die selbe Liste wie im ersten Beispiel kann als geordnete Aufzählung folgendermaßen notiert werden:
 
 ``` markdown
  1. Mein erster Listeneintrag
@@ -398,6 +462,18 @@ Die selbe Liste kann als geordnete Aufzählung folgendermaßen notiert werden:
     Dieser Paragraph ist Teil des vierten Eintrags.
 Nur die erste Zeile muss eingerückt werden, um die Zugehörigkeit zu kennzeichnen.
 ```
+
+Ein Beispiel für eine geordnete Liste wäre zum Beispiel folgendes:
+
+``` markdown
+1. Eier aufschlagen
+2. Salz und Zucker hinzugeben
+3. Eier mit dem Mixer schlagen und langsam Milch hinzugeben
+4. Unter weiterem Rühren das Mehl langsam hinzugeben
+5. Eine große Kelle pro Portion in die Pfanne gießen
+```
+
+![Beispiel für eine geordnete Liste](./examples/svgs/basic-markdown-deck-page-006.svg)
 
 ### Codeblöcke
 
@@ -433,13 +509,17 @@ ohne dabei ausversehen die Quelltextumgebung zu schließen.
 Sie können eine breite Auswahl an Programmiersprachen für das Hervorheben von Syntaxelementen wählen:
 
 ```` markdown
-``` c 
-int main(int argc, char** argc) {
+``` c
+#include <stdio.h>
+
+int main(int argc, char** argv) {
   printf("Hello World.\n");
   return 0;
 }
 ```
 `````
+
+![Codeblockbeispiel](./examples/svgs/basic-markdown-deck-page-007.svg)
 
 ### Links
 
@@ -509,6 +589,22 @@ Möchten Sie einen anderen Linktext für die Referenz benutzen, können Sie dies
 In unserem [Beispiel][Beispielwebseite] sehen Sie, wie man einen Referenzlink verwenden kann.
 ```
 
+Sie müssen sich nicht für einen Stil Links zu verwenden entscheiden:
+
+``` markdown
+[Beispiel]: <https://example.org> "Beispiellink"
+
+In diesem Fließtext wurde ein [Link](https://example.org) eingebaut.
+
+Mithilfe von  
+`[Beispiel]: <https://example.org> "Beispiellink"`  
+wurde eine Linkreferenz angelegt.
+
+So kann in diesem [Beispiel] der Link mit nur dem Quellcode `[Beispiel]` referenziert werden.
+```
+
+![Linkbeispiele](./examples/svgs/basic-markdown-deck-page-008.svg)
+
 ### Bilder
 
 Ein Bild wird in Markdown ähnlich wie ein Link notiert, beginnt jedoch mit einem Ausrufezeichen:
@@ -529,11 +625,63 @@ Ein externes Bild können Sie folgendermaßen einbetten:
 ![Logo der Wikipedia](https://www.wikipedia.org/portal/wikipedia.org/assets/img/Wikipedia-logo-v2.png)
 ```
 
+![Bildbeispiele](./examples/svgs/basic-markdown-deck-page-009.svg)
+
 Ein Bild aus Ihrem Projektverzeichnis würden Sie folgendermaßen referenzieren:
 
 ```
-![Fotografie des Labors](/bilder/laboratory.png)
+![Bild eines blauen Vogels (CC BY-SA 2.5 Elaine R. Wilson)](/images/bluebird.jpg)
 ```
+
+![Bildbeispiele](./examples/svgs/basic-markdown-deck-page-010.svg)
+
+### Tabellen
+
+Tabellen werden in Markdown so notiert, dass der Quelltext nach Möglichkeit selbst dem Aussehen der Tabelle ähnelt.
+
+Eine Tabelle beginnt mit ihrer Kopfzeile und wird mit `|`-vertikalen Striche markiert. Einzelne Zellen in der Kopfzeile werden wiederrum mit weiteren `|`-vertikalen Strichen voneinander getrennt:
+
+`| Spalte 1 | Spalte 2 | Spalte 3 |`
+
+In der nächsten Zeile müssen Sie die Ausrichtung der einzelnen Spalteninhalte definieren. Dies geschieht durch Verwendung von Trennlinien bestehend aus `:`-Doppelpunkten und `-`-Bindestrichen, die sie wie die Spaltenüberschriften zuvor mit `|`-vertikalen Strichen voneinander trennen. Die Position des Doppelpunktes bestimmt die Ausrichtung: Verwenden Sie keinen Doppelpunkt überlassen Sie die Ausrichtung der Grundeinstellung ihres Folienstils. Ein Doppelpunkt am Anfang der Trennlinie garantiert eine linksbündige Ausrichtung der Spalte. Ein Doppelpunkt am Ende der Trennlinie garantiert eine rechtsbündige Ausrichtung der Spalte. Ein Doppelpunkt am Anfang und am Ende der Trennlinie garantiert eine zentrierte Ausrichtung der Spalte:
+
+``` markdown
+| Linksbündig | Zentriert | Rechtsbündig | Standard |
+| :---------- | :-------: | -----------: | -------- |
+```
+
+Die Anzahl an Bindestrichen in der Trennlinie ist nicht relevant und dient nur der Lesbarkeit im Quellcode. Eine Trennlinie muss aus mindestens drei Symbolen bestehen:
+
+``` markdown
+| Linksbündig | Zentriert | Rechtsbündig | Standard |
+| :-- | :-: | --: | --- |
+```
+
+Ab der nächsten Zeile hinter den Trennlinien können Sie anschließend den Inhalt der Tabelle angeben. Auch hier wird jede Zelle in der Tabelle von der nächsten mit `|`-vertikalen Strichen getrennt. Sie müssen pro Zeile genau so viele Zellen angeben wie Sie Spalten verwendet haben.
+
+``` markdown
+| Linksbündig    | Zentriert | Rechtsbündig | Standard |
+| :------------  | :-------: | -----------: | -------- |
+| Erster Eintrag | Zweiter   | Dritter      | Vierter  |
+```
+
+Eine Möglichkeit Spalten oder Zeilen zu verschmelzen gibt es nicht.
+
+#### Beispiele
+
+Eine Tabelle können Sie beispielsweise folgendermaßen notieren:
+
+```
+
+| Ware  | Nettopreis | Mehrwertssteuer | Bruttopreis | Anzahl |
+| ----  |:---------- | :-------------: | ----------: | ------ |
+| Apfel | 0.75€      | 19%             | 0,89€       | 10     |
+| Birne | 1.25€      | 19%             | 1,49€       | 8      |
+| Bier  | 0.93€      |  7%             | 1,00€       | 18     |
+```
+
+![Tabellenbeispiel](./examples/svgs/basic-markdown-deck-page-011.svg)
+
 
 ## Erweiterte Syntax
 
@@ -541,7 +689,7 @@ Die Programmbibliothek `pandoc` erlaubt es die Syntax von Markdown um viele vers
 
 ### Textabschnitte
 
-Sie können im Fließtext einzelne Textabschnitte mit Attributen, CSS-Klassen oder Identifikatoren versehen, indem Sie den Textabschnitt mit eckigen Klammern umranden und hinter diesen die geschweiften Klammern zum zuweisen von Attributen (siehe kommender Abschnitt) setzen:
+Sie können im Fließtext einzelne Textabschnitte mit Attributen, Klassen oder Identifikatoren versehen, indem Sie den Textabschnitt mit eckigen Klammern umranden und hinter diesen die geschweiften Klammern zum Zuweisen von [Attributen](#attribute-klassen-und-identifikatoren) setzen:
 
 ``` markdown
 [Textinhalt]{ attribute }
@@ -555,11 +703,15 @@ Wenn Sie einen Textabschnitt zum Beispiel einfärben möchten würde man das fol
 In diesem Paragraphen ist [dieser Text]{style="color: red;"} rot.
 ```
 
+![Beispiel Textabschnitt](./examples/svgs/extended-markdown-deck-page-001.svg)
+
 ### Abgegrenzte Bereiche
 
-Ein abgegrenzter Bereich (engl. *fenced div*) ist dazu da, um Abschnitte in ihrem Dokument zu gruppieren und mithilfe von CSS-Klassen für besondere Funktionalitäten von `decker` zu markieren.
+Ein abgegrenzter Bereich (engl. *fenced div*) ist dazu da, um Abschnitte in ihrem Dokument zu gruppieren und mithilfe von Klassen für besondere Funktionalitäten von `decker` zu markieren oder zu stilisieren.
 
-Einen Bereich können Sie abgrenzen, indem Sie ihn mit (mindestens) drei `:::`-Doppelpunkten umranden. Die Anzahl der Doppelpunkte, die den Anfang und das Ende eines Bereiches markieren ist unerheblich. Eine Gruppe von Doppelpunkten, die auf eine beliebige öffnende Gruppe von Doppelpunkten folgen wird immer als schließende Gruppe interpretiert. Wenn Sie Bereiche ineinander schachteln wollen, so müssen Sie die Gruppe von Doppelpunkten, die den verschachtelten Bereich markieren sollen mit Attributen versehen. Am Besten verwenden Sie dafür eine Platzhalter-CSS-Klasse, der Sie keine Semantik geben, um eine solche Gruppe von Doppelpunkten zu markieren, wenn sie einfach nur Bereiche ineinander schachteln wollen.
+Einen Bereich können Sie abgrenzen, indem Sie ihn mit (mindestens) drei `:::`-Doppelpunkten umranden. Die Anzahl der Doppelpunkte, die den Anfang und das Ende eines Bereiches markieren ist unerheblich. Eine Gruppe von Doppelpunkten, die auf eine beliebige öffnende Gruppe von Doppelpunkten folgen wird immer als schließende Gruppe interpretiert.
+
+Wenn Sie Bereiche ineinander schachteln wollen, so müssen Sie die Gruppe von Doppelpunkten, die den verschachtelten Bereich markieren soll, mit Attributen versehen. Am Besten verwenden Sie dafür eine Platzhalter-Klasse, der Sie keine Semantik geben. Mithilfe dieser Klasse können Sie einleitende Gruppen von Doppelpunkten markieren, wenn Sie Bereiche ineinander schachteln möchten.
 
 #### Beispiele
 
@@ -573,7 +725,7 @@ Gruppierter Inhalt des Bereiches
 :::
 ```
 
-Möchten Sie einen Bereich mit einer einzelnen CSS-Klasse markieren, so können Sie das folgendermaßen umsetzen:
+Möchten Sie einen Bereich mit einer einzelnen Klasse markieren, so können Sie das folgendermaßen umsetzen:
 
 ``` markdown
 ::: klassenname
@@ -583,27 +735,45 @@ Gruppierter Inhalt des Bereiches
 :::
 ```
 
-Wenn Sie Bereiche ineinander schachteln möchten müssen Sie dies folgendermaßen umsetzen. Die "klammernden" Gruppen von Doppelpunkten des äußeren und der inneren Bereiche besitzen in diesem Beispiel die selbe Anzahl an Doppelpunkten.
+In folgendem Beispiel mit Bild sehen Sie die Strukturierung des Resultats:
 
 ``` markdown
-::::: aussen
+Dieser Paragraph ist vor dem Bereich im Quelltext notiert.
 
-::: innen
+::: {style="background-color: salmon;"}
 
-Gruppierter Inhalt eines inneren Bereiches
+Diese beiden Paragraphen werden durch einen Bereich gruppiert. 
+
+Der Bereich besitzt zur besseren Visualisierung eine andere Hintergrundfarbe.
+
+:::
+
+Dieser Paragraph ist nach dem Bereich im Quelltext notiert.
+```
+
+![Beispiel für einen abgegrenzten Bereich](./examples/svgs/extended-markdown-deck-page-002.svg)
+
+Wenn Sie Bereiche ineinander schachteln möchten müssen Sie dies folgendermaßen umsetzen: Die "klammernden" Gruppen von Doppelpunkten des äußeren und der inneren Bereiche besitzen in diesem Beispiel die selbe Anzahl an Doppelpunkten.
+
+``` markdown
+::::: {style="background-color: salmon; padding: 0.5rem;"}
+
+Dieser Paragraph ist Teil des äußeren Bereichs.
+
+::: {style="background-color: skyblue;"}
+
+Dieser Paragraph ist Teil des inneren Bereichs.
+
+Der äußere Paragraph besitzt ein kleines Polster zum visualisieren der Verschachtelung.
 
 :::
 
-Inhalt des äußeren Bereiches
-
-::: innen
-
-Gruppierter Inhalt eines inneren Bereiches
-
-:::
+Dieser Paragraph ist erneut Teil des äußeren Bereichs.
 
 :::::
 ```
+
+![Beispiel für verschachtelte Bereiche](./examples/svgs/extended-markdown-deck-page-003.svg)
 
 Wie bereits erwähnt ist die Anzahl an Doppelpunkten nicht relevant, um öffnende und schließende Gruppen von Doppelpunkten zu erkennen. In diesem Beispiel ist die Anzahl der jeweiligen Doppelpunkte bewusst verwirrend gewählt:
 
@@ -624,15 +794,15 @@ Weiterer Teil des äußeren Bereiches.
 :::
 ```
 
-### Attribute, CSS-Klassen und Identifikatoren
+### Attribute, Klassen und Identifikatoren
 
-Sie können hinter bestimmten Textbausteinen geschweifte Klammern setzen, um das HTML-Element, was durch die Übersetzung erzeugt wird mit zusätzlichen HTML-Attributen, CSS-Klassen oder Identifikatoren zu versehen.
+Sie können hinter bestimmten Textbausteinen geschweifte Klammern setzen, um das HTML-Element, was durch die Übersetzung erzeugt wird, mit zusätzlichen HTML-Attributen, Klassen oder Identifikatoren zu versehen.
 
-In erster Linie sind diese Attributzuweisungen da, um den betroffenen Elementen einen eigenen Stil zuzuweisen oder sie für weitere Funktionalitäten von `decker` zu markieren. Welche CSS-Klassen besonderen Einfluss auf Elemente haben wird in den kommenden Abschnitten erklärt.
+In erster Linie sind diese Zuweisungen dazu da, um den betroffenen Elementen einen eigenen Stil zuzuweisen oder sie für weitere Funktionalitäten von `decker` zu markieren. Welche Klassen besonderen Einfluss auf Elemente haben wird in den kommenden Abschnitten erklärt.
 
-Die Textbausteine für die `decker` eine Attributzuweisung erlaubt sind Medienelemente, Quelltextblöcke, Folienüberschriften, direkte Unterüberschriften, Links, Textabschnitte und abgegrenzte Bereiche.
+Die Textbausteine für die `decker` eine Attributzuweisung erlaubt sind: Medienelemente, Quelltextblöcke, Folienüberschriften, direkte Unterüberschriften, Links, Textabschnitte und abgegrenzte Bereiche.
 
-Innerhalb der geschweiften Klammern werden zuzuweisende CSS-Klassen mit `.klassenname` spezifiziert. Möchten Sie dem Objekt einen Identifikator zuweisen, so müssen Sie dies mit `#identifikator` umsetzen. Attribute werden als Schlüssel-Wert-Paare angegeben: `attribut=wert`. Manche Textbausteine erlauben auch die direkte Zuweisung einer einzelnen CSS-Klasse durch alleinige Angabe des Namens der Klasse.
+Innerhalb der geschweiften Klammern werden zuzuweisende Klassen mit `.klassenname` spezifiziert. Möchten Sie dem Objekt einen Identifikator zuweisen, so müssen Sie dies mit `#identifikator` umsetzen. Attribute werden als Schlüssel-Wert-Paare angegeben: `attribut=wert`. Manche Textbausteine erlauben auch die direkte Zuweisung einer einzelnen Klasse durch alleinige Angabe des Namens der Klasse.
 
 #### Folien mit Attributen
 
@@ -642,9 +812,11 @@ Eine Folie kann mit Attributen versehen werden, indem hinter dem Folientitel ges
 # Folienüberschrift { ... }
 ```
 
+Ein speziell für Folienüberschriften vorgesehenes Attribut ist `menu-title="Titel"`. Mit diesem können Sie den Titel der Folie im Navigationmenu anpassen. Weitere Attribute sind für das Anpassen von Hintergrundbildern und -videos der Folie. Diese werden in ihrem [eigenen Abschnitt](#hintergrundbilder-und--videos) erklärt.
+
 #### Unterüberschriften mit Attributen
 
-Unterüberschriften der Ebene 2, die direkte Kinder von Folienüberschriften sind, gruppieren den Inhalt hinter ihnen sowie sich selbst in einem HTML-Blockelement, dem Sie Attribute zuweisen können, indem Sie hinter die Unterüberschrift geschweifte Klammern setzen:
+Unterüberschriften der Ebene 2, die direkte Kinder von Folienüberschriften sind, gruppieren den Inhalt hinter ihnen sowie sich selbst in einem HTML-Blockelement, dem Sie Attribute zuweisen können. Dies können Sie umsetzen, indem Sie hinter die Unterüberschrift geschweifte Klammern setzen:
 
 ``` markdonw
 # Folienüberschfit
@@ -660,9 +832,11 @@ Text
 Text
 ```
 
+![](./examples/svgs/extended-markdown-deck-page-004.svg)
+
 #### Quelltext mit Attributen
 
-Ein Quelltextblock kann mit Attributen versehen werden, indem hinter den öffnenden `` ` ``-Backticks geschweifte Klammern gesetzt werden. Soll dem Quelltextblock nur eine einzelne CSS-Klasse zugewiesen werden, so können die Klammern auch weggelassen werden. Das Syntaxhighlighting wird über eine solche CSS-Klasse spezifiziert:
+Ein Quelltextblock kann mit Attributen versehen werden, indem hinter den öffnenden `` ` ``-Backticks geschweifte Klammern gesetzt werden. Soll dem Quelltextblock nur eine einzelne Klasse zugewiesen werden, so können die Klammern auch weggelassen werden. Das Syntaxhighlighting wird über eine solche Klasse spezifiziert:
 
 ```` markdown
 ``` { ... }
@@ -670,7 +844,7 @@ Quelltext
 ```
 ````
 
-Wenn nur eine einzelne CSS-Klasse angegeben werden soll:
+Wenn nur eine einzelne Klasse angegeben werden soll:
 
 ```` markdown
 ``` klassenname
@@ -702,6 +876,8 @@ Einem Link können Attribute zugewiesen werden, indem hinter der runden Klammer,
 [Linktext](URL){ ... }
 ````
 
+Sie können einen Link als Downloadlink markieren, indem Sie ihm das Attribut `download=""` zuweisen. Die inhaltslosen Anführungsstriche sind notwendig, um das Attribut zu definieren. Der Wert hat jedoch keine Bedeutung.
+
 #### Abgegrenzte Bereiche mit Attributen
 
 Einem Bereich können Attribute zugewiesen werden, indem hinter den öffnenden Doppelpunkten die geschweiften Klammern gesetzt werden.
@@ -714,7 +890,7 @@ Text
 :::
 ````
 
-Möchten Sie dem Bereich nur eine einzelne CSS-Klasse zuweisen, so können Sie diese durch alleinige Angabe des Namens zuweisen.
+Möchten Sie dem Bereich nur eine einzelne Klasse zuweisen, so können Sie diese durch alleinige Angabe des Namens zuweisen.
 
 ```` markdown
 ::: klassenname
@@ -740,7 +916,7 @@ Das Einbetten von Bildern wurde in den Grundlagen bereits erklärt.
 
 #### Vektorgrafiken
 
-Wenn Sie eine Vektorgrafik in Ihr Dokument einbetten wollen können Sie dies entweder als Bild tun oder den `.svg`-Quelltext der referenzierten Datei direkt als HTML-Elemente in ihr Dokument einbetten. Letzteres können Sie umsetzen, indem Sie dem Medienelement die CSS-Klasse `.embed` zuweisen:
+Wenn Sie eine Vektorgrafik in Ihr Dokument einbetten wollen können Sie dies entweder als Bild tun oder den `.svg`-Quelltext der referenzierten Datei direkt als HTML-Elemente in ihr Dokument einbetten. Letzteres können Sie umsetzen, indem Sie dem Medienelement die Klasse `.embed` zuweisen:
 
 ```
 ![Bildunterschrift](/pfad/bild.svg){ .embed }
@@ -748,13 +924,15 @@ Wenn Sie eine Vektorgrafik in Ihr Dokument einbetten wollen können Sie dies ent
 
 Der Vorteil einer direkt eingebetteten Vektorgrafik ist, dass die SVG-Elemente auch als Fragmente (siehe kommenden Abschnitt) markiert werden können, um so sich schrittweise aufbauende, animierte Vektorgrafiken zu erzeugen.
 
+![Unterschied eingebettete Vektorgrafiken](./examples/svgs/media-deck-page-001.svg)
+
 #### Videos
 
-Ein Video wird anhand der Dateiendung der referenzierten Datei identifiziert. Das Element wird in dem Falle in ein natives HTML-Video-Element übersetzt. Sie können dem Videoelement bis zu drei besondere CSS-Klassen zuweisen, um das Verhalten des Videos auf der Folie zu kontrollieren:
+Ein Video wird anhand der Dateiendung der referenzierten Datei identifiziert. Das Element wird in dem Falle in ein natives HTML-Video-Element übersetzt. Sie können dem Videoelement bis zu drei besondere Klassen zuweisen, um das Verhalten des Videos auf der Folie zu kontrollieren:
 
-- `.autoplay`: Weisen Sie diese CSS-Klasse zu, wenn Sie möchten, dass das Video beim Aufruf der beinhaltenden Folie sofort abgespielt wird.
-- `.muted`: Weisen Sie diese CSS-Klasse zu, wenn Sie möchten, dass das Video initial stumm geschaltet sein soll.
-- `.controls`: Weisen Sie diese CSS-Klasse zu, wenn Sie möchten, dass das Video die nativen Steuerelemente beinhalten soll.
+- `.autoplay`: Weisen Sie diese Klasse zu, wenn Sie möchten, dass das Video beim Aufruf der beinhaltenden Folie sofort abgespielt wird.
+- `.muted`: Weisen Sie diese Klasse zu, wenn Sie möchten, dass das Video initial stumm geschaltet sein soll.
+- `.controls`: Weisen Sie diese Klasse zu, wenn Sie möchten, dass das Video die nativen Steuerelemente beinhalten soll.
 
 Zum Beispiel können Sie ein Video folgendermaßen einbetten:
 
@@ -762,15 +940,19 @@ Zum Beispiel können Sie ein Video folgendermaßen einbetten:
 ![Videobeschreibung](/pfad/video.mp4){ .autoplay .muted .controls }
 ```
 
+![Videobeispiel](./examples/svgs/media-deck-page-007.svg)
+
 #### Externe Webseiten
 
-Sie können eine externe Webseite in Ihr Dokument einbetten, indem Sie das Medienelement mit der CSS-Klasse `.iframe` versehen.
+Sie können eine externe Webseite in Ihr Dokument einbetten, indem Sie das Medienelement mit der Klasse `.iframe` versehen.
 
 Die verlinkte Webseite wird dann als *Iframe* in Ihr Dokument eingebettet:
 
 ``` markdown
 ![Webseitenbeschreibung](http://example.org) { .iframe }
 ```
+
+<!--![Webseitenbeispiel](./examples/svgs/media-deck-page-008.svg)-->
 
 #### PDF-Dateien
 
@@ -780,6 +962,8 @@ Wenn die Dateiendung der verlinkten Datei `.pdf` ist, so wird bettet das Mediene
 ![Dokumentenbeschreibung](/pfad/datei.pdf)
 ```
 
+<!--![PDF-Beispiel](./examples/svgs/media-deck-page-009.svg)-->
+
 #### 3D-Modelle
 
 Wenn Sie eine `.off`-Datei als Medienelement verlinken, so wird eine Applikation in Ihr Dokument eingebettet, die das 3D-Modell zum Betrachten mit der Maus anzeigt:
@@ -788,6 +972,8 @@ Wenn Sie eine `.off`-Datei als Medienelement verlinken, so wird eine Applikation
 ![Modellbeschreibung](/pfad/modell.off)
 ```
 
+<!--![3D-Modelle](./examples/svgs/media-deck-page-010.svg)-->
+
 #### Geogebra
 
 Geogebra-Projekte mit der Dateiendung `.ggb` können Sie auch als Medienelement einbetten. In Ihr Dokument wird dann an der Stelle des Medienelements eine Applikation in Ihr Dokument eingebettet, das die Interaktion mit der Geogebra-Anwendung erlaubt:
@@ -795,6 +981,8 @@ Geogebra-Projekte mit der Dateiendung `.ggb` können Sie auch als Medienelement 
 ``` markdown
 ![Anwendungsbeschreibung](/pfad/anwendung.ggb)
 ```
+
+<!--![Geogebrabeispiel](./examples/svgs/media-deck-page-011.svg)-->
 
 #### Größenattribute für Medienelemente
 
@@ -810,7 +998,7 @@ Wenn Sie nur einen der beiden Werte angeben wird versucht das Seitenverhältnis 
 
 In Foliensätzen möchten Sie unter Umständen die Folie während einer Präsentation schrittweise aufbauen.
 
-Sie können jedem beliebigen Folienelement, dem Sie CSS-Klassen und Attribute zuweisen können die CSS-Klasse `.fragment` zuweisen.
+Sie können jedem beliebigen Folienelement, dem Sie Klassen und Attribute zuweisen können die Klasse `.fragment` zuweisen.
 
 Ein Fragment ist auf einer Folie solange nicht sichtbar, bis es durch Fortschreiten der Präsentation angezeigt wird. Die Reihenfolge, in der Fragmente aufgedeckt werden ist üblicherweise die Reihenfolge, in der sie im Quelltext notiert werden.
 
@@ -866,7 +1054,7 @@ Die Javascript-Bibliothek MathJax erlaubt es Ihnen in Ihren Folien wie in LaTeX 
 Sie können den Mathemodus mit einzelnen `$`-Dollar-Symbolen oder mit den Zeichenfolgen `\(` und `\)` im Fließtext an- und ausschalten und Matheformeln setzen lassen:
 
 ```
-Sei $x \in \mathbb{R} \ setminus {0}$, so gilt ...
+Sei $x \in \mathbb{R} \setminus {0}$, so gilt ...
 
 Es gelte \(n \in \mathbb{Z}\) und \(m \in \mathbb{N}\) ...
 ```
@@ -881,11 +1069,13 @@ $$ f(x) = \frac{\cos(x)}{\sin(x + \pi)} $$
 ...
 ```
 
+![MathJaX Beispiel](./examples/svgs/extended-markdown-deck-page-005.svg)
+
 Sie können in den Konfigurationseinstellungen von Ihnen häufig verwendete Matheformeln als Makro definieren, um sich so schreibarbeit zu sparen. Näheres dazu finden sie im Kapitel [Konfigurationsoptionen](#konfigurationsoptionen), Abschnitt [Einstellungen für MathJax](#einstellungen-für-mathjax).
 
-### Statistiken mit chart.js
+### Statistiken mit Chart.js
 
-In Foliensätzen können Sie animierte Graphen und Statistiken einbetten. Zum Darstellen der Statistiken wir die Javascript-Bibliothek `chart.js` in den Foliensätzen eingebettet. Die Daten der Statistik werden dafür in einen Quelltextblock angegeben. Die CSS-Klasse des Quelltextblocks bestimmt dabei den Typ des Graphen.
+In Foliensätzen können Sie animierte Graphen und Statistiken einbetten. Zum Darstellen der Statistiken wir die Javascript-Bibliothek `chart.js` in den Foliensätzen eingebettet. Die Daten der Statistik werden dafür in einen Quelltextblock angegeben. Die Klasse des Quelltextblocks bestimmt dabei den Typ des Graphen.
 
 Es sind folgende Graphtypen erlaubt:
 
@@ -917,6 +1107,8 @@ Derek Jones, 98.0,-38.0,82.0,-54.0,-34.0,27.0,90.0,-36.0,60.0,-45.0,40.0,35.0
 ```
 ````
 
+![Chart.js Beispiel](./examples/svgs/extended-markdown-deck-page-006.svg)
+
 ### Vorübersetzte Inhalte
 
 `decker` erlaubt es LaTeX, Gnuplot und Plantuml Quellcode direkt an die entsprechenden Übersetzer zu übergeben und entsprechend markierte Quellcodebereiche durch das Ergebnis der Übersetzung zu ersetzen. Dies geschieht während dem Übersetzungsprozess des Dokuments.
@@ -925,9 +1117,9 @@ Für das Übersetzen von LaTeX-Code muss auf Ihrem System eine LaTeX-Distributio
 
 Für das Übersetzen von Gnuplot und Dot-Code muss auf Ihrem System `gnuplot` installiert sein.
 
-Für das Übersetzen von plantuml-Code muss auf Ihrem System `plantuml` installiert sein. Die Windows-Version von `plantuml` wird nur als Java-Applet ohne ausführendes Script ausgeliefert. Daher sind `plantuml`-Texte nicht ohne erweiterte technische Kenntnisse auf Windows Systemen übersetzbar.
+Für das Übersetzen von plantuml-Code muss auf Ihrem System `plantuml` installiert sein. Die Windows-Version von `plantuml` wird nur als Java-Archiv ohne ausführendes Skript ausgeliefert. Daher ist `plantuml` unter Windows nicht von `decker` ausführbar.
 
-Einen Quellcodeblock, den Sie während des Übersetzungsprozesses durch das entsprechende Ergebnis ersetzen möchten müssen Sie mit der CSS-Klasse `.render` und der entsprechenden Quellcodeklasse der Quellsprache versehen.
+Einen Quellcodeblock, den Sie während des Übersetzungsprozesses durch das entsprechende Ergebnis ersetzen möchten müssen Sie mit der Klasse `.render` und der entsprechenden Quellcodeklasse der Quellsprache versehen. Aktuell sind die Klassen `.tex`, `.gnuplot`, `.dot` und `.plantuml` verfügbar.
 
 #### LaTeX Beispiel
 
@@ -937,68 +1129,28 @@ Wenn Sie mit LaTeX/TikZ ein Bild erzeugen möchten, können Sie das zum Beispiel
 ``` { .tex .render }
 \documentclass{standalone}
 \usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+\usepackage{pgfplots}
 \usepackage{verbatim}
 \begin{document}
-\pagestyle{empty}
-\begin{tikzpicture}[scale=3,cap=round]
-  % Local definitions
-  \def\costhirty{0.8660256}
-
-  % Colors
-  \colorlet{anglecolor}{green!50!black}
-  \colorlet{sincolor}{red}
-  \colorlet{tancolor}{orange!80!black}
-  \colorlet{coscolor}{blue}
-
-  % Styles 
-  \tikzstyle{axes}=[]
-  \tikzstyle{important line}=[very thick]
-  \tikzstyle{information text}=[rounded corners,fill=red!10,inner sep=1ex]
-
-  % The graphic
-  \draw[style=help lines,step=0.5cm] (-1.4,-1.4) grid (1.4,1.4);
-
-  \draw (0,0) circle (1cm);
-
-  \begin{scope}[style=axes]
-    \draw[->] (-1.5,0) -- (1.5,0) node[right] {$x$};
-    \draw[->] (0,-1.5) -- (0,1.5) node[above] {$y$};
-
-    \foreach \x/\xtext in {-1, -.5/-\frac{1}{2}, 1}
-      \draw[xshift=\x cm] (0pt,1pt) -- (0pt,-1pt) node[below,fill=white]
-            {$\xtext$};
-
-    \foreach \y/\ytext in {-1, -.5/-\frac{1}{2}, .5/\frac{1}{2}, 1}
-      \draw[yshift=\y cm] (1pt,0pt) -- (-1pt,0pt) node[left,fill=white]
-            {$\ytext$};
-  \end{scope}
-
-  \filldraw[fill=green!20,draw=anglecolor] (0,0) -- (3mm,0pt) arc(0:30:3mm);
-  \draw (15:2mm) node[anglecolor] {$\alpha$};
-
-  \draw[style=important line,sincolor]
-    (30:1cm) -- node[left=1pt,fill=white] {$\sin \alpha$} +(0,-.5);
-
-  \draw[style=important line,coscolor]
-    (0,0) -- node[below=2pt,fill=white] {$\cos \alpha$} (\costhirty,0);
-
-  \draw[style=important line,tancolor] (1,0) --
-    node [right=1pt,fill=white]
-    {
-      $\displaystyle \tan \alpha \color{black}=
-      \frac{ {\color{sincolor}\sin \alpha} }{\color{coscolor}\cos \alpha}$
-    } (intersection of 0,0--30:1cm and 1,0--1,1) coordinate (t);
-
-  \draw (0,0) -- (t);
+\begin{tikzpicture}
+\begin{axis}
+\addplot3[
+    surf,
+]
+{exp(-x^2-y^2)*x};
+\end{axis}
 \end{tikzpicture}
 \end{document}
 ```
 ````
 
+![LaTeX-Codebeispiel](./examples/svgs/extended-markdown-deck-page-007.svg)
+
 Einen gnuplot Graphen können Sie folgendermaßen einbetten:
 
 ````
-``` {.gnuplot .render height=500px }
+``` {.gnuplot .render }
 set samples 20, 20
 set isosamples 20, 20
 set hidden3d back offset 1 trianglepattern 3 undefined 1 altdiagonal bentover
@@ -1011,9 +1163,30 @@ splot 1 / (x*x + y*y + 1)
 ```
 ````
 
+![gnuplot-Codebeispiel](./examples/svgs/extended-markdown-deck-page-008.svg)
+
+Mit graphviz zu übersetzender DOT-Code kann folgendermaßen angegeben werden:
+
+````
+``` {.dot .render }
+digraph {
+  node [style = filled]
+  A [fillcolor = yellowgreen]
+  A -> B 
+  A -> C
+  C -> D
+  C -> E
+  C -> F
+  B -> D
+}
+```
+````
+
+![dot-Codebeispiel](./examples/svgs/extended-markdown-deck-page-009.svg)
+
 ### Interaktive Quizzes
 
-Sie können abgegrenzte Bereiche als Quizbereiche deklarieren, indem Sie ihnen eine der folgenden CSS-Klassen zuweisen:
+Sie können abgegrenzte Bereiche als Quizbereiche deklarieren, indem Sie ihnen eine der folgenden Klassen zuweisen:
 
 - `.quiz` - Antwort-Wahl Quiz
 - `.quiz-mi` - Zuordnungsaufgaben
@@ -1035,7 +1208,7 @@ Antwort-Wahl Quizzes werden durch eine Todo-Liste repräsentiert. Angekreuzte An
 :::
 ```
 
-Folien, die ein solches Quiz haben können das Quiz als Zuschauerumfrage präsentieren. Näheres dazu im Präsentationskapitel.
+Folien, die ein solches Quiz haben können das Quiz als Zuschauerumfrage präsentieren. Näheres dazu im [Abschnitt zu Quizumfragen](#quizumfragen) im Kapitel *Präsentieren*.
 
 #### Zuordnungsaufgaben
 
@@ -1108,7 +1281,7 @@ Sie können die Positionierung und das Verhalten des Bildes mithilfe der Attribu
 - `repeat` kann die Werte `repeat` und `no-repeat` annehmen, um einzustellen ob das Hintergrundbild wie gekachelt wiederholt werden soll.
 - `position` kann die Position des Hintergrundbildes im Hintergrund anpassen. Der Wert wird als "x y"-Koordinatenpaar angegeben. Ist `repeat="repeat"` gesetzt beschreibt dies die Position der ersten Kachel.
 
-Wenn Sie stattdessen ein Video als Hintergrund verwenden wollen können Sie dies entweder explizit durch Angabe des Attributs `data-background-video=/pfad/video.mp4` machen oder es im Folientitel als Medienelement angeben. Sie können das Video in einer Endlossschleife spielen lassen, indem Sie dem Video bzw. der Folie das Attribut `loop="1"` geben. Die CSS-Klassen `.autoplay` und `.controls` ergeben hier keinen Sinn, da Sie mit dem Hintergrundvideo nicht interagieren können sollen.
+Wenn Sie stattdessen ein Video als Hintergrund verwenden wollen können Sie dies entweder explizit durch Angabe des Attributs `data-background-video=/pfad/video.mp4` umsetzen oder es im Folientitel als Medienelement angeben. Sie können das Video in einer Endlossschleife spielen lassen, indem Sie dem Video bzw. der Folie das Attribut `loop="1"` geben. Die Klassen `.autoplay` und `.controls` ergeben hier keinen Sinn, da Sie mit dem Hintergrundvideo nicht interagieren können sollen.
 
 #### Beispiel
 
@@ -1120,13 +1293,15 @@ Ein Hintergrundbild würden Sie folgendermaßen einbetten:
 
 ### Ausklappbarer Bereich
 
-Sie können einen abgegrenzten Bereich in Ihrem Dokument ausklappbar machen, indem Sie ihn mit der CSS-Klasse `details` versehen.
+Sie können einen abgegrenzten Bereich in Ihrem Dokument ausklappbar machen, indem Sie ihn mit der Klasse `details` versehen.
 
 Ein `details`-Bereich besteht aus zwei Teilen: Der Zusammenfassung oder *Klappentext* `summary` und dem auszuklappenden Inhalt.
 
 Sie können den *Klappentext* des Bereiches definieren, indem Sie dem Bereich das Attribut `summary=Klappentex` zuweisen.
 
 Die Inhalte des Bereiches werden nicht angezeigt bis der Nutzer auf den Klappentext klickt, um den Bereich auszuklappen.
+
+Sie können den Startzustand des ausklappbaren Bereichts auf "geöffnet" setzen, indem Sie das Attribut `open=""` hinzufügen.
 
 #### Beispiel
 
@@ -1140,11 +1315,13 @@ Jeglicher Inhalt innerhalb dieses Bereiches wird erst durch Interaktion des Nutz
 :::
 ````
 
+![Klappenbeispiel](./examples/svgs/extended-markdown-deck-page-010.svg)
+
 ### Spaltenlayout
 
 Üblicherweise werden alle Textbausteine einer Folie untereinander angeordnet.
 
-Wenn Sie zwei Bausteine nebeneinander anordnen wollen müssen Sie einen abgegrenzten Bereich mit einer `columns-`-CSS-Klasse einfügen. Hinter dem `columns-`-Begriff können Sie die Größenverhältnisse der Spalten zueinander angeben:
+Wenn Sie zwei Bausteine nebeneinander anordnen wollen müssen Sie einen abgegrenzten Bereich mit einer `columns-`-CSSKlasse einfügen. Hinter dem `columns-`-Begriff können Sie die Größenverhältnisse der Spalten zueinander angeben:
 
 `columns-1-1` wäre ein Bereich mit zwei gleich großen Spalten.
 
@@ -1198,6 +1375,36 @@ Dieser Paragraph steht ebenso in der rechten Spalte, da sie durch den platzhalte
 :::
 ````
 
+Sie können mehr als zwei Spalten verwenden. Die Anzahl der Spalten ist gleich der Anzahl an Spaltengrößen die Sie der `columns-`-Klasse geben:
+
+```
+Es folgt ein dreispaltiger Bereich mit Größenverhältnis 2:3:2
+
+::: columns-2-3-2
+
+::: {style="background-color: salmon;"}
+
+Inhalt erste Spalte
+
+:::
+
+::: {style="background-color: skyblue;"}
+
+Inhalt zweite Spalte
+
+:::
+
+::: {style="background-color: lightgreen;"}
+
+Inhalt dritte Spalte
+
+:::
+
+:::
+```
+
+![Spaltenlayoutbeispiel](./examples/svgs/extended-markdown-deck-page-011.svg)
+
 Wenn Sie mehr Bausteine einfügen als Spalten vorhanden sind beginnt die Einsortieren wieder in der linkesten Spalte:
 
 ````
@@ -1213,6 +1420,92 @@ Wenn Sie mehr Bausteine einfügen als Spalten vorhanden sind beginnt die Einsort
 
 :::
 ````
+
+### Stile und eigene CSS-Regeln
+
+Sie können jedem Element, dem Sie ein Attribut zuweisen können, mit dem Attribut `style=""` einen eigenen CSS-Stil zuweisen. Dazu müssen Sie innerhalb der beiden `""`-Anführungsstriche dem resultieren HTML-Element CSS-Eigenschaften zuweisen.
+
+CSS-Eigenschaften werden in der Form von `eigenschaft: wert;`-Paaren notiert, zum Beispiel:
+
+- `style="color: red;"`
+- `style="border: 1px solid black; border-radius: 0.5rem`;
+
+Im Folgenden werden wir Ihnen einen kurzen Überblick über CSS-Dateien, -Regeln und -Eigenschaften geben. Für tiefgreifendere Erklärungen empfehlen wir Ihnen folgende Quellen, um sich näher über Webdesign und CSS zu informieren:
+
+Zum Beispiel:
+
+- <https://www.w3schools.com/css/default.asp>
+- <https://developer.mozilla.org/en-US/docs/Web/CSS>
+
+#### Eigene CSS-Regeln definieren
+
+Üblicherweise werden die CSS-Eigenschaften von HTML-Elementen durch CSS-Regeln in einer CSS-Datei bestimmt. Wenn Sie die CSS-Eigenschaften von HTML-Elementen einheitlich deklarieren wollen und insbesondere Änderungen nicht an jedem einzelnen Element vornehmen möchten wenn Sie den Stil Ihres Foliensatzes ändern wollen lohnt es sich daher diese Stile in einer eigenen CSS-Datei zu verwalten.
+
+Eine CSS-Datei besteht aus CSS-Regeln, die HTML-Elemente selektieren. Eine solche Regel besteht aus dem `selector`, gefolgt von den anzupassenden CSS-Eigenschaften in geschweiften Klammern:
+
+``` css
+h2 {
+  color: green;
+}
+```
+
+Die Obrige Regel *selektiert* alle Überschriften der Ebene 2 und setzt ihre Textfarbe auf Grün.
+
+Ein `selector` kann beliebig kompliziert gestaltet werden, um sehr spezifische Elemente zu selektieren. In dieser kurzübersicht reicht uns allerdings das Selektieren von Elementen über ihren Namen, Klasse oder Identifikator.
+
+Mit folgender Regel können Sie alle HTML-Elemente einer bestimmten Klasse selektieren:
+
+``` css
+.klassenname {
+  [...]
+}
+```
+
+Regeln, die Klassen selektieren beginnen immer mit einem `.`-Punkt. Regeln, die HTML-Elemente mit einem bestimmten Identifikator selektieren beginnen mit einer `#`-Raute:
+
+``` css
+#identifikator {
+  [...]
+}
+```
+
+Wie Sie die CSS-Datei, in der Sie ihre eigenen Regeln definiert haben in Ihren Foliensatz einbinden, finden Sie im Abschnitt [CSS- und Javascript-Dateien einbinden](#einbinden-eigener-css--und-javascript-dateien) im Kapitel zu Konfigurationen.
+
+##### Beispiel
+
+Möchten Sie zum Beispiel Beweise in Ihren Foliensätzen besonders hervorheben und in eine farbige Box verpacken können Sie folgende Regel definieren:
+
+``` css
+.beweis {
+  background-color: linen;
+  border-left: 4px solid salmon;
+  border-radius: 8px;
+  padding: 4px;
+}
+```
+
+Im Markdownquellcode können Sie den Beweis anschließend folgendermaßen stilisieren:
+
+``` markdown
+::: beweis
+
+## Beweis 3.2: Satz von Pythagoras
+
+In einem rechtwinkligen Dreieck gilt für die Katheten $a$ und $b$ und die Hypothenuse $c$: $a^2 + b^2 = c^2$.
+
+:::
+```
+
+#### Hilfreiche CSS-Eigenschaften
+
+Hier finden Sie eine unvollständige Liste von üblichen CSS-Attributen, mit denen Sie das Aussehen eines HTML-Elements anpassen können:
+
+- `background-color: farbe;` setzt die Hintergrundfarbe des Elements.
+- `color: farbe;` setzt die Textfarbe des Elements.
+- `border: breite stil farbe;` setzt einen Rahmen um das Element.
+- `border-radius: größe;` gibt den Ecken des Elements eine Rundung mit angegebenen Radius.
+- `margin: größe;` bestimmt den Abstand des Elements zu anderen Elementen.
+- `padding: größe;` bestimmt den Innenabstand (oder das "Polster") des Elements vom Rahmen zu seinem Inhalt.
 
 # Benutzeroberfläche
 
@@ -1595,22 +1888,41 @@ Das genaue Aussehen der Titelseite und welche Informationen diese enthält häng
 Im TU Dortmund Ressourcenpaket können Sie folgende Informationen konfigurieren:
 
 ``` yaml
-title: string
-subtitle: string
-author: string
-affiliation: string
+title: string       # Titel des Foliensatzes
+subtitle: string    # Untertitel des Foliensatzes
+author: string      # Autor*in des Foliensatzes
+affiliation: string # Zurodnung / Organisation / Institut
 
-authors:
-  - name: string
-    affiliation: string
-  - name: string
-    affiliation: string
+authors:  # Mehrere Autor*innen (werden separat Angezeigt)
+  - name: string        # Name
+    affiliation: string # Zuordnung
+  - name: string        # Name
+    affiliation: string # Zuordnung
 
-copyright: string
+copyright: string       # (in Planung): Verwendungserlaubnis
 
-logos:
+logos:    # Logos / Banner von Instituten / Zuordnungen 
+  - path  # Pfad zur Bilddaten (.jpg, .png, .svg, etc.)
   - path
-  - path
+```
+
+In der Liste von Logos / Bannern ist das der TU Dortmund immer enthalten und wird als erstes Banner in der Liste immer in der unteren linken Ecke der Titelseite angezeigt.
+
+## Einstellungen für `decker publish`
+
+Das Verhalten von `decker publish` wird in der Kategorie `publish` konfiguriert. Aktuell wird nur das veröffentlichen via `rsync` unterstützt. Entsprechend wird `rsync` in der Unterkategorie `rsync` konfiguriert.
+
+Den zu synchronisierenden Zielordner können Sie mit der Option `publish.rsync.destination` spezifizieren.
+
+Die Programmoptionen, mit denen `rsync` immer aufgerufen wird sind `--recursive`, `--copy-links` und `--delete`. Sie können zusätzliche Programmoptionen mit der Konfigurationsliste `publish.resync.options` angeben. 
+``` yaml
+publish:
+  rsync:
+    destination: 'username@remote.server:/path/to/directory/'
+    options:
+      - '--option'
+      - '--option'
+      - '--option'
 ```
 
 ## Einstellungen für `Reveal.js`
@@ -1853,3 +2165,75 @@ palette:
       - accent6
       - accent7
 ```
+
+## Einbinden eigener CSS- und Javascript-Dateien
+
+Alle Dateien werden von `decker` anhand einer Vorlagendatei erstellt. Diese Vorlagendateien sind Teil des entsprechenden Ressourcenpaketes und besitzen Regeln, die es erlauben zusätzlich Inhalte der Vorlage hinzuzufügen.
+
+Insbesondere können Sie mithilfe der Konfigurationsoption `template.css` den Vorlagen Pfade zu eigenen CSS-Dateien übergeben, die mit eingebunden werden sollen.
+
+Sie können dies Beispielsweise folgendermaßen umsetzen:
+
+``` yaml
+template:
+  css:
+    - '/styles/mystyle.css'
+```
+
+Die Vorlagen des `exe:tudo` Ressourcenpakets erlauben es zudem die CSS-Dateien in Foliensätzen oder nur in Webseiten einzubinden. Die Optionen heißen in diesen Fällen `template.deck.css` und `template.page.css`:
+
+``` yaml
+template:
+  css:
+    - '/styles/mystyle.css' # Wird in beiden Dateitypen eingebunden
+  deck:
+    css:
+      - '/styles/mydeckstyle.css' # Nur Foliensätze
+  page:
+    css:
+      - '/styles/mypagestyle.css' # Nur Webseiten
+```
+
+Zudem erlaubt das `exe:decker` und `exe:wburg`-Ressourcenpaket eigene Javascriptdateien einzubinden. Dies geschieht über die Optionen `template.js`:
+
+``` yaml
+template:
+  js:
+    - '/scripts/myscript.js'
+```
+
+Das `exe:tudo`-Paket erlaubt das Einbinden eigener Javascripte nur in Webseiten, sowohl als klassisches Skript als auch als Javascript-Modul. Die zu verwendenden Konfigurationsoptionen dafür sind `tempalte.page.js` und `template.page.js-module` je nachdem ob Sie die Javascripte als direktes Script oder als Javascriptmodul einbinden möchten:
+
+``` yaml
+template:
+  page:
+    js:
+      - '/scripts/myscript.js'
+    js-module:
+      - '/scripts/mymodule.js'
+```
+
+# Veröffentlichen von Foliensätzen
+
+Zum Veröffentlichen von Foliensätzen benötigen Sie einen Webdienst, der das von `decker` generierte `public`-Verzeichnis ausliefern kann. Solange der von Ihnen konfigurierte Feedback- oder Quiz-Dienst erreichbar ist muss der die Folien ausliefernde Webdienst diese Funktionalitäten jedoch nicht selbst anbieten und das ausliefern der Foliensatzdateien im `public`-Verzeichnis ist vollkommen ausreichend.
+
+## Veröffentlichen über eigenen Webserver
+
+Solange Sie Zugriff auf Ihren eigenen Webserver haben können Sie `decker publish` verwenden um über `rsync` das `public`-Verzeichnis auf ihren Webserver zu synchronisieren. Da `rsync` nur geänderte Dateien überträgt geht dies für gewöhnlich schnell und ist datensparsam.  
+Dieser Vorteil setzt natürlich voraus, dass Sie Ihre Unterlagen regelmäßig ändern und aktuallisieren, wie dies für gewöhnlich bei einer Vorlesung der Fall ist, in der Sie Ihren Teilnehmern jede Woche neue Unterlagen zur Verfügung stellen wollen.
+
+Wie Sie `decker publish` für `rsync` konfigurieren können sie in dem entsprechenden [Abschnitt](#einstellungen-für-decker-publish) nachlesen.
+
+## Veröffentlichen über Moodle
+
+Wenn Sie Zugriff auf ein Moodle haben können Sie in Ihrem Kurs das `public`-Verzeichnis hinzufügen.
+
+Archivieren Sie dazu das `public`-Verzeichnis in eine `.zip`-Datei und laden Sie diese als Datei-Kursmaterial hoch. Alle folgenden Einstellungen können Sie noch im Kursmaterial-Dialog durchführen, bevor Sie das Kursmaterial abspeichern.
+
+Wenn Sie die Detailansicht des hochgeladenen Archivs betrachten können Sie das Archiv im Moodle selbst entpacken.
+
+Nachdem Sie das Archiv entpackt haben können Sie den entpackten Ordner öffnen und die Detailansicht der `index.html`-Datei öffnen. Hier sollten Sie einen Knopf finden, mit der Sie diese Datei als *Hauptdatei* auswählen können.
+
+Im Anschluss können Sie noch auswählen, ob die Präsentation in seiner eigenen Seite eingebettet oder als Popup geöffnet werden soll.
+
+Sobald Sie mit den Einstellungen zufrieden sind können Sie das Kursmaterial speichern. Ihre Kursteilnehmer können die Präsentation dann über die Verknüpfung zum gerade erstellten Kursmaterial aufrufen.

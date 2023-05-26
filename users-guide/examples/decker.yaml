@@ -1,0 +1,10 @@
+resource-pack: 'exe:decker'
+
+title: false
+subtitle: false
+author: false
+affiliation: false
+institute: false
+
+reveal:
+  center: true
