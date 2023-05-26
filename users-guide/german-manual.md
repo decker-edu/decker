@@ -262,6 +262,8 @@ Folieninhalt
 
 In `-page.md`-Webseitendateien haben Überschriften der Ebene 1 keine besondere Bedeutung und werden nur als Überschriften für neue Abschnitte verwendet.
 
+![Überschriftenbeispiel](./examples/svgs/header-deck-page-001.svg)
+
 #### Beispiele
 
 Überschriften der Ebene 1 leiten neue Folien in Ihrem Foliensatz ein:
@@ -463,7 +465,7 @@ Die selbe Liste wie im ersten Beispiel kann als geordnete Aufzählung folgenderm
 Nur die erste Zeile muss eingerückt werden, um die Zugehörigkeit zu kennzeichnen.
 ```
 
-Ein Beispiel für eine geordnete Liste wäre zum Beispiel folgendes:
+Ein Beispiel für eine geordnete Liste wäre folgendes:
 
 ``` markdown
 1. Eier aufschlagen
