@@ -232,7 +232,7 @@ calcRelativeResourcePaths base (Pandoc meta content) = do
 readAdditionalMeta :: Meta -> FilePath -> Meta -> Action Meta
 readAdditionalMeta globalMeta base meta = do
   let metaFiles = lookupMetaOrElse [] "meta-data" meta :: [String]
-  -- putVerbose $ "# --> readAdditionalMeta: " <> show metaFiles
+  putVerbose $ "# --> readAdditionalMeta: " <> show metaFiles
   moreMeta <- traverse (readMetaData globalMeta) metaFiles
   return $ foldr mergePandocMeta meta (reverse moreMeta)
 
@@ -242,7 +242,7 @@ readAdditionalMeta globalMeta base meta = do
 readMetaData :: Meta -> FilePath -> Action Meta
 readMetaData globalMeta path = do
   need [path]
-  -- putVerbose $ "# --> readMetaData: " <> path
+  putVerbose $ "# --> readMetaData: " <> path
   let base = takeDirectory path
   meta <- liftIO $ readMetaDataFile path
   adjustMetaPaths globalMeta base meta >>= readAdditionalMeta globalMeta base

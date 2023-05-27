@@ -35,3 +35,6 @@ test:
 
 no-index:
   - test-no-index
+
+meta-data:
+  - test/decks/data/one-meta-value.yaml

@@ -172,14 +172,14 @@ test: "default.yaml test value"
 ## Values
 
 | variable                   | value                             | expected            |
-|---------------------------|----------------------------------|--------------------|
+|---------------------------|---------------------------------|--------------------|
 | `test.only-default`        | [:meta](test.only-default)        | *From default.yaml* |
 | `test.default-decker`      | [:meta](test.default-decker)      | *From decker.yaml*  |
 | `test.default-decker-deck` | [:meta](test.default-decker-deck) | *From this deck*    |
 
 --------------------------------------------------------------------------------
 
-# What about theses?
+# What about these?
 
 ## Centering: `reveal.center`
 
@@ -188,3 +188,22 @@ test: "default.yaml test value"
 ## Slide number: `reveal.slideNumber`
 
 [:meta](reveal.slideNumber)
+
+# Meta data files in `decker.yaml`
+
+## In `default.yaml`
+
+``` yaml
+meta-data:
+  - test/decks/data/one-meta-value.yaml
+```
+
+## In `test/decks/data/one-meta-value.yaml`
+
+``` yaml
+included-meta-value: "This was included from test/decks/data/one-meta-value.yaml"
+```
+
+## Observed value of `included-meta-value`
+
+[:meta](included-meta-value)
