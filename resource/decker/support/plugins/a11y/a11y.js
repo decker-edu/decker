@@ -22,6 +22,9 @@ function fixTabsByInert() {
     }
   });
   Reveal.on("slidechanged", (event) => {
+    if (document.documentElement.classList.contains("a11y")) {
+      return;
+    }
     if (event.previousSlide) {
       // First shown slide has no previous slide and causes an error if we do not check for this
       let parent = event.previousSlide.parentElement;
@@ -49,14 +52,17 @@ function addFlyingFocusCallbacks() {
   });
 }
 
+let previousKeyboardConfig;
+
 function addCustomSpacebarHandler() {
   const selects = document.getElementsByTagName("SELECT");
   for (const select of selects) {
     select.addEventListener("focus", (event) => {
+      previousKeyboardConfig = Reveal.getConfig().keyboard;
       Reveal.configure({ keyboard: false });
     });
     select.addEventListener("blur", (event) => {
-      Reveal.configure({ keyboard: true });
+      Reveal.configure({ keyboard: previousKeyboardConfig });
     });
   }
 }

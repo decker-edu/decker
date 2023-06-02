@@ -208,7 +208,9 @@ class SlideMenu {
   }
 
   enableKeybinds() {
-    this.reveal.configure({ keyboard: true });
+    if (!this.a11y) {
+      this.reveal.configure({ keyboard: true });
+    }
   }
 
   /**
@@ -493,6 +495,8 @@ class SlideMenu {
           </button>
           <button id="decker-menu-settings-button" class="fa-button fas fa-cog" title="${this.localization.open_settings_label}" aria-label="${this.localization.open_settings_label}">
           </button>
+          <button id="decker-menu-a11y-button" class="fa-button fas fa-universal-access" title="Accessibility Mode" aria-label="a11ymode">
+          </button>
         </div>
         <div id="decker-menu-title">
           <span>${this.localization.title}</span>
@@ -516,6 +520,7 @@ class SlideMenu {
     this.menu.close_button = container.querySelector(
       "#decker-menu-close-button"
     );
+    this.menu.a11y_button = container.querySelector("#decker-menu-a11y-button");
 
     /* Attach callbacks */
     this.menu.home_button.addEventListener("click", (event) =>
@@ -536,6 +541,9 @@ class SlideMenu {
     );
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu(event)
+    );
+    this.menu.a11y_button.addEventListener("click", (event) =>
+      this.toggleA11Y(event)
     );
 
     this.initializeSlideList();
@@ -670,6 +678,52 @@ class SlideMenu {
     );
   }
 
+  toggleA11Y(event) {
+    const mode = this.a11y;
+    if (!mode) {
+      this.previousConfig = this.reveal.getConfig();
+      this.reveal.configure({
+        keyboard: false,
+        controls: false,
+        progress: false,
+        fragments: false,
+        slideNumber: false,
+        disableLayout: true,
+      });
+      document.documentElement.classList.add("a11y");
+      undoAutomaticSlideAdjustments();
+      this.reveal.on("slidechanged", undoAutomaticSlideAdjustments);
+      this.reveal.on("slidechanged", scrollCurrentIntoView);
+      this.reveal.getCurrentSlide().scrollIntoView();
+      this.a11y = true;
+    } else {
+      console.log("turning off a11y mode");
+      this.reveal.configure(this.previousConfig);
+      document.documentElement.classList.remove("a11y");
+      let slides = document.querySelectorAll(".slides > section");
+      for (const slide of slides) {
+        slide.inert = slide.dataset["previousInert"];
+        slide.dataset["previousInert"] = null;
+        slide.style.top = slide.dataset["previousTop"];
+        slide.dataset["previousTop"] = null;
+        slide.style.display = slide.dataset["previousDisplay"];
+        slide.dataset["previousDisplay"] = null;
+        slide.hidden = slide.dataset["previousHidden"];
+        slide.dataset["previousHidden"] = null;
+        slide.setAttribute("aria-hidden", slide.dataset["previousAriaHidden"]);
+        slide.dataset["previousAriaHidden"] = null;
+        const videos = slide.getElementsByTagName("VIDEO");
+        for (const video of videos) {
+          video.dataset.autoplay = video.dataset.previousAutoplay;
+          delete video.dataset.previousAutoplay;
+        }
+      }
+      this.reveal.off("slidechanged", undoAutomaticSlideAdjustments);
+      this.reveal.off("slidechanged", scrollCurrentIntoView);
+      this.a11y = false;
+    }
+  }
+
   init(reveal) {
     this.reveal = reveal;
     this.config = reveal.getConfig();
@@ -733,6 +787,38 @@ class SlideMenu {
       this.updateCurrentSlideMark()
     );
   }
+}
+
+function undoAutomaticSlideAdjustments() {
+  let slides = document.querySelectorAll(".slides > section");
+  for (const slide of slides) {
+    slide.dataset["previousInert"] = slide.inert;
+    slide.inert = false;
+    slide.dataset["previousTop"] = slide.style.top;
+    slide.style.top = null;
+    slide.dataset["previousDisplay"] = slide.style.display;
+    slide.style.display = null;
+    slide.dataset["previousHidden"] = slide.hidden;
+    slide.hidden = false;
+    slide.dataset["previousAriaHidden"] = slide.getAttribute("aria-hidden");
+    slide.removeAttribute("aria-hidden");
+    const iframes = slide.getElementsByTagName("IFRAME");
+    for (const iframe of iframes) {
+      if (iframe.dataset["src"]) {
+        iframe.src = iframe.dataset["src"];
+      }
+    }
+    const videos = slide.getElementsByTagName("VIDEO");
+    for (const video of videos) {
+      video.dataset.previousAutoplay = video.dataset.autoplay;
+      delete video.dataset.autoplay;
+    }
+  }
+}
+
+function scrollCurrentIntoView(event) {
+  const slide = event.currentSlide;
+  slide.scrollIntoView();
 }
 
 let instance = new SlideMenu("TOP_LEFT");
