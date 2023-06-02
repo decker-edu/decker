@@ -262,8 +262,6 @@ Folieninhalt
 
 In `-page.md`-Webseitendateien haben Überschriften der Ebene 1 keine besondere Bedeutung und werden nur als Überschriften für neue Abschnitte verwendet.
 
-![Überschriftenbeispiel](./examples/svgs/header-deck-page-001.svg)
-
 #### Beispiele
 
 Überschriften der Ebene 1 leiten neue Folien in Ihrem Foliensatz ein:
@@ -1478,7 +1476,7 @@ Wie Sie die CSS-Datei, in der Sie ihre eigenen Regeln definiert haben in Ihren F
 Möchten Sie zum Beispiel Beweise in Ihren Foliensätzen besonders hervorheben und in eine farbige Box verpacken können Sie folgende Regel definieren:
 
 ``` css
-.beweis {
+.satz {
   background-color: linen;
   border-left: 4px solid salmon;
   border-radius: 8px;
@@ -1489,9 +1487,9 @@ Möchten Sie zum Beispiel Beweise in Ihren Foliensätzen besonders hervorheben u
 Im Markdownquellcode können Sie den Beweis anschließend folgendermaßen stilisieren:
 
 ``` markdown
-::: beweis
+::: satz
 
-## Beweis 3.2: Satz von Pythagoras
+## Satz 3.2: Satz des Pythagoras
 
 In einem rechtwinkligen Dreieck gilt für die Katheten $a$ und $b$ und die Hypothenuse $c$: $a^2 + b^2 = c^2$.
 
@@ -1508,6 +1506,85 @@ Hier finden Sie eine unvollständige Liste von üblichen CSS-Attributen, mit den
 - `border-radius: größe;` gibt den Ecken des Elements eine Rundung mit angegebenen Radius.
 - `margin: größe;` bestimmt den Abstand des Elements zu anderen Elementen.
 - `padding: größe;` bestimmt den Innenabstand (oder das "Polster") des Elements vom Rahmen zu seinem Inhalt.
+
+### Javascripte evaluieren
+
+Sie können Javascripte direkt in einen Quellcodeblock notieren und ausführen lassen.
+
+Der Qullcodeblock benötigt dafür die Klassen `.javascript` und `.run`:
+
+````
+``` {.javascript .run}
+alert("Hallo aus einem Codeblock");
+```
+````
+
+Der Codeblock selbst wird durch ein HTML-Element ersetzt, das Sie innerhalb des evaluierten Codes mithilfe des Variablennamens `anchor` referenzieren können. So können Sie den Inhalt der Folie mithilfe des Javascripts anpassen.
+
+Sie können genauso auch ein Medienelement mit den Attributen `.javascript .run` versehen. Die in der URL referenzierte Javascriptdatei wird dann auch evaluiert. Sie können auf das Platzhalter-Element innerhalb dieses Javascriptes mithilfe von `Decker.anchor(import.meta)` zugreifen.
+
+#### Beispiel
+
+Im Markdownquellcode können Sie eine Javascriptdatei folgendermaßen evaluieren:
+
+``` markdown
+![Beispielskript](./myscript.js){.javascript .run}
+```
+
+Der Inhalt dieser Datei kann zum Beispiel folgender sein:
+
+``` js
+let anchorElement = Decker.anchor(import.meta);
+anchorElement.innerHTML = "<p>Hallo Welt</p>";
+```
+
+### Evaluierbarer Quellcode mit Sage
+
+Sie können interaktive Codeblöcke, die die Sprache [Sage](https://doc.sagemath.org/), Octave, Python oder R evaluieren in den Folien einbetten, indem Sie einen abgegrenzten Bereich mit der Klasse `sageCell` einfügen.
+
+Innerhalb dieses Bereiches können Sie anschließend Quellcodeblöcke mit der Klasse `sage`, `python`, `octave` oder `r` einfügen. Diese Codeblöcke werden in den Folien interaktiv. Leser\*innen können den präsentierten Quellcode ändern und evaluieren lassen, um sich das Ergebnis der Berechnungen anzusehen.
+
+#### Beispiel
+
+Zuerst müssen Sie eine `sageCell` deklarieren. In dieser `sageCell` können Sie Texte für Aufgaben, Anleitungen oder Erklärungen des Codes notieren. Der Codeblock selbst wird interaktiv und kann evaluiert werden:
+
+````
+::: sageCell
+
+Klicken Sie auf "Evaluate", um sich das Ergebnis dieses Codebeispiels anzusehen.
+
+``` python
+a = 1
+b = 2
+c = a + b
+print(c)
+```
+
+:::
+````
+
+### Thebelab
+
+## Indexseite
+
+Die Haupt-, Landungs- bzw. Indexseite einer Foliensatzsammlung heißt `index.html` und wird, wenn keine `index.md`-Datei im Projekt vorliegt automatisch generiert.
+
+Die Indexseite beinhaltet Links zu allen Foliensätzen, Webseiten und Handouts des Projekts.
+
+Zusätzlich werden auf der Indexseite Links zu Foliensätzen mit einem Fortschrittsbalken versehen. Dieser soll Leser\*innen Auskunft darüber geben, wie viel vom Foliensatz bereits angesehen wurde. Ein Klick auf den Fortschrittsbalken setzt den Wert auf 100 bzw. 0%, um Leser\*innen die Möglichkeit zu geben Folien als abgearbeitet zu markieren.
+
+### Suchleiste einbetten
+
+Sie können ein Bedienelement zum Suchen von Texten in allen Dateien Ihres Projektes mithilfe folgendes Javascriptes einbetten:
+
+````
+```{.javascript .run}
+import setupSearch from "./support/fuzzySearch/search.js";
+setupSearch(anchor, 0.5, false, true);
+```
+````
+
+Der Pfad zur `search.js`-Datei muss relativ zur Datei sein, in der die Suchleiste eingebettet werden soll. Da eine Suchleiste für alle Inhalte gewöhnlicherweise nur in der Indexseite Sinn ergibt sollte der obrige Pfad der passende sein. Wenn Sie die Suchleiste in einer anderen Datei einbetten wollen müssen Sie den Pfad `./support/fuzzySearch/search.js` anpassen. Das `support`-Verzeichnis ist immer direktes Unterverzeichnis des `public`-Wurzelverzeichnisses.
 
 # Benutzeroberfläche
 
@@ -1579,6 +1656,10 @@ Im unteren Bereich des Feedbackmenus finden Sie das Eingabefeld für Fragen. Die
 Ganz unten im Feedbackmenu befindet sich ein Knopf zum Öffnen des Admin-Logins. Wenn Sie Besitzer des Foliensatzes sind können Sie sich hier einloggen, um Fragen zu beantworten.
 
 ![Feedbackmenu](./images/feedback-menu-annot.png)
+
+## Zoomen
+
+Sie können auf jedes Element einer Folie mit der linken Maustaste doppelklicken, um an es heran zu zoomen. Ein weiterer Doppelklick hebt den Zoom wieder auf.
 
 # Präsentieren
 
