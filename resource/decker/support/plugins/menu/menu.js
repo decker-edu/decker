@@ -10,8 +10,9 @@
 // import functionality for light/dark mode
 import * as colorScheme from "../../js/color-scheme.js";
 
+let deck = undefined;
+
 class SlideMenu {
-  id;
   reveal;
   config;
   open_button;
@@ -19,10 +20,8 @@ class SlideMenu {
   menu;
   slide_list;
 
-  constructor(position) {
-    this.id = "decker-menu";
-    this.reveal = undefined;
-    this.config = undefined;
+  constructor(position, reveal) {
+    this.reveal = reveal;
     this.open_button = undefined;
     this.menu = {
       container: undefined,
@@ -669,72 +668,73 @@ class SlideMenu {
       this.toggleAnnotations(event.target.checked)
     );
   }
-
-  init(reveal) {
-    this.reveal = reveal;
-    this.config = reveal.getConfig();
-
-    this.localization = {
-      open_button_label: "Open Navigation Menu",
-      home_button_label: "Go to Index Page",
-      search_button_label: "Toggle Searchbar",
-      print_pdf_label: "Print PDF",
-      open_settings_label: "Open Settings",
-      close_settings_label: "Close Settings",
-      toggle_fragments_label: "Show Slide Animations",
-      choose_color_label: "Choose Color Mode",
-      system_color_choice: "System Default",
-      light_color_choice: "Light Mode",
-      dark_color_choice: "Dark Mode",
-      toggle_annotations_label: "Show Annotations",
-      close_label: "Close Navigation Menu",
-      no_title: "No Title",
-      title: "Navigation",
-      print_confirmation: "Leave presentation to export it to PDF?",
-      index_confirmation: "Go back to index page?",
-    };
-
-    let lang = navigator.language;
-
-    if (lang === "de") {
-      this.localization = {
-        open_button_label: "Navigationsmenu öffnen",
-        home_button_label: "Zurück zur Materialübersicht",
-        search_button_label: "Suchleiste umschalten",
-        print_pdf_label: "Als PDF drucken",
-        open_settings_label: "Einstellungen öffnen",
-        close_settings_label: "Einstellungen schließen",
-        toggle_fragments_label: "Animationen anzeigen",
-        choose_color_label: "Farbschema auswählen",
-        system_color_choice: "Systemeinstellung",
-        light_color_choice: "Helles Farbschema",
-        dark_color_choice: "Dunkles Farbschema",
-        toggle_annotations_label: "Annotationen einblenden",
-        close_label: "Navigationsmenu schließen",
-        no_title: "Kein Titel",
-        title: "Navigation",
-        print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
-        index_confirmation: "Zurück zur Index-Seite gehen?",
-      };
-    }
-
-    this.initializeButton();
-    this.initializeMenu();
-
-    document.body.appendChild(this.menu.container);
-
-    if (!this.reveal.hasPlugin("ui-anchors")) {
-      console.log("no decker ui anchor plugin loaded");
-      return;
-    }
-    let anchors = this.reveal.getPlugin("ui-anchors");
-    anchors.placeButton(this.open_button, this.position);
-    reveal.addEventListener("slidechanged", () =>
-      this.updateCurrentSlideMark()
-    );
-  }
 }
 
-let instance = new SlideMenu("TOP_LEFT");
+const plugin = () => {
+  return {
+    id: "decker-menu",
+    init(reveal) {
+      const instance = new SlideMenu("TOP_LEFT", reveal);
+      instance.localization = {
+        open_button_label: "Open Navigation Menu",
+        home_button_label: "Go to Index Page",
+        search_button_label: "Toggle Searchbar",
+        print_pdf_label: "Print PDF",
+        open_settings_label: "Open Settings",
+        close_settings_label: "Close Settings",
+        toggle_fragments_label: "Show Slide Animations",
+        choose_color_label: "Choose Color Mode",
+        system_color_choice: "System Default",
+        light_color_choice: "Light Mode",
+        dark_color_choice: "Dark Mode",
+        toggle_annotations_label: "Show Annotations",
+        close_label: "Close Navigation Menu",
+        no_title: "No Title",
+        title: "Navigation",
+        print_confirmation: "Leave presentation to export it to PDF?",
+        index_confirmation: "Go back to index page?",
+      };
 
-export default instance;
+      let lang = navigator.language;
+
+      if (lang === "de") {
+        instance.localization = {
+          open_button_label: "Navigationsmenu öffnen",
+          home_button_label: "Zurück zur Materialübersicht",
+          search_button_label: "Suchleiste umschalten",
+          print_pdf_label: "Als PDF drucken",
+          open_settings_label: "Einstellungen öffnen",
+          close_settings_label: "Einstellungen schließen",
+          toggle_fragments_label: "Animationen anzeigen",
+          choose_color_label: "Farbschema auswählen",
+          system_color_choice: "Systemeinstellung",
+          light_color_choice: "Helles Farbschema",
+          dark_color_choice: "Dunkles Farbschema",
+          toggle_annotations_label: "Annotationen einblenden",
+          close_label: "Navigationsmenu schließen",
+          no_title: "Kein Titel",
+          title: "Navigation",
+          print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
+          index_confirmation: "Zurück zur Index-Seite gehen?",
+        };
+      }
+
+      instance.initializeButton();
+      instance.initializeMenu();
+
+      document.body.appendChild(instance.menu.container);
+
+      if (!instance.reveal.hasPlugin("ui-anchors")) {
+        console.log("no decker ui anchor plugin loaded");
+        return;
+      }
+      let anchors = instance.reveal.getPlugin("ui-anchors");
+      anchors.placeButton(instance.open_button, instance.position);
+      reveal.addEventListener("slidechanged", () =>
+        instance.updateCurrentSlideMark()
+      );
+    },
+  };
+};
+
+export default plugin;

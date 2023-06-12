@@ -10,8 +10,6 @@ import client from "./api-client.js";
 class Feedback {
   timeout = 500;
 
-  id = "feedback";
-
   lang = "en";
   localization = {
     question_placeholder: "",
@@ -125,11 +123,11 @@ class Feedback {
   openMenu() {
     if (this.menu.container.inert) {
       this.menu.container.inert = false;
-      this.menu.token_lock.focus();
-      this.requestMenuContent();
       this.reveal.getRevealElement().inert = true;
       // localStorage.setItem("feedback-state", "open");
       this.glass.classList.add("show");
+      this.menu.token_lock.focus();
+      this.requestMenuContent();
     }
   }
 
@@ -139,10 +137,10 @@ class Feedback {
   closeMenu() {
     if (!this.menu.container.inert) {
       this.menu.container.inert = true;
-      this.open_button.focus();
       this.reveal.getRevealElement().inert = false;
       localStorage.removeItem("feedback-state");
       this.glass.classList.remove("show");
+      this.open_button.focus();
     }
   }
 
@@ -466,32 +464,42 @@ class Feedback {
   </div>
   <div class="feedback-controls">
     <div class="feedback-controls-wrapper">
-      <span class="votes" title="${text.votes}" aria-label="${text.votes}">${comment.votes > 0 ? comment.votes : ""
-      }</span>
-      <button class="${comment.didvote ? "fas" : "far"} fa-thumbs-up vote ${!isAuthor ? "canvote" : "cantvote"
-      } ${comment.didvote ? "didvote" : ""}"
+      <span class="votes" title="${text.votes}" aria-label="${text.votes}">${
+      comment.votes > 0 ? comment.votes : ""
+    }</span>
+      <button class="${comment.didvote ? "fas" : "far"} fa-thumbs-up vote ${
+      !isAuthor ? "canvote" : "cantvote"
+    } ${comment.didvote ? "didvote" : ""}"
         title="${comment.didvote ? text.downvote : text.upvote}"
         aria-label="${comment.didvote ? text.downvote : text.upvote}">
       </button>
-      ${isDeletable
-        ? `<button class="fas fa-edit feedback-edit-question-button" title="${text.edit}" aria-label="${text.edit}"></button>`
-        : ""
+      ${
+        isDeletable
+          ? `<button class="fas fa-edit feedback-edit-question-button" title="${text.edit}" aria-label="${text.edit}"></button>`
+          : ""
       }
-      ${isDeletable
-        ? `<button class="fas fa-trash-alt feedback-delete-question-button" title="${text.delete}" aria-label="${text.delete}"></button>`
-        : ""
+      ${
+        isDeletable
+          ? `<button class="fas fa-trash-alt feedback-delete-question-button" title="${text.delete}" aria-label="${text.delete}"></button>`
+          : ""
       }
-      ${isAdmin
-        ? `<button class="far fa-plus-square feedback-answer-question-button" title="${text.add}" aria-label="${text.add}">`
-        : ""
+      ${
+        isAdmin
+          ? `<button class="far fa-plus-square feedback-answer-question-button" title="${text.add}" aria-label="${text.add}">`
+          : ""
       }
-      ${isAnswered
-        ? `<button class="far fa-check-circle answered feedback-reset-answers-button" title="${isDeletable ? text.reset : text.answered
-        }" aria-label="${isDeletable ? text.reset : text.answered}" ${!isDeletable ? "disabled" : ""
-        }></button>`
-        : `<button class="far fa-circle notanswered feedback-mark-answered-button" title="${isDeletable ? text.mark : text.notanswered
-        }" aria-label="${isDeletable ? text.mark : text.notanswered}" ${!isDeletable ? "disabled" : ""
-        }></button>`
+      ${
+        isAnswered
+          ? `<button class="far fa-check-circle answered feedback-reset-answers-button" title="${
+              isDeletable ? text.reset : text.answered
+            }" aria-label="${isDeletable ? text.reset : text.answered}" ${
+              !isDeletable ? "disabled" : ""
+            }></button>`
+          : `<button class="far fa-circle notanswered feedback-mark-answered-button" title="${
+              isDeletable ? text.mark : text.notanswered
+            }" aria-label="${isDeletable ? text.mark : text.notanswered}" ${
+              !isDeletable ? "disabled" : ""
+            }></button>`
       }
     </div>
   </div>
@@ -560,13 +568,21 @@ class Feedback {
           ${html}
         </div>
         <div class="feedback-controls">
-          ${isAdmin ? `
+          ${
+            isAdmin
+              ? `
             <button class="fas fa-trash-alt feedback-delete-answer-button" title="${text.delete}" aria-label="${text.delete}">
-            </button>`: ""}
-          ${url ? `
+            </button>`
+              : ""
+          }
+          ${
+            url
+              ? `
             <a href="${url}" target="_blank">
               <i class="fas fa-external-link-alt"></i>
-            </a>` : ""}
+            </a>`
+              : ""
+          }
         </div>
       </div>`;
     let item = template.content.cloneNode(true);
@@ -815,93 +831,93 @@ class Feedback {
         }
       });
   }
-
-  /**
-   * Reveal.js Plugin init.
-   * @param {*} reveal
-   */
-  init(reveal) {
-    this.reveal = reveal;
-    this.config = reveal.getConfig().feedback;
-
-    this.lang = navigator.language;
-
-    //TODO Get this from external sources
-
-    this.localization = {
-      question_placeholder:
-        "Type question, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
-      answer_placeholder:
-        "Type answer, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
-      interface: {
-        open_label: "Open Feedback Menu",
-        menu_title: "Questions",
-        token_placeholder: "Usertoken",
-        unlock_token: "Unlock Token",
-        lock_token: "Lock Token",
-        menu_close: "Close Feedback Menu",
-        login_as_admin: "Login as Admin",
-        username_placeholder: "Username",
-        password_placeholder: "Password",
-      },
-      question_container: {
-        upvote: "Up-vote question",
-        downvote: "Down-vote question",
-        edit: "Edit question",
-        delete: "Delete question",
-        add: "Add answer",
-        mark: "Mark as answered",
-        reset: "Mark as not answered",
-        answered: "Question has been answered",
-        notanswered: "Question has not been answered",
-        votes: "Up-Votes",
-      },
-      answer_container: {
-        delete: "Delete answer",
-      },
-    };
-
-    if (this.lang === "de") {
-      this.localization = {
-        question_placeholder:
-          "Frage hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
-        answer_placeholder:
-          "Antwort hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
-        interface: {
-          open_label: "Fragemenu öffnen",
-          menu_title: "Fragen",
-          token_placeholder: "Nutzertoken",
-          lock_token: "Token entsprren",
-          unlock_token: "Token sperren",
-          menu_close: "Fragemenu schließen",
-          login_as_admin: "Als Administrator einloggen",
-          username_placeholder: "Benutzername",
-          password_placeholder: "Passwort",
-        },
-        question_container: {
-          upvote: "Frage unterstützen",
-          downvote: "Unterstützung zurücknehmen",
-          edit: "Frage bearbeiten",
-          delete: "Frage löschen",
-          add: "Antwort hinzufügen",
-          mark: "Als beantwortet markieren",
-          reset: "Als unbeantwortet markieren",
-          answered: "Frage wurde beantwortet",
-          notanswered: "Frage wurde noch nicht beantwortet",
-          votes: "Stimmen",
-        },
-        answer_container: {
-          delete: "Antwort löschen",
-        },
-      };
-    }
-
-    let url = this.config?.server || this.config?.["base-url"];
-    let id = this.config?.deckID || this.config?.["deck-id"];
-    if (url) this.createEngine(url, id);
-  }
 }
 
-let instance = new Feedback("TOP_RIGHT");
+let plugin = () => {
+  return {
+    id: "feedback",
 
-export default instance;
+    init(reveal) {
+      const instance = new Feedback("TOP_RIGHT");
+      instance.reveal = reveal;
+      instance.config = reveal.getConfig().feedback;
+      instance.lang = navigator.language;
+
+      //TODO Get this from external sources
+
+      instance.localization = {
+        question_placeholder:
+          "Type question, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
+        answer_placeholder:
+          "Type answer, ⇧⏎ (Shift-Return) to enter. Use Markdown for formatting.",
+        interface: {
+          open_label: "Open Feedback Menu",
+          menu_title: "Questions",
+          token_placeholder: "Usertoken",
+          unlock_token: "Unlock Token",
+          lock_token: "Lock Token",
+          menu_close: "Close Feedback Menu",
+          login_as_admin: "Login as Admin",
+          username_placeholder: "Username",
+          password_placeholder: "Password",
+        },
+        question_container: {
+          upvote: "Up-vote question",
+          downvote: "Down-vote question",
+          edit: "Edit question",
+          delete: "Delete question",
+          add: "Add answer",
+          mark: "Mark as answered",
+          reset: "Mark as not answered",
+          answered: "Question has been answered",
+          notanswered: "Question has not been answered",
+          votes: "Up-Votes",
+        },
+        answer_container: {
+          delete: "Delete answer",
+        },
+      };
+
+      if (instance.lang === "de") {
+        instance.localization = {
+          question_placeholder:
+            "Frage hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
+          answer_placeholder:
+            "Antwort hier eingeben und mit ⇧⏎ (Umschalt-Eingabe) absenden. Markdown kann zur Formatierung genutzt werden.",
+          interface: {
+            open_label: "Fragemenu öffnen",
+            menu_title: "Fragen",
+            token_placeholder: "Nutzertoken",
+            lock_token: "Token entsprren",
+            unlock_token: "Token sperren",
+            menu_close: "Fragemenu schließen",
+            login_as_admin: "Als Administrator einloggen",
+            username_placeholder: "Benutzername",
+            password_placeholder: "Passwort",
+          },
+          question_container: {
+            upvote: "Frage unterstützen",
+            downvote: "Unterstützung zurücknehmen",
+            edit: "Frage bearbeiten",
+            delete: "Frage löschen",
+            add: "Antwort hinzufügen",
+            mark: "Als beantwortet markieren",
+            reset: "Als unbeantwortet markieren",
+            answered: "Frage wurde beantwortet",
+            notanswered: "Frage wurde noch nicht beantwortet",
+            votes: "Stimmen",
+          },
+          answer_container: {
+            delete: "Antwort löschen",
+          },
+        };
+      }
+
+      let url = instance.config?.server || instance.config?.["base-url"];
+      let id = instance.config?.deckID || instance.config?.["deck-id"];
+      if (url) instance.createEngine(url, id);
+    },
+  };
+};
+
+export default plugin;
