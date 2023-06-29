@@ -86,8 +86,13 @@ runTargets context targets rules = do
     let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort flags
     openBrowser $ "http://localhost:" <> show port <> "/index.html"
 
+  -- always rescan the targets file in case files where added or removed
+  let meta = context ^. globalMeta 
+  scanTargetsToFile meta targetsFile
+
   -- Always run at least once
   runShake context rules
+
   if
       | ServerFlag `elem` flags -> do
           forkServer context

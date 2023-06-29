@@ -61,6 +61,7 @@ import Text.Decker.Project.Glob
 import Text.Decker.Resource.Resource
 import Text.Pandoc.Builder hiding (lookupMeta)
 import Text.Regex.TDFA
+import Control.Exception.Extra
 
 -- | target and source path
 type Dependencies = Map FilePath FilePath
@@ -91,7 +92,8 @@ $( deriveJSON
 
 readTargetsFile :: FilePath -> Action Targets
 readTargetsFile targetFile = do
-  need [targetFile]
+  -- we do not really have to track the dependency here, it just needs to exist
+  -- need [targetFile]
   liftIO (Yaml.decodeFileThrow targetFile)
 
 -- data Resource = Resource
@@ -207,9 +209,10 @@ unusedResources meta = do
   live <- Set.fromList <$> String.lines . decodeUtf8 <$> readFileBS liveFile
   return $ Set.toList $ Set.difference srcs live
 
-scanTargetsToFile :: Meta -> FilePath -> Action ()
+scanTargetsToFile :: (MonadIO m, Partial) =>  Meta -> FilePath -> m ()
 scanTargetsToFile meta file = do
   targets <- liftIO $ scanTargets meta
+  liftIO $ putStrLn $ "# scanned targets to " <> file
   writeFileChanged file $ decodeUtf8 $ Yaml.encodePretty Yaml.defConfig targets
 
 anySource :: FilePath -> Bool
