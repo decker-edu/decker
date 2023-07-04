@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -36,8 +38,17 @@ jobs:
           stack-setup-ghc: true
 
       - name: Build & test
+        if: ${{ matrix.os != 'windows-latest' }}
         run: |
           stack test
+          make -f symlinks.mk -C third-party all
+          stack --local-bin-path=dist install
+
+      - name: Build & test
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          stack test
+          .\third-party\vendor.ps1
           stack --local-bin-path=dist install
 
       - name: Rename executable
