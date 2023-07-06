@@ -674,8 +674,8 @@ const plugin = () => {
   return {
     id: "decker-menu",
     init(reveal) {
-      const instance = new SlideMenu("TOP_LEFT", reveal);
-      instance.localization = {
+      const menu = new SlideMenu("TOP_LEFT", reveal);
+      menu.localization = {
         open_button_label: "Open Navigation Menu",
         home_button_label: "Go to Index Page",
         search_button_label: "Toggle Searchbar",
@@ -698,7 +698,7 @@ const plugin = () => {
       let lang = navigator.language;
 
       if (lang === "de") {
-        instance.localization = {
+        menu.localization = {
           open_button_label: "Navigationsmenu öffnen",
           home_button_label: "Zurück zur Materialübersicht",
           search_button_label: "Suchleiste umschalten",
@@ -719,19 +719,19 @@ const plugin = () => {
         };
       }
 
-      instance.initializeButton();
-      instance.initializeMenu();
+      menu.initializeButton();
+      menu.initializeMenu();
 
-      document.body.appendChild(instance.menu.container);
+      document.body.appendChild(menu.menu.container);
 
-      if (!instance.reveal.hasPlugin("ui-anchors")) {
+      if (!reveal.hasPlugin("ui-anchors")) {
         console.log("no decker ui anchor plugin loaded");
         return;
       }
-      let anchors = instance.reveal.getPlugin("ui-anchors");
-      anchors.placeButton(instance.open_button, instance.position);
+      let anchors = reveal.getPlugin("ui-anchors");
+      anchors.placeButton(menu.open_button, menu.position);
       reveal.addEventListener("slidechanged", () =>
-        instance.updateCurrentSlideMark()
+        menu.updateCurrentSlideMark()
       );
     },
   };
