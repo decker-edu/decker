@@ -1,3 +1,6 @@
+runtime-path-variables:
+  - logos
+
 logos:
   - 'support/assets/tu-logo-light.svg'
 

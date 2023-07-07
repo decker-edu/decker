@@ -238,3 +238,8 @@ section#title-slide div.logos img.logo {
   padding-right: 3rem;
   border-bottom: 2px solid var(--primary-color);
 }
+
+html.dark img {
+  border-radius: 0.5rem;
+  background-color: var(--shade7);
+}
