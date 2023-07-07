@@ -1,3 +1,6 @@
+#
+# creates copies of only the needed files from the third-party repos and resources.
+#
 SHELL := $(shell which bash)
 
 support := ../resource/decker/support/vendor
