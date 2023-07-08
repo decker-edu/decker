@@ -13,10 +13,13 @@ build:
 	stack build -j8
 
 clean-build: clean 
-	git submodule update --init
-	make -f symlinks.mk -C third-party all
+	stack clean
 	stack build -j8
 
+upgrade-third-party:
+	git submodule update --init
+	make -C third-party -f makefile upgrade
+ 
 less:
 	stack build 2>&1 | less 
 
