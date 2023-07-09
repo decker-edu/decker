@@ -1,75 +1,31 @@
-$if(title)$
 <section id="title-slide">
   <div class="decker">
     <div class="alignment">
-      <h1 class="title">$title$</h1>
-      $if(subtitle)$
-      <h2 class="subtitle">$subtitle$</h2>
-      $endif$
+      <header>
+        <h1 class="title">$title$</h1>
+        $if(subtitle)$
+        <h2 class="subtitle">$subtitle$</h2>
+        $endif$
+      </header>
 
       $if(authors)$
       <div class="authors">
         $for(authors)$
-        $if(it.name)$
-        <div class="author">
-          $if(it.url)$<a href="$it.url$">$endif$ $it.name$ $if(it.url)$</a>$endif$
-          $if(it.affiliation)$
-          <div class="affiliation">
-            $if(it.affiliation.url)$<a href="$it.affiliation.url$">$endif$ $if(it.affiliation.institution)$ $it.affiliation.institution$ $else$ $it.affiliation$ $endif$ $if(it.affiliation.url)$</a>$endif$
-          </div>
-          $endif$
-          $if(it.affiliation.logo)$
-          <img src="$it.affiliation.logo$">
-          $endif$
-        </div>
-        $endif$
+        $it:author-template.html()$
         $endfor$
       </div>
       $endif$
       
+      $if(copyright)$
+      $copyright:copyright-template.html()$
+      $endif$
+
       $if(author)$
-      <div class="author">
-        $if(author.name)$
-          $if(copyright)$
-          <span class="copyright">
-            $if(copyright.type)$
-              $if(copyright.url)$<a href="$copyright.url$">$endif$ $copyright.type$ $if(copyright.url)$</a>$endif$
-            $else$
-              $if(copyright-url)$<a href="$copyright-url$">$endif$ $copyright$ $if(copyright-url)$</a>$endif$
-            $endif$
-          </span>
-          $endif$
-          <span>
-          $if(author.url)$<a href="$author.url$">$endif$ $author.name$ $if(author.url)$</a>$endif$
-          </span>
-        $else$
-          $if(copyright)$
-          <span class="copyright">
-            $if(copyright.type)$
-              $if(copyright.url)$<a href="$copyright.url$">$endif$ $copyright.type$ $if(copyright.url)$</a>$endif$
-            $else$
-              $if(copyright-url)$<a href="$copyright-url$">$endif$ $copyright$ $if(copyright-url)$</a>$endif$
-            $endif$
-          </span>
-          $endif$
-          <span>
-          $if(author-url)$<a href="$author-url$">$endif$ $author$ $if(author-url)$</a>$endif$
-          </span>
-        $endif$
-      </div>
+      $author:author-template.html()$
       $endif$
 
       $if(affiliation)$
-      <div class="affiliation">
-        $if(affiliation.institution)$
-          <p>$if(affiliation.url)$<a href="$affiliation.url$">$endif$ $affiliation.institution$ $if(affiliation.url)$</a>$endif$</p>
-          $if(affiliation.logo)$
-          <img src="$affiliation.logo$">
-          $endif$
-        $else$            
-          <p>$if(affiliation-url)$<a href="$affiliation-url$">$endif$ $affiliation$ $if(affiliation-url)$</a>$endif$</p>
-        $endif$
-      </div>
+      $affiliation:affiliation-template.html()$
       $endif$
 
       $if(date)$
@@ -96,4 +52,3 @@ $if(title)$
     </div>
   </div>
 </section>
-$endif$

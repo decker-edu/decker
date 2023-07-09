@@ -1,3 +1,6 @@
+runtime-path-variables:
+  - logos
+
 reveal:
   backgroundTransition: "none"
   center: true
