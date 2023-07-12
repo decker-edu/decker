@@ -252,9 +252,17 @@ fieldset {
   border-radius: 0.5rem;
 }
 
+html.a11y .a11y-container {
+  width: calc(var(--slide-width) + 2rem);
+  margin: auto;
+  overflow: auto;
+}
+
 html.a11y .reveal .slides {
   display: block;
-  overflow: auto;
+  width: var(--slide-width);
+  max-width: var(--slide-width);
+  margin-left: 0;
 }
 
 html.a11y .reveal .slides section {

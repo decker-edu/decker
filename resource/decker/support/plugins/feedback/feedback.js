@@ -361,6 +361,18 @@ class Feedback {
       .catch(console.log);
   }
 
+  requestSpecificMenuContent(slide) {
+    console.log(slide.id);
+    return this.engine.api
+      .getComments(
+        this.engine.deckId,
+        slide.id,
+        this.engine.token.admin || this.menu.token_input.value
+      )
+      .then((list) => this.updateMenuContent(list))
+      .catch(console.log);
+  }
+
   /**
    * Prepares the text area to answer a question.
    * @param {*} comment
@@ -466,32 +478,42 @@ class Feedback {
   </div>
   <div class="feedback-controls">
     <div class="feedback-controls-wrapper">
-      <span class="votes" title="${text.votes}" aria-label="${text.votes}">${comment.votes > 0 ? comment.votes : ""
-      }</span>
-      <button class="${comment.didvote ? "fas" : "far"} fa-thumbs-up vote ${!isAuthor ? "canvote" : "cantvote"
-      } ${comment.didvote ? "didvote" : ""}"
+      <span class="votes" title="${text.votes}" aria-label="${text.votes}">${
+      comment.votes > 0 ? comment.votes : ""
+    }</span>
+      <button class="${comment.didvote ? "fas" : "far"} fa-thumbs-up vote ${
+      !isAuthor ? "canvote" : "cantvote"
+    } ${comment.didvote ? "didvote" : ""}"
         title="${comment.didvote ? text.downvote : text.upvote}"
         aria-label="${comment.didvote ? text.downvote : text.upvote}">
       </button>
-      ${isDeletable
-        ? `<button class="fas fa-edit feedback-edit-question-button" title="${text.edit}" aria-label="${text.edit}"></button>`
-        : ""
+      ${
+        isDeletable
+          ? `<button class="fas fa-edit feedback-edit-question-button" title="${text.edit}" aria-label="${text.edit}"></button>`
+          : ""
       }
-      ${isDeletable
-        ? `<button class="fas fa-trash-alt feedback-delete-question-button" title="${text.delete}" aria-label="${text.delete}"></button>`
-        : ""
+      ${
+        isDeletable
+          ? `<button class="fas fa-trash-alt feedback-delete-question-button" title="${text.delete}" aria-label="${text.delete}"></button>`
+          : ""
       }
-      ${isAdmin
-        ? `<button class="far fa-plus-square feedback-answer-question-button" title="${text.add}" aria-label="${text.add}">`
-        : ""
+      ${
+        isAdmin
+          ? `<button class="far fa-plus-square feedback-answer-question-button" title="${text.add}" aria-label="${text.add}">`
+          : ""
       }
-      ${isAnswered
-        ? `<button class="far fa-check-circle answered feedback-reset-answers-button" title="${isDeletable ? text.reset : text.answered
-        }" aria-label="${isDeletable ? text.reset : text.answered}" ${!isDeletable ? "disabled" : ""
-        }></button>`
-        : `<button class="far fa-circle notanswered feedback-mark-answered-button" title="${isDeletable ? text.mark : text.notanswered
-        }" aria-label="${isDeletable ? text.mark : text.notanswered}" ${!isDeletable ? "disabled" : ""
-        }></button>`
+      ${
+        isAnswered
+          ? `<button class="far fa-check-circle answered feedback-reset-answers-button" title="${
+              isDeletable ? text.reset : text.answered
+            }" aria-label="${isDeletable ? text.reset : text.answered}" ${
+              !isDeletable ? "disabled" : ""
+            }></button>`
+          : `<button class="far fa-circle notanswered feedback-mark-answered-button" title="${
+              isDeletable ? text.mark : text.notanswered
+            }" aria-label="${isDeletable ? text.mark : text.notanswered}" ${
+              !isDeletable ? "disabled" : ""
+            }></button>`
       }
     </div>
   </div>
@@ -560,13 +582,21 @@ class Feedback {
           ${html}
         </div>
         <div class="feedback-controls">
-          ${isAdmin ? `
+          ${
+            isAdmin
+              ? `
             <button class="fas fa-trash-alt feedback-delete-answer-button" title="${text.delete}" aria-label="${text.delete}">
-            </button>`: ""}
-          ${url ? `
+            </button>`
+              : ""
+          }
+          ${
+            url
+              ? `
             <a href="${url}" target="_blank">
               <i class="fas fa-external-link-alt"></i>
-            </a>` : ""}
+            </a>`
+              : ""
+          }
         </div>
       </div>`;
     let item = template.content.cloneNode(true);

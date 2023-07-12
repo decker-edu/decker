@@ -407,12 +407,6 @@ mod.hello(anchor, "orange");
 
 Caption: What?
 
-# Alert
-
-``` {.javascript .run}
-alert("Hello");
-```
-
 # Execute Javascript Inline
 
 -   Animation ![](../static/es6-blue.js){.javascript .run} is followed by text

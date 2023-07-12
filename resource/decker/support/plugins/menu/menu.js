@@ -395,9 +395,7 @@ class SlideMenu {
     template.innerHTML = String.raw`<li class="slide-list-item" data-slide-h="${h}" ${
       v !== undefined ? 'data-slide-v="' + v + '"' : ""
     }>
-      <a class="slide-link" href="#/${h}${
-      v !== undefined ? "/" + v : ""
-    }" target="_self">${title}</a>
+      <a class="slide-link" href="#${slide.id}" target="_self">${title}</a>
     </li>`;
     let item = template.content.firstElementChild;
     let link = item.firstElementChild;
@@ -690,12 +688,88 @@ class SlideMenu {
         slideNumber: false,
         disableLayout: true,
       });
-      document.documentElement.classList.add("a11y");
       undoAutomaticSlideAdjustments();
-      this.reveal.on("slidechanged", undoAutomaticSlideAdjustments);
-      this.reveal.on("slidechanged", scrollCurrentIntoView);
-      this.reveal.getCurrentSlide().scrollIntoView();
+      document.documentElement.classList.add("a11y");
+      const fakeReveal = document.createElement("div");
+      const revealElem = this.reveal.getRevealElement();
+      fakeReveal.classList.add("reveal");
+      fakeReveal.classList.add("a11y-container");
+      const slidesElement = this.reveal.getSlidesElement();
+      const fakeSlides = document.createElement("div");
+      fakeSlides.classList.add("slides");
+      const slideList = [];
+      for (const child of slidesElement.childNodes) {
+        if (child.tagName !== "SECTION") continue;
+        if (child.classList.contains("stack")) {
+          for (const subchild of child.childNodes) {
+            if (subchild.tagName !== "SECTION") continue;
+            slideList.push(subchild);
+          }
+          continue;
+        }
+        slideList.push(child);
+      }
+      const hasFeedback = !!this.reveal.getPlugin("feedback");
+      if (hasFeedback) {
+        const feedback = this.reveal.getPlugin("feedback");
+        const fbcb = function (entries, observer) {
+          let most = undefined;
+          for (const entry of entries) {
+            if (entry.isIntersecting && !most) {
+              most = entry;
+            } else if (entry.isIntersecting && most) {
+              if (entry.intersectionRatio > most.intersectionRatio) {
+                most = entry;
+              }
+            }
+          }
+          if (most) {
+            feedback.requestSpecificMenuContent(most.target);
+          }
+        };
+        const fbo = {
+          root: fakeReveal,
+          threshold: [0, 0.5, 1],
+        };
+        const feedbackObserver = new IntersectionObserver(fbcb, fbo);
+        for (const child of slideList) {
+          feedbackObserver.observe(child);
+        }
+      }
+
+      for (const child of slideList) {
+        fakeSlides.appendChild(child);
+      }
+      revealElem.parentElement.prepend(fakeReveal);
+      fakeReveal.appendChild(fakeSlides);
       this.a11y = true;
+      const observerOptions = {
+        root: fakeSlides,
+        rootMargin: "50%",
+        threshold: [0],
+      };
+
+      const toggleSrc = function (entries, observer) {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.src = entry.target.dataset["src"];
+          } else {
+            entry.target.src = null;
+          }
+        });
+      };
+
+      const observer = new IntersectionObserver(toggleSrc, observerOptions);
+      const iframes = fakeReveal.getElementsByTagName("IFRAME");
+      for (const iframe of iframes) {
+        observer.observe(iframe);
+      }
+      const videos = fakeReveal.getElementsByTagName("VIDEO");
+      for (const video of videos) {
+        video.dataset.previousAutoplay = video.dataset.autoplay;
+        observer.observe(video);
+        delete video.dataset.autoplay;
+      }
     } else {
       console.log("turning off a11y mode");
       this.reveal.configure(this.previousConfig);
@@ -719,7 +793,6 @@ class SlideMenu {
         }
       }
       this.reveal.off("slidechanged", undoAutomaticSlideAdjustments);
-      this.reveal.off("slidechanged", scrollCurrentIntoView);
       this.a11y = false;
     }
   }
@@ -790,7 +863,7 @@ class SlideMenu {
 }
 
 function undoAutomaticSlideAdjustments() {
-  let slides = document.querySelectorAll(".slides > section");
+  let slides = document.querySelectorAll(".slides section");
   for (const slide of slides) {
     slide.dataset["previousInert"] = slide.inert;
     slide.inert = false;
@@ -802,23 +875,9 @@ function undoAutomaticSlideAdjustments() {
     slide.hidden = false;
     slide.dataset["previousAriaHidden"] = slide.getAttribute("aria-hidden");
     slide.removeAttribute("aria-hidden");
-    const iframes = slide.getElementsByTagName("IFRAME");
-    for (const iframe of iframes) {
-      if (iframe.dataset["src"]) {
-        iframe.src = iframe.dataset["src"];
-      }
-    }
-    const videos = slide.getElementsByTagName("VIDEO");
-    for (const video of videos) {
-      video.dataset.previousAutoplay = video.dataset.autoplay;
-      delete video.dataset.autoplay;
-    }
+    slide.style["min-height"] = slide.style.height;
+    slide.style.height = null;
   }
-}
-
-function scrollCurrentIntoView(event) {
-  const slide = event.currentSlide;
-  slide.scrollIntoView();
 }
 
 let instance = new SlideMenu("TOP_LEFT");
