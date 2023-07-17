@@ -11,8 +11,6 @@ import Data.List
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.String ()
-import Data.Text qualified as Text
-import Data.Version
 import Development.Shake
 import GHC.IO.Encoding
 import System.Directory (removeFile)
@@ -30,7 +28,6 @@ import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
-import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout

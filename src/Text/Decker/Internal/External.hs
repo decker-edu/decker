@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use unwords" #-}
 
 module Text.Decker.Internal.External
   ( ssh,
@@ -56,10 +58,7 @@ programs =
       ExternalProgram
         -- []
         "rsync"
-        [ "--recursive",
-          "--copy-links",
-          "--delete"
-        ]
+        [ "--recursive", "--copy-links", "--delete" ]
         ["--version"]
         (helpText "`rsync` (https://rsync.samba.org)")
     ),
