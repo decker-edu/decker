@@ -10,6 +10,8 @@
 // import functionality for light/dark mode
 import * as colorScheme from "../../js/color-scheme.js";
 
+let currentFeedbackSlide;
+
 class SlideMenu {
   id;
   reveal;
@@ -493,8 +495,6 @@ class SlideMenu {
           </button>
           <button id="decker-menu-settings-button" class="fa-button fas fa-cog" title="${this.localization.open_settings_label}" aria-label="${this.localization.open_settings_label}">
           </button>
-          <button id="decker-menu-a11y-button" class="fa-button fas fa-universal-access" title="Accessibility Mode" aria-label="a11ymode">
-          </button>
         </div>
         <div id="decker-menu-title">
           <span>${this.localization.title}</span>
@@ -540,9 +540,6 @@ class SlideMenu {
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
-    this.menu.a11y_button.addEventListener("click", (event) =>
-      this.toggleA11Y(event)
-    );
 
     this.initializeSlideList();
     this.initializeSettingsMenu();
@@ -558,6 +555,22 @@ class SlideMenu {
       document.body.appendChild(this.glass);
     }
     this.glass.addEventListener("click", (event) => this.closeMenu(event));
+  }
+
+  addMenuButton(id, icon, title, callback) {
+    const button = document.createElement("button");
+    button.id = id;
+    button.classList.add("fa-button", "fas", icon);
+    button.title = title;
+    button.setAttribute("aria-label", title);
+    button.addEventListener("click", callback);
+    const menuHeaderButtons = document.getElementsByClassName(
+      "menu-header-buttons"
+    );
+    if (menuHeaderButtons.length > 0) {
+      const container = menuHeaderButtons[0];
+      container.appendChild(button);
+    }
   }
 
   toggleAnnotations() {
@@ -676,127 +689,6 @@ class SlideMenu {
     );
   }
 
-  toggleA11Y(event) {
-    const mode = this.a11y;
-    if (!mode) {
-      this.previousConfig = this.reveal.getConfig();
-      this.reveal.configure({
-        keyboard: false,
-        controls: false,
-        progress: false,
-        fragments: false,
-        slideNumber: false,
-        disableLayout: true,
-      });
-      undoAutomaticSlideAdjustments();
-      document.documentElement.classList.add("a11y");
-      const fakeReveal = document.createElement("div");
-      const revealElem = this.reveal.getRevealElement();
-      fakeReveal.classList.add("reveal");
-      fakeReveal.classList.add("a11y-container");
-      const slidesElement = this.reveal.getSlidesElement();
-      const fakeSlides = document.createElement("div");
-      fakeSlides.classList.add("slides");
-      const slideList = [];
-      for (const child of slidesElement.childNodes) {
-        if (child.tagName !== "SECTION") continue;
-        if (child.classList.contains("stack")) {
-          for (const subchild of child.childNodes) {
-            if (subchild.tagName !== "SECTION") continue;
-            slideList.push(subchild);
-          }
-          continue;
-        }
-        slideList.push(child);
-      }
-      const hasFeedback = !!this.reveal.getPlugin("feedback");
-      if (hasFeedback) {
-        const feedback = this.reveal.getPlugin("feedback");
-        const fbcb = function (entries, observer) {
-          let most = undefined;
-          for (const entry of entries) {
-            if (entry.isIntersecting && !most) {
-              most = entry;
-            } else if (entry.isIntersecting && most) {
-              if (entry.intersectionRatio > most.intersectionRatio) {
-                most = entry;
-              }
-            }
-          }
-          if (most) {
-            feedback.requestSpecificMenuContent(most.target);
-          }
-        };
-        const fbo = {
-          root: fakeReveal,
-          threshold: [0, 0.5, 1],
-        };
-        const feedbackObserver = new IntersectionObserver(fbcb, fbo);
-        for (const child of slideList) {
-          feedbackObserver.observe(child);
-        }
-      }
-
-      for (const child of slideList) {
-        fakeSlides.appendChild(child);
-      }
-      revealElem.parentElement.prepend(fakeReveal);
-      fakeReveal.appendChild(fakeSlides);
-      this.a11y = true;
-      const observerOptions = {
-        root: fakeSlides,
-        rootMargin: "50%",
-        threshold: [0],
-      };
-
-      const toggleSrc = function (entries, observer) {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.src = entry.target.dataset["src"];
-          } else {
-            entry.target.src = null;
-          }
-        });
-      };
-
-      const observer = new IntersectionObserver(toggleSrc, observerOptions);
-      const iframes = fakeReveal.getElementsByTagName("IFRAME");
-      for (const iframe of iframes) {
-        observer.observe(iframe);
-      }
-      const videos = fakeReveal.getElementsByTagName("VIDEO");
-      for (const video of videos) {
-        video.dataset.previousAutoplay = video.dataset.autoplay;
-        observer.observe(video);
-        delete video.dataset.autoplay;
-      }
-    } else {
-      console.log("turning off a11y mode");
-      this.reveal.configure(this.previousConfig);
-      document.documentElement.classList.remove("a11y");
-      let slides = document.querySelectorAll(".slides > section");
-      for (const slide of slides) {
-        slide.inert = slide.dataset["previousInert"];
-        slide.dataset["previousInert"] = null;
-        slide.style.top = slide.dataset["previousTop"];
-        slide.dataset["previousTop"] = null;
-        slide.style.display = slide.dataset["previousDisplay"];
-        slide.dataset["previousDisplay"] = null;
-        slide.hidden = slide.dataset["previousHidden"];
-        slide.dataset["previousHidden"] = null;
-        slide.setAttribute("aria-hidden", slide.dataset["previousAriaHidden"]);
-        slide.dataset["previousAriaHidden"] = null;
-        const videos = slide.getElementsByTagName("VIDEO");
-        for (const video of videos) {
-          video.dataset.autoplay = video.dataset.previousAutoplay;
-          delete video.dataset.previousAutoplay;
-        }
-      }
-      this.reveal.off("slidechanged", undoAutomaticSlideAdjustments);
-      this.a11y = false;
-    }
-  }
-
   init(reveal) {
     this.reveal = reveal;
     this.config = reveal.getConfig();
@@ -859,24 +751,6 @@ class SlideMenu {
     reveal.addEventListener("slidechanged", () =>
       this.updateCurrentSlideMark()
     );
-  }
-}
-
-function undoAutomaticSlideAdjustments() {
-  let slides = document.querySelectorAll(".slides section");
-  for (const slide of slides) {
-    slide.dataset["previousInert"] = slide.inert;
-    slide.inert = false;
-    slide.dataset["previousTop"] = slide.style.top;
-    slide.style.top = null;
-    slide.dataset["previousDisplay"] = slide.style.display;
-    slide.style.display = null;
-    slide.dataset["previousHidden"] = slide.hidden;
-    slide.hidden = false;
-    slide.dataset["previousAriaHidden"] = slide.getAttribute("aria-hidden");
-    slide.removeAttribute("aria-hidden");
-    slide.style["min-height"] = slide.style.height;
-    slide.style.height = null;
   }
 }
 

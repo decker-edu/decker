@@ -1420,3 +1420,28 @@ html.dark
   background-color: white;
   filter: brightness(90%) contrast(90%);
 }
+
+/*
+ * Accessibility Mode Color Adjustments
+ */
+
+html.a11y {
+  --accent3: #538234 !important;
+}
+
+html.a11y a {
+  color: var(--blueish);
+  text-decoration: underline;
+  transition: transform 0.1s ease-out 0s;
+}
+
+html.a11y a:hover {
+  display: inline-block;
+  background-color: var(--foreground-color);
+  color: var(--accent6-bbg);
+  transform: scale(1.05);
+}
+
+html.a11y .slides section {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+}

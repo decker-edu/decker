@@ -126,7 +126,8 @@ class Feedback {
     if (this.menu.container.inert) {
       this.menu.container.inert = false;
       this.menu.token_lock.focus();
-      this.requestMenuContent();
+      if (!document.documentElement.classList.contains("a11y"))
+        this.requestMenuContent();
       this.reveal.getRevealElement().inert = true;
       // localStorage.setItem("feedback-state", "open");
       this.glass.classList.add("show");
@@ -362,7 +363,6 @@ class Feedback {
   }
 
   requestSpecificMenuContent(slide) {
-    console.log(slide.id);
     return this.engine.api
       .getComments(
         this.engine.deckId,
