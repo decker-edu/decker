@@ -178,13 +178,13 @@ function createSRCIntersectionObserver(slideList) {
   );
   const iframes = fakeRevealContainer.getElementsByTagName("IFRAME");
   for (const iframe of iframes) {
-    observer.observe(iframe);
+    srcIntersectionObserver.observe(iframe);
   }
   const videos = fakeRevealContainer.getElementsByTagName("VIDEO");
   for (const video of videos) {
     video.dataset.previousAutoplay = video.dataset.autoplay;
     delete video.dataset.autoplay;
-    observer.observe(video);
+    srcIntersectionObserver.observe(video);
   }
 }
 
