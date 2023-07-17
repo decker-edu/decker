@@ -126,6 +126,8 @@ class Feedback {
     if (this.menu.container.inert) {
       this.menu.container.inert = false;
       this.menu.token_lock.focus();
+      // This is necessary for the a11y plugin because it disables change of the "currentSlide" of Reveal.
+      // TODO: Find a better way to deal with this
       if (!document.documentElement.classList.contains("a11y"))
         this.requestMenuContent();
       this.reveal.getRevealElement().inert = true;
