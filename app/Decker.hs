@@ -5,16 +5,21 @@ import Control.Exception (SomeException (SomeException), catch)
 import Control.Lens ((^.))
 import Control.Lens qualified as Control.Lens.Getter
 import Control.Monad.Extra
+import Data.Aeson (encodeFile)
 import Data.ByteString qualified as BS
 import Data.IORef ()
 import Data.List
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.String ()
+import Data.Time.Format (rfc822DateFormat)
+import Data.Time.Format.ISO8601
 import Development.Shake
 import GHC.IO.Encoding
+import Relude (exitSuccess)
 import System.Directory (removeFile)
 import System.Directory qualified as Dir
+import System.Directory qualified as Sytem.Directory
 import System.FilePath.Posix
 import System.IO
 import Text.Decker.Exam.Question
@@ -26,6 +31,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
 import Text.Decker.Resource.Resource
@@ -325,6 +331,7 @@ deckerRules = do
       need ["support"]
       meta <- getGlobalMeta
       getDeps >>= needTargets' [decks, handouts, pages]
+      liftIO createPublicManifest
       let src = publicDir ++ "/"
       case lookupMeta "publish.rsync.destination" meta of
         Just destination -> publishWithRsync src destination meta
@@ -334,6 +341,16 @@ deckerRules = do
           let dst = intercalate ":" [host, path]
           ssh [host, "mkdir -p", path] Nothing
           rsync [src, dst] Nothing
+
+createPublicManifest :: IO ()
+createPublicManifest = do
+  allFiles <- fastGlobFiles' [] (const True) publicDir
+  allFilesWithMeta <- mapM readMeta allFiles
+  encodeFile (publicDir <> "/" <> "manifest.json") allFilesWithMeta
+  where
+    readMeta file = do
+      modTime <- Sytem.Directory.getModificationTime file
+      return (file, formatShow iso8601Format modTime)
 
 needIfExists :: String -> String -> String -> Action ()
 needIfExists suffix also out = do
