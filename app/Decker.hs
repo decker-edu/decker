@@ -12,14 +12,11 @@ import Data.List
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.String ()
-import Data.Time.Format (rfc822DateFormat)
 import Data.Time.Format.ISO8601
 import Development.Shake
 import GHC.IO.Encoding
-import Relude (exitSuccess)
-import System.Directory (removeFile)
+import System.Directory (createDirectoryIfMissing, removeFile)
 import System.Directory qualified as Dir
-import System.Directory qualified as Sytem.Directory
 import System.FilePath.Posix
 import System.IO
 import Text.Decker.Exam.Question
@@ -331,7 +328,7 @@ deckerRules = do
       need ["support"]
       meta <- getGlobalMeta
       getDeps >>= needTargets' [decks, handouts, pages]
-      liftIO createPublicManifest
+      createPublicManifest
       let src = publicDir ++ "/"
       case lookupMeta "publish.rsync.destination" meta of
         Just destination -> publishWithRsync src destination meta
@@ -342,15 +339,20 @@ deckerRules = do
           ssh [host, "mkdir -p", path] Nothing
           rsync [src, dst] Nothing
 
-createPublicManifest :: IO ()
+createPublicManifest :: Action ()
 createPublicManifest = do
-  allFiles <- fastGlobFiles' [] (const True) publicDir
+  let manifestPath = publicDir <> "/" <> "manifest.json"
+  putNormal $ "# writing manifest (to " <> manifestPath <> ")"
+  liftIO $ writeFile manifestPath "" -- make sure manifest.json is listed in the manifest make sure manifest.json is listed in the manifest
+  liftIO $ createDirectoryIfMissing True publicDir
+  allFiles <- liftIO $ fastGlobFiles' [] (const True) publicDir
   allFilesWithMeta <- mapM readMeta allFiles
-  encodeFile (publicDir <> "/" <> "manifest.json") allFilesWithMeta
+  liftIO $ encodeFile manifestPath allFilesWithMeta
   where
     readMeta file = do
-      modTime <- Sytem.Directory.getModificationTime file
-      return (file, formatShow iso8601Format modTime)
+      modTime <- liftIO $ Dir.getModificationTime file
+      return (stripPublic file, formatShow iso8601Format modTime)
+    stripPublic path = fromMaybe path $ stripPrefix "public/" path
 
 needIfExists :: String -> String -> String -> Action ()
 needIfExists suffix also out = do
