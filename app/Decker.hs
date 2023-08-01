@@ -17,6 +17,7 @@ import Development.Shake
 import GHC.IO.Encoding
 import System.Directory (createDirectoryIfMissing, removeFile)
 import System.Directory qualified as Dir
+import System.Directory.Extra (getFileSize)
 import System.FilePath.Posix
 import System.IO
 import Text.Decker.Exam.Question
@@ -346,12 +347,13 @@ createPublicManifest = do
   liftIO $ writeFile manifestPath "" -- make sure manifest.json is listed in the manifest make sure manifest.json is listed in the manifest
   liftIO $ createDirectoryIfMissing True publicDir
   allFiles <- liftIO $ fastGlobFiles' [] (const True) publicDir
-  allFilesWithMeta <- mapM readMeta allFiles
+  allFilesWithMeta <- Map.fromList <$> mapM readMeta allFiles
   liftIO $ encodeFile manifestPath allFilesWithMeta
   where
     readMeta file = do
       modTime <- liftIO $ Dir.getModificationTime file
-      return (stripPublic file, formatShow iso8601Format modTime)
+      size <- liftIO $ getFileSize file
+      return (stripPublic file, (formatShow iso8601Format modTime, size))
     stripPublic path = fromMaybe path $ stripPrefix "public/" path
 
 needIfExists :: String -> String -> String -> Action ()
