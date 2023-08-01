@@ -1,6 +1,11 @@
+---
+lang: en-US
+---
+
 [![Tests](https://github.com/decker-edu/decker/actions/workflows/develop.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/develop.yml)
 [![Release](https://github.com/decker-edu/decker/actions/workflows/release.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/release.yml)
-[![Decker Page](https://github.com/decker-edu/decker/actions/workflows/jekyll-gh-pages.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/jekyll-gh-pages.yml)
+[![Decker
+Page](https://github.com/decker-edu/decker/actions/workflows/jekyll-gh-pages.yml/badge.svg)](https://github.com/decker-edu/decker/actions/workflows/jekyll-gh-pages.yml)
 
 # Decker
 
@@ -17,13 +22,26 @@ A markdown based tool for slide deck creation.
 
 Note:
 
-Decker will be installed under `~/.local/bin` which is default not recognized by your terminal.
-If decker is not found by your terminal, add the path to the corresponding config file. 
-For zsh (default for macos) do the following steps. Run from the terminal:
+Decker will be installed under `~/.local/bin` which is default not recognized by
+your terminal. If decker is not found by your terminal, add the path to the
+corresponding config file. For zsh (default for macos) do the following steps.
+Run from the terminal:
 
 1.  `touch ~/.zshrc`
 2.  `echo PATH=$HOME/.local/bin:$PATH > ~/.zshrc`
 3.  `source ~/.zshrc`
+
+### Third-party resources
+
+`reveal.js` `MathJax` and `Font-Awesome` dependencies are tracked via
+submodules. After upgrading any of these submodules you need to run
+
+``` sh
+make upgrade-third-party
+```
+
+to copy the needed resources into the main repo at
+`resource/decker/support/vendor`.
 
 ## Installation from source on Windows
 
@@ -45,11 +63,13 @@ session!
 
 ### Note:
 
-Windows Antivirus Protection has a high impact on compilation time. Add the following directories as exclusions to safe about 20-40% compilation time.
+Windows Antivirus Protection has a high impact on compilation time. Add the
+following directories as exclusions to safe about 20-40% compilation time.
 
-- Haskell stack build tool: usually under `C:\sr`
-- Haskell compiler: `%AppData%\Local\Programs\stack\x86_64-windows\ghc-x.x.x\bin`
-- this repository
+-   Haskell stack build tool: usually under `C:\sr`
+-   Haskell compiler:
+    `%AppData%\Local\Programs\stack\x86_64-windows\ghc-x.x.x\bin`
+-   this repository
 
 ## Development
 
@@ -76,8 +96,8 @@ the full functionality:
 -   [*ssh*](https://www.openssh.com) for publishing slide decks and resources
 -   [*rsync*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/rsync)
     for publishing slide decks and resources
-    - Note: openssh Server do not work properly with rsync for Windows. Use cygwin and its terminal to perform decker publish.
-
+    -   Note: openssh Server do not work properly with rsync for Windows. Use
+        cygwin and its terminal to perform decker publish.
 -   [*LaTeX* with pdflatex](https://www.latex-project.org) to generate LaTeX in
     PDF-files and embedded Tikz figures
 -   [*Graphviz*](http://graphviz.org) to generate graphs using `dot`
@@ -221,7 +241,7 @@ document, depending on the file name.
     Publish the generated files to a remote location using `rsync` if the
     location is specified in the meta data. The keys `rsync-destination.host`
     and `rsync-destination.path` specify the publishing destination.
-   
+
 ## Contributions
 
 ### Pull requests
