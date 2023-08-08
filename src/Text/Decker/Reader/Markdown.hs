@@ -205,7 +205,7 @@ pathVariables :: Meta -> [Text]
 pathVariables meta =
   List.nub $ compiletimePathVariables meta <> runtimePathVariables meta
 
--- TODO what does this even mean?
+-- TODO: what does this even mean?
 compiletimePathVariables :: Meta -> [Text]
 compiletimePathVariables meta =
   List.nub $
@@ -218,7 +218,7 @@ compiletimePathVariables meta =
     ]
       <> lookupMetaOrElse [] "compiletime-path-variables" meta
 
--- TODO what does this even mean?
+-- TODO: what does this even mean?
 runtimePathVariables :: Meta -> [Text]
 runtimePathVariables meta =
   List.nub $ ["template"] <> lookupMetaOrElse [] "runtime-path-variables" meta

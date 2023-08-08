@@ -45,7 +45,8 @@ function getLanguageCode(string) {
   if (/^..-../i.test(string)) {
     return string;
   }
-  //Language names TODO This whole system needs to be improved
+  //Language names 
+  // TODO: This whole system needs to be improved
   let code = undefined;
   switch (lang) {
     case "Deutsch":

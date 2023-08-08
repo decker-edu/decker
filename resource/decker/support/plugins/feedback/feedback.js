@@ -826,7 +826,7 @@ class Feedback {
 
     this.lang = navigator.language;
 
-    //TODO Get this from external sources
+    // TODO: Get this from external sources
 
     this.localization = {
       question_placeholder:
