@@ -15,9 +15,10 @@ exclude-directories:
   - third-party
   - users-guide
   - website
-static-resource-dirs:
+static-resources:
   - test/static
   - doc/static
+  - hie.yaml
 
 # Valid resource packs that come with decker
 # resource-pack: exe:wburg
