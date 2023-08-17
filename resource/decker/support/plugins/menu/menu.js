@@ -673,8 +673,10 @@ class SlideMenu {
 const plugin = () => {
   return {
     id: "decker-menu",
+    getSlideList: undefined,
+    getListItem: undefined,
     init(reveal) {
-      const menu = new SlideMenu("TOP_LEFT", reveal);
+      menu = new SlideMenu("TOP_LEFT", reveal);
       menu.localization = {
         open_button_label: "Open Navigation Menu",
         home_button_label: "Go to Index Page",
@@ -723,6 +725,16 @@ const plugin = () => {
       menu.initializeMenu();
 
       document.body.appendChild(menu.menu.container);
+
+      this.getSlideList = () => {
+        return menu.getSlideList();
+      };
+
+      this.getListItem = (h, v) => {
+        return menu.getListItem(h, v);
+      };
+
+      this.slide_list_container = menu;
 
       if (!reveal.hasPlugin("ui-anchors")) {
         console.log("no decker ui anchor plugin loaded");
