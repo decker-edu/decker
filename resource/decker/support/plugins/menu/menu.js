@@ -676,7 +676,7 @@ const plugin = () => {
     getSlideList: undefined,
     getListItem: undefined,
     init(reveal) {
-      menu = new SlideMenu("TOP_LEFT", reveal);
+      const menu = new SlideMenu("TOP_LEFT", reveal);
       menu.localization = {
         open_button_label: "Open Navigation Menu",
         home_button_label: "Go to Index Page",
