@@ -18,14 +18,10 @@
 TAGS
 TODO.md
 decker.cabal
-dist/
+./dist/
 node_modules
 public/
 private/
-resource/decker/support/vendor/
-resource/support/vendor
 stack.yaml.lock
 test/decks/*.svg
 index.md.generated
-resource/wburg/support/css/decker.css
-resource/wburg/support/css/page.css

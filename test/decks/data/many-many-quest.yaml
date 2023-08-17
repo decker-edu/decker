@@ -1,0 +1,45 @@
+LectureId: eval
+TopicId: many-many
+Answer:
+  tag: MultipleChoice
+  Choices:
+  - Correct: false
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=\\cos \\theta$"
+  - Correct: true
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=|\\vec{a}||\\vec{b}|\\cos \\theta$"
+  - Correct: false
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=|\\vec{a}||\\vec{b}|\\sin \\theta$"
+  - Correct: true
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}$ ist die Länge der Projektion von $\\vec{a}$ auf $\\vec{b}$ wenn $|\\vec{b}|=1$"
+  - Correct: true
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=a_xb_x+a_yb_y+a_zb_z$"
+  - Correct: false
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=\\begin{pmatrix}a_yb_z-a_zb_y\\\\a_zb_x-a_xb_z\\\\a_xb_y-a_yb_x\\end{pmatrix}$"
+  - Correct: false
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=\\cos \\theta$"
+  - Correct: true
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=|\\vec{a}||\\vec{b}|\\cos \\theta$"
+  - Correct: false
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=|\\vec{a}||\\vec{b}|\\sin \\theta$"
+  - Correct: true
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}$ ist die Länge der Projektion von $\\vec{a}$ auf $\\vec{b}$ wenn $|\\vec{b}|=1$"
+  - Correct: true
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=a_xb_x+a_yb_y+a_zb_z$"
+  - Correct: false
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=\\begin{pmatrix}a_yb_z-a_zb_y\\\\a_zb_x-a_xb_z\\\\a_xb_y-a_yb_x\\end{pmatrix}$"
+  - Correct: false
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=|\\vec{a}||\\vec{b}|\\sin \\theta$"
+  - Correct: true
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}$ ist die Länge der Projektion von $\\vec{a}$ auf $\\vec{b}$ wenn $|\\vec{b}|=1$"
+  - Correct: true
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=a_xb_x+a_yb_y+a_zb_z$"
+  - Correct: false
+    TheAnswer: "$\\vec{a}\\cdot\\vec{b}=\\begin{pmatrix}a_yb_z-a_zb_y\\\\a_zb_x-a_xb_z\\\\a_xb_y-a_yb_x\\end{pmatrix}$"
+Title: Skalarprodukt
+Difficulty: Medium
+Comment: ""
+Points: 5
+Question: |
+    Welche der folgenden Zusammenhänge beschreiben das Skalarprodukt 
+    $\vec{a}\cdot\vec{b}$ zwischen 
+    zwei Vektoren $\vec{a}$ und $\vec{b}$ korrekt?

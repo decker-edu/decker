@@ -80,14 +80,19 @@ runTargets :: ActionContext -> [FilePath] -> Rules () -> IO ()
 runTargets context targets rules = do
   let flags = context ^. extra
   extractMetaIntoFile flags
-  channel <- atomically newTChan
+  -- channel <- atomically newTChan
 
   when (OpenFlag `elem` flags) $ do
     let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort flags
     openBrowser $ "http://localhost:" <> show port <> "/index.html"
 
+  -- always rescan the targets file in case files where added or removed
+  let meta = context ^. globalMeta
+  scanTargetsToFile meta targetsFile
+
   -- Always run at least once
   runShake context rules
+
   if
       | ServerFlag `elem` flags -> do
           forkServer context
@@ -108,6 +113,11 @@ runShake context rules = do
 
 runShakeSlyly :: ActionContext -> Rules () -> IO ()
 runShakeSlyly context rules = do
+  -- always rescan the targets file in case files where added or removed
+  let meta = context ^. globalMeta
+  scanTargetsToFile meta targetsFile
+  let flags = context ^. extra
+  extractMetaIntoFile flags
   options <- deckerShakeOptions context
   shakeArgsWith (options {shakeFiles = transientDir </> "crunch"}) deckerFlags (\_ _ -> return $ Just rules)
 

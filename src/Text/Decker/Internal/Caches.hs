@@ -26,8 +26,8 @@ prepCaches = do
           need needed
           return template
       )
-  targetsFile %> \targetFile -> do
-    alwaysRerun
-    meta <- getGlobalMeta
-    scanTargetsToFile meta targetFile
+  -- targetsFile %> \targetFile -> do
+  --   alwaysRerun
+  --   meta <- getGlobalMeta
+  --   scanTargetsToFile meta targetFile
   return (getGlobalMeta, getDeps, getTemplate)

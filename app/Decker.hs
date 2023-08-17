@@ -5,18 +5,19 @@ import Control.Exception (SomeException (SomeException), catch)
 import Control.Lens ((^.))
 import Control.Lens qualified as Control.Lens.Getter
 import Control.Monad.Extra
+import Data.Aeson (encodeFile)
 import Data.ByteString qualified as BS
 import Data.IORef ()
 import Data.List
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.String ()
-import Data.Text qualified as Text
-import Data.Version
+import Data.Time.Format.ISO8601
 import Development.Shake
 import GHC.IO.Encoding
-import System.Directory (removeFile)
+import System.Directory (createDirectoryIfMissing, removeFile)
 import System.Directory qualified as Dir
+import System.Directory.Extra (getFileSize)
 import System.FilePath.Posix
 import System.IO
 import Text.Decker.Exam.Question
@@ -28,9 +29,9 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Project.Glob (fastGlobFiles')
 import Text.Decker.Project.Project
 import Text.Decker.Project.Shake
-import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout
@@ -328,6 +329,7 @@ deckerRules = do
       need ["support"]
       meta <- getGlobalMeta
       getDeps >>= needTargets' [decks, handouts, pages]
+      createPublicManifest
       let src = publicDir ++ "/"
       case lookupMeta "publish.rsync.destination" meta of
         Just destination -> publishWithRsync src destination meta
@@ -337,6 +339,22 @@ deckerRules = do
           let dst = intercalate ":" [host, path]
           ssh [host, "mkdir -p", path] Nothing
           rsync [src, dst] Nothing
+
+createPublicManifest :: Action ()
+createPublicManifest = do
+  let manifestPath = publicDir <> "/" <> "manifest.json"
+  putNormal $ "# writing manifest (to " <> manifestPath <> ")"
+  liftIO $ writeFile manifestPath "" -- make sure manifest.json is listed in the manifest make sure manifest.json is listed in the manifest
+  liftIO $ createDirectoryIfMissing True publicDir
+  allFiles <- liftIO $ fastGlobFiles' [] (const True) publicDir
+  allFilesWithMeta <- Map.fromList <$> mapM readMeta allFiles
+  liftIO $ encodeFile manifestPath allFilesWithMeta
+  where
+    readMeta file = do
+      modTime <- liftIO $ Dir.getModificationTime file
+      size <- liftIO $ getFileSize file
+      return (stripPublic file, (formatShow iso8601Format modTime, size))
+    stripPublic path = fromMaybe path $ stripPrefix "public/" path
 
 needIfExists :: String -> String -> String -> Action ()
 needIfExists suffix also out = do

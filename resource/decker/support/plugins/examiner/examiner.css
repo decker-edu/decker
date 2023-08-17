@@ -237,6 +237,38 @@ div.vote[label="H"] div.votes {
   background-color: var(--accent7);
 }
 
+div.vote[label="I"] div.votes {
+  background-color: var(--accent0);
+}
+
+div.vote[label="J"] div.votes {
+  background-color: var(--accent1);
+}
+
+div.vote[label="K"] div.votes {
+  background-color: var(--accent2);
+}
+
+div.vote[label="L"] div.votes {
+  background-color: var(--accent3);
+}
+
+div.vote[label="M"] div.votes {
+  background-color: var(--accent4);
+}
+
+div.vote[label="N"] div.votes {
+  background-color: var(--accent5);
+}
+
+div.vote[label="O"] div.votes {
+  background-color: var(--accent6);
+}
+
+div.vote[label="P"] div.votes {
+  background-color: var(--accent7);
+}
+
 div.qrcode.container {
   position: absolute;
   left: 0;
