@@ -276,6 +276,12 @@ class Feedback {
   sendComment(event) {
     if (event.key === "Enter" && event.shiftKey) {
       let slideId = this.reveal.getCurrentSlide().id;
+      if (
+        document.documentElement.classList.contains("a11y") &&
+        this.mostRecentSlideID
+      ) {
+        slideId = this.mostRecentSlideID;
+      }
       if (this.menu.feedback_input.hasAttribute("answer")) {
         this.engine.api
           .postAnswer(
@@ -358,6 +364,7 @@ class Feedback {
     } else {
       slideId = slide.id;
     }
+    this.mostRecentSlideID = slideId;
     return this.engine.api
       .getComments(
         this.engine.deckId,

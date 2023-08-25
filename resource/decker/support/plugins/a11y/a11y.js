@@ -229,15 +229,6 @@ function prepareWhiteboardSVG(svg) {
   const height =
     pageHeight * Math.max(1, Math.ceil(scribbleHeight / pageHeight));
   svg.style.height = height + "px";
-  console.log(svg);
-  console.log("[DEBUG]", "pageHeight", pageHeight);
-  console.log("[DEBUG]", "scribbleHeight", scribbleHeight);
-  console.log(
-    "[DEBUG]",
-    "math",
-    Math.max(1, Math.ceil(scribbleHeight / pageHeight))
-  );
-  console.log("[DEBUG]", "height", height);
 }
 
 function activateA11yMode() {
