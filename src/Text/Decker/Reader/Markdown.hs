@@ -14,13 +14,13 @@ where
 
 import Control.Monad
 import Control.Monad.Loops
-import qualified Data.ByteString as BS
-import qualified Data.List as List
+import Data.ByteString qualified as BS
+import Data.List qualified as List
 import Data.Maybe
-import qualified Data.Text.IO as Text
+import Data.Text.IO qualified as Text
 import Development.Shake hiding (Resource)
 import Relude
-import qualified System.Directory as Dir
+import System.Directory qualified as Dir
 import System.FilePath.Posix
 import Text.Decker.Exam.Filter
 import Text.Decker.Filter.Decker2
@@ -72,11 +72,11 @@ processCites :: MonadIO m => Pandoc -> m Pandoc
 processCites pandoc@(Pandoc meta blocks) = liftIO $ do
   if
       | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
-        runIOorExplode $ processCitations pandoc
+          runIOorExplode $ processCitations pandoc
       | isMetaSet "bibliography" meta -> do
-        defaultCSL <- installDefaultCSL
-        let cslMeta = setMetaValue "csl" defaultCSL meta
-        runIOorExplode $ processCitations (Pandoc cslMeta blocks)
+          defaultCSL <- installDefaultCSL
+          let cslMeta = setMetaValue "csl" defaultCSL meta
+          runIOorExplode $ processCitations (Pandoc cslMeta blocks)
       | otherwise -> return pandoc
 
 -- |  TODO: This seems to fail sometimes with j > 1. Some race condition. Maybe
@@ -205,6 +205,7 @@ pathVariables :: Meta -> [Text]
 pathVariables meta =
   List.nub $ compiletimePathVariables meta <> runtimePathVariables meta
 
+-- TODO: what does this even mean?
 compiletimePathVariables :: Meta -> [Text]
 compiletimePathVariables meta =
   List.nub $
@@ -212,10 +213,12 @@ compiletimePathVariables meta =
       "bibliography",
       "meta-data",
       "static-resource-dirs",
+      "static-resources",
       "extra-highlight-syntax"
     ]
       <> lookupMetaOrElse [] "compiletime-path-variables" meta
 
+-- TODO: what does this even mean?
 runtimePathVariables :: Meta -> [Text]
 runtimePathVariables meta =
   List.nub $ ["template"] <> lookupMetaOrElse [] "runtime-path-variables" meta

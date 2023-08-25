@@ -14,7 +14,7 @@ zoom: false
 
 ## Multiple choice grading
 
-##  {#section .left}
+## {#section .left}
 
 The number of points $p$ is
 
@@ -22,7 +22,7 @@ $$
 p=\frac{(c-w)^+}{n}t
 $$
 
-##  {#section-1 .right}
+## {#section-1 .right}
 
 where
 
@@ -50,3 +50,7 @@ where
 --------------------------------------------------------------------------------
 
 ![](./data/texture-transformation-quest.yaml){.question}
+
+--------------------------------------------------------------------------------
+
+![](./data/many-many-quest.yaml){.question .poll}
