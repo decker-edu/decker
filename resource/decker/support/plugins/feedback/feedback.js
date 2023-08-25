@@ -132,7 +132,6 @@ class Feedback {
       // localStorage.setItem("feedback-state", "open");
       this.glass.classList.add("show");
       this.menu.token_lock.focus();
-      this.requestMenuContent();
     }
   }
 
@@ -352,23 +351,17 @@ class Feedback {
    * Sends an async request to the engine to get the questions of the current slide.
    * @returns A promise that resolves when the update is finished
    */
-  requestMenuContent() {
-    let slideId = this.reveal.getCurrentSlide().id;
+  requestMenuContent(slide) {
+    let slideId;
+    if (!slide) {
+      slideId = this.reveal.getCurrentSlide().id;
+    } else {
+      slideId = slide.id;
+    }
     return this.engine.api
       .getComments(
         this.engine.deckId,
         slideId,
-        this.engine.token.admin || this.menu.token_input.value
-      )
-      .then((list) => this.updateMenuContent(list))
-      .catch(console.log);
-  }
-
-  requestSpecificMenuContent(slide) {
-    return this.engine.api
-      .getComments(
-        this.engine.deckId,
-        slide.id,
         this.engine.token.admin || this.menu.token_input.value
       )
       .then((list) => this.updateMenuContent(list))
@@ -853,6 +846,9 @@ let plugin = () => {
   return {
     id: "feedback",
 
+    getEngine: undefined,
+    requestMenuContent: undefined,
+
     init(reveal) {
       const instance = new Feedback("TOP_RIGHT");
       instance.reveal = reveal;
@@ -928,6 +924,9 @@ let plugin = () => {
           },
         };
       }
+
+      this.getEngine = () => instance.engine;
+      this.requestMenuContent = (slide) => instance.requestMenuContent(slide);
 
       let url = instance.config?.server || instance.config?.["base-url"];
       let id = instance.config?.deckID || instance.config?.["deck-id"];

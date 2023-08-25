@@ -8,6 +8,7 @@ html.a11y .reveal .slides {
   width: var(--slide-width);
   max-width: var(--slide-width);
   transform-origin: top left;
+  margin: 0;
 }
 
 html.a11y .reveal .slides section {
@@ -18,6 +19,7 @@ html.a11y .reveal .slides section {
   transition: none !important;
   transform: none !important;
   min-height: var(--slide-height);
+  height: unset;
 }
 
 html.a11y .reveal .backgrounds {

@@ -1429,13 +1429,13 @@ html.a11y {
   --accent3: #538234 !important;
 }
 
-html.a11y a {
+html.a11y .reveal a {
   color: var(--blueish);
   text-decoration: underline;
   transition: transform 0.1s ease-out 0s;
 }
 
-html.a11y a:hover {
+html.a11y .reveal a:hover {
   display: inline-block;
   background-color: var(--foreground-color);
   color: var(--accent6-bbg);

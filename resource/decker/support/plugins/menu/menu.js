@@ -690,6 +690,7 @@ const plugin = () => {
     id: "decker-menu",
     getSlideList: undefined,
     getListItem: undefined,
+    addMenuButton: undefined,
     init(reveal) {
       const menu = new SlideMenu("TOP_LEFT", reveal);
       menu.localization = {
@@ -747,6 +748,10 @@ const plugin = () => {
 
       this.getListItem = (h, v) => {
         return menu.getListItem(h, v);
+      };
+
+      this.addMenuButton = (id, icon, title, callback) => {
+        menu.addMenuButton(id, icon, title, callback);
       };
 
       this.slide_list_container = menu;

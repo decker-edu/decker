@@ -112,7 +112,7 @@ function createFeedbackIntersectionObserver(slideList) {
   }
   const feedback = Reveal.getPlugin("feedback");
   if (!!feedback) {
-    if (feedback.engine.api) {
+    if (feedback.getEngine().api) {
       const feedbackCallback = function (entries, observer) {
         if (!handoutSlideMode) return;
         let most = undefined;
@@ -133,7 +133,7 @@ function createFeedbackIntersectionObserver(slideList) {
             return;
           }
           currentFeedbackSlide = most.target;
-          feedback.requestSpecificMenuContent(most.target);
+          feedback.requestMenuContent(most.target);
         }
       };
       const feedbackObserverOptions = {
@@ -178,13 +178,13 @@ function createSRCIntersectionObserver(slideList) {
   );
   const iframes = fakeRevealContainer.getElementsByTagName("IFRAME");
   for (const iframe of iframes) {
-    observer.observe(iframe);
+    srcIntersectionObserver.observe(iframe);
   }
   const videos = fakeRevealContainer.getElementsByTagName("VIDEO");
   for (const video of videos) {
     video.dataset.previousAutoplay = video.dataset.autoplay;
     delete video.dataset.autoplay;
-    observer.observe(video);
+    srcIntersectionObserver.observe(video);
   }
 }
 
@@ -192,16 +192,19 @@ function onWindowResize(event) {
   const viewport = document.getElementsByClassName("reveal-viewport")[0];
   const width = Reveal.getConfig().width;
   const ow = viewport.offsetWidth;
-  if (ow < width) {
+  const scale = ow / width;
+  fakeSlideContainer.style.transform = "scale(" + scale + ")";
+  /*  if (ow < width) {
     const scale = ow / width;
     fakeSlideContainer.style.transform = "scale(" + scale + ")";
   } else {
     fakeSlideContainer.style.transform = "scale(1)";
-  }
+  }*/
 }
 
 function attachResizeEventListener() {
   window.addEventListener("resize", onWindowResize);
+  window.dispatchEvent(new Event("resize"));
 }
 
 function detachResizeEventListener() {
@@ -217,7 +220,28 @@ const previousRevealConfiguration = {
   disableLayout: undefined,
 };
 
+function prepareWhiteboardSVG(svg) {
+  svg.dataset["previousDisplay"] = svg.style.display;
+  svg.style.display = "block";
+  const bbox = svg.getBBox();
+  const scribbleHeight = bbox.y + bbox.height;
+  const pageHeight = Reveal.getConfig().height;
+  const height =
+    pageHeight * Math.max(1, Math.ceil(scribbleHeight / pageHeight));
+  svg.style.height = height + "px";
+  console.log(svg);
+  console.log("[DEBUG]", "pageHeight", pageHeight);
+  console.log("[DEBUG]", "scribbleHeight", scribbleHeight);
+  console.log(
+    "[DEBUG]",
+    "math",
+    Math.max(1, Math.ceil(scribbleHeight / pageHeight))
+  );
+  console.log("[DEBUG]", "height", height);
+}
+
 function activateA11yMode() {
+  const currentSlide = Reveal.getCurrentSlide();
   const currentConfiguration = Reveal.getConfig();
   previousRevealConfiguration.keyboard = currentConfiguration.keyboard;
   previousRevealConfiguration.controls = currentConfiguration.controls;
@@ -244,18 +268,58 @@ function activateA11yMode() {
   findAllRealSlides(slidesElement, slideList);
   createFeedbackIntersectionObserver(slideList);
   for (const child of slideList) {
-    const whiteboardsvg = child.getElementsByClassName("whiteboard")[0];
-    if (whiteboardsvg) {
-      child.dataset["previousHeight"] = child.style.height;
-      child.style.height = whiteboardsvg.style.height;
+    const whiteboard = child.getElementsByClassName("whiteboard")[0];
+    if (whiteboard) {
+      prepareWhiteboardSVG(whiteboard);
+      const imageHeight = whiteboard.style.height;
+      const previousHeight = child.style.height;
+      if (
+        (previousHeight && imageHeight && previousHeight < imageHeight) ||
+        imageHeight
+      ) {
+        child.dataset["previousHeight"] = previousHeight;
+        child.style.height = imageHeight;
+      }
     }
-
     fakeSlideContainer.appendChild(child);
   }
   createSRCIntersectionObserver(slideList);
   revealElem.parentElement.insertBefore(fakeRevealContainer, revealElem);
   handoutSlideMode = true;
   attachResizeEventListener();
+  currentSlide.scrollIntoView({ behavior: "smooth", start: "top" });
+}
+
+function recoverSlideAttributes(slide) {
+  const whiteboardsvg = slide.getElementsByClassName("whiteboard")[0];
+  if (whiteboardsvg && whiteboardsvg.dataset["previousDisplay"]) {
+    whiteboardsvg.style.display = whiteboardsvg.dataset["previousDisplay"];
+    whiteboardsvg.dataset["previousDisplay"] = null;
+  }
+  if (slide.dataset["previousInert"]) {
+    slide.inert = slide.dataset["previousInert"];
+    slide.dataset["previousInert"] = null;
+  }
+  if (slide.dataset["previousHeight"]) {
+    slide.style.height = slide.dataset["previousHeight"];
+    slide.dataset["previousHeight"] = null;
+  }
+  if (slide.dataset["previousTop"]) {
+    slide.style.top = slide.dataset["previousTop"];
+    slide.dataset["previousTop"] = null;
+  }
+  if (slide.dataset["previousDisplay"]) {
+    slide.style.display = slide.dataset["previousDisplay"];
+    slide.dataset["previousDisplay"] = null;
+  }
+  if (slide.dataset["previousHidden"]) {
+    slide.hidden = slide.dataset["previousHidden"];
+    slide.dataset["previousHidden"] = null;
+  }
+  if (slide.dataset["previousAriaHidden"]) {
+    slide.setAttribute("aria-hidden", slide.dataset["previousAriaHidden"]);
+    slide.dataset["previousAriaHidden"] = null;
+  }
 }
 
 function disassembleA11yMode() {
@@ -271,18 +335,7 @@ function disassembleA11yMode() {
     } else {
       revealSlides.appendChild(slide);
     }
-    slide.inert = slide.dataset["previousInert"];
-    slide.dataset["previousInert"] = null;
-    slide.style.height = slide.dataset["previousHeight"];
-    slide.dataset["previousHeight"] = null;
-    slide.style.top = slide.dataset["previousTop"];
-    slide.dataset["previousTop"] = null;
-    slide.style.display = slide.dataset["previousDisplay"];
-    slide.dataset["previousDisplay"] = null;
-    slide.hidden = slide.dataset["previousHidden"];
-    slide.dataset["previousHidden"] = null;
-    slide.setAttribute("aria-hidden", slide.dataset["previousAriaHidden"]);
-    slide.dataset["previousAriaHidden"] = null;
+    recoverSlideAttributes(slide);
     const videos = slide.getElementsByTagName("VIDEO");
     for (const video of videos) {
       video.dataset.autoplay = video.dataset.previousAutoplay;
