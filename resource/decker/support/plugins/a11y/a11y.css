@@ -20,7 +20,6 @@ html.a11y .reveal .slides section {
   transform: none !important;
   height: unset;
   min-height: var(--slide-height);
-  height: unset;
 }
 
 html.a11y .reveal .backgrounds {
