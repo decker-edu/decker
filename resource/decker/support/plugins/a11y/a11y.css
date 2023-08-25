@@ -18,6 +18,7 @@ html.a11y .reveal .slides section {
   pointer-events: auto;
   transition: none !important;
   transform: none !important;
+  height: unset;
   min-height: var(--slide-height);
   height: unset;
 }
