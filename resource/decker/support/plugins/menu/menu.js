@@ -71,6 +71,16 @@ class SlideMenu {
     return undefined;
   }
 
+  getListItemByID(slideid) {
+    let childNodes = this.menu.slide_list.childNodes;
+    for (const child of childNodes) {
+      if (child.getAttribute("data-slide-id") === slideid) {
+        return child;
+      }
+    }
+    return undefined;
+  }
+
   /**
    * Exposes the slide list for other plugins.
    * @returns
@@ -391,7 +401,7 @@ class SlideMenu {
     title = `${h + 1}.${v !== undefined ? v + 1 : ""} ${title}`;
     template.innerHTML = String.raw`<li class="slide-list-item" data-slide-h="${h}" ${
       v !== undefined ? 'data-slide-v="' + v + '"' : ""
-    }>
+    } data-slide-id="${slide.id}">
       <a class="slide-link" href="#${slide.id}" target="_self">${title}</a>
     </li>`;
     let item = template.content.firstElementChild;
@@ -579,23 +589,20 @@ class SlideMenu {
     }
   }
 
-  setCurrentSlideMark() {
-    let slide = this.reveal.getCurrentSlide();
-    let indices = this.reveal.getIndices(slide);
-    let item = undefined;
-    if (indices.v) {
-      item = this.getListItem(indices.h, indices.v);
-    } else {
-      item = this.getListItem(indices.h);
+  setCurrentSlideMark(slide) {
+    if (!slide) {
+      slide = this.reveal.getCurrentSlide();
     }
+    let id = slide.id;
+    let item = this.getListItemByID(id);
     if (item) {
       item.classList.add("current-slide");
     }
   }
 
-  updateCurrentSlideMark() {
+  updateCurrentSlideMark(slide) {
     this.clearCurrentSlideMark();
-    this.setCurrentSlideMark();
+    this.setCurrentSlideMark(slide);
   }
 
   initializeSettingsMenu() {
@@ -690,6 +697,8 @@ const plugin = () => {
     id: "decker-menu",
     getSlideList: undefined,
     getListItem: undefined,
+    getListItemByID: undefined,
+    updateCurrentSlideMark: undefined,
     addMenuButton: undefined,
     init(reveal) {
       const menu = new SlideMenu("TOP_LEFT", reveal);
@@ -750,8 +759,16 @@ const plugin = () => {
         return menu.getListItem(h, v);
       };
 
+      this.getListItemByID = (id) => {
+        return menu.getListItemByID(id);
+      };
+
       this.addMenuButton = (id, icon, title, callback) => {
         menu.addMenuButton(id, icon, title, callback);
+      };
+
+      this.updateCurrentSlideMark = (slide) => {
+        menu.updateCurrentSlideMark(slide);
       };
 
       this.slide_list_container = menu;
@@ -762,9 +779,10 @@ const plugin = () => {
       }
       let anchors = reveal.getPlugin("ui-anchors");
       anchors.placeButton(menu.open_button, menu.position);
-      reveal.addEventListener("slidechanged", () =>
-        menu.updateCurrentSlideMark()
-      );
+      reveal.addEventListener("slidechanged", (event) => {
+        const currentSlide = event.currentSlide;
+        menu.updateCurrentSlideMark(currentSlide);
+      });
     },
   };
 };

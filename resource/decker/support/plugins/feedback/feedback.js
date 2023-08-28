@@ -687,13 +687,7 @@ class Feedback {
       const slideID = comment.slide;
       const slide = document.getElementById(slideID);
       if (slide) {
-        const indices = this.reveal.getIndices(slide);
-        let item = undefined;
-        if (indices.v) {
-          item = menu_plugin.getListItem(indices.h, indices.v);
-        } else {
-          item = menu_plugin.getListItem(indices.h);
-        }
+        let item = menu_plugin.getListItemByID(slideID);
         if (item) {
           let questions = item.hasAttribute("data-questions")
             ? parseInt(item.getAttribute("data-questions"))

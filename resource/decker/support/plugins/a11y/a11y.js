@@ -106,6 +106,36 @@ function findAllRealSlides(slidesElement, slideList) {
 let feedbackIntersectionObserver = undefined;
 let srcIntersectionObserver = undefined;
 
+let visibleSlides = new Set();
+
+function determineMostVisibleSlide(event) {
+  if (!handoutSlideMode) return;
+  let mostVisible = undefined;
+  let mostVisibleValue = undefined;
+  const host = fakeRevealContainer.getBoundingClientRect();
+  for (const slide of visibleSlides) {
+    const box = slide.getBoundingClientRect();
+    const offset = box.top - host.top;
+    let visible = 0;
+    if (offset < 0) {
+      visible = box.bottom - host.top;
+    } else {
+      visible = host.bottom - box.top;
+    }
+    if (!mostVisible || mostVisibleValue < visible) {
+      mostVisible = slide;
+      mostVisibleValue = visible;
+    }
+  }
+  if (currentFeedbackSlide !== mostVisible) {
+    currentFeedbackSlide = mostVisible;
+    const feedback = Reveal.getPlugin("feedback");
+    feedback.requestMenuContent(mostVisible);
+    const menu = Reveal.getPlugin("decker-menu");
+    menu.updateCurrentSlideMark(mostVisible);
+  }
+}
+
 function createFeedbackIntersectionObserver(slideList) {
   if (feedbackIntersectionObserver) {
     return;
@@ -115,30 +145,17 @@ function createFeedbackIntersectionObserver(slideList) {
     if (feedback.getEngine().api) {
       const feedbackCallback = function (entries, observer) {
         if (!handoutSlideMode) return;
-        let most = undefined;
         for (const entry of entries) {
-          if (entry.isIntersecting && !most) {
-            most = entry;
-          } else if (entry.isIntersecting && most) {
-            if (entry.intersectionRatio > most.intersectionRatio) {
-              most = entry;
-            }
+          if (entry.isIntersecting) {
+            visibleSlides.add(entry.target);
+          } else {
+            visibleSlides.delete(entry.target);
           }
-        }
-        if (most) {
-          if (
-            currentFeedbackSlide &&
-            currentFeedbackSlide.id === most.target.id
-          ) {
-            return;
-          }
-          currentFeedbackSlide = most.target;
-          feedback.requestMenuContent(most.target);
         }
       };
       const feedbackObserverOptions = {
         root: fakeRevealContainer,
-        threshold: [1],
+        threshold: [0],
       };
       feedbackIntersectionObserver = new IntersectionObserver(
         feedbackCallback,
@@ -147,6 +164,7 @@ function createFeedbackIntersectionObserver(slideList) {
       for (const child of slideList) {
         feedbackIntersectionObserver.observe(child);
       }
+      fakeRevealContainer.addEventListener("scroll", determineMostVisibleSlide);
     }
   }
 }
