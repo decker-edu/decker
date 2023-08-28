@@ -123,8 +123,8 @@ parseMarkdownFile path = do
 -- | Writes a Pandoc document to a file in Markdown format. Throws an exception
 -- if something goes wrong
 writeBack :: Meta -> FilePath -> Pandoc -> Action Pandoc
-writeBack meta path pandoc = do
-  let writeBack = lookupMetaOrElse False "write-back.enable" meta
+writeBack meta path pandoc@(Pandoc docMeta _) = do
+  let writeBack :: Bool = lookupMetaOrElse (lookupMetaOrElse False "write-back.enable" meta) "write-back.enable" docMeta
   when writeBack $ writeToMarkdownFile path pandoc
   return pandoc
 
@@ -330,6 +330,7 @@ deckerPipeline disp = error $ "Disposition not supported: " <> show disp
 -- | Writes a pandoc document atomically to a markdown file.
 writeToMarkdownFile :: FilePath -> Pandoc -> Action ()
 writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
+  putNormal $ "# write back markdown (" <> filepath <> ")"
   template <-
     liftIO
       ( compileTemplate "" "$if(titleblock)$\n$titleblock$\n\n$endif$\n\n$body$"
