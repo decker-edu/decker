@@ -48,10 +48,12 @@ renderQuestion attr meta base qst =
     ( mergeAttr
         ( "",
           ["exa-quest"],
-          [ ("data-points", show $ _qstPoints qst),
+          [ 
+            ("data-title", _qstTitle qst),
+            ("data-points", show $ _qstPoints qst),
             ("data-difficulty", show $ _qstDifficulty qst),
-            ("data-topic-id", show $ _qstTopicId qst),
-            ("data-lecture-id", show $ _qstLectureId qst)
+            ("data-topic-id", _qstTopicId qst),
+            ("data-lecture-id", _qstLectureId qst)
           ]
         )
         attr

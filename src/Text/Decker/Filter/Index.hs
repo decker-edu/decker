@@ -9,9 +9,9 @@ module Text.Decker.Filter.Index (buildIndex) where
 
 import Data.Aeson
 import Data.Char
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 import Data.Maybe
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Development.Shake hiding (Resource)
 import GHC.Generics hiding (Meta)
 import Relude
@@ -97,7 +97,7 @@ indexSlide slide@(Slide header body dir) =
 -- Maps f over all slides in a Pandoc document.
 mapSlides :: (Slide -> a) -> Pandoc -> [a]
 mapSlides f (Pandoc meta blocks) =
-  -- TODO force normalisation of slide separation and ids for emtpy headers
+  -- TODO: force normalisation of slide separation and ids for emtpy headers
   map f (toSlides blocks)
 
 -- Extracts id and title from slide header if it has one.

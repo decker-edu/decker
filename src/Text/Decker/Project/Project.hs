@@ -13,7 +13,6 @@ module Text.Decker.Project.Project
     unusedResources,
     scanTargets,
     excludeDirs,
-    staticDirs,
     static,
     sources,
     resources,
@@ -35,20 +34,21 @@ where
 
 -- import Text.Decker.Internal.Flags
 
+import Control.Exception.Extra
 import Control.Lens hiding ((.=))
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Char
-import qualified Data.List as List
-import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
-import qualified Data.String as String
-import qualified Data.Yaml as Yaml
-import qualified Data.Yaml.Pretty as Yaml
+import Data.List qualified as List
+import Data.Map.Strict qualified as Map
+import Data.Set qualified as Set
+import Data.String qualified as String
+import Data.Yaml qualified as Yaml
+import Data.Yaml.Pretty qualified as Yaml
 import Development.Shake hiding (Resource)
 import Relude
-import qualified System.Directory as Directory
-import qualified System.FilePath as FP
+import System.Directory qualified as Directory
+import System.FilePath qualified as FP
 import System.FilePath.Posix
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper
@@ -91,7 +91,8 @@ $( deriveJSON
 
 readTargetsFile :: FilePath -> Action Targets
 readTargetsFile targetFile = do
-  need [targetFile]
+  -- we do not really have to track the dependency here, it just needs to exist
+  -- need [targetFile]
   liftIO (Yaml.decodeFileThrow targetFile)
 
 -- data Resource = Resource
@@ -199,7 +200,9 @@ excludeDirs meta =
   map normalise $
     alwaysExclude <> lookupMetaOrElse [] "exclude-directories" meta
 
-staticDirs = lookupMetaOrElse [] "static-resource-dirs"
+staticResources meta =
+  lookupMetaOrElse [] "static-resource-dirs" meta
+    <> lookupMetaOrElse [] "static-resources" meta
 
 unusedResources :: Meta -> IO [FilePath]
 unusedResources meta = do
@@ -207,9 +210,10 @@ unusedResources meta = do
   live <- Set.fromList <$> String.lines . decodeUtf8 <$> readFileBS liveFile
   return $ Set.toList $ Set.difference srcs live
 
-scanTargetsToFile :: Meta -> FilePath -> Action ()
+scanTargetsToFile :: (MonadIO m, Partial) => Meta -> FilePath -> m ()
 scanTargetsToFile meta file = do
   targets <- liftIO $ scanTargets meta
+  liftIO $ putStrLn $ "# scanned targets to " <> file
   writeFileChanged file $ decodeUtf8 $ Yaml.encodePretty Yaml.defConfig targets
 
 anySource :: FilePath -> Bool
@@ -226,7 +230,7 @@ scanTargets meta = do
   -- srcs <- globFiles (excludeDirs meta) sourceSuffixes projectDir
   srcs <- fastGlobFiles' (excludeDirs meta) anySource projectDir
   supportFiles <- Map.mapKeys ((publicDir </> "support") </>) <$> publicSupportFiles meta
-  staticSrc <- concat <$> mapM (fastGlobFiles [] [] . normalise) (staticDirs meta)
+  staticSrc <- concat <$> mapM (fastGlobFiles [] [] . normalise) (staticResources meta)
   return
     Targets
       { _sources = sort srcs,

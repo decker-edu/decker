@@ -34,17 +34,12 @@ if (-Not $skiptemplates) {
 <# Cleanup of old files #> 
 Write-Host "Cleaning before new build" -ForegroundColor Green
 & stack clean
-if (test-path "$deckerdir\resource\decker\support\vendor") {
-    Remove-Item "$deckerdir\resource\decker\support\vendor" -Recurse -Force -ErrorAction Continue
-}
 if (test-path "$deckerdir\public"){
     Remove-Item "$deckerdir\public" -Recurse -Force -ErrorAction Ignore 
 }
 
 
 Write-Host "Starting build of standalone binary" -ForegroundColor Green
-& git submodule update --init
-& .\third-party\vendor.ps1
 
 # Return to the decker root directory
 Set-Location (Split-Path $PSScriptRoot -Parent)

@@ -4,7 +4,7 @@ div.media {
   justify-content: center;
 }
 
-/* TODO Check the old class vocabulary for alignment. */
+/* TODO: Check the old class vocabulary for alignment. */
 div.media[data-align="left"] {
   justify-content: flex-start;
 }

@@ -11,7 +11,6 @@
 import * as colorScheme from "../../js/color-scheme.js";
 
 class SlideMenu {
-  id;
   reveal;
   config;
   open_button;
@@ -19,10 +18,8 @@ class SlideMenu {
   menu;
   slide_list;
 
-  constructor(position) {
-    this.id = "decker-menu";
-    this.reveal = undefined;
-    this.config = undefined;
+  constructor(position, reveal) {
+    this.reveal = reveal;
     this.open_button = undefined;
     this.menu = {
       container: undefined,
@@ -69,6 +66,16 @@ class SlideMenu {
         } else {
           return childNodes[i];
         }
+      }
+    }
+    return undefined;
+  }
+
+  getListItemByID(slideid) {
+    let childNodes = this.menu.slide_list.childNodes;
+    for (const child of childNodes) {
+      if (child.getAttribute("data-slide-id") === slideid) {
+        return child;
       }
     }
     return undefined;
@@ -208,7 +215,9 @@ class SlideMenu {
   }
 
   enableKeybinds() {
-    this.reveal.configure({ keyboard: true });
+    if (!this.a11y) {
+      this.reveal.configure({ keyboard: true });
+    }
   }
 
   /**
@@ -392,10 +401,8 @@ class SlideMenu {
     title = `${h + 1}.${v !== undefined ? v + 1 : ""} ${title}`;
     template.innerHTML = String.raw`<li class="slide-list-item" data-slide-h="${h}" ${
       v !== undefined ? 'data-slide-v="' + v + '"' : ""
-    }>
-      <a class="slide-link" href="#/${h}${
-      v !== undefined ? "/" + v : ""
-    }" target="_self">${title}</a>
+    } data-slide-id="${slide.id}">
+      <a class="slide-link" href="#${slide.id}" target="_self">${title}</a>
     </li>`;
     let item = template.content.firstElementChild;
     let link = item.firstElementChild;
@@ -516,6 +523,7 @@ class SlideMenu {
     this.menu.close_button = container.querySelector(
       "#decker-menu-close-button"
     );
+    this.menu.a11y_button = container.querySelector("#decker-menu-a11y-button");
 
     /* Attach callbacks */
     this.menu.home_button.addEventListener("click", (event) =>
@@ -554,6 +562,22 @@ class SlideMenu {
     this.glass.addEventListener("click", (event) => this.closeMenu(event));
   }
 
+  addMenuButton(id, icon, title, callback) {
+    const button = document.createElement("button");
+    button.id = id;
+    button.classList.add("fa-button", "fas", icon);
+    button.title = title;
+    button.setAttribute("aria-label", title);
+    button.addEventListener("click", callback);
+    const menuHeaderButtons = document.getElementsByClassName(
+      "menu-header-buttons"
+    );
+    if (menuHeaderButtons.length > 0) {
+      const container = menuHeaderButtons[0];
+      container.appendChild(button);
+    }
+  }
+
   toggleAnnotations() {
     document.documentElement.classList.toggle("hide-annotations");
   }
@@ -565,23 +589,20 @@ class SlideMenu {
     }
   }
 
-  setCurrentSlideMark() {
-    let slide = this.reveal.getCurrentSlide();
-    let indices = this.reveal.getIndices(slide);
-    let item = undefined;
-    if (indices.v) {
-      item = this.getListItem(indices.h, indices.v);
-    } else {
-      item = this.getListItem(indices.h);
+  setCurrentSlideMark(slide) {
+    if (!slide) {
+      slide = this.reveal.getCurrentSlide();
     }
+    let id = slide.id;
+    let item = this.getListItemByID(id);
     if (item) {
       item.classList.add("current-slide");
     }
   }
 
-  updateCurrentSlideMark() {
+  updateCurrentSlideMark(slide) {
     this.clearCurrentSlideMark();
-    this.setCurrentSlideMark();
+    this.setCurrentSlideMark(slide);
   }
 
   initializeSettingsMenu() {
@@ -669,72 +690,101 @@ class SlideMenu {
       this.toggleAnnotations(event.target.checked)
     );
   }
-
-  init(reveal) {
-    this.reveal = reveal;
-    this.config = reveal.getConfig();
-
-    this.localization = {
-      open_button_label: "Open Navigation Menu",
-      home_button_label: "Go to Index Page",
-      search_button_label: "Toggle Searchbar",
-      print_pdf_label: "Print PDF",
-      open_settings_label: "Open Settings",
-      close_settings_label: "Close Settings",
-      toggle_fragments_label: "Show Slide Animations",
-      choose_color_label: "Choose Color Mode",
-      system_color_choice: "System Default",
-      light_color_choice: "Light Mode",
-      dark_color_choice: "Dark Mode",
-      toggle_annotations_label: "Show Annotations",
-      close_label: "Close Navigation Menu",
-      no_title: "No Title",
-      title: "Navigation",
-      print_confirmation: "Leave presentation to export it to PDF?",
-      index_confirmation: "Go back to index page?",
-    };
-
-    let lang = navigator.language;
-
-    if (lang === "de") {
-      this.localization = {
-        open_button_label: "Navigationsmenu öffnen",
-        home_button_label: "Zurück zur Materialübersicht",
-        search_button_label: "Suchleiste umschalten",
-        print_pdf_label: "Als PDF drucken",
-        open_settings_label: "Einstellungen öffnen",
-        close_settings_label: "Einstellungen schließen",
-        toggle_fragments_label: "Animationen anzeigen",
-        choose_color_label: "Farbschema auswählen",
-        system_color_choice: "Systemeinstellung",
-        light_color_choice: "Helles Farbschema",
-        dark_color_choice: "Dunkles Farbschema",
-        toggle_annotations_label: "Annotationen einblenden",
-        close_label: "Navigationsmenu schließen",
-        no_title: "Kein Titel",
-        title: "Navigation",
-        print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
-        index_confirmation: "Zurück zur Index-Seite gehen?",
-      };
-    }
-
-    this.initializeButton();
-    this.initializeMenu();
-
-    document.body.appendChild(this.menu.container);
-
-    if (!this.reveal.hasPlugin("ui-anchors")) {
-      console.log("no decker ui anchor plugin loaded");
-      return;
-    }
-    let anchors = this.reveal.getPlugin("ui-anchors");
-    anchors.placeButton(this.open_button, this.position);
-    reveal.addEventListener("slidechanged", () =>
-      this.updateCurrentSlideMark()
-    );
-  }
 }
 
-let instance = new SlideMenu("TOP_LEFT");
+const plugin = () => {
+  return {
+    id: "decker-menu",
+    getSlideList: undefined,
+    getListItem: undefined,
+    getListItemByID: undefined,
+    updateCurrentSlideMark: undefined,
+    addMenuButton: undefined,
+    init(reveal) {
+      const menu = new SlideMenu("TOP_LEFT", reveal);
+      menu.localization = {
+        open_button_label: "Open Navigation Menu",
+        home_button_label: "Go to Index Page",
+        search_button_label: "Toggle Searchbar",
+        print_pdf_label: "Print PDF",
+        open_settings_label: "Open Settings",
+        close_settings_label: "Close Settings",
+        toggle_fragments_label: "Show Slide Animations",
+        choose_color_label: "Choose Color Mode",
+        system_color_choice: "System Default",
+        light_color_choice: "Light Mode",
+        dark_color_choice: "Dark Mode",
+        toggle_annotations_label: "Show Annotations",
+        close_label: "Close Navigation Menu",
+        no_title: "No Title",
+        title: "Navigation",
+        print_confirmation: "Leave presentation to export it to PDF?",
+        index_confirmation: "Go back to index page?",
+      };
 
-export default instance;
+      let lang = navigator.language;
+
+      if (lang === "de") {
+        menu.localization = {
+          open_button_label: "Navigationsmenu öffnen",
+          home_button_label: "Zurück zur Materialübersicht",
+          search_button_label: "Suchleiste umschalten",
+          print_pdf_label: "Als PDF drucken",
+          open_settings_label: "Einstellungen öffnen",
+          close_settings_label: "Einstellungen schließen",
+          toggle_fragments_label: "Animationen anzeigen",
+          choose_color_label: "Farbschema auswählen",
+          system_color_choice: "Systemeinstellung",
+          light_color_choice: "Helles Farbschema",
+          dark_color_choice: "Dunkles Farbschema",
+          toggle_annotations_label: "Annotationen einblenden",
+          close_label: "Navigationsmenu schließen",
+          no_title: "Kein Titel",
+          title: "Navigation",
+          print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
+          index_confirmation: "Zurück zur Index-Seite gehen?",
+        };
+      }
+
+      menu.initializeButton();
+      menu.initializeMenu();
+
+      document.body.appendChild(menu.menu.container);
+
+      this.getSlideList = () => {
+        return menu.getSlideList();
+      };
+
+      this.getListItem = (h, v) => {
+        return menu.getListItem(h, v);
+      };
+
+      this.getListItemByID = (id) => {
+        return menu.getListItemByID(id);
+      };
+
+      this.addMenuButton = (id, icon, title, callback) => {
+        menu.addMenuButton(id, icon, title, callback);
+      };
+
+      this.updateCurrentSlideMark = (slide) => {
+        menu.updateCurrentSlideMark(slide);
+      };
+
+      this.slide_list_container = menu;
+
+      if (!reveal.hasPlugin("ui-anchors")) {
+        console.log("no decker ui anchor plugin loaded");
+        return;
+      }
+      let anchors = reveal.getPlugin("ui-anchors");
+      anchors.placeButton(menu.open_button, menu.position);
+      reveal.addEventListener("slidechanged", (event) => {
+        const currentSlide = event.currentSlide;
+        menu.updateCurrentSlideMark(currentSlide);
+      });
+    },
+  };
+};
+
+export default plugin;

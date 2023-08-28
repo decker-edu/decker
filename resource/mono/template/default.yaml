@@ -2,6 +2,7 @@
 
 poll-server: wss://tramberend.bht-berlin.de/quizzer/quiz
 # poll-server: ws://localhost:3003/quiz
+save-polls: true
 
 # Use CSS augmentation without changes to the default template
 template:

@@ -17,36 +17,36 @@
     <i class="green"><code>green</code></i>.
 
     <pre><code>&lt;p class="media <i class="red">center</i>">
-  &lt;figure class="image" <i class="red">style="width: 70%"</i>>
-    <i class="green">&lt;img src="./06-metal.png" /></i>
-    &lt;figcaption>Caption.&lt;/figcaption>
-  &lt;/figure>
-&lt;/p>
-
-&lt;span class="media <i class="red">top</i>">
-  &lt;figure class="image">
-    <i class="green">&lt;img src="./06-metal.png" <i class="red">style="height: 4em"</i> /></i>
-    &lt;figcaption>Caption.&lt;/figcaption>
-  &lt;/figure>
-&lt;/span>
-
-&lt;p class="media masonry <i class="red">center</i>">
-  &lt;figure class="row" <i class="red">style="width: 70%"</i>>
-    &lt;div class="container">
-      &lt;figure class="image">
+        &lt;figure class="image" <i class="red">style="width: 70%"</i>>
         <i class="green">&lt;img src="./06-metal.png" /></i>
-      &lt;/figure>
-      &lt;figure class="image">
+        &lt;figcaption>Caption.&lt;/figcaption>
+        &lt;/figure>
+        &lt;/p>
+
+        &lt;span class="media <i class="red">top</i>">
+        &lt;figure class="image">
+        <i class="green">&lt;img src="./06-metal.png" <i class="red">style="height: 4em"</i> /></i>
+        &lt;figcaption>Caption.&lt;/figcaption>
+        &lt;/figure>
+        &lt;/span>
+
+        &lt;p class="media masonry <i class="red">center</i>">
+        &lt;figure class="row" <i class="red">style="width: 70%"</i>>
+        &lt;div class="container">
+        &lt;figure class="image">
+        <i class="green">&lt;img src="./06-metal.png" /></i>
+        &lt;/figure>
+        &lt;figure class="image">
         <i class="green">&lt;img src="./06-metal-r.png" /></i>
         &lt;figcaption>Image Caption&lt;/figcaption>
-      &lt;/figure>
-      &lt;figure class="image">
+        &lt;/figure>
+        &lt;figure class="image">
         <i class="green">&lt;img src="./06-metal-xs.png" /></i>
-      &lt;/figure>
-    &lt;/div>
-    &lt;figcaption>Three Images&lt;/figcaption>
-  &lt;/figure>
-&lt;/p></code></pre>
+        &lt;/figure>
+        &lt;/div>
+        &lt;figcaption>Three Images&lt;/figcaption>
+        &lt;/figure>
+        &lt;/p></code></pre>
 
     <h1>Tests</h1>
 
@@ -113,11 +113,11 @@
     <div class="media paragraph">
       <div class="jacket code caption">
         <pre><code>filter2 :: [Block] -> Filter [Block]
-filter2 = pairwise filter
-    where
-    filter (Para [Image {}], Para []) =
-        return $ Just [RawBlock (Format "html5") ""]
-    filter (x, y) = return Nothing</code></pre>
+            filter2 = pairwise filter
+            where
+            filter (Para [Image {}], Para []) =
+            return $ Just [RawBlock (Format "html5") ""]
+            filter (x, y) = return Nothing</code></pre>
         <div class="caption">Code Caption</div>
       </div>
     </div>
@@ -131,11 +131,11 @@ filter2 = pairwise filter
     <div class="media paragraph center">
       <div class="jacket code" style="width: 70%">
         <pre><code>filter2 :: [Block] -> Filter [Block]
-filter2 = pairwise filter
-    where
-    filter (Para [Image {}], Para []) =
-        return $ Just [RawBlock (Format "html5") ""]
-    filter (x, y) = return Nothing</code></pre>
+            filter2 = pairwise filter
+            where
+            filter (Para [Image {}], Para []) =
+            return $ Just [RawBlock (Format "html5") ""]
+            filter (x, y) = return Nothing</code></pre>
         <div class="caption">Code Caption</div>
       </div>
     </div>
@@ -194,7 +194,8 @@ filter2 = pairwise filter
 
     <div class="media paragraph center">
       <div class="jacket image caption" style="width: 70%">
-        <iframe width="100%" height="200px" src="https://tramberend.beuth-hochschule.de/" frameborder="0" allowfullscreen></iframe>
+        <iframe width="100%" height="200px" src="https://tramberend.beuth-hochschule.de/" frameborder="0"
+          allowfullscreen></iframe>
         <div class="caption">Caption</div>
       </div>
     </div>
@@ -225,7 +226,7 @@ filter2 = pairwise filter
       </div>
     </div>
     Text
-    
+
     <hr />
 
     <p>Height and vertical alignment can be set.</p>
@@ -266,8 +267,8 @@ filter2 = pairwise filter
     </p>
 
     <pre><code>| ![](){}
-| ![](){}
-| ![](){}</code></pre>
+        | ![](){}
+        | ![](){}</code></pre>
 
     <div class="media lineblock">
       <div class="container">
@@ -287,7 +288,7 @@ filter2 = pairwise filter
     <hr />
 
     <script>
-      // TODO This only works if border, margin and padding for all involved elements are all 0.
+      // TODO: This only works if border, margin and padding for all involved elements are all 0.
       let adjust = (ev) => {
         let blocks = document.querySelectorAll(
           "div.media.lineblock div.container"

@@ -8,14 +8,14 @@ import Control.Lens
 import Control.Monad.Catch
 import Control.Monad.State
 import Data.Aeson.Lens
-import qualified Data.List as List
-import qualified Data.List.Extra as List
+import Data.List qualified as List
+import Data.List.Extra qualified as List
 import Data.Scientific
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 import Relude
 import System.CPUTime
 import System.Directory
-import qualified System.Directory as Dir
+import System.Directory qualified as Dir
 import System.Environment
 import System.Exit
 import System.FilePath.Posix
@@ -148,8 +148,8 @@ tryRemoveDirectory path = do
   when exists $ removeDirectoryRecursive path
 
 -- | Express the second path argument as relative to the first.
--- TODO Ensure this always works with dirs
--- TODO Ensure resulting dirs end on /
+-- TODO: Ensure this always works with dirs
+-- TODO: Ensure resulting dirs end on /
 makeRelativeTo :: FilePath -> FilePath -> FilePath
 makeRelativeTo dir file =
   let (d, f) = removeCommonPrefix (normalise dir, normalise file)
@@ -203,17 +203,17 @@ imageSize path = do
       return $ Just $ imageSize' image
 
 videoSize :: FilePath -> IO (Maybe (Int, Int))
-videoSize path = 
+videoSize path =
   handle handleError $ do
-  (code, meta, error) <- readProcessWithExitCode "ffprobe" ["-v", "quiet", "-print_format", "json", "-show_streams", "-select_streams", "v:0", path] ""
-  case code of
-    ExitSuccess -> do
-      let width = meta ^? key "streams" . nth 0 . key "width" . _Number
-      let height = meta ^? key "streams" . nth 0 . key "height" . _Number
-      case (width, height) of
-        (Just w, Just h) -> return $ Just (truncate $ toRealFloat w, truncate $ toRealFloat h)
-        _ -> return Nothing
-    _ -> return Nothing
+    (code, meta, error) <- readProcessWithExitCode "ffprobe" ["-v", "quiet", "-print_format", "json", "-show_streams", "-select_streams", "v:0", path] ""
+    case code of
+      ExitSuccess -> do
+        let width = meta ^? key "streams" . nth 0 . key "width" . _Number
+        let height = meta ^? key "streams" . nth 0 . key "height" . _Number
+        case (width, height) of
+          (Just w, Just h) -> return $ Just (truncate $ toRealFloat w, truncate $ toRealFloat h)
+          _ -> return Nothing
+      _ -> return Nothing
   where
     handleError (_ :: SomeException) = do
       putStrLn $ "WARNING: cannot run 'ffprobe', assuming default aspect ratio: " <> path

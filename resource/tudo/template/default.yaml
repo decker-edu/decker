@@ -52,6 +52,9 @@ live-captions: true
 caption-server: https://decker.cs.tu-dortmund.de/captions
 speech-recognition-language: de-DE
 
+# show decker link on title slide
+showDeckerLink: true
+
 # other settings
 highlightjs: decker
 
