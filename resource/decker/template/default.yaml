@@ -1,5 +1,6 @@
-runtime-path-variables:
+compiletime-path-variables:
   - logos
+  - authors
 
 reveal:
   backgroundTransition: "none"
