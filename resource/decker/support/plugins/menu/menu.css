@@ -251,3 +251,17 @@ fieldset {
   border: 1px inset var(--foreground-color);
   border-radius: 0.5rem;
 }
+
+.wellbeing-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+#wellbeing-signal.fine {
+  color: var(--color-success);
+}
+
+#wellbeing-signal.bad {
+  color: var(--color-error);
+}

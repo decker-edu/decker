@@ -388,6 +388,37 @@ class SlideMenu {
     this.menu.slide_list = list;
   }
 
+  initializeWellbeing() {
+    const template = document.createElement("template");
+    template.innerHTML = String.raw`<div class="wellbeing-container">
+      <div id="wellbeing-signal"><span class="fas fa-signal"></span></div>
+      <div><span id="wellbeing-message" class="small">...</span></div>
+    </div>`;
+    const wrapper = template.content.firstElementChild;
+    const signal = wrapper.querySelector("#wellbeing-signal");
+    const msg = wrapper.querySelector("#wellbeing-message");
+    this.menu.container.appendChild(wrapper);
+    this.ping = setInterval(async () => {
+      signal.classList.remove(["fine", "bad"]);
+      try {
+        const response = await fetch("/ping/", { method: "GET" });
+        if (response.ok) {
+          signal.classList.add("fine");
+          const json = await response.json();
+          msg.innerText = `Connected to: ${json.connection}, Uploads: ${
+            json.acceptingUpload ? "allowed" : "not allowed"
+          }`;
+        } else {
+          signal.classList.add("bad");
+          msg.innerText = "Connection refused";
+        }
+      } catch (error) {
+        signal.classList.add("bad");
+        msg.innerText = "Connection lost";
+      }
+    }, 3000);
+  }
+
   /**
    * Creates a single list item for the slide list.
    * @param {*} slide
@@ -548,6 +579,7 @@ class SlideMenu {
 
     this.initializeSlideList();
     this.initializeSettingsMenu();
+    this.initializeWellbeing();
     this.menu.container.addEventListener("keydown", (event) =>
       this.traverseList(event)
     );

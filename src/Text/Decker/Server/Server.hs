@@ -16,6 +16,7 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
+import Data.Aeson
 import Data.List (isSuffixOf)
 import Data.Maybe
 import qualified Data.Set as Set
@@ -107,6 +108,7 @@ runHttpServer context = do
     Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
     Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
     Scotty.put (regex "^/(.*)$") $ uploadResource uploadable
+    Scotty.get (regex "^/ping/(.*)$") respondToPing
     middleware $ websocketsOr defaultConnectionOptions $ reloader state
     middleware $ staticPolicy (noDots >-> addBase publicDir)
     middleware $ staticPolicy (noDots >-> addBase privateDir)
@@ -131,6 +133,16 @@ pingAll tvar = do
   where
     reload :: Client -> IO ()
     reload (_, conn) = sendTextData conn ("ping!" :: Text.Text)
+
+data ConnectionType = ConnectionType {
+  connection :: Text,
+  acceptingUpload :: Bool
+} deriving (Generic, Show)
+
+instance ToJSON ConnectionType
+
+respondToPing :: AppActionM ()
+respondToPing = Scotty.json $ (ConnectionType {connection = "decker", acceptingUpload = True})
 
 -- Safari times out on web sockets to save energy. Prevent this by sending pings
 -- from the server to all connected browsers. Once every 10 seconds should do
