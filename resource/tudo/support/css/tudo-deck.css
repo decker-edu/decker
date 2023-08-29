@@ -106,6 +106,12 @@ del {
   color: var(--accent0);
 }
 
+/* prevent emojis from being italic */
+.reveal span.emoji {
+  font-style: normal;
+  font-weight: normal;
+}
+
 /*********************************************
  * frame box 
  *********************************************/
@@ -845,6 +851,22 @@ section#title-slide img.department-logo {
   right: 0;
 }
 
+section#title-slide .decker-link {
+  position: absolute;
+  left: 50%;
+  bottom: 0px;
+  transform: translateX(-50%);
+  color: var(--foreground-color);
+  text-align: center;
+  font-size: 0.3em;
+  font-weight: normal;
+  transition: font-size 0.2s ease 0.1s;
+  padding: 5px 5px 0px 5px;
+}
+section#title-slide .decker-link:hover {
+  font-size: 0.75em;
+}
+
 /*********************************************
  * COMMENT BUBBLES
  *********************************************/
@@ -891,6 +913,11 @@ section#title-slide img.department-logo {
 
 .reveal .highlight {
   background-color: var(--yellowish);
+}
+
+.reveal .outline {
+  outline: 0.2em solid var(--primary-color);
+  outline-offset: 0.17em;
 }
 
 /*********************************************
@@ -1024,9 +1051,11 @@ section#title-slide img.department-logo {
  *********************************************/
 
 .reveal .references {
-  margin: auto;
-  max-height: 600px;
   width: 90%;
+  max-height: 500px;
+  margin: auto;
+  padding: 0 1em;
+  font-size: 0.7em;
   overflow-y: auto;
 }
 
@@ -1034,7 +1063,7 @@ section#title-slide img.department-logo {
   padding-left: 1em;
   text-indent: -1em;
   text-align: left;
-  margin-bottom: 1em;
+  margin-bottom: 0.7em;
 }
 
 /*********************************************
@@ -1390,4 +1419,29 @@ html.dark
   :is(svg, img, div.chart-container, iframe) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
+}
+
+/*
+ * Accessibility Mode Color Adjustments
+ */
+
+html.a11y {
+  --accent3: #538234 !important;
+}
+
+html.a11y .reveal a {
+  color: var(--blueish);
+  text-decoration: underline;
+  transition: transform 0.1s ease-out 0s;
+}
+
+html.a11y .reveal a:hover {
+  display: inline-block;
+  background-color: var(--foreground-color);
+  color: var(--accent6-bbg);
+  transform: scale(1.05);
+}
+
+html.a11y .slides section {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
 }

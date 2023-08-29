@@ -83,7 +83,7 @@ aBind :: Flags -> Bool
 aBind (BindFlag _) = True
 aBind _ = False
 
-uploadable = ["-annot.json", "-times.json", "-transcript.json", "-recording.vtt"]
+uploadable = ["-annot.json", "-times.json", "-transcript.json", "-recording.vtt", "-poll.json"]
 
 -- Runs the server. Never returns.
 runHttpServer :: ActionContext -> IO ()

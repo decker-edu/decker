@@ -178,6 +178,7 @@ div#continue-dialog {
   bottom: 1em;
   transform: translate(-50%, 0px);
   padding: 1em;
+  background-color: var(--background-color);
   border: 2px solid var(--primary-color);
   border-radius: 0.5em;
   font-size: 1rem;

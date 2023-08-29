@@ -25,24 +25,28 @@ main = defaultMainWithHooks simpleUserHooks {postCopy = appendResourceArchive}
 resourceDir = "./resource"
 
 appendResourceArchive ::
-     Args -> CopyFlags -> PackageDescription -> LocalBuildInfo -> IO ()
+  Args -> CopyFlags -> PackageDescription -> LocalBuildInfo -> IO ()
 appendResourceArchive args flags descr info = do
   let binDir = fromPathTemplate $ bindir $ installDirTemplates info
   executable <- makeAbsolute $ binDir </> executableName
   withCurrentDirectory resourceDir $ do
     files <-
-      map normalise <$> fastGlobFiles [] [] "." >>= filterM doesFileExist >>=
-      mapM makeRelativeToCurrentDirectory
+      map normalise <$> fastGlobFiles [] [] "."
+        >>= filterM doesFileExist
+        >>= mapM makeRelativeToCurrentDirectory
     withTempFile
-      (\archive -> do
-         createArchive archive $ forM_ files addFile
-         putStrLn $
-           "Appending resource archive (" ++
-           show (length files) ++ " files) to " ++ executable
-         exeSize <- withBinaryFile executable ReadMode $ \h -> hFileSize h
-         fixZip archive exeSize
-         runConduitRes $
-           sourceFileBS archive .| sinkIOHandle (openFile executable AppendMode))
+      ( \archive -> do
+          createArchive archive $ forM_ files addFile
+          putStrLn $
+            "Appending resource archive ("
+              ++ show (length files)
+              ++ " files) to "
+              ++ executable
+          exeSize <- withBinaryFile executable ReadMode $ \h -> hFileSize h
+          fixZip archive exeSize
+          runConduitRes $
+            sourceFileBS archive .| sinkIOHandle (openFile executable AppendMode)
+      )
   where
     addFile path = do
       selector <- mkEntrySelector path
@@ -60,9 +64,10 @@ fastGlobFiles exclude suffixes root = sort <$> glob root
     glob root = do
       dirExists <- doesDirectoryExist root
       fileExists <- doesFileExist root
-      if | dirExists -> globDir root
-         | fileExists -> globFile root
-         | otherwise -> return []
+      if
+          | dirExists -> globDir root
+          | fileExists -> globFile root
+          | otherwise -> return []
     globFile :: String -> IO [String]
     globFile file =
       if null suffixes || any (`isSuffixOf` file) suffixes
@@ -78,7 +83,7 @@ fixZip :: FilePath -> Integer -> IO ()
 fixZip zipPath adjustmentSize = do
   withBinaryFile zipPath ReadWriteMode $ \h -> do
     fsize <- hFileSize h
-    --- TODO if fsize is too small, don't do anything or report error
+    -- TODO: if fsize is too small, don't do anything or report error
     hSeek h SeekFromEnd (-22)
     findEOCD h
     hSeek h RelativeSeek 10

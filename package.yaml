@@ -1,9 +1,9 @@
 name: decker
-version: 0.13.0
+version: 0.13.2
 license: GPL-3.0-or-later
 author: "Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
 maintainer: "henrik.tramberend@bht-berlin.de"
-copyright: "2022 Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
+copyright: "2023 Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
 
 build-type: Custom
 
@@ -24,7 +24,7 @@ extra-source-files:
   - readme.md
   - Dockerfile
   - makefile
-  - third-party/symlinks.mk
+  - third-party/makefile
 
 synopsis: A markdown based tool for slide deck creation
 category: Tool

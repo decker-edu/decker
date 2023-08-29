@@ -112,6 +112,15 @@ dictionary:
       qmi-drop-hint: …and put them here into the correct category.
       ic-placeholder: Select option…
 
+publish:
+  rsync:
+    options:
+      - "--no-group"
+      - "--perms"
+      - "--chmod=a+r,go-w"
+      - "--no-owner"
+      - "--copy-links"
+
 test:
   only-default: From default.yaml
   default-decker: From default.yaml

@@ -33,18 +33,18 @@ module Text.Decker.Internal.Meta
 where
 
 import Control.Exception
-import qualified Data.Aeson as A
-import qualified Data.Aeson.Encode.Pretty as A
-import qualified Data.Aeson.Key as Key
-import qualified Data.Aeson.KeyMap as KeyMap
-import qualified Data.List as List
+import Data.Aeson qualified as A
+import Data.Aeson.Encode.Pretty qualified as A
+import Data.Aeson.Key qualified as Key
+import Data.Aeson.KeyMap qualified as KeyMap
+import Data.List qualified as List
 import Data.List.Safe ((!!))
-import qualified Data.Map.Lazy as Map
-import qualified Data.Map.Strict as M
+import Data.Map.Lazy qualified as Map
+import Data.Map.Strict qualified as M
 import Data.Maybe
-import qualified Data.Text as Text
-import qualified Data.Vector as Vec
-import qualified Data.Yaml as Y
+import Data.Text qualified as Text
+import Data.Vector qualified as Vec
+import Data.Yaml qualified as Y
 import Relude
 import Text.Decker.Internal.Exception
 import Text.Pandoc hiding (lookupMeta)
@@ -54,9 +54,9 @@ import Text.Pandoc.Shared hiding (toString, toText)
 -- | Name of the one global meta data file
 globalMetaFileName = "decker.yaml"
 
--- TODO extract this value from global meta data.
+-- TODO: extract this value from global meta data.
 replaceLists :: [[Text]]
-replaceLists = [["math", "macros"], ["palette", "colors"]]
+replaceLists = [["math", "macros"], ["palette", "colors"], ["publish", "rsync", "options"]]
 
 shouldMerge :: [Text] -> Bool
 -- shouldMerge path = not $ any (`Text.isPrefixOf` Text.intercalate "." path) replaceLists
@@ -75,9 +75,9 @@ mergePandocMeta (Meta left) (Meta right) =
       MetaMap $ Map.unionWithKey (merge (concat path key)) mapL mapR
     merge path key (MetaList listL) (MetaList listR)
       | shouldMerge (concat path key) =
-        -- MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
-        -- This should be stable and result in a more predictable order
-        MetaList $ List.nub $ listR <> listL
+          -- MetaList $ Set.toList $ Set.fromList listL <> Set.fromList listR
+          -- This should be stable and result in a more predictable order
+          MetaList $ List.nub $ listR <> listL
     merge path key left right = left
     concat path "" = path
     concat path key = path <> [key]
@@ -161,7 +161,8 @@ setMetaValue key value meta = Meta $ set (splitKey key) (MetaMap (unMeta meta))
         _ -> M.insert k (MetaMap $ set p $ MetaMap M.empty) map
     set _ _ =
       throw $
-        InternalException $ "Cannot set meta value on non object at: " <> show key
+        InternalException $
+          "Cannot set meta value on non object at: " <> show key
 
 readMetaValue :: Text -> Text -> Meta -> Meta
 readMetaValue key value = setMetaValue key (maybe value show (readMaybe (toString value) :: Maybe Bool))

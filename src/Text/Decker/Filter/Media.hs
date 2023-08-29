@@ -509,7 +509,8 @@ renderCodeBlock uri title caption = do
 -- supports ES6 modules.
 javascriptBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 javascriptBlock uri title caption = do
-  id <- liftIO randomId
+  -- Pandoc insists that ids start with letters
+  id <- ("id" <>) <$> liftIO randomId
   fragment <- URI.mkFragment id
   uri <- lift $ transformUri uri ""
   let furi = uri {URI.uriFragment = Just fragment}
@@ -550,6 +551,7 @@ javascriptBlock uri title caption = do
 javascriptCodeBlock :: Text -> [Inline] -> Attrib Block
 javascriptCodeBlock code caption = do
   (innerSizes, outerSizes) <- calcImageSizes
+  -- Pandoc insists that ids start with letters
   id <- ("id" <>) <$> liftIO randomId
   imgAttr <- do
     injectStyles innerSizes

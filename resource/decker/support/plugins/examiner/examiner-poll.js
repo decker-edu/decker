@@ -5,6 +5,8 @@ export async function preparePolls(reveal) {
   let color = Decker.meta["css-light-colors"];
 
   let session = null;
+  let polls = [];
+
   try {
     session = await pollSession({
       serverUrl: Decker.meta["poll-server"],
@@ -13,7 +15,7 @@ export async function preparePolls(reveal) {
   } catch (err) {
     Decker.flash.message("Connection to poll server failed.");
     return {
-      close: () => {},
+      close: () => { },
     };
   }
 
@@ -49,6 +51,10 @@ export async function preparePolls(reveal) {
   // Prep all questions in the document marked with class 'poll'.
   let questions = document.querySelectorAll("div.question.poll");
   for (let question of questions) {
+    let title = question.getAttribute("data-title");
+    let lectureId = question.getAttribute("data-lecture-id");
+    let topicId = question.getAttribute("data-topic-id");
+    console.log(title, lectureId, topicId);
     // Only consider multiple choice for now
     let answer = question.querySelector("div.answer.exa-mc");
     let nvotes = parseInt(answer.getAttribute("data-votes")) || 1;
@@ -69,6 +75,7 @@ export async function preparePolls(reveal) {
     // Collect the vote feedback structures.
     let voteMap = {};
     let solution = [];
+    let results = [];
     let voteBlocks = answer.querySelectorAll("div.choice div.vote");
     let choiceElements = answer.querySelectorAll("div.choice");
     for (let choice of choiceElements) {
@@ -107,13 +114,15 @@ export async function preparePolls(reveal) {
         onFinished: (participants, votes, complete) => {
           displayVotes(votes, voteMap);
           showVotes(voteBlocks, false);
+          saveVotes(title, lectureId, topicId, votes, polls);
+          uploadPolls(id, polls);
           const voted = Object.values(votes).reduce((t, v) => t + v, 0);
           stopButton.textContent = restoreStop;
           stopButton.setAttribute("disabled", false);
           pollButton.removeAttribute("disabled");
           reveal.off("slidechanged", abort);
         },
-      });
+      }, "Random");
     };
     pollButton.addEventListener("click", poll);
     callbackLog.push({ button: pollButton, event: "click", callback: poll });
@@ -128,6 +137,7 @@ export async function preparePolls(reveal) {
 
   return {
     close: () => {
+      session.stop();
       session.reset();
       revealElement.removeChild(qrcodeContainer);
       revealElement.removeAttribute("data-poll-session");
@@ -145,6 +155,25 @@ function showVotes(voteMap, show) {
   for (let vote of Object.values(voteMap))
     if (show) vote.classList.add("polling");
     else vote.classList.remove("polling");
+}
+
+
+function saveVotes(title, lectureId, topicId, votes, polls) {
+  if (Decker.meta["save-polls"])
+    polls.push({ title, lectureId, topicId, votes });
+}
+
+function uploadPolls(id, polls) {
+  if (Decker.meta["save-polls"]) {
+    let path = location.pathname;
+    let base = path.substring(0, path.lastIndexOf("-"));
+    let url = base + `-${id}-poll.json`
+    fetch(url, { method: "PUT", body: JSON.stringify(polls) })
+      .then((r) => console.log("[] poll data uploaded to:", url))
+      .catch((e) => {
+        console.error("[] cannot upload poll data to:", url, "reason:", e);
+      });
+  }
 }
 
 function displayVotes(votes, voteMap) {

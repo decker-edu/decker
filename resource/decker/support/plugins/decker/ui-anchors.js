@@ -19,7 +19,6 @@
 
 class DeckerPlugins {
   id = "ui-anchors";
-  reveal = undefined; //reference to the reveal object received in init
   top_left_anchor = undefined;
   top_right_anchor = undefined;
   bottom_left_anchor = undefined;
@@ -85,7 +84,6 @@ class DeckerPlugins {
   }
 
   init(reveal) {
-    this.reveal = reveal;
     this.top_left_anchor = this.createAnchor("top-left-anchor");
     this.top_right_anchor = this.createAnchor("top-right-anchor");
     this.bottom_left_anchor = this.createAnchor("bottom-left-anchor");
