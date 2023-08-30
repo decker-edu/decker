@@ -391,30 +391,57 @@ class SlideMenu {
   initializeWellbeing() {
     const template = document.createElement("template");
     template.innerHTML = String.raw`<div class="wellbeing-container">
-      <div id="wellbeing-signal"><span class="fas fa-signal"></span></div>
-      <div><span id="wellbeing-message" class="small">...</span></div>
+      <div class="wellbeing-item">
+        <div class="status" id="wellbeing-signal-icon"><span class="fas fa-signal"></span></div>
+        <div class="wellbeing-text"><span id="wellbeing-signal-message">...</span></div>
+      </div>
+      <div class="wellbeing-item">
+        <div class="status" id="wellbeing-upload-icon"><span class="fas fa-upload"></span></div>
+        <div class="wellbeing-text"><span id="wellbeing-upload-message">...</span></div>
+      </div>
     </div>`;
     const wrapper = template.content.firstElementChild;
-    const signal = wrapper.querySelector("#wellbeing-signal");
-    const msg = wrapper.querySelector("#wellbeing-message");
+    const signal = wrapper.querySelector("#wellbeing-signal-icon");
+    const upload = wrapper.querySelector("#wellbeing-upload-icon");
+    const signalMessage = wrapper.querySelector("#wellbeing-signal-message");
+    const uploadMessage = wrapper.querySelector("#wellbeing-upload-message");
     this.menu.container.appendChild(wrapper);
     this.ping = setInterval(async () => {
       signal.classList.remove(["fine", "bad"]);
+      upload.classList.remove(["fine", "bad"]);
       try {
         const response = await fetch("/ping/", { method: "GET" });
         if (response.ok) {
           signal.classList.add("fine");
           const json = await response.json();
-          msg.innerText = `Connected to: ${json.connection}, Uploads: ${
-            json.acceptingUpload ? "allowed" : "not allowed"
-          }`;
+          switch (json.connection) {
+            case "local":
+              signalMessage.innerText = this.localization.local_connection;
+              break;
+            case "remote":
+              signalMessage.innerText = this.localization.remote_connection;
+              break;
+            default:
+              signalMessage.innerText = this.localization.unknown_connection;
+          }
+          if (json.acceptingUpload) {
+            upload.classList.add("fine");
+            uploadMessage.innerText = this.localization.upload_allowed;
+          } else {
+            upload.classList.add("bad");
+            uploadMessage.innerText = this.localization.upload_not_allowed;
+          }
         } else {
           signal.classList.add("bad");
-          msg.innerText = "Connection refused";
+          upload.classList.add("bad");
+          signalMessage.innerText = this.localization.connection_denied;
+          uploadMessage.innerText = "...";
         }
       } catch (error) {
         signal.classList.add("bad");
-        msg.innerText = "Connection lost";
+        upload.classList.add("bad");
+        signalMessage.innerText = this.localization.connection_failed;
+        uploadMessage.innerText = "...";
       }
     }, 3000);
   }
@@ -579,7 +606,9 @@ class SlideMenu {
 
     this.initializeSlideList();
     this.initializeSettingsMenu();
-    this.initializeWellbeing();
+    if (Decker.meta.wellbeing) {
+      this.initializeWellbeing();
+    }
     this.menu.container.addEventListener("keydown", (event) =>
       this.traverseList(event)
     );
@@ -752,6 +781,13 @@ const plugin = () => {
         title: "Navigation",
         print_confirmation: "Leave presentation to export it to PDF?",
         index_confirmation: "Go back to index page?",
+        unknown_connection: "Connected to unknown endpoint",
+        local_connection: "Connected to local server",
+        remote_connection: "Connected to remote server",
+        upload_allowed: "Ready to upload",
+        upload_not_allowed: "Rejecting uploads",
+        connection_failed: "Connection failed",
+        connection_denied: "Connection denied",
       };
 
       let lang = navigator.language;
@@ -775,6 +811,13 @@ const plugin = () => {
           title: "Navigation",
           print_confirmation: "Seite verlassen, um sie als PDF zu exportieren?",
           index_confirmation: "Zurück zur Index-Seite gehen?",
+          unknown_connection: "Unbekannte Verbindung",
+          local_connection: "Lokale Verbindung hergestellt",
+          remote_connection: "Externe Verbindung hergestellt",
+          upload_allowed: "Upload möglich",
+          upload_not_allowed: "Uploads abgelehnt",
+          connection_failed: "Verbindung fehlgeschlagen",
+          connection_denied: "Verbindung abgelehnt",
         };
       }
 

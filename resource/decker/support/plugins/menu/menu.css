@@ -255,13 +255,29 @@ fieldset {
 .wellbeing-container {
   display: flex;
   flex-direction: row;
+  border-top: 1px solid var(--foreground-color);
+  font-size: 0.75rem;
+}
+
+.wellbeing-item {
+  display: flex;
+  flex-grow: 1;
   gap: 1rem;
 }
 
-#wellbeing-signal.fine {
+.wellbeing-container .wellbeing-text {
+  opacity: 0;
+  transition: opacity 0.2s linear;
+}
+
+.wellbeing-container:hover .wellbeing-text {
+  opacity: 1;
+}
+
+.status.fine {
   color: var(--color-success);
 }
 
-#wellbeing-signal.bad {
+.status.bad {
   color: var(--color-error);
 }

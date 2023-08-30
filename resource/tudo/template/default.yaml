@@ -23,6 +23,8 @@ reveal:
   viewDistance: 2
   checkOverflow: false
 
+wellbeing: true
+
 explain:
   recWidth: 1920
   recHeight: 1080

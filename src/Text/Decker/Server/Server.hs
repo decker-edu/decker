@@ -142,7 +142,7 @@ data ConnectionType = ConnectionType {
 instance ToJSON ConnectionType
 
 respondToPing :: AppActionM ()
-respondToPing = Scotty.json $ (ConnectionType {connection = "decker", acceptingUpload = True})
+respondToPing = Scotty.json $ (ConnectionType {connection = "local", acceptingUpload = True})
 
 -- Safari times out on web sockets to save energy. Prevent this by sending pings
 -- from the server to all connected browsers. Once every 10 seconds should do
