@@ -671,8 +671,8 @@ async function startRecording() {
             localization.notification_title,
             localization.notification_upload_success(file.filename)
           );
-          return r.ok;
         }
+        return r.ok;
       })
       .catch((e) => {
         console.error("[] cannot upload data to:", file.filename, "reason:", e);
@@ -696,8 +696,8 @@ async function startRecording() {
             localization.notification_title,
             localization.notification_upload_success(file.filename)
           );
-          return r.ok;
         }
+        return r.ok;
       })
       .catch((e) => {
         console.error(
@@ -726,8 +726,8 @@ async function startRecording() {
             localization.notification_title,
             localization.notification_upload_success(file.filename)
           );
-          return r.ok;
         }
+        return r.ok;
       })
       .catch((e) => {
         console.error(
