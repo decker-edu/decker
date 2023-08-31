@@ -452,9 +452,13 @@ function requestNotifications() {
 }
 
 function postNotification(title, message) {
-  const notification = new Notification(title, {
-    body: message,
-  });
+  try {
+    const notification = new Notification(title, {
+      body: message,
+    });
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 const Plugin = {
