@@ -22,6 +22,10 @@ html.a11y .reveal .slides section {
   min-height: var(--slide-height);
 }
 
+html.a11y .reveal section.center > .decker {
+  justify-content: normal;
+}
+
 html.a11y .reveal .backgrounds {
   display: none;
 }
