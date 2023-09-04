@@ -29,6 +29,9 @@ resource-pack: exe:tudo
 
 progress: false
 
+livestream:
+  encoder: 'wss://decker.cs.tu-dortmund.de/streamer/rtmp'
+
 test:
   default-decker: From decker.yaml
   default-decker-deck: From decker.yaml

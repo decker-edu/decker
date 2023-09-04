@@ -24,6 +24,7 @@ const UI = {
   cameraPanel: undefined,
   cameraVideo: undefined,
   cameraCanvas: undefined,
+  streamDialog: undefined,
   updateRecordIndicator: updateRecordIndicator,
   openRecordPanel: openRecordPanel,
   closeRecordPanel: closeRecordPanel,
@@ -265,6 +266,37 @@ export async function createRecordingGUI() {
   }
   UI.recordToggle.inert = false;
   /* inert everything but the toggle button */
+
+  const templateString = String.raw`<dialog id="rtmp-stream-dialog">
+<fieldset>
+  <legend>RTMP Endpoint<legend>
+  <div>
+    <label>Endpoint URL:</label><input id="rtmp-endpoint" name="rtmp-endpoint" disabled type="text" value="rtmp://a.rtmp.youtube.com/live2/">
+    <label>Stream-Key</label><input id="streamkey" name="streamkey" type="text" placeholder="Stream-Key">
+  </div>
+</fieldset>
+<button type="button" onclick="document.getElementById('rtmp-stream-dialog').close();">Submit</button>
+  </dialog>`;
+  const template = document.createElement("template");
+  template.innerHTML = templateString;
+  const clone = template.content.cloneNode(true);
+  document.body.appendChild(clone);
+  const dialog = document.getElementById("rtmp-stream-dialog");
+
+  dialog.modalPromise = () => {
+    return new Promise((resolve, reject) => {
+      dialog.addEventListener(
+        "close",
+        () => {
+          resolve();
+        },
+        { once: true }
+      );
+      dialog.showModal();
+    });
+  };
+
+  UI.streamDialog = dialog;
 
   setupGainSlider(UI.voiceGainSlider);
 }

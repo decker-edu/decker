@@ -424,6 +424,8 @@ async function showExistingWarning(existingRecordings) {
   return choice.submit;
 }
 
+let streamSocket;
+
 export async function startRecording() {
   // Stop Decker from auto reloading the page if we recorded something
   window.Decker.addReloadInhibitor(() => false);
@@ -460,12 +462,28 @@ export async function startRecording() {
     mimeType: "video/webm",
   });
 
-  recorder.ondataavailable = (e) => blobs.push(e.data);
+  recorder.ondataavailable = (e) => {
+    blobs.push(e.data);
+    const livestream = Decker.meta.livestream;
+    if (livestream && livestream.encoder) {
+      streamSocket.send(e.data);
+    }
+  };
 
   let recordSlideChange = () => recorder.timing.record();
 
   recorder.onstart = () => {
     console.log("[] recorder started");
+    const livestream = Decker.meta.livestream;
+    if (livestream && livestream.encoder) {
+      const endpoint = document.getElementById("rtmp-endpoint");
+      const streamkey = document.getElementById("streamkey");
+      streamSocket = new WebSocket(
+        Decker.meta.livestream.encoder +
+          "?endpoint=" +
+          encodeURIComponent(endpoint.value + "/" + streamkey.value)
+      );
+    }
     recorder.timing = new Timing();
     if (recordingType === "APPEND") {
       recorder.timing.offset = parseFloat(recordingResumeTime) * 1000;
@@ -483,6 +501,7 @@ export async function startRecording() {
     let time = new Date(null);
     time.setSeconds(seconds);
     UI.recordingTime.innerText = time.toISOString().substring(11, 19);
+    recorder.requestData();
   }
 
   async function uploadFile(file) {
@@ -571,6 +590,7 @@ export async function startRecording() {
 
   recorder.onstop = async () => {
     console.log("[] recorder stopped");
+    streamSocket.close();
 
     UI.recordIndicator.dataset.state = "saving";
 
@@ -636,6 +656,8 @@ export async function startRecording() {
     mainModule.uiState.transition("cancel");
   };
 
+  const dialog = UI.streamDialog;
+  await dialog.modalPromise();
   recorder.start();
   UI.recordButton.disabled = true;
   UI.pauseButton.disabled = undefined;
