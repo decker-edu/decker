@@ -1,14 +1,22 @@
-div.block.manipulatable,
-h1.manipulatable {
+div.reveal div.slides section div.decker div.block.manipulatable {
   position: relative;
-  filter: blur(5px) grayscale(100%);
-  border: 1px solid black;
+  transition: none;
 }
 
 div.block-overlay {
+  background-color: rgba(0, 0, 0, 0.2);
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
+}
+
+div.block-overlay div.width-handle {
+  position: absolute;
+  width: 20px;
+  bottom: 33%;
+  right: 0;
+  top: 33%;
+  border: 2px solid red;
 }

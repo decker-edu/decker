@@ -1,6 +1,8 @@
 import { jsx, htmlToElement } from "./utils.mjs";
 
 let blockManip = false;
+let slides = document.querySelector("div.reveal div.slides");
+let allManipulatedBlocks = {};
 
 export default function initializeBlockManipulation() {
   downloadManipulations();
@@ -12,8 +14,6 @@ export default function initializeBlockManipulation() {
     },
   );
 }
-
-let slides = document.querySelector("div.reveal div.slides");
 
 function dec2hex(dec) {
   return dec.toString(16).padStart(2, "0");
@@ -65,6 +65,34 @@ function drag(event) {
   }
 }
 
+function startWidthDrag(event) {
+  console.log("start width drag");
+  let state = event.target.state;
+
+  let slideTransform = slides.computedStyleMap().get("transform");
+  state.slideScale = slideTransform[1].x.value;
+
+  state.startX = event.clientX;
+  state.startY = event.clientY;
+
+  state.zIndex = state.block.style.zIndex;
+  state.block.style.zIndex = 1000;
+
+  state.width = state.block.computedStyleMap().get("width").value;
+
+  state.dragging = true;
+}
+
+function widthDrag(event) {
+  console.log("width drag");
+  let state = event.target.state;
+  if (state.dragging) {
+    let dw = (event.clientX - state.startX) / state.slideScale;
+
+    state.block.style.wisth = new CSSUnitValue(state.width, "px");
+  }
+}
+
 function stopDragging(event) {
   let state = event.target.state;
   let m = state.block.computedStyleMap().get("transform").toMatrix();
@@ -93,8 +121,11 @@ function enableBlockManip() {
 
     let { width, height } = block.getBoundingClientRect();
     let overlay = htmlToElement(jsx`
-      <div class="block-overlay" style="width: ${width}; height: ${height};"></div>
+      <div class="block-overlay" style="width: ${width}; height: ${height};">
+        <div class="width-handle"></div>
+      </div>
       `);
+    let widthHandle = overlay.firstChild;
 
     overlay.state = { block, overlay };
 
@@ -108,6 +139,16 @@ function enableBlockManip() {
       event.stopPropagation();
     });
 
+    // widthHandle.addEventListener("mousedown", (event) => {
+    //   startWidthDrag(event);
+    //   event.stopPropagation();
+    // });
+    //
+    // widthHandle.addEventListener("mousemove", (event) => {
+    //   widthDrag(event);
+    //   event.stopPropagation();
+    // });
+    //
     overlay.addEventListener("mouseup", (event) => {
       stopDragging(event);
       event.stopPropagation();
@@ -122,10 +163,7 @@ function enableBlockManip() {
   }
 
   blockManip = true;
-  Decker.flash.message("Block manipulation enabled ...");
 }
-
-let allManipulatedBlocks = {};
 
 function disableBlockManip() {
   Reveal.off("slidechanged", disableBlockManip);
@@ -146,7 +184,6 @@ function disableBlockManip() {
   blockManip = false;
   slides.manipulateBlocks = undefined;
   slides.manipulateSlide = undefined;
-  Decker.flash.message("Block manipulation disabled.");
 
   uploadManipulations();
 }
@@ -195,4 +232,6 @@ async function downloadManipulations() {
       element.style.transform = values.transform;
     }
   }
+
+  allManipulatedBlocks = manips;
 }
