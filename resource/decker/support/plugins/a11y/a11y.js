@@ -83,7 +83,10 @@ function undoAutomaticSlideAdjustments(slideElement) {
     slide.hidden = false;
     slide.dataset["previousAriaHidden"] = slide.getAttribute("aria-hidden");
     slide.removeAttribute("aria-hidden");
-    slide.style["min-height"] = slide.style.height;
+    slide.style["min-height"] = Math.max(
+      slide.style.height,
+      slide.style["min-height"]
+    );
     slide.style.height = null;
   }
 }
@@ -287,7 +290,7 @@ function activateA11yMode() {
         imageHeight
       ) {
         child.dataset["previousHeight"] = previousHeight;
-        child.style.height = imageHeight;
+        child.style["min-height"] = imageHeight;
       }
     }
     fakeSlideContainer.appendChild(child);

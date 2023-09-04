@@ -743,6 +743,18 @@ span.sequence {
   display: contents;
 }
 
+html.a11y .reveal .stack > p {
+  display: block;
+}
+
+html.a11y .reveal .stack span.media {
+  display: block;
+}
+
+html.a11y .reveal .slides section .stack .fragment:not(.current-fragment) {
+  visibility: visible;
+}
+
 /* hide non-active stack items 
   (use hidden instead of display:none to avoid layout shifts) */
 @media not print {
