@@ -1,6 +1,37 @@
+---
+title:        Decker Bedienungsanleitung
+author:       Sebastian Lukas Hauer
+affiliation:  Lehrstuhl für Computergraphik, TU Dortmund
+
+template:
+  page:
+    css: '/styles/page.css'
+---
+
+# Was ist `decker`?
+
+`decker` ist ein Programm zum Erzeugen von modernen, interaktiven Präsentationen, die im Browser präsentiert und betrachtet werden können.
+Das Programm wandelt Quelldateien, geschrieben in der Auszeichnungssprache **Markdown**, in Webseiten um, die das Präsentieren der beschriebenen Inhalte ermöglichen.
+
+Diese *decks* sind mit unterschiedlichen Technologien ausgestattet, die es dem Präsentierenden ermöglicht direkt im Browser die Folien mit handschriftlichen Notizen zu annotieren und die Präsentation aufzunehmen. Diese zusätzlichen Daten können vom Publikum beim Lernen direkt verwendet werden.
+
+`decker` eignet sich daher sehr gut zum Erstellen von Vorlesungen. Während Dozent\*innen sich beim Erstellen ihrer Foliensätze auf den Inhalt anstatt aufs Layout konzentrieren können erlauben die Foliensätze den Studierenden auch nach einer Unterrichtseinheit die Unterlagen einzusehen, das Tafelbild nachzuvollziehen und alle während des Unterrichts angefallenen Informationen auch nachträglich einsehen zu können. Auch begleitendes Material, wie Skripte oder Tutorials, können in der Form von einfachen Webseiten mithilfe von `decker` erzeugt und verwaltet werden.
+
+Zudem bieten die Foliensätze dank ihrer Online-Natur die Möglichkeit auch nachträglich noch Fragen und Anmerkungen zu den präsentierten Inhalten zu stellen.
+
+Das Übersetzen und lokale Präsentieren der Foliensätze kann vollständig durch das Programm umgesetzt werden. Zum nachträglichen zur Verfügung stellen der Foliensätze benötigen Sie einen Webdienst wie eine eigene Webseite, Moodle oder andere Dienste, die es ermöglichen Webseiten auszuliefern.
+
 # Installation
 
 In diesem Kapitel finden Sie alle Informationen zur Installation und Einrichtung des Programms `decker`.
+
+`decker` wird als eine einzige, unabhängige ausführbare Datei (`decker.exe` (Windows) bzw. `decker` (Linux / MacOS)) ausgeliefert. Das Programm benutzt jedoch weitere, externe Programme zum Umsetzen einiger Funktionen. Diese sind für die Ausführung von `decker` nicht notwendig, jedoch können ohne sie entsprechende Funktionen nicht verwendet werden. Diese sind:
+
+- `ffmpeg`: Ein Programm zum Umwandeln von Videodateien in unterschiedliche Formate.
+- `pdflatex`: Ein LaTeX-Übersetzer, der mit den meisten TeX-Distributionen ausgelierfert wird. Er wird zum Übersetzen von LaTeX-Quellcode in PDF-Dateien verwendet.
+- `pdf2svg`: Ein Werkzeug zum Umwandeln von PDF-Dateien in SVG-Bilder. Anstatt die von `pdflatex` generierten PDFs einzubinden werden von `decker` die Dateien in SVGs umgewandelt und benötigen daher dieses Programm.
+- `gnuplot`: Ein Programm zum plotten von Funktionen und Graphen. Im Quellcode markierte Codeblöcke können an `gnuplot` übergeben, in Bilder übersetzt und direkt in die Folien eingebunden werden. 
+- `plantuml`: Ein Programm zum Erstellen von Diagrammen, insbesondere UML-Diagrammen. Im Quellcode markierte Codeblöcke können an `plantuml` übergeben, in Bilder übersetzt und direkt in die Folien eingebunden werden. Unter Windows ist dieses Programm nicht aufrufbar.
 
 ## Windows
 
@@ -10,39 +41,32 @@ Zur Installation unter Windows wird ein Installationsprogramm bereitgestellt.
 
 Laden Sie dieses herunter und starten es. Das Installationsprogramm ist nicht signiert. Es kann daher sein, dass es vom Betriebssystem als unsicher eingestuft wird. Sie können die Warnmeldung jedoch getrost umgehen und es trotzdem ausführen.
 
-Das Installationsprogramm nimmt zwei Änderungen an Ihrem System vor:
-
-Zum einen kopiert es das Programm `decker` in das gewählte Installationsverzeichnis.
-
+Das Installationsprogramm nimmt zwei Änderungen an Ihrem System vor:  
+Zum einen kopiert es das Programm `decker` in das gewählte Installationsverzeichnis.  
 Zum anderen fügt das Installationsprogramm den Pfad zum Installationsverzeichnis zum Suchpfad für Programme hinzu, damit das Programm `decker` unter eben diesem Namen auch von anderen Programmen gefunden werden kann.
 
 ### Überprüfung der Installation
 
-Wenn das Programm erfolgreich installiert wurde können Sie `decker` nun entweder manuell über die Windows PowerShell ausführen oder es von anderen Programmen wie z.B. den `decker`-Plugins von Visual Studio Code bedienen lassen.
-
-Die Visual Studio Code Plugins werden Sie darüber informieren, wenn Sie das Programm `decker` nicht finden können.
+Wenn das Programm erfolgreich installiert wurde können Sie `decker` nun entweder manuell über die Windows PowerShell ausführen oder es von anderen Programmen wie z.B. den `decker`-Plugins von Visual Studio Code bedienen lassen. Die Visual Studio Code Plugins werden Sie darüber informieren, wenn Sie das Programm `decker` nicht finden können.
 
 Zum direkten Überprüfen, ob die Installation erfolgreich war, können Sie in der Windows PowerShell das Programm `decker` ausführen.
 
-Des weiteren können Sie selbst überprüfen, ob das Programm `decker` im angegebenen Installationsverzeichnis zu finden ist.
+Des Weiteren können Sie selbst überprüfen, ob das Programm `decker` im angegebenen Installationsverzeichnis zu finden ist.
+Ist dem der Fall können Sie überprüfen, ob der Suchpfad korrekt angepasst wurde, indem Sie die Umgebungsvariablen des Systems begutachten.
 
-Ist dem der Fall können Sie überprüfen, ob der Suchpfad korrekt angepasst wurde, indem Sie die Umgebungsvariablen des Systems begutachten:
-
-#### Umgebungsvariablen unter Windows einsehen
-
-Suchen Sie im Startmenu von Windows nach dem Begriff "Umgebungsvariablen":
+Suchen Sie im Startmenu von Windows nach dem Begriff "Umgebungsvariablen".
 
 ![](./images/umgebungsvariablen-startmenueintrag.png)
 
-Klicken Sie im Systemeigenschaften Dialog auf "Umgebungsvariablen":
+Klicken Sie im Systemeigenschaften Dialog auf "Umgebungsvariablen".
 
 ![](./images/umgebungsvariablen-systemmenu.png)
 
-Selektieren Sie anschließend die Variable "Path" entweder für den Nutzer oder das System:
+Selektieren Sie anschließend die Variable "Path" entweder für den Nutzer oder das System.
 
 ![](./images/umgebungsvariablen-menu.png)
 
-Überprüfen Sie in der angezeigten Liste, ob der Installationspfad von Decker vorhanden ist:
+Überprüfen Sie in der angezeigten Liste, ob der Installationspfad von `decker` vorhanden ist:
 
 ![](./images/umgebungsvariablen-eintrag.png)
 
@@ -60,31 +84,21 @@ Fügen Sie anschließend den Pfad zu diesem Verzeichnis dem Suchpfad des Systems
 
 Zusätzlich zu `decker` müssen Sie zum Nutzen aller Funktionalitäten folgende Programme separat installieren:
 
-- [ffmpeg](https://ffmpeg.org/) zum Konveriteren von Videoaufnahmen, die mithilfe der Präsentationen angefertigt werden.
-- [pdf2svg](https://github.com/jalios/pdf2svg-windows) zum Konvertieren von PDF-Dateien, die durch `pdflatex` beim Übersetzen von LaTeX-Quellcode generiert werden.
+- [ffmpeg](https://ffmpeg.org/) zum Konvertieren von Videoaufnahmen von Präsentationen mit `decker crunch`.
+- [gnuplot](http://www.gnuplot.info/) zum Übersetzen von gnuplot-Quellcode in eingebettete Graphen.
+- [pdflatex](https://tug.org/texlive/) zum Übersetzen von LaTeX-Quellcode in eingebettete SVGs, insbesondere in Kombination mit dem `tikz`-Paket. Die Operationen `decker`, `decker html`, `decker decks`, `decker pages` und `decker handouts` benötigen dieses und `gnuplot` bei der Verwendung von [vorübersetzten Inhalten](#vorübersetzte-inhalte).
+- [pdf2svg](https://github.com/jalios/pdf2svg-windows) zum Konvertieren von PDF-Dateien in einbettbare SVGs, die durch `pdflatex` beim Übersetzen von LaTeX-Quellcode generiert werden.
 - [cwrsync](https://itefix.net/cwrsync) als Implementierung von `rsync` für Windows zur Verwendung von `decker publish`. Dieses setzt voraus, dass seine eigene Implementierung von `ssh` im Suchpfad vor der `OpenSSH` Implementierung von Windows liegt. Wenn Sie also andere Programme nutzen, die `ssh` verwenden überprüfen Sie nach Installation, ob diese mit der Cygwin-Version von `cwrsync` kompatibel sind. Das `rsync`-Programm von cwrsync funktioniert **nicht** mit der vorinstallierten `ssh`-Implementierung von Windows.
 
-`decker` verwendet zur Umsetzung einzelner Funktionalitäten externe Programme.
-
-`decker publish` benötigt `rsync` zum Synchronisieren Ihres Projektes auf einem externen Webserver.
-
-`decker crunch` benötigt `ffmpeg` zum Konvertieren und Komprimieren von Videoaufnahmen.
-
-`decker`, `decker html`, `decker decks`, `decker pages` und `decker handouts` benötigen zum Übersetzen von LaTeX Quellcodefragmenten eine installierte LaTeX-Distribution, die das Programm `pdflatex` zur Verfügung stellt. Zusätzlich wird `pdf2svg` genutzt, um die generierten PDFs in SVGs umzuwandeln, die dann in die Präsentation eingebettet werden.
-
-Das selbe gilt für Quellcodefragmente für die Programme `gnuplot` und `plantuml`. Die entsprechenden Programme müssen ebenso separat installiert werden. `plantuml` wird unter Windows jedoch nicht als ausführbare Datei, sondern als nur als Java-Archiv ohne ausführendes Skript, ausgeliefert und kann deswegen nicht ausgeführt werden.
+Die Übersetzung von Inhalten mit `plantuml` ist unter Windows aktuell nicht möglich.
 
 ## Linux
 
 Die Installation von `decker` für Linux geschieht am schnellsten per Hand:
 
-Zuerst laden Sie das ausführbare `decker`-Programm herunter.
+Zuerst laden Sie das ausführbare `decker`-Programm herunter. Anschließend kontrollieren Sie, ob das Programm als **ausführbar** markiert ist und setzen es gegebenenfalls als solches: `chmod +x decker`.
 
-Anschließend kontrollieren Sie, ob das Programm als **ausführbar** markiert ist und setzen es gegebenenfalls als solches: `chmod +x decker`.
-
-Im Anschluss legen Sie das Programm in einem Verzeichnis ab, das auf Ihrem Suchpfad liegt.
-
-Dieses ist für den einzelnen Benutzer für gewöhnlich `~/.local/bin/` oder Systemweit `/usr/local/bin/`.
+Im Anschluss legen Sie das Programm in einem Verzeichnis ab, das in Ihrem Suchpfad liegt. Dieses ist für den einzelnen Benutzer für gewöhnlich `~/.local/bin/` oder Systemweit `/usr/local/bin/`.
 
 ### Installation optionaler Abhängigkeiten
 
@@ -100,6 +114,20 @@ Die optionalen Abhängigkeiten von `decker` sind:
 - `pdf2svg`
 - `google-chrome`
 
+Die meisten Linux-Distributionen bieten diese Programme als installierbare Pakete über den entsprechenden Paketmanager an.
+
+Für Distributionen, die den Aptitude Paketmanager verwenden können Sie folgenden Befehl verwenden.
+
+``` bash
+sudo apt install ssh rsync ffmpeg gnuplot graphviz plantuml texlive-full pdf2svg google-chrome
+```
+
+Für Distributionen, die den pacman Paketmanager verwenden können Sie folgenden Befehl verwenden.
+
+``` bash
+sudo pacman -Suy ssh rsync ffmpeg gnuplot graphviz plantuml texlive-full pdf2svg google-chrome
+```
+
 ## MacOS
 
 Für MacOS wird ein Installationspaket bereitgestellt.
@@ -114,23 +142,21 @@ Sie können ausgewählte Funktionalitäten von `decker` auch über das Visual St
 
 ## Verzeichnis als Projektverzeichnis markieren
 
-Damit das Programm `decker` das aktuelle Arbeitsverzeichnis als ein Projektverzeichnis erkennt muss im aktuellen Arbeitsverzeichnis eine Datei mit dem Namem `decker.yaml` enthalten sein. Die Datei muss selbst keinen Inhalt besitzen. In ihr können Sie Konfigurationsoptionen für ihr gesamtes Projekt hinterlegen. Näheres dazu können Sie im Kapitel für [Konfigurationsoptionen](#konfigurationsoptionen) erfahren.
+Damit `decker` das aktuelle Arbeitsverzeichnis als ein Projektverzeichnis erkennt, muss im aktuellen Arbeitsverzeichnis eine Datei mit dem Namem `decker.yaml` enthalten sein. Die Datei muss selbst keinen Inhalt besitzen. In ihr können Sie Konfigurationsoptionen für ihr gesamtes Projekt hinterlegen. Näheres dazu können Sie im [Kapitel für Konfigurationsoptionen](#konfigurationsoptionen) erfahren.
 
 ## Grundlagen
 
-Die Hauptaufgabe des Programms `decker` ist es Markdowndateien in Foliensätze oder Webseiten zu übersetzen. Die übersetzten Dateien, sowie alle Dateien, die zum Anzeigen der jeweilig erzeugten Dateien im Browser notwendig sind, werden in einem Verzeichnis mit dem Namen `public` abgelegt. Dieses Verzeichnis kann als solches von einem Webserver ausgeliefert werden, um die Präsentation auf dem lokalen Rechner oder auf ihrem eigenen Webhost zur Verfügung zu stellen.
+Die Hauptaufgabe von `decker` ist es, Markdowndateien in Foliensätze oder Webseiten zu übersetzen. Die übersetzten Dateien, sowie alle Dateien, die zum Anzeigen der jeweilig erzeugten Dateien im Browser notwendig sind, werden in einem Verzeichnis mit dem Namen `public` abgelegt. Dieses Verzeichnis kann als solches von einem Webserver ausgeliefert werden, um die Präsentation auf dem lokalen Rechner oder auf ihrem eigenen Webhost zur Verfügung zu stellen.
 
-Markdownquelltextdateien, die auf `-deck.md` enden werden in Foliensätze mit der Dateiendung `-deck.html` übersetzt. Markdownquelltextdateien, die auf `-page.md` enden werden in Webseiten mit der Dateiendung `-page.html` übersetzt.
+Markdownquelltextdateien, die auf `-deck.md` enden, werden in Foliensätze mit der Dateiendung `-deck.html` übersetzt. Markdownquelltextdateien, die auf `-page.md` enden, werden in Webseiten mit der Dateiendung `-page.html` übersetzt.
 
-Für jedes Projekt wird zusätzlich mindestens eine Datei mit dem Namen `index.html` generiert. Den Inhalt dieser Datei können Sie durch anpassen einer Datei `index.md` im Wurzelverzeichnis ihres Projektes ändern. Näheres dazu im Kapitel zur Indexdatei.
-
-Zusätzlich können für `-deck.md`-Dateien auch Handouts mit der Dateiendung `-handout.html` erzeugt werden. Näheres dazu im Abschnitt zu [`decker handouts`](#handouts-generieren).
+Für jedes Projekt wird zusätzlich eine Datei mit dem Namen `index.html` generiert. Den Inhalt dieser Datei können Sie durch anpassen einer Datei `index.md` im Wurzelverzeichnis ihres Projektes ändern. Näheres dazu im Kapitel zur Indexdatei.
 
 Für bereits übersetzte Foliensätze können mithilfe des Browsers Google Chrome PDF-Dateien der Foliensätze erzeugt werden. Diese werden in Dateien mit der Dateiendung `-deck.pdf` abgelegt. Näheres dazu im Abschnitt zu [`decker pdf`](#pdfs-generieren).
 
 ### Beispiel
 
-Ihr Projektverzeichnis beinhalte folgende Dateien.
+Ihr Projektverzeichnis beinhaltet folgende Dateien.
 
 ```
 decker.yaml
@@ -138,13 +164,13 @@ presentation-deck.md
 supplementary-page.md
 ```
 
-Ein Aufruf des Programms `decker`, gefolgt von `decker handouts` und `decker pdf` erzeugt folgende Resultate in Ihrem `public`-Verzeichnis:
+Ein Aufruf des Programms `decker` gefolgt von `decker pdf` erzeugt folgende Resultate in Ihrem `public`-Verzeichnis:
 
 ```
 index.html
 presentation-deck.html
 presentation-handout.html
-pesentation-deck.pdf
+presentation-deck.pdf
 supplementary-page.html
 ```
 
@@ -152,35 +178,29 @@ Zusätzlich werden Sie weitere Dateien in dem `public`-Verzeichnis vorfinden: `.
 
 ## Grundausführung
 
-Rufen Sie das Programm `decker` ohne weitere Argumente auf werden aus allen im Projektverzeichnis und seinen Unterverzeichnissen befindlichen `-deck.md`- und `-page.md`-Dateien Foliensätze bzw. Webseiten generiert. Weitere Funktionalitäten können dieser Grundausführung in Zukunft hinzugefügt werden. Bisher ist dieser Aufruf identisch zum Aufruf `decker html`.
+Rufen Sie das Programm `decker` ohne weitere Argumente auf, werden aus allen im Projektverzeichnis und seinen Unterverzeichnissen befindlichen `-deck.md`- und `-page.md`-Dateien Foliensätze bzw. Webseiten generiert. Weitere Funktionalitäten können dieser Grundausführung in Zukunft hinzugefügt werden. Bisher ist dieser Aufruf identisch zum Aufruf `decker html`.
+
+Andere Ausführungsmodi und Funktionalitäten werden durch Anfügen von Argumenten an den Programmaufruf umgesetzt.
 
 ## HTML-Dateien generieren
 
-Rufen Sie das Programm `decker` mit dem Argument `html` als `decker html` auf werden aus allen im Projektverzeichnis und seinen Unterverzeichnissen befindlichen `-deck.md`- und `-page.md`-Dateien Foliensätze bzw. Webseiten generiert. Dieser Aufruf ist zum expliziten Beschränken der Übersetzung auf diese Ergebnisse gedacht. Aktuell ist er identisch zum Aufruf von `decker` ohne Argumente.
+Rufen Sie das Programm mit `decker html` auf, werden aus allen im Projektverzeichnis und seinen Unterverzeichnissen befindlichen `-deck.md`- und `-page.md`-Dateien Foliensätze bzw. Webseiten generiert. Dieser Aufruf ist zum expliziten Beschränken der Übersetzung auf diese Ergebnisse gedacht. Aktuell ist er identisch zum Aufruf von `decker` ohne Argumente.
 
 ## Foliensätze generieren
 
-Rufen Sie das Programm `decker` mit dem Argument `decks` als `decker decks` auf werden aus allen im Projektverzeichnis und seinen Unterverzeichnissen befindlichen `-deck.md`-Dateien Foliensätze generiert. Dieser Aufruf beschränkt sich anders als der Aufruf von `decker html` auf die Foliensätze.
+Rufen Sie das Programm mit `decker decks` auf, werden aus allen im Projektverzeichnis und seinen Unterverzeichnissen befindlichen `-deck.md`-Dateien Foliensätze generiert. Dieser Aufruf beschränkt sich anders als der Aufruf von `decker html` auf die Foliensätze.
 
 ## Webseiten generieren
 
-Rufen Sie das Programm `decker` mit dem Argument `pages` als `decker pages` auf werden aus allen im Projektverzeichnis und seinen Unterverzeichnissen befindlichen `-page.md`-Dateien Webseiten generiert. Dieser Aufruf beschränkt sich anders als der Aufruf von `decker html` auf die Webseiten.
-
-## Handouts generieren
-
-Rufen Sie das Programm `decker` mit dem Argument `handouts` als `decker handouts` auf werden aus allen im Projektverzeichnis und seinen Unterverzeichnissen befindlichen `-deck.md`-Dateien Handouts generiert. Diese repräsentieren den textuellen Inhalt des Foliensatzes und sind zum Nachlesen der Präsentation oder als Alternative für Nutzer von assistiven Technologien gedacht.
+Rufen Sie das Programm mit `decker pages` auf, werden aus allen im Projektverzeichnis und seinen Unterverzeichnissen befindlichen `-page.md`-Dateien Webseiten generiert. Dieser Aufruf beschränkt sich anders als der Aufruf von `decker html` auf die Webseiten.
 
 ## PDFs generieren
 
-Das Generieren von PDF-Dateien aus den Foliensätzen verwendet das Programm Google Chrome. Die Funktionalitäten von Google Chrome, die das Generieren von PDF-Dateien aus Webseiten erlaubt funktioniert nicht in der Version, die für Windowssysteme ausgeliefert wird. Entsprechend ist diese Funktionalität von `decker` nur unter Linuxsystemen und MacOS verfügbar. Wenn Sie unter Windows PDF-Dateien Ihrer Foliensätze haben möchten müssen Sie die Foliensätze mithilfe von `decker --server` in ihrem Browser selbst aufrufen und über das Navigationsmenu das Drucken des Foliensatzes als PDF manuell durchführen.
-
-Das Aufrufen von `decker` mit dem Argument `pdf` benötigt bereits gebaute Foliensatzdateien, die mit Google Chrome geöffnet und mithilfe dieses Programms in ihre entsprechenden PDF-Dateien gedruckt werden. Entsprechend werden wie beim Aufruf von `decker decks` die Foliensätze übersetzt, bevor die eigentliche Funktionalität dieses Aufrufs umgesetzt wird.
+Das Generieren von PDF-Dateien aus den Foliensätzen verwendet das Programm Google Chrome. Die Funktionalitäten von Google Chrome, die das Generieren von PDF-Dateien aus Webseiten erlauben, funktioniert nicht in der Version, die für Windowssysteme ausgeliefert wird. Entsprechend ist diese Funktionalität von `decker` nur unter Linuxsystemen und MacOS verfügbar. Wenn Sie unter Windows PDF-Dateien Ihrer Foliensätze haben möchten müssen Sie die Foliensätze mithilfe von `decker --server` in ihrem Browser selbst aufrufen und über das Navigationsmenu das Drucken des Foliensatzes als PDF manuell durchführen.
 
 ## Projektverzeichnis aufräumen
 
-Rufen Sie `decker` mit dem Argument `clean` auf wird das `public`-Verzeichnis gelöscht. Dies dient zum aufräumen und entfernen aller generierten Dateien, damit ein erneuter Übersetzungsvorgang alle Dateien neu übersetzen muss.
-
-## Projektverzeichnis vollständig bereinigen
+Rufen Sie das Programm mit `decker clean` auf, wird das `public`-Verzeichnis gelöscht. Dies dient zum aufräumen und entfernen aller generierten Dateien, damit ein erneuter Übersetzungsvorgang alle Dateien neu übersetzen muss.
 
 Neben dem `public`-Verzeichnis wird auch zusätzlich ein Verzeichnis namens `.decker` angelegt, in dem für den Übersetzungsprozess wichtige Metadaten zwischengespeichert werden. Diese müssen für gewöhnlich nicht erneut angelegt werden, wenn ein Projekt wiederholt übersetzt wird.
 
@@ -188,39 +208,37 @@ Möchten Sie jedoch das Projektverzeichnis von absolut allen von `decker` generi
 
 ## Projektverzeichnis veröffentlichen
 
-Rufen Sie `decker` mit dem Argument `publish` als `decker publish` auf wird das Programm angewiesen mithilfe des Programms `rsync` ihr `public`-Verzeichnis auf einem anderen Rechner zu veröffentlichen. Das Programm `rsync` muss entsprechend auf Ihrem Rechner zur Verfügung stehen. Unter Windows bedeutet dies meist die Installation von Linux-Werkzeugen mithilfe der Umgebungen CygWin oder MinGW.
+Rufen Sie das Programm mit `decker publish` auf, wird das Programm angewiesen mithilfe des Programms `rsync` ihr `public`-Verzeichnis auf einem anderen Rechner zu veröffentlichen.
 
-Die Konfiguration von `rsync` durch `decker publish` wird im Kapitel Konfigurationsoptionen behandelt.
+Die Konfiguration von `rsync` durch `decker publish` wird im [Kapitel Konfigurationsoptionen](#einstellungen-für-decker-publish) behandelt.
 
 ## Dateien beobachten
 
-Mithilfe der Programmoption `-w` bzw. `--watch` können Sie das programm `decker` dazu anweisen die Quelldateien in Ihrem Projektverzeichnis zu beobachten. Der Aufruf von Decker mit dieser Option muss manuell beendet werden, wenn Sie die Beobachtung beenden wollen. Wenn Änderungen an Ihren Quelldateien festgestellt werden baut `decker` die davon betroffenen Zieldateien sofort neu.
+Mithilfe der Programmoption `-w` bzw. `--watch` können Sie `decker` dazu anweisen die Quelldateien in Ihrem Projektverzeichnis zu beobachten. Der Aufruf von `decker` mit dieser Option muss manuell beendet werden (üblicherweise durch die Tastenkombination `STRG + C`), wenn Sie die Beobachtung beenden wollen. Wenn Änderungen an Ihren Quelldateien festgestellt werden baut `decker` die davon betroffenen Zieldateien sofort neu.
 
 ## Webserver starten
 
-Der Aufruf von `decker` mit dem Argument `serve` als `decker serve` startet einen lokalen Webserver auf ihrem Rechner. Sie können mit der Option `-p` können Sie den Port, auf dem der Webserver horcht ändern. Der Standardport ist `8888`. Entsprechend erreichen Sie den Webserver mithilfe Ihres Browsers gewöhnlicherweise unter der Adresse [http://localhost:8888](http://localhost:8888).
+Der Aufruf von `decker serve` startet einen lokalen Webserver auf ihrem Rechner. Sie können mit der Option `-p` den Port, auf dem der Webserver horcht ändern. Der Standardport ist `8888`. Entsprechend erreichen Sie den Webserver mithilfe Ihres Browsers gewöhnlicherweise unter der Adresse [http://localhost:8888](http://localhost:8888).
 
-Wenn Sie `decker` mit der Option `-S` oder `--server` starten wird wie beim Aufruf von `serve` ein Webserver gestartet. Zusätzlich werden alle Quelltextdateien beobachtet und neu gebaut, wenn sie geändert werden, wie beim Aufruf von `decker --watch`. Zusätzlich werden angezeigte Foliensätze und Webseiten in Ihrem Browser dazu angewiesen ihren Inhalt neu zu laden, wenn ihre Quelldateien neu übersetzt wurden. Dadurch können Sie Änderungen an Ihrem Quelltext sofort in Ihrem Browser begutachten und nachvollziehen. Entsprechend ist der Aufruf von `decker --server` dem Aufruf von `decker serve` im Allgemeinen zu bevorzugen.
+Wenn Sie `decker` mit der Option `-S` oder `--server` starten, wird wie beim Aufruf von `serve` ein Webserver gestartet. Zusätzlich werden alle Quelltextdateien beobachtet und neu gebaut, wenn sie geändert werden, wie beim Aufruf von `decker --watch`. Zusätzlich werden angezeigte Foliensätze und Webseiten in Ihrem Browser dazu angewiesen, ihren Inhalt neu zu laden, wenn ihre Quelldateien neu übersetzt wurden. Dadurch können Sie Änderungen an Ihrem Quelltext sofort in Ihrem Browser begutachten und nachvollziehen. Entsprechend ist der Aufruf von `decker --server` dem Aufruf von `decker serve` im Allgemeinen zu bevorzugen.
 
 ## Videodateien konvertieren
 
-Videodateien, die sie mithilfe der Webpräsentationen von `decker` erstellen werden im `.webm`-Format abgespeichert. Zum Ausliefern der Videos mit ihrer Präsentation ist das Verwenden von `.mp4`-Dateien notwendig.
+Videodateien, die Sie mithilfe der Webpräsentationen von `decker` erstellen, werden im `.webm`-Format abgespeichert. Zum Ausliefern der Videos mit ihrer Präsentation ist jedoch das Verwenden von `.mp4`-Dateien notwendig.
 
-Rufen Sie `decker` mit dem Argument `crunch` als `decker crunch` auf wird das Programm dazu angewiesen mithilfe des Programms `ffmpeg` alle `-recording.webm`-Dateien, die zu ihren Präsentationen gehören, in entsprechende `-recording.mp4`-Dateien umzuwandeln. Videos, die Sie in mehreren Teilen aufgenommen haben werden ebenfalls durch diesen Befehl zusammengeführt.
+Rufen Sie das Programm mit `decker crunch` auf, werden mithilfe des Programms `ffmpeg` alle `-recording.webm`-Dateien, die zu ihren Präsentationen gehören, in entsprechende `-recording.mp4`-Dateien umgewandelt. Videos, die Sie in mehreren Teilen aufgenommen haben werden ebenfalls durch diesen Befehl zusammengeführt.
 
 ## Optionale Abhängigkeiten überprüfen
 
-Der Aufruf von `decker` mit dem Argument `check` als `decker check` weist das Programm dazu an zu überprüfen welche optionalen Abhängigkeiten installiert sind und in einer Liste aufzuzählen.
+Der Aufruf des Programms mit `decker check` überprüft, welche optionalen Abhängigkeiten installiert sind.
 
 ## Versionsinformationen
 
-Der Aufruf von `decker` mit dem Argument `version` als `decker version` gibt Informationen über die verwendete Version von `decker` und internen Bibliotheken auf der Kommandozeile aus.
+Der Aufruf des Programms mit `decker version` gibt Informationen über die verwendete Version von `decker` und internen Bibliotheken auf der Kommandozeile aus.
 
 # Markdown
 
 Quelltextdateien von Decker werden in der Auszeichnungssprache [Markdown](https://daringfireball.net/projects/markdown/) geschrieben.
-
-Markdowndateien mit der Endung `-deck.md` werden von Decker in Foliensätze mit der Endung `-deck.html` übersetzt während Markdowndateien mit der Endung `-page.md` in Webseiten mit der Endung `-page.html` übersetzt werden.
 
 Im Kopf der Markdowndateien können in einem speziellen Bereich, dem *Frontmatter*, markiert durch zwei Zeilen in denen drei Bindestriche (`---`) stehen, Konfigurationseinstellungen für diese Datei notiert werden. Eine Markdowndatei hat daher fast immer folgendes Grundaussehen:
 
@@ -236,9 +254,7 @@ Dokumenteninhalt
 
 Markdown ist eine Auszeichnungssprache, die dazu gedacht ist direkt in HTML-Dokumente überführt zu werden. Ihr Ziel ist es dabei im besonderen den auf der übersetzten Webseite repräsentierten Text im Quelltext so ähnlich wie möglich wiederzuspiegeln.
 
-Als solche besitzt Markdown keine wirklichen Möglichkeiten zum definieren von Layout oder Design des repräsentierten Textes. Dies ist Aufgabe der Webseite, in die der aus dem Markdown-Quelltext übersetzte HTML-Quellcode eingebettet wird.
-
-Decker verwendet zur Übersetzung von Markdown nach HTML die Bibliothek `pandoc`. Diese erlaubt es den Übersetzungsprozess von Markdown nach HTML anzupassen und um viele zusätzliche Funktionalitäten zu erweitern. Im Folgenden werden daher sowohl die weiter verbreiteten Markdowngrundlagen erklärt, als auch die von Decker verwendeten Anpassungen.
+`decker` verwendet zur Übersetzung von Markdown nach HTML die Bibliothek `pandoc`. Diese erlaubt es, den Übersetzungsprozess von Markdown nach HTML anzupassen und um viele zusätzliche Funktionalitäten zu erweitern. Im Folgenden werden daher sowohl Markdown-Grundlagen erklärt, als auch die von Decker verwendeten Erweiterungen.
 
 In Markdown werden alle Textbausteine semantisch durch eine Leerzeile (zwei aufeinander folgende Zeilenumbrüche) voneinander getrennt. Dies erlaubt es im Quelltext einzelne Bausteine schnell voneinander zu unterscheiden. Im übersetzten Dokument werden einzelne Textbausteine für gewöhnlich untereinander angeordnet. Dies macht sich im Fließtext meist durch einen sichtbaren Zeilenunbruch und einen kleinen Abstand zwischen den Textbausteinen bemerkbar.
 
@@ -254,7 +270,7 @@ In Markdown werden Überschriften mithilfe von `#`-Rauten-Symbolen eingeleitet. 
 
 Wenn Sie eine neue Folie ohne Titel einleiten wollen, können Sie dies mit einer `#`-Raute ohne weiteren Text umsetzen:
 
-```
+``` markdown
 #
 
 Folieninhalt
@@ -266,7 +282,7 @@ In `-page.md`-Webseitendateien haben Überschriften der Ebene 1 keine besondere 
 
 Überschriften der Ebene 1 leiten neue Folien in Ihrem Foliensatz ein:
 
-```
+``` markdown
 # Meine erste Folie
 
 Dies ist meine erste Folie.
@@ -280,24 +296,20 @@ Dies ist meine zweite Folie.
 Diese Folie hat keinen Titel.
 ```
 
-Überschriften anderer Ebenen können Sie benutzen um den Inhalt einer Folie zu strukturieren:
+Überschriften anderer Ebenen können Sie benutzen um den Inhalt einer Folie zu strukturieren. Das Resultat dieser Folie sehen Sie in Abbildung 1:
 
 ```
-# Folientitel
+# Überschrift Ebene 1
 
-Text
+## Überschrift Ebene 2
 
-## Themenüberschrift
+### Überschrift Ebene 3
 
-Mehr Text
+#### Überschrift Ebene 4
 
-## Weiteres Thema
+##### Überschrift Ebene 5
 
-Noch mehr Text
-
-### Unterunterüberschrift
-
-Viel mehr Text
+###### Überschrift Ebene 6
 ```
 
 ![Überschriftenbeispiel](./examples/svgs/basic-markdown-deck-page-001.svg)
@@ -314,7 +326,8 @@ Wenn Sie zwei Zeilen im Quelltext folgendermaßen notieren werden Sie als zwei T
 
 ``` markdown
 Diese Zeile gehört zu einem Paragraphen.
-Diese Zeile gehört zum selben Paragraphen. Im Resultat werden beide Zeilen ungetrennt hintereinander stehen.
+Diese Zeile gehört zum selben Paragraphen.
+Im Resultat werden alle Zeilen ungetrennt hintereinander stehen.
 ```
 
 In folgendem Quelltextbeispiel wird nach der ersten Zeile ein Zeilenumbruch eingefügt. Markieren Sie den foglenden Quelltext mit der Maus um die Leerzeichen am Ende der ersten Zeile zu sehen.
@@ -332,13 +345,16 @@ Diese Zeile gehört zu einem Paragraphen.
 Diese Zeile gehört zu einem anderen Paragraphen.
 ```
 
-Wenn Sie eine Folie mit viel Fließtext haben sähe eine Anordnung zum Beispiel folgendermaßen aus:
+Wenn Sie eine Folie mit viel Fließtext haben sähe eine Anordnung zum Beispiel folgendermaßen aus. Das Resultat dieses Quelltextbeispiels finden Sie in Abbildung 2:
 
-```
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+``` markdown
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+ullamco laboris nisi ut aliquip ex ea commodo consequat.
 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+sunt in culpa qui officia deserunt mollit anim id est laborum.
 ```
 
 ![Paragraphenbeispiel](./examples/svgs/basic-markdown-deck-page-002.svg)
@@ -361,7 +377,7 @@ Sie können keinen Text unterstreichen, da er auf Webseiten ansonsten mit Links 
 
 #### Beispiel
 
-Im Quelltext würden Sie die Textdekorationen folgendermaßen verwenden:
+Im Quelltext würden Sie die Textdekorationen folgendermaßen verwenden. Das Ergebnis dieses Beispiels können Sie in Abbildung 3 betrachten:
 
 ``` markdown
 Folgender Text ist *kurisv*.
@@ -379,13 +395,13 @@ Folgender Text ist `Quelltext`.
 
 ### Blockzitate
 
-Sie können einen Paragraphen als Blockzitat kennzeichnen, indem Sie ihn mit einem `>`-Kleiner-Symbol einleiten. Sie können weitere Zeilen hinter dem Blockzitat mit weiteren `>` einrücken, müssen dies jedoch nicht tun solange Sie die Inhalte nicht mit Leerzeilen voneinander trennen. Erst wenn Sie das Zitat mit zwei Zeilenumbrüchen vom nächsten Textbaustein trennen wird es beendet. Im Fließtext des Blockzitats gelten die selben Regeln für Zeilenumbrüche und Textdekoration wie für Paragraphen.
+Sie können einen Paragraphen als Blockzitat kennzeichnen, indem Sie ihn mit einem `>`-Symbol einleiten. Sie können weitere Zeilen hinter dem Blockzitat mit weiteren `>` einrücken, müssen dies jedoch nicht tun, solange Sie die Inhalte nicht mit Leerzeilen voneinander trennen. Erst wenn Sie das Zitat mit zwei Zeilenumbrüchen vom nächsten Textbaustein trennen, wird es beendet. Im Fließtext des Blockzitats gelten die selben Regeln für Zeilenumbrüche und Textdekoration wie für Paragraphen.
 
-`decker` erlaubt es zusätzlich eine Quellenangabe oder sonstige Unterschrift dem Blockzitat hinzufügen. Sie können dies durch Notieren eines neuen Paragraphen direkt hinter dem Zitat umsetzen, der mit der Zeichenfolge `Caption:` beginnt.
+`decker` erlaubt es, zusätzlich eine Quellenangabe oder sonstige Unterschrift dem Blockzitat hinzufügen. Sie können dies durch Notieren eines neuen Paragraphen direkt hinter dem Zitat umsetzen, der mit der Zeichenfolge `Caption:` beginnt.
 
 #### Beispiel
 
-Im Quelltext können Sie ein Blockzitat folgendermaßen angeben:
+Im Quelltext können Sie ein Blockzitat folgendermaßen angeben. Das Resultat finden Sie in Abbildung 4:
 
 ``` markdown
 > Dies ist in Blockzitat.  
@@ -400,11 +416,14 @@ Erst dieser Text ist wieder sein eigener Paragraph.
 
 Ein praktisches Beispiel in einer Folie wäre folgendes:
 
-```
+``` markdown
 Einst sagte ein berühmter Naturwissenschaftler:
 
-> Insofern sich die Sätze der Mathematik auf die Wirklichkeit beziehen, sind sie nicht sicher, und insofern sie sicher sind, beziehen sie sich nicht auf die Wirklichkeit.
-Mathematische Theorien über die Wirklichkeit sind immer ungesichert - wenn sie gesichert sind, handelt es sich nicht um die Wirklichkeit.
+> Insofern sich die Sätze der Mathematik auf die Wirklichkeit beziehen,
+sind sie nicht sicher, und insofern sie sicher sind, beziehen sie sich
+ nicht auf die Wirklichkeit.
+Mathematische Theorien über die Wirklichkeit sind immer ungesichert - 
+wenn sie gesichert sind, handelt es sich nicht um die Wirklichkeit.
 
 Caption: Albert Einstein
 ```
@@ -430,11 +449,13 @@ Eine ungeordnete Liste im Markdownquelltext wird folgendermaßen notiert:
  - Mein zweiter Listeneintrag
  Dieser Text ist weiterhin Teil des zweiten Listeneintrags
  - Mein dritter Listeneintrag mit zwei Leerzeichen am Ende  
- Dieser Text gehört zum dritten Listeneintrag, steht aber in seiner eigenen Zeile
+ Dieser Text gehört zum dritten Listeneintrag, steht aber in
+ seiner eigenen Zeile
  -  Mein vierter Listeneintrag mit mehreren Paragraphen
     
     Dieser Paragraph ist Teil des vierten Eintrags.
-Nur die erste Zeile muss eingerückt werden, um die Zugehörigkeit zu kennzeichnen.
+Nur die erste Zeile muss eingerückt werden, um die Zugehörigkeit
+zu kennzeichnen.
 ```
 
 Zum Beispiel können Sie eine ungeordnete Liste folgendermaßen verwenden:
@@ -449,21 +470,22 @@ Zum Beispiel können Sie eine ungeordnete Liste folgendermaßen verwenden:
 
 ![Beispiel für eine ungeordnete Liste](./examples/svgs/basic-markdown-deck-page-005.svg)
 
-Die selbe Liste wie im ersten Beispiel kann als geordnete Aufzählung folgendermaßen notiert werden:
+Die selbe Liste wie im ersten Beispiel kann als geordnete Aufzählung folgendermaßen notiert werden. Sie können das Resultat in Abbildung 5 betrachten:
 
 ``` markdown
  1. Mein erster Listeneintrag
  2. Mein zweiter Listeneintrag
  Dieser Text ist weiterhin Teil des zweiten Listeneintrags
  3. Mein dritter Listeneintrag mit zwei Leerzeichen am Ende  
- Dieser Text gehört zum dritten Listeneintrag, steht aber in seiner eigenen Zeile
+ Dieser Text gehört zum dritten Listeneintrag, steht aber in seiner
+ eigenen Zeile
  4. Mein vierter Listeneintrag mit mehreren Paragraphen
     
     Dieser Paragraph ist Teil des vierten Eintrags.
 Nur die erste Zeile muss eingerückt werden, um die Zugehörigkeit zu kennzeichnen.
 ```
 
-Ein Beispiel für eine geordnete Liste wäre folgendes:
+Ein Beispiel für eine geordnete Liste wäre folgendes. Das Resultat ist in Abbildung 6 zu finden:
 
 ``` markdown
 1. Eier aufschlagen
@@ -490,7 +512,8 @@ Im Folgenden sehen Sie, wie man z.B. Markdownquelltext in das Dokument einbetten
 ```` markdown
 ``` markdown
 Dieser Text wird als vorformatierter Markdownquelltext angezeigt.
-  Vorvormatierter Text berücksichtigt alle Leerzeichen, die notiert werden.
+Vorvormatierter Text berücksichtigt alle Leerzeichen, die notiert
+werden.
 ```
 Caption: Vorformatierter Quelltext.
 ````
@@ -500,13 +523,14 @@ Möchten Sie eine Gruppe von drei `` ` ``-Backticks selbst im Quelltext anzeigen
 ````` markdown
 ```` markdown
 ``` markdown
-Dies ist ein Beispiel, wie man im Quelltext selbst Backtick-Blöcke verwenden kann,
-ohne dabei ausversehen die Quelltextumgebung zu schließen.
+Dies ist ein Beispiel, wie man im Quelltext selbst Backtick-Blöcke
+verwenden kann, ohne dabei ausversehen die Quelltextumgebung zu
+schließen.
 ```
 ````
 `````
 
-Sie können eine breite Auswahl an Programmiersprachen für das Hervorheben von Syntaxelementen wählen:
+Sie können eine breite Auswahl an Programmiersprachen für das Hervorheben von Syntaxelementen wählen. In Abbildung 7 sehen Sie das Resultat dieses Quellcodebeispiels für einen Codeblock mit Syntaxhighlighting für die Programmiersprache `c`:
 
 ```` markdown
 ``` c
@@ -568,13 +592,14 @@ Der Linktext ist ohne weitere Angabe der Name der Linkdefinition. Wenn Sie einen
 Hier sehen Sie eine Möglichkeit einen Link im Fließtext zu verwenden:
 
 ``` markdown
-Wenn Sie weitere Informationen haben möchten so klicken Sie [hier](http://example.org "Beispielwebseite").
+Wenn Sie weitere Informationen haben möchten so klicken
+Sie [hier](http://example.org "Beispielwebseite").
 ```
 
 Eine Linkdefinition würden Sie an beliebiger Stelle in Ihrem Dokument folgendermaßen notieren:
 
 ``` markdown
-[Beispielwebseite]: http://example.org "Hier geht es zum Beispiel des Internets"
+[Beispielwebseite]: http://example.org "Hier geht es zum Beispiel"
 ```
 
 Die Linkdefinition können Sie dann im Fließtext folgendermaßen verwenden:
@@ -586,10 +611,11 @@ Sie können unsere [Beispielwebseite] besuchen, um mehr zu erfahren.
 Möchten Sie einen anderen Linktext für die Referenz benutzen, können Sie diesen folgendermaßen angeben:
 
 ``` markdown
-In unserem [Beispiel][Beispielwebseite] sehen Sie, wie man einen Referenzlink verwenden kann.
+In unserem [Beispiel][Beispielwebseite] sehen Sie,
+wie man einen Referenzlink verwenden kann.
 ```
 
-Sie müssen sich nicht für einen Stil Links zu verwenden entscheiden:
+Sie müssen sich nicht für einen Stil Links zu verwenden entscheiden. Das Ergebnis dieses Quelltextbeispiels finden Sie in Abbildung 8:
 
 ``` markdown
 [Beispiel]: <https://example.org> "Beispiellink"
@@ -600,7 +626,8 @@ Mithilfe von
 `[Beispiel]: <https://example.org> "Beispiellink"`  
 wurde eine Linkreferenz angelegt.
 
-So kann in diesem [Beispiel] der Link mit nur dem Quellcode `[Beispiel]` referenziert werden.
+So kann in diesem [Beispiel] der Link mit nur dem Quellcode
+`[Beispiel]` referenziert werden.
 ```
 
 ![Linkbeispiele](./examples/svgs/basic-markdown-deck-page-008.svg)
@@ -619,18 +646,18 @@ Sie können entweder Bilder aus dem Web mit einer URL referenzieren oder den Pfa
 
 #### Beispiel
 
-Ein externes Bild können Sie folgendermaßen einbetten:
+Ein externes Bild können Sie folgendermaßen einbetten. In Abbildung 9 sollten Sie das Logo der Wikipedia wiederfinden können:
 
 ```
-![Logo der Wikipedia](https://www.wikipedia.org/portal/wikipedia.org/assets/img/Wikipedia-logo-v2.png)
+![Logo der Wikipedia](https://www.wikipedia.org/portal/wikipedia.org/[...])
 ```
 
 ![Bildbeispiele](./examples/svgs/basic-markdown-deck-page-009.svg)
 
-Ein Bild aus Ihrem Projektverzeichnis würden Sie folgendermaßen referenzieren:
+Ein Bild aus Ihrem Projektverzeichnis würden Sie folgendermaßen referenzieren. In Abbildung 10 sehen Sie ein kleines Bild eines blauen Vogels:
 
 ```
-![Bild eines blauen Vogels (CC BY-SA 2.5 Elaine R. Wilson)](/images/bluebird.jpg)
+![Blauer Vogel (CC BY-SA 2.5 Elaine R. Wilson)](/images/bluebird.jpg)
 ```
 
 ![Bildbeispiele](./examples/svgs/basic-markdown-deck-page-010.svg)
@@ -669,7 +696,7 @@ Eine Möglichkeit Spalten oder Zeilen zu verschmelzen gibt es nicht.
 
 #### Beispiele
 
-Eine Tabelle können Sie beispielsweise folgendermaßen notieren:
+Eine Tabelle können Sie beispielsweise folgendermaßen notieren. Das Resultat können Sie in Abbildung 11 betrachten:
 
 ```
 
@@ -697,13 +724,13 @@ Sie können im Fließtext einzelne Textabschnitte mit Attributen, Klassen oder I
 
 #### Beispiel
 
-Wenn Sie einen Textabschnitt zum Beispiel einfärben möchten würde man das folgendermaßen umsetzen:
+Wenn Sie zum Beispiel einen Textabschnitt einfärben möchten würde man das folgendermaßen umsetzen. In Abbildung \ref{figure:span} sollten sie einen roten Text sehen:
 
 ``` markdown
 In diesem Paragraphen ist [dieser Text]{style="color: red;"} rot.
 ```
 
-![Beispiel Textabschnitt](./examples/svgs/extended-markdown-deck-page-001.svg)
+![Beispiel Textabschnitt\label{figure:span}](./examples/svgs/extended-markdown-deck-page-001.svg)
 
 ### Abgegrenzte Bereiche
 
@@ -1565,6 +1592,34 @@ print(c)
 
 ### Thebelab
 
+### Referenzen und Literaturverzeichnis
+
+Sie können ihrem Dokument eine Bibliographie und einen Zitationsstil aus der LaTeX-Welt hinzufügen. Die entsprechenden Dateien müssen Sie als Konfigurationsoption spezifizieren. Wie dies geht finden Sie im [dafür vorgesehenen Kapitel](#einstellungen-für-bibliographie-und-zitationsstil). Im Fließtext können Sie anschließend Referenzen auf die zitierten Quellen auf folgende Weise einbetten:
+
+```markdown
+Wie bereits Smith et. al. [@smith2018] gezeigt haben ...
+```
+
+Sie können auch mehrere Quellen auf einmal referenzieren, indem Sie die mit den `@`-Symbol eingeleiteten Referenzen mit Semikola getrennt auflisten:
+
+```markdown
+Bereits früher konnte man sehen, dass ... [@smith2018; @johnson92]
+```
+
+Weitere Informationen über die Zitationssyntax finden Sie in der [Pandoc Anleitung](https://pandoc.org/chunkedhtml-demo/8.20-citation-syntax.html).
+
+### Fußnoten
+
+Sie können eine Fußnote im Text folgendermaßen angeben:
+
+```markdown
+# Fallobstvergährung
+
+Dies ist ein sehr kritisches[^1] Problem.
+
+[^1]: Nicht wirklich.
+```
+
 ## Indexseite
 
 Die Haupt-, Landungs- bzw. Indexseite einer Foliensatzsammlung heißt `index.html` und wird, wenn keine `index.md`-Datei im Projekt vorliegt automatisch generiert.
@@ -2296,13 +2351,22 @@ template:
       - '/scripts/mymodule.js'
 ```
 
+## Einstellungen für Bibliographie und Zitationsstil
+
+Die aus der LaTeX-Welt bekannten `.bib` und `.csl` Dateien können Sie zur Verwendung von Bibliographien und Quellenangaben in Ihrem Dokument mithilfe der Optionen `bibliography` und `csl` bestimmen:
+
+```yaml
+bibliography: bibliography.bib
+csl: acm-sig-proceedings.csl
+```
+
 # Veröffentlichen von Foliensätzen
 
 Zum Veröffentlichen von Foliensätzen benötigen Sie einen Webdienst, der das von `decker` generierte `public`-Verzeichnis ausliefern kann. Solange der von Ihnen konfigurierte Feedback- oder Quiz-Dienst erreichbar ist muss der die Folien ausliefernde Webdienst diese Funktionalitäten jedoch nicht selbst anbieten und das ausliefern der Foliensatzdateien im `public`-Verzeichnis ist vollkommen ausreichend.
 
 ## Veröffentlichen über eigenen Webserver
 
-Solange Sie Zugriff auf Ihren eigenen Webserver haben können Sie `decker publish` verwenden um über `rsync` das `public`-Verzeichnis auf ihren Webserver zu synchronisieren. Da `rsync` nur geänderte Dateien überträgt geht dies für gewöhnlich schnell und ist datensparsam.  
+Solange Sie Zugriff auf Ihren eigenen Webserver haben können Sie `decker publish` verwenden, um über `rsync` das `public`-Verzeichnis auf ihren Webserver zu synchronisieren. Da `rsync` nur geänderte Dateien überträgt geht dies für gewöhnlich schnell und ist datensparsam.  
 Dieser Vorteil setzt natürlich voraus, dass Sie Ihre Unterlagen regelmäßig ändern und aktuallisieren, wie dies für gewöhnlich bei einer Vorlesung der Fall ist, in der Sie Ihren Teilnehmern jede Woche neue Unterlagen zur Verfügung stellen wollen.
 
 Wie Sie `decker publish` für `rsync` konfigurieren können sie in dem entsprechenden [Abschnitt](#einstellungen-für-decker-publish) nachlesen.
