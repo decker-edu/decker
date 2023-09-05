@@ -83,10 +83,10 @@ function undoAutomaticSlideAdjustments(slideElement) {
     slide.hidden = false;
     slide.dataset["previousAriaHidden"] = slide.getAttribute("aria-hidden");
     slide.removeAttribute("aria-hidden");
-    slide.style["min-height"] = Math.max(
-      slide.style.height,
-      slide.style["min-height"]
-    );
+    if (!slide.style["min-height"]) {
+      //If we have not already assigned a min-height, set it at least as high as the slide height
+      slide.style["min-height"] = slide.style.height;
+    }
     slide.style.height = null;
   }
 }
