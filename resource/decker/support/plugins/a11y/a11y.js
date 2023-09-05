@@ -296,7 +296,9 @@ function activateA11yMode() {
         child.dataset["previousHeight"] = previousHeight;
         child.style["height"] = imageHeight;
         const container = child.querySelectorAll(".decker")[0];
-        container.style.height = "var(--slide-height)";
+        if (container) {
+          container.style.height = "var(--slide-height)";
+        }
       }
     }
     fakeSlideContainer.appendChild(child);
@@ -314,7 +316,9 @@ function recoverSlideAttributes(slide) {
     whiteboardsvg.style.display = whiteboardsvg.dataset["previousDisplay"];
     whiteboardsvg.dataset["previousDisplay"] = null;
     const container = slide.querySelectorAll(".decker")[0];
-    container.style.height = null;
+    if (container) {
+      container.style.height = null;
+    }
   }
   if (slide.dataset["previousInert"]) {
     slide.inert = slide.dataset["previousInert"];
