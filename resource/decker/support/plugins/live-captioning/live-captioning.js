@@ -65,9 +65,8 @@ function getLanguageCode(string) {
  * Plugin class to be registered so the activation-(decker-)button is at the right place.
  */
 class LiveCaptioning {
-  constructor() {
-    this.reveal = undefined;
-    this.id = "live-captioning";
+  constructor(reveal) {
+    this.reveal = reveal;
 
     /* Attributes Decker Plugin Manager */
     this.record_button =
@@ -387,65 +386,66 @@ class LiveCaptioning {
 
   addCCButton() {
     let anchors = this.reveal.getPlugin("ui-anchors");
-    anchors.placeButton(this.record_button, this.position);
+    if (anchors) {
+      anchors.placeButton(this.record_button, this.position);
+    }
   }
 
   removeCCButton() {
     this.record_button.parentElement.removeChild(this.record_button);
   }
-
-  /**
-   * Reveal.js Plugin init function. Gets called by the framework.
-   * @param {*} reveal
-   */
-  init(reveal) {
-    if (!SpeechRecognitionImpl) {
-      console.error("SpeechRecognition not available in this browser.");
-      return;
-    }
-
-    localization = {
-      start_captioning: "Start Live Captioning",
-      stop_captioning: "Stop Live Captioning",
-      accept: "Accept",
-      stop: "Stop Captioning",
-      abort: "Cancel",
-      qrcode_message: "Live Captioning",
-      caption_warning:
-        "Using this feature will use your Browser's WebSpeech API to transcribe your voice. \
-       To facilitate this, your voice will be sent to your Browser's manufacturer's Cloud Service \
-       (Google or Apple). Do you accept this?",
-    };
-    let lang = navigator.language;
-    if (lang === "de") {
-      localization = {
-        start_captioning: "Live-Untertitelung aktivieren",
-        stop_captioning: "Live-Untertitelung stoppen",
-        accept: "Akzeptieren",
-        stop: "Untertitelung beenden",
-        abort: "Abbrechen",
-        qrcode_message: "Live-Untertitel",
-        caption_warning:
-          "Diese Funktion wird die eingebaute WebSpeech API Ihres Browsers benutzen, \
-       um Ihre Stimme zu transkribieren. Die dabei aufgezeichneten Daten werden dazu an den Hersteller \
-       Ihres Browsers gesendet. Sind Sie damit einverstanden?",
-      };
-    }
-
-    this.reveal = reveal;
-
-    reveal.addEventListener("ready", () => {
-      Decker.addPresenterModeListener((on) => {
-        if (on) {
-          this.addCCButton();
-        } else {
-          this.removeCCButton();
-        }
-      });
-    });
-  }
 }
 
-let instance = new LiveCaptioning();
+const plugin = () => {
+  return {
+    id: "live-captioning",
+    init(reveal) {
+      const instance = new LiveCaptioning(reveal);
 
-export default instance;
+      if (!SpeechRecognitionImpl) {
+        console.error("SpeechRecognition not available in this browser.");
+        return;
+      }
+
+      localization = {
+        start_captioning: "Start Live Captioning",
+        stop_captioning: "Stop Live Captioning",
+        accept: "Accept",
+        stop: "Stop Captioning",
+        abort: "Cancel",
+        qrcode_message: "Live Captioning",
+        caption_warning:
+          "Using this feature will use your Browser's WebSpeech API to transcribe your voice. \
+         To facilitate this, your voice will be sent to your Browser's manufacturer's Cloud Service \
+         (Google or Apple). Do you accept this?",
+      };
+      let lang = navigator.language;
+      if (lang === "de") {
+        localization = {
+          start_captioning: "Live-Untertitelung aktivieren",
+          stop_captioning: "Live-Untertitelung stoppen",
+          accept: "Akzeptieren",
+          stop: "Untertitelung beenden",
+          abort: "Abbrechen",
+          qrcode_message: "Live-Untertitel",
+          caption_warning:
+            "Diese Funktion wird die eingebaute WebSpeech API Ihres Browsers benutzen, \
+         um Ihre Stimme zu transkribieren. Die dabei aufgezeichneten Daten werden dazu an den Hersteller \
+         Ihres Browsers gesendet. Sind Sie damit einverstanden?",
+        };
+      }
+
+      reveal.addEventListener("ready", () => {
+        Decker.addPresenterModeListener((on) => {
+          if (on) {
+            instance.addCCButton();
+          } else {
+            instance.removeCCButton();
+          }
+        });
+      });
+    },
+  };
+};
+
+export default plugin;
