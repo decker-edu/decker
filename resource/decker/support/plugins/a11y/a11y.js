@@ -242,6 +242,10 @@ const previousRevealConfiguration = {
 };
 
 function prepareWhiteboardSVG(svg) {
+  const paths = svg.querySelectorAll("path");
+  for (const path of paths) {
+    path.style.visibility = "visible";
+  }
   svg.dataset["previousDisplay"] = svg.style.display;
   svg.style.display = "block";
   const bbox = svg.getBBox();
@@ -290,7 +294,9 @@ function activateA11yMode() {
         imageHeight
       ) {
         child.dataset["previousHeight"] = previousHeight;
-        child.style["min-height"] = imageHeight;
+        child.style["height"] = imageHeight;
+        const container = child.querySelectorAll(".decker")[0];
+        container.style.height = "var(--slide-height)";
       }
     }
     fakeSlideContainer.appendChild(child);
