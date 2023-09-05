@@ -313,6 +313,8 @@ function recoverSlideAttributes(slide) {
   if (whiteboardsvg && whiteboardsvg.dataset["previousDisplay"]) {
     whiteboardsvg.style.display = whiteboardsvg.dataset["previousDisplay"];
     whiteboardsvg.dataset["previousDisplay"] = null;
+    const container = slide.querySelectorAll(".decker")[0];
+    container.style.height = null;
   }
   if (slide.dataset["previousInert"]) {
     slide.inert = slide.dataset["previousInert"];
