@@ -25,16 +25,18 @@ function generateId(len) {
   return Array.from(arr, dec2hex).join("");
 }
 
-function startDragging(event) {
-  let state = event.target.state;
+function startDragging(block, type, event) {
+  let state = { block, type };
+
+  console.log(event.target, state.type);
+
+  state.startX = event.screenX;
+  state.startY = event.screenY;
+  state.zIndex = state.block.style.zIndex;
 
   let slideTransform = slides.computedStyleMap().get("transform");
   state.slideScale = slideTransform[1].x.value;
 
-  state.startX = event.clientX;
-  state.startY = event.clientY;
-
-  state.zIndex = state.block.style.zIndex;
   state.block.style.zIndex = 1000;
 
   let transform = state.block.computedStyleMap().get("transform");
@@ -44,15 +46,20 @@ function startDragging(event) {
       : new DOMMatrix(),
   );
 
-  state.dragging = true;
+  let { width, height } = state.block.getBoundingClientRect();
+  state.width = new CSSUnitValue(width / state.slideScale, "px");
+
+  document.dragState = state;
 }
 
 function drag(event) {
-  let state = event.target.state;
-  if (state.dragging) {
-    let dx = (event.clientX - state.startX) / state.slideScale;
-    let dy = (event.clientY - state.startY) / state.slideScale;
+  let state = document.dragState;
+  if (!state) return;
 
+  let dx = (event.screenX - state.startX) / state.slideScale;
+  let dy = (event.screenY - state.startY) / state.slideScale;
+
+  if (state.type === "move") {
     let translate = new CSSTranslate(
       new CSSUnitValue(dx, "px"),
       new CSSUnitValue(dy, "px"),
@@ -62,46 +69,27 @@ function drag(event) {
       translate,
       state.matrix,
     ]);
-  }
-}
-
-function startWidthDrag(event) {
-  console.log("start width drag");
-  let state = event.target.state;
-
-  let slideTransform = slides.computedStyleMap().get("transform");
-  state.slideScale = slideTransform[1].x.value;
-
-  state.startX = event.clientX;
-  state.startY = event.clientY;
-
-  state.zIndex = state.block.style.zIndex;
-  state.block.style.zIndex = 1000;
-
-  state.width = state.block.computedStyleMap().get("width").value;
-
-  state.dragging = true;
-}
-
-function widthDrag(event) {
-  console.log("width drag");
-  let state = event.target.state;
-  if (state.dragging) {
-    let dw = (event.clientX - state.startX) / state.slideScale;
-
-    state.block.style.wisth = new CSSUnitValue(state.width, "px");
+  } else if (state.type === "resize") {
+    console.log(state.width, dx);
+    state.block.style.width = state.width.add(new CSSUnitValue(dx, "px"));
   }
 }
 
 function stopDragging(event) {
-  let state = event.target.state;
-  let m = state.block.computedStyleMap().get("transform").toMatrix();
-  state.block.setAttribute(
-    "data-transform",
-    `matrix(${m.a},${m.b},${m.c},${m.d},${m.e},${m.f})`,
-  );
+  let state = document.dragState;
+  if (!state) return;
+
+  if (state.type === "move") {
+    let m = state.block.computedStyleMap().get("transform").toMatrix();
+    state.block.setAttribute(
+      "data-transform",
+      `matrix(${m.a},${m.b},${m.c},${m.d},${m.e},${m.f})`,
+    );
+  } else if (state.type === "resize") {
+  }
+
   state.block.style.zIndex = state.zIndex;
-  state.dragging = false;
+  document.dragState = null;
 }
 
 function enableBlockManip() {
@@ -125,39 +113,35 @@ function enableBlockManip() {
         <div class="width-handle"></div>
       </div>
       `);
-    let widthHandle = overlay.firstChild;
-
-    overlay.state = { block, overlay };
+    let widthHandle = overlay.querySelector(".width-handle");
 
     overlay.addEventListener("mousedown", (event) => {
-      startDragging(event);
+      startDragging(block, "move", event);
       event.stopPropagation();
     });
 
-    overlay.addEventListener("mousemove", (event) => {
-      drag(event);
+    widthHandle.addEventListener("mousedown", (event) => {
+      startDragging(block, "resize", event);
       event.stopPropagation();
     });
 
-    // widthHandle.addEventListener("mousedown", (event) => {
-    //   startWidthDrag(event);
-    //   event.stopPropagation();
-    // });
-    //
-    // widthHandle.addEventListener("mousemove", (event) => {
-    //   widthDrag(event);
-    //   event.stopPropagation();
-    // });
-    //
-    overlay.addEventListener("mouseup", (event) => {
-      stopDragging(event);
-      event.stopPropagation();
-    });
+    document.addEventListener(
+      "mousemove",
+      (event) => {
+        drag(event);
+        event.stopPropagation();
+      },
+      { capture: true },
+    );
 
-    overlay.addEventListener("mouseout", (event) => {
-      stopDragging(event);
-      event.stopPropagation();
-    });
+    document.addEventListener(
+      "mouseup",
+      (event) => {
+        stopDragging(event);
+        event.stopPropagation();
+      },
+      { capture: true },
+    );
 
     block.append(overlay);
   }
@@ -222,13 +206,13 @@ async function downloadManipulations() {
       );
     });
 
-  console.log(manips);
+  let slideTransform = slides.computedStyleMap().get("transform");
+  let slideScale = slideTransform[1].x.value;
 
   for (let [id, values] of Object.entries(manips)) {
     let element = document.getElementById(id);
     if (element) {
-      element.style.width = values.width;
-      element.style.height = values.height;
+      element.style.width = new CSSUnitValue(values.width / slideScale, "px");
       element.style.transform = values.transform;
     }
   }

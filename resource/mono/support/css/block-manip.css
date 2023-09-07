@@ -10,13 +10,16 @@ div.block-overlay {
   bottom: 0;
   left: 0;
   right: 0;
+  z-index: 1000;
 }
 
 div.block-overlay div.width-handle {
   position: absolute;
-  width: 20px;
-  bottom: 33%;
   right: 0;
-  top: 33%;
+  width: 2vw;
+  height: 6vw;
+  top: calc(50% - 3vw);
   border: 2px solid red;
+  background-color: rgba(1, 0, 0, 0.2);
+  z-index: 1001;
 }
