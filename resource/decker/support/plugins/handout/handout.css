@@ -1,0 +1,58 @@
+html.handout .handout-container {
+  margin: auto;
+  overflow-y: auto;
+}
+
+html.handout .reveal .slides {
+  display: block;
+  width: var(--slide-width);
+  transform-origin: top left;
+  margin: 0;
+}
+
+html.handout .reveal .slides section {
+  display: grid !important;
+  grid-template-areas: "common";
+  position: static;
+  opacity: 1;
+  pointer-events: auto;
+  transition: none !important;
+  transform: none !important;
+  height: unset !important;
+  min-height: var(--slide-height);
+  align-items: start;
+
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+html.handout .reveal .slides section .decker {
+  grid-area: common;
+  min-height: var(--slide-height);
+  width: var(--slide-width);
+  height: unset;
+}
+
+html.handout .reveal .slides section .whiteboard {
+  grid-area: common;
+  position: relative;
+}
+
+html.handout .reveal .backgrounds {
+  display: none;
+}
+
+html.handout .reveal .pause-overlay {
+  display: none;
+}
+
+html.handout .reveal .stack > p {
+  display: block;
+}
+
+html.handout .reveal .stack span.media {
+  display: block;
+}
+
+html.handout .reveal .slides section .stack .fragment:not(.current-fragment) {
+  visibility: visible;
+}

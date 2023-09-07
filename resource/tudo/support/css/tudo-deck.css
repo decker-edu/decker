@@ -743,18 +743,6 @@ span.sequence {
   display: contents;
 }
 
-html.a11y .reveal .stack > p {
-  display: block;
-}
-
-html.a11y .reveal .stack span.media {
-  display: block;
-}
-
-html.a11y .reveal .slides section .stack .fragment:not(.current-fragment) {
-  visibility: visible;
-}
-
 /* hide non-active stack items 
   (use hidden instead of display:none to avoid layout shifts) */
 @media not print {
@@ -790,9 +778,19 @@ html.a11y .reveal .slides section .stack .fragment:not(.current-fragment) {
  * TITLE SLIDE
  *********************************************/
 
+#title-slide .alignment {
+  width: 100%;
+}
+
+#title-slide.center .decker {
+  justify-content: flex-start;
+}
+
 .background-on-accent {
   background-color: var(--accent3);
+  width: 100%;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 section#title-slide h1 {
@@ -1452,8 +1450,4 @@ html.a11y .reveal a:hover {
   background-color: var(--foreground-color);
   color: var(--accent6-bbg);
   transform: scale(1.05);
-}
-
-html.a11y .slides section {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
 }

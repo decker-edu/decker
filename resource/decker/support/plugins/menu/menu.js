@@ -236,21 +236,6 @@ class SlideMenu {
   }
 
   /**
-   * If there is a status field to announce changes to the GUI then use that to announce
-   * changes.
-   * TODO: Test if this is actually necessary.
-   * @param {*} text
-   */
-  announceStatus(text) {
-    if (this.reveal.hasPlugin("a11y-status")) {
-      let status = this.reveal.getPlugin("a11y-status");
-      status.announce(text);
-    } else {
-      console.log("No a11y-status plugin found.");
-    }
-  }
-
-  /**
    * Stops the default functionality of moving up or down the scrollbar of the slide wrapper div.
    * @param {*} event The Keyboard Event
    */
