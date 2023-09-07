@@ -1,5 +1,5 @@
-runtime-path-variables:
-  - logos
+compiletime-path-variables:
+  - authors
 
 logos:
   - 'support/assets/tu-logo-light.svg'
