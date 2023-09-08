@@ -7,7 +7,6 @@ module Text.Decker.Reader.Markdown
     readMetaData,
     processCites,
     deckerMediaFilter,
-    expandMeta,
     mergeDocumentMeta,
   )
 where
@@ -142,13 +141,18 @@ expandMeta globalMeta base (Pandoc docMeta content) = do
 -- these variables can be specified in the meta data.
 adjustMetaPaths :: Meta -> FilePath -> Meta -> Action Meta
 adjustMetaPaths globalMeta base meta = do
-  let variables = pathVariables globalMeta
+  let variables = pathVariables (mergePandocMeta meta globalMeta)
   adjustMetaVariables (adjust base) variables meta
   where
     adjust base path = do
       let apath = makeProjectPath base (toString path)
-      -- putStrLn $ "adjustMetaPaths: base: " <> base <> ", path: " <> toString path <> ", adjusted: " <> apath
-      return $ toText apath
+      isDir <- liftIO $ Dir.doesDirectoryExist apath
+      isFile <- liftIO $ Dir.doesFileExist apath
+      if isFile || isDir
+        then do
+          return $ toText apath
+        else do
+          return path
 
 -- | Adjusts meta data values that reference files needed at run-time (by some
 -- plugin, presumeably) and at compile-time (by some template). Lists of these
@@ -160,10 +164,14 @@ needMetaTargets base meta =
   where
     adjustR base path = do
       let stringPath = toString path
-      need [publicDir </> stringPath]
-      let relativePath = makeRelativeTo base stringPath
-      -- putStrLn $ "needMetaTargets: base: " <> base <> ", path: " <> toString path <> ", adjusted: " <> relativePath
-      return $ toText relativePath
+      isFile <- liftIO $ Dir.doesFileExist stringPath
+      if isFile
+        then do
+          need [publicDir </> stringPath]
+          let relativePath = makeRelativeTo base stringPath
+          return $ toText relativePath
+        else do
+          return path
     adjustC base path = do
       let pathString = toString path
       isDir <- liftIO $ Dir.doesDirectoryExist pathString
@@ -173,7 +181,7 @@ needMetaTargets base meta =
 adjustMetaVariables :: (Text -> Action Text) -> [Text] -> Meta -> Action Meta
 adjustMetaVariables action keys meta = foldM func meta keys
   where
-    func meta' key = adjustMetaStringsBelowM action key meta'
+    func meta key = adjustMetaStringsBelowM action key meta
 
 -- | Merges global meta data into the document. Document meta values have
 -- preference.

@@ -1,7 +1,18 @@
 $if(title)$
 <section id="$idprefix$title-slide" $for(title-slide-attributes/pairs)$ $it.key$="$it.value$" $endfor$>
+
   <div class="decker">
     <div class="alignment">
+
+      $if(rpv-test.leaf-path)$
+      <img style="width: 100px;" src="$rpv-test.leaf-path$">
+      $endif$
+      $rpv-test.leaf-no-path$
+      $if(rpv-test.branch.path)$
+      <img style="width: 100px;" src="$rpv-test.branch.path$">
+      $endif$
+      $rpv-test.branch.no-path$
+
       <h1 class="title">$title$</h1>
       $if(subtitle)$
       <h2 class="subtitle">$subtitle$</h2>
