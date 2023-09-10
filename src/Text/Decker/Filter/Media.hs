@@ -166,17 +166,17 @@ compileCodeBlock attr@(_, classes, _) code caption = do
     media <-
       if
           | all (`elem` classes) ["plantuml", "render"] ->
-            (writeAndRenderCodeBlock "plantuml")
+              (writeAndRenderCodeBlock "plantuml")
           | all (`elem` classes) ["dot", "render"] ->
-            (writeAndRenderCodeBlock "dot")
+              (writeAndRenderCodeBlock "dot")
           | all (`elem` classes) ["gnuplot", "render"] ->
-            (writeAndRenderCodeBlock "gnuplot")
+              (writeAndRenderCodeBlock "gnuplot")
           | all (`elem` classes) ["tex", "render"] ->
-            (writeAndRenderCodeBlock "tex")
+              (writeAndRenderCodeBlock "tex")
           | all (`elem` classes) ["javascript", "run"] ->
-            (javascriptCodeBlock code caption)
+              (javascriptCodeBlock code caption)
           | otherwise ->
-            (codeBlock code caption)
+              (codeBlock code caption)
     attribs <- do
       injectBorder
       injectClasses ["media"]
@@ -192,9 +192,10 @@ compileCodeBlock attr@(_, classes, _) code caption = do
       -- concurrent Deck and Handout references to the same code block.
       let crc = printf "%08x" (calc_crc32 $ disp <> toString code)
       let path =
-            transientDir </> "code"
+            transientDir
+              </> "code"
               </> intercalate "-" ["code", crc]
-              <.> toString ext
+                <.> toString ext
       -- Avoid a possible race condition when the same code block content is
       -- used twice and written only when the file does not yet exist: Just do
       -- not prematurely optimise by testing for existence first and atomically
@@ -366,7 +367,8 @@ svgBlock uri title caption = do
     takeUsual
     extractAttr
   return $
-    wrapFigure figureAttr caption $ mkRaw svgAttr svg
+    wrapFigure figureAttr caption $
+      mkRaw svgAttr svg
 
 -- |  Compiles the image data to a remote streaming video. If the aspect ratio of
 --  the stream is known, it is a good idea to set the `aspect` attribute to
@@ -502,7 +504,7 @@ renderCodeBlock uri title caption = do
 -- supports ES6 modules.
 javascriptBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
 javascriptBlock uri title caption = do
-  id <- liftIO randomId
+  id <- ("id" <>) <$> liftIO randomId
   fragment <- URI.mkFragment id
   uri <- lift $ transformUri uri ""
   let furi = uri {URI.uriFragment = Just fragment}
@@ -543,7 +545,7 @@ javascriptBlock uri title caption = do
 javascriptCodeBlock :: Text -> [Inline] -> Attrib Block
 javascriptCodeBlock code caption = do
   (innerSizes, outerSizes) <- calcImageSizes
-  id <- liftIO randomId
+  id <- ("id" <>) <$> liftIO randomId
   imgAttr <- do
     injectStyles innerSizes
     injectId id
@@ -667,26 +669,26 @@ calcImageSizes = do
   height <- cutAttrib "height"
   if
       | isJust width && isJust height ->
-        -- Both sizes are specified. Aspect ratio be damned.
-        return
-          ( [("height", fromJust height), ("width", "100%")],
-            [("height", "auto"), ("width", fromJust width)]
-          )
+          -- Both sizes are specified. Aspect ratio be damned.
+          return
+            ( [("height", fromJust height), ("width", "100%")],
+              [("height", "auto"), ("width", fromJust width)]
+            )
       | isJust width && isNothing height ->
-        -- Only width is specified. Keep aspect ratio.
-        return
-          ( [("height", "auto"), ("width", "100%")],
-            [("height", "auto"), ("width", fromJust width)]
-          )
+          -- Only width is specified. Keep aspect ratio.
+          return
+            ( [("height", "auto"), ("width", "100%")],
+              [("height", "auto"), ("width", fromJust width)]
+            )
       | isNothing width && isJust height ->
-        -- Only height is specified. Keep aspect ratio.
-        return
-          ( [("height", fromJust height), ("width", "auto")],
-            [("height", "auto"), ("width", "auto")]
-          )
+          -- Only height is specified. Keep aspect ratio.
+          return
+            ( [("height", fromJust height), ("width", "auto")],
+              [("height", "auto"), ("width", "auto")]
+            )
       | otherwise ->
-        -- Nothing is specified, use CSS defaults.
-        return ([], [])
+          -- Nothing is specified, use CSS defaults.
+          return ([], [])
 
 -- | See calcImageSizes. Iframes have no intrinsic aspect ratio and therefore behave a
 -- little differently.
