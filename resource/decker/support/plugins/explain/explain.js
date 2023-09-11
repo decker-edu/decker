@@ -317,7 +317,7 @@ async function captureScreen() {
       resizeMode: "crop-and-scale",
     },
     audio: true,
-    preferCurrentTab: true,
+    selfBrowserSurface: "include",
   });
 
   let video = desktopStream.getVideoTracks()[0].getSettings();

@@ -16,9 +16,6 @@ function onStart(deck) {
   deck.addEventListener("ready", () => {
     if (!printMode) {
       totalSlides = deck.getTotalSlides();
-      console.log(
-        "[decker.js plugin] The deck has " + totalSlides + " total slides."
-      );
       setTimeout(() => continueWhereYouLeftOff(deck), 500);
     }
 

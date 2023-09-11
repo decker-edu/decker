@@ -215,9 +215,7 @@ class SlideMenu {
   }
 
   enableKeybinds() {
-    if (!this.a11y) {
-      this.reveal.configure({ keyboard: true });
-    }
+    this.reveal.configure({ keyboard: true });
   }
 
   /**
@@ -508,7 +506,6 @@ class SlideMenu {
     this.menu.close_button = container.querySelector(
       "#decker-menu-close-button"
     );
-    this.menu.a11y_button = container.querySelector("#decker-menu-a11y-button");
 
     /* Attach callbacks */
     this.menu.home_button.addEventListener("click", (event) =>
@@ -685,6 +682,7 @@ const plugin = () => {
     getListItemByID: undefined,
     updateCurrentSlideMark: undefined,
     addMenuButton: undefined,
+    inhibitKeyboard: undefined,
     init(reveal) {
       const menu = new SlideMenu("TOP_LEFT", reveal);
       menu.localization = {

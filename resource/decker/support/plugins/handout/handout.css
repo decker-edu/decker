@@ -11,14 +11,21 @@ html.handout .reveal .slides {
 }
 
 html.handout .reveal .slides section {
-  display: grid !important;
-  grid-template-areas: "common";
   position: static;
   opacity: 1;
   pointer-events: auto;
   transition: none !important;
   transform: none !important;
   height: unset !important;
+}
+
+html.handout .reveal .slides section.stack {
+  display: block !important;
+}
+
+html.handout .reveal .slides section:not(.stack) {
+  display: grid !important;
+  grid-template-areas: "common";
   min-height: var(--slide-height);
   align-items: start;
 

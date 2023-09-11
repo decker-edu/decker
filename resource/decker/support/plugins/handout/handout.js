@@ -7,35 +7,13 @@ const fakeRevealContainer = document.createElement("div");
 const fakeSlideContainer = document.createElement("div");
 fakeRevealContainer.appendChild(fakeSlideContainer);
 
-function undoAutomaticSlideAdjustments(slideElement) {
+/* Remove inert, hidden and aria-hidden attributes of slides */
+function makeSlidesVisible(slideElement) {
   let slides = slideElement.querySelectorAll("section");
   for (const slide of slides) {
     slide.inert = false;
     slide.hidden = false;
     slide.removeAttribute("aria-hidden");
-  }
-}
-
-function findAllRealSlides(slidesElement, slideList) {
-  for (const child of slidesElement.childNodes) {
-    if (child.tagName !== "SECTION") continue;
-    if (child.classList.contains("stack")) {
-      for (const subchild of child.childNodes) {
-        if (subchild.tagName !== "SECTION") continue;
-        subchild.previousParent = child;
-        const indices = Reveal.getIndices(subchild);
-        if (indices && indices.h) {
-          child.dataset.hIndex = indices.h;
-        }
-        slideList.push(subchild);
-      }
-      continue;
-    }
-    const indices = Reveal.getIndices(child);
-    if (indices && typeof indices.h === "number") {
-      child.dataset.hIndex = indices.h;
-    }
-    slideList.push(child);
   }
 }
 
@@ -81,11 +59,14 @@ function determineMostVisibleSlide(event) {
   }
 }
 
-function createVisibleSlideIntersectionObserver(slideList) {
+function createVisibleSlideIntersectionObserver(slideElementList) {
+  // Do not reinitialise if we already entered handout mode in the past
   if (visibleSlideIntersectionObserver) {
     return;
   }
+  // Callback to add or remove slide to the list of currently visible slides
   const visibilityCallback = function (entries, observer) {
+    // Do nothing if we left handout mode
     if (!handoutSlideMode) return;
     for (const entry of entries) {
       if (entry.isIntersecting) {
@@ -95,6 +76,7 @@ function createVisibleSlideIntersectionObserver(slideList) {
       }
     }
   };
+  // Only trigger if a section becomes partly visible or disappears entirely
   const visibilityObserverOptions = {
     root: fakeRevealContainer,
     threshold: [0],
@@ -103,17 +85,33 @@ function createVisibleSlideIntersectionObserver(slideList) {
     visibilityCallback,
     visibilityObserverOptions
   );
-  for (const child of slideList) {
-    visibleSlideIntersectionObserver.observe(child);
+  // Observe all actual section, not the container sections of vertical stacks
+  for (const section of slideElementList) {
+    if (section.classList.contains("stack")) {
+      const subsections = section.querySelectorAll("section");
+      for (const subsection of subsections) {
+        visibleSlideIntersectionObserver.observe(subsection);
+      }
+    } else {
+      visibleSlideIntersectionObserver.observe(section);
+    }
   }
   fakeRevealContainer.addEventListener("scroll", determineMostVisibleSlide);
 }
 
-function adjustVideos() {
-  const videos = fakeRevealContainer.getElementsByTagName("VIDEO");
+function adjustVideos(container) {
+  const videos = container.getElementsByTagName("VIDEO");
   for (const video of videos) {
-    video.dataset.previousAutoplay = video.dataset.autoplay;
-    video.dataset.previousControls = video.controls ? "true" : "false";
+    if (!video.dataset.originalAutoplay) {
+      video.dataset.originalAutoplay = video.dataset.autoplay;
+    }
+    if (!video.dataset.originalControls) {
+      video.dataset.originalControls = video.controls ? "true" : "false";
+    }
+    const modifiedCount = video.dataset.modifiedCount
+      ? Number(video.dataset.modifiedCount) + 1
+      : 1;
+    video.dataset.modifiedCount = modifiedCount;
     // Pause the video if it is playing. A blind call to video.pause() may cause an error because the
     // Promise of video.play() that Reveal caused has not resolved yet.
     video.addEventListener(
@@ -131,7 +129,7 @@ function adjustVideos() {
   }
 }
 
-function createSRCIntersectionObserver(slideList) {
+function createSRCIntersectionObserver() {
   if (srcIntersectionObserver) {
     return;
   }
@@ -142,7 +140,14 @@ function createSRCIntersectionObserver(slideList) {
   };
 
   const toggleSrc = function (entries, observer) {
+    // Do nothing if we enter
     if (!handoutSlideMode) return;
+    if (
+      document.fullscreenElement &&
+      document.fullscreenElement !== document.documentElement
+    ) {
+      return;
+    }
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
         if (!entry.target.src) {
@@ -195,7 +200,6 @@ function detachResizeEventListener() {
 }
 
 const previousRevealConfiguration = {
-  keyboard: undefined,
   controls: undefined,
   progress: undefined,
   fragments: undefined,
@@ -203,12 +207,17 @@ const previousRevealConfiguration = {
   disableLayout: undefined,
 };
 
-function prepareWhiteboardSVG(svg) {
+/**
+ * Initialise all svgs of all slides as if they were first viewed
+ * like the whiteboard plugin does
+ * @param {*} svg
+ */
+function makeWhiteboardVisible(svg) {
   const paths = svg.querySelectorAll("path");
   for (const path of paths) {
     path.style.visibility = "visible";
   }
-  svg.dataset["previousDisplay"] = svg.style.display;
+  //  svg.dataset["previousDisplay"] = svg.style.display;
   svg.style.display = "block";
   const bbox = svg.getBBox();
   const scribbleHeight = bbox.y + bbox.height;
@@ -221,7 +230,6 @@ function prepareWhiteboardSVG(svg) {
 function activateHandoutMode() {
   const currentSlide = Reveal.getCurrentSlide();
   const currentConfiguration = Reveal.getConfig();
-  previousRevealConfiguration.keyboard = currentConfiguration.keyboard;
   previousRevealConfiguration.controls = currentConfiguration.controls;
   previousRevealConfiguration.progress = currentConfiguration.progress;
   previousRevealConfiguration.fragments = currentConfiguration.fragments;
@@ -229,7 +237,6 @@ function activateHandoutMode() {
   previousRevealConfiguration.disableLayout =
     currentConfiguration.disableLayout;
   Reveal.configure({
-    //    keyboard: false,
     controls: false,
     progress: false,
     fragments: false,
@@ -241,19 +248,23 @@ function activateHandoutMode() {
   fakeRevealContainer.classList.add("reveal", "handout-container");
   const slidesElement = Reveal.getSlidesElement();
   fakeSlideContainer.classList.add("slides");
-  const slideList = [];
-  undoAutomaticSlideAdjustments(slidesElement);
-  findAllRealSlides(slidesElement, slideList);
-  createVisibleSlideIntersectionObserver(slideList);
-  for (const child of slideList) {
-    const whiteboard = child.getElementsByClassName("whiteboard")[0];
-    if (whiteboard) {
-      prepareWhiteboardSVG(whiteboard);
+  const topLevelSections = slidesElement.querySelectorAll(":scope > section");
+  makeSlidesVisible(slidesElement);
+  createVisibleSlideIntersectionObserver(topLevelSections);
+  /* Move slides into the fake container */
+  for (const section of topLevelSections) {
+    const indices = Reveal.getIndices(section);
+    if (indices && indices.h) {
+      section.dataset.hIndex = indices.h;
     }
-    fakeSlideContainer.appendChild(child);
+    const whiteboard = section.getElementsByClassName("whiteboard")[0];
+    if (whiteboard) {
+      makeWhiteboardVisible(whiteboard);
+    }
+    fakeSlideContainer.appendChild(section);
   }
-  adjustVideos();
-  createSRCIntersectionObserver(slideList);
+  adjustVideos(fakeRevealContainer);
+  createSRCIntersectionObserver();
   revealElem.parentElement.insertBefore(fakeRevealContainer, revealElem);
   handoutSlideMode = true;
   attachResizeEventListener();
@@ -265,10 +276,6 @@ function recoverSlideAttributes(slide) {
   if (whiteboardsvg && whiteboardsvg.dataset["previousDisplay"]) {
     whiteboardsvg.style.display = whiteboardsvg.dataset["previousDisplay"];
     whiteboardsvg.dataset["previousDisplay"] = null;
-    const container = slide.querySelectorAll(".decker")[0];
-    if (container) {
-      container.style.height = null;
-    }
   }
 }
 
@@ -282,11 +289,17 @@ function disassembleHandoutMode() {
   for (const slide of iterate) {
     const videos = slide.getElementsByTagName("VIDEO");
     for (const video of videos) {
-      video.dataset.autoplay = video.dataset.previousAutoplay;
-      if (video.dataset.previousControls === "true") {
-        video.setAttribute("controls", "");
-      } else {
-        video.removeAttribute("controls");
+      if (
+        video.dataset.modifiedCount &&
+        Number(video.dataset.modifiedCount) === 1
+      ) {
+        video.dataset.autoplay = video.dataset.originalAutoplay;
+        if (video.dataset.originalControls === "true") {
+          video.setAttribute("controls", "");
+        } else {
+          video.removeAttribute("controls");
+        }
+        delete video.dataset.modifiedCount;
       }
     }
     if (slide.previousParent) {
