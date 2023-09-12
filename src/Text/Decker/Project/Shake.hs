@@ -123,12 +123,14 @@ runShakeSlyly context rules = do
 
 runShakeForever :: Maybe ActionMsg -> ActionContext -> Rules () -> IO b
 runShakeForever last context rules = do
+  let flags = context ^. extra
   dod <- debouncedMessage last
   case dod of
     FileChanged time path -> do
-      catchAll
-        (runShake context rules)
-        (\(SomeException _) -> return ())
+      unless (NoRebuildFlag `elem` flags) $
+        catchAll
+          (runShake context rules)
+          (\(SomeException _) -> return ())
       reloadClients (context ^. server)
     UploadComplete operation -> do
       let transcode = PoserFlag `elem` (context ^. extra)
@@ -218,6 +220,11 @@ deckerFlags =
       ["watch"]
       (GetOpt.NoArg $ Right WatchFlag)
       "Watch changes to source files and rebuild current target if necessary.",
+    GetOpt.Option
+      ['n']
+      ["no-rebuild"]
+      (GetOpt.NoArg $ Right NoRebuildFlag)
+      "Do not rebuild everything, just reload the clients.",
     GetOpt.Option
       ['S']
       ["server"]

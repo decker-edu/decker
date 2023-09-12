@@ -1683,19 +1683,8 @@ async function setupPlayer() {
   let timesExists = false;
 
   try {
-    // if in electron app and user specified base url for videos:
-    // if times exist locally, we assume the video exists on remote server
-    if (window.electronApp && config && config.electronVideoUrl) {
-      explainVideoUrl =
-        config.electronVideoUrl + videoFilenameBase() + "-recording.mp4";
-      videoExists = true;
-      timesExists = await resourceExists(explainTimesUrl);
-    }
-    // in browser: check if video and times exist
-    else {
-      videoExists = await resourceExists(explainVideoUrl);
-      timesExists = await resourceExists(explainTimesUrl);
-    }
+    videoExists = await resourceExists(explainVideoUrl);
+    timesExists = await resourceExists(explainTimesUrl);
 
     if (videoExists && timesExists) {
       explainTimesPlay = await fetchResourceJSON(explainTimesUrl);
