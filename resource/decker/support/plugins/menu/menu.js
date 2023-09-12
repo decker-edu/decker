@@ -556,7 +556,7 @@ class SlideMenu {
     );
     if (menuHeaderButtons.length > 0) {
       const container = menuHeaderButtons[0];
-      container.appendChild(button);
+      container.insertBefore(button, this.menu.settings_button);
     }
   }
 
