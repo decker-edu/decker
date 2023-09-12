@@ -484,9 +484,6 @@ class SlideMenu {
           <button id="decker-menu-settings-button" class="fa-button fas fa-cog" title="${this.localization.open_settings_label}" aria-label="${this.localization.open_settings_label}">
           </button>
         </div>
-        <div id="decker-menu-title">
-          <span>${this.localization.title}</span>
-        </div>
       </div>
      </div>`;
     let container = template.content.firstElementChild;
