@@ -3,6 +3,8 @@ import {
   hideFlyingFocus,
 } from "../../flyingFocus/flying-focus.js";
 
+import { modifyMedia, restoreMedia } from "../../js/media-a11y.js";
+
 let Reveal;
 
 let a11yMode;
@@ -86,11 +88,27 @@ const Plugin = {
 
         if (a11yMode) {
           document.documentElement.classList.add("a11y");
+          const videos = document.getElementsByTagName("VIDEO");
+          for (const video of videos) {
+            modifyMedia(video);
+          }
+          const audios = document.getElementsByTagName("AUDIO");
+          for (const audio of audios) {
+            modifyMedia(audio);
+          }
           Decker.flash.message(
             `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
           );
         } else {
           document.documentElement.classList.remove("a11y");
+          const videos = document.getElementsByTagName("VIDEO");
+          for (const video of videos) {
+            restoreMedia(video);
+          }
+          const audios = document.getElementsByTagName("AUDIO");
+          for (const audio of audios) {
+            restoreMedia(audio);
+          }
           Decker.flash.message(
             `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
           );

@@ -29,3 +29,17 @@ One extra page
 # Multiple extra pages
 
 At least two
+
+# Everything with vertical slides
+
+Main slide with extra space
+
+# Vertical Slide {.sub}
+
+With twice extra Space
+
+# More verticality {.sub}
+
+With fragments
+
+[This is a fragment]{ .fragment }
