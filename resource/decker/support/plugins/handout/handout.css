@@ -60,6 +60,31 @@ html.handout .reveal .stack span.media {
   display: block;
 }
 
+html.handout .reveal .slides section .stack {
+  counter-reset: stack-item;
+}
+
+html.handout .reveal .slides section .stack .fragment {
+  position: relative;
+  border: 1px solid var(--foreground-color);
+  margin: 0.5rem;
+}
+
+html.handout .reveal .slides section .stack .fragment img {
+  border: none;
+}
+
+html.handout .reveal .slides section .stack .fragment::before {
+  counter-increment: stack-item;
+  content: counter(stack-item) ".";
+  color: var(--foreground-color);
+  text-shadow: 1px 1px 1px var(--background-color);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
 html.handout .reveal .slides section .stack .fragment:not(.current-fragment) {
   visibility: visible;
 }

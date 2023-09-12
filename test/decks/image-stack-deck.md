@@ -4,6 +4,23 @@ reveal:
   center: true
 ---
 
+# Explainer
+
+The TUDO resource pack uses the following syntax for stacked images:
+
+``` markdown
+
+::: stack
+
+![](image){ .fragment }
+![](image){ .fragment }
+![](image){ .fragment }
+![](image){ .fragment }
+
+:::
+
+```
+
 # Image Stack Slide
 
 ::: stack
