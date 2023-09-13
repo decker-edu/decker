@@ -37,6 +37,26 @@ function activateHandoutMode() {
   makeSlidesVisible(slidesElement);
   const topLevelSections = slidesElement.querySelectorAll(":scope > section");
   storeIndices(topLevelSections);
+
+  /* setup background images */
+  slidesElement
+    .querySelectorAll("section[data-background-image]")
+    .forEach((section) => {
+      const url = section.getAttribute("data-background-image");
+      section.style.backgroundImage = `url("${url}")`;
+    });
+
+  // setup background videos
+  slidesElement
+    .querySelectorAll("section[data-background-video]")
+    .forEach((section) => {
+      const video = document.createElement("video");
+      const url = section.getAttribute("data-background-video");
+      video.src = url;
+      video.classList.add("background");
+      section.appendChild(video);
+    });
+
   /* Switch controls on and autoplay off */
   const videos = document.getElementsByTagName("VIDEO");
   for (const video of videos) {
@@ -46,14 +66,6 @@ function activateHandoutMode() {
   for (const audio of audios) {
     modifyMedia(audio);
   }
-
-  /* setup background images */
-  slidesElement
-    .querySelectorAll("section[data-background-image]")
-    .forEach((section) => {
-      const url = section.getAttribute("data-background-image");
-      section.style.backgroundImage = `url("${url}")`;
-    });
 
   /* Move slides into the fake container */
   for (const section of topLevelSections) {
@@ -94,12 +106,16 @@ function disassembleHandoutMode() {
     restoreMedia(audio);
   }
 
-  // setup background images
+  // remove background images
   fakeRevealContainer
     .querySelectorAll("section[data-background-image]")
     .forEach((section) => {
       section.style.backgroundImage = "";
     });
+  // remove background videos
+  fakeRevealContainer.querySelectorAll("video.background").forEach((video) => {
+    video.remove();
+  });
 
   // Reattach slides to original slides container
   for (const slide of iterate) {
