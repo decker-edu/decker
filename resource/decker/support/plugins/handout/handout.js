@@ -65,7 +65,7 @@ function activateHandoutMode() {
 
   /* Attach fake container to actual DOM and finallize setup*/
   revealElem.parentElement.insertBefore(fakeRevealContainer, revealElem);
-  attachResizeEventListener();
+  attachWindowEventListeners();
 
   /* Scroll to the current slide (I like smooth more but it gets cancelled inside some decks) */
   currentSlide.scrollIntoView({ behavior: "instant", start: "top" });
@@ -109,7 +109,7 @@ function disassembleHandoutMode() {
     revealContainer,
     fakeRevealContainer.nextSibling
   );
-  detachResizeEventListener();
+  detachWindowEventListeners();
   /* Remove the fake container from the DOM */
   fakeRevealContainer.parentElement.removeChild(fakeRevealContainer);
   /* Force reveal to do recalculations on returned slides */
@@ -326,19 +326,111 @@ function onWindowResize(event) {
   fakeSlideContainer.style.transform = "scale(" + scale + ")";
 }
 
+let lockScrolling;
+
+/**
+ * Keyup listener to handle scrolling in handout mode
+ */
+function onWindowKeydown(event) {
+  if (lockScrolling) return;
+  if (event.key === "ArrowUp") {
+    lockScrolling = true;
+    fakeRevealContainer.scrollBy({ top: -256, left: 0, behavior: "smooth" });
+  }
+  if (event.key === "ArrowDown") {
+    lockScrolling = true;
+    fakeRevealContainer.scrollBy({ top: 256, left: 0, behavior: "smooth" });
+  }
+  if (event.key === "PageUp") {
+    if (centralSlide) {
+      let previousSlide = centralSlide.previousElementSibling;
+      let target = previousSlide;
+      // If we are the first child in a container
+      if (previousSlide === null) {
+        // If we are in a stack select the parent's sibling instead
+        const parent = centralSlide.parentElement;
+        if (parent.classList.contains("stack")) {
+          const parentSibling = parent.previousElementSibling;
+          // If the parent itself has a stack select the last child of the parent
+          if (parentSibling && parentSibling.classList.contains("stack")) {
+            target = parentSibling.lastElementChild;
+          } else {
+            target = parentSibling;
+          }
+        }
+      }
+      if (target) {
+        lockScrolling = true;
+        target.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }
+  if (event.key === "PageDown") {
+    if (centralSlide) {
+      let nextSlide = centralSlide.nextElementSibling;
+      let target = nextSlide;
+      // If we are the final child in a container
+      if (nextSlide === null) {
+        // If we are in a stack select the parent's sibling instead
+        const parent = centralSlide.parentElement;
+        if (parent.classList.contains("stack")) {
+          const parentSibling = parent.nextElementSibling;
+          // If the parent itself has a stack select the first child of the parent
+          if (parentSibling && parentSibling.classList.contains("stack")) {
+            target = parentSibling.firstElementChild;
+          } else {
+            target = parentSibling;
+          }
+        }
+      }
+      if (target) {
+        lockScrolling = true;
+        target.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }
+  if (event.key === "Home") {
+    const first = fakeSlideContainer.firstElementChild;
+    if (first) {
+      first.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+  if (event.key === "End") {
+    const last = fakeSlideContainer.lastElementChild;
+    if (last) {
+      if (last.classList.contains("stack")) {
+        const lastVertical = last.lastElementChild;
+        lockScrolling = true;
+        lastVertical.scrollIntoView({ behavior: "smooth" });
+      } else {
+        lockScrolling = true;
+        last.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }
+}
+
+function unlockScroll() {
+  lockScrolling = false;
+}
+
 /**
  * Add resize event listener to window
  */
-function attachResizeEventListener() {
+function attachWindowEventListeners() {
   window.addEventListener("resize", onWindowResize);
+  window.addEventListener("keydown", onWindowKeydown);
+  fakeRevealContainer.addEventListener("scrollend", unlockScroll);
   window.dispatchEvent(new Event("resize"));
 }
 
 /**
  * Remove resize event listener from window
  */
-function detachResizeEventListener() {
+function detachWindowEventListeners() {
   window.removeEventListener("resize", onWindowResize);
+  window.removeEventListener("keydown", onWindowKeydown);
+  fakeRevealContainer.removeEventListener("scrollend", unlockScroll);
 }
 
 const previousRevealConfiguration = {
