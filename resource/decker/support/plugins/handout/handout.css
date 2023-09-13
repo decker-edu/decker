@@ -21,33 +21,27 @@ html.handout .reveal .slides section {
   height: unset !important;
 }
 
-html.handout .reveal .slides section[data-background-image] {
+html.handout .reveal .slides section div.background {
+  grid-area: common;
+  min-height: var(--slide-height);
+  width: var(--slide-width);
   background-position: 50% 50%;
   background-repeat: no-repeat;
-  background-size: cover;
+  background-size: contain;
+  z-index: -1;
 }
 
 html.handout .reveal .slides section video.background {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
-  top: 0;
-  left: 0;
-  object-fit: cover;
+  grid-area: common;
+  width: var(--slide-width);
+  height: var(--slide-height);
   z-index: -1;
 }
 
 html.handout .reveal .slides section iframe.background {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
-  top: 0;
-  left: 0;
-  object-fit: cover;
+  grid-area: common;
+  width: var(--slide-width);
+  height: var(--slide-height);
   z-index: -1;
 }
 

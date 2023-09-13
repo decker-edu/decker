@@ -38,12 +38,31 @@ function activateHandoutMode() {
   const topLevelSections = slidesElement.querySelectorAll(":scope > section");
   storeIndices(topLevelSections);
 
+  /* Switch controls on and autoplay off */
+  const videos = document.getElementsByTagName("VIDEO");
+  for (const video of videos) {
+    modifyMedia(video);
+  }
+  const audios = document.getElementsByTagName("AUDIO");
+  for (const audio of audios) {
+    modifyMedia(audio);
+  }
+
   /* setup background images */
   slidesElement
     .querySelectorAll("section[data-background-image]")
     .forEach((section) => {
+      const div = document.createElement("div");
+      div.classList.add("background");
       const url = section.getAttribute("data-background-image");
-      section.style.backgroundImage = `url("${url}")`;
+      const size = section.getAttribute("data-background-size");
+      const position = section.getAttribute("data-background-position");
+      const repeat = section.getAttribute("data-background-repeat");
+      div.style.backgroundImage = `url("${url}")`;
+      div.style.backgroundSize = size;
+      div.style.backgroundPosition = position;
+      div.style.backgroundRepeat = repeat;
+      section.appendChild(div);
     });
 
   // setup background videos
@@ -52,8 +71,13 @@ function activateHandoutMode() {
     .forEach((section) => {
       const video = document.createElement("video");
       const url = section.getAttribute("data-background-video");
+      const loop = section.getAttribute("data-background-video-loop");
       video.src = url;
       video.classList.add("background");
+      video.setAttribute("autoplay", "1");
+      if (loop) {
+        video.setAttribute("loop", loop);
+      }
       section.appendChild(video);
     });
 
@@ -67,16 +91,6 @@ function activateHandoutMode() {
       iframe.classList.add("background");
       section.appendChild(iframe);
     });
-
-  /* Switch controls on and autoplay off */
-  const videos = document.getElementsByTagName("VIDEO");
-  for (const video of videos) {
-    modifyMedia(video);
-  }
-  const audios = document.getElementsByTagName("AUDIO");
-  for (const audio of audios) {
-    modifyMedia(audio);
-  }
 
   /* Move slides into the fake container */
   for (const section of topLevelSections) {
@@ -118,11 +132,9 @@ function disassembleHandoutMode() {
   }
 
   // remove background images
-  fakeRevealContainer
-    .querySelectorAll("section[data-background-image]")
-    .forEach((section) => {
-      section.style.backgroundImage = "";
-    });
+  fakeRevealContainer.querySelectorAll("div.background").forEach((div) => {
+    div.remove();
+  });
   // remove background videos
   fakeRevealContainer.querySelectorAll("video.background").forEach((video) => {
     video.remove();
