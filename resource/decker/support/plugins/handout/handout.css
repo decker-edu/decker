@@ -1,6 +1,8 @@
 html.handout .handout-container {
   margin: auto;
   overflow-y: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: auto;
 }
 
 html.handout .reveal .slides {
