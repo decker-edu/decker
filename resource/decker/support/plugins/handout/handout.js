@@ -57,6 +57,17 @@ function activateHandoutMode() {
       section.appendChild(video);
     });
 
+  // setup background iframes
+  slidesElement
+    .querySelectorAll("section[data-background-iframe]")
+    .forEach((section) => {
+      const iframe = document.createElement("iframe");
+      const url = section.getAttribute("data-background-iframe");
+      iframe.src = url;
+      iframe.classList.add("background");
+      section.appendChild(iframe);
+    });
+
   /* Switch controls on and autoplay off */
   const videos = document.getElementsByTagName("VIDEO");
   for (const video of videos) {
@@ -116,6 +127,12 @@ function disassembleHandoutMode() {
   fakeRevealContainer.querySelectorAll("video.background").forEach((video) => {
     video.remove();
   });
+  // setup background iframes
+  fakeRevealContainer
+    .querySelectorAll("iframe.background")
+    .forEach((iframe) => {
+      iframe.remove();
+    });
 
   // Reattach slides to original slides container
   for (const slide of iterate) {
