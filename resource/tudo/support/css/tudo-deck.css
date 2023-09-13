@@ -778,9 +778,19 @@ span.sequence {
  * TITLE SLIDE
  *********************************************/
 
-section#title-slide header {
+#title-slide .alignment {
+  width: 100%;
+}
+
+#title-slide.center .decker {
+  justify-content: flex-start;
+}
+
+.background-on-accent {
   background-color: var(--accent3);
+  width: 100%;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 section#title-slide h1 {
@@ -1445,8 +1455,4 @@ html.a11y .reveal a:hover {
   background-color: var(--foreground-color);
   color: var(--accent6-bbg);
   transform: scale(1.05);
-}
-
-html.a11y .slides section {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
 }
