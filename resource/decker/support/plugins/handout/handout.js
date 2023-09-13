@@ -47,6 +47,14 @@ function activateHandoutMode() {
     modifyMedia(audio);
   }
 
+  /* setup background images */
+  slidesElement
+    .querySelectorAll("section[data-background-image]")
+    .forEach((section) => {
+      const url = section.getAttribute("data-background-image");
+      section.style.backgroundImage = `url("${url}")`;
+    });
+
   /* Move slides into the fake container */
   for (const section of topLevelSections) {
     fakeSlideContainer.appendChild(section);
@@ -85,6 +93,14 @@ function disassembleHandoutMode() {
   for (const audio of audios) {
     restoreMedia(audio);
   }
+
+  // setup background images
+  fakeRevealContainer
+    .querySelectorAll("section[data-background-image]")
+    .forEach((section) => {
+      section.style.backgroundImage = "";
+    });
+
   // Reattach slides to original slides container
   for (const slide of iterate) {
     revealSlidesElement.appendChild(slide);

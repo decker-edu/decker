@@ -21,6 +21,12 @@ html.handout .reveal .slides section {
   height: unset !important;
 }
 
+html.handout .reveal .slides section[data-background-image] {
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 html.handout .reveal .slides section.stack {
   display: block !important;
 }
