@@ -16,9 +16,9 @@ where
 import Control.Lens
 import Control.Monad.Loops as Loop
 import Data.Default ()
-import qualified Data.List as List
+import Data.List qualified as List
 import Data.List.Split
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Development.Shake
 import Relude
 import System.FilePath
@@ -26,6 +26,7 @@ import Text.Decker.Filter.Detail
 import Text.Decker.Filter.Div
 import Text.Decker.Filter.Incremental
 import Text.Decker.Filter.Layout (layoutSlide)
+import Text.Decker.Filter.Local (id9)
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Notes
 import Text.Decker.Filter.Slide
@@ -123,14 +124,14 @@ wrapBoxes slide@(Slide header body dir) = do
       | "details" `elem` cls = [makeDetail attr text blocks]
     wrap ((Header 2 (id_, cls, kvs) text) : blocks)
       | "notes" `elem` cls =
-        [ tag "aside" $
-            Div
-              ("", ["notes"], [])
-              (Header 2 (id_, deFragment cls, kvs) text : blocks)
-        ]
+          [ tag "aside" $
+              Div
+                (id_, ["notes"], [])
+                (Header 2 (id_, deFragment cls, kvs) text : blocks)
+          ]
     wrap ((Header 2 (id_, cls, kvs) text) : blocks) =
       [ Div
-          ("", ["box", "block"] ++ cls, mangle kvs)
+          (id_, ["box", "block"] ++ cls, mangle kvs)
           (Header 2 (id_, deFragment cls, kvs) text : blocks)
       ]
     wrap blocks = [Div ("", ["box", "block"], []) blocks]

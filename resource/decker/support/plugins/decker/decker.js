@@ -79,9 +79,9 @@ function fixLinks() {
     const url = new URL(a.href);
 
     // fix bibtex links
-    if (url.hash && url.hash.startsWith("#/ref-")) {
+    if (url.hash && url.hash.startsWith("#ref-")) {
       // find linked element
-      let e = document.getElementById(url.hash.substring(2));
+      let e = document.getElementById(url.hash.substring(1));
       if (e) {
         // find enclosing slide/section
         let s = e.closest("section");

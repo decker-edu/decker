@@ -24,6 +24,7 @@ data Flags
   | CleanFlag
   | CleanerFlag
   | WatchFlag
+  | NoRebuildFlag
   | ServerFlag
   | ErrorFlag
   | ThreadFlag

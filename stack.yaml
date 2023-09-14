@@ -7,7 +7,7 @@ flags:
 packages:
   - "."
 
-# TODO As of lts-19.13 this is still needed on M1 macOS. Should not hurt
+# TODO: As of lts-19.13 this is still needed on M1 macOS. Should not hurt
 # elsewhere. Also on macOS 12.6 LLVM 14 needs to be installed with `brew install
 # llvm@14` (`opt` is needed by GHC).
 extra-include-dirs:
@@ -15,7 +15,7 @@ extra-include-dirs:
 
 resolver: lts-20.17
   
-# TODO Maybe we still need this on Windows. But maybe not.
+# TODO: Maybe we still need this on Windows. But maybe not.
 # ghc-options:
 #   "$locals": -fhide-source-paths -Wno-missing-home-modules
 #   "$everything": -haddock

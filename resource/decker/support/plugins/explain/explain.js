@@ -317,7 +317,7 @@ async function captureScreen() {
       resizeMode: "crop-and-scale",
     },
     audio: true,
-    preferCurrentTab: true,
+    selfBrowserSurface: "include",
   });
 
   let video = desktopStream.getVideoTracks()[0].getSettings();
@@ -896,7 +896,7 @@ function createPlayerGUI() {
     controls: true,
     autoplay: false,
     preload: "metadata",
-    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3],
     controlBar: {
       playToggle: true,
       volumePanel: true,
@@ -1683,19 +1683,8 @@ async function setupPlayer() {
   let timesExists = false;
 
   try {
-    // if in electron app and user specified base url for videos:
-    // if times exist locally, we assume the video exists on remote server
-    if (window.electronApp && config && config.electronVideoUrl) {
-      explainVideoUrl =
-        config.electronVideoUrl + videoFilenameBase() + "-recording.mp4";
-      videoExists = true;
-      timesExists = await resourceExists(explainTimesUrl);
-    }
-    // in browser: check if video and times exist
-    else {
-      videoExists = await resourceExists(explainVideoUrl);
-      timesExists = await resourceExists(explainTimesUrl);
-    }
+    videoExists = await resourceExists(explainVideoUrl);
+    timesExists = await resourceExists(explainTimesUrl);
 
     if (videoExists && timesExists) {
       explainTimesPlay = await fetchResourceJSON(explainTimesUrl);

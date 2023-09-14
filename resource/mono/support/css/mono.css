@@ -1,3 +1,5 @@
+@import url("./block-manip.css");
+
 @font-face {
   font-family: "Recursive";
   src: url("../fonts/Recursive.woff2") format("woff2-variations");
@@ -8,13 +10,21 @@
 body {
   font-size: 40px;
   font-family: "Recursive", sans-serif;
-  font-variation-settings: "MONO" 0, "CASL" 0.6;
+  font-variation-settings:
+    "MONO" 0,
+    "CASL" 0.6;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Inline code */
 code {
   font-family: "Recursive", monospace;
-  font-variation-settings: "MONO" 1, "CASL" 0.1;
+  font-variation-settings:
+    "MONO" 1,
+    "CASL" 0.1;
 }
 
 /* Code blocks. */
@@ -46,7 +56,16 @@ a:hover {
 
 /* Spans */
 a:hover,
-span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
+span:is(
+    .accent0,
+    .accent1,
+    .accent2,
+    .accent3,
+    .accent4,
+    .accent5,
+    .accent6,
+    .accent7
+  ) {
   border-radius: calc(var(--block-border-radius) / 1);
   padding-left: 0.2em;
   padding-right: 0.2em;

@@ -1,0 +1,27 @@
+[
+    {
+        "slideId": "title-slide",
+        "timeIn": "0",
+        "timeOut": "1.563"
+    },
+    {
+        "slideId": "drag-h2-blocks-around-with-the-mouse",
+        "timeIn": "1.563",
+        "timeOut": "31.393"
+    },
+    {
+        "slideId": "the-fine-print",
+        "timeIn": "31.393",
+        "timeOut": "44.516"
+    },
+    {
+        "slideId": "drag-h2-blocks-around-with-the-mouse",
+        "timeIn": "44.516",
+        "timeOut": "50.6"
+    },
+    {
+        "slideId": "title-slide",
+        "timeIn": "50.6",
+        "timeOut": "52.545"
+    }
+]
