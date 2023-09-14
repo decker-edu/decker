@@ -72,7 +72,7 @@ function activateHandoutMode() {
       const video = document.createElement("video");
       const url = section.getAttribute("data-background-video");
       const loop = section.getAttribute("data-background-video-loop");
-      video.src = url;
+      video.dataset.src = url;
       video.classList.add("background");
       video.setAttribute("autoplay", "1");
       if (loop) {
@@ -87,7 +87,7 @@ function activateHandoutMode() {
     .forEach((section) => {
       const iframe = document.createElement("iframe");
       const url = section.getAttribute("data-background-iframe");
-      iframe.src = url;
+      iframe.dataset.src = url;
       iframe.classList.add("background");
       section.appendChild(iframe);
     });
