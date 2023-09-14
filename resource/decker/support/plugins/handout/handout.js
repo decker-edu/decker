@@ -73,8 +73,8 @@ function activateHandoutMode() {
       const url = section.getAttribute("data-background-video");
       const loop = section.getAttribute("data-background-video-loop");
       video.dataset.src = url;
+      video.controls = true;
       video.classList.add("background");
-      video.setAttribute("autoplay", "1");
       if (loop) {
         video.setAttribute("loop", loop);
       }
