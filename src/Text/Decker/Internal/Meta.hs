@@ -179,18 +179,18 @@ adjustMetaValue f key meta =
       case M.lookup k map of
         Just value -> M.insert k (MetaMap $ adjust p value) map
         _ -> map
-    adjust _ _ =
-      throw $
-        InternalException $
-          "Cannot adjust meta value on non object at: " <> show key
+    adjust _ _ = Map.empty
+
+-- throw $
+--   InternalException $
+--     "Cannot adjust meta value on non object at: " <> show key
 
 -- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
 -- Apply the IO action to the value if the key exists.
 adjustMetaValueM ::
   MonadIO m => (MetaValue -> m MetaValue) -> Text -> Meta -> m Meta
-adjustMetaValueM action key meta = do
-  adjusted <- Meta <$> adjust (splitKey key) (MetaMap (unMeta meta))
-  return adjusted
+adjustMetaValueM action key meta =
+  Meta <$> adjust (splitKey key) (MetaMap (unMeta meta))
   where
     adjust [k] (MetaMap map) =
       case M.lookup k map of
@@ -204,10 +204,11 @@ adjustMetaValueM action key meta = do
           m' <- adjust p value
           return $ M.insert k (MetaMap m') map
         _ -> return map
-    adjust _ _ =
-      throw $
-        InternalException $
-          "Cannot adjust meta value on non object at: " <> show key
+    adjust _ _ = return Map.empty
+
+-- throw $
+--   InternalException $
+--     "Cannot adjust meta value on non object at: " <> show key
 
 -- | Recursively traverse all meta values below the compound key that can be
 -- stringified and transform them by the supplied function.
