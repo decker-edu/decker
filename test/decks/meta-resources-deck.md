@@ -18,6 +18,8 @@ rpv-test:
     leaf-path: /test/decks/data/just-used-in-template.png
   leaf-no-path: just some value
   leaf-path: /test/decks/data/just-used-in-template.png
+runtime-path-variables:
+  - one.more.from.doc.meta
 something: /test/decks/include/06-metal.png
 static-resource-dirs:
   - assets

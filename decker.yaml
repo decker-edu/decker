@@ -39,3 +39,6 @@ no-index:
 
 meta-data:
   - test/decks/data/one-meta-value.yaml
+
+runtime-path-variables:
+  - one.from.decker.yaml
