@@ -13,12 +13,12 @@ unused-test-variable: '/test/decks/resources/test.png'
 
 The meta-variable `project-test-variable` with the value `/test/decks/resources/test.png` should be converted to a relative filepath.
 
-- resource-test-variable: [:meta](project-test-variable)
+- variable value: [:meta](project-test-variable)
 
 The meta-variable `local-test-variable` with the value `/test/decks/resources/test.png` should be converted to a relative filepath.
 
-- resource-test-variable: [:meta](local-test-variable)
+- variable value: [:meta](local-test-variable)
 
 The meta-variable `unused-test-variable` is not on the `runtime-path-variable` list and should not be converted:
 
-- local-test-variable: [:meta](unused-test-variable)
+- variable value: [:meta](unused-test-variable)
