@@ -11,6 +11,7 @@ fakeRevealContainer.appendChild(fakeSlideContainer);
 
 function activateHandoutMode() {
   const currentSlide = Reveal.getCurrentSlide();
+
   // Store current reveal config and disable everything but keyboard shortcuts
   const currentConfiguration = Reveal.getConfig();
   previousRevealConfiguration.controls = currentConfiguration.controls;
@@ -26,10 +27,12 @@ function activateHandoutMode() {
     slideNumber: false,
     disableLayout: true,
   });
-  //add class to root to enable special rules from handout.css
+
+  // add class to root to enable special rules from handout.css
   document.documentElement.classList.add("handout");
   handoutSlideMode = true;
-  //setup classes for fake containers
+
+  // setup classes for fake containers
   fakeRevealContainer.classList.add("reveal", "handout-container");
   fakeSlideContainer.classList.add("slides");
   const revealElem = Reveal.getRevealElement();
@@ -38,30 +41,20 @@ function activateHandoutMode() {
   const topLevelSections = slidesElement.querySelectorAll(":scope > section");
   storeIndices(topLevelSections);
 
-  /* Switch controls on and autoplay off */
-  const videos = document.getElementsByTagName("VIDEO");
-  for (const video of videos) {
-    modifyMedia(video);
-  }
-  const audios = document.getElementsByTagName("AUDIO");
-  for (const audio of audios) {
-    modifyMedia(audio);
-  }
-
-  /* setup background images */
+  // setup background images
   slidesElement
     .querySelectorAll("section[data-background-image]")
     .forEach((section) => {
       const div = document.createElement("div");
-      div.classList.add("background");
+      div.classList.add("handoutBackground");
       const url = section.getAttribute("data-background-image");
-      const size = section.getAttribute("data-background-size");
-      const position = section.getAttribute("data-background-position");
-      const repeat = section.getAttribute("data-background-repeat");
       div.style.backgroundImage = `url("${url}")`;
-      div.style.backgroundSize = size;
-      div.style.backgroundPosition = position;
-      div.style.backgroundRepeat = repeat;
+      const size = section.getAttribute("data-background-size");
+      if (size) div.style.backgroundSize = size;
+      const position = section.getAttribute("data-background-position");
+      if (position) div.style.backgroundPosition = position;
+      const repeat = section.getAttribute("data-background-repeat");
+      if (repeat) div.style.backgroundRepeat = repeat;
       section.appendChild(div);
     });
 
@@ -70,14 +63,12 @@ function activateHandoutMode() {
     .querySelectorAll("section[data-background-video]")
     .forEach((section) => {
       const video = document.createElement("video");
-      const url = section.getAttribute("data-background-video");
+      video.classList.add("handoutBackground");
+      video.dataset.src = section.getAttribute("data-background-video");
       const loop = section.getAttribute("data-background-video-loop");
-      video.dataset.src = url;
-      video.classList.add("background");
-      video.setAttribute("autoplay", "1");
-      if (loop) {
-        video.setAttribute("loop", loop);
-      }
+      if (loop) video.loop = true;
+      const muted = section.getAttribute("data-background-video-muted");
+      if (muted) video.muted = true;
       section.appendChild(video);
     });
 
@@ -86,17 +77,22 @@ function activateHandoutMode() {
     .querySelectorAll("section[data-background-iframe]")
     .forEach((section) => {
       const iframe = document.createElement("iframe");
-      const url = section.getAttribute("data-background-iframe");
-      iframe.dataset.src = url;
-      iframe.classList.add("background");
+      iframe.classList.add("handoutBackground");
+      iframe.dataset.src = section.getAttribute("data-background-iframe");
       section.appendChild(iframe);
     });
+
+  /* Switch controls on and autoplay off */
+  slidesElement
+    .querySelectorAll("audio,video")
+    .forEach((av) => modifyMedia(av));
 
   /* Move slides into the fake container */
   for (const section of topLevelSections) {
     fakeSlideContainer.appendChild(section);
   }
 
+  // create intersection observers
   createVisibleSlideIntersectionObserver(topLevelSections);
   createSRCIntersectionObserver();
 
@@ -111,6 +107,7 @@ function activateHandoutMode() {
 function disassembleHandoutMode() {
   // Restore configuration
   Reveal.configure(previousRevealConfiguration);
+
   // Remove class from root
   document.documentElement.classList.remove("handout");
   handoutSlideMode = false;
@@ -121,30 +118,15 @@ function disassembleHandoutMode() {
   let iterate = [...slides];
   let revealSlidesElement = Reveal.getSlidesElement();
 
-  // Restore video (if not also locked by a11y-mode)
-  const videos = document.getElementsByTagName("VIDEO");
-  for (const video of videos) {
-    restoreMedia(video);
-  }
-  const audios = document.getElementsByTagName("AUDIO");
-  for (const audio of audios) {
-    restoreMedia(audio);
-  }
-
-  // remove background images
-  fakeRevealContainer.querySelectorAll("div.background").forEach((div) => {
-    div.remove();
-  });
-  // remove background videos
-  fakeRevealContainer.querySelectorAll("video.background").forEach((video) => {
-    video.remove();
-  });
-  // setup background iframes
+  // Restore audio/video (if not also locked by a11y-mode)
   fakeRevealContainer
-    .querySelectorAll("iframe.background")
-    .forEach((iframe) => {
-      iframe.remove();
-    });
+    .querySelectorAll("audio,video")
+    .forEach((av) => restoreMedia(av));
+
+  // remove background images/videos/iframes
+  fakeRevealContainer.querySelectorAll(".handoutBackground").forEach((e) => {
+    e.remove();
+  });
 
   // Reattach slides to original slides container
   for (const slide of iterate) {
@@ -155,11 +137,18 @@ function disassembleHandoutMode() {
     fakeRevealContainer.nextSibling
   );
   detachWindowEventListeners();
+
+  // delete intersection observers
+  visibleSlideIntersectionObserver = undefined;
+  srcIntersectionObserver = undefined;
+
   /* Remove the fake container from the DOM */
-  fakeRevealContainer.parentElement.removeChild(fakeRevealContainer);
+  fakeRevealContainer.remove();
+
   /* Force reveal to do recalculations on returned slides */
   Reveal.sync();
   Reveal.layout();
+
   /* If we could determine a current slide from scrolling, move reveal to it */
   if (centralSlide) {
     const indices = Reveal.getIndices(centralSlide);
@@ -206,7 +195,6 @@ function storeIndices(slideElementList) {
 
 let visibleSlideIntersectionObserver = undefined;
 let srcIntersectionObserver = undefined;
-
 let visibleSlides = new Set();
 
 /**
@@ -329,14 +317,13 @@ function createSRCIntersectionObserver() {
     }
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        if (!entry.target.src && entry.target.dataset.src) {
+        if (!entry.target.src) {
           entry.target.src = entry.target.dataset.src;
         }
       } else {
         if (entry.target.src) {
-          entry.target.dataset.src = entry.target.src;
+          entry.target.removeAttribute("src");
         }
-        entry.target.removeAttribute("src");
       }
     });
   };
@@ -345,19 +332,13 @@ function createSRCIntersectionObserver() {
     toggleSrc,
     observerOptions
   );
-  const iframes = fakeRevealContainer.getElementsByTagName("IFRAME");
-  for (const iframe of iframes) {
-    srcIntersectionObserver.observe(iframe);
-  }
-  const audios = fakeRevealContainer.getElementsByTagName("AUDIO");
-  for (const audio of audios) {
-    srcIntersectionObserver.observe(audio);
-  }
-  const videos = fakeRevealContainer.getElementsByTagName("VIDEO");
-  for (const video of videos) {
-    srcIntersectionObserver.observe(video);
-  }
+
+  fakeRevealContainer
+    .querySelectorAll("[data-src]")
+    .forEach((elem) => srcIntersectionObserver.observe(elem));
 }
+
+let handoutSlideScaling = 1;
 
 /**
  * Scale slide container to fit screen width without changing internal slide resolution
@@ -369,94 +350,54 @@ function onWindowResize(event) {
   const ow = viewport.offsetWidth;
   const scale = ow / width;
   fakeSlideContainer.style.transform = "scale(" + scale + ")";
+  handoutSlideScaling = scale;
 }
 
-let lockScrolling;
-
 /**
- * Keyup listener to handle scrolling in handout mode
+ * Key listener to handle scrolling in handout mode
+ * Do not use smooth scrolling, since it messes with intersection observers
  */
 function onWindowKeydown(event) {
-  if (lockScrolling) return;
   if (event.key === "ArrowUp") {
-    lockScrolling = true;
-    fakeRevealContainer.scrollBy({ top: -256, left: 0, behavior: "smooth" });
+    const slideHeight = Reveal.getConfig().height * handoutSlideScaling;
+    fakeRevealContainer.scrollBy(0, -0.5 * slideHeight);
   }
+
   if (event.key === "ArrowDown") {
-    lockScrolling = true;
-    fakeRevealContainer.scrollBy({ top: 256, left: 0, behavior: "smooth" });
+    const slideHeight = Reveal.getConfig().height * handoutSlideScaling;
+    fakeRevealContainer.scrollBy(0, 0.5 * slideHeight);
   }
+
   if (event.key === "PageUp") {
-    if (centralSlide) {
-      let previousSlide = centralSlide.previousElementSibling;
-      let target = previousSlide;
-      // If we are the first child in a container
-      if (previousSlide === null) {
-        // If we are in a stack select the parent's sibling instead
-        const parent = centralSlide.parentElement;
-        if (parent.classList.contains("stack")) {
-          const parentSibling = parent.previousElementSibling;
-          // If the parent itself has a stack select the last child of the parent
-          if (parentSibling && parentSibling.classList.contains("stack")) {
-            target = parentSibling.lastElementChild;
-          } else {
-            target = parentSibling;
-          }
-        }
-      }
-      if (target) {
-        lockScrolling = true;
-        target.scrollIntoView({ behavior: "smooth" });
-      }
-    }
+    const slideHeight = Reveal.getConfig().height * handoutSlideScaling;
+    fakeRevealContainer.scrollBy(0, -slideHeight);
   }
+
   if (event.key === "PageDown") {
-    if (centralSlide) {
-      let nextSlide = centralSlide.nextElementSibling;
-      let target = nextSlide;
-      // If we are the final child in a container
-      if (nextSlide === null) {
-        // If we are in a stack select the parent's sibling instead
-        const parent = centralSlide.parentElement;
-        if (parent.classList.contains("stack")) {
-          const parentSibling = parent.nextElementSibling;
-          // If the parent itself has a stack select the first child of the parent
-          if (parentSibling && parentSibling.classList.contains("stack")) {
-            target = parentSibling.firstElementChild;
-          } else {
-            target = parentSibling;
-          }
-        }
-      }
-      if (target) {
-        lockScrolling = true;
-        target.scrollIntoView({ behavior: "smooth" });
-      }
-    }
+    const slideHeight = Reveal.getConfig().height * handoutSlideScaling;
+    fakeRevealContainer.scrollBy(0, slideHeight);
   }
+
   if (event.key === "Home") {
     const first = fakeSlideContainer.firstElementChild;
     if (first) {
-      first.scrollIntoView({ behavior: "smooth" });
+      first.scrollIntoView({
+        block: "start",
+        inline: "nearest",
+      });
     }
   }
+
   if (event.key === "End") {
     const last = fakeSlideContainer.lastElementChild;
     if (last) {
-      if (last.classList.contains("stack")) {
-        const lastVertical = last.lastElementChild;
-        lockScrolling = true;
-        lastVertical.scrollIntoView({ behavior: "smooth" });
-      } else {
-        lockScrolling = true;
-        last.scrollIntoView({ behavior: "smooth" });
-      }
+      if (last.classList.contains("stack")) last = last.lastElementChild;
+      last.scrollIntoView({
+        block: "end",
+        inline: "nearest",
+      });
     }
   }
-}
-
-function unlockScroll() {
-  lockScrolling = false;
 }
 
 /**
@@ -465,7 +406,6 @@ function unlockScroll() {
 function attachWindowEventListeners() {
   window.addEventListener("resize", onWindowResize);
   window.addEventListener("keydown", onWindowKeydown);
-  fakeRevealContainer.addEventListener("scrollend", unlockScroll);
   window.dispatchEvent(new Event("resize"));
 }
 
@@ -475,7 +415,6 @@ function attachWindowEventListeners() {
 function detachWindowEventListeners() {
   window.removeEventListener("resize", onWindowResize);
   window.removeEventListener("keydown", onWindowKeydown);
-  fakeRevealContainer.removeEventListener("scrollend", unlockScroll);
 }
 
 const previousRevealConfiguration = {
@@ -521,9 +460,9 @@ function toggleHandoutMode() {
  */
 function addMenuButton() {
   const menu = Reveal.getPlugin("decker-menu");
-  let buttonTitle = "Toggle Handoutmode";
+  let buttonTitle = "Toggle Handout Mode";
   if (navigator.language === "de") {
-    buttonTitle = "Handoutmodus umschalten";
+    buttonTitle = "Handout-Modus umschalten";
   }
   if (menu) {
     if (menu.addMenuButton) {
