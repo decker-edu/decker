@@ -32,14 +32,14 @@ html.handout .reveal .slides section div.background {
 }
 
 html.handout .reveal .slides section video.background {
-  grid-area: background-content;
+  grid-area: common;
   width: var(--slide-width);
   height: var(--slide-height);
   z-index: -1;
 }
 
 html.handout .reveal .slides section iframe.background {
-  grid-area: background-content;
+  grid-area: common;
   width: var(--slide-width);
   height: var(--slide-height);
   z-index: -1;
@@ -51,7 +51,7 @@ html.handout .reveal .slides section.stack {
 
 html.handout .reveal .slides section:not(.stack) {
   display: grid !important;
-  grid-template-areas: "common" "background-content";
+  grid-template-areas: "common";
   min-height: var(--slide-height);
   align-items: start;
 
