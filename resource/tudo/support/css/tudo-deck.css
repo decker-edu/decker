@@ -1248,7 +1248,9 @@ section#title-slide .decker-link:hover {
 }
 
 .reveal .quiz-mi {
-  width: var(--slide-width);
+  width: calc(
+    var(--slide-width) - 2 * var(--block-outset) - 2 * var(--block-border-width)
+  );
   text-align: center;
 }
 
