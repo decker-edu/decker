@@ -1,10 +1,22 @@
 import { modifyMedia, restoreMedia } from "../../js/media-a11y.js";
 
 let Reveal;
-
 let centralSlide;
-
 let handoutSlideMode = false;
+
+const previousRevealConfiguration = {
+  controls: undefined,
+  progress: undefined,
+  fragments: undefined,
+  slideNumber: undefined,
+  disableLayout: undefined,
+};
+
+let visibleSlideIntersectionObserver = undefined;
+let srcIntersectionObserver = undefined;
+let visibleSlides = new Set();
+let handoutSlideScaling = 1;
+
 const fakeRevealContainer = document.createElement("div");
 const fakeSlideContainer = document.createElement("div");
 fakeRevealContainer.appendChild(fakeSlideContainer);
@@ -193,10 +205,6 @@ function storeIndices(slideElementList) {
   }
 }
 
-let visibleSlideIntersectionObserver = undefined;
-let srcIntersectionObserver = undefined;
-let visibleSlides = new Set();
-
 /**
  * Out of all the currently visible slides, pick the one most central
  * @param {*} event
@@ -338,18 +346,21 @@ function createSRCIntersectionObserver() {
     .forEach((elem) => srcIntersectionObserver.observe(elem));
 }
 
-let handoutSlideScaling = 1;
-
 /**
  * Scale slide container to fit screen width without changing internal slide resolution
  * @param {*} event
  */
 function onWindowResize(event) {
   const viewport = document.getElementsByClassName("reveal-viewport")[0];
-  const width = Reveal.getConfig().width;
-  const ow = viewport.offsetWidth;
-  const scale = ow / width;
-  fakeSlideContainer.style.transform = "scale(" + scale + ")";
+  const slideWidth = Reveal.getConfig().width;
+  const slideHeight = Reveal.getConfig().height;
+  const viewportWidth = viewport.offsetWidth;
+  const viewportHeight = viewport.offsetHeight;
+  const scale = Math.min(
+    viewportWidth / slideWidth,
+    viewportHeight / slideHeight
+  );
+  fakeSlideContainer.style.scale = scale;
   handoutSlideScaling = scale;
 }
 
@@ -416,14 +427,6 @@ function detachWindowEventListeners() {
   window.removeEventListener("resize", onWindowResize);
   window.removeEventListener("keydown", onWindowKeydown);
 }
-
-const previousRevealConfiguration = {
-  controls: undefined,
-  progress: undefined,
-  fragments: undefined,
-  slideNumber: undefined,
-  disableLayout: undefined,
-};
 
 /**
  * Initialise all svgs of all slides as if they were first viewed
