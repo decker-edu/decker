@@ -68,10 +68,10 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/tudo-deck.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/handout/handout.css">
   $for(template.css)$
   <link rel="stylesheet" href="$template.css$"/>
   $endfor$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/a11y/a11y.css">
   $for(template.deck.css)$
   <link rel="stylesheet" href="$template.deck.css$">
   $endfor$
@@ -124,6 +124,7 @@ $body$
     import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
     $endif$
     import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
+    import handoutPlugin from './$decker-support-dir$/plugins/handout/handout.js';
 
     let revealConfig = { 
       // reveal configuration (see https://revealjs.com/config/)
@@ -160,6 +161,7 @@ $body$
         captionPlugin,
         $endif$
         a11yPlugin,
+        handoutPlugin
       ]
     };
 

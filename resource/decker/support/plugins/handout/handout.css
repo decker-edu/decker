@@ -1,0 +1,90 @@
+html.handout .handout-container {
+  margin: auto;
+  overflow-y: auto;
+}
+
+html.handout .reveal .slides {
+  display: block;
+  width: var(--slide-width);
+  transform-origin: top left;
+  margin: 0;
+}
+
+html.handout .reveal .slides section {
+  position: static;
+  opacity: 1;
+  pointer-events: auto;
+  transition: none !important;
+  transform: none !important;
+  height: unset !important;
+}
+
+html.handout .reveal .slides section.stack {
+  display: block !important;
+}
+
+html.handout .reveal .slides section:not(.stack) {
+  display: grid !important;
+  grid-template-areas: "common";
+  min-height: var(--slide-height);
+  align-items: start;
+
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+html.handout .reveal .slides section .decker {
+  grid-area: common;
+  min-height: var(--slide-height);
+  width: var(--slide-width);
+  height: unset;
+}
+
+html.handout .reveal .slides section .whiteboard {
+  grid-area: common;
+  position: relative;
+}
+
+html.handout .reveal .backgrounds {
+  display: none;
+}
+
+html.handout .reveal .pause-overlay {
+  display: none;
+}
+
+html.handout .reveal .stack > p {
+  display: block;
+}
+
+html.handout .reveal .stack span.media {
+  display: block;
+}
+
+html.handout .reveal .slides section .stack {
+  counter-reset: stack-item;
+}
+
+html.handout .reveal .slides section .stack .fragment {
+  position: relative;
+  border: 1px solid var(--foreground-color);
+  margin: 0.5rem;
+}
+
+html.handout .reveal .slides section .stack .fragment img {
+  border: none;
+}
+
+html.handout .reveal .slides section .stack .fragment::before {
+  counter-increment: stack-item;
+  content: counter(stack-item) ".";
+  color: var(--foreground-color);
+  text-shadow: 1px 1px 1px var(--background-color);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+html.handout .reveal .slides section .stack .fragment:not(.current-fragment) {
+  visibility: visible;
+}

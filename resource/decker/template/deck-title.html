@@ -8,6 +8,15 @@
         $endif$
       </header>
 
+      $if(rpv-test.leaf-path)$
+      <img style="width: 100px;" src="$rpv-test.leaf-path$">
+      $endif$
+      $rpv-test.leaf-no-path$
+      $if(rpv-test.branch.path)$
+      <img style="width: 100px;" src="$rpv-test.branch.path$">
+      $endif$
+      $rpv-test.branch.no-path$
+
       $if(authors)$
       <div class="authors">
         $for(authors)$

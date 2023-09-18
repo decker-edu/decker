@@ -59,8 +59,9 @@ reveal:
   hash: true
   height: 1080
   help: true
-  hideCursorTime: 2000
-  hideInactiveCursor: true
+  hideInactiveCursor: false
+  # hideCursorTime: 2000
+  # hideInactiveCursor: true
   history: false
   keyboard: true
   margin: 0.05

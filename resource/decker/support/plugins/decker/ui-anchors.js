@@ -17,7 +17,7 @@
  * TODO: More responsive css for mobile users?
  */
 
-class DeckerPlugins {
+class UIAnchorsPlugin {
   id = "ui-anchors";
   top_left_anchor = undefined;
   top_right_anchor = undefined;
@@ -99,6 +99,6 @@ class DeckerPlugins {
   }
 }
 
-let instance = new DeckerPlugins();
+let instance = new UIAnchorsPlugin();
 
 export default instance;

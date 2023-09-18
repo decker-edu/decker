@@ -101,6 +101,7 @@ $endif$
 $if(highlightjs)$
   <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
 $endif$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/handout/handout.css">
 
 <!-- Syntax highlighting CSS inserted by Pandoc's built-in syntax highlighting.
 -->
@@ -168,6 +169,7 @@ $if(live-captions)$
     import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
 $endif$
     import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
+    import handoutPlugin from './$decker-support-dir$/plugins/handout/handout.js';
 
     let revealConfig = { 
       // reveal configuration (see https://revealjs.com/config/)
@@ -204,8 +206,9 @@ $if(live-captions)$
          captionPlugin,
 $endif$
          a11yPlugin,
+         handoutPlugin,
 $if(poll)$
-         pollPlugin
+         pollPlugin,
 $endif$
       ]
     };

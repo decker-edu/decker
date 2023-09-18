@@ -18,8 +18,8 @@ import Control.Monad.Catch
 import Control.Monad.State
 import Data.List (isSuffixOf)
 import Data.Maybe
-import qualified Data.Set as Set
-import qualified Data.Text as Text
+import Data.Set qualified as Set
+import Data.Text qualified as Text
 import Network.HTTP.Types
 import Network.Mime
 import Network.Wai.Handler.Warp
@@ -28,6 +28,7 @@ import Network.Wai.Middleware.Static
 import Network.WebSockets
 import Relude
 import System.Directory
+import System.Directory qualified as Dir
 import System.FilePath.Posix
 import System.Random
 import Text.Decker.Internal.Common
@@ -35,9 +36,8 @@ import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Types
 import Text.Decker.Server.Video
-import Web.Scotty.Trans as Scotty
 import Text.Printf
-import qualified System.Directory as Dir
+import Web.Scotty.Trans as Scotty
 
 addClient :: TVar ServerState -> Client -> IO ()
 addClient tvar client =
@@ -83,17 +83,21 @@ aBind :: Flags -> Bool
 aBind (BindFlag _) = True
 aBind _ = False
 
-uploadable = ["-annot.json", "-times.json", "-transcript.json", "-recording.vtt", "-poll.json"]
+uploadable = ["-manip.json", "-annot.json", "-times.json", "-transcript.json", "-recording.vtt", "-poll.json"]
 
 -- Runs the server. Never returns.
 runHttpServer :: ActionContext -> IO ()
 runHttpServer context = do
+  let meta = context ^. globalMeta
   let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
   let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
   exists <- liftIO $ Dir.doesFileExist indexSource
   when exists $
-    putStrLn $ printf "Generated index at: http://%s:%d/index-generated.html" bind port 
-  putStrLn $ printf "Index at: http://%s:%d/index.html\n" bind port 
+    putStrLn $
+      printf "Generated index at: http://%s:%d/index-generated.html" bind port
+  putStrLn $ printf "Index at: http://%s:%d/index.html\n" bind port
+  sources <- liftIO $ deckerResources meta
+  putStrLn $ "Loading resources from: " <> show sources
   let state = context ^. server
   let chan = context ^. actionChan
   let server = Server chan state

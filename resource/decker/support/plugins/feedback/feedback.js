@@ -124,9 +124,9 @@ class Feedback {
     if (this.menu.container.inert) {
       this.menu.container.inert = false;
       this.menu.token_lock.focus();
-      // This is necessary for the a11y plugin because it disables change of the "currentSlide" of Reveal.
+      // This is necessary for the handout plugin because it disables change of the "currentSlide" of Reveal.
       // TODO: Find a better way to deal with this
-      if (!document.documentElement.classList.contains("a11y"))
+      if (!document.documentElement.classList.contains("handout"))
         this.requestMenuContent();
       this.reveal.getRevealElement().inert = true;
       // localStorage.setItem("feedback-state", "open");
@@ -277,7 +277,7 @@ class Feedback {
     if (event.key === "Enter" && event.shiftKey) {
       let slideId = this.reveal.getCurrentSlide().id;
       if (
-        document.documentElement.classList.contains("a11y") &&
+        document.documentElement.classList.contains("handout") &&
         this.mostRecentSlideID
       ) {
         slideId = this.mostRecentSlideID;

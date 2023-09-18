@@ -3,18 +3,17 @@ author: "[Arthur Author]{.accent3 .bg}"
 date: 06.02.2022
 highlight-style: tango
 institute: Institute
+lang: de
 subtitle: Clean. Consistent. Robust.
 title: New Style Media Handling
-lang: de
 ---
-
 
 # Some Settings {.columns}
 
 ## Reveal {.left}
 
 | Name     | Value                  |
-|----------|------------------------|
+| -------- | ---------------------- |
 | `width`  | [:meta](reveal.width)  |
 | `height` | [:meta](reveal.height) |
 | `margin` | [:meta](reveal.margin) |
@@ -23,13 +22,13 @@ lang: de
 ## Decker
 
 | Name            | Value                  |
-|-----------------|------------------------|
+| --------------- | ---------------------- |
 | `resource-pack` | [:meta](resource-pack) |
 
 ## Colors {.right}
 
 | Shades                                                            | Accents                                                             |
-|-------------------------------------------------------------------|---------------------------------------------------------------------|
+| ----------------------------------------------------------------- | ------------------------------------------------------------------- |
 | [`shade0`]{style="background-color:var(--shade0);padding:0 1em;"} | [`accent0`]{style="background-color:var(--accent0);padding:0 1em;"} |
 | [`shade1`]{style="background-color:var(--shade1);padding:0 1em;"} | [`accent1`]{style="background-color:var(--accent1);padding:0 1em;"} |
 | [`shade2`]{style="background-color:var(--shade2);padding:0 1em;"} | [`accent2`]{style="background-color:var(--accent2);padding:0 1em;"} |
@@ -39,11 +38,11 @@ lang: de
 | [`shade6`]{style="background-color:var(--shade6);padding:0 1em;"} | [`accent6`]{style="background-color:var(--accent6);padding:0 1em;"} |
 | [`shade7`]{style="background-color:var(--shade7);padding:0 1em;"} | [`accent7`]{style="background-color:var(--accent7);padding:0 1em;"} |
 
---------------------------------------------------------------------------------
+---
 
 # Slide Structure
 
-``` html
+```html
 <section class="slide level1 present">
   <div class="decker">
     <div class="alignment">
@@ -65,7 +64,7 @@ Caption: General structure of all slides
 
 # Media Structure
 
-``` {.html line-numbers="1-4,6,7"}
+```{.html line-numbers="1-4,6,7"}
 <div class="media">
   <figure class="image">
     <img src="include/06-metal.png" alt="06-metal.png" />
@@ -82,25 +81,27 @@ Caption: General structure of all media embeddings
 
 ## Branch `develop-layout` {.left}
 
--   Contains new slide and media renderer
--   Is up to date with branch `develop`
+- Contains new slide and media renderer
+- Is up to date with branch `develop`
 
 ## Branch `develop`
 
--   Reveal 4 and Pandoc 2.14
--   Default resource pack `decker`
--   Resource packs `wburg` and `mario`
+- Reveal 4 and Pandoc 2.14
+- Default resource pack `decker`
+- Resource packs `wburg` and `mario`
 
 ## The plan {.right .fragment}
 
 1.  Cherry-pick fixes and features from `master` to `develop`
 2.  On `develop-layout`
-    -   Port `wburg` CSS
-    -   Port `mario` CSS
+    - Port `wburg` CSS
+    - Port `mario` CSS
 3.  Merge `develop-master` to `develop`
 4.  Merge `develop` to `master`
 
 # Local Image
+
+##
 
 ![Alt Caption $e=mc^2$](include/06-metal.png)
 
@@ -112,7 +113,7 @@ Caption: General structure of all media embeddings
 
 ## Right {.right}
 
-``` javascript
+```javascript
 function rainbow(numOfSteps, step) {
   // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
   // Adam Cole, 2011-Sept-14
@@ -124,7 +125,7 @@ Caption: Captioned code.
 
 More `function CODE(here) {return true;}`{.javascript} here
 
---------------------------------------------------------------------------------
+---
 
 # Local Media in 2 columns {.columns}
 
@@ -134,7 +135,7 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 ## Right {.right .answer}
 
-``` javascript
+```javascript
 function rainbow(numOfSteps, step) {
   // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
   // Adam Cole, 2011-Sept-14
@@ -146,7 +147,7 @@ Caption: Captioned code.
 
 More `function CODE(here) {return true;}`{.javascript} here
 
---------------------------------------------------------------------------------
+---
 
 # Local Media in 2 columns {.columns}
 
@@ -156,7 +157,7 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 ## Right {.right .conclusion}
 
-``` javascript
+```javascript
 function rainbow(numOfSteps, step) {
   // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
   // Adam Cole, 2011-Sept-14
@@ -184,7 +185,7 @@ More `function CODE(here) {return true;}`{.javascript} here
 
 ## And some more text {align="left"}
 
--   Block distance fits.
+- Block distance fits.
 
 # 2 images in a row
 
@@ -210,14 +211,14 @@ Caption: Caption all the things
 
 ## Fucking Notes {.notes}
 
--   they do
+- they do
 
 # Blocks {.columns}
 
 ## One {.left}
 
--   One slightly longer line.
--   Should align with neighbors.
+- One slightly longer line.
+- Should align with neighbors.
 
 ## Should align [:fas](arrow-right) {.warning align="right"}
 
@@ -235,9 +236,9 @@ Should align with.
 
 ## [:fas](arrow-left) Should align {.accent1}
 
--   One slightly longer line.
+- One slightly longer line.
 
--   Should align with neighbors.
+- Should align with neighbors.
 
 [:fas](arrow-left) All right!
 
@@ -248,7 +249,7 @@ Should align with.
 
 ## Source code is always nice {.accent0 .fragment popup="center-down" width="50%"}
 
-``` markdown
+```markdown
 ## Three {popup="center-up" .fragment .accent3}
 
 1.  Three 🍔🍔🍔
@@ -284,7 +285,7 @@ height="200px"}
 
 # HTML for the last one
 
-``` {.html align="center" width="90%"}
+```{.html align="center" width="90%"}
 <section id="local-image-height200px" class="slide level1">
 <div class="decker">
 <div class="section level1 alignment">
@@ -312,8 +313,9 @@ Caption: Code blocks can have captions too.
 
 ## `{width=80% height=200px}`
 
-![Overwriting Block Caption $e=mc^2$](include/06-metal.png "lallalal"){align="center"
-width="80%" height="200px"}
+![Overwriting Block Caption
+$e=mc^2$](include/06-metal.png "lallalal"){align="center" width="80%"
+height="200px"}
 
 # Local Inline Media
 
@@ -324,7 +326,7 @@ more ![](../static/es6.js){.code height="3em" width="10em"} code.
 
 # HTML for the last one
 
-``` .html
+```.html
 <section id="local-inline-media" class="slide level1">
 <div class="decker">
 <div class="section level1 alignment">
@@ -342,8 +344,7 @@ more ![](../static/es6.js){.code height="3em" width="10em"} code.
 
 # Iframe
 
-![Homepage of the man.](https://tramberend.bht-berlin.de/){.iframe
-width="80%"}
+![Homepage of the man.](https://tramberend.bht-berlin.de/){.iframe width="80%"}
 
 # YouTube Video Stream
 
@@ -373,11 +374,11 @@ Caption: Graphviz is cool.
 
 # Rendered CodeBlock
 
-``` {.dot .render align="right" width="50%"}
+```{.dot .render align="right" width="50%"}
 digraph {
   node [style = filled]
   A [fillcolor = yellowgreen]
-  A -> B 
+  A -> B
   A -> C
   C -> D
   C -> E
@@ -390,7 +391,7 @@ Caption: Graphviz is cool.
 
 # Rendered Code Inline
 
-*Really* TINY shit: ![](graph.dot){.dot .render height="3em"}
+_Really_ TINY shit: ![](graph.dot){.dot .render height="3em"}
 ![](graph.dot){.dot .render height="2em"} ![](graph.dot){.dot .render
 height="1em"}
 
@@ -400,7 +401,7 @@ height="1em"}
 
 # Execute Javascript CodeBlock
 
-``` {.javascript .run}
+```{.javascript .run}
 import * as mod from "../static/es6.js";
 mod.hello(anchor, "orange");
 ```
@@ -409,13 +410,13 @@ Caption: What?
 
 # Execute Javascript Inline
 
--   Animation ![](../static/es6-blue.js){.javascript .run} is followed by text
+- Animation ![](../static/es6-blue.js){.javascript .run} is followed by text
 
 # An Mview Iframe {.columns}
 
 ## Markdown {.left}
 
-``` markdown
+```markdown
 ![The Utah teapot](teapot.off)
 ```
 
@@ -423,7 +424,7 @@ Caption: What?
 
 ![The Utah teapot](teapot.off)
 
---------------------------------------------------------------------------------
+---
 
 # Behind the Iron Curtain
 
@@ -431,7 +432,7 @@ Caption: What?
 
 ## Branch `master`
 
-``` {.haskell .small}
+```{.haskell .small}
 caption = [Str "Caption", Space, Strong [Str "text"]]
 html = toHtml caption
 block = RawHtml ("<figcaption>" <> html <> "</figcaption>")
@@ -441,24 +442,22 @@ Caption: Just like PHP in the 90s
 
 ## Branch `develop-layout` {.fragment}
 
-``` {.haskell .small}
+```{.haskell .small}
 caption = [Str "Caption", Space, Strong [Str "text"]]
 block = tag "figcaption" $ Div nullAttr [Plain caption]
 ```
 
 Caption: More like JSX in the 20s
 
---------------------------------------------------------------------------------
+---
 
 # AST structure synthesis
 
 ## Conversion status
 
--   [:far](check-square) Embedded local media (Image, Video, PDF, ...)
--   [:far](check-square) Code blocks (highlighted, rendered, executed)
--   [:far](check-square) Iframes (generic URLs, Mview models)
--   [:far](check-square) Streaming videos (Youtube, Vimeo, Twitch, ...)
--   [:far](square) Quizzes
--   [:far](square) Polls
-
-
+- [:far](check-square) Embedded local media (Image, Video, PDF, ...)
+- [:far](check-square) Code blocks (highlighted, rendered, executed)
+- [:far](check-square) Iframes (generic URLs, Mview models)
+- [:far](check-square) Streaming videos (Youtube, Vimeo, Twitch, ...)
+- [:far](square) Quizzes
+- [:far](square) Polls

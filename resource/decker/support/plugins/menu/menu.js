@@ -215,9 +215,7 @@ class SlideMenu {
   }
 
   enableKeybinds() {
-    if (!this.a11y) {
-      this.reveal.configure({ keyboard: true });
-    }
+    this.reveal.configure({ keyboard: true });
   }
 
   /**
@@ -232,21 +230,6 @@ class SlideMenu {
     } else {
       this.settings.fragments_toggle.checked = false;
       this.settings.fragments_toggle.setAttribute("aria-checked", "false");
-    }
-  }
-
-  /**
-   * If there is a status field to announce changes to the GUI then use that to announce
-   * changes.
-   * TODO: Test if this is actually necessary.
-   * @param {*} text
-   */
-  announceStatus(text) {
-    if (this.reveal.hasPlugin("a11y-status")) {
-      let status = this.reveal.getPlugin("a11y-status");
-      status.announce(text);
-    } else {
-      console.log("No a11y-status plugin found.");
     }
   }
 
@@ -501,9 +484,6 @@ class SlideMenu {
           <button id="decker-menu-settings-button" class="fa-button fas fa-cog" title="${this.localization.open_settings_label}" aria-label="${this.localization.open_settings_label}">
           </button>
         </div>
-        <div id="decker-menu-title">
-          <span>${this.localization.title}</span>
-        </div>
       </div>
      </div>`;
     let container = template.content.firstElementChild;
@@ -523,7 +503,6 @@ class SlideMenu {
     this.menu.close_button = container.querySelector(
       "#decker-menu-close-button"
     );
-    this.menu.a11y_button = container.querySelector("#decker-menu-a11y-button");
 
     /* Attach callbacks */
     this.menu.home_button.addEventListener("click", (event) =>
@@ -574,7 +553,7 @@ class SlideMenu {
     );
     if (menuHeaderButtons.length > 0) {
       const container = menuHeaderButtons[0];
-      container.appendChild(button);
+      container.insertBefore(button, this.menu.settings_button);
     }
   }
 
@@ -700,6 +679,7 @@ const plugin = () => {
     getListItemByID: undefined,
     updateCurrentSlideMark: undefined,
     addMenuButton: undefined,
+    inhibitKeyboard: undefined,
     init(reveal) {
       const menu = new SlideMenu("TOP_LEFT", reveal);
       menu.localization = {
