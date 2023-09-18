@@ -360,7 +360,7 @@ function onWindowResize(event) {
     viewportWidth / slideWidth,
     viewportHeight / slideHeight
   );
-  fakeSlideContainer.style.scale = scale;
+  fakeSlideContainer.style.transform = `scale(${scale})`;
   handoutSlideScaling = scale;
 }
 
