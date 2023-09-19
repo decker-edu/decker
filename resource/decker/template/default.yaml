@@ -1,8 +1,11 @@
-compiletime-path-variables:
+runtime-path-variables:
   - logos
   - affiliation.logo
   - author.affiliation.logo
   - authors.affiliation.logo
+  - rpv-test.leaf-path
+  - rpv-test.leaf-no-path
+  - rpv-test.branch
 
 reveal:
   backgroundTransition: "none"
@@ -135,7 +138,3 @@ test:
     - This line is from default.yaml
   some-value: This line is from default.yaml
 
-runtime-path-variables:
-  - rpv-test.leaf-path
-  - rpv-test.leaf-no-path
-  - rpv-test.branch

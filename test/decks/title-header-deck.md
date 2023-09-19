@@ -8,7 +8,7 @@ author: # 'John Doe'
 affiliation: # 'Testaffiliation'
   institution: 'Testinstitute'
   url: 'https://example.com/institute-url'
-  logo: 'assets/dummy-square.png'
+  logo: '/test/decks/assets/dummy-square.png'
 
 copyright: # 'Test Copyright'
   type: '(c)'
@@ -20,13 +20,13 @@ authors:
     affiliation: # 'First Department'
       institution: 'First Department'
       url: 'https://example.com/first-dep'
-      logo: 'assets/dummy-long.png'
+      logo: '/test/decks/assets/dummy-long.png'
   - name: 'Second Author'
     url: 'https://example.com/second'
     affiliation: # 'Second Institute'
       institution: 'Second Institute'
 #     url: 'https://example.com/second-dep'
-      logo: 'assets/dummy-high.png'
+      logo: '/test/decks/assets/dummy-high.png'
 
 date: '01.01.1990'
 
@@ -43,3 +43,5 @@ logos:
 ---
 
 # Test
+
+[:meta](logos)
