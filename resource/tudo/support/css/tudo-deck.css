@@ -1320,7 +1320,7 @@ section#title-slide .decker-link:hover {
  * quiz polling
  *********************************************/
 
-.reveal:not(.poll) .poll-only {
+.reveal-viewport:not(.poll) .poll-only {
   display: none;
 }
 

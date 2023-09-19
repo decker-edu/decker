@@ -411,6 +411,7 @@ function preparePresenterMode(deck) {
   let revealElement = deck.getRevealElement();
   if (!revealElement)
     throw "Reveal slide element is missing. This is seriously wrong.";
+  let viewportElement = deck.getViewportElement();
 
   Decker.addPresenterModeListener = (callback) => {
     listeners.push(callback);
@@ -444,9 +445,9 @@ function preparePresenterMode(deck) {
       presenterMode = !presenterMode;
 
       if (presenterMode) {
-        revealElement.classList.add("presenter-mode");
+        viewportElement.classList.add("presenter-mode");
       } else {
-        revealElement.classList.remove("presenter-mode");
+        viewportElement.classList.remove("presenter-mode");
       }
 
       for (let callback of listeners) {

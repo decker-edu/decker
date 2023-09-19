@@ -90,7 +90,7 @@ class UIAnchorsPlugin {
     this.bottom_center_anchor = this.createAnchor("bottom-center-anchor");
     this.bottom_right_anchor = this.createAnchor("bottom-right-anchor");
 
-    let reveal_element = reveal.getRevealElement();
+    let reveal_element = reveal.getViewportElement();
     reveal_element.prepend(this.top_left_anchor);
     reveal_element.appendChild(this.top_right_anchor);
     reveal_element.appendChild(this.bottom_left_anchor);

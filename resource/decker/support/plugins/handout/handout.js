@@ -19,9 +19,9 @@ let visibleSlides = new Set();
 let slideScale = 1;
 let userScale = 1;
 
-const fakeRevealContainer = document.createElement("div");
-const fakeSlideContainer = document.createElement("div");
-fakeRevealContainer.appendChild(fakeSlideContainer);
+const handoutContainer = document.createElement("div");
+const handoutSlides = document.createElement("div");
+handoutContainer.appendChild(handoutSlides);
 
 function activateHandoutMode() {
   const currentSlide = Reveal.getCurrentSlide();
@@ -47,8 +47,9 @@ function activateHandoutMode() {
   handoutSlideMode = true;
 
   // setup classes for fake containers
-  fakeRevealContainer.classList.add("reveal", "handout-container");
-  fakeSlideContainer.classList.add("slides");
+  handoutContainer.id = "handout-container";
+  handoutContainer.classList.add("reveal");
+  handoutSlides.classList.add("slides");
   const revealElem = Reveal.getRevealElement();
   const slidesElement = Reveal.getSlidesElement();
   makeSlidesVisible(slidesElement);
@@ -103,7 +104,7 @@ function activateHandoutMode() {
 
   /* Move slides into the fake container */
   for (const section of topLevelSections) {
-    fakeSlideContainer.appendChild(section);
+    handoutSlides.appendChild(section);
   }
 
   // create intersection observers
@@ -111,7 +112,7 @@ function activateHandoutMode() {
   createSRCIntersectionObserver();
 
   /* Attach fake container to actual DOM and finallize setup*/
-  revealElem.parentElement.insertBefore(fakeRevealContainer, revealElem);
+  revealElem.parentElement.insertBefore(handoutContainer, revealElem);
   attachWindowEventListeners();
 
   /* Scroll to the current slide (I like smooth more but it gets cancelled inside some decks) */
@@ -127,18 +128,18 @@ function disassembleHandoutMode() {
   handoutSlideMode = false;
 
   let revealContainer = Reveal.getRevealElement();
-  let slides = fakeSlideContainer.childNodes;
+  let slides = handoutSlides.childNodes;
   // Create a 2nd list to iterate over because we will be removing elements from the childNodes list
   let iterate = [...slides];
   let revealSlidesElement = Reveal.getSlidesElement();
 
   // Restore audio/video (if not also locked by a11y-mode)
-  fakeRevealContainer
+  handoutContainer
     .querySelectorAll("audio,video")
     .forEach((av) => restoreMedia(av));
 
   // remove background images/videos/iframes
-  fakeRevealContainer.querySelectorAll(".handoutBackground").forEach((e) => {
+  handoutContainer.querySelectorAll(".handoutBackground").forEach((e) => {
     e.remove();
   });
 
@@ -146,9 +147,9 @@ function disassembleHandoutMode() {
   for (const slide of iterate) {
     revealSlidesElement.appendChild(slide);
   }
-  fakeRevealContainer.parentElement.insertBefore(
+  handoutContainer.parentElement.insertBefore(
     revealContainer,
-    fakeRevealContainer.nextSibling
+    handoutContainer.nextSibling
   );
   detachWindowEventListeners();
 
@@ -157,7 +158,7 @@ function disassembleHandoutMode() {
   srcIntersectionObserver = undefined;
 
   /* Remove the fake container from the DOM */
-  fakeRevealContainer.remove();
+  handoutContainer.remove();
 
   /* Force reveal to do recalculations on returned slides */
   Reveal.sync();
@@ -208,48 +209,46 @@ function storeIndices(slideElementList) {
 }
 
 /**
- * Out of all the currently visible slides, pick the one most central
- * @param {*} event
- * @returns
+ * Out of all the currently visible slides, pick the one most central.
+ * Update menu plugin and decker plugin.
  */
-function determineMostVisibleSlide(event) {
+function updateCurrentSlide(event) {
   if (!handoutSlideMode) return;
-  let mostVisible = undefined;
-  let mostVisibleValue = undefined;
-  const host = fakeRevealContainer.getBoundingClientRect();
-  // This can probably be improved but it works
+
+  const containerRect = handoutContainer.getBoundingClientRect();
+  const containerCenter = (containerRect.bottom + containerRect.top) / 2;
+
+  let minDist = 9999;
+  let minSlide = undefined;
   for (const slide of visibleSlides) {
-    const box = slide.getBoundingClientRect();
-    const offset = box.top - host.top;
-    let visible = 0;
-    if (offset < 0) {
-      visible = box.bottom - host.top;
-    } else {
-      visible = host.bottom - box.top;
-    }
-    if (!mostVisible || mostVisibleValue < visible) {
-      mostVisible = slide;
-      mostVisibleValue = visible;
+    const slideRect = slide.getBoundingClientRect();
+    const slideCenter = (slideRect.bottom + slideRect.top) / 2;
+    const dist = Math.abs(slideCenter - containerCenter);
+    if (dist < minDist) {
+      minDist = dist;
+      minSlide = slide;
     }
   }
-  /* If the current central slide changed */
-  if (centralSlide !== mostVisible) {
-    centralSlide = mostVisible;
-    // Inform feedback plugin (load questions)
-    const feedback = Reveal.getPlugin("feedback");
-    if (feedback && feedback.getEngine().api) {
-      feedback.requestMenuContent(mostVisible);
-    }
+
+  // If the current slide changed
+  if (centralSlide !== minSlide) {
+    // DEBUG: visualize central slide
+    // if (centralSlide) centralSlide.classList.remove("current");
+    // minSlide.classList.add("current");
+
+    centralSlide = minSlide;
+
     // Inform menu plugin (highlight current slide)
     const menu = Reveal.getPlugin("decker-menu");
     if (menu) {
-      menu.updateCurrentSlideMark(mostVisible);
+      menu.updateCurrentSlideMark(centralSlide);
     }
+
     // Inform decker plugin (index page)
     const decker = Reveal.getPlugin("decker");
-    if (decker && mostVisible.dataset.hIndex) {
-      decker.updateLastVisitedSlide({ h: Number(mostVisible.dataset.hIndex) });
-      decker.updatePercentage(Number(mostVisible.dataset.hIndex));
+    if (decker && centralSlide.dataset.hIndex) {
+      decker.updateLastVisitedSlide({ h: Number(centralSlide.dataset.hIndex) });
+      decker.updatePercentage(Number(centralSlide.dataset.hIndex));
     }
   }
 }
@@ -258,14 +257,8 @@ function determineMostVisibleSlide(event) {
  * Create an intersection observer, if it not already exists,
  * that manages the slides that are currently visible so the
  * onscroll callback can be optimised.
- * @param {*} slideElementList
- * @returns
  */
 function createVisibleSlideIntersectionObserver(slideElementList) {
-  // Do not reinitialise if we already entered handout mode in the past
-  if (visibleSlideIntersectionObserver) {
-    return;
-  }
   // Callback to add or remove slide to the list of currently visible slides
   const visibilityCallback = function (entries, observer) {
     // Do nothing if we left handout mode
@@ -277,16 +270,19 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
         visibleSlides.delete(entry.target);
       }
     }
+    updateCurrentSlide();
   };
+
   // Only trigger if a section becomes partly visible or disappears entirely
   const visibilityObserverOptions = {
-    root: fakeRevealContainer,
+    root: handoutContainer,
     threshold: [0],
   };
   visibleSlideIntersectionObserver = new IntersectionObserver(
     visibilityCallback,
     visibilityObserverOptions
   );
+
   // Observe all actual sections, not the container sections of vertical stacks
   for (const section of slideElementList) {
     if (section.classList.contains("stack")) {
@@ -298,20 +294,15 @@ function createVisibleSlideIntersectionObserver(slideElementList) {
       visibleSlideIntersectionObserver.observe(section);
     }
   }
-  fakeRevealContainer.addEventListener("scroll", determineMostVisibleSlide);
 }
 
 /**
  * Create an intersection observer that observes all video, audio and iframe
  * elements to only load their src if they are close to being visible.
- * @returns Nothing
  */
 function createSRCIntersectionObserver() {
-  if (srcIntersectionObserver) {
-    return;
-  }
   const observerOptions = {
-    root: fakeRevealContainer,
+    root: handoutContainer,
     rootMargin: "50%",
     threshold: [0],
   };
@@ -343,25 +334,19 @@ function createSRCIntersectionObserver() {
     observerOptions
   );
 
-  fakeRevealContainer
+  handoutContainer
     .querySelectorAll("[data-src]")
     .forEach((elem) => srcIntersectionObserver.observe(elem));
 }
 
 /**
  * Scale slide container to fit screen width without changing internal slide resolution
- * @param {*} event
  */
 function onWindowResize(event) {
   const viewport = document.getElementsByClassName("reveal-viewport")[0];
   const slideWidth = Reveal.getConfig().width;
-  const slideHeight = Reveal.getConfig().height;
   const viewportWidth = viewport.offsetWidth;
-  const viewportHeight = viewport.offsetHeight;
-  slideScale = Math.min(
-    viewportWidth / slideWidth,
-    viewportHeight / slideHeight
-  );
+  slideScale = viewportWidth / slideWidth;
   updateScaling();
 }
 
@@ -370,7 +355,7 @@ function updateScaling() {
   // clamp to (slightly smaller than) one to avoid horizontal scrollbar
   if (userScale > 0.95 && userScale < 1.05) userScale = 0.99;
   const scale = slideScale * userScale;
-  fakeSlideContainer.style.transform = `scale(${scale})`;
+  handoutSlides.style.transform = `scale(${scale})`;
 }
 
 /* return slide scaling factor */
@@ -383,45 +368,50 @@ function scaling() {
  * Do not use smooth scrolling, since it messes with intersection observers
  */
 function onWindowKeydown(event) {
-  if (event.key === "ArrowUp") {
-    const slideHeight = Reveal.getConfig().height * scaling();
-    fakeRevealContainer.scrollBy(0, -0.5 * slideHeight);
-  }
+  const viewport = document.getElementsByClassName("reveal-viewport")[0];
+  const viewportHeight = viewport.offsetHeight;
+  const slideHeight = Reveal.getConfig().height * scaling();
+  const pageHeight = Math.max(
+    Math.floor(viewportHeight / slideHeight) * slideHeight,
+    slideHeight
+  );
 
-  if (event.key === "ArrowDown") {
-    const slideHeight = Reveal.getConfig().height * scaling();
-    fakeRevealContainer.scrollBy(0, 0.5 * slideHeight);
-  }
+  switch (event.key) {
+    case "ArrowUp":
+      handoutContainer.scrollBy(0, -slideHeight);
+      break;
 
-  if (event.key === "PageUp") {
-    const slideHeight = Reveal.getConfig().height * scaling();
-    fakeRevealContainer.scrollBy(0, -slideHeight);
-  }
+    case "ArrowDown":
+      handoutContainer.scrollBy(0, slideHeight);
+      break;
 
-  if (event.key === "PageDown") {
-    const slideHeight = Reveal.getConfig().height * scaling();
-    fakeRevealContainer.scrollBy(0, slideHeight);
-  }
+    case "PageUp":
+      handoutContainer.scrollBy(0, -pageHeight);
+      break;
 
-  if (event.key === "Home") {
-    const first = fakeSlideContainer.firstElementChild;
-    if (first) {
-      first.scrollIntoView({
-        block: "start",
-        inline: "nearest",
-      });
-    }
-  }
+    case "PageDown":
+      handoutContainer.scrollBy(0, pageHeight);
+      break;
 
-  if (event.key === "End") {
-    const last = fakeSlideContainer.lastElementChild;
-    if (last) {
-      if (last.classList.contains("stack")) last = last.lastElementChild;
-      last.scrollIntoView({
-        block: "end",
-        inline: "nearest",
-      });
-    }
+    case "Home":
+      const first = handoutSlides.firstElementChild;
+      if (first) {
+        first.scrollIntoView({
+          block: "start",
+          inline: "nearest",
+        });
+      }
+      break;
+
+    case "End":
+      const last = handoutSlides.lastElementChild;
+      if (last) {
+        if (last.classList.contains("stack")) last = last.lastElementChild;
+        last.scrollIntoView({
+          block: "end",
+          inline: "nearest",
+        });
+      }
   }
 }
 
@@ -481,8 +471,8 @@ function createButtons() {
   const menu = Reveal.getPlugin("decker-menu");
   if (menu && menu.addMenuButton) {
     menu.addMenuButton(
-      "menu-accessibility-button",
-      "fa-align-center",
+      "menu-handout-button",
+      "fa-file-arrow-down",
       navigator.language === "de"
         ? "Handout-Modus umschalten"
         : "Toggle Handout Mode",

@@ -185,6 +185,6 @@ div#continue-dialog {
   z-index: 50;
 }
 
-.reveal:not(.presenter-mode) .presenter-only {
+.reveal-viewport:not(.presenter-mode) .presenter-only {
   display: none !important;
 }
