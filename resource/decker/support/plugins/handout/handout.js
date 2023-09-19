@@ -15,7 +15,9 @@ const previousRevealConfiguration = {
 let visibleSlideIntersectionObserver = undefined;
 let srcIntersectionObserver = undefined;
 let visibleSlides = new Set();
-let handoutSlideScaling = 1;
+
+let slideScale = 1;
+let userScale = 1;
 
 const fakeRevealContainer = document.createElement("div");
 const fakeSlideContainer = document.createElement("div");
@@ -356,12 +358,24 @@ function onWindowResize(event) {
   const slideHeight = Reveal.getConfig().height;
   const viewportWidth = viewport.offsetWidth;
   const viewportHeight = viewport.offsetHeight;
-  const scale = Math.min(
+  slideScale = Math.min(
     viewportWidth / slideWidth,
     viewportHeight / slideHeight
   );
+  updateScaling();
+}
+
+/* update scaling based on viewport/slide dimensions and user settings */
+function updateScaling() {
+  // clamp to (slightly smaller than) one to avoid horizontal scrollbar
+  if (userScale > 0.95 && userScale < 1.05) userScale = 0.99;
+  const scale = slideScale * userScale;
   fakeSlideContainer.style.transform = `scale(${scale})`;
-  handoutSlideScaling = scale;
+}
+
+/* return slide scaling factor */
+function scaling() {
+  return slideScale * userScale;
 }
 
 /**
@@ -370,22 +384,22 @@ function onWindowResize(event) {
  */
 function onWindowKeydown(event) {
   if (event.key === "ArrowUp") {
-    const slideHeight = Reveal.getConfig().height * handoutSlideScaling;
+    const slideHeight = Reveal.getConfig().height * scaling();
     fakeRevealContainer.scrollBy(0, -0.5 * slideHeight);
   }
 
   if (event.key === "ArrowDown") {
-    const slideHeight = Reveal.getConfig().height * handoutSlideScaling;
+    const slideHeight = Reveal.getConfig().height * scaling();
     fakeRevealContainer.scrollBy(0, 0.5 * slideHeight);
   }
 
   if (event.key === "PageUp") {
-    const slideHeight = Reveal.getConfig().height * handoutSlideScaling;
+    const slideHeight = Reveal.getConfig().height * scaling();
     fakeRevealContainer.scrollBy(0, -slideHeight);
   }
 
   if (event.key === "PageDown") {
-    const slideHeight = Reveal.getConfig().height * handoutSlideScaling;
+    const slideHeight = Reveal.getConfig().height * scaling();
     fakeRevealContainer.scrollBy(0, slideHeight);
   }
 
@@ -459,23 +473,42 @@ function toggleHandoutMode() {
 }
 
 /**
- * Add Handout Mode Button to Menu Plugin, if it exists
+ * Add handout mode button to Menu plugin.
+ * Add zoom in/out buttons to top right anchor.
  */
-function addMenuButton() {
+function createButtons() {
+  // add button to menu plugin
   const menu = Reveal.getPlugin("decker-menu");
-  let buttonTitle = "Toggle Handout Mode";
-  if (navigator.language === "de") {
-    buttonTitle = "Handout-Modus umschalten";
+  if (menu && menu.addMenuButton) {
+    menu.addMenuButton(
+      "menu-accessibility-button",
+      "fa-align-center",
+      navigator.language === "de"
+        ? "Handout-Modus umschalten"
+        : "Toggle Handout Mode",
+      toggleHandoutMode
+    );
   }
-  if (menu) {
-    if (menu.addMenuButton) {
-      menu.addMenuButton(
-        "menu-accessibility-button",
-        "fa-align-center",
-        buttonTitle,
-        toggleHandoutMode
-      );
-    }
+
+  // add zoom in/out buttons
+  const anchors = Reveal.getPlugin("ui-anchors");
+  if (anchors) {
+    let buttonMinus = document.createElement("button");
+    buttonMinus.id = "handout-minus";
+    buttonMinus.className = "fa-button fa-solid fa-magnifying-glass-minus";
+    buttonMinus.onclick = () => {
+      userScale /= 1.25;
+      updateScaling();
+    };
+    let buttonPlus = document.createElement("button");
+    buttonPlus.id = "handout-plus";
+    buttonPlus.className = "fa-button fa-solid fa-magnifying-glass-plus";
+    buttonPlus.onclick = () => {
+      userScale *= 1.25;
+      updateScaling();
+    };
+    anchors.placeButton(buttonMinus, "TOP_RIGHT");
+    anchors.placeButton(buttonPlus, "TOP_RIGHT");
   }
 }
 
@@ -484,7 +517,8 @@ const Plugin = {
   isActive: () => handoutSlideMode,
   init: (reveal) => {
     Reveal = reveal;
-    addMenuButton();
+    createButtons();
+
     /* Add triple click H to toggle handout mode to reveal keybindings */
     reveal.addKeyBinding(
       {
