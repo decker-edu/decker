@@ -3,7 +3,11 @@ import {
   hideFlyingFocus,
 } from "../../flyingFocus/flying-focus.js";
 
+import { modifyMedia, restoreMedia } from "../../js/media-a11y.js";
+
 let Reveal;
+
+let a11yMode;
 
 /**
  * Adds inert to all inactive slides and adds an on-slidechanged callback to reveal
@@ -49,14 +53,17 @@ function addFlyingFocusCallbacks() {
   });
 }
 
+let previousKeyboardConfig;
+
 function addCustomSpacebarHandler() {
   const selects = document.getElementsByTagName("SELECT");
   for (const select of selects) {
     select.addEventListener("focus", (event) => {
+      previousKeyboardConfig = Reveal.getConfig().keyboard;
       Reveal.configure({ keyboard: false });
     });
     select.addEventListener("blur", (event) => {
-      Reveal.configure({ keyboard: true });
+      Reveal.configure({ keyboard: previousKeyboardConfig });
     });
   }
 }
@@ -65,9 +72,49 @@ const Plugin = {
   id: "a11y",
   init: (reveal) => {
     Reveal = reveal;
-    fixTabsByInert();
+    // This may no longer be necessary if we clearly recommend the handout mode to people using assistive technology
+    // fixTabsByInert();
     addFlyingFocusCallbacks();
     addCustomSpacebarHandler();
+    reveal.addKeyBinding(
+      {
+        keyCode: 65,
+        key: "A",
+        description: "Toggle Decker Accessibility Adjustments (Triple Click)",
+      },
+
+      Decker.tripleClick(() => {
+        a11yMode = !a11yMode;
+
+        if (a11yMode) {
+          document.documentElement.classList.add("a11y");
+          const videos = document.getElementsByTagName("VIDEO");
+          for (const video of videos) {
+            modifyMedia(video);
+          }
+          const audios = document.getElementsByTagName("AUDIO");
+          for (const audio of audios) {
+            modifyMedia(audio);
+          }
+          Decker.flash.message(
+            `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
+          );
+        } else {
+          document.documentElement.classList.remove("a11y");
+          const videos = document.getElementsByTagName("VIDEO");
+          for (const video of videos) {
+            restoreMedia(video);
+          }
+          const audios = document.getElementsByTagName("AUDIO");
+          for (const audio of audios) {
+            restoreMedia(audio);
+          }
+          Decker.flash.message(
+            `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
+          );
+        }
+      })
+    );
   },
 };
 

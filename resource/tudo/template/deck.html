@@ -68,6 +68,7 @@ $endif$
   <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
   <link rel="stylesheet" href="$decker-support-dir$/css/tudo-deck.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/handout/handout.css">
   $for(template.deck.css)$
   <link rel="stylesheet" href="$template.deck.css$">
   $endfor$
@@ -86,57 +87,60 @@ $endif$
 
 $if(title)$
       <section id="$idprefix$title-slide">
-
-         <div class="background-on-accent">
-         $if(title)$
+        <div class="decker">
+          <div class="alignment">
+          <div class="background-on-accent">
+          $if(title)$
             <h1>$title$</h1>
-         $endif$
-         $if(subtitle)$
+          $endif$
+          $if(subtitle)$
             <h2>$subtitle$</h2>
-         $endif$
-         </div>
+          $endif$
+          </div>
 
-         $if(template.teaser)$
-         <img class="teaser" src=$template.teaser$>
-         $endif$
+          $if(template.teaser)$
+          <img class="teaser" src=$template.teaser$>
+          $endif$
 
-         $if(authors)$
-         <div class="authors">
-         $for(authors)$
+          $if(authors)$
+          <div class="authors">
+          $for(authors)$
             $if(it.name)$
-                <div class="author">
-                    $it.name$ 
-                    $if(it.affiliation)$
-                        <div class="affiliation"> $it.affiliation$ </div>
-                    $endif$
-                </div>
+              <div class="author">
+                $it.name$ 
+                $if(it.affiliation)$
+                  <div class="affiliation"> $it.affiliation$ </div>
+                $endif$
+              </div>
             $endif$
-         $endfor$
-         </div>
-         $endif$
+          $endfor$
+          </div>
+          $endif$
 
-         $if(author)$
-         <div class="author"> $author$ </div>
-         $endif$
+          $if(author)$
+          <div class="author"> $author$ </div>
+          $endif$
 
-         $if(affiliation)$
-         <div class="affiliation"> $affiliation$ </div>
-         $endif$
+          $if(affiliation)$
+          <div class="affiliation"> $affiliation$ </div>
+          $endif$
 
-         $if(date)$
-         <div class="date"> $date$ </div>
-         $endif$
+          $if(date)$
+          <div class="date"> $date$ </div>
+          $endif$
 
-         <img class="logo affiliation-logo light-only" src="./$decker-support-dir$/assets/tu-logo-light.svg">
-         <img class="logo affiliation-logo dark-only" src="./$decker-support-dir$/assets/tu-logo-dark.svg">
+          <img class="logo affiliation-logo light-only" src="./$decker-support-dir$/assets/tu-logo-light.svg">
+          <img class="logo affiliation-logo dark-only" src="./$decker-support-dir$/assets/tu-logo-dark.svg">
 
-         $if(template.logo)$
-         <img class="logo department-logo" src="$template.logo$">
-         $endif$
+          $if(template.logo)$
+          <img class="logo department-logo" src="$template.logo$">
+          $endif$
 
-         $if(showDeckerLink)$
-         <a class="decker-link" href="https://decker-edu.github.io/decker/">🚀 by Decker</a>
-         $endif$
+          $if(showDeckerLink)$
+          <a class="decker-link" href="https://decker-edu.github.io/decker/">🚀 by Decker</a>
+          $endif$
+          </div>
+        </div>
       </section>
 $endif$
 
@@ -179,6 +183,7 @@ $body$
     import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
     $endif$
     import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
+    import handoutPlugin from './$decker-support-dir$/plugins/handout/handout.js';
 
     let revealConfig = { 
       // reveal configuration (see https://revealjs.com/config/)
@@ -215,6 +220,7 @@ $body$
         captionPlugin,
         $endif$
         a11yPlugin,
+        handoutPlugin
       ]
     };
 

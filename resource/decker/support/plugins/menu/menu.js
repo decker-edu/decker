@@ -10,8 +10,6 @@
 // import functionality for light/dark mode
 import * as colorScheme from "../../js/color-scheme.js";
 
-let deck = undefined;
-
 class SlideMenu {
   reveal;
   config;
@@ -68,6 +66,16 @@ class SlideMenu {
         } else {
           return childNodes[i];
         }
+      }
+    }
+    return undefined;
+  }
+
+  getListItemByID(slideid) {
+    let childNodes = this.menu.slide_list.childNodes;
+    for (const child of childNodes) {
+      if (child.getAttribute("data-slide-id") === slideid) {
+        return child;
       }
     }
     return undefined;
@@ -226,21 +234,6 @@ class SlideMenu {
   }
 
   /**
-   * If there is a status field to announce changes to the GUI then use that to announce
-   * changes.
-   * TODO: Test if this is actually necessary.
-   * @param {*} text
-   */
-  announceStatus(text) {
-    if (this.reveal.hasPlugin("a11y-status")) {
-      let status = this.reveal.getPlugin("a11y-status");
-      status.announce(text);
-    } else {
-      console.log("No a11y-status plugin found.");
-    }
-  }
-
-  /**
    * Stops the default functionality of moving up or down the scrollbar of the slide wrapper div.
    * @param {*} event The Keyboard Event
    */
@@ -391,10 +384,8 @@ class SlideMenu {
     title = `${h + 1}.${v !== undefined ? v + 1 : ""} ${title}`;
     template.innerHTML = String.raw`<li class="slide-list-item" data-slide-h="${h}" ${
       v !== undefined ? 'data-slide-v="' + v + '"' : ""
-    }>
-      <a class="slide-link" href="#/${h}${
-      v !== undefined ? "/" + v : ""
-    }" target="_self">${title}</a>
+    } data-slide-id="${slide.id}">
+      <a class="slide-link" href="#${slide.id}" target="_self">${title}</a>
     </li>`;
     let item = template.content.firstElementChild;
     let link = item.firstElementChild;
@@ -493,9 +484,6 @@ class SlideMenu {
           <button id="decker-menu-settings-button" class="fa-button fas fa-cog" title="${this.localization.open_settings_label}" aria-label="${this.localization.open_settings_label}">
           </button>
         </div>
-        <div id="decker-menu-title">
-          <span>${this.localization.title}</span>
-        </div>
       </div>
      </div>`;
     let container = template.content.firstElementChild;
@@ -553,6 +541,22 @@ class SlideMenu {
     this.glass.addEventListener("click", (event) => this.closeMenu(event));
   }
 
+  addMenuButton(id, icon, title, callback) {
+    const button = document.createElement("button");
+    button.id = id;
+    button.classList.add("fa-button", "fas", icon);
+    button.title = title;
+    button.setAttribute("aria-label", title);
+    button.addEventListener("click", callback);
+    const menuHeaderButtons = document.getElementsByClassName(
+      "menu-header-buttons"
+    );
+    if (menuHeaderButtons.length > 0) {
+      const container = menuHeaderButtons[0];
+      container.insertBefore(button, this.menu.settings_button);
+    }
+  }
+
   toggleAnnotations() {
     document.documentElement.classList.toggle("hide-annotations");
   }
@@ -564,23 +568,20 @@ class SlideMenu {
     }
   }
 
-  setCurrentSlideMark() {
-    let slide = this.reveal.getCurrentSlide();
-    let indices = this.reveal.getIndices(slide);
-    let item = undefined;
-    if (indices.v) {
-      item = this.getListItem(indices.h, indices.v);
-    } else {
-      item = this.getListItem(indices.h);
+  setCurrentSlideMark(slide) {
+    if (!slide) {
+      slide = this.reveal.getCurrentSlide();
     }
+    let id = slide.id;
+    let item = this.getListItemByID(id);
     if (item) {
       item.classList.add("current-slide");
     }
   }
 
-  updateCurrentSlideMark() {
+  updateCurrentSlideMark(slide) {
     this.clearCurrentSlideMark();
-    this.setCurrentSlideMark();
+    this.setCurrentSlideMark(slide);
   }
 
   initializeSettingsMenu() {
@@ -675,6 +676,10 @@ const plugin = () => {
     id: "decker-menu",
     getSlideList: undefined,
     getListItem: undefined,
+    getListItemByID: undefined,
+    updateCurrentSlideMark: undefined,
+    addMenuButton: undefined,
+    inhibitKeyboard: undefined,
     init(reveal) {
       const menu = new SlideMenu("TOP_LEFT", reveal);
       menu.localization = {
@@ -734,6 +739,18 @@ const plugin = () => {
         return menu.getListItem(h, v);
       };
 
+      this.getListItemByID = (id) => {
+        return menu.getListItemByID(id);
+      };
+
+      this.addMenuButton = (id, icon, title, callback) => {
+        menu.addMenuButton(id, icon, title, callback);
+      };
+
+      this.updateCurrentSlideMark = (slide) => {
+        menu.updateCurrentSlideMark(slide);
+      };
+
       this.slide_list_container = menu;
 
       if (!reveal.hasPlugin("ui-anchors")) {
@@ -742,9 +759,10 @@ const plugin = () => {
       }
       let anchors = reveal.getPlugin("ui-anchors");
       anchors.placeButton(menu.open_button, menu.position);
-      reveal.addEventListener("slidechanged", () =>
-        menu.updateCurrentSlideMark()
-      );
+      reveal.addEventListener("slidechanged", (event) => {
+        const currentSlide = event.currentSlide;
+        menu.updateCurrentSlideMark(currentSlide);
+      });
     },
   };
 };

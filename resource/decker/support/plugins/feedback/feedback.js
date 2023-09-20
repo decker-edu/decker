@@ -123,11 +123,15 @@ class Feedback {
   openMenu() {
     if (this.menu.container.inert) {
       this.menu.container.inert = false;
+      this.menu.token_lock.focus();
+      // This is necessary for the handout plugin because it disables change of the "currentSlide" of Reveal.
+      // TODO: Find a better way to deal with this
+      if (!document.documentElement.classList.contains("handout"))
+        this.requestMenuContent();
       this.reveal.getRevealElement().inert = true;
       // localStorage.setItem("feedback-state", "open");
       this.glass.classList.add("show");
       this.menu.token_lock.focus();
-      this.requestMenuContent();
     }
   }
 
@@ -272,6 +276,12 @@ class Feedback {
   sendComment(event) {
     if (event.key === "Enter" && event.shiftKey) {
       let slideId = this.reveal.getCurrentSlide().id;
+      if (
+        document.documentElement.classList.contains("handout") &&
+        this.mostRecentSlideID
+      ) {
+        slideId = this.mostRecentSlideID;
+      }
       if (this.menu.feedback_input.hasAttribute("answer")) {
         this.engine.api
           .postAnswer(
@@ -347,8 +357,14 @@ class Feedback {
    * Sends an async request to the engine to get the questions of the current slide.
    * @returns A promise that resolves when the update is finished
    */
-  requestMenuContent() {
-    let slideId = this.reveal.getCurrentSlide().id;
+  requestMenuContent(slide) {
+    let slideId;
+    if (!slide) {
+      slideId = this.reveal.getCurrentSlide().id;
+    } else {
+      slideId = slide.id;
+    }
+    this.mostRecentSlideID = slideId;
     return this.engine.api
       .getComments(
         this.engine.deckId,
@@ -671,13 +687,7 @@ class Feedback {
       const slideID = comment.slide;
       const slide = document.getElementById(slideID);
       if (slide) {
-        const indices = this.reveal.getIndices(slide);
-        let item = undefined;
-        if (indices.v) {
-          item = menu_plugin.getListItem(indices.h, indices.v);
-        } else {
-          item = menu_plugin.getListItem(indices.h);
-        }
+        let item = menu_plugin.getListItemByID(slideID);
         if (item) {
           let questions = item.hasAttribute("data-questions")
             ? parseInt(item.getAttribute("data-questions"))
@@ -837,6 +847,9 @@ let plugin = () => {
   return {
     id: "feedback",
 
+    getEngine: undefined,
+    requestMenuContent: undefined,
+
     init(reveal) {
       const instance = new Feedback("TOP_RIGHT");
       instance.reveal = reveal;
@@ -912,6 +925,9 @@ let plugin = () => {
           },
         };
       }
+
+      this.getEngine = () => instance.engine;
+      this.requestMenuContent = (slide) => instance.requestMenuContent(slide);
 
       let url = instance.config?.server || instance.config?.["base-url"];
       let id = instance.config?.deckID || instance.config?.["deck-id"];

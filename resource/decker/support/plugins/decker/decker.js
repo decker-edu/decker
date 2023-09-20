@@ -15,6 +15,7 @@ function onStart(deck) {
 
   deck.addEventListener("ready", () => {
     if (!printMode) {
+      totalSlides = deck.getTotalSlides();
       setTimeout(() => continueWhereYouLeftOff(deck), 500);
     }
 
@@ -237,12 +238,55 @@ function createElement({
   return e;
 }
 
+let totalSlides;
+
+function updateProgress(deck, event) {
+  let slide;
+  if (event && event.currentSlide) {
+    slide = event.currentSlide;
+  }
+  // store current slide index in localStorage
+  const slideIndex = deck.getIndices(slide);
+  if (slideIndex && slideIndex.h != 0) {
+    // store current slide index (h- and v-index and fragment)
+    updateLastVisitedSlide(slideIndex);
+    updatePercentage(slideIndex.h);
+  }
+}
+
+function updateLastVisitedSlide(slideIndex) {
+  localStorage.setItem(deckPathname, JSON.stringify(slideIndex));
+}
+
+function updatePercentage(horizontalIndex) {
+  // store percentage of slides visited
+  const idx = horizontalIndex + 1; // starts at 0
+  const percent = Math.round((100.0 * idx) / totalSlides);
+  const key = deckPathname + "-percentage";
+  const percentBefore = localStorage.getItem(key);
+  if (percent > percentBefore) {
+    localStorage.setItem(key, percent);
+  }
+}
+
 function continueWhereYouLeftOff(deck) {
   // if *-deck.html was opened on the title slide,
   // and if user has visited this slide decks before,
   // then ask user whether to jump to slide where he/she left off
 
   if (localStorage) {
+    deck.addEventListener("slidechanged", (event) =>
+      updateProgress(deck, event)
+    );
+    window.addEventListener("beforeunload", () => {
+      if (deck.hasPlugin("explain")) {
+        const explainPlugin = deck.getPlugin("explain");
+        // if explain video is playing, stop it to switch to current slide
+        if (explainPlugin.isVideoPlaying()) {
+          explainPlugin.stopVideo();
+        }
+      }
+    });
     // if we are on the first slide
     const slideIndex = deck.getIndices();
     if (slideIndex && slideIndex.h == 0 && slideIndex.v == 0) {
@@ -298,33 +342,6 @@ function continueWhereYouLeftOff(deck) {
         deck.addEventListener("slidechanged", hideDialog);
       }
     }
-
-    // add hook to store current slide's index
-    window.addEventListener("beforeunload", () => {
-      // if explain video is playing, stop it to switch to current slide
-      if (deck.hasPlugin("explain")) {
-        const explainPlugin = deck.getPlugin("explain");
-        if (explainPlugin.isVideoPlaying()) {
-          explainPlugin.stopVideo();
-        }
-      }
-      // store current slide index in localStorage
-      const slideIndex = deck.getIndices();
-      if (slideIndex && slideIndex.h != 0) {
-        // store current slide index (h- and v-index and fragment)
-        localStorage.setItem(deckPathname, JSON.stringify(slideIndex));
-
-        // store percentage of slides visited
-        const idx = slideIndex.h + 1; // starts at 0
-        const nSlides = deck.getTotalSlides();
-        const percent = Math.round((100.0 * idx) / nSlides);
-        const key = deckPathname + "-percentage";
-        const percentBefore = localStorage.getItem(key);
-        if (percent > percentBefore) {
-          localStorage.setItem(key, percent);
-        }
-      }
-    });
   }
 }
 
@@ -334,18 +351,17 @@ function prepareFlashPanel(deck) {
 
   // This is why this needs to run after Reveal is ready.
   let revealElement = deck.getRevealElement();
-  if (revealElement) {
+  let viewport = revealElement.parentElement;
+  if (viewport) {
     let panelHtml = `
   <div class="decker-flash-panel">
     <div class="content"> </div>
   </div>
   `;
-    revealElement.insertAdjacentHTML("beforeend", panelHtml);
+    viewport.insertAdjacentHTML("beforeend", panelHtml);
 
-    let panel = revealElement.querySelector("div.decker-flash-panel");
-    let content = revealElement.querySelector(
-      "div.decker-flash-panel div.content"
-    );
+    let panel = viewport.querySelector("div.decker-flash-panel");
+    let content = viewport.querySelector("div.decker-flash-panel div.content");
 
     let update = (msg) => {
       if (msg) {
@@ -395,6 +411,7 @@ function preparePresenterMode(deck) {
   let revealElement = deck.getRevealElement();
   if (!revealElement)
     throw "Reveal slide element is missing. This is seriously wrong.";
+  let viewportElement = deck.getViewportElement();
 
   Decker.addPresenterModeListener = (callback) => {
     listeners.push(callback);
@@ -419,12 +436,18 @@ function preparePresenterMode(deck) {
     },
 
     Decker.tripleClick(() => {
+      if (deck.hasPlugin("handout")) {
+        const handoutPlugin = deck.getPlugin("handout");
+        if (handoutPlugin.isActive()) {
+          return;
+        }
+      }
       presenterMode = !presenterMode;
 
       if (presenterMode) {
-        revealElement.classList.add("presenter-mode");
+        viewportElement.classList.add("presenter-mode");
       } else {
-        revealElement.classList.remove("presenter-mode");
+        viewportElement.classList.remove("presenter-mode");
       }
 
       for (let callback of listeners) {
@@ -442,6 +465,8 @@ const Plugin = {
       resolve();
     });
   },
+  updatePercentage: updatePercentage,
+  updateLastVisitedSlide: updateLastVisitedSlide,
 };
 
 export default Plugin;

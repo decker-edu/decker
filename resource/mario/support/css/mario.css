@@ -1344,7 +1344,7 @@ body.print-pdf div.open-button {
    * quiz polling
    *********************************************/
 
-.reveal:not(.poll) .poll-only {
+.reveal-viewport:not(.poll) .poll-only {
   display: none;
 }
 

@@ -10,7 +10,7 @@ default.yaml or in variables.css:
 */
 
 :root {
-   /* Calculate all font size variables depending on the base font size accessible 
+  /* Calculate all font size variables depending on the base font size accessible 
    via yaml config */
   --font-size-medium: calc(var(--font-size-base) * 1);
   --font-size-normal: calc(var(--font-size-base) * 1);
@@ -40,7 +40,6 @@ default.yaml or in variables.css:
   --margin-bottom-columns: calc(var(--margin-bottom-elements-base) * 0);
   --margin-bottom-references: calc(var(--margin-bottom-elements-base) * 0.3);
 }
-
 
 /* General setting for the used font, size and color. 
 Requires the color variables to be set */
@@ -122,18 +121,16 @@ one wy to set these but we want old sources to still work. Maybe clean-up later 
 .reveal
   section:is(.white, .inverse, .has-dark-background)
   :is(h1, h2, h3, h4, h5, h6) {
-  color: var(--shade0)
+  color: var(--shade0);
 }
 
 .reveal section:is(.white, .inverse, .has-dark-background) {
-   color: var(--shade0) 
+  color: var(--shade0);
 }
 
 /* p, li {
   line-height: 1.3;
 } */
-
-
 
 strong,
 b {
@@ -179,13 +176,13 @@ em {
 }
 
 .title-page .teaser-img img {
-   margin: var(--title-page-vertical-margin) auto;
-   /* Center horizontally */
-   display: block;
-   /* Make the image as max 250px high retaining aspect ratio */
-   object-fit: contain;
-   max-height: 250px;
-   width: auto;
+  margin: var(--title-page-vertical-margin) auto;
+  /* Center horizontally */
+  display: block;
+  /* Make the image as max 250px high retaining aspect ratio */
+  object-fit: contain;
+  max-height: 250px;
+  width: auto;
 }
 
 .title-page .date {
@@ -243,27 +240,27 @@ em {
  containers nach links um die Breite der seitlichen Auszeichnung
 */
 div.alignment {
-   margin-right: calc(var(--block-border-width) + var(--block-border-padding));
+  margin-right: calc(var(--block-border-width) + var(--block-border-padding));
 }
 
 /* Blocks have some padding and a border to allow for highlighting without
 disturbing the layout. This one is taken from styles.css from default and overwritten
 here */
 div.block {
-   border-width: 0 0 0 var(--block-border-width);
-   padding: 0 0 0 var(--block-border-padding);
-   /* padding-left: var(--block-border-padding); */
-   /* The next one is needed since the margins below blocks is missing 
+  border-width: 0 0 0 var(--block-border-width);
+  padding: 0 0 0 var(--block-border-padding);
+  /* padding-left: var(--block-border-padding); */
+  /* The next one is needed since the margins below blocks is missing 
    and it seems that the !important setting im styles.css in the 
    decker template kind oif collapses this one */
-   margin-bottom: calc(1 * var(--vertical-margin)) !important; 
- }
+  margin-bottom: calc(1 * var(--vertical-margin)) !important;
+}
 
- /* Stretch the block header margin to the block border so that highlighting
+/* Stretch the block header margin to the block border so that highlighting
 works. */
 div.block h2 {
-   padding: 0;
-   margin: 0 0 calc(1 * var(--vertical-margin)) 0; 
+  padding: 0;
+  margin: 0 0 calc(1 * var(--vertical-margin)) 0;
 }
 
 /* The latter is already from styles.css for h1, p, div, ul, ol, table.
@@ -271,16 +268,14 @@ div.block h2 {
    the last list item (maybe the latter was just forgotten since ul and ol were 
    mentioned.
 */
-:is(h2, li):last-child {  
-   margin-bottom: 0 !important;
+:is(h2, li):last-child {
+  margin-bottom: 0 !important;
 }
-
 
 /* How to repair the quiz buttons */
 /* div.quiz ul li {  
    margin: 0px;
 } */
-
 
 /* Align headers with blocks. */
 section h1 {
@@ -347,408 +342,403 @@ div.block.theorem {
   margin-right: auto;
 }
 
-
-
- /*********************************************
+/*********************************************
    * From mario.css: bibliography
    *********************************************/
 
-   .reveal .references {
-      margin: auto;
-      max-height: 600px;
-      width: 90%;
-      overflow-y: auto;
-    }
-    
-    .reveal .references > div {
-      padding-left: 1em;
-      text-indent: -1em;
-      text-align: left;
-      margin-bottom: 1em;
-    }
+.reveal .references {
+  margin: auto;
+  max-height: 600px;
+  width: 90%;
+  overflow-y: auto;
+}
 
-   
-   /* Here I overwrite the color setting of the highlights */
+.reveal .references > div {
+  padding-left: 1em;
+  text-indent: -1em;
+  text-align: left;
+  margin-bottom: 1em;
+}
 
-   a,
-   a:visited,
-   a:active {
-      color: var(--primary-color);
-   }
+/* Here I overwrite the color setting of the highlights */
 
-   a:hover {
-      color: var(--secondary-color);
-   }
+a,
+a:visited,
+a:active {
+  color: var(--primary-color);
+}
 
-   /**** This is a layout to position elements at the bottom of the container, needs
+a:hover {
+  color: var(--secondary-color);
+}
+
+/**** This is a layout to position elements at the bottom of the container, needs
    more tuning later ****/
 
-   div.flush-bottom {
-      position: absolute;
-      bottom: 0px;
-   }
+div.flush-bottom {
+  position: absolute;
+  bottom: 0px;
+}
 
-   div.flush-bottom-right {
-      position: absolute;
-      bottom: 0px;
-      text-align: right;
-   }
+div.flush-bottom-right {
+  position: absolute;
+  bottom: 0px;
+  text-align: right;
+}
 
-   /* The footnotes are too big   */
-   .footnotes {
-      font-size: var(--font-size-small);
-   }
+/* The footnotes are too big   */
+.footnotes {
+  font-size: var(--font-size-small);
+}
 
- /*********************************************
+/*********************************************
  * Quizzes with task list syntax
  *********************************************/
 
 /* quiz flex layout */
 .reveal .quiz ul {
-   display: flex;
-   flex-direction: row;
-   flex-wrap: wrap;
-   justify-content: center;
-   align-items: center;
-   align-content: center;
-   text-align: center;
-   counter-reset: answer;
-   margin-top: 1em;
- }
- 
- /* possibility to hide quizzes */
- .hide-quizzes .reveal .quiz,
- .hide-quizzes .reveal .quiz * {
-   visibility: hidden;
- }
- 
- /* one quiz item */
- .reveal .quiz ul li {
-   display: inline-block;
-   position: relative;
-   text-align: left;
-   margin: 0.5em;
-   border: 3px solid var(--blueish);
-   border-radius: 0.5em;
-   padding: 0.5em;
-   font-weight: normal;
-   background-color: var(--shade1);
-   cursor: pointer;
- }
- 
- /* add A, B, C, D... */
- .reveal .quiz ul.task-list > li::before {
-   content: counter(answer, upper-latin) ": ";
-   counter-increment: answer;
-   margin-right: 0.5em;
-   font-weight: bold;
- }
- 
- /* remove task list checkbox */
- .reveal .quiz ul.task-list li > input[type="checkbox"] {
-   display: none;
- }
- 
- /* 2nd level ul contains tool tip */
- .reveal .quiz ul.task-list li ul {
-   display: inline-block;
-   margin: 0;
-   padding: 0;
- }
- 
- /* don't need this for 2nd level */
- .reveal .quiz ul.task-list li ul li::before {
-   display: none;
- }
- 
- /* tool tip */
- .reveal .quiz ul li ul li {
-   display: block;
-   visibility: hidden;
-   max-width: 95%;
-   top: 100%;
-   left: 5px;
-   background-color: grey;
-   color: #ffffff;
-   text-align: center;
-   margin: 5px;
-   padding: 5px;
-   border-radius: 6px;
-   border: none;
-   position: absolute;
-   z-index: 1;
-   font-size: 1rem;
- }
- 
- /* once clicked, wrong answers are red */
- .reveal .quiz ul li.wrong {
-   --quiz-background-color: var(--red-background-color);
-   --quiz-border-color: var(--red-border-color);
-   --quiz-icon: "\f00d";
- }
- 
- /* once clicked, correct answers are green */
- .reveal .quiz ul li.right {
-   --quiz-background-color: var(--green-background-color);
-   --quiz-border-color: var(--green-border-color);
-   --quiz-icon: "\f00c";
- }
- 
- .reveal .quiz ul li.show-answer {
-   background-color: var(--quiz-background-color);
-   border-color: var(--quiz-border-color);
- }
- .reveal .quiz ul li.show-answer::after {
-   font-style: normal;
-   font-variant: normal;
-   text-rendering: auto;
-   font-weight: 900;
-   font-family: "Font Awesome 5 Free";
-   content: var(--quiz-icon);
-   position: absolute;
-   font-size: 15px;
-   right: 0.2em;
-   bottom: -0.1em;
-   padding: 0.1em;
-   color: var(--quiz-border-color);
- }
- 
- /* tool tips are shown on hover */
- .reveal .show-answer:hover ul li {
-   visibility: visible;
- }
- 
- /*********************************************
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  text-align: center;
+  counter-reset: answer;
+  margin-top: 1em;
+}
+
+/* possibility to hide quizzes */
+.hide-quizzes .reveal .quiz,
+.hide-quizzes .reveal .quiz * {
+  visibility: hidden;
+}
+
+/* one quiz item */
+.reveal .quiz ul li {
+  display: inline-block;
+  position: relative;
+  text-align: left;
+  margin: 0.5em;
+  border: 3px solid var(--blueish);
+  border-radius: 0.5em;
+  padding: 0.5em;
+  font-weight: normal;
+  background-color: var(--shade1);
+  cursor: pointer;
+}
+
+/* add A, B, C, D... */
+.reveal .quiz ul.task-list > li::before {
+  content: counter(answer, upper-latin) ": ";
+  counter-increment: answer;
+  margin-right: 0.5em;
+  font-weight: bold;
+}
+
+/* remove task list checkbox */
+.reveal .quiz ul.task-list li > input[type="checkbox"] {
+  display: none;
+}
+
+/* 2nd level ul contains tool tip */
+.reveal .quiz ul.task-list li ul {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+
+/* don't need this for 2nd level */
+.reveal .quiz ul.task-list li ul li::before {
+  display: none;
+}
+
+/* tool tip */
+.reveal .quiz ul li ul li {
+  display: block;
+  visibility: hidden;
+  max-width: 95%;
+  top: 100%;
+  left: 5px;
+  background-color: grey;
+  color: #ffffff;
+  text-align: center;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 6px;
+  border: none;
+  position: absolute;
+  z-index: 1;
+  font-size: 1rem;
+}
+
+/* once clicked, wrong answers are red */
+.reveal .quiz ul li.wrong {
+  --quiz-background-color: var(--red-background-color);
+  --quiz-border-color: var(--red-border-color);
+  --quiz-icon: "\f00d";
+}
+
+/* once clicked, correct answers are green */
+.reveal .quiz ul li.right {
+  --quiz-background-color: var(--green-background-color);
+  --quiz-border-color: var(--green-border-color);
+  --quiz-icon: "\f00c";
+}
+
+.reveal .quiz ul li.show-answer {
+  background-color: var(--quiz-background-color);
+  border-color: var(--quiz-border-color);
+}
+.reveal .quiz ul li.show-answer::after {
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  font-weight: 900;
+  font-family: "Font Awesome 5 Free";
+  content: var(--quiz-icon);
+  position: absolute;
+  font-size: 15px;
+  right: 0.2em;
+  bottom: -0.1em;
+  padding: 0.1em;
+  color: var(--quiz-border-color);
+}
+
+/* tool tips are shown on hover */
+.reveal .show-answer:hover ul li {
+  visibility: visible;
+}
+
+/*********************************************
   * override quiz-wue settings
   *********************************************/
- 
- .reveal [class*="quiz-"] button {
-   font: inherit;
-   font-size: 0.9em;
-   margin: 0.5em;
-   padding: 0.5em;
-   color: var(--shade6);
-   background: var(--shade1);
-   border: 2px solid var(--icon-active-color);
-   border-radius: 0.5em;
- }
- 
- .reveal .quiz-ft button {
-   display: none;
- }
- 
- .reveal .quiz-ft input {
-   font: inherit;
-   font-size: 0.8em;
-   margin: 0.5em;
-   padding: 10px;
-   border: 2px solid var(--blueish);
-   color: var(--shade6);
-   background-color: var(--shade1);
-   outline: none;
- }
- 
- .reveal .qft-solutions,
- .reveal .qft-solutions.solved {
-   display: none;
- }
- 
- .reveal .quiz-ic select {
-   font: inherit;
-   font-size: 0.9em;
-   font-weight: normal;
-   padding: 5px;
-   border: 2px solid var(--blueish);
-   color: var(--shade6);
-   background-color: var(--shade1);
-   outline: none;
- }
- 
- .reveal .quiz-ic option {
-   font: inherit;
-   font-size: inherit;
-   font-weight: normal;
- }
- 
- .reveal .quiz-mi {
-   width: var(--slide-width);
-   text-align: center;
- }
- 
- .reveal .quiz-mi .buckets,
- .reveal .quiz-mi .matchItems {
-   box-sizing: border-box;
-   border: 2px solid var(--shade3);
-   padding: 15px 10px;
- }
- 
- .reveal .quiz-mi .buckets {
-   margin-bottom: 20px;
-   margin-top: 60px;
- }
- 
- .reveal .quiz-mi .buckets:before,
- .reveal .quiz-mi .matchItems:before {
-   position: absolute;
-   top: -20px;
-   left: 10px;
-   font-size: 15px;
-   background-color: var(--shade0);
-   padding: 5px;
-   color: var(--shade3);
- }
- 
- .reveal .quiz-mi .matchItems:before {
-   content: "Drag objects from here...";
- }
- 
- .reveal .quiz-mi .buckets:before {
-   content: "...and drop them here into the correct category";
- }
- 
- :lang(de) .reveal .quiz-mi .matchItems:before {
-   content: "Objekte per Drag & Drop nach unten ziehen...";
- }
- 
- :lang(de) .reveal .quiz-mi .buckets:before {
-   content: "...und hier in die richtige Kategorie einsortieren";
- }
- 
- .reveal .quiz-mi .matchItems:after {
-   position: absolute;
-   bottom: -30px;
-   border-left: 30px solid transparent;
-   border-right: 30px solid transparent;
-   border-top: 30px solid var(--shade3);
- }
- 
- .reveal .quiz-mi .bucket {
-   display: flex;
-   flex-direction: column;
-   padding: 10px;
-   margin: 0px 5px;
-   border: 1px solid var(--shade3);
- }
- 
- .reveal .quiz-mi .matchItem {
-   display: block;
-   overflow: hidden;
-   border: 2px solid var(--blueish);
-   border-radius: 10px;
-   padding: 10px;
-   cursor: grab;
-   margin: auto;
-   background-color: var(--shade1);
- }
- 
- .reveal [class*="quiz-"] .show-right {
-   background-color: var(--green-background-color);
-   border-color: var(--green-border-color);
- }
- 
- .reveal [class*="quiz"] .show-wrong {
-   background-color: var(--red-background-color);
-   border-color: var(--red-border-color);
- }
- 
-   
+
+.reveal [class*="quiz-"] button {
+  font: inherit;
+  font-size: 0.9em;
+  margin: 0.5em;
+  padding: 0.5em;
+  color: var(--shade6);
+  background: var(--shade1);
+  border: 2px solid var(--icon-active-color);
+  border-radius: 0.5em;
+}
+
+.reveal .quiz-ft button {
+  display: none;
+}
+
+.reveal .quiz-ft input {
+  font: inherit;
+  font-size: 0.8em;
+  margin: 0.5em;
+  padding: 10px;
+  border: 2px solid var(--blueish);
+  color: var(--shade6);
+  background-color: var(--shade1);
+  outline: none;
+}
+
+.reveal .qft-solutions,
+.reveal .qft-solutions.solved {
+  display: none;
+}
+
+.reveal .quiz-ic select {
+  font: inherit;
+  font-size: 0.9em;
+  font-weight: normal;
+  padding: 5px;
+  border: 2px solid var(--blueish);
+  color: var(--shade6);
+  background-color: var(--shade1);
+  outline: none;
+}
+
+.reveal .quiz-ic option {
+  font: inherit;
+  font-size: inherit;
+  font-weight: normal;
+}
+
+.reveal .quiz-mi {
+  width: var(--slide-width);
+  text-align: center;
+}
+
+.reveal .quiz-mi .buckets,
+.reveal .quiz-mi .matchItems {
+  box-sizing: border-box;
+  border: 2px solid var(--shade3);
+  padding: 15px 10px;
+}
+
+.reveal .quiz-mi .buckets {
+  margin-bottom: 20px;
+  margin-top: 60px;
+}
+
+.reveal .quiz-mi .buckets:before,
+.reveal .quiz-mi .matchItems:before {
+  position: absolute;
+  top: -20px;
+  left: 10px;
+  font-size: 15px;
+  background-color: var(--shade0);
+  padding: 5px;
+  color: var(--shade3);
+}
+
+.reveal .quiz-mi .matchItems:before {
+  content: "Drag objects from here...";
+}
+
+.reveal .quiz-mi .buckets:before {
+  content: "...and drop them here into the correct category";
+}
+
+:lang(de) .reveal .quiz-mi .matchItems:before {
+  content: "Objekte per Drag & Drop nach unten ziehen...";
+}
+
+:lang(de) .reveal .quiz-mi .buckets:before {
+  content: "...und hier in die richtige Kategorie einsortieren";
+}
+
+.reveal .quiz-mi .matchItems:after {
+  position: absolute;
+  bottom: -30px;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-top: 30px solid var(--shade3);
+}
+
+.reveal .quiz-mi .bucket {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  margin: 0px 5px;
+  border: 1px solid var(--shade3);
+}
+
+.reveal .quiz-mi .matchItem {
+  display: block;
+  overflow: hidden;
+  border: 2px solid var(--blueish);
+  border-radius: 10px;
+  padding: 10px;
+  cursor: grab;
+  margin: auto;
+  background-color: var(--shade1);
+}
+
+.reveal [class*="quiz-"] .show-right {
+  background-color: var(--green-background-color);
+  border-color: var(--green-border-color);
+}
+
+.reveal [class*="quiz"] .show-wrong {
+  background-color: var(--red-background-color);
+  border-color: var(--red-border-color);
+}
+
 /*********************************************
  * quiz polling
  *********************************************/
 
-.reveal:not(.poll) .poll-only {
-   display: none;
- }
- 
- #poll-chart {
-   font-size: var(--icon-size);
-   position: absolute;
-   left: auto;
-   top: auto;
-   right: 0.5em;
-   bottom: 0.5em;
-   visibility: hidden;
-   z-index: 34;
-   width: 420px;
-   height: 320px;
-   margin: auto;
-   padding: 0.5em;
-   text-align: center;
-   border: 3px solid var(--blueish);
-   border-radius: 0.5em;
-   background-color: var(--shade0);
-   transform-origin: bottom right;
-   box-shadow: 3px 5px 5px var(--shade3);
- }
- 
- #poll-chart.canvas {
-   top: 0;
-   left: 0;
-   width: 400px;
-   height: 300px;
- }
- 
- #poll-votes {
-   font-size: var(--icon-size);
-   color: var(--icon-inactive-color);
-   text-align: center;
-   display: none;
- }
- 
- div.qrcode.container {
-   display: none;
-   z-index: 4000;
-   position: absolute;
-   left: 0;
-   right: 0;
-   bottom: 0;
-   top: 0;
-   background-color: var(--shade0);
- }
- 
- div.qrcode.container button {
-   position: absolute;
-   right: 1em;
-   top: 1em;
- }
- 
- div.qrcode.container.show {
-   display: flex;
- }
- 
- div.qrcode.container {
-   flex-flow: column nowrap;
-   align-items: center;
-   justify-content: center;
-   height: 100%;
- }
- 
- div.qrcode.container canvas {
-   height: 66vh;
-   min-height: 0;
-   aspect-ratio: 1 / 1;
-   background-color: white;
-   padding: 0.5em;
-   border: 0.01em solid black;
-   border-radius: var(--block-border-radius);
- }
- 
- div.qrcode.container a {
-   font-size: 2rem;
-   font-weight: bold;
- }
+.reveal-viewport:not(.poll) .poll-only {
+  display: none;
+}
 
+#poll-chart {
+  font-size: var(--icon-size);
+  position: absolute;
+  left: auto;
+  top: auto;
+  right: 0.5em;
+  bottom: 0.5em;
+  visibility: hidden;
+  z-index: 34;
+  width: 420px;
+  height: 320px;
+  margin: auto;
+  padding: 0.5em;
+  text-align: center;
+  border: 3px solid var(--blueish);
+  border-radius: 0.5em;
+  background-color: var(--shade0);
+  transform-origin: bottom right;
+  box-shadow: 3px 5px 5px var(--shade3);
+}
 
- /* This one should be beack to decker.css */
- .reveal div.sourceCode pre div.language-label {
-   font-family: "Roboto", sans-serif;
-   position: absolute;
-   right: 0;
-   top: 0;
-   color: #666;
-   background-color: #eee;
-   padding: 0em 0.4em;
-   border-radius: 0.2em;
+#poll-chart.canvas {
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 300px;
+}
+
+#poll-votes {
+  font-size: var(--icon-size);
+  color: var(--icon-inactive-color);
+  text-align: center;
+  display: none;
+}
+
+div.qrcode.container {
+  display: none;
+  z-index: 4000;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  background-color: var(--shade0);
+}
+
+div.qrcode.container button {
+  position: absolute;
+  right: 1em;
+  top: 1em;
+}
+
+div.qrcode.container.show {
+  display: flex;
+}
+
+div.qrcode.container {
+  flex-flow: column nowrap;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+div.qrcode.container canvas {
+  height: 66vh;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  background-color: white;
+  padding: 0.5em;
+  border: 0.01em solid black;
+  border-radius: var(--block-border-radius);
+}
+
+div.qrcode.container a {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+/* This one should be beack to decker.css */
+.reveal div.sourceCode pre div.language-label {
+  font-family: "Roboto", sans-serif;
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+  background-color: #eee;
+  padding: 0em 0.4em;
+  border-radius: 0.2em;
 }
 
 /* code highlighting with pandocs built-in skylight highlighter 
@@ -756,181 +746,180 @@ div.block.theorem {
 
 /* Inline code */
 code {
-   font-family: "Source Code Pro", monospace;
-   font-variation-settings: "MONO" 1, "CASL" 0.1;
- }
- 
- /* Code blocks. */
- span.pre > code,
- pre > code {
-   font-size: 90%;
-   line-height: 1.3;
- }
+  font-family: "Source Code Pro", monospace;
+  font-variation-settings: "MONO" 1, "CASL" 0.1;
+}
 
- /* Overwrite Pandoc's syntax highlighting CSS with palette colors */
+/* Code blocks. */
+span.pre > code,
+pre > code {
+  font-size: 90%;
+  line-height: 1.3;
+}
+
+/* Overwrite Pandoc's syntax highlighting CSS with palette colors */
 pre > code.sourceCode {
-   white-space: pre;
-   position: relative;
- }
- pre > code.sourceCode > span {
-   display: inline-block;
-   line-height: 1.25;
- }
- pre > code.sourceCode > span:empty {
-   height: 1.2em;
- }
- .sourceCode {
-   overflow: visible;
- }
- code.sourceCode > span {
-   color: inherit;
-   text-decoration: inherit;
- }
- div.sourceCode {
-   margin: 1em 0;
- }
- pre.sourceCode {
-   margin: 0;
- }
- @media screen {
-   div.sourceCode {
-     overflow: auto;
-   }
- }
- @media print {
-   pre > code.sourceCode {
-     white-space: pre-wrap;
-   }
-   pre > code.sourceCode > span {
-     text-indent: -5em;
-     padding-left: 5em;
-   }
- }
- pre.numberSource code {
-   counter-reset: source-line 0;
- }
- pre.numberSource code > span {
-   position: relative;
-   left: -4em;
-   counter-increment: source-line;
- }
- pre.numberSource code > span > a:first-child::before {
-   content: counter(source-line);
-   position: relative;
-   left: -1em;
-   text-align: right;
-   vertical-align: baseline;
-   border: none;
-   display: inline-block;
-   -webkit-touch-callout: none;
-   -webkit-user-select: none;
-   -khtml-user-select: none;
-   -moz-user-select: none;
-   -ms-user-select: none;
-   user-select: none;
-   padding: 0 4px;
-   width: 4em;
- }
- pre.numberSource {
-   margin-left: 3em;
-   padding-left: 4px;
- }
- div.sourceCode {
-   color: var(--shade7);
-   background-color: var(--shade1);
- }
- @media screen {
-   pre > code.sourceCode > span > a:first-child::before {
-     text-decoration: underline;
-   }
- }
- 
- code span.al {
-   color: var(--accent0);
- } /* Alert */
- code span.an {
-   color: var(--accent5);
-   font-weight: bold;
- } /* Annotation */
- code span.at {
- } /* Attribute */
- code span.bn {
-   color: var(--accent1);
- } /* BaseN */
- code span.bu {
- } /* BuiltIn */
- code span.cf {
-   color: var(--accent7);
- } /* ControlFlow */
- code span.ch {
-   color: var(--accent3);
- } /* Char */
- code span.cn {
-   color: var(--accent1);
-   font-weight: bold;
- } /* Constant */
- code span.co {
-   color: var(--shade6);
- } /* Comment */
- code span.cv {
-   color: var(--shade5);
-   font-weight: bold;
- } /* CommentVar */
- code span.do {
-   color: var(--shade5);
- } /* Documentation */
- code span.dt {
-   color: var(--accent1);
- } /* DataType */
- code span.dv {
-   color: var(--accent1);
- } /* DecVal */
- code span.er {
-   color: var(--accent7);
- } /* Error */
- code span.ex {
- } /* Extension */
- code span.fl {
-   color: var(--accent1);
- } /* Float */
- code span.fu {
-   color: var(--accent7);
- } /* Function */
- code span.im {
- } /* Import */
- code span.in {
-   color: var(--accent3);
-   font-weight: bold;
- } /* Information */
- code span.kw {
-   color: var(--shade7);
- } /* Keyword */
- code span.op {
-   color: var(--accent7);
-   font-weight: bold;
- } /* Operator */
- code span.ot {
- } /* Other */
- code span.pp {
-   color: var(--accent1);
-   font-weight: bold;
- } /* Preprocessor */
- code span.sc {
-   color: var(--accent0);
- } /* SpecialChar */
- code span.ss {
-   color: var(--accent0);
- } /* SpecialString */
- code span.st {
-   color: var(--accent5);
- } /* String */
- code span.va {
- } /* Variable */
- code span.vs {
-   color: var(--accent2);
- } /* VerbatimString */
- code span.wa {
-   color: var(--accent0);
-   font-weight: bold;
- } /* Warning */
- 
+  white-space: pre;
+  position: relative;
+}
+pre > code.sourceCode > span {
+  display: inline-block;
+  line-height: 1.25;
+}
+pre > code.sourceCode > span:empty {
+  height: 1.2em;
+}
+.sourceCode {
+  overflow: visible;
+}
+code.sourceCode > span {
+  color: inherit;
+  text-decoration: inherit;
+}
+div.sourceCode {
+  margin: 1em 0;
+}
+pre.sourceCode {
+  margin: 0;
+}
+@media screen {
+  div.sourceCode {
+    overflow: auto;
+  }
+}
+@media print {
+  pre > code.sourceCode {
+    white-space: pre-wrap;
+  }
+  pre > code.sourceCode > span {
+    text-indent: -5em;
+    padding-left: 5em;
+  }
+}
+pre.numberSource code {
+  counter-reset: source-line 0;
+}
+pre.numberSource code > span {
+  position: relative;
+  left: -4em;
+  counter-increment: source-line;
+}
+pre.numberSource code > span > a:first-child::before {
+  content: counter(source-line);
+  position: relative;
+  left: -1em;
+  text-align: right;
+  vertical-align: baseline;
+  border: none;
+  display: inline-block;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  padding: 0 4px;
+  width: 4em;
+}
+pre.numberSource {
+  margin-left: 3em;
+  padding-left: 4px;
+}
+div.sourceCode {
+  color: var(--shade7);
+  background-color: var(--shade1);
+}
+@media screen {
+  pre > code.sourceCode > span > a:first-child::before {
+    text-decoration: underline;
+  }
+}
+
+code span.al {
+  color: var(--accent0);
+} /* Alert */
+code span.an {
+  color: var(--accent5);
+  font-weight: bold;
+} /* Annotation */
+code span.at {
+} /* Attribute */
+code span.bn {
+  color: var(--accent1);
+} /* BaseN */
+code span.bu {
+} /* BuiltIn */
+code span.cf {
+  color: var(--accent7);
+} /* ControlFlow */
+code span.ch {
+  color: var(--accent3);
+} /* Char */
+code span.cn {
+  color: var(--accent1);
+  font-weight: bold;
+} /* Constant */
+code span.co {
+  color: var(--shade6);
+} /* Comment */
+code span.cv {
+  color: var(--shade5);
+  font-weight: bold;
+} /* CommentVar */
+code span.do {
+  color: var(--shade5);
+} /* Documentation */
+code span.dt {
+  color: var(--accent1);
+} /* DataType */
+code span.dv {
+  color: var(--accent1);
+} /* DecVal */
+code span.er {
+  color: var(--accent7);
+} /* Error */
+code span.ex {
+} /* Extension */
+code span.fl {
+  color: var(--accent1);
+} /* Float */
+code span.fu {
+  color: var(--accent7);
+} /* Function */
+code span.im {
+} /* Import */
+code span.in {
+  color: var(--accent3);
+  font-weight: bold;
+} /* Information */
+code span.kw {
+  color: var(--shade7);
+} /* Keyword */
+code span.op {
+  color: var(--accent7);
+  font-weight: bold;
+} /* Operator */
+code span.ot {
+} /* Other */
+code span.pp {
+  color: var(--accent1);
+  font-weight: bold;
+} /* Preprocessor */
+code span.sc {
+  color: var(--accent0);
+} /* SpecialChar */
+code span.ss {
+  color: var(--accent0);
+} /* SpecialString */
+code span.st {
+  color: var(--accent5);
+} /* String */
+code span.va {
+} /* Variable */
+code span.vs {
+  color: var(--accent2);
+} /* VerbatimString */
+code span.wa {
+  color: var(--accent0);
+  font-weight: bold;
+} /* Warning */

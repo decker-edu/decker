@@ -19,7 +19,19 @@ function setupProgressIndicators() {
     }
 
     const key = url.pathname + "-percentage";
-    const percent = localStorage.getItem(key) || 0;
+    let percent = localStorage.getItem(key) || 0;
+    // Reset if percent is faulty
+    percent = Number(percent);
+    if (isNaN(percent) || percent === Infinity || percent > 100) {
+      console.log(
+        "[index.js] reset percent progress for " +
+          key +
+          " because value is " +
+          percent
+      );
+      percent = 0;
+      localStorage.setItem(key, 0);
+    }
 
     let progress = document.createElement("progress");
     progress.max = 100;

@@ -141,9 +141,9 @@ div.block[popup="center-down"] {
 
 div.decker-flash-panel {
   z-index: 1000;
-  position: absolute;
+  position: fixed;
   left: 0;
-  right: 0;
+  top: 0;
   width: 100%;
   height: 100%;
   padding: 0;
@@ -185,6 +185,6 @@ div#continue-dialog {
   z-index: 50;
 }
 
-.reveal:not(.presenter-mode) .presenter-only {
+.reveal-viewport:not(.presenter-mode) .presenter-only {
   display: none !important;
 }

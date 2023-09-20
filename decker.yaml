@@ -24,6 +24,7 @@ static-resources:
 # resource-pack: exe:wburg
 # resource-pack: exe:mario
 # resource-pack: exe:mono
+# resource-pack: exe:tudo
 
 progress: false
 

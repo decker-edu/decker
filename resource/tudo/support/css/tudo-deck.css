@@ -778,9 +778,19 @@ span.sequence {
  * TITLE SLIDE
  *********************************************/
 
+#title-slide .alignment {
+  width: 100%;
+}
+
+#title-slide.center .decker {
+  justify-content: flex-start;
+}
+
 .background-on-accent {
   background-color: var(--accent3);
+  width: 100%;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 section#title-slide h1 {
@@ -1238,7 +1248,9 @@ section#title-slide .decker-link:hover {
 }
 
 .reveal .quiz-mi {
-  width: var(--slide-width);
+  width: calc(
+    var(--slide-width) - 2 * var(--block-outset) - 2 * var(--block-border-width)
+  );
   text-align: center;
 }
 
@@ -1308,7 +1320,7 @@ section#title-slide .decker-link:hover {
  * quiz polling
  *********************************************/
 
-.reveal:not(.poll) .poll-only {
+.reveal-viewport:not(.poll) .poll-only {
   display: none;
 }
 
@@ -1419,4 +1431,25 @@ html.dark
   :is(svg, img, div.chart-container, iframe) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
+}
+
+/*
+ * Accessibility Mode Color Adjustments
+ */
+
+html.a11y {
+  --accent3: #538234 !important;
+}
+
+html.a11y .reveal a {
+  color: var(--blueish);
+  text-decoration: underline;
+  transition: transform 0.1s ease-out 0s;
+}
+
+html.a11y .reveal a:hover {
+  display: inline-block;
+  background-color: var(--foreground-color);
+  color: var(--accent6-bbg);
+  transform: scale(1.05);
 }
