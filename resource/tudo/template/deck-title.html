@@ -1,0 +1,67 @@
+<section id="title-slide">
+  <div class="decker">
+    <div class="alignment">
+      <header class="background-on-accent">
+        <h1 class="title">$title$</h1>
+        $if(subtitle)$
+        <h2 class="subtitle">$subtitle$</h2>
+        $endif$
+      </header>
+
+<!-- Leave this here for debug purposes
+
+      $if(rpv-test.leaf-path)$
+      <img style="width: 100px;" src="$rpv-test.leaf-path$">
+      $endif$
+      $rpv-test.leaf-no-path$
+      $if(rpv-test.branch.path)$
+      <img style="width: 100px;" src="$rpv-test.branch.path$">
+      $endif$
+      $rpv-test.branch.no-path$
+
+    -->
+      $if(authors)$
+      <div class="authors">
+        $for(authors)$
+        $it:author-template.html()$
+        $endfor$
+      </div>
+      $endif$
+      
+      $if(copyright)$
+      $copyright:copyright-template.html()$
+      $endif$
+
+      $if(author)$
+      $author:author-template.html()$
+      $endif$
+
+      $if(affiliation)$
+      $affiliation:affiliation-template.html()$
+      $endif$
+
+      $if(date)$
+        <div class="date"> $date$ </div>
+      $endif$
+
+      $if(teaser)$
+      <div class="teaser">
+        $teaser:image-template.html()$
+      </div>
+      $endif$
+
+      $if(logos)$
+      <div class="logos">
+        $for(logos)$
+        <div class="logo">
+          $it:image-template.html()$
+        </div>
+        $endfor$
+      </div>
+      $endif$
+      $if(showDeckerLink)$
+      <a class="decker-link" href="https://decker-edu.github.io/decker/">🚀 by Decker</a>
+      $endif$
+    </div>
+  </div>
+</section>
