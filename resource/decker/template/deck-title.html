@@ -8,6 +8,8 @@
         $endif$
       </header>
 
+<!-- Leave this here for debug purposes
+
       $if(rpv-test.leaf-path)$
       <img style="width: 100px;" src="$rpv-test.leaf-path$">
       $endif$
@@ -17,6 +19,7 @@
       $endif$
       $rpv-test.branch.no-path$
 
+    -->
       $if(authors)$
       <div class="authors">
         $for(authors)$
@@ -43,18 +46,16 @@
 
       $if(teaser)$
       <div class="teaser">
-        $if(teaser.url)$
-        <img class="teaser" src="$teaser.url$" $if(teaser.width)$width="$teaser.width$"$endif$ $if(teaser.height)$height="$teaser.height$"$endif$>
-        $else$
-        <img class="teaser" src="$teaser$">
-        $endif$
+        $teaser:image-template.html()$
       </div>
       $endif$
 
       $if(logos)$
       <div class="logos">
         $for(logos)$
-        <img class="logo" src="$logos$">
+        <div class="logo">
+          $it:image-template.html()$
+        </div>
         $endfor$
       </div>
       $endif$

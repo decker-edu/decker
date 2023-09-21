@@ -76,6 +76,12 @@ $endif$
   <link rel="stylesheet" href="$template.deck.css$">
   $endfor$
 
+  $if(highlighting-css)$
+  <style>
+$highlighting-css$
+  </style>
+$endif$
+
   <script type="module">
     /* Store JSON encoded Pandoc meta data in a global variable. */
     import initializeDecker from "./$decker-support-dir$/js/decker.js";

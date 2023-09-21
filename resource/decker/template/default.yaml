@@ -1,8 +1,8 @@
 runtime-path-variables:
   - logos
-  - affiliation.logo
-  - author.affiliation.logo
-  - authors.affiliation.logo
+  - affiliation
+  - author
+  - authors
   - rpv-test.leaf-path
   - rpv-test.leaf-no-path
   - rpv-test.branch

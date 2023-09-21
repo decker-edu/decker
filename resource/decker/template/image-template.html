@@ -1,0 +1,5 @@
+$if(it.uri)$
+  <img class="title-image" src="$it.uri$" style="$if(it.width)$width: $it.width$;$endif$$if(it.height)$height: $it.height$;$endif$">
+  $else$
+  <img class="title-image" src="$it$">
+$endif$

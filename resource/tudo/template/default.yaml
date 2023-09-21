@@ -1,8 +1,5 @@
-compiletime-path-variables:
-  - authors
-
 logos:
-  - 'support/assets/tu-logo-light.svg'
+  - '/support/assets/tu-logo-light.svg'
 
 reveal:
   backgroundTransition: "none"
@@ -57,6 +54,7 @@ showDeckerLink: true
 
 # other settings
 highlightjs: decker
+highlight-style: kate
 
 # progress bar on index page
 progress: true
