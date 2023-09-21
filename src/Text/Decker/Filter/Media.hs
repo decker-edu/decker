@@ -195,6 +195,8 @@ compileCodeBlock attr@(_, classes, _) code caption = do
       let path =
             transientDir
               </> "code"
+            transientDir
+              </> "code"
               </> intercalate "-" ["code", crc]
                 <.> toString ext
       -- Avoid a possible race condition
