@@ -27,66 +27,13 @@ $if(template.favicon)$
   <link rel="shortcut icon" href="$template.favicon$">
 $endif$
 
-  <!-- Default values for CSS variables can live here. They can be overridden by
-  meta data values. -->
-  <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
-
-  <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
-  into a style sheet. Default values can come from `variables.css`. -->
-  <style class="css-declarations">
-    :root {
-      $for(css-light-color-declarations)$
-        $css-light-color-declarations$
-      $endfor$
-    }
-    :root.dark {
-      $for(css-dark-color-declarations)$
-        $css-dark-color-declarations$
-      $endfor$
-    }
-    :root {
-      $for(css-declarations)$
-        $css-declarations$
-      $endfor$
-    }
-  </style>
-
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reset.css">
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reveal.css">
-  <link rel="stylesheet" href="$decker-support-dir$/components/components.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/decker/ui-anchors.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
-  $if(live-captions)$
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css">
-  $endif$
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
-  <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
-  <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
-  <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
-  <link rel="stylesheet" href="$decker-support-dir$/css/tudo-deck.css">
-  <link rel="stylesheet" href="$decker-support-dir$/plugins/handout/handout.css">
-  $for(template.css)$
-  <link rel="stylesheet" href="$template.css$"/>
-  $endfor$
-  $for(template.deck.css)$
-  <link rel="stylesheet" href="$template.deck.css$">
-  $endfor$
-
-  $if(highlighting-css)$
-  <style>
-$highlighting-css$
-  </style>
-$endif$
-
   <script type="module">
     /* Store JSON encoded Pandoc meta data in a global variable. */
     import initializeDecker from "./$decker-support-dir$/js/decker.js";
     initializeDecker("$decker-meta-url$");
   </script>
+
+  $deck-styles.html()$
 
 </head>
 
@@ -106,73 +53,20 @@ $body$
   <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
   <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
 
-  <script type="module">
-    // import Reveal and all plugins
-    import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
-    import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
-    import uiAnchorsPlugin from './$decker-support-dir$/plugins/decker/ui-anchors.js'
-    import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
-    import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
-    import sagePlugin from './$decker-support-dir$/plugins/sage/sage.js';
-    import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
-    import zoomPlugin from './$decker-support-dir$/plugins/zoom/zoom.js';
-    import printPlugin from './$decker-support-dir$/plugins/print/print.js';
-    import jinglesPlugin from './$decker-support-dir$/plugins/jingles/jingles.js';
-    import quizPlugin from './$decker-support-dir$/plugins/quiz/quiz.js';
-    import quizWuePlugin from './$decker-support-dir$/plugins/quiz-wue/quiz-wue.js';
-    import explainPlugin from './$decker-support-dir$/plugins/explain/explain.js';
-    import chartsPlugin from './$decker-support-dir$/plugins/charts/charts.js';
-    import menuPlugin from './$decker-support-dir$/plugins/menu/menu.js';
-    import feedbackPlugin from './$decker-support-dir$/plugins/feedback/feedback.js';
-    import highlightPlugin from './$decker-support-dir$/vendor/reveal/plugin/highlight/highlight.esm.js';
-    import notesPlugin from './$decker-support-dir$/vendor/reveal/plugin/notes/notes.esm.js';
-    $if(live-captions)$
-    import captionPlugin from './$decker-support-dir$/plugins/live-captioning/live-captioning.js';
-    $endif$
-    import a11yPlugin from './$decker-support-dir$/plugins/a11y/a11y.js';
-    import handoutPlugin from './$decker-support-dir$/plugins/handout/handout.js';
+$deck-plugins.html()$
 
-    let revealConfig = { 
-      // reveal configuration (see https://revealjs.com/config/)
-      ...Decker.meta.reveal,
-
-      // plugin configuration
-      math: { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math },
-      chart: Decker.meta.chart,
-      menu: Decker.meta.menu,
-      explain: Decker.meta.explain,
-      feedback: Decker.meta.feedback || Decker.meta["decker-engine"],
-      jingles: Decker.meta.jingles,
-
-      // list of plugins
-      plugins: [
-        deckerPlugin,
-        uiAnchorsPlugin,
-        sagePlugin,
-        mathPlugin,
-        chartsPlugin,
-        whiteboardPlugin,
-        searchPlugin,
-        zoomPlugin,
-        printPlugin,
-        jinglesPlugin,
-        quizPlugin,
-        quizWuePlugin,
-        explainPlugin,
-        menuPlugin,
-        feedbackPlugin,
-        highlightPlugin,
-        notesPlugin,
-        $if(live-captions)$
-        captionPlugin,
-        $endif$
-        a11yPlugin,
-        handoutPlugin
-      ]
-    };
-
-    Reveal.initialize(revealConfig);
-  </script>
+$for(template.js)$
+  <script src="$template.js$"></script>
+$endfor$
+$for(template.js-module)$
+  <script module src="$template.js-module$"></script>
+$endfor$  
+$for(template.deck.js)$
+  <script src="$template.deck.js$"></script>
+$endfor$
+$for(template.deck.js-module)$
+  <script module src="$template.deck.js$"></script>
+$endfor$
 
 </body>
 </html>

@@ -54,17 +54,23 @@ $body$
 
 $deck-plugins.html()$
 
-</body>
-
 $if(live-captions)$
 <script src="$decker-support-dir$/components/awesome-button.js"></script>
 $endif$
 <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
 
 $for(template.js)$
-  <script type="module" src="$template.js$"></script>
+  <script src="$template.js$"></script>
 $endfor$
+$for(template.js-module)$
+  <script module src="$template.js-module$"></script>
+$endfor$  
 $for(template.deck.js)$
-  <script type="module" src="$template.deck.js$"></script>
+  <script src="$template.deck.js$"></script>
 $endfor$
+$for(template.deck.js-module)$
+  <script module src="$template.deck.js$"></script>
+$endfor$
+
+</body>
 </html>
