@@ -35,13 +35,6 @@ export function showFlyingFocus(event) {
   }
   target = event.target;
 
-  // create flying focus on first call
-  if (!flyingFocus) {
-    flyingFocus = document.createElement("flying-focus"); // use uniq element name to decrease the chances of a conflict with website styles
-    flyingFocus.id = "flying-focus";
-    document.body.appendChild(flyingFocus);
-  }
-
   // set new position of flying focus
   Object.assign(flyingFocus.style, rectOf(target));
 
@@ -52,7 +45,8 @@ export function showFlyingFocus(event) {
   flyingFocus.classList.add("flying-focus_visible");
 }
 
-export function hideFlyingFocus() {
+export function hideFlyingFocus(event) {
+  if (!event) return; // happens when navigating from navigation bar into slide
   if (flyingFocus) flyingFocus.classList.remove("flying-focus_visible");
 }
 
@@ -102,16 +96,21 @@ function rectOf(elem) {
 function borderOf(elem) {
   const style = window.getComputedStyle(elem);
   return {
-    padding: style.padding,
     borderBottomLeftRadius: style.borderBottomLeftRadius,
     borderBottomRightRadius: style.borderBottomRightRadius,
     borderTopLeftRadius: style.borderTopLeftRadius,
     borderTopRightRadius: style.borderTopRightRadius,
+    boxSizing: style.boxSizing,
   };
 }
 
 // setup event listeners
 export function setupFlyingFocus() {
+  // use uniq element name to decrease the chances of a conflict with website styles
+  flyingFocus = document.createElement("flying-focus");
+  flyingFocus.id = "flying-focus";
+  document.body.appendChild(flyingFocus);
+
   window.addEventListener("keydown", handleKeyboard, false);
   document.addEventListener("focus", showFlyingFocus, true);
   document.addEventListener("blur", hideFlyingFocus, true);

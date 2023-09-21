@@ -144,7 +144,7 @@ function slideChanged() {
     }
 
     // set poll class in reveal element
-    Reveal.getRevealElement().classList.toggle("poll", numAnswers > 0);
+    Reveal.getViewportElement().classList.toggle("poll", numAnswers > 0);
   }
 }
 

@@ -1,12 +1,21 @@
-html.handout .handout-container {
+html.handout #handout-container {
   margin: auto;
-  overflow-y: auto;
+  overflow: auto;
+  touch-action: pan-x pan-y;
+}
+
+/* hide standard reveal element in handout mode, since it consumes space
+when switching to last slide through the menu */
+html.handout :not(#handout-container).reveal {
+  display: none;
 }
 
 html.handout .reveal .slides {
   display: block;
   width: var(--slide-width);
-  transform-origin: top left;
+  transform-origin: top center;
+  translate: -50% 0;
+  left: 50%;
   margin: 0;
 }
 
@@ -17,6 +26,32 @@ html.handout .reveal .slides section {
   transition: none !important;
   transform: none !important;
   height: unset !important;
+}
+
+/* visualize central slide (DEBUG ONLY) */
+html.handout .reveal .slides section.current {
+  outline: 2px solid var(--primary-color);
+}
+
+html.handout .reveal .slides section .handoutBackground {
+  grid-area: common;
+  width: var(--slide-width);
+  height: var(--slide-height);
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  background-size: contain;
+  object-fit: contain;
+  z-index: -1;
+}
+
+/* pass through mouse events to control video or interactive iframes */
+html.handout .reveal .slides section[data-background-video] > .decker,
+html.handout
+  .reveal
+  .slides
+  section[data-background-interactive="1"]
+  > .decker {
+  pointer-events: none;
 }
 
 html.handout .reveal .slides section.stack {
@@ -76,15 +111,33 @@ html.handout .reveal .slides section .stack .fragment img {
 
 html.handout .reveal .slides section .stack .fragment::before {
   counter-increment: stack-item;
-  content: counter(stack-item) ".";
+  content: counter(stack-item);
   color: var(--foreground-color);
-  text-shadow: 1px 1px 1px var(--background-color);
+  background-color: var(--background-color);
   position: absolute;
+  font-size: 0.7em;
   top: 0;
   left: 0;
+  width: 1.5em;
+  height: 1.5em;
+  text-align: center;
+  vertical-align: middle;
   z-index: 2;
 }
 
 html.handout .reveal .slides section .stack .fragment:not(.current-fragment) {
   visibility: visible;
+}
+
+html.handout .decker-anchor #explain-play,
+html.handout .decker-anchor .open-button {
+  display: none;
+}
+html .decker-anchor #handout-plus,
+html .decker-anchor #handout-minus {
+  display: none;
+}
+html.handout .decker-anchor #handout-plus,
+html.handout .decker-anchor #handout-minus {
+  display: inline-block;
 }
