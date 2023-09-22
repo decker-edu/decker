@@ -49,9 +49,6 @@ speech-recognition-language: de-DE
 # show decker link on title slide
 showDeckerLink: true
 
-# other settings
-highlightjs: decker
-
 # progress bar on index page
 progress: true
 
