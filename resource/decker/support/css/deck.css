@@ -32,11 +32,20 @@ section#title-slide :is(h2) {
   margin-bottom: 1em;
 }
 
+section#title-slide .alignment {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 section#title-slide .author {
   color: var(--shade5);
 }
 
 section#title-slide .affiliation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   color: var(--shade5);
 }
 
@@ -87,7 +96,7 @@ section#title-slide div.logos {
 
 section#title-slide .logo {
   position: relative;
-  width: auto;
+  width: max-content;
   height: 100%;
 }
 

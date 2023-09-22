@@ -1,10 +1,11 @@
 ---
 title: 'Title Page Test Deck'
 subtitle: 'Testing the Template'
-author: # 'John Doe'
-  name: 'John Doe'
-  url: 'https://example.com/john-doe'
-  affiliation: 'Author Affiliation'
+
+# author: # 'John Doe'
+#  name: 'John Doe'
+#  url: 'https://example.com/john-doe'
+#   affiliation: 'Author Affiliation'
 #   name: 'Author Affiliation'
 #   url: 'https://example.com/doe-corp'
 #   logo: '/test/decks/assets/dummy-square.png'
@@ -48,6 +49,9 @@ logos:
     - uri: '/test/decks/assets/dummy-square.png' # should be "tiny"
       width: 16px
       height: 16px
+
+showDeckerLink: false
+# includeTULogo: false
 ---
 
 # Title Meta

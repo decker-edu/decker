@@ -8,18 +8,6 @@
         $endif$
       </header>
 
-<!-- Leave this here for debug purposes
-
-      $if(rpv-test.leaf-path)$
-      <img style="width: 100px;" src="$rpv-test.leaf-path$">
-      $endif$
-      $rpv-test.leaf-no-path$
-      $if(rpv-test.branch.path)$
-      <img style="width: 100px;" src="$rpv-test.branch.path$">
-      $endif$
-      $rpv-test.branch.no-path$
-
-    -->
       $if(authors)$
       <div class="authors">
         $for(authors)$
@@ -41,7 +29,7 @@
       $endif$
 
       $if(date)$
-        <div class="date"> $date$ </div>
+        <div class="date">$date$</div>
       $endif$
 
       $if(teaser)$
@@ -50,15 +38,20 @@
       </div>
       $endif$
 
-      $if(logos)$
       <div class="logos">
-        $for(logos)$
+        $if(includeTULogo)$
         <div class="logo">
-          $it:image-template.html()$
+          <img src="$projectPath$support/assets/tu-logo-light.svg">
         </div>
-        $endfor$
-      </div>
-      $endif$
+        $endif$
+        $if(logos)$
+          $for(logos)$
+          <div class="logo">
+          $it:image-template.html()$
+          </div>
+          $endfor$
+        $endif$
+        </div>
       $if(showDeckerLink)$
       <a class="decker-link" href="https://decker-edu.github.io/decker/">🚀 by Decker</a>
       $endif$
