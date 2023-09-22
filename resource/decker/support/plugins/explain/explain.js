@@ -196,7 +196,7 @@ function currentRevealSlideIndex() {
 function currentVideoSlideIndex() {
   let time = player.currentTime();
   return explainTimesPlay.findIndex(
-    (i) => i.timeIn <= time && time <= i.timeOut
+    (i) => i.timeIn <= time && time <= i.timeOut,
   );
 }
 
@@ -272,7 +272,7 @@ class Timing {
   // Calculates the video stamp stamp for right now.
   timeStamp() {
     return String(
-      (Date.now() - this.startTime - this.pauseDuration + this.offset) / 1000
+      (Date.now() - this.startTime - this.pauseDuration + this.offset) / 1000,
     );
   }
 
@@ -554,7 +554,7 @@ async function setupRecorder() {
   } catch (e) {
     console.error(e);
     alert(
-      `Recording setup failed.\n${e.message}\nRecording only works on Chrome. Also, the deck must be accessed via a URL that starts with either of \n\n- http://localhost\n- https://`
+      `Recording setup failed.\n${e.message}\nRecording only works on Chrome. Also, the deck must be accessed via a URL that starts with either of \n\n- http://localhost\n- https://`,
     );
     return false;
   }
@@ -608,7 +608,7 @@ async function startRecording() {
       localization.replacement_title,
       messageElement,
       options,
-      "warning"
+      "warning",
     );
     if (choice.submit === "APPEND") {
       explainTimes = await fetchResourceJSON(explainTimesUrl);
@@ -674,7 +674,7 @@ async function startRecording() {
           "[] cannot upload (replace) video to:",
           path,
           "reason:",
-          e
+          e,
         );
         return false;
       });
@@ -690,7 +690,7 @@ async function startRecording() {
           "[] cannot upload (append) video to:",
           path,
           "reason:",
-          e
+          e,
         );
         return false;
       });
@@ -720,10 +720,10 @@ async function startRecording() {
       }
     } catch (e) {
       console.error(
-        `[] FAILED to upload ${tblob.size} bytes to ${explainTimesUrl}`
+        `[] FAILED to upload ${tblob.size} bytes to ${explainTimesUrl}`,
       );
       console.error(
-        `[] FAILED to upload ${vblob.size} bytes to ${deckRecordingUrl()}`
+        `[] FAILED to upload ${vblob.size} bytes to ${deckRecordingUrl()}`,
       );
     }
 
@@ -803,7 +803,7 @@ function createAudioMeter(audioContext, meter) {
   analyser.vol = 0;
   analyser.db = 0;
 
-  analyser.draw = function () {
+  analyser.draw = function() {
     // get data from analyser node
     analyser.getFloatTimeDomainData(analyser.buffer);
     // compute maximum
@@ -912,7 +912,7 @@ function createPlayerGUI() {
       // disable going to fullscreen by double click
       doubleClick: false,
       // our keyboard shortcuts
-      hotkeys: function (event) {
+      hotkeys: function(event) {
         event.stopPropagation();
         event.preventDefault();
 
@@ -999,7 +999,7 @@ function createPlayerGUI() {
 
   player.on("error", (_) => {
     console.error(
-      'ExplainPlugin: Could not open video "' + explainVideoUrl + '"'
+      'ExplainPlugin: Could not open video "' + explainVideoUrl + '"',
     );
     uiState.transition("stop");
   });
@@ -1080,7 +1080,7 @@ function closeRecordPanel() {
 function focusable(element) {
   return [
     ...element.querySelectorAll(
-      'button,[href],select,textarea,input:not([type="hidden"]),[tabindex]:not([tabindex="-1"])'
+      'button,[href],select,textarea,input:not([type="hidden"]),[tabindex]:not([tabindex="-1"])',
     ),
   ];
 }
@@ -1329,7 +1329,7 @@ function setupGainSlider(gain, slider) {
     parent: slider.parentElement,
   });
 
-  slider.oninput = function () {
+  slider.oninput = function() {
     if (this.gain) this.gain.gain.value = this.value;
     this.output.innerHTML = this.value;
     localStorage.setItem(this.storage, this.value);
@@ -1493,7 +1493,7 @@ function setupGreenScreen() {
   gl.bufferData(
     gl.ARRAY_BUFFER,
     new Float32Array([-1, 1, -1, -1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
+    gl.STATIC_DRAW,
   );
 
   const coordLoc = gl.getAttribLocation(prog, "c");
@@ -1528,7 +1528,7 @@ function setupGreenScreen() {
       gl.RGB,
       gl.RGB,
       gl.UNSIGNED_BYTE,
-      cameraVideo
+      cameraVideo,
     );
 
     gl.uniform1i(texLoc, 0);
@@ -1538,7 +1538,7 @@ function setupGreenScreen() {
       keyColorLoc,
       gsKey.r / 255.0,
       gsKey.g / 255.0,
-      gsKey.b / 255.0
+      gsKey.b / 255.0,
     );
     gl.uniform1f(similarityLoc, gsSimilarity);
     gl.uniform1f(smoothnessLoc, gsSmoothness);
@@ -1603,7 +1603,7 @@ async function uploadBlob(url, blob) {
     .then((r) => r.ok)
     .catch((e) => {
       console.log(
-        "[] cannot upload " + blob.size + " bytes to: " + url + ", " + e
+        "[] cannot upload " + blob.size + " bytes to: " + url + ", " + e,
       );
       return false;
     });
@@ -1715,15 +1715,15 @@ function setupCallbacks() {
   // to use "our" keys and to add our keys to the help menu.
   Reveal.addKeyBinding(
     { keyCode: 82, key: "R", description: "Toggle Recording" },
-    toggleRecording
+    toggleRecording,
   );
   Reveal.addKeyBinding(
     { keyCode: 90, key: "Z", description: "Stop Recording (Triple Click)" },
-    maybeStopRecording
+    maybeStopRecording,
   );
   Reveal.addKeyBinding(
     { keyCode: 86, key: "V", description: "Toggle Camera" },
-    toggleCamera
+    toggleCamera,
   );
 
   // Intercept page leave when we are recording
@@ -1740,7 +1740,7 @@ function setupCallbacks() {
 const Plugin = {
   id: "explain",
 
-  init: async function (deck) {
+  init: async function(deck) {
     Reveal = deck;
 
     // don't do anything when exporting to PDF
@@ -1810,7 +1810,7 @@ const Plugin = {
     // Try to connect to an existing video.
     uiState.transition("setupPlayer");
     Decker.addReloadInhibitor(
-      () => !uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING")
+      () => !uiState.in("RECORDER_READY", "RECORDER_PAUSED", "RECORDING"),
     );
 
     let lang = navigator.language;
