@@ -240,6 +240,13 @@ const Plugin = () => {
         "keydown",
         function (event) {
           if (event.key == "f" && (event.ctrlKey || event.metaKey)) {
+            // If Handout Mode is active do a normal document search
+            if (deck.hasPlugin("handout")) {
+              const handoutPlugin = deck.getPlugin("handout");
+              if (handoutPlugin.isActive()) {
+                return;
+              }
+            }
             event.preventDefault();
             toggleSearch();
           }

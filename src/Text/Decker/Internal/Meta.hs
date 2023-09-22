@@ -179,15 +179,16 @@ adjustMetaValue f key meta =
       case M.lookup k map of
         Just value -> M.insert k (MetaMap $ adjust p value) map
         _ -> map
-    adjust _ _ =
-      throw $
-        InternalException $
-          "Cannot adjust meta value on non object at: " <> show key
+    adjust _ _ = Map.empty
+
+-- throw $
+--   InternalException $
+--     "Cannot adjust meta value on non object at: " <> show key
 
 -- | Recursively deconstruct a compound key and drill into the meta data hierarchy.
 -- Apply the IO action to the value if the key exists.
 adjustMetaValueM ::
-  Monad m => (MetaValue -> m MetaValue) -> Text -> Meta -> m Meta
+  MonadIO m => (MetaValue -> m MetaValue) -> Text -> Meta -> m Meta
 adjustMetaValueM action key meta =
   Meta <$> adjust (splitKey key) (MetaMap (unMeta meta))
   where
@@ -203,10 +204,11 @@ adjustMetaValueM action key meta =
           m' <- adjust p value
           return $ M.insert k (MetaMap m') map
         _ -> return map
-    adjust _ _ =
-      throw $
-        InternalException $
-          "Cannot adjust meta value on non object at: " <> show key
+    adjust _ _ = return Map.empty
+
+-- throw $
+--   InternalException $
+--     "Cannot adjust meta value on non object at: " <> show key
 
 -- | Recursively traverse all meta values below the compound key that can be
 -- stringified and transform them by the supplied function.
@@ -216,8 +218,10 @@ adjustMetaStringsBelow func = adjustMetaValue (mapMetaValues func)
 -- | Recursively traverse all meta values below the compound key that can be
 -- stringified and transform them by the supplied action.
 adjustMetaStringsBelowM ::
-  (MonadFail m, Monad m) => (Text -> m Text) -> Text -> Meta -> m Meta
-adjustMetaStringsBelowM action = adjustMetaValueM (mapMetaValuesM action)
+  (MonadFail m, MonadIO m) => (Text -> m Text) -> Text -> Meta -> m Meta
+adjustMetaStringsBelowM action key meta = do
+  adjusted <- adjustMetaValueM (mapMetaValuesM action) key meta
+  return adjusted
 
 -- | Adds a meta value to the list found at the compund key in the meta data.
 -- If any intermediate containers do not exist, they are created.
@@ -361,7 +365,7 @@ mapMeta f meta =
 -- | Map an IO action over string values and stringified inline values.
 -- Converts MetaInlines to MetaStrings. This may be a problem in some distant
 -- future.
-mapMetaM :: (MonadFail m, Monad m) => (Text -> m Text) -> Meta -> m Meta
+mapMetaM :: (MonadFail m, MonadIO m) => (Text -> m Text) -> Meta -> m Meta
 mapMetaM f meta = do
   (MetaMap m) <- mapMetaValuesM f (MetaMap (unMeta meta))
   return (Meta m)
@@ -370,8 +374,10 @@ mapMetaM f meta = do
 -- Converts MetaInlines to MetaStrings. This may be a problem in some distant
 -- future.
 mapMetaValuesM ::
-  (MonadFail m, Monad m) => (Text -> m Text) -> MetaValue -> m MetaValue
-mapMetaValuesM f = map'
+  (MonadFail m, MonadIO m) => (Text -> m Text) -> MetaValue -> m MetaValue
+mapMetaValuesM f v = do
+  mapped <- map' v
+  return mapped
   where
     map' (MetaMap m) =
       MetaMap . Map.fromList

@@ -47,7 +47,7 @@
   --code-background-color: var(--shade1);
 
   --highlight-color: var(--accent3-bg);
-  --flying-focus-color: var(--highlight-color);
+  --flying-focus-color: red;
 
   --icon-active-color: var(--accent3);
   --icon-disabled-color: var(--shade2);

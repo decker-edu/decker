@@ -60,13 +60,13 @@ title: <Undefined>
 
 # progress bar on index page
 # progress:
-  # selector: "a[href$='-deck.html']"
-  # insert: after
+# selector: "a[href$='-deck.html']"
+# insert: after
 progress: true
 
 math:
   scale: 1
-  
+
 # Language dictionary. Currently for quiz elements
 dictionary:
   de:
@@ -128,3 +128,8 @@ test:
   merge-list:
     - This line is from default.yaml
   some-value: This line is from default.yaml
+
+runtime-path-variables:
+  - rpv-test.leaf-path
+  - rpv-test.leaf-no-path
+  - rpv-test.branch

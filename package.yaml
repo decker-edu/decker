@@ -1,5 +1,5 @@
 name: decker
-version: 0.13.2
+version: 0.13.4
 license: GPL-3.0-or-later
 author: "Henrik Tramberend, Mario Botsch, Marc Erich Latoschik"
 maintainer: "henrik.tramberend@bht-berlin.de"
@@ -161,4 +161,3 @@ default-extensions:
   - OverloadedStrings
   - QuasiQuotes
   - MultiWayIf
-

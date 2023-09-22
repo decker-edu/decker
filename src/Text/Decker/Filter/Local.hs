@@ -9,6 +9,7 @@ import Control.Monad.Catch
 import Data.Digest.Pure.MD5
 import Data.Text qualified as Text
 import Data.Text.IO qualified as Text
+import GHC.IO.Unsafe (unsafePerformIO)
 import Relude
 import System.Random
 import Text.Blaze.Html
@@ -311,6 +312,10 @@ hash9 text = Text.pack $ take 9 $ show $ md5 $ encodeUtf8 text
 
 randomId :: IO Text
 randomId = Text.pack . take 9 . show . md5 . show <$> (randomIO :: IO Int)
+
+{-# NOINLINE id9 #-}
+id9 :: Text
+id9 = unsafePerformIO randomId
 
 single :: a -> [a]
 single x = [x]
