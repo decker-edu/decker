@@ -3,6 +3,7 @@ runtime-path-variables:
   - affiliation
   - author
   - authors
+  - teaser
   - rpv-test.leaf-path
   - rpv-test.leaf-no-path
   - rpv-test.branch
