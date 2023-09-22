@@ -1,5 +1,5 @@
 ---
-title: 'Title Page Test Deck'
+title: 'Title Slide Test Deck'
 subtitle: 'Testing the Template'
 
 # author: # 'John Doe'
