@@ -34,8 +34,6 @@ chart:
   defaults:
     font: {family: "Lato", size: 20 }
     plugins:
-      colorschemes:
-        scheme: "tableau.Classic10"
       title:
         font: { weight: "normal", size: 30 }
       legend:

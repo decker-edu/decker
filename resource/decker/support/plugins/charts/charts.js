@@ -10,10 +10,8 @@
  **
  ******************************************************************/
 
-import { Chart, registerables } from "./chart.esm.js";
-Chart.register(...registerables);
+// let chartjs properly handle Reveals zoom
 import "./plugin-csszoom.js";
-import "./plugin-colorschemes.js";
 
 // reference to Reveal deck
 let Reveal;
@@ -65,6 +63,7 @@ function createChart(canvas, CSV, comments) {
   canvas.chart = null;
   let ctx = canvas.getContext("2d");
   let chartOptions = { responsive: true };
+  // let chartOptions = { responsive: false };
   let chartData = { labels: null, datasets: [] };
   if (comments !== null)
     for (let j = 0; j < comments.length; j++) {
