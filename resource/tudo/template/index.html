@@ -4,7 +4,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="generator" content="pandoc">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+    <!-- PWA Kram -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#84b819" />
+    <link rel="manifest" href="$decker-support-dir$/pwa/manifest.webmanifest" crossorigin="use-credentials" />
 
     <script type="module">
       /* Store JSON encoded Pandoc meta data in a global variable. */
@@ -18,7 +26,6 @@ $endfor$
 $if(date-meta)$
     <meta name="dcterms.date" content="$date-meta$">
 $endif$
-    <meta name="apple-mobile-web-app-capable" content="yes">
 $if(template.favicon)$
     <link rel="shortcut icon" href="$template.favicon$">
 $endif$
