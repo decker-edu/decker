@@ -111,7 +111,6 @@ function prepareSAGE() {
     // construct iframe with data-url as data-src, such that
     // it be lazy-loaded by Reveal
     let iframe = document.createElement("iframe");
-    if (sageCell.classList.contains("print")) iframe.classList.add("print");
     iframe.sandbox = "allow-scripts allow-same-origin";
     iframe.setAttribute("data-src", url);
 
@@ -120,6 +119,7 @@ function prepareSAGE() {
     media.classList.add("media");
     let figure = document.createElement("figure");
     figure.classList.add("iframe");
+    if (sageCell.classList.contains("print")) figure.classList.add("print");
     figure.style.width =
       sageCell.getAttribute("width") || sageCell.style.width || "100%";
     figure.style.height =

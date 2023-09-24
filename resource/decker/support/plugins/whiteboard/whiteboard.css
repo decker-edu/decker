@@ -131,7 +131,7 @@ button.whiteboard.radiobutton[data-active="true"] {
   border: 1px solid var(--whiteboard-border-color);
 }
 
-body.print-pdf #whiteboardButtons {
+html.print-pdf #whiteboardButtons {
   display: none;
 }
 
