@@ -139,10 +139,16 @@ function createChart(canvas, CSV, comments) {
     }
   }
 
-  // non-filled charts?
+  // non-filled chart?
   if (canvas.hasAttribute("data-nofill")) {
     for (let j = 0; j < chartData.datasets.length; j++) {
-      chartData.datasets[j].backgroundColor = "rgba(255,255,255,0)";
+      chartData.datasets[j].fill = false;
+    }
+  }
+  // filled chart?
+  if (canvas.hasAttribute("data-fill")) {
+    for (let j = 0; j < chartData.datasets.length; j++) {
+      chartData.datasets[j].fill = true;
     }
   }
 
@@ -222,6 +228,11 @@ let initializeCharts = function () {
     // MARIO: empty (no-fill) chart
     if (pre.classList.contains("nofill")) {
       canvas.setAttribute("data-nofill", true);
+    }
+
+    // MARIO: filled chart
+    if (pre.classList.contains("fill")) {
+      canvas.setAttribute("data-fill", true);
     }
 
     // MARIO: log scale?
