@@ -26,7 +26,6 @@ import Text.Decker.Filter.Detail
 import Text.Decker.Filter.Div
 import Text.Decker.Filter.Incremental
 import Text.Decker.Filter.Layout (layoutSlide)
-import Text.Decker.Filter.Local (id9)
 import Text.Decker.Filter.MarioCols
 import Text.Decker.Filter.Notes
 import Text.Decker.Filter.Slide

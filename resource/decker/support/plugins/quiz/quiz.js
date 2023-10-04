@@ -1,12 +1,6 @@
 // Henrik's server API
 import { pollSession } from "../examiner/poll.js";
 
-// we need Chart.js
-import { Chart, registerables } from "../charts/chart.esm.js";
-Chart.register(...registerables);
-import "../charts/plugin-csszoom.js";
-import "../charts/plugin-colorschemes.js";
-
 // reference to Reveal deck
 let Reveal;
 

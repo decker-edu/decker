@@ -6,6 +6,7 @@ div.decker-anchor {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
+  touch-action: none;
 }
 
 div.top-left-anchor {

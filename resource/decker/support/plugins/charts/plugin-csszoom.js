@@ -5,18 +5,17 @@
 // https://github.com/chartjs/Chart.js/issues/7178#issuecomment-770432120
 // This here is the plugin.
 
-import { Chart } from "./chart.esm.js";
-
 const CSSZoomPlugin = {
   id: "csszoom",
 
-  beforeEvent: function (chart, ctx) {
+  beforeEvent: function (chart, args) {
     let zoom = 1;
-    for (var elem = chart.canvas; elem; elem = elem.parentElement) {
+    for (let elem = chart.canvas; elem; elem = elem.parentElement) {
       zoom *= elem.style.zoom || 1;
     }
+    // console.log("zoom = " + zoom);
     if (zoom != 1) {
-      const event = ctx.event;
+      let event = args.event;
       event.x = event.x / zoom;
       event.y = event.y / zoom;
     }

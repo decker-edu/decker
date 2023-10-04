@@ -52,11 +52,10 @@ div.feedback-menu.authorized div.feedback-footer {
   display: none;
 }
 
-div.feedback-menu.authorized input.feedback-token-input, 
+div.feedback-menu.authorized input.feedback-token-input,
 div.feedback-menu.authorized button.feedback-lock {
   visibility: hidden;
 }
-
 
 div.feedback-header {
   flex: 0 1 content;
@@ -131,7 +130,7 @@ div.feedback-menu button:active {
   color: var(--icon-active-color);
 }
 
-div.feedback-header button>span {
+div.feedback-header button > span {
   font-size: 0.5em;
   display: none;
 }
@@ -175,7 +174,7 @@ div.feedback-item.answer {
   font-size: 80%;
 }
 
-div.feedback-item.answer>div.link {
+div.feedback-item.answer > div.link {
   float: right;
 }
 
@@ -410,4 +409,10 @@ li.slide-list-item[data-questions]::after {
 
 li.slide-list-item[data-questions][data-answered="true"]::after {
   background-color: var(--accent3);
+}
+
+@media print {
+  .feedback-menu {
+    display: none;
+  }
 }

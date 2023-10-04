@@ -10,10 +10,8 @@
  **
  ******************************************************************/
 
-import { Chart, registerables } from "./chart.esm.js";
-Chart.register(...registerables);
+// let chartjs properly handle Reveals zoom
 import "./plugin-csszoom.js";
-import "./plugin-colorschemes.js";
 
 // reference to Reveal deck
 let Reveal;
@@ -65,6 +63,7 @@ function createChart(canvas, CSV, comments) {
   canvas.chart = null;
   let ctx = canvas.getContext("2d");
   let chartOptions = { responsive: true };
+  // let chartOptions = { responsive: false };
   let chartData = { labels: null, datasets: [] };
   if (comments !== null)
     for (let j = 0; j < comments.length; j++) {
@@ -140,10 +139,16 @@ function createChart(canvas, CSV, comments) {
     }
   }
 
-  // non-filled charts?
+  // non-filled chart?
   if (canvas.hasAttribute("data-nofill")) {
     for (let j = 0; j < chartData.datasets.length; j++) {
-      chartData.datasets[j].backgroundColor = "rgba(255,255,255,0)";
+      chartData.datasets[j].fill = false;
+    }
+  }
+  // filled chart?
+  if (canvas.hasAttribute("data-fill")) {
+    for (let j = 0; j < chartData.datasets.length; j++) {
+      chartData.datasets[j].fill = true;
     }
   }
 
@@ -223,6 +228,11 @@ let initializeCharts = function () {
     // MARIO: empty (no-fill) chart
     if (pre.classList.contains("nofill")) {
       canvas.setAttribute("data-nofill", true);
+    }
+
+    // MARIO: filled chart
+    if (pre.classList.contains("fill")) {
+      canvas.setAttribute("data-fill", true);
     }
 
     // MARIO: log scale?

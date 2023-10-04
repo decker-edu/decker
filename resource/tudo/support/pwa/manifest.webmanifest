@@ -1,0 +1,17 @@
+{
+	"short_name": "DeckerApp",
+	"name": "DeckerApp",
+	"start_url": "../../index.html",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#fff",
+	"description": "Web-App for Decker Slides",
+	"icons": [
+		{
+		  "src": "icon.png",
+		  "type": "image/png",
+		  "sizes": "512x512"
+		}
+	]
+}
+      

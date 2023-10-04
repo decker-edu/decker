@@ -217,15 +217,10 @@ ul.slide-list > li::marker {
   content: none;
 }
 
-li.current-slide {
+ul.slide-list > li.current-slide,
+ul.slide-list > li.separator-slide.current-slide {
   background: var(--hover-color);
 }
-/* li.current-slide::before {
-  font-family: "Font Awesome 5 Free";
-  font-weight: bold;
-  content: "\f105";
-  padding-left: 0.25rem;
-} */
 
 #glass {
   display: none;

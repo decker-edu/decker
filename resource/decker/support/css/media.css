@@ -151,3 +151,12 @@ div.fs-container > button.fs-button:hover {
   color: var(--icon-active-color);
   background-color: rgba(255, 255, 255, 0.8);
 }
+
+/* this prevents responsive charts from continuously resizing */
+div.chart-container > canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+div.chart-container {
+  overflow: hidden;
+}

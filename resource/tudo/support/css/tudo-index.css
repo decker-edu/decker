@@ -91,6 +91,7 @@ html {
   height: 100vh;
   font-family: "Lato";
   position: relative;
+  accent-color: var(--accent3);
 }
 
 body.index {

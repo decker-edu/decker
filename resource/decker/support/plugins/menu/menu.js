@@ -114,6 +114,7 @@ class SlideMenu {
       if (event && event.detail === 0) {
         setTimeout(() => this.menu.close_button.focus(), 500);
       }
+      document.querySelector(".decker-menu .current-slide")?.scrollIntoView();
     }
   }
 

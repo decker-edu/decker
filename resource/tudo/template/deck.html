@@ -20,9 +20,16 @@ $else$
   <title>$title$</title>
 $endif$
 $endif$
+
+  <!-- PWA stuff -->
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-touch-fullscreen" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="apple-touch-icon" href="$decker-support-dir$/pwa/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#84b819" />
+  <link rel="manifest" href="$decker-support-dir$/pwa/manifest.webmanifest" crossorigin="use-credentials" />
+
 $if(template.favicon)$
   <link rel="shortcut icon" href="$template.favicon$">
 $endif$
@@ -50,6 +57,7 @@ $body$
   </div>
 
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
+  <script src="$decker-support-dir$/vendor/chartjs/chart.umd.js"></script>
   <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
   <script type="module" src="./$decker-support-dir$/js/color-scheme.js"></script>
 

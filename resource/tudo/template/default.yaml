@@ -43,8 +43,6 @@ chart:
   defaults:
     font: {family: "Lato", size: 20 }
     plugins:
-      colorschemes:
-        scheme: "tableau.Classic10"
       title:
         font: { weight: "normal", size: 30 }
       legend:
@@ -57,10 +55,6 @@ speech-recognition-language: de-DE
 
 # show decker link on title slide
 showDeckerLink: true
-
-# other settings
-highlightjs: decker
-highlight-style: kate
 
 # progress bar on index page
 progress: true

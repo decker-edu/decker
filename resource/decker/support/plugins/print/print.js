@@ -66,11 +66,9 @@ function slideNumber() {
  */
 function setupIframes() {
   for (let e of document.querySelectorAll(
-    ".reveal section figure.print iframe, .reveal section iframe.print"
+    ".reveal section .media .print iframe[data-src]"
   )) {
-    if (e.hasAttribute("data-src")) {
-      e.src = e.getAttribute("data-src");
-    }
+    e.src = e.getAttribute("data-src");
   }
 }
 

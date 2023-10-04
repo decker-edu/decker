@@ -6,7 +6,7 @@ SHELL := $(shell which bash)
 support := ../resource/decker/support/vendor
 third := $(shell realpath .)
 
-upgrade: mathjax reveal.js highlight.js fontawesome videojs d3
+upgrade: mathjax reveal.js highlight.js fontawesome videojs d3 chartjs
 
 d3:
 	@rsync d3.v6.min.js $(support)
@@ -36,4 +36,8 @@ fontawesome:
 		rsync --recursive --delete $(third)/Font-Awesome/js-packages/@fortawesome/fontawesome-free/$$i $(support)/fontawesome/$$i; \
 	done
 
-.PHONY: upgrade clean prepare fontawesome reveal.js highlight.js mathjax videojs
+chartjs:
+	@mkdir -p $(support)/chartjs
+	@rsync chart.js/dist/chart.umd.js $(support)/chartjs/
+
+.PHONY: upgrade clean prepare fontawesome reveal.js highlight.js mathjax videojs chartjs
