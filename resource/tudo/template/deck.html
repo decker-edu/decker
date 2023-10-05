@@ -55,6 +55,11 @@ $body$
 
     </div>
   </div>
+  $if(watermark)$
+  <div class="watermark">
+    $watermark$
+  </div>
+  $endif$
 
   <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
   <script src="$decker-support-dir$/vendor/chartjs/chart.umd.js"></script>

@@ -265,3 +265,15 @@ html.dark img {
   border-radius: 0.5rem;
   background-color: var(--shade7);
 }
+
+/*
+ * Fixed Position so the watermark is displayed on every slide in print mode
+ */
+ .watermark {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  opacity: 0.5;
+  z-index: -1;
+  font-weight: bold;
+}
