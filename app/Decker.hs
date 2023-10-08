@@ -106,7 +106,7 @@ deckerRules = do
       need ["support"]
       getDeps >>= needTargets questions
   --
-  withTargetDocs "Build HTML versions of all decks, pages and handouts (*-deck.md, *-page.md)." $
+  withTargetDocs "Build HTML versions of all decks and pages (*-deck.md, *-page.md)." $
     phony "html" $ do
       need ["support", "questions"]
       getDeps >>= needTargets' [decks, pages]
@@ -329,7 +329,7 @@ deckerRules = do
     phony "publish" $ do
       need ["support"]
       meta <- getGlobalMeta
-      getDeps >>= needTargets' [decks, handouts, pages]
+      getDeps >>= needTargets' [decks, pages]
       createPublicManifest
       let src = publicDir ++ "/"
       case lookupMeta "publish.rsync.destination" meta of
