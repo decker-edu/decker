@@ -321,6 +321,8 @@ function prepareQuizzes() {
 }
 
 async function startPollingSession() {
+  console.log("starting new polling session");
+
   // connect to server
   session = await pollSession({
     serverUrl: serverUrl,
@@ -380,7 +382,7 @@ async function startPollingSession() {
     }
     `,
     onclose: () => {
-      // console.log("session closed");
+      console.log("polling session was closed");
       session = undefined;
       Reveal.off("slidechanged", abortPoll);
     },
@@ -389,8 +391,10 @@ async function startPollingSession() {
   // create QR code
   let { id, url } = session.sessionId();
   qrcode.innerHTML = String.raw`
+    <div id="qrcode-container">
     <canvas id="poll-qrcode-canvas"></canvas>
-    <span><a href="${url}" target="_blank" title="${url}" id="poll-session-id">${id}</a> </span>
+    <div><a href="${url}" target="_blank" title="${url}" id="poll-session-id">${url}</a></div>
+    </div>
   `;
   session.fillQRCode("poll-qrcode-canvas");
 }

@@ -1273,6 +1273,9 @@ section#title-slide .decker-link:hover {
   z-index: 1;
   font-size: 1rem;
 }
+.reveal .show-answer:hover ul li {
+  visibility: visible;
+}
 
 /* once clicked, wrong answers are red */
 .reveal .quiz ul li.wrong {
@@ -1307,11 +1310,6 @@ section#title-slide .decker-link:hover {
   color: var(--quiz-border-color);
 }
 
-/* tool tips are shown on hover */
-.reveal .show-answer:hover ul li {
-  visibility: visible;
-}
-
 /*********************************************
  * override quiz-wue settings
  *********************************************/
@@ -1335,7 +1333,8 @@ section#title-slide .decker-link:hover {
   font: inherit;
   font-size: 0.8em;
   margin: 0.5em;
-  padding: 10px;
+  padding: 0.5em;
+  border-radius: 0.25em;
   border: 2px solid var(--blueish);
   color: var(--shade6);
   background-color: var(--shade1);
@@ -1351,11 +1350,13 @@ section#title-slide .decker-link:hover {
   font: inherit;
   font-size: 0.9em;
   font-weight: normal;
-  padding: 5px;
   border: 2px solid var(--blueish);
   color: var(--shade6);
   background-color: var(--shade1);
   outline: none;
+  margin: 0.5em;
+  padding: 0.5em;
+  border-radius: 0.25em;
 }
 
 .reveal .quiz-ic option {
@@ -1423,14 +1424,36 @@ section#title-slide .decker-link:hover {
   background-color: var(--shade1);
 }
 
-.reveal [class*="quiz-"] .show-right {
+.reveal [class*="quiz"] .show-right {
   background-color: var(--green-background-color);
   border-color: var(--green-border-color);
+  --quiz-icon: "\f00c";
+  --quiz-border-color: var(--green-border-color);
+  position: relative;
 }
 
 .reveal [class*="quiz"] .show-wrong {
   background-color: var(--red-background-color);
   border-color: var(--red-border-color);
+  --quiz-icon: "\f00d";
+  --quiz-border-color: var(--red-border-color);
+  position: relative;
+}
+
+.reveal [class*="quiz-"] .show-right::after,
+.reveal [class*="quiz-"] .show-wrong::after {
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  font-weight: 900;
+  font-family: "Font Awesome 5 Free";
+  content: var(--quiz-icon);
+  position: absolute;
+  font-size: 15px;
+  right: 0.2em;
+  bottom: -0.1em;
+  padding: 0.1em;
+  color: var(--quiz-border-color);
 }
 
 /*********************************************
@@ -1484,7 +1507,8 @@ div.qrcode.container {
   right: 0;
   bottom: 0;
   top: 0;
-  background-color: var(--shade0);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
 }
 
 div.qrcode.container button {
@@ -1515,8 +1539,15 @@ div.qrcode.container canvas {
 }
 
 div.qrcode.container a {
+  display: block;
   font-size: 2rem;
   font-weight: bold;
+}
+
+#qrcode-container {
+  background-color: var(--background-color);
+  padding: 1em;
+  border-radius: 0.5em;
 }
 
 /*********************************************
