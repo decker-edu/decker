@@ -32,16 +32,76 @@ section#title-slide :is(h2) {
   margin-bottom: 1em;
 }
 
-section#title-slide p:is(.author) {
+section#title-slide .alignment {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+section#title-slide .author {
   color: var(--shade5);
 }
 
-section#title-slide p:is(.institute) {
+section#title-slide .affiliation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   color: var(--shade5);
 }
 
-section#title-slide p:is(.date) {
+section#title-slide .date {
   color: var(--shade4);
+}
+
+section#title-slide div.authors {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+
+  height: 20%;
+}
+
+/* Title Slide Logo Max Heights */
+
+section#title-slide div.authors img {
+  max-height: calc(var(--slide-height) * 0.1);
+}
+
+section#title-slide div.author img {
+  max-height: calc(var(--slide-height) * 0.1);
+}
+
+section#title-slide div.affiliation img {
+  max-height: calc(var(--slide-height) * 0.1);
+}
+
+section#title-slide div.teaser img {
+  max-height: calc(var(--slide-height) * 0.2);
+}
+
+/* Title Slide Logos */
+
+section#title-slide div.logos {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(var(--slide-height) * 0.1);
+  justify-content: space-between;
+  align-items: center;
+}
+
+section#title-slide .logo {
+  position: relative;
+  width: max-content;
+  height: 100%;
+}
+
+section#title-slide .logo img {
+  max-height: 100%;
 }
 
 /* Margins and spacing */
@@ -187,4 +247,33 @@ div#continue-dialog {
 
 .reveal-viewport:not(.presenter-mode) .presenter-only {
   display: none !important;
+}
+
+.reveal > header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  padding-top: 3rem;
+  padding-left: 3rem;
+  padding-right: 3rem;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+html.dark img {
+  border-radius: 0.5rem;
+  background-color: var(--shade7);
+}
+
+/*
+ * Fixed Position so the watermark is displayed on every slide in print mode
+ */
+ .watermark {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  opacity: 0.5;
+  z-index: -1;
+  font-weight: bold;
 }

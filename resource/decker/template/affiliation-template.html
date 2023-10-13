@@ -1,0 +1,10 @@
+<div class="affiliation">
+  <p>
+    $if(it.url)$<a href="$it.url$">$endif$$if(it.name)$$it.name$$else$$it$$endif$$if(it.url)$</a>$endif$
+  </p>
+  $if(it.logo)$
+  <div class="logo">
+    $it.logo:image-template.html()$
+  </div>
+  $endif$
+</div>

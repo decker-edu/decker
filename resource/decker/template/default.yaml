@@ -1,3 +1,13 @@
+runtime-path-variables:
+  - logos
+  - affiliation
+  - author
+  - authors
+  - teaser
+  - rpv-test.leaf-path
+  - rpv-test.leaf-no-path
+  - rpv-test.branch
+
 reveal:
   backgroundTransition: "none"
   center: true
@@ -129,7 +139,3 @@ test:
     - This line is from default.yaml
   some-value: This line is from default.yaml
 
-runtime-path-variables:
-  - rpv-test.leaf-path
-  - rpv-test.leaf-no-path
-  - rpv-test.branch

@@ -1,3 +1,12 @@
+# Right now paths to the support directory do not get found:
+# This logo is hardcoded into the deck-title.html partial
+# As soon as the issue is fixed the hard logo can be removed
+# and this variable can be used instead
+# logos:
+#   - '/support/assets/tu-logo-light.svg'
+
+includeTULogo: true
+
 reveal:
   backgroundTransition: "none"
   center: false

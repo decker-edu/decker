@@ -1,0 +1,89 @@
+  <!-- Default values for CSS variables can live here. They can be overridden by
+  meta data values. -->
+  <link rel="stylesheet" href="$decker-support-dir$/css/variables.css">
+
+  <!-- Transfer meta data values from keys `palette.colors` and `css-variables`
+  into a style sheet. Default values can come from `variables.css`. -->
+  <style class="css-declarations">
+    :root {
+      $for(css-light-colors/pairs)$
+        --light-$it.key$: $it.value$;
+      $endfor$
+      $for(css-dark-colors/pairs)$
+        --dark-$it.key$: $it.value$;
+      $endfor$
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        $for(css-light-color-declarations)$
+          $css-light-color-declarations$
+        $endfor$
+      }
+
+     :root.dark {
+       $for(css-dark-color-declarations)$
+         $css-dark-color-declarations$
+       $endfor$
+     }
+   }
+   @media (prefers-color-scheme: dark) {
+     :root {
+       $for(css-dark-color-declarations)$
+         $css-dark-color-declarations$
+       $endfor$
+     }
+
+      :root.light {
+        $for(css-light-color-declarations)$
+          $css-light-color-declarations$
+        $endfor$
+      }
+    }
+    :root {
+      $for(css-declarations)$
+        $css-declarations$
+      $endfor$
+    }
+  </style>
+
+  <!-- Any CSS variables set in the CSS files below, cannot be overridden by
+  meta data values. -->
+  <link rel="stylesheet" href="$decker-support-dir$/components/components.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reset.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/reveal/dist/reveal.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/decker/ui-anchors.css">
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/videojs/video-js.min.css">
+  <link rel="stylesheet" href="$decker-support-dir$/css/deck.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/whiteboard/whiteboard.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/menu/menu.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/feedback/feedback.css">
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/explain/explain.css">
+  $if(live-captions)$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/live-captioning/live-captioning.css">
+  $endif$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/examiner/examiner.css">
+  <link rel="stylesheet" href="$decker-support-dir$/flyingFocus/flying-focus.css">
+$if(poll)$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/poll/poll.css">
+$endif$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/quiz-wue/quiz-wue.css">
+
+$if(highlightjs)$
+  <link rel="stylesheet" href="$decker-support-dir$/vendor/css/$highlightjs$.css">
+$endif$
+  <link rel="stylesheet" href="$decker-support-dir$/plugins/handout/handout.css">
+
+<!-- Syntax highlighting CSS inserted by Pandoc's built-in syntax highlighting.
+-->
+$if(highlighting-css)$
+  <style>
+  $highlighting-css$
+  </style>
+$endif$
+
+$for(template.css)$
+  <link rel="stylesheet" href="$template.css$"/>
+$endfor$
+$for(template.deck.css)$
+  <link rel="stylesheet" href="$template.deck.css$"/>
+$endfor$
