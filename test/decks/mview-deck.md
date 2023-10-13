@@ -1,16 +1,22 @@
 ---
-title: Mview
+title: Interactive 3D Models <br>with [PMP](http://pmp-library.org) and [model-viewer](https://modelviewer.dev/)
 ---
 
-# An Mview Iframe
+# 3D Models with [PMP](http://pmp-library.org)
 
-## Markdown
+![The Utah teapot](assets/teapot.off){ width=1000px height=500px }
 
-```markdown
-![The Utah teapot](teapot.off)
-```
 
-## Renders as
+# 3D Models with [PMP](http://pmp-library.org)
 
-![The Utah teapot](teapot.off)
+![The Utah teapot (with controls)](assets/teapot.off){ width=1000px height=500px controls=1 }
 
+
+# 3D Models with [model-viewer](https://modelviewer.dev/)
+
+![Expressive Robot (without shadow)](assets/robot.glb){ width=1000px height=500px shadow=0 }
+
+
+# 3D Models with [model-viewer](https://modelviewer.dev/)
+
+![Expressive Robot (with autoplay)](assets/robot.glb){ width=1000px height=500px autoplay=1 }

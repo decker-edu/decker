@@ -103,7 +103,7 @@ w:h="3/1"}
 
 ## Iframe {.right}
 
-![Aspect ratio: 3:2](teapot.off){w:h="3/2"}
+![Aspect ratio: 3:2](assets/teapot.off){w:h="3/2"}
 
 # Iframe {.columns}
 
@@ -123,7 +123,7 @@ w:h="3/1"}
 
 | ![](https://tramberend.bht-berlin.de/){.iframe w:h="2/3"}
 | ![](columns.pdf){.iframe w:h="1/3"}
-| ![](teapot.off){w:h="1/1"}
+| ![](assets/teapot.off){w:h="1/1"}
 | ![](youtube:7XX6IEuLP3A){w:h="3/2"}
 
 Caption: Four anythings (web page, PDF, 3D model, YouTube) in a neatly sized row!

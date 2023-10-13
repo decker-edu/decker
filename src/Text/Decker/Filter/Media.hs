@@ -230,6 +230,7 @@ imageCompilers =
     [ (EmbedSvgT, svgBlock),
       (PdfT, objectBlock "application/pdf"),
       (MviewT, mviewBlock),
+      (ModelviewerT, modelviewerBlock),
       (GeogebraT, geogebraBlock),
       (IframeT, iframeBlock),
       (ImageT, imageBlock),
@@ -417,6 +418,15 @@ mviewBlock uri title caption = do
   pushAttribute ("model", model)
   mviewUri <- URI.mkURI "public:support/mview/mview.html"
   iframeBlock mviewUri title caption
+
+-- |  Compiles the image data to an iframe containing Google's modelviewer.
+modelviewerBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+modelviewerBlock uri title caption = do
+  turi <- lift $ transformUri uri ""
+  let model = renderUriDecode turi
+  pushAttribute ("model", model)
+  modelviewerUri <- URI.mkURI "public:support/modelviewer/model-viewer.html"
+  iframeBlock modelviewerUri title caption
 
 -- |  Compiles the image data to an iframe containing marios geogebra page.
 geogebraBlock :: Container c => URI -> Text -> [Inline] -> Attrib c

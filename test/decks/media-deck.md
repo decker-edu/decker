@@ -205,7 +205,7 @@ specified.
 
 | ![Alt Caption $e=mc^2$](include/06-metal.png)
 | ![Alt Caption $e=mc^2$](pacman-perfect-game.mp4){.controls}
-| ![Even this!](teapot.off){w:h="1/1"}
+| ![Even this!](assets/teapot.off){w:h="1/1"}
 
 Caption: Caption all the things
 
@@ -417,12 +417,12 @@ Caption: What?
 ## Markdown {.left}
 
 ```markdown
-![The Utah teapot](teapot.off)
+![The Utah teapot](assets/teapot.off)
 ```
 
 ## Renders as {.right}
 
-![The Utah teapot](teapot.off)
+![The Utah teapot](assets/teapot.off)
 
 ---
 
