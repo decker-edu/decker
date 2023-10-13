@@ -672,6 +672,8 @@ class SlideMenu {
   }
 }
 
+const printMode = /print-pdf/gi.test(window.location.search);
+
 const plugin = () => {
   return {
     id: "decker-menu",
@@ -682,6 +684,7 @@ const plugin = () => {
     addMenuButton: undefined,
     inhibitKeyboard: undefined,
     init(reveal) {
+      if (printMode) return;
       const menu = new SlideMenu("TOP_LEFT", reveal);
       menu.localization = {
         open_button_label: "Open Navigation Menu",

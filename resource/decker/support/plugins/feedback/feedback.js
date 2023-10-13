@@ -843,6 +843,8 @@ class Feedback {
   }
 }
 
+const printMode = /print-pdf/gi.test(window.location.search);
+
 let plugin = () => {
   return {
     id: "feedback",
@@ -851,6 +853,7 @@ let plugin = () => {
     requestMenuContent: undefined,
 
     init(reveal) {
+      if (printMode) return;
       const instance = new Feedback("TOP_RIGHT");
       instance.reveal = reveal;
       instance.config = reveal.getConfig().feedback;
