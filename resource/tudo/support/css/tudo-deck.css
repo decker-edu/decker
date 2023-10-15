@@ -1545,6 +1545,9 @@ div.qrcode.container a {
 }
 
 #qrcode-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background-color: var(--background-color);
   padding: 1em;
   border-radius: 0.5em;
