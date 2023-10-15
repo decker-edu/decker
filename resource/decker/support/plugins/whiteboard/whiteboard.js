@@ -32,7 +32,6 @@ let pageHeight;
 let pageWidth;
 
 // Reveal HTML elements
-let reveal;
 let slides;
 let slideZoom;
 
@@ -62,7 +61,10 @@ let tool = PEN;
 
 // variable used to block leaving HTML page
 let unsavedAnnotations = false;
-let autosave;
+let autosave = true;
+
+// whether to automatically turn on whiteboard when pencil hovers
+let autoToggle = false;
 
 // is the user generating a PDF?
 const printMode = /print-pdf/gi.test(window.location.search);
@@ -110,11 +112,14 @@ function readConfig() {
   pageWidth = Reveal.getConfig().width;
 
   // reveal elements
-  reveal = document.querySelector(".reveal");
   slides = document.querySelector(".reveal .slides");
   slideZoom = slides.style.zoom || 1;
 
+  // autosave is on by default
   autosave = config.autosave || true;
+
+  // autotoggle is off by default
+  autoToggle = config.autotoggle || false;
 }
 
 /************************************************************************
@@ -590,43 +595,72 @@ function selectPenRadius(radius) {
   hideColorPicker();
 }
 
+function enableWhiteboard() {
+  // do only prevent activation of whiteboard mode - deactivation should always be possible
+  if (!Decker?.isPresenterMode?.()) return;
+  if (userShouldBeWarned && !userHasBeenWarned) warnUser();
+
+  whiteboardActive = true;
+  clearTimeout(autoToggleTimer);
+
+  // show scrollbar
+  slides.classList.add("active");
+
+  // show buttons
+  buttons.classList.add("active");
+
+  // activate SVG
+  if (svg) {
+    svg.style.border = "1px dashed lightgrey";
+    svg.style.pointerEvents = "auto";
+  }
+}
+
+function disableWhiteboard() {
+  whiteboardActive = false;
+  clearTimeout(autoToggleTimer);
+
+  // hide scrollbar
+  slides.classList.remove("active");
+
+  // hide buttons
+  buttons.classList.remove("active");
+  hideColorPicker();
+
+  // reset SVG
+  if (svg) {
+    svg.style.border = "1px solid transparent";
+    svg.style.pointerEvents = "none";
+  }
+
+  // reset cursor
+  clearTimeout(hideCursorTimeout);
+  slides.style.cursor = "";
+}
+
 function toggleWhiteboard(state) {
-  whiteboardActive = typeof state === "boolean" ? state : !whiteboardActive;
-
-  if (!whiteboardActive) {
-    // hide scrollbar
-    slides.classList.remove("active");
-
-    // hide buttons
-    buttons.classList.remove("active");
-    // buttonWhiteboard.dataset.active = false;
-    hideColorPicker();
-
-    // reset SVG
-    if (svg) {
-      svg.style.border = "1px solid transparent";
-      svg.style.pointerEvents = "none";
-    }
-
-    // reset cursor
-    clearTimeout(hideCursorTimeout);
-    slides.style.cursor = "";
+  const activate = typeof state === "boolean" ? state : !whiteboardActive;
+  if (activate) {
+    enableWhiteboard();
   } else {
-    // do only prevent activation of whiteboard mode - deactivation should always be possible
-    if (!Decker?.isPresenterMode?.()) return;
-    if (userShouldBeWarned && !userHasBeenWarned) warnUser();
+    disableWhiteboard();
+  }
+}
 
-    // show scrollbar
-    slides.classList.add("active");
-
-    // show buttons
-    buttons.classList.add("active");
-    // buttonWhiteboard.dataset.active = true;
-
-    // activate SVG
-    if (svg) {
-      svg.style.border = "1px dashed lightgrey";
-      svg.style.pointerEvents = "auto";
+let autoToggleTimer;
+function autoToggleOff(evt) {
+  if (evt.pointerType == "pen") {
+    if (whiteboardActive) {
+      clearTimeout(autoToggleTimer);
+      autoToggleTimer = setTimeout(disableWhiteboard, 2000);
+    }
+  }
+}
+function autoToggleOn(evt) {
+  if (evt.pointerType == "pen") {
+    clearTimeout(autoToggleTimer);
+    if (!whiteboardActive) {
+      enableWhiteboard();
     }
   }
 }
@@ -1498,6 +1532,13 @@ function setupCallbacks() {
   slides.addEventListener("pointermove", pointermove);
   slides.addEventListener("pointerup", pointerup);
   slides.addEventListener("pointerout", pointerup);
+
+  // autotoggle: turn on at pen-hover, turn off when stroke it stopped or pointer is lost
+  if (autoToggle) {
+    slides.addEventListener("pointerover", autoToggleOn);
+    slides.addEventListener("pointerup", autoToggleOff);
+    slides.addEventListener("pointerout", autoToggleOff);
+  }
 
   // Intercept page leave when data is not saved
   window.addEventListener("beforeunload", function (evt) {
