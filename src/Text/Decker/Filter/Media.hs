@@ -266,7 +266,7 @@ imageBlock uri title caption = do
   imgAttr <- do
     injectClasses ["processed"]
     injectStyles innerSizes
-    inventTitleAndAria title caption
+    injectAria title caption
     extractAttr
   figureAttr <- do
     injectClasses ["image"]
@@ -340,7 +340,7 @@ objectBlock otype uri title caption = do
     injectAttribute ("data", turl)
     injectAttribute ("type", otype)
     injectStyles innerSizes
-    inventTitleAndAria title caption
+    injectAria title caption
     takeAttributes ["style"]
     takeData
     extractAttr
@@ -362,7 +362,7 @@ svgBlock uri title caption = do
   (innerSizes, outerSizes) <- calcImageSizes
   svgAttr <- do
     injectStyles innerSizes
-    inventTitleAndAria title caption
+    injectAria title caption
     takeAttributes ["style"]
     takeData
     extractAttr
@@ -455,7 +455,7 @@ audioBlock uri title caption = do
     passAttribs identity ["controls", "loop", "muted", "preload"]
     injectAttribute ("src", audioUri)
     takeAutoplay
-    inventTitleAndAria title caption
+    injectAria title caption
     extractAttr
   figureAttr <- do
     injectClasses ["audio"]
@@ -481,7 +481,7 @@ videoBlock uri title caption = do
     takeAutoplay
     takeVideoClasses
     passVideoAttribs
-    inventTitleAndAria title caption
+    injectAria title caption
     extractAttr
   figureAttr <- do
     injectClasses ["video"]
@@ -502,7 +502,7 @@ renderCodeBlock uri title caption = do
   imgAttr <- do
     injectClasses ["processed"]
     injectStyles innerSizes
-    inventTitleAndAria title caption
+    injectAria title caption
     extractAttr
   figureAttr <- do
     injectClasses ["image rendered"]

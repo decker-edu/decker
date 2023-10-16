@@ -388,30 +388,19 @@ addClass c (id, cs, kvs) = (id, List.nub (c : cs), kvs)
 addClasses :: [Text] -> Attr -> Attr
 addClasses cls (id, cs, kvs) = (id, List.nub (cls <> cs), kvs)
 
---- |                                          | caption | `title=` | `aria-label=` |
---- |------------------------------------------|---------|----------|---------------|
---- | `[alt](url "title"){arial-label="aria"}` | `alt`   | `title`  | `aria`        |
---- | `[alt](url "title")`                     | `alt`   | `title`  | `alt`         |
---- | `[alt](url){arial-label="aria"}`         | `alt`   | `alt`    | `aria`        |
---- | `[alt](url)`                             | `alt`   | `alt`    | `alt`         |
---- | `[](url "title"){arial-label="aria"}`    |         | `title`  | `aria`        |
---- | `[](url "title")`                        |         | `title`  | `title`       |
---- | `[](url){arial-label="aria"}`            |         |          | `aria`        |
---- | `[](url)`                                |         |          |               |
+--- |                         | caption   | aria-label |
+--- | ----------------------- | --------- | ---------- |
+--- | `[caption](url "aria")` | `caption` | `aria`     |
+--- | `[caption](url)`        | `caption` | `caption`  |
+--- | `[](url "aria")`        |           | `aria`     |
+--- | `[](url)`               |           |            |
 ---
-inventTitleAndAria :: Text -> [Inline] -> Attrib ()
-inventTitleAndAria title caption = do
-  let title_ = if Text.null title then Nothing else Just title
-  let alt_ = if null caption then Nothing else Just $ stringify caption
-  aria_ <- cutAttrib "aria-label"
-  case (alt_, title_, aria_) of
-    (Just alt, Just title, Just aria) -> inj ("title", title) >> inj ("aria-label", aria)
-    (Just alt, Just title, Nothing) -> inj ("title", title) >> inj ("aria-label", alt)
-    (Just alt, Nothing, Just aria) -> inj ("title", alt) >> inj ("aria-label", aria)
-    (Just alt, Nothing, Nothing) -> inj ("title", alt) >> inj ("aria-label", alt)
-    (Nothing, Just title, Just aria) -> inj ("title", title) >> inj ("aria-label", aria)
-    (Nothing, Just title, Nothing) -> inj ("title", title) >> inj ("aria-label", title)
-    (Nothing, Nothing, Just aria) -> inj ("aria-label", aria)
-    (Nothing, Nothing, Nothing) -> return ()
-  where
-    inj = injectAttribute
+injectAria :: Text -> [Inline] -> Attrib ()
+injectAria aria caption = do
+  let caption_ = if null caption then Nothing else Just $ stringify caption
+  let aria_ = if Text.null aria then Nothing else Just aria
+  case (caption_, aria_) of
+    (Just caption, Just aria) -> injectAttribute ("aria-label", aria)
+    (Just caption, Nothing) -> injectAttribute ("aria-label", caption)
+    (Nothing, Just aria) -> injectAttribute ("aria-label", aria)
+    (Nothing, Nothing) -> return ()
