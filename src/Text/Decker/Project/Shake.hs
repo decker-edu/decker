@@ -211,7 +211,12 @@ crunchRecordings :: ActionContext -> IO ()
 crunchRecordings context = runShakeSlyly context crunchRules
 
 transcribeRecordings :: ActionContext -> IO ()
-transcribeRecordings context = runShakeSlyly context transcriptionRules
+transcribeRecordings context = do
+  resource <- deckerResource
+  script <- readResource "bin/whisper.sh" resource
+  BS.writeFile whisperPath (fromJust script)
+  Dir.setPermissions whisperPath (Dir.setOwnerWritable True (Dir.setOwnerReadable True (Dir.setOwnerExecutable True Dir.emptyPermissions)))
+  runShakeSlyly context transcriptionRules
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =

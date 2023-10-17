@@ -12,7 +12,6 @@ module Text.Decker.Internal.External
     pdflatex,
     pdf2svg,
     ffmpeg,
-    whisper,
     checkExternalPrograms,
     forceCheckExternalPrograms,
   )
@@ -36,6 +35,7 @@ import Text.Blaze.Renderer.Utf8 (renderMarkup)
 import Text.Blaze.Svg11 (docType)
 import Text.Decker.Internal.Common
 import Text.Decker.Project.ActionContext
+import System.FilePath ((</>))
 
 data ExternalProgram = ExternalProgram
   { -- options :: [CmdOption],
@@ -110,14 +110,6 @@ programs =
         []
         ["--help"]
         (helpText "FFMpeg (https://ffmpeg.org)")
-    ),
-    ( "whisper",
-      ExternalProgram
-        -- []
-        "whisper"
-        []
-        ["--help"]
-        (helpText "whisper.cpp (https://github.com/ggerganov/whisper.cpp)")
     )
   ]
 
@@ -146,9 +138,6 @@ pdf2svg = makeProgram "pdf2svg"
 
 ffmpeg :: Program
 ffmpeg = makeProgram "ffmpeg"
-
-whisper :: Program
-whisper = makeProgram "whisper"
 
 helpText :: String -> String
 helpText name = name ++ " reported a problem:"
@@ -253,3 +242,4 @@ checkExternalPrograms = do
       Dir.createDirectoryIfMissing True (takeDirectory externalStatusFile)
       encodeFile externalStatusFile status
       return status
+

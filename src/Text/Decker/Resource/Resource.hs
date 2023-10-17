@@ -15,6 +15,7 @@
 module Text.Decker.Resource.Resource
   ( writeExampleProject,
     deckerResources,
+    deckerResource,
     readResource,
     publicSupportFiles,
     needResource,

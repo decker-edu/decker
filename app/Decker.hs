@@ -169,6 +169,8 @@ deckerRules = do
       needPublicIfExists $ replaceSuffix "-deck.md" "-times.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-transcript.json" src
       needPublicIfExists $ replaceSuffix "-deck.md" "-recording.vtt" src
+      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-en.vtt" src
+      needPublicIfExists $ replaceSuffix "-deck.md" "-recording-de.vtt" src
     --
     publicDir <//> "*-deck.pdf" %> \out -> do
       let src = replaceSuffix "-deck.pdf" "-deck.html" out
