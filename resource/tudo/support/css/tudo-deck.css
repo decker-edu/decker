@@ -478,12 +478,12 @@ div.align-right > p {
   width: auto;
 }
 
-.reveal blockquote p:last-child {
+.reveal blockquote p:last-child:not(:first-child) {
   display: block;
   text-align: right;
   width: 100%;
 }
-.reveal blockquote p:last-child::before {
+.reveal blockquote p:last-child:not(:first-child)::before {
   content: "—";
   margin-right: 0.2em;
 }
