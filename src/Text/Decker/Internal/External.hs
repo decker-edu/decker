@@ -12,6 +12,7 @@ module Text.Decker.Internal.External
     pdflatex,
     pdf2svg,
     ffmpeg,
+    whisper,
     checkExternalPrograms,
     forceCheckExternalPrograms,
   )
@@ -101,6 +102,22 @@ programs =
         []
         []
         (helpText "LaTeX (https://github.com/dawbarton/pdf2svg)")
+    ),
+    ( "ffmpeg",
+      ExternalProgram
+        -- []
+        "ffmpeg"
+        []
+        ["--help"]
+        (helpText "FFMpeg (https://ffmpeg.org)")
+    ),
+    ( "whisper",
+      ExternalProgram
+        -- []
+        "whisper"
+        []
+        ["--help"]
+        (helpText "whisper.cpp (https://github.com/ggerganov/whisper.cpp)")
     )
   ]
 
@@ -129,6 +146,9 @@ pdf2svg = makeProgram "pdf2svg"
 
 ffmpeg :: Program
 ffmpeg = makeProgram "ffmpeg"
+
+whisper :: Program
+whisper = makeProgram "whisper"
 
 helpText :: String -> String
 helpText name = name ++ " reported a problem:"
