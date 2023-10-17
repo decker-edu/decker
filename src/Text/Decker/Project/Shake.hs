@@ -41,6 +41,7 @@ import System.Info
 import System.Process hiding (runCommand)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Crunch
+import Text.Decker.Internal.Transcribe
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -71,7 +72,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- readMetaDataFile globalMetaFileName
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "pdf", "version", "check"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     _ -> runTargets context targets rules
@@ -193,6 +194,7 @@ runCommand context command rules = do
       forkServer context
       handleUploads context
     "crunch" -> crunchRecordings context
+    "transcribe" -> transcribeRecordings context
     "version" -> putDeckerVersion
     "check" -> forceCheckExternalPrograms
     "pdf" -> do
@@ -207,6 +209,14 @@ runCommand context command rules = do
 
 crunchRecordings :: ActionContext -> IO ()
 crunchRecordings context = runShakeSlyly context crunchRules
+
+transcribeRecordings :: ActionContext -> IO ()
+transcribeRecordings context = do
+  resource <- deckerResource
+  script <- readResource "bin/whisper.sh" resource
+  BS.writeFile whisperPath (fromJust script)
+  Dir.setPermissions whisperPath (Dir.setOwnerWritable True (Dir.setOwnerReadable True (Dir.setOwnerExecutable True Dir.emptyPermissions)))
+  runShakeSlyly context transcriptionRules
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =

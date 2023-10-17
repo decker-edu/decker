@@ -35,6 +35,7 @@ import Text.Blaze.Renderer.Utf8 (renderMarkup)
 import Text.Blaze.Svg11 (docType)
 import Text.Decker.Internal.Common
 import Text.Decker.Project.ActionContext
+import System.FilePath ((</>))
 
 data ExternalProgram = ExternalProgram
   { -- options :: [CmdOption],
@@ -101,6 +102,14 @@ programs =
         []
         []
         (helpText "LaTeX (https://github.com/dawbarton/pdf2svg)")
+    ),
+    ( "ffmpeg",
+      ExternalProgram
+        -- []
+        "ffmpeg"
+        []
+        ["--help"]
+        (helpText "FFMpeg (https://ffmpeg.org)")
     )
   ]
 
@@ -233,3 +242,4 @@ checkExternalPrograms = do
       Dir.createDirectoryIfMissing True (takeDirectory externalStatusFile)
       encodeFile externalStatusFile status
       return status
+

@@ -13,7 +13,7 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-    name: Decker ${{ github.ref_name }} (${{ matrix.os }})
+    name: Decker latest (${{ matrix.os }})
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -38,3 +38,25 @@ jobs:
       - name: Build & test
         run: |
           stack test
+          stack --local-bin-path=dist install
+
+      - name: Rename executable
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: |
+          mv dist/decker "dist/decker-latest-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}"
+
+      - name: Rename executable
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          mv dist/decker.exe "dist/decker-latest-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}.exe"
+
+      - name: Release
+        uses: "softprops/action-gh-release@v1"
+        with:
+          name: 'Decker latest ${{ github.sha }}'
+          tag_name: latest
+          draft: true
+          files: | 
+            readme.md
+            changelog.md
+            dist/**

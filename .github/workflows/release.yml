@@ -31,7 +31,7 @@ jobs:
       - name: Setup Haskell
         uses: haskell/actions/setup@v2
         with:
-          ghc-version: "9.0.2"
+          ghc-version: "9.2.7"
           enable-stack: true
           stack-no-global: true
           stack-version: "latest"
@@ -55,11 +55,11 @@ jobs:
       - name: Release
         uses: "softprops/action-gh-release@v1"
         with:
-          name: 'Decker ${{ github.ref_name }}'
+          name: "Decker ${{ github.ref_name }}"
           tag_name: ${{ github.ref_name }}
           draft: false
           prerelease: true
-          files: | 
+          files: |
             readme.md
             changelog.md
             dist/**
