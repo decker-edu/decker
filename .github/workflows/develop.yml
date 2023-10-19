@@ -51,9 +51,9 @@ jobs:
           mv dist/decker.exe "dist/decker-latest-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}.exe"
 
       - name: Delete last release
-        uses: liudonghua123/delete-release-action@v1
+        uses: cb80/delrel@latest
         with:
-          release_name: 'latest'
+          tag: latest
 
       - name: Release
         uses: "softprops/action-gh-release@v1"
