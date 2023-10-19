@@ -48,6 +48,12 @@ jobs:
           stack test
           stack --local-bin-path=dist install
 
+      - name: Tag branch as latest
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          custom_tag: latest
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Rename executable
         if: ${{ matrix.os != 'windows-latest' }}
         run: |
