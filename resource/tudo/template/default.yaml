@@ -59,9 +59,6 @@ showDeckerLink: true
 # progress bar on index page
 progress: true
 
-# copyright symbol in footer of index page
-copyright: ©️
-
 palette:
   contrast: 0.40
   colors:
