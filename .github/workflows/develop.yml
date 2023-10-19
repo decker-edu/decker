@@ -3,8 +3,16 @@ on:
     branches:
       - "develop"
 
-name: Test Develop
+name: Release latest
 jobs:
+  remove-old-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: remove old release
+        uses: cb80/delrel@latest
+        with:
+          tag: latest
+
   build-all-platforms:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -49,11 +57,6 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
           mv dist/decker.exe "dist/decker-latest-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}.exe"
-
-      - name: Delete last release
-        uses: cb80/delrel@latest
-        with:
-          tag: latest
 
       - name: Release
         uses: "softprops/action-gh-release@v1"
