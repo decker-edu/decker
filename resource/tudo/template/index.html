@@ -124,16 +124,11 @@ $body$
     </main>
 
     <!-- footer with author information -->
-    $if(author)$
     <footer>
-      $if(date)$
-      <p id="date">$date$</p>
-      $endif$
       <p class="author">
-        $if(copyright)$$copyright$$endif$ $author$$if(affiliation)$, $affiliation$ $endif$
+        $if(copyright)$$copyright$$endif$ $if(author)$$author$$endif$$if(affiliation)$, $affiliation$$endif$$if(date)$, $date$$endif$
       </p>
     </footer>
-    $endif$
   </body>
 
 
