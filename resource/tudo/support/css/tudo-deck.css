@@ -496,9 +496,9 @@ div.align-right > p {
 div.sourceCode > pre.sourceCode {
   display: block;
   position: relative;
-  margin: 0;
+  margin: auto;
   padding: 0.5em 0.75em;
-  width: auto;
+  /* width: auto; */
   text-align: center;
   max-height: 500px;
   overflow: auto;
