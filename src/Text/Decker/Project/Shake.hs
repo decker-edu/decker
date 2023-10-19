@@ -53,6 +53,7 @@ import Text.Decker.Server.Server
 import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Text.Pandoc hiding (Verbosity)
+import System.FilePath.Glob
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -166,14 +167,19 @@ applyVideoOperation transcode op@(Append tmp destination) = do
 
 startWatcher :: Notify.WatchManager -> ActionContext -> IO ()
 startWatcher manager context = do
+  let meta = context ^. globalMeta
+  let excludeGlob' = excludeGlob meta
+  -- mapM_ print excludeGlob'
+  excludeDirs' <- mapM canonicalizePath $ excludeDirs meta
   inDir <- makeAbsolute projectDir
   options <- deckerShakeOptions context
-  exclude <- mapM canonicalizePath $ excludeDirs (context ^. globalMeta)
   void $
-    Notify.watchTree manager inDir (filter exclude) $ \event ->
+    Notify.watchTree manager inDir (filter excludeDirs' excludeGlob') $ \event ->
       atomically $ writeTChan (context ^. actionChan) (FileChanged (Notify.eventTime event) (show event))
   where
-    filter exclude event = not $ any (`isPrefixOf` Notify.eventPath event) exclude
+    filter dirs globs event =
+      not (any (`isPrefixOf` Notify.eventPath event) dirs ||
+           any (`match` Notify.eventPath event) globs)
 
 forkServer :: ActionContext -> IO ThreadId
 forkServer context = do
@@ -212,11 +218,11 @@ crunchRecordings context = runShakeSlyly context crunchRules
 
 transcribeRecordings :: ActionContext -> IO ()
 transcribeRecordings context = do
-  resource <- deckerResource
-  script <- readResource "bin/whisper.sh" resource
-  BS.writeFile whisperPath (fromJust script)
-  Dir.setPermissions whisperPath (Dir.setOwnerWritable True (Dir.setOwnerReadable True (Dir.setOwnerExecutable True Dir.emptyPermissions)))
-  runShakeSlyly context transcriptionRules
+  let baseDir = lookupMetaOrElse "/usr/local/share/whisper.cpp" "whisper.base-dir" (context ^. globalMeta)
+  exists <- Dir.doesFileExist $ baseDir </> "main"
+  if exists
+    then runShakeSlyly context transcriptionRules
+    else putStrLn "Install https://github.com/ggerganov/whisper.cpp to generate transcriptions."
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
 deckerFlags =

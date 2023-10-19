@@ -95,6 +95,7 @@ deckerRules = do
   addHelpSuffix "  - example - Create an example project."
   addHelpSuffix "  - serve - Start just the server."
   addHelpSuffix "  - crunch - Compress all recordings to smaller size. Takes a while and will drain your battery."
+  addHelpSuffix "  - transcribe - Transcribe recorded videos. Takes a while and will drain your battery."
   addHelpSuffix "  - pdf - Build PDF versions of all decks (*-deck.md)."
   addHelpSuffix "  - version - Print version information"
   addHelpSuffix "  - check - Check the existence of usefull external programs"

@@ -13,6 +13,7 @@ module Text.Decker.Project.Project
     unusedResources,
     scanTargets,
     excludeDirs,
+    excludeGlob,
     static,
     sources,
     resources,
@@ -61,6 +62,7 @@ import Text.Decker.Project.Glob
 import Text.Decker.Resource.Resource
 import Text.Pandoc.Builder hiding (lookupMeta)
 import Text.Regex.TDFA
+import System.FilePath.Glob
 
 -- | target and source path
 type Dependencies = Map FilePath FilePath
@@ -199,6 +201,10 @@ excludeDirs :: Meta -> [String]
 excludeDirs meta =
   map normalise $
     alwaysExclude <> lookupMetaOrElse [] "exclude-directories" meta
+
+-- glob patterns used to exclude paths from watching
+excludeGlob :: Meta -> [Pattern]
+excludeGlob = map compile . lookupMetaOrElse [] "watch.exclude"
 
 staticResources meta =
   lookupMetaOrElse [] "static-resource-dirs" meta
