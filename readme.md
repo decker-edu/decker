@@ -152,7 +152,7 @@ document, depending on the file name.
     potentially four different targets can be generated:
 
     -   `*-deck.html` A reveal.js based slide show
-    -   `*-handout.hmtl` A HTML document containing the speaker notes to the
+    -   `*-handout.html` A HTML document containing the speaker notes to the
         slide show.
     -   `*-deck.pdf` A PDF version of the slide show
     -   `*-handout.pdf` A PDF version of the handout
