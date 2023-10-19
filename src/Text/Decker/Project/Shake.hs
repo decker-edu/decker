@@ -325,6 +325,7 @@ initContext extra meta = do
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
+  when devRun $ putStrLn "This is a DEVELOPMENT RUN"
   return $ ActionContext extra devRun external server watch chan public (addMetaFlags extra meta)
 
 watchChangesAndRepeat :: Action ()
