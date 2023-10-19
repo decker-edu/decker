@@ -50,10 +50,15 @@ jobs:
         run: |
           mv dist/decker.exe "dist/decker-latest-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}.exe"
 
+      - name: Delete last release
+        uses: liudonghua123/delete-release-action@v1
+        with:
+          release_name: 'latest'
+
       - name: Release
         uses: "softprops/action-gh-release@v1"
         with:
-          name: 'Decker latest ${{ github.sha }}'
+          name: 'latest'
           tag_name: latest
           draft: true
           files: | 
