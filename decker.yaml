@@ -48,3 +48,9 @@ meta-data:
 
 runtime-path-variables:
   - one.from.decker.yaml
+
+# whisper.cpp transcription settings
+# whisper:
+#   base-dir: /usr/local/share/whisper.cpp
+#   model: models/ggml-large.bin
+#   lang: de
