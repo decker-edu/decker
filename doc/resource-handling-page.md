@@ -14,6 +14,7 @@ title: 'Resource Handling [(DRAFT)]{style="color:red;"}'
     2.  HTML support files in `resource/support` (deck-presentation-time)
     3.  Example presentation source files in `resource/example` (decker-run-time)
 -   Resources are highly specific to the decker version that uses them
+-   The resource pack is configured with the `resource-pack` option in `decker.yaml`
 
 ## Resource Bundles
 
@@ -25,6 +26,7 @@ title: 'Resource Handling [(DRAFT)]{style="color:red;"}'
 -   Three protocol schemes are supported
     -   `decker:` the *default resource bundle* that is located in the currently running executable (ie. `decker:decker-resource-1.3.0.zip`)
     -   `file:` the resource bundle is located in the local file system (ie. `file://home/henrik/decker-personal-resource-1.3.0.zip`)\
+        a relative local path may be specified simply as `./resource/example`
     -   `https:` the resource bundle is located on a remote server (ie. `https://decker.uni-wü.de/decker-hci-style-resource-1.3.0.zip`)\
     -   `dev:` this is special: the bundle is located in unpacked state in the project directory during development (this is used when decker is executed with `stack exec -- decker`)
 -   The packed resource bundle is unpacked into a local cache directory on first use of decker
