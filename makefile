@@ -28,21 +28,21 @@ resource-zip:
 	(cd resource; zip -qr decker-resources.zip example support template)
 
 install: clean-build
-	mkdir -p $(local-bin-path)
-	cp $(executable) "$(local-bin-path)/$(decker-name)"
-	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
-	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
+	mkdir -p "$(local-bin-path)"
+	cp "$(executable)" "$(local-bin-path)/$(decker-name)"
+	ln -sf "$(decker-name)" "$(local-bin-path)/$(base-name)"
+	ln -sf "$(decker-name)" "$(local-bin-path)/$(base-name)-$(version)"
 
 unclean-install: build
-	mkdir -p $(local-bin-path)
-	cp $(executable) "$(local-bin-path)/$(decker-name)"
-	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)
-	ln -sf "$(decker-name)" $(local-bin-path)/$(base-name)-$(version)
+	mkdir -p "$(local-bin-path)"
+	cp "$(executable)" "$(local-bin-path)/$(decker-name)"
+	ln -sf "$(decker-name)" "$(local-bin-path)/$(base-name)"
+	ln -sf "$(decker-name)" "$(local-bin-path)/$(base-name)-$(version)"
 
 install-link: build
-	mkdir -p $(local-bin-path)
+	mkdir -p "$(local-bin-path)"
 	rm "$(local-bin-path)/$(base-name)-dev"
-	ln -s $(executable) "$(local-bin-path)/$(base-name)-dev"
+	ln -s "$(executable)" "$(local-bin-path)/$(base-name)-dev"
 
 version:
 	@echo "$(decker-name)"
@@ -57,9 +57,9 @@ profile: build-profile
 dist: install
 	rm -rf dist
 	mkdir -p dist
-	ln -s $(executable) dist/$(decker-name)
-	zip -qj dist/$(decker-name).zip dist/$(decker-name)
-	rm dist/$(decker-name)
+	ln -s "$(executable)" "dist/$(decker-name)"
+	zip -qj "dist/$(decker-name).zip" "dist/$(decker-name)"
+	rm "dist/$(decker-name)"
 
 test:
 	stack test -j1
