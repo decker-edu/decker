@@ -97,13 +97,19 @@ before `decker publish`.
 
 # Commands
 
-Commands do not engage the dependency checking and will not trigger rebuilds.
+Commands do not engage the global dependency checking and will not trigger
+rebuilds.
 
 ## `> decker clean`
 
-## `> decker example`
+Removes the `public` directory.
 
-## `> decker serve`
+## `> decker purge`
+
+Removes the `public` directory and the `.decker` directory where many things are
+cached during compilation. Expect increased compilation times after a purge.
+
+## `> decker example`
 
 ## `> decker pdf`
 
@@ -112,6 +118,30 @@ and uses it's printing capabilities to do that.
 
 This may well be a little time consuming, so it ist best called only right
 before `decker publish`.
+
+## `> decker crunch`
+
+Uses `ffmpeg` to concatenate and transcode raw video recordings of presentation
+sessions. All WebM video segments for a presentation are combined and trancoded
+into a single MP4 container that uses considerably less space on disk and in
+transit.
+
+## `> decker transcribe`
+
+Uses `whisper.cpp` to transcribe video recordings to the recorded language and
+English. Transcriptions are stored alongside the video files in `VTT` format and
+are automatically available during playback.
+
+[`whisper.cpp`]() needs to be installed locally and configured accordingly in
+`decker.yaml`. Configuration meta data variables are:
+
+``` yaml
+# whisper.cpp transcription settings
+whisper:
+  base-dir: /usr/local/share/whisper.cpp
+  model: models/ggml-large.bin
+  lang: de
+```
 
 # Options
 
@@ -130,6 +160,69 @@ Serve the public dir via HTTP (implies --watch).
 ## `-w`, `--watch`
 
 Watch changes to source files and rebuild current target if necessary.
+
+# Resources
+
+Decker needs a lot of resource that are not contained in the decker source file.
+Resource are all local data files that are required for proper operation at
+*decker-run-time* or *deck-presentation-time*. Resources are highly specific to
+the decker version that uses them.
+
+In particular these are:
+
+1.  Pandoc template files in `resource/template` (decker-run-time)
+2.  HTML support files in `resource/support` (deck-presentation-time)
+3.  Example presentation source files in `resource/example` (decker-run-time)
+
+## Resource Packs
+
+-   Template, support and example resources are combined into a *resource pack*
+
+-   A resource pack may contain a `default.yaml` file with meta information
+    regarding pack author etc. and default values for decker operation
+
+-   The data from `default.yaml` is available in the meta data during slide
+    compilation and presentation
+
+-   A resource pack packed is the entire contents of the `resource` folder that
+    must be made available during decker-run-time in one of three ways:
+
+    1.  contained in the decker executable
+    2.  contained in a local directory somewhere within a project
+    3.  contained in a local ZIP archive somewhere within a project
+
+-   Resource packs are located at run-time via their URL, three protocol schemes
+    are supported:
+
+    -   `exe:{name}` the `name` named resource pack that is located in the
+        currently running executable (ie. `exe:tudo`)
+    -   `{path}` the resource pack is located in a directory of the local file
+        system within the project (ie. `resource-packs/tudo-official`)
+    -   `{path}.zip` the resource pack is contained in a local ZIP archive
+        within the project (ie. `resource-packs/tudo-informal`)
+
+-   If localization, acquisition, unpacking or caching fails decker terminates
+
+-   The local cache can be cleared with `decker purge`
+
+-   The URL of the resource pack can be specified at runtime in the global
+    `decker.yaml` metadata file, ie.
+
+    ``` yaml
+    resource-pack: `exe:tudo`
+    ```
+
+-   The default resource pack `exe:decker` is always loded first. Resources
+    extracted from the resource pack in `resource-pack` simly overwrite and
+    augment the default resources.
+
+## Versioning
+
+-   Resource bundles are always tied to a specific decker version
+-   The exact decker version (MAJOR.MINOR.PATCH-LABEL) is always the last
+    component of the resource file name
+-   If decker is used with a non-matching resource bundle decker is terminated
+    -   This can be down-graded to a warning with a meta data setting
 
 # Meta Data
 
