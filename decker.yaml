@@ -55,6 +55,7 @@ runtime-path-variables:
 #   model: models/ggml-large.bin
 #   lang: de # the recorded language (ie. "de" or "en")
 #   options:
+#     ffmpeg: [] # options for ffmpeg audio preprocessing 
 #     translate: [] # options for translation to English
 #     en: [] # options for transcription of English
 #     de: [] # options for transcription of German
