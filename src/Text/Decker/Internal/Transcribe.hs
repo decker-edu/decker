@@ -1,4 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use unwords" #-}
 
 module Text.Decker.Internal.Transcribe where
 
@@ -55,7 +57,7 @@ transcriptionRules = do
       let lang :: String = lookupMetaOrElse "de" "whisper.lang" meta
         -- avoid context switches on the GPU
       withResource gpu 1 $ do
-        transcribe meta mp4 out (lang /= "en")
+        transcribe meta mp4 out lang (lang /= "en")
     -- transcribes to recorded language without translation.
     "**/*-recording-*.vtt" %> \out -> do
       meta <- getGlobalMeta
@@ -64,20 +66,29 @@ transcriptionRules = do
       need [mp4]
         -- avoid context switches on the GPU
       withResource gpu 1 $ do
-        transcribe meta mp4 out False
+        transcribe meta mp4 out lang False
 
-transcribe :: Meta -> FilePath -> String -> Bool -> Action ()
-transcribe meta mp4 vtt translate = do
+transcribe :: Meta -> FilePath -> String -> String -> Bool -> Action ()
+transcribe meta mp4 vtt lang translate = do
   let baseDir = lookupMetaOrElse "/usr/local/share/whisper.cpp" "whisper.base-dir" meta
   let model = baseDir </> lookupMetaOrElse "models/ggml-large.bin" "whisper.model" meta
-  let whisper = baseDir </> "main"
   id9 <- toString <$> liftIO randomId
   let wav = transientDir </> takeFileName mp4 <> "-" <> id9 <.> "wav"
-  let trans = (["--translate" | translate])
   putNormal $ "# whisper (for " <> vtt <> ")"
-  putVerbose $ "ffmpeg " <> intercalate " " ["-y", "-i", mp4, "-acodec", "pcm_s16le", "-ac", "1", "-ar", "16000", wav]
-  call "ffmpeg" $ ["-y", "-i", mp4, "-acodec", "pcm_s16le", "-ac", "1", "-ar", "16000", wav]
-  call whisper $ ["--file", wav, "-m", model, "--language", "auto"] <> trans <> ["--output-vtt", "--output-file", dropExtension vtt]
+
+  let ffmpegArgs = ["-y", "-i", mp4, "-acodec", "pcm_s16le", "-ac", "1", "-ar", "16000", wav]
+  putVerbose $ "ffmpeg " <> intercalate " " ffmpegArgs 
+  call "ffmpeg" ffmpegArgs
+  
+  let selector = toText $ if translate then "translate" else lang
+  let options = lookupMetaOrElse [] ("whisper.options." <> selector) meta
+  let translateOption = ["--translate" | translate]
+  let whisperArgs = ["--file", wav, "-m", model, "--language", "auto"] <> translateOption <> options <> ["--output-vtt", "--output-file", dropExtension vtt]
+
+  let whisper = baseDir </> "main"
+  putVerbose $ whisper <> intercalate " " whisperArgs 
+  call whisper whisperArgs
+
   putVerbose $ "rm " <> wav 
   liftIO $ removeFile wav
 

@@ -53,4 +53,8 @@ runtime-path-variables:
 # whisper:
 #   base-dir: /usr/local/share/whisper.cpp
 #   model: models/ggml-large.bin
-#   lang: de
+#   lang: de # the recorded language (ie. "de" or "en")
+#   options:
+#     translate: [] # options for translation to English
+#     en: [] # options for transcription of English
+#     de: [] # options for transcription of German
