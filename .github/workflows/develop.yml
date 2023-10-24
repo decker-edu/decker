@@ -26,11 +26,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Tag branch as latest
-        uses: mathieudutour/github-tag-action@v6.1
-        with:
-          custom_tag: latest
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Tag branch as latest
+      #   uses: mathieudutour/github-tag-action@v6.1
+      #   with:
+      #     custom_tag: latest
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -43,7 +43,6 @@ jobs:
       - name: Setup Haskell
         uses: haskell/actions/setup@v2
         with:
-          ghc-version: "9.4.2"
           enable-stack: true
           stack-no-global: true
           stack-version: "latest"
