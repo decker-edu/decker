@@ -49,13 +49,18 @@ meta-data:
 runtime-path-variables:
   - one.from.decker.yaml
 
-# whisper.cpp transcription settings
+# whisper.cpp default transcription settings
 # whisper:
 #   base-dir: /usr/local/share/whisper.cpp
 #   model: models/ggml-large.bin
-#   lang: de # the recorded language (ie. "de" or "en")
+#   # the recorded language (ie. "de" or "en")
+#   lang: de 
 #   options:
-#     ffmpeg: [] # options for ffmpeg audio preprocessing 
-#     translate: [] # options for translation to English
-#     en: [] # options for transcription of English
-#     de: [] # options for transcription of German
+#     # options for ffmpeg audio preprocessing
+#     ffmpeg: ["-af", "-speechnorm"]  
+#     # options for translation to English
+#     translate: ["-bs", "5", "-mc", "0"] 
+#     # options for transcription of English
+#     en: ["-bs", "5", "-mc", "0"]
+#     # options for transcription of German 
+#     de: ["-bs", "5", "-mc", "0"] 
