@@ -15,7 +15,7 @@ import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper (replaceSuffix)
 import Text.Decker.Project.Project
 import qualified System.Directory as Dir
-import Text.Decker.Internal.Meta (lookupMetaOrElse)
+import Text.Decker.Internal.Meta (lookupMetaOrElse, readMetaDataFile)
 import System.Process (readProcessWithExitCode)
 import System.Directory (removeFile)
 import Text.Decker.Filter.Local (randomId)
@@ -25,11 +25,11 @@ import Text.Pandoc (Meta)
 -- whisper.ccp if they have not yet been transcribed.
 transcriptionRules :: Rules ()
 transcriptionRules = do
+  meta <- liftIO $ readMetaDataFile deckerMetaFile
   gpu <- newResource "GPU" 1
-  (getGlobalMeta, getDeps, getTemplate) <- prepCaches
+  (_, getDeps, _) <- prepCaches
   want ["vtts"]
   phony "vtts" $ do
-    meta <- getGlobalMeta
     -- language of all the recordings
     let lang = lookupMetaOrElse "de" "whisper.lang" meta
     targets <- getDeps
@@ -51,7 +51,6 @@ transcriptionRules = do
       copyFileChanged src out
     -- transcribes to EN, translation is used for non-EN languages
     "**/*-recording-en.vtt" %> \out -> do
-      meta <- getGlobalMeta
       let mp4 = replaceSuffix "-recording-en.vtt" "-recording.mp4" out
       need [mp4]
       let lang :: String = lookupMetaOrElse "de" "whisper.lang" meta
@@ -60,7 +59,6 @@ transcriptionRules = do
         transcribe meta mp4 out lang (lang /= "en")
     -- transcribes to recorded language without translation.
     "**/*-recording-*.vtt" %> \out -> do
-      meta <- getGlobalMeta
       let lang = lookupMetaOrElse "de" "whisper.lang" meta
       let mp4 = replaceSuffix ("-recording-" <> lang <> ".vtt") "-recording.mp4" out
       need [mp4]
