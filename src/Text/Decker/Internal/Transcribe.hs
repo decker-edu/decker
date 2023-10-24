@@ -76,7 +76,7 @@ transcribe meta mp4 vtt lang translate = do
   let wav = transientDir </> takeFileName mp4 <> "-" <> id9 <.> "wav"
   putNormal $ "# whisper (for " <> vtt <> ")"
 
-  let ffmpegOptions = lookupMetaOrElse ["-af", "-speechnorm"] "whisper.options.ffmpeg" meta
+  let ffmpegOptions = lookupMetaOrElse ["-af", "speechnorm"] "whisper.options.ffmpeg" meta
   let ffmpegArgs = ["-y", "-i", mp4, "-acodec", "pcm_s16le", "-ac", "1", "-ar", "16000"] <> ffmpegOptions <> [wav]
   putVerbose $ "ffmpeg " <> intercalate " " ffmpegArgs 
   call "ffmpeg" ffmpegArgs
