@@ -8,6 +8,13 @@ jobs:
   remove-old-release:
     runs-on: ubuntu-latest
     steps:
+      - name: remove assets
+        uses: flcdrg/remove-release-asset-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: latest
+          asset_name: "*"
       - name: remove old release
         uses: cb80/delrel@latest
         with:
@@ -66,10 +73,10 @@ jobs:
       - name: Release
         uses: "softprops/action-gh-release@v1"
         with:
-          name: 'latest'
+          name: "latest"
           tag_name: latest
           draft: true
-          files: | 
+          files: |
             readme.md
             changelog.md
             dist/**
