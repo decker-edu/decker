@@ -29,9 +29,8 @@ jobs:
             ${{ runner.os }}-
 
       - name: Setup Haskell
-        uses: haskell/actions/setup@v2
+        uses: haskell-actions/setup@v2
         with:
-          ghc-version: "9.2.7"
           enable-stack: true
           stack-no-global: true
           stack-version: "latest"
