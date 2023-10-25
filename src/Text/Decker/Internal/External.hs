@@ -59,7 +59,7 @@ programs =
       ExternalProgram
         -- []
         "rsync"
-        [ "--recursive", "--copy-links", "--delete" ]
+        [ ]
         ["--version"]
         (helpText "`rsync` (https://rsync.samba.org)")
     ),

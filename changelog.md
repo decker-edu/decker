@@ -1,5 +1,22 @@
 # Revision History for Decker
 
+## decker 0.14.0
+
+-   Move `rsync` configuration entirely to `decker.yaml`
+
+    This will certainly break projects that define their own rsync options. They
+    will have to add the moved rsync options:
+
+    ``` yaml
+    publish:
+    rsync:
+        options:
+        - "--recursive"
+        - "--copy-links"
+        - "--delete"
+        ...
+    ```
+
 ## decker 0.13.0
 
 -   Use OKSolar (https://meat.io/oksolar) as default palette for resource pack

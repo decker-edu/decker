@@ -125,6 +125,9 @@ dictionary:
 publish:
   rsync:
     options:
+      - "--recursive"
+      - "--copy-links"
+      - "--delete"
       - "--no-group"
       - "--perms"
       - "--chmod=a+r,go-w"
@@ -138,4 +141,3 @@ test:
   merge-list:
     - This line is from default.yaml
   some-value: This line is from default.yaml
-
