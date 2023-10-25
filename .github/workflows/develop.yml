@@ -9,12 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: remove assets
-        uses: flcdrg/remove-release-asset-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: mknejp/delete-release-assets@v1
         with:
-          release_id: latest
-          asset_name: "*"
+          token: ${{ github.token }}
+          tag: latest 
+          assets: '*'
       - name: remove old release
         uses: cb80/delrel@latest
         with:
@@ -33,11 +32,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # - name: Tag branch as latest
-      #   uses: mathieudutour/github-tag-action@v6.1
-      #   with:
-      #     custom_tag: latest
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag branch as latest
+        uses: laputansoft/github-tag-action@v4.6
+        with:
+          github_token: ${{ github.token }}
+          tag: latest
+          release_branches: develop
 
       - name: Cache dependencies
         uses: actions/cache@v3
