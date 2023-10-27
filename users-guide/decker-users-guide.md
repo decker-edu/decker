@@ -163,10 +163,10 @@ Watch changes to source files and rebuild current target if necessary.
 
 # Resources
 
-Decker needs a lot of resource that are not contained in the decker source file.
-Resource are all local data files that are required for proper operation at
-*decker-run-time* or *deck-presentation-time*. Resources are highly specific to
-the decker version that uses them.
+Decker needs a lot of resources that are not contained in the decker source
+file. Resource are all local data files that are required for proper operation
+at *decker-run-time* or *deck-presentation-time*. Resources are highly specific
+to the decker version that uses them.
 
 In particular these are:
 
@@ -301,6 +301,146 @@ project
 
 Both image paths reference the same image file.
 
+## Almost all variables
+
+`compiletime-path-variables`
+:   TODO
+
+`css-dark-colors`
+:   TODO
+
+`css-light-colors`
+:   TODO
+
+`css-variables`
+:   TODO
+
+`decker-version`
+:   TODO
+
+`decker.base-dir`
+:   TODO
+
+`decker.base-dir`
+:   TODO
+
+`decker.filter.border`
+:   TODO
+
+`decker.filter.pretty`
+:   TODO
+
+`decker.filter.resources`
+:   TODO
+
+`deckId`
+:   TODO
+
+`draft`
+:   TODO
+
+`exclude-directories`
+:   TODO
+
+`extra-highlight-syntax`
+:   TODO
+
+`feedback.deck-id`
+:   TODO
+
+`highlight-style`
+:   TODO
+
+`mathjax-url`
+:   TODO
+
+`meta-data`
+:   TODO
+
+`no-index`
+:   TODO
+
+`palette.colors.dark`
+:   TODO
+
+`palette.colors.light`
+:   TODO
+
+`palette.contrast`
+:   TODO
+
+`publish.rsync.destination`
+:   TODO
+
+`publish.rsync.options`
+:   TODO
+
+`resource-pack`
+:   TODO
+
+`rsync-destination.host`
+:   TODO
+
+`rsync-destination.path`
+:   TODO
+
+`runtime-path-variables`
+:   TODO
+
+`short-links`
+:   TODO
+
+`static-resource-dirs`
+:   TODO
+
+`static-resources`
+:   TODO
+
+`subtitle`
+:   TODO
+
+`title`
+:   TODO
+
+`watch.exclude`
+:   TODO
+
+`whisper.base-dir`
+:   TODO
+
+`whisper.base-dir`
+:   TODO
+
+`whisper.lang`
+:   TODO
+
+`whisper.model`
+:   TODO
+
+`whisper.options.ffmpeg`
+:   TODO
+
+`write-back.enable`
+:   TODO
+
+`write-back.line-columns`
+:   TODO
+
+`write-back.line-wrap`
+:   TODO
+
+## Variables that can be defined in `decker.yaml`
+
+`static-resources`
+:   a list of files and directories that are copied to `public` without beeing
+    referenced detectably in a presentation. Mostly used for HTML apps that are
+    run inside of iFrame or `.htpasswd` files.
+
+`exclude-directories`
+:   a list of project directories that are not searched for `-deck.md` files.
+
+## Variables that can be defined in the meta data section
+
 ## Variables for Reveal.js {#variables-revealjs}
 
 Decker uses a modified version of the standard pandoc template for reveal.js
@@ -346,10 +486,6 @@ aspects of the generated slide sets.
       - 'h2 { backgroundColor: #f00; }' 
     ```
 
-`thebelab.enable` 🚧
-:   enable ThebeLab for the deck (defaults to `false`, see
-    [ThebeLab](#thebelab))
-
 `checkOverflow`
 :   mark overrflowing slides with a red border (defaults to `false`)
 
@@ -363,21 +499,23 @@ This is a work-in-progress and is currently used for quizzes.
 
 The current default dictionary looks like this:
 
-    dictionary:
-      de: 
-        quiz:
-          solution: Lösung zeigen
-          input-placeholder: Eingeben und 'Enter'
-          qmi-drag-hint: Objekte per Drag&Drop ziehen…
-          qmi-drop-hint: …und hier in die richtige Kategorie einsortieren.
-          ic-placeholder: Option auswählen…
-      en:
-        quiz:
-          solution: Show Solution
-          input-placeholder: Type and press 'Enter'
-          qmi-drag-hint: Drag items from here…
-          qmi-drop-hint: …and put them here into the correct category.
-          ic-placeholder: Select option…
+``` yaml
+dictionary:
+  de: 
+    quiz:
+      solution: Lösung zeigen
+      input-placeholder: Eingeben und 'Enter'
+      qmi-drag-hint: Objekte per Drag&Drop ziehen…
+      qmi-drop-hint: …und hier in die richtige Kategorie einsortieren.
+      ic-placeholder: Option auswählen…
+  en:
+    quiz:
+      solution: Show Solution
+      input-placeholder: Type and press 'Enter'
+      qmi-drag-hint: Drag items from here…
+      qmi-drop-hint: …and put them here into the correct category.
+      ic-placeholder: Select option…
+```
 
 This dictionary can be partially or completely redefined by the user.
 
