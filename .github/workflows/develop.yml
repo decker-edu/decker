@@ -14,6 +14,8 @@ jobs:
           token: ${{ github.token }}
           tag: latest 
           assets: '*'
+          fail-if-no-assets: false
+          fail-if-no-release: false          
       - name: remove old release
         uses: cb80/delrel@latest
         with:
@@ -31,7 +33,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        
+
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
