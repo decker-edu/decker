@@ -14,7 +14,6 @@ where
 import System.AtomicWrite.Writer.ByteString
 import Control.Monad
 import Control.Monad.Loops
-import Data.ByteString qualified as BS
 import Data.List qualified as List
 import Data.Maybe
 import Data.Text.IO qualified as Text
