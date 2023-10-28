@@ -11,6 +11,42 @@ Page](https://github.com/decker-edu/decker/actions/workflows/jekyll-gh-pages.yml
 
 A markdown based tool for slide deck creation.
 
+## Installation of binaries
+
+Under [Releases](https://github.com/decker-edu/decker/releases) you can find the binaries of `decker`.
+
+To install the program by hand you simply need to download the binary and put it in a location where your operating system can find executable files. The executable and its internal dependencies are statically linked and everything `decker` extracts in order to generate its output is inside its binary.
+
+### Manual installation on Windows
+
+If you have already installed `decker` with an installer you can simply replace the `decker.exe` inside its installation directory with a new version.
+
+If you have not yet installed `decker` and want to install one of the released binaries by hand, simply put it into an isolated directory of your choice. You want to rename the executable to `decker.exe`. Then you need to put that directory onto your system's search path for binaries. To do this, search for "environment variables" in Windows' own search bar and pick the option "Edit the system environment variables". Then click the "Environment Variables..." button in the bottom right corner of the opened dialog. In the next dialog window, pick either your user account's or your system's environment variables and search for the entry `Path`. "Edit" the entry, press "New" and enter the location of the directory you put the `decker.exe` exectuable in. Confirm your changes by pressing the "OK" buttons and you are done. If any program you want to run `decker` from was still running, it needs to be restarted now.
+
+### Manual installation on Linux
+
+After you download the `decker`-executable from the Releases rename it to `decker` (or any name of your liking). You may need to set the downloaded file as *executable*. In a terminal, this is done by entering `chmod +x decker` while inside the directory where your `decker`-executable resides.
+
+Now you need to put the executable onto your search path. To see your current search path, enter `echo $PATH` in a terminal. You should see a list of directories that are on your binary search path.
+
+To install `decker` for your user, simply put the downloaded executable into one of the listed directories inside that user's home directory. These are usually `/home/user/.bin`, `/home/user/.local/bin` or `/home/user/bin`. If none of these directories are in your search path you can add a directory of your choice to the search path by adding this to your user's `.profile` configuration file which is also usually located inside that user's home directory:
+
+``` bash
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+```
+
+If a configuration like this already exists inside your `.profile` config it usually means that the requested directory does not exist yet. Simply create it and move the `decker` executable there, then restart your shell.
+
+To install `decker` for the entire system, simply put it into that system's directory for locally installed binaries which usually is `/usr/local/bin`. You usually need to be *root* in order to perform this operation.
+
+### Manual installation on MacOS
+
+To install `decker` on MacOS you need to download the executable and put it into your binary search path and set the downloaded file as *executable*. To do this open a terminal and navigate to the downloaded file. Rename it to `decker`, then enter `chmod +x decker` to make it *executable*. Then move it into a directory on your binary search path. TODO: What are these on MacOS?
+
+In order to run the application you need to open it once with the `open` command: `open -a terminal decker`. The operating system will likely warn and prevent you from running the application. Find a button labeled `Really Open` to tell your system to trust it. This should only be necessary once per downloaded version.
+
 ## Installation from source
 
 1.  Install [stack](https://docs.haskellstack.org/en/stable/README/) and
