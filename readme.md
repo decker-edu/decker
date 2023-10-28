@@ -20,16 +20,20 @@ A markdown based tool for slide deck creation.
 4.  `git submodule update --init --recursive`
 5.  `make install`
 
-Note:
+Notes:
 
-Decker will be installed under `~/.local/bin` which is default not recognized by
+- Decker will be built using the `language: GHC2021` option for selection of modern haskell language features.
+The default version of `stack` installed by your package manager might not be high enough to recognize this option.
+You can use `stack upgrade` to ask your `stack` installation to self-update to the latest version.
+
+- Decker will be installed under `~/.local/bin` which is default not recognized by
 your terminal. If decker is not found by your terminal, add the path to the
 corresponding config file. For zsh (default for macos) do the following steps.
 Run from the terminal:
 
-1.  `touch ~/.zshrc`
-2.  `echo PATH=$HOME/.local/bin:$PATH > ~/.zshrc`
-3.  `source ~/.zshrc`
+  1.  `touch ~/.zshrc`
+  2.  `echo PATH=$HOME/.local/bin:$PATH > ~/.zshrc`
+  3.  `source ~/.zshrc`
 
 ### Third-party resources
 
@@ -96,8 +100,9 @@ the full functionality:
 -   [*ssh*](https://www.openssh.com) for publishing slide decks and resources
 -   [*rsync*](http://formulae.brew.sh/repos/Homebrew/homebrew-core/formula/rsync)
     for publishing slide decks and resources
-    -   Note: openssh Server do not work properly with rsync for Windows. Use
-        cygwin and its terminal to perform decker publish.
+    -   Note: The default openSSH implementation on Windows does not work together with
+        cygwin's `rsync` implementation. Either move cygwin's ssh implementation higher up in the
+        PATH list or run `decker publish` from cygwin's terminal.
 -   [*LaTeX* with pdflatex](https://www.latex-project.org) to generate LaTeX in
     PDF-files and embedded Tikz figures
 -   [*Graphviz*](http://graphviz.org) to generate graphs using `dot`
