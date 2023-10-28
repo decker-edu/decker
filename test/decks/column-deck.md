@@ -7,27 +7,35 @@ title: Column Layout
 
 # Grid Column Slides
 
-::: {.columns-2-1-1 style="some:other-css;"}
+::: columns-2-3-2
 ::: cell
 Column 1
 
 Some Text
 :::
 
-::: cell
-Column 2
+::: {style="font-weight: bold;" align="center"}
+This is Madness!
 
-Some Text
+::: columns-1-1
+::: {style="background-color:red;"}
+C1A
 :::
 
-::: cell
+::: {style="background-color:green;"}
+C1B
+:::
+:::
+:::
+
+::: {align="right"}
 Column 3
 
 Some Text
 :::
 :::
 
-::: {width="50%" height="30px" style="some-other:css;"}
+::: {style="transform:scale(0.72);background-color:lightblue;"}
 **Honey, I shrunk the divs!**
 :::
 
