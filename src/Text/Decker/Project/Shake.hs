@@ -170,16 +170,17 @@ startWatcher manager context = do
   let meta = context ^. globalMeta
   let excludeGlob' = excludeGlob meta
   -- mapM_ print excludeGlob'
-  excludeDirs' <- mapM canonicalizePath $ excludeDirs meta
+  -- excludeDirs' <- mapM canonicalizePath $ excludeDirs meta
+  let excludeDirs' = excludeDirs meta
   inDir <- makeAbsolute projectDir
   options <- deckerShakeOptions context
   void $
-    Notify.watchTree manager inDir (filter excludeDirs' excludeGlob') $ \event ->
+    Notify.watchTree manager inDir (filter inDir excludeDirs' excludeGlob') $ \event ->
       atomically $ writeTChan (context ^. actionChan) (FileChanged (Notify.eventTime event) (show event))
   where
-    filter dirs globs event =
-      not (any (`isPrefixOf` Notify.eventPath event) dirs ||
-           any (`match` Notify.eventPath event) globs)
+    filter base dirs globs event =
+      let path = makeRelative base (Notify.eventPath event)
+      in not (any (`isPrefixOf` path) dirs || any (`match` path) globs)
 
 forkServer :: ActionContext -> IO ThreadId
 forkServer context = do

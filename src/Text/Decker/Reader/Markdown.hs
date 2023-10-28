@@ -11,9 +11,9 @@ module Text.Decker.Reader.Markdown
   )
 where
 
+import System.AtomicWrite.Writer.ByteString
 import Control.Monad
 import Control.Monad.Loops
-import Data.ByteString qualified as BS
 import Data.List qualified as List
 import Data.Maybe
 import Data.Text.IO qualified as Text
@@ -65,8 +65,7 @@ processMeta (Pandoc meta blocks) = do
   let processed = computeCssColorVariables $ computeCssVariables meta
   return (Pandoc processed blocks)
 
--- |  TODO: Provide default CSL data from the resources if csl: is not set. This
---  is not really trivial.
+-- | Provide default CSL data from the resources if csl: is not set.
 processCites :: MonadIO m => Pandoc -> m Pandoc
 processCites pandoc@(Pandoc meta blocks) = liftIO $ do
   if
@@ -78,15 +77,13 @@ processCites pandoc@(Pandoc meta blocks) = liftIO $ do
           runIOorExplode $ processCitations (Pandoc cslMeta blocks)
       | otherwise -> return pandoc
 
--- |  TODO: This seems to fail sometimes with j > 1. Some race condition. Maybe
---  call need and write a rule for the extraction.
 installDefaultCSL :: IO FilePath
 installDefaultCSL = do
   let path = transientDir </> "default.csl"
   exists <- Dir.doesFileExist path
   unless exists $ do
     csl <- readResource "default.csl" (DeckerExecutable "decker")
-    BS.writeFile path (fromJust csl)
+    atomicWriteFile path (fromJust csl)
   return path
 
 -- | Reads a Markdown file from the local file system. Local resource paths are
