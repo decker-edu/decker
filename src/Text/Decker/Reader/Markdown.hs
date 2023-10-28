@@ -55,11 +55,11 @@ readAndFilterMarkdownFile disp globalMeta path = do
     >>= processMeta
     >>= processCites
     >>= calcRelativeResourcePaths docBase
-    >>= runDynamicFilters Before docBase
+    -- >>= runDynamicFilters Before docBase
     >>= runNewFilter disp examinerFilter docBase
     >>= deckerMediaFilter disp docBase
     >>= processPandoc (deckerPipeline disp) docBase disp
-    >>= runDynamicFilters After docBase
+    -- >>= runDynamicFilters After docBase
 
 processMeta (Pandoc meta blocks) = do
   let processed = computeCssColorVariables $ computeCssVariables meta

@@ -41,7 +41,7 @@ putDeckerVersion = do
       ++ ", build date: "
       ++ deckerBuildDate
       ++ ")"
-  putStrLn $ "pandoc version " ++ Text.unpack pandocVersion
+  putStrLn $ "pandoc version " ++ show pandocVersion
   putStrLn $ "pandoc-types version " ++ showVersion pandocTypesVersion
 
 --

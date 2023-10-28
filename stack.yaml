@@ -13,10 +13,5 @@ packages:
 extra-include-dirs:
   - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi
 
-resolver: lts-20.17
-  
-# TODO: Maybe we still need this on Windows. But maybe not.
-# ghc-options:
-#   "$locals": -fhide-source-paths -Wno-missing-home-modules
-#   "$everything": -haddock
-
+# resolver: lts-20.17
+resolver: lts-21.17
