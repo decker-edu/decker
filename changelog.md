@@ -2,7 +2,31 @@
 
 ## decker 0.14.0
 
--   Move `rsync` configuration entirely to `decker.yaml`
+-   `column-1-2-3` DIV style columns are now detected recursively.
+
+-   Files can be excluded from file watching using glob patterns:
+
+    ``` yaml
+    watch:
+        exclude: 
+            - "**/*.swp"
+            - "**/~*"
+    ```
+
+-   The new command `decker transcribe` transcribes all recorded videos to
+    `.vtt` files that are available with the integrated video player. The
+    recorded language must be configured explicitly, default is German:
+
+    ``` yaml
+    # whisper.cpp default transcription settings
+    whisper:
+      base-dir: /usr/local/share/whisper.cpp
+      model: models/ggml-large.bin
+      # the recorded language (ie. "de" or "en")
+      lang: de 
+    ```
+
+-   Move `rsync` configuration entirely to `decker.yaml`.
 
     This will certainly break projects that define their own rsync options. They
     will have to add the moved rsync options:
@@ -16,6 +40,57 @@
         - "--delete"
         ...
     ```
+
+-   The title attribute on links and images is used as the `aria-label`, there
+    are no more tooltips on links and images.
+
+-   The title slide can now be extensively customized with multiple authors,
+    institutions and logos. For example:
+
+    ``` yaml
+    authors:
+    - name: 'First Author'
+        url: 'https://example.com/first'
+        affiliation: # 'First Department'
+        name: 'First Department'
+        url: 'https://example.com/first-dep'
+        logo: '/test/decks/assets/dummy-long.png'
+    - name: 'Second Author'
+        url: 'https://example.com/second'
+        affiliation: 'Second Department'
+    - 'Third Author'
+    ```
+
+-   The use of `highlight.js` for code syntax highlighting is no longer
+    supported. Use Pandoc highlighting by setting `highlight-style:` to
+    something.
+
+-   3D *glTF* files (https://www.khronos.org/gltf/) with can now be embedded
+    using Googles *model-viewer* (https://modelviewer.dev/):
+
+    ``` md
+    ![Expressive Robot (with autoplay)](assets/robot.glb){autoplay=1}
+    ```
+
+-   Decks can be switched to *handout mode* during presentation. All slides will
+    be shown in one linearly scrollable HTML document view. Special handout
+    versions of decks are no longer created by default.
+
+-   Static resources can now be listed as file or directory paths in the
+    variable `static-resources`. Directories are traversed recursively, adding
+    all contained files to the list.
+
+-   Poll results can now be saved if running off a local Decker server
+    (`decker -S`). They are stored in `*-poll.json` files alongside the
+    presentation sources. Enable with:
+
+    ``` yaml
+    save-polls: true
+    ```
+
+-   Always generate an index document. If a custom `index.md` is present, the
+    generated index is stored as `genrated-index.html` alongside the custom
+    `index.html`.
 
 ## decker 0.13.0
 
