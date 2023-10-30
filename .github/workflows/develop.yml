@@ -73,6 +73,7 @@ jobs:
           token: ${{ github.token }}
           name: develop
           tag_name: develop
+          target_commitish: develop
           draft: false
           prerelease: true
           files: |
