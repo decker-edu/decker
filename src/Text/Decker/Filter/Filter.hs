@@ -41,6 +41,7 @@ import Text.Pandoc.Walk
 
 data FilterPosition = Before | After deriving (Show, Eq)
 
+-- TODO learn how to actually instantiate a Lua engine with the Pandoc 3 API
 -- runDynamicFilters :: FilterPosition -> FilePath -> Pandoc -> Action Pandoc
 -- runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
 --   let paths :: [Text] = lookupMetaOrElse [] (key position) meta
