@@ -68,9 +68,11 @@ jobs:
       - name: Release
         uses: "softprops/action-gh-release@v1"
         with:
-          name: "latest"
+          token: ${{ github.token }}
+          name: latest
           tag_name: latest
-          draft: true
+          draft: false
+          prerelease: true
           files: |
             readme.md
             changelog.md
