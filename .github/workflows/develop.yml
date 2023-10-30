@@ -71,8 +71,8 @@ jobs:
         uses: "softprops/action-gh-release@v1"
         with:
           token: ${{ github.token }}
-          name: latest
-          tag_name: latest
+          name: develop
+          tag_name: develop
           draft: false
           prerelease: true
           files: |
