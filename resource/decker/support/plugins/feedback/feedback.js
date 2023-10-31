@@ -238,8 +238,8 @@ class Feedback {
             null
           );
           this.clearTextArea();
-          this.requestMenuContent();
-          this.requestSlideMenuUpdate();
+          await this.requestMenuContent();
+          await this.requestSlideMenuUpdate();
         } catch (error) {
           console.error(error);
         }
