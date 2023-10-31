@@ -90,7 +90,7 @@ class Feedback {
     try {
       const token = await this.engine.api.getToken(this.engine.deckId);
       this.engine.token = token;
-      const that = this;
+      const that = this; // Capture this pointer for setupInterface function call
       async function setupInterface() {
         that.createInterface();
         await that.requestMenuContent();
@@ -101,7 +101,7 @@ class Feedback {
         }
       }
       if (this.reveal.isReady()) {
-        setupInterface();
+        await setupInterface();
       } else {
         this.reveal.addEventListener("ready", setupInterface);
       }
@@ -160,6 +160,14 @@ class Feedback {
       this.menu.feedback_credentials.container.classList.remove("visible");
       this.menu.feedback_login_button.classList.remove("fa-sign-out-alt");
       this.menu.feedback_login_button.classList.add("fa-sign-in-alt");
+      this.menu.feedback_login_button.setAttribute(
+        "title",
+        this.localization.interface.login_as_admin
+      );
+      this.menu.feedback_login_button.setAttribute(
+        "aria-label",
+        this.localization.interface.login_as_admin
+      );
       this.requestMenuContent();
     } else {
       if (
@@ -192,6 +200,14 @@ class Feedback {
         this.menu.feedback_credentials.container.classList.remove("visible");
         this.menu.feedback_login_button.classList.remove("fa-sign-in-alt");
         this.menu.feedback_login_button.classList.add("fa-sign-out-alt");
+        this.menu.feedback_login_button.setAttribute(
+          "title",
+          this.localization.interface.logout_as_admin
+        );
+        this.menu.feedback_login_button.setAttribute(
+          "aria-label",
+          this.localization.interface.logout_as_admin
+        );
         this.requestMenuContent();
       } catch (error) {
         console.error(error);
@@ -804,6 +820,7 @@ let plugin = () => {
           menu_title: "Questions",
           menu_close: "Close Feedback Menu",
           login_as_admin: "Login as Admin",
+          logout_as_admin: "Logout as Admin",
           username_placeholder: "Username",
           password_placeholder: "Password",
         },
@@ -835,6 +852,7 @@ let plugin = () => {
             menu_title: "Fragen",
             menu_close: "Fragemenu schließen",
             login_as_admin: "Als Administrator einloggen",
+            logout_as_admin: "Als Administrator abmelden",
             username_placeholder: "Benutzername",
             password_placeholder: "Passwort",
           },
