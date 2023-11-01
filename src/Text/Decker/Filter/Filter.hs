@@ -8,7 +8,7 @@ module Text.Decker.Filter.Filter
     escapeToFilePath,
     filterNotebookSlides,
     wrapSlidesinDivs,
-    -- runDynamicFilters,
+    runDynamicFilters,
     FilterPosition (..),
   )
 where
@@ -41,22 +41,21 @@ import Text.Pandoc.Walk
 
 data FilterPosition = Before | After deriving (Show, Eq)
 
--- TODO learn how to actually instantiate a Lua engine with the Pandoc 3 API
--- runDynamicFilters :: FilterPosition -> FilePath -> Pandoc -> Action Pandoc
--- runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
---   let paths :: [Text] = lookupMetaOrElse [] (key position) meta
---   let filters = map (mkFilter . makeProjectPath baseDir . toString) paths
---   if not $ null filters
---     then liftIO $ runIOorExplode $ applyFilters env filters ["html"] pandoc
---     else return pandoc
---   where
---     env = Environment pandocReaderOpts pandocWriterOpts
---     key Before = "pandoc.filters.before"
---     key After = "pandoc.filters.after"
---     mkFilter path =
---       if takeExtension path == ".lua"
---         then LuaFilter path
---         else JSONFilter path
+runDynamicFilters :: FilterPosition -> FilePath -> Pandoc -> Action Pandoc
+runDynamicFilters position baseDir pandoc@(Pandoc meta blocks) = do
+  let paths :: [Text] = lookupMetaOrElse [] (key position) meta
+  let filters = map (mkFilter . makeProjectPath baseDir . toString) paths
+  if not $ null filters
+    then liftIO $ runIOorExplode $ applyFilters env filters ["html"] pandoc
+    else return pandoc
+  where
+    env = Environment pandocReaderOpts pandocWriterOpts
+    key Before = "pandoc.filters.before"
+    key After = "pandoc.filters.after"
+    mkFilter path =
+      if takeExtension path == ".lua"
+        then LuaFilter path
+        else JSONFilter path
 
 processPandoc ::
   (Pandoc -> Decker Pandoc) ->
