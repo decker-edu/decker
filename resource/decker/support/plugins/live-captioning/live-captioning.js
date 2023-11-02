@@ -45,7 +45,7 @@ function getLanguageCode(string) {
   if (/^..-../i.test(string)) {
     return string;
   }
-  //Language names 
+  //Language names
   // TODO: This whole system needs to be improved
   let code = undefined;
   switch (lang) {
@@ -78,6 +78,8 @@ class LiveCaptioning {
     this.captioning = false;
     this.speechRecog = undefined;
     this.connection = undefined;
+
+    this.defibrilator = undefined; // Timer to restart caption request if no data comes for too long.
 
     /* Left for posterity if at some point the window-placement API is supported in browsers
      this.fullscreenCaptioning = false;
@@ -135,15 +137,18 @@ class LiveCaptioning {
     this.speechRecog.onerror = (event) => this.handleError(event);
     this.speechRecog.onend = () => this.handleEnd();
 
+    const url = new URL(import.meta.url);
+    const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+
     this.popup = window.open(
-      "about:blank",
+      `${path + "/live-captioning.html"}?${Date.now()}`,
       "reveal.js - Captioning",
       "width=1920,height=1080"
     );
     try {
-      const url = new URL(import.meta.url);
-      const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
-      const response = await fetch(path + "/live-captioning.html");
+      const response = await fetch(path + "/live-captioning.html", {
+        cache: "no-cache",
+      });
       const html = await response.text();
       this.popup.document.write(html);
       this.popup.onbeforeunload = () => {
@@ -154,9 +159,9 @@ class LiveCaptioning {
       console.log(error);
     }
 
-    let url = window.Decker.meta["caption-server"];
-    if (url) {
-      fetch(url + "/api/session", {
+    let backend = window.Decker.meta["caption-server"];
+    if (backend) {
+      fetch(backend + "/api/session", {
         method: "POST",
       })
         .then((response) => response.json())
@@ -164,7 +169,7 @@ class LiveCaptioning {
           if (json.session && json.token) {
             this.connection = json;
             if (!this.connection.server) {
-              this.connection.server = url;
+              this.connection.server = backend;
             }
             this.connection.cors =
               window.location.origin !== new URL(this.connection.server).origin
@@ -259,12 +264,24 @@ class LiveCaptioning {
   }
 
   handleStart() {
-    this.popup.postMessage(
-      JSON.stringify({
-        type: "status",
-        value: "start",
-      })
-    );
+    this.defibrilator = setTimeout(() => this.defibrilate(), 3000);
+    if (this.popup) {
+      this.popup.postMessage(
+        JSON.stringify({
+          type: "status",
+          value: "start",
+        })
+      );
+    }
+  }
+
+  /**
+   * Stop the speechRecognition if no data comes in for a while.
+   * The handleEnd() function should then restart the recognition as if an error had occurred.
+   */
+  defibrilate() {
+    console.log("defibrilate");
+    this.speechRecog.stop();
   }
 
   /**
@@ -273,6 +290,10 @@ class LiveCaptioning {
    * @param {*} event
    */
   handleResult(event) {
+    if (this.defibrilator) {
+      clearTimeout(this.defibrilator);
+    }
+    this.defibrilator = setTimeout(() => this.defibrilate(), 3000);
     for (var i = event.resultIndex; i < event.results.length; i++) {
       if (event.results[i][0].confidence > 0.1) {
         this.updateCaptionContent(event.results[i][0].transcript);
@@ -415,9 +436,9 @@ const plugin = () => {
         abort: "Cancel",
         qrcode_message: "Live Captioning",
         caption_warning:
-          "Using this feature will use your Browser's WebSpeech API to transcribe your voice. \
-         To facilitate this, your voice will be sent to your Browser's manufacturer's Cloud Service \
-         (Google or Apple). Do you accept this?",
+          "In order to use the live captioning function you will use integrated plugins of your browser. \
+          In case you are using the live captioning function the data necessary for transcription will be handled by the installed plugin. \
+          Decker will not take responsibility for the use and processing of that data by the installed plugin.",
       };
       let lang = navigator.language;
       if (lang === "de") {
@@ -429,9 +450,9 @@ const plugin = () => {
           abort: "Abbrechen",
           qrcode_message: "Live-Untertitel",
           caption_warning:
-            "Diese Funktion wird die eingebaute WebSpeech API Ihres Browsers benutzen, \
-         um Ihre Stimme zu transkribieren. Die dabei aufgezeichneten Daten werden dazu an den Hersteller \
-         Ihres Browsers gesendet. Sind Sie damit einverstanden?",
+            "Sie können für die Live-Untertitelung die von Ihrem Browser bereitgestellten Plugins nutzen. \
+            In diesem Fall wird die Verarbeitung der Daten durch das von Ihnen installierte Plugin und nicht durch Decker vorgenommen. \
+            Decker übernimmt in diesem Fall keine Verantwortung für die Verarbeitung der Daten durch das von Ihnen installierte Plugin.",
         };
       }
 
