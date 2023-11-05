@@ -2,6 +2,17 @@
 
 ## decker 0.14.0
 
+-   The whiteboard can now be configured to automatically switch on 
+    (when a pen-hover is detected) and off (two seconds after pen-up event).
+    While it is convenient not having to toggle the whiteboard manually, it
+    also means that one cannot use a pen to interact with elements on the slide.
+    By default this feature is disabled. To enable, use this setting:
+
+    ``` yaml
+    whiteboard:
+      autotoggle: true
+    ```
+
 -   Remove inert polyfill, since the inert feature is now supported in
     up-to-date browsers.
 
