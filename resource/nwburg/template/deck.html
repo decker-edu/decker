@@ -222,13 +222,10 @@ $endif$
 
 </body>
 
-<script src="$decker-support-dir$/js/inert-polyfill.min.js"></script>
 $if(live-captions)$
 <script src="$decker-support-dir$/components/awesome-button.js"></script>
 $endif$
 <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
-<!-- script src="$decker-support-dir$/js/inert.min.js"></script -->
-<!-- Use the other implementation if things break under Firefox -->
 $for(template.js)$
   <script type="module" src="$template.js$"></script>
 $endfor$

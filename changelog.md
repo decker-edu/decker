@@ -2,6 +2,9 @@
 
 ## decker 0.14.0
 
+-   Remove inert polyfill, since the inert feature is now supported in
+    up-to-date browsers.
+
 -   `column-1-2-3` DIV style columns are now detected recursively.
 
 -   Files can be excluded from file watching using glob patterns:
@@ -15,14 +18,16 @@
 
 -   The new command `decker transcribe` transcribes all recorded videos to
     `.vtt` files that are available with the integrated video player. The
-    recorded language must be configured explicitly, default is German:
+    recorded language must be configured explicitly, default is German. By default,
+    both German and English subtitles will be generated. In order to use this,
+    install [whisper.cpp](https://github.com/ggerganov/whisper.cpp). Those are the configuration options.
 
     ``` yaml
     # whisper.cpp default transcription settings
     whisper:
       base-dir: /usr/local/share/whisper.cpp
       model: models/ggml-large.bin
-      # the recorded language (ie. "de" or "en")
+      # the recorded language (e.g., "de" or "en")
       lang: de 
     ```
 
