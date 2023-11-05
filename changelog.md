@@ -2,6 +2,11 @@
 
 ## decker 0.14.0
 
+-   Decker slides can now be installed as progressive web apps (PWAs).
+    We don't cache the content locally, so consumers of published slides
+    still need internet connection. But the PWA mechanism allows to add
+    slides to the home-screen (for iOS) or as an app shortcut (Chrome, Safari).
+
 -   The whiteboard can now be configured to automatically switch on 
     (when a pen-hover is detected) and off (two seconds after pen-up event).
     While it is convenient not having to toggle the whiteboard manually, it
