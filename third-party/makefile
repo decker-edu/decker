@@ -16,9 +16,9 @@ videojs:
 	@rsync video.js/* $(support)/videojs
 
 mathjax:
-	@mkdir -p $(support)/mathjax/{input,output,input/tex,output/svg}
-	@for i in tex-svg.js input/tex/ input/tex.js output/svg/ output/svg.js ui/; do \
-		rsync --recursive --delete $(third)/MathJax/es5/$$i $(support)/mathjax/$$i; \
+	@mkdir -p $(support)/mathjax/{input,output,input/tex,output/svg,a11y,sre}
+	@for i in tex-svg.js a11y/ sre/ input/tex/ input/tex.js input/mml.js output/svg/ output/svg.js ui/; do \
+		echo rsync --recursive --delete $(third)/MathJax/es5/$$i $(support)/mathjax/$$i; \
 	done
 
 reveal.js:

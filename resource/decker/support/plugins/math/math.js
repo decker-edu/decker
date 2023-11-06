@@ -99,6 +99,15 @@ function setupMathIncremental() {
 }
 
 /*
+ * remove fragments from assistive MML blocks
+ */
+function fixAssistiveMML() {
+  for (let elem of document.querySelectorAll("mjx-assistive-mml .fragment")) {
+    elem.classList.remove("fragment");
+  }
+}
+
+/*
  * Inject CSS rules that (i) make SVG equations automatically shrink down to
  * fit the enclosing container and (ii) remove pointer events from the
  * equation parts, such that Reveal's zoom plugin work nicely on equations, too.
@@ -134,9 +143,11 @@ const Plugin = {
 
     // get configuration, built MathJax URL
     const options = Reveal.getConfig().math || {};
-    const mathjax =
-      options.mathjax || "https://cdn.jsdelivr.net/npm/mathjax@3/es5/";
-    const url = mathjax + "tex-svg.js";
+    if (!options.mathjax) {
+      console.error("MathJax not properly configured. Call Hauer.");
+      return;
+    }
+    const url = options.mathjax + "tex-svg.js";
 
     // remove menu settings, which are stored in localStorage.
     // otherwise user could select CHTML renderer, which is not
@@ -148,13 +159,45 @@ const Plugin = {
     // configure through global MathJax object
     window.MathJax = {
       loader: {
-        load: ["[tex]/ams"],
+        load: [
+          "[tex]/ams",
+          "a11y/assistive-mml",
+          "a11y/explorer",
+          "a11y/semantic-enrich",
+          "a11y/complexity",
+          "a11y/sre",
+        ],
         typeset: false,
       },
       startup: {
         ready: () => {
-          // console.log("mathjax loaded");
-          //MathJax.startup.defaultReady();
+          // Create a custom menu that disables the CHTML renderer.
+          // Mathjax's default menu only disables the CHTML entry if no loader or
+          // startup is found. Otherwise it actually does not care if the so called
+          // "development option" for the context menu with the name "jax" has the value
+          // "CHTML" set to anything
+          const { Menu } = window.MathJax._.ui.menu.Menu;
+          class customMenu extends Menu {
+            constructor(document, options) {
+              super(document, options);
+              this.applySettings();
+            }
+
+            initMenu() {
+              super.initMenu();
+              const chtmlEntry = this.menu.findID(
+                "Settings",
+                "Renderer",
+                "CHTML"
+              );
+              if (chtmlEntry) {
+                chtmlEntry.disable();
+              }
+            }
+          }
+
+          window.MathJax.config.options.MenuClass = customMenu;
+          window.MathJax.startup.defaultReady();
         },
       },
       svg: {
@@ -189,15 +232,32 @@ const Plugin = {
         ],
       },
       options: {
-        enableMenu: false,
-        // disable assistive-mml, since it messes up speaker notes
+        enableMenu: true,
+        enableEnrichment: true,
+        enableComplexity: true,
+        makeCollapsible: true,
+        enableExplorer: true,
         menuOptions: {
           settings: {
-            assistiveMml: false,
+            assistiveMml: true,
+            collapsible: true,
+            explorer: true,
+            renderer: "SVG",
+          },
+          // This actually does nothing but should be left here for documentation purposes
+          jax: {
+            CHTML: null, // disable CHTML rendering
           },
         },
-        renderActions: {
-          assistiveMml: [], // disable assistive mathml
+        a11y: {
+          speech: true,
+          braille: true,
+        },
+        sre: {
+          speech: "deep",
+          domain: "mathspeak",
+          style: "default",
+          locale: window.navigator.language,
         },
       },
     };
@@ -218,12 +278,15 @@ const Plugin = {
       loadScript(url, () => {
         // Typeset followed by an immediate reveal.js layout since
         // the typesetting process could affect slide height
-        window.MathJax.startup.defaultReady();
-        MathJax.startup.promise.then(() => {
+        // console.log("calling ready from promise");
+        // window.MathJax.startup.defaultReady();
+        // Why was this here? The ready function gets called anyway ...
+        window.MathJax.startup.promise.then(() => {
           // console.log("mathjax typeset done");
           Reveal.layout();
           fixLinks();
           setupMathIncremental();
+          fixAssistiveMML();
           injectStyle();
           resolve();
         });
