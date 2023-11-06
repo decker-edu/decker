@@ -159,8 +159,14 @@ const Plugin = {
     // configure through global MathJax object
     window.MathJax = {
       loader: {
-        // TODO Shouldn't the a11y extensions be explicitly loaded here? I did not have to do it ...
-        load: ["[tex]/ams"],
+        load: [
+          "[tex]/ams",
+          "a11y/assistive-mml",
+          "a11y/explorer",
+          "a11y/semantic-enrich",
+          "a11y/complexity",
+          "a11y/sre",
+        ],
         typeset: false,
       },
       startup: {
@@ -227,7 +233,7 @@ const Plugin = {
       },
       options: {
         enableMenu: true,
-        enableEnrichments: true,
+        enableEnrichment: true,
         enableComplexity: true,
         makeCollapsible: true,
         enableExplorer: true,
