@@ -280,7 +280,6 @@ class LiveCaptioning {
    * The handleEnd() function should then restart the recognition as if an error had occurred.
    */
   defibrilate() {
-    console.log("defibrilate");
     this.speechRecog.stop();
   }
 
