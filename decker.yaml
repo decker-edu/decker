@@ -16,9 +16,9 @@ exclude-directories:
   - website
 
 # new watch exclusion using glob patterns
-watch:
-  exclude:
-    - test/**/*.md
+# watch:
+#   exclude:
+#     - test/**/*.md
 
 static-resources:
   - test/static

@@ -3,7 +3,7 @@ on:
     branches:
       - "develop"
 
-name: Release latest
+name: Release develop branch
 jobs:
   remove-old-release:
     runs-on: ubuntu-latest
@@ -12,12 +12,14 @@ jobs:
         uses: mknejp/delete-release-assets@v1
         with:
           token: ${{ github.token }}
-          tag: latest 
+          tag: develop 
           assets: '*'
+          fail-if-no-assets: false
+          fail-if-no-release: false          
       - name: remove old release
         uses: cb80/delrel@latest
         with:
-          tag: latest
+          tag: develop
 
   build-all-platforms:
     runs-on: ${{ matrix.os }}
@@ -27,11 +29,13 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-    name: Decker latest (${{ matrix.os }})
+    name: Decker develop (${{ matrix.os }})
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        
+        with:
+          ref: develop
+
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -56,19 +60,22 @@ jobs:
       - name: Rename executable
         if: ${{ matrix.os != 'windows-latest' }}
         run: |
-          mv dist/decker "dist/decker-latest-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}"
+          mv dist/decker "dist/decker-develop-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}"
 
       - name: Rename executable
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          mv dist/decker.exe "dist/decker-latest-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}.exe"
+          mv dist/decker.exe "dist/decker-develop-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}.exe"
 
       - name: Release
         uses: "softprops/action-gh-release@v1"
         with:
-          name: "latest"
-          tag_name: latest
-          draft: true
+          token: ${{ github.token }}
+          name: develop
+          tag_name: develop
+          target_commitish: develop
+          draft: false
+          prerelease: true
           files: |
             readme.md
             changelog.md

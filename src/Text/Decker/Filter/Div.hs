@@ -16,9 +16,10 @@ import Text.Regex.TDFA
 
 divBasedLayout :: Slide -> Decker Slide
 divBasedLayout (Slide header body dir) =
-  return (Slide header (map (processColumns . processSize) body) dir)
+  return (Slide header (processBody body) dir)
   where
-    -- Finds the first columns tag and remove it from the classes list
+    processBody = map (processColumns . processSize)
+    -- Finds the first columns tag and remove it from the classes list. Recurses on contained Div elements.
     processColumns div@(Div (id, cls, attribs) body) =
       let columnClasses = partition (=~ ("^columns(-[0-9]+)+$" :: String)) cls
        in case first (find (not . Text.null)) columnClasses of
@@ -28,8 +29,11 @@ divBasedLayout (Slide header body dir) =
                   gridClasses = "grid-layout" : cls
                   -- Construct the CSS style
                   gridCss = Text.intercalate " " $ "grid-template-columns:" : map ((<> "fr") . show) columRatios
-               in Div (id, gridClasses, addToStyle [gridCss] attribs) body
-            _ -> div
+               in Div 
+                    (id, gridClasses, addToStyle [gridCss] attribs) 
+                    (processBody body)
+            _ -> let (Div attrs body) = div 
+                 in Div attrs (processBody body)
     processColumns block = block
     -- Converts size attributes (currently with, height) to CSS style settings
     processSize div@(Div (id, cls, attribs) body) =

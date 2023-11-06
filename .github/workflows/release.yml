@@ -54,6 +54,7 @@ jobs:
       - name: Release
         uses: "softprops/action-gh-release@v1"
         with:
+          token: ${{ github.token }}
           name: "Decker ${{ github.ref_name }}"
           tag_name: ${{ github.ref_name }}
           draft: false

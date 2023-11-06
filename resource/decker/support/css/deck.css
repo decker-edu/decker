@@ -63,20 +63,17 @@ section#title-slide div.authors {
 
 /* Title Slide Logo Max Heights */
 
-section#title-slide div.authors img {
-  max-height: calc(var(--slide-height) * 0.1);
-}
-
+section#title-slide div.authors img,
 section#title-slide div.author img {
-  max-height: calc(var(--slide-height) * 0.1);
+  height: calc(var(--slide-height) * 0.1);
 }
 
 section#title-slide div.affiliation img {
-  max-height: calc(var(--slide-height) * 0.1);
+  height: calc(var(--slide-height) * 0.1);
 }
 
 section#title-slide div.teaser img {
-  max-height: calc(var(--slide-height) * 0.2);
+  height: calc(var(--slide-height) * 0.2);
 }
 
 /* Title Slide Logos */
@@ -269,7 +266,7 @@ html.dark img {
 /*
  * Fixed Position so the watermark is displayed on every slide in print mode
  */
- .watermark {
+.watermark {
   position: fixed;
   left: 1rem;
   bottom: 1rem;
