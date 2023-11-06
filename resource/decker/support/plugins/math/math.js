@@ -99,6 +99,15 @@ function setupMathIncremental() {
 }
 
 /*
+ * remove fragments from assistive MML blocks
+ */
+function fixAssistiveMML() {
+  for (let elem of document.querySelectorAll("mjx-assistive-mml .fragment")) {
+    elem.classList.remove("fragment");
+  }
+}
+
+/*
  * Inject CSS rules that (i) make SVG equations automatically shrink down to
  * fit the enclosing container and (ii) remove pointer events from the
  * equation parts, such that Reveal's zoom plugin work nicely on equations, too.
@@ -134,9 +143,11 @@ const Plugin = {
 
     // get configuration, built MathJax URL
     const options = Reveal.getConfig().math || {};
-    const mathjax =
-      options.mathjax || "https://cdn.jsdelivr.net/npm/mathjax@3/es5/";
-    const url = mathjax + "tex-svg.js";
+    if (!options.mathjax) {
+      console.error("MathJax not properly configured. Call Hauer.");
+      return;
+    }
+    const url = options.mathjax + "tex-svg.js";
 
     // remove menu settings, which are stored in localStorage.
     // otherwise user could select CHTML renderer, which is not
@@ -269,6 +280,7 @@ const Plugin = {
           Reveal.layout();
           fixLinks();
           setupMathIncremental();
+          fixAssistiveMML();
           injectStyle();
           resolve();
         });
