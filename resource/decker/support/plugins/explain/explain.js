@@ -1716,7 +1716,7 @@ async function setupPlayer() {
       }
 
       // subtitles for recorded language (if not English)
-      const lang = Decker.meta?.whisper?.lang;
+      const lang = Decker.meta?.whisper?.lang || "de";
       if (lang && lang != "en") {
         vtt = deckUrlBase() + "-recording-" + lang + ".vtt";
         if (await resourceExists(vtt)) {
