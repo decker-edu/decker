@@ -1690,15 +1690,12 @@ async function setupPlayer() {
       explainTimesPlay = await fetchResourceJSON(explainTimesUrl);
       player.src({ type: "video/mp4", src: explainVideoUrl });
 
-      const vtt = deckUrlBase() + "-recording.vtt";
-      const vtt_de = deckUrlBase() + "-recording-de.vtt";
-      const vtt_en = deckUrlBase() + "-recording-en.vtt";
+      let vtt;
 
-      const vtt_exist = await resourceExists(vtt);
-      const vtt_de_exist = await resourceExists(vtt_de);
-      const vtt_en_exist = await resourceExists(vtt_en);
-
-      if (vtt_exist)
+      // "old" version of VTT w/o language specifier
+      // use language specified in YAML
+      vtt = deckUrlBase() + "-recording.vtt";
+      if (await resourceExists(vtt)) {
         player.addRemoteTextTrack(
           {
             kind: "captions",
@@ -1707,16 +1704,28 @@ async function setupPlayer() {
           },
           false
         );
-      if (vtt_de_exist)
+      }
+
+      // English subtitles
+      vtt = deckUrlBase() + "-recording-en.vtt";
+      if (await resourceExists(vtt)) {
         player.addRemoteTextTrack(
-          { kind: "captions", srclang: "de", src: vtt_de },
+          { kind: "captions", srclang: "en", src: vtt },
           false
         );
-      if (vtt_en_exist)
-        player.addRemoteTextTrack(
-          { kind: "captions", srclang: "en", src: vtt_en },
-          false
-        );
+      }
+
+      // subtitles for recorded language (if not English)
+      const lang = Decker.meta?.whisper?.lang;
+      if (lang && lang != "en") {
+        vtt = deckUrlBase() + "-recording-" + lang + ".vtt";
+        if (await resourceExists(vtt)) {
+          player.addRemoteTextTrack(
+            { kind: "captions", srclang: lang, src: vtt },
+            false
+          );
+        }
+      }
 
       return true;
     } else {
