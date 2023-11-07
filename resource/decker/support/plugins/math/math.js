@@ -159,45 +159,12 @@ const Plugin = {
     // configure through global MathJax object
     window.MathJax = {
       loader: {
-        load: [
-          "[tex]/ams",
-          "a11y/assistive-mml",
-          "a11y/explorer",
-          "a11y/semantic-enrich",
-          "a11y/complexity",
-          "a11y/sre",
-        ],
+        load: ["[tex]/ams"],
         typeset: false,
       },
       startup: {
         ready: () => {
-          // Create a custom menu that disables the CHTML renderer.
-          // Mathjax's default menu only disables the CHTML entry if no loader or
-          // startup is found. Otherwise it actually does not care if the so called
-          // "development option" for the context menu with the name "jax" has the value
-          // "CHTML" set to anything
-          const { Menu } = window.MathJax._.ui.menu.Menu;
-          class customMenu extends Menu {
-            constructor(document, options) {
-              super(document, options);
-              this.applySettings();
-            }
-
-            initMenu() {
-              super.initMenu();
-              const chtmlEntry = this.menu.findID(
-                "Settings",
-                "Renderer",
-                "CHTML"
-              );
-              if (chtmlEntry) {
-                chtmlEntry.disable();
-              }
-            }
-          }
-
-          window.MathJax.config.options.MenuClass = customMenu;
-          window.MathJax.startup.defaultReady();
+          // window.MathJax.startup.defaultReady();
         },
       },
       svg: {
@@ -235,12 +202,11 @@ const Plugin = {
         enableMenu: true,
         enableEnrichment: true,
         enableComplexity: true,
-        makeCollapsible: true,
         enableExplorer: true,
         menuOptions: {
           settings: {
             assistiveMml: true,
-            collapsible: true,
+            collapsible: false, // messes up spacing in some equations
             explorer: true,
             renderer: "SVG",
           },
@@ -278,9 +244,7 @@ const Plugin = {
       loadScript(url, () => {
         // Typeset followed by an immediate reveal.js layout since
         // the typesetting process could affect slide height
-        // console.log("calling ready from promise");
-        // window.MathJax.startup.defaultReady();
-        // Why was this here? The ready function gets called anyway ...
+        window.MathJax.startup.defaultReady();
         window.MathJax.startup.promise.then(() => {
           // console.log("mathjax typeset done");
           Reveal.layout();
