@@ -159,12 +159,19 @@ const Plugin = {
     // configure through global MathJax object
     window.MathJax = {
       loader: {
-        load: ["[tex]/ams"],
+        load: [
+          "[tex]/ams",
+          // "a11y/assistive-mml",
+          // "a11y/explorer",
+          // "a11y/semantic-enrich",
+          // "a11y/complexity",
+          // "a11y/sre",
+        ],
         typeset: false,
       },
       startup: {
         ready: () => {
-          // window.MathJax.startup.defaultReady();
+          console.log("mathjax loaded");
         },
       },
       svg: {
@@ -199,32 +206,28 @@ const Plugin = {
         ],
       },
       options: {
-        enableMenu: true,
-        enableEnrichment: true,
-        enableComplexity: true,
-        enableExplorer: true,
-        menuOptions: {
-          settings: {
-            assistiveMml: true,
-            collapsible: false, // messes up spacing in some equations
-            explorer: true,
-            renderer: "SVG",
-          },
-          // This actually does nothing but should be left here for documentation purposes
-          jax: {
-            CHTML: null, // disable CHTML rendering
-          },
-        },
-        a11y: {
-          speech: true,
-          braille: true,
-        },
-        sre: {
-          speech: "deep",
-          domain: "mathspeak",
-          style: "default",
-          locale: window.navigator.language,
-        },
+        enableMenu: false,
+        // enableMenu: true,
+        // enableEnrichment: true,
+        // enableComplexity: true,
+        // enableExplorer: true,
+        // menuOptions: {
+        //   settings: {
+        //     assistiveMml: true,
+        //     collapsible: false, // messes up spacing in some equations
+        //     explorer: true,
+        //   },
+        // },
+        // a11y: {
+        //   speech: true,
+        //   braille: true,
+        // },
+        // sre: {
+        //   speech: "deep",
+        //   domain: "mathspeak",
+        //   style: "default",
+        //   locale: window.navigator.language,
+        // },
       },
     };
 
@@ -244,9 +247,10 @@ const Plugin = {
       loadScript(url, () => {
         // Typeset followed by an immediate reveal.js layout since
         // the typesetting process could affect slide height
+        console.time("mathjax typesetting");
         window.MathJax.startup.defaultReady();
         window.MathJax.startup.promise.then(() => {
-          // console.log("mathjax typeset done");
+          console.timeEnd("mathjax typesetting");
           Reveal.layout();
           fixLinks();
           setupMathIncremental();
