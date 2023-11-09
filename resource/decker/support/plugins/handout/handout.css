@@ -140,3 +140,8 @@ html.handout .decker-anchor #handout-plus,
 html.handout .decker-anchor #handout-minus {
   display: inline-block;
 }
+
+html.handout .reveal .slides section .fragment:not(.visible) {
+  opacity: 1;
+  visibility: inherit;
+}
