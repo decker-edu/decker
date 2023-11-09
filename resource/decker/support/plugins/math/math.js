@@ -42,7 +42,7 @@ function loadScript(url, callback) {
 
   script.onload = finish;
 
-  // IE
+  // IE @mbotsch Do we want to keep supporting IE?
   script.onreadystatechange = function () {
     if (this.readyState === "loaded") {
       finish();
@@ -135,6 +135,9 @@ function injectStyle() {
   document.head.append(style);
 }
 
+// Is initial a11y mode requested?
+const a11y = /a11y/gi.test(window.location.search);
+
 const Plugin = {
   id: "math",
 
@@ -144,35 +147,28 @@ const Plugin = {
     // get configuration, built MathJax URL
     const options = Reveal.getConfig().math || {};
     if (!options.mathjax) {
-      console.error("MathJax not properly configured. Call Hauer.");
+      console.error(
+        "No MathJax source URI has been configured. This should not happen!",
+        "The config.math.mathjax value is usually configured in your resource pack's 'deck.html'",
+        "Please contact the developers: https://github.com/decker-edu/decker"
+      );
       return;
     }
     const url = options.mathjax + "tex-svg.js";
+    // const url = "https://cdn.jsdelivr.net/npm/mathjax@4.0.0-beta.4/tex-svg.js";
 
-    // remove menu settings, which are stored in localStorage.
-    // otherwise user could select CHTML renderer, which is not
-    // installed in decker.
-    if (window.localStorage) {
-      window.localStorage.removeItem("MathJax-Menu-Settings");
+    // define \fragment{...} funtion
+    let macros = { fragment: ["\\class{fragment}{#1}", 1] };
+    // add user-defined Latex macros
+    if (options.macros) {
+      macros = Object.assign(macros, options.macros);
     }
 
     // configure through global MathJax object
     window.MathJax = {
       loader: {
-        load: [
-          "[tex]/ams",
-          // "a11y/assistive-mml",
-          // "a11y/explorer",
-          // "a11y/semantic-enrich",
-          // "a11y/complexity",
-          // "a11y/sre",
-        ],
-        typeset: false,
-      },
-      startup: {
-        ready: () => {
-          console.log("mathjax loaded");
-        },
+        load: ["[tex]/ams"],
+        typeset: false, // Is this actually at the right location?
       },
       svg: {
         scale: Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
@@ -204,40 +200,24 @@ const Plugin = {
           ["$$", "$$"],
           ["\\[", "\\]"],
         ],
+        macros: macros,
       },
       options: {
-        enableMenu: false,
-        // enableMenu: true,
-        // enableEnrichment: true,
-        // enableComplexity: true,
-        // enableExplorer: true,
-        // menuOptions: {
-        //   settings: {
-        //     assistiveMml: true,
-        //     collapsible: false, // messes up spacing in some equations
-        //     explorer: true,
-        //   },
-        // },
-        // a11y: {
-        //   speech: true,
-        //   braille: true,
-        // },
-        // sre: {
-        //   speech: "deep",
-        //   domain: "mathspeak",
-        //   style: "default",
-        //   locale: window.navigator.language,
-        // },
+        enableExplorer: a11y,
+        menuOptions: {
+          settings: {
+            explorer: a11y,
+          },
+        },
+        a11y: {
+          // If we do not set any initial values on this the menu was bugged in 3.2.2
+          backgroundColor: "Green",
+          backgroundOpacity: 50,
+          foregroundColor: "Black",
+          foregroundOpacity: 100,
+        },
       },
     };
-
-    // define \fragment{...} funtion
-    let macros = { fragment: ["\\class{fragment}{#1}", 1] };
-    // add user-defined Latex macros
-    if (options.macros) {
-      macros = Object.assign(macros, options.macros);
-    }
-    window.MathJax.tex.macros = macros;
 
     // use promise mechanism to make sure that math typesetting
     // is performend before Reveal fires ready-event or
@@ -250,12 +230,12 @@ const Plugin = {
         console.time("mathjax typesetting");
         window.MathJax.startup.defaultReady();
         window.MathJax.startup.promise.then(() => {
-          console.timeEnd("mathjax typesetting");
           Reveal.layout();
           fixLinks();
           setupMathIncremental();
           fixAssistiveMML();
           injectStyle();
+          console.timeEnd("mathjax typesetting");
           resolve();
         });
       });
