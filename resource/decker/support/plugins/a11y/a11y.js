@@ -68,6 +68,44 @@ function addCustomSpacebarHandler() {
   }
 }
 
+function toggleAccessibility() {
+  a11yMode = !a11yMode;
+
+  if (a11yMode) {
+    document.documentElement.classList.add("a11y");
+    const videos = document.getElementsByTagName("VIDEO");
+    for (const video of videos) {
+      modifyMedia(video);
+    }
+    const audios = document.getElementsByTagName("AUDIO");
+    for (const audio of audios) {
+      modifyMedia(audio);
+    }
+    Decker.flash.message(
+      `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
+    );
+    window.MathJax.startup.document.menu.menu
+      .findID("Accessibility", "Activate")
+      .variable.setter(true);
+  } else {
+    document.documentElement.classList.remove("a11y");
+    const videos = document.getElementsByTagName("VIDEO");
+    for (const video of videos) {
+      restoreMedia(video);
+    }
+    const audios = document.getElementsByTagName("AUDIO");
+    for (const audio of audios) {
+      restoreMedia(audio);
+    }
+    Decker.flash.message(
+      `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
+    );
+  }
+}
+
+// Is initial accessibility view requested?
+const a11y = /a11y/gi.test(window.location.search);
+
 const Plugin = {
   id: "a11y",
   init: (reveal) => {
@@ -83,37 +121,7 @@ const Plugin = {
         description: "Toggle Decker Accessibility Adjustments (Triple Click)",
       },
 
-      Decker.tripleClick(() => {
-        a11yMode = !a11yMode;
-
-        if (a11yMode) {
-          document.documentElement.classList.add("a11y");
-          const videos = document.getElementsByTagName("VIDEO");
-          for (const video of videos) {
-            modifyMedia(video);
-          }
-          const audios = document.getElementsByTagName("AUDIO");
-          for (const audio of audios) {
-            modifyMedia(audio);
-          }
-          Decker.flash.message(
-            `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
-          );
-        } else {
-          document.documentElement.classList.remove("a11y");
-          const videos = document.getElementsByTagName("VIDEO");
-          for (const video of videos) {
-            restoreMedia(video);
-          }
-          const audios = document.getElementsByTagName("AUDIO");
-          for (const audio of audios) {
-            restoreMedia(audio);
-          }
-          Decker.flash.message(
-            `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
-          );
-        }
-      })
+      Decker.tripleClick(toggleAccessibility)
     );
   },
 };
