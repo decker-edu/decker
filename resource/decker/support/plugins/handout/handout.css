@@ -141,6 +141,7 @@ html.handout .decker-anchor #handout-minus {
   display: inline-block;
 }
 
+/* Re-rendered math with fragments do not get the "visible" class if they are re-rendered inside handout mode for some reason */
 html.handout .reveal .slides section .fragment:not(.visible) {
   opacity: 1;
   visibility: inherit;
