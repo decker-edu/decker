@@ -135,6 +135,9 @@ function injectStyle() {
   document.head.append(style);
 }
 
+// Is initial a11y mode requested?
+const a11y = /a11y/gi.test(window.location.search);
+
 const Plugin = {
   id: "math",
 
@@ -144,38 +147,41 @@ const Plugin = {
     // get configuration, built MathJax URL
     const options = Reveal.getConfig().math || {};
     if (!options.mathjax) {
-      console.error("MathJax not properly configured. Call Hauer.");
+      console.error(
+        "No MathJax source URI has been configured. This should not happen!",
+        "The config.math.mathjax value is usually configured in your resource pack's 'deck.html'",
+        "Please contact the developers: https://github.com/decker-edu/decker"
+      );
       return;
     }
     const url = options.mathjax + "tex-svg.js";
 
-    // remove menu settings, which are stored in localStorage.
-    // otherwise user could select CHTML renderer, which is not
-    // installed in decker.
-    if (window.localStorage) {
-      window.localStorage.removeItem("MathJax-Menu-Settings");
+    // define \fragment{...} funtion
+    let macros = { fragment: ["\\class{fragment}{#1}", 1] };
+    // add user-defined Latex macros
+    if (options.macros) {
+      macros = Object.assign(macros, options.macros);
     }
 
     // configure through global MathJax object
     window.MathJax = {
       loader: {
-        load: [
-          "[tex]/ams",
-          // "a11y/assistive-mml",
-          // "a11y/explorer",
-          // "a11y/semantic-enrich",
-          // "a11y/complexity",
-          // "a11y/sre",
-        ],
         typeset: false,
       },
       startup: {
         ready: () => {
-          console.log("mathjax loaded");
+          const { mathjax } = window.MathJax._.mathjax;
+          const { STATE } = window.MathJax._.core.MathItem;
+          const { Menu } = window.MathJax._.ui.menu.Menu;
+          const rerender = Menu.prototype.rerender;
+          Menu.prototype.rerender = function (start = STATE.TYPESET) {
+            mathjax.handleRetriesFor(() => rerender.call(this, start));
+          };
+          window.MathJax.startup.defaultReady();
         },
       },
       svg: {
-        scale: Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
+        scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
         minScale: 0.5, // smallest scaling factor to use
         mtextInheritFont: true, // true to make mtext elements use surrounding font
         merrorInheritFont: true, // true to make merror text use surrounding font
@@ -191,9 +197,6 @@ const Plugin = {
       },
       tex: {
         tags: "ams",
-        packages: {
-          "[+]": ["ams"],
-        },
         inlineMath: [
           // start/end delimiter pairs for in-line math
           ["$", "$"],
@@ -204,40 +207,23 @@ const Plugin = {
           ["$$", "$$"],
           ["\\[", "\\]"],
         ],
+        macros: macros,
       },
       options: {
-        enableMenu: false,
-        // enableMenu: true,
-        // enableEnrichment: true,
-        // enableComplexity: true,
-        // enableExplorer: true,
-        // menuOptions: {
-        //   settings: {
-        //     assistiveMml: true,
-        //     collapsible: false, // messes up spacing in some equations
-        //     explorer: true,
-        //   },
-        // },
-        // a11y: {
-        //   speech: true,
-        //   braille: true,
-        // },
-        // sre: {
-        //   speech: "deep",
-        //   domain: "mathspeak",
-        //   style: "default",
-        //   locale: window.navigator.language,
-        // },
+        enableMenu: true,
+        menuOptions: {
+          settings: {
+            explorer: a11y, //if in a11y page mode: active by default
+          },
+        },
+        a11y: {
+          backgroundColor: "Green",
+          backgroundOpacity: 50,
+          foregroundColor: "Black",
+          foregroundOpacity: 100,
+        },
       },
     };
-
-    // define \fragment{...} funtion
-    let macros = { fragment: ["\\class{fragment}{#1}", 1] };
-    // add user-defined Latex macros
-    if (options.macros) {
-      macros = Object.assign(macros, options.macros);
-    }
-    window.MathJax.tex.macros = macros;
 
     // use promise mechanism to make sure that math typesetting
     // is performend before Reveal fires ready-event or
