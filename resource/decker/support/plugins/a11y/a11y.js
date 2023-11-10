@@ -84,9 +84,12 @@ function toggleAccessibility() {
     Decker.flash.message(
       `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
     );
-    window.MathJax.startup.document.menu.menu
-      .findID("Accessibility", "Activate")
-      .variable.setter(true);
+    if (window.MathJax) {
+      // Turn on MathJax explorer
+      window.MathJax.startup.document.menu.menu
+        .findID("Accessibility", "Activate")
+        .variable.setter(true);
+    }
   } else {
     document.documentElement.classList.remove("a11y");
     const videos = document.getElementsByTagName("VIDEO");
@@ -100,6 +103,12 @@ function toggleAccessibility() {
     Decker.flash.message(
       `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
     );
+    if (window.MathJax) {
+      // Does it make sense to remove this again if once activated?
+      window.MathJax.startup.document.menu.menu
+        .findID("Accessibility", "Activate")
+        .variable.setter(false);
+    }
   }
 }
 
