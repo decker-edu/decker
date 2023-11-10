@@ -132,6 +132,9 @@ const Plugin = {
 
       Decker.tripleClick(toggleAccessibility)
     );
+    if (a11y) {
+      Reveal.addEventListener("ready", toggleAccessibility);
+    }
   },
 };
 
