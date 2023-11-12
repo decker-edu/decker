@@ -58,18 +58,31 @@ function loadScript(url, callback) {
  * point to the slide containing the referenced equation.
  * Requires that each slide has a CSS id (as generated e.g. by pandoc/decker)
  */
-function fixLinks() {
-  for (let a of document.getElementsByTagName("a")) {
-    let href = a.href;
-    if (href.baseVal) {
-      let label = href.baseVal;
-      if (label.includes("#mjx-eqn")) {
-        label = decodeURIComponent(label.substring(1));
-        const eqn = document.getElementById(label);
-        if (eqn) {
-          const s = eqn.closest("section");
-          if (s) {
-            a.href.baseVal = location.origin + location.pathname + "#" + s.id;
+function fixLinks() {}
+
+function adjustLinksDocument(doc) {
+  for (const item of doc.math) {
+    adjustLinksItem(item, doc);
+  }
+}
+
+function adjustLinksItem(item, doc) {
+  const root = item.typesetRoot;
+  if (root) {
+    const anchors = root.querySelectorAll("a");
+    for (const anchor of anchors) {
+      const href = anchor.href;
+      if (href.baseVal) {
+        let label = href.baseVal;
+        if (label.includes("#mjx-eqn")) {
+          label = decodeURIComponent(label.substring(1));
+          const eqn = document.getElementById(label);
+          if (eqn) {
+            const s = eqn.closest("section");
+            if (s) {
+              anchor.href.baseVal =
+                location.origin + location.pathname + "#" + s.id;
+            }
           }
         }
       }
@@ -78,32 +91,30 @@ function fixLinks() {
 }
 
 /*
- * If a multi-line equation is enclosed in a div with class math-incremental,
- * then add class fragment to the individual rows of the equation, making it
- * appear row-by-row.
+ * Render actions to add fragment class to individual rows of a math equation
+ * that is enclosed by a math-incremental div, making the rows appear one after
+ * the other.
  */
-function setupMathIncremental() {
-  // unlabeled equations
-  for (let mrow of document.querySelectorAll(
-    '.reveal .math-incremental mjx-container svg g[data-mml-node="mtable"]:first-of-type > g[data-mml-node="mtr"]'
-  )) {
-    mrow.classList.add("fragment");
-  }
 
-  // unlabeled equations
-  for (let mrow of document.querySelectorAll(
-    '.reveal .math-incremental mjx-container svg g[data-mml-node="mtable"]:first-of-type g[data-mml-node="mlabeledtr"]'
-  )) {
-    mrow.classList.add("fragment");
+function incrementalDocument(doc) {
+  for (const item of doc.math) {
+    incrementalItem(item, doc);
   }
 }
 
-/*
- * remove fragments from assistive MML blocks
- */
-function fixAssistiveMML() {
-  for (let elem of document.querySelectorAll("mjx-assistive-mml .fragment")) {
-    elem.classList.remove("fragment");
+function incrementalItem(item, doc) {
+  const root = item.typesetRoot;
+  if (root && root.closest(".math-incremental")) {
+    for (let mrow of root.querySelectorAll(
+      'g[data-mml-node="mtable"]:first-of-type > g[data-mml-node="mtr"]'
+    )) {
+      mrow.classList.add("fragment");
+    }
+    for (let mrow of document.querySelectorAll(
+      'g[data-mml-node="mtable"]:first-of-type g[data-mml-node="mlabeledtr"]'
+    )) {
+      mrow.classList.add("fragment");
+    }
   }
 }
 
@@ -168,7 +179,6 @@ const Plugin = {
     window.MathJax = {
       loader: {
         load: ["[tex]/ams"],
-        typeset: false, // Is this actually at the right location?
       },
       svg: {
         scale: Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
@@ -203,6 +213,10 @@ const Plugin = {
         macros: macros,
       },
       options: {
+        renderActions: {
+          incremental: [1000, incrementalDocument, incrementalItem, false],
+          adjustLinks: [1001, adjustLinksDocument, adjustLinksItem, false],
+        },
         enableExplorer: a11y,
         menuOptions: {
           settings: {
@@ -219,23 +233,16 @@ const Plugin = {
       },
     };
 
+    injectStyle();
+
     // use promise mechanism to make sure that math typesetting
     // is performend before Reveal fires ready-event or
     // generates a PDF
     return new Promise((resolve) => {
       // load mathjax script
       loadScript(url, () => {
-        // Typeset followed by an immediate reveal.js layout since
-        // the typesetting process could affect slide height
-        console.time("mathjax typesetting");
-        window.MathJax.startup.defaultReady();
         window.MathJax.startup.promise.then(() => {
           Reveal.layout();
-          fixLinks();
-          setupMathIncremental();
-          fixAssistiveMML();
-          injectStyle();
-          console.timeEnd("mathjax typesetting");
           resolve();
         });
       });
