@@ -177,9 +177,6 @@ const Plugin = {
 
     // configure through global MathJax object
     window.MathJax = {
-      loader: {
-        load: ["[tex]/ams"],
-      },
       svg: {
         scale: Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
         minScale: 0.5, // smallest scaling factor to use
@@ -197,9 +194,6 @@ const Plugin = {
       },
       tex: {
         tags: "ams",
-        packages: {
-          "[+]": ["ams"],
-        },
         inlineMath: [
           // start/end delimiter pairs for in-line math
           ["$", "$"],
