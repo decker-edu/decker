@@ -138,6 +138,16 @@ function injectStyle() {
             mjx-container > svg a * {
                 pointer-events: all;
             }
+            
+            /* always display in print-pdf */
+            .print-pdf g.fragment {
+              opacity: 1;
+            }
+
+            /* always display in handout */
+            .handout g.fragment {
+              opacity: 1;
+            }
         `;
   document.head.append(style);
 }
