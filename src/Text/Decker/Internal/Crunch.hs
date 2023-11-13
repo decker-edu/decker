@@ -36,21 +36,25 @@ crunchRules = do
       unless (null webms) $ do
         need [replaceSuffix "-deck.html" "-recording.mp4" deck]
   alternatives $ do
+    -- copy the crunched MP4 to public
     publicDir <//> "*-recording.mp4" %> \out -> do
       let src = makeRelative publicDir out
       need [src]
       putNormal $ "# copy recording (for " <> out <> ")"
       copyFileChanged src out
+    -- crunch the WEBMs in the list if the list changed
     "**/*-recording.mp4" %> \out -> do
       let list = out <.> "list"
       need [list]
       putNormal $ "# ffmpeg (for " <> out <> ")"
       liftIO $ concatVideoMp4' slow list out
+    -- compile the lost of WEBMs
     "**/*-recording.mp4.list" %> \out -> do
       alwaysRerun
       let pattern = dropSuffix ".mp4.list" out <> "*.webm"
       webms <- getDirectoryFiles "" [pattern]
       putNormal $ "# collect WEBMs (for " <> out <> ")"
+      -- only write the list if it would change
       writeFileChanged out (List.unlines $ map (\f -> "file '" <> takeFileName f <> "'") $ sort webms)
 
 -- | Reads the 'comment' meta data field from the video container. Return True
