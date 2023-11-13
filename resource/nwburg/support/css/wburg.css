@@ -686,7 +686,7 @@ div.flush-bottom-right {
   display: none;
 }
 
-div.qrcode.container {
+#qrcode-container {
   display: none;
   z-index: 4000;
   position: absolute;
@@ -694,39 +694,50 @@ div.qrcode.container {
   right: 0;
   bottom: 0;
   top: 0;
-  background-color: var(--shade0);
-}
-
-div.qrcode.container button {
-  position: absolute;
-  right: 1em;
-  top: 1em;
-}
-
-div.qrcode.container.show {
-  display: flex;
-}
-
-div.qrcode.container {
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
   flex-flow: column nowrap;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  gap: 0.5em;
+}
+#qrcode-container.show {
+  display: flex;
 }
 
-div.qrcode.container canvas {
+#qrcode-canvas {
   height: 66vh;
   min-height: 0;
   aspect-ratio: 1 / 1;
   background-color: white;
   padding: 0.5em;
-  border: 0.01em solid black;
-  border-radius: var(--block-border-radius);
+  border-radius: 0.25em;
+}
+#qrcode-canvas.smaller {
+  height: 33vh;
 }
 
-div.qrcode.container a {
+#qrcode-link {
+  display: block;
   font-size: 2rem;
   font-weight: bold;
+  padding: 0.5em;
+  border-radius: 0.25em;
+  background-color: var(--background-color);
+}
+
+#close-qr-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 4001;
+  background-color: var(--background-color);
+  border-radius: 100%;
+  color: var(--icon-inactive-color);
+}
+#close-qr-button:hover {
+  color: var(--icon-active-color);
 }
 
 /* This one should be beack to decker.css */
