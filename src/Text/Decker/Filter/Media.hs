@@ -293,7 +293,7 @@ codeBlock code caption = do
     takeAllClasses
     injectClasses ["processed"]
     injectStyles innerSizes
-    takeAttributes ["style"]
+    takeAttributes ["style", "startFrom"]
     takeData
     extractAttr
   figureAttr <- do

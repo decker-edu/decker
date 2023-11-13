@@ -568,7 +568,7 @@ pre.line-numbers code > span > a:first-child::before {
   border: none;
   display: inline-block;
   user-select: none;
-  width: 1.5em;
+  width: 2em;
   margin-right: 1em;
   color: var(--shade3);
 }
