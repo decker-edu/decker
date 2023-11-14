@@ -67,7 +67,12 @@ function fixLinks() {
         if (eqn) {
           const s = eqn.closest("section");
           if (s) {
-            a.href.baseVal = location.origin + location.pathname + "#" + s.id;
+            a.href.baseVal =
+              location.origin +
+              location.pathname +
+              location.search +
+              "#" +
+              s.id;
           }
         }
       }
@@ -81,11 +86,15 @@ function fixLinks() {
  * appear row-by-row.
  */
 function setupMathIncremental() {
+  const doc = document.documentElement;
   // unlabeled equations
   for (let mrow of document.querySelectorAll(
     '.reveal .math-incremental mjx-container svg g[data-mml-node="mtable"]:first-of-type > g[data-mml-node="mtr"]'
   )) {
     mrow.classList.add("fragment");
+    if (doc.classList.contains("handout") || doc.classList.contains("a11y")) {
+      mrow.classList.add("visible");
+    }
   }
 
   // unlabeled equations
@@ -93,6 +102,9 @@ function setupMathIncremental() {
     '.reveal .math-incremental mjx-container svg g[data-mml-node="mtable"]:first-of-type g[data-mml-node="mlabeledtr"]'
   )) {
     mrow.classList.add("fragment");
+    if (doc.classList.contains("handout") || doc.classList.contains("a11y")) {
+      mrow.classList.add("visible");
+    }
   }
 }
 
@@ -174,6 +186,9 @@ const Plugin = {
           Menu.prototype.rerender = function (start = STATE.TYPESET) {
             mathjax.handleRetriesFor(() => {
               rerender.call(this, start);
+              fixLinks();
+              setupMathIncremental();
+              fixAssistiveMML();
             });
           };
         },
