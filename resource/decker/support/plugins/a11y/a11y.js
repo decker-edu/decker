@@ -86,6 +86,8 @@ function toggleAccessibility() {
     );
     if (window.MathJax) {
       // Turn on MathJax explorer
+      window.MathJax.startup.document.options.enableMenu = true;
+      window.MathJax.startup.document.rerender();
       window.MathJax.startup.document.menu.menu
         .findID("Accessibility", "Activate")
         .variable.setter(true);
@@ -108,6 +110,8 @@ function toggleAccessibility() {
       window.MathJax.startup.document.menu.menu
         .findID("Accessibility", "Activate")
         .variable.setter(false);
+      window.MathJax.startup.document.options.enableMenu = false;
+      window.MathJax.startup.document.rerender();
     }
   }
 }
