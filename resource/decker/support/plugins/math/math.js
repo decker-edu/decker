@@ -166,18 +166,29 @@ const Plugin = {
     // configure through global MathJax object
     window.MathJax = {
       loader: {
-        typeset: false,
+        ready: () => {
+          console.log("loader ready");
+          MathJax.loader.defaultReady();
+        },
       },
       startup: {
+        //        typeset: false,
         ready: () => {
+          console.log("startup ready");
           const { mathjax } = window.MathJax._.mathjax;
           const { STATE } = window.MathJax._.core.MathItem;
           const { Menu } = window.MathJax._.ui.menu.Menu;
           const rerender = Menu.prototype.rerender;
           Menu.prototype.rerender = function (start = STATE.TYPESET) {
-            mathjax.handleRetriesFor(() => rerender.call(this, start));
+            mathjax.handleRetriesFor(() => {
+              rerender.call(this, start);
+            });
           };
           window.MathJax.startup.defaultReady();
+        },
+        pageReady: () => {
+          console.log("pageReady");
+          return window.MathJax.startup.defaultPageReady();
         },
       },
       svg: {
@@ -210,7 +221,7 @@ const Plugin = {
         macros: macros,
       },
       options: {
-        enableMenu: true,
+        enableMenu: a11y,
         menuOptions: {
           settings: {
             explorer: a11y, //if in a11y page mode: active by default
@@ -231,12 +242,15 @@ const Plugin = {
     return new Promise((resolve) => {
       // load mathjax script
       loadScript(url, () => {
+        console.log("loadScript callback");
         // Typeset followed by an immediate reveal.js layout since
         // the typesetting process could affect slide height
-        console.time("mathjax typesetting");
-        window.MathJax.startup.defaultReady();
+        //        console.time("mathjax typesetting");
+        // window.MathJax.startup.defaultReady();
+        //        window.MathJax.typesetPromise();
         window.MathJax.startup.promise.then(() => {
-          console.timeEnd("mathjax typesetting");
+          //          console.timeEnd("mathjax typesetting");
+          console.log("typeset done");
           Reveal.layout();
           fixLinks();
           setupMathIncremental();
