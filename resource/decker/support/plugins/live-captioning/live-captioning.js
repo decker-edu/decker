@@ -7,6 +7,8 @@
  */
 import bwipjs from "../examiner/bwip.js";
 
+const RESTART_INTERVAL = 2000;
+
 let localization;
 
 // Using the custom web component here is optional and can be replaced by something less
@@ -81,6 +83,8 @@ class LiveCaptioning {
 
     this.defibrilator = undefined; // Timer to restart caption request if no data comes for too long.
 
+    this.lastEvent = undefined;
+
     /* Left for posterity if at some point the window-placement API is supported in browsers
      this.fullscreenCaptioning = false;
      this.primaryScreen = undefined;
@@ -141,7 +145,7 @@ class LiveCaptioning {
     const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
 
     this.popup = window.open(
-      `${path + "/live-captioning.html"}?${Date.now()}`,
+      `${path + "/live-captioning.html"}?${Date.now()}`, //Add time to back to prevent caching
       "reveal.js - Captioning",
       "width=1920,height=1080"
     );
@@ -161,40 +165,37 @@ class LiveCaptioning {
 
     let backend = window.Decker.meta["caption-server"];
     if (backend) {
-      fetch(backend + "/api/session", {
-        method: "POST",
-      })
-        .then((response) => response.json())
-        .then((json) => {
-          if (json.session && json.token) {
-            this.connection = json;
-            if (!this.connection.server) {
-              this.connection.server = backend;
-            }
-            this.connection.cors =
-              window.location.origin !== new URL(this.connection.server).origin
-                ? "cors"
-                : "same-origin";
-          }
-        })
-        .then(() => {
-          this.showQRCode();
-        })
-        .catch((error) => {
-          console.error(error);
+      try {
+        const response = await fetch(backend + "/api/session", {
+          method: "POST",
         });
+        const json = await response.json();
+        if (json.session && json.token) {
+          this.connection = json;
+          if (!this.connection.server) {
+            this.connection.server = backend;
+          }
+          this.connection.cors =
+            window.location.origin !== new URL(this.connection.server).origin
+              ? "cors"
+              : "same-origin";
+          this.showQRCode();
+        }
+      } catch (error) {
+        console.error(error);
+      }
     }
 
     this.speechRecog.start();
     this.captioning = true;
-    //    this.record_button.icon = "fa-circle";
     this.record_button.classList.add("recording");
     this.record_button.title = localization.stop_captioning;
     this.record_button.setAttribute("aria-label", localization.stop_captioning);
   }
 
   async showQRCode() {
-    let qrcode = document.createElement("canvas");
+    const container = document.createElement("div");
+    const qrcode = document.createElement("canvas");
     bwipjs.toCanvas(qrcode, {
       bcid: "qrcode",
       text: `${this.connection.server}/session/${this.connection.session}`,
@@ -203,14 +204,27 @@ class LiveCaptioning {
       textxalign: "center",
       eclevel: "L",
     });
+    container.appendChild(qrcode);
+    const linkContainer = document.createElement("div");
+    container.appendChild(linkContainer);
+    const link = document.createElement("a");
+    linkContainer.appendChild(link);
+    link.innerText = `${this.connection.server}/session/${this.connection.session}`;
+    link.href = `${this.connection.server}/session/${this.connection.session}`;
+    link.target = "_blank";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "1rem";
+    container.style.alignItems = "center";
     let noop = await window.showInformation(
       localization.qrcode_message,
-      qrcode
+      container
     );
   }
 
   async showAbort() {
-    let qrcode = document.createElement("canvas");
+    const container = document.createElement("div");
+    const qrcode = document.createElement("canvas");
     bwipjs.toCanvas(qrcode, {
       bcid: "qrcode",
       text: `${this.connection.server}/session/${this.connection.session}`,
@@ -219,13 +233,25 @@ class LiveCaptioning {
       textxalign: "center",
       eclevel: "L",
     });
+    container.appendChild(qrcode);
+    const linkContainer = document.createElement("div");
+    container.appendChild(linkContainer);
+    const link = document.createElement("a");
+    linkContainer.appendChild(link);
+    link.innerText = `${this.connection.server}/session/${this.connection.session}`;
+    link.href = `${this.connection.server}/session/${this.connection.session}`;
+    link.target = "_blank";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "1rem";
+    container.style.alignItems = "center";
     let options = [
       { text: localization.stop, value: "true" },
       { text: localization.abort, value: "false" },
     ];
     return window.showDialog(
       "Untertitelung beenden?",
-      qrcode,
+      container,
       options,
       "warning"
     );
@@ -242,7 +268,6 @@ class LiveCaptioning {
       this.popup.close();
       this.popup = undefined;
     }
-    //    this.record_button.icon = "fa-closed-captioning";
     this.record_button.classList.remove("recording");
     this.record_button.title = localization.start_captioning;
     this.record_button.setAttribute(
@@ -264,7 +289,8 @@ class LiveCaptioning {
   }
 
   handleStart() {
-    this.defibrilator = setTimeout(() => this.defibrilate(), 3000);
+    this.lastEvent = Date.now();
+    this.defibrilator = setInterval(() => this.defibrilate(), RESTART_INTERVAL);
     if (this.popup) {
       this.popup.postMessage(
         JSON.stringify({
@@ -280,7 +306,11 @@ class LiveCaptioning {
    * The handleEnd() function should then restart the recognition as if an error had occurred.
    */
   defibrilate() {
-    this.speechRecog.stop();
+    const now = Date.now();
+    const timeSinceLastEvent = now - this.lastEvent;
+    if (timeSinceLastEvent > RESTART_INTERVAL) {
+      this.speechRecog.abort();
+    }
   }
 
   /**
@@ -289,10 +319,7 @@ class LiveCaptioning {
    * @param {*} event
    */
   handleResult(event) {
-    if (this.defibrilator) {
-      clearTimeout(this.defibrilator);
-    }
-    this.defibrilator = setTimeout(() => this.defibrilate(), 3000);
+    this.lastEvent = Date.now();
     for (var i = event.resultIndex; i < event.results.length; i++) {
       if (event.results[i][0].confidence > 0.1) {
         this.updateCaptionContent(event.results[i][0].transcript);
@@ -308,16 +335,18 @@ class LiveCaptioning {
    * @param {*} event
    */
   handleError(event) {
-    console.error(event);
-    if (this.popup) {
-      this.popup.postMessage(
-        JSON.stringify({
-          type: "status",
-          value: "inactive",
-        })
-      );
+    if (!(event.error === "aborted")) {
+      console.error(event);
+      if (this.popup) {
+        this.popup.postMessage(
+          JSON.stringify({
+            type: "status",
+            value: "inactive",
+          })
+        );
+      }
+      this.finalizeCaptionContent(this.currentSpan?.innerHTML);
     }
-    this.finalizeCaptionContent(this.currentSpan?.innerHTML);
   }
 
   /**
@@ -325,6 +354,7 @@ class LiveCaptioning {
    * want to caption.
    */
   handleEnd() {
+    clearInterval(this.defibrilator);
     this.finalizeCaptionContent(this.currentSpan?.innerHTML);
     if (this.captioning) {
       this.speechRecog.start();
