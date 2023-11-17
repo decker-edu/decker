@@ -99,6 +99,15 @@ function setupMathIncremental() {
 }
 
 /*
+ * remove fragments from assistive MML blocks
+ */
+function fixAssistiveMML() {
+  for (let elem of document.querySelectorAll("mjx-assistive-mml .fragment")) {
+    elem.classList.remove("fragment");
+  }
+}
+
+/*
  * Inject CSS rules that (i) make SVG equations automatically shrink down to
  * fit the enclosing container and (ii) remove pointer events from the
  * equation parts, such that Reveal's zoom plugin work nicely on equations, too.
@@ -134,9 +143,11 @@ const Plugin = {
 
     // get configuration, built MathJax URL
     const options = Reveal.getConfig().math || {};
-    const mathjax =
-      options.mathjax || "https://cdn.jsdelivr.net/npm/mathjax@3/es5/";
-    const url = mathjax + "tex-svg.js";
+    if (!options.mathjax) {
+      console.error("MathJax not properly configured. Call Hauer.");
+      return;
+    }
+    const url = options.mathjax + "tex-svg.js";
 
     // remove menu settings, which are stored in localStorage.
     // otherwise user could select CHTML renderer, which is not
@@ -148,13 +159,19 @@ const Plugin = {
     // configure through global MathJax object
     window.MathJax = {
       loader: {
-        load: ["[tex]/ams"],
+        load: [
+          "[tex]/ams",
+          // "a11y/assistive-mml",
+          // "a11y/explorer",
+          // "a11y/semantic-enrich",
+          // "a11y/complexity",
+          // "a11y/sre",
+        ],
         typeset: false,
       },
       startup: {
         ready: () => {
-          // console.log("mathjax loaded");
-          //MathJax.startup.defaultReady();
+          console.log("mathjax loaded");
         },
       },
       svg: {
@@ -190,15 +207,27 @@ const Plugin = {
       },
       options: {
         enableMenu: false,
-        // disable assistive-mml, since it messes up speaker notes
-        menuOptions: {
-          settings: {
-            assistiveMml: false,
-          },
-        },
-        renderActions: {
-          assistiveMml: [], // disable assistive mathml
-        },
+        // enableMenu: true,
+        // enableEnrichment: true,
+        // enableComplexity: true,
+        // enableExplorer: true,
+        // menuOptions: {
+        //   settings: {
+        //     assistiveMml: true,
+        //     collapsible: false, // messes up spacing in some equations
+        //     explorer: true,
+        //   },
+        // },
+        // a11y: {
+        //   speech: true,
+        //   braille: true,
+        // },
+        // sre: {
+        //   speech: "deep",
+        //   domain: "mathspeak",
+        //   style: "default",
+        //   locale: window.navigator.language,
+        // },
       },
     };
 
@@ -218,12 +247,14 @@ const Plugin = {
       loadScript(url, () => {
         // Typeset followed by an immediate reveal.js layout since
         // the typesetting process could affect slide height
+        console.time("mathjax typesetting");
         window.MathJax.startup.defaultReady();
-        MathJax.startup.promise.then(() => {
-          // console.log("mathjax typeset done");
+        window.MathJax.startup.promise.then(() => {
+          console.timeEnd("mathjax typesetting");
           Reveal.layout();
           fixLinks();
           setupMathIncremental();
+          fixAssistiveMML();
           injectStyle();
           resolve();
         });

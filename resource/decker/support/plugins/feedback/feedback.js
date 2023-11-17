@@ -28,6 +28,8 @@ class Feedback {
     token: undefined,
   };
 
+  usertoken = undefined;
+
   open_button = undefined;
   button_badge = undefined;
 
@@ -36,10 +38,6 @@ class Feedback {
   menu = {
     container: undefined,
     badge: undefined,
-    token_input: undefined,
-    token_lock: undefined,
-    token_icon: undefined,
-    lock_label: undefined,
     close_button: undefined,
     feedback_list: undefined,
     feedback_input: undefined,
@@ -71,8 +69,8 @@ class Feedback {
   }
 
   /**
-   * Tries to establish a connection to the engine by downloading the implementation
-   * from the given base. The deckId is a unique identifier that identifies this
+   * Creates the engine object using the base as the URL to send messages to.
+   * The deckId is a unique identifier that identifies this
    * deck and can be set in either the deck.yaml or the markdown of the deck.
    * @param {*} base A URL.
    * @param {*} deckId A unique id from deck.yaml or the deck markdown.
@@ -84,29 +82,32 @@ class Feedback {
   }
 
   /**
-   * Sets up the engine fetched previously by contactEngine.
+   * Connects to the engine endpoint and fetches the usertoken and other credentials.
+   * After a token was fetched, the connection is considered established and we can
+   * create the interface.
    */
-  prepareEngine() {
-    this.engine.api
-      .getToken(this.engine.deckId)
-      .then((token) => {
-        // Globally set the server token.
-        this.engine.token = token;
-
-        // Build the panel, once Reval is ready.
-        if (this.reveal.isReady()) {
-          this.createInterface();
-        } else {
-          this.reveal.addEventListener("ready", (_) => {
-            this.createInterface();
-          });
+  async prepareEngine() {
+    try {
+      const token = await this.engine.api.getToken(this.engine.deckId);
+      this.engine.token = token;
+      const that = this; // Capture this pointer for setupInterface function call
+      async function setupInterface() {
+        that.createInterface();
+        await that.requestMenuContent();
+        await that.requestSlideMenuUpdate();
+        const previousState = localStorage.getItem("feedback-state");
+        if (previousState === "open") {
+          that.openMenu();
         }
-      })
-      .catch((e) => {
-        // Nothing goes without a token
-        console.log("API function getToken() failed: " + e);
-        throw e;
-      });
+      }
+      if (this.reveal.isReady()) {
+        await setupInterface();
+      } else {
+        this.reveal.addEventListener("ready", setupInterface);
+      }
+    } catch (error) {
+      console.error("API function getToken() failed: ", error);
+    }
   }
 
   /**
@@ -123,7 +124,6 @@ class Feedback {
   openMenu() {
     if (this.menu.container.inert) {
       this.menu.container.inert = false;
-      this.menu.token_lock.focus();
       // This is necessary for the handout plugin because it disables change of the "currentSlide" of Reveal.
       // TODO: Find a better way to deal with this
       if (!document.documentElement.classList.contains("handout"))
@@ -131,7 +131,7 @@ class Feedback {
       this.reveal.getRevealElement().inert = true;
       // localStorage.setItem("feedback-state", "open");
       this.glass.classList.add("show");
-      this.menu.token_lock.focus();
+      this.menu.close_button.focus();
     }
   }
 
@@ -149,77 +149,6 @@ class Feedback {
   }
 
   /**
-   * Disables or enables the token_input field.
-   */
-  toggleTokenInput() {
-    if (this.menu.token_lock.getAttribute("aria-checked") === "true") {
-      this.unlockTokenInput();
-    } else {
-      if (this.menu.token_input.value) {
-        //disallow empty token
-        this.lockTokenInput();
-      }
-    }
-  }
-
-  /**
-   * Disables the token input field and stores its value in the local storage.
-   */
-  lockTokenInput() {
-    this.menu.token_input.setAttribute("disabled", true);
-    this.menu.token_input.type = "password";
-    this.menu.token_lock.setAttribute(
-      "title",
-      this.localization.interface.unlock_token
-    );
-    this.menu.token_lock.setAttribute(
-      "aria-label",
-      this.localization.interface.unlock_token
-    );
-    this.menu.token_lock.setAttribute("aria-checked", "true");
-    this.menu.token_icon.classList.remove("fa-unlock");
-    this.menu.token_icon.classList.add("fa-lock");
-    window.localStorage.setItem(
-      "feedback-user-token",
-      this.menu.token_input.value
-    );
-  }
-
-  /**
-   * Enables input on the token input field and deletes the token from the local
-   * storage until it is locked again.
-   */
-  unlockTokenInput() {
-    this.menu.token_input.removeAttribute("disabled");
-    this.menu.token_input.type = "text";
-    this.menu.token_input.classList.remove("hidden");
-    this.menu.token_lock.setAttribute(
-      "title",
-      this.localization.interface.lock_token
-    );
-    this.menu.token_lock.setAttribute(
-      "aria-label",
-      this.localization.interface.lock_token
-    );
-    this.menu.token_lock.setAttribute("aria-checked", "false");
-    this.menu.token_icon.classList.remove("fa-lock");
-    this.menu.token_icon.classList.add("fa-unlock");
-    /* Remove this because currently we no longer use a text label on the lock button.
-     * this.menu.lock_label.textContent = this.localization.interface.lock_token;
-     */
-    window.localStorage.removeItem("feedback-user-token");
-  }
-
-  /**
-   * Completely hides the token input. Called if you are the admin.
-   */
-  hideTokenInput() {
-    this.lockTokenInput();
-    this.menu.token_input.classList.add("hidden");
-    this.menu.token_lock.classList.add("hidden");
-  }
-
-  /**
    * Turns on or off the login credentials area in the footer.
    */
   toggleLoginArea() {
@@ -229,6 +158,16 @@ class Feedback {
       this.menu.feedback_credentials.password_input.value = "";
       this.menu.feedback_login_area.classList.remove("admin");
       this.menu.feedback_credentials.container.classList.remove("visible");
+      this.menu.feedback_login_button.classList.remove("fa-sign-out-alt");
+      this.menu.feedback_login_button.classList.add("fa-sign-in-alt");
+      this.menu.feedback_login_button.setAttribute(
+        "title",
+        this.localization.interface.login_as_admin
+      );
+      this.menu.feedback_login_button.setAttribute(
+        "aria-label",
+        this.localization.interface.login_as_admin
+      );
       this.requestMenuContent();
     } else {
       if (
@@ -245,27 +184,35 @@ class Feedback {
   /**
    * Tries to perfom a login with the entered credentials.
    */
-  sendLogin(event) {
+  async sendLogin(event) {
     if (event.key === "Enter") {
       let credentials = {
         login: this.menu.feedback_credentials.username_input.value,
         password: this.menu.feedback_credentials.password_input.value,
         deck: this.engine.deckId,
       };
-      this.engine.api
-        .getLogin(credentials)
-        .then((token) => {
-          this.engine.token.admin = token.admin;
-          this.menu.feedback_login_area.classList.add("admin");
-          this.menu.feedback_credentials.username_input.value = "";
-          this.menu.feedback_credentials.password_input.value = "";
-          this.menu.feedback_credentials.container.classList.remove("visible");
-          this.requestMenuContent();
-        })
-        .catch((error) => {
-          console.error(error);
-          this.menu.feedback_credentials.password_input.value = "";
-        });
+      try {
+        const token = await this.engine.api.getLogin(credentials);
+        this.engine.token.admin = token.admin;
+        this.menu.feedback_login_area.classList.add("admin");
+        this.menu.feedback_credentials.username_input.value = "";
+        this.menu.feedback_credentials.password_input.value = "";
+        this.menu.feedback_credentials.container.classList.remove("visible");
+        this.menu.feedback_login_button.classList.remove("fa-sign-in-alt");
+        this.menu.feedback_login_button.classList.add("fa-sign-out-alt");
+        this.menu.feedback_login_button.setAttribute(
+          "title",
+          this.localization.interface.logout_as_admin
+        );
+        this.menu.feedback_login_button.setAttribute(
+          "aria-label",
+          this.localization.interface.logout_as_admin
+        );
+        this.requestMenuContent();
+      } catch (error) {
+        console.error(error);
+        this.menu.feedback_credentials.password_input.value = "";
+      }
     }
   }
 
@@ -273,7 +220,7 @@ class Feedback {
    * Publishes a comment to the engine.
    * @param {*} event
    */
-  sendComment(event) {
+  async sendComment(event) {
     if (event.key === "Enter" && event.shiftKey) {
       let slideId = this.reveal.getCurrentSlide().id;
       if (
@@ -283,31 +230,35 @@ class Feedback {
         slideId = this.mostRecentSlideID;
       }
       if (this.menu.feedback_input.hasAttribute("answer")) {
-        this.engine.api
-          .postAnswer(
+        try {
+          await this.engine.api.postAnswer(
             this.menu.feedback_input.commentId,
             this.engine.token.admin,
             this.menu.feedback_input.value,
             null
-          )
-          .then(() => this.clearTextArea())
-          .then(() => this.requestMenuContent())
-          .then(() => this.requestSlideMenuUpdate())
-          .catch(console.log);
+          );
+          this.clearTextArea();
+          await this.requestMenuContent();
+          await this.requestSlideMenuUpdate();
+        } catch (error) {
+          console.error(error);
+        }
       } else {
-        this.engine.api
-          .submitComment(
+        try {
+          await this.engine.api.submitComment(
             this.engine.deckId,
             slideId,
-            this.engine.token.admin || this.menu.token_input.value,
+            this.engine.token.admin || this.usertoken,
             this.menu.feedback_input.value,
             this.menu.feedback_input.commentId,
             window.location.toString()
-          )
-          .then(() => this.clearTextArea())
-          .then(() => this.requestMenuContent())
-          .then(() => this.requestSlideMenuUpdate())
-          .catch(console.log);
+          );
+          this.clearTextArea();
+          await this.requestMenuContent();
+          await this.requestSlideMenuUpdate();
+        } catch (error) {
+          console.error(error);
+        }
       }
       event.stopPropagation();
       event.preventDefault();
@@ -354,10 +305,11 @@ class Feedback {
   }
 
   /**
-   * Sends an async request to the engine to get the questions of the current slide.
+   * Sends an async request to the engine to get the questions of the requested slide or
+   * the current reveal slide if the slide is not specified.
    * @returns A promise that resolves when the update is finished
    */
-  requestMenuContent(slide) {
+  async requestMenuContent(slide) {
     let slideId;
     if (!slide) {
       slideId = this.reveal.getCurrentSlide().id;
@@ -365,14 +317,14 @@ class Feedback {
       slideId = slide.id;
     }
     this.mostRecentSlideID = slideId;
-    return this.engine.api
-      .getComments(
-        this.engine.deckId,
-        slideId,
-        this.engine.token.admin || this.menu.token_input.value
-      )
-      .then((list) => this.updateMenuContent(list))
-      .catch(console.log);
+    try {
+      const token = this.engine.token.admin || this.usertoken;
+      const deckId = this.engine.deckId;
+      const list = await this.engine.api.getComments(deckId, slideId, token);
+      this.updateMenuContent(list);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   /**
@@ -404,60 +356,73 @@ class Feedback {
    * Deletes the passed comment.
    * @param {*} comment
    */
-  deleteQuestion(comment) {
-    this.engine.api
-      .deleteComment(
-        comment.id,
-        this.engine.token.admin || this.menu.token_input.value
-      )
-      .then(() => this.requestMenuContent())
-      .then(() => this.requestSlideMenuUpdate());
+  async deleteQuestion(comment) {
+    try {
+      const token = this.engine.token.admin || this.usertoken;
+      await this.engine.api.deleteComment(comment.id, token);
+      await this.requestMenuContent();
+      await this.requestSlideMenuUpdate();
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   /**
    * Deletes all answers to a comment.
    * @param {*} comment
    */
-  resetAnswers(comment) {
-    let chain = Promise.resolve();
+  async resetAnswers(comment) {
     for (let answer of comment.answers) {
-      chain.then(() =>
-        this.engine.api.deleteAnswer(answer.id, this.engine.token.admin)
-      );
+      try {
+        await this.engine.api.deleteAnswer(answer.id, this.engine.token.admin);
+      } catch (error) {
+        console.error(error);
+      }
     }
-    chain.then(() => this.requestMenuContent());
+    await this.requestMenuContent();
   }
 
   /**
    * Deletes the passed answer.
    * @param {*} answer
    */
-  deleteAnswer(answer) {
-    this.engine.api
-      .deleteAnswer(answer.id, this.engine.token.admin)
-      .then(() => this.requestMenuContent());
+  async deleteAnswer(answer) {
+    try {
+      await this.engine.api.deleteAnswer(answer.id, this.engine.token.admin);
+    } catch (error) {
+      console.error(error);
+    }
+    await this.requestMenuContent();
   }
 
   /**
    * Marks a question as answered (does not need to have a written answer)
    * @param {*} comment
    */
-  markQuestion(comment) {
-    this.engine.api
-      .postAnswer(comment.id, this.engine.token.admin)
-      .then(() => this.requestMenuContent());
+  async markQuestion(comment) {
+    try {
+      await this.engine.api.postAnswer(comment.id, this.engine.token.admin);
+    } catch (error) {
+      console.error(error);
+    }
+    await this.requestMenuContent();
   }
 
   /**
    * Gives the comment a +1 or revokes it if this user has already done so.
    * @param {*} comment
    */
-  voteComment(comment) {
+  async voteComment(comment) {
     let vote = {
       comment: comment.id,
-      voter: this.menu.token_input.value,
+      voter: this.usertoken,
     };
-    this.engine.api.voteComment(vote).then(() => this.requestMenuContent());
+    try {
+      await this.engine.api.voteComment(vote);
+    } catch (error) {
+      console.error(error);
+    }
+    await this.requestMenuContent();
   }
 
   /**
@@ -469,7 +434,7 @@ class Feedback {
     let text = this.localization.question_container;
 
     let isAdmin = this.engine.token.admin != null;
-    let isAuthor = comment.author === this.menu.token_input.value;
+    let isAuthor = comment.author === this.usertoken;
     let isDeletable = isAdmin || (isAuthor && comment.answers.length == 0);
     let isAnswered = comment.answers && comment.answers.length > 0;
 
@@ -648,15 +613,16 @@ class Feedback {
   initializeUsertoken() {
     let localToken = window.localStorage.getItem("feedback-user-token");
     if (this.engine && this.engine.token && this.engine.token.authorized) {
-      this.menu.token_input.value = this.engine.token.authorized;
+      // If you are logged in externally
+      this.usertoken = this.engine.token.authorized;
       this.menu.container.classList.add("authorized");
-      this.hideTokenInput();
     } else if (localToken) {
-      this.menu.token_input.value = localToken;
-      this.lockTokenInput();
+      // If you already have a token in localstorage
+      this.usertoken = localToken;
     } else {
-      this.menu.token_input.value = this.engine.token.random;
-      this.lockTokenInput();
+      // If you have none of that, take a random token and save it to localstorage
+      this.usertoken = this.engine.token.random;
+      window.localStorage.setItem("feedback-user-token", this.usertoken);
     }
   }
 
@@ -664,11 +630,13 @@ class Feedback {
    * Requests the api to send a list of questions to update the main slide menu.
    * @returns Promise that resolves when the update is finished
    */
-  requestSlideMenuUpdate() {
-    return this.engine.api
-      .getComments(this.engine.deckId)
-      .then((list) => this.updateSlideMenu(list))
-      .catch(console.log);
+  async requestSlideMenuUpdate() {
+    try {
+      const list = await this.engine.api.getComments(this.engine.deckId);
+      this.updateSlideMenu(list);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   /**
@@ -722,9 +690,6 @@ class Feedback {
       <div class="feedback-header">
         <div class="counter">0</div>
         <div class="feedback-title">${text.menu_title}</div>
-        <input class="feedback-token-input" type="password" placeholder="${text.token_placeholder}" disabled="true"></input>
-        <button class="fa-button feedback-lock fas fa-lock lock-icon" role="switch" aria-checked="true" title="${text.unlock_token}" aria-label="${text.unlock_token}">
-        </button>
         <button class="fa-button feedback-close fas fa-times-circle" title="${text.menu_close}" aria-label="${text.menu_close}">
         </button>
       </div>
@@ -762,9 +727,6 @@ class Feedback {
     );
     this.menu.badge = menu.querySelector(".counter");
     this.menu.feedback_list = menu.querySelector(".feedback-list");
-    this.menu.token_input = menu.querySelector(".feedback-token-input");
-    this.menu.token_lock = menu.querySelector(".feedback-lock");
-    this.menu.token_icon = menu.querySelector(".lock-icon");
     this.menu.close_button = menu.querySelector(".feedback-close");
     this.menu.feedback_login_area = menu.querySelector(".feedback-login");
     this.menu.feedback_login_button = menu.querySelector(
@@ -790,9 +752,6 @@ class Feedback {
     );
     this.menu.feedback_login_button.addEventListener("click", (event) =>
       this.toggleLoginArea()
-    );
-    this.menu.token_lock.addEventListener("click", (event) =>
-      this.toggleTokenInput()
     );
     this.menu.feedback_input.addEventListener("keydown", (event) =>
       this.sendComment(event)
@@ -830,16 +789,6 @@ class Feedback {
     /* Finish setup before presentation */
 
     this.initializeUsertoken();
-
-    this.requestMenuContent()
-      .then(() => this.requestSlideMenuUpdate())
-      .then(() => {
-        /* Open menu again if it was previously opened */
-        const previous_state = localStorage.getItem("feedback-state");
-        if (previous_state === "open") {
-          this.openMenu();
-        }
-      });
   }
 }
 
@@ -869,11 +818,9 @@ let plugin = () => {
         interface: {
           open_label: "Open Feedback Menu",
           menu_title: "Questions",
-          token_placeholder: "Usertoken",
-          unlock_token: "Unlock Token",
-          lock_token: "Lock Token",
           menu_close: "Close Feedback Menu",
           login_as_admin: "Login as Admin",
+          logout_as_admin: "Logout as Admin",
           username_placeholder: "Username",
           password_placeholder: "Password",
         },
@@ -903,11 +850,9 @@ let plugin = () => {
           interface: {
             open_label: "Fragemenu öffnen",
             menu_title: "Fragen",
-            token_placeholder: "Nutzertoken",
-            lock_token: "Token entsprren",
-            unlock_token: "Token sperren",
             menu_close: "Fragemenu schließen",
             login_as_admin: "Als Administrator einloggen",
+            logout_as_admin: "Als Administrator abmelden",
             username_placeholder: "Benutzername",
             password_placeholder: "Passwort",
           },

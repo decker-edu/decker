@@ -11,7 +11,7 @@ let solution;
 
 // polling
 let session;
-let qrcode;
+let qrcode, qrcodeCanvas, qrcodeLink;
 let finalVotes;
 let pollState;
 let myChart;
@@ -94,11 +94,38 @@ function setupGUI() {
 
   qrcode = createElement({
     type: "div",
-    classes: "qrcode container",
+    id: "qrcode-container",
     parent: document.body,
   });
   qrcode.addEventListener("click", () => {
     qrcode.classList.remove("show");
+  });
+
+  qrcodeCanvas = createElement({
+    type: "canvas",
+    id: "qrcode-canvas",
+    parent: qrcode,
+  });
+  qrcodeCanvas.addEventListener("click", (evt) => {
+    qrcodeCanvas.classList.toggle("smaller");
+    evt.stopPropagation();
+  });
+
+  qrcodeLink = createElement({
+    type: "a",
+    id: "qrcode-link",
+    parent: qrcode,
+  });
+
+  const closeButton = createElement({
+    type: "button",
+    id: "close-qr-button",
+    classes: "fa-button fas fa-close",
+    tooltip: "Close QR code",
+    parent: qrcode,
+    onclick: () => {
+      qrcode.classList.toggle("show");
+    },
   });
 }
 
@@ -390,13 +417,10 @@ async function startPollingSession() {
 
   // create QR code
   let { id, url } = session.sessionId();
-  qrcode.innerHTML = String.raw`
-    <div id="qrcode-container">
-    <canvas id="poll-qrcode-canvas"></canvas>
-    <div><a href="${url}" target="_blank" title="${url}" id="poll-session-id">${url}</a></div>
-    </div>
-  `;
-  session.fillQRCode("poll-qrcode-canvas");
+  qrcodeLink.innerHTML = String.raw`${url}`;
+  qrcodeLink.href = url;
+  qrcodeLink.target = "_blank";
+  session.fillQRCode("qrcode-canvas");
 }
 
 const Plugin = {

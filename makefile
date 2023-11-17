@@ -29,6 +29,7 @@ resource-zip:
 
 install: clean-build
 	mkdir -p "$(local-bin-path)"
+	rm -f "$(local-bin-path)/$(base-name)" 
 	cp "$(executable)" "$(local-bin-path)/$(base-name)"
 
 unclean-install: build
