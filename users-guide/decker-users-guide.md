@@ -875,8 +875,6 @@ style, it does not do anything. (21. Jul 2020)
       style: plain
     ```
 
-## ThebeLab 🚧 {#thebelab}
-
 ## Sage
 
 ## GraphViz

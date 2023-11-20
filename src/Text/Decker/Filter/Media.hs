@@ -595,9 +595,10 @@ javascriptCodeBlock code caption = do
 -- | Inserts the contents of the code block into the data-code attribute of an iframe.
 thebeCodeBlock :: Text -> [Inline] -> Attrib Block
 thebeCodeBlock code caption = do
-  url <- URI.mkURI . fromMaybe "" =<< cutAttrib "src"
+  -- uri <- URI.mkURI . fromMaybe "" =<< cutAttrib "src"
+  uri <- URI.mkURI "public:support/thebe/thebe.html"
   injectAttribute ("data-code", encodeBase64 code)
-  iframeBlock url "" caption
+  iframeBlock uri "" caption
   
 -- |  Wraps any container in a figure. Adds a caption element if the caption is
 --  not empty.
