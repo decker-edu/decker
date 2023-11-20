@@ -36,6 +36,7 @@ import Text.Pandoc
 import Text.Printf
 import Text.URI (URI)
 import Text.URI qualified as URI
+import Data.Text.Encoding.Base64 (encodeBase64)
 
 fragmentRelated =
   [ "fragment",
@@ -176,6 +177,8 @@ compileCodeBlock attr@(_, classes, _) code caption = do
               (writeAndRenderCodeBlock "tex")
           | all (`elem` classes) ["javascript", "run"] ->
               (javascriptCodeBlock code caption)
+          | all (`elem` classes) ["thebe"] ->
+              (thebeCodeBlock code caption)
           | otherwise ->
               (codeBlock code caption)
     attribs <- do
@@ -589,6 +592,13 @@ javascriptCodeBlock code caption = do
               [mkRaw' (anchor <> code)]
           ]
 
+-- | Inserts the contents of the code block into the data-code attribute of an iframe.
+thebeCodeBlock :: Text -> [Inline] -> Attrib Block
+thebeCodeBlock code caption = do
+  url <- URI.mkURI . fromMaybe "" =<< cutAttrib "src"
+  injectAttribute ("data-code", encodeBase64 code)
+  iframeBlock url "" caption
+  
 -- |  Wraps any container in a figure. Adds a caption element if the caption is
 --  not empty.
 wrapFigure :: Container a => Attr -> [Inline] -> a -> a

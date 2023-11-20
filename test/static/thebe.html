@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script type="text/x-thebe-config"> { bootstrap: false } </script>
+  <script src="https://unpkg.com/thebe@latest/lib/index.js"></script>
+  <style>
+    * {
+      font-size: 20px;
+    }
+
+    body {
+      background-color: whitesmoke;
+    }
+  </style>
+  <script>
+    window.addEventListener("load", () => {
+      let repo = window.frameElement.getAttribute("data-repo");
+      let kernel = window.frameElement.getAttribute("data-kernel");
+      let language = window.frameElement.getAttribute("data-language");
+      let code = window.frameElement.getAttribute("data-code");
+
+      let thebe = document.getElementById("thebe");
+      thebe.innerText = atob(code);
+      thebe.setAttribute("data-language", language);
+
+      thebelab.bootstrap({
+        requestKernel: true,
+        binderOptions: {
+          repo: repo || "binder-examples/requirements",
+        },
+        kernelOptions: {
+          kernelName: kernel || "python3",
+        },
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <div class="thebe-status"></div>
+
+  <pre id="thebe" data-executable="true">putStrLn "Hello World!"</pre>
+</body>
+
+</html>

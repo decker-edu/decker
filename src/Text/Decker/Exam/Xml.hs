@@ -10,7 +10,6 @@ import Control.Exception
 import Control.Lens hiding (Choice)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base64 as B64
-import qualified Data.ByteString.UTF8 as UTF8
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Development.Shake
@@ -259,7 +258,7 @@ killSinglePara (Pandoc meta [Para inlines]) = Pandoc meta [Plain inlines]
 killSinglePara pandoc = pandoc
 
 readFileBase64 :: FilePath -> IO String
-readFileBase64 path = UTF8.toString . B64.encode <$> BS.readFile path
+readFileBase64 path = toString . B64.encodeBase64 <$> BS.readFile path
 
 renderHtml :: FilePath -> T.Text -> Action T.Text
 renderHtml base markdown =
