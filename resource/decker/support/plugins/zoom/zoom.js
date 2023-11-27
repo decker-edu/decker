@@ -62,6 +62,9 @@ function magnify(rect, scale) {
   level = scale;
 }
 
+let zoomedTo;
+let presenting = false;
+
 /**
  * Zooms in on an HTML element.
  *
@@ -73,13 +76,32 @@ function zoomTo(element) {
   if (level !== 1) {
     zoomOut();
   } else {
+    const color = getComputedStyle(element).color;
+    const ping = Decker.meta.zoom?.ping;
+    if (ping && presenting) {
+      // ping the element if presenting if ping is turned on
+      element.animate(
+        [
+          {
+            color: color,
+          },
+          {
+            color: "var(--background-color)",
+          },
+          {
+            color: color,
+          },
+        ],
+        200
+      );
+    }
     // Space around the zoomed in element to leave on screen
-    var padding = 5;
     var bounds = element.getBoundingClientRect();
+    var padding = 8;
 
     // are slides zoomed up, and is this done using CSS zoom?
     // then incorporate this zoom!
-    var zoom = document.querySelector(".reveal .slides").style.zoom;
+    var zoom = Number(document.querySelector(".reveal .slides").style.zoom);
     var scale = zoom < 1 ? 1 : zoom;
 
     var options = {
@@ -97,7 +119,29 @@ function zoomTo(element) {
       1
     );
 
-    if (options.scale > 1) {
+    const minScale = Decker.meta.zoom?.min ? Number(Decker.meta.zoom?.min) : 1;
+
+    if (options.scale > minScale) {
+      // remove text selection as the user zoomed in
+      if (document.selection && document.selection.empty) {
+        document.selection.empty();
+      } else if (window.getSelection) {
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+      }
+      if (Decker.meta.zoom?.outline) {
+        zoomedTo = element;
+        element.style.transition = "outline 0.4s linear";
+        element.style.outlineOffset = "0.1rem";
+        element.style.outline = "2px solid " + color;
+      }
+      if (Decker.meta.zoom?.max) {
+        options.scale = Math.min(
+          options.scale,
+          Number(Decker.meta.zoom.max) * (zoom < 1 ? 1 : zoom)
+        );
+      }
+      console.log(options.scale);
       options.x *= options.scale;
       options.y *= options.scale;
       magnify(options, options.scale);
@@ -109,6 +153,25 @@ function zoomTo(element) {
 function zoomOut() {
   magnify({ x: 0, y: 0 }, 1);
   level = 1;
+  // remove text selection element as the user zoomed out
+  if (document.selection && document.selection.empty) {
+    document.selection.empty();
+  } else if (window.getSelection) {
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+  }
+  const element = zoomedTo;
+  if (element) {
+    zoomedTo = null;
+    element.style.outline = null;
+    element.addEventListener(
+      "transitionend",
+      () => {
+        element.style.transition = null;
+      },
+      { once: true }
+    );
+  }
 }
 
 const Plugin = {
@@ -139,6 +202,12 @@ const Plugin = {
       if (level !== 1) {
         zoomOut();
       }
+    });
+
+    reveal.addEventListener("ready", () => {
+      Decker.addPresenterModeListener((state) => {
+        presenting = state;
+      });
     });
   },
 };
