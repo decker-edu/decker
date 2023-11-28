@@ -274,3 +274,8 @@ html.dark img {
   z-index: -1;
   font-weight: bold;
 }
+
+.zoom-marked {
+  outline: 1px solid var(--foreground-color);
+  outline-offset: 0.25rem;
+}

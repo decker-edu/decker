@@ -62,9 +62,6 @@ function magnify(rect, scale) {
   level = scale;
 }
 
-let zoomedTo;
-let presenting = false;
-
 /**
  * Zooms in on an HTML element.
  *
@@ -77,24 +74,6 @@ function zoomTo(element) {
     zoomOut();
   } else {
     const color = getComputedStyle(element).color;
-    const ping = Decker.meta.zoom?.ping;
-    if (ping && presenting) {
-      // ping the element if presenting if ping is turned on
-      element.animate(
-        [
-          {
-            color: color,
-          },
-          {
-            color: "var(--background-color)",
-          },
-          {
-            color: color,
-          },
-        ],
-        200
-      );
-    }
     // Space around the zoomed in element to leave on screen
     var bounds = element.getBoundingClientRect();
     var padding = 8;
@@ -129,12 +108,6 @@ function zoomTo(element) {
         const selection = window.getSelection();
         selection.removeAllRanges();
       }
-      if (Decker.meta.zoom?.outline) {
-        zoomedTo = element;
-        element.style.transition = "outline 0.4s linear";
-        element.style.outlineOffset = "0.1rem";
-        element.style.outline = "2px solid " + color;
-      }
       if (Decker.meta.zoom?.max) {
         options.scale = Math.min(
           options.scale,
@@ -153,24 +126,30 @@ function zoomTo(element) {
 function zoomOut() {
   magnify({ x: 0, y: 0 }, 1);
   level = 1;
-  // remove text selection element as the user zoomed out
-  if (document.selection && document.selection.empty) {
-    document.selection.empty();
-  } else if (window.getSelection) {
-    const selection = window.getSelection();
-    selection.removeAllRanges();
+}
+
+let currentTarget = undefined;
+let markedTarget = undefined;
+let altDown = false;
+
+/* Mark the element to be zoomed into while ALT is held down */
+function mark(element) {
+  if (element !== markedTarget) {
+    if (markedTarget) {
+      unmark();
+    }
+    element.classList.add("zoom-marked");
+    element.style.cursor = level != 1 ? "zoom-out" : "zoom-in";
+    markedTarget = element;
   }
-  const element = zoomedTo;
-  if (element) {
-    zoomedTo = null;
-    element.style.outline = null;
-    element.addEventListener(
-      "transitionend",
-      () => {
-        element.style.transition = null;
-      },
-      { once: true }
-    );
+}
+
+/* Remove any marking of the element currently focused */
+function unmark() {
+  if (markedTarget) {
+    markedTarget.classList.remove("zoom-marked");
+    markedTarget.style.cursor = null;
+    markedTarget = undefined;
   }
 }
 
@@ -185,7 +164,10 @@ const Plugin = {
     document.body.style.MozTransition = "-moz-transform 0.8s ease";
     document.body.style.WebkitTransition = "-webkit-transform 0.8s ease";
 
-    reveal.getSlidesElement().addEventListener("dblclick", function (event) {
+    reveal.getSlidesElement().addEventListener("click", function (event) {
+      if (!event.altKey) {
+        return;
+      }
       event.preventDefault();
 
       // which element to zoom to
@@ -198,16 +180,39 @@ const Plugin = {
       zoomTo(element);
     });
 
+    document.addEventListener("mousemove", function (event) {
+      if (event.target) {
+        currentTarget = event.target;
+        if (altDown && currentTarget !== markedTarget) {
+          unmark();
+          mark(currentTarget);
+        }
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.repeat) {
+        return;
+      }
+      if (event.key === "Alt") {
+        altDown = true;
+        mark(currentTarget);
+        event.preventDefault();
+      }
+    });
+
+    document.addEventListener("keyup", function (event) {
+      if (event.key === "Alt") {
+        altDown = false;
+        unmark();
+        event.preventDefault();
+      }
+    });
+
     reveal.addEventListener("slidechanged", function () {
       if (level !== 1) {
         zoomOut();
       }
-    });
-
-    reveal.addEventListener("ready", () => {
-      Decker.addPresenterModeListener((state) => {
-        presenting = state;
-      });
     });
   },
 };
