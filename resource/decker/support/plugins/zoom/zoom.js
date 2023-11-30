@@ -73,7 +73,6 @@ function zoomTo(element) {
   if (level !== 1) {
     zoomOut();
   } else {
-    const color = getComputedStyle(element).color;
     // Space around the zoomed in element to leave on screen
     var bounds = element.getBoundingClientRect();
     var padding = 8;
