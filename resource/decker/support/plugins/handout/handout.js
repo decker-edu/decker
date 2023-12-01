@@ -469,8 +469,8 @@ function toggleHandoutMode() {
 function createButtons() {
   // add button to menu plugin
   const menu = Reveal.getPlugin("decker-menu");
-  if (menu && menu.addMenuButton) {
-    menu.addMenuButton(
+  if (menu && menu.addViewButton) {
+    menu.addViewButton(
       "menu-handout-button",
       "fa-file-arrow-down",
       navigator.language === "de"

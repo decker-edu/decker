@@ -1847,6 +1847,8 @@ const Plugin = {
       append: "Append",
       replace: "Replace",
       cancel: "Cancel",
+      init_recording: "Initialise Screen Recording",
+      invalid_state: "Recording was already initialized.",
       no_camera_stream: "No camera stream available.",
       replacement_title: "Append or Replace?",
       replacement_warning:
@@ -1861,6 +1863,8 @@ const Plugin = {
         append: "Anhängen",
         replace: "Ersetzen",
         cancel: "Abbrechen",
+        init_recording: "Bildschirmaufnahme vorbereiten",
+        invalid_state: "Aufnamesystem wurde bereits initialisiert.",
         no_camera_stream: "Kein Kamerastream verfügbar.",
         replacement_title: "Anhängen oder Ersetzen?",
         replacement_warning:
@@ -1870,6 +1874,28 @@ const Plugin = {
         abort: "Abbrechen",
       };
     }
+    deck.addEventListener("ready", () => {
+      const menuPlugin = deck.getPlugin("decker-menu");
+      if (menuPlugin) {
+        menuPlugin.addViewButton(
+          "decker-menu-recording-button",
+          "fa-video",
+          localization.init_recording,
+          () => {
+            switch (uiState.name()) {
+              case "INIT":
+              case "PLAYER_READY":
+                uiState.transition("setupRecorder");
+                break;
+              default:
+                Decker.flash.message(
+                  `<span>${localization.invalid_state}</span>`
+                );
+            }
+          }
+        );
+      }
+    });
   },
 
   playVideo: play,

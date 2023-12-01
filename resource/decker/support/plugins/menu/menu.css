@@ -52,7 +52,8 @@
   animation: 2s turning linear infinite;
 }
 
-.menu-settings {
+.menu-settings,
+.menu-views {
   position: absolute;
   top: calc(
     var(--common-menu-header-height) + var(--common-menu-header-padding) * 2
@@ -70,13 +71,44 @@
   transition: transform 0.5s;
 }
 
-.menu-settings[inert] {
+.menu-settings[inert],
+.menu-views[inert] {
   transform: translateY(-100%);
 }
 
 .settings-item {
   position: relative;
   padding: 0.5em 1.5em 0.5em 1em;
+}
+
+.view-button-area {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.view-button {
+  background-color: var(--accent5);
+  border: 1px solid var(--foreground-color);
+  flex-grow: 1;
+  max-height: 256px;
+  cursor: pointer;
+}
+
+.view-button i {
+  display: block;
+  font-size: 4em;
+}
+
+.view-button span {
+  display: block;
+  margin-top: 1rem;
+  font-size: 2em;
+}
+
+.view-button:hover {
+  background-color: var(--accent5-bg);
 }
 
 :root {

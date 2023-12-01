@@ -3,6 +3,7 @@ const deckPathname = location.pathname;
 
 // is the user generating a PDF?
 const printMode = /print-pdf/gi.test(window.location.search);
+const presenterStartup = /presenter/gi.test(window.location.search);
 
 // Fix some decker-specific things when slides are loaded
 function onStart(deck) {
@@ -22,7 +23,20 @@ function onStart(deck) {
     prepareFlashPanel(deck);
     preparePresenterMode(deck);
 
+    const menuPlugin = deck.getPlugin("decker-menu");
+    if (menuPlugin) {
+      menuPlugin.addViewButton(
+        "decker-menu-presenter-button",
+        "fa-chalkboard-teacher",
+        localization.toggle_presenter_mode,
+        togglePresenterMode
+      );
+    }
+
     Decker.addPresenterModeListener(onPresenterMode);
+    if (presenterStartup) {
+      togglePresenterMode();
+    }
   });
 }
 
@@ -364,19 +378,34 @@ function prepareFlashPanel(deck) {
   }
 }
 
+let presenterMode = false;
+let listeners = [];
+let viewportElement = undefined;
+
+function togglePresenterMode() {
+  presenterMode = !presenterMode;
+
+  if (presenterMode) {
+    viewportElement.classList.add("presenter-mode");
+  } else {
+    viewportElement.classList.remove("presenter-mode");
+  }
+
+  for (let callback of listeners) {
+    callback(presenterMode);
+  }
+}
+
 // Setup the presenter mode toggle key binding and notification machinery.
 function preparePresenterMode(deck) {
-  let presenterMode = false;
-  let listeners = [];
-
   if (!Decker)
     throw "Global Decker object is missing. This is seriously wrong.";
 
   // This is why this needs to run after Reveal is ready.
+  viewportElement = deck.getViewportElement();
   let revealElement = deck.getRevealElement();
   if (!revealElement)
     throw "Reveal slide element is missing. This is seriously wrong.";
-  let viewportElement = deck.getViewportElement();
 
   Decker.addPresenterModeListener = (callback) => {
     listeners.push(callback);
@@ -407,19 +436,17 @@ function preparePresenterMode(deck) {
           return;
         }
       }
-      presenterMode = !presenterMode;
-
-      if (presenterMode) {
-        viewportElement.classList.add("presenter-mode");
-      } else {
-        viewportElement.classList.remove("presenter-mode");
-      }
-
-      for (let callback of listeners) {
-        callback(presenterMode);
-      }
+      togglePresenterMode();
     })
   );
+}
+
+const localization = {
+  toggle_presenter_mode: "Toggle Presenter Mode",
+};
+
+if (navigator.language === "de") {
+  localization.toggle_presenter_mode = "Präsentationsmodus umschalten";
 }
 
 const Plugin = {
