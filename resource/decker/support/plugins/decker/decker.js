@@ -12,6 +12,11 @@ function onStart(deck) {
   prepareTaskLists();
   prepareFullscreenIframes();
 
+  deck.addEventListener("slidechanged", (event) => {
+    const slide = event.currentSlide;
+    adjustScaleElements(deck, slide);
+  });
+
   deck.addEventListener("ready", () => {
     if (!printMode) {
       totalSlides = deck.getTotalSlides();
@@ -24,6 +29,44 @@ function onStart(deck) {
 
     Decker.addPresenterModeListener(onPresenterMode);
   });
+}
+
+function adjustScaleElements(deck, slide) {
+  const slides = deck.getSlidesElement();
+  const transform = slides.style.transform;
+  let slideScale = 1;
+  if (transform) {
+    const strings = /scale\((.*?)\)/.exec(transform);
+    slideScale = Number(strings[1]);
+  }
+  const elements = slide.querySelectorAll("[scale]");
+  for (const element of elements) {
+    if (element.classList.contains("scaled")) {
+      continue;
+    }
+    const box = element.getBoundingClientRect();
+    const trueBounds = {
+      width: box.width / slideScale,
+      height: box.height / slideScale,
+    };
+    console.log(trueBounds);
+    const scaleFactor = Number(element.getAttribute("scale"));
+    const wrapper = document.createElement("div");
+    wrapper.style.width = trueBounds.width * scaleFactor + "px";
+    wrapper.style.height = trueBounds.height * scaleFactor + "px";
+    element.style.transform = `scale(${scaleFactor})`;
+    element.style.transformOrigin = "top left";
+
+    if (getComputedStyle(element).display === "inline") {
+      wrapper.style.display = "inline-block";
+      element.style.display = "inline-block";
+    }
+
+    element.classList.add("scaled");
+
+    element.replaceWith(wrapper);
+    wrapper.appendChild(element);
+  }
 }
 
 let wakeLock = null;

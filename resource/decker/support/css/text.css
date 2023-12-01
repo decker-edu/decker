@@ -1,0 +1,51 @@
+/***********************************
+Classes for sizing and coloring Text
+************************************/
+
+.miniscule {
+  font-size: 0.333em;
+}
+
+.tiny {
+  font-size: 0.5em;
+}
+
+.scriptsize {
+  font-size: 0.6em;
+}
+
+.footnotesize {
+  font-size: 0.7em;
+}
+
+.small {
+  font-size: 0.8em;
+}
+
+.normalsize {
+  font-size: 1em;
+}
+
+.large {
+  font-size: 1.25em;
+}
+
+.Large {
+  font-size: 1.5em;
+}
+
+.LARGE {
+  font-size: 1.75em;
+}
+
+.huge {
+  font-size: 2em;
+}
+
+.Huge {
+  font-size: 2.5em;
+}
+
+.HUGE {
+  font-size: 3em;
+}
