@@ -2,17 +2,20 @@
 <html>
 
 <head>
-  <script type="text/x-thebe-config"> { bootstrap: false } </script>
-  <script src="https://unpkg.com/thebe@latest/lib/index.js"></script>
   <style>
     * {
       font-size: 20px;
     }
 
+    pre {
+      white-space: nowrap;
+    }
     body {
-      background-color: whitesmoke;
+      background-color: var(--shade1);
     }
   </style>
+  <script type="text/x-thebe-config"> { bootstrap: false } </script>
+  <script src="https://unpkg.com/thebe@latest/lib/index.js"></script>
   <script>
     window.addEventListener("load", () => {
       let repo = window.frameElement.getAttribute("data-repo");
@@ -39,8 +42,7 @@
 
 <body>
   <div class="thebe-status"></div>
-
-  <pre id="thebe" data-executable="true">putStrLn "Hello World!"</pre>
+  <pre id="thebe" data-executable="true"></pre>
 </body>
 
 </html>
