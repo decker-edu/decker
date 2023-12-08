@@ -65,17 +65,23 @@ fragmentRelated =
 compileImage :: Container c => Attr -> [Inline] -> Text -> Text -> [Inline] -> Filter c
 compileImage attr alt url title caption = do
   uri <- URI.mkURI url
+  turi <- transformUri uri ""
+  let turl = renderUriDecode turi
   let mediaType = classifyMedia uri attr
-  runAttr attr $ do
-    media <- case Map.lookup mediaType imageCompilers of
-      Just transform -> transform uri title caption
-      Nothing -> error $ "No transformer for media type " <> show mediaType
-    attribs <- do
-      injectBorder
-      injectClasses ["media"]
-      takeUsual
-      extractAttr
-    return $ mkContainer attribs [media]
+  runAttr attr $
+    if mediaType == RawImageT
+      then do
+          return $ mkRawImage attr alt turl title
+      else do
+          media <- case Map.lookup mediaType imageCompilers of
+            Just transform -> transform uri title caption
+            Nothing -> error $ "No transformer for media type " <> show mediaType
+          attribs <- do
+            injectBorder
+            injectClasses ["media"]
+            takeUsual
+            extractAttr
+          return $ mkContainer attribs [media]
 
 defaultAspectRatio = "16/9"
 
@@ -643,6 +649,7 @@ class Container a where
   mkRaw' :: Text -> a
   containSome :: [Inline] -> a
   containOne :: Inline -> a
+  mkRawImage :: Attr -> [Inline] -> Text -> Text -> a
 
 instance Container Inline where
   toBlock c = Plain [c]
@@ -665,6 +672,7 @@ instance Container Inline where
   mkRaw' t = RawInline "html" t
   containSome = Span nullAttr
   containOne = identity
+  mkRawImage attr alt url title = Image attr alt (url, title)
 
 instance Container Block where
   toBlock = id
@@ -682,6 +690,7 @@ instance Container Block where
   mkRaw' t = RawBlock "html" t
   containSome = Plain
   containOne i = Plain [i]
+  mkRawImage attr alt url title = Plain [Image (addClass "processed" attr) alt (url, title)]
 
 -- | Calculates the inner (first pair) and outer (second pair) size settings for
 -- images. The outer sizes are supposed to be used on the container, the inner

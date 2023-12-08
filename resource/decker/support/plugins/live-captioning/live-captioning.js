@@ -7,7 +7,8 @@
  */
 import bwipjs from "../examiner/bwip.js";
 
-const RESTART_INTERVAL = 2000;
+const RESTART_INTERVAL = 2000; // Try to restart recognition if no event happens for two seconds.
+const MINIMAL_RESTART_TIME = 2500; // If we just restarted skip the first retry.
 
 let localization;
 
@@ -84,6 +85,7 @@ class LiveCaptioning {
     this.defibrilator = undefined; // Timer to restart caption request if no data comes for too long.
 
     this.lastEvent = undefined;
+    this.lastStart = undefined;
 
     /* Left for posterity if at some point the window-placement API is supported in browsers
      this.fullscreenCaptioning = false;
@@ -290,6 +292,7 @@ class LiveCaptioning {
 
   handleStart() {
     this.lastEvent = Date.now();
+    this.lastStart = Date.now();
     this.defibrilator = setInterval(() => this.defibrilate(), RESTART_INTERVAL);
     if (this.popup) {
       this.popup.postMessage(
@@ -308,7 +311,11 @@ class LiveCaptioning {
   defibrilate() {
     const now = Date.now();
     const timeSinceLastEvent = now - this.lastEvent;
-    if (timeSinceLastEvent > RESTART_INTERVAL) {
+    const timeSinceLastStart = now - this.lastStart;
+    if (
+      timeSinceLastEvent > RESTART_INTERVAL &&
+      timeSinceLastStart > MINIMAL_RESTART_TIME
+    ) {
       this.speechRecog.abort();
     }
   }

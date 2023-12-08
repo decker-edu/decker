@@ -493,18 +493,18 @@ div.align-right > p {
  **************************************************/
 
 /* code block */
-div.sourceCode > pre.sourceCode {
+.reveal .media .code pre {
   display: block;
   position: relative;
   margin: auto;
   padding: 0.5em 0.75em;
-  /* width: auto; */
-  text-align: center;
+  text-align: left;
   max-height: 500px;
   overflow: auto;
   background: var(--shade1);
   border: 1px solid var(--shade2);
   border-radius: 4px;
+  font-size: 0.5em;
 }
 
 /* inline source code */
@@ -522,7 +522,6 @@ pre > code.sourceCode {
   padding: 0;
   white-space: pre;
   position: relative;
-  font-size: 0.5em;
   overflow: auto;
   max-height: 100%;
   box-sizing: border-box;
