@@ -12,13 +12,20 @@ print("Hello World!")
 
 # PLC (Programming languages and concepts)
 
-```{.python .thebe width="100%" height="500px" repo="monofon/plc-ng" kernel="ocaml" language="ocaml"}
+## Python
 
+```{.python .thebe width="100%" height="200px" repo="monofon/plc-ng" kernel="python3" language="python"}
+1 + 2
 ```
 
-# C++
+## Ocaml
 
-```{.cpp .thebe width="100%" height="500px" repo="jupyter-xeus/xeus-cling/stable?filepath=notebooks/xcpp.ipynb" kernel="xeus-cling" language="cpp"}
-#include <iostream>
-std::cout << "Hello World!" << std::endl;
+```{.ocaml .thebe width="100%" height="200px" repo="monofon/plc-ng" kernel="ocaml" language="ocaml"}
+1 + 2
+```
+
+## Rust
+
+```{.rust .thebe width="100%" height="200px" repo="monofon/plc-ng" kernel="rust" language="rust"}
+1 + 2
 ```
