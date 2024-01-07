@@ -24,7 +24,7 @@ const serverUrl =
   Decker.meta.polling?.server ||
   Decker.meta["poll-server"] ||
   "wss://decker.cs.tu-dortmund.de/quizzer/quiz";
-const winnerSelection = Decker.meta.polling?.selection || "FirstVoter";
+const winnerSelection = Decker.meta.polling?.selection || "Random";
 console.log("Polling URL: ", serverUrl);
 console.log("Polling Selection: ", winnerSelection);
 
@@ -429,7 +429,9 @@ const Plugin = {
     Reveal = deck;
     Reveal.addEventListener("slidechanged", slideChanged);
     setupGUI();
-    prepareQuizzes();
+    if (!Decker.meta["disable-quizzes"]) {
+      prepareQuizzes();
+    }
   },
 };
 
