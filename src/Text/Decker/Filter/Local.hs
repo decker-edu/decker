@@ -75,7 +75,8 @@ geogebraExt = ["ggb"]
 streamScheme = ["youtube", "vimeo", "twitch", "veer", "veer-photo"]
 
 data MediaT
-  = ImageT
+  = RawImageT
+  | ImageT
   | VideoT
   | AudioT
   | IframeT
@@ -96,6 +97,7 @@ classifyMedia uri (_, classes, _) =
   let ext = uriPathExtension uri
       scheme = uriScheme uri
    in if
+          | "raw" `elem` classes -> RawImageT
           | "code" `elem` classes -> CodeT
           | ext `maybeElem` renderExt && "render" `elem` classes -> RenderT
           | ext `maybeElem` javascriptExt && "run" `elem` classes -> JavascriptT
