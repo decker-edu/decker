@@ -31,6 +31,13 @@ function onStart(deck) {
   });
 }
 
+/**
+ * This needs to be called on a slidechange because an element that is not yet visible
+ * (doing the adjustment on page load) has a bounding box of size (0,0).
+ *
+ * @param {*} deck
+ * @param {*} slide
+ */
 function adjustScaleElements(deck, slide) {
   const slides = deck.getSlidesElement();
   const transform = slides.style.transform;
