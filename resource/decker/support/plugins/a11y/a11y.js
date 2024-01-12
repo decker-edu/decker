@@ -108,6 +108,8 @@ if (navigator.language === "de") {
   localization.toggle_accessibility = "Barrierefreie Funktionen umschalten";
 }
 
+const a11y = /a11y/gi.test(window.location.search);
+
 const Plugin = {
   id: "a11y",
   init: (reveal) => {
@@ -138,6 +140,11 @@ const Plugin = {
         );
       }
     });
+    if (a11y) {
+      Reveal.addEventListener("ready", () => {
+        toggleA11YMode();
+      });
+    }
   },
 };
 
