@@ -1,4 +1,7 @@
 <div class="author">
+  $if(it.photo)$
+  <img class="author-photo" src="$it.photo$">
+  $endif$  
   <p>
     $if(it.url)$<a href="$it.url$">$endif$$if(it.name)$$it.name$$else$$it$$endif$$if(it.url)$</a>$endif$
   </p>
