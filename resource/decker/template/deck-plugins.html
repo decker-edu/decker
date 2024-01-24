@@ -3,6 +3,7 @@
   import Reveal from './$decker-support-dir$/vendor/reveal/dist/reveal.esm.js';
   import deckerPlugin from './$decker-support-dir$/plugins/decker/decker.js';
   import uiAnchorsPlugin from './$decker-support-dir$/plugins/decker/ui-anchors.js';
+  import sagePlugin from './$decker-support-dir$/plugins/sage/sage.js'
   import mathPlugin from './$decker-support-dir$/plugins/math/math.js';
   import whiteboardPlugin from './$decker-support-dir$/plugins/whiteboard/whiteboard.js';
   import searchPlugin from './$decker-support-dir$/plugins/search/search.js';
@@ -44,32 +45,28 @@ $endif$
     
     // list of plugins
     plugins: [
-       deckerPlugin,
-       uiAnchorsPlugin,
-       mathPlugin,
-       chartsPlugin,
-       whiteboardPlugin,
-       searchPlugin,
-       zoomPlugin,
-       printPlugin,
-       jinglesPlugin,
-       quizWuePlugin,
-       explainPlugin,
-       examinerPlugin,
-       menuPlugin,
-       feedbackPlugin,
-$if(highlightjs)$
-       highlightPlugin,
-$endif$
-       notesPlugin,
-$if(live-captions)$
-       captionPlugin,
-$endif$
-       a11yPlugin,
-       handoutPlugin,
-$if(poll)$
-       pollPlugin,
-$endif$
+      deckerPlugin,
+      uiAnchorsPlugin,
+      sagePlugin,
+      mathPlugin,
+      chartsPlugin,
+      whiteboardPlugin,
+      searchPlugin,
+      zoomPlugin,
+      printPlugin,
+      jinglesPlugin,
+      quizPlugin,
+      quizWuePlugin,
+      explainPlugin,
+      examinerPlugin,
+      menuPlugin,
+      feedbackPlugin,
+      notesPlugin,
+    $if(live-captions)$
+      captionPlugin,
+    $endif$
+      a11yPlugin,
+      handoutPlugin,
     ]
   };
   

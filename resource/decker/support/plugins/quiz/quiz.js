@@ -48,6 +48,12 @@ function createElement({ type, id, classes, tooltip, parent, onclick = null }) {
   return e;
 }
 
+window.debugSocket = function () {
+  if (session) {
+    session.close();
+  }
+};
+
 function setupGUI() {
   if (!Reveal.hasPlugin("ui-anchors")) console.error("need ui-anchors");
 
@@ -418,13 +424,12 @@ async function startPollingSession() {
     `,
     onclose: () => {
       console.log("polling session was closed");
-      session = undefined;
       Reveal.off("slidechanged", abortPoll);
     },
   });
 
   // create QR code
-  let { id, url } = session.sessionId();
+  let { id, secret, url } = session.sessionId();
   qrcodeLink.innerHTML = String.raw`${url}`;
   qrcodeLink.href = url;
   qrcodeLink.target = "_blank";

@@ -20,6 +20,7 @@ function pollSession({
 } = {}) {
   session = {
     id: null,
+    secret: null,
     socket: null,
     ui: null,
     heartbeat: null,
@@ -36,7 +37,9 @@ function pollSession({
         session.socket.send(
           JSON.stringify({ tag: "ClientCss", clientCss: clientCss })
         );
-      session.heartbeat = setInterval(() => { session.socket.send(JSON.stringify({ tag: "Beat" })) }, 10000);
+      session.heartbeat = setInterval(() => {
+        session.socket.send(JSON.stringify({ tag: "Beat" }));
+      }, 10000);
     });
 
     session.socket.addEventListener("error", (e) => {
@@ -54,14 +57,18 @@ function pollSession({
         clearInterval(session.heartbeat);
         session.heartbeat = null;
       }
+      session.socket = null;
     });
 
     session.socket.addEventListener("message", (e) => {
       let message = JSON.parse(e.data);
       if (message.error) {
         console.error("Poll:", "Server error:", message.error);
-      } else if (message.key != null) {
+      } else if (message.key) {
         session.id = message.key;
+        if (message.secret) {
+          session.secret = message.secret;
+        }
         session.clientUrl = clientBaseUrl
           ? `${clientBaseUrl}#${session.id}`
           : `${client(serverUrl)}#${session.id}`;
@@ -71,6 +78,7 @@ function pollSession({
           sessionId: () => {
             return {
               id: session.id,
+              secret: session.secret,
               url: session.clientUrl,
             };
           },
@@ -107,6 +115,13 @@ function pollSession({
               votes: votes,
             };
             if (selection) options.winnerselection = selection;
+            if (!session.socket) {
+              if (session.secret) {
+                session.socket = new WebSocket(
+                  `${serverUrl}/${session.id}/${session.secret}`
+                );
+              }
+            }
             session.socket.send(JSON.stringify(options));
           },
 
