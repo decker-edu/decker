@@ -5,7 +5,87 @@ export { pollSession };
 // could find.
 import bwipjs from "./bwip.js";
 
-var session = null;
+let session = null;
+
+function handleOpenPostReconnect(event) {
+  session.heartbeat = setInterval(() => {
+    session.socket.send(JSON.stringify({ tag: "Beat" }));
+  }, 10000);
+}
+
+function handleError(event) {
+  console.error("Poll:", "Cannot connect to ", serverUrl);
+  if (session.heartbeat) {
+    clearInterval(session.heartbeat);
+    session.heartbeat = null;
+  }
+}
+
+function handleClose(event) {
+  console.error("Poll:", "Server went away.");
+  if (session.onClose) session.onClose();
+  if (session.heartbeat) {
+    clearInterval(session.heartbeat);
+    session.heartbeat = null;
+  }
+  session.socket = null;
+}
+
+async function handleMessagePostReconnect(event) {
+  const message = JSON.parse(event.data);
+  if (message.error) {
+    // Error from Server
+    console.error("Poll:", "Server error:", message.error);
+  } else if (message.key) {
+    // Key Delivery from Server
+    if (message.key === session.id) {
+      console.log("new key identical, doing nothing");
+    } else {
+      console.log("session key differs: changing key");
+      session.id = message.key;
+    }
+    if (message.secret) {
+      if (message.secret === session.secret) {
+        console.log("new secret identical, doing nothing");
+      } else {
+        console.log("session secret differs: changing secret");
+        session.secret = message.secret;
+      }
+    }
+  } else if (message.quiz) {
+    // Quiz State from Server
+    switch (message.quiz.state) {
+      case "Ready":
+        if (session.onReady) session.onReady();
+        break;
+
+      case "Active":
+        if (session.ui)
+          session.ui.onActive(
+            message.participants,
+            message.quiz.choices,
+            message.quiz.complete
+          );
+        break;
+
+      case "Finished":
+        if (session.ui)
+          session.ui.onFinished(
+            message.participants,
+            message.quiz.choices,
+            message.quiz.complete
+          );
+        session.ui = null;
+        break;
+
+      default:
+        console.error("Received unknown message: ", message);
+    }
+  } else {
+    console.log("received message had no quiz data:");
+    console.log(message);
+  }
+}
 
 // Creates a new polling session. Opens a web-socket connection to serverUrl and
 // uses clientUrl as the polling client. If clientUrl is null the client
@@ -28,6 +108,8 @@ function pollSession({
     onClose: onclose,
   };
 
+  window.qsession = session;
+
   return new Promise((resolve, error) => {
     session.socket = new WebSocket(serverUrl);
     session.heartbeat = null;
@@ -42,23 +124,9 @@ function pollSession({
       }, 10000);
     });
 
-    session.socket.addEventListener("error", (e) => {
-      console.error("Poll:", "Cannot connect to ", serverUrl);
-      if (session.heartbeat) {
-        clearInterval(session.heartbeat);
-        session.heartbeat = null;
-      }
-    });
+    session.socket.addEventListener("error", handleError);
 
-    session.socket.addEventListener("close", (e) => {
-      console.error("Poll:", "Server went away.");
-      if (session.onClose) session.onClose();
-      if (session.heartbeat) {
-        clearInterval(session.heartbeat);
-        session.heartbeat = null;
-      }
-      session.socket = null;
-    });
+    session.socket.addEventListener("close", handleClose);
 
     session.socket.addEventListener("message", (e) => {
       let message = JSON.parse(e.data);
@@ -116,13 +184,34 @@ function pollSession({
             };
             if (selection) options.winnerselection = selection;
             if (!session.socket) {
+              console.log("trying to recreate session");
+              console.log(session);
               if (session.secret) {
                 session.socket = new WebSocket(
                   `${serverUrl}/${session.id}/${session.secret}`
                 );
+                session.socket.addEventListener(
+                  "open",
+                  handleOpenPostReconnect
+                );
+                session.socket.addEventListener(
+                  "open",
+                  () => {
+                    session.socket.send(JSON.stringify(options));
+                  },
+                  { once: true }
+                );
+                session.socket.addEventListener("error", handleError);
+                session.socket.addEventListener("close", handleClose);
+                session.socket.addEventListener(
+                  "message",
+                  handleMessagePostReconnect
+                );
               }
+            } else {
+              console.log(session.socket);
+              session.socket.send(JSON.stringify(options));
             }
-            session.socket.send(JSON.stringify(options));
           },
 
           // Terminates the active poll.
@@ -137,7 +226,6 @@ function pollSession({
           close: () => {
             session.socket.send(JSON.stringify({ tag: "Reset" }));
             session.socket.close();
-            session.socket = null;
           },
         });
       } else {
