@@ -57,6 +57,32 @@ window.closeQuizzerConnection = function () {
   }
 };
 
+function setConnectionIndicator(what) {
+  switch (what) {
+    case "ok":
+      {
+        connectionIndicator.classList.remove("error");
+        connectionIndicator.classList.add("ok");
+        connectionIndicator.title = "Connected to Quiz Server";
+      }
+      break;
+    case "error":
+      {
+        connectionIndicator.classList.remove("ok");
+        connectionIndicator.classList.add("error");
+        connectionIndicator.title = "Disconnected from Quiz Server";
+      }
+      break;
+    case "unknown":
+      {
+        connectionIndicator.classList.remove("ok");
+        connectionIndicator.classList.remove("error");
+        connectionIndicator.title = "Not yet connected to Quiz Server";
+      }
+      break;
+  }
+}
+
 function setupGUI() {
   if (!Reveal.hasPlugin("ui-anchors")) console.error("need ui-anchors");
 
@@ -65,8 +91,9 @@ function setupGUI() {
 
   connectionIndicator = createElement({
     type: "button",
+    id: "quiz-connection-indicator",
     classes: "fa-button fas fa-wifi poll-only presenter-only",
-    tooltip: "Connection Quality: Unknown",
+    tooltip: "Not yet connected to Quiz Server",
   });
   anchors.addBottomCenterButton(connectionIndicator);
 
@@ -198,16 +225,18 @@ async function startPoll() {
     numCorrectAnswers,
     {
       onReady: () => {
-        connectionIndicator.classList.remove("error");
-        connectionIndicator.classList.add("ok");
+        console.log("ready for polls");
+        setConnectionIndicator("ok");
       },
       onActive: (participants, votes, complete) => {
         votes_div.textContent = `${complete} / ${participants}`;
+        setConnectionIndicator("ok");
       },
       onFinished: (participants, votes, complete) => {
         finalVotes = votes;
         createChart();
         showChart();
+        setConnectionIndicator("ok");
       },
     },
     winnerSelection
@@ -438,7 +467,7 @@ async function startPollingSession() {
     `,
     onclose: () => {
       console.log("polling session was closed");
-      connectionIndicator.classList.error;
+      setConnectionIndicator("error");
       Reveal.off("slidechanged", abortPoll);
     },
   });

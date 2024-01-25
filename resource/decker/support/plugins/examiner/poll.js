@@ -185,7 +185,6 @@ function pollSession({
             if (selection) options.winnerselection = selection;
             if (!session.socket) {
               console.log("trying to recreate session");
-              console.log(session);
               if (session.secret) {
                 session.socket = new WebSocket(
                   `${serverUrl}/${session.id}/${session.secret}`
@@ -209,7 +208,6 @@ function pollSession({
                 );
               }
             } else {
-              console.log(session.socket);
               session.socket.send(JSON.stringify(options));
             }
           },
