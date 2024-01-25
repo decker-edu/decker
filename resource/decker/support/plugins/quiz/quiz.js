@@ -12,6 +12,7 @@ let solution;
 // polling
 let session;
 let qrcode, qrcodeCanvas, qrcodeLink;
+let connectionIndicator;
 let finalVotes;
 let pollState;
 let myChart;
@@ -48,7 +49,9 @@ function createElement({ type, id, classes, tooltip, parent, onclick = null }) {
   return e;
 }
 
-window.debugSocket = function () {
+// For manual debugging because the browser's debug functions can not simulate
+// Sockets losing their connection ...
+window.closeQuizzerConnection = function () {
   if (session) {
     session.close();
   }
@@ -59,6 +62,13 @@ function setupGUI() {
 
   const revealElement = Reveal.getRevealElement();
   const anchors = Reveal.getPlugin("ui-anchors");
+
+  connectionIndicator = createElement({
+    type: "button",
+    classes: "fa-button fas fa-wifi poll-only presenter-only",
+    tooltip: "Connection Quality: Unknown",
+  });
+  anchors.addBottomCenterButton(connectionIndicator);
 
   const qrButton = createElement({
     type: "button",
@@ -187,6 +197,10 @@ async function startPoll() {
     solution,
     numCorrectAnswers,
     {
+      onReady: () => {
+        connectionIndicator.classList.remove("error");
+        connectionIndicator.classList.add("ok");
+      },
       onActive: (participants, votes, complete) => {
         votes_div.textContent = `${complete} / ${participants}`;
       },
@@ -424,6 +438,7 @@ async function startPollingSession() {
     `,
     onclose: () => {
       console.log("polling session was closed");
+      connectionIndicator.classList.error;
       Reveal.off("slidechanged", abortPoll);
     },
   });
