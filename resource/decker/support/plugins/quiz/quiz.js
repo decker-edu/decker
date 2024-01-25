@@ -225,7 +225,6 @@ async function startPoll() {
     numCorrectAnswers,
     {
       onReady: () => {
-        console.log("ready for polls");
         setConnectionIndicator("ok");
       },
       onActive: (participants, votes, complete) => {
@@ -471,6 +470,7 @@ async function startPollingSession() {
       Reveal.off("slidechanged", abortPoll);
     },
   });
+  setConnectionIndicator("ok");
 
   // create QR code
   let { id, secret, url } = session.sessionId();
