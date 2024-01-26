@@ -62,7 +62,7 @@ function handleOpenPostReconnect(event) {
 }
 
 function handleError(event) {
-  console.error("Poll:", "Cannot connect to ", serverUrl);
+  console.error("Poll:", "Cannot connect to server: " + session.serverUrl);
   if (session.heartbeat) {
     clearInterval(session.heartbeat);
     session.heartbeat = null;
