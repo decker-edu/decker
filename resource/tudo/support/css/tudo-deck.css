@@ -1329,7 +1329,7 @@ section#title-slide .decker-link:hover {
   color: var(--redish);
 }
 
-#quiz-connection-indicator.error {
+#quiz-connection-indicator.warning {
   color: var(--yellowish);
 }
 

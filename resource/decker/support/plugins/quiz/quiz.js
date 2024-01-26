@@ -56,7 +56,7 @@ function setConnectionIndicator(what) {
         connectionIndicator.classList.remove("error");
         connectionIndicator.classList.remove("warning");
         connectionIndicator.classList.add("ok");
-        connectionIndicator.title = "Connected to Quiz Server";
+        connectionIndicator.title = "Connected to the Quiz Server";
       }
       break;
     case "error":
@@ -64,7 +64,8 @@ function setConnectionIndicator(what) {
         connectionIndicator.classList.remove("ok");
         connectionIndicator.classList.remove("warning");
         connectionIndicator.classList.add("error");
-        connectionIndicator.title = "Disconnected from Quiz Server";
+        connectionIndicator.title =
+          "No connection to the Quiz Server!\nYou may attempt to run or close the poll in order to attempt a reconnect.";
       }
       break;
     case "warning":
@@ -226,9 +227,6 @@ async function startPoll() {
     solution,
     numCorrectAnswers,
     {
-      onReady: () => {
-        setConnectionIndicator("ok");
-      },
       onActive: (participants, votes, complete) => {
         votes_div.textContent = `${complete} / ${participants}`;
         setConnectionIndicator("ok");
@@ -268,6 +266,9 @@ function hideVotes() {
 
 async function toggleQR() {
   if (!session) await startPollingSession();
+  if (!session.getData().socket) {
+    session.reset(); // Try to trigger a reconnect
+  }
   qrcode.classList.toggle("show");
 }
 
@@ -466,6 +467,9 @@ async function startPollingSession() {
       }
     }
     `,
+    onready: () => {
+      setConnectionIndicator("ok");
+    },
     onclose: () => {
       console.log("polling session was closed");
       setConnectionIndicator("error");
@@ -479,7 +483,7 @@ async function startPollingSession() {
   setConnectionIndicator("ok");
 
   // create QR code
-  let { id, secret, url } = session.sessionId();
+  let { id, secret, url, socket } = session.getData();
   qrcodeLink.innerHTML = String.raw`${url}`;
   qrcodeLink.href = url;
   qrcodeLink.target = "_blank";
