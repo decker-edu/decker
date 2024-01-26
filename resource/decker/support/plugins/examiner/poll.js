@@ -7,6 +7,40 @@ import bwipjs from "./bwip.js";
 
 let session = null;
 
+// For manual debugging because the browser's debug functions can not simulate
+// Sockets losing their connection ...
+window.closeQuizzerConnection = function () {
+  if (session) {
+    session.socket.close();
+  }
+};
+
+function reconnect(objectToSend) {
+  if (session.secret) {
+    // Use the secret to reconnect to existing session
+    session.socket = new WebSocket(
+      `${session.serverUrl}/${session.id}/${session.secret}`
+    );
+  } else {
+    // If for some reason we have no secret at least try to create a new server session
+    session.socket = new WebSocket(`${session.serverUrl}`);
+  }
+  // We have to reattach all the listeners to the new socket
+  session.socket.addEventListener("open", handleOpenPostReconnect);
+  if (objectToSend) {
+    session.socket.addEventListener(
+      "open",
+      () => {
+        session.socket.send(JSON.stringify(objectToSend));
+      },
+      { once: true }
+    );
+  }
+  session.socket.addEventListener("error", handleError);
+  session.socket.addEventListener("close", handleClose);
+  session.socket.addEventListener("message", handleMessagePostReconnect);
+}
+
 function handleOpenPostReconnect(event) {
   session.heartbeat = setInterval(() => {
     session.socket.send(JSON.stringify({ tag: "Beat" }));
@@ -37,24 +71,17 @@ async function handleMessagePostReconnect(event) {
     // Error from Server
     console.error("Poll:", "Server error:", message.error);
   } else if (message.key) {
-    // Key Delivery from Server
-    if (message.key === session.id) {
-      console.log("new key identical, doing nothing");
-    } else {
-      console.log("session key differs: changing key");
+    // Key Delivery from Server, happens both on a new session and a reconnect
+    if (message.key !== session.id) {
       session.id = message.key;
     }
-    if (message.secret) {
-      if (message.secret === session.secret) {
-        console.log("new secret identical, doing nothing");
-      } else {
-        console.log("session secret differs: changing secret");
-        session.secret = message.secret;
-      }
+    if (message.secret && message.secret !== session.secret) {
+      session.secret = message.secret;
     }
   } else if (message.quiz) {
     // Quiz State from Server
     switch (message.quiz.state) {
+      //This is actually never used?
       case "Ready":
         if (session.onReady) session.onReady();
         break;
@@ -82,7 +109,7 @@ async function handleMessagePostReconnect(event) {
         console.error("Received unknown message: ", message);
     }
   } else {
-    console.log("received message had no quiz data:");
+    console.log("received message had no expected data:");
     console.log(message);
   }
 }
@@ -99,6 +126,8 @@ function pollSession({
   clientCss = null,
 } = {}) {
   session = {
+    serverUrl: serverUrl,
+    clientUrl: null,
     id: null,
     secret: null,
     socket: null,
@@ -184,29 +213,7 @@ function pollSession({
             };
             if (selection) options.winnerselection = selection;
             if (!session.socket) {
-              console.log("trying to recreate session");
-              if (session.secret) {
-                session.socket = new WebSocket(
-                  `${serverUrl}/${session.id}/${session.secret}`
-                );
-                session.socket.addEventListener(
-                  "open",
-                  handleOpenPostReconnect
-                );
-                session.socket.addEventListener(
-                  "open",
-                  () => {
-                    session.socket.send(JSON.stringify(options));
-                  },
-                  { once: true }
-                );
-                session.socket.addEventListener("error", handleError);
-                session.socket.addEventListener("close", handleClose);
-                session.socket.addEventListener(
-                  "message",
-                  handleMessagePostReconnect
-                );
-              }
+              reconnect(options);
             } else {
               session.socket.send(JSON.stringify(options));
             }
@@ -214,16 +221,29 @@ function pollSession({
 
           // Terminates the active poll.
           stop: () => {
-            session.socket.send(JSON.stringify({ tag: "Stop" }));
+            const message = { tag: "Stop" };
+            if (!session.socket) {
+              reconnect(message);
+            } else {
+              session.socket.send(JSON.stringify(message));
+            }
           },
 
           // Resets the session.
           reset: () => {
-            session.socket.send(JSON.stringify({ tag: "Reset" }));
+            const message = { tag: "Reset" };
+            if (!session.socket) {
+              reconnect(message);
+            } else {
+              session.socket.send(JSON.stringify(message));
+            }
           },
+          // Close session if socket is still open.
           close: () => {
-            session.socket.send(JSON.stringify({ tag: "Reset" }));
-            session.socket.close();
+            if (session.socket) {
+              session.socket.send(JSON.stringify({ tag: "Reset" }));
+              session.socket.close();
+            }
           },
         });
       } else {

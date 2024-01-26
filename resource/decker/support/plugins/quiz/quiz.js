@@ -49,14 +49,6 @@ function createElement({ type, id, classes, tooltip, parent, onclick = null }) {
   return e;
 }
 
-// For manual debugging because the browser's debug functions can not simulate
-// Sockets losing their connection ...
-window.closeQuizzerConnection = function () {
-  if (session) {
-    session.close();
-  }
-};
-
 function setConnectionIndicator(what) {
   switch (what) {
     case "ok":

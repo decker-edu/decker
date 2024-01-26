@@ -14,6 +14,18 @@ poll-server: wss://archytas.cs.tu-dortmund.de/quizzer/quiz
   --red-border-color: var(--accent0);
 }
 
+#quiz-connection-indicator {
+  cursor: help;
+}
+
+#quiz-connection-indicator.ok {
+  color: var(--greenish);
+}
+
+#quiz-connection-indicator.error {
+  color: var(--redish);
+}
+
 /* Poll from tudo */
 
 /* quiz flex layout */
@@ -381,6 +393,23 @@ poll-server: wss://archytas.cs.tu-dortmund.de/quizzer/quiz
 - [X] Correct
   - Because Yes
 - [ ] Wrong
+  - Because No
+
+:::
+
+# Intermission
+
+# Another Quizslide
+
+## Another Quiz
+
+::: quiz
+
+- [ ] Another Wrong Answer
+  - Because No
+- [X] Another Correct Answer
+  - Because Yes
+- [ ] Yet Another Wrong Answer
   - Because No
 
 :::
