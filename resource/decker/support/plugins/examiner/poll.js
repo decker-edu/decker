@@ -241,6 +241,9 @@ function pollSession({
           // "B": 9]}. onFinished(participants, votes) is called with the final
           // results when the poll has stopped.
           poll: (choices, solution, votes, callbacks, selection) => {
+            //TODO: Make this async so the reconnect can happen before the jingle gets played,
+            //TODO: Right now even if the connection is broken, if there was a poll before,
+            //TODO: the previous participants are shown
             session.ui = callbacks;
             let options = {
               tag: "Start",
