@@ -15,6 +15,22 @@ window.closeQuizzerConnection = function () {
   }
 };
 
+let heartbeatWithoutResponse = 0;
+
+function setupHeartbeat() {
+  session.heartbeat = setInterval(() => {
+    if (heartbeatWithoutResponse === 1) {
+      if (session.onWarning) {
+        session.onWarning();
+      }
+    } else if (heartbeatWithoutResponse === 2) {
+      session.socket.close();
+    }
+    heartbeatWithoutResponse = heartbeatWithoutResponse++;
+    session.socket.send(JSON.stringify({ tag: "Beat" }));
+  }, 10000);
+}
+
 function reconnect(objectToSend) {
   if (session.secret) {
     // Use the secret to reconnect to existing session
@@ -42,9 +58,7 @@ function reconnect(objectToSend) {
 }
 
 function handleOpenPostReconnect(event) {
-  session.heartbeat = setInterval(() => {
-    session.socket.send(JSON.stringify({ tag: "Beat" }));
-  }, 10000);
+  setupHeartbeat();
 }
 
 function handleError(event) {
@@ -66,6 +80,7 @@ function handleClose(event) {
 }
 
 async function handleMessagePostReconnect(event) {
+  heartbeatWithoutResponse = 0;
   const message = JSON.parse(event.data);
   if (message.error) {
     // Error from Server
@@ -83,7 +98,7 @@ async function handleMessagePostReconnect(event) {
     switch (message.quiz.state) {
       //This is actually never used?
       case "Ready":
-        if (session.onReady) session.onReady();
+        if (session.ui.onReady) session.onReady();
         break;
 
       case "Active":
@@ -157,7 +172,9 @@ function pollSession({
 
     session.socket.addEventListener("close", handleClose);
 
+    // This is not very DRY but this promise has to be resolved somewhere ...
     session.socket.addEventListener("message", (e) => {
+      heartbeatWithoutResponse = 0;
       let message = JSON.parse(e.data);
       if (message.error) {
         console.error("Poll:", "Server error:", message.error);

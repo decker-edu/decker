@@ -1329,6 +1329,10 @@ section#title-slide .decker-link:hover {
   color: var(--redish);
 }
 
+#quiz-connection-indicator.error {
+  color: var(--yellowish);
+}
+
 /*********************************************
  * override quiz-wue settings
  *********************************************/

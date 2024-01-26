@@ -54,6 +54,7 @@ function setConnectionIndicator(what) {
     case "ok":
       {
         connectionIndicator.classList.remove("error");
+        connectionIndicator.classList.remove("warning");
         connectionIndicator.classList.add("ok");
         connectionIndicator.title = "Connected to Quiz Server";
       }
@@ -61,8 +62,17 @@ function setConnectionIndicator(what) {
     case "error":
       {
         connectionIndicator.classList.remove("ok");
+        connectionIndicator.classList.remove("warning");
         connectionIndicator.classList.add("error");
         connectionIndicator.title = "Disconnected from Quiz Server";
+      }
+      break;
+    case "warning":
+      {
+        connectionIndicator.classList.remove("ok");
+        connectionIndicator.classList.remove("error");
+        connectionIndicator.classList.add("warning");
+        connectionIndicator.title = "Missing responses from Quiz Server";
       }
       break;
     case "unknown":
@@ -460,6 +470,10 @@ async function startPollingSession() {
       console.log("polling session was closed");
       setConnectionIndicator("error");
       Reveal.off("slidechanged", abortPoll);
+    },
+    onwarning: () => {
+      console.log("connection is getting spotty ...");
+      setConnectionIndicator("warning");
     },
   });
   setConnectionIndicator("ok");
