@@ -37,7 +37,7 @@ function setupHeartbeat() {
       session.socket.send(JSON.stringify({ tag: "Beat" }));
     }
     heartbeatWithoutResponse++;
-  }, 10000);
+  }, 2000);
 }
 
 function reconnect(objectToSend) {
@@ -73,6 +73,9 @@ function handleOpenPostReconnect(event) {
 
 function handleError(event) {
   console.error("Poll:", "Cannot connect to server: " + session.serverUrl);
+  if (session.ui.onError) {
+    session.ui.onError();
+  }
   if (session.heartbeat) {
     clearInterval(session.heartbeat);
     session.heartbeat = null;

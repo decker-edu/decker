@@ -1,6 +1,31 @@
 // Henrik's server API
 import { pollSession } from "../examiner/poll.js";
 
+window.displayTooltip = function (element, text) {
+  const tooltip = document.createElement("div");
+  tooltip.classList.add("fading-tooltip");
+  const wedge = document.createElement("div");
+  wedge.classList.add("wedgedown");
+  tooltip.appendChild(wedge);
+  const message = document.createElement("span");
+  message.classList.add("tooltip-text");
+  message.innerText = text;
+  tooltip.appendChild(message);
+  document.body.appendChild(tooltip);
+  const box = element.getBoundingClientRect();
+  const tbox = tooltip.getBoundingClientRect();
+  tooltip.style.top = `${Math.floor(box.top) - 64}px`;
+  tooltip.style.left = `${Math.floor(
+    box.left - (tbox.width - box.width) / 2
+  )}px`;
+  setTimeout(() => {
+    tooltip.classList.add("fade");
+    tooltip.addEventListener("transitionend", () => {
+      tooltip.remove();
+    });
+  }, 1000);
+};
+
 // reference to Reveal deck
 let Reveal;
 
@@ -222,6 +247,7 @@ async function startPoll() {
   // get labels as subset of this array
   let choices = ["A", "B", "C", "D", "E", "F", "G", "H"].slice(0, numAnswers);
 
+  // this does not fail if the connection is broken
   session.poll(
     choices,
     solution,
@@ -236,6 +262,9 @@ async function startPoll() {
         createChart();
         showChart();
         setConnectionIndicator("ok");
+      },
+      onError: () => {
+        window.displayTooltip(connectionIndicator, "Connection Lost");
       },
     },
     winnerSelection
@@ -473,6 +502,7 @@ async function startPollingSession() {
     onclose: () => {
       console.log("polling session was closed");
       setConnectionIndicator("error");
+      displayTooltip(connectionIndicator, "Lost Connection");
       Reveal.off("slidechanged", abortPoll);
     },
     onwarning: () => {
