@@ -502,6 +502,9 @@ function createButtons() {
   }
 }
 
+const a11y = /a11y/gi.test(window.location.search);
+const handout = /handout/gi.test(window.location.search);
+
 const Plugin = {
   id: "handout",
   isActive: () => handoutSlideMode,
@@ -531,6 +534,11 @@ const Plugin = {
         }
       })
     );
+    if (a11y || handout) {
+      Reveal.addEventListener("ready", () => {
+        toggleHandoutMode();
+      });
+    }
   },
 };
 
