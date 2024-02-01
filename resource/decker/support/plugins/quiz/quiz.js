@@ -41,6 +41,7 @@ let qrcode, qrcodeCanvas, qrcodeLink;
 let connectionIndicator;
 let finalVotes;
 let pollState;
+let connectionState;
 let myChart;
 
 // GUI elements
@@ -78,8 +79,9 @@ function createElement({ type, id, classes, tooltip, parent, onclick = null }) {
   return e;
 }
 
-function setConnectionIndicator(what) {
-  switch (what) {
+function setConnectionState(state) {
+  connectionState = state;
+  switch (state) {
     case "ok":
       {
         connectionIndicator.classList.remove("error");
@@ -270,7 +272,7 @@ async function startPoll() {
     // If we set this to numAnswers the poll isn't "done" unless the user checks ALL answers
     {
       onReady: () => {
-        setConnectionIndicator("ok");
+        setConnectionState("ok");
       },
       onActive: (participants, votes, complete) => {
         if (votes) {
@@ -286,7 +288,7 @@ async function startPoll() {
           playJingleQuestion();
         }
         votes_div.textContent = `${complete} / ${participants}`;
-        setConnectionIndicator("ok");
+        setConnectionState("ok");
       },
       onFinished: (participants, votes, complete) => {
         if (stopTimeout) {
@@ -300,17 +302,20 @@ async function startPoll() {
           finalVotes = votes;
           createChart();
           showChart();
-          setConnectionIndicator("ok");
+          setConnectionState("ok");
         }
       },
       onError: () => {
-        window.displayTooltip(connectionIndicator, "Connection Lost");
+        // Only display error message if not already in error state
+        if (connectionState !== "error") {
+          window.displayTooltip(connectionIndicator, "Connection Lost");
+        }
       },
     },
     winnerSelection
   );
   startTimeout = setTimeout(() => {
-    setConnectionIndicator("error");
+    setConnectionState("error");
     window.displayTooltip(connectionIndicator, "Network unavailable");
   }, 2000);
 }
@@ -318,7 +323,7 @@ async function startPoll() {
 function stopPoll() {
   if (session) session.stop();
   stopTimeout = setTimeout(() => {
-    setConnectionIndicator("error");
+    setConnectionState("error");
     window.displayTooltip(
       connectionIndicator,
       "Network unavailable, using cached results if available"
@@ -333,7 +338,7 @@ function stopPoll() {
         showChart();
         cachedVotes = null;
       }
-      setConnectionIndicator("error");
+      setConnectionState("error");
     }
   }, 2000);
 }
@@ -543,20 +548,22 @@ async function startPollingSession() {
     }
     `,
     onready: () => {
-      setConnectionIndicator("ok");
+      setConnectionState("ok");
     },
     onclose: () => {
       console.log("polling session was closed");
-      setConnectionIndicator("error");
-      displayTooltip(connectionIndicator, "Lost Connection");
+      if (connectionState !== "error") {
+        setConnectionState("error");
+        displayTooltip(connectionIndicator, "Lost Connection");
+      }
       Reveal.off("slidechanged", abortPoll);
     },
     onwarning: () => {
       console.log("connection is getting spotty ...");
-      setConnectionIndicator("warning");
+      setConnectionState("warning");
     },
   });
-  setConnectionIndicator("ok");
+  setConnectionState("ok");
 
   // create QR code
   let { id, secret, url, socket } = session.getData();
