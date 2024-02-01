@@ -36,6 +36,7 @@ let solution;
 
 // polling
 let session;
+let cachedVotes;
 let qrcode, qrcodeCanvas, qrcodeLink;
 let connectionIndicator;
 let finalVotes;
@@ -44,6 +45,9 @@ let myChart;
 
 // GUI elements
 let votes_div, chart_div, chart;
+
+// Timer
+let startTimeout, stopTimeout;
 
 // config
 const serverUrl =
@@ -269,6 +273,9 @@ async function startPoll() {
         setConnectionIndicator("ok");
       },
       onActive: (participants, votes, complete) => {
+        if (votes) {
+          cachedVotes = votes;
+        }
         if (startTimeout) {
           clearTimeout(startTimeout);
           startTimeout = null;
@@ -282,15 +289,19 @@ async function startPoll() {
         setConnectionIndicator("ok");
       },
       onFinished: (participants, votes, complete) => {
+        if (stopTimeout) {
+          clearTimeout(stopTimeout);
+          stopTimeout = null;
+        }
         if (pollState === "open") {
           pollState = "chart";
           hideVotes();
           playJingleAnswer();
+          finalVotes = votes;
+          createChart();
+          showChart();
+          setConnectionIndicator("ok");
         }
-        finalVotes = votes;
-        createChart();
-        showChart();
-        setConnectionIndicator("ok");
       },
       onError: () => {
         window.displayTooltip(connectionIndicator, "Connection Lost");
@@ -300,11 +311,31 @@ async function startPoll() {
   );
   startTimeout = setTimeout(() => {
     setConnectionIndicator("error");
+    window.displayTooltip(connectionIndicator, "Network unavailable");
   }, 2000);
 }
 
 function stopPoll() {
   if (session) session.stop();
+  stopTimeout = setTimeout(() => {
+    setConnectionIndicator("error");
+    window.displayTooltip(
+      connectionIndicator,
+      "Network unavailable, using cached results if available"
+    );
+    if (pollState === "open") {
+      pollState = "chart";
+      hideVotes();
+      playJingleAnswer();
+      if (cachedVotes) {
+        finalVotes = cachedVotes;
+        createChart();
+        showChart();
+        cachedVotes = null;
+      }
+      setConnectionIndicator("error");
+    }
+  }, 2000);
 }
 
 function abortPoll() {
