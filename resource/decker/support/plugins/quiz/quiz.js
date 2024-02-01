@@ -90,7 +90,7 @@ function setConnectionIndicator(what) {
         connectionIndicator.classList.remove("warning");
         connectionIndicator.classList.add("error");
         connectionIndicator.title =
-          "No connection to the Quiz Server!\nYou may attempt to run or close the poll in order to attempt a reconnect.";
+          "Disconnected from the Quiz Server\nYou may attempt to reconnect by trying to interact with the poll";
       }
       break;
     case "warning":
@@ -265,6 +265,9 @@ async function startPoll() {
     // If we leave it at 0 if there are no correct answers the poll states goes negative ...
     // If we set this to numAnswers the poll isn't "done" unless the user checks ALL answers
     {
+      onReady: () => {
+        setConnectionIndicator("ok");
+      },
       onActive: (participants, votes, complete) => {
         if (pollState === "not_init") {
           pollState = "open";
