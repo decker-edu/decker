@@ -111,7 +111,7 @@ function setupGUI() {
     type: "button",
     classes: "fa-button fas fa-poll poll-only presenter-only",
     tooltip: "Start/stop poll",
-    onclick: switchPollState,
+    onclick: issueStateSwitch,
   });
   anchors.addBottomCenterButton(pollButton);
 
@@ -214,6 +214,16 @@ function slideChanged() {
   }
 }
 
+function playJingleQuestion() {
+  jingleQuestion.currentTime = 0;
+  jingleQuestion.play();
+}
+
+function playJingleAnswer() {
+  jingleAnswer.currentTime = 0;
+  jingleAnswer.play();
+}
+
 async function startPoll() {
   // initialize on first start
   if (!session) await startPollingSession();
@@ -224,16 +234,28 @@ async function startPoll() {
   session.poll(
     choices,
     solution,
-    numCorrectAnswers,
+    numCorrectAnswers ? numCorrectAnswers : 1,
+    // If we leave it at 0 if there are no correct answers the poll states goes negative ...
+    // If we set this to numAnswers the poll isn't "done" unless the user checks ALL answers
     {
       onReady: () => {
         setConnectionIndicator("ok");
       },
       onActive: (participants, votes, complete) => {
+        if (pollState === "not_init") {
+          pollState = "open";
+          showVotes();
+          playJingleQuestion();
+        }
         votes_div.textContent = `${complete} / ${participants}`;
         setConnectionIndicator("ok");
       },
       onFinished: (participants, votes, complete) => {
+        if (pollState === "open") {
+          pollState = "chart";
+          hideVotes();
+          playJingleAnswer();
+        }
         finalVotes = votes;
         createChart();
         showChart();
@@ -242,16 +264,13 @@ async function startPoll() {
     },
     winnerSelection
   );
-
-  // play jingle
-  jingleQuestion.currentTime = 0;
-  jingleQuestion.play();
+  startTimeout = setTimeout(() => {
+    setConnectionIndicator("error");
+  });
 }
 
 function stopPoll() {
   if (session) session.stop();
-  jingleAnswer.currentTime = 0;
-  jingleAnswer.play();
 }
 
 function abortPoll() {
@@ -335,42 +354,31 @@ function createChart() {
   });
 }
 
-// ballot states
-function switchPollState() {
-  // console.log("old poll state: " + pollState);
+function issueStateSwitch() {
   switch (pollState) {
     case "not_init":
       if (numAnswers) {
         startPoll();
-        showVotes();
-        pollState = "open";
       }
       break;
-
     case "open":
-      hideVotes();
       stopPoll();
-      pollState = "chart";
       break;
-
     case "chart":
       hideChart();
       pollState = "done";
       break;
-
     case "done":
       showChart();
       pollState = "chart";
       break;
-
     default:
-      console.error("this should not happen");
+      console.error("pollState has an invalid value: this should not happen");
       hideChart();
       hideVotes();
       pollState = "not_init";
       break;
   }
-  // console.log("new poll state: " + pollState);
 }
 
 function prepareQuizzes() {
