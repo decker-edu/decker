@@ -269,6 +269,10 @@ async function startPoll() {
         setConnectionIndicator("ok");
       },
       onActive: (participants, votes, complete) => {
+        if (startTimeout) {
+          clearTimeout(startTimeout);
+          startTimeout = null;
+        }
         if (pollState === "not_init") {
           pollState = "open";
           showVotes();
@@ -296,7 +300,7 @@ async function startPoll() {
   );
   startTimeout = setTimeout(() => {
     setConnectionIndicator("error");
-  });
+  }, 2000);
 }
 
 function stopPoll() {
