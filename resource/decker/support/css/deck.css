@@ -274,3 +274,31 @@ html.dark img {
   z-index: -1;
   font-weight: bold;
 }
+
+.fading-tooltip {
+  position: fixed;
+  border-radius: 1rem;
+  border: 1px solid var(--blueish);
+  transition: opacity 0.5s;
+  color: var(--foreground-color);
+  background-color: var(--background-color);
+  font-weight: bold;
+  padding: 1rem;
+  opacity: 1;
+}
+
+.fading-tooltip.fade {
+  opacity: 0;
+}
+
+.wedgedown {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid var(--blueish);
+}

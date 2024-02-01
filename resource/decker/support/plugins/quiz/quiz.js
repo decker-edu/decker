@@ -1,6 +1,31 @@
 // Henrik's server API
 import { pollSession } from "../examiner/poll.js";
 
+window.displayTooltip = function (element, text) {
+  const tooltip = document.createElement("div");
+  tooltip.classList.add("fading-tooltip");
+  const wedge = document.createElement("div");
+  wedge.classList.add("wedgedown");
+  tooltip.appendChild(wedge);
+  const message = document.createElement("span");
+  message.classList.add("tooltip-text");
+  message.innerText = text;
+  tooltip.appendChild(message);
+  document.body.appendChild(tooltip);
+  const box = element.getBoundingClientRect();
+  const tbox = tooltip.getBoundingClientRect();
+  tooltip.style.top = `${Math.floor(box.top) - 64}px`;
+  tooltip.style.left = `${Math.floor(
+    box.left - (tbox.width - box.width) / 2
+  )}px`;
+  setTimeout(() => {
+    tooltip.classList.add("fade");
+    tooltip.addEventListener("transitionend", () => {
+      tooltip.remove();
+    });
+  }, 1000);
+};
+
 // reference to Reveal deck
 let Reveal;
 
@@ -56,7 +81,7 @@ function setConnectionIndicator(what) {
         connectionIndicator.classList.remove("error");
         connectionIndicator.classList.remove("warning");
         connectionIndicator.classList.add("ok");
-        connectionIndicator.title = "Connected to Quiz Server";
+        connectionIndicator.title = "Connected to the Quiz Server";
       }
       break;
     case "error":
@@ -64,7 +89,8 @@ function setConnectionIndicator(what) {
         connectionIndicator.classList.remove("ok");
         connectionIndicator.classList.remove("warning");
         connectionIndicator.classList.add("error");
-        connectionIndicator.title = "Disconnected from Quiz Server";
+        connectionIndicator.title =
+          "No connection to the Quiz Server!\nYou may attempt to run or close the poll in order to attempt a reconnect.";
       }
       break;
     case "warning":
@@ -231,6 +257,7 @@ async function startPoll() {
   // get labels as subset of this array
   let choices = ["A", "B", "C", "D", "E", "F", "G", "H"].slice(0, numAnswers);
 
+  // this does not fail if the connection is broken
   session.poll(
     choices,
     solution,
@@ -238,9 +265,6 @@ async function startPoll() {
     // If we leave it at 0 if there are no correct answers the poll states goes negative ...
     // If we set this to numAnswers the poll isn't "done" unless the user checks ALL answers
     {
-      onReady: () => {
-        setConnectionIndicator("ok");
-      },
       onActive: (participants, votes, complete) => {
         if (pollState === "not_init") {
           pollState = "open";
@@ -260,6 +284,9 @@ async function startPoll() {
         createChart();
         showChart();
         setConnectionIndicator("ok");
+      },
+      onError: () => {
+        window.displayTooltip(connectionIndicator, "Connection Lost");
       },
     },
     winnerSelection
@@ -287,6 +314,9 @@ function hideVotes() {
 
 async function toggleQR() {
   if (!session) await startPollingSession();
+  if (!session.getData().socket) {
+    session.reset(); // Try to trigger a reconnect
+  }
   qrcode.classList.toggle("show");
 }
 
@@ -474,9 +504,13 @@ async function startPollingSession() {
       }
     }
     `,
+    onready: () => {
+      setConnectionIndicator("ok");
+    },
     onclose: () => {
       console.log("polling session was closed");
       setConnectionIndicator("error");
+      displayTooltip(connectionIndicator, "Lost Connection");
       Reveal.off("slidechanged", abortPoll);
     },
     onwarning: () => {
@@ -487,7 +521,7 @@ async function startPollingSession() {
   setConnectionIndicator("ok");
 
   // create QR code
-  let { id, secret, url } = session.sessionId();
+  let { id, secret, url, socket } = session.getData();
   qrcodeLink.innerHTML = String.raw`${url}`;
   qrcodeLink.href = url;
   qrcodeLink.target = "_blank";

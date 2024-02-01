@@ -24,14 +24,24 @@ function setupHeartbeat() {
         session.onWarning();
       }
     } else if (heartbeatWithoutResponse === 2) {
+      // Pull the ripchord and close the conenction
+      console.log("Missed two heartbeats: closing connection");
+      heartbeatWithoutResponse++;
       session.socket.close();
+      session.socket = null;
+      if (session.onClose) {
+        session.onClose();
+      }
     }
-    heartbeatWithoutResponse = heartbeatWithoutResponse++;
-    session.socket.send(JSON.stringify({ tag: "Beat" }));
-  }, 10000);
+    if (heartbeatWithoutResponse < 2) {
+      session.socket.send(JSON.stringify({ tag: "Beat" }));
+    }
+    heartbeatWithoutResponse++;
+  }, 2000);
 }
 
 function reconnect(objectToSend) {
+  console.log("[POLL]", "attempting to reconnect to quiz server");
   if (session.secret) {
     // Use the secret to reconnect to existing session
     session.socket = new WebSocket(
@@ -63,20 +73,32 @@ function handleOpenPostReconnect(event) {
 
 function handleError(event) {
   console.error("Poll:", "Cannot connect to server: " + session.serverUrl);
+  if (session.ui.onError) {
+    session.ui.onError();
+  }
   if (session.heartbeat) {
     clearInterval(session.heartbeat);
     session.heartbeat = null;
   }
 }
 
+/* Closing a websocket involves it sending a close handshake.
+ * If both participants agree to the close handshake the connection
+ * is considered closed. If we have no network connection, this
+ * handshake is never performed properly and after about a minute
+ * the connection is considered closed. I do not want to wait this long,
+ * so the heartbeat ripchord already sets up the system to allow a reconnect.
+ */
 function handleClose(event) {
   console.error("Poll:", "Server went away.");
-  if (session.onClose) session.onClose();
-  if (session.heartbeat) {
-    clearInterval(session.heartbeat);
-    session.heartbeat = null;
+  if (session.socket) {
+    if (session.onClose) session.onClose();
+    if (session.heartbeat) {
+      clearInterval(session.heartbeat);
+      session.heartbeat = null;
+    }
+    session.socket = null;
   }
-  session.socket = null;
 }
 
 async function handleMessagePostReconnect(event) {
@@ -96,9 +118,8 @@ async function handleMessagePostReconnect(event) {
   } else if (message.quiz) {
     // Quiz State from Server
     switch (message.quiz.state) {
-      //This is actually never used?
       case "Ready":
-        if (session.ui.onReady) session.onReady();
+        if (session.onReady) session.onReady();
         break;
 
       case "Active":
@@ -138,6 +159,7 @@ function pollSession({
   clientBaseUrl,
   onready = null,
   onclose = null,
+  onwarning = null,
   clientCss = null,
 } = {}) {
   session = {
@@ -150,6 +172,7 @@ function pollSession({
     heartbeat: null,
     onReady: onready,
     onClose: onclose,
+    onWarning: onwarning,
   };
 
   window.qsession = session;
@@ -159,13 +182,12 @@ function pollSession({
     session.heartbeat = null;
 
     session.socket.addEventListener("open", (e) => {
-      if (clientCss)
+      if (clientCss) {
         session.socket.send(
           JSON.stringify({ tag: "ClientCss", clientCss: clientCss })
         );
-      session.heartbeat = setInterval(() => {
-        session.socket.send(JSON.stringify({ tag: "Beat" }));
-      }, 10000);
+      }
+      setupHeartbeat();
     });
 
     session.socket.addEventListener("error", handleError);
@@ -189,11 +211,12 @@ function pollSession({
 
         resolve({
           // Returns the 4 digit session id and the client url for this session.
-          sessionId: () => {
+          getData: () => {
             return {
               id: session.id,
               secret: session.secret,
               url: session.clientUrl,
+              socket: session.socket,
             };
           },
 
@@ -221,6 +244,9 @@ function pollSession({
           // "B": 9]}. onFinished(participants, votes) is called with the final
           // results when the poll has stopped.
           poll: (choices, solution, votes, callbacks, selection) => {
+            //TODO: Make this async so the reconnect can happen before the jingle gets played,
+            //TODO: Right now even if the connection is broken, if there was a poll before,
+            //TODO: the previous participants are shown
             session.ui = callbacks;
             let options = {
               tag: "Start",
