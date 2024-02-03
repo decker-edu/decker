@@ -921,9 +921,9 @@ section#title-slide h2 {
   line-height: 1.5;
 }
 
-section#title-slide img.teaser {
+section#title-slide div.teaser img {
   margin: 30px 0 0 0;
-  height: 250px;
+  height: 200px;
   width: auto;
   object-fit: contain;
 }
