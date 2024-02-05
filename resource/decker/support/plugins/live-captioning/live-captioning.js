@@ -7,6 +7,9 @@
  */
 import bwipjs from "../examiner/bwip.js";
 
+const RESTART_INTERVAL = 2000; // Try to restart recognition if no event happens for two seconds.
+const MINIMAL_RESTART_TIME = 2500; // If we just restarted skip the first retry.
+
 let localization;
 
 // Using the custom web component here is optional and can be replaced by something less
@@ -45,7 +48,7 @@ function getLanguageCode(string) {
   if (/^..-../i.test(string)) {
     return string;
   }
-  //Language names 
+  //Language names
   // TODO: This whole system needs to be improved
   let code = undefined;
   switch (lang) {
@@ -78,6 +81,11 @@ class LiveCaptioning {
     this.captioning = false;
     this.speechRecog = undefined;
     this.connection = undefined;
+
+    this.defibrilator = undefined; // Timer to restart caption request if no data comes for too long.
+
+    this.lastEvent = undefined;
+    this.lastStart = undefined;
 
     /* Left for posterity if at some point the window-placement API is supported in browsers
      this.fullscreenCaptioning = false;
@@ -135,15 +143,18 @@ class LiveCaptioning {
     this.speechRecog.onerror = (event) => this.handleError(event);
     this.speechRecog.onend = () => this.handleEnd();
 
+    const url = new URL(import.meta.url);
+    const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+
     this.popup = window.open(
-      "about:blank",
+      `${path + "/live-captioning.html"}?${Date.now()}`, //Add time to back to prevent caching
       "reveal.js - Captioning",
       "width=1920,height=1080"
     );
     try {
-      const url = new URL(import.meta.url);
-      const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
-      const response = await fetch(path + "/live-captioning.html");
+      const response = await fetch(path + "/live-captioning.html", {
+        cache: "no-cache",
+      });
       const html = await response.text();
       this.popup.document.write(html);
       this.popup.onbeforeunload = () => {
@@ -154,42 +165,39 @@ class LiveCaptioning {
       console.log(error);
     }
 
-    let url = window.Decker.meta["caption-server"];
-    if (url) {
-      fetch(url + "/api/session", {
-        method: "POST",
-      })
-        .then((response) => response.json())
-        .then((json) => {
-          if (json.session && json.token) {
-            this.connection = json;
-            if (!this.connection.server) {
-              this.connection.server = url;
-            }
-            this.connection.cors =
-              window.location.origin !== new URL(this.connection.server).origin
-                ? "cors"
-                : "same-origin";
-          }
-        })
-        .then(() => {
-          this.showQRCode();
-        })
-        .catch((error) => {
-          console.error(error);
+    let backend = window.Decker.meta["caption-server"];
+    if (backend) {
+      try {
+        const response = await fetch(backend + "/api/session", {
+          method: "POST",
         });
+        const json = await response.json();
+        if (json.session && json.token) {
+          this.connection = json;
+          if (!this.connection.server) {
+            this.connection.server = backend;
+          }
+          this.connection.cors =
+            window.location.origin !== new URL(this.connection.server).origin
+              ? "cors"
+              : "same-origin";
+          this.showQRCode();
+        }
+      } catch (error) {
+        console.error(error);
+      }
     }
 
     this.speechRecog.start();
     this.captioning = true;
-    //    this.record_button.icon = "fa-circle";
     this.record_button.classList.add("recording");
     this.record_button.title = localization.stop_captioning;
     this.record_button.setAttribute("aria-label", localization.stop_captioning);
   }
 
   async showQRCode() {
-    let qrcode = document.createElement("canvas");
+    const container = document.createElement("div");
+    const qrcode = document.createElement("canvas");
     bwipjs.toCanvas(qrcode, {
       bcid: "qrcode",
       text: `${this.connection.server}/session/${this.connection.session}`,
@@ -198,14 +206,27 @@ class LiveCaptioning {
       textxalign: "center",
       eclevel: "L",
     });
+    container.appendChild(qrcode);
+    const linkContainer = document.createElement("div");
+    container.appendChild(linkContainer);
+    const link = document.createElement("a");
+    linkContainer.appendChild(link);
+    link.innerText = `${this.connection.server}/session/${this.connection.session}`;
+    link.href = `${this.connection.server}/session/${this.connection.session}`;
+    link.target = "_blank";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "1rem";
+    container.style.alignItems = "center";
     let noop = await window.showInformation(
       localization.qrcode_message,
-      qrcode
+      container
     );
   }
 
   async showAbort() {
-    let qrcode = document.createElement("canvas");
+    const container = document.createElement("div");
+    const qrcode = document.createElement("canvas");
     bwipjs.toCanvas(qrcode, {
       bcid: "qrcode",
       text: `${this.connection.server}/session/${this.connection.session}`,
@@ -214,13 +235,25 @@ class LiveCaptioning {
       textxalign: "center",
       eclevel: "L",
     });
+    container.appendChild(qrcode);
+    const linkContainer = document.createElement("div");
+    container.appendChild(linkContainer);
+    const link = document.createElement("a");
+    linkContainer.appendChild(link);
+    link.innerText = `${this.connection.server}/session/${this.connection.session}`;
+    link.href = `${this.connection.server}/session/${this.connection.session}`;
+    link.target = "_blank";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "1rem";
+    container.style.alignItems = "center";
     let options = [
       { text: localization.stop, value: "true" },
       { text: localization.abort, value: "false" },
     ];
     return window.showDialog(
       "Untertitelung beenden?",
-      qrcode,
+      container,
       options,
       "warning"
     );
@@ -237,7 +270,6 @@ class LiveCaptioning {
       this.popup.close();
       this.popup = undefined;
     }
-    //    this.record_button.icon = "fa-closed-captioning";
     this.record_button.classList.remove("recording");
     this.record_button.title = localization.start_captioning;
     this.record_button.setAttribute(
@@ -259,12 +291,33 @@ class LiveCaptioning {
   }
 
   handleStart() {
-    this.popup.postMessage(
-      JSON.stringify({
-        type: "status",
-        value: "start",
-      })
-    );
+    this.lastEvent = Date.now();
+    this.lastStart = Date.now();
+    this.defibrilator = setInterval(() => this.defibrilate(), RESTART_INTERVAL);
+    if (this.popup) {
+      this.popup.postMessage(
+        JSON.stringify({
+          type: "status",
+          value: "start",
+        })
+      );
+    }
+  }
+
+  /**
+   * Stop the speechRecognition if no data comes in for a while.
+   * The handleEnd() function should then restart the recognition as if an error had occurred.
+   */
+  defibrilate() {
+    const now = Date.now();
+    const timeSinceLastEvent = now - this.lastEvent;
+    const timeSinceLastStart = now - this.lastStart;
+    if (
+      timeSinceLastEvent > RESTART_INTERVAL &&
+      timeSinceLastStart > MINIMAL_RESTART_TIME
+    ) {
+      this.speechRecog.abort();
+    }
   }
 
   /**
@@ -273,6 +326,7 @@ class LiveCaptioning {
    * @param {*} event
    */
   handleResult(event) {
+    this.lastEvent = Date.now();
     for (var i = event.resultIndex; i < event.results.length; i++) {
       if (event.results[i][0].confidence > 0.1) {
         this.updateCaptionContent(event.results[i][0].transcript);
@@ -288,16 +342,18 @@ class LiveCaptioning {
    * @param {*} event
    */
   handleError(event) {
-    console.error(event);
-    if (this.popup) {
-      this.popup.postMessage(
-        JSON.stringify({
-          type: "status",
-          value: "inactive",
-        })
-      );
+    if (!(event.error === "aborted")) {
+      console.error(event);
+      if (this.popup) {
+        this.popup.postMessage(
+          JSON.stringify({
+            type: "status",
+            value: "inactive",
+          })
+        );
+      }
+      this.finalizeCaptionContent(this.currentSpan?.innerHTML);
     }
-    this.finalizeCaptionContent(this.currentSpan?.innerHTML);
   }
 
   /**
@@ -305,6 +361,7 @@ class LiveCaptioning {
    * want to caption.
    */
   handleEnd() {
+    clearInterval(this.defibrilator);
     this.finalizeCaptionContent(this.currentSpan?.innerHTML);
     if (this.captioning) {
       this.speechRecog.start();
@@ -415,9 +472,9 @@ const plugin = () => {
         abort: "Cancel",
         qrcode_message: "Live Captioning",
         caption_warning:
-          "Using this feature will use your Browser's WebSpeech API to transcribe your voice. \
-         To facilitate this, your voice will be sent to your Browser's manufacturer's Cloud Service \
-         (Google or Apple). Do you accept this?",
+          "In order to use the live captioning function you will use integrated plugins of your browser. \
+          In case you are using the live captioning function the data necessary for transcription will be handled by the installed plugin. \
+          Decker will not take responsibility for the use and processing of that data by the installed plugin.",
       };
       let lang = navigator.language;
       if (lang === "de") {
@@ -429,9 +486,9 @@ const plugin = () => {
           abort: "Abbrechen",
           qrcode_message: "Live-Untertitel",
           caption_warning:
-            "Diese Funktion wird die eingebaute WebSpeech API Ihres Browsers benutzen, \
-         um Ihre Stimme zu transkribieren. Die dabei aufgezeichneten Daten werden dazu an den Hersteller \
-         Ihres Browsers gesendet. Sind Sie damit einverstanden?",
+            "Sie können für die Live-Untertitelung die von Ihrem Browser bereitgestellten Plugins nutzen. \
+            In diesem Fall wird die Verarbeitung der Daten durch das von Ihnen installierte Plugin und nicht durch Decker vorgenommen. \
+            Decker übernimmt in diesem Fall keine Verantwortung für die Verarbeitung der Daten durch das von Ihnen installierte Plugin.",
         };
       }
 

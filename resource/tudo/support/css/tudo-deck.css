@@ -493,18 +493,18 @@ div.align-right > p {
  **************************************************/
 
 /* code block */
-div.sourceCode > pre.sourceCode {
+.reveal .media .code pre {
   display: block;
   position: relative;
   margin: auto;
   padding: 0.5em 0.75em;
-  /* width: auto; */
-  text-align: center;
+  text-align: left;
   max-height: 500px;
   overflow: auto;
   background: var(--shade1);
   border: 1px solid var(--shade2);
   border-radius: 4px;
+  font-size: 0.5em;
 }
 
 /* inline source code */
@@ -522,7 +522,6 @@ pre > code.sourceCode {
   padding: 0;
   white-space: pre;
   position: relative;
-  font-size: 0.5em;
   overflow: auto;
   max-height: 100%;
   box-sizing: border-box;
@@ -909,6 +908,7 @@ section#title-slide h1 {
   margin: 20px !important;
   box-sizing: border-box;
   line-height: 1.5;
+  text-wrap: balance;
 }
 
 section#title-slide h2 {
@@ -921,9 +921,9 @@ section#title-slide h2 {
   line-height: 1.5;
 }
 
-section#title-slide img.teaser {
+section#title-slide div.teaser img {
   margin: 30px 0 0 0;
-  height: 250px;
+  height: 200px;
   width: auto;
   object-fit: contain;
 }
@@ -935,6 +935,13 @@ section#title-slide div.author {
   font-size: 1em;
   text-align: center;
   color: var(--shade6);
+}
+
+section#title-slide div.author > img {
+  margin: 30px 0 20px 0;
+  height: 150px;
+  width: auto;
+  object-fit: contain;
 }
 
 section#title-slide div.affiliation {

@@ -51,7 +51,7 @@
 -   Move `rsync` configuration entirely to `decker.yaml`.
 
     This will certainly break projects that define their own rsync options. They
-    will have to add the moved rsync options:
+    will have to add the removed options to their local rsync options list:
 
     ``` yaml
     publish:
