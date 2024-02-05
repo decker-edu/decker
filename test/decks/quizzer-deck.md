@@ -413,3 +413,18 @@ poll-server: wss://archytas.cs.tu-dortmund.de/quizzer/quiz
   - Because No
 
 :::
+
+# No Right Answer
+
+## It is all wrong!
+
+::: quiz
+
+- [ ] Wrong
+  - Wrong Wrong Wrong
+- [ ] Wrong Wrong
+  - Wrong
+- [ ] Wrong
+  - Click
+
+:::
