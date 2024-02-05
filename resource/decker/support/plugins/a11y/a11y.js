@@ -82,7 +82,7 @@ function toggleAccessibility() {
       modifyMedia(audio);
     }
     Decker.flash.message(
-      `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
+      `<span>Additional Accessibility Features: <strong style="color:var(--accent3);">ON</strong></span>`
     );
     window.MathJax.startup.document.menu.menu
       .findID("Accessibility", "Activate")
@@ -98,8 +98,11 @@ function toggleAccessibility() {
       restoreMedia(audio);
     }
     Decker.flash.message(
-      `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
+      `<span>Additional Accessibility Features: <strong style="color:var(--accent1);">OFF</strong></span>`
     );
+    window.MathJax.startup.document.menu.menu
+      .findID("Accessibility", "Activate")
+      .variable.setter(false);
   }
 }
 
