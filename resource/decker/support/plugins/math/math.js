@@ -184,11 +184,16 @@ const Plugin = {
     // configure through global MathJax object
     window.MathJax = {
       startup: {
+        // These startup and pageReady callbacks are part of workarounds to know issues with MathJax 4.0.0-beta4
+        // and should be removed once confirmed resolved in the next beta release
         ready: () => {
+          const { CommonWrapper } = MathJax._.output.common.Wrapper;
+          const getBreakNode = CommonWrapper.prototype.getBreakNode;
+          CommonWrapper.prototype.getBreakNode = function (bbox) {
+            if (!bbox.start) return [this, null];
+            return getBreakNode.call(this, bbox);
+          };
           window.MathJax.startup.defaultReady();
-          window.MathJax.startup.promise.then(() => {
-            turnRed();
-          });
         },
         pageReady() {
           const CONFIG = MathJax.config.startup;
