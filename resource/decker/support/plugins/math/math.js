@@ -183,6 +183,27 @@ const Plugin = {
 
     // configure through global MathJax object
     window.MathJax = {
+      startup: {
+        ready: () => {
+          window.MathJax.startup.defaultReady();
+          window.MathJax.startup.promise.then(() => {
+            turnRed();
+          });
+        },
+        pageReady() {
+          const CONFIG = MathJax.config.startup;
+          const output = MathJax.config.output;
+          return (
+            CONFIG.loadAllFontFiles && output.font
+              ? output.font.loadDynamicFiles()
+              : Promise.resolve()
+          ).then(
+            CONFIG.typeset && MathJax.typesetPromise
+              ? () => MathJax.startup.typesetPromise(CONFIG.elements)
+              : Promise.resolve()
+          );
+        },
+      },
       svg: {
         scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
         minScale: 0.5, // smallest scaling factor to use
