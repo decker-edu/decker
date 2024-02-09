@@ -288,3 +288,11 @@ progress {
   margin: auto 0.5em;
   width: 3em;
 }
+
+.link-additions {
+  display: inline-block;
+}
+
+.link-additions * {
+  margin: 0.25rem;
+}

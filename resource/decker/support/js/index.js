@@ -1,56 +1,93 @@
 function initIndexPage() {
-  setupProgressIndicators();
-}
+  const selector = Decker.meta.index?.selector || "a[href$='-deck.html']";
+  const insert = Decker.meta.index?.progress?.insert || "after";
 
-function setupProgressIndicators() {
-  if (!localStorage) return;
+  const links = document.querySelectorAll(selector);
 
-  // Scrape settings from Decker meta
-  if (!Decker.meta.progress) return;
-  let selector = Decker.meta.progress.selector || "a[href$='-deck.html']";
-  let insert = Decker.meta.progress.insert || "after";
-
-  document.querySelectorAll(selector).forEach((link) => {
+  for (const link of links) {
     let url = null;
     try {
       url = new URL(link.href);
     } catch {
-      return;
+      continue;
     }
-
-    const key = url.pathname + "-percentage";
-    let percent = localStorage.getItem(key) || 0;
-    // Reset if percent is faulty
-    percent = Number(percent);
-    if (isNaN(percent) || percent === Infinity || percent > 100) {
-      console.log(
-        "[index.js] reset percent progress for " +
-          key +
-          " because value is " +
-          percent
-      );
-      percent = 0;
-      localStorage.setItem(key, 0);
-    }
-
-    let progress = document.createElement("progress");
-    progress.max = 100;
-    progress.value = percent;
-    progress.key = key;
-    progress.title = `${percent}% watched.\nDouble-click to toggle\nbetween 100% and 0%`;
-
-    progress.ondblclick = function () {
-      this.value = this.value == 100 ? 0 : 100;
-      this.title = `${this.value}% watched.\nDouble-click to toggle\nbetween 100% and 0%`;
-      localStorage.setItem(this.key, this.value);
-    };
-
+    const container = document.createElement("div");
+    container.classList.add("link-additions");
+    setupModeLinks(container, url);
+    setupProgressIndicator(container, url);
     if (insert === "replace") {
-      link.replaceWith(progress);
+      link.replaceWith(container);
     } else if (insert == "before") {
-      link.before(progress);
+      link.before(container);
     } else {
-      link.after(progress);
+      link.after(container);
     }
-  });
+  }
+}
+
+function setupModeLinks(container, url) {
+  const links = Decker.meta.index?.links || [];
+
+  if (links.includes("a11y")) {
+    const a11yLink = document.createElement("a");
+    a11yLink.href = url.pathname + "?a11y";
+    a11yLink.classList.add("fas", "fa-universal-access");
+    a11yLink.setAttribute("title", "access in accessibility mode");
+    a11yLink.setAttribute("aria-label", "access in accessibility mode");
+    container.appendChild(a11yLink);
+  }
+
+  if (links.includes("handout")) {
+    const handoutLink = document.createElement("a");
+    handoutLink.href = url.pathname + "?handout";
+    handoutLink.classList.add("fas", "fa-file-arrow-down");
+    handoutLink.setAttribute("title", "access in handout mode");
+    handoutLink.setAttribute("aria-label", "access in handout mode");
+    container.appendChild(handoutLink);
+  }
+
+  if (links.includes("presenter")) {
+    const presenterLink = document.createElement("a");
+    presenterLink.href = url.pathname + "?presenter";
+    presenterLink.classList.add("fas", "fa-chalkboard-teacher");
+    presenterLink.setAttribute("title", "access in presenter mode");
+    presenterLink.setAttribute("aria-label", "access in presenter mode");
+    container.appendChild(presenterLink);
+  }
+}
+
+function setupProgressIndicator(container, url) {
+  if (!localStorage) return;
+
+  // Scrape settings from Decker meta
+  if (!Decker.meta.index?.progress) return;
+
+  const key = url.pathname + "-percentage";
+  let percent = localStorage.getItem(key) || 0;
+  // Reset if percent is faulty
+  percent = Number(percent);
+  if (isNaN(percent) || percent === Infinity || percent > 100) {
+    console.log(
+      "[index.js] reset percent progress for " +
+        key +
+        " because value is " +
+        percent
+    );
+    percent = 0;
+    localStorage.setItem(key, 0);
+  }
+
+  const progress = document.createElement("progress");
+  progress.max = 100;
+  progress.value = percent;
+  progress.key = key;
+  progress.title = `${percent}% watched.\nDouble-click to toggle\nbetween 100% and 0%`;
+
+  container.appendChild(progress);
+
+  progress.ondblclick = function () {
+    this.value = this.value == 100 ? 0 : 100;
+    this.title = `${this.value}% watched.\nDouble-click to toggle\nbetween 100% and 0%`;
+    localStorage.setItem(this.key, this.value);
+  };
 }
