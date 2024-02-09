@@ -203,7 +203,10 @@ class SlideMenu {
   closeViews() {
     this.views.container.inert = true;
     this.menu.slide_list.inert = false;
-    this.menu.views_button.setAttribute("title", this.localization.views_label);
+    this.menu.views_button.setAttribute(
+      "title",
+      this.localization.open_views_label
+    );
     this.menu.views_button.setAttribute(
       "aria-label",
       this.localization.open_views_label
