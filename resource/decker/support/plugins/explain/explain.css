@@ -58,7 +58,8 @@ div#record-panel {
 
 div[data-uistate="RECORDER_READY"]#record-panel,
 div[data-uistate="RECORDER_PAUSED"]#record-panel,
-div[data-uistate="RECORDING"]#record-panel {
+div[data-uistate="RECORDING"]#record-panel,
+div[data-uistate="SAVING"]#record-panel {
   display: flex;
 }
 
@@ -169,6 +170,22 @@ div#record-panel[data-uistate="RECORDING"].open {
   content: "\f111";
   font-weight: 900;
   color: var(--redish);
+}
+
+@keyframes turning-gear {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+#record-indicator[data-state="saving"]::before {
+  content: "\f013";
+  font-weight: 900;
+  color: var(--redish);
+  animation: 2s turning-gear linear infinite;
 }
 
 button.explain[disabled] {
