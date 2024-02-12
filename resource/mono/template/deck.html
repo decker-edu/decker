@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html$if(lang)$ lang="$lang$" $endif$$if(dir)$ dir="$dir$" $endif$>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="generator" content="pandoc">
+    $for(author-meta)$
+    <meta name="author" content="$author-meta$">
+    $endfor$
+    $if(date-meta)$
+    <meta name="dcterms.date" content="$date-meta$">
+    $endif$
+    $if(keywords)$
+    <meta name="keywords" content="$for(keywords)$$keywords$$sep$, $endfor$">
+    $endif$
+    $if(title)$
+    $if(subtitle)$
+    <title>$title$: $subtitle$</title>
+    $else$
+    <title>$title$</title>
+    $endif$
+    $endif$
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    $if(template.favicon)$
+    <link rel="shortcut icon" href="$template.favicon$">
+    $endif$
+
+    $deck-styles.html()$
+
+    <script type="module">
+      /* Store JSON encoded Pandoc meta data in a global variable. */
+      import initializeDecker from "./$decker-support-dir$/js/decker.js";
+      initializeDecker("$decker-meta-url$");
+    </script>
+
+    <script src="$decker-support-dir$/vendor/chartjs/chart.umd.js"></script>
+    <script src="$decker-support-dir$/vendor/videojs/video.min.js"></script>
+  </head>
+
+  <body class="deck">
+    <div class="reveal">
+      <div class="slides">
+        $if(title)$
+        $deck-title.html()$
+        $endif$
+
+        <!-- Keep left aligned -->
+        $body$
+
+      </div>
+    </div>
+    $if(watermark)$
+    <div class="watermark">
+      $watermark$
+    </div>
+    $endif$
+
+    $deck-plugins.html()$
+
+    $if(live-captions)$
+    <script src="$decker-support-dir$/components/awesome-button.js"></script>
+    $endif$
+    <script type="module" src="$decker-support-dir$/components/custom-dialog.js"></script>
+
+    <!-- hard-coded script for the mono resource pack -->
+    <script type="module" src="$decker-support-dir$/js/mono.js"></script>
+
+    $for(template.js)$
+    <script src="$template.js$"></script>
+    $endfor$
+    $for(template.js-module)$
+    <script module src="$template.js-module$"></script>
+    $endfor$
+    $for(template.deck.js)$
+    <script src="$template.deck.js$"></script>
+    $endfor$
+    $for(template.deck.js-module)$
+    <script module src="$template.deck.js$"></script>
+    $endfor$
+
+  </body>
+
+  </html>
