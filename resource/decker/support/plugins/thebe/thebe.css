@@ -1,0 +1,81 @@
+.reveal {
+  --jp-content-presentation-font-size1: 100%;
+  --jp-content-font-size1: 100%;
+  --jp-code-presentation-font-size: 100%;
+  --jp-code-font-size: 100%;
+  --jp-ui-font-size1: 100%;
+  /* TODO: get via some variable from the main style sheet */
+  --jp-code-font-family: "Fira Code", "Fira Mono", menlo, consolas, monospace;
+  --jp-content-font-family: "Fira Sans", menlo, consolas, sans-serif;
+  --jp-rendermime-error-background: var(--accent0-bg);
+  --jp-content-link-color: var(--accent5-fg);
+}
+
+.reveal button { font-size: 100%; } /* fix, should not be necessary? */
+
+.reveal .CodeMirror :is(h1, p, div, ul, ol, table):last-child { margin-bottom: 0 !important; }
+
+.reveal .CodeMirror { border: none; height: auto; }
+.reveal .CodeMirror-scroll { padding-bottom: .25ex; scrollbar-width: none; max-width: 100%; }
+.reveal .CodeMirror-lines { padding-top: 0px; }
+
+.reveal .CodeMirror { background-color: var(--background-color); color: var(--foreground-color); }
+.reveal .CodeMirror-cursor { border-left: .2ex solid var(--accent4-fg); }
+.reveal .CodeMirror-focused .CodeMirror-selected { background-color: var(--accent4-bg); }
+.reveal .CodeMirror-selected { background-color: var(--accent4-bbg); }
+.reveal .cm-s-default { color: var(--foreground-color); }
+.reveal .cm-s-default .cm-keyword { color: var(--accent0-fg); }
+.reveal .cm-s-default .cm-builtin { color: var(--accent3-fg); }
+.reveal .cm-s-default .cm-def     { color: var(--accent4-fg); }
+.reveal .cm-s-default .cm-variable{ color: var(--accent5-fg); }
+.reveal .cm-s-default .cm-property{ color: var(--accent5-fg); }
+.reveal .cm-s-default .cm-number  { color: var(--accent6-fg); }
+.reveal .cm-s-default .cm-string  { color: var(--accent7-fg); }
+.reveal .cm-s-default .cm-link    { color: var(--accent7-fg); }
+.reveal .cm-s-default .cm-bracket { color: var(--shade3); }
+.reveal .cm-s-default .cm-comment { color: var(--shade3); }
+.reveal .jp-RenderedText pre { color: var(--foreground-color); }
+
+.reveal .thebe-cell { font-size: 100%; }
+
+.reveal .thebe-controls {
+  text-align: left;
+  font-size: 100%;
+}
+
+.reveal .thebe-controls .thebe-button {
+  display: inline-block;
+  position: inherit;
+  margin-right: .5ex;
+  font-size: 100%;
+  border-radius: .2ex;
+  border-width: 0;
+  background-color: var(--shade1);
+  box-shadow: .1ex .1ex .3ex var(--shade6);
+  color: var(--shade4); /* not available */
+}
+.dark .reveal .thebe-controls .thebe-button {
+  box-shadow: 0 0 .3ex var(--accent3-bg);
+}
+.reveal .thebe-controls .thebe-button.thebe-start-button,
+.reveal .thebe-controls.session-attached .thebe-button,
+.reveal .thebe-controls.session-idle .thebe-button,
+.reveal .thebe-controls.session-ready .thebe-button {
+  background-color: var(--shade2);
+  color: var(--foreground-color);
+}
+.reveal .thebe-status { /* custom status indicator */
+  margin: 0 .5ex;
+}
+
+.reveal .thebe-busy { display: inline-block; margin-right: .5ex; vertical-align: middle; } /* stabilize layout */
+.reveal .thebe-busy-spinner {
+  height: 28px;
+  width: 28px;
+  border-color: var(--shade2);
+  border-width: 4px;
+  border-top-color: var(--color-info);
+  border-top-width: 5px;
+  border-bottom-width: 3px;
+}
+
