@@ -8,6 +8,8 @@ Margins, colors, fonts and stuff should be defined here. */
 @import url("./structure.css");
 @import url("./style.css");
 @import url("./media.css");
+@import url("./text.css");
+@import url("./scaling.css");
 
 /* Box sizing is much nicer for calculations. */
 body.deck {

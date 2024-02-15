@@ -5,6 +5,11 @@
  * GLOBAL STYLES
  *********************************************/
 
+::selection {
+  color: var(--background-color);
+  background-color: var(--accent5);
+}
+
 body {
   background: var(--background-color);
   font-family: "Lato", sans-serif;
@@ -90,18 +95,6 @@ div.block {
 /*********************************************
  * font sizes and styles
  *********************************************/
-
-.reveal .tiny {
-  font-size: 0.5em;
-}
-
-.reveal .small {
-  font-size: 0.7em;
-}
-
-.reveal .large {
-  font-size: 1.2em;
-}
 
 del {
   color: var(--accent0);

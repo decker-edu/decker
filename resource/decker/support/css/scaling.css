@@ -1,0 +1,16 @@
+[scale] {
+  width: fit-content;
+  height: fit-content;
+}
+
+.fullpage {
+  width: var(--slide-width);
+}
+
+.halfpage {
+  width: calc(0.5 * var(--slide-width));
+}
+
+.center-content > * {
+  margin: auto;
+}
