@@ -202,7 +202,7 @@ deckerRules = do
     --
     publicDir <//> "*.css" %> \out -> do
       let src = makeRelative publicDir out
-      putNormal $ "# copy (for " <> out <> ")"
+      putVerbose $ "# copy (for " <> out <> ")"
       copyFile' src out
       whenM (liftIO $ Dir.doesFileExist (src <.> "map")) $
         copyFile' (src <.> "map") (out <.> "map")
@@ -295,7 +295,7 @@ deckerRules = do
   priority 2 $
     publicDir <//> "//" %> \out -> do
       let src = makeRelative publicDir out
-      putNormal $ "# copy (for " <> out <> ")"
+      putVerbose $ "# copy (for " <> out <> ")"
       copyFile' src out
   --
   withTargetDocs "Copy static file to public dir." $
