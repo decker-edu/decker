@@ -1586,7 +1586,8 @@ html.dark .light-only {
 html.dark
   .media
   :is(figure, .figure)
-  :is(svg, img, div.chart-container, iframe) {
+  :not(.MathJax)
+  > :is(svg, img, div.chart-container, iframe) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
 }
