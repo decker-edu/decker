@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 
 <head>
@@ -10,18 +10,28 @@
     pre {
       white-space: nowrap;
     }
+
     body {
-      background-color: var(--shade1);
+      background-color: var(--shade0);
     }
   </style>
-  <script type="text/x-thebe-config"> { bootstrap: false } </script>
+  <script type="text/x-thebe-config">
+      { bootstrap: false }
+    </script>
   <script src="https://unpkg.com/thebe@latest/lib/index.js"></script>
   <script>
     window.addEventListener("load", () => {
-      let repo = window.frameElement.getAttribute("data-repo");
-      let kernel = window.frameElement.getAttribute("data-kernel");
-      let language = window.frameElement.getAttribute("data-language");
-      let code = window.frameElement.getAttribute("data-code");
+      let repo = "binder-examples/requirements";
+      let kernel = "python3";
+      let language = "python3";
+      let code = btoa(`print("Hello World!")`);
+
+      try {
+        repo = window.frameElement.getAttribute("data-repo");
+        kernel = window.frameElement.getAttribute("data-kernel");
+        language = window.frameElement.getAttribute("data-language");
+        code = window.frameElement.getAttribute("data-code");
+      } catch (_) { }
 
       let thebe = document.getElementById("thebe");
       thebe.innerText = atob(code);
