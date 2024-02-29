@@ -92,9 +92,9 @@ runHttpServer context = do
   let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
   let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
   exists <- liftIO $ Dir.doesFileExist indexSource
-  when exists $
-    putStrLn $
-      printf "Generated index at: http://%s:%d/index-generated.html" bind port
+  when exists
+    $ putStrLn
+    $ printf "Generated index at: http://%s:%d/index-generated.html" bind port
   putStrLn $ printf "Index at: http://%s:%d/index.html\n" bind port
   sources <- liftIO $ deckerResources meta
   putStrLn $ "Loading resources from: " <> show sources
@@ -104,7 +104,7 @@ runHttpServer context = do
   let opts = Scotty.Options 0 (setPort port $ setHost (fromString bind) defaultSettings)
   startUpdater state
   scottyOptsT opts (useState server) $ do
-    Scotty.get "/" $ redirect "index.html"
+    Scotty.get "/" $ redirect "/index.html"
     Scotty.options (regex "^/(.*)$") $ headDirectory publicDir
     Scotty.get (fromString supportPath) $ serveSupport context
     Scotty.get (regex "^/recordings/(.*)$") listRecordings
@@ -142,8 +142,9 @@ pingAll tvar = do
 -- server dies.
 startUpdater :: TVar ServerState -> IO ()
 startUpdater state = do
-  forkIO $
-    forever $ do
+  forkIO
+    $ forever
+    $ do
       threadDelay tenSeconds
       pingAll state
   return ()
@@ -223,5 +224,8 @@ reloader state pending = do
   cid <- randomIO -- Use a random number as client id.
   flip finally (removeClient state cid) $ do
     addClient state (cid, connection)
-    handleAll (\_ -> return ()) $
-      forever (receiveData connection :: IO Text)
+    handleAll (\_ -> return ())
+      $ forever
+      $ do
+        msg <- receiveData connection :: IO Text
+        putStrLn $ "source map event: " <> toString msg

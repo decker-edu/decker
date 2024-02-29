@@ -11,7 +11,6 @@ module Text.Decker.Reader.Markdown
   )
 where
 
-import System.AtomicWrite.Writer.ByteString
 import Control.Monad
 import Control.Monad.Loops
 import Data.List qualified as List
@@ -19,6 +18,7 @@ import Data.Maybe
 import Data.Text.IO qualified as Text
 import Development.Shake hiding (Resource)
 import Relude
+import System.AtomicWrite.Writer.ByteString
 import System.Directory qualified as Dir
 import System.FilePath.Posix
 import Text.Decker.Exam.Filter
@@ -59,23 +59,24 @@ readAndFilterMarkdownFile disp globalMeta path = do
     >>= runNewFilter disp examinerFilter docBase
     >>= deckerMediaFilter disp docBase
     >>= processPandoc (deckerPipeline disp) docBase disp
-    -- >>= runDynamicFilters After docBase
+
+-- >>= runDynamicFilters After docBase
 
 processMeta (Pandoc meta blocks) = do
   let processed = computeCssColorVariables $ computeCssVariables meta
   return (Pandoc processed blocks)
 
 -- | Provide default CSL data from the resources if csl: is not set.
-processCites :: MonadIO m => Pandoc -> m Pandoc
+processCites :: (MonadIO m) => Pandoc -> m Pandoc
 processCites pandoc@(Pandoc meta blocks) = liftIO $ do
   if
-      | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
-          runIOorExplode $ processCitations pandoc
-      | isMetaSet "bibliography" meta -> do
-          defaultCSL <- installDefaultCSL
-          let cslMeta = setMetaValue "csl" defaultCSL meta
-          runIOorExplode $ processCitations (Pandoc cslMeta blocks)
-      | otherwise -> return pandoc
+    | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
+        runIOorExplode $ processCitations pandoc
+    | isMetaSet "bibliography" meta -> do
+        defaultCSL <- installDefaultCSL
+        let cslMeta = setMetaValue "csl" defaultCSL meta
+        runIOorExplode $ processCitations (Pandoc cslMeta blocks)
+    | otherwise -> return pandoc
 
 installDefaultCSL :: IO FilePath
 installDefaultCSL = do
@@ -92,9 +93,10 @@ installDefaultCSL = do
 -- exception if something goes wrong
 readMarkdownFile :: Meta -> FilePath -> Action Pandoc
 readMarkdownFile globalMeta path = do
+  let useCommonmark = lookupMetaOrElse False "map-source.enabled" globalMeta
   let base = takeDirectory path
-  parseMarkdownFile path
-    >>= writeBack globalMeta path
+  parseMarkdownFile useCommonmark path
+    -- >>= writeBack globalMeta path
     >>= expandMeta globalMeta base
     >>= adjustResourcePathsA base
     >>= checkVersion
@@ -106,15 +108,20 @@ addPathInfo documentPath (Pandoc meta blocks) = do
   let pathToProject = makeRelativeTo documentPath "."
   let pathToSupport = makeRelativeTo documentPath "support"
   let meta' =
-        addMetaField "projectPath" pathToProject $
-          addMetaField "supportPath" pathToSupport meta
+        addMetaField "projectPath" pathToProject
+          $ addMetaField "supportPath" pathToSupport meta
   return (Pandoc meta' blocks)
 
 -- | Parses a Markdown file and throws an exception if something goes wrong.
-parseMarkdownFile :: FilePath -> Action Pandoc
-parseMarkdownFile path = do
+parseMarkdownFile :: Bool -> FilePath -> Action Pandoc
+parseMarkdownFile useCommonmark path = do
   markdown <- liftIO $ Text.readFile path
-  liftIO $ runIOorExplode (readMarkdown pandocReaderOpts markdown)
+  (Pandoc meta body) <-
+    liftIO
+      $ if useCommonmark
+        then runIOorExplode (readCommonMark commonmarkReaderOpts markdown)
+        else runIOorExplode (readMarkdown pandocReaderOpts markdown)
+  return (Pandoc (setMetaValue "source-path" path meta) body)
 
 -- | Writes a Pandoc document to a file in Markdown format. Throws an exception
 -- if something goes wrong
@@ -213,15 +220,15 @@ pathVariables meta =
 -- TODO: what does this even mean?
 compiletimePathVariables :: Meta -> [Text]
 compiletimePathVariables meta =
-  List.nub $
-    [ "csl",
-      "bibliography",
-      "meta-data",
-      "static-resource-dirs",
-      "static-resources",
-      "extra-highlight-syntax"
-    ]
-      <> lookupMetaOrElse [] "compiletime-path-variables" meta
+  List.nub
+    $ [ "csl",
+        "bibliography",
+        "meta-data",
+        "static-resource-dirs",
+        "static-resources",
+        "extra-highlight-syntax"
+      ]
+    <> lookupMetaOrElse [] "compiletime-path-variables" meta
 
 -- TODO: what does this even mean?
 runtimePathVariables :: Meta -> [Text]
@@ -365,6 +372,6 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
           }
   markdown <- liftIO $ runIO (writeMarkdown options pandoc) >>= handleError
   fileContent <- liftIO $ Text.readFile filepath
-  when (markdown /= fileContent) $
-    withTempFile
+  when (markdown /= fileContent)
+    $ withTempFile
       (\tmp -> liftIO $ Text.writeFile tmp markdown >> Dir.renameFile tmp filepath)

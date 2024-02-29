@@ -14,4 +14,4 @@ extra-include-dirs:
   - /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/ffi
 
 # resolver: lts-20.17
-resolver: lts-21.17
+resolver: lts-21.25

@@ -12,6 +12,7 @@ function onStart(deck) {
   prepareTaskLists();
   prepareFullscreenIframes();
   prepareCodeHighlighting();
+  initSourceMapping();
 
   deck.addEventListener("ready", () => {
     if (!printMode) {
@@ -32,7 +33,7 @@ async function onPresenterMode(isActive) {
   if (isActive) {
     // show info message
     Decker.flash.message(
-      `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`
+      `<span>Presenter Mode: <strong style="color:var(--accent3);">ON</strong></span>`,
     );
 
     // request wake lock: display cannot go to sleep
@@ -47,7 +48,7 @@ async function onPresenterMode(isActive) {
   } else {
     // show info message
     Decker.flash.message(
-      `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`
+      `<span>Presenter Mode: <strong style="color:var(--accent1);">OFF</strong></span>`,
     );
 
     // release wake lock, display may go to sleep again
@@ -118,7 +119,7 @@ function currentDate() {
 
 function prepareTaskLists() {
   for (let cb of document.querySelectorAll(
-    '.reveal ul>li>input[type="checkbox"][disabled]'
+    '.reveal ul>li>input[type="checkbox"][disabled]',
   )) {
     const li = cb.parentElement;
     li.classList.add(cb.checked ? "task-yes" : "task-no");
@@ -136,7 +137,7 @@ function prepareTaskLists() {
 // we wrap the div in any case to make the css simpler.
 function prepareFullscreenIframes() {
   for (let iframe of document.querySelectorAll(
-    ":not(.fs-container)>figure.iframe>iframe"
+    ":not(.fs-container)>figure.iframe>iframe",
   )) {
     // wrap div around iframe
     var parent = iframe.parentElement;
@@ -167,7 +168,7 @@ function prepareFullscreenIframes() {
     div.appendChild(btn);
 
     // handle button click: enter/exit fullscreen
-    btn.onclick = function () {
+    btn.onclick = function() {
       var doc = window.document;
       var container = this.parentElement;
       if (doc.fullscreenElement == container) doc.exitFullscreen();
@@ -175,7 +176,7 @@ function prepareFullscreenIframes() {
     };
 
     // handle fullscreen change: adjust button icon
-    div.onfullscreenchange = function () {
+    div.onfullscreenchange = function() {
       var doc = window.document;
       this.btn.innerHTML =
         doc.fullscreenElement == this
@@ -194,7 +195,7 @@ function prepareCodeHighlighting() {
       // ...copy them from <pre> to <code>
       code.setAttribute(
         "data-line-numbers",
-        pre.getAttribute("data-line-numbers")
+        pre.getAttribute("data-line-numbers"),
       );
     }
     // otherwise, if we specified .line-numbers...
@@ -276,7 +277,7 @@ function continueWhereYouLeftOff(deck) {
 
   if (localStorage) {
     deck.addEventListener("slidechanged", (event) =>
-      updateProgress(deck, event)
+      updateProgress(deck, event),
     );
     window.addEventListener("beforeunload", () => {
       if (deck.hasPlugin("explain")) {
@@ -391,7 +392,7 @@ function prepareFlashPanel(deck) {
     };
   } else {
     console.error(
-      "Element is missing: getRevealElement (This is seriously wrong)"
+      "Element is missing: getRevealElement (This is seriously wrong)",
     );
     Decker.flash = {
       message: console.log,
@@ -453,8 +454,21 @@ function preparePresenterMode(deck) {
       for (let callback of listeners) {
         callback(presenterMode);
       }
-    })
+    }),
   );
+}
+
+function initSourceMapping() {
+  if (Decker.meta["map-source"].enabled) {
+    let path = Decker.meta["map-source"].path;
+    document.addEventListener("click", async (e) => {
+      let pos = e.target.dataset.pos;
+      if (pos != null && e.getModifierState("Meta")) {
+        await window.Decker.reloadSocket.send(JSON.stringify({ path, pos }));
+      }
+    });
+    console.log("source mapping enabled.");
+  }
 }
 
 const Plugin = {
