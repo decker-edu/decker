@@ -42,6 +42,8 @@ test:
 
 map-source:
   enabled: true
+  neovim: /tmp/deckernvim
+  # vscode: true
 
 no-index:
   - test-no-index

@@ -19,7 +19,7 @@ content in Markdown format into interactive HTML slide decks. A working
 knowledge of the Pandoc dialect of Markdown is very helpful when working with
 Decker.
 
--   [Pandoc User's Guide](https://pandoc.org/MANUAL.html#pandocs-markdown)
+- [Pandoc User's Guide](https://pandoc.org/MANUAL.html#pandocs-markdown)
 
 This document mainly describes additional features and conventions that Decker
 adds to Pandoc's Markdown.
@@ -34,12 +34,38 @@ adds to Pandoc's Markdown.
 
 ## Working on a project
 
+### Source Sync
+
+While working on a deck _source syncing_ may be used to navigate the text editor
+to the source code of any slide element by control clicking `(Ctrl-Left)` on
+that element in the browser.
+
+Enable _source syncing_ with the following meta data value in `decker.yaml`.
+
+```yaml
+map-source:
+  enabled: true
+  neovim: /tmp/deckernvim
+  # vscode: true
+```
+
+Only select one of the `neovim`, `vscode` options.
+
+For _neovim_ the filepath to a unix domain socket must be specified. _Neovim_
+needs to be started on the same socket file. e.g.:
+
+```sh
+nvim --server /tmp/deckernvim
+```
+
+_VSCode_ selects a suitable editor instance automatically.
+
 ## Publishing
 
 Decker can use a locally installed [Rsync](https://rsync.samba.org) to publish
 the entire project to a remote location with the command
 
-``` sh
+```sh
 > decker publish
 ```
 
@@ -48,22 +74,22 @@ The remote location is specified in the meta data variable
 example, to publish the entire project directly into the document directory of a
 remote webserver the `decker.yaml` file would contain:
 
-``` yaml
+```yaml
 publish:
   rsync:
     destination: author@public.server.com:/var/www/html/cg-lectures
 ```
 
 To more precisely control the behaviour of Rsync, a list of options can be
-specified in the variable `publish.rsync.options`. For example, to *mirror* (as
-opposed to *copy* ) the public directory to the destination the setting would
+specified in the variable `publish.rsync.options`. For example, to _mirror_ (as
+opposed to _copy_ ) the public directory to the destination the setting would
 be:
 
-``` yaml
+```yaml
 publish:
   rsync:
     destination: author@public.server.com:/var/www/html/cg-lectures
-    options: 
+    options:
       - --delete
 ```
 
@@ -135,7 +161,7 @@ are automatically available during playback.
 [`whisper.cpp`]() needs to be installed locally and configured accordingly in
 `decker.yaml`. Configuration meta data variables are:
 
-``` yaml
+```yaml
 # whisper.cpp transcription settings
 whisper:
   base-dir: /usr/local/share/whisper.cpp
@@ -165,7 +191,7 @@ Watch changes to source files and rebuild current target if necessary.
 
 Decker needs a lot of resources that are not contained in the decker source
 file. Resource are all local data files that are required for proper operation
-at *decker-run-time* or *deck-presentation-time*. Resources are highly specific
+at _decker-run-time_ or _deck-presentation-time_. Resources are highly specific
 to the decker version that uses them.
 
 In particular these are:
@@ -176,68 +202,68 @@ In particular these are:
 
 ## Resource Packs
 
--   Template, support and example resources are combined into a *resource pack*
+- Template, support and example resources are combined into a _resource pack_
 
--   A resource pack may contain a `default.yaml` file with meta information
-    regarding pack author etc. and default values for decker operation
+- A resource pack may contain a `default.yaml` file with meta information
+  regarding pack author etc. and default values for decker operation
 
--   The data from `default.yaml` is available in the meta data during slide
-    compilation and presentation
+- The data from `default.yaml` is available in the meta data during slide
+  compilation and presentation
 
--   A resource pack packed is the entire contents of the `resource` folder that
-    must be made available during decker-run-time in one of three ways:
+- A resource pack packed is the entire contents of the `resource` folder that
+  must be made available during decker-run-time in one of three ways:
 
-    1.  contained in the decker executable
-    2.  contained in a local directory somewhere within a project
-    3.  contained in a local ZIP archive somewhere within a project
+  1.  contained in the decker executable
+  2.  contained in a local directory somewhere within a project
+  3.  contained in a local ZIP archive somewhere within a project
 
--   Resource packs are located at run-time via their URL, three protocol schemes
-    are supported:
+- Resource packs are located at run-time via their URL, three protocol schemes
+  are supported:
 
-    -   `exe:{name}` the `name` named resource pack that is located in the
-        currently running executable (ie. `exe:tudo`)
-    -   `{path}` the resource pack is located in a directory of the local file
-        system within the project (ie. `resource-packs/tudo-official`)
-    -   `{path}.zip` the resource pack is contained in a local ZIP archive
-        within the project (ie. `resource-packs/tudo-informal`)
+  - `exe:{name}` the `name` named resource pack that is located in the
+    currently running executable (ie. `exe:tudo`)
+  - `{path}` the resource pack is located in a directory of the local file
+    system within the project (ie. `resource-packs/tudo-official`)
+  - `{path}.zip` the resource pack is contained in a local ZIP archive
+    within the project (ie. `resource-packs/tudo-informal`)
 
--   If localization, acquisition, unpacking or caching fails decker terminates
+- If localization, acquisition, unpacking or caching fails decker terminates
 
--   The local cache can be cleared with `decker purge`
+- The local cache can be cleared with `decker purge`
 
--   The URL of the resource pack can be specified at runtime in the global
-    `decker.yaml` metadata file, ie.
+- The URL of the resource pack can be specified at runtime in the global
+  `decker.yaml` metadata file, ie.
 
-    ``` yaml
-    resource-pack: `exe:tudo`
-    ```
+  ```yaml
+  resource-pack: `exe:tudo`
+  ```
 
--   The default resource pack `exe:decker` is always loded first. Resources
-    extracted from the resource pack in `resource-pack` simly overwrite and
-    augment the default resources.
+- The default resource pack `exe:decker` is always loded first. Resources
+  extracted from the resource pack in `resource-pack` simly overwrite and
+  augment the default resources.
 
 ## Versioning
 
--   Resource bundles are always tied to a specific decker version
--   The exact decker version (MAJOR.MINOR.PATCH-LABEL) is always the last
-    component of the resource file name
--   If decker is used with a non-matching resource bundle decker is terminated
-    -   This can be down-graded to a warning with a meta data setting
+- Resource bundles are always tied to a specific decker version
+- The exact decker version (MAJOR.MINOR.PATCH-LABEL) is always the last
+  component of the resource file name
+- If decker is used with a non-matching resource bundle decker is terminated
+  - This can be down-graded to a warning with a meta data setting
 
 # Meta Data
 
 Meta data variables are specified in YAML format and can be defined in four
 different places. In order of increasing precedence these are:
 
--   the `default.yaml` file that is read from the selected resource pack
--   the mandatory `decker.yaml` file that is read from the project's root
-    directory
--   the `-m key=value` options on the `decker` command line
--   additional meta data files specified in the meta data variable `meta-data`
--   the meta data sections of the slide source Markdown file
+- the `default.yaml` file that is read from the selected resource pack
+- the mandatory `decker.yaml` file that is read from the project's root
+  directory
+- the `-m key=value` options on the `decker` command line
+- additional meta data files specified in the meta data variable `meta-data`
+- the meta data sections of the slide source Markdown file
 
 Meta data is hierarchical but most variables are defined at the top level. A
-notable exception are variables that are used to set *local path* values (see
+notable exception are variables that are used to set _local path_ values (see
 [Local paths](#local-paths)) in the slide template (see [Variables for
 Reveal.js](#variables-revealjs)). These path values are located in the
 `template` namespace. For example, the value for the optional title teaser image
@@ -246,14 +272,14 @@ is provided in the variable `template.title-teaser`.
 Inside a YAML file or a YAML section of a file hierarchical meta variable values
 are defined as follows:
 
-``` yaml
+```yaml
 template:
-    title-teaser: /images/teaser.png
+  title-teaser: /images/teaser.png
 ```
 
 On the command line this can be specified as
 
-``` sh
+```sh
 decker -m 'template.title-teaser=/images/teaser.pn'
 ```
 
@@ -262,28 +288,29 @@ decker -m 'template.title-teaser=/images/teaser.pn'
 Paths to local file resources that are referenced by slide sets need to be
 provided in several contexts. For example
 
--   as a URL in an image tag to locate local media files like images or videos
+- as a URL in an image tag to locate local media files like images or videos
 
-    ``` markdown
-    ## A very important image
-    ![](image.png)
-    ```
+  ```markdown
+  ## A very important image
 
--   as the value of meta data variable, for example to provide the location of
-    the bibliography database and the citation style definition
+  ![](image.png)
+  ```
 
-    ``` yaml
-    bibliography: /bib/bibliography.tex
-    csl: /bib/chicago-author-data.csl
-    ```
+- as the value of meta data variable, for example to provide the location of
+  the bibliography database and the citation style definition
+
+  ```yaml
+  bibliography: /bib/bibliography.tex
+  csl: /bib/chicago-author-data.csl
+  ```
 
 In any case, path values for local file resources are interpreted either as
-relative to the defining file, if specified as a *relative path*, or as relative
-to the project root directory, if specified as an *absolute path*.
+relative to the defining file, if specified as a _relative path_, or as relative
+to the project root directory, if specified as an _absolute path_.
 
 Consider the following project layout and file contents
 
-``` txt
+```txt
 project
 ├── images
 │   └── image.png
@@ -293,8 +320,9 @@ project
 
 `slides/slide-deck.md` contains:
 
-``` markdown
+```markdown
 # First slide
+
 ![Project relative path](/images/image.png)
 ![Document relative path](../images/image.png)
 ```
@@ -304,140 +332,140 @@ Both image paths reference the same image file.
 ## Almost all variables
 
 `compiletime-path-variables`
-:   TODO
+: TODO
 
 `css-dark-colors`
-:   TODO
+: TODO
 
 `css-light-colors`
-:   TODO
+: TODO
 
 `css-variables`
-:   TODO
+: TODO
 
 `decker-version`
-:   TODO
+: TODO
 
 `decker.base-dir`
-:   TODO
+: TODO
 
 `decker.base-dir`
-:   TODO
+: TODO
 
 `decker.filter.border`
-:   TODO
+: TODO
 
 `decker.filter.pretty`
-:   TODO
+: TODO
 
 `decker.filter.resources`
-:   TODO
+: TODO
 
 `deckId`
-:   TODO
+: TODO
 
 `draft`
-:   TODO
+: TODO
 
 `exclude-directories`
-:   TODO
+: TODO
 
 `extra-highlight-syntax`
-:   TODO
+: TODO
 
 `feedback.deck-id`
-:   TODO
+: TODO
 
 `highlight-style`
-:   TODO
+: TODO
 
 `mathjax-url`
-:   TODO
+: TODO
 
 `meta-data`
-:   TODO
+: TODO
 
 `no-index`
-:   TODO
+: TODO
 
 `palette.colors.dark`
-:   TODO
+: TODO
 
 `palette.colors.light`
-:   TODO
+: TODO
 
 `palette.contrast`
-:   TODO
+: TODO
 
 `publish.rsync.destination`
-:   TODO
+: TODO
 
 `publish.rsync.options`
-:   TODO
+: TODO
 
 `resource-pack`
-:   TODO
+: TODO
 
 `rsync-destination.host`
-:   TODO
+: TODO
 
 `rsync-destination.path`
-:   TODO
+: TODO
 
 `runtime-path-variables`
-:   TODO
+: TODO
 
 `short-links`
-:   TODO
+: TODO
 
 `static-resource-dirs`
-:   TODO
+: TODO
 
 `static-resources`
-:   TODO
+: TODO
 
 `subtitle`
-:   TODO
+: TODO
 
 `title`
-:   TODO
+: TODO
 
 `watch.exclude`
-:   TODO
+: TODO
 
 `whisper.base-dir`
-:   TODO
+: TODO
 
 `whisper.base-dir`
-:   TODO
+: TODO
 
 `whisper.lang`
-:   TODO
+: TODO
 
 `whisper.model`
-:   TODO
+: TODO
 
 `whisper.options.ffmpeg`
-:   TODO
+: TODO
 
 `write-back.enable`
-:   TODO
+: TODO
 
 `write-back.line-columns`
-:   TODO
+: TODO
 
 `write-back.line-wrap`
-:   TODO
+: TODO
 
 ## Variables that can be defined in `decker.yaml`
 
 `static-resources`
-:   a list of files and directories that are copied to `public` without beeing
-    referenced detectably in a presentation. Mostly used for HTML apps that are
-    run inside of iFrame or `.htpasswd` files.
+: a list of files and directories that are copied to `public` without beeing
+referenced detectably in a presentation. Mostly used for HTML apps that are
+run inside of iFrame or `.htpasswd` files.
 
 `exclude-directories`
-:   a list of project directories that are not searched for `-deck.md` files.
+: a list of project directories that are not searched for `-deck.md` files.
 
 ## Variables that can be defined in the meta data section
 
@@ -449,48 +477,48 @@ Additionally, there are several Decker specific variables that control various
 aspects of the generated slide sets.
 
 `align-global`
-:   default alignment for various slide elements (defaults to `left`)
+: default alignment for various slide elements (defaults to `left`)
 
 `template.base-css` 🚧
-:   the first CSS file that is loaded by the template (defaults to `''`)
+: the first CSS file that is loaded by the template (defaults to `''`)
 
 `template.css` 🚧
-:   a list of CSS files that is loaded after the default CSS files (defaults to
-    `[]`)
+: a list of CSS files that is loaded after the default CSS files (defaults to
+`[]`)
 
 `template.title-header`
-:   a header image for the title slide (defaults to `''`)
+: a header image for the title slide (defaults to `''`)
 
 `template.title-teaser`
-:   an image that is placed below the title line on the title slide (defaults to
-    `''`)
+: an image that is placed below the title line on the title slide (defaults to
+`''`)
 
 `template.affiliation-logo`
-:   an imge that is placed above the affiliation information on the title slide
-    (defaults to `''`)
+: an imge that is placed above the affiliation information on the title slide
+(defaults to `''`)
 
 `template.include-js` 🚧
-:   a list of Javascript files that are included into the slide deck before
-    Reveal.js is initialized (defaults to `[]`)
+: a list of Javascript files that are included into the slide deck before
+Reveal.js is initialized (defaults to `[]`)
 
 `style` 🚧
 
-:   a list of CSS styles that are inserted into the HTML header (defaults to
-    `[]`)
+: a list of CSS styles that are inserted into the HTML header (defaults to
+`[]`)
 
     For example, to set the background color of a all H2 header elements to red
     specify:
 
     ``` yaml
     style:
-      - 'h2 { backgroundColor: #f00; }' 
+      - 'h2 { backgroundColor: #f00; }'
     ```
 
 `checkOverflow`
-:   mark overrflowing slides with a red border (defaults to `false`)
+: mark overrflowing slides with a red border (defaults to `false`)
 
 `vertical-slides`
-:   allow vertical slides (defaults to `true`)
+: allow vertical slides (defaults to `true`)
 
 ### Dictionary
 
@@ -499,9 +527,9 @@ This is a work-in-progress and is currently used for quizzes.
 
 The current default dictionary looks like this:
 
-``` yaml
+```yaml
 dictionary:
-  de: 
+  de:
     quiz:
       solution: Lösung zeigen
       input-placeholder: Eingeben und 'Enter'
@@ -527,7 +555,7 @@ External media files like images or movies can be included in a presentation in
 a variety of ways. The central mechanism is the standard Markdown inline image
 tag as used by Pandoc.
 
-``` markdown
+```markdown
 ![Image caption](/path/to/image.ext){width="100%"}
 ```
 
@@ -535,52 +563,52 @@ Several parameters describing the image can be encoded:
 
 `[Image caption]`
 
-:   If the image caption inside the square brackets `[]` is provided, the image
-    will be set with the caption text right below the image. The caption text
-    may contain further Markdown markup.
+: If the image caption inside the square brackets `[]` is provided, the image
+will be set with the caption text right below the image. The caption text
+may contain further Markdown markup.
 
     A caption can also be specified by beginning the immediately following
     paragraph with the string `Caption:`. The rest of the paragraphs text is
     used as the caption.
 
 `(/path/to/image.ext)`
-:   The image itself is referenced with an URL inside the round brackets `()`. A
-    relativ reference (as described in [RFC
-    3986](https://tools.ietf.org/html/rfc3986#section-4.2)) here is interpreted
-    as a path to a resource in the local file system that is either specified
-    relative to the project's root directory or relative to the file containing
-    the image tag.
+: The image itself is referenced with an URL inside the round brackets `()`. A
+relativ reference (as described in [RFC
+3986](https://tools.ietf.org/html/rfc3986#section-4.2)) here is interpreted
+as a path to a resource in the local file system that is either specified
+relative to the project's root directory or relative to the file containing
+the image tag.
 
 `.ext`
-:   The filename extension determines the media type of the image. Depending on
-    the extension and media type the referenced resource may further be
-    processed by decker to generate the final embedded media element.
+: The filename extension determines the media type of the image. Depending on
+the extension and media type the referenced resource may further be
+processed by decker to generate the final embedded media element.
 
 `{width="100%"}`
-:   The attributes annotation can be used to control various aspects of
-    processing and presentation for the image, for example the width of the
-    image relative to it's surrounding element (see [Local
-    Paths](#local-paths)).
+: The attributes annotation can be used to control various aspects of
+processing and presentation for the image, for example the width of the
+image relative to it's surrounding element (see [Local
+Paths](#local-paths)).
 
 ### Figures and captions
 
 Embedded media will be rendered as a figure with caption if either
 
--   the square brackets of the image tag contain a caption text.
+- the square brackets of the image tag contain a caption text.
 
-    ``` markdown
-    ![This is the caption text.](some/image.png)
-    ```
+  ```markdown
+  ![This is the caption text.](some/image.png)
+  ```
 
--   Or the image tag occurs on an otherwise empty paragraph followed directly by
-    another paragraph that starts with the string `Caption:`. The second
-    paragraph provides the text for the caption.
+- Or the image tag occurs on an otherwise empty paragraph followed directly by
+  another paragraph that starts with the string `Caption:`. The second
+  paragraph provides the text for the caption.
 
-    ``` markdown
-    ![](some/image.png)
+  ```markdown
+  ![](some/image.png)
 
-    Caption: This is the caption text.
-    ```
+  Caption: This is the caption text.
+  ```
 
 ### Images
 
@@ -591,15 +619,17 @@ image tag with a the `code` class or by using a Pandoc code block.
 
 An example for a Javascript including image tag:
 
-``` markdown
-![Some Javascript code](source/code.js){.code .javascript} 
+```markdown
+![Some Javascript code](source/code.js){.code .javascript}
 ```
 
 Standard Pandoc code blocks also work as expected:
 
-```` markdown
-``` javascript
-let lork = () => {"lorgel"};
+````markdown
+```javascript
+let lork = () => {
+  "lorgel";
+};
 ```
 ````
 
@@ -608,14 +638,14 @@ Syntax highlighting is either handled by Pandoc directly or using
 highlighting:
 
 `highlightjs: <theme>`
-:   If a theme is specified like this, highlight.js is used to perform syntax
-    highlighting at load time. The theme `<theme>` is used. Pandoc does not
-    process the contents of the code block.
+: If a theme is specified like this, highlight.js is used to perform syntax
+highlighting at load time. The theme `<theme>` is used. Pandoc does not
+process the contents of the code block.
 
 `highlight-style: <theme>`
-:   If `highlightjs` is not set, Pandoc processes the code block and emits
-    highlighted spans for the content. The theme `<theme>` is used. If `<theme>`
-    is invalid, the `monochrome` theme is used.
+: If `highlightjs` is not set, Pandoc processes the code block and emits
+highlighted spans for the content. The theme `<theme>` is used. If `<theme>`
+is invalid, the `monochrome` theme is used.
 
 ### Pdfs
 
@@ -648,15 +678,15 @@ extending the information in the deck.
 To enable this feature a deck must specify the URL of a Decker Engine server in
 the meta data by setting the variable `decker-engine.base-url`. For example:
 
-``` yaml
+```yaml
 feedback:
-  base-url: 'https://tramberend.bht-berlin.de/decker'
+  base-url: "https://tramberend.bht-berlin.de/decker"
 ```
 
 ### Endpoints with authorization
 
 There are two modes of operation depending on the deployment details of the
-server, *authorized* and *public*.
+server, _authorized_ and _public_.
 
 If the server is running behind a proxy with Basic Authentication enabled,
 questions can only be added if the user has been authenticated by the proxy.
@@ -665,9 +695,9 @@ necessary.
 
 The `de-api` endpoint works that way:
 
-``` yaml
+```yaml
 feedback:
-  base-url: 'https://tramberend.bht-berlin.de/de-api'
+  base-url: "https://tramberend.bht-berlin.de/de-api"
 ```
 
 ### Public endpoints
@@ -680,9 +710,9 @@ password.
 
 The `decker` endpoint works that way:
 
-``` yaml
+```yaml
 feedback:
-  base-url: 'https://tramberend.bht-berlin.de/decker'
+  base-url: "https://tramberend.bht-berlin.de/decker"
 ```
 
 ### Admistrators
@@ -698,9 +728,9 @@ served locally, for example from
 is supposed to show the questions on the published version. For this situation
 the public URL of a deck can be set in the meta data.
 
-``` yaml
+```yaml
 feedback:
-  deck-id: 'https://tramberend.bht-berlin.de/public/decker/test/decks/engine-deck.html'
+  deck-id: "https://tramberend.bht-berlin.de/public/decker/test/decks/engine-deck.html"
 ```
 
 If `decker-engine.deck-id` is specified, it overrides the actual deck URL as far
@@ -718,7 +748,7 @@ For each question type you can use either of the three tags to create quizzes
 
     .quiz-multiple-choice, .quiz-mc, .qmc
 
-    .quiz-insert-choices, .quiz-ic, .qic 
+    .quiz-insert-choices, .quiz-ic, .qic
 
     .quiz-free-text, .quiz-ft, .qft
 
@@ -810,7 +840,7 @@ If only one item/solution is provided it will be rendered as a blank.
 
     - [X] A
       - of course
-    - [ ] B 
+    - [ ] B
       - uhm ...
 
     is the first letter in the ABC. The second one is
@@ -845,8 +875,8 @@ The default style of quizzes includes decorative and interactive features. To
 switch to a plain style, specify in YAML metadata, or use the `.plain` tag in
 the question header.
 
-``` .yaml
-quiz: 
+```.yaml
+quiz:
   style: plain
 ```
 

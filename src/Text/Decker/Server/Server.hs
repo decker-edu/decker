@@ -1,4 +1,13 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Use forM_" #-}
 
 module Text.Decker.Server.Server
   ( reloadClients,
@@ -9,13 +18,13 @@ module Text.Decker.Server.Server
 where
 
 import Control.Concurrent
--- import Data.List
-
 import Control.Concurrent.STM (modifyTVar)
 import Control.Lens
 import Control.Monad
 import Control.Monad.Catch
 import Control.Monad.State
+import Data.Aeson
+import Data.Aeson.TH
 import Data.List (isSuffixOf)
 import Data.Maybe
 import Data.Set qualified as Set
@@ -30,12 +39,15 @@ import Relude
 import System.Directory
 import System.Directory qualified as Dir
 import System.FilePath.Posix
+import System.Process
 import System.Random
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Meta
 import Text.Decker.Project.ActionContext
 import Text.Decker.Resource.Resource
 import Text.Decker.Server.Types
 import Text.Decker.Server.Video
+import Text.Pandoc hiding (lookupMeta)
 import Text.Printf
 import Web.Scotty.Trans as Scotty
 
@@ -84,38 +96,6 @@ aBind (BindFlag _) = True
 aBind _ = False
 
 uploadable = ["-manip.json", "-annot.json", "-times.json", "-transcript.json", "-recording.vtt", "-poll.json"]
-
--- Runs the server. Never returns.
-runHttpServer :: ActionContext -> IO ()
-runHttpServer context = do
-  let meta = context ^. globalMeta
-  let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
-  let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
-  exists <- liftIO $ Dir.doesFileExist indexSource
-  when exists
-    $ putStrLn
-    $ printf "Generated index at: http://%s:%d/index-generated.html" bind port
-  putStrLn $ printf "Index at: http://%s:%d/index.html\n" bind port
-  sources <- liftIO $ deckerResources meta
-  putStrLn $ "Loading resources from: " <> show sources
-  let state = context ^. server
-  let chan = context ^. actionChan
-  let server = Server chan state
-  let opts = Scotty.Options 0 (setPort port $ setHost (fromString bind) defaultSettings)
-  startUpdater state
-  scottyOptsT opts (useState server) $ do
-    Scotty.get "/" $ redirect "/index.html"
-    Scotty.options (regex "^/(.*)$") $ headDirectory publicDir
-    Scotty.get (fromString supportPath) $ serveSupport context
-    Scotty.get (regex "^/recordings/(.*)$") listRecordings
-    Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
-    Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
-    Scotty.put (regex "^/(.*)$") $ uploadResource uploadable
-    middleware $ websocketsOr defaultConnectionOptions $ reloader state
-    middleware $ staticPolicy (noDots >-> addBase publicDir)
-    middleware $ staticPolicy (noDots >-> addBase privateDir)
-
-useState state x = runReaderT x state
 
 --       route
 --         [ ("/reload", runWebSocketsSnap $ reloader state),
@@ -216,10 +196,18 @@ serveResource (Resources decker pack) path = do
       setHeader "Content-Type" $ decodeUtf8 $ defaultMimeLookup (toText path)
       raw $ toLazy content
 
+data Location = Location
+  { path :: FileName,
+    row :: Int,
+    column :: Int
+  }
+
+$(deriveJSON Data.Aeson.defaultOptions ''Location)
+
 -- Accepts a request and adds the connection to the client list. Then reads the
 -- connection forever. Removes the client from the list on disconnect.
-reloader :: TVar ServerState -> PendingConnection -> IO ()
-reloader state pending = do
+reloader :: Meta -> TVar ServerState -> PendingConnection -> IO ()
+reloader meta state pending = do
   connection <- acceptRequest pending
   cid <- randomIO -- Use a random number as client id.
   flip finally (removeClient state cid) $ do
@@ -228,4 +216,52 @@ reloader state pending = do
       $ forever
       $ do
         msg <- receiveData connection :: IO Text
-        putStrLn $ "source map event: " <> toString msg
+        -- putStrLn $ "source map event: " <> toString msg
+        case decode (encodeUtf8 msg) of
+          Just location -> controlRemoteEditor meta location
+          Nothing -> putStrLn $ "cannot source map parse event: " <> toString msg
+
+controlRemoteEditor :: Meta -> Location -> IO ()
+controlRemoteEditor meta (Location path row column) =
+  case lookupMeta "map-source.neovim" meta of
+    Just socket -> do
+      -- putStrLn "calling neovim"
+      callProcess "nvim" ["--server", socket, "--remote", toString path]
+      callProcess "nvim" ["--server", socket, "--remote-expr", "cursor(" <> show row <> "," <> show column <> ")"]
+    Nothing -> case lookupMeta "map-source.vscode" meta of
+      Just True -> do
+        -- putStrLn "calling vscode"
+        callProcess "code" ["--goto", toString path <> ":" <> show row <> ":" <> show column]
+      _otherwise -> return ()
+
+-- Runs the server. Never returns.
+runHttpServer :: ActionContext -> IO ()
+runHttpServer context = do
+  let meta = context ^. globalMeta
+  let PortFlag port = fromMaybe (PortFlag 8888) $ find aPort (context ^. extra)
+  let BindFlag bind = fromMaybe (BindFlag "localhost") $ find aBind (context ^. extra)
+  exists <- liftIO $ Dir.doesFileExist indexSource
+  when exists
+    $ putStrLn
+    $ printf "Generated index at: http://%s:%d/index-generated.html" bind port
+  putStrLn $ printf "Index at: http://%s:%d/index.html\n" bind port
+  sources <- liftIO $ deckerResources meta
+  putStrLn $ "Loading resources from: " <> show sources
+  let state = context ^. server
+  let chan = context ^. actionChan
+  let server = Server chan state
+  let opts = Scotty.Options 0 (setPort port $ setHost (fromString bind) defaultSettings)
+  startUpdater state
+  scottyOptsT opts (useState server) $ do
+    Scotty.get "/" $ redirect "/index.html"
+    Scotty.options (regex "^/(.*)$") $ headDirectory publicDir
+    Scotty.get (fromString supportPath) $ serveSupport context
+    Scotty.get (regex "^/recordings/(.*)$") listRecordings
+    Scotty.put (regex "^/replace/(.*)$") $ uploadRecording False
+    Scotty.put (regex "^/append/(.*)$") $ uploadRecording True
+    Scotty.put (regex "^/(.*)$") $ uploadResource uploadable
+    middleware $ websocketsOr defaultConnectionOptions $ reloader meta state
+    middleware $ staticPolicy (noDots >-> addBase publicDir)
+    middleware $ staticPolicy (noDots >-> addBase privateDir)
+
+useState state x = runReaderT x state

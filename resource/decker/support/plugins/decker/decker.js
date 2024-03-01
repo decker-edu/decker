@@ -458,16 +458,35 @@ function preparePresenterMode(deck) {
   );
 }
 
+// find `data-pos` attribute of elem or one of it's parents
+function findPosition(elem) {
+  if (!elem) {
+    return null;
+  } else if (!elem.dataset.pos) {
+    return findPosition(elem.parentElement);
+  } else {
+    return elem.dataset.pos;
+  }
+}
+
 function initSourceMapping() {
   if (Decker.meta["map-source"].enabled) {
     let path = Decker.meta["map-source"].path;
     document.addEventListener("click", async (e) => {
-      let pos = e.target.dataset.pos;
-      if (pos != null && e.getModifierState("Meta")) {
-        await window.Decker.reloadSocket.send(JSON.stringify({ path, pos }));
+      if (e.getModifierState("Meta")) {
+        let pos = findPosition(e.target);
+        if (pos) {
+          let [row, column] = pos.split("-")[0].split(":");
+          await window.Decker.reloadSocket.send(
+            JSON.stringify({
+              path,
+              row: parseInt(row),
+              column: parseInt(column),
+            }),
+          );
+        }
       }
     });
-    console.log("source mapping enabled.");
   }
 }
 
