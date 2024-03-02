@@ -22,6 +22,7 @@ import Text.Decker.Filter.Slide (tag)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared ( stringify )
 import Text.Pandoc.Walk ( Walkable(walk) )
+import Text.Pandoc (nullAttr)
 
 -- Pair: consisting of a bucket where items should be dropped; The items which belong to the bucket
 -- Distractor: Just a list of items without accompanying bucket
@@ -320,7 +321,7 @@ renderMatching meta quiz@(MatchItems title tgs qm qs matches) =
     newMeta = setMetaValue "lang" (view lang qm) meta
     (buckets, items) = unzip $ map pairs matches
     pairs :: Match -> (Block, [Block])
-    pairs (Distractor bs) = (Null, map distractor bs)
+    pairs (Distractor bs) = (Div nullAttr [], map distractor bs)
     pairs (Pair i is bs) =
       case bs of
         [[Plain []]] -> (Div ("",["bucket", "distractor"],[("data-bucketId", T.pack $ show i)]) [Plain is], [])
