@@ -60,6 +60,13 @@ nvim --server /tmp/deckernvim
 
 _VSCode_ selects a suitable editor instance automatically.
 
+Note
+: When source syncing is enabled, Decker uses the CommonMark Markdown reader,
+[which does not support
+citations](https://github.com/jgm/pandoc/issues/8452). Therefore, source
+sync should be disabled before publishing a deck. This is a good idea
+anyway, because the HTML is literally littered with `data-pos` attributes.
+
 ## Publishing
 
 Decker can use a locally installed [Rsync](https://rsync.samba.org) to publish
