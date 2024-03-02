@@ -228,6 +228,7 @@ controlRemoteEditor meta (Location path row column) =
       -- putStrLn "calling neovim"
       callProcess "nvim" ["--server", socket, "--remote", toString path]
       callProcess "nvim" ["--server", socket, "--remote-expr", "cursor(" <> show row <> "," <> show column <> ")"]
+      callProcess "nvim" ["--server", socket, "--remote-send", "zz"]
     Nothing -> case lookupMeta "map-source.vscode" meta of
       Just True -> do
         -- putStrLn "calling vscode"
