@@ -11,7 +11,7 @@ let solution;
 
 // polling
 let session;
-let qrcode;
+let qrcode, qrcodeCanvas, qrcodeLink;
 let finalVotes;
 let pollState;
 let myChart;
@@ -24,7 +24,7 @@ const serverUrl =
   Decker.meta.polling?.server ||
   Decker.meta["poll-server"] ||
   "wss://decker.cs.tu-dortmund.de/quizzer/quiz";
-const winnerSelection = Decker.meta.polling?.selection || "FirstVoter";
+const winnerSelection = Decker.meta.polling?.selection || "Random";
 console.log("Polling URL: ", serverUrl);
 console.log("Polling Selection: ", winnerSelection);
 
@@ -94,11 +94,38 @@ function setupGUI() {
 
   qrcode = createElement({
     type: "div",
-    classes: "qrcode container",
+    id: "qrcode-container",
     parent: document.body,
   });
   qrcode.addEventListener("click", () => {
     qrcode.classList.remove("show");
+  });
+
+  qrcodeCanvas = createElement({
+    type: "canvas",
+    id: "qrcode-canvas",
+    parent: qrcode,
+  });
+  qrcodeCanvas.addEventListener("click", (evt) => {
+    qrcodeCanvas.classList.toggle("smaller");
+    evt.stopPropagation();
+  });
+
+  qrcodeLink = createElement({
+    type: "a",
+    id: "qrcode-link",
+    parent: qrcode,
+  });
+
+  const closeButton = createElement({
+    type: "button",
+    id: "close-qr-button",
+    classes: "fa-button fas fa-close",
+    tooltip: "Close QR code",
+    parent: qrcode,
+    onclick: () => {
+      qrcode.classList.toggle("show");
+    },
   });
 }
 
@@ -302,21 +329,29 @@ function prepareQuizzes() {
     .forEach((input) => {
       let li = input.parentElement;
 
-      li.setAttribute("role", "button");
-      li.setAttribute("tabindex", 0);
-      li.classList.add(input.checked ? "right" : "wrong");
+      // active quizzes
+      if (!Decker.meta["disable-quizzes"]) {
+        li.setAttribute("role", "button");
+        li.setAttribute("tabindex", 0);
+        li.classList.add(input.checked ? "right" : "wrong");
 
-      li.onclick = function (e) {
-        this.classList.add("show-answer");
-      };
-
-      li.onkeydown = function (e) {
-        if (e.code == "Space" || e.code == "Enter") {
+        li.onclick = function (e) {
           this.classList.add("show-answer");
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      };
+        };
+
+        li.onkeydown = function (e) {
+          if (e.code == "Space" || e.code == "Enter") {
+            this.classList.add("show-answer");
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        };
+      }
+      // do not activate; instead hide correct/incorrect
+      else {
+        input.removeAttribute("checked");
+        li.classList.remove("task-yes", "task-no");
+      }
     });
 }
 
@@ -390,13 +425,10 @@ async function startPollingSession() {
 
   // create QR code
   let { id, url } = session.sessionId();
-  qrcode.innerHTML = String.raw`
-    <div id="qrcode-container">
-    <canvas id="poll-qrcode-canvas"></canvas>
-    <div><a href="${url}" target="_blank" title="${url}" id="poll-session-id">${url}</a></div>
-    </div>
-  `;
-  session.fillQRCode("poll-qrcode-canvas");
+  qrcodeLink.innerHTML = String.raw`${url}`;
+  qrcodeLink.href = url;
+  qrcodeLink.target = "_blank";
+  session.fillQRCode("qrcode-canvas");
 }
 
 const Plugin = {
@@ -405,7 +437,9 @@ const Plugin = {
     Reveal = deck;
     Reveal.addEventListener("slidechanged", slideChanged);
     setupGUI();
-    prepareQuizzes();
+    if (!Decker.meta["disable-quizzes"]) {
+      prepareQuizzes();
+    }
   },
 };
 

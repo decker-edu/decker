@@ -493,18 +493,18 @@ div.align-right > p {
  **************************************************/
 
 /* code block */
-div.sourceCode > pre.sourceCode {
+.reveal .media .code pre {
   display: block;
   position: relative;
   margin: auto;
   padding: 0.5em 0.75em;
-  /* width: auto; */
-  text-align: center;
+  text-align: left;
   max-height: 500px;
   overflow: auto;
   background: var(--shade1);
   border: 1px solid var(--shade2);
   border-radius: 4px;
+  font-size: 0.5em;
 }
 
 /* inline source code */
@@ -522,7 +522,6 @@ pre > code.sourceCode {
   padding: 0;
   white-space: pre;
   position: relative;
-  font-size: 0.5em;
   overflow: auto;
   max-height: 100%;
   box-sizing: border-box;
@@ -568,7 +567,7 @@ pre.line-numbers code > span > a:first-child::before {
   border: none;
   display: inline-block;
   user-select: none;
-  width: 1.5em;
+  width: 2em;
   margin-right: 1em;
   color: var(--shade3);
 }
@@ -909,6 +908,7 @@ section#title-slide h1 {
   margin: 20px !important;
   box-sizing: border-box;
   line-height: 1.5;
+  text-wrap: balance;
 }
 
 section#title-slide h2 {
@@ -921,9 +921,9 @@ section#title-slide h2 {
   line-height: 1.5;
 }
 
-section#title-slide img.teaser {
+section#title-slide div.teaser img {
   margin: 30px 0 0 0;
-  height: 250px;
+  height: 200px;
   width: auto;
   object-fit: contain;
 }
@@ -935,6 +935,13 @@ section#title-slide div.author {
   font-size: 1em;
   text-align: center;
   color: var(--shade6);
+}
+
+section#title-slide div.author > img {
+  margin: 30px 0 20px 0;
+  height: 150px;
+  width: auto;
+  object-fit: contain;
 }
 
 section#title-slide div.affiliation {
@@ -995,7 +1002,7 @@ section#title-slide .decker-link:hover {
 }
 
 /*********************************************
- * COMMENT BUBBLES
+ * COMMENT BUBBLES & POP-UP
  *********************************************/
 
 .reveal .bubble {
@@ -1006,6 +1013,41 @@ section#title-slide .decker-link:hover {
   padding: 10px;
   margin: 0.1em auto 0.5em auto;
   border-radius: 5px;
+}
+
+[popup] {
+  display: block;
+  position: absolute;
+  box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+  z-index: 3000;
+  background: var(--accent3);
+  color: white;
+  font-size: 1.25em;
+  padding: 0.5em;
+  border-radius: 0.25em;
+  font-weight: bold;
+}
+
+/* A centered block. This is very clever. */
+[popup="center"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+}
+
+/* A centered box that is also tilted up. */
+[popup="center-up"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-23deg) scale(1);
+}
+
+/* A centered box that is also tilted down. */
+[popup="center-down"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(23deg) scale(1);
 }
 
 /*********************************************
@@ -1499,7 +1541,7 @@ section#title-slide .decker-link:hover {
   display: none;
 }
 
-div.qrcode.container {
+#qrcode-container {
   display: none;
   z-index: 4000;
   position: absolute;
@@ -1507,50 +1549,50 @@ div.qrcode.container {
   right: 0;
   bottom: 0;
   top: 0;
+  height: 100%;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(6px);
-}
-
-div.qrcode.container button {
-  position: absolute;
-  right: 1em;
-  top: 1em;
-}
-
-div.qrcode.container.show {
-  display: flex;
-}
-
-div.qrcode.container {
   flex-flow: column nowrap;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  gap: 0.5em;
+}
+#qrcode-container.show {
+  display: flex;
 }
 
-div.qrcode.container canvas {
+#qrcode-canvas {
   height: 66vh;
   min-height: 0;
   aspect-ratio: 1 / 1;
   background-color: white;
   padding: 0.5em;
-  border: 0.01em solid black;
-  border-radius: var(--block-border-radius);
+  border-radius: 0.25em;
+}
+#qrcode-canvas.smaller {
+  height: 33vh;
 }
 
-div.qrcode.container a {
+#qrcode-link {
   display: block;
   font-size: 2rem;
   font-weight: bold;
+  padding: 0.5em;
+  border-radius: 0.25em;
+  background-color: var(--background-color);
 }
 
-#qrcode-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+#close-qr-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 4001;
   background-color: var(--background-color);
-  padding: 1em;
-  border-radius: 0.5em;
+  border-radius: 100%;
+  color: var(--icon-inactive-color);
+}
+#close-qr-button:hover {
+  color: var(--icon-active-color);
 }
 
 /*********************************************
@@ -1579,7 +1621,8 @@ html.dark .light-only {
 html.dark
   .media
   :is(figure, .figure)
-  :is(svg, img, div.chart-container, iframe) {
+  :not(.MathJax)
+  > :is(svg, img, div.chart-container, iframe) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
 }

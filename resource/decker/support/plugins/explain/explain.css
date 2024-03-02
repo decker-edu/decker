@@ -192,11 +192,23 @@ button.caption-button.captioning {
   color: var(--redish);
 }
 
-:is(button.record-button, button.pause-button, button.stop-button, button.mute-button, button.caption-button):hover {
+:is(
+    button.record-button,
+    button.pause-button,
+    button.stop-button,
+    button.mute-button,
+    button.caption-button
+  ):hover {
   color: var(--light-red);
 }
 
-:is(button.record-button, button.pause-button, button.stop-button, button.mute-button, button.caption-button):active {
+:is(
+    button.record-button,
+    button.pause-button,
+    button.stop-button,
+    button.mute-button,
+    button.caption-button
+  ):active {
   color: var(--dark-red);
 }
 
@@ -279,16 +291,29 @@ span.capture-size {
   box-sizing: border-box;
   outline: none;
   object-fit: contain;
+
+  /* make icons of controlbar slightly bigger */
+  font-size: 1em;
 }
 
 .video-js .vjs-current-time {
   display: block !important;
 }
 
-.video-js .vjs-icon-cancel,
-.video-js .vjs-icon-previous-item,
-.video-js .vjs-icon-next-item {
-  font-size: 18px;
+/* fix wrong :before of video.js */
+.vjs-icon-cancel:before,
+.vjs-icon-previous-item:before,
+.vjs-icon-next-item:before {
+  content: none !important;
+}
+.video-js .vjs-icon-cancel .vjs-icon-placeholder:before {
+  content: "\f119";
+}
+.video-js .vjs-icon-previous-item .vjs-icon-placeholder:before {
+  content: "\f124";
+}
+.video-js .vjs-icon-next-item .vjs-icon-placeholder:before {
+  content: "\f123";
 }
 
 .camera-panel {

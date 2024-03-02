@@ -13,7 +13,25 @@
   /* These are just for internal calculations */
   --list-indent: 1.5em;
   --block-border-width: 0em;
+  --block-border-radius: 0em;
   --block-outset: 0.5rem;
+
+  /* Rainbow Accents */
+  --redish: var(--accent0);
+  --orangeish: var(--accent1);
+  --yellowish: var(--accent2);
+  --greenish: var(--accent3);
+  --tealish: var(--accent4);
+  --blueish: var(--accent5);
+  --violetish: var(--accent6);
+  --brownish: var(--accent7);
+
+  /* Semantic Colors */
+  --color-error: var(--redish);
+  --color-alert: var(--orangeish);
+  --color-warn: var(--yellowish);
+  --color-success: var(--greenish);
+  --color-info: var(--tealish);
 
   /* Semantic color defaults from the palette. There is no need to use the
      current palette. Colors can be set arbitrarily. */
@@ -26,6 +44,15 @@
   --icon-inactive-color: var(--shade3);
   --hover-color: var(--accent5-bg);
   --code-background-color: var(--shade1);
+  --highlight-color: var(--accent5-bg);
+  --flying-focus-color: var(--highlight-color);
+
+  --icon-active-color: var(--accent3);
+  --icon-disabled-color: var(--shade2);
+  --icon-inactive-color: var(--shade3);
+  --icon-hover-color: var(--hover-color);
+  --icon-background-color: rgba(0, 0, 0, 0);
+  --icon-border-radius: 0.2em;
 
   --whiteboard-background-color: var(--shade1);
   --whiteboard-border-color: var(--shade2);
@@ -38,13 +65,14 @@
   --whiteboard-pen6: var(---accent6);
   --whiteboard-pen7: var(---accent7);
 
-  --highlight-color: var(--accent5-bg);
-  --flying-focus-color: var(--highlight-color);
-
   --menu-background-color: var(--shade1);
-  --menu-border-color: var(--shade2);
-  --menu-header-background-color: var(--shade2);
-  --menu-header-text-color: var(--shade7);
+  --menu-text-color: var(--shade6);
+  --menu-header-background-color: var(--shade5);
+  --menu-header-text-color: var(--shade1);
+  --menu-border-color: var(--shade3);
+
+  --common-menu-header-height: 3rem;
+  --common-menu-header-padding: 0.5rem;
 
   --feedback-element-border-radius: 0.2em;
   --feedback-input-background-color: var(--shade0);
@@ -54,4 +82,10 @@
   --feedback-list-text-color: var(--shade7);
   --feedback-footer-background-color: var(--shade2);
   --feedback-footer-text-color: var(--shade7);
+
+  /* quizzes */
+  --green-background-color: var(--accent3-bbg);
+  --green-border-color: var(--accent3);
+  --red-background-color: var(--accent0-bbg);
+  --red-border-color: var(--accent0);
 }

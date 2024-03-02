@@ -2,6 +2,25 @@
 
 ## decker 0.14.0
 
+-   Decker slides can now be installed as progressive web apps (PWAs). We don't
+    cache the content locally, so consumers of published slides still need
+    internet connection. But the PWA mechanism allows to add slides to the
+    home-screen (for iOS) or as an app shortcut (Chrome, Safari).
+
+-   The whiteboard can now be configured to automatically switch on (when a
+    pen-hover is detected) and off (two seconds after pen-up event). While it is
+    convenient not having to toggle the whiteboard manually, it also means that
+    one cannot use a pen to interact with elements on the slide. By default this
+    feature is disabled. To enable, use this setting:
+
+    ``` yaml
+    whiteboard:
+      autotoggle: true
+    ```
+
+-   Remove inert polyfill, since the inert feature is now supported in
+    up-to-date browsers.
+
 -   `column-1-2-3` DIV style columns are now detected recursively.
 
 -   Files can be excluded from file watching using glob patterns:
@@ -15,21 +34,24 @@
 
 -   The new command `decker transcribe` transcribes all recorded videos to
     `.vtt` files that are available with the integrated video player. The
-    recorded language must be configured explicitly, default is German:
+    recorded language must be configured explicitly, default is German. By
+    default, both German and English subtitles will be generated. In order to
+    use this, install [whisper.cpp](https://github.com/ggerganov/whisper.cpp).
+    Those are the configuration options.
 
     ``` yaml
     # whisper.cpp default transcription settings
     whisper:
       base-dir: /usr/local/share/whisper.cpp
       model: models/ggml-large.bin
-      # the recorded language (ie. "de" or "en")
+      # the recorded language (e.g., "de" or "en")
       lang: de 
     ```
 
 -   Move `rsync` configuration entirely to `decker.yaml`.
 
     This will certainly break projects that define their own rsync options. They
-    will have to add the moved rsync options:
+    will have to add the removed options to their local rsync options list:
 
     ``` yaml
     publish:
@@ -63,10 +85,14 @@
 
 -   The use of `highlight.js` for code syntax highlighting is no longer
     supported. Use Pandoc highlighting by setting `highlight-style:` to
-    something.
+    something. To see supported highlight styles do
 
--   3D *glTF* files (https://www.khronos.org/gltf/) with can now be embedded
-    using Googles *model-viewer* (https://modelviewer.dev/):
+    ``` sh
+    pandoc --list-highlight-styles
+    ```
+
+-   3D *glTF* files (https://www.khronos.org/gltf/) can now be embedded using
+    Googles *model-viewer* (https://modelviewer.dev/):
 
     ``` md
     ![Expressive Robot (with autoplay)](assets/robot.glb){autoplay=1}
@@ -80,16 +106,16 @@
     variable `static-resources`. Directories are traversed recursively, adding
     all contained files to the list.
 
--   Poll results can now be saved if running off a local Decker server
-    (`decker -S`). They are stored in `*-poll.json` files alongside the
-    presentation sources. Enable with:
+-   *Examiner* style poll (the ones loaded from YAML files) results can now be
+    saved if running off a local Decker server (`decker -S`). They are stored in
+    `*-poll.json` files alongside the presentation sources. Enable with:
 
     ``` yaml
     save-polls: true
     ```
 
 -   Always generate an index document. If a custom `index.md` is present, the
-    generated index is stored as `genrated-index.html` alongside the custom
+    generated index is stored as `generated-index.html` alongside the custom
     `index.html`.
 
 ## decker 0.13.0

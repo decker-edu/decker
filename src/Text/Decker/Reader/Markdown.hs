@@ -59,7 +59,6 @@ readAndFilterMarkdownFile disp globalMeta path = do
     >>= runNewFilter disp examinerFilter docBase
     >>= deckerMediaFilter disp docBase
     >>= processPandoc (deckerPipeline disp) docBase disp
-
 -- >>= runDynamicFilters After docBase
 
 processMeta (Pandoc meta blocks) = do

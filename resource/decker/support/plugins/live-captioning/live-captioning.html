@@ -80,7 +80,7 @@
           indicator.classList.remove("inactive");
         } else if (data.type === "final") {
           if (!currentSpan) createSpan();
-          currentSpan.textContent = data.text;
+          currentSpan.textContent = data.text + " ";
           currentSpan.classList.remove("current");
           currentSpan = undefined;
           indicator.classList.remove("inactive");

@@ -68,6 +68,11 @@ menu:
 lang: de
 title: <Undefined>
 
+whisper:
+  base-dir: /usr/local/share/whisper.cpp
+  model: models/ggml-large.bin
+  lang: de 
+
 # progress bar on index page
 # progress:
 # selector: "a[href$='-deck.html']"

@@ -29,15 +29,12 @@ resource-zip:
 
 install: clean-build
 	mkdir -p "$(local-bin-path)"
-	cp "$(executable)" "$(local-bin-path)/$(decker-name)"
-	ln -sf "$(decker-name)" "$(local-bin-path)/$(base-name)"
-	ln -sf "$(decker-name)" "$(local-bin-path)/$(base-name)-$(version)"
+	rm -f "$(local-bin-path)/$(base-name)" 
+	cp "$(executable)" "$(local-bin-path)/$(base-name)"
 
 unclean-install: build
 	mkdir -p "$(local-bin-path)"
-	cp "$(executable)" "$(local-bin-path)/$(decker-name)"
-	ln -sf "$(decker-name)" "$(local-bin-path)/$(base-name)"
-	ln -sf "$(decker-name)" "$(local-bin-path)/$(base-name)-$(version)"
+	cp "$(executable)" "$(local-bin-path)/$(base-name)"
 
 install-link: build
 	mkdir -p "$(local-bin-path)"

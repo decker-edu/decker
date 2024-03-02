@@ -191,7 +191,7 @@ sourceRegexes :: [String] =
     "\\`(^_).*\\.scss\\'"
   ]
 
-alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode"]
+alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode", ".decker"]
 
 questSuffix = "-quest.yaml"
 
@@ -214,7 +214,7 @@ staticResources meta =
 unusedResources :: Meta -> IO [FilePath]
 unusedResources meta = do
   srcs <- Set.fromList <$> fastGlobFiles (excludeDirs meta) [] projectDir
-  live <- Set.fromList <$> String.lines . decodeUtf8 <$> readFileBS liveFile
+  live <- Set.fromList . String.lines . decodeUtf8 <$> readFileBS liveFile
   return $ Set.toList $ Set.difference srcs live
 
 scanTargetsToFile :: (MonadIO m, Partial) => Meta -> FilePath -> m ()

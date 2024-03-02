@@ -128,6 +128,9 @@ over all slides inside a Decker project.
 This may well be a little time consuming, so it ist best called only right
 before `decker publish`.
 
+Decks that have set `draft: true` or whose (feedback) deck ids are in the global
+`no-index:` list are removed from the search index.
+
 # Commands
 
 Commands do not engage the global dependency checking and will not trigger

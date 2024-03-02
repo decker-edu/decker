@@ -36,15 +36,16 @@ import Relude hiding (state)
 import System.Console.GetOpt qualified as GetOpt
 import System.Directory as Dir
 import System.FSNotify qualified as Notify
+import System.FilePath.Glob
 import System.FilePath.Posix
 import System.Info
 import System.Process hiding (runCommand)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Crunch
-import Text.Decker.Internal.Transcribe
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
+import Text.Decker.Internal.Transcribe
 import Text.Decker.Project.ActionContext
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
@@ -53,7 +54,6 @@ import Text.Decker.Server.Server
 import Text.Decker.Server.Types
 import Text.Decker.Server.Video
 import Text.Pandoc hiding (Verbosity)
-import System.FilePath.Glob
 
 runDecker :: Rules () -> IO ()
 runDecker rules = do
@@ -96,12 +96,12 @@ runTargets context targets rules = do
   runShake context rules
 
   if
-      | ServerFlag `elem` flags -> do
-          forkServer context
-          watchAndRunForever
-      | WatchFlag `elem` flags -> do
-          watchAndRunForever
-      | otherwise -> return ()
+    | ServerFlag `elem` flags -> do
+        forkServer context
+        watchAndRunForever
+    | WatchFlag `elem` flags -> do
+        watchAndRunForever
+    | otherwise -> return ()
   where
     watchAndRunForever = do
       Notify.withManager $ \manager -> do
@@ -129,10 +129,11 @@ runShakeForever last context rules = do
   dod <- debouncedMessage last
   case dod of
     FileChanged time path -> do
-      unless (NoRebuildFlag `elem` flags) $
-        catchAll
+      unless (NoRebuildFlag `elem` flags)
+        $ catchAll
           (runShake context rules)
           (\(SomeException _) -> return ())
+      putStrLn $ "# Server: Reload because of: " <> path
       reloadClients (context ^. server)
     UploadComplete operation -> do
       let transcode = PoserFlag `elem` (context ^. extra)
@@ -174,13 +175,14 @@ startWatcher manager context = do
   let excludeDirs' = excludeDirs meta
   inDir <- makeAbsolute projectDir
   options <- deckerShakeOptions context
-  void $
-    Notify.watchTree manager inDir (filter inDir excludeDirs' excludeGlob') $ \event ->
+  void
+    $ Notify.watchTree manager inDir (filter inDir excludeDirs' excludeGlob')
+    $ \event ->
       atomically $ writeTChan (context ^. actionChan) (FileChanged (Notify.eventTime event) (show event))
   where
     filter base dirs globs event =
       let path = makeRelative base (Notify.eventPath event)
-      in not (any (`isPrefixOf` path) dirs || any (`match` path) globs)
+       in not (any (`isPrefixOf` path) dirs || any (`match` path) globs)
 
 forkServer :: ActionContext -> IO ThreadId
 forkServer context = do
@@ -350,8 +352,8 @@ deckerShakeOptions :: ActionContext -> IO ShakeOptions
 deckerShakeOptions ctx = do
   let single = ThreadFlag `elem` (ctx ^. extra)
   let toStderr = ErrorFlag `elem` (ctx ^. extra)
-  return $
-    shakeOptions
+  return
+    $ shakeOptions
       { shakeFiles = transientDir,
         shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
         shakeThreads = if single then 1 else 0,
@@ -383,11 +385,11 @@ currentlyServedPages = do
 openBrowser :: String -> IO ()
 openBrowser url =
   if
-      | any (`List.isInfixOf` os) ["linux", "bsd"] ->
-          liftIO $ callProcess "xdg-open" [url]
-      | "darwin" `List.isInfixOf` os -> liftIO $ callProcess "open" [url]
-      | otherwise ->
-          putStrLn $ "Unable to open browser on this platform for url: " ++ url
+    | any (`List.isInfixOf` os) ["linux", "bsd"] ->
+        liftIO $ callProcess "xdg-open" [url]
+    | "darwin" `List.isInfixOf` os -> liftIO $ callProcess "open" [url]
+    | otherwise ->
+        putStrLn $ "Unable to open browser on this platform for url: " ++ url
 
 calcSource :: String -> String -> FilePath -> Action FilePath
 calcSource targetSuffix srcSuffix target = do
@@ -414,8 +416,8 @@ runClean totally = do
   tryRemoveDirectory publicDir
   putStrLn $ "# Removing " <> privateDir
   tryRemoveDirectory privateDir
-  when totally $
-    do
+  when totally
+    $ do
       putStrLn $ "# Removing " ++ transientDir
       tryRemoveDirectory transientDir
 

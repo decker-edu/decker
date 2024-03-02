@@ -8,6 +8,12 @@
         $endif$
       </header>
 
+      $if(teaser)$
+      <div class="teaser">
+        $teaser:image-template.html()$
+      </div>
+      $endif$
+
       $if(authors)$
       <div class="authors">
         $for(authors)$
@@ -16,10 +22,6 @@
       </div>
       $endif$
       
-      $if(copyright)$
-      $copyright:copyright-template.html()$
-      $endif$
-
       $if(author)$
       $author:author-template.html()$
       $endif$
@@ -32,10 +34,8 @@
         <div class="date">$date$</div>
       $endif$
 
-      $if(teaser)$
-      <div class="teaser">
-        $teaser:image-template.html()$
-      </div>
+      $if(copyright)$
+      $copyright:copyright-template.html()$
       $endif$
 
       <div class="logos">
@@ -53,7 +53,7 @@
         $endif$
         </div>
       $if(showDeckerLink)$
-      <a class="decker-link" href="https://decker-edu.github.io/decker/">🚀 by Decker</a>
+      <a class="decker-link" href="https://github.com/decker-edu/decker/">🚀 by Decker</a>
       $endif$
     </div>
   </div>

@@ -17,7 +17,7 @@ Set-Location $third
 # Copy mathjax
 New-Item -Path "$support\mathjax\input" -Force -ItemType "directory"
 New-Item -Path "$support\mathjax\output" -Force -ItemType "directory"
-Foreach ($i in ("tex-svg.js", "input\tex", "input\tex.js". "output\svg", "output\svg.js", "ui")) {
+Foreach ($i in ("tex-svg.js", "input\tex", "input\tex.js", "input\mml.js", "output\svg", "output\svg.js", "ui", "a11y", "sre")) {
   Copy-Item -Recurse "$third\MathJax\es5\$i" "$support\mathjax\$i" -Force
 }
 
