@@ -129,6 +129,10 @@ footer {
   margin: 2rem 0 0 0;
 }
 
+footer div {
+  display: inline-block;
+}
+
 footer p {
   padding: 0.5em;
   margin: 0;
