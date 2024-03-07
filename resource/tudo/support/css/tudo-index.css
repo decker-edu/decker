@@ -65,6 +65,7 @@ header nav {
 h1 {
   font-size: 1.5rem;
   margin-top: 2em;
+  margin-bottom: 0.5em;
 }
 
 h2 {
@@ -126,6 +127,10 @@ footer {
   font-style: italic;
   font-size: 1rem;
   margin: 2rem 0 0 0;
+}
+
+footer div {
+  display: inline-block;
 }
 
 footer p {
@@ -214,7 +219,7 @@ details input {
  * TABLES
  *********************************************/
 
-table {
+body.index table {
   display: table;
   /* width: fit-content; */
   width: 100%;
@@ -228,7 +233,7 @@ table {
   line-height: 1.5em;
 }
 
-table caption {
+body.index table caption {
   margin: 10px 0px 0px 0px;
   line-height: 1.2;
   font-style: italic;
@@ -237,32 +242,32 @@ table caption {
   caption-side: bottom;
 }
 
-table th {
+body.index table th {
   font-weight: bold;
 }
 
-table th {
+body.index table th {
   border-bottom: 1px solid;
 }
 
-table th,
-table td {
+body.index table th,
+body.index table td {
   text-align: left;
   padding: 0.2em 1em 0.2em 1em;
 }
 
-table th[align="center"],
-table td[align="center"] {
+body.index table th[align="center"],
+body.index table td[align="center"] {
   text-align: center;
 }
 
-table th[align="right"],
-table td[align="right"] {
+body.index table th[align="right"],
+body.index table td[align="right"] {
   text-align: right;
 }
 
-table tbody tr:last-child th,
-table tbody tr:last-child td {
+body.index table tbody tr:last-child th,
+body.index table tbody tr:last-child td {
   border-bottom: none;
 }
 

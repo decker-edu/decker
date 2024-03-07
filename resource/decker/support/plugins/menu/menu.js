@@ -12,7 +12,6 @@ import * as colorScheme from "../../js/color-scheme.js";
 
 class SlideMenu {
   reveal;
-  config;
   open_button;
   position;
   menu;

@@ -125,9 +125,18 @@ $body$
 
     <!-- footer with author information -->
     <footer>
-      <p class="author">
-        $if(copyright)$$copyright$$endif$ $if(author)$$author$$endif$$if(affiliation)$, $affiliation$$endif$$if(date)$, $date$$endif$
-      </p>
+      $if(copyright)$
+        $copyright:copyright-template.html()$
+      $endif$
+      $if(author)$
+        $author:author-template.html()$
+      $endif$
+      $if(affiliation)$
+        $affiliation:affiliation-template.html()$
+      $endif$
+      $if(date)$
+        <div class="date"> $date$ </div>
+      $endif$
     </footer>
   </body>
 
