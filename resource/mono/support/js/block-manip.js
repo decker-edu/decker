@@ -96,7 +96,7 @@ function enableBlockManip() {
   slides.manipulateSlide = Reveal.getCurrentSlide();
 
   Reveal.on("slidechanged", disableBlockManip);
-  Reveal.configure({ hideInactiveCursor: false });
+  // Reveal.configure({ hideInactiveCursor: false });
 
   let blocks = Array.from(slides.manipulateSlide.querySelectorAll("div.block"));
   let title = Array.from(slides.manipulateSlide.querySelectorAll("h1"));
@@ -151,7 +151,7 @@ function enableBlockManip() {
 
 function disableBlockManip() {
   Reveal.off("slidechanged", disableBlockManip);
-  Reveal.configure({ hideInactiveCursor: true });
+  // Reveal.configure({ hideInactiveCursor: true });
 
   let overlays = slides.manipulateSlide.querySelectorAll("div.block-overlay");
   for (const o of overlays) o.remove();
@@ -204,6 +204,7 @@ async function downloadManipulations() {
         "reason:",
         e,
       );
+      return;
     });
 
   let slideTransform = slides.computedStyleMap().get("transform");

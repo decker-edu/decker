@@ -1002,7 +1002,7 @@ section#title-slide .decker-link:hover {
 }
 
 /*********************************************
- * COMMENT BUBBLES
+ * COMMENT BUBBLES & POP-UP
  *********************************************/
 
 .reveal .bubble {
@@ -1013,6 +1013,41 @@ section#title-slide .decker-link:hover {
   padding: 10px;
   margin: 0.1em auto 0.5em auto;
   border-radius: 5px;
+}
+
+[popup] {
+  display: block;
+  position: absolute;
+  box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.4);
+  z-index: 3000;
+  background: var(--accent3);
+  color: white;
+  font-size: 1.25em;
+  padding: 0.5em;
+  border-radius: 0.25em;
+  font-weight: bold;
+}
+
+/* A centered block. This is very clever. */
+[popup="center"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+}
+
+/* A centered box that is also tilted up. */
+[popup="center-up"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-23deg) scale(1);
+}
+
+/* A centered box that is also tilted down. */
+[popup="center-down"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(23deg) scale(1);
 }
 
 /*********************************************
@@ -1586,7 +1621,8 @@ html.dark .light-only {
 html.dark
   .media
   :is(figure, .figure)
-  :is(svg, img, div.chart-container, iframe) {
+  :not(.MathJax)
+  > :is(svg, img, div.chart-container, iframe) {
   background-color: white;
   filter: brightness(90%) contrast(90%);
 }

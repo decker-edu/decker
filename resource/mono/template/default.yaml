@@ -4,13 +4,6 @@ poll-server: wss://tramberend.bht-berlin.de/quizzer/quiz
 # poll-server: ws://localhost:3003/quiz
 save-polls: true
 
-# Use CSS augmentation without changes to the default template
-template:
-  css:
-    - support/css/mono.css
-  js:
-    - support/js/mono.js
-
 palette:
   colors:
     light: # OKSolar (https://meat.io/oksolar)
@@ -59,9 +52,9 @@ reveal:
   hash: true
   height: 1080
   help: true
-  hideInactiveCursor: false
-  # hideCursorTime: 2000
-  # hideInactiveCursor: true
+  # hideInactiveCursor: false
+  hideCursorTime: 2000
+  hideInactiveCursor: true
   history: false
   keyboard: true
   margin: 0.05
