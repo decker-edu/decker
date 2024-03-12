@@ -152,9 +152,10 @@ div.block {
 }
 
 /* No bottom margin for last elements in a stack. */
+/* FIXME: This is breaking columns-x-y environments as the last div has a different margin
 :is(h1, p, div, ul, ol, table):last-child {
   margin-bottom: 0 !important;
-}
+} */
 
 /* Align headers with blocks. */
 section h1 {
@@ -182,7 +183,190 @@ div.block h2 {
   border-radius: var(--block-border-radius) var(--block-border-radius) 0 0;
 }
 
-/* Highlight colors and borders. We need three colors for each highlight state:
+/* Text and Fenced Div Styling */
+
+/* Text Color Shades */
+.text-shade0 {
+  color: var(--shade0);
+}
+.text-shade1 {
+  color: var(--shade1);
+}
+.text-shade2 {
+  color: var(--shade2);
+}
+.text-shade3 {
+  color: var(--shade3);
+}
+.text-shade4 {
+  color: var(--shade4);
+}
+.text-shade5 {
+  color: var(--shade5);
+}
+.text-shade6 {
+  color: var(--shade6);
+}
+.text-shade7 {
+  color: var(--shade7);
+}
+
+/* Background Colors Shades */
+.bg-shade0 {
+  background-color: var(--shade0);
+}
+.bg-shade1 {
+  background-color: var(--shade1);
+}
+.bg-shade2 {
+  background-color: var(--shade2);
+}
+.bg-shade3 {
+  background-color: var(--shade3);
+}
+.bg-shade4 {
+  background-color: var(--shade4);
+}
+.bg-shade5 {
+  background-color: var(--shade5);
+}
+.bg-shade6 {
+  background-color: var(--shade6);
+}
+.bg-shade7 {
+  background-color: var(--shade7);
+}
+
+/* Text Colors Accents */
+.text-accent0 {
+  color: var(--accent0);
+}
+.text-accent1 {
+  color: var(--accent1);
+}
+.text-accent2 {
+  color: var(--accent2);
+}
+.text-accent3 {
+  color: var(--accent3);
+}
+.text-accent4 {
+  color: var(--accent4);
+}
+.text-accent5 {
+  color: var(--accent5);
+}
+.text-accent6 {
+  color: var(--accent6);
+}
+.text-accent7 {
+  color: var(--accent7);
+}
+
+.text-accent0-bg {
+  color: var(--accent0-bg);
+}
+.text-accent1-bg {
+  color: var(--accent1-bg);
+}
+.text-accent2-bg {
+  color: var(--accent2-bg);
+}
+.text-accent3-bg {
+  color: var(--accent3-bg);
+}
+.text-accent4-bg {
+  color: var(--accent4-bg);
+}
+.text-accent5-bg {
+  color: var(--accent5-bg);
+}
+.text-accent6-bg {
+  color: var(--accent6-bg);
+}
+.text-accent7-bg {
+  color: var(--accent7-bg);
+}
+
+.text-accent0-fg {
+  color: var(--accent0-fg);
+}
+.text-accent1-fg {
+  color: var(--accent1-fg);
+}
+.text-accent2-fg {
+  color: var(--accent2-fg);
+}
+.text-accent3-fg {
+  color: var(--accent3-fg);
+}
+.text-accent4-fg {
+  color: var(--accent4-fg);
+}
+.text-accent5-fg {
+  color: var(--accent5-fg);
+}
+.text-accent6-fg {
+  color: var(--accent6-fg);
+}
+.text-accent7-fg {
+  color: var(--accent7-fg);
+}
+
+:is(.box-accent0, .box-accent1, .box-accent2, .box-accent3, .box-accent4, .box-accent5, .box-accent6, .box-accent7) {
+  background-color: var(--shade2);
+  padding: 0.5rem 1rem;
+  border: none;
+  border-left: 0.25rem solid var(--foreground-color);
+  margin-left: -0.25rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.box-accent0 {
+  background-color: var(--accent0-bg);
+  border-color: var(--accent0);
+}
+
+.box-accent1 {
+  background-color: var(--accent1-bg);
+  border-color: var(--accent1);
+}
+
+.box-accent2 {
+  background-color: var(--accent2-bg);
+  border-color: var(--accent2);
+}
+
+.box-accent3 {
+  background-color: var(--accent3-bg);
+  border-color: var(--accent3);
+}
+
+.box-accent4 {
+  background-color: var(--accent4-bg);
+  border-color: var(--accent4);
+}
+
+.box-accent5 {
+  background-color: var(--accent5-bg);
+  border-color: var(--accent5);
+}
+
+.box-accent6 {
+  background-color: var(--accent6-bg);
+  border-color: var(--accent6);
+}
+
+.box-accent7 {
+  background-color: var(--accent7-bg);
+  border-color: var(--accent7);
+}
+
+
+/* 
+Monofon column blocks coloring
+Highlight colors and borders. We need three colors for each highlight state:
 text, background and border. */
 div.block.accent0 {
   background-color: var(--accent0-bbg);
