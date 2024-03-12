@@ -25,15 +25,9 @@ class SlideMenu {
       home_button: undefined,
       search_button: undefined,
       pdf_button: undefined,
-      settings_button: undefined,
+      color_button: undefined,
       close_button: undefined,
       slide_list: undefined,
-    };
-    this.settings = {
-      container: undefined,
-      fragments_toggle: undefined,
-      annotations_toggle: undefined,
-      color_choice: undefined,
     };
     this.views = {
       container: undefined,
@@ -126,7 +120,6 @@ class SlideMenu {
    */
   closeMenu(event) {
     if (!this.inert) {
-      this.closeSettings();
       this.closeViews();
       this.inert = true;
       this.reveal.getRevealElement().inert = false;
@@ -138,43 +131,6 @@ class SlideMenu {
     }
   }
 
-  toggleSettings() {
-    if (this.settings.container.inert) {
-      this.openSettings();
-    } else {
-      this.closeSettings();
-    }
-  }
-
-  openSettings() {
-    if (!this.views.inert) {
-      this.closeViews();
-    }
-    this.settings.container.inert = false;
-    this.menu.slide_list.inert = true;
-    this.menu.settings_button.setAttribute(
-      "title",
-      this.localization.close_settings_label
-    );
-    this.menu.settings_button.setAttribute(
-      "aria-label",
-      this.localization.close_settings_label
-    );
-  }
-
-  closeSettings() {
-    this.settings.container.inert = true;
-    this.menu.slide_list.inert = false;
-    this.menu.settings_button.setAttribute(
-      "title",
-      this.localization.open_settings_label
-    );
-    this.menu.settings_button.setAttribute(
-      "aria-label",
-      this.localization.open_settings_label
-    );
-  }
-
   toggleViews() {
     if (this.views.container.inert) {
       this.openViews();
@@ -184,9 +140,6 @@ class SlideMenu {
   }
 
   openViews() {
-    if (!this.settings.inert) {
-      this.closeSettings();
-    }
     this.views.container.inert = false;
     this.menu.slide_list.inert = true;
     this.menu.views_button.setAttribute(
@@ -260,21 +213,6 @@ class SlideMenu {
 
   enableKeybinds() {
     this.reveal.configure({ keyboard: true });
-  }
-
-  /**
-   * Enables or disables the fragmentation of slides.
-   */
-  toggleFragments() {
-    let animations = this.reveal.getConfig().fragments;
-    this.reveal.configure({ fragments: !animations });
-    if (!animations) {
-      this.settings.fragments_toggle.checked = true;
-      this.settings.fragments_toggle.setAttribute("aria-checked", "true");
-    } else {
-      this.settings.fragments_toggle.checked = false;
-      this.settings.fragments_toggle.setAttribute("aria-checked", "false");
-    }
   }
 
   /**
@@ -525,7 +463,7 @@ class SlideMenu {
           </button>
           <button id="decker-menu-views-button" class="fa-button fas fa-window-maximize" title="${this.localization.open_views_label}" aria-label="${this.localization.open_views_label}">
           </button>
-          <button id="decker-menu-settings-button" class="fa-button fas fa-cog" title="${this.localization.open_settings_label}" aria-label="${this.localization.open_settings_label}">
+          <button id="decker-menu-color-button" class="fa-button fas" title="${this.localization.toggle_colors_label}" aria-label="${this.localization.toggle_colors_label}">
           </button>
         </div>
       </div>
@@ -543,8 +481,8 @@ class SlideMenu {
     this.menu.views_button = container.querySelector(
       "#decker-menu-views-button"
     );
-    this.menu.settings_button = container.querySelector(
-      "#decker-menu-settings-button"
+    this.menu.color_button = container.querySelector(
+      "#decker-menu-color-button"
     );
     this.menu.close_button = container.querySelector(
       "#decker-menu-close-button"
@@ -563,15 +501,14 @@ class SlideMenu {
     this.menu.views_button.addEventListener("click", (event) => {
       this.toggleViews(event);
     });
-    this.menu.settings_button.addEventListener("click", (event) =>
-      this.toggleSettings()
+    this.menu.color_button.addEventListener("click", (event) =>
+      colorScheme.toggleColor()
     );
     this.menu.close_button.addEventListener("click", (event) =>
       this.closeMenu(event)
     );
 
     this.initializeSlideList();
-    this.initializeSettingsMenu();
     this.initializeViewMenu();
     this.menu.container.addEventListener("keydown", (event) =>
       this.traverseList(event)
@@ -599,7 +536,7 @@ class SlideMenu {
     );
     if (menuHeaderButtons.length > 0) {
       const container = menuHeaderButtons[0];
-      container.insertBefore(button, this.menu.settings_button);
+      container.insertBefore(button, this.menu.color_button);
     }
   }
 
@@ -617,10 +554,6 @@ class SlideMenu {
     button.setAttribute("aria-label", title);
     button.addEventListener("click", callback);
     this.views.area.appendChild(button);
-  }
-
-  toggleAnnotations() {
-    document.documentElement.classList.toggle("hide-annotations");
   }
 
   clearCurrentSlideMark() {
@@ -667,92 +600,6 @@ class SlideMenu {
       this.closeMenu(event)
     );
   }
-
-  initializeSettingsMenu() {
-    const animations = this.reveal.getConfig().fragments;
-    const colorModePreference = colorScheme.getPreference();
-    let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="menu-settings" inert>
-    <div class="settings-item">
-      <div class="settings-toggle-wrapper">
-        <label for="setting-toggle-fragments" class="settings-toggle" aria-label="${
-          this.localization.toggle_fragments_label
-        }">
-          <input id="setting-toggle-fragments" class="settings-toggle-checkbox" type="checkbox" ${
-            animations ? "checked" : ""
-          } />
-          <span class="slider round"></span>
-        </label>
-        <label for="setting-toggle-fragments">${
-          this.localization.toggle_fragments_label
-        }</label>
-      </div>
-    </div>
-    <div class="settings-item">
-      <div class="settings-toggle-wrapper">
-        <label for="setting-toggle-annotations" class="settings-toggle" aria-label="${
-          this.localization.toggle_annotations_label
-        }">
-          <input id="setting-toggle-annotations" class="settings-toggle-checkbox" type="checkbox" checked />
-          <span class="slider round"></span>
-        </label>
-        <label for="setting-toggle-annotations">${
-          this.localization.toggle_annotations_label
-        }</label>
-      </div>
-    </div>
-    <div class="settings-item">
-      <div class="settings-choice-wrapper">
-        <fieldset id="color-choice">
-          <legend>${this.localization.choose_color_label}</legend>
-          <div class="choice-pair">
-            <input id="system-color-radio" type="radio" name="color-mode" value="system" aria-label="${
-              this.localization.system_color_choice
-            }" ${colorModePreference === "system" ? "checked" : ""}>
-            <label for="system-color-radio">${
-              this.localization.system_color_choice
-            }</label>
-          </div>
-          <div class="choice-pair">
-            <input id="light-color-radio" type="radio" name="color-mode" value="light" aria-label="${
-              this.localization.light_color_choice
-            }" ${colorModePreference === "light" ? "checked" : ""}>
-            <label for="light-color-radio">${
-              this.localization.light_color_choice
-            }</label>
-          </div>
-          <div class="choice-pair">
-            <input id="dark-color-radio" type="radio" name="color-mode" value="dark" aria-label="${
-              this.localization.dark_color_choice
-            }" ${colorModePreference === "dark" ? "checked" : ""}>
-            <label for="dark-color-radio">${
-              this.localization.dark_color_choice
-            }</label>
-          </div>
-        </fieldset>
-      </div>
-    </div>
-  </div>`;
-    this.settings.container = template.content.firstElementChild;
-    this.menu.container.appendChild(this.settings.container);
-    this.settings.fragments_toggle = this.settings.container.querySelector(
-      "#setting-toggle-fragments"
-    );
-    this.settings.fragments_toggle.addEventListener("change", (event) =>
-      this.toggleFragments()
-    );
-    this.settings.color_choice =
-      this.settings.container.querySelector("#color-choice");
-    this.settings.color_choice.addEventListener("change", (event) => {
-      colorScheme.setPreference(event.target.value);
-    });
-    this.settings.annotations_toggle = this.settings.container.querySelector(
-      "#setting-toggle-annotations"
-    );
-    this.settings.annotations_toggle.addEventListener("change", (event) =>
-      this.toggleAnnotations(event.target.checked)
-    );
-  }
 }
 
 const printMode = /print-pdf/gi.test(window.location.search);
@@ -775,16 +622,9 @@ const plugin = () => {
         home_button_label: "Go to Index Page",
         search_button_label: "Toggle Searchbar",
         print_pdf_label: "Print PDF",
-        open_settings_label: "Open Settings",
-        close_settings_label: "Close Settings",
+        toggle_colors_label: "Toggle Color Mode",
         open_views_label: "Open View Menu",
         close_views_label: "Close View Menu",
-        toggle_fragments_label: "Show Slide Animations",
-        choose_color_label: "Choose Color Mode",
-        system_color_choice: "System Default",
-        light_color_choice: "Light Mode",
-        dark_color_choice: "Dark Mode",
-        toggle_annotations_label: "Show Annotations",
         close_label: "Close Navigation Menu",
         no_title: "No Title",
         title: "Navigation",
@@ -800,16 +640,9 @@ const plugin = () => {
           home_button_label: "Zurück zur Materialübersicht",
           search_button_label: "Suchleiste umschalten",
           print_pdf_label: "Als PDF drucken",
-          open_settings_label: "Einstellungen öffnen",
-          close_settings_label: "Einstellungen schließen",
+          toggle_colors_label: "Farbmodus umschalten",
           open_views_label: "Anzeigemenu öffnen",
           close_views_label: "Anzeigemenu schließen",
-          toggle_fragments_label: "Animationen anzeigen",
-          choose_color_label: "Farbschema auswählen",
-          system_color_choice: "Systemeinstellung",
-          light_color_choice: "Helles Farbschema",
-          dark_color_choice: "Dunkles Farbschema",
-          toggle_annotations_label: "Annotationen einblenden",
           close_label: "Navigationsmenu schließen",
           no_title: "Kein Titel",
           title: "Navigation",

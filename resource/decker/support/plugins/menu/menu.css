@@ -278,3 +278,11 @@ fieldset {
   border: 1px inset var(--foreground-color);
   border-radius: 0.5rem;
 }
+
+.dark #decker-menu-color-button::before {
+  content: '\f186'
+}
+
+.light #decker-menu-color-button::before {
+  content: '\f185'
+}
