@@ -115,13 +115,6 @@ function activateHandoutMode() {
   revealElem.parentElement.insertBefore(handoutContainer, revealElem);
   attachWindowEventListeners();
 
-  /* Update internal slide scaling only upon activation to allow later resizing with CTRL + +/- */
-  const viewport = document.getElementsByClassName("reveal-viewport")[0];
-  const slideWidth = Reveal.getConfig().width;
-  const viewportWidth = viewport.offsetWidth;
-  slideScale = viewportWidth / slideWidth;
-  updateScaling();
-
   /* Scroll to the current slide (I like smooth more but it gets cancelled inside some decks) */
   currentSlide.scrollIntoView({ behavior: "instant", start: "top" });
 }
@@ -350,6 +343,13 @@ function createSRCIntersectionObserver() {
  * Scale slide container to fit screen width without changing internal slide resolution
  */
 function onWindowResize(event) {
+  /* Update internal slide scaling only upon activation to allow later resizing with CTRL + +/- */
+  const viewport = document.getElementsByClassName("reveal-viewport")[0];
+  const slideWidth = Reveal.getConfig().width;
+  const viewportWidth = viewport.offsetWidth;
+  const pixelRatio = window.devicePixelRatio;
+  slideScale = (viewportWidth / slideWidth) * pixelRatio;
+  console.log("[DEBUG] devicePixelRatio:", pixelRatio); // TODO Comment this out after testing on Safari
   updateScaling();
 }
 
