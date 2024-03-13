@@ -225,7 +225,6 @@ const Plugin = {
         titleID: 0, // initial id number to use for aria-labeledby titles
       },
       tex: {
-        tags: "ams",
         inlineMath: [
           // start/end delimiter pairs for in-line math
           ["$", "$"],
