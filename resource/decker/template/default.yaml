@@ -6,6 +6,7 @@ runtime-path-variables:
   - 'author'
   - 'authors'
   - 'teaser'
+  - 'template'
   - 'rpv-test.leaf-path'    # TODO test value, should be moved somewhere else
   - 'rpv-test.leaf-no-path' # TODO test value, should be moved somewhere else
   - 'rpv-test.branch'       # TODO test value, should be moved somewhere else
