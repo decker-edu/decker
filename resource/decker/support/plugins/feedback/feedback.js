@@ -682,15 +682,15 @@ class Feedback {
    */
   createInterface() {
     let text = this.localization.interface;
-    let button_string = String.raw`<button class="fa-button open-button fas fa-question-circle" title="${text.open_label}" aria-label="${text.open_label}">
+    let button_string = String.raw`<button class="fa-button open-button fas fa-question-circle" title="${text.open_label}" aria-label="${text.open_label}" aria-controls="feedback-menu" aria-haspopup="menu">
       <div class="feedback-badge"></div>
     </button>`;
 
-    let menu_string = String.raw`<div class="feedback-menu  slide-in-right" inert>
+    let menu_string = String.raw`<div id="feedback-menu" class="feedback-menu slide-in-right" role="menu" inert>
       <div class="feedback-header">
         <div class="counter">0</div>
         <div class="feedback-title">${text.menu_title}</div>
-        <button class="fa-button feedback-close fas fa-times-circle" title="${text.menu_close}" aria-label="${text.menu_close}">
+        <button class="fa-button feedback-close fas fa-times-circle" title="${text.menu_close}" aria-label="${text.menu_close}" role="menuitem">
         </button>
       </div>
       <div class="feedback-list"></div>
