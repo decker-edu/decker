@@ -343,10 +343,13 @@ function createSRCIntersectionObserver() {
  * Scale slide container to fit screen width without changing internal slide resolution
  */
 function onWindowResize(event) {
+  /* Update internal slide scaling only upon activation to allow later resizing with CTRL + +/- */
   const viewport = document.getElementsByClassName("reveal-viewport")[0];
   const slideWidth = Reveal.getConfig().width;
   const viewportWidth = viewport.offsetWidth;
-  slideScale = viewportWidth / slideWidth;
+  const pixelRatio = window.devicePixelRatio;
+  slideScale = (viewportWidth / slideWidth) * pixelRatio;
+  console.log("[DEBUG] devicePixelRatio:", pixelRatio); // TODO Comment this out after testing on Safari
   updateScaling();
 }
 
@@ -469,8 +472,8 @@ function toggleHandoutMode() {
 function createButtons() {
   // add button to menu plugin
   const menu = Reveal.getPlugin("decker-menu");
-  if (menu && menu.addMenuButton) {
-    menu.addMenuButton(
+  if (menu && menu.addViewButton) {
+    menu.addViewButton(
       "menu-handout-button",
       "fa-file-arrow-down",
       navigator.language === "de"
@@ -502,6 +505,9 @@ function createButtons() {
   }
 }
 
+const a11y = /a11y/gi.test(window.location.search);
+const handout = /handout/gi.test(window.location.search);
+
 const Plugin = {
   id: "handout",
   isActive: () => handoutSlideMode,
@@ -531,6 +537,11 @@ const Plugin = {
         }
       })
     );
+    if (a11y || handout) {
+      Reveal.addEventListener("ready", () => {
+        toggleHandoutMode();
+      });
+    }
   },
 };
 

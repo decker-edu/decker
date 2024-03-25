@@ -68,6 +68,48 @@ function addCustomSpacebarHandler() {
   }
 }
 
+function toggleA11YMode() {
+  a11yMode = !a11yMode;
+
+  if (a11yMode) {
+    document.documentElement.classList.add("a11y");
+    const videos = document.getElementsByTagName("VIDEO");
+    for (const video of videos) {
+      modifyMedia(video);
+    }
+    const audios = document.getElementsByTagName("AUDIO");
+    for (const audio of audios) {
+      modifyMedia(audio);
+    }
+    Decker.flash.message(
+      `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
+    );
+  } else {
+    document.documentElement.classList.remove("a11y");
+    const videos = document.getElementsByTagName("VIDEO");
+    for (const video of videos) {
+      restoreMedia(video);
+    }
+    const audios = document.getElementsByTagName("AUDIO");
+    for (const audio of audios) {
+      restoreMedia(audio);
+    }
+    Decker.flash.message(
+      `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
+    );
+  }
+}
+
+const localization = {
+  toggle_accessibility: "Toggle Accessibility Features",
+};
+
+if (navigator.language === "de") {
+  localization.toggle_accessibility = "Barrierefreie Funktionen umschalten";
+}
+
+const a11y = /a11y/gi.test(window.location.search);
+
 const Plugin = {
   id: "a11y",
   init: (reveal) => {
@@ -84,37 +126,25 @@ const Plugin = {
       },
 
       Decker.tripleClick(() => {
-        a11yMode = !a11yMode;
-
-        if (a11yMode) {
-          document.documentElement.classList.add("a11y");
-          const videos = document.getElementsByTagName("VIDEO");
-          for (const video of videos) {
-            modifyMedia(video);
-          }
-          const audios = document.getElementsByTagName("AUDIO");
-          for (const audio of audios) {
-            modifyMedia(audio);
-          }
-          Decker.flash.message(
-            `<span>Accessible Colors: <strong style="color:var(--accent3);">ON</strong></span>`
-          );
-        } else {
-          document.documentElement.classList.remove("a11y");
-          const videos = document.getElementsByTagName("VIDEO");
-          for (const video of videos) {
-            restoreMedia(video);
-          }
-          const audios = document.getElementsByTagName("AUDIO");
-          for (const audio of audios) {
-            restoreMedia(audio);
-          }
-          Decker.flash.message(
-            `<span>Accessible Colors: <strong style="color:var(--accent1);">OFF</strong></span>`
-          );
-        }
+        toggleA11YMode();
       })
     );
+    reveal.addEventListener("ready", () => {
+      const menuPlugin = reveal.getPlugin("decker-menu");
+      if (menuPlugin) {
+        menuPlugin.addViewButton(
+          "decker-menu-a11y-button",
+          "fa-universal-access",
+          localization.toggle_accessibility,
+          toggleA11YMode
+        );
+      }
+    });
+    if (a11y) {
+      Reveal.addEventListener("ready", () => {
+        toggleA11YMode();
+      });
+    }
   },
 };
 
