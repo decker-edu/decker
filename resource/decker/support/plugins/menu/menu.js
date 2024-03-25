@@ -321,7 +321,7 @@ class SlideMenu {
    */
   initializeButton() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<button id="decker-menu-button" class="fa-button fas fa-bars" title="${this.localization.open_button_label}" aria-label="${this.localization.open_button_label}">
+    template.innerHTML = String.raw`<button id="decker-menu-button" class="fa-button fas fa-bars" title="${this.localization.open_button_label}" aria-label="${this.localization.open_button_label}" aria-haspopup="menu" aria-controls="decker-menu">
     </button>`;
 
     let button = template.content.firstElementChild;
@@ -384,8 +384,10 @@ class SlideMenu {
     title = `${h + 1}.${v !== undefined ? v + 1 : ""} ${title}`;
     template.innerHTML = String.raw`<li class="slide-list-item" data-slide-h="${h}" ${
       v !== undefined ? 'data-slide-v="' + v + '"' : ""
-    } data-slide-id="${slide.id}">
-      <a class="slide-link" href="#${slide.id}" target="_self">${title}</a>
+    } data-slide-id="${slide.id}" role="presentation">
+      <a class="slide-link" href="#${
+        slide.id
+      }" target="_self" role="menuitem">${title}</a>
     </li>`;
     let item = template.content.firstElementChild;
     let link = item.firstElementChild;
@@ -470,18 +472,18 @@ class SlideMenu {
    */
   initializeMenu() {
     let template = document.createElement("template");
-    template.innerHTML = String.raw`<div class="decker-menu slide-in-left" id="decker-menu" inert>
+    template.innerHTML = String.raw`<div class="decker-menu slide-in-left" id="decker-menu" role="menu" aria-labeledby="decker-menu-button" inert>
       <div class="menu-header">
         <div class="menu-header-buttons">
-          <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}">
+          <button id="decker-menu-close-button" class="fa-button fas fa-times-circle" title="${this.localization.close_label}" aria-label="${this.localization.close_label}" role="menuitem">
           </button>
-          <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}">
+          <button id="decker-menu-index-button" class="fa-button fas fa-home" title="${this.localization.home_button_label}" aria-label="${this.localization.home_button_label}" role="menuitem">
           </button>
-          <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}">
+          <button id="decker-menu-search-button" class="fa-button fas fa-search" title="${this.localization.search_button_label}" aria-label="${this.localization.search_button_label}" role="menuitem">
           </button>
-          <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}">
+          <button id="decker-menu-print-button" class="fa-button fas fa-print" title="${this.localization.print_pdf_label}" aria-label="${this.localization.print_pdf_label}" role="menuitem">
           </button>
-          <button id="decker-menu-settings-button" class="fa-button fas fa-cog" title="${this.localization.open_settings_label}" aria-label="${this.localization.open_settings_label}">
+          <button id="decker-menu-settings-button" class="fa-button fas fa-cog" title="${this.localization.open_settings_label}" aria-label="${this.localization.open_settings_label}" role="menuitem">
           </button>
         </div>
       </div>
@@ -547,6 +549,7 @@ class SlideMenu {
     button.classList.add("fa-button", "fas", icon);
     button.title = title;
     button.setAttribute("aria-label", title);
+    button.setAttribute("role", "menuitem");
     button.addEventListener("click", callback);
     const menuHeaderButtons = document.getElementsByClassName(
       "menu-header-buttons"
