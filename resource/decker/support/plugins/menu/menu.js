@@ -555,6 +555,7 @@ class SlideMenu {
     button.appendChild(span);
     button.title = title;
     button.setAttribute("aria-label", title);
+    button.setAttribute("role", "menuitem");
     button.addEventListener("click", callback);
     this.views.area.appendChild(button);
   }
@@ -586,7 +587,7 @@ class SlideMenu {
     const template = document.createElement("template");
     template.innerHTML = String.raw`<div id="decker-view-menu" class="menu-views" inert>
       <div class="view-button-area">
-        <button id="decker-menu-print-button" class="view-button">
+        <button id="decker-menu-print-button" class="view-button" role="menuitem">
           <i class="fas fa-print"></i>
           <span>${this.localization.print_pdf_label}</span>
         </button>
