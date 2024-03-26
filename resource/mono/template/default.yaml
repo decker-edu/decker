@@ -69,3 +69,15 @@ reveal:
 
 css-variables:
   block-border-radius: 0.2em;
+
+publish:
+  rsync:
+    options:
+      - "--recursive"
+      - "--copy-links"
+      - "--delete"
+      - "--no-group"
+      - "--perms"
+      - "--chmod=a+r,go-w"
+      - "--no-owner"
+      - "--copy-links"
