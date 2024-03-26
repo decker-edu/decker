@@ -1,0 +1,397 @@
+# Plugin Config Variables
+
+## A11Y Plugin: Has no configuration
+
+## Charts Plugin:
+
+chart:
+  defaults:
+    font: { size: 20 }
+    plugins:
+      colorschemes:
+        scheme: "tableau.Classic10"
+      title:
+        font: { weight: "normal", size: 30 }
+      legend:
+        position: "bottom"
+
+## Decker Plugin:
+
+# Not directly a config variable, but documented anyway:
+
+# date: today # if date is "today" the plugin exchanges the string "today" for today's date
+
+## Examiner Plugin
+
+# TODO: @mono can you fill this in?
+
+## Explain Plugin
+
+explain:
+  # size of camera in pixels #
+  camWidth: 1280
+  camHeight: 720
+  # size of recorded video in pixels #
+  recWidth: 1920
+  recHeight: 1080
+  # enable or disable greenscreen #
+  useGreenScreen: false # true | false # plugin default: false
+  # background image used if useGreenScreen is enabled #
+  # greenScreenBackground: path # plugin default: undefined
+  # color key to be matched against the green screen #
+  greenScreenKey:
+    b: 0 # plugin default: 0
+    g: 255 # plugin default: 255
+    r: 0 # plugin default: 0
+  # similarity, smoothness and spill value for chroma key evaluation #
+  greenScreenSimilarity: 0.4 # [0.0 - 1.0] # plugin default: 0.4
+  greenScreenSmoothness: 0.08 # [0.0 - 1.0] # plugin default: 0.08
+  greenScreenSpill: 0.1 # [0.0 - 1.0] # plugin default: 0.1;
+  # overwrite paths to video files for presentation #
+  # TODO Are these on the runtime / compiletime path variables?
+  # video: path (or URL?)
+  # times: path (or URL?)
+  # transcript: path (or URL?)
+
+## Feedback Plugin
+
+# This should be defined in default.yaml or a project's decker.yaml
+
+# feedback:
+#   server:  # alternative key: base-url
+
+# This should be defined in a -deck.md frontmatter
+
+# feedback:
+#   deck-id: URL # alternative key: deckID
+
+## Handout Plugin: Has no configuration
+
+## Jingles Plugin:
+
+# A list of paths to video files that can be played by pressing CTRL + SHIFT + ALT + Number 1 - 5
+# More than 5 jingles are ignored
+
+# jingle:
+#    - path
+#    - path
+
+## Live-Captioning Plugin
+
+# Configures server to sync to
+
+# live-captions: true | false 
+# caption-server: 'https://decker.cs.tu-dortmund.de/captions' # This is the only server running this right now
+# speech-recognition-language: language code (e.g. 'de-DE' | 'en-GB'), 'Deutsch', 'German', 'Englisch', 'English', 'deu' or 'eng'
+
+## Math Plugin
+
+math:
+  scale: 1
+# mathjax: path # Path to the MathJax directory
+# macros: # These were predefined here but thus unremovable, yet some test-decks relied on them
+#   macroname: macrodefinition 
+
+## Menu Plugin: Has no configuration (anymore)
+
+## Poll Plugin
+
+# polling:
+#   server: url to poll server --- FIXME: this is actually hard coded, the polling.server is only checked by other plugins ...
+
+## Print Plugin
+
+# Has no config but uses:
+# reveal.width, reveal.height, reveal.margin, reveal.center and reveal.checkOverflow()
+
+## Quiz Plugin
+
+# polling:
+#   server: URL
+#   selection: 'Random' | 'First' # FIXME: Are these the actual strings used?
+
+## Quiz Wue Plugin
+
+# TODO: Ask wue team to fill this in
+
+## Sage Plugin: Has no configuration
+
+## Search Plugin: Has no configuration
+
+## Thebelab Plugin
+
+# TODO: Ask mono or kno10 to fill this in
+
+## Whiteboard Plugin
+
+# whiteboard:
+#   autosave: true | false   # if a save should trigger on exit # plugin default: true
+#   autotoggle: true | false # if the whiteboard should toggle on on pen-hover # plugin default: false
+
+## Zoom Plugin
+
+# zoom:
+#   trigger: 'doubleClick' | 'tripleClick' | 'altClick' # plugin default: 'doubleClick'
+#   max: number # max zoom scale (between 1 and any large number) # plugin default: 100
+
+# Compiler Config #
+
+runtime-path-variables:
+  - 'logos'
+  - 'affiliation'
+  - 'author'
+  - 'authors'
+  - 'teaser'
+#  - 'rpv-test.leaf-path'
+#  - 'rpv-test.leaf-no-path'
+#  - 'rpv-test.branch'
+
+# Reveal Config #
+
+# reveal:
+#   controls: true | false
+#   controlsTutorial: true | false
+#   controlsLayout: 'edges' | 'bottom-right'
+#   progress: true | false
+#   slideNumber: false | 'h.v' | 'h/v' | 'c' | 'c/t'
+#   showSlideNumber: 'all' | 'print' | 'speaker'
+#   hashOneBasedIndex: true | false
+#   hash: true | false
+#   respondToHashChanges: true | false
+#   jumpToSlide: true | false
+#   history: true | false
+#   keyboard: true | false
+#   keyboardCondition: null | 'focused' | false
+#   disableLayout: true | false
+#   overview: true | false
+#   center: true | false
+#   touch: true | false
+#   loop: true | false
+#   rtl: true | false
+#   navigationMode: 'default' | 'linear' | 'grid'
+#   shuffle: true | false
+#   fragments: true | false
+#   fragmentInURL: true | false
+#   embedded: true | false
+#   help: true | false
+#   pause: true | false
+#   showNotes: true | false
+#   autoPlayMedia: null | true | false
+#   preloadIframes: null | true | false
+#   autoAnimate: true | false
+#   autoAnimateMatcher: null | string
+#   autoAnimateEasing: string
+#   autoAnimateDuration: number
+#   autoAnimateUnmatched: true | false
+#   autoAnimateStyles:
+#     - css-value-name
+#     - css-value-name
+#   autoSlide: number | false
+#   autoSlideStoppable: true | false
+#   autoSlideMethod: null | string
+#   defaultTiming: null | number
+#   mouseWheel: true | false
+#   previewLinks: true | false
+#   postMessage: true | false
+#   postMessageEvents: true | false
+#   focusBodyOnPageVisibilityChange: true | false
+#   transition: 'none' | 'slide' | 'fade' | 'convex' |
+#               'concave' | 'zoom'
+#   transitionSpeed: 'default' | 'fast' | 'slow'
+#   backgroundTransition: 'none' | 'slide' | 'fade' |
+#                         'convex' | 'concave' | 'zoom'
+#   pdfMaxPagesPerSlide: number
+#   pdfSeparateFragments: true | false
+#   pdfPageHeightOffset: number
+#   viewDistance: number
+#   mobileViewDistance: number
+#   display: 'none' | 'block' | 'flex' | 'grid' | 'inline-block'
+#   hideInactiveCursor: true | false
+#   hideCursorTime: number
+
+# Color Config #
+
+# palette with 16 colors each, with the option to split them into light mode and dark mode colors
+
+# palette:
+#   contrast: 0.40
+#   colors:
+#     light:
+#       - "#ffffff" # background-color / shade0
+#       - "#eeeeee" # shade1
+#       - "#d6d6d6" # shade2
+#       - "#8e908c" # shade3
+#       - "#969896" # shade4
+#       - "#4d4d4c" # shade5
+#       - "#282a2e" # shade6
+#       - "#1d1f21" # foreground-color / shade7
+#       - "#c82829" # red / accent0
+#       - "#f5871f" # orange / accent1
+#       - "#eab700" # yellow / accent2
+#       - "#84B819" # green / accent3
+#       - "#3e999f" # teal / accent4
+#       - "#2a9ddf" # blue / accent5
+#       - "#8959a8" # violet / accent6
+#       - "#a3685a" # brown / accent7
+#    dark:
+#       - "#1d1f21"
+#       - "#282a2e"
+#       - "#373b41"
+#       - "#969896"
+#       - "#b4b7b4"
+#       - "#c5c8c6"
+#       - "#e0e0e0"
+#       - "#ffffff"
+#       - "#cc6666"
+#       - "#de935f"
+#       - "#f0c674"
+#       - "#7da72a"
+#       - "#8abeb7"
+#       - "#81a2be"
+#       - "#b294bb"
+#       - "#a3685a"
+
+# Template Config #
+
+template:
+  favicon: path
+  css: # list of css files to include everywhere
+  js: # list of js files to include everywhere
+  # js-module seems to be missing for this "both" case config
+  deck:
+    css: # list of css files to include in all decks
+    js: # list of js files to include in decks
+    js-module: # list of js files to include in decks as modules (allowing import statements)
+  page:
+    css: # list of css files to include in all pages
+    js: # list of js files to include in pages
+    js-module: # list of js files to include in pages as modules (allowing import statements)
+
+# Title Page Config (partially depends on the resource pack)
+
+title: '<Undefined Title>' # Text
+# subtitle: Text
+# author: Text | Author
+# authors: [Text | Author] # Please use either author or authors else the title slide gets very cramped
+# affiliation: Text | Affilitation
+# teaser: URI | Image
+# date: Text # If using the string 'today' it will be replaced by today's date
+# logos: [URI | Image]
+# copyright: Text | Copyright
+
+# With "types" of the following:
+
+# Author: {
+#   name: Text
+#   affiliation: Text | Affiliation
+#   url: URL
+#   photo: URI
+# }
+
+# Affiliation: {
+#   name: Text
+#   url: URL
+#   logo: URI | Image
+# }
+
+# Image: {
+#   uri: URI
+#   width: CSS Unit
+#   height: CSS Unit
+# }
+
+# Copyright: {
+#   type: Text
+#   url: URL
+# }
+
+# example:
+# authors:
+#   - 'John Doe' # First Author only given by string
+#   - name: 'Jane Doe' # Second Author given as object
+#     affiliation:
+#       name: 'Thingamajig University'
+#       url: 'https://example.org'
+#       logo:
+#         uri: '/images/logos/uni.svg'
+#         width: 128px
+#         height: 64px
+#     url: 'https://example.org'
+#     photo: '/images/photos/jane.png'
+
+# Whisper Config #
+
+# values likely to be valid on a UNIX machine:
+whisper:
+  base-dir: /usr/local/share/whisper.cpp
+  model: models/ggml-large.bin
+  lang: de 
+
+# progress bar on index page
+progress: true # or define at least one of selector or insert
+# selector: "a[href$='-deck.html']"
+# insert: 'after'
+
+# Language Config #
+
+lang: de
+
+# Language dictionary. Currently for quiz elements
+dictionary:
+  de:
+    exam:
+      Easy: 'Leicht'
+      Hard: 'Schwer'
+      Medium: 'Mittelschwer'
+      again-button: 'Nochmal'
+      placeholder: 'Antwort eingeben'
+      points: 'Punkte'
+      solution: 'Lösung'
+      solve-button: 'Lösen'
+      reset-button: 'Zurücksetzen'
+      qrcode-button: 'QRCode'
+      poll-button: 'Poll'
+      stop-button: 'Stopp'
+    quiz:
+      solution: 'Lösung zeigen'
+      reset-button: 'Zurücksetzen'
+      input-placeholder: "Eingeben und 'Enter'"
+      qmi-drag-hint: 'Objekte per Drag&Drop ziehen…'
+      qmi-drop-hint: '…und hier in die richtige Kategorie einsortieren.'
+      ic-placeholder: 'Option auswählen…'
+  en:
+    exam:
+      Easy: 'Easy'
+      Hard: 'Hard'
+      Medium: 'Medium'
+      again-button: 'Again'
+      placeholder: 'Type in answer'
+      points: 'Points'
+      solution: 'Solution'
+      solve-button: 'Solve'
+      reset-button: 'Reset'
+      qrcode-button: 'QRCode'
+      poll-button: 'Poll'
+      stop-button: 'Stop'
+    quiz:
+      solution: 'Show Solution'
+      reset-button: 'Reset'
+      input-placeholder: "Type and press 'Enter'"
+      qmi-drag-hint: 'Drag items from here…'
+      qmi-drop-hint: '…and put them here into the correct category.'
+      ic-placeholder: 'Select option…'
+
+# 'decker publish' options:
+
+publish:
+  destination: 'username@host:directory' # rsync target
+  rsync:
+    options: # old default publish.rsync.options: ('--chmod=go-w' breaks things in managed systems)
+      - "--recursive"
+      - "--copy-links"
+      - "--delete"
+      - "--no-group"
+      - "--perms"
+      - "--chmod=a+r,go-w"
+      - "--no-owner"
+      - "--copy-links"

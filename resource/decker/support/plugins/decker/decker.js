@@ -320,7 +320,7 @@ function prepareFlashPanel(deck) {
   if (viewport) {
     let panelHtml = `
   <div class="decker-flash-panel">
-    <div class="content"> </div>
+    <div class="content" role="alert" aria-live="assertive"> </div>
   </div>
   `;
     viewport.insertAdjacentHTML("beforeend", panelHtml);
