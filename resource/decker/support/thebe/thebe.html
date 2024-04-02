@@ -22,8 +22,10 @@
   <script>
     window.addEventListener("load", () => {
       let repo = "binder-examples/requirements";
-      let kernel = "python3";
-      let language = "python3";
+      // let kernel = "python3";
+      // let language = "python3";
+      let kernel = "haskell";
+      let language = "haskell";
       let code = btoa(`print("Hello World!")`);
 
       try {
@@ -37,15 +39,23 @@
       thebe.innerText = atob(code);
       thebe.setAttribute("data-language", language);
 
-      thebelab.bootstrap({
+      let options = {
         requestKernel: true,
-        binderOptions: {
-          repo: repo || "binder-examples/requirements",
-        },
+        useBinder: false,
         kernelOptions: {
+          name: kernel || "python3",
           kernelName: kernel || "python3",
+          path: ".",
+          serverSettings: {
+            appendToken: false,
+            baseUrl: "http://localhost:8888",
+            token: "plc-ng",
+          },
         },
-      });
+      };
+      console.log(options);
+
+      thebelab.bootstrap(options);
     });
   </script>
 </head>
