@@ -524,6 +524,71 @@ This dictionary can be partially or completely redefined by the user.
 
 # Decker's Markdown
 
+## Template Macros
+
+Sometimes things get pretty repetitive. For example, required HTML for a custom
+video embedding might look like this:
+
+``` html
+<video controls style="width: var(--slide-width); height: var(--slide-height);">
+<source src="/videos/myvideo.mp4" type="video/mp4" />
+<track kind="subtitles" label="Deutsch" srclang="de" src="/videos/myvideo.vtt" default />
+</video>
+```
+
+Insertion of this stanza every time a video is embedded using this particular
+method is tedious and error-prone.
+
+Definition of a *template macro* in the meta data helps to control the
+boilerplate.
+
+``` yaml
+templates:
+  video: |
+    <video controls style="width: var(--slide-width); height: var(--slide-height);">
+    <source src="/videos/:(url).mp4" type="video/mp4" />
+    <track kind="subtitles" label="Deutsch" srclang="de" src="/videos/:(url).vtt" default />
+    </video>
+```
+
+Using this macro reduces the actual invocation to just:
+
+``` markdown
+[@video](/videos/myvideo)
+```
+
+Macro arguments are extracted from three different parts of the repurposed
+Markdown link syntax, a space separated list of positional arguments directly
+following the macro name in the square brackets, the *url* parameter specified
+in the parenthesis and the optional *title* parameter.
+
+The positional parameters can be referenced in the macro definition as `:(1)`,
+`:(2)`, `:(3)`, ..., the others as `:(url)` and `:(title)` respectively. The
+actual arguments are inserted into the parsed Pandoc AST nodes of the definition
+by simple string replacement.
+
+For example, the following macro definition
+
+``` yaml
+templates:
+  test: ":(1) :(2) :(3) :(url) :(title) :(args)"
+```
+
+invoked like this
+
+``` markdown
+[@test arg1 arg2 arg3 arg4](url "title")
+```
+
+will produce this text:
+
+``` markdown
+arg1 arg2 arg3 url title arg1 arg2 arg3 arg4
+```
+
+The *url* parameter is automatically URL-encoded by the Pandoc parser. This
+might or might not be what you want.
+
 ## Media handling
 
 External media files like images or movies can be included in a presentation in
