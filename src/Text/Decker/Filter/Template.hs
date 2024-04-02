@@ -2,7 +2,8 @@
 
 module Text.Decker.Filter.Template (expandTemplateMacros) where
 
-import qualified Data.Text as Text
+import Data.Bifunctor qualified
+import Data.Text qualified as Text
 import Relude
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta (lookupMeta)
@@ -51,23 +52,35 @@ expandTemplateMacros (Pandoc meta blocks) =
 
     -- Substitutes macro arguments into text fragments in various Inline elements
     substituteInline args (Str text) = Str (substitute args text)
+    substituteInline args (Code attr text) = Code (substituteAttr args attr) (substitute args text)
+    substituteInline args (Span attr inlines) =
+      Span (substituteAttr args attr) inlines
     substituteInline args (Link attr text (url, title)) =
-      Link attr text (substitute args url, substitute args title)
+      Link (substituteAttr args attr) text (substitute args url, substitute args title)
+    substituteInline args (Image attr text (url, title)) =
+      Image (substituteAttr args attr) text (substitute args url, substitute args title)
     substituteInline args (RawInline "html" html) =
       RawInline "html" (substitute args html)
     substituteInline args inline = inline
 
     -- Substitutes macro arguments into text fragments in RawBlock elements.
     -- Substitution in CodeBlocks is probably not a good idea.
+    substituteBlock args (Div attr blocks) =
+      Div (substituteAttr args attr) blocks
+    substituteBlock args (Header level attr inline) =
+      Header level (substituteAttr args attr) inline
     substituteBlock args (RawBlock "html" html) =
       RawBlock "html" (substitute args html)
     substituteBlock args block = block
 
+    substituteAttr args (id, cls, kvs) =
+      (substitute args id, map (substitute args) cls, map (bimap (substitute args) (substitute args)) kvs)
+
     substitute args text = foldl' substituteOne text args
 
     substituteOne template (name, value) =
-      Text.intercalate value $
-        Text.splitOn (":(" <> name <> ")") template
+      Text.intercalate value
+        $ Text.splitOn (":(" <> name <> ")") template
 
 class Splice a b where
   splice :: Text -> a -> b
