@@ -1322,6 +1322,19 @@ function pointerMode(evt) {
 }
 
 function pointerdown(evt) {
+  // Note: On (some?) Wacom tablets, if you keep a button pressed,
+  //       lift the pen far from the drawing surface and touch it down,
+  //       the coordinates of the cursorDown event will be incorrect.
+  //       Instead the current mouse coordinates are reported,
+  //       which usually are where the pen was previously lifted.
+  //       If we start drawing at such coordinates, we get strange long lines.
+  //       Therefore, we do not startStroke() here, but only trust the coordinates
+  //       from "move" events, which appear to be correct.
+
+  //       Another shortcoming is that in this input sequence, the button press
+  //       is not recognized anymore, reporting buttons "1" instead of "3" for
+  //       keeping button "2" pressed.
+
   // console.log("pointerdown");
 
   // only when whiteboard is active
@@ -1343,13 +1356,19 @@ function pointerdown(evt) {
       clearTimeout(hideCursorTimeout);
       hideCursor();
       isLaserStroke = true;
-      startStroke(evt);
+      if (evt.pointerType != "pen") {
+        // see note above
+        startStroke(evt);
+      }
       return killEvent(evt);
 
     case PEN:
       clearTimeout(hideCursorTimeout);
       hideCursor();
-      startStroke(evt);
+      if (evt.pointerType != "pen") {
+        // see note above
+        startStroke(evt);
+      }
       return killEvent(evt);
   }
 }
@@ -1385,6 +1404,7 @@ function pointermove(evt) {
       return killEvent(evt);
 
     case PEN:
+      if (!stroke) startStroke(evt);
       continueStroke(evt);
       return killEvent(evt);
 
@@ -1528,10 +1548,13 @@ function slideChanged(evt) {
 // register all event listeners to window and Reveal deck
 function setupCallbacks() {
   // setup pointer events
-  slides.addEventListener("pointerdown", pointerdown, true);
-  slides.addEventListener("pointermove", pointermove);
-  slides.addEventListener("pointerup", pointerup);
-  slides.addEventListener("pointerout", pointerup);
+  let options = {"capture": true};
+  // https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+  // capture: A boolean value indicating that events of this type will be dispatched to the registered listener before being dispatched to any EventTarget beneath it in the DOM tree. If not specified, defaults to false.
+  slides.addEventListener("pointerdown", pointerdown, options);
+  slides.addEventListener("pointermove", pointermove, options);
+  slides.addEventListener("pointerup", pointerup, options);
+  slides.addEventListener("pointerout", pointerup, options);
 
   // autotoggle: turn on at pen-hover, turn off when stroke it stopped or pointer is lost
   if (autoToggle) {
