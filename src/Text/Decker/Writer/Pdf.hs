@@ -6,7 +6,7 @@ module Text.Decker.Writer.Pdf
 where
 
 import Control.Exception
-import qualified Data.ByteString.Lazy as LB
+import Data.ByteString.Lazy qualified as LB
 import Development.Shake
 import System.Decker.OS
 import System.Directory
@@ -23,31 +23,34 @@ import Text.Pandoc hiding (getTemplate)
 import Text.Pandoc.Highlighting
 import Text.Pandoc.PDF
 
-chromeUserDataDir = transientDir </> "chrome"
+chromeUserDataDir = (</> "chrome") <$> transientDir
 
-chromeOptions :: FilePath -> FilePath -> [String]
-chromeOptions src out =
-  [ "--headless",
-    "--virtual-time-budget=5000",
-    "--disable-gpu",
-    "--print-to-pdf-no-header",
-    "--user-data-dir=" <> chromeUserDataDir,
-    pdfOption out,
-    modifySrc src
-  ]
+chromeOptions :: FilePath -> FilePath -> IO [String]
+chromeOptions src out = do
+  dataDir <- chromeUserDataDir
+  return
+    [ "--headless",
+      "--virtual-time-budget=5001",
+      "--disable-gpu",
+      "--print-to-pdf-no-header",
+      "--user-data-dir=" <> dataDir,
+      pdfOption out,
+      modifySrc src
+    ]
   where
     modifySrc path = path ++ "?print-pdf#/"
     pdfOption path = "--print-to-pdf=" ++ path
 
 launchChrome :: FilePath -> FilePath -> IO (Either String String)
 launchChrome src out = do
+  dataDir <- chromeUserDataDir
   command <- chrome
-  let options = chromeOptions src out
+  options <- chromeOptions src out
   case command of
     Left msg -> return $ Left msg
     Right cmd -> do
       -- putStrLn (cmd <> " " <> unwords options)
-      createDirectoryIfMissing True chromeUserDataDir
+      createDirectoryIfMissing True dataDir
       (exitCode, stdOut, stdErr) <-
         readProcessWithExitCode cmd options ""
       return $

@@ -3,18 +3,18 @@
 module Text.Decker.Writer.Layout (markdownToHtml, writePandocFile, writeHtml45String) where
 
 import Data.Aeson.Encode.Pretty (encodePretty)
-import qualified Data.ByteString.Lazy as BS
+import Data.ByteString.Lazy qualified as BS
 import Data.List (lookup)
-import qualified Data.Map as Map
-import qualified Data.Text as Text
-import qualified Data.Text.IO as Text
+import Data.Map qualified as Map
+import Data.Text qualified as Text
+import Data.Text.IO qualified as Text
 import Development.Shake
 import Relude
 import Skylighting (SyntaxMap, defaultSyntaxMap, loadSyntaxFromFile)
 import System.FilePath
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Blaze.Internal (ChoiceString (..), MarkupM (..), StaticString, getString, getText)
-import Text.Decker.Filter.Local (hash9String)
+import Text.Decker.Filter.Util (hash9String)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Shake
@@ -27,7 +27,7 @@ import Text.DocTemplates
   )
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Highlighting
-import qualified Prelude
+import Prelude qualified
 
 -- | Calculates the highlight style that will be passed as a writer option.
 highlightStyle :: Meta -> Maybe Style
@@ -53,11 +53,11 @@ getHighlightSyntax meta = do
       result <- liftIO $ loadSyntaxFromFile path
       case result of
         Left err -> do
-          putError $
-            "# cannot load highlighting syntax for: "
-              <> toString key
-              <> " from file: "
-              <> path
+          putError
+            $ "# cannot load highlighting syntax for: "
+            <> toString key
+            <> " from file: "
+            <> path
           return Nothing
         Right syntax -> return $ Just (key, syntax)
 
@@ -77,8 +77,8 @@ markdownToHtml disp meta getTemplate markdownFile out = do
             writerHTMLMathMethod =
               MathJax (lookupMetaOrElse "" "mathjax-url" meta),
             writerVariables =
-              Context $
-                fromList
+              Context
+                $ fromList
                   [ ( "decker-support-dir",
                       SimpleVal $ Text.DocTemplates.Text 0 $ toText relSupportDir
                     )
@@ -113,12 +113,12 @@ writePandocFile options out pandoc@(Pandoc meta blocks) = do
   --             ]
   --         ]
   -- runIO (writeHtml5String options (embedMetaMeta (Pandoc meta raw)))
-  liftIO $
-    runIO (setVerbosity ERROR >> writeHtml45String options meta' pandoc)
-      >>= handleError
-      >>= Text.writeFile out
+  liftIO
+    $ runIO (setVerbosity ERROR >> writeHtml45String options meta' pandoc)
+    >>= handleError
+    >>= Text.writeFile out
 
-writeHtml45String :: PandocMonad m => WriterOptions -> Meta -> Pandoc -> m Text
+writeHtml45String :: (PandocMonad m) => WriterOptions -> Meta -> Pandoc -> m Text
 writeHtml45String options meta pandoc = do
   html <- writeHtml4 options {writerTemplate = Nothing} pandoc
   let string = renderHtml $ transformHtml (nullA, []) html
@@ -148,23 +148,23 @@ incremental False flags = "nonincremental" : filter (/= "incremental") flags
 transformHtml :: (Map Text Text, [Text]) -> MarkupM a -> MarkupM a
 transformHtml (attribs, flags) m@(Parent tag open end html)
   | getText tag `elem` ["div", "span"] && Map.member "data-tag" attribs =
-    let name = toString $ attribs Map.! "data-tag"
-        flags' = incremental (hasClass "incremental" attribs) flags
-     in Parent
-          (fromString name)
-          (fromString $ "<" <> name)
-          (fromString $ "</" <> name <> ">")
-          (transformHtml (nullA, flags') html)
+      let name = toString $ attribs Map.! "data-tag"
+          flags' = incremental (hasClass "incremental" attribs) flags
+       in Parent
+            (fromString name)
+            (fromString $ "<" <> name)
+            (fromString $ "</" <> name <> ">")
+            (transformHtml (nullA, flags') html)
 transformHtml (attribs, flags) m@(Parent tag open end html)
   | getText tag `elem` ["div"] && hasClass "incremental" attribs =
-    Parent tag open end (transformHtml (nullA, incremental True flags) html)
+      Parent tag open end (transformHtml (nullA, incremental True flags) html)
 transformHtml (attribs, flags) m@(Parent tag open end html)
   | getText tag `elem` ["div"] && hasClass "nonincremental" attribs =
-    Parent tag open end (transformHtml (nullA, incremental False flags) html)
+      Parent tag open end (transformHtml (nullA, incremental False flags) html)
 -- Tags all <li> below <div class="incremental"> as `fragment`
 transformHtml (attribs, flags) m@(Parent tag open end html)
   | getText tag == "li" && "incremental" `elem` flags =
-    AddCustomAttribute "class" "fragment" $ Parent tag open end (transformHtml (nullA, flags) html)
+      AddCustomAttribute "class" "fragment" $ Parent tag open end (transformHtml (nullA, flags) html)
 -- Discards the collected attributes and recurse
 transformHtml (attribs, flags) m@(Parent tag open end html) =
   Parent tag open end (transformHtml (nullA, flags) html)
@@ -177,24 +177,24 @@ transformHtml (attribs, flags) m@(Append html1 html2) =
 -- Drops 'processed' from class attribute
 transformHtml (attribs, flags) m@(AddAttribute raw key value html)
   | toText raw == "class" =
-    let cls = Text.unwords $ filter (/= "processed") $ Text.words $ toText value
-     in if Text.null cls
-          then transformHtml (attribs, flags) html
-          else AddAttribute raw key value (transformHtml (Map.insert (toText raw) cls attribs, flags) html)
+      let cls = Text.unwords $ filter (/= "processed") $ Text.words $ toText value
+       in if Text.null cls
+            then transformHtml (attribs, flags) html
+            else AddAttribute raw key value (transformHtml (Map.insert (toText raw) cls attribs, flags) html)
 -- Adds the attribute to the map for later retrieval
 transformHtml (attribs, flags) m@(AddAttribute raw key value html) =
   AddAttribute raw key value (transformHtml (Map.insert (toText raw) (toText value) attribs, flags) html)
 -- Drops the custom data-tag attribute after adding it to the map
 transformHtml (attribs, flags) m@(AddCustomAttribute key value html)
   | toText key == "data-tag" =
-    transformHtml (Map.insert (toText key) (toText value) attribs, flags) html
+      transformHtml (Map.insert (toText key) (toText value) attribs, flags) html
 -- Drops 'processed' from class attribute
 transformHtml (attribs, flags) m@(AddCustomAttribute key value html)
   | toText key == "class" =
-    let cls = Text.unwords $ filter (/= "processed") $ Text.words $ toText value
-     in if Text.null cls
-          then transformHtml (attribs, flags) html
-          else AddCustomAttribute key value (transformHtml (Map.insert (toText key) cls attribs, flags) html)
+      let cls = Text.unwords $ filter (/= "processed") $ Text.words $ toText value
+       in if Text.null cls
+            then transformHtml (attribs, flags) html
+            else AddCustomAttribute key value (transformHtml (Map.insert (toText key) cls attribs, flags) html)
 -- Adds the custom attribute to the map for later retrieval
 transformHtml (attribs, flags) m@(AddCustomAttribute key value html) =
   AddCustomAttribute key value (transformHtml (Map.insert (toText key) (toText value) attribs, flags) html)

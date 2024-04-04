@@ -11,7 +11,6 @@ module Text.Decker.Reader.Markdown
   )
 where
 
-import System.AtomicWrite.Writer.ByteString
 import Control.Monad
 import Control.Monad.Loops
 import Data.List qualified as List
@@ -19,6 +18,7 @@ import Data.Maybe
 import Data.Text.IO qualified as Text
 import Development.Shake hiding (Resource)
 import Relude
+import System.AtomicWrite.Writer.ByteString
 import System.Directory qualified as Dir
 import System.FilePath.Posix
 import Text.Decker.Exam.Filter
@@ -48,16 +48,16 @@ import Text.Pandoc.Shared
 -- The path is assumed to be an absolute path in the local file system under
 -- the project root directory. Throws an exception if something goes wrong
 readAndFilterMarkdownFile :: Disposition -> Meta -> FilePath -> Action Pandoc
-readAndFilterMarkdownFile disp globalMeta path = do
-  let docBase = takeDirectory path
-  readMarkdownFile globalMeta path
+readAndFilterMarkdownFile disp globalMeta docPath = do
+  let docBase = takeDirectory docPath
+  readMarkdownFile globalMeta docPath
     >>= mergeDocumentMeta globalMeta
     >>= processMeta
     >>= processCites
     >>= calcRelativeResourcePaths docBase
     >>= runDynamicFilters Before docBase
     >>= runNewFilter disp examinerFilter docBase
-    >>= deckerMediaFilter disp docBase
+    >>= deckerMediaFilter disp docPath
     >>= processPandoc (deckerPipeline disp) docBase disp
     >>= runDynamicFilters After docBase
 
@@ -66,20 +66,21 @@ processMeta (Pandoc meta blocks) = do
   return (Pandoc processed blocks)
 
 -- | Provide default CSL data from the resources if csl: is not set.
-processCites :: MonadIO m => Pandoc -> m Pandoc
+processCites :: (MonadIO m) => Pandoc -> m Pandoc
 processCites pandoc@(Pandoc meta blocks) = liftIO $ do
   if
-      | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
-          runIOorExplode $ processCitations pandoc
-      | isMetaSet "bibliography" meta -> do
-          defaultCSL <- installDefaultCSL
-          let cslMeta = setMetaValue "csl" defaultCSL meta
-          runIOorExplode $ processCitations (Pandoc cslMeta blocks)
-      | otherwise -> return pandoc
+    | isMetaSet "bibliography" meta && isMetaSet "csl" meta ->
+        runIOorExplode $ processCitations pandoc
+    | isMetaSet "bibliography" meta -> do
+        defaultCSL <- installDefaultCSL
+        let cslMeta = setMetaValue "csl" defaultCSL meta
+        runIOorExplode $ processCitations (Pandoc cslMeta blocks)
+    | otherwise -> return pandoc
 
 installDefaultCSL :: IO FilePath
 installDefaultCSL = do
-  let path = transientDir </> "default.csl"
+  transient <- transientDir
+  let path = transient </> "default.csl"
   exists <- Dir.doesFileExist path
   unless exists $ do
     csl <- readResource "default.csl" (DeckerExecutable "decker")
@@ -106,8 +107,8 @@ addPathInfo documentPath (Pandoc meta blocks) = do
   let pathToProject = makeRelativeTo documentPath "."
   let pathToSupport = makeRelativeTo documentPath "support"
   let meta' =
-        addMetaField "projectPath" pathToProject $
-          addMetaField "supportPath" pathToSupport meta
+        addMetaField "projectPath" pathToProject
+          $ addMetaField "supportPath" pathToSupport meta
   return (Pandoc meta' blocks)
 
 -- | Parses a Markdown file and throws an exception if something goes wrong.
@@ -213,15 +214,15 @@ pathVariables meta =
 -- TODO: what does this even mean?
 compiletimePathVariables :: Meta -> [Text]
 compiletimePathVariables meta =
-  List.nub $
-    [ "csl",
-      "bibliography",
-      "meta-data",
-      "static-resource-dirs",
-      "static-resources",
-      "extra-highlight-syntax"
-    ]
-      <> lookupMetaOrElse [] "compiletime-path-variables" meta
+  List.nub
+    $ [ "csl",
+        "bibliography",
+        "meta-data",
+        "static-resource-dirs",
+        "static-resources",
+        "extra-highlight-syntax"
+      ]
+    <> lookupMetaOrElse [] "compiletime-path-variables" meta
 
 -- TODO: what does this even mean?
 runtimePathVariables :: Meta -> [Text]
@@ -258,7 +259,8 @@ readMetaData globalMeta path = do
 readDeckerMeta :: FilePath -> Action Meta
 readDeckerMeta file = do
   deckerMeta <- readMetaData nullMeta file
-  argsMeta <- readMetaData nullMeta metaArgsFile
+  args <- liftIO metaArgsFile
+  argsMeta <- readMetaData nullMeta args
   let baseMeta = mergePandocMeta argsMeta deckerMeta
   defaultMeta <- readTemplateMeta baseMeta
   return $ mergePandocMeta baseMeta defaultMeta
@@ -272,15 +274,19 @@ readDeckerMeta file = do
 --    b) Provision the resources (copy to public)
 -- 4. Remove all traces of this from the meta data
 runDeckerFilter :: (Pandoc -> IO Pandoc) -> FilePath -> Pandoc -> Action Pandoc
-runDeckerFilter filter docBase pandoc@(Pandoc docMeta blocks) = do
-  let deckerMeta = setMetaValue "decker.base-dir" docBase docMeta
+runDeckerFilter filter docPath pandoc@(Pandoc docMeta blocks) = do
+  let deckerMeta =
+        setMetaValue "decker.doc-path" docPath
+          $ setMetaValue "decker.base-dir" (takeDirectory docPath) docMeta
   (Pandoc resultMeta resultBlocks) <- liftIO $ filter (Pandoc deckerMeta blocks)
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
   return (Pandoc docMeta resultBlocks)
 
 runNewFilter :: Disposition -> (Pandoc -> Filter Pandoc) -> FilePath -> Pandoc -> Action Pandoc
-runNewFilter dispo filter docBase pandoc@(Pandoc docMeta blocks) = do
-  let deckerMeta = setMetaValue "decker.base-dir" docBase docMeta
+runNewFilter dispo filter docPath pandoc@(Pandoc docMeta blocks) = do
+  let deckerMeta =
+        setMetaValue "decker.doc-path" docPath
+          $ setMetaValue "decker.base-dir" (takeDirectory docPath) docMeta
   (Pandoc resultMeta resultBlocks) <-
     liftIO $ runFilter2 dispo filter (Pandoc deckerMeta blocks)
   need (lookupMetaOrElse [] "decker.filter.resources" resultMeta)
@@ -288,8 +294,8 @@ runNewFilter dispo filter docBase pandoc@(Pandoc docMeta blocks) = do
 
 -- |  Runs the new decker media filter.
 deckerMediaFilter :: Disposition -> String -> Pandoc -> Action Pandoc
-deckerMediaFilter dispo docBase pandoc@(Pandoc meta _) =
-  runDeckerFilter (mediaFilter2 dispo) docBase pandoc
+deckerMediaFilter dispo docPath pandoc@(Pandoc meta _) =
+  runDeckerFilter (mediaFilter2 dispo) docPath pandoc
 
 -- |  The old style decker filter pipeline.
 deckerPipeline (Disposition Deck Html) =
@@ -365,6 +371,6 @@ writeToMarkdownFile filepath pandoc@(Pandoc pmeta _) = do
           }
   markdown <- liftIO $ runIO (writeMarkdown options pandoc) >>= handleError
   fileContent <- liftIO $ Text.readFile filepath
-  when (markdown /= fileContent) $
-    withTempFile
+  when (markdown /= fileContent)
+    $ withTempFile
       (\tmp -> liftIO $ Text.writeFile tmp markdown >> Dir.renameFile tmp filepath)

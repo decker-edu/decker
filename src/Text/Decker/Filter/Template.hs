@@ -2,7 +2,6 @@
 
 module Text.Decker.Filter.Template (expandTemplateMacros) where
 
-import Data.Bifunctor qualified
 import Data.Text qualified as Text
 import Relude
 import Text.Decker.Internal.Common

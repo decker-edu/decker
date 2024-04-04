@@ -70,7 +70,7 @@ serverPort = 8888
 
 serverUrl = "http://localhost:" ++ show serverPort
 
-generatedIndexSource = transientDir </> "index.md.generated"
+generatedIndexSource = (</> "index.md.generated") <$> transientDir
 
 generatedIndex = publicDir </> "index-generated.html"
 
@@ -88,6 +88,8 @@ runArgs args = do
 
 deckerRules = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
+  generated <- liftIO generatedIndexSource
+  transient <- liftIO transientDir
   want ["html"]
   addHelpSuffix "Commands:"
   addHelpSuffix "  - clean - Remove all generated files."
@@ -241,18 +243,18 @@ deckerRules = do
           need [indexSource, generatedIndex]
           markdownToHtml htmlIndex meta getTemplate indexSource out
         else do
-          need [generatedIndexSource]
-          markdownToHtml htmlIndex meta getTemplate generatedIndexSource out
+          need [generated]
+          markdownToHtml htmlIndex meta getTemplate generated out
     --
-    generatedIndexSource %> \out -> do
+    generated %> \out -> do
       deps <- getDeps
       meta <- getGlobalMeta
       writeIndexLists meta deps out
     --
     generatedIndex %> \out -> do
-      need [generatedIndexSource]
+      need [generated]
       meta <- getGlobalMeta
-      markdownToHtml htmlIndex meta getTemplate generatedIndexSource out
+      markdownToHtml htmlIndex meta getTemplate generated out
   --
   priority 3 $ do
     "**/*.css" %> \out -> do

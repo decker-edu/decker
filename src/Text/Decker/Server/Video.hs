@@ -4,8 +4,8 @@ module Text.Decker.Server.Video where
 
 import Control.Concurrent.STM (writeTChan)
 import Control.Monad.State
-import qualified Data.ByteString as BS
-import qualified Data.List as List
+import Data.ByteString qualified as BS
+import Data.List qualified as List
 import Data.Maybe
 import Network.HTTP.Types
 import Relude
@@ -13,7 +13,7 @@ import System.Directory
 import System.FilePath.Glob
 import System.FilePath.Posix
 import System.Process
-import Text.Decker.Filter.Local (randomId)
+import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Common
 import Text.Decker.Server.Types
 import Text.Regex.TDFA hiding (empty)
@@ -40,8 +40,8 @@ uploadRecording append = do
       liftIO $ writeBody tmp reader
       let operation = if append then Append tmp destination else Replace tmp destination
       atomically $ writeTChan chan (UploadComplete operation)
-    else do 
-      text "ERROR: directory does not exist or file (suffix) is not uploadable" 
+    else do
+      text "ERROR: directory does not exist or file (suffix) is not uploadable"
       status status406
 
 -- | Returns the list of video fragments under the same name. If include is True
@@ -54,10 +54,11 @@ existingVideos webm = do
 -- Unique transient tmp filename
 uniqueTransientFileName :: FilePath -> IO FilePath
 uniqueTransientFileName base = do
+  transient <- transientDir
   id <- toString <$> randomId
-  return $
-    transientDir
-      </> dropExtension (takeFileName base)
+  return
+    $ transient
+    </> dropExtension (takeFileName base)
       <> "-"
       <> id
       <.> takeExtension base

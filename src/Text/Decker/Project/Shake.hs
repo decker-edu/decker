@@ -90,7 +90,8 @@ runTargets context targets rules = do
 
   -- always rescan the targets file in case files where added or removed
   let meta = context ^. globalMeta
-  scanTargetsToFile meta targetsFile
+  targets <- targetsFile
+  scanTargetsToFile meta targets
 
   -- Always run at least once
   runShake context rules
@@ -117,11 +118,13 @@ runShakeSlyly :: ActionContext -> Rules () -> IO ()
 runShakeSlyly context rules = do
   -- always rescan the targets file in case files where added or removed
   let meta = context ^. globalMeta
-  scanTargetsToFile meta targetsFile
+  targets <- targetsFile
+  scanTargetsToFile meta targets
   let flags = context ^. extra
   extractMetaIntoFile flags
   options <- deckerShakeOptions context
-  shakeArgsWith (options {shakeFiles = transientDir </> "crunch"}) deckerFlags (\_ _ -> return $ Just rules)
+  transient <- transientDir
+  shakeArgsWith (options {shakeFiles = transient </> "crunch"}) deckerFlags (\_ _ -> return $ Just rules)
 
 runShakeForever :: Maybe ActionMsg -> ActionContext -> Rules () -> IO b
 runShakeForever last context rules = do
@@ -314,14 +317,16 @@ extractMetaIntoFile :: [Flags] -> IO ()
 extractMetaIntoFile flags = do
   let metaFlags = HashMap.fromList $ map (\(MetaValueFlag k v) -> (k, v)) $ filter aMetaValue flags
   let json = decodeUtf8 $ encode metaFlags
-  writeFileChanged metaArgsFile json
+  argsFile <- metaArgsFile
+  writeFileChanged argsFile json
 
 aMetaValue (MetaValueFlag _ _) = True
 aMetaValue _ = False
 
 initContext :: [Flags] -> Meta -> IO ActionContext
 initContext extra meta = do
-  createDirectoryIfMissing True transientDir
+  transient <- transientDir
+  createDirectoryIfMissing True transient
   devRun <- isDevelopmentRun
   external <- checkExternalPrograms
   server <- newTVarIO (ServerState [] Set.empty)
@@ -352,9 +357,10 @@ deckerShakeOptions :: ActionContext -> IO ShakeOptions
 deckerShakeOptions ctx = do
   let single = ThreadFlag `elem` (ctx ^. extra)
   let toStderr = ErrorFlag `elem` (ctx ^. extra)
+  transient <- transientDir
   return
     $ shakeOptions
-      { shakeFiles = transientDir,
+      { shakeFiles = transient,
         shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
         shakeThreads = if single then 1 else 0,
         shakeColor = not toStderr,
@@ -418,8 +424,9 @@ runClean totally = do
   tryRemoveDirectory privateDir
   when totally
     $ do
-      putStrLn $ "# Removing " ++ transientDir
-      tryRemoveDirectory transientDir
+      transient <- transientDir
+      putStrLn $ "# Removing " ++ transient
+      tryRemoveDirectory transient
 
 pdfMsg =
   [text|

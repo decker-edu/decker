@@ -1,11 +1,15 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Internal.Common where
 
-import Relude
+import Data.List.Extra (replace)
 import Development.Shake (Action)
+import Relude
+import System.Directory (getCurrentDirectory)
+import System.Directory.Extra (getTemporaryDirectory)
 import System.FilePath
+import Text.Decker.Filter.Util (hash9String)
 import Text.Pandoc
 
 type Decker = StateT DeckerState Action
@@ -62,8 +66,8 @@ pandocWriterOpts :: WriterOptions
 pandocWriterOpts =
   def
     { writerExtensions =
-        disableExtension Ext_implicit_figures $
-          enableExtension Ext_emoji pandocExtensions,
+        disableExtension Ext_implicit_figures
+          $ enableExtension Ext_emoji pandocExtensions,
       writerSectionDivs = False,
       writerReferenceLocation = EndOfBlock
     }
@@ -73,8 +77,8 @@ pandocReaderOpts :: ReaderOptions
 pandocReaderOpts =
   def
     { readerExtensions =
-        disableExtension Ext_implicit_figures $
-          enableExtension Ext_emoji pandocExtensions,
+        disableExtension Ext_implicit_figures
+          $ enableExtension Ext_emoji pandocExtensions,
       readerColumns = 999
     }
 
@@ -90,16 +94,24 @@ devSupportDir = "resource/decker/support"
 
 supportPath = "/support"
 
-transientDir = ".decker"
+-- transientDir = ".decker"
 
-liveFile = transientDir </> "live.txt"
+transientDir :: IO FilePath
+transientDir = do
+  tmp <- getTemporaryDirectory
+  cd <- getCurrentDirectory
+  return $ tmp </> "decker-" <> hash9String cd <> replace [pathSeparator] "-" cd
+
+renderedCodeDir = ".rendered-code"
+
+liveFile = (</> "live.txt") <$> transientDir
 
 deckerMetaFile = "decker.yaml"
 
-targetsFile = transientDir </> "targets.yaml"
+targetsFile = (</> "targets.yaml") <$> transientDir
 
-metaArgsFile = transientDir </> "meta-args.yaml"
+metaArgsFile = (</> "meta-args.yaml") <$> transientDir
 
-externalStatusFile = transientDir </> "external-programs.json"
+externalStatusFile = (</> "external-programs.json") <$> transientDir
 
 indexSource = "index.md"

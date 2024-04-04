@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
 {-# HLINT ignore "Use unwords" #-}
 
 module Text.Decker.Internal.External
@@ -20,22 +21,21 @@ where
 import Control.Exception
 import Control.Lens
 import Data.Aeson
-import qualified Data.ByteString.Lazy as B
+import Data.ByteString.Lazy qualified as B
 import Data.List (lookup)
-import qualified Data.List as List
+import Data.List qualified as List
 import Data.Maybe
 import Development.Shake
 import Development.Shake.FilePath (takeDirectory)
 import Relude
 import System.Console.ANSI
-import qualified System.Directory as Dir
+import System.Directory qualified as Dir
 import System.Exit
 import System.Process
 import Text.Blaze.Renderer.Utf8 (renderMarkup)
 import Text.Blaze.Svg11 (docType)
 import Text.Decker.Internal.Common
 import Text.Decker.Project.ActionContext
-import System.FilePath ((</>))
 
 data ExternalProgram = ExternalProgram
   { -- options :: [CmdOption],
@@ -59,7 +59,7 @@ programs =
       ExternalProgram
         -- []
         "rsync"
-        [ ]
+        []
         ["--version"]
         (helpText "`rsync` (https://rsync.samba.org)")
     ),
@@ -194,8 +194,9 @@ checkProgram name =
 
 forceCheckExternalPrograms :: IO ()
 forceCheckExternalPrograms = do
-  exists <- Dir.doesFileExist externalStatusFile
-  when exists $ Dir.removeFile externalStatusFile
+  external <- externalStatusFile
+  exists <- Dir.doesFileExist external
+  when exists $ Dir.removeFile external
   checkExternalPrograms
     >>= printExternalPrograms
 
@@ -208,38 +209,38 @@ printExternalPrograms status = do
       let found = isJust $ lookup name status
       if found
         then
-          putStrLn $
-            "  "
-              ++ setSGRCode [SetColor Foreground Vivid Blue]
-              ++ name
-              ++ setSGRCode [Reset]
-              ++ ": "
-              ++ setSGRCode [SetColor Foreground Vivid Green]
-              ++ "found"
-              ++ setSGRCode [Reset]
+          putStrLn
+            $ "  "
+            ++ setSGRCode [SetColor Foreground Vivid Blue]
+            ++ name
+            ++ setSGRCode [Reset]
+            ++ ": "
+            ++ setSGRCode [SetColor Foreground Vivid Green]
+            ++ "found"
+            ++ setSGRCode [Reset]
         else
-          putStrLn $
-            "  "
-              ++ setSGRCode [SetColor Foreground Vivid Blue]
-              ++ name
-              ++ setSGRCode [Reset]
-              ++ ": "
-              ++ setSGRCode [SetColor Foreground Vivid Red]
-              ++ "missing"
-              ++ setSGRCode [Reset]
-              ++ " ("
-              ++ help info
-              ++ ")"
+          putStrLn
+            $ "  "
+            ++ setSGRCode [SetColor Foreground Vivid Blue]
+            ++ name
+            ++ setSGRCode [Reset]
+            ++ ": "
+            ++ setSGRCode [SetColor Foreground Vivid Red]
+            ++ "missing"
+            ++ setSGRCode [Reset]
+            ++ " ("
+            ++ help info
+            ++ ")"
 
 checkExternalPrograms :: IO [(String, Bool)]
 checkExternalPrograms = do
-  exists <- Dir.doesFileExist externalStatusFile
+  external <- externalStatusFile
+  exists <- Dir.doesFileExist external
   if exists
     then do
-      fromJust <$> decodeFileStrict externalStatusFile
+      fromJust <$> decodeFileStrict external
     else do
       status <- zip (map fst programs) <$> mapM (checkProgram . fst) programs
-      Dir.createDirectoryIfMissing True (takeDirectory externalStatusFile)
-      encodeFile externalStatusFile status
+      Dir.createDirectoryIfMissing True (takeDirectory external)
+      encodeFile external status
       return status
-
