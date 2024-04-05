@@ -8,63 +8,85 @@ export function init() {
     );
     return;
   }
-  const url = options.mathjax + "tex-chtml.js";
-  const script = document.createElement("script");
-  script.type = "text/javascript";
-  script.id = "MathJax-script";
-  script.src = url;
+  window.addEventListener("load", () => {
+    const url = options.mathjax + "tex-chtml.js";
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.id = "MathJax-script";
+    script.src = url;
 
-  const macros = options.macros ? options.macros : {};
+    const macros = options.macros ? options.macros : {};
 
-  window.MathJax = {
-    loader: {
-      failed: (error) => {
-        console.error(error);
+    let loadModules = [];
+    if (options?.lazy) {
+      loadModules.push("ui/lazy");
+    }
+
+    window.MathJax = {
+      loader: {
+        load: loadModules,
+        failed: (error) => {
+          console.error(error);
+        },
       },
-    },
-    startup: {
-      ready: () => {
-        if (Decker?.meta?.math?.callbacks) {
-          for (const callback of Decker.meta.math.callbacks) {
-            callback();
-          }
+      startup: {
+        pageReady: () => {
+          enableTypesetDetails();
+          window.MathJax.startup.defaultPageReady();
+        },
+      },
+      svg: {
+        scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
+        minScale: 0.5, // smallest scaling factor to use
+        mtextInheritFont: true, // true to make mtext elements use surrounding font
+        merrorInheritFont: true, // true to make merror text use surrounding font
+        mathmlSpacing: false, // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {}, // RFDa and other attributes NOT to copy to the output
+        exFactor: 0.5, // default size of ex in em units
+        displayAlign: "center", // default for indentalign when set to 'auto'
+        displayIndent: "0", // default for indentshift when set to 'auto'
+        fontCache: "none", // or 'global' or 'none'
+        localID: null, // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true, // insert <title> tags with speech content
+        titleID: 0, // initial id number to use for aria-labeledby titles
+      },
+      tex: {
+        inlineMath: [
+          // start/end delimiter pairs for in-line math
+          ["$", "$"],
+          ["\\(", "\\)"],
+        ],
+        displayMath: [
+          // start/end delimiter pairs for display math
+          ["$$", "$$"],
+          ["\\[", "\\]"],
+        ],
+        macros: macros,
+      },
+      options: {
+        skipHtmlTags: { "[+]": ["details"] },
+        lazyMargin: "256px", //This is, for some reason, reported as an invalid value
+        enableMenu: false,
+      },
+    };
+
+    document.documentElement.appendChild(script);
+  });
+}
+
+function enableTypesetDetails() {
+  window.MathJax.config.options.skipHtmlTags = null;
+  window.MathJax.startup.getComponents();
+  const details = document.body.querySelectorAll("details");
+  for (let detail of details) {
+    detail.addEventListener("toggle", async () => {
+      if (detail.open) {
+        try {
+          await window.MathJax.typesetPromise([detail]);
+        } catch (error) {
+          console.error(error);
         }
-        //        console.log("MathJax startup ready() is done");
-        window.MathJax.startup.defaultReady();
-      },
-    },
-    svg: {
-      scale: window.Decker.meta.math.scale || 1.0, // global scaling factor for all expressions
-      minScale: 0.5, // smallest scaling factor to use
-      mtextInheritFont: true, // true to make mtext elements use surrounding font
-      merrorInheritFont: true, // true to make merror text use surrounding font
-      mathmlSpacing: false, // true for MathML spacing rules, false for TeX rules
-      skipAttributes: {}, // RFDa and other attributes NOT to copy to the output
-      exFactor: 0.5, // default size of ex in em units
-      displayAlign: "center", // default for indentalign when set to 'auto'
-      displayIndent: "0", // default for indentshift when set to 'auto'
-      fontCache: "none", // or 'global' or 'none'
-      localID: null, // ID to use for local font cache (for single equation processing)
-      internalSpeechTitles: true, // insert <title> tags with speech content
-      titleID: 0, // initial id number to use for aria-labeledby titles
-    },
-    tex: {
-      inlineMath: [
-        // start/end delimiter pairs for in-line math
-        ["$", "$"],
-        ["\\(", "\\)"],
-      ],
-      displayMath: [
-        // start/end delimiter pairs for display math
-        ["$$", "$$"],
-        ["\\[", "\\]"],
-      ],
-      macros: macros,
-    },
-    options: {
-      enableMenu: false,
-    },
-  };
-
-  document.documentElement.appendChild(script);
+      }
+    });
+  }
 }
