@@ -8,6 +8,8 @@ export function init() {
     );
     return;
   }
+  // Put this into the load callback because very large pages might have not all content available for MathJax
+  // to typeset before the script starts execution, which is very weird ... (even when not lazy)
   window.addEventListener("load", () => {
     const url = options.mathjax + "tex-chtml.js";
     const script = document.createElement("script");
