@@ -58,36 +58,39 @@ $endif$
     $endfor$
 
 
-    <!-- setup MathJax ------------------------------------------------------>
-    <script type="module">
-      window.MathJax = {
-        loader: {
-          load: ["[tex]/ams", "[tex]/action"],
-        },
-        startup: {
-          ready: () => {
-            console.log("mathjax loaded");
-          },
-        },
-        svg: {
-          mtextInheritFont: true,
-          merrorInheritFont: true,
-        },
-        tex: {
-          tags: "ams",
-          packages: {
-            "[+]": ["ams", "action"],
-          },
-          macros: Decker.meta.math.macros,
-        },
-        options: {
-          enableMenu: false,
-        },
-      };
-      if (window.localStorage) {
-        window.localStorage.removeItem("MathJax-Menu-Settings");
-      }
-    </script>
+        <!-- setup MathJax ------------------------------------------------------>
+        <script type="module">
+          window.MathJax = {
+            loader: {
+              load: ["[tex]/ams", "[tex]/action"],
+              typeset: false
+            },
+            startup: {
+              ready: () => {
+                console.log("mathjax loaded; defer typesetting");
+              },
+            },
+            svg: {
+              mtextInheritFont: true,
+              merrorInheritFont: true,
+            },
+            tex: {
+              tags: "ams",
+              packages: {
+                "[+]": ["ams", "action"],
+              },
+              macros: Decker.meta.math.macros,
+            },
+            options: {
+              skipHtmlTags: { '[+]': ['details'] },
+              enableMenu: false,
+            },
+          };
+  
+          if (window.localStorage) {
+            window.localStorage.removeItem("MathJax-Menu-Settings");
+          }
+        </script>
 
   </head>
 
@@ -176,6 +179,6 @@ $body$
     };
   </script>
 
-  <script id="MathJax-script" src="$decker-support-dir$/vendor/mathjax/tex-svg.js"></script>
+  <script id="MathJax-script" src="$decker-support-dir$/vendor/mathjax/tex-svg.js" type="module"></script>
 
 </html>
