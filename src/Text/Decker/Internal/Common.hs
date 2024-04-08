@@ -100,7 +100,7 @@ transientDir :: IO FilePath
 transientDir = do
   tmp <- getTemporaryDirectory
   cd <- getCurrentDirectory
-  return $ tmp </> "decker-" <> hash9String cd <> replace [pathSeparator] "-" cd
+  return $ tmp </> "decker-" <> hash9String cd <> foldr (\c s -> replace c "-" s) cd ["/", "\\", ":"]
 
 renderedCodeDir = ".rendered-code"
 
