@@ -353,6 +353,7 @@ body {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
+  font-family: "Lato";
 
   background: var(--background-color);
   color: var(--foreground-color);
@@ -407,12 +408,9 @@ footer p {
 
 /* Tolle Kästen */
 
-.colorexample {
-  background-color: chocolate;
-}
-
 :is(.definition, .example, .axiom, .theorem) {
-  width: 85%;
+  box-sizing: border-box;
+  width: 95%;
   padding: 1.5em;
   padding-right: 2.5em;
   margin: 30px auto;
@@ -445,14 +443,49 @@ footer p {
   display: none;
 }
 
-.theorem details,
-.example details {
-  background: rgba(0, 0, 0, 0);
-  border: 0px solid rgb(194, 190, 190);
-  padding: 0.5em;
-  font-size: medium;
-  margin-top: 30px;
+/********************************/
+/* Colored Demo Boxes           */
+/********************************/
+
+details.demo {
+  --summary-hover-color: var(--accent3);
+  box-sizing: border-box;
+  width: 95%;
+  padding: 1.5em;
+  padding-bottom: 0;
+  margin: 30px auto;
+  border: none;
+  border-left: 5px solid var(--accent3);
+  border-radius: 5px;
+  background: var(--accent3-bbg);
 }
+details[open].demo {
+  padding-bottom: 1em;
+}
+
+details.demo summary {
+  margin-left: -1.5em;
+  margin-right: -1.5em;
+  margin-top: -1.5em;
+  width: auto;
+  padding-left: 1em;
+  border-radius: 5px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  background: none;
+}
+details[open].demo summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background-color: var(--accent3);
+  color: white;
+}
+details.demo summary:hover {
+  background-color: var(--accent3);
+  color: white;
+}
+
+/* links */
 
 a {
   color: var(--accent5-fg);
@@ -527,14 +560,14 @@ details summary[icon]:hover::marker {
   color: white;
 }
 
-.theorem summary,
+/* .theorem summary,
 .example summary {
   background: rgba(1, 1, 1, 0.05);
   border-radius: 10px;
   cursor: pointer;
   width: calc(100% + 1em);
   margin-left: -0.5em;
-}
+} */
 
 details.demo {
   border: 1px solid var(--foreground-color);
