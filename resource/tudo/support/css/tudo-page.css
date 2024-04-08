@@ -390,9 +390,11 @@ footer {
 
 footer p {
   display: inline-block;
-  padding: 0.5em;
+  width: 100%;
   margin: 0;
+  padding: 0.5em;
   line-height: 2em;
+  text-align: center;
 }
 
 @media only screen and (max-width: 600px) {
