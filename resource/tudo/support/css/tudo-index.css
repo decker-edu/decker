@@ -96,6 +96,7 @@ html {
 }
 
 body.index {
+  font-family: "Lato";
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -129,14 +130,13 @@ footer {
   margin: 2rem 0 0 0;
 }
 
-footer div {
-  display: inline-block;
-}
-
 footer p {
-  padding: 0.5em;
+  display: inline-block;
+  width: 100%;
   margin: 0;
+  padding: 0.5em;
   line-height: 2em;
+  text-align: center;
 }
 
 @media only screen and (max-width: 600px) {
