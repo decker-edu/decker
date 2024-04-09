@@ -1,11 +1,12 @@
 # Compiler Config
 
 runtime-path-variables:
-  - 'logos'
-  - 'affiliation'
-  - 'author'
-  - 'authors'
-  - 'teaser'
+  - 'logos' # find title-page logos
+  - 'affiliation' # find title-page logos of affiliations
+  - 'author' # find title-page photos of authors
+  - 'authors' # as above
+  - 'teaser' # find title-page teaser images
+  - 'template' # find custom deck and page js and css files
   - 'rpv-test.leaf-path'    # TODO test value, should be moved somewhere else
   - 'rpv-test.leaf-no-path' # TODO test value, should be moved somewhere else
   - 'rpv-test.branch'       # TODO test value, should be moved somewhere else
