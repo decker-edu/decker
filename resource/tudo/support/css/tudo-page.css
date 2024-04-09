@@ -1,6 +1,31 @@
 @import url("../vendor/fontawesome/css/all.css");
 @import url("../fonts/lato.css");
 
+/**********************/
+/* Variables
+/**********************/
+
+html {
+  --details-background-color: rgba(0, 0, 0, 0.03);
+  --summary-background-color: rgba(0, 0, 0, 0.05);
+  --summary-hover-color: rgba(0, 0, 0, 0.4);
+}
+
+html.dark {
+  --details-background-color: rgba(255, 255, 255, 0.03);
+  --summary-background-color: rgba(255, 255, 255, 0.05);
+  --summary-hover-color: rgba(255, 255, 255, 0.4);
+}
+
+/**********************/
+/* PAGE HEADER
+/**********************/
+
+:root {
+  color-scheme: light dark;
+  accent-color: var(--primary-color);
+}
+
 button:hover {
   cursor: pointer;
 }
@@ -203,36 +228,14 @@ div.image-row img {
   display: block;
 }
 
-header > h1 {
-  font-size: 2em;
-}
-
-/* body > h1:first-of-type {
-  font-size: 1.75em;
-} */
-
-h1 {
-  font-size: 1.5em;
-}
-
 h2 {
   font-size: 1.25em;
 }
 
-h3,
 h4,
 h5,
 h6 {
   font-size: 1em;
-}
-
-header h1 {
-  margin-bottom: 0;
-}
-
-header h2 {
-  margin-top: 0;
-  color: var(--muted);
 }
 
 header nav {
@@ -245,6 +248,15 @@ header {
   padding: 2rem 1.5rem;
   /* This sets the right and left margins to cancel out the body's margins. It's width is still the same, but the background stretches across the page's width. */
   margin: auto;
+}
+
+header h1 {
+  margin-bottom: 0;
+}
+
+header h2 {
+  margin-top: 0;
+  color: var(--muted);
 }
 
 header h1,
@@ -313,6 +325,12 @@ header > h1 {
   margin-bottom: 0;
 }
 
+/* CONFLICT */
+
+header > h1 {
+  font-size: 2em;
+}
+
 header > h2 {
   font-size: 2.5rem;
   margin-top: 0;
@@ -326,6 +344,7 @@ header nav {
 /* old stuff */
 
 h1 {
+  font-size: 1.5em;
   margin-top: 3rem;
 }
 
@@ -459,6 +478,7 @@ details.demo {
   border-radius: 5px;
   background: var(--accent3-bbg);
 }
+
 details[open].demo {
   padding-bottom: 1em;
 }
@@ -492,12 +512,6 @@ a {
   text-decoration: none;
 }
 
-/* Comment in if wanted
-a:visited {
-  color: var(--accent6-fg);
-}
-*/
-
 a:hover {
   text-shadow: none;
   text-decoration: underline;
@@ -516,6 +530,7 @@ a:hover {
 .theorem details summary:hover {
   background: rgba(1, 1, 1, 0.1);
 }
+
 .example details summary:hover {
   background: rgba(1, 1, 1, 0.1);
 }
@@ -1004,14 +1019,6 @@ div.image-row div {
 
 div.image-row img {
   display: block;
-}
-
-h1 {
-  font-size: 1.5em;
-}
-
-h2 {
-  font-size: 1.25em;
 }
 
 h4,
