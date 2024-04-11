@@ -47,6 +47,7 @@ import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.Transcribe
 import Text.Decker.Project.ActionContext
+import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
@@ -427,6 +428,13 @@ runClean totally = do
       transient <- transientDir
       putStrLn $ "# Removing " ++ transient
       tryRemoveDirectory transient
+      dirs <- fastGlobDirs alwaysExclude (== renderedCodeDir) "."
+      forM_
+        dirs
+        ( \dir -> do
+            putStrLn $ "# Removing " ++ dir
+            tryRemoveDirectory dir
+        )
 
 pdfMsg =
   [text|

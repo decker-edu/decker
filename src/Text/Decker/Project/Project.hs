@@ -9,7 +9,6 @@
 module Text.Decker.Project.Project
   ( scanTargetsToFile,
     setProjectDirectory,
-    -- , dachdeckerFromMeta
     unusedResources,
     scanTargets,
     excludeDirs,
@@ -30,6 +29,7 @@ module Text.Decker.Project.Project
     fromMetaValue,
     toMetaValue,
     readTargetsFile,
+    alwaysExclude,
   )
 where
 
@@ -191,7 +191,7 @@ sourceRegexes :: [String] =
     "\\`(^_).*\\.scss\\'"
   ]
 
-alwaysExclude = [publicDir, "dist", ".git", ".vscode", ".decker"]
+alwaysExclude = [publicDir, "dist", ".git", ".vscode", ".stack-work"]
 
 questSuffix = "-quest.yaml"
 

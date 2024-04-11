@@ -1,5 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Use <$>" #-}
+{-# HLINT ignore "Avoid lambda using `infix`" #-}
 
 module Text.Decker.Internal.Common where
 
@@ -94,13 +98,14 @@ devSupportDir = "resource/decker/support"
 
 supportPath = "/support"
 
--- transientDir = ".decker"
-
 transientDir :: IO FilePath
 transientDir = do
   tmp <- getTemporaryDirectory
-  cd <- getCurrentDirectory
-  return $ tmp </> "decker-" <> hash9String cd <> foldr (\c s -> replace c "-" s) cd ["/", "\\", ":"]
+  cwd <- getCurrentDirectory
+  return $ mkTmpDirName tmp cwd
+
+mkTmpDirName tmp cwd =
+  tmp </> "decker-" <> hash9String cwd <> foldr (\c s -> replace c "-" s) cwd ["/", "\\", ":"]
 
 renderedCodeDir = ".rendered-code"
 

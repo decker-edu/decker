@@ -572,6 +572,14 @@ function toggleLaser() {
   else selectTool(LASER);
 }
 
+/*
+ * switch between eraser and pen
+ */
+function toggleEraser() {
+  if (tool == ERASER) selectTool(PEN);
+  else selectTool(ERASER);
+}
+
 function toggleColorPicker() {
   colorPicker.classList.toggle("active");
 }
@@ -1616,6 +1624,11 @@ function setupKeyBindings() {
   Reveal.addKeyBinding(
     { keyCode: 76, key: "L", description: "Whiteboard: Toggle laser pointer" },
     toggleLaser
+  );
+
+  Reveal.addKeyBinding(
+    { keyCode: 69, key: "E", description: "Whiteboard: Toggle eraser" },
+    toggleEraser
   );
 
   Reveal.addKeyBinding(
