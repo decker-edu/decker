@@ -19,7 +19,7 @@ export function init() {
 
     const macros = options.macros ? options.macros : {};
 
-    let loadModules = [];
+    let loadModules = ["[tex]/ams", "[tex]/action", "[tex]/color"];
     let lazyMargin = null;
     if (options?.lazy) {
       loadModules.push("ui/lazy");
@@ -55,16 +55,8 @@ export function init() {
         titleID: 0, // initial id number to use for aria-labeledby titles
       },
       tex: {
-        inlineMath: [
-          // start/end delimiter pairs for in-line math
-          ["$", "$"],
-          ["\\(", "\\)"],
-        ],
-        displayMath: [
-          // start/end delimiter pairs for display math
-          ["$$", "$$"],
-          ["\\[", "\\]"],
-        ],
+        tags: "ams",
+        packages: { "[+]": ["ams", "action", "color"] },
         macros: macros,
       },
       options: {
@@ -78,7 +70,7 @@ export function init() {
       window.MathJax.options.lazyMargin = lazyMargin;
     }
 
-    document.documentElement.appendChild(script);
+    document.head.appendChild(script);
   });
 }
 
