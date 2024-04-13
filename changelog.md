@@ -2,6 +2,15 @@
 
 ## decker 0.14.0
 
+-   Zooming in/out of a slide element is by default triggered via 
+    double-click (left mouse button). It can now be configured to react on 
+    double-click, triple-click, or alt-click (alt-key and left mouse).
+
+    ``` yaml
+    zoom:
+      trigger: { "doubleClick" | "tripleClick" | "altClick" }
+    ```
+
 -   Decker slides can now be installed as progressive web apps (PWAs). We don't
     cache the content locally, so consumers of published slides still need
     internet connection. But the PWA mechanism allows to add slides to the

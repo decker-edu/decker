@@ -408,9 +408,10 @@ footer p {
   display: inline-block;
   width: 100%;
   margin: 0;
-  padding: 0.5em;
+  padding-block: 0.5em;
   line-height: 2em;
   text-align: center;
+  box-sizing: border-box;
 }
 
 @media only screen and (max-width: 600px) {
@@ -626,28 +627,22 @@ img {
   color: var(--foreground-color);
 }
 
-.chapter {
+h1 {
+  font-size: 2rem;
   margin-top: 2em;
-  margin-bottom: 1em;
-  font-size: 2.5rem;
-
-  padding-bottom: 0.7em;
-  /* border-bottom: 3px solid black; */
-
-  padding-top: 1.5em;
-  border-top: 2px solid var(--shade3);
+  margin-bottom: 0.7em;
 }
 
-.section {
-  margin-top: 3em;
-  margin-bottom: 1.5em;
+h2 {
   font-size: 1.5rem;
+  margin-top: 2em;
+  margin-bottom: 0.7em;
 }
 
 h3 {
-  margin-top: 2.5em;
-  margin-bottom: 1em;
   font-size: 1.25rem;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
 }
 
 p {

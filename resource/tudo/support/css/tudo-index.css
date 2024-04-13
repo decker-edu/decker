@@ -137,6 +137,7 @@ footer p {
   padding: 0.5em;
   line-height: 2em;
   text-align: center;
+  box-sizing: border-box;
 }
 
 @media only screen and (max-width: 600px) {
@@ -221,13 +222,10 @@ details input {
 
 body.index table {
   display: table;
-  /* width: fit-content; */
   width: 100%;
   margin: auto;
   border-collapse: collapse;
   border-spacing: 2px;
-  border-top: 2px solid var(--foreground-color);
-  border-bottom: 2px solid var(--foreground-color);
   text-align: center;
   margin-bottom: 1em;
   line-height: 1.5em;
