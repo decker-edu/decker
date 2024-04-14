@@ -104,9 +104,6 @@ transientDir = do
   cwd <- getCurrentDirectory
   return $ mkTmpDirName tmp cwd
 
-mkTmpDirName tmp cwd =
-  tmp </> "decker-" <> hash9String cwd <> foldr (\c s -> replace c "-" s) cwd ["/", "\\", ":"]
-
 renderedCodeDir = ".rendered-code"
 
 liveFile = (</> "live.txt") <$> transientDir
@@ -120,3 +117,7 @@ metaArgsFile = (</> "meta-args.yaml") <$> transientDir
 externalStatusFile = (</> "external-programs.json") <$> transientDir
 
 indexSource = "index.md"
+
+mkTmpDirName tmp cwd =
+  tmp </> "decker-" <> hash9String cwd <> foldr (\c s -> replace c "-" s) cwd ["/", "\\", ":"]
+

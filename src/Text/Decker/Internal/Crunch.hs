@@ -15,7 +15,7 @@ import System.Exit
 import System.Process
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Helper (dropSuffix, replaceSuffix)
+import Text.Decker.Internal.Helper
 import Text.Decker.Project.Project
 import Text.Decker.Server.Video
 
@@ -44,18 +44,18 @@ crunchRules = do
       copyFileChanged src out
     -- crunch the WEBMs in the list if the list changed
     "**/*-recording.mp4" %> \out -> do
-      let list = out <.> "list"
-      need [list]
-      putNormal $ "# ffmpeg (for " <> out <> ")"
-      liftIO $ concatVideoMp4' slow list out
-    -- compile the lost of WEBMs
-    "**/*-recording.mp4.list" %> \out -> do
-      alwaysRerun
-      let pattern = dropSuffix ".mp4.list" out <> "*.webm"
+      -- this pattern includes single WEBMs as well as collections of numbered fragments
+      let pattern = dropSuffix ".mp4" out <> "*.webm"
       webms <- getDirectoryFiles "" [pattern]
-      putNormal $ "# collect WEBMs (for " <> out <> ")"
-      -- only write the list if it would change
-      writeFileChanged out (List.unlines $ map (\f -> "file '" <> takeFileName f <> "'") $ sort webms)
+      putNormal $ "# collect WEBMs (for " <> intercalate ", " webms <> ")"
+      -- only write the list if it would change and track the change
+      let list = out <.> "list"
+      writeFileChanged list (List.unlines $ map (\f -> "file '" <> takeFileName f <> "'") $ sort webms)
+      putNormal $ "# ffmpeg (for " <> out <> ")"
+      need webms
+      liftIO $ do
+        concatVideoMp4' slow list out
+        removeFileIfExists list
 
 -- | Reads the 'comment' meta data field from the video container. Return True
 -- if the value is 'decker-crunched', False otherwise.
