@@ -6,8 +6,8 @@ import Control.Lens ((^.), (^?))
 import Control.Monad
 import Data.Aeson
 import Data.Aeson.Lens
-import Data.List qualified as List
-import Data.Map.Strict qualified as Map
+import qualified Data.List as List
+import qualified Data.Map.Strict as Map
 import Development.Shake
 import Development.Shake.FilePath
 import Relude
@@ -42,16 +42,13 @@ crunchRules = do
       need [src]
       putNormal $ "# copy recording (for " <> out <> ")"
       copyFileChanged src out
-    -- crunch the WEBMs in the list if the list or one of the WEBMs changed
+    -- crunch the WEBMs in the list if the list changed
     "**/*-recording.mp4" %> \out -> do
-      alwaysRerun
       let list = out <.> "list"
       need [list]
-      let pattern = dropSuffix ".mp4.list" out <> "*.webm"
-      need <$> getDirectoryFiles "" [pattern]
       putNormal $ "# ffmpeg (for " <> out <> ")"
       liftIO $ concatVideoMp4' slow list out
-    -- compile the list of WEBMs
+    -- compile the lost of WEBMs
     "**/*-recording.mp4.list" %> \out -> do
       alwaysRerun
       let pattern = dropSuffix ".mp4.list" out <> "*.webm"
