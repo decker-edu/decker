@@ -274,3 +274,13 @@ html.dark img {
   z-index: -1;
   font-weight: bold;
 }
+
+section#title-slide h1.title {
+  display: flex;
+  flex-direction: column;
+}
+
+section#title-slide h2.subtitle {
+  display: flex;
+  flex-direction: column;
+}
