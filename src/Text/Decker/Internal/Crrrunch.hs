@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Internal.Crunch where
+module Text.Decker.Internal.Crrrunch where
 
 import Control.Lens ((^.), (^?))
 import Control.Monad
@@ -11,19 +11,69 @@ import Data.Map.Strict qualified as Map
 import Development.Shake
 import Development.Shake.FilePath
 import Relude
+import System.Directory (doesFileExist, getModificationTime, removeFile)
+import System.Directory.Extra (copyFile)
 import System.Exit
+import System.FilePath.Glob (compile, globDir1)
 import System.Process
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Helper (dropSuffix, replaceSuffix)
+import Text.Decker.Project.ActionContext (ActionContext, globalMeta)
 import Text.Decker.Project.Project
 import Text.Decker.Server.Video
+
+-- Checks if one of the sources is newer than the target file.
+needsRebuild :: FilePath -> [FilePath] -> IO Bool
+needsRebuild target sources = do
+  texists <- System.Directory.doesFileExist target
+  if not texists
+    then return True
+    else do
+      needs <- forM sources $ \source -> do
+        sexists <- System.Directory.doesFileExist source
+        if not sexists
+          then return False
+          else do
+            tmod <- getModificationTime target
+            smod <- getModificationTime source
+            return (tmod < smod)
+      return $ or needs
+
+-- Replaces the Shake dependency nightmare with straight forward modtime checking.
+crunchAllRecordings :: ActionContext -> IO ()
+crunchAllRecordings context = do
+  targets <- scanTargets (context ^. globalMeta)
+  forM_ (Map.keys $ targets ^. decks) $ \deck -> do
+    let recording = makeRelative publicDir $ replaceSuffix "-deck.html" "-recording.mp4" deck
+    let source = makeRelative publicDir deck
+    let pattern = dropSuffix "-deck.html" source <> "*.webm"
+    webms <- globDir1 (compile pattern) "."
+    let mp4s = map (`replaceExtension` ".mp4") webms
+    unless (null webms) $ do
+      forM_ webms $ \webm -> do
+        let mp4 = replaceExtension webm ".mp4"
+        whenM (needsRebuild mp4 [webm])
+          $ do
+            putStrLn $ "# crrrunch (transcode " <> webm <> ")"
+            transcodeVideoMp4 webm mp4
+      whenM (needsRebuild recording mp4s)
+        $ do
+          let list = recording <.> "list"
+          writeFileChanged list (List.unlines $ map (\f -> "file '" <> takeFileName f <> "'") $ sort mp4s)
+          putStrLn "# crrrunch (combine fast:"
+          mapM_ (putStrLn . ("  " <>)) (sort mp4s)
+          putStrLn "# )"
+          concatVideoMp4' fast list recording
+          removeFile list
+          whenM (needsRebuild (publicDir </> recording) [recording])
+            $ copyFile recording (publicDir </> recording)
 
 -- | Rules for transcoding videos. Mp4 videos are recreated with higher
 -- compression parameters if any of the recording fragments changed. Also, if
 -- they have not yet been transcoded.
-crunchRules :: Rules ()
-crunchRules = do
+crunchRulesO :: Rules ()
+crunchRulesO = do
   (getGlobalMeta, getDeps, getTemplate) <- prepCaches
   want ["mp4s"]
   phony "mp4s" $ do
