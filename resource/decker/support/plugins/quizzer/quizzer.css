@@ -1,0 +1,32 @@
+.quizzer {
+  border: 2px solid var(--foreground-color);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.quizzer .question {
+  background-color: var(--accent2-fg);
+}
+
+button.answer {
+  padding: 1rem;
+  border: 2px solid black;
+  background-color: #dddddd;
+}
+
+button.answer:hover {
+  background-color: #eeeeee;
+}
+
+button.answer:active {
+  background-color: #222222;
+  color: #eeeeee;
+}
+
+button.answer.correct {
+  border-color: limegreen;
+}
+
+button.answer.wrong {
+  border-color: crimson;
+}
