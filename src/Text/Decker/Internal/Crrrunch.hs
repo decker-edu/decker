@@ -66,8 +66,8 @@ crunchAllRecordings context = do
           putStrLn "# )"
           concatVideoMp4' fast list recording
           -- removeFile list
-          whenM (needsRebuild (publicDir </> recording) [recording])
-            $ copyFile recording (publicDir </> recording)
+          -- whenM (needsRebuild (publicDir </> recording) [recording])
+          --   $ copyFile recording (publicDir </> recording)
 
 -- | Rules for transcoding videos. Mp4 videos are recreated with higher
 -- compression parameters if any of the recording fragments changed. Also, if
