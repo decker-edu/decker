@@ -101,6 +101,18 @@ section#title-slide .logo img {
   max-height: 100%;
 }
 
+/* Allow for multi-line headers */
+
+section#title-slide h1.title {
+  display: flex;
+  flex-direction: column;
+}
+
+section#title-slide h2.subtitle {
+  display: flex;
+  flex-direction: column;
+}
+
 /* Margins and spacing */
 
 /* Override whatever reveal sets here. */
