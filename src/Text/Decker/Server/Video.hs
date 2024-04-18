@@ -149,7 +149,7 @@ concatVideoMp4' ffmpegArgs listFile mp4 = do
     runFfmpeg listFile dst = do
       tmp <- uniqueTransientFileName dst
       let args =
-            ["-nostdin", "-v", "fatal", "-y", "-f", "concat", "-safe", "0", "-i", listFile]
+            ["-nostdin", "-v", "warning", "-y", "-f", "concat", "-safe", "0", "-i", listFile]
               <> ffmpegArgs
               <> ["-acodec", "aac", tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
