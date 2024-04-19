@@ -65,7 +65,8 @@ crunchAllRecordings context = do
           mapM_ (putStrLn . ("  " <>)) (sort mp4s)
           putStrLn "# )"
           concatVideoMp4' fast list recording
-          -- removeFile list
+          removeFile list
+          -- copy to public is handled by the normal dependencies
           -- whenM (needsRebuild (publicDir </> recording) [recording])
           --   $ copyFile recording (publicDir </> recording)
 
