@@ -1,6 +1,25 @@
+pre.live-code {
+  font-family: monospace;
+  line-break: after-white-space;
+  white-space: pre-wrap;
+  -webkit-nbsp-mode: space;
+  line-height: 1.3;
+  padding: 0.5em;
+}
+
+codapi-output pre {
+  font-family: monospace;  
+  line-break: after-white-space;
+  white-space: pre-wrap;
+  -webkit-nbsp-mode: space;
+   line-height: 1.3;
+   padding: 0.5em;
+}
+
 codapi-toolbar {
   color: var(--accent5);
 }
+
 codapi-toolbar button {
   padding: 0;
   border: none;
