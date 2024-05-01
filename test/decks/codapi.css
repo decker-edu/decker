@@ -52,8 +52,8 @@ code:focus {
 }
 
 codapi-output a[href="#close"] {
-  top: 0;
-  right: 0;
+  top: 0.5em;
+  right: 0.5em;
   line-height: inherit;
 }
 
