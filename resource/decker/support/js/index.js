@@ -4,8 +4,7 @@ function initIndexPage() {
 }
 
 /* Index Pages should be small enough that loading all sources at once
- * instead of loading based with an intersection observer should be
- * feasable.
+ * instead of loading with an intersection observer should be feasable.
  */
 function loadSources() {
   const sources = document.querySelectorAll("[data-src]");
