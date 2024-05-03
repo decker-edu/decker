@@ -1627,7 +1627,8 @@ html.dark
   filter: brightness(90%) contrast(90%);
 }
 
-html.dark section#title-slide .logo {
+/* put white background on the image instead of the container */
+html.dark section#title-slide .logo img {
   background-color: var(--shade7);
   border-radius: 0.5rem;
 }
