@@ -59,7 +59,7 @@ Languages (so far):
 
 # Python
 
-``` {#python-1 .live-code lall:="lolll"}
+``` {#python-1 .live-code}
 msg = "Hello, World!"
 print(msg)
 ```
