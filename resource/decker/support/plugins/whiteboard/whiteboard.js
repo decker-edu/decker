@@ -1079,6 +1079,14 @@ function saveAnnotations() {
     a.href = window.URL.createObjectURL(annotationBlob());
     a.click();
     needToSave(false);
+    /* TODO Maybe add a config to enable this because this feels annoying as a desktop notification
+    if (window.postNotification) {
+      window.postNotification(
+        localization.notificationTitle,
+        localization.notificationDownloadComplete
+      );
+    }
+    */
   } catch (error) {
     console.error("whiteboard annotations could not be downloaded: " + error);
   }
@@ -1091,10 +1099,22 @@ function saveAnnotations() {
     if (xhr.status == 200) {
       console.log("whiteboard annotations saved to deck directory");
       needToSave(false);
+      if (window.postNotification) {
+        window.postNotification(
+          localization.notificationTitle,
+          localization.notificationUploadSuccess
+        );
+      }
     } else {
       console.warn(
         "whiteboard annotation could not be save to decker, trying to download the file instead."
       );
+      if (window.postNotification) {
+        window.postNotification(
+          localization.notificationTitle,
+          localization.notificationUploadFailed
+        );
+      }
     }
   };
   xhr.send(annotationBlob());
@@ -1672,6 +1692,31 @@ function setupKeyBindings() {
   );
 }
 
+let localization;
+function setupLocalization() {
+  const lang = navigator.language;
+  localization = {
+    notificationTitle: "Decker: Whiteboard Annotations",
+    notificationUploadSuccess:
+      "Your annotations were successfully uploaded to your deck's directory.",
+    notificationUploadFailed:
+      "Upload of annotations failed. Please check your download directory for backup files and add them manually to your project.",
+    notificationDownloadComplete:
+      "Download of annotations as a backup completed.",
+  };
+  if (lang === "de") {
+    localization = {
+      notificationTitle: "Decker: Whiteboardnotizen",
+      notificationUploadSuccess:
+        "Ihre Annotationen wurden erfolgreich Ihrem Foliensatzverzeichnis hinzugefügt.",
+      notificationUploadFailed:
+        "Upload der Annotationen fehlgeschlagen. Bitte suchen Sie in Ihrem Downloadverzeichnis nach einer Sicherungskopie und fügen Sie diese Ihrem Projekt manuell hinzu.",
+      notificationDownloadComplete:
+        "Download der Annotationen als Sicherung abgeschlossen.",
+    };
+  }
+}
+
 /*****************************************************************
  * Export the plugin
  ******************************************************************/
@@ -1684,6 +1729,9 @@ const Plugin = {
 
     // store reference to Reveal deck
     Reveal = deck;
+
+    //prepare strings
+    setupLocalization();
 
     // read configuration options
     readConfig();
