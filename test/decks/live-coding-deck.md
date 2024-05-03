@@ -13,6 +13,18 @@ templates:
       import {CodeJar} from "https://cdn.jsdelivr.net/npm/codejar@4.2.0/+esm";
       let jar = CodeJar(document.querySelector(':(url)'));
     </script>
+  live-code-block: |
+    <div class="media">
+    <figure class="live-code">
+    <pre id=":(rnd-id)"><code>:(code)</code></pre>
+    <codapi-snippet sandbox=":(language)" editor="basic" selector="#:(rnd-id)"></codapi-snippet>
+    <script type="module">
+      import {CodeJar} from "https://cdn.jsdelivr.net/npm/codejar@4.2.0/+esm";
+      let jar = CodeJar(document.querySelector(':(rnd-id)'));
+    </script>
+    <figcaption>:(caption)</figcaption>
+    </figure>
+    </div>
   live-code-server: |
     <codapi-settings url=":(url)"> </codapi-settings>
 title: Live Coding
@@ -42,12 +54,12 @@ Languages (so far):
 
 ## TODO {.accent4}
 
--   integrate [CodeJar](https://medv.io/codejar/) for better editing
--   integrate [PrismJS](https://prismjs.com/) for syntax highlighting
+-   [x] integrate [CodeJar](https://medv.io/codejar/) for better editing
+-   [ ] integrate [PrismJS](https://prismjs.com/) for syntax highlighting
 
 # Python
 
-``` {#python-1 .live-code}
+``` {#python-1 .live-code lall:="lolll"}
 msg = "Hello, World!"
 print(msg)
 ```
@@ -73,3 +85,17 @@ main = putStrLn "Hello, World!"
 [@live-code](#haskell-1 "haskell")
 
 [@live-code-server](https://codapi.tramberend.de/v1)
+
+# Live Code Macro (Python)
+
+``` {macro="live-code-block" language="python"}
+msg = "Hello World!"
+print(msg)
+```
+
+# Live Code Macro (Haskell)
+
+``` {macro="live-code-block" language="haskell"}
+msg = "Hello World!"
+main = print msg
+```

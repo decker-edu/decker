@@ -2,30 +2,60 @@
 
 module Text.Decker.Filter.Template (expandTemplateMacros) where
 
+import Data.List qualified as List
 import Data.Text qualified as Text
 import Relude
-import Text.Decker.Internal.Common
+import Text.Decker.Filter.Monad (Filter)
+import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Meta (lookupMeta)
-import Text.Pandoc hiding (lookupMeta)
+import Text.Pandoc hiding (lookupMeta, newStdGen)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 
-expandTemplateMacros :: Pandoc -> Decker Pandoc
-expandTemplateMacros (Pandoc meta blocks) =
+-- randomId = Text.pack . take 9 . show . md5 . show <$> (randomIO :: IO Int)
+
+expandTemplateMacros :: Pandoc -> Filter Pandoc
+expandTemplateMacros (Pandoc meta blocks) = do
   -- Walks link blocks first
-  return $ Pandoc meta (walk expandLink $ walk expandLinkBlock blocks)
+  p1 <- liftIO $ walkM expandBlockM blocks
+  return $ Pandoc meta (walk expandLink p1)
   where
     -- Expands macro links in block contexts
-    expandLinkBlock (Para [link@(Link attr text (url, title))]) =
-      fromMaybe (Para [link]) (expand attr text url title)
-    expandLinkBlock (Plain [link@(Link attr text (url, title))]) =
-      fromMaybe (Plain [link]) (expand attr text url title)
-    expandLinkBlock block = block
+    expandBlockM (Para [link@(Link attr text (url, title))]) =
+      return $ fromMaybe (Para [link]) (expand attr text url title)
+    expandBlockM (Plain [link@(Link attr text (url, title))]) =
+      return $ fromMaybe (Plain [link]) (expand attr text url title)
+    expandBlockM block@(CodeBlock attr code) = do
+      id <- randomId
+      return $ fromMaybe block (expandCode ("id" <> id) attr code)
+    expandBlockM block = return block
 
     -- Expands macro links in inline contexts
     expandLink link@(Link attr text (url, title)) =
       fromMaybe link (expand attr text url title)
     expandLink inline = inline
+
+    expandCode rndId attr@(id, cls, kvs) code = do
+      let rawKvs = map (\(k, v) -> (fromMaybe k $ Text.stripPrefix "data-" k, v)) kvs
+      name <- List.lookup "macro" rawKvs
+      let kvArgs = List.filter ((/= "macro") . fst) rawKvs
+      let clsArgs = zip (map show [1 .. (length cls)]) cls
+      let allClsArgs = [("args", Text.unwords cls)]
+      let codeArg = [("code", code)]
+      let rndIdArg = [("rnd-id", rndId)]
+      let idArg = [("id", id)]
+      let captionArg = [("caption", fromMaybe "" (List.lookup "caption" rawKvs))]
+      let arguments = codeArg <> clsArgs <> allClsArgs <> kvArgs <> rndIdArg <> idArg <> captionArg
+      template <- lookupMeta ("templates." <> name) meta
+      let result =
+            case template of
+              MetaInlines inlines -> splice name $ walk (substituteInline arguments) blocks
+              MetaBlocks [Plain blocks] -> splice name $ walk (substituteInline arguments) blocks
+              MetaBlocks [Para blocks] -> splice name $ walk (substituteInline arguments) blocks
+              MetaBlocks blocks -> splice name $ walk (substituteInline arguments) $ walk (substituteBlock arguments) blocks
+              MetaString str -> splice name $ substitute arguments str
+              _ -> splice name $ CodeBlock attr code
+      Just result
 
     -- Expand macro and splice back into required context
     expand attr text url title = do
@@ -43,11 +73,14 @@ expandTemplateMacros (Pandoc meta blocks) =
         MetaString str -> splice name $ substitute arguments str
         _ -> splice name $ Link attr text (url, title)
 
-    -- Parses a link text into a macro invocation, if possible
+    -- Parses a link text into a macro invocation, if possible. a macro name
+    -- starts either with  a '@', or end with a ':'
     parseInvocation inline =
       case second Text.words $ Text.splitAt 1 $ stringify inline of
         ("@", name : args) -> Just (name, args)
-        _ -> Nothing
+        _ -> case Text.words $ stringify inline of
+          (name : args) | Text.isSuffixOf ":" name -> Just (Text.dropEnd 1 name, args)
+          _ -> Nothing
 
     -- Substitutes macro arguments into text fragments in various Inline elements
     substituteInline args (Str text) = Str (substitute args text)
