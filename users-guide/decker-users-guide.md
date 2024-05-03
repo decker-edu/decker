@@ -557,15 +557,24 @@ Using this macro reduces the actual invocation to just:
 [@video](/videos/myvideo)
 ```
 
+### Link Macros
+
+Link Macros can be invoked by standard Markdown link expressions.
+
 Macro arguments are extracted from three different parts of the repurposed
 Markdown link syntax, a space separated list of positional arguments directly
 following the macro name in the square brackets, the *url* parameter specified
 in the parenthesis and the optional *title* parameter.
 
+``` markdown
+    [macro_name arg1 arg2 ... argn](url "title")
+```
+
 The positional parameters can be referenced in the macro definition as `:(1)`,
-`:(2)`, `:(3)`, ..., the others as `:(url)` and `:(title)` respectively. The
-actual arguments are inserted into the parsed Pandoc AST nodes of the definition
-by simple string replacement.
+`:(2)`, `:(3)`, ... (or `:(args)` for a sequence of all positional parameters),
+the others as `:(url)` and `:(title)` respectively. The actual arguments are
+inserted into the parsed Pandoc AST nodes of the definition by simple string
+replacement.
 
 For example, the following macro definition
 
@@ -588,6 +597,50 @@ arg1 arg2 arg3 url title arg1 arg2 arg3 arg4
 
 The *url* parameter is automatically URL-encoded by the Pandoc parser. This
 might or might not be what you want.
+
+### Code Block Macros
+
+Code block macros can be invoked as standard Markdown code block expressions.
+
+The macro name is given as the value of the `macro` attribute on the code block.
+Macro arguments are extracted from two different parts of the repurposed
+Markdown code block syntax. All other attribute value pairs are used as named
+arguments and the classes are used as unnamed positional arguments. The contents
+of the code block available as paramter `:(code)`
+
+```` markdown
+``` {macro="name" .arg1 .arg2 ... .argn param1="value2" param2="value2"}
+code
+```    
+````
+
+The positional parameters can be referenced in the macro definition as `:(1)`,
+`:(2)`, `:(3)`, ... (or `:(args)` for a sequence of all positional parameters),
+the attributes as `:(param1)` and `:(param")`. The code block content is
+available as `:(code)`. The  arguments are inserted into the parsed Pandoc
+AST nodes of the definition by simple string replacement.
+
+For example, the following macro definition
+
+``` yaml
+templates:
+  test: ":(1) :(2) :(3) :(param1) :(param2) :(args) :(code)"
+```
+
+invoked like this
+
+```` markdown
+``` {macro="test" .arg1 .arg2 .arg3 param1="value2" param2="value2"}
+The code
+```    
+````
+
+
+will produce this text:
+
+``` markdown
+arg1 arg2 arg3 value1 value2 arg1 arg2 arg3 The code
+```
 
 ## Media handling
 
