@@ -57,6 +57,7 @@ readAndFilterMarkdownFile disp globalMeta docPath = do
     >>= calcRelativeResourcePaths docBase
     >>= runDynamicFilters Before docBase
     >>= runNewFilter disp examinerFilter docBase
+    >>= runNewFilter disp expandTemplateMacros docBase
     >>= deckerMediaFilter disp docPath
     >>= processPandoc (deckerPipeline disp) docBase disp
     >>= runDynamicFilters After docBase
@@ -301,7 +302,7 @@ deckerMediaFilter dispo docPath pandoc@(Pandoc meta _) =
 deckerPipeline (Disposition Deck Html) =
   concatM
     [ evaluateShortLinks,
-      expandTemplateMacros,
+      -- expandTemplateMacros,
       expandDeckerMacros,
       includeCode,
       processDetailDiv,
@@ -312,7 +313,7 @@ deckerPipeline (Disposition Deck Html) =
 deckerPipeline (Disposition Page Html) =
   concatM
     [ evaluateShortLinks,
-      expandTemplateMacros,
+      -- expandTemplateMacros,
       expandDeckerMacros,
       includeCode,
       processDetailDiv,
@@ -321,7 +322,7 @@ deckerPipeline (Disposition Page Html) =
 deckerPipeline (Disposition Index Html) =
   concatM
     [ evaluateShortLinks,
-      expandTemplateMacros,
+      -- expandTemplateMacros,
       expandDeckerMacros,
       includeCode,
       processDetailDiv,
@@ -330,7 +331,7 @@ deckerPipeline (Disposition Index Html) =
 deckerPipeline (Disposition Handout Html) =
   concatM
     [ evaluateShortLinks,
-      expandTemplateMacros,
+      -- expandTemplateMacros,
       expandDeckerMacros,
       includeCode,
       processDetailDiv,

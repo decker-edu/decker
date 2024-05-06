@@ -8,7 +8,7 @@ import Data.List (partition)
 import Data.Text qualified as Text
 import GHC.IO (unsafePerformIO)
 import Relude
-import System.Random (randomIO)
+import System.Random (randomIO, newStdGen, Random (random))
 import Text.Pandoc.Definition
 
 -- | adds a given String to the list if not in there; Does nothing if the
@@ -149,7 +149,7 @@ forceBlock (RawInline format html) = RawBlock format html
 forceBlock inline = Plain [inline]
 
 oneImagePerLine :: [[Inline]] -> Bool
-oneImagePerLine inlines = not (null inlines) && not (any null inlines) && all isImage (concat inlines)
+oneImagePerLine inlines = not (null inlines) && not (any null inlines) && all (all isImage) inlines
 
 unpackImage :: Inline -> (Attr, [Inline], Text, Text)
 unpackImage (Image attr alt (url, title)) = (attr, alt, url, title)
@@ -173,3 +173,10 @@ id9 = unsafePerformIO randomId
 
 single :: a -> [a]
 single x = [x]
+
+toId :: Int -> Text
+toId = Text.pack . take 9 . show . md5 . show
+
+randomIds :: IO [Text]
+randomIds = newStdGen <&> unfoldr (Just . first toId . random)
+

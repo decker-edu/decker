@@ -42,8 +42,8 @@ code {
 }
 
 /* Code blocks. */
-span.pre>code,
-pre>code {
+span.pre > code,
+pre > code {
   font-size: 90%;
   line-height: 1.3;
 }
@@ -71,14 +71,16 @@ a:hover {
 
 /* Spans */
 a:hover,
-span:is(.accent0,
-  .accent1,
-  .accent2,
-  .accent3,
-  .accent4,
-  .accent5,
-  .accent6,
-  .accent7) {
+span:is(
+    .accent0,
+    .accent1,
+    .accent2,
+    .accent3,
+    .accent4,
+    .accent5,
+    .accent6,
+    .accent7
+  ) {
   border-radius: calc(var(--block-border-radius) / 1);
   padding-left: 0.2em;
   padding-right: 0.2em;
@@ -260,17 +262,17 @@ section.inverse .figure :is(img, svg, pre, span.pre, video, iframe, object) {
 }
 
 /* Overwrite Pandoc's syntax highlighting CSS with palette colors */
-pre>code.sourceCode {
+pre > code.sourceCode {
   white-space: pre;
   position: relative;
 }
 
-pre>code.sourceCode>span {
+pre > code.sourceCode > span {
   display: inline-block;
   line-height: 1.25;
 }
 
-pre>code.sourceCode>span:empty {
+pre > code.sourceCode > span:empty {
   height: 1.2em;
 }
 
@@ -278,7 +280,7 @@ pre>code.sourceCode>span:empty {
   overflow: visible;
 }
 
-code.sourceCode>span {
+code.sourceCode > span {
   color: inherit;
   text-decoration: inherit;
 }
@@ -298,11 +300,11 @@ pre.sourceCode {
 }
 
 @media print {
-  pre>code.sourceCode {
+  pre > code.sourceCode {
     white-space: pre-wrap;
   }
 
-  pre>code.sourceCode>span {
+  pre > code.sourceCode > span {
     text-indent: -5em;
     padding-left: 5em;
   }
@@ -312,13 +314,13 @@ pre.numberSource code {
   counter-reset: source-line 0;
 }
 
-pre.numberSource code>span {
+pre.numberSource code > span {
   position: relative;
   left: -4em;
   counter-increment: source-line;
 }
 
-pre.numberSource code>span>a:first-child::before {
+pre.numberSource code > span > a:first-child::before {
   content: counter(source-line);
   position: relative;
   left: -1em;
@@ -347,7 +349,7 @@ div.sourceCode {
 }
 
 @media screen {
-  pre>code.sourceCode>span>a:first-child::before {
+  pre > code.sourceCode > span > a:first-child::before {
     text-decoration: underline;
   }
 }
@@ -363,7 +365,8 @@ code span.an {
 }
 
 /* Annotation */
-code span.at {}
+code span.at {
+}
 
 /* Attribute */
 code span.bn {
@@ -371,7 +374,8 @@ code span.bn {
 }
 
 /* BaseN */
-code span.bu {}
+code span.bu {
+}
 
 /* BuiltIn */
 code span.cf {
@@ -421,7 +425,8 @@ code span.er {
 }
 
 /* Error */
-code span.ex {}
+code span.ex {
+}
 
 /* Extension */
 code span.fl {
@@ -434,7 +439,8 @@ code span.fu {
 }
 
 /* Function */
-code span.im {}
+code span.im {
+}
 
 /* Import */
 code span.in {
@@ -453,7 +459,8 @@ code span.op {
 }
 
 /* Operator */
-code span.ot {}
+code span.ot {
+}
 
 /* Other */
 code span.pp {
@@ -477,7 +484,8 @@ code span.st {
 }
 
 /* String */
-code span.va {}
+code span.va {
+}
 
 /* Variable */
 code span.vs {
@@ -493,4 +501,15 @@ code span.wa {
 /* Warning */
 input {
   accent-color: var(--accent3);
+}
+
+/* Task list entries */
+li.task-yes input[type="checkbox"],
+li.task-no input[type="checkbox"] {
+  font-size: 100%;
+  height: 0.8em;
+  width: 0.8em;
+  vertical-align: baseline;
+  padding: 0;
+  margin-bottom: 0;
 }
