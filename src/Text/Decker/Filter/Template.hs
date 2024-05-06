@@ -41,7 +41,7 @@ expandTemplateMacros (Pandoc meta blocks) = do
       let kvArgs = List.filter ((/= "macro") . fst) rawKvs
       let clsArgs = zip (map show [1 .. (length cls)]) cls
       let allClsArgs = [("args", Text.unwords cls)]
-      let codeArg = [("code", code)]
+      let codeArg = [("code", Text.strip code)]
       let rndIdArg = [("rnd-id", rndId)]
       let idArg = [("id", id)]
       let captionArg = [("caption", fromMaybe "" (List.lookup "caption" rawKvs))]

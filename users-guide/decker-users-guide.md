@@ -617,8 +617,10 @@ code
 The positional parameters can be referenced in the macro definition as `:(1)`,
 `:(2)`, `:(3)`, ... (or `:(args)` for a sequence of all positional parameters),
 the attributes as `:(param1)` and `:(param")`. The code block content is
-available as `:(code)`. The  arguments are inserted into the parsed Pandoc
-AST nodes of the definition by simple string replacement.
+available as `:(code)`. `:(rnd-id)` is a for each macro invocation randomly
+generated identifier that is suitable as an `id` value for HTML elements. The
+arguments are inserted into the parsed Pandoc AST nodes of the definition by
+simple string replacement.
 
 For example, the following macro definition
 
@@ -634,7 +636,6 @@ invoked like this
 The code
 ```    
 ````
-
 
 will produce this text:
 

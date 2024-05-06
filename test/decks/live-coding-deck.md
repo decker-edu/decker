@@ -3,28 +3,62 @@ subtitle: Edit and Execute Code Blocks
 template:
   css:
   - "https://unpkg.com/@antonz/codapi@0.19.0/dist/snippet.css"
+  - "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/solarized-light.min.css"
   - codapi.css
   js:
   - "https://unpkg.com/@antonz/codapi@0.19.0/dist/snippet.js"
+  - "https://cdn.jsdelivr.net/npm/ace-builds@1.33.1/src-min-noconflict/ace.js"
 templates:
   live-code: |
+    <codapi-snippet sandbox=":(title)" editor="basic" selector=":(url)"></codapi-snippet>
+  live-code-jar: |
     <codapi-snippet sandbox=":(title)" editor="basic" selector=":(url)"></codapi-snippet>
     <script type="module">
       import {CodeJar} from "https://cdn.jsdelivr.net/npm/codejar@4.2.0/+esm";
       let jar = CodeJar(document.querySelector(':(url)'));
     </script>
   live-code-block: |
-    <div class="media">
+    ::: media
     <figure class="live-code">
-    <pre id=":(rnd-id)"><code>:(code)</code></pre>
+    <pre id=":(rnd-id)" class="language-:(language)"><code class="language-:(language)">:(code)</code></pre>
+    <codapi-snippet sandbox=":(language)" editor="basic" selector="#:(rnd-id)"></codapi-snippet>
+    <figcaption>
+    :(caption)
+    </figcaption>
+    </figure>
+    :::
+  live-code-block-jar: |
+    ::: media
+    <figure class="live-code">
+    <pre id=":(rnd-id)" class="language-:(language)"><code class="language-:(language)">:(code)</code></pre>
     <codapi-snippet sandbox=":(language)" editor="basic" selector="#:(rnd-id)"></codapi-snippet>
     <script type="module">
       import {CodeJar} from "https://cdn.jsdelivr.net/npm/codejar@4.2.0/+esm";
-      let jar = CodeJar(document.querySelector(':(rnd-id)'));
+      import hljs from 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/es/highlight.min.js';
+      import :(language) from 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/es/languages/:(language).min.js';
+      hljs.registerLanguage(':(language)', :(language));
+      let jar = CodeJar(document.querySelector('#:(rnd-id)'), hljs.highlightElement);
     </script>
-    <figcaption>:(caption)</figcaption>
+    <figcaption>
+    :(caption)
+    </figcaption>
     </figure>
-    </div>
+    :::
+  live-code-block-ace: |
+    ::: media
+    <figure class="live-code">
+    <pre id=":(rnd-id)" class="language-:(language)"><code class="language-:(language)">:(code)</code></pre>
+    <codapi-snippet sandbox=":(language)" editor="basic" selector="#:(rnd-id)"></codapi-snippet>
+    <script type="module">
+      var editor = ace.edit(":(rnd-id)");
+      editor.setTheme("ace/theme/monokai");
+      editor.session.setMode("ace/mode/:(language)");
+    </script>
+    <figcaption>
+    :(caption)
+    </figcaption>
+    </figure>
+    :::
   live-code-server: |
     <codapi-settings url=":(url)"> </codapi-settings>
 title: Live Coding
