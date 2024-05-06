@@ -13,7 +13,6 @@ export default class Renderer {
       return;
     }
     const answers = quiz.choices[0];
-    console.log(answers);
     for (const answer of answers.options) {
       const button = document.createElement("button");
       button.classList.add("answer");
@@ -24,7 +23,7 @@ export default class Renderer {
           button.classList.add("wrong");
         }
       });
-      button.innerHTML = answer.answer;
+      button.innerHTML = answer.label;
       container.appendChild(button);
     }
     parent.appendChild(container);

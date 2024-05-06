@@ -443,7 +443,7 @@ window.addEventListener("load", () => {
 
 </style>
 
-::: {.quizzer .dnd}
+::: {.quizzer .choice}
 
 This is a testquestion.
 

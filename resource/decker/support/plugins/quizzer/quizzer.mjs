@@ -12,12 +12,12 @@ function parseQuizzes(reveal) {
         question: undefined,
         choices: [],
       };
-      if (quizzer.classList.contains("dnd")) {
-        quizObject.type = "drag&drop";
+      if (quizzer.classList.contains("assignment")) {
+        quizObject.type = "assignment";
       } else if (quizzer.classList.contains("freetext")) {
         quizObject.type = "freetext";
-      } else if (quizzer.classList.contains("select")) {
-        quizObject.type = "select";
+      } else if (quizzer.classList.contains("selection")) {
+        quizObject.type = "selection";
       } else {
         quizObject.type = "choice";
       }
@@ -26,12 +26,13 @@ function parseQuizzes(reveal) {
       const lists = quizzer.querySelectorAll(":scope > ul");
       for (const list of lists) {
         const choiceObject = {
+          votes: 1,
           options: [],
         };
         const items = list.querySelectorAll(":scope > li");
         for (const item of items) {
           const answerObject = {
-            answer: undefined,
+            label: undefined,
             reason: undefined,
             correct: false,
           };
@@ -44,10 +45,15 @@ function parseQuizzes(reveal) {
           if (checkbox) {
             checkbox.remove();
           }
-          const answer = item.innerHTML;
-          answerObject.answer = answer;
+          const label = item.innerHTML;
+          answerObject.label = label;
           answerObject.correct = item.classList.contains("task-yes");
           choiceObject.options.push(answerObject);
+        }
+        if (
+          choiceObject.options.filter((choice) => choice.correct).length > 1
+        ) {
+          choiceObject.votes = choiceObject.options.length;
         }
         quizObject.choices.push(choiceObject);
       }
@@ -55,7 +61,9 @@ function parseQuizzes(reveal) {
       while (quizzer.lastElementChild) {
         quizzer.lastElementChild.remove();
       }
-      Renderer.renderChoiceQuiz(quizzer, quizObject);
+      if (quizObject.type === "choice") {
+        Renderer.renderChoiceQuiz(quizzer, quizObject);
+      }
     }
   }
 }
