@@ -280,6 +280,7 @@ function createGUI() {
     "Pick Laserpointer"
   );
   buttonLaser.setAttribute("role", "switch");
+  buttonLaser.ondblclick = toggleLightSaber;
 
   buttonWhiteboard = createButton(
     "fas fa-edit checkbox",
@@ -578,6 +579,29 @@ function toggleLaser() {
 function toggleEraser() {
   if (tool == ERASER) selectTool(PEN);
   else selectTool(ERASER);
+}
+
+/*
+ * switch between normal laser and light saber
+ */
+let lightSaberActive = false;
+function toggleLightSaber() {
+  const url = new URL(import.meta.url);
+  const path = url.pathname.substring(0, url.pathname.lastIndexOf("/"));
+
+  lightSaberActive = !lightSaberActive;
+
+  if (lightSaberActive) {
+    const lightSaberOn = new Audio(path + "/lightSaberOn.mp3");
+    lightSaberOn.play();
+    laserCursor = "url(" + path + "/lightSaber.png" + ") 2 2, auto";
+    selectTool(LASER);
+  } else {
+    const lightSaberOff = new Audio(path + "/lightSaberOff.mp3");
+    lightSaberOff.play();
+    createLaserCursor();
+    selectTool(LASER);
+  }
 }
 
 function toggleColorPicker() {
@@ -1349,7 +1373,8 @@ function pointerdown(evt) {
 
     case LASER:
       clearTimeout(hideCursorTimeout);
-      hideCursor();
+      if (lightSaberActive) showCursor();
+      else hideCursor();
       isLaserStroke = true;
       startStroke(evt);
       return killEvent(evt);

@@ -26,7 +26,43 @@ function onStart(deck) {
   });
 }
 
+// Use Wake Lock API to prevent display from going to sleep, which would cause video recording to break.
+// Make sure to re-request WakeLock when it get's accidentially released
 let wakeLock = null;
+async function requestWakeLock() {
+  if ("wakeLock" in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      if (wakeLock) {
+        wakeLock.addEventListener("release", wakeLockReleased);
+        document.addEventListener("visibilitychange", visibilityChanged);
+        console.log("Enabled WakeLock, display will not go to sleep");
+      }
+    } catch (err) {
+      console.error("Failed to request WakeLock, display may go to sleep");
+    }
+  }
+}
+async function releaseWakeLock() {
+  if (wakeLock) {
+    wakeLock.removeEventListener("release", wakeLockReleased);
+    document.removeEventListener("visibilitychange", visibilityChanged);
+    await wakeLock.release();
+    wakeLock = null;
+    console.log("Disabled WakeLock, display may go to sleep again");
+  }
+}
+function wakeLockReleased() {
+  console.log("WakeLock was released, re-request it");
+  requestWakeLock();
+}
+function visibilityChanged() {
+  if (wakeLock && document.visibilityState === "visible") {
+    console.log("Document became visible again, re-request WakeLock");
+    requestWakeLock();
+  }
+}
+
 async function onPresenterMode(isActive) {
   if (isActive) {
     // show info message
@@ -35,14 +71,7 @@ async function onPresenterMode(isActive) {
     );
 
     // request wake lock: display cannot go to sleep
-    if ("wakeLock" in navigator) {
-      try {
-        wakeLock = await navigator.wakeLock.request("screen");
-        console.log("inject coffee, display will not go to sleep");
-      } catch (err) {
-        console.error("could not inject coffee, display may go to sleep");
-      }
-    }
+    requestWakeLock();
   } else {
     // show info message
     Decker.flash.message(
@@ -50,11 +79,7 @@ async function onPresenterMode(isActive) {
     );
 
     // release wake lock, display may go to sleep again
-    if (wakeLock) {
-      await wakeLock.release();
-      wakeLock = null;
-      console.log("removed coffee from system, display may go to sleep again");
-    }
+    releaseWakeLock();
   }
 }
 
