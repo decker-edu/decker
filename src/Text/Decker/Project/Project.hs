@@ -221,7 +221,7 @@ unusedResources meta = do
 scanTargetsToFile :: (MonadIO m, Partial) => Meta -> FilePath -> m ()
 scanTargetsToFile meta file = do
   targets <- liftIO $ scanTargets meta
-  liftIO $ putStrLn $ "# scanned targets to " <> file
+  -- liftIO $ putStrLn $ "# scanned targets to " <> file
   writeFileChanged file $ decodeUtf8 $ Yaml.encodePretty Yaml.defConfig targets
 
 anySource :: FilePath -> Bool

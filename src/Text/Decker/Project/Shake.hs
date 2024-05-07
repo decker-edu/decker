@@ -42,7 +42,6 @@ import System.Info
 import System.Process hiding (runCommand)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Crrrunch
-import Text.Decker.Internal.Crunch
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
@@ -75,7 +74,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- readMetaDataFile globalMetaFileName
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "pdf", "version", "check"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     _ -> runTargets context targets rules
@@ -210,6 +209,7 @@ runCommand context command rules = do
     "crunch" -> crunchAllRecordings context
     "crrrunch" -> crunchAllRecordings context
     "transcribe" -> transcribeRecordings context
+    "transcrrribe" -> transcribeAllRecordings context
     "version" -> putDeckerVersion
     "check" -> forceCheckExternalPrograms
     "pdf" -> do

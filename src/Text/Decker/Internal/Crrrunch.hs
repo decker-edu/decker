@@ -12,7 +12,6 @@ import Development.Shake
 import Development.Shake.FilePath
 import Relude
 import System.Directory (doesFileExist, getModificationTime, removeFile)
-import System.Directory.Extra (copyFile)
 import System.Exit
 import System.FilePath.Glob (compile, globDir1)
 import System.Process
