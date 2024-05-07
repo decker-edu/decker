@@ -207,7 +207,7 @@ runCommand context command rules = do
     "serve" -> do
       forkServer context
       handleUploads context
-    "crunch" -> crunchRecordings context
+    "crunch" -> crunchAllRecordings context
     "crrrunch" -> crunchAllRecordings context
     "transcribe" -> transcribeRecordings context
     "version" -> putDeckerVersion
@@ -222,8 +222,8 @@ runCommand context command rules = do
     _ -> error "Unknown command. Should not happen."
   exitSuccess
 
-crunchRecordings :: ActionContext -> IO ()
-crunchRecordings context = runShakeSlyly context crunchRules
+-- crunchRecordings :: ActionContext -> IO ()
+-- crunchRecordings context = runShakeSlyly context crunchRules
 
 transcribeRecordings :: ActionContext -> IO ()
 transcribeRecordings context = do
