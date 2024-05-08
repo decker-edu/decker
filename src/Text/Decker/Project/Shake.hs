@@ -230,7 +230,8 @@ transcribeRecordings context = do
   let baseDir = lookupMetaOrElse "/usr/local/share/whisper.cpp" "whisper.base-dir" (context ^. globalMeta)
   exists <- Dir.doesFileExist $ baseDir </> "main"
   if exists
-    then runShakeSlyly context transcriptionRules
+    then transcribeAllRecordings context
+    -- then runShakeSlyly context transcriptionRules
     else putStrLn "Install https://github.com/ggerganov/whisper.cpp to generate transcriptions."
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
