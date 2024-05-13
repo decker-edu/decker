@@ -51,7 +51,7 @@ reveal:
   fragments: true
   hash: true
   height: 1080
-  help: true
+  help: false
   # hideInactiveCursor: false
   hideCursorTime: 2000
   hideInactiveCursor: true
