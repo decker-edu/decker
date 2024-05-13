@@ -38,14 +38,15 @@ expandTemplateMacros (Pandoc meta blocks) = do
     expandCode rndId attr@(id, cls, kvs) code = do
       let rawKvs = map (\(k, v) -> (fromMaybe k $ Text.stripPrefix "data-" k, v)) kvs
       name <- List.lookup "macro" rawKvs
-      let kvArgs = List.filter ((/= "macro") . fst) rawKvs
+      let kvAttribs = List.filter ((/= "macro") . fst) rawKvs
       let clsArgs = zip (map show [1 .. (length cls)]) cls
       let allClsArgs = [("args", Text.unwords cls)]
+      let allKvAttribs = [("attribs", unwords $ map (\(k,v) -> k <> "=\"" <> v <> "\"") kvAttribs)]
       let codeArg = [("code", Text.strip code)]
       let rndIdArg = [("rnd-id", rndId)]
-      let idArg = [("id", id)]
+      let idArg = [("id", if Text.null id then rndId else id)]
       let captionArg = [("caption", fromMaybe "" (List.lookup "caption" rawKvs))]
-      let arguments = codeArg <> clsArgs <> allClsArgs <> kvArgs <> rndIdArg <> idArg <> captionArg
+      let arguments = codeArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs <> rndIdArg <> idArg <> captionArg
       template <- lookupMeta ("templates." <> name) meta
       let result =
             case template of
