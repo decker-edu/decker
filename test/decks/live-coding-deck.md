@@ -2,13 +2,11 @@
 subtitle: Edit and Execute Code Blocks
 template:
   css:
-  # - "https://unpkg.com/@antonz/codapi@0.19.0/dist/snippet.css"
-  # - "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/solarized-light.min.css"
+  - "/support/vendor/codapi-js/snippet.css"
   - /support/css/hljs.css
   - codapi.css
   js:
-  - "https://unpkg.com/@antonz/codapi@0.19.0/dist/snippet.js"
-  - "https://cdn.jsdelivr.net/npm/ace-builds@1.33.1/src-min-noconflict/ace.js"
+  - "/support/vendor/codapi-js/snippet.js"
 static-resources:
   - codapi-templates
 templates:
@@ -16,8 +14,8 @@ templates:
     ````{=html}
     <div class="media">
     <figure class="live-code">
-    <pre class="language-:(language)"><code id=":(id)" class="language-:(language)">:(code)</code></pre>
-    <codapi-snippet sandbox=":(language)" editor="basic" selector="#:(id)" :(attribs)>
+    <pre class="language-:(language)"><code id=":(rnd-id)" class="language-:(language)">:(code)</code></pre>
+    <codapi-snippet id=":(id)" engine=":(engine|codapi)" sandbox=":(sandbox|language)" editor="basic" selector="#:(rnd-id)" :(attribs)>
     </codapi-snippet>
     <script type="module">
       import {CodeJar} from "https://cdn.jsdelivr.net/npm/codejar@4.2.0/+esm";
@@ -27,7 +25,8 @@ templates:
         ignoreUnescapedHTML: true
       });
       hljs.registerLanguage(':(language)', :(language));
-      let code = document.querySelector("#:(id)");
+      let code = document.querySelector("#:(rnd-id)");
+      // console.log("original:\n", code.textContent.split(/\r?\n|\r|\n/g));
       code.setAttribute("autocomplete", "off");
       code.setAttribute("autocorrect", "off");
       code.setAttribute("autocapitalize", "off");
@@ -72,20 +71,34 @@ Languages (so far):
 -   Python
 -   Rust
 -   Haskell
+-   Java
 
 ## TODO {.accent4}
 
 -   [x] integrate [CodeJar](https://medv.io/codejar/) for better editing
 -   [x] integrate [highlightjs](https://highlightjs.org/) for syntax highlighting
 
-# Python
+# Python {.columns}
+
+## Live {.left}
 
 ``` {macro="live-code" language="python"}
 msg = "Hello, World!"
 print(msg)
 ```
 
-# Rust
+## Markdown {.right}
+
+````markdown
+``` {macro="live-code" language="python"}
+msg = "Hello, World!"
+print(msg)
+```
+````
+
+# Rust {.columns}
+
+## Live {.left}
 
 ``` {macro="live-code" language="rust"}
 fn main() {
@@ -93,67 +106,179 @@ fn main() {
 }
 ```
 
-# Haskell
+## Markdown {.right}
+
+````markdown
+``` {macro="live-code" language="rust"}
+fn main() {
+   print!("Hello, World!"); 
+}
+```
+````
+
+# Haskell {.columns}
+
+## Live {.left}
 
 ``` {macro="live-code" language="haskell"}
 main = putStrLn "Hello, World!"
 ```
 
+## Markdown {.right}
 
-# Live Code Macro (Python)
+````markdown
+``` {macro="live-code" language="haskell"}
+main = putStrLn "Hello, World!"
+```
+````
 
-``` {macro="live-code" language="python"}
-msg = "Hello World!"
-print(msg)
+`language="haskell"` expects a complete Haskell program with a 
+proper `main` function.
+
+# Haskell {.columns}
+
+## Live {.left}
+
+``` {macro="live-code" language="haskell" sandbox="ghci"}
+let a = 1
+let b = 2
+a + b
 ```
 
-# Live Code Macro Template (Haskell)
+## Markdown {.right}
+
+````markdown
+``` {macro="live-code" sandbox="ghci" language="haskell"}
+let a = 1
+let b = 2
+a + b
+```
+````
+
+`language="haskell" sandbox="ghci"` expects a Haskell snippet which is fed to
+GHCi instead of a complete Haskell program.
+
+
+# Java {.columns}
+
+## Live {.left}
+
+``` {macro="live-code" language="java"}
+record FortyTwo(int value) {}
+var ft = new FortyTwo(42);
+System.out.println(ft);
+```
+
+## Markdown {.right}
+
+````markdown
+``` {macro="live-code" language="java"}
+record FortyTwo(int value) {}
+var ft = new FortyTwo(42);
+System.out.println(ft);
+```
+````
+
+`language="java"` expects a Java snippet which is fed to
+`jshell`. Also, `jshell` needs a lot of memory and is dog slow.
+
+# JavaScript {.columns}
+
+## Live {.left}
+
+``` {macro="live-code" language="javascript" engine="browser"}
+console.log("42")
+```
+
+## Markdown {.right}
+
+````markdown
+``` {macro="live-code" language="javascript" engine="browser"}
+console.log("42")
+```
+````
+
+`language="javascript" engine="browser"` executes the code directly in the browser.
+
+# Live Code with Template (Haskell) {.columns}
+
+## {.top}
 
 A simple template is used around the code.
 
-- TODO Indentation based languages do not work yet
+## The code {.left}
 
 ``` {macro="live-code" language="haskell" template="../static/text-main.hs"}
-let msg0 = "Hello Mario!"
-print msg0
+print (mario <> mario <> mario)
 ```
 
-# Live Code Macro Cell 1 (Haskell)
+## The template {.right}
+
+```haskell
+import Data.Text
+mario = "MARIO"
+main = do
+  print "the template added this"
+  
+  ##CODE##
+  
+  print "the template added this"
+```
+
+# Two Dependent Haskell Cells {.columns}
+
+## {.left}
 
 The next cell depends on this code
 
-- TODO cannot be executed, main is missing
-
-``` {#lcm-cell-1 macro="live-code" language="haskell"}
-msg0 = "Hello Mario!"
-printMsg0 = do
-  print msg0
-main = printMsg0
+``` {#lcm-cell-1 macro="live-code" language="haskell" sandbox="ghci"}
+a = 1
+b = 2
+a + b
 ```
 
-# Live Code Macro Cell 2 (Haskell)
+## {.right}
 
 This depends on the previous cell
 
-- TODO does not form a working Haskell file
-
-``` {#lcm-cell-2 macro="live-code" language="haskell" depends-on="lcm-cell-1"}
-msg1 = "Hello Mario!"
-main = do
-  printMsg0
-  print msg1
+``` {#lcm-cell-2 macro="live-code" language="haskell" sandbox="ghci" depends-on="lcm-cell-1"}
+c = 3
+a + b + c
 ```
 
-# Two Dependent Python Cells
+# Two Dependent Python Cells {.columns}
+
+## Independent cell {.left}
 
 ``` {#py-cell-1 macro="live-code" language="python"}
-msg = "Hello, World!"
-print(msg)
+print("Hello, World 0!")
 ```
 
+## Depends on left cell{.right}
+ 
 ``` {macro="live-code" language="python" depends-on="py-cell-1"}
-msg = "Hello, World!"
-print(msg)
+print("Hello, World 1!")
+```
+
+# Plot SVG
+
+``` {macro="live-code" language="python" output-mode="svg"}
+import io
+import numpy as np
+import matplotlib.pyplot as plt
+
+data = {"a": np.arange(50), "c": np.random.randint(0, 50, 50), "d": np.random.randn(50)}
+data["b"] = data["a"] + 10 * np.random.randn(50)
+data["d"] = np.abs(data["d"]) * 100
+
+plt.scatter("a", "b", c="c", s="d", data=data)
+plt.xlabel("entry a")
+plt.ylabel("entry b")
+plt.show()
+
+stream = io.StringIO()
+plt.savefig(stream, format="svg")
+print(stream.getvalue())
 ```
 
 [@live-code-server](https://codapi.tramberend.de/v1)

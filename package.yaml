@@ -118,6 +118,7 @@ dependencies:
   - xml-types
   - yaml
   - zip
+  - raw-strings-qq
 
 ghc-options:
   - -Wunused-top-binds

@@ -51,17 +51,6 @@ codapi-toolbar button::after {
   content: " ▶";
 }
 
-codapi-output {
-  position: relative;
-}
-
-codapi-output a[href="#close"] {
-  position: absolute;
-  top: 2em;
-  right: 0.5em;
-  line-height: inherit;
-}
-
 codapi-status {
   color: var(--accent2);
   margin-left: 1em;
