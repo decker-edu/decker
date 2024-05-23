@@ -1,19 +1,23 @@
-pre.live-code {
+/*
+<codapi-snippet sandbox="python" editor="basic">
+    <codapi-toolbar>
+        <button>Run</button>
+        <a href="#edit">Edit</a>
+        <codapi-status> ✓ Done </codapi-status>
+    </codapi-toolbar>
+    <codapi-output>
+        <pre><code>Hello, World!</code></pre>
+    </codapi-output>
+</codapi-snippet>
+*/
+
+codapi-output pre {
   font-family: monospace;
   line-break: after-white-space;
   white-space: pre-wrap;
   -webkit-nbsp-mode: space;
   line-height: 1.3;
   padding: 0.5em;
-}
-
-codapi-output pre {
-  font-family: monospace;  
-  line-break: after-white-space;
-  white-space: pre-wrap;
-  -webkit-nbsp-mode: space;
-   line-height: 1.3;
-   padding: 0.5em;
 }
 
 codapi-toolbar {
@@ -47,14 +51,9 @@ codapi-toolbar button::after {
   content: " ▶";
 }
 
-code:focus {
-  outline: none;
-}
-
-codapi-output a[href="#close"] {
-  top: 0.5em;
-  right: 0.5em;
-  line-height: inherit;
+codapi-status {
+  color: var(--accent2);
+  margin-left: 1em;
 }
 
 codapi-ref {

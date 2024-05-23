@@ -7,6 +7,22 @@
   text-rendering: optimizeLegibility;
 }
 
+@font-face {
+  font-family: "Comic Mono";
+  src: url("../fonts/comic-mono-latin-400-normal.woff2")
+    format("woff2-variations");
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+}
+
+@font-face {
+  font-family: "Comic Mono";
+  src: url("../fonts/comic-mono-latin-700-normal.woff2")
+    format("woff2-variations");
+  font-weight: 700;
+  text-rendering: optimizeLegibility;
+}
+
 body.deck {
   font-size: 40px;
   font-family: "Recursive", sans-serif;
@@ -35,17 +51,27 @@ body.index {
 
 /* Inline code */
 code {
-  font-family: "Recursive", monospace;
-  font-variation-settings:
-    "MONO" 1,
-    "CASL" 0.1;
+  /* font-family: "Recursive", monospace; */
+  /* font-variation-settings: */
+  /* "MONO" 1, */
+  /* "CASL" 0.5; */
+  font-family: "Comic Mono", monospace;
+  font-weight: bold;
+  font-size: 100%;
+  caret-color: var(--accent0);
+  padding: 0.2em;
 }
 
 /* Code blocks. */
-span.pre > code,
-pre > code {
-  font-size: 90%;
+:is(span.pre, pre) > code {
+  display: block;
+  font-size: 100%;
   line-height: 1.3;
+  padding: 0.5em;
+}
+
+:is(span.pre, pre) > code[contenteditable]:focus {
+  outline: solid 10px var(--accent7);
 }
 
 /* Headers */

@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Filter.Template (expandTemplateMacros) where
@@ -11,6 +12,9 @@ import Text.Decker.Internal.Meta (lookupMeta)
 import Text.Pandoc hiding (lookupMeta, newStdGen)
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
+import Text.RawString.QQ
+import Text.Regex.TDFA
+import Text.Regex.TDFA.Text ()
 
 -- randomId = Text.pack . take 9 . show . md5 . show <$> (randomIO :: IO Int)
 
@@ -38,14 +42,15 @@ expandTemplateMacros (Pandoc meta blocks) = do
     expandCode rndId attr@(id, cls, kvs) code = do
       let rawKvs = map (\(k, v) -> (fromMaybe k $ Text.stripPrefix "data-" k, v)) kvs
       name <- List.lookup "macro" rawKvs
-      let kvArgs = List.filter ((/= "macro") . fst) rawKvs
+      let kvAttribs = List.filter ((/= "macro") . fst) rawKvs
       let clsArgs = zip (map show [1 .. (length cls)]) cls
       let allClsArgs = [("args", Text.unwords cls)]
+      let allKvAttribs = [("attribs", unwords $ map (\(k, v) -> k <> "=\"" <> v <> "\"") kvAttribs)]
       let codeArg = [("code", Text.strip code)]
       let rndIdArg = [("rnd-id", rndId)]
-      let idArg = [("id", id)]
+      let idArg = [("id", if Text.null id then rndId else id)]
       let captionArg = [("caption", fromMaybe "" (List.lookup "caption" rawKvs))]
-      let arguments = codeArg <> clsArgs <> allClsArgs <> kvArgs <> rndIdArg <> idArg <> captionArg
+      let arguments = codeArg <> clsArgs <> allClsArgs <> kvAttribs <> allKvAttribs <> rndIdArg <> idArg <> captionArg
       template <- lookupMeta ("templates." <> name) meta
       let result =
             case template of
@@ -108,11 +113,29 @@ expandTemplateMacros (Pandoc meta blocks) = do
     substituteAttr args (id, cls, kvs) =
       (substitute args id, map (substitute args) cls, map (bimap (substitute args) (substitute args)) kvs)
 
-    substitute args text = foldl' substituteOne text args
+    -- substitute args text = foldl' substituteOne text args
 
-    substituteOne template (name, value) =
-      Text.intercalate value
-        $ Text.splitOn (":(" <> name <> ")") template
+    -- substitutes all macro invocations with the value bound to the provided
+    -- attribute. if none is found, the invocation is left in the text
+    substitute :: [(Text, Text)] -> Text -> Text
+    substitute args intext =
+      let (before, _, after, groups) :: (Text, Text, Text, [Text]) =
+            intext =~ ([r|:\(([a-z][-|_a-z0-9]*)\)|] :: Text)
+       in case viaNonEmpty head groups >>= findValue args of
+            Just value -> substitute args $ Text.intercalate value [before, after]
+            Nothing -> intext
+
+    -- finds the value for the first agrument name that is bound in `args`. if
+    -- there is none, the name of the last argument is used verbatim.
+    findValue :: [(Text, Text)] -> Text -> Maybe Text
+    findValue args param =
+      let params = Text.splitOn "|" param
+          fallback = viaNonEmpty last params
+       in asum $ map (`List.lookup` args) params <> [fallback]
+
+substituteOne template (name, value) =
+  Text.intercalate value
+    $ Text.splitOn (":(" <> name <> ")") template
 
 class Splice a b where
   splice :: Text -> a -> b
