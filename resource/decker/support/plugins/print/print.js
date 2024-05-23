@@ -37,19 +37,24 @@ function fixFooters() {
 function checkHeight() {
   const configHeight = Reveal.getConfig().height;
   const slide = Reveal.getCurrentSlide();
-  const slideHeight = slide.clientHeight;
-
-  if (slideHeight > configHeight) {
-    console.warn(
-      "slide " +
-        slideNumber() +
-        " is " +
-        (slideHeight - configHeight) +
-        "px too high"
-    );
-    slide.style.border = "1px dashed red";
+  const decker = slide.querySelector(".decker");
+  if (decker) {
+    const scrollHeight = decker.scrollHeight;
+    if (scrollHeight > configHeight) {
+      console.warn(
+        "slide " +
+          slideNumber() +
+          " is " +
+          (scrollHeight - configHeight) +
+          "px too high"
+      );
+      slide.style.border = "1px dashed red";
+    } else {
+      slide.style.border = "";
+    }
   } else {
-    slide.style.border = "";
+    console.error("[PRINT] slide has no decker container");
+    console.error(slide);
   }
 }
 
