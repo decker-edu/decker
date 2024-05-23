@@ -7,8 +7,8 @@ template:
   - codapi.css
   js:
   - "/support/vendor/codapi-js/snippet.js"
-static-resources:
-  - codapi-templates
+# static-resources:
+#   - codapi-templates
 templates:
   live-code: |
     ````{=html}
