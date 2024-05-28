@@ -83,7 +83,8 @@ convertVideoMp4 webm mp4 = do
       let args = ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
-      renameFile tmp dst
+      copyFile tmp dst
+      removeFile tmp
 
 -- | Converts a WEBM video file into an MP4 video file on the slow track. The audio is
 -- transcoded to AAC.
@@ -96,7 +97,8 @@ transcodeVideoMp4 webm mp4 = do
       let args = ["-nostdin", "-v", "fatal", "-y", "-i", src] <> slow <> [tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
-      renameFile tmp dst
+      copyFile tmp dst
+      removeFile tmp
 
 -- Transcoding parameters
 fast = ["-preset", "fast", "-vcodec", "copy"]
@@ -154,7 +156,8 @@ concatVideoMp4' ffmpegArgs listFile mp4 = do
               <> ["-acodec", "aac", tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
-      renameFile tmp dst
+      copyFile tmp dst
+      removeFile tmp
 
 -- | Atomically moves the transcoded upload into place.  All existing parts of
 -- previous uploads are removed.
@@ -164,7 +167,8 @@ replaceVideoUpload transcode upload webm = do
   mapM_ removeFile webms
   let mp4 = replaceExtension webm ".mp4"
   when transcode $ convertVideoMp4 upload mp4
-  renameFile upload webm
+  copyFile upload webm
+  removeFile upload
 
 -- | Appends the uploaded WEBM video to potentially already existing fragments.
 appendVideoUpload :: Bool -> FilePath -> FilePath -> IO ()
