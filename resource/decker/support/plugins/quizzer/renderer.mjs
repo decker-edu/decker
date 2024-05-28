@@ -52,8 +52,8 @@ function createQuizContainer() {
   return container;
 }
 
-export default class Renderer {
-  static renderAssignmentQuiz(parent, quiz) {
+export default {
+  renderAssignmentQuiz(parent, quiz) {
     const container = createQuizContainer();
     container.question.innerText = quiz.question;
     if (quiz.choices.length !== 1) {
@@ -290,9 +290,9 @@ export default class Renderer {
       }
     };
     parent.appendChild(container);
-  }
+  },
 
-  static renderSelectionQuiz(parent, quiz) {
+  renderSelectionQuiz(parent, quiz) {
     const selections = [];
     let boxNumber = 0;
 
@@ -363,9 +363,9 @@ export default class Renderer {
       }
     };
     parent.appendChild(container);
-  }
+  },
 
-  static renderFreeTextQuiz(parent, quiz) {
+  renderFreeTextQuiz(parent, quiz) {
     const container = createQuizContainer();
     if (!quiz.question) {
       container.question.style.color = "var(--accent0)";
@@ -376,7 +376,6 @@ export default class Renderer {
       return;
     }
     const split = quiz.question.split(/(\[#[0-9]+\])/g);
-
     const replacers = [];
 
     let placeholderNumber = 1;
@@ -438,9 +437,9 @@ export default class Renderer {
       }
     };
     parent.appendChild(container);
-  }
+  },
 
-  static renderChoiceQuiz(parent, quiz) {
+  renderChoiceQuiz(parent, quiz) {
     const container = createQuizContainer();
     if (quiz.question) {
       container.question.innerText = quiz.question;
@@ -454,7 +453,6 @@ export default class Renderer {
       return;
     }
     const answers = quiz.choices[0];
-    let number = 0;
     for (const answer of answers.options) {
       const button = document.createElement("button");
       button.classList.add("answer");
@@ -488,5 +486,5 @@ export default class Renderer {
       container.answers.appendChild(button);
     }
     parent.appendChild(container);
-  }
-}
+  },
+};
