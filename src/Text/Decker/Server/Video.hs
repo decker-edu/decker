@@ -167,7 +167,7 @@ replaceVideoUpload transcode upload webm = do
   mapM_ removeFile webms
   let mp4 = replaceExtension webm ".mp4"
   when transcode $ convertVideoMp4 upload mp4
-  copyFile upload webm
+  copyFileWithMetadata upload webm
   removeFile upload
 
 -- | Appends the uploaded WEBM video to potentially already existing fragments.
