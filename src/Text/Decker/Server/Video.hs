@@ -83,7 +83,7 @@ convertVideoMp4 webm mp4 = do
       let args = ["-nostdin", "-v", "fatal", "-y", "-i", src, "-vcodec", "copy", "-acodec", "aac", tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
-      copyFile tmp dst
+      copyFileWithMetadata tmp dst
       removeFile tmp
 
 -- | Converts a WEBM video file into an MP4 video file on the slow track. The audio is
@@ -97,7 +97,7 @@ transcodeVideoMp4 webm mp4 = do
       let args = ["-nostdin", "-v", "fatal", "-y", "-i", src] <> slow <> [tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
-      copyFile tmp dst
+      copyFileWithMetadata tmp dst
       removeFile tmp
 
 -- Transcoding parameters
@@ -156,7 +156,7 @@ concatVideoMp4' ffmpegArgs listFile mp4 = do
               <> ["-acodec", "aac", tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
-      copyFile tmp dst
+      copyFileWithMetadata tmp dst
       removeFile tmp
 
 -- | Atomically moves the transcoded upload into place.  All existing parts of
