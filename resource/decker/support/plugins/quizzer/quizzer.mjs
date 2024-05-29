@@ -1,6 +1,7 @@
 import Client from "./client.mjs";
 import Renderer, { resetAssignmentState } from "./renderer.mjs";
 import bwip from "../examiner/bwip.js";
+import "../../vendor/d3.v6.min.js";
 
 let Reveal;
 let hostClient = undefined;
@@ -306,54 +307,20 @@ async function initializeHost() {
         }
       }
       if (currentQuiz && currentQuiz.type === "assignment") {
+        const generator = d3.sankey();
+        const svg = d3
+          .create("svg")
+          .attr("width", 600)
+          .attr("height", 400)
+          .attr("viewBox", [0, 0, 600, 400]);
         resultContainer.classList.add("quizzer-assignment-results-container");
+        const targets = [];
+        const sources = [];
         for (const entry of result) {
-          const entryContainer = document.createElement("div");
-          entryContainer.classList.add("quizzer-assignment-result");
-          const label = document.createElement("span");
-          label.innerText = entry.label;
-          const canvas = document.createElement("canvas");
-          entryContainer.appendChild(canvas);
-          entryContainer.appendChild(label);
-          resultContainer.appendChild(entryContainer);
-          const labels = [];
-          const values = [];
           for (const assignment in entry.assignments) {
-            labels.push(assignment);
-            values.push(entry.assignments[assignment]);
           }
-          const total = values.reduce((a, b) => a + b, 0);
-          const data = values.map((a) => a / total);
-          let context = canvas.getContext("2d");
-          const chart = new Chart(context, {
-            type: "bar",
-            data: {
-              labels: labels,
-              datasets: [
-                {
-                  data: data,
-                  backgroundColor: "#2a9ddf",
-                },
-              ],
-            },
-            options: {
-              animation: {
-                duration: 3000,
-              },
-              plugins: {
-                title: { display: false },
-                legend: { display: false },
-              },
-              scales: {
-                y: {
-                  min: 0,
-                  max: 1,
-                  ticks: { format: { style: "percent" } },
-                },
-              },
-            },
-          });
         }
+        resultContainer.appendChild(svg);
       }
       document.body.appendChild(resultContainer);
       resultContainer.addEventListener("click", () => {

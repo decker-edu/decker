@@ -2,7 +2,7 @@
 title: Custom Quizzes
 quizzer:
   backend: 'http://localhost:3000'
-  socket: 'ws://localhost:3001/api/websocket'
+  socket: 'ws://localhost:3000/api/websocket'
 ---
 
 # Choice Quiz
