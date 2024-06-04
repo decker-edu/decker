@@ -52,6 +52,7 @@ dependencies:
   - deepseq
   - directory
   - doctemplates
+  - doclayout
   - exceptions
   - extra
   - file-embed

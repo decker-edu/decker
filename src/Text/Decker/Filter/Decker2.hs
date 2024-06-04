@@ -18,6 +18,7 @@ import Text.Decker.Filter.Util (oneImagePerLine, single)
 import Text.Decker.Internal.Common
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Walk
+import Data.Map.Strict as Map
 
 -- | Applies a filter to each pair of successive elements in a list. The filter
 -- may consume the elements and return a list of transformed elements, or it
@@ -140,6 +141,7 @@ runFilter2 ::
   IO Pandoc
 runFilter2 dispo filter pandoc@(Pandoc meta _) = do
   mutex <- newMVar 0
-  (Pandoc _ blocks, FilterState meta _ _) <-
-    runStateT (walkM filter pandoc) (FilterState meta dispo mutex)
+  templates <- newTVarIO Map.empty
+  (Pandoc _ blocks, FilterState meta _ _ _) <-
+    runStateT (walkM filter pandoc) (FilterState meta dispo mutex templates)
   return $ Pandoc meta blocks

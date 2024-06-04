@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Text.Decker.Filter.Template (expandTemplateMacros) where
+module Text.Decker.Filter.Template (expandTemplateMacros, splice) where
 
 import Data.List qualified as List
 import Data.Text qualified as Text
@@ -133,9 +133,9 @@ expandTemplateMacros (Pandoc meta blocks) = do
           fallback = viaNonEmpty last params
        in asum $ map (`List.lookup` args) params <> [fallback]
 
-substituteOne template (name, value) =
-  Text.intercalate value
-    $ Text.splitOn (":(" <> name <> ")") template
+-- substituteOne template (name, value) =
+--   Text.intercalate value
+--     $ Text.splitOn (":(" <> name <> ")") template
 
 class Splice a b where
   splice :: Text -> a -> b

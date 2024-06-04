@@ -4,7 +4,7 @@ template:
   css:
   - "/support/vendor/codapi-js/snippet.css"
   - /support/css/hljs.css
-  - codapi.css
+  - /support/css/codapi.css
   js:
   - "/support/vendor/codapi-js/snippet.js"
 templates:

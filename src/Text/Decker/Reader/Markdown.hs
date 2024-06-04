@@ -43,6 +43,7 @@ import Text.Decker.Writer.CSS (computeCssColorVariables, computeCssVariables)
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Citeproc
 import Text.Pandoc.Shared
+import Text.Decker.Filter.FragmentTemplate (expandFragmentTemplates)
 
 -- | Reads a Markdown file and run all the the Decker specific filters on it.
 -- The path is assumed to be an absolute path in the local file system under
@@ -56,8 +57,9 @@ readAndFilterMarkdownFile disp globalMeta docPath = do
     >>= processCites
     >>= calcRelativeResourcePaths docBase
     >>= runDynamicFilters Before docBase
-    >>= runNewFilter disp examinerFilter docBase
-    >>= runNewFilter disp expandTemplateMacros docBase
+    >>= runNewFilter disp examinerFilter docPath
+    >>= runNewFilter disp expandTemplateMacros docPath
+    >>= runNewFilter disp expandFragmentTemplates docPath
     >>= deckerMediaFilter disp docPath
     >>= processPandoc (deckerPipeline disp) docBase disp
     >>= runDynamicFilters After docBase
