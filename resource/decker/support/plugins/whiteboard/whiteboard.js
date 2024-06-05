@@ -612,7 +612,7 @@ function enableWhiteboard() {
   clearTimeout(autoToggleTimer);
 
   // show scrollbar
-  slides.classList.add("active");
+  slides.classList.add("whiteboard-active");
 
   // show buttons
   buttons.classList.add("active");
@@ -629,7 +629,7 @@ function disableWhiteboard() {
   clearTimeout(autoToggleTimer);
 
   // hide scrollbar
-  slides.classList.remove("active");
+  slides.classList.remove("whiteboard-active");
 
   // hide buttons
   buttons.classList.remove("active");
