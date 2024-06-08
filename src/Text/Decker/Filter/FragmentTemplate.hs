@@ -32,8 +32,12 @@ expandFragmentTemplates  (Pandoc meta blocks) =
   where
     -- Expands macro links in block contexts
     expandBlockM :: Block -> Filter Block
-    expandBlockM (Para [link]) = expandLinkM link
-    expandBlockM (Plain [link]) = expandLinkM link
+    expandBlockM (Para [link]) = do
+      link <- expandLinkM link
+      return (Para [link])
+    expandBlockM (Plain [link]) = do
+      link <- expandLinkM link
+      return (Plain [link])
     expandBlockM block@(CodeBlock attr code) = expandCodeM block
     expandBlockM block = return block
 
@@ -56,10 +60,10 @@ expandFragmentTemplates  (Pandoc meta blocks) =
           template <- getTemplate (toString name)
           let context :: Context Text = toContext $ toJSON $ Map.fromList arguments
           let text :: Text = render Nothing $ renderTemplate template context
-          return $ splice name text
+          return $ RawInline "html" text
         Nothing ->
-          return $ splice "" link
-    expandLinkM link = return $ splice "" link
+          return link
+    expandLinkM link = return link
 
     expandCodeM block@(CodeBlock attr@(id, cls, kvs) code) = do
       let rawKvs = map (\(k, v) -> (fromMaybe k $ Text.stripPrefix "data-" k, v)) kvs
@@ -79,10 +83,10 @@ expandFragmentTemplates  (Pandoc meta blocks) =
           template <- getTemplate (toString name)
           let context :: Context Text = toContext $ toJSON $ Map.fromList arguments
           let text :: Text = render Nothing $ renderTemplate template context
-          return $ splice name text
+          return $ RawBlock "html" text
         Nothing ->
-          return $ splice "" block
-    expandCodeM block = return $ splice "" block
+          return block
+    expandCodeM block = return block
 
     -- Parses a link text into a macro invocation, if possible. a macro name
     -- starts either with  a '§', or ends with a '-'
@@ -117,60 +121,12 @@ readTemplateFile filename = do
   -- tries two template locations in order and tries the second one only if the
   -- first one cannot be found. if the template cannot be found ist throws on
   -- either.
-  template <- liftIO $ 
-    handle (\(SomeException _) -> 
-      handle (\(SomeException err)-> 
-                throw (ResourceException $ "Cannot find template file: " <> filename <> ": " <> show err)) 
+  template <- liftIO $
+    handle (\(SomeException _) ->
+      handle (\(SomeException err)->
+                throw (ResourceException $ "Cannot find template file: " <> filename <> ": " <> show err))
              $ compileTemplateFile path2) $ compileTemplateFile path1
   case template of
     Right template -> return template
     Left err -> do
       return $ throw (ResourceException $ "Cannot parse template file: " <> filename <> ": " <> show err)
-
-class Splice a b where
-  splice :: Text -> a -> b
-
-instance Splice Inline Inline where
-  splice macro = id
-
-instance Splice Text Inline where
-  splice macro = RawInline "html"
-
-instance Splice Text [Inline] where
-  splice macro text = [RawInline "html" text]
-
-instance Splice Text Block where
-  splice macro = RawBlock "html"
-
-instance Splice Text [Block] where
-  splice macro text = [RawBlock "html" text]
-
-instance Splice [Inline] [Inline] where
-  splice macro = id
-
-instance Splice [Inline] Inline where
-  splice macro = Span nullAttr
-
-instance Splice Block Block where
-  splice macro = id
-
-instance Splice [Block] Block where
-  splice macro = Div nullAttr
-
-instance Splice Inline Block where
-  splice macro block = Para [block]
-
-instance Splice [Inline] Block where
-  splice macro = Para
-
-instance Splice Block Inline where
-  splice macro inline = error $ "template '" <> macro <> "': cannot splice Block into Inline context"
-
-instance Splice Block [Inline] where
-  splice macro inline = error $ "template '" <> macro <> "': cannot splice Block into [Inline] context"
-
-instance Splice [Block] Inline where
-  splice macro inline = error $ "template '" <> macro <> "': cannot splice [Block] into Inline context"
-
-instance Splice [Block] [Inline] where
-  splice macro inline = error $ "template '" <> macro <> "': cannot splice [Block] into [Inline] context"
