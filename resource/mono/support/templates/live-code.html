@@ -1,0 +1,33 @@
+<div class="media">
+  <figure class="live-code">
+    <pre class="language-$language$"><code id="$rnd-id$" class="language-$language$">$code$</code></pre>
+    <codapi-snippet id="$id$" engine="$if(engine)$$engine$$else$codapi$endif$"
+      sandbox="$if(sandbox)$$sandbox$$else$$language$$endif$" editor="basic" selector="#$rnd-id$" $attribs$>
+    </codapi-snippet>
+    <script type="module">
+      import { CodeJar } from "https://cdn.jsdelivr.net/npm/codejar@4.2.0/+esm";
+      import hljs from 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/es/highlight.min.js';
+      import $language$ from 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/es/languages/$language$.min.js';
+      hljs.configure({
+        ignoreUnescapedHTML: true
+      });
+      hljs.registerLanguage('$language$', $language$);
+      let code = document.querySelector("#$rnd-id$");
+      // console.log("original:\n", code.textContent.split(/\r?\n|\r|\n/g));
+      code.setAttribute("autocomplete", "off");
+      code.setAttribute("autocorrect", "off");
+      code.setAttribute("autocapitalize", "off");
+      code.setAttribute("spellcheck", false);
+      let highlight = code => {
+        code.removeAttribute("data-highlighted");
+        hljs.highlightElement(code);
+      }
+      let jar = CodeJar(code, highlight);
+      code.addEventListener("focus", el => highlight(el.target));
+      highlight(code);
+    </script>
+    <figcaption>
+      $caption$
+    </figcaption>
+  </figure>
+</div>

@@ -25,18 +25,25 @@ import Text.Decker.Server.Video
 -- Checks if one of the sources is newer than the target file.
 needsRebuild :: FilePath -> [FilePath] -> IO Bool
 needsRebuild target sources = do
+  putStrLn "\nchecking for newer video snippets"
   texists <- System.Directory.doesFileExist target
   if not texists
-    then return True
+    then do
+      putStrLn $ target <> " does not exist"
+      return True
     else do
+      tmod <- getModificationTime target
+      putStrLn "sources:"
       needs <- forM sources $ \source -> do
         sexists <- System.Directory.doesFileExist source
         if not sexists
           then return False
           else do
-            tmod <- getModificationTime target
             smod <- getModificationTime source
+            putStrLn $ source <> ", " <> show smod
             return (tmod < smod)
+      putStrLn "target:"
+      putStrLn $ target <> ", " <> show tmod       
       return $ or needs
 
 -- Replaces the Shake dependency nightmare with straight forward modtime checking.
@@ -54,20 +61,18 @@ crunchAllRecordings context = do
         let mp4 = replaceExtension webm ".mp4"
         whenM (needsRebuild mp4 [webm])
           $ do
-            putStrLn $ "# crrrunch (transcode " <> webm <> ")"
+            putStrLn $ "# crrrunch (transcode " <> webm <> " -> " <> mp4 <> ")"
             transcodeVideoMp4 webm mp4
-      whenM (needsRebuild recording mp4s)
-        $ do
-          let list = recording <.> "list"
-          writeFileChanged list (List.unlines $ map (\f -> "file '" <> takeFileName f <> "'") $ sort mp4s)
-          putStrLn "# crrrunch (combine fast:"
-          mapM_ (putStrLn . ("  " <>)) (sort mp4s)
-          putStrLn "# )"
-          concatVideoMp4' fast list recording
-          removeFile list
-          -- copy to public is handled by the normal dependencies
-          -- whenM (needsRebuild (publicDir </> recording) [recording])
-          --   $ copyFile recording (publicDir </> recording)
+      when (length mp4s > 1) $
+        whenM (needsRebuild recording mp4s)
+          $ do
+            let list = recording <.> "list"
+            writeFileChanged list (List.unlines $ map (\f -> "file '" <> takeFileName f <> "'") $ sort mp4s)
+            putStrLn "# crrrunch (combine fast:"
+            mapM_ (putStrLn . ("  " <>)) (sort mp4s)
+            putStrLn "# )"
+            concatVideoMp4' fast list recording
+            removeFile list
 
 -- | Rules for transcoding videos. Mp4 videos are recreated with higher
 -- compression parameters if any of the recording fragments changed. Also, if

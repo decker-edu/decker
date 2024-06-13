@@ -9,4 +9,4 @@
 	url = https://github.com/FortAwesome/Font-Awesome.git
 [submodule "third-party/codapi-js"]
 	path = third-party/codapi-js
-	url = git@github.com:monofon/codapi-js.git
+	url = https://github.com/monofon/codapi-js.git

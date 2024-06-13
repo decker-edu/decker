@@ -115,8 +115,8 @@ runShake context rules = do
   options <- deckerShakeOptions context
   shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
 
-runShakeSlyly :: ActionContext -> Rules () -> IO ()
-runShakeSlyly context rules = do
+_runShakeSlyly :: ActionContext -> Rules () -> IO ()
+_runShakeSlyly context rules = do
   -- always rescan the targets file in case files where added or removed
   let meta = context ^. globalMeta
   targets <- targetsFile

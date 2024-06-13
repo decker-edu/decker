@@ -4,11 +4,9 @@ template:
   css:
   - "/support/vendor/codapi-js/snippet.css"
   - /support/css/hljs.css
-  - codapi.css
+  - /support/css/codapi.css
   js:
   - "/support/vendor/codapi-js/snippet.js"
-# static-resources:
-#   - codapi-templates
 templates:
   live-code: |
     ````{=html}
@@ -48,6 +46,7 @@ templates:
   live-code-server: |
     <codapi-settings url=":(url)"> </codapi-settings>
 title: Live Coding
+lang: en-EN
 ---
 
 # Live Coding in Code Blocks {.columns}
@@ -208,7 +207,7 @@ A simple template is used around the code.
 
 ## The code {.left}
 
-``` {macro="live-code" language="haskell" template="../static/text-main.hs"}
+``` {macro="live-code" language="haskell" template="../static/live-code-template.hs.txt"}
 print (mario <> mario <> mario)
 ```
 
