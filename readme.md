@@ -154,7 +154,7 @@ the full functionality:
 Use [Homebrew](https://brew.sh) to install most of them.
 
 ``` sh
-brew install rsync graphviz gnuplot pdf2svg yarn coreutils
+brew install rsync graphviz gnuplot pdf2svg yarn coreutils pkg-config
 ```
 
 For the rest follow instructions on their respective webites.

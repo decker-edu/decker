@@ -6,12 +6,9 @@
 module Text.Decker.Filter.Local where
 
 import Control.Monad.Catch
-import Data.Digest.Pure.MD5
 import Data.Text qualified as Text
 import Data.Text.IO qualified as Text
-import GHC.IO.Unsafe (unsafePerformIO)
 import Relude
-import System.Random
 import Text.Blaze.Html
 import Text.Blaze.Html.Renderer.Pretty qualified as Pretty
 import Text.Blaze.Html.Renderer.Text qualified as Text
@@ -97,36 +94,36 @@ classifyMedia uri (_, classes, _) =
   let ext = uriPathExtension uri
       scheme = uriScheme uri
    in if
-          | "raw" `elem` classes -> RawImageT
-          | "code" `elem` classes -> CodeT
-          | ext `maybeElem` renderExt && "render" `elem` classes -> RenderT
-          | ext `maybeElem` javascriptExt && "run" `elem` classes -> JavascriptT
-          | ext `maybeElem` svgExt && "embed" `elem` classes -> EmbedSvgT
-          | ext `maybeElem` yamlExt && "question" `elem` classes -> ExamQuestT
-          | ext `maybeElem` imageExt || "image" `elem` classes -> ImageT
-          | ext `maybeElem` videoExt || "video" `elem` classes -> VideoT
-          | ext `maybeElem` iframeExt || "iframe" `elem` classes -> IframeT
-          | ext `maybeElem` pdfExt || "pdf" `elem` classes -> PdfT
-          | ext `maybeElem` mviewExt || "mview" `elem` classes -> MviewT
-          | ext `maybeElem` modelviewerExt || "modelviewer" `elem` classes -> ModelviewerT
-          | ext `maybeElem` geogebraExt || "geogebra" `elem` classes -> GeogebraT
-          | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
-          | scheme `maybeElem` streamScheme -> StreamT
-          | otherwise -> ImageT
+        | "raw" `elem` classes -> RawImageT
+        | "code" `elem` classes -> CodeT
+        | ext `maybeElem` renderExt && "render" `elem` classes -> RenderT
+        | ext `maybeElem` javascriptExt && "run" `elem` classes -> JavascriptT
+        | ext `maybeElem` svgExt && "embed" `elem` classes -> EmbedSvgT
+        | ext `maybeElem` yamlExt && "question" `elem` classes -> ExamQuestT
+        | ext `maybeElem` imageExt || "image" `elem` classes -> ImageT
+        | ext `maybeElem` videoExt || "video" `elem` classes -> VideoT
+        | ext `maybeElem` iframeExt || "iframe" `elem` classes -> IframeT
+        | ext `maybeElem` pdfExt || "pdf" `elem` classes -> PdfT
+        | ext `maybeElem` mviewExt || "mview" `elem` classes -> MviewT
+        | ext `maybeElem` modelviewerExt || "modelviewer" `elem` classes -> ModelviewerT
+        | ext `maybeElem` geogebraExt || "geogebra" `elem` classes -> GeogebraT
+        | ext `maybeElem` audioExt || "audio" `elem` classes -> AudioT
+        | scheme `maybeElem` streamScheme -> StreamT
+        | otherwise -> ImageT
 
-maybeElem :: Eq a => Maybe a -> [a] -> Bool
+maybeElem :: (Eq a) => Maybe a -> [a] -> Bool
 maybeElem (Just x) xs = x `elem` xs
 maybeElem Nothing _ = False
 
-renderHtml :: RawHtml a => Html -> Filter a
+renderHtml :: (RawHtml a) => Html -> Filter a
 renderHtml html = do
   pretty <- lookupMetaOrElse False "decker.filter.pretty" <$> gets meta
-  return $
-    rawHtml $
-      toText $
-        if pretty
-          then toText $ Pretty.renderHtml html
-          else fromLazy $ Text.renderHtml html
+  return
+    $ rawHtml
+    $ toText
+    $ if pretty
+      then toText $ Pretty.renderHtml html
+      else fromLazy $ Text.renderHtml html
 
 booleanAttribs =
   [ "allowfullscreen",
@@ -157,7 +154,7 @@ booleanAttribs =
     "typemustmatch"
   ]
 
-(!*) :: Attributable h => h -> [(Text, Text)] -> h
+(!*) :: (Attributable h) => h -> [(Text, Text)] -> h
 (!*) =
   foldl' (\h (k, v) -> h ! customAttribute (H.textTag k) (handleBoolean k v))
   where
@@ -180,7 +177,7 @@ mkFigureTag content caption (id, cs, kvs) =
 inlinesToMarkdown :: [Inline] -> Filter Text
 inlinesToMarkdown [] = return ""
 inlinesToMarkdown inlines = do
-  FilterState meta _ _ <- get
+  FilterState meta _ _ _ <- get
   liftIO $ runIOorExplode (writeMarkdown writerHtmlOptions (Pandoc nullMeta [Plain inlines]))
 
 -- | Renders a list of inlines to HTML.
@@ -192,14 +189,14 @@ inlinesToHtml inlines = blocksToHtml [Plain inlines]
 blocksToHtml :: [Block] -> Filter Html
 blocksToHtml [] = return $ toHtml ("" :: Text)
 blocksToHtml blocks = do
-  FilterState meta _ _ <- get
+  FilterState meta _ _ _ <- get
   liftIO $ runIOorExplode (writeHtml5 writerHtmlOptions (Pandoc meta blocks))
 
 -- | Renders a list of blocks to Markdown.
 blocksToMarkdown :: [Block] -> Filter Text
 blocksToMarkdown [] = return ""
 blocksToMarkdown blocks = do
-  FilterState meta _ _ <- get
+  FilterState meta _ _ _ <- get
   liftIO $ runIOorExplode (writeMarkdown writerHtmlOptions (Pandoc meta blocks))
 
 writerHtmlOptions =
@@ -245,7 +242,7 @@ readLocalUri uri = do
     then resolveFileUri uri >>= lift . Text.readFile
     else error $ "Cannot read from remote URL" <> URI.render uri
 
-isFileUri :: MonadThrow m => URI -> m Bool
+isFileUri :: (MonadThrow m) => URI -> m Bool
 isFileUri uri =
   case URI.uriScheme uri of
     Just rtext
@@ -286,12 +283,13 @@ processRemoteUri uri = do
 modifyMeta :: (Meta -> Meta) -> Filter ()
 modifyMeta f = modify (\s -> s {meta = f (meta s)})
 
-checkAbsoluteUri :: MonadThrow m => URI -> m ()
+checkAbsoluteUri :: (MonadThrow m) => URI -> m ()
 checkAbsoluteUri uri =
-  unless (URI.isPathAbsolute uri) $
-    throwM $
-      InternalException $
-        "relative path detected in URI: " <> show uri
+  unless (URI.isPathAbsolute uri)
+    $ throwM
+    $ InternalException
+    $ "relative path detected in URI: "
+    <> show uri
 
 needFile :: FilePath -> Filter ()
 needFile path = modifyMeta (addMetaValue "decker.filter.resources" path)
@@ -309,19 +307,3 @@ getMeta key def = lookupMetaOrElse def key <$> gets meta
 
 getMetaS :: Text -> String -> Filter String
 getMetaS key def = toString <$> getMeta key (toText def)
-
-hash9String :: String -> String
-hash9String text = take 9 $ show $ md5 $ encodeUtf8 text
-
-hash9 :: Text -> Text
-hash9 text = Text.pack $ take 9 $ show $ md5 $ encodeUtf8 text
-
-randomId :: IO Text
-randomId = Text.pack . take 9 . show . md5 . show <$> (randomIO :: IO Int)
-
-{-# NOINLINE id9 #-}
-id9 :: Text
-id9 = unsafePerformIO randomId
-
-single :: a -> [a]
-single x = [x]

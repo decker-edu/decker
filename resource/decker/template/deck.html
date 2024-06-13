@@ -15,9 +15,9 @@ $if(keywords)$
 $endif$
 $if(title)$
 $if(subtitle)$
-  <title>$title$: $subtitle$</title>
+  <title>$for(title)$ $title$$endfor$: $for(subtitle)$ $subtitle$$endfor$</title>
 $else$
-  <title>$title$</title>
+  <title>$for(title)$ $title$$endfor$</title>
 $endif$
 $endif$
   <meta name="apple-mobile-web-app-capable" content="yes">

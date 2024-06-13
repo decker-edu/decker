@@ -13,3 +13,11 @@ title-prefix: Decker
 -   [:fas](ghost)
 -   [:fab](font-awesome)
 -   
+
+# Vspace
+
+Line 1
+
+[:vspace](10em)
+
+Line 2

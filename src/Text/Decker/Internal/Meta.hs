@@ -50,6 +50,7 @@ import Text.Decker.Internal.Exception
 import Text.Pandoc hiding (lookupMeta)
 import Text.Pandoc.Builder hiding (fromList, lookupMeta, toList)
 import Text.Pandoc.Shared hiding (toString, toText)
+import Text.Decker.Internal.Common (pandocReaderOpts)
 
 -- | Name of the one global meta data file
 globalMetaFileName = "decker.yaml"
@@ -102,13 +103,13 @@ toPandocMeta' (Y.Number scientific) = MetaString $ Text.pack $ show scientific
 toPandocMeta' (Y.Bool bool) = MetaBool bool
 toPandocMeta' Y.Null = MetaList []
 
--- compileText :: Text -> MetaValue
--- compileText text =
---   case runPure $ readMarkdown pandocReaderOpts text of
---     Right pandoc@(Pandoc _ [Plain inlines]) -> MetaInlines inlines
---     Right pandoc@(Pandoc _ [Para inlines]) -> MetaInlines inlines
---     Right pandoc@(Pandoc _ blocks) -> MetaBlocks blocks
---     Left _ -> MetaString text
+_compileText :: Text -> MetaValue
+_compileText text =
+  case runPure $ readMarkdown pandocReaderOpts text of
+    Right pandoc@(Pandoc _ [Plain inlines]) -> MetaInlines inlines
+    Right pandoc@(Pandoc _ [Para inlines]) -> MetaInlines inlines
+    Right pandoc@(Pandoc _ blocks) -> MetaBlocks blocks
+    Left _ -> MetaString text
 
 fromPandocMeta :: Meta -> A.Value
 fromPandocMeta (Meta map) = fromPandocMeta' (MetaMap map)

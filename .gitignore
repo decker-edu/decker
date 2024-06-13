@@ -10,11 +10,11 @@
 *.synctex.gz
 *.zip
 .DS_Store
-.decker*
 .shake/
 .stack-work-profile/
 .stack-work/
 .vscode/
+.rendered-code/
 TAGS
 TODO.md
 decker.cabal

@@ -4,8 +4,8 @@ module Text.Decker.Server.Video where
 
 import Control.Concurrent.STM (writeTChan)
 import Control.Monad.State
-import qualified Data.ByteString as BS
-import qualified Data.List as List
+import Data.ByteString qualified as BS
+import Data.List qualified as List
 import Data.Maybe
 import Network.HTTP.Types
 import Relude
@@ -13,7 +13,7 @@ import System.Directory
 import System.FilePath.Glob
 import System.FilePath.Posix
 import System.Process
-import Text.Decker.Filter.Local (randomId)
+import Text.Decker.Filter.Util (randomId)
 import Text.Decker.Internal.Common
 import Text.Decker.Server.Types
 import Text.Regex.TDFA hiding (empty)
@@ -40,12 +40,11 @@ uploadRecording append = do
       liftIO $ writeBody tmp reader
       let operation = if append then Append tmp destination else Replace tmp destination
       atomically $ writeTChan chan (UploadComplete operation)
-    else do 
-      text "ERROR: directory does not exist or file (suffix) is not uploadable" 
+    else do
+      text "ERROR: directory does not exist or file (suffix) is not uploadable"
       status status406
 
--- | Returns the list of video fragments under the same name. If include is True
--- the actually uploaded file is included in the list.
+-- | Returns the list of video fragments under the same name.
 existingVideos :: FilePath -> IO [FilePath]
 existingVideos webm = do
   let [dir, file, ext] = map ($ webm) [takeDirectory, takeFileName . dropExtension, takeExtension]
@@ -54,10 +53,11 @@ existingVideos webm = do
 -- Unique transient tmp filename
 uniqueTransientFileName :: FilePath -> IO FilePath
 uniqueTransientFileName base = do
+  transient <- transientDir
   id <- toString <$> randomId
-  return $
-    transientDir
-      </> dropExtension (takeFileName base)
+  return
+    $ transient
+    </> dropExtension (takeFileName base)
       <> "-"
       <> id
       <.> takeExtension base
@@ -70,11 +70,11 @@ writeBody path reader = do
     writeBody path reader
 
 -- | Converts a WEBM video file into an MP4 video file on the fast track. The
--- video stream is assumed to be H264 and is  not transcoded. The audio is
+-- video stream is assumed to be H264 and is not transcoded. The audio is
 -- transcoded to AAC in any case.
 convertVideoMp4 :: FilePath -> FilePath -> IO ()
 convertVideoMp4 webm mp4 = do
-  putStrLn $ "# ffmpeg (" <> webm <> " -> " <> mp4 <> ")"
+  putStrLn $ "# concat (" <> webm <> " -> " <> mp4 <> ")"
   runFfmpeg webm mp4
   where
     runFfmpeg src dst = do
@@ -84,10 +84,42 @@ convertVideoMp4 webm mp4 = do
       callProcess "ffmpeg" args
       renameFile tmp dst
 
+-- | Converts a WEBM video file into an MP4 video file on the slow track. The audio is
+-- transcoded to AAC.
+transcodeVideoMp4 :: FilePath -> FilePath -> IO ()
+transcodeVideoMp4 webm mp4 = do
+  runFfmpeg webm mp4
+  where
+    runFfmpeg src dst = do
+      tmp <- uniqueTransientFileName dst
+      let args = ["-nostdin", "-v", "fatal", "-y", "-i", src] <> slow <> [tmp]
+      putStrLn $ "# calling: ffmpeg " <> List.unwords args
+      callProcess "ffmpeg" args
+      renameFile tmp dst
+
 -- Transcoding parameters
 fast = ["-preset", "fast", "-vcodec", "copy"]
 
-slow = ["-pix_fmt", "yuv420p", "-crf", "27", "-preset", "veryslow", "-tune", "stillimage", "-ac", "1", "-movflags", "+faststart", "-vcodec", "libx264", "-r", "30", "-metadata", "comment=decker-crunched"]
+slow =
+  [ "-pix_fmt",
+    "yuv420p",
+    "-crf",
+    "27",
+    "-preset",
+    "slow",
+    "-tune",
+    "stillimage",
+    "-ac",
+    "1",
+    "-movflags",
+    "+faststart",
+    "-vcodec",
+    "libx264",
+    "-r",
+    "30",
+    "-metadata",
+    "comment=decker-crunched"
+  ]
 
 -- | Append the uploaded video to the list of already uploaded videos under the
 --  same name and coverts the resulting concatenation to MP4. The same
@@ -98,10 +130,10 @@ slow = ["-pix_fmt", "yuv420p", "-crf", "27", "-preset", "veryslow", "-tune", "st
 -- differ even slightly. Must use the 'concat demuxer' which unfortunately
 -- must transcode the video stream, which might take a while.
 concatVideoMp4 :: [String] -> [FilePath] -> FilePath -> IO ()
-concatVideoMp4 ffmpegArgs webms mp4 = do
-  let sorted = sort webms
+concatVideoMp4 ffmpegArgs files mp4 = do
+  let sorted = sort files
   listFile <- mkListFile sorted mp4
-  putStrLn $ "# ffmpeg (" <> intercalate ", " sorted <> " -> " <> mp4 <> ")"
+  putStrLn $ "# concat (" <> intercalate ", " sorted <> " -> " <> mp4 <> ")"
   concatVideoMp4' ffmpegArgs listFile mp4
 
 mkListFile webms mp4 = do
@@ -115,7 +147,10 @@ concatVideoMp4' ffmpegArgs listFile mp4 = do
   where
     runFfmpeg listFile dst = do
       tmp <- uniqueTransientFileName dst
-      let args = ["-nostdin", "-v", "fatal", "-y", "-f", "concat", "-safe", "0", "-i", listFile] <> ffmpegArgs <> ["-acodec", "aac", tmp]
+      let args =
+            ["-nostdin", "-v", "warning", "-y", "-f", "concat", "-safe", "0", "-i", listFile]
+              <> ffmpegArgs
+              <> ["-acodec", "aac", tmp]
       putStrLn $ "# calling: ffmpeg " <> List.unwords args
       callProcess "ffmpeg" args
       renameFile tmp dst

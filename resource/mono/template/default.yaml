@@ -51,7 +51,7 @@ reveal:
   fragments: true
   hash: true
   height: 1080
-  help: true
+  help: false
   # hideInactiveCursor: false
   hideCursorTime: 2000
   hideInactiveCursor: true
@@ -69,3 +69,11 @@ reveal:
 
 css-variables:
   block-border-radius: 0.2em;
+
+template:
+  css:
+    - "/support/vendor/codapi-js/snippet.css"
+    - /support/css/hljs.css
+    - /support/css/codapi.css
+  js:
+    - "/support/vendor/codapi-js/snippet.js"

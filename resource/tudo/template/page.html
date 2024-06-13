@@ -60,34 +60,10 @@ $endif$
 
     <!-- setup MathJax ------------------------------------------------------>
     <script type="module">
-      window.MathJax = {
-        loader: {
-          load: ["[tex]/ams", "[tex]/action"],
-        },
-        startup: {
-          ready: () => {
-            console.log("mathjax loaded");
-          },
-        },
-        svg: {
-          mtextInheritFont: true,
-          merrorInheritFont: true,
-        },
-        tex: {
-          tags: "ams",
-          packages: {
-            "[+]": ["ams", "action"],
-          },
-          macros: Decker.meta.math.macros,
-        },
-        options: {
-          enableMenu: false,
-        },
-      };
-      if (window.localStorage) {
-        window.localStorage.removeItem("MathJax-Menu-Settings");
-      }
-    </script>
+      import * as math from "$decker-support-dir$/js/page-math.js";
+      Decker.meta.math = { mathjax: String.raw`$decker-support-dir$/vendor/mathjax/`, ...Decker.meta.math };
+      math.init();
+    </script>    
 
   </head>
 
@@ -120,16 +96,14 @@ $body$
     </main>
 
     <!-- footer with author information -->
-    $if(author)$
     <footer>
-      $if(date)$
-      <p id="date">$date$</p>
-      $endif$
-      <p class="author">
-        $if(copyright)$$copyright$$endif$ $author$$if(affiliation)$, $affiliation$ $endif$
+      <p>
+        $if(copyright)$ $copyright$ $endif$ 
+        $if(author)$ $author$;&ensp; $endif$
+        $if(affiliation)$ $affiliation$;&ensp; $endif$
+        $if(date)$ $date$ $endif$
       </p>
     </footer>
-    $endif$
 
     <!-- spruch fuer ladebildschirm -->
     <div id="waiting-screen" class="glass">
@@ -175,7 +149,5 @@ $body$
         window.location.reload(true);
     };
   </script>
-
-  <script id="MathJax-script" src="$decker-support-dir$/vendor/mathjax/tex-svg.js"></script>
 
 </html>

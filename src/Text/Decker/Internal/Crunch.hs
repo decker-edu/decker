@@ -42,16 +42,13 @@ crunchRules = do
       need [src]
       putNormal $ "# copy recording (for " <> out <> ")"
       copyFileChanged src out
-    -- crunch the WEBMs in the list if the list or one of the WEBMs changed
+    -- crunch the WEBMs in the list if the list changed
     "**/*-recording.mp4" %> \out -> do
-      alwaysRerun
       let list = out <.> "list"
       need [list]
-      let pattern = dropSuffix ".mp4.list" out <> "*.webm"
-      need <$> getDirectoryFiles "" [pattern]
       putNormal $ "# ffmpeg (for " <> out <> ")"
       liftIO $ concatVideoMp4' slow list out
-    -- compile the list of WEBMs
+    -- compile the lost of WEBMs
     "**/*-recording.mp4.list" %> \out -> do
       alwaysRerun
       let pattern = dropSuffix ".mp4.list" out <> "*.webm"

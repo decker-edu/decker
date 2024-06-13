@@ -1,7 +1,6 @@
 function initIndexPage() {
   const selector = Decker.meta.index?.selector || "a[href$='-deck.html']";
   const insert = Decker.meta.index?.progress?.insert || "after";
-
   const links = document.querySelectorAll(selector);
 
   for (const link of links) {
@@ -23,6 +22,7 @@ function initIndexPage() {
       link.after(container);
     }
   }
+  loadSources();
 }
 
 function setupModeLinks(container, url) {
@@ -90,4 +90,14 @@ function setupProgressIndicator(container, url) {
     this.title = `${this.value}% watched.\nDouble-click to toggle\nbetween 100% and 0%`;
     localStorage.setItem(this.key, this.value);
   };
+}
+
+/* Index Pages should be small enough that loading all sources at once
+ * instead of loading with an intersection observer should be feasable.
+ */
+function loadSources() {
+  const sources = document.querySelectorAll("[data-src]");
+  for (const source of sources) {
+    source.setAttribute("src", source.getAttribute("data-src"));
+  }
 }

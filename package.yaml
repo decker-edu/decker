@@ -52,6 +52,7 @@ dependencies:
   - deepseq
   - directory
   - doctemplates
+  - doclayout
   - exceptions
   - extra
   - file-embed
@@ -118,6 +119,7 @@ dependencies:
   - xml-types
   - yaml
   - zip
+  - raw-strings-qq
 
 ghc-options:
   - -Wunused-top-binds

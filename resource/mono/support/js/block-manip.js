@@ -197,16 +197,13 @@ async function downloadManipulations() {
       if (r.ok) return r.json();
       else throw new Error("[] cannot fetch: ", r.statusText);
     })
-    .catch((e) => {
-      console.error(
-        "[] cannot download manipulation data from: ",
-        url,
-        "reason:",
-        e,
-      );
-      return;
+    .catch((_) => {
+      // console.warn("[] cannot download manipulation data from: ", url);
+      // return;
     });
 
+  if (!manips) return;
+   
   let slideTransform = slides.computedStyleMap().get("transform");
   let slideScale = slideTransform[1].x.value;
 

@@ -92,13 +92,33 @@ section#title-slide div.logos {
 }
 
 section#title-slide .logo {
-  position: relative;
-  width: max-content;
+  display: flex;
+  flex: 1 0 0;
+  align-items: center;
+  justify-content: center;
   height: 100%;
+  &:first-child {
+    justify-content: start;
+  }
+  &:last-child {
+    justify-content: end;
+  }
 }
 
 section#title-slide .logo img {
   max-height: 100%;
+}
+
+/* Allow for multi-line headers */
+
+section#title-slide h1.title {
+  display: flex;
+  flex-direction: column;
+}
+
+section#title-slide h2.subtitle {
+  display: flex;
+  flex-direction: column;
 }
 
 /* Margins and spacing */

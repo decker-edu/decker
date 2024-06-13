@@ -1,11 +1,19 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Use <$>" #-}
+{-# HLINT ignore "Avoid lambda using `infix`" #-}
 
 module Text.Decker.Internal.Common where
 
-import Relude
+import Data.List.Extra (replace)
 import Development.Shake (Action)
+import Relude
+import System.Directory (getCurrentDirectory)
+import System.Directory.Extra (getTemporaryDirectory)
 import System.FilePath
+import Text.Decker.Filter.Util (hash9String)
 import Text.Pandoc
 
 type Decker = StateT DeckerState Action
@@ -62,8 +70,8 @@ pandocWriterOpts :: WriterOptions
 pandocWriterOpts =
   def
     { writerExtensions =
-        disableExtension Ext_implicit_figures $
-          enableExtension Ext_emoji pandocExtensions,
+        disableExtension Ext_implicit_figures
+          $ enableExtension Ext_emoji pandocExtensions,
       writerSectionDivs = False,
       writerReferenceLocation = EndOfBlock
     }
@@ -73,8 +81,8 @@ pandocReaderOpts :: ReaderOptions
 pandocReaderOpts =
   def
     { readerExtensions =
-        disableExtension Ext_implicit_figures $
-          enableExtension Ext_emoji pandocExtensions,
+        disableExtension Ext_implicit_figures
+          $ enableExtension Ext_emoji pandocExtensions,
       readerColumns = 999
     }
 
@@ -90,16 +98,25 @@ devSupportDir = "resource/decker/support"
 
 supportPath = "/support"
 
-transientDir = ".decker"
+transientDir :: IO FilePath
+transientDir = do
+  tmp <- getTemporaryDirectory
+  cwd <- getCurrentDirectory
+  return $ mkTmpDirName tmp cwd
 
-liveFile = transientDir </> "live.txt"
+mkTmpDirName tmp cwd =
+  tmp </> "decker-" <> hash9String cwd <> foldr (\c s -> replace c "-" s) cwd ["/", "\\", ":"]
+
+renderedCodeDir = ".rendered-code"
+
+liveFile = (</> "live.txt") <$> transientDir
 
 deckerMetaFile = "decker.yaml"
 
-targetsFile = transientDir </> "targets.yaml"
+targetsFile = (</> "targets.yaml") <$> transientDir
 
-metaArgsFile = transientDir </> "meta-args.yaml"
+metaArgsFile = (</> "meta-args.yaml") <$> transientDir
 
-externalStatusFile = transientDir </> "external-programs.json"
+externalStatusFile = (</> "external-programs.json") <$> transientDir
 
 indexSource = "index.md"

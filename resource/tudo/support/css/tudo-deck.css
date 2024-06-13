@@ -847,6 +847,15 @@ span.sequence {
   display: contents;
 }
 
+/* this block allows to show the first item w/o fragment, but to still remove it when the second item is activated */
+.reveal .stack:has(.current-fragment) > p > :not(.current-fragment),
+.reveal .stack:has(.current-fragment) > :not(.current-fragment) {
+  visibility: hidden;
+}
+.reveal .stack:has(.current-fragment) :has(.current-fragment) {
+  visibility: inherit !important;
+}
+
 /* hide non-active stack items 
   (use hidden instead of display:none to avoid layout shifts) */
 @media not print {
@@ -1627,7 +1636,8 @@ html.dark
   filter: brightness(90%) contrast(90%);
 }
 
-html.dark section#title-slide .logo {
+/* put white background on the image instead of the container */
+html.dark section#title-slide .logo img {
   background-color: var(--shade7);
   border-radius: 0.5rem;
 }

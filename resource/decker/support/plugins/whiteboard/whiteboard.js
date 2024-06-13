@@ -572,6 +572,14 @@ function toggleLaser() {
   else selectTool(LASER);
 }
 
+/*
+ * switch between eraser and pen
+ */
+function toggleEraser() {
+  if (tool == ERASER) selectTool(PEN);
+  else selectTool(ERASER);
+}
+
 function toggleColorPicker() {
   colorPicker.classList.toggle("active");
 }
@@ -604,7 +612,7 @@ function enableWhiteboard() {
   clearTimeout(autoToggleTimer);
 
   // show scrollbar
-  slides.classList.add("active");
+  slides.classList.add("whiteboard-active");
 
   // show buttons
   buttons.classList.add("active");
@@ -621,7 +629,7 @@ function disableWhiteboard() {
   clearTimeout(autoToggleTimer);
 
   // hide scrollbar
-  slides.classList.remove("active");
+  slides.classList.remove("whiteboard-active");
 
   // hide buttons
   buttons.classList.remove("active");
@@ -1616,6 +1624,11 @@ function setupKeyBindings() {
   Reveal.addKeyBinding(
     { keyCode: 76, key: "L", description: "Whiteboard: Toggle laser pointer" },
     toggleLaser
+  );
+
+  Reveal.addKeyBinding(
+    { keyCode: 69, key: "E", description: "Whiteboard: Toggle eraser" },
+    toggleEraser
   );
 
   Reveal.addKeyBinding(

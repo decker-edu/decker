@@ -8,10 +8,10 @@ where
 
 import Control.Monad.State
 import Data.List (find, intersperse)
-import qualified Data.Map as Map (Map, fromList, lookup)
+import Data.Map qualified as Map (Map, fromList, lookup)
 import Data.Maybe
-import qualified Data.Text as Text
-import qualified Data.Text.Lazy as LazyText
+import Data.Text qualified as Text
+import Data.Text.Lazy qualified as LazyText
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.Text
 import Text.Blaze.Html5 as H (div, figure, iframe, p, toValue, (!))
@@ -87,16 +87,19 @@ embedWebVideosHtml page args attr@(_, _, kv) (vid, _) =
       foldl (\s (k, v) -> s ++ printf "%s:%s;" k v :: String) "" kv
     figureClass (_, cls, _) = Text.unwords cls
     html =
-      H.figure ! class_ (toValueT (figureClass attr))
+      H.figure
+        ! class_ (toValueT (figureClass attr))
         ! style (toValue (figureStyle attr))
-        $ H.div ! style (toValue wrapperStyle) $
-          iframe ! style (toValue iframeStyle) ! width (toValue vidWidthStr)
-            ! height (toValue vidHeightStr)
-            ! src (toValue url)
-            ! customAttribute "frameborder" "0"
-            ! auto
-            ! customAttribute "allowfullscreen" ""
-            $ H.p ""
+        $ H.div ! style (toValue wrapperStyle)
+        $ iframe
+          ! style (toValue iframeStyle)
+          ! width (toValue vidWidthStr)
+          ! height (toValue vidHeightStr)
+          ! src (toValue url)
+          ! customAttribute "frameborder" "0"
+          ! auto
+          ! customAttribute "allowfullscreen" ""
+        $ H.p ""
     auto =
       if (autoplay == "1" || autoplay == "true")
         then (customAttribute "data-autoplay" "")
@@ -143,7 +146,8 @@ verticalSpace _ _ (space, _) _ = do
       return $
         RawInline (Format "html") $
           Text.pack $
-            printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
+            -- printf "<div style=\"display:block; clear:both; height:%s;\"></div>" space
+            printf "<span style=\"display:block; clear:both; height:%s;\"></span>" space
     Disposition _ _ -> return $ Str $ "[" <> space <> "]"
 
 metaMacro :: MacroAction
@@ -174,7 +178,7 @@ macroMap =
       ("vspace", verticalSpace)
     ]
 
-readDefault :: Read a => a -> Text.Text -> a
+readDefault :: (Read a) => a -> Text.Text -> a
 readDefault default_ string =
   fromMaybe default_ (readMaybe $ Text.unpack string)
 

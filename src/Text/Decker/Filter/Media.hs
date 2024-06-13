@@ -61,30 +61,30 @@ fragmentRelated =
 -- | Compiles the contents of an Image into a Decker specific structure. This is
 -- context aware and produces either a Block or an Inline element. The caption
 -- might either come from the alt attribute or the separate Caption: line.
-compileImage :: Container c => Attr -> [Inline] -> Text -> Text -> [Inline] -> Filter c
+compileImage :: (Container c) => Attr -> [Inline] -> Text -> Text -> [Inline] -> Filter c
 compileImage attr alt url title caption = do
   uri <- URI.mkURI url
   turi <- transformUri uri ""
   let turl = renderUriDecode turi
   let mediaType = classifyMedia uri attr
-  runAttr attr $
-    if mediaType == RawImageT
+  runAttr attr
+    $ if mediaType == RawImageT
       then do
-          return $ mkRawImage attr alt turl title
+        return $ mkRawImage attr alt turl title
       else do
-          media <- case Map.lookup mediaType imageCompilers of
-            Just transform -> transform uri title caption
-            Nothing -> error $ "No transformer for media type " <> show mediaType
-          attribs <- do
-            injectBorder
-            injectClasses ["media"]
-            takeUsual
-            extractAttr
-          return $ mkContainer attribs [media]
+        media <- case Map.lookup mediaType imageCompilers of
+          Just transform -> transform uri title caption
+          Nothing -> error $ "No transformer for media type " <> show mediaType
+        attribs <- do
+          injectBorder
+          injectClasses ["media"]
+          takeUsual
+          extractAttr
+        return $ mkContainer attribs [media]
 
 defaultAspectRatio = "16/9"
 
-compileLineBlock :: Container c => [[Inline]] -> [Inline] -> Filter c
+compileLineBlock :: (Container c) => [[Inline]] -> [Inline] -> Filter c
 compileLineBlock lines caption = do
   let images = map extract lines
   compileLineBlock' images caption
@@ -93,7 +93,7 @@ compileLineBlock lines caption = do
     extract _ = error "Inline is not an Image. oneImagePerLine seems to have failed."
 
 -- | Compiles the contents of a LineBlock into a Decker specific structure.
-compileLineBlock' :: Container c => [(Attr, [Inline], Text, Text)] -> [Inline] -> Filter c
+compileLineBlock' :: (Container c) => [(Attr, [Inline], Text, Text)] -> [Inline] -> Filter c
 compileLineBlock' images caption = do
   aspects <- mapMaybeM determineAspectRatio images
   let columns =
@@ -145,8 +145,8 @@ determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
       return $ aspect <$> size
     _ -> do
       return Nothing
-  return $
-    asum
+  return
+    $ asum
       [ lookup "w:h" attribs >>= readRatio,
         lookup "aspect-ratio" attribs >>= readRatio,
         intrinsic,
@@ -168,22 +168,25 @@ determineAspectRatio (attr@(_, _, attribs), alt, url, title) = do
 
 -- | Compiles the contents of a CodeBlock into a Decker specific structure.
 compileCodeBlock :: Attr -> Text -> [Inline] -> Filter Block
-compileCodeBlock attr@(_, classes, _) code caption = do
+compileCodeBlock attr@(id, classes, _) code caption = do
+  meta' <- gets meta
+  let codeId = toString $ if Text.null id then "code" else id
+  let docPath = lookupMetaOrFail "decker.doc-path" meta'
   runAttr attr $ do
     media <-
       if
-          | all (`elem` classes) ["plantuml", "render"] ->
-              (writeAndRenderCodeBlock "plantuml")
-          | all (`elem` classes) ["dot", "render"] ->
-              (writeAndRenderCodeBlock "dot")
-          | all (`elem` classes) ["gnuplot", "render"] ->
-              (writeAndRenderCodeBlock "gnuplot")
-          | all (`elem` classes) ["tex", "render"] ->
-              (writeAndRenderCodeBlock "tex")
-          | all (`elem` classes) ["javascript", "run"] ->
-              (javascriptCodeBlock code caption)
-          | otherwise ->
-              (codeBlock code caption)
+        | all (`elem` classes) ["plantuml", "render"] ->
+            (writeAndRenderCodeBlock docPath codeId "plantuml")
+        | all (`elem` classes) ["dot", "render"] ->
+            (writeAndRenderCodeBlock docPath codeId "dot")
+        | all (`elem` classes) ["gnuplot", "render"] ->
+            (writeAndRenderCodeBlock docPath codeId "gnuplot")
+        | all (`elem` classes) ["tex", "render"] ->
+            (writeAndRenderCodeBlock docPath codeId "tex")
+        | all (`elem` classes) ["javascript", "run"] ->
+            (javascriptCodeBlock code caption)
+        | otherwise ->
+            (codeBlock code caption)
     attribs <- do
       injectBorder
       injectClasses ["media"]
@@ -191,22 +194,19 @@ compileCodeBlock attr@(_, classes, _) code caption = do
       extractAttr
     return $ mkContainer attribs [media]
   where
-    writeAndRenderCodeBlock :: Text -> Attrib Block
-    writeAndRenderCodeBlock ext = do
+    writeAndRenderCodeBlock :: String -> String -> Text -> Attrib Block
+    writeAndRenderCodeBlock docPath codeId ext = do
       dropClass ext
       disp <- show <$> lift (gets dispo)
       -- Add disposition to the CRC32 value to prevent collision between
       -- concurrent Deck and Handout references to the same code block.
       let crc = printf "%08x" (calc_crc32 $ disp <> toString code)
-      let path =
-            transientDir
-              </> "code"
-              </> intercalate "-" ["code", crc]
-                <.> toString ext
+      transient <- liftIO transientDir
+      let path = takeDirectory docPath </> renderedCodeDir </> intercalate "-" [takeBaseName docPath, codeId, crc] <.> toString ext
       -- Avoid a possible race condition
       mutex <- lift $ gets codeMutex
-      liftIO $
-        withMVar
+      liftIO
+        $ withMVar
           mutex
           ( \_ -> do
               exists <- doesFileExist path
@@ -222,15 +222,15 @@ compileCodeBlock attr@(_, classes, _) code caption = do
 
 compileBlockQuote :: [Block] -> [Inline] -> Filter Block
 compileBlockQuote quote caption =
-  return $
-    wrapFigure nullAttr caption $
-      mkQuote quote
+  return
+    $ wrapFigure nullAttr caption
+    $ mkQuote quote
 
 dragons :: (Text, [Text], [a])
 dragons = ("", ["here be dragons"], [])
 
 -- | One compiler for each image media type.
-imageCompilers :: Container c => Map MediaT (URI -> Text -> [Inline] -> Attrib c)
+imageCompilers :: (Container c) => Map MediaT (URI -> Text -> [Inline] -> Attrib c)
 imageCompilers =
   Map.fromList
     [ (EmbedSvgT, svgBlock),
@@ -263,7 +263,7 @@ imageCompilers =
 -- └───────────────────────┘
 
 -- |  Compiles the image data to a plain image.
-imageBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+imageBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 imageBlock uri title caption = do
   turi <- lift $ transformUri uri ""
   let turl = renderUriDecode turi
@@ -279,20 +279,20 @@ imageBlock uri title caption = do
     cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     extractAttr
-  return $
-    wrapFigure figureAttr caption $
-      containOne $
-        Image imgAttr [Str fileName] (turl, "")
+  return
+    $ wrapFigure figureAttr caption
+    $ containOne
+    $ Image imgAttr [Str fileName] (turl, "")
 
 -- |  Reads source code from a local file and wraps it in a pre tag.
-includeCodeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+includeCodeBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 includeCodeBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   code <- lift $ readLocalUri uri
   codeBlock code caption
 
 -- |  Converts the contents of a code block to a standard pre tag.
-codeBlock :: Container c => Text -> [Inline] -> Attrib c
+codeBlock :: (Container c) => Text -> [Inline] -> Attrib c
 codeBlock code caption = do
   (innerSizes, outerSizes) <- calcImageSizes
   codeAttr <- do
@@ -308,12 +308,12 @@ codeBlock code caption = do
     injectStyles outerSizes
     takeUsual
     extractAttr
-  return $
-    wrapFigure figureAttr caption $
-      mkPre codeAttr code
+  return
+    $ wrapFigure figureAttr caption
+    $ mkPre codeAttr code
 
 -- |  Compiles the image data to an iframe.
-iframeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+iframeBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 iframeBlock uri title caption = do
   turi <- lift $ transformUri uri ""
   let turl = renderUriDecode turi
@@ -332,12 +332,12 @@ iframeBlock uri title caption = do
     cutClasses fragmentRelated >>= injectClasses
     injectStyles outerSizes
     extractAttr
-  return $
-    wrapFigure figureAttr caption $
-      mkIframe iframeAttr
+  return
+    $ wrapFigure figureAttr caption
+    $ mkIframe iframeAttr
 
 -- |  Compiles the image data to an object showing a document of the given type.
-objectBlock :: Container c => Text -> URI -> Text -> [Inline] -> Attrib c
+objectBlock :: (Container c) => Text -> URI -> Text -> [Inline] -> Attrib c
 objectBlock otype uri title caption = do
   turi <- lift $ transformUri uri ""
   let turl = renderUriDecode turi
@@ -356,12 +356,12 @@ objectBlock otype uri title caption = do
     injectStyles outerSizes
     takeUsual
     extractAttr
-  return $
-    wrapFigure figureAttr caption $
-      mkObject objectAttr
+  return
+    $ wrapFigure figureAttr caption
+    $ mkObject objectAttr
 
 -- |  Compiles the image data to an directly embedded SVG element.
-svgBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+svgBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 svgBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   svg <- lift $ readLocalUri uri
@@ -378,14 +378,14 @@ svgBlock uri title caption = do
     injectStyles outerSizes
     takeUsual
     extractAttr
-  return $
-    wrapFigure figureAttr caption $
-      mkRaw svgAttr svg
+  return
+    $ wrapFigure figureAttr caption
+    $ mkRaw svgAttr svg
 
 -- |  Compiles the image data to a remote streaming video. If the aspect ratio of
 --  the stream is known, it is a good idea to set the `aspect` attribute to
 --  reflect that.
-streamBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+streamBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 streamBlock uri title caption = do
   let scheme = uriScheme uri
   let streamId = uriPath uri
@@ -395,9 +395,10 @@ streamBlock uri title caption = do
       Just "vimeo" -> mkVimeoUri streamId
       Just "twitch" -> mkTwitchUri streamId
       _ ->
-        throwM $
-          ResourceException $
-            "Unsupported stream service: " <> toString (fromMaybe "<none>" scheme)
+        throwM
+          $ ResourceException
+          $ "Unsupported stream service: "
+          <> toString (fromMaybe "<none>" scheme)
 
   (innerSizes, outerSizes) <- calcIframeSizes
   iframeAttr <- do
@@ -412,12 +413,12 @@ streamBlock uri title caption = do
     takeUsual
     injectStyles outerSizes
     extractAttr
-  return $
-    wrapFigure figureAttr caption $
-      mkIframe iframeAttr
+  return
+    $ wrapFigure figureAttr caption
+    $ mkIframe iframeAttr
 
 -- |  Compiles the image data to an iframe containing marios mview tool.
-mviewBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+mviewBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 mviewBlock uri title caption = do
   turi <- lift $ transformUri uri ""
   let model = renderUriDecode turi
@@ -426,7 +427,7 @@ mviewBlock uri title caption = do
   iframeBlock mviewUri title caption
 
 -- |  Compiles the image data to an iframe containing Google's modelviewer.
-modelviewerBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+modelviewerBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 modelviewerBlock uri title caption = do
   turi <- lift $ transformUri uri ""
   let model = renderUriDecode turi
@@ -435,7 +436,7 @@ modelviewerBlock uri title caption = do
   iframeBlock modelviewerUri title caption
 
 -- |  Compiles the image data to an iframe containing marios geogebra page.
-geogebraBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+geogebraBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 geogebraBlock uri title caption = do
   turi <- lift $ transformUri uri ""
   meta' <- lift $ gets meta
@@ -448,7 +449,7 @@ geogebraBlock uri title caption = do
   geogebraUri <- URI.mkURI "public:support/geogebra/geogebra.html"
   iframeBlock geogebraUri title caption
 
-audioBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+audioBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 audioBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   mediaFrag <- mediaFragment
@@ -471,7 +472,7 @@ audioBlock uri title caption = do
   return $ wrapFigure figureAttr caption $ mkAudio audioAttr
 
 -- |  Compiles the image data to a local video.
-videoBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+videoBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 videoBlock uri title caption = do
   uri <- lift $ transformUri uri ""
   mediaFrag <- mediaFragment
@@ -499,7 +500,7 @@ videoBlock uri title caption = do
 
 -- | Assumes an SVG image has been produced from some source and constructs an
 -- image around it.
-renderCodeBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+renderCodeBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 renderCodeBlock uri title caption = do
   turi <- lift $ transformUri uri "svg"
   let turl = renderUriDecode turi
@@ -516,14 +517,14 @@ renderCodeBlock uri title caption = do
     injectStyles outerSizes
     takeUsual
     extractAttr
-  return $
-    wrapFigure figureAttr caption $
-      containOne $
-        Image imgAttr [Str fileName] (turl, "")
+  return
+    $ wrapFigure figureAttr caption
+    $ containOne
+    $ Image imgAttr [Str fileName] (turl, "")
 
 -- |  Transforms an image tag to script tag using the image url as src. Only
 -- supports ES6 modules.
-javascriptBlock :: Container c => URI -> Text -> [Inline] -> Attrib c
+javascriptBlock :: (Container c) => URI -> Text -> [Inline] -> Attrib c
 javascriptBlock uri title caption = do
   -- Pandoc insists that ids start with letters
   id <- ("id" <>) <$> liftIO randomId
@@ -544,11 +545,11 @@ javascriptBlock uri title caption = do
     injectStyles outerSizes
     takeUsual
     extractAttr
-  return $
-    wrapFigure' figureAttr caption $
-      renderJavascript imgAttr furi
+  return
+    $ wrapFigure' figureAttr caption
+    $ renderJavascript imgAttr furi
   where
-    renderJavascript :: Container c => Attr -> URI -> [c]
+    renderJavascript :: (Container c) => Attr -> URI -> [c]
     renderJavascript attr uri =
       [ mkContainer attr [],
         mkContainer
@@ -582,11 +583,11 @@ javascriptCodeBlock code caption = do
     injectStyles outerSizes
     takeUsual
     extractAttr
-  return $
-    wrapFigure' figureAttr caption $
-      renderJavascript id imgAttr code
+  return
+    $ wrapFigure' figureAttr caption
+    $ renderJavascript id imgAttr code
   where
-    renderJavascript :: Container c => Text -> Attr -> Text -> [c]
+    renderJavascript :: (Container c) => Text -> Attr -> Text -> [c]
     renderJavascript id attr code =
       let anchor = "let anchor = document.getElementById(\"" <> id <> "\");\n"
        in [ mkContainer attr [],
@@ -597,7 +598,7 @@ javascriptCodeBlock code caption = do
 
 -- |  Wraps any container in a figure. Adds a caption element if the caption is
 --  not empty.
-wrapFigure :: Container a => Attr -> [Inline] -> a -> a
+wrapFigure :: (Container a) => Attr -> [Inline] -> a -> a
 wrapFigure attr caption inline =
   mkFigure
     attr
@@ -608,7 +609,7 @@ wrapFigure attr caption inline =
            ]
     )
 
-wrapFigure' :: Container a => Attr -> [Inline] -> [a] -> a
+wrapFigure' :: (Container a) => Attr -> [Inline] -> [a] -> a
 wrapFigure' attr caption inline =
   mkFigure
     attr
@@ -654,8 +655,8 @@ instance Container Inline where
   mkPre a t =
     Span
       (addClass "pre" a)
-      [ tag "code" $
-          Span (addClass "processed" nullAttr) [RawInline "html" (text t)]
+      [ tag "code"
+          $ Span (addClass "processed" nullAttr) [RawInline "html" (text t)]
       ]
   mkRaw a t = Span a [RawInline "html" t]
   mkRaw' t = RawInline "html" t
@@ -694,27 +695,27 @@ calcImageSizes = do
   width <- cutAttrib "width"
   height <- cutAttrib "height"
   if
-      | isJust width && isJust height ->
-          -- Both sizes are specified. Aspect ratio be damned.
-          return
-            ( [("height", fromJust height), ("width", "100%")],
-              [("height", "auto"), ("width", fromJust width)]
-            )
-      | isJust width && isNothing height ->
-          -- Only width is specified. Keep aspect ratio.
-          return
-            ( [("height", "auto"), ("width", "100%")],
-              [("height", "auto"), ("width", fromJust width)]
-            )
-      | isNothing width && isJust height ->
-          -- Only height is specified. Keep aspect ratio.
-          return
-            ( [("height", fromJust height), ("width", "auto")],
-              [("height", "auto"), ("width", "auto")]
-            )
-      | otherwise ->
-          -- Nothing is specified, use CSS defaults.
-          return ([], [])
+    | isJust width && isJust height ->
+        -- Both sizes are specified. Aspect ratio be damned.
+        return
+          ( [("height", fromJust height), ("width", "100%")],
+            [("height", "auto"), ("width", fromJust width)]
+          )
+    | isJust width && isNothing height ->
+        -- Only width is specified. Keep aspect ratio.
+        return
+          ( [("height", "auto"), ("width", "100%")],
+            [("height", "auto"), ("width", fromJust width)]
+          )
+    | isNothing width && isJust height ->
+        -- Only height is specified. Keep aspect ratio.
+        return
+          ( [("height", fromJust height), ("width", "auto")],
+            [("height", "auto"), ("width", "auto")]
+          )
+    | otherwise ->
+        -- Nothing is specified, use CSS defaults.
+        return ([], [])
 
 -- | See calcImageSizes. Iframes have no intrinsic aspect ratio and therefore behave a
 -- little differently.
@@ -725,8 +726,8 @@ calcIframeSizes = do
   a1 <- cutAttrib "aspect-ratio"
   a2 <- cutAttrib "w:h"
   let aspect = asum [a2, a1]
-  return $
-    case (aspect, width, height) of
+  return
+    $ case (aspect, width, height) of
       (Nothing, Nothing, Nothing) ->
         ( [("width", "100%"), ("height", "auto"), ("aspect-ratio", defaultAspectRatio)], -- iframe
           [("width", "100%"), ("height", "auto")] -- figure

@@ -3,14 +3,17 @@
 
 module Text.Decker.Filter.Util where
 
+import Data.Digest.Pure.MD5 (md5)
 import Data.List (partition)
-import qualified Data.Text as Text
+import Data.Text qualified as Text
+import GHC.IO (unsafePerformIO)
 import Relude
+import System.Random (randomIO, newStdGen, Random (random))
 import Text.Pandoc.Definition
 
 -- | adds a given String to the list if not in there; Does nothing if the
 --   given String is already present.
-addToAtt :: Eq a => a -> [a] -> [a]
+addToAtt :: (Eq a) => a -> [a] -> [a]
 addToAtt toAdd (a : as)
   | a == toAdd = toAdd : as
   | otherwise = a : addToAtt toAdd as
@@ -27,8 +30,8 @@ addToStyle toAdd (("style", val) : as) =
     if toAdd `Text.isInfixOf` val
       then val
       else Text.concat [val, " ", toAdd]
-  ) :
-  as
+  )
+    : as
 -- if we land here the current one is not style -> skip
 addToStyle toAdd (a : as) = a : addToStyle toAdd as
 -- if we land here we have no more to skip -> add
@@ -74,8 +77,8 @@ convertToStyle keys kvpairs = ("style", newstyle) : rest
     rest = filter (\(k, _) -> k `notElem` ("style" : keys)) kvpairs
     newstyle =
       Text.concat
-        [ Text.concat $
-            map (\(k, v) -> Text.concat [k, ":", v, ";"]) stylesToAdd,
+        [ Text.concat
+            $ map (\(k, v) -> Text.concat [k, ":", v, ";"]) stylesToAdd,
           oldstyle
         ]
 
@@ -146,7 +149,7 @@ forceBlock (RawInline format html) = RawBlock format html
 forceBlock inline = Plain [inline]
 
 oneImagePerLine :: [[Inline]] -> Bool
-oneImagePerLine inlines = not (null inlines) && not (any null inlines) && all isImage (concat inlines)
+oneImagePerLine inlines = not (null inlines) && not (any null inlines) && all (all isImage) inlines
 
 unpackImage :: Inline -> (Attr, [Inline], Text, Text)
 unpackImage (Image attr alt (url, title)) = (attr, alt, url, title)
@@ -154,3 +157,26 @@ unpackImage _ = error "Inline is not an Image. oneImagePerLine seems to have fai
 
 isImage Image {} = True
 isImage _ = False
+
+hash9String :: String -> String
+hash9String text = take 9 $ show $ md5 $ encodeUtf8 text
+
+hash9 :: Text -> Text
+hash9 text = Text.pack $ take 9 $ show $ md5 $ encodeUtf8 text
+
+randomId :: IO Text
+randomId = Text.pack . take 9 . show . md5 . show <$> (randomIO :: IO Int)
+
+{-# NOINLINE id9 #-}
+id9 :: Text
+id9 = unsafePerformIO randomId
+
+single :: a -> [a]
+single x = [x]
+
+toId :: Int -> Text
+toId = Text.pack . take 9 . show . md5 . show
+
+randomIds :: IO [Text]
+randomIds = newStdGen <&> unfoldr (Just . first toId . random)
+

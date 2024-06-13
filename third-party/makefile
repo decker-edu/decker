@@ -6,7 +6,7 @@ SHELL := $(shell which bash)
 support := ../resource/decker/support/vendor
 third := $(shell realpath .)
 
-upgrade: mathjax reveal.js highlight.js fontawesome videojs d3 chartjs
+upgrade: mathjax reveal.js highlight.js fontawesome videojs d3 chartjs codapi-js
 
 d3:
 	@rsync d3.v6.min.js $(support)
@@ -40,4 +40,9 @@ chartjs:
 	@mkdir -p $(support)/chartjs
 	@rsync chart.js/dist/chart.umd.js $(support)/chartjs/
 
-.PHONY: upgrade clean prepare fontawesome reveal.js highlight.js mathjax videojs chartjs
+codapi-js:
+	@(cd codapi-js; npm install; make)
+	@mkdir -p $(support)/codapi-js
+	@rsync -r codapi-js/dist/* $(support)/codapi-js
+
+.PHONY: upgrade clean prepare fontawesome reveal.js highlight.js mathjax videojs chartjs codapi-js

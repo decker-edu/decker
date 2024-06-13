@@ -9,7 +9,6 @@
 module Text.Decker.Project.Project
   ( scanTargetsToFile,
     setProjectDirectory,
-    -- , dachdeckerFromMeta
     unusedResources,
     scanTargets,
     excludeDirs,
@@ -30,6 +29,7 @@ module Text.Decker.Project.Project
     fromMetaValue,
     toMetaValue,
     readTargetsFile,
+    alwaysExclude,
   )
 where
 
@@ -191,7 +191,7 @@ sourceRegexes :: [String] =
     "\\`(^_).*\\.scss\\'"
   ]
 
-alwaysExclude = [publicDir, transientDir, "dist", ".git", ".vscode", ".decker"]
+alwaysExclude = [publicDir, "dist", ".git", ".vscode", ".stack-work"]
 
 questSuffix = "-quest.yaml"
 
@@ -213,14 +213,15 @@ staticResources meta =
 
 unusedResources :: Meta -> IO [FilePath]
 unusedResources meta = do
+  live <- liveFile
   srcs <- Set.fromList <$> fastGlobFiles (excludeDirs meta) [] projectDir
-  live <- Set.fromList . String.lines . decodeUtf8 <$> readFileBS liveFile
+  live <- Set.fromList . String.lines . decodeUtf8 <$> readFileBS live
   return $ Set.toList $ Set.difference srcs live
 
 scanTargetsToFile :: (MonadIO m, Partial) => Meta -> FilePath -> m ()
 scanTargetsToFile meta file = do
   targets <- liftIO $ scanTargets meta
-  liftIO $ putStrLn $ "# scanned targets to " <> file
+  -- liftIO $ putStrLn $ "# scanned targets to " <> file
   writeFileChanged file $ decodeUtf8 $ Yaml.encodePretty Yaml.defConfig targets
 
 anySource :: FilePath -> Bool

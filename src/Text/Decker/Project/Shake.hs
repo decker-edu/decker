@@ -41,12 +41,13 @@ import System.FilePath.Posix
 import System.Info
 import System.Process hiding (runCommand)
 import Text.Decker.Internal.Common
-import Text.Decker.Internal.Crunch
+import Text.Decker.Internal.Crrrunch
 import Text.Decker.Internal.External
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Internal.Transcribe
 import Text.Decker.Project.ActionContext
+import Text.Decker.Project.Glob (fastGlobDirs)
 import Text.Decker.Project.Project
 import Text.Decker.Project.Version
 import Text.Decker.Resource.Resource
@@ -73,7 +74,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- readMetaDataFile globalMetaFileName
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "transcribe", "pdf", "version", "check"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     _ -> runTargets context targets rules
@@ -90,7 +91,8 @@ runTargets context targets rules = do
 
   -- always rescan the targets file in case files where added or removed
   let meta = context ^. globalMeta
-  scanTargetsToFile meta targetsFile
+  targets <- targetsFile
+  scanTargetsToFile meta targets
 
   -- Always run at least once
   runShake context rules
@@ -113,15 +115,17 @@ runShake context rules = do
   options <- deckerShakeOptions context
   shakeArgsWith options deckerFlags (\_ _ -> return $ Just rules)
 
-runShakeSlyly :: ActionContext -> Rules () -> IO ()
-runShakeSlyly context rules = do
+_runShakeSlyly :: ActionContext -> Rules () -> IO ()
+_runShakeSlyly context rules = do
   -- always rescan the targets file in case files where added or removed
   let meta = context ^. globalMeta
-  scanTargetsToFile meta targetsFile
+  targets <- targetsFile
+  scanTargetsToFile meta targets
   let flags = context ^. extra
   extractMetaIntoFile flags
   options <- deckerShakeOptions context
-  shakeArgsWith (options {shakeFiles = transientDir </> "crunch"}) deckerFlags (\_ _ -> return $ Just rules)
+  transient <- transientDir
+  shakeArgsWith (options {shakeFiles = transient </> "crunch"}) deckerFlags (\_ _ -> return $ Just rules)
 
 runShakeForever :: Maybe ActionMsg -> ActionContext -> Rules () -> IO b
 runShakeForever last context rules = do
@@ -202,8 +206,10 @@ runCommand context command rules = do
     "serve" -> do
       forkServer context
       handleUploads context
-    "crunch" -> crunchRecordings context
+    "crunch" -> crunchAllRecordings context
+    "crrrunch" -> crunchAllRecordings context
     "transcribe" -> transcribeRecordings context
+    "transcrrribe" -> transcribeAllRecordings context
     "version" -> putDeckerVersion
     "check" -> forceCheckExternalPrograms
     "pdf" -> do
@@ -216,15 +222,16 @@ runCommand context command rules = do
     _ -> error "Unknown command. Should not happen."
   exitSuccess
 
-crunchRecordings :: ActionContext -> IO ()
-crunchRecordings context = runShakeSlyly context crunchRules
+-- crunchRecordings :: ActionContext -> IO ()
+-- crunchRecordings context = runShakeSlyly context crunchRules
 
 transcribeRecordings :: ActionContext -> IO ()
 transcribeRecordings context = do
   let baseDir = lookupMetaOrElse "/usr/local/share/whisper.cpp" "whisper.base-dir" (context ^. globalMeta)
   exists <- Dir.doesFileExist $ baseDir </> "main"
   if exists
-    then runShakeSlyly context transcriptionRules
+    then transcribeAllRecordings context
+    -- then runShakeSlyly context transcriptionRules
     else putStrLn "Install https://github.com/ggerganov/whisper.cpp to generate transcriptions."
 
 deckerFlags :: [GetOpt.OptDescr (Either String Flags)]
@@ -314,14 +321,16 @@ extractMetaIntoFile :: [Flags] -> IO ()
 extractMetaIntoFile flags = do
   let metaFlags = HashMap.fromList $ map (\(MetaValueFlag k v) -> (k, v)) $ filter aMetaValue flags
   let json = decodeUtf8 $ encode metaFlags
-  writeFileChanged metaArgsFile json
+  argsFile <- metaArgsFile
+  writeFileChanged argsFile json
 
 aMetaValue (MetaValueFlag _ _) = True
 aMetaValue _ = False
 
 initContext :: [Flags] -> Meta -> IO ActionContext
 initContext extra meta = do
-  createDirectoryIfMissing True transientDir
+  transient <- transientDir
+  createDirectoryIfMissing True transient
   devRun <- isDevelopmentRun
   external <- checkExternalPrograms
   server <- newTVarIO (ServerState [] Set.empty)
@@ -352,9 +361,10 @@ deckerShakeOptions :: ActionContext -> IO ShakeOptions
 deckerShakeOptions ctx = do
   let single = ThreadFlag `elem` (ctx ^. extra)
   let toStderr = ErrorFlag `elem` (ctx ^. extra)
+  transient <- transientDir
   return
     $ shakeOptions
-      { shakeFiles = transientDir,
+      { shakeFiles = transient,
         shakeExtra = HashMap.insert actionContextKey (toDyn ctx) HashMap.empty,
         shakeThreads = if single then 1 else 0,
         shakeColor = not toStderr,
@@ -418,8 +428,16 @@ runClean totally = do
   tryRemoveDirectory privateDir
   when totally
     $ do
-      putStrLn $ "# Removing " ++ transientDir
-      tryRemoveDirectory transientDir
+      transient <- transientDir
+      putStrLn $ "# Removing " ++ transient
+      tryRemoveDirectory transient
+      dirs <- fastGlobDirs alwaysExclude (== renderedCodeDir) "."
+      forM_
+        dirs
+        ( \dir -> do
+            putStrLn $ "# Removing " ++ dir
+            tryRemoveDirectory dir
+        )
 
 pdfMsg =
   [text|

@@ -1,4 +1,4 @@
-import qualified Data.ByteString.Char8 as B
+import Data.ByteString.Char8 qualified as B
 import GHC.IO.Encoding
 import IncludeTests
 import MetaTests

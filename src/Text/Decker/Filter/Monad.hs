@@ -13,7 +13,8 @@ import Text.Pandoc hiding (lookupMeta)
 data FilterState = FilterState
   { meta :: Meta,
     dispo :: Disposition,
-    codeMutex :: MVar Int
+    codeMutex :: MVar Int,
+    templates :: TVar (Map String (Template Text))
   }
 
 -- | All filters live in the Filter monad.
