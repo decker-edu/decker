@@ -9,6 +9,7 @@ module Text.Decker.Internal.External
     rsync,
     dot,
     plantuml,
+    mermaid,
     gnuplot,
     pdflatex,
     pdf2svg,
@@ -79,6 +80,14 @@ programs =
         ["--version"]
         (helpText "Plantuml (https://plantuml.com)")
     ),
+    ( "mmdc",
+      ExternalProgram
+        -- []
+        "mmdc"
+        []
+        ["-V"]
+        (helpText "Mermaid (https://mermaid.com)")
+    ),
     ( "gnuplot",
       ExternalProgram
         -- []
@@ -126,6 +135,9 @@ dot = makeProgram "dot"
 
 plantuml :: Program
 plantuml = makeProgram "plantuml"
+
+mermaid :: Program
+mermaid = makeProgram "mmdc"
 
 gnuplot :: Program
 gnuplot = makeProgram "gnuplot"

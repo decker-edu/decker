@@ -175,6 +175,8 @@ compileCodeBlock attr@(id, classes, _) code caption = do
   runAttr attr $ do
     media <-
       if
+        | all (`elem` classes) ["mermaid", "render"] ->
+            (writeAndRenderCodeBlock docPath codeId "mmd")
         | all (`elem` classes) ["plantuml", "render"] ->
             (writeAndRenderCodeBlock docPath codeId "plantuml")
         | all (`elem` classes) ["dot", "render"] ->

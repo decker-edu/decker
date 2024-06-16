@@ -38,6 +38,25 @@ Alice -> Bob: test
 @enduml
 ```
 
+# Embedded Mermaid Code (SVG) {.columns}
+
+## Mermaid {.left}
+
+```` {.markdown}
+``` {.mermaid .render}
+graph TD
+A[Client] --> B[Load Balancer]
+```
+````
+
+## SVG {.right}
+
+``` {.mermaid .render width="60%"}
+graph TD
+A[Client] --> B[Load Balancer]
+```
+
+
 ------------------------------------------------------------------------
 
 # Embedded Graphviz Code (SVG) {layout="columns"}
