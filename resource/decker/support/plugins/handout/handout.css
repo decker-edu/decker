@@ -1,4 +1,8 @@
 html.handout #handout-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   margin: auto;
   overflow: auto;
   touch-action: pan-x pan-y;
@@ -13,10 +17,7 @@ html.handout :not(#handout-container).reveal {
 html.handout .reveal .slides {
   display: block;
   width: var(--slide-width);
-  transform-origin: top center;
-  translate: -50% 0;
-  left: 50%;
-  margin: 0;
+  transform: scale(var(--scale-factor));
 }
 
 html.handout .reveal .slides section {

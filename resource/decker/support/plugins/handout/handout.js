@@ -24,6 +24,13 @@ const handoutSlides = document.createElement("div");
 handoutContainer.appendChild(handoutSlides);
 
 function activateHandoutMode() {
+  const meta = document.querySelector("meta[name=viewport]");
+  if (meta) {
+    meta.setAttribute(
+      "content",
+      "width=device-width, initial-scale=1.0, user-scalable=1"
+    );
+  }
   const currentSlide = Reveal.getCurrentSlide();
 
   // Store current reveal config and disable everything but keyboard shortcuts
@@ -120,6 +127,13 @@ function activateHandoutMode() {
 }
 
 function disassembleHandoutMode() {
+  const meta = document.querySelector("meta[name=viewport]");
+  if (meta) {
+    meta.setAttribute(
+      "content",
+      "width=device-width, initial-scale=1.0, user-scalable=0"
+    );
+  }
   // Restore configuration
   Reveal.configure(previousRevealConfiguration);
 
@@ -358,7 +372,17 @@ function updateScaling() {
   // clamp to (slightly smaller than) one to avoid horizontal scrollbar
   if (userScale > 0.95 && userScale < 1.05) userScale = 0.99;
   const scale = slideScale * userScale;
-  handoutSlides.style.transform = `scale(${scale})`;
+  handoutSlides.style.setProperty("--scale-factor", scale);
+  const containerRect = handoutContainer.getBoundingClientRect();
+  const slidesRect = handoutSlides.getBoundingClientRect();
+  // if the slides are larger than the viewport: scale from top left to fit to screen
+  if (slidesRect.width > containerRect.width) {
+    handoutSlides.style.transformOrigin = "top left";
+    handoutSlides.style.margin = "0";
+  } else {
+    handoutSlides.style.transformOrigin = "top center";
+    handoutSlides.style.margin = null;
+  }
 }
 
 /* return slide scaling factor */
@@ -488,6 +512,8 @@ function createButtons() {
   if (anchors) {
     let buttonMinus = document.createElement("button");
     buttonMinus.id = "handout-minus";
+    buttonMinus.ariaLabel =
+      navigator.language === "de" ? "Verkleinern" : "Zoom Out";
     buttonMinus.className = "fa-button fa-solid fa-magnifying-glass-minus";
     buttonMinus.onclick = () => {
       userScale /= 1.25;
@@ -495,6 +521,8 @@ function createButtons() {
     };
     let buttonPlus = document.createElement("button");
     buttonPlus.id = "handout-plus";
+    buttonPlus.ariaLabel =
+      navigator.language === "de" ? "Vergrößern" : "Zoom In";
     buttonPlus.className = "fa-button fa-solid fa-magnifying-glass-plus";
     buttonPlus.onclick = () => {
       userScale *= 1.25;
