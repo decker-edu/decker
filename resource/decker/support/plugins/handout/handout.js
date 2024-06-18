@@ -23,13 +23,22 @@ const handoutContainer = document.createElement("div");
 const handoutSlides = document.createElement("div");
 handoutContainer.appendChild(handoutSlides);
 
+let storedMetaViewport = undefined;
+
 function activateHandoutMode() {
+  /* Store and modify viewport meta tag to allow mobile device zooming */
   const meta = document.querySelector("meta[name=viewport]");
   if (meta) {
-    meta.setAttribute(
-      "content",
-      "width=device-width, initial-scale=1.0, user-scalable=1"
+    storedMetaViewport = meta.getAttribute("content");
+    const scalable = storedMetaViewport.replace(
+      /user-scalable=no/,
+      "user-scalable=yes"
     );
+    const unlimited = scalable.replace(
+      /\s*maximum-scale=([0-9]|\.)*\s*,?\s*/,
+      " "
+    );
+    meta.setAttribute("content", unlimited);
   }
   const currentSlide = Reveal.getCurrentSlide();
 
@@ -127,12 +136,10 @@ function activateHandoutMode() {
 }
 
 function disassembleHandoutMode() {
+  /* Restore old viewport meta */
   const meta = document.querySelector("meta[name=viewport]");
   if (meta) {
-    meta.setAttribute(
-      "content",
-      "width=device-width, initial-scale=1.0, user-scalable=0"
-    );
+    meta.setAttribute("content", storedMetaViewport);
   }
   // Restore configuration
   Reveal.configure(previousRevealConfiguration);
