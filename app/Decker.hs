@@ -273,6 +273,12 @@ deckerRules = do
       plantuml [src] (Just $ src -<.> "svg")
       liftIO $ Dir.renameFile (src -<.> "svg") out
     --
+    "**/*.mmd.svg" %> \out -> do
+      let src = dropExtension out
+      need [src]
+      putInfo $ "# mermaid (for " <> out <> ")"
+      mermaid ["-i", src, "-o", out] (Just $ src -<.> "svg")
+    --
     "**/*.dot.svg" %> \out -> do
       let src = dropExtension out
       need [src]

@@ -27,8 +27,10 @@ import Development.Shake.FilePath ((</>))
 import Control.Exception.Base (handle)
 
 expandFragmentTemplates :: Pandoc -> Filter Pandoc
-expandFragmentTemplates  (Pandoc meta blocks) =
-  Pandoc meta <$> (walkM expandBlockM blocks >>= walkM expandLinkM)
+expandFragmentTemplates  document@(Pandoc meta blocks) =
+  if lookupMetaOrElse False "experiments.fragment-templates" meta
+    then Pandoc meta <$> (walkM expandBlockM blocks >>= walkM expandLinkM)
+    else return document
   where
     -- Expands macro links in block contexts
     expandBlockM :: Block -> Filter Block
