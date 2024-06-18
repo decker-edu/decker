@@ -4,6 +4,10 @@ poll-server: wss://tramberend.bht-berlin.de/quizzer/quiz
 # poll-server: ws://localhost:3003/quiz
 save-polls: true
 
+# enable some experimental features
+experiments:
+    fragment-templates: true
+
 palette:
   colors:
     light: # OKSolar (https://meat.io/oksolar)
