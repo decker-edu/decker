@@ -32,8 +32,18 @@ function setupModeLinks(container, url) {
     const a11yLink = document.createElement("a");
     a11yLink.href = url.pathname + "?a11y";
     a11yLink.classList.add("fas", "fa-universal-access");
-    a11yLink.setAttribute("title", "access in accessibility mode");
-    a11yLink.setAttribute("aria-label", "access in accessibility mode");
+    a11yLink.setAttribute(
+      "title",
+      navigator.language === "de"
+        ? "In barrierearmer Darstellung öffnen"
+        : "Access in accessibility mode"
+    );
+    a11yLink.setAttribute(
+      "aria-label",
+      navigator.language === "de"
+        ? "In barrierearmer Darstellung öffnen"
+        : "Access in accessibility mode"
+    );
     container.appendChild(a11yLink);
   }
 
@@ -41,8 +51,18 @@ function setupModeLinks(container, url) {
     const handoutLink = document.createElement("a");
     handoutLink.href = url.pathname + "?handout";
     handoutLink.classList.add("fas", "fa-file-arrow-down");
-    handoutLink.setAttribute("title", "access in handout mode");
-    handoutLink.setAttribute("aria-label", "access in handout mode");
+    handoutLink.setAttribute(
+      "title",
+      navigator.language === "de"
+        ? "In Handout-Darstellung öffnen"
+        : "Access in handout mode"
+    );
+    handoutLink.setAttribute(
+      "aria-label",
+      navigator.language === "de"
+        ? "In Handout-Darstellung öffnen"
+        : "Access in handout mode"
+    );
     container.appendChild(handoutLink);
   }
 
@@ -50,8 +70,18 @@ function setupModeLinks(container, url) {
     const presenterLink = document.createElement("a");
     presenterLink.href = url.pathname + "?presenter";
     presenterLink.classList.add("fas", "fa-chalkboard-teacher");
-    presenterLink.setAttribute("title", "access in presenter mode");
-    presenterLink.setAttribute("aria-label", "access in presenter mode");
+    presenterLink.setAttribute(
+      "title",
+      navigator.language === "de"
+        ? "Im Präsentationsmodus öffnen"
+        : "Access in presenter mode"
+    );
+    presenterLink.setAttribute(
+      "aria-label",
+      navigator.language === "de"
+        ? "Im Präsentationsmodus öffnen"
+        : "Access in presenter mode"
+    );
     container.appendChild(presenterLink);
   }
 }
