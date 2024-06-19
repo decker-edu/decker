@@ -111,13 +111,21 @@ function setupProgressIndicator(container, url) {
   progress.max = 100;
   progress.value = percent;
   progress.key = key;
-  progress.title = `${percent}% watched.\nDouble-click to toggle\nbetween 100% and 0%`;
+  if (navigator.language === "de") {
+    progress.title = `${percent}% betrachtet.\nDoppelklick zum Wechseln\nzwischen 100% und 0%.`;
+  } else {
+    progress.title = `${percent}% watched.\nDouble-click to toggle\nbetween 100% and 0%.`;
+  }
 
   container.appendChild(progress);
 
   progress.ondblclick = function () {
     this.value = this.value == 100 ? 0 : 100;
-    this.title = `${this.value}% watched.\nDouble-click to toggle\nbetween 100% and 0%`;
+    if (navigator.language === "de") {
+      progress.title = `${this.value}% betrachtet.\nDoppelklick zum Wechseln\nzwischen 100% und 0%.`;
+    } else {
+      progress.title = `${this.value}% watched.\nDouble-click to toggle\nbetween 100% and 0%.`;
+    }
     localStorage.setItem(this.key, this.value);
   };
 }
