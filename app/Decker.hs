@@ -277,7 +277,7 @@ deckerRules = do
       let src = dropExtension out
       need [src]
       putInfo $ "# mermaid (for " <> out <> ")"
-      mermaid ["-i", src, "-o", out] (Just $ src -<.> "svg")
+      mermaid ["-i", src, "-o", out] (Just out)
     --
     "**/*.dot.svg" %> \out -> do
       let src = dropExtension out
