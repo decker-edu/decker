@@ -6,6 +6,51 @@ meta-data:
   - math-macros.yaml
 ---
 
+# Math Fragments: In Code
+
+::: incremental
+- Navier-Stokes-Gleichungen
+  $$\begin{eqnarray}
+    \dot{\vec{u}} &=& 
+    \fragment{-\vec{u}\cdot\grad\vec{u}}
+    \fragment{\;-\; \frac{1}{\rho}\grad p}
+    \fragment{\;+\; \nu \laplace \vec{u}}
+    \fragment{\;+\; \vec{f}} 
+    \label{eq:momentum} \\[2mm]
+    \grad \cdot \vec{u} &=& 0 
+    \label{eq:incompressibility}
+  \end{eqnarray}$$
+- Formeln können schrittweise eingeblendet werden
+- Formeln können referenziert und verlinkt werden\
+  (siehe nächste Folie)
+:::
+
+# Math Fragments: .incremental-math
+
+::: incremental
+
+- Herleitungen an der Tafel sind nicht in Videoaufzeichnung
+- Herleitungen auf den Folien sind zu schnell
+  [$$
+  \begin{eqnarray*}
+  a &=& b \\
+  a^2 &=& ab \\
+  2a^2 &=& a^2 + ab \\
+  2a^2-2ab &=& a^2 - ab \\
+  2a(a-b) &=& a (a-b) \\
+  2a &=& a \\
+  2 &=& 1
+  \end{eqnarray*}
+  $$]{ .math-incremental }
+- Die virtuelle Tafel ist ein guter Kompromiss :thumbsup:
+
+:::
+
+::: footer
+Hier der Link auf Navier-Stokes-Gleichungen: $\eqref{eq:momentum}$.
+:::
+
+
 # Custom LaTeX Macros {layout=columns}
 
 ## macros {.left}
