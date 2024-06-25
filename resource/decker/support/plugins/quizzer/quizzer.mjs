@@ -185,7 +185,6 @@ async function initializeHost() {
       resolve();
     });
     hostClient.on("result", (result) => {
-      console.log(result);
       quizState = "WAITING";
       stateSpan.hidden = true;
       const resultContainer = document.createElement("div");
@@ -307,20 +306,159 @@ async function initializeHost() {
         }
       }
       if (currentQuiz && currentQuiz.type === "assignment") {
-        const generator = d3.sankey();
+        const margin = { top: 16, right: 16, left: 16, bottom: 16 };
+        const width = 800 - margin.left - margin.right;
+        const height = 600 - margin.top - margin.bottom;
+        const color = d3.scaleOrdinal(d3.schemeCategory10);
+        const generator = d3
+          .sankey()
+          .nodeWidth(24)
+          .nodePadding(32)
+          .size([width, height]);
+        console.log(generator);
         const svg = d3
-          .create("svg")
-          .attr("width", 600)
-          .attr("height", 400)
-          .attr("viewBox", [0, 0, 600, 400]);
+          .select(resultContainer)
+          .append("svg")
+          .attr("width", width)
+          .attr("height", height)
+          .attr("viewBox", [0, 0, width, height]);
         resultContainer.classList.add("quizzer-assignment-results-container");
-        const targets = [];
-        const sources = [];
+        const nodes = [];
+        const links = [];
+        const choices = currentQuiz.choices;
+        const options = choices[0].options;
+        const reasons = [];
+        for (const option of options) {
+          reasons.push(option.reason);
+          const node = { node: nodes.length, name: option.label };
+          nodes.push(node);
+        }
+        const uniques = reasons.filter(
+          (value, index, array) => array.indexOf(value) === index
+        );
+        for (const category of uniques) {
+          const node = {
+            node: nodes.length,
+            name: category ? category : "None",
+          };
+          nodes.push(node);
+        }
         for (const entry of result) {
           for (const assignment in entry.assignments) {
+            const value = entry.assignments[assignment];
+            const source = nodes.find((node) => node.name === assignment).node;
+            const target = nodes.find((node) => node.name === entry.label).node;
+            const link = { source: source, target: target, value: value + 1 };
+            links.push(link);
           }
         }
-        resultContainer.appendChild(svg);
+        const testNodes = [
+          { node: 0, name: "src0" },
+          { node: 1, name: "src1" },
+          { node: 2, name: "sink0" },
+        ];
+        const testLinks = [
+          { source: 0, target: 2, value: 4 },
+          { source: 1, target: 2, value: 6 },
+        ];
+        const path = generator.links();
+        const json = { nodes: testNodes, links: testLinks };
+        //          generator.nodes(testNodes).links(testLinks);
+        generator.extent([
+          [16, 16],
+          [width - 16, height - 16],
+        ]);
+        var graph = generator(json);
+        console.log(graph);
+        var link = svg
+          .append("g")
+          .selectAll(".link")
+          .data(testLinks)
+          .enter()
+          .append("path")
+          .attr("class", "link")
+          .attr("d", d3.sankeyLinkHorizontal())
+          .style("stroke-width", function (d) {
+            return Math.max(1, d.dy);
+          })
+          .sort(function (a, b) {
+            return b.dy - a.dy;
+          });
+
+        // add in the nodes
+        var node = svg
+          .append("g")
+          .selectAll(".node")
+          .data(testNodes)
+          .enter()
+          .append("g")
+          .attr("class", "node")
+          .attr("transform", function (d) {
+            return "translate(" + d.x0 + "," + d.y0 + ")";
+          })
+          .call(
+            d3
+              .drag()
+              .subject(function (d) {
+                return d;
+              })
+              .on("start", function () {
+                this.parentNode.appendChild(this);
+              })
+              .on("drag", dragmove)
+          );
+
+        // add the rectangles for the nodes
+        node
+          .append("rect")
+          .attr("x", (d) => d.x0)
+          .attr("y", (d) => d.y0)
+          .attr("height", (d) => d.y1 - d.y0)
+          .attr("width", generator.nodeWidth())
+          .style("fill", function (d) {
+            return (d.color = color(d.name.replace(/ .*/, "")));
+          })
+          .style("stroke", function (d) {
+            return d3.rgb(d.color).darker(2);
+          })
+          // Add hover text
+          .append("title")
+          .text(function (d) {
+            return d.name + "\n" + d.value;
+          });
+
+        // add in the title for the nodes
+        node
+          .append("text")
+          .attr("x", -6)
+          .attr("y", function (d) {
+            return d.dy / 2;
+          })
+          .attr("dy", ".35em")
+          .attr("text-anchor", "end")
+          .attr("transform", null)
+          .text(function (d) {
+            return d.name;
+          })
+          .filter(function (d) {
+            return d.x < width / 2;
+          })
+          .attr("x", 6 + generator.nodeWidth())
+          .attr("text-anchor", "start");
+
+        // the function for moving the nodes
+        function dragmove(d) {
+          d3.select(this).attr(
+            "transform",
+            "translate(" +
+              d.x +
+              "," +
+              (d.y = Math.max(0, Math.min(height - d.dy, e.y))) +
+              ")"
+          );
+          generator.relayout();
+          link.attr("d", d3.sankeyLinkHorizontal());
+        }
       }
       document.body.appendChild(resultContainer);
       resultContainer.addEventListener("click", () => {
