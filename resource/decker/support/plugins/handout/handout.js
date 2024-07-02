@@ -23,7 +23,23 @@ const handoutContainer = document.createElement("div");
 const handoutSlides = document.createElement("div");
 handoutContainer.appendChild(handoutSlides);
 
+let storedMetaViewport = undefined;
+
 function activateHandoutMode() {
+  /* Store and modify viewport meta tag to allow mobile device zooming */
+  const meta = document.querySelector("meta[name=viewport]");
+  if (meta) {
+    storedMetaViewport = meta.getAttribute("content");
+    const scalable = storedMetaViewport.replace(
+      /user-scalable=no/,
+      "user-scalable=yes"
+    );
+    const unlimited = scalable.replace(
+      /\s*maximum-scale=([0-9]|\.)*\s*,?\s*/,
+      " "
+    );
+    meta.setAttribute("content", unlimited);
+  }
   const currentSlide = Reveal.getCurrentSlide();
 
   // Store current reveal config and disable everything but keyboard shortcuts
@@ -120,6 +136,11 @@ function activateHandoutMode() {
 }
 
 function disassembleHandoutMode() {
+  /* Restore old viewport meta */
+  const meta = document.querySelector("meta[name=viewport]");
+  if (meta) {
+    meta.setAttribute("content", storedMetaViewport);
+  }
   // Restore configuration
   Reveal.configure(previousRevealConfiguration);
 
@@ -343,10 +364,13 @@ function createSRCIntersectionObserver() {
  * Scale slide container to fit screen width without changing internal slide resolution
  */
 function onWindowResize(event) {
+  /* Update internal slide scaling only upon activation to allow later resizing with CTRL + +/- */
   const viewport = document.getElementsByClassName("reveal-viewport")[0];
   const slideWidth = Reveal.getConfig().width;
   const viewportWidth = viewport.offsetWidth;
-  slideScale = viewportWidth / slideWidth;
+  const pixelRatio = window.devicePixelRatio;
+  slideScale = (viewportWidth / slideWidth) * pixelRatio;
+  console.log("[DEBUG] devicePixelRatio:", pixelRatio); // TODO Comment this out after testing on Safari
   updateScaling();
 }
 
@@ -355,7 +379,17 @@ function updateScaling() {
   // clamp to (slightly smaller than) one to avoid horizontal scrollbar
   if (userScale > 0.95 && userScale < 1.05) userScale = 0.99;
   const scale = slideScale * userScale;
-  handoutSlides.style.transform = `scale(${scale})`;
+  handoutSlides.style.setProperty("--scale-factor", scale);
+  const containerRect = handoutContainer.getBoundingClientRect();
+  const slidesRect = handoutSlides.getBoundingClientRect();
+  // if the slides are larger than the viewport: scale from top left to fit to screen
+  if (slidesRect.width > containerRect.width) {
+    handoutSlides.style.transformOrigin = "top left";
+    handoutSlides.style.margin = "0";
+  } else {
+    handoutSlides.style.transformOrigin = "top center";
+    handoutSlides.style.margin = null;
+  }
 }
 
 /* return slide scaling factor */
@@ -469,8 +503,8 @@ function toggleHandoutMode() {
 function createButtons() {
   // add button to menu plugin
   const menu = Reveal.getPlugin("decker-menu");
-  if (menu && menu.addMenuButton) {
-    menu.addMenuButton(
+  if (menu && menu.addViewButton) {
+    menu.addViewButton(
       "menu-handout-button",
       "fa-file-arrow-down",
       navigator.language === "de"
@@ -485,6 +519,8 @@ function createButtons() {
   if (anchors) {
     let buttonMinus = document.createElement("button");
     buttonMinus.id = "handout-minus";
+    buttonMinus.ariaLabel =
+      navigator.language === "de" ? "Verkleinern" : "Zoom Out";
     buttonMinus.className = "fa-button fa-solid fa-magnifying-glass-minus";
     buttonMinus.onclick = () => {
       userScale /= 1.25;
@@ -492,6 +528,8 @@ function createButtons() {
     };
     let buttonPlus = document.createElement("button");
     buttonPlus.id = "handout-plus";
+    buttonPlus.ariaLabel =
+      navigator.language === "de" ? "Vergrößern" : "Zoom In";
     buttonPlus.className = "fa-button fa-solid fa-magnifying-glass-plus";
     buttonPlus.onclick = () => {
       userScale *= 1.25;
@@ -501,6 +539,9 @@ function createButtons() {
     anchors.placeButton(buttonPlus, "TOP_RIGHT");
   }
 }
+
+const a11y = /a11y/gi.test(window.location.search);
+const handout = /handout/gi.test(window.location.search);
 
 const Plugin = {
   id: "handout",
@@ -531,6 +572,11 @@ const Plugin = {
         }
       })
     );
+    if (a11y || handout) {
+      Reveal.addEventListener("ready", () => {
+        toggleHandoutMode();
+      });
+    }
   },
 };
 
