@@ -172,13 +172,11 @@ class SlideMenu {
    * Navigate to index page
    */
   goToIndex() {
-    if (confirm(this.localization.index_confirmation)) {
-      let projectPath = Decker.meta.projectPath;
-      if (projectPath.endsWith("/")) {
-        window.location = projectPath + "index.html";
-      } else {
-        window.location = projectPath + "/index.html";
-      }
+    let projectPath = Decker.meta.projectPath;
+    if (projectPath.endsWith("/")) {
+      window.location = projectPath + "index.html";
+    } else {
+      window.location = projectPath + "/index.html";
     }
   }
 
