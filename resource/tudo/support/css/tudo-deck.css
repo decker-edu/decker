@@ -1618,6 +1618,11 @@ section#title-slide .decker-link:hover {
   background-color: var(--background-color);
 }
 
+/* get higher contrast for hovered elements in menu */
+#decker-menu ul.slide-list > li:hover > a {
+  color: white;
+}
+
 /*********************************************
 * special rules for dark mode
 *********************************************/
