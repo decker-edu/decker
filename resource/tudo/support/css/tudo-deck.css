@@ -1163,6 +1163,13 @@ section#title-slide .decker-link:hover {
   fill: var(--icon-hover-color);
 }
 
+/* avoid too fat font when exporting PDF */
+@media print {
+  mjx-container[jax="SVG"] :is(use[data-c], path[data-c]) {
+    stroke-width: 0;
+  }
+}
+
 /*********************************************
  * fullscreen for iframes
  *********************************************/
