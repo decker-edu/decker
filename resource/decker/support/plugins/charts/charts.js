@@ -90,6 +90,8 @@ function createChart(canvas, CSV, comments) {
     };
   }
 
+  console.log(chartOptions);
+
   // MARIO: set pixel ratio
   chartOptions.devicePixelRatio = pixelRatio;
 
@@ -212,8 +214,8 @@ let initializeCharts = function () {
     canvas.setAttribute("data-chart", type);
 
     // MARIO: title
-    if (pre.hasAttribute("title")) {
-      canvas.setAttribute("data-title", pre.getAttribute("title"));
+    if (pre.hasAttribute("data-title")) {
+      canvas.setAttribute("data-title", pre.getAttribute("data-title"));
     }
 
     // MARIO: width is defined on enclosing figure element
