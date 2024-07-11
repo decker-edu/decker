@@ -11,7 +11,7 @@ experiments:
 palette:
   colors:
     light: # OKSolar (https://meat.io/oksolar)
-      - "#fbf7ef"
+      - "#f3f1eb"
       - "#f1e9d2"
       - "#8faaab"
       - "#98a8a8"
