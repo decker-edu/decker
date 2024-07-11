@@ -277,13 +277,17 @@ deckerRules = do
       let src = dropExtension out
       need [src]
       putInfo $ "# mermaid (for " <> out <> ")"
-      mermaid ["-i", src, "-o", out] (Just out)
+      -- mermaid ["-i", src, "-o", out] (Just out)
+      meta <- getGlobalMeta
+      liftIO $ runExternalForSVG "mermaid" src out meta
     --
     "**/*.dot.svg" %> \out -> do
       let src = dropExtension out
       need [src]
       putInfo $ "# dot (for " <> out <> ")"
-      dot ["-o" ++ out, src] (Just out)
+      -- dot ["-o" ++ out, src] (Just out)
+      meta <- getGlobalMeta
+      liftIO $ runExternalForSVG "dot" src out meta
     --
     "**/*.gnuplot.svg" %> \out -> do
       let src = dropExtension out
@@ -296,8 +300,11 @@ deckerRules = do
       let pdf = src -<.> ".pdf"
       let dir = takeDirectory src
       need [src]
-      pdflatex ["-output-directory", dir, src] Nothing
-      pdf2svg [pdf, out] (Just out)
+      -- pdflatex ["-output-directory", dir, src] Nothing
+      -- pdf2svg [pdf, out] (Just out)
+      meta <- getGlobalMeta
+      liftIO $ runExternal "pdflatex" src dir meta
+      liftIO $ runExternalForSVG "pdf2svg" pdf out meta
       liftIO (Dir.removeFile pdf `catch` (\(SomeException _) -> return ()))
   --
   -- Catch all. Just copy project/* to public/*. This nicely handles ALL

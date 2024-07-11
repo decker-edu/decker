@@ -8,17 +8,17 @@ Code blocks can be rendered as SVG images
 
 ## Formats
 
--   Graphviz (dot)
--   Gnuplot
--   Tikz
+- Graphviz (dot)
+- Gnuplot
+- Tikz
 
-------------------------------------------------------------------------
+---
 
 # Embedded PlantUML Code (SVG) {.columns}
 
 ## PlantUML {.left}
 
-```` {.markdown}
+````{.markdown}
 ``` {.plantuml .render}
 @startuml
 skinparam shadowing false
@@ -30,7 +30,7 @@ Alice -> Bob: test
 
 ## SVG {.right}
 
-``` {.plantuml .render width="60%"}
+```{.plantuml .render width="60%"}
 @startuml
 skinparam shadowing false
 skinparam monochrome true
@@ -38,11 +38,13 @@ Alice -> Bob: test
 @enduml
 ```
 
+---
+
 # Embedded Mermaid Code (SVG) {.columns}
 
 ## Mermaid {.left}
 
-```` {.markdown}
+````{.markdown}
 ``` {.mermaid .render}
 graph TD
 A[Client] --> B[Load Balancer]
@@ -51,24 +53,24 @@ A[Client] --> B[Load Balancer]
 
 ## SVG {.right}
 
-``` {.mermaid .render width="60%"}
+```{.mermaid .render width="60%"}
 graph TD
 A[Client] --> B[Load Balancer]
+
 ```
 
-
-------------------------------------------------------------------------
+---
 
 # Embedded Graphviz Code (SVG) {layout="columns"}
 
 ## Highlighted {.left}
 
-```` {.markdown}
+````{.markdown}
 ``` {.dot .render width="80%"}
 digraph {
   node [style = filled]
   A {fillcolor = yellow}
-  A -> B 
+  A -> B
   A -> C
   C -> D
   C -> E
@@ -80,11 +82,11 @@ digraph {
 
 ## Rendered {.right}
 
-``` {.dot .render width="80%"}
+```{.dot .render width="80%"}
 digraph {
   node [style = filled]
   A [fillcolor = yellow]
-  A -> B 
+  A -> B
   A -> C
   C -> D
   C -> E
@@ -93,13 +95,13 @@ digraph {
 }
 ```
 
-------------------------------------------------------------------------
+---
 
 # Embedded Gnuplot (SVG) {layout="columns"}
 
 ## Highlighted {.left}
 
-```` {.gnuplot}
+````{.gnuplot}
 ``` {.gnuplot .render width="80%"}
 set samples 20, 20
 set isosamples 20, 20
@@ -115,7 +117,7 @@ splot 1 / (x*x + y*y + 1)
 
 ## Rendered {.right}
 
-``` {.gnuplot .render}
+```{.gnuplot .render}
 set samples 20, 20
 set isosamples 20, 20
 set hidden3d back offset 1 trianglepattern 3 undefined 1 altdiagonal bentover
@@ -127,13 +129,13 @@ DEBUG_TERM_VTIC = 118
 splot 1 / (x*x + y*y + 0.5)
 ```
 
-------------------------------------------------------------------------
+---
 
 # PlantUML Files as Images {layout="columns"}
 
 ## Image Tag {.left}
 
-``` {.markdown}
+```{.markdown}
 ![](alice-bob.plantuml){.render}
 ```
 
@@ -141,13 +143,13 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](alice-bob.plantuml){.plantuml .render width="60%"}
 
-------------------------------------------------------------------------
+---
 
 # Dot Files as Images {layout="columns"}
 
 ## Image Tag {.left}
 
-``` {.markdown}
+```{.markdown}
 ![](graph.dot){.dot .render}
 ```
 
@@ -155,13 +157,13 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](graph.dot){.dot .render}
 
-------------------------------------------------------------------------
+---
 
 # Tikz Files as Images {layout="columns"}
 
 ## Image Tag {.left}
 
-``` {.markdown}
+```{.markdown}
 ![](tikz.tex){.render}
 ```
 
@@ -169,11 +171,11 @@ splot 1 / (x*x + y*y + 0.5)
 
 ![](tikz.tex){.tex .render}
 
-------------------------------------------------------------------------
+---
 
 # Tikz Embedded
 
-``` {.tex .render width="50%"}
+```{.tex .render width="50%"}
 \documentclass{standalone}
 \usepackage{tikz}
 \usepackage{verbatim}
@@ -189,7 +191,7 @@ splot 1 / (x*x + y*y + 0.5)
   \colorlet{tancolor}{orange!80!black}
   \colorlet{coscolor}{blue}
 
-  % Styles 
+  % Styles
   \tikzstyle{axes}=[]
   \tikzstyle{important line}=[very thick]
   \tikzstyle{information text}=[rounded corners,fill=red!10,inner sep=1ex]
@@ -227,7 +229,6 @@ splot 1 / (x*x + y*y + 0.5)
       $\displaystyle \tan \alpha \color{black}=
       \frac{ {\color{sincolor}\sin \alpha} }{\color{coscolor}\cos \alpha}$
     } (intersection of 0,0--30:1cm and 1,0--1,1) coordinate (t);
-
   \draw (0,0) -- (t);
 \end{tikzpicture}
 \end{document}

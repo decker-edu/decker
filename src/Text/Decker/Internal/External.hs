@@ -16,6 +16,8 @@ module Text.Decker.Internal.External
     ffmpeg,
     checkExternalPrograms,
     forceCheckExternalPrograms,
+    runExternal,
+    runExternalForSVG,
   )
 where
 
@@ -26,6 +28,7 @@ import Data.ByteString.Lazy qualified as B
 import Data.List (lookup)
 import Data.List qualified as List
 import Data.Maybe
+import Data.Text qualified as Text
 import Development.Shake
 import Development.Shake.FilePath (takeDirectory)
 import Relude hiding (id)
@@ -34,10 +37,74 @@ import System.Directory qualified as Dir
 import System.Exit
 import System.Process
 import Text.Blaze.Renderer.Utf8 (renderMarkup)
-import Text.Blaze.Svg11 hiding (path) 
-import Text.Blaze.Svg11.Attributes hiding (path)
+import Text.Blaze.Svg11 hiding (path)
+import Text.Blaze.Svg11.Attributes hiding (path, style)
 import Text.Decker.Internal.Common
+import Text.Decker.Internal.Exception
+import Text.Decker.Internal.Meta (lookupMeta, lookupMetaOrFail)
 import Text.Decker.Project.ActionContext
+import Text.Pandoc (Meta)
+import Text.Pandoc.Definition (MetaValue)
+
+data Option = Option String | InputFile FilePath | OutputFile FilePath
+  deriving (Show)
+
+runExternal :: String -> FilePath -> FilePath -> Meta -> IO ()
+runExternal tool inPath outPath meta = do
+  let program :: Maybe MetaValue = lookupMeta ("external-tools." <> toText tool) meta
+  case program of
+    Just program -> do
+      let command :: String =
+            lookupMetaOrFail ("external-tools." <> toText tool <> ".command") meta
+      let arguments =
+            substituteInOut2 inPath outPath
+              $ lookupMetaOrFail ("external-tools." <> toText tool <> ".arguments") meta
+      putStrLn $ "# " <> intercalate " " ([command] <> arguments) <> " (for " <> outPath <> ")"
+      catch
+        (callProcess command arguments)
+        ( \(SomeException e) -> do
+            let help :: String =
+                  lookupMetaOrFail ("external-tools." <> toText tool <> ".help") meta
+            throw
+              $ ExternalException
+              $ "\nexternal tool configured but unable to run: "
+              <> tool
+              <> "\nfor more information consult: "
+              <> help
+              <> "\n\n"
+              <> show e
+        )
+    Nothing ->
+      liftIO
+        $ throw
+        $ ExternalException
+        $ "\nexternal tool not configured: "
+        <> tool
+        <> "\n\n"
+
+substituteInOut :: FilePath -> FilePath -> [String] -> [String]
+substituteInOut input output =
+  map
+    ( \argument -> case argument of
+        "$input" -> input
+        "$output" -> output
+        _ -> toString argument
+    )
+
+substituteInOut2 :: FilePath -> FilePath -> [String] -> [String]
+substituteInOut2 input output =
+  map
+    ( toString
+        . Text.replace "${input}" (toText input)
+        . Text.replace "${output}" (toText output)
+        . toText
+    )
+
+runExternalForSVG :: String -> FilePath -> FilePath -> Meta -> IO ()
+runExternalForSVG tool inPath outPath meta = do
+  catch
+    (runExternal tool inPath outPath meta)
+    (\(SomeException e) -> renderErrorSvg (Just outPath) (show e))
 
 data ExternalProgram = ExternalProgram
   { -- options :: [CmdOption],
@@ -155,28 +222,10 @@ ffmpeg = makeProgram "ffmpeg"
 helpText :: String -> String
 helpText name = name ++ " reported a problem:"
 
-{--
-makeProgram' :: String -> ([String] -> Action ())
-makeProgram' name =
-  let external = fromJust $ List.lookup name programs
-   in (\arguments -> do
-         (Exit code, Stdout out, Stderr err) <-
-           command
-             (options external)
-             (path external)
-             (args external ++ arguments)
-         case code of
-           ExitSuccess -> return ()
-           ExitFailure _ ->
-             throw $
-             ExternalException $
-             "\n" ++ help external ++ "\n\n" ++ err ++ "\n\n" ++ out)
---}
-
 makeProgram :: String -> [String] -> Maybe FilePath -> Action ()
 makeProgram name =
   let external = fromJust $ List.lookup name programs
-   in (\arguments dst -> do
+   in ( \arguments dst -> do
           context <- actionContext
           let status = context ^. externalStatus
           if fromMaybe False (lookup name status)
@@ -189,13 +238,16 @@ makeProgram name =
 
 renderErrorSvg :: Maybe String -> String -> IO ()
 renderErrorSvg dst msg = do
-    putStrLn $ "# ERROR: " <> msg
-    case dst of
-        Just out -> do
-            let svg = docTypeSvg $ text_ ! x "20" ! y "20" ! class_ "inline-error" $ toSvg $ toText msg
-            let bytes = renderMarkup svg
-            B.writeFile out bytes
-        Nothing -> return ()
+  putStrLn $ "# ERROR: " <> msg
+  case dst of
+    Just out -> do
+      let svg =
+            docTypeSvg ! viewbox "0 0 512 512" $ do
+              style "text{font-size:30px;fill:red;}"
+              text_ ! x "20" ! y "20" $ toSvg $ toText msg
+      let bytes = renderMarkup svg
+      B.writeFile out bytes
+    Nothing -> return ()
 
 checkProgram :: String -> IO Bool
 checkProgram name =
