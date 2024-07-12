@@ -275,10 +275,6 @@ header > *:last-child {
   margin-bottom: 0;
 }
 
-::-webkit-scrollbar {
-  display: none;
-}
-
 div.anchor details {
   margin-bottom: 1em;
 }
@@ -708,6 +704,11 @@ li {
   summary {
     width: 90%;
   }
+
+  /* avoid too fat font when exporting PDF */
+  mjx-container[jax="SVG"] :is(use[data-c], path[data-c]) {
+    stroke-width: 0 !important;
+  }
 }
 
 /*********************************************
@@ -1062,10 +1063,6 @@ div.image-row div {
 
 div.image-row img {
   display: block;
-}
-
-::-webkit-scrollbar {
-  display: none;
 }
 
 details {

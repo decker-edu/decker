@@ -131,6 +131,11 @@ function activateHandoutMode() {
   revealElem.parentElement.insertBefore(handoutContainer, revealElem);
   attachWindowEventListeners();
 
+  /* adjust height of extra whiteboard slides */
+  handoutContainer
+    .querySelectorAll("svg.whiteboard")
+    .forEach(makeWhiteboardVisible);
+
   /* Scroll to the current slide (I like smooth more but it gets cancelled inside some decks) */
   currentSlide.scrollIntoView({ behavior: "instant", start: "top" });
 }
@@ -198,12 +203,8 @@ function makeSlidesVisible(slideElement) {
   for (const slide of slides) {
     slide.inert = false;
     slide.hidden = false;
+    slide.style.display = "block";
     slide.removeAttribute("aria-hidden");
-    //if the slide has a whiteboard make it visible
-    const whiteboard = slide.getElementsByClassName("whiteboard")[0];
-    if (whiteboard) {
-      makeWhiteboardVisible(whiteboard);
-    }
   }
 }
 
@@ -390,6 +391,8 @@ function updateScaling() {
     handoutSlides.style.transformOrigin = "top center";
     handoutSlides.style.margin = null;
   }
+  if (centralSlide)
+    centralSlide.scrollIntoView({ behavior: "instant", block: "center" });
 }
 
 /* return slide scaling factor */

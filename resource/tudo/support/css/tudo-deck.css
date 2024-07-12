@@ -5,6 +5,10 @@
  * GLOBAL STYLES
  *********************************************/
 
+:root {
+  --root-font-size: 32px;
+}
+
 body {
   background: var(--background-color);
   font-family: "Lato", sans-serif;
@@ -19,7 +23,7 @@ body.reveal-viewport {
 }
 
 .reveal {
-  font-size: 32px;
+  font-size: var(--root-font-size);
   font-weight: normal;
 }
 
@@ -90,18 +94,6 @@ div.block {
 /*********************************************
  * font sizes and styles
  *********************************************/
-
-.reveal .tiny {
-  font-size: 0.5em;
-}
-
-.reveal .small {
-  font-size: 0.7em;
-}
-
-.reveal .large {
-  font-size: 1.2em;
-}
 
 del {
   color: var(--accent0);
@@ -692,16 +684,16 @@ code span.wa {
   width: unset;
   margin: auto;
   border-collapse: collapse;
-  border-spacing: 2px;
-  border-top: 2px solid var(--shade6);
-  border-bottom: 2px solid var(--shade6);
+  border-spacing: 0.07em;
+  border-top: 0.07em solid var(--shade6);
+  border-bottom: 0.07em solid var(--shade6);
   text-align: center;
   margin-bottom: 1em;
   line-height: 1.5em;
 }
 
 .reveal table caption {
-  margin: 10px 0px 0px 0px;
+  margin: 0.35em 0px 0px 0px;
   line-height: 1.2;
   font-style: italic;
   font-size: 0.8em;
@@ -714,7 +706,7 @@ code span.wa {
 }
 
 .reveal table thead {
-  border-bottom: 1px solid var(--shade6);
+  border-bottom: 0.035em solid var(--shade6);
 }
 
 .reveal table th,
@@ -1161,6 +1153,13 @@ section#title-slide .decker-link:hover {
 .reveal section mjx-container > svg a {
   color: var(--icon-hover-color);
   fill: var(--icon-hover-color);
+}
+
+/* avoid too fat font when exporting PDF */
+@media print {
+  mjx-container[jax="SVG"] :is(use[data-c], path[data-c]) {
+    stroke-width: 0;
+  }
 }
 
 /*********************************************
@@ -1616,6 +1615,11 @@ section#title-slide .decker-link:hover {
 .decker-anchor > button.fa-button:hover,
 .decker-anchor > button.fa-button:focus {
   background-color: var(--background-color);
+}
+
+/* get higher contrast for hovered elements in menu */
+#decker-menu ul.slide-list > li:hover > a {
+  color: white;
 }
 
 /*********************************************

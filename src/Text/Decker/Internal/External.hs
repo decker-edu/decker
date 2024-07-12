@@ -28,13 +28,14 @@ import Data.List qualified as List
 import Data.Maybe
 import Development.Shake
 import Development.Shake.FilePath (takeDirectory)
-import Relude
+import Relude hiding (id)
 import System.Console.ANSI
 import System.Directory qualified as Dir
 import System.Exit
 import System.Process
 import Text.Blaze.Renderer.Utf8 (renderMarkup)
-import Text.Blaze.Svg11 (docType)
+import Text.Blaze.Svg11 hiding (path) 
+import Text.Blaze.Svg11.Attributes hiding (path)
 import Text.Decker.Internal.Common
 import Text.Decker.Project.ActionContext
 
@@ -86,7 +87,7 @@ programs =
         "mmdc"
         []
         ["-V"]
-        (helpText "Mermaid (https://mermaid.com)")
+        (helpText "Mermaid (https://mermaid.js.org)")
     ),
     ( "gnuplot",
       ExternalProgram
@@ -175,23 +176,26 @@ makeProgram' name =
 makeProgram :: String -> [String] -> Maybe FilePath -> Action ()
 makeProgram name =
   let external = fromJust $ List.lookup name programs
-   in ( \arguments dst -> do
+   in (\arguments dst -> do
           context <- actionContext
           let status = context ^. externalStatus
           if fromMaybe False (lookup name status)
             then do
               let command = intercalate " " $ [path external] <> args external <> arguments
               putNormal $ "# " ++ command
-              liftIO $ callCommand command
-            else do
-              case dst of
-                Just out -> do
-                  putError $ "External program '" <> name <> "' is not available. Rendering error to '" <> out <> "'."
-                  let bytes = renderMarkup docType
-                  liftIO $ B.writeFile out bytes
-                Nothing ->
-                  putError $ "External program '" <> name <> "' is not available."
+              liftIO $ catch (callCommand command) (\(SomeException e) -> renderErrorSvg dst (show e))
+            else liftIO $ renderErrorSvg dst $ "External program '" <> name <> "' is not installed."
       )
+
+renderErrorSvg :: Maybe String -> String -> IO ()
+renderErrorSvg dst msg = do
+    putStrLn $ "# ERROR: " <> msg
+    case dst of
+        Just out -> do
+            let svg = docTypeSvg $ text_ ! x "20" ! y "20" ! class_ "inline-error" $ toSvg $ toText msg
+            let bytes = renderMarkup svg
+            B.writeFile out bytes
+        Nothing -> return ()
 
 checkProgram :: String -> IO Bool
 checkProgram name =

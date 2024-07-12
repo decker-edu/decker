@@ -399,7 +399,8 @@ function createGridPattern() {
   svg.style.width = "10px";
   svg.style.height = "10px";
   svg.style.pointerEvents = "none";
-  slides.insertBefore(svg, slides.firstChild);
+  const viewport = Reveal.getViewportElement();
+  viewport.insertBefore(svg, viewport.firstChild);
 
   const h = Math.floor(Math.min(pageWidth, pageHeight) / 25);
   const rectWidth = pageWidth - 2;
