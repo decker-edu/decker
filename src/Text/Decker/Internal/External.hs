@@ -44,27 +44,26 @@ import Text.Decker.Internal.Exception
 import Text.Decker.Internal.Meta (lookupMeta, lookupMetaOrFail)
 import Text.Decker.Project.ActionContext
 import Text.Pandoc (Meta)
-import Text.Pandoc.Definition (MetaValue)
+import qualified System.Info
 
 data Option = Option String | InputFile FilePath | OutputFile FilePath
   deriving (Show)
 
 runExternal :: String -> FilePath -> FilePath -> Meta -> IO ()
 runExternal tool inPath outPath meta = do
-  let program :: Maybe MetaValue = lookupMeta ("external-tools." <> toText tool) meta
-  case program of
+  case selectProgramDefinition tool meta of
     Just program -> do
       let command :: String =
-            lookupMetaOrFail ("external-tools." <> toText tool <> ".command") meta
+            lookupMetaOrFail (program <> ".command") meta
       let arguments =
-            substituteInOut2 inPath outPath
-              $ lookupMetaOrFail ("external-tools." <> toText tool <> ".arguments") meta
+            substituteInOut inPath outPath
+              $ lookupMetaOrFail (program <> ".arguments") meta
       putStrLn $ "# " <> intercalate " " ([command] <> arguments) <> " (for " <> outPath <> ")"
       catch
         (callProcess command arguments)
         ( \(SomeException e) -> do
             let help :: String =
-                  lookupMetaOrFail ("external-tools." <> toText tool <> ".help") meta
+                  lookupMetaOrFail (program <> ".help") meta
             throw
               $ ExternalException
               $ "\nexternal tool configured but unable to run: "
@@ -82,17 +81,18 @@ runExternal tool inPath outPath meta = do
         <> tool
         <> "\n\n"
 
+selectProgramDefinition :: String -> Meta -> Maybe Text
+selectProgramDefinition tool meta =
+    let osId = case System.Info.os of
+                "darwin" -> ".macos"
+                "mingw32" -> ".windows"
+                _ -> ".linux"
+        config = "external-tools." <> toText tool
+        osConfig = config <> osId
+    in asum [lookupMeta osConfig meta, lookupMeta config meta]
+
 substituteInOut :: FilePath -> FilePath -> [String] -> [String]
 substituteInOut input output =
-  map
-    ( \argument -> case argument of
-        "$input" -> input
-        "$output" -> output
-        _ -> toString argument
-    )
-
-substituteInOut2 :: FilePath -> FilePath -> [String] -> [String]
-substituteInOut2 input output =
   map
     ( toString
         . Text.replace "${input}" (toText input)

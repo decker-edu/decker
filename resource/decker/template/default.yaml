@@ -146,13 +146,30 @@ test: # TODO: @mono this should probably go somewhere else, maybe add a test.yam
 # external tools
 external-tools:
   mermaid:
-    command: mmdc
-    arguments:
-      - "-i"
-      - "${input}"
-      - "-o"
-      - "${output}"
-    help: https://github.com/mermaid-js/mermaid-cli
+    macos:
+      command: mmdc
+      arguments:
+        - "-i"
+        - "${input}"
+        - "-o"
+        - "${output}"
+      help: https://github.com/mermaid-js/mermaid-cli
+    windows:
+      command: mmdc
+      arguments:
+        - "-i"
+        - "${input}"
+        - "-o"
+        - "${output}"
+      help: https://github.com/mermaid-js/mermaid-cli
+    linux:
+      command: mmdc
+      arguments:
+        - "-i"
+        - "${input}"
+        - "-o"
+        - "${output}"
+      help: https://github.com/mermaid-js/mermaid-cli
   dot:
     command: dot
     arguments:
