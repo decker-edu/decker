@@ -1,0 +1,28 @@
+.xx-small {
+  font-size: 0.4em;
+}
+
+.x-small {
+  font-size: 0.6em;
+}
+
+.small {
+  font-size: 0.8em;
+}
+
+/* This can be set per document as a variable and is meant to reset the font-size inside sized containers */
+.normal {
+  font-size: var(--root-font-size);
+}
+
+.large {
+  font-size: 1.2em;
+}
+
+.x-large {
+  font-size: 1.4em;
+}
+
+.xx-large {
+  font-size: 1.6em;
+}
