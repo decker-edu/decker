@@ -25,7 +25,6 @@ import Text.Decker.Exam.Filter
 import Text.Decker.Filter.Decker2
 import Text.Decker.Filter.Detail
 import Text.Decker.Filter.Filter
-import Text.Decker.Filter.IncludeCode
 import Text.Decker.Filter.Macro
 import Text.Decker.Filter.Monad
 import Text.Decker.Filter.Paths
@@ -306,7 +305,6 @@ deckerPipeline (Disposition Deck Html) =
     [ evaluateShortLinks,
       -- expandTemplateMacros,
       expandDeckerMacros,
-      includeCode,
       processDetailDiv,
       processSlides,
       handlePolls,
@@ -317,7 +315,6 @@ deckerPipeline (Disposition Page Html) =
     [ evaluateShortLinks,
       -- expandTemplateMacros,
       expandDeckerMacros,
-      includeCode,
       processDetailDiv,
       processDetailHeader
     ]
@@ -326,7 +323,6 @@ deckerPipeline (Disposition Index Html) =
     [ evaluateShortLinks,
       -- expandTemplateMacros,
       expandDeckerMacros,
-      includeCode,
       processDetailDiv,
       processDetailHeader
     ]
@@ -335,7 +331,6 @@ deckerPipeline (Disposition Handout Html) =
     [ evaluateShortLinks,
       -- expandTemplateMacros,
       expandDeckerMacros,
-      includeCode,
       processDetailDiv,
       processSlides
     ]
