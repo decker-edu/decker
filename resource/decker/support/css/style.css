@@ -129,11 +129,11 @@ table caption {
 }
 tbody {
   margin-top: 0.5em;
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
+  border-top: 0.03em solid black;
+  border-bottom: 0.03em solid black;
 }
 th {
-  border-top: 1px solid black;
+  border-top: 0.03em solid black;
   padding: 0.2em 0.5em 0.2em 0.5em;
   font-weight: bolder;
 }
@@ -216,7 +216,16 @@ div.block.accent7 {
   background-color: var(--accent7-bbg);
 }
 
-span:is(.accent0, .accent1, .accent2, .accent3, .accent4, .accent5, .accent6, .accent7) {
+span:is(
+    .accent0,
+    .accent1,
+    .accent2,
+    .accent3,
+    .accent4,
+    .accent5,
+    .accent6,
+    .accent7
+  ) {
   padding-left: 0.2em;
   padding-right: 0.2em;
   margin-left: -0.2em;

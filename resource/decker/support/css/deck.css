@@ -8,11 +8,16 @@ Margins, colors, fonts and stuff should be defined here. */
 @import url("./structure.css");
 @import url("./style.css");
 @import url("./media.css");
+@import url("./sizes.css");
+
+:root {
+  --root-font-size: 38px;
+}
 
 /* Box sizing is much nicer for calculations. */
 body.deck {
   box-sizing: border-box;
-  font-size: 38px;
+  font-size: var(--root-font-size);
 }
 
 /* Title slide (simple) */
