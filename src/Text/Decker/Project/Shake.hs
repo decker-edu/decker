@@ -74,7 +74,7 @@ runDeckerArgs args theRules = do
           else want targets >> withoutActions theRules
   meta <- readMetaDataFile globalMetaFileName
   context <- initContext flags meta
-  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version", "check"]
+  let commands = ["clean", "purge", "example", "serve", "crunch", "crrrunch", "transcribe", "transcrrribe", "pdf", "version"]
   case targets of
     [command] | command `elem` commands -> runCommand context command rules
     _ -> runTargets context targets rules
@@ -211,7 +211,6 @@ runCommand context command rules = do
     "transcribe" -> transcribeRecordings context
     "transcrrribe" -> transcribeAllRecordings context
     "version" -> putDeckerVersion
-    "check" -> forceCheckExternalPrograms
     "pdf" -> do
       putStrLn (toString pdfMsg)
       id <- forkServer context
@@ -332,13 +331,12 @@ initContext extra meta = do
   transient <- transientDir
   createDirectoryIfMissing True transient
   devRun <- isDevelopmentRun
-  external <- checkExternalPrograms
   server <- newTVarIO (ServerState [] Set.empty)
   watch <- newIORef False
   public <- newResourceIO "public" 1
   chan <- atomically newTChan
   when devRun $ putStrLn "This is a DEVELOPMENT RUN"
-  return $ ActionContext extra devRun external server watch chan public (addMetaFlags extra meta)
+  return $ ActionContext extra devRun server watch chan public (addMetaFlags extra meta)
 
 watchChangesAndRepeat :: Action ()
 watchChangesAndRepeat = do

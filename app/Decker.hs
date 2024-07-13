@@ -27,6 +27,7 @@ import Text.Decker.Filter.Index
 import Text.Decker.Internal.Caches
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.External
+    ( runExternal, runExternalForSVG )
 import Text.Decker.Internal.Helper
 import Text.Decker.Internal.Meta
 import Text.Decker.Project.Glob (fastGlobFiles')
@@ -35,9 +36,7 @@ import Text.Decker.Project.Shake
 import Text.Decker.Resource.Resource
 import Text.Decker.Writer.Html
 import Text.Decker.Writer.Layout
-import Text.Decker.Writer.Pdf
 import Text.Groom
-import Text.Pandoc hiding (lookupMeta)
 
 main :: IO ()
 main = do
@@ -184,13 +183,13 @@ deckerRules = do
       -- files existence with the Shake function `doesFileExist`.
       exists <- doesFileExist annot
       when exists $ need [annot]
-      let url = serverUrl </> makeRelative publicDir src
+      let url = serverUrl </> makeRelative publicDir src <> "?print-pdf#/"
       need [src]
       putInfo $ "# chrome started ... (for " <> out <> ")"
-      result <- liftIO $ launchChrome url out
-      case result of
-        Right _ -> putInfo $ "# chrome finished (for " <> out <> ")"
-        Left msg -> error msg
+      -- result <- liftIO $ launchChrome url out
+      meta <- getGlobalMeta
+      liftIO $ runExternal "chrome" url out meta
+      putInfo $ "# chrome finished (for " <> out <> ")"
     --
     publicDir <//> "*-handout.html" %> \out -> do
       src <- lookupSource handouts out <$> getDeps
@@ -264,13 +263,17 @@ deckerRules = do
       whenM (liftIO $ Dir.doesFileExist src) $ do
         need [src]
         putInfo $ "# sassc (for " <> out <> ")"
-        command [] "sassc" [src, out]
+        -- command [] "sassc" [src, out]
+        meta <- getGlobalMeta
+        liftIO $ runExternalForSVG "sassc" src out meta
     --
     "**/*.plantuml.svg" %> \out -> do
       let src = dropExtension out
       need [src]
       putInfo $ "# plantuml (for " <> out <> ")"
-      plantuml [src] (Just $ src -<.> "svg")
+      -- plantuml [src] (Just $ src -<.> "svg")
+      meta <- getGlobalMeta
+      liftIO $ runExternalForSVG "plantuml" src out meta
       liftIO $ Dir.renameFile (src -<.> "svg") out
     --
     "**/*.mmd.svg" %> \out -> do
@@ -293,7 +296,9 @@ deckerRules = do
       let src = dropExtension out
       need [src]
       putInfo $ "# gnuplot (for " <> out <> ")"
-      gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src] (Just out)
+      -- gnuplot ["-e", "\"set output '" ++ out ++ "'\"", src] (Just out)
+      meta <- getGlobalMeta
+      liftIO $ runExternalForSVG "gnuplot" src out meta
     --
     "**/*.tex.svg" %> \out -> do
       let src = dropExtension out
@@ -335,10 +340,6 @@ deckerRules = do
       putWarn "\ntop level meta data:\n"
       putWarn (groom meta)
   --
-  withTargetDocs "Check the existence of usefull external programs" $
-    phony "check" $
-      liftIO forceCheckExternalPrograms
-  --
   withTargetDocs "Copy runtime support files to public dir." $
     phony "support" $ do
       deps <- getDeps
@@ -353,13 +354,8 @@ deckerRules = do
       createPublicManifest
       let src = publicDir ++ "/"
       case lookupMeta "publish.rsync.destination" meta of
-        Just destination -> publishWithRsync src destination meta
-        _ -> do
-          let host = lookupMetaOrFail "rsync-destination.host" meta
-          let path = lookupMetaOrFail "rsync-destination.path" meta
-          let dst = intercalate ":" [host, path]
-          ssh [host, "mkdir -p", path] Nothing
-          rsync [src, dst] Nothing
+        Just destination -> liftIO $ runExternal "rsync" src destination meta
+        Nothing -> return ()
 
 createPublicManifest :: Action ()
 createPublicManifest = do
@@ -383,11 +379,6 @@ needIfExists suffix also out = do
   annotSrc <- calcSource' annotDst
   exists <- liftIO $ Dir.doesFileExist annotSrc
   when exists $ need [annotDst]
-
-publishWithRsync :: String -> String -> Meta -> Action ()
-publishWithRsync source destination meta = do
-  let options = lookupMetaOrElse [] "publish.rsync.options" meta :: [String]
-  rsync (options <> [source, destination]) Nothing
 
 waitForYes :: IO ()
 waitForYes = do

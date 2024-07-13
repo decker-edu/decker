@@ -121,20 +121,6 @@ dictionary:
       qmi-drop-hint: "…and put them here into the correct category."
       ic-placeholder: "Select option…"
 
-# 'decker publish' config:
-
-publish:
-  rsync:
-    options: # old default publish.rsync.options: ('--chmod=go-w' breaks things in managed systems)
-      - "--recursive"
-      - "--copy-links"
-      - "--delete"
-      - "--no-group"
-      - "--perms"
-      - "--chmod=a+r,go-w"
-      - "--no-owner"
-      - "--copy-links"
-
 test: # TODO: @mono this should probably go somewhere else, maybe add a test.yaml that only gets included if run via 'stack run -- --server' locally
   only-default: "From default.yaml"
   default-decker: "From default.yaml"
@@ -145,6 +131,48 @@ test: # TODO: @mono this should probably go somewhere else, maybe add a test.yam
 
 # external tools
 external-tools:
+  rsync:
+    command: rsync
+    arguments:
+      - "--recursive"
+      - "--copy-links"
+      - "--delete"
+      - "--no-group"
+      - "--perms"
+      - "--chmod=a+r,go-w"
+      - "--no-owner"
+      - "--copy-links"
+      - "${input}"
+      - "${output}"
+    help: ""
+  gnuplot:
+    command: "gnuplot"
+    arguments:
+      - "-d"
+      - "-e"
+      - "set terminal svg"
+      - "-e"
+      - "set output '${output}'"
+      - "${input}"
+    help: ""
+  plantuml:
+    command: "plantuml"
+    arguments:
+      - "-tsvg"
+      - "${input}"
+    help: ""
+  chrome:
+    macos:
+      command: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      arguments:
+        - "--headless"
+        - "--virtual-time-budget=5001"
+        - "--disable-gpu"
+        - "--no-pdf-header-footer"
+        - "--user-data-dir=${tmpdir}"
+        - "--print-to-pdf=${output}"
+        - "${input}"
+      help: ""
   mermaid:
     macos:
       command: mmdc
