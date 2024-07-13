@@ -255,7 +255,7 @@ readMetaData globalMeta path = do
   need [path]
   putVerbose $ "# --> readMetaData: " <> path
   let base = takeDirectory path
-  meta <- liftIO $ readMetaDataFile path
+  meta <- liftIO $ fromRight nullMeta <$> readMetaDataFile path
   adjustMetaPaths globalMeta base meta >>= readAdditionalMeta globalMeta base
 
 readDeckerMeta :: FilePath -> Action Meta

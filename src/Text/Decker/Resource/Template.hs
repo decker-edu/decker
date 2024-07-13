@@ -1,7 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Text.Decker.Resource.Template
@@ -123,7 +121,7 @@ readTemplateMeta' (LocalDir baseDir) = do
   let defaultMeta = baseDir </> defaultMetaPath
   putInfo $ "# loading meta data from: " <> defaultMeta
   need [defaultMeta]
-  liftIO $ readMetaDataFile defaultMeta
+  liftIO $ fromRight nullMeta <$> readMetaDataFile defaultMeta
 readTemplateMeta' None = do
   putInfo "# no pack, no meta data"
   return nullMeta
