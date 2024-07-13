@@ -41,7 +41,7 @@ import Text.Blaze.Svg11 hiding (path)
 import Text.Blaze.Svg11.Attributes hiding (path, style)
 import Text.Decker.Internal.Common
 import Text.Decker.Internal.Exception
-import Text.Decker.Internal.Meta (lookupMeta, lookupMetaOrFail)
+import Text.Decker.Internal.Meta (lookupMetaOrFail, isMetaSet)
 import Text.Decker.Project.ActionContext
 import Text.Pandoc (Meta)
 import qualified System.Info
@@ -84,12 +84,14 @@ runExternal tool inPath outPath meta = do
 selectProgramDefinition :: String -> Meta -> Maybe Text
 selectProgramDefinition tool meta =
     let osId = case System.Info.os of
-                "darwin" -> ".macos"
-                "mingw32" -> ".windows"
-                _ -> ".linux"
+                "darwin" -> "macos"
+                "mingw32" -> "windows"
+                _ -> "linux"
         config = "external-tools." <> toText tool
-        osConfig = config <> osId
-    in asum [lookupMeta osConfig meta, lookupMeta config meta]
+        osConfig = config <> "." <> osId
+    in if | isMetaSet osConfig meta -> Just osConfig
+          | isMetaSet config meta -> Just config
+          | otherwise -> Nothing
 
 substituteInOut :: FilePath -> FilePath -> [String] -> [String]
 substituteInOut input output =
